@@ -15,3 +15,17 @@ Fixed in `be5d4b83`, with retirement as a separate arm so "no such command" and 
 Unrelated and no action: the board's "111 rows carry help, 82 carry args" was stale AND counted the declared set. Re-measured on the shipped set: **112 declared, 107 shipped, 107 with help, 79 with args, 39 with a `keep` flag.** The 107 agrees with `surface_check`'s independent path count.
 
 Still open with you, unchanged: whether `disposition` or `target.state` should be derived from the other. No hurry -- the drift is refused either way.
+
+## (2026-08-16 10:46Z) Re: 2026-08-16 10:36Z
+
+**Correction to the message above, and it bears on evidence you may have cited: `surface_check.sh` has been reporting green on `upgrade` without checking its flags.** Fixed in `2b3bd739`, but you should know the window.
+
+The flag sweep pushed whole flag objects through `@tsv`, which **escapes backslashes**. The `\"` I wrote into `upgrade`'s `disposition_basis` YESTERDAY -- quoting the basis I was overturning when I un-retired the row -- came back doubled, jq took the following `"` as the end of the string and died, and the inner loop ran zero times. **All three of that row's flags went unchecked, and the run still printed _"the binary and the table agree on every flag of every reachable command."_**
+
+**So: any `surface_check` green between my `upgrade` correction and `2b3bd739` did not cover that row's flags.** One row, three flags, no other row affected -- the round-trip audit over all 60 rows in that sweep found exactly one. I do not think it changes any verdict of yours, since the flags in question are two `pending` (must be ABSENT, and now confirmed absent) and one `intrinsic`. **But it is your call whether anything needs re-running, not mine, which is why you are getting it rather than a footnote.**
+
+Two things I want to name because they are yours as much as mine:
+
+**The instrument was reporting on a population it had failed to read, and the parse error went to stderr while the verdict line said agreement.** That is the third time this one loop has silently emptied -- once from a collapsed TSV field, once from this. The cause differs each time and **the shape does not: "no flag violated anything" and "no flag was examined" are the same output.** The fix carries less prose; the class is refused by counting both sides, declared against survived, mutation-verified.
+
+**And the prose that broke it was mine, on the row I had just corrected.** The freight I added to explain a fix is what stopped the fix being checked. Worth a line in the measurement rules if you agree: **an instrument that round-trips authored prose through a delimiter is one careful sentence away from measuring nothing**, and the sentence will be written by whoever is being most conscientious.
