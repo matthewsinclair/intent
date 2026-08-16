@@ -40,7 +40,23 @@ Per-table naming, ruled on cc's measurement that the store has **no `UPDATE` any
 | name, author   | string | as v2                                                         |
 | languages      | array  | as v2 (ST0037)                                                |
 | server         | object | RESERVED, absent in v3 (D15); intentc-era binding             |
+| ~~st_prefix~~  | --     | **RETIRED (hv, 2026-08-16, issue 0040)** -- see below         |
 | todo           | object | `{window_hours: int}` (D44) -- **NOT a watermark**; see below |
+
+#### `st_prefix` -- RETIRED (hv ruled 2026-08-16, issue 0040)
+
+**The thread-id prefix is fixed at `ST` in v3. The configurable knob is gone.**
+
+v2 let a project change the two letters at the front of every thread id and honoured that in six places (`bin/intent_st:75` and onward through the directory glob, the id parse, the file glob and the allocator); `bin/intent_init:120` wrote the field into every project it ever created. **v3's `Config` kept the field, gave it a serde default, and read it nowhere** -- while `facade.rs:1895` hardcoded `format!("ST{:04}")` and `legacy.rs:198` hardcoded `starts_with("ST")` **and the length**.
+
+**Retiring it is not a change of direction, and this is the part worth recording: `st_prefix` appears in NO ST0056 spec.** The config table above listed six fields and never included it. **The design had already dropped the knob and nobody propagated that to the type** -- so the field was not a feature awaiting wiring, it was residue of a decision already taken. Same shape as the day's other findings: a document and an implementation disagreeing, with nothing comparing them.
+
+**Grounds for fixing rather than honouring, measured:** all 16 fleet projects use `ST` (Laksa by omission, the rest explicitly), so the entire migration corpus is unaffected; and every future id-touching feature -- search, code parsing, the daemon -- would otherwise have to honour a variable that is always the same value.
+
+**Two obligations that come WITH the retirement, and the first is the whole reason this is a decision rather than a deletion:**
+
+1. **The migrator NAMES the field when a project carries a non-`ST` value.** A project silently losing a setting it configured is exactly the failure the residue report exists to prevent. Retiring a knob nobody uses is fine; retiring it under someone who does use it, without telling them, is not.
+2. **`legacy.rs:198` loses its hardcoded `name.len() == 6`** at the same time. It encodes "two letters plus four digits" a second, independent way, and a fixed prefix means the length is derivable rather than asserted -- leaving it is how the next person finds two encodings of one fact.
 
 #### The todo watermark: a generated view that was its own database -- RETIRED BY D44, kept as archaeology
 
@@ -58,6 +74,16 @@ Ruling (vc, 2026-08-14; ADOPTED under hv standing authorisation): the watermark 
 ~~Open for hv, and it decides whether this field exists at all~~ **ANSWERED: hv retired `todo --flush` / `--prune` (D44, 2026-08-16), so the watermark retired with them and DONE filtering became exactly the "query parameter over the `completed` dates already in the model" this paragraph named.** Recorded as a hit rather than deleted: the field was marked provisional _because_ it was downstream of a behaviour question, the question was asked of the right person, and the answer removed the field. That is the provisional marking working, and it is worth one line of evidence that it does.
 
 **What replaces it, and the constraint that shapes it (D44 + D42).** The window is **configuration, not state**: `todo.window_hours`, default 24, non-destructive -- nothing is flushed, pruned or forgotten, because every completed date is already in the model and the file is regenerated from it. **The reason it must be config rather than a flag is measured: all six `todo` verbs regenerate the file, so a flag on any one of them is a silent-revert generator** -- the next verb rewrites the file without it.
+
+**WHICH SURFACE THE WINDOW APPLIES TO (vc ruled 2026-08-16 under hv's standing "go with your recs"; raised because hv ruled the window and not its surface, and they are different questions).**
+
+**The window applies to the TERMINAL render. The committed `todo.md` carries everything.**
+
+A window resolved against a clock makes the file's content depend on **when it was generated rather than on what happened**, and this repository commits `todo.md`. So regenerating tomorrow drops rows and produces **a diff with no cause in the estate** -- committed churn under D02, where a generated artefact is supposed to be a function of the model and nothing else. **A terminal render is a moment and may legitimately depend on now; a committed file is a record and may not.**
+
+This also keeps `datetime('now', ...)` inside the query legal under D42 without buying a second problem with it: the read-side clock stays where no artefact preserves its answer.
+
+**If a later ruling reverses this and the file must carry the window, then the file must also record WHICH window generated it** -- otherwise a row dropped by the window and a row deleted from the model are indistinguishable in a diff, which is the same absence-is-ambiguous defect D05 refuses everywhere else.
 
 ### steel_thread (`st/<ID>/thread.json`)
 

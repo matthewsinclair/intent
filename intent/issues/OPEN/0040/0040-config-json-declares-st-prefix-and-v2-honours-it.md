@@ -122,7 +122,21 @@ Molt-flynn ST · Molt-matts ST · Prolix ST · Riffle ST · Utilz ST
 
 **Also not claimed: that the fix is to honour it.** Retiring the field is a legitimate answer -- v3 may reasonably decide the prefix is fixed. That is a ratification with a `disposition: retire` row and a migration note, which is a decision; what exists today is neither.
 
-## Proposed Fix
+## Resolution ruled
+
+**hv ruled 2026-08-16: RETIRE. The prefix is fixed at `ST` and the knob is deleted.** (Under hv's standing "go with your recs"; vc's recommendation was retire, on the grounds below.)
+
+**And retiring turns out not to be a change of direction, which is the finding that should have been in this issue from the start: `st_prefix` appears in NO ST0056 spec.** `data-model.md`'s project-config table lists six fields and never included it. **The design had already dropped the knob and nobody propagated that to the type**, so the field was residue of a decision already taken rather than a feature awaiting wiring. That reframes the whole issue: the code was not ahead of the design, it was behind it, and nothing compared them.
+
+**What retirement obliges, both routed to cc:**
+
+1. **`Config.st_prefix` and `default_st_prefix()` are deleted** from `project.rs`. Ratified in `data-model.md` under "`st_prefix` -- RETIRED".
+2. **The migrator NAMES the field when a project carries a non-`ST` value.** This is the load-bearing half: retiring a knob nobody uses is fine, retiring it under someone who does use it without telling them is the silent data change this whole thread exists to prevent. **No fleet member is affected -- all 16 use `ST` -- so this costs nothing today and is the only thing that makes the decision safe for anyone outside the fleet.**
+3. **`legacy.rs:198` loses its hardcoded `name.len() == 6`** in the same change. With the prefix fixed, the length is derivable rather than asserted, and leaving it is how the next reader finds two independent encodings of one fact.
+
+**No parity-register row is owed.** The register is file- and command-level; this is a config field with no command surface, and nothing in the dispatch table references it.
+
+## Proposed Fix (superseded by the ruling above, kept for the reasoning)
 
 Two routes, and the choice belongs to hv because it is a scope call, not a code call.
 
