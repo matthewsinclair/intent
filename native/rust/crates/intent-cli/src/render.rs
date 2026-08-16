@@ -1135,71 +1135,37 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
-/// `intent todo done` -- three operations behind one verb, as the table
-/// declares them.
+/// `intent todo done <specifier>` -- mark one thread or work package done.
 ///
-/// `--flush` and `--prune` share the watermark advance and differ in whether
-/// the cleared items are printed first, so `--prune` is `--flush` with its
-/// output kept. Naming both is not an error; it is `--prune`.
+/// **It was three operations behind one verb and D44 removed two of them.**
+/// `--flush` advanced a DONE watermark and `--prune` was `--flush` with its
+/// output kept; hv withdrew both, and the sentence that did it removes more
+/// than the two flags: *"all of the data is in the db so we can (re)generate
+/// whatever we need"*. There was never any durable state behind the watermark
+/// to advance -- the DONE bucket is computed at render time -- so the verb
+/// that maintained it had no referent rather than merely being unnecessary.
+///
+/// The table retired the rows first (ic, `0855eb4e`), which is the only order
+/// that works: the spine builds its flags FROM the table, so the flags were
+/// already gone from the surface by the time these arms were reached. Removing
+/// the arms first would have left declared flags with no implementation.
 fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
-  let flush = flag(a, "flush");
-  let prune = flag(a, "prune");
-  let spec = opt(a, "specifier");
-
-  match (spec, flush || prune) {
-    (Some(spec), false) => {
-      let mut f = open()?;
-      // `scope_of` already owns "is this a thread or a work package": `ac gate`
-      // and `wp_target` both parse specifiers through it, and a second reading
-      // of `ST0001/02` here is a second place for the answer to differ.
-      match scope_of(&spec) {
-        (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
-        (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
-      }
-      println!("ok: {spec} done");
-      Ok(())
-    }
-    (None, true) => {
-      let mut f = open()?;
-      let flushed = f.todo_flush().map_err(fail)?;
-      if prune {
-        // The archiving payload FIRST, then the effect -- a caller redirecting
-        // this wants the items, and printing them after the summary would put
-        // a status line in the middle of their archive.
-        for item in &flushed.cleared {
-          println!("{item}");
-        }
-      }
-      let mark = flushed.watermark.as_deref().unwrap_or("(none)");
-      eprintln!(
-        "ok: DONE watermark advanced to {mark}, {} item(s) cleared",
-        flushed.cleared.len()
-      );
-      // **Stated, because the command promised more than it can do.** A flush
-      // cannot exclude completions that share its date -- `completed` is
-      // date-granular -- so a view that is still not empty is expected rather
-      // than a failure, and saying nothing here is what would make it look
-      // like one.
-      if !flushed.remaining.is_empty() {
-        eprintln!(
-          "note: {} item(s) completed on {mark} stay in DONE -- a completion date cannot be compared against a time of day, so today's work is not flushable until tomorrow",
-          flushed.remaining.len()
-        );
-      }
-      Ok(())
-    }
-    // Both a target and a flush: two different operations in one invocation,
-    // and the order between them changes the result, so it refuses rather
-    // than picking one.
-    (Some(_), true) => Err(
-      "error: `todo done <specifier>` marks one item done and `--flush` clears the whole DONE view; naming both asks for two different operations at once\n  remedy: run them separately -- mark the item done first, then `intent todo done --flush`"
+  let Some(spec) = opt(a, "specifier") else {
+    return Err(
+      "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`)"
         .into(),
-    ),
-    (None, false) => Err(
-      "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`), or pass `--flush` to advance the DONE watermark"
-        .into(),
-    ),
+    );
+  };
+  let mut f = open()?;
+  // `scope_of` already owns "is this a thread or a work package": `ac gate`
+  // and `wp_target` both parse specifiers through it, and a second reading
+  // of `ST0001/02` here is a second place for the answer to differ.
+  match scope_of(&spec) {
+    (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
+    (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
   }
+  println!("ok: {spec} done");
+  Ok(())
 }
 
 /// `intent export --format <fmt>` -- the estate as one portable document
@@ -1213,12 +1179,16 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// composes, never clobbers anything the operator did not name, and matches
 /// `intent schema`, which prints a face the same way.
 ///
-/// **That makes the row's `read_or_mutate: mutate` describe a command that
-/// cannot exist as declared** (raised with ic rather than resolved here, since
-/// the table is theirs): the classification is reasoned from "export writes
-/// files into the working tree and can clobber them", which is true only of a
-/// version of this command that has an output path to write to. Either the row
-/// grows one and stays `mutate`, or it is a read.
+/// **That made the row's `read_or_mutate: mutate` describe a command that
+/// cannot exist as declared**, and it has since been corrected to `read` (ic,
+/// `f394ca9c`). The old value was reasoned from "export writes files into the
+/// working tree and can clobber them", which is true only of a version of this
+/// command that has an output path -- sound reasoning about the wrong subject.
+/// Two routes agreed on the correction: the definition quantifies over every
+/// flag and the only flag picks a projection rather than a destination, and
+/// `schema` is the same shape (one flag, a face printed to stdout) and was
+/// already `read`, so counting `intent export > estate.json` as mutation would
+/// have left the table disagreeing with itself about one command shape.
 ///
 /// The refusals are the facade's, in full, and none of them is composed here --
 /// an unknown format, a format that will not carry the canon back, and the

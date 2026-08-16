@@ -363,24 +363,6 @@ impl FacadeError {
   }
 }
 
-/// What a `todo done --flush` did, in the operator's terms.
-///
-/// **`remaining` is the field that stops the command lying.** `--flush`
-/// promises to clear the DONE view and cannot clear same-day completions, so a
-/// flush that reports only what it removed reads as a success on a view the
-/// operator can see is not empty. Reporting both numbers turns a puzzling
-/// no-op into a stated limit.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TodoFlush {
-  /// The watermark now in force, as a date.
-  pub watermark: Option<String>,
-  /// Items that were in DONE before the flush.
-  pub cleared: Vec<String>,
-  /// Items still in DONE after it -- those completed on the watermark's own
-  /// date, which no watermark can exclude.
-  pub remaining: Vec<String>,
-}
-
 /// One row of `intent ac list`: the criterion, its computed state, and the
 /// tests that cover it.
 #[derive(Debug, Clone)]
@@ -460,17 +442,14 @@ impl Facade {
 
   /// Everything a render is allowed to know, assembled from the store.
   ///
-  /// **Fallible on purpose.** The DONE watermark lives in the event log
-  /// (`event::todo_watermark`), so building a context is a read, and a read can
-  /// fail. Defaulting to `None` on a store error would silently render the
-  /// unflushed view -- resurrecting every flushed item into `todo.md` and into
-  /// the skew check's expectation at the same time, so the two would agree and
-  /// nothing would report it.
+  /// **Still fallible, though nothing in it can fail today.** It carried the
+  /// DONE watermark, which was a read of the event log; D44 removed the
+  /// watermark and the signature is kept, because the thing that replaces it --
+  /// a display window over completion instants -- is also a read. Narrowing to
+  /// infallible and widening again is churn in every caller for no gain.
   fn render_ctx(&self) -> Result<RenderContext<'_>, FacadeError> {
-    let events = self.store.events().map_err(FacadeError::Store)?;
     Ok(RenderContext {
       version: &self.ctx.version,
-      todo_watermark: event::todo_watermark(&events),
     })
   }
 
@@ -721,10 +700,7 @@ impl Facade {
 
   /// The same three buckets, structured, for `intent todo --json`.
   pub fn todo_buckets(&self) -> Result<views::TodoBuckets, FacadeError> {
-    Ok(views::todo_buckets(
-      &self.canon.threads,
-      &self.render_ctx()?,
-    ))
+    Ok(views::todo_buckets(&self.canon.threads))
   }
 
   /// Write `intent/todo.md` from current status.
@@ -740,54 +716,6 @@ impl Facade {
     set.add(self.project.todo_view(), content);
     set.commit()?.keep();
     Ok(())
-  }
-
-  /// Advance the DONE watermark, and report what that actually did.
-  ///
-  /// **No clock is read.** The flush is recorded as a `todo.flush` event whose
-  /// timestamp SQLite sets at INSERT (D42), and the watermark is derived back
-  /// out of the log by [`event::todo_watermark`]. There is no settings row, no
-  /// new table, and nothing durable in the generated view -- which was v2's
-  /// defect: it kept the watermark inside `todo.md` and read it back, so
-  /// deleting a disposable file silently resurrected every flushed item.
-  ///
-  /// The report exists because the operation promises more than the model can
-  /// deliver. `--flush`'s help says it clears the DONE view, and same-day
-  /// completions survive it: `Thread.completed` is a date, so nothing
-  /// distinguishes "finished before the flush" from "finished after it" on the
-  /// day it happens. Rather than quietly doing less than the help says, the
-  /// caller is handed both numbers and can say so.
-  pub fn todo_flush(&mut self) -> Result<TodoFlush, FacadeError> {
-    let cleared: Vec<String> = self
-      .todo_buckets()?
-      .done
-      .into_iter()
-      .map(|i| i.label)
-      .collect();
-
-    // The canon is handed through UNCHANGED: a flush changes no entity, and
-    // the whole of its effect is the envelope. `apply` still diffs, writes
-    // nothing to the entity tables, records the event, and re-renders -- which
-    // is what makes `todo.md` reflect the new watermark without a second write
-    // path deciding when views are stale.
-    let next = self.canon.clone();
-    self.apply(
-      event::TODO_FLUSH,
-      Subject {
-        kind: "todo".to_string(),
-        id: "watermark".to_string(),
-      },
-      json!({ "cleared": cleared.len() }),
-      next,
-    )?;
-
-    let after = self.todo_buckets()?;
-    Ok(TodoFlush {
-      watermark: after.watermark,
-      cleared,
-      // Completions the flush could not clear, because they share its date.
-      remaining: after.done.into_iter().map(|i| i.label).collect(),
-    })
   }
 
   /// Project the whole estate into a named format, or refuse (AC-06.6).
@@ -947,33 +875,24 @@ impl Facade {
     ctx: &FacadeContext,
     store: Option<&crate::store::Store>,
   ) -> crate::doctor::Report {
-    // **The watermark comes from the store when there is one and from the
-    // EXTRACT when there is not**, and the second half is what stops a false
-    // finding. `doctor` runs on a project with no database -- that is the
-    // normal state of a fresh clone, and the moment someone reaches for it --
-    // and it re-renders every view to detect skew. Rendering `todo.md` without
-    // the watermark there would resurrect every flushed item into the
-    // EXPECTATION, so `doctor` would report the committed view as hand-edited
-    // on every project that had ever flushed, permanently, with nothing wrong.
+    // **This used to read the event log, from the store or from the extract,
+    // and D44 took away its only reason to.** The watermark was the one thing
+    // a render needed that lived in the log, so sourcing it from both places
+    // was what let `doctor` re-render `todo.md` correctly on a project with no
+    // database -- the normal state of a fresh clone, and the moment someone
+    // reaches for the command.
     //
-    // `events.jsonl` is exactly the artefact that makes this recoverable: under
-    // D34 the log is the one durable thing nothing else derives, so it travels
-    // with the clone. An unreadable or absent log yields `None`, which is the
-    // never-flushed answer and the correct degradation -- `doctor` reports what
-    // it can rather than refusing, since a diagnostic that stops working is the
-    // failure it exists to prevent.
-    let events = match store {
-      Some(store) => store.events().unwrap_or_default(),
-      None => std::fs::read_to_string(project.events_jsonl())
-        .ok()
-        .and_then(|text| event::from_jsonl(&text).ok())
-        .unwrap_or_default(),
-    };
+    // With the DONE bucket computed at render time there is no stored state
+    // behind it, so the dual-source read is gone rather than kept "in case".
+    // **`doctor` still owes a check that the log is READABLE AND PRESENT**
+    // (AC-03.11): that is a diagnostic about the log itself rather than a
+    // render input, and a missing log looks exactly like a project that never
+    // recorded anything, which is why it has to be asserted rather than
+    // inferred from a successful render.
     crate::doctor::diagnose(
       project,
       &RenderContext {
         version: &ctx.version,
-        todo_watermark: event::todo_watermark(&events),
       },
       store,
     )
