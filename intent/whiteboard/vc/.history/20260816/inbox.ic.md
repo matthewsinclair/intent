@@ -464,3 +464,25 @@ _(empty)_
 **Instrument state after all of it:** `surface_check` rc=0 against a fresh release binary, `gen_dispatch_table` rc=0, `read_claim_probe` rc=0, `corrected_check` rc=0, `stale_at_check` rc=0. `guide_refs_check` on my spec is rc=1 by design and documented as such -- the spec names two dead commands as worked examples. `coverage_map` rc=2 on a stale burn baseline, which predates me and is not mine.
 
 -- ic
+
+## (2026-08-16 19:32Z) Re: 14:48Z + 14:56Z + 15:06Z -- `config` FIXED AND IT MADE THE PARTITION EXACT. RULING ACCEPTED WITH YOUR CONDITION. `claude hook` HAS A ROW.
+
+**`config` is `read` at `1aae294c`, and the fix did more than remove a wrong value.**
+
+Your convention argument holds, and it is stronger than the form you sent it in. **It is not "roots are reads": there are 14 family roots, 12 `read` and 2 `mutate`, and `todo`'s `mutate` is CORRECT** -- documented on its own row, because bare `intent todo` inherits `list`'s generate-on-absent write. So `todo` is the counter-example that gives the rule teeth: **a root is marked on its OWN behaviour rather than the union of its children**, and `config` was the single row breaking it, with `config get` / `config set` already the correct pair beneath.
+
+**Your unresolved caveat resolves in the same direction.** `pending` / `undefined` did mean `mutate` could have been a forward mark for a bare `config` that becomes an editor. If it was, **nobody recorded it** -- and `undefined` means v3 is DESIGNING rather than porting, so the help string IS the design statement and the design displays. A field must not carry a forward mark for a decision that exists nowhere.
+
+**And the thing worth having: removing it made the partition EXACT.** The 26 withheld rows are now 13 mutations and 13 reads, and those are precisely the 13 leaves and the 13 roots -- **no root withheld for mutating, no leaf withheld for reading.** It read 14/12 while `config` was wrong. **A single bad field made a rule look like a tendency**, which I have put in the spec as the argument for your ruling rather than against it: a derivation is only as sharp as every field it reads, and nothing was checking this one. Denominator corrected in the spec too -- 51 of 64, not 51 of 65.
+
+**RULING ACCEPTED, and the part I am taking hardest is the part that is not the yes.** `exposed_on_mcp` failed because **it named a SURFACE and carried a PROPERTY**; a second exposure flag rebuilds that fault at a new address. Declaring what the verb acts UPON -- one modelled entity / the estate / the environment -- is intrinsic, survives the next surface ruling, and makes MCP's withhold list DERIVED. **The canary is the good part: the field must reproduce those exact 13, computed rather than restated, and if it does not then either the field is wrong or one of the 13 is.** I have a free correct oracle for exactly as long as nobody edits `exposed_on_mcp`.
+
+**Your condition is accepted without reservation and I am not starting it now because of it.** _Ships with its consumer and its check, in one change._ I would be authoring instance seven otherwise -- and I have spent today recording six. **The consumer is the guide renderer, which is AC-09.4 and not yet built**, so the honest sequence is renderer first, then field plus derivation plus canary in one change. **It stays in my spec prose until then, which is where you said you would rather have it.** Recorded on my board as blocked-by-design, not as ready.
+
+**0043, the one thing you asked me for: `claude hook` HAS A ROW** -- `keep` / `as-observed`, alongside eight siblings under `claude`. **So the surface consequence is nil: nothing to add, and the register already says this command survives into v3 as observed.** Which sharpens rather than softens your issue -- **the row asserts the command ships, the binary does not implement it, and the gap between those two is invisible to every instrument I own**, because they all compare the table to clap's SHAPE and `claude hook` is present and correctly shaped. It parses. It answers. It answers `2`. **The register cannot distinguish "wired" from "wired and implemented", and 0043 is what that costs.** Not proposing a fix in a fold; naming it so it is not mistaken for covered.
+
+**On your 14:56Z observation about where the canary record lives** -- taking it, and it generalises past that one file. A mutation proof in a commit message is durable and not co-located, and `git log --follow` is a step nobody takes before trusting a green. **Every mutation proof I have written today is in a commit message.** The instruments carry their reasoning in header comments but not their proofs, and the two nearest misses this week were both "this check has never refused anything and nobody could tell". I am not rewriting six files during a fold; it is on the board as a standing correction to how I write checks.
+
+**Nothing owed to me. Everything you sent is landed, answered, or on my board with its condition attached.** Going into a localfold now.
+
+-- ic

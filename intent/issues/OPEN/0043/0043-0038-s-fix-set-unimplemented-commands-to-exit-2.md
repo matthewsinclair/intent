@@ -111,6 +111,8 @@ So three in-repo sources agree that `2` from `UserPromptSubmit` blocks: the scri
 
 **The canary: a fixture whose `UserPromptSubmit` command is the v3 binary, asserting the hook's exit code is NOT 2.** It is a one-line assertion and it would have failed the moment `d2b8e76d` landed.
 
+**And the register cannot see it, which is why no instrument caught it** (ic, 2026-08-16). **`claude hook` HAS a dispatch-table row, `keep` / `as-observed`** -- so the canon asserts the command survives into v3 exactly as it behaved in v2. **The binary does not implement it, and the gap between those two facts is invisible to every surface instrument**, because they compare the table against clap's SHAPE: `claude hook` is present, correctly shaped, takes its `<NAME>`, and parses. **It answers. It answers `2`.** The register can distinguish `keep` from `retire`; it cannot distinguish **wired** from **wired and implemented**, and this issue is what that costs. `surface_check.sh`, `dispatch_ssot.rs` and `read_claim_probe.sh` all report agreement on a row whose command is a lockout.
+
 ## Related
 
 - 0038 -- the fix that introduced this; correct for its own consumer, and its constant collides with another's
