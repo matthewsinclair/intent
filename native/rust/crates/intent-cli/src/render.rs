@@ -38,6 +38,8 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("todo", m)) => todo(m),
     Some(("sync", m)) => sync(m),
     Some(("backup", m)) => backup(m),
+    Some(("info", _)) => info(),
+    Some(("claude", m)) => claude(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -1293,6 +1295,192 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
       "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0000/03"
     )),
   }
+}
+
+/// `intent info` -- the installation and project overview.
+///
+/// **THIS COMMAND NEVER GATES, and that is the whole of issue 0042.** The
+/// shipped pre-commit gate resolves the Intent install by parsing this
+/// command's `INTENT_HOME:` line back out of its stdout, and it does so in
+/// projects that are not migrated, half-migrated, or not projects at all. A
+/// version that refused outside v3 canon would resolve to the empty string in
+/// exactly the situations the guards exist for -- which is what the
+/// unimplemented command was already doing, silently, by exiting 2 with no
+/// stdout at all. Both whiteboard guards stopped enforcing and neither said so.
+///
+/// So the Installation block is unconditional, it is printed FIRST, and the
+/// project half degrades to what can honestly be said rather than taking the
+/// whole command down with it. v2's own probe row records the same posture as
+/// observed behaviour: exit 0 outside a project.
+///
+/// **A hook resolving a path by parsing a display command is still wrong**, and
+/// this does not make it right -- 0016 forbids rewiring the consumer's hooks
+/// for the v3 swap, so the display command is what exists to be parsed today.
+/// The line's shape is therefore load-bearing, not cosmetic, and
+/// `info_line_is_parseable_by_the_pre_commit_gate` pins it against the gate's
+/// own `sed` expression rather than against a description of it.
+fn info() -> Result<(), Failure> {
+  println!("Intent: The Steel Thread Process");
+  println!();
+  println!("Installation:");
+
+  // A broken install is NAMED on stderr and still prints v2's `<not set>` on
+  // stdout. The token is v2's, so a consumer parsing this line sees a value it
+  // already handles rather than a missing line it has no branch for -- and the
+  // gate's fail-open message then quotes `<not set>` back at the operator
+  // inside the path it tried, which says what went wrong at the point they can
+  // act on it. Silence on both streams is what this issue was.
+  let home = match intentsvcs::install::home() {
+    Ok(home) => home.display().to_string(),
+    Err(e) => {
+      eprintln!("error: {e}");
+      "<not set>".to_string()
+    }
+  };
+  println!("  INTENT_HOME:     {home}");
+  println!("  Version:         {}", env!("CARGO_PKG_VERSION"));
+  // v2 printed `which intent`, which answers "what would run" rather than
+  // "what IS running" -- and those differ precisely during a v3 rollout, where
+  // a brew binary shadows a v2 symlink (issue 0036). The running executable is
+  // the one fact this process can state without guessing.
+  match std::env::current_exe() {
+    Ok(exe) => println!("  Executable:      {}", exe.display()),
+    Err(e) => println!("  Executable:      <unknown: {e}>"),
+  }
+  println!();
+
+  let cwd = std::env::current_dir()
+    .map_err(|e| Failure::Error(format!("error: cannot read the working directory: {e}")))?;
+  let project = match Project::discover(&cwd) {
+    Ok(project) => project,
+    Err(_) => {
+      println!("Project:");
+      println!("  Not in an Intent project directory");
+      println!();
+      println!("To create a new project:  intent init");
+      println!("To see available commands: intent help");
+      println!();
+      return Ok(());
+    }
+  };
+
+  let config = project.config().clone();
+  println!("Project:");
+  println!("  Location:        {}", project.root().display());
+  println!("  Name:            {}", or_unknown(&config.project_name));
+  println!("  Author:          {}", or_unknown(&config.author));
+  println!("  Intent version:  {}", or_unknown(&config.intent_version));
+  println!();
+
+  println!("Steel Threads:");
+  match project.migration() {
+    // **An unmigrated project gets the reason and the remedy, never a zero.**
+    // Counting v2 canon here would mean a second thread reader living outside
+    // `legacy.rs`, and reporting `Total: 0` for an estate of 56 is the
+    // confident-answer-from-partial-evidence bug this thread exists to end
+    // (AC-10.7: "no threads found" and "threads this binary cannot see" are
+    // the same empty vector).
+    intentsvcs::project::Migration::Pending(pending) => {
+      println!("  {pending}");
+      println!("  remedy: {}", pending.remedy());
+    }
+    intentsvcs::project::Migration::Done => {
+      let ctx = FacadeContext {
+        principal: "local".to_string(),
+        project_id: config.project_id.clone().unwrap_or_default(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+      };
+      match Facade::open(project, ctx) {
+        Ok(facade) => {
+          let threads = facade.st_list();
+          let count = |want: ThreadStatus| threads.iter().filter(|t| t.status == want).count();
+          // **v2's five buckets, including the one the model can now tell
+          // apart and this view still cannot.** v2 bucketed by DIRECTORY, so
+          // everything left at `intent/st/` read as In Progress -- `Triage`
+          // and `Hold` included. The dispatch table pins this entry
+          // `as-observed` with `corrected` ratified for the argument handling
+          // ONLY, so the buckets stay v2's and the rollup is recorded here
+          // rather than quietly widened. Raised with vc as a view question,
+          // not decided in a render function.
+          let in_progress =
+            count(ThreadStatus::Wip) + count(ThreadStatus::Hold) + count(ThreadStatus::Triage);
+          println!("  Total:           {}", threads.len());
+          println!("  In Progress:     {in_progress}");
+          println!("  Completed:       {}", count(ThreadStatus::Completed));
+          println!("  Not Started:     {}", count(ThreadStatus::NotStarted));
+          println!("  Cancelled:       {}", count(ThreadStatus::Cancelled));
+        }
+        Err(e) => {
+          println!("  unavailable: {}", fail(e));
+        }
+      }
+    }
+  }
+  println!();
+  Ok(())
+}
+
+/// v2's placeholder for a config field it could not read. Kept because a blank
+/// after a padded label reads as a rendering fault rather than as missing data.
+fn or_unknown(value: &str) -> &str {
+  if value.trim().is_empty() {
+    "Unknown"
+  } else {
+    value
+  }
+}
+
+fn claude(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("hook", a)) => hook(a),
+    Some((verb, _)) => unwired("claude", verb),
+    None => unwired("claude", ""),
+  }
+}
+
+/// `intent claude hook <name>` -- run a shipped Claude Code lifecycle hook.
+///
+/// **The single most parity-critical entry in the family** (the dispatch table
+/// says so on the row) and the direct cause of issue 0043. A consumer's
+/// `.claude/settings.json` names `intent claude hook require-in-session` on
+/// EVERY prompt; with the command unimplemented it answered `2`, which is
+/// Claude Code's BLOCK code, so a migrated project refused every prompt and
+/// the refusal could not be cleared from inside the session.
+///
+/// **`exec`, not spawn-and-wait, for the same three reasons v2 gave.** The
+/// hooks read Claude Code's event JSON on stdin, so stdin must flow through
+/// untouched; the gate signals BLOCK with exit 2 specifically, so the exit code
+/// must be the script's own and not a wrapper's translation of it; and
+/// replacing the process makes it impossible for a later edit here to swallow
+/// either by accident. A wrapper that merely intended to pass the code through
+/// is the shape that produced this issue.
+fn hook(a: &ArgMatches) -> Result<(), Failure> {
+  use std::os::unix::process::CommandExt;
+
+  let name = arg(a, "name")?;
+  if !intentsvcs::install::HOOKS.contains(&name.as_str()) {
+    return Err(Failure::Error(format!(
+      "error: unknown hook: {name}\n  remedy: one of {}",
+      intentsvcs::install::HOOKS.join(", ")
+    )));
+  }
+  let home = intentsvcs::install::home().map_err(|e| Failure::Error(format!("error: {e}")))?;
+  let script = intentsvcs::install::hook_script(&home, &name);
+  // Named rather than left to the shell. Claude Code surfaces a hook's stderr,
+  // so this is the difference between "Intent's install is incomplete" and an
+  // opaque 127 the operator cannot act on.
+  if !script.is_file() {
+    return Err(Failure::Error(format!(
+      "error: hook script not found: {}\n  remedy: the Intent install is incomplete -- reinstall it",
+      script.display()
+    )));
+  }
+  let e = std::process::Command::new("bash").arg(&script).exec();
+  // `exec` returns ONLY on failure to replace the process.
+  Err(Failure::Error(format!(
+    "error: cannot run {}: {e}",
+    script.display()
+  )))
 }
 
 /// Read a declared positional by the name the DISPATCH TABLE gives it.

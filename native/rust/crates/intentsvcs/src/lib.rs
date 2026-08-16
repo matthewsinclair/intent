@@ -31,6 +31,7 @@ pub mod faces;
 pub mod finding;
 pub mod graphql;
 pub mod ingest;
+pub mod install;
 pub mod legacy;
 pub mod model;
 pub mod project;

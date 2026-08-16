@@ -40,6 +40,43 @@ use crate::dispatch::{self, Entry, Table};
 /// the question was well formed and this binary cannot answer it.
 pub const EXIT_OK: i32 = 0;
 pub const EXIT_ERROR: i32 = 1;
+/// **EVERY SHIPPED CONSUMER OF THIS BINARY'S EXIT CODES, ENUMERATED ONCE**
+/// (issue 0043, swept 2026-08-16 at `caff2d17`). A comment here naming only the
+/// pre-commit gate is how 0043 happened: `2` was chosen against the one caller
+/// in view, and a different caller spells the opposite decision with the same
+/// number.
+///
+/// | consumer                                   | invokes                    | reads `2` as        | action              |
+/// | ------------------------------------------ | -------------------------- | ------------------- | ------------------- |
+/// | `.claude/settings.json` `UserPromptSubmit`  | `claude hook require-in-session` | deliberate refusal | **blocks the prompt** |
+/// | `.claude/settings.json` `SessionStart`      | `claude hook session-context`    | deliberate refusal | stderr surfaced, session proceeds |
+/// | `hooks/pre-commit.sh:175` (critic loop)     | `critic <lang>`            | tooling unavailable | **fails open**, commit proceeds |
+/// | `.claude/scripts/post-tool-advisory.sh:73`  | `critic <lang>`            | nothing -- `\|\| true` | advisory suppressed |
+/// | `hooks/pre-commit.sh:104`                   | `info`                     | **nothing at all**  | see below |
+///
+/// **The last row is the one that changes the shape of the problem, and it is
+/// why 0042 could never have been fixed by choosing a better number.** That
+/// consumer does not read the exit code; it parses `INTENT_HOME:` out of
+/// STDOUT and ignores the status entirely. An unimplemented command writes
+/// nothing to stdout, so the path came back empty and both whiteboard guards
+/// stopped enforcing -- at ANY exit code. **Some callers have a stdout
+/// contract, not an exit-code contract**, and a command they depend on is
+/// unfixable from this constant in either direction.
+///
+/// Two things deliberately NOT in the table, because a record is worth only
+/// what its exclusions are worth. **`bin/.devbin/cmd/build.d/release:373` calls
+/// `$PROJECT_ROOT/bin/intent doctor` by absolute path** -- that is v2's frozen
+/// shell entry point, not this binary, so it is a caller of `intent` and not a
+/// consumer of these codes; it would become one the day that path is
+/// repointed. And **`int prepush` does not invoke the binary at all** (checked
+/// rather than inherited: its only occurrence of the word is devbin's own usage
+/// line), so the fourth caller named on the issue does not hold as stated
+/// though its premise -- that the list is longer than two -- does.
+///
+/// **The general rule the table exists to make unmissable: an exit code is a
+/// property of the CALLER's contract, not of this tool.** Before changing any
+/// value here, or before routing a new failure to one, read the column that
+/// says what each consumer does with it.
 pub const EXIT_UNAVAILABLE: i32 = 2;
 
 /// How a command failed, and therefore which code reports it.
