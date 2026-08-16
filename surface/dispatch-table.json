@@ -6644,5 +6644,100 @@
       "gloss": "Neither question has been decided. `config` is the only member. The honest blank on both axes, which is the only pairing of `pending` that is coherent."
     }
   ],
-  "legal_pairs_note": "THE PAIR IS THE DECLARED UNIT, AND A PAIR NOT LISTED ABOVE IS REFUSED. Ruled by vc 2026-08-16 in answer to the derivation question ic raised, and the answer is NO -- neither field is derived from the other. The contingency table makes derivation look obviously right: `target.state -> disposition` is a total function on the corpus, every one of the seven target states maps to exactly one disposition, so `disposition` carries strictly less information and is today a projection. Derive it anyway and three things break. (1) THE DRIFT REFUSAL GOES VACUOUS WHILE STILL READING AS A CHECK -- it would compare a computed value against the thing it was computed from, could never fire, and would sit in the file looking exactly as load-bearing as it does now. (2) IT DELETES THE ONLY REDUNDANCY `is_shipped()` HAS, and that function fails OPEN: two independently authored fields mean a single bad hand-edit is caught by comparing them, whereas one derived field makes the `&&` one test written twice. (3) THE FUNCTION IS A FACT ABOUT 112 ROWS, NOT A LAW -- nothing forbids a `pending` disposition against a `corrected` target, and deriving would promote a coincidence to a rule without anyone deciding it should be one. The matrix is the alternative that keeps both fields authored while making a NEW combination an explicit decision rather than a silent widening: the previous refusal constrained only the two shared values, which admitted 17 of the 35 possible pairs while the corpus used 7. The concrete hole it closes is vc's: `disposition: pending` with `target.state: as-observed` passed every check that existed -- an honest blank against a confident claim that v3 reproduces v2 -- and those two cannot both be true of one row. POPULATION NOTE: the ruling was measured over 104 rows, which is `.families[].entries[]` alone and misses the 8-row top-level `new_surface[]` array. The full population is 112. The SET of pairs is identical either way and only the `new-surface` count moves, 11 to 19, so the ruling is untouched -- recorded because an incomplete basis that does not change the answer is the kind nobody catches."
+  "legal_pairs_note": "THE PAIR IS THE DECLARED UNIT, AND A PAIR NOT LISTED ABOVE IS REFUSED. Ruled by vc 2026-08-16 in answer to the derivation question ic raised, and the answer is NO -- neither field is derived from the other. The contingency table makes derivation look obviously right: `target.state -> disposition` is a total function on the corpus, every one of the seven target states maps to exactly one disposition, so `disposition` carries strictly less information and is today a projection. Derive it anyway and three things break. (1) THE DRIFT REFUSAL GOES VACUOUS WHILE STILL READING AS A CHECK -- it would compare a computed value against the thing it was computed from, could never fire, and would sit in the file looking exactly as load-bearing as it does now. (2) IT DELETES THE ONLY REDUNDANCY `is_shipped()` HAS, and that function fails OPEN: two independently authored fields mean a single bad hand-edit is caught by comparing them, whereas one derived field makes the `&&` one test written twice. (3) THE FUNCTION IS A FACT ABOUT 112 ROWS, NOT A LAW -- nothing forbids a `pending` disposition against a `corrected` target, and deriving would promote a coincidence to a rule without anyone deciding it should be one. The matrix is the alternative that keeps both fields authored while making a NEW combination an explicit decision rather than a silent widening: the previous refusal constrained only the two shared values, which admitted 17 of the 35 possible pairs while the corpus used 7. The concrete hole it closes is vc's: `disposition: pending` with `target.state: as-observed` passed every check that existed -- an honest blank against a confident claim that v3 reproduces v2 -- and those two cannot both be true of one row. POPULATION NOTE: the ruling was measured over 104 rows, which is `.families[].entries[]` alone and misses the 8-row top-level `new_surface[]` array. The full population is 112. The SET of pairs is identical either way and only the `new-surface` count moves, 11 to 19, so the ruling is untouched -- recorded because an incomplete basis that does not change the answer is the kind nobody catches.",
+  "key_classes": {
+    "why": "dc measured the declared-but-not-deserialized class to five instances and found no MECHANICAL discriminator between a key that must drive behaviour and a key that is prose -- not count (`read_or_mutate` is 112 rows and decides agent safety; `observed` is 93 rows and is a measurement block), not value type (`read_or_mutate` and `disposition_basis` are both strings). They are right that there is none, and right that the split is therefore AUTHORED. This is the authored answer, and it is scoped to the three leaf types on purpose.",
+    "scope": "`Entry`, `Flag` and `Arg` ONLY. `Table` and `Target` are deliberately excluded and keep their exemption. The original reasoning -- a register must accept prose nobody has typed yet -- is correct AT THE TOP LEVEL and was silently inherited by the leaves, which is where the bug was. `Target` alone carries 44 authored keys against one field, and a check that refused unread keys everywhere would refuse the working record for doing its job, which is the over-refusing direction and the one that gets a guard bypassed rather than fixed.",
+    "declaration": "Code must read this key. If no type deserializes it, the behaviour it describes is either absent or hand-written to match by coincidence -- and the coincidence never surfaces, because agreement looks exactly like correctness.",
+    "note": "Prose, provenance or a measurement. No code reads it and none should. Adding one must stay free, or the register stops recording why things are the way they are.",
+    "totality": "Every key appearing on any `Entry`, `Flag` or `Arg` must be in exactly one list. `gen_dispatch_table.sh` refuses on an unclassified key, on a key in both, and on a classified key no row carries -- the third arm because a list that outlives its keys rots into a description of a file that no longer exists.",
+    "entry": {
+      "declaration": [
+        "aliases",
+        "args",
+        "disposition",
+        "exposed_on_mcp",
+        "flags",
+        "help",
+        "owner_wp",
+        "path",
+        "read_or_mutate",
+        "target"
+      ],
+      "note": [
+        "acceptance",
+        "basis",
+        "boundary_open_to_vc",
+        "boundary_ruled",
+        "config",
+        "cross_ref",
+        "d34_wording",
+        "direction_selector",
+        "input_selector_gap",
+        "kind",
+        "mcp_review",
+        "not_backup",
+        "not_export",
+        "note",
+        "observed",
+        "read_or_mutate_correction",
+        "truth_model_correction",
+        "v2"
+      ]
+    },
+    "flag": {
+      "declaration": [
+        "default",
+        "disposition",
+        "help",
+        "required",
+        "spellings",
+        "type",
+        "value"
+      ],
+      "note": [
+        "accepts",
+        "composition_with_face_arg",
+        "count_corrected_twice",
+        "disposition_basis",
+        "note",
+        "ordering_note",
+        "spelling_note",
+        "why_not_dropped_by_ic"
+      ]
+    },
+    "arg": {
+      "declaration": [
+        "arity",
+        "default",
+        "name",
+        "type",
+        "values"
+      ],
+      "note": [
+        "not_the_flag",
+        "note",
+        "values_note"
+      ]
+    },
+    "findings": [
+      {
+        "key": "flag.accepts",
+        "ruling": "NOTE, and this is a correction to the class rather than a member of it.",
+        "why": "It was grouped with `Flag.required` / `default` / `value` as one class. Those three each had ONE type and one meaning, and cc has since built all three. `accepts` has FOUR rows and FOUR grammars: `st list --status` is a synonym table with normalisation rules (`wip|in progress -> WIP; ...`), `critic --severity-min` is a clean pipe-separated enum, `learn --category` is a comma list with the default marked inline (`footgun (default), worked, failed`), and `init --lang` is a sentence with an example. **Nothing could parse this, so it cannot be a declaration** -- a declaration with four grammars is prose that happens to be regular sometimes.",
+        "residue": "The real gap it points at: `Arg` has `values` (structured, 11 rows, read), and `Flag` has NO equivalent. Three of these four flags have genuinely enumerable value sets clap could validate. Promoting them means adding a structured `values` to `Flag` and rewriting the four, not deserializing this key. Not done here -- it is new surface, and this block's job was to classify what exists."
+      },
+      {
+        "key": "arg.default",
+        "ruling": "DECLARATION -- dc's fifth instance, confirmed. `pub struct Arg` has no `default` and the canon declares one on 8 rows.",
+        "why": "It decides behaviour: `intent todo` bare runs `list`, correctly, from hand-written code with no mechanical link to the declaration it happens to match. Seven of the eight sit on families that answer `not implemented yet` today, so seven get hand-implemented from a declaration nothing reads.",
+        "trap": "**The 8 rows are 7 literals and 1 sentence, and a naive `default: Option<String>` would ship the sentence as a value.** Five are subcommand defaults (`list`), two are enum defaults (`info`), and `init`'s reads `the current directory name` -- a DESCRIPTION OF A COMPUTATION, not a literal. Deserialize this key as written and `intent init` names the project `the current directory name`. Either that row gets a computed-default spelling distinct from a literal one, or it is excluded by name and says why."
+      },
+      {
+        "key": "entry.kind",
+        "ruling": "NOTE by classification, VESTIGIAL by inspection -- the honest answer is that it should be deleted.",
+        "why": "One row carries it: `st`, `kind: family`. Family-ness is derivable from the path set -- a path is a family root when another declared path is it plus a space -- and that derivation was run against this table on 2026-08-16 to split the withheld-from-MCP rows, giving 13 roots without consulting this key once. A structural claim that one row states and a hundred and eleven leave to inference is not carrying anything. Classified `note` so the totality check passes today; flagged here so the classification is not mistaken for an endorsement."
+      }
+    ]
+  }
 }

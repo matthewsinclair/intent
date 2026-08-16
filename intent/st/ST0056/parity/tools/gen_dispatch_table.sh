@@ -434,6 +434,41 @@ MCP_ON_DEAD="$(jq -r '
 [ -z "$MCP_ON_DEAD" ] || die "rows are exposed on MCP but do not ship -- an agent would be offered a tool for a command that does not exist. Retire the exposure with the command, or the row is not really retired. Offending paths:
 $(printf '%s' "$MCP_ON_DEAD" | sed 's/^/  /')"
 
+# Every key on `Entry`, `Flag` and `Arg` is classified `declaration` or `note`,
+# in `key_classes`. The list is AUTHORED because dc measured that no mechanical
+# discriminator exists: not count (`read_or_mutate` is 112 rows and decides agent
+# safety, `observed` is 93 and is a measurement), not type (`read_or_mutate` and
+# `disposition_basis` are both strings). Semantics have to be declared by whoever
+# wrote the register.
+#
+# An authored list rots in two directions and both arms are here. A NEW key that
+# nobody classifies is how the declared-but-not-deserialized class got to five
+# instances -- each one entered as prose, or as a declaration everyone assumed was
+# wired, and nothing asked which. A key that OUTLIVES its rows is the quieter
+# failure: the list still reads as a description of this file while describing a
+# file that no longer exists, and it is the arm a list-maintainer never adds,
+# because deleting rows feels like it cannot break a list of names.
+#
+# `Table` and `Target` are deliberately NOT checked. See `key_classes.scope`.
+[ "$(jq -r 'has("key_classes")' "$IN")" = "true" ] || die "the table declares no \`key_classes\` -- the declaration/note split on \`Entry\`, \`Flag\` and \`Arg\` is authored, and without it a new key joins the canon with nobody deciding whether code must read it. That is exactly how the declared-but-not-deserialized class reached five instances."
+KEY_UNCLASSED="$(jq -r '
+  def keyset($items): $items | map(keys) | flatten | unique;
+  [.families[].entries[], .new_surface[]] as $entries
+  | ($entries | map(.flags // []) | flatten) as $flags
+  | ($entries | map(.args  // []) | flatten) as $args
+  | .key_classes as $kc
+  | [ {t: "entry", present: keyset($entries), decl: $kc.entry.declaration, note: $kc.entry.note},
+      {t: "flag",  present: keyset($flags),   decl: $kc.flag.declaration,  note: $kc.flag.note},
+      {t: "arg",   present: keyset($args),    decl: $kc.arg.declaration,   note: $kc.arg.note} ]
+  | map(. as $x
+        | (($x.decl // []) + ($x.note // [])) as $all
+        | (($x.present - $all)                        | map("unclassified -- decide whether code must read it: " + $x.t + "." + .))
+        + ((($x.decl // []) - (($x.decl // []) - ($x.note // []))) | map("classified BOTH declaration and note: " + $x.t + "." + .))
+        + (($all - $x.present)                        | map("classified but no row carries it: " + $x.t + "." + .)))
+  | flatten | join("\n")' "$IN")"
+[ -z "$KEY_UNCLASSED" ] || die "\`key_classes\` and the rows disagree:
+$(printf '%s' "$KEY_UNCLASSED" | sed 's/^/  /')"
+
 # `target.state` is a CLOSED vocabulary, and until now nothing closed it.
 # `Target.state` is a bare `String` with `#[serde(default)]`, the values were
 # listed only in a doc comment at dispatch.rs:172 and in this file's prose, and
