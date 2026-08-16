@@ -74,6 +74,7 @@ Commands that need a project refuse outside one with exactly `error: not in an I
 - **Target:** `corrected` -- ratified: vc-ruled 2026-08-15 on ic's finding. hv ratification outstanding, NOT blocking, one word to reverse. The basis is RATIFIED rather than new scope: the `error:` + `remedy:` voice that INV-01 and AC-06.11 both push toward is what v3's message already speaks and v2's does not. -- behaviour: v2 emits `error: not in an Intent project directory` then `  '<cmd>' requires an Intent project`. v3 emits `error: no Intent project found at or above <dir> (looked for intent/.config/config.json)` then a `remedy:` line naming `intent init` or changing directory. MEASURED on both binaries, not read.
 - **found by:** ic, 2026-08-15, and HOW is the useful part: it surfaced while BUILDING the probe for this very invariant -- one of the two `surface_check.sh` declares unchecked. **The skip was hiding a finding.** Its reason (`needs a probe run outside a project`) was true and was never a claim that nothing was wrong, but it reads like one, and it is the sentence anyone re-reading the file relies on. Revisit skips; do not trust their reasons.
 - **why not revert:** The v3 message is BETTER by this estate's own standards -- it names the directory searched, says what it was looking for, and carries a remedy. **Reverting to v2's wording to satisfy a parity row would make the surface worse in order to make a table right.** vc verified the grep rather than taking it on report: nothing in `parity.md`, `acceptance.md` or `design.md` names either string or ratifies the change, so unlike INV-06/07/08 -- which moved to `corrected` with a chain -- this one had simply diverged.
+- **ratified in:** vc ruling 2026-08-15
 - **Exceptions:**
   - `claude` never reaches the gate -- plugin commands exec before the project check (bin/intent:188-191)
   - `agents` runs outside a project for the same plugin-bypass reason, despite not being in GLOBAL_COMMANDS
@@ -102,6 +103,7 @@ Across 108 probes, failing invocations split 45 stderr-only, 12 stdout-only, 2 b
 - **v2:** measured; larger than the three known `Error:`-on-stdout sites in the plugin bins already queued for hv
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class, which names this census verbatim: "the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)". Same numbers, same parenthetical; parity/README.md:39 carries the identical figures. FOUND by ic and VERIFIED by vc against both files rather than taken on report; applied by ic 2026-08-15. Not a new ruling -- hv answered the question WHOLE, and it was already written down. -- behaviour: Errors go to stderr, ALWAYS -- the whole census is corrected rather than enumerated site by site. An error on stdout interleaves with captured command output, which is how a voice becomes data.
 - **ratified elsewhere:** VERBATIM MATCH IN parity.md, NOT YET APPLIED HERE (ic, 2026-08-15). parity.md:13 lists the hv-ratified `Corrected` deviation class members and one of them reads: "the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)". That is this invariant's rule and its v2 note, same numbers and same parenthetical. So the question above -- ratify the whole census or enumerate site by site -- was answered WHOLE by hv at the bounce on 2026-08-14. Recorded rather than applied: this is the SECOND instance of the same drift found in one afternoon (INV-07 was the first), and having found that I over-applied a rule twice earlier today, the pattern I trust is to state the match and let vc apply it. The state stays `pending-hv` until they do.
+- **ratified in:** parity.md
 
 ### INV-07 -- `--help` reports failure on 10 of 27 commands
 
@@ -110,6 +112,7 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 - **v2:** measured
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: `--help` always succeeds: exit 0, usage to stdout. v2 exits 1 on st, wp, ac, at, todo and fileindex (measured). v3 as built already does this -- `spine.rs:193` maps clap's DisplayHelp and DisplayVersion to EXIT_OK. The two v2 BATS assertions on `init --help` (tests/unit/intent_init_lang_flag.bats:23, tests/unit/global_commands.bats:74) are CORRECT as they stand and must NOT be flipped: they assert the incumbent, the estate runs against v2 by default and against v3 only under an INTENT_BIN override, and the conformance harness is built to expect red for ratified reasons. Flipping them would turn v2's own suite red and destroy the evidence of a deviation the contract already classifies.
 - **build measured:** MEASURED AT HEAD (ic, 2026-08-15), and it settles the cost side of this question. v2: `--help` exits 1 on st, wp, ac, at, todo and fileindex -- run, not read. v3 AS BUILT: exits 0 on all six plus the bare `intent --help`, because `spine.rs:193` maps clap's `DisplayHelp | DisplayVersion` to `EXIT_OK`, with `spine.rs:27` noting the divergence in as many words. So the candidate `corrected` in the question above is not a proposal any more, it is a description of the binary, and the only open act is recording it. THE COST THIS QUESTION FLAGS IS REAL AND IT IS TWO ASSERTIONS: `tests/unit/intent_init_lang_flag.bats:23` and `tests/unit/global_commands.bats:74`, both `assert_failure`, both on `init --help`, both carrying a comment calling exit-1 the usage convention. Nothing else in the BATS estate pairs `--help` with a status. And the argument from inside this file is stronger than the count: INV-04 declares 0 success and 1 every failure, so a `--help` that succeeds and exits 1 contradicts an invariant this same surface asserts -- reproducing it faithfully means shipping a v3 that breaks its own stated contract on 10 of 27 commands.
+- **ratified in:** parity.md
 
 ### INV-08 -- Three commands accept an unknown flag silently at exit 0
 
@@ -120,6 +123,7 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
   - Pinned by: The same WP-05 unknown-flag test that pins INV-02 pins this.
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 bounce -- the `corrected` class; this member is forced rather than chosen -- behaviour: Unknown arguments are refused, exit 1 per INV-02.
 - **Note:** This one cannot be reproduced by accident: clap rejects unrecognised arguments by default, so v3 diverges here on day one whether or not anyone decides to. Recorded as ratified because the ALTERNATIVE (faithfully reproducing silent acceptance) would take deliberate work to build.
+- **ratified in:** parity.md
 
 ## Family: `st`
 
@@ -176,6 +180,7 @@ Manage steel threads for the project
   - INV-07 at `st --help` / `-h` / `help`
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
+- **ratified in:** parity.md
 - **MCP:** not exposed -- read-only
 - **kind:** family
 
@@ -207,6 +212,7 @@ Create a new steel thread
 - **not a rename:** `Triage` REUSES THE LETTERS OF v2's `TBC` AND NOT ITS MEANING, which is why a parity row matching on the string would be comparing two different things. v2's `TBC` means To Be Commenced -- `bin/intent_helpers:544` maps `tbc` and `to be commenced` to the same stored value `Not Started`, and the tool's own usage at `bin/intent_st:46` says so in words. So every v2 `TBC` migrates to `NotStarted` and `Triage` begins with ZERO legacy members. The display string is `Triage`; `TBC` must not be reused as its abbreviation (see `st list`'s `tbc_trap`).
 - **start flag ruled:** RULED by vc, 2026-08-15: **the flag STAYS and performs BOTH declared transitions**, `Triage -> NotStarted -> Wip`. I had flagged it as two edges at once; the measurement reframes it. `-s|--start` is **v2 PARITY, not new surface** (`bin/intent_st:302,381,425`, and in v2's own help as `new [-s|--start] <title>`), and **nothing about the flag changed -- the machine grew a state underneath it.** In v2 `st new` landed at not-started so `-s` was ONE transition; in v3 it enters at `Triage` so the same flag spans two. The triage decision is not skipped: **a user typing `--start` has decided the thread is real work, which IS the triage decision, made explicitly by the same act**, and refusing would ask them to state a conclusion they have already stated.
 - **composition constraint:** **`st new -s` must COMPOSE `st triage` and `st start`, never construct the thread directly in `Wip`.** Constructing the end state is the obvious implementation and yields two defects at once: a history with no triage event, and an effective `Triage -> Wip` edge **that is not in the ratified machine** -- which either forces AC-04.6 to accept an undeclared edge or drives construction around `transitions.rs`, contradicting D32. The general rule, now in `data-model.md`: **a convenience flag is sugar over declared transitions and never a new edge.** A bundle that cannot be expressed as a sequence of declared transitions is proposing a machine change and goes to hv as one.
+- **ratified in:** hv 2026-08-15
 - **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st start`
@@ -266,6 +272,7 @@ Mark a steel thread as cancelled, with a reason
 - **Target:** `corrected` -- ratified: hv, 2026-08-15 -- Machine 1 guards every edge into `Cancelled` with `reason recorded`; cc wired the facade at `2aec5f6` and left the flag for this table to declare.
 - **conflict resolved:** RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.
 - **why not as observed:** This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve.
+- **ratified in:** hv 2026-08-15
 - **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st triage`
@@ -498,6 +505,7 @@ Retrofit ST0000 deliverables into a brownfield project -- audit what is present,
 - **consequence:** `intent bootstrap` (top level) already exists and means "first-time setup: create global Intent configuration". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it.
 - **face:** surviving
 - **never built:** false
+- **ratified in:** hv 2026-08-15
 - **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
@@ -551,6 +559,7 @@ Manage work packages within steel threads
   - INV-07 at `wp --help`
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
+- **ratified in:** parity.md
 - **MCP:** not exposed -- read-only
 
 ### `wp new`
@@ -719,6 +728,7 @@ Acceptance criteria commands
   - INV-07 at `ac --help` parsed as an unknown verb
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
+- **ratified in:** parity.md
 - **MCP:** not exposed -- read-only
 
 ### `ac list`
@@ -806,9 +816,13 @@ Close-gate: exit non-zero + BLOCKED if unsatisfied
 - **stdout:** the verdict plus the unsatisfied set
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Consulted by `st done` and `wp done`. Fail-by-default since ST0048: an empty or missing contract is REFUSED, and the sole escape is a declared `acceptance: exempt`, never inferred from emptiness. Scope-honouring since issue 0024: a `/NN` scope is actually applied -- it used to be silently dropped.
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: vc ruling 2026-08-16, provisional pending hv, recorded on issue 0032 rather than only in an inbox. NOT cited by parity.md -- this row is ratified ELSEWHERE and corrected_check.sh should report it in that bucket.
 - **Note:** AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family.
-- **at combination open:** OPEN, RAISED BY ic 2026-08-15, NOT CLASSIFIED HERE -- and it is a conflict between two ratified things rather than a gap. Issue 0032 (OPEN, hv, medium): `bin/intent_acceptance:454` short-circuits `[ "$(at_status "$atline")" = "green" ] && return 0`, so an AC's satisfaction is the **OR** of its covering ATs, not the AND. The issue's own words: `the combining rule was chosen by an early-return rather than by a decision`. vc's instruction to whoever builds the v3 close-gate is `must not port that early-return`. **But this row says `as-observed`, and AC-04.3 requires v3 to reproduce v2's VERDICTS -- so correcting 0032 would change verdicts on exactly the contracts AC-04.3 measures parity against.** Faithful reproduction and the known-defect correction point opposite ways, and nothing in this table recorded that until now. **Blast radius measured in ST0056's own contract: 2 of 109 ACs carry more than one covering AT** -- AC-00.7 (AT-00.5 + AT-00.7, both `to-write`) and AC-03.7 (AT-03.7 + AT-03.9, both `green`). **Neither mis-scores TODAY, because OR and AND agree when all covering ATs share a state**, so this is latent rather than live -- and it becomes live the moment one of those four moves alone. `corrected` versus `as-observed` is a parity classification and belongs to vc or hv.
+- **why corrected and not as observed:** The `Corrected` class is defined as `a v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced`, and `as-observed` is for behaviour v3 CHOOSES to reproduce. hv's own wording on issue 0032 is that the combining rule `was chosen by an early-return rather than by a decision` -- **you cannot faithfully reproduce a decision nobody made**, and reproducing it is what parity.md forbids in its own sentence: laundering a v2 defect into a v3 requirement.
+- **the conflict ic raised is EMPTY and that is what decides it:** ic recorded this row on 2026-08-15 as two ratified things pointing opposite ways -- AC-04.3 requires v3 to reproduce v2's gate VERDICTS, and correcting 0032 would change verdicts on exactly the contracts AC-04.3 measures against. **It changes none.** vc re-measured all 109 AT rows: the two multi-AT ACs are AC-00.7 (AT-00.5 red + AT-00.7 to-write -> OR unsatisfied, AND unsatisfied) and AC-03.7 (AT-03.7 green + AT-03.9 green -> OR satisfied, AND satisfied). **Zero verdicts move; AC-04.3 is untouched and there is no parity break to ratify.** OR and AND can only diverge on a multi-AT AC holding a green beside a non-green, and no such row exists.
+- **the actionable part is TIMING:** Correct it while it is free. AC-03.7 is the near exposure: two greens, so one regression scores it satisfied on the survivor. **The moment any multi-AT AC goes mixed-with-a-green the fix starts MOVING a verdict and will read as a regression rather than a correction.** The window is open and closes on its own.
+- **consequence for the AT LEDGER:** Under an OR gate a second covering AT row is worse than neutral -- it is a place a future green can hide a red -- so adding rows to a gate that ORs actively LOWERS the bar it appears to raise. That is why AT-05.5 names its three instruments in one note rather than carrying three rows, and it is the correct form rather than a workaround.
+- **ratified in:** vc ruling 2026-08-16 (provisional pending hv), recorded on issue 0032
 - **MCP:** exposed as an agent tool -- read-only
 - **Wants review -- the classification disagrees with the verb name:** `gate` reads as an enforcement action that stamps a verdict somewhere. It computes and reports; the write lives in the caller (`st done` / `wp done`). vc's own example of why derivation-from-name dies.
 - **MCP classification grounded in:** bin/intent_acceptance:973 (cmd_ac_gate) -- no write primitive in the body
@@ -939,6 +953,7 @@ Acceptance test commands
   - INV-07 at `at --help` parsed as an unknown verb
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
+- **ratified in:** parity.md
 - **MCP:** not exposed -- read-only
 
 ### `at list`
@@ -1001,6 +1016,7 @@ Set an AT green (reachable only from red)
 - **spelling:** intent at green
 - **consequence:** Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.
 - **open to cc:** v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported.
+- **ratified in:** ic, with the `at green` row's own basis
 - **MCP:** exposed as an agent tool -- **mutates**
 
 ### `at red`
@@ -1214,6 +1230,7 @@ Show intent/todo.md (generates it if absent)
   - INV-07 at `todo --help`
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
+- **ratified in:** parity.md
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.
 - **MCP classification grounded in:** bin/intent_todo:380 (`COMMAND="${1:-list}"`) -- bare `todo` IS `todo list`
@@ -1343,6 +1360,7 @@ Show the Intent process overview and project status
 - **Defects observed in v2:**
   - INV-08 at `intent info --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02.
+- **ratified in:** parity.md
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_info -- no write primitive in the file
 
@@ -2541,6 +2559,7 @@ Scaffold a new extension
 - **Defects observed in v2:**
   - Help says `new <name> --type` but the parsed flags are `--skill` / `--subagent` / `--rule-pack`; there is no `--type` flag. The documented invocation cannot work.
 - **Target:** `corrected` -- ratified: vc, 2026-08-15 -- and deliberately NOT an hv ruling, because none was required. NOTED ON THE ROW SO NOBODY RE-OPENS IT LOOKING FOR THE RULING THAT NEVER EXISTED: v3 generates help from this table, so a help/implementation mismatch CANNOT arise by construction. That is not a decision anyone has to make; it is a defect the SSOT retires wholesale, and this row was the last place still treating it as open. -- behaviour: Help text and implementation agree because both derive from this row. The v2 mismatch is not reproduced and needs no per-site correction.
+- **ratified in:** vc ruling
 - **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `treeindex`
@@ -2667,6 +2686,7 @@ Maintain checkbox file indexes
   - INV-01 at `Unknown option: ...` carries no `error:` prefix
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
+- **ratified in:** parity.md
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
@@ -2790,6 +2810,7 @@ Print the Intent version
 - **Defects observed in v2:**
   - INV-08 at `intent version --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH.
+- **ratified in:** parity.md
 - **MCP:** exposed as an agent tool -- read-only
 
 ## Known exposures -- defects this file does not have, and is not protected against

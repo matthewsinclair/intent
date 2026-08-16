@@ -112,9 +112,30 @@ UNAPPLIED="$(comm -13 <(printf '%s\n' "$CLAIMED") <(printf '%s\n' "$CITED"))"
 # Now nothing cited can fall out of scope by wording, and the prose test only
 # chooses the SEVERITY of an uncited claim rather than whether it is looked at.
 NOT_CITED="$(comm -23 <(printf '%s\n' "$CLAIMED") <(printf '%s\n' "$CITED"))"
+
+# **THE SEVERITY TEST IS DECLARED NOW, NOT GREPPED, AND A NEGATION IS WHAT
+# BROKE THE OLD ONE.** This used to read the ratification PROSE and match
+# `parity\.md|`?[Cc]orrected`? class`. It misfired on the first row whose
+# ratification NEGATED the string: `ac gate` says "NOT cited by parity.md --
+# this row is ratified ELSEWHERE", and the grep read that as a claim ON
+# parity.md and reported it UNCITED. **A prose test cannot tell an assertion
+# from its negation**, and a row explaining why it is out of scope is exactly
+# the row most likely to say the words that put it back in.
+#
+# Same correction `is_parity_class`, `exposed_on_mcp` and `read_or_mutate` each
+# needed: the fact is a judgement, so a human is held to it in a declared field
+# rather than a regex inferring it from how a sentence happens to read. Scope
+# was already decided by the machine-read citation; this was the last inference
+# left in the file.
+UNDECLARED="$(jq -r '
+  [ (.invariants[] | select(.target.state == "corrected") | select(.target.ratified_in == null) | .id),
+    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(.target.ratified_in == null) | .path) ]
+  | join(" ")' "$TABLE")"
+[ -z "$UNDECLARED" ] || die "\`corrected\` unit(s) do not declare \`target.ratified_in\`, so this check cannot tell an uncited claim from one ratified elsewhere -- and guessing it from the ratification prose is the defect this field replaced: $UNDECLARED"
+
 POINTS_HERE="$(jq -r '
-  [ (.invariants[] | select(.target.state == "corrected") | select((.target.ratification // "") | test("parity\\.md|`?[Cc]orrected`? class")) | .id),
-    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(((.target.ratification // .target.basis // "")) | test("parity\\.md|`?[Cc]orrected`? class")) | .path) ]
+  [ (.invariants[] | select(.target.state == "corrected") | select(.target.ratified_in == "parity.md") | .id),
+    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(.target.ratified_in == "parity.md") | .path) ]
   | .[]' "$TABLE" | sort -u)"
 
 UNCITED="$(comm -12 <(printf '%s\n' "$NOT_CITED") <(printf '%s\n' "$POINTS_HERE"))"
