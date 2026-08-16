@@ -94,6 +94,14 @@ Under YAML the correct board also renders worse: `ws list` strips the delimiters
 
 `intent claude ws hygiene` enforces exactly this rule: every line in the block is a single-line `key: value`, and the required keys are readable. It does NOT check YAML validity, because validity is not the contract.
 
+#### Writing valid YAML here is the failure mode with no natural control
+
+The measurement above is about a node writing **invalid** YAML, and that direction has a built-in corrective: the next node to read the board sees something broken and repairs it. **The opposite direction does not, and cannot.** A node that knows YAML, meeting a `"` inside a double-quoted value, escapes it -- which is correct YAML, produced by care, and looks completely fine. Nothing about it reads as wrong. The only symptom is `fm_get` stripping the delimiters **without unescaping** (deliberately -- see `intent_claude_cwi`), so `ws list` renders the backslash or the doubled apostrophe mid-prose, at a moment nobody is looking.
+
+**So the escape forms are refused at commit time** by `lib/templates/hooks/whiteboard-header-guard.sh`, a separate guard from the clock guard below -- one concern, one home, because a guard's name must not come to cover checks it does not describe. It reads only header blocks of live boards (never `.history/`, whose archives replay old headers verbatim), only lines the commit ADDS (inherited breakage must never wedge a board), and **never prose** -- nodes report this class to each other by quoting it, and scanning prose would make reporting the defect an offence. Like the clock guard it never auto-corrects: it prints the repaired line so the fix is a copy-paste.
+
+The fix is never a better escape. It is to stop treating the block as YAML.
+
 ## inbox.<sender>.md shape
 
 One inbox per ordered (sender -> recipient) pair: `<recipient>/inbox.<sender>.md` holds the messages `<sender>` has sent `<recipient>`. The sender is the sole writer (append-only); the recipient is the sole reader and owns its lifecycle (read, action, `clear` into history).
@@ -147,6 +155,8 @@ Corollaries:
 ### This is enforced, not merely written down
 
 `lib/templates/hooks/whiteboard-clock-guard.sh` runs from the pre-commit gate and **refuses the commit** -- the bad stamp never lands. It is opt-in by the presence of `intent/whiteboard/`, so nothing changes for a project without a board. Built and measured in Lamplight, brought upstream because Intent ships this protocol and every consumer inherits the hole otherwise.
+
+It is one of two whiteboard guards, and they are deliberately separate files: this one's name and contract are TIMESTAMPS, the header guard's is the header block's format. The shipped `pre-commit.sh` declares both in one roster and **runs every one of them before deciding**, so a board carrying a bad stamp AND an escaped value is one editing session rather than two commit attempts. Only that hook is copied into a project; the guard bodies are read live out of `INTENT_HOME`, which is why a new guard reaches every consumer on their next `intent upgrade` without anyone touching `.git/hooks/`.
 
 Three checks, because each closes a hole the others cannot see:
 

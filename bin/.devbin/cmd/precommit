@@ -51,10 +51,20 @@ set -euo pipefail
 # THE TOOL, DO NOT REIMPLEMENT ITS RULE. The runner is the authority on what the
 # runner checks, so it declares, and `int hooks` asks.
 #
-# Format is `name<TAB>script-or-dash`. A dash means the guard has no script to
-# stat, which is a legitimate state and not a missing file -- the distinction
-# `int hooks` needs in order to keep flagging a guard whose script has actually
-# gone missing.
+# Format is `name<TAB>repo-relative-script-or-dash`. A dash means the guard has
+# no script to stat, which is a legitimate state and not a missing file -- the
+# distinction `int hooks` needs in order to keep flagging a guard whose script
+# has actually gone missing.
+#
+# THE PATH IS REPO-RELATIVE AND WHOLE, not a basename `int hooks` re-roots.
+# It used to emit bare filenames and the reader prefixed the ST0056 tools
+# directory, which quietly redefined the second field as "a script UNDER
+# $TOOLS". The moment a guard's script lived anywhere else -- guard 0b now
+# delegates to shipped canon under lib/ -- that reader had exactly two wrong
+# answers available and no right one: report a real script as MISSING, or emit
+# a dash claiming there is none. Same anchoring error as the defect recorded
+# above, one field along: the roster is the authority on what it checks AND on
+# where those checks live.
 G_NODB="no database enters history (D34: the DB is per-machine truth, never committed)"
 G_PROV="provenance: artefacts from one measurement name one revision"
 G_SKEW="skew: committed generated views still match their canon"
@@ -64,10 +74,10 @@ G_BOARD="whiteboard: header values are literal, never YAML-escaped"
 
 if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t-\n' "$G_NODB"
-  printf '%s\t-\n' "$G_BOARD"
-  printf '%s\t%s\n' "$G_PROV" "provenance_check.sh"
-  printf '%s\t%s\n' "$G_SKEW" "view_skew_check.sh"
-  printf '%s\t%s\n' "$G_GENIN" "generator_inputs_check.sh"
+  printf '%s\t%s\n' "$G_BOARD" "lib/templates/hooks/whiteboard-header-guard.sh"
+  printf '%s\t%s\n' "$G_PROV" "intent/st/ST0056/parity/tools/provenance_check.sh"
+  printf '%s\t%s\n' "$G_SKEW" "intent/st/ST0056/parity/tools/view_skew_check.sh"
+  printf '%s\t%s\n' "$G_GENIN" "intent/st/ST0056/parity/tools/generator_inputs_check.sh"
   exit 0
 fi
 
@@ -159,55 +169,53 @@ fi
 
 # GUARD 0b: a whiteboard header value that has been YAML-ESCAPED.
 #
-# The protocol rules the header block is NOT YAML -- a line-oriented `key: value`
-# where quotes inside a value are LITERAL and never escaped. `ws list` strips the
-# outer delimiters without unescaping, so an escaped value renders as `ic''s`
-# mid-prose, which is the exact failure the ruling was made to prevent.
+# DELEGATED, NOT IMPLEMENTED. This check was born here as an inline block and
+# has since gone UPSTREAM as canon -- vc ruled it ships (opt-in by the presence
+# of `intent/whiteboard/`), as a SEPARATE guard rather than folded into the
+# clock guard, whose name and contract are timestamps. Keeping a second copy
+# here would be two homes for one check, which is the exact defect the ST0056
+# gates keep finding in other people's code.
 #
-# It happened (cc's board, `ddd074af`, a `"` inside the value). cc attributed it
-# to the pre-commit formatter; I could not reproduce that -- `prettier --write`
-# at the binary the hook resolves, with the hook's invocation, against their
-# input reconstructed from the committed result, leaves it byte-identical, and
-# there is no PostToolUse formatter and no `ws` module that writes a board. **So
-# the likely author is a node that knows YAML**, which is the side the ruling
-# addresses and the side documentation has never held.
+# So this repository runs THE BYTES THAT SHIP. That is strictly better than
+# dogfooding a copy of them: a divergence between what we enforce and what our
+# consumers receive cannot happen if there is only one file.
 #
-# Two signatures, both mechanical, neither needing a YAML parser:
-#   value is single-quoted and contains ''    -- YAML single-quote escaping
-#   value contains \"                         -- YAML double-quote escaping
+# THE INLINE VERSION HAD TWO DEFECTS THE PORT FOUND AND FIXED, both measured
+# rather than reasoned, and both in the over-refusing direction:
 #
-# NEVER AUTO-CORRECTS. The clock guard's precedent: a guard that silently fixes
-# the value hides the class from the node that needs to learn it, so the repaired
-# form is PRINTED and the fix is a copy-paste. Staged content only -- what the
-# commit adds, not what the tree happens to hold.
-board_bad=""
-while IFS= read -r p; do
-  [ -n "$p" ] || continue
-  case "$p" in
-    intent/whiteboard/*/wip.md) ;;
-    *) continue ;;
-  esac
-  # Lines 2..second `---` are the header block; anything below is prose, where a
-  # doubled apostrophe is somebody quoting and none of this guard's business.
-  hdr="$(git show ":$p" 2>/dev/null | sed -n '2,/^---$/p' || true)"
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    case "$line" in
-      *": '"*"''"*"'") repaired="$(printf '%s' "$line" | sed "s/: '/: \"/; s/'\$/\"/; s/''/'/g")" ;;
-      *': '*'\"'*) repaired="$(printf '%s' "$line" | sed 's/\\"/"/g')" ;;
-      *) continue ;;
-    esac
-    board_bad="${board_bad}    $p
-      is:     $line
-      should: $repaired
+#   - `case` and git pathspec wildcards BOTH cross `/`, so
+#     `intent/whiteboard/*/wip.md` reached `.history/`. Measured on this
+#     repository: 21 files matched, SIXTEEN of them archived boards. An archive
+#     replays an old header verbatim, so it was refusing the protocol's own
+#     housekeeping over a historical record.
+#   - `sed -n '2,/^---$/p'` scans the WHOLE FILE when there is no header block,
+#     turning every line of prose into a candidate.
+#
+# The canon guard also only reports lines the commit ADDS, so pre-existing
+# breakage cannot wedge a board -- and it exempts prose, which matters today:
+# five tracked board files quote `\"` while REPORTING this class to a peer, one
+# of them a live board. Scanning prose would make reporting the defect an
+# offence.
+#
+# WHEN THIS BLOCK GOES AWAY: when `.git/hooks/pre-commit.intent` here is
+# reinstalled from the updated canon (`intent claude upgrade --apply`), the
+# shipped hook runs this guard itself and this call becomes the second of two.
+# It is harmless until then -- the guard is idempotent and exits 0 on a clean
+# board -- but it is redundant, and the precondition is named so it is not a
+# deferral that quietly becomes permanent.
+step "$G_BOARD"
+BOARD_GUARD="${PROJECT_ROOT}/lib/templates/hooks/whiteboard-header-guard.sh"
+if [ -f "$BOARD_GUARD" ]; then
+  if ! bash "$BOARD_GUARD"; then
+    rc=1
+    failed="${failed}  a whiteboard header value is YAML-escaped -- the block is NOT YAML (report above)
 "
-  done <<<"$hdr"
-done <<<"$STAGED"
-
-if [ -n "$board_bad" ]; then
-  rc=1
-  failed="${failed}  a whiteboard header value is YAML-escaped -- the block is NOT YAML and quotes inside a value are literal
-${board_bad}"
+  fi
+else
+  # Named, not silent -- the same rule the rest of this runner follows. A guard
+  # in the roster with nothing behind it is the invisible non-enforcement this
+  # mechanism exists to end.
+  warn "canon guard missing at $BOARD_GUARD -- whiteboard headers UNCHECKED this commit."
 fi
 
 # Named, not silent -- the clock guard's precedent. Apparatus present with no

@@ -145,7 +145,7 @@ guards_of() {
       # No script to stat. A legitimate state, not a missing file -- saying so
       # keeps the MISSING report below meaningful.
       printf '                 guard: %s\n' "$name"
-    elif [ -x "$ROOT/intent/st/ST0056/parity/tools/$script" ]; then
+    elif [ -x "$ROOT/$script" ]; then
       printf '                 guard: %s  [%s]\n' "$name" "$script"
     else
       printf '                 guard: %s  [%s]  <- NOT EXECUTABLE OR MISSING\n' "$name" "$script"

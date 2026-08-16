@@ -52,17 +52,32 @@ The hook deliberately exits `0` (letting the commit through) when the critic inf
 
 In every case a one-line stderr advisory explains why the gate was skipped. The gate is a quality check, not an availability check — a missing tool shouldn't prevent work from being committed.
 
+## Whiteboard guards
+
+Projects that run the multi-session whiteboard protocol get a second set of checks, ahead of the critic. They are **opt-in by the presence of `intent/whiteboard/`** — a project without a board is not one they have an opinion about, and nothing changes for it.
+
+| Guard                        | Refuses                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `whiteboard-clock-guard.sh`  | a timestamp that cannot be a real clock read (future, missing `Z`, backwards) |
+| `whiteboard-header-guard.sh` | a header value that has been YAML-escaped — the header block is not YAML      |
+
+Three properties are worth knowing, because they are what make the guards keepable:
+
+- **One concern per guard, and the hook runs all of them before deciding.** Stopping at the first refusal costs a node one commit attempt per defect, and a board with a bad stamp and an escaped value is one editing session. Each guard prints its own report; the hook only aggregates the verdict.
+- **Neither ever auto-corrects.** Both print the corrected line so the fix is a copy-paste. A guard that silently repairs the value hides the class from the node that needs to learn it.
+- **Only this hook is copied into your project.** The guard bodies are resolved at runtime out of `INTENT_HOME`, so a new or updated guard reaches every project on the next `intent upgrade` without anyone touching `.git/hooks/`. If a board is present and a guard is not found, the hook says so on stderr and names what went unchecked rather than passing in silence.
+
 ## Language detection
 
-Per-invocation the hook enumerates `LANGS` by file marker:
+The hook reads the explicit `languages` array from `intent/.config/config.json` and dispatches one critic per entry:
 
-| Marker                            | Language adds |
-| --------------------------------- | ------------- |
-| `mix.exs`                         | `elixir`      |
-| `Cargo.toml`                      | `rust`        |
-| `Package.swift`                   | `swift`       |
-| `.luarc.json`                     | `lua`         |
-| _(always, regardless of markers)_ | `shell`       |
+```bash
+jq -r '(.languages // []) | .[]' intent/.config/config.json
+```
+
+An empty or absent array means no language critics run. This replaced filesystem-marker detection (`mix.exs` ⇒ elixir, and so on) in v2.11.0 / ST0037, on the grounds that file presence is not evidence of language-in-use. Declare with `intent lang init <lang>`; remove with `intent lang remove <lang>`.
+
+`intent critic` owns the code-versus-prose classification from its single registry, so a prose discipline (`author`, `content`) returns a clean no-op here rather than needing the hook to know anything about languages.
 
 `shell` is always included so staged bash/zsh scripts are checked even in a polyglot project whose primary language is something else. Each language's critic runs independently; the hook aggregates exit codes (any `1` blocks the commit).
 

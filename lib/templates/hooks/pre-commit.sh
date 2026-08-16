@@ -63,30 +63,60 @@ if [ ! -f "intent/.config/config.json" ]; then
   exit 0
 fi
 
-# ---- Whiteboard clock guard (opt-in by directory presence) ----
+# ---- Whiteboard guards (opt-in by directory presence) ----
 #
-# Runs BEFORE the critic: it is exact, cheap, needs no language, and a bad
-# timestamp is cheaper to fix before the slower checks have run.
+# Run BEFORE the critic: they are exact, cheap, need no language, and a bad
+# board is cheaper to fix before the slower checks have run.
 #
 # Opt-in by presence, exactly like the whiteboard itself -- a project without a
-# board is not one this guard has an opinion about, and nothing changes for it.
+# board is not one these guards have an opinion about, and nothing changes for
+# it.
+#
+# ONE GUARD PER CONCERN, DECLARED HERE, NOT ONE GUARD THAT GREW. The clock guard
+# checks TIMESTAMPS (three checks, all about clocks); the header guard checks
+# the HEADER BLOCK's format contract. They were kept apart by ruling (vc,
+# 2026-08-16): folding a second concern into a file named for the first makes
+# its name lie to the next reader, and it couples two controls that should be
+# independently canaried and independently disabled. Adding a third is a line in
+# this array.
+#
+# ALL OF THEM RUN, THEN THE GATE DECIDES. Stopping at the first refusal costs a
+# node one commit attempt per defect, and a board with a bad stamp AND an
+# escaped value is one editing session, not two. Each guard prints its own
+# report; this loop only aggregates the verdict.
 #
 # Resolution is a RUNTIME question, answered the way issue 0016 answered it for
 # the Claude Code hooks: ask the CLI where it lives rather than substituting an
 # absolute path at install time. `intent` is already required on PATH above, and
 # it knows its own home; `sed` rather than `awk $2` so a home directory
-# containing spaces still resolves.
+# containing spaces still resolves. **This is also what makes a new guard
+# propagate without touching a consumer's .git/hooks/**: only this file is
+# copied into a project, and it reads the guard bodies live out of INTENT_HOME.
+#
+# Format is `basename|what goes unchecked if it is missing`, so the fail-open
+# message can name the specific hole rather than saying "a guard".
+WB_GUARDS=(
+  'whiteboard-clock-guard.sh|timestamps are UNCHECKED'
+  'whiteboard-header-guard.sh|header values are UNCHECKED'
+)
+
 if [ -d "intent/whiteboard" ]; then
   INTENT_HOME_RESOLVED="$(intent info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p' | head -1)"
-  CLOCK_GUARD="${INTENT_HOME_RESOLVED}/lib/templates/hooks/whiteboard-clock-guard.sh"
-  if [ -n "$INTENT_HOME_RESOLVED" ] && [ -f "$CLOCK_GUARD" ]; then
-    bash "$CLOCK_GUARD" || exit 1
-  else
-    # Named, not silent: a board present with no guard behind it is exactly the
-    # invisible non-enforcement this whole mechanism exists to end.
-    echo "intent gate: intent/whiteboard/ present but the clock guard was not found;" >&2
-    echo "  timestamps are UNCHECKED this commit. (looked in: ${CLOCK_GUARD})" >&2
-  fi
+  WB_BLOCKED=0
+  for wb_entry in "${WB_GUARDS[@]}"; do
+    wb_name="${wb_entry%%|*}"
+    wb_unchecked="${wb_entry#*|}"
+    wb_guard="${INTENT_HOME_RESOLVED}/lib/templates/hooks/${wb_name}"
+    if [ -n "$INTENT_HOME_RESOLVED" ] && [ -f "$wb_guard" ]; then
+      bash "$wb_guard" || WB_BLOCKED=1
+    else
+      # Named, not silent: a board present with no guard behind it is exactly
+      # the invisible non-enforcement this whole mechanism exists to end.
+      echo "intent gate: intent/whiteboard/ present but ${wb_name} was not found;" >&2
+      echo "  ${wb_unchecked} this commit. (looked in: ${wb_guard})" >&2
+    fi
+  done
+  [ "$WB_BLOCKED" -eq 0 ] || exit 1
 fi
 
 # ---- Read declared languages from project config ----
