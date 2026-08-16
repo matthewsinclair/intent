@@ -105,7 +105,9 @@ So three in-repo sources agree that `2` from `UserPromptSubmit` blocks: the scri
 
 1. **Implement `claude hook` in v3** -- the same conclusion 0042 reaches from the other direction, and forced by the same 0016 invariant that forbids rewiring hooks. With `claude hook` implemented, the collision is unreachable through the shipped canon.
 2. **Stop letting one constant answer to two contracts.** The unimplemented-command exit should be chosen per caller contract, not globally. A command invoked as a hook has a different contract from one invoked in a gate loop, and the tool currently cannot tell them apart.
-3. **Enumerate the consumers of `intent`'s exit codes and write them down.** There are two shipped ones and they disagree; that fact belongs in `spine.rs` beside `EXIT_UNAVAILABLE`, where the next person choosing a number will see it. A comment naming only the pre-commit gate is how this happened.
+3. **Enumerate the consumers of `intent`'s exit codes and write them down.** That fact belongs in `spine.rs` beside `EXIT_UNAVAILABLE`, where the next person choosing a number will see it. A comment naming only the pre-commit gate is how this happened.
+
+   **And the list is longer than two** (dc, 2026-08-16). **0038, 0042 and 0043 are three consumers reaching three different decisions from one exit code, each fixed against the only consumer in view** -- and dc names **a fourth nobody has: `int prepush` and the devbin gates shell out to `intent` as well.** **Worth one person listing every caller ONCE, rather than a fourth issue arriving by the same route as the first three.**
 
 **The canary: a fixture whose `UserPromptSubmit` command is the v3 binary, asserting the hook's exit code is NOT 2.** It is a one-line assertion and it would have failed the moment `d2b8e76d` landed.
 

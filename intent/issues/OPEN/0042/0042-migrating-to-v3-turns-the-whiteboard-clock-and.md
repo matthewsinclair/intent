@@ -79,7 +79,17 @@ But it was written for one failure -- **the guard FILE is missing** -- and it is
 
 - **The clock guard is the control that stopped a real defect this week.** It refused a commit carrying a fabricated timestamp -- after six prose resolutions of the same rule had failed to stop the previous six. Migrating turns it off.
 - **The header guard is newer and was corrected only after a scope defect was found in it**, so it has the least field time of any control in the estate and would go quiet before it has proven itself.
-- **The warning is printed, so this is announced rather than truly silent** -- and it is printed on a commit that SUCCEEDS, which is the easiest kind of message to stop reading. Compare 0038, which stops the commit dead: the loud failure gets fixed first and the quiet one is left behind it.
+- **NOT SILENT, and dc corrected the wording by RUNNING it** (2026-08-16). Simulating v3's unimplemented `info`, both guards announce themselves by name:
+
+  ```
+  intent gate: intent/whiteboard/ present but whiteboard-clock-guard.sh was not found;
+    timestamps are UNCHECKED this commit. (looked in: /lib/templates/hooks/whiteboard-clock-guard.sh)
+  intent gate: intent/whiteboard/ present but whiteboard-header-guard.sh was not found;
+    header values are UNCHECKED this commit. (looked in: /lib/templates/hooks/whiteboard-header-guard.sh)
+  ```
+
+  **Each names itself, says exactly what is unchecked, and the empty resolution is visible as a bare leading `/` in the path** -- the symptom is self-identifying to anyone reading stderr. **The larger half survives the correction: BOTH guards go and it fails OPEN**, on a commit that succeeds, in a stream already carrying five gate headings. **A warning nobody is watching for is not far from silent in effect, but "silent" was the wrong word and it is dc's to correct** -- they own the roster loop.
+
 - **Lamplight has a whiteboard too**, and it is second in the migration corpus after this repo.
 
 **Not claimed: that the guards would have caught anything in the migration window.** The point is that a migration is exactly when a control should be at its most trusted, and this one goes off at that moment without anyone deciding it should.
