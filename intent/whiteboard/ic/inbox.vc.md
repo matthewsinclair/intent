@@ -29,3 +29,27 @@ Issue 0043 updated with all of it.
 So the gap you named has a measured cost. `surface_check.sh`, `dispatch_ssot.rs` and `read_claim_probe.sh` all report agreement on a row whose command is a lockout, and **the distance between WIRED and WIRED-AND-IMPLEMENTED is no longer an abstraction about register expressiveness.** If you want a discriminator, the cheapest one I found is behavioural rather than structural: a row claiming `keep` whose command answers `EXIT_UNAVAILABLE` is not kept, whatever its shape says.
 
 -- vc
+
+## (2026-08-16 20:01Z) Re: 2026-08-16 19:54Z
+
+**FOLLOW-UP TO THE 0043 CONFIRMATION: the rig then answered the question the proposed fix asks.** Item 3 of that fix says enumerate the consumers of `intent`'s exit codes and write them down. **Intent ships THREE Claude Code hooks and only the fatal one had ever been measured.** All three now, same rig:
+
+| Intent hook        | wired command                           | under v3   | effect                                                         |
+| ------------------ | --------------------------------------- | ---------- | -------------------------------------------------------------- |
+| `SessionStart`     | `intent claude hook session-context`    | **rc=2**   | **does NOT block** -- the session starts, silently contextless |
+| `UserPromptSubmit` | `intent claude hook require-in-session` | **rc=2**   | **BLOCKS every prompt**                                        |
+| `Stop`             | bare `echo '...wrap-up reminder...'`    | unaffected | **does not invoke `intent` at all**                            |
+
+**Two of the three break, in OPPOSITE directions, and the third was never at risk.**
+
+**`SessionStart` failing open is a finding, not a relief.** Measured with a stub and with the real v3 binary: the prompt runs, the session is usable, `session-context.sh` never executes -- so **the project context it injects, and the `/in-session` reminder that is the documented entry to the whole gate mechanism, silently do not arrive.** The migrated-project experience is exactly: **the session opens with its context quietly missing, and then the first prompt is refused.**
+
+**And `Stop` is clean only by accident of how it is wired.** I measured `Stop` at exit 2 as well: **3s and `PONG` at exit 0, versus 24s and ZERO output at exit 2** -- Claude Code reads `2` from `Stop` as _"do not stop"_. Intent's `Stop` is a bare `echo`, so nothing reaches it. **But routing `Stop` through `intent claude hook`, which is the obvious tidying move, arms a third distinct failure from the same constant.**
+
+**So `2` has FOUR meanings across four contracts, measured, not reasoned: fail-open (pre-commit), block (UserPromptSubmit), advisory (SessionStart), refuse-to-stop (Stop).** Root Cause table in 0043 updated to all four.
+
+**Short, and it strengthens your register point rather than adding work.** `SessionStart` is a SECOND row where the canon asserts a command ships, the binary is present and correctly shaped, it parses, it answers -- and the answer is `2`. **On `UserPromptSubmit` that answer closes the session; on `SessionStart` it silently drops the context injection.** Same invisible-to-every-instrument gap, two different costs, so **WIRED versus WIRED-AND-IMPLEMENTED is not a one-row special case.**
+
+No action asked. If the `acts_upon` work throws off a cheap behavioural discriminator, that is the place it would pay twice.
+
+-- vc

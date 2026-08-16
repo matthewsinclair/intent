@@ -15,7 +15,7 @@ migration, hooks, exit-codes, claude-code, lockout, regression, measured, critic
 
 ## Summary
 
-**Two consumers read the same exit code and take opposite decisions from it.**
+**Two consumers read the same exit code and take opposite decisions from it.** (Filed as two. **Measured, it is four** -- see the Root Cause table. These two are the pair that makes it critical.)
 
 - The **pre-commit gate** reads `2` as _"the critic tooling is unavailable"_ and **fails open** -- correct, and the reason 0038 was fixed by moving unimplemented commands from `1` to `2` (`d2b8e76d`, `EXIT_UNAVAILABLE`).
 - The **`UserPromptSubmit` hook** reads `2` as _"BLOCK this prompt"_. That is Claude Code's contract and the shipped `require-in-session.sh` uses it deliberately: `:20` documents _"Block (exit 2 + stderr message)"_ and `:71` is a bare `exit 2`.
@@ -60,14 +60,18 @@ rc=2
 
 ## Root Cause
 
-**`2` is not one meaning. It is two, in two contracts, and nothing relates them.**
+**`2` is not one meaning. Measured, it is FOUR, in four contracts, and nothing relates them.**
 
-| consumer                       | reads `2` as        | resulting action       |
-| ------------------------------ | ------------------- | ---------------------- |
-| `pre-commit.sh` critic loop    | tooling unavailable | **fail open, proceed** |
-| Claude Code `UserPromptSubmit` | deliberate refusal  | **block the prompt**   |
+| consumer                       | reads `2` as         | resulting action              | status                                |
+| ------------------------------ | -------------------- | ----------------------------- | ------------------------------------- |
+| `pre-commit.sh` critic loop    | tooling unavailable  | **fail open, proceed**        | live, correct, the reason for 0038    |
+| Claude Code `UserPromptSubmit` | deliberate refusal   | **block the prompt**          | **live, fatal -- this issue**         |
+| Claude Code `SessionStart`     | advisory stderr only | **proceed, hook effect lost** | **live, silent**                      |
+| Claude Code `Stop`             | do not stop          | **refuse to end the turn**    | unreached today (`Stop` is an `echo`) |
 
-`spine.rs` has one `EXIT_UNAVAILABLE` for all callers, so a single constant has to satisfy both -- and it cannot, because the two contracts disagree about what the number means. Whichever value is chosen, one consumer is wrong: `1` breaks the commit gate (0038), `2` breaks the prompt gate (this).
+**The first two were the issue as filed. The third and fourth were found by measuring rather than reasoning**, and the fourth is the instructive one: it is not a defect today and it is one wiring change away from being one.
+
+`spine.rs` has one `EXIT_UNAVAILABLE` for every caller, so a single constant has to satisfy all of them -- and it cannot, because the contracts disagree about what the number means. **Whichever value is chosen, some consumer is wrong: `1` breaks the commit gate (0038), `2` breaks the prompt gate (this).** That is not a tuning problem with a better number in it. **There is no value of the constant that is right for four contracts that assign it four meanings**, which is why the fix below is per-caller rather than a different global.
 
 **This is not a mistake in `d2b8e76d`.** The fix was measured against the pre-commit gate, was right about it, and its reasoning is sound and recorded. The defect is that **the exit code was treated as a property of the tool when it is a property of the CALLER's contract**, and nothing enumerated the callers. `.claude/settings.json` and `pre-commit.sh` are the two shipped consumers of `intent`'s exit codes, and only one was in view.
 
@@ -106,6 +110,20 @@ Original prompt: Reply with exactly the word PONG and nothing else.
 ```
 
 **ARM2-SLASH settles the self-sealing claim, which was the weakest part of the filing.** `/in-session` is the documented remedy for a stuck gate, and it is itself a prompt submission: it is blocked by the same hook. **The escape route is closed from inside the session**, measured rather than argued. The second documented escape -- `touch` the sentinel named in the hook's error output -- is visibly unavailable in ARMV3's output above: the message is v3's not-implemented text, and **no sentinel path is printed because the script that would print it never ran.**
+
+**AND THE RIG THEN ANSWERED THE QUESTION THE PROPOSED FIX ASKS.** Item 3 below says to enumerate the consumers of `intent`'s exit codes and write them down. **Intent ships THREE Claude Code hooks, not one**, and until now only the fatal one had been measured. All three, same rig, same day:
+
+| Intent hook        | wired command                           | under v3   | effect                                                         |
+| ------------------ | --------------------------------------- | ---------- | -------------------------------------------------------------- |
+| `SessionStart`     | `intent claude hook session-context`    | **rc=2**   | **does NOT block** -- the session starts, silently contextless |
+| `UserPromptSubmit` | `intent claude hook require-in-session` | **rc=2**   | **BLOCKS every prompt** -- the lockout above                   |
+| `Stop`             | bare `echo '...wrap-up reminder...'`    | unaffected | **does not invoke `intent` at all**                            |
+
+**Two of the three break, in OPPOSITE directions, and the third was never at risk.**
+
+**`SessionStart` fails OPEN and that is a finding in its own right, not a relief.** Measured with both a stub and the real v3 binary: the prompt runs, the session is usable, and `session-context.sh` never executes -- so **the project context it injects, and the `/in-session` reminder that is the documented entry to the whole gate mechanism, silently do not arrive.** Same family as 0042: the guarded operation succeeds while the control stops running. So the migrated-project experience is precisely: **the session opens with its context quietly missing, and then the first prompt is refused.**
+
+**`Stop` is clean today only by accident of how it is wired**, and it is worth writing down before someone changes that. The rig measured `Stop` exiting `2` as well: **3s and `PONG` at exit 0, versus 24s and ZERO output at exit 2.** Claude Code reads `2` from `Stop` as _"do not stop"_. Intent's `Stop` hook is a bare `echo`, so nothing in the estate reaches it -- **but routing `Stop` through `intent claude hook`, which is the obvious tidying move, would arm a third distinct failure from the same constant.** That is the fourth meaning of `2`, on the fourth contract, and it is the one that is cheap to walk into.
 
 **One finding the arms added that the filing did not anticipate: the `claude` process itself exits 0 on a blocked prompt.** The block is in-band, reported in the output stream. **So any wrapper or automation checking the process exit code sees success** while the model never saw the prompt -- a second silent-failure surface, in the layer that would be used to detect the first.
 
