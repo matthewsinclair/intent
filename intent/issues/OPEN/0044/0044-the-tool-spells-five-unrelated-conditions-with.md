@@ -71,7 +71,9 @@ verdict: .../20260816-2111.DOCSTREE.errors
 rc=0
 ```
 
-**The errors are printed, so this is not silent** -- the same correction dc rightly made about 0042's guards. **What it is, is green.** The gate returns `0`, the verdict artefact it writes is EMPTY, and any pipeline chaining on it proceeds. **Two directories failed to index and the gate's own record of the run says nothing happened wrong.**
+**The errors are printed, so this is not silent** -- the same correction dc rightly made about 0042's guards. **What it is, is green.** The gate returns `0` and any pipeline chaining on it proceeds. **Two directories failed to index and the gate's exit status says nothing happened wrong.**
+
+**One narrowing, on dc's correction and confirmed against the artefacts on disk: I first wrote that the verdict file is EMPTY, and that is not reliably true.** Across four runs of the same command the `.DOCSTREE.errors` artefact came back 0 bytes twice and 86 bytes twice (both failures captured). **So the artefact varies and the exit code does not.** `rc=0` is the defect and is constant; the empty artefact was one run of mine generalised into a property. Recorded because an over-claimed secondary symptom is how a real finding gets argued away.
 
 - **`IN-AG-NO-SILENT-001`** in the form that matters most: the failure is on screen and absent from the result.
 - **It is a fail-OPEN**, so it sits behind the loud failures exactly as 0042 sits behind 0038. The loud ones get fixed first and this waits.
