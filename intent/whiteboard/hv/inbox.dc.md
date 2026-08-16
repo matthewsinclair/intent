@@ -35,3 +35,27 @@ If it ever gets in the way, `rm .git/hooks/post-commit` and tell me why.
 **Second, smaller, and not a decision -- a note for whoever owns devbin upstream.** Its own `builtin_check_format` treats a determinate "nothing to check" as **report and pass**, explicitly on the grounds that it is a fact about the project rather than a run that went wrong. The toolchain arm **fails** in the same situation. Two adjacent gates answering the same question in opposite directions. devbin is vendored external code so I have not touched it; worth passing to Conflab if that channel is open.
 
 -- dc
+
+## (2026-08-16 14:27Z) YOU SAID SOONER IS BETTER FOR v3. I WALKED THE CUT PATH TO SEE WHAT ACTUALLY STANDS IN IT. TWO GATES, AND BOTH ARE YOURS.
+
+**I ran `int build release --dry-run v3.0.0` rather than reasoning about it, and then exercised the parts a dry-run cannot reach.** Three findings, in the order they would hit you on the morning of a cut.
+
+**FIRST, AND IT IS THE ONE I CANNOT WORK AROUND: THE UPSTREAM FREEZE AND A v3 RELEASE ARE IN DIRECT CONFLICT.** The release pushes `local` AND `upstream`, and my own pre-flight refuses when a remote in the push set is frozen. Exercised with the real command just now: `frozen_hit='upstream'`, so **a v3 cut aborts at pre-flight, before the tag.** That is the control working exactly as designed -- it stops the half-published state where the tag is cut and the release object never appears.
+
+**But it means v3 cannot ship while the freeze holds, and not because of the freeze mechanism -- because of what v3 IS.** AC-11.1's evidence is `brew install` run once on a clean machine from the tap, and the tap formula points at a **GitHub release asset**. GitHub is `upstream`. So there is no version of "ship v3" that reaches a user without a push to the frozen remote. **`local` is a Dropbox path; nobody installs from it.**
+
+I am not asking you to lift the freeze generally, and I have deliberately not built an exception. **The decision I think you actually face is narrower: whether the freeze lifts for the cut itself** -- one push, one release, then closes again. That is a handful of workflow runs rather than the per-commit spend the freeze was called to stop. **You closed it on cost per commit, and a release is not a commit.** Your call, and it is the only one of the three that nothing else can route around.
+
+**SECOND: there is no `## [3.0.0]` section in `CHANGELOG.md`, and the cut refuses without one.** That is the first gate to fire -- it stopped my dry-run before anything else. Correct behaviour, and it is the practice we adopted at v2.19.0 after 2.17.x and 2.18.0 shipped with neither narrative nor release notes: **write the release docs BEFORE the cut so the tag carries them.**
+
+**I deliberately did NOT create a placeholder heading**, though it would have gotten me further down the path and looked like progress. `## [3.0.0] - in progress` with nothing under it makes the gate pass while the notes are still absent -- **it converts a loud correct refusal into a silent one**, which is the opposite of what a gate is for, and it is the same wrong-artefact argument that keeps the tap empty. The section needs authoring, and its content spans all four of us, so it is not mine to write alone.
+
+**THIRD, AND THIS ONE IS FIXED RATHER THAN REPORTED.** I built the native version stamp yesterday -- without it a `v3.0.0` tag publishes a binary reporting `3.0.0-dev` -- and it had **never been run**. So I ran it against a fixture archived from HEAD. The stamp works, and cargo updates **all four** workspace members, which is the failure my hand-written version had (it stamped three and missed `intentd`).
+
+**But the refusal beside it was broken, and it was broken in the direction nobody checks.** It asserted "every changed line is a version line" -- and a dependency bump is a lone version line, identical in shape to a workspace member's. **So it accepted the single most likely resolver change: the exact thing it exists to keep out of a release commit.** Canaried three ways; a lone `serde` bump sailed straight through. It only ever refused changes that touched a _non_-version line.
+
+**The part worth your attention is why reading it never would have caught it: the comment said what the code did, and both were wrong about the invariant.** They agreed with each other, so diffing prose against mechanism -- the check I recorded as a Decision two days ago -- returns nothing. **Two things written in the same breath by the same author agreeing is not evidence.** Now fixed at `b8787ffc`: it correlates each changed version with the package name above it, refuses any that is not a workspace member, names the crate, and derives the member list from the lockfile itself so there is no roster to keep in step. Proven in five directions against the shipped functions, including the empty-parse guard -- an extractor returning nothing would have reported no changes and accepted anything, confidently.
+
+**One thing I owe and have held back on purpose: none of this has a test.** The stamping I added yesterday has no coverage, which is how it reached today unexercised. I have not added one because **your full suite is running as I write**, and a new file under `tests/` perturbs a run you are about to report. It goes in as soon as you have your result.
+
+-- dc
