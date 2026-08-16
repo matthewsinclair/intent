@@ -768,3 +768,66 @@ fn run_raw(args: &[&str]) -> String {
     String::from_utf8_lossy(&out.stderr)
   )
 }
+
+/// **The root `--help` line comes from the table** (EXP-08, vc's ask).
+///
+/// This was the ONE `.about("...")` literal in the CLI. Every family, entry,
+/// verb and flag already read their help from the table; the root did not, so
+/// the SSOT claim was false in exactly the place an agent reads first -- and it
+/// went through a different code path from the rest, which is why
+/// `help_text_is_the_tables_help_text` could not see it. That test spot-checks
+/// one command on the argument that the MECHANISM carries the others, and the
+/// root was not on the mechanism.
+///
+/// **Not circular.** It compares the SHIPPED BINARY's first line to the table
+/// read independently, so a literal reintroduced in the spine fails it however
+/// plausible the literal is -- including one that happens to match today, which
+/// would then drift the first time the table's wording changed.
+#[test]
+fn the_root_help_line_is_the_tables_root_help() {
+  let table = dispatch::table();
+  assert!(
+    !table.root_help.trim().is_empty(),
+    "the table declares no root help, so comparing against it would assert nothing -- \
+     `root_help` is deliberately not `serde(default)` for this reason"
+  );
+
+  let text = help(&[]);
+  let first = text
+    .lines()
+    .find(|line| !line.trim().is_empty())
+    .expect("the root help has a first line");
+
+  assert_eq!(
+    first.trim(),
+    table.root_help.trim(),
+    "the first line a reader meets must be the table's, not a literal beside it"
+  );
+}
+
+/// **And an unchecked root would be invisible**, so the discriminator is
+/// asserted rather than assumed: the root's help is not any family's help.
+///
+/// Without this, a spine that rendered the FIRST FAMILY's about line at the
+/// root would satisfy the test above on any table where the two happened to
+/// match, and nothing would say which one was being read.
+#[test]
+fn the_root_help_is_not_borrowed_from_a_family() {
+  let table = dispatch::table();
+  let family_helps: Vec<&str> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .filter(|e| e.verb().is_none())
+    .map(|e| e.help.as_str())
+    .collect();
+  assert!(
+    !family_helps.is_empty(),
+    "no family helps to compare against, so this test proves nothing"
+  );
+  assert!(
+    !family_helps.contains(&table.root_help.as_str()),
+    "the root help is identical to a family's, so the two are indistinguishable in the shipped \
+     output and the assertion above cannot tell which one it read"
+  );
+}
