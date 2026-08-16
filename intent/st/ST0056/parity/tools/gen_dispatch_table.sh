@@ -434,6 +434,49 @@ MCP_ON_DEAD="$(jq -r '
 [ -z "$MCP_ON_DEAD" ] || die "rows are exposed on MCP but do not ship -- an agent would be offered a tool for a command that does not exist. Retire the exposure with the command, or the row is not really retired. Offending paths:
 $(printf '%s' "$MCP_ON_DEAD" | sed 's/^/  /')"
 
+# A DECLARED VALUE RESTING SOLELY ON A RETIRED DISPOSITION (vc's generalisation,
+# 2026-08-16, of a finding on `doctor`).
+#
+# A row declared `mutate` that takes NO arguments and ships NO flags has nothing
+# the operator can supply that could cause a write, so its classification rests
+# entirely on its own action -- and if the only mutating thing it ever had is a
+# flag now dispositioned `retire`, the classification is grounded in something
+# withdrawn. `doctor` sat exactly there: `--fix` moved two config files aside in
+# v2, v3 does not carry it, and `read_or_mutate` still said `mutate`.
+#
+# **The class is what earns a refusal, not the row.** vc's framing is the one to
+# keep: a judgement is not overturned when the thing it judged stops existing,
+# it is SUPERSEDED -- and nobody propagates a supersession, because the reasoning
+# is still sound about a subject that is gone. That is `st_prefix`, the residue
+# table declaring six against eight, and Machine 3 listing four AC states after
+# the same file ratified the fifth. **A defended row is harder to correct than an
+# undefended one, and that is a property of the defence.**
+#
+# NARROW BY CONSTRUCTION, which is what makes it a refusal rather than a report.
+# The four conditions together matched exactly ONE row of 107 when it was
+# written, and the six other argument-less flag-less mutations (`todo update`,
+# `upgrade`, `agents generate`, `agents sync`, `claude prime`, `mcp`) all mutate
+# through their own action and carry no retired flag, so none of them trip it.
+#
+# MUTATION-PROVEN, and it must be, because its correct steady state is SILENCE:
+# with `doctor` fixed this arm reports nothing forever, which is the shape that
+# rots unnoticed. Reproduce with
+#   jq '.families |= map(.entries |= map(if .path == "doctor"
+#       then .read_or_mutate = "mutate" else . end))' surface/dispatch-table.json > /tmp/t.json
+#   IN=/tmp/t.json OUT=/tmp/t.md bash .../gen_dispatch_table.sh
+# -> REFUSES, naming `doctor (--fix)`. Restore the file and it passes.
+RETIRED_GROUNDING="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select((.disposition // "") != "retire" and (.target.state // "") != "retire"))
+  | map(select(.read_or_mutate == "mutate"))
+  | map(select(((.args // []) | length) == 0))
+  | map(select(([.flags[]? | select(.disposition == "keep")] | length) == 0))
+  | map(select(([.flags[]? | select(.disposition == "retire")] | length) > 0)
+        | .path + " (" + ([.flags[] | select(.disposition == "retire") | .spellings[0]] | join(", ")) + ")")
+  | join("\n")' "$IN")"
+[ -z "$RETIRED_GROUNDING" ] || die "rows are declared \`mutate\` while taking no arguments, shipping no flags, and carrying a RETIRED flag as the only thing that ever wrote. The classification is grounded in something withdrawn -- reclassify the row, or say in its \`mcp_review\` what still mutates. Offending paths:
+$(printf '%s' "$RETIRED_GROUNDING" | sed 's/^/  /')"
+
 # Every key on `Entry`, `Flag` and `Arg` is classified `declaration` or `note`,
 # in `key_classes`. The list is AUTHORED because dc measured that no mechanical
 # discriminator exists: not count (`read_or_mutate` is 112 rows and decides agent

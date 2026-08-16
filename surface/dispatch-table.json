@@ -3506,10 +3506,11 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate",
+          "read_or_mutate": "read",
           "mcp_review": {
-            "counterintuitive": "`doctor` is a diagnostic in every other tool that ships one, and `--fix` moves the global config and the project config aside. The diagnosis is the default; the entry is still a mutation.",
-            "grounded_in": "bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files"
+            "counterintuitive": "`doctor` is a diagnostic in every other tool that ships one, and v3's IS one -- this row is `read`. It was `mutate` until 2026-08-16, on reasoning that was correct about a command that no longer exists.",
+            "grounded_in": "v3: `Facade::doctor(project, ctx, store: Option<&Store>)` ACCEPTS a store and never creates one, so a generate-on-absent write is impossible at the type level (vc's structural proof, stronger than either argument that preceded it); `doctor_changes_nothing_it_looks_at` asserts the reported file is not rewritten and that a second run reports identically. v2: bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files.",
+            "superseded": "A JUDGEMENT IS NOT OVERTURNED WHEN THE THING IT JUDGED STOPS EXISTING -- IT IS SUPERSEDED, AND NOBODY PROPAGATED THE SUPERSESSION (vc, ruling 2026-08-16). The prior note read `--fix moves the global config and the project config aside; the diagnosis is the default; the entry is still a mutation`. Every word of that is STILL TRUE OF ITS SUBJECT. Its subject was withdrawn: `--fix` is `disposition: retire` for v3. Kept here rather than deleted, because the failure was never the reasoning -- it was that a defended row is harder to correct than an undefended one, which is a property of the DEFENCE and not of the row. Found rendering the agent guide, which prints `read_or_mutate` as the FIRST fact per command: a wrong `mutate` on the diagnostic tells every reader that running `doctor` might change their project, discouraging the one command you most want run freely when something is already wrong. `todo` is the negative case that makes the rule sharp rather than the counter-example that muddies it -- it is correctly `mutate`, because bare `intent todo` inherits `list`'s generate-on-absent write. Same shape, write removed at the type level."
           }
         }
       ],
