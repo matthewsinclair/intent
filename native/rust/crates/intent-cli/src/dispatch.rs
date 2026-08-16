@@ -35,10 +35,14 @@
 //! and it will grow as ic's parity work continues. Strict rejection belongs on
 //! canon the tool owns and writes; this is an artefact the tool reads.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// The committed table, compiled into the binary.
-const TABLE: &str = include_str!("../../../../../surface/dispatch-table.json");
+///
+/// `pub` so the one path literal has one home: `canon_keys_are_read.rs` reads
+/// the same bytes this module parses, rather than reaching for the file by a
+/// second `include_str!` that agrees until someone moves the table.
+pub const TABLE: &str = include_str!("../../../../../surface/dispatch-table.json");
 
 /// One declared value of a closed-domain field.
 ///
@@ -127,7 +131,7 @@ pub struct Family {
   pub entries: Vec<Entry>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Entry {
   /// Space-separated, eg `st` or `st new`. The family entry is the bare name.
   pub path: String,
@@ -175,9 +179,24 @@ pub struct Entry {
   /// retired command back through its old spelling.
   #[serde(default)]
   pub aliases: Vec<String>,
+  /// Whether WP-09's MCP tool tier exposes this command (AC-09.1).
+  ///
+  /// **Deliberately NOT `#[serde(default)]`.** All 112 rows carry it and ic's
+  /// generator refuses an unclassified key, so a row without it is a broken
+  /// table rather than an older one -- and the two plausible defaults are both
+  /// wrong to pick silently. `false` would quietly withhold a command from the
+  /// agent surface; `true` would quietly offer one. Refusing to load says which
+  /// row is missing it, which is the only answer that does not guess.
+  pub exposed_on_mcp: bool,
+  /// `read` or `mutate` -- whether invoking this command can change the estate.
+  ///
+  /// Not `default` for the same reason, with a sharper edge: this is the field
+  /// an agent tier gates safety on, and an absent value defaulting to `read`
+  /// would present an unclassified command as safe to call unattended.
+  pub read_or_mutate: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Arg {
   pub name: String,
   #[serde(rename = "type", default)]
@@ -193,9 +212,26 @@ pub struct Arg {
   /// the slot, silently accepted invented ones.
   #[serde(default)]
   pub values: Vec<String>,
+  /// What the slot means when the caller leaves it out.
+  ///
+  /// **Deserialized and validated, deliberately not rendered as a clap
+  /// `default_value` yet, and the reason is in the data.** Eight rows carry it
+  /// and seven are literals, but `init` reads `"the current directory name"`,
+  /// which is a DESCRIPTION OF A COMPUTATION rather than a value (ic,
+  /// measured). Wiring the field straight through would make `intent init`
+  /// name a project `the current directory name`, which is the confidently
+  /// wrong behaviour that having the field at all was supposed to prevent.
+  ///
+  /// The discriminator is the arg's own `type`, not a list of exempt names:
+  /// `enum` and `subcommand` have a CLOSED domain, so a default has to name a
+  /// member of it and [`check_vocabularies`] checks that it does. `string` has
+  /// an open domain, so nothing can tell a value from a description of one --
+  /// and the only row that is not a literal is the only `string` row.
+  #[serde(default)]
+  pub default: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Flag {
   #[serde(default)]
   pub spellings: Vec<String>,
@@ -267,7 +303,7 @@ impl Flag {
   }
 }
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Target {
   /// One of [`Table::target_states`]. Not restated here: this comment said five
   /// when the vocabulary had six, missing `new-surface` -- the second-largest
@@ -425,11 +461,63 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
     }
   }
 
+  // **A default on a CLOSED domain has to name a member of it.** Run with the
+  // family in hand, because a `subcommand` slot's domain is usually its sibling
+  // verbs rather than a `values` array -- `todo` declares `default: "list"` and
+  // no values at all, and `list` is a sibling entry. Checking only the rows that
+  // carry `values` would be the narrower question wearing the wider one's name.
+  //
+  // `string` args are not checked and cannot be: their domain is open, so
+  // `init`'s "the current directory name" is indistinguishable from a literal
+  // by anything mechanical. That is why the field is not rendered.
+  for family in &table.families {
+    let siblings: Vec<&str> = family.entries.iter().filter_map(|e| e.verb()).collect();
+    for entry in &family.entries {
+      unknown.extend(unreachable_defaults(entry, &siblings));
+    }
+  }
+  for entry in &table.new_surface {
+    unknown.extend(unreachable_defaults(entry, &[]));
+  }
+
   if unknown.is_empty() {
     Ok(())
   } else {
     Err(unknown)
   }
+}
+
+/// Any `enum` or `subcommand` default on this entry that names nothing.
+fn unreachable_defaults(entry: &Entry, siblings: &[&str]) -> Vec<String> {
+  let mut bad = Vec::new();
+  for arg in &entry.args {
+    let Some(default) = arg.default.as_deref() else {
+      continue;
+    };
+    let domain: Vec<&str> = match arg.kind.as_str() {
+      "enum" => arg.values.iter().map(String::as_str).collect(),
+      "subcommand" if !arg.values.is_empty() => arg.values.iter().map(String::as_str).collect(),
+      "subcommand" => siblings.to_vec(),
+      // An open domain. Nothing to check against, and saying so is the point.
+      _ => continue,
+    };
+    if domain.is_empty() {
+      bad.push(format!(
+        "`{}` arg `{}` defaults to {:?} and its {} domain is empty, so the default names nothing",
+        entry.path, arg.name, default, arg.kind
+      ));
+    } else if !domain.contains(&default) {
+      bad.push(format!(
+        "`{}` arg `{}` defaults to {:?}, which is not one of its {} values ({})",
+        entry.path,
+        arg.name,
+        default,
+        arg.kind,
+        domain.join(", ")
+      ));
+    }
+  }
+  bad
 }
 
 /// Everything in a command path before its last segment; `""` for a bare name.
@@ -532,6 +620,8 @@ mod tests {
       disposition: "keep".to_string(),
       owner_wp: String::new(),
       aliases: vec![],
+      exposed_on_mcp: false,
+      read_or_mutate: "read".to_string(),
     };
     assert_eq!(st.family(), "st");
     assert_eq!(st.verb(), Some("new"));
@@ -542,6 +632,66 @@ mod tests {
     };
     assert_eq!(family.family(), "st");
     assert_eq!(family.verb(), None);
+  }
+
+  /// **A default that names nothing is refused, and an open domain is not
+  /// checked at all** -- driven here rather than by editing the table, which
+  /// belongs to another node.
+  ///
+  /// Both arms matter and only together. Checking the closed domains without
+  /// exempting `string` would refuse `init`'s `"the current directory name"`,
+  /// which is correct as authored: it is a description of a computation, and
+  /// refusing it would push someone to invent a literal that the CLI would then
+  /// use as a project name. Exempting `string` without checking the rest would
+  /// be an exemption wearing a check's name.
+  #[test]
+  fn a_default_outside_a_closed_domain_is_refused_and_an_open_one_is_left_alone() {
+    let slot = |kind: &str, values: &[&str], default: &str| Arg {
+      name: "command".to_string(),
+      kind: kind.to_string(),
+      arity: "0..1".to_string(),
+      values: values.iter().map(|v| v.to_string()).collect(),
+      default: Some(default.to_string()),
+    };
+    let with = |arg: Arg| Entry {
+      path: "todo".to_string(),
+      help: String::new(),
+      args: vec![arg],
+      flags: vec![],
+      v2: String::new(),
+      target: Target::default(),
+      disposition: "keep".to_string(),
+      owner_wp: String::new(),
+      aliases: vec![],
+      exposed_on_mcp: false,
+      read_or_mutate: "read".to_string(),
+    };
+
+    assert!(
+      unreachable_defaults(&with(slot("enum", &["info", "design"], "banana")), &[]).len() == 1,
+      "an enum default outside its own values names nothing"
+    );
+    assert!(
+      unreachable_defaults(&with(slot("enum", &["info", "design"], "info")), &[]).is_empty(),
+      "and one inside them is fine -- a refusal that fires on everything is not a check"
+    );
+    assert!(
+      unreachable_defaults(&with(slot("subcommand", &[], "list")), &["list", "update"]).is_empty(),
+      "a subcommand slot with no values takes its domain from the SIBLING VERBS, which is how the \
+       four rows that declare `default: list` and no values are legal"
+    );
+    assert!(
+      unreachable_defaults(&with(slot("subcommand", &[], "list")), &["update"]).len() == 1,
+      "and the sibling check is real: no `list` sibling, no reachable default"
+    );
+    assert!(
+      unreachable_defaults(
+        &with(slot("string", &[], "the current directory name")),
+        &[]
+      )
+      .is_empty(),
+      "an OPEN domain is not checked, because nothing can tell a value from a description of one"
+    );
   }
 
   #[test]
