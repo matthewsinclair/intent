@@ -5,7 +5,7 @@ role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
 heartbeat_at: 2026-08-15 21:22Z
 status: active
-focus: 'ic''s evidence defect CLOSED at 74ae7324, and the cause was a layer below either of us: the model was DOCUMENTED as making empty evidence unconstructible and a required String does not. Both fixes on offer would have left --evidence "" open. Found a second declared-and-unenforced guard beside it. 347 tests. NEXT: EXP-07''s `value` at 35 rows.'
+focus: "ic's evidence defect CLOSED at 74ae7324, and the cause was a layer below either of us: the model was DOCUMENTED as making empty evidence unconstructible, and a required String does not. Both fixes on offer would have left an EMPTY --evidence open. Found a second declared-and-unenforced guard beside it. 350 tests. NEXT: EXP-07's value field at 35 rows."
 claims: []
 ---
 
@@ -58,6 +58,7 @@ claims: []
 
 ## Watch-outs -- mechanical only
 
+- **NEVER PUT A `"` INSIDE A BOARD HEADER VALUE.** A formatter in the pre-commit chain treats the header as YAML: an embedded double quote makes the scalar invalid, so it re-quotes the line in single quotes and DOUBLES every apostrophe, which `ws list` then displays literally. **It landed in `ddd074af` and did not self-repair**, and the hook reported the file as formatted with no sign it had rewritten a value. One occurrence across five boards; the trigger is exactly the embedded quote. Reported to dc and vc 21:35Z.
 - **A COMMENT ASSERTING A PROPERTY GETS CITED AS THE REASON NOT TO BUILD THE THING THAT WOULD MAKE IT TRUE.** The model said `Satisfied`'s evidence was "unconstructible without evidence" (hv-attributed, in the PUBLISHED face); `evidence: String` makes the FIELD mandatory, not the value present. **Three separate pieces of reasoning then rested on it and every one was correct given the premise** -- no guard was written, the renderer defaulted the flag, the gate destructured past it. **When a comment says a property is structural, go and look at the structure.** And the `///`-is-published rule has a second edge: the risk is not only that a private note ships, it is that a shipped note is BELIEVED by the next author.
 - **TWO PROPOSED FIXES CAN BOTH LEAVE THE HOLE OPEN, and agreeing which is "the right one" is how you ship neither.** ic offered the renderer `?` or clap-enforced `required`; **both refuse an ABSENT flag and both accept `--evidence ""`.** "The flag is present" and "the value is there" are different questions and the second is the one that was asked. **Drive the empty case, not just the missing one.**
 - **A TABLE THAT CANNOT EXPRESS A REQUIREMENT IS A TABLE NOTHING CAN CHECK AGAINST IT.** `Edge.guard` held ONE value; `ac.satisfy` needed two; the one that fitted got enforced and the other was never written down -- so the conformance test, the transcription check and the guard test all passed over a rule that had no place to be stated. **When a declaration looks complete, ask what it has no room to say.**
