@@ -8,7 +8,10 @@
 
 load "../lib/test_helper.bash"
 
-HOOK="${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit.sh"
+# INTENT_HOOK_TEMPLATE redirects every test in this file at another copy of the
+# hook, so these can be mutation-tested against a deliberately broken one without
+# editing what ships. Unset -- every normal run -- it is the plain path.
+HOOK="${INTENT_HOOK_TEMPLATE:-${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit.sh}"
 FIX_BAD="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-assertions/bad_test.exs"
 FIX_GOOD="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-assertions/good_test.exs"
 
@@ -230,4 +233,92 @@ EOF
   git add intent/.config mix.exs test/bad_test.exs .intent_critic.yml
   run git commit -m "all-disabled"
   assert_success
+}
+
+# --------------------------------------------------------------------
+# Whiteboard guard resolution (issue 0042)
+# --------------------------------------------------------------------
+#
+# The hook resolves guard BODIES at runtime out of `intent info`'s INTENT_HOME,
+# because only this file is copied into a consumer project and a consumer has no
+# lib/templates/ of its own. That is the right design; what was wrong was one
+# `else` branch handling two different absences.
+#
+# When resolution comes back EMPTY, every guard is missing at once -- so the loop
+# printed one mild "not found" per guard and enforced nothing, which reads as two
+# small holes rather than "the gate did not run". It fails open, so the commit
+# proceeds and nothing else ever reports it. The live cause is a v3 binary
+# shadowing a v2 install (issues 0036/0043): `intent info` is unimplemented there
+# and exits 2.
+#
+# Fail-open is DELIBERATE and these tests pin it. A gate that blocks every commit
+# the moment `intent` is shadowed is 0043 rebuilt on the git side.
+
+# Put an `intent` on PATH whose `info` we control. Everything else defers to the
+# real CLI so the rest of the hook behaves normally.
+shim_intent() {  # shim_intent v3 | nohome | real
+  mkdir -p "${TEST_TEMP_DIR}/shim"
+  {
+    echo '#!/bin/sh'
+    echo 'if [ "$1" = "info" ]; then'
+    case "$1" in
+      v3)     echo '  echo "error: info is a known command that is not implemented yet" >&2' ; echo '  exit 2' ;;
+      nohome) echo "  echo '  INTENT_HOME: ${TEST_TEMP_DIR}/empty-home'" ; echo '  exit 0' ;;
+      real)   echo "  echo '  INTENT_HOME: ${INTENT_PROJECT_ROOT}'" ; echo '  exit 0' ;;
+    esac
+    echo 'fi'
+    echo "exec '${INTENT_BIN}' \"\$@\""
+  } > "${TEST_TEMP_DIR}/shim/intent"
+  chmod +x "${TEST_TEMP_DIR}/shim/intent"
+}
+
+# A board carrying a stamp with no trailing Z -- clock guard check B, which is
+# syntactic and needs no clock, so it cannot be flaky.
+stage_bad_board() {
+  mkdir -p intent/whiteboard/dc
+  printf -- '---\nnode: dc\nheartbeat_at: 2026-08-16 19:50\n---\n' > intent/whiteboard/dc/wip.md
+  git add intent/.config intent/whiteboard
+}
+
+@test "resolver absent: reports TOTAL non-enforcement once, not one hole per guard" {
+  shim_intent v3
+  stage_bad_board
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "resolver-absent"
+
+  # Fail-open is the contract, and it is why the message has to carry the weight.
+  assert_success
+  assert_output_contains "NO whiteboard guard ran"
+  assert_output_contains "not one is missing, ALL are"
+  assert_output_contains "exit 2"
+
+  # The two absences must not be confusable. The per-guard wording appearing here
+  # is the defect itself: it is what made total failure read as a couple of holes.
+  refute_output_contains "was not found"
+}
+
+@test "resolver works, guard files absent: reports the one hole, NOT total failure" {
+  # The other direction. A fix that shouted "ALL guards missing" whenever any
+  # single guard was absent would pass the test above and be just as wrong.
+  mkdir -p "${TEST_TEMP_DIR}/empty-home/lib/templates/hooks"
+  shim_intent nohome
+  stage_bad_board
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "guard-absent"
+
+  assert_success
+  assert_output_contains "whiteboard-clock-guard.sh was not found"
+  assert_output_contains "timestamps are UNCHECKED"
+  refute_output_contains "NO whiteboard guard ran"
+}
+
+@test "resolver works and guards are present: a bad stamp BLOCKS the commit" {
+  # THE CANARY. Without this, both tests above pass on a hook that never runs a
+  # guard at all -- and silence from a branch that did not execute reads exactly
+  # like silence from one that ran and passed. This is what makes the other two
+  # mean anything: the same fixture that is waved through above is refused here.
+  shim_intent real
+  stage_bad_board
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "bad-stamp"
+
+  [ "$status" -ne 0 ]
+  assert_output_contains "whiteboard timestamp cannot be a real clock read"
 }

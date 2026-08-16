@@ -101,21 +101,53 @@ WB_GUARDS=(
 )
 
 if [ -d "intent/whiteboard" ]; then
-  INTENT_HOME_RESOLVED="$(intent info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p' | head -1)"
+  # ONE GUARD ABSENT AND THE RESOLVER ABSENT ARE DIFFERENT ABSENCES (issue 0042).
+  # These were one `else` branch, and it could not tell them apart: when the
+  # resolution comes back empty EVERY guard is missing at once, so the loop
+  # printed one benign-looking "not found" per guard and enforced nothing. Two
+  # mild warnings read as two small holes; the truth was that the gate was not
+  # running. The tell was a bare leading `/` in the path it said it looked in,
+  # which reads like a typo rather than a total failure -- and it fails open, so
+  # the commit proceeds either way and nothing else ever reports it.
+  #
+  # Captured WITHOUT a pipe before `$?` is read: `x="$(cmd | sed)"; rc=$?` gives
+  # sed's status, and that mistake has cost this estate four wrong diagnoses.
+  wb_info_out="$(intent info 2>&1)"; wb_info_rc=$?
+  INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n 's/^ *INTENT_HOME: *//p' | head -1)"
   WB_BLOCKED=0
-  for wb_entry in "${WB_GUARDS[@]}"; do
-    wb_name="${wb_entry%%|*}"
-    wb_unchecked="${wb_entry#*|}"
-    wb_guard="${INTENT_HOME_RESOLVED}/lib/templates/hooks/${wb_name}"
-    if [ -n "$INTENT_HOME_RESOLVED" ] && [ -f "$wb_guard" ]; then
-      bash "$wb_guard" || WB_BLOCKED=1
-    else
-      # Named, not silent: a board present with no guard behind it is exactly
-      # the invisible non-enforcement this whole mechanism exists to end.
-      echo "intent gate: intent/whiteboard/ present but ${wb_name} was not found;" >&2
-      echo "  ${wb_unchecked} this commit. (looked in: ${wb_guard})" >&2
-    fi
-  done
+
+  if [ -z "$INTENT_HOME_RESOLVED" ]; then
+    # TOTAL non-enforcement, reported once and as itself. Named separately
+    # because the remedy is different in kind: nothing is wrong with the guards
+    # and there is nothing to install -- the tool that locates them did not
+    # answer, so fixing any one guard would change nothing.
+    echo "intent gate: NO whiteboard guard ran for this commit -- not one is missing, ALL are." >&2
+    echo "  \`intent info\` did not report INTENT_HOME (exit ${wb_info_rc}), so the guards could not be located." >&2
+    echo "  skipped: ${WB_GUARDS[*]%%|*}" >&2
+    echo "  the guards are fine; the tool that finds them is what did not answer." >&2
+    echo "  check \`intent info\` -- a v3 binary shadowing a v2 install on PATH is the known cause (issues 0036/0043)." >&2
+    # Deliberately fail-open, and this is a considered call rather than an
+    # oversight. A gate that blocks every commit the moment `intent` is shadowed
+    # is issue 0043 rebuilt on the git side, and 0043 is a hard publication hold
+    # precisely because a tool that refuses everything is worse than one that
+    # says so. A guard that must be bypassed is a guard nobody keeps.
+  else
+    for wb_entry in "${WB_GUARDS[@]}"; do
+      wb_name="${wb_entry%%|*}"
+      wb_unchecked="${wb_entry#*|}"
+      wb_guard="${INTENT_HOME_RESOLVED}/lib/templates/hooks/${wb_name}"
+      if [ -f "$wb_guard" ]; then
+        bash "$wb_guard" || WB_BLOCKED=1
+      else
+        # Reached only with INTENT_HOME resolved, so this really is one hole and
+        # the other guards really did run. Named, not silent: a board present
+        # with no guard behind it is exactly the invisible non-enforcement this
+        # whole mechanism exists to end.
+        echo "intent gate: intent/whiteboard/ present but ${wb_name} was not found;" >&2
+        echo "  ${wb_unchecked} this commit. (looked in: ${wb_guard})" >&2
+      fi
+    done
+  fi
   [ "$WB_BLOCKED" -eq 0 ] || exit 1
 fi
 
