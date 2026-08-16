@@ -56,6 +56,61 @@ fn fields_of<T: serde::Serialize>(sample: &T) -> BTreeSet<String> {
     .collect()
 }
 
+/// Every key that actually appears on any object of one leaf kind, read from
+/// the table itself rather than from any list describing it.
+fn authored_keys(table: &serde_json::Value, kind: &str) -> BTreeSet<String> {
+  let entries: Vec<&serde_json::Value> = table["families"]
+    .as_array()
+    .expect("families")
+    .iter()
+    .flat_map(|f| f["entries"].as_array().expect("entries").iter())
+    .chain(table["new_surface"].as_array().expect("new_surface").iter())
+    .collect();
+  let objects: Vec<&serde_json::Value> = match kind {
+    "entry" => entries,
+    "flag" => entries
+      .iter()
+      .filter_map(|e| e["flags"].as_array())
+      .flatten()
+      .collect(),
+    "arg" => entries
+      .iter()
+      .filter_map(|e| e["args"].as_array())
+      .flatten()
+      .collect(),
+    other => panic!("no such leaf kind: {other}"),
+  };
+  objects
+    .iter()
+    .filter_map(|o| o.as_object())
+    .flat_map(|o| o.keys().cloned())
+    .collect()
+}
+
+/// The totality check, over a table given as data so a mutated copy can drive
+/// it -- which is how the canary below adds a junk key without editing a file
+/// that belongs to another node.
+fn unclassified(table: &serde_json::Value) -> Vec<String> {
+  let classes = &table["key_classes"];
+  let mut out = Vec::new();
+  for kind in ["entry", "flag", "arg"] {
+    let declared = strings(classes, kind, "declaration");
+    let noted = strings(classes, kind, "note");
+    let known: BTreeSet<String> = declared.union(&noted).cloned().collect();
+    for key in authored_keys(table, kind).difference(&known) {
+      out.push(format!(
+        "`{kind}` carries `{key}` and key_classes lists it neither way"
+      ));
+    }
+    for key in declared.intersection(&noted) {
+      out.push(format!(
+        "`{kind}` lists `{key}` BOTH ways, so it means nothing"
+      ));
+    }
+  }
+  out
+}
+
 fn strings(value: &serde_json::Value, class: &str, kind: &str) -> BTreeSet<String> {
   value[class][kind]
     .as_array()
@@ -172,5 +227,79 @@ fn nothing_is_read_that_the_canon_has_not_classified() {
     "the types read keys the register has not classified:\n{}\n\
      A key nothing classifies is either gone from the table or was never decided about.",
     unclassified.join("\n")
+  );
+}
+
+/// **Every authored key is classified -- the arm that makes a junk key RED.**
+///
+/// dc's condition, relayed by vc as non-negotiable: *"add a junk key to the
+/// canon and watch the check go RED. Every one of the four instances passed a
+/// checker that existed."* They were right to insist, because the two checks
+/// above do not close it. Both start from `key_classes` and ask what the types
+/// do with it, so **a key authored on a row and listed NOWHERE is invisible to
+/// both** -- which is the state every one of the lost fields was in.
+///
+/// `gen_dispatch_table.sh` already refuses on an unclassified key, and that is
+/// the wrong place for the only witness: it is a shell tool nobody runs on a
+/// push, and a property whose sole witness lives outside the suite regresses on
+/// the next refactor.
+#[test]
+fn every_key_authored_on_a_leaf_is_classified_exactly_once() {
+  let table: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  let problems = unclassified(&table);
+  assert!(
+    problems.is_empty(),
+    "keys are authored on the table's leaves that the register does not classify:\n  {}\n\
+     Every one of the five lost fields sat in exactly this state. Classify it as a declaration \
+     (and give it a Rust field) or as a note.",
+    problems.join("\n  ")
+  );
+}
+
+/// **The canary, run as a test rather than as a ritual.**
+///
+/// A junk key added to a real entry must make the check above red. Driven over
+/// a mutated COPY of the table, so the canon itself is never edited -- it
+/// belongs to another node, and a canary that requires touching a peer's file
+/// is one nobody runs twice.
+#[test]
+fn a_junk_key_added_to_the_canon_is_caught() {
+  let mut table: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  assert!(
+    unclassified(&table).is_empty(),
+    "the unmutated table must be clean, or this canary proves nothing"
+  );
+
+  table["families"][0]["entries"][0]["a_key_nobody_declared"] = serde_json::json!("hello");
+  let problems = unclassified(&table);
+  assert_eq!(
+    problems.len(),
+    1,
+    "exactly the junk key, and nothing else: {problems:?}"
+  );
+  assert!(
+    problems[0].contains("a_key_nobody_declared"),
+    "and it must NAME the key, because a count sends someone hunting: {}",
+    problems[0]
+  );
+}
+
+/// And a key classified BOTH ways is caught too -- the other half of totality,
+/// which the register's own note names and nothing was checking.
+#[test]
+fn a_key_classified_both_ways_is_caught() {
+  let mut table: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  table["key_classes"]["entry"]["note"]
+    .as_array_mut()
+    .expect("the note list")
+    .push(serde_json::json!("path"));
+
+  let problems = unclassified(&table);
+  assert!(
+    problems.iter().any(|p| p.contains("BOTH ways")),
+    "`path` is a declaration and was just also called a note: {problems:?}"
   );
 }
