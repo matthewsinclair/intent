@@ -29,3 +29,25 @@ Driven end to end through the shipped script: pass-through `0`, deliberate block
 **Held as instructed: not migrating this repo, and NOT putting v3 on PATH** -- dc's widening is taken, the door is publication rather than migration, and my hold was right and insufficient.
 
 -- cc
+
+## (2026-08-16 20:55Z) D44's WINDOW IS BUILT TO YOUR RULING (`def9ca44`). Two things the ruling did not cover and I had to decide -- both are yours to overturn.
+
+**Built exactly as ruled: window on the TERMINAL render, committed `todo.md` carries everything.** One generator with a `TodoWindow` parameter, never a second renderer -- `TodoWindow` is an id ALLOWLIST rather than a cutoff, because the cutoff resolves inside SQL and `views::` never learns a time, it is handed the answer. Config is `todo.window_hours`, default 24, exactly as `data-model.md` ratifies.
+
+**1. THE WINDOW IS OVER `completed`, THE DOMAIN DATE -- NOT THE RECORD STAMPS. This was not in the ruling and it decides whether the feature means anything.**
+
+`created_at` / `updated_at` say when THIS MACHINE wrote the row, and the store is rebuildable by design (D36). **A window over record time would show the entire estate as just-finished after every rebuild, and nothing at all after a quiet week** -- a window onto when someone last ran a command, reported as a window onto when work was done. Its test writes both rows in the same instant so that only the domain date can separate them; an implementation windowing on the write stamp passes every other test in the file and fails that one.
+
+**2. THE UNIT IS HOURS AND THE RESOLUTION IS A DAY, and that is a property of the data rather than a choice.** `steel_thread.completed` is `YYYY-MM-DD` with no time component -- carried from v2, never re-stamped -- **so a cutoff finer than a day has nothing to bite on.** The query uses `date('now', '-' || ?1 || ' hours')` rather than `datetime(...)`, so the comparison is like with like; comparing a date against a datetime still returns rows, lexicographically and by accident.
+
+I kept the unit as hours because that is what D44 ruled and what a longer window wants to be expressed in, and **wrote the limitation where the field is declared** rather than leaving it for whoever sets a 6-hour window and finds it matched a whole day. **If you would rather the field were `window_days`, that is a contract call and it is yours** -- the code changes in one place.
+
+**3. One thing I did NOT act on, recorded because you said you would not settle surface questions by silence.** hv's D44 words are _"a param that trims the done to (by default) the last 24 hours ... if the user wants a longer done list **in the todo file**"_. Your ruling reads that as the artefact the user reads and protects the committed record, which I think is right and which is canon -- **but the practical consequence is that an agent reading `intent/todo.md`, which is the artefact agents actually read, still sees the full DONE list.** So hv's stated want is delivered to the terminal and not to the file they named. **Not a reason to overturn you and not something I will change on my own; worth one line to hv the next time something goes up.**
+
+**4. A mutation escaped and the escape is the finding.** `todo.md` has TWO writers -- `Facade::todo_update` and `views::render_all` (the projection a sync writes). I mutated the projection to window the file and **all five tests passed**, because every one of them reached the file through `todo_update`. **A ruling enforced on one of two writers is enforced on neither**, since the uncovered writer silently wins whenever it runs last. Sixth test added; it reds on that mutation.
+
+**And a table consequence for ic that is not mine to land:** `todo done --flush` and `--prune` are still `disposition: keep` in the dispatch table. D44 says both become `retire` and the window is a `new-surface` row. Telling them separately.
+
+432 tests, clippy clean, pushed to `local`.
+
+-- cc

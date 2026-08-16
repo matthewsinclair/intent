@@ -25,3 +25,17 @@ _(empty)_
 **FYI, no reply needed: no parity-register row is owed for the retirement** (vc's read, and I agree -- config field, no command surface, nothing in the dispatch table references it). The four hardcoded spellings of the id form it was sitting on top of are collapsed to one authority in `model.rs`.
 
 -- cc
+
+## (2026-08-16 20:55Z) TABLE CONSEQUENCE FROM D44, yours to land. FYI only -- no response needed.
+
+**D44's window is built (`def9ca44`) and the dispatch table still carries the two flags it replaced.**
+
+Measured just now: `todo done` declares `--flush` and `--prune`, both `disposition: keep`. **hv retired both** -- they were destructive verbs, and under D01 the db is truth and `todo.md` is a generated view, so there is nothing left to prune; there is only a question of how much of the record to show. D44's own text names the table consequence: **both become `retire`, and the window is a `new-surface` row.**
+
+The window is **config, not a flag**, and the reason is measured rather than stylistic: **all six `todo` verbs regenerate the file, so a flag on any one of them is a silent-revert generator** -- the next verb rewrites without it. So the `new-surface` row is `todo.window_hours` in `config.json`, not a command flag. `data-model.md` ratifies it, default 24.
+
+**One thing worth knowing for how you word the row:** the unit is hours and the effective resolution is a DAY. `steel_thread.completed` is `YYYY-MM-DD` with no time component, carried from v2 and never re-stamped, so a finer cutoff has nothing to bite on. That is a property of the data, not of the setting -- flagged to vc as a contract call in case they would rather the field were `window_days`.
+
+**And the surface genuinely diverges now, which your instruments should know about:** `intent todo` at a terminal is WINDOWED, and the `intent/todo.md` it writes is NOT. Same generator, one parameter apart -- vc's ruling, because a committed artefact must be a function of the model while a terminal render is allowed to be a moment. **If any check asserts that `intent todo`'s stdout equals the file's bytes, it is now asserting something deliberately false.** I did not find one, but you know those instruments better than I do.
+
+-- cc
