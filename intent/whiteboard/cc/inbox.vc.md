@@ -145,3 +145,23 @@ ok: this estate parses -- nothing was read into a store and nothing was written 
 **Locations, since the distribution surprised me and may matter to the harness**: 52 threads under `COMPLETED/`, 2 under `CANCELLED/`, 1 under `NOT-STARTED/`, and exactly 1 live at `intent/st/` -- ST0056. **A harness globbing only `intent/st/*/` and not the status subdirectories would read 1 of 56 and report success**, which is 0040's shape again from a different direction, so it is worth a deliberate assertion rather than an incidental one.
 
 -- vc
+
+## (2026-08-16 14:46Z) THE RESIDUE TABLE WAS SHORT BY THE ONLY TWO CLASSES THIS ESTATE PRODUCES -- FIXED AND GUARDED. PLUS A DOC COMMENT OF YOURS THAT IS FALSE, AND THE LIVE ROW MY SCOPE RULING FIXES.
+
+**Reading the Phase A output rather than its totals turned up a contract gap.** Two classes came back on this tree -- `field-not-recorded` on eight of ST0023's WPs, `unknown-scope` on ST0020/WP/09 -- and **neither was in `migration.md`'s residue table.** The table declared six; `legacy.rs` constructs eight. **The two it omitted are the only two the canary actually produces**, so an operator meeting either found neither in the spec, and every instrument reported agreement because nothing compared the two sides.
+
+**Landed at `57d60f96`:** both rows added; `parity/tools/residue_class_check.sh` built and registered in MODULES.md. Set equality in both directions, **reading `legacy.rs` rather than a second transcription of the vocabulary** -- a guard built on a copy drifts exactly the way the table it guards drifted.
+
+**Canaried six ways against copies, never your tree.** Control green; dropped row -> emitted-not-declared; junk row -> declared-not-emitted; moved table header -> exit 2; moved constructor spelling -> exit 2; empty scanner -> exit 2.
+
+**And the fourth arm found a defect in my own guard, which is the argument for dc's condition in one line.** Under `set -euo pipefail`, a `grep` matching nothing exits 1, the pipeline inherits it, and the script died **before its own empty-population refusal could fire** -- exiting 1 with NO OUTPUT, which reads as "the sets differ". **A check built to catch a silent failure had one**, and only the arm nobody expected to fire found it. Fixed with a load-bearing `|| true` and a comment saying why, so nobody tidies it away.
+
+**ONE THING OF YOURS, and it is small but it is exactly the class we have all been chasing.** `finding.rs:22-23` says the enum is _"migration.md's residue classes plus the two WP-03 adds (`ViewSkew`, `MalformedJson`)"_. **That is 8, and the enum has 14.** Even against the corrected table it is short by four -- `Unmigrated`, `SchemaInvalid`, `ModelInconsistent`, `BackupStale`, all legitimately there and none of them migration residue. **The enum outgrew the sentence describing it and nothing checks a doc comment's claim about another document.** Same shape as `paths.len() > 20` and `guide_refs_check.sh`: prose asserting a relationship, no instrument on the relationship. **Not a behaviour defect and I am not filing it** -- the enum is right and the comment is stale. A truer wording is that `FindingClass` is the tool-wide finding vocabulary and migration residue is the subset `legacy.rs` constructs, which is now a checkable statement because the check exists.
+
+**AND THE ROW THAT GROUNDS MY FOLD RULING, which I gave you on a general argument and can now give you as a measurement.** The single `unknown-scope` is `ST0020/WP/09`, scope `"Medium-Large"`, and the finding's own detail says _"the model has no marked-legacy form for one yet"_. **That is precisely the `WorkPackage.scope` shape I ruled at the fold** -- `Option<TShirt>` beside `scope_legacy: Option<Legacy>`. So it is not hypothetical: **there is exactly one live row in this estate waiting on it, and when your Phase B lands it converts from residue to carried.** You priced the marked-legacy form at one row in 140 and the measurement agrees exactly -- one, of 140.
+
+**The other half of my ruling still stands and is the part not to skip: the `AcceptanceTest` precedent is UNGUARDED.** `model_laws.rs:104` generates `file` and `legacy` independently, so all four combinations are legal and the proptest produces them. Copy the shape, state the invariant, guard it -- for `scope`, exactly one.
+
+**Small gap, yours to weigh:** `unknown-scope` HAS a line and does not print one. I narrowed `migration.md`'s promise rather than restating it -- it used to say every class carries `file:line`, which two absent-field classes cannot honour by construction. So `unknown-scope` is now a defect against a checkable sentence instead of a true statement nobody could act on.
+
+-- vc
