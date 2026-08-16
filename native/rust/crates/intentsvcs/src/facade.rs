@@ -40,6 +40,7 @@ use serde_json::json;
 
 use crate::contract::{self, Scope, Verdict};
 use crate::event::{self, Envelope, Subject};
+use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::model::{
   AcKind, AcState, AcceptanceTest, AtStatus, Criterion, Issue, TShirt, Thread, ThreadStatus,
@@ -167,6 +168,36 @@ pub enum FacadeError {
   /// malformed.
   #[error("the event log extract at {path} could not be read")]
   EventLogUnreadable { path: String, cause: String },
+  #[error("no export format named `{format}`")]
+  NoSuchFormat {
+    format: String,
+    /// What the operator may actually ask for.
+    emits: Vec<String>,
+    /// Names the roster knows and declines -- reported so the next guess is
+    /// not one of them, and NEVER offered as a choice.
+    refused: Vec<String>,
+  },
+  /// A format the roster carries and deliberately will not emit.
+  ///
+  /// **Its own variant rather than [`FacadeError::NoSuchFormat`], because the
+  /// two are opposite answers to the same question.** "There is no such
+  /// format" invites the operator to look for the right spelling; this one
+  /// says the spelling was right and the answer is still no. Collapsing them
+  /// would send someone hunting for a name that does not exist to find.
+  #[error("`{format}` cannot carry the canon back, so it is refused rather than written")]
+  LossyFormat {
+    format: String,
+    because: &'static str,
+    instead: &'static str,
+  },
+  /// A format that claims to round-trip and did not, on this estate.
+  ///
+  /// **This one is ours, and the message says so.** Every other refusal here
+  /// tells an operator something to do; this tells them they have found a
+  /// defect in the exporter, and it exists at all because the alternative was
+  /// handing them a file that silently is not their data.
+  #[error("`{format}` did not survive its own round-trip, so nothing was written")]
+  ExportRoundTripFailed { format: String, detail: String },
 }
 
 impl FacadeError {
@@ -296,6 +327,33 @@ impl FacadeError {
       }
       Self::EventLogUnreadable { path, cause } => format!(
         "{cause}. Nothing recomputes history, so do NOT delete {path} to get past this -- repair the named line, from version control if the file is committed"
+      ),
+      // **"one of:" lists only what can be HAD.** Offering a refused format as
+      // the remedy for a refusal spends the operator's next command on a
+      // second one; the declined names are reported after, as a warning rather
+      // than a menu.
+      Self::NoSuchFormat { emits, refused, .. } => {
+        let mut out = format!("one of: {}", emits.join(", "));
+        if !refused.is_empty() {
+          out.push_str(&format!(
+            ". `{}` are also recognised and deliberately refused -- ask for one to see why",
+            refused.join("` and `")
+          ));
+        }
+        out
+      }
+      // The reason and the route, both from the roster, because a refusal that
+      // withholds either is a wall. `because` answers "why not", `instead`
+      // answers "then what", and the operator asked both.
+      Self::LossyFormat {
+        because, instead, ..
+      } => format!("{because}. {instead}"),
+      // **It does NOT suggest retrying, and it does not offer another format
+      // as though this were a preference.** The estate is fine and the export
+      // is not; a second attempt produces the same refusal, and a different
+      // format would hide the defect rather than route around it.
+      Self::ExportRoundTripFailed { detail, .. } => format!(
+        "{detail}. Nothing was written and the project is untouched -- this is a defect in the exporter, and it refused rather than hand you an artefact that cannot be read back"
       ),
     }
   }
@@ -680,6 +738,57 @@ impl Facade {
       }
     }
     Ok(out)
+  }
+
+  /// Project the whole estate into a named format, or refuse (AC-06.6).
+  ///
+  /// **A READ, and it writes nothing** -- not the artefact, not a temp file,
+  /// not the store. It returns the bytes and lets the caller decide where they
+  /// go, which is what makes `intent export --format json > estate.json` the
+  /// operator's choice rather than ours, and what makes a refusal cost nothing.
+  ///
+  /// It reads the STORE rather than [`Facade::canon`], because the store is
+  /// truth (D01 as reversed) and an export is exactly the operation where
+  /// answering from a cached view would put stale data in an artefact that
+  /// then travels.
+  ///
+  /// `None` takes [`export::DEFAULT_FORMAT`]. The default is declared with the
+  /// roster rather than here, so the surface, the help and this agree by
+  /// construction.
+  pub fn export(&self, format: Option<&str>) -> Result<String, FacadeError> {
+    let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
+    let events = self.store.events().map_err(FacadeError::Store)?;
+    let bundle = export::Bundle::new(&self.ctx.project_id, threads, issues, events);
+    export::project(&bundle, format.unwrap_or(export::DEFAULT_FORMAT)).map_err(|refusal| {
+      // Mapped one-to-one and exhaustively rather than wrapped in a single
+      // variant: these three want three different remedies, and one variant
+      // for all of them is the same-text-for-different-causes collapse
+      // AC-04.4 forbids.
+      match refusal {
+        ExportRefusal::Unknown {
+          name,
+          emits,
+          refused,
+        } => FacadeError::NoSuchFormat {
+          format: name,
+          emits,
+          refused,
+        },
+        ExportRefusal::Lossy {
+          name,
+          because,
+          instead,
+        } => FacadeError::LossyFormat {
+          format: name,
+          because,
+          instead,
+        },
+        ExportRefusal::RoundTripFailed { name, detail } => FacadeError::ExportRoundTripFailed {
+          format: name,
+          detail,
+        },
+      }
+    })
   }
 
   /// Every file the model projects onto disk, as one batch.

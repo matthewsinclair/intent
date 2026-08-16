@@ -25,6 +25,7 @@ pub mod backup;
 pub mod contract;
 pub mod doctor;
 pub mod event;
+pub mod export;
 pub mod facade;
 pub mod faces;
 pub mod finding;

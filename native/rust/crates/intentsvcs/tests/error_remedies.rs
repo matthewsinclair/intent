@@ -59,6 +59,23 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .ac_satisfy("ST0056", "AC-03.1", "x")
       .expect_err("test-backed"),
   ));
+  // The two export refusals a bad ARGUMENT can reach. Provoked here rather
+  // than declared elsewhere because that is the point of this file: they are
+  // the pair most at risk of collapsing into one message, and the remedy check
+  // below is what stops "there is no such format" being said about a format
+  // that exists and is declined.
+  out.push((
+    "unknown export format",
+    facade
+      .export(Some("xml"))
+      .expect_err("there is no xml projection"),
+  ));
+  out.push((
+    "refused export format",
+    facade
+      .export(Some("md"))
+      .expect_err("md cannot be read back"),
+  ));
   out.push((
     "reinstate in-scope",
     facade
@@ -210,6 +227,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Ingest(_) => "Ingest",
     FacadeError::Unavailable { .. } => "Unavailable",
     FacadeError::EventLogUnreadable { .. } => "EventLogUnreadable",
+    FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
+    FacadeError::LossyFormat { .. } => "LossyFormat",
+    FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
   }
 }
 
@@ -246,6 +266,9 @@ const ALL_VARIANTS: &[&str] = &[
   "Ingest",
   "Unavailable",
   "EventLogUnreadable",
+  "NoSuchFormat",
+  "LossyFormat",
+  "ExportRoundTripFailed",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
@@ -260,6 +283,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "ThreadExists",       // needs a colliding id, which `st new` allocates around
   "BadQuery",           // FTS5 syntax -- `facade_search.rs` territory
   "NoSuchFace",         // `intent schema <name>` with an unknown face
+  // Needs a projection that LIES -- a format claiming to round-trip and
+  // dropping data. Only `export::project_with` can be handed one, and
+  // `export_round_trip.rs` does exactly that; a call through the facade cannot
+  // reach it, because every format the roster carries is honest.
+  "ExportRoundTripFailed",
 ];
 
 #[test]

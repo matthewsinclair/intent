@@ -33,6 +33,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
     Some(("ingest", m)) => ingest(m),
+    Some(("export", m)) => export(m),
     Some(("sync", m)) => sync(m),
     Some(("backup", m)) => backup(m),
     Some((family, _)) => unwired(family, ""),
@@ -377,12 +378,18 @@ fn sync(m: &ArgMatches) -> Result<(), String> {
 /// those is the operator's problem. What is dropped is the internal citation,
 /// not the meaning.
 /// **A LEAF GETS A DIFFERENT REMEDY, because the generic one promises a
-/// category that is empty** (ic, measured 2026-08-15). Seventeen commands are
-/// unimplemented and **nine of them are leaves with zero verbs** -- `info`,
-/// `init`, `bootstrap`, `learn`, `fileindex`, `version`, `export`, `ingest`,
-/// `mcp`. On every one, "run `intent <x> --help` for the verbs that are" sends
-/// the reader to a help block that lists no verbs at all, so the remedy costs
-/// them a command and returns nothing.
+/// category that is empty** (ic, measured 2026-08-15). At that measurement
+/// seventeen commands were unimplemented and **nine of them were leaves with
+/// zero verbs** -- `info`, `init`, `bootstrap`, `learn`, `fileindex`,
+/// `version`, `export`, `ingest`, `mcp`. On every one, "run `intent <x> --help`
+/// for the verbs that are" sends the reader to a help block that lists no verbs
+/// at all, so the remedy costs them a command and returns nothing.
+///
+/// **`ingest` and `export` have since been wired and are no longer in that
+/// set** (cc, `c8d90298` and the export commit). The figure is left as ic
+/// measured it, dated, rather than decremented: a count restated on every
+/// change is a count nobody can check, and the shape it demonstrates is what
+/// this comment is for.
 ///
 /// A remedy that cannot be acted on is worse than no remedy: it reads as a lead
 /// and spends the reader's next move. The leaf form points at the root surface,
@@ -992,6 +999,40 @@ fn ingest(a: &ArgMatches) -> Result<(), String> {
   // success path is a `todo!()` is one refactor away from being a silent
   // success, and the message a migrator will want is the count it moved.
   println!("ok: ingested {}", project.relative(project.root()));
+  Ok(())
+}
+
+/// `intent export --format <fmt>` -- the estate as one portable document
+/// (AC-06.6, AC-02.6, D34).
+///
+/// **It writes to STDOUT, and the declared surface leaves no other option.**
+/// The dispatch row carries exactly one flag, `--format`; there is no path
+/// argument, so there is nowhere for the command to put a file that the
+/// operator chose. Inventing one here would be inventing surface. Stdout is
+/// also the better answer on its own merits -- `intent export > estate.json`
+/// composes, never clobbers anything the operator did not name, and matches
+/// `intent schema`, which prints a face the same way.
+///
+/// **That makes the row's `read_or_mutate: mutate` describe a command that
+/// cannot exist as declared** (raised with ic rather than resolved here, since
+/// the table is theirs): the classification is reasoned from "export writes
+/// files into the working tree and can clobber them", which is true only of a
+/// version of this command that has an output path to write to. Either the row
+/// grows one and stays `mutate`, or it is a read.
+///
+/// The refusals are the facade's, in full, and none of them is composed here --
+/// an unknown format, a format that will not carry the canon back, and the
+/// exporter failing its own round-trip are three different answers with three
+/// different remedies, and the layer that knows which one happened is the one
+/// that says so.
+fn export(a: &ArgMatches) -> Result<(), String> {
+  let f = open()?;
+  // `None` when the flag is absent, which the facade reads as the roster's
+  // declared default. Not defaulted here: the default is a fact about the
+  // format roster, and a copy of it in the renderer is a second place for it
+  // to be wrong.
+  let text = f.export(opt(a, "format").as_deref()).map_err(fail)?;
+  print!("{text}");
   Ok(())
 }
 
