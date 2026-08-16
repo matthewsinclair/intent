@@ -2,7 +2,7 @@
 
 **NOTHING BELOW WORKS YET, AND THAT IS DELIBERATE.** The tap `matthewsinclair/homebrew-intent` is live and **carries no formula**, because a formula pointing at a release that does not exist reads as "the tap is broken" rather than "the release is not out yet". These are the instructions the first `int macos publish` makes true; they become user-facing documentation at the WP-12 cutover, not before. Read the tense as future.
 
-**Two hard holds stand between here and publication**, both consequences of the shadowing described below rather than of anything in the install itself: **issue 0036** (the refusal's remedy names a subcommand v3 does not have) and **issue 0043** (the shadowed binary blocks every Claude Code prompt in every Intent project on the machine). Each is stated once, in its own section; neither is restated here. A third gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document.
+**ONE hard hold stands between here and publication: issue 0036** -- the refusal's remedy names a subcommand v3 does not have. Verified still live at HEAD `304cd104` on a binary built from that tree: `intent upgrade` exits 2, not implemented. **Issue 0043, the prompt lockout, was the second hold and is RELEASED** -- closed by `c6aee944` and re-measured here; the section below is kept as the record of what it was and what closed it, because the class it belongs to is not closed. A further gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document.
 
 This document is about **getting the binary onto a machine and what that does to an install already there**. It is not the migration spec. The v2 -> v3 data migration -- preconditions, the flow, the carry policy, what the migrator refuses -- is `migration.md`, and is deliberately not restated here.
 
@@ -32,9 +32,26 @@ So one `brew install` does not upgrade anything and does not ask. **It puts a ne
 
 **Known sharp edge at cutover (issue 0036):** the refusal's remedy names `intent upgrade`, and until WP-10 lands, the v3 binary has no `upgrade` subcommand -- so following it verbatim gives `error: unrecognized subcommand 'upgrade'`. The remedy is right about the end state and unreachable today. **Do not publish before that resolves**, because the string is unreachable precisely for the user it was written for: the binary printing it is the one that now answers to `intent`.
 
-### SECOND HARD PUBLICATION HOLD (issue 0043): shadowing locks the user out of Claude Code, in every Intent project on the machine
+### RELEASED -- issue 0043: shadowing locked the user out of Claude Code, in every Intent project on the machine
 
-**This one is not a bad first contact. It takes away the tool the user would recover with, and it does not wait for a migration.**
+**CLOSED BY `c6aee944` (cc), which implemented `info` and the `claude hook` family. Re-measured at HEAD `304cd104` on a binary built from that tree**, because the previous build was three sources stale and a positive result from a stale instrument is still a result about the past:
+
+| invocation                              | exit | state                                                      |
+| --------------------------------------- | ---- | ---------------------------------------------------------- |
+| `intent info`                           | 0    | implemented -- prints `INTENT_HOME`                        |
+| `intent claude hook session-context`    | 0    | implemented -- `SessionStart` gets its context             |
+| `intent claude hook require-in-session` | 0    | implemented -- **the prompt gate passes through**          |
+| `intent claude hook post-tool-advisory` | 0    | implemented                                                |
+| `intent critic <lang> --staged`         | 2    | still unimplemented; the pre-commit gate fails OPEN (0038) |
+| `intent upgrade`                        | 2    | still unimplemented -- **this is 0036, and it holds**      |
+
+**The whiteboard guards were also verified live under the real v3 binary**, which is issue 0042's canary and the thing that could not be asserted until `info` existed: a fixture board carrying a stamp with no trailing `Z`, committed through the shipped hook with v3 resolving `INTENT_HOME`, is **REFUSED**. The guards resolve and enforce.
+
+**The section below is kept rather than deleted. The instance is closed; the class is not** -- and a document that erases a hold once it lifts teaches nobody why it was there.
+
+---
+
+**What it was.** Not a bad first contact -- it took away the tool the user would recover with, and it did not wait for a migration.
 
 Intent's canon `.claude/settings.json` wires Claude Code's `UserPromptSubmit` hook to `intent claude hook require-in-session` -- an unqualified `intent`, resolved from `PATH`. The gate's own contract is `exit 0` to pass the prompt through and **`exit 2` to BLOCK it**. Since `d2b8e76d`, the v3 binary answers every not-yet-implemented command with exit 2, which is correct for the consumer that fix was written for: the pre-commit gate reads 2 as fail-open. **Two shipped consumers read the same number as opposite instructions**, and `brew install` puts the binary that returns it in front of the one that does not.
 
@@ -49,7 +66,14 @@ The result is that the gate's pass-through path becomes unreachable. Every promp
 
 **The trigger is `brew install`, NOT migration.** `claude` is unimplemented as a family, so v3 refuses before it ever looks at the project -- which means the blast radius is every Intent project on the machine carrying the canon hooks, migrated or not, plus none-of-the-above. Issue 0043 as filed says "do not migrate this repo until it is settled"; migration is not the condition. **Publication is.** This is 0036's chain with the consequence changed: shadowing is machine-wide and unrequested, so a user meets this in a project they were not thinking about, and unlike the `intent upgrade` dead end there is no message to read past.
 
-**Not yet observed live.** Nobody has watched a real session die of this, and the estate should not pretend otherwise: confirming it costs a throwaway project and a spare session, because the session that runs the test is the session that gets locked out. It cannot be confirmed from inside a repo that is unmigrated by design with `intent` still resolving to v2. **The evidence above is the wiring, the gate's own stated contract, and the binary's measured exit code -- which is enough to hold publication and not enough to close the issue.**
+**It was confirmed live before it was fixed** -- vc, five arms against Claude Code 2.1.233, each a throwaway directory wiring `UserPromptSubmit` exactly as the canon does, driven headless. Exit 0 ran the prompt; **exit 1 also ran it**; exit 2 blocked; the real v3 build blocked carrying its own not-implemented text; and `/in-session`, the documented remedy, blocked too. The exit-1 arm is the one that made it a causal finding rather than a symptom: it is what establishes that moving unimplemented commands from 1 to 2 is what created this, rather than merely correlating with it.
+
+**Two things from that rig that outlive the fix, and belong here because whoever tidies the hook wiring will meet them:**
+
+- **A blocked prompt exits the `claude` process with 0.** The block is in-band, in the output stream. So any wrapper or automation checking the process exit code sees success while the model never saw the prompt -- **a silent-failure surface sitting in exactly the layer you would use to detect the first one.** A test of this class must assert on OUTPUT, never on exit code.
+- **`Stop` at exit 2 means "do not stop".** Measured at 24 seconds and zero output, against 3 seconds and a normal answer at exit 0. Intent's `Stop` hook is a bare `echo` today and therefore cannot reach it -- **it is safe by accident of its wiring, not by design.** Routing `Stop` through `intent claude hook` for consistency is the most natural tidying move there is, and it would arm a third distinct failure from the same constant. **Do not do it without deciding what `Stop` should return.**
+
+**The general shape, which is why the class stays open:** `2` now carries four meanings across four contracts that all read the same number -- fail-open in the pre-commit gate, BLOCK in `UserPromptSubmit`, advisory in `SessionStart`, and refuse-to-stop in `Stop`. Issue 0044 is the mirror of it on the tool's side. **An exit code is a property of the CALLER's contract, not of the tool**, and every fix so far was diagnosed against whichever consumer happened to be in view.
 
 ### The good consequence of shadowing, which is why this is a hazard and not a defect
 
