@@ -18,6 +18,12 @@
       "provenance": "proposed by ic, hv-ratified at the 2026-08-14 bounce; named in parity.md's ratified deviation classes"
     },
     {
+      "state": "deviate",
+      "is_parity_class": false,
+      "gloss": "A deliberate behaviour change that is a design consequence of v3 rather than a bug fix. parity.md draws exactly this distinction in its `Corrected` bullet -- `deviate is a design consequence of v3; corrected is a bug fix` -- so the word was declared in the contract before it existed in this vocabulary.",
+      "provenance": "vc ruling 2026-08-16 on ic's `upgrade` correction. THE GAP WAS AN INCOMPLETE TRANSCRIPTION, NOT A MISSING VALUE: `target.state` implemented `corrected` and not its declared twin, so the vocabulary was never complete and `upgrade` is simply the first row to notice. `is_parity_class: false` for the same reason `retire` is false -- parity.md's own rule is that a `deviate` carries a D-NUMBER ratified in design.md, so its warrant is the D-number on the row, not membership of a class. Adding it to parity.md's deviation-class list to make a check pass would be the defect ic refused to commit with `new-surface`."
+    },
+    {
       "state": "undefined",
       "is_parity_class": true,
       "gloss": "v2 exhibits no defined behaviour, so there is no antecedent to be faithful to. `corrected` needs something to correct; silence is not an antecedent.",
@@ -3579,11 +3585,12 @@
             }
           },
           "target": {
-            "state": "pending-hv",
-            "ratification": "CORRECTED BY ic 2026-08-16, ratification of the new state OUTSTANDING. This row said `retire`/`retire` and that was my error, with a live consequence: `is_shipped()` gates on BOTH fields, so `upgrade` would never have reached clap and WP-10's migration would have shipped with NO DOOR.",
+            "state": "deviate",
+            "ratification": "vc ruling 2026-08-16: `disposition: keep` (migration.md:3 -- the migrator IS the v3 binary's `intent upgrade`) + `target.state: deviate` citing D09. No new D-number: D09 already covers it.",
             "why_the_old_ratification_was_wrong": "It cited D09, and D09 is one line -- `Migration floor v2.19.0, two-hop` -- which says nothing about the command. What is retired is v2's LEDGER (`the v2 ledger is never reimplemented in Rust`, migration.md:7), the version-walk mechanism, not the verb. `migration.md:3` is explicit in the opposite direction: **`The migrator is the v3 binary's intent upgrade detecting a v2 project`**. So `upgrade` is v3's migration DOOR and keeps its spelling. My own `behaviour` field on the old row named `intent ingest --from-md` as the engine, and I read the ENGINE's succession as the DOOR's retirement: the ingest engine replaces the ledger, the command survives.",
             "corroborated_by_the_binary": "v3's unmigrated-project refusal already emits `run intent upgrade to migrate this project to Intent v3`, and AT-06.11 is held red `until WP-10 lands upgrade`. Both were right and this table was the odd one out -- which is why the defect first presented as an AC-06.11 violation, a remedy naming a command the binary cannot do. The remedy was correct and the SURFACE was wrong.",
-            "state_is_pending_deliberately": "Not a guess dressed as a decision. `keep` is carried by migration.md:3. But WHAT v3's `upgrade` does differs from v2's -- a one-hop v2->v3 migration rather than a convergent version ladder -- and a deliberate behaviour change flowing from v3's design is what `deviate` means in the register vocabulary. `target_states` has no `deviate`, so no value in it can say this. Classifying it is a parity call for vc or hv; `pending-hv` is this file's declared honest blank."
+            "state_is_pending_deliberately": "Not a guess dressed as a decision. `keep` is carried by migration.md:3. But WHAT v3's `upgrade` does differs from v2's -- a one-hop v2->v3 migration rather than a convergent version ladder -- and a deliberate behaviour change flowing from v3's design is what `deviate` means in the register vocabulary. `target_states` has no `deviate`, so no value in it can say this. Classifying it is a parity call for vc or hv; `pending-hv` is this file's declared honest blank.",
+            "why_D09_after_all": "ic corrected this row off `retire` and then could not find a ratification for what replaces it, having written that D09 `says nothing about the command`. **It says nothing about the command's EXISTENCE and everything about its BEHAVIOUR, and those are two different fields.** `disposition` asks whether the v2 command survives -- migration.md:3 answers it. `target.state` asks what v3 DOES -- D09 answers it: floor at v2.19.0, two-hop, the v2 ledger never reimplemented. A command that refuses below a floor and tells you to install `intent@2` first is precisely a deliberate behaviour change flowing from v3's design. **ic went looking for the command in D09 and found nothing because D09 answers the other question** -- the third instance this week of reading a fact against the wrong one of these two fields, after the three rows carrying `disposition: corrected` that were `keep` all along."
           },
           "disposition": "keep",
           "exposed_on_mcp": false,
