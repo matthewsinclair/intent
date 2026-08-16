@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-16 20:13Z
+heartbeat_at: 2026-08-16 20:24Z
 status: active
-focus: "0043 CONFIRMED LIVE AND WIDENED -- trigger is PATH, not migration. DO NOT PUT v3 ON PATH. Then filed 0044, its mirror: 0043 is four CALLERS disagreeing over what 2 means, 0044 is the TOOL using 1 for five unrelated conditions including your-code-has-findings. Measured impact in dc devbin: docs treeindex returns 0 with an empty verdict having indexed nothing. Both verifications owed cc are cleared (WP-03 11/11; the scope build falsified on both arms to complementary red sets). Ruled doctor = read for ic. All four inboxes at the sentinel; nothing owed to any peer."
+focus: "Working the queue while hv is AFK. 0043 confirmed live + widened to PATH-not-migration; 0044 filed (the tool overloads exit 1 as the callers overload exit 2); WP-03 11/11 and cc scope build both verified at pinned SHAs, the latter falsified on both arms. Ruled doctor=read for ic, then ic KILLED my acts_upon field with a structural disproof and I accepted it -- recoverability is the better property. Ruled the ext new / backup pair: not twins, backup PRUNES. AND I DESTROYED 1,447 CHARS OF AT-03.12s NOTE via intent at red/green with 0033 in working memory -- recovered from git, filed as its fifth instance. All four inboxes at the sentinel."
 claims: [ST0056]
 ---
 
@@ -67,6 +67,7 @@ claims: [ST0056]
 
 Measurement rules live in `intent/st/ST0056/parity.md`. What follows is operational to this node.
 
+- **`intent at red|green|na` DESTROYS THE ROW'S NOTE, AND I DID IT TO MYSELF TODAY WITH 0033 IN WORKING MEMORY.** Moving AT-03.12 to green cost **1,560 bytes -> 106: 1,447 characters of authored contract**, including the three arms the criterion required and the explicit refusal of AT-02.8/AT-04.5 as coverage. Recovered from `git show`, **and recoverable ONLY because it had been committed first -- a note written and moved in one session is gone.** **`intent at lint` said `ok -- 112 rows conform` immediately afterwards**, so the contract's own linter cannot see it leave. **THE TRANSITION GRAPH MULTIPLIES IT: `to-write -> green` is refused, so recording a passing test costs TWO rewrites.** The safer the graph, the more often the note dies. **BEFORE ANY `at` STATUS CHANGE: capture the row, or commit first, and diff the byte count after.** Filed as 0033's fifth measured instance -- and the four before it were found by comparing against git, which nobody does routinely, so the count is a lower bound on a defect that leaves no trace in the file it damages.
 - **DO NOT PUT v3 ON PATH. THIS SESSION IS ALIVE ONLY BECAUSE `intent` STILL RESOLVES TO v2** (dc, 2026-08-16, and it applies to all four nodes right now). 0043's trigger is **PATH, not migration**: `claude` is unimplemented as a FAMILY, so v3 refuses before it reads project state -- measured `rc=2` in a migrated project, in an unmigrated v2 project, and **outside any Intent project at all.** `brew install` does it unasked, at PATH position 1. **The moment v3 lands on the PATH of a shell a Claude Code session runs in, that session stops accepting prompts and cannot be recovered from inside itself.** Always invoke the v3 build by explicit path.
 - **AND MY OWN CONFIRMATION ALREADY CONTAINED THAT PROOF AND I READ PAST IT.** ARMV3 -- the end-to-end arm -- ran in a throwaway dir with **no `intent/.config/config.json` on any ancestor**, and blocked. So I executed the decisive arm with the "migrated project" precondition ABSENT and reported it as end-to-end confirmation of a claim about migrated projects. **The result was right and the framing around it was never tested by anything** -- nothing failed, so nothing objected. **A passing measurement does not audit the scope you claim for it**, and dc found the widening by measuring the thing I had already measured and not looked at.
 

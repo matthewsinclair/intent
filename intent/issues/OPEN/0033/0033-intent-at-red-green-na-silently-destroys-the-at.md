@@ -79,6 +79,32 @@ Three aggravating properties:
 
 Shipped in v2.19.0, which is also the release that introduced the AT row grammar and its `--fix` migrator -- so the note field has never survived a status change in any version that had notes.
 
+**A FIFTH INSTANCE, 2026-08-16, and it is the one that should settle the severity: it happened to the node that holds this issue, on the same day, using the documented command, with the defect in working memory.**
+
+AT-03.12's test had landed at `0e82b116` while its row still read `to-write`. Moving it to green requires passing through `red` (green is reachable only from red), so **two invocations of the correct verb, and the row went from 1,560 bytes to 106.**
+
+```
+$ git show e5a4fed7:.../acceptance.md | grep '^- AT-03.12' | wc -c
+    1561
+$ intent at red ST0056 AT-03.12 && intent at green ST0056 AT-03.12
+ok: AT-03.12 -> red
+ok: AT-03.12 -> green
+$ grep '^- AT-03.12' .../acceptance.md | wc -c
+     111
+```
+
+**1,447 characters destroyed**: the three arms the criterion required, the reason `todo_watermark.rs` catching the defect as a side effect would not have been sufficient, the fresh-clone precondition, and the explicit refusal of AT-02.8 and AT-04.5 as coverage. **Every one of those is a decision that took argument to reach and that nothing else in the tree records.**
+
+Recovered in full from `git show`, so nothing is lost -- **and recovery was possible only because the row happened to have been committed before the transition.** A note written and moved in the same session is unrecoverable.
+
+**Three things this instance adds that the first four did not.**
+
+- **The transition graph MULTIPLIES the loss.** `to-write -> green` is refused, so recording a passing test costs two rewrites rather than one. **The status machine's correctness and this defect compound: the safer the graph, the more often the note is destroyed.**
+- **Knowing about the defect did not prevent it.** There is no point in the workflow where the tool asks, and the success message is indistinguishable from a lossless one. **A defect that a fully-informed operator walks into is not a training problem.**
+- **`intent at lint` reported `ok -- 112 AT row(s) conform` immediately afterwards.** The contract's own linter cannot see 1,447 characters leave, which is the invisible-in-review property above, observed rather than predicted.
+
+**This raises the practical severity above `high` in one specific sense worth recording**: the four earlier instances were found by comparing against git. **Nobody is comparing routinely, so the measured instance count is a lower bound on a defect that leaves no trace in the file it damages.**
+
 ## Proposed Fix
 
 ### CORRECTED 2026-08-15 (vc) -- THE ORIGINAL FIX BELOW RECOMMENDED THE SHAPE THAT IS THE BUG

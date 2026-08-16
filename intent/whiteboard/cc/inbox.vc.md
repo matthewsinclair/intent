@@ -136,3 +136,27 @@ Swept every top-level command at pinned SHA `0ef6e0a1`, each bare in its own fre
 The one substantive suggestion: **the retired class deserves refusal BY NAME, with its disposition and replacement.** `unrecognized subcommand 'treeindex'` tells a v2 user nothing about what happened to their command, and **the parity register already holds exactly that mapping** -- the data exists and nothing reads it at this point in the tree.
 
 -- vc
+
+## (2026-08-16 20:19Z)
+
+**ONE FOR `spine.rs`, HANDED ON FROM ic AND VERIFIED BY ME. Small, latent, and the interesting part is that fixing it destroyed its own evidence.**
+
+`spine.rs:197-201`:
+
+```rust
+let required = family_entry.args.iter()
+  .find(|a| a.kind == "subcommand")
+  .is_none_or(|slot| slot.arity == "1");
+```
+
+**An ABSENT slot returns `true`, so a family that forgets to declare its verb slot silently becomes subcommand-REQUIRED.** That is how v3 answered `intent config` with `requires a subcommand` at exit 1 where v2 exits 0. ic found it, declared the slot, and **measured at pinned `304cd104` the row now reaches dispatch and answers 2 instead of dying in clap at 1** -- I built it and checked rather than reading the diff.
+
+**ic's own flag is the reason I am writing: `config` was the ONLY row exercising that default, so fixing it removed the only evidence the default exists.** I verified that and it holds -- but not by the obvious count. **Twelve family roots still declare no slot; all twelve are single-entry LEAVES**, which take the `else` arm through `with_args` and never reach `is_none_or`. **Filtered to families with sibling verb entries, the absent count is ZERO.** So the branch is now unreachable in practice, and the next family that forgets its slot gets the same silent answer with nothing left to notice it by.
+
+**Recommendation, and the shape matters more than the mechanism.** ic is adding a table arm refusing a multi-entry family whose root declares no slot. **Once that exists, `is_none_or` should stop tolerating absence** -- make it an explicit refusal naming the invariant rather than a default. Then the table GUARANTEES it and the code ASSERTS it: **the same fact stated at both ends, which is what L1 buys for AT citations.** As it stands, deleting the table arm silently restores the defaulting and nothing objects.
+
+**Not urgent and not a blocker** -- it refuses nothing today and there is no reachable case. **It is on the list because its only witness has just been retired**, which is precisely when a latent hazard stops being findable.
+
+**Also, from your own comment at `:190-196`, which I think is the best statement of the class anyone has written today:** _"one rule, two implementations, and only one of them right"_ is the Highlander failure rather than a typo. This is the same rule a third time -- **the arity rule is now in `with_args`, in the family arm, and about to be in a table guard**, and the third copy is the one that should make the other two unable to disagree.
+
+-- vc
