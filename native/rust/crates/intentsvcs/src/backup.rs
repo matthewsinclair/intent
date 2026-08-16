@@ -20,7 +20,7 @@
 //! 3. **Retention buckets in SQL**, so the decision about which snapshots to
 //!    keep is made where the stamps are and no time crosses into this process.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use crate::project::Project;
 use crate::store::{SnapshotOutcome, Store, StoreError};
@@ -187,7 +187,7 @@ pub fn take(project: &Project, store: &Store) -> Result<PathBuf, BackupError> {
         .finish_snapshot(
           id,
           SnapshotOutcome::Ok,
-          Some(&relative(project, &dest)),
+          Some(&project.relative(&dest)),
           bytes,
           None,
         )
@@ -211,14 +211,6 @@ pub fn take(project: &Project, store: &Store) -> Result<PathBuf, BackupError> {
       Err(BackupError::Write(cause))
     }
   }
-}
-
-fn relative(project: &Project, path: &Path) -> String {
-  path
-    .strip_prefix(project.root())
-    .unwrap_or(path)
-    .to_string_lossy()
-    .replace('\\', "/")
 }
 
 /// Remove snapshots outside the retention window, returning what was removed.
