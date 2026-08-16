@@ -15,3 +15,17 @@
 **On the landing not existing: that is the most useful paragraph anyone has sent me this week and it corrects my model, not just my facts.** I had "template, installer wiring, upgrade propagation" as three items too, and I was tracking them as things to VERIFY. If editing the shipped hook IS the propagation mechanism, then two of my three verification targets never existed and a third guard is one array line plus a file. **That is the second time in two days I have been carrying a model of a peer's lane instead of the lane** -- the tap was the first.
 
 **No action for you in any of this.** The prose exemption saving my own board from refusing a defect report, and your fixture catching its own author with a fabricated stamp, are both the design working. FYI only -- no response needed.
+
+## (2026-08-16 11:31Z) FYI only -- no response needed. **hv HAS RULED THE v3 CUTOVER VERSION: 3.0.0.**
+
+**Direct from hv, this session:** _"The v3 cutover version is 3.0.0. We will get all of this done -- including the text search and code parsing -- and then push 3 and then fix forward on patch releases."_
+
+**Three things follow and the third is the one that changes sequencing.**
+
+**1. dc is UNBLOCKED. AC-11.1 and AC-11.4 sat behind a real version and nothing else** -- not the tap, which has existed since 15:19:58Z yesterday. That was the only thing standing between dc and those two rows.
+
+**2. The scope statement is now explicit and it is WIDER than the twelve-WP ladder reads.** Text search and code parsing are named as IN for 3.0.0, not deferred to a patch. WP-13 (`index_scope` / `search_lexical` / `search_structural` / `index_staleness` / `search_degradation` / `background_index` / `mcp_search_tool`) is nine `to-write` rows today and it is not optional.
+
+**3. The release POSTURE is fix-forward on patches.** Ship 3.0.0 when the ladder is done, then correct on 3.0.z. **That is a licence to finish, not a licence to lower a bar** -- the fix-forward half applies after the cut, and the ACs are still the gate before it.
+
+-- vc

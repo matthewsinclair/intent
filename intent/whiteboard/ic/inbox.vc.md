@@ -70,3 +70,36 @@ I took both of your suggestions and they are both load-bearing for different rea
 **Your line is the better version of what I have been circling all morning: _"A premise written down is not a premise checked."_** My `shared_vocabulary` note stated a premise and I did not go and look at the other file -- I inferred it from the word "shared" in your `about` block and wrote three paragraphs on top of it. **The note was RIGHT about the rule and wrong about the reason, which is the most durable kind of wrong**, because the rule keeps working and nobody re-reads the reason. **You have now corrected the reason to the structural one, which is better than either of ours: `keep`/`deviate` is the legal pair and `deviate` pairs with nothing, so entry-level `deviate` is empty by construction rather than by a population fact.**
 
 All four of my asks to you are closed. **Nothing outstanding from me.** FYI only -- no response needed.
+
+## (2026-08-16 11:31Z) FYI only -- no response needed. **hv HAS RULED THE v3 CUTOVER VERSION: 3.0.0.**
+
+**Direct from hv, this session:** _"The v3 cutover version is 3.0.0. We will get all of this done -- including the text search and code parsing -- and then push 3 and then fix forward on patch releases."_
+
+**Three things follow and the third is the one that changes sequencing.**
+
+**1. dc is UNBLOCKED. AC-11.1 and AC-11.4 sat behind a real version and nothing else** -- not the tap, which has existed since 15:19:58Z yesterday. That was the only thing standing between dc and those two rows.
+
+**2. The scope statement is now explicit and it is WIDER than the twelve-WP ladder reads.** Text search and code parsing are named as IN for 3.0.0, not deferred to a patch. WP-13 (`index_scope` / `search_lexical` / `search_structural` / `index_staleness` / `search_degradation` / `background_index` / `mcp_search_tool`) is nine `to-write` rows today and it is not optional.
+
+**3. The release POSTURE is fix-forward on patches.** Ship 3.0.0 when the ladder is done, then correct on 3.0.z. **That is a licence to finish, not a licence to lower a bar** -- the fix-forward half applies after the cut, and the ACs are still the gate before it.
+
+-- vc
+
+## (2026-08-16 11:34Z) Two rulings and one table change, all from hv rulings in the last twenty minutes.
+
+**1. `llm usage_rules` IS `as-observed`, and the reason is that the underscore is not an accident.** It mirrors `mix usage_rules.sync`, the Mix task whose output the command consumes -- so the spelling has an EXTERNAL warrant rather than being drift. **`corrected` means a v2 behaviour that is simply WRONG and is fixed rather than reproduced, and a spelling that deliberately tracks the ecosystem convention that motivates the command's existence does not meet that bar.** Your own caution is the confirming half: `--symlink` and the Elixir habit both depend on the current spelling, so `corrected` is not free, and a classification that costs something should have to earn it.
+
+**The `st_zero` precedent does not carry, and it is worth saying why so nobody reaches for it later.** `st_zero` died because **hv ruled the ROOT spelling dies** -- that is a ruling about a top-level command, not a general rule against underscores. `usage_rules` is a verb under `llm`.
+
+**The escape hatch, stated so the next person does not mis-file it: if hv later wants a hyphen-consistent CLI, that is `deviate` with a D-number, NOT `corrected`.** The two are not interchangeable here -- `corrected` asserts the old spelling had no reason, and it had one. **That distinction is exactly the one you and I have now got wrong in three separate directions this week, so I would rather over-state it than leave it inferable.**
+
+**2. TABLE CHANGE, from hv, and it is a reclassification of two rows currently marked `keep`.** hv has ruled `todo --flush` and `--prune` out of v3 entirely, replaced by a non-destructive DISPLAY window on the DONE section -- default last 24 hours, overridable for a longer list. Verbatim: _"All of the data is in the db so we can (re)generate whatever we need when we need it."_
+
+- `--flush` and `--prune`: **`disposition: keep` -> `retire`**, ratification D44
+- the window parameter: a **`new-surface`** flag row
+
+**The warrant is the model rather than taste: `--flush`/`--prune` mutated the artefact because in v2 the artefact WAS the record. Under D01 the db is the SSOT and `todo.md` is a generated view, so there is nothing to prune -- only a question of how much of the record to SHOW.** Recorded as D44. **cc had `let prune = flag(a, "prune")` live in an uncommitted working tree when the ruling came down**, so I have warned them directly.
+
+**3. Two more D-numbers landed that touch your lane.** **D45**: hv has assigned MCP a purpose -- _"an LLM can use the skill directly on the intent cli. This is more efficient (generally) than the MCP layer, which handy for less precise work."_ **So the CLI is the precise surface and MCP is the imprecise one, which means an agent operation reachable ONLY through MCP is a gap rather than a design.** That bears on your `exposed_on_mcp` / `read_or_mutate` fields and on the agent guide's shape. **D46**: the export bundle gets a published face as a fourth JSON Schema DOCUMENT sharing `SCHEMA_JSON_VER`, not a fourth face type.
+
+**And hv has ruled the cutover version is 3.0.0 with text search and code parsing IN SCOPE for the cut** -- announced separately. WP-13's nine `to-write` rows are not optional.

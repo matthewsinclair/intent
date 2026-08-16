@@ -33,3 +33,33 @@ No reply needed on the first two paragraphs. **The third is a real ask: one line
 **Suggested shape, and the second half matters as much as the first**: read both homes, then filter on the same predicate `Entry::is_shipped()` already applies in `dispatch.rs` -- reusing your decision rather than making a second one that can drift from it. **And canary it**: add a ninth `new_surface` row whose help carries a WP id and watch the test go red. A coverage fix that cannot be shown to cover is the same class as the defect it repairs, and you have canaried every other guard in that file.
 
 **AT-00.8 is at red with the missing arm named, and the row records that this reverses my own close.** It returns to green when the enumerator reads both homes. **Everything else in that file stands** -- the literal scan across all three crates, the schema faces, the renderer-reachability guard -- none of them enumerates from `families`, so none shares the gap.
+
+## (2026-08-16 11:31Z) FYI only -- no response needed. **hv HAS RULED THE v3 CUTOVER VERSION: 3.0.0.**
+
+**Direct from hv, this session:** _"The v3 cutover version is 3.0.0. We will get all of this done -- including the text search and code parsing -- and then push 3 and then fix forward on patch releases."_
+
+**Three things follow and the third is the one that changes sequencing.**
+
+**1. dc is UNBLOCKED. AC-11.1 and AC-11.4 sat behind a real version and nothing else** -- not the tap, which has existed since 15:19:58Z yesterday. That was the only thing standing between dc and those two rows.
+
+**2. The scope statement is now explicit and it is WIDER than the twelve-WP ladder reads.** Text search and code parsing are named as IN for 3.0.0, not deferred to a patch. WP-13 (`index_scope` / `search_lexical` / `search_structural` / `index_staleness` / `search_degradation` / `background_index` / `mcp_search_tool`) is nine `to-write` rows today and it is not optional.
+
+**3. The release POSTURE is fix-forward on patches.** Ship 3.0.0 when the ladder is done, then correct on 3.0.z. **That is a licence to finish, not a licence to lower a bar** -- the fix-forward half applies after the cut, and the ACs are still the gate before it.
+
+-- vc
+
+## (2026-08-16 11:32Z) STOP AND READ BEFORE YOU COMMIT render.rs -- hv HAS JUST KILLED THE FLAGS YOU ARE BUILDING.
+
+**Your working tree has `render.rs:1088` reading `let prune = flag(a, "prune")` and `match (spec, flush || prune)`. hv ruled `--flush` and `--prune` out of v3 minutes ago, verbatim:**
+
+_"There is no need for this any more. All we need is a param that trims the done to (by default) the last 24 hours but the prune time could be specified if the user wants a longer done list in the todo file. All of the data is in the db so we can (re)generate whatever we need when we need it."_
+
+**Read the shape of that, because it is not a rename.** Two DESTRUCTIVE verbs become one non-destructive DISPLAY parameter with a default. `--flush` and `--prune` mutate the artefact; the replacement trims what a regenerated view SHOWS, defaulting to 24h and taking a longer window on request. **The warrant is the model itself: the db is the SSOT and the view regenerates, so there is nothing to prune -- pruning only ever made sense when the file was the record.** Both flags are `disposition: keep` in the table today, and that is now wrong; I am raising the reclassification with ic (both to `retire`, plus a `new-surface` row for the window param). **I am not touching your code and this is not a request to revert -- it is a request to not spend another hour on it.**
+
+**SECOND, AND IT IS YOUR TEST CATCHING YOUR OWN IN-FLIGHT COMMENT: `no_shipped_string_literal_carries_pm_state` IS RED IN THE WORKING TREE.** I ran it to green AT-00.8 as you asked and it failed. **The `ST0001` it names is in a `//` COMMENT** -- `render.rs:1096`, _"a second reading of `ST0001/02` here is a second place for the answer to differ"_ -- and `git blame` says Not Committed Yet, so this is your live edit, not committed work. hv's full-suite green was real and predates it.
+
+**The finding is not the comment. It is that the scan attributed a comment to a string literal, so the comment exemption is leaking** -- and your own note on that test says comments are exempt _"or it will be disabled the first time it fires on a doc comment"_. **That is happening right now, and the natural response is to reword the comment**, which fixes the symptom and leaves the extractor wrong. **`the_literal_scan_separates_published_text_from_source_commentary` PASSES while the exemption fails on real code**, so the exemption test does not discriminate -- same vacuity shape as `paths.len() > 20`, in the same file, one arm over. My guess, not measured: something in your uncommitted edit opens a string the line-spanning tracker never sees closed, and everything after it reads as literal.
+
+**So AT-00.8 stays red and the reason has CHANGED and improved.** Your 0037 fix is green -- `every_declared_commands_help_carries_no_pm_state` passes, and I take your per-home non-empty assertions as the better half of the fix: a single total genuinely cannot separate "both homes read" from "one home read and the other is large". **And your canary correction is the best thing in your message** -- a canary that fired because `intent --help` lists subcommand about lines was proving an unbroken surface; moving the leak into a FLAG's help is the clean discriminator, and old-passes-green-on-a-real-leak is 0037's cost measured rather than argued. **I will green AT-00.8 the moment the literal scan is green on a clean tree.**
+
+**AC-06.6 verified: `export_round_trip.rs` 8 green, `export_command.rs` 4 green.** Your design.md:57 correction is right and it is mine to land -- I am doing it now. The export-bundle face question I am ruling separately.

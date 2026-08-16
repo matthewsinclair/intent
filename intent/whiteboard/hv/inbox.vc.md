@@ -34,3 +34,49 @@ Contract 34/106; gates 02 7/8, 03 9/10, 06 4/10, 11 2/4; lint clean at 106 rows.
 **dc: this may want a devbin guard eventually** -- a `prepush` arm that refuses `upstream` unless explicitly overridden would be the natural home, and it is your lane. **Not asking for it now**; flagging that the place exists so it does not get built somewhere else.
 
 -- vc
+
+## (2026-08-16 11:31Z) FYI only -- no response needed. **hv HAS RULED THE v3 CUTOVER VERSION: 3.0.0.**
+
+**Direct from hv, this session:** _"The v3 cutover version is 3.0.0. We will get all of this done -- including the text search and code parsing -- and then push 3 and then fix forward on patch releases."_
+
+**Three things follow and the third is the one that changes sequencing.**
+
+**1. dc is UNBLOCKED. AC-11.1 and AC-11.4 sat behind a real version and nothing else** -- not the tap, which has existed since 15:19:58Z yesterday. That was the only thing standing between dc and those two rows.
+
+**2. The scope statement is now explicit and it is WIDER than the twelve-WP ladder reads.** Text search and code parsing are named as IN for 3.0.0, not deferred to a patch. WP-13 (`index_scope` / `search_lexical` / `search_structural` / `index_staleness` / `search_degradation` / `background_index` / `mcp_search_tool`) is nine `to-write` rows today and it is not optional.
+
+**3. The release POSTURE is fix-forward on patches.** Ship 3.0.0 when the ladder is done, then correct on 3.0.z. **That is a licence to finish, not a licence to lower a bar** -- the fix-forward half applies after the cut, and the ACs are still the gate before it.
+
+-- vc
+
+## (2026-08-16 11:37Z) `undefined` -- the info you asked for, and it is a smaller question than I made it sound.
+
+**FIRST, A CORRECTION TO MY OWN FRAMING. I told you `undefined` had no place in `parity.md`. It is in `parity.md`, at line 17, and has been since 2026-08-14.** My grep searched lowercase `undefined`; the file capitalises it as **Undefined** in the class list. Same miss I made on `INTENT_VER` this morning -- searching for the literal token instead of the idiom. **The instrument agrees with the file**: `class_vocab_check.sh` reports _"2 states claim a parity class, 6 classes named, 2 grounded -- every claimed parity class is named in parity.md."_ There is no drift and nothing is broken.
+
+**So the actual question is one word: RATIFY OR FOLD.** The class is written, used, and consistent; it is marked _"provisional pending hv"_ and that is the only thing outstanding. It is one of exactly two bullets in that file carrying those words.
+
+**What it is.** `Undefined` = v2 exhibits NO behaviour to be faithful to, so v3 is DESIGNING rather than porting or correcting. **One member, `intent config`**, and the measurement that opened it is the whole argument: v2's `intent config` produces **0 bytes on stdout, 0 bytes on stderr, exit 0**. There is nothing there.
+
+**Why it is not `corrected`.** `corrected` means a v2 behaviour that is WRONG and gets fixed -- it needs an antecedent to correct, and **silence is not an antecedent**. Folding `config` into `corrected` would file a from-scratch design decision inside a bug-fix class, and those want different reviewers: a bug fix is checked against the old behaviour, a design is checked against nothing.
+
+**What ratifying CHANGES, mechanically: nothing.** The row, the instrument and the class list are already consistent. Ratification only removes the "provisional pending hv" marker and closes one of my four open items. **What FOLDING would change: `config`'s row loses the distinction that says nobody has designed this yet, at the moment someone is about to.**
+
+**My recommendation is ratify**, and the reason is the one thing that would actually cost us: **`config` is currently `disposition: pending` -- an honest blank -- and `undefined` is the only marker on that row saying the blank is because v2 was SILENT rather than because we have not looked.** Those two need to stay distinguishable while WP-07 is unbuilt.
+
+---
+
+**SEPARATELY, ON "THE SOONER WE CAN GET THIS PROJECT ONTO v3, THE BETTER" -- here is what actually stands between us and the cut, measured just now rather than estimated.**
+
+**41 of 109 ACs. Four work packages PASS (WP-01 4/4, WP-02 8/8, WP-03 10/10, WP-05 6/6); eight are BLOCKED.**
+
+```
+WP-04  4/6     WP-07  0/6     WP-10  1/8
+WP-06  6/11    WP-08  0/8     WP-11  2/4
+               WP-09  0/5     WP-12  0/4
+```
+
+**The shape of the remaining work is one number: 52 of 109 acceptance tests are `to-write`.** Against 32 green, 19 `n/a`, 6 red. **Four whole packages -- 07, 08, 09, 12 -- are at ZERO, and 08 and 09 are the daemon and the MCP surface.** That is not a tail; it is roughly half the ladder, and your 3.0.0 scope statement adds WP-13's nine rows on top.
+
+**Two things I can tell you that the numbers do not.** **WP-11 is 2/4 and both remaining rows were unblocked by your version ruling twenty minutes ago** -- dc has been deliverable-complete and idle waiting on exactly that, so those two should move without new work. **And the six `red` rows are honest reds, not unbuilt ones**: each names the missing arm on its own row, which is why they are red rather than parked at `to-write` where nothing would check them.
+
+**I am not going to tell you it is close. It is not.** But the four passing packages are the foundation ones, and the failure modes we have been finding all day are instrument defects rather than model defects -- **the architecture has not moved under us once today**, which is the thing that would actually cost weeks.
