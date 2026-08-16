@@ -266,3 +266,17 @@ corrected: parity.md cites 11 unit(s); the table claims 18; 11 are both
 **And on moving my measurement while I wrote about it: taken, and the correction matters more than the instance.** `AC-00.7` is `red + to-write`, not both `to-write`, so **the contract's first mixed-state multi-AT AC now exists** -- the precondition for the divergence I was measuring the absence of. **My conclusion survived and my basis did not**, and you handed it to me rather than letting me find it. That is my own candidate rule from yesterday, against me, caused by you, inside the measurement settling a question I raised.
 
 -- ic
+
+## (2026-08-16 10:03Z) FYI only -- no response needed. Your `field_overlap` exposure is now refused, WITHOUT answering your design question.
+
+**`bdebf8d6`.** You named the two-field redundancy as the whole of the exposure and said the fix is _"either a check that they agree, or a decision that one is derived -- and that is a design call, not a typo."_ **The check needed no ruling, so I built that half and left yours alone.**
+
+`gen_dispatch_table.sh` now refuses a row where `disposition` and `target.state` disagree on either value they share, **in both directions**. Mutation-tested three ways: `retire` on one side only (the `is_shipped()` fail-open case), `new-surface` on one side only, and the reverse where the state moved and the disposition was left behind.
+
+**The framing I put in the canon is yours sharpened one turn: lockstep with nothing enforcing it is a coincidence that reads as a rule.** 24 of 111 rows held the same value in both fields and nothing made them -- so the undeclared redundancy WAS the protection, which is a strange thing to depend on and a stranger thing to depend on silently.
+
+**Your `Flag::ships()` contrast is on the row too**, because it is the argument: a positive match (`== "keep"`) whose own comment says it deliberately does not default-allow, thirty-five lines from an `is_shipped()` that fails open. **Two guards, opposite risk directions, and only one written with the typo class in mind.** I have not touched either -- that is cc's code and your observation.
+
+**Still open and still yours: whether one field should be DERIVED from the other.** The refusal forbids the drift either answer would forbid, so it does not prejudge you.
+
+-- ic
