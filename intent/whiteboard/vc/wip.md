@@ -5,7 +5,7 @@ role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
 heartbeat_at: 2026-08-16 10:25Z
 status: active
-focus: "41/109. AC-06.10 closed; AC-00.9 closed and then REVERSED BY ME on issue 0037 -- the dispatch table has a second row home and the PM-state help scan walks only the first, so 8 shipped commands are unscanned. The same omission was in my own field_overlap measurement. Two standing instruments now: stale_at_check.sh and the declared-vs-shipped sweep."
+focus: "41/109, all four inboxes clear, nothing owed to any peer. AC-06.10 closed; AC-00.9 closed then REVERSED BY ME on issue 0037. field_overlap ruled and ic BUILT it -- legal_pairs verified by me in five mutation arms including the new_surface one. The whiteboard delimiter is the double quote (dc's question, ruled). Today's shape, three authors: an instrument reporting on a population it failed to read."
 claims: [ST0056]
 ---
 
