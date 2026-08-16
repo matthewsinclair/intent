@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 21:22Z
+heartbeat_at: 2026-08-16 10:09Z
 status: active
-focus: "ic's evidence defect CLOSED at 74ae7324, and the cause was a layer below either of us: the model was DOCUMENTED as making empty evidence unconstructible, and a required String does not. Both fixes on offer would have left an EMPTY --evidence open. Found a second declared-and-unenforced guard beside it. 350 tests. NEXT: EXP-07's value field at 35 rows."
+focus: "Three landed since the fold: the evidence guard (74ae7324), EXP-07's four dropped fields with two latent holes under it (7e051f3f), the table's own vocabularies now read rather than restated (bacd3103), and AC-06.8's mitigation built where ic proved it belonged (8306d0b2). 356 tests. NEXT: wire `intent ingest [PATH]`."
 claims: []
 ---
 
@@ -33,16 +33,25 @@ claims: []
 
 ## TODO -- in order
 
-1. **EXP-07 / issue 0035 -- `Flag` drops four declared fields.** `required` (3 rows), `value` (35), `default` (6), `accepts` (4) never deserialize. **`value` at 35 is now the one that matters**: it renders the `<fmt>` placeholder in a usage line, so every value-taking flag may be showing clap's fallback instead of the authored one. **`required` got SMALLER, not done** -- with the facade guarding, clap enforcing it is belt-and-braces for an earlier message rather than the only thing standing there.
-2. **Wire `intent ingest [PATH]`** -- ic landed the row at `3280b43d` on my ruling (`0..1`; recovery defaults to this project's tree, a migrator names another).
-3. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
-4. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
+1. **Wire `intent ingest [PATH]`** -- ic landed the row at `3280b43d` on my ruling (`0..1`; recovery defaults to this project's tree, a migrator names another).
+2. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+3. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
+
+## Held for WP-10 -- vc's migration ruling, provisional pending hv (21:30Z)
+
+**A blank-evidence v2 satisfaction does NOT convert to `Satisfied`, and the dilemma I sent them dissolved on their reading: carrying it as `Satisfied` is the LOSSY option**, because it destroys the distinction between "satisfied, here is the evidence" and "satisfied, with nothing behind it" -- a fact that exists in the v2 artefact and would not exist in v3. Losslessness is about information, and that conversion is where the information dies.
+
+Four clauses, and the third is the one someone will reach for: **no false `Satisfied`; NO SYNTHESISED EVIDENCE TEXT** (`"migrated from v2, no evidence recorded"` reads as evidence forever after and nothing downstream can tell it from the real thing -- **D42's family, one field over**); no silent drop of the claim either; **so the criterion arrives `Unsatisfied` and the v2 claim is recorded in the EVENT LOG**, which is already the durable non-reconstructible half and the right home for "this is what the source said and this is why it did not convert". **Refusing the migration outright is wrong** for a closed thread -- the ruled policy is carry-lossless and the above IS lossless. **Mechanism is mine; the ruling is that no false `Satisfied` and no confected evidence may exist.**
+
+## Held -- vc's measurement for the WP-04 rewrite (21:30Z)
+
+**`intent ac list ST0056` takes 2 minutes 24 seconds in v2.** 109 rows, exit 0, 102% CPU, roughly 1.3s per row; `ac status` and `at lint` return promptly on the same file, so it is not the parse. **The v3 verb must not inherit whatever this is** -- a command a user runs constantly is where a per-row shell-out becomes visible.
 
 ## Waiting
 
-- **vc**: **one decision is theirs and I have deliberately not made it** (21:21Z) -- whether the WP-10 migrator should REFUSE a carried v2 satisfaction with blank evidence, or carry it with `doctor` reporting. It is where the ruled policy's "lossless-by-carrying" and "blocked-until-clean" pull opposite ways. Also with them: Machine 3 now declares `ac.satisfy` as `[NonTestOnly, EvidenceRecorded]` -- implemented ahead of ratification, reversible, and the transcription check holds me to whichever they rule. And the D-number prose exception.
-- **ic**: **two error-message changes to re-pin in their surface check** (sent 21:21Z, no rows moved). Their `[PATH]` row is in and still waiting on my wiring -- item 2.
-- **dc**: blocked on hv for the tap, offering capacity. Offers 1 and 3 are already done (AC-02.8 landed; `no_function_takes_a_time.rs` covers time-typed parameters). Taken instead: the `repo_root()` triplication needs a dev-dependency crate, which is a workspace change and theirs.
+- **vc**: **both of my open questions RULED and nothing owed either way.** The guard list is ratified (they verified at HEAD, not in my worktree, and flagged that `Edge::direct()`'s `guard: &[]` default is the same shape as the `from: &[]` defect four lines above it -- closed, because the transcription check compares all 21 edges to a ratified declaration, so the default cannot silently mean anything). Migration ruled above. **Still open with them: the D-number prose exception.** I owe them nothing; they hold AC-05.5 open deliberately on a third instance of my class.
+- **ic**: **nothing owed either way.** No re-pin needed -- their table pins the SHAPE not the TEXT, so a message rewrite that keeps stream, exit code and prefix is invisible to their check BY DESIGN. Standing rule taken: **tell them only when a message changes STREAM, EXIT CODE or PREFIX.** Their `[PATH]` row is still waiting on my wiring, which is TODO 1.
+- **dc**: blocked on hv for the tap. `testkit` is THEIRS (`e75908cf`) -- vc misattributed it to me from a working-tree read and has corrected it; I never claimed it. Nothing owed.
 
 ## Lane boundary
 
@@ -58,7 +67,10 @@ claims: []
 
 ## Watch-outs -- mechanical only
 
-- **NEVER PUT A `"` INSIDE A BOARD HEADER VALUE.** A formatter in the pre-commit chain treats the header as YAML: an embedded double quote makes the scalar invalid, so it re-quotes the line in single quotes and DOUBLES every apostrophe, which `ws list` then displays literally. **It landed in `ddd074af` and did not self-repair**, and the hook reported the file as formatted with no sign it had rewritten a value. One occurrence across five boards; the trigger is exactly the embedded quote. Reported to dc and vc 21:35Z.
+- **A MITIGATION CAN BE RULED INTO THE ONE PLACE THAT STRUCTURALLY CANNOT PERFORM IT, AND THEN IT LEAVES NO HOLE.** AC-06.8 ruled that `doctor` reports withheld flags; `doctor` lives in `intentsvcs`, which cannot depend on `intent-cli`, where the table is compiled in. **Nothing looked missing because there was nowhere for it to be missing FROM.** ic found it by verifying the two halves of one ruling separately. **When a ruling names a component, check that component can SEE the data before believing the ruling is discharged.**
+- **IN THIS REPOSITORY AN UNTRACKED FILE HAS NO AUTHOR** (dc, 09:33Z). Four of us commit into one clone, so `git status` shows a peer's in-progress file as indistinguishable from your own; only a commit carries authorship (`git log --diff-filter=A -- <path>`). vc attributed dc's `testkit` to me from a working-tree read. **Worse than a mix-up: `git add`ing a peer's half-written crate would put a workspace member in the index and absent from HEAD, which stops cargo loading the workspace at all.**
+- **`$?` AFTER A PIPE IS THE LAST COMMAND'S, AND IT READS LIKE THE ONE YOU CARE ABOUT.** vc got `0` beside a `BLOCKED` line and was one step from filing "the close gate does not gate" -- a false `high` against the mechanism that stops vacuous greens. It was `tail`'s. **I did the same thing measuring `doctor` an hour after reading their note and caught it only because they had written it down.** Redirect to a file and check `$?` on the bare command.
+- **NEVER PUT A `"` INSIDE A BOARD HEADER VALUE -- MEASURED TRIGGER, CAUSE UNKNOWN.** A value carrying one came back re-quoted in single quotes with every apostrophe DOUBLED, which `ws list` displays literally; it landed in `ddd074af` and did not self-repair. **I attributed it to the pre-commit chain and that was wrong.** vc refuted it without measuring: a serialiser cannot re-emit what it could not parse, so "invalid YAML, therefore re-quoted" cannot both hold. Excluded since: prettier on the exact original bytes, and the write and edit paths, tracked and untracked, dotfile and normal name. **A formatter DID run on that file in that commit and is not responsible** -- the coincidence is what made the attribution feel confirmed. Keep the mitigation, drop the mechanism.
 - **A COMMENT ASSERTING A PROPERTY GETS CITED AS THE REASON NOT TO BUILD THE THING THAT WOULD MAKE IT TRUE.** The model said `Satisfied`'s evidence was "unconstructible without evidence" (hv-attributed, in the PUBLISHED face); `evidence: String` makes the FIELD mandatory, not the value present. **Three separate pieces of reasoning then rested on it and every one was correct given the premise** -- no guard was written, the renderer defaulted the flag, the gate destructured past it. **When a comment says a property is structural, go and look at the structure.** And the `///`-is-published rule has a second edge: the risk is not only that a private note ships, it is that a shipped note is BELIEVED by the next author.
 - **TWO PROPOSED FIXES CAN BOTH LEAVE THE HOLE OPEN, and agreeing which is "the right one" is how you ship neither.** ic offered the renderer `?` or clap-enforced `required`; **both refuse an ABSENT flag and both accept `--evidence ""`.** "The flag is present" and "the value is there" are different questions and the second is the one that was asked. **Drive the empty case, not just the missing one.**
 - **A TABLE THAT CANNOT EXPRESS A REQUIREMENT IS A TABLE NOTHING CAN CHECK AGAINST IT.** `Edge.guard` held ONE value; `ac.satisfy` needed two; the one that fitted got enforced and the other was never written down -- so the conformance test, the transcription check and the guard test all passed over a rule that had no place to be stated. **When a declaration looks complete, ask what it has no room to say.**
