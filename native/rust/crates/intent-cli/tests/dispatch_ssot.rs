@@ -461,3 +461,103 @@ fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
      unbuilt families with verbs"
   );
 }
+
+/// **The authored placeholder reaches the usage line, and requiredness reaches
+/// the usage block** (issue 0035 / EXP-07).
+///
+/// `Flag` deserialised four of a row's fields and dropped four more, so 35
+/// declared `value`s reached nothing and clap fell back to printing our own
+/// internal argument id at the reader: `--evidence <evidence>` where the table
+/// says `<ref>`. **The table was authored, committed, reviewed and inert.**
+///
+/// The requiredness half had a second tell worth recording, because it is what
+/// a dropped declaration looks like from the outside: `--reason`'s help string
+/// ends with a hand-written `-- REQUIRED`, and `--evidence`'s does not, for two
+/// flags the table declares identically. **When a mechanism stops carrying a
+/// fact, the fact comes back by hand, in one place and not the other.**
+///
+/// Driven from the declaration rather than a list of flags, and counted in both
+/// directions, so it cannot pass by examining nothing.
+#[test]
+fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
+  let table = dispatch::table();
+  let entries: Vec<&dispatch::Entry> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .filter(|e| e.is_shipped())
+    .collect();
+
+  let mut wrong = Vec::new();
+  let (mut placeholders, mut requireds) = (0, 0);
+  for entry in entries {
+    let args: Vec<&str> = entry.path.split_whitespace().collect();
+    let block = options_block(&args);
+    if block.is_empty() {
+      continue;
+    }
+    let usage = help(&args);
+    for flag in &entry.flags {
+      if !flag.ships() {
+        continue;
+      }
+      let Some(long) = flag.spellings.iter().find(|s| s.starts_with("--")) else {
+        continue;
+      };
+      if let Some(value) = &flag.value
+        && flag.kind != "bool"
+      {
+        // The three shapes the table writes, normalised to what a reader should
+        // see. The delimiters are the table showing the rendering and clap adds
+        // its own, so they come off; a trailing `...` is arity and clap prints
+        // it after the name. **`<path> ...` is the row that caught the first
+        // version of this check** -- it stripped delimiters from both ends
+        // blindly and asked for `<path> ...>`, which is the same class of
+        // mistake as the defect under test.
+        let repeated = value.trim_end().ends_with("...");
+        let head = value.trim().trim_end_matches("...").trim();
+        let inner = head
+          .trim_start_matches(['<', '['])
+          .trim_end_matches(['>', ']']);
+        let want = format!("{long} <{inner}>{}", if repeated { "..." } else { "" });
+        if block.contains(&want) {
+          placeholders += 1;
+        } else {
+          wrong.push(format!(
+            "PLACEHOLDER  `{}` {long} declares value {value:?} and the surface does not show `{want}`",
+            entry.path
+          ));
+        }
+      }
+      if flag.required {
+        // A required flag appears in clap's usage line unbracketed. An optional
+        // one never does -- it lives in `[OPTIONS]` -- so this distinguishes
+        // the two rather than merely finding the spelling somewhere.
+        let shown = usage
+          .lines()
+          .find(|l| l.starts_with("Usage:"))
+          .is_some_and(|l| l.contains(long.as_str()));
+        if shown {
+          requireds += 1;
+        } else {
+          wrong.push(format!(
+            "REQUIRED  `{}` {long} is declared required and the usage line presents it as optional",
+            entry.path
+          ));
+        }
+      }
+    }
+  }
+
+  assert!(
+    wrong.is_empty(),
+    "the table declares what the surface does not carry:\n  {}",
+    wrong.join("\n  ")
+  );
+  assert!(
+    placeholders >= 20 && requireds >= 3,
+    "only {placeholders} placeholders and {requireds} required flags were exercised -- the \
+     enumeration is collapsing, and a check that examines nothing passes"
+  );
+}

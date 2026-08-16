@@ -7,6 +7,15 @@
 //! exactly the v2 behaviour this replaces. So the assertions here are
 //! PAIRWISE: two distinct causes must render distinguishably, checked across
 //! the whole variant set rather than sampled.
+//!
+//! **"The whole variant set" was a claim in this comment and nothing made it
+//! true.** `provoked_errors` is hand-built, so the sentence above described an
+//! intention rather than a mechanism. Measured against this file at
+//! `c1e630cf`: **SIX reachable variants had no assertion here at all** --
+//! `NotSatisfied`, `OffScope`, `WrongOffScopeState`, `IllegalTransition`,
+//! `ReasonRequired` and `DescopeTargetMissing`. The claim is now carried by
+//! `every_variant_is_provoked_or_declared_elsewhere`, and the exemptions are
+//! declared rather than implied.
 
 mod common;
 
@@ -77,8 +86,199 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "gate blocked",
     facade.st_done("ST0056").expect_err("gate blocks"),
   ));
+  // **Six of the refusals below were reachable and asserted nowhere in this
+  // file**, measured at `c1e630cf` -- so the module doc's "the whole variant
+  // set rather than sampled" was already false before today's two variants
+  // existed to widen it. Found by the coverage check below on its first run,
+  // which is the argument for having written it.
+  //
+  // AC-03.2 is the fixture's only NON-TEST criterion, so it is the one that can
+  // reach the kind-gated refusals at all, and it is walked through the states
+  // deliberately: satisfied -> withdrawn -> back in scope -> unsatisfied. The
+  // order IS the fixture here.
+  out.push((
+    "descope target does not exist",
+    facade
+      .ac_descope("ST0056", "AC-03.2", "ST9999", None, None)
+      .expect_err("no such thread"),
+  ));
+  out.push((
+    "descope target not named",
+    facade
+      .ac_descope("ST0056", "AC-03.2", "  ", None, None)
+      .expect_err("blank target"),
+  ));
+
+  facade
+    .ac_withdraw("ST0056", "AC-03.2", "the premise did not reproduce", None)
+    .expect("withdraw the non-test criterion");
+  out.push((
+    "satisfy something out of scope",
+    facade
+      .ac_satisfy("ST0056", "AC-03.2", "x")
+      .expect_err("withdrawn"),
+  ));
+  out.push((
+    "rescope what was withdrawn",
+    facade
+      .ac_rescope("ST0056", "AC-03.2")
+      .expect_err("rescope undoes a descope, not a withdrawal"),
+  ));
+
+  facade
+    .ac_reinstate("ST0056", "AC-03.2")
+    .expect("back in scope, unsatisfied");
+  out.push((
+    "evidence required",
+    facade
+      .ac_satisfy("ST0056", "AC-03.2", "  ")
+      .expect_err("blank evidence"),
+  ));
+  out.push((
+    "nothing to unsatisfy",
+    facade
+      .ac_unsatisfy("ST0056", "AC-03.2")
+      .expect_err("not satisfied"),
+  ));
+  out.push((
+    "reason required",
+    facade
+      .ac_withdraw("ST0056", "AC-03.2", "   ", None)
+      .expect_err("blank reason"),
+  ));
+  // The from-state refusal, which is a different failure from every guard above
+  // it: the value is fine and the thread is in the wrong state to receive it.
+  out.push((
+    "illegal transition",
+    facade
+      .st_resume("ST0056")
+      .expect_err("resume is declared from `hold`, and the fixture thread is `wip`"),
+  ));
 
   out
+}
+
+/// The variant a value is, as an EXHAUSTIVE match.
+///
+/// **The module doc says this file checks "the whole variant set rather than
+/// sampled", and until now nothing made that true.** `provoked_errors` is a
+/// hand-built list; a variant added to the facade and not to it was covered by
+/// no assertion at all, and the doc claiming otherwise is the same shape as the
+/// model comment that claimed empty evidence was unconstructible -- a written
+/// guarantee standing in for a mechanism.
+///
+/// The match is what closes it: **a new variant does not compile until someone
+/// adds an arm here**, and the arm is one line away from the test below telling
+/// them to provoke it. The residual is stated rather than hidden: the arm and
+/// [`ALL_VARIANTS`] are two lists, so a variant added to the match and not to
+/// the list still slips the coverage check. That is a much smaller hole than
+/// the one it replaces, and it is the smallest this gets without reflection or
+/// a derive dependency.
+fn variant(err: &FacadeError) -> &'static str {
+  match err {
+    FacadeError::NoSuchThread { .. } => "NoSuchThread",
+    FacadeError::ThreadExists { .. } => "ThreadExists",
+    FacadeError::NoSuchWorkPackage { .. } => "NoSuchWorkPackage",
+    FacadeError::NoSuchCriterion { .. } => "NoSuchCriterion",
+    FacadeError::NoSuchTest { .. } => "NoSuchTest",
+    FacadeError::GateBlocked { .. } => "GateBlocked",
+    FacadeError::ComputedSatisfaction { .. } => "ComputedSatisfaction",
+    FacadeError::ScopeUnchanged { .. } => "ScopeUnchanged",
+    FacadeError::NotOffScope { .. } => "NotOffScope",
+    FacadeError::NotSatisfied { .. } => "NotSatisfied",
+    FacadeError::OffScope { .. } => "OffScope",
+    FacadeError::WrongOffScopeState { .. } => "WrongOffScopeState",
+    FacadeError::BadQuery { .. } => "BadQuery",
+    FacadeError::NoSuchFace { .. } => "NoSuchFace",
+    FacadeError::IllegalTransition { .. } => "IllegalTransition",
+    FacadeError::ReasonRequired { .. } => "ReasonRequired",
+    FacadeError::EvidenceRequired { .. } => "EvidenceRequired",
+    FacadeError::DescopeTargetMissing { .. } => "DescopeTargetMissing",
+    FacadeError::DescopeTargetRequired { .. } => "DescopeTargetRequired",
+    FacadeError::Unmigrated(_) => "Unmigrated",
+    FacadeError::Write(_) => "Write",
+    FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
+    FacadeError::Store(_) => "Store",
+    FacadeError::Ingest(_) => "Ingest",
+    FacadeError::EventLogUnreadable { .. } => "EventLogUnreadable",
+  }
+}
+
+/// The variants a reader of this file should expect to see provoked.
+///
+/// Some are reachable only through a failing filesystem or a damaged store, and
+/// those are declared here as deliberately-not-provoked rather than left to
+/// look like oversights -- an exemption that is announced, never inferred
+/// (ST0048's rule).
+const ALL_VARIANTS: &[&str] = &[
+  "NoSuchThread",
+  "ThreadExists",
+  "NoSuchWorkPackage",
+  "NoSuchCriterion",
+  "NoSuchTest",
+  "GateBlocked",
+  "ComputedSatisfaction",
+  "ScopeUnchanged",
+  "NotOffScope",
+  "NotSatisfied",
+  "OffScope",
+  "WrongOffScopeState",
+  "BadQuery",
+  "NoSuchFace",
+  "IllegalTransition",
+  "ReasonRequired",
+  "EvidenceRequired",
+  "DescopeTargetMissing",
+  "DescopeTargetRequired",
+  "Unmigrated",
+  "Write",
+  "ViewsNotWritten",
+  "Store",
+  "Ingest",
+  "EventLogUnreadable",
+];
+
+/// Variants that need a broken world rather than a bad call, and are covered by
+/// the tests that break that world instead.
+const NOT_PROVOKED_HERE: &[&str] = &[
+  "Write",              // an unwritable directory -- `write_set_rollback.rs`
+  "ViewsNotWritten",    // the same, after the DB has committed
+  "Store",              // a damaged SQLite file
+  "Ingest",             // schema-invalid canon -- `ingest_refusal.rs`
+  "EventLogUnreadable", // a corrupt event-log extract
+  "Unmigrated",         // an older store -- `unmigrated_project.rs`
+  "ThreadExists",       // needs a colliding id, which `st new` allocates around
+  "BadQuery",           // FTS5 syntax -- `facade_search.rs` territory
+  "NoSuchFace",         // `intent schema <name>` with an unknown face
+];
+
+#[test]
+fn every_variant_is_provoked_or_declared_elsewhere() {
+  let covered: std::collections::BTreeSet<&str> =
+    provoked_errors().iter().map(|(_, e)| variant(e)).collect();
+
+  let missing: Vec<&&str> = ALL_VARIANTS
+    .iter()
+    .filter(|v| !covered.contains(**v) && !NOT_PROVOKED_HERE.contains(*v))
+    .collect();
+  assert!(
+    missing.is_empty(),
+    "these variants are neither provoked here nor declared as covered elsewhere: {missing:?} -- \
+     the module doc says this file checks the whole variant set, so a variant with no assertion \
+     anywhere makes that claim false"
+  );
+
+  // The mirror: a name in the exemption list that IS provoked means the
+  // exemption has gone stale and is now hiding a variant rather than
+  // explaining one.
+  let stale: Vec<&&str> = NOT_PROVOKED_HERE
+    .iter()
+    .filter(|v| covered.contains(**v))
+    .collect();
+  assert!(
+    stale.is_empty(),
+    "these are declared unreachable here and were provoked anyway: {stale:?}"
+  );
 }
 
 #[test]

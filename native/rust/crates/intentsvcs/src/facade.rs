@@ -133,6 +133,8 @@ pub enum FacadeError {
   EvidenceRequired { ac: String },
   #[error("cannot descope {ac} to {to}, which is not a steel thread in this project")]
   DescopeTargetMissing { ac: String, to: String },
+  #[error("descoping {ac} moves it to another steel thread, and no thread was named")]
+  DescopeTargetRequired { ac: String },
   // NOT `#[source]`-bearing and NOT constructed from anything: the whole value
   // of this variant is that it carries the EVIDENCE, so that a refusal can be
   // told apart from an empty project by reading it.
@@ -226,6 +228,11 @@ impl FacadeError {
       Self::ReasonRequired { verb } => {
         format!(
           "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state, and in the event log as part of the decision, which is what lets anyone reconstruct why later"
+        )
+      }
+      Self::DescopeTargetRequired { ac } => {
+        format!(
+          "run `intent ac descope <thread> {ac} --to <thread>` with the thread that will hold the requirement -- use `intent ac withdraw` instead if it is going away rather than moving"
         )
       }
       Self::EvidenceRequired { ac } => {
@@ -1274,6 +1281,17 @@ impl Facade {
     // the reminder-shaped thing D33 rules against. Refusing costs one
     // workflow: descoping to a thread you intend to create next. That is a
     // real cost and it is flagged to vc rather than absorbed silently.
+    // **An ABSENT target is not a target that does not exist**, and reporting
+    // it as one produces a message with a hole in it: "cannot descope AC-01.1
+    // to , which is not a steel thread in this project", with the same gap
+    // repeated in the remedy. Different mistakes need different refusals, which
+    // is the same reason `EvidenceRequired` is not `ReasonRequired` with a word
+    // swapped. Clap now refuses an absent `--to` from the declared `required`,
+    // so what reaches here is an empty or blank one -- the "empty is not
+    // absent" case that the whole evidence defect turned on, one verb over.
+    if to.trim().is_empty() {
+      return Err(FacadeError::DescopeTargetRequired { ac: ac.to_string() });
+    }
     if !self.canon.threads.iter().any(|t| t.id == to) {
       return Err(FacadeError::DescopeTargetMissing {
         ac: ac.to_string(),

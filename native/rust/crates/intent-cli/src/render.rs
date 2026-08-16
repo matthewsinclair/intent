@@ -745,14 +745,15 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
     Some(("descope", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      // **`to` stays on `arg(..)?`, and the difference is not an oversight.**
-      // The passthrough rule applies to a value the facade guards with a
-      // message worth reading; `to` is guarded by `TargetExists`, whose
-      // refusal for a blank one reads "cannot descope AC-03.2 to , which is not
-      // a steel thread in this project". For a JUSTIFICATION the facade knows
-      // exactly what is missing and says so; for a REFERENT it can only report
-      // that nothing answers to the empty name.
-      let to = arg(a, "to")?;
+      // **`to` passes through like the rest now that the facade can tell an
+      // absent target from a missing one.** It stayed on `arg(..)?` for one
+      // commit because the facade's only answer to a blank target was
+      // "cannot descope AC-03.2 to , which is not a steel thread in this
+      // project" -- a message with the same hole in it twice. That was a reason
+      // to fix the refusal, not to keep re-checking the flag here:
+      // `DescopeTargetRequired` now says a thread was not named, and clap
+      // refuses an absent `--to` from the declared `required` before either.
+      let to = opt(a, "to").unwrap_or_default();
       let by = arg(a, "by").ok();
       let reason = arg(a, "reason").ok();
       open()?

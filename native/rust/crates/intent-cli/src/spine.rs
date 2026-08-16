@@ -226,9 +226,72 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
     } else {
       a.action(ArgAction::Set)
     };
+    // **The authored placeholder, where clap otherwise prints the argument's
+    // internal id.** `--evidence <evidence>` was clap's fallback showing our
+    // own identifier back to the reader; the table says `<ref>`. 35 rows
+    // declared one and the surface showed none of them (issue 0035).
+    //
+    // The delimiters are stripped because clap adds its own: the table writes
+    // `<text>` and `[dir]` as the reader should SEE them, and passing either
+    // through unstripped renders `<<text>>`. A value with no delimiters --
+    // `open|closed|all` -- is passed whole and clap wraps it once.
+    if let Some(value) = &flag.value
+      && flag.kind != "bool"
+    {
+      let (name, repeated) = placeholder(value);
+      a = a.value_name(name.to_string());
+      // **`...` in the table is a statement about ARITY, not decoration**, and
+      // it is the only shape here that is. `--files <path> ...` means a list,
+      // so the row is wired to `num_args`, and clap then renders the ellipsis
+      // itself. Passing the whole string through as a name instead is what
+      // produced `--files <<path> ...>` -- the double-bracket rendering this
+      // strip exists to prevent, showing up on the one row that was not a plain
+      // `<name>`.
+      if repeated {
+        a = a.num_args(1..);
+      }
+    }
+    // **Declared requiredness reaches the parser**, so the usage line stops
+    // presenting a required flag as optional. It is belt-and-braces rather than
+    // the only thing standing there: the facade guards the same values and
+    // catches the case this cannot, an EMPTY value that satisfies clap.
+    if flag.required {
+      a = a.required(true);
+    }
+    // A default makes the flag always-present downstream, so it is applied only
+    // where the table names a literal one.
+    if let Some(default) = &flag.default
+      && flag.kind != "bool"
+    {
+      a = a.default_value(default.clone());
+    }
     cmd = cmd.arg(a);
   }
   cmd
+}
+
+/// A declared `value` split into the name clap should print and whether the row
+/// describes a REPEATED value.
+///
+/// Three shapes, because the table writes three and collapsing them loses
+/// something each time:
+///
+/// - `<name>` / `[dir]` -- the delimiters are the table showing the reader what
+///   they will see, and clap adds its own pair, so they come off.
+/// - `<path> ...` -- a name plus an arity. The name comes off the same way and
+///   the ellipsis becomes `num_args`, which is where the fact belongs.
+/// - `open|closed|all` -- no delimiters, so the whole string is the name and
+///   clap wraps it once. The author wrote the alternation to be read as one.
+fn placeholder(value: &str) -> (&str, bool) {
+  let trimmed = value.trim();
+  let repeated = trimmed.ends_with("...");
+  let head = trimmed.trim_end_matches("...").trim();
+  let inner = head
+    .strip_prefix('<')
+    .and_then(|v| v.strip_suffix('>'))
+    .or_else(|| head.strip_prefix('[').and_then(|v| v.strip_suffix(']')))
+    .unwrap_or(head);
+  (inner, repeated)
 }
 
 /// Parse argv, applying INV-02: a usage error exits 1 in v2's voice.
@@ -260,14 +323,40 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
 
 /// clap renders a multi-line block; v2 speaks one line. Take the message and
 /// drop its `error: ` prefix so ours is not doubled.
+///
+/// **Some clap errors put the whole message on the first line and some put a
+/// HEADER there and the content beneath it**, indented, one item per line:
+/// "the following required arguments were not provided:" names nothing at all
+/// on its own. Taking line one was correct for every error this binary could
+/// produce until `required` reached the parser -- **at which point the one
+/// message that most needed to name a flag became the one that named
+/// nothing.** A latent hole in a helper, opened by a change three files away,
+/// and the output was a complete sentence promising information it had
+/// dropped.
+///
+/// So a header ending in `:` absorbs the indented items that follow it, up to
+/// the blank line before clap's usage block, and they join onto the one line v2
+/// speaks.
 fn first_line(rendered: &str) -> String {
-  rendered
-    .lines()
+  let mut lines = rendered.lines();
+  let head = lines
     .next()
     .unwrap_or("invalid usage")
     .trim_start_matches("error: ")
     .trim()
-    .to_string()
+    .to_string();
+  if !head.ends_with(':') {
+    return head;
+  }
+  let items: Vec<&str> = lines
+    .take_while(|l| !l.trim().is_empty())
+    .map(str::trim)
+    .filter(|l| !l.is_empty())
+    .collect();
+  if items.is_empty() {
+    return head;
+  }
+  format!("{head} {}", items.join(", "))
 }
 
 #[cfg(test)]
@@ -297,5 +386,42 @@ mod tests {
       first_line("error: unexpected argument '--x'\n\nUsage: intent st list"),
       "unexpected argument '--x'"
     );
+  }
+
+  /// **A header that names nothing absorbs the list beneath it.**
+  ///
+  /// clap puts required-argument errors on two levels: a sentence ending in
+  /// `:`, then the arguments, indented, one per line. Taking line one alone
+  /// printed "the following required arguments were not provided:" and stopped
+  /// -- a complete sentence promising information it had just dropped, on the
+  /// one error whose whole job is to name a flag.
+  #[test]
+  fn a_header_ending_in_a_colon_carries_its_items_onto_the_one_line() {
+    assert_eq!(
+      first_line(
+        "error: the following required arguments were not provided:\n  --evidence <ref>\n\nUsage: intent ac satisfy --evidence <ref> <STID> <ACID>\n"
+      ),
+      "the following required arguments were not provided: --evidence <ref>"
+    );
+    assert_eq!(
+      first_line("error: two are missing:\n  --a <x>\n  --b <y>\n\nUsage: ...\n"),
+      "two are missing: --a <x>, --b <y>",
+      "several items join rather than the first one winning"
+    );
+    // The usage block is NOT part of the message, and a header with nothing
+    // under it stays exactly as it was rather than swallowing what follows.
+    assert_eq!(
+      first_line("error: something ended in a colon:\n\nUsage: intent st list"),
+      "something ended in a colon:"
+    );
+  }
+
+  #[test]
+  fn a_declared_placeholder_is_split_into_a_name_and_an_arity() {
+    assert_eq!(placeholder("<text>"), ("text", false));
+    assert_eq!(placeholder("[dir]"), ("dir", false));
+    assert_eq!(placeholder("<path> ..."), ("path", true));
+    // No delimiters: the alternation IS the name, and clap wraps it once.
+    assert_eq!(placeholder("open|closed|all"), ("open|closed|all", false));
   }
 }

@@ -133,6 +133,30 @@ pub struct Flag {
   /// `keep` · `intrinsic` · `retire` · `pending`.
   #[serde(default)]
   pub disposition: String,
+  /// The authored placeholder for the value, eg `<text>` -- what the usage line
+  /// should show where clap otherwise falls back to the argument's internal id.
+  ///
+  /// **35 rows declare it and none of them reached the surface** (ic's
+  /// measurement, issue 0035): `intent ac satisfy --help` read `--evidence
+  /// <evidence>` where the table says `<ref>`.
+  #[serde(default)]
+  pub value: Option<String>,
+  /// Whether the flag must be supplied.
+  #[serde(default)]
+  pub required: bool,
+  /// The value used when the flag is absent.
+  #[serde(default)]
+  pub default: Option<String>,
+  // `accepts` is deliberately NOT here, and that is a decision rather than an
+  // omission. The four rows carrying it are PROSE, in four different shapes --
+  // "eg `--lang elixir` or `--lang elixir,rust,shell`", "footgun (default),
+  // worked, failed", a `|`-separated list, and a `->` mapping table of
+  // case-insensitive synonyms. There is no parse that turns those four into one
+  // machine-readable thing, and a `value_parser` built from the two that happen
+  // to look like enums would refuse input the other two describe as valid.
+  // Two of the four also restate what `value` already carries. It is row
+  // documentation for a reader of the table; if any of it needs to reach the
+  // surface it belongs in `help`, which is ic's to write.
 }
 
 impl Flag {
