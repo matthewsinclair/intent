@@ -133,11 +133,25 @@ SKIP_TESTS=false
 ALLOW_STALE_DATE=false
 
 usage() {
-  # Window anchored on the header above: line 5 ('intent build release --')
-  # through the flag list. It moved by two when the devbin summary line landed,
-  # and it will move again if the header does -- the previous number was stale
-  # the moment the file was converted.
-  sed -n '5,34p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+  # ANCHORED ON STRUCTURE, NOT ON LINE NUMBERS. This was a hardcoded `5,34p`
+  # window over the header above, and the header grew past it: --help printed
+  # the title, the prose, and the word "Usage:", then stopped -- exit 0, not one
+  # flag, not one example, not one exit code. A help text that confidently lists
+  # no options is worse than none, and it fails on the one morning it is read.
+  #
+  # Its own comment had predicted the drift ("it will move again if the header
+  # does") and wrote the prediction down instead of removing the coupling. A
+  # note cannot notice; a rule that reads the block's real boundaries cannot
+  # forget. The block is every comment line from the top to the first line that
+  # is not one, less the shebang and the dispatcher directive, which are
+  # machinery rather than help.
+  awk '
+    NR == 1 && /^#!/ { next }
+    /^# devbin:/     { next }
+    !/^#/            { exit }
+                     { print }
+  ' "${BASH_SOURCE[0]}" |
+    sed -e 's/^# //' -e 's/^#$//' -e '/./,$!d'
   exit "${1:-0}"
 }
 

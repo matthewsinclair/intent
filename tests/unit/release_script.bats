@@ -8,7 +8,12 @@
 
 load "../lib/test_helper.bash"
 
-RELEASE="${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/build.d/release"
+# INTENT_RELEASE_SCRIPT redirects every test in this file at another copy of the
+# script, so these guards can be mutation-tested -- pointed at a deliberately
+# broken copy to confirm they go red -- without editing the shipped one. Unset,
+# which is every normal run, this is byte-identical to the plain path. Same
+# mechanism and same name as release_sidecars.bats: one override, not two.
+RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/build.d/release}"
 
 # --------------------------------------------------------------------
 # Scratch repo helper
@@ -319,4 +324,31 @@ run_release_src() {
   [[ "$output" == *"Intent release orchestrator"* ]]
   [[ "$output" == *"--dry-run"* ]]
   [[ "$output" == *"--patch"* ]]
+}
+
+@test "every flag the parser accepts appears in --help" {
+  # The test above is a needle list, and it caught the 2026-08-16 defect only
+  # because --dry-run happened to be one of its three picks. usage() printed a
+  # hardcoded `5,34p` window of the file's own header; the header grew, and
+  # --help exited 0 having printed the word "Usage:" and not one flag.
+  #
+  # So this derives the set instead of spelling it. A needle list forbids only
+  # what its author thought of -- it cannot fail for a flag added tomorrow and
+  # left undocumented, which is the same class arriving by the other door.
+  local flags
+  flags="$(sed -n '/^while \[ \$# -gt 0 \]/,/^done/p' "$RELEASE" |
+    grep -E '^[[:space:]]+[^ ]*\)' | grep -oE -- '--[A-Za-z0-9-]+' | sort -u)"
+
+  # An empty extraction would pass the loop below without checking anything --
+  # the same "could not look" reading as "nothing wrong" that the lock check
+  # was fixed for. The parser has flags; finding none means this test is broken.
+  [ -n "$flags" ] || fail "could not extract any flag from the argument parser"
+
+  run_release_src --help
+  [ "$status" -eq 0 ]
+
+  local flag
+  for flag in $flags; do
+    [[ "$output" == *"$flag"* ]] || fail "flag $flag is accepted by the parser but absent from --help"
+  done
 }
