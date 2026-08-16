@@ -484,6 +484,33 @@ DISPOSITION_UNDECLARED="$(jq -r '
 [ -z "$DISPOSITION_UNDECLARED" ] || die "rows carry a \`disposition\` that \`entry_dispositions\` does not declare. Absence is a value nobody wrote and reads as an oversight, so it is refused alongside a typo:
 $(printf '%s' "$DISPOSITION_UNDECLARED" | sed 's/^/  /')"
 
+# THE TWO FIELDS MUST AGREE ON THE TWO VALUES THEY SHARE, and until now nothing
+# made them. `disposition` and `target.state` answer different questions -- what
+# becomes of the v2 command, versus what v3 does -- and they share exactly
+# `retire` and `new-surface`, on which they move in perfect lockstep across 24
+# of 111 rows. **Lockstep with nothing enforcing it is a coincidence that reads
+# as a rule.**
+#
+# It matters because `Entry::is_shipped()` reads BOTH and fails OPEN:
+# `disposition != "retire" && target.state != "retire"`. So the redundancy is
+# currently the only thing stopping a single hand-edit from shipping a retired
+# command -- and its sibling `Flag::ships()` thirty-five lines away is a
+# positive match (`== "keep"`) whose own comment says it deliberately does not
+# default-allow, so a typo drops a flag rather than shipping one. Two guards,
+# opposite risk directions, one written with the typo class in mind.
+#
+# This does NOT decide vc's open design question (whether one field should be
+# DERIVED from the other). It refuses the drift either answer would forbid,
+# which is the part that needs no ruling.
+STATE_DISAGREE="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select(((.disposition == "retire") != (.target.state == "retire"))
+             or ((.disposition == "new-surface") != (.target.state == "new-surface")))
+        | (.path + ": disposition=" + (.disposition // "(absent)") + " target.state=" + (.target.state // "(absent)")))
+  | join("\n")' "$IN")"
+[ -z "$STATE_DISAGREE" ] || die "\`disposition\` and \`target.state\` disagree on a value they share. They answer different questions but \`retire\` and \`new-surface\` are the same fact from two sides, and \`is_shipped()\` reads both and fails OPEN -- so one hand-edit out of agreement ships a retired command:
+$(printf '%s' "$STATE_DISAGREE" | sed 's/^/  /')"
+
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
 # reads as "reviewed and confident" in a diff and as "somebody meant to fill
