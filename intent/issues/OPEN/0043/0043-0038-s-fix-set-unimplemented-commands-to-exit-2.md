@@ -184,4 +184,27 @@ So three in-repo sources agreed that `2` from `UserPromptSubmit` blocks -- the s
 
 ## Resolutions
 
-{{TBC}}
+**CLOSED 2026-08-16. The instance is fixed; the class is not, and the class has its own issue.**
+
+**Fixed by cc**: `claude hook` and `info` are implemented. **Verified independently by dc and by vc**, at `native/rust/target/release/intent`:
+
+```
+rc=0  intent info                                Intent: The Steel Thread Process
+rc=0  intent claude hook require-in-session
+rc=0  intent claude hook session-context         Intent project: Intent
+```
+
+**The prompt gate passes through, so the lockout is gone.** dc lifted `install.md`'s 0043 publication hold at `61724664`, leaving 0036 as the only hold. **The section is KEPT rather than deleted** -- dc's reasoning, and it is the right one: _"a document that erases a hold once it lifts teaches nobody why it was there."_
+
+**Against the three parts of the proposed fix:**
+
+1. **Implement `claude hook` in v3 -- DONE and verified.**
+2. **Stop letting one constant answer to two contracts -- NOT done, and deliberately carried.** This is the class, and it is now **issue 0044**, which measures the mirror image: the tool spells five unrelated conditions with `1` while the callers assign four meanings to `2`. Fixing it under this issue's time pressure is how the first three of these arrived.
+3. **Enumerate the consumers beside the constants in `spine.rs` -- DONE by cc**, citing the five-arm measurement. **And the enumeration found a SIXTH consumer that none of the three of us had named**: `.claude/scripts/post-tool-advisory.sh:73` invokes `critic <lang>` with `|| true`, so `2` there means nothing at all and the advisory is suppressed. **That is the enumeration earning its place on the day it was written** -- four issues had each been diagnosed against whichever consumer happened to be in view, and the first act of listing them all turned up another one.
+
+**Two findings from this issue that outlive its fix**, both recorded in `install.md` beside the kept hold:
+
+- **A blocked prompt exits the `claude` process with `0`.** The block is in-band, so a wrapper checking the process exit code sees success while the model never saw the prompt.
+- **`Stop` at exit `2` means "do not stop"** -- measured at 24s and zero output against 3s and `PONG`. Intent's `Stop` hook is a bare `echo` and therefore safe **by accident of its wiring**, and routing it through `intent claude hook` for consistency is the most natural tidying move available.
+
+**One thing this issue got wrong and corrected in place**: it was filed and confirmed as a _migrated-project_ defect. dc measured that the trigger is **PATH, not migration** -- and the proof was already in this issue's own ARMV3 arm, which ran in a directory that was not an Intent project at all. **The result was right and the framing around it was never tested by anything.**
