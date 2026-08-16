@@ -112,4 +112,22 @@ Two parts, and the second matters more than the first.
 
 ## Resolutions
 
-{{TBC}}
+**PARTIAL, `6e7812fa` (dc). The hook half of Proposed Fix 2 is done; part 1 and the deeper half are not, and this issue stays OPEN.**
+
+**What landed.** Resolution failure is detected once, before the loop, and reported as itself rather than as one mild "not found" per guard. The evidence `2>/dev/null` was throwing away is captured -- without a pipe, so `$?` is the CLI's and not `sed`'s -- and the exit code is quoted in the message. All skipped guards are named, the cause is attributed to the resolver rather than to the guards, and 0036/0043 are named as the known reason. The per-guard branch is now reached only with `INTENT_HOME` resolved, so when it fires it is telling the truth: one hole, and the others really did run.
+
+**Measured end to end in a sacrificial repo, three resolver conditions, before and after. Pinned by three tests in `tests/unit/pre_commit_hook.bats`, mutation-proven against the one-`else` shape (16 red, 17 and 18 green, so it is a mutant and not a broken file).** The third test is the canary and is what makes the other two mean anything: **the same bad stamp that is waved through under a broken resolver BLOCKS under a working one** -- so silence in the good case is the guards running, not the branch being skipped. That is the canary this issue asked for at line 104, built at the hook rather than at the migration, because it needs no migrated fixture and so can run today.
+
+**WHERE I DID NOT DO WHAT THIS ISSUE PROPOSES, AND WHY -- hv's call, not mine to settle.** Proposed Fix 2 says to _"treat the second as a blocking condition, because a CLI that cannot say where its guards are cannot be assumed to have any."_ The reasoning is sound and I did not implement it. **A gate that blocks every commit the moment `intent` is shadowed is issue 0043 rebuilt on the git side** -- and 0043 is a hard publication hold precisely because a tool that refuses everything is worse than one that says so. The trigger here is not exotic: it is `brew install` putting v3 at PATH position 1, which is the scenario this issue is about. Blocking would convert a quiet control failure into an estate-wide commit outage during the exact window the migration happens in, and **a guard that must be bypassed is a guard nobody keeps**. So it fails open and says the true thing loudly. **If hv prefers blocking, the change is three lines and the tests pin both directions already.**
+
+**Still open, and neither is mine.**
+
+1. **v3 implements `info`, `critic` and `claude hook`** (Proposed Fix 1). Unchanged by this. Forced by 0016's hooks-continuity invariant.
+2. **The hook stops resolving a path by parsing display output** (the deeper half of Proposed Fix 2). This change makes the coupling's failure legible; it does not remove the coupling. That needs a machine-readable face from the binary, which is cc's to provide.
+
+**Two notes for whoever picks this up.**
+
+- **devbin's repo-local runner resolves the same guards from `PROJECT_ROOT`, never from `intent info`, so it never had this hole.** That is why this repository's own commits stayed guarded while the defect was live -- and it is worth knowing that the two mechanisms fail differently, because a green from the devbin gate is not evidence about the canon hook.
+- **`.git/hooks/` is not tracked**, so this fix reaches a clone only via `intent claude upgrade --apply`. Every existing clone keeps the hook it was born with until someone runs that.
+
+**Correction to line 82-91, mine, since I made the original one:** "the empty resolution is visible as a bare leading `/`" was accurate and is now obsolete -- that symptom was the only tell, and it is replaced by a message that states the condition outright.
