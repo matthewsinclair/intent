@@ -59,7 +59,7 @@
     },
     {
       "value": "deviate",
-      "gloss": "A deliberate behaviour change that is a design consequence rather than a bug fix. ZERO rows here and that is a FACT ABOUT THE SURFACE, not a gap: no v2 COMMAND is a deliberate behaviour change. See `shared_vocabulary` below before concluding it is dead."
+      "gloss": "A deliberate behaviour change. ZERO rows here, permanently, and BY CONSTRUCTION rather than by there being no such command -- `upgrade` is exactly such a command (vc 2026-08-16, citing D09) and its disposition is `keep`, because it SURVIVES. A deviating command records the deviation in `target.state`; `keep`/`deviate` is the legal pair and `deviate` paired with anything is not. Kept as a declared value because the vocabulary is command-side and the word has to mean something when a reader meets it in `target_states`. Corrected 2026-08-16: the earlier gloss said no v2 command is a deliberate behaviour change, which was true when written and stopped being true hours later."
     },
     {
       "value": "pending",
@@ -88,7 +88,7 @@
       "gloss": "Ships, and clap supplies it, so the renderer is not expected to read it."
     }
   ],
-  "shared_vocabulary": "READ THIS BEFORE APPLYING THE `target_states` UNUSED-VALUE REFUSAL TO ANYTHING ELSE. `target_states` is checked in BOTH directions -- an undeclared state, and a declared state no row uses -- and the second direction is only valid because that vocabulary has ONE HOME. `entry_dispositions` does not: the `about` block says `disposition` uses one vocabulary SHARED WITH the keep/retire/deviate register, and `deviate` has 47 rows in `pertest.md` and 3 in `register.md` while having none here. A shared vocabulary is populated ACROSS its homes and fully populated in none of them, so an unused-value refusal would fire on a correct value, correctly declared, with 47 members one artefact away. The refusal's premise is SINGLE-HOMEDNESS, not declaration. Caught by vc 2026-08-15, on ic proposing to drop `deviate` after reading zero rows -- the same rule, the same author and the same evening as the refusal it would have broken.",
+  "shared_vocabulary": "READ THIS BEFORE APPLYING THE `target_states` UNUSED-VALUE REFUSAL TO ANYTHING ELSE. `target_states` is checked in BOTH directions -- an undeclared state, and a declared state no row uses -- and the second direction is only valid because that vocabulary has ONE HOME. `entry_dispositions` must NOT be checked that way: `deviate` is declared with zero rows and is correct. CORRECTED 2026-08-16, AND THE CORRECTION IS THE POINT. This note used to justify the exemption by saying `disposition` shares a vocabulary with the keep/retire/deviate register, citing 47 `deviate` rows in `pertest.md`. vc went to check that premise and found `pertest.md` has no `disposition` column at all -- the word does not occur in the file. Those 47 rows sit in a column headed `class`, whose subject is a v2 BATS TEST rather than a command, and whose largest value is `out-of-scope` at 195 rows: a classification that is meaningless for a command, since every v2 command is in scope by definition of a parity register. So the vocabularies OVERLAP ON THREE VALUES AND ARE NOT SHARED, and `entry_dispositions` is command-side only. THE REAL REASON `deviate` IS EMPTY IS STRUCTURAL: a deviating command still SURVIVES, so its disposition is `keep` and the deviation is recorded in `target.state` -- `keep`/`deviate` is a legal pair and `deviate`/anything is not. The rule this note states is unchanged and was always right: an unused-value refusal needs a premise, and lifting it without checking the premise is how a correct value gets dropped. What changed is that the premise I wrote for the exemption was itself unverified, and it took someone going to look at the other file to find out. A premise written down is not a premise checked.",
   "field_overlap": "`disposition` and `target.state` answer DIFFERENT questions -- what becomes of the v2 command, versus what v3 does -- and they share exactly two values, on which they move in perfect lockstep: all 19 `new-surface` rows and all 5 `retire` rows carry the same value in both fields. **Lockstep with nothing enforcing it is a coincidence that reads as a rule**, and until 2026-08-16 nothing enforced it. It matters because `Entry::is_shipped()` reads BOTH and fails OPEN (`disposition != \"retire\" && target.state != \"retire\"`), so the redundancy was the only thing stopping one hand-edit from shipping a retired command -- while its sibling `Flag::ships()` thirty-five lines away is a positive match whose own comment says it deliberately does not default-allow, so a typo drops a flag rather than shipping one. Two guards, opposite risk directions, one written with the typo class in mind. `gen_dispatch_table.sh` now REFUSES a row where the two disagree on either shared value, in both directions, mutation-tested three ways. **That does not answer vc's open design question -- whether one field should be DERIVED from the other -- and is not meant to.** It refuses the drift either answer would forbid, which is the part that needed no ruling.",
   "about": [
     "THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.",
@@ -6586,5 +6586,50 @@
       "resolution": "Not adopted here, and deliberately NOT folded into EXP-05. EXP-05 was ruled as a specific mechanism and vc anchors review to the proposal, so widening it silently while implementing it is the way a reviewed change becomes an unreviewed one. Recorded whole instead. The cheap half is this file's and is already done -- `default` and `required` now RENDER, so a reader of the view can at least see the claim. The rest is cc's: four fields on `Flag`, `.required()`/`.default_value()`/`.value_parser()`/`.value_name()` on the clap side, and a refusal rather than a `continue` for a flag the spine cannot build. `ac satisfy --evidence` is the one worth doing first because it is live and silent.",
       "consequence_for_this_generator": "Two, both now closed. The flag level was the LAST population with an enumerated renderer and no generic remainder -- `extras` had closed the entry and `target` levels and nothing descended into `flags` -- so `default` and `required` had been in the canon and out of the view for as long as they had existed, and no check anywhere could say so. `flagextra` closes it. The second is sharper and is a lesson about checks rather than about flags: the flag completeness loop I wrote to close this class WENT GREEN ON ITS FIRST RUN while five flags rendered nothing, because it greps for the LABEL and 88 of 93 flags supplied it. Presence-of-label and completeness-of-population are different questions. It is now a COUNT, matched against the declared total, and the count is what found the fact that new_surface flags had never rendered in detail at all."
     }
-  ]
+  ],
+  "legal_pairs": [
+    {
+      "disposition": "keep",
+      "target_state": "as-observed",
+      "n": 65,
+      "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin."
+    },
+    {
+      "disposition": "new-surface",
+      "target_state": "new-surface",
+      "n": 19,
+      "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
+    },
+    {
+      "disposition": "keep",
+      "target_state": "corrected",
+      "n": 14,
+      "gloss": "The command survives with a defect fixed. `keep` is right precisely because a corrected command still SURVIVES; the correction is what `target.state` records."
+    },
+    {
+      "disposition": "keep",
+      "target_state": "pending-hv",
+      "n": 7,
+      "gloss": "The command survives; what v3 does with it is waiting on hv. The survival question is answered and the behaviour question is not, which is why two fields are better than one here."
+    },
+    {
+      "disposition": "retire",
+      "target_state": "retire",
+      "n": 5,
+      "gloss": "The command does not ship. The second pair where the fields MUST agree, and the one with teeth: `Entry::is_shipped()` reads both and fails OPEN, so a single hand-edit to either field alone would ship a retired command."
+    },
+    {
+      "disposition": "keep",
+      "target_state": "deviate",
+      "n": 1,
+      "gloss": "The command survives with a deliberate behaviour change. `upgrade` is the only member (vc, 2026-08-16, citing D09) and it is the row that proves the two fields answer different questions -- it survives AND it behaves differently, and no single field can say both."
+    },
+    {
+      "disposition": "pending",
+      "target_state": "undefined",
+      "n": 1,
+      "gloss": "Neither question has been decided. `config` is the only member. The honest blank on both axes, which is the only pairing of `pending` that is coherent."
+    }
+  ],
+  "legal_pairs_note": "THE PAIR IS THE DECLARED UNIT, AND A PAIR NOT LISTED ABOVE IS REFUSED. Ruled by vc 2026-08-16 in answer to the derivation question ic raised, and the answer is NO -- neither field is derived from the other. The contingency table makes derivation look obviously right: `target.state -> disposition` is a total function on the corpus, every one of the seven target states maps to exactly one disposition, so `disposition` carries strictly less information and is today a projection. Derive it anyway and three things break. (1) THE DRIFT REFUSAL GOES VACUOUS WHILE STILL READING AS A CHECK -- it would compare a computed value against the thing it was computed from, could never fire, and would sit in the file looking exactly as load-bearing as it does now. (2) IT DELETES THE ONLY REDUNDANCY `is_shipped()` HAS, and that function fails OPEN: two independently authored fields mean a single bad hand-edit is caught by comparing them, whereas one derived field makes the `&&` one test written twice. (3) THE FUNCTION IS A FACT ABOUT 112 ROWS, NOT A LAW -- nothing forbids a `pending` disposition against a `corrected` target, and deriving would promote a coincidence to a rule without anyone deciding it should be one. The matrix is the alternative that keeps both fields authored while making a NEW combination an explicit decision rather than a silent widening: the previous refusal constrained only the two shared values, which admitted 17 of the 35 possible pairs while the corpus used 7. The concrete hole it closes is vc's: `disposition: pending` with `target.state: as-observed` passed every check that existed -- an honest blank against a confident claim that v3 reproduces v2 -- and those two cannot both be true of one row. POPULATION NOTE: the ruling was measured over 104 rows, which is `.families[].entries[]` alone and misses the 8-row top-level `new_surface[]` array. The full population is 112. The SET of pairs is identical either way and only the `new-surface` count moves, 11 to 19, so the ruling is untouched -- recorded because an incomplete basis that does not change the answer is the kind nobody catches."
 }

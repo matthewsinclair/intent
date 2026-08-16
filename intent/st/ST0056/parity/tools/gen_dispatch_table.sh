@@ -484,12 +484,16 @@ DISPOSITION_UNDECLARED="$(jq -r '
 [ -z "$DISPOSITION_UNDECLARED" ] || die "rows carry a \`disposition\` that \`entry_dispositions\` does not declare. Absence is a value nobody wrote and reads as an oversight, so it is refused alongside a typo:
 $(printf '%s' "$DISPOSITION_UNDECLARED" | sed 's/^/  /')"
 
-# THE TWO FIELDS MUST AGREE ON THE TWO VALUES THEY SHARE, and until now nothing
-# made them. `disposition` and `target.state` answer different questions -- what
-# becomes of the v2 command, versus what v3 does -- and they share exactly
-# `retire` and `new-surface`, on which they move in perfect lockstep across 24
-# of 111 rows. **Lockstep with nothing enforcing it is a coincidence that reads
-# as a rule.**
+# THE (`disposition`, `target.state`) PAIR IS THE DECLARED UNIT. The two fields
+# answer different questions -- what becomes of the v2 command, versus what v3
+# does -- so most combinations are meaningful, a few are self-contradictory, and
+# which is which is a judgement that has to be RECORDED rather than inferred
+# from the corpus. `legal_pairs` in the canon records it; 7 pairs across 112
+# rows.
+#
+# It began as a narrower check: the two fields share exactly `retire` and
+# `new-surface`, and they moved in lockstep on those with nothing enforcing it.
+# **Lockstep with nothing enforcing it is a coincidence that reads as a rule.**
 #
 # It matters because `Entry::is_shipped()` reads BOTH and fails OPEN:
 # `disposition != "retire" && target.state != "retire"`. So the redundancy is
@@ -499,17 +503,31 @@ $(printf '%s' "$DISPOSITION_UNDECLARED" | sed 's/^/  /')"
 # default-allow, so a typo drops a flag rather than shipping one. Two guards,
 # opposite risk directions, one written with the typo class in mind.
 #
-# This does NOT decide vc's open design question (whether one field should be
-# DERIVED from the other). It refuses the drift either answer would forbid,
-# which is the part that needs no ruling.
-STATE_DISAGREE="$(jq -r '
-  [.families[].entries[], .new_surface[]]
-  | map(select(((.disposition == "retire") != (.target.state == "retire"))
-             or ((.disposition == "new-surface") != (.target.state == "new-surface")))
-        | (.path + ": disposition=" + (.disposition // "(absent)") + " target.state=" + (.target.state // "(absent)")))
+# WIDENED 2026-08-16 FROM THE TWO SHARED VALUES TO THE WHOLE PAIR, on vc's
+# ruling answering the derivation question NO. The narrow version constrained
+# only `retire` and `new-surface`, which **admitted 17 of the 35 possible pairs
+# while the corpus used 7** -- ten permitted combinations nobody had decided
+# were legal. The hole vc named is the one worth remembering, because both
+# halves read as careful: `disposition: pending` with `target.state:
+# as-observed` passed every check that existed. An honest blank about whether
+# the command survives, against a confident claim that v3 reproduces what v2
+# did. **Those cannot both be true of one row, and nothing said so.**
+#
+# The pair is now the declared unit (`legal_pairs` in the canon), so a new
+# combination is an explicit decision rather than a silent widening. Both fields
+# stay hand-authored: deriving one would make this very refusal VACUOUS while
+# leaving it in the file looking exactly as load-bearing as it does now.
+vocab_or_die legal_pairs
+
+PAIR_ILLEGAL="$(jq -r '
+  (.legal_pairs | map(.disposition + " / " + .target_state)) as $legal
+  | [.families[].entries[], .new_surface[]]
+  | map(((.disposition // "(absent)") + " / " + (.target.state // "(absent)")) as $p
+        | select(($legal | index($p)) == null)
+        | (.path + ": " + $p))
   | join("\n")' "$IN")"
-[ -z "$STATE_DISAGREE" ] || die "\`disposition\` and \`target.state\` disagree on a value they share. They answer different questions but \`retire\` and \`new-surface\` are the same fact from two sides, and \`is_shipped()\` reads both and fails OPEN -- so one hand-edit out of agreement ships a retired command:
-$(printf '%s' "$STATE_DISAGREE" | sed 's/^/  /')"
+[ -z "$PAIR_ILLEGAL" ] || die "row(s) declare a (\`disposition\`, \`target.state\`) pair the canon does not list in \`legal_pairs\`. The two fields answer DIFFERENT questions -- whether the v2 command survives, and what v3 does -- so most combinations are meaningful and a few are self-contradictory; the matrix is where that judgement is recorded rather than inferred. Two of the pairs are agreement constraints with teeth: \`retire\` and \`new-surface\` are one fact seen from two sides, and \`Entry::is_shipped()\` reads both fields and fails OPEN, so a single hand-edit out of agreement ships a retired command. Add the pair to \`legal_pairs\` with a gloss if it is legal, or fix the row:
+$(printf '%s' "$PAIR_ILLEGAL" | sed 's/^/  /')"
 
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
