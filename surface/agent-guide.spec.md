@@ -70,6 +70,39 @@ The general form, since it has now cost me four times: **a predicate answers the
 
 Point 4 is the one an agent-specific guide gets wrong by omission. An agent must decide whether a command SUCCEEDED, and the answer is not obvious from this surface: INV-04 says 0 is success and 1 is every failure, **except `intent critic`, which exits 2 when it has findings, and `intent claude hook`, which propagates**. An agent that reads 2 as failure will report a passing critic run as broken. INV-01 (failures write `error:` to stderr) and INV-03 (the exact not-in-a-project message) are the other two an agent parses rather than reads.
 
+## As built, 2026-08-16 (`2a654db3`)
+
+`native/rust/crates/intent-cli/src/guide.rs`. 958 rendered lines over 107 shipped commands, 18/18 lib tests, clippy clean at `-D warnings`. **It is not yet reachable from `intent llm guide`** -- that is one line in `render.rs` plus a small `fn llm`, and the file was held by a peer, so the renderer ships tested-and-unreachable rather than half-edited into a file someone is typing in.
+
+### One place the build could not honour this document as written
+
+**"every shipped row appears, on the commit that declares it, or the generator REFUSES" is not implementable as stated, and the reason is this document's own design.** There is no committed generated guide file -- the guide renders on demand from the table compiled into the binary -- so **there is no generator run at which to refuse.** Completeness is instead structural plus tested: the renderer iterates `shipped_entries()`, so it cannot omit a row, and `every_shipped_command_appears` asserts it over the enumerated population rather than a sample. The opposite sign is a separate test, because a retired row rendered into the guide would pass the completeness test untouched.
+
+That is a weaker guarantee than a refusal in one specific way, and it is worth naming rather than glossing: **a test can be deleted and a `git push` still succeeds, where a generator refusal blocks the artefact.** The trade was made when the guide was designed to render on demand, which is the right call for a different reason -- it cannot go stale between a command landing and someone re-running a generator.
+
+### Decisions the spec did not reach, made in the build
+
+- **Families group by FIRST APPEARANCE, not by the `families` array**, so `new_surface` rows sit beside their siblings. `intent llm guide` is itself a `new_surface` row, and an agent looking under `llm` must find it.
+- **The surface-wide facts are SELECTED by ID and their TEXT is read from the table.** The selection has to be authored, because `invariants` conflates two kinds of claim and nothing in the schema separates them: INV-01..04 are v3's contract, INV-05..08 are measurements of v2 defects being corrected. **Rendering all eight would tell an agent that v3 writes failures to stdout.** A cited invariant that vanishes REFUSES the render rather than dropping a fact an agent parses exit codes on.
+- **An unrecognised `read_or_mutate` renders AS ITSELF**, never folded into either value. Defaulting an unknown to `read` would present an unclassified command as safe to call unattended; defaulting to `mutate` would be safe and would also hide the defect.
+- **A `subcommand` slot is rendered only on a LEAF row.** The discriminator is `spine.rs`'s own: a family's verbs are sibling entries and only the ARITY is read off its slot, while a leaf's slot values become real subcommands. So the slot on `claude` is descriptive and the slot on `claude skills` is load-bearing.
+- **The authored half's absence is RENDERED, not left blank.** A guide with no workflow section reads as a tool with no workflow conventions -- the same silent-omission failure this document opens by measuring, one level up.
+
+### What building it found, which is the part worth keeping
+
+Four defects, none of them in the guide, all surfaced by rendering the table into prose a person would read:
+
+1. **`spine.rs` read `1..n` as OPTIONAL.** Extracting the arity predicates onto `Arg` so the guide and the spine could not part company revealed they already had: `intent lang init` with NO language PARSED, where v2 refuses it outright. **The test that caught it was written from the MEANING of `<x>` versus `[x]`; the test written by reading the implementation asserted the defect and passed.**
+2. **`config` declared no verb slot** -- the only family in 112 -- and the spine defaults an ABSENT slot to REQUIRED, so v3 refused `intent config` where v2 exits 0.
+3. **`doctor` was declared `mutate`** on reasoning that was entirely correct about a command carrying `--fix`, which v3 retires. Ruled to `read` by vc, whose structural proof is better than the argument that found it: `Facade::doctor(..., store: Option<&Store>)` accepts a store and never creates one.
+4. **`doctor`'s HELP still advertises `--fix`** -- third symptom of one withdrawn subject, and measured to be the only shipped row whose help names a non-shipping flag.
+
+**The common shape, and the reason the guide found them rather than a checker: a projection into prose puts fields side by side that no check compares.** `doctor` rendered `safety: read` and `does: Diagnose and fix` on the same screen. Nothing was wrong with either field considered alone, and every instrument in the repository was green on both.
+
+### The population, and which one each number is over
+
+Stated because two of them differ and the difference has already caused one correction. **112 declared, 107 shipped, 107 with help, 79 with args.** Flags: **94 declared, of which `keep` is 66 over the DECLARED set and 64 over the SHIPPED set** -- two keep flags sit on retired rows. The guide renders the shipped figures; the sentence about `doctor` rendering no flags earlier in this document is over the declared set, and both are correct about different questions.
+
 ## The residue AC-09.4 does not close, and the control that does
 
 Generating the list closes the list. It does not close the **prose**, and the authored half names commands constantly -- a workflow section is nothing but command names in sequence. A renamed or retired command sitting in a workflow paragraph is a hand-maintained command reference that no generator will ever correct, and it is invisible to a check that only asks whether the generated section is complete.
