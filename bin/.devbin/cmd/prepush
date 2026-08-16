@@ -44,8 +44,92 @@ set -euo pipefail
 . "$DEVBIN_LIB/helpers"
 
 ROOT="${PROJECT_ROOT:?}"
+
+# git calls a pre-push hook as `<hook> <remote-name> <remote-url>`, so the two
+# positional arguments are the DESTINATION and everything else is a flag. By
+# hand there is no destination and `--force` may be the only argument, so the
+# parse cannot be positional.
 FORCE=0
-[ "${1:-}" = "--force" ] && FORCE=1
+REMOTE=""
+REMOTE_URL=""
+for arg in "$@"; do
+  case "$arg" in
+    --force) FORCE=1 ;;
+    -*) ;; # unknown flags ignored, as before
+    *)
+      if [ -z "$REMOTE" ]; then
+        REMOTE="$arg"
+      elif [ -z "$REMOTE_URL" ]; then
+        REMOTE_URL="$arg"
+      fi
+      ;;
+  esac
+done
+
+# ---------------------------------------------------------------------------
+# FROZEN REMOTES -- refuse a push to a remote the hypervisor has closed.
+#
+# hv, 2026-08-16: "no more pushes to upstream. The CI/CD budget has been hit.
+# Local pushes are fine." Every push to `upstream` (GitHub) triggers the rust
+# and test workflows, so the habit this estate has drilled into all four nodes
+# -- push both remotes, always -- now spends money on every commit.
+#
+# WHY THIS IS A GATE AND NOT A NOTE ON FOUR BOARDS. It is already a note on four
+# boards, it is in `/in-finish`, and I announced it to three peers myself. **A
+# withdrawn instruction that reads exactly like the one you have been obeying is
+# the kind that keeps getting obeyed** -- the recall has to be louder than the
+# muscle memory, and only a refusal is. My own board: a control refuses,
+# documentation reminds, and only one of those is load-bearing.
+#
+# TO LIFT IT: delete the remote from FROZEN_REMOTES and commit. That is
+# deliberately a tracked one-line change rather than a config toggle, because
+# "hv lifted the freeze" is a fact that belongs in the history where the freeze
+# itself is.
+#
+# TO PUSH ONCE WITHOUT LIFTING IT: INTENT_ALLOW_FROZEN_PUSH=1 git push upstream main
+#
+# Matched by NAME and by URL, because `git push <url>` and `git push` (resolving
+# a tracking remote) both reach the same place by a different spelling, and a
+# guard that only knows one of them is a guard with a documented way around it.
+FROZEN_REMOTES="upstream"
+
+if [ -n "$REMOTE" ] && [ -z "${INTENT_ALLOW_FROZEN_PUSH:-}" ]; then
+  for frozen in $FROZEN_REMOTES; do
+    frozen_url="$(git -C "$ROOT" config --get "remote.$frozen.url" 2>/dev/null || true)"
+    hit=0
+    [ "$REMOTE" = "$frozen" ] && hit=1
+    if [ -n "$frozen_url" ]; then
+      [ "$REMOTE" = "$frozen_url" ] && hit=1
+      [ "$REMOTE_URL" = "$frozen_url" ] && hit=1
+    fi
+    [ "$hit" -eq 1 ] || continue
+    cat >&2 <<EOF
+
+BLOCKED: '$frozen' is a FROZEN remote and this push would reach it.
+
+  hv closed it on 2026-08-16: the CI/CD budget has been hit, and every push
+  to '$frozen' triggers the workflows that spend it.
+
+  Push 'local' instead -- it is a Dropbox path, it costs nothing, and it is
+  where this estate's work has been landing since the freeze:
+
+      git push local main
+
+  The two remotes are EXPECTED to diverge while this holds. That is not a
+  fault to chase, and comparing them will report a difference every time.
+
+  If hv has lifted the freeze, delete '$frozen' from FROZEN_REMOTES in
+  bin/.devbin/cmd/prepush and commit it -- the lift belongs in the history
+  beside the freeze.
+
+  To push once without lifting it:
+
+      INTENT_ALLOW_FROZEN_PUSH=1 git push $frozen main
+
+EOF
+    exit 1
+  done
+fi
 
 # What is about to be pushed -- and "about to be pushed" is a property of THIS
 # PUSH, not of the tracked remote.
@@ -70,7 +154,11 @@ FORCE=0
 #
 # `<remote sha>` is what THAT remote currently holds for the ref, so it yields a
 # range that is per-push and per-remote **without needing to know which remote it
-# is** -- which is why the argv the hook does not forward is not needed here.
+# is** -- so the RANGE needs no argv even though the DESTINATION check above
+# does. Two questions, two sources: stdin says what is moving, argv says where
+# to. (The hook did not forward argv at all until the frozen-remote check needed
+# it; `int hooks --install` now writes `bin/int prepush "$@"` and converges an
+# older line that does not.)
 #
 # `|| true` and the FORCE fallbacks throughout: a new branch, a shallow history,
 # a sha the remote has and we do not, no remotes at all -- every one is a
@@ -113,6 +201,18 @@ $(git -C "$ROOT" diff --name-only "$rsha"..."$lsha" 2>/dev/null || true)"
         ;;
     esac
   done
+fi
+
+# NAMED, NOT SILENT. `pairs > 0` means git invoked this as a hook, so a missing
+# REMOTE means the hook line did not forward argv -- an older `.git/hooks/pre-push`
+# from before that generator changed. The frozen-remote check above then does
+# NOTHING, and it does nothing in the shape that looks exactly like passing.
+# .git/hooks is never tracked, so this is the normal state of every clone until
+# someone re-runs the installer, and a guard that is quietly inactive in most
+# clones is worse than one that was never written.
+if [ "$pairs" -gt 0 ] && [ -z "$REMOTE" ]; then
+  warn "this clone's pre-push hook does not forward argv, so the frozen-remote check is INACTIVE."
+  warn "  fix: bin/int hooks --install   (rewrites the line to \`bin/int prepush \"\$@\"\`)"
 fi
 
 if [ "$pairs" -eq 0 ]; then

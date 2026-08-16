@@ -104,12 +104,23 @@
 # WHAT IS NOT CHECKED, stated rather than implied
 #
 # A value delimited with SINGLE quotes and no escaping (`focus: 'plain text'`)
-# renders WITH its delimiters, because `fm_get` strips only `"`. That is a third
-# visible defect and it is deliberately not guarded here, because the protocol
-# text says "a single pair of surrounding quotes" while the reader implements
-# double quotes only -- **the spec and the implementation disagree, and which
-# one is right is a contract question, not a gate question.** Raised with vc;
-# widening this guard on an unruled premise would encode one answer by accident.
+# renders WITH its delimiters, because `fm_get` strips only `"`. **That is not a
+# defect and must not be guarded here.** It looked like a spec-versus-
+# implementation disagreement -- the protocol text said "a single pair of
+# surrounding quotes" while the reader implements double quotes only -- and it
+# was sent to vc as a contract question rather than settled by widening this
+# file. RULED 2026-08-16 (vc, verified against `intent_claude_cwi:86`): the
+# prose was ambiguous, not the code; `"` is THE delimiter and `'` is never
+# stripped.
+#
+# The reasoning is worth keeping here, because it is also the argument for this
+# guard's own narrowness. Teaching `fm_get` single quotes would make a value
+# that legitimately opens and closes with `'` lose two characters SILENTLY, with
+# the rendered view differing from the file and nothing saying so. Leaving it
+# means visible quotes: ugly, immediate, fixed at the next fold.
+# `IN-AG-NO-SILENT-001` decides a display question -- prefer the failure you can
+# see. And the block was ruled not-YAML precisely to have almost no rules, so a
+# second delimiter form adds back one the author has to get right.
 #
 # A literal backslash-quote that the author genuinely meant is indistinguishable
 # from the escape form by construction, so it is refused too. Judged worth it:

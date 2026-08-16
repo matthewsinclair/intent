@@ -208,18 +208,72 @@ install_chain() {
     printf '#!/usr/bin/env bash\nset -euo pipefail\n\n' > "$path"
     printf 'created %s\n' "$path"
   fi
-  if grep -qE "int[[:space:]]+$runner\b" "$path" 2>/dev/null; then
-    printf 'ok: %s already invokes `int %s` -- unchanged\n' "$hook" "$runner"
+  # THREE STATES, NOT TWO, AND THE MISSING ONE MADE THIS INSTALLER UNABLE TO
+  # UPGRADE ANYTHING. It asked only "does this file invoke the runner", so once
+  # a hook was wired the answer was yes forever and a CHANGED generator could
+  # never reach an existing clone -- it reported `unchanged` and meant it.
+  # .git/hooks is never tracked, so there is no other mechanism that would have
+  # caught up either: every clone would have kept whatever line it was born
+  # with. The estate's own upgrade philosophy is a state PROBE rather than a
+  # version ladder; this is that, one directory over.
+  #
+  # `"$@"` is the payload that forced the issue: git passes a pre-push hook its
+  # destination as `<remote-name> <remote-url>`, and the frozen-remote refusal
+  # in cmd/prepush cannot see a destination the hook never forwarded.
+  # EVERY TEST BELOW IS ANCHORED TO THE START OF A LINE, so a COMMENT mentioning
+  # the runner can neither satisfy a check nor be rewritten by one. The first
+  # version was not, and it did both: the generated hooks carry a prose line
+  # `# The runner is bin/int precommit ...`, which the rewrite happily edited
+  # into `bin/int precommit "$@"` mid-sentence -- and which, on a hook whose only
+  # mention was that comment, would have reported the line updated with no
+  # invocation anywhere in the file. A check a comment can satisfy is not a
+  # check; it is the same defect as a guard roster that names what it does not
+  # run.
+  local call_re="^[[:space:]]*bin/int $runner([[:space:]]|\$)"
+  local fwd_re="^[[:space:]]*bin/int $runner[[:space:]]+\"\\\$@\""
+  if grep -qE "$fwd_re" "$path" 2>/dev/null; then
+    printf 'ok: %s already invokes `int %s "$@"` -- unchanged\n' "$hook" "$runner"
+  elif grep -qE "$call_re" "$path" 2>/dev/null; then
+    # Wired, but by an older generator. Converge the line in place rather than
+    # appending a second invocation.
+    #
+    # awk and not sed: the target line contains `||`, which collides with sed's
+    # usual `|` delimiter, and the replacement text contains `"$@"`, which a
+    # double-quoted sed program would expand before sed ever saw it. Both are
+    # the sort of quoting accident that produces a file that still parses.
+    local tmp
+    tmp="$(mktemp)"
+    if awk -v r="$runner" '
+      $0 ~ ("^[ \t]*bin/int " r "([ \t]|$)") && index($0, "\"$@\"") == 0 {
+        sub("bin/int " r, "bin/int " r " \"$@\"")
+      }
+      { print }
+    ' "$path" > "$tmp" 2>/dev/null && [ -s "$tmp" ]; then
+      cat "$tmp" > "$path"
+    fi
+    rm -f "$tmp"
+    if grep -qE "$fwd_re" "$path" 2>/dev/null; then
+      printf 'updated: %s -> int %s "$@"  (was not forwarding argv)\n' "$hook" "$runner"
+    else
+      # Hand-edited into a shape the rewrite does not recognise. Say so rather
+      # than claim success or silently append a duplicate gate.
+      printf 'WARN: %s invokes `int %s` in a form this installer cannot update.\n' "$hook" "$runner"
+      printf '      add `"$@"` to that line by hand so argv reaches the runner.\n'
+    fi
   else
     cat >> "$path" <<EOF
 
 # Repo-local gate, wired by \`int hooks --install\`. The runner is tracked at
 # bin/.devbin/cmd/$runner; this line is not, because .git/hooks never is.
+#
+# \`"\$@"\` forwards git's own arguments -- for pre-push that is
+# \`<remote-name> <remote-url>\`, which is the only way the runner can know
+# where the push is going.
 if [ -x bin/int ]; then
-  bin/int $runner || exit \$?
+  bin/int $runner "\$@" || exit \$?
 fi
 EOF
-    printf 'wired: %s -> int %s\n' "$hook" "$runner"
+    printf 'wired: %s -> int %s "$@"\n' "$hook" "$runner"
   fi
   chmod +x "$path"
 }
