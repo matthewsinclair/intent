@@ -86,7 +86,7 @@ ROWS="$(jq -r '[.families[].entries[], .new_surface[]] | length' "$TABLE")"
 # over 100+ declared paths a measurement rather than a hazard.
 PROBED=0; WIRED=0; VIOL=""; NOTE=""
 
-while IFS=$'\t' read -r path disp arity flagjson; do
+while IFS=$'\t' read -r path disp arity nflags flagjson; do
   [ -n "$path" ] || continue
   PROBED=$((PROBED + 1))
 
@@ -142,8 +142,10 @@ while IFS=$'\t' read -r path disp arity flagjson; do
   # block. Matched on the spelling with a word boundary rather than substring:
   # `-v` is a substring of `--verbose`, and a substring test would report the
   # short form present whenever the long one was.
+  fseen=0
   while IFS=$'\t' read -r fdisp spellings; do
     [ -n "$fdisp" ] || continue
+    fseen=$((fseen + 1))
     present=no
     for s in $spellings; do
       if printf '%s' "$out" | grep -qE "(^|[[:space:],])$(printf '%s' "$s" | sed 's/[^a-zA-Z0-9-]/\\&/g')([[:space:],=]|$)"; then
@@ -159,6 +161,16 @@ while IFS=$'\t' read -r path disp arity flagjson; do
   PRESENT   \`$path\` $spellings -- declared \`$fdisp\` (does not ship) and the surface offers it" ;;
     esac
   done < <(printf '%s' "$flagjson" | jq -r '.[] | "\(.disposition)\t\(.spellings | join(" "))"')
+
+  # COUNT BOTH SIDES. The projection above fixes the cause; this refuses the
+  # CLASS, and the class is what actually cost us -- twice now in this one loop,
+  # once from a collapsed empty TSV field and once from a broken JSON escape.
+  # Both times the inner loop silently iterated zero times and the run reported
+  # a clean surface, because **"no flag violated anything" and "no flag was
+  # examined" produce identical output.** The row count cannot tell them apart;
+  # only the flag count can. A future prose field, a future separator, a future
+  # jq version -- none of them get to be silent here again.
+  [ "$fseen" = "$nflags" ] || die "\`$path\` declares $nflags flag(s) and only $fseen survived the TSV round-trip, so the rest were never checked against the binary. Refusing rather than reporting: an unexamined flag and a clean flag are the same output, and this loop has now lost flags twice in two different ways."
 
 done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
   # A row qualifies on EITHER having flags or declaring a subcommand slot. The
@@ -184,10 +196,30 @@ done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
   # closed the single-quoted jq program and broke the script. Same class as the
   # bug being described, one layer up: prose nobody proof-reads for syntax,
   # sitting inside a quoting context.
+  #
+  # PROJECTED TO THE TWO FIELDS THE INNER LOOP READS, AND THAT IS THE FIX FOR A
+  # SECOND SILENT-EMPTY OF THE SAME FAMILY, FOUND 2026-08-16. This emitted the
+  # WHOLE flag object through `tojson`, prose and all. **`@tsv` escapes
+  # backslashes**, so a flag whose prose contains an embedded `\"` came back with
+  # its backslashes doubled: jq then read `\\` as one escaped backslash and took
+  # the NEXT `"` as the end of the string, and died with `Invalid numeric literal
+  # at line 1, column 260`. The inner loop got nothing, so **every flag check on
+  # that row vanished -- and the script still printed "the binary and the table
+  # agree on every flag of every reachable command."**
+  #
+  # It was ONE row, `upgrade`, and the prose that broke it was mine, written the
+  # day before while correcting the two flags on that row to `pending`. Quoting the
+  # basis I was overturning put `\"` in the field. **The row I had just fixed is
+  # the row that stopped being checked**, and nothing said so.
+  #
+  # `disposition` and `spellings` are all the loop consumes; the prose was
+  # freight, and freight is where the quoting hazard lives. Carrying less is a
+  # smaller fix than escaping better, and it cannot regress the same way.
   | [ .path,
       (.disposition // "-"),
       ((((.args // []) | map(select(.type == "subcommand")) | first) // {}) | .arity // "-"),
-      (.flags // [] | tojson) ] | @tsv' "$TABLE")
+      ((.flags // []) | length),
+      ((.flags // []) | map({disposition, spellings}) | tojson) ] | @tsv' "$TABLE")
 
 [ "$PROBED" -gt 0 ] || die "probed nothing -- the table has $ROWS rows and the extractor matched none of them, which reports a clean surface by measuring an empty one"
 
@@ -227,9 +259,26 @@ INV_PHANTOM="$(comm -13 <(printf '%s\n' "$INV_DECLARED") <(printf '%s\n' "$INV_K
 [ -z "$INV_UNKNOWN" ] || die "the table declares invariant(s) this check has no probe for and does not skip: $(printf '%s' "$INV_UNKNOWN" | tr '\n' ' ') -- add a probe or add it to INV_SKIPPED with a reason. Refusing rather than reporting on the subset it happens to know: a check that quietly stops covering the table is worse than one that stops running."
 [ -z "$INV_PHANTOM" ] || die "this check names invariant(s) the table does not declare: $(printf '%s' "$INV_PHANTOM" | tr '\n' ' ') -- the id was renamed or removed and the probe now measures nothing while still reporting a pass."
 
-# Every declared non-retire path, probed with one bad flag. `--help` is already
-# probed above; this needs a FAILING invocation, because five of the six
-# invariants are properties of the failure path and are unobservable on success.
+# Every SHIPPED path, probed with one bad flag. `--help` is already probed
+# above; this needs a FAILING invocation, because five of the six invariants are
+# properties of the failure path and are unobservable on success.
+#
+# BOTH FIELDS, BECAUSE `is_shipped()` READS BOTH -- and this file read only
+# `disposition` until 2026-08-16. It was not wrong: `gen_dispatch_table.sh`
+# REFUSES a row where `disposition` and `target.state` disagree on `retire`
+# (bidirectionally), so the two filters select the same 107 paths today and
+# provably must. **The correctness was real and it lived in another file.**
+# That is the shape vc named on the `upgrade` retirement -- a check that is
+# right because of an invariant it does not state is a check that goes wrong
+# silently when the invariant is relaxed, and nothing here would have said so.
+# The Rust predicate is `disposition != "retire" && target.state != "retire"`;
+# shell cannot call it, so where shell must restate a predicate it restates the
+# WHOLE of it. Half a predicate is the half that drifts.
+#
+# `upgrade` is the standing proof the two fields CAN disagree in general: it is
+# `keep` + `deviate`, because whether a v2 command survives and what v3 does
+# with it are different questions. `retire` is the one value where they are the
+# same fact from two sides, which is exactly why the refusal exists.
 INV_N=0; INV_VIOL=""
 while IFS= read -r p; do
   INV_N=$((INV_N + 1))
@@ -251,7 +300,7 @@ while IFS= read -r p; do
   INV-06    \`$p\` -- writes to STDOUT on a failing invocation"
   { [ -n "$iline" ] && ! printf '%s' "$iline" | grep -qE '^error: '; } && INV_VIOL="$INV_VIOL
   INV-01    \`$p\` -- first stderr line is not the lowercase \`error: \` voice: $(printf '%s' "$iline" | cut -c1-50)"
-done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire") | .path' "$TABLE")
+done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire" and (.target.state // "") != "retire") | .path' "$TABLE")
 
 [ "$INV_N" -gt 0 ] || die "the invariant sweep probed no paths -- it reports clean invariants by measuring nothing"
 
@@ -293,7 +342,7 @@ while IFS= read -r p; do
       INV_VIOL="$INV_VIOL
   INV-03    \`$p\` -- emits v2's gate wording; the row is ratified \`corrected\`, which asserts v3 does not" ;;
   esac
-done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire") | .path' "$TABLE")
+done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire" and (.target.state // "") != "retire") | .path' "$TABLE")
 
 # --- report ----------------------------------------------------------------
 printf 'surface: probed %d declared commands, %d reachable in this build\n' "$PROBED" "$WIRED"
