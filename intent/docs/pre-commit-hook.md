@@ -79,7 +79,7 @@ An empty or absent array means no language critics run. This replaced filesystem
 
 `intent critic` owns the code-versus-prose classification from its single registry, so a prose discipline (`author`, `content`) returns a clean no-op here rather than needing the hook to know anything about languages.
 
-`shell` is always included so staged bash/zsh scripts are checked even in a polyglot project whose primary language is something else. Each language's critic runs independently; the hook aggregates exit codes (any `1` blocks the commit).
+`shell` is **not** appended automatically — under the marker probe it was, and under explicit configuration it is a declaration like any other. A polyglot project that wants staged bash and zsh checked must list `shell` in `languages`. Each language's critic runs independently; the hook aggregates exit codes (any `1` blocks the commit).
 
 ## CI integration
 
