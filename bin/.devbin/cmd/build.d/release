@@ -204,6 +204,39 @@ semver_gt() {
   [ "$ap" -gt "$bp" ]
 }
 
+# --------------------------------------------------------------------
+# Cargo.lock introspection, for the native lock check further down.
+# --------------------------------------------------------------------
+#
+# `lock_packages` emits one `name<TAB>version` per `[[package]]`. `lock_members`
+# emits the workspace members, which are exactly the packages carrying no
+# `source` line -- a path package has none, a registry one always does.
+#
+# The member list is DERIVED from the lockfile being checked rather than from
+# `cargo metadata`, for two reasons. It needs no `jq` and no second cargo
+# invocation, and -- the one that matters -- there is no separate list to keep
+# in step: a crate newly added to the workspace counts as a member here the
+# moment it is one there. A hardcoded roster would have silently reclassified
+# the next crate as a dependency, which is the direction that fails quietly.
+
+lock_packages() {
+  awk '
+    /^\[\[package\]\]/ { name=""; version=""; next }
+    /^name = "/        { name=$0;    sub(/^name = "/,"",name);       sub(/"$/,"",name);       next }
+    /^version = "/     { version=$0; sub(/^version = "/,"",version); sub(/"$/,"",version);
+                         if (name != "") print name "\t" version; next }
+  ' "$1" | sort
+}
+
+lock_members() {
+  awk '
+    /^\[\[package\]\]/ { if (name != "" && !src) print name; name=""; src=0; next }
+    /^name = "/        { name=$0; sub(/^name = "/,"",name); sub(/"$/,"",name); next }
+    /^source = /       { src=1; next }
+    END                { if (name != "" && !src) print name }
+  ' "$1" | sort
+}
+
 extract_changelog_section() {
   # extract_changelog_section VERSION -> writes the section to stdout.
   # Section runs from "## [VERSION]" up to (but not including) the next "## [".
@@ -491,14 +524,40 @@ if [ "$STAMP_NATIVE" = "true" ]; then
       abort "cargo could not refresh $NATIVE_LOCK_REL after the version stamp"
     fi
 
-    # Every changed line must be a version line. `diff` output we accept is only
-    # `< version = "..."` / `> version = "..."` plus hunk headers and separators.
-    unexpected="$(diff "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL" 2>/dev/null |
-      grep -E '^[<>]' | grep -vE '^[<>] version = "[^"]*"$' || true)"
-    rm -f "$lock_before"
+    # WHAT MUST BE TRUE: only WORKSPACE MEMBER versions changed.
+    #
+    # That is not the same claim as "every changed line is a version line",
+    # which is what this check tested until 2026-08-16 -- and the two differ
+    # exactly where it matters. A dependency bump is a lone `version = "..."`
+    # line, identical in shape to a member's, so the old form ACCEPTED the
+    # single most likely resolver change while its own comment said it refused
+    # one. Canaried and measured: a lone `serde` bump sailed straight through.
+    # The comment and the code agreed with each other and both were wrong about
+    # the invariant, which is why reading them together proved nothing.
+    #
+    # Correlating each changed version with the package NAME it sits under is
+    # the whole fix, and it lets the refusal name the offending crate instead of
+    # printing diff lines a reader has to interpret.
+    pkgs_before="$(mktemp)"; pkgs_after="$(mktemp)"; lock_member_list="$(mktemp)"
+    lock_packages "$lock_before" > "$pkgs_before"
+    lock_packages "$PROJECT_ROOT/$NATIVE_LOCK_REL" > "$pkgs_after"
+    lock_members  "$PROJECT_ROOT/$NATIVE_LOCK_REL" > "$lock_member_list"
+
+    # An extractor that silently returns nothing makes the comparison below
+    # report no changes, so the check would ACCEPT ANYTHING and say so
+    # confidently. An empty parse is a broken parse, never a clean lockfile.
+    if [ ! -s "$pkgs_after" ] || [ ! -s "$lock_member_list" ]; then
+      cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
+      rm -f "$lock_before" "$pkgs_before" "$pkgs_after" "$lock_member_list"
+      abort "could not read packages or workspace members out of $NATIVE_LOCK_REL -- refusing to check nothing and call it clean"
+    fi
+
+    unexpected="$(comm -3 "$pkgs_before" "$pkgs_after" | sed 's/^\t//' | cut -f1 | sort -u |
+      comm -23 - "$lock_member_list")"
+    rm -f "$lock_before" "$pkgs_before" "$pkgs_after" "$lock_member_list"
     if [ -n "$unexpected" ]; then
-      abort "refreshing $NATIVE_LOCK_REL changed more than workspace versions -- refusing to fold a dependency change into a release commit:
-$unexpected"
+      abort "refreshing $NATIVE_LOCK_REL changed packages that are NOT workspace members -- refusing to fold a dependency change into a release commit:
+$(printf '%s\n' "$unexpected" | sed 's/^/  /')"
     fi
 
     log_info "stamped $NATIVE_MANIFEST_REL + $NATIVE_LOCK_REL to $TARGET (was $native_current)"
