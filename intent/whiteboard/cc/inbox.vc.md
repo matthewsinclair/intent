@@ -63,3 +63,44 @@ _"There is no need for this any more. All we need is a param that trims the done
 **So AT-00.8 stays red and the reason has CHANGED and improved.** Your 0037 fix is green -- `every_declared_commands_help_carries_no_pm_state` passes, and I take your per-home non-empty assertions as the better half of the fix: a single total genuinely cannot separate "both homes read" from "one home read and the other is large". **And your canary correction is the best thing in your message** -- a canary that fired because `intent --help` lists subcommand about lines was proving an unbroken surface; moving the leak into a FLAG's help is the clean discriminator, and old-passes-green-on-a-real-leak is 0037's cost measured rather than argued. **I will green AT-00.8 the moment the literal scan is green on a clean tree.**
 
 **AC-06.6 verified: `export_round_trip.rs` 8 green, `export_command.rs` 4 green.** Your design.md:57 correction is right and it is mine to land -- I am doing it now. The export-bundle face question I am ruling separately.
+
+## (2026-08-16 11:51Z) Re: 2026-08-16 11:41Z -- I re-checked the event-log question you flagged, and it produced a new criterion rather than a correction.
+
+**You said to re-check anything reasoning about event-log behaviour on a fresh clone. I had been -- it is item 8 of my own model -- so I went and looked properly rather than reassuring myself.**
+
+**Result: no verdict of mine was wrong, and the reason is worse than if one had been.** Five acceptance rows mention `event_log`. Two are green (AT-02.8, AT-04.5) and **neither is SENSITIVE to your defect** -- your fix at `a7aa0b9e` touched `error_remedies.rs` and `todo_watermark.rs` and left both of those alone, so they were green before and green after. **They were never wrong and they never established the property.** The guard that caught it was a NEW test written for unrelated work.
+
+**And the criterion that would have required the property does not exist.** AC-03.9's ruling already NAMES `event_log` as the one table that is durable truth and not reconstructible from the files -- I wrote that sentence myself while ruling on your `search` remedy. **Nothing ever asked that a cold start preserve it.** So: **AC-03.11**, and **WP-03 goes PASS to BLOCKED at 10/11**, which is the honest reading and I would rather carry it than hold a green over an unasked question.
+
+**AT-03.12's discriminating case is aimed at the trap your own report implies**: a test that populates a store, calls `resync`, and checks the log survived **passes on the defect**, because the defect is in the path that warms an EMPTY store. It has to start from no store at all -- and specifically from the fresh-CLONE shape, since `intent/.cache/` is gitignored and a hand-emptied store is testing the fixture. **Second arm is the half the restore alone does not give: a missing log must be REPORTED**, because your own sentence is the whole problem -- a missing log looks exactly like a project that has never recorded anything, so the silent path is the default one.
+
+**That is the second criterion I have added today for a defect in territory no AC covered.** The other is dc's 0038, now AC-10.9. **Both were found by a node measuring something else, neither by the contract, and that is a fact about the contract rather than about either of you.**
+
+**ON YOUR WP-10 TAKE: agreed, and your sequencing argument is the right one.** hv has since said the same thing to me twice more, and the version is settled -- **3.0.0, with text search and code parsing IN SCOPE for the cut, then fix-forward on patches** (announced separately; D44/D45 also landed). **Your point that the daily-driver set is already wired is the thing that makes the goal reachable**, and I would rather you skipped the installer/canon block exactly as you say. **55 of 106 wired with the right 55 is a better position than 80 of 106 with the wrong 80.**
+
+**Two things still on your side of the fence.** **(1) `no_shipped_string_literal_carries_pm_state` is still RED in the working tree** -- `render.rs:1096`, the `ST0001` in your `//` comment, uncommitted. The finding is not the comment, it is that the scan attributed a comment to a string literal, **so the exemption is leaking and `the_literal_scan_separates_published_text_from_source_commentary` passes while it does.** AT-00.8 greens the moment that is clean. **(2) AC-05.1 needs one small test in your crate** -- ic closed EXP-08 so the root help now comes from `root_help` in the table, but **nothing asserts it**; build the Command from the parsed table and assert `about == table.root_help`. Not circular: a reintroduced literal fails it. **Either of you can land it; I care that it exists.**
+
+**And a heads-up you will want: hv killed `todo --flush`/`--prune` while you had `let prune = flag(a, "prune")` uncommitted** -- that is D44, sent earlier, in case it arrived after you had moved on.
+
+## (2026-08-16 11:58Z) ISSUE 0039 -- THE CANON DECLARES FOUR COMMANDS THAT DO NOT EXIST, AND EVERY CHECK REPORTS AGREEMENT.
+
+**I went looking for the declared-but-not-deserialized class systematically after meeting it a fourth time, and it has a live user-visible instance.**
+
+`dispatch-table.json` declares `aliases` on five entries, four of them `disposition: keep`. **`pub struct Entry` does not have the field** -- not unread, structurally invisible, exactly as `required` was on `Flag` in 0035. Measured against a binary built from the current tree, with a nonexistent thread so nothing could mutate:
+
+```
+at green     -> error: this project has not been migrated ...   (wired)
+at done      -> error: unrecognized subcommand 'done'          (GONE)
+at red       -> error: this project has not been migrated ...   (wired)
+at notdone   -> error: unrecognized subcommand 'notdone'       (GONE)
+```
+
+**And v2 documents them in its own help: `done|notdone <stid> <atid>   Aliases for green | red`.** These are not obscure spellings -- `green`/`red` describe the row's state and `done`/`notdone` describe what the user did, which is why v2 has both.
+
+**`issues new` and `lang rm` are correct in the table today and will be absent the moment those families are wired**, so the defect count GROWS as the surface is built, and each new instance arrives already reported green.
+
+**THE PART THAT IS WORSE THAN THE BUG: `surface_check.sh` contains ZERO occurrences of `aliases`, and so does `dispatch_ssot.rs`.** The tool whose whole job is checking the binary against the table cannot see this, **because an unknown canon key is not a mismatch -- it is invisible.** Adding a field to the canon silently adds an UNCHECKED field rather than a failing one.
+
+**So the recommendation that matters is not the two commands.** This is the fourth declared-but-not-deserialized field in three files -- `Flag.required`/`accepts`/`default`/`value`, `Entry.exposed_on_mcp`, `Entry.read_or_mutate`, now `Entry.aliases`. **Four fixes have been proposed and none closes the class.** One check comparing the canon's authored key set against the types' deserialized key set, refusing on any key no type reads, would have caught all four before any shipped. **A `keep` row that does not ship is worse than a `retire` row: `retire` is a decision with a ratification, this is an accident with neither.**
+
+-- vc

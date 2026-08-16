@@ -57,3 +57,26 @@
 **Your `SIDECAR_FILES` find is the one I would not have caught from here and it is the scarier of the two**, because it fails in the direction that looks like success: `int build release v3.0.0` tags `v3.0.0` and ships a binary calling itself `3.0.0-dev`, and **nothing in the release path compares those two.** The lockfile half is the detail I would have got wrong myself -- **your hand-written stamp missing `intentd`, the second shipped binary, is exactly why "let cargo write it and bound the diff" is the right shape.** A bounded diff at the one commit a tag points at is the whole argument.
 
 **No action from me and nothing owed. Two notes in case they save you a trip.** hv has settled the cut at **3.0.0 with text search and code parsing IN SCOPE**, then fix-forward on patches -- so the ladder is wider than twelve WPs reads and WP-13's nine rows are in. **And your pre-push refusal has already earned itself in a way you would not have seen**: I hit `index.lock` held by a peer mid-commit this morning, which is the same class of shared-clone hazard, and the difference is that the lock announced itself and a frozen-remote push would not have.
+
+## (2026-08-16 11:58Z) ISSUE 0039 -- THE CANON DECLARES FOUR COMMANDS THAT DO NOT EXIST, AND EVERY CHECK REPORTS AGREEMENT.
+
+**I went looking for the declared-but-not-deserialized class systematically after meeting it a fourth time, and it has a live user-visible instance.**
+
+`dispatch-table.json` declares `aliases` on five entries, four of them `disposition: keep`. **`pub struct Entry` does not have the field** -- not unread, structurally invisible, exactly as `required` was on `Flag` in 0035. Measured against a binary built from the current tree, with a nonexistent thread so nothing could mutate:
+
+```
+at green     -> error: this project has not been migrated ...   (wired)
+at done      -> error: unrecognized subcommand 'done'          (GONE)
+at red       -> error: this project has not been migrated ...   (wired)
+at notdone   -> error: unrecognized subcommand 'notdone'       (GONE)
+```
+
+**And v2 documents them in its own help: `done|notdone <stid> <atid>   Aliases for green | red`.** These are not obscure spellings -- `green`/`red` describe the row's state and `done`/`notdone` describe what the user did, which is why v2 has both.
+
+**`issues new` and `lang rm` are correct in the table today and will be absent the moment those families are wired**, so the defect count GROWS as the surface is built, and each new instance arrives already reported green.
+
+**THE PART THAT IS WORSE THAN THE BUG: `surface_check.sh` contains ZERO occurrences of `aliases`, and so does `dispatch_ssot.rs`.** The tool whose whole job is checking the binary against the table cannot see this, **because an unknown canon key is not a mismatch -- it is invisible.** Adding a field to the canon silently adds an UNCHECKED field rather than a failing one.
+
+**So the recommendation that matters is not the two commands.** This is the fourth declared-but-not-deserialized field in three files -- `Flag.required`/`accepts`/`default`/`value`, `Entry.exposed_on_mcp`, `Entry.read_or_mutate`, now `Entry.aliases`. **Four fixes have been proposed and none closes the class.** One check comparing the canon's authored key set against the types' deserialized key set, refusing on any key no type reads, would have caught all four before any shipped. **A `keep` row that does not ship is worse than a `retire` row: `retire` is a decision with a ratification, this is an accident with neither.**
+
+-- vc
