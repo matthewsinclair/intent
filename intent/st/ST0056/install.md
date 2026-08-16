@@ -2,6 +2,8 @@
 
 **NOTHING BELOW WORKS YET, AND THAT IS DELIBERATE.** The tap `matthewsinclair/homebrew-intent` is live and **carries no formula**, because a formula pointing at a release that does not exist reads as "the tap is broken" rather than "the release is not out yet". These are the instructions the first `int macos publish` makes true; they become user-facing documentation at the WP-12 cutover, not before. Read the tense as future.
 
+**Two hard holds stand between here and publication**, both consequences of the shadowing described below rather than of anything in the install itself: **issue 0036** (the refusal's remedy names a subcommand v3 does not have) and **issue 0043** (the shadowed binary blocks every Claude Code prompt in every Intent project on the machine). Each is stated once, in its own section; neither is restated here. A third gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document.
+
 This document is about **getting the binary onto a machine and what that does to an install already there**. It is not the migration spec. The v2 -> v3 data migration -- preconditions, the flow, the carry policy, what the migrator refuses -- is `migration.md`, and is deliberately not restated here.
 
 ## Install
@@ -29,6 +31,25 @@ So one `brew install` does not upgrade anything and does not ask. **It puts a ne
 **What you will see first.** v3 detects an unmigrated v2 project, refuses, and exits non-zero. That is correct behaviour and the point at which to run the migration below -- but it will happen in projects you were not thinking about, the first time you type `intent` in one of them.
 
 **Known sharp edge at cutover (issue 0036):** the refusal's remedy names `intent upgrade`, and until WP-10 lands, the v3 binary has no `upgrade` subcommand -- so following it verbatim gives `error: unrecognized subcommand 'upgrade'`. The remedy is right about the end state and unreachable today. **Do not publish before that resolves**, because the string is unreachable precisely for the user it was written for: the binary printing it is the one that now answers to `intent`.
+
+### SECOND HARD PUBLICATION HOLD (issue 0043): shadowing locks the user out of Claude Code, in every Intent project on the machine
+
+**This one is not a bad first contact. It takes away the tool the user would recover with, and it does not wait for a migration.**
+
+Intent's canon `.claude/settings.json` wires Claude Code's `UserPromptSubmit` hook to `intent claude hook require-in-session` -- an unqualified `intent`, resolved from `PATH`. The gate's own contract is `exit 0` to pass the prompt through and **`exit 2` to BLOCK it**. Since `d2b8e76d`, the v3 binary answers every not-yet-implemented command with exit 2, which is correct for the consumer that fix was written for: the pre-commit gate reads 2 as fail-open. **Two shipped consumers read the same number as opposite instructions**, and `brew install` puts the binary that returns it in front of the one that does not.
+
+The result is that the gate's pass-through path becomes unreachable. Every prompt in every Intent project with the canon hooks is refused, and the refusal is self-sealing: the remedy is `/in-session`, which is a prompt.
+
+**Measured here, not inferred** -- binary confirmed newer than `d2b8e76d` before it was trusted:
+
+| where                      | `intent claude hook require-in-session`                                   |
+| -------------------------- | ------------------------------------------------------------------------- |
+| an unmigrated v2 project   | `exit 2` -- `` `claude` is a known command that is not implemented yet `` |
+| outside any project at all | `exit 2` -- same message                                                  |
+
+**The trigger is `brew install`, NOT migration.** `claude` is unimplemented as a family, so v3 refuses before it ever looks at the project -- which means the blast radius is every Intent project on the machine carrying the canon hooks, migrated or not, plus none-of-the-above. Issue 0043 as filed says "do not migrate this repo until it is settled"; migration is not the condition. **Publication is.** This is 0036's chain with the consequence changed: shadowing is machine-wide and unrequested, so a user meets this in a project they were not thinking about, and unlike the `intent upgrade` dead end there is no message to read past.
+
+**Not yet observed live.** Nobody has watched a real session die of this, and the estate should not pretend otherwise: confirming it costs a throwaway project and a spare session, because the session that runs the test is the session that gets locked out. It cannot be confirmed from inside a repo that is unmigrated by design with `intent` still resolving to v2. **The evidence above is the wiring, the gate's own stated contract, and the binary's measured exit code -- which is enough to hold publication and not enough to close the issue.**
 
 ### The good consequence of shadowing, which is why this is a hazard and not a defect
 
