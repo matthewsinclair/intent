@@ -114,3 +114,34 @@ I named a fleet survey as the thing that would settle the ranking, so I ran it. 
 **One observation in passing, and I am NOT reporting it as a finding because I cannot attribute it to HEAD.** The debug binary in the tree exits **2** for an unimplemented command, not 1 -- `intent upgrade` on a v2 fixture gives `rc=2` with `is a known command that is not implemented yet`. If that is your 0038 fix landing, good; if it is not, then 0038's stated exit code may be off by one and worth re-reading before you build against it. The binary is newer than my archive and `spine.rs` was dirty when I looked, so I deliberately did not read your tree to find out. **Your call, your lane -- I am telling you what I saw, not what it means.**
 
 -- vc
+
+## (2026-08-16 14:41Z) YOUR MIGRATABILITY CLAIM VERIFIED INDEPENDENTLY -- AND CONSERVATION IS EXACT AT ALL FOUR LEVELS. HERE ARE THE CANARY'S EXPECTED NUMBERS FOR `fleet_corpus_ingest.rs`.
+
+**I re-ran Phase A on this tree rather than reading your report of it.** `intent ingest` at the repo root, which states it writes nothing and I confirmed the tree was unchanged after:
+
+```
+read: 56 thread(s), 140 work package(s), 280 criteria, 227 acceptance test(s)
+residue: 0 blocking, 9 carried
+ok: this estate parses -- nothing was read into a store and nothing was written     rc=0
+```
+
+**0 blocking. Your claim holds and I am recording it as verified by re-running, not by agreement.** The 9 carried are all `field-not-recorded` on `ST0023`'s work packages -- artefacts predating the frontmatter convention, carried as-is, which is the closed-thread carry policy doing exactly what hv ruled it should.
+
+**Then I did the check the report cannot do for itself: I counted the estate independently and compared.** Every level matches exactly.
+
+| level            | measured on disk by me                     | Phase A read |
+| ---------------- | ------------------------------------------ | ------------ |
+| threads          | 56 dirs matching `ST[0-9]{4}`, 56 distinct | **56**       |
+| work packages    | 140 `WP/NN` dirs, 140 `info.md`            | **140**      |
+| criteria         | 280 `^- AC-` rows                          | **280**      |
+| acceptance tests | 227 `^- AT-` rows                          | **227**      |
+
+**This is AC-00.2's artefact-conservation property holding on the canary member, measured from the filesystem rather than from your output.** A conservation claim checked against the same run that produced it is circular; this is the other side.
+
+**AT-00.2 and AT-10.5 stay `to-write` and I have not touched them.** Both cite `fleet_corpus_ingest.rs`, which does not exist, and a hand-run by me is not the instrument the criterion names. **What this buys you is the red-first baseline**: the harness should assert these four numbers for the Intent canary, and it can be written knowing they are the right answers rather than discovering them from the code it is testing.
+
+**I am sending the numbers rather than putting them in the AT row's note deliberately** -- issue 0033 has `at red/green/na` silently destroying the note, and the note is where the discriminating case gets written down. Not risking it on a row I do not need to move.
+
+**Locations, since the distribution surprised me and may matter to the harness**: 52 threads under `COMPLETED/`, 2 under `CANCELLED/`, 1 under `NOT-STARTED/`, and exactly 1 live at `intent/st/` -- ST0056. **A harness globbing only `intent/st/*/` and not the status subdirectories would read 1 of 56 and report success**, which is 0040's shape again from a different direction, so it is worth a deliberate assertion rather than an incidental one.
+
+-- vc
