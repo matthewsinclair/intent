@@ -3118,14 +3118,15 @@
           },
           "disposition": "pending",
           "exposed_on_mcp": false,
-          "read_or_mutate": "mutate",
+          "read_or_mutate": "read",
           "mcp_review": {
             "uncertain": [
               "exposed_on_mcp",
               "read_or_mutate"
             ],
             "why_uncertain": "The only row uncertain on BOTH fields, and the only row whose parity class is already `undefined`. `bin/intent_config` is dispatched to AND sourced as a library, and it carries a default-config writer (`mkdir -p` + `cat >` at :100-102) that I did not trace to the display path. Leaning mutate under the safe direction rather than guessing the call graph."
-          }
+          },
+          "read_or_mutate_correction": "CORRECTED 2026-08-16 (ic, on vc's finding while they were independently verifying my withheld-26 measurement). Was `mutate`, and it was the only row in the table contradicted by its own help string: `Display the resolved project configuration`, zero args, zero flags. **The convention is settled by the other roots and it is not `roots are reads`** -- there are 14 family roots, 12 `read` and 2 `mutate`, and `todo`'s `mutate` is CORRECT and documented on its own row, because bare `intent todo` inherits `list`'s generate-on-absent write. So a root is marked on its OWN behaviour rather than the union of its children, `todo` is the counter-example that proves the rule has teeth, and `config` was the only row breaking it. Its children are already the correct pair: `config get` is `read`, `config set` is `mutate`, leaving bare `config` no mutating role to play. **The caveat vc raised and could not resolve, resolved here: this row is `disposition: pending` with `target.state: undefined`, so `mutate` MIGHT have been a forward mark for a bare `config` that becomes an editor.** If it was, nobody recorded it -- and `undefined` means v3 is DESIGNING rather than porting, so the help string IS the design statement and the design displays. A field must not carry a forward mark for a decision that exists nowhere; if the design later makes bare `config` an editor, this field changes WITH that decision and cites it. **Worse today than yesterday, which is why it was sent rather than filed: the D45 reorder makes `read_or_mutate` the field an agent reads FIRST, so a zero-arg display command was being announced to agents as a mutation.** It also inflated a denominator I published -- `51 of 65 shipped mutations are exposed` counted a row that does not mutate."
         },
         {
           "path": "config get",
@@ -6738,6 +6739,7 @@
         "ruling": "NOTE by classification, VESTIGIAL by inspection -- the honest answer is that it should be deleted.",
         "why": "One row carries it: `st`, `kind: family`. Family-ness is derivable from the path set -- a path is a family root when another declared path is it plus a space -- and that derivation was run against this table on 2026-08-16 to split the withheld-from-MCP rows, giving 13 roots without consulting this key once. A structural claim that one row states and a hundred and eleven leave to inference is not carrying anything. Classified `note` so the totality check passes today; flagged here so the classification is not mistaken for an endorsement."
       }
-    ]
+    ],
+    "closes_one_half_only": "**This split does NOT close the declared-but-not-deserialized class, and saying so here rather than letting the next instance discover it.** (vc, from issue 0040.) There are two mechanisms and classification plus a serde check sees only the first. **(a) Declared in JSON, no Rust field** -- serde drops it in silence; a flatten or key-set check catches this, and it is what `aliases` and `Arg.default` were. **(b) Declared in JSON, the Rust field EXISTS and deserializes correctly, and no code CONSUMES the value.** `Config.st_prefix` is the measured instance: declared with a serde default of `ST`, three occurrences in the workspace and all three its own declaration, while `facade.rs` allocates ids with a hardcoded `ST{:04}` and `legacy.rs` recognises threads with a hardcoded `starts_with(ST)` -- and v2 honours the field in six places. **Nothing catches (b): the key never lands in a `rest` map, so a flatten check reports agreement, and `dead_code` does not fire because a `pub` field on a `pub` struct in a lib crate is reachable by definition.** Recorded here because a check's error message is where its readers learn what it does, and nothing verifies that message against its behaviour -- a lesson this register earned the hard way and would otherwise have re-learned. **vc's sharper discriminator, worth adopting if this list is ever reorganised: the question is not `is this key read` but `does a consumer exist and encode the value another way`.** It separates all three of `Config`'s unread fields where count and type separate none -- `st_prefix` is a defect (consumers exist and hardcode), `author` is correct (D02 removed the verblock, the consumer is gone by ruling), `languages` is pending (its consumers are unwired)."
   }
 }
