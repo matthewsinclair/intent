@@ -35,15 +35,24 @@ use crate::project::Project;
 ///
 /// Deliberately tiny. Every field here is a fact about the tool or the
 /// project's data -- never about the moment of rendering.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct RenderContext<'a> {
   /// The Intent version, for the generated banner.
   pub version: &'a str,
   /// The `todo` DONE watermark: completions at or after it appear in the DONE
   /// bucket. v2 stored this INSIDE the generated view and read it back out,
-  /// which made the view its own database; v3 models it (project config) and
-  /// renders it, so the view is output only.
-  pub todo_watermark: Option<&'a str>,
+  /// which made the view its own database; v3 derives it from the event log
+  /// (`event::todo_watermark`), so the view is output only.
+  ///
+  /// **OWNED rather than borrowed, and that is what keeps one authority.** It
+  /// is computed from the log at render time, so a borrowed field would have
+  /// forced every caller to keep a `String` alive beside the context -- and the
+  /// two callers that matter are `Facade::projection`, which WRITES the views,
+  /// and `Facade::doctor`, which re-renders them to detect skew. Those two
+  /// disagreeing about the watermark would make `doctor` report `todo.md` as
+  /// hand-edited on every project that had ever flushed, permanently, with
+  /// nothing wrong.
+  pub todo_watermark: Option<String>,
 }
 
 /// One rendered view: where it goes and what it says.
@@ -612,13 +621,41 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
 // todo.md -- the flat DOING / TODO / DONE view
 // ---------------------------------------------------------------------------
 
-/// Render the flat work view.
+/// One row of the flat work view.
 ///
-/// The DONE watermark comes from [`RenderContext::todo_watermark`], never from
-/// the previous render of this file and never from a clock. v2 read its own
-/// output back to find the watermark and defaulted to start-of-today when it
-/// could not, which made the view both the input and the output.
-pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
+/// It carries the parts AND the rendered label rather than letting each
+/// consumer re-join them: the markdown view and `intent todo --json` are two
+/// renderings of one bucketing, and a second place that builds `"{id}: {title}"`
+/// is a second place for the two to disagree about what an item is called.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct TodoItem {
+  /// `ST0001`, or `ST0001/02` for a work package.
+  pub id: String,
+  /// `thread` or `work-package`.
+  pub kind: &'static str,
+  pub title: String,
+  /// Exactly what the markdown view prints.
+  pub label: String,
+}
+
+/// The three buckets, plus the watermark that decided the third.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct TodoBuckets {
+  pub doing: Vec<TodoItem>,
+  pub todo: Vec<TodoItem>,
+  pub done: Vec<TodoItem>,
+  /// The DONE watermark in force, so a JSON consumer can tell an empty DONE
+  /// bucket from a flushed one -- which is the question a reader of the plain
+  /// view answers by reading the heading.
+  pub watermark: Option<String>,
+}
+
+/// **THE bucketing.** Both renderings go through it.
+///
+/// Split out from [`todo`] when `--json` arrived: the alternative was a second
+/// traversal applying the same status rules, and the rules are the whole
+/// content of this view. Two copies would agree until someone changed one.
+pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets {
   let mut ordered: Vec<&Thread> = threads.iter().collect();
   ordered.sort_by(|a, b| a.id.cmp(&b.id));
 
@@ -627,43 +664,88 @@ pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   let mut done = Vec::new();
 
   for t in &ordered {
-    let label = format!("{}: {}", t.id, t.title);
+    let item = TodoItem {
+      id: t.id.clone(),
+      kind: "thread",
+      title: t.title.clone(),
+      label: format!("{}: {}", t.id, t.title),
+    };
     match t.status {
-      ThreadStatus::Wip => doing.push(label),
-      ThreadStatus::Triage | ThreadStatus::NotStarted | ThreadStatus::Hold => {
-        todo_items.push(label)
-      }
+      ThreadStatus::Wip => doing.push(item),
+      ThreadStatus::Triage | ThreadStatus::NotStarted | ThreadStatus::Hold => todo_items.push(item),
       ThreadStatus::Completed | ThreadStatus::Cancelled => {
-        if in_done_bucket(t, ctx.todo_watermark) {
-          done.push(label);
+        if in_done_bucket(t, ctx.todo_watermark.as_deref()) {
+          done.push(item);
         }
       }
     }
     for wp in &t.wps {
-      let label = format!("{} / WP-{:02}: {}", t.id, wp.seq, wp.title);
+      let item = TodoItem {
+        id: format!("{}/{:02}", t.id, wp.seq),
+        kind: "work-package",
+        title: wp.title.clone(),
+        label: format!("{} / WP-{:02}: {}", t.id, wp.seq, wp.title),
+      };
       match wp.status {
-        crate::model::WpStatus::Wip => doing.push(label),
+        crate::model::WpStatus::Wip => doing.push(item),
         crate::model::WpStatus::NotStarted if t.status == ThreadStatus::Wip => {
-          todo_items.push(label)
+          todo_items.push(item)
         }
         _ => {}
       }
     }
   }
 
+  TodoBuckets {
+    doing,
+    todo: todo_items,
+    done,
+    watermark: ctx.todo_watermark.clone(),
+  }
+}
+
+/// Render the flat work view.
+///
+/// The DONE watermark comes from [`RenderContext::todo_watermark`], never from
+/// the previous render of this file and never from a clock. v2 read its own
+/// output back to find the watermark and defaulted to start-of-today when it
+/// could not, which made the view both the input and the output.
+pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
+  let buckets = todo_buckets(threads, ctx);
+  let labels =
+    |rows: &[TodoItem]| -> Vec<String> { rows.iter().map(|i| i.label.clone()).collect() };
+
   let mut out = String::new();
   out.push_str("# TODO\n\n");
   out.push_str("A flat DOING / TODO / DONE view, projected from steel-thread and work-package status. Generated -- change a status with the CLI, never by editing this file.\n\n");
-  out.push_str(&bucket("DOING", &doing));
-  out.push_str(&bucket("TODO", &todo_items));
-  match ctx.todo_watermark {
+  out.push_str(&bucket("DOING", &labels(&buckets.doing)));
+  out.push_str(&bucket("TODO", &labels(&buckets.todo)));
+  match ctx.todo_watermark.as_deref() {
     Some(mark) => out.push_str(&format!("## DONE (completed at or after {mark})\n\n")),
     None => out.push_str("## DONE\n\n"),
   }
-  out.push_str(&items(&done));
+  out.push_str(&items(&labels(&buckets.done)));
   finish(out, ctx, "the thread canon")
 }
 
+/// Whether a finished thread is still in the DONE bucket.
+///
+/// **The watermark is compared at DATE granularity, and that is a limit of the
+/// model rather than a shortcut.** `Thread.completed` is a date -- `2026-08-16`
+/// -- while the flush that sets the watermark is an event with a full instant
+/// on it. Comparing the two as strings would put every same-day completion
+/// BELOW the watermark, because a date sorts before any timestamp that starts
+/// with it, so `--flush` would hide work finished later the same day and
+/// nothing would say so. The caller therefore hands in the date part.
+///
+/// The visible consequence is that a flush does not clear same-day
+/// completions, which is weaker than `--flush`'s promise to clear the DONE
+/// view. **The data cannot support the stronger promise**: with a date-granular
+/// `completed` there is no fact distinguishing "finished this morning, before
+/// the flush" from "finished this afternoon, after it". So the behaviour is
+/// the honest one and it is stated where a reader meets it -- the DONE heading
+/// says "completed at or after <date>", and `todo done --flush` reports how
+/// many items remain and why.
 fn in_done_bucket(thread: &Thread, watermark: Option<&str>) -> bool {
   match (watermark, thread.completed.as_deref()) {
     (None, _) => true,

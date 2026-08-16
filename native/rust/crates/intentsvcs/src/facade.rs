@@ -160,14 +160,6 @@ pub enum FacadeError {
   /// Something this build does not do -- NOT a fault in the project.
   #[error("{what} is not available in this build")]
   Unavailable { what: String },
-  /// The event log's extract exists and is not readable as one.
-  ///
-  /// Its own variant rather than an ingest finding: history is the one thing
-  /// nothing else can reconstruct, so "your history file is damaged" needs an
-  /// action of its own and must not be reported as though a thread were
-  /// malformed.
-  #[error("the event log extract at {path} could not be read")]
-  EventLogUnreadable { path: String, cause: String },
   #[error("no export format named `{format}`")]
   NoSuchFormat {
     format: String,
@@ -315,6 +307,13 @@ impl FacadeError {
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
       Self::Store(cause) => cause.remedy(),
+      // **Delegated by INNER variant, because one remedy for the whole of
+      // `IngestError` would tell someone whose history file is damaged to fix
+      // their steel threads.** History is the one thing nothing recomputes, so
+      // it gets the one remedy that says do NOT delete the file.
+      Self::Ingest(IngestError::EventLogUnreadable { path, cause }) => format!(
+        "{cause}. Nothing recomputes history, so do NOT delete {path} to get past this -- repair the named line, from version control if the file is committed"
+      ),
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
       }
@@ -325,9 +324,6 @@ impl FacadeError {
       Self::Unavailable { .. } => {
         "nothing was read and nothing was written, so the project is exactly as it was -- keep using the version of Intent that wrote it until a build offers this".to_string()
       }
-      Self::EventLogUnreadable { path, cause } => format!(
-        "{cause}. Nothing recomputes history, so do NOT delete {path} to get past this -- repair the named line, from version control if the file is committed"
-      ),
       // **"one of:" lists only what can be HAD.** Offering a refused format as
       // the remedy for a refusal spends the operator's next command on a
       // second one; the declined names are reported after, as a warning rather
@@ -375,6 +371,24 @@ impl FacadeError {
     out.push_str(&format!("\n  remedy: {}", self.remedy()));
     out
   }
+}
+
+/// What a `todo done --flush` did, in the operator's terms.
+///
+/// **`remaining` is the field that stops the command lying.** `--flush`
+/// promises to clear the DONE view and cannot clear same-day completions, so a
+/// flush that reports only what it removed reads as a success on a view the
+/// operator can see is not empty. Reporting both numbers turns a puzzling
+/// no-op into a stated limit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TodoFlush {
+  /// The watermark now in force, as a date.
+  pub watermark: Option<String>,
+  /// Items that were in DONE before the flush.
+  pub cleared: Vec<String>,
+  /// Items still in DONE after it -- those completed on the watermark's own
+  /// date, which no watermark can exclude.
+  pub remaining: Vec<String>,
 }
 
 /// One row of `intent ac list`: the criterion, its computed state, and the
@@ -454,11 +468,20 @@ impl Facade {
     &self.store
   }
 
-  fn render_ctx(&self) -> RenderContext<'_> {
-    RenderContext {
+  /// Everything a render is allowed to know, assembled from the store.
+  ///
+  /// **Fallible on purpose.** The DONE watermark lives in the event log
+  /// (`event::todo_watermark`), so building a context is a read, and a read can
+  /// fail. Defaulting to `None` on a store error would silently render the
+  /// unflushed view -- resurrecting every flushed item into `todo.md` and into
+  /// the skew check's expectation at the same time, so the two would agree and
+  /// nothing would report it.
+  fn render_ctx(&self) -> Result<RenderContext<'_>, FacadeError> {
+    let events = self.store.events().map_err(FacadeError::Store)?;
+    Ok(RenderContext {
       version: &self.ctx.version,
-      todo_watermark: None,
-    }
+      todo_watermark: event::todo_watermark(&events),
+    })
   }
 
   // -------------------------------------------------------------------------
@@ -648,7 +671,7 @@ impl Facade {
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
   pub fn sync_from_disk(&mut self) -> Result<usize, FacadeError> {
     let canon = ingest::resync(&self.project, &mut self.store)?;
-    self.restore_event_log()?;
+    ingest::restore_event_log(&self.project, &mut self.store)?;
     let all_threads: Vec<&Thread> = canon.threads.iter().collect();
     let all_issues: Vec<&Issue> = canon.issues.iter().collect();
     let set = self.projection(&canon, &all_threads, &all_issues)?;
@@ -656,53 +679,6 @@ impl Facade {
     let count = canon.threads.len();
     self.canon = canon;
     Ok(count)
-  }
-
-  /// Take into the log whatever the extract carries and the store does not.
-  ///
-  /// **The one place the destructive direction is NOT destructive, and it has
-  /// to be.** `sync_from_disk` replaces the store from the files because for
-  /// every other entity the files are a faithful copy. The event log is
-  /// append-only (D15) and nothing derives it, so a wipe-and-reload would
-  /// destroy exactly the history the extract had not caught up with -- a
-  /// restore from yesterday's clone would silently delete today.
-  ///
-  /// Merging on the ULID makes it idempotent and makes two machines' logs a
-  /// union rather than a conflict, so restoring an older extract over a newer
-  /// log adds nothing and loses nothing.
-  ///
-  /// An absent file is not an error: a project that has never synced out has no
-  /// extract of its history yet, and refusing here would make the first sync of
-  /// an old project impossible.
-  fn restore_event_log(&mut self) -> Result<usize, FacadeError> {
-    let path = self.project.events_jsonl();
-    let text = match std::fs::read_to_string(&path) {
-      Ok(text) => text,
-      Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
-      Err(source) => {
-        return Err(FacadeError::Ingest(ingest::IngestError::Io {
-          path: self.project.relative(&path),
-          source,
-        }));
-      }
-    };
-    let incoming = event::from_jsonl(&text).map_err(|e| FacadeError::EventLogUnreadable {
-      path: self.project.relative(&path),
-      cause: e.to_string(),
-    })?;
-    let have = self.store.events().map_err(FacadeError::Store)?;
-    let missing = event::merge(&have, &incoming);
-    for envelope in &missing {
-      // **`restore_event`, never `append_event`** (D42). These already
-      // happened; the extract carries when. Recording them as happening now
-      // would rewrite the whole of an older clone's history to the moment
-      // someone restored it -- and every stamp would look perfectly valid.
-      self
-        .store
-        .restore_event(envelope)
-        .map_err(FacadeError::Store)?;
-    }
-    Ok(missing.len())
   }
 
   /// What a [`Facade::sync_from_disk`] would overwrite, computed BEFORE it
@@ -738,6 +714,90 @@ impl Facade {
       }
     }
     Ok(out)
+  }
+
+  /// The flat DOING / TODO / DONE view, as markdown -- exactly the bytes
+  /// `intent/todo.md` holds.
+  ///
+  /// **Rendered from the store rather than read off disk**, which is where v2
+  /// and v3 differ on this command. v2's `todo` showed the file and generated
+  /// it if absent, so a stale file was shown as though it were current; here
+  /// the file is an extract and the answer comes from truth. The bytes are the
+  /// same bytes, so nothing downstream can tell -- except that they are now
+  /// always right.
+  pub fn todo_view(&self) -> Result<String, FacadeError> {
+    Ok(views::todo(&self.canon.threads, &self.render_ctx()?))
+  }
+
+  /// The same three buckets, structured, for `intent todo --json`.
+  pub fn todo_buckets(&self) -> Result<views::TodoBuckets, FacadeError> {
+    Ok(views::todo_buckets(
+      &self.canon.threads,
+      &self.render_ctx()?,
+    ))
+  }
+
+  /// Write `intent/todo.md` from current status.
+  ///
+  /// One file rather than the whole projection, because that is what the verb
+  /// says. It goes through a [`WriteSet`] like every other write, so it is
+  /// atomic and leaves nothing half-written; the CONTENT comes from
+  /// [`views::todo`], so this selects which files to write and never re-decides
+  /// what they say.
+  pub fn todo_update(&mut self) -> Result<(), FacadeError> {
+    let content = self.todo_view()?;
+    let mut set = WriteSet::new();
+    set.add(self.project.todo_view(), content);
+    set.commit()?.keep();
+    Ok(())
+  }
+
+  /// Advance the DONE watermark, and report what that actually did.
+  ///
+  /// **No clock is read.** The flush is recorded as a `todo.flush` event whose
+  /// timestamp SQLite sets at INSERT (D42), and the watermark is derived back
+  /// out of the log by [`event::todo_watermark`]. There is no settings row, no
+  /// new table, and nothing durable in the generated view -- which was v2's
+  /// defect: it kept the watermark inside `todo.md` and read it back, so
+  /// deleting a disposable file silently resurrected every flushed item.
+  ///
+  /// The report exists because the operation promises more than the model can
+  /// deliver. `--flush`'s help says it clears the DONE view, and same-day
+  /// completions survive it: `Thread.completed` is a date, so nothing
+  /// distinguishes "finished before the flush" from "finished after it" on the
+  /// day it happens. Rather than quietly doing less than the help says, the
+  /// caller is handed both numbers and can say so.
+  pub fn todo_flush(&mut self) -> Result<TodoFlush, FacadeError> {
+    let cleared: Vec<String> = self
+      .todo_buckets()?
+      .done
+      .into_iter()
+      .map(|i| i.label)
+      .collect();
+
+    // The canon is handed through UNCHANGED: a flush changes no entity, and
+    // the whole of its effect is the envelope. `apply` still diffs, writes
+    // nothing to the entity tables, records the event, and re-renders -- which
+    // is what makes `todo.md` reflect the new watermark without a second write
+    // path deciding when views are stale.
+    let next = self.canon.clone();
+    self.apply(
+      event::TODO_FLUSH,
+      Subject {
+        kind: "todo".to_string(),
+        id: "watermark".to_string(),
+      },
+      json!({ "cleared": cleared.len() }),
+      next,
+    )?;
+
+    let after = self.todo_buckets()?;
+    Ok(TodoFlush {
+      watermark: after.watermark,
+      cleared,
+      // Completions the flush could not clear, because they share its date.
+      remaining: after.done.into_iter().map(|i| i.label).collect(),
+    })
   }
 
   /// Project the whole estate into a named format, or refuse (AC-06.6).
@@ -816,7 +876,7 @@ impl Facade {
         to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
-    for view in views::render_all(&self.project, canon, &self.render_ctx()) {
+    for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
       set.add(view.path, view.content);
     }
     Ok(set)
@@ -895,11 +955,33 @@ impl Facade {
     ctx: &FacadeContext,
     store: Option<&crate::store::Store>,
   ) -> crate::doctor::Report {
+    // **The watermark comes from the store when there is one and from the
+    // EXTRACT when there is not**, and the second half is what stops a false
+    // finding. `doctor` runs on a project with no database -- that is the
+    // normal state of a fresh clone, and the moment someone reaches for it --
+    // and it re-renders every view to detect skew. Rendering `todo.md` without
+    // the watermark there would resurrect every flushed item into the
+    // EXPECTATION, so `doctor` would report the committed view as hand-edited
+    // on every project that had ever flushed, permanently, with nothing wrong.
+    //
+    // `events.jsonl` is exactly the artefact that makes this recoverable: under
+    // D34 the log is the one durable thing nothing else derives, so it travels
+    // with the clone. An unreadable or absent log yields `None`, which is the
+    // never-flushed answer and the correct degradation -- `doctor` reports what
+    // it can rather than refusing, since a diagnostic that stops working is the
+    // failure it exists to prevent.
+    let events = match store {
+      Some(store) => store.events().unwrap_or_default(),
+      None => std::fs::read_to_string(project.events_jsonl())
+        .ok()
+        .and_then(|text| event::from_jsonl(&text).ok())
+        .unwrap_or_default(),
+    };
     crate::doctor::diagnose(
       project,
       &RenderContext {
         version: &ctx.version,
-        todo_watermark: None,
+        todo_watermark: event::todo_watermark(&events),
       },
       store,
     )

@@ -226,7 +226,6 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Store(_) => "Store",
     FacadeError::Ingest(_) => "Ingest",
     FacadeError::Unavailable { .. } => "Unavailable",
-    FacadeError::EventLogUnreadable { .. } => "EventLogUnreadable",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
@@ -265,7 +264,6 @@ const ALL_VARIANTS: &[&str] = &[
   "Store",
   "Ingest",
   "Unavailable",
-  "EventLogUnreadable",
   "NoSuchFormat",
   "LossyFormat",
   "ExportRoundTripFailed",
@@ -274,15 +272,14 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
-  "Write",              // an unwritable directory -- `write_set_rollback.rs`
-  "ViewsNotWritten",    // the same, after the DB has committed
-  "Store",              // a damaged SQLite file
-  "Ingest",             // schema-invalid canon -- `ingest_refusal.rs`
-  "EventLogUnreadable", // a corrupt event-log extract
-  "Unmigrated",         // an older store -- `unmigrated_project.rs`
-  "ThreadExists",       // needs a colliding id, which `st new` allocates around
-  "BadQuery",           // FTS5 syntax -- `facade_search.rs` territory
-  "NoSuchFace",         // `intent schema <name>` with an unknown face
+  "Write",           // an unwritable directory -- `write_set_rollback.rs`
+  "ViewsNotWritten", // the same, after the DB has committed
+  "Store",           // a damaged SQLite file
+  "Ingest",          // schema-invalid canon -- `ingest_refusal.rs`
+  "Unmigrated",      // an older store -- `unmigrated_project.rs`
+  "ThreadExists",    // needs a colliding id, which `st new` allocates around
+  "BadQuery",        // FTS5 syntax -- `facade_search.rs` territory
+  "NoSuchFace",      // `intent schema <name>` with an unknown face
   // Needs a projection that LIES -- a format claiming to round-trip and
   // dropping data. Only `export::project_with` can be handed one, and
   // `export_round_trip.rs` does exactly that; a call through the facade cannot

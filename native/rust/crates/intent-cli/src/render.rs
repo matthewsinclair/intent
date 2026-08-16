@@ -34,6 +34,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("doctor", _)) => doctor(),
     Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
+    Some(("todo", m)) => todo(m),
     Some(("sync", m)) => sync(m),
     Some(("backup", m)) => backup(m),
     Some((family, _)) => unwired(family, ""),
@@ -1000,6 +1001,147 @@ fn ingest(a: &ArgMatches) -> Result<(), String> {
   // success, and the message a migrator will want is the count it moved.
   println!("ok: ingested {}", project.relative(project.root()));
   Ok(())
+}
+
+/// `intent todo` -- the flat DOING / TODO / DONE view.
+///
+/// The bare command lists, because the table declares `arity: "0..1"` with
+/// `default: "list"` on its verb slot.
+///
+/// **The view is rendered from the store, not read off `intent/todo.md`.** v2's
+/// help says "show intent/todo.md (generates it if absent)", which under the
+/// reversed D01 would mean showing an extract that may be stale while truth
+/// sits one query away. The bytes are the same bytes -- `todo update` writes
+/// exactly what this prints -- so nothing observable changes except that a
+/// stale file can no longer be shown as current.
+fn todo(m: &ArgMatches) -> Result<(), String> {
+  match m.subcommand() {
+    None | Some(("list", _)) => {
+      let f = open()?;
+      // `--json` is declared on BOTH the family and the `list` verb, so it is
+      // read from whichever level carried it -- `intent todo --json` and
+      // `intent todo list --json` are the same request.
+      let json = flag(m, "json") || m.subcommand().is_some_and(|(_, a)| flag(a, "json"));
+      if json {
+        let buckets = f.todo_buckets().map_err(fail)?;
+        println!(
+          "{}",
+          serde_json::to_string_pretty(&buckets)
+            .map_err(|e| format!("error: the view could not be rendered as JSON: {e}"))?
+        );
+      } else {
+        print!("{}", f.todo_view().map_err(fail)?);
+      }
+      Ok(())
+    }
+    Some(("update", _)) => {
+      let mut f = open()?;
+      f.todo_update().map_err(fail)?;
+      println!("ok: todo.md regenerated");
+      Ok(())
+    }
+    Some(("done", a)) => todo_done(a),
+    // **`notdone` and `toggle` REFUSE, and the refusal is the honest
+    // implementation rather than a gap.**
+    //
+    // Both reopen finished work, and every route from a finished state in the
+    // ratified transition machine -- `st reopen`, `wp reopen` -- is guarded
+    // `ReasonRecorded`. The declared surface for these two carries a specifier
+    // and nothing else, so there is no argument for a reason to arrive
+    // through: the spine is BUILT from the table, so a positional the table
+    // does not declare cannot be added here even if it should be.
+    //
+    // That leaves exactly three options, and two of them are worse than
+    // refusing. Synthesising a reason ("reopened via todo") puts a sentence
+    // nobody wrote into the permanent record, where nothing downstream can
+    // tell it from one someone meant -- the confected-evidence class, one
+    // field over. Bypassing the guard for this one caller makes the machine
+    // advisory, and a guard with a documented way round it is not a guard.
+    //
+    // So it refuses and names the route that records a reason. The surface
+    // question -- whether these rows should grow a reason argument or be
+    // withdrawn -- belongs to the table's owner, and a refusal that says so is
+    // what makes it visible rather than a silently missing verb.
+    Some((verb @ ("notdone" | "toggle"), a)) => {
+      let spec = opt(a, "specifier").unwrap_or_default();
+      let target = if spec.is_empty() {
+        "the thread".to_string()
+      } else {
+        spec
+      };
+      Err(format!(
+        "error: `todo {verb}` reopens finished work, and a reopen must record why it happened\n  remedy: run `intent st reopen {target} \"<reason>\"` (or `intent wp reopen`), which records the reason on the thread and in the event log"
+      ))
+    }
+    Some((verb, _)) => unwired("todo", verb),
+  }
+}
+
+/// `intent todo done` -- three operations behind one verb, as the table
+/// declares them.
+///
+/// `--flush` and `--prune` share the watermark advance and differ in whether
+/// the cleared items are printed first, so `--prune` is `--flush` with its
+/// output kept. Naming both is not an error; it is `--prune`.
+fn todo_done(a: &ArgMatches) -> Result<(), String> {
+  let flush = flag(a, "flush");
+  let prune = flag(a, "prune");
+  let spec = opt(a, "specifier");
+
+  match (spec, flush || prune) {
+    (Some(spec), false) => {
+      let mut f = open()?;
+      // `scope_of` already owns "is this a thread or a work package": `ac gate`
+      // and `wp_target` both parse specifiers through it, and a second reading
+      // of `ST0001/02` here is a second place for the answer to differ.
+      match scope_of(&spec) {
+        (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
+        (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
+      }
+      println!("ok: {spec} done");
+      Ok(())
+    }
+    (None, true) => {
+      let mut f = open()?;
+      let flushed = f.todo_flush().map_err(fail)?;
+      if prune {
+        // The archiving payload FIRST, then the effect -- a caller redirecting
+        // this wants the items, and printing them after the summary would put
+        // a status line in the middle of their archive.
+        for item in &flushed.cleared {
+          println!("{item}");
+        }
+      }
+      let mark = flushed.watermark.as_deref().unwrap_or("(none)");
+      eprintln!(
+        "ok: DONE watermark advanced to {mark}, {} item(s) cleared",
+        flushed.cleared.len()
+      );
+      // **Stated, because the command promised more than it can do.** A flush
+      // cannot exclude completions that share its date -- `completed` is
+      // date-granular -- so a view that is still not empty is expected rather
+      // than a failure, and saying nothing here is what would make it look
+      // like one.
+      if !flushed.remaining.is_empty() {
+        eprintln!(
+          "note: {} item(s) completed on {mark} stay in DONE -- a completion date cannot be compared against a time of day, so today's work is not flushable until tomorrow",
+          flushed.remaining.len()
+        );
+      }
+      Ok(())
+    }
+    // Both a target and a flush: two different operations in one invocation,
+    // and the order between them changes the result, so it refuses rather
+    // than picking one.
+    (Some(_), true) => Err(
+      "error: `todo done <specifier>` marks one item done and `--flush` clears the whole DONE view; naming both asks for two different operations at once\n  remedy: run them separately -- mark the item done first, then `intent todo done --flush`"
+        .to_string(),
+    ),
+    (None, false) => Err(
+      "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`), or pass `--flush` to advance the DONE watermark"
+        .to_string(),
+    ),
+  }
 }
 
 /// `intent export --format <fmt>` -- the estate as one portable document
