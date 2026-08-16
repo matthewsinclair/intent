@@ -41,7 +41,14 @@ set -uo pipefail
 # hidden: `burn.tsv` carries no revision, so this script cannot know where its
 # input came from. Until it does, the discipline is the caller's:
 #   git worktree add --detach <dir> <the measured rev>   then   WT=<dir>
-SP="${SP:?}"; WT="${WT:?set WT -- the worktree the BURN was measured in, not just any checkout}"
+# `SP` is now OPTIONAL -- an override for a genuine re-measure, not a
+# precondition. `WT` stays required and that is not an oversight: this script
+# reads SOURCE at the measured revision (fixture_probe.sh under `ROOT="$WT"`)
+# and stamps `REV` from it, so there is no committed file that could stand in
+# for it. Defaulting WT to the current checkout would stamp today's revision
+# onto a register derived from an older burn, which is precisely the rumour with
+# a decimal point the refusal below exists to prevent.
+SP="${SP:-}"; WT="${WT:?set WT -- the worktree the BURN was measured in, not just any checkout}"
 # THE INPUT IS COMMITTED, AT `tools/burn-baseline.tsv`, AND IS BYTE-IDENTICAL TO
 # THE `burn.tsv` THAT PRODUCED THE COMMITTED REGISTER. Verified 2026-08-15 by
 # diffing them and by regenerating: every data row came back identical.
@@ -55,14 +62,26 @@ SP="${SP:?}"; WT="${WT:?set WT -- the worktree the BURN was measured in, not jus
 #
 # To re-run:
 #   git worktree add --detach <dir> <the measured rev>   # register.md names it
-#   mkdir -p <sp> && cp tools/burn-baseline.tsv <sp>/burn.tsv
-#   SP=<sp> WT=<dir> OUT=<sp>/register.md bash tools/gen_register.sh
-BURN="$SP/burn.tsv"
-
-# Resolve the script's own directory to an ABSOLUTE path BEFORE the cd below.
+#   WT=<dir> OUT=<sp>/register.md bash tools/gen_register.sh
+#
+# THE `cp` IS GONE FROM THAT RECIPE, AND ITS ABSENCE IS THE POINT (dc, 2026-08-15).
+# This file spent eighteen lines above stating that its input is committed at
+# `tools/burn-baseline.tsv` and byte-identical to the `burn.tsv` that produced
+# the committed register -- and then read `$SP/burn.tsv` anyway, with the step
+# that connects the two living in a comment as a manual `cp`. **A generator that
+# DOCUMENTS where its input lives and does not READ it there is re-derivable
+# only by whoever reads the comment.** dc's guard checks that git holds the
+# declared input; it cannot see that the code reaches a scratch copy instead.
+# So the default is now the committed twin and `$SP` is an override for the
+# genuine re-measure case, rather than the only path.
+# Resolve the script's own directory to an ABSOLUTE path BEFORE the cd below --
+# and now before BURN too, since BURN defaults relative to it.
 # `dirname "${BASH_SOURCE[0]}"` is relative to the invocation, so reading it
 # after `cd "$WT"` resolves against the worktree and the source fails.
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+BURN="${BURN:-${SP:+$SP/burn.tsv}}"
+BURN="${BURN:-$HERE/burn-baseline.tsv}"
 
 cd "$WT" || { echo "gen_register: WT is not a directory: $WT" >&2; exit 2; }
 
@@ -155,7 +174,12 @@ REV="$(cd "$WT" && git rev-parse --short=7 HEAD 2>/dev/null)"
 # the exact defect this artefact was built to avoid. It emitted `Measured at ``
 # once, silently, from a mistyped WT. Refuse rather than publish that.
 [ -n "$REV" ] || { echo "gen_register: cannot resolve a revision from WT=$WT; refusing to write an unstamped register" >&2; exit 2; }
-OUT="${OUT:-$SP/register.md}"
+# Defaults to the COMMITTED artefact, matching gen_dispatch_table.sh, so a
+# re-run regenerates in place and `view_skew_check.sh` has something to compare.
+# It cannot happen by accident: `WT` is still required and has no default, so
+# nobody reaches this line without having named a worktree on purpose.
+OUT="${OUT:-${SP:+$SP/register.md}}"
+OUT="${OUT:-$HERE/../register.md}"
 OUT_TMP="$(mktemp "${TMPDIR:-/tmp}/gen_register.XXXXXX")"
 # One trap rather than a rm at each exit: this script has several refuse-and-
 # exit paths and each new one is a chance to leak a temp file that nobody

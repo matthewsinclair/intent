@@ -30,9 +30,20 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SP="${SP:?set SP}"
-WT="${WT:-$SP/wt}"
-OUTDIR="${OUTDIR:?set OUTDIR}"
+# `SP` is OPTIONAL -- an override for a genuine re-probe. The committed input
+# lives at `parity/probes/toplevel.tsv` (see the long note below, and the
+# correction to what that note used to claim), so the default path needs no
+# scratch directory at all.
+SP="${SP:-}"
+# `WT` is REQUIRED, and it used to default to `$SP/wt` -- a convenience that
+# pointed at a scratch directory for a variable this script reads SOURCE from
+# (`script_for`, the help files) and stamps its revision from. It is the same
+# genuinely-exempt input `gen_register.sh` and `gen_pertest.sh` name: a detached
+# worktree at the measured revision, re-derivable by `git worktree add` and not
+# a file that could live here. Defaulting it to the current checkout would map
+# today's source onto a measurement taken at `69d42a7`.
+WT="${WT:?set WT -- a detached worktree at the revision the inventory names, not just any checkout}"
+OUTDIR="${OUTDIR:-$HERE/..}"
 # `git rev-parse --short` picks its own length as the repo grows: the 2026-08-14
 # run produced `69d42a7`, the 2026-08-15 run `69d42a7f` for the SAME commit. The
 # provenance guard groups these files by their stamp and correctly refused a set
@@ -59,7 +70,8 @@ REV="$(cd "$WT" && git rev-parse --short=7 HEAD)"
 # this line and citing it made a good deletion look like compliance. THE ARGUMENT
 # THAT ACTUALLY HOLDS IS THE ONE ABOVE, and it is a stronger one: idempotence is a
 # property this file can check, whereas a rule cited from memory drifts under it.
-TSV="$SP/probes/toplevel.tsv"
+TSV="${TSV:-${SP:+$SP/probes/toplevel.tsv}}"
+TSV="${TSV:-$HERE/../probes/toplevel.tsv}"
 
 die() { echo "error: $1" >&2; exit 2; }
 
@@ -111,10 +123,23 @@ extract() {
 # THE TRAP IS THAT EVERY GENERATED FILE INSTRUCTS THE READER TO DO EXACTLY THIS.
 # Each `cmd-*.md` header reads "re-run it rather than editing this file", which
 # is right advice that silently destroyed the file the day its input went away.
-# The probe scratch (`$SP`) is a throwaway directory and `probes/toplevel.tsv`
-# has NEVER been tracked (`git log --all -- '*toplevel.tsv'` is empty), so the
-# input for the committed 2026-08-14 measurement at `69d42a7` no longer exists
-# anywhere on disk.
+# THE SENTENCE THAT USED TO BE HERE WAS FALSE, AND IT WAS FALSE IN THE MOST
+# expensive direction. It read: "`probes/toplevel.tsv` has NEVER been tracked
+# (`git log --all -- '*toplevel.tsv'` is empty), so the input for the committed
+# 2026-08-14 measurement at `69d42a7` no longer exists anywhere on disk."
+#
+# It is tracked, at `parity/probes/toplevel.tsv`, since `d9f76c5f` -- **my own
+# commit recovering it**, made after discovering the file was on disk the whole
+# time and merely untracked. The comment is the FOSSIL of the belief that commit
+# refuted, left behind asserting it. Found by dc 2026-08-16, who read it as
+# licence, which is exactly what a stale "it does not exist" becomes: the claim
+# stopped being a gap and became the stated REASON not to fix things.
+#
+# git answers questions about HISTORY. "Does it exist" is a question about the
+# FILESYSTEM, and an empty `git log --all` was never an answer to it. The
+# refusal below still earns its place -- the awk-against-a-missing-file failure
+# is real and silent -- but it now guards an input that HAS a committed home,
+# and `TSV` defaults there rather than to a scratch directory.
 #
 # So this refuses instead. It cannot restore the input, and that is the point:
 # a missing measurement must present as a REFUSAL to measure, never as a
@@ -311,4 +336,9 @@ fi
 
 printf 'ok: %s inventories from %s probed unit(s) in %s\n' \
   "$(printf '%s\n' "$PROBED" | wc -l | tr -d ' ')" \
-  "$(printf '%s\n' "$PROBED" | wc -l | tr -d ' ')" "${TSV#$SP/}" >&2
+  "$(printf '%s\n' "$PROBED" | wc -l | tr -d ' ')" "$(basename "$TSV")" >&2
+# `${TSV#$SP/}` was here to shorten the path for display, and it broke the
+# moment `SP` became optional: with SP empty the pattern is `/`, so it stripped
+# the LEADING SLASH and printed an absolute path as a relative one, `/../` and
+# all. A prefix-strip whose prefix can be empty strips whatever the delimiter
+# alone matches -- silently, and only in the display.

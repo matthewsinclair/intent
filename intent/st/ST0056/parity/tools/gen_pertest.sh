@@ -125,11 +125,23 @@ if [ "${1:-}" = "--verify" ]; then
   exit 0
 fi
 
-SP="${SP:?set SP -- directory holding burn.tsv}"
+# `SP` is OPTIONAL -- an override for a genuine re-measure. `WT` stays required
+# because this script reads source at the measured revision and stamps from it;
+# no committed file can stand in for a worktree.
+SP="${SP:-}"
 WT="${WT:?set WT -- the worktree the sweep measured}"
-BURN="$SP/burn.tsv"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# BURN DEFAULTS TO THE COMMITTED TWIN, which is the same fix the TAP input got
+# below and for the same reason. This file said its input was committed and
+# then read `$SP/burn.tsv`, with `cp tools/burn-baseline.tsv <sp>/burn.tsv`
+# living in a comment as the step that connected them -- so it defaulted ONE of
+# its two inputs and I described that as needing no env override (dc measured
+# it, 2026-08-15, and was right). A generator that reaches its committed input
+# only via a manual copy is re-derivable by whoever reads the comment.
+BURN="${BURN:-${SP:+$SP/burn.tsv}}"
+BURN="${BURN:-$HERE/burn-baseline.tsv}"
 
 # THE TAP INPUT IS COMMITTED, AT `tools/tap-baseline/`, and defaults to it --
 # the same shape `gen_register.sh` uses for `tools/burn-baseline.tsv`, because
@@ -176,7 +188,10 @@ corpus_require "$BURN" "gen_pertest" "$WT" || exit 2
 # `cd "$WT"` above, so this is the MEASURED tree and not the caller's.
 REV="$(git rev-parse --short=7 HEAD 2>/dev/null)"
 [ -n "$REV" ] || { echo "gen_pertest: cannot resolve a revision from WT=$WT; refusing to write an unstamped artefact" >&2; exit 2; }
-OUT="${OUT:-$SP/pertest.md}"
+# Defaults to the COMMITTED artefact, so a re-run regenerates in place. `WT` has
+# no default, so nobody reaches this line without naming a worktree on purpose.
+OUT="${OUT:-${SP:+$SP/pertest.md}}"
+OUT="${OUT:-$HERE/../pertest.md}"
 OUT_TMP="$(mktemp "${TMPDIR:-/tmp}/gen_pertest.XXXXXX")"
 BODY_TMP="$(mktemp "${TMPDIR:-/tmp}/gen_pertest_body.XXXXXX")"
 trap 'rm -f "$OUT_TMP" "$OUT_TMP.aligned" "$BODY_TMP"' EXIT
