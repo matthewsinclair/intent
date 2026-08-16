@@ -79,3 +79,50 @@ Issue 0043 updated with all of it.
 FYI only -- no response needed.
 
 -- vc
+
+## (2026-08-16 20:12Z)
+
+**FILED 0044 (high): the mirror of 0043. 0043 is four CALLERS disagreeing over what `2` means; 0044 is the TOOL using `1` for five unrelated conditions, one of which is "your code has findings".**
+
+Swept every top-level command at pinned SHA `0ef6e0a1`, each bare in its own fresh empty dir, `bootstrap`/`daemon`/`mcp` deliberately excluded (global writes, servers):
+
+| condition                                | example                                 | exit  |
+| ---------------------------------------- | --------------------------------------- | ----- |
+| unimplemented command                    | `intent info`, `intent version`         | **2** |
+| unimplemented subcommand, parent exists  | `intent claude hook require-in-session` | **2** |
+| **retired, absent from the surface**     | `intent treeindex`, `intent organize`   | **1** |
+| implemented, missing required subcommand | `intent st`                             | **1** |
+| implemented, missing required argument   | `intent search`                         | **1** |
+| **implemented, genuine runtime refusal** | `intent st list` outside a project      | **1** |
+
+**`2` is reliable -- 13 of 30 commands are unimplemented and all 13 exit 2, so `d2b8e76d` is honoured consistently and this issue depends on that being true.** The defect is everything else.
+
+**The structural cause is the part worth keeping: the exit code is decided by WHERE the failure happens in the parse tree, not by WHAT went wrong.** An unimplemented command is caught after dispatch and gets the deliberate code. **A RETIRED one never reaches dispatch, because retirement removes it from the clap surface** -- so the refusal happens before the code that would choose a meaningful exit code ever runs. **The careful work in `d2b8e76d` is structurally unreachable for exactly the class of command a migration is most likely to hit.**
+
+**`intent critic shell --staged` exits `2`** -- the gate's real invocation, confirmed correct, so nothing here narrows 0038's fix.
+
+**And `intent version` exits `2`.** No arguments, cannot fail environmentally, most script-callable command in the tool, and under v3 it reports unavailable.
+
+**THE MEASURED IMPACT IS IN YOUR DEVBIN, AND IT IS THE CONSUMER YOU NAMED.** `bin/.devbin/lib/cmd/docs:58` calls `intent treeindex "$d"` and **does not check its exit code** -- the loop's `rc` moves only in the missing-directory branch above it. Under v3 `treeindex` is retired, each call exits 1, the loop ignores it, **and `builtin_docs_treeindex` returns 0.**
+
+Measured by running the real `bin/int docs treeindex lib bin`:
+
+```
+==> docs treeindex
+    lib
+error: unrecognized subcommand 'treeindex'
+    bin
+error: unrecognized subcommand 'treeindex'
+verdict: .../20260816-2111.DOCSTREE.errors
+rc=0
+```
+
+**Not silent -- your correction to me on 0042 applies here and I have written it that way in the issue.** The errors are on screen. **What it is, is GREEN**: rc=0, and the verdict artefact it writes is EMPTY. Two directories failed to index and the run's own record says nothing went wrong.
+
+**I measured this with a STUB that reproduces v3's retired-command behaviour, NOT with the real v3 binary, because your own rule forbids putting v3 on a PATH.** Same measurement, zero exposure. The repo is clean afterwards -- everything it wrote landed under the gitignored `tmp/`.
+
+**Your fourth-consumer instinct was right and it under-counted, which I have now said twice today because the evidence keeps arriving.** Four issues -- 0038, 0042, 0043, 0044 -- each diagnosed against whichever consumer happened to be in view.
+
+**One thing I am NOT claiming: that `docs treeindex` is the only instance.** It is the one I found by looking at the file 0043's fix led me to. The class is every script that calls `intent` and checks `$?`.
+
+-- vc

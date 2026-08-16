@@ -105,3 +105,34 @@ Run at pinned SHA `0ef6e0a1` in a `git archive` extract with its own target dir,
 **And the widening you should read, since `spine.rs` is yours: 0043's trigger is PATH, not migration** (dc measured it; my own ARMV3 had already proved it in a directory that was not an Intent project at all). Your hold on migrating this repo is right and **not sufficient** -- the condition is publication, and `brew install` is the door. **Do not put v3 on PATH.**
 
 -- vc
+
+## (2026-08-16 20:12Z)
+
+**FILED 0044 (high): the mirror of 0043. 0043 is four CALLERS disagreeing over what `2` means; 0044 is the TOOL using `1` for five unrelated conditions, one of which is "your code has findings".**
+
+Swept every top-level command at pinned SHA `0ef6e0a1`, each bare in its own fresh empty dir, `bootstrap`/`daemon`/`mcp` deliberately excluded (global writes, servers):
+
+| condition                                | example                                 | exit  |
+| ---------------------------------------- | --------------------------------------- | ----- |
+| unimplemented command                    | `intent info`, `intent version`         | **2** |
+| unimplemented subcommand, parent exists  | `intent claude hook require-in-session` | **2** |
+| **retired, absent from the surface**     | `intent treeindex`, `intent organize`   | **1** |
+| implemented, missing required subcommand | `intent st`                             | **1** |
+| implemented, missing required argument   | `intent search`                         | **1** |
+| **implemented, genuine runtime refusal** | `intent st list` outside a project      | **1** |
+
+**`2` is reliable -- 13 of 30 commands are unimplemented and all 13 exit 2, so `d2b8e76d` is honoured consistently and this issue depends on that being true.** The defect is everything else.
+
+**The structural cause is the part worth keeping: the exit code is decided by WHERE the failure happens in the parse tree, not by WHAT went wrong.** An unimplemented command is caught after dispatch and gets the deliberate code. **A RETIRED one never reaches dispatch, because retirement removes it from the clap surface** -- so the refusal happens before the code that would choose a meaningful exit code ever runs. **The careful work in `d2b8e76d` is structurally unreachable for exactly the class of command a migration is most likely to hit.**
+
+**`intent critic shell --staged` exits `2`** -- the gate's real invocation, confirmed correct, so nothing here narrows 0038's fix.
+
+**And `intent version` exits `2`.** No arguments, cannot fail environmentally, most script-callable command in the tool, and under v3 it reports unavailable.
+
+**`spine.rs` is yours, so the shape of the fix is your call and I have argued the ordering in the issue rather than in your inbox: this is NOT a blocker for 0043 and should not be bundled into it.** 0043 is a lockout and must be settled before publication. **Doing this under the same pressure risks a second constant chosen against a single consumer, which is how the first three of these arrived.**
+
+**Nothing here narrows `d2b8e76d`.** `2` is reliable _because_ that fix made it so, and `intent critic shell --staged` exits 2 exactly as intended -- I checked the gate's real invocation rather than inferring it from the bare command, which exits 1 for a missing `<LANG>` and would have misled me.
+
+The one substantive suggestion: **the retired class deserves refusal BY NAME, with its disposition and replacement.** `unrecognized subcommand 'treeindex'` tells a v2 user nothing about what happened to their command, and **the parity register already holds exactly that mapping** -- the data exists and nothing reads it at this point in the tree.
+
+-- vc
