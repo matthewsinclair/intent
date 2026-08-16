@@ -385,23 +385,39 @@ States: `NotStarted` | `Wip` | `Done`. **Entry: `NotStarted`.**
 
 ### Machine 3 -- Acceptance criterion
 
-**One enum replaces two fields.** Today `Criterion` carries `satisfied: Option<bool>` AND `scope: AcScope`, which is what produces "three stored values, two meanings, one of them never written". Per hv: `Satisfied | Unsatisfied | Descoped | Withdrawn`. **Entry: `Unsatisfied`.**
+**One enum replaces two fields.** Today `Criterion` carries `satisfied: Option<bool>` AND `scope: AcScope`, which is what produces "three stored values, two meanings, one of them never written". Per hv: `Computed | Satisfied | Unsatisfied | Descoped | Withdrawn`. **Entry: `AcState::entry(kind)` -- `Unsatisfied` for an authored criterion, `Computed` for a test-backed one.**
+
+> **This table carried FOUR states until 2026-08-16 and the machine has had five since hv ratified `computed` on 2026-08-15.** The ratification, the reasoning and my own reversal onto cc's form are all recorded above under "The fifth state" -- **230 lines above, under a different heading, which is the whole problem.** The document was never wrong as a whole; it was wrong at the one place an implementer reads to find out what to build, with the correction filed where someone would only look if they already knew. **A superseded table beside its own correction is worse than either alone**, because agreeing with the document is no longer a test of anything. The rows below are now the ratified machine; the section above remains the reasoning for it.
 
 | From          | To            | Verb                    | Guard                                |
 | ------------- | ------------- | ----------------------- | ------------------------------------ |
-| _(none)_      | `Unsatisfied` | authored                | --                                   |
+| _(none)_      | `Unsatisfied` | authored                | **non-test** criterion               |
+| _(none)_      | `Computed`    | authored                | **test-backed** criterion            |
 | `Unsatisfied` | `Satisfied`   | `ac satisfy --evidence` | **non-test AC only**; evidence given |
 | `Satisfied`   | `Unsatisfied` | `ac unsatisfy`          | clears evidence (cc built this)      |
+| `Computed`    | `Descoped`    | `ac descope --to <ID>`  | target thread exists                 |
 | `Unsatisfied` | `Descoped`    | `ac descope --to <ID>`  | target thread exists                 |
 | `Satisfied`   | `Descoped`    | `ac descope --to <ID>`  | clears evidence first                |
-| `Descoped`    | `Unsatisfied` | `ac rescope`            | --                                   |
+| `Descoped`    | `Unsatisfied` | `ac rescope`            | **non-test** -- lands on entry state |
+| `Descoped`    | `Computed`    | `ac rescope`            | **test-backed** -- lands on entry    |
+| `Computed`    | `Withdrawn`   | `ac withdraw --reason`  | reason recorded                      |
 | `Unsatisfied` | `Withdrawn`   | `ac withdraw --reason`  | reason recorded                      |
 | `Satisfied`   | `Withdrawn`   | `ac withdraw --reason`  | clears evidence first                |
-| `Withdrawn`   | `Unsatisfied` | `ac reinstate`          | --                                   |
+| `Withdrawn`   | `Unsatisfied` | `ac reinstate`          | **non-test** -- lands on entry state |
+| `Withdrawn`   | `Computed`    | `ac reinstate`          | **test-backed** -- lands on entry    |
 
 **`Descoped` and `Withdrawn` are NOT the same state** and there is no direct edge between them -- descoped means the requirement still exists on a named thread and is a pointer you can follow; withdrawn means it does not exist at all. Moving between them routes through `Unsatisfied`, so the audit trail records the intermediate decision rather than smearing two facts into one.
 
 **The asymmetry that must be explicit: a TEST-BACKED AC is never `satisfy`-ed by hand.** Its state is COMPUTED from its covering ATs -- green ATs satisfy it, anything else does not. So for test-backed ACs the `Unsatisfied <-> Satisfied` edges are not verbs at all; they are consequences of the AT status changing. `ac satisfy` applies only to `(non-test)` ACs. **This means the AC machine has two variants and only one of them has a satisfy verb** -- a fact currently enforced by L5 in the linter and nowhere in the model.
+
+### Two more state fields exist and are deliberately not tabled here (recorded 2026-08-16)
+
+**Three machines are documented above; `transitions.rs` classifies FIVE fields as `Disposition::State`.** The other two are `WorkPackage.scope` and `AcceptanceTest.status`, and naming them stops this section reading as the complete set -- which it does not say and which a reader would reasonably assume.
+
+- **`WorkPackage.scope`** -- six T-shirt values, **all six `initial`** because `wp new` takes the size from the caller, with `wp rescope` the single exit. A value the caller supplies at creation has been ENTERED, so before `wp rescope` existed all six were traps and neither v2 nor v3 had the verb. The reasoning lives in the code comment; it does not need a table because the graph is "any value, one verb, any value".
+- **`AcceptanceTest.status`** -- `to-write` / `red` / `green` / `n-a`, entry `to-write`, one verb `at.set` reaching all four. **This is the machine with the most operational subtlety and the least written down**: that `to-write` means the test is UNWRITTEN while `red` means it EXISTS and fails, and that neither means "the criterion is unmet", is enforced by the linter's L2/L3 and recorded on a whiteboard, not here. The graph is trivial and the SEMANTICS are not, which is the opposite shape to `scope` and the reason it is called out rather than merely counted.
+
+**Neither is a gap in `transitions.rs`** -- both are classified, both are closed, and `mutation_completeness.rs` would refuse them if they were not. The gap was this document implying three.
 
 ### What this gives cc's `transitions.rs`
 
