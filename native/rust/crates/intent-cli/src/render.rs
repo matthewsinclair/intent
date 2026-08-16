@@ -932,6 +932,9 @@ fn doctor() -> Result<(), String> {
   for finding in &report.findings {
     println!("{finding}");
   }
+  for withheld in withheld_flags() {
+    println!("{withheld}");
+  }
   println!(
     "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s)",
     report.findings.len(),
@@ -946,6 +949,52 @@ fn doctor() -> Result<(), String> {
     // The report above IS the message; the exit code is the machine's copy.
     Err(String::new())
   }
+}
+
+/// **Flags the table declares and the surface deliberately withholds** --
+/// AC-06.8's "absence must not be silent" half.
+///
+/// The ruling is that a `pending` flag does not refuse the build and does not
+/// ship, and that `doctor` reports the count so the quiet-absence hazard is
+/// answered somewhere. **The first half worked and the second did not exist**,
+/// and ic's diagnosis of why is the reason this lives here rather than beside
+/// the rest of `doctor`: the mitigation was ruled into `intentsvcs::doctor`,
+/// which **structurally cannot perform it**. `intentsvcs` does not depend on
+/// `intent-cli`, and the table is `include_str!`'d into this crate, so the
+/// facade cannot see the data the finding is about. Making it able to would
+/// invert the layering to satisfy a report.
+///
+/// So the surface half of the report is composed in the surface's own crate and
+/// printed beside the facade's findings, which is the shape that needs no new
+/// dependency in either direction.
+///
+/// **It NAMES them rather than counting them.** A count tells a user that
+/// something is missing and not which thing they just failed to run, and the
+/// hazard being answered is specifically that three of these four WORK IN v2 --
+/// a user who read v2's help and typed `doctor --verbose` gets `unexpected
+/// argument` with no hint that the flag is deliberately withheld pending a
+/// decision (ic, measured). Naming costs one line each and answers the actual
+/// question.
+///
+/// These are NOT findings: they do not count toward the total and they do not
+/// make `doctor` exit nonzero. A deliberate, ratified withholding is not a
+/// defect in the estate, and reporting it as one would train a reader to
+/// ignore the number that matters.
+fn withheld_flags() -> Vec<String> {
+  let table = dispatch::table();
+  let mut out = Vec::new();
+  for entry in dispatch::shipped_entries(&table) {
+    for flag in &entry.flags {
+      if flag.disposition == "pending" {
+        out.push(format!(
+          "surface: `{}` withholds {} pending a decision on whether it ships -- it is declared and deliberately not built",
+          entry.path,
+          flag.spellings.join(" / ")
+        ));
+      }
+    }
+  }
+  out
 }
 
 /// AC-06.5: print the generated schema faces.

@@ -561,3 +561,107 @@ fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
      enumeration is collapsing, and a check that examines nothing passes"
   );
 }
+
+/// **AC-06.8's second half: a withheld flag is reported, not silently absent.**
+///
+/// The ruling has two halves -- `pending` does not ship, and its absence is not
+/// silent. The first worked; the second **did not exist**, and ic's diagnosis of
+/// why is the part worth keeping: it was ruled into `intentsvcs::doctor`, which
+/// cannot read a table that is `include_str!`'d into the CLI crate. **A
+/// mitigation ruled into the one place that structurally cannot perform it**,
+/// which is why nobody noticed it was missing -- there was no obvious hole where
+/// the code should have been.
+///
+/// Driven from the declaration, both directions: every `pending` flag on a
+/// shipped entry must be named, and no flag that SHIPS may be reported as
+/// withheld. Without the second half this passes on a report that lists every
+/// flag in the table.
+#[test]
+fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  std::fs::create_dir_all(dir.path().join("intent/.config")).expect("mkdir");
+  std::fs::write(
+    dir.path().join("intent/.config/config.json"),
+    "{\"intent_version\":\"3.0.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
+  )
+  .expect("write config");
+
+  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .arg("doctor")
+    .current_dir(dir.path())
+    .output()
+    .expect("run doctor");
+  let text = String::from_utf8_lossy(&out.stdout).to_string();
+
+  let table = dispatch::table();
+  let (mut withheld, mut shipped) = (0, 0);
+  let mut wrong = Vec::new();
+  for entry in dispatch::shipped_entries(&table) {
+    for flag in &entry.flags {
+      let named = text.lines().filter(|l| l.starts_with("surface:")).any(|l| {
+        l.contains(&format!("`{}`", entry.path))
+          && flag.spellings.iter().any(|s| l.contains(s.as_str()))
+      });
+      if flag.disposition == "pending" {
+        withheld += 1;
+        if !named {
+          wrong.push(format!(
+            "SILENT   `{}` {:?} is withheld and doctor does not say so",
+            entry.path, flag.spellings
+          ));
+        }
+      } else if flag.ships() && named {
+        shipped += 1;
+        wrong.push(format!(
+          "REPORTED `{}` {:?} ships and doctor calls it withheld",
+          entry.path, flag.spellings
+        ));
+      } else if flag.ships() {
+        shipped += 1;
+      }
+    }
+  }
+
+  assert!(
+    wrong.is_empty(),
+    "doctor's account of the withheld surface disagrees with the table:\n  {}",
+    wrong.join("\n  ")
+  );
+  assert!(
+    withheld > 0 && shipped > 0,
+    "this needs both kinds to be discriminating: {withheld} withheld and {shipped} shipped"
+  );
+
+  // **A withholding is not a defect and must not inflate the finding count**,
+  // or a reader learns to ignore the one number that carries the verdict.
+  //
+  // Asserted against the report's own arithmetic rather than against a clean
+  // project: a bare config-only project has findings of its own, so "expect
+  // zero" was a fact about the fixture and not about the property. Findings
+  // print their first line at column 0 and their remedy indented; the surface
+  // lines and the summary are the two other shapes.
+  let summary = text
+    .lines()
+    .find(|l| l.starts_with("doctor: "))
+    .expect("the summary line");
+  let reported: usize = summary
+    .trim_start_matches("doctor: ")
+    .split_whitespace()
+    .next()
+    .and_then(|n| n.parse().ok())
+    .unwrap_or_else(|| panic!("the summary leads with a count: {summary}"));
+  let printed = text
+    .lines()
+    .filter(|l| {
+      !l.starts_with(' ')
+        && !l.starts_with("surface:")
+        && !l.starts_with("doctor: ")
+        && !l.is_empty()
+    })
+    .count();
+  assert_eq!(
+    reported, printed,
+    "the count must be of FINDINGS: {withheld} withheld flags were printed and the summary says \
+     {reported} across {printed} finding lines"
+  );
+}
