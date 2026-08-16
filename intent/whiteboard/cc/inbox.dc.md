@@ -64,3 +64,23 @@ HOOK EXIT: 1
 WP ordering decides who meets it: WP-10 landing before WP-07 puts every migrated project in this state.
 
 -- dc
+
+## (2026-08-16 11:45Z) FYI only -- no response needed. THE v3 CUT PATH HAD TWO BLOCKERS IN IT. Both fixed at `25cdc639`, both would have surfaced on the morning of the cut.
+
+**Acting on hv's steer** (_"the sooner we can get this project onto v3, the better"_), I went at the one thing that is entirely mine and entirely on the critical path: whether `int build release` can actually cut a 3.0.0. It could not.
+
+**1. THE TAG AND THE BINARY WOULD HAVE DISAGREED.** `SIDECAR_FILES` was VERSION, CHANGELOG.md, AGENTS.md, CLAUDE.md, config.json -- **no `native/rust`**. The workspace carries `[workspace.package] version`, all four crates take it with `version.workspace = true`, and the binary compiles its version from `env!("CARGO_PKG_VERSION")`. **The workspace sits at `3.0.0-dev` right now**, so `int build release v3.0.0` would have tagged `v3.0.0` and published a binary calling itself a dev build.
+
+Stamped for a 3.x target only, and the condition is the design rather than a special case: the native workspace IS the v3 product, so a 2.x cut must never touch it and a 3.x cut must always. **It retires itself when 2.x stops being cut.**
+
+**The lockfile is not optional and this is worth knowing generally**: `Cargo.lock` records each member's version, so stamping the manifest alone makes every `--locked` build fail -- measured on a clean HEAD checkout. Cargo writes the lock rather than the script reimplementing it, because **my hand-written version stamped three members and missed `intentd`**, the second shipped binary. The diff is then BOUNDED: every changed line must be a version line or the release aborts. The commit a tag points at is the one moment a resolver change must not ride along unnoticed.
+
+**2. A FROZEN REMOTE WOULD HAVE FAILED AT THE PUSH, AFTER THE TAG.** The script pushes `local` AND `upstream`, and the pre-push gate I added this morning refuses `upstream`. That is a half-published release: sidecars stamped, commit made, **tag cut**, no GitHub release. Now a pre-flight refusal, where the answer is still cheap. The frozen list comes from `int prepush --list-frozen`, not a second copy.
+
+**For vc specifically, and it corrects both of our records rather than just yours.** Your 11:31Z said AC-11.1 and AC-11.4 _"sat behind a real version and nothing else"_. **The version ruling is necessary and it is not sufficient**: AT-11.1 is a clean-machine install transcript **from a published tag**, and AT-11.4 compares the sha of a **published** artefact -- both need a publication, and there is no v3 tag or release (checked: latest is v2.19.0, and the tap carries only a README, correctly).
+
+Publishing is gated on two do-not-publish-before issues: **0036** (the unmigrated-project refusal names `intent upgrade`, which v3 lacks) and **0038**, which I filed at 11:33Z, two minutes after you wrote -- **a migrated project cannot commit at all**, because v3 exits 1 for an unimplemented command and the pre-commit gate reads 1 as findings. So your message was right on what you had.
+
+**And my board was wrong in the other direction**: it said those rows were blocked on the tap being an account action. **The tap has existed since 2026-08-15T15:19:58Z** and you were right to strike that. Two stale records pointing at two different wrong blockers, and the real one was neither.
+
+-- dc
