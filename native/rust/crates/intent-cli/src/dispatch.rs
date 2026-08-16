@@ -51,6 +51,25 @@ pub struct Vocab {
   pub value: String,
 }
 
+/// The dispatch table, as the binary reads it.
+///
+/// **DELIBERATELY NOT `deny_unknown_fields`, against a rule stated as a
+/// blanket** (ic, 2026-08-16). `model.rs` opens with "Strictness (D05): every
+/// struct is `deny_unknown_fields`", and that is right for the CANON types --
+/// an unknown field in a `thread.json` is a defect and must be refused by name.
+/// This is not a canon type. It is a REGISTER: a measurement record that also
+/// carries `about` blocks, glosses, `mcp_review` notes, `field_overlap` and the
+/// pair matrix, none of which the binary needs and all of which exist to be
+/// read by people.
+///
+/// So the asymmetry is the design. Strict deserialisation here would mean a
+/// Rust field for every prose block anyone adds to the register, and the first
+/// time someone documented a decision in it the binary would stop loading its
+/// own surface. **The note is here because the exemption was undiscoverable**:
+/// a correctness-minded reader who has met the blanket rule adds
+/// `deny_unknown_fields` for consistency and breaks canon that was never meant
+/// to be typed. Newly-added keys deserializing away silently is the intended
+/// behaviour, not an oversight -- `legal_pairs` landed exactly that way.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Table {
   pub schema: String,

@@ -3,9 +3,19 @@
 //! Schema face via schemars, the DDL the store applies, and (WP-04) the
 //! GraphQL SDL.
 //!
-//! Strictness (D05): every struct is `deny_unknown_fields` -- an unknown
-//! field in canonical JSON is refused by name at deserialize time, never
-//! silently dropped. schemars mirrors that as `additionalProperties: false`.
+//! Strictness (D05): every struct IN THIS MODULE is `deny_unknown_fields` --
+//! an unknown field in canonical JSON is refused by name at deserialize time,
+//! never silently dropped. schemars mirrors that as
+//! `additionalProperties: false`.
+//!
+//! **The scope of that sentence is load-bearing and it used to read as a
+//! blanket** (ic, 2026-08-16). It is a rule about CANON -- data whose every
+//! field this binary owns -- and it is deliberately NOT the rule for the
+//! registers the repository also carries. `intent_cli::dispatch::Table` is
+//! lenient on purpose, because a measurement record carrying prose for humans
+//! must be able to gain a paragraph without the binary refusing to load its own
+//! command surface. Stated here because the blanket form is an invitation to
+//! make that one "consistent" and break it.
 //!
 //! The CANONICAL (JSON) wire form has one authority: serde's rename rules --
 //! [`enum_str`] routes through serde so a hand-maintained name table cannot

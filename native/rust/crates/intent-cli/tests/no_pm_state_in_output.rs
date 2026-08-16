@@ -54,6 +54,8 @@
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
+
+use intent_cli::dispatch;
 use testkit::repo_root;
 
 // ---------------------------------------------------------------------------
@@ -192,23 +194,78 @@ fn run(dir: &Path, args: &[&str]) -> String {
   both
 }
 
-/// Every command path the dispatch table declares, families and verbs alike.
+/// Every SHIPPED command path the dispatch table declares -- from **both** of
+/// its row homes.
+///
+/// **This was wrong in two directions at once, which is why it looked right**
+/// (vc, issue 0037). It walked `families[].entries[]` and stopped, so the
+/// top-level `new_surface` array -- `search`, `sync`, `schema`, `export`,
+/// `ingest`, `backup`, `daemon`, `mcp`, eight rows with zero overlap -- was
+/// never scanned by ANY surface in this file. Their help lives in the
+/// compiled-in JSON rather than in Rust literals, so the string-literal scan
+/// does not reach them either. And it took every row regardless of
+/// disposition, so it also drove five RETIRED paths. One enumerator, too
+/// narrow and too wide.
+///
+/// **The count assertion was the reason nobody noticed.** It read
+/// `paths.len() > 20` under the message "precondition: the dispatch table
+/// declares the command surface" -- a sentence that reads as a coverage claim
+/// and is a did-the-file-parse check. It passes at 104 and it passes at 112,
+/// so it could not see a twelfth of the surface be absent. **A precondition
+/// whose message describes a stronger property than it tests is worse than no
+/// message**, because it answers the question a reader came to ask.
+///
+/// So the shape is now: read both homes, and filter on the SAME
+/// [`dispatch::Entry::is_shipped`] the spine applies when it builds the
+/// surface -- reusing that decision rather than making a second one that can
+/// drift from it. The table is read through the typed `dispatch::table()` for
+/// the same reason.
 fn declared_paths() -> Vec<String> {
-  let table = std::fs::read_to_string(repo_root().join("surface/dispatch-table.json"))
-    .expect("the dispatch table is committed");
-  let table: serde_json::Value = serde_json::from_str(&table).expect("the dispatch table parses");
-  let mut paths = Vec::new();
-  for family in table["families"].as_array().into_iter().flatten() {
-    for entry in family["entries"].as_array().into_iter().flatten() {
-      if let Some(p) = entry["path"].as_str() {
-        paths.push(p.to_string());
-      }
-    }
-  }
+  let table = dispatch::table();
+  let from_families: Vec<String> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .filter(|e| e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+  let from_new_surface: Vec<String> = table
+    .new_surface
+    .iter()
+    .filter(|e| e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+
+  // **Each home is asserted separately, because the defect was one home
+  // returning nothing while the total still looked healthy.** A single total
+  // cannot distinguish "both homes read" from "one home read and the other is
+  // large"; these two can, and they are what actually regressed.
   assert!(
-    paths.len() > 20,
-    "precondition: the dispatch table declares the command surface, got {} paths",
-    paths.len()
+    !from_families.is_empty(),
+    "precondition: no shipped row was read from `families`, so the ported surface is unscanned"
+  );
+  assert!(
+    !from_new_surface.is_empty(),
+    "precondition: no shipped row was read from `new_surface`, so v3's own commands are \
+     unscanned -- this is issue 0037 exactly, and it passed for a day"
+  );
+
+  let paths: Vec<String> = from_families.into_iter().chain(from_new_surface).collect();
+
+  // And the total EQUALS what the table declares as shipped, computed by
+  // counting rather than by collecting, so going short is an error rather than
+  // a smaller number that still satisfies a `>`.
+  let shipped = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .filter(|e| e.is_shipped())
+    .count();
+  assert_eq!(
+    paths.len(),
+    shipped,
+    "the scan covers every shipped row the table declares, or it covers an unstated subset"
   );
   paths
 }
