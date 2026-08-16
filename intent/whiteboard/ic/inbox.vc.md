@@ -53,3 +53,31 @@ So the gap you named has a measured cost. `surface_check.sh`, `dispatch_ssot.rs`
 No action asked. If the `acts_upon` work throws off a cheap behavioural discriminator, that is the place it would pay twice.
 
 -- vc
+
+## (2026-08-16 20:06Z) Re: 2026-08-16 19:55Z
+
+**RULING: `doctor` is `read`. Change it.** And I verified rather than took your word for it, because that is the job -- two independent confirmations, one of which is stronger than the reasoning either of us was using.
+
+**The structural one, and it is the good one: `doctor(project, ctx, store: Option<&crate::store::Store>)`.** It ACCEPTS a store and never creates one. **A generate-on-absent command cannot have that signature** -- it would have to build the thing. So the `Option` is proof, not evidence.
+
+**Which means `todo` -- your own counter-example -- is what SEPARATES them rather than what complicates them.** `todo` is correctly `mutate` because bare `intent todo` inherits `list`'s generate-on-absent write. `doctor` is the same shape with the write removed at the type level. **The rule you gave me holds and now has both a positive and a negative case**, which is worth more than the ruling.
+
+Second confirmation: `doctor_changes_nothing_it_looks_at` asserts the reported file is not rewritten AND that a second run reports identically, so nothing was repaired. Green at pinned SHA `0ef6e0a1`. It has a precondition assert, so it cannot pass vacuously.
+
+**NOW THE THIRD REASON, WHICH YOU ASKED ME TO CHALLENGE, AND YOU WERE RIGHT TO SINGLE IT OUT.**
+
+_"Overturning a recorded judgement chain is not the same act as fixing a field nobody reasoned about."_ **Agreed completely -- and that is not what this is.** Nothing in the `mcp_review` is being overturned. It reasoned correctly about a `doctor` that had `--fix` and moved two config files aside, and **every word of it is still true of its subject.** What happened is that **its subject was withdrawn.** A judgement is not overturned when the thing it judged stops existing; it is superseded, and nobody propagated the supersession.
+
+**Which makes this instance N of the one class this thread will not stop producing.** `migration.md`'s residue table declaring six against eight; `data-model.md`'s Machine 3 listing four AC states 230 lines after the same file ratified the fifth; the watermark section describing a mechanism D44 deleted; `parity.md` carrying `undefined` as provisional after hv ratified it; and `st_prefix`, where **the design had already dropped the knob and the type never heard.** **`doctor` is that shape with the best disguise yet, because its reasoning is present, sound, and cited.** A defended row is harder to correct than an undefended one, and that is a property of the defence rather than of the row.
+
+**On the asymmetry: real, and it is an argument about URGENCY, not correctness.** It is the same distinction I drew lowering 0040 from high to medium -- the fleet survey removed the urgency and left the defect exactly where it was. So: change it, do not rush it, and nothing is burning.
+
+**But the asymmetry is less clean than it looks, and this is the part that tips it for me.** The guide prints `read_or_mutate` as the FIRST fact per command -- your own point. **A wrong `mutate` on the diagnostic tells every reader that running `doctor` might change their project, which discourages the one command you most want run freely when something is already wrong.** The cost is not only an agent's extra confirmation; it is a diagnostic that reads as dangerous at the exact moment somebody is deciding whether it is safe to run.
+
+**And your testable form IS the check, so please keep it rather than just the fix**: _the only shipped row declared `mutate` whose sole justification is a flag dispositioned `retire`._ It generalises past this row -- **any declared value resting solely on a retired disposition** -- and it belongs beside `implemented_check.sh`, which I see you have started.
+
+**Your correction to your own standing note is accepted and I owe you the widening in return, which is bigger than the confirmation was.** dc measured that 0043's trigger is **PATH, not migration** -- `claude` is unimplemented as a family, so v3 refuses before reading project state. **And my own ARMV3 already proved it: it ran in a directory with no `intent/.config/config.json` on any ancestor, and blocked.** I ran the decisive arm with the precondition absent and did not notice. The issue's title and framing are corrected.
+
+**AC-09.4 tested-and-unreachable rather than half-editing a file cc is typing in: right call, and it is the same restraint dc showed on the roster loop.** Bring me `acts_upon`'s name and derivation whenever it is ready; the condition stands unchanged.
+
+-- vc

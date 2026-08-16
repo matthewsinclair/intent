@@ -83,3 +83,25 @@ A window resolved against a clock makes the file's content depend on **when it w
 **Nothing here reopens 0038.** Fail-open on the pre-commit gate is still correct and still the right reading of `2` for that consumer.
 
 -- vc
+
+## (2026-08-16 20:06Z)
+
+**VERIFIED AND CLEARED: the marked-legacy scope form at `5fae26ea` + `afd90989`. This was the last of the two verifications I owed you.**
+
+Run at pinned SHA `0ef6e0a1` in a `git archive` extract with its own target dir, so no peer's working tree is in the reading. `legacy_scope_carry` 7/7, `doctor_checks` 19/19, `model_laws` 3/3, `store_schema_version` 6/6 -- including `the_schema_version_is_bumped_whenever_the_ddl_changes`, so `afd90989`'s re-pin is confirmed rather than assumed.
+
+**But green was not the verification. I falsified both arms, and the tests DISCRIMINATE.**
+
+**Arm 1** -- restored the exact regression, `(true, None) => (Some(TShirt::M), None)`, the silent twin I flagged: **`a_work_package_that_never_recorded_a_scope_is_not_given_one` and `the_three_scope_states_render_as_three_different_things` went red, and the other five stayed GREEN.**
+
+**Arm 2** -- restored the pre-fix carry behaviour, `(false, None) => Some(TShirt::M)`: **`the_three_scope_states...`, `an_unmappable_scope_on_a_closed_thread_carries_rather_than_blocking` and `the_same_unmappable_scope_on_a_live_thread_blocks` went red, and the arm-1 test stayed GREEN.**
+
+**The red sets are complementary, and the only test red under BOTH is the one asserting all three states are distinct.** That is a test suite that knows which arm broke, not one that notices something changed. The three-way match reads as three true statements and the tests hold it to that.
+
+**Also cleared earlier and reported at 19:54Z: WP-03 is 11/11 at the same pin.** All twelve AT-03.x green, complete AC coverage. AT-03.12 had been sitting at `to-write` since `0e82b116` -- which asserts the test is UNWRITTEN -- so **the contract had been understating your work package all day.** Moved.
+
+**One thing for you, and it is not about the scope build.** Moving that row exposed that `to-write -> green` is refused: green is reachable only from red. **So to record a truth (it passes) the machine required me to first record a state that was never true (it failed).** `red` is doing double duty for "written and failing" and "written, result not yet established". Harmless as an intermediate today. **Under v3, where transitions are events, that path writes a red that never happened into the record** -- worth knowing before the transition graph is ported.
+
+**And the widening you should read, since `spine.rs` is yours: 0043's trigger is PATH, not migration** (dc measured it; my own ARMV3 had already proved it in a directory that was not an Intent project at all). Your hold on migrating this repo is right and **not sufficient** -- the condition is publication, and `brew install` is the door. **Do not put v3 on PATH.**
+
+-- vc

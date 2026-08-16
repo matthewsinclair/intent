@@ -1,13 +1,30 @@
 ---
 id: "0043"
-title: 0038's fix set unimplemented commands to exit 2, which is the UserPromptSubmit BLOCK code, so a migrated project blocks every Claude Code prompt and cannot run the command that would clear it
+title: 0038's fix set unimplemented commands to exit 2, which is the UserPromptSubmit BLOCK code, so ANY project carrying the canon hooks blocks every Claude Code prompt the moment v3 is on PATH -- migration is not the trigger -- and cannot run the command that would clear it
 date: 2026-08-16
 reporter: matts
 status: OPEN
 severity: critical
 ---
 
-# 0043: 0038's fix set unimplemented commands to exit 2, which is the UserPromptSubmit BLOCK code, so a migrated project blocks every Claude Code prompt and cannot run the command that would clear it
+# 0043: 0038's fix set unimplemented commands to exit 2, which is the UserPromptSubmit BLOCK code, so ANY project carrying the canon hooks blocks every Claude Code prompt the moment v3 is on PATH -- migration is not the trigger -- and cannot run the command that would clear it
+
+## CORRECTION, 2026-08-16: THE TRIGGER IS PATH, NOT MIGRATION
+
+**This issue was filed and confirmed under a precondition that does not hold, and the correction widens it. Found by dc; the evidence was already in my own confirmation and I read past it.**
+
+**`claude` is unimplemented as a FAMILY, so v3 refuses before it looks at project state at all.** Measured: `intent claude hook require-in-session` exits `2` in a **migrated** project, in an **unmigrated v2** project, and **outside any Intent project whatsoever**.
+
+**The confirmation above already proved this and did not notice.** ARMV3 -- the end-to-end arm, the real binary wired the real way -- ran in `$CLAUDE_JOB_DIR/tmp/hookprobe/armv3`, **a throwaway directory with no `intent/.config/config.json` on any ancestor.** It blocked. So the decisive arm was executed with the "migrated project" precondition absent, and was reported as end-to-end confirmation of a claim about migrated projects. **The result was right and the framing around it was wrong**, which is the harder version of this to catch: nothing failed, and the reasoning about scope was never tested by anything.
+
+**What changes:**
+
+- **The blast radius is every Intent project on the machine carrying the canon hooks, migrated or not.** The session hooks are canon, not opt-in, so that is the fleet.
+- **The condition to hold is PUBLICATION, not migration.** cc's standing "do not migrate this repo until 0043 is settled" remains right and **is not sufficient** -- migration was never the door.
+- **`brew install` is the trigger**, and it puts v3 at PATH position 1 without asking.
+- **OPERATIONAL, and it applies to every node working this thread right now: every session in this estate is alive only because `intent` on PATH still resolves to v2.** The moment v3 lands on the PATH of a shell a Claude Code session runs in, that session stops accepting prompts and cannot be recovered from inside itself. **Do not put v3 on PATH.**
+
+Landed by dc as the second hard publication hold in `install.md` (`ad46d014`), beside 0036.
 
 ## Tags
 
@@ -22,7 +39,7 @@ migration, hooks, exit-codes, claude-code, lockout, regression, measured, critic
 
 `.claude/settings.json` wires `UserPromptSubmit` to `intent claude hook require-in-session`. **v3 does not implement `claude hook`, so it exits 2 -- which the hook contract reads as a block.**
 
-**In a migrated project, every prompt is refused, and the refusal cannot be cleared from inside the session**, because clearing it means running `/in-session`, which means submitting a prompt.
+**In any project carrying the canon hooks -- migrated or not -- every prompt is refused, and the refusal cannot be cleared from inside the session**, because clearing it means running `/in-session`, which means submitting a prompt. (Filed as "in a migrated project". See the correction above: **`claude` is unimplemented as a family, so v3 refuses before it reads project state, and the trigger is v3 arriving on PATH.**)
 
 **0038's fix created this.** Before `d2b8e76d` an unimplemented command exited `1`, which `UserPromptSubmit` ignores. The fix was correct for the gate it was measured against and collides with a different consumer that spells the opposite decision with the same number.
 
