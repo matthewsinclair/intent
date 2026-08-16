@@ -103,4 +103,37 @@ rc=0
 
 ## Resolutions
 
-{{TBC}}
+**PARTIAL (dc). The reported instance and four more are fixed; the tool-side defect this issue is actually about is untouched and it stays OPEN.**
+
+### THE CALLER ENUMERATION, DONE ONCE
+
+0043's Proposed Fix item 3 asks for the consumers of `intent`'s exit codes to be listed and written down. Nobody had, which is why 0038, 0042, 0043 and 0044 were each diagnosed against whichever consumer happened to be in view. **The count has been revised upward four times -- one, then four, then "at least six", and it is ELEVEN.** Swept at `7e877520`; shipped consumers only, since tests measure the tool rather than depend on it.
+
+| #   | consumer                              | invocation                              | resolves via  | status read | on non-zero                                 |
+| --- | ------------------------------------- | --------------------------------------- | ------------- | ----------- | ------------------------------------------- |
+| 1   | Claude Code `SessionStart`            | `intent claude hook session-context`    | PATH          | the harness | advisory -- session runs, context gone      |
+| 2   | Claude Code `UserPromptSubmit`        | `intent claude hook require-in-session` | PATH          | the harness | **2 = BLOCK the prompt** (0043)             |
+| 3   | canon pre-commit -- critic            | `intent critic <lang> --staged`         | PATH          | captured    | 2 = fail-open (0038)                        |
+| 4   | canon pre-commit -- whiteboard guards | `intent info`                           | PATH          | captured    | fail-open, now reported as total (0042)     |
+| 5   | devbin `docs agents`                  | `intent agents sync`                    | PATH          | explicit    | warn, `rc=1` -- **fixed `68282648`**        |
+| 6   | devbin `docs treeindex`               | `intent treeindex <dir>`                | PATH          | explicit    | warn, `rc=1` -- **fixed `a18010a8`**        |
+| 7   | devbin `check critic` -- the list     | `intent critic --languages`             | PATH          | explicit    | die naming the TOOL -- **fixed `68282648`** |
+| 8   | devbin `check critic` -- the run      | `intent critic <lang>`                  | PATH          | `\|\| rc=1` | `rc=1` -- already correct                   |
+| 9   | `int build release` pre-flight        | `bin/intent doctor`                     | explicit path | `if !`      | abort -- already correct                    |
+| 10  | `int build release` sidecar           | `bin/intent agents sync`                | explicit path | `if !`      | abort -- **fixed `7e877520`**               |
+| 11  | `int build release` sidecar           | `bin/intent claude upgrade --apply`     | explicit path | `if !`      | abort -- **fixed `7e877520`**               |
+
+**Two entries that are not consumers today and are worth knowing about anyway.** `post-tool-advisory.sh` calls `intent critic ... 2>/dev/null || true` and discards everything -- but it is **not wired in either shipped `settings.json`**, so it is latent, and under v3 it would simply never fire. And Claude Code's `Stop` hook is a bare `echo`: **safe by accident of its wiring, not by design**, since `Stop` at exit 2 means "do not stop" (24s and zero output, measured on vc's rig). Routing it through `intent claude hook` for consistency is the obvious tidying move and arms a refuse-to-stop loop.
+
+**THE STRUCTURAL POINT, which is why the table beats the number: EIGHT OF ELEVEN RESOLVE `intent` FROM `PATH`.** The three that do not are all in `int build release`, and they use an explicit path for an unrelated reason -- releasing a named checkout rather than whatever is installed. **So PATH resolution is the default everywhere it was not deliberately avoided, and that is exactly why 0036's shadowing is a machine-wide event rather than a per-project one.** Every one of the eight changes behaviour the moment a different `intent` is first on `PATH`, and not one of them can tell that has happened.
+
+### What was fixed
+
+- **`docs treeindex` (`a18010a8`)** -- the reported instance. Status discarded; `rc` moved only in the absent-directory branch. Checked now, each failing directory named.
+- **`docs agents` (`68282648`)** -- the function's last command, so it propagated **by accident of position**; one appended line would have swallowed it. Made explicit.
+- **`check critic --languages` (`68282648`)** -- `|| true` discarded the status, so a CLI that could not answer produced an empty list and a `die` naming the wrong cause: the project's language declarations, blamed for a failure of the tool. It fails CLOSED, so nothing was skipped silently; the cost was a wrong diagnosis at the moment it is most expensive.
+- **Both `int build release` sidecar regenerators (`7e877520`)** -- the reason the sweep was worth doing beyond the report. They fired in a bare subshell, discarded the status, and logged success unconditionally on the next line. **The dirty-tree check cannot cover it: that guard watches for unexpected CHANGE, and a failed regeneration produces unexpected SAMENESS** -- the file keeps the previous version, the tree stays clean for it, and the cut tags a release inconsistent with itself. All fixed sites are mutation-proven in both directions.
+
+### What is NOT fixed
+
+**Everything this issue is actually about.** The tool still spells five unrelated conditions with `1`, and the structural cause stands: **the exit code is decided by WHERE the failure happens in the parse tree, not by WHAT went wrong**, so a retired command never reaches the code that would choose a meaningful one. Every fix above hardens a _caller_ against a tool that cannot say what it means. **That is worth doing and it is not the fix** -- eleven callers each defending themselves is the shape you get when the contract is missing, and the twelfth will be written by someone who has not read this table.
