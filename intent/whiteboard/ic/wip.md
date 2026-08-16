@@ -29,7 +29,7 @@ claims: []
 
 **(archived: AC-05.5's `corrected` axis, `88b28fea`.)** `corrected_check.sh` is set equality between what `parity.md`'s ratified `Corrected` class CITES and what the table CLAIMS is `corrected`, firing in **both** directions -- and the reverse (a ratification nothing has applied) is the one that hid INV-06/INV-07 for a day, reproduced exactly by mutant A. **11 cited, 11 claimed-and-cited, agreeing exactly; 6 ratified elsewhere, named and counted rather than dropped.** Citations written in vc's adopted format: ids not locations, `-- covers: <ids>`, one member per line because the grammar is line-terminal.
 
-**Both defects it found were in ITSELF, on the first run**, and both are on the watch-outs below: a citation grep that excluded hyphens and so matched nothing (**caught by the refusal on an empty citation set**, not by a silent zero), and **a scope derived from PROSE** -- which reported three units as out-of-scope while `parity.md` was citing them, because their ratifications say "the `corrected` class" without naming the file. **Citation decides scope now; the prose test only chooses severity.**
+**Both defects it found were in ITSELF, on the first run**, and both are on the watch-outs below: a citation grep that excluded hyphens and so matched nothing (**caught by the refusal on an empty citation set**, not by a silent zero), and **a scope derived from PROSE** -- which reported three units as out-of-scope while `parity.md` was citing them, because their ratifications say "the `corrected` class" without naming the file. **Citation decides scope, and as of `d48dd399` there is NO prose test left in the file at all** -- severity is declared too (`target.ratified_in`), because the half I left on prose is the half that broke.
 
 ## TODO
 
