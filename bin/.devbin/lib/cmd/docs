@@ -33,7 +33,7 @@ builtin_docs_agents() {
 # guarded against it independently, which is the definition of a shared rule.
 builtin_docs_treeindex() {
   require_tool intent "Install Intent: see intent/docs at the Intent install"
-  local dirs="${*:-${DEVBIN_TREEINDEX_DIRS:-}}" d rc=0
+  local dirs="${*:-${DEVBIN_TREEINDEX_DIRS:-}}" d rc=0 ti_rc=0
 
   [ -n "$dirs" ] ||
     die "no directories to index -- declare docs.treeindex_dirs in config, or name them (eg: docs treeindex lib bin)"
@@ -55,7 +55,25 @@ builtin_docs_treeindex() {
       continue
     fi
     printf '    %s\n' "$d"
-    intent treeindex "$d"
+    # CHECK THE INDEXER, NOT JUST THE DIRECTORY (issue 0044). `rc` moved only in
+    # the absent-directory branch above, so a failing `intent treeindex` was
+    # discarded entirely: measured under a v3 surface where `treeindex` is
+    # retired, both directories errored on screen and this function still
+    # returned 0 -- with an empty verdict artefact recording that nothing went
+    # wrong. Not silent, and GREEN, which is worse: the errors scroll past and
+    # the run's own record contradicts them.
+    #
+    # The comment six lines up already reasoned this out for the directory check
+    # -- "a typo in the config list would otherwise look like success" -- and it
+    # was not carried one line down to the command that does the work.
+    #
+    # Status captured immediately into a variable: `$?` inside an `if ! cmd`
+    # body is the negation's, not the command's.
+    intent treeindex "$d"; ti_rc=$?
+    if [ "$ti_rc" -ne 0 ]; then
+      warn "intent treeindex failed for $d (exit $ti_rc) -- index NOT refreshed"
+      rc=1
+    fi
   done
   return "$rc"
 }
