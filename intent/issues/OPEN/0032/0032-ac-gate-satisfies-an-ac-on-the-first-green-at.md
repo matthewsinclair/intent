@@ -52,10 +52,32 @@ AND is strictly more expressive here and is never wrong where OR is right -- eve
 
 Not fixed at the time of filing: `bin/**` is not mutated in place in this repo while sessions are live, this is v2 tooling that ST0056/WP-04 replaces with the Rust facade, and the interim control (hold the AT, explain it in the note) is in place and visible. Whoever builds the v3 close-gate should read this before porting the v2 semantics across, since porting the early-return would carry the defect into the rewrite.
 
+### PARITY CLASSIFICATION RULED 2026-08-16 (vc, provisional pending hv): `corrected`, NOT `as-observed` -- and the conflict that made it look hard is empty
+
+ic raised this as **two ratified things pointing opposite ways** (`70a52965`): the dispatch table classifies `ac gate` as `as-observed`, whose own note calls it _"the single highest-value parity row in the family"_ because AC-04.3 requires v3 to reproduce v2's gate verdicts -- while this issue says the verdict rule is an accident. **A reader building v3 from the register would port the early-return and be right to.** ic deliberately did not classify it.
+
+**The classification is `corrected`, and the class definition fits verbatim** -- _"a v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced"_. **`as-observed` is for behaviour we CHOOSE to reproduce, and hv's own wording here is that _"the combining rule was chosen by an early-return rather than by a decision"_. You cannot faithfully reproduce a decision nobody made.** Reproducing it is what `parity.md` forbids in its own words: laundering a v2 defect into a v3 requirement, which is precisely the failure an output-equality suite cannot catch.
+
+**AND THE CONFLICT IS EMPTY, WHICH IS THE PART THAT DECIDES IT. Measured 2026-08-16 across all 109 AT rows: exactly TWO ACs carry more than one covering AT, and OR and AND agree on both.**
+
+| AC        | covering ATs      | states             | OR          | AND         |
+| --------- | ----------------- | ------------------ | ----------- | ----------- |
+| `AC-00.7` | AT-00.5 + AT-00.7 | `red` + `to-write` | unsatisfied | unsatisfied |
+| `AC-03.7` | AT-03.7 + AT-03.9 | `green` + `green`  | satisfied   | satisfied   |
+
+**So correcting this changes ZERO verdicts on the current corpus. There is no parity break to ratify and AC-04.3 is untouched.** The two rules can only diverge on a multi-AT AC holding at least one green beside a non-green, and no such row exists.
+
+**THE ACTIONABLE PART IS TIMING: correct it while it is free.** `AC-03.7` is the near exposure -- two greens, so a single regression scores it satisfied on the survivor. **The moment any multi-AT AC goes mixed-with-a-green, the correction starts moving a verdict and reads as a regression rather than a fix.** The window is open and closes by itself.
+
+**Correction to the measurement above, and it is mine.** ic measured `AC-00.7` as both `to-write`; it is now `red` + `to-write` because I moved AT-00.5 an hour before reading their message, making it the contract's first mixed-state multi-AT AC. **The conclusion is unchanged -- neither is green, so nothing diverges -- but ic's stated basis was stale by my hand while they were writing about it.** _A verification is only as current as the thing it read_ is ic's own candidate rule; this is an instance of it against them, caused by me.
+
+**One consequence for authoring, sharper in ic's words than in mine.** I had declined to add a second covering AT row for `class_vocab_check.sh` on the grounds that it could not strengthen an OR gate and would look more rigorous than it is. **Under OR it is worse than neutral: a second covering row is a place a future green can hide a red, so adding rows to a gate that ORs actively LOWERS the bar it appears to raise.** Until this is fixed, naming extra instruments in one row's note is not a workaround -- it is the correct form.
+
 ## Related
 
 - ST0056 -- surfaced during WP-06 verification; AT-00.5 / AT-06.4 / AT-06.7 carry the interim workaround
 - 0028 -- same family: a safety rule whose mechanism does not do what the rule intends
+- AC-05.6 -- the precedent for the shape this ruling avoids needing: a v2 assertion failing against v3 for a ratified reason is the harness working. It does not apply here only because the correction moves no verdict at all
 
 ## Resolutions
 
