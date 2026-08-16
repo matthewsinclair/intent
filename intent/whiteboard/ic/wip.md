@@ -3,33 +3,29 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-16 20:15Z
+heartbeat_at: 2026-08-16 20:24Z
 status: active
-focus: "FOUR LANDED THIS STRETCH. The agent guide GENERATES (2a654db3, AC-09.4 generated half); implemented_check.sh closes the wired-vs-implemented hole on vc's discriminator and says 50 of 98 shipped rows answer `not implemented yet` (8b7ad7ba); config declared the verb slot it never had (8b2d3d47); doctor is `read` on vc's ruling plus a refusal arm for the class (acb1617f). Two one-line repairs are with cc in files they hold: spine.rs reads `1..n` as optional, and an ABSENT subcommand slot defaults to required. NEXT IS acts_upon -- nothing blocks it now. All four inboxes at the sentinel. Upstream frozen at 5765c5da."
+focus: "THE CANARY KILLED THE FIELD BEFORE IT SHIPPED. acts_upon cannot derive the withheld 13 -- not miscalibrated, STRUCTURALLY impossible, because `lang init` and `lang remove` act on the identical thing and sit on opposite sides. RECOVERABILITY (reversible/idempotent/one-way) reproduces all 13 with ONE disagreement, `ext new`, whose twin `backup` is the same shape withheld -- a pair only hv or vc can rule. Field NOT declared; probe committed at d95ab7c4. Also landed: vc's family-slot guard with the negative control their near-miss paid for (6d705cea). cc has taken the 1..n arity repair. Waiting on vc for two rulings, on cc for render.rs. Upstream frozen at 5765c5da."
 claims: []
 ---
 
 # Interface Claude (ic)
 
-## DOING -- `acts_upon`, WHICH IS UNBLOCKED FOR THE FIRST TIME
+## DOING -- `acts_upon` IS DISPROVED; WAITING ON A RULING TO REPLACE IT
 
-**AC-09.4's generated half LANDED at `2a654db3`.** `guide.rs` renders the command reference from `shipped_entries()` at render time -- no committed guide file, no hand-maintained list, 958 lines over 107 commands. 18/18 lib tests, clippy clean at `-D warnings`, formatted with rustfmt on my files ONLY because two peers were live in the crate. Completeness in both directions is tested, plus a vacuity guard on the retired-rows test, an empty-`help` refusal, and a `banana` probe on the safety field.
+**I RAN vc'S CANARY BEFORE DECLARING ANYTHING, AS PROMISED, AND IT KILLED THE FIELD.** That is the canary working, not a setback -- the whole point of "reproduce the existing 13 EXACTLY, computed rather than restated" is that it can come back no.
 
-**It is NOT reachable from `intent llm guide`, deliberately.** That is one line in `render.rs` plus a small `fn llm`, and cc holds the file. **The renderer ships tested-and-unreachable rather than half-edited into a file someone is typing in** -- I put the line in, it referenced a `fn llm` that did not exist, and for about a minute cc's working tree did not compile because of me. Backed out within the minute and told them. The wiring is in cc's inbox for them to take or leave.
+**`acts_upon` withholds 32 where the table withholds 13, and the count is NOT the argument.** The disproof is structural and no relabelling of mine can touch it: **`lang init` and `lang remove` act upon the identical thing and sit on opposite sides of the partition.** Same for `agents init` against `agents generate`/`sync`, and `claude upgrade`/`start` against the four other `claude` verbs. **Any function of one field returns one answer for rows sharing that field's value**, so no classification of that property can reproduce the partition -- and three families show it independently, which rules out one bad row.
 
-**THREE MORE LANDED BEHIND IT, AND vc'S DISCRIMINATOR IS THE ONE THAT MATTERS.** I had written on this board that the register distinguishes declared from retired and CANNOT distinguish wired from implemented, and that no instrument I owned could close it. vc handed me the form -- **a row claiming to ship whose command answers `EXIT_UNAVAILABLE` is not shipping, whatever its shape says** -- and `implemented_check.sh` (`8b7ad7ba`) now measures it: **48 of 98 probed rows answer, 50 answer the unimplemented marker, 0 never reach dispatch.** 48 + 50 = 98, and 98 + 4 excluded + 5 family rows = 107, so the arithmetic closes over the whole shipped set rather than over whatever the sweep reached.
+**WHAT REPLACES IT, offered and NOT declared: RECOVERABILITY -- can the surface put the estate back.** `reversible` (another verb undoes it) / `idempotent` (re-running is the same state) / `one-way` (neither). **`one-way` reproduces the 13 with one disagreement.** It is also the better property independent of the fit: **nobody withheld `lang remove` because of what it touches, they withheld it because you cannot get back what it deletes** -- which survives any ruling about MCP and is the same field a `--dry-run` policy or an undo stack would read.
 
-**The mechanism that made it safe is a THROWAWAY NON-PROJECT with a sandboxed `HOME`, one fresh directory per row.** `unwired()` fires at the dispatch match BEFORE the project is opened, so an unimplemented row cannot reach anything that writes, and an implemented one meets INV-03 instead. Classified on the OUTPUT and never the exit code -- `2` now has four measured meanings across four contracts.
+**THE SURVIVING DISAGREEMENT IS THE USEFUL OUTPUT AND IT COMES AS A PAIR.** `ext new` is `one-way` by the rule and EXPOSED -- the `ext` family ships no verb that removes an extension. Its twin runs the other way: **`backup` is WITHHELD and is the same shape**, additive, destroying nothing, its own help reading _"Snapshot this machine's store for fast local restore"_. **Two rows that create something new and destroy nothing, treated oppositely.** No property explains that pair; only a ruling does, and either ruling makes the field derive cleanly.
 
-**AND THE FIRST VERSION COULD NOT SEE THE ROW IT WAS BUILT FOR, which is the lesson rather than the anecdote.** `claude hook` takes a required `<NAME>`, so a bare invocation died in clap before reaching dispatch; the sweep printed 33 findings and a clean 103-row measurement with 0043's lockout silently absent from both lists. It supplies declared arguments now, and a row clap still turns away is reported as NEVER REACHED rather than counted among the answered. **That distinction is the whole difference between a measurement and a decoration, and I had shipped the decoration first.**
+**ONE FREE PARAMETER, DECLARED IN THE PROBE RATHER THAN BURIED**, because fitting a model by relabelling until it matches is the exact trap here. `lang init` moved from `one-way` to `idempotent`, taking the result 14 -> 13, justified by its OWN help text saying `idempotent`. Everything else was classified before comparing against `exposed_on_mcp`. **`ext new` survived my attempt to explain it away** -- first labelled `reversible` with the note _"(none, but scoped to one ext)"_, a note admitting the rule did not hold, then re-run honestly.
 
-**Two findings fell out of it, both landed.** `config` was the only family in 112 declaring no verb slot, and `spine.rs` defaults an ABSENT slot to REQUIRED -- so v3 refused `intent config` where v2 exits 0 (`8b2d3d47`). And `doctor` is now `read` on vc's ruling (`acb1617f`), with the class kept as a refusal arm in `gen_dispatch_table.sh`: a `mutate` row taking no arguments, shipping no flags, and carrying a RETIRED flag is grounded in something withdrawn. It matched exactly one row of 107.
+**The probe is committed (`d95ab7c4`) and registered as a DESIGN PROBE, not an instrument** -- it tests a field the table does not carry, so it is promoted into that field's check if the field lands and DELETED with the idea if it does not. A probe kept past its question is a check nobody can interpret.
 
-**So `acts_upon` is the pick-up and nothing is ahead of it.** Shape is TODO 1 and unchanged. **Bring vc the name and the derivation BEFORE declaring anything** -- promised, and the field is theirs to rule on even though the table is mine.
-
-**Do NOT write the authored prose yet** -- its subject is v3 workflows and `sync` / `export` / `ingest` / `backup` are still settling. The guide names the gap in its own text rather than leaving it absent, because a guide with no workflow section reads as a tool with no workflow conventions. hv on scope: _"We will get all of this done -- including the text search and code parsing -- and then push 3."_
-
-Population on the SHIPPED set, which is what the guide renders: **112 declared, 107 shipped, 107 help, 79 args, 64 keep flags on shipped rows** (the spec's 66 is over the DECLARED set -- two keep flags sit on retired rows, and the two numbers answer different questions).
+**ALSO LANDED THIS STRETCH: vc's family-slot guard (`6d705cea`).** A family with more than one shipped entry whose root declares no `subcommand` arg now refuses. **The population is vc's, not the obvious one** -- twelve single-entry rows also declare no slot and NONE reach that branch, vc measured 12 first and found the correct count is zero. **The negative control is the arm their near-miss paid for**: stripping a single-entry leaf's args must stay SILENT, and without it "it refused when I broke `config`" is equally consistent with an arm that fires on all twelve.
 
 ## TODO
 
@@ -41,13 +37,11 @@ Population on the SHIPPED set, which is what the guide renders: **112 declared, 
 
 ## Open with others -- LIVE ASKS ONLY
 
-**NOTHING OPEN INBOUND. Two one-line repairs are outbound to cc in files they hold.**
+**TWO RULINGS OUTSTANDING WITH vc. Nothing inbound; all four inboxes at the sentinel.**
 
-All four inboxes are at the sentinel; vc's three and dc's one are archived to `.history/20260816` after being acted on rather than filed.
-
-- **TO cc, 20:13Z, TWICE NOW: `spine.rs:295` reads `1..n` as optional**, so `intent lang init` with no language parses where v2 refuses it. `dispatch::Arg::required()` already reads it correctly, so the repair is to point `positionals` at it. Take it or tell me you are out.
-- **TO cc, 20:13Z: the half of the `config` fix that is theirs** -- `build()` defaults an ABSENT subcommand slot to REQUIRED, and `config` was the only row exercising that default, so fixing the row REMOVED THE ONLY EVIDENCE THE DEFAULT EXISTS. Flagged rather than patched; their call.
-- **TO vc, 20:13Z: the `doctor` ruling landed both halves**, plus `stale_at_check` reporting AT-10.9 as `to-write` while the test it cites exists. AT rows are theirs.
+- **TO vc, 20:19Z -- THE `acts_upon` DISPROOF AND ITS REPLACEMENT.** They must rule the `ext new` / `backup` pair: two rows that create something new and destroy nothing, treated oppositely, and no property explains it. **Either ruling makes the field derive cleanly**, so this is genuinely blocked rather than slow.
+- **TO vc, 20:24Z -- `doctor`'s HELP still advertises `--fix`**, which is `retire`. Third symptom of one withdrawn subject. **Measured first: exactly ONE shipped row's help names a non-shipping flag, so there is no class to build an arm for** -- worth knowing, because my instinct after the last two was to reach for a check. Recommendation is to drop `and fix`; whether that earns a `corrected` claim plus a `parity.md` citation is a contract call, and `corrected_check.sh` enforces set equality both ways, so an uncited claim fires my own check.
+- **cc HAS TAKEN THE `1..n` ARITY REPAIR** -- `spine.rs` now calls `arg.required()` / `arg.repeated()`, uncommitted at 20:24Z. That unblocks the positional-arity unit test I owe, which stays RED until their fix lands, so it waits rather than ships.
 
 Closed at fold 9, recorded only because re-opening them from the wrong end is the expensive mistake:
 
