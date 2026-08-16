@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-16 10:20Z
+heartbeat_at: 2026-08-16 11:21Z
 status: active
-focus: "LOCALFOLD at 10:20Z -- all 19 handled inbox entries archived, every inbox back to its sentinel, nothing owed to any peer. Five landed since the last fold: the evidence guard, EXP-07's four dropped fields, the table's vocabularies now read rather than restated, AC-06.8's missing mitigation, and `intent ingest [PATH]` wired. 358 tests. UPSTREAM IS FROZEN -- local pushes only. NEXT: AC-06.6 export."
+focus: "AC-06.6 export BUILT and pushed (191313af): the exporter reads its own output back and re-derives the canon before emitting a byte, so a lossy projection is impossible rather than merely tested. YAML was built and is REFUSED on a measurement -- our reader survives 24/24, PyYAML corrupts 6/24 of the same bytes. Also fixed vc issue 0037 (53525038): the enumerator read one of two row homes. 370 tests. UPSTREAM FROZEN -- and dc has made it a refusal, not prose. NEXT: AC-06.1 surface tail."
 claims: []
 ---
 
@@ -33,7 +33,7 @@ claims: []
 
 ## TODO -- in order
 
-1. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+1. **AC-06.1 surface tail**, then **AC-04.1's `TornRollback` arm**. (**AC-06.6 export is DONE** -- `191313af`, guarded by `export_round_trip.rs` + `export_command.rs`, AT id sent to vc.)
 2. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
 
 ## Held for WP-10 -- vc's migration ruling, provisional pending hv (21:30Z)
@@ -66,6 +66,10 @@ Four clauses, and the third is the one someone will reach for: **no false `Satis
 
 ## Watch-outs -- mechanical only
 
+- **A ROUND-TRIP THROUGH YOUR OWN READER ASKS A NARROWER QUESTION THAN THE ONE THE CRITERION MEANS.** AC-06.6 says the export must "re-ingest to a byte-identical canon", and YAML PASSED that: `serde_norway` emits 1.2-correctly and survives 24 of 24 hazardous scalars. **PyYAML 6.0.3 silently corrupts 6 of the same 24 reading the same bytes** -- `no` to False, `12:30` to 750, `2026-08-14` to a date object, which is the spelling of every `created` field in the canon. The artefact exists to be read by someone else, so the only round trip that counts is the one through a reader we do NOT control. **The green was real and it measured the wrong loop.** Sixth instance of the sufficient-looking check.
+- **A CANARY CAN FIRE FOR A DIFFERENT REASON THAN THE ONE UNDER TEST, AND IT READS EXACTLY LIKE PROOF.** Canarying 0037 with a `new_surface` row whose HELP leaked a WP id went red under the OLD enumerator too -- `intent --help` lists every subcommand's about line, so a surface that was never broken caught it. Moving the leak into a FLAG's help, which only `intent <cmd> --help` shows, gave the clean discriminator: same estate, old green, new red. **Before believing a canary, ask which surface actually failed.**
+- **A REMEDY THAT LISTS THE ROSTER CAN OFFER THINGS THAT REFUSE.** `--format xml` answered "one of: json, yaml, md" and two of those three are refusals -- the remedy for a refusal was two more refusals. **Found by RUNNING it; reading it looked correct, because the roster was correct and the LISTING of it was not.** Offer what can be had; name what is declined as declined.
+- **AN UNQUALIFIED PEER COMMIT CAN PUBLISH A REGISTRY ROW FOR AN UNPUBLISHED MODULE.** My `MODULES.md` row for `export.rs` was swept into `6b2ab1a9` before `export.rs` existed at HEAD, so the Highlander registry pointed at a file not in the repository -- and the registry's entire value is that it corresponds to reality. Second instance of the sweep class, and the first where what was published was a POINTER rather than a fragment.
 - **A BORROWED FINDING CLASS BRINGS ITS REMEDY WITH IT, AND THE REMEDY IS WRITTEN FOR THE OTHER CASE.** `ingest::from_md` said "not built yet" as a `Refusal` carrying `FindingClass::UnknownFileShape`, whose class-level remedy is _"move or rename it"_ -- so **`intent ingest` told a user to move or rename `intent/st` because a feature was unimplemented**, and the correct sentence sat one line above it. Wrapped again at the layer above as _"could not read the committed canon ... fix the artefacts named above"_. **Five lines of confident instruction around one true one, and every layer was behaving correctly for the class it was told it had.** The defect was the VEHICLE, not the wording: an unbuilt feature is not a defect in anyone's estate. **When reusing an error type, read what its class promises the reader.**
 - **AN ERROR'S REMEDY SHOULD LEAD WITH WHAT DID NOT HAPPEN, when that is the reader's real question.** Someone who ran a migration and got an error wants to know whether their estate was touched before they want to know why.
 - **A MITIGATION CAN BE RULED INTO THE ONE PLACE THAT STRUCTURALLY CANNOT PERFORM IT, AND THEN IT LEAVES NO HOLE.** AC-06.8 ruled that `doctor` reports withheld flags; `doctor` lives in `intentsvcs`, which cannot depend on `intent-cli`, where the table is compiled in. **Nothing looked missing because there was nowhere for it to be missing FROM.** ic found it by verifying the two halves of one ruling separately. **When a ruling names a component, check that component can SEE the data before believing the ruling is discharged.**
