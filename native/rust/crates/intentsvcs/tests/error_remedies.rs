@@ -148,6 +148,14 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   // The from-state refusal, which is a different failure from every guard above
   // it: the value is fine and the thread is in the wrong state to receive it.
+  // Provoked through the real door rather than constructed: `ingest_from_md`
+  // is where WP-10's parser lands, and until it does this is the whole of what
+  // the verb can say.
+  out.push((
+    "not available in this build",
+    intentsvcs::facade::Facade::ingest_from_md(&fx.project())
+      .expect_err("reading markdown is not built yet"),
+  ));
   out.push((
     "illegal transition",
     facade
@@ -200,6 +208,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
     FacadeError::Store(_) => "Store",
     FacadeError::Ingest(_) => "Ingest",
+    FacadeError::Unavailable { .. } => "Unavailable",
     FacadeError::EventLogUnreadable { .. } => "EventLogUnreadable",
   }
 }
@@ -235,6 +244,7 @@ const ALL_VARIANTS: &[&str] = &[
   "ViewsNotWritten",
   "Store",
   "Ingest",
+  "Unavailable",
   "EventLogUnreadable",
 ];
 

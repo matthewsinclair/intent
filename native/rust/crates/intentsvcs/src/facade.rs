@@ -156,6 +156,9 @@ pub enum FacadeError {
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
   Ingest(#[from] IngestError),
+  /// Something this build does not do -- NOT a fault in the project.
+  #[error("{what} is not available in this build")]
+  Unavailable { what: String },
   /// The event log's extract exists and is not readable as one.
   ///
   /// Its own variant rather than an ingest finding: history is the one thing
@@ -283,6 +286,13 @@ impl FacadeError {
       Self::Store(cause) => cause.remedy(),
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
+      }
+      // **Leads with what did NOT happen**, because that is the reader's actual
+      // question. Someone who ran a migration and got an error wants to know
+      // whether their estate was touched before they want to know why, and this
+      // is the one case where the answer is "not at all".
+      Self::Unavailable { .. } => {
+        "nothing was read and nothing was written, so the project is exactly as it was -- keep using the version of Intent that wrote it until a build offers this".to_string()
       }
       Self::EventLogUnreadable { path, cause } => format!(
         "{cause}. Nothing recomputes history, so do NOT delete {path} to get past this -- repair the named line, from version control if the file is committed"
@@ -742,6 +752,35 @@ impl Facade {
   /// would change the thing it was measuring, and the operator would be
   /// reading a report about a state that no longer existed -- which is how
   /// `at lint --fix` came to half-migrate rows.
+  /// Read an estate by parsing its MARKDOWN -- the v2 migrator's door, and the
+  /// seam WP-10 plugs its frozen legacy parser into.
+  ///
+  /// **Associated rather than a method, and the reason is the whole point of
+  /// the operation.** A method would need an opened facade, which needs canon
+  /// this crate can read -- and an estate that has to be ingested from markdown
+  /// is precisely one that has no such canon. Requiring a facade to migrate a
+  /// project would mean requiring the project to already be migrated. Same
+  /// shape as [`Facade::doctor`] above, for the same kind of reason: both run
+  /// where the ordinary preconditions do not hold.
+  ///
+  /// **It is the DOOR rather than the implementation** -- one line today,
+  /// because [`ingest::from_md`] refuses until WP-10 lands the parser. It
+  /// exists now so the CLI has one entry point that does not move when the body
+  /// arrives, and so the layer the parser plugs into is settled before there is
+  /// a parser arguing for a different one.
+  /// **`Unavailable` is mapped rather than wrapped, and that is not a
+  /// nicety.** `FacadeError::Ingest` reads "could not read the committed
+  /// canon", with the remedy "fix the artefacts named above, then retry" --
+  /// true of every other ingest failure and false of this one, where nothing
+  /// was read and nothing is wrong. An unbuilt feature reported as a damaged
+  /// estate sends a user to repair files that are fine.
+  pub fn ingest_from_md(project: &Project) -> Result<crate::ingest::Canon, FacadeError> {
+    ingest::from_md(project).map_err(|e| match e {
+      IngestError::Unavailable { what } => FacadeError::Unavailable { what },
+      other => FacadeError::Ingest(other),
+    })
+  }
+
   pub fn doctor(
     project: &Project,
     ctx: &FacadeContext,

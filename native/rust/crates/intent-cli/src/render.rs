@@ -32,6 +32,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
+    Some(("ingest", m)) => ingest(m),
     Some(("sync", m)) => sync(m),
     Some(("backup", m)) => backup(m),
     Some((family, _)) => unwired(family, ""),
@@ -949,6 +950,49 @@ fn doctor() -> Result<(), String> {
     // The report above IS the message; the exit code is the machine's copy.
     Err(String::new())
   }
+}
+
+/// Read an estate's MARKDOWN into the store through the API gate -- the
+/// recovery path and the v2 migrator, behind one verb.
+///
+/// **`[PATH]` is optional, and the asymmetry is the argument for it.** Given, we
+/// ingest that tree: the migrator's case, where the estate belongs to another
+/// project. Omitted, this project's own markdown: the recovery case, where you
+/// are already standing in it. A migrator invoked on another tree names it; a
+/// user recovering their own estate does not have to say where they are.
+///
+/// **The project is opened WITHOUT a facade, deliberately.** [`Facade::open`]
+/// loads canon, and an estate that has to be read from markdown is one whose
+/// canon is missing or was never written -- so opening a facade first would
+/// require the project to be migrated before it could be migrated.
+///
+/// **On `--from-md`, which this arm reads and cannot act on differently.** ic
+/// objected that it is a mode flag with one mode; vc ruled it kept because
+/// withdrawing it would put the table in contradiction with ratified rows, and
+/// sent the objection to AC-10.2/10.3 where its acceptance lands. Wiring the
+/// verb turned that judgement into a measurement, and it comes out ic's way:
+/// the OTHER thing `ingest` could have meant -- rebuilding the store from the
+/// committed JSON canon -- is already `intent sync --from-disk`
+/// (`Facade::sync_from_disk`), so giving bare `ingest` that meaning would be
+/// two commands for one operation. **Markdown is what is left, and it is the
+/// whole of what is left.** Recorded here rather than acted on: the flag is
+/// ratified, the ruling names where the objection belongs, and a renderer is
+/// not the place to overturn either.
+fn ingest(a: &ArgMatches) -> Result<(), String> {
+  let project = match opt(a, "path") {
+    Some(path) => Project::open(std::path::Path::new(&path)).map_err(|e| {
+      format!(
+        "error: {e}\n  remedy: give `intent ingest` the root of an Intent project -- the directory holding `intent/`, not the markdown itself"
+      )
+    })?,
+    None => context()?.0,
+  };
+  Facade::ingest_from_md(&project).map_err(fail)?;
+  // Unreachable until WP-10 lands the parser, and written anyway: an arm whose
+  // success path is a `todo!()` is one refactor away from being a silent
+  // success, and the message a migrator will want is the count it moved.
+  println!("ok: ingested {}", project.relative(project.root()));
+  Ok(())
 }
 
 /// **Flags the table declares and the surface deliberately withholds** --

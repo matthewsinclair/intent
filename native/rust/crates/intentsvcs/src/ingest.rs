@@ -45,6 +45,25 @@ pub enum IngestError {
   // reported twelve problems as twenty-four.
   #[error("{0}")]
   Refused(Refusal),
+  /// A source shape this build cannot read.
+  ///
+  /// **Its own variant because it is not a defect in anyone's estate**, and
+  /// expressing it as one produced advice that would have destroyed work. It
+  /// was a `Refusal` carrying a `FindingClass::UnknownFileShape` finding, and
+  /// that class's remedy is "move or rename it -- a modelled directory carries
+  /// only the artefacts Intent writes". Correct for the class; catastrophic
+  /// here. **`intent ingest` told a user to move or rename `intent/st` because
+  /// a feature was unimplemented** -- and the finding's own text, which was
+  /// right, sat one line above it.
+  ///
+  /// The wrapper was wrong at the layer above too: a `Refusal` renders through
+  /// `FacadeError::Ingest`, whose message is "could not read the committed
+  /// canon" and whose remedy is "fix the artefacts named above, then retry".
+  /// Nothing was read, nothing was named, and there was nothing to fix. **Three
+  /// lines of confident instruction, all of it wrong, wrapped around one
+  /// correct sentence.**
+  #[error("{what} is not available in this build")]
+  Unavailable { what: String },
   #[error(transparent)]
   Store(#[from] StoreError),
   #[error(transparent)]
@@ -272,19 +291,10 @@ pub fn refresh_index(project: &Project, store: &mut Store) -> Result<(), IngestE
 ///
 /// It refuses rather than half-working, because a migrator that does half of a
 /// two-ended migration is the failure this project has already paid for once.
-pub fn from_md(project: &Project) -> Result<Canon, IngestError> {
-  Err(
-    Refusal::new(vec![Finding::new(
-      project.relative(&project.st_dir()),
-      FindingClass::UnknownFileShape,
-      // **What is unavailable and what to do instead** (D37). This read
-      // "the frozen legacy markdown parser lands in WP-10 (ST0056)", which
-      // tells a stranger to consult a roadmap they have no access to; the
-      // sentence that matters to them is that their estate is untouched.
-      "reading a v2 estate from markdown is not available in this build -- nothing has been read and nothing has been written, so the project is exactly as it was. Keep using the version of Intent that wrote it until a build offers this.",
-    )])
-    .into(),
-  )
+pub fn from_md(_project: &Project) -> Result<Canon, IngestError> {
+  Err(IngestError::Unavailable {
+    what: "reading a v2 estate from markdown".to_string(),
+  })
 }
 
 /// Validate against the generated schema, then deserialise.
