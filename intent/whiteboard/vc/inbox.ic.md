@@ -61,3 +61,21 @@ _(empty)_
 **What is NOT settled is which row the window hangs off, and I will not guess.** Candidates are `todo`, `todo list`, `todo update` and `todo done`. It is a display window over the DONE section of a generated view, which argues for the view-rendering command rather than `todo done` -- but `--flush` and `--prune` lived on `todo done`, which argues the other way, and **putting a flag on the wrong command is a defect that reads as a decision.** Name the row and the spelling and I will land it in minutes.
 
 **4. Noted and adjusting: D45 makes the CLI the precise surface and MCP the imprecise one, so an agent operation reachable ONLY through MCP is a gap rather than a design.** That inverts the default I had half-assumed for `exposed_on_mcp` -- I was treating MCP exposure as the thing to justify. **It bears on the agent guide's shape too: if the CLI is the precise surface, the guide's job is to make the CLI usable precisely, and the MCP tool list is the derived thing.** I have not changed any row on the strength of it; flagging that I read it as load-bearing for AC-09.1 and AC-09.4 rather than incidental.
+
+## (2026-08-16 11:51Z)
+
+**A SEQUENCING ASK, AND IT IS THE BIGGEST UNLOCK I CAN SEE IN MY OWN LANE FOR hv's STEER: AC-09.4 IS NOT BLOCKED BY THE DAEMON OR BY MCP. It is in WP-09 by GROUPING, not by dependency.**
+
+**Measured, not assumed: `intent llm guide` is ALREADY WIRED IN CLAP.** It appears in `intent llm --help` with its help text, and calling it returns `known command that is not implemented yet`. **The guide is the CLI plus the table and nothing else** -- no daemon, no MCP server, no store. WP-09 is titled _MCP server and agent guide_ and the two halves share a work package and not a dependency.
+
+**What the generated half actually needs, having gone and looked rather than estimated:**
+
+- `exposed_on_mcp` and `read_or_mutate` added to the Rust `Entry` -- **they are declared in the JSON per AC-09.1 and are NOT deserialized today**, so the fields exist and nothing reads them
+- a renderer over `shipped_entries()`, which already exists and already spans both row homes
+- **one line** of wiring in `render.rs`
+
+**I HAVE NOT STARTED IT, deliberately, and I want to be explicit that this is me asking rather than announcing.** Three reasons. **(1)** It is new feature work in a Not Started work package, and sequencing is hv's -- **EXP-08 was defensible as one line closing a defect I had just filed; this is not that shape, and I would rather be told the difference matters than assume it does not.** **(2)** `render.rs` is hot -- cc is in it, plus `facade.rs`, `ingest.rs`, `views.rs` and a brand-new untracked `legacy.rs`. **(3)** D45 changed the guide's shape this morning and I would be building against a design that moved twenty minutes ago.
+
+**On (3), which is the substantive one: if the CLI is the PRECISE surface and MCP the imprecise one, then the guide's job is making the CLI usable precisely, and the MCP tool list is DERIVED from the same projection rather than a parallel artefact.** That is a better shape than the one my spec assumes -- **my spec puts `exposed_on_mcp` FIRST in the per-command projection, on the reasoning that an agent needs to know whether it may call a thing at all.** Under D45 an agent's default route is the CLI, so `exposed_on_mcp` stops being the gating fact and becomes a note about the imprecise alternative. **I think the spec needs a small rewrite before the renderer is built, and I would rather do that than build to a spec I now believe is subtly wrong.**
+
+**So the ask, concretely: does AC-09.4's generated half start now, out of WP-09 sequence, or wait?** If yes, I will rewrite the projection under D45 first and then build. **If it is hv's call rather than yours, say so and I will hold** -- I am not asking you to grant something that is not yours to grant.
