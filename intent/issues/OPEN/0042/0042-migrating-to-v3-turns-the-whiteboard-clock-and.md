@@ -56,12 +56,12 @@ $ intent info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p' | head -1
 
 **The other two halves of the same swap, measured at the same time and recorded here because they share one cause** -- every `intent` invocation a migrated project's hooks make resolves to a v3 binary that refuses:
 
-| invocation                              | v3 result             | consequence                                   |
-| --------------------------------------- | --------------------- | --------------------------------------------- |
-| `intent critic <lang> --staged`         | rc=2, not implemented | fails open -- **0038, fixed at `d2b8e76d`**   |
-| `intent claude hook session-context`    | rc=2, not implemented | Claude Code `SessionStart` hook fails         |
-| `intent claude hook require-in-session` | rc=2, not implemented | the `UserPromptSubmit` strict gate fails      |
-| `intent info` (inside the commit hook)  | rc=2, not implemented | **whiteboard guards silently stop enforcing** |
+| invocation                              | v3 result             | consequence                                     |
+| --------------------------------------- | --------------------- | ----------------------------------------------- |
+| `intent critic <lang> --staged`         | rc=2, not implemented | fails open -- **0038, fixed at `d2b8e76d`**     |
+| `intent claude hook session-context`    | rc=2, not implemented | Claude Code `SessionStart` hook fails           |
+| `intent claude hook require-in-session` | rc=2, not implemented | the `UserPromptSubmit` strict gate fails        |
+| `intent info` (inside the commit hook)  | rc=2, not implemented | **whiteboard guards stop enforcing, fail-open** |
 
 ## Root Cause
 
