@@ -477,6 +477,65 @@ RETIRED_GROUNDING="$(jq -r '
 [ -z "$RETIRED_GROUNDING" ] || die "rows are declared \`mutate\` while taking no arguments, shipping no flags, and carrying a RETIRED flag as the only thing that ever wrote. The classification is grounded in something withdrawn -- reclassify the row, or say in its \`mcp_review\` what still mutates. Offending paths:
 $(printf '%s' "$RETIRED_GROUNDING" | sed 's/^/  /')"
 
+# A FAMILY ROOT THAT DECLARES NO VERB SLOT (vc's predicate, 2026-08-16).
+#
+# `spine.rs:build()` reads `subcommand_required` off the root's `subcommand` arg
+# and defaults an ABSENT one to REQUIRED -- `.is_none_or(|slot| slot.arity ==
+# "1")`. So a family that simply forgets to declare its slot is answered by a
+# default nobody chose for it, in the restrictive direction, silently. `config`
+# was that row: v3 refused `intent config` at exit 1 where v2 exits 0.
+#
+# **THE POPULATION IS NARROWER THAN THE OBVIOUS ONE, AND THE DIFFERENCE IS THE
+# WHOLE REASON THIS ARM IS KEEPABLE.** Twelve single-entry rows also declare no
+# slot -- `info`, `init`, `bootstrap`, `doctor`, `upgrade`, `organize`, `critic`,
+# `learn`, `treeindex`, `fileindex`, `help`, `version` -- and NONE of them reach
+# that branch: `is_none_or` sits inside the arm for a family whose verbs are
+# sibling ENTRIES, and a lone leaf takes the `else` into `with_args`. vc measured
+# 12 first, nearly filed it as a counter-example, and found the correct count is
+# ZERO. **A guard written against the obvious count would be permanently noisy
+# and switched off within a week.**
+#
+# So the predicate is vc's: a family with MORE THAN ONE shipped entry whose root
+# declares no `type: "subcommand"` arg. That is exactly what reaches the default
+# and no wider.
+#
+# GREEN BY CONSTRUCTION TODAY, WHICH IS WHY IT IS MUTATION-PROVEN. Every one of
+# `st wp ac at issues todo config agents claude lang llm modules plugin ext`
+# declares its slot as of `8b2d3d47`, so this arm is silent -- the shape that
+# rots unnoticed. Reproduce the refusal with
+#   jq 'del(.families[] | select(.name == "config") | .entries[]
+#        | select(.path == "config") | .args)' surface/dispatch-table.json > /tmp/t.json
+#   IN=/tmp/t.json OUT=/tmp/t.md bash .../gen_dispatch_table.sh
+# -> REFUSES, naming `config`. Restore and it passes.
+#
+# AND THE NEGATIVE CONTROL, which is the arm vc's 12-vs-0 near-miss made
+# necessary -- a refusal that fires on the wrong population is worse than none,
+# because it teaches its readers to skim:
+#   jq '.families |= map(if .name == "doctor" then .entries |= map(del(.args)) else . end)' ...
+# -> SILENT. `doctor` is a single-entry leaf, so stripping its args cannot reach
+# the branch this arm guards, and the arm correctly says nothing. Without this
+# control, "it refused when I broke config" is equally consistent with an arm
+# that would also refuse on all twelve leaves.
+#
+# **The other end is cc's and vc has routed it there: once the TABLE refuses an
+# absent slot, `spine.rs` should stop tolerating one** -- `is_none_or` becoming
+# an explicit refusal that names the invariant. The same fact asserted at both
+# ends is what survives someone weakening either: as it stands, delete this arm
+# and the code silently defaults again with nothing to say so.
+NO_VERB_SLOT="$(jq -r '
+  .families
+  | map(select(([.entries[] | select((.disposition // "") != "retire"
+                                  and (.target.state // "") != "retire")] | length) > 1))
+  | map(. as $f
+        | ($f.entries | map(select((.path | test(" ")) | not)) | .[0]) as $root
+        | select($root != null)
+        | select((($root.disposition // "") != "retire") and (($root.target.state // "") != "retire"))
+        | select((([$root.args[]? | select(.type == "subcommand")]) | length) == 0)
+        | $root.path)
+  | join("\n")' "$IN")"
+[ -z "$NO_VERB_SLOT" ] || die "family roots declare no \`type: subcommand\` arg, so \`spine.rs\` defaults their verb slot to REQUIRED -- a default nobody chose, in the restrictive direction. Declare the slot with the arity the family actually wants (\`1\` if the bare command is illegal, \`0..1\` if it does something of its own). Offending paths:
+$(printf '%s' "$NO_VERB_SLOT" | sed 's/^/  /')"
+
 # Every key on `Entry`, `Flag` and `Arg` is classified `declaration` or `note`,
 # in `key_classes`. The list is AUTHORED because dc measured that no mechanical
 # discriminator exists: not count (`read_or_mutate` is 112 rows and decides agent
