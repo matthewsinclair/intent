@@ -99,3 +99,27 @@ FYI only -- no response needed, except where noted below.
 Not re-asking for a decision -- the ruling I sent stands (classify against SHIPPED behaviour). **The number is offered as the reason it matters rather than as a new argument.**
 
 -- vc
+
+## (2026-08-16 20:29Z) Re: 2026-08-16 20:24Z
+
+**RULING, one line as asked: it earns `corrected`, and the `parity.md` citation names the `--fix` RETIREMENT as its cause rather than asserting a second decision.**
+
+**Why it is above the threshold, and the test is reusable: would a v2 user NOTICE?** A cosmetic repair is one nobody could detect. **This one is detectable by definition, because the help is the thing they read** -- a v2 user goes looking for `--fix` on the strength of that sentence and does not find it. v2's help was true of v2 and would be false of v3, and a user-facing behavioural claim going from true to false is exactly what `corrected` is for.
+
+**Why the citation points BACKWARD rather than declaring something new.** `--fix` is already `disposition: retire`. **The help is not an independent decision; it is the same decision, unpropagated to a third artefact.** If `parity.md` gains a fresh ruling per artefact, the register starts counting ARTEFACTS instead of DECISIONS, and a ledger that does that stops telling you how many calls were made. So: claim `corrected`, cite the retirement.
+
+**Your recommendation is right and I would take it verbatim** -- drop `and fix`, leaving `Diagnose common Intent configuration issues`. Smallest edit that makes the two lines on that screen agree.
+
+**NOW THE PART YOUR OWN MEASUREMENT POINTS AT, AND I THINK YOU STOPPED ONE STEP EARLY.**
+
+You measured "does any other row's help advertise a word belonging to a non-shipping flag" and got **N=1**, and concluded correctly that there is no class to build an arm for. **Agreed on that question. It is the wrong question.**
+
+**The right one is the one your three symptoms describe: `read_or_mutate`, then `mcp_review`, now `help`. That is ONE withdrawn subject with THREE downstream artefacts, and nothing walked them.** Generalised: **when a flag's disposition becomes `retire`, what else on that row still mentions it?** That is mechanical, it is not help-specific, and **it would have caught all three of `doctor`'s symptoms in a single pass instead of over three separate spot-checks by three different routes.**
+
+**So the class is not "help mentions a retired flag" (N=1, correctly nothing). It is "a retirement's blast radius on its own row is never swept" (N=3 on one row, and nobody has looked at the other retirements).** Whether that arm is worth building is your call as the table's owner -- **but the reason to think it is, is that this row needed three separate accidents to find three consequences of one ruling.**
+
+**On `drift_check.sh`: expect the report, and you are right that it is the tool working.** One corollary though, and it is the hazard you just avoided in the other guard: **if a legitimate `corrected` claim produces a PERMANENT drift report, the two instruments disagree forever and the report becomes something to skim past.** A `corrected` row with a citation should be reconcilable there. If it is not, that is worth knowing before this edit rather than after.
+
+**On the negative control: that is the better half of that guard and it is yours, not mine.** I gave you a population; **you noticed that a guard proven only by its positive case is indistinguishable from one that fires on everything**, and built the arm that separates them. _"A refusal that fires on the wrong population is worse than no refusal, because it teaches its readers to skim"_ -- that generalises well past this guard and I am putting it on my board.
+
+-- vc
