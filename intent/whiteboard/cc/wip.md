@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-16 11:21Z
+heartbeat_at: 2026-08-16 12:16Z
 status: active
-focus: "AC-06.6 export BUILT and pushed (191313af): the exporter reads its own output back and re-derives the canon before emitting a byte, so a lossy projection is impossible rather than merely tested. YAML was built and is REFUSED on a measurement -- our reader survives 24/24, PyYAML corrupts 6/24 of the same bytes. Also fixed vc issue 0037 (53525038): the enumerator read one of two row homes. 370 tests. UPSTREAM FROZEN -- and dc has made it a refusal, not prose. NEXT: AC-06.1 surface tail."
+focus: "WP-10 PHASE A IS BUILT AND THIS REPO IS MIGRATABLE -- 56 threads, 140 WPs, 280 criteria, 227 ATs, 0 BLOCKING residue, 9 carried (6f6e80c6). hv raised the priority to getting onto v3, so the migrator is the critical path and I have taken WP-10. Phase B is blocked on ONE thing: vc landing the marked-legacy scope form, needed by exactly one row. Also landed today: export (AC-06.6), 0037, todo, and the cold-store path was dropping ALL history. 378 tests. Upstream frozen -- dc made it a refusal."
 claims: []
 ---
 
@@ -33,8 +33,10 @@ claims: []
 
 ## TODO -- in order
 
-1. **AC-06.1 surface tail**, then **AC-04.1's `TornRollback` arm**. (**AC-06.6 export is DONE** -- `191313af`, guarded by `export_round_trip.rs` + `export_command.rs`, AT id sent to vc.)
-2. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
+1. **WP-10 PHASE B** -- emit `thread.json` per thread, split issues, regenerate views, stamp `project_id`, build the DB, one commit. **Blocked only on vc's marked-legacy scope form** (one row in this estate needs it). Phase A is done and read-only.
+2. **`issues` (6 rows)** -- the one gap in the daily-driver set a migrated estate needs. Everything else it needs (`st`, `wp`, `ac`, `at`, `todo`, `search`, `doctor`, `sync`) is already wired.
+3. **AC-06.1 surface tail** -- **measured 55 of 106 shipped rows wired, 51 dark.** NOT wiring the installer/canon block (agents, lang, claude, ext, plugin, llm, modules, init, bootstrap): largest block of the 51, none of it on the path to running v3 here. Then **AC-04.1's `TornRollback` arm**.
+4. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
 
 ## Held for WP-10 -- vc's migration ruling, provisional pending hv (21:30Z)
 
@@ -66,6 +68,11 @@ Four clauses, and the third is the one someone will reach for: **no false `Satis
 
 ## Watch-outs -- mechanical only
 
+- **A PARSER REPORTS ITS OWN LIMITS AS THE ESTATE'S DEFECTS, AND IT SOUNDS AUTHORITATIVE.** Phase A's first run on this repo: **246 findings, 227 of them "unparseable AT row"** -- because v2 spells `-- covers AC-01.2` with NO COLON beside `-- status: green` which has one, and one accessor assumed a uniform `key: value`. Second run: 20 findings, **19 of them fields that were never AUTHORED**, reported as values "not in the v2 vocabulary". **ABSENT IS NOT INVALID**, and conflating them tells someone to repair files their tooling was happy with. The true number is 9. **Both found by RUNNING it against the real estate; neither was visible by reading the spec.**
+- **A VOCABULARY IS WHAT THE TOOL ACCEPTS, NOT WHAT IT PRINTS.** A census flagged `status: Complete` as out-of-vocabulary because it is not one of v2's canonical OUTPUTS. `complete` is in `canonical_status`'s synonym table and always resolved to `Completed`. Port the synonym table; never write the mapping from the canonical spellings.
+- **I PIPED A CENSUS THROUGH `head` AGAIN**, on the very count my own note records getting wrong that way. Caught it, re-ran, and the eleventh scope spelling was there as recorded. **A lesson written down did not stop the second instance; noticing the shape of the command did.**
+- **A REBUILD THAT RESTORES EVERY DERIVED TABLE CAN SILENTLY DROP THE ONE DERIVED FROM NOTHING.** `ingest::resync` rebuilt seven tables from the extract and skipped `event_log`. Its reach was the whole cold-store path, so **a fresh clone answered every question correctly and had no history at all** -- and nothing reported it, because a missing log looks exactly like a project that never recorded anything. The restore had ONE caller, which is how the other path came to omit it.
+- **A TEST OUTLIVES ITS SUBJECT AND KEEPS PASSING BY DESCRIBING WHAT USED TO HAPPEN.** Twice today. `ingest_command.rs` pinned a scaffolding refusal and `error_remedies.rs` provoked `Unavailable` through it; when the parser landed both were asserting a defect, in files named for the thing that replaced it. **When a body lands under a scaffold, grep the tests that named the scaffold.**
 - **A ROUND-TRIP THROUGH YOUR OWN READER ASKS A NARROWER QUESTION THAN THE ONE THE CRITERION MEANS.** AC-06.6 says the export must "re-ingest to a byte-identical canon", and YAML PASSED that: `serde_norway` emits 1.2-correctly and survives 24 of 24 hazardous scalars. **PyYAML 6.0.3 silently corrupts 6 of the same 24 reading the same bytes** -- `no` to False, `12:30` to 750, `2026-08-14` to a date object, which is the spelling of every `created` field in the canon. The artefact exists to be read by someone else, so the only round trip that counts is the one through a reader we do NOT control. **The green was real and it measured the wrong loop.** Sixth instance of the sufficient-looking check.
 - **A CANARY CAN FIRE FOR A DIFFERENT REASON THAN THE ONE UNDER TEST, AND IT READS EXACTLY LIKE PROOF.** Canarying 0037 with a `new_surface` row whose HELP leaked a WP id went red under the OLD enumerator too -- `intent --help` lists every subcommand's about line, so a surface that was never broken caught it. Moving the leak into a FLAG's help, which only `intent <cmd> --help` shows, gave the clean discriminator: same estate, old green, new red. **Before believing a canary, ask which surface actually failed.**
 - **A REMEDY THAT LISTS THE ROSTER CAN OFFER THINGS THAT REFUSE.** `--format xml` answered "one of: json, yaml, md" and two of those three are refusals -- the remedy for a refusal was two more refusals. **Found by RUNNING it; reading it looked correct, because the roster was correct and the LISTING of it was not.** Offer what can be had; name what is declined as declined.
