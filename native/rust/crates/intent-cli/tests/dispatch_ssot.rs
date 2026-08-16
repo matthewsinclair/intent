@@ -665,3 +665,106 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
      {reported} across {printed} finding lines"
   );
 }
+
+/// **Issue 0039: an alias declared on a shipped row IS that command.**
+///
+/// `surface/dispatch-table.json` declares `aliases` on five entries and
+/// `pub struct Entry` did not have the field, so serde dropped it in silence.
+/// Four of the five are `disposition: keep` -- the one classification that
+/// promises the v2 spelling survives -- and `at done` / `at notdone`, which v2
+/// documents in its own help as "Aliases for green | red", did not exist in
+/// the binary at all. Every instrument reported agreement, because a JSON file
+/// cannot say whether anyone is listening.
+///
+/// **The assertion is equality of behaviour, not presence in help text.**
+/// Searching the help for the word `done` would pass on any command whose help
+/// happens to contain it; running both spellings and comparing what came back
+/// is the property the word "alias" actually means. It needs no arguments to
+/// do it: with none, the canonical spelling reports its missing positionals
+/// and a spelling that does not exist reports `unrecognized subcommand`, so
+/// the two answers differ exactly when the alias is missing.
+///
+/// Discovered from the table rather than listed here, so an alias added to a
+/// sixth row is covered on the day it is authored -- and counted, because a
+/// loop over an empty set is a test that passes by not looking.
+#[test]
+fn every_declared_alias_on_a_shipped_row_is_the_command_it_aliases() {
+  let table = dispatch::table();
+  let mut checked = 0;
+
+  for entry in dispatch::shipped_entries(&table) {
+    for alias in entry.alias_verbs() {
+      let (head, verb) = entry
+        .path
+        .rsplit_once(' ')
+        .expect("an aliased entry sits inside a family");
+
+      let by_alias = run_raw(&[head, alias]);
+      let by_name = run_raw(&[head, verb]);
+      // clap echoes the spelling it was invoked with into its usage line, so
+      // the alias is normalised to the canonical name before comparing --
+      // otherwise the test would demand that an alias lie about how it was
+      // called.
+      let normalised = by_alias.replace(&format!("{head} {alias}"), &format!("{head} {verb}"));
+
+      assert_eq!(
+        normalised, by_name,
+        "`{head} {alias}` must be `{head} {verb}`; it is declared in the table as an alias on a \
+         shipped row, and v2 answers to it"
+      );
+      checked += 1;
+    }
+  }
+
+  assert!(
+    checked >= 2,
+    "the table declares aliases on shipped rows and this test found {checked} -- either they were \
+     removed from the canon or this loop stopped seeing them, and both want a human"
+  );
+}
+
+/// **A retired row's alias stays retired**, which is the half that a naive fix
+/// gets wrong.
+///
+/// `st organize` is `disposition: retire` and carries `st organise`. Registering
+/// aliases without asking whether the row ships would bring a withdrawn command
+/// back through its old spelling while the canonical one stays gone -- a
+/// command that exists only under the name nobody chose to keep.
+#[test]
+fn a_retired_rows_alias_does_not_come_back() {
+  let table = dispatch::table();
+  let retired: Vec<&str> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .filter(|e| !e.is_shipped() && !e.aliases.is_empty())
+    .flat_map(|e| e.alias_verbs())
+    .collect();
+
+  assert!(
+    !retired.is_empty(),
+    "no retired row carries an alias, so this test proves nothing -- check the table before \
+     deleting it, because the case it guards is cheap to reintroduce"
+  );
+
+  for alias in retired {
+    let out = run_raw(&["st", alias]);
+    assert!(
+      out.contains("unrecognized subcommand"),
+      "`st {alias}` is an alias on a retired row and must not resolve, got: {out}"
+    );
+  }
+}
+
+/// stdout + stderr of one invocation, with no `--help` appended.
+fn run_raw(args: &[&str]) -> String {
+  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(args)
+    .output()
+    .expect("run the v3 binary");
+  format!(
+    "{}{}",
+    String::from_utf8_lossy(&out.stdout),
+    String::from_utf8_lossy(&out.stderr)
+  )
+}

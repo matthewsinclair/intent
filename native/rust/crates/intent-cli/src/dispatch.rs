@@ -161,6 +161,20 @@ pub struct Entry {
   /// reach a user's terminal. Kept because the field is theirs and dropping it
   /// would make the table unparseable for a reason that is not the table's.
   pub owner_wp: String,
+  /// The v2 spellings that must keep working, eg `done` for `at green`.
+  ///
+  /// **Issue 0039: this was authored on five rows and absent from this struct**,
+  /// so serde dropped it in silence and `at done` / `at notdone` -- which v2
+  /// documents in its own help as "Aliases for green | red" -- did not exist in
+  /// the binary at all. Four of the five rows are `disposition: keep`, which is
+  /// the one classification that promises the v2 spelling survives, so the
+  /// table declared four commands and shipped two.
+  ///
+  /// Registered by the spine for rows that SHIP, never unconditionally: `st
+  /// organise` is an alias on a `retire` row, and registering it would bring a
+  /// retired command back through its old spelling.
+  #[serde(default)]
+  pub aliases: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -289,6 +303,23 @@ impl Entry {
   pub fn is_shipped(&self) -> bool {
     self.disposition != "retire" && self.target.state != "retire"
   }
+
+  /// The alias spellings as clap registers them: each alias's last segment.
+  ///
+  /// The prefix is validated at load ([`check_vocabularies`]), so by the time
+  /// anything calls this an alias is known to belong to the command it sits on.
+  pub fn alias_verbs(&self) -> Vec<&str> {
+    self
+      .aliases
+      .iter()
+      .map(|alias| {
+        alias
+          .rsplit_once(' ')
+          .map(|(_, last)| last)
+          .unwrap_or(alias)
+      })
+      .collect()
+  }
 }
 
 /// Parse the compiled-in table. Panics on a malformed table because the table
@@ -378,6 +409,20 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
         ));
       }
     }
+    // An alias is written as a FULL path (`at done` beside `at green`), so the
+    // spelling clap registers is its last segment and everything before it has
+    // to be this entry's own prefix. If they disagree the alias names a
+    // different command, and registering its last segment here would attach it
+    // to this one silently -- an alias that works and points somewhere nobody
+    // wrote down.
+    for alias in &entry.aliases {
+      if prefix(alias) != prefix(&entry.path) {
+        unknown.push(format!(
+          "`{}` declares the alias {:?}, which is not in its own family",
+          entry.path, alias
+        ));
+      }
+    }
   }
 
   if unknown.is_empty() {
@@ -385,6 +430,11 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
   } else {
     Err(unknown)
   }
+}
+
+/// Everything in a command path before its last segment; `""` for a bare name.
+fn prefix(path: &str) -> &str {
+  path.rsplit_once(' ').map(|(head, _)| head).unwrap_or("")
 }
 
 /// Every shipped entry, ported and added alike, in table order.
@@ -481,6 +531,7 @@ mod tests {
       target: Target::default(),
       disposition: "keep".to_string(),
       owner_wp: String::new(),
+      aliases: vec![],
     };
     assert_eq!(st.family(), "st");
     assert_eq!(st.verb(), Some("new"));

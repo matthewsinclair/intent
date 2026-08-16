@@ -127,7 +127,7 @@ pub fn build(table: &Table) -> Command {
       continue;
     }
 
-    let mut cmd = Command::new(family.name.clone()).about(family_entry.help.clone());
+    let mut cmd = command_for(&family.name, family_entry);
     let verbs: Vec<&Entry> = family
       .entries
       .iter()
@@ -179,21 +179,41 @@ pub fn build(table: &Table) -> Command {
     if !entry.is_shipped() {
       continue;
     }
-    root = root.subcommand(with_args(
-      Command::new(entry.path.clone()).about(entry.help.clone()),
-      entry,
-    ));
+    root = root.subcommand(with_args(command_for(&entry.path, entry), entry));
   }
   root
+}
+
+/// A clap command built from a table entry: its name, its help, and the v2
+/// spellings it still has to answer to.
+///
+/// **Every Entry-backed Command is built here**, and that is the point rather
+/// than tidiness. Issue 0039 was a property that had to hold at three separate
+/// construction sites -- the family, the leaf verb, and the new-surface top
+/// level -- and held at none of them, because there was no single place where
+/// "a Command made from an Entry" was expressed. `.about(entry.help)` was
+/// already being repeated at all three; the aliases would have been the fourth
+/// thing to remember three times.
+///
+/// Callers filter on `is_shipped()` before reaching here, which is what keeps
+/// `st organise` retired: it is an alias on a `retire` row, and registering it
+/// would bring a withdrawn command back through its old spelling while the
+/// canonical one stays gone.
+fn command_for(name: &str, entry: &Entry) -> Command {
+  let mut cmd = Command::new(name.to_string()).about(entry.help.clone());
+  for alias in entry.alias_verbs() {
+    // VISIBLE, because v2 lists them: `done|notdone <stid> <atid>  Aliases for
+    // green | red`. A hidden alias would work and be undiscoverable, which is
+    // a different way of not shipping it.
+    cmd = cmd.visible_alias(alias.to_string());
+  }
+  cmd
 }
 
 /// One leaf verb, with its positional arguments and flags.
 fn leaf(entry: &Entry) -> Command {
   let verb = entry.verb().unwrap_or(&entry.path);
-  with_args(
-    Command::new(verb.to_string()).about(entry.help.clone()),
-    entry,
-  )
+  with_args(command_for(verb, entry), entry)
 }
 
 fn with_args(mut cmd: Command, entry: &Entry) -> Command {
