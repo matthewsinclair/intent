@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-16 10:09Z
+heartbeat_at: 2026-08-16 10:20Z
 status: active
-focus: "Three landed since the fold: the evidence guard (74ae7324), EXP-07's four dropped fields with two latent holes under it (7e051f3f), the table's own vocabularies now read rather than restated (bacd3103), and AC-06.8's mitigation built where ic proved it belonged (8306d0b2). 356 tests. NEXT: wire `intent ingest [PATH]`."
+focus: "LOCALFOLD at 10:20Z -- all 19 handled inbox entries archived, every inbox back to its sentinel, nothing owed to any peer. Five landed since the last fold: the evidence guard, EXP-07's four dropped fields, the table's vocabularies now read rather than restated, AC-06.8's missing mitigation, and `intent ingest [PATH]` wired. 358 tests. UPSTREAM IS FROZEN -- local pushes only. NEXT: AC-06.6 export."
 claims: []
 ---
 
@@ -33,9 +33,8 @@ claims: []
 
 ## TODO -- in order
 
-1. **Wire `intent ingest [PATH]`** -- ic landed the row at `3280b43d` on my ruling (`0..1`; recovery defaults to this project's tree, a migrator names another).
-2. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
-3. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
+1. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+2. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
 
 ## Held for WP-10 -- vc's migration ruling, provisional pending hv (21:30Z)
 
@@ -50,7 +49,7 @@ Four clauses, and the third is the one someone will reach for: **no false `Satis
 ## Waiting
 
 - **vc**: **both of my open questions RULED and nothing owed either way.** The guard list is ratified (they verified at HEAD, not in my worktree, and flagged that `Edge::direct()`'s `guard: &[]` default is the same shape as the `from: &[]` defect four lines above it -- closed, because the transcription check compares all 21 edges to a ratified declaration, so the default cannot silently mean anything). Migration ruled above. **Still open with them: the D-number prose exception.** I owe them nothing; they hold AC-05.5 open deliberately on a third instance of my class.
-- **ic**: **nothing owed either way.** No re-pin needed -- their table pins the SHAPE not the TEXT, so a message rewrite that keeps stream, exit code and prefix is invisible to their check BY DESIGN. Standing rule taken: **tell them only when a message changes STREAM, EXIT CODE or PREFIX.** Their `[PATH]` row is still waiting on my wiring, which is TODO 1.
+- **ic**: **nothing owed either way.** No re-pin needed -- their table pins the SHAPE not the TEXT, so a message rewrite that keeps stream, exit code and prefix is invisible to their check BY DESIGN. Standing rule taken: **tell them only when a message changes STREAM, EXIT CODE or PREFIX.** Their `[PATH]` row is WIRED (`c8d90298`) -- and wiring it turned their `--from-md` objection into a measurement that comes out their way: the other thing `ingest` could have meant is already `sync --from-disk`, so it genuinely is a mode flag with one mode. Recorded in the arm, not acted on; vc named AC-10.2/10.3 as where that belongs.
 - **dc**: blocked on hv for the tap. `testkit` is THEIRS (`e75908cf`) -- vc misattributed it to me from a working-tree read and has corrected it; I never claimed it. Nothing owed.
 
 ## Lane boundary
@@ -63,10 +62,12 @@ Four clauses, and the third is the one someone will reach for: **no false `Satis
 - **`EdgeKind::Incidental` STAYS despite having no user** -- deleting it collapses `exits` into `leaves` and the trap check silently accepts technicality exits again.
 - **`owner_wp` stays carried and unread** -- three consumers in ic's `gen_dispatch_table.sh`.
 - **`doctor --fix` is WITHDRAWN, not deferred** (hv). A diagnostic that NAMES the remedy beats one that performs it. Nothing to remove in `render.rs` -- it was declared and never read; ic removes the row.
-- **Push to all remotes when needed.**
+- **PUSH TO `local` ONLY -- `upstream` is FROZEN (hv, 2026-08-16 10:20Z, CI/CD budget hit).** Announced to all three peers. **The remotes will diverge and that is expected**, so the "verify both with `git ls-remote`" watch-out is suspended: compare `local` to HEAD only. **And CI is no longer the watcher for the Linux leg** -- the full suite, clippy and fmt run locally in seconds, but a `set -e` or path-separator break that only shows on Linux now has nothing checking it. That is the class that shipped v2.11.12 broken.
 
 ## Watch-outs -- mechanical only
 
+- **A BORROWED FINDING CLASS BRINGS ITS REMEDY WITH IT, AND THE REMEDY IS WRITTEN FOR THE OTHER CASE.** `ingest::from_md` said "not built yet" as a `Refusal` carrying `FindingClass::UnknownFileShape`, whose class-level remedy is _"move or rename it"_ -- so **`intent ingest` told a user to move or rename `intent/st` because a feature was unimplemented**, and the correct sentence sat one line above it. Wrapped again at the layer above as _"could not read the committed canon ... fix the artefacts named above"_. **Five lines of confident instruction around one true one, and every layer was behaving correctly for the class it was told it had.** The defect was the VEHICLE, not the wording: an unbuilt feature is not a defect in anyone's estate. **When reusing an error type, read what its class promises the reader.**
+- **AN ERROR'S REMEDY SHOULD LEAD WITH WHAT DID NOT HAPPEN, when that is the reader's real question.** Someone who ran a migration and got an error wants to know whether their estate was touched before they want to know why.
 - **A MITIGATION CAN BE RULED INTO THE ONE PLACE THAT STRUCTURALLY CANNOT PERFORM IT, AND THEN IT LEAVES NO HOLE.** AC-06.8 ruled that `doctor` reports withheld flags; `doctor` lives in `intentsvcs`, which cannot depend on `intent-cli`, where the table is compiled in. **Nothing looked missing because there was nowhere for it to be missing FROM.** ic found it by verifying the two halves of one ruling separately. **When a ruling names a component, check that component can SEE the data before believing the ruling is discharged.**
 - **IN THIS REPOSITORY AN UNTRACKED FILE HAS NO AUTHOR** (dc, 09:33Z). Four of us commit into one clone, so `git status` shows a peer's in-progress file as indistinguishable from your own; only a commit carries authorship (`git log --diff-filter=A -- <path>`). vc attributed dc's `testkit` to me from a working-tree read. **Worse than a mix-up: `git add`ing a peer's half-written crate would put a workspace member in the index and absent from HEAD, which stops cargo loading the workspace at all.**
 - **`$?` AFTER A PIPE IS THE LAST COMMAND'S, AND IT READS LIKE THE ONE YOU CARE ABOUT.** vc got `0` beside a `BLOCKED` line and was one step from filing "the close gate does not gate" -- a false `high` against the mechanism that stops vacuous greens. It was `tail`'s. **I did the same thing measuring `doctor` an hour after reading their note and caught it only because they had written it down.** Redirect to a file and check `$?` on the bare command.
