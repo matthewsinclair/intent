@@ -717,8 +717,42 @@ cmd_publish() {
   # points at changes the bytes under a hash that has been published as true --
   # the precise failure this command exists to prevent, committed by the command
   # itself.
+  #
+  # **THE TEST IS ASSETS, NOT EXISTENCE, AND THAT DISTINCTION IS THE WHOLE v3
+  # RELEASE.** This check used to refuse any release with this tag, which is
+  # broader than the reason above and made a v3 cut impossible: `int build
+  # release` creates the tag AND the GitHub release in one step (`gh release
+  # create`, build.d/release:531), while the next line here requires the tag to
+  # already exist because the cut owns tagging. So publish demanded a state --
+  # tag present, release absent -- that the only thing which creates the tag
+  # cannot leave behind. **Each command was individually correct and the
+  # composition was impossible**, which is the failure this estate keeps finding
+  # in the gaps between correct steps rather than inside them.
+  #
+  # A release carrying ZERO assets has published no bytes and no hash describes
+  # anything, so attaching to it violates nothing the comment above protects.
+  # One that carries assets is refused exactly as before.
+  #
+  # FAILS CLOSED. If the asset count cannot be read, the question "have bytes
+  # already been published under this tag" is unanswered, and a publisher that
+  # proceeds while it is unanswered is the failure wearing a different hat.
+  local have_release=0
   if gh release view "$tag" --repo "$REPO" >/dev/null 2>&1; then
-    die "$REPO already has a release $tag. Refusing to overwrite published bytes: a hash that has already been published as true must keep describing the same file. Cut a new version."
+    local n
+    # Assignment on its own line: `local n="$(...)"` returns local's status, not
+    # the command's, so a failing gh would read as success.
+    n="$(gh release view "$tag" --repo "$REPO" --json assets -q '.assets | length' 2>/dev/null)" || n=""
+    case "$n" in
+      0)
+        have_release=1
+        ;;
+      '' | *[!0-9]*)
+        die "could not read the asset count for $REPO $tag. Refusing to publish while it is unknown whether bytes have already been published under this tag -- check 'gh auth status'."
+        ;;
+      *)
+        die "$REPO already has a release $tag carrying $n asset(s). Refusing to overwrite published bytes: a hash that has already been published as true must keep describing the same file. Cut a new version."
+        ;;
+    esac
   fi
 
   git -C "$ROOT" rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1 ||
@@ -731,22 +765,34 @@ cmd_publish() {
   for b in $BINARIES; do assets="$assets $STAGE_DIR/$b-$triple"; done
 
   step "plan"
-  printf '    release   %s %s\n' "$REPO" "$tag"
+  if [ "$have_release" -eq 1 ]; then
+    printf '    release   %s %s (EXISTS, no assets -- attaching to the cut'"'"'s release)\n' "$REPO" "$tag"
+  else
+    printf '    release   %s %s (will be created)\n' "$REPO" "$tag"
+  fi
   for b in $BINARIES; do printf '    artefact  %s-%s\n' "$b" "$triple"; done
   printf '    tap       %s (Formula/intent.rb)\n' "$TAP"
 
   if [ "$dry" -eq 1 ]; then
     printf '\n'
     printf 'dry run: nothing was published. Every check above passed.\n'
-    printf '  The steps NOT run: create the release, upload, re-download and hash,\n'
+    printf '  The steps NOT run: create or attach to the release, upload, re-download and hash,\n'
     printf '  and push the formula. Re-run without --dry-run to do them.\n'
     return 0
   fi
 
-  step "creating $tag on $REPO"
-  # shellcheck disable=SC2086
-  gh release create "$tag" $assets --repo "$REPO" --title "Intent $tag" --notes "Intent $version -- macOS arm64. Both binaries are Developer ID signed and notarised." ||
-    die "could not create the release"
+  if [ "$have_release" -eq 1 ]; then
+    # The cut already made the release; this only adds the artefacts to it.
+    step "uploading artefacts to the existing $tag on $REPO"
+    # shellcheck disable=SC2086
+    gh release upload "$tag" $assets --repo "$REPO" ||
+      die "could not upload the artefacts to $tag"
+  else
+    step "creating $tag on $REPO"
+    # shellcheck disable=SC2086
+    gh release create "$tag" $assets --repo "$REPO" --title "Intent $tag" --notes "Intent $version -- macOS arm64. Both binaries are Developer ID signed and notarised." ||
+      die "could not create the release"
+  fi
   ok
 
   # BE THE USER. Same public URL a formula sends brew to.
