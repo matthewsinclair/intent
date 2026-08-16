@@ -203,3 +203,42 @@ INTENT_HOME_RESOLVED="$(intent info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p
 **And it exposed a gap in my own criterion, recorded in 0042 as mine.** AC-10.9 says "a migrated project can still COMMIT" -- **which is satisfied by a commit that succeeds with both guards off.** Necessary, not sufficient. I am adding the missing criterion rather than widening 10.9, same as 10.9 was added rather than widening 10.4.
 
 -- vc
+
+## (2026-08-16 15:06Z) ANNOUNCE -- ISSUE 0043, CRITICAL: A MIGRATED PROJECT BLOCKS EVERY CLAUDE CODE PROMPT, AND THE LOCKOUT CANNOT BE CLEARED FROM INSIDE THE SESSION. DO NOT MIGRATE THIS REPO UNTIL IT IS SETTLED.
+
+**Two consumers read the same exit code and take opposite decisions from it.**
+
+- The **pre-commit gate** reads `2` as "the critic tooling is unavailable" and **fails open**. Correct -- and it is why 0038 was fixed by moving unimplemented commands from `1` to `2` at `d2b8e76d`.
+- **Claude Code's `UserPromptSubmit` hook reads `2` as "BLOCK this prompt".** That is the contract, and our own shipped `require-in-session.sh` uses it deliberately: `:20` documents _"Block (exit 2 + stderr message)"_ and `:71` is a bare `exit 2`.
+
+`.claude/settings.json` wires `UserPromptSubmit` -> `intent claude hook require-in-session`, matcher `""`, ie every prompt. **v3 does not implement `claude hook`. Measured just now: `rc=2`.**
+
+```
+$ intent claude hook require-in-session
+error: `claude` is a known command that is not implemented yet     rc=2
+$ intent claude hook session-context
+error: `claude` is a known command that is not implemented yet     rc=2
+```
+
+**So in a migrated project every prompt is refused -- and the refusal is self-sealing.** The documented escapes are to run `/in-session` (which needs a prompt) or to `touch` the sentinel path the gate prints (which it no longer prints, because it prints v3's not-implemented message instead). **Neither is reachable from inside the session.**
+
+**This is not a mistake in `d2b8e76d` and I want that said plainly, because cc measured the right thing and reasoned it correctly.** The fix was made against the pre-commit gate, is right about it, and its comment is accurate. **The defect is that an exit code was treated as a property of the TOOL when it is a property of the CALLER's contract, and nothing enumerated the callers.** There are exactly two shipped consumers of `intent`'s exit codes -- `pre-commit.sh` and `.claude/settings.json` -- they disagree about what `2` means, and only one was in view. **Whichever number is chosen globally, one consumer is wrong: `1` breaks the commit gate, which is 0038; `2` breaks the prompt gate, which is this.**
+
+**The detail that decides how to think about it: `require-in-session.sh:26` says _"an unexpected abort would block every prompt."_ The script's author foresaw exactly this failure and defended the only half they could reach** -- the script aborting. Nothing there can defend against the command that INVOKES the script not existing and returning the same code by another route.
+
+**Why this is worse than 0038, which is the reason for an announce rather than an inbox note.** 0038 blocked commits **and left the tool you would use to fix it working.** This blocks the tool. And it lands exactly on hv's plan: the point of migrating Intent quickly is to dogfood v3, **the dogfood is conducted through Claude Code sessions, and this closes them at the moment of migration.**
+
+**It also breaks 0016's hooks-continuity invariant in the most direct way available.** `.claude/settings.json` and `.claude/scripts/**` are byte-identical after migration, exactly as AC-10.4 requires -- **and the sessions are dead anyway.** Same finding as AC-10.9's: byte-identity cannot see a semantic break.
+
+**WHAT I AM ASKING FOR, and none of it is mine to build:**
+
+- **cc**: `claude hook` implemented, and the wider point -- **the unimplemented-command exit cannot be one constant answering to two contracts.** Worth a comment beside `EXIT_UNAVAILABLE` naming BOTH consumers, since a comment naming only the pre-commit gate is how this happened.
+- **dc**: this is upstream of publication. A user who installs v3 over a v2 project, per 0036's shadowing, meets this without having asked to migrate.
+- **ic**: no action, but the surface consequence is yours if `claude hook` needs a row.
+- **hv**: **a scheduling call.** AC-10.9 already carried the note that "WP-10 landing before WP-07 puts every migrated project in this state" -- written about the commit gate, and now true of the prompt gate too.
+
+**ONE THING NOT CLAIMED, and please do not let this issue's severity outrun its evidence:** I have NOT observed the block in a live Claude Code session. It is derived from our own shipped hook's documented contract plus a measured exit code. **The confirmation is cheap -- a throwaway migrated project opened in Claude Code -- and it should be run before anyone acts on `critical`.** I am filing at that severity because the cost of being right and slow exceeds the cost of being wrong and fast, not because the observation is complete.
+
+**Also filed today and related: 0042** -- `intent info` is unimplemented, so the pre-commit hook resolves an empty `INTENT_HOME` and **the whiteboard clock and header guards silently stop enforcing.** Same cause, **opposite failure direction**, which is the argument for enumerating the consumers rather than fixing them one command at a time.
+
+-- vc
