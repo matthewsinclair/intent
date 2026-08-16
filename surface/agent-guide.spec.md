@@ -33,12 +33,28 @@ The halves compose at render time. There is no committed generated guide file: `
 
 ## What the generated section carries per command
 
-Not the same projection a human help screen wants. An agent needs the constraints before the description:
+Not the same projection a human help screen wants. An agent needs the safety constraint before the description, and the call before the routing:
 
-1. **`exposed_on_mcp`** -- may an agent call this at all. Declared per row (AC-09.1), never derived.
-2. **`read_or_mutate`** -- does this change durable state. Declared over the WHOLE entry, so `at lint` is a mutation because `--fix` exists, and `todo list` is a mutation because it generates `todo.md` when absent.
-3. **path, help, arguments, flags** -- the call. Flags are the `keep` set only, which is `Flag::ships()`; see below for what that deliberately excludes.
+1. **`read_or_mutate`** -- does this change durable state. Declared over the WHOLE entry, so `at lint` is a mutation because `--fix` exists, and `todo list` is a mutation because it generates `todo.md` when absent.
+2. **path, help, arguments, flags** -- the call. Flags are the `keep` set only, which is `Flag::ships()`; see below for what that deliberately excludes.
+3. **`exposed_on_mcp`** -- whether the OTHER route also carries this row. Declared per row (AC-09.1), never derived. It is not a gate on the agent; see immediately below.
 4. **surface-wide facts, stated ONCE and not per row** -- the exit-code contract, and `--help`.
+
+### `exposed_on_mcp` was first in this list, and D45 moved it
+
+It sat at position 1, glossed **"may an agent call this at all"**, until D45 (hv, 2026-08-16): _"the CLI is the precise surface and the MCP layer is the imprecise one. A skill drives `intent` directly."_ Under that ruling the gloss is not merely mis-emphasised, it is **false**. The agent's default route is the CLI; all 107 shipped rows are on it; `exposed_on_mcp: false` withholds a row from the imprecise alternative, not from the agent.
+
+**Leading with a false gate is the specific error this document opens by measuring.** A guide whose first per-row fact is "may you call this" teaches its reader that parts of the surface are closed, and 26 of the 107 shipped rows carry the flag that would read as closed. That is a larger silent-omission surface than the one the v2 guide had, arrived at by generating rather than forgetting -- which is worth saying plainly, because the generated half's whole claim is that completeness comes for free. Completeness of the ROW SET comes for free. **The truth of each rendered field does not**, and no generator will ever check it.
+
+### What the demotion leaves without a home
+
+The 26 withheld rows are two populations under one flag, and the split is derivable rather than a matter of opinion: **13 are family roots** (`st`, `wp`, `ac`, `at`, `issues`, `config`, `agents`, `claude`, `lang`, `llm`, `modules`, `plugin`, `ext`) which have no action of their own to expose, and **13 are leaves that were deliberately withheld** -- `st repair`, `st bootstrap`, `init`, `bootstrap`, `upgrade`, `agents init`, `claude upgrade`, `claude start`, `lang remove`, `ingest`, `backup`, `daemon`, `mcp`.
+
+**All 13 of those leaves are `mutate`, and not one withheld leaf is a `read`.** The withholding is a coherent policy that nobody wrote down as one: MCP declines the commands that reshape an estate or an environment, and declines nothing that merely reads. The table's `about` states the lean that produced it -- `exposed_on_mcp` leans false because "one wrongly included lets an agent run `daemon`" -- and `daemon` is duly one of the 13.
+
+**D45 makes that policy stop working, and `read_or_mutate` does not inherit it.** If a skill drives `intent` directly then the flag prevents nothing, and the field an agent now reads first is too coarse to carry the distinction: `st new` and `init` are both `mutate`, 51 of the 65 shipped mutations are exposed, and nothing in the projection separates "writes a steel thread" from "reshapes the estate". The policy still exists, correctly applied to all 13 rows, readable only through a field the ruling just demoted to a routing note.
+
+**This is a contract question and it is vc's, not mine.** My charter is the projection, and the projection can only render what the table declares; whether the withheld-13 distinction earns a field of its own -- or whether D45 means agent safety moves to the skills that drive the CLI -- decides what there is to render. Recorded here rather than resolved so that the next person to read this section does not conclude from the reordering that the safety property was carried across. **It was not. It was measured, named, and left with its owner.**
 
 ### Which flags, and the one that is missing if nobody asks
 

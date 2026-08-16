@@ -413,6 +413,27 @@ MCP_UNDECLARED="$(jq -r '
 [ -z "$MCP_UNDECLARED" ] || die "rows do not declare the MCP surface -- every entry needs \`exposed_on_mcp\` (boolean) and \`read_or_mutate\` (\"read\" or \"mutate\"). Refusing rather than defaulting: there is no safe default, and deriving from the verb is what this field exists to replace. Offending paths:
 $(printf '%s' "$MCP_UNDECLARED" | sed 's/^/  /')"
 
+# A row that does NOT ship must not be exposed on MCP. The MCP tool list renders
+# from this file, so `exposed_on_mcp: true` on a retired row publishes a tool for
+# a command that will not answer -- and an agent trusts a tool list far more than
+# it trusts prose, because a listed tool reads as a capability the host verified.
+#
+# This held on all 112 rows the day it was written (81 exposed, 0 of them retired),
+# and that is exactly why it is worth asserting rather than leaving alone: **a file
+# clean by luck and a file clean by construction are identical in a diff**, which
+# is this table's own stated reason for keeping `known_exposures`. The two fields
+# are independently edited by different sessions -- retirement is a disposition
+# call, exposure is an agent-safety call -- so nothing but this line keeps them
+# from disagreeing, and the disagreement would be invisible in the green.
+MCP_ON_DEAD="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select(.exposed_on_mcp == true
+             and ((.disposition // "") == "retire" or (.target.state // "") == "retire"))
+        | .path + " (disposition=" + (.disposition // "(absent)") + ", target.state=" + (.target.state // "(absent)") + ")")
+  | join("\n")' "$IN")"
+[ -z "$MCP_ON_DEAD" ] || die "rows are exposed on MCP but do not ship -- an agent would be offered a tool for a command that does not exist. Retire the exposure with the command, or the row is not really retired. Offending paths:
+$(printf '%s' "$MCP_ON_DEAD" | sed 's/^/  /')"
+
 # `target.state` is a CLOSED vocabulary, and until now nothing closed it.
 # `Target.state` is a bare `String` with `#[serde(default)]`, the values were
 # listed only in a doc comment at dispatch.rs:172 and in this file's prose, and
