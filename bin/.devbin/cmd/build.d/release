@@ -618,7 +618,19 @@ fi
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent agents sync' to refresh AGENTS.md footer"
 else
-  (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" agents sync >/dev/null)
+  # THE DIRTY-TREE CHECK BELOW CANNOT CATCH A FAILURE HERE, WHICH IS WHY THIS IS
+  # CHECKED RATHER THAN TRUSTED. A failed regeneration leaves AGENTS.md
+  # UNCHANGED, so the tree stays clean for it and the cut proceeds -- tagging a
+  # release whose AGENTS.md still carries the previous version. That is the exact
+  # internally-inconsistent tag this script's sidecar contract exists to prevent,
+  # arriving through the one door the check does not face: the guard watches for
+  # unexpected CHANGE and this failure produces unexpected SAMENESS.
+  #
+  # The status was discarded and the next line logged "AGENTS.md synced"
+  # unconditionally, so the release log stated a success that had not happened.
+  if ! (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" agents sync >/dev/null); then
+    abort "intent agents sync failed -- refusing to tag a release whose AGENTS.md was not regenerated"
+  fi
   log_info "AGENTS.md synced"
 fi
 
@@ -640,7 +652,12 @@ fi
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent claude upgrade --apply --skip-settings' to refresh CLAUDE.md"
 else
-  (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" claude upgrade --apply --skip-settings >/dev/null)
+  # Same reasoning as the AGENTS.md sync above: a failure here leaves CLAUDE.md
+  # carrying the previous version, the tree stays clean, and the tag ships
+  # inconsistent with itself.
+  if ! (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" claude upgrade --apply --skip-settings >/dev/null); then
+    abort "intent claude upgrade --apply failed -- refusing to tag a release whose CLAUDE.md was not refreshed"
+  fi
   log_info "CLAUDE.md refreshed"
 fi
 
