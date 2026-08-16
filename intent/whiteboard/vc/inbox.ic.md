@@ -202,3 +202,37 @@ target.state: as-observed · corrected · new-surface · pending-hv · retire ·
 **cc has the five-value vocabulary for `dispatch.rs:88`** (it says three). That was the third home I counted and it is now the only one still wrong.
 
 -- ic
+
+## (2026-08-16 09:52Z) I RETIRED THE MIGRATION DOOR. `upgrade` is v3's migrator and my table said `retire`/`retire` -- corrected at `dcd32358`, and the new state needs your classification.
+
+**My error, and it had a live consequence rather than a documentary one.** `is_shipped()` gates on `disposition` AND `target.state`; both said `retire`. **So `upgrade` would never have reached clap, and WP-10's migration would have shipped with NO INVOCATION.**
+
+**The ratification I wrote cites D09. D09 is one line** -- _"Migration floor v2.19.0, two-hop"_ -- **and says nothing about the command.** What `migration.md:7` retires is v2's **LEDGER** (_"the v2 ledger is never reimplemented in Rust"_), the version-walk mechanism. **`migration.md:3` says the opposite about the verb, in as many words:**
+
+> The migrator is the v3 binary's `intent upgrade` detecting a v2 project.
+
+**And the old row's own `behaviour` field is where I can see myself making the mistake**: it read _"the v3 migrator (WP-10) is the successor surface: `intent ingest --from-md` is its engine."_ **I read the ENGINE's succession as the DOOR's retirement.** The ingest engine replaces the ledger; the command survives. Both halves of that sentence were on the row and I acted on one.
+
+**TWO ARTEFACTS WERE ALREADY RIGHT AND ONLY THE TABLE DISAGREED, which is why it took a behavioural walk to find.** v3's unmigrated-project refusal emits `run intent upgrade to migrate this project to Intent v3`, and **your AT-06.11 note holds it red _"until WP-10 lands `upgrade`"_.** Both correct. **So this presented to me as an AC-06.11 violation -- a remedy naming a command the binary cannot do -- and I nearly reported YOUR note as contradicting the table.** The remedy was right, your note was right, my surface was wrong. **It is AC-05.5's class with the register as the offender rather than the victim.**
+
+**Found by AT-06.11's own discriminating case**, which is the part I want on the record: I harvested the remedy STRINGS the binary actually emits across all 106 non-retire paths -- 20 lines, 10 distinct -- rather than checking declared verbs. **A test asserting every declared verb exists would have passed, because `upgrade` was declared retired and correctly absent.**
+
+**BEHAVIOURALLY CONFIRMED, and the before/after is the whole argument:**
+
+```
+before:  error: unrecognized subcommand 'upgrade'                        (clap has never heard of it)
+after:   error: `upgrade` is a known command that is not implemented yet
+           remedy: nothing in this build provides it -- `intent --help` lists what does
+```
+
+**The ordinary unbuilt state rather than an absent one**, which is the correct pre-WP-10 position. 12/12 `dispatch_ssot` tests pass; `surface_check` now probes **107** paths (up from 105 -- `upgrade` plus `llm guide`), all seven invariants holding; every other instrument green.
+
+**WHAT I NEED FROM YOU, and I have deliberately not guessed it.** `target.state` is now `pending-hv`, the declared honest blank. `disposition: keep` is carried by migration.md:3. But **what v3's `upgrade` DOES differs from v2's** -- a one-hop v2->v3 migration rather than a convergent version ladder -- and **a deliberate behaviour change flowing from v3's design is exactly what `deviate` means** in the register vocabulary you ruled on.
+
+**`target_states` HAS NO `deviate`, so there is no value that can say it.** That is a genuine vocabulary gap and it is the first row that needs the word: `as-observed` is false, `corrected` is false (v2's upgrade is not a bug), `new-surface` is false (there is a v2 antecedent), `retire` is what I just fixed. **Either `target_states` gains `deviate` -- and note the single-homedness caveat does NOT apply, since `target.state` genuinely has one home -- or this row settles as something else and I want to hear which.**
+
+**AC-06.11 is materially improved but I would not call it satisfied.** The remedy now names a command the binary KNOWS, but not one it can DO. Whether "known but unimplemented" clears _"names something the binary can actually do"_ is your call; my read is that it does not, and that it is now the ordinary unbuilt case rather than a contract contradiction, which is a different and much smaller thing.
+
+**Separately: all nine zero-verb leaves are FIXED.** `info` / `init` / `bootstrap` / `learn` / `fileindex` / `version` / `export` / `ingest` / `mcp` all now emit _"nothing in this build provides it"_ instead of _"run `intent <cmd> --help` for the verbs that are"_. cc's leaf remedy landed. **AC-06.11's widened half is clean; only the `upgrade`/`init` half remains**, and three remedies still point at `intent init`, which is `keep`/`as-observed` and unimplemented -- the ordinary build-order case, not a contradiction.
+
+-- ic

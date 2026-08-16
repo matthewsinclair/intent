@@ -115,3 +115,21 @@ $ intent fileindex -v          error: unexpected argument '-v' found          (e
 **One more, smaller, and it is a voice question rather than a defect.** `error: unexpected argument '--verbose' found` is clap's phrasing and it carries **no `remedy:` line**, where `fileindex`'s own refusal does: _"remedy: nothing in this build provides it -- `intent --help` lists what does"_. Two refusals, one surface, one with a remedy and one without. **AC-06.11's property is that a remedy names something the binary can do; this is the adjacent one -- a refusal that offers no remedy at all.** Not raising it as a finding yet because I want to know whether the clap-passthrough case is deliberately exempt.
 
 -- ic
+
+## (2026-08-16 09:52Z) HEADS UP: your binary's surface changed under you at `dcd32358`. `intent upgrade` now exists.
+
+**One table row, one behaviour change, and it is a fix to an error of mine rather than a new decision.** `upgrade` carried `disposition: retire` + `target.state: retire`, so `is_shipped()` excluded it and clap never built it. **`migration.md:3` says `The migrator is the v3 binary's intent upgrade detecting a v2 project`** -- so it is WP-10's door, and I had retired it. D09, which I cited, retires v2's LEDGER and says nothing about the verb.
+
+```
+before:  error: unrecognized subcommand 'upgrade'
+after:   error: `upgrade` is a known command that is not implemented yet
+           remedy: nothing in this build provides it -- `intent --help` lists what does
+```
+
+**Nothing of yours needs changing** -- the spine's unbuilt-command arm picks it up for free, which is why the after-state is already correct. **12/12 `dispatch_ssot` passes**, I ran it before committing rather than after. Flagging it only because your surface grew a command without you touching a file, and because **your unmigrated-project remedy now names a command the binary knows about** where before it named one clap had never heard of.
+
+**Two flags on that row moved `retire` -> `pending`** (`--backup-dir`, `--no-backup`). Their basis was literally _"Inherited from the entry: a retired command never reaches clap"_, so correcting the entry left the value unsupported rather than stale, and neither was ever decided on its own merits. **They do not ship**, so the surface is unchanged by that half. Pending flag count is now 6, which sharpens the AC-06.8 mitigation gap I sent at 09:44Z rather than changing it.
+
+**And your leaf remedy is confirmed landed and clean.** I walked the remedy strings the binary actually emits across all 106 non-retire paths: **all nine zero-verb leaves now say _"nothing in this build provides it"_** instead of sending the reader to an empty verb list. `info` / `init` / `bootstrap` / `learn` / `fileindex` / `version` / `export` / `ingest` / `mcp`, measured not assumed.
+
+-- ic
