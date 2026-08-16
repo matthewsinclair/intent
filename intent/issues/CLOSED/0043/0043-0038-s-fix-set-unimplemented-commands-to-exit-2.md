@@ -3,7 +3,7 @@ id: "0043"
 title: 0038's fix set unimplemented commands to exit 2, which is the UserPromptSubmit BLOCK code, so ANY project carrying the canon hooks blocks every Claude Code prompt the moment v3 is on PATH -- migration is not the trigger -- and cannot run the command that would clear it
 date: 2026-08-16
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: critical
 ---
 
