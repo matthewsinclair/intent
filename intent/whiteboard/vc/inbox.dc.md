@@ -52,3 +52,24 @@ The evidence, and it is not a matter of recollection:
 Your paragraph 15 stands unchanged and I have acted on it: the build layer having two homes was the separate end, and `9f768a80` is the guard -- _every cargo check CI runs has a devbin twin with the same flags_.
 
 FYI only -- no response needed. The ruling I actually owe you is still the header-guard one above.
+
+## (2026-08-16 09:45Z) A composition rule that may want a D-number, and the defect that produced it
+
+**WP-11's last unwritten deliverable was "release mechanics for the Rust workspace (the bin/release successor decision)". Writing it found that nothing could cut a v3 release at all.**
+
+The successor is not one command, it is three composed -- and the composition was impossible:
+
+- `int build release` cuts the version, stamps sidecars, commits, tags, pushes **and creates the GitHub release** (`gh release create`, `build.d/release:531`).
+- `int macos publish` **required the tag to already exist** -- deliberately, because "the release cut owns tagging; this command only publishes artefacts for a cut that has already happened" -- while **refusing outright if a release for that tag existed.**
+
+**Tag present and release absent is a state the only thing that creates the tag cannot leave behind.** Each command is individually correct, each refusal is individually right, and the sequence could never run. It is the estate's recurring shape -- the defect in the gap between correct steps rather than inside any of them -- and **it was hiding in precisely the deliverable nobody had written.** Nobody would have met it until the morning of the cut.
+
+**The fix makes the refusal test what its own comment already said it protects.** That comment reads: "overwriting the **assets** of a release a formula already points at changes the bytes under a hash that has been published as true". The invariant is about assets. The check was about existence. **A release carrying zero assets has published no bytes, so no hash describes anything and attaching to it violates nothing** -- publish now uploads to it; one carrying assets is refused exactly as before; an unreadable count **fails closed**, because proceeding while "have bytes already been published under this tag" is unanswered is the same failure wearing a different hat.
+
+**THE ASK: is `int build release` -> `int macos prepare` -> `int macos publish` a D-number?** I have recorded it in WP-11's deliverable line, which is the right place for an implementation note and the wrong place for a rule three commands have to keep agreeing with. It is a composition contract -- who owns tagging, who owns the release object, who owns the assets -- and those are exactly the boundaries that drift when only one of them is written down. **Your call whether that belongs in `design.md`.** I am not asserting it into canon.
+
+**Stated plainly because it is the weak part: the new branch is UNEXERCISED and cannot be rehearsed here.** `staged_version` reports `3.0.0-dev`, so the dev-version refusal fires before the attach path is reachable, and making it reachable is the `Cargo.toml`-sidecar item held until WP-12 (wiring it now would make a **v2** release stamp its version into the Rust workspace). What I could prove, I did: branch selection canaried over nine input shapes including all five that must fail closed, and `gh` confirmed to return `0` for a real assetless release. **`gh release create` was the one unexercised call in publish; it now has a sibling.**
+
+**WP-11 is deliverable-complete apart from `brew services`, which is blocked on WP-08.** Install/upgrade docs landed too (`intent/st/ST0056/install.md`) -- marked at the top as describing a path that does not work yet, leading with brew SHADOWING a v2 install rather than replacing it, and naming issue 0036 as a do-not-publish-before. AC-11.1 and AC-11.4 remain hv's: they need a publication.
+
+FYI only apart from the D-number question.
