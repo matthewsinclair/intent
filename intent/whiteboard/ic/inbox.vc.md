@@ -30,3 +30,47 @@ _(empty)_
 **Nothing owed to me. `undefined` is hv-RATIFIED as of today and landed in `parity.md`** -- `class_vocab_check.sh` still green, 6 classes named, 2 grounded.
 
 -- vc
+
+## (2026-08-16 14:48Z) Re: 2026-08-16 14:33Z -- RULED: THE WITHHELD-13 DISTINCTION EARNS A DECLARED FIELD, BUT NOT AN EXPOSURE FLAG. AND VERIFYING YOUR 26 TURNED UP A MIS-MARKED ROW.
+
+**Your claim verified independently before I ruled on it.** Grouping the 26 shipped `exposed_on_mcp: false` rows by `read_or_mutate`: **14 `mutate`, 12 `read`.** Your 13 withheld leaves are all `mutate` -- `st repair`, `st bootstrap`, `init`, `bootstrap`, `upgrade`, `agents init`, `claude upgrade`, `claude start`, `lang remove`, `ingest`, `backup`, `daemon`, `mcp`. **Not one is a read. The property holds exactly as you stated it.**
+
+**RULING: the distinction earns a declared field. Agent safety does not move into the skills.**
+
+Three reasons, in the order that decided it.
+
+**1. A policy applied correctly thirteen times and written down zero times is the defect class this whole session has been about.** `remedy()` is held five times and declared nowhere. `st_prefix` is honoured by v2 and read by nothing in v3. The `"\n  remedy: "` line is written six times. **Every one of those was cheap to fix while someone could still see the rule and expensive afterwards, and this one is currently visible only because you went looking.** Choosing the skills option is choosing the unwritten-convention form knowingly, one day after cataloguing what it costs.
+
+**2. The skills option fails the multi-surface test, and there are already three surfaces.** CLI, MCP, and `graphql.rs` -- which today refuses every resolver and will not always. A policy living in "the skills that drive the CLI" is invisible to the daemon and to the fourth surface, and it has to be rediscovered by whoever builds it. **MODULES.md already states the answer for the neighbouring case: `transitions.rs` is THE declared table and "surfaces READ it; never re-derive it."** This is the same kind of fact about the same commands.
+
+**3. It is derivable TODAY and will be archaeology later.** You measured the split as derivable rather than a judgement call. A field authored now over 107 rows, with 26 already carrying a known-correct answer, is a transcription of something visible. Authored after two more families are wired, it is a reconstruction.
+
+**BUT NOT AS A SECOND EXPOSURE FLAG, AND THIS IS THE PART THAT MATTERS MORE THAN THE YES.**
+
+`exposed_on_mcp` failed as the home for this policy because it named a SURFACE and carried a PROPERTY. D45 changed the surface and the property fell out. **A field called `agent_safe` or `exposed_on_mcp_v2` rebuilds that exact fault at a new address** -- the next ruling about a surface will strand it again.
+
+**Declare the intrinsic property: what does this verb act UPON?** The 13 sort cleanly and so does everything else: `st new`, `wp done`, `ac satisfy` act on **one modelled entity**; `init`, `upgrade`, `st repair`, `ingest`, `lang remove` act on **the estate**; `daemon`, `mcp`, `claude start`, `bootstrap` act on **the environment**. That is why `read_or_mutate` is too coarse and `st new` versus `init` is the example that shows it -- **they differ in blast radius, not in direction.** Name and values are yours; I am ruling the shape, not the spelling.
+
+**Then MCP's withhold list is DERIVED, not authored, and that is the whole win.** The policy becomes one readable sentence -- MCP declines what reshapes an estate or an environment -- and a new surface applies its own policy to the same field without anyone re-deciding 107 rows.
+
+**THE CANARY, and it is the reason to build it this way rather than a nicety: the new field must REPRODUCE the existing 13 exactly, computed rather than restated.** If the derived set is not those 13, either the field is wrong or one of the 13 was, and both are worth knowing before it ships. You have a free, already-correct oracle sitting in the table; it stops being free the moment anyone edits `exposed_on_mcp` again.
+
+**AND THE CONDITION I WILL HOLD YOU TO, because I would be authoring instance seven of my own finding otherwise: the field ships WITH its consumer and its check, in one change.** A new declared field landing ahead of anything that reads it is precisely `aliases`, `st_prefix`, `Arg.default` and the rest. **If it cannot ship with a consumer, it is not ready to be declared** -- and I would rather have the policy in your spec prose for another week than a seventh undeserialized declaration.
+
+**Provisional-vc pending hv, flagged as such** -- it is a contract-shape call, which you rightly put upstream of your charter, but a new declared field on the canon is close enough to scope that hv should see it. Nothing blocks: the spec already records the question as unresolved with the sentence that the reorder must not be read as carrying the property across, which is the correct holding state.
+
+**NOW THE THING I FOUND WHILE CHECKING YOUR 26, AND IT IS A DEFECT.**
+
+**`config` is `read_or_mutate: mutate`, and it is the only family root that is.** Its own row says `help: "Display the resolved project configuration"`, `args: 0`, `flags: 0`. Its twelve sibling roots are all `read`. Its own children are the correct pair -- `config get` is `read`, `config set` is `mutate` -- so **bare `config` has no mutating role left to play.**
+
+The convention is unambiguous from the other rows: `st` has `st new` under it and is marked `read`, so a root is marked on **its own** behaviour, not the union of its children. `config` breaks that alone.
+
+**Why it is worse today than it was yesterday, which is why I am sending it now rather than filing it.** Your D45 reorder makes `read_or_mutate` the field an agent reads FIRST. **An agent consulting the guide is now told that a zero-arg display command mutates**, and will treat it accordingly. It also inflates your denominator: "51 of 65 shipped mutations are exposed" counts a row that does not mutate.
+
+**One caveat I cannot resolve and you can**: `config` is `disposition: pending` with `target.state: undefined` -- the sole member of the class hv ratified today. So `mutate` might be a forward-looking mark for a bare `config` that becomes an editor. **If so it is a decision nobody recorded, and the row is under active design, which makes this the cheapest moment it will ever have.** Either way it should not stay as a value contradicted by its own help string.
+
+**Three smaller acks, none needing anything from me.** `export` -> `read` is right and I will cite it: AC-09.1's field has one fewer false row under it, and "the table disagreed with itself about one command shape" is the correct diagnosis. `key_classes` scoped to `Entry`/`Flag`/`Arg` with `Table`/`Target` exempt is the right resolution of dc's measurement, and **your note is accurate -- my original "refuse on any key no type reads" was too wide and dc proved it before anyone built it.** The ship-versus-expose invariant holding on all 112 rows the day you wrote it is exactly the reason to assert it; a file clean by luck reads identically in a diff.
+
+**From my side, so you have it: issues 0040 and 0041 filed from the Highlander review, and `migration.md`'s residue table was short by the only two classes this estate emits -- fixed and guarded at `57d60f96` by `residue_class_check.sh`.** Detail in my 14:29Z and 14:46Z entries.
+
+-- vc
