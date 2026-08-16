@@ -74,34 +74,94 @@ fi
 # after `status: `. Both are grammar the AT linter already enforces at L1, so
 # reading them here does not add a second parser for the row format -- it reads
 # the two fields L1 has already guaranteed are present.
+#
+# THE POPULATION IS COUNTED AND THE COUNT IS PRINTED, and this was not in the
+# first version (found by ic, 2026-08-16, demonstrated rather than read, within
+# the hour this shipped). Renaming one token of the row grammar -- `status:` to
+# `state:` -- leaves `^- AT-` matching all 109 rows while the status extraction
+# returns nothing for every one of them. The awk then emits zero rows, the loop
+# runs zero times, and the script prints `ok: no to-write row cites a file that
+# exists`, BYTE-IDENTICAL to a genuine all-clean run.
+#
+# Note where that fails: BELOW the row match, in field extraction. So a guard
+# asking "did I find any AT rows?" would also have passed -- which is why the
+# refusal below is on an unparseable STATUS rather than on an empty file.
+#
+# This is the same defect one level up from the one the script exists to find.
+# `to-write` is the AT state nothing validates; "zero rows examined" was the
+# script state nothing validated. An instrument reporting on a population it
+# failed to read is the shape ic hit three times in one day -- a check claiming
+# in its own error message to catch retired commands and not seeing them, and a
+# flag sweep losing three flags to a `@tsv` escape while printing agreement.
+# "Nothing violated anything" and "nothing was examined" are the same output
+# unless the count is on the line.
 awk '
   /^- AT-/ {
+    matched++
     id = $2
     ref = ""
     if (match($0, /`[^`]+`/)) {
       ref = substr($0, RSTART + 1, RLENGTH - 2)
     }
-    st = "?"
     if (match($0, /status: [a-z-]+/)) {
       st = substr($0, RSTART + 8, RLENGTH - 8)
+    } else {
+      # L1 guarantees every AT row carries a status, so a row matching `^- AT-`
+      # whose status will not parse is a broken PARSER, never a data state.
+      print "BAD\t" id
+      next
     }
     if (st == "to-write" && ref != "") {
-      print id "\t" ref
+      examined++
+      print "ROW\t" id "\t" ref
     }
   }
+  END { print "COUNT\t" matched + 0 "\t" examined + 0 }
 ' "$ACC" | {
   found=0
-  while IFS="$(printf '\t')" read -r id ref; do
-    if [ -e "$ref" ]; then
-      found=$((found + 1))
-      printf 'stale: %-12s cites %s -- the file EXISTS while the row says to-write\n' "$id" "$ref"
-    fi
+  bad=0
+  matched=0
+  examined=0
+  while IFS="$(printf '\t')" read -r kind a b; do
+    case "$kind" in
+      BAD)
+        bad=$((bad + 1))
+        echo "error: ${a}: matched as an AT row but its status will not parse" >&2
+        ;;
+      ROW)
+        if [ -e "$b" ]; then
+          found=$((found + 1))
+          printf 'stale: %-12s cites %s -- the file EXISTS while the row says to-write\n' "$a" "$b"
+        fi
+        ;;
+      COUNT)
+        matched="$a"
+        examined="$b"
+        ;;
+    esac
   done
 
+  if [ "$bad" -gt 0 ]; then
+    echo "error: ${bad} of ${matched} AT row(s) matched but did not parse -- the row grammar moved" >&2
+    echo "remedy: this script reads \`status: <word>\`; align it with the grammar the AT linter enforces" >&2
+    echo "note: refusing rather than reporting, because a parser that reads nothing prints the same" >&2
+    echo "      line as a clean run -- which is the defect this script exists to find, one level up" >&2
+    exit 2
+  fi
+
+  if [ "$matched" -eq 0 ]; then
+    echo "error: no AT rows matched in ${ACC}" >&2
+    echo "remedy: check the file is an acceptance.md with AT rows, not an empty or renamed thread" >&2
+    exit 2
+  fi
+
+  # The population is on the ok line, so zero examined reads as zero rather than
+  # as clean.
   if [ "$found" -eq 0 ]; then
-    echo "ok: no to-write row cites a file that exists"
+    echo "ok: examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s); none names a file that exists"
   else
     echo ""
+    echo "examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)"
     echo "note: presence is not greenness. Run each test before moving its row."
     echo "note: a row whose test exists and fails belongs at red WITH the reason named,"
     echo "      never at to-write -- to-write is exempt from L2 and L3."
