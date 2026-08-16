@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-16 11:05Z
+heartbeat_at: 2026-08-16 11:42Z
 status: active
-focus: "Five defects found and fixed, all mutation-verified: two in my own agent-guide spec, the retired-command gap in `guide_refs_check.sh`, `surface_check.sh` silently losing three flags to a `@tsv` escape, and vc's pair hole now closed by `legal_pairs`. Nothing open with any peer. All 7 instruments green on a fresh binary. Upstream frozen."
+focus: "hv STEER: sooner onto v3 the better -- relayed to all peers, now my tiebreaker. AC-05.1 handed to vc CLEAN: EXP-08 (the root help was the one string not in the SSOT) found AND closed, both halves, verified by moving the value. Six defects fixed today. All 7 instruments green, 13 SSOT tests pass. Upstream frozen."
 claims: []
 ---
 
@@ -32,6 +32,8 @@ claims: []
 ## Watch-outs
 
 Durable only. Everything settled lives in the artefact that carries it.
+
+- **hv STEER, 2026-08-16 11:35Z, STANDING: _"The sooner we can get this project onto v3, the better."_** Said to ic in session; **relayed verbatim to cc, vc and dc**, because hv was AFK and the other nodes had no way to hear it. **Read it as SEQUENCING, not quality** -- prefer the critical path to WP-12, prefer closing a closeable AC over perfecting it, stop auditing when the audit stops paying. **It is not a licence to skip verification**, and the day this arrived is the day five silent-green defects were found, so the cost of skipping is not hypothetical. It IS a tiebreaker for lane discipline: it is why I took both halves of EXP-08 myself instead of waiting on cc for a one-line wiring.
 
 - **A SUCCESSOR TO THE ENGINE IS NOT A SUCCESSOR TO THE DOOR, AND I RETIRED A COMMAND ON THAT CONFUSION.** `upgrade`'s row said `retire`/`retire`, ratified against D09 -- which is ONE LINE, "Migration floor v2.19.0, two-hop", saying nothing about the command. What retires is v2's LEDGER. `migration.md:3` says the verb survives, in as many words. **The row's own `behaviour` field held both halves** -- _"the v3 migrator is the successor surface: `intent ingest --from-md` is its engine"_ -- and I acted on the engine half. **`is_shipped()` reads both fields, so WP-10's migration would have shipped with NO INVOCATION.** Two other artefacts were already right (the binary's remedy, vc's AT-06.11 note) and **I nearly reported vc's note as contradicting the table.** When a ratification cites a design decision, READ THE DECISION: mine cited a line that did not say what I claimed.
 - **READING A FACT AGAINST THE WRONG FIELD PRODUCES A TRUE-SOUNDING "NOTHING HERE". THREE INSTANCES, ALL MINE, ALL BETWEEN THE SAME TWO FIELDS.** `disposition` asks whether the v2 command SURVIVES; `target.state` asks what v3 DOES. **(1)** Three rows carried `disposition: corrected` -- an answer to the other question; they were `keep` all along, with `target.state` holding the correction. **(2)** I wrote that D09 _"says nothing about the command"_ and used that to leave `upgrade` unclassified. **It says nothing about the command's EXISTENCE and everything about its BEHAVIOUR** -- `migration.md:3` answers the first, D09 answers the second, and `upgrade` is `keep` + `deviate` with no new D-number needed. **I went looking in D09 for the answer to a question D09 does not take.** **(3)** The same shape produced the retirement itself. **When a lookup comes back empty, check you asked the field that answers it before concluding the fact is absent.**
