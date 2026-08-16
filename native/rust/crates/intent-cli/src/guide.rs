@@ -77,7 +77,7 @@ The command reference below is generated from the dispatch table compiled into \
 this binary, so it lists exactly what this build ships -- no more, and nothing \
 missing. Each command carries, in this order:
 
-- **safety** -- `mutate` if invoking it can change durable state, `read` if not.
+- **safety** -- `mutate` if invoking it can change durable state, `read` if not. A mutation also says whether this surface can put the estate back: **reversible** (another command undoes it), **idempotent** (running it again is the same state), or **ONE-WAY** (nothing here undoes it). Treat one-way as needing a human.
 - **call** -- the path and its positional arguments. `<x>` is required, `[x]` optional, `...` repeatable.
 - **does** -- what the command is for.
 - **flags** -- omitted when the command takes none.
@@ -210,8 +210,39 @@ fn entry_block(entry: &Entry) -> String {
 fn safety(entry: &Entry) -> String {
   match entry.read_or_mutate.as_str() {
     "read" => "`read` -- cannot change durable state".to_string(),
-    "mutate" => "`mutate` -- can change durable state".to_string(),
+    "mutate" => format!(
+      "`mutate` -- can change durable state; {}",
+      recoverability(entry)
+    ),
     other => format!("`{other}` -- UNDECLARED VALUE; treat as a mutation until it is classified"),
+  }
+}
+
+/// What the surface can do about a mutation after the fact.
+///
+/// **On the SAFETY line rather than in a field of its own, because it is the
+/// second half of one question.** "Can this change durable state" and "can it
+/// be undone" are read together or not at all -- an agent deciding whether to
+/// call `lang remove` unattended needs both, and a guide that separates them by
+/// four bullets has put the mitigating half where the alarming half is already
+/// read.
+///
+/// **A mutation with NO declared recoverability says so.** It cannot happen
+/// through the committed table -- `check_vocabularies` refuses the load, and
+/// `gen_dispatch_table.sh` refuses the generate -- so this arm exists for the
+/// hand-built tables the tests drive, and because a renderer whose fallback is
+/// silence is the failure this whole file was written against.
+fn recoverability(entry: &Entry) -> String {
+  match entry.recoverability.as_deref() {
+    Some("reversible") => "**reversible** -- another command on this surface undoes it".to_string(),
+    Some("idempotent") => "**idempotent** -- running it again produces the same state".to_string(),
+    Some("one-way") => {
+      "**ONE-WAY** -- nothing on this surface puts back what it changes".to_string()
+    }
+    Some(other) => {
+      format!("**`{other}`** -- UNDECLARED VALUE; treat as one-way until it is classified")
+    }
+    None => "recoverability UNDECLARED -- treat as one-way until it is classified".to_string(),
   }
 }
 
@@ -469,6 +500,79 @@ mod tests {
     assert_eq!(delimit("x", &arg("0..1")), "[x]");
     assert_eq!(delimit("x", &arg("1..n")), "<x>...");
     assert_eq!(delimit("x", &arg("0..n")), "[x]...");
+  }
+
+  /// **The 0033 case, rendered.** `at green` is `one-way` because the verb
+  /// destroys the row's authored note, so the documented round trip through
+  /// `at red` moves the status back and does not restore it. An agent reading
+  /// `reversible` there would call it believing the change is undoable.
+  ///
+  /// Pinned against the COMMITTED table rather than a fixture, because the
+  /// value is a claim about the shipped surface and a fixture would keep
+  /// passing after somebody changed the row.
+  #[test]
+  fn a_one_way_mutation_says_so_on_its_safety_line() {
+    let text = guide();
+    let i = text
+      .find("#### intent at green\n")
+      .expect("`at green` is shipped and must appear");
+    let block = &text[i..i + 400];
+    assert!(
+      block.contains("ONE-WAY") && block.contains("nothing on this surface puts back"),
+      "a one-way mutation must be marked where the mutation is marked, got: {block}"
+    );
+  }
+
+  /// The two halves of one question are read together or not at all, so the
+  /// recoverability sits ON the safety line rather than four bullets below it.
+  #[test]
+  fn recoverability_rides_the_safety_line_and_reads_are_left_alone() {
+    let text = guide();
+    let mutation = text
+      .find("#### intent st done\n")
+      .map(|i| &text[i..i + 300])
+      .unwrap();
+    assert!(
+      mutation.contains("- **safety:** `mutate`") && mutation.contains("reversible"),
+      "a reversible mutation carries both halves on one line, got: {mutation}"
+    );
+
+    let read = text
+      .find("#### intent config\n")
+      .map(|i| &text[i..i + 300])
+      .unwrap();
+    assert!(
+      !read.contains("reversible") && !read.contains("recoverability"),
+      "a read changes nothing, so the question is vacuous and must not be answered: {read}"
+    );
+  }
+
+  /// **A renderer whose fallback is silence is the failure this file was
+  /// written against.** The committed table cannot reach this state -- the
+  /// loader refuses it -- so the arm is driven directly, which is the only way
+  /// to prove it is not silence.
+  #[test]
+  fn a_mutation_with_no_declared_recoverability_says_undeclared() {
+    let table = dispatch::table();
+    let mut entry = dispatch::shipped_entries(&table)
+      .into_iter()
+      .find(|e| e.read_or_mutate == "mutate")
+      .expect("the surface has mutations")
+      .clone();
+
+    entry.recoverability = None;
+    let blank = safety(&entry);
+    assert!(
+      blank.contains("UNDECLARED") && blank.contains("treat as one-way"),
+      "an absent classification must present as unknown-and-assume-the-worst, got: {blank}"
+    );
+
+    entry.recoverability = Some("banana".to_string());
+    let bogus = safety(&entry);
+    assert!(
+      bogus.contains("banana") && bogus.contains("UNDECLARED"),
+      "an unrecognised value must reach the reader who can fix it, got: {bogus}"
+    );
   }
 
   /// The third level of the surface has no rows of its own, so the alternation

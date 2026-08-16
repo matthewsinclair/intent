@@ -74,6 +74,19 @@ pub struct Vocab {
 /// `deny_unknown_fields` for consistency and breaks canon that was never meant
 /// to be typed. Newly-added keys deserializing away silently is the intended
 /// behaviour, not an oversight -- `legal_pairs` landed exactly that way.
+///
+/// **And it is one of TWO mechanisms, which is why `key_classes` closes only
+/// half the class** (cc, 2026-08-16, sent as text rather than edited in because
+/// this file was live). The other half is a field that EXISTS, deserializes
+/// correctly, and has no consumer: `Config.st_prefix` was the measured
+/// instance. **It never lands in a `rest` map, so a key-set check reports
+/// agreement**, and `dead_code` does not fire because a `pub` field on a `pub`
+/// struct in a lib crate is reachable by definition. **The discriminator that
+/// separates them is vc's: not "is this key read" but "does a consumer exist
+/// and encode the value another way".**
+///
+/// That instance is gone -- hv retired `st_prefix`. The MECHANISM is what this
+/// note is about, and the next instance will not be called `st_prefix`.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Table {
   pub schema: String,
@@ -123,6 +136,11 @@ pub struct Table {
   pub entry_dispositions: Vec<Vocab>,
   #[serde(default)]
   pub flag_dispositions: Vec<Vocab>,
+  /// The closed domain of [`Entry::recoverability`], declared beside the other
+  /// three rather than written into a doc comment -- which is the mistake both
+  /// of those comments made, and neither could tell.
+  #[serde(default)]
+  pub recoverability_values: Vec<Vocab>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -194,6 +212,41 @@ pub struct Entry {
   /// an agent tier gates safety on, and an absent value defaulting to `read`
   /// would present an unclassified command as safe to call unattended.
   pub read_or_mutate: String,
+  /// `reversible` / `idempotent` / `one-way` -- **can this surface put the
+  /// estate back?** Declared on MUTATIONS only; `None` on a `read`, where the
+  /// question is vacuous.
+  ///
+  /// **This field replaced one that was disproved before it shipped, and the
+  /// disproof is why it is worth reading twice.** vc ruled that the policy
+  /// withholding 13 leaves from MCP earns a declared field, and proposed
+  /// `acts_upon` -- one modelled entity / the estate / the environment. The
+  /// canary killed it: `lang init` and `lang remove` act upon the IDENTICAL
+  /// thing and sit on opposite sides of the partition, as do `agents init`
+  /// against `agents generate`, and `claude upgrade` against `claude skills`.
+  /// **Any function of one field returns one answer for rows sharing that
+  /// field's value**, so no classification of that property could reproduce
+  /// the partition -- three families independently, which rules out a bad row.
+  ///
+  /// Recoverability is the property the policy was always about: nobody
+  /// withheld `lang remove` because of what it touches, they withheld it
+  /// **because you cannot get back what it deletes.** It survives any ruling
+  /// about MCP, and it is the field a `--dry-run`, a confirmation prompt or an
+  /// undo stack would each read.
+  ///
+  /// **CLASSIFIED AGAINST SHIPPED BEHAVIOUR, NEVER AGAINST INTENT** (vc's
+  /// ruling). `at green` is `one-way` today because issue 0033 destroys the
+  /// row's authored note, so the documented round trip moves the status back
+  /// and does not restore the prior state. A field describing what a command is
+  /// SUPPOSED to do is the `doctor` failure in advance -- there, `read_or_mutate`
+  /// went on describing a `--fix` that had been retired underneath it, and the
+  /// reasoning stayed sound about a subject that no longer existed.
+  ///
+  /// `Option` rather than a required `String` because the honest domain is
+  /// mutations. The totality property -- every shipped mutation declares it, no
+  /// read does -- is enforced by `gen_dispatch_table.sh`, which can say WHICH
+  /// row is missing it. serde can only say that something was.
+  #[serde(default)]
+  pub recoverability: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -451,6 +504,7 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
   let states = names(&table.target_states);
   let entry_dispositions = names(&table.entry_dispositions);
   let flag_dispositions = names(&table.flag_dispositions);
+  let recoverability = names(&table.recoverability_values);
 
   // An empty vocabulary would make every check below vacuous, so the absence of
   // a declaration is itself the first thing refused.
@@ -459,6 +513,7 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
     ("target_states", &states),
     ("entry_dispositions", &entry_dispositions),
     ("flag_dispositions", &flag_dispositions),
+    ("recoverability_values", &recoverability),
   ] {
     if declared.is_empty() {
       unknown.push(format!(
@@ -487,6 +542,26 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
         "`{}` target.state {:?} is not in target_states",
         entry.path, entry.target.state
       ));
+    }
+    // **A `mutate` declares it, a `read` must NOT, and both halves refuse.**
+    // The absent half is the one worth stating: a `read` carrying a
+    // recoverability is a row whose classification was copied rather than
+    // decided, and it would render a line in the agent guide answering a
+    // question nobody asked of it.
+    match (entry.read_or_mutate.as_str(), entry.recoverability.as_deref()) {
+      ("mutate", Some(r)) if !recoverability.contains(&r.to_string()) => unknown.push(format!(
+        "`{}` recoverability {r:?} is not in recoverability_values",
+        entry.path
+      )),
+      ("mutate", None) if entry.is_shipped() => unknown.push(format!(
+        "`{}` is a shipped mutation and declares no recoverability -- the field an agent reads to know whether this can be undone",
+        entry.path
+      )),
+      ("read", Some(r)) => unknown.push(format!(
+        "`{}` is a read and declares recoverability {r:?} -- the question is vacuous for a command that changes nothing",
+        entry.path
+      )),
+      _ => {}
     }
     for flag in &entry.flags {
       if !flag_dispositions.contains(&flag.disposition) {
@@ -673,6 +748,7 @@ mod tests {
       aliases: vec![],
       exposed_on_mcp: false,
       read_or_mutate: "read".to_string(),
+      recoverability: None,
     };
     assert_eq!(st.family(), "st");
     assert_eq!(st.verb(), Some("new"));
@@ -716,6 +792,7 @@ mod tests {
       aliases: vec![],
       exposed_on_mcp: false,
       read_or_mutate: "read".to_string(),
+      recoverability: None,
     };
 
     assert!(
@@ -756,6 +833,57 @@ mod tests {
     assert!(
       shipped.iter().any(|e| e.target.state == "pending-hv"),
       "a pending usage-convention ruling does not remove a command from the surface"
+    );
+  }
+
+  /// **All three arms of the recoverability rule, including the one that is
+  /// about ABSENCE.** A vocabulary check that only rejects bad values passes a
+  /// table where the field was never written -- which is the declared-but-not-
+  /// deserialized class this register has now produced six instances of, and
+  /// the reason the field is `Option` with the totality enforced here instead
+  /// of by serde: serde can say something was missing, this can say WHICH.
+  #[test]
+  fn a_mutation_declares_its_recoverability_and_a_read_must_not() {
+    assert!(
+      check_vocabularies(&table()).is_ok(),
+      "the committed table is conformant, or every case below passes for the wrong reason"
+    );
+
+    // Mutating in place rather than through a helper that hands out a
+    // reference: a closure returning `&'static mut` needs `unsafe` to satisfy
+    // the borrow checker, and reaching for `unsafe` to make a TEST compile is
+    // how a test starts proving something about a program that does not exist.
+    fn tamper(t: &mut Table, want: &str, value: Option<&str>) {
+      let e = t
+        .families
+        .iter_mut()
+        .flat_map(|f| f.entries.iter_mut())
+        .find(|e| e.read_or_mutate == want && e.is_shipped())
+        .expect("the surface has both kinds");
+      e.recoverability = value.map(str::to_string);
+    }
+
+    let mut bad = table();
+    tamper(&mut bad, "mutate", Some("banana"));
+    let err = check_vocabularies(&bad).expect_err("an undeclared value is refused");
+    assert!(
+      err.iter().any(|e| e.contains("banana")),
+      "the refusal names the offending value: {err:?}"
+    );
+
+    let mut bad = table();
+    tamper(&mut bad, "mutate", None);
+    let err = check_vocabularies(&bad).expect_err("a shipped mutation must declare it");
+    assert!(
+      err.iter().any(|e| e.contains("declares no recoverability")),
+      "the refusal says the field is ABSENT rather than merely wrong: {err:?}"
+    );
+
+    let mut bad = table();
+    tamper(&mut bad, "read", Some("reversible"));
+    assert!(
+      check_vocabularies(&bad).is_err(),
+      "a read changes nothing, so a recoverability on it was copied rather than decided"
     );
   }
 

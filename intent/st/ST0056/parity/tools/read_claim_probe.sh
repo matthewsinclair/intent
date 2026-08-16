@@ -128,8 +128,16 @@ run_one "ext show"         ext show nonesuch
 run_one "ext validate"     ext validate
 run_one "version"          version
 run_one "critic"           critic shell
+# **ENTERED THE POPULATION ON 2026-08-16, AND THIS SCRIPT REFUSED UNTIL IT WAS
+# PROBED.** `doctor` was declared `mutate` on reasoning that was correct about a
+# v2 command carrying `--fix`, which v3 retires; vc ruled it `read`. The moment
+# the row changed, it became a `read` claim nobody had witnessed, and the
+# UNCOVERED refusal fired on the author of the change. That is the refusal doing
+# exactly what it was hardened for -- a reclassification is the cheapest way to
+# acquire an unwitnessed claim, because it adds no row and no code.
+run_one "doctor"           doctor
 
-COVERED="st list|st show|st edit|wp list|wp show|ac list|ac status|ac gate|at list|issues list|issues show|info|config get|agents validate|agents template|lang list|lang show|modules check|modules find|plugin list|plugin show|ext list|ext show|ext validate|version|critic"
+COVERED="st list|st show|st edit|wp list|wp show|ac list|ac status|ac gate|at list|issues list|issues show|info|config get|agents validate|agents template|lang list|lang show|modules check|modules find|plugin list|plugin show|ext list|ext show|ext validate|version|critic|doctor"
 # No v2 incumbent, so there is nothing to run -- named, never folded into a green.
 # `llm guide` earned its place here by being CAUGHT: it was declared minutes
 # after this probe landed and reported UNCOVERED on the next run, which is the

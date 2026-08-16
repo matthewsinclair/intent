@@ -366,7 +366,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st start",
@@ -405,7 +406,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st done",
@@ -447,7 +449,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st cancel",
@@ -495,7 +498,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st triage",
@@ -516,7 +520,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st hold",
@@ -547,7 +552,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st resume",
@@ -568,7 +574,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st reopen",
@@ -599,7 +606,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st reinstate",
@@ -630,7 +638,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "st list",
@@ -862,7 +871,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "st repair",
@@ -922,7 +932,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "Bulk metadata rewrite across threads. Leaning closed because the blast radius is every thread at once and a wrong repair is not obvious in the output."
-          }
+          },
+          "recoverability": "one-way"
         },
         {
           "path": "st organize",
@@ -1038,7 +1049,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "One-time project scaffolding. An agent that runs it in an already-bootstrapped project is doing something nobody asked for."
-          }
+          },
+          "recoverability": "one-way"
         }
       ],
       "bats_coverage": {
@@ -1178,7 +1190,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "wp start",
@@ -1219,7 +1232,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "wp done",
@@ -1272,7 +1286,8 @@
           "read_or_mutate": "mutate",
           "mcp_review": {
             "note": "Pairs with `ac gate` below and is the reason the field is DECLARED, not derived: `wp done` consults the same gate `ac gate` runs, and then WRITES. The two do not share a spelling, so no naming rule separates them."
-          }
+          },
+          "recoverability": "reversible"
         },
         {
           "path": "wp reopen",
@@ -1303,7 +1318,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "wp unstart",
@@ -1324,7 +1340,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "wp list",
@@ -1642,7 +1659,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "ac unsatisfy",
@@ -1670,7 +1688,8 @@
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "ac gate",
@@ -1802,7 +1821,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "ac rescope",
@@ -1848,7 +1868,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "ac withdraw",
@@ -1919,7 +1940,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "ac reinstate",
@@ -1965,7 +1987,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         }
       ],
       "bats_coverage": {
@@ -2141,7 +2164,8 @@
           "mcp_review": {
             "counterintuitive": "`lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.",
             "grounded_in": "bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line"
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "at green",
@@ -2201,7 +2225,9 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
         },
         {
           "path": "at red",
@@ -2250,7 +2276,9 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
         },
         {
           "path": "at na",
@@ -2297,7 +2325,9 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
         }
       ],
       "bats_coverage": {
@@ -2465,7 +2495,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "issues show",
@@ -2559,7 +2590,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "issues open",
@@ -2603,7 +2635,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         }
       ],
       "bats_coverage": {
@@ -2692,7 +2725,8 @@
           "mcp_review": {
             "counterintuitive": "Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.",
             "grounded_in": "bin/intent_todo:380 (`COMMAND=\"${1:-list}\"`) -- bare `todo` IS `todo list`"
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "todo list",
@@ -2737,7 +2771,8 @@
           "mcp_review": {
             "counterintuitive": "`list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.",
             "grounded_in": "bin/intent_todo:384-393 -- the else branch calls generate(), which does `mv \"$tmp\" \"$TODO_FILE\"` at :246"
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "todo update",
@@ -2772,7 +2807,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "todo done",
@@ -2839,7 +2875,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "todo notdone",
@@ -2880,7 +2917,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         },
         {
           "path": "todo toggle",
@@ -2921,7 +2959,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         }
       ],
       "bats_coverage": {
@@ -3191,7 +3230,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off."
-          }
+          },
+          "recoverability": "reversible"
         }
       ],
       "bats_coverage": {
@@ -3300,7 +3340,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "Creating a project is a human's decision about a directory, not a task step."
-          }
+          },
+          "recoverability": "one-way"
         }
       ],
       "bats_coverage": {
@@ -3395,7 +3436,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": false,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way"
         }
       ],
       "bats_coverage": {
@@ -3606,7 +3648,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": false,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way"
         }
       ],
       "bats_coverage": {
@@ -3804,7 +3847,8 @@
           "read_or_mutate": "mutate",
           "mcp_review": {
             "grounded_in": "intent/plugins/agents/bin/intent_agents:196-216 -- cp of AGENTS.md / RULES.md / ARCHITECTURE.md"
-          }
+          },
+          "recoverability": "one-way"
         },
         {
           "path": "agents generate",
@@ -3832,7 +3876,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "agents sync",
@@ -3866,7 +3911,8 @@
           "read_or_mutate": "mutate",
           "mcp_review": {
             "grounded_in": "intent/plugins/agents/bin/intent_agents:693 -- backs up AGENTS.md then rewrites it"
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "agents validate",
@@ -4084,7 +4130,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "claude skills",
@@ -4147,7 +4194,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "claude rules",
@@ -4220,7 +4268,8 @@
               "read_or_mutate"
             ],
             "why_uncertain": "Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`."
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "claude hook",
@@ -4268,7 +4317,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate."
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "claude upgrade",
@@ -4309,7 +4359,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": false,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way"
         },
         {
           "path": "claude prime",
@@ -4350,7 +4401,8 @@
           "read_or_mutate": "mutate",
           "mcp_review": {
             "grounded_in": "intent/plugins/claude/bin/intent_claude_prime:250-251 -- `mkdir -p \"$memory_dir\"` then `echo \"$content\" > \"$memory_path\"`"
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "claude ws",
@@ -4404,7 +4456,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "claude start",
@@ -4444,7 +4497,8 @@
           "read_or_mutate": "mutate",
           "mcp_review": {
             "note": "Not a data operation at all -- it launches an interactive Claude Code session bound to a node. An agent that can call it can spawn agents."
-          }
+          },
+          "recoverability": "one-way"
         }
       ],
       "bats_coverage": {
@@ -4787,7 +4841,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         },
         {
           "path": "lang remove",
@@ -4833,7 +4888,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "Removes per-language canon files. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool."
-          }
+          },
+          "recoverability": "one-way"
         },
         {
           "path": "lang sync",
@@ -4878,7 +4934,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent"
         }
       ],
       "bats_coverage": {
@@ -4992,7 +5049,8 @@
           "mcp_review": {
             "counterintuitive": "Reads as a display command, and its default IS display. The flag is what makes the entry a mutation -- the same shape as `at lint`, `doctor`, and `todo list`, which is why the field is defined over the entry rather than the default.",
             "grounded_in": "bin/intent_llm:65 is `cat \"$USAGE_RULES_FILE\"`; :88-100 is the `--symlink` path, which creates a symlink and warns when one exists"
-          }
+          },
+          "recoverability": "idempotent"
         },
         {
           "path": "llm guide",
@@ -5099,7 +5157,8 @@
           "read_or_mutate": "mutate",
           "mcp_review": {
             "grounded_in": "bin/intent_learn:82 (append_learning), called at :201"
-          }
+          },
+          "recoverability": "idempotent"
         }
       ],
       "bats_coverage": {
@@ -5648,7 +5707,9 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate"
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "recoverability_anomaly": "DISAGREES WITH `exposed_on_mcp` AND IS REPORTED RATHER THAN ABSORBED (vc's ruling, 2026-08-16). `one-way` here, exposed on MCP in the table. **The anomaly is an INCOMPLETE FAMILY, not a misclassified row:** `ext` ships `list`, `show`, `validate` and `new`, and there is no `ext remove` anywhere in the table, so nothing undoes a scaffold. It unifies with `backup` shipping without a `restore`: both are a family shipping the creating half without the undoing half. **The field is not failing here, it is DETECTING a real gap on its first run** -- a derived field that merely reproduces the partition it was fitted to tells you nothing. Resolution is a SCOPE call for hv (build `ext remove`, and this row becomes `reversible`; or withhold `ext new`, and it becomes an ordinary agreement), never a label anyone adjusts."
         }
       ],
       "bats_coverage": {
@@ -5989,7 +6050,8 @@
               "exposed_on_mcp"
             ],
             "why_uncertain": "Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work."
-          }
+          },
+          "recoverability": "idempotent"
         }
       ],
       "bats_coverage": {
@@ -6316,7 +6378,8 @@
           "exposed_on_mcp"
         ],
         "why_uncertain": "Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. **The stated closing condition was TESTED and DID NOT FIRE**: it said _if the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close_, and `boundary_ruled` draws it the other way -- `sync` is routine reconciliation of a self-produced artefact and `ingest` is the recovery path. So the lean STAYS OPEN, and it stays open because a condition was checked rather than because nobody came back to it. Recorded rather than deleted: a closing condition that was evaluated and not met is a different fact from one still pending."
-      }
+      },
+      "recoverability": "idempotent"
     },
     {
       "path": "schema",
@@ -6425,7 +6488,8 @@
           "exposed_on_mcp"
         ],
         "why_uncertain": "The recovery path and the v2 migrator behind one verb. Both are operations a human decides to run after something went wrong; neither is a task step. Closed on the strength of what it is FOR rather than what it costs."
-      }
+      },
+      "recoverability": "one-way"
     },
     {
       "path": "backup",
@@ -6461,7 +6525,8 @@
           "exposed_on_mcp"
         ],
         "why_uncertain": "Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list."
-      }
+      },
+      "recoverability": "one-way"
     },
     {
       "path": "daemon",
@@ -6491,7 +6556,8 @@
       "mcp_review": {
         "note": "The canonical example behind the whole exposure field: `daemon start|stop|run` is machine-level process control, and it is the row that makes 'lean closed' the right default rather than a nicety."
       },
-      "flags": []
+      "flags": [],
+      "recoverability": "one-way"
     },
     {
       "path": "mcp",
@@ -6508,7 +6574,8 @@
       "mcp_review": {
         "note": "The MCP server's own launcher. Listing it inside the tool surface it serves is recursive, and an agent that can call it can spawn a second server against the same store."
       },
-      "flags": []
+      "flags": [],
+      "recoverability": "one-way"
     }
   ],
   "provenance": {
@@ -6672,6 +6739,7 @@
         "owner_wp",
         "path",
         "read_or_mutate",
+        "recoverability",
         "target"
       ],
       "note": [
@@ -6691,6 +6759,7 @@
         "note",
         "observed",
         "read_or_mutate_correction",
+        "recoverability_anomaly",
         "truth_model_correction",
         "v2"
       ]
@@ -6750,5 +6819,16 @@
       }
     ],
     "closes_one_half_only": "**This split does NOT close the declared-but-not-deserialized class, and saying so here rather than letting the next instance discover it.** (vc, from issue 0040.) There are two mechanisms and classification plus a serde check sees only the first. **(a) Declared in JSON, no Rust field** -- serde drops it in silence; a flatten or key-set check catches this, and it is what `aliases` and `Arg.default` were. **(b) Declared in JSON, the Rust field EXISTS and deserializes correctly, and no code CONSUMES the value.** `Config.st_prefix` is the measured instance: declared with a serde default of `ST`, three occurrences in the workspace and all three its own declaration, while `facade.rs` allocates ids with a hardcoded `ST{:04}` and `legacy.rs` recognises threads with a hardcoded `starts_with(ST)` -- and v2 honours the field in six places. **Nothing catches (b): the key never lands in a `rest` map, so a flatten check reports agreement, and `dead_code` does not fire because a `pub` field on a `pub` struct in a lib crate is reachable by definition.** Recorded here because a check's error message is where its readers learn what it does, and nothing verifies that message against its behaviour -- a lesson this register earned the hard way and would otherwise have re-learned. **vc's sharper discriminator, worth adopting if this list is ever reorganised: the question is not `is this key read` but `does a consumer exist and encode the value another way`.** It separates all three of `Config`'s unread fields where count and type separate none -- `st_prefix` is a defect (consumers exist and hardcode), `author` is correct (D02 removed the verblock, the consumer is gone by ruling), `languages` is pending (its consumers are unwired)."
-  }
+  },
+  "recoverability_values": [
+    {
+      "value": "reversible"
+    },
+    {
+      "value": "idempotent"
+    },
+    {
+      "value": "one-way"
+    }
+  ]
 }

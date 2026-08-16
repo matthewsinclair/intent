@@ -533,6 +533,67 @@ NO_VERB_SLOT="$(jq -r '
         | select((([$root.args[]? | select(.type == "subcommand")]) | length) == 0)
         | $root.path)
   | join("\n")' "$IN")"
+# RECOVERABILITY VERSUS `exposed_on_mcp` -- TWO-SIDED, and the second side is
+# the one that rots.
+#
+# `recoverability` exists because vc ruled the withheld-13 policy earns a
+# declared field, and the canary killed their first shape: `acts_upon` could not
+# derive the partition, because `lang init` and `lang remove` act upon the
+# identical thing and sit on opposite sides. Recoverability derives it -- MCP
+# withholds a mutation the surface cannot undo -- **with four measured
+# disagreements that are REPORTED rather than fitted to.**
+#
+# vc's ruling on those four is the reason this arm exists at all: **a derived
+# field that merely reproduces the partition it was fitted to tells you nothing.
+# One that reproduces it AND surfaces real gaps is earning its place.** `ext new`
+# is one-way and exposed because the `ext` family ships no `remove` -- an
+# INCOMPLETE FAMILY, not a mislabelled row, and its resolution is a scope call
+# for hv. `at green` / `at red` / `at na` are one-way because issue 0033 destroys
+# the row's authored note, so a documented round trip is lossy.
+#
+# ARM 1 refuses an UNDECLARED disagreement: a new one must be explained, not
+# absorbed by whoever notices the number moved.
+#
+# ARM 2 refuses a STALE anomaly -- a row carrying `recoverability_anomaly` that
+# no longer disagrees. **That is the half a known-exceptions list never has, and
+# the reason it decays into a list of things that used to be true.** When 0033 is
+# fixed and `at green` becomes `reversible`, this arm makes removing its note
+# mandatory rather than optional; when `ext remove` ships, likewise.
+#
+# MUTATION-PROVEN, both arms:
+#   jq '.families |= map(.entries |= map(if .path == "at green"
+#       then del(.recoverability_anomaly) else . end))' ... -> REFUSES (arm 1)
+#   jq '.families |= map(.entries |= map(if .path == "st done"
+#       then .recoverability_anomaly = "x" else . end))' ... -> REFUSES (arm 2)
+#
+# The vocabulary and totality halves are deliberately NOT here. `check_vocabularies`
+# in `dispatch.rs` already refuses a mutation with no recoverability, a read that
+# carries one, and any value outside `recoverability_values` -- at binary load,
+# so every test in the workspace fails loudly. A shell copy would be a second
+# implementation of one rule, which is the Highlander failure this file's own
+# `NO_VERB_SLOT` note argues against.
+UNDECLARED_ANOMALY="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select((.disposition // "") != "retire" and (.target.state // "") != "retire"))
+  | map(select(.read_or_mutate == "mutate"))
+  | map(select(((.recoverability == "one-way") != (.exposed_on_mcp == false))
+               and (.recoverability_anomaly | not))
+        | .path + " (recoverability=" + (.recoverability // "(absent)")
+                + ", exposed_on_mcp=" + (.exposed_on_mcp | tostring) + ")")
+  | join("\n")' "$IN")"
+[ -z "$UNDECLARED_ANOMALY" ] || die "rows disagree with the MCP withhold list derived from \`recoverability\`, and do not say why. MCP withholds a mutation the surface cannot undo; a row that breaks that either found a real gap or is misclassified. Record it in \`recoverability_anomaly\` -- do NOT adjust the label to make the number come out. Offending paths:
+$(printf '%s' "$UNDECLARED_ANOMALY" | sed 's/^/  /')"
+
+STALE_ANOMALY="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select((.disposition // "") != "retire" and (.target.state // "") != "retire"))
+  | map(select(.recoverability_anomaly
+               and ((.recoverability == "one-way") == (.exposed_on_mcp == false)))
+        | .path)
+  | join("\n")' "$IN")"
+[ -z "$STALE_ANOMALY" ] || die "rows carry a \`recoverability_anomaly\` while AGREEING with the derived withhold list -- the disagreement it documents is gone, so the note now describes a state that no longer exists. Remove it. Offending paths:
+$(printf '%s' "$STALE_ANOMALY" | sed 's/^/  /')"
+
 [ -z "$NO_VERB_SLOT" ] || die "family roots declare no \`type: subcommand\` arg, so \`spine.rs\` defaults their verb slot to REQUIRED -- a default nobody chose, in the restrictive direction. Declare the slot with the arity the family actually wants (\`1\` if the bare command is illegal, \`0..1\` if it does something of its own). Offending paths:
 $(printf '%s' "$NO_VERB_SLOT" | sed 's/^/  /')"
 
