@@ -348,28 +348,50 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
       }
     };
 
+    // **THE `TShirt::M` SUBSTITUTION IS GONE, AND IT WAS THE THING THIS
+    // MIGRATION EXISTS NOT TO DO.** Both arms below used to fall back to `M`:
+    // a work package whose file never carried a `scope:` line, and one whose
+    // scope v2 read as free text and the enum cannot express. Neither is a
+    // medium. The first is a field nobody recorded and the second is a value
+    // somebody did record, and answering both with the same confident size is
+    // the answer-from-partial-evidence habit v3 exists to end -- silently, in
+    // a migration, on data whose original was about to be replaced.
+    //
+    // Three states now, all of them true statements:
+    //   Some(x) / None       -- recorded, inside the enum
+    //   None    / Some(raw)  -- recorded, outside it, carried verbatim
+    //   None    / None       -- never recorded
     let raw_scope = front.get("scope").cloned().unwrap_or_default();
-    let scope = match (raw_scope.trim().is_empty(), scope(&raw_scope)) {
-      (_, Some(scope)) => scope,
-      // Reported once per work package rather than once per absent field: the
-      // fact is "this file predates the convention", and saying it twice makes
-      // one old file look like two problems.
-      (true, None) => TShirt::M,
-      (false, None) => {
-        out.record(
-          closed,
-          Finding::new(
-            &rel,
-            FindingClass::UnknownScope,
-            format!(
-              "work-package scope {raw_scope:?} is not a T-shirt size, and the model has no \
-               marked-legacy form for one yet"
-            ),
-          ),
-        );
-        TShirt::M
-      }
+    let (scope, scope_legacy) = match (raw_scope.trim().is_empty(), scope(&raw_scope)) {
+      (_, Some(scope)) => (Some(scope), None),
+      // Absent. Reported once per work package rather than once per absent
+      // field: the fact is "this file predates the convention", and saying it
+      // twice makes one old file look like two problems.
+      (true, None) => (None, None),
+      // Recorded and outside the enum. **Carried, and the CLOSED/LIVE split is
+      // `record`'s job, not this arm's** -- hv's policy is that a closed thread
+      // converts lossless-by-carrying while a live one stays BLOCKED-until-
+      // clean, and `record` is the one place that ruling is applied.
+      (false, None) => (
+        None,
+        Some(crate::model::Legacy {
+          raw: raw_scope.trim().to_string(),
+        }),
+      ),
     };
+    if let Some(carried) = &scope_legacy {
+      out.record(
+        closed,
+        Finding::new(
+          &rel,
+          FindingClass::UnknownScope,
+          format!(
+            "work-package scope {:?} is outside the T-shirt enum, so it is carried verbatim as legacy rather than guessed at",
+            carried.raw
+          ),
+        ),
+      );
+    }
 
     if let Some(line) = conflict_marker_line(&text) {
       out.record(
@@ -387,6 +409,7 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
         .or_else(|| title(body))
         .unwrap_or_default(),
       scope,
+      scope_legacy,
       status,
       status_reason: None,
       objective: sections.get("Objective").cloned().unwrap_or_default(),

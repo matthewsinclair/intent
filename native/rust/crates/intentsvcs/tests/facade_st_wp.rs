@@ -96,7 +96,7 @@ fn work_packages_number_from_one_and_move_through_their_states() {
   let wps = facade.wp_list("ST0001").expect("list");
   assert_eq!(wps[0].status, WpStatus::NotStarted);
   assert_eq!(wps[1].status, WpStatus::Wip);
-  assert_eq!(wps[1].scope, TShirt::L);
+  assert_eq!(wps[1].scope, Some(TShirt::L));
 }
 
 /// `st done` consults the close gate, and there is no path around it.

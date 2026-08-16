@@ -251,7 +251,8 @@ pub fn sample_thread(id: &str) -> Thread {
       WorkPackage {
         seq: 2,
         title: "Workspace and reified model".to_string(),
-        scope: TShirt::L,
+        scope: Some(TShirt::L),
+        scope_legacy: None,
         status: WpStatus::Done,
         status_reason: None,
         objective: "Stand up the cargo workspace and reify the model.".to_string(),
@@ -260,7 +261,8 @@ pub fn sample_thread(id: &str) -> Thread {
       WorkPackage {
         seq: 3,
         title: "Ingest, views and sync -- `intent_st_zero` | strict".to_string(),
-        scope: TShirt::L,
+        scope: Some(TShirt::L),
+        scope_legacy: None,
         status: WpStatus::Wip,
         status_reason: None,
         // MARKUP-BEARING AND DISTINCTIVE, for the same reason the thread's

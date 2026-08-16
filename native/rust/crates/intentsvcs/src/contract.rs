@@ -422,7 +422,8 @@ mod tests {
       wps: vec![WorkPackage {
         seq: 3,
         title: "w".to_string(),
-        scope: crate::model::TShirt::L,
+        scope: Some(crate::model::TShirt::L),
+        scope_legacy: None,
         status: crate::model::WpStatus::Wip,
         status_reason: None,
         objective: String::new(),
@@ -592,7 +593,8 @@ mod tests {
     t.wps.push(WorkPackage {
       seq: 7,
       title: "later".to_string(),
-      scope: crate::model::TShirt::S,
+      scope: Some(crate::model::TShirt::S),
+      scope_legacy: None,
       status: crate::model::WpStatus::NotStarted,
       status_reason: None,
       objective: String::new(),

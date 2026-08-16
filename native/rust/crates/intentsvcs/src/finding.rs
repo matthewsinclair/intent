@@ -151,10 +151,15 @@ impl FindingClass {
       ),
       // It says the model cannot hold it YET, because that is the true
       // reason and it is not the reader's problem to solve.
+      // **"wait for a build whose model carries the value verbatim" is GONE,
+      // because this is that build.** A remedy that outlives the state it
+      // describes reads as current and sends the reader to do nothing; this one
+      // was telling them to wait for a capability they already had, on the one
+      // row in the corpus that needed it.
       Self::UnknownScope => (
         1,
         "unknown-scope",
-        "set the scope to a T-shirt size under v2 tooling, or wait for a build whose model carries the value verbatim -- nothing here guesses which size was meant",
+        "nothing to do for a closed thread -- the value is carried verbatim and stays visible as legacy. On a LIVE thread, set the scope to a T-shirt size under v2 tooling; nothing here guesses which size was meant",
       ),
       Self::BrokenReference => (
         1,

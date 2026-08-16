@@ -199,9 +199,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // discrimination the strip was built for; it was tested against a real change
   // one day after being written.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 2, 0x56d1_6080_53fa_2b6f),
-    ("SCHEMA_SDL_VER", 1, 0x2a57_8b37_f00e_886a),
-    ("SCHEMA_JSON_VER", 3, 0x976c_8013_c0e6_fe6a),
+    ("SCHEMA_DDL_VER", 3, 0x33b7_2271_e5c2_535c),
+    ("SCHEMA_SDL_VER", 2, 0xb956_84ec_c738_ad1b),
+    ("SCHEMA_JSON_VER", 4, 0xa5f4_a284_c838_e5db),
   ];
 
   let mut moved = Vec::new();

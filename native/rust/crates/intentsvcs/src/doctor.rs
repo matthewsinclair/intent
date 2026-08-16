@@ -227,6 +227,44 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     out.push(Finding::new(file, class, detail));
   };
 
+  // **The marked-legacy scope form's two rules, which the TYPE cannot state.**
+  //
+  // `scope` and `scope_legacy` are two optional fields, so the type permits
+  // four combinations and only three of them mean anything: a recorded size, a
+  // carried v2 value, or a field nobody ever wrote. **Carrying BOTH is the
+  // contradiction** -- it says the work package is an `L` and also that its
+  // size could not be expressed -- and a shape that can represent a
+  // contradiction eventually stores one.
+  //
+  // And the carry policy is a rule about WHERE a legacy value may appear, not
+  // about its shape: hv ratified that CLOSED threads convert
+  // lossless-by-carrying while LIVE threads stay BLOCKED-until-clean, so a
+  // carried scope on a live thread is a defect however well-formed it is.
+  // Ingest's `record` applies that split at migration time; this catches one
+  // that arrived any other way, including by hand.
+  for wp in &thread.wps {
+    if wp.scope.is_some() && wp.scope_legacy.is_some() {
+      add(
+        format!(
+          "WP-{:02} records a scope AND carries a legacy one ({:?}) -- these are alternatives, not a pair",
+          wp.seq,
+          wp.scope_legacy.as_ref().map(|l| &l.raw)
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    }
+    if wp.scope_legacy.is_some() && !thread.status.is_closed() {
+      add(
+        format!(
+          "WP-{:02} carries a legacy scope on a thread that is still {} -- the carry policy is for CLOSED threads; a live one is fixed, not carried",
+          wp.seq,
+          thread.status.display()
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    }
+  }
+
   // Duplicate natural ids WITHIN a thread. Across threads is ingest's job; a
   // thread that names the same criterion twice validates fine, because the
   // schema constrains each element and not the collection.

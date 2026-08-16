@@ -124,11 +124,18 @@ CREATE TABLE IF NOT EXISTS related (
   PRIMARY KEY (thread_id, seq)
 );
 -- openness: carried by intent/st/<ID>/thread.json
+-- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
+-- `legacy` do on `tests`. v2 read scope as free text and one work package in
+-- the corpus carries `Medium-Large`, which sits BETWEEN two enum members: the
+-- ratified carry policy forbids normalising it (a guess), blocking it (it is
+-- in a CLOSED thread) and dropping it (loss), so it is carried as legacy and
+-- the enum column holds nothing rather than a lie.
 CREATE TABLE IF NOT EXISTS wps (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   seq INTEGER NOT NULL,
   title TEXT NOT NULL,
-  scope TEXT NOT NULL,
+  scope TEXT,
+  scope_legacy TEXT,
   status TEXT NOT NULL,
   status_reason TEXT,
   objective TEXT NOT NULL,
@@ -296,7 +303,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 4;
+pub const SCHEMA_VERSION: i32 = 5;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -507,6 +514,37 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      taken_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
      updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
    );",
+), (
+  5,
+  // 4 -> 5: `wps.scope` loses NOT NULL and `scope_legacy` arrives beside it,
+  // for the marked-legacy carry form (vc's ruling, data-model.md).
+  //
+  // **A REBUILD rather than an ALTER, and only the first half needs one.**
+  // Adding a nullable column is a legal `ALTER TABLE ADD COLUMN`; DROPPING a
+  // NOT NULL is not expressible in SQLite at all, so the table is rebuilt and
+  // both changes ride together rather than leaving the column constrained
+  // against the model that no longer is.
+  //
+  // Every existing row keeps its scope. Nothing is re-derived and nothing is
+  // guessed: a store built before this rung has no legacy scopes in it, so
+  // `scope_legacy` is correctly NULL everywhere and the column arrives empty.
+  "CREATE TABLE wps_v5 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     seq INTEGER NOT NULL,
+     title TEXT NOT NULL,
+     scope TEXT,
+     scope_legacy TEXT,
+     status TEXT NOT NULL,
+     status_reason TEXT,
+     objective TEXT NOT NULL,
+     body TEXT NOT NULL,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, seq)
+   );
+   INSERT INTO wps_v5 (thread_id, seq, title, scope, status, status_reason, objective, body, written_at)
+     SELECT thread_id, seq, title, scope, status, status_reason, objective, body, written_at FROM wps;
+   DROP TABLE wps;
+   ALTER TABLE wps_v5 RENAME TO wps;",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -924,12 +962,13 @@ impl Store {
     }
     for wp in &t.wps {
       tx.execute(
-        "INSERT INTO wps (thread_id, seq, title, scope, status, status_reason, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
         params![
           t.id,
           wp.seq,
           wp.title,
-          enum_str(&wp.scope),
+          wp.scope.as_ref().map(enum_str),
+          wp.scope_legacy.as_ref().map(|l| l.raw.clone()),
           enum_str(&wp.status),
           wp.status_reason,
           wp.objective,
@@ -1191,28 +1230,30 @@ impl Store {
   fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = self
       .conn
-      .prepare("SELECT seq, title, scope, status, status_reason, objective, body FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
           row.get::<_, u32>(0)?,
           row.get::<_, String>(1)?,
-          row.get::<_, String>(2)?,
-          row.get::<_, String>(3)?,
-          row.get::<_, Option<String>>(4)?,
-          row.get::<_, String>(5)?,
+          row.get::<_, Option<String>>(2)?,
+          row.get::<_, Option<String>>(3)?,
+          row.get::<_, String>(4)?,
+          row.get::<_, Option<String>>(5)?,
           row.get::<_, String>(6)?,
+          row.get::<_, String>(7)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
       .map(
-        |(seq, title, scope, status, status_reason, objective, body)| {
+        |(seq, title, scope, scope_legacy, status, status_reason, objective, body)| {
           Ok(WorkPackage {
             seq,
             title,
-            scope: enum_from(&scope)?,
+            scope: scope.as_deref().map(enum_from).transpose()?,
+            scope_legacy: scope_legacy.map(|raw| crate::model::Legacy { raw }),
             status: enum_from(&status)?,
             status_reason,
             objective,

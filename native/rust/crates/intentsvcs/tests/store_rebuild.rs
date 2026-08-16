@@ -37,7 +37,8 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
       WorkPackage {
         seq: 1,
         title: "Design canon".to_string(),
-        scope: TShirt::L,
+        scope: Some(TShirt::L),
+        scope_legacy: None,
         status: WpStatus::Done,
         status_reason: None,
         objective: String::new(),
@@ -46,7 +47,8 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
       WorkPackage {
         seq: 2,
         title: "Workspace".to_string(),
-        scope: TShirt::L,
+        scope: Some(TShirt::L),
+        scope_legacy: None,
         status: WpStatus::Wip,
         status_reason: None,
         objective: String::new(),

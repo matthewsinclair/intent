@@ -358,7 +358,26 @@
           "type": "string"
         },
         "scope": {
-          "$ref": "#/$defs/TShirt"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TShirt"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The size, absent only when [`scope_legacy`] carries a v2 value the enum\ncannot express.\n\n[`scope_legacy`]: WorkPackage::scope_legacy"
+        },
+        "scope_legacy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Legacy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A scope recorded by an older Intent that is outside the size vocabulary,\ncarried verbatim. Present only when `scope` is absent."
         },
         "seq": {
           "description": "Unique within the thread, and rendered zero-padded as `WP-<seq>`.",
@@ -383,7 +402,6 @@
       "required": [
         "seq",
         "title",
-        "scope",
         "status"
       ],
       "type": "object"
@@ -494,5 +512,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 3
+  "x-schema-json-ver": 4
 }

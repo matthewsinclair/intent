@@ -243,6 +243,22 @@ fn a_store_at_the_previous_version_is_migrated_and_keeps_its_history() {
     threads[0].created, "2019-03-14",
     "its AUTHORED date is a fact about the world and the migration must not touch it"
   );
+
+  // Rung 5 rebuilt `wps` to drop NOT NULL from `scope` and add `scope_legacy`.
+  // Asserted on a REAL row rather than trusting the rung ran: a rebuild that
+  // moved an empty table would look identical from the version stamp, which is
+  // exactly how the first cut of this fixture came to prove nothing about rung 3.
+  assert_eq!(threads[0].wps.len(), 1, "the work package survived rung 5");
+  assert_eq!(
+    threads[0].wps[0].scope,
+    Some(intentsvcs::model::TShirt::M),
+    "and kept its recorded size through the rebuild"
+  );
+  assert_eq!(
+    threads[0].wps[0].scope_legacy, None,
+    "a store built before the carry form existed has nothing to carry, so the new column arrives \
+     empty rather than populated with a guess"
+  );
   assert_eq!(
     threads[0].wps.len(),
     1,

@@ -318,7 +318,19 @@ pub const FIELDS: &[Field] = &[
       // originally got wrong: a value the caller supplies at creation has been
       // ENTERED, so with no verb able to change it, all six were traps.
       // Neither v2 nor v3 had the verb.
-      initial: &["XS", "S", "M", "L", "XL", "XXL"],
+      //
+      // **`absent` is the seventh, and it arrives by INGEST rather than by a
+      // caller** -- which is precisely the entry route vc's second condition on
+      // this AC names: a field that can arrive in a state by ingest has been
+      // entered, whether or not any verb puts it there. A v2 work package
+      // predating the frontmatter convention has no `scope:` line at all, and
+      // the migration now carries that as "nobody recorded one" instead of
+      // substituting a medium.
+      //
+      // It needs no new edge: every `wp.rescope` edge below declares an EMPTY
+      // `from` set, so it already leaves any state including this one. Adding
+      // it here is declaring the state, not opening an exit.
+      initial: &["XS", "S", "M", "L", "XL", "XXL", "absent"],
       edges: &[
         Edge::direct("wp.rescope", &[], "XS"),
         Edge::direct("wp.rescope", &[], "S"),

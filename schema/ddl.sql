@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 2
+-- SCHEMA_DDL_VER: 3
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -61,11 +61,18 @@ CREATE TABLE IF NOT EXISTS related (
   PRIMARY KEY (thread_id, seq)
 );
 -- openness: carried by intent/st/<ID>/thread.json
+-- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
+-- `legacy` do on `tests`. v2 read scope as free text and one work package in
+-- the corpus carries `Medium-Large`, which sits BETWEEN two enum members: the
+-- ratified carry policy forbids normalising it (a guess), blocking it (it is
+-- in a CLOSED thread) and dropping it (loss), so it is carried as legacy and
+-- the enum column holds nothing rather than a lie.
 CREATE TABLE IF NOT EXISTS wps (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   seq INTEGER NOT NULL,
   title TEXT NOT NULL,
-  scope TEXT NOT NULL,
+  scope TEXT,
+  scope_legacy TEXT,
   status TEXT NOT NULL,
   status_reason TEXT,
   objective TEXT NOT NULL,

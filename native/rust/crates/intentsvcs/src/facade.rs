@@ -1190,7 +1190,10 @@ impl Facade {
       body: String::new(),
       seq,
       title: title.to_string(),
-      scope,
+      // A work package created through v3 always has a real size: the legacy
+      // form exists only for values that arrived from a v2 estate.
+      scope: Some(scope),
+      scope_legacy: None,
       status: WpStatus::NotStarted,
       status_reason: None,
     });
@@ -1259,7 +1262,10 @@ impl Facade {
       .wps
       .iter()
       .find(|w| w.seq == seq)
-      .map(|w| w.scope)
+      // The DISPLAY form, because `from` can be three things and only one of
+      // them is a size: a recorded value, a v2 value carried verbatim, or a
+      // scope nobody ever wrote. The envelope records what was actually there.
+      .map(|w| w.scope_display())
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
         st: st.to_string(),
         seq,
@@ -1273,14 +1279,23 @@ impl Facade {
         st: st.to_string(),
         seq,
       })?;
-    wp.scope = scope;
+    wp.scope = Some(scope);
+    // **Rescoping RESOLVES a carried legacy value, so the carry is cleared.**
+    // Leaving it would keep `Medium-Large` beside a deliberate `L` forever,
+    // and a reader could not tell which one the project meant. The carry
+    // exists because nobody had decided; someone just did.
+    wp.scope_legacy = None;
     self.apply(
       "wp.rescope",
       Subject {
         kind: "wp".to_string(),
         id: format!("{st}/{seq:02}"),
       },
-      json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&scope)}),
+      // `from` is the state the work package was IN, and that can be "nobody
+      // recorded one" or a carried v2 value -- so the envelope records what was
+      // actually there rather than a size that would have to be invented to
+      // fill the field. The event log is history; a guess in it is permanent.
+      json!({"from": from, "to": crate::model::enum_str(&scope)}),
       next,
     )
   }

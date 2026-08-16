@@ -81,7 +81,18 @@ prop_compose! {
   fn work_package()(
     seq in 1u32..99,
     title in "[A-Za-z ]{1,40}",
-    scope in tshirt(),
+    // **All three scope states, because all three are modelled.** A recorded
+    // size, a v2 value carried verbatim outside the enum, and a scope nobody
+    // ever wrote. The round-trip and canonical-JSON laws have to hold for the
+    // carried form too -- it is the one that survives a migration, so a form
+    // that did not round-trip would lose exactly the data the carry exists to
+    // keep.
+    scope in prop_oneof![
+      tshirt().prop_map(|s| (Some(s), None)),
+      "[A-Za-z][A-Za-z -]{0,20}"
+        .prop_map(|raw| (None, Some(intentsvcs::model::Legacy { raw }))),
+      Just((None, None)),
+    ],
     status in wp_status(),
     // D28's authored prose is GENERATED, not stubbed: the round-trip and
     // canonical-JSON laws have to hold for a work package carrying markdown,
@@ -90,7 +101,16 @@ prop_compose! {
     body in "(?s)[A-Za-z0-9 \n#`|_-]{0,200}",
     status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"),
   ) -> WorkPackage {
-    WorkPackage { seq, title, scope, status, status_reason, objective, body }
+    WorkPackage {
+      seq,
+      title,
+      scope: scope.0,
+      scope_legacy: scope.1,
+      status,
+      status_reason,
+      objective,
+      body,
+    }
   }
 }
 
@@ -221,7 +241,8 @@ fn sample_thread() -> Thread {
     wps: vec![WorkPackage {
       seq: 2,
       title: "Workspace and reified model".to_string(),
-      scope: TShirt::L,
+      scope: Some(TShirt::L),
+      scope_legacy: None,
       status: WpStatus::Wip,
       status_reason: None,
       objective: String::new(),

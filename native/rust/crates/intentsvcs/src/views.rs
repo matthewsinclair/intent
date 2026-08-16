@@ -48,17 +48,6 @@ pub struct View {
   pub content: String,
 }
 
-/// The v2 display vocabulary (`canonical_status`, `bin/intent_helpers:535`).
-///
-/// One deliberate divergence: v2 collapsed `TBC` into `Not Started` for
-/// display, so a thread whose file said TBC appeared in the index as something
-/// else. The model distinguishes them, and reproducing the collapse would be
-/// v3 faithfully reproducing a v2 defect -- a `corrected` register row, not a
-/// parity break.
-fn is_closed(status: ThreadStatus) -> bool {
-  matches!(status, ThreadStatus::Completed | ThreadStatus::Cancelled)
-}
-
 // ---------------------------------------------------------------------------
 // Markdown tables -- one aligner, formatter-stable
 // ---------------------------------------------------------------------------
@@ -272,7 +261,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
         vec![
           format!("WP-{:02}", wp.seq),
           cell(&wp.title),
-          crate::model::enum_str(&wp.scope),
+          wp.scope_display(),
           wp.status.display().to_string(),
         ]
       })
@@ -499,8 +488,9 @@ fn test_line(t: &AcceptanceTest) -> String {
 pub fn index_order(threads: &[Thread]) -> Vec<&Thread> {
   let mut ordered: Vec<&Thread> = threads.iter().collect();
   ordered.sort_by(|a, b| {
-    is_closed(a.status)
-      .cmp(&is_closed(b.status))
+    a.status
+      .is_closed()
+      .cmp(&b.status.is_closed())
       .then_with(|| b.id.cmp(&a.id))
   });
   ordered
@@ -530,7 +520,7 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   out.push_str("---\n");
   out.push_str(&kv("wp_id", &format!("WP-{:02}", wp.seq)));
   out.push_str(&kv("title", &wp.title));
-  out.push_str(&kv("scope", &crate::model::enum_str(&wp.scope)));
+  out.push_str(&kv("scope", &wp.scope_display()));
   out.push_str(&kv("status", wp.status.display()));
   out.push_str("---\n\n");
 

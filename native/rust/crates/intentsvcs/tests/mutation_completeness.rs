@@ -557,7 +557,13 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
     }
     ("WorkPackage", "scope") => {
       let fx = Fixture::new();
-      fx.write_thread(&thread_with(|t| t.wps[1].scope = parse(from)));
+      // `absent` is a real state of this field now, and it cannot go through
+      // `parse` -- there is no `TShirt` variant for "nobody recorded one". It
+      // is entered by INGEST rather than by any verb: a v2 work package
+      // predating the frontmatter convention has no `scope:` line, and the
+      // migration carries that rather than substituting a size.
+      let from_state = (from != ABSENT).then(|| parse(from));
+      fx.write_thread(&thread_with(|t| t.wps[1].scope = from_state));
       let mut facade = fx.facade();
       let seq = 3;
       match edge.verb {
@@ -566,7 +572,13 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
           .expect("wp rescope"),
         other => panic!("no arm drives {other} on WorkPackage.scope"),
       }
-      enum_str(&facade.wp_show(ST, seq).expect("wp").scope).to_string()
+      // Read back through the same ABSENT convention the domain uses, so a
+      // field that landed nowhere reports the state name rather than tripping
+      // `enum_str` on a null.
+      match &facade.wp_show(ST, seq).expect("wp").scope {
+        Some(scope) => enum_str(scope).to_string(),
+        None => ABSENT.to_string(),
+      }
     }
     ("WorkPackage", "status") => {
       let fx = Fixture::new();

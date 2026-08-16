@@ -44,7 +44,8 @@ fn clean_thread(id: &str) -> Thread {
     wps: vec![WorkPackage {
       seq: 1,
       title: "The only package".to_string(),
-      scope: TShirt::S,
+      scope: Some(TShirt::S),
+      scope_legacy: None,
       status: WpStatus::Wip,
       status_reason: None,
       objective: String::new(),

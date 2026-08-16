@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0-dev
-# SCHEMA_SDL_VER: 1
+# SCHEMA_SDL_VER: 2
 
 enum AcKind {
   TEST
@@ -296,7 +296,18 @@ type WorkPackage {
   """
   seq: Int!
   title: String!
-  scope: Tshirt!
+  """
+  The size, absent only when [`scope_legacy`] carries a v2 value the enum
+  cannot express.
+  
+  [`scope_legacy`]: WorkPackage::scope_legacy
+  """
+  scope: Tshirt
+  """
+  A scope recorded by an older Intent that is outside the size vocabulary,
+  carried verbatim. Present only when `scope` is absent.
+  """
+  scopeLegacy: Legacy
   status: WpStatus!
   """
   Why the work package is in [`WorkPackage::status`] -- `wp reopen` is the

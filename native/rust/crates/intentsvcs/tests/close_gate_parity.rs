@@ -43,7 +43,8 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     wps: vec![WorkPackage {
       seq: 1,
       title: "one".to_string(),
-      scope: TShirt::M,
+      scope: Some(TShirt::M),
+      scope_legacy: None,
       status: WpStatus::Wip,
       status_reason: None,
       objective: String::new(),
@@ -191,7 +192,8 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
   t.wps.push(WorkPackage {
     seq: 4,
     title: "later".to_string(),
-    scope: TShirt::S,
+    scope: Some(TShirt::S),
+    scope_legacy: None,
     status: WpStatus::NotStarted,
     status_reason: None,
     objective: String::new(),
@@ -231,7 +233,8 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
   t.wps.push(WorkPackage {
     seq: 2,
     title: "two".to_string(),
-    scope: TShirt::M,
+    scope: Some(TShirt::M),
+    scope_legacy: None,
     status: WpStatus::Wip,
     status_reason: None,
     objective: String::new(),

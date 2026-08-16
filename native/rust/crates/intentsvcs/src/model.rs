@@ -152,6 +152,24 @@ impl ThreadStatus {
   /// This is not the wire spelling: serde writes kebab-case into `thread.json`,
   /// and these are the words a person reads. Two vocabularies for two audiences
   /// is correct; two copies of one vocabulary is not.
+  ///
+  /// The vocabulary is v2's (`canonical_status`, `bin/intent_helpers:535`) with
+  /// **one deliberate divergence**: v2 collapsed `TBC` into `Not Started` for
+  /// display, so a thread whose file said TBC appeared in the index as
+  /// something else. The model distinguishes them, and reproducing the collapse
+  /// would be v3 faithfully reproducing a v2 defect -- a `corrected` register
+  /// row, not a parity break.
+  /// Whether the thread has reached an end state.
+  ///
+  /// On the type beside [`display`], and for the same reason: it was private
+  /// in `views.rs`, so `doctor` could not ask the question and would have
+  /// grown a second copy of the answer.
+  ///
+  /// [`display`]: ThreadStatus::display
+  pub fn is_closed(self) -> bool {
+    matches!(self, Self::Completed | Self::Cancelled)
+  }
+
   pub fn display(self) -> &'static str {
     match self {
       Self::Triage => "Triage",
@@ -192,7 +210,43 @@ pub struct WorkPackage {
   /// Unique within the thread, and rendered zero-padded as `WP-<seq>`.
   pub seq: u32,
   pub title: String,
-  pub scope: TShirt,
+  /// The size, absent only when [`scope_legacy`] carries a v2 value the enum
+  /// cannot express.
+  ///
+  /// [`scope_legacy`]: WorkPackage::scope_legacy
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub scope: Option<TShirt>,
+  // PUBLISHED (D37): schemars lifts a `///` here into thread.schema.json and
+  // async-graphql into the SDL, and `intent schema` prints both -- so the
+  // design reasoning is in `//` and the `///` below says only what a consumer
+  // of the format needs. The guard caught this comment carrying an internal
+  // decision number on its first run, which is the second time that rule has
+  // paid for itself in the same file.
+  //
+  // v2 read `scope` as free text, and this repository's own corpus carries
+  // eleven spellings for six sizes. Ten of them are the same six values written
+  // differently -- `Extra Small` and `XS` say the identical thing -- so
+  // rendering those canonically loses nothing. The eleventh decides the rule:
+  // `Medium-Large`, one work package, in a CLOSED thread. It sits BETWEEN two
+  // enum members, and the ratified carry policy forbids all three obvious moves
+  // at once -- normalising it to `M` or `L` is a guess, blocking violates
+  // lossless-by-carrying for a closed thread, and dropping it is loss outright.
+  //
+  // So it is carried AS legacy, reusing the same shape the model already sets
+  // for a v2 acceptance-test row: the value stays visible as what it was, and
+  // the enum stays honest for everything new. The general form is the model's
+  // strictness posture one level down -- an unknown enum VALUE is marked by
+  // name, exactly as an unknown FIELD is.
+  //
+  // Carried, NEVER interpreted. Nothing reads it to answer a question about
+  // size; anything that did would rebuild v2's answer-confidently-from-partial-
+  // evidence habit inside v3. And a live thread never produces one -- it stays
+  // blocked until clean -- so a carried scope on a live thread is itself a
+  // defect, which `doctor` reports.
+  /// A scope recorded by an older Intent that is outside the size vocabulary,
+  /// carried verbatim. Present only when `scope` is absent.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub scope_legacy: Option<Legacy>,
   pub status: WpStatus,
   /// Why the work package is in [`WorkPackage::status`] -- `wp reopen` is the
   /// one WP transition the ratified machine guards with "reason recorded".
@@ -243,6 +297,28 @@ pub enum WpStatus {
   NotStarted,
   Wip,
   Done,
+}
+
+impl WorkPackage {
+  /// The size as a human reads it in a table or a generated view.
+  ///
+  /// **One home for three states, because the states are the whole point.** A
+  /// recorded size renders as itself; a carried v2 value renders AS ITSELF AND
+  /// MARKED, which is what "the value stays visible as legacy rather than
+  /// being silently canonicalised into a lie" means at the point a reader
+  /// meets it; a scope nobody ever recorded renders empty, because inventing a
+  /// size for it is the substitution this whole form exists to remove.
+  ///
+  /// On the type for the reason issue 0041 gives: `render.rs` had a private
+  /// match and `views.rs` called `enum_str`, so the terminal and the committed
+  /// markdown reached the same answer by two routes that nothing compared.
+  pub fn scope_display(&self) -> String {
+    match (&self.scope, &self.scope_legacy) {
+      (Some(scope), _) => enum_str(scope).to_string(),
+      (None, Some(legacy)) => format!("{} (legacy)", legacy.raw),
+      (None, None) => String::new(),
+    }
+  }
 }
 
 impl WpStatus {
