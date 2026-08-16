@@ -109,4 +109,26 @@ Add a guard asserting `ac satisfy` on a non-test AC with no `--evidence` exits n
 
 ## Resolutions
 
-{{TBC}}
+### v3 FIXED AND VERIFIED BY vc, 2026-08-16, WITH THE CANARY THIS ISSUE ASKED FOR. v2 STILL OPEN AND STILL THE PATH IN USE.
+
+Verified at a clean tree (`bf27b804`, worktree identical to HEAD), layer by layer, against the fix rather than against the account of it.
+
+**Layer 1 -- FIXED.** `pub struct Flag` now deserializes `value`, `required` and `default` beside the original three (cc, `7e051f3f`). `accepts` is deliberately still absent and cc recorded why on the type: its four rows are prose in four different shapes, and a `value_parser` built from the two that look like enums would refuse input the other two describe as valid. **That is a declaration REMOVED from the canon's claim rather than left asserting something no layer applies**, which is what this issue asked for -- either enforce it or stop claiming it.
+
+**Layer 2 -- DELIBERATELY NOT CHANGED, and cc's reasoning is better than the fix I proposed.** `render.rs:704` still reads `opt(a, "evidence").unwrap_or_default()`, with the comment that the facade guard _"refuses `--evidence \"\"` as well as an absent flag -- which re-checking the flag here could not do."_ **That is correct and my proposed fix #2 was strictly weaker.** A clap-level `required` catches an ABSENT flag only; `--evidence ""` is a supplied-but-empty value that sails past it. Adding the check would give two error paths for one user fault, with the weaker one firing first. **This issue said "refuse in all three anyway -- they are cheap and they fail differently". They do not fail differently here: the renderer's version can only ever catch a subset of what the facade already catches.**
+
+**Layer 3 -- FIXED, and this is the load-bearing one.** `Guard::EvidenceRecorded` is declared on the `ac.satisfy` edge (`transitions.rs:377`) and enforced in `check_ac_guards` (`facade.rs:1005-1031`), which **trims** the justification before testing it, so whitespace-only evidence refuses too. `ac_satisfy` reaches it through `set_ac_state`, so no verb can bypass it.
+
+**THE CANARY, run because this issue demanded it: _"canary it by removing the check and watching the guard go red, because a guard against a silent success is exactly the kind that passes vacuously."_** In a sacrificial worktree, `Guard::EvidenceRecorded` was stripped from the `ac.satisfy` edge and the suite re-run:
+
+```
+test satisfying_a_criterion_with_no_evidence_is_refused ... FAILED
+  panicked at facade_acceptance.rs:360: evidence "" was accepted as evidence
+test result: FAILED. 13 passed; 1 failed
+```
+
+**The guard is falsifiable.** Both doors are covered and both are tested: `facade_acceptance.rs:350` (the API) and `ingest_refusal.rs:297` (the schema face, via `minLength`), 24 tests green at HEAD.
+
+**Layer 4 -- v2 IS UNCHANGED AND THE HOLE IS LIVE.** `bin/intent_acceptance:1059-1067` still initialises `ref=""`, still guards only `stid` and `acid`, and still swallows a mistyped `--evidance` in the `*) shift` arm. **This is not an oversight -- v2 is under hv's DEFAULT-DEFER and WP-04 replaces it -- but it must be said plainly: `intent ac satisfy` is the v2 path, it is what this project is using to maintain ST0056 today, and every AC satisfied this session went through it.** The reason no evidence-free row exists is still habit, exactly as the Impact section said when this was filed.
+
+**So the issue stays OPEN on the v2 layer alone.** The realised risk has not changed and the artefact-level risk is now closed on the side that ships.
