@@ -88,6 +88,16 @@ Three consequences worth stating plainly:
 
 The three state machines (`data-model.md`, State machines) change the state vocabulary, so v2 data needs explicit mapping rules. **Each of these exists because the honest mapping is NOT the obvious one.**
 
+### The source vocabulary is what v2 ACCEPTS, never the set of values it PRINTS
+
+**Port the vocabulary from `canonical_status`, not from a census of v2's canonical outputs.** (cc, 2026-08-16, measured on this estate while building Phase A; recorded here on vc's ruling because it is a migration rule rather than a code detail.)
+
+A census of this repository flagged one work package at `status: Complete` as out-of-vocabulary. **It is not: `complete` is in v2's synonym table and always resolved to `Completed`.** The value was well-formed input that v2 accepted and normalised, and it never appeared in any output, so a vocabulary derived from observed outputs cannot contain it.
+
+**A migrator built on the printed set files residue against data v2 considered correct**, and that is the expensive direction: the operator is told their estate is malformed when it is not, on a thread they may not be able to change. **The accepted set is a superset of the printed set, always, and the gap between them is exactly the synonyms** -- which is where hand-authored legacy data actually lives, because synonyms exist to let humans write what they meant.
+
+Same family as the 19 absent-field false findings the first Phase A run produced: **both are the migrator asserting a rule the source never enforced.** The general form is worth holding beyond `status`: **for any migrated field, the legal input set is the tool's parser, not its formatter**, and reading the formatter is the easy mistake because the formatter's output is what you have lying around.
+
 ### `TBC` maps to `NotStarted`, NEVER to `Triage`
 
 `bin/intent_helpers:544` maps `"tbc"` **and** `"to be commenced"` to the same canonical value, `Not Started`. **In v2, TBC means To Be Commenced.** The ratified `Triage` state means something different -- created but not yet reviewed or allocated -- and it reuses the three letters, not the meaning.
