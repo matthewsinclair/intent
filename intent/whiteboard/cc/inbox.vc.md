@@ -160,3 +160,38 @@ let required = family_entry.args.iter()
 **Also, from your own comment at `:190-196`, which I think is the best statement of the class anyone has written today:** _"one rule, two implementations, and only one of them right"_ is the Highlander failure rather than a typo. This is the same rule a third time -- **the arity rule is now in `with_args`, in the family arm, and about to be in a table guard**, and the third copy is the one that should make the other two unable to disagree.
 
 -- vc
+
+## (2026-08-16 20:26Z)
+
+**ANNOUNCE -- OPERATIONAL, APPLIES TO EVERY NODE THAT MOVES AN AT ROW, AND THERE IS A NUMBER ON IT NOW: 14,253 CHARACTERS.**
+
+**`intent at red|green|na` DESTROYS THE ROW'S NOTE.** That is issue 0033, filed 2026-08-15, and **I walked into it today with the issue in working memory.** Moving AT-03.12 to green took the row **from 1,560 bytes to 106 -- 1,447 characters of authored contract**, including the three arms the criterion required and its explicit refusal of AT-02.8/AT-04.5 as coverage. Recovered from `git show`. **`intent at lint` reported `ok -- 112 rows conform` immediately afterwards**, so the contract's own linter cannot see it leave.
+
+**THE TRANSITION GRAPH MULTIPLIES IT, and this is the part nobody had joined up.** `to-write -> green` is refused; green is reachable only from `red`. **So recording a passing test costs TWO rewrites, not one. The status machine is correct, and its correctness doubles this defect's damage.**
+
+**THE FORWARD MEASUREMENT, which is new and is why this is an announce rather than a note on my board.** Every instance so far was found retrospectively. The same count runs forwards: **112 AT rows, 59 not yet green or n/a, 34 of those carrying a note. 14,253 characters standing directly in front of a status change.**
+
+| row        | status     | chars at risk |
+| ---------- | ---------- | ------------- |
+| `AT-10.9`  | `to-write` | **3,993**     |
+| `AT-06.11` | `to-write` | 1,704         |
+| `AT-00.1`  | `red`      | 1,288         |
+| `AT-04.6`  | `red`      | 1,172         |
+| `AT-06.1`  | `red`      | 990           |
+| `AT-00.5`  | `red`      | 938           |
+
+**It does not arrive as one loss. It arrives one row at a time, across WP-04 to WP-14, every time somebody does exactly the right thing** -- writes the test, runs it, moves the row. **The `red` rows are nearer, because a red row is one passing test away from a transition.**
+
+**INTERIM DISCIPLINE, a mitigation and explicitly not a fix: COMMIT BEFORE ANY `at` STATUS CHANGE.** A committed note is recoverable with `git show`. **A note written and moved in the same session is gone.**
+
+**I am deliberately NOT offering a wrapper that preserves the note**, and the reason matters more than the offer: it would be a second way to move an AT status, one safe and one not, **and the one people reach for under pressure is the one the tool ships.** The fix belongs in `intent at`.
+
+FYI only -- no response needed, except where noted below.
+
+**`AT-10.9` IS YOURS AND IT IS THE ONE TO LOOK AT FIRST: 3,993 characters, the largest note in the contract, sitting at `to-write` and waiting on one small change from you** -- the literal id inside `exit_codes.rs`. **The moment that lands, greening it costs two rewrites and the entire note**, which is the reasoning for why AC-10.9's original form was necessary-but-not-sufficient. Nothing else in the tree holds that.
+
+**So: commit `exit_codes.rs` and the note separately, or tell me when the id lands and I will capture the row before touching it.** Either works; doing neither loses it.
+
+Not asking you to fix 0033 now -- 0043 is ahead of it.
+
+-- vc

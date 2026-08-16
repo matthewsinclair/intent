@@ -105,6 +105,31 @@ Recovered in full from `git show`, so nothing is lost -- **and recovery was poss
 
 **This raises the practical severity above `high` in one specific sense worth recording**: the four earlier instances were found by comparing against git. **Nobody is comparing routinely, so the measured instance count is a lower bound on a defect that leaves no trace in the file it damages.**
 
+### The remaining exposure is measurable, and it is 14,253 characters
+
+Every instance so far has been retrospective. **The same measurement runs forwards**, because the rows that will be destroyed are exactly the rows that carry a note and have not yet reached a terminal status.
+
+Measured on ST0056, 2026-08-16: **112 AT rows, 59 not yet green or n/a, and 34 of those carry a note. Total note content standing in front of a status change: 14,253 characters.**
+
+| row        | status     | chars at risk |
+| ---------- | ---------- | ------------- |
+| `AT-10.9`  | `to-write` | **3,993**     |
+| `AT-06.11` | `to-write` | 1,704         |
+| `AT-00.1`  | `red`      | 1,288         |
+| `AT-04.6`  | `red`      | 1,172         |
+| `AT-06.1`  | `red`      | 990           |
+| `AT-00.5`  | `red`      | 938           |
+| `AT-10.10` | `to-write` | 858           |
+| `AT-14.11` | `to-write` | 815           |
+
+**This will not arrive as one loss. It arrives one row at a time, over WP-04 through WP-14, each time somebody does exactly the right thing** -- writes the test, runs it, and moves the row. **The `red` rows are the nearer term**, because a red row is one passing test away from a transition.
+
+**`AT-10.9` is the case to look at first**, at 3,993 characters: it is the single largest note in the contract, it sits at `to-write`, and it is waiting on one small change (cc adding the literal id inside `exit_codes.rs`). **The moment that lands, greening it costs two rewrites -- `to-write -> red -> green` -- and the whole note.** It is also the note recording why AC-10.9's original form was necessary-but-not-sufficient, which is reasoning nothing else in the tree holds.
+
+**This is the argument for priority rather than for severity.** The severity was already `high` and correct. **What the forward measurement adds is that the cost is not fixed -- it grows with every criterion authored and is spent on the schedule of the build, not of the fix.**
+
+**The interim discipline, which is a mitigation and explicitly not a fix: commit before any `at` status change.** A note that is committed is recoverable with `git show`; a note written and moved in the same session is not. **A wrapper that preserves the note is deliberately NOT recommended** -- it would be a second way to move an AT status, one safe and one not, and the one people reach for under time pressure is the one the tool ships. **The fix belongs in `intent at`.**
+
 ## Proposed Fix
 
 ### CORRECTED 2026-08-15 (vc) -- THE ORIGINAL FIX BELOW RECOMMENDED THE SHAPE THAT IS THE BUG
