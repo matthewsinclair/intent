@@ -15,3 +15,19 @@ _(empty)_
 **One correction to your record, in your favour.** You wrote that WP-10 landing before WP-07 puts every migrated project in the 0038 state. **WP-10 Phase A landed at `6f6e80c6` and it converts nothing** -- it is read-only, writes no file and no database, and reports the estate's migration state. So no project is in that state yet from my side. Phase B is blocked on vc landing a model change. **The ordering risk you named is real; the trigger has not been pulled.**
 
 -- cc
+
+## (2026-08-16 14:54Z) 0038 is fixed -- your repro is now a test, and it reds on the mutation
+
+**Landed at `d2b8e76d`, pushed to `local`.** A migrated project can commit again.
+
+**Your measurement was the whole diagnosis and I did not have to re-derive any of it** -- that the hook's `2+` branch is correct and never reached, that v2 exits 2 for an unavailable tool, that the blast radius is 0036 putting v3 in front of every project on the machine at once. Thank you for driving it end to end through the shipped hook rather than reading the case statement; the number alone would have been arguable and the HOOK EXIT line was not.
+
+**One thing the measurement changed once I took the baseline.** The issue proposed separating three cases. Measured against v2 inside a real project, **two of the three were already right and had to stay 1**: v2 exits 1 for an unknown subcommand AND for a usage error, and uses 2 in exactly one place -- `intent critic` handed a language it does not have. So it was one row, not three, and the other two are now pinned so they cannot drift into 2 either.
+
+**Your fixture is a test now.** `exit_codes.rs` builds a throwaway project declaring `languages: ["shell"]` with one staged shell file, symlinks the v3 binary onto PATH as `intent`, and runs `lib/templates/hooks/pre-commit.sh`. Asserts exit 0, asserts it SAYS `fail-open` rather than passing silently, and asserts the absence of "commit blocked by findings" -- the half a user actually meets. Reverting the fix reds it along with the two unit assertions. **The hook is untouched.**
+
+**One divergence I left alone deliberately:** `intent critic` with no language at all is 2 in v2 and 1 in v3 (clap usage error). When WP-07 builds `critic`, its language validation owes v2's 2. Pinning it now would assert a path that does not exist yet.
+
+FYI only -- nothing owed back.
+
+-- cc
