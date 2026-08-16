@@ -603,6 +603,37 @@ pub struct TodoBuckets {
   pub done: Vec<TodoItem>,
 }
 
+/// How much of DONE a rendering shows (D44).
+///
+/// **An id allowlist, not a cutoff.** The cutoff lives in SQL, where `now` is
+/// resolved inside the comparison that consumes it and nothing holds a time
+/// (D42); by the time a renderer is involved the question is already answered.
+/// Passing hours down here instead would put a clock-relative decision in a
+/// pure function, which is where it could not be made honestly.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TodoWindow {
+  /// Every completion. **This is what the committed file gets**, always.
+  All,
+  /// Only these thread ids, as answered by
+  /// [`crate::store::Store::threads_completed_within`].
+  Only(std::collections::BTreeSet<String>),
+}
+
+impl TodoWindow {
+  /// Whether a DONE row survives. **Work packages are matched by their parent
+  /// thread**, whose id prefixes theirs -- `completed` is a thread-level fact
+  /// and a WP has no completion date of its own to window on.
+  pub fn shows(&self, id: &str) -> bool {
+    match self {
+      TodoWindow::All => true,
+      TodoWindow::Only(ids) => {
+        let thread = id.split_once('/').map_or(id, |(t, _)| t);
+        ids.contains(thread)
+      }
+    }
+  }
+}
+
 /// **THE bucketing.** Both renderings go through it.
 ///
 /// Split out from [`todo`] when `--json` arrived: the alternative was a second
@@ -665,14 +696,24 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
 /// WINDOW computed at render time, and there is no durable state behind it to
 /// keep anywhere.
 ///
-/// The window itself is not built here yet. It needs a cutoff relative to now,
-/// and D42 forbids obtaining a now -- not from the OS, not from the database.
-/// The shape that satisfies both is a comparison evaluated INSIDE the query,
-/// where SQLite resolves `now` as part of the statement and no caller ever
-/// holds a time. Until that lands, this renders every completion rather than
-/// silently applying a window nobody ruled on.
-pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
-  let buckets = todo_buckets(threads);
+/// **The window is a PARAMETER of this one generator, never a second
+/// renderer.** vc ruled the surface (2026-08-16, under hv's standing "go with
+/// your recs", raised because hv ruled the window and not which surface it
+/// applies to): **the window applies to the TERMINAL render, and the committed
+/// `todo.md` carries everything.** A window resolved against a clock makes a
+/// file's content depend on when it was generated rather than on what
+/// happened, and this repository commits `todo.md` -- so a windowed file would
+/// diff with no cause in the estate, which is committed churn under D02. A
+/// terminal render is a moment and may depend on now; a committed file is a
+/// record and may not.
+///
+/// Two callers, one function, and the divergence is visible at the call site
+/// rather than hidden in a second copy of the bucketing rules. `TodoWindow` is
+/// an id ALLOWLIST rather than a cutoff, because the cutoff is resolved inside
+/// SQL (D42) and this function never learns a time -- it is handed the answer.
+pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>, window: &TodoWindow) -> String {
+  let mut buckets = todo_buckets(threads);
+  buckets.done.retain(|item| window.shows(&item.id));
   let labels =
     |rows: &[TodoItem]| -> Vec<String> { rows.iter().map(|i| i.label.clone()).collect() };
 
@@ -731,7 +772,11 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
   });
   views.push(View {
     path: project.todo_view(),
-    content: todo(&canon.threads, ctx),
+    // **`All`, and it is not a default reached for want of a window.** This is
+    // the committed artefact, and D44's window is ruled terminal-only
+    // precisely so that a generated file stays a function of the model and
+    // nothing else.
+    content: todo(&canon.threads, ctx, &TodoWindow::All),
   });
   views
 }

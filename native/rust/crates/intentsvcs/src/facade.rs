@@ -695,7 +695,39 @@ impl Facade {
   /// same bytes, so nothing downstream can tell -- except that they are now
   /// always right.
   pub fn todo_view(&self) -> Result<String, FacadeError> {
-    Ok(views::todo(&self.canon.threads, &self.render_ctx()?))
+    Ok(views::todo(
+      &self.canon.threads,
+      &self.render_ctx()?,
+      &views::TodoWindow::All,
+    ))
+  }
+
+  /// The same view, with DONE trimmed to the display window (D44).
+  ///
+  /// **This is the TERMINAL rendering and it deliberately differs from the
+  /// file** -- vc's ruling, and the reason is that a committed artefact must
+  /// be a function of the model while a terminal render is allowed to be a
+  /// moment. `todo_view` above is what `intent/todo.md` holds; this is what a
+  /// person sees.
+  ///
+  /// **The window is asked of the STORE, so no time is ever held** (D42). The
+  /// cutoff resolves inside the statement and this method receives ids.
+  ///
+  /// A window of 0 hours is not special-cased into "show everything": it means
+  /// what it says, and an operator who sets it to 0 has asked for a DONE
+  /// bucket reaching back to the start of today. Reinterpreting a configured
+  /// value as its opposite is how a setting becomes untrustworthy.
+  pub fn todo_view_windowed(&self) -> Result<String, FacadeError> {
+    let hours = self.project.config().todo.window_hours;
+    let ids = self
+      .store
+      .threads_completed_within(hours)
+      .map_err(FacadeError::Store)?;
+    Ok(views::todo(
+      &self.canon.threads,
+      &self.render_ctx()?,
+      &views::TodoWindow::Only(ids.into_iter().collect()),
+    ))
   }
 
   /// The same three buckets, structured, for `intent todo --json`.

@@ -1041,7 +1041,12 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
             .map_err(|e| format!("error: the view could not be rendered as JSON: {e}"))?
         );
       } else {
-        print!("{}", f.todo_view().map_err(fail)?);
+        // **The WINDOWED view, and this is the one place the two differ**
+        // (D44, vc's surface ruling). `intent/todo.md` carries every
+        // completion because a committed artefact is a record; what a person
+        // reads at a terminal is a moment, and DONE is trimmed to
+        // `todo.window_hours`. Same generator, one parameter apart.
+        print!("{}", f.todo_view_windowed().map_err(fail)?);
       }
       Ok(())
     }

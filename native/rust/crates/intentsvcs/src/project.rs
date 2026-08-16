@@ -33,6 +33,9 @@ pub struct Config {
   pub intent_dir: String,
   #[serde(default)]
   pub languages: Vec<String>,
+  /// The `todo` block (D44). Absent in every v2 config, hence the default.
+  #[serde(default)]
+  pub todo: TodoConfig,
   /// Everything else in the file, carried so a rewrite never drops a block
   /// this version does not know about.
   ///
@@ -47,6 +50,46 @@ pub struct Config {
   /// prevent.
   #[serde(flatten)]
   pub extra: serde_json::Map<String, serde_json::Value>,
+}
+
+/// The `todo` block: how much of the DONE bucket a TERMINAL render shows.
+///
+/// **Configuration, not state, and that is the whole of D44.** v2 kept a
+/// watermark inside the generated file and read it back out, which made a
+/// disposable view its own database -- deleting it silently resurrected every
+/// flushed item. There is nothing durable here: every completed date is
+/// already in the model, so the DONE bucket is a QUESTION asked at render time
+/// rather than a set anyone maintains.
+///
+/// **It is config rather than a flag because all six `todo` verbs regenerate
+/// the file**, so a flag on any one of them is a silent-revert generator -- the
+/// next verb rewrites without it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TodoConfig {
+  /// How far back the terminal's DONE bucket reaches. Default 24.
+  ///
+  /// **The unit is hours and the resolution is a DAY, which is a property of
+  /// the data rather than of this field.** `steel_thread.completed` is a
+  /// domain date -- `YYYY-MM-DD`, no time component, carried from v2 and never
+  /// re-stamped -- so a cutoff finer than a day has nothing to bite on. The
+  /// unit stays hours because that is what D44 ruled and what a longer window
+  /// wants to be expressed in; the effective behaviour is "completed on or
+  /// after the date `window_hours` ago", and it is written down here rather
+  /// than discovered by someone whose 6-hour window matched a whole day.
+  #[serde(default = "default_window_hours")]
+  pub window_hours: u32,
+}
+
+fn default_window_hours() -> u32 {
+  24
+}
+
+impl Default for TodoConfig {
+  fn default() -> Self {
+    Self {
+      window_hours: default_window_hours(),
+    }
+  }
 }
 
 /// The retired `st_prefix` key, by the name it has in `config.json`.
