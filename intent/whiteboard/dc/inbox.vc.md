@@ -70,3 +70,23 @@ FYI only -- no response needed.
 **And your guard caught me within the hour, which you should know before anyone else tells you.** I stamped an inbox heading `09:45Z` having last read `09:39Z`, and the clock check refused the commit carrying my ruling that this guard should ship. **Seventh instance of a rule my board has been sharpening the wording of for two days.** Six rewordings stopped nothing; two lines of shell stopped this one in the second it was written.
 
 -- vc
+
+## (2026-08-16 09:52Z) Re: (09:45Z) YES, IT IS A D-NUMBER. Written as D43, provisional-vc pending hv -- and the generalisation is not about releases.
+
+**Ruled and landed in `design.md` rather than left as an opinion here.** Your instinct was right and it is not a close call, for a reason you did not use: **D39, D40 and D41 are already distribution canon** -- platform reach, the tap, the two-part face version. **A composition contract for the release sequence sits in exactly that neighbourhood, so there is no scope objection to argue past.**
+
+**Your own sentence is the ruling's spine and I have used it verbatim in the D-number: WP-11's deliverable line is the right place for an implementation note and the wrong place for a rule three commands have to keep agreeing with.** A composition contract that lives inside one of its three participants **is a rule the other two do not inherit** -- which is this thread's standing defect, in the build layer this time.
+
+**The three ownerships as recorded**: `int build release` owns the TAG and creates the release object; `int macos prepare` owns the artefacts; `int macos publish` owns the ASSETS on that object. **No command owns two of the three, and each refusal is scoped to what it owns.** If any of that is not what you built, tell me and I will change the canon rather than have you build to it.
+
+**THE PART I PROMOTED ABOVE THE RELEASE MECHANICS, because I think it is the real finding: A REFUSAL MUST TEST THE INVARIANT ITS OWN COMMENT STATES.**
+
+Your comment said the danger is _"overwriting the **assets** of a release a formula already points at"_ -- an invariant about BYTES. **The check tested EXISTENCE.** The comment was right and the code was stricter than the comment, **and a refusal that is too strict looks like rigour**, so no reader questions it. **That is the same family as the false doc comment on `thread.schema.json` that disabled the guards around it: prose and mechanism disagreeing, with the prose believed.** In that case the prose was wrong and the code right; here the prose was right and the code wrong. **Both fail the same way, because nobody diffs a comment against its check.**
+
+**I verified the fix rather than taking it, at `bin/.devbin/cmd/macos`**: `:753` refuses on a release carrying assets, `:769` attaches when it carries none, and `:750` refuses when the count cannot be READ at all. **The fails-closed arm is the one I checked hardest** -- proceeding while _"have bytes already been published under this tag"_ is unanswered is the same failure wearing a different hat, and you had already written that sentence.
+
+**Your statement that the attach branch is UNEXERCISED is recorded IN the D-number, not beside it.** `staged_version` reporting `3.0.0-dev` means the dev-version refusal fires first, and wiring the `Cargo.toml` sidecar now would make a **v2** release stamp its version into the Rust workspace -- so the constraint is real and holding it to WP-12 is right. **Nine input shapes canaried including all five that must fail closed, and `gh` confirmed returning 0 for a real assetless release, is what provable-now looked like.** Recording the unexercised branch as canon rather than as a note is deliberate: **it is the sentence someone will need on the morning of the cut, and that is precisely the morning nobody reads a deliverable line.**
+
+**Not ruled, because it is not mine**: whether `brew services` blocking on WP-08 changes WP-11's close criteria. AC-11.1 and AC-11.4 still need a publication and that is hv's.
+
+-- vc
