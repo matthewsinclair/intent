@@ -9,6 +9,7 @@
 use clap::ArgMatches;
 
 use crate::dispatch;
+use crate::spine::Failure;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus};
@@ -23,7 +24,7 @@ fn fail(e: FacadeError) -> String {
 }
 
 /// Dispatch one parsed invocation.
-pub fn run(matches: &ArgMatches) -> Result<(), String> {
+pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
   match matches.subcommand() {
     Some(("st", m)) => st(m),
     Some(("wp", m)) => wp(m),
@@ -291,14 +292,14 @@ fn st_rows(
 /// checks. It is also the mechanical shape of a whole class -- a discarded
 /// `ArgMatches` drops every flag on the command silently, because clap accepts
 /// what the table declares whether or not anything reads it.
-fn sync(m: &ArgMatches) -> Result<(), String> {
+fn sync(m: &ArgMatches) -> Result<(), Failure> {
   match (flag(m, "to-disk"), flag(m, "to-store")) {
     // Both is not "do both": they are opposite directions over the same two
     // endpoints, so running them in either order makes one of them pointless
     // and the other authoritative by accident of ordering.
     (true, true) => Err(
       "error: `--to-disk` and `--to-store` are opposite directions, so naming both chooses neither\n  remedy: run the one whose DESTINATION you mean -- `--to-disk` writes the extract from the store, `--to-store` replaces the store from the extract"
-        .to_string(),
+        .into(),
     ),
     (true, false) => {
       let mut f = open()?;
@@ -355,7 +356,7 @@ fn sync(m: &ArgMatches) -> Result<(), String> {
       // itself the defect, and the list above is the only place `--to-store`
       // is named -- as a cost, not as a suggestion.
       eprintln!("  remedy: `intent sync --to-disk` is the routine direction");
-      Err(String::new())
+      Err(Failure::Verdict)
     }
   }
 }
@@ -399,7 +400,7 @@ fn sync(m: &ArgMatches) -> Result<(), String> {
 /// The family/leaf question is asked of the TABLE rather than of a list kept
 /// here, so a family that gains or loses its verbs moves between the two forms
 /// on its own -- ic's nine is a measurement of today, not a roster to maintain.
-fn unwired(family: &str, verb: &str) -> Result<(), String> {
+fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
   let path = if verb.is_empty() {
     family.to_string()
   } else {
@@ -416,12 +417,23 @@ fn unwired(family: &str, verb: &str) -> Result<(), String> {
   } else {
     "nothing in this build provides it -- `intent --help` lists what does".to_string()
   };
-  Err(format!(
+  // **`Unavailable`, not `Error` -- this is issue 0038 and it is the exit code
+  // that matters, not the wording.** The message was already correct and said
+  // plainly that the command is unbuilt; it exited 1, which every consumer
+  // written against v2 reads as "the tool ran and returned a negative verdict
+  // about your work". The shipped pre-commit gate reads exactly that, so a
+  // project migrating to v3 while any hook-invoked command was still unwired
+  // could not commit at all -- and the remedy it printed named findings that
+  // did not exist, leaving `--no-verify` as the only way through.
+  //
+  // The gate's fail-open branch for `2+` was correct all along and simply
+  // never reached. Nothing in the hook changes; the number does.
+  Err(Failure::Unavailable(format!(
     "error: `{path}` is a known command that is not implemented yet\n  remedy: {remedy}"
-  ))
+  )))
 }
 
-fn st(m: &ArgMatches) -> Result<(), String> {
+fn st(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("new", a)) => {
       let title = arg(a, "title")?;
@@ -584,11 +596,11 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       Ok(())
     }
     Some((verb, _)) => unwired("st", verb),
-    None => Err("error: a steel thread command is required".to_string()),
+    None => Err("error: a steel thread command is required".into()),
   }
 }
 
-fn wp(m: &ArgMatches) -> Result<(), String> {
+fn wp(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("new", a)) => {
       let st = arg(a, "stid")?;
@@ -683,11 +695,11 @@ fn wp(m: &ArgMatches) -> Result<(), String> {
       Ok(())
     }
     Some((verb, _)) => unwired("wp", verb),
-    None => Err("error: a work package command is required".to_string()),
+    None => Err("error: a work package command is required".into()),
   }
 }
 
-fn ac(m: &ArgMatches) -> Result<(), String> {
+fn ac(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("gate", a)) => {
       let target = arg(a, "stid")?;
@@ -700,7 +712,7 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
       } else {
         // The gate's own line IS the message; it went to stdout because the
         // gate is read by machines via the exit code (v2 does the same).
-        Err(String::new())
+        Err(Failure::Verdict)
       }
     }
     Some(("satisfy", a)) => {
@@ -803,11 +815,11 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
       Ok(())
     }
     Some((verb, _)) => unwired("ac", verb),
-    None => Err("error: an acceptance criterion command is required".to_string()),
+    None => Err("error: an acceptance criterion command is required".into()),
   }
 }
 
-fn at(m: &ArgMatches) -> Result<(), String> {
+fn at(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("list", a)) => {
       let st = arg(a, "stid")?;
@@ -843,7 +855,7 @@ fn at(m: &ArgMatches) -> Result<(), String> {
         // everything touched after it. v3 will not ship one that cannot finish
         // the job.
         return Err(
-          "error: `at lint --fix` is not implemented in v3\n  remedy: fix the rows `intent at lint` names -- v2's --fix rewrote what it could parse and left the rest, which is why it is not being carried over".to_string(),
+          "error: `at lint --fix` is not implemented in v3\n  remedy: fix the rows `intent at lint` names -- v2's --fix rewrote what it could parse and left the rest, which is why it is not being carried over".into(),
         );
       }
       let f = open()?;
@@ -854,11 +866,11 @@ fn at(m: &ArgMatches) -> Result<(), String> {
       if findings.is_empty() {
         Ok(())
       } else {
-        Err(String::new())
+        Err(Failure::Verdict)
       }
     }
     Some((verb, _)) => unwired("at", verb),
-    None => Err("error: an acceptance test command is required".to_string()),
+    None => Err("error: an acceptance test command is required".into()),
   }
 }
 
@@ -868,7 +880,7 @@ fn at(m: &ArgMatches) -> Result<(), String> {
 /// successful search, and v2's own read verbs answer an empty set the same way
 /// -- making it a failure would mean every `grep`-shaped use in a script had to
 /// special-case the common answer.
-fn search(m: &ArgMatches) -> Result<(), String> {
+fn search(m: &ArgMatches) -> Result<(), Failure> {
   let query = arg(m, "query")?;
   let f = open()?;
   let hits = f.search(&query).map_err(fail)?;
@@ -927,7 +939,7 @@ fn search(m: &ArgMatches) -> Result<(), String> {
 /// job when it found things -- so writing findings to stderr would put the
 /// answer on the error channel. The nonzero exit is what a script reads, in
 /// the same shape `ac gate` uses.
-fn doctor() -> Result<(), String> {
+fn doctor() -> Result<(), Failure> {
   let (project, ctx) = context()?;
   // **Opened opportunistically, and a failure to open is not reported here.**
   // `doctor` exists to run on a project that cannot be opened, so the store is
@@ -956,7 +968,7 @@ fn doctor() -> Result<(), String> {
     Ok(())
   } else {
     // The report above IS the message; the exit code is the machine's copy.
-    Err(String::new())
+    Err(Failure::Verdict)
   }
 }
 
@@ -986,7 +998,7 @@ fn doctor() -> Result<(), String> {
 /// whole of what is left.** Recorded here rather than acted on: the flag is
 /// ratified, the ruling names where the objection belongs, and a renderer is
 /// not the place to overturn either.
-fn ingest(a: &ArgMatches) -> Result<(), String> {
+fn ingest(a: &ArgMatches) -> Result<(), Failure> {
   let project = match opt(a, "path") {
     Some(path) => Project::open(std::path::Path::new(&path)).map_err(|e| {
       format!(
@@ -1043,7 +1055,7 @@ fn ingest(a: &ArgMatches) -> Result<(), String> {
     // and the tool that can repair a v2 artefact is the last v2 release.
     Err(
       "error: this estate has residue in live steel threads, so migrating it now would lose data\n  remedy: fix the rows named above under v2 tooling, then run this again -- the `carried:` lines are not yours to fix, they convert as they are"
-        .to_string(),
+        .into(),
     )
   }
 }
@@ -1059,7 +1071,7 @@ fn ingest(a: &ArgMatches) -> Result<(), String> {
 /// sits one query away. The bytes are the same bytes -- `todo update` writes
 /// exactly what this prints -- so nothing observable changes except that a
 /// stale file can no longer be shown as current.
-fn todo(m: &ArgMatches) -> Result<(), String> {
+fn todo(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     None | Some(("list", _)) => {
       let f = open()?;
@@ -1116,7 +1128,8 @@ fn todo(m: &ArgMatches) -> Result<(), String> {
       };
       Err(format!(
         "error: `todo {verb}` reopens finished work, and a reopen must record why it happened\n  remedy: run `intent st reopen {target} \"<reason>\"` (or `intent wp reopen`), which records the reason on the thread and in the event log"
-      ))
+      )
+      .into())
     }
     Some((verb, _)) => unwired("todo", verb),
   }
@@ -1128,7 +1141,7 @@ fn todo(m: &ArgMatches) -> Result<(), String> {
 /// `--flush` and `--prune` share the watermark advance and differ in whether
 /// the cleared items are printed first, so `--prune` is `--flush` with its
 /// output kept. Naming both is not an error; it is `--prune`.
-fn todo_done(a: &ArgMatches) -> Result<(), String> {
+fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
   let flush = flag(a, "flush");
   let prune = flag(a, "prune");
   let spec = opt(a, "specifier");
@@ -1180,11 +1193,11 @@ fn todo_done(a: &ArgMatches) -> Result<(), String> {
     // than picking one.
     (Some(_), true) => Err(
       "error: `todo done <specifier>` marks one item done and `--flush` clears the whole DONE view; naming both asks for two different operations at once\n  remedy: run them separately -- mark the item done first, then `intent todo done --flush`"
-        .to_string(),
+        .into(),
     ),
     (None, false) => Err(
       "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`), or pass `--flush` to advance the DONE watermark"
-        .to_string(),
+        .into(),
     ),
   }
 }
@@ -1212,7 +1225,7 @@ fn todo_done(a: &ArgMatches) -> Result<(), String> {
 /// exporter failing its own round-trip are three different answers with three
 /// different remedies, and the layer that knows which one happened is the one
 /// that says so.
-fn export(a: &ArgMatches) -> Result<(), String> {
+fn export(a: &ArgMatches) -> Result<(), Failure> {
   let f = open()?;
   // `None` when the flag is absent, which the facade reads as the roster's
   // declared default. Not defaulted here: the default is a fact about the
@@ -1275,7 +1288,7 @@ fn withheld_flags() -> Vec<String> {
 /// this binary, so they are the same everywhere and asking for a project would
 /// make the command fail in the one place it is most useful -- outside a
 /// project, when you are deciding what a project should contain.
-fn schema(m: &ArgMatches) -> Result<(), String> {
+fn schema(m: &ArgMatches) -> Result<(), Failure> {
   // **`--versions` selects the OUTPUT MODE and `face` selects WHICH faces**
   // (ic, declared with the row rather than left to be inferred). They compose:
   // neither arm special-cases the other, so `intent schema ddl.sql --versions`
@@ -1292,10 +1305,13 @@ fn schema(m: &ArgMatches) -> Result<(), String> {
         }
         Ok(())
       }
-      None => Err(format!(
-        "error: no schema face named `{name}`\n  remedy: one of: {}",
-        intentsvcs::faces::face_names().join(", ")
-      )),
+      None => Err(
+        format!(
+          "error: no schema face named `{name}`\n  remedy: one of: {}",
+          intentsvcs::faces::face_names().join(", ")
+        )
+        .into(),
+      ),
     },
     Ok(None) => {
       if versions {
@@ -1307,7 +1323,8 @@ fn schema(m: &ArgMatches) -> Result<(), String> {
     }
     Err(e) => Err(format!(
       "error: the CLI asked for an argument `face` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
-    )),
+    )
+    .into()),
   }
 }
 
@@ -1410,7 +1427,7 @@ fn status(s: intentsvcs::model::ThreadStatus) -> &'static str {
 /// and one place reports health -- `doctor`. Two commands answering "is my
 /// backup all right" is how they come to disagree, and the one a user reaches
 /// for first would be the one that never says no.
-fn backup(m: &ArgMatches) -> Result<(), String> {
+fn backup(m: &ArgMatches) -> Result<(), Failure> {
   let facade = open()?;
   let project = facade.project().clone();
 

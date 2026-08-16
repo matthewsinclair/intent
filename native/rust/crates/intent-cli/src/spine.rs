@@ -16,8 +16,87 @@ use clap::{Arg, ArgAction, Command};
 use crate::dispatch::{self, Entry, Table};
 
 /// v2's exit codes (INV-04): success, failure, and the `intent critic` 2.
+///
+/// **The third one was named in this comment and never declared** -- which is
+/// issue 0038. Every v3 failure took `EXIT_ERROR`, so a command this build has
+/// not implemented yet reported itself in the code that means "your code is
+/// bad", and the consumer that reads that code -- the shipped pre-commit gate
+/// -- blocked the commit and printed a remedy naming findings that do not
+/// exist. Measured against v2 in this repository rather than inferred:
+///
+/// | event                                    | v2 | v3 |
+/// | ---------------------------------------- | -- | -- |
+/// | success                                  | 0  | 0  |
+/// | unknown subcommand                       | 1  | 1  |
+/// | usage error (a required argument absent) | 1  | 1  |
+/// | a negative verdict from a gate           | 1  | 1  |
+/// | the tooling cannot answer                | 2  | 2  |
+///
+/// **Two of the three cases issue 0038 proposed separating are already right
+/// and have to stay 1**, because that is what v2 does and D17 carries v2's
+/// codes over. Only the last row was wrong, and v2 reaches it by one route
+/// (`intent critic` with a language it does not have) where v3 reaches it by
+/// another (a table row this build has not wired), which is the same event:
+/// the question was well formed and this binary cannot answer it.
 pub const EXIT_OK: i32 = 0;
 pub const EXIT_ERROR: i32 = 1;
+pub const EXIT_UNAVAILABLE: i32 = 2;
+
+/// How a command failed, and therefore which code reports it.
+///
+/// The error channel was a bare `String`, which answers "what do I print" and
+/// nothing else. **Two further questions were already riding on it out of
+/// band**: an EMPTY string meant "the verdict is on stdout, print nothing
+/// more" (four sites -- the close gate, `at lint`, `doctor`, `sync`), and
+/// there was no way at all to say "this build cannot answer", which is why
+/// that case borrowed the code for "the answer is no".
+///
+/// A sentinel value standing in for a kind is readable exactly once, by
+/// whoever wrote it. Naming the kinds puts the exit code beside the meaning
+/// instead of leaving it to the caller to remember.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Failure {
+  /// The command ran and the answer is no. Exit 1, message to stderr.
+  Error(String),
+  /// The verdict is already on stdout, where machines read it. Exit 1, silent.
+  Verdict,
+  /// This build cannot answer the question at all. Exit 2 -- v2's code for an
+  /// unavailable tool, which consumers written against v2 treat as fail-open
+  /// rather than as a negative verdict about their own work.
+  Unavailable(String),
+}
+
+impl Failure {
+  pub fn code(&self) -> i32 {
+    match self {
+      Failure::Error(_) | Failure::Verdict => EXIT_ERROR,
+      Failure::Unavailable(_) => EXIT_UNAVAILABLE,
+    }
+  }
+
+  /// What to write to stderr, if anything. `None` is not "the empty string" --
+  /// it is the verdict case, which has already written to stdout.
+  pub fn message(&self) -> Option<&str> {
+    match self {
+      Failure::Error(m) | Failure::Unavailable(m) => Some(m),
+      Failure::Verdict => None,
+    }
+  }
+}
+
+/// So `?` still carries the message-only helpers (`arg`, `open`, `fail`) that
+/// have no opinion about the code, and they keep the default.
+impl From<String> for Failure {
+  fn from(message: String) -> Self {
+    Failure::Error(message)
+  }
+}
+
+impl From<&str> for Failure {
+  fn from(message: &str) -> Self {
+    Failure::Error(message.to_string())
+  }
+}
 
 /// Build the whole surface from the table.
 pub fn build(table: &Table) -> Command {

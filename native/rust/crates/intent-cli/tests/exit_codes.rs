@@ -14,6 +14,15 @@
 //!
 //! The exception is `intent critic`, which genuinely uses 2 (INV-04); asserting
 //! that here too is what stops a blanket "always exit 1" from looking correct.
+//!
+//! **That last sentence was true and the test under it was vacuous, which is
+//! how issue 0038 shipped.** v3 gave every failure `EXIT_ERROR`, so a command
+//! this build has not wired reported itself in the code that means "your code
+//! is bad" -- and the shipped pre-commit gate, whose `2+` branch exists for
+//! exactly this, never reached it and blocked every commit in a migrated
+//! project. The three tests at the foot of this file are the contract v2
+//! actually has, measured rather than inferred, and the last one drives the
+//! consumer instead of the number.
 
 use std::process::{Command, Output};
 
@@ -96,17 +105,142 @@ fn success_exits_0() {
   );
 }
 
-/// INV-04's exception, asserted so a blanket always-exit-1 cannot pass.
+/// **This test replaces one that could not fail, and the vacuity is the story.**
 ///
-/// `intent critic` genuinely uses 2 -- it is the one place in the shipped
-/// surface where 2 means something. Without this case, an override that
-/// hard-coded 1 everywhere would look correct.
+/// The original ran `intent critic --help` and asserted
+/// `code != 2 || !stderr.contains("unexpected argument")`. `--help` exits 0
+/// and writes nothing to stderr, so the first disjunct was always true and the
+/// assertion held for every possible behaviour of the binary. Its doc comment
+/// said it existed "so a blanket always-exit-1 cannot pass" -- **and a blanket
+/// always-exit-1 is exactly what shipped**, as issue 0038. The guard was
+/// written, named for the right property, and never evaluated it.
+///
+/// So the real form asks for the code on an invocation that FAILS, and the
+/// disjunction is gone: there is one number and it is asserted.
 #[test]
-fn the_critic_exception_is_not_flattened_by_the_override() {
-  let out = run(&["critic", "--help"]);
-  let code = out.status.code().expect("exited");
+fn the_unavailable_exception_is_not_flattened_by_the_override() {
+  let out = run(&["critic", "shell", "--staged"]);
+  assert_eq!(
+    out.status.code(),
+    Some(2),
+    "INV-04's 2 survives INV-02's blanket override of clap's usage codes.\nstderr: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+}
+
+/// **Issue 0038, the whole contract in one test.**
+///
+/// Asserted TOGETHER rather than as three cases, because the defect was not
+/// any single wrong number -- it was three different events sharing one. A
+/// per-case test passes if every code is changed to the same new value; this
+/// one only passes if they stay distinct in the way v2 distinguishes them.
+///
+/// Measured against v2 in this repository (`bin/intent`, 2026-08-16) rather
+/// than inferred from its source, and the measurement narrowed the fix: two of
+/// the three cases issue 0038 proposed separating **already matched v2 and had
+/// to stay 1**. Only "this build cannot answer" was wrong.
+#[test]
+fn an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation() {
+  let unbuilt = run(&["critic", "shell", "--staged"]).status.code();
+  let unknown = run(&["nosuchfamily"]).status.code();
+  let usage = run(&["st", "show"]).status.code();
+
+  assert_eq!(
+    unbuilt,
+    Some(2),
+    "a known command this build has not wired is an UNAVAILABLE TOOL, which is v2's 2 -- \
+     the consumer that reads it (the shipped pre-commit gate) treats 2 as fail-open and 1 as \
+     `your code has findings`"
+  );
+  assert_eq!(unknown, Some(1), "v2 exits 1 for an unknown command");
+  assert_eq!(usage, Some(1), "v2 exits 1 for a usage error (INV-02, D17)");
+  assert_ne!(
+    unbuilt, usage,
+    "the tool being absent and the caller being wrong are different events and only one of them \
+     is the caller's fault"
+  );
+}
+
+/// **The consumer, driven end to end -- because the number is only worth what
+/// the thing reading it does with it.**
+///
+/// Every assertion above is about a number in isolation. The defect was never
+/// about a number: it was that a project migrating to v3 while any
+/// hook-invoked command was still unwired **could not commit at all**, and the
+/// remedy it printed named findings that did not exist, leaving `--no-verify`
+/// as the only way through -- which trains a habit that outlives the cause.
+///
+/// So this drives the SHIPPED hook against the real binary, the way the defect
+/// was found. The hook is not modified by the fix and is not modified by this
+/// test; its `2+` fail-open branch was correct all along and simply never
+/// reached. If someone reverts the exit code, a unit assertion above reds AND
+/// this reds with the user-visible symptom, which is the one worth reading.
+#[test]
+fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt() {
+  let hook = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("../../../../lib/templates/hooks/pre-commit.sh")
+    .canonicalize()
+    .expect("locate the shipped pre-commit hook");
+
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  std::fs::create_dir_all(root.join("intent/.config")).expect("mkdir");
+  std::fs::write(
+    root.join("intent/.config/config.json"),
+    "{\"intent_version\":\"3.0.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}\n",
+  )
+  .expect("write config");
+  std::fs::write(root.join("script.sh"), "#!/bin/bash\necho hi\n").expect("write a shell file");
+
+  for args in [
+    vec!["init", "-q", "."],
+    vec!["config", "user.email", "t@t"],
+    vec!["config", "user.name", "t"],
+    vec!["add", "-A"],
+  ] {
+    let ok = Command::new("git")
+      .args(&args)
+      .current_dir(root)
+      .output()
+      .expect("run git")
+      .status
+      .success();
+    assert!(ok, "git {args:?} failed while building the fixture");
+  }
+
+  // The hook calls `intent` by name, so v3 has to BE `intent` on PATH -- which
+  // is also how a consumer meets this: issue 0036 records that `brew install`
+  // shadows a v2 install rather than replacing it.
+  let shim = root.join("shim");
+  std::fs::create_dir_all(&shim).expect("mkdir shim");
+  #[cfg(unix)]
+  std::os::unix::fs::symlink(env!("CARGO_BIN_EXE_intent"), shim.join("intent"))
+    .expect("put v3 first on PATH as `intent`");
+
+  let path = format!(
+    "{}:{}",
+    shim.display(),
+    std::env::var("PATH").unwrap_or_default()
+  );
+  let out = Command::new("bash")
+    .arg(&hook)
+    .current_dir(root)
+    .env("PATH", path)
+    .output()
+    .expect("run the shipped hook");
+  let stderr = String::from_utf8_lossy(&out.stderr);
+
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "the gate must fail OPEN when the critic is unavailable, not block the commit.\n{stderr}"
+  );
   assert!(
-    code != 2 || !String::from_utf8_lossy(&out.stderr).contains("unexpected argument"),
-    "critic keeps its own exit-code semantics (INV-04) rather than being swept into the blanket override"
+    stderr.contains("fail-open"),
+    "and it must say WHY it let the commit through, rather than passing silently:\n{stderr}"
+  );
+  assert!(
+    !stderr.contains("commit blocked by findings"),
+    "the remedy naming findings that do not exist is the half of 0038 a user actually meets:\n{stderr}"
   );
 }

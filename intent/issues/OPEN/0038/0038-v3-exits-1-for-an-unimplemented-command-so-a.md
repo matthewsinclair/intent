@@ -110,4 +110,51 @@ Not settled here -- the exit-code contract is ic's parity lane and the CLI is cc
 
 ## Resolutions
 
-{{TBC}}
+**The code fix has landed (cc, 2026-08-16). Clause 3 -- the AC gap -- has not, and it is vc's; this issue stays OPEN for it.**
+
+### What v2 actually does, measured rather than inferred
+
+The first thing the fix needed was the baseline, and measuring it **narrowed the change**. Run inside a real Intent project (`bin/intent`, this repository), because outside one v2 refuses everything at the project gate with exit 1 and every row looks the same:
+
+| event                                    | v2  | v3 before | v3 after |
+| ---------------------------------------- | --- | --------- | -------- |
+| success                                  | 0   | 0         | 0        |
+| unknown subcommand                       | 1   | 1         | 1        |
+| usage error (a required argument absent) | 1   | 1         | 1        |
+| a negative verdict from a gate           | 1   | 1         | 1        |
+| the tooling cannot answer                | 2   | **1**     | **2**    |
+
+**Two of the three cases this issue proposed separating were already right and had to stay 1.** v2 does not use 2 for usage errors generally -- it uses 2 in exactly one place, `intent critic` rejecting a language it does not have, which is the "this tool cannot answer" case. So the fix is one row, not three, and the other two rows are now pinned so they cannot drift into 2 either.
+
+### The change
+
+`spine::EXIT_UNAVAILABLE = 2` was **named in the doc comment above `EXIT_OK`/`EXIT_ERROR` and never declared**, which is the whole defect in one line.
+
+The error channel was a bare `String`, which answers "what do I print" and nothing else -- and two further questions were already riding on it out of band: an EMPTY string meant "the verdict is on stdout, print nothing more" (four sites: the close gate, `at lint`, `doctor`, `sync`), and there was no way at all to say "this build cannot answer", so that case borrowed the code for "the answer is no". `spine::Failure` names the three kinds and the exit code follows from the kind rather than from whoever wrote the call site. `unwired()` returns `Failure::Unavailable`; nothing else changed meaning.
+
+### Verified against the consumer, not just the number
+
+The hook is unmodified. Its `2+` fail-open branch was correct all along and simply never reached. Driving the shipped `lib/templates/hooks/pre-commit.sh` against the v3 binary first on `PATH`, in a throwaway project declaring `languages: ["shell"]` with one staged shell file -- the same fixture that produced the report:
+
+```
+intent critic (shell) invocation error (exit 2); fail-open.
+error: `critic` is a known command that is not implemented yet
+  remedy: nothing in this build provides it -- `intent --help` lists what does
+
+HOOK EXIT: 0
+```
+
+### The guard that existed and could not fire
+
+`tests/exit_codes.rs` already carried `the_critic_exception_is_not_flattened_by_the_override`, whose doc comment said it existed "so a blanket always-exit-1 cannot pass" -- **and a blanket always-exit-1 is what shipped.** It ran `intent critic --help`, which exits 0 with an empty stderr, and asserted `code != 2 || !stderr.contains("unexpected argument")`: the first disjunct was always true, so the assertion held for every possible behaviour of the binary. It has been replaced with one that asks for the code on an invocation that FAILS.
+
+Three tests now cover this, and the mutation (reverting `Unavailable` to `Error`) reds all three, including the end-to-end one:
+
+- `the_unavailable_exception_is_not_flattened_by_the_override` -- the replacement, no disjunction
+- `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation` -- all three codes asserted TOGETHER, so changing every code to one new value cannot pass
+- `a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt` -- drives the shipped hook
+
+### Outstanding
+
+- **Clause 3 (vc).** `.git/hooks` is still uncovered: AC-10.4 names `.claude/settings.json` + `.claude/scripts/**` only. AT-10.4 is still `to-write`, so the wording is still the cheap thing to fix rather than the test.
+- **One divergence deliberately not fixed here (WP-07).** `intent critic` with NO language exits 2 in v2 (its own arg parsing) and 1 in v3 (clap's usage error, INV-02). When WP-07 builds `critic`, its language validation owes v2's 2 -- the row exists in v2 and v3 cannot reach it yet, so pinning it now would assert a path that does not exist.
