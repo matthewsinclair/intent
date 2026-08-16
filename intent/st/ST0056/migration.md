@@ -34,16 +34,22 @@ Modelled on `at lint`: one line per finding, machine-parseable, human-actionable
 residue: <file>:<line> -- <class> -- <detail>
 ```
 
-| Class              | Meaning                                                     | Fix environment           |
-| ------------------ | ----------------------------------------------------------- | ------------------------- |
-| unparseable-row    | an AC/AT/claims/index row the legacy grammar cannot read    | v2 `at lint --fix` / hand |
-| unknown-status     | a status value outside the v2.19 vocabulary                 | v2 CLI                    |
-| conflict-markers   | git conflict markers present in an artefact                 | resolve the merge         |
-| unknown-file-shape | a file in a modelled location the parser cannot classify    | hand                      |
-| broken-reference   | an AT file reference / descope target that does not resolve | v2 CLI / hand             |
-| duplicate-id       | two artefacts claiming one natural id (the 0011 class)      | hand                      |
+| Class              | Meaning                                                                          | Fix environment           |
+| ------------------ | -------------------------------------------------------------------------------- | ------------------------- |
+| unparseable-row    | an AC/AT/claims/index row the legacy grammar cannot read                         | v2 `at lint --fix` / hand |
+| unknown-status     | a status value outside what `canonical_status` ACCEPTS                           | v2 CLI                    |
+| unknown-scope      | a `scope:` value outside the T-shirt enum, v2 having read the field as free text | carried, or v2 CLI        |
+| conflict-markers   | git conflict markers present in an artefact                                      | resolve the merge         |
+| unknown-file-shape | a file in a modelled location the parser cannot classify                         | hand                      |
+| broken-reference   | an AT file reference / descope target that does not resolve                      | v2 CLI / hand             |
+| duplicate-id       | two artefacts claiming one natural id (the 0011 class)                           | hand                      |
+| field-not-recorded | a field the estate never recorded, the artefact predating the convention         | **nothing -- carried**    |
 
-Every class carries the exact file:line; totals print per class; the report never truncates (the no-silent-caps rule -- a capped residue list reads as complete when it is not).
+Totals print per class; the report never truncates (the no-silent-caps rule -- a capped residue list reads as complete when it is not).
+
+**`field-not-recorded` and `unknown-scope` were added 2026-08-16 after this table was measured against the implementation and found short by exactly those two** -- which are the only two classes Intent's own tree, the canary, actually produces. `legacy.rs` constructs eight `FindingClass` variants and this table declared six, so **an operator meeting either of the classes they will actually meet found neither in the contract, and every check reported agreement.** Guarded from here by `parity/tools/residue_class_check.sh`, which compares this table against the implementation in both directions rather than trusting a transcription.
+
+**The line number is reported when the finding has one, and this table no longer claims otherwise.** It previously said "every class carries the exact file:line". Two of the eight classes are about a field that is ABSENT -- `field-not-recorded` most obviously -- and an absent field has no line to cite, so the promise could not be kept by construction. `unknown-scope` does have a line and does not currently print one; that is a real gap and is a defect against this paragraph rather than against the old sentence, which is the point of narrowing the promise to something checkable.
 
 ## The fleet corpus harness (`fleet_corpus_ingest.rs`)
 
