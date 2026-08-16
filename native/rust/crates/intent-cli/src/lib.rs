@@ -11,5 +11,6 @@
 //! manifest by rule (design.md D06, asserted by `dep_graph_guard.rs`).
 
 pub mod dispatch;
+pub mod guide;
 pub mod render;
 pub mod spine;

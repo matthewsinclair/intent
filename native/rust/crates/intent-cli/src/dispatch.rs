@@ -231,6 +231,57 @@ pub struct Arg {
   pub default: Option<String>,
 }
 
+impl Arg {
+  /// Whether the caller must supply this slot -- ie whether its minimum is at
+  /// least one.
+  ///
+  /// **These two predicates live on the model rather than in the spine because
+  /// the spine stopped being their only reader** (ic, 2026-08-16). WP-09's
+  /// agent guide renders the same arity into a usage line, and an arity is a
+  /// fact about the table, not about clap -- a second reading of `0..n` in a
+  /// second module is the Highlander failure with a delay fuse on it, since
+  /// the two would agree until the table grew a fifth spelling.
+  ///
+  /// The vocabulary is four values and it is measured, not assumed: `1` (69),
+  /// `0..1` (23), `0..n` (3) and `1..n` (2) across the shipped set.
+  ///
+  /// **`1..n` IS required, and `spine.rs` does not yet agree** -- a divergence
+  /// this extraction found rather than introduced. `positionals` reads
+  /// `arity == "1"` inline, so `intent lang init` with NO language PARSES and
+  /// falls through to the unimplemented-command path, where v2 refuses it
+  /// (`bin/intent_lang:251`, "missing language argument(s)"). Measured against
+  /// the built binary: `at green` with its arguments absent is refused at exit
+  /// 1, `lang init` with its argument absent is not refused at all. Latent
+  /// only because `lang` is unwired; the day WP-07 wires it, the renderer is
+  /// handed an empty list.
+  ///
+  /// **Stated as the SEMANTICS here rather than as the spine's behaviour**, so
+  /// the guide tells an agent `<lang>...` -- which is true of the table and
+  /// true of v2. The one-line repair is to point `positionals` at this method;
+  /// it was deliberately not made in the same change, because `spine.rs` was
+  /// held by a peer and a behaviour change split across two commits is worse
+  /// than a divergence that is written down.
+  pub fn required(&self) -> bool {
+    self.arity == "1" || self.arity == "1..n"
+  }
+
+  /// Whether the slot takes more than one value.
+  ///
+  /// **`0..n` is the table's open-ended spelling and carries neither `+` nor
+  /// `*`**, so the obvious check for those two alone reads it as a single
+  /// value -- which is the defect this predicate was extracted carrying, and
+  /// the reason `ends_with('n')` is here rather than a tidier two-arm test.
+  ///
+  /// Proven by [`tests::an_arity_is_read_the_same_way_by_every_reader`], which
+  /// drives all four declared spellings and asserts the two open-ended ones
+  /// come back repeated. Co-located deliberately: a proof that lives only in a
+  /// commit message cannot answer "has this ever refused anything" without a
+  /// `git log --follow` nobody runs before trusting a green.
+  pub fn repeated(&self) -> bool {
+    self.arity.contains('+') || self.arity.contains('*') || self.arity.ends_with('n')
+  }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Flag {
   #[serde(default)]
@@ -705,6 +756,76 @@ mod tests {
     assert!(
       shipped.iter().any(|e| e.target.state == "pending-hv"),
       "a pending usage-convention ruling does not remove a command from the surface"
+    );
+  }
+
+  /// The proof for [`Arg::required`] and [`Arg::repeated`], co-located with
+  /// the predicates rather than left in a commit message.
+  ///
+  /// **Driven over the DECLARED vocabulary, and then asserted to BE the
+  /// declared vocabulary**, which is the half that does not go stale: a fifth
+  /// arity spelling added to the table fails the second assertion by name
+  /// instead of being read by whichever arm of `repeated()` happens to catch
+  /// it. Four cases passing proves the four cases; only the closure check
+  /// proves there are four.
+  ///
+  /// **The first version of this test asserted `!required()` for `1..n` and
+  /// passed** -- because it was written by reading the implementation it was
+  /// meant to check, so it agreed with the defect. What caught it was a test
+  /// in `guide.rs` written from the MEANING of the delimiters (`<x>` required,
+  /// `[x]` optional), which had no way to inherit the mistake. A test derived
+  /// from the code under test is a restatement wearing a green tick.
+  #[test]
+  fn an_arity_is_read_the_same_way_by_every_reader() {
+    let arg = |arity: &str| Arg {
+      name: "x".to_string(),
+      kind: "string".to_string(),
+      arity: arity.to_string(),
+      values: vec![],
+      default: None,
+    };
+
+    for required in ["1", "1..n"] {
+      assert!(
+        arg(required).required(),
+        "`{required}` has a minimum of one, so the caller must supply it -- `1..n` is the case spine.rs still reads as optional"
+      );
+    }
+    for optional in ["0..1", "0..n"] {
+      assert!(
+        !arg(optional).required(),
+        "`{optional}` admits zero, which is the whole of what the leading `0` says"
+      );
+    }
+
+    assert!(
+      !arg("1").repeated(),
+      "a single required value is not a list"
+    );
+    assert!(
+      !arg("0..1").repeated(),
+      "an optional single value is not a list"
+    );
+    for many in ["0..n", "1..n"] {
+      assert!(
+        arg(many).repeated(),
+        "`{many}` is the table's open-ended spelling and carries neither `+` nor `*` -- the trap"
+      );
+    }
+
+    let declared: std::collections::BTreeSet<String> = shipped_entries(&table())
+      .iter()
+      .flat_map(|e| e.args.iter())
+      .map(|a| a.arity.clone())
+      .filter(|a| !a.is_empty())
+      .collect();
+    let covered: std::collections::BTreeSet<String> = ["1", "0..1", "0..n", "1..n"]
+      .iter()
+      .map(|s| s.to_string())
+      .collect();
+    assert_eq!(
+      declared, covered,
+      "the table declares an arity these predicates were never driven over -- add the case, do not widen a match arm"
     );
   }
 }
