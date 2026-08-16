@@ -23,7 +23,15 @@ pub const EXIT_ERROR: i32 = 1;
 pub fn build(table: &Table) -> Command {
   let mut root = Command::new("intent")
     .version(env!("CARGO_PKG_VERSION"))
-    .about("Intent: steel threads, work packages and the acceptance contract")
+    // FROM THE TABLE, like every other help string on the surface (EXP-08).
+    // This was the ONE `.about("...")` literal in the CLI: every family, entry,
+    // verb and flag below already reads its help from the table, so the root was
+    // the single place the SSOT claim was false -- and it is the first line an
+    // agent reads from `intent --help`. It also went through a different code
+    // path from the rest, so `help_text_is_the_tables_help_text()` could not see
+    // it: that test spot-checks one command on the argument that the MECHANISM
+    // carries the others, and the root was not on the mechanism.
+    .about(table.root_help.clone())
     // v2 prints its own usage block and exits 1; clap's help/version exit 0
     // and write to stdout, which is the one place we take clap's behaviour
     // deliberately (INV-07 records that v2's `--help` reporting failure on 10

@@ -75,6 +75,15 @@ pub struct Table {
   pub schema: String,
   #[serde(default)]
   pub measured_at: String,
+  /// The root command's `--help` line (EXP-08).
+  ///
+  /// **Deliberately NOT `#[serde(default)]`, unlike `measured_at` above.** A
+  /// missing `measured_at` degrades a provenance stamp; a missing root help
+  /// would render an EMPTY about line on `intent --help` and look like a
+  /// styling choice. That is the silent-empty class this contract has spent a
+  /// day removing, so a table without this key refuses to load rather than
+  /// shipping a blank first impression.
+  pub root_help: String,
   pub families: Vec<Family>,
   /// Commands v3 ADDS, with no v2 antecedent to port or deviate from.
   ///
