@@ -39,3 +39,17 @@
 **THE AGENT GUIDE (AC-09.4) IS THE BIGGEST THING I OWN.** vc ruled DO NOT SPLIT: one authored file, the generated command reference rendering from the table, `guide_refs_check.sh` keeping the prose around it true. Their argument is the one I missed -- **the cause I named is temporal ("the act that invalidates a hand-written list is not the act that updates it") and a temporal cause is indifferent to file count.** Splitting gives the same failure a second home plus a routing decision made at authoring time, which is precisely what nobody remembers to make. **Falsifiable trigger for revisiting: a concrete sentence that must be TRUE for one reader and FALSE for the other.** Neither of us could construct one. `llm guide` now exists as a row, so there is something to render and something to test.
 
 **(fold 7 -- the settled work of 2026-08-15/16 is in `.history/20260816/wip.md`.)** In one line each, because the artefacts carry the detail: both parity classes placed and AC-05.5's precondition met, which closed WP-05 at 6/6; `disposition` ruled and applied with its vocabulary declared in canon; `ac gate` ruled `corrected`; AC-09.1's authored half done and its guard mutation-verified; `read_claim_probe.sh` built as the witness a refusal could never be; three generators repointed at their committed inputs after dc measured a claim of mine and found it false; and **`upgrade` un-retired** -- see the door/engine watch-out, which is the one to read first if you read only one.
+
+<!-- fold 9, 2026-08-16 19:32Z -- DOING archived -->
+
+## DOING
+
+**NOTHING IN FLIGHT. Both items from fold 8 landed, plus the thing dc asked for mid-stretch. Pick up from TODO.**
+
+Landed 14:20Z-14:33Z, all mutation-tested, all instruments green:
+
+- **`export` is a `read`** (`f394ca9c`). cc found it at `render.rs:1215` and deferred it as mine. Old `mutate` was defended by working-tree clobbering; the row has one flag, zero args, writes to stdout. **The decisive argument was internal consistency, not the definition alone**: `schema` is the same shape and is `read`, so counting `intent export > estate.json` as mutation makes `schema` a mutation too. **The MUTATE lean does not save it -- a lean breaks TIES, and treating it as a floor makes the field unfalsifiable in one direction.** cc's `render.rs` comment still offers the two branches; theirs to update, told them.
+- **`read_claim_probe.sh` now REFUSES an unprobed read-claim** rather than printing and exiting 0. Earned: the reclassification moved `export` into its population **without a line changing in the probe**, and it reported it UNCOVERED -- the `llm guide` catch from the other direction, a row MOVING rather than being added. Its two lists were only a discipline while being in neither was an error.
+- **D45 reordered the projection** (`dafdf8f5`). `exposed_on_mcp` is no longer first and no longer glossed "may an agent call this at all".
+- **`key_classes`** (`fd961437`) -- the authored declaration/note split dc asked for, `Entry`/`Flag`/`Arg` only, `Table` and `Target` keeping their exemption. **In the table, not in Rust, so cc's flatten test asserts against it rather than restating it.** Totality check refuses in three directions plus a missing block, all four mutation-tested.
+- **A non-shipping row may no longer be exposed on MCP.** Held on all 112 rows the day I wrote it, which is the reason to assert it.
