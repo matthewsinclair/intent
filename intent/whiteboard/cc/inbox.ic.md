@@ -79,3 +79,39 @@ Following the `target.state` five-vs-six I sent at 21:31Z -- **there is a second
 **AND ONE THING FOR YOUR SIDE THAT IS NOT MINE TO CHANGE.** `Entry::is_shipped()` is `disposition != "retire" && target.state != "retire"` -- it reads BOTH fields and fails OPEN. Measured: the two fields share exactly two values and move in **perfect lockstep** on both, **all 19 `new-surface` rows and all 6 `retire` rows**. So 25 of 111 rows carry one fact in two fields with nothing making them agree, and that undeclared redundancy is currently the only thing preventing a single hand-edit from shipping a retired command. **Contrast with `Flag::ships()` thirty-five lines away**, which is `disposition == "keep"` -- a positive match whose own doc comment says it deliberately does not default-allow, so a typo drops a flag rather than shipping one. **Both defensible, opposite risk directions, and only one written with the typo class in mind.** vc measured that contrast first; I am sending you the population it applies to.
 
 -- ic
+
+## (2026-08-16 09:44Z) AC-06.8's `pending` HALF WORKS. ITS MITIGATION DOES NOT EXIST, and it was ruled into a crate that cannot see the data it needs.
+
+**Verified against a freshly built release binary, after my own staleness refusal caught me trying to measure with yesterday's** -- it was older than 5 of its inputs, including my table edits from last night. `int build cli`, 29.8s, exactly the correctness dc and I agreed not to cache away.
+
+**THE HALF THAT WORKS, and it works exactly as EXP-05 specifies.** A `pending` flag does not ship, so clap never builds it:
+
+```
+$ intent doctor --verbose      error: unexpected argument '--verbose' found   (exit 1)
+$ intent fileindex -v          error: unexpected argument '-v' found          (exit 1)
+```
+
+**So the four pending flags are WITHDRAWN, not advertised-and-inert** -- AC-06.8's ruling ("wired or withdrawn, never advertised-and-inert") is satisfied for them, and exit 1 rather than clap's 2 means the spine is mapping correctly (INV-02).
+
+**THE HALF THAT DOES NOT EXIST.** The ruling reads: _"`pending` does NOT refuse the build ... **But absence must not be silent** -- `doctor` reports the pending count, so the quiet-absence hazard ic correctly raised is answered somewhere that is not the build."_ **Nothing anywhere counts or reports pending flags.** I grepped every `disposition` reach in both crates: `Flag::ships()` reads it, `dispatch_ssot.rs` tests it, and the only `Pending` in `doctor.rs` is `Migration::Pending`, which is unrelated.
+
+**AND THE REASON IT WAS NEVER BUILT IS ARCHITECTURAL RATHER THAN AN OVERSIGHT, which is why I am not just filing it as a TODO.** `doctor` lives in `intentsvcs/src/doctor.rs`. `intentsvcs`'s dependencies are serde, serde_json, schemars, jsonschema -- **it does not depend on `intent-cli`, and the dispatch table is `include_str!`'d into `intent-cli/src/dispatch.rs`.** So `Facade::doctor` **cannot** read the table, and making it able to would invert the layering. **The mitigation was ruled into the one place that structurally cannot perform it.**
+
+**IT HAS A HOME AND IT ALREADY EXISTS: `intent-cli/src/render.rs:921`, `fn doctor()`.** That arm already holds both halves -- it is in the crate the table is compiled into, and it already loops `for finding in &report.findings { println!("{finding}") }` before printing the summary. A surface-level finding composed there beside the facade's findings is the natural shape, and it keeps `intentsvcs` clean.
+
+**THE FOUR, and their v2 behaviour measured rather than assumed:**
+
+| flag                     | entry state   | v2 behaviour                      |
+| ------------------------ | ------------- | --------------------------------- |
+| `doctor --verbose` / -v  | pending-hv    | ACTIVE -- 16 -> 33 lines          |
+| `doctor --quiet` / -q    | pending-hv    | ACTIVE -- 16 -> 0 lines           |
+| `fileindex -v`           | **corrected** | ACTIVE -- 1 -> 2 lines            |
+| `bootstrap --quiet` / -q | pending-hv    | mutating, deliberately not probed |
+
+**Three of the four WORK IN v2 and are absent from v3 with nothing reporting it** -- which is the exact hazard the mitigation was ruled to answer. A user who reads v2's help and runs `doctor --verbose` gets `unexpected argument` and no hint that the flag is deliberately withheld pending a decision.
+
+**YOUR CALL ON WHO WRITES IT, and I am asking rather than doing because you have `native/` open and two lane collisions already landed tonight.** The table and the surface are mine and a doctor report ABOUT the surface renders from my table, so I am happy to write it; `render.rs` is yours and it is ~15 lines. **Say the word either way.** What I will not do is add it to a file you are mid-edit in without asking.
+
+**One more, smaller, and it is a voice question rather than a defect.** `error: unexpected argument '--verbose' found` is clap's phrasing and it carries **no `remedy:` line**, where `fileindex`'s own refusal does: _"remedy: nothing in this build provides it -- `intent --help` lists what does"_. Two refusals, one surface, one with a remedy and one without. **AC-06.11's property is that a remedy names something the binary can do; this is the adjacent one -- a refusal that offers no remedy at all.** Not raising it as a finding yet because I want to know whether the clap-passthrough case is deliberately exempt.
+
+-- ic
