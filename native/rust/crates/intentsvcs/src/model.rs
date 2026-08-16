@@ -139,6 +139,31 @@ pub enum ThreadStatus {
   Cancelled,
 }
 
+impl ThreadStatus {
+  /// v2's spelling, for a human reading a table or a generated view.
+  ///
+  /// **On the type, because the vocabulary belongs to it** (issue 0041). It was
+  /// spelled twice -- `views.rs` for the committed markdown and `render.rs` for
+  /// the terminal -- byte-identical on all six arms, both private, so neither
+  /// crate could call the other's and nothing compared them. **Each copy was
+  /// held in place by its own test against hand-written literals, so each test
+  /// certified its own copy and no test could see the other one.**
+  ///
+  /// This is not the wire spelling: serde writes kebab-case into `thread.json`,
+  /// and these are the words a person reads. Two vocabularies for two audiences
+  /// is correct; two copies of one vocabulary is not.
+  pub fn display(self) -> &'static str {
+    match self {
+      Self::Triage => "Triage",
+      Self::NotStarted => "Not Started",
+      Self::Wip => "WIP",
+      Self::Hold => "On Hold",
+      Self::Completed => "Completed",
+      Self::Cancelled => "Cancelled",
+    }
+  }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum AcceptanceMode {
@@ -218,6 +243,19 @@ pub enum WpStatus {
   NotStarted,
   Wip,
   Done,
+}
+
+impl WpStatus {
+  /// v2's spelling, for a human. Same one-home rule as
+  /// [`ThreadStatus::display`], and it was the same defect: two private copies
+  /// in two crates, each pinned by its own test.
+  pub fn display(self) -> &'static str {
+    match self {
+      Self::NotStarted => "Not Started",
+      Self::Wip => "WIP",
+      Self::Done => "Done",
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -91,16 +91,6 @@ const ST_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
 
 const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
 
-/// The work-package status vocabulary, in v2's spelling.
-fn wp_status(s: intentsvcs::model::WpStatus) -> &'static str {
-  use intentsvcs::model::WpStatus as W;
-  match s {
-    W::NotStarted => "Not Started",
-    W::Wip => "WIP",
-    W::Done => "Done",
-  }
-}
-
 /// T-shirt scope, in the canonical short form.
 ///
 /// **A `corrected` divergence, and one v2 could not have avoided.** v2 reads
@@ -235,7 +225,7 @@ fn st_rows(
       vec![
         t.id.clone(),
         t.slug.clone().unwrap_or_default(),
-        status(t.status).to_string(),
+        t.status.display().to_string(),
         t.created.clone(),
         t.completed.clone().unwrap_or_default(),
       ]
@@ -553,7 +543,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let f = open()?;
       let t = f.st_show(&id).map_err(fail)?;
       println!("{}: {}", t.id, t.title);
-      println!("status: {}", status(t.status));
+      println!("status: {}", t.status.display());
       println!("created: {}", t.created);
       if let Some(done) = &t.completed {
         println!("completed: {done}");
@@ -666,7 +656,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
             format!("{:02}", w.seq),
             w.title.clone(),
             scope(w.scope).to_string(),
-            wp_status(w.status).to_string(),
+            w.status.display().to_string(),
           ]
         })
         .collect();
@@ -1377,18 +1367,6 @@ fn opt(m: &ArgMatches, name: &str) -> Option<String> {
 /// reasoning as [`opt`].
 fn flag(m: &ArgMatches, name: &str) -> bool {
   m.try_get_one::<bool>(name).ok().flatten().copied() == Some(true)
-}
-
-fn status(s: intentsvcs::model::ThreadStatus) -> &'static str {
-  use intentsvcs::model::ThreadStatus as S;
-  match s {
-    S::NotStarted => "Not Started",
-    S::Wip => "WIP",
-    S::Triage => "Triage",
-    S::Hold => "On Hold",
-    S::Completed => "Completed",
-    S::Cancelled => "Cancelled",
-  }
 }
 
 /// `intent backup` takes a snapshot; `--list` reports what exists.

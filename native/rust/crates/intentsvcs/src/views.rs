@@ -55,17 +55,6 @@ pub struct View {
 /// else. The model distinguishes them, and reproducing the collapse would be
 /// v3 faithfully reproducing a v2 defect -- a `corrected` register row, not a
 /// parity break.
-fn status_display(status: ThreadStatus) -> &'static str {
-  match status {
-    ThreadStatus::NotStarted => "Not Started",
-    ThreadStatus::Wip => "WIP",
-    ThreadStatus::Triage => "Triage",
-    ThreadStatus::Hold => "On Hold",
-    ThreadStatus::Completed => "Completed",
-    ThreadStatus::Cancelled => "Cancelled",
-  }
-}
-
 fn is_closed(status: ThreadStatus) -> bool {
   matches!(status, ThreadStatus::Completed | ThreadStatus::Cancelled)
 }
@@ -261,7 +250,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   out.push_str("---\n");
   out.push_str(&kv("st_id", &thread.id));
   out.push_str(&kv("title", &thread.title));
-  out.push_str(&kv("status", status_display(thread.status)));
+  out.push_str(&kv("status", thread.status.display()));
   out.push_str(&kv("created", &thread.created));
   out.push_str(&kv("completed", thread.completed.as_deref().unwrap_or("")));
   out.push_str("---\n\n");
@@ -284,7 +273,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
           format!("WP-{:02}", wp.seq),
           cell(&wp.title),
           crate::model::enum_str(&wp.scope),
-          wp_status_display(wp.status).to_string(),
+          wp.status.display().to_string(),
         ]
       })
       .collect();
@@ -313,14 +302,6 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   }
 
   finish(out, ctx, "thread.json")
-}
-
-fn wp_status_display(status: crate::model::WpStatus) -> &'static str {
-  match status {
-    crate::model::WpStatus::NotStarted => "Not Started",
-    crate::model::WpStatus::Wip => "WIP",
-    crate::model::WpStatus::Done => "Done",
-  }
 }
 
 /// A prose block, normalised only in its trailing blank line -- the body
@@ -415,7 +396,7 @@ fn group_heading(thread: &Thread, group: &str) -> String {
       "WP-{:02} -- {} (status: {})",
       wp.seq,
       wp.title,
-      wp_status_display(wp.status)
+      wp.status.display()
     ),
     None => format!("Group {group}"),
   }
@@ -550,7 +531,7 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   out.push_str(&kv("wp_id", &format!("WP-{:02}", wp.seq)));
   out.push_str(&kv("title", &wp.title));
   out.push_str(&kv("scope", &crate::model::enum_str(&wp.scope)));
-  out.push_str(&kv("status", wp_status_display(wp.status)));
+  out.push_str(&kv("status", wp.status.display()));
   out.push_str("---\n\n");
 
   out.push_str(&format!("# WP-{:02}: {}\n\n", wp.seq, wp.title));
@@ -589,7 +570,7 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
       vec![
         t.id.clone(),
         cell(t.slug.as_deref().unwrap_or("")),
-        status_display(t.status).to_string(),
+        t.status.display().to_string(),
         t.created.clone(),
         t.completed.clone().unwrap_or_default(),
       ]
