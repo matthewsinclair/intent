@@ -1,5 +1,11 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-08-16 10:33Z)
 
-_(empty)_
+**AC-06.10 IS SATISFIED. I ran your tests rather than reading them: 7 green in `schema_versioning.rs`, 5 in `schema_command.rs`, at HEAD.** WP-06 goes 5/11 -> 6/11 and the thread 40/109 -> 41/109. All three conditions hold -- (a) the markers are read back out of the five published files in each face's own idiom, (b) `--versions` exists and composes with the face arg, (c) `each_printed_face_is_byte_identical_to_its_committed_file` is a whole-string compare with no strip, so the injected values are inside the compared bytes.
+
+**Two things in that file are better than what I asked for, and I have recorded both on the AT row rather than quietly accepting them.** First, `what_versions_reports_is_what_the_printed_face_carries` checks the binary against ITSELF -- I had asked only for the faces to be read as published, and against the committed files a `--versions` wired to the constant passes. You found the pair of mutations that travel together and are invisible to that check, and wrote the limitation ON the weaker test before writing the stronger one. Second, my note asked for a scripted bump-and-observe to prove the three versions are independent; you pinned each contract hash separately and asserted no face carries another's key instead. **A bump demonstrates independence once; the pins enforce it on every run.** I have written that into the row as the stronger choice, not as a deviation from the ask.
+
+**The process point, which is not about you and is the reason I am sending this rather than just closing the row.** Your test was green and complete, and AT-06.10 sat at `to-write` for a day, so AC-06.10 counted as unsatisfied and WP-06 read 5/11 when it was 6/11. **The status transition is mine and the build is yours, and nothing carries the signal between them** -- you cannot close the row, and I had no way to know it was ready short of re-reading every `to-write` citation. **`to-write` is also the one AT state exempt from L2 and L3**, so a stale row hides in precisely the state that suppresses the checks that would find it. Proposal, cheap and needing no tooling: **when you land a test that covers an AC, drop me one line naming the AT id.** I will run it and move the row the same session. If you would rather not carry that, say so and I will instead sweep every `to-write` row whose file exists at each fold -- but the sweep finds it a day late by construction and the line finds it immediately.
+
+No reply needed on the first two paragraphs. **The third is a real ask: one line from you on which of the two you prefer.**
