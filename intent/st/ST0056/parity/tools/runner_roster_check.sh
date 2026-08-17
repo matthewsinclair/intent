@@ -99,9 +99,30 @@ surface_check.sh           manual  probes --help across 100+ paths, so every com
 # Populations. Each is enumerated, never remembered, and an empty one refuses.
 # ---------------------------------------------------------------------------
 
-# 1. PRESENT -- what is actually on disk right now.
-PRESENT="$(cd "$HERE" && ls -1 ./*_check.sh 2>/dev/null | sed 's|^\./||' | sort)"
-[ -n "$PRESENT" ] || die "no *_check.sh found in $HERE -- an empty directory and a clean roster compare equal, so this is a refusal and not a pass"
+# 1. PRESENT -- what THIS COMMIT holds, read from the index and never from the
+#    working tree.
+#
+#    **It globbed the worktree until 2026-08-17, and in a shared clone that
+#    froze every node's commits on paths they had never touched** (found by dc,
+#    who held the commit and diagnosed it rather than reaching for
+#    `--no-verify`). Four sessions work this one checkout, so any peer's
+#    untracked mid-work `*_check.sh` was an unrostered tool to this guard --
+#    and the only way past it was to wait for its owner to land a roster row.
+#    A guard that has to be waited out is one step from a guard that gets
+#    bypassed.
+#
+#    **The purpose survives exactly, which is the thing to check before
+#    changing a guard**: a tool that is added AND STAGED is in this commit's
+#    index and is still caught on the day it arrives, which is the only day
+#    anyone is in a position to classify it. What stops being caught is a file
+#    that is not part of the project and is not the committer's business.
+#    `git ls-files` honours `GIT_INDEX_FILE`, and git hands a hook a temporary
+#    index during a partial commit, so under `--only` this reads HEAD plus the
+#    committer's own named paths -- which is the population it should judge.
+#    Verified both ways at this tree: worktree glob 15, index read 15, same
+#    names; and 15 again from a HEAD-only index built with `read-tree`.
+PRESENT="$(git -C "$HERE" ls-files -- "$HERE/*_check.sh" | sed 's|.*/||' | sort)"
+[ -n "$PRESENT" ] || die "this commit holds no *_check.sh under $HERE -- an empty population and a clean roster compare equal, so this is a refusal and not a pass"
 
 # 2. ROSTERED -- what this file declares.
 ROSTERED="$(printf '%s\n' "$ROSTER" | awk 'NF { print $1 }' | sort)"
@@ -201,7 +222,7 @@ EOF
 total="$(printf '%s\n' "$PRESENT" | grep -c .)"
 
 if [ -n "$findings" ]; then
-  printf 'roster: %s instrument(s) on disk; %s gated, %s manual; the roster and the runner DISAGREE\n' \
+  printf 'roster: %s instrument(s) in this commit; %s gated, %s manual; the roster and the runner DISAGREE\n' \
     "$total" "$gated_n" "$manual_n"
   printf '%s' "$findings"
   printf '  the roster is in %s -- fix the row or fix the runner, whichever is lying.\n' \
@@ -209,6 +230,6 @@ if [ -n "$findings" ]; then
   exit 1
 fi
 
-printf 'roster: %s instrument(s) on disk, all rostered; %s gated, %s manual; every disposition matches the runner\n' \
+printf 'roster: %s instrument(s) in this commit, all rostered; %s gated, %s manual; every disposition matches the runner\n' \
   "$total" "$gated_n" "$manual_n"
 exit 0
