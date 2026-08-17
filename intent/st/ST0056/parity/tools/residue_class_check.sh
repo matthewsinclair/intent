@@ -29,6 +29,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../.." && pwd)"
+# Whether each path was GIVEN to us, recorded here because two lines below
+# both are set and the distinction is gone. An explicit override is a
+# deliberate act and keeps reading the path it was handed; a default is read
+# from the index (see `stage_copy`).
+CONTRACT_GIVEN="${CONTRACT:+yes}"
+SCANNER_GIVEN="${SCANNER:+yes}"
 CONTRACT="${CONTRACT:-$ROOT/intent/st/ST0056/migration.md}"
 SCANNER="${SCANNER:-$ROOT/native/rust/crates/intentsvcs/src/legacy.rs}"
 
@@ -38,6 +44,51 @@ for f in "$CONTRACT" "$SCANNER"; do
     exit 2
   fi
 done
+
+# **BOTH SIDES ARE READ FROM THE INDEX, NEVER FROM THE WORKING TREE.**
+#
+# This gates commits, and it read two paths off disk until 2026-08-17. Four
+# sessions work one checkout, so a peer's HALF-WRITTEN `legacy.rs` -- a
+# constructor typed but its class not yet declared -- froze every node's
+# commits on work they had never touched. Measured: cc mid-edit emitting
+# `malformed-json` blocked ic's whiteboard commit, and the diagnosis cost
+# longer than the fix.
+#
+# **This is the SECOND instrument in this directory with the defect and the
+# first one was fixed two hours earlier** (`runner_roster_check.sh`, found by
+# dc). The rule was in hand and was applied to the tool in front of me rather
+# than to the class -- which is the same failure dc recorded against their own
+# patch and vc against their prose arms, three times in one afternoon.
+#
+# The purpose is unchanged and the timing is unchanged: a class constructed AND
+# STAGED is in the commit's index, so it is still caught on the day it arrives,
+# which is the only day anybody can say whether it blocks or carries. What
+# stops being caught is a keystroke in someone else's editor.
+#
+# `git show :<path>` honours `GIT_INDEX_FILE`, and git hands a hook a temporary
+# index during a partial commit, so under `--only` this reads HEAD plus the
+# committer's own named paths.
+#
+# An explicit `CONTRACT=` / `SCANNER=` override is a deliberate act by someone
+# running this by hand, so it keeps reading the path it was given.
+stage_copy() {
+  local given="$1" path="$2" rel tmp
+  [[ -n "$given" ]] && return 0   # explicit override: read what was asked for
+  rel="${path#"$ROOT"/}"
+  tmp="$(mktemp)"
+  if ! git -C "$ROOT" show ":$rel" >"$tmp" 2>/dev/null; then
+    rm -f "$tmp"
+    echo "error: $rel is not in the index -- this check judges the commit, so a file the commit does not carry cannot be read" >&2
+    exit 2
+  fi
+  printf '%s' "$tmp"
+}
+
+CONTRACT_SRC="$(stage_copy "$CONTRACT_GIVEN" "$CONTRACT")" || exit 2
+SCANNER_SRC="$(stage_copy "$SCANNER_GIVEN" "$SCANNER")" || exit 2
+[[ -n "$CONTRACT_SRC" ]] && CONTRACT="$CONTRACT_SRC"
+[[ -n "$SCANNER_SRC" ]] && SCANNER="$SCANNER_SRC"
+trap 'rm -f "$CONTRACT_SRC" "$SCANNER_SRC"' EXIT
 
 # Declared: the kebab-case class names in the residue table's first column.
 # The table is the rows between the header and the blank line that ends it.
