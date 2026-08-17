@@ -485,6 +485,36 @@ fn the_four_contract_rules_have_four_distinguishable_diagnoses() {
   }
 }
 
+/// A fixture whose `config.json` declares a **v2** version, for the
+/// differentials below only.
+///
+/// **v2 now REFUSES to operate on a project declaring a newer Intent than
+/// itself** (`bin/intent:272`, hv's ruling on the two-ended-migration finding),
+/// and it is right to: the hazard it closes is a writing v2 pointed at a v3
+/// project, silently landing files where the database has no row. `Fixture::new`
+/// declares `3.0.0`, so these three differentials started getting `exit 2` and a
+/// version refusal where they expected a gate line.
+///
+/// **The two tools now have contradictory requirements on one estate, and that
+/// is correct rather than a conflict to design around**: v2 refuses `>= 3.0.0`
+/// and v3 refuses `< 3.0.0`. What makes it harmless here is that **only v2 reads
+/// this file**. The v3 half of every differential is a library call over a
+/// hand-built model, with the fixture root used for nothing but file existence
+/// -- so the declared version is an input to one side and invisible to the
+/// other, and the estate the two tools see is otherwise identical.
+///
+/// Written as its own helper rather than a line in each test so the reason lives
+/// in one place: the next differential added here inherits the version and the
+/// explanation together.
+fn v2_estate() -> Fixture {
+  let fx = Fixture::new();
+  fx.write_file(
+    "intent/.config/config.json",
+    "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
+  );
+  fx
+}
+
 /// The live differential: v2's OWN binary, over an equivalent v2 estate.
 ///
 /// The fixture tests above assert what I believe v2 prints. This asserts what
@@ -499,8 +529,8 @@ fn v2_and_v3_agree_on_a_real_contract() {
     return;
   }
 
-  let fx = Fixture::new();
-  // A v2 estate: config.json is already written by the fixture; add a v2
+  let fx = v2_estate();
+  // A v2 estate: config.json declares 2.19.0 (see `v2_estate`); add a v2
   // thread whose contract is one satisfied AC backed by a green AT.
   //
   // The cited test file must EXIST. v2's lint rule L2 checks that, before the
@@ -569,7 +599,7 @@ fn v2_and_v3_agree_that_a_missing_cited_file_blocks() {
     return;
   }
 
-  let fx = Fixture::new();
+  let fx = v2_estate();
   // Deliberately do NOT create crates/x/tests/y.rs.
   fx.write_file(
     "intent/st/ST0001/info.md",
@@ -650,7 +680,7 @@ fn v2_and_v3_agree_on_l4_and_l5() {
   }
 
   // L4: an AT covering an id no criterion carries.
-  let l4 = Fixture::new();
+  let l4 = v2_estate();
   l4.write_file("crates/x/tests/y.rs", "// AT-01.1: the cited test\n");
   l4.write_file(
     "intent/st/ST0001/info.md",
@@ -679,7 +709,7 @@ fn v2_and_v3_agree_on_l4_and_l5() {
   assert_eq!(out.status.code(), Some(v4.exit_code()));
 
   // L5: a non-test AT covering a test-backed AC.
-  let l5 = Fixture::new();
+  let l5 = v2_estate();
   l5.write_file(
     "intent/st/ST0001/info.md",
     "---\nstatus: WIP\ncreated: 20260814\n---\n\n# ST0001: gate parity\n",
