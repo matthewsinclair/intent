@@ -6492,7 +6492,7 @@
     },
     {
       "path": "backup",
-      "help": "Snapshot this machine's store for fast local restore -- prunes expired snapshots",
+      "help": "Snapshot this machine's store -- prunes expired snapshots; one-way, no restore verb ships",
       "flags": [
         {
           "spellings": [
@@ -6525,7 +6525,8 @@
         ],
         "why_uncertain": "Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list."
       },
-      "recoverability": "one-way"
+      "recoverability": "one-way",
+      "note": "ONE-WAY IS RULED, NOT AN OVERSIGHT (hv, 2026-08-17: `Backup is fine to be one-way for now`). The family ships the creating half without the undoing half and that is now a decision with a ratification rather than a gap. **The help string changed with the ruling and that is the point of recording this**: it read `Snapshot this machine's store for fast local restore`, which promised a `restore` verb that does not exist anywhere in the tool -- exactly 1 of 107 shipped rows promising a capability with no implementation, and the one my register CANNOT mechanise, because a derived detector matches a promised thing against a shipped row and this promise has no row to match. So the measurement was hand-made and the fix is a help string, not a check. `for now` is hv's word and is kept: the ruling is that no restore is owed TODAY, not that one never will be. The sibling `ext` family is one-way on different and firmer grounds -- what `ext new` creates is a directory in the operator's own HOME, so its inverse is a filesystem operation the user already owns, where a backup's inverse would have been a real capability."
     },
     {
       "path": "daemon",
