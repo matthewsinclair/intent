@@ -624,6 +624,30 @@ STATUS=$?
 # MEASURED BEFORE BEING RELIED ON: two independent migrations of one estate
 # exported byte-identical, 225553 bytes, on 2026-08-17.
 #
+# **WHAT THIS ARM COMPARES IS THE STORE AS `export` SEES IT, WHICH IS NARROWER
+# THAN THE STORE** (dc's question, and it is measured rather than conceded).
+# `export` reads `load_canon()` + `events()`. Every table in a migrated store,
+# counted on the gate's own clean tree 2026-08-17:
+#
+#   threads 56 / wps 140 / criteria 281 / tests 228 / issues 0 / related 0
+#     -- load_canon, in this comparison
+#   event_log 0                      -- events(), in this comparison
+#   file_index 0 / doc_sections 0 / snapshots 0
+#     -- NOT IN THIS COMPARISON
+#
+# The three are empty today, so nothing is currently hidden -- which is exactly
+# why the bound is written now rather than when it starts to matter. `store.rs`
+# excludes `file_index` and `doc_sections` from `rebuild` deliberately, because
+# they derive from the WORKING TREE rather than from canon; that is a good
+# reason for them to be unexported and no reason at all for this arm to claim
+# them. They are NAMED rather than gestured at, so a later reader can check the
+# list against the schema instead of trusting this comment.
+#
+# The general form is dc's and it is the same one that caught THEIR tool an hour
+# earlier, one level down: **an instrument's population is what it READS, not
+# what EXISTS**, and a scope line that enumerates the dimensions its author
+# already thought of reads as completeness rather than as an omission.
+#
 # **THE EVENT HALF IS TRIVIALLY EQUAL TODAY AND WILL NOT STAY THAT WAY.** A
 # migrated estate currently holds 0 events (measured: 0 `st.new`, 56 of 56
 # threads carrying `created` from v2 frontmatter rather than deriving it), so
@@ -649,8 +673,8 @@ if [ "$STATUS" -eq 0 ] && [ -n "$STORE_CMD" ]; then
     STORE_NOTE="the store was NOT compared"
   elif cmp -s "$WORKDIR/a.store.json" "$WORKDIR/b.store.json"; then
     echo
-    echo "  STORE: IDENTICAL -- \`$STORE_CMD\` byte-equal across both arms ($(wc -c <"$WORKDIR/a.store.json" | tr -d ' ') bytes)."
-    STORE_NOTE="store identical"
+    echo "  STORE: IDENTICAL (as \`export\` sees it; file_index/doc_sections/snapshots not compared) -- \`$STORE_CMD\` byte-equal across both arms ($(wc -c <"$WORKDIR/a.store.json" | tr -d ' ') bytes)."
+    STORE_NOTE="store identical as export sees it"
   else
     echo
     echo "  STORE: DIFFERENT -- \`$STORE_CMD\` disagrees between the clean run and the re-run."
