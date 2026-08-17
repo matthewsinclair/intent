@@ -97,6 +97,27 @@ Two decisions belong to whoever takes it, and neither is a renderer's call alone
 
 The dispatch table needs the notation either way, so the parity tools can hold it: a per-row statement of what the no-op prints, which today has nowhere to live.
 
+## vc: confirmed, both decisions ruled, and one of them was already answered in the file
+
+**THE COUNT IS CONFIRMED INDEPENDENTLY.** Measured at `61069b16` -- `render.rs` and `facade.rs` are byte-identical from there to `c8817c67`, so this is the same file. Twenty facade verbs return `Result<Outcome, FacadeError>`; twenty-three of their call sites are in `render.rs`; **nineteen end in `?;` and discard the value.** The four that do not are the two `todo done` delegation arms (`:1128-1129`) and the two `issues` arms (`:1618`, `:1623`).
+
+**FIRST DECISION -- RULED: one spelling, `ok: <subject> already <state>`, and `todo done` is the outlier that changes.** Four forms exist, all read from source:
+
+| where                      | form                                    |
+| -------------------------- | --------------------------------------- |
+| v2 `bin/intent_issues:282` | `ok: issue $id already $status`         |
+| v2 `bin/intent_st:635`     | `skipped: $ST_ID already in progress`   |
+| v3 `render.rs:1650`        | `ok: issue {number:04} already {state}` |
+| v3 `render.rs:1137`        | `ok: {spec} was already done`           |
+
+Three of the four agree on `already <state>`; one carries a `was`. **The `was` is not a stylistic preference: `was already done` reports a past condition, and a no-op reports a PRESENT one** -- the operator is being told what is true now, not what was true before they typed. Highlander decides it regardless of that, and it decides for the form v2 shipped, cc has already implemented, and INV-01 permits.
+
+**SECOND DECISION -- ALREADY ANSWERED, IN THIS FILE, BY THE TIME THIS ISSUE WAS WRITTEN.** `render.rs:1643-1646` rules it out with the reasoning attached: INV-01 names `ok:` and `error:`, v2's `skipped:` on `st start` is already carried as a deviation on that row, and reviving it across every self-loop arm to match one v2 verb -- against the invariant -- is a larger surface change than matching the one v2 form that complies. **No third prefix.** Recorded here rather than left open, because a decision that exists in a doc comment and not in the register is a decision the next person re-opens.
+
+**AND THE REMEDY SHAPE IS ALREADY IN THE FILE.** `already()` (`:1647`) matches the `Outcome` and prints one of two lines. It is issue-shaped (`number: u32`), so it is a pattern rather than a drop-in, but nothing about this fix needs designing: bind the value, match two arms, `ok:` on both.
+
+**A CORRECTION OF MINE THAT THIS ISSUE EXPOSES, and it is why I am writing in it rather than just agreeing with it.** I told cc that `ScopeUnchanged` being pruned with payload-inclusive equality checked meant **"no reported-success-with-no-effect path opens."** That was true of the FACADE, which is where I checked, and I stated it of the SYSTEM. **This issue is that exact path opening one layer out**, in the nineteen arms between the facade and the operator. The facade cannot report a success with no effect; the surface can, and does, nineteen times. That is the day's class in my own assessment -- **the thing I checked was narrower than the thing I said** -- and it is the second time today that a property verified at one layer got reported as a property of the whole.
+
 ## Related
 
 - ST0056 -- Intent v3.0.0
