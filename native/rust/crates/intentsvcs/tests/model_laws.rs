@@ -135,6 +135,7 @@ prop_compose! {
 prop_compose! {
   fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), related in prop::collection::vec(related(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
     Thread {
+      body: String::new(),
       schema: THREAD_SCHEMA.to_string(),
       id: format!("ST{n:04}"),
       title,
@@ -223,6 +224,7 @@ fn unknown_fields_are_refused_by_name() {
 
 fn sample_thread() -> Thread {
   Thread {
+    body: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: "ST0056".to_string(),
     title: "Intent v3.0.0".to_string(),

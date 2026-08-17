@@ -111,6 +111,10 @@ CREATE TABLE IF NOT EXISTS threads (
   acceptance TEXT,
   objective TEXT NOT NULL,
   context TEXT NOT NULL,
+  -- Every other authored section, verbatim and in authored order. Sections
+  -- byte-identical to the template that created the file are not here: no
+  -- author wrote them, and carrying them files scaffolding as authored prose.
+  body TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -315,7 +319,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 6;
+pub const SCHEMA_VERSION: i32 = 7;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -572,6 +576,21 @@ const MIGRATIONS: &[(i32, &str)] = &[(
   // read the field, so there is no reporter it could have known and declined
   // to record. The values arrive with the migration that reads them.
   "ALTER TABLE issues ADD COLUMN reporter TEXT;",
+), (
+  7,
+  // 6 -> 7: `threads.body` -- every authored section that is not the objective
+  // or the context, the same two-field shape D28 gave the work package.
+  //
+  // **An ALTER rather than a rebuild, and legally so**: SQLite refuses
+  // `ADD COLUMN` for a NOT NULL column only when its default is non-constant,
+  // and `''` is constant. Rung 5 rebuilt because it DROPPED a constraint;
+  // nothing here changes shape.
+  //
+  // **Existing rows take `''` and that is the honest value, not a placeholder.**
+  // A store at version 6 was written by an ingest that never read these
+  // sections, so there is no prior content to preserve and no author's prose
+  // being overwritten. The sections are re-read on the next ingest.
+  "ALTER TABLE threads ADD COLUMN body TEXT NOT NULL DEFAULT '';",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -983,7 +1002,7 @@ impl Store {
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10)
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11)
          ON CONFLICT (id) DO UPDATE SET
            title = excluded.title,
            slug = excluded.slug,
@@ -994,6 +1013,7 @@ impl Store {
            acceptance = excluded.acceptance,
            objective = excluded.objective,
            context = excluded.context,
+           body = excluded.body,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
          RETURNING created, completed"
       ),
@@ -1008,6 +1028,7 @@ impl Store {
         t.acceptance.as_ref().map(enum_str),
         t.objective,
         t.context,
+        t.body,
       ],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     )?;
@@ -1234,7 +1255,7 @@ impl Store {
   pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
     let mut threads = Vec::new();
     let mut stmt = self.conn.prepare(
-      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context FROM threads ORDER BY id",
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body FROM threads ORDER BY id",
     )?;
     let rows = stmt.query_map([], |row| {
       Ok((
@@ -1248,6 +1269,7 @@ impl Store {
         row.get::<_, Option<String>>(7)?,
         row.get::<_, String>(8)?,
         row.get::<_, String>(9)?,
+        row.get::<_, String>(10)?,
       ))
     })?;
 
@@ -1267,10 +1289,12 @@ impl Store {
       acceptance,
       objective,
       context,
+      body,
     ) in shells
     {
       threads.push(Thread {
         schema: THREAD_SCHEMA.to_string(),
+        body,
         related: self.related_of(&id)?,
         wps: self.wps_of(&id)?,
         criteria: self.criteria_of(&id)?,

@@ -442,6 +442,7 @@ mod tests {
 
   fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     Thread {
+      body: String::new(),
       schema: THREAD_SCHEMA.to_string(),
       id: "ST0056".to_string(),
       title: "t".to_string(),

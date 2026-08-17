@@ -42,6 +42,8 @@ use crate::project::Project;
 /// **The path alone is a moving target**: the same estate migrated at two
 /// revisions would drop different sections with nothing saying why. A pinned
 /// citation makes the drop set re-derivable by someone who was not there.
+const ST_TEMPLATE_PATH: &str = "lib/templates/prj/st/ST####/info.md";
+const ST_TEMPLATE_REV: &str = "0b1b3b5b";
 const WP_TEMPLATE_PATH: &str = "lib/templates/prj/st/WP/info.md";
 const WP_TEMPLATE_REV: &str = "0b1b3b5b";
 const WP_TEMPLATE_SUBST: &str = "bin/intent_wp:113";
@@ -303,7 +305,38 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     let sections = sections(body);
     let (criteria, tests) = acceptance(project, &dir, closed, &mut out);
     let wps = work_packages(project, &dir, closed, &mut out);
+
+    // D28's two-field shape, one level up: `objective` and `context` take the
+    // two sections every thread has and `body` takes the rest whole, MINUS the
+    // template's own scaffolding. 44 headings appear exactly once each across
+    // this estate, so a fixed set of named sections drops whatever it did not
+    // foresee -- and 178 sections were reaching neither field at all.
+    let template = st_template_sections();
+    let mut kept: Vec<(String, String)> = Vec::new();
+    for (heading, text) in &sections {
+      if heading == "Objective" || heading == "Context" {
+        continue;
+      }
+      match template.iter().any(|(k, v)| k == heading && v == text) {
+        true => out.dispositions.push(Disposition {
+          owner: rel.clone(),
+          heading: heading.clone(),
+          verdict: Verdict::Dropped,
+          reason: format!(
+            "byte-identical to `{ST_TEMPLATE_PATH}` at {ST_TEMPLATE_REV}: no author wrote it"
+          ),
+        }),
+        false => kept.push((heading.clone(), text.clone())),
+      }
+    }
+    let carried_body = kept
+      .iter()
+      .map(|(k, v)| format!("## {k}\n\n{v}"))
+      .collect::<Vec<_>>()
+      .join("\n\n");
+
     out.threads.push(Thread {
+      body: carried_body,
       schema: THREAD_SCHEMA.to_string(),
       id: id.clone(),
       title: title(body).unwrap_or_else(|| id.clone()),
@@ -326,6 +359,45 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       criteria,
       tests,
     });
+
+    // **A DEFERRAL IS ONLY A DEFERRAL IF THE GENERATED SECTION WOULD OTHERWISE
+    // HAVE BEEN EMITTED**, and the first cut of this recorded 60 where 8 had
+    // happened. `views::info` guards its Related block on `!related.is_empty()`
+    // and `related` is empty out of ingest, so on the 52 threads that author
+    // one, nothing stood down -- the block was never going to run. **Recording
+    // those as deferrals is a record of a decision that was never made**, which
+    // is the class this record exists to prevent, arriving inside the record.
+    //
+    // So the condition is read off the thread that was just built, from the
+    // same values the renderer branches on. `## Acceptance` is unconditional
+    // there, hence `true`; on this estate it is 12 of 12 template-identical and
+    // drops before it can reach here, so that arm is correct and unexercised.
+    //
+    // **The Related arm is dead TODAY and must not be deleted**: it is what
+    // makes parsing `related` safe, and vc has ruled this deferral a
+    // PRECONDITION of that work rather than a companion to it. Landing
+    // `related` alone would run a renderer path never once exercised on a
+    // migrated estate and double 52 threads in the same commit.
+    let thread = out.threads.last().expect("just pushed");
+    let deferrals: Vec<Disposition> = [
+      ("Work Packages", !thread.wps.is_empty()),
+      ("Acceptance", true),
+      ("Related Steel Threads", !thread.related.is_empty()),
+    ]
+    .into_iter()
+    .filter(|(heading, would_generate)| {
+      *would_generate && crate::views::carries_heading(&thread.body, heading)
+    })
+    .map(|(heading, _)| Disposition {
+      owner: rel.clone(),
+      heading: heading.to_string(),
+      verdict: Verdict::Deferred,
+      reason:
+        "this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's"
+          .to_string(),
+    })
+    .collect();
+    out.dispositions.extend(deferrals);
   }
 
   // The 0011 class: two artefacts claiming one natural id. Checked across the
@@ -1078,6 +1150,69 @@ fn ididy_separator(heading: &str) -> Option<&'static str> {
   heading.contains(": ").then_some(": ")
 }
 
+/// v2's steel-thread template, embedded verbatim at
+/// `lib/templates/prj/st/ST####/info.md`, revision `0b1b3b5b`.
+///
+/// **NO SUBSTITUTION IS APPLIED HERE, and that is measured rather than assumed
+/// by analogy with the work-package template.** `bin/intent_st:353` applies ten
+/// substitutions -- `ST####`, `[Title]`, `[Slug]`, `[Intent Version]`, the
+/// status alternation, `YYYY-MM-DD`, `YYYYMMDD`, `[Date]`, `[Author Name]`,
+/// `[Author]` -- and **every one of them was tested against every section body
+/// of this template: zero hits.** They all live in the frontmatter and the
+/// `# ST####: [Title]` line, both outside any `## ` section.
+///
+/// **Reasoning by analogy from the WP fix would have built the substitution
+/// machinery here and reported that it changed nothing**, which is the same
+/// wrong-zero as the raw-template comparison, from the other side. Asking each
+/// placeholder whether it appears is an observation with a possible negative;
+/// comparing two counts that cannot differ is not.
+pub const ST_TEMPLATE_V2: &str = r#"---
+verblock: "[Date]:v0.1: [Author] - Initial version"
+intent_version: [Intent Version]
+status: Not Started
+slug: [Slug]
+created: YYYYMMDD
+completed:
+---
+
+# ST####: [Title]
+
+## Objective
+
+[Clear statement of what this steel thread aims to accomplish]
+
+## Context
+
+[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+
+## Acceptance
+
+Acceptance Criteria and Acceptance Tests for this steel thread live in `acceptance.md` (the single source of truth). Do not restate ACs here -- see that file for the ratified completeness boundary and live status.
+
+## Related Steel Threads
+
+- [List any related steel threads here]
+
+## Context for LLM
+
+This document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.
+
+### How to update this document
+
+1. Update the status as work progresses
+2. Update related documents (design.md, impl.md, etc.) as needed
+3. Mark the completion date when finished
+
+The LLM should assist with implementation details and help maintain this document as work progresses.
+"#;
+
+/// The thread template's sections, parsed by the same reader the estate goes
+/// through. See [`ST_TEMPLATE_V2`] for why nothing is substituted.
+fn st_template_sections() -> Vec<(String, String)> {
+  let (_, body) = frontmatter(ST_TEMPLATE_V2);
+  sections(body)
+}
+
 /// v2's work-package template, embedded verbatim at
 /// `lib/templates/prj/st/WP/info.md`, revision `0b1b3b5b`.
 ///
@@ -1089,7 +1224,7 @@ fn ididy_separator(heading: &str) -> Option<&'static str> {
 /// Pinned here, the drop set is re-derivable by someone who was not there.
 ///
 /// **v2 is frozen, so this has no future revisions to track.**
-const WP_TEMPLATE_V2: &str = r#"---
+pub const WP_TEMPLATE_V2: &str = r#"---
 verblock: "[Date]:v0.1: [Author] - Initial version"
 wp_id: WP-NN
 title: "[Title]"

@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 4
+-- SCHEMA_DDL_VER: 5
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -48,6 +48,10 @@ CREATE TABLE IF NOT EXISTS threads (
   acceptance TEXT,
   objective TEXT NOT NULL,
   context TEXT NOT NULL,
+  -- Every other authored section, verbatim and in authored order. Sections
+  -- byte-identical to the template that created the file are not here: no
+  -- author wrote them, and carrying them files scaffolding as authored prose.
+  body TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

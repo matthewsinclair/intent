@@ -208,6 +208,7 @@ fn copy_tree(from: &Path, to: &Path) {
 /// blank lines.
 pub fn sample_thread(id: &str) -> Thread {
   Thread {
+    body: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: id.to_string(),
     title: "Intent v3.0.0".to_string(),

@@ -430,6 +430,11 @@
       ],
       "description": "`exempt` or absent = acceptance enforced."
     },
+    "body": {
+      "default": "",
+      "description": "Every OTHER authored section of the thread, verbatim, in the order it was\nwritten.\n\n`objective` and `context` take the two sections every thread has and this\ntakes the rest whole. Threads exceed the template freely -- 44 headings\nappear exactly once each across this project's own estate -- so a model\nnaming a fixed set of sections silently drops whatever it did not foresee.\n\nSections byte-identical to the template that created the file are NOT\nhere: byte-identity to that artefact is evidence that no author wrote\nthem, and carrying scaffolding files it as authored prose that the\nrenderer then emits forever as though somebody had. Each such removal is\nrecorded individually rather than counted.",
+      "type": "string"
+    },
     "completed": {
       "description": "ISO 8601 date, `YYYY-MM-DD`. **No time component**, so the finest interval\ntwo completions can be distinguished by is a day -- a fact any consumer\nwindowing on this field has to reason about, which is why it is stated\nhere rather than left to be discovered.",
       "type": [
@@ -513,5 +518,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 5
+  "x-schema-json-ver": 6
 }

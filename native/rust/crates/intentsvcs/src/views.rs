@@ -252,7 +252,22 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   out.push_str("## Context\n\n");
   out.push_str(&section_body(&thread.context));
 
-  if !thread.wps.is_empty() {
+  // Every other authored section, verbatim and in authored order. Without this
+  // slot the field is ingested and dropped on the first projection, which is
+  // the same silent loss D28 exists to prevent one level down.
+  //
+  // **Placed after Context rather than interleaved**, because the model holds
+  // two named sections and one opaque block: a thread that authored `## Scope`
+  // BETWEEN Objective and Context has it relocated below both. That is a known
+  // and accepted relocation -- `wp_info` has made the same trade since D28 --
+  // and it is the price of a catch-all that cannot lose a heading nobody
+  // foresaw. Reordering is visible and recoverable; dropping is neither.
+  if !thread.body.trim().is_empty() {
+    out.push_str(thread.body.trim_end());
+    out.push_str("\n\n");
+  }
+
+  if !thread.wps.is_empty() && !carries_heading(&thread.body, "Work Packages") {
     out.push_str("## Work Packages\n\n");
     let rows: Vec<Vec<String>> = thread
       .wps
@@ -274,12 +289,26 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
     out.push('\n');
   }
 
-  out.push_str("## Acceptance\n\n");
-  out.push_str(
-    "Acceptance Criteria and Acceptance Tests live in `acceptance.md` -- the single source of truth. This cover never restates them.\n\n",
-  );
+  // **An authored section wins and the generated default defers**, the same
+  // rule `wp_info` carries and for the same reason: the author's copy states
+  // their project's own convention, and the generated one asserts ours.
+  //
+  // Measured on this estate at the moment the catch-all landed: `Work Packages`
+  // doubles on 8 threads (v2 never generated it, so none is template-identical
+  // and all 8 carry), `Acceptance` on none (12 of 12 are template-identical and
+  // drop), and `Related Steel Threads` on none TODAY only because `related` is
+  // empty -- **52 threads carry one, so this deferral is a precondition of
+  // parsing `related` rather than a companion to it** (vc's ruling). Landing
+  // that field alone would run a renderer path never once exercised on a
+  // migrated estate and double 52 threads in the same commit.
+  if !carries_heading(&thread.body, "Acceptance") {
+    out.push_str("## Acceptance\n\n");
+    out.push_str(
+      "Acceptance Criteria and Acceptance Tests live in `acceptance.md` -- the single source of truth. This cover never restates them.\n\n",
+    );
+  }
 
-  if !thread.related.is_empty() {
+  if !thread.related.is_empty() && !carries_heading(&thread.body, "Related Steel Threads") {
     out.push_str("## Related Steel Threads\n\n");
     for r in &thread.related {
       match &r.note {

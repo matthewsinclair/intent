@@ -206,10 +206,16 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // everything. It is not the discrimination failing -- the same commit rewrote
   // the DDL's comment block at length and the DDL hash did not move at all,
   // which is the strip doing its job in the same breath.
+  // **ALL THREE AGAIN, and the second instance confirms the reading rather than
+  // weakening it.** `Thread` gained a `body` column: one field on a modelled
+  // type is a new SQL column, a new JSON property and a new SDL field. The
+  // hashes were IDENTICAL before and after the version bump, which is the strip
+  // separating the version from the contract -- so the three numbers below moved
+  // for the field and not for their own bump.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 4, 0xc536_bfd2_3fb3_fffa),
-    ("SCHEMA_SDL_VER", 3, 0x6ffa_ecb1_16f0_fe27),
-    ("SCHEMA_JSON_VER", 5, 0x64ab_b666_f11b_70c2),
+    ("SCHEMA_DDL_VER", 5, 0xc3ae_83b1_b68b_ab54),
+    ("SCHEMA_SDL_VER", 4, 0x1593_ed74_dce3_e903),
+    ("SCHEMA_JSON_VER", 6, 0x47ea_e1b2_97a3_3bc6),
   ];
 
   let mut moved = Vec::new();

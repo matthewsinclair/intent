@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0-dev
-# SCHEMA_SDL_VER: 3
+# SCHEMA_SDL_VER: 4
 
 enum AcKind {
   TEST
@@ -264,6 +264,22 @@ type Thread {
   Why this thread exists. Markdown, carried verbatim, never reflowed.
   """
   context: String!
+  """
+  Every OTHER authored section of the thread, verbatim, in the order it was
+  written.
+  
+  `objective` and `context` take the two sections every thread has and this
+  takes the rest whole. Threads exceed the template freely -- 44 headings
+  appear exactly once each across this project's own estate -- so a model
+  naming a fixed set of sections silently drops whatever it did not foresee.
+  
+  Sections byte-identical to the template that created the file are NOT
+  here: byte-identity to that artefact is evidence that no author wrote
+  them, and carrying scaffolding files it as authored prose that the
+  renderer then emits forever as though somebody had. Each such removal is
+  recorded individually rather than counted.
+  """
+  body: String!
   related: [Related!]!
   wps: [WorkPackage!]!
   criteria: [Criterion!]!

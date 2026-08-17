@@ -29,6 +29,7 @@ use intentsvcs::model::{
 /// which do not exist in a one-thread fixture.
 fn clean_thread(id: &str) -> Thread {
   Thread {
+    body: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: id.to_string(),
     title: "A clean thread".to_string(),

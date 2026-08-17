@@ -18,6 +18,7 @@ use intentsvcs::store::Store;
 
 fn canon() -> (Vec<Thread>, Vec<Issue>) {
   let thread = Thread {
+    body: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: "ST0056".to_string(),
     title: "Intent v3.0.0".to_string(),

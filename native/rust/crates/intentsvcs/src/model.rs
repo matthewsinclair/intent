@@ -173,6 +173,35 @@ pub struct Thread {
   /// Why this thread exists. Markdown, carried verbatim, never reflowed.
   #[serde(default)]
   pub context: String,
+  // PUBLISHED (D37): the `///` below becomes a field description in
+  // thread.schema.json and the SDL, so the design provenance lives here in a
+  // plain comment instead. This is the two-field shape D28 gave the work
+  // package, applied one level up -- and the guard `no_pm_state_in_output`
+  // caught a `D28` citation in the doc comment on the first build, which is
+  // the rule about `///` being shipped output doing its job on the person who
+  // wrote that rule down.
+  //
+  // The drop set is measured against `lib/templates/prj/st/ST####/info.md` at
+  // revision `0b1b3b5b`: 35 sections of 283 across this estate, 13,613 bytes --
+  // `Acceptance` 12 of 12, `Context for LLM` 20 of 41, `Related Steel Threads`
+  // 3 of 55. No substitution is applied, and that is measured rather than
+  // assumed by analogy with the work-package template: all ten of
+  // `bin/intent_st:353`'s substitutions live outside every `## ` section.
+  /// Every OTHER authored section of the thread, verbatim, in the order it was
+  /// written.
+  ///
+  /// `objective` and `context` take the two sections every thread has and this
+  /// takes the rest whole. Threads exceed the template freely -- 44 headings
+  /// appear exactly once each across this project's own estate -- so a model
+  /// naming a fixed set of sections silently drops whatever it did not foresee.
+  ///
+  /// Sections byte-identical to the template that created the file are NOT
+  /// here: byte-identity to that artefact is evidence that no author wrote
+  /// them, and carrying scaffolding files it as authored prose that the
+  /// renderer then emits forever as though somebody had. Each such removal is
+  /// recorded individually rather than counted.
+  #[serde(default)]
+  pub body: String,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub related: Vec<Related>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]

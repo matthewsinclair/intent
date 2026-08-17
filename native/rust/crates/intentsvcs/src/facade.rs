@@ -1338,6 +1338,9 @@ impl Facade {
       return Err(FacadeError::ThreadExists { id });
     }
     let thread = Thread {
+      // A thread created by v3 has no authored sections beyond the two the
+      // model names; anything else arrives when a human writes it.
+      body: String::new(),
       schema: crate::model::THREAD_SCHEMA.to_string(),
       id: id.clone(),
       title: title.to_string(),
