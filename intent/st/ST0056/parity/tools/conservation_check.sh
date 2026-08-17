@@ -551,6 +551,32 @@ while IFS= read -r j; do
   done < <(jq -r '.wps[]? | .seq as $s | (.body // "") | split("\n")[] | select(startswith("## ")) | "\($s)\t\(.[3:])"' "$j" 2>/dev/null)
 done < <(find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | sort)
 
+# THE ARM ABOVE READS `.wps[].body` -- THE MODEL -- AND cc FOUND ACCRETION THE
+# MODEL CANNOT HOLD. 40 of 140 migrated work-package VIEWS ship with two
+# `## Acceptance` sections: the authored one is carried in `body` (so it has a
+# census counterpart and is correctly not ADDED), and the renderer then emits
+# its own. The second copy exists only in the rendered file and appears in no
+# `thread.json` at all.
+#
+# So "ADDED 0" was a claim about the MODEL being published as a claim about
+# ACCRETION. The subject and the report were different and the line could not
+# tell them apart -- the same defect this tool has now shipped three times, and
+# the reason the summary below names its subject rather than its adjective.
+# The cheap two-sided test the model cannot do is asked of the file: one
+# rendered view must not carry the same heading twice.
+c_dup=0
+while IFS= read -r v; do
+  dups="$(grep '^## ' "$v" 2>/dev/null | sort | uniq -d)"
+  [ -n "$dups" ] || continue
+  while IFS= read -r h; do
+    [ -n "$h" ] || continue
+    report DOUBLED-SECTION "${v#"$CANON"/} carries '${h#\#\# }' twice (one carried, one generated -- two artefacts, one role)"
+    c_dup=$((c_dup + 1))
+  done <<EOF
+$dups
+EOF
+done < <(find "$CANON/st" -path '*/WP/*' -name info.md 2>/dev/null | sort)
+
 # ---------------------------------------------------------------------------
 # The totals are printed on every run, pass or fail. A check that only speaks
 # when it fails cannot be told from a check that never ran.
@@ -584,7 +610,8 @@ c_alt="$(grep -c '^ALTERED-PROSE ' "$WORK/log" || true)"
 c_acct=$((c_ok + c_norm + c_lost + c_alt + c_declared))
 [ "$c_acct" -eq "$c_seen" ] ||
   die "prose accounting does not reconcile: $c_seen census row(s) read, $c_acct dispositioned (ok $c_ok, normalised $c_norm, lost $c_lost, altered $c_alt, declared-uncompared $c_declared) -- the difference went somewhere this tool cannot name"
-echo "conservation: prose -- ALTERED $c_alt (the number that means loss), ADDED $c_added (the number that means accretion), conserved byte-identical $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
+echo "conservation: prose -- ALTERED $c_alt (the number that means loss), ADDED $c_added (accretion IN THE MODEL -- \`.wps[].body\`, not in rendered views), conserved byte-identical $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
+echo "conservation: views -- DOUBLED-SECTION $c_dup (accretion IN THE RENDERING: one file, one heading, two copies -- invisible to the line above)"
 echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census section(s); NOT compared $c_declared, declared:${declared_kinds:- none}"
 # The conserved population split by what the destination KNOWS. Not "did the
 # bytes survive" -- that is the line above -- but "does the model understand
