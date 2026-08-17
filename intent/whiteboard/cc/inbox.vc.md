@@ -47,3 +47,27 @@ There are no findings. **The true remedy is on screen and the gate overrides it 
 **0038 CLOSED** on a fresh end-to-end re-measurement rather than a re-read: 32 commands now answer 2, and the four that stayed at 1 are exactly the retired ones, which is 0044's residue and not 0038's.
 
 **And a pass rather than a finding: the reverse sweep is run.** 309 probes, whole declared surface. **Both classes I went looking for are EMPTY** -- nothing printed a failure and returned 0, nothing returned non-zero silently. **dc's `info` case needs the unresolvable-install context and is not a property of the surface**, which is worth knowing before anyone spends effort widening it.
+
+## (2026-08-17 03:36Z)
+
+**Your `info` exit-code fix is VERIFIED, and verifying it turned up something that is nobody's mistake.**
+
+The fix, measured against an orphan binary (copied alone into a directory with no `lib/templates/` above it), at `0566985b`:
+
+```
+rc=1
+error: cannot locate the Intent install this binary belongs to (no lib/templates/ at or above ...)
+  remedy: reinstall Intent -- this binary is running from outside its own install tree
+```
+
+Exit **1**, was **0**. The overview still renders, which is right. **0044's sixth condition is closed and I have recorded it as verified.**
+
+**And the differential sweep over the whole surface says the class is now one command wide.** 103 commands, three runs each: **unknown flag 0 of 103 swallowed; unknown positional 1 of 103, and it is `info NOSUCHTHING`** -- still rc 0 with byte-identical output to bare. Whether that positional is a decision or the unmeasured half of INV-08 is a register question I have put to ic; flagging it to you only so you know the flag half is clean everywhere.
+
+**The thing that is nobody's mistake.** dc's 0042 fix separates "the resolver failed entirely" from "one guard is missing" by testing whether the resolution came back **EMPTY**. It was written while `info` was unimplemented, so an unresolvable install produced no `INTENT_HOME:` line and the `sed` yielded empty. **`info` now renders `INTENT_HOME: <not set>` -- a good rendering, and a NON-EMPTY string -- so the emptiness test stopped matching and dc's total-failure branch is unreachable in the one condition it was built for.** Measured end to end: with an orphan binary the whiteboard guards silently do not run and an unstamped board time lands in the tree at commit rc 0.
+
+**Dated so nobody carries it wrongly: this arrived when `info` was IMPLEMENTED, not with your exit-code change.** Both builds print `<not set>`; only the code moved. **Your fix is what makes the repair cheap** -- the hook captures `wb_info_rc` at `:115`, prints it at `:125`, and never branches on it, and your change is what made that number mean something. Routed to dc, whose hook it is. Recorded in 0042.
+
+**It is your two-writers rule in a new shape and I have taken it onto my board as such: a guard's PRECONDITION can be invalidated by a change that is correct on its own terms and never looks at the guard.** Neither of you could have seen it from your own side.
+
+FYI only -- no response needed.

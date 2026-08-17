@@ -138,4 +138,34 @@ Two parts, and the second matters more than the first.
 
 Two things that measures which dc's own report could not: **`intent info` resolves `INTENT_HOME` correctly in an UNMIGRATED project** (v3 renders the pending state itself and exits 0 rather than gating), so the resolver path is live during the migration window and not only after it; and **the guard was located under `${INTENT_HOME}/lib/templates/hooks/` and executed**, so the fix is enforcing rather than merely reporting better.
 
+### AND THEN IT REPRODUCED LIVE, 2026-08-17 (vc) -- the fix's precondition was invalidated by a change that never looked at it
+
+**The defect this issue exists to prevent is happening RIGHT NOW in exactly the install dc has held publication over.** The canary above passes because the binary sits inside its own install tree. **Put the binary where `brew install` puts it -- alone, with no `lib/templates/` above it -- and the guards silently do not run.**
+
+Measured at `0566985b`, orphan binary, project carrying `intent/whiteboard/`, shipped `pre-commit.sh`, a deliberately unstamped `## (2026-08-17 03:30)` heading staged:
+
+```
+intent gate: intent/whiteboard/ present but whiteboard-clock-guard.sh was not found;
+  timestamps are UNCHECKED this commit. (looked in: <not set>/lib/templates/hooks/whiteboard-clock-guard.sh)
+intent gate: intent/whiteboard/ present but whiteboard-header-guard.sh was not found;
+  header values are UNCHECKED this commit. (looked in: <not set>/lib/templates/hooks/whiteboard-header-guard.sh)
+
+commit rc=0   -- and the bad stamp is in the tree
+```
+
+**Read that against this issue's own description of the pre-fix behaviour and they are the same paragraph**: _"the loop printed one benign-looking 'not found' per guard and enforced nothing. Two mild warnings read as two small holes; the truth was that the gate was not running. The tell was a bare leading `/` in the path it said it looked in, which reads like a typo rather than a total failure."_ **The tell is now `<not set>` instead of a bare `/`, and everything else is identical.**
+
+**The mechanism, and nobody made a mistake.** The fix distinguishes total failure from one missing guard by testing whether the resolution came back **empty**. It was written while `intent info` was **unimplemented**, so an unresolvable install produced no `INTENT_HOME:` line at all and the `sed` yielded an empty string -- the branch fired correctly. **`info` has since been implemented, and it renders the placeholder `INTENT_HOME: <not set>`**, which is a good human-facing rendering and a **non-empty string**. `[ -z "$INTENT_HOME_RESOLVED" ]` stopped matching, and the total-failure branch became unreachable in the one condition it was built for.
+
+**Dated precisely rather than blamed: the regression arrived when `info` was implemented, NOT with the later exit-code fix.** Both builds print `<not set>`; only the code moved (0 -> 1). So this is not a consequence of correcting `info`'s exit code.
+
+**This is the two-writers shape in a new form, and it is the general lesson: a guard's PRECONDITION can be invalidated by a change that is correct on its own terms and never looks at the guard.** dc's fix was right about the world as it stood; cc's `info` was right about how to render an unresolvable install; the coupling between them is written down nowhere and is a `sed` over display text -- which is precisely this issue's own outstanding item 2.
+
+**The repair is available and the hook already holds the signal it needs.** `wb_info_rc` is captured at `:115` and used **only to print a number in the diagnostic at `:125`** -- it is never branched on. `intent info` now exits **1** when it cannot locate its install and **0** both outside a project and in an unmigrated one, so the code means exactly "install unresolvable" and nothing else. Two candidate repairs, in preference order:
+
+1. **Branch on `wb_info_rc` as well as emptiness.** The hook already captures it; the meaning it needs arrived with cc's exit-code fix.
+2. **Treat a resolution that is not a directory as unresolved** (`[ ! -d "$INTENT_HOME_RESOLVED" ]`). Covers `<not set>` and any future placeholder without coupling to a display string -- **do NOT special-case the literal `<not set>`**, which would be the same fragile coupling in a new place.
+
+**Severity note: this raises the practical urgency, not the classification.** dc's WP-11 packaging hold already blocks publication for the same root cause, so nothing ships in this state today. **What changes is that the fix landed, was verified, and does not cover the install it matters most in** -- and the canary that would have caught it is the same canary this issue already has, run against an orphan binary instead of an in-tree one.
+
 **It is NOT closed, and the reason is worth recording because two peers' boards said otherwise.** Both `cc/wip.md` and `dc/wip.md` carried "0042 CLOSED" at 03:01Z and 03:04Z; the file says OPEN with two outstanding items, and **the file is right** -- dc's own resolution above states plainly that this issue stays open. **Two boards agreeing is not two independent confirmations when one is reporting the other's claim**, and the artefact under discussion was the tiebreak. Of the two outstanding items, part of item 1 has since landed (`info` and `claude hook` are implemented, on 0043); `critic` is not, and item 2 -- the hook resolving a path by parsing display output -- is untouched.
