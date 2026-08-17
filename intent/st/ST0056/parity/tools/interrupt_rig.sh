@@ -848,13 +848,85 @@ STATUS=$?
 # already thought of reads as completeness rather than as an omission.
 #
 # **THE EVENT HALF IS TRIVIALLY EQUAL TODAY AND WILL NOT STAY THAT WAY.** A
-# migrated estate currently holds 0 events (measured: 0 `st.new`, 56 of 56
-# threads carrying `created` from v2 frontmatter rather than deriving it), so
-# the events array is empty in both arms and compares equal for a reason that
-# has nothing to do with this property. When cc lands the event log, `ts` is
-# DATABASE-supplied wall clock (D42) and two runs will differ there legitimately
-# -- at which point this arm must normalise `ts`, not be deleted. Written down
-# here because a green whose reason expires is the failure mode nobody re-reads.
+# migrated estate holds 0 events -- re-measured on this gate's own trees at
+# HEAD 82753cf8, both arms, rather than carried forward -- so the events array
+# is empty in both arms and compares equal for a reason that has nothing to do
+# with this property.
+#
+# **THIS NOTE USED TO SAY "NORMALISE `ts`". THAT NAMED ONE FIELD WHERE THERE ARE
+# TWO, AND OMITTED THE FATAL ONE.** Read off the COMMITTED contract
+# (`schema/event.schema.json`, `schema/ddl.sql`, `event.rs:112`) rather than
+# inferred:
+#
+#   id   TEXT PRIMARY KEY -- a ULID, `ulid::Ulid::new()`, MINTED not derived.
+#        48 bits of millisecond clock plus 80 bits of randomness, so **two runs
+#        can never agree on it even within the same millisecond.** `event.rs:205`
+#        says the minting is deliberate: merge keys on the ULID.
+#   ts   DDL default `strftime('%Y-%m-%dT%H:%M:%fZ','now')` -- database-supplied
+#        wall clock, D42, differs between runs by construction.
+#
+# The other six columns (`principal`, `project_id`, `op`, `subject_type`,
+# `subject_id`, `payload`) carry no clock and no randomness. `store.rs:1745`
+# orders by `id` precisely because a ULID sorts by time, **so ORDINAL POSITION
+# is the faithful normalisation for both fields: it is the log's own order.**
+#
+# **SO THE ARM DOES NOT NORMALISE YET, AND IT DOES NOT PRETEND TO.** A
+# normalisation written against 0 rows is a case that cannot fail, which is the
+# defect this rig exists to refuse. Instead the arm COUNTS the events, PRINTS
+# the count so a zero is visible in the run rather than known only to its
+# author, and REFUSES the moment the count goes non-zero -- because at that
+# instant a byte comparison starts including minted ULIDs and would report
+# DIFFERENT for a perfectly correct migrator. **A refusal that names the cause
+# costs whoever lands the log five minutes; a false red costs them an afternoon
+# concluding the migrator is non-deterministic.**
+A_EVENT_COUNT=""
+B_EVENT_COUNT=""
+
+# Counts the event log in both exports and answers ONE question: does a byte
+# comparison of them still mean anything? Returns non-zero to REFUSE, never to
+# fail -- with a live log the two arms may well agree and this rig cannot
+# presently tell, and asserting a failure it has not measured is the defect it
+# spends 900 lines avoiding.
+store_events_are_comparable() {
+  if ! command -v jq >/dev/null 2>&1; then
+    echo
+    echo "  STORE ARM CANNOT VERIFY ITS OWN PREMISE -- \`jq\` is not on PATH, so the event log"
+    echo "    cannot be counted. Against an empty log a byte comparison is sound; against a live"
+    echo "    one it is meaningless, and this run cannot tell which of the two it is looking at."
+    return 1
+  fi
+  # `.events | length` IS THE WRONG PROBE AND A DRIVEN CASE CAUGHT IT: jq gives
+  # `null | length` as 0, so an export with NO `.events` key at all counted as
+  # an empty log and this arm certified its own premise on a subject that was
+  # not there. Ask for the TYPE first; absence must not be spelled the same way
+  # as emptiness.
+  A_EVENT_COUNT="$(jq -r '.events | if type == "array" then length else "not-an-array(" + type + ")" end' "$WORKDIR/a.store.json" 2>/dev/null)"
+  B_EVENT_COUNT="$(jq -r '.events | if type == "array" then length else "not-an-array(" + type + ")" end' "$WORKDIR/b.store.json" 2>/dev/null)"
+  bad=0
+  case "$A_EVENT_COUNT" in ''|*[!0-9]*) bad=1 ;; esac
+  case "$B_EVENT_COUNT" in ''|*[!0-9]*) bad=1 ;; esac
+  if [ "$bad" -eq 1 ]; then
+    echo
+    echo "  STORE ARM CANNOT VERIFY ITS OWN PREMISE -- \`.events\` did not read as an array in one"
+    echo "    or both exports (clean: '${A_EVENT_COUNT:-<nothing>}', re-run: '${B_EVENT_COUNT:-<nothing>}')."
+    echo "    The export's SHAPE has moved. Re-read schema/event.schema.json before trusting this arm;"
+    echo "    an arm that cannot find its subject must not report on it."
+    return 1
+  fi
+  if [ "$A_EVENT_COUNT" -eq 0 ] && [ "$B_EVENT_COUNT" -eq 0 ]; then
+    return 0
+  fi
+  echo
+  echo "  STORE: NOT JUDGED -- THE EVENT LOG IS LIVE (clean: $A_EVENT_COUNT, re-run: $B_EVENT_COUNT) AND THIS ARM DOES NOT NORMALISE IT YET."
+  echo "    Every row carries a MINTED ULID (\`id\`, 48 bits of clock + 80 of randomness) and a"
+  echo "    database-supplied \`ts\`, so the two arms differ there BY CONSTRUCTION and a byte"
+  echo "    comparison would report DIFFERENT for a perfectly correct migrator."
+  echo "    TO FIX: normalise \`.events[].id\` and \`.events[].ts\` to ORDINAL POSITION in both exports"
+  echo "    before comparing. store.rs:1745 orders by \`id\` and a ULID sorts by time, so position IS"
+  echo "    the log's own order. The other six columns carry no clock and no randomness."
+  return 1
+}
+
 STORE_NOTE=""
 if [ "$STATUS" -eq 0 ] && [ -n "$STORE_CMD" ]; then
   ( cd "$A" && eval "$STORE_CMD" ) >"$WORKDIR/a.store.json" 2>"$WORKDIR/a.store.err"
@@ -893,9 +965,13 @@ if [ "$STATUS" -eq 0 ] && [ -n "$STORE_CMD" ]; then
     head -2 "$WORKDIR/b.store.err" 2>/dev/null | sed 's/^/    /'
     STATUS=1
     STORE_NOTE="store DIFFERENT -- only one arm answers"
+  elif ! store_events_are_comparable; then
+    STATUS=2
+    STORE_NOTE="store NOT judged -- the event log is live and this arm does not normalise it yet"
   elif cmp -s "$WORKDIR/a.store.json" "$WORKDIR/b.store.json"; then
     echo
     echo "  STORE: IDENTICAL (as \`export\` sees it; file_index/doc_sections/snapshots not compared) -- \`$STORE_CMD\` byte-equal across both arms ($(wc -c <"$WORKDIR/a.store.json" | tr -d ' ') bytes)."
+    echo "    events: $A_EVENT_COUNT in both arms. A ZERO IS WHY THIS HALF IS TRIVIALLY EQUAL -- printed so that reason is in the run and not only in the comment above."
     STORE_NOTE="store identical as export sees it"
   else
     echo
