@@ -960,13 +960,12 @@ fn state_named(name: &str) -> AcState {
 }
 
 fn state_name_of(state: &AcState) -> &'static str {
-  match state {
-    AcState::Computed => "computed",
-    AcState::Unsatisfied => "unsatisfied",
-    AcState::Satisfied { .. } => "satisfied",
-    AcState::Descoped { .. } => "descoped",
-    AcState::Withdrawn { .. } => "withdrawn",
-  }
+  // **DELEGATED, and the copy that stood here is why `AcState::name` exists.**
+  // These five words were a vocabulary owned by a test file and unavailable to
+  // production, so issue 0050's no-op line could not have used them -- the fix
+  // was to move the home rather than take a second copy. Kept as a named helper
+  // because the walk reads better for it.
+  state.name()
 }
 
 // ---------------------------------------------------------------------------
@@ -1161,6 +1160,16 @@ const RATIFIED_WP: &[(&str, &[&str], &str, &[Guard])] = &[
   ("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
 ];
 
+/// The ratified issue machine -- **Machine 4** (hv, 2026-08-17).
+///
+/// No guards on either edge, and the empty lists are the ratified fact rather
+/// than an unfilled column: v2 has none, `intent issues` is `keep`, and hv ruled
+/// that inventing one here "would be a parity break wearing a ratification".
+const RATIFIED_ISSUE: &[(&str, &[&str], &str, &[Guard])] = &[
+  ("issues.close", &["open"], "closed", &[]),
+  ("issues.open", &["closed"], "open", &[]),
+];
+
 fn declared(entity: &str, field: &str) -> &'static [Edge] {
   match find(entity, field).map(|f| &f.disposition) {
     Some(Disposition::State { edges, .. }) => edges,
@@ -1168,12 +1177,29 @@ fn declared(entity: &str, field: &str) -> &'static [Edge] {
   }
 }
 
+/// **RENAMED, and the old name was the defect** (vc, 2026-08-17).
+///
+/// This was `the_implemented_graph_is_the_ratified_one_edge_for_edge`, and it
+/// compares `declared()` -- the transition TABLE -- against the `RATIFIED_*`
+/// consts transcribed from data-model.md. **Neither side is the
+/// implementation.** It cannot see code, so code's absence cannot red it: it was
+/// green while the table carried Machine 4's edges and no facade verb drove them.
+///
+/// The property "the implemented graph is the ratified one" holds across three
+/// tests and no one of them: this one (table matches ratified),
+/// `every_declared_edge_is_a_mutation_that_exists` (every declared edge DRIVES),
+/// and `a_transition_the_ratified_machine_does_not_declare_is_refused` (every
+/// undeclared pair REFUSES). **They should not be merged** -- three assertions
+/// failing for three distinguishable reasons is worth more than one failing for
+/// any of them. AT-04.6's closing condition now states the three behaviours
+/// rather than naming a test, so a rename here cannot invalidate it.
 #[test]
-fn the_implemented_graph_is_the_ratified_one_edge_for_edge() {
+fn the_transition_table_transcribes_the_ratified_machines_edge_for_edge() {
   for (entity, field, ratified) in [
     ("Thread", "status", RATIFIED_THREAD),
     ("WorkPackage", "status", RATIFIED_WP),
     ("Criterion", "state", RATIFIED_CRITERION),
+    ("Issue", "status", RATIFIED_ISSUE),
   ] {
     let implemented = declared(entity, field);
     assert_eq!(

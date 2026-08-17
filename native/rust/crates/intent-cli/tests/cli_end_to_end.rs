@@ -302,8 +302,14 @@ fn a_closed_thread_and_work_package_can_both_be_reopened() {
     .trim(),
     "ok: ST0001/01 reopened"
   );
+  // **`WIP`, not `wip` -- this assertion was PINNING A DIVERGENCE.** `wp show`
+  // printed `enum_str` where `st show`, `issues show` and the generated `info.md`
+  // all print `display()`, and v2 implements `wp show` by catting that very file.
+  // The assertion's subject is that the reopen moved the package, which it still
+  // is; the spelling it happened to capture was the defect, and a test that
+  // records a defect as expected output is what makes the defect permanent.
   assert!(
-    ok(root, &["wp", "show", "ST0001/01"]).contains("status: wip"),
+    ok(root, &["wp", "show", "ST0001/01"]).contains("status: WIP"),
     "and the reopen actually moved it, rather than only printing that it had"
   );
 

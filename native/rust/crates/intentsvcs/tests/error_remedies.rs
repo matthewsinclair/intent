@@ -141,6 +141,24 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .ac_rescope("ST0056", "AC-03.2")
       .expect_err("rescope undoes a descope, not a withdrawal"),
   ));
+  // **MOVED HERE FROM THE `unsatisfied` STEP BELOW, and this is the SECOND time
+  // this file has been caught by the same mechanism.** `NotSatisfied` was
+  // provoked by `ac_unsatisfy` on an already-unsatisfied criterion -- which hv's
+  // self-loop ruling makes an accepted no-op, so the provoker stopped provoking
+  // and `expect_err` panicked. The comment fifty lines down records the identical
+  // swap being made for `IllegalTransition` on the same day; nobody then asked
+  // which OTHER provoker depended on a state being refusable.
+  //
+  // `withdrawn` is a durable route to the same refusal: `ac.unsatisfy` is declared
+  // from `satisfied` alone, so every refusal it can produce means "not satisfied",
+  // and the facade maps the declared machine's `IllegalTransition` onto this
+  // variant rather than hand-checking the from-state ahead of the self-loop test.
+  out.push((
+    "nothing to unsatisfy",
+    facade.ac_unsatisfy("ST0056", "AC-03.2").expect_err(
+      "a withdrawn criterion is not satisfied, and unsatisfy is declared only from satisfied",
+    ),
+  ));
 
   facade
     .ac_reinstate("ST0056", "AC-03.2")
@@ -150,12 +168,6 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     facade
       .ac_satisfy("ST0056", "AC-03.2", "  ")
       .expect_err("blank evidence"),
-  ));
-  out.push((
-    "nothing to unsatisfy",
-    facade
-      .ac_unsatisfy("ST0056", "AC-03.2")
-      .expect_err("not satisfied"),
   ));
   out.push((
     "reason required",

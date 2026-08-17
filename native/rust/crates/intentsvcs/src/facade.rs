@@ -397,12 +397,41 @@ pub struct AcRow {
 /// on every documentation edit. Where the outcome MUST be reported is the CLI,
 /// which is a handful of sites, and that is held by tests that read what the
 /// command printed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// **`AlreadyThere` CARRIES THE STATE, and it carries it because two verbs
+/// cannot name their own target** (issue 0050). A self-loop means the entity is
+/// at the verb's target, so seventeen of the nineteen arms could have printed a
+/// literal -- but `ac rescope` and `ac reinstate` land on `AcState::entry(kind)`,
+/// which is `Unsatisfied` or `Computed` depending on the criterion, and the
+/// renderer does not know the kind. One mechanism for all of them beats fifteen
+/// literals and two special cases.
+///
+/// **And the payload is the spelling the entity's own display source gives**, so
+/// the no-op line is not a new home for a status vocabulary. That is issue 0047's
+/// lesson applied before it can recur: seventeen hard-coded state words in
+/// `render.rs` would be seventeen spellings a rename could not reach.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Outcome {
   /// The field moved, and the movement is recorded.
   Moved,
   /// The entity was already in the requested state. Nothing was written.
-  AlreadyThere,
+  ///
+  /// `state` is that state, spelled as the surface spells it.
+  AlreadyThere { state: String },
+}
+
+impl Outcome {
+  /// The no-op state, for a caller that only wants to report one.
+  ///
+  /// Named rather than matched at nineteen call sites: a renderer arm needs
+  /// exactly "did it move, and if not what is it", and `match` on a struct
+  /// variant at every one of them is the shape that invites a `..` and then a
+  /// dropped payload.
+  pub fn already(&self) -> Option<&str> {
+    match self {
+      Self::Moved => None,
+      Self::AlreadyThere { state } => Some(state),
+    }
+  }
 }
 
 /// The facade: a project, its store, and the canon it has loaded.
@@ -1153,7 +1182,9 @@ impl Facade {
     // not be able to fail for a reason that did not exist when the state was
     // entered.
     if from == status {
-      return Ok(Outcome::AlreadyThere);
+      return Ok(Outcome::AlreadyThere {
+        state: from.display().to_string(),
+      });
     }
 
     Self::check_transition("Thread", "status", op, &crate::model::enum_str(&from), id)?;
@@ -1453,7 +1484,11 @@ impl Facade {
       .find(|w| w.seq == seq)
       .is_some_and(|w| w.scope == Some(scope) && w.scope_legacy.is_none());
     if settled {
-      return Ok(Outcome::AlreadyThere);
+      // The SIZE, not the status -- this verb's field is `scope`, and reporting
+      // a work package's status here would answer a question nobody asked.
+      return Ok(Outcome::AlreadyThere {
+        state: crate::model::enum_str(&scope),
+      });
     }
 
     let mut next = self.canon.clone();
@@ -1510,7 +1545,9 @@ impl Facade {
 
     // First, and ahead of the gate -- see `set_thread_status`.
     if from == status {
-      return Ok(Outcome::AlreadyThere);
+      return Ok(Outcome::AlreadyThere {
+        state: from.display().to_string(),
+      });
     }
 
     Self::check_transition(
@@ -1613,15 +1650,43 @@ impl Facade {
   /// it looks like a record. That was a rule two assignments had to keep; now
   /// the evidence lives INSIDE `Satisfied`, so leaving it behind is not a thing
   /// the type can do.
+  /// Withdraw a satisfaction, clearing the evidence with it.
+  ///
+  /// **This REFUSED A LEGAL SELF-LOOP until 2026-08-17, and the mechanism is
+  /// 0051's, not a typo.** It carried its own from-state check --
+  /// `if !matches!(state, Satisfied { .. }) { NotSatisfied }` -- ahead of
+  /// delegating, so `ac unsatisfy` on an already-unsatisfied criterion exited 1
+  /// while hv's ruling makes it a self-loop at 0. **A hand-written copy of a
+  /// from-state the table already declares, running ahead of the shared setter's
+  /// self-loop test**, which is exactly what `Guard::GatePass` was doing at two
+  /// call sites. Found by driving the verb twice through the real binary
+  /// (`self_loop_voice.rs`); reading the code did not find it, and neither did
+  /// `mutation_completeness.rs`, whose walk only ever drives an edge from a state
+  /// it IS declared from.
+  ///
+  /// **The refusal is preserved rather than lost, and mapped rather than
+  /// duplicated.** `ac.unsatisfy` is declared from `satisfied` and nowhere else,
+  /// so every `IllegalTransition` this verb can produce means "not satisfied" --
+  /// the mapping is equivalent by construction, and `NotSatisfied`'s remedy names
+  /// where to look where `IllegalTransition`'s names only the state.
+  ///
+  /// **The kind check STAYS ahead of the delegation, and it cannot mis-refuse a
+  /// self-loop.** A test-backed criterion is always `Computed` (the kind/state
+  /// pairing is enforced in the schema face), so it can never be at this verb's
+  /// target -- meaning there is no self-loop for this guard to shadow.
+  /// `ComputedSatisfaction` is a better answer for that case than either
+  /// alternative, which is why it is not delegated to `Guard::NonTestOnly`.
   pub fn ac_unsatisfy(&mut self, st: &str, ac: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     if criterion.kind != AcKind::NonTest {
       return Err(FacadeError::ComputedSatisfaction { ac: ac.to_string() });
     }
-    if !matches!(criterion.state, AcState::Satisfied { .. }) {
-      return Err(FacadeError::NotSatisfied { ac: ac.to_string() });
-    }
-    self.set_ac_state(st, ac, AcState::Unsatisfied, "ac.unsatisfy", json!({}))
+    self
+      .set_ac_state(st, ac, AcState::Unsatisfied, "ac.unsatisfy", json!({}))
+      .map_err(|cause| match cause {
+        FacadeError::IllegalTransition { .. } => FacadeError::NotSatisfied { ac: ac.to_string() },
+        other => other,
+      })
   }
 
   pub fn ac_descope(
@@ -1781,7 +1846,9 @@ impl Facade {
     // gets an explicit refusal rather than a silent no-op, so this ruling does
     // not open a reported-success-with-no-effect path.
     if *current == state {
-      return Ok(Outcome::AlreadyThere);
+      return Ok(Outcome::AlreadyThere {
+        state: current.name().to_string(),
+      });
     }
     // **The AC verbs now enforce from the same declared graph the thread and
     // work-package verbs do, and adding it found a live defect.** `ac descope`
@@ -1846,7 +1913,9 @@ impl Facade {
     // happen. Under D42 the record is stamped by the write, so history gained a
     // second transition at a second time for one event.
     if from == status {
-      return Ok(Outcome::AlreadyThere);
+      return Ok(Outcome::AlreadyThere {
+        state: crate::model::enum_str(&from),
+      });
     }
 
     let mut next = self.canon.clone();
@@ -1955,7 +2024,9 @@ impl Facade {
   ) -> Result<Outcome, FacadeError> {
     let from = self.issue_show(number)?.status;
     if from == status {
-      return Ok(Outcome::AlreadyThere);
+      return Ok(Outcome::AlreadyThere {
+        state: from.display().to_string(),
+      });
     }
     Self::check_transition(
       "Issue",

@@ -12,7 +12,7 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError, Outcome};
-use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
+use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
@@ -434,14 +434,12 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("start", a)) => {
       let id = arg(a, "id")?;
-      open()?.st_start(&id).map_err(fail)?;
-      println!("ok: {id} started");
+      reported(&open()?.st_start(&id).map_err(fail)?, &id, "started");
       Ok(())
     }
     Some(("done", a)) => {
       let id = arg(a, "id")?;
-      open()?.st_done(&id).map_err(fail)?;
-      println!("ok: {id} done");
+      reported(&open()?.st_done(&id).map_err(fail)?, &id, "done");
       Ok(())
     }
     Some(("cancel", a)) => {
@@ -453,8 +451,11 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // absent the facade's `ReasonRequired` says exactly what is missing,
       // instead of cancelling a thread with no record of why.
       let reason = opt(a, "reason").unwrap_or_default();
-      open()?.st_cancel(&id, &reason).map_err(fail)?;
-      println!("ok: {id} cancelled");
+      reported(
+        &open()?.st_cancel(&id, &reason).map_err(fail)?,
+        &id,
+        "cancelled",
+      );
       Ok(())
     }
     // The five lifecycle verbs below have NO v2 antecedent -- every one is a
@@ -471,35 +472,46 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     // thread has been told less than the verb knew.
     Some(("triage", a)) => {
       let id = arg(a, "id")?;
-      open()?.st_triage(&id).map_err(fail)?;
-      println!("ok: {id} accepted out of triage");
+      reported(
+        &open()?.st_triage(&id).map_err(fail)?,
+        &id,
+        "accepted out of triage",
+      );
       Ok(())
     }
     Some(("hold", a)) => {
       let id = arg(a, "id")?;
       let reason = opt(a, "reason").unwrap_or_default();
-      open()?.st_hold(&id, &reason).map_err(fail)?;
-      println!("ok: {id} on hold");
+      reported(
+        &open()?.st_hold(&id, &reason).map_err(fail)?,
+        &id,
+        "on hold",
+      );
       Ok(())
     }
     Some(("resume", a)) => {
       let id = arg(a, "id")?;
-      open()?.st_resume(&id).map_err(fail)?;
-      println!("ok: {id} resumed");
+      reported(&open()?.st_resume(&id).map_err(fail)?, &id, "resumed");
       Ok(())
     }
     Some(("reopen", a)) => {
       let id = arg(a, "id")?;
       let reason = opt(a, "reason").unwrap_or_default();
-      open()?.st_reopen(&id, &reason).map_err(fail)?;
-      println!("ok: {id} reopened");
+      reported(
+        &open()?.st_reopen(&id, &reason).map_err(fail)?,
+        &id,
+        "reopened",
+      );
       Ok(())
     }
     Some(("reinstate", a)) => {
       let id = arg(a, "id")?;
       let reason = opt(a, "reason").unwrap_or_default();
-      open()?.st_reinstate(&id, &reason).map_err(fail)?;
-      println!("ok: {id} reinstated to the backlog");
+      reported(
+        &open()?.st_reinstate(&id, &reason).map_err(fail)?,
+        &id,
+        "reinstated to the backlog",
+      );
       Ok(())
     }
     Some(("list", a)) => {
@@ -577,14 +589,20 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("start", a)) => {
       let (st, seq) = wp_target(a)?;
-      open()?.wp_start(&st, seq).map_err(fail)?;
-      println!("ok: {st}/{seq:02} started");
+      reported(
+        &open()?.wp_start(&st, seq).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        "started",
+      );
       Ok(())
     }
     Some(("done", a)) => {
       let (st, seq) = wp_target(a)?;
-      open()?.wp_done(&st, seq).map_err(fail)?;
-      println!("ok: {st}/{seq:02} done");
+      reported(
+        &open()?.wp_done(&st, seq).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        "done",
+      );
       Ok(())
     }
     // `wp reopen` is the inverse `wp done` never had, and its absence was
@@ -596,14 +614,20 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     Some(("reopen", a)) => {
       let (st, seq) = wp_target(a)?;
       let reason = opt(a, "reason").unwrap_or_default();
-      open()?.wp_reopen(&st, seq, &reason).map_err(fail)?;
-      println!("ok: {st}/{seq:02} reopened");
+      reported(
+        &open()?.wp_reopen(&st, seq, &reason).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        "reopened",
+      );
       Ok(())
     }
     Some(("unstart", a)) => {
       let (st, seq) = wp_target(a)?;
-      open()?.wp_unstart(&st, seq).map_err(fail)?;
-      println!("ok: {st}/{seq:02} back to not started");
+      reported(
+        &open()?.wp_unstart(&st, seq).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        "back to not started",
+      );
       Ok(())
     }
     Some(("list", a)) => {
@@ -649,7 +673,20 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let f = open()?;
       let wp = f.wp_show(&st, seq).map_err(fail)?;
       println!("{st}/WP-{:02}: {}", wp.seq, wp.title);
-      println!("status: {}", intentsvcs::model::enum_str(&wp.status));
+      // **`display()`, not `enum_str` -- this printed `wip` where every other
+      // surface prints `WIP`, and the row makes it a parity break rather than a
+      // preference.** `wp show` is `keep` / `as-observed`, v2 implements it by
+      // catting `info.md` (`bin/intent_wp:263`), and `views.rs` writes that file's
+      // status line with `display()`. So v2 printed `WIP` and the row's own note
+      // says "the command reads the view, so its output is unchanged in kind".
+      //
+      // Found by issue 0050's witness, which reads a state back from the tool
+      // rather than asserting a literal: `st show` and `issues show` both said
+      // `WIP`-style and this one said `wip`, in the same tool, on the same field,
+      // with no reason recorded anywhere. **Three `show` commands and two
+      // vocabularies is 0047's shape**, and a test that pinned the kebab was
+      // pinning the divergence.
+      println!("status: {}", wp.status.display());
       println!("scope: {}", wp.scope_display());
       Ok(())
     }
@@ -682,18 +719,31 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // is what refuses it, and it refuses `--evidence ""` as well as an absent
       // flag -- which re-checking the flag here could not do.
       let evidence = opt(a, "evidence").unwrap_or_default();
-      open()?.ac_satisfy(&st, &id, &evidence).map_err(fail)?;
-      println!("ok: {id} satisfied");
+      reported(
+        &open()?.ac_satisfy(&st, &id, &evidence).map_err(fail)?,
+        &id,
+        "satisfied",
+      );
       Ok(())
     }
     Some(("unsatisfy", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      open()?.ac_unsatisfy(&st, &id).map_err(fail)?;
       // The evidence goes with the satisfaction, so the line says so -- a
       // reader who is told only "unsatisfied" has to go and look to find out
       // whether the citation survived (AC-04.6, D32).
-      println!("ok: {id} unsatisfied (evidence cleared)");
+      //
+      // **The parenthetical belongs to the MOVEMENT and must not survive into
+      // the no-op**, which is why this arm names its phrase rather than sharing
+      // one: nothing was cleared if nothing was satisfied, and `already
+      // unsatisfied (evidence cleared)` would report a clearing that did not
+      // happen. `reported` takes the movement phrase and composes the no-op from
+      // the state, so this falls out rather than needing care.
+      reported(
+        &open()?.ac_unsatisfy(&st, &id).map_err(fail)?,
+        &id,
+        "unsatisfied (evidence cleared)",
+      );
       Ok(())
     }
     Some(("list", a)) => {
@@ -736,10 +786,21 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let to = opt(a, "to").unwrap_or_default();
       let by = arg(a, "by").ok();
       let reason = arg(a, "reason").ok();
-      open()?
-        .ac_descope(&st, &id, &to, by.as_deref(), reason.as_deref())
-        .map_err(fail)?;
-      println!("ok: {id} descoped to {to}");
+      // **ONE OF THE TWO ARMS ISSUE 0050's ENUMERATION MISSED, and the reason is
+      // its shape.** 0050 counted nineteen dropped sites by scanning for
+      // `open()?.<verb>(..)` on one line; this arm and `withdraw` below break the
+      // call across lines, so a line-oriented scan cannot see them. **The real
+      // count was twenty-one.** Found by driving every self-loop-capable verb
+      // twice through the real binary -- `ac descope` printed `ok: AC-01.1
+      // descoped to ST0001` on both calls, which is the defect the issue is about,
+      // in an arm the issue does not list.
+      reported(
+        &open()?
+          .ac_descope(&st, &id, &to, by.as_deref(), reason.as_deref())
+          .map_err(fail)?,
+        &id,
+        &format!("descoped to {to}"),
+      );
       Ok(())
     }
     Some(("withdraw", a)) => {
@@ -753,24 +814,35 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // nothing able to say which of them was right.
       let reason = opt(a, "reason").unwrap_or_default();
       let by = arg(a, "by").ok();
-      open()?
-        .ac_withdraw(&st, &id, &reason, by.as_deref())
-        .map_err(fail)?;
-      println!("ok: {id} withdrawn");
+      // The second arm 0050's line-oriented count could not see -- see `descope`
+      // above.
+      reported(
+        &open()?
+          .ac_withdraw(&st, &id, &reason, by.as_deref())
+          .map_err(fail)?,
+        &id,
+        "withdrawn",
+      );
       Ok(())
     }
     Some(("rescope", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      open()?.ac_rescope(&st, &id).map_err(fail)?;
-      println!("ok: {id} back in scope");
+      reported(
+        &open()?.ac_rescope(&st, &id).map_err(fail)?,
+        &id,
+        "back in scope",
+      );
       Ok(())
     }
     Some(("reinstate", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      open()?.ac_reinstate(&st, &id).map_err(fail)?;
-      println!("ok: {id} reinstated");
+      reported(
+        &open()?.ac_reinstate(&st, &id).map_err(fail)?,
+        &id,
+        "reinstated",
+      );
       Ok(())
     }
     Some((verb, _)) => unwired("ac", verb),
@@ -801,8 +873,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         "red" => AtStatus::Red,
         _ => AtStatus::Na,
       };
-      open()?.at_set(&st, &id, status).map_err(fail)?;
-      println!("ok: {id} {state}");
+      reported(&open()?.at_set(&st, &id, status).map_err(fail)?, &id, state);
       Ok(())
     }
     Some(("lint", a)) => {
@@ -1128,14 +1199,13 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
     (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
     (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
   };
-  // **A no-op says so, at exit 0** (hv 2026-08-17). Printing `ok: done` for a
-  // unit that was already done is true and useless; v2 answers `already CLOSED`
-  // and the point of accepting a self-loop rather than refusing it is that a
-  // caller can rely on the state without having to check it first.
-  match outcome {
-    Outcome::Moved => println!("ok: {spec} done"),
-    Outcome::AlreadyThere => println!("ok: {spec} was already done"),
-  }
+  // **This was the FIRST arm to read the outcome and it shipped the wrong
+  // spelling** -- `ok: {spec} was already done`, which named the verb rather than
+  // the state. It went through `reported` with the other eighteen when issue 0050
+  // settled the house form, and the correction direction is worth recording: the
+  // NEWER spelling lost to the one with a v2 antecedent, which is the right way
+  // round for a Highlander tie-break.
+  reported(&outcome, &spec, "done");
   Ok(())
 }
 
@@ -1540,7 +1610,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         .map(|i| {
           vec![
             format!("{:04}", i.number),
-            enum_str(&i.status).to_ascii_uppercase(),
+            i.status.display().to_string(),
             // v2 prints `?` for an issue whose severity was never recorded,
             // and the token is kept: a blank cell reads as a rendering fault,
             // where `?` reads as "nobody said".
@@ -1579,7 +1649,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         );
       } else {
         println!("{:04}: {}", issue.number, issue.title);
-        println!("status: {}", enum_str(&issue.status).to_ascii_uppercase());
+        println!("status: {}", issue.status.display());
         if let Some(sev) = &issue.severity {
           println!("severity: {sev}");
         }
@@ -1612,39 +1682,63 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("close", a)) => {
       let number = issue_number(&arg(a, "id")?)?;
-      already(open()?.issue_close(number).map_err(fail)?, number, "CLOSED");
+      reported(
+        &open()?.issue_close(number).map_err(fail)?,
+        &format!("issue {number:04}"),
+        "-> CLOSED",
+      );
       Ok(())
     }
     Some(("open", a)) => {
       let number = issue_number(&arg(a, "id")?)?;
-      already(open()?.issue_open(number).map_err(fail)?, number, "OPEN");
+      reported(
+        &open()?.issue_open(number).map_err(fail)?,
+        &format!("issue {number:04}"),
+        "-> OPEN",
+      );
       Ok(())
     }
     Some((verb, _)) => unwired("issues", verb),
   }
 }
 
-/// v2's two `move_issue` lines, and THE HOUSE FORM for a self-loop.
+/// **THE ONE PLACE A MUTATING VERB REPORTS ITSELF** -- issue 0050.
 ///
-/// **`ok: issue 0050 already CLOSED` is the only `already` arm in v2**
-/// (`bin/intent_issues:283`) and it is the arm hv's self-loop ruling cites, so
-/// it settles the phrasing question issue 0050 raises rather than merely
-/// answering it for this family: **the no-op line names the STATE the entity is
-/// in, not the verb the caller failed to perform.** `was already done` -- the
-/// spelling `todo done` shipped -- only coincides with the state when the verb
-/// and the state share a word, and it stops meaning anything on `st hold`
-/// (state: `on hold`) or `st triage` (state: `not-started`). Naming the state
-/// tells a caller what the entity IS; naming the verb tells them what they
-/// failed to do, which they already know.
+/// Nineteen arms called the facade as a statement, `open()?.st_done(&id)?;`, which
+/// propagates the error and DISCARDS the `Ok` value, then printed the movement
+/// message unconditionally. So `intent st done` on a completed thread printed
+/// `ok: ST0001 done`, having done nothing, at exit 0 -- while `intent todo done`,
+/// which delegates to that same `st_done`, reported the no-op. **The wrapper was
+/// honest and the thing it wrapped was not**, which is the wrong way round.
 ///
-/// **And no third prefix.** INV-01 names `ok:` and `error:`; v2's `skipped:` on
-/// `st start` is already carried as a deviation on that row. Reviving it across
-/// every self-loop arm to match one v2 verb, against the invariant, is a larger
-/// surface change than matching the one v2 form that already complies.
-fn already(outcome: Outcome, number: u32, state: &str) {
-  match outcome {
-    Outcome::Moved => println!("ok: issue {number:04} -> {state}"),
-    Outcome::AlreadyThere => println!("ok: issue {number:04} already {state}"),
+/// **The no-op line names the STATE the entity is in, not the verb the caller
+/// failed to perform.** v2's only `already` arm is `ok: issue 0050 already
+/// CLOSED` (`bin/intent_issues:283`), which is also the arm hv's self-loop ruling
+/// cites. `was already done` -- the spelling `todo done` shipped -- coincides with
+/// the state only when the verb and the state share a word, and it stops meaning
+/// anything on `st hold` (state: `On Hold`) or `st triage` (state: `Not Started`).
+/// Naming the state tells a caller what the entity IS; naming the verb tells them
+/// what they failed to do, which they already know. ic and vc reached this
+/// independently.
+///
+/// **No third prefix.** INV-01 names `ok:` and `error:`; v2's `skipped: <ID>
+/// already in progress` on `st start` is carried as a deviation on that row.
+/// Reviving it across nineteen arms to match one v2 verb, against the invariant,
+/// is a larger surface change than matching the one v2 form that already complies.
+///
+/// **The state comes from the FACADE, not from a literal here**, and that is the
+/// half worth defending. `ac rescope` and `ac reinstate` land on
+/// `AcState::entry(kind)`, so this renderer cannot know their target -- but more
+/// than that, seventeen hard-coded state words would be seventeen spellings a
+/// rename could not reach, which is issue 0047 rebuilt in a new file.
+///
+/// `moved` is the movement phrase. `issues` passes `-> CLOSED`, which composes
+/// into v2's two lines exactly: `ok: issue 0021 -> CLOSED` and `ok: issue 0021
+/// already CLOSED`.
+fn reported(outcome: &Outcome, subject: &str, moved: &str) {
+  match outcome.already() {
+    None => println!("ok: {subject} {moved}"),
+    Some(state) => println!("ok: {subject} already {state}"),
   }
 }
 

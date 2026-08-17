@@ -561,6 +561,33 @@ pub enum AcState {
 }
 
 impl AcState {
+  /// The state's NAME, without its payload.
+  ///
+  /// **`enum_str` cannot answer this**: three variants carry payloads, so serde
+  /// renders them as objects and `enum_str` panics on a non-string. That is why
+  /// the only copy of these five words lived in a test helper
+  /// (`mutation_completeness.rs::state_name_of`) -- a vocabulary owned by a test
+  /// and unavailable to production, which is the direction this reverses. The
+  /// helper now delegates here.
+  ///
+  /// **Distinct from `AcRow.state`, which is `ac list`'s composed line** --
+  /// `descoped-to: ST0057`, `satisfied: yes`. That answers "where does this
+  /// criterion stand", and this answers "which state is it in". Issue 0050's
+  /// no-op message needs the second and would read as a rendering fault with the
+  /// first.
+  ///
+  /// Exhaustive on purpose, for the reason [`AcState::permitted_for`] is: a sixth
+  /// variant should not compile until someone names it.
+  pub fn name(&self) -> &'static str {
+    match self {
+      Self::Computed => "computed",
+      Self::Unsatisfied => "unsatisfied",
+      Self::Satisfied { .. } => "satisfied",
+      Self::Descoped { .. } => "descoped",
+      Self::Withdrawn { .. } => "withdrawn",
+    }
+  }
+
   /// The state a criterion of `kind` starts in.
   ///
   /// **The entry state differs by kind, which is the collapse's whole point**:
@@ -709,4 +736,21 @@ pub struct Issue {
 pub enum IssueStatus {
   Open,
   Closed,
+}
+
+impl IssueStatus {
+  /// v2's spelling, for a human: `OPEN` / `CLOSED`.
+  ///
+  /// **On the type for the reason [`ThreadStatus::display`] is**, and it was the
+  /// same defect one entity over: `render.rs` spelled this as
+  /// `enum_str(&status).to_ascii_uppercase()` at two sites, so the uppercase
+  /// convention lived in the CLI crate while every other status vocabulary lived
+  /// here. Machine 4's no-op line needed the same spelling from the facade, and a
+  /// third copy is what this replaces.
+  pub fn display(self) -> &'static str {
+    match self {
+      Self::Open => "OPEN",
+      Self::Closed => "CLOSED",
+    }
+  }
 }

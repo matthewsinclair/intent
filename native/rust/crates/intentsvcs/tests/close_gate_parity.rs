@@ -20,7 +20,6 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::contract::{AllResolve, RepoFiles, Scope, gate};
-use intentsvcs::facade::Outcome;
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
   TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
@@ -741,8 +740,9 @@ fn the_facade_routes_closes_through_the_gate() {
   assert_eq!(
     facade
       .wp_done("ST0056", 3)
-      .expect("a self-loop is accepted"),
-    Outcome::AlreadyThere,
+      .expect("a self-loop is accepted")
+      .already(),
+    Some(WpStatus::Done.display()),
     "a package that is already done stays done, and the gate is not consulted again"
   );
 

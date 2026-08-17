@@ -244,12 +244,17 @@ fn a_no_op_scope_change_is_refused_rather_than_silently_accepted() {
   // accepted and reported. The assertion is on the OUTCOME rather than on `Ok`,
   // because `Ok(Moved)` here would mean a second withdrawal was recorded -- a
   // duplicate envelope for one decision, stamped at a second time under D42.
+  // **Asserted through `already()` rather than against the bare variant, so the
+  // STATE is checked too** (issue 0050). `AlreadyThere` now carries the state the
+  // entity is in, and a no-op that reported the wrong state would have satisfied
+  // the previous form of this assertion.
   assert_eq!(
     facade
       .ac_withdraw("ST0056", "AC-03.1", "r", None)
-      .expect("a self-loop is accepted, not refused"),
-    Outcome::AlreadyThere,
-    "a repeated withdrawal must be a NO-OP: accepted, reported, and nothing written"
+      .expect("a self-loop is accepted, not refused")
+      .already(),
+    Some("withdrawn"),
+    "a repeated withdrawal must be a NO-OP: accepted, reported as the state it is already in, and nothing written"
   );
 }
 
