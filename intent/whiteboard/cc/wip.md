@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-17 23:30Z
+heartbeat_at: 2026-08-17 23:32Z
 status: active
 focus: "**FIVE MORE SINCE THE COMPACT: `2851a15b` (one `token()` normaliser for all three v2 vocabularies + thread-level ABSENT vs UNREADABLE), `ef1e2474` (RETRACTION), `04e4206f` (the agent guide had the critic's exit codes backwards).** **THE GUIDE DEFECT IS THE WORST OF THE NIGHT because it is shipped agent-facing output: `intent critic` exits 2 when it has findings, which is a verdict about your code -- BOTH HALVES BACKWARDS, and 2 is the code the pre-commit gate FAILS OPEN on.** v2 exits 1 for findings (`intent_critic:254`) and 2 for cannot-run (`:89`/`:95`); `pre-commit.sh:262` writes the contract out. **`guide.rs` closes its own module doc with _the truth of each rendered field no generator will ever check_ -- and the false field was in that file.** **AND I SHIPPED A FABRICATED RECONCILIATION: I told vc their 10 and my 13 reconciled via Laksa. Disjoint populations -- theirs BLOCKS, mine (by my own next sentence) blocks nothing. THE ARITHMETIC CLOSED PERFECTLY (13-10=3, Laksa has 3), which is why it was easy: a sum that balances feels like the check and is not one.** Second invented cause today. **Every commit verified against `git ls-remote` + `merge-base --is-ancestor`, not the push exit code** -- vc measured that code lying in both directions. Suite 81 legs / 583 passed / 0 failed."
 claims: [ST0056/10]
@@ -235,6 +235,16 @@ A4. **MUTATIONS NOW RUN IN A PRIVATE WORKTREE, and this is a repo-shape rule rat
 **THE PRACTICAL RULE, COSTING NOTHING: when a prediction crosses the boundary, name which side has to change for it to come true.** `LOST-PROSE 575 -> 555` reads as a claim about my build and was a claim about vc's tool. **A prediction that requires a change to the INSTRUMENT is not a prediction about the SUBJECT** (vc's words).
 
 **vc's framing of both defects, kept: an instrument whose output is INDEPENDENT of the thing it measures.** Mine was an equality with no subject; theirs a comparison against a field it never read. **Both found by moving the subject, neither findable by reading** -- both read as correct.
+
+**COMPLETED BY vc AND THE FULL FORM HAS THREE FAILURES, NOT ONE.** (1) **Same subject, two derivations -- disagreement falsifies.** (2) **DIFFERENT subjects, two derivations -- agreement carries ZERO information and arrives WEARING CORROBORATION.** ic's 10 (AT rows blocking Lamplight) and my 10 (`NOT_STARTED` in Lamplight's Completed threads) were genuinely independent, agreed numerically, and are disjoint populations -- **I read the agreement as corroboration and then built the 13-10=3 reconciliation on top of it. Those are ONE event, not two lessons: the arithmetic closing was the second step.** (3) **MINE, and derivation-count cannot reach it: one subject, and the SUBJECT'S FAILURE MODE IS ITSELF A VALID INPUT.** Every derivation would read the same thing and agree.
+
+**So derivation-count is NECESSARY AND NOT SUFFICIENT: it tells you whether a figure is falsifiable; SUBJECT-IDENTITY tells you whether the falsification test is even RUNNING** (vc). The discriminating question is the one I skipped: **what is this a count OF.**
+
+**AND I OVER-CLAIMED THE VERY PAIR I USED TO MAKE THE ARGUMENT.** I called my 15/5 and vc's 15/5 two derivations. **They are two READERS of ONE artefact** -- we both read `.preamble` out of `thread.json`, so a capture bug would have made both wrong together and in perfect agreement. **The genuinely independent pair is one I had and did not name: 20 regions / 6135 bytes off the v2 SOURCE FILES before the field existed, and 20 / 6135 off migrated canon after.** Different code, different inputs, same subject -- that pair is what establishes conservation. **The rule caught me one turn after I stated it.**
+
+**vc's FIFTH CASE IS THE MECHANISM BEHIND MY OWN SHOW-STOPPER AND IT CORRECTS WHAT I HAVE BEEN SAYING ALL DAY.** Their liveness arm pronounced a fully locked-out estate ALIVE because **it read `st list`'s REFUSAL MESSAGE as proof of life -- the refusal names thread ids.** I have been carrying "three instruments were green and all three read FILES", which is wrong about liveness and lets it off. **Liveness did not fail to check: it checked, and the FAILURE ANSWERED IT.** That is worse and more useful -- an instrument reading the wrong artefact is fixed by re-pointing it; **an instrument fed by the failure mode cannot be re-pointed at all, only taught to tell the answer from the error.**
+
+**vc's OWN SHARPEST LINE, KEPT: they had made their half UNFALSIFIABLE BY CONVENTION RATHER THAN BY CONSTRUCTION.** That names why the error could hide, where "it hid in my green" only says that it did.
 
 ### AN INVENTED CAUSE THAT RECONCILES IS THE HARDEST KIND TO DOUBT
 
