@@ -173,10 +173,25 @@ n_thread=0 n_wp=0 n_ac=0 n_at=0 n_issue=0 n_open=0 n_closed=0
 
 # Threads: exact basename `info.md`, parent directory an ST id. The v2 layout
 # nests closed threads under a status bucket, so depth is not a predicate.
+#
+# LIVE and CLOSED are counted separately for the same reason OPEN and CLOSED
+# issues are, and it is the sharpest thing this census says about its own
+# corpus. The migrator routes the SAME unreadable row to BLOCK in a live thread
+# and to CARRY in a closed one, so the BLOCK arm's only possible input is live
+# threads. **The canary holds 52 completed + 2 cancelled against 1 wip + 1 not
+# started.** Whatever a run of the migrator reports about residue, it was asked
+# about two threads out of fifty-six -- and a corpus that cannot reach an arm
+# and a corpus that reached it and found nothing produce the identical zero.
+# Publishing the split is the difference between those two readings.
+n_live=0 n_closed_thread=0
 while IFS= read -r f; do
   id="$(basename "$(dirname "$f")")"
   printf 'ENTITY\tthread\t%s\t%s\n' "$id" "$f" >>"$RECORDS"
   n_thread=$((n_thread + 1))
+  case "$(awk -F': *' '/^status:/ { print tolower($2); exit }' "$f")" in
+    completed|complete|done|cancelled|canceled) n_closed_thread=$((n_closed_thread + 1)) ;;
+    *) n_live=$((n_live + 1)) ;;
+  esac
   dump_sections "$f" thread "$id"
 done < <(find intent/st -type f -name info.md | awk -F/ '$(NF-1) ~ /^ST[0-9][0-9][0-9][0-9]$/' | sort)
 
@@ -271,3 +286,5 @@ printf 'COUNT\tissue_open\t%d\n' "$n_open"
 printf 'COUNT\tissue_closed\t%d\n' "$n_closed"
 printf 'COUNT\tsection\t%d\n' "$n_sec"
 printf 'COUNT\tbucketed_file\t%d\n' "$n_bucketed"
+printf 'COUNT\tthread_live\t%d\n' "$n_live"
+printf 'COUNT\tthread_closed\t%d\n' "$n_closed_thread"
