@@ -43,8 +43,8 @@ use crate::event::{self, Envelope, Subject};
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtStatus, Criterion, Issue, TShirt, Thread, ThreadStatus,
-  WorkPackage, WpStatus, to_canonical_json,
+  AcKind, AcState, AcceptanceTest, AtStatus, Criterion, Issue, IssueStatus, TShirt, Thread,
+  ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use crate::project::{Migration, Pending, Project};
 use crate::store::{Store, StoreError};
@@ -1869,6 +1869,150 @@ impl Facade {
   }
 
   // -------------------------------------------------------------------------
+  // Issue lifecycle -- MACHINE 4
+  //
+  // **These three were blocked on a ratification for two days, not on effort.**
+  // `Issue.status` was `Disposition::Unbuilt`: `Closed` was a value authored
+  // canon could put there with no verb to leave it, which is what AC-04.6's
+  // second condition names. Building `close` and `open` meant declaring the
+  // `open <-> closed` edges, and declaring edges is declaring a machine -- so
+  // it went to hv rather than being written on my own authority, however
+  // obvious the two edges look. hv ratified Machine 4 on 2026-08-17.
+  //
+  // **v2 HAD these verbs, which makes this a REGRESSION being closed rather
+  // than a feature.** That distinction decided the parity posture: the row is
+  // `keep` with `target.state: as-observed`, so the graph and the strings both
+  // come from `bin/intent_issues` and nothing here is a design choice.
+  // -------------------------------------------------------------------------
+
+  /// Raise an issue. The number is the next free one.
+  ///
+  /// **`created` goes in EMPTY and comes back filled** (D42) -- same idiom as
+  /// [`Facade::st_new`]. Nothing here knows what day it is, the store fills the
+  /// date inside the INSERT, and `apply` renders the extract from what landed.
+  ///
+  /// **The severity DEFAULT is the caller's, not this function's.** v2 defaults
+  /// `--severity` to `medium` in its flag parsing, and the dispatch row carries
+  /// that default, so the flag's default belongs to the surface. `None` here
+  /// means nobody said -- which `issues list` already renders as `?` rather than
+  /// as a blank, deliberately.
+  pub fn issue_add(&mut self, title: &str, severity: Option<&str>) -> Result<u32, FacadeError> {
+    let number = self.next_issue_number();
+    let issue = crate::model::Issue {
+      schema: crate::model::ISSUE_SCHEMA.to_string(),
+      number,
+      slug: slugify(title),
+      title: title.to_string(),
+      status: IssueStatus::Open,
+      severity: severity.map(str::to_string),
+      created: String::new(),
+      closed: None,
+    };
+    let mut next = self.canon.clone();
+    next.issues.push(issue);
+    self.apply(
+      "issues.add",
+      Subject {
+        kind: "issue".to_string(),
+        id: format!("{number:04}"),
+      },
+      json!({"title": title, "severity": severity}),
+      next,
+    )?;
+    Ok(number)
+  }
+
+  /// Close an issue.
+  pub fn issue_close(&mut self, number: u32) -> Result<Outcome, FacadeError> {
+    self.set_issue_status(number, IssueStatus::Closed, "issues.close")
+  }
+
+  /// Reopen a closed issue.
+  pub fn issue_open(&mut self, number: u32) -> Result<Outcome, FacadeError> {
+    self.set_issue_status(number, IssueStatus::Open, "issues.open")
+  }
+
+  /// The shared setter, in the same shape as [`Facade::set_thread_status`] and
+  /// for the same reasons -- self-loop test FIRST, then the declared graph.
+  ///
+  /// **The self-loop here is not a nicety, it is the parity case.** v2's
+  /// `move_issue` looks in the source bucket and, finding nothing, looks in the
+  /// TARGET before erroring: an already-closed issue gets `already CLOSED` at
+  /// exit 0 and an absent one gets a refusal. That behaviour is where hv's
+  /// self-loop ruling took its citation from, so reproducing it is what the
+  /// `keep` disposition means -- and the two conditions v2 tells apart, this
+  /// must also tell apart.
+  ///
+  /// **No guard call, and the absence is checked rather than assumed.** Machine
+  /// 4 declares none; `Guard::ReasonRecorded` is the only variant that could
+  /// apply to an issue and `Issue` has no field to record one in. See the row in
+  /// `transitions.rs` for what a guard added here would cost.
+  fn set_issue_status(
+    &mut self,
+    number: u32,
+    status: IssueStatus,
+    op: &'static str,
+  ) -> Result<Outcome, FacadeError> {
+    let from = self.issue_show(number)?.status;
+    if from == status {
+      return Ok(Outcome::AlreadyThere);
+    }
+    Self::check_transition(
+      "Issue",
+      "status",
+      op,
+      &crate::model::enum_str(&from),
+      &format!("{number:04}"),
+    )?;
+    let mut next = self.canon.clone();
+    let issue = next
+      .issues
+      .iter_mut()
+      .find(|i| i.number == number)
+      .ok_or(FacadeError::NoSuchIssue { number })?;
+    issue.status = status;
+    // The same three-state sentinel `thread.completed` uses: `Some("")` asks
+    // the database for today, `None` clears it. Reopening an issue drops the
+    // close date because it describes a state that has ended -- the same
+    // reasoning as `st resume` clearing a hold reason.
+    issue.closed = match status {
+      IssueStatus::Closed => Some(String::new()),
+      IssueStatus::Open => None,
+    };
+    self
+      .apply(
+        op,
+        Subject {
+          kind: "issue".to_string(),
+          id: format!("{number:04}"),
+        },
+        json!({
+          "from": crate::model::enum_str(&from),
+          "to": crate::model::enum_str(&status),
+        }),
+        next,
+      )
+      .map(|()| Outcome::Moved)
+  }
+
+  /// The next free issue number.
+  ///
+  /// **Highest-plus-one, not count-plus-one**, for the reason
+  /// [`Facade::next_thread_id`] is: a project whose issues are not contiguous --
+  /// and Intent's own are not, once anything is ever removed -- would otherwise
+  /// be handed a number that is already taken.
+  fn next_issue_number(&self) -> u32 {
+    self
+      .canon
+      .issues
+      .iter()
+      .map(|i| i.number)
+      .max()
+      .unwrap_or(0)
+      + 1
+  }
+
+  // -------------------------------------------------------------------------
   // The one write path
   // -------------------------------------------------------------------------
 
@@ -2008,10 +2152,26 @@ impl Facade {
     // it as part of the INSERT. Rendering `thread.json` before this point would
     // write the empty string into the extract -- truth and its projection
     // disagreeing on the one field neither of them can recompute.
-    for stamped in dates {
+    for stamped in dates.threads {
       let thread = find_thread_mut(&mut next, &stamped.id)?;
       thread.created = stamped.created;
       thread.completed = stamped.completed;
+    }
+    // **The issues arm is the same seam and it was missing until Machine 4
+    // needed it.** `issues.created` is a domain date the DDL names alongside
+    // `threads.created`, `issues add` hands it in empty, and before this loop
+    // existed there was no channel to bring the stamp back -- so the extract
+    // would have carried `""` for the one field a rebuild cannot recompute.
+    for stamped in dates.issues {
+      let issue = next
+        .issues
+        .iter_mut()
+        .find(|i| i.number == stamped.number)
+        .ok_or(FacadeError::NoSuchIssue {
+          number: stamped.number,
+        })?;
+      issue.created = stamped.created;
+      issue.closed = stamped.closed;
     }
 
     // The SAME projection both sync directions use, so a mutation and a

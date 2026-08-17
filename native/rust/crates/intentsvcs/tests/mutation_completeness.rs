@@ -28,8 +28,8 @@ mod common;
 use common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{
-  AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, IssueStatus, Thread, ThreadStatus,
-  WpStatus, enum_str,
+  AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, Issue, IssueStatus, Thread,
+  ThreadStatus, WpStatus, enum_str,
 };
 use intentsvcs::transitions::{
   ABSENT, Disposition, Edge, Entry, FIELDS, Guard, exitless, find, traps, unreachable,
@@ -864,6 +864,24 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       // `Satisfied`, so an edge that leaves `Satisfied` takes it with it and
       // there is no state in which the pair can disagree.
       state_name_of(&c.state).to_string()
+    }
+    ("Issue", "status") => {
+      let fx = Fixture::new();
+      // **The fixture's issue is authored at `from`, and the number is 21 rather
+      // than 1** so that a verb resolving by position instead of by number
+      // cannot pass -- `next_issue_number` is also read from this shape.
+      fx.write_issue(&Issue {
+        status: parse(from),
+        ..sample_issue(21)
+      });
+      let mut facade = fx.facade();
+      let outcome = match edge.verb {
+        "issues.close" => facade.issue_close(21).expect("issues close"),
+        "issues.open" => facade.issue_open(21).expect("issues open"),
+        other => panic!("no arm drives {other} on Issue.status"),
+      };
+      assert_movement(entity, field, edge, from, outcome);
+      enum_str(&facade.issue_show(21).expect("issue").status).to_string()
     }
     other => panic!("no arm drives {other:?} -- every State field needs one"),
   }

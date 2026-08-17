@@ -487,9 +487,39 @@ pub const FIELDS: &[Field] = &[
   Field {
     entity: "Issue",
     field: "status",
-    disposition: Disposition::Unbuilt {
-      note: "the read verbs ship; `add`, `close` and `open` do not, so there is no verb to open or close one. Both values are reachable only by authoring canon directly, and v2 HAD `issues close` -- this one is a regression rather than a gap never filled",
-      entry: Entry::Authored,
+    // **MACHINE 4** (data-model.md, hv 2026-08-17), transcribed. This row was
+    // `Disposition::Unbuilt` until the ruling: the read verbs shipped, `add` /
+    // `close` / `open` did not, and both values were reachable only by
+    // authoring canon directly -- so `Closed` was entered and unleaveable and
+    // AC-04.6's second condition held it.
+    //
+    // **It is DECLARED FROM v2's MEASURED BEHAVIOUR, not designed.** The
+    // `intent issues` family is `keep`-classified with `target.state:
+    // as-observed`, so the graph is whatever `bin/intent_issues` does.
+    disposition: Disposition::State {
+      initial: &["open"],
+      // **NO GUARDS, DELIBERATELY, and this is the one row where the empty
+      // guard list is a ratified fact rather than an absence.** v2 has none --
+      // `move_issue` checks a directory and moves it -- the row is `keep`, and
+      // hv's ruling says inventing one here "would be a parity break wearing a
+      // ratification".
+      //
+      // **What a guard added here WOULD cost, recorded so the empty list is not
+      // mistaken for a cheap one.** `Guard::ReasonRecorded` is the only variant
+      // that could mean anything for an issue, and `Issue` has no
+      // `status_reason` field to record it in -- so declaring it would be a
+      // MODEL change, not a table edit, and the model change is what would
+      // force the enforcement. That is a weaker protection than the one
+      // `check_gate` now gives the thread machine, and the general gap is filed
+      // as issue 0051.
+      edges: &[
+        Edge::direct("issues.close", &["open"], "closed"),
+        Edge::direct("issues.open", &["closed"], "open"),
+      ],
+      // `issues add` is the entry, not an edge -- same treatment as `st new`
+      // and `wp new`, whose target is the `initial` value above. A creation
+      // verb has no from-state to declare.
+      orphans: &[],
     },
   },
 ];

@@ -1498,22 +1498,22 @@ fn info_project(cwd: Option<&std::path::Path>) {
   println!();
 }
 
-/// `intent issues` -- the READ half, and the mutating half is deliberately not
-/// here.
+/// `intent issues` -- all six verbs, since hv ratified Machine 4.
 ///
-/// **`add`, `close` and `open` are blocked on a ratification, not on effort.**
-/// `transitions.rs` declares `Issue.status` as `Disposition::Unbuilt`, and
-/// `data-model.md` ratifies three machines -- thread, work package, criterion
-/// -- and no issue machine. AC-04.6 requires the implemented graph to match the
-/// ratified machines EXACTLY, with no undeclared edge, so wiring `close` and
-/// `open` means declaring `open <-> closed` on my own authority. The edges look
-/// obvious, and that is exactly when the discipline is worth keeping: the whole
-/// point of a ratified machine is that the person implementing it does not get
-/// to add to it.
+/// **`add`, `close` and `open` were blocked on a ratification, not on effort,
+/// and reported themselves unbuilt for two days.** `transitions.rs` had
+/// `Issue.status` as `Disposition::Unbuilt` while `data-model.md` ratified three
+/// machines and no issue machine; AC-04.6 requires the implemented graph to
+/// match the ratified machines EXACTLY, so wiring `close` and `open` meant
+/// declaring `open <-> closed` on my own authority. The edges looked obvious,
+/// which is exactly when the discipline is worth keeping. hv ruled Machine 4 on
+/// 2026-08-17 and the three are wired here.
 ///
-/// So the three read verbs ship and the three mutations report themselves
-/// unbuilt, which is what they already did. Raised with vc rather than built
-/// around.
+/// **Every string below is v2's, and that is the `keep` disposition being
+/// honoured rather than a coincidence.** The family is `keep` with
+/// `target.state: as-observed`, so `bin/intent_issues` is the specification --
+/// including its two-line `add` output and its `already CLOSED` self-loop, which
+/// is where hv's self-loop ruling took its citation from.
 fn issues(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     // The bare form runs `list`, which is the table's declared default verb
@@ -1590,7 +1590,61 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
+    Some(("add" | "new", a)) => {
+      let title = arg(a, "title")?;
+      // **`--severity` has a DEFAULT and it lives in the dispatch table, not
+      // here.** v2's flag parsing defaults it to `medium` and the row carries
+      // that; the facade takes `None` to mean nobody said, which is the state
+      // `issues list` renders as `?`. Reading it through `opt` keeps the default
+      // where the surface declares it -- if the table's default is ever removed,
+      // the facade records the absence rather than this arm inventing one.
+      let severity = opt(a, "severity");
+      let mut f = open()?;
+      let number = f.issue_add(&title, severity.as_deref()).map_err(fail)?;
+      // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
+      // then `<id>:<title>`. **The path is v3's own**, because v2's
+      // `issues/OPEN/<NNNN>/<NNNN>-<slug>.md` layout retires under the ratified
+      // deviation -- the shape of the output is parity, the path inside it
+      // cannot be.
+      println!("created: {}", f.project().issue_json(number).display());
+      println!("{number:04}:{title}");
+      Ok(())
+    }
+    Some(("close", a)) => {
+      let number = issue_number(&arg(a, "id")?)?;
+      already(open()?.issue_close(number).map_err(fail)?, number, "CLOSED");
+      Ok(())
+    }
+    Some(("open", a)) => {
+      let number = issue_number(&arg(a, "id")?)?;
+      already(open()?.issue_open(number).map_err(fail)?, number, "OPEN");
+      Ok(())
+    }
     Some((verb, _)) => unwired("issues", verb),
+  }
+}
+
+/// v2's two `move_issue` lines, and THE HOUSE FORM for a self-loop.
+///
+/// **`ok: issue 0050 already CLOSED` is the only `already` arm in v2**
+/// (`bin/intent_issues:283`) and it is the arm hv's self-loop ruling cites, so
+/// it settles the phrasing question issue 0050 raises rather than merely
+/// answering it for this family: **the no-op line names the STATE the entity is
+/// in, not the verb the caller failed to perform.** `was already done` -- the
+/// spelling `todo done` shipped -- only coincides with the state when the verb
+/// and the state share a word, and it stops meaning anything on `st hold`
+/// (state: `on hold`) or `st triage` (state: `not-started`). Naming the state
+/// tells a caller what the entity IS; naming the verb tells them what they
+/// failed to do, which they already know.
+///
+/// **And no third prefix.** INV-01 names `ok:` and `error:`; v2's `skipped:` on
+/// `st start` is already carried as a deviation on that row. Reviving it across
+/// every self-loop arm to match one v2 verb, against the invariant, is a larger
+/// surface change than matching the one v2 form that already complies.
+fn already(outcome: Outcome, number: u32, state: &str) {
+  match outcome {
+    Outcome::Moved => println!("ok: issue {number:04} -> {state}"),
+    Outcome::AlreadyThere => println!("ok: issue {number:04} already {state}"),
   }
 }
 

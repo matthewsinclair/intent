@@ -703,6 +703,36 @@ pub struct ThreadDates {
   pub completed: Option<String>,
 }
 
+/// What the database stored for one issue's DOMAIN dates.
+///
+/// **Separate from [`ThreadDates`] rather than a generic pair, because the two
+/// second dates are different facts.** A thread's `completed` and an issue's
+/// `closed` are both "the day it stopped being open" and they belong to
+/// different entities with different keys, so one struct carrying `id: String`
+/// would force an issue's number through a string and lose the type that makes
+/// the call sites unmixable.
+#[derive(Debug, Clone)]
+pub struct IssueDates {
+  pub number: u32,
+  pub created: String,
+  pub closed: Option<String>,
+}
+
+/// Every domain date a mutation's writes actually landed, by entity kind (D42).
+///
+/// **This exists because `issues` was the second entity to carry domain dates
+/// and the channel only had room for the first.** `commit_mutation` returned
+/// `Vec<ThreadDates>`, so an issue created by a mutation had no way to tell the
+/// caller what date the database put on it -- and the caller renders the
+/// committed extract from what it holds. The extract would have carried the
+/// empty string it handed in while truth carried the date, which is truth and
+/// its projection disagreeing on the one field neither of them can recompute.
+#[derive(Debug, Clone, Default)]
+pub struct StoredDates {
+  pub threads: Vec<ThreadDates>,
+  pub issues: Vec<IssueDates>,
+}
+
 pub struct Mutation<'a> {
   pub threads: &'a [&'a Thread],
   pub issues: &'a [&'a Issue],
@@ -1009,11 +1039,42 @@ impl Store {
 
   /// Write ONE issue inside an open transaction. Same Highlander reason as
   /// [`Store::write_thread`].
-  fn write_issue(tx: &rusqlite::Transaction<'_>, i: &Issue) -> Result<(), StoreError> {
+  ///
+  /// **THE TWO DOORS, and this function had neither until `issues add` existed
+  /// to need them** (D42). `issues.created` and `issues.closed` are DOMAIN
+  /// dates -- the DDL comment above the table says so, in the same breath as
+  /// `threads.created` -- and a domain date is either being SET by this write or
+  /// REINSTATED by it. Carrying the caller's value unconditionally was correct
+  /// only while every caller was `rebuild`, ie while the only act was restore.
+  ///
+  /// So the doors are exactly [`Store::write_thread`]'s, for exactly its reason:
+  /// [`Stamp::ByTheDatabase`] reads the empty string as "I have no date, you
+  /// have the clock", and [`Stamp::CarriedFromTheExtract`] takes what it is
+  /// given. Returns what landed, because the caller cannot otherwise know.
+  ///
+  /// The empty-string sentinel is only ever produced by the CREATE verb: every
+  /// other mutation clones canon and edits one field, so `created` arrives
+  /// already filled and `COALESCE` carries it through untouched. A `closed` of
+  /// `Some("")` is `issues close` asking for today; `None` is open.
+  fn write_issue(
+    tx: &rusqlite::Transaction<'_>,
+    i: &Issue,
+    stamp: Stamp,
+  ) -> Result<(String, Option<String>), StoreError> {
+    let dates = match stamp {
+      Stamp::ByTheDatabase => {
+        "COALESCE(NULLIF(?6, ''), strftime('%Y-%m-%d', 'now')),
+         CASE WHEN ?7 IS NULL THEN NULL
+              WHEN ?7 = '' THEN strftime('%Y-%m-%d', 'now')
+              ELSE ?7 END"
+      }
+      Stamp::CarriedFromTheExtract => "?6, ?7",
+    };
     // Upserted for the same reason as a thread: durable identity, so
     // `created_at` must fire once rather than on every write.
-    tx.execute(
-      "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+    let stored = tx.query_row(
+      &format!(
+        "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, {dates})
        ON CONFLICT (number) DO UPDATE SET
          slug = excluded.slug,
          title = excluded.title,
@@ -1021,10 +1082,13 @@ impl Store {
          severity = excluded.severity,
          created = excluded.created,
          closed = excluded.closed,
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+       RETURNING created, closed"
+      ),
       params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed],
+      |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     )?;
-    Ok(())
+    Ok(stored)
   }
 
   /// THE MUTATION WRITE PATH (D01 as reversed 2026-08-15): apply exactly the
@@ -1038,12 +1102,12 @@ impl Store {
   /// disk -> db sync direction, which is the one place a wholesale reload is
   /// the correct operation.
   ///
-  /// **Returns what the database actually stored for each thread's domain
-  /// dates** (D42). A mutation that creates a thread hands in an empty
-  /// `created`; SQLite fills it as part of the INSERT and the value comes back
-  /// here, so the caller learns the date from the write instead of reading a
-  /// clock and predicting it.
-  pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<Vec<ThreadDates>, StoreError> {
+  /// **Returns what the database actually stored for the domain dates of BOTH
+  /// entity kinds** (D42). A mutation that creates a thread or raises an issue
+  /// hands in an empty `created`; SQLite fills it as part of the INSERT and the
+  /// value comes back here, so the caller learns the date from the write instead
+  /// of reading a clock and predicting it.
+  pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<StoredDates, StoreError> {
     let tx = self.conn.transaction()?;
     for id in change.removed_threads {
       tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![id])?;
@@ -1055,19 +1119,26 @@ impl Store {
     for number in change.removed_issues {
       tx.execute("DELETE FROM issues WHERE number = ?1", params![number])?;
     }
-    let mut dates = Vec::new();
+    let mut dates = StoredDates::default();
     for t in change.threads {
       // The CREATE door: this write is the thing happening, so the database
       // stamps it.
       let (created, completed) = Self::write_thread(&tx, t, Stamp::ByTheDatabase)?;
-      dates.push(ThreadDates {
+      dates.threads.push(ThreadDates {
         id: t.id.clone(),
         created,
         completed,
       });
     }
     for i in change.issues {
-      Self::write_issue(&tx, i)?;
+      // The same door, for the same reason. `issues add` hands in an empty
+      // `created` and `issues close` an empty `closed`; both come back filled.
+      let (created, closed) = Self::write_issue(&tx, i, Stamp::ByTheDatabase)?;
+      dates.issues.push(IssueDates {
+        number: i.number,
+        created,
+        closed,
+      });
     }
     Self::write_doc_sections(&tx, change.sections)?;
     // The mutation's own event: the DB stamps it inside the same
@@ -1091,7 +1162,12 @@ impl Store {
       Self::write_thread(&tx, t, Stamp::CarriedFromTheExtract)?;
     }
     for i in issues {
-      Self::write_issue(&tx, i)?;
+      // The RESTORE door, same as the threads above. **v2 users AUTHOR an
+      // issue's `date` by hand in frontmatter**, so re-stamping it here would
+      // overwrite a fact about the world with a fact about this rebuild -- and
+      // `rm intent.db` is not an operation (D36) precisely because a rebuild
+      // must not change what the estate says.
+      Self::write_issue(&tx, i, Stamp::CarriedFromTheExtract)?;
     }
     tx.commit()?;
     Ok(())
