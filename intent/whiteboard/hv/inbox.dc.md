@@ -73,3 +73,30 @@ Landed as the second hard publication hold in `install.md` (`ad46d014`), stated 
 Also on the cut path, found by running the suite rather than reading it (`0ef6e0a1`): **`int build release --help` was printing no flags at all.** usage() printed a hardcoded `5,34p` window of its own header; the header grew and line 34 became the word "Usage:", so --help exited 0 having printed the title, the prose and that word. Its own comment had predicted the drift and written the prediction down instead of removing the coupling. Anchored to the comment block's real boundaries now, and the new test derives the flag set from the parser's case arms rather than spelling three by hand -- mutation-proven: an undocumented `--pretend` arm passes the old test and reddens the new one.
 
 FYI only -- no response needed, except from vc if you want 0043's own text updated to match, since it is yours.
+
+## (2026-08-17 03:01Z)
+
+**A NEW HARD PUBLICATION HOLD, MEASURED, AND IT IS THE ONE THAT WOULD HAVE BROKEN ON THE FIRST PUBLISHED BUILD.**
+
+**The Homebrew formula installs the two binaries and nothing else. The binary cannot work without `lib/templates/` beside it.**
+
+`intent claude hook` does not reimplement the session hooks -- it **execs the shipped shell scripts out of the install root** -- and `intent info` prints that root for the pre-commit gate to parse back. The root is found by walking up from the binary's own location to the directory containing `lib/templates/`. There is no environment fallback, deliberately.
+
+Measured on a reproduction of exactly what the formula produces:
+
+- `intent info` -> **exit 0**, `INTENT_HOME: <not set>`
+- `intent claude hook require-in-session` -> **exit 1**, cannot locate the install
+
+**Both fail silently. Neither returns a code any consumer treats as failure.** So a published v3 would quietly remove session hooks and whiteboard guards from every project it touched, and the symptom would read as a hook bug rather than a packaging one.
+
+**Recorded in `install.md` as the second hard hold beside 0036. Nothing is published and nothing needs deciding tonight.**
+
+**Two things did close today**, so the ledger is not all one way: **0043, the prompt lockout, is CLOSED** -- cc implemented `info` and `claude hook`, I verified it on a rebuilt binary and lifted that hold. And **0042 is closed empirically**: the whiteboard guards resolve and REFUSE a bad timestamp under the real v3 binary.
+
+**The decision this creates is mine to prepare, not yours to make now**, but you should know it is coming: shipping `lib/templates/` means either putting it inside the release asset -- which turns a bare binary into an archive and changes signing, notarisation and the checksum step -- or laying it down another way. I will bring you the options with the costs measured rather than a preference.
+
+**Still waiting on you, unchanged: the upstream freeze for the cut itself, and the `## [3.0.0]` CHANGELOG section.**
+
+FYI only -- no response needed tonight.
+
+-- dc

@@ -2,7 +2,28 @@
 
 **NOTHING BELOW WORKS YET, AND THAT IS DELIBERATE.** The tap `matthewsinclair/homebrew-intent` is live and **carries no formula**, because a formula pointing at a release that does not exist reads as "the tap is broken" rather than "the release is not out yet". These are the instructions the first `int macos publish` makes true; they become user-facing documentation at the WP-12 cutover, not before. Read the tense as future.
 
-**ONE hard hold stands between here and publication: issue 0036** -- the refusal's remedy names a subcommand v3 does not have. Verified still live at HEAD `304cd104` on a binary built from that tree: `intent upgrade` exits 2, not implemented. **Issue 0043, the prompt lockout, was the second hold and is RELEASED** -- closed by `c6aee944` and re-measured here; the section below is kept as the record of what it was and what closed it, because the class it belongs to is not closed. A further gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document.
+**TWO hard holds stand between here and publication.** **Issue 0036** -- the refusal's remedy names a subcommand v3 does not have; verified still live at HEAD `304cd104`, `intent upgrade` exits 2. And **the packaging hold below: the formula installs the binaries and nothing else, so a brew-installed `intent` cannot find its own install tree.** Issue 0043, the prompt lockout, was a third and is RELEASED -- closed by `c6aee944` and re-measured here. A further gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document.
+
+### HARD PUBLICATION HOLD: the formula ships `bin/` and nothing else, and the binary needs `lib/templates/` beside it
+
+**This is the one that breaks on the first published build, and it will look like a hook bug rather than a packaging one.** Raised by cc from the implementation side, measured here from the packaging side.
+
+`intent claude hook <name>` does not reimplement the hooks -- it **execs `lib/templates/.claude/scripts/<name>.sh` out of the install root**, and `intent info` prints that same root for the pre-commit gate to parse back. The binary resolves the root by walking up from its symlink-resolved `current_exe()` to the directory containing `lib/templates/`. **There is no `INTENT_HOME` fallback and that is deliberate** (AC-11.3, and stronger than the AC asks): the environment read was removed rather than demoted, because a stale v2 export would otherwise make a v3 binary exec v2's hook scripts with nothing reporting the mismatch.
+
+**The formula installs two files.** `bin.install` for `intent` and `intentd`; `lib/templates/` is staged nowhere, and no release asset has ever carried it. So the walk terminates without finding a marker.
+
+**Measured against a reproduction of exactly what the formula produces** -- the binary under `Cellar/intent/3.0.0/bin/` with a `bin/intent` symlink in front of it, invoked from a neutral working directory:
+
+| invocation                              | exit  | result                                                                      |
+| --------------------------------------- | ----- | --------------------------------------------------------------------------- |
+| `intent info`                           | **0** | `INTENT_HOME: <not set>`, with `cannot locate the Intent install` on stderr |
+| `intent claude hook require-in-session` | **1** | `cannot locate the Intent install this binary belongs to`                   |
+
+**Both fail QUIETLY, and the exit codes are why.** `claude hook` returning 1 does not block a prompt -- vc's rig established that exit 1 passes through -- so all three Claude Code hooks silently stop working rather than announcing themselves. And `intent info` **exits 0 while printing an error**, so the pre-commit gate's status check passes; only the empty `INTENT_HOME` parse catches it, which is the fail-open path from issue 0042. **The net effect of publishing today is that every consumer project silently loses its session hooks and its whiteboard guards, and nothing anywhere returns a failing code about it.**
+
+**This is 0042 and 0043's shape reached by a third route.** Those were commands that did not exist; this is the same commands unable to find what they need. The remedy is packaging, not code: **`lib/templates/` must be staged into the prefix beside `bin/` and installed by the formula.** Homebrew's `bin/intent` symlink is not itself a problem -- the walk canonicalises before it climbs.
+
+**Not yet decided and it belongs to the fix:** whether the templates ship inside the release asset (making the asset an archive rather than a bare Mach-O, which changes signing, notarisation and the checksum step) or are laid down some other way. That choice is WP-11's and it is the next thing on this workstream.
 
 This document is about **getting the binary onto a machine and what that does to an install already there**. It is not the migration spec. The v2 -> v3 data migration -- preconditions, the flow, the carry policy, what the migrator refuses -- is `migration.md`, and is deliberately not restated here.
 

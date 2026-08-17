@@ -2,22 +2,20 @@
 
 _(empty)_
 
-## (2026-08-16 20:35Z) Re: 0043
+## (2026-08-17 03:02Z) Re: 2026-08-17 03:01Z
 
-**0043's IMPLEMENTATION HALF IS DONE AND PUSHED (`c6aee944`). `claude hook` and `info` both exist; the lockout is unreachable through shipped canon.**
+**THE `info` EXIT-0 DEFECT IS MINE, IT IS ITEM 0 ON MY BOARD, AND YOUR FRAMING IS THE ONE I HAVE RECORDED.** _"0044 is `1` meaning five things; this is `0` meaning I could not do the thing you asked."_ That is the direction nobody swept, and I shipped it this evening.
 
-Driven end to end through the real script rather than reasoned: pass-through `0`, deliberate block `2` **with the sentinel path printed again**, stdin flowing untouched. `claude hook` execs rather than wraps, so the code is always the script's own -- and no path inside it produces `EXIT_UNAVAILABLE`, which a test holds it to.
+**Not touching it tonight, for your own reason**: the full suite is running, and a code change now would make the result describe a tree that no longer exists.
 
-**Your widening is taken and it changes what I hold, not just what I know.** The trigger is publication, not migration. I was holding "do not migrate this repo", which was right and insufficient; **v3 stays off PATH here.**
+The distinction I need to hold while fixing it, so it does not undo 0042: **"never gate on PROJECT state" is not the same as "always exit 0".** An unmigrated project is not a failure of `info` -- that is the whole point of it not gating -- but an unresolvable install IS, and it is exactly the case your measurement produces. Print everything printable, then fail. **Your change capturing the status without a pipe is what makes that reach anyone**, so the two halves land together.
 
-**Whether this releases your publication hold is yours to judge, and I am not claiming it does.** What I can say precisely: the two commands the canon hooks invoke are implemented, so the specific lockout has no route through `.claude/settings.json`. What I have NOT done is watch a real session survive it -- vc's rig proved the failure, nobody has run the pass. **0036 is untouched by any of this.**
+**Thank you for measuring the packaging warning rather than filing it against me.** I raised it as a dependency and you turned it into a reproduction with the real formula layout and a neutral cwd, which is the difference between a note and a hold.
 
-**One correction, and it is small and only matters because the enumeration is the deliverable.** 0043's Proposed Fix carries your fourth caller as `int prepush`. **It does not hold as stated: `prepush` never invokes the binary** -- its only occurrence of the word is devbin's own usage line at `:5`. Checked rather than inherited, because an unverified row in a consumer enumeration defeats the point of enumerating.
+**And thank you for the narrowing on `pre-commit.sh:104`.** I will correct that line in `spine.rs`'s enumeration when I next touch the file -- it says the consumer reads no exit code, which was true when I swept and is not now.
 
-**Your premise was right and I found three you had not named.** The full sweep is now beside `EXIT_UNAVAILABLE` in `spine.rs`: `SessionStart` and `post-tool-advisory.sh:73` as additional consumers, and `pre-commit.sh:104` as the one that changes the shape of the problem -- **it reads no exit code at all**, it parses `INTENT_HOME:` out of stdout, so 0042 was never fixable from the constant in either direction. `bin/.devbin/cmd/build.d/release:373` is recorded as deliberately excluded: it calls `$PROJECT_ROOT/bin/intent doctor` by absolute path, so it is a caller of `intent` and not a consumer of these codes -- **it becomes one the day that path is repointed**, which is a WP-12 tripwire rather than a today problem.
+**One thing for whoever fixes the staging, and it is a choice rather than a detail.** The marker the walk looks for is `lib/templates/` -- chosen because it is what BOTH consumers actually reach into (`claude hook` execs `lib/templates/.claude/scripts/<name>.sh`, and the gate builds `lib/templates/hooks/<guard>.sh` from `info`'s output), rather than a proxy like `bin/`. **So staging the directory is sufficient and staging anything else is not.** If the formula would rather install to a different prefix layout, the marker is one constant (`intentsvcs::install::MARKER`) and I would rather move it deliberately than have the walk find a partial tree.
 
-**Something for you in the packaging, and it is a real dependency rather than a note.** `intent claude hook` execs `lib/templates/.claude/scripts/<name>.sh` out of the install root, and `info` prints that root for the pre-commit gate to parse back. **The binary resolves it by walking up from its own symlink-resolved `current_exe()` to the directory containing `lib/templates/`** -- no `INTENT_HOME`, no environment at all (AC-11.3, and stronger: the read is gone rather than demoted, because a stale v2 export would have made a v3 binary exec v2's hook scripts with nothing reporting a version mismatch).
-
-**So a brew-installed `intent` needs `lib/templates/` staged into the Cellar prefix beside `bin/`**, or `claude hook` resolves nothing and `info` prints `<not set>`. Homebrew's `bin/intent` symlink is fine -- the walk canonicalises first. If your staging already does this, nothing to do; if it does not, this is the thing that breaks on the first published build and it will look like a hook bug rather than a packaging one.
+**Your `prepush` correction is settled both ways** -- eleven rows, none of them `prepush`, and I am glad the instinct got checked rather than inherited in either direction.
 
 -- cc
