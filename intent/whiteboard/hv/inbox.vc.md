@@ -511,3 +511,33 @@ Today: **ic cited the void derivation to dc. I cited the same void derivation to
 **Both are annotated on their rows with the measurement, and neither is blocked on you** -- cc has the queue for the first and the second is an implementation cc and ic have between them. Raising it only because the two together are a pattern and either alone reads as a gap.
 
 **One correction to my own canon-hygiene item from earlier, and it comes from ic.** I framed the failure as _believing a premise we found_. ic supplied the inverse from the same day: they went to `migration.md`, found no mention of `st.new`, and were a step from telling dc the contract said nothing about events. **Absence in the first file you look in is not absence.** Same root -- treating one file as the boundary of what canon says -- from the opposite direction. It strengthens the case for a mechanism rather than adding a second item, so I have folded it in rather than filing separately.
+
+## (2026-08-17 19:06Z)
+
+**Your six rulings are recorded as D47-D52 and the `[VOID]` mechanism you authorised is built. One new thing needs you, and it is a cutover blocker.**
+
+**v3 migrates a project successfully and then refuses to read or write it. It affects every v2 project that has ever had a single steel thread.**
+
+**You can check this yourself in a scratch directory in four commands** -- no corpus, no capture, no build. I re-ran it rather than taking it from ic:
+
+    intent init X ; <v3> upgrade ; <v3> st list          -> exit 0, table renders   POSITIVE CONTROL
+    intent init X ; intent st new "a thread"
+                    <v3> upgrade   -> exit 0, "migrated: 1 thread(s), 6 file(s) written"
+                    <v3> st list   -> exit 1, REFUSES
+
+**The population is wider than "mature projects", and this is ic's correction to both of us**: v2's `intent st new` writes to `intent/st/NOT-STARTED/ST0001/` **from creation**, so a project four commands old breaks on its first thread. The only estate that survives is one with zero threads -- which is why neither of us could find a bucket-free control to test against. **It is not scarce; it is unconstructible with any content.**
+
+**On the real fleet, every read verb and `st new` refuse on all three migrated members.** Clean `git archive` extract at `b79e06de`, commit recorded beside the binary, never on PATH. Only `info` answers, and it reads no project state.
+
+    member         migrated  bucketed  BOTH  bucketed-only
+    Utilz                 9         9     9              0
+    Baize                25        21    21              0
+    Intent's estate      56        55    55              0
+
+**`bucketed-only = 0` everywhere. Not one thread the tool names as "carrying v2 canon this binary cannot read" is actually unmigrated** -- every one has a `thread.json` written by the migration now being refused. **The refusal is 100% false positives.** The detector asks a per-DIRECTORY question ("is there a `thread.json` beside this `info.md`") where the real question is per-THREAD ("is this id in migrated canon anywhere"), and the stale v2 copy sits one directory below the migrated one. **And the remedy the error prints is a no-op that claims success**: a second `intent upgrade` exits 0, reports `311 file(s) written` and `ok: this project is now Intent v3.0.0-dev`, and the estate still refuses.
+
+**YOUR D49 RULING IS THE FIX, NOT THE PROBLEM, AND I AM NOT RE-OPENING THE BUCKET QUESTION.** You said threads and WPs _"just are"_ and that sync puts them in the right spot by definition. **The migration already does that half correctly** -- every thread lands at the canonical flat path. What it does not do is stop the stale v2 copies being read back as unmigrated canon. This is a defect in a detector, and your ruling describes the world in which that detector is trivially right.
+
+**Why you are hearing it rather than just being told it is fixed: you ruled the adjacent question an hour ago without this in front of you, and it changes the priority, not the answer.** You called the bucket question not a priority -- correct about conservation and about `organize`, and not correct about this. **Nothing is needed from you unless you want to reorder something.** cc owns the `project.rs` fix and has it top of list; ic will re-drive the gate on two estates once it lands; I will not verify it only on the estate that found it.
+
+**One thing on my own harness, which is the honest half.** My fleet run recorded canary, Utilz and Baize as CONVERTING, and every conservation number still reproduces -- ALTERED 0, ADDED 0. **But nothing in that run ever asked whether the tool could still open the estate afterwards.** ic's framing is the right one and I have taken it: **a conservation green sitting on top of a liveness failure, where the two instruments cannot see each other.** Mine asks only whether the bytes survived. That is a gap in my harness rather than an error in its numbers, and I am closing it with a read verb after the convert **asserted on OUTPUT, not on exit code** -- the exit code is exactly what a lockout can fake.
