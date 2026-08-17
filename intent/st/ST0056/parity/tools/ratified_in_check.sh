@@ -13,7 +13,8 @@
 #   self-citation             `on this row's own voice ruling`
 #   bare                      `vc ruling`
 #
-# The last two are the ones that fail. **A ratification pointing at the row it
+# The last two are the ones that fail. **The first is LEGAL when the authority is
+# `hv` and only then** -- vc ruled 2026-08-17; see the HV bucket in the loop. **A ratification pointing at the row it
 # ratifies is not independent**, by exactly the argument that a check is not
 # independent when the same head wrote the needle and the checker -- the source
 # has to be something other than the thing under test. And `vc ruling` names no
@@ -81,6 +82,9 @@ ROWS="$(jq -r '
 # enforces and what this file claims it enforces are the same string.
 AUTHORITY='(^|[^a-z])(ic|cc|vc|dc|hv)([^a-z]|$)'
 ISO_DATE='[0-9]{4}-[0-9]{2}-[0-9]{2}'
+# `hv` specifically, because an hv ruling is exempt from the record requirement
+# and no other authority is. See the HV_UNVERIFIABLE bucket below.
+AUTHORITY_HV='(^|[^a-z])hv([^a-z]|$)'
 # A sha, a file (optionally with the `:line` suffix the table uses), or an issue.
 #
 # **THE ISSUE SPELLING WAS MISSING FROM THE FIRST VERSION AND THE CORPUS IS WHAT
@@ -101,8 +105,8 @@ RECORD_SHA='(^|[^0-9a-zA-Z])[0-9a-f]{7,40}([^0-9a-zA-Z]|$)'
 RECORD_FILE='[A-Za-z0-9_][A-Za-z0-9_.-]*\.(md|rs|sh|json|toml|txt)'
 RECORD_ISSUE='issue[s]? [0-9]{3,4}'
 
-OK=0; BAD=0; SENTINEL=0
-REPORT=""; SENTINEL_IDS=""
+OK=0; BAD=0; SENTINEL=0; HV=0
+REPORT=""; SENTINEL_IDS=""; HV_IDS=""
 
 while IFS=$'\t' read -r id value; do
   [ -n "$id" ] || continue
@@ -151,6 +155,33 @@ while IFS=$'\t' read -r id value; do
     missing="$missing record"
   fi
 
+  # **AN hv RULING IS LEGAL WITHOUT A RECORD, AND COUNTED APART** -- vc ruled
+  # 2026-08-17, on the same split they gave `agents template`: rule what is
+  # decidable, send the process question up.
+  #
+  # The record requirement exists to stop a node laundering its OWN ruling. When
+  # the authority is `hv`, the node writing the stamp is not the authority it
+  # names and hv can contradict it, **so the independence property already holds
+  # and a record adds nothing to it.**
+  #
+  # But a node can write `hv 2026-08-15` for a ruling that was never given, and
+  # nothing here or anywhere can check that -- **the whiteboard-timestamp problem
+  # exactly, where a fabricated stamp is indistinguishable from a real one by
+  # inspection.** So it is legal, and it is reported on its own line, so the
+  # number of ratifications that are UNVERIFIABLE BY CONSTRUCTION stays visible
+  # instead of being absorbed into "conforms". Do not refuse it, do not launder
+  # it, report the split -- the same posture as the ELSEWHERE bucket in
+  # `corrected_check.sh`.
+  #
+  # Open with hv (vc, 2026-08-17): whether a ruling that ratifies a row should be
+  # COMMITTED when it is given, which would convert the weakest evidence into a
+  # sha. Nothing waits on it; these conform today.
+  if [ "$missing" = " record" ] && echo "$value" | grep -Eq "$AUTHORITY_HV"; then
+    HV=$((HV + 1))
+    HV_IDS="$HV_IDS $id"
+    continue
+  fi
+
   if [ -z "$missing" ]; then
     OK=$((OK + 1))
   else
@@ -163,8 +194,8 @@ while IFS=$'\t' read -r id value; do
   fi
 done <<< "$ROWS"
 
-printf 'ratified-in: %d unit(s) declare a ratification; %d conform (authority + date + record); %d do not; %d are the `parity.md` sentinel\n' \
-  "$((OK + BAD + SENTINEL))" "$OK" "$BAD" "$SENTINEL"
+printf 'ratified-in: %d unit(s) declare a ratification; %d conform (authority + date + record); %d are an hv ruling (legal, unverifiable by construction); %d do not; %d are the `parity.md` sentinel\n' \
+  "$((OK + BAD + SENTINEL + HV))" "$OK" "$HV" "$BAD" "$SENTINEL"
 
 if [ "$SENTINEL" -gt 0 ]; then
   printf '\n  SENTINEL, and NOT a worklist item -- these carry the exact string `parity.md`, which\n'
@@ -180,18 +211,29 @@ if [ "$SENTINEL" -gt 0 ]; then
   printf '     green is how the register got its other defects.\n'
 fi
 
+if [ "$HV" -gt 0 ]; then
+  printf '\n  hv RULINGS -- legal without a record, and NOT a worklist item (%d):%s\n' \
+    "$HV" "$HV_IDS"
+  printf '  -- The record requirement stops a node laundering its OWN ruling. With `hv` as the\n'
+  printf '     authority the node writing the stamp is not the authority it names, so independence\n'
+  printf '     already holds and a record adds nothing to it.\n'
+  printf '  -- Counted apart because a node CAN write `hv <date>` for a ruling never given, and\n'
+  printf '     nothing can check that -- the whiteboard-timestamp problem, where a fabricated stamp\n'
+  printf '     is indistinguishable from a real one by inspection. **This line is the count of\n'
+  printf '     ratifications that are unverifiable BY CONSTRUCTION**, kept visible rather than\n'
+  printf '     absorbed into the conforming total.\n'
+fi
+
 if [ "$BAD" -gt 0 ]; then
   printf '\n%s' "$REPORT"
   printf '  -- the grammar is AUTHORITY (a node moniker or `hv`) + an ISO DATE + an EXTERNAL RECORD\n'
   printf '     (a commit sha, or a file). A ratification that cites the row it ratifies is not\n'
   printf '     independent, and one with no record at all cannot be checked by anyone.\n'
   printf '  -- REPORTING, not gating, until the table is clean. This list is the worklist.\n'
-  printf '  -- NOT EVERY ITEM IS A FIX. `hv <date>` carries authority and date and no artefact,\n'
-  printf '     because an hv ruling given in conversation HAS none -- so those rows need a\n'
-  printf '     decision (does the strongest authority need the weakest evidence?) and not an\n'
-  printf '     invented citation. **Writing a plausible record for one of them would be the\n'
-  printf '     fabrication this grammar exists to prevent**, arriving through the worklist.\n'
+  printf '  -- Never invent a record to clear a line here. A plausible citation written to make\n'
+  printf '     this list shorter is the fabrication the grammar exists to prevent, arriving\n'
+  printf '     through the worklist.\n'
 fi
 
-[ "$BAD" = "0" ] && printf '  every prose ratification names who, when, and where to look.\n'
+[ "$BAD" = "0" ] && printf '  no prose ratification is missing a component it is required to carry.\n'
 exit 0
