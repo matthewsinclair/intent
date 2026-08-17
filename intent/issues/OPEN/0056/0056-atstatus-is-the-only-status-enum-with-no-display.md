@@ -34,6 +34,14 @@ Two entities were fixed by moving the human spelling onto the type. `AtStatus` i
 
 Found by ic, 2026-08-17, measuring `target.no_op` for `at na` and noticing the printed token appears in no canon file in the estate.
 
+**CONFIRMED INDEPENDENTLY BY vc the same day, with two details that make it worse than first written.**
+
+**`n-a` is an EXPLICIT rename, not a derivation.** `model.rs:747` carries `#[serde(rename = "n-a")]`, and the container's `rename_all = "kebab-case"` would produce `na` for `Na` on its own. So the token is not kebab-case fallout that nobody noticed -- **somebody chose `n-a`, deliberately, against a canon vocabulary that spells it `n/a`.** Whatever that choice was for, it was not for the generated view, and nothing recorded it as a wire-only spelling.
+
+**And the doc comment two lines above states the wrong token as though it were the vocabulary.** `model.rs:745` reads _"`n-a` is not green"_ -- prose about the human-facing meaning, written in the machine spelling. **That is the sibling class again, inside the enum that causes it**: a defect written down as the specification, so checking the code against its own documentation finds agreement.
+
+**The 23 rows split 20 / 3, and the 3 are the ones that matter for the argument.** Twenty are in ST0056, the live thread; **three are in `COMPLETED/ST0054`.** So this is not confined to work in progress -- regenerating a COMPLETED thread's view produces a file v2's linter rejects, on a thread nobody is editing and nobody would think to re-lint.
+
 ## Reproduction
 
 Measured against a release binary built from a `git archive HEAD` extract at `ae3e308f`, whose `native/` is bit-identical to `b7e60fc5`.
