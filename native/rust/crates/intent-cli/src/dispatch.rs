@@ -655,6 +655,36 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
     for entry in &family.entries {
       unknown.extend(unreachable_defaults(entry, &siblings));
     }
+
+    // **A family with shipped verbs DECLARES how its verb slot is filled.**
+    //
+    // The spine reads that arity to decide `subcommand_required`, and it used
+    // to fall back to "required" when the declaration was absent -- a default
+    // nobody wrote down, which is how v3 answered `intent config` at exit 1
+    // where v2 exits 0. **Absence was standing in for a decision**, and the two
+    // are indistinguishable by inspection.
+    //
+    // Refusing it here is what lets the spine assert instead of defaulting.
+    // vc measured the residue before this landed: twelve family roots declare
+    // no slot, all twelve are single-entry LEAVES the spine's branch never
+    // reaches, so **filtered to families with sibling verbs the count is
+    // ZERO** -- this refuses nothing that exists and closes the way back in.
+    let shipped_verbs = family
+      .entries
+      .iter()
+      .any(|e| e.verb().is_some() && e.is_shipped());
+    let declares_slot = family
+      .entries
+      .iter()
+      .filter(|e| e.verb().is_none())
+      .any(|e| e.args.iter().any(|a| a.kind == "subcommand"));
+    if shipped_verbs && !declares_slot {
+      unknown.push(format!(
+        "`{}` has shipped verbs and its family row declares no `subcommand` arg -- so whether the bare command is legal would be decided by a default rather \
+         than by the table",
+        family.name
+      ));
+    }
   }
   for entry in &table.new_surface {
     unknown.extend(unreachable_defaults(entry, &[]));
@@ -724,6 +754,50 @@ pub fn entry<'a>(table: &'a Table, path: &str) -> Option<&'a Entry> {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **A family with shipped verbs must DECLARE how its verb slot is filled**,
+  /// rather than leaving the spine to default it.
+  ///
+  /// The default was `required`, which is how v3 answered `intent config` at
+  /// exit 1 where v2 exits 0 -- and absence standing in for a decision is
+  /// indistinguishable by inspection from a decision somebody made. This is the
+  /// guarantee half of the pair; `spine::build` asserts the same fact rather
+  /// than defaulting, so a drift between them is a panic at build rather than a
+  /// silently different surface.
+  #[test]
+  fn a_family_with_verbs_must_declare_how_its_verb_slot_is_filled() {
+    assert!(
+      check_vocabularies(&table()).is_ok(),
+      "the committed table already satisfies this -- vc measured the residue at ZERO for families with sibling verbs, and if that were false this check would be \
+       proposing to break the build rather than to hold a line"
+    );
+
+    let mut bad = table();
+    let family = bad
+      .families
+      .iter_mut()
+      .find(|f| {
+        f.entries
+          .iter()
+          .any(|e| e.verb().is_some() && e.is_shipped())
+          && f
+            .entries
+            .iter()
+            .any(|e| e.verb().is_none() && e.args.iter().any(|a| a.kind == "subcommand"))
+      })
+      .expect("some shipped family declares a subcommand slot");
+    let name = family.name.clone();
+    for entry in family.entries.iter_mut().filter(|e| e.verb().is_none()) {
+      entry.args.retain(|a| a.kind != "subcommand");
+    }
+
+    let err =
+      check_vocabularies(&bad).expect_err("a family with verbs and no declared slot is refused");
+    assert!(
+      err.iter().any(|e| e.contains(&name)),
+      "the refusal names the family whose declaration is missing, because the fix is one row: {err:?}"
+    );
+  }
 
   /// **`banana` on `st start` passed every check in the repo** (vc's probe,
   /// 2026-08-15), because these are bare `String`s with `#[serde(default)]` and

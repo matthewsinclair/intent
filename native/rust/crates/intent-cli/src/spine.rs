@@ -250,13 +250,35 @@ pub fn build(table: &Table) -> Command {
       // correctly three lines away in `with_args` and hardcoded wrongly here:
       // **one rule, two implementations, and only one of them right** is the
       // Highlander failure rather than a typo.
-      let required = family_entry
+      //
+      // **Third instance, and this is the collapse.** The rule was then spelled
+      // a THIRD way -- `arity == "1"` inline, here and in `with_args` -- beside
+      // `Arg::required`, which asks the same question and answers it for `1..n`
+      // as well. Measured across the shipped table: subcommand slots declare
+      // only `1` and `0..1`, so the three agreed on every row and the divergence
+      // was latent rather than absent. A rule that is correct only because its
+      // domain has not yet reached the case that separates its implementations
+      // is one row away from being wrong in two places.
+      //
+      // **The ABSENT slot no longer defaults, it asserts.** `is_none_or` made
+      // an undeclared slot silently subcommand-REQUIRED, which is how v3
+      // answered `intent config` at exit 1 where v2 exits 0. The table now
+      // GUARANTEES the declaration for any family with shipped verbs and this
+      // ASSERTS it -- the same fact stated at both ends, so neither can drift
+      // into being the only one that knows.
+      let slot = family_entry
         .args
         .iter()
         .find(|a| a.kind == "subcommand")
-        .is_none_or(|slot| slot.arity == "1");
+        .unwrap_or_else(|| {
+          panic!(
+            "`{}` has shipped verbs and declares no `subcommand` arg. `check_vocabularies` refuses this at table load, so reaching it here means the guarantee \
+             and the assertion have come apart -- a build defect, never anything a user did",
+            family_entry.path
+          )
+        });
       cmd = cmd
-        .subcommand_required(required)
+        .subcommand_required(slot.required())
         .arg_required_else_help(false);
     } else {
       cmd = with_args(cmd, family_entry);
@@ -332,9 +354,11 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
       leaf = flags(leaf, entry);
       cmd = cmd.subcommand(leaf);
     }
-    // `arity: "1"` means the slot must be filled; `0..1` means the bare
-    // command is legal and does something of its own.
-    return flags(cmd.subcommand_required(slot.arity == "1"), entry);
+    // The slot must be filled, or the bare command is legal and does something
+    // of its own. Read through [`Arg::required`] like every other arity
+    // question in this file -- the inline `arity == "1"` that used to be here
+    // was the second of three copies of one rule.
+    return flags(cmd.subcommand_required(slot.required()), entry);
   }
 
   cmd = positionals(cmd, entry);
@@ -618,6 +642,172 @@ fn first_line(rendered: &str) -> String {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **The built surface's subcommand requirement IS the table's declared
+  /// arity, for every family, measured rather than reasoned.**
+  ///
+  /// This rule had three implementations: hardcoded `true` here, `arity == "1"`
+  /// in `with_args`, and `Arg::required` on the model -- which also answers
+  /// `1..n`, where the other two say "optional". They agreed on every shipped
+  /// row because subcommand slots declare only `1` and `0..1`, so the
+  /// divergence was latent rather than absent, and a Highlander collapse that
+  /// leaves no test behind is one that has to be re-argued the next time
+  /// somebody reads the two sites.
+  ///
+  /// Driven over the whole surface, so a fourth copy added tomorrow is caught
+  /// on the family it disagrees about rather than on a reviewer noticing.
+  #[test]
+  fn the_surfaces_subcommand_requirement_is_the_tables_declared_arity() {
+    let table = dispatch::table();
+    let surface = build(&table);
+    let mut checked = 0;
+
+    for family in &table.families {
+      let Some(family_entry) = family.entries.iter().find(|e| e.verb().is_none()) else {
+        continue;
+      };
+      if !family_entry.is_shipped() {
+        continue;
+      }
+      let Some(slot) = family_entry.args.iter().find(|a| a.kind == "subcommand") else {
+        continue;
+      };
+      let Some(cmd) = surface
+        .get_subcommands()
+        .find(|c| c.get_name() == family.name)
+      else {
+        continue;
+      };
+
+      assert_eq!(
+        cmd.is_subcommand_required_set(),
+        slot.required(),
+        "`{}` declares its verb slot at arity {:?}, so `Arg::required` says {} -- and the built surface says {}. A bare `intent {}` is legal or it is not, and \
+         the table is the one that decides",
+        family.name,
+        slot.arity,
+        slot.required(),
+        cmd.is_subcommand_required_set(),
+        family.name
+      );
+      checked += 1;
+    }
+
+    assert!(
+      checked >= 5,
+      "only {checked} families were compared, so this passes by finding almost nothing -- the walk has stopped matching the surface it means to measure"
+    );
+  }
+
+  /// **The case that SEPARATES the three implementations, constructed because
+  /// the shipped table cannot reach it.**
+  ///
+  /// The test above passes on `Arg::required` and on the inline `arity == "1"`
+  /// alike, because every subcommand slot in the committed table declares `1`
+  /// or `0..1` and the two answers coincide on both. **So the collapse it
+  /// documents was, until this, uncovered by anything that could fail** -- and
+  /// a Highlander fix whose test cannot tell the old code from the new one is a
+  /// claim rather than a guard.
+  ///
+  /// `1..n` declares a MINIMUM of one, so the slot is required. Under the
+  /// inline spelling it reads as optional and the bare command becomes legal.
+  /// The table is mutated in memory rather than on disk: this asks what the
+  /// spine would DO with such a row, which is a question about the spine.
+  #[test]
+  fn a_verb_slot_declaring_a_minimum_of_one_is_required() {
+    let mut table = dispatch::table();
+    let family = table
+      .families
+      .iter_mut()
+      .find(|f| {
+        f.entries
+          .iter()
+          .any(|e| e.verb().is_some() && e.is_shipped())
+          && f.entries.iter().any(|e| {
+            e.verb().is_none()
+              && e
+                .args
+                .iter()
+                .any(|a| a.kind == "subcommand" && a.arity == "0..1")
+          })
+      })
+      .expect("some shipped family declares an OPTIONAL verb slot to flip");
+    let name = family.name.clone();
+    for entry in family.entries.iter_mut().filter(|e| e.verb().is_none()) {
+      for arg in entry.args.iter_mut().filter(|a| a.kind == "subcommand") {
+        arg.arity = "1..n".to_string();
+      }
+    }
+
+    let surface = build(&table);
+    let cmd = surface
+      .get_subcommands()
+      .find(|c| c.get_name() == name)
+      .expect("the family is still on the surface");
+    assert!(
+      cmd.is_subcommand_required_set(),
+      "`{name}` declares its verb slot at `1..n` -- a MINIMUM of one -- and the surface made the bare command legal. That is the inline `arity == \"1\"` reading, \
+       which this collapse removed: the slot is required and only `Arg::required` says so"
+    );
+  }
+
+  /// **The SECOND site, and it needed its own case because a mutation escaped.**
+  ///
+  /// `with_args` builds a slot whose verbs come from a `values` array rather
+  /// than from sibling entries -- `claude rules` and `agents template` are the
+  /// shipped shape. The case above flips a family with SIBLING verbs, which
+  /// takes the other branch entirely, **so reverting this site to the inline
+  /// `arity == "1"` passed every test in the crate.**
+  ///
+  /// One rule with two call sites needs two cases; covering the site that was
+  /// easier to reach and calling the rule covered is how the third copy came to
+  /// exist in the first place.
+  #[test]
+  fn a_values_slot_declaring_a_minimum_of_one_is_required() {
+    let mut table = dispatch::table();
+    let mut flipped = None;
+    for entry in table
+      .families
+      .iter_mut()
+      .flat_map(|f| f.entries.iter_mut())
+      .chain(table.new_surface.iter_mut())
+    {
+      if !entry.is_shipped() || entry.verb().is_none() {
+        continue;
+      }
+      let Some(here) = entry
+        .verb()
+        .map(|v| (entry.family().to_string(), v.to_string()))
+      else {
+        continue;
+      };
+      let mut hit = false;
+      for arg in entry.args.iter_mut() {
+        if arg.kind == "subcommand" && !arg.values.is_empty() && arg.arity == "0..1" {
+          arg.arity = "1..n".to_string();
+          hit = true;
+        }
+      }
+      if hit {
+        flipped = Some(here);
+        break;
+      }
+    }
+    let (family, verb) =
+      flipped.expect("some shipped verb declares an OPTIONAL values-backed slot");
+
+    let surface = build(&table);
+    let cmd = surface
+      .get_subcommands()
+      .find(|c| c.get_name() == family)
+      .and_then(|f| f.get_subcommands().find(|c| c.get_name() == verb).cloned())
+      .expect("the verb is still on the surface");
+    assert!(
+      cmd.is_subcommand_required_set(),
+      "`{family} {verb}` declares a values-backed slot at `1..n` and the surface made the bare form legal -- the inline reading, at the site the other case \
+       cannot reach"
+    );
+  }
 
   #[test]
   fn the_surface_carries_every_shipped_family() {
