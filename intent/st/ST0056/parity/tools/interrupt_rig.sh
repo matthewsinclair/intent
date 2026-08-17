@@ -17,26 +17,38 @@
 #   verdict   dc's same_end_state_check.sh
 #   here      the kill, and the refusals that stop a vacuous kill reporting green
 #
-# WHY IT REFUSES ON A DIRTY `native/rust/`, WHICH IS THE POINT OF THE FILE.
-# On 2026-08-17 three instruments in this directory were found reading the
-# WORKING TREE where they meant the COMMIT -- `runner_roster_check.sh` (dc found
-# it), `residue_class_check.sh` two hours later (same defect, sibling file), and
-# dc's prepush clone caught HEAD not building because one node had committed a
-# consumer while another held the producer. Four sessions share one checkout, so
-# a green measured here is otherwise a claim about the union of five people's
-# uncommitted work.
-#
-# That class is worse for THIS tool than for any of those. Those report drift;
-# this one reports the condition hv put the cutover behind. A gate that passed
-# against 201 uncommitted lines would be a true statement about bytes no commit
-# contains, and nothing in its output would say so. So the refusal is structural
-# and comes before anything is built or written.
+# WHY THE SUBJECT IS A CLONED REVISION AND NOT THE WORKTREE.
+# Four sessions share one checkout, so a gate measured over the worktree is a
+# claim about the union of five people's uncommitted work, and nothing in its
+# output would say so. This file used to REFUSE when `native/rust/` or the
+# parity tools were dirty. That guard was right about the hazard and wrong
+# about the remedy: it made the gate unrunnable exactly when the estate was
+# busiest -- it fired four times in one day on peers' in-flight code -- and its
+# own author worked around it by hand-building extracts four times in one
+# session. A guard routed around that often is telling you where it should have
+# been. So `--rev` (default HEAD) is CLONED into the workdir and everything is
+# built there: the subject is a named commit by construction rather than by
+# inspection, a dirty worktree is simply not part of it, and the gate runs at
+# any moment against any commit -- including one not checked out.
 #
 # MEASURED, NOT ASSUMED: at 17:44Z on 2026-08-17 the crate COMPILED CLEAN while
 # `Facade::upgrade` was 201 uncommitted lines and `intent upgrade` was not wired
 # to the CLI at all. ic's own board had recorded the blocker as "the compile
 # error in facade.rs". It compiled, and the gate was still unrunnable. A green
 # build is not evidence about a commit.
+#
+# A CLONE RATHER THAN `git archive`, because `intent-cli`'s `build.rs` embeds
+# its source commit by ASKING GIT, and an archive extract has no `.git` -- the
+# marker would read `unknown` on every run and the provenance cross-check would
+# return one answer regardless of input. dc measured that before this was built.
+#
+# THE INSTRUMENTS COME FROM A REVISION TOO -- `--instruments-rev`, defaulting to
+# the subject's. A verdict assembled from a committed migrator and a half-edited
+# comparator is no more a statement about a commit than one measured over a
+# dirty migrator; vc relocated `CAPTURE` mid-session and an estate silently went
+# 1078 files to 1077, and dc edited the comparator in place while a run was
+# inside it. They are separable because the first question after improving a
+# detector is what it missed before, and the output names both when they differ.
 #
 # WHY THE MIGRATING COMMAND IS A PARAMETER AND THERE IS NO COPY OF THE DOOR HERE.
 # A rig calling `Facade::upgrade` directly would be a second caller of the door
@@ -109,6 +121,11 @@ say() { echo "interrupt-rig: $*"; }
 MEMBER="canary"
 WORKDIR=""
 KEEP=0
+# The subject is a revision, defaulting to HEAD. The instruments default to
+# the subject's revision and may be pinned separately (see the block that binds
+# them); an empty value here means "follow the subject".
+REV="HEAD"
+INSTR_REV=""
 # Fraction of the clean run's file delta at which the kill fires. Late on
 # purpose: the accretion this gate exists to catch lives in the generated views,
 # which are written after the canon, so a kill in the first third would leave
@@ -118,16 +135,25 @@ FRACTION=90
 while [ $# -gt 0 ]; do
   case "$1" in
     --member) MEMBER="${2:-}"; shift 2 || die "--member needs a value" ;;
+    --rev) REV="${2:-}"; shift 2 || die "--rev needs a value" ;;
+    --instruments-rev) INSTR_REV="${2:-}"; shift 2 || die "--instruments-rev needs a value" ;;
     --fraction) FRACTION="${2:-}"; shift 2 || die "--fraction needs a value" ;;
     --keep) KEEP=1; shift ;;
     --help|-h)
-      echo "usage: interrupt_rig.sh [--member <id>] [--fraction <1-99>] [--keep] [<workdir>]"
+      echo "usage: interrupt_rig.sh [--rev <ref>] [--instruments-rev <ref>] [--member <id>]"
+      echo "                        [--fraction <1-99>] [--keep] [<workdir>]"
+      echo ""
+      echo "  --rev              the commit to migrate WITH; default HEAD. Cloned into the"
+      echo "                     workdir and built there, so a dirty worktree is irrelevant."
+      echo "  --instruments-rev  the commit the corpus + verdict tools come from; defaults"
+      echo "                     to --rev. Set it to judge an OLD subject with a NEW"
+      echo "                     comparator; the output names both when they differ."
       echo "env:   MIGRATE_CMD  the command that performs the migration, run with cwd = the tree"
       echo "       READ_CMD     a READ verb proving the migrated estate is usable (liveness)"
       echo "       STORE_CMD    a read that answers FROM THE STORE, compared across both arms"
       echo
       echo "  The last two default to \`intent st list\` and \`intent export --format json\`"
-      echo "  on the workspace binary. Under a MIGRATE_CMD override they default to EMPTY,"
+      echo "  on the binary built from --rev. Under a MIGRATE_CMD override they are EMPTY,"
       echo "  and each arm then reports that it DID NOT RUN rather than passing silently."
       exit 0 ;;
     -*) die "unknown option: $1" ;;
@@ -135,100 +161,22 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+INSTR_REV="${INSTR_REV:-$REV}"
+
 case "$FRACTION" in
   ''|*[!0-9]*) die "--fraction must be a whole number, got: $FRACTION" ;;
 esac
 { [ "$FRACTION" -ge 1 ] && [ "$FRACTION" -le 99 ]; } ||
   die "--fraction must be between 1 and 99 -- 100 is not an interruption and 0 writes nothing"
 
-CORPUS="$HERE/estate_corpus.sh"
-VERDICT="$HERE/same_end_state_check.sh"
-[ -x "$CORPUS" ] || die "cannot execute $CORPUS -- the estates come from vc's tool, not from here"
-[ -x "$VERDICT" ] || die "cannot execute $VERDICT -- the verdict is dc's tool, not this one"
+# The instruments are bound AFTER the extract exists, because under a revision
+# subject they come from the extract rather than from the worktree. Declared
+# here as empty so `set -u` cannot bite on the override path.
+CORPUS=""
+VERDICT=""
 
 # ---------------------------------------------------------------------------
-# The subject: what migrates, and is it a commit?
-# ---------------------------------------------------------------------------
-
-# An explicit MIGRATE_CMD is a deliberate act by someone running this by hand --
-# the same clause as `residue_class_check.sh`'s CONTRACT/SCANNER overrides -- and
-# it is how this rig's OWN machinery is proven against a stub whose behaviour is
-# known. It buys out of the build and the cleanliness refusal together, because
-# neither describes a command this tool did not produce. It says so loudly: a
-# run under an override is a run about the override.
-MIGRATE_GIVEN="${MIGRATE_CMD:+yes}"
-
-# Bound before the branch, because `set -u` is on and the workspace path below
-# is the only place these get their defaults. An override run inherits whatever
-# the caller exported and otherwise leaves them empty -- which the liveness and
-# store arms report as NOT RUN rather than treating as satisfied.
-READ_CMD="${READ_CMD:-}"
-STORE_CMD="${STORE_CMD:-}"
-
-if [ -n "$MIGRATE_GIVEN" ]; then
-  say "MIGRATE_CMD OVERRIDE IN FORCE -- the subject is '$MIGRATE_CMD', not the workspace binary."
-  say "  This run says NOTHING about any commit of intentsvcs. It exercises this rig."
-else
-  # THE INSTRUMENTS ARE CHECKED ALONGSIDE THE SUBJECT, and leaving them out was
-  # the first version's blind spot. This rig calls two of its siblings --
-  # `estate_corpus.sh` for the estates and `same_end_state_check.sh` for the
-  # verdict -- from the worktree. A gate result assembled from a committed
-  # migrator, a peer's half-edited capture tool and a half-edited comparator is
-  # no more a statement about a commit than one measured over a dirty migrator.
-  # Caught live: vc relocated `CAPTURE` out of the captured tree mid-session and
-  # the estate went 1078 files to 1077 between two runs an hour apart, with
-  # nothing in either run's output saying the instrument had moved.
-  dirty="$(git -C "$ROOT" status --porcelain -- native/rust/ "$HERE" 2>/dev/null)"
-  if [ -n "$dirty" ]; then
-    echo "interrupt-rig: REFUSING -- the subject or its instruments have uncommitted changes." >&2
-    echo "" >&2
-    printf '%s\n' "$dirty" | sed 's/^/    /' >&2
-    echo "" >&2
-    echo "  This gate reports the condition hv put the v3 cutover behind. Measured" >&2
-    echo "  against a dirty worktree it would be a true statement about bytes no" >&2
-    echo "  commit contains, in a checkout four sessions share." >&2
-    echo "" >&2
-    echo "  Remedy: commit the migrator and the parity tools, or pass MIGRATE_CMD" >&2
-    echo "  to say explicitly that the subject is something other than this" >&2
-    echo "  workspace -- an override run makes no claim about any commit, so it" >&2
-    echo "  does not check either." >&2
-    exit 2
-  fi
-
-  HEAD_SHA="$(git -C "$ROOT" rev-parse --short HEAD)" || die "cannot read HEAD"
-  say "subject: native/rust/ and the parity tools clean at $HEAD_SHA -- building the migrator from it"
-
-  # The binary is built HERE so that it provably corresponds to the tree just
-  # verified clean. A pre-built binary of unknown vintage passing a cleanliness
-  # check on the source is the same category error the check exists to stop.
-  ( cd "$ROOT/native/rust" && cargo build --release -p intent-cli ) >/dev/null 2>&1 ||
-    die "cargo build --release -p intent-cli failed -- cannot migrate with a binary that does not build"
-
-  BIN="$ROOT/native/rust/target/release/intent"
-  [ -x "$BIN" ] || die "built, but no executable at $BIN -- the binary's name or path has moved"
-
-  # THERE IS DELIBERATELY NO `upgrade --help` PROBE HERE, and the reason is
-  # measured. On 2026-08-17 `intent upgrade` was ADVERTISED in `--help` and
-  # unimplemented: `--help` exited 0 while the verb itself returned "a known
-  # command that is not implemented yet" at exit 2. A probe that asks clap
-  # whether a verb is spelled correctly answers a question nobody asked, and
-  # would have waved this rig through to produce a green from a migrator that
-  # never opened. The only honest probe is running it, which arm A does; the
-  # unwired case is named there instead.
-  MIGRATE_CMD="$BIN upgrade"
-
-  # THE LIVENESS PROBE AND THE STORE PROBE, both read-only, both through the
-  # shipped surface. `st list` is the cheapest verb that depends on project
-  # state; `info` would answer on a corpse, which is exactly the property that
-  # disqualifies it. `export --format json` reads the STORE rather than the
-  # files (`facade.rs:1146` -- `load_canon()` + `events()`), which is what makes
-  # it the store comparison dc's file-level verdict deliberately does not make.
-  READ_CMD="$BIN st list"
-  STORE_CMD="$BIN export --format json"
-fi
-
-# ---------------------------------------------------------------------------
-# The estates: captured ONCE, copied twice.
+# The workdir: created FIRST, because a revision subject is extracted into it.
 # ---------------------------------------------------------------------------
 
 if [ -z "$WORKDIR" ]; then
@@ -257,6 +205,225 @@ case "$WORKDIR_REAL/" in
     die "the workdir $WORKDIR_REAL is inside this repository ($ROOT_REAL) -- project discovery walks upward from the tree being migrated, so a workdir here can reach the live checkout. Use a path outside the repository." ;;
 esac
 
+# ---------------------------------------------------------------------------
+# The subject: what migrates, and is it a commit?
+# ---------------------------------------------------------------------------
+
+# An explicit MIGRATE_CMD is a deliberate act by someone running this by hand --
+# the same clause as `residue_class_check.sh`'s CONTRACT/SCANNER overrides -- and
+# it is how this rig's OWN machinery is proven against a stub whose behaviour is
+# known. It buys out of the build and the cleanliness refusal together, because
+# neither describes a command this tool did not produce. It says so loudly: a
+# run under an override is a run about the override.
+MIGRATE_GIVEN="${MIGRATE_CMD:+yes}"
+
+# Bound before the branch, because `set -u` is on and the workspace path below
+# is the only place these get their defaults. An override run inherits whatever
+# the caller exported and otherwise leaves them empty -- which the liveness and
+# store arms report as NOT RUN rather than treating as satisfied.
+READ_CMD="${READ_CMD:-}"
+STORE_CMD="${STORE_CMD:-}"
+
+if [ -n "$MIGRATE_GIVEN" ]; then
+  say "MIGRATE_CMD OVERRIDE IN FORCE -- the subject is '$MIGRATE_CMD', not a revision."
+  say "  This run says NOTHING about any commit of intentsvcs. It exercises this rig."
+  # An override has no revision to take instruments from, so they come from the
+  # worktree -- and that is SAID rather than left to be inferred, because it is
+  # the one path where a run mixes a caller's command with whatever happens to
+  # be on disk beside this file.
+  CORPUS="$HERE/estate_corpus.sh"
+  VERDICT="$HERE/same_end_state_check.sh"
+  say "  instruments: the WORKTREE copies at $HERE, whatever state they are in."
+else
+  # THE SUBJECT IS A REVISION, EXTRACTED -- NOT THE WORKTREE, AND NOT A
+  # WORKTREE VERIFIED CLEAN.
+  #
+  # This replaced a dirty-tree REFUSAL that worked and cost too much. That guard
+  # was right about the hazard: four sessions share one checkout, so a gate
+  # measured over the worktree is a claim about the union of five people's
+  # uncommitted work, and it fired four times in one day on peers' in-flight
+  # code. But refusing is the weaker of the two available answers -- it makes
+  # the gate unrunnable exactly when the estate is busiest, and on 2026-08-17
+  # its author worked around it by hand-building `git archive` extracts FOUR
+  # times in one session. A guard you route around that often is a design
+  # telling you where it should have been.
+  #
+  # So the subject is now a NAMED COMMIT by construction rather than by
+  # inspection. `--rev` defaults to HEAD; the tree is extracted into the workdir
+  # and everything is built from there. **A dirty worktree is no longer a reason
+  # to refuse, because it is no longer part of the subject** -- and the gate runs
+  # at any moment against any commit, including one that is not checked out.
+  #
+  # THE INSTRUMENTS COME FROM THE SAME EXTRACT, and that was the first version's
+  # blind spot rather than an extra. This rig calls two siblings --
+  # `estate_corpus.sh` for the estates and `same_end_state_check.sh` for the
+  # verdict -- and a result assembled from a committed migrator plus a
+  # half-edited comparator is no more a statement about a commit than one
+  # measured over a dirty migrator. Caught live: vc relocated `CAPTURE` out of
+  # the captured tree mid-session and the estate went 1078 files to 1077 between
+  # two runs an hour apart, with nothing saying an instrument had moved. dc then
+  # edited the comparator in place while a run was inside it. The consequence is
+  # real and accepted: a fix to either sibling does not reach a gate run until
+  # it is committed.
+  REV_SHA="$(git -C "$ROOT" rev-parse "$REV" 2>/dev/null)" ||
+    die "cannot resolve --rev '$REV' to a commit in $ROOT"
+  REV_SHORT="$(git -C "$ROOT" rev-parse --short "$REV_SHA")"
+  INSTR_SHA="$(git -C "$ROOT" rev-parse "$INSTR_REV" 2>/dev/null)" ||
+    die "cannot resolve --instruments-rev '$INSTR_REV' to a commit in $ROOT"
+  INSTR_SHORT="$(git -C "$ROOT" rev-parse --short "$INSTR_SHA")"
+
+  # A CLONE, NOT `git archive` -- AND THE REASON IS MEASURED, BY dc, BEFORE THIS
+  # WAS BUILT RATHER THAN AFTER.
+  #
+  # The obvious extract is `git archive <rev> | tar -x`. It produces the right
+  # bytes and it produces a tree with NO `.git`, and `intent-cli`'s `build.rs`
+  # embeds the source commit by ASKING GIT. Inside an archive extract that is
+  # `fatal: not a git repository`, so the marker falls to `unknown` -- by design,
+  # correctly, and on every run. `self_provenance_check.sh` would then report
+  # UNKNOWN uniformly forever, and **a cross-check returning the same answer
+  # regardless of its input is not a cross-check**: uniformity across arms that
+  # should differ is evidence about the instrument rather than the subject.
+  #
+  # This rig's own author had it the other way round in the design note -- "a
+  # binary built from an extract of <rev> will carry <rev>" -- which was true of
+  # the worktree build it was observed on and false of the thing being built.
+  #
+  # NOT FIXED BY LETTING THE ENVIRONMENT SUPPLY THE COMMIT (dc, and it is the
+  # obvious repair): a build that can be TOLD its provenance can assert any
+  # provenance, which is the whole reason the embed exists rather than a record
+  # written beside the artefact. A tree that genuinely cannot answer must say
+  # `unknown`. So give it a tree where the question HAS an answer.
+  extract_rev() { # $1 = sha, $2 = destination
+    git clone --quiet --no-checkout "$ROOT" "$2" 2>/dev/null || return 1
+    git -C "$2" checkout --quiet --detach "$1" 2>/dev/null || return 1
+  }
+
+  EXTRACT="$WORKDIR/rev-$REV_SHORT"
+  extract_rev "$REV_SHA" "$EXTRACT" ||
+    die "could not clone $ROOT at $REV_SHORT into $EXTRACT -- if that commit is on no branch, the clone will not carry it"
+
+  # A FRESH CLONE IS CLEAN BY CONSTRUCTION, SO IF THIS EVER FIRES, THE RIG DID IT
+  # (dc's control, raised as a hazard with a fix rather than as a defect).
+  #
+  # `build.rs` emits a BARE sha only when `git status --porcelain` is empty, and
+  # falls back to `dirty-<sha>` otherwise. So anything this rig writes into the
+  # clone before the build -- an instrument copied in, a fixture, a workdir, an
+  # ignored cache -- makes the SUBJECT report itself dirty, and the marker then
+  # describes the harness rather than the thing under test. That is dc's sidecar
+  # residue exactly: the measurement creating what it reports, which cost them
+  # two false alarms in an hour. This assertion cannot fire spuriously, which is
+  # what makes a firing informative.
+  clone_dirt="$(git -C "$EXTRACT" status --porcelain 2>/dev/null)"
+  [ -z "$clone_dirt" ] ||
+    die "the clone at $EXTRACT is not clean and a fresh clone is clean by construction, so this rig dirtied it before the build -- the binary would name no commit and the marker would be reporting on the harness:
+$(printf '%s\n' "$clone_dirt" | sed 's/^/    /')"
+
+  say "subject: $REV_SHORT, cloned -- the worktree is not part of it"
+
+  # THE ORCHESTRATOR CANNOT COME FROM THE EXTRACT WITHOUT REPLACING ITSELF
+  # MID-RUN, so it stays as invoked -- and it says which it is. Otherwise a run
+  # silently pairs a committed subject with uncommitted orchestration, which is
+  # the same dishonesty this whole change exists to remove, one level up.
+  if [ -n "$(git -C "$ROOT" status --porcelain -- "$HERE/$(basename "$0")" 2>/dev/null)" ]; then
+    say "  orchestrator: THIS FILE IS UNCOMMITTED -- the subject is a commit, the driving is not."
+  else
+    say "  orchestrator: committed."
+  fi
+
+  # A TARGET DIR PER REVISION, NOT ONE SHARED ACROSS THEM (dc's call, and they
+  # flagged it as a MECHANISM they had not measured for this case rather than as
+  # a defect -- recorded that way).
+  #
+  # The embed's `build.rs` has no `rerun-if-changed` on `.git/HEAD`, so it
+  # re-runs on PACKAGE-FILE changes. Two revisions differing only OUTSIDE
+  # `intent-cli` present identical package files, so a shared cache can hand back
+  # a binary still naming the earlier revision -- dc measured that staleness
+  # today, a marker stuck at `b11ca6ac` while HEAD was `010b2bbf`. That is
+  # cross-revision contamination of precisely the field the cross-check reads.
+  # The cost is a cold build per new revision, and correctness of the provenance
+  # marker is worth more than a warm cache for a gate that runs in minutes.
+  #
+  # dc's discriminating test, if a shared cache is ever reconsidered: build rev
+  # A, build rev B differing only outside `intent-cli`, read both markers. If
+  # they agree, the cache is lying.
+  CARGO_TARGET_DIR="${TMPDIR:-/tmp}/interrupt-rig-target/$REV_SHORT"
+  export CARGO_TARGET_DIR
+  mkdir -p "$CARGO_TARGET_DIR" || die "cannot create $CARGO_TARGET_DIR"
+
+  ( cd "$EXTRACT/native/rust" && cargo build --release -p intent-cli ) >"$WORKDIR/build.log" 2>&1 ||
+    die "cargo build --release -p intent-cli failed at $REV_SHORT -- last lines in $WORKDIR/build.log:
+$(tail -5 "$WORKDIR/build.log" 2>/dev/null | sed 's/^/    /')"
+
+  BIN="$CARGO_TARGET_DIR/release/intent"
+  [ -x "$BIN" ] || die "built, but no executable at $BIN -- the binary's name or path has moved"
+
+  # SHOUT THE PROVENANCE MARKER RATHER THAN LEAVING IT TO BE INFERRED (dc asked
+  # for it, and the reason is that this rig produces the one arm their estate
+  # cannot). In a five-session checkout `git status` is never empty, so every
+  # binary dc can build says `dirty-<sha>` and the BARE-sha path has only ever
+  # run in a fixture. A clone at a named commit should yield a bare sha equal to
+  # `--rev`; anything else -- `dirty-...`, `unknown`, a different sha -- means
+  # the tree was touched before the build or the embed is not doing what it says.
+  EMBEDDED="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
+  EMBEDDED="${EMBEDDED#\[intent-source-commit:}"
+  EMBEDDED="${EMBEDDED%\]}"
+  case "$EMBEDDED" in
+    "$REV_SHA") say "  binary provenance: bare sha matching --rev ($REV_SHORT) -- clean-tree build confirmed" ;;
+    "")         say "  binary provenance: NO MARKER -- this binary cannot name the commit it was built from" ;;
+    *)          say "  binary provenance: '$EMBEDDED' -- NOT the bare sha for $REV_SHORT; the tree was touched before the build, or the embed is not doing what it says" ;;
+  esac
+
+  # THE INSTRUMENT REVISION IS SELECTABLE AND DEFAULTS TO THE SUBJECT'S (dc's
+  # amendment, and the case for it is the first question anyone asks after
+  # improving a detector: WHAT DID IT MISS BEFORE?). Under a strict pin every
+  # past green stays judged by the comparator version that could not see the
+  # cases a later one closes -- and dc corrected `same_end_state_check.sh` four
+  # times in one day, each closing a way it could be silently useless.
+  #
+  # **When they differ the output NAMES BOTH**, for the same reason the
+  # orchestrator names itself: a verdict whose instrument nobody can identify is
+  # the dishonesty one level up.
+  REL_TOOLS="${HERE#"$ROOT"/}"
+  if [ "$INSTR_SHA" = "$REV_SHA" ]; then
+    INSTR_DIR="$EXTRACT"
+    say "  instruments: $INSTR_SHORT (same revision as the subject)"
+  else
+    INSTR_DIR="$WORKDIR/instr-$INSTR_SHORT"
+    extract_rev "$INSTR_SHA" "$INSTR_DIR" ||
+      die "could not clone $ROOT at $INSTR_SHORT into $INSTR_DIR"
+    say "  instruments: $INSTR_SHORT -- DIFFERENT from the subject $REV_SHORT; this run judges $REV_SHORT with a comparator it never shipped with"
+  fi
+  CORPUS="$INSTR_DIR/$REL_TOOLS/estate_corpus.sh"
+  VERDICT="$INSTR_DIR/$REL_TOOLS/same_end_state_check.sh"
+
+  # THERE IS DELIBERATELY NO `upgrade --help` PROBE HERE, and the reason is
+  # measured. On 2026-08-17 `intent upgrade` was ADVERTISED in `--help` and
+  # unimplemented: `--help` exited 0 while the verb itself returned "a known
+  # command that is not implemented yet" at exit 2. A probe that asks clap
+  # whether a verb is spelled correctly answers a question nobody asked, and
+  # would have waved this rig through to produce a green from a migrator that
+  # never opened. The only honest probe is running it, which arm A does; the
+  # unwired case is named there instead.
+  MIGRATE_CMD="$BIN upgrade"
+
+  # THE LIVENESS PROBE AND THE STORE PROBE, both read-only, both through the
+  # shipped surface. `st list` is the cheapest verb that depends on project
+  # state; `info` would answer on a corpse, which is exactly the property that
+  # disqualifies it. `export --format json` reads the STORE rather than the
+  # files (`facade.rs:1146` -- `load_canon()` + `events()`), which is what makes
+  # it the store comparison dc's file-level verdict deliberately does not make.
+  READ_CMD="$BIN st list"
+  STORE_CMD="$BIN export --format json"
+fi
+
+[ -x "$CORPUS" ] || die "cannot execute $CORPUS -- the estates come from vc's tool, not from here"
+[ -x "$VERDICT" ] || die "cannot execute $VERDICT -- the verdict is dc's tool, not this one"
+
+# ---------------------------------------------------------------------------
+# The estates: captured ONCE, copied twice.
+# ---------------------------------------------------------------------------
+
+
 cleanup() {
   if [ "$KEEP" -eq 0 ] && [ "$OWNED" -eq 1 ]; then rm -rf "$WORKDIR"; fi
 }
@@ -267,7 +434,20 @@ A="$WORKDIR/a-clean"
 B="$WORKDIR/b-interrupted"
 
 say "capturing $MEMBER via estate_corpus.sh"
-"$CORPUS" capture "$MEMBER" "$TEMPLATE" >/dev/null ||
+# `ROOT` IS PASSED EXPLICITLY, AND THE DISTINCTION IT DRAWS IS THE WHOLE POINT OF
+# TAKING INSTRUMENTS FROM A REVISION. `estate_corpus.sh` derives `ROOT` from its
+# OWN location and resolves fleet members relative to it (`../Lamplight`,
+# `../Utilz`, `../Baize`), so the clone's copy would look for them beside the
+# WORKDIR. Its LOGIC belongs to the pinned revision; its view of WHERE REPOS LIVE
+# ON THIS MACHINE does not, and the tool already honours an inherited `ROOT`.
+#
+# MEASURED on a scratch clone before this line was written, and the shape is why
+# it was worth measuring: without `ROOT` the clone reports lamplight, utilz and
+# baize as `no-repo` -- **but canary resolves `here` either way**, because canary
+# IS this repository and a full clone carries its pin. So the default member
+# would have passed green with the bug latent for every other member, which is a
+# false green wearing the one result anybody checks.
+ROOT="$ROOT" "$CORPUS" capture "$MEMBER" "$TEMPLATE" >/dev/null ||
   die "estate_corpus.sh could not capture $MEMBER -- run '$CORPUS list' to see why"
 
 # CAPTURED ONCE AND COPIED, NEVER CAPTURED TWICE. `capture` stamps `captured_at`
