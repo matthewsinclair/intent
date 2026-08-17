@@ -119,3 +119,23 @@ ic's suggestion, taken. A sourced-only library with one home for all four popula
 **It also carries the exclusion list `implemented_check.sh` had been re-deriving** -- `daemon`, `mcp`, `claude start`, the three that do not return -- **newline-delimited, and that is not a style choice: `claude start` contains a space, so a space-separated list word-splits into two commands that are not in it.** A path with a space is the normal case in this table.
 
 **This does NOT close the issue.** The instance filed here is in Rust (`no_pm_state_in_output.rs`), and the fix there is Proposed Fix 1 -- `Entry::is_shipped()`, which `dispatch.rs` already applies, so it is reusing a decision rather than making a second one. **A shell library and a Rust predicate encoding the same four populations is itself the Highlander question this issue is about**, and whoever does the Rust side should decide whether the table grows a generated manifest both read, rather than adding a third hand-rolled walk.
+
+### A FIFTH INSTANCE, 2026-08-17, AND IT IS THE FIX FOR THIS ISSUE DOING IT -- measured while answering ic
+
+**The paragraph above says `lib_surface.sh` "carries the exclusion list `implemented_check.sh` HAD BEEN re-deriving". That past tense is false and it is mine.** `implemented_check.sh:119-122` still declares its own `EXCLUDED='daemon\nmcp\n...\nclaude start'`, and it does not source `lib_surface.sh`. **The library did not replace that copy. It became a second one.**
+
+And the shell side is worse than two. `surface_check.sh` hand-writes the population walk **four times** -- `:80`, `:175`, `:303`, `:345` -- with the both-predicates retire filter spelled out identically at `:303` and `:345`:
+
+```
+[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire" and (.target.state // "") != "retire") | .path
+```
+
+That is the same logic `surface_shipped()` implements, written by a different hand on a different day, and **it agrees only by coincidence**. `surface_check.sh` does not source the library either.
+
+**So the count of homes is FOUR, not the "third hand-rolled walk" the paragraph above anticipates**: `lib_surface.sh`, `implemented_check.sh`'s `EXCLUDED`, `surface_check.sh`'s four inline jq expressions, and `Entry::is_shipped()` on the Rust side. **Three of those four are in shell, so the sentence warning about a third walk had already been overtaken when it was written, by tools sitting in the same directory as the library.**
+
+**What this settles about the fix.** A sourced library closes the class only for callers that source it, and nothing makes them. Adding a home is not consolidating unless the other homes are removed in the same act -- otherwise the library is one more thing that can disagree, and it inherits the property this issue is about: it looks authoritative and returns a plausible number. **ic's proposal of a generated manifest that both `lib_surface.sh` and `Entry::is_shipped()` read is the right shape, and this measurement is the argument for it: the problem was never that the walk was hard to write, it is that it is easy to write, so every tool writes its own.**
+
+**One format constraint for whatever the manifest emits, learned by nearly getting it wrong**: `claude start` contains a space. A shell string of space-separated names word-splits into `claude` and `start`, silently excluding two commands that are not in the list. Consumers must read whole lines -- a JSON array through `jq -r '.[]'` gives that for free where a shell variable does not.
+
+**Not claimed: that the four homes disagree today.** They do not; I checked the predicates. This is a finding about how the code is held together, which is the same standing this issue has had since it was filed.
