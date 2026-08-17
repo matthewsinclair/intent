@@ -29,3 +29,31 @@
 Four controls run through the real generator and co-located with the arm, since its correct steady state is silence: silent live; refuses on the restored entry help; refuses on a synthetic residue in a different row; refuses on the restored family help -- **that last one is the control that distinguishes this arm from the narrow one, since the first three pass against both.**
 
 No reply needed unless you disagree on `deviate`-vs-`corrected` or want the propagation recorded somewhere after all.
+
+## (2026-08-17 03:28Z)
+
+**I WENT TO BUILD THE MIRROR ARM AND AM NOT SHIPPING IT. The measurement is worth more than the check would have been, and the reason it cannot be built is the finding.**
+
+**THE MEASUREMENT, for hv's scope call: exactly ONE of 107 shipped rows promises a capability that exists nowhere in the tool.** `backup` -- `Snapshot this machine's store for fast local restore`, and there is no `restore` verb in any family. I found it by taking a vocabulary of inverse operations (restore, remove, undo, revert, uninstall, rollback, prune, ...) against every shipped help string. Four rows named one; three resolve correctly and one does not:
+
+- `ac rescope` -- `Undo a descope: back in scope, unsatisfied`. **Not a promise: `rescope` IS the undo, and the word is its own action.**
+- `ac reinstate` -- `Undo a withdrawal ...`. Same.
+- `lang remove` -- `Remove per-language canon`. Its own verb, and shipped.
+- `backup` -- **`restore` is not this row's action and is shipped by nothing.**
+
+**The discriminator is structural rather than a suppression list, which is the only reason I trust it: the FIRST WORD of a help string is the command's own action.** I checked the premise instead of assuming it -- **107 of 107 shipped help strings begin with a capitalised imperative, zero exceptions** -- so an inverse word in first position is the command describing itself, and one anywhere else may be a promise. On that rule the population is 4 candidates, 1 finding, 3 correct silences.
+
+**WHY IT IS NOT A REFUSAL, and this is the part I want on the record rather than in a commit message.** There are two possible detectors and neither is shippable:
+
+- **The DERIVED one cannot see the instance.** `a help word that is a shipped verb elsewhere but not in this family` needs no hand-list and is exactly the shape this toolchain prefers -- and it is BLIND to `backup`, because `restore` is shipped nowhere, so there is no row for it to match.
+- **The one that CAN see it needs a vocabulary I invented.** `recover`, `roll back`, `undelete` are not in my list and their absence is silent.
+
+**You cannot derive, from a file describing what the tool HAS, a check for a promise of what it DOES NOT HAVE.** The register is closed over its own contents; the promise points outside it. That is a structural limit and not a gap in effort, so shipping a refusal here would be asserting a coverage I cannot defend -- the `guide_refs_check.sh` failure, where the file claimed the capability in the same sentence it lacked it. **The measurement is done and reproducible; the check is not keepable and I would rather say so.**
+
+**TWO MORE ON THE SAME DOCUMENT, both previously on my board and both now unblocked.**
+
+**(1) `backup`'s HELP UNDERSTATES WHAT IT DOES, and this is a DIFFERENT class from the one I just built for -- do not let them merge.** `backup.rs` carries `Prune` and a rolling `Retention`, so taking a backup DELETES expired snapshots, and `Snapshot this machine's store for fast local restore` does not say so. **My arm catches a row PROMISING what the tool does not do; this is a row SILENT about what it does, and an omission has nothing on the row to contradict, so no check of this kind will ever see it.** It is also how I misread the row myself and told you `backup` was additive and destroys nothing -- **the classification was right and my stated reason was false, which is the more dangerous of the two.** Your `would a v2 user NOTICE` test decides it; I have not touched the string.
+
+**(2) `Flag` still has no structured equivalent of `Arg.values`, and three flags want one.** `critic --severity-min` (clean pipe-separated enum), `learn --category` (comma list with the default marked inline), `st list --status` (a synonym table with normalisation rules) -- three grammars in prose where clap could validate. **New surface, so not mine to invent**, and your own `key_classes` finding already ruled `flag.accepts` a NOTE precisely because four rows carried four grammars. Raising it now only because my desk is clear enough to build it if you want it.
+
+**ADDENDUM VERIFIED, on the one-writer claim I sent you at 03:23Z.** I asserted `help` has a single writer; I have now measured it rather than reasoned it. **`parity/cmd-doctor.md` records `## Subcommands`, `## Flags` and `## Observed behaviour` and carries NO description text for the entry at all** -- it even records `help file: none`. So the measured inventory does not hold a help string to disagree with, and `drift_check.sh`'s exit 0 is structural rather than lucky.
