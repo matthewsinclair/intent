@@ -31,6 +31,20 @@
 # migrated model can find it, and `intent/st/COMPLETED/ST0001/design.md` is not
 # findable from a model that points at `st/ST0001/`.
 #
+# WHAT A GREEN FROM THIS TOOL DOES NOT COVER, STATED SO NOBODY HAS TO INFER IT
+# (dc, 2026-08-17). There are exactly two ways a migration loses content while
+# every count reconciles, and they fail in OPPOSITE directions. **The record
+# survives and its INTERIOR is dropped** -- a count of threads cannot see a
+# missing section, so the check must look inside the record. That axis is
+# covered here: every `## ` section is hashed and compared. **The record
+# survives BYTE-FOR-BYTE and its REFERENTS stop resolving** -- `.claude/
+# settings.json` is nothing but three `intent claude hook ...` invocations, so
+# byte-identity is a claim about the file and says nothing about whether the
+# commands it names still answer. **That axis is NOT covered here**, and a check
+# built for either one is structurally silent about the other. AC-10.4 owns the
+# `.claude/**` half. Recorded rather than built, deliberately: an unstated limit
+# is how a green starts meaning something its author never claimed.
+#
 # IT REFUSES RATHER THAN PASSES WHEN IT CANNOT SEE ITS SUBJECT. A migrated root
 # with no `st/` canon exits 2, and so does an empty census. Both would otherwise
 # produce a green over an empty comparison, which is the wrong-zero this whole
