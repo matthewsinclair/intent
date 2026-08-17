@@ -101,40 +101,97 @@
 # Anchored to the leading token now. Measured before and after: the hv bucket
 # holds 0 rows either way, so nothing was reclassified to get this.
 #
+# ---------------------------------------------------------------------------
+# A PROVISIONAL RULING IS NEITHER RATIFIED NOR DANGLING, AND THE FIELD HAD NO WAY
+# TO SAY SO. vc's ruling, 2026-08-17, within their grant, and the finding is
+# theirs: it arrived as a hold on the remedy for the bug above.
+#
+# `ac gate` was going to be re-anchored on `d15057e6`, the commit holding vc's
+# ruling, which is what the dangling report tells you to do. **It is the wrong
+# move on that row, and wrong in the same way the bug above was wrong.** The row
+# says `vc ruling 2026-08-16 (provisional pending hv)`. hv has not ruled it. **A
+# commit sha in `ratified_in` asserts that a ratification happened**, so the
+# remedy would certify a provisional ruling as settled -- doing deliberately what
+# the `AUTHORITY_HV` anchor had just stopped happening by accident, an hour
+# apart, in the same field.
+#
+# **AND THE FINDING IS UNDER THE REMEDY, IN THE FIELD'S VOCABULARY.**
+# `ratified_in` can express exactly two states -- a record, or a dangle -- and a
+# provisional ruling is neither: it IS recorded (issue 0032, and now
+# `d15057e6`), and it is NOT ratified. The honest value does not exist in the
+# vocabulary, which is why both available answers are wrong. That is one level up
+# from the `AUTHORITY_HV` bug: **the checker verified membership in a vocabulary,
+# and nothing verified that the vocabulary could express the states in use** --
+# AC-05.5's own property, arriving on a different field.
+#
+# KNOWN IMPRECISION, AND IT POINTS THE EXPENSIVE WAY, SO IT IS STATED LOUDLY. The
+# bucket is keyed on the token `provisional` appearing in the value, which is the
+# substring-anywhere move this file just fixed elsewhere. A value reading `no
+# longer provisional` or `the provisional ruling was confirmed by hv` would be
+# bucketed as provisional and would then NOT appear on the worklist. **So the
+# word is load-bearing: when a provisional ruling settles, DELETE the word, do
+# not negate it.** The mitigation is that a provisional row is still counted and
+# still printed on its own line -- it moves between two visible states rather
+# than into a green, so the failure is a mislabel and not a disappearance.
+#
+# THE END STATE IS A DECLARED FIELD, NOT A TOKEN IN PROSE, and it is the same
+# argument as the roster: a declaration beats a guess about prose. That is a
+# schema change to the register and it wants a ruling, so it goes on the list
+# beside the `records:` key rather than being taken here.
+#
 # --- MUTATION PROOFS (run 2026-08-17, ic; every prediction written first) -----
 # Run from a `git archive` extract with this file overlaid, never the shared
-# tree. Baseline in the extract: 26 declared, 10 conform, 0 hv, 5 dangling,
-# 0 non-conforming, 11 sentinel.
+# tree. Baseline in the extract: 26 declared, 10 conform, 0 hv, 1 provisional,
+# 4 dangling, 0 non-conforming, 11 sentinel.
 #
-# **AND THE FIRST RUN OF THEM FOUND THE CHECK BROKEN, WHICH IS THE ONLY REASON
-# THESE READ AS PROOFS RATHER THAN AS DECORATION.** Predicted 5 dangling on the
-# live table, observed 0 -- the `IFS=$'\t' read` pair-return described at
-# `issue_nums` was silently moving every dangling number into the resolving
-# variable. The fix for a false green shipped as a false green for about four
-# minutes, and the run is what ended it. The predictions below were written
-# before the code was, and are recorded against what the run actually printed.
+# **THE FIRST RUN FOUND THE FIX ITSELF BROKEN, WHICH IS THE ONLY REASON THESE
+# READ AS PROOFS RATHER THAN AS DECORATION.** Predicted 5 dangling on the live
+# table, observed 0 -- the `IFS=$'\t' read` pair-return described at `issue_nums`
+# was moving every dangling number into the resolving variable. The fix for a
+# false green shipped as a false green for about four minutes, and the run ended
+# it. Every figure below is what the run printed.
 #
 # 1. TREE, NOT A BAKED LIST. `ISSUES_DIR` at a fabricated tree holding
-#    `CLOSED/0046` + `CLOSED/0032`. PREDICTED: dangling 0. OBSERVED: 15 conform,
-#    0 dangling -- the whole baseline restored. The answer comes from the
-#    filesystem, not from a list of dead numbers this file remembers.
-# 2. PER NUMBER, NOT PER SPELLING. Table copy with `st start`'s record changed
-#    from `issue 0046` to `issue 0015`, which resolves under CLOSED/. PREDICTED:
-#    that row conforms and the other four still dangle. OBSERVED: 11 conform,
-#    4 dangling, and the four named are `st done`, `wp start`, `wp done`,
-#    `ac gate`. So the check reads the NUMBER and resolves it.
+#    `CLOSED/0046` + `CLOSED/0032`. PREDICTED: dangling 0. OBSERVED: 14 conform,
+#    0 dangling, provisional still 1. The answer comes from the filesystem, not
+#    from a list of dead numbers this file remembers.
+# 2. PER NUMBER, NOT PER SPELLING. `st start`'s record changed from `issue 0046`
+#    to `issue 0015`, which resolves under CLOSED/. PREDICTED: that row conforms
+#    and the rest still dangle. OBSERVED: 11 conform, 3 dangling, named as
+#    `st done` / `wp start` / `wp done`. The check reads the NUMBER.
 # 3. THE OTHER DIRECTION, ON THE SAME MUTANT. Proof 2's table with `ISSUES_DIR`
 #    at an EMPTY tree, so the 0015 that just passed must now fail. PREDICTED:
-#    back to 5 dangling. OBSERVED: 10 conform, 5 dangling. One table, two trees,
-#    two answers -- which is the property, and neither run alone shows it.
+#    back to 4 dangling. OBSERVED: 10 conform, 4 dangling. One table, two trees,
+#    two answers -- the property, and neither run alone shows it.
 # 4. INABILITY TO MEASURE REFUSES. `ISSUES_DIR` at a non-existent path.
-#    PREDICTED: exit 2, no verdict. OBSERVED: exit 2, stderr naming the row that
-#    needed the tree (`st start`), nothing on stdout.
-# 5. THE hv ANCHOR DISCRIMINATES. Anchor reverted to the old match-anywhere form
-#    with the record fix in place. PREDICTED: `ac gate` laundered out of dangling
-#    and into the hv bucket. OBSERVED: 4 dangling, 1 hv, and the report reads
-#    `hv RULINGS -- legal without a record, and NOT a worklist item (1): ac gate`
-#    for a ruling whose own text says vc made it and hv has not seen it.
+#    PREDICTED: exit 2, no verdict. OBSERVED: exit 2, 0 bytes on stdout, stderr
+#    naming the row that needed the tree (`st start`).
+# 5. THE hv ANCHOR, AGAINST THE LIVE CORPUS -- AND THIS ONE CAME BACK EMPTY,
+#    WHICH IS THE MOST USEFUL RESULT IN THE SET. Anchor reverted to
+#    match-anywhere. PREDICTED (written when the anchor was the only fix in
+#    flight): `ac gate` laundered into the hv bucket, 4 dangling + 1 hv.
+#    OBSERVED: no change at all -- hv 0, every count identical. **The provisional
+#    bucket lands ahead of the hv test, so it now catches the only row the
+#    unanchored needle mis-matches, and the second fix HID THE EVIDENCE FOR THE
+#    FIRST.** The anchor is still right and is no longer load-bearing on today's
+#    corpus; revert it tomorrow and nothing here would notice. Which is why:
+# 6. PROVISIONAL PRECEDES CONFORMANCE. `ac gate` given a real sha AND the word
+#    kept: `vc ruling 2026-08-16 (provisional pending hv), recorded at commit
+#    d15057e6`. PREDICTED: still provisional, NOT conforming -- a good record
+#    does not make an unmade ruling. OBSERVED: 10 conform, 1 provisional, counts
+#    unmoved. This is the exact remedy vc held, run rather than argued.
+# 7. THE TOKEN DISCRIMINATES. Same row, same sha, word DELETED. PREDICTED: it
+#    conforms. OBSERVED: 11 conform, 0 provisional. So the bucket is keyed on the
+#    value and not on the row id, and the settle-by-deletion rule works.
+# 8. THE ANCHOR, ISOLATED FROM PROOF 5's MASKING. `st start`'s value replaced
+#    with `vc ruling 2026-08-17, deferred to hv` -- vc authority, ISO date, no
+#    record, `hv` in the prose, no `provisional`. PREDICTED: anchored puts it on
+#    the worklist, unanchored launders it. OBSERVED anchored: `missing: record --
+#    st start`, 1 non-conforming, hv 0. OBSERVED unanchored: `hv RULINGS --
+#    legal without a record, and NOT a worklist item (1): st start`, 0
+#    non-conforming. **A synthetic row was needed because the real one that
+#    proved this an hour ago is now caught earlier**, which is the general
+#    lesson: a proof anchored on a corpus row expires when the corpus moves.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -202,6 +259,9 @@ AUTHORITY_HV='^[[:space:]]*hv([^a-z]|$)'
 RECORD_SHA='(^|[^0-9a-zA-Z])[0-9a-f]{7,40}([^0-9a-zA-Z]|$)'
 RECORD_FILE='[A-Za-z0-9_][A-Za-z0-9_.-]*\.(md|rs|sh|json|toml|txt)'
 RECORD_ISSUE='issue[s]? [0-9]{3,4}'
+# Not a record at all -- a statement that no ratification has happened yet. See
+# the header: the token is load-bearing, so a settled ruling DELETES it.
+PROVISIONAL='provisional'
 
 # Every issue number that still resolves, read once from the tree. Both buckets:
 # an issue in CLOSED/ is as durable a record as one in OPEN/ ever was, and more
@@ -248,8 +308,8 @@ issue_dangling() {
   done
 }
 
-OK=0; BAD=0; SENTINEL=0; HV=0; DANGLING=0
-REPORT=""; SENTINEL_IDS=""; HV_IDS=""; DANGLING_REPORT=""
+OK=0; BAD=0; SENTINEL=0; HV=0; DANGLING=0; PROV=0
+REPORT=""; SENTINEL_IDS=""; HV_IDS=""; DANGLING_REPORT=""; PROV_REPORT=""
 
 while IFS=$'\t' read -r id value; do
   [ -n "$id" ] || continue
@@ -286,6 +346,19 @@ while IFS=$'\t' read -r id value; do
   if [ "$value" = "parity.md" ]; then
     SENTINEL=$((SENTINEL + 1))
     SENTINEL_IDS="$SENTINEL_IDS $id"
+    continue
+  fi
+
+  # **PROVISIONAL IS TESTED FIRST, AHEAD OF CONFORMANCE ITSELF**, because it
+  # answers a question that precedes the grammar: whether a ratification has
+  # happened at all. A provisional row carrying a perfectly good sha would
+  # otherwise land in `conform`, and conform is the statement vc's hold is about.
+  # Not a worklist item -- nobody can act on it but hv.
+  if echo "$value" | grep -Eqi "$PROVISIONAL"; then
+    PROV=$((PROV + 1))
+    short="$(echo "$value" | cut -c1-84)"
+    PROV_REPORT="$PROV_REPORT  provisional -- $id -- \"$short...\"
+"
     continue
   fi
 
@@ -370,8 +443,8 @@ while IFS=$'\t' read -r id value; do
   fi
 done <<< "$ROWS"
 
-printf 'ratified-in: %d unit(s) declare a ratification; %d conform (authority + date + record); %d are an hv ruling (legal, unverifiable by construction); %d cite a record that no longer resolves; %d do not conform; %d are the `parity.md` sentinel\n' \
-  "$((OK + BAD + SENTINEL + HV + DANGLING))" "$OK" "$HV" "$DANGLING" "$BAD" "$SENTINEL"
+printf 'ratified-in: %d unit(s) declare the field; %d conform (authority + date + record); %d are an hv ruling (legal, unverifiable by construction); %d are PROVISIONAL and not ratified at all; %d cite a record that no longer resolves; %d do not conform; %d are the `parity.md` sentinel\n' \
+  "$((OK + BAD + SENTINEL + HV + DANGLING + PROV))" "$OK" "$HV" "$PROV" "$DANGLING" "$BAD" "$SENTINEL"
 
 if [ "$SENTINEL" -gt 0 ]; then
   printf '\n  SENTINEL, and NOT a worklist item -- these carry the exact string `parity.md`, which\n'
@@ -398,6 +471,21 @@ if [ "$HV" -gt 0 ]; then
   printf '     is indistinguishable from a real one by inspection. **This line is the count of\n'
   printf '     ratifications that are unverifiable BY CONSTRUCTION**, kept visible rather than\n'
   printf '     absorbed into the conforming total.\n'
+fi
+
+if [ "$PROV" -gt 0 ]; then
+  printf '\n  PROVISIONAL -- recorded, and NOT ratified. NOT a worklist item; only hv can move these (%d):\n' "$PROV"
+  printf '%s' "$PROV_REPORT"
+  printf '  -- vc, 2026-08-17, within their grant. A sha in `ratified_in` ASSERTS that a ratification\n'
+  printf '     happened, so re-anchoring one of these would certify a provisional ruling as settled --\n'
+  printf '     which is what the `AUTHORITY_HV` anchor above stopped happening by accident. The remedy\n'
+  printf '     for a dangle is the wrong remedy here, and it was caught as a hold on that very fix.\n'
+  printf '  -- **THE FIELD CANNOT EXPRESS THIS STATE.** `ratified_in` says either "here is the record"\n'
+  printf '     or nothing; a provisional ruling IS recorded and IS NOT ratified, so both available\n'
+  printf '     values are wrong. The checker verified membership in a vocabulary and nothing verified\n'
+  printf '     the vocabulary could express the states in use. A declared field is the end state.\n'
+  printf '  -- The token is LOAD-BEARING: when a provisional ruling settles, DELETE the word rather\n'
+  printf '     than negating it. `no longer provisional` reads as provisional here.\n'
 fi
 
 if [ "$DANGLING" -gt 0 ]; then
