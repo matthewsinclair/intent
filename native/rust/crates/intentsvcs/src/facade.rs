@@ -113,6 +113,8 @@ pub enum FacadeError {
   },
   #[error("no schema face named `{face}`")]
   NoSuchFace { face: String },
+  #[error("no issue {number:04} in this project")]
+  NoSuchIssue { number: u32 },
   // Transparent because the reason belongs beside the field, in `project.rs`,
   // and `doctor` reports the same condition without going through the facade at
   // all. Two renderings of one refusal is one rendering that drifts.
@@ -282,6 +284,12 @@ impl crate::remedy::Remedy for FacadeError {
       }
       Self::NoSuchFace { .. } => {
         "run `intent schema` with no argument to print every face, which also names them".to_string()
+      }
+      // `--kind all` rather than a bare list: the default bucket is OPEN, so a
+      // remedy without it sends someone looking for a closed issue in a list
+      // that cannot contain one, and they conclude it is gone.
+      Self::NoSuchIssue { .. } => {
+        "run `intent issues list --kind all` to see every issue this project has, closed ones included".to_string()
       }
       // Delegated for the same reason the message is: the arithmetic that
       // names the two honourable values either side belongs with the rule.
@@ -484,6 +492,32 @@ impl Facade {
   /// index byte for byte.
   pub fn st_list(&self) -> Vec<&Thread> {
     views::index_order(&self.canon.threads)
+  }
+
+  /// Every issue, in number order.
+  ///
+  /// **Ordered here rather than at the call site**, so the terminal table, the
+  /// generated view and any later consumer agree without each sorting -- which
+  /// is the shape `views::index_order` already holds for threads.
+  pub fn issue_list(&self) -> Vec<&crate::model::Issue> {
+    let mut out: Vec<&crate::model::Issue> = self.canon.issues.iter().collect();
+    out.sort_by_key(|i| i.number);
+    out
+  }
+
+  /// One issue by number.
+  ///
+  /// The NUMBER rather than the rendered id, because zero-padding is a display
+  /// decision: `21`, `0021` and `issues/0021.json` are one issue, and the
+  /// widening from a string to a number belongs at the surface where the
+  /// operator's spelling arrives.
+  pub fn issue_show(&self, number: u32) -> Result<&crate::model::Issue, FacadeError> {
+    self
+      .canon
+      .issues
+      .iter()
+      .find(|i| i.number == number)
+      .ok_or(FacadeError::NoSuchIssue { number })
   }
 
   pub fn st_show(&self, id: &str) -> Result<&Thread, FacadeError> {

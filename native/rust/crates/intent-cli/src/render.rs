@@ -12,7 +12,7 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
-use intentsvcs::model::{AtStatus, TShirt, ThreadStatus};
+use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
@@ -42,6 +42,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("info", _)) => info(),
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
+    Some(("issues", m)) => issues(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -94,6 +95,9 @@ fn context() -> Result<(Project, FacadeContext), String> {
 const ST_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
 
 const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
+
+/// v2's `intent issues list` columns (`bin/intent_issues:240`).
+const ISSUE_COLUMNS: &[&str] = &["ID", "Status", "Sev", "Title"];
 
 /// How wide to render, in v2's order of preference
 /// (`bin/intent_helpers:get_terminal_width`).
@@ -1485,6 +1489,123 @@ fn info_project(cwd: Option<&std::path::Path>) {
     }
   }
   println!();
+}
+
+/// `intent issues` -- the READ half, and the mutating half is deliberately not
+/// here.
+///
+/// **`add`, `close` and `open` are blocked on a ratification, not on effort.**
+/// `transitions.rs` declares `Issue.status` as `Disposition::Unbuilt`, and
+/// `data-model.md` ratifies three machines -- thread, work package, criterion
+/// -- and no issue machine. AC-04.6 requires the implemented graph to match the
+/// ratified machines EXACTLY, with no undeclared edge, so wiring `close` and
+/// `open` means declaring `open <-> closed` on my own authority. The edges look
+/// obvious, and that is exactly when the discipline is worth keeping: the whole
+/// point of a ratified machine is that the person implementing it does not get
+/// to add to it.
+///
+/// So the three read verbs ship and the three mutations report themselves
+/// unbuilt, which is what they already did. Raised with vc rather than built
+/// around.
+fn issues(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    // The bare form runs `list`, which is the table's declared default verb
+    // for this family.
+    None | Some(("list", _)) => {
+      let a = m.subcommand().map(|(_, a)| a).unwrap_or(m);
+      let kind = opt(a, "kind").unwrap_or_else(|| "open".to_string());
+      let wanted = match kind.to_ascii_lowercase().as_str() {
+        "open" => Some(IssueStatus::Open),
+        "closed" => Some(IssueStatus::Closed),
+        "all" => None,
+        other => {
+          return Err(Failure::Error(format!(
+            "error: `{other}` is not an issue bucket\n  remedy: use one of open, closed, all"
+          )));
+        }
+      };
+
+      let f = open()?;
+      let rows: Vec<Vec<String>> = f
+        .issue_list()
+        .into_iter()
+        .filter(|i| wanted.is_none_or(|w| i.status == w))
+        .map(|i| {
+          vec![
+            format!("{:04}", i.number),
+            enum_str(&i.status).to_ascii_uppercase(),
+            // v2 prints `?` for an issue whose severity was never recorded,
+            // and the token is kept: a blank cell reads as a rendering fault,
+            // where `?` reads as "nobody said".
+            i.severity.clone().unwrap_or_else(|| "?".to_string()),
+            i.title.clone(),
+          ]
+        })
+        .collect();
+
+      if rows.is_empty() {
+        println!("no {kind} issues");
+        return Ok(());
+      }
+      print!(
+        "{}",
+        views::table(
+          ISSUE_COLUMNS,
+          &rows,
+          views::TableMode::Terminal {
+            fill: terminal_width()
+          }
+        )
+      );
+      Ok(())
+    }
+    Some(("show", a)) => {
+      let raw = arg(a, "id")?;
+      let number = issue_number(&raw)?;
+      let f = open()?;
+      let issue = f.issue_show(number).map_err(fail)?;
+      if flag(a, "json") {
+        println!(
+          "{}",
+          serde_json::to_string_pretty(issue)
+            .map_err(|e| format!("error: the issue could not be rendered as JSON: {e}"))?
+        );
+      } else {
+        println!("{:04}: {}", issue.number, issue.title);
+        println!("status: {}", enum_str(&issue.status).to_ascii_uppercase());
+        if let Some(sev) = &issue.severity {
+          println!("severity: {sev}");
+        }
+        println!("created: {}", issue.created);
+        if let Some(closed) = &issue.closed {
+          println!("closed: {closed}");
+        }
+      }
+      Ok(())
+    }
+    Some((verb, _)) => unwired("issues", verb),
+  }
+}
+
+/// An operator's spelling of an issue id, as a number.
+///
+/// **`21`, `0021` and `0021.json` are one issue** -- v2 normalises the same way
+/// (`bin/intent_issues:normalize_id`), and an operator who copied a padded id
+/// out of a filename must not be told it does not exist.
+fn issue_number(raw: &str) -> Result<u32, Failure> {
+  let trimmed = raw.trim().trim_end_matches(".json").trim_end_matches(".md");
+  trimmed.trim_start_matches('0').parse::<u32>().or_else(|_| {
+    // All zeros trims to nothing, and `0000` is a legal id shape even if no
+    // project uses it -- answering it with a PARSE error would blame the
+    // operator's spelling for an issue that is merely absent.
+    if !trimmed.is_empty() && trimmed.chars().all(|c| c == '0') {
+      Ok(0)
+    } else {
+      Err(Failure::Error(format!(
+        "error: `{raw}` is not an issue id\n  remedy: name it as a number, eg `21` or `0021`"
+      )))
+    }
+  })
 }
 
 /// v2's placeholder for a config field it could not read. Kept because a blank

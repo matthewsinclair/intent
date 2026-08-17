@@ -183,6 +183,10 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"],\n  \"todo\": { \"window_hours\": 6 }\n}\n",
   );
   out.push((
+    "unknown issue",
+    fx.facade().issue_show(9999).expect_err("no such issue"),
+  ));
+  out.push((
     "unhonourable todo window",
     bad_window
       .facade()
@@ -239,6 +243,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
     FacadeError::UnhonourableWindow(_) => "UnhonourableWindow",
+    FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
   }
 }
 
@@ -277,6 +282,7 @@ const ALL_VARIANTS: &[&str] = &[
   "LossyFormat",
   "ExportRoundTripFailed",
   "UnhonourableWindow",
+  "NoSuchIssue",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
