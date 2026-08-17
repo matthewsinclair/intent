@@ -147,6 +147,18 @@ fn no_shipped_command_answers_from_an_unmigrated_project() {
     let family = entry.path.split(' ').next().unwrap_or_default();
     if reads_no_model(&entry.path).is_some() || reads_no_model(family).is_some() {
       exempt += 1;
+      // THE SKIP MUST STAY AHEAD OF `run()`, and it is load-bearing rather than
+      // an efficiency. Every entry in this loop shares ONE `legacy_project()`
+      // fixture, so an exempt command that actually executed could CHANGE it
+      // mid-sweep -- `upgrade` migrates it, and every verb ordered after would
+      // then answer legitimately instead of refusing. The guard would go red
+      // for a reason that is not the guard, on a command nobody had touched.
+      //
+      // Recorded because the property is currently true by accident of
+      // ordering and nothing else in the file says so. Checked when `upgrade`
+      // was wired (cc, 2026-08-17): it was exempt, the `continue` fired first,
+      // and no change was needed here -- safe by this loop's construction, not
+      // by anyone having thought about it at the time.
       continue;
     }
 
