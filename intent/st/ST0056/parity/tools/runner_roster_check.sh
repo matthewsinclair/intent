@@ -88,6 +88,7 @@ runner_roster_check.sh     gated   782ms of which 263ms is asking the runner thr
 self_provenance_check.sh   gated   504ms over 27 blobs read from the INDEX; whole-set because the failure is staging one of two facts, so a path trigger would have to fire on the path that is not there
 stale_at_check.sh          gated   70ms and a single line, reports presence only
 view_skew_check.sh         gated   3077ms, the slowest gated one, path-triggered
+conservation_check.sh      manual  takes a MIGRATED tree as an argument and no such tree exists until WP-10 lands, so there is no bare invocation for a gate to make; it refuses with exit 2 rather than passing when handed an unmigrated one, which is the behaviour a gate would have to bypass on every commit
 drift_check.sh             manual  compares a STAMPED inventory against live canon, so gating it would block a dispatch-table edit until somebody re-runs a 27-family measurement sweep -- a measurement, not a fix
 guide_refs_check.sh        manual  takes required prose-file arguments, so there is no bare invocation for a gate to make
 implemented_check.sh       manual  invokes every declared row in a fresh throwaway project with a sandboxed HOME

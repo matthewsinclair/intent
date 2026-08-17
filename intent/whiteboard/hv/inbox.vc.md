@@ -415,3 +415,30 @@ The split with cc had its first cross-check and it agrees: my census reads 56 th
 **Three conservation findings are with cc, all measured on that corpus.** The `body` catch-all that carries unnamed sections is on work packages and not on threads, so 178 thread sections and 106,678 bytes have no field to land in -- including `## Related Steel Threads` in 55 of 56 threads while `related` is hardcoded empty. Work-package section ORDER is lost in 140 of 140, because the reassembly is alphabetical. And ic's issue hole now has a size: 61 issues, 503 sections, 641,893 bytes, read by nothing.
 
 **FYI only unless you want to rule -- I am not blocked on any of the three.**
+
+## (2026-08-17 16:16Z)
+
+**A fourth decision, and it is the one I would rank first. ic found it, ic asked me to carry it so you get one voice on one question, and the framing below is mine.**
+
+**THE WARRANT FOR RETIRING `intent organize` HAS AN UNBUILT PRECONDITION, AND THE PRECONDITION IS WP-10.**
+
+You retired it on 2026-08-14 with this reason, verbatim from the dispatch table: _"organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot or the wrong format, so the disorder this repairs cannot arise."_
+
+**That sentence is true of a v3 estate. The migration is what turns a v2 estate into one. As built, it does not.**
+
+v2 expresses a thread's status as a DIRECTORY -- 55 of 56 threads live at `intent/st/<BUCKET>/<ID>/` while v3's canonical path is `st/<ID>/`. Phase A walks the buckets correctly. But it discards WHERE it found each thread: `model::Thread` has no location field, so Phase B cannot move a thread even in principle. The migration writes fresh canon and regenerated views at the flat path and leaves every bucketed file exactly where it was.
+
+**MEASURED, AND THE TWO NUMBERS ARE THE WHOLE FINDING:**
+
+```
+plan() on the canary   311 planned files (56 thread.json, 1 event log, 254 views)   and reports NO BLOCK
+the buckets             386 files stay exactly where they were
+```
+
+**Both figures are correct. The migration is complete by every measure it takes of itself.** That is what makes this a ruling rather than a bug report -- there is no failure to point at. I verified the bucket split independently at my own pin and got 387, decomposing as 194 regenerated at the flat path and 193 authored files nothing regenerates; ic read 386 = 194 + 192 at HEAD. Neither of us adopted the other's number: both are right at their own anchor and the one-file delta is the estate moving between them.
+
+**THE HALF THAT WORRIES ME MOST IS NOT THE LOST PROSE.** The 193 authored files (`design.md`, `impl.md`, `tasks.md` and the one-offs) end up as markdown in the repository at a path the model does not point at -- bad, and visible once someone looks. The other 194 are worse and quieter: **the migration MANUFACTURES the 0011 class.** Two `info.md` per thread, one generated from the model and one v2 artefact that nothing regenerates and everything still reads. Two artefacts claiming one natural role at two paths, on 55 of 56 threads -- and `legacy.rs` is built to REFUSE exactly that when it finds it in an estate. The migration would create what the parser exists to reject.
+
+**WHY IT NEEDS YOU AND NOT US.** Flattening means MOVING authored prose, and `WriteSet` has only `add` -- no remove. So the mechanism is a decision (does `WriteSet` gain a move? does the facade delete after the batch commits, with rollback restoring?), not something to be quietly patched into the join. **ic recorded it in `migrate.rs` as a named hole and deliberately did not build around it, which I think is exactly right.** Nobody is blocked: ic is on `plan()`, cc is on the scanner, I am on the conservation checks, and the checks now REPORT this rather than pass it. But the hoist should not land with the disorder carried in wholesale and the tool that repaired it already gone.
+
+**Not proposing a criterion. AC-10.5's prose conservation is already the right row; this changes the shape of the check, not the contract -- and it changed it before I built the check, which is the cheapest moment it could have happened.**
