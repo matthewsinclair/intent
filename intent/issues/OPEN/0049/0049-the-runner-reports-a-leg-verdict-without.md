@@ -95,7 +95,22 @@ measured: b2173b1b +9 dirty -- THIS VERDICT DESCRIBES NO COMMIT
 
 **It must print on GREEN runs too**, as a plain unadorned `measured: b2173b1b` with no warning voice, so the dirty line stands out by being unusual rather than by shouting. There is already precedent for exactly that in the same function: the `verdict:` line is emitted whenever `keep=1`, independent of rc, so a `measured:` line beside it is an addition to a block that already fires on green, not a new behaviour.
 
-**dc's second finding, which belongs here because it is why this location is worth more than it looks.** `DEVBIN_SEAL_LEDGER` is exported only inside `run_all` (`resolve:441`, unset at `:495`) and `record_seal` early-returns without it (`runlog:762`), so **the rc-versus-seal disagreement check fires only on `<cmd> all`** -- a single-gate run gets no check at all. Devbin's own open issue 0015 is a completed run that sealed in-flight, and its invocation was a single gate. **The one recorded upstream instance is on the path that check does not cover.** Putting the referent and the disagreement predicate together in `print_run_verdict` covers it, and makes one coherent change rather than two bolt-ons.
+**dc's second finding, which belongs here because it is why this location is worth more than it looks.** `DEVBIN_SEAL_LEDGER` is exported only inside `run_all` and `record_seal` early-returns without it, so **the rc-versus-seal disagreement check fires only on `<cmd> all`** -- a single-gate run gets no check at all. Devbin's own open issue 0015 is a completed run that sealed in-flight, and its invocation was a single gate. **The one recorded upstream instance is on the path that check does not cover.** Putting the referent and the disagreement predicate together in `print_run_verdict` covers it, and makes one coherent change rather than two bolt-ons.
+
+**The line numbers differ by tree, and the pair of them is this issue happening inside the conversation about this issue.** In **Intent's patched copy** the export is `resolve:441`, the unset `:495`, and `record_seal` `runlog:762`. In **Devbin upstream `4f8c4b6`** the export is `resolve:441`, the unset `:477`, and `record_seal` `runlog:718`. vc cited the first and dc the second; **neither said which tree, and the export being `:441` in BOTH is exactly what made one of us look wrong instead of the pair look under-specified.** The gap is the patch's net +30/-12, landing between the export and the unset. **A citation naming a line is a claim about a pointer, read at a moment, with the moment omitted** -- which is the whole of this issue, arriving between the two people writing it.
+
+**AND THE SEAL'S CORE INVARIANT IS A WRITE THAT CAN BE REFUSED (dc, measured 2026-08-17).** The `rc=0` arm of `write_errors_file` reads:
+
+```sh
+if [ "$rc" -eq 0 ]; then
+  if ! : >"$errors"; then
+    warn "cannot seal $errors -- the run was GREEN but its seal could not be written"
+  fi
+  return 0
+fi
+```
+
+**When the truncation fails -- a read-only seal, a vanished directory -- it warns and returns 0, and the in-flight marker survives.** So "a green run beside a non-empty seal", which the truncation appears to make unconstructible, **is reachable**: dc drove it against a read-only seal with controls either side proving the probe reached the real function, and the gate reported green with the marker still in place. The only defence was a `warn`. This matters to the fix above in both directions: it is the case dc's landed consistency check now refuses, **and it is a caution against any design that leans on "the seal is empty on green" as a property rather than as an attempted write.**
 
 This is the more fundamental defect, and it was found the hard way while filing this issue: vc reported "HEAD is green" to a peer, correctly, and the sentence was false forty minutes later because HEAD had moved -- a fact a second node hit independently in the same window and reported against their own measurement. **`HEAD` is a pointer, so a claim about HEAD is a claim about whatever it points at when read, not when written.** The runner has exactly the same bug in the same shape: a leg name is a pointer at a tree. Stamping the sha costs one subprocess at run start and converts every verdict from perishable to durable.
 
