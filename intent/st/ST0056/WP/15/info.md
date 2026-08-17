@@ -1,0 +1,42 @@
+---
+verblock: "17 Aug 2026:v0.1: matts - Initial version"
+wp_id: WP-15
+title: "Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill"
+scope: Large
+status: Not Started
+---
+
+# WP-15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
+
+## Objective
+
+Reach a recorded KEEP / UPDATE / RETIRE decision for **every one of the 26 skills** in `intent/plugins/claude/skills/`, and carry each decision out. hv's framing (2026-08-17): _"There are a lot of skills that I can see that don't make sense anymore, and it's been forever since the skills catalog (for Claude) had anyone look at it."_
+
+**The denominator is 26 and it is stated here on purpose.** A triage that reports "the obviously dead ones were removed" has an unmeasured arm, and the unmeasured arm is the skills nobody looked at -- which is the condition this WP exists to end. The deliverable is 26 decisions, not a shorter catalogue.
+
+## Why now, and why this is the rollout's job rather than a tidy-up
+
+v3 changes what the tool does and how it does it, so a skill written against v2 can go wrong in a way that produces no error:
+
+- **A skill naming a v2 verb, path or file layout keeps reading as correct prose while pointing at nothing.** Same keyed-versus-derived class this thread has hit in a grep, in a blocker set and in a contract row: the instruction is keyed to a name, the name survives, and the thing it named has moved.
+- **A skill whose procedure assumes file parsing may be describing work the store now does.** `/in-session` reads `intent/.config/config.json` directly; `intent ac gate` took 95 seconds over 114 rows because it re-parses markdown per row. Where v3 answers the same question from the store, the skill's procedure is not merely slow, it is a second implementation of a question the tool now owns -- Highlander, arriving through documentation.
+- **Some skills predate mechanisms that replaced them.** The rule library, the `critic-<lang>` family and the AC/AT contract each absorbed work that skills used to carry, and nothing swept the skills afterwards.
+
+## Deliverables
+
+- A triage table: one row per skill, its verdict (KEEP / UPDATE / RETIRE), and the reason. **All 26 rows present**, including the ones whose verdict is KEEP with no change -- an absent row and an unexamined skill are the same absence.
+- UPDATE skills brought current against v3's actual surface, verified against the dispatch table rather than against memory of it.
+- RETIRE skills removed through `intent claude skills` rather than by hand, with the removal reaching consumers (the sync blind spot in [feedback_skill_sync_script_blind_spot] applies: `intent claude skills sync` checksums `SKILL.md` only).
+- A check that the catalogue's cross-references still resolve -- `chains_to:` frontmatter, the `/in-*` names skills cite in each other's prose, and the rule IDs they name.
+
+## Dependencies
+
+- **Sequenced AFTER the hoist, and hv said so explicitly**: _"It's not a higher priority than getting Intent self-hosted on Intent3, but it needs to be part of the final Intent3 rollout."_
+- **A precondition of WP-12 (Cutover and v3.0.0 release) closing**, not a follow-on to it. Shipping v3 with 26 unreviewed v2-era skills ships the drift into every consumer's next `intent upgrade`.
+- The v3 surface must be settled enough to update against. WP-06 (CLI parity long tail) and WP-07 (canon and claude subsystem) are where the names these skills cite become final.
+
+## Acceptance
+
+Acceptance Criteria for this work package live in the steel thread's `acceptance.md`, under the `WP-15` heading (single source of truth). Do not restate ACs here.
+
+**No AC rows exist for WP-15 yet, deliberately.** hv's standing moratorium is that no new acceptance criteria are minted until the hoist lands, and this WP is recorded now so the requirement is not lost -- not so it can start. The criteria get written when the moratorium lifts and the v3 surface this WP must be measured against has stopped moving.
