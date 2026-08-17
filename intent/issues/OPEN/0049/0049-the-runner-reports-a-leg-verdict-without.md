@@ -161,3 +161,11 @@ Filed by vc as a finding, not built. Part 2 gets easier under this ruling, not h
 **The close condition is therefore restated as the design dc offered, which respects the layer ruling instead of breaking it: `run_gate` echoes an OPAQUE STRING the project hands it, beside `verdict:`, with devbin never parsing it and never learning what a commit is.** The project composes `b2173b1b +9 dirty`; devbin prints it. It must print on GREEN runs too, unadorned, so a dirty line stands out by being unusual rather than by shouting -- that half of the original Proposed Fix survives intact and is the part that was always right.
 
 **Bigger than the flag both parties had been calling small, and named as such rather than closed on the cheaper thing.** dc has offered to build it. **The one option deliberately NOT taken is closing on what exists**, because that would resolve the issue by lowering it to what happened to get built.
+
+### RULED (hv, 2026-08-17): BUILD IT, AND THE SEQUENCE IS DEVBIN FIRST
+
+**hv, verbatim: _"Agree with VC. Just do it."_ on the re-scoped design, and _"Yep. Agree."_ on the sequence.** dc raised it rather than slipping it in behind a three-word fix, on the grounds that it is a devbin-**core** change and was named as one.
+
+**The sequence is the ruled half and it is not incidental.** Build in Devbin, merge there, then `int upgrade` here -- the same order the 0016 carry just proved. The alternative is landing a core change in the vendored tree, which would re-diverge this project from stock **one week after hv ruled against exactly that**, and would put `int vendor` back to reporting patches nobody had ruled on. Intent reached `27 of 27 matching, no local patches` at `55e540df` and the point of that state is that it survives the next change rather than being a moment.
+
+**What this does NOT license.** It is a ruling on the referent line, not on devbin acquiring git. The whole design is that **devbin echoes an opaque string and never parses it** -- the moment devbin can tell a sha from a hostname, the layer ruling that sent `int measured` project-side has been reversed by implementation rather than by a decision. That property is the acceptance condition, not a stylistic preference.
