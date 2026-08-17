@@ -77,6 +77,21 @@ fn unmigrated_project(at: &Path) -> PathBuf {
   at.to_path_buf()
 }
 
+/// A MIGRATED project whose store cannot be opened: the config reads as v3, so
+/// the migration is `Done` and `info` goes on to open the store, and
+/// `intent/.cache` is a regular file where a directory is required.
+fn migrated_project(at: &Path) -> PathBuf {
+  let intent = at.join("intent");
+  std::fs::create_dir_all(intent.join(".config")).expect("mkdir .config");
+  std::fs::write(
+    intent.join(".config").join("config.json"),
+    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Broken\",\n  \"author\": \"matts\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
+  )
+  .expect("write config");
+  std::fs::write(intent.join(".cache"), "not a directory\n").expect("write the blocking file");
+  at.to_path_buf()
+}
+
 /// Run `intent info` and return (code, stdout, stderr).
 fn info(exe: &Path, cwd: &Path) -> (Option<i32>, String, String) {
   let out = Command::new(exe)
@@ -191,9 +206,28 @@ fn the_failure_is_not_reported_in_the_code_consumers_read_as_fail_open() {
 ///
 /// Issue 0042: the whiteboard guards are resolved by parsing this command's
 /// stdout, in projects that are unmigrated, half-migrated, or not projects at
-/// all. **Project state must never reach the exit code.** Both project
+/// all. **Project state must never reach the exit code.** All three project
 /// conditions are driven with a RESOLVABLE install, so the only difference from
 /// the failing cases above is the one thing that is allowed to gate.
+///
+/// **The third condition was added after the first two, and the gap it closed is
+/// the reason to state the count.** `info_project` has three arms that report a
+/// project-state failure -- no project, migration pending, and the store failing
+/// to open -- and this test measured the first two while its NAME claimed all
+/// project state. The unmeasured arm is the one most exposed: an unopenable store
+/// surfaces a real error with a remedy, which reads exactly like something that
+/// ought to be non-zero, and I started to make it non-zero before reading the
+/// decision it would have reversed. A guard that names a universal property and
+/// covers the two easy instances of it is worse than one that names its scope,
+/// because the name is what the next reader trusts.
+///
+/// **Why the answer is still 0 there.** `info`'s exit code answers exactly one
+/// question -- can this binary resolve its own installation -- and an unopenable
+/// store is a fact about a project. Anything wanting "is this project usable"
+/// should ask the command it actually wants, which gates on `Facade::open` and
+/// answers 1. Recorded here because the tempting fix is local, defensible in
+/// isolation, and would break the whiteboard guards in every project the day
+/// `info` inherits the migration refusal.
 #[test]
 fn project_state_never_reaches_the_exit_code() {
   let exe = Path::new(env!("CARGO_BIN_EXE_intent"));
@@ -221,6 +255,25 @@ fn project_state_never_reaches_the_exit_code() {
   assert!(
     stdout.contains("Steel Threads:"),
     "and the migration is reported as content rather than as an exit code:\n{stdout}"
+  );
+
+  // **A MIGRATED project whose store cannot be opened.** Driven by putting a
+  // regular FILE where `intent/.cache/` has to be a directory, so the failure is
+  // ENOTDIR rather than a permission: chmod is ignored when the suite runs as
+  // root, and a fixture that silently stops failing is how this arm would go
+  // back to being unmeasured.
+  let broken = migrated_project(&dir.path().join("nostore"));
+  let (code, stdout, stderr) = info(exe, &broken);
+  assert!(
+    stdout.contains("unavailable"),
+    "precondition: this fixture must actually reach the arm where the store fails to open, or the assertion below passes for the wrong reason. \
+     stdout:\n{stdout}\nstderr:\n{stderr}"
+  );
+  assert_eq!(
+    code,
+    Some(0),
+    "a store that will not open is PROJECT state, and `info`'s exit code answers only whether this binary can resolve its own install. It reads like something \
+     that should be non-zero, which is exactly why it is measured. stdout:\n{stdout}\nstderr:\n{stderr}"
   );
 }
 
