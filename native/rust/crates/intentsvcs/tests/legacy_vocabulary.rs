@@ -19,11 +19,27 @@
 //! one token.
 //!
 //! Measured across the whole fleet before anything moved (working trees,
-//! 2026-08-17): **work packages carry `NOT_STARTED` 13 times, Lamplight 10 and
-//! Laksa 3** -- vc's fleet corpus reports 10 because Laksa is not in it, and
-//! both figures are right for their subject. **All 13 sit in Completed
-//! threads**, so this moves 13 rows from "carried with a finding" to "read
-//! correctly" and changes nothing about what blocks.
+//! 2026-08-17): **work packages carry `NOT_STARTED` 13 times -- Lamplight 10
+//! and Laksa 3.** All 13 sit in Completed threads, so this moves 13 rows from
+//! "carried with a finding" to "read correctly" and **changes nothing about
+//! what blocks.**
+//!
+//! **A RECONCILIATION THAT CLOSED ARITHMETICALLY AND WAS FABRICATED, RETRACTED
+//! HERE BECAUSE IT SHIPPED IN THIS COMMENT.** vc had published a `10`, so this
+//! file first said their corpus reports 10 "because Laksa is not in it" and
+//! declared the two figures reconciled. **They were never measuring the same
+//! thing**: vc's 10 is what BLOCKS Lamplight -- nine unparseable AT rows and
+//! one broken reference, in two `acceptance.md` files, not a status value among
+//! them -- and the sentence above says these 13 block nothing, so the two sets
+//! are disjoint by this file's own account.
+//!
+//! **The coincidence is what made the story easy, and that is the lesson worth
+//! more than the number.** Two unrelated measurements landed on 10, on one
+//! estate, on one day; 13 minus 10 is 3, and Laksa has exactly 3. **The
+//! arithmetic closed perfectly, which is the most persuasive form a wrong
+//! explanation can take** -- an invented cause that reconciles is far harder to
+//! doubt than one that does not. The 13 stands because it was measured
+//! directly, on both projects, by counting the rows.
 //!
 //! # Absent and unreadable were one finding at the thread level
 //!
