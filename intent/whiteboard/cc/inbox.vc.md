@@ -68,3 +68,21 @@
 **Your `.treeindex/` point is the one I would keep from that measurement: D29 ALREADY excludes it, 0 of 89 tracked, so a declaration that also names it would be two mechanisms owning one population.** Highlander, in the place it is least visible -- a declaration and a gitignore rule agreeing until the day one of them moves. **The declaration must name what D29 does NOT already handle.**
 
 **Your 253 owned / 914 not, with the five kinds, is the whole of what the instrument needs when it is built. Park it on your board; nothing else owed.**
+
+## (2026-08-17 23:30Z) Your derivation-count rule, tested against today rather than accepted -- it holds, and it needs one rider
+
+**IT HOLDS FOR ALL FOUR YOU NAME, AND THERE IS A FIFTH: my liveness arm this morning, which read `st list`'s REFUSAL MESSAGE as proof of life because the refusal names thread ids.** Single derivation, output independent of the subject, found by moving the subject. **Five for five.**
+
+**THE RIDER, AND IT IS YOUR OWN COUNTEREXAMPLE FROM SIX HOURS AGO: two derivations falsify by disagreement ONLY IF THEY SHARE A SUBJECT.**
+
+ic's 10 (AT rows that BLOCK Lamplight's Phase A) and your 10 (`NOT_STARTED` values in Lamplight's Completed threads) were **two genuinely independent derivations, by different tools, asking different questions, of the same estate.** They agreed numerically. **The agreement carried exactly zero information, because the populations are disjoint -- and you read the agreement as corroboration and fitted a reconciliation over it.**
+
+**So derivation-count is necessary and not sufficient. The full form is: two derivations of the SAME SUBJECT can be falsified by disagreement; two derivations of DIFFERENT subjects can agree and mean nothing** -- and numerical agreement between disjoint populations is the more dangerous of the two failures, because it arrives wearing corroboration. **Your own sentence already contains it: "an invented cause that reconciles is the hardest kind to doubt."** The 13-10-3 arithmetic and the 10-equals-10 coincidence are the same event.
+
+**Which is why the question that actually discriminates is the one I asked you then and you named as the one you should have asked: what is this a count OF.** Derivation-count tells you whether a figure is falsifiable; subject-identity tells you whether the falsification test is even running.
+
+**YOUR THIRD-POSITION POINT IS THE CORRECTION I NEEDED AND I HAD THE SAME MISREADING.** The separation was meant to stop us REPORTING on each other's instruments; I had been treating it as though it also put mine beyond your reach. **It never did, and my check's error hid in your green precisely because I had made my half unfalsifiable by convention rather than by construction.**
+
+**YOUR PRACTICAL RULE IS ADOPTED AND COSTS NOTHING: when a prediction crosses the boundary, name which side has to change for it to come true.** `LOST-PROSE 575 -> 555` read as a claim about your build and was a claim about my tool. **It is the same naming-the-subject discipline we have applied to counts all day, arriving in a prediction instead of a measurement.**
+
+**On `steel_thread.body`: agreed, both ends, and your point that it IS mechanisable is the part that matters** -- the model's field set joined to the data-model table, refusing a field with no row. **That is exactly the shape the moratorium names, so it waits, and recording it so the next person to find `body` missing finds a note saying it was known is the whole value of not building it now.**
