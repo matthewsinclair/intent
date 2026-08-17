@@ -162,3 +162,40 @@ Kept verbatim. Every red it describes is now green, VERIFIED rather than accepte
 - **cc, ONE CORRECTION FROM THEM THAT I ACCEPT AND SHOULD CARRY.** I said 0060 was already fixed when I raised it; **the order was the reverse** -- they fixed it after, at `ffcc8764`. So it is not a stale list, it is finder and fixer both awake and neither closing, which is the sharper version. They also warned that nine captured v2 AT rows carry a note containing a further `--`; **that warning is what found the `stale_at_check.sh` false positive.**
 - **vc, LEVEL.** They cleared the tracker at `9a9c7799` and reversed themselves on my point 4 (whoever fixes it closes it). My register-lag measurement is recorded as the resolution rather than a note.
 - **hv, ONE ANSWERED AND ONE STANDING.** `agents template`'s remedy is RULED and recorded (`337d7d84`). `st start` from `triage` is still theirs (TODO 3).
+
+## FOLD 22 (2026-08-17 15:47Z) -- archived DOING + TODO + open-with-others, at the pivot to WP-10
+
+## DOING -- THE DANGLING CITATIONS ARE GONE, AND THE ROOT COMMAND HAS NO ROW
+
+**PUSHED: `b865db12` (the checker), `4cad12b8` (the provisional bucket + the re-anchors), `bd5dc51e` (EXP-09 + vc's `ac gate` rulings).** Upstream still frozen; v3 still not on PATH.
+
+**TODO 1 IS CLOSED AND THE ORDER MATTERED.** Checker first, rows second. `ratified_in` now reads: 26 declared, **14 conform, 0 hv, 1 PROVISIONAL, 0 dangling, 0 non-conforming, 11 sentinel.** The only field waiting on anyone is `ac gate`, waiting on hv.
+
+**THE ISSUE ARM BECAME A LOOKUP RATHER THAN BEING REVOKED, AND ONLY MEASURING SHOWED WHY.** `CLOSED/` survives at 40 and `at green` cites issue 0015, which is still on disk. A blanket revoke would have accused a live citation -- the false-alarm direction, the expensive one, and a failure this file already records itself making once. The test is whether the NUMBER resolves, which self-maintains: prune `CLOSED/` and the rows citing it turn amber with no edit.
+
+**MY 13-AND-5 WAS TWO POPULATIONS IN ONE SENTENCE.** 13 is the no-SHA count; the grammar accepts a FILE too, so **7 fields lacked any record and 5 of those were `ratified_in`**. Both true of different sets, reading as 5-of-13. The denominator rule from `835bf848`, one hour old. Corrected in the register and in the commit.
+
+**vc HELD MY REMEDY AND WAS RIGHT.** `ac gate` is `provisional pending hv`; a sha in `ratified_in` asserts a ratification happened, so the fix the report told me to make would have certified an unmade ruling -- **doing deliberately what the `AUTHORITY_HV` anchor had just stopped by accident, an hour apart, in the same field.** Third bucket built on their ruling, tested AHEAD of conformance so a provisional row with a good sha still does not read as conforming.
+
+**AND vc TRACED AN hv ATTRIBUTION TO NOTHING, AGAINST THEMSELVES.** `why_corrected_and_not_as_observed` said "hv's own wording on issue 0032". Under it: the sentence is in the FILING text, the issue carries `reporter: matts`, vc's ruling quoted it as hv's, the field repeated it. Verified at source before I wrote the strike -- the diff introducing the sentence is `e23a8453`, a node's own commit. **It matters most because that row awaits an hv ruling, so the field manufactured the adjudicator's agreement on the question they have not been asked.**
+
+**EXP-09, FOUND BY ANSWERING A QUESTION OF cc's.** They asked whether build metadata extends `intent --version --verbose` or takes a new row. **Neither: no entry declares the root intrinsics at all.** Measured against the built binary -- `--version` short-circuits before validation and **swallows everything after it at exit 0** (`--version --zzz`, `--version NOSUCHTHING`, `-V --zzz`), while `version --verbose` correctly exits 1. INV-02 unmet on the root command, and the `version` row's own `behaviour` asserts the opposite. Third instance after `info`'s catch-all slot and `st show`'s positional, and this one is the command every user types first.
+
+## TODO -- HELD. hv HAS CALLED US OFF TRACK AND A RE-PRIORITISATION IS COMING
+
+**0. THE MORATORIUM IS THE FIRST ITEM AND IT LANDS ON ME HARDEST.** vc gave hv a plain-language review and did not defend us: **210 commits today touched no code, 33 touched Rust; nothing moved from Not Started to In Progress; and the thing hv asked for -- Intent running on Intent3 -- needs WP-10, the migrator, which nobody is on and nobody ever has been.** vc's diagnosis is _we have built a very good immune system and it has started consuming the host_, and **my lane is the clearest exhibit**: every finding today generated a peer message, a class entry, a re-anchor and an instrument with eight mutation proofs. Correct for a shipping product, inverted for a rewrite that is half-built. **NOTHING BELOW IS OPENED UNTIL hv RULES.** Findings go in the commit that fixes them -- hv's own rule, which I have been decorating.
+
+1. **THE ONE THING THAT IS ON THE SHIP PATH: declare `--verbose` on the `version` row when cc confirms with dc.** cc found the way through EXP-09 -- **`version --verbose` already exits 1**, so AC-11.5 lands on the subcommand, not on the swallowing root intrinsic, and it is a flag declaration on a row that already exists. **One row, no new class, no instrument.** Waiting only on cc confirming the spelling satisfies dc's provenance contract.
+2. **HELD -- EXP-09's remainder.** (a) A home for the root intrinsics; (b) **`nothing_reaches_the_surface_that_is_not_in_the_table` passes with `-V` on the surface and undeclared, so its population excludes root flags** -- one line in the guard when it is touched, not a project; (c) the swallow-is-defect-or-intrinsic RULING, which is no longer on anyone's critical path now that cc is not building on it.
+3. **HELD -- one schema change, two fields, vc has RULED YES and asked me not to build it yet.** `records:` on the field, and a declared `provisional` rather than a token in prose. Their reasoning is my own `AUTHORITY_HV` fix pointed at myself: a token in prose is substring-anywhere, and **a declared field cannot be negated into invisibility.** _Delete the word, do not negate it_ is the interim rule -- and it is a rule, which today established is not a control.
+4. **HELD -- the other two layers of the old 0035 claim**, when next in that code. Not worth a special trip and never was.
+5. **`st start` REFUSES FROM `triage` WHILE `st new --start` COMPOSES PAST IT. hv's, not mine.** Still the likeliest first-command bug report in v3.
+6. **STANDING: mutation proofs CO-LOCATED, as each file is next touched** -- and **proportionate to the file's blast radius**, which is the correction the moratorium makes to this item. Eight on one register checker was more than the artefact was worth.
+
+## Open with others -- LIVE ASKS ONLY
+
+**Inboxes are durability only; peer traffic is on the agent channel at hv's instruction.**
+
+- **vc, LEVEL AND THE BEST EXCHANGE OF THE DAY.** They held my `ac gate` remedy before I took it, then answered both follow-ups and struck their own attribution. Owed to them: nothing blocking. Owed by them: the schema ruling in TODO 2.
+- **cc, AND THEY SOLVED THE THING I HANDED THEM.** I answered AC-11.5 with EXP-09 and three entangled blockers; **cc re-measured against their own binary rather than taking my message for the artefact, and found `version --verbose` exits 1** -- so AC-11.5 goes on the subcommand, off the swallowing root, and my three blockers come off their critical path. They are confirming the spelling with dc before I declare the flag. **Owed by me: one row, the moment they confirm.** AT-05.7 / `inert_arg_check.sh` is theirs, and they have already noted EXP-09 is a member it cannot reach, so the root intrinsics must be NAMED as excluded rather than silently outside its denominator.
+- **hv, TWO STANDING AND ONE INCOMING.** `ac gate`'s ratification is provisional pending them; `st start` from `triage` is still theirs; and **the re-prioritisation is theirs to make** -- vc has recommended naming the hoist as the milestone with a moratorium on new classes and criteria until it lands.

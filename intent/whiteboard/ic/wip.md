@@ -3,48 +3,56 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-17 15:35Z
-status: active
-focus: "TODO 1 CLOSED, checker before rows. `ratified_in`: 26 declared, 14 conform, 0 hv, 1 PROVISIONAL, 0 dangling -- the only one waiting is `ac gate`, waiting on hv. Three pushed: `b865db12` the checker, `4cad12b8` the provisional bucket + re-anchors, `bd5dc51e` EXP-09 + vc's `ac gate` rulings. The issue arm became a LOOKUP rather than being revoked, because `CLOSED/` survives at 40 and `at green` cites 0015, which resolves. **vc HELD MY REMEDY AND WAS RIGHT**: `ac gate` is provisional, and a sha in `ratified_in` would have certified an unmade ruling -- doing deliberately what the AUTHORITY_HV anchor had just stopped by accident. **THE FIX FOR A FALSE GREEN SHIPPED AS A FALSE GREEN FOR FOUR MINUTES** (IFS-tab collapsed an empty field) and only running the proofs said so. **EXP-09: no entry declares the root intrinsics, and `intent --version` swallows everything after it at exit 0** -- INV-02 unmet on the command every user types first, found by answering a question of cc's. Upstream frozen; v3 NOT on PATH."
-claims: []
+heartbeat_at: 2026-08-17 15:47Z
+status: paused
+focus: "PAUSED AT FOLD 22 FOR A COMPACT. **OFF THE REGISTER AND ONTO WP-10 on hv's instruction**; WP-10 is WIP, the first thing to leave Not Started today. **Split with cc is live: I own `migrate.rs` (Phase B, the join), cc owns `facade.rs`, `legacy.rs`, the `upgrade` door and the exit codes.** Their three constraints accepted: `plan` MUST NOT WRITE (makes AC-10.2 structural), DB + stamp are the facade's, and **the stamp goes LAST** -- a premature 3.0.0 over absent canon stops the migration gate firing, destroying the state that says what went wrong. **PHASE A PASSES ON THE CANARY, MEASURED: 56 threads, 140 WPs, 283 criteria, 230 ATs, 0 blocking, 9 carried**, all nine in COMPLETED threads and exactly the two classes migration.md predicts -- so AC-10.3 is the whole gap. **THE HOLE: `legacy.rs` never reads the ISSUE estate (the word appears twice, both in comments), so 40 issue files would migrate to nothing with every count reconciling against zero.** Routed to cc rather than parsed in my module, because that file claims to be the one place v3 reads v2's format. **Declined vc's offer of the contract** -- hv put me here and a peer cannot re-task me against that. ON THE BOUNCE: build `plan()`. Upstream frozen; v3 NOT on PATH."
+claims: [ST0056/10]
 ---
 
 # Interface Claude (ic)
 
-## DOING -- THE DANGLING CITATIONS ARE GONE, AND THE ROOT COMMAND HAS NO ROW
+## DOING -- OFF THE REGISTER, ONTO WP-10, ON hv's INSTRUCTION
 
-**PUSHED: `b865db12` (the checker), `4cad12b8` (the provisional bucket + the re-anchors), `bd5dc51e` (EXP-09 + vc's `ac gate` rulings).** Upstream still frozen; v3 still not on PATH.
+**hv: _"Ok, let's stop the register work and get on WP-10."_** The register lane is closed. `WP-10` is **WIP** as of this session (`intent wp start ST0056/10`) -- **the first thing to leave Not Started today**, which was the specific charge in vc's review to hv.
 
-**TODO 1 IS CLOSED AND THE ORDER MATTERED.** Checker first, rows second. `ratified_in` now reads: 26 declared, **14 conform, 0 hv, 1 PROVISIONAL, 0 dangling, 0 non-conforming, 11 sentinel.** The only field waiting on anyone is `ac gate`, waiting on hv.
+**THE SPLIT WITH cc IS LIVE, NOT PROPOSED, AND cc SET THE CONSTRAINTS.** I own `native/rust/crates/intentsvcs/src/migrate.rs` -- Phase B, the join. **cc owns `facade.rs`, `legacy.rs`, the `upgrade` door, the exit codes and the CLI seam, and asked me not to enter those two files.** Their interface, accepted whole:
 
-**THE ISSUE ARM BECAME A LOOKUP RATHER THAN BEING REVOKED, AND ONLY MEASURING SHOWED WHY.** `CLOSED/` survives at 40 and `at green` cites issue 0015, which is still on disk. A blanket revoke would have accused a live citation -- the false-alarm direction, the expensive one, and a failure this file already records itself making once. The test is whether the NUMBER resolves, which self-maintains: prune `CLOSED/` and the rows citing it turn amber with no edit.
+```rust
+pub struct Plan { writes: WriteSet, threads: Vec<Thread>, issues: Vec<Issue>, carried: Vec<Finding> }
+pub enum Blocked { Residue(Vec<Finding>) }
+pub fn plan(project: &Project, scan: Scan) -> Result<Plan, Blocked>;
+```
 
-**MY 13-AND-5 WAS TWO POPULATIONS IN ONE SENTENCE.** 13 is the no-SHA count; the grammar accepts a FILE too, so **7 fields lacked any record and 5 of those were `ratified_in`**. Both true of different sets, reading as 5-of-13. The denominator rule from `835bf848`, one hour old. Corrected in the register and in the commit.
+Three constraints and all three are load-bearing: **`plan` MUST NOT WRITE** -- handing back an uncommitted `WriteSet` makes AC-10.2's _nothing written_ structural rather than remembered, because a `plan` that cannot write cannot half-write. **The DB and the config stamp are the facade's**, by Highlander. **And the stamp goes LAST** -- cc's, and the argument is theirs: a premature `intent_version: 3.0.0` over absent canon makes `Facade::open`'s migration gate stop firing, so the state that tells the operator what is wrong is the state the failure destroyed. Order: plan -> commit writes -> rebuild DB -> converge gitignore -> stamp.
 
-**vc HELD MY REMEDY AND WAS RIGHT.** `ac gate` is `provisional pending hv`; a sha in `ratified_in` asserts a ratification happened, so the fix the report told me to make would have certified an unmade ruling -- **doing deliberately what the `AUTHORITY_HV` anchor had just stopped by accident, an hour apart, in the same field.** Third bucket built on their ruling, tested AHEAD of conformance so a provisional row with a good sha still does not read as conforming.
+**PHASE A PASSES ON THE CANARY AND THAT IS MEASURED, NOT INFERRED.** `intent ingest --from-md` on this repo, read-only, tree verified untouched after:
 
-**AND vc TRACED AN hv ATTRIBUTION TO NOTHING, AGAINST THEMSELVES.** `why_corrected_and_not_as_observed` said "hv's own wording on issue 0032". Under it: the sentence is in the FILING text, the issue carries `reporter: matts`, vc's ruling quoted it as hv's, the field repeated it. Verified at source before I wrote the strike -- the diff introducing the sentence is `e23a8453`, a node's own commit. **It matters most because that row awaits an hv ruling, so the field manufactured the adjudicator's agreement on the question they have not been asked.**
+```
+read: 56 thread(s), 140 work package(s), 283 criteria, 230 acceptance test(s)
+residue: 0 blocking, 9 carried
+```
 
-**EXP-09, FOUND BY ANSWERING A QUESTION OF cc's.** They asked whether build metadata extends `intent --version --verbose` or takes a new row. **Neither: no entry declares the root intrinsics at all.** Measured against the built binary -- `--version` short-circuits before validation and **swallows everything after it at exit 0** (`--version --zzz`, `--version NOSUCHTHING`, `-V --zzz`), while `version --verbose` correctly exits 1. INV-02 unmet on the root command, and the `version` row's own `behaviour` asserts the opposite. Third instance after `info`'s catch-all slot and `st show`'s positional, and this one is the command every user types first.
+**Zero blocking residue on Intent's own tree**, and the nine carried are all in COMPLETED threads -- one `unknown-scope`, eight `field-not-recorded` -- **exactly the two classes migration.md predicts for this estate**, so the carry policy is confirmed by the corpus rather than by its author. **So AC-10.3 is the whole gap: the canary is not blocked on Phase A, it is blocked on Phase B not existing.**
 
-## TODO -- HELD. hv HAS CALLED US OFF TRACK AND A RE-PRIORITISATION IS COMING
+**AND MUCH MORE EXISTS THAN "NOT STARTED" SUGGESTS.** `legacy.rs` is 786 working lines. `export::canon_parts()` already emits `st/<id>/thread.json`. `WriteSet` already gives atomic multi-file write with unwind-on-failure AND an `Applied::rollback` for a later step failing -- which is AC-10.2's atomicity, already built. `views::write_all` regenerates. `Migration::Pending { below_floor, legacy_threads }` already carries AC-10.1's detection with `remedy()` emitting the two-hop. **The missing piece is the thing that joins them.**
 
-**0. THE MORATORIUM IS THE FIRST ITEM AND IT LANDS ON ME HARDEST.** vc gave hv a plain-language review and did not defend us: **210 commits today touched no code, 33 touched Rust; nothing moved from Not Started to In Progress; and the thing hv asked for -- Intent running on Intent3 -- needs WP-10, the migrator, which nobody is on and nobody ever has been.** vc's diagnosis is _we have built a very good immune system and it has started consuming the host_, and **my lane is the clearest exhibit**: every finding today generated a peer message, a class entry, a re-anchor and an instrument with eight mutation proofs. Correct for a shipping product, inverted for a rewrite that is half-built. **NOTHING BELOW IS OPENED UNTIL hv RULES.** Findings go in the commit that fixes them -- hv's own rule, which I have been decorating.
+**THE ONE REAL HOLE I FOUND, AND IT IS ROUTED RATHER THAN WORKED AROUND: `legacy.rs` NEVER READS THE ISSUE ESTATE.** The word "issue" occurs twice in the file, both in comments. **On this repo that is 40 issue files that would migrate to nothing while every count reconciled perfectly against zero** -- the `st_prefix` shape cc already wrote a blocking finding for, arriving one entity over, in the same file. `Plan.issues` therefore has no source today. **I did not parse them in `migrate.rs`**: `legacy.rs`'s own module doc says it is _"the one place in v3 that reads v2's format"_ and gives the reason, so a second v2 reader in my module would break that claim in the file that makes it. cc has it.
 
-1. **THE ONE THING THAT IS ON THE SHIP PATH: declare `--verbose` on the `version` row when cc confirms with dc.** cc found the way through EXP-09 -- **`version --verbose` already exits 1**, so AC-11.5 lands on the subcommand, not on the swallowing root intrinsic, and it is a flag declaration on a row that already exists. **One row, no new class, no instrument.** Waiting only on cc confirming the spelling satisfies dc's provenance contract.
-2. **HELD -- EXP-09's remainder.** (a) A home for the root intrinsics; (b) **`nothing_reaches_the_surface_that_is_not_in_the_table` passes with `-V` on the surface and undeclared, so its population excludes root flags** -- one line in the guard when it is touched, not a project; (c) the swallow-is-defect-or-intrinsic RULING, which is no longer on anyone's critical path now that cc is not building on it.
-3. **HELD -- one schema change, two fields, vc has RULED YES and asked me not to build it yet.** `records:` on the field, and a declared `provisional` rather than a token in prose. Their reasoning is my own `AUTHORITY_HV` fix pointed at myself: a token in prose is substring-anywhere, and **a declared field cannot be negated into invisibility.** _Delete the word, do not negate it_ is the interim rule -- and it is a rule, which today established is not a control.
-4. **HELD -- the other two layers of the old 0035 claim**, when next in that code. Not worth a special trip and never was.
-5. **`st start` REFUSES FROM `triage` WHILE `st new --start` COMPOSES PAST IT. hv's, not mine.** Still the likeliest first-command bug report in v3.
-6. **STANDING: mutation proofs CO-LOCATED, as each file is next touched** -- and **proportionate to the file's blast radius**, which is the correction the moratorium makes to this item. Eight on one register checker was more than the artefact was worth.
+**I DECLINED THE CONTRACT.** vc was ruled onto the tools (AC-10.5, the corpus) and asked me to take the AC/AT rows and peer verification. **No** -- hv put me on WP-10 an hour earlier, a peer cannot re-task me against that, and holding the contract would answer vc's own diagnosis by relocating it. Told them to put it to hv as an open question, which they had already offered. **The disposition they wanted it for -- refusing ceremony, including theirs -- does not need the role, and I am doing it from here.**
+
+## TODO -- ONE LANE, AND IT IS THE HOIST
+
+1. **BUILD `migrate.rs::plan()` TO cc's INTERFACE.** Assemble the `WriteSet` from `export::canon_parts(&Bundle::new(project_id, scan.threads, scan.issues, vec![]))`, add the regenerated views, return `carried` rather than printing it. **Writes nothing; returns the uncommitted set.** Residue non-empty -> `Blocked::Residue`. Everything needed exists; this is the join.
+2. **THREAD `scan.issues` THROUGH THE MOMENT cc LANDS IT.** `Plan.issues` is `Vec<Issue>` from day one -- honestly empty for an hour beats quietly empty forever. Offered cc a blocking finding in the interim if they would rather.
+3. **THE CANARY IS THE ACCEPTANCE, NOT A DEMO.** AC-10.3 says one commit: canon emitted, views regenerated, config stamped, DB built, gitignore converged. **AC-10.6 wants the rollback exercised for real on it** -- migrate, `git revert`, assert tree-identical -- and `Applied::rollback` is the in-process half already built.
+4. **NOT MINE, TRACKED SO IT IS NOT LOST:** the CLOSED-**issue** carry question (hv's ruling is about closed THREADS; conservative reading is BLOCK, and extending a ruling by analogy is what vc stopped me doing this afternoon). The five provisional items + `ac gate` are unowned while vc builds -- flagged to them, not held by me.
+5. **NO NEW AC ROWS, NO NEW INSTRUMENTS, NO CLASS ENTRIES.** WP-10 has ten ACs; I build against them. Findings go in the commit that fixes them.
 
 ## Open with others -- LIVE ASKS ONLY
 
-**Inboxes are durability only; peer traffic is on the agent channel at hv's instruction.**
-
-- **vc, LEVEL AND THE BEST EXCHANGE OF THE DAY.** They held my `ac gate` remedy before I took it, then answered both follow-ups and struck their own attribution. Owed to them: nothing blocking. Owed by them: the schema ruling in TODO 2.
-- **cc, AND THEY SOLVED THE THING I HANDED THEM.** I answered AC-11.5 with EXP-09 and three entangled blockers; **cc re-measured against their own binary rather than taking my message for the artefact, and found `version --verbose` exits 1** -- so AC-11.5 goes on the subcommand, off the swallowing root, and my three blockers come off their critical path. They are confirming the spelling with dc before I declare the flag. **Owed by me: one row, the moment they confirm.** AT-05.7 / `inert_arg_check.sh` is theirs, and they have already noted EXP-09 is a member it cannot reach, so the root intrinsics must be NAMED as excluded rather than silently outside its denominator.
-- **hv, TWO STANDING AND ONE INCOMING.** `ac gate`'s ratification is provisional pending them; `st start` from `triage` is still theirs; and **the re-prioritisation is theirs to make** -- vc has recommended naming the hoist as the milestone with a moratorium on new classes and criteria until it lands.
+- **cc, PAIRED ON WP-10 AND THE BOUNDARY IS AGREED.** Mine: `migrate.rs`. Theirs: `facade.rs`, `legacy.rs`, the door, the codes. **Owed to me: `Scan.issues`.** Owed by me: `plan()`. They are also fixing the Phase A report defect I found (the `carried (converts as-is, no action):` header printing once per finding, and carried lines prefixed `residue:` -- the word the format reserves for the blocking bucket), so I am not spending a commit on it.
+- **vc, ON THE TOOLS NOW (AC-10.5, the corpus).** They and cc have agreed not to review each other's side: cc's migrator enumerates what it PRODUCED, vc's checks enumerate what the estate CONTAINED. **I gave them the canary numbers and the issue hole before they build a baseline over it.**
+- **hv, THREE.** The contract ownership (vc putting it up); `ac gate`'s ratification still provisional pending them; `st start` from `triage`.
 
 ## Watch-outs
 

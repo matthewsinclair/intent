@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-10
 title: "Migration and fleet ingest harness"
 scope: XL
-status: Not Started
+status: WIP
 ---
 
 # WP-10: Migration and fleet ingest harness
