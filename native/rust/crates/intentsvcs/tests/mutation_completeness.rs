@@ -2102,6 +2102,42 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
 ///    below and once as the complement of [`edgeless`] -- and the count is
 ///    required to EXCEED `RATIFIED`, so populating this from the ratified tables
 ///    again is a red rather than a silently smaller walk.
+///
+/// # What this actually added, measured rather than claimed
+///
+/// **Four of the five guards it drives were ALREADY witnessed somewhere, and
+/// saying so is the point of measuring.** Each guard was neutered in `facade.rs`
+/// and the whole workspace run with THIS TEST SKIPPED, in a sacrificial worktree,
+/// against a green baseline of 73 legs:
+///
+/// | guard, unmet | caught elsewhere by |
+/// | --- | --- |
+/// | `GatePass` | 7 tests, `closing_is_gated` and `the_facade_routes_closes_through_the_gate` among them |
+/// | `NonTestOnly` on `ac.satisfy` | 2, including `satisfying_a_test_backed_criterion_directly_is_refused` |
+/// | **`NonTestOnly` on `ac.unsatisfy`** | **NOTHING -- 73 legs, 0 failed** |
+/// | `TargetExists`, target missing | 4, including a direct one |
+/// | `TargetExists`, target blank | 1, and only the generic variant check |
+///
+/// **So this is a second witness four times over and a hole closed once** -- which
+/// is a materially weaker claim than the one that was available before the
+/// measurement, and it is the true one.
+///
+/// **THE STRUCTURE IS WORTH MORE THAN THE TALLY.**
+/// `error_remedies::every_variant_is_provoked_or_declared_elsewhere` is the
+/// estate's REFUSAL-side enumerator -- every `FacadeError` variant must be
+/// provoked by something -- and it caught four of the five, because deleting a
+/// guard orphans its variant. **It cannot catch the fifth, and the reason is
+/// exact: `ComputedSatisfaction` stays provoked at `ac.satisfy`, so removing the
+/// identical check at `ac.unsatisfy` orphans nothing.** A variant-completeness
+/// walk is blind to the SECOND site of a guard whose variant is provoked at the
+/// first.
+///
+/// **That is the pair, and the estate already had one half of it.** This walk
+/// enumerates from the DECLARATION side and goes short when a guard is missing
+/// from [`UNMET`]; that one enumerates from the REFUSAL side and goes short when a
+/// variant is provoked anywhere at all. Neither is redundant with the other and
+/// **neither should be simplified away as covering the same ground**, because the
+/// ground they cover differs by exactly the case above.
 #[test]
 fn every_declared_guard_refuses_when_it_is_unmet() {
   // (entity, verb, guard, a legal from-state).
