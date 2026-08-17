@@ -454,3 +454,31 @@ the buckets             386 files stay exactly where they were
 The measurement it came out of, for context on how big the rest is: **2140 work packages across the four fleet estates, 131 of which the parser cannot read -- 122 in closed threads (CARRY) and 9 in live ones (BLOCK).** The whole fleet's migration blocks on nine work packages, eight of them `proposed` in live Lamplight threads. That is a small and fixable number. cc has taken three of the four findings as fixes; this is the one that is not theirs.
 
 **Why the fleet was captured at all, since it was not asked for.** AC-10.5 names four members and only the Intent canary existed. All four are now captured and verified byte-exact -- 7172 files, 436 threads, 2140 WPs, 20106 authored prose sections, **67 live threads against the canary's 2**. **Intent is the least representative member of its own fleet**: it is the one estate maintained by the people writing the parser, so its data is the data the parser was shaped around. **Run only against the canary, the migration reports clean.** Every finding above came from an estate we did not write.
+
+## (2026-08-17 18:36Z)
+
+**One new contract question, and a state summary. The question is canon HYGIENE, not design -- nothing in the model is in doubt.**
+
+**A VOID PREMISE SITTING NEXT TO A LIVE CONCLUSION HAS NOW CAUGHT THREE OF FIVE NODES IN THREE SEPARATE PLACES, WITHIN ONE HOUR OF EACH OTHER.**
+
+When you reversed D01 on 2026-08-15 -- _"the db is the SSOT and it's the FILES that are re-creatable"_ -- D29's derivation died with it. `design.md:243` says so correctly and explicitly: _"The conclusion stands; its derivation is VOID and is replaced here rather than reworded."_ The struck text is still on the page, immediately under a conclusion that still stands, in a file that is otherwise authoritative.
+
+Today: **ic cited the void derivation to dc. I cited the same void derivation to dc an hour later, plus `"rm intent.db is always safe"`, which is on D01's do-not-cite list word for word. cc separately found the same dead reasoning still LIVE in code at `sync.rs:132`** and declined to edit canon in another node's lane.
+
+**None of the three was careless, and that is the whole point.** All three of us went and found a canon citation before proposing a change -- the behaviour the project wants. **The citation we found was the dead one, because it reads as a sentence.** A strikethrough survives careful reading and does not survive fast reading, and both of us proposing a change were reading fast because we were proposing a small one. ic's diagnosis, which I am adopting: **a void premise adjacent to a live conclusion is close to the worst possible shape for something nobody is supposed to cite.**
+
+**Both of us, independently, proposed removing the SSOT from the cutover gate's subject.** dc refused both. That is how far a dead premise carries.
+
+**MY OWN RECORD ON THIS IS THE WORST OF THE THREE AND YOU SHOULD WEIGH IT.** `design.md` already records that the reversal was _"hv's FOURTH statement of it and vc's third failure to take it"_. **Today was my fourth.** I have found and fixed the mechanism rather than resolving to do better: my cross-session memory file still carried the PRE-REVERSAL truth model verbatim, so a stale premise was being correctly re-supplied into every session I start. That is fixed. **But three nodes hitting the same page is not a memory problem, it is a document problem, and the document is mine.**
+
+**I am NOT proposing a change and I am not touching it without you.** The options are real and they trade off differently -- delete struck derivations outright and lose the audit trail of what was believed; move them to a graveyard section; mark them mechanically so a grep can refuse them; leave them and accept the cost. **`design.md` is the ratified record of how decisions were made, so deleting reasoning has a real price and it is not mine to pay.** Your call on whether this is worth a fold at all.
+
+---
+
+**STATE, briefly. The migration now runs end to end through the command an operator types.**
+
+`intent upgrade` landed (`8770cea3`) and the whole fleet has been through it. **Canary, Utilz and Baize convert; Lamplight REFUSES at exit 1 with the per-line classed report, and re-verifies 5613/5613 against its pin afterwards -- so AC-10.2 is measured satisfied on all three arms, with atomicity proven by recomputing every hash against git's own record.** ic separately ran the cutover gate on a commit: a real SIGKILL at 293 of 295 writes, and the re-run reached every canon file.
+
+**The fleet earned its keep twice more today, both times on estates we did not write.** Lamplight's 54 live threads fired the BLOCK arm for the first time ever -- until today every measurement any of us had taken was of the success path. And **Utilz declares 2.18.0 and was MIGRATED rather than refused**: the version floor is enforced on the door that READS and not on the door that WRITES. cc has built and mutation-tested the fix.
+
+**Four open decisions of yours, unchanged**: the unowned contract role, the closed-ISSUE carry question, `intent organize`'s unbuilt precondition, and `WpStatus` having no `Cancelled` (cc holds that ask). This canon-hygiene question is a fifth, and it is the least urgent of them.
