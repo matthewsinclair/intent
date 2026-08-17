@@ -266,6 +266,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::DescopeTargetMissing { .. } => "DescopeTargetMissing",
     FacadeError::DescopeTargetRequired { .. } => "DescopeTargetRequired",
     FacadeError::Unmigrated(_) => "Unmigrated",
+    FacadeError::BelowMigrationFloor(_) => "BelowMigrationFloor",
     FacadeError::Write(_) => "Write",
     FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
     FacadeError::Store(_) => "Store",
@@ -306,6 +307,7 @@ const ALL_VARIANTS: &[&str] = &[
   "DescopeTargetMissing",
   "DescopeTargetRequired",
   "Unmigrated",
+  "BelowMigrationFloor",
   "Write",
   "ViewsNotWritten",
   "Store",
@@ -343,6 +345,13 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // there is no `Facade` to be had until it has run.
   "MigrationBlocked",
   "MigrationHalted",
+  // Needs a project DECLARING a sub-floor version, which is a property of the
+  // world rather than of the call, and reachable only through the migration
+  // door for the same reason as the two above. Driven end to end in
+  // `intent-cli/tests/upgrade_command.rs`, with the same estate AT the floor as
+  // the control -- a refusal arm alone passes against a migrator that refuses
+  // everything, which is the mirror of the defect this variant closes.
+  "BelowMigrationFloor",
 ];
 
 #[test]

@@ -36,16 +36,21 @@ fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
 
 /// A project declaring v2, which is what the migrator is for.
 ///
-/// **The declared version is 2.19.0 and not 3.0.0**, unlike `ingest_command`'s
-/// fixture: `ingest` reads v2 markdown into a project that is already v3, and
-/// this verb is the transition itself. Stating it as v2 is what makes the
-/// stamp observable -- against a v3 fixture the most important assertion in
-/// this file would pass without the code doing anything.
-fn v2_project(dir: &std::path::Path) {
+/// **The declared version is a v2 one and not 3.0.0**, unlike
+/// `ingest_command`'s fixture: `ingest` reads v2 markdown into a project that
+/// is already v3, and this verb is the transition itself. Stating it as v2 is
+/// what makes the stamp observable -- against a v3 fixture the most important
+/// assertion in this file would pass without the code doing anything.
+///
+/// **The version is a parameter because the floor is a behaviour**, and the
+/// only honest way to test a floor is with the same estate either side of it.
+fn v2_project(dir: &std::path::Path, version: &str) {
   std::fs::create_dir_all(dir.join("intent/.config")).expect("mkdir");
   std::fs::write(
     dir.join("intent/.config/config.json"),
-    "{\"intent_version\":\"2.19.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
+    format!(
+      "{{\"intent_version\":\"{version}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}}\n"
+    ),
   )
   .expect("write config");
 }
@@ -75,11 +80,30 @@ fn declared_version(dir: &std::path::Path) -> String {
 
 /// Every file the migration is responsible for, keyed by relative path.
 ///
-/// **`intent/.cache/` is excluded and that is not a convenience.** The store is
-/// per-machine and rebuilt (D34/D36); a SQLite file differs between two runs in
-/// bytes nobody has promised anything about, so including it would fail this
-/// comparison for a reason that is not a defect. What is compared is exactly
-/// what the migration promises to reproduce: canon and generated views.
+/// **`intent/.cache/` is excluded on D34**: the DB is per-machine truth and is
+/// never committed, so it is not among the artefacts this estate hands to
+/// anyone else. What is compared is what the migration promises to reproduce --
+/// canon and the generated views.
+///
+/// **NOT because there is nothing there worth checking, and the first version
+/// of this comment said so wrongly.** It called the store "rebuilt", cited D36
+/// for it, and dismissed the difference as "bytes nobody has promised anything
+/// about". **D36 is the ruling that the DB is NOT disposable** -- `rm
+/// intent.db` is not an operation, "not as a unit of account in canon" -- so it
+/// was cited as the ground for exactly what it forbids. D34 alone carries the
+/// exclusion and always did; `rebuilt` was the word doing the damage.
+///
+/// **The difference is one knowable thing, measured by ic rather than assumed
+/// by me**: `created_at` and `updated_at` default to `strftime`, so ~705 rows
+/// record when the migration ran, and **two runs of a PERFECT migrator can
+/// never produce the same database**. Normalise those stamps and the content is
+/// identical to the byte.
+///
+/// So the store is a subject with a DIFFERENT PREDICATE -- content modulo
+/// run-timestamps -- and that check belongs to `intentsvcs`, which owns the
+/// store and may use rusqlite. **This crate may not (D06, held by
+/// `dep_graph_guard.rs`)**, and shelling out to `sqlite3` would re-introduce
+/// the binary dependency Intent bundles SQLite precisely to avoid.
 fn tree(root: &std::path::Path) -> BTreeMap<String, Vec<u8>> {
   fn walk(root: &std::path::Path, at: &std::path::Path, out: &mut BTreeMap<String, Vec<u8>>) {
     for entry in std::fs::read_dir(at).expect("read_dir") {
@@ -131,7 +155,7 @@ fn first_difference(
 #[test]
 fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
   let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path());
+  v2_project(dir.path(), "2.19.0");
   v2_thread(dir.path(), "ST0001", "WIP");
   v2_thread(dir.path(), "ST0002", "Completed");
 
@@ -198,7 +222,7 @@ fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
 #[test]
 fn running_it_twice_leaves_the_tree_byte_identical() {
   let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path());
+  v2_project(dir.path(), "2.19.0");
   v2_thread(dir.path(), "ST0001", "WIP");
   v2_thread(dir.path(), "ST0002", "Completed");
 
@@ -250,7 +274,7 @@ fn running_it_twice_leaves_the_tree_byte_identical() {
 #[test]
 fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
   let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path());
+  v2_project(dir.path(), "2.19.0");
   v2_thread(dir.path(), "ST0001", "WIP");
   // Residue in a LIVE thread, which blocks (hv's ruling: closed threads carry).
   let info = dir.path().join("intent/st/ST0001/info.md");
@@ -286,5 +310,87 @@ fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
     first_difference(&before, &after).is_none(),
     "a refused migration changed the estate: {}",
     first_difference(&before, &after).unwrap_or_default()
+  );
+}
+
+/// **AT-10.1: a sub-floor estate is refused, and the SAME estate at the floor
+/// is not.**
+///
+/// The row cites THIS file rather than a `migrate_floor.rs` (vc's ruling): the
+/// citation describes where the test lives, and summoning an artefact into
+/// existence because a row names it is the pointer driving the code.
+///
+/// The floor exists because 2.19.0 is where the acceptance-test row grammar
+/// landed. An estate below it converted directly skips that migration, so its
+/// rows arrive in v3 in a grammar v3 was never told about -- silently, because
+/// nothing on the conversion path looks.
+///
+/// **Both halves, in one test, over one estate differing in one field.** The
+/// refusal arm alone would pass just as happily against a migrator that
+/// refused everything, and that is not a hypothetical failure mode: the defect
+/// this closes was the exact mirror of it, a floor checked on the door that
+/// READS and never on the door that WRITES. A test that cannot tell "refuses
+/// correctly" from "refuses" is the same kind of instrument as the one that
+/// missed the bug.
+///
+/// Found by vc driving the fleet through the committed door: Utilz declares
+/// 2.18.0 and was converted clean -- 61 files, 9 threads, stamped, no
+/// complaint. **Every estate the four of us built by hand declares 2.19.0,
+/// because that is what our own repo declares and it is what we copy**, so
+/// this arm had no possible input until a corpus nobody here authored supplied
+/// one. A guard that cannot be reached and a guard that works are the same
+/// green.
+#[test]
+fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() {
+  let below = tempfile::tempdir().expect("tempdir");
+  v2_project(below.path(), "2.18.0");
+  v2_thread(below.path(), "ST0001", "Completed");
+  let before = tree(below.path());
+
+  let (out, err, code) = run(&["upgrade"], below.path());
+  assert_eq!(code, 1, "a sub-floor estate is refused: {err}{out}");
+  assert!(
+    err.contains("2.18.0"),
+    "the refusal names the version the project actually declares, because that \
+     is what the operator has to go and change: {err}"
+  );
+  assert!(
+    err.contains("intent@2"),
+    "and the remedy is the TWO-HOP -- naming the v3 migrator here would send \
+     the operator back to the command that just refused them: {err}"
+  );
+
+  assert_eq!(
+    declared_version(below.path()),
+    "2.18.0",
+    "a refused migration stamped the version anyway"
+  );
+  assert!(
+    !below.path().join("intent/st/ST0001/thread.json").exists(),
+    "a refused migration wrote canon"
+  );
+  assert!(
+    first_difference(&before, &tree(below.path())).is_none(),
+    "a refused migration changed the estate: {}",
+    first_difference(&before, &tree(below.path())).unwrap_or_default()
+  );
+
+  // The control. Same estate, same threads, one field different.
+  let at_floor = tempfile::tempdir().expect("tempdir");
+  v2_project(at_floor.path(), "2.19.0");
+  v2_thread(at_floor.path(), "ST0001", "Completed");
+
+  let (_, err2, code2) = run(&["upgrade"], at_floor.path());
+  assert_eq!(
+    code2, 0,
+    "the SAME estate at the floor must convert -- without this the arm above \
+     passes against a migrator that refuses everything: {err2}"
+  );
+  assert!(
+    at_floor
+      .path()
+      .join("intent/st/ST0001/thread.json")
+      .is_file(),
+    "the control estate reported success and wrote no canon"
   );
 }

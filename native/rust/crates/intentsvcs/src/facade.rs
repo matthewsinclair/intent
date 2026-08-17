@@ -240,6 +240,23 @@ pub enum FacadeError {
   // told apart from an empty project by reading it.
   #[error("{0}")]
   Unmigrated(Pending),
+  /// The estate is below the migration floor, so the migrator refuses it.
+  ///
+  /// **A DISTINCT VARIANT FROM `Unmigrated` although both carry a `Pending`,
+  /// because the two are told to operators in opposite situations.**
+  /// `Unmigrated` answers someone who asked a question about an estate v3
+  /// cannot read, and *this project has not been migrated* is news to them.
+  /// Here the operator RAN the migrator, so that sentence restates their own
+  /// intent back at them and says nothing about why it stopped. What they need
+  /// is the version they have and the floor they are under.
+  ///
+  /// **The remedy is delegated, not copied**: the two-hop text already lives on
+  /// [`Pending`], and a second spelling of it is a second thing to keep true.
+  #[error(
+    "this project declares Intent {} and is below the migration floor, so it cannot be converted directly",
+    .0.declared
+  )]
+  BelowMigrationFloor(Pending),
   #[error("could not write the project files")]
   Write(#[from] WriteError),
   // NOT a failed mutation, and the text says so. Under D01 as reversed the DB
@@ -407,6 +424,9 @@ impl crate::remedy::Remedy for FacadeError {
       // floor it is the two-hop, and naming the v3 migrator there would send
       // half the operators who read it to a command that refuses them.
       Self::Unmigrated(pending) => pending.remedy(),
+      // Same delegation and the same reason: `Pending` owns the two-hop, and
+      // this variant differs from `Unmigrated` in its MESSAGE, not its cure.
+      Self::BelowMigrationFloor(pending) => pending.remedy(),
       Self::Write { .. } => {
         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
       }
@@ -679,6 +699,33 @@ impl Facade {
   /// it, a failure rolls the files back, so a halted migration leaves the estate
   /// as it found it rather than half-converted.
   pub fn upgrade(project: &Project, ctx: &FacadeContext) -> Result<Upgraded, FacadeError> {
+    // **THE FLOOR IS ENFORCED HERE, AND ITS ABSENCE WAS A REAL DEFECT.**
+    //
+    // `readable()` does TWO things -- it refuses an unmigrated project AND it
+    // enforces the migration floor -- and this door bypasses it on purpose,
+    // because the migrator runs on an unmigrated project by definition. That
+    // reasoning covers the first job and is silent on the second, so bypassing
+    // the function bypassed both. **The floor was checked on the door that
+    // READS and not on the door that WRITES, and the writing one is the one the
+    // floor exists to stop.** Measured by vc across the fleet: Utilz declares
+    // 2.18.0 and was converted clean -- 61 files, 9 threads, stamped -- with no
+    // refusal and nothing looking wrong.
+    //
+    // It matters because 2.19.0 is where the acceptance-test row grammar
+    // landed. A sub-floor estate converted directly skips that migration, so
+    // its rows arrive in v3 in a grammar v3 was never told about, silently,
+    // because nothing on this path is looking.
+    //
+    // **One arm, and deliberately not `readable()` wholesale.**
+    // `Migration::Done` MUST proceed -- that is the re-run after an interrupted
+    // migration, and idempotence rests on it -- and `Pending` at or above the
+    // floor is the ordinary estate this door exists for.
+    if let crate::project::Migration::Pending(pending) = project.migration()
+      && pending.below_floor
+    {
+      return Err(FacadeError::BelowMigrationFloor(pending));
+    }
+
     let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {
       step: "reading the v2 estate",
       cause,
