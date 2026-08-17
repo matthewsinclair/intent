@@ -1594,21 +1594,292 @@ fn the_transition_table_transcribes_the_ratified_machines_edge_for_edge() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// GUARDS UNMET -- the half of every transition a success-path walk never sees
+// ---------------------------------------------------------------------------
+
+/// The descope target used to make [`Guard::TargetExists`] unmet.
+///
+/// A thread id no fixture writes. It perturbs the ARGUMENT rather than the
+/// estate, which is what keeps the refusal attributable: the fixture still
+/// carries `ST0057`, so nothing else about it has changed.
+const MISSING_THREAD: &str = "ST9999";
+
+/// **How a declared guard is made UNMET, so a refusal can be demanded of it.**
+///
+/// One variant per MECHANISM rather than one per verb, so two verbs declaring
+/// the same guard are made to fail the same way and a reader can see that they
+/// are.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Unmet {
+  /// Hand the verb a justification that is empty, and again one that is only
+  /// spaces. **Two probes, because a shell makes `--reason ""` and
+  /// `--reason "  "` the same gesture**, so a guard that refuses one and stores
+  /// the other teaches its own bypass.
+  BlankJustification,
+  /// Leave one in-scope criterion unsatisfied, so the close gate BLOCKS.
+  GateBlocked,
+  /// Point the verb at a TEST-BACKED criterion, which the guard excludes.
+  TestBackedCriterion,
+  /// Name a descope target that is not a thread in this project.
+  MissingTarget,
+  /// Hand the descope a BLANK target, which is a different mistake from naming
+  /// one that does not exist -- see [`MODES`].
+  BlankTarget,
+}
+
+/// **The unmet-fixture table: how every declared `(verb, guard)` pair is driven
+/// with its guard unmet, and why that makes the REFUSAL ATTRIBUTABLE TO THE
+/// GUARD.**
+///
+/// This table is the reviewable artefact, not the test that reads it. The test
+/// is a loop; the judgement is here, one row at a time, in a form somebody can
+/// disagree with.
+///
+/// **A `(verb, guard)` pair with no row REFUSES rather than skipping** -- the
+/// same construction `execute` uses for a `State` field with no drive arm. A
+/// skip would mean a guard nobody can test, reported as a pass, which is the
+/// shape the whole file exists to refuse.
+///
+/// **THE KEY IS `(verb, guard, mode)`, NOT `(verb, guard)`, AND THAT IS vc's
+/// CORRECTION TO THE DESIGN** (2026-08-17). A guard can be unmet in more than
+/// one way, with a different refusal for each, and the declaration table cannot
+/// see that -- `transitions.rs` knows `ac.descope` is guarded by
+/// `TargetExists` and nothing more. **So the two sources are the declaration
+/// table for WHICH pairs exist and the error enum for HOW MANY WAYS each is
+/// unmet, and neither completes this table alone.** The mode counts are declared
+/// in [`MODES`], because a count nobody wrote down is a count nobody can be
+/// wrong about.
+///
+/// **The fourth column is load-bearing and it is not documentation.** Requiring
+/// a refusal is not enough on its own: drive `ac.satisfy` from a state it is not
+/// declared from and it refuses for the FROM-STATE, and a walk asking only
+/// `is_err()` would credit that to the guard. So each row says what makes its
+/// refusal the guard's, and the assertion checks the error variant rather than
+/// the mere fact of failure.
+const UNMET: &[(&str, Guard, Unmet, &str)] = &[
+  (
+    "st.hold",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `not-started`, a declared from-state, so the transition check cannot be what refuses",
+  ),
+  (
+    "st.cancel",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `triage`, a declared from-state",
+  ),
+  (
+    "st.reopen",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `completed`, its only declared from-state",
+  ),
+  (
+    "st.reinstate",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `cancelled`, its only declared from-state",
+  ),
+  (
+    "wp.reopen",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `done`, its only declared from-state",
+  ),
+  (
+    "ac.withdraw",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "the reason lives INSIDE `Withdrawn`, so a blank one is the only way to ask for the state without it",
+  ),
+  (
+    "ac.satisfy",
+    Guard::EvidenceRecorded,
+    Unmet::BlankJustification,
+    "blank evidence on a non-test criterion at `unsatisfied` -- and the refusal must say EVIDENCE, not reason, or the two guards are one guard with two names",
+  ),
+  (
+    "st.done",
+    Guard::GatePass,
+    Unmet::GateBlocked,
+    "the thread is `wip` and the gate blocks, so the self-loop test and the transition check both pass first and the gate is what is left",
+  ),
+  (
+    "wp.done",
+    Guard::GatePass,
+    Unmet::GateBlocked,
+    "the same contract seen through the WP-03 scope, which is the other of the two call sites where this guard was decorative",
+  ),
+  (
+    "ac.satisfy",
+    Guard::NonTestOnly,
+    Unmet::TestBackedCriterion,
+    "ORDER IS WHAT MAKES THIS DRIVABLE: a test-backed criterion is always `computed`, which `ac.satisfy` is not declared from, so BOTH checks would refuse -- the kind check runs first and `ComputedSatisfaction` is the proof of which one fired",
+  ),
+  (
+    "ac.unsatisfy",
+    Guard::NonTestOnly,
+    Unmet::TestBackedCriterion,
+    "same ordering argument, and the reason `ComputedSatisfaction` is not delegated to this guard: there is no self-loop for it to shadow, because a test-backed criterion can never be at this verb's target",
+  ),
+  (
+    "ac.descope",
+    Guard::TargetExists,
+    Unmet::MissingTarget,
+    "the ARGUMENT is perturbed and the estate is not, so the fixture still carries `ST0057` and only the named target is missing",
+  ),
+  (
+    "ac.descope",
+    Guard::TargetExists,
+    Unmet::BlankTarget,
+    "the SECOND mode of the same guard, and the one a `(verb, guard)` key would have marked covered: a blank target is a different mistake and gets a different refusal",
+  ),
+];
+
+/// **Pairs whose guard has more than one unmet MODE, with the reason there are
+/// that many.** Anything absent from here has exactly one.
+///
+/// The count is declared rather than inferred for the reason `TOTAL_MACHINES` is:
+/// **one row per pair and several modes per guard produce the same output from
+/// the declaration side -- a covered pair -- and only one of them is complete.**
+/// The number here is the authored claim, and the driver checks the rows against
+/// it, so a guard that grows a third refusal is a one-line edit somebody has to
+/// make rather than a gap nothing reports.
+const MODES: &[(&str, Guard, usize, &str)] = &[(
+  "ac.descope",
+  Guard::TargetExists,
+  2,
+  "`facade.rs` splits them deliberately -- an ABSENT target is not a target that does not exist, and reporting one as the other produces a message with a hole \
+   in it. Clap refuses a truly missing `--to`, so what reaches the facade is blank or named, and each gets its own refusal",
+)];
+
+/// The justifications one unmet mechanism is driven with.
+///
+/// Exhaustive on [`Unmet`], so a new mechanism has to say how many probes it
+/// takes rather than silently taking the default.
+fn probes(unmet: Unmet) -> &'static [&'static str] {
+  match unmet {
+    Unmet::BlankJustification => &["", "   "],
+    Unmet::GateBlocked | Unmet::TestBackedCriterion | Unmet::MissingTarget | Unmet::BlankTarget => {
+      &[REASON]
+    }
+  }
+}
+
+/// The descope target one unmet mechanism is driven with.
+///
+/// `BlankTarget` uses SPACES rather than the empty string, deliberately: clap's
+/// `required` already refuses an absent `--to`, so the case that reaches the
+/// facade is the trimmable one, and an empty string would exercise a shorter
+/// path than the operator can actually take.
+fn target(unmet: Option<Unmet>) -> &'static str {
+  match unmet {
+    Some(Unmet::MissingTarget) => MISSING_THREAD,
+    Some(Unmet::BlankTarget) => "   ",
+    _ => "ST0057",
+  }
+}
+
+/// **Whether a refusal is the one THIS guard, unmet THIS way, owes.**
+///
+/// The whole strength of the driver is here. A guard-unmet walk asserting
+/// `is_err()` is satisfiable by any refusal at all -- including the from-state
+/// refusal, which is present on some of these fixtures by construction -- so it
+/// would go green on a guard that had been deleted from the code and left in the
+/// table. That is the decorative-declaration failure `Guard::GatePass` was
+/// caught in, one layer along. **vc's sharpening: every guard already has its own
+/// `FacadeError` variant, one to one, because somebody went out of their way to
+/// keep the remedies apart -- so asserting refusal-ness discards exactly the
+/// distinction the code was written to preserve.**
+///
+/// **Exhaustive on [`Guard`], and that is the point of writing the outer match on
+/// the guard rather than on the pair.** A guard variant added to the model is a
+/// compile error HERE, which is the opposite failure direction from [`UNMET`]:
+/// that table is matched by name and omits a new pair until somebody adds a row,
+/// while this includes it immediately and refuses to build. Two enumerators that
+/// go short in opposite directions is the construction; one of them alone is a
+/// threshold.
+fn names_the_guard(guard: Guard, unmet: Unmet, err: &FacadeError) -> bool {
+  match guard {
+    Guard::ReasonRecorded => matches!(err, FacadeError::ReasonRequired { .. }),
+    Guard::EvidenceRecorded => matches!(err, FacadeError::EvidenceRequired { .. }),
+    Guard::GatePass => matches!(err, FacadeError::GateBlocked { .. }),
+    Guard::NonTestOnly => matches!(err, FacadeError::ComputedSatisfaction { .. }),
+    // The one guard with two modes and two refusals. The inner match names both
+    // rather than defaulting, so a mode paired with this guard by mistake says so
+    // instead of being scored against whichever variant happened to be the
+    // fallback.
+    Guard::TargetExists => match unmet {
+      Unmet::MissingTarget => matches!(err, FacadeError::DescopeTargetMissing { .. }),
+      Unmet::BlankTarget => matches!(err, FacadeError::DescopeTargetRequired { .. }),
+      other => panic!(
+        "{other:?} is not a way to make `TargetExists` unmet -- the row pairs a guard with a mechanism that cannot break it, so whatever it refused with was about \
+         something else"
+      ),
+    },
+  }
+}
+
+/// The fixture half of an unmet guard, applied after the from-state is set.
+///
+/// Exhaustive, including the `None` and argument-only cases, so a new mechanism
+/// cannot land in a silent arm and quietly drive a CLEAN fixture -- which would
+/// pass or fail for reasons having nothing to do with the guard.
+fn perturb(thread: &mut Thread, unmet: Option<Unmet>) {
+  match unmet {
+    // These perturb the ARGUMENTS; the estate they are driven against is the
+    // clean one.
+    None
+    | Some(Unmet::BlankJustification)
+    | Some(Unmet::MissingTarget)
+    | Some(Unmet::BlankTarget) => {}
+    Some(Unmet::GateBlocked) => {
+      // **AC-03.2 is the fixture's only criterion whose satisfaction is STORED**,
+      // so unsatisfying it reaches a `Blocked` verdict without touching the AT
+      // roster. Reddening the tests covering AC-03.1 would also block, and it
+      // could block as an AT CONTRACT FINDING instead -- a refusal with the right
+      // variant and the wrong cause, which is the failure this column exists to
+      // rule out.
+      thread.criteria[1].state = AcState::Unsatisfied;
+    }
+    Some(Unmet::TestBackedCriterion) => {
+      // Both fields together, because the pairing is enforced in the schema face:
+      // flipping `kind` alone is invalid canon and the fixture would be refused
+      // by ingest rather than by the guard.
+      thread.criteria[1].kind = AcKind::Test;
+      thread.criteria[1].state = AcState::Computed;
+    }
+  }
+}
+
 /// Drive `verb` from `from`, and report the refusal if there was one.
+///
+/// `unmet` is `None` for the undeclared-transition walk, which wants a clean
+/// fixture and a refusal that can only be about the STATE, and `Some` for the
+/// guard walk, which wants exactly one precondition broken.
 fn attempt(
   entity: &str,
   verb: &str,
   from: &str,
   justification: &str,
+  unmet: Option<Unmet>,
 ) -> Result<Outcome, FacadeError> {
   let fx = Fixture::new();
   let mut facade: Facade = match entity {
     "Thread" => {
-      fx.write_thread(&thread_with(|t| t.status = parse(from)));
+      fx.write_thread(&thread_with(|t| {
+        t.status = parse(from);
+        perturb(t, unmet);
+      }));
       fx.facade()
     }
     "WorkPackage" => {
-      fx.write_thread(&thread_with(|t| t.wps[1].status = parse::<WpStatus>(from)));
+      fx.write_thread(&thread_with(|t| {
+        t.wps[1].status = parse::<WpStatus>(from);
+        perturb(t, unmet);
+      }));
       fx.facade()
     }
     "Criterion" => {
@@ -1620,6 +1891,7 @@ fn attempt(
       fx.write_thread(&thread_with(|t| {
         t.criteria[1].kind = kind;
         t.criteria[1].state = state_named(from);
+        perturb(t, unmet);
       }));
       fx.write_thread(&sample_thread("ST0057"));
       fx.facade()
@@ -1631,7 +1903,7 @@ fn attempt(
   match verb {
     "ac.satisfy" => facade.ac_satisfy(ST, AC, justification),
     "ac.unsatisfy" => facade.ac_unsatisfy(ST, AC),
-    "ac.descope" => facade.ac_descope(ST, AC, "ST0057", Some("hv"), Some("moved")),
+    "ac.descope" => facade.ac_descope(ST, AC, target(unmet), Some("hv"), Some("moved")),
     "ac.withdraw" => facade.ac_withdraw(ST, AC, justification, Some("hv")),
     "ac.rescope" => facade.ac_rescope(ST, AC),
     "ac.reinstate" => facade.ac_reinstate(ST, AC),
@@ -1716,6 +1988,10 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
           verb,
           state,
           "a reason, so the refusal is about the STATE",
+          // No guard broken, for the same reason the justification is supplied:
+          // this walk's subject is the from-state, and a fixture with a second
+          // thing wrong cannot say which one the refusal was for.
+          None,
         );
         assert!(
           outcome.is_err(),
@@ -1780,59 +2056,196 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
   );
 }
 
-/// A verb declared to record a justification REFUSES a blank one -- for every
-/// entity, and for both kinds of justification.
+/// **EVERY DECLARED GUARD IS DRIVEN WITH THE GUARD UNMET AND MUST REFUSE, AND
+/// THE REFUSAL MUST BE THE ONE THAT GUARD OWES.**
 ///
-/// The guards are declared in the table, so this reads the declaration rather
-/// than a list of verbs somebody has to keep in step with it.
+/// The other half of the walk. `every_declared_edge_is_a_mutation_that_exists`
+/// drives each edge with every precondition SATISFIED, which is the case a guard
+/// does not exist for: an edge that lands on the right value from the right state
+/// says nothing at all about what happens when the precondition fails. **Two
+/// guards hid in exactly that blind spot** -- `Guard::GatePass` was hand-written
+/// at two call sites, so deleting it from the table changed nothing, and
+/// `ac.withdraw`'s `ReasonRecorded` was transcribed, conformance-checked and
+/// dead, because `set_ac_state` read the table for the from-state and never for
+/// the guard column.
 ///
-/// **It used to loop `Thread` and `WorkPackage` and stop, and that omission is
-/// how two defects lived here at once.** `Criterion` was the one entity whose
-/// declared guards nothing enforced -- `set_ac_state` consulted the table for
-/// the from-state and never for the guard column -- and it was also the one
-/// entity this check did not visit. So `ac.withdraw` carried a ratified
-/// `ReasonRecorded` that was transcribed, conformance-checked, and dead, while
-/// `ac.satisfy` could not even declare the evidence rule it needed. **An
-/// instrument that enumerates its subjects by hand can be wrong in exactly the
-/// place its subject is wrong, and it reports green.**
+/// **It replaces `a_verb_declared_to_record_a_justification_refuses_a_blank_one`,
+/// which was this test over two of the five guards.** That one covered the two
+/// prose guards and skipped `GatePass`, `NonTestOnly` and `TargetExists` in
+/// silence -- so the guards enforced by hand were exactly the guards nothing
+/// drove unmet. Its two probes for a blank justification are carried into
+/// [`probes`]; nothing it asserted is gone.
 ///
-/// **That repair derived the VERB axis and left the ENTITY axis hand-written**
-/// (vc, 2026-08-17), which is why the paragraph above read as though both were
-/// done while `Issue` was missing from this loop -- free only because
-/// `RATIFIED_ISSUE` declares no guards, so the day anyone gives `issues close` a
-/// reason this check would silently not run it. Both axes are derived now: the
-/// entity list is [`RATIFIED`].
+/// **THE POPULATION IS THE DECLARATION TABLE, NOT [`RATIFIED`], AND THE FIRST
+/// VERSION OF THIS TEST GOT THAT WRONG.** vc's self-loop finding names the two
+/// edges at risk -- `at.set` and `wp.rescope`, the two carrying `from: &[]` -- and
+/// both live in machines ratified IN PROSE, which are absent from `RATIFIED`. So
+/// the refusal written to catch that case could not see the edges it was written
+/// for. **Third time this file has gone short on the entity axis**, and this time
+/// inside the instrument built to close the second. Reading
+/// `transitions::FIELDS` costs nothing:
+/// `the_transition_table_transcribes_the_ratified_machines_edge_for_edge` already
+/// ties the tabled machines to the ratified ones, so the declaration table is the
+/// ratified graph plus the two machines `RATIFIED` deliberately omits.
+///
+/// Four completeness properties, and they fail in different directions:
+///
+/// 1. **A declared pair with no [`UNMET`] row PANICS** rather than skipping. A
+///    pair nobody can construct a fixture for is a guard nobody can test, and
+///    skipping it reports as a pass.
+/// 2. **An [`UNMET`] row naming no declared pair fails too**, so a fixture left
+///    behind by a retired guard is a red rather than dead weight.
+/// 3. **The row COUNT per pair is checked against [`MODES`]**, because a guard
+///    with two unmet modes and one row looks identical, from the declaration
+///    side, to a guard with one mode.
+/// 4. **The machines examined are counted twice**, once by the exhaustive match
+///    below and once as the complement of [`edgeless`] -- and the count is
+///    required to EXCEED `RATIFIED`, so populating this from the ratified tables
+///    again is a red rather than a silently smaller walk.
 #[test]
-fn a_verb_declared_to_record_a_justification_refuses_a_blank_one() {
-  let mut checked = 0;
-  for (entity, _, ratified) in RATIFIED {
-    for (verb, from, _, guards) in ratified.iter() {
-      // Both prose guards, together, because they are one rule asked of two
-      // fields and a check that knew only about reasons is what let the
-      // evidence half go unwritten.
-      let reason = guards.contains(&Guard::ReasonRecorded);
-      let evidence = guards.contains(&Guard::EvidenceRecorded);
-      if !reason && !evidence {
+fn every_declared_guard_refuses_when_it_is_unmet() {
+  // (entity, verb, guard, a legal from-state).
+  let mut pairs: Vec<(&str, &str, Guard, &str)> = Vec::new();
+  let mut machines = 0;
+  for row in FIELDS {
+    let edges = match &row.disposition {
+      Disposition::State { edges, .. } => {
+        machines += 1;
+        *edges
+      }
+      // Named rather than caught by a `_`, so a third edgeless variant asks here
+      // instead of being skipped -- which is how `Thread.acceptance` left four
+      // populations at 20 passed, 0 failed.
+      Disposition::Unbuilt { .. } | Disposition::Immutable { .. } => continue,
+    };
+    let entity = row.entity;
+    for edge in edges {
+      let (verb, from, to, guards) = (edge.verb, edge.from, edge.to, edge.guard);
+      if guards.is_empty() {
         continue;
       }
-      for blank in ["", "   "] {
-        let outcome = attempt(entity, verb, from[0], blank);
-        let refused = match &outcome {
-          Err(FacadeError::ReasonRequired { .. }) => reason,
-          Err(FacadeError::EvidenceRequired { .. }) => evidence,
-          _ => false,
-        };
-        assert!(
-          refused,
-          "{entity}: `{verb}` is declared {guards:?} and accepted the justification {blank:?} -- got {outcome:?}"
-        );
-        checked += 1;
+      // **A GUARDED EDGE THAT ACCEPTS ITS OWN TARGET IS REFUSED BY THIS TABLE
+      // RATHER THAN DRIVEN** (vc, 2026-08-17, measured: 11 guarded edges, 12
+      // pairs, `to` in `from` on zero of them -- so this is green today and is
+      // here for the day it stops being).
+      //
+      // The expectation would FLIP. A self-loop is legal, accepted at exit 0, and
+      // deliberately does not re-run the guard -- so on such an edge the correct
+      // answer for a self-loop fixture is `Ok(AlreadyThere)`, and this test
+      // demanding a refusal would be demanding the behaviour hv's ruling retired.
+      // **And the plausible repair is the destructive one**: red on correct code
+      // invites hoisting the guard ahead of the self-loop test, at which point
+      // `st done` starts re-running the gate on a thread that closed before the
+      // criterion existed. Refusing here puts the argument where somebody would
+      // otherwise make that edit.
+      //
+      // An empty `from` is the live risk rather than a hypothetical: `at.set` and
+      // `wp.rescope` declare `from: &[]`, meaning any value reaches any other, so
+      // the target is always accepted and a guard on either one lands in exactly
+      // this case.
+      assert!(
+        !from.is_empty() && !from.contains(&to),
+        "{entity}: `{verb}` -> `{to}` is guarded {guards:?} and accepts its own target (from {from:?}), so a fixture in `{to}` is a legal SELF-LOOP that must \
+         return Ok at exit 0 without re-running the guard. This driver cannot express that, and moving the guard ahead of the self-loop test to make it red \
+         would make `st done` re-run the gate on an already-closed thread. Split the fixture population by `Edge::leaves` before relaxing anything"
+      );
+      for guard in guards.iter() {
+        if pairs.iter().any(|(_, v, g, _)| *v == verb && g == guard) {
+          continue;
+        }
+        pairs.push((entity, verb, *guard, from[0]));
       }
     }
   }
   assert!(
-    checked >= 12,
-    "only {checked} guarded verbs were exercised -- the enumeration is collapsing, and a check that examines nothing passes"
+    !pairs.is_empty(),
+    "no declared edge carries a guard, so this test asserts a property of an empty set -- either the guard column has been emptied or FIELDS is not being read"
+  );
+  // The machines are counted a second time as the complement of `edgeless`, which
+  // is the by-NAME enumerator: it omits a new disposition until an arm is added,
+  // while the match above includes one immediately -- as a compile error, so the
+  // compiler asks before this ever runs.
+  assert_eq!(
+    machines,
+    FIELDS.len() - FIELDS.iter().filter(|f| edgeless(f).is_some()).count(),
+    "the walk examined {machines} State machine(s) and the edgeless complement says otherwise, so a row reached neither arm"
+  );
+  // And the population is the DECLARATION table rather than the ratified ones.
+  // Reverting to `RATIFIED` makes the self-loop refusal above blind to `at.set`
+  // and `wp.rescope`, which are the only two edges it exists for.
+  assert!(
+    machines > RATIFIED.len(),
+    "the walk examined {machines} machines and RATIFIED holds {} -- this must read `transitions::FIELDS`, or the two machines ratified in prose are invisible \
+     here and the self-loop refusal cannot see the two `from: &[]` edges it was written for",
+    RATIFIED.len()
+  );
+
+  let mut driven = 0;
+  for (entity, verb, guard, from) in &pairs {
+    let rows: Vec<&(&str, Guard, Unmet, &str)> = UNMET
+      .iter()
+      .filter(|(v, g, _, _)| v == verb && g == guard)
+      .collect();
+    assert!(
+      !rows.is_empty(),
+      "`{verb}` declares {guard:?} and UNMET says nothing about how to make it unmet, so this walk would SKIP the only case the guard exists for. A (verb, guard) \
+       pair with no fixture is a guard nobody can test: add the row, or take the guard off the edge"
+    );
+    let modes = MODES
+      .iter()
+      .find(|(v, g, _, _)| v == verb && g == guard)
+      .map_or(1, |(_, _, count, _)| *count);
+    assert_eq!(
+      rows.len(),
+      modes,
+      "`{verb}` / {guard:?} carries {} fixture row(s) and {modes} mode(s) are declared. A guard unmet more ways than it is driven is covered on paper only; \
+       declare the count in MODES with the reason, or write the missing row",
+      rows.len()
+    );
+
+    for (_, _, unmet, why) in rows {
+      assert!(
+        !why.is_empty(),
+        "`{verb}` / {guard:?} / {unmet:?} says nothing about what makes its refusal THIS guard's, which is the one thing a reader cannot re-derive from the loop"
+      );
+      for justification in probes(*unmet) {
+        let outcome = attempt(entity, verb, from, justification, Some(*unmet));
+        let err = match &outcome {
+          Err(err) => err,
+          Ok(outcome) => panic!(
+            "{entity}: `{verb}` is declared {guard:?} and ACCEPTED the transition with that guard unmet ({unmet:?}) -- got {outcome:?}. The declaration says the \
+             precondition is enforced and nothing enforces it, which is a decorative guard: {why}"
+          ),
+        };
+        assert!(
+          names_the_guard(*guard, *unmet, err),
+          "{entity}: `{verb}` refused with {err:?}, which is not the refusal {guard:?} owes. A refusal from the WRONG cause is the failure this assertion \
+           exists for -- it means the guard may not be enforced at all and something else got there first: {why}"
+        );
+        driven += 1;
+      }
+    }
+  }
+
+  // The opposite direction: a fixture row for a pair no ratified edge declares.
+  for (verb, guard, unmet, _) in UNMET {
+    assert!(
+      pairs.iter().any(|(_, v, g, _)| v == verb && g == guard),
+      "UNMET carries a fixture for `{verb}` / {guard:?} / {unmet:?} and no declared edge carries that pair. Either the guard came off the edge and this row \
+       outlived it, or the verb is misspelled and the row has been driving nothing"
+    );
+  }
+  for (verb, guard, count, why) in MODES {
+    assert!(
+      pairs.iter().any(|(_, v, g, _)| v == verb && g == guard),
+      "MODES declares {count} unmet mode(s) for `{verb}` / {guard:?} and no declared edge carries that pair, so the count covers an absence rather than a \
+       population: {why}"
+    );
+  }
+  assert!(
+    driven > pairs.len(),
+    "{driven} drives across {} pairs -- at least one pair must contribute more than one probe or the blank/whitespace pair of the prose guards has been lost",
+    pairs.len()
   );
 }
 
