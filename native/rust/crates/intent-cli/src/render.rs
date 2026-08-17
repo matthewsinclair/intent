@@ -1805,11 +1805,33 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let mut f = open()?;
       let number = f.issue_add(&title, severity.as_deref()).map_err(fail)?;
       // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
-      // then `<id>:<title>`. **The path is v3's own**, because v2's
-      // `issues/OPEN/<NNNN>/<NNNN>-<slug>.md` layout retires under the ratified
-      // deviation -- the shape of the output is parity, the path inside it
-      // cannot be.
-      println!("created: {}", f.project().issue_json(number).display());
+      // then `<id>:<title>`.
+      //
+      // **ONE LINE CARRIED TWO DEVIATIONS OF OPPOSITE LEGITIMACY, WHICH MADE IT
+      // UNREADABLE AS EITHER** -- issue 0060, ic's finding. The LAYOUT is
+      // ratified: v3's issue canon is flat (`intent/issues/<NNNN>.json`,
+      // data-model.md), so v3 cannot print v2's bucketed path because v3 does not
+      // create it. **The ABSOLUTENESS was forced by nothing.** This printed the
+      // fully-qualified path, so the line a user is meant to copy embedded `$HOME`
+      // and the working directory -- and on this project that means agent-session
+      // tmpdirs landing in issue text.
+      //
+      // Neither implementation chose a convention: v2 builds its path from
+      // `$INTENT_DIR` and is relative by construction, v3 held a resolved root and
+      // printed it. **That is what makes this `as-observed` rather than a
+      // deviation to ratify -- there is nothing here that was decided and could be
+      // defended.**
+      //
+      // **And the defect made itself unmeasurable**, which is why it was filed
+      // rather than noted: `literal_stdout_parity.rs` asserts a row against a
+      // literal template, and a template cannot contain a machine's tmpdir. Every
+      // other row's coverage question is whether anyone has written the
+      // declaration; this row's was whether one could be written at all. Relative
+      // now, so it can be.
+      println!(
+        "created: {}",
+        f.project().relative(&f.project().issue_json(number))
+      );
       println!("{number:04}:{title}");
       Ok(())
     }

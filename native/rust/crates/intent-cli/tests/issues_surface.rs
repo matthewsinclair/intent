@@ -319,10 +319,23 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
     "v2 prints the path it wrote and then `<id>:<title>`:\n{:?}",
     lines
   );
-  assert!(
-    lines[0].starts_with("created: ") && lines[0].ends_with("intent/issues/0022.json"),
-    "the first line names the file this write actually produced: `{}`",
-    lines[0]
+  // **EXACT, and it was `starts_with(..) && ends_with(..)` until issue 0060.**
+  // That pair is satisfied by an absolute path just as well as by a relative one,
+  // so the assertion could not tell them apart -- and it was written that way
+  // BECAUSE the path was absolute and carried a tmpdir the test could not name.
+  // **A test that accommodates a defect in order to pass is blinded by the
+  // accommodation**, which is the same family as pinning a defect as expected
+  // output and harder to see, because nothing here is wrong on its face.
+  //
+  // The line is now repo-relative, as v2's is, so it can be asserted whole: v2
+  // prints a path built from `$INTENT_DIR`, v3 prints one relativised against the
+  // project root, and neither embeds the machine. The FLAT layout is the ratified
+  // half (`intent/issues/<NNNN>.json`); the absoluteness was the defect.
+  assert_eq!(
+    lines[0], "created: intent/issues/0022.json",
+    "the first line names the file this write produced, repo-relative -- an absolute path here \
+     leaks $HOME into a line whose whole purpose is to be copied, and cannot be asserted by any \
+     literal template (issue 0060)"
   );
   assert_eq!(lines[1], "0022:A new thing");
 
