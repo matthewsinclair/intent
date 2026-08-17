@@ -65,10 +65,11 @@ die() {
   exit 2
 }
 
-CENSUS="" MIGRATED="" OOM=""
+CENSUS="" MIGRATED="" OOM="" BINARY=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --out-of-model) OOM="${2:-}"; shift 2 || die "--out-of-model needs a file" ;;
+    --binary) BINARY="${2:-}"; shift 2 || die "--binary needs a path" ;;
     -*) die "unknown flag: $1" ;;
     *)
       if [ -z "$CENSUS" ]; then CENSUS="$1"
@@ -81,7 +82,8 @@ while [ $# -gt 0 ]; do
 done
 
 [ -n "$CENSUS" ] && [ -n "$MIGRATED" ] ||
-  die "usage: conservation_check.sh <census.tsv> <migrated-project-root> [--out-of-model <file>]"
+  die "usage: conservation_check.sh <census.tsv> <migrated-project-root> [--out-of-model <file>] [--binary <v3-intent>]"
+[ -z "$BINARY" ] || [ -x "$BINARY" ] || die "no such executable: $BINARY"
 [ -f "$CENSUS" ] || die "no such census: $CENSUS"
 [ -d "$MIGRATED" ] || die "no such migrated root: $MIGRATED"
 command -v jq >/dev/null 2>&1 || die "jq is required to read the canon"
@@ -589,5 +591,75 @@ echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census
 # them". A section in a declared field is modelled; a section in a catch-all is
 # carried, safe and opaque. Both are correct outcomes and neither is a finding.
 echo "conservation: prose -- of $((c_ok + c_norm)) conserved, MODELLED $c_modelled (reached a declared field), CARRIED $c_carried (reached a catch-all -- bytes safe, meaning unmodelled)"
+# LIVENESS. Everything above asks whether the BYTES survived. Nothing above
+# asks whether the tool can still OPEN the estate, and on 2026-08-17 that gap
+# certified three fleet members as CONVERTED while every one of them refused
+# every read verb afterwards. ic named the shape: a conservation green sitting
+# on top of a liveness failure, where the two instruments cannot see each other.
+#
+# TWO THINGS THIS DELIBERATELY DOES NOT TRUST.
+#
+# Not the EXIT CODE -- a lockout is free to exit 0, and the failure it is
+# guarding against is precisely a tool that reports success and does nothing
+# (a second `intent upgrade` on a locked-out estate exits 0, claims 311 files
+# written, and clears nothing).
+#
+# Not the SHAPE OF THE OUTPUT either, which is the subtler one and is ic's
+# false green: an estate emptied of 55 of its 56 threads renders a table with
+# a header and exits 0, so "it printed a table" is health's clothes rather than
+# health. The assertion is therefore that the output NAMES threads the census
+# knows this estate to have. That is derived from the subject rather than
+# keyed to a string, so it cannot be satisfied by an estate the tool has
+# stopped being able to see.
+liveness_ids="$(awk -F'\t' '$1 == "FILE"' "$CENSUS" |
+  grep -oE 'ST[0-9]{4}' | sort -u)"
+n_ids="$(printf '%s\n' "$liveness_ids" | grep -c 'ST[0-9]' || true)"
+
+if [ -z "$BINARY" ]; then
+  # SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE -- and an unmeasured
+  # arm is scope. Silence here would let a reader take the conservation green
+  # as a verdict on the estate's health, which is the exact misreading that
+  # produced the finding this arm exists for.
+  echo "conservation: LIVENESS NOT MEASURED -- no --binary given; every line above is about BYTES, not about whether the tool can open this estate"
+elif [ "$n_ids" -eq 0 ]; then
+  die "census names no ST ids, so liveness has nothing to assert against -- a check that cannot fail does not pass"
+else
+  # STDOUT ONLY, AND THE `2>&1` THAT WAS HERE FIRST IS THE REASON THIS COMMENT
+  # IS. The refusal message itself NAMES thread ids -- "9 steel threads carry
+  # v2 canon this binary cannot read" is followed by them -- so an id-in-output
+  # test over merged streams matched the ERROR TEXT and pronounced a fully
+  # locked-out estate alive. That is this programme's standing class one more
+  # time: the thing measured (does the tool LIST threads) and the thing
+  # reported (does this text contain an id) were different, and the output
+  # could not tell them apart. Errors go to stderr; the answer is on stdout.
+  # `--status all` IS LOAD-BEARING AND ITS ABSENCE COST A FALSE FAILURE ON EVERY
+  # MEMBER. Bare `st list` renders "in progress only" by design, so a v3-native
+  # estate whose one thread is Triage lists ZERO rows and looks locked out. The
+  # census is the whole population; the default filter is a different one; and a
+  # silent default denominator is this programme's standing class wearing its
+  # least suspicious clothes. Asserted against the same population the census
+  # counts, or the ratio below is comparing two different estates.
+  live_out="$(cd "$MIGRATED" && "$BINARY" st list --status all 2>/dev/null)"
+  live_rc=$?
+  named=0
+  for id in $liveness_ids; do
+    case "$live_out" in *"$id"*) named=$((named + 1)) ;; esac
+  done
+  # Two tiers, because the two failures look nothing alike and only one of them
+  # announces itself. NAMED 0 is the lockout. NAMED but short of the census is
+  # the quiet one -- an estate that opens, exits 0 and renders a table listing
+  # fewer threads than it holds, which is ic's false green wearing a green exit
+  # code. Neither is caught by the exit code and neither by the table's shape.
+  if [ "$named" -eq 0 ]; then
+    report LIVENESS "st list named 0 of $n_ids census thread(s) (exit $live_rc) -- the bytes above survived and the tool cannot read them"
+    echo "conservation: LIVENESS FAILED -- migrated, and then unreadable"
+  elif [ "$named" -lt "$n_ids" ]; then
+    report LIVENESS "st list named only $named of $n_ids census thread(s) (exit $live_rc) -- it opens and under-reports, which no exit code and no table shape will tell you"
+    echo "conservation: LIVENESS PARTIAL -- readable, and short by $((n_ids - named)) thread(s)"
+  else
+    echo "conservation: LIVENESS ok -- st list named all $n_ids census thread(s) (exit $live_rc)"
+  fi
+fi
+
 echo "conservation: $findings finding(s)"
 [ "$findings" -eq 0 ]
