@@ -45,34 +45,6 @@ else
 fi
 export BIN_DIR PROJECT_ROOT DEVBIN_DIR DEVBIN_LIB
 
-# THE REFERENT (issue 0049). devbin prints this beside every `verdict:` and
-# beside the `all` summary, and never parses it -- Intent composes it because
-# Intent is the half that knows it is a git checkout.
-#
-# COMPOSED HERE, AT PROCESS START, WHICH IS RUN START for every gate this
-# invocation goes on to run. A referent read later would describe the tree the
-# verdict was printed against rather than the tree that was measured, and those
-# stop being the same thing in exactly the situation this exists for.
-#
-# UNCONDITIONAL, AND THE ~50ms IS BOUGHT DELIBERATELY. The obvious saving is to
-# skip it for commands that run no gates -- which requires a list of which
-# commands are gates, and a hardcoded list of that shape rotted TWICE in this
-# repository on the day this was written (a skip warning still saying "those two
-# gates" when there were nine, and a guard roster that had silently acquired two
-# members). A list that must be updated when a gate is added is a list that will
-# be wrong the first time someone adds one.
-#
-# ABSENT IS NOT CLEAN. If the composer cannot answer, the referent SAYS SO
-# rather than falling back to empty -- an empty referent is indistinguishable
-# from a project that never asked for one, so a broken composer would silently
-# restore exactly the unreferenced verdict this closes. Fail-open on the command
-# (a referent must never be able to stop a gate) and loud in the value.
-DEVBIN_RUN_REFERENT="$("$DEVBIN_DIR/cmd/measured" --value 2>/dev/null)" ||
-  DEVBIN_RUN_REFERENT=""
-[ -n "$DEVBIN_RUN_REFERENT" ] ||
-  DEVBIN_RUN_REFERENT="REFERENT UNAVAILABLE -- this verdict describes no known tree"
-export DEVBIN_RUN_REFERENT
-
 # shellcheck source=lib/helpers
 . "$DEVBIN_LIB/helpers"
 # shellcheck source=lib/config
@@ -88,6 +60,45 @@ export DEVBIN_RUN_REFERENT
 
 [ -f "$DEVBIN_DIR/config.yaml" ] || die "no config at $DEVBIN_DIR/config.yaml (try: devbin install)"
 cfg_load "$DEVBIN_DIR/config.yaml" || exit 1
+
+# THE REFERENT (issue 0049, consumer-filed). `project.referent` names a command
+# the PROJECT owns; devbin runs it once, here, and exports its stdout for
+# `print_run_referent` to echo beside every verdict. Declare nothing and nothing
+# changes -- which is every consumer that has not asked for this.
+#
+# WHY A DECLARED COMMAND RATHER THAN A VARIABLE THE PROJECT SETS. There is no
+# earlier project-owned place to set one: this file is DEVBIN'S, and a consumer
+# that edits it to export a variable has forked the dispatcher in order to add a
+# feature. That is not hypothetical -- it is what the consumer who raised this
+# did, and their own manifest check caught it inside the hour, on a file they had
+# checked the ownership of and then edited a different one. `config.yaml` and
+# `cmd/` belong to the project, so a command named in config and living in `cmd/`
+# is entirely theirs and the vendored tree stays stock.
+#
+# DEVBIN STILL NEVER PARSES THE STRING. It learns that the project HAS a command
+# naming its referent; it does not learn what a referent is. `git rev-parse` is
+# one project's answer, and devbin must remain unable to tell that answer from a
+# build id or a hostname -- see print_run_referent for why that is the design and
+# not a preference.
+#
+# COMPOSED AT PROCESS START, which is run start for every gate this invocation
+# goes on to run. Read later it would describe the tree the verdict was PRINTED
+# against rather than the one measured, and those diverge in exactly the
+# situation this exists for.
+#
+# ABSENT IS NOT CLEAN, so a declared-but-failing composer is LOUD rather than
+# empty: empty is indistinguishable from a project that never declared one, so a
+# broken composer would silently restore the unreferenced verdict this closes.
+# Fail-open on the run -- a referent must never be able to stop a gate.
+_devbin_referent_cmd="$(cfg_get project.referent "")"
+if [ -n "$_devbin_referent_cmd" ]; then
+  DEVBIN_RUN_REFERENT="$(cd "$PROJECT_ROOT" && eval "$_devbin_referent_cmd" 2>/dev/null)" ||
+    DEVBIN_RUN_REFERENT=""
+  [ -n "$DEVBIN_RUN_REFERENT" ] ||
+    DEVBIN_RUN_REFERENT="REFERENT UNAVAILABLE -- 'project.referent' is declared and did not answer"
+  export DEVBIN_RUN_REFERENT
+fi
+unset _devbin_referent_cmd
 
 # Identity comes from config, never from $0. That is what lets bin/conflab and
 # bin/cf both be symlinks to this file while `conflab -v` still says conflab.

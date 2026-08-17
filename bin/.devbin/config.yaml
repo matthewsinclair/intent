@@ -26,6 +26,24 @@ project:
   # then.
   alias: int
 
+  # WHICH TREE DID THIS VERDICT DESCRIBE. devbin runs this once at process
+  # start and prints its stdout beside every `verdict:` and beside the `all`
+  # summary. It never parses the string -- it cannot tell a sha from a
+  # hostname, and that ignorance is the layer boundary, not an oversight.
+  #
+  # The whole reason this is a config key rather than a variable exported from
+  # `bin/devbin` is that `bin/devbin` is DEVBIN'S file (manifest line 6). It was
+  # wired there first, and `int vendor` reported it DIVERGED on the very next
+  # run -- the vendoring check catching a fork of the dispatcher by the person
+  # who had just quoted the ownership rule at himself. `config.yaml` and `cmd/`
+  # are ours; this uses both and leaves the vendored tree stock.
+  #
+  # Four nodes commit into one clone here, so the interval between a compiler
+  # reading a file and a human reading the verdict routinely contains someone
+  # else's edits. A verdict that has outlived its tree is indistinguishable, by
+  # inspection, from a verdict about landed code.
+  referent: bin/.devbin/cmd/measured --value
+
   # shell: the bats suite and the shell critic are both real gates here.
   # rust: the ST0056 native binary -- the reason devbin is in this project.
   languages:
