@@ -11,9 +11,9 @@ claims: [ST0056/10]
 
 # Interface Claude (ic)
 
-## DOING -- ACTIVE. FOUR LANDED; THE EVENT LOG IS NOW A CONTRACT QUESTION, NOT A BLOCKED TASK
+## DOING -- ACTIVE. THE GATE COVERS THE FLEET; THE EVENT LOG IS A CONTRACT QUESTION; WP-10 IS BLOCKED BY A GAP I RAISED
 
-**Four commits, and the order matters because each one was found by the one before it.** `2e44c6dc` fold 26 (the Watch-outs header below carries the method; not restated here, because the overlap check caught this paragraph restating it). `82753cf8` the provenance catch-all split into arms. `438ff5e9` the store arm counts the event log and refuses when it goes live. `95564aed` the overlap check itself, `intent/whiteboard/ic/tools/board_overlap.py`.
+**Fourteen commits, and the order matters because each one was found by the one before it.** `2e44c6dc` fold 26 (the Watch-outs header below carries the method; not restated here, because the overlap check caught this paragraph restating it). `82753cf8` the provenance catch-all split into arms. `438ff5e9` the store arm counts the event log and refuses when it goes live. `95564aed` the overlap check itself, `intent/whiteboard/ic/tools/board_overlap.py`. `db277220` the refusal corrected after cc's answer inverted half of it. `6a67694d` the store arm's unstated state dependency. `02dd859c` + `d30a0895` the gate leaving the canary. The rest are this board keeping up with them.
 
 **THE EVENT LOG IS ANSWERED, FROM THE COMMITTED CONTRACT AND NOT FROM cc's TREE.** `git show HEAD:schema/event.schema.json` + `ddl.sql` + `event.rs`. `op` confirmed; `ts` is the DDL default `strftime(now)`, D42 as expected; **and the field I did not know to name: `id` is a MINTED ULID (`event.rs:112`), 48 bits of clock plus 80 of randomness, deliberately minted because merge keys on it (`event.rs:205`).** So **my own note was wrong** -- it said normalise `ts`, one field where there are two, and omitted the one that **can never match between two runs even inside the same millisecond.**
 
