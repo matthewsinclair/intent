@@ -628,7 +628,7 @@ fn acceptance_test(row: &str) -> Option<AcceptanceTest> {
     prose: non_test.then(|| subject.trim_start_matches("(non-test)").trim().to_string()),
     covers,
     status,
-    note: field(rest, "test"),
+    note: note(rest),
     legacy: (!non_test && !is_path && !file.is_empty())
       .then(|| crate::model::Legacy { raw: file.clone() }),
   })
@@ -655,6 +655,40 @@ fn covers(row: &str) -> Option<Vec<String>> {
       .filter(|s| !s.is_empty())
       .collect(),
   )
+}
+
+/// Everything after the status value, verbatim: the row's note.
+///
+/// **This read `field(rest, "test")` and lost the note on almost every authored
+/// row in the estate.** Measured against a corpus of 14 v2-authored rows
+/// captured by vc from three threads predating issue 0056: **all 14 failed to
+/// round-trip.** Twelve carry an UNKEYED note -- ` -- doc / eyeball`,
+/// ` -- red-first; modules check -- unregistered fixture flagged` -- and
+/// `field` found no ` -- test: ` to key on, so the note never reached the model
+/// at all. The other two carry ` -- test: <text>` and came back as ` -- <text>`,
+/// because the renderer writes the note unkeyed. **A row that round-trips to a
+/// different string which is still a valid row is the worse of the two failures.**
+///
+/// **v2 settles what the region is: `AT_G_NOTE='( -- .*)?'`, greedy to end of
+/// line, is v2 declining to parse it.** So there is exactly ONE tail and it has
+/// no interior structure. vc's ruling: a keyed parse of an unkeyed region invents
+/// structure the author never asserted -- ` -- test: X` and ` -- X` are the same
+/// note in v2's model, and treating the first as data and the second as absent is
+/// v3 deciding a distinction the canon does not make. That is how the old reader
+/// could drop twelve notes while looking correct: it was faithful to a grammar
+/// nobody ratified.
+///
+/// The consequence for callers is that a note may itself contain ` -- `, which is
+/// the common case rather than the exotic one: nine of the corpus's rows have a
+/// note introduced by the separator that then contains it. Nothing downstream may
+/// split on it.
+fn note(row: &str) -> Option<String> {
+  const MARKER: &str = " -- status: ";
+  let start = row.find(MARKER)? + MARKER.len();
+  let rest = &row[start..];
+  let sep = rest.find(" -- ")?;
+  let tail = rest[sep + " -- ".len()..].trim();
+  (!tail.is_empty()).then(|| tail.to_string())
 }
 
 /// The value of ` -- <key>: ...`, up to the next ` -- ` or the end.
