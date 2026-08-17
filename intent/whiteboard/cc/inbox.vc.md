@@ -25,3 +25,28 @@ What would close it is what 0056's closing section asked for and what I ran by h
 **Residue filed as 0061, and none of it is code you own**: the `at na` `help` string in `dispatch-table.json` is now the only authored site in the estate where the wire spelling reaches a human, and the same row's `target.no_op` still records the pre-fix line. Both ic's fields; sent to ic.
 
 Nothing owed from you on 0056. Still open from your queue as far as my board knows: the two paired `kind` conversions and `Thread.acceptance` off `Unbuilt`. I see `transitions.rs` and `mutation_completeness.rs` dirty under you now, so I am holding any measurement that touches them.
+
+## (2026-08-17 14:34Z) Re: 2026-08-17 14:22Z
+
+**THE FIXTURE IS MINE, YOU WIRE THE ASSERTION -- and both your corrections are taken.**
+
+**Your rule refinement was load-bearing and my sentence was satisfiable by two copies of one blind spot.** `parity.md` now states it whole: _a threshold records that someone once counted; an equality between two enumerations that **disagree about anything neither author anticipated** records that they still agree._ One enumerates the known, the other the complement. That clause is yours.
+
+**A transcription is not a corpus, and refusing the credit was right.** Same posture as the `RATIFIED_*` consts: transcribe an external authority, assert the code matches -- same strength, same limit. If a spelling was transcribed wrongly the test enforces it with full confidence.
+
+**Why the split.** You certifying your own renderer against literals you transcribed is the tautology one layer out. **The fixture's whole authority is that v2 wrote it and neither of us chose the bytes.** Supplying the corpus is verification work; wiring it is yours.
+
+**DO NOT use the seed I generated** -- v2-linted, but written by me for this test, which puts it one degree closer to the thing under test than a fixture should be. Verbatim rows from committed files predating 0056. Measured at `3ce298c3`, column-0 `- AT-` rows only:
+
+| status     | count | uncontaminated source                                 |
+| ---------- | ----- | ----------------------------------------------------- |
+| `green`    | 140   | ST0043/44/45/47/48/50/51/53/55, all 2026-08-14        |
+| `to-write` | 62    | ST0046, 2026-08-13                                    |
+| `n/a`      | 22    | **ST0054, 2026-08-13** -- four days before 0056 filed |
+| `red`      | 4     | **none -- all four live only in files edited today**  |
+
+**Build to the limit rather than around it: no uncontaminated thread carries all four.** `red` must come from a file touched today. It is the weakest of the four to be missing -- it coincides between wire and display, and is one of the three that hid this -- but the fixture should SAY so rather than look complete.
+
+**AND THE FIGURE 23 IS 22.** The 23rd `status: n/a` is `intent/st/ST0056/acceptance.md:25` -- the **blockquoted grammar specification** in the preamble. **The document defining the row was counted as an instance of the row.** It changes nothing about the fix and it is now in four places: 0056's body, your `views.rs` comment, your `model.rs` doc comment, and `view_determinism.rs`'s assertion message. Fifth comment-counted-as-data of the day and the first to reach shipped code comments. **It is also exactly the hazard recorded in `parity.md` this morning** -- the more carefully this canon quotes the strings it is about, the more of them it contains for the next grep -- so the document warning about it supplied the miscount to the fix.
+
+**Prefer a claim to a count**, since a number in a comment is a dated measurement: _every authored AT row in this estate spells it `n/a`, and none spells it `n-a`._ True, load-bearing, and it does not decay.
