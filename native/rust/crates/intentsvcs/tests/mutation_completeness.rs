@@ -26,7 +26,7 @@
 mod common;
 
 use common::{Fixture, sample_issue, sample_thread};
-use intentsvcs::facade::{Facade, FacadeError};
+use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, IssueStatus, Thread, ThreadStatus,
   WpStatus, enum_str,
@@ -698,7 +698,15 @@ fn every_declared_edge_is_a_mutation_that_exists() {
       continue;
     };
     for edge in *edges {
-      for from in values.iter().filter(|v| edge.accepts(v)) {
+      // **`leaves` rather than `accepts`, because a self-loop is not a
+      // transition to drive** (hv, 2026-08-17). `at.set` and `wp.rescope` declare
+      // an empty from-set, so `accepts` admits the edge's OWN target as a
+      // starting state -- and driving `at.set -> to-write` from `to-write` moves
+      // nothing, then reads `to-write` back and calls it a pass. The walk would
+      // have gone green on a verb that did nothing at all. `leaves` is
+      // `accepts(v) && to != v`, which is exactly the distinction the ruling
+      // draws.
+      for from in values.iter().filter(|v| edge.leaves(v)) {
         let observed = execute(&entity, &field, edge, from);
         assert_eq!(
           observed, edge.to,
@@ -722,6 +730,24 @@ const ST: &str = "ST0056";
 const REASON: &str = "the contract grew after the close";
 
 /// Drive one edge: build a thread with `field` at `from`, apply the verb, and
+/// **Driving a DECLARED edge must be a real movement, not a self-loop.**
+///
+/// Added when self-loops became legal (hv, 2026-08-17): the verbs now answer
+/// `Outcome::AlreadyThere` for a non-movement at exit 0, so a fixture that
+/// accidentally started in the edge's target state would drive nothing and the
+/// walk would still read the expected value back. That is a green built out of
+/// two facts that never met, and it is cheaper to refuse it here than to notice
+/// it later.
+fn assert_movement(entity: &str, field: &str, edge: &Edge, from: &str, outcome: Outcome) {
+  assert_eq!(
+    outcome,
+    Outcome::Moved,
+    "{entity}.{field}: `{}` from `{from}` reported a NO-OP, so this walk drove no transition and would still read `{}` back from a fixture that began there",
+    edge.verb,
+    edge.to
+  );
+}
+
 /// report where the field landed.
 fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
   match (entity, field) {
@@ -729,7 +755,7 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let fx = Fixture::new();
       fx.write_thread(&thread_with(|t| t.status = parse(from)));
       let mut facade = fx.facade();
-      match edge.verb {
+      let outcome = match edge.verb {
         "st.triage" => facade.st_triage(ST).expect("st triage"),
         "st.start" => facade.st_start(ST).expect("st start"),
         "st.resume" => facade.st_resume(ST).expect("st resume"),
@@ -739,7 +765,8 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
         "st.reopen" => facade.st_reopen(ST, REASON).expect("st reopen"),
         "st.reinstate" => facade.st_reinstate(ST, REASON).expect("st reinstate"),
         other => panic!("no arm drives {other} on Thread.status"),
-      }
+      };
+      assert_movement(entity, field, edge, from, outcome);
       enum_str(&facade.st_show(ST).expect("thread").status).to_string()
     }
     ("WorkPackage", "scope") => {
@@ -753,12 +780,13 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       fx.write_thread(&thread_with(|t| t.wps[1].scope = from_state));
       let mut facade = fx.facade();
       let seq = 3;
-      match edge.verb {
+      let outcome = match edge.verb {
         "wp.rescope" => facade
           .wp_rescope(ST, seq, parse(edge.to))
           .expect("wp rescope"),
         other => panic!("no arm drives {other} on WorkPackage.scope"),
-      }
+      };
+      assert_movement(entity, field, edge, from, outcome);
       // Read back through the same ABSENT convention the domain uses, so a
       // field that landed nowhere reports the state name rather than tripping
       // `enum_str` on a null.
@@ -772,13 +800,14 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       fx.write_thread(&thread_with(|t| t.wps[1].status = parse::<WpStatus>(from)));
       let mut facade = fx.facade();
       let seq = 3;
-      match edge.verb {
+      let outcome = match edge.verb {
         "wp.start" => facade.wp_start(ST, seq).expect("wp start"),
         "wp.unstart" => facade.wp_unstart(ST, seq).expect("wp unstart"),
         "wp.done" => facade.wp_done(ST, seq).expect("wp done"),
         "wp.reopen" => facade.wp_reopen(ST, seq, REASON).expect("wp reopen"),
         other => panic!("no arm drives {other} on WorkPackage.status"),
-      }
+      };
+      assert_movement(entity, field, edge, from, outcome);
       enum_str(&facade.wp_show(ST, seq).expect("wp").status).to_string()
     }
     ("AcceptanceTest", "status") => {
@@ -786,10 +815,11 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       fx.write_thread(&thread_with(|t| t.tests[0].status = parse(from)));
       let mut facade = fx.facade();
       let to: AtStatus = parse(edge.to);
-      match edge.verb {
+      let outcome = match edge.verb {
         "at.set" => facade.at_set(ST, "AT-03.1", to).expect("at set"),
         other => panic!("no arm drives {other} on AcceptanceTest.status"),
-      }
+      };
+      assert_movement(entity, field, edge, from, outcome);
       let thread = facade.st_show(ST).expect("thread");
       let test = thread.tests.iter().find(|t| t.id == "AT-03.1").expect("AT");
       enum_str(&test.status).to_string()
@@ -840,7 +870,7 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
 }
 
 /// The AC verbs all act on `AC-03.2`, the fixture's non-test criterion.
-fn apply_ac_verb(facade: &mut intentsvcs::facade::Facade, verb: &str) {
+fn apply_ac_verb(facade: &mut intentsvcs::facade::Facade, verb: &str) -> Outcome {
   const AC: &str = "AC-03.2";
   match verb {
     "ac.satisfy" => facade
@@ -1157,7 +1187,12 @@ fn the_implemented_graph_is_the_ratified_one_edge_for_edge() {
 }
 
 /// Drive `verb` from `from`, and report the refusal if there was one.
-fn attempt(entity: &str, verb: &str, from: &str, justification: &str) -> Result<(), FacadeError> {
+fn attempt(
+  entity: &str,
+  verb: &str,
+  from: &str,
+  justification: &str,
+) -> Result<Outcome, FacadeError> {
   let fx = Fixture::new();
   let mut facade: Facade = match entity {
     "Thread" => {
@@ -1229,8 +1264,15 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
       .collect::<std::collections::BTreeSet<_>>()
       .into_iter()
       .collect();
-    for (verb, from, _, _) in ratified {
-      for state in states.iter().filter(|s| !from.contains(s)) {
+    for (verb, from, to, _) in ratified {
+      // **Excluding the verb's own TARGET, because a self-loop is not an
+      // undeclared transition -- it is not a transition** (data-model.md, hv
+      // 2026-08-17: "asking a verb for the state an entity is already in is not a
+      // movement, so it is not a transition to declare and not an illegal one to
+      // refuse"). `st.triage` targets `not-started`, so asking it of a thread
+      // already `not-started` is accepted at exit 0, and demanding a refusal
+      // there would be this test requiring the behaviour the ruling retired.
+      for state in states.iter().filter(|s| !from.contains(s) && *s != to) {
         let outcome = attempt(
           entity,
           verb,

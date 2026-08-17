@@ -20,6 +20,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::contract::{AllResolve, RepoFiles, Scope, gate};
+use intentsvcs::facade::Outcome;
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
   TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
@@ -729,8 +730,30 @@ fn the_facade_routes_closes_through_the_gate() {
 
   facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
   facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
+
+  // **A CLOSED unit is NOT re-blocked by coverage that went red after the close,
+  // and this assertion used to require the opposite** (hv, 2026-08-17). Asking
+  // `wp done` of an already-done package is a self-loop: accepted at 0, with the
+  // gate not re-run. The rule is that a self-loop must not be able to fail for a
+  // reason that did not exist when the state was entered -- and this test was the
+  // clearest statement of the behaviour being retired, since it turned the
+  // coverage red AFTER the close and then demanded a refusal.
+  assert_eq!(
+    facade
+      .wp_done("ST0056", 3)
+      .expect("a self-loop is accepted"),
+    Outcome::AlreadyThere,
+    "a package that is already done stays done, and the gate is not consulted again"
+  );
+
+  // The test's real subject, on a package the gate is actually asked about.
+  // Reopening is what makes the question live again -- which is the point of
+  // `wp reopen` existing.
+  facade
+    .wp_reopen("ST0056", 3, "the coverage went red")
+    .expect("reopen");
   assert!(
     facade.wp_done("ST0056", 3).is_err(),
-    "the same gate refuses once the coverage goes red"
+    "the same gate refuses once the coverage goes red, asked of a package that is open"
   );
 }

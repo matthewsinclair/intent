@@ -84,15 +84,14 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("in scope"),
   ));
 
+  // **`ScopeUnchanged` was provoked here and the variant is gone** (hv,
+  // 2026-08-17): a repeated withdrawal is a self-loop, accepted at exit 0, so
+  // there is no longer an error to collect. The behaviour it used to provoke is
+  // asserted as an OUTCOME in `facade_acceptance.rs`; a refusal roster is the
+  // wrong place to keep a case that is no longer a refusal.
   facade
     .ac_withdraw("ST0056", "AC-03.1", "r", None)
     .expect("withdraw");
-  out.push((
-    "scope unchanged",
-    facade
-      .ac_withdraw("ST0056", "AC-03.1", "r", None)
-      .expect_err("already withdrawn"),
-  ));
 
   // AC-03.1 is now withdrawn, so the thread cannot close.
   facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
@@ -166,11 +165,20 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   // The from-state refusal, which is a different failure from every guard above
   // it: the value is fine and the thread is in the wrong state to receive it.
+  //
+  // **This provoked the refusal with `st_resume` until self-loops became legal
+  // (hv, 2026-08-17), and the swap is not cosmetic.** `st.resume` TARGETS `wip`
+  // and the fixture thread is `wip`, so that call is now a self-loop -- accepted
+  // at exit 0 -- and the provocation quietly stopped provoking. What decides a
+  // self-loop is whether the current state equals the verb's TARGET, not whether
+  // the verb is declared from the current state, so a provocation has to name a
+  // verb whose target differs. `st.triage` lands on `not-started` and is declared
+  // only from `triage`, which is a real movement the machine refuses.
   out.push((
     "illegal transition",
     facade
-      .st_resume("ST0056")
-      .expect_err("resume is declared from `hold`, and the fixture thread is `wip`"),
+      .st_triage("ST0056")
+      .expect_err("triage is declared only from `triage`, targets `not-started`, and the fixture thread is `wip` -- a refused movement rather than a no-op"),
   ));
 
   // **Its own fixture, because this one is provoked by CONFIGURATION rather
@@ -222,7 +230,6 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchTest { .. } => "NoSuchTest",
     FacadeError::GateBlocked { .. } => "GateBlocked",
     FacadeError::ComputedSatisfaction { .. } => "ComputedSatisfaction",
-    FacadeError::ScopeUnchanged { .. } => "ScopeUnchanged",
     FacadeError::NotOffScope { .. } => "NotOffScope",
     FacadeError::NotSatisfied { .. } => "NotSatisfied",
     FacadeError::OffScope { .. } => "OffScope",
@@ -261,7 +268,6 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchTest",
   "GateBlocked",
   "ComputedSatisfaction",
-  "ScopeUnchanged",
   "NotOffScope",
   "NotSatisfied",
   "OffScope",

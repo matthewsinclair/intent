@@ -345,11 +345,22 @@ fn the_gate_speaks_v2s_contract_through_the_cli() {
 }
 
 /// `st done` is gated, and its refusal carries the gate's own verdict.
+///
+/// **The thread is driven to `wip` first, and until the gate moved behind the
+/// transition check this test never reached the gate at all.** A freshly created
+/// thread is in `triage`, where `st.done` is not a declared transition; the old
+/// ordering ran the gate before checking the machine, so a thread that could not
+/// legally be closed was answered with a verdict about its acceptance criteria.
+/// The refusal is now the accurate one -- `st.done` is declared only from `wip` --
+/// which meant this test, whose whole subject is the gate, was passing on a path
+/// that never consulted it.
 #[test]
 fn closing_through_the_cli_is_gated_and_says_why() {
   let dir = project();
   let root = dir.path();
   ok(root, &["st", "new", "a thread"]);
+  ok(root, &["st", "triage", "ST0001"]);
+  ok(root, &["st", "start", "ST0001"]);
 
   let out = run(root, &["st", "done", "ST0001"]);
   assert_eq!(out.status.code(), Some(1));

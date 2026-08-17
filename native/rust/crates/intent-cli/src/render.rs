@@ -11,7 +11,7 @@ use clap::ArgMatches;
 use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::contract::Scope;
-use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
+use intentsvcs::facade::{Facade, FacadeContext, FacadeError, Outcome};
 use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
@@ -1124,11 +1124,18 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
   // `scope_of` already owns "is this a thread or a work package": `ac gate`
   // and `wp_target` both parse specifiers through it, and a second reading
   // of `ST0001/02` here is a second place for the answer to differ.
-  match scope_of(&spec) {
+  let outcome = match scope_of(&spec) {
     (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
     (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
+  };
+  // **A no-op says so, at exit 0** (hv 2026-08-17). Printing `ok: done` for a
+  // unit that was already done is true and useless; v2 answers `already CLOSED`
+  // and the point of accepting a self-loop rather than refusing it is that a
+  // caller can rely on the state without having to check it first.
+  match outcome {
+    Outcome::Moved => println!("ok: {spec} done"),
+    Outcome::AlreadyThere => println!("ok: {spec} was already done"),
   }
-  println!("ok: {spec} done");
   Ok(())
 }
 

@@ -11,7 +11,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::contract::{Resolved, resolve};
-use intentsvcs::facade::FacadeError;
+use intentsvcs::facade::{FacadeError, Outcome};
 use intentsvcs::model::{AcState, AtStatus};
 use intentsvcs::remedy::Remedy;
 
@@ -231,16 +231,26 @@ fn a_no_op_scope_change_is_refused_rather_than_silently_accepted() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  facade
-    .ac_withdraw("ST0056", "AC-03.1", "r", None)
-    .expect("withdraw");
-  match facade.ac_withdraw("ST0056", "AC-03.1", "r", None) {
-    Err(FacadeError::ScopeUnchanged { ac, state }) => {
-      assert_eq!(ac, "AC-03.1");
-      assert_eq!(state, "withdrawn");
-    }
-    other => panic!("expected ScopeUnchanged, got: {other:?}"),
-  }
+  assert_eq!(
+    facade
+      .ac_withdraw("ST0056", "AC-03.1", "r", None)
+      .expect("withdraw"),
+    Outcome::Moved
+  );
+
+  // **This asserted `ScopeUnchanged` -- an ERROR -- until hv ruled self-loops
+  // legal (2026-08-17), and the variant is pruned rather than deprecated.**
+  // Asking for the state the criterion is already in is not a movement, so it is
+  // accepted and reported. The assertion is on the OUTCOME rather than on `Ok`,
+  // because `Ok(Moved)` here would mean a second withdrawal was recorded -- a
+  // duplicate envelope for one decision, stamped at a second time under D42.
+  assert_eq!(
+    facade
+      .ac_withdraw("ST0056", "AC-03.1", "r", None)
+      .expect("a self-loop is accepted, not refused"),
+    Outcome::AlreadyThere,
+    "a repeated withdrawal must be a NO-OP: accepted, reported, and nothing written"
+  );
 }
 
 #[test]

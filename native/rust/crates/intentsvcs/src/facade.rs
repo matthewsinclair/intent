@@ -83,8 +83,6 @@ pub enum FacadeError {
     "{ac} is test-backed, so its satisfaction is computed from covering green acceptance tests and cannot be set directly"
   )]
   ComputedSatisfaction { ac: String },
-  #[error("{ac} is already {state}")]
-  ScopeUnchanged { ac: String, state: String },
   #[error("{ac} is in scope, so there is nothing to reinstate")]
   NotOffScope { ac: String },
   #[error("{ac} is not satisfied, so there is nothing to unsatisfy")]
@@ -223,9 +221,6 @@ impl crate::remedy::Remedy for FacadeError {
       Self::ComputedSatisfaction { ac } => format!(
         "set the covering test green instead -- `intent at set <AT> green` -- or make {ac} a non-test criterion with named evidence"
       ),
-      Self::ScopeUnchanged { .. } => {
-        "no action needed; the criterion is already in the state you asked for".to_string()
-      }
       Self::NotOffScope { .. } => {
         "reinstate applies only to a descoped or withdrawn criterion".to_string()
       }
@@ -376,6 +371,38 @@ pub struct AcRow {
   /// Computed, never read off the criterion -- see [`Facade::ac_list`].
   pub state: String,
   pub covered_by: Vec<String>,
+}
+
+/// What a mutating verb DID -- because "it worked" and "there was nothing to do"
+/// are different answers and a caller has to be able to say which.
+///
+/// **Self-loops are legal, accepted and reported at exit 0, and they do not
+/// re-run the guard** (data-model.md, hv 2026-08-17, across all four machines).
+/// Asking a verb for the state an entity is already in is not a movement, so it
+/// is not a transition to declare and not an illegal one to refuse -- and it
+/// brings v3 back to v2's measured `already CLOSED`.
+///
+/// **[`Outcome::AlreadyThere`] is a NO-OP and not a repeated write, which is the
+/// half a reader is most likely to get wrong.** Recording an event for a
+/// non-movement would stamp a second `st.done` at a second time, and under D42
+/// the record is stamped BY the write -- so history would show a thread closed
+/// twice. Nothing is written, nothing is re-rendered, and nothing is stamped.
+/// **Deliberately NOT `#[must_use]`, and the measurement is the reason.** It was
+/// annotated first, on the argument that a caller ignoring this cannot tell a
+/// movement from a no-op. It fired on 65 sites, nearly all of them tests putting
+/// a fixture into a state, where ignoring the outcome is exactly right. The fix
+/// would have been 65 `let _ =` annotations added to silence a warning, which is
+/// how an annotation stops carrying information -- the same reason
+/// `exit_code_consumers.rs` excludes markdown by construction rather than firing
+/// on every documentation edit. Where the outcome MUST be reported is the CLI,
+/// which is a handful of sites, and that is held by tests that read what the
+/// command printed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Outcome {
+  /// The field moved, and the movement is recorded.
+  Moved,
+  /// The entity was already in the requested state. Nothing was written.
+  AlreadyThere,
 }
 
 /// The facade: a project, its store, and the canon it has loaded.
@@ -1050,11 +1077,11 @@ impl Facade {
   }
 
   /// Accept a thread out of triage and into the backlog.
-  pub fn st_triage(&mut self, id: &str) -> Result<(), FacadeError> {
+  pub fn st_triage(&mut self, id: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::NotStarted, "st.triage", None)
   }
 
-  pub fn st_start(&mut self, id: &str) -> Result<(), FacadeError> {
+  pub fn st_start(&mut self, id: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::Wip, "st.start", None)
   }
 
@@ -1064,7 +1091,7 @@ impl Facade {
   /// set it** -- v2 recognised it in its status filter and reached it only by
   /// hand-editing frontmatter, which is the defect class hv ruled on, sitting
   /// in the tool's own status enum.
-  pub fn st_hold(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+  pub fn st_hold(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::Hold, "st.hold", Some(reason))
   }
 
@@ -1072,20 +1099,15 @@ impl Facade {
   /// a condition that has ended -- see [`Thread::status_reason`].
   ///
   /// [`Thread::status_reason`]: crate::model::Thread::status_reason
-  pub fn st_resume(&mut self, id: &str) -> Result<(), FacadeError> {
+  pub fn st_resume(&mut self, id: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::Wip, "st.resume", None)
   }
 
   /// Close a thread. Consults the close gate first -- the single authority, so
   /// there is no path that closes without it.
-  pub fn st_done(&mut self, id: &str) -> Result<(), FacadeError> {
-    let verdict = self.gate(id, Scope::Thread)?;
-    if !verdict.is_pass() {
-      return Err(FacadeError::GateBlocked {
-        scope: id.to_string(),
-        verdict: verdict.line(id),
-      });
-    }
+  /// Close a thread. The gate is a DECLARED guard and is run by the shared
+  /// setter, after the self-loop test -- see [`Facade::check_gate`].
+  pub fn st_done(&mut self, id: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::Completed, "st.done", None)
   }
 
@@ -1096,7 +1118,7 @@ impl Facade {
   /// closed was previously repairable only by editing the file the CLI exists
   /// to own -- and the gate then kept saying PASS against a contract that had
   /// moved underneath it.
-  pub fn st_reopen(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+  pub fn st_reopen(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::Wip, "st.reopen", Some(reason))
   }
 
@@ -1105,11 +1127,11 @@ impl Facade {
   /// It lands on `not-started` deliberately: a thread that was cancelled mid-
   /// flight has had its work overtaken, and resuming it as `wip` would assert
   /// a continuity nobody checked.
-  pub fn st_reinstate(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+  pub fn st_reinstate(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::NotStarted, "st.reinstate", Some(reason))
   }
 
-  pub fn st_cancel(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+  pub fn st_cancel(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
     self.set_thread_status(id, ThreadStatus::Cancelled, "st.cancel", Some(reason))
   }
 
@@ -1119,9 +1141,23 @@ impl Facade {
     status: ThreadStatus,
     op: &'static str,
     reason: Option<&str>,
-  ) -> Result<(), FacadeError> {
+  ) -> Result<Outcome, FacadeError> {
     let from = self.st_show(id)?.status;
+
+    // **THE SELF-LOOP TEST IS FIRST, AND ITS POSITION IS THE RULING.** It sits
+    // ahead of the transition check, ahead of the reason guard and -- the half
+    // that matters -- ahead of the gate below. `st done` on an already-completed
+    // thread must not re-run the gate, or a criterion added AFTER the close
+    // blocks a thread that is legitimately finished. That is not hypothetical:
+    // AC-04.6 was added under closed units in this very thread. A self-loop must
+    // not be able to fail for a reason that did not exist when the state was
+    // entered.
+    if from == status {
+      return Ok(Outcome::AlreadyThere);
+    }
+
     Self::check_transition("Thread", "status", op, &crate::model::enum_str(&from), id)?;
+    self.check_gate(("Thread", "status", op), id, id, Scope::Thread)?;
     let reason = Self::check_reason("Thread", "status", op, reason)?;
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
@@ -1134,19 +1170,65 @@ impl Facade {
       ThreadStatus::Completed | ThreadStatus::Cancelled => Some(String::new()),
       _ => None,
     };
-    self.apply(
-      op,
-      Subject {
-        kind: "thread".to_string(),
-        id: id.to_string(),
-      },
-      json!({
-        "from": crate::model::enum_str(&from),
-        "to": crate::model::enum_str(&status),
-        "reason": reason,
-      }),
-      next,
-    )
+    self
+      .apply(
+        op,
+        Subject {
+          kind: "thread".to_string(),
+          id: id.to_string(),
+        },
+        json!({
+          "from": crate::model::enum_str(&from),
+          "to": crate::model::enum_str(&status),
+          "reason": reason,
+        }),
+        next,
+      )
+      .map(|()| Outcome::Moved)
+  }
+
+  /// Enforce a declared [`transitions::Guard::GatePass`], and only where it is
+  /// declared.
+  ///
+  /// **This existed as hand-written code at two call sites and the declaration
+  /// was decorative for it.** `Edge::guarded("st.done", .., &[Guard::GatePass])`
+  /// said the gate was a precondition, while `st_done` and `wp_done` ran the gate
+  /// themselves before delegating -- so deleting `GatePass` from the table
+  /// changed nothing, which is the same declaration-versus-implementation split
+  /// AC-04.6 exists to find. `Guard::ReasonRecorded` was already enforced from
+  /// its declaration; this makes the pair consistent.
+  ///
+  /// **And the ordering falls out rather than having to be remembered.** Run by
+  /// the shared setter, the gate now sits AFTER the self-loop test by
+  /// construction, which is what the self-loop ruling requires. Hoisted at the
+  /// call site it ran first, and any later verb copying that shape would have
+  /// reintroduced a gate that can fail for a reason postdating the state.
+  ///
+  /// The SCOPE stays local because only the caller knows it -- a thread gates on
+  /// itself, a work package on its own sequence -- so the declaration decides
+  /// WHETHER and the caller decides ABOUT WHAT.
+  /// `thread` is what the gate is RUN against and `label` is what a refusal
+  /// NAMES -- they differ for a work package, which gates on its thread and
+  /// reports as `ST0001/01`.
+  fn check_gate(
+    &mut self,
+    field: (&'static str, &'static str, &'static str),
+    thread: &str,
+    label: &str,
+    scope: Scope,
+  ) -> Result<(), FacadeError> {
+    let (entity, name, verb) = field;
+    if !transitions::guard_for(entity, name, verb).contains(&transitions::Guard::GatePass) {
+      return Ok(());
+    }
+    let verdict = self.gate(thread, scope)?;
+    if verdict.is_pass() {
+      return Ok(());
+    }
+    Err(FacadeError::GateBlocked {
+      scope: label.to_string(),
+      verdict: verdict.line(label),
+    })
   }
 
   /// Refuse a transition the ratified machine does not have.
@@ -1302,26 +1384,20 @@ impl Facade {
     Ok(seq)
   }
 
-  pub fn wp_start(&mut self, st: &str, seq: u32) -> Result<(), FacadeError> {
+  pub fn wp_start(&mut self, st: &str, seq: u32) -> Result<Outcome, FacadeError> {
     self.set_wp_status(st, seq, WpStatus::Wip, "wp.start", None)
   }
 
   /// Put a work package back to `not-started` -- the inverse of `wp start`,
   /// for one started by mistake or on the wrong thread.
-  pub fn wp_unstart(&mut self, st: &str, seq: u32) -> Result<(), FacadeError> {
+  pub fn wp_unstart(&mut self, st: &str, seq: u32) -> Result<Outcome, FacadeError> {
     self.set_wp_status(st, seq, WpStatus::NotStarted, "wp.unstart", None)
   }
 
   /// Close a work package, gated on its own scope.
-  pub fn wp_done(&mut self, st: &str, seq: u32) -> Result<(), FacadeError> {
-    let label = format!("{st}/{seq:02}");
-    let verdict = self.gate(st, Scope::WorkPackage(seq))?;
-    if !verdict.is_pass() {
-      return Err(FacadeError::GateBlocked {
-        scope: label.clone(),
-        verdict: verdict.line(&label),
-      });
-    }
+  /// Close a work package. The gate is a DECLARED guard, run by the shared
+  /// setter after the self-loop test -- see [`Facade::check_gate`].
+  pub fn wp_done(&mut self, st: &str, seq: u32) -> Result<Outcome, FacadeError> {
     self.set_wp_status(st, seq, WpStatus::Done, "wp.done", None)
   }
 
@@ -1335,7 +1411,7 @@ impl Facade {
   /// three of five work packages carried a status that disagreed with their own
   /// gate, two of them written by the verifier enforcing the rule that names
   /// the class.
-  pub fn wp_reopen(&mut self, st: &str, seq: u32, reason: &str) -> Result<(), FacadeError> {
+  pub fn wp_reopen(&mut self, st: &str, seq: u32, reason: &str) -> Result<Outcome, FacadeError> {
     self.set_wp_status(st, seq, WpStatus::Wip, "wp.reopen", Some(reason))
   }
 
@@ -1349,7 +1425,7 @@ impl Facade {
   /// on, and it was found by vc's discriminating test rather than by the
   /// closure check: a value the caller supplies at creation is ENTERED, so
   /// having no exit makes every one of the six sizes a trap.
-  pub fn wp_rescope(&mut self, st: &str, seq: u32, scope: TShirt) -> Result<(), FacadeError> {
+  pub fn wp_rescope(&mut self, st: &str, seq: u32, scope: TShirt) -> Result<Outcome, FacadeError> {
     let from = self
       .st_show(st)?
       .wps
@@ -1363,6 +1439,23 @@ impl Facade {
         st: st.to_string(),
         seq,
       })?;
+
+    // **A rescope to the SAME size is only a self-loop when there is no carried
+    // legacy value, and that is not a technicality.** `scope_legacy` is a v2
+    // string nobody has decided about yet; rescoping resolves it. So `wp rescope
+    // L` on a package already recorded `L` does nothing, while the same call on
+    // one carrying `Medium-Large` alongside `L` clears the carry -- a real
+    // movement of the field, with the same from and to.
+    let settled = self
+      .st_show(st)?
+      .wps
+      .iter()
+      .find(|w| w.seq == seq)
+      .is_some_and(|w| w.scope == Some(scope) && w.scope_legacy.is_none());
+    if settled {
+      return Ok(Outcome::AlreadyThere);
+    }
+
     let mut next = self.canon.clone();
     let wp = find_thread_mut(&mut next, st)?
       .wps
@@ -1378,19 +1471,21 @@ impl Facade {
     // and a reader could not tell which one the project meant. The carry
     // exists because nobody had decided; someone just did.
     wp.scope_legacy = None;
-    self.apply(
-      "wp.rescope",
-      Subject {
-        kind: "wp".to_string(),
-        id: format!("{st}/{seq:02}"),
-      },
-      // `from` is the state the work package was IN, and that can be "nobody
-      // recorded one" or a carried v2 value -- so the envelope records what was
-      // actually there rather than a size that would have to be invented to
-      // fill the field. The event log is history; a guess in it is permanent.
-      json!({"from": from, "to": crate::model::enum_str(&scope)}),
-      next,
-    )
+    self
+      .apply(
+        "wp.rescope",
+        Subject {
+          kind: "wp".to_string(),
+          id: format!("{st}/{seq:02}"),
+        },
+        // `from` is the state the work package was IN, and that can be "nobody
+        // recorded one" or a carried v2 value -- so the envelope records what was
+        // actually there rather than a size that would have to be invented to
+        // fill the field. The event log is history; a guess in it is permanent.
+        json!({"from": from, "to": crate::model::enum_str(&scope)}),
+        next,
+      )
+      .map(|()| Outcome::Moved)
   }
 
   fn set_wp_status(
@@ -1400,7 +1495,7 @@ impl Facade {
     status: WpStatus,
     op: &'static str,
     reason: Option<&str>,
-  ) -> Result<(), FacadeError> {
+  ) -> Result<Outcome, FacadeError> {
     let label = format!("{st}/{seq:02}");
     let from = self
       .st_show(st)?
@@ -1412,12 +1507,24 @@ impl Facade {
         st: st.to_string(),
         seq,
       })?;
+
+    // First, and ahead of the gate -- see `set_thread_status`.
+    if from == status {
+      return Ok(Outcome::AlreadyThere);
+    }
+
     Self::check_transition(
       "WorkPackage",
       "status",
       op,
       &crate::model::enum_str(&from),
       &label,
+    )?;
+    self.check_gate(
+      ("WorkPackage", "status", op),
+      st,
+      &label,
+      Scope::WorkPackage(seq),
     )?;
     let reason = Self::check_reason("WorkPackage", "status", op, reason)?;
     let mut next = self.canon.clone();
@@ -1431,19 +1538,21 @@ impl Facade {
       })?;
     wp.status = status;
     wp.status_reason = reason.clone();
-    self.apply(
-      op,
-      Subject {
-        kind: "wp".to_string(),
-        id: label,
-      },
-      json!({
-        "from": crate::model::enum_str(&from),
-        "to": crate::model::enum_str(&status),
-        "reason": reason,
-      }),
-      next,
-    )
+    self
+      .apply(
+        op,
+        Subject {
+          kind: "wp".to_string(),
+          id: label,
+        },
+        json!({
+          "from": crate::model::enum_str(&from),
+          "to": crate::model::enum_str(&status),
+          "reason": reason,
+        }),
+        next,
+      )
+      .map(|()| Outcome::Moved)
   }
 
   // -------------------------------------------------------------------------
@@ -1467,7 +1576,7 @@ impl Facade {
   // the model carrying the same rule into the schema face. A comment asserting
   // a property is not the property, and this one was cited as the reason not to
   // build the thing that would have made it true.
-  pub fn ac_satisfy(&mut self, st: &str, ac: &str, evidence: &str) -> Result<(), FacadeError> {
+  pub fn ac_satisfy(&mut self, st: &str, ac: &str, evidence: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     if criterion.kind != AcKind::NonTest {
       return Err(FacadeError::ComputedSatisfaction { ac: ac.to_string() });
@@ -1504,7 +1613,7 @@ impl Facade {
   /// it looks like a record. That was a rule two assignments had to keep; now
   /// the evidence lives INSIDE `Satisfied`, so leaving it behind is not a thing
   /// the type can do.
-  pub fn ac_unsatisfy(&mut self, st: &str, ac: &str) -> Result<(), FacadeError> {
+  pub fn ac_unsatisfy(&mut self, st: &str, ac: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     if criterion.kind != AcKind::NonTest {
       return Err(FacadeError::ComputedSatisfaction { ac: ac.to_string() });
@@ -1522,7 +1631,7 @@ impl Facade {
     to: &str,
     by: Option<&str>,
     reason: Option<&str>,
-  ) -> Result<(), FacadeError> {
+  ) -> Result<Outcome, FacadeError> {
     // **The ratified machine guards this with "target thread exists", and it
     // was declared and unenforced.** `doctor` already reports the resulting
     // state -- "descoped to X, which is not a steel thread in this project" --
@@ -1566,7 +1675,7 @@ impl Facade {
     ac: &str,
     reason: &str,
     by: Option<&str>,
-  ) -> Result<(), FacadeError> {
+  ) -> Result<Outcome, FacadeError> {
     self.set_ac_state(
       st,
       ac,
@@ -1587,7 +1696,7 @@ impl Facade {
   /// different acts: a descoped requirement still exists somewhere else, and a
   /// withdrawn one does not exist at all. Treating them as one verb would make
   /// the tool answer "done" to a question it had not been asked.
-  pub fn ac_reinstate(&mut self, st: &str, ac: &str) -> Result<(), FacadeError> {
+  pub fn ac_reinstate(&mut self, st: &str, ac: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     let entry = AcState::entry(criterion.kind);
     match &criterion.state {
@@ -1604,7 +1713,7 @@ impl Facade {
 
   /// Undo a DESCOPE. The mirror of [`Facade::ac_reinstate`], refusing a
   /// withdrawn criterion the same way.
-  pub fn ac_rescope(&mut self, st: &str, ac: &str) -> Result<(), FacadeError> {
+  pub fn ac_rescope(&mut self, st: &str, ac: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     let entry = AcState::entry(criterion.kind);
     match &criterion.state {
@@ -1657,13 +1766,22 @@ impl Facade {
     state: AcState,
     op: &'static str,
     payload: serde_json::Value,
-  ) -> Result<(), FacadeError> {
+  ) -> Result<Outcome, FacadeError> {
     let current = &self.criterion(st, ac)?.state;
+
+    // **This REFUSED a self-loop as `ScopeUnchanged` until hv's 2026-08-17
+    // ruling, and the variant is pruned rather than deprecated.**
+    //
+    // The equality here is payload-inclusive, because `AcState` carries its
+    // evidence, reason and target -- so this arm is "nothing whatsoever would
+    // change", which is the strongest reading of a non-movement. **Same state
+    // with a DIFFERENT payload deliberately falls through to the machine below**,
+    // where it is refused because no verb targeting a state is declared from that
+    // same state. That matters: it means asking to re-satisfy with new evidence
+    // gets an explicit refusal rather than a silent no-op, so this ruling does
+    // not open a reported-success-with-no-effect path.
     if *current == state {
-      return Err(FacadeError::ScopeUnchanged {
-        ac: ac.to_string(),
-        state: state_name(&state).to_string(),
-      });
+      return Ok(Outcome::AlreadyThere);
     }
     // **The AC verbs now enforce from the same declared graph the thread and
     // work-package verbs do, and adding it found a live defect.** `ac descope`
@@ -1678,15 +1796,17 @@ impl Facade {
     let mut next = self.canon.clone();
     let c = find_criterion_mut(&mut next, st, ac)?;
     c.state = state;
-    self.apply(
-      op,
-      Subject {
-        kind: "ac".to_string(),
-        id: format!("{st}/{ac}"),
-      },
-      payload,
-      next,
-    )
+    self
+      .apply(
+        op,
+        Subject {
+          kind: "ac".to_string(),
+          id: format!("{st}/{ac}"),
+        },
+        payload,
+        next,
+      )
+      .map(|()| Outcome::Moved)
   }
 
   fn criterion(&self, st: &str, ac: &str) -> Result<&Criterion, FacadeError> {
@@ -1707,7 +1827,7 @@ impl Facade {
 
   /// Set an acceptance test's status. This is how a test-backed AC becomes
   /// satisfied -- transitively, and only by a test actually going green.
-  pub fn at_set(&mut self, st: &str, at: &str, status: AtStatus) -> Result<(), FacadeError> {
+  pub fn at_set(&mut self, st: &str, at: &str, status: AtStatus) -> Result<Outcome, FacadeError> {
     let from = self
       .st_show(st)?
       .tests
@@ -1718,17 +1838,30 @@ impl Facade {
         st: st.to_string(),
         at: at.to_string(),
       })?;
+
+    // **`at.set` is declared with an EMPTY from-set, so without this a self-loop
+    // was a real write.** Every value legitimately reaches every other here, which
+    // means `from` never refuses anything -- and `at set green` on an
+    // already-green row wrote an envelope recording a movement that did not
+    // happen. Under D42 the record is stamped by the write, so history gained a
+    // second transition at a second time for one event.
+    if from == status {
+      return Ok(Outcome::AlreadyThere);
+    }
+
     let mut next = self.canon.clone();
     find_test_mut(&mut next, st, at)?.status = status;
-    self.apply(
-      "at.set",
-      Subject {
-        kind: "at".to_string(),
-        id: format!("{st}/{at}"),
-      },
-      json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
-      next,
-    )
+    self
+      .apply(
+        "at.set",
+        Subject {
+          kind: "at".to_string(),
+          id: format!("{st}/{at}"),
+        },
+        json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
+        next,
+      )
+      .map(|()| Outcome::Moved)
   }
 
   pub fn at_list(&self, st: &str) -> Result<&[AcceptanceTest], FacadeError> {
@@ -2009,7 +2142,7 @@ mod tests {
   /// causes is telling the operator to guess which one they hit.
   #[test]
   fn no_two_error_variants_share_a_remedy() {
-    let errors = vec![
+    let errors = [
       FacadeError::NoSuchThread {
         id: "ST0099".to_string(),
       },
@@ -2034,10 +2167,6 @@ mod tests {
       },
       FacadeError::ComputedSatisfaction {
         ac: "AC-03.1".to_string(),
-      },
-      FacadeError::ScopeUnchanged {
-        ac: "AC-03.1".to_string(),
-        state: "descoped".to_string(),
       },
       FacadeError::NotOffScope {
         ac: "AC-03.1".to_string(),
