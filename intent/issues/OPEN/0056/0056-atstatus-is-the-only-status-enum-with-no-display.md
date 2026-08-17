@@ -17,7 +17,15 @@ model, views, canon, parity, at, display, measured, migration-hazard
 
 `AtStatus` (`model.rs:740-749`) has **no `impl` block and no `display()`**. `ThreadStatus` (`:238`), `WpStatus` (`:432`) and `IssueStatus` (`:789`) each have one. So every path that renders an AT status falls through to `enum_str`, which is the serde spelling -- and serde spells the non-test status `n-a` while **v2 spells it `n/a` everywhere: in the row grammar, in the linter's vocabulary, and in 23 rows of this repository's own canon.**
 
-**This is not confined to a message. `views.rs:459-461` writes the AT row into the generated `acceptance.md` with `enum_str`**, so `intent sync --to-disk` emits a row that v2's linter refuses:
+**TWO LIVE SITES, and the one that bites soonest needs no migration at all.** `render.rs:878` prints the token straight to stdout on `intent at list` -- a bare read of a `keep`-classified command, which is the centre of the parity contract:
+
+```
+$ intent at list ST0001
+AT-01.1  n-a  covers AC-01.1
+AT-01.2  green  covers AC-01.1
+```
+
+**And `views.rs:459-461` writes the AT row into the generated `acceptance.md` with the same call**, so `intent sync --to-disk` emits a row that v2's linter refuses:
 
 ```
 lint: L1 AT-01.2 -- unreadable AT status: 'n-a' -- vocabulary is to-write | red | green | n/a
@@ -123,9 +131,17 @@ impl AtStatus {
 }
 ```
 
-Then `views.rs:461` and the no-op line take `display()` rather than `enum_str`. **The serde spelling must NOT change**: `n-a` is the JSON canon's token, it is already committed, and the schema publishes it. The two spellings are correct and separate -- which is precisely what `display()` exists to keep apart.
+**Three call sites take `display()`: `views.rs:461` (the generated view), `render.rs:878` (`at list`, the second live site below) and the no-op line.** The serde spelling must NOT change -- `n-a` is the JSON canon's token, already committed, and the schema publishes it. The two spellings are correct and separate, which is precisely what `display()` exists to keep apart.
 
-**And the general form, since this is the third instance and the first two were each found one at a time.** The rule the codebase is reaching for is: _a status enum reaching a human or a generated view goes through `display()`, never through `enum_str`._ That is mechanically checkable -- `enum_str` has a small number of call sites -- and a test asserting that no status enum reaches `views.rs` or `render.rs` output via `enum_str` would have caught all three at once. Without it, the fourth is found the same way the first three were.
+**THE GENERAL RULE FIRST WRITTEN HERE WAS WRONG AND IS REPLACED RATHER THAN ANNOTATED, because leaving both in one document is the defect this issue is an instance of.** The original said: _a status enum reaching a human or a generated view goes through `display()`, never through `enum_str`._ **That would red three correct sites and, worse, teach the fix that breaks it.** `TShirt` (`model.rs:349-357`) carries **no `rename_all` attribute at all**, so serde emits the variant names verbatim -- `XS`, `S`, `M`, `L`, `XL`, `XXL` -- which is exactly v2's spelling. `render.rs:645` and `:1426` print `TShirt` through `enum_str` and are correct; `intent wp list` renders `XL` and `intent wp rescope Huge` offers `one of: XS, S, M, L, XL, XXL`, both measured. **A check demanding `display()` there would have the next author write one that is a verbatim copy of the serde derive -- a divergent second spelling, introduced by the check written to prevent divergent second spellings, landing as a green improvement.**
+
+**The property, stated over the ENUM SET rather than over call sites** (vc, 2026-08-17):
+
+> For every enum that reaches human output, the serde spelling and the displayed spelling must be the same string -- either because they **coincide** (`TShirt`) or because a **`display()` maps one to the other** (`ThreadStatus`, `WpStatus`, `IssueStatus`). A `display()` is required exactly when they differ.
+
+**This passes `TShirt` for the right reason rather than by exemption, and that distinction is the whole value.** An exemption list was the natural next move and would have been wrong: it would record "TShirt may skip `display()`", when the truth is that TShirt already satisfies the property. **An exemption states that a rule does not apply; this states that the rule is met.** Only the second survives someone later adding a `rename_all` to `TShirt`.
+
+**And the method generalises past this enum: count where a defect MANIFESTS, not where it originates.** `enum_str` has ~50 call sites and only four can reach a human -- the rest are `store.rs`, `facade.rs`, `model.rs`, `doctor.rs`, where the JSON canon spelling is exactly what is wanted. **Four is small enough to read, so the property can be stated instead of proxied. A proxy is only worth having when the population is too large to state**, and reaching for one over a population of four is how the false positives got in.
 
 ## THERE IS A SECOND LIVE SITE, AND IT IS A DIRECT STDOUT PARITY BREAK RATHER THAN A GENERATED VIEW (vc, 2026-08-17)
 
