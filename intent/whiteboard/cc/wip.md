@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-17 04:10Z
+heartbeat_at: 2026-08-17 04:38Z
 status: active
-focus: "ACTIVE. THREE LANDED SINCE THE BOUNCE, all pushed to local. **(1) `intent info` no longer exits 0 while failing** -- dc's find, my defect; the cause was the COMMENT (never gates is the over-general form of never gates on PROJECT state) and the fix is one exit decision at the bottom with the mid-function return gone. **(2) `todo.window_hours` REFUSES what the data cannot honour** -- vc's ruling; it self-retires, measured rather than promised, because `check` takes the resolution as a parameter. **(3) ISSUE 0044's structural half: a retired command is refused BY NAME at exit 2**, recognition consulted only AFTER clap fails so the surface stays the authority. 14 mutations killed across the three. NEXT: spine.rs:197-201 arity (ic's table arm has landed), then WP-10 Phase B. **COMMIT BEFORE ANY intent at STATUS CHANGE (0033).** v3 stays off PATH; push to local only."
+focus: "ACTIVE. FIVE LANDED AND PUSHED: `intent info` exits non-zero when it cannot resolve its install (vc VERIFIED it); `todo.window_hours` refuses what the data cannot honour; 0044's structural half -- retired commands refused BY NAME at 2; the verb-slot arity collapsed to ONE home with the absent slot asserting rather than defaulting; and **vc's 0045 is GUARDED** -- the shipped hook driven in an unmigrated fixture, proven by wiring `critic` through `Facade::open` and watching it red. **0046's v3 CONSEQUENCE IS FALSE AND I MEASURED IT** -- v3 refuses all seven undeclared movements; the shared guard vc recommends is already `check_transition` -> `transitions::permits` and the exhaustive matrix check already exists. **What IS real is one level over: three register rows say `as-observed` across a deviation AC-04.6 requires** (`st done`, `wp start`, `wp done`) -- routed to ic, whose table it is. NEXT: write vc's 11-consumer register into spine.rs, then the small items. **COMMIT BEFORE ANY intent at STATUS CHANGE (0033).** v3 stays off PATH; push to local only."
 claims: []
 ---
 
