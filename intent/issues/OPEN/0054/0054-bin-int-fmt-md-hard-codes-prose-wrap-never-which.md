@@ -1,0 +1,69 @@
+---
+id: "0054"
+title: bin/int fmt md hard-codes --prose-wrap never, which the pre-commit hook then undoes, so the project's own format command dirties correctly-formatted markdown
+date: 2026-08-17
+reporter: matts
+status: OPEN
+severity: low
+---
+
+# 0054: bin/int fmt md hard-codes --prose-wrap never, which the pre-commit hook then undoes, so the project's own format command dirties correctly-formatted markdown
+
+## Tags
+
+devbin, formatting, highlander
+
+## Summary
+
+This repository formats markdown two different ways and they disagree. `bin/.devbin/lib/cmd/fmt:67` runs `npx --yes prettier --prose-wrap never --write "$@"`; `.git/hooks/pre-commit:14` runs `prettier --write` with no flags, so it honours `.prettierrc.json`, which sets only `embeddedLanguageFormatting` and leaves `proseWrap` at prettier's `preserve` default. A command-line flag beats a config file, so **`bin/int fmt md` imposes an option the project has not asked for, and the commit gate silently puts it back.**
+
+The visible difference is table padding: the hook's form pads table cells to align columns, `--prose-wrap never` collapses wide tables to minimal `| --- |` delimiters. The two are a stable oscillation -- format, commit, format, commit -- and neither ever converges.
+
+## Reproduction
+
+Measured 2026-08-17 at `40e0ce14` on `intent/st/ST0056/parity.md`, which is committed and clean:
+
+```
+bin/int fmt md intent/st/ST0056/parity.md
+git status --porcelain -- intent/st/ST0056/parity.md    # ' M' -- 39 insertions, 39 deletions
+```
+
+Both invocations run against a copy of the committed file, compared to the committed bytes:
+
+| invocation                            | run by                     | vs committed bytes |
+| ------------------------------------- | -------------------------- | ------------------ |
+| `prettier --write`                    | `.git/hooks/pre-commit:14` | **IDENTICAL**      |
+| `prettier --prose-wrap never --write` | `bin/int fmt md`           | DIFFERS            |
+
+So the hook's form is the one that reproduces what is actually stored, and `fmt md` is the odd one out.
+
+## Root Cause
+
+`bin/.devbin/lib/cmd/fmt:67` hard-codes a prettier option in **devbin core** rather than deferring to the project's `.prettierrc.json`. devbin cannot know what prose-wrap policy a consumer wants, and by passing it on the command line it removes the consumer's ability to express one -- the config file it would be read from is still there, still read, and silently overridden for that one key.
+
+## Impact
+
+Low, and almost entirely invisible, which is the reason to write it down rather than the reason not to.
+
+- **`fmt md` reports success and leaves the tree dirty in a way that means nothing.** A node that formats before committing sees a phantom diff of tens of lines it did not write, on a file that was already correct. Observed: 39 lines each way on one file.
+- **It costs a node the ability to trust `git status` as a summary of its own work**, which is the exact instrument this estate relies on before writing a measurement down.
+- **The one path where it lands rather than churning is a commit that skips the hook** -- `--no-verify`, or a fresh clone before the hook is installed. The collapsed form goes in, and the NEXT ordinary commit re-pads it, attributing a large whitespace diff to whoever committed next.
+- It is a Highlander breach in the formatting layer: one file class, two configurations, no single source.
+
+## Proposed Fix
+
+**Not ruled -- the choice belongs to whoever owns devbin, and both candidates are defensible.**
+
+1. **Drop the flag** (`bin/.devbin/lib/cmd/fmt:67` becomes `npx --yes prettier --write "$@"`). devbin stops having an opinion, `.prettierrc.json` becomes the single source, and both paths agree by construction. This is the Highlander-correct shape: the tool defers, the project decides.
+2. **Keep the flag and move it into the repo** -- add `"proseWrap": "never"` to `.prettierrc.json` and drop it from the devbin command. Both paths then agree AND the setting is where a reader would look for it. This is worth considering on its merits because `never` is closer to this project's standing rule that markdown is never manually wrapped, though note `preserve` does not wrap either -- the two differ only in whether existing wrapped prose is actively unwrapped.
+
+What is **not** a fix is changing only one side: any repair that leaves two configurations in play re-opens this the next time either moves.
+
+## Related
+
+- ST0056 -- found while committing `parity.md`; the phantom diff is what surfaced it
+- 0049 -- same family: dev tooling whose output does not say what it describes, and a siting that has to be established rather than assumed
+
+## Resolutions
+
+{{TBC}}
