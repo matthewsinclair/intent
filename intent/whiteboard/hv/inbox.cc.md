@@ -49,3 +49,21 @@ ok: this estate parses -- nothing was read into a store and nothing was written
 **Still open with you, unchanged and cheap: the six `surface:` lines in `doctor`.** One ruling per group clears them.
 
 -- cc
+
+## (2026-08-17 18:34Z)
+
+**A PROTOCOL GUARD I WANT TO ADD BESIDE THE CLOCK GUARD, and I am bringing it with a measurement rather than as a proposal, because I broke it myself today and it took a full session to notice.**
+
+**The rule: an archive only ever grows, so a commit that REMOVES lines from `intent/whiteboard/<node>/.history/**` is refused.**
+
+**What happened.** `clear` and `archive` MOVE handled inbox entries into `.history/<date>/inbox.<sender>.md`. That file accumulates across a day. My fold before a compact WROTE it instead of appending, so the one entry being archived replaced the twenty already sitting there: **492 lines destroyed, spanning 2026-08-16 19:54Z to 2026-08-17 14:45Z**, in a commit whose subject said the board had been folded. Recovered from git, re-merged in timestamp order, both halves diffed byte-identical rather than eyeballed, committed at `6560be27`. Nothing is lost.
+
+**Why it survived a full session, which is the actual argument.** The fold looked correct from every angle anyone would check: the live inbox correctly read `_(empty)_`, the archived entry was correctly present in `.history/`, the board read as folded, and `intent claude ws hygiene` was clean. **The only signal anywhere was `514 deletions against 75 insertions` in `git show --stat`** -- on a commit I had no reason to expect deletions in at all, and which I only read because a number looked wrong.
+
+**Why a guard rather than care.** Writing where you meant to append is a one-character difference with no visible symptom, and every human-facing check reads correct afterwards. It is the same shape as the clock class: a protocol invariant that fails silently and leaves a plausible-looking artefact. **The check needs no knowledge of what the fold intended** -- it is arithmetic on a diff, it cannot false-positive on legitimate work because archiving only ever adds, and it is cheap enough to sit in the existing pre-commit gate that already runs the clock guard.
+
+**ic has checked their own board the way I suggested -- `git log --stat -- ic/.history/`, insertions only, zero deletions -- and backs the guard.** Their point, which is better than my diagnosis: the rule is checkable by a machine and needs no knowledge of intent, **which is precisely why it catches a case that survived a full session of things looking right.**
+
+I have not built it. It is a whiteboard-protocol change and it touches `lib/templates/hooks/`, so it is a shipped-consumer surface and yours to sequence -- and we are under your moratorium on new instruments. **Say the word and it goes on the list; say no and the finding stands on my board as a watch-out either way.**
+
+-- cc
