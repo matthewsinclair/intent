@@ -577,3 +577,27 @@ I told you I counted Lamplight _"independently of cc by a different method"_. **
 **I have looked and I do not think it is wrong** -- the folding maps `not started` to not-started and `complete` to done, which are the only two judgement calls in it and neither is close. **The 34 and the 10 stand.** But "two nodes measured it" is worth slightly less than I implied, and you should have that before you weigh it.
 
 **Also correcting a smaller thing I said to cc and not to you**: I attributed our differing spelling counts to cc keeping case variants apart. They folded case too. The raw-spelling counts differ (29 raw against my folded set) because we counted different things; **the inexpressible totals match exactly rather than approximately.**
+
+## (2026-08-17 21:08Z)
+
+**THE HOIST WORKS, AND HERE IS THE NUMBER YOU ASKED ABOUT WITH THE CONTROL THAT MAKES IT HONEST.**
+
+    engine   verdict                          time
+    v2       46/114, 68 unsatisfied          95.38s
+    v3       46/114, 68 unsatisfied (SAME)    0.02s
+
+**IDENTICAL SCORE AND IDENTICAL SET -- not just the same number, the same 68 criteria named.** That control is the whole point: **a run that stops early is faster than a run that finishes**, and my first attempt at this measurement WAS that mistake -- v3 came back in 0.015s having refused before scoring, and reporting it would have been a 5,500x speedup for doing no work.
+
+**And Intent's own estate migrated in 0.50 seconds** -- 56 threads, 311 files written, exit 0, on a clean clone at `bcbd02cd` with cc's `Thread.body` in it.
+
+**THE DB REALLY IS THE SSOT AND I STOPPED TAKING THAT ON TRUST.** I copied the migrated tree, **deleted every `.md` file under `intent/st`**, and asked again: `46/114`, same set. D01-reversed is now measured rather than declared.
+
+**WHY IT IS THIS FAST, AND IT IS NOT MAINLY RUST.** v2's 95 seconds is 31s user and 59s SYSTEM -- it is forking subshells per row, re-reading and re-parsing the markdown for each of 114 criteria. v3 asks the store once. **The shape of the win is the one you predicted: parsing per row became a query.**
+
+**TWO PARITY DEFECTS THE COMPARISON FOUND, both cc's, both reported to them.** `intent ac status` prints the GATE's line (`gate: ... BLOCKED`) and exits 0 -- a blocked-looking line beside a passing exit code, which is what a consumer misreads. And `intent at lint` prints **nothing at all** and exits 0, where v2 prints `lint: ok -- 114 AT row(s) conform`; **a check with no output cannot be told from a check that did not run.**
+
+**WP-15 CREATED for the skills triage, as you asked.** 26 skills in `intent/plugins/claude/skills/`, and the denominator is written into the WP on purpose -- a triage reporting "the obviously dead ones were removed" leaves the unexamined ones as the unmeasured arm, which is the condition it exists to end. Sequenced after the hoist and marked a PRECONDITION of WP-12 closing rather than a follow-on. **No ACs written: your moratorium holds until the hoist lands, and the surface these skills must be measured against has not stopped moving.**
+
+**ONE THING FOR YOU, NOT URGENT.** dc found that a ruling I gave over the live agent channel reached their board but never reached the contract, so **their board went AHEAD of the artefact and neither of us can attest the wording.** I have ruled the operational half -- **a ruling given over the channel is not landed until it is in the artefact it governs, and the node who GIVES it lands it, never the node with the interest** -- but the general form binds all five of us and is yours to ratify. It is the cost of the medium we are told to prefer: it writes nothing to disk.
+
+**And a contract defect of mine, fixed at `c6f37188`: AC-11.5 was UNCLOSABLE** -- marked `(non-test)`, and that branch returns before the gate ever looks at a covering AT, so its test could have gone green forever with no effect. **Then the note I wrote warning that a hand-written flag would close the row SPELLED the flag, and closed the row.** The document is its own data format. Caught in the same minute by the scan; nothing else in the contract does it.
