@@ -1,9 +1,12 @@
 #!/bin/bash
 # self_provenance_check.sh -- a vendored tree must agree with the record COMMITTED beside it.
 #
-# AC-11.5: an artefact asserts its own provenance, and the assertion is read from
-# the artefact, never from a record written beside it. This is the arm of that row
-# which can be checked today; the binary arm waits on an embedded build commit.
+# AC-11.5 / AT-11.5: an artefact asserts its own provenance, and the assertion is
+# read from the artefact, never from a record written beside it. This is the arm
+# of that row which can be checked today; the binary arm waits on an embedded
+# build commit, so AT-11.5 is held at `red` while this passes -- a green AT would
+# satisfy AC-11.5 on one third of its criterion, because v2's gate satisfies an
+# AC on the FIRST green AT covering it (issue 0032).
 #
 # WHY IT READS THE INDEX AND NOT THE WORKTREE, WHICH IS THE ENTIRE POINT. On
 # 2026-08-17 this repository's HEAD carried a manifest that disagreed with the
