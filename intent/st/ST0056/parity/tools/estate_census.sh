@@ -41,7 +41,7 @@
 #
 #   FILE   <path> <owner-kind> <owner-id> <v2-bucket>   every file, and whose it is
 #   ENTITY <kind> <id> <path>                           identity, not just count
-#   PROSE  <kind> <id> <section> <bytes> <sha256>       authored bytes, pinned
+#   PROSE  <kind> <id> <section> <bytes> <raw-sha> <trimmed-sha>
 #   COUNT  <kind> <n>                                   the summary, last
 #
 # WHY THE FILE RECORD CARRIES AN OWNER AND A BUCKET, WHICH IS THE WHOLE
@@ -285,7 +285,23 @@ done < <(find intent/issues -type f -name '*.md' | sort)
 # ---------------------------------------------------------------------------
 n_sec="$(awk -F'\t' '$1 == "PROSE"' "$RECORDS" | wc -l | tr -d ' ')"
 if [ "$n_sec" -gt 0 ]; then
-  awk -F'\t' '$1 == "PROSE" { print $6 }' "$RECORDS" | sort -u >"$SEC/paths"
+  # A TRIMMED TWIN PER SECTION, AND THE REASON IS A MEASUREMENT RATHER THAN A
+  # PREFERENCE. `legacy.rs`'s `sections()` calls `buffer.trim()` on every section
+  # body, so the canon can NEVER hold the estate's raw section bytes: those
+  # include the blank line after the heading and the blank line before the next
+  # one, which belong to the markdown LAYOUT rather than to the prose. A raw-byte
+  # equality would report ALTERED for every section in every estate and would be
+  # useless -- 403 of 403 on Baize before this existed.
+  #
+  # **The census does NOT adopt the migrator's trim as truth**, which is the
+  # whole point: it publishes BOTH hashes and lets the check say which kind of
+  # difference it found. Content changed and whitespace normalised are two
+  # questions, and answering them with one number is the shape this programme
+  # keeps paying for.
+  while IFS= read -r s; do
+    awk 'BEGIN { RS = "\0" } { gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, ""); printf "%s", $0 }' "$s" >"$s.trim"
+  done < <(find "$SEC" -name '*.sec' | sort)
+  awk -F'\t' '$1 == "PROSE" { print $6; print $6 ".trim" }' "$RECORDS" | sort -u >"$SEC/paths"
   # `shasum` prints `<sha>  <path>`, so the join key is the path and the batch
   # boundaries xargs chooses cannot reorder anything that matters.
   xargs shasum -a 256 <"$SEC/paths" >"$SEC/hashes" 2>/dev/null ||
@@ -303,7 +319,11 @@ awk -F'\t' -v OFS='\t' '
     sha[substr($0, i + 2)] = substr($0, 1, i - 1)
     next
   }
-  $1 == "PROSE" { $6 = sha[$6]; print; next }
+  # Field 6 becomes the RAW sha and a seventh is appended: the TRIMMED sha. Two
+  # hashes because the migrator trims and the estate does not, so "the bytes
+  # differ" and "the content differs" are different findings with different
+  # remedies.
+  $1 == "PROSE" { raw = $6; $6 = sha[raw]; $7 = sha[raw ".trim"]; print; next }
   { print }
 ' "$SEC/hashes" "$RECORDS" 2>/dev/null || die "substituting section hashes failed"
 
