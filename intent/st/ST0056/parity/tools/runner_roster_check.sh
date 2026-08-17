@@ -91,7 +91,7 @@ view_skew_check.sh         gated   3077ms, the slowest gated one, path-triggered
 conservation_check.sh      manual  takes a MIGRATED tree as an argument and no such tree exists until WP-10 lands, so there is no bare invocation for a gate to make; it refuses with exit 2 rather than passing when handed an unmigrated one, which is the behaviour a gate would have to bypass on every commit
 drift_check.sh             manual  compares a STAMPED inventory against live canon, so gating it would block a dispatch-table edit until somebody re-runs a 27-family measurement sweep -- a measurement, not a fix
 guide_refs_check.sh        manual  takes required prose-file arguments, so there is no bare invocation for a gate to make
-same_end_state_check.sh    manual  takes two tree arguments, so there is no bare invocation for a gate to make; it refuses an absent or EMPTY tree rather than comparing nothing
+same_end_state_check.sh    manual  takes three tree arguments, so there is no bare invocation for a gate to make; it refuses an absent, EMPTY or UNCHANGED subject rather than comparing nothing, and refuses two subjects that are one directory rather than comparing a tree with itself
 implemented_check.sh       manual  invokes every declared row in a fresh throwaway project with a sandboxed HOME
 surface_check.sh           manual  probes --help across 100+ paths, so every commit would pay for a full surface sweep
 '

@@ -23,8 +23,8 @@
 # WHY IT IS A SIBLING OF conservation_check.sh AND NOT AN ARM OF IT (vc's
 # ruling, with vc's test rather than vc's verdict, so the next reader can
 # re-derive it): DO THE TWO TOOLS HAVE INPUTS THAT OVERLAP? Theirs takes a
-# census and a tree; this takes two trees. `--out-of-model` means nothing for a
-# two-tree comparison, and a census means nothing for one. There is no
+# census and a tree; this takes trees. `--out-of-model` means nothing for a
+# tree-to-tree comparison, and a census means nothing for one. There is no
 # invocation of either that the other could serve, so folding them would not
 # merge two checks -- it would put a second unrelated mode behind one name and
 # one exit code, and a reader hitting exit 1 could not tell which question had
@@ -49,13 +49,50 @@
 # which is what lib_corpus.sh's precedent exists to prevent. If that judgement
 # is wrong the remedy is a lib_, not a copy.
 #
-# BOTH SUBJECTS ARE NAMED FIRST AND UNCONDITIONALLY. vc's census had four
+# EVERY SUBJECT IS NAMED FIRST AND UNCONDITIONALLY. vc's census had four
 # members producing four files indistinguishable by inspection, and a consumer
-# compared two unrelated estates and reported a NUMBER instead of refusing. Two
-# migration outputs are likewise two anonymous trees. A verdict that cannot say
-# which two things it describes is not a verdict.
+# compared two unrelated estates and reported a NUMBER instead of refusing.
+# Migration outputs are likewise anonymous trees. A verdict that cannot say
+# which things it describes is not a verdict.
 #
-# ROSTER: manual. It takes two tree arguments, so there is no bare invocation
+# ---------------------------------------------------------------------------
+# THE INPUT ESTATE IS A REQUIRED SUBJECT, AND IT CLOSES A FALSE GREEN THIS FILE
+# ARGUED ITS WAY TO AND THEN MISSED (dc, 2026-08-18).
+#
+# The empty-tree refusal below reasons that "an empty tree and a matching tree
+# compare equal, so an empty subject REFUSES rather than passing", and states
+# the general form: THE WAYS THIS TOOL CAN BE SILENTLY USELESS BOTH LOOK LIKE
+# SUCCESS. That argument was written here, the EMPTY case was closed, and the
+# UNCHANGED case was left open -- and the unchanged case is the reachable one,
+# because two UNMIGRATED trees are not empty. They are full, and equal.
+#
+# It was reachable the day this landed and nobody had run it yet. Measured at
+# `f5b5918c`: `intent upgrade` is advertised in `--help` and returns `error:
+# 'upgrade' is a known command that is not implemented yet` at exit 2, because
+# `Facade::upgrade` was uncommitted and the dispatch row unwired. Run the rig
+# against that binary and every invocation writes nothing, so both outputs are
+# byte-identical to the pristine input and this tool reports IDENTICAL, exit 0.
+# A GREEN FROM A DOOR THAT NEVER OPENED -- ic's unfired-fixture trap one level
+# up: not a kill landing too early, but a migrator that never ran.
+#
+# EXIT 2 AND NOT 1, DELIBERATELY. A migrator that changed nothing is a defect,
+# but it is not the question THIS tool asks, and exit 1 would assert "the re-run
+# did NOT reach the same end state", which is false -- both runs agree perfectly.
+# Cannot-measure is the honest code and the same family as the empty arm.
+#
+# DERIVED, NOT NAMED. The cheap version looks for `thread.json` in the clean
+# tree and refuses if there is none. That needle stops discriminating silently
+# the day canon is renamed -- the allowlist lesson in a different hat. "Did the
+# migration change ANYTHING" needs no knowledge of what canon looks like, and it
+# reuses the comparison already here rather than adding a second mechanism.
+#
+# THE ALTERED COUNT PRINTS ON EVERY RUN, PASS OR FAIL, as this tool's own
+# positive control -- self_provenance_check.sh's `27 matched` reasoning, which
+# is the better form of the rule. A run reporting a plausible number of altered
+# files is evidence the instrument reached its subject; a verdict alone is not.
+# ---------------------------------------------------------------------------
+#
+# ROSTER: manual. It takes three tree arguments, so there is no bare invocation
 # for a gate to make -- the same clause as guide_refs_check.sh. The run belongs
 # to ic, whose harness kills the process for real (`intent upgrade &`, `kill -9`
 # mid-run, `intent upgrade` again -- cc ruled against widening `facade::apply`
@@ -70,54 +107,147 @@ set -uo pipefail
 
 die() { echo "same-end-state: $*" >&2; exit 2; }
 
-A="${1:-}"; B="${2:-}"
-[ -n "$A" ] && [ -n "$B" ] || die "usage: same_end_state_check.sh <clean-run-tree> <rerun-tree>"
-[ -d "$A" ] || die "no tree at $A -- the CLEAN-run subject is missing"
-[ -d "$B" ] || die "no tree at $B -- the RE-RUN subject is missing"
+INPUT="${1:-}"; A="${2:-}"; B="${3:-}"
+[ -n "$INPUT" ] && [ -n "$A" ] && [ -n "$B" ] ||
+  die "usage: same_end_state_check.sh <input-estate> <clean-run-tree> <rerun-tree>"
+[ -d "$INPUT" ] || die "no tree at $INPUT -- the INPUT estate is missing"
+[ -d "$A" ]     || die "no tree at $A -- the CLEAN-run subject is missing"
+[ -d "$B" ]     || die "no tree at $B -- the RE-RUN subject is missing"
 
-na="$(find "$A" -type f | wc -l | tr -d ' ')"
-nb="$(find "$B" -type f | wc -l | tr -d ' ')"
+# TWO SUBJECTS THAT ARE ONE DIRECTORY REFUSE WITH THEIR OWN MESSAGE (vc, 2026-08-18,
+# on the first version of the arm below). THE MIGRATION RUNS IN PLACE, so after a
+# clean run there is no pristine input left -- `<input-estate>` has to be a copy
+# taken BEFORE the run, not the path handed to the migrator. A rig that passes the
+# migrated path as both input and clean-run makes the unchanged-arm compare a tree
+# with itself, and it then refuses CORRECTLY FOR THE WRONG REASON: the message says
+# "the migrator did nothing" and sends someone to debug a migrator that worked, when
+# the defect is in the rig. Same axis as naming ACCRETION apart from non-determinism
+# -- two conditions with different remedies must not share one message.
+ri="$(cd "$INPUT" && pwd -P)"
+ra="$(cd "$A" && pwd -P)"
+rb="$(cd "$B" && pwd -P)"
+[ "$ri" != "$ra" ] || die "the INPUT estate and the CLEAN-run tree are ONE directory ($ri) -- the migration runs in place, so the input must be a copy taken BEFORE the run"
+[ "$ri" != "$rb" ] || die "the INPUT estate and the RE-RUN tree are ONE directory ($ri) -- same reason"
+[ "$ra" != "$rb" ] || die "the CLEAN-run and RE-RUN trees are ONE directory ($ra) -- a tree compared with itself is IDENTICAL by construction and says nothing about the re-run"
+
+# A PATH CONTAINING A NEWLINE WOULD SPLIT INTO TWO ENTRIES AND BE MISCOMPARED IN
+# SILENCE, so it REFUSES instead (cc, 2026-08-18, from the same class in their own
+# comparison: `find | xargs shasum` split on a filename with spaces and reported
+# IDENTICAL over 1360 of 1361 files -- the skip was symmetric, so the verdict
+# survived by luck rather than by method). A COMPARISON THAT SILENTLY OMITS A FILE
+# READS EXACTLY LIKE ONE THAT COVERED EVERYTHING, which is this tool's own false
+# green one layer down. Spaces and non-ASCII bytes are handled and canaried -- the
+# estate really contains them, vc having measured two Lamplight paths carrying a
+# curly quote -- and only a literal newline is refused, because that is the one
+# `comm` and `read` cannot survive.
+line_count() { find "$1" -type f | wc -l | tr -d ' '; }
+nul_count()  { find "$1" -type f -print0 | tr -dc '\0' | wc -c | tr -d ' '; }
+
+for subj in "$INPUT" "$A" "$B"; do
+  [ "$(line_count "$subj")" = "$(nul_count "$subj")" ] ||
+    die "a path under $subj contains a NEWLINE -- this compares line by line, so it would silently miscompare rather than measure"
+done
+
+ni="$(nul_count "$INPUT")"
+na="$(nul_count "$A")"
+nb="$(nul_count "$B")"
 
 # AN EMPTY TREE AND A MATCHING TREE COMPARE EQUAL, so an empty subject REFUSES
-# rather than passing. This is the same instinct as the identical-trees arm
-# below: the ways this tool can be silently useless both look like success.
+# rather than passing. Same instinct as the unchanged-input arm below and as the
+# identical-trees arm further down: the ways this tool can be silently useless
+# all look like success.
+[ "$ni" -gt 0 ] || die "the INPUT estate $INPUT holds no files -- there is nothing for a migration to have done"
 [ "$na" -gt 0 ] || die "the CLEAN-run tree $A holds no files -- an empty tree and a matching tree compare equal, so this refuses rather than passes"
 [ "$nb" -gt 0 ] || die "the RE-RUN tree $B holds no files -- same reason"
 
-echo "SUBJECT clean-run   $A   ($na files)"
-echo "SUBJECT re-run      $B   ($nb files)"
+echo "SUBJECT input estate  $INPUT   ($ni files)"
+echo "SUBJECT clean-run     $A   ($na files)"
+echo "SUBJECT re-run        $B   ($nb files)"
 echo
 
-only_a="$(comm -23 <(cd "$A" && find . -type f | sort) <(cd "$B" && find . -type f | sort))"
-only_b="$(comm -13 <(cd "$A" && find . -type f | sort) <(cd "$B" && find . -type f | sort))"
-both="$(comm -12 <(cd "$A" && find . -type f | sort) <(cd "$B" && find . -type f | sort))"
+# ONE COMPARISON, TWO CALLERS. There are now two questions of the same shape --
+# did the migration change the estate at all, and did the re-run land where the
+# clean run did -- and a second inline copy is how two answers to one question
+# drift into disagreeing with each other.
+CMP_ONLY_A=0
+CMP_ONLY_B=0
+CMP_DIFFERING=0
+CMP_GROWN=0
+CMP_SHRUNK=0
+CMP_DELTA=0
+CMP_REPORT=""
+CMP_PATHS=""
 
-differing=0
-grown=0
-shrunk=0
-delta_total=0
-report=""
+tree_delta() {
+  local X="$1" Y="$2"
+  local only_x only_y both f hx hy sx sy d
 
-while IFS= read -r f; do
-  [ -n "$f" ] || continue
-  ha="$(shasum -a 256 "$A/$f" | awk '{print $1}')"
-  hb="$(shasum -a 256 "$B/$f" | awk '{print $1}')"
-  [ "$ha" = "$hb" ] && continue
-  differing=$((differing + 1))
-  sa="$(wc -c < "$A/$f" | tr -d ' ')"
-  sb="$(wc -c < "$B/$f" | tr -d ' ')"
-  d=$((sb - sa))
-  delta_total=$((delta_total + d))
-  if   [ "$d" -gt 0 ]; then grown=$((grown + 1))
-  elif [ "$d" -lt 0 ]; then shrunk=$((shrunk + 1)); fi
-  report="${report}  ${f#./}  ${sa} -> ${sb} (${d})
+  only_x="$(comm -23 <(cd "$X" && find . -type f | sort) <(cd "$Y" && find . -type f | sort))"
+  only_y="$(comm -13 <(cd "$X" && find . -type f | sort) <(cd "$Y" && find . -type f | sort))"
+  both="$(comm -12 <(cd "$X" && find . -type f | sort) <(cd "$Y" && find . -type f | sort))"
+
+  CMP_ONLY_A="$(printf '%s' "$only_x" | grep -c . || true)"
+  CMP_ONLY_B="$(printf '%s' "$only_y" | grep -c . || true)"
+  CMP_DIFFERING=0
+  CMP_GROWN=0
+  CMP_SHRUNK=0
+  CMP_DELTA=0
+  CMP_REPORT=""
+  CMP_PATHS="$(printf '%s\n%s\n' "$only_x" "$only_y" | grep . || true)"
+
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    hx="$(shasum -a 256 "$X/$f" | awk '{print $1}')"
+    hy="$(shasum -a 256 "$Y/$f" | awk '{print $1}')"
+    [ "$hx" = "$hy" ] && continue
+    CMP_DIFFERING=$((CMP_DIFFERING + 1))
+    CMP_PATHS="${CMP_PATHS}
+${f}"
+    sx="$(wc -c < "$X/$f" | tr -d ' ')"
+    sy="$(wc -c < "$Y/$f" | tr -d ' ')"
+    d=$((sy - sx))
+    CMP_DELTA=$((CMP_DELTA + d))
+    if   [ "$d" -gt 0 ]; then CMP_GROWN=$((CMP_GROWN + 1))
+    elif [ "$d" -lt 0 ]; then CMP_SHRUNK=$((CMP_SHRUNK + 1)); fi
+    CMP_REPORT="${CMP_REPORT}  ${f#./}  ${sx} -> ${sy} (${d})
 "
-done <<EOF
+  done <<EOF
 $both
 EOF
+}
 
-n_only_a="$(printf '%s' "$only_a" | grep -c . || true)"
-n_only_b="$(printf '%s' "$only_b" | grep -c . || true)"
+cmp_changed_total() { echo $((CMP_ONLY_A + CMP_ONLY_B + CMP_DIFFERING)); }
+
+# ARM 1 -- DID THE MIGRATION DO ANYTHING AT ALL? See the header block. The count
+# is printed unconditionally: it is this tool's positive control, and a verdict
+# with no measurement behind it cannot be distinguished from a verdict about
+# nothing.
+tree_delta "$INPUT" "$A"
+altered="$(cmp_changed_total)"
+migrated_paths="$(printf '%s\n' "$CMP_PATHS" | grep . | sort || true)"
+echo "the clean run altered $altered file(s) of the input estate"
+echo "  (added $CMP_ONLY_B, removed $CMP_ONLY_A, rewrote $CMP_DIFFERING)"
+echo
+
+if [ "$altered" -eq 0 ]; then
+  echo "CANNOT MEASURE -- the clean run left the input estate byte-identical." >&2
+  echo "  The migrator did nothing, so both output trees are the input and they" >&2
+  echo "  compare equal. IDENTICAL here would be a green from a door that never" >&2
+  echo "  opened, which is what this arm exists to refuse." >&2
+  echo "  Check that the migration door is wired and reachable from a process." >&2
+  exit 2
+fi
+
+# ARM 2 -- THE VERDICT. Does the re-run land where the clean run did?
+tree_delta "$A" "$B"
+differing="$CMP_DIFFERING"
+grown="$CMP_GROWN"
+shrunk="$CMP_SHRUNK"
+delta_total="$CMP_DELTA"
+n_only_a="$CMP_ONLY_A"
+n_only_b="$CMP_ONLY_B"
+report="$CMP_REPORT"
+diff_paths="$(printf '%s\n' "$CMP_PATHS" | grep . | sort || true)"
 
 if [ "$differing" -eq 0 ] && [ "$n_only_a" -eq 0 ] && [ "$n_only_b" -eq 0 ]; then
   echo "IDENTICAL -- the re-run reached the same end state as the clean run across all $na files."
@@ -145,5 +275,36 @@ if [ "$differing" -gt 0 ] && [ "$shrunk" -eq 0 ] && [ "$delta_total" -gt 0 ]; th
   echo
   echo "  SHAPE: every differing file GREW and none shrank (+$delta_total bytes)."
   echo "  That is accretion, not non-determinism: the generator is re-reading what it wrote."
+fi
+
+# A DIFFERENCE THE MIGRATION CANNOT HAVE CAUSED IS NAMED APART FROM ONE IT CAN,
+# because the remedies live in different repositories (ic, 2026-08-18, from a real
+# caller trap this tool's own third argument invites). ARM 1 already measured
+# exactly which paths the clean migration touched, so any path where the two runs
+# disagree and the migration NEVER WROTE is, by construction, not the migrator's
+# doing -- it is the harness. The known cause is a per-capture provenance stamp:
+# `estate_corpus.sh capture` writes `captured_at` into a CAPTURE file at the tree
+# root, so TWO separate captures of ONE pinned revision differ in a file no
+# migration touches. The natural reading of "the input estate" is a fresh capture,
+# which is why the trap is worth catching rather than warning about.
+#
+# DERIVED, NOT NAMED -- no CAPTURE, no captured_at, no filename anywhere here. A
+# needle keyed to today's provenance record stops discriminating the day it is
+# renamed, and this arm has to survive the next stamp nobody has invented yet.
+# Reported and not gated: it is still a real difference and still exit 1, but the
+# reader is told which half of it the migrator could not have produced. A RED THAT
+# SENDS SOMEONE HUNTING IN THE WRONG REPOSITORY COSTS MORE THAN A RED THAT SAYS
+# NOTHING.
+if [ -n "$diff_paths" ]; then
+  untouched="$(comm -23 <(printf '%s\n' "$diff_paths") <(printf '%s\n' "$migrated_paths") | grep . || true)"
+  n_untouched="$(printf '%s' "$untouched" | grep -c . || true)"
+  if [ "$n_untouched" -gt 0 ]; then
+    echo
+    echo "  NOT THE MIGRATOR: $n_untouched of the differing path(s) were never touched by the clean run."
+    echo "  The two runs disagree on files the migration did not write, so that part is the harness."
+    echo "  Usual cause: each arm was captured separately and the capture stamps its own provenance."
+    echo "  Capture the estate ONCE and copy it to each arm, so both start from identical bytes."
+    printf '%s\n' "$untouched" | head -10 | sed 's/^\./    /'
+  fi
 fi
 exit 1
