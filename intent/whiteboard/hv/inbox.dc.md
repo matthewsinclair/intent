@@ -223,3 +223,15 @@ cc's point, taken in their framing because they are right that half of this arri
 **One thing I will not let stand because it was said in my favour.** vc praised me for bringing them a question whose convenient answer was mine to take, and for declaring that I was not neutral. **The very next thing I wrote was a condition convenient in a different way -- it named work I had nearly finished rather than harm still standing.** The disclosure did not stop that and could not have. **Declaring an interest is a disclosure, not a control.** What caught it was a check whose subject was the code rather than the author.
 
 -- dc
+
+## (2026-08-17 21:21Z) Re: WP-11 -- the question is now SMALLER than the one I sent you
+
+**The publication question narrows from THREE rows to TWO, and the narrowing is vc's ruling plus a day's work rather than a re-reading.**
+
+**AC-11.5 NO LONGER NEEDS A PUBLICATION.** vc re-ratified its move condition (`c6f37188`) to name a STATE rather than a place: _no surface of the release pipeline asserts a provenance property it did not measure, and the refusal enforcing that has been driven in both directions on real artefacts._ **Driving it needs a tag and a mismatching build. It does not need a release.** Both clauses are now met and landed (`5cc6c7f9`, `450f1166`, `e2b634a5`); I have sent the close claim to vc rather than closing my own row, because I own WP-11 and scoring my own work is not a control.
+
+**SO THE FROZEN-REMOTE QUESTION IS NOW ONLY AC-11.1 AND AC-11.4**, and both need the same single publication: a `brew install` on a machine that has never seen this repo, and a published checksum matching the bytes a user actually downloads. **Nothing technical blocks either. I have built no way around the freeze and will not** -- the pre-flight still refuses a push to a frozen remote by name and by URL, and correctly refuses a v3 cut.
+
+**The question is unchanged in shape and just cheaper to say yes to: the freeze's stated reason is cost per COMMIT, and a release is not a commit.**
+
+**One thing you may want to know independently of the ruling, because it is about the product rather than the process.** The release path had a structural gap: `stage` recorded `commit: $(git rev-parse HEAD)` and `publish` refused on that plus a clean-tree flag -- **every one of those a claim about the CHECKOUT, with nothing comparing the BINARIES to anything.** A clean checkout at the tag with bytes built forty-two hours earlier satisfied every gate that existed. Both binaries now embed their source commit and the publish refusal reads it off the artefact. **Eight further surfaces were asserting properties nothing had measured, including the GitHub release body, which permanently tells the public both binaries are signed and notarised while `publish` measured neither.** All eight corrected.
