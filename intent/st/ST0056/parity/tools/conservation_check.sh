@@ -371,20 +371,35 @@ if [ -n "$DISPO" ]; then
   [ -f "$DISPO" ] || die "no such dispositions file: $DISPO"
   # `intent/st/<bucket>/ST0024/WP/06/info.md -- ## Acceptance -- byte-identical ...`
   # becomes `wp ST0024/06 'Acceptance'`, the label compare_prose is called with.
+  # THE RECORD CARRIES A VERDICT AND THE TWO VERDICTS MEAN OPPOSITE THINGS HERE.
+  # `dropped` takes the section OUT of canon, so canon must be empty. `deferred`
+  # leaves canon untouched and changes only the view, so the section must still
+  # compare byte-identical and is NOT a drop. Reading both as drops would expect
+  # emptiness where content correctly remains.
+  #
+  # The verdict was inserted BETWEEN the heading and the evidence, and the first
+  # version of this parser required those adjacent. It read 0 of 39 within hours
+  # of being written -- and the guard below is the only reason that surfaced as
+  # a refusal rather than as "ALTERED 39, loss detected" against a migration
+  # that lost nothing.
+  #
   # The sequence keeps the directory's OWN digits -- `WP/06` is labelled
   # `ST0024/06`, not `ST0024/6`. A `0*` here stripped the zero and matched only
-  # the seq-10-and-above rows: 2 of 39. It still PRODUCED the new class, so
+  # the seq-10-and-above rows: 2 of 39. It still PRODUCED the class, so
   # "DECLARED-DROP appears in the output" would have read as working. Only the
   # count caught it, which is why the count is printed below.
-  sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- byte-identical.*|wp \1/\2 '\3'|p" \
+  sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- dropped --.*|wp \1/\2 '\3'|p" \
     "$DISPO" | sort -u >"$WORK/declared"
   n_dec="$(wc -l <"$WORK/declared" | tr -d ' ')"
-  n_raw="$(grep -c 'byte-identical to' "$DISPO" || true)"
+  n_raw="$(grep -cE ' -- dropped -- ' "$DISPO" || true)"
+  n_defer="$(grep -cE ' -- deferred -- ' "$DISPO" || true)"
+  sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- deferred --.*|wp \1/\2 '\3'|p" \
+    "$DISPO" | sort -u >"$WORK/deferred"
   # A parse that silently reads none of them would make every declared drop
   # report as loss and look exactly like a migrator that declared nothing.
   [ "$n_dec" -gt 0 ] || [ "$n_raw" -eq 0 ] ||
     die "$DISPO holds $n_raw drop record(s) and this tool parsed 0 -- the format has moved and every drop would have been reported as loss"
-  echo "conservation: dispositions -- $n_dec declared drop(s) read from $DISPO"
+  echo "conservation: dispositions -- $n_dec declared drop(s) and $n_defer declared deferral(s) read from $DISPO"
 fi
 
 declared_drop() {
@@ -392,9 +407,22 @@ declared_drop() {
   grep -qxF "$1" "$WORK/declared"
 }
 
+declared_defer() {
+  [ -s "$WORK/deferred" ] || return 1
+  grep -qxF "$1" "$WORK/deferred"
+}
+
 compare_prose() {
   local label="$1" raw="$2" trim="$3" file="$4" dest="${5:-modelled}" got
   got="$(shasum -a 256 <"$file" | cut -d' ' -f1)"
+  # A DEFERRAL CLAIMS CANON IS UNCHANGED, SO EMPTY CANON REFUTES IT. Same
+  # separation as the drop: the verdict is the migrator's CLAIM, the state of
+  # canon is this tool's OBSERVATION. Checked before the conserved path so a
+  # deferral that actually removed cannot pass as anything.
+  if declared_defer "$label" && [ "$got" = "$EMPTY_SHA" ]; then
+    report DEFERRAL-REFUTED "$label (declared deferred -- canon should be UNCHANGED -- and canon is empty, so it was removed)"
+    return
+  fi
   if [ "$got" = "$raw" ]; then
     c_ok=$((c_ok + 1))
     [ "$dest" = carried ] && c_carried=$((c_carried + 1)) || c_modelled=$((c_modelled + 1))
@@ -663,6 +691,7 @@ echo "conservation: views -- DOUBLED-SECTION $c_dup (accretion IN THE RENDERING:
 if [ -n "$DISPO" ]; then
   n_dec="$(wc -l <"$WORK/declared" | tr -d ' ')"
   echo "conservation: prose -- DECLARED-DROP $c_drop matched of $n_dec declared (removed on purpose, named per-section AND verified empty in canon -- not loss, not counted as ALTERED above)"
+  echo "conservation: views -- DECLARED-DEFERRAL $n_defer declared (generated section stood down; canon unchanged, and any whose canon is EMPTY is reported DEFERRAL-REFUTED above)"
   [ "$c_drop" -eq "$n_dec" ] ||
     echo "conservation: prose -- WARNING: $((n_dec - c_drop)) declared drop(s) matched no census section, so they are reported as ALTERED or not at all -- a declared drop this tool cannot find is a claim it cannot check"
 else
