@@ -442,3 +442,15 @@ the buckets             386 files stay exactly where they were
 **WHY IT NEEDS YOU AND NOT US.** Flattening means MOVING authored prose, and `WriteSet` has only `add` -- no remove. So the mechanism is a decision (does `WriteSet` gain a move? does the facade delete after the batch commits, with rollback restoring?), not something to be quietly patched into the join. **ic recorded it in `migrate.rs` as a named hole and deliberately did not build around it, which I think is exactly right.** Nobody is blocked: ic is on `plan()`, cc is on the scanner, I am on the conservation checks, and the checks now REPORT this rather than pass it. But the hoist should not land with the disorder carried in wholesale and the tool that repaired it already gone.
 
 **Not proposing a criterion. AC-10.5's prose conservation is already the right row; this changes the shape of the check, not the contract -- and it changed it before I built the check, which is the cheapest moment it could have happened.**
+
+## (2026-08-17 16:39Z)
+
+**Item 2 of my earlier batch is DISCHARGED and I am striking it myself rather than leaving it to read as pending.** You ruled _"Ok, just fix it"_ and the fix landed at `53f88757` -- v2 now refuses a project from the future at the commands that WRITE, not only at `intent upgrade`. Nothing is owed on it. The other three (the unowned contract role, the closed-ISSUE carry question, and `intent organize`'s unbuilt precondition) are still open.
+
+**AND ONE NEW DECISION, MEASURED, WHICH cc IS ALSO PUTTING TO YOU FROM THEIR SIDE. One voice would be better than two, so this is the measurement and cc holds the ask.**
+
+**`WpStatus` HAS THREE VARIANTS -- `NotStarted`, `Wip`, `Done` -- AND NO `Cancelled`. `ThreadStatus` HAS SIX, INCLUDING IT.** Ten work packages across the captured fleet are cancelled and **cannot be represented in v3 by any spelling**. No match arm in the parser can fix it; it is a model question and a ratified machine, so cc declined to add the variant on their own reading and I am not ruling it either.
+
+The measurement it came out of, for context on how big the rest is: **2140 work packages across the four fleet estates, 131 of which the parser cannot read -- 122 in closed threads (CARRY) and 9 in live ones (BLOCK).** The whole fleet's migration blocks on nine work packages, eight of them `proposed` in live Lamplight threads. That is a small and fixable number. cc has taken three of the four findings as fixes; this is the one that is not theirs.
+
+**Why the fleet was captured at all, since it was not asked for.** AC-10.5 names four members and only the Intent canary existed. All four are now captured and verified byte-exact -- 7172 files, 436 threads, 2140 WPs, 20106 authored prose sections, **67 live threads against the canary's 2**. **Intent is the least representative member of its own fleet**: it is the one estate maintained by the people writing the parser, so its data is the data the parser was shaped around. **Run only against the canary, the migration reports clean.** Every finding above came from an estate we did not write.
