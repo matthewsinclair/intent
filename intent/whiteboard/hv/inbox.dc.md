@@ -112,3 +112,27 @@ TWO THINGS: the suite you were told was green was not, and the packaging hold is
 **SO THE PUBLICATION SET IS NOW: issue 0036, plus your two calls.** (1) **Does the upstream freeze lift for the cut itself?** The tap formula points at a GitHub release asset, so there is no shipping v3 without pushing the frozen remote -- and the freeze was called on cost per commit, which a release is not. (2) **There is no `## [3.0.0]` CHANGELOG section**, the first gate a cut would hit. I have not created a placeholder: it would carry a dry run further while the release notes are still absent, which turns a loud correct refusal into a silent one.
 
 Detail in `intent/st/ST0056/install.md`, which now carries the closed hold in full rather than deleting it.
+
+## (2026-08-17 11:23Z)
+
+THE 0048 CARRY YOU RULED IS DONE, AND IT IS WAITING ON ONE DECISION FROM YOU.
+
+**Devbin branch `issue-0016-dropped-status-carry`, two commits (`c432e27` the issue, `c8a7dc7` the code). UNPUSHED, and deliberately NOT on main** -- you are AFK, main commits are asked for in this estate, and a branch makes the work durable and reviewable without my taking that call for you. Devbin's tree was clean and its only node has been paused since 2026-08-10, so nothing there was disturbed.
+
+**All four were clean carries and the control is the match count: 26 of 26 manifest'd files matched upstream before I touched anything**, so each was an apply rather than a merge.
+
+**A FIFTH INSTANCE, FOUND FOUR LINES ABOVE ONE OF THE PATCHES AND IN THE SAME FUNCTION.** `check`'s jq read wore `|| true`, so an ABSENT config, an UNPARSEABLE one, and a genuinely empty `languages` array collapse into one message -- and that message is right about exactly one of the three, so it offers `intent lang init <lang>` to someone whose config is missing. Measured rather than reasoned: jq exits 2 absent, 5 malformed, 0 on `[]`. **It survived the sweep that fixed the line below it**, whose commit message was literally "sweep the file the reported instance lived in, and the one next to it" -- a sweep looks for the reported SHAPE, and this one wore `|| true` where that one wore a discarded `$?`.
+
+**THE CARRY IS NOT A COPY, BECAUSE READING DEVBIN'S TRACKER FOUND A HOLE IN MY OWN PATCH.** Their open issue 0015 is a completed run that sealed in-flight -- an instance of exactly this class, filed from Prolix a week ago -- and its invocation was a SINGLE GATE. My check only fires on `<cmd> all`, because the ledger it reads is exported by `run_all` and nothing else. **The one instance on record upstream sits on the path my patch could not see**, and no test would have told me: the check was green because it was never asked. Fixed before landing -- one home for the classification, second caller in `print_run_verdict`, which runs on every kept run.
+
+**I also proved the branch reachable BEFORE building the check**, because it looks unconstructible and that is exactly when the probe gets skipped. `write_errors_file` truncates the seal at rc=0 -- but when the truncation FAILS it warns and returns 0, and the in-flight marker survives. Driven against a read-only seal with controls either side: returned 0, marker survived, gate reported green. The warn was the entire defence.
+
+22 tests, six mutants each with its failing set named in advance, all six exact.
+
+**THE DECISION THAT IS YOURS: Intent is deliberately left UNSYNCED, and I want you to re-decide it rather than let it drift.** `bin/.devbin/**` here still carries the uncorrected check -- the one that only fires on `<cmd> all` -- and this project's gates are single-gate almost always (`int test shell`). Syncing would close a real gap in our own gates; it would also re-diverge from the manifest in a NEW way, a week after you ruled against exactly that. **I have honoured your ruling, and the cost of honouring it is that this repo keeps a known-narrow check until upstream lands.** Your call whether that trade holds.
+
+**Also: today's red suite was NOT a regression.** Both legs green at HEAD, measured in a clean detached worktree; vc confirmed independently from a `git archive` extract and cc landed the fix at `61069b16`. Both failures were in files uncommitted in the shared tree. You ruled the legs to ic/cc and I did not touch them -- only ran the measurement that told them which question they were answering.
+
+**Still waiting on you, unchanged: the upstream freeze for the cut itself, and the `## [3.0.0]` CHANGELOG section.**
+
+-- dc
