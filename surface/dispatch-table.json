@@ -2675,9 +2675,9 @@
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "TWO lines: `created: <path to the issue's md file>` then `<ID>:<TITLE>`. **The row carried only the second for as long as it existed** -- see `evidence_class`.",
+            "stdout": "TWO lines: `created: <path to the issue's file>` then `<ID>:<TITLE>`. **v2, measured 2026-08-17:** `created: intent/issues/OPEN/0001/0001-probe-two.md` / `0001:Probe two`. **v3 at `34c6a3ae`, measured:** `created: /Users/.../intent/issues/0002.json` / `0002:Probe two`. **THE TWO LINES HAVE DIFFERENT ANSWERS AND THE ROW HAS ONE `target.state` -- see `notes`.**",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "notes": "`new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.",
+            "notes": "**LINE 2 IS `as-observed` AND LINE 1 IS NOT, AND THE SCHEMA CANNOT SAY SO (0060).** Line 1 differs from v2 in TWO independent ways with OPPOSITE legitimacy. **The layout is ratified**: v3's issue canon is flat, `intent/issues/<NNNN>.json` (`data-model.md:258`, `store.rs:179`), against v2's status-bucketed `OPEN/<NNNN>/<NNNN>-<slug>.md`. v3 cannot print v2's path because v3 does not create it. **The ABSOLUTENESS is a defect** -- v2 prints repo-relative, v3 prints the fully-qualified path including `$HOME` -- and it is forced by nothing. Filed as 0060. **No `stdout_exact` is declared and cannot be while 0060 stands**: a literal template cannot contain a machine's working directory, so this row is excluded from the only instrument that has found parity breaks on this thread, BY the defect that instrument exists to catch. Every other row's coverage question is whether anyone wrote the declaration; this row's is whether one can be written at all. `new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.",
             "evidence_class": {
               "class": "measured",
               "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only -- **PLUS a direct observation of the success path**: `intent issues add --severity medium <title>`, run 2026-08-17 to file issue 0050, which printed the two lines above. **The success path had to be added because the matrix could not have reached it** (cc, 2026-08-17, reading v2 for Machine 4): `add` requires a title, none of the four probes supplies one, and the row nevertheless declared a `stdout`. **An `evidence_class` names a METHOD, and a row can carry a field that method never touched** -- the class was honest and the coverage was assumed. Three rows in this table had that shape; `wp list` and `critic` are the others and both are now measured. See the `METHOD` entry in `coverage_findings`."
@@ -2687,7 +2687,10 @@
             "issues new"
           ],
           "target": {
-            "state": "as-observed"
+            "state": "corrected",
+            "ratification": "ic, 2026-08-17 -- CONSEQUENCE OF AN EXISTING RULING, NOT A NEW ONE. The flat issue canon is already ratified in `data-model.md:258` and built in `store.rs:179`, so line 1's path CANNOT reproduce v2's and the deviation is forced by the model rather than chosen -- the same footing as `ac rescope`. Recording the row as `as-observed` asserted a parity that the data model had already made impossible. **This ratifies the LAYOUT half only.** The absoluteness (0060) is a defect and stays one; when it is fixed, line 1 becomes `created: intent/issues/<NNNN>.json`, the row collapses from two deviations to one, and it becomes expressible in the schema that exists today. Fixing 0060 first is therefore the cheaper order.",
+            "ratified_in": "ic, 2026-08-17, on the flat-canon decision recorded at `data-model.md:258` and built at `store.rs:179` -- NOT parity.md, which does not cite this row. Authority, date and an external record, per vc's `ratified_in` grammar.",
+            "open_defect": "0060 -- v3 prints an ABSOLUTE path where v2 prints repo-relative. Separate from the ratified layout change and must not be resolved with it: one line carrying two deviations of opposite legitimacy is unreadable as either."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -4128,15 +4131,16 @@
                 "when": "regenerated"
               }
             ],
-            "stdout": "confirmation",
-            "stderr": "`error: ...` on stderr (INV-01)",
+            "stdout": "**THREE lines, measured 2026-08-17 against v2.19.0 with the streams split (130 bytes, stderr 0 bytes):** `Syncing AGENTS.md with latest project state...` / `ok: AGENTS.md updated at project root.` / `    previous version saved to AGENTS.md.bak` (four-space indented continuation). The row previously said `confirmation`, which is true and says nothing a builder could reproduce.",
+            "stderr": "EMPTY on the success arm -- 0 bytes, measured. No failure arm was reached.",
             "side_effects": [
-              "Rewrites AGENTS.md at project root"
+              "Rewrites AGENTS.md at project root",
+              "Writes AGENTS.md.bak beside it -- the previous version. UNDECLARED until 2026-08-17 and announced by line 3 of stdout. Covered by `*.bak` at `.gitignore:51`, so it does not reach git."
             ],
-            "notes": "AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.",
+            "notes": "**THIS VOICE IS RECORDED AND MUST NOT BE TIDIED, and the row is where a v3 implementer will read it.** Two of the three lines are against the house style that 0023 spent a release enforcing: line 1 is a BARE CAPITALISED progress line with no `ok:` prefix and a trailing ellipsis, and line 2 carries a TRAILING FULL STOP. Both are v2's observed behaviour on an `as-observed` row, so **reproducing them IS the contract** -- a v3 that cleans them up has broken parity, however much better it reads. A deviation here wants RATIFYING, not fixing. **A third line existed that nobody had recorded**, which is why the warning is written from the measurement rather than from memory of it. **No `stdout_exact` yet, deliberately: the `agents` family is UNBUILT in v3** (exit 2, `error: agents is a known command that is not implemented yet`). A declaration now would red for not-built rather than for a parity break, and the whole point of splitting the as-observed and corrected legs was that a red must name one remedy. The bytes above are measured and ready; declare them when the family ships. AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven once against v2.19.0 on PATH, 2026-08-17 (ic), with stdout and stderr redirected to SEPARATE files in a SINGLE invocation -- the only sound way to split the streams of a command that changes state. The obvious alternative (run twice, redirect differently) was used first on `issues add` and created two issues; a mutating command cannot be measured by repeating it."
             }
           },
           "target": {
@@ -4231,8 +4235,10 @@
             "notes": "**`show` was absent from `values` until 2026-08-17 and v3's clap surface renders from this row, so the subcommand was on course to be dropped silently (0058).** v2's own usage line names it: `Usage: intent agents template [list|show <name>]`. **`default: \"list\"` was also absent** -- `intent_agents:769` is `local subcommand=\"${1:-list}\"`, and the bare invocation is byte-identical to `list`, measured. **AND `list` ADVERTISES SEVEN NAMES `show` CANNOT DELIVER**: `list` enumerates directories (`-d`), `show` requires `<dir>/AGENTS.md` (`-f`), and only `elixir/` has one -- the other seven hold the ST0035 per-language canon packs (`ARCHITECTURE.md` + `RULES.md`). `list`'s subject is \"directories under templates/\" and `show`'s is \"directories containing AGENTS.md\"; the output cannot tell them apart. `list` did not break -- its meaning was changed underneath it by an unrelated feature and nothing re-read it."
           },
           "target": {
-            "state": "as-observed",
-            "open_question": "**IS `list` `as-observed` OR `corrected`? FILED AS 0058 AND DELIBERATELY NOT RULED HERE.** 0058 argues `corrected`: reproducing a list that advertises seven names its sibling cannot deliver launders a v2 defect into a v3 requirement, which `parity.md` forbids in as many words. **But this is a change to what the command ENUMERATES, not to how it speaks, so it is not a voice ruling and not mine to take alone** -- the five voices were ruled by ic because cc was blocked on output strings; this is behaviour. The row stays `as-observed` until it is adjudicated, so v3 building from it today would reproduce the defect: that is the cost of leaving it open and it is stated rather than hidden. The INV-01 and `show` halves need no ruling -- one is an invariant already ratified, the other is a subcommand v2 has."
+            "state": "corrected",
+            "open_question": "**THE REMEDY, AND IT IS hv's -- NOT THE CLASS, WHICH IS RULED ABOVE.** Three answers exist and they differ in what the command DOES, not in how it speaks: narrow `list` to directories carrying an `AGENTS.md`; widen `show` to serve the ST0035 canon packs; or split the namespace so the two populations stop sharing a directory. **That is past what the five voices were convened for and past vc's standing grant, which covers folding a class and not deciding what a command enumerates.** v3 must not reproduce the false claim; which of the three it does instead is open.",
+            "ratification": "ic 2026-08-17, on vc's split -- **THE CLASS IS DECIDABLE AND THE REMEDY IS NOT, AND ONLY THE CLASS WAS EVER MINE.** The test for `corrected` is whether the v2 behaviour is simply wrong, and `list` printing `rust` while `show rust` answers `not found` IS wrong -- not as an implementation error but as an OUTPUT MAKING A FALSE CLAIM ABOUT ITS SIBLING. How it came to be wrong is a question about blame; `corrected` is a question about the behaviour. Reproducing it would launder a v2 defect into a v3 requirement, which `parity.md` forbids in as many words. **Ruling the class NOW is the point rather than a formality**: `as-observed` left the row BUILDABLE AS-IS, so the one outcome nobody wants was the one the register was licensing while the question sat open. All three candidate remedies satisfy `corrected`, so nothing waits on the remedy being chosen. **The INV-01 half needs no ruling from anyone** -- errors on stdout, one with no `error:` prefix, is `corrected` on its face.",
+            "ratified_in": "ic, 2026-08-17, class ruled on vc's split; measurement and argument recorded on issue 0058 at commit `632d9d86`. Authority, date and an external record, per vc's `ratified_in` grammar."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -6940,7 +6946,7 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 60,
+      "n": 58,
       "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin."
     },
     {
@@ -6952,7 +6958,7 @@
     {
       "disposition": "keep",
       "target_state": "corrected",
-      "n": 20,
+      "n": 22,
       "gloss": "The command survives with a defect fixed. `keep` is right precisely because a corrected command still SURVIVES; the correction is what `target.state` records."
     },
     {

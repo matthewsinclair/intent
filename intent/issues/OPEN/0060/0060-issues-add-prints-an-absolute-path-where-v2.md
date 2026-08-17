@@ -1,0 +1,95 @@
+---
+id: "0060"
+title: issues add prints an absolute path where v2 prints a repo-relative one, which leaks the filesystem and makes the line unassertable by any literal template
+date: 2026-08-17
+reporter: matts
+status: OPEN
+severity: medium
+---
+
+# 0060: issues add prints an absolute path where v2 prints a repo-relative one, which leaks the filesystem and makes the line unassertable by any literal template
+
+## Tags
+
+surface, issues, voice, parity, measured, testability, line-scoped
+
+## Summary
+
+`intent issues add` prints two lines. The second, `<ID>:<TITLE>`, matches v2 exactly. The first does not, and it differs in **two independent ways that must not be resolved together**:
+
+```
+v2:  created: intent/issues/OPEN/0001/0001-probe-two.md
+v3:  created: /Users/matts/.../v3probe2/intent/issues/0002.json
+```
+
+**The layout difference is RATIFIED and correct.** v3's issue canon is flat -- `intent/issues/<NNNN>.json` (`data-model.md:258`, `store.rs:179`) -- against v2's status-bucketed `OPEN/<NNNN>/<NNNN>-<slug>.md`. v3 cannot print v2's path because v3 does not create it. That half is `corrected` by a decision already made.
+
+**The ABSOLUTENESS is forced by nothing and is the defect.** v2 prints a repo-relative path; v3 prints the fully-qualified one, embedding `$HOME` and the working directory in output a user pastes into issues, commit messages and docs. Nothing in the flat-canon decision requires it, and no design document asks for it.
+
+**It also defeats the instrument built to catch exactly this class.** `observed.stdout_exact` asserts a row against a literal template, and a template cannot contain a machine's tmpdir. So this row can never be asserted while the path is absolute -- the defect makes itself unmeasurable, which is why it is filed rather than left as a note on the row.
+
+Found by ic, 2026-08-17, measuring the row to write its line-scoped declaration (board TODO-3).
+
+## Reproduction
+
+v3 from a `git archive` extract of `34c6a3ae` -- not the worktree, which had four uncommitted files under cc at the time.
+
+```
+$ intent issues add "Probe two"          # fixture: one existing issue, 0001.json
+created: /Users/matts/.../v3probe2/intent/issues/0002.json
+0002:Probe two
+                                          # exit 0, stderr EMPTY (0 bytes)
+```
+
+v2.19.0 on PATH, same shape of fixture:
+
+```
+$ intent issues add "Probe two"
+created: intent/issues/OPEN/0001/0001-probe-two.md
+0001:Probe two
+                                          # exit 0
+```
+
+**A NOTE ON THE MEASUREMENT, because the first attempt was wrong in a way worth recording.** The probe helper ran the binary TWICE -- once redirecting stderr away to capture stdout, once the reverse -- which is harmless for a read command and **creates two issues for a mutating one**. `0002` and `0003` both landed and neither was v3's fault. Re-driven as a single invocation with `>out 2>err`, which is the only sound way to split the streams of a command that changes state. The stdout above is from a single run.
+
+## Root Cause
+
+The `created:` line is rendered from a path the facade already holds in absolute form, and nothing relativises it against the project root before printing. v2's equivalent (`bin/intent_issues:187-188`) prints the path it constructed, which is relative by construction because v2 builds it from `$INTENT_DIR` rather than from a resolved root.
+
+So the two implementations differ not because either chose a convention but because each printed whatever variable was to hand -- **v2's happened to be relative and v3's happens to be absolute.** Neither is a decision, which is what makes this `as-observed` rather than a deviation to ratify: there is nothing here that was chosen and could be defended.
+
+## Impact
+
+**A user-visible path that is different on every machine.** The line is designed to be copied -- it names the file just created -- and pasting it anywhere shared carries the author's home directory and working directory with it. On this project that means agent-session tmpdirs land in issue text.
+
+**The row cannot be asserted while this holds.** `literal_stdout_parity.rs` compares stdout to a literal declared in the register. An absolute path cannot appear in a literal, so `issues add` is excluded from the only mechanism that has found parity breaks on this thread -- and it is excluded by the very defect that mechanism exists to catch. **Every other row's coverage question is "has anyone written the declaration"; this row's is "can one be written at all".**
+
+**And it hides the ratified half.** With the whole line differing, a reader comparing v2 and v3 sees one mismatch and cannot tell that the layout change is correct-by-decision while the absoluteness is not. **One line carrying two deviations of opposite legitimacy is unreadable as either.**
+
+## Proposed Fix
+
+**Print the path repo-relative**, as v2 does: `created: intent/issues/0002.json`. That resolves the absoluteness while leaving the ratified flat layout intact, and it is the smaller change.
+
+Once it lands, the row can carry a line-scoped declaration:
+
+| line | v2                                          | v3 target                          | state         |
+| ---- | ------------------------------------------- | ---------------------------------- | ------------- |
+| 1    | `created: intent/issues/OPEN/0001/0001-…md` | `created: intent/issues/0002.json` | `corrected`   |
+| 2    | `0001:Probe two`                            | `0002:Probe two`                   | `as-observed` |
+
+**THE SCHEMA CANNOT EXPRESS THAT TABLE YET, AND THAT IS THE GENERAL PROBLEM THIS ROW MAKES CONCRETE.** `target.state` is one scalar per row; this row needs one per LINE, and `agents template` (0058) needs one per ARM. Both are the same shape -- **the row is not always the unit of the claim** -- and both are currently recorded as prose in a `notes` field, which is precisely the form that drifts because nothing reads it back.
+
+Fixing the absoluteness first is deliberate: it collapses this row from two deviations to one, and a row with a single ratified deviation is expressible in the schema that exists today.
+
+## Related
+
+- ST0056 -- Intent v3.0.0
+- 0058 -- `agents template`, the ARM-scoped instance of the same schema gap
+- `data-model.md:258` and `store.rs:179` -- the flat issue canon, the ratified half
+- `bin/intent_issues:187-188` -- v2's two-line output
+- `surface/dispatch-table.json` -- the `issues add` row
+- `native/rust/crates/intent-cli/tests/literal_stdout_parity.rs` -- the instrument this defect excludes itself from
+
+## Resolutions
+
+{{TBC}}
