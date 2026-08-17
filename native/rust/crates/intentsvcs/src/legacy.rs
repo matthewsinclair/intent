@@ -143,8 +143,8 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       // **Verbatim, never reflowed** (migration.md: the migrator does not
       // improve prose). An absent section stays empty rather than acquiring a
       // placeholder.
-      objective: sections.get("Objective").cloned().unwrap_or_default(),
-      context: sections.get("Context").cloned().unwrap_or_default(),
+      objective: section(&sections, "Objective"),
+      context: section(&sections, "Context"),
       related: Vec::new(),
       wps,
       criteria,
@@ -464,9 +464,11 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
       scope_legacy,
       status,
       status_reason: None,
-      objective: sections.get("Objective").cloned().unwrap_or_default(),
+      objective: section(&sections, "Objective"),
       // D28: everything that is not the objective is the body, carried
-      // verbatim, so a section the template never named survives.
+      // verbatim, so a section the template never named survives -- **and in
+      // the order it was written**, which is what `sections` returning a Vec
+      // rather than a map buys.
       body: sections
         .iter()
         .filter(|(k, _)| k.as_str() != "Objective")
@@ -746,15 +748,37 @@ fn ididy_separator(heading: &str) -> Option<&'static str> {
   heading.contains(": ").then_some(": ")
 }
 
-/// `## Heading` sections, mapped to their verbatim bodies.
-fn sections(body: &str) -> BTreeMap<String, String> {
-  let mut out = BTreeMap::new();
+/// `## Heading` sections with their verbatim bodies, **in the order the author
+/// wrote them**.
+///
+/// **A `Vec` and not a map, and it was a `BTreeMap` until the reassembled
+/// document was compared to the authored one.** The consumer below rebuilds a
+/// body by joining these, so a map ordered the result ALPHABETICALLY: measured
+/// across this estate, 140 of 140 work packages come back in an order nobody
+/// wrote. `ST0056/WP/03` authors Objective / Deliverables / Acceptance /
+/// Dependencies and was emitting Acceptance / Deliverables / Dependencies /
+/// Objective.
+///
+/// **The comment on the consumer was true and the conclusion drawn from it was
+/// not**: every section survived, so a per-section check passed on the whole
+/// population while the document was reordered in every one of them. A section
+/// is conserved; a document is a section list PLUS an order, and only a
+/// document-level comparison can see the difference. (vc measured it; ic then
+/// caught themselves about to copy the same line into the thread parser, where
+/// it would have closed a real hole by propagating this defect and made the
+/// section counts reconcile while doing it.)
+///
+/// **A `Vec` also stops a repeated heading being swallowed.** `insert` on a map
+/// let a second `## Notes` overwrite the first and the loss was invisible; two
+/// entries now come back as two.
+fn sections(body: &str) -> Vec<(String, String)> {
+  let mut out = Vec::new();
   let mut current: Option<String> = None;
   let mut buffer = String::new();
   for line in body.lines() {
     if let Some(heading) = line.strip_prefix("## ") {
       if let Some(name) = current.take() {
-        out.insert(name, buffer.trim().to_string());
+        out.push((name, buffer.trim().to_string()));
       }
       buffer.clear();
       current = Some(heading.trim().to_string());
@@ -764,9 +788,22 @@ fn sections(body: &str) -> BTreeMap<String, String> {
     }
   }
   if let Some(name) = current {
-    out.insert(name, buffer.trim().to_string());
+    out.push((name, buffer.trim().to_string()));
   }
   out
+}
+
+/// One named section's body, or nothing.
+///
+/// **First match rather than last**, which is the map's old behaviour inverted
+/// on purpose: with duplicates now preserved, the authored document's first
+/// `## Objective` is the one a reader sees at the top of the file.
+fn section(sections: &[(String, String)], name: &str) -> String {
+  sections
+    .iter()
+    .find(|(k, _)| k == name)
+    .map(|(_, v)| v.clone())
+    .unwrap_or_default()
 }
 
 /// v2 writes `20260814`; the model holds `2026-08-14`.
