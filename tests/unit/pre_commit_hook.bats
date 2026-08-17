@@ -244,25 +244,42 @@ EOF
 # lib/templates/ of its own. That is the right design; what was wrong was one
 # `else` branch handling two different absences.
 #
-# When resolution comes back EMPTY, every guard is missing at once -- so the loop
-# printed one mild "not found" per guard and enforced nothing, which reads as two
-# small holes rather than "the gate did not run". It fails open, so the commit
-# proceeds and nothing else ever reports it. The live cause is a v3 binary
-# shadowing a v2 install (issues 0036/0043): `intent info` is unimplemented there
-# and exits 2.
+# When resolution FAILS, every guard is missing at once -- so the loop printed one
+# mild "not found" per guard and enforced nothing, which reads as two small holes
+# rather than "the gate did not run". It fails open, so the commit proceeds and
+# nothing else ever reports it.
+#
+# "Fails" is deliberately not "comes back empty", and the gap between those two
+# is a regression that shipped. The first fix tested emptiness, which WAS the true
+# signature while `intent info` was unimplemented and printed no INTENT_HOME line
+# at all. `info` now prints `INTENT_HOME: <not set>` -- non-empty -- so the branch
+# went unreachable in the one condition it exists for, and a brew-shaped install
+# was back to two mild warnings with nothing enforcing anything. The hook now gates
+# on whether the resolution is a DIRECTORY, which covers both live causes: a binary
+# running outside its own install tree, and a v3 binary shadowing a v2 install
+# (issues 0036/0043).
 #
 # Fail-open is DELIBERATE and these tests pin it. A gate that blocks every commit
 # the moment `intent` is shadowed is 0043 rebuilt on the git side.
 
 # Put an `intent` on PATH whose `info` we control. Everything else defers to the
 # real CLI so the rest of the hook behaves normally.
-shim_intent() {  # shim_intent v3 | nohome | real
+shim_intent() {  # shim_intent v3 | notset | livehome | nohome | real
   mkdir -p "${TEST_TEMP_DIR}/shim"
   {
     echo '#!/bin/sh'
     echo 'if [ "$1" = "info" ]; then'
     case "$1" in
       v3)     echo '  echo "error: info is a known command that is not implemented yet" >&2' ; echo '  exit 2' ;;
+      # What a published build actually does, copied from a measured run of the
+      # v3 binary staged outside its own tree: the line is still printed (cc kept
+      # it deliberately so this gate had something to parse) carrying v2's
+      # `<not set>` token, and the failure is in the exit code.
+      notset) echo "  echo '  INTENT_HOME:     <not set>'" ; echo '  exit 1' ;;
+      # Resolution is GOOD and the command still reports failure -- the shape a
+      # migration refusal on `info` would produce in every unmigrated project.
+      # The guards must still run; see the departure note in the hook.
+      livehome) echo "  echo '  INTENT_HOME: ${INTENT_PROJECT_ROOT}'" ; echo '  exit 1' ;;
       nohome) echo "  echo '  INTENT_HOME: ${TEST_TEMP_DIR}/empty-home'" ; echo '  exit 0' ;;
       real)   echo "  echo '  INTENT_HOME: ${INTENT_PROJECT_ROOT}'" ; echo '  exit 0' ;;
     esac
@@ -294,6 +311,55 @@ stage_bad_board() {
   # The two absences must not be confusable. The per-guard wording appearing here
   # is the defect itself: it is what made total failure read as a couple of holes.
   refute_output_contains "was not found"
+}
+
+@test "resolver answers with a NON-PLACE: still TOTAL non-enforcement, not two small holes" {
+  # THE REGRESSION THE FIRST FIX SHIPPED WITH, and the case a `brew install` of
+  # v3 produces. `info` resolves nothing, prints `INTENT_HOME: <not set>`, and
+  # exits 1 -- measured against the real binary staged outside its own tree, not
+  # imagined. The parse therefore SUCCEEDS and yields a non-empty non-path, the
+  # loop hunts for guards under `<not set>/lib/templates/hooks/`, and every guard
+  # is missing for one reason while the output claims two independent holes.
+  #
+  # That is 0042's exact symptom wearing 0042's fix, and nothing connected the two
+  # changes: the coupling is a `sed` over another command's display text.
+  shim_intent notset
+  stage_bad_board
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "resolver-nonplace"
+
+  assert_success
+  assert_output_contains "NO whiteboard guard ran"
+  assert_output_contains "not one is missing, ALL are"
+  # The operator has to SEE the non-place. Described rather than quoted, this
+  # reads as a legitimate answer; quoted, it is self-evidently not a path.
+  assert_output_contains "<not set>"
+  refute_output_contains "was not found"
+}
+
+@test "resolver reports failure but resolves a REAL directory: the guards still run" {
+  # THE DEPARTURE, PINNED. vc and I agreed the fix should branch on the exit code
+  # as well; it reports on the code and gates on `-d` instead, and this is the
+  # test that makes the difference observable rather than a comment.
+  #
+  # Gating on rc would make every guard conditional on an exit code whose meanings
+  # are still being settled -- vc's 0045 measured that `Facade::open` gates EVERY
+  # command and the migration refusal returns 1. The day `info` inherits that, rc
+  # is non-zero in every unmigrated project (ie every consumer, the moment before
+  # it upgrades) while INTENT_HOME resolves perfectly. Gating there would silently
+  # stop the guards estate-wide: the exact class this branch exists to prevent,
+  # delivered by the fix for it.
+  #
+  # So a bad stamp must STILL be refused here, and the failing resolver must still
+  # be said out loud. Re-adding rc to the gate turns this test red with the
+  # user-visible symptom, which is the one worth reading.
+  shim_intent livehome
+  stage_bad_board
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "failing-info-live-home"
+
+  [ "$status" -ne 0 ]
+  assert_output_contains "whiteboard timestamp cannot be a real clock read"
+  assert_output_contains "exited 1"
+  refute_output_contains "NO whiteboard guard ran"
 }
 
 @test "resolver works, guard files absent: reports the one hole, NOT total failure" {

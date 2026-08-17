@@ -103,29 +103,77 @@ WB_GUARDS=(
 if [ -d "intent/whiteboard" ]; then
   # ONE GUARD ABSENT AND THE RESOLVER ABSENT ARE DIFFERENT ABSENCES (issue 0042).
   # These were one `else` branch, and it could not tell them apart: when the
-  # resolution comes back empty EVERY guard is missing at once, so the loop
-  # printed one benign-looking "not found" per guard and enforced nothing. Two
-  # mild warnings read as two small holes; the truth was that the gate was not
-  # running. The tell was a bare leading `/` in the path it said it looked in,
-  # which reads like a typo rather than a total failure -- and it fails open, so
-  # the commit proceeds either way and nothing else ever reports it.
+  # resolution fails EVERY guard is missing at once, so the loop printed one
+  # benign-looking "not found" per guard and enforced nothing. Two mild warnings
+  # read as two small holes; the truth was that the gate was not running -- and
+  # it fails open, so the commit proceeds either way and nothing else ever
+  # reports it.
   #
   # Captured WITHOUT a pipe before `$?` is read: `x="$(cmd | sed)"; rc=$?` gives
   # sed's status, and that mistake has cost this estate four wrong diagnoses.
   wb_info_out="$(intent info 2>&1)"; wb_info_rc=$?
-  INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n 's/^ *INTENT_HOME: *//p' | head -1)"
+  # Trailing whitespace is stripped as well as leading, and that is vc's measured
+  # hardening rather than a defensive reflex: the line is COLUMN-PADDED ON THE
+  # LEFT today (`  INTENT_HOME:     /path`) with no padding on the right, so a
+  # renderer that ever pads the other side would hand `-d` a path with trailing
+  # spaces and turn a working resolver into a loud false block. One token closes
+  # it. Written as a single addressed block rather than two `p` expressions,
+  # which would print the line twice, and without GNU's `T`, which BSD sed lacks.
+  INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
   WB_BLOCKED=0
 
-  if [ -z "$INTENT_HOME_RESOLVED" ]; then
+  # THE SIGNAL WAS ALREADY IN HAND AND WENT UNUSED. This tested EMPTINESS alone,
+  # which was the true signature of an unresolvable install on the day it was
+  # written: `intent info` was unimplemented, printed no INTENT_HOME line at all,
+  # and the `sed` above yielded nothing. It now prints `INTENT_HOME: <not set>`
+  # -- v2 has always rendered that token (`bin/intent_info`) and v3 reproduces it
+  # deliberately so this parse never comes back empty -- which is better for a
+  # human and NON-EMPTY, so the branch below became unreachable in exactly the
+  # condition it exists for. Measured on a brew-shaped install (a binary sitting
+  # outside its own tree): exit 1, resolution `<not set>`, and the loop then hunted
+  # for guards under `<not set>/lib/templates/hooks/` and reported two small holes.
+  # Neither change was wrong and nothing connected them, because the coupling is a
+  # `sed` over display text and is written down nowhere but here.
+  #
+  # So gate on `! -d`: it answered, and the answer is not a place. That subsumes
+  # the old emptiness test (an empty string is not a directory), it catches
+  # `<not set>` WITHOUT naming it, and it is exactly the property the loop below
+  # needs to hold. Matching the literal token would rebuild the identical
+  # coupling one token over, and the next rendering change would break it again
+  # in the same silence.
+  #
+  # `wb_info_rc` REPORTS AND DOES NOT GATE, WHICH IS A DELIBERATE DEPARTURE from
+  # the shape agreed with vc ("branch on rc as well as emptiness"), recorded here
+  # rather than resolved quietly. Gating on rc makes the guards conditional on an
+  # exit code whose meanings are still being settled -- vc's own 0045 measured
+  # that `Facade::open` gates EVERY command and the migration refusal returns 1.
+  # The day `info` inherits that, rc is non-zero in every unmigrated project (ie
+  # every consumer, the moment before it upgrades) while INTENT_HOME resolves
+  # perfectly, and gating would silently stop the guards estate-wide -- the exact
+  # class this branch exists to prevent, delivered by the fix for it. An
+  # unreachable branch under-enforces once; a gate keyed to a moving code
+  # under-enforces everywhere. So: if the guards can be located, they RUN, and
+  # a failing resolver is said out loud instead of being acted on.
+  if [ "$wb_info_rc" -ne 0 ]; then
+    echo "intent gate: \`intent info\` exited ${wb_info_rc} while the whiteboard guards were being located." >&2
+    echo "  the guards below still run if they can be found; this line is the earliest signal that this coupling is breaking again." >&2
+  fi
+
+  if [ ! -d "$INTENT_HOME_RESOLVED" ]; then
     # TOTAL non-enforcement, reported once and as itself. Named separately
     # because the remedy is different in kind: nothing is wrong with the guards
     # and there is nothing to install -- the tool that locates them did not
     # answer, so fixing any one guard would change nothing.
     echo "intent gate: NO whiteboard guard ran for this commit -- not one is missing, ALL are." >&2
-    echo "  \`intent info\` did not report INTENT_HOME (exit ${wb_info_rc}), so the guards could not be located." >&2
+    # The resolved value is QUOTED BACK rather than described, because the two
+    # ways this fails look nothing alike to an operator and only one of them is
+    # obviously wrong: an empty resolution reads as "the tool said nothing",
+    # while `<not set>` reads as a legitimate answer until you notice it is not
+    # a path. Naming it is what makes the second case self-evident.
+    echo "  no usable INTENT_HOME (\`intent info\` exit ${wb_info_rc}, resolved to '${INTENT_HOME_RESOLVED}'), so the guards could not be located." >&2
     echo "  skipped: ${WB_GUARDS[*]%%|*}" >&2
     echo "  the guards are fine; the tool that finds them is what did not answer." >&2
-    echo "  check \`intent info\` -- a v3 binary shadowing a v2 install on PATH is the known cause (issues 0036/0043)." >&2
+    echo "  check \`intent info\` -- a binary running outside its own install tree, or a v3 binary shadowing a v2 install on PATH, are the known causes (issues 0036/0043)." >&2
     # Deliberately fail-open, and this is a considered call rather than an
     # oversight. A gate that blocks every commit the moment `intent` is shadowed
     # is issue 0043 rebuilt on the git side, and 0043 is a hard publication hold
