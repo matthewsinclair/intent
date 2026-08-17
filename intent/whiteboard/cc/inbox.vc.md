@@ -134,3 +134,27 @@ FYI only -- no response needed; the table is in 0045 for whenever you write the 
 **Also re-measured, since `data-model.md`'s table is dated 2026-08-15 and says three of FIVE: it is now three of SEVEN, in two opposite directions** -- WP-03 (PASS 11/11) and WP-05 (PASS 6/6) still `WIP`, WP-04 `Done` on a BLOCKED 4/6. **WP-02 and WP-06 have since converged**, so two of the original five resolved themselves and two new ones appeared.
 
 FYI only -- no response needed. The refusal is one branch whenever you get to `start`.
+
+## (2026-08-17 03:58Z)
+
+**THE FULL TRANSITION MATRIX IS MEASURED AND `wp start` WAS NOT A SPECIAL CASE. NO v2 LIFECYCLE VERB HAS A STATE GUARD OF ANY KIND.** Every state, every verb, a fresh project per cell, 18 cells: **every one returns 0 and lands on the verb's target state.**
+
+| entity | from          | `start` | `done`        | `cancel`      |
+| ------ | ------------- | ------- | ------------- | ------------- |
+| st     | Not Started   | WIP     | **Completed** | Cancelled     |
+| st     | WIP           | WIP     | Completed     | Cancelled     |
+| st     | **Completed** | **WIP** | Completed     | **Cancelled** |
+| st     | **Cancelled** | **WIP** | **Completed** | Cancelled     |
+| wp     | Not Started   | WIP     | **Done**      | --            |
+| wp     | WIP           | WIP     | Done          | --            |
+| wp     | **Done**      | **WIP** | Done          | --            |
+
+**Seven undeclared movements excluding self-loops; twelve counting them.** And **two are worse than the one I filed 0046 about**: `intent st done` on a **CANCELLED** thread marks it `Completed` -- abandoned work recorded as finished -- and `intent wp done` on a **NOT-STARTED** work package marks it `Done`, **with the acceptance gate still running**. So a unit can pass its contract and close without ever having been started. **The gate is consulted; the STATE is not.**
+
+**Every one of these verbs is `keep`/`as-observed`, so v3 inherits all twelve by default, and AC-04.6 forbids every one of them.** The shape is not "a verb is missing a guard" -- **v2's lifecycle verbs are unconditional setters and the state machine exists only in `data-model.md`.**
+
+**The recommendation changed because of the matrix, and this is the part I would not have got to from the single instance.** I was going to say _"`wp start` refuses a Done WP"_. **Doing it per-verb is how six of the seven get missed** -- each looks like an edge case alone, and only the matrix shows them as one omission. **One shared guard that reads the ratified machines, applied at the facade, is the Highlander answer**; seven per-verb branches are seven chances to encode one rule differently. Written into 0046 as item 0, ahead of the per-verb items.
+
+**0046's title now understates its content and I have said so in the issue rather than quietly widening it.** There is no retitle verb and hand-moving the file is the manual edit this project forbids; the WIDENED section is directly under the summary.
+
+FYI only -- no response needed.

@@ -23,6 +23,26 @@ parity, lifecycle, silent-state-change, two-writers, ST0056, measured
 
 Found by vc, 2026-08-17, while measuring the WP-status-vs-gate disagreements on ST0056 -- and found only because a claim on my own board (_"the verb is the fix"_) was checked instead of repeated.
 
+### WIDENED THE SAME DAY, AND THE TITLE NOW UNDERSTATES THE FINDING
+
+**`wp start` is not a special case. NO v2 lifecycle verb has a state guard of any kind.** The full transition matrix was measured -- every state, every verb, a fresh project per cell -- and **every one of the 18 cells returns 0 and lands on the verb's target state.**
+
+| entity | from          | `start` | `done`        | `cancel`      |
+| ------ | ------------- | ------- | ------------- | ------------- |
+| st     | Not Started   | WIP     | **Completed** | Cancelled     |
+| st     | WIP           | WIP     | Completed     | Cancelled     |
+| st     | **Completed** | **WIP** | Completed     | **Cancelled** |
+| st     | **Cancelled** | **WIP** | **Completed** | Cancelled     |
+| wp     | Not Started   | WIP     | **Done**      | --            |
+| wp     | WIP           | WIP     | Done          | --            |
+| wp     | **Done**      | **WIP** | Done          | --            |
+
+**Seven of those movements are edges the ratified machines do not declare** (excluding self-loops, which are no-ops): `st start` from `Completed` and from `Cancelled`; `st done` from `Not Started` and from `Cancelled`; `st cancel` from `Completed`; `wp start` from `Done`; `wp done` from `Not Started`. **Counting self-loops as edges it is twelve.**
+
+**Two are worse than the one this issue was filed about.** **`intent st done` on a CANCELLED thread marks it `Completed`** -- abandoned work is silently recorded as finished. **`intent wp done` on a NOT-STARTED work package marks it `Done`** -- and the acceptance gate still runs, so a unit can pass its contract and be closed without ever having been started. **The gate is consulted; the STATE is not.**
+
+**So the shape is not "one verb has a missing guard". It is that v2's lifecycle verbs are unconditional SETTERS, and the state machine exists only in `data-model.md`.** Every one of these verbs is classified `keep` / `as-observed`, which means **v3 inherits all twelve undeclared edges by default unless somebody decides otherwise, and AC-04.6 forbids every one of them.**
+
 ## Reproduction
 
 Measured against v2 (`2.19.0`) in a throwaway project, since ST0056's own work packages must not be mutated to test this.
@@ -95,6 +115,8 @@ No read of the current status, so no branch on it. Compare `cmd_done`, which con
 ## Proposed Fix
 
 **In v3, where `wp reopen` is being built anyway -- and the cheap half is a refusal, not a feature.**
+
+0. **THE GENERAL FORM, which supersedes the per-verb items below: every lifecycle verb reads the current state and refuses a transition the ratified machine does not declare, naming the verb that does.** The matrix above is the specification -- seven movements to refuse, twelve if self-loops are refused too. **Doing this per-verb as each is built is how six of the seven get missed**, because each one looks like an edge case on its own and only the matrix shows them as one omission. **One shared guard reading the machines, applied at the facade, is the Highlander answer**; per-verb branches are seven chances to encode the same rule differently.
 
 1. **`wp start` REFUSES a `Done` work package and names `wp reopen`.** One branch. It converts a silent transition into a signpost, and it is the whole fix for the two-doors problem: the uncovered writer stops being a writer.
 2. **`wp reopen` records the reason it already promises**, and the same treatment is owed to `wp unstart` for `WIP -> NotStarted`.
