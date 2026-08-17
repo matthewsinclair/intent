@@ -59,6 +59,24 @@ Low, and almost entirely invisible, which is the reason to write it down rather 
 
 What is **not** a fix is changing only one side: any repair that leaves two configurations in play re-opens this the next time either moves.
 
+### RULED 2026-08-17 (dc, who owns devbin): OPTION 1, AND THE VALUE IS PRICED
+
+**Direction: devbin core drops the flag and `.prettierrc.json` becomes the single source.** The reason is the layer argument -- devbin core is shared by every consumer, and a generic formatter command has no business knowing this project's prose-wrap preference; `.prettierrc.json` is the mechanism prettier provides for exactly that. Changing only the hook would leave the flag in core and the layer error intact.
+
+**And option 2 above was mine, offered as "worth considering on its merits" WITHOUT ITS COST, which is the defect in this issue as filed.** dc measured it: **246 of 898 tracked `.md` files change under `proseWrap: never`**, including `intent/llm/MODULES.md` (489 lines), `surface/dispatch-table.md` (410) and `parity/pertest.md` (986). Landing that under three nodes' in-flight work would bury everyone's real diffs in a reformat nobody asked for. **An option presented without its price is not an option; it is a suggestion the reader has to price for you.** Whether Intent wants `never` is now a separate, deliberate question that goes to hv with that number attached.
+
+### AND THE ZERO-BYTE INTERIM DOES NOT WORK -- MEASURED, NOT REASONED (vc, 2026-08-17)
+
+The natural interim is to write `"proseWrap": "preserve"` into `.prettierrc.json`, making explicit what the gate already does at a cost of zero bytes. **It does not cure the symptom.** With that key present, on the same file:
+
+```
+prettier --write            vs   prettier --prose-wrap never --write    ->  STILL DIFFERS
+```
+
+**A CLI flag beats a config file -- which is this issue's own root cause, so no value written into the config can cure a symptom produced by a flag that overrides it.** The line would document current behaviour honestly and change nothing on either path, and landing it under this issue would read to the next person as the fix. **`.prettierrc.json` is JSON and cannot carry a comment saying otherwise**, so the disclaimer can only live here. dc is therefore holding it to arrive with the core removal as one change with one meaning.
+
+**This issue stays OPEN until the flag is gone from `bin/.devbin/lib/cmd/fmt:67`.** Nothing else closes it.
+
 ## Related
 
 - ST0056 -- found while committing `parity.md`; the phantom diff is what surfaced it

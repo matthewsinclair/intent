@@ -127,6 +127,29 @@ Then `views.rs:461` and the no-op line take `display()` rather than `enum_str`. 
 
 **And the general form, since this is the third instance and the first two were each found one at a time.** The rule the codebase is reaching for is: _a status enum reaching a human or a generated view goes through `display()`, never through `enum_str`._ That is mechanically checkable -- `enum_str` has a small number of call sites -- and a test asserting that no status enum reaches `views.rs` or `render.rs` output via `enum_str` would have caught all three at once. Without it, the fourth is found the same way the first three were.
 
+## THE ROUND TRIP IS ASYMMETRIC, AND IT IS IDEMPOTENT FROM THE SECOND PASS -- WHICH DECIDES WHAT KIND OF TEST CAN CATCH IT (vc, 2026-08-17)
+
+**The reader and the writer do not share a vocabulary, and only the writer is narrow.** `legacy.rs:608` ingests liberally:
+
+```rust
+"n/a" | "n-a" | "na" => AtStatus::Na,
+```
+
+while `views.rs:461` emits through `enum_str` and so has exactly one spelling. **So v3 reads `n/a` and writes back `n-a`: a round trip that does not return.**
+
+**And the liberal reader is what hides it, in the precise sense that it removes the only signal.** Ingest of the live estate is genuinely clean -- `ingest --from-md` over a copy of this repository reads 56 threads / 140 WPs / 281 criteria / 228 ATs at **0 blocking, 9 carried, exit 0** -- and that measurement is CORRECT. It says nothing whatever about emit, because emit is a different layer, and I reported it to hv as part of a self-hosting assessment without measuring the other half. **The reader's tolerance means the corruption cannot announce itself on the way in; it is created on the way out and discovered by a third tool.**
+
+**THE PART THAT MATTERS FOR TESTING: the corruption happens exactly ONCE and every subsequent check confirms stability.** `n-a` re-ingests to `Na` and re-emits to `n-a`, so from pass 2 the round trip is a fixed point:
+
+```
+v2 canon  n/a  ->  Na  ->  n-a      <- the only lossy step, and it is the first
+          n-a  ->  Na  ->  n-a      <- stable, forever
+```
+
+**Therefore a round-trip stability test seeded from v3's own output can never see this defect** -- it would report a clean fixed point and be right. **The seed has to be the v2 canon**, ie a corpus v3 did not produce. This is the general shape and it is worth more than this instance: _a stability property measured from the system's own output confirms that the system is consistent with itself, which is exactly what a one-time normalisation preserves._ Same distinction as read-back being a consistency check rather than a correspondence one (`parity.md`).
+
+**Consequence for the fix**: `display()` closes it, and a regression test must assert **byte-equality against a fixture written in v2's spelling** -- not that ingest-then-emit is stable, which it already is.
+
 ## Related
 
 - ST0056 -- Intent v3.0.0
