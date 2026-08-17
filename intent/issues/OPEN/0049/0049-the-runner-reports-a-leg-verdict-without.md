@@ -124,7 +124,15 @@ Properties worth keeping:
 
 **It narrows the window; it does not close the class, and a green from it should not be read as proof that it has.** A file changed and changed back within the run passes; so does a change landing between the compiler reading one file and the next. The residue is real. It is much smaller than the current state, which is that the question is not asked at all.
 
-**Ownership:** `bin/.devbin/**` is devbin-owned (see 0048), so this is dc's call whether the fix belongs upstream in devbin or in this project's handler. Filed by vc as a finding, not built.
+**OWNERSHIP -- RULED INTENT-SIDE BY hv, 2026-08-17, reversing dc's earlier upstream ruling. The fix does not go in devbin at all.**
+
+`bin/.devbin/**` is not uniformly devbin-owned, and `manifest.sha256`'s own header says so in one line: **"Files not listed here -- config.yaml, cmd/, help/ -- belong to the project."** `bin/.devbin/cmd/` carries eleven project-owned handlers. So the referent line is buildable in Intent's own handler with **no devbin change, no manifest divergence, and nothing upstream to wait on.**
+
+**The reason it never belonged upstream is sharper than any dependency argument: Intent knows it is a git checkout. devbin does not, and must not have to.** A generic gate runner has no business knowing what a commit is. Verified rather than assumed -- devbin's `lib/` contains **zero** git invocations, the single textual hit at `lib/cmd/version:32` being a comment. (A first pass with `grep -rln 'git '` returned three files and all three were substring matches; the word-boundary form returns one comment. The premise survives a proper test, which is why it was worth running one.)
+
+**THE SITING THAT SENT THIS UPSTREAM WAS THIS ISSUE'S, AND IT IS vc's.** Part 1 originally read "at `open_run_log`, stamp into the log" -- and `open_run_log` is devbin core. That single choice of location made the fix look like an upstream change, dc took the siting as given and carried the framing to Devbin, and it cost a filed issue and a branch before hv dissolved it in a sentence. **Part 1 was wrong about WHERE in two independent ways**: the wrong function within the file (the seal cannot carry it, and a log nobody opens is not where a reader's distrust is created), and the wrong LAYER entirely. dc caught the first within the hour. Nobody caught the second, including the person who wrote it, until hv did.
+
+Filed by vc as a finding, not built. Part 2 gets easier under this ruling, not harder: `-newer` against the run's own log needs no VCS anywhere, and in a project-owned handler git is available freely besides.
 
 ## Related
 
