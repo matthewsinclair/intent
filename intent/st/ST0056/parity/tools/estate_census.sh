@@ -90,6 +90,38 @@ trap 'rm -rf "$SEC"' EXIT
 RECORDS="$SEC/records.tsv"
 : >"$RECORDS"
 
+# CORPUS, FIRST, because a census that cannot name its own subject is an
+# anonymous file of numbers (dc's axis, 2026-08-17, arriving in my own output
+# while I was checking whether their `INTENT_VERSION` finding reached me).
+#
+# Four census files for four fleet members were indistinguishable by inspection,
+# and `conservation_check.sh` consumed one blind -- hand it the canary's census
+# and a migrated Lamplight tree and it compares two unrelated estates and reports
+# a number. The identity is READ FROM THE CORPUS's own `CAPTURE`, which
+# `estate_corpus.sh verify` checks against git's record of the tree, so it is not
+# a claim this tool invents.
+#
+# **FIRST rather than last, and COUNT stays last, and the asymmetry is the
+# point**: identity has to survive a truncated file, and completeness has to be
+# absent from one. A census cut off halfway still says which estate it describes
+# and visibly lacks its totals.
+#
+# An estate with no `CAPTURE` is reported `unpinned` with its path rather than
+# left blank. A census of a live worktree is legitimate and useful; a census of a
+# live worktree that reads like a census of a pinned corpus is not.
+#
+# Read as `./CAPTURE` and reported as `$PWD`: the `cd "$ROOT"` above already
+# happened, so a RELATIVE `$ROOT` no longer resolves from here. That is the same
+# defect class in one line -- a path whose referent moved while the identifier
+# stayed the same.
+if [ -f CAPTURE ]; then
+  printf 'CORPUS\t%s\t%s\n' \
+    "$(awk '$1 == "member:" { print $2 }' CAPTURE)" \
+    "$(awk '$1 == "revision:" { print $2 }' CAPTURE)"
+else
+  printf 'CORPUS\tunpinned\t%s\n' "$PWD"
+fi
+
 # slug <text> -- a scratch-filename-safe form of an entity id. Only ever used to
 # name a temporary file; nothing downstream reads it back.
 slug() {

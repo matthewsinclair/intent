@@ -90,6 +90,20 @@ n_census="$(awk -F'\t' '$1 == "FILE"' "$CENSUS" | wc -l | tr -d ' ')"
 [ "$n_census" -gt 0 ] ||
   die "census names no files -- an empty denominator passes every migration ever written"
 
+# WHICH ESTATE IS THIS A VERDICT ABOUT? Asked of the census rather than assumed
+# from the filename, and printed on every run. Until 2026-08-17 the census TSV
+# named nothing about itself, so four fleet members produced four files this tool
+# could not tell apart -- and a verdict computed from the canary's census against
+# a migrated Lamplight tree would have compared two unrelated estates and
+# reported a number rather than a refusal.
+SUBJECT="$(awk -F'\t' '$1 == "CORPUS" { print $2 " @ " substr($3, 1, 12); exit }' "$CENSUS")"
+[ -n "$SUBJECT" ] ||
+  die "census carries no CORPUS record -- it was produced before the census named its own subject, and a verdict that cannot say which estate it describes is not a verdict; re-run estate_census.sh"
+case "$SUBJECT" in
+  unpinned*) echo "conservation: SUBJECT $SUBJECT -- an UNPINNED estate; this verdict describes a directory, not a revision" ;;
+  *) echo "conservation: subject $SUBJECT" ;;
+esac
+
 # The canon root. `st/<ID>/thread.json` and `issues/<n>.json` are data-model.md's
 # canonical paths; a tree with neither has not been migrated, and saying so is
 # the whole difference between a refusal and a green.
