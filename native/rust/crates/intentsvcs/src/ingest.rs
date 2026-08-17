@@ -98,6 +98,45 @@ impl From<Refusal> for IngestError {
 /// view answer a search.
 const THREAD_PROSE: &[&str] = &["design.md", "impl.md", "tasks.md"];
 
+/// Validate ONE thread's committed canon: parse, then the two checks that only
+/// make sense against the id the file was found under.
+///
+/// **Public because `legacy.rs` needs the answer and must not grow a second
+/// strict reader to get it.** After a migration, `st/<ID>/thread.json` is the
+/// SOURCE and the markdown beside it is a generated view, so Phase A asks this
+/// rather than re-parsing the view -- which is what let a re-run absorb the
+/// renderer's own sections and accrete without bound. Two readers agreeing on
+/// what valid canon is, by being one reader.
+///
+/// It takes the text rather than reading the file, so the caller owns the IO and
+/// its error type. `read` propagates an unreadable file as an `IngestError`;
+/// `legacy.rs` has already established the file exists.
+pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Vec<Finding>> {
+  let rel = project.relative(&project.thread_json(id));
+  let thread = parse::<Thread>(&rel, text)?;
+  if thread.schema != THREAD_SCHEMA {
+    return Err(vec![Finding::new(
+      &rel,
+      FindingClass::SchemaInvalid,
+      format!(
+        "schema is {:?}; this binary reads {THREAD_SCHEMA:?}",
+        thread.schema
+      ),
+    )]);
+  }
+  if thread.id != id {
+    return Err(vec![Finding::new(
+      &rel,
+      FindingClass::DuplicateId,
+      format!(
+        "thread id {:?} does not match its directory {id:?}",
+        thread.id
+      ),
+    )]);
+  }
+  Ok(thread)
+}
+
 /// Read and validate the entire committed canon. Refuses with EVERY finding,
 /// never the first -- one fix-and-rerun cycle, not one per defect.
 pub fn read(project: &Project) -> Result<Canon, IngestError> {
@@ -105,32 +144,8 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   let mut findings = Vec::new();
 
   for id in project.thread_ids()? {
-    let path = project.thread_json(&id);
-    let rel = project.relative(&path);
-    match parse::<Thread>(&rel, &read_to_string(&path)?) {
+    match read_thread(project, &id, &read_to_string(&project.thread_json(&id))?) {
       Ok(thread) => {
-        if thread.schema != THREAD_SCHEMA {
-          findings.push(Finding::new(
-            &rel,
-            FindingClass::SchemaInvalid,
-            format!(
-              "schema is {:?}; this binary reads {THREAD_SCHEMA:?}",
-              thread.schema
-            ),
-          ));
-          continue;
-        }
-        if thread.id != id {
-          findings.push(Finding::new(
-            &rel,
-            FindingClass::DuplicateId,
-            format!(
-              "thread id {:?} does not match its directory {id:?}",
-              thread.id
-            ),
-          ));
-          continue;
-        }
         collect_prose(project, &mut canon.sections, "thread", &id)?;
         collect_wp_text(project, &mut canon.sections, &thread);
         canon.threads.push(thread);
