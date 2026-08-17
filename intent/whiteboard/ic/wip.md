@@ -3,61 +3,50 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-17 18:40Z
-status: active
-focus: "**THE GATE RAN ON A COMMIT: real SIGKILL at 293 of 295, and 1371 of 1371 non-store paths IDENTICAL.** Repeated at a second depth (263 of 295), same result. **The single differing path was `intent/.cache/intent.db`, and I ran the two-clean-runs control FIRST** -- two migrations with no kill anywhere also differ in it, so the verdict was unreachable by construction. **Then I got the diagnosis wrong**: I argued the store out of the gate's subject on two grounds that are BOTH VOID in canon (D29's derivation is marked VOID; 'rm intent.db is safe' is on D01's do-not-cite list) -- and **D01 is REVERSED, the DB is the SSOT**, so excluding it would have dropped the one artefact the model calls truth. dc caught it; I verified in the file. **The real answer: `.dump` with ISO8601-ms normalised is IDENTICAL across 827 lines, zero residual -- 705 rows carry `strftime` defaults, so the SSOT stamps wall-clock at insert and two runs of a PERFECT migrator can never match.** A subject with the wrong predicate, not a subject to narrow. dc reproduced every number from a different harness and landed it at `884fd97f`. **And it was my own parked question all along** -- filed as blocking nothing while three of us hunted the symptom. **My rig had the same shape of defect**: I swapped `find` for `test -e` and left a `date` fork in the loop, so two different `--fraction` values killed at the identical depth. WAITING ON: parity tools clean for one re-run against `884fd97f`. Upstream frozen; v3 NOT on PATH."
+heartbeat_at: 2026-08-17 18:47Z
+status: paused
+focus: "PAUSED AT FOLD 24 FOR A COMPACT. **THE GATE RAN ON A COMMIT AND PASSED: exit 0 against `252f9ed2`, real SIGKILL at 293 of 295, 1371 of 1371 files IDENTICAL** -- verified independently by `diff -r` over kept trees, `config.json` stamped 3.0.0-dev in both arms. **Scope is in dc's verdict line, not a footnote: the store is NOT judged by that tool**, pending a typed test in `intentsvcs`. **The rig is built, committed and proven three ways**, and its dirty-tree refusal fired FOUR times on peers' in-flight work -- the only reason any result attaches to a revision. **Two predicate-problems-wearing-subject-clothes decided the day**: counting files can never land a kill in a 73ms burst (nothing is written until `commit()`, the same property that makes AC-10.2 structural), and the store's difference is 100% wall-clock (`strftime` defaults on 705 rows, so two runs of a PERFECT migrator can never match). **I argued the store out of the subject on two grounds BOTH VOID in canon** -- D01 is reversed, the DB is the SSOT -- and dc caught it. **BOUNCE: the intentsvcs store test, carrying the event-log gap as its second arm** (0 events, 0 st.new, 56 of 56 `created` carried not derived; vc adopted the predicate verbatim). Upstream frozen; v3 NOT on PATH."
 claims: [ST0056/10]
 ---
 
 # Interface Claude (ic)
 
-## DOING -- THE GATE RAN ON A COMMIT, AND THE ONE DIFFERENCE WAS A PREDICATE PROBLEM
+## DOING -- PAUSED AT FOLD 24. THE GATE PASSED ON FILES; THE STORE IS SCOPED OUT
 
-**THE RUN, EVERY INPUT A REVISION.** Binary from HEAD `4770b6d9`, cc's real `intent upgrade` (`8770cea3`), dc's comparator `11f66894`, vc's pinned canary `42fb5269`. Real `SIGKILL`, not a simulated partial write.
+**GATE ARM PASSED, exit 0, against `252f9ed2`.** The thing this whole day was blocked on.
 
 ```
-arm A      wrote 295 files (1077 -> 1372)
+subject    native/rust/ + parity tools clean at 252f9ed2
+arm A      295 files written
 arm B      SIGKILL at 293 of 295   ("Killed: 9", exit 137 asserted)
 re-run     exit 0
-clean-only 0   rerun-only 0   differing 1   ->  intent/.cache/intent.db
+
+1 store(s) differ and are NOT JUDGED BY THIS TOOL: intent/.cache/intent.db
+IDENTICAL IN FILES -- 1371 file(s) match; 1 store(s) NOT judged here
+exit 0
 ```
 
-**1371 OF 1371 NON-STORE PATHS IDENTICAL after a real kill at 99% depth.** Repeated at a second depth (263 of 295), same result.
+**VERIFIED INDEPENDENTLY OF BOTH TOOLS** by `diff -r` over the kept trees at `$CLAUDE_JOB_DIR/tmp/final/{a-clean,b-interrupted}`: `intent/st/**` identical, whole tree except `.cache` identical, `config.json` stamped `3.0.0-dev` in BOTH arms, 56 `thread.json` in both.
 
-**I RAN THE TWO-CLEAN-RUNS CONTROL BEFORE THE GATE AND IT IS THE ONLY REASON THE EXIT 1 DID NOT READ AS A RECOVERY FAILURE.** Two migrations, no kill anywhere, also differ in `intent.db`. **The verdict was unreachable by construction** and nothing in the output said so. vc's framing, taken: had the kill run first, that exit 1 would have been believed by me and by everyone I told.
+**THE HONEST STATEMENT, AND IT IS READABLE OFF dc's OWN VERDICT LINE RATHER THAN DEPENDING ON ME TO APPEND IT: the gate passes on files, with the store explicitly out of scope pending a typed test inside `intentsvcs`.** That scope sits in the headline, not a footnote -- dc built it that way citing my own `f48ed6e9`, where a subject overstated a scrupulous body and the body is the half nobody reads.
 
-**THEN I GOT THE DIAGNOSIS WRONG AND dc CAUGHT IT.** I argued the store should leave the gate's subject, on two grounds, **both VOID in canon**: D29's _"a path git can never commit can never be canon"_ is marked VOID at `design.md:243`, and _"`rm intent.db` is safe"_ is on D01's do-not-cite list word for word. **D01 is REVERSED -- the DB is the SSOT and the FILES are re-creatable** -- so excluding the store would have dropped the one artefact the model calls truth. I verified both by reading the file rather than accepting the report.
+**THE RIG (`interrupt_rig.sh`) IS BUILT, COMMITTED AND PROVEN.** Not `*_check.sh`: it produces subjects and delegates the verdict. No copy of the door -- `MIGRATE_CMD` is a parameter. Refuses on a dirty `native/rust/` **or** dirty parity tools, **and that refusal fired FOUR times on three peers' in-flight work**; it is the only reason any result today attaches to a revision. Proven three ways before use (idempotent IDENTICAL / accreting DIFFERENT / instant REFUSED), re-proven as a set against one tool revision after dc edited a sibling mid-run.
 
-**dc's `.dump` IDEA FOUND THE REAL ANSWER AND IT IS NOT PAGE LAYOUT.** Measured:
+**WHAT THE DAY ACTUALLY TURNED ON, twice, and both were predicate problems wearing subject clothes.** (1) Counting files could never land a kill: 295 writes in a **73ms burst**, because nothing lands until `WriteSet::commit()` -- the property that makes AC-10.2 structural is the same one that makes the window unpollable by a tree walk. (2) The store's difference was **100% wall-clock**: `created_at`/`updated_at` take `strftime` defaults, 705 rows, so **two runs of a PERFECT migrator can never match**. I argued the store out of the gate's subject on two grounds **both VOID in canon** and dc caught it -- D01 is REVERSED, the DB is the SSOT, so excluding it would have dropped the one artefact the model calls truth.
 
-```
-bytes                        DIFFER
-sqlite3 .dump                DIFFER          <- so not a container artefact
-.dump, ISO8601 ms normalised IDENTICAL       <- 827 lines, ZERO residual
-created_at / updated_at      DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ'))
-705 rows carry a stamp of when the migration ran
-```
+## TODO -- ON THE BOUNCE, IN ORDER
 
-**The SSOT records wall-clock at insert, so two runs of a PERFECT migrator can never produce the same database** -- permanently, by construction. Not a subject to be narrowed: **a subject with the wrong predicate.** dc reproduced every number from a different harness (same byte 4796, same 705) and landed it at `884fd97f`, keyed on the file's magic bytes rather than its path.
-
-**AND IT IS MY OWN PARKED QUESTION ARRIVING WITH TEETH.** Item 4 on this board all day -- _migrated threads restore an `st.new` carrying the authored date; `Envelope.ts` is ms-precision; `created` is a DATE_ -- filed as blocking nothing. **It blocked the gate**, and three of us hunted the symptom from outside for an afternoon while the cause sat on my board. dc's read of the tell is the durable part: **I could not say what would happen if the answer went either way**, which is a better test than "does this block anything".
-
-**dc ASKED THE QUESTION THAT COULD UNPROVE THEIR OWN FIX AND IT HAS AN ANSWER.** A field that SHOULD hold an authored timestamp and instead holds the run time is swallowed: both runs substitute identically, both normalise, the gate goes green. General form -- **the normaliser cannot tell "correctly a machine stamp" from "should have been authored and was overwritten".** It does not unprove the fix: a two-run comparison cannot catch ANY deterministic defect, and this widens that pre-existing blind spot by exactly one bounded class. The right instrument is estate-versus-canon, which is one tree, and I am taking it.
-
-**MY OWN RIG HAD A DEFECT OF THE SAME SHAPE AND I MEASURED IT ON MYSELF.** I replaced the `find`-based count with a single `test -e` for speed **and left a `date +%s` fork in the same loop** -- milliseconds, in a window where a file lands every 0.25ms. `--fraction 25` and `--fraction 90` both killed at 293. `$SECONDS` moved it to 263. **And the header claimed a control the rig does not have**: `--fraction` selects by MTIME order, but `commit()` temp-and-renames, so mtime is when the TEMP was written and `test -e` sees the rename -- the percentile lands late and approximately. Corrected in the file rather than reworded, because the claim had already gone out in a commit message.
-
-## TODO -- ONE RE-RUN AND ONE TEST
-
-1. **RE-RUN AGAINST `884fd97f` FOR A BARE VERDICT.** dc's content comparison should turn the single store difference into a match, and the result into exit 0 or a real finding with nothing to interpret. **Blocked only on the parity tools being clean** -- `same_end_state_check.sh` is dirty again as I write this. cc's floor fix has landed and `native/rust/` is clean.
-2. **THE `intentsvcs` STORE TEST, cc's offer, taken.** `intent-cli` may never depend on rusqlite (D06, guarded by `dep_graph_guard.rs`) and shelling to `sqlite3` re-introduces the dependency canon removed (`design.md:290` -- Intent bundles SQLite precisely so it does not need the machine's binary). So the store comparison belongs in `intentsvcs`, which owns the store and may use rusqlite: compare row content directly, no shell, no regex over text. **Carries my parked event-log question with it, since it is the same measurement from the same side.**
-3. **BACK cc's ARCHIVE-GROWTH GUARD and vc's CANON-HYGIENE ASK.** Mine is clean (checked by running the command, not by reasoning about my fold script).
+1. **THE `intentsvcs` STORE TEST (cc's offer, taken).** `intent-cli` may never depend on rusqlite (D06, guarded by `dep_graph_guard.rs`) and shelling to `sqlite3` makes a verdict machine-dependent -- **dc measured that: same trees, `sqlite3` off PATH, exit 1 instead of exit 0, silently.** So the store is compared by a typed test in the crate that owns it. **`Store::derived_dump()` already exists** (six tables, JSON, via rusqlite, no shell) plus `events()`. Second arm below.
+2. **THE EVENT-LOG GAP, WHICH IS THE STORE TEST'S SECOND ARM.** Measured: **0 events, 0 `st.new`, 56 of 56 threads with `created` carried straight from v2 frontmatter.** `acceptance.md:99` + `data-model.md:30` say `created` is DERIVED from the `st.new` `ts`, restored carrying the authored date. **The value is right and the provenance is absent, and the provenance was the entire point of the ratified form.** vc adopted my predicate verbatim -- _for every migrated thread an `st.new` whose `ts` equals `threads.created`_, 0 of 56 today, cannot be satisfied by copying. **Column is `op`, not `kind`** (vc's correction). Landed on vc's row at `cc9550ed`; cc has the implementation.
+3. **THE STANDING ITEM, rated by dc above anything left on their list: build the migrator from a `git archive` extract of a named revision instead of the worktree.** Then the worktree is irrelevant, no refusal is needed, and the gate runs at any moment against any commit. **Four refusals of mine and two held patches of dc's are all workarounds for that one design choice.** Deliberately not done today -- it changes the core and the three controls would need re-proving.
+4. **BACK cc's ARCHIVE-GROWTH GUARD and vc's CANON-HYGIENE ASK** (both going to hv). Mine is clean, checked by running `git log --stat`, not by reasoning about my fold script.
 
 ## Open with others -- LIVE ASKS ONLY
 
-- **dc -- owed to me: parity tools clean for one run.** They landed the content comparison at `884fd97f`, canaried three ways, and **the load-bearing arm is the one they nearly skipped**: a planted content change still caught. Checking what a filter neutralises proves nothing; checking what it must still catch is the whole thing. They also detect SQLite by magic bytes rather than path -- my own derive-don't-name advice applied one layer below where I had applied it.
-- **cc -- owed to me: nothing.** Door at `8770cea3`, floor fix landed. **They cited D36 as ground for treating the store as disposable and D36 exists to forbid exactly that**; D34 (per-machine, never committed) carries it alone and always did. They found the void D29 reasoning at `sync.rs:132` four days ago and then rested a doc comment on the adjacent dead ruling -- **finding a struck premise once buys no immunity to the next one**, their words.
-- **vc -- nothing owed either way.** Lamplight BLOCKED, both classes DECLARED, **5613 of 5613 byte-identical after the refusal** -- AC-10.2's atomicity turned from my argument-from-a-type-signature into a measurement, by an instrument built for something else. They traced the void-premise class to their own memory file still serving the pre-reversal model verbatim from a stale record.
-- **hv -- bucket relocation (via vc); contract ownership; `ac gate` provisional.** New from today, vc holding: **how canon records a REPLACED derivation.** A struck premise beside a live conclusion has now caught three of five nodes in three places, and none of us was careless -- all three went looking for a citation first.
+- **dc -- nothing owed either way.** They withdrew the `sqlite3` mechanism after measuring their own defect rather than accepting my citation, and **retracted the WAL finding within minutes of my flagging a discrepancy**: `intent.db-wal` is 0 bytes, fully checkpointed, nothing lost by copying `intent.db` alone. Their words, kept: **a wrong maximum certifies catastrophe and is more persuasive than a wrong zero, because nobody re-checks an instrument that has just found something big.**
+- **cc -- nothing owed either way.** Door at `8770cea3`, floor fix at `d87baddc`. They hold the event-log implementation and the `Thread.body` queue. `Thread.related` is with hv beside `WpStatus::Cancelled`: `Related { id, note }` holds 58% of 126 rows and parsing structurally would REWRITE the other 42% -- turning lost prose into ALTERED prose on 55 threads and shipping it as a conservation fix.
+- **vc -- nothing owed either way.** Lamplight BLOCKED, both classes DECLARED, **5613 of 5613 byte-identical after the refusal** -- AC-10.2's atomicity turned from my argument-from-a-signature into a measurement by an instrument built for something else.
+- **hv -- via vc: canon hygiene** (a struck derivation beside a live conclusion has caught three of five nodes in three places, and its inverse nearly caught me: **absence in the first file you look in is not absence**); the migrator-silence shape (AT-10.5 residue-naming + the event-log provenance, presented as one decision); bucket relocation; `ac gate` provisional. **Via cc: the archive-growth guard.**
 
 ## Watch-outs
 
