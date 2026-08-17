@@ -331,19 +331,51 @@ impl Finding {
     self.line = Some(line);
     self
   }
+
+  /// Where it is and what it is, with no verdict word and no remedy.
+  ///
+  /// One body, two leads. A carried finding and a blocking one differ in the
+  /// verdict and in whether anything is owed, never in the facts, so factoring
+  /// the facts out is what stops the two renderings drifting apart.
+  fn body(&self) -> String {
+    let line = self.line.map(|l| format!(":{l}")).unwrap_or_default();
+    format!(
+      "{}{line} -- {} -- {}",
+      self.file,
+      self.class.as_str(),
+      self.detail
+    )
+  }
+
+  /// **A CARRIED finding: not residue, and it owes no remedy.**
+  ///
+  /// Both halves of `Display` are wrong for a carried row and the second half is
+  /// the harmful one. `residue:` is the word the report reserves for the
+  /// BLOCKING bucket, so a carried line led by it contradicts the count printed
+  /// beside it -- and the `remedy:` that followed told the operator to go and fix
+  /// a row hv's ruling says CONVERTS AS IT IS. **A remedy for a non-problem is
+  /// worse than a missing one**: it is work the tool asked for and did not need,
+  /// on the operator's first contact with the migrator.
+  ///
+  /// Measured on the canary by ic: nine carried findings, all in COMPLETED
+  /// threads, each printed under its own copy of the section header and each led
+  /// `residue:` against a summary line reading `0 blocking, 9 carried`.
+  pub fn carried_line(&self) -> String {
+    format!("carried: {}", self.body())
+  }
 }
 
 impl fmt::Display for Finding {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "residue: {}", self.file)?;
-    if let Some(line) = self.line {
-      write!(f, ":{line}")?;
-    }
-    write!(f, " -- {} -- {}", self.class.as_str(), self.detail)?;
     // The two-line refusal grammar the rest of the estate uses: what is wrong,
     // then what to do about it. `doctor --fix` is withdrawn, so this line is
     // the whole of the tool's repair offer -- and it has to be runnable.
-    write!(f, "\n  remedy: {}", self.class.remedy())
+    write!(
+      f,
+      "residue: {}\n  remedy: {}",
+      self.body(),
+      self.class.remedy()
+    )
   }
 }
 

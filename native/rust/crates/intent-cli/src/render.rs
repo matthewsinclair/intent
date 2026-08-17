@@ -1154,13 +1154,18 @@ fn ingest(a: &ArgMatches) -> Result<(), Failure> {
   // reconcile: hv's ruling is that a closed thread's legacy grammar CONVERTS
   // rather than blocking, and a report that showed only blockers would leave
   // the operator unable to tell "nothing wrong" from "not looked at".
-  for finding in &scan.carried {
-    // **Marked on its own line rather than prefixed.** `Finding` renders its
-    // own `residue:` lead and its remedy, so a prefix here produced
-    // "carried: residue: ..." -- two verdicts on one line, and the remedy that
-    // follows tells the reader to fix a row the ruling says converts as it is.
+  // **The header is a SECTION header, so it prints once** (ic, measured on the
+  // canary: nine carried findings, nine copies of it). And each line goes
+  // through `carried_line` rather than `Display`, because `Display` leads with
+  // `residue:` -- the word this report reserves for the blocking bucket -- and
+  // appends a remedy telling the operator to fix a row the ruling says converts
+  // as it is. The counts said `0 blocking, 9 carried` while every line above
+  // them said otherwise.
+  if !scan.carried.is_empty() {
     println!("carried (converts as-is, no action):");
-    println!("{finding}");
+    for finding in &scan.carried {
+      println!("{}", finding.carried_line());
+    }
   }
 
   let wps: usize = scan.threads.iter().map(|t| t.wps.len()).sum();
