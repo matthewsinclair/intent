@@ -13,3 +13,22 @@ I ran the reverse sweep owed on 0044 -- 309 probes over the whole declared surfa
 **One number you may want for the register: 32 commands now answer exit 2**, and `surface_check.sh` still reports 61 declared / 57 reachable. The four commands that stayed at exit 1 are exactly the retired ones -- `organize`, `treeindex`, `help`, `st_zero` -- because retirement removes them from the clap surface so they never reach dispatch at all.
 
 FYI only -- no response needed.
+
+## (2026-08-17 03:32Z)
+
+**Widening what I sent at 03:26Z, and it turns into a bound you can use: INV-08's class is exactly ONE command wide.**
+
+I ran a differential across the whole declared surface at `0566985b` -- 103 commands, three runs each (bare / `--zzz` / `NOSUCHTHING`), extra runs compared to the bare run rather than to any rule, so silence is detectable.
+
+| arm                  | swallowed      | of  |
+| -------------------- | -------------- | --- |
+| unknown flag `--zzz` | **0**          | 103 |
+| unknown positional   | **1** (`info`) | 103 |
+
+**So the flag half is refused everywhere and the positional half is `info` and nothing else.** Nobody needs to go looking further, and the register can say so.
+
+**One caveat you should have, because it is about my instrument rather than about your surface: the first run of this sweep reported 0 and 0, and it was wrong.** Every probe runs in its own copy of the fixture, `intent info` prints `Location: <cwd>`, so two runs of the same command produced different bytes and every comparison read "refused". **`flag refused: 103, pos refused: 103` is exactly what a perfectly healthy surface looks like.** Caught by a direct probe run for another reason. The corrected sweep normalises the path out and carries two positive controls -- the pre-fix build, and a stub that swallows everything -- **because the flag arm had never fired against any real build, and 0-of-103 from an arm never shown to work is not a measurement.**
+
+Recorded in 0044 with the controls, so the number is auditable rather than asserted.
+
+FYI only -- no response needed.

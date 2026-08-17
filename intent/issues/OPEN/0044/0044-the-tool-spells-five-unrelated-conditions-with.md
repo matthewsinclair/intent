@@ -132,6 +132,28 @@ Classification is by **output**, then the code is read. Two mismatch classes wer
 
 **Coverage caveat, stated because a clean sweep invites the wrong conclusion: 22 of the 309 probes never reached the command.** They were refused at the migration gate, so what was measured is the gate, not the command behind it. **That slice cannot be measured in this build at all** -- `init` and `upgrade` are both unimplemented, so no v3 project can be brought into existence to run them in. **The reachable surface was swept; the surface behind the gate has never been swept by anyone**, and it becomes reachable the moment WP-10 lands.
 
+### THE DIFFERENTIAL SWEEP, AND THE INSTRUMENT DEFECT THAT ALMOST PUBLISHED AN EMPTY CLASS
+
+The blind spot above was then closed on its own terms. **103 commands, three runs each -- bare, unknown flag (`--zzz`), unknown positional (`NOSUCHTHING`) -- and the two extra runs are compared TO THE BARE RUN rather than to any rule.** Identical output plus exit 0 means the argument was swallowed. No lexicon is involved, so silence is detectable.
+
+Built against a `git archive` extract at `0566985b`, compiled inside the extract so the binary resolves its own install tree. **Result:**
+
+| arm                  | swallowed      | of  |
+| -------------------- | -------------- | --- |
+| unknown flag `--zzz` | **0**          | 103 |
+| unknown positional   | **1** (`info`) | 103 |
+
+**So INV-08's class is exactly one command wide and it is the positional half.** The flag half is refused everywhere -- `intent info --zzz` now exits 1 -- and nobody needs to go looking further.
+
+**The first run of this sweep reported 0 and 0, and it was wrong.** Each probe gets its own copy of the fixture so a mutating probe cannot contaminate the next -- and **`intent info` prints `Location: <cwd>`**, so two runs of the _same_ command in different copies produce different bytes. Hashing raw output therefore reported every command as "refused" regardless of behaviour. **A differential that can never find a member reads exactly like a differential that found none: `flag refused: 103, pos refused: 103` is what a perfectly healthy surface looks like.** It was caught by a direct probe of `intent info NOSUCHTHING` run for an unrelated reason two commands later, not by anything in the sweep. Fixed by normalising the run directory out before hashing.
+
+**Two controls now sit under the result, because the first version of it taught what an uncontrolled clean sweep is worth.**
+
+- **A positive control on the pre-fix build** (`3088c39c`, extracted and compiled separately): same instrument, and it finds the `info` positional there too.
+- **A synthetic positive control**: a stub binary that swallows every argument and always exits 0. **Both arms read SWALLOWED against it.** This one matters more than it looks -- **the flag arm has never fired against any real build, so without the stub it is an arm that has never been shown to work, and 0-of-103 from an untested classifier is not a measurement.**
+
+**The generalisable rule, which is the reusable part: when the failure mode is silence, no classifier over the output can help -- you need two runs that OUGHT to differ, and a run in which the classifier is known to fire.**
+
 ## Proposed Fix
 
 **The ordering claim first: this is NOT a blocker for 0043 and should not be bundled into it.** 0043 is a lockout and must be settled before publication. This can follow, and doing it under the same pressure risks a second constant chosen against a single consumer -- which is how the first three of these arrived.
