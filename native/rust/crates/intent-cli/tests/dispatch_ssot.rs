@@ -886,6 +886,22 @@ fn the_root_help_is_not_borrowed_from_a_family() {
 /// Order is compared, not just membership: the block is generated in table
 /// order, so a set-equal-but-reordered block means it was hand-edited, and the
 /// next regeneration would produce a diff nobody asked for.
+///
+/// **DO NOT "SIMPLIFY" THIS TO READ THE BLOCK THROUGH `dispatch::table()`. The
+/// two sides are read by two different mechanisms ON PURPOSE**, and it took a
+/// mutation to notice the property is here at all. The block comes out of
+/// `dispatch::TABLE` as raw JSON; the rows come through serde. So a key serde
+/// silently DROPS shows up as a disagreement, where every other table-vs-binary
+/// check in this estate reads through the same deserializer on both sides and
+/// therefore agrees with itself.
+///
+/// Measured: rename `new_surface` in the canon and serde's `#[serde(default)]`
+/// yields an empty vec, so the typed walk sees 104 declared rows where the raw
+/// block still has 112 -- and this test reds. **Eight shipped commands vanish
+/// from the binary's view and NOTHING ELSE IN THE SUITE NOTICES**, because a
+/// surface built from a table missing those rows matches a table read as
+/// missing those rows in both directions. That is the consistency-check-blind-
+/// to-a-shared-error class, and being a third source is what escapes it.
 #[test]
 fn the_populations_block_and_the_shipping_predicate_agree() {
   let table = dispatch::table();
