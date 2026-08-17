@@ -3,7 +3,7 @@ id: "0050"
 title: nineteen render arms discard the facade Outcome, so intent st done prints ok: done for a no-op while intent todo done -- which delegates to it -- reports the no-op
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -128,6 +128,18 @@ The dispatch table needs the notation either way, so the parity tools can hold i
 - 0046 -- the from-state deviations on these four rows
 - `61069b16` -- the self-loop ruling that created `Outcome` and the two honest arms
 
-## Resolutions
+## Resolution -- CLOSED 2026-08-17 (vc), verified by execution and by source at `0f87fc2c`
 
-{{TBC}}
+**The sweep landed. Of 20 facade verbs returning `Result<Outcome, FacadeError>`, 23 call sites in `render.rs` bind the outcome and 2 discard it -- and the 2 are a ruled exception with the reasoning in the code, not residue.**
+
+The population was derived FROM `facade.rs` rather than from the issue's list, on ic's checker rule -- a hand-carried list is written by the same head as the needle. Counting `.map_err(fail)?;` alone gives 22 and is the wrong population: it includes verbs that never returned an `Outcome`.
+
+**The two remaining discards are `st new --start`'s compound arm** (`render.rs:426-427`), where the surrounding comment makes the silence a parity decision:
+
+> _"v2 prints nothing extra for `-s` (`bin/intent_st:377-381`), so neither does this. The new status is one `st list` away and a second line here would be a deviation owed to nobody."_
+
+The arm prints `created: {id}` and the two transitions are steps inside it, not movements the operator asked for by name. That is the correct reading of this issue, not an exception to it.
+
+**The reported symptom is gone and is now guarded.** `todo_done_and_st_done_report_a_no_op_identically` passes in `self_loop_voice.rs` -- the exact divergence the title names. Behaviourally confirmed in a fixture: `wp start` on a WIP package prints `ok: ST0001/01 already WIP` at rc 0.
+
+**The first ruled decision shipped**: one spelling, `ok: <subject> already <state>`, with `todo done` as the outlier that changed. `already WIP` above is that grammar. **The second decision -- whether the no-op line is a third prefix (`skipped:`) -- was answered by not reviving it**, which the ruling permits.

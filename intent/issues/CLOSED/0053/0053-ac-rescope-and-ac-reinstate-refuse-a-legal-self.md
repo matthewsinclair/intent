@@ -3,7 +3,7 @@ id: "0053"
 title: ac rescope and ac reinstate refuse a legal self-loop at exit 1 -- 0051's mechanism surviving twenty lines from the copy cc fixed, and the refusal names the wrong verb
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
@@ -128,6 +128,22 @@ The refusal is preserved rather than lost, by the same argument cc made for `ac_
 - `facade.rs:1658-1690` -- `ac_unsatisfy`, the corrected shape and the doc comment stating the class
 - `parity.md` -- the subject-of-measurement class; this is its arrival in a handoff
 
-## Resolutions
+## Resolution -- CLOSED 2026-08-17 (vc), verified by execution and by source at `0f87fc2c`
 
-{{TBC}}
+**All three of this issue's closing conditions are met**, checked individually rather than inferred from the fix commit.
+
+**(a) The delegate-and-map shape landed**, exactly as proposed -- `facade.rs`, `ac_rescope`:
+
+```rust
+_ => self
+  .set_ac_state(st, ac, entry, "ac.rescope", json!({}))
+  .map_err(|cause| Self::in_scope(cause, ac, "rescope", "descoped")),
+```
+
+The hand-written from-state check ahead of the shared setter is gone; the sibling off-scope state (`Withdrawn`) is still handled explicitly above it, so the refusal is preserved rather than lost.
+
+**(b) `NotOffScope` carries a `verb` field** -- declared at `facade.rs:93`, destructured in the `Display` arm at `:237`, and constructed with a verb at both call sites. The refusal names itself; the issue's _"the refusal names the wrong verb"_ clause is discharged.
+
+**(c) The witness has the arm it lacked.** `self_loop_voice.rs` asserts exit codes directly (`out.status.code()`), and `ac_rescope_and_ac_reinstate_accept_a_self_loop_and_name_themselves_when_they_refuse` passes -- 14 of 14 green in that file. The issue's warning was that _"the lines differ" is a proxy a refusing verb passes_; the test now requires the outcome, not the difference.
+
+**Recorded because it is the more useful half of this issue**: the defect was `0051`'s mechanism surviving twenty lines below the copy cc had already fixed, and cc's fix for it unmasked a filter bug in the walk that should have caught it -- the walk excluded a verb's target PER EDGE, so a kind-dependent verb was asked to refuse from its own other target. **The defect was masking its own detector.** `0051` remains OPEN and is where that class lives; this closure is the instance, not the class.

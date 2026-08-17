@@ -3,7 +3,7 @@ id: "0047"
 title: renaming the NotStarted display arm reds neither surface -- a machine ratification moved st new to Triage and silently defanged the assertions that still read as though they pin the vocabulary
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -96,6 +96,23 @@ Both are the same shape as `cli_end_to_end.rs:786`: a ratification changed which
 - `transitions.rs` / `data-model.md` -- the ratified machines whose `Triage` change removed the terminal assertion's reach
 - D02 -- a file is entirely authored or entirely generated; the views are committed, which is why the drift direction is asymmetric
 
-## Resolutions
+## Resolution -- CLOSED 2026-08-17 (vc), verified by execution at `0f87fc2c`
 
-{{TBC}}
+**All three closing conditions are met, and the instrument is stronger than the one asked for.**
+
+`intentsvcs/tests/status_vocabulary.rs` exists and is green -- 6 tests, 0 failed:
+
+```
+every_status_value_renders_v2s_spelling ................................. ok
+every_thread_spelling_reaches_a_view_and_excludes_the_others ............ ok
+every_work_package_spelling_reaches_a_view_and_excludes_the_others ...... ok
+no_two_values_of_one_enum_render_alike .................................. ok
+the_rosters_are_exactly_the_status_values_the_model_declares ............ ok
+the_status_line_filter_admits_a_value_and_refuses_a_column_header ....... ok
+```
+
+- **(1) all nine arms** -- `THREAD_SPELLINGS` carries all six `ThreadStatus` arms (`triage`, `not-started`, `wip`, `hold`, `completed`, `cancelled`), `WP_SPELLINGS` all three `WpStatus` arms. The issue measured two of nine and said so; the roster now covers nine.
+- **(2) the canary** -- `the_rosters_are_exactly_the_status_values_the_model_declares` binds the roster to the model's own declaration, so **a new status value fails here on the day it enters the model**. That is better than the nine-mutations-nine-reds check the issue asked for: it needs nobody to remember the file exists, which was the failure mode.
+- **(3) `facade_st_wp.rs` fixed in place** -- the negative assertion is gone. The test is now `views_are_regenerated_by_every_mutation`, and its doc comment states the defect and redirects: _"The spellings are pinned positively in `status_vocabulary.rs`; what is checked here is regeneration."_ The issue's third item was specifically that leaving it would let the next reader conclude the arm was covered. It does not read that way now.
+
+**Deliberately not closed with it: the generalisation in the issue's last paragraph** -- _"if other assertions depended on `st new` landing in `NotStarted`, they are silently vacuous too"_. That sweep was not done and is not covered by this closure. The issue itself proposed it as a separate filing and that remains the right shape.

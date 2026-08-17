@@ -3,7 +3,7 @@ id: "0039"
 title: declared command aliases are not deserialized, so four keep-classified aliases do not exist in the binary -- at done and at notdone are live parity breaks and no instrument covers the field
 date: 2026-08-16
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -145,3 +145,23 @@ The discriminator is the arg's own `type`, not a list of exempt names: `enum` an
 - **Not done, and named so it is not mistaken for done:** `default` is validated, not rendered. A row that declares one still gets no clap default. That is a deliberate stop, not an oversight, and it wants either a canon spelling that distinguishes a computed default from a literal one, or a decision that the four `subcommand` rows are wired and `init` is not.
 
   **STILL OPEN, re-measured 2026-08-16 -- and this issue does NOT close on the clause-2 ruling above.** Recorded because cc's own board had "0039 CAN BE CLOSED, ic ruled clause 2 with no work" queued as an action, and clause 2 was never the only outstanding item; the note above it has been here since the resolution was written. Measured rather than re-read: `Flag.default` DOES reach clap (`spine.rs:444`, guarded so it applies only where a default makes sense), `Arg.default` does not, and eight rows declare one. **A queued action whose premise was true when it was queued is not a queued action whose premise is true when it runs**, which is the whole of why it was checked before being taken.
+
+### The outstanding clause, RE-MEASURED AND DISCHARGED -- 2026-08-17 (vc), at `0f87fc2c`
+
+**`Arg.default` now reaches clap, and the resolution took the second of the two options this section offered: the closed-domain rows are wired and `init` is not.**
+
+`spine.rs:416` renders it, gated on the arg's own declared type exactly as prescribed -- `if let Some(default) = &arg.default && arg.kind == "enum"`. The eight rows resolve into three groups, and the gate is the discriminator this section asked for rather than a list of exempt names:
+
+| type          | rows                                              | renders | why                                                             |
+| ------------- | ------------------------------------------------- | ------- | --------------------------------------------------------------- |
+| `enum`        | `st show`, `st edit`                              | **yes** | closed domain, literal value                                     |
+| `subcommand`  | `issues`, `todo`, `claude rules`, `plugin`, `ext` | no      | wired in DISPATCH, not as a clap default -- verified below       |
+| `string`      | `init`                                            | no      | open domain; the value is prose, and this was the whole hazard   |
+
+**Verified behaviourally, not read**: `intent st show ST0001` with no file argument renders `info` (the `enum` default reaching clap), and `intent todo` with no subcommand prints the TODO view at rc 0 (the `subcommand` default reaching dispatch). So both mechanisms carry their group, and `init` still refuses to name a project _"the current directory name"_ -- which is the confidently-wrong behaviour the field existed to prevent.
+
+**A correction to this section's own arithmetic: it says FOUR `subcommand` rows and there are FIVE** (`issues`, `todo`, `claude rules`, `plugin`, `ext`). The same staling cc hit on `data-model.md`'s five-vs-six: a count written into prose is true at its revision and silently false afterwards, and nothing re-reads it.
+
+**Two limits on this closure, stated rather than implied.** `claude rules` could not be exercised -- the `claude` family is unimplemented in v3, so its default is verified by declaration only, one of five. And the issue's separate clause about `st show` is NOT discharged here and must not be read as closed by it: **`st show` renders the default and then ignores the positional entirely**, which is open issue **0055**, confirmed live at this same SHA.
+
+**Recorded because this closure was nearly taken on the wrong subject.** The sweep that reached this issue measured the four ALIASES, found all four live, and was about to close on that -- while the outstanding item was `Arg.default`, a different clause of the same issue. It was stopped by the resolution script refusing to overwrite a `## Resolutions` section that was not the `{{TBC}}` placeholder, ie by a structural guard rather than by the reader noticing. **That is the second time in one day this section has caught a queued close whose premise had moved**, the first being cc's board (2026-08-16, noted above). The warning written there held twice.
