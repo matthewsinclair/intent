@@ -66,6 +66,51 @@ RELEASE_DIR="$ROOT/native/rust/target/release"
 BINARIES="intent intentd"
 KC_PREFIX="intent.apple"
 
+# THE SUPPORT TREE, AND WHY A RELEASE OF TWO BINARIES SHIPS THREE ARTEFACTS.
+#
+# **A Rust binary cannot carry shell inside itself.** Intent ships its Claude Code
+# hooks and its whiteboard guards as FILES under `lib/templates/`, and two shipped
+# consumers exec them out of the install tree: `intent claude hook <name>` runs
+# `lib/templates/.claude/scripts/<name>.sh`, and the pre-commit gate runs
+# `lib/templates/hooks/<guard>.sh` at a path it parses back out of `intent info`.
+# The binary finds that tree by walking up from its own symlink-resolved location
+# to the directory containing `lib/templates/` (`intentsvcs::install::MARKER`),
+# with no environment fallback -- deliberately, because a stale v2 `$INTENT_HOME`
+# would otherwise make a v3 binary exec v2's hook scripts.
+#
+# A formula that installs only the binaries therefore produces an install that
+# cannot find itself. Measured against a reproduction of exactly what the formula
+# builds -- binary under `Cellar/intent/3.0.0/bin/`, brew-style symlink, neutral
+# cwd (probe at 501f5083): `intent info` and `intent claude hook` both fail, and
+# the gate's guard path comes back unresolvable. **Every consumer project would
+# silently lose its session hooks and both whiteboard guards.**
+#
+# THE TARBALL'S ROOT IS THE INSTALL ROOT, not the templates directory, and that is
+# the one design decision here worth defending. It contains `lib/templates/...`
+# rather than `templates/...`, so the formula's install line is "put everything in
+# this archive into libexec" rather than "put templates in libexec/lib". Two
+# unimplemented commands -- `intent critic` and `intent claude rules`, both exit 2
+# in this build -- will need the rule library, which lives OUTSIDE the marker
+# directory (`intent/plugins/claude/rules/`). When they land, the shipped set
+# grows. Rooting the archive at the install root means that is a CONTENT change,
+# not a formula change and not a second asset.
+#
+# IT IS NOT SIGNED AND NOT NOTARISED, AND THAT IS NOT AN OMISSION. Notarisation
+# assesses Mach-O binaries; a gzipped tar of shell and markdown has nothing to
+# sign and nowhere to hold a ticket. The control that protects it is the same one
+# that protects the binaries: `publish` re-downloads what it uploaded and hashes
+# THAT. What this DOES require is that `checksum` stop treating "staged artefact"
+# and "must be proven notarised" as the same set -- see cmd_checksum, where an
+# unclassified artefact is now a refusal rather than a default.
+SUPPORT_ASSET="intent-support.tar.gz"
+
+# What the support tree is built from. Relative to $ROOT, and it is the marker
+# directory itself rather than a parent, because everything the shipped consumers
+# reach into is under it -- verified rather than assumed: the only path any
+# shipped script references outside its own tree is `$INTENT_HOME_RESOLVED`, which
+# is resolved at runtime and points back here.
+SUPPORT_PATHS="lib/templates"
+
 # WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Two repositories,
 # by hv's ruling of 2026-08-15 (D40): artefacts live on the source repo's own
 # releases, and the tap carries only the formula that names them.
@@ -165,7 +210,69 @@ require_staged() {
   for b in $BINARIES; do
     [ -f "$STAGE_DIR/$b-$triple" ] || missing="$missing $b-$triple"
   done
+  [ -f "$STAGE_DIR/$SUPPORT_ASSET" ] || missing="$missing $SUPPORT_ASSET"
   [ -z "$missing" ] || die "nothing staged:$missing -- run 'int macos stage' first (it copies the build output into $STAGE_DIR, where a peer's cargo build cannot reach it)"
+}
+
+# is_binary_artefact <file> <triple> -- is this staged file one of the Mach-O
+# artefacts, and therefore something that MUST be proven signed and notarised
+# before anything hashes it?
+#
+# Derived from $BINARIES rather than matched against a pattern. The staged names
+# used to be identified by the glob `*-$triple`, which answers a question about
+# SPELLING when the question is about KIND -- and a data artefact that happened to
+# end in the triple would have been fed to `verify_notarised`, while one that did
+# not would have been silently left out of SHA256SUMS.txt. Neither failure names
+# itself.
+is_binary_artefact() {
+  local f="$1" triple="$2" b
+  for b in $BINARIES; do
+    [ "$f" = "$b-$triple" ] && return 0
+  done
+  return 1
+}
+
+# staged_artefacts -- everything in the staging directory that is a candidate for
+# publication. SHA256SUMS.txt is the claim ABOUT these files and never one of
+# them, so it is the single exclusion.
+staged_artefacts() {
+  [ -d "$STAGE_DIR" ] || return 0
+  (cd "$STAGE_DIR" && ls -1) | grep -v '^SHA256SUMS\.txt$' || true
+}
+
+# unclassified_artefacts -- staged files that are neither a Mach-O we must prove
+# nor a data asset we have decided to ship unproven.
+#
+# EXTRACTED SO IT CAN BE DRIVEN. Inline in cmd_checksum this was reachable only
+# through a full release run -- stage, sign, and a multi-minute notarisation
+# round trip to Apple -- which is another way of saying it was never going to be
+# tested and its first exercise would have been a release. The refusal is the
+# part worth proving; proving it should not cost a trip to Apple.
+unclassified_artefacts() {
+  local triple="$1" f out=""
+  for f in $(staged_artefacts); do
+    is_binary_artefact "$f" "$triple" && continue
+    [ "$f" = "$SUPPORT_ASSET" ] && continue
+    out="$out $f"
+  done
+  printf '%s' "$out"
+}
+
+# support_tree_drift -- how the built archive differs from the source tree, in
+# both directions. Empty output means they agree.
+#
+# `comm -3` over two sorted lists rather than a per-file grep, so the answer is
+# derived from the sets rather than from a list of names someone maintained.
+# .DS_Store is excluded on BOTH sides, because it is excluded when the archive is
+# built and comparing an exclusion against a non-exclusion reports drift that is
+# not drift.
+support_tree_drift() {
+  local archive="$STAGE_DIR/$SUPPORT_ASSET"
+  [ -f "$archive" ] || { printf 'no archive at %s' "$archive"; return 0; }
+  comm -3 \
+    <(cd "$ROOT" && find $SUPPORT_PATHS -type f ! -name '.DS_Store' | sort) \
+    <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' | sort) |
+    sed -e 's/^\t/       > /' -e 's/^\([^ \t]\)/       < \1/'
 }
 
 # --- subcommands -------------------------------------------------------------
@@ -426,6 +533,39 @@ cmd_stage() {
     printf '    %-34s <- target/release/%s\n' "$b-$triple" "$b"
   done
 
+  # The support tree. Built HERE, with the binaries, rather than in a later step,
+  # because it is an input to the release in exactly the way they are and the
+  # ordering hazard that separates the other steps does not apply to it: signing
+  # rewrites a binary's bytes, so a hash taken before `sign` is stale, but nothing
+  # in this pipeline ever rewrites the tarball. It is built once and hashed once.
+  #
+  # `--exclude` on .DS_Store, because the Finder writes one into any directory it
+  # has been looked at in, and a release artefact whose bytes depend on whether
+  # somebody opened a window is not a release artefact.
+  step "staging the support tree"
+  tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" --exclude '.DS_Store' $SUPPORT_PATHS ||
+    die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS"
+  printf '    %-34s <- %s\n' "$SUPPORT_ASSET" "$SUPPORT_PATHS"
+
+  # Assert the archive carries the tree -- DERIVED, not spot-checked. The first
+  # version of this listed the six scripts the shipped consumers exec, which is a
+  # needle list: it proves the files somebody thought of are present and says
+  # nothing about the ones they did not. Comparing the archive against the source
+  # tree closes the class instead, and costs less code.
+  #
+  # Both directions, because they fail differently and both fail quietly. A file
+  # in the repo and not the archive ships an install missing a guard; a file in
+  # the archive and not the repo means the archive is stale or reaching somewhere
+  # it should not.
+  local drift
+  drift="$(support_tree_drift)"
+  [ -z "$drift" ] || die "$SUPPORT_ASSET does not match $SUPPORT_PATHS:
+$drift
+       '<' is in the source tree and missing from the archive; '>' is in the
+       archive and not in the source tree."
+  printf '    %-34s matches %s exactly (%s files)\n' "" "$SUPPORT_PATHS" \
+    "$(tar -tzf "$STAGE_DIR/$SUPPORT_ASSET" | grep -cv '/$')"
+
   printf '\n'
   ok
   printf '  Staged into %s, which only this command writes.\n' "$STAGE_DIR"
@@ -469,7 +609,31 @@ cmd_checksum() {
   triple="$(host_triple)"
   local sums="$STAGE_DIR/SHA256SUMS.txt"
 
-  step "proving every staged artefact before anything is hashed"
+  # EVERY STAGED ARTEFACT IS CLASSIFIED, AND AN UNCLASSIFIED ONE IS A REFUSAL.
+  #
+  # This command used to have one set -- "the staged files" -- and treat it as
+  # both "what must be proven notarised" and "what gets hashed", which was correct
+  # only while every artefact was a Mach-O. The support tarball breaks that
+  # identity: it must be hashed and it cannot be notarised.
+  #
+  # The dangerous way to write that is a special case for the tarball, because a
+  # special case is a needle list and a needle list forbids only what its author
+  # thought of. **The next artefact after this one gets a decision or it gets
+  # refused** -- it cannot slip in as unproven bytes under a published hash, and
+  # it cannot be silently omitted from SHA256SUMS.txt the way the old
+  # `*-$triple` glob would have omitted it.
+  local unclassified
+  unclassified="$(unclassified_artefacts "$triple")"
+  [ -z "$unclassified" ] || {
+    rm -f "$sums"
+    die "unclassified staged artefact(s):$unclassified
+       Every artefact is either a Mach-O that MUST be proven signed and notarised
+       (add it to BINARIES) or data that cannot be (add it beside SUPPORT_ASSET).
+       Refusing to guess: guessing wrong publishes either an unproven binary or a
+       hash for a file nobody checked."
+  }
+
+  step "proving every Mach-O artefact before anything is hashed"
   for b in $BINARIES; do
     verify_notarised "$b-$triple" || rc=1
   done
@@ -477,9 +641,14 @@ cmd_checksum() {
     rm -f "$sums"
     die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: int macos sign && int macos notarize (the staged binaries are left alone; only the checksum claim is withdrawn)"
   fi
+  printf '    %-34s not a Mach-O -- nothing to sign, nothing to notarise\n' "$SUPPORT_ASSET"
 
+  # Hashed from the CLASSIFIED set, never from a glob. The old form globbed
+  # `*-$triple`, which silently omits any artefact not spelled that way -- and an
+  # asset missing from SHA256SUMS.txt is one `formula` cannot name and `publish`
+  # cannot round-trip, so it would ship unverified or not at all.
   step "checksums"
-  (cd "$STAGE_DIR" && shasum -a 256 ./*-"$triple" | sed 's|\./||' >SHA256SUMS.txt) ||
+  (cd "$STAGE_DIR" && staged_artefacts | tr '\n' '\0' | xargs -0 shasum -a 256 >SHA256SUMS.txt) ||
     die "could not write SHA256SUMS.txt"
 
   printf '\n'
@@ -596,11 +765,12 @@ cmd_formula() {
   require_sums
   version="$(staged_version)"
 
-  local sha_cli sha_daemon
+  local sha_cli sha_daemon sha_support
   sha_cli="$(awk -v f="intent-$triple" '$2 == f { print $1 }' "$sums")"
   sha_daemon="$(awk -v f="intentd-$triple" '$2 == f { print $1 }' "$sums")"
-  [ -n "$sha_cli" ] && [ -n "$sha_daemon" ] ||
-    die "$sums does not carry a hash for both binaries -- re-run 'int macos stage'"
+  sha_support="$(awk -v f="$SUPPORT_ASSET" '$2 == f { print $1 }' "$sums")"
+  [ -n "$sha_cli" ] && [ -n "$sha_daemon" ] && [ -n "$sha_support" ] ||
+    die "$sums does not carry a hash for all three artefacts -- re-run 'int macos prepare'"
 
   cat <<FORMULA
 class Intent < Formula
@@ -623,14 +793,46 @@ class Intent < Formula
         url "https://github.com/matthewsinclair/intent/releases/download/v#{RELEASE_VERSION}/intentd-$triple"
         sha256 "$sha_daemon"
       end
+
+      # The hooks and guards the binaries exec. Not signed and not notarised --
+      # there is no Mach-O in it. See SUPPORT_ASSET in bin/.devbin/cmd/macos.
+      resource "support" do
+        url "https://github.com/matthewsinclair/intent/releases/download/v#{RELEASE_VERSION}/$SUPPORT_ASSET"
+        sha256 "$sha_support"
+      end
     end
   end
 
+  # EVERYTHING LANDS IN libexec AND bin GETS SYMLINKS, which is not the obvious
+  # layout and is not a style preference.
+  #
+  # \`intent\` locates its own install by walking up from its symlink-resolved
+  # location to the directory containing \`lib/templates/\`, so the support tree
+  # has to sit beside the binary inside the keg -- a plain \`bin.install\` leaves
+  # the binary unable to find the hooks it execs, and both whiteboard guards and
+  # every session hook stop working with nothing reporting a failure.
+  #
+  # That rules IN two layouts and Homebrew rules one of them OUT. Installing to
+  # \`prefix/lib/templates\` resolves correctly, but \`lib\` is a LINKED directory:
+  # brew symlinks keg \`lib\` subdirectories into the shared prefix, so this would
+  # publish a directory called \`templates\` into \`#{HOMEBREW_PREFIX}/lib\`
+  # alongside 858 other formulae's entries. \`templates\` is about as generic as a
+  # name gets, and the collision would surface as a \`brew link\` failure in
+  # somebody else's install. \`libexec\` is not linked, so the tree stays private
+  # to this keg.
   def install
-    bin.install Dir["intent-*"].first => "intent"
+    (libexec/"bin").install Dir["intent-*"].first => "intent"
     resource("intentd").stage do
-      bin.install Dir["intentd-*"].first => "intentd"
+      (libexec/"bin").install Dir["intentd-*"].first => "intentd"
     end
+    # The archive is rooted at the install root, so this stays correct when the
+    # shipped set grows -- it installs whatever the tarball carries rather than
+    # naming \`templates\` and having to change when something joins it.
+    resource("support").stage do
+      libexec.install Dir["*"]
+    end
+    bin.install_symlink libexec/"bin/intent"
+    bin.install_symlink libexec/"bin/intentd"
   end
 
   # NO \`service do\` BLOCK YET, and its absence is deliberate. intentd currently
@@ -761,8 +963,13 @@ cmd_publish() {
   gh repo view "$TAP" >/dev/null 2>&1 ||
     die "cannot reach the tap $TAP -- check 'gh auth status'"
 
-  local assets=""
-  for b in $BINARIES; do assets="$assets $STAGE_DIR/$b-$triple"; done
+  # UPLOAD THE HASHED SET, NEVER A RESTATED ONE. Both this list and the
+  # round-trip below iterate what `checksum` actually classified and hashed, so
+  # "what gets published" and "what has a published hash" cannot drift apart. The
+  # earlier form listed $BINARIES here and would have shipped two of the three
+  # artefacts, silently, leaving the formula pointing at a resource that 404s.
+  local a assets=""
+  for a in $(staged_artefacts); do assets="$assets $STAGE_DIR/$a"; done
 
   step "plan"
   if [ "$have_release" -eq 1 ]; then
@@ -770,7 +977,7 @@ cmd_publish() {
   else
     printf '    release   %s %s (will be created)\n' "$REPO" "$tag"
   fi
-  for b in $BINARIES; do printf '    artefact  %s-%s\n' "$b" "$triple"; done
+  for a in $(staged_artefacts); do printf '    artefact  %s\n' "$a"; done
   printf '    tap       %s (Formula/intent.rb)\n' "$TAP"
 
   if [ "$dry" -eq 1 ]; then
@@ -797,11 +1004,17 @@ cmd_publish() {
 
   # BE THE USER. Same public URL a formula sends brew to.
   step "re-downloading the published artefacts and hashing what came back"
-  local tmp rc=0
+  local tmp name rc=0
   tmp="$(mktemp -d)"
-  for b in $BINARIES; do
-    local name="$b-$triple" want got
+  for name in $(staged_artefacts); do
+    local want got
     want="$(awk -v f="$name" '$2 == f { print $1 }' "$STAGE_DIR/SHA256SUMS.txt")"
+    # An artefact with no line in SHA256SUMS.txt has just been uploaded with no
+    # published hash describing it. Comparing "" against a real hash would report
+    # a MISMATCH, which is the right outcome reached for the wrong reason and
+    # names the wrong fix; say what is actually wrong.
+    [ -n "$want" ] ||
+      die "$name was uploaded but SHA256SUMS.txt carries no hash for it -- re-run 'int macos prepare' and publish a fresh tag."
     curl -fsSL -o "$tmp/$name" "https://github.com/$REPO/releases/download/$tag/$name" ||
       die "could not download the artefact we just published: $name"
     got="$(shasum -a 256 "$tmp/$name" | awk '{ print $1 }')"
