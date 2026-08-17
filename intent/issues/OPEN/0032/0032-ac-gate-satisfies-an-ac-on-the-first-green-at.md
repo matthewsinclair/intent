@@ -93,7 +93,9 @@ pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
 
 ### Blast radius on ST0056's own contract: real, and currently latent
 
-Measured at `21b8f8d0`, all **112 of 112** AT rows parsed (an earlier pass silently matched 93 because it required a backticked file and the `(non-test)` rows have none -- a partial parse reporting zero findings is indistinguishable from a clean one, so the script now refuses unless it accounts for every row):
+**This re-confirms ic's 2026-08-16 measurement rather than adding one** -- same two criteria, same verdict, at 112 rows instead of 109 and against the v3 predicate instead of the v2 one. The table is repeated here only because this section has to stand next to the Rust code; **the finding is ic's and the numbers are unchanged three revisions later.**
+
+Measured at `21b8f8d0`, all **112 of 112** AT rows parsed (an earlier pass of mine silently matched 93 because it required a backticked file and the `(non-test)` rows have none -- a partial parse reporting zero findings is indistinguishable from a clean one, so the script now refuses unless it accounts for every row):
 
 | criterion | covering ATs     | statuses          | `.any` | `.all` |
 | --------- | ---------------- | ----------------- | ------ | ------ |
