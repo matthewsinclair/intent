@@ -73,8 +73,10 @@ fn intent_home() -> PathBuf {
 fn fake_install(base: &Path, repo: &Path) -> PathBuf {
   let install = base.join("install");
   fs::create_dir_all(install.join("bin")).expect("install bin");
-  fs::copy(env!("CARGO_BIN_EXE_intent"), install.join("bin/intent")).expect("copy the binary under test");
-  std::os::unix::fs::symlink(repo.join("lib"), install.join("lib")).expect("point at the shipped lib");
+  fs::copy(env!("CARGO_BIN_EXE_intent"), install.join("bin/intent"))
+    .expect("copy the binary under test");
+  std::os::unix::fs::symlink(repo.join("lib"), install.join("lib"))
+    .expect("point at the shipped lib");
   install
 }
 
@@ -113,8 +115,7 @@ fn combined(out: &Output) -> String {
 /// A project that has been migrated: it has a whiteboard, a git repository, and
 /// the shipped pre-commit hook installed the way the installer installs it.
 fn migrated_project_without_config(home: &Path) -> tempfile::TempDir {
-  let td = project(home, false);
-  td
+  project(home, false)
 }
 
 fn migrated_project(home: &Path) -> tempfile::TempDir {
@@ -130,7 +131,11 @@ fn project(home: &Path, with_config: bool) -> tempfile::TempDir {
   assert!(git(root, &["init", "-q", "."]).status.success(), "git init");
   assert!(git(root, &["config", "user.email", "t@t"]).status.success());
   assert!(git(root, &["config", "user.name", "t"]).status.success());
-  assert!(git(root, &["config", "commit.gpgsign", "false"]).status.success());
+  assert!(
+    git(root, &["config", "commit.gpgsign", "false"])
+      .status
+      .success()
+  );
 
   // The whiteboard is what makes the guards apply at all: they are opt-in by the
   // presence of this directory, so a project without one must see no change.
@@ -149,7 +154,11 @@ fn project(home: &Path, with_config: bool) -> tempfile::TempDir {
   // the one exposed -- but a fixture without it tests the exit, not the guard.
   if with_config {
     fs::create_dir_all(root.join("intent/.config")).expect("config dir");
-    fs::write(root.join("intent/.config/config.json"), "{\n  \"languages\": []\n}\n").expect("config");
+    fs::write(
+      root.join("intent/.config/config.json"),
+      "{\n  \"languages\": []\n}\n",
+    )
+    .expect("config");
   }
 
   let hook_src = home.join("lib/templates/hooks/pre-commit.sh");
@@ -186,10 +195,18 @@ fn a_bad_board_stamp_is_refused_by_the_shipped_hook() {
   // exact -- it consults no clock and has no tolerance -- so this refusal cannot
   // become flaky with the passage of time, which matters for a test that will
   // outlive everyone who read it.
-  fs::write(root.join("intent/whiteboard/dc/wip.md"), board("2026-08-17 12:00")).expect("write board");
+  fs::write(
+    root.join("intent/whiteboard/dc/wip.md"),
+    board("2026-08-17 12:00"),
+  )
+  .expect("write board");
   assert!(git(root, &["add", "-A"]).status.success());
 
-  let out = commit_through_hook(root, &td.path().join("install"), "wb(dc): a stamp with no Z");
+  let out = commit_through_hook(
+    root,
+    &td.path().join("install"),
+    "wb(dc): a stamp with no Z",
+  );
   let text = combined(&out);
 
   assert!(
@@ -219,10 +236,18 @@ fn a_board_with_no_project_config_is_still_guarded() {
   let td = migrated_project_without_config(&home);
   let root = &td.path().join("repo");
 
-  fs::write(root.join("intent/whiteboard/dc/wip.md"), board("2026-08-17 12:00")).expect("write board");
+  fs::write(
+    root.join("intent/whiteboard/dc/wip.md"),
+    board("2026-08-17 12:00"),
+  )
+  .expect("write board");
   assert!(git(root, &["add", "-A"]).status.success());
 
-  let out = commit_through_hook(root, &td.path().join("install"), "wb(dc): a stamp with no Z, and no project config");
+  let out = commit_through_hook(
+    root,
+    &td.path().join("install"),
+    "wb(dc): a stamp with no Z, and no project config",
+  );
   assert!(
     !out.status.success(),
     "a board with no project config was NOT guarded -- the hook reached a \
@@ -241,10 +266,18 @@ fn the_control_a_good_stamp_still_commits() {
   let td = migrated_project(&home);
   let root = &td.path().join("repo");
 
-  fs::write(root.join("intent/whiteboard/dc/wip.md"), board("2026-08-17 12:00Z")).expect("write board");
+  fs::write(
+    root.join("intent/whiteboard/dc/wip.md"),
+    board("2026-08-17 12:00Z"),
+  )
+  .expect("write board");
   assert!(git(root, &["add", "-A"]).status.success());
 
-  let out = commit_through_hook(root, &td.path().join("install"), "wb(dc): a stamp that carries its Z");
+  let out = commit_through_hook(
+    root,
+    &td.path().join("install"),
+    "wb(dc): a stamp that carries its Z",
+  );
   assert!(
     out.status.success(),
     "a well-formed board was refused, so the guard refuses regardless of its input \
@@ -263,7 +296,8 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
   // `sed` would make this a second implementation of the thing under test, and
   // the two would agree until the day they mattered.
   let home = intent_home();
-  let hook = fs::read_to_string(home.join("lib/templates/hooks/pre-commit.sh")).expect("read the hook");
+  let hook =
+    fs::read_to_string(home.join("lib/templates/hooks/pre-commit.sh")).expect("read the hook");
   let expr = hook
     .lines()
     .find(|l| l.contains("INTENT_HOME_RESOLVED=") && l.contains("sed -n"))
@@ -303,7 +337,11 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
     stdin.write_all(&info.stderr).expect("feed sed");
   }
   let resolved = sed.wait_with_output().expect("sed output");
-  let value = String::from_utf8_lossy(&resolved.stdout).lines().next().unwrap_or("").to_string();
+  let value = String::from_utf8_lossy(&resolved.stdout)
+    .lines()
+    .next()
+    .unwrap_or("")
+    .to_string();
 
   assert!(
     !value.is_empty(),
