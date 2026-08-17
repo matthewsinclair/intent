@@ -3028,7 +3028,7 @@
           "target": {
             "state": "corrected",
             "ratification": "hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default",
-            "behaviour": "Unknown arguments refused, exit 1 per INV-02.",
+            "behaviour": "Unknown FLAGS refused, exit 1 per INV-02 -- and unknown POSITIONALS still swallowed at exit 0, which is half of what this row claims. Measured 2026-08-17 (vc's differential, reproduced by ic in a sandbox): `info --zzz` exits 1, `info NOSUCHTHING` returns byte-identical output to bare at exit 0, `info --help` renders 148B of real help. THE CAUSE IS THIS ROW'S OWN args DECLARATION: clap refuses unrecognised arguments by default, which is what the ratification calls forced rather than chosen -- but `args[0]` declares a catch-all `ignored` slot, `type: any`, `arity: 0..n`, so clap accepts every positional exactly as instructed. The correction is defeated by a declaration on the same row. That slot was carried forward from the v2 measurement in `observed` (where it is correct) into a v3 declaration (where it is the unfixed half), and nobody re-examined it -- the supersession-not-propagated class, same shape as `doctor`'s `read_or_mutate` outliving `--fix`. vc's bound: the positional half is exactly ONE command wide across 103 probed, and the flag half is refused everywhere.",
             "ratified_in": "parity.md"
           },
           "disposition": "keep",
@@ -6493,7 +6493,7 @@
     },
     {
       "path": "backup",
-      "help": "Snapshot this machine's store for fast local restore",
+      "help": "Snapshot this machine's store for fast local restore -- prunes expired snapshots",
       "flags": [
         {
           "spellings": [
