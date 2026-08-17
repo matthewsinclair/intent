@@ -217,3 +217,18 @@ All three heads of that TODO are now closed, in that order:
 Filed today: **0055** (`st show` never reads its `file` positional; a `keep` row reporting success for a request it discarded).
 
 Landed and retired from the live TODO: `TShirt::ALL` / `TShirt::parse` as the size vocabulary's one home; `declared_values_are_enforced.rs`; `RATIFIED` + `TOTAL_MACHINES` + `RATIFIED_WITHOUT_A_TABLE` in `mutation_completeness.rs`; the walk-3 per-verb target union.
+
+---
+
+## Folded out at 2026-08-17 14:00Z -- the five voices, closed
+
+Superseded focus (the 13:11Z fold's): "PAUSED at a localfold, 13:11Z. THREE COMMITS, ALL PUSHED, AND EVERY ONE FOUND MORE THAN IT FIXED ... BOUNCE: ic's five voice rulings at `49db5aec` -- three restorations in `render.rs`."
+
+**ALL FIVE VOICES LANDED (`d14cd0b5`), and the suite is fully green for the first time today: 72 ok legs, 515 passed, 0 failed, cargo's own exit 0** -- ic's `literal_stdout_parity.rs` included, all four legs.
+
+- **Restored (as-observed):** `ac satisfy`'s ` by evidence`; the AT family's `-> ` arrow; `at na`'s `n/a`.
+- **Built (corrected):** both undo verbs print `ok: <AC> back in scope (<landing state>)`, state computed from kind. Verified in both kinds through the binary -- `(unsatisfied)` authored, `(computed)` test-backed, one string across both verbs. Read back from the facade because no literal can name `entry(kind)`.
+- **The three spellings were FOUR.** `views.rs::test_line` wrote the wire form into generated `acceptance.md`, so the next projection over a thread with a non-test AT would have rewritten every such row from `n/a` to `n-a` -- rejected by v2's linter at L1. Measured: 23 `n/a` in this estate, zero `n-a`. `AtStatus::display()` is the one home; four sites read it.
+- **hv ruled 0052** (`8e5ef648`): no `wp new --scope`, permanently. Both `render.rs` comments carry it with vc's framing.
+
+Closed by peers on my work: 0050 and 0053 (vc verified by execution at pinned `0f87fc2c`); 0052 (hv). 0051 remains open and is the class 0053 sat inside.
