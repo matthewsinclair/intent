@@ -37,6 +37,19 @@ BIN="${BIN:-$REPO_ROOT/native/rust/target/release/intent}"
 die() { echo "error: $1" >&2; exit 2; }
 
 [ -f "$TABLE" ] || die "no dispatch table at $TABLE"
+
+# The four populations have ONE home -- `.populations` in the table, read by
+# `lib_surface.sh` (issue 0037). This script previously spelled the walk inline
+# FOUR times, twice with the both-predicates retire filter written out by hand,
+# agreeing with the library only by coincidence.
+#
+# BOUND TO **THIS** SCRIPT'S TABLE, and that is not decoration. `TABLE` is
+# overridable by the caller and the library resolves its own default; without
+# this line a `TABLE=/some/other.json` run would CHECK one file and ENUMERATE
+# another, silently, and report the result as if both were the same file. That is
+# the same shape as the defect this consolidation exists to end.
+DISPATCH_TABLE="$TABLE"
+. "$HERE/lib_surface.sh"
 [ -x "$BIN" ] || die "no v3 binary at $BIN -- build it first (\`int build cli\`). Refusing rather than reporting a clean surface: an absent binary and a correct one are not the same result, and only one of them is worth printing."
 
 # --- staleness -------------------------------------------------------------
@@ -77,7 +90,7 @@ if [ -n "$STALE" ]; then
   Refusing rather than reporting: a stale binary yields a plausible report of findings that are already fixed, which is worse than no report because it reads like a regression."
 fi
 
-ROWS="$(jq -r '[.families[].entries[], .new_surface[]] | length' "$TABLE")"
+ROWS="$(surface_declared | grep -c .)"
 [ "$ROWS" -gt 0 ] || die "the table declares no rows -- an empty table makes every check below vacuously green"
 
 # --- probe -----------------------------------------------------------------
@@ -172,6 +185,19 @@ while IFS=$'\t' read -r path disp arity nflags flagjson; do
   # jq version -- none of them get to be silent here again.
   [ "$fseen" = "$nflags" ] || die "\`$path\` declares $nflags flag(s) and only $fseen survived the TSV round-trip, so the rest were never checked against the binary. Refusing rather than reporting: an unexamined flag and a clean flag are the same output, and this loop has now lost flags twice in two different ways."
 
+# THIS ONE IS DELIBERATELY NOT `lib_surface.sh`, AND THE DISTINCTION MATTERS.
+# The other three walks in this file were POPULATIONS -- a list of paths -- and
+# are now `surface_declared` / `surface_shipped`. This is a ROW QUERY: it needs
+# the whole object (`flags`, `args`, arity) and the library emits paths only.
+# Rewriting it to enumerate paths and then look each row back up would be more
+# code, more lookups, and no fewer homes.
+#
+# So `[.families[].entries[], .new_surface[]]` survives here as the ROW
+# ENUMERATION idiom, which is not the same thing as a population even though it
+# is spelled identically -- and that is exactly why it is called out. **The next
+# person to need a list of paths will find this line and copy it**, which is how
+# `.families[].entries[]` alone got copied five times (issue 0037). If you are
+# copying this for a POPULATION, you want `lib_surface.sh` instead.
 done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
   # A row qualifies on EITHER having flags or declaring a subcommand slot. The
   # first version selected on flags alone, which silently excluded every
@@ -300,7 +326,7 @@ while IFS= read -r p; do
   INV-06    \`$p\` -- writes to STDOUT on a failing invocation"
   { [ -n "$iline" ] && ! printf '%s' "$iline" | grep -qE '^error: '; } && INV_VIOL="$INV_VIOL
   INV-01    \`$p\` -- first stderr line is not the lowercase \`error: \` voice: $(printf '%s' "$iline" | cut -c1-50)"
-done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire" and (.target.state // "") != "retire") | .path' "$TABLE")
+done < <(surface_shipped)
 
 [ "$INV_N" -gt 0 ] || die "the invariant sweep probed no paths -- it reports clean invariants by measuring nothing"
 
@@ -342,7 +368,7 @@ while IFS= read -r p; do
       INV_VIOL="$INV_VIOL
   INV-03    \`$p\` -- emits v2's gate wording; the row is ratified \`corrected\`, which asserts v3 does not" ;;
   esac
-done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire" and (.target.state // "") != "retire") | .path' "$TABLE")
+done < <(surface_shipped)
 
 # --- report ----------------------------------------------------------------
 printf 'surface: probed %d declared commands, %d reachable in this build\n' "$PROBED" "$WIRED"

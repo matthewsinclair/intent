@@ -105,27 +105,31 @@ else
 fi
 
 # --- rows excluded BY NAME, printed every run ---------------------------------
-# Two would never return (`daemon` and `mcp` serve until killed, and the timeout
-# would classify a working server as a hang), and two write outside the sandbox
-# by design (`claude upgrade` installs into the user's `~/.claude`, `claude
-# start` launches a session). Naming them here is the whole point: a cap that is
-# not printed reads as coverage.
+# Four rows ship and are deliberately not probed: `daemon` and `mcp` never
+# return (the timeout would classify a working server as a hang), and `claude
+# upgrade` and `claude start` write outside the sandbox by design -- the first
+# installs into the user's real `~/.claude`. Naming them is the whole point: a
+# cap that is not printed reads as coverage.
 #
-# NEWLINE-separated, not space-separated, because two of the four are TWO-WORD
-# PATHS -- a space-delimited list read word-wise would exclude a `claude` family
-# and an `upgrade` row that were never named, which is the wrong-separator
-# defect in its exact classic form. One home for the list; the predicate reads
-# it rather than restating it.
-EXCLUDED='daemon
-mcp
-claude upgrade
-claude start'
+# THE LIST IS NO LONGER HERE, AND THAT IS THE FIX RATHER THAN A TIDY-UP. This
+# block used to declare its own copy, and the comment it carried said "One home
+# for the list; the predicate reads it rather than restating it" -- while being
+# the second home. `lib_surface.sh` was then written to be the one home and
+# became a THIRD, short by one, because its constant was named
+# `SURFACE_NONRETURNING` and `claude upgrade` returns perfectly well; it just
+# returns after writing to a home directory. **The name chose the members**, the
+# copy that had all four was this one, and nothing compared them (issue 0037).
+#
+# The single home is now `.populations.not_probed` in `surface/dispatch-table.json`,
+# generated and refused-on-skew, each member carrying its own `why` so a member
+# without stated grounds cannot be admitted by the key's name again.
+. "$HERE/lib_surface.sh"
 is_excluded() {
   local p="$1" e
   while IFS= read -r e; do
     [ "$e" = "$p" ] && return 0
   done <<EOF
-$EXCLUDED
+$SURFACE_NOT_PROBED
 EOF
   return 1
 }
@@ -325,7 +329,7 @@ EOF
 printf 'implemented: %d of %d probed rows answered; %d answered `%s`; %d never reached dispatch\n' \
   "$((PROBED - UNIMPL - UNREACHED))" "$PROBED" "$UNIMPL" "$MARKER" "$UNREACHED"
 printf '  population: %d shipped of the table, %d excluded by name (%s), %d family rows answered by their verbs\n' \
-  "$SHIPPED" "$SKIPPED" "$(printf '%s' "$EXCLUDED" | tr '\n' ',' | sed 's/,/, /g; s/, $//')" "$BYVERB"
+  "$SHIPPED" "$SKIPPED" "$(printf '%s' "$SURFACE_NOT_PROBED" | tr '\n' ',' | sed 's/,/, /g; s/, $//')" "$BYVERB"
 [ "${#TO[@]}" -gt 0 ] || printf '  note: no `timeout` binary on PATH -- the sweep ran unbounded\n'
 
 if [ "$UNIMPL" -gt 0 ]; then
