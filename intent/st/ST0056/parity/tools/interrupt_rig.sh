@@ -867,8 +867,32 @@ STATUS=$?
 #
 # The other six columns (`principal`, `project_id`, `op`, `subject_type`,
 # `subject_id`, `payload`) carry no clock and no randomness. `store.rs:1745`
-# orders by `id` precisely because a ULID sorts by time, **so ORDINAL POSITION
-# is the faithful normalisation for both fields: it is the log's own order.**
+# orders by `id` precisely because a ULID sorts by time, so ORDINAL POSITION is
+# the log's own order and the faithful normalisation where one is wanted.
+#
+# **BUT THE TWO FIELDS STOPPED BEING THE SAME CASE ON 2026-08-17, AND THE
+# DIFFERENCE CAME OUT OF ASKING A QUESTION RATHER THAN MEASURING ANYTHING.** I
+# asked cc whether merging on a minted ULID unions two runs of one operation
+# into DUPLICATES rather than deduping. It does -- so the restore must carry a
+# DETERMINISTIC id derived from the thread and the operation, or a re-run
+# doubles the log. cc has taken that as a design constraint they did not have.
+#
+# The consequence for this arm is the opposite of the obvious one: **under a
+# deterministic id the two arms must ALREADY agree on `id`, so normalising it
+# would hide a regression to minting** -- the precise defect the constraint
+# exists to prevent. `ts` is normalised; `id` is COMPARED. Whoever implements
+# this should read the refusal text below rather than this comment, because the
+# refusal is what they will actually be looking at.
+#
+# **AND THE PROPERTY ITSELF IS STILL OPEN, WHICH IS vc's TO CLOSE.** cc's
+# preference, not a ruling: equality means the `(op, subject_type, subject_id,
+# payload)` SEQUENCE is identical -- it says the two runs did the same things in
+# the same order, and excluding the log gives up the only check that would catch
+# a re-run doing DIFFERENT WORK. Whether it does is genuinely unknown: `7628a02b`
+# makes canon win on re-read, so a re-run does not re-convert already-migrated
+# threads. **If the restore emits per CONVERTED thread, arm B emits fewer events
+# than arm A and the sequences differ legitimately; if it emits per thread IN THE
+# PLAN, they match.** cc intends the second. This gate is what catches it if not.
 #
 # **SO THE ARM DOES NOT NORMALISE YET, AND IT DOES NOT PRETEND TO.** A
 # normalisation written against 0 rows is a case that cannot fail, which is the
@@ -921,9 +945,16 @@ store_events_are_comparable() {
   echo "    Every row carries a MINTED ULID (\`id\`, 48 bits of clock + 80 of randomness) and a"
   echo "    database-supplied \`ts\`, so the two arms differ there BY CONSTRUCTION and a byte"
   echo "    comparison would report DIFFERENT for a perfectly correct migrator."
-  echo "    TO FIX: normalise \`.events[].id\` and \`.events[].ts\` to ORDINAL POSITION in both exports"
-  echo "    before comparing. store.rs:1745 orders by \`id\` and a ULID sorts by time, so position IS"
-  echo "    the log's own order. The other six columns carry no clock and no randomness."
+  echo "    TO FIX -- AND THE TWO FIELDS ARE NOT THE SAME CASE, SO DO NOT NORMALISE BOTH REFLEXIVELY:"
+  echo "      ts   ALWAYS normalise (ordinal position). It is the DDL default strftime(now)."
+  echo "      id   DO NOT normalise if the restore derives ids DETERMINISTICALLY. cc took that"
+  echo "           constraint on 2026-08-17: merge keys on the ULID, so a re-run that MINTS fresh"
+  echo "           ids unions into DUPLICATES instead of deduping. Under a deterministic id the"
+  echo "           two arms must already agree, and normalising it away would hide a regression"
+  echo "           to minting -- which is the whole defect that constraint exists to prevent."
+  echo "           Normalise it ONLY if ids are still minted, and treat needing to as the finding."
+  echo "    store.rs:1745 orders by \`id\` and a ULID sorts by time, so ordinal IS the log's own order."
+  echo "    The other six columns carry no clock and no randomness; compare them as they are."
   return 1
 }
 
