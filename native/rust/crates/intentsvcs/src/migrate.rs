@@ -216,11 +216,18 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
 
 /// The whole of Phase B's work, over a model rather than over a scan.
 ///
-/// **Separate from [`plan`] because the corpus work needs it** (AC-10.5): a
-/// conservation check drives Phase B from a model it built itself, and routing
-/// that through a `Scan` would mean fabricating a v2 estate to describe a
-/// thread it already has.
-pub fn assemble(
+/// **PRIVATE, and it was public for an afternoon on a justification that did
+/// not survive.** The argument was that AC-10.5's conservation work would want
+/// to drive Phase B from a model rather than from a v2 estate. vc built that
+/// check in shell against the file estate, so the seam has no second caller --
+/// and the case against it is one I had already made to cc that morning, when I
+/// asked them to land `Scan.issues` bare precisely so I would not have to add a
+/// public function for a reason that expires. Then I added it anyway.
+///
+/// It stays as a separate function because residue-gating and assembly are
+/// different jobs, and `Scan` derives `Default` with public fields, so every
+/// test reaches it through [`plan`] without fabricating an estate.
+fn assemble(
   project: &Project,
   ctx: &FacadeContext,
   threads: Vec<Thread>,
@@ -400,20 +407,22 @@ mod tests {
     let project = project(dir.path());
     let before = tree(dir.path());
 
-    let plan = assemble(
+    let planned = plan(
       &project,
       &ctx(),
-      vec![thread("ST0001"), thread("ST0002")],
-      vec![issue(46)],
-      Vec::new(),
+      Scan {
+        threads: vec![thread("ST0001"), thread("ST0002")],
+        issues: vec![issue(46)],
+        ..Default::default()
+      },
     )
     .expect("a clean estate plans");
 
     // Canon: two threads, one issue, one event log. Views: info + acceptance
     // per thread, plus the index and the todo view.
-    assert_eq!(plan.threads.len(), 2);
-    assert_eq!(plan.issues.len(), 1);
-    assert_eq!(plan.writes.len(), 4 + 6);
+    assert_eq!(planned.threads.len(), 2);
+    assert_eq!(planned.issues.len(), 1);
+    assert_eq!(planned.writes.len(), 4 + 6);
     // **The equality below is worthless if `tree` sees nothing**, and a
     // before/after comparison of two empty vectors passes for any behaviour.
     // This is what makes the next line an assertion rather than a shape.
@@ -439,16 +448,18 @@ mod tests {
       "no completed date",
     )];
 
-    let plan = assemble(
+    let planned = plan(
       &project,
       &ctx(),
-      vec![thread("ST0001")],
-      Vec::new(),
-      carried.clone(),
+      Scan {
+        threads: vec![thread("ST0001")],
+        carried: carried.clone(),
+        ..Default::default()
+      },
     )
     .expect("carried findings do not block");
 
-    assert_eq!(plan.carried, carried);
+    assert_eq!(planned.carried, carried);
   }
 
   #[test]
@@ -456,12 +467,13 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let Err(Blocked::Collision { path }) = assemble(
+    let Err(Blocked::Collision { path }) = plan(
       &project,
       &ctx(),
-      vec![thread("ST0001"), thread("ST0001")],
-      Vec::new(),
-      Vec::new(),
+      Scan {
+        threads: vec![thread("ST0001"), thread("ST0001")],
+        ..Default::default()
+      },
     ) else {
       panic!("a duplicated id must not silently overwrite");
     };
@@ -476,12 +488,13 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let Err(Blocked::Collision { path }) = assemble(
+    let Err(Blocked::Collision { path }) = plan(
       &project,
       &ctx(),
-      Vec::new(),
-      vec![issue(46), issue(46)],
-      Vec::new(),
+      Scan {
+        issues: vec![issue(46), issue(46)],
+        ..Default::default()
+      },
     ) else {
       panic!("two issues on one number must not silently overwrite");
     };
@@ -493,20 +506,22 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let plan = assemble(
+    let planned = plan(
       &project,
       &ctx(),
-      vec![thread("ST0001")],
-      vec![issue(1)],
-      Vec::new(),
+      Scan {
+        threads: vec![thread("ST0001")],
+        issues: vec![issue(1)],
+        ..Default::default()
+      },
     )
     .expect("plan");
 
     // The batch is private to `WriteSet`, so this proves the property the only
     // way available from outside: commit it into a throwaway tree and look at
     // what appeared. It is also the one test that exercises the whole path.
-    let planned = plan.writes.len();
-    plan.writes.commit().expect("commit").keep();
+    let count = planned.writes.len();
+    planned.writes.commit().expect("commit").keep();
     let after = tree(dir.path());
 
     // **Named, not counted.** A count assertion passes for any set of the
@@ -528,7 +543,7 @@ mod tests {
     }
     assert_eq!(
       after.len(),
-      planned + 1,
+      count + 1,
       "everything planned landed, and nothing else did (+1 is the config that was already there)"
     );
     for path in &after {
@@ -554,14 +569,16 @@ mod tests {
     let project = project(dir.path());
 
     for (threads, issues) in [(0, 0), (1, 0), (0, 1), (3, 2)] {
-      let plan = assemble(
+      let planned = plan(
         &project,
         &ctx(),
-        (1..=threads)
-          .map(|n| thread(&format!("ST{n:04}")))
-          .collect(),
-        (1..=issues).map(issue).collect(),
-        Vec::new(),
+        Scan {
+          threads: (1..=threads)
+            .map(|n| thread(&format!("ST{n:04}")))
+            .collect(),
+          issues: (1..=issues).map(issue).collect(),
+          ..Default::default()
+        },
       )
       .expect("plan");
 
@@ -571,7 +588,7 @@ mod tests {
       let views = 2 * threads as usize + 2;
       let canon = threads as usize + issues as usize + 1;
       assert_eq!(
-        plan.writes.len(),
+        planned.writes.len(),
         canon + views,
         "{threads} thread(s) + {issues} issue(s)"
       );
