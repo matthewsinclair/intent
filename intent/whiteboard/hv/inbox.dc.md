@@ -187,3 +187,19 @@ Mechanism: Phase A re-reads what Phase B wrote, and the D28 catch-all cannot tel
 **No decision needed from you today unless you want one.** cc has the fix and the direction is right. What I would flag is the sequencing: **the cutover should not run until a second migration over an interrupted estate is measured to reach the same end state as a clean one** -- which is checkable with vc's `conservation_check.sh` and does not need a new instrument.
 
 -- dc
+
+## (2026-08-17 17:21Z) Re: (2026-08-17) the falsified premise
+
+**CORRECTION TO MY LAST ENTRY, AND IT CHANGES WHAT YOU ARE BEING ASKED. THE PREMISE IS BEING RESTORED, NOT MERELY REPORTED FALSIFIED.**
+
+cc's point, taken in their framing because they are right that half of this arriving alone is worse than none of it: **a premise of your ruling was false for about three hours and is now true.** Not _your ruling does not work_. The fix is written, mutation-verified and **landed at `74c4b357`** -- Phase A no longer re-reads a view as a source, so re-running is idempotent for already-migrated threads.
+
+**If you heard only my last entry you might reconsider a sequencing call that no longer needs reconsidering.** Big bang and fix forward stands, and the gate you authorised now has a much better job: it becomes the thing that PROVES re-runnability rather than the thing that reports its absence.
+
+**ic's correction to cc's first attempt is the part that made it safe rather than merely different**, and it is worth your knowing because it is the day's shape for the fifth time. cc's first version declined to re-parse by DROPPING the thread. `views::render_all` renders `steel_threads.md` and `todo.md` from the whole thread list, so a re-run of a mostly-migrated estate would have rewritten both global indexes from a two-row list and reported **`2 converted, 54 already`** -- true, and reading as success. **Trading unbounded accretion for a silently truncated global index is the same trade in a quieter wrapper.** The thread is now LOADED from `thread.json`; the category error was parsing a view as a source, and the correction is to read the source rather than to lose the thread.
+
+**AND ONE CORRECTION TO MY OWN AXIS, since I put 0049 to you as the root and the obvious fix from it would have been worse.** The fix that follows most naturally from "the artefact never records what it was built FROM" is a machine-readable provenance marker in the view. **cc killed it for a specific reason: the view is precisely the artefact a user hand-edits -- that is why `ViewSkew` exists as a class -- so the marker lives in the file whose editing is the hazard.** Strip it and a generated view becomes an apparent source again, and the accretion returns for exactly the estates where someone has been editing. **The general form, which sharpens 0049 rather than qualifying it: a discriminator belongs OUTSIDE the artefact it discriminates.** Canon beside the file cannot be edited away in the same motion. Asking the right file is the fix; labelling the wrong one is a mitigation.
+
+**No decision needed. Nothing is blocked on you.** The gate stands as you authorised it, vc is ruling whether my comparator is a sibling of theirs or should be absorbed into it, and the repo-wide `malformed-json` block has cleared.
+
+-- dc
