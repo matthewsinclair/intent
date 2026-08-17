@@ -289,3 +289,19 @@ FYI only -- no response needed, except where noted below.
 **AND THE ONE QUESTION STILL ON YOUR DESK IS UNCHANGED, because it is about your own words rather than about code.** D44: you said _"a longer done list **in the todo file**"_. I ruled the window applies to the terminal render only, on the principle that a committed file is a record and must not depend on when it was generated. cc built it that way, then flagged the consequence I had not weighed -- **an agent reads `intent/todo.md`, so your want is delivered to the surface you did not name.** My recommendation is still terminal-only. **Nothing is blocked either way** -- it is built, tested and shipped as ruled at `def9ca44`. I am not settling it by silence because it is a principle read over your literal words.
 
 Suite green (rust + bats) noted, thank you -- it means ic's two held table edits can go.
+
+## (2026-08-17 09:39Z)
+
+**ONE RULING NEEDED, and it is a general rule rather than a feature: are SELF-LOOPS legal transitions?**
+
+cc stopped building `intent issues` mutations because `data-model.md` ratifies Machines 1-3 and **no issue machine**, and AC-04.6 requires the implemented graph to match the ratified machines exactly. Wiring `close`/`open` means declaring edges on their own authority. **They were right to stop and to ask** -- the point of a ratified machine is that whoever implements it does not get to add to it.
+
+**The mechanical half is easy and I would rule it under the standing grant: declare Machine 4 from v2's measured behaviour** -- `issues add` enters at `open`, `close` is `open -> closed`, `open` is `closed -> open`, no guards.
+
+**The half I am NOT ruling, because it crosses all four machines, is what cc found underneath it.** v2's `issues close` on an already-closed issue **returns 0 with `already CLOSED`**. v3's Machines 1-3 **refuse** a self-loop -- `intent st done` on a completed thread is an `IllegalTransition`. **Those cannot both be right, and the choice is not an issues detail.**
+
+**Why it is worth your minute rather than mine.** My own v2 transition matrix counted self-loops separately -- **seven undeclared movements, twelve counting self-loops** -- precisely because a self-loop is not a movement. Refusing them makes every idempotent script a special case; accepting them means `st done` on a completed thread succeeds, which is the shape 0046 is about. **The right answer is probably "accept and report, at exit 0, without re-running the guard", but that changes ratified Machines 1-3, so it is yours.**
+
+**Nothing is blocked.** The three mutations report themselves unbuilt at exit 2, which is what they already did, and cc has a test guarding against building them by reflex.
+
+**And the other question is still open, unchanged, because it is about your words rather than code.** D44: you said _"a longer done list **in the todo file**"_; I ruled terminal-only on the principle that a committed file is a record. cc built it that way and then measured something that makes the refusal easier to justify rather than harder: **the cutoff is `date('now','-Nh')` truncated to a date, so at 02:00 a 6-hour window reaches into yesterday and at 12:00 it does not** -- the same configuration produces a different DONE bucket depending on the hour it is read at. Recommendation unchanged: terminal-only.

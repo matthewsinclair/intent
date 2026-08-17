@@ -41,7 +41,29 @@ Found by vc, 2026-08-17, while measuring the WP-status-vs-gate disagreements on 
 
 **Two are worse than the one this issue was filed about.** **`intent st done` on a CANCELLED thread marks it `Completed`** -- abandoned work is silently recorded as finished. **`intent wp done` on a NOT-STARTED work package marks it `Done`** -- and the acceptance gate still runs, so a unit can pass its contract and be closed without ever having been started. **The gate is consulted; the STATE is not.**
 
-**So the shape is not "one verb has a missing guard". It is that v2's lifecycle verbs are unconditional SETTERS, and the state machine exists only in `data-model.md`.** Every one of these verbs is classified `keep` / `as-observed`, which means **v3 inherits all twelve undeclared edges by default unless somebody decides otherwise, and AC-04.6 forbids every one of them.**
+**So the shape is not "one verb has a missing guard". It is that v2's lifecycle verbs are unconditional SETTERS, and the state machine exists only in `data-model.md`.**
+
+### CORRECTED 2026-08-17: THE v2 MATRIX HOLDS AND THE v3 CONSEQUENCE WAS WRONG
+
+I wrote that every one of these verbs is `keep`/`as-observed`, so **"v3 inherits all twelve undeclared edges by default and AC-04.6 forbids every one of them."** cc measured v3 instead of reasoning from the classification, and **v3 REFUSES ALL SEVEN.**
+
+**Verified independently rather than accepted**: built from a `git archive` extract at `29d32e71` and ran `mutation_completeness.rs` -- **16/16, including `a_transition_the_ratified_machine_does_not_declare_is_refused`**, which drives every entity x verb x non-declared-from-state cell out of the ratified tables and requires `IllegalTransition`, with a floor assertion so a collapsing enumeration cannot pass. **The shared guard this issue recommends as Proposed Fix 0 already exists**: `Facade::check_transition` asks `transitions::permits`, and every lifecycle verb routes through it, so there are no per-verb branches to get wrong. **`wp reopen` ships, from `done`, guarded by `ReasonRecorded`.**
+
+**So AC-04.6's first condition is not breached, `reopen` is not owed, and the two-doors problem does not exist in v3 -- `wp start` is not a second door, it is refused.**
+
+**MY ERROR IS THE REUSABLE PART AND IT IS ONE I HAD ALREADY NAMED TWICE TODAY: I read a classification as a statement about behaviour.** `keep`/`as-observed` is a claim ABOUT the code and only the code answers for the code. Same shape as reading `Disposition::Unbuilt` as "unenterable", and as reading `target.behaviour` as what the row does. **The v2 measurement was right because I measured it; the v3 conclusion was wrong because I inferred it, in the same issue, four paragraphs apart.**
+
+**WHAT IS REAL IS ONE LEVEL UP, AND IT IS cc'S FINDING FROM THIS ISSUE: THE REGISTER UNDER-REPORTS A DEVIATION THE CONTRACT DEMANDS.**
+
+| row        | `target.state`  | v2 measured         | v3 actual |
+| ---------- | --------------- | ------------------- | --------- |
+| `st done`  | **as-observed** | accepts CANCELLED   | REFUSES   |
+| `wp start` | **as-observed** | accepts DONE        | REFUSES   |
+| `wp done`  | **as-observed** | accepts NOT-STARTED | REFUSES   |
+
+`as-observed`'s own gloss is _"v3 reproduces what v2 was measured doing… it asserts no deviation, so there is nothing for `parity.md` to ratify."_ **Those three rows assert no deviation across a deviation AC-04.6 REQUIRES.** The right value is `corrected`, and the precedent sits one row away: **`st cancel` IS `corrected`**, noting that Machine 1 guards every edge into `Cancelled` with `reason recorded`. Same mechanism, same author, three rows that did not get the flag. **`st start` is `pending-hv`, which is honest.**
+
+**Under-reporting a deviation is worse than over-reporting one, because `as-observed` is the value that means "nobody needs to look at this".** Routed to ic, whose rows they are.
 
 ## Reproduction
 
