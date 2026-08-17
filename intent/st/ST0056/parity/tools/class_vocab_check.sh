@@ -32,6 +32,26 @@
 #
 # It REPORTS and does not gate, matching its siblings, and refuses only on its
 # own inability to measure.
+# MUTATION PROOFS, run 2026-08-17 at `67814555` (ic). Co-located because a check
+# whose failure path has never fired is a claim, not an instrument -- and this one
+# is GATED into the pre-commit runner now, so it prints a verdict on every commit
+# by four nodes. Re-run with the `TABLE=` / `PARITY=` overrides this file already
+# reads; nothing else is needed.
+#
+#   control                          -> exit 0, "every claimed parity class is named"
+#   a state claiming a class parity.md does not name
+#                                    -> exit 0, reports `UNGROUNDED  zz-invented`
+#   no state claims to be a parity class
+#                                    -> exit 2 (line 52), never "all classes unused"
+#   the class-block HEADING renamed  -> exit 2 (line 67), never "all claims ungrounded"
+#   heading kept, bullet grammar broken
+#                                    -> exit 2 (line 74)
+#
+# **The heading mutation is the one worth having.** Without that refusal a renamed
+# heading empties `NAMED`, and every correctly-grounded class is then reported as
+# ungrounded -- a wall of confident findings produced by reading nothing, pointing
+# at the one file that is not wrong. The three empty-population guards were written
+# before any of them had been fired; now they have been.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

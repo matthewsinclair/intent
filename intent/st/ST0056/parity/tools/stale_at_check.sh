@@ -38,6 +38,28 @@
 # a legitimately absent citation is the normal state of most rows for most of
 # this thread's life, so failing on a hit would make it a gate nobody keeps.
 
+# MUTATION PROOFS, run 2026-08-17 at `67814555` (ic). Co-located because a check
+# whose failure path has never fired is a claim, not an instrument -- and this one
+# is GATED into the pre-commit runner now. Driven against a throwaway fixture tree
+# (a `intent/.config/config.json` marker, one `acceptance.md`, one file to cite)
+# with this script copied into it, so the root walk resolves to the fixture and
+# nothing real is touched.
+#
+#   cited file absent                -> exit 0, "none names a file that exists"
+#   cited test EXISTS                -> exit 0, reports the stale row (the finding)
+#   `status:` renamed to `state:`    -> exit 2, refuses; never a clean zero
+#   UNCITED row, backticks in note   -> exit 0, "examined 0 ... with a citation"
+#   real citation, note containing
+#   three further ` -- `             -> exit 0, still reports; boundary unmoved
+#
+# **The fourth case was a REAL FALSE POSITIVE and this check had it until today.**
+# Reading the first backtick anywhere on the line made a note's backticked span
+# into a citation, so an uncited row was reported as `cites <path> -- the file
+# EXISTS`, sending the reader to run a test the row never named. Measured exposure
+# on this estate when it was fixed: 112 AT rows, 53 to-write, **0 exposed** -- so
+# it was latent, not live, and it goes live the first time anyone writes an uncited
+# to-write row with a backticked note. Prompted by cc from the opposite end: they
+# captured 14 v2-authored rows and found nine whose note contains a further ` -- `.
 set -uo pipefail
 
 STID="${1:-ST0056}"
@@ -100,8 +122,30 @@ awk '
     matched++
     id = $2
     ref = ""
-    if (match($0, /`[^`]+`/)) {
-      ref = substr($0, RSTART + 1, RLENGTH - 2)
+    # THE CITATION IS SCOPED TO THE HEAD OF THE ROW -- the span before the first
+    # ` -- ` -- and NOT to the first backtick anywhere on the line, which is what
+    # this read before. The grammar puts the path there (`- AT-gg.n `path` -- covers
+    # ... -- status: ...`), so the head is where a citation can legally be.
+    #
+    # WHY IT MATTERED, AND IT WAS LATENT RATHER THAN LIVE. A to-write row with NO
+    # citation whose NOTE carries a backticked span had that span read as the
+    # citation: the check then reported `cites <path> -- the file EXISTS` about a
+    # row that cites nothing, and told the reader to go run a test the row never
+    # named. Measured on this estate at 112 AT rows / 53 to-write: **zero exposed
+    # today**, because every to-write row currently carries a real path. It goes
+    # live the first time someone writes an uncited to-write row with a backticked
+    # note -- and the check is GATED now, so the cost of that day is every node.
+    #
+    # Found by cc, from the other end: they captured 14 v2-authored rows and found
+    # nine whose note is introduced by ` -- ` and then CONTAINS ` -- `, and warned
+    # that anything splitting a row on the separator over-splits exactly the rows
+    # carrying the most information. This reads the FIRST ` -- ` only, so a note
+    # containing more of them cannot move the boundary.
+    head = $0
+    sep = index($0, " -- ")
+    if (sep > 0) { head = substr($0, 1, sep - 1) }
+    if (match(head, /`[^`]+`/)) {
+      ref = substr(head, RSTART + 1, RLENGTH - 2)
     }
     if (match($0, /status: [a-z-]+/)) {
       st = substr($0, RSTART + 8, RLENGTH - 8)
