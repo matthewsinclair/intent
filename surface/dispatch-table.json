@@ -1392,7 +1392,7 @@
             ],
             "evidence_class": {
               "class": "measured",
-              "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
+              "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only -- **PLUS a direct observation of the success path**: `intent wp list ST0056`, run 2026-08-17, exit 0, columns `WP | Title | Scope | Status` through the shared `render_table`. Added because the matrix supplies no `<stid>` and so could never have produced the stdout this row already declared. The declaration turned out correct; it was unverified, not wrong. See `issues add`."
             }
           },
           "target": {
@@ -2474,7 +2474,7 @@
             "exit": [
               {
                 "code": 0,
-                "when": "created -- prints `<ID>:<TITLE>`"
+                "when": "created -- prints TWO lines, `created: <path to the issue's md file>` then `<ID>:<TITLE>` (bin/intent_issues:187-188)"
               },
               {
                 "code": 1,
@@ -2485,12 +2485,12 @@
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "`<ID>:<TITLE>`",
+            "stdout": "TWO lines: `created: <path to the issue's md file>` then `<ID>:<TITLE>`. **The row carried only the second for as long as it existed** -- see `evidence_class`.",
             "stderr": "`error: ...` on stderr (INV-01)",
             "notes": "`new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.",
             "evidence_class": {
               "class": "measured",
-              "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
+              "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only -- **PLUS a direct observation of the success path**: `intent issues add --severity medium <title>`, run 2026-08-17 to file issue 0050, which printed the two lines above. **The success path had to be added because the matrix could not have reached it** (cc, 2026-08-17, reading v2 for Machine 4): `add` requires a title, none of the four probes supplies one, and the row nevertheless declared a `stdout`. **An `evidence_class` names a METHOD, and a row can carry a field that method never touched** -- the class was honest and the coverage was assumed. Three rows in this table had that shape; `wp list` and `critic` are the others and both are now measured. See the `METHOD` entry in `coverage_findings`."
             }
           },
           "aliases": [
@@ -2533,7 +2533,7 @@
               },
               {
                 "code": 1,
-                "when": "issue not found"
+                "when": "issue not found -- `error: Issue not found: <ID>` (bin/intent_issues:255). **No bucket named here**, unlike `issues close` / `issues open`; see this row's `target.question`."
               },
               {
                 "code": 1,
@@ -2548,7 +2548,8 @@
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "question": "The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2570,29 +2571,34 @@
             "exit": [
               {
                 "code": 0,
-                "when": "closed"
+                "when": "closed -- `ok: issue <ID> -> CLOSED` (bin/intent_issues:291)"
+              },
+              {
+                "code": 0,
+                "when": "ALREADY in the target bucket -- `ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **This is v2's ONLY `already` arm and the one hv's self-loop ruling cites**; `move_issue` checks the SOURCE bucket, and on a miss checks the TARGET before erroring."
               },
               {
                 "code": 1,
-                "when": "issue not found"
+                "when": "in NEITHER bucket -- `error: Issue not found in OPEN: <ID>` (bin/intent_issues:285). The message names the BUCKET, not just the id."
               },
               {
                 "code": 1,
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "confirmation",
+            "stdout": "`ok: issue <ID> -> CLOSED` on a move, `ok: issue <ID> already CLOSED` on the self-loop",
             "stderr": "`error: ...` on stderr (INV-01)",
             "side_effects": [
               "Moves the issue directory between OPEN/ and CLOSED/ -- the v2 layout that retires under the ratified deviation"
             ],
             "evidence_class": {
               "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "why": "taken from the v2 source at the stamped revision without executing that specific arm -- `move_issue`, bin/intent_issues:275-292, read at HEAD 2026-08-17 by ic after cc found the middle arm missing. Source-exact rather than paraphrased: the strings above are the echoes themselves."
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "question": "**v2 SPELLS ONE CONDITION THREE WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of all three rows at once.** Two source sites produce three rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2615,29 +2621,34 @@
             "exit": [
               {
                 "code": 0,
-                "when": "reopened"
+                "when": "reopened -- `ok: issue <ID> -> OPEN` (bin/intent_issues:291)"
+              },
+              {
+                "code": 0,
+                "when": "ALREADY in the target bucket -- `ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283). **This is v2's ONLY `already` arm and the one hv's self-loop ruling cites**; `move_issue` checks the SOURCE bucket, and on a miss checks the TARGET before erroring."
               },
               {
                 "code": 1,
-                "when": "issue not found"
+                "when": "in NEITHER bucket -- `error: Issue not found in CLOSED: <ID>` (bin/intent_issues:285). The message names the BUCKET, not just the id."
               },
               {
                 "code": 1,
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "confirmation",
+            "stdout": "`ok: issue <ID> -> OPEN` on a move, `ok: issue <ID> already OPEN` on the self-loop",
             "stderr": "`error: ...` on stderr (INV-01)",
             "side_effects": [
               "Moves the issue directory back"
             ],
             "evidence_class": {
               "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "why": "taken from the v2 source at the stamped revision without executing that specific arm -- `move_issue`, bin/intent_issues:275-292, read at HEAD 2026-08-17 by ic after cc found the middle arm missing. Source-exact rather than paraphrased: the strings above are the echoes themselves."
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "question": "The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -4653,7 +4664,7 @@
             ],
             "evidence_class": {
               "class": "measured",
-              "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
+              "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only -- **PLUS a direct observation of the success path**: `intent critic shell --files bin/intent_issues`, run 2026-08-17, exit 0, ONE line -- `ok: no shell findings at severity >= warning across 1 file(s)`. **The measurement corrected this row rather than confirming it**: the declared stdout was the findings report, which is the non-empty case only, and the clean case was missing entirely. Added because the matrix supplies no `<lang>`. See `issues add`."
             }
           },
           "target": {
@@ -6609,6 +6620,14 @@
       "verdict": "METHOD",
       "finding": "The zero for `config` was calibrated before being believed: the same needle returns 3 files for `doctor` (a known-covered control), and a direct grep for `intent config` / `run_intent config` returns nothing.",
       "why_it_matters": "A measuring instrument that reports zero is indistinguishable from a broken one until it is shown to report non-zero somewhere it should. This is the calibration rule that came out of the zsh probe artefact earlier in the same session, applied to the very next instrument built."
+    },
+    {
+      "family": "*",
+      "verdict": "METHOD",
+      "finding": "Three rows carried `evidence_class: measured` on a probe matrix that could not have reached the field they filled. The matrix is bare / --help / unknown flag / outside-a-project -- four invocations, no positional argument -- and `issues add`, `wp list` and `critic` each REQUIRE an argument to succeed, yet each declared a success-path `stdout`. Found by cc on `issues add` while reading v2 for Machine 4; generalised and bounded to three by ic the same day.",
+      "why_it_matters": "**An `evidence_class` names a METHOD, and nothing checked that the method reached the fields the row went on to assert.** The class was honest -- it says exactly which four invocations were run -- so the defect is not dishonesty but an unstated coverage claim: a reader takes `measured` as being about the ROW, when it is only ever about the PROBE. That is the same shape as a criterion stated more broadly than the one applied, which is what cost `populations.not_probed` a member the day before. It is also why the count matters: the first reading of this was 25 rows, and 22 of those are fine because bare IS their success path (`issues`, `todo`, `info`, `version`, the usage-block families). Only a row whose success needs an argument is exposed.",
+      "trap": "`measured` outranks `read` in every reading, so the three exposed rows looked like the BEST-evidenced rows in the table. `issues add` in particular carried a four-invocation matrix in its own `why`, which reads as diligence and is precisely the text that should have raised the question.",
+      "action": "All three now carry a direct observation of the success path alongside the matrix, and one of the three was WRONG when measured (`critic` declared only the findings report; the clean case prints a one-line `ok:` summary). No sweep beyond the three: the discriminator is `a required arg the matrix never supplied`, and it is mechanical, so it can be re-run rather than remembered."
     }
   ],
   "known_exposures": [
@@ -6839,7 +6858,7 @@
     }
   ],
   "populations": {
-    "why": "THE FOUR POPULATIONS, ENUMERATED, so no consumer has to re-derive one. `.families[].entries[]` reads like the command surface and is not it, in BOTH directions at once: too narrow, because it omits the 8 top-level `new_surface[]` rows and all 8 ship; too wide, because it includes the 5 rows dispositioned `retire`, which the binary does not contain. 104 against 112 against 107, three apart with opposite signs, so no count-based sanity check flinches -- which is how the same wrong population was hand-written five times in one week. **The fix is not vigilance and it is not a shared library either: a sourced library closes the class only for callers that source it, and nothing makes them.** `lib_surface.sh` was built as the one home and then sat beside `implemented_check.sh`'s own list and four inline walks in `surface_check.sh`, none of which sourced it, so it added a home rather than removing three. This block is the one home; the library reads it, and `gen_dispatch_table.sh` refuses when it disagrees with the corpus. The redundancy is deliberate -- `retired` is `declared` minus `shipped` and `probeable` is `shipped` minus `not_probed` -- because a consumer that has to subtract is a consumer that is computing. `Entry::is_shipped()` in the binary is NOT replaced by a lookup: it fails OPEN across two fields and is the only thing stopping a single hand-edit from shipping a retired command, and a list is edited by people who believe they are editing data. It stays a predicate and a Rust test binds it to `shipped`. Order is table order. **`not_probed` CARRIES ITS OWN REASONS BECAUSE ITS PREDECESSOR LOST A MEMBER TO ITS NAME** (vc, 2026-08-17, on their own `SURFACE_NONRETURNING`): the four are excluded for TWO different reasons -- two never return, two write outside the sandbox -- and `claude upgrade`, which returns perfectly well and installs into the operator's real `~/.claude`, fell out of a list whose name was only ever entitled to define one of the two. `claude start` survived only because it satisfies both readings, so the surviving two-word row made the list look complete. A key named for one reason cannot hold members admitted for another, and the correction is not a better name but a member that states its own grounds.",
+    "why": "THE FOUR POPULATIONS, ENUMERATED, so no consumer has to re-derive one. `.families[].entries[]` reads like the command surface and is not it, in BOTH directions at once: too narrow, because it omits the 8 top-level `new_surface[]` rows and all 8 ship; too wide, because it includes the 5 rows dispositioned `retire`, which the binary does not contain. 104 against 112 against 107, three apart with opposite signs, so no count-based sanity check flinches -- which is how the same wrong population was hand-written five times in one week. **The fix is not vigilance and it is not a shared library either: a sourced library closes the class only for callers that source it, and nothing makes them.** `lib_surface.sh` was built as the one home and then sat beside `implemented_check.sh`'s own list and four inline walks in `surface_check.sh`, none of which sourced it, so it added a home rather than removing three. This block is the one home; the library reads it, and `gen_dispatch_table.sh` refuses when it disagrees with the corpus. The redundancy is deliberate -- `retired` is `declared` minus `shipped` and `probeable` is `shipped` minus `not_probed` -- because a consumer that has to subtract is a consumer that is computing. `Entry::is_shipped()` in the binary is NOT replaced by a lookup: it fails OPEN across two fields and is the only thing stopping a single hand-edit from shipping a retired command, and a list is edited by people who believe they are editing data. It stays a predicate and a Rust test binds it to `shipped`. Order is table order. **`not_probed` CARRIES ITS OWN REASONS BECAUSE ITS PREDECESSOR LOST A MEMBER TO ITS NAME** (vc, 2026-08-17, on their own `SURFACE_NONRETURNING`): the four are excluded for TWO different reasons -- two never return, two write outside the sandbox -- and `claude upgrade`, which returns perfectly well and installs into the operator's real `~/.claude`, fell out of a list whose name was only ever entitled to define one of the two. `claude start` survived only because it satisfies both readings, so the surviving two-word row made the list look complete. A key named for one reason cannot hold members admitted for another, and the correction is not a better name but a member that states its own grounds. **AND THE CRITERION IS NARROWER THAN `writes outside the sandbox`, WHICH IS THE GUARD AGAINST THIS LIST GOING SHORT A SECOND TIME** (vc, 2026-08-17, who checked their own fix by CORRESPONDENCE rather than reading it -- all four populations diffed member-by-member, not by count, because counts pass on a block with the right arithmetic and the wrong rows). Two SIBLINGS write destructively to the operator's real home -- `plugin_remove_target` is `rm -rf \"$HOME/.claude/skills/$1\"` at `intent/plugins/claude/bin/intent_claude_skills:73` and `rm -f \"$HOME/.claude/agents/$1.md\"` at `intent_claude_subagents:79` -- and BOTH are correctly probeable, because bare `claude skills` and bare `claude subagents` dispatch to help (`\"\"|help|-h|--help)` at :406 and :733 respectively) so the probe never reaches the destructive verb. `intent_claude_upgrade` has no such arm: it is a LEAF, and bare RUNS it. **So the criterion is `writes outside the sandbox WHEN INVOKED BARE, because bare is how the probe invokes`** -- and a criterion stated more broadly than the one actually applied is precisely what let a member fall out of this list last time. If a row ever gains a bare side effect, or a leaf is added under a name that reads like a family, the list goes short again in silence. Verified at HEAD by ic before recording.",
     "not_probed": [
       {
         "path": "daemon",
@@ -6851,11 +6870,11 @@
       },
       {
         "path": "claude upgrade",
-        "why": "writes outside the sandbox -- installs into the operator's real `~/.claude`. It RETURNS perfectly well, which is exactly how it fell out of a list called `nonreturning`"
+        "why": "writes outside the sandbox WHEN INVOKED BARE -- it is a LEAF, so bare RUNS it, and it installs into the operator's real `~/.claude`. It RETURNS perfectly well, which is exactly how it fell out of a list called `nonreturning`"
       },
       {
         "path": "claude start",
-        "why": "writes outside the sandbox -- launches a real Claude Code session. It satisfies BOTH readings, which is why its presence made the three-member list look complete"
+        "why": "writes outside the sandbox WHEN INVOKED BARE -- a leaf too, and bare launches a real Claude Code session. It satisfies BOTH readings, which is why its presence made the three-member list look complete"
       }
     ],
     "declared": [

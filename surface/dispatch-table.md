@@ -1155,10 +1155,10 @@ Add a new issue, print its ID:TITLE
     - **default:** medium
     - **disposition:** keep
 - **Exit codes:**
-  - `0` -- created -- prints `<ID>:<TITLE>`
+  - `0` -- created -- prints TWO lines, `created: <path to the issue's md file>` then `<ID>:<TITLE>` (bin/intent_issues:187-188)
   - `1` -- no title -- `error: Issue title is required`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `<ID>:<TITLE>`
+- **stdout:** TWO lines: `created: <path to the issue's md file>` then `<ID>:<TITLE>`. **The row carried only the second for as long as it existed** -- see `evidence_class`.
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.
 - **Target:** `as-observed`
@@ -1177,11 +1177,12 @@ Show one issue (optionally as JSON)
     - **disposition:** keep
 - **Exit codes:**
   - `0` -- printed
-  - `1` -- issue not found
+  - `1` -- issue not found -- `error: Issue not found: <ID>` (bin/intent_issues:255). **No bucket named here**, unlike `issues close` / `issues open`; see this row's `target.question`.
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** the issue body, or JSON
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **Open question for hv:** The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning.
 - **MCP:** exposed as an agent tool -- read-only
 
 ### `issues close`
@@ -1192,14 +1193,16 @@ Mark an issue done: OPEN -> CLOSED
 - **Arguments:**
   - `id` (issue-id, arity `1`)
 - **Exit codes:**
-  - `0` -- closed
-  - `1` -- issue not found
+  - `0` -- closed -- `ok: issue <ID> -> CLOSED` (bin/intent_issues:291)
+  - `0` -- ALREADY in the target bucket -- `ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **This is v2's ONLY `already` arm and the one hv's self-loop ruling cites**; `move_issue` checks the SOURCE bucket, and on a miss checks the TARGET before erroring.
+  - `1` -- in NEITHER bucket -- `error: Issue not found in OPEN: <ID>` (bin/intent_issues:285). The message names the BUCKET, not just the id.
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
+- **stdout:** `ok: issue <ID> -> CLOSED` on a move, `ok: issue <ID> already CLOSED` on the self-loop
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Side effects:**
   - Moves the issue directory between OPEN/ and CLOSED/ -- the v2 layout that retires under the ratified deviation
 - **Target:** `as-observed`
+- **Open question for hv:** **v2 SPELLS ONE CONDITION THREE WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of all three rows at once.** Two source sites produce three rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 
@@ -1211,14 +1214,16 @@ Reopen an issue: CLOSED -> OPEN
 - **Arguments:**
   - `id` (issue-id, arity `1`)
 - **Exit codes:**
-  - `0` -- reopened
-  - `1` -- issue not found
+  - `0` -- reopened -- `ok: issue <ID> -> OPEN` (bin/intent_issues:291)
+  - `0` -- ALREADY in the target bucket -- `ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283). **This is v2's ONLY `already` arm and the one hv's self-loop ruling cites**; `move_issue` checks the SOURCE bucket, and on a miss checks the TARGET before erroring.
+  - `1` -- in NEITHER bucket -- `error: Issue not found in CLOSED: <ID>` (bin/intent_issues:285). The message names the BUCKET, not just the id.
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
+- **stdout:** `ok: issue <ID> -> OPEN` on a move, `ok: issue <ID> already OPEN` on the self-loop
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Side effects:**
   - Moves the issue directory back
 - **Target:** `as-observed`
+- **Open question for hv:** The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 
@@ -2981,6 +2986,13 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 - **Finding:** The zero for `config` was calibrated before being believed: the same needle returns 3 files for `doctor` (a known-covered control), and a direct grep for `intent config` / `run_intent config` returns nothing.
 - **Why it matters:** A measuring instrument that reports zero is indistinguishable from a broken one until it is shown to report non-zero somewhere it should. This is the calibration rule that came out of the zsh probe artefact earlier in the same session, applied to the very next instrument built.
+
+### `*` -- METHOD
+
+- **Finding:** Three rows carried `evidence_class: measured` on a probe matrix that could not have reached the field they filled. The matrix is bare / --help / unknown flag / outside-a-project -- four invocations, no positional argument -- and `issues add`, `wp list` and `critic` each REQUIRE an argument to succeed, yet each declared a success-path `stdout`. Found by cc on `issues add` while reading v2 for Machine 4; generalised and bounded to three by ic the same day.
+- **Why it matters:** **An `evidence_class` names a METHOD, and nothing checked that the method reached the fields the row went on to assert.** The class was honest -- it says exactly which four invocations were run -- so the defect is not dishonesty but an unstated coverage claim: a reader takes `measured` as being about the ROW, when it is only ever about the PROBE. That is the same shape as a criterion stated more broadly than the one applied, which is what cost `populations.not_probed` a member the day before. It is also why the count matters: the first reading of this was 25 rows, and 22 of those are fine because bare IS their success path (`issues`, `todo`, `info`, `version`, the usage-block families). Only a row whose success needs an argument is exposed.
+- **The trap:** `measured` outranks `read` in every reading, so the three exposed rows looked like the BEST-evidenced rows in the table. `issues add` in particular carried a four-invocation matrix in its own `why`, which reads as diligence and is precisely the text that should have raised the question.
+- **Action:** All three now carry a direct observation of the success path alongside the matrix, and one of the three was WRONG when measured (`critic` declared only the findings report; the clean case prints a one-line `ok:` summary). No sweep beyond the three: the discriminator is `a required arg the matrix never supplied`, and it is mechanical, so it can be re-run rather than remembered.
 
 ## Families outstanding
 
