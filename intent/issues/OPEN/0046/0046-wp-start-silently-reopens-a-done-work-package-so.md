@@ -96,7 +96,24 @@ No read of the current status, so no branch on it. Compare `cmd_done`, which con
 
 1. **`wp start` REFUSES a `Done` work package and names `wp reopen`.** One branch. It converts a silent transition into a signpost, and it is the whole fix for the two-doors problem: the uncovered writer stops being a writer.
 2. **`wp reopen` records the reason it already promises**, and the same treatment is owed to `wp unstart` for `WIP -> NotStarted`.
-3. **`st start` wants the same check** -- not measured here, and the setter shape is shared, so assume nothing and measure it before deciding.
+3. **`st start` wants the same check, and it is now MEASURED rather than assumed.** Filed with "assume nothing and measure it"; measured immediately afterwards, and **it is the same defect one level up and worse**, because the steel-thread verb also moves a directory:
+
+   ```
+   $ intent st done ST0001
+   gate: ST0001 EXEMPT ...
+     moved: intent/st/COMPLETED/ST0001
+   $ grep '^status:' intent/st/COMPLETED/ST0001/info.md
+   status: Completed
+
+   $ intent st start ST0001
+     moved: intent/st/ST0001
+   Marked steel thread as in progress: ST0001: Fixture thread
+                                                    -> rc=0
+   $ grep '^status:' intent/st/ST0001/info.md
+   status: WIP
+   ```
+
+   **A completed thread is silently reopened AND relocated out of `COMPLETED/`, at exit 0, and `Marked steel thread as in progress` is the same sentence it prints for work that was never done.** `st reopen` is declared `new-surface` -- _"Reopen a completed thread back into Wip, **with a reason**"_ -- **so the picture is symmetric at both levels: a designed door that requires a reason is being built beside an undeclared one that is already open and records nothing.** The refusal in item 1 is owed here too, and the directory move is why it matters more: the ST verb does not merely rewrite a field, it relocates the thread's whole directory, which is the largest silent side effect in the family.
 
 **For v2: nothing.** The verb is `keep`/`as-observed` and `bin/**` is not mutated in place while sessions are live. **Recording the observed behaviour on the `wp start` row is the useful v2-side act**, because `as-observed` currently points at a description that is true and incomplete.
 
@@ -105,7 +122,7 @@ No read of the current status, so no branch on it. Compare `cmd_done`, which con
 ## Related
 
 - ST0056 / AC-04.6 / D32 -- mutation completeness; satisfied by this transition, and the case for whether "reachable" should imply "recorded"
-- `wp reopen` / `wp unstart` -- both `new-surface`, both designed as though the transition were absent
+- `wp reopen` / `wp unstart` / `st reopen` / `st reinstate` / `st resume` -- all `new-surface`, and the two `reopen` rows both promise a reason, so the same designed-door-beside-an-open-one holds at both levels
 - 0044 / 0045 -- the same estate-wide shape from the exit-code side: a verb, a code or a state change whose declared meaning is narrower than its behaviour
 - ic's `backup` finding -- a row SILENT about what it does, the class no arm can detect, of which this is a second instance
 - cc's two-writers rule -- a ruling enforced on one of two writers is enforced on neither reliably

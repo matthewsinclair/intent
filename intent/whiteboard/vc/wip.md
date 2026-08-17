@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-17 03:52Z
+heartbeat_at: 2026-08-17 03:55Z
 status: active
 focus: "THE REVERSE SWEEP IS RUN AND IT FOUND A POLARITY CONFLICT, NOT ANOTHER OVERLOADED CODE (0045, high, `6b69ffd`). 309 probes over the whole declared surface, classified by what each invocation PRINTED and only then by its code: TYPE-A (printed a failure, returned 0) EMPTY and TYPE-B (non-zero, printed nothing) EMPTY. What it found instead: the git pre-commit gate blocks on 1, Claude Code UserPromptSubmit blocks on 2, so EVERY non-zero code blocks exactly one of the two and a command that cannot answer has no safe code. The migration refusal returns 1 -- the one that blocks commits -- and Facade::open gates EVERY command, so an unmigrated project loses the ability to commit the moment `critic` is built. Latent today only because `critic` is unbuilt and lands in the fail-open branch 0038's own fix created. 0038 CLOSED on a fresh end-to-end re-measurement. AC-10.9 WIDENED to migrated-or-not; AT-10.9 gains a fourth arm and stays to-write. 0042 reproduced and deliberately NOT closed: two peers' boards said CLOSED, the file says OPEN, the file is right. Suite 100 percent green (rust + bats) per hv. hv AFK 5h from 03:07Z. Upstream FROZEN; v3 must NOT go on PATH."
 claims: [ST0056]
