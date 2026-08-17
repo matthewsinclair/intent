@@ -1,0 +1,220 @@
+//! **Issue 0044: a command this build RETIRED is refused by name, and does not
+//! answer in the same code as a command that ran and said no.**
+//!
+//! 0044's structural finding is that the exit code was decided by WHERE the
+//! failure happened in the parse tree rather than by WHAT went wrong.
+//! Retirement removes a name from the clap surface, so a retired command never
+//! reached dispatch at all -- it got clap's generic `1`, the same number as a
+//! genuine runtime refusal and as a critic run that found real problems. **The
+//! careful work that gave unimplemented commands a deliberate code was
+//! structurally unreachable for exactly the class a migration hits most.**
+//!
+//! **The roster is READ FROM THE TABLE, never listed here.** A hardcoded list
+//! would cover the five retirements that exist today and silently stop covering
+//! the sixth -- the same shape as the comment beside `EXIT_UNAVAILABLE` that
+//! named the one consumer its author had in view. Retire a command tomorrow and
+//! it is covered on the next run, by nobody's decision.
+
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+
+use intent_cli::dispatch;
+use testkit::workspace_root;
+
+/// The Intent install root, which is also an UNMIGRATED v2 project -- the state
+/// this repository is genuinely in, and the one the differential below needs.
+fn install_root() -> PathBuf {
+  workspace_root()
+    .parent()
+    .and_then(Path::parent)
+    .expect("the rust workspace sits two levels under the Intent install")
+    .to_path_buf()
+}
+
+fn run(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
+  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(args)
+    .current_dir(cwd)
+    .stdin(Stdio::null())
+    .output()
+    .expect("run the v3 binary");
+  (
+    out.status.code(),
+    String::from_utf8_lossy(&out.stderr).to_string(),
+  )
+}
+
+/// Every spelling the table retires, as argv, with the row it came from.
+fn retired_spellings() -> Vec<(Vec<String>, String)> {
+  let table = dispatch::table();
+  table
+    .retired()
+    .iter()
+    .flat_map(|e| {
+      e.spellings()
+        .into_iter()
+        .map(|s| {
+          (
+            s.iter().map(|seg| seg.to_string()).collect::<Vec<String>>(),
+            e.target.spelling.clone(),
+          )
+        })
+        .collect::<Vec<_>>()
+    })
+    .collect()
+}
+
+/// **The fixture proves itself.** Every assertion below iterates the retired
+/// set; an empty set agrees with all of them, silently, and a table parse that
+/// dropped `disposition` would produce exactly that.
+#[test]
+fn the_table_declares_retirements_for_this_file_to_measure() {
+  let spellings = retired_spellings();
+  assert!(
+    spellings.len() >= 2,
+    "the dispatch table yielded {} retired spellings. Every case in this file iterates that set, so an empty or near-empty one makes the whole file vacuous",
+    spellings.len()
+  );
+  assert!(
+    spellings
+      .iter()
+      .any(|(_, replacement)| !replacement.is_empty()),
+    "no retired row carries a replacement spelling, so the branch that names one is never exercised -- and that branch is what issue 0044 asks for"
+  );
+}
+
+/// **The refusal names the command and says what happened to it.**
+///
+/// `unrecognized subcommand 'treeindex'` is true and tells a v2 user nothing:
+/// it cannot distinguish a command that was removed from one they mistyped.
+#[test]
+fn every_retired_spelling_is_refused_by_name() {
+  let root = install_root();
+  for (argv, replacement) in retired_spellings() {
+    let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+    let (code, stderr) = run(&args, &root);
+    let typed = argv.join(" ");
+
+    assert!(
+      stderr.contains(&format!("`intent {typed}`")),
+      "`intent {typed}` was not named in its own refusal. **The spelling reported must be the one TYPED**, not the row's canonical path -- `st organise` is an \
+       alias on a retired row, and answering it by naming `st organize` asks someone mid-migration to reconcile two spellings differing by one letter before \
+       they can read the one fact they need. exit {code:?}, stderr: {stderr}"
+    );
+    assert!(
+      stderr.contains("retired"),
+      "`intent {typed}` failed without saying it was retired, which is the whole information a migrating caller needs: {stderr}"
+    );
+    if replacement.is_empty() {
+      assert!(
+        stderr.contains("no v3 replacement"),
+        "`intent {typed}` has no replacement in the table and must say so -- silence there reads as an omission rather than as an answer: {stderr}"
+      );
+    } else {
+      assert!(
+        stderr.contains(&replacement),
+        "`intent {typed}` is replaced by `{replacement}` in the table and the refusal did not name it. The register already holds the mapping; not reading it \
+         is the whole of 0044's first proposed fix: {stderr}"
+      );
+    }
+  }
+}
+
+/// **vc's canary, and it is the one assertion this issue reduces to: a retired
+/// command must not answer in the same code as a command that RAN and said no.**
+///
+/// The differential is measured rather than assumed. This repository is an
+/// unmigrated v2 project, so a live command here produces a genuine runtime
+/// refusal -- the exact condition 0044 records as sharing `1` with retirement.
+/// `critic` would be the sharper partner and is not built yet; the property is
+/// the same one, driven through the refusal that ships today.
+#[test]
+fn a_retired_command_and_a_genuine_refusal_do_not_share_a_code() {
+  let root = install_root();
+
+  let (refusal_code, refusal) = run(&["st", "list"], &root);
+  assert_eq!(
+    refusal_code,
+    Some(1),
+    "precondition: a live command in this unmigrated repository refuses at 1. If this changed, the comparison below is measuring something else: {refusal}"
+  );
+  assert!(
+    !refusal.contains("retired"),
+    "precondition: `st list` is a LIVE command and must not be answered by the retired path -- a shipped name matching a retired row would mean the surface is \
+     no longer the authority on what works: {refusal}"
+  );
+
+  for (argv, _) in retired_spellings() {
+    let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+    let (code, stderr) = run(&args, &root);
+    assert_ne!(
+      code,
+      refusal_code,
+      "`intent {}` answers in the same code as a command that ran and legitimately refused. **A caller cannot then tell 'that command no longer exists' from \
+       'your code has findings'**, and the measured consequence was a devbin gate reporting success over two directories it had failed to index. stderr: {stderr}",
+      argv.join(" ")
+    );
+  }
+}
+
+/// **D37: our own ids never reach a user's terminal.**
+///
+/// The table's `target.ratification` notes are the natural place to source an
+/// explanation from and they are full of hv rulings, dates, and our design and
+/// criterion ids. Printing them would be the most informative wrong thing to
+/// do, so the refusal is built from structural fields only -- and this is what
+/// keeps it that way.
+#[test]
+fn the_refusal_carries_none_of_our_own_bookkeeping() {
+  let root = install_root();
+  for (argv, _) in retired_spellings() {
+    let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+    let (_, stderr) = run(&args, &root);
+    for marker in ["AC-", "AT-", "WP-", "ST00", "D21", "hv,", "ratification"] {
+      assert!(
+        !stderr.contains(marker),
+        "the refusal for `intent {}` leaked `{marker}` -- that is our project's bookkeeping reaching a user's terminal (D37), and the likely route is a \
+         ratification note being printed rather than the structural fields: {stderr}",
+        argv.join(" ")
+      );
+    }
+  }
+}
+
+/// **Longest path first, which is a contract rather than an implementation
+/// detail.**
+///
+/// A caller matching a command line against these prefixes must try
+/// `st organize` before `st`. No retired path is a prefix of another TODAY, so
+/// getting this wrong would be invisible -- and a sort that is only correct
+/// because the data has not yet reached the case it guards is worth pinning
+/// before it does.
+#[test]
+fn retired_rows_are_ordered_longest_path_first() {
+  let lengths: Vec<usize> = dispatch::table()
+    .retired()
+    .iter()
+    .map(|e| e.path.split(' ').count())
+    .collect();
+  assert!(
+    lengths.windows(2).all(|w| w[0] >= w[1]),
+    "the retired rows are not ordered longest-first: {lengths:?}. A shorter path earlier in the list can absorb a command line meant for a longer one, and the \
+     wrong row's replacement is then reported as the answer"
+  );
+}
+
+/// **An unknown command is still an unknown command.** The retired path must
+/// not become a catch-all that reports every typo as a retirement.
+#[test]
+fn a_command_that_never_existed_is_not_reported_as_retired() {
+  let root = install_root();
+  for args in [vec!["nonsense"], vec!["st", "nonsense"]] {
+    let (_, stderr) = run(&args, &root);
+    assert!(
+      !stderr.contains("retired"),
+      "`intent {}` was never a command and must not be answered as though it were removed -- telling someone their typo used to work sends them looking for a \
+       migration note that does not exist: {stderr}",
+      args.join(" ")
+    );
+  }
+}

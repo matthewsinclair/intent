@@ -414,12 +414,51 @@ pub struct Target {
   /// class at 18 rows.
   #[serde(default)]
   pub state: String,
+  /// What the command is spelled as instead, where a retirement has a
+  /// replacement. Authored on `st_zero` (`intent st bootstrap`) and absent
+  /// everywhere else, because most retirements replace nothing.
+  ///
+  /// **Read for the MESSAGE, never for dispatch, and the distinction is vc's
+  /// ruling rather than a nicety.** vc refused to teach the spine to read this
+  /// as a rename -- a general rename facility for a population of one reads as
+  /// foresight and ships as unused surface, and aliasing the old spelling would
+  /// make the row assert `corrected` ("survives, renamed") where hv ratified
+  /// `retire` ("the root spelling dies"). Telling someone what to type instead
+  /// asserts neither: the command is gone, and this names where the capability
+  /// went. That is precisely what issue 0044 asks the retired class to say.
+  ///
+  /// **It was also declared and undeserialised until now**, which is issue
+  /// 0039's class -- a key authored on a row that serde silently dropped.
+  #[serde(default)]
+  pub spelling: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Invariant {
   pub id: String,
   pub title: String,
+}
+
+impl Table {
+  /// Every entry the table retires, LONGEST PATH FIRST.
+  ///
+  /// The order is the whole contract of this function. A caller matching a
+  /// command line against these prefixes must try `st organize` before `st`,
+  /// or a two-segment retirement is answered by whatever one-segment row
+  /// happens to sit above it -- and today that would be silent, because no
+  /// retired path is currently a prefix of another. **A sort that is only
+  /// correct because the data has not yet reached the case it guards is a sort
+  /// worth having before it does.**
+  pub fn retired(&self) -> Vec<&Entry> {
+    let mut out: Vec<&Entry> = self
+      .families
+      .iter()
+      .flat_map(|f| f.entries.iter())
+      .filter(|e| !e.is_shipped())
+      .collect();
+    out.sort_by_key(|e| std::cmp::Reverse(e.path.split(' ').count()));
+    out
+  }
 }
 
 impl Entry {
@@ -442,6 +481,21 @@ impl Entry {
   /// be designing around an open question rather than leaving it open.
   pub fn is_shipped(&self) -> bool {
     self.disposition != "retire" && self.target.state != "retire"
+  }
+
+  /// Every spelling this entry answered to in v2 -- its own path first, then
+  /// its aliases, each as whole space-separated segments.
+  ///
+  /// Whole paths rather than last segments, because the caller here is matching
+  /// against argv from the front. `alias_verbs` below answers a different
+  /// question (what clap registers on an already-placed subcommand) and the two
+  /// must not be confused: `st organise` is one segment to clap and two to
+  /// anything reading a command line.
+  pub fn spellings(&self) -> Vec<Vec<&str>> {
+    std::iter::once(self.path.as_str())
+      .chain(self.aliases.iter().map(String::as_str))
+      .map(|s| s.split(' ').filter(|seg| !seg.is_empty()).collect())
+      .collect()
   }
 
   /// The alias spellings as clap registers them: each alias's last segment.

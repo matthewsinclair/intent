@@ -105,6 +105,34 @@ pub const EXIT_ERROR: i32 = 1;
 /// property of the CALLER's contract, not of this tool.** Before changing any
 /// value here, or before routing a new failure to one, read the column that
 /// says what each consumer does with it.
+///
+/// # The RETIRED class takes this code, and the reasoning is recorded because
+/// # the number is the arguable half
+///
+/// Issue 0044: a command this build retired used to get clap's generic `1` --
+/// the same number as a genuine runtime refusal and as a critic run that found
+/// real problems. It now answers `2`, and `retired_refusal` is what makes that
+/// possible: the class reaches a decision about WHAT it is instead of being
+/// answered by WHERE in the parse tree it failed.
+///
+/// `2` over the alternatives, on the trade rather than on taste:
+///
+/// - **Over keeping `1`.** That is the measured live defect. "This command no
+///   longer exists" and "your code has findings" are on opposite sides of a
+///   safety decision and were the same number.
+/// - **Over a NEW code.** vc's 0045 measured both gates: git pre-commit blocks
+///   on `1` and fails open on everything else; Claude Code `UserPromptSubmit`
+///   blocks on `2` and passes everything else. **A third value would block
+///   neither**, so a retired command would sail through both gates -- the
+///   fail-open this issue exists to close, rebuilt with a fresh number.
+/// - **Accepting the residual**: retired and unimplemented are now
+///   indistinguishable BY CODE. They are distinguished by message, and both
+///   mean "do not expect this build to do that". A caller that must tell them
+///   apart is asking a question no exit code has ever answered here.
+///
+/// **The mechanism is the fix and the number is a parameter.** A v2 script or
+/// a person now reads `was retired in Intent v3` with the replacement where one
+/// exists; that information arrives whatever hv rules the code should be.
 pub const EXIT_UNAVAILABLE: i32 = 2;
 
 /// How a command failed, and therefore which code reports it.
@@ -484,7 +512,7 @@ fn placeholder(value: &str) -> (&str, bool) {
 /// they print and exit 0.
 pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
   let table = dispatch::table();
-  match build(&table).try_get_matches_from(argv) {
+  match build(&table).try_get_matches_from(argv.clone()) {
     Ok(matches) => Ok(matches),
     Err(e) => {
       use clap::error::ErrorKind;
@@ -494,12 +522,59 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
           Err(EXIT_OK)
         }
         _ => {
+          // **ISSUE 0044's structural half: a retired command now reaches a
+          // decision about WHAT it is.** Before this, retirement removed the
+          // name from the clap surface, so the refusal happened strictly
+          // earlier than the code that chooses a meaningful answer -- and the
+          // careful work in `d2b8e76d` was unreachable for exactly the class a
+          // migration hits most.
+          if let Some(refusal) = retired_refusal(&table, &argv) {
+            eprintln!("{refusal}");
+            return Err(EXIT_UNAVAILABLE);
+          }
           eprintln!("error: {}", first_line(&e.render().to_string()));
           Err(EXIT_ERROR)
         }
       }
     }
   }
+}
+
+/// A v2 command this build retired, named as such, or `None`.
+///
+/// **Consulted only AFTER clap has failed, and that ordering is the safety
+/// property.** The shipped surface stays the sole authority on what works: a
+/// name clap can parse is dispatched and never reaches here, so this can only
+/// ever improve a message that was already a failure. Checking argv first would
+/// put a second authority in front of the surface, which is how a live command
+/// gets shadowed by a stale row.
+///
+/// **Nothing from the table's ratification prose is printed.** Those notes cite
+/// hv rulings, dates and our own design and criterion ids, and D37 rules that
+/// Intent's own ST/WP/AC/D ids never reach a user's output. What is printed is
+/// structural -- the name, the fact of retirement, and the replacement where
+/// the row carries one -- so the message cannot drift from the table by being
+/// paraphrased into the binary.
+fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
+  let given: Vec<&str> = argv.iter().skip(1).map(String::as_str).collect();
+  // **The spelling the operator TYPED, not the canonical path.** `st organise`
+  // is an alias on a retired row; answering it by naming `st organize` asks
+  // someone mid-migration to reconcile two spellings before they can read the
+  // one fact they need, and the difference is a single letter.
+  let (entry, typed) = table.retired().into_iter().find_map(|e| {
+    e.spellings()
+      .into_iter()
+      .find(|spelling| given.starts_with(spelling.as_slice()))
+      .map(|spelling| (e, spelling.join(" ")))
+  })?;
+  let remedy = if entry.target.spelling.is_empty() {
+    "there is no v3 replacement -- remove it from any script that calls it".to_string()
+  } else {
+    format!("use `{}` instead", entry.target.spelling)
+  };
+  Some(format!(
+    "error: `intent {typed}` was retired in Intent v3 and is not a command in this build\n  remedy: {remedy}"
+  ))
 }
 
 /// clap renders a multi-line block; v2 speaks one line. Take the message and

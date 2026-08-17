@@ -730,6 +730,16 @@ fn every_declared_alias_on_a_shipped_row_is_the_command_it_aliases() {
 /// aliases without asking whether the row ships would bring a withdrawn command
 /// back through its old spelling while the canonical one stays gone -- a
 /// command that exists only under the name nobody chose to keep.
+///
+/// **The assertion moved from the MESSAGE to the SURFACE, and the reason is
+/// worth keeping.** This test read `out.contains("unrecognized subcommand")`,
+/// which was an exact proxy for "did not resolve" only because clap's generic
+/// error was the sole alternative to resolving. Issue 0044 added a third
+/// outcome -- refused BY NAME as retired -- and the proxy reddened on a change
+/// that strengthened the very thing it guards. **A test measuring the mechanism
+/// of a refusal instead of the refusal fails when the mechanism improves**, so
+/// what it now asks is whether clap knows the spelling at all. If the surface
+/// does not carry it, it cannot resolve, whatever the message says.
 #[test]
 fn a_retired_rows_alias_does_not_come_back() {
   let table = dispatch::table();
@@ -747,11 +757,29 @@ fn a_retired_rows_alias_does_not_come_back() {
      deleting it, because the case it guards is cheap to reintroduce"
   );
 
+  let surface = intent_cli::spine::build(&table);
+  let st = surface
+    .get_subcommands()
+    .find(|c| c.get_name() == "st")
+    .expect("the shipped surface carries the `st` family");
+
   for alias in retired {
+    let registered = st.get_subcommands().any(|verb| {
+      verb.get_name() == alias || verb.get_all_aliases().any(|declared| declared == alias)
+    });
+    assert!(
+      !registered,
+      "`st {alias}` is registered on the shipped clap surface. It is an alias on a RETIRED row, so registering it revives a withdrawn command under the one \
+       spelling nobody chose to keep -- and the canonical `st organize` would still be gone, which is the state hardest to diagnose from outside"
+    );
+
+    // And end to end, because a surface assertion cannot see a second path that
+    // answers the spelling. Either refusal is correct here; what is not is
+    // running.
     let out = run_raw(&["st", alias]);
     assert!(
-      out.contains("unrecognized subcommand"),
-      "`st {alias}` is an alias on a retired row and must not resolve, got: {out}"
+      out.contains("unrecognized subcommand") || out.contains("was retired in Intent v3"),
+      "`st {alias}` neither resolved to nothing nor named itself retired, so something answered it: {out}"
     );
   }
 }
