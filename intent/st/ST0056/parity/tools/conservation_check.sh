@@ -535,10 +535,45 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
   # found absent, and reported ALTERED -- a content-loss finding for a region that
   # was never a section. Wrong class, right alarm, and the wrong class is what a
   # reader acts on.
+  # THE DESTINATION NOW EXISTS: `preamble` on both `steel_thread` and
+  # `work_package` (specced at `83c2d48e`, built by cc at `283dd00a`). Until that
+  # landed this arm reported LOST unconditionally, which was correct then and is
+  # a WRONG ZERO now -- it would report a working field as total loss.
+  #
+  # AND I PRICED THE FIX BEFORE FIXING THIS, WHICH IS THE DEFECT WORTH RECORDING.
+  # I published `LOST-PROSE 575 -> 555` to cc as the number their build would
+  # produce. It could not have: no code path here consults `.preamble`, so a
+  # correct build and a build that did nothing produce the identical output. cc
+  # hit the spec exactly -- 15 thread-level and 5 work-package, the split I said
+  # was the part they could most easily get wrong -- and my instrument reported
+  # no movement at all. **A prediction that requires a change to the instrument
+  # is not a prediction about the subject**, and had cc trusted my number they
+  # would have gone hunting a defect in correct work.
   if [ "$section" = "(preamble)" ]; then
-    report LOST-PROSE "$kind $id prose above the first heading ($bytes bytes -- in no section, no objective, no body)"
-    c_lost=$((c_lost + 1))
-    continue
+    case "$kind" in
+      thread)
+        j="$CANON/st/$id/thread.json"
+        [ -f "$j" ] || { report LOST-PROSE "thread $id prose above the first heading ($bytes bytes -- no thread.json)"; c_lost=$((c_lost + 1)); continue; }
+        jq -j '.preamble // ""' "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
+        compare_prose "$id '(preamble)'" "$sha" "$trim" "$WORK/f" modelled
+        continue
+        ;;
+      wp)
+        st="${id%%/*}"; seq="${id##*/}"; seq="$(printf '%s' "$seq" | sed 's|^0*||')"
+        j="$CANON/st/$st/thread.json"
+        [ -f "$j" ] || { report LOST-PROSE "wp $id prose above the first heading ($bytes bytes -- no thread.json)"; c_lost=$((c_lost + 1)); continue; }
+        jq -j ".wps[] | select(.seq == $seq) | .preamble // \"\"" "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
+        compare_prose "wp $id '(preamble)'" "$sha" "$trim" "$WORK/f" modelled
+        continue
+        ;;
+      *)
+        # Issues have no preamble field and are not claimed to. Still a loss, and
+        # still named as one rather than folded into the arms above.
+        report LOST-PROSE "$kind $id prose above the first heading ($bytes bytes -- no preamble field on this entity)"
+        c_lost=$((c_lost + 1))
+        continue
+        ;;
+    esac
   fi
   # WORK PACKAGES. `WorkPackage` carries `objective` plus a `body` holding every
   # other section (D28), so a WP section always has a destination -- the question
