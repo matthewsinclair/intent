@@ -199,3 +199,49 @@ Kept verbatim. Every red it describes is now green, VERIFIED rather than accepte
 - **vc, LEVEL AND THE BEST EXCHANGE OF THE DAY.** They held my `ac gate` remedy before I took it, then answered both follow-ups and struck their own attribution. Owed to them: nothing blocking. Owed by them: the schema ruling in TODO 2.
 - **cc, AND THEY SOLVED THE THING I HANDED THEM.** I answered AC-11.5 with EXP-09 and three entangled blockers; **cc re-measured against their own binary rather than taking my message for the artefact, and found `version --verbose` exits 1** -- so AC-11.5 goes on the subcommand, off the swallowing root, and my three blockers come off their critical path. They are confirming the spelling with dc before I declare the flag. **Owed by me: one row, the moment they confirm.** AT-05.7 / `inert_arg_check.sh` is theirs, and they have already noted EXP-09 is a member it cannot reach, so the root intrinsics must be NAMED as excluded rather than silently outside its denominator.
 - **hv, TWO STANDING AND ONE INCOMING.** `ac gate`'s ratification is provisional pending them; `st start` from `triage` is still theirs; and **the re-prioritisation is theirs to make** -- vc has recommended naming the hoist as the milestone with a moratorium on new classes and criteria until it lands.
+
+## FOLD 23 (2026-08-17 17:37Z) -- WP-10 Phase B built; the accretion found, fixed by cc, verified by me
+
+## DOING -- THE ACCRETION IS CLOSED AND THE CUTOVER GATE IS MEASURED PASSING
+
+**hv gated the cutover on it: a second migration over an INTERRUPTED estate must reach the same end state as a clean one. It does.** Measured against committed HEAD `85ef4a72` with `git status --porcelain native/ schema/` returning **0 modified**, so no peer's in-flight work is in the reading -- the discipline I got wrong twice earlier today and right here.
+
+```
+CLEAN: 93 files written, 144-file tree
+plain re-run 2 / 3        wrote 93, 10 already  ->  IDENTICAL
+kill early (1st canon)    123 at kill; re-run 93,  1 already -> IDENTICAL
+kill mid   (last canon)   132 at kill; re-run 93, 10 already -> IDENTICAL
+kill late  (into views)   142 at kill; re-run 93, 10 already -> IDENTICAL
+```
+
+**Real `kill(SIGKILL)` on a child mid-`WriteSet::commit`, confirmed by `signal() == Some(9)`, not a simulated partial write.** Two attempts: killing on a GUESSED DELAY never worked -- 0 files at 12.8ms, because harness process startup outlasts every delay -- and killing on a SENTINEL FILE APPEARING lands it every time. No stray `.intent-tmp` survived any kill.
+
+**AND THE REALISTIC SHAPE, WHICH MY FIRST FIXTURE COULD NOT SEE.** Mine put threads at the flat path; the real estate has 55 of 56 in `COMPLETED/`, and cc warned that is exactly what collides on 0011:
+
+```
+5 threads, all in COMPLETED/ -- run 1 wrote 55, 0 already; run 2 wrote 55, 5 already -> IDENTICAL
+after: 5 thread dirs at the flat path, 5 still in COMPLETED/
+```
+
+No duplicate-id block, so cc's dedup holds. **And that last line is the bucket finding measured from the other end: the estate is doubled after a clean migration and the migrator is content.**
+
+**WHAT IT DOES NOT ESTABLISH, RECORDED BEFORE ANYONE QUOTES IT.** Five and ten threads from ONE repo, all COMPLETED -- not the 56-thread canary, not the fleet. **And the verdict rests on my own throwaway tree diff, not on dc's `same_end_state_check.sh`**, which is me doing what I told dc three hours ago I would not do. Nothing landed, the scratch is deleted, but the gate has not been run under the gate's own tool and I am not reporting it as though it had.
+
+**MY OWN MESS TODAY, BOTH OWNED:** a `zz_ic_*.rs` survived a 7-minute timeout in the shared `tests/` dir because my cleanup never ran -- my poll loop walked the whole tree 400k times, my bug, and it cost the sweep. Removed. And `74c4b357` **broke HEAD**: I committed the consumer of `Scan.already_migrated` while cc held the producer, both worktrees green because the tree held both halves. cc's `7628a02b` fixed it. **cc's generalisation is the durable one: every green here is a claim about the union of five people's uncommitted work.**
+
+**LANDED AND PUSHED TODAY:** `ca71bd61` roster reads the index; `96d2bd4c` `migrate.rs`; `e591c9c4` `assemble` private; `94ef68b7` WP zero-padded path; `e0c813a8` `Blocked`'s remedy proof; `cac74720` **the residue check reads the index too -- the same defect in the sibling tool, which I fixed this morning in one and did not transfer**; `74c4b357` `already_migrated` through the join.
+
+## TODO -- THE RE-RUN CONTRACT IS THE LANE
+
+1. **THE RE-RUN CONTRACT IN `migrate.rs`, WAITING ON cc's `legacy.rs` HALF.** What `plan()` does over a partially-migrated estate. If the canon-wins design lands as agreed it should be a no-op on my side -- **and that is a claim to TEST, not to assert**, because "no change needed" is the shape that ships unverified.
+2. **THE INTERRUPTION TEST, AND IT MUST BE A REAL KILL** (cc's condition, accepted): run, `SIGKILL` between writes, re-run, and the twice-run tree must equal a clean single run. Reading the code establishes nothing here -- the accretion was invisible to three careful readers and took one execution.
+3. **HOLD BOTH TESTS UNTIL cc LANDS.** They are red until then, and I have landed red once today already for a reason that does not apply twice.
+4. **DELETE THE COLLISION PRE-SCAN when `WriteSet::add` becomes fallible.** Still cc's, still recorded in the variant's doc.
+5. **THE EVENT LOG QUESTION IS STILL UNASKED AND STILL MINE.** Deliberately not sent -- it blocks nothing today, and the moratorium is about not generating questions that block nothing.
+
+## Open with others -- LIVE ASKS ONLY
+
+- **cc -- owed to me: `export.rs` (minutes), then the sections fix.** Owed by me: nothing. Boundary holding well; they took all four `Blocked` variants and moved their guard on my placement argument, I took their `BTreeMap` correction and their `issue_add` framing (the door is a property of the ACT, not of the entity).
+- **vc -- on the tools, and we are working the same seam from both ends.** They carry the `organize` warrant to hv. Their `conservation_check.sh` now predicates on reachability rather than presence, which is the correction that came out of Finding 1.
+- **dc -- two-ended migrations.** Their AC-10.4 half and my Finding 2 are the same axis in opposite directions: **a record whose INTERIOR is dropped (mine) and a record that survives byte-for-byte whose REFERENTS stop resolving (theirs).** A conservation check built for either is silent about the other. vc has it.
+- **hv -- FOUR, all via vc's batch or held for conversation.** The `organize` warrant; contract ownership; `ac gate`'s ratification still provisional; `st start` from `triage`.

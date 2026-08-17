@@ -3,57 +3,40 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-17 17:35Z
-status: active
-focus: "**THE ACCRETION IS CLOSED AND THE hv-GATED CUTOVER CONDITION IS MEASURED PASSING.** I found it this afternoon (+350 bytes per run, no fixed point, 0 blocking every run, the do-not-edit banner ending up inside the model); cc fixed it at `7628a02b` with canon-wins-on-re-read; **I verified it by execution against committed HEAD `85ef4a72` with the Rust tree verifiably clean: plain re-run IDENTICAL, and a REAL SIGKILL mid-`WriteSet::commit` at three depths all IDENTICAL** -- plus the realistic bucketed shape (5 threads in `COMPLETED/`) with no duplicate-id block, which is the case cc warned about and my first fixture could not see. **Caveat recorded rather than buried: 5-10 threads from one repo, and the verdict rests on my throwaway diff rather than dc's `same_end_state_check.sh`, so the gate has not been run under the gate's own tool.** Seven commits pushed. **Two messes owned: a scratch test survived a timeout in the shared tests dir, and `74c4b357` broke HEAD because I committed the consumer while cc held the producer -- both worktrees green because the tree held both halves.** Upstream frozen; v3 NOT on PATH."
+heartbeat_at: 2026-08-17 17:37Z
+status: paused
+focus: "PAUSED AT FOLD 23 FOR A COMPACT. **WP-10 PHASE B IS BUILT AND LANDED** -- `migrate.rs`, `plan()` returning an UNCOMMITTED WriteSet so AC-10.2 atomicity is structural, 9 tests, seven commits pushed. **THE DAY'S FINDING: the migration was NOT RE-RUNNABLE and hv's big-bang/fix-forward ruling had just made that the property that matters** -- it accreted without bound (+350 bytes per run, no fixed point, 0 blocking every run) because Phase A re-read what Phase B wrote and the D28 catch-all swept the generated `## Acceptance` and the do-not-edit banner into `WorkPackage.body`. **The line saying the file is rendered from the model ended up IN the model, three copies deep, as committed canon.** It caught cc mid-build of `Thread.body`, which would have doubled it onto 56 threads. cc fixed it (canon wins on re-read, `7628a02b`); **I verified by execution: plain re-run plus a real SIGKILL at three depths plus the bucketed shape, all IDENTICAL.** **ONE THING OPEN: the gate has NOT been run under dc's rostered `same_end_state_check.sh` -- my verdict rests on my own diff, I flagged it myself, and dc is holding 'strong evidence, gate not run' with hv.** Blocked only by a compile error in cc's in-flight `facade.rs`. Estates staged at `$CLAUDE_JOB_DIR/tmp/gate/{a,b}`. Upstream frozen; v3 NOT on PATH."
 claims: [ST0056/10]
 ---
 
 # Interface Claude (ic)
 
-## DOING -- THE ACCRETION IS CLOSED AND THE CUTOVER GATE IS MEASURED PASSING
+## DOING -- PAUSED AT FOLD 23. ONE THING OPEN AND IT IS BLOCKED ON cc's TREE
 
-**hv gated the cutover on it: a second migration over an INTERRUPTED estate must reach the same end state as a clean one. It does.** Measured against committed HEAD `85ef4a72` with `git status --porcelain native/ schema/` returning **0 modified**, so no peer's in-flight work is in the reading -- the discipline I got wrong twice earlier today and right here.
+**PHASE B IS BUILT AND LANDED.** `native/rust/crates/intentsvcs/src/migrate.rs` -- `plan(project, ctx, scan)` to cc's interface, canon from `export::canon_parts`, views from `views::render_all`, returned as an **uncommitted** `WriteSet`. 9 unit tests, fmt clean, clippy 0, registered in MODULES.md. Seven commits pushed to `local`.
 
-```
-CLEAN: 93 files written, 144-file tree
-plain re-run 2 / 3        wrote 93, 10 already  ->  IDENTICAL
-kill early (1st canon)    123 at kill; re-run 93,  1 already -> IDENTICAL
-kill mid   (last canon)   132 at kill; re-run 93, 10 already -> IDENTICAL
-kill late  (into views)   142 at kill; re-run 93, 10 already -> IDENTICAL
-```
+**THE ONE OPEN ITEM: RUN THE CUTOVER GATE UNDER dc's ROSTERED TOOL.** hv gated the cutover on a second migration over an interrupted estate reaching the same end state as a clean one. **I have measured it passing -- plain re-run plus a real `SIGKILL` at three depths plus the realistic bucketed shape, all IDENTICAL** -- but the verdict rests on my own throwaway diff, not on `same_end_state_check.sh`, which dc landed at `66ba461d`. **Until it is re-run under that tool, the position is strong evidence and gate NOT RUN**, and dc is holding that line with hv.
 
-**Real `kill(SIGKILL)` on a child mid-`WriteSet::commit`, confirmed by `signal() == Some(9)`, not a simulated partial write.** Two attempts: killing on a GUESSED DELAY never worked -- 0 files at 12.8ms, because harness process startup outlasts every delay -- and killing on a SENTINEL FILE APPEARING lands it every time. No stray `.intent-tmp` survived any kill.
+**READY AND WAITING ON THE BOUNCE:** two pristine copies of the full canary (`git archive HEAD intent/`, 1063 files, 58 thread dirs) at `~/.claude/jobs/f26f5f7b/tmp/gate/{a,b}`, plus the harness. **BLOCKED ONLY BY A COMPILE ERROR IN cc's IN-FLIGHT `facade.rs`** (`cannot find function stamp_version`, facade.rs:627) -- theirs, not mine, nothing for me to fix.
 
-**AND THE REALISTIC SHAPE, WHICH MY FIRST FIXTURE COULD NOT SEE.** Mine put threads at the flat path; the real estate has 55 of 56 in `COMPLETED/`, and cc warned that is exactly what collides on 0011:
+**THE HARNESS DESIGN, because it is the part that took two attempts.** Kill on a **sentinel file appearing**, never on a guessed delay: 0 files were written even at 12.8ms because harness process startup outlasts every delay, and dc's sharpening is the reason it matters -- **a kill that lands too early writes nothing, so the re-run trivially matches and the arm reports IDENTICAL without having interrupted anything.** The sentinel is a LATE write (a view, not the first canon file) so the kill lands deep, and the harness asserts `signal() == Some(9)` and fails if the child was not actually killed.
 
-```
-5 threads, all in COMPLETED/ -- run 1 wrote 55, 0 already; run 2 wrote 55, 5 already -> IDENTICAL
-after: 5 thread dirs at the flat path, 5 still in COMPLETED/
-```
+**ON THE BOUNCE, IN ORDER:** re-run the gate under dc's tool once cc's tree compiles; use vc's PINNED corpus (`42fb5269` canary, `8e8f0611` fleet) rather than a hand-built estate, which turns "5 and 10 threads from one repo" into a population that can settle it; then land the harness itself, calling dc's comparator rather than a second diff.
 
-No duplicate-id block, so cc's dedup holds. **And that last line is the bucket finding measured from the other end: the estate is doubled after a clean migration and the migrator is content.**
+## TODO -- SHORT
 
-**WHAT IT DOES NOT ESTABLISH, RECORDED BEFORE ANYONE QUOTES IT.** Five and ten threads from ONE repo, all COMPLETED -- not the 56-thread canary, not the fleet. **And the verdict rests on my own throwaway tree diff, not on dc's `same_end_state_check.sh`**, which is me doing what I told dc three hours ago I would not do. Nothing landed, the scratch is deleted, but the gate has not been run under the gate's own tool and I am not reporting it as though it had.
-
-**MY OWN MESS TODAY, BOTH OWNED:** a `zz_ic_*.rs` survived a 7-minute timeout in the shared `tests/` dir because my cleanup never ran -- my poll loop walked the whole tree 400k times, my bug, and it cost the sweep. Removed. And `74c4b357` **broke HEAD**: I committed the consumer of `Scan.already_migrated` while cc held the producer, both worktrees green because the tree held both halves. cc's `7628a02b` fixed it. **cc's generalisation is the durable one: every green here is a claim about the union of five people's uncommitted work.**
-
-**LANDED AND PUSHED TODAY:** `ca71bd61` roster reads the index; `96d2bd4c` `migrate.rs`; `e591c9c4` `assemble` private; `94ef68b7` WP zero-padded path; `e0c813a8` `Blocked`'s remedy proof; `cac74720` **the residue check reads the index too -- the same defect in the sibling tool, which I fixed this morning in one and did not transfer**; `74c4b357` `already_migrated` through the join.
-
-## TODO -- THE RE-RUN CONTRACT IS THE LANE
-
-1. **THE RE-RUN CONTRACT IN `migrate.rs`, WAITING ON cc's `legacy.rs` HALF.** What `plan()` does over a partially-migrated estate. If the canon-wins design lands as agreed it should be a no-op on my side -- **and that is a claim to TEST, not to assert**, because "no change needed" is the shape that ships unverified.
-2. **THE INTERRUPTION TEST, AND IT MUST BE A REAL KILL** (cc's condition, accepted): run, `SIGKILL` between writes, re-run, and the twice-run tree must equal a clean single run. Reading the code establishes nothing here -- the accretion was invisible to three careful readers and took one execution.
-3. **HOLD BOTH TESTS UNTIL cc LANDS.** They are red until then, and I have landed red once today already for a reason that does not apply twice.
-4. **DELETE THE COLLISION PRE-SCAN when `WriteSet::add` becomes fallible.** Still cc's, still recorded in the variant's doc.
-5. **THE EVENT LOG QUESTION IS STILL UNASKED AND STILL MINE.** Deliberately not sent -- it blocks nothing today, and the moratorium is about not generating questions that block nothing.
+1. **RUN THE GATE UNDER `same_end_state_check.sh`.** Blocked on cc's `facade.rs` compiling. Everything else is staged.
+2. **LAND THE INTERRUPTION HARNESS**, calling dc's comparator. It has only ever existed as scratch; nothing is committed.
+3. **DELETE THE COLLISION PRE-SCAN when cc makes `WriteSet::add` fallible.** Recorded in the variant's doc so it cannot quietly become two checks where one can never fire.
+4. **THE EVENT LOG QUESTION IS STILL UNASKED AND STILL MINE.** `migration.md` says a migrated thread restores an `st.new` carrying the authored date; `Envelope.ts` is millisecond-precision by contract; `created` is a DATE. Deliberately not sent -- it blocks nothing, and the moratorium is about not generating questions that block nothing.
+5. **NOT MINE, TRACKED:** cc holds `Thread.body` (the 178 dropped sections) behind the re-read contract; the bucket relocation is with hv via vc; `Plan.issues` is still empty until cc's issues parser lands.
 
 ## Open with others -- LIVE ASKS ONLY
 
-- **cc -- owed to me: `export.rs` (minutes), then the sections fix.** Owed by me: nothing. Boundary holding well; they took all four `Blocked` variants and moved their guard on my placement argument, I took their `BTreeMap` correction and their `issue_add` framing (the door is a property of the ACT, not of the entity).
-- **vc -- on the tools, and we are working the same seam from both ends.** They carry the `organize` warrant to hv. Their `conservation_check.sh` now predicates on reachability rather than presence, which is the correction that came out of Finding 1.
-- **dc -- two-ended migrations.** Their AC-10.4 half and my Finding 2 are the same axis in opposite directions: **a record whose INTERIOR is dropped (mine) and a record that survives byte-for-byte whose REFERENTS stop resolving (theirs).** A conservation check built for either is silent about the other. vc has it.
-- **hv -- FOUR, all via vc's batch or held for conversation.** The `organize` warrant; contract ownership; `ac gate`'s ratification still provisional; `st start` from `triage`.
+- **cc -- owed to me: a compiling `facade.rs`.** Owed by me: nothing. The split held all day: I own `migrate.rs`, they own `legacy.rs` / `facade.rs` / the door.
+- **dc -- owed to me: nothing; their tool is landed and rostered.** They are holding "gate not run" with hv until I re-run it under it.
+- **vc -- nothing owed either way.** Their pinned corpus is what I use on the bounce.
+- **hv -- the bucket relocation** (via vc, ranked first of their four); contract ownership; `ac gate`'s ratification still provisional.
 
 ## Watch-outs
 
