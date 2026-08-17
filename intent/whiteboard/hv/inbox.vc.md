@@ -305,3 +305,31 @@ cc stopped building `intent issues` mutations because `data-model.md` ratifies M
 **Nothing is blocked.** The three mutations report themselves unbuilt at exit 2, which is what they already did, and cc has a test guarding against building them by reflex.
 
 **And the other question is still open, unchanged, because it is about your words rather than code.** D44: you said _"a longer done list **in the todo file**"_; I ruled terminal-only on the principle that a committed file is a record. cc built it that way and then measured something that makes the refusal easier to justify rather than harder: **the cutoff is `date('now','-Nh')` truncated to a date, so at 02:00 a 6-hour window reaches into yesterday and at 12:00 it does not** -- the same configuration produces a different DONE bucket depending on the hour it is read at. Recommendation unchanged: terminal-only.
+
+## (2026-08-17 10:10Z) Re: 2026-08-17 09:39Z
+
+**THE SELF-LOOP QUESTION HAS GROWN A SECOND HALF, AND THE TWO SHOULD BE RULED TOGETHER: WHICH FIELDS GET MACHINES AT ALL?**
+
+cc measured AC-04.6's second condition today and found four fields an entity can enter and never leave -- `Thread.acceptance`, `Criterion.kind`, `AcceptanceTest.kind`, `Issue.status`. All four are values authored canon puts there with no verb to move them. **Measuring that debt is not paying it, and paying it runs straight into the criterion's FIRST condition**: giving any of them an exit means declaring a state machine, and `data-model.md` ratifies three, of which none is these. So cc stopped -- correctly, and for the same reason they stopped on `intent issues`.
+
+**cc's framing, which I agree with: this is ONE ruling covering four rows, not four calls.** The `intent issues` block was never an issues problem; it is the fourth instance of one question.
+
+**MY RECOMMENDATION, AND IT IS SMALLER THAN "DECLARE FOUR MACHINES".**
+
+Three of the four do not look like state variables at all, and cc's own finding is the argument. `Criterion.kind` **cannot move independently**: the kind/state pairing is enforced in the JSON Schema face (`model.rs:414-432`, held by `tests/ac_kind_state_invariant.rs`), so a kind conversion has to move `kind` AND `state` in one act. **A field that cannot move alone is a component of a state, not a state.** `Thread.acceptance` is `Option<AcceptanceMode>` -- `exempt` or absent -- which is an attribute. `AcceptanceTest.kind` has `Criterion.kind`'s shape.
+
+So:
+
+- **`Issue.status` -> Machine 4**, exactly as I proposed at 09:39Z. This is the one real lifecycle, and it is the one with a real verb family behind it.
+- **the two `kind` rows -> WIDEN Machine 3** over the (kind, state) pair rather than adding machines. ic independently hit this from the register side: they have no notation for a multi-field atomic move and are recording it as a constraint on the verb. **That gap is diagnostic, not clerical** -- a verb that must move two fields atomically is a verb over a compound state.
+- **`Thread.acceptance` -> immutable after creation.** No machine, no edge; changing it is authoring, not a transition.
+
+**That is one new machine and three rulings, rather than four machines. If it is right, most of what currently reads as blocked was never owed.**
+
+**WHY I AM NOT RULING IT.** Machines 1-3 are yours; declaring more on my own authority is the same class as the Machine 4 call I escalated at 09:39Z, and ruling three of four while escalating the first would be incoherent. The self-loop question is the same rule seen from the other end -- one asks what edges a machine carries, this asks which things are machines -- so ruling them separately risks two answers that do not compose.
+
+**NOTHING IS BLOCKED AND NOBODY IS WAITING IDLE.** The mutations report themselves unbuilt at exit 2, which is what they already did; cc has a test that panics if a fifth such field appears without a measuring arm; AT-04.6 stays red with its reason corrected to say four owed mutations rather than the missing measurement it was still claiming (`9e189ee7`). **What a ruling changes is what gets BUILT** -- four machines is materially more surface than one -- so it is worth your minute before anyone starts.
+
+**Unchanged and still on your desk: self-loops (09:39Z) and D44's window (recommendation still terminal-only).**
+
+**FYI, no response needed:** issues 0040 and 0041 are closed on measurement (`4ff5a829`). Your `st_prefix` retirement ruling is discharged in all three parts, and the migrator does more than you ruled -- it BLOCKS a non-`ST` prefix rather than merely naming it, which is what actually removes the success-over-an-unseen-estate shape. Closing 0041 turned up a new one, filed as **0047**: renaming a status display arm reds neither surface, because a machine ratification moved `st new` to `Triage` and silently defanged the assertion that still reads as though it pins the vocabulary.
