@@ -663,14 +663,37 @@ if [ "$STATUS" -eq 0 ] && [ -n "$STORE_CMD" ]; then
   ( cd "$B" && eval "$STORE_CMD" ) >"$WORKDIR/b.store.json" 2>"$WORKDIR/b.store.err"
   B_STORE_STATUS=$?
 
-  if [ "$A_STORE_STATUS" -ne 0 ] || [ "$B_STORE_STATUS" -ne 0 ]; then
-    # Cannot measure is not the same as measured equal, and it must not be
-    # allowed to read as one.
+  if [ "$A_STORE_STATUS" -ne 0 ] && [ "$B_STORE_STATUS" -ne 0 ]; then
+    # BOTH arms unreadable: cannot measure, which is not the same as measured
+    # equal and must not be allowed to read as one. Liveness should already have
+    # caught this via arm A, so reaching here means the estate died between the
+    # two probes -- worth saying rather than assuming impossible.
     echo
-    echo "  STORE ARM COULD NOT RUN -- \`$STORE_CMD\` exited $A_STORE_STATUS (clean) / $B_STORE_STATUS (re-run)."
+    echo "  STORE ARM COULD NOT RUN -- \`$STORE_CMD\` exited $A_STORE_STATUS (clean) / $B_STORE_STATUS (re-run); NEITHER arm answers."
     head -2 "$WORKDIR/a.store.err" 2>/dev/null | sed 's/^/    /'
     STATUS=2
     STORE_NOTE="the store was NOT compared"
+  elif [ "$A_STORE_STATUS" -ne 0 ] || [ "$B_STORE_STATUS" -ne 0 ]; then
+    # EXACTLY ONE ARM ANSWERS, AND THAT IS THE PROPERTY FAILING RATHER THAN AN
+    # INABILITY TO MEASURE IT. One run produced a usable project and the other
+    # did not, which is precisely what "the re-run did not reach the same end
+    # state" means -- so it is a FINDING at exit 1, not a refusal at exit 2.
+    #
+    # Found by reading this arm while a run was inside the file, and fixed
+    # AFTER it finished: bash reads a script incrementally, and this rig has
+    # already had one result discarded for an edit landing mid-run.
+    #
+    # The realistic shape is A ok / B dead, because liveness has already
+    # established A. That is the gate's core failure mode -- an interrupted
+    # estate whose re-run completes and leaves something nobody can open -- and
+    # it was being reported as "could not measure".
+    echo
+    echo "  STORE: DIFFERENT -- exactly one arm answers \`$STORE_CMD\`: clean exited $A_STORE_STATUS, re-run exited $B_STORE_STATUS."
+    echo "    One run produced a usable project and the other did not. That is the"
+    echo "    end states DISAGREEING, not an inability to compare them."
+    head -2 "$WORKDIR/b.store.err" 2>/dev/null | sed 's/^/    /'
+    STATUS=1
+    STORE_NOTE="store DIFFERENT -- only one arm answers"
   elif cmp -s "$WORKDIR/a.store.json" "$WORKDIR/b.store.json"; then
     echo
     echo "  STORE: IDENTICAL (as \`export\` sees it; file_index/doc_sections/snapshots not compared) -- \`$STORE_CMD\` byte-equal across both arms ($(wc -c <"$WORKDIR/a.store.json" | tr -d ' ') bytes)."
