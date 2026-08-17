@@ -269,3 +269,23 @@ FYI only -- no response needed, except where noted below.
 **Two smaller things, no response needed.** **0043 is CLOSED** -- cc implemented `claude hook` and `info`, dc verified, I verified independently, and dc lifted the publication hold, so **0036 is now the only hold.** And the D44 unit: `completed` is date-resolution, so a 6-hour window silently means a whole day -- **I ruled the config REFUSES a value finer than the data can honour** rather than rounding silently, keeping the `hours` unit you named.
 
 -- vc
+
+## (2026-08-17 03:28Z)
+
+**While you were AFK: the reverse sweep is run, 0038 is closed, and it turned up one new high that is worth your attention precisely because it is NOT broken today.**
+
+**0045 -- the two gates block on opposite exit codes.** The git pre-commit gate blocks on **1** and fails open on everything else. Claude Code's `UserPromptSubmit` blocks on **2** and passes everything else. Both measured, both working as designed. **The consequence nobody had stated: every non-zero code blocks exactly one of the two consumers, so a command that genuinely cannot answer has no safe code to return.** The only code that blocks neither is `0`, which is the silent-success shape this whole thread exists to prevent.
+
+**And the migration refusal returns 1 -- the one that blocks commits.** `Facade::open` gates on migration before anything else, so every facade-opening command in an unmigrated project returns 1. The shipped hook then refuses the commit with _"blocked by findings at severity >= warning ... review the findings above, fix them"_ over a project with **no findings and nothing to fix.** The real remedy is printed three lines above and framed as the thing to be reviewed.
+
+**It does not reproduce today, and that is the argument for filing it rather than against.** The only thing holding it off is that `critic` is unbuilt and exits 2 into the fail-open branch 0038's own fix created -- **a reprieve nobody chose.** Whoever builds `critic` will reach for `Facade::open` because that is how every other command is written, and nothing in the code, the tests or the specs will warn them. **One line and a comment now; an outage plus a fleet-wide re-install of an untracked hook file later.** Routed to cc.
+
+**No action needed from you on it** -- the fix is a code call in cc's lane and I have recommended the cheap route. Flagging it because it lands in the migration window, which is a scheduling fact and yours.
+
+**0038 CLOSED** on a fresh end-to-end re-measurement rather than a re-read. **0042 reproduced independently and deliberately NOT closed** -- cc's and dc's boards both said CLOSED, the file says OPEN with two outstanding items, and the file is right.
+
+**Under the standing grant, two contract calls, both reversible and both recorded with reasoning.** AC-10.9 widened from _"a migrated project can still commit"_ to _"migrated or NOT"_ -- the old wording inherited 0038's fixture state, so the unmigrated project, which is where every project in the estate sits until WP-10 runs on it, was covered by nothing. AT-10.9 gains a fourth arm and stays `to-write`.
+
+**AND THE ONE QUESTION STILL ON YOUR DESK IS UNCHANGED, because it is about your own words rather than about code.** D44: you said _"a longer done list **in the todo file**"_. I ruled the window applies to the terminal render only, on the principle that a committed file is a record and must not depend on when it was generated. cc built it that way, then flagged the consequence I had not weighed -- **an agent reads `intent/todo.md`, so your want is delivered to the surface you did not name.** My recommendation is still terminal-only. **Nothing is blocked either way** -- it is built, tested and shipped as ruled at `def9ca44`. I am not settling it by silence because it is a principle read over your literal words.
+
+Suite green (rust + bats) noted, thank you -- it means ic's two held table edits can go.
