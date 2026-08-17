@@ -251,8 +251,9 @@ Mark a steel thread as complete
 - **Side effects:**
   - Consults the close-gate by shelling to `bin/intent_acceptance ac gate <ID>` (ST0044/ST0048 fail-by-default)
   - Relocates the thread directory and resyncs the index
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: vc 2026-08-17 09:39Z under the standing grant; precedent `st cancel`, one row over, same mechanism and same author. THE DEVIATION IS THE FROM-STATE AND ONLY THE FROM-STATE. Machine 1 admits `st.done` ONLY from `wip`, so v3 REFUSES closing a `triage`, `not-started`, `hold`, `completed` or `cancelled` thread, where v2 had NO lifecycle state guard anywhere and moved it (vc's issue 0046, twelve undeclared movements). AC-04.6 REQUIRES that deviation, so the previous `as-observed` was asserting parity across one that is mandated. **The edge's `GatePass` guard is PARITY, not part of the correction, and stating so is the point of writing this down**: v2 already exited 1 on a BLOCKED acceptance contract (`bin/intent_st:470-471`, in this row's own measured exits), so v3 reproduces the gate and restricts the from-state, and only the second half is a deviation. ic first wrote this ratification claiming both halves and caught it by reading the REGENERATED VIEW, where the row's own note sat directly under the over-claim. Measured by cc against the v3 facade (`Facade::check_transition` -> `transitions::permits`) and by vc against v2 at 18 cells, fresh project per cell; the edge re-read off `transitions.rs` by ic before this edit rather than taken from the relay. Sibling `st start` carries the same from-state restriction and sits at `pending-hv`, so these three rows do NOT close the class.
 - **Note:** The gate becomes an in-process facade call in WP-04 (AC-04.3), not a subprocess. Behaviour and message are parity-bound; the mechanism is not.
+- **ratified in:** vc ruling 2026-08-17, recorded on issue 0046
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 
@@ -607,7 +608,8 @@ Mark a work package as WIP
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** confirmation
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: vc 2026-08-17 09:39Z under the standing grant; one ruling covering `st done`, `wp start` and `wp done`, and all three deviate in the SAME single respect -- the from-state. Machine 2 admits `wp.start` ONLY from `not-started`, a DIRECT edge with no guard, so v3 refuses restarting a `wip` package and refuses restarting a `done` one; v2 accepted both, having no lifecycle state guard anywhere (vc's issue 0046). This is the cleanest of the three because there is no guard on the edge to confuse with the restriction -- the other two carry `GatePass`, which is parity rather than correction. AC-04.6 REQUIRES the deviation, so the previous `as-observed` was asserting parity across a mandated one. Edge re-read off `transitions.rs` by ic before this edit rather than taken from the relay.
+- **ratified in:** vc ruling 2026-08-17, recorded on issue 0046
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 
@@ -627,9 +629,10 @@ Mark a work package as Done
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Side effects:**
   - Consults the close-gate; warns on an unedited `## Objective` placeholder (`warn_unedited_objective`, issue 0010)
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: vc 2026-08-17 09:39Z under the standing grant; one ruling covering `st done`, `wp start` and `wp done`. THE DEVIATION IS THE FROM-STATE AND ONLY THE FROM-STATE. Machine 2 admits `wp.done` ONLY from `wip`, so v3 refuses closing a `not-started` or already-`done` package where v2 had no lifecycle state guard anywhere and moved it (vc's issue 0046, twelve undeclared movements). **The `GatePass` guard is PARITY and this row already said so before I touched it** -- the machine note below records that Machine 2's BLOCKED-gate refusal was ALREADY the measured v2 behaviour, and the measured exits carry `1 <- acceptance contract BLOCKED for the WP group`. That note is what caught ic over-claiming the gate as part of the correction, so it has now earned its keep twice. AC-04.6 REQUIRES the from-state deviation, so the previous `as-observed` was asserting parity across a mandated one. Edge re-read off `transitions.rs` by ic before this edit. Worth reading beside `wp reopen`, which is `new-surface`: v2 shipped nothing that undid `wp done`, which is what made the absent state guard costly rather than merely permissive.
 - **Note:** The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.
 - **machine note:** hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked.
+- **ratified in:** vc ruling 2026-08-17, recorded on issue 0046
 - **MCP:** exposed as an agent tool -- **mutates**
 - **MCP note:** Pairs with `ac gate` below and is the reason the field is DECLARED, not derived: `wp done` consults the same gate `ac gate` runs, and then WRITES. The two do not share a spelling, so no naming rule separates them.
 - **recoverability:** reversible
@@ -1379,18 +1382,15 @@ Show the Intent process overview and project status
 
 - Single-action command: no dispatch `case`, no flags parsed at all.
 
-| command | args         | flags | help                                                | disposition |
-| ------- | ------------ | ----- | --------------------------------------------------- | ----------- |
-| `info`  | [ignored]... | --    | Show the Intent process overview and project status | keep        |
+| command | args | flags | help                                                | disposition |
+| ------- | ---- | ----- | --------------------------------------------------- | ----------- |
+| `info`  | --   | --    | Show the Intent process overview and project status | keep        |
 
 ### `info`
 
 Show the Intent process overview and project status
 
 - **v2:** bin/intent_info
-- **Arguments:**
-  - `ignored` (any, arity `0..n`)
-    - every argument is silently discarded
 - **Exit codes:**
   - `0` -- bare -- 595B to stdout
   - `0` -- `--help` -- IDENTICAL 595B output; the flag is not parsed, merely ignored
@@ -1400,7 +1400,7 @@ Show the Intent process overview and project status
 - **stderr:** --
 - **Defects observed in v2:**
   - INV-08 at `intent info --zzz` succeeds silently at exit 0
-- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown FLAGS refused, exit 1 per INV-02 -- and unknown POSITIONALS still swallowed at exit 0, which is half of what this row claims. Measured 2026-08-17 (vc's differential, reproduced by ic in a sandbox): `info --zzz` exits 1, `info NOSUCHTHING` returns byte-identical output to bare at exit 0, `info --help` renders 148B of real help. THE CAUSE IS THIS ROW'S OWN args DECLARATION: clap refuses unrecognised arguments by default, which is what the ratification calls forced rather than chosen -- but `args[0]` declares a catch-all `ignored` slot, `type: any`, `arity: 0..n`, so clap accepts every positional exactly as instructed. The correction is defeated by a declaration on the same row. That slot was carried forward from the v2 measurement in `observed` (where it is correct) into a v3 declaration (where it is the unfixed half), and nobody re-examined it -- the supersession-not-propagated class, same shape as `doctor`'s `read_or_mutate` outliving `--fix`. vc's bound: the positional half is exactly ONE command wide across 103 probed, and the flag half is refused everywhere.
+- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown FLAGS and unknown POSITIONALS both refused, exit 1 per INV-02 -- clap rejects unrecognised arguments by default, which is what the ratification calls forced rather than chosen. HISTORY, kept because the mechanism recurs and this row is the only place it is written down: the row shipped the flag half ONLY, because its own `args[0]` declared a catch-all `ignored` slot (`type: any`, `arity: 0..n`) which instructed clap to accept every positional -- and clap then rendered that slot into the USER-FACING HELP as `Usage: intent info [IGNORED]...` with an empty description, so the slot was not merely inert, it was documented. The correction was defeated by a declaration on the same row. That slot had been carried forward from the v2 measurement in `observed` (where it is correct, and where it stays) into a v3 declaration (where it was the unfixed half), and nobody re-examined it -- the supersession-not-propagated class, same shape as `doctor`'s `read_or_mutate` outliving `--fix`. Measured 2026-08-17 BEFORE the change (vc's differential, reproduced by ic against the built binary): `info --zzz` exit 1 at 41B, `info NOSUCHTHING` byte-identical to bare at exit 0 (606B both), `info --help` 149B rendering the `[IGNORED]...` slot. AFTER: `info NOSUCHTHING` exit 1 with `unexpected argument`, bare output byte-identical to before, help down to 107B with the slot gone. vc's differential bounds the positional half at exactly ONE command -- this one -- across the 103 it probed (`flag refused: 103, pos refused: 103`, issue 0044; the probeable surface is 104), so dropping the slot closes the class rather than chipping at it. Slot dropped 2026-08-17 by ic under vc's 03:48Z ruling.
 - **ratified in:** parity.md
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_info -- no write primitive in the file

@@ -851,6 +851,56 @@ PAIR_ILLEGAL="$(jq -r '
 [ -z "$PAIR_ILLEGAL" ] || die "row(s) declare a (\`disposition\`, \`target.state\`) pair the canon does not list in \`legal_pairs\`. The two fields answer DIFFERENT questions -- whether the v2 command survives, and what v3 does -- so most combinations are meaningful and a few are self-contradictory; the matrix is where that judgement is recorded rather than inferred. Two of the pairs are agreement constraints with teeth: \`retire\` and \`new-surface\` are one fact seen from two sides, and \`Entry::is_shipped()\` reads both fields and fails OPEN, so a single hand-edit out of agreement ships a retired command. Add the pair to \`legal_pairs\` with a gloss if it is legal, or fix the row:
 $(printf '%s' "$PAIR_ILLEGAL" | sed 's/^/  /')"
 
+# EACH LEGAL PAIR CARRIES AN `n`, AND UNTIL NOW NOTHING READ IT. The arm above
+# asks whether a row's pair is LEGAL; this one asks whether the census beside
+# each pair still describes the corpus. They are different questions and the
+# second one had no reader at all -- seven hand-maintained counts, correct only
+# for as long as every author who moved a row remembered to move a number.
+#
+# **A stale count here is worse than a missing one, because `n` sits beside a
+# `gloss` that reads as analysis.** The gloss for `keep`/`as-observed` calls it
+# "the largest class by a wide margin"; that claim is only as good as the
+# number under it, and the number is what a reader quotes. A census that goes
+# quietly wrong turns the register into a source of confident bad figures --
+# and this file has already paid for that once, in the `.families[].entries[]`
+# enumerator that returns 104 where the population is 112 and reads perfectly
+# plausible either way.
+#
+# **The trigger for building it was moving three rows myself.** Reclassifying
+# `st done`, `wp start` and `wp done` from `as-observed` to `corrected` makes
+# TWO counts wrong at once, in opposite directions, summing to zero -- so any
+# total-row sanity check still balances and only a per-pair comparison sees it.
+# That is the same both-signs shape that makes the wrong enumerator invisible.
+#
+# ABSENCE REFUSES TOO (`.n // -1` can never equal a length), on the same
+# grounds as `DISPOSITION_UNDECLARED` twenty lines up: a value nobody wrote
+# reads as an oversight, and a pair that opted out of being counted is a hole
+# with no record of who chose it. Presence of `legal_pairs` itself is NOT
+# re-checked here -- `vocab_or_die legal_pairs` above has already refused a
+# missing key, which is why this arm can index into it without a guard.
+#
+# Mutation-proved 2026-08-17, all four driven through the real generator:
+#   A  steady table                          -> silent, exit 0
+#   B  one `n` bumped by 1                   -> REFUSES, names that pair, declared vs corpus
+#   C  one `n` key deleted                   -> REFUSES (absence is not a pass)
+#   D  the three rows moved, `n` untouched   -> REFUSES BOTH affected pairs, 65->62 and 14->17
+# D is the one that matters: it is a real edit rather than a synthetic mutant,
+# and it is the edit this arm was written for.
+PAIR_COUNT_STALE="$(jq -r '
+  ([.families[].entries[], .new_surface[]]) as $rows
+  | [ .legal_pairs[]
+      | . as $p
+      | ($rows
+         | map(select(.disposition == $p.disposition and .target.state == $p.target_state))
+         | length) as $actual
+      | select(($p.n // -1) != $actual)
+      | $p.disposition + " / " + $p.target_state
+        + ": declares n=" + (($p.n // "absent") | tostring)
+        + ", corpus has " + ($actual | tostring) ]
+  | join("\n")' "$IN")"
+[ -z "$PAIR_COUNT_STALE" ] || die "\`legal_pairs\` declares a row count that the corpus no longer matches. \`n\` is a live census of this table, not a snapshot of when the pair was added -- the pair matrix is read as analysis and the count is the part people quote. Reclassifying a row changes TWO counts in opposite directions, so the totals still balance and only this per-pair comparison sees it. Update the count, or fix the row that moved:
+$(printf '%s' "$PAIR_COUNT_STALE" | sed 's/^/  /')"
+
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
 # reads as "reviewed and confident" in a diff and as "somebody meant to fill
