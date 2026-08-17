@@ -111,6 +111,20 @@ pub enum FindingClass {
   /// answers-confidently-from-partial-evidence bug with the evidence set to
   /// zero**, which is why it blocks rather than carries.
   RetiredSetting,
+  /// A setting whose value is well-formed and which the DATA cannot honour --
+  /// today, only `todo.window_hours` finer than the resolution of `completed`.
+  ///
+  /// **Distinct from [`RetiredSetting`](Self::RetiredSetting), which is a key
+  /// v3 no longer reads at all.** This key is read, and the value is refused:
+  /// the schema cannot catch it because the value is a perfectly good `u32`,
+  /// and only its relationship to the precision of another field is wrong --
+  /// the same reason `ModelInconsistent` exists one level up.
+  ///
+  /// **It is here so the operator does not have to run the one affected
+  /// command to find out.** The refusal itself lands on `intent todo`; without
+  /// this, a config edited once and read months later announces itself as a
+  /// command that suddenly stopped working.
+  UnhonourableSetting,
 }
 
 impl FindingClass {
@@ -245,6 +259,16 @@ impl FindingClass {
         1,
         "retired-setting",
         "v3 fixes this setting and does not read it -- rename the artefacts to the fixed form before migrating, or the migration will not see them at all. The declaration is left in config.json rather than removed for you",
+      ),
+      // Last, because nothing is at risk: the estate is intact, one display
+      // command refuses, and the fix is one number in config.json. The
+      // DETAIL carries the arithmetic -- which value was configured and the two
+      // honourable ones either side of it -- because that is per-instance and
+      // this string is per-class.
+      Self::UnhonourableSetting => (
+        10,
+        "unhonourable-setting",
+        "the value is well-formed and the data cannot honour it; the detail above names what to set instead",
       ),
     }
   }

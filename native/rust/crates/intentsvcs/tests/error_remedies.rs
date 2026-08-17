@@ -172,6 +172,23 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("resume is declared from `hold`, and the fixture thread is `wip`"),
   ));
 
+  // **Its own fixture, because this one is provoked by CONFIGURATION rather
+  // than by a call.** The facade reads `todo.window_hours` from the project it
+  // was opened over, so the value has to be on disk before the facade exists --
+  // rewriting the config of the fixture above would be read by nothing.
+  let bad_window = Fixture::new();
+  bad_window.write_file(
+    "intent/.config/config.json",
+    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"],\n  \"todo\": { \"window_hours\": 6 }\n}\n",
+  );
+  out.push((
+    "unhonourable todo window",
+    bad_window
+      .facade()
+      .todo_view_windowed()
+      .expect_err("6 hours is not a whole number of days and `completed` is a date"),
+  ));
+
   out
 }
 
@@ -220,6 +237,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
+    FacadeError::UnhonourableWindow(_) => "UnhonourableWindow",
   }
 }
 
@@ -257,6 +275,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchFormat",
   "LossyFormat",
   "ExportRoundTripFailed",
+  "UnhonourableWindow",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by

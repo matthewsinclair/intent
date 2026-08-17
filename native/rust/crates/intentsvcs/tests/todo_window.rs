@@ -209,6 +209,121 @@ fn the_projection_that_a_sync_writes_carries_every_completion() {
   );
 }
 
+/// **A window the DATA cannot honour is refused by name, not rounded** -- vc's
+/// ruling, 2026-08-17, which rejected both spellings offered to them.
+///
+/// **The failure it prevents is worse than the rounding it was first described
+/// as.** The cutoff is `date('now', '-Nh')`, truncated to a date, so at 02:00 a
+/// 6-hour window reaches back into yesterday and at 12:00 it does not: the same
+/// configuration produces a different DONE bucket depending on the hour it is
+/// read at, with nothing on screen to say why. **A value that means one thing
+/// in the morning and another in the afternoon is not a rounded value; it is a
+/// setting that cannot be reasoned about at all.**
+#[test]
+fn a_window_the_data_cannot_honour_is_refused_by_name() {
+  let fixture = Fixture::new();
+  fixture.write_thread(&done_thread("ST0001", INSIDE));
+  set_window_hours(&fixture, 6);
+
+  let refused = fixture
+    .facade()
+    .todo_view_windowed()
+    .expect_err("a 6-hour window is not a whole number of days and must be refused");
+  let rendered = refused.render();
+
+  assert!(
+    rendered.contains('6'),
+    "the refusal must name the value that was configured -- an operator cannot act on a rule they have to look up:\n{rendered}"
+  );
+  assert!(
+    rendered.contains("24") && rendered.contains("date"),
+    "and it must name the REASON and the two honourable values either side. Refusing without saying why is how a setting becomes folklore:\n{rendered}"
+  );
+}
+
+/// **The COMMITTED FILE is not held hostage by a display setting**, and this is
+/// the assertion that stops the refusal being a worse defect than the rounding.
+///
+/// `todo.md` is a generated view of the model; the window applies to the
+/// terminal alone. A refusal that reached the file would make an unwritable
+/// artefact out of a preference about how much scrollback to show.
+#[test]
+fn a_bad_window_does_not_stop_the_committed_file_being_written() {
+  let fixture = Fixture::new();
+  fixture.write_thread(&done_thread("ST0001", INSIDE));
+  set_window_hours(&fixture, 6);
+
+  let file = fixture
+    .facade()
+    .todo_view()
+    .expect("the unwindowed view never consults the window");
+  assert!(
+    file.contains("ST0001"),
+    "the file is the record and carries every completion regardless of what the terminal is configured to show:\n{file}"
+  );
+}
+
+/// **Zero is honourable and stays honourable.** It is a whole number of days,
+/// it means what it says -- back to the start of today -- and the existing
+/// ruling that it is not special-cased into "show everything" is unchanged by
+/// adding a refusal beside it.
+#[test]
+fn a_zero_window_is_a_whole_number_of_days_and_is_not_refused() {
+  let fixture = Fixture::new();
+  fixture.write_thread(&done_thread("ST0001", OUTSIDE));
+  set_window_hours(&fixture, 0);
+
+  let terminal = fixture
+    .facade()
+    .todo_view_windowed()
+    .expect("0 is a whole multiple of 24 and must not be refused");
+  assert!(
+    !terminal.contains("ST0001"),
+    "and it still means what it says rather than being reinterpreted as its opposite:\n{terminal}"
+  );
+}
+
+/// **THE SELF-RETIREMENT, MEASURED RATHER THAN PROMISED.**
+///
+/// The reason this guard exists is that `completed` has no time component. vc's
+/// ruling turns on the guard becoming unreachable when that changes, rather
+/// than becoming something a future reader has to notice and delete -- so the
+/// claim is worth more than a comment saying it.
+///
+/// `check` takes the resolution as a parameter for exactly this: hand it `1`,
+/// which is what `COMPLETED_RESOLUTION_HOURS` becomes the day the field gains a
+/// time, and observe that the refusal has no reachable input at all.
+#[test]
+fn the_refusal_retires_itself_when_completed_gains_a_time_component() {
+  use intentsvcs::model::COMPLETED_RESOLUTION_HOURS;
+  use intentsvcs::project::UnhonourableWindow;
+
+  // Today, at the resolution the data actually has.
+  assert!(
+    (1..COMPLETED_RESOLUTION_HOURS).any(|h| UnhonourableWindow::check(
+      h,
+      COMPLETED_RESOLUTION_HOURS
+    )
+    .is_err()),
+    "at today's resolution SOMETHING must be refusable -- if nothing is, the rule below is retiring a guard that never fired and this whole file is decorative"
+  );
+
+  // The day `completed` becomes a datetime.
+  for hours in 0..=72 {
+    assert!(
+      UnhonourableWindow::check(hours, 1).is_ok(),
+      "a window of {hours}h was refused at a resolution of 1. The guard must become unreachable the moment the data can honour any window, rather than surviving \
+       as a rule whose reason has expired"
+    );
+  }
+
+  // And the `%` stays total across the edit that reaches zero.
+  assert!(
+    UnhonourableWindow::check(6, 0).is_ok(),
+    "a resolution of 0 must refuse nothing rather than panic -- the one edit this code anticipates is an edit to that constant"
+  );
+}
+
 /// The pure filter, over the cases the id shape makes reachable.
 #[test]
 fn a_work_package_is_windowed_by_its_parent_thread() {

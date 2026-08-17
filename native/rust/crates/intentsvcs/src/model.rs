@@ -54,6 +54,24 @@ pub const THREAD_PREFIX: &str = "ST";
 /// How many digits follow [`THREAD_PREFIX`]. Zero-padded, fixed width.
 pub const THREAD_DIGITS: usize = 4;
 
+/// The finest interval [`Thread::completed`] can distinguish, in hours.
+///
+/// **`completed` is a domain DATE -- `YYYY-MM-DD`, no time component, carried
+/// from v2 and never re-stamped -- so the smallest gap between two completions
+/// this model can tell apart is a day.** That is a property of the data, and
+/// code that compares against `completed` has to reason about it rather than
+/// assume its own precision.
+///
+/// **This exists so the rule that depends on it RETIRES ITSELF.**
+/// `TodoConfig::window` refuses a window that is not a whole multiple of this,
+/// because a sub-day cutoff truncated to a date means different things at
+/// different times of day. The moment `completed` gains a time component this
+/// becomes `1`, `n % 1 != 0` is false for every `n`, and the refusal is
+/// unreachable -- by construction rather than by someone remembering to go and
+/// delete a guard whose reason has expired. A guard that cannot outlive its
+/// reason is the only kind that does not become folklore.
+pub const COMPLETED_RESOLUTION_HOURS: u32 = 24;
+
 /// The canonical id for the nth steel thread.
 pub fn thread_id(seq: u32) -> String {
   format!("{THREAD_PREFIX}{seq:0THREAD_DIGITS$}")
@@ -137,6 +155,10 @@ pub struct Thread {
   pub status_reason: Option<String>,
   /// ISO 8601 date, `YYYY-MM-DD`.
   pub created: String,
+  /// ISO 8601 date, `YYYY-MM-DD`. **No time component**, so the finest interval
+  /// two completions can be distinguished by is a day -- a fact any consumer
+  /// windowing on this field has to reason about, which is why it is stated
+  /// here rather than left to be discovered.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub completed: Option<String>,
   /// `exempt` or absent = acceptance enforced.

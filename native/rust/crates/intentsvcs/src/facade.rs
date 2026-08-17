@@ -113,6 +113,11 @@ pub enum FacadeError {
   },
   #[error("no schema face named `{face}`")]
   NoSuchFace { face: String },
+  // Transparent because the reason belongs beside the field, in `project.rs`,
+  // and `doctor` reports the same condition without going through the facade at
+  // all. Two renderings of one refusal is one rendering that drifts.
+  #[error(transparent)]
+  UnhonourableWindow(#[from] crate::project::UnhonourableWindow),
   // The ratified machines have no terminal states, so every refusal here is
   // about ORDER rather than about a dead end -- there is always a route, and
   // the remedy names where it starts.
@@ -278,6 +283,9 @@ impl FacadeError {
       Self::NoSuchFace { .. } => {
         "run `intent schema` with no argument to print every face, which also names them".to_string()
       }
+      // Delegated for the same reason the message is: the arithmetic that
+      // names the two honourable values either side belongs with the rule.
+      Self::UnhonourableWindow(e) => e.remedy(),
       // Delegated, because the remedy DIFFERS by state: below the v2.19.0
       // floor it is the two-hop, and naming the v3 migrator there would send
       // half the operators who read it to a command that refuses them.
@@ -717,8 +725,14 @@ impl Facade {
   /// what it says, and an operator who sets it to 0 has asked for a DONE
   /// bucket reaching back to the start of today. Reinterpreting a configured
   /// value as its opposite is how a setting becomes untrustworthy.
+  ///
+  /// **A window the data cannot honour REFUSES here rather than at config
+  /// load**, which is deliberate: a display setting must not take down `intent
+  /// st list`, and it must certainly not take down `intent info`, whose whole
+  /// contract under 0042 is that project state never reaches its exit code.
+  /// The refusal lands on the one command the setting governs.
   pub fn todo_view_windowed(&self) -> Result<String, FacadeError> {
-    let hours = self.project.config().todo.window_hours;
+    let hours = self.project.config().todo.window()?;
     let ids = self
       .store
       .threads_completed_within(hours)

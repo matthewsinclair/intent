@@ -122,6 +122,24 @@ pub fn diagnose(
     return report;
   }
 
+  // **AFTER the unmigrated return, deliberately.** A window an unmigrated
+  // project cannot honour is true and useless: `intent todo` refuses on that
+  // project for a much larger reason, so reporting it at first contact would
+  // put a second cause beside the one that matters -- which is the noise the
+  // early return above exists to prevent.
+  //
+  // The DETAIL carries the instance arithmetic, exactly as the unmigrated
+  // finding carries `Migration::remedy()`: the class remedy says what is true
+  // of the class, and the two honourable values either side of a rejected
+  // window are true of this project only.
+  if let Err(e) = project.config().todo.window() {
+    report.findings.push(Finding::new(
+      project.relative(&Project::config_path(project.root())),
+      FindingClass::UnhonourableSetting,
+      format!("{e} -- {}", e.remedy()),
+    ));
+  }
+
   if let Some(store) = store {
     report.findings.extend(backup_findings(project, store));
   }

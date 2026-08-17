@@ -73,9 +73,10 @@ pub struct TodoConfig {
   /// domain date -- `YYYY-MM-DD`, no time component, carried from v2 and never
   /// re-stamped -- so a cutoff finer than a day has nothing to bite on. The
   /// unit stays hours because that is what D44 ruled and what a longer window
-  /// wants to be expressed in; the effective behaviour is "completed on or
-  /// after the date `window_hours` ago", and it is written down here rather
-  /// than discovered by someone whose 6-hour window matched a whole day.
+  /// wants to be expressed in.
+  ///
+  /// **A value the data cannot honour is REFUSED rather than rounded** -- see
+  /// [`TodoConfig::window`], which is the only supported way to read this.
   #[serde(default = "default_window_hours")]
   pub window_hours: u32,
 }
@@ -89,6 +90,89 @@ impl Default for TodoConfig {
     Self {
       window_hours: default_window_hours(),
     }
+  }
+}
+
+/// A configured window the data cannot honour.
+///
+/// Its own type rather than a string, because two callers need it -- the render
+/// path refuses with it and `doctor` reports it -- and a message assembled
+/// twice is a message that drifts once.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error(
+  "todo.window_hours is {configured}, which is not a whole number of days -- steel thread completion is recorded as a date with no time component, so a cutoff \
+   of {configured}h is truncated to a date and the window means different things at different times of day"
+)]
+pub struct UnhonourableWindow {
+  /// What `config.json` asked for.
+  pub configured: u32,
+  /// The finest interval the data can distinguish, from
+  /// [`crate::model::COMPLETED_RESOLUTION_HOURS`].
+  pub resolution: u32,
+}
+
+impl UnhonourableWindow {
+  /// The rule itself, with the resolution passed in rather than read.
+  ///
+  /// **Split out so the self-retirement claim is TESTABLE instead of merely
+  /// asserted in a comment.** A test can hand this a resolution of `1` -- what
+  /// [`crate::model::COMPLETED_RESOLUTION_HOURS`] becomes the day `completed`
+  /// gains a time component -- and observe that nothing at all is refused. A
+  /// guard that says in prose that it will retire itself is a guard nobody
+  /// checks; this one is measured.
+  ///
+  /// **A resolution of `0` or `1` refuses nothing, and the `0` half is the
+  /// guard rather than a courtesy.** `is_multiple_of(0)` is `self == 0`, so
+  /// without the short-circuit a resolution of zero would refuse EVERY non-zero
+  /// window -- the failure inverted, on the one edit this code exists to
+  /// anticipate.
+  pub fn check(window_hours: u32, resolution: u32) -> Result<u32, Self> {
+    if resolution <= 1 || window_hours.is_multiple_of(resolution) {
+      Ok(window_hours)
+    } else {
+      Err(Self {
+        configured: window_hours,
+        resolution,
+      })
+    }
+  }
+
+  pub fn remedy(&self) -> String {
+    let down = self.configured - (self.configured % self.resolution);
+    let up = down + self.resolution;
+    format!(
+      "set todo.window_hours to a whole multiple of {} -- {down} or {up} -- in intent/.config/config.json",
+      self.resolution
+    )
+  }
+}
+
+impl TodoConfig {
+  /// The configured window, or the reason the data cannot honour it.
+  ///
+  /// **THE ONLY SUPPORTED READ OF `window_hours`, and the refusal is vc's
+  /// ruling** (2026-08-17). Two spellings were offered and both rejected:
+  /// `window_days`, because it forecloses `completed` gaining a time component,
+  /// which is live -- the field is date-resolution because v2 was, and nothing
+  /// rules v3 must stay so; and hours-with-a-comment, because that leaves a
+  /// config value silently meaning something other than it says.
+  ///
+  /// **The failure it prevents is worse than rounding, which is how it was
+  /// first described.** The cutoff is `date('now', '-Nh')`, truncated to a
+  /// date -- so at 02:00 a 6-hour window reaches back into yesterday and at
+  /// 12:00 it does not. The same configuration produces different DONE buckets
+  /// depending on the hour it is read at, with nothing on screen to say why.
+  /// A named refusal at the point of use beats a silent divergence between what
+  /// a setting says and what it does, which is the class this thread has now
+  /// found six times in two days.
+  ///
+  /// **It retires itself** -- see [`crate::model::COMPLETED_RESOLUTION_HOURS`].
+  ///
+  /// Zero is honourable and deliberately not special-cased into "show
+  /// everything": it is a whole number of days and it means what it says, a
+  /// DONE bucket reaching back to the start of today.
+  pub fn window(&self) -> Result<u32, UnhonourableWindow> {
+    UnhonourableWindow::check(self.window_hours, crate::model::COMPLETED_RESOLUTION_HOURS)
   }
 }
 

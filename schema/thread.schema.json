@@ -431,6 +431,7 @@
       "description": "`exempt` or absent = acceptance enforced."
     },
     "completed": {
+      "description": "ISO 8601 date, `YYYY-MM-DD`. **No time component**, so the finest interval\ntwo completions can be distinguished by is a day -- a fact any consumer\nwindowing on this field has to reason about, which is why it is stated\nhere rather than left to be discovered.",
       "type": [
         "string",
         "null"

@@ -235,6 +235,12 @@ type Thread {
   ISO 8601 date, `YYYY-MM-DD`.
   """
   created: String!
+  """
+  ISO 8601 date, `YYYY-MM-DD`. **No time component**, so the finest interval
+  two completions can be distinguished by is a day -- a fact any consumer
+  windowing on this field has to reason about, which is why it is stated
+  here rather than left to be discovered.
+  """
   completed: String
   """
   `exempt` or absent = acceptance enforced.
