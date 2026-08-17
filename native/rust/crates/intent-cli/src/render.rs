@@ -855,7 +855,15 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let verdict = f.gate(&st, scope).map_err(fail)?;
       // v2 reports N/M plus the verdict, and exits 0 either way: `status` is a
       // read. Only `gate` carries the verdict in its exit code.
-      println!("{}", verdict.line(&target));
+      //
+      // **`status_line`, not `line` -- the exit code was always right and the
+      // PREFIX was wrong, and that combination is the harm.** This printed the
+      // gate's own line (`gate: ST0056 BLOCKED -- ...`) beside exit 0, so a
+      // consumer reading either channel alone gets a different answer than one
+      // reading the other; the pre-commit gate is such a consumer. It also
+      // dumped the full unsatisfied enumeration, which is `ac list`'s job --
+      // `status` is the count.
+      println!("{}", verdict.status_line());
       Ok(())
     }
     Some(("descope", a)) => {
@@ -1028,13 +1036,31 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         );
       }
       let f = open()?;
-      let findings = f.at_lint(&st).map_err(fail)?;
-      for finding in &findings {
+      let report = f.at_lint(&st).map_err(fail)?;
+      for finding in &report.findings {
         println!("{finding}");
       }
-      if findings.is_empty() {
+      // **THE VERDICT LINE, WITH ITS DENOMINATOR. Without it a clean lint was
+      // zero bytes at exit 0** -- byte-identical to a lint that never ran, on
+      // the surface a reader trusts the AT contract on. v2's positive control
+      // (`bin/intent_acceptance:1278`) is the shape being restored, and the row
+      // count is what makes it a control rather than a reassurance: `ok` alone
+      // is equally true of a thread with no rows at all.
+      //
+      // `Failure::Verdict` was already the declared contract for this arm --
+      // spine.rs names `at lint` as one of the four sites whose verdict is on
+      // stdout and whose stderr is therefore silent. The failing path returned
+      // it while printing no verdict; the enum's doc comment was describing an
+      // intent the code did not carry out.
+      let rows = report.rows;
+      if report.findings.is_empty() {
+        println!("lint: {st} ok -- {rows} AT row(s) conform");
         Ok(())
       } else {
+        println!(
+          "lint: {st} FAILED -- {} finding(s) over {rows} AT row(s)",
+          report.findings.len()
+        );
         Err(Failure::Verdict)
       }
     }

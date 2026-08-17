@@ -198,20 +198,86 @@ impl References for AllResolve {
 /// precisely what hid the vacuous passes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Verdict {
-  Pass { detail: String },
-  Exempt { detail: String },
-  Blocked { detail: String },
+  Pass {
+    detail: String,
+  },
+  Exempt {
+    detail: String,
+  },
+  Blocked {
+    detail: String,
+    /// The ids the gate is waiting on. **Held BESIDE the detail rather than
+    /// inside it, because two surfaces want the same arithmetic and only one
+    /// wants the enumeration** -- the gate names what blocks it (the operator
+    /// hit a wall and needs the actionable set without running a second
+    /// command), and `ac status` reports the count and leaves the rows to `ac
+    /// list`. Baked into `detail`, the summary could only be recovered by
+    /// splitting the string back apart in a renderer, which is a parser of our
+    /// own format that fails silently the day the format moves.
+    ///
+    /// Empty on the four degenerate blocks (absent WP, empty contract, wholly
+    /// off-scope, and the exempt escape's sibling), where the refusal IS the
+    /// whole story and there is no set to name.
+    unsatisfied: Vec<String>,
+  },
 }
 
 impl Verdict {
+  /// A block with nothing to enumerate.
+  fn blocked(detail: impl Into<String>) -> Self {
+    Self::Blocked {
+      detail: detail.into(),
+      unsatisfied: Vec::new(),
+    }
+  }
+
   /// The machine-facing line, in v2's exact shape: `gate: <scope> <VERDICT> --
   /// <detail>`. Read by `st done` / `wp done` via the exit code, and by humans
   /// via the text; both carry over unchanged (D17).
   pub fn line(&self, scope_label: &str) -> String {
+    let mut line = format!("gate: {scope_label} {} -- {}", self.word(), self.detail());
+    if let Self::Blocked { unsatisfied, .. } = self
+      && !unsatisfied.is_empty()
+    {
+      line.push_str(&format!("; unsatisfied: {}", unsatisfied.join(" ")));
+    }
+    line
+  }
+
+  /// `intent ac status`, in v2's shape (`bin/intent_acceptance:937`): the
+  /// arithmetic and the verdict, and **no scope label** -- v2 prints none, and
+  /// the caller just typed the target.
+  ///
+  /// **This is a different SURFACE, not a different computation.** `status` is
+  /// the read and `gate` is the decision; in v2 they were two walks of one
+  /// document at two strictnesses, and here the contract is model state, so
+  /// there is one answer and two ways of saying it. Reusing `line()` reported a
+  /// gate's verdict under a gate's prefix beside `status`'s exit code -- a line
+  /// reading `gate: ... BLOCKED` next to exit 0 is what a consumer misreads,
+  /// and the pre-commit gate is a consumer.
+  ///
+  /// DEVIATION from v2, and it is the one place the shared computation shows:
+  /// v2's `status` runs `at_lint_report` for its stderr warnings and drops the
+  /// result on the floor, so an AT contract finding BLOCKS v2's gate while v2's
+  /// `status` still says PASS. v3 answers both from one verdict. **A status
+  /// that says PASS where the close gate refuses is telling the operator they
+  /// can close when they cannot**, which is the reading the two-walk split
+  /// produced by accident rather than by design.
+  pub fn status_line(&self) -> String {
+    format!("ac: {} -- {}", self.detail(), self.word())
+  }
+
+  fn word(&self) -> &'static str {
     match self {
-      Self::Pass { detail } => format!("gate: {scope_label} PASS -- {detail}"),
-      Self::Exempt { detail } => format!("gate: {scope_label} EXEMPT -- {detail}"),
-      Self::Blocked { detail } => format!("gate: {scope_label} BLOCKED -- {detail}"),
+      Self::Pass { .. } => "PASS",
+      Self::Exempt { .. } => "EXEMPT",
+      Self::Blocked { .. } => "BLOCKED",
+    }
+  }
+
+  fn detail(&self) -> &str {
+    match self {
+      Self::Pass { detail } | Self::Exempt { detail } | Self::Blocked { detail, .. } => detail,
     }
   }
 
@@ -245,19 +311,17 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   if let Scope::WorkPackage(seq) = scope
     && !thread.wps.iter().any(|w| w.seq == seq)
   {
-    return Verdict::Blocked {
-      detail: format!(
-        "WP-{seq:02} does not exist in {} (nothing to evaluate)",
-        thread.id
-      ),
-    };
+    return Verdict::blocked(format!(
+      "WP-{seq:02} does not exist in {} (nothing to evaluate)",
+      thread.id
+    ));
   }
 
   let thread_total = thread.criteria.len();
   if thread_total == 0 {
-    return Verdict::Blocked {
-      detail: "the thread has zero acceptance criteria (empty contract). Define ACs, or declare 'acceptance: exempt'.".to_string(),
-    };
+    return Verdict::blocked(
+      "the thread has zero acceptance criteria (empty contract). Define ACs, or declare 'acceptance: exempt'.",
+    );
   }
 
   let wanted = scope.group();
@@ -275,15 +339,13 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   // v2, the remedy text does not. v2 sends the operator to `at lint --fix`,
   // which in v3 has nothing to fix -- pointing at a command that cannot help
   // is a v2 defect, not a v3 design consequence.
-  let findings = contract_findings(thread, wanted.as_deref(), refs);
-  if !findings.is_empty() {
-    return Verdict::Blocked {
-      detail: format!(
-        "{} acceptance test contract finding(s): {}",
-        findings.len(),
-        findings.join("; ")
-      ),
-    };
+  let report = contract_report(thread, wanted.as_deref(), refs);
+  if !report.findings.is_empty() {
+    return Verdict::blocked(format!(
+      "{} acceptance test contract finding(s): {}",
+      report.findings.len(),
+      report.findings.join("; ")
+    ));
   }
 
   let in_scope: Vec<&Criterion> = thread
@@ -325,11 +387,9 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     // Routed to the declared escape rather than passing on an empty set: a
     // contract emptied one descope at a time is still emptiness, and ST0048's
     // rule is that an exemption is announced, never inferred from it.
-    return Verdict::Blocked {
-      detail: format!(
-        "all {total} in-scope AC(s) are descoped or withdrawn; nothing is left to verify. If this unit is deliberately contract-free, declare 'acceptance: exempt'."
-      ),
-    };
+    return Verdict::blocked(format!(
+      "all {total} in-scope AC(s) are descoped or withdrawn; nothing is left to verify. If this unit is deliberately contract-free, declare 'acceptance: exempt'."
+    ));
   }
 
   let suffix = offscope_suffix(descoped, withdrawn);
@@ -339,10 +399,8 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     }
   } else {
     Verdict::Blocked {
-      detail: format!(
-        "{satisfied}/{active} satisfied{suffix}; unsatisfied: {}",
-        unsatisfied.join(" ")
-      ),
+      detail: format!("{satisfied}/{active} satisfied{suffix}"),
+      unsatisfied: unsatisfied.iter().map(|id| (*id).to_string()).collect(),
     }
   }
 }
@@ -359,20 +417,29 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
 /// Public because `intent at lint` reports exactly what the gate enforces.
 /// Two rule sets would be the drift where the lint says clean and the gate
 /// refuses -- which is the shape that made v2's `at lint` untrustworthy.
-pub fn contract_findings(
+///
+/// **Returns the denominator with the findings, and they are counted in the
+/// same walk on purpose.** `at lint`'s clean report is `N AT row(s) conform`;
+/// counting the rows anywhere else lets the two disagree about what was
+/// examined the moment a scope filter appears on one side and not the other --
+/// which is issue 0024, recorded at `bin/intent_acceptance:629` as the reason
+/// v2 moved its own row count inside the filter.
+pub fn contract_report(
   thread: &Thread,
   wanted: Option<&str>,
   refs: &dyn References,
-) -> Vec<String> {
+) -> ContractReport {
   // L3 is exempt on a closed thread: retrofitting id labels into a completed
   // thread's tests is archaeology, and v2 says so at `at_row_findings`.
   let completed = thread.status == ThreadStatus::Completed;
   let mut out = Vec::new();
+  let mut rows = 0;
 
   for t in thread.tests.iter().filter(|t| match wanted {
     None => true,
     Some(group) => group_of(&t.id) == group,
   }) {
+    rows += 1;
     // L2/L3 apply to a REAL test row that claims to have been run. `to-write`
     // is exempt because a missing file is the CORRECT state for a test not yet
     // written -- a naive existence check reds five correct rows, which is why
@@ -418,7 +485,25 @@ pub fn contract_findings(
       }
     }
   }
-  out
+  ContractReport {
+    findings: out,
+    rows,
+  }
+}
+
+/// What the AT contract check examined and what it found.
+///
+/// **The row count is not decoration on the clean path, it is the clean path's
+/// only content.** `at lint` on a conforming thread has nothing to enumerate,
+/// so without a denominator its success and its non-execution are the same
+/// zero bytes -- and a lint whose green is indistinguishable from not having
+/// run is the vacuous-pass shape this estate has now paid for at three levels.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContractReport {
+  /// One entry per L2-L5 violation, each naming which rule fired.
+  pub findings: Vec<String>,
+  /// AT rows examined, counted after the scope filter.
+  pub rows: usize,
 }
 
 /// Descoped and withdrawn counts are reported SEPARATELY, never folded into

@@ -912,13 +912,16 @@ impl Facade {
 
   /// Check the acceptance-test rows against the grammar the GATE enforces.
   ///
-  /// It calls the same `contract_findings` the close gate calls, deliberately.
+  /// It calls the same `contract_report` the close gate calls, deliberately.
   /// A lint with its own copy of the rules is a lint that can say clean while
   /// the gate refuses, and an operator who cannot trust the lint runs the gate
   /// instead -- at which point the lint has no reason to exist.
-  pub fn at_lint(&self, st: &str) -> Result<Vec<String>, FacadeError> {
+  ///
+  /// The row count comes back with the findings so the report can say what it
+  /// examined; see [`contract::ContractReport`].
+  pub fn at_lint(&self, st: &str) -> Result<contract::ContractReport, FacadeError> {
     let thread = self.st_show(st)?;
-    Ok(contract::contract_findings(
+    Ok(contract::contract_report(
       thread,
       None,
       &contract::RepoFiles(self.project.root()),
