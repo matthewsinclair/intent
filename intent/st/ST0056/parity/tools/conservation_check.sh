@@ -204,8 +204,58 @@ done
 # `## ` section in a thread has NO field to land in, and this is where that
 # shows up as a count rather than as an opinion.
 # ---------------------------------------------------------------------------
+
+# section_sha <text> <section-name> -- the same extraction the census performs,
+# applied to the canon side. Written once and used by both the WP and issue arms
+# so the two sides cannot drift into different ideas of where a section ends.
+section_sha() {
+  printf '%s' "$1" | awk -v want="$2" '
+    /^## / { name = substr($0, 4); next }
+    { if (name == want) body = body $0 "\n" }
+    END { printf "%s", body }
+  ' | shasum -a 256 | cut -d' ' -f1
+}
+
 c_ok=0 c_lost=0
 while IFS=$'\t' read -r _ kind id section bytes sha; do
+  # WORK PACKAGES. `WorkPackage` carries `objective` plus a `body` holding every
+  # other section (D28), so a WP section always has a destination -- the question
+  # is whether the bytes survived it. Checked rather than assumed, because "there
+  # is a field for it" and "the field holds what left" are different claims.
+  if [ "$kind" = wp ]; then
+    st="${id%%/*}"; seq="${id##*/}"; seq="$(printf '%s' "$seq" | sed 's|^0*||')"
+    j="$CANON/st/$st/thread.json"
+    [ -f "$j" ] || continue
+    if [ "$section" = Objective ]; then
+      got="$(jq -r --argjson s "$seq" '.wps[] | select(.seq == $s) | .objective // ""' "$j" | shasum -a 256 | cut -d' ' -f1)"
+    else
+      got="$(section_sha "$(jq -r --argjson s "$seq" '.wps[] | select(.seq == $s) | .body // ""' "$j")" "$section")"
+    fi
+    if [ "$got" = "$sha" ]; then c_ok=$((c_ok + 1)); else
+      report ALTERED-PROSE "wp $id '$section' (estate $sha, canon $got)"
+    fi
+    continue
+  fi
+
+  # ISSUES. data-model.md gives them `issues/<n>.json` plus an authored body at
+  # `issues/<n>.md`, so the destination is declared and the only question is
+  # whether anything arrived. A missing body file is a LOSS and not an absence:
+  # the estate held the prose and the canon declares a home for it.
+  if [ "$kind" = issue ]; then
+    num="${id##*/}"; num="$(printf '%s' "$num" | sed 's|^0*||')"
+    body="$CANON/issues/$num.md"
+    if [ ! -f "$body" ]; then
+      report LOST-PROSE "issue $id '$section' ($bytes bytes -- no issues/$num.md)"
+      c_lost=$((c_lost + 1))
+      continue
+    fi
+    got="$(section_sha "$(cat "$body")" "$section")"
+    if [ "$got" = "$sha" ]; then c_ok=$((c_ok + 1)); else
+      report ALTERED-PROSE "issue $id '$section' (estate $sha, canon $got)"
+    fi
+    continue
+  fi
+
   [ "$kind" = thread ] || continue
   st="$id"
   j="$CANON/st/$st/thread.json"
