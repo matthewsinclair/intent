@@ -1019,6 +1019,83 @@ POPULATIONS_SKEW="$(jq -r '
 [ -z "$POPULATIONS_SKEW" ] || die "the \`populations\` block disagrees with the corpus it is derived from. It is the one home for the four populations -- \`lib_surface.sh\` reads it and a Rust test binds \`Entry::is_shipped()\` to it -- so a block out of step with the rows sends every consumer a confident wrong answer, which is the whole class it was built to end. Regenerate it rather than hand-editing:
 $(printf '%s' "$POPULATIONS_SKEW" | sed 's/^/  /')"
 
+# `no_op` -- what a verb prints when asked for the state the entity is already
+# in. Required on every row of `populations.self_loop`, which is the set of
+# rows whose verb is an edge in one of the four ratified machines.
+#
+# WHY IT IS CHECKED AT ALL. The field exists because issue 0050 found the
+# register unable to state a difference the surface actually has: nineteen
+# `render.rs` arms discard `Outcome::AlreadyThere` and print the movement
+# message, two read it, so `todo done` and the `st done` it DELEGATES to give
+# different answers to the same question. A notation nothing enforces would
+# have left that exactly as checkable as it was before, which is not at all.
+#
+# FIVE THINGS, AND THE LAST TWO ARE THE ONES WORTH HAVING.
+#
+# Membership, presence, and non-emptiness are the obvious three: a population
+# member must be a shipped row, must carry `target.no_op`, and must carry
+# `observed.no_op` if it has an `observed` block at all.
+#
+# **THE FOURTH CHECKS THE PREMISE OF THE NOTATION RATHER THAN ITS CONTENTS.**
+# `no_op_note` argues that a missing `observed.no_op` is unambiguous, because
+# `observed` is present exactly when `target.state` is not `new-surface`. That
+# is true across all 26 rows today and it is an OBSERVATION, not a rule anyone
+# wrote down -- so the argument holds only while it stays true. If a
+# `new-surface` row ever gains an `observed` block, or a parity row loses one,
+# absence starts meaning two things again and the third shape silently stops
+# working. Checking the premise is cheaper than discovering it lapsed.
+#
+# **THE FIFTH IS THE GUARD AGAINST THE POPULATION GOING SHORT**, which is the
+# specific way every list in this table has failed so far -- `not_probed` lost
+# `claude upgrade` to its name, `lib_surface.sh` lost eight rows to
+# `.families[].entries[]`. `self_loop` is AUTHORED: nothing in a row says its
+# verb is a ratified edge, because the machine lives in `transitions.rs` and
+# this generator reads JSON. So the list cannot be derived here and can go
+# short in silence. What CAN be checked is the other direction -- a row
+# carrying `no_op` while absent from the population means somebody knew the
+# verb self-loops and the list did not. That is the shape a short list makes on
+# its way to being noticed, and it costs one comparison.
+#
+# It does NOT close the class: a verb that self-loops, is missing from the
+# population AND carries no `no_op` passes every arm here. Closing it needs a
+# Rust test binding `self_loop` to `transitions.rs`, the way `dispatch_ssot.rs`
+# binds `is_shipped()` to `populations.shipped`. Named as owed rather than
+# implied to be covered.
+#
+# Mutation-proved 2026-08-17, six arms through the real generator:
+#   A  steady                                             -> silent
+#   B  `target.no_op` deleted from one row                -> REFUSES, names the row
+#   C  `observed.no_op` deleted from one parity row       -> REFUSES, names the row
+#   D  a row dropped from `self_loop` but keeping `no_op` -> REFUSES as orphaned
+#   E  an `observed` block added to a `new-surface` row   -> REFUSES on the premise
+#   F  `target.no_op` set to ""                           -> REFUSES as empty
+NO_OP_SKEW="$(jq -r '
+  def rows: [.families[].entries[], .new_surface[]?];
+  def ships: select((.disposition != "retire") and (.target.state != "retire"));
+  . as $t
+  | (($t.populations.self_loop) // []) as $pop
+  | ($t | rows | map(ships)) as $live
+  | ( [ $pop[] | select(. as $p | ($live | map(.path) | index($p)) | not)
+        | "`populations.self_loop` names `" + . + "`, which is not a shipped row" ] )
+  + ( [ $live[] | select(.path as $p | $pop | index($p))
+        | . as $e
+        | ( if (($e.target.no_op // "") | length) == 0
+            then ["`" + $e.path + "` is in `self_loop` and has no `target.no_op` -- what v3 prints on the no-op is exactly what this population exists to state"]
+            else [] end )
+        + ( if ($e | has("observed")) and ((($e.observed.no_op) // "") | length) == 0
+            then ["`" + $e.path + "` is in `self_loop`, has an `observed` block, and no `observed.no_op` -- the v2 baseline is missing, so the row cannot say whether v3 deviates"]
+            else [] end )
+        | .[] ] )
+  + ( [ $live[] | select(.path as $p | ($pop | index($p)) | not)
+        | select((.target | has("no_op")) or ((.observed // {}) | has("no_op")))
+        | "`" + .path + "` carries a `no_op` but is NOT in `populations.self_loop`. Somebody knew this verb self-loops and the list did not -- add it, because an authored list going short is how every other list in this table has failed" ] )
+  + ( [ $live[] | select(.path as $p | $pop | index($p))
+        | select( ((. | has("observed")) == (.target.state == "new-surface")) )
+        | "`" + .path + "`: `observed` present is " + ((. | has("observed")) | tostring) + " and `target.state == new-surface` is " + ((.target.state == "new-surface") | tostring) + ". `no_op_note` argues a missing `observed.no_op` is unambiguous BECAUSE those two are always opposite; this row breaks the premise, so the third shape stops working" ] )
+  | join("\n")' "$IN")"
+[ -z "$NO_OP_SKEW" ] || die "the \`no_op\` declarations disagree with \`populations.self_loop\`. This is the notation issue 0050 asked for -- what a verb prints when nothing moved -- and it is only worth having if every row that can self-loop carries it and no row outside the population carries one unseen:
+$(printf '%s' "$NO_OP_SKEW" | sed 's/^/  /')"
+
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
 # reads as "reviewed and confident" in a diff and as "somebody meant to fill

@@ -398,13 +398,15 @@
             ],
             "stdout": "`skipped: ...` on the idempotent path",
             "stderr": "`error: ...`",
-            "notes": "`skipped:` is a THIRD voice prefix alongside `ok:` and `error:`; INV-01 does not currently name it. Carried into v3 or folded into `ok:` is a decision, flagged."
+            "notes": "`skipped:` is a THIRD voice prefix alongside `ok:` and `error:`; INV-01 does not currently name it. Carried into v3 or folded into `ok:` is a decision, flagged.",
+            "no_op": "`skipped: <ID> already in progress`, exit 0 (bin/intent_st:634-637, 678-681). **One of only TWO no-op arms in the whole of v2, and the only one outside the `ok:` prefix** -- which is why `st start` also carries the `skipped:`-as-third-prefix deviation."
           },
           "target": {
             "state": "corrected",
             "question": "Does `skipped:` survive as a first-class prefix, or become `ok: <ID> already in progress`? Scripts matching on it exist in the BATS estate.",
             "ratification": "vc 2026-08-17, after hv ratified Machine 1; this row needed no separate hv call and the reasoning is vc's: Machine 1 already declares `NotStarted -> Wip` and hv ratified the machine, so `st start` is `corrected` by APPLICATION of an existing ratification rather than a new one. It was `pending-hv`, which was honest and is now answered. THE DEVIATION IS THE FROM-STATE. Machine 1 admits `st.start` from `not-started` ONLY, so v3 REFUSES starting a `hold`, `completed`, `cancelled` or already-`wip` thread -- `st resume` and `st reopen` are the edges for the first two -- where v2 had no lifecycle state guard anywhere (vc's issue 0046). **AND IT REFUSES FROM `triage`, WHICH IS THE ENTRY STATE, so a freshly created thread CANNOT BE STARTED DIRECTLY: `st new` lands on `triage` and `st triage` is the edge to `not-started`.** Verified independently at HEAD by both vc and ic -- `initial: &[\"triage\"]` and `Edge::direct(\"st.start\", &[\"not-started\"], \"wip\")`, both committed. **This is the sharpest user-visible consequence of the four and the one most likely to be reported as a bug on somebody's first v3 command**, which is why it is on the row rather than left to the machine. It is a deliberate consequence of the ratified machine, not an oversight. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc) AND IT DOES NOT RESOLVE THE `triage` PROBLEM ABOVE -- the two are easy to confuse and this row is where they meet.** `st start` on an already-`wip` thread now returns exit 0 as a NO-OP, no envelope and no write, via the `from == status` test placed FIRST in `set_thread_status` (`facade.rs:1155-1157`) -- ahead of `check_transition`, ahead of `check_gate`, ahead of `check_reason`. **What decides a self-loop is whether the current state equals the verb's TARGET, not whether the verb is declared from that state.** So `wip` leaves the refused set. **`triage` DOES NOT, for exactly that reason: `st.start` targets `wip`, so asking it of a `triage` thread is a real transition and an undeclared one.** A freshly created thread still cannot be started directly, that remains the sharpest user-visible consequence on this row, and the self-loop landing is the most likely thing to be mistaken for having fixed it. `hold`, `completed` and `cancelled` also stay refused. Read at HEAD by ic after cc announced the commit; the paragraph this replaces said the ruling was unshipped, which was true when it was written and is why it was written that way.",
-            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046"
+            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> started`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -443,13 +445,15 @@
             "side_effects": [
               "Consults the close-gate by shelling to `bin/intent_acceptance ac gate <ID>` (ST0044/ST0048 fail-by-default)",
               "Relocates the thread directory and resyncs the index"
-            ]
+            ],
+            "no_op": "`Marked steel thread as complete: <ID>: <TITLE>`, exit 0 -- the ORDINARY success message, because v2 has no state check here at all (bin/intent_st:446-535, read). It re-runs the gate, re-`sed`s the status and re-stamps `completed:` from a fresh `date -u`, so the no-op is a real write that happens to land on the same status. **Exit 1 instead if the contract has gone BLOCKED since the close.**"
           },
           "target": {
             "state": "corrected",
             "note": "The gate becomes an in-process facade call in WP-04 (AC-04.3), not a subprocess. Behaviour and message are parity-bound; the mechanism is not.",
             "ratification": "vc 2026-08-17 09:39Z under the standing grant; precedent `st cancel`, same mechanism and same author. THE DEVIATION IS THE FROM-STATE AND ONLY THE FROM-STATE. Machine 1 admits `st.done` from `wip` ONLY, so v3 REFUSES closing a `triage`, `not-started`, `hold`, `completed` or `cancelled` thread, where v2 had NO lifecycle state guard anywhere and moved it (vc's issue 0046, twelve undeclared movements). AC-04.6 REQUIRES that deviation, so the previous `as-observed` was asserting parity across one that is mandated. **The `GatePass` guard is PARITY, not part of the correction**: v2 already exited 1 on a BLOCKED acceptance contract (`bin/intent_st:470-471`, in this row's own measured exits), so v3 reproduces the gate and restricts the from-state, and only the second is a deviation. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc) AND THIS ROW NOW DESCRIBES IT.** `st done` on an already-`completed` thread returns exit 0 as a NO-OP -- no envelope, no write -- via the `from == status` test placed FIRST in `set_thread_status` (`facade.rs:1155-1157`), ahead of `check_transition`, `check_gate` and `check_reason`. **What decides a self-loop is whether the current state equals the verb's TARGET, not whether the verb is declared from that state**, so `completed` leaves the refused set while `triage`, `not-started`, `hold` and `cancelled` stay in it. Read at HEAD by ic after cc announced the commit; the paragraph this replaces said the ruling was unshipped, which was true when written. **AND THE PARITY CLAIM TRAVELLING WITH THE RULING IS FALSE OF THIS ROW, WHICH IS ONLY VISIBLE FROM HERE.** `facade.rs:383` and `render.rs:1132` both say the ruling brings v3 back to v2's measured `already CLOSED`. **v2 has exactly one `already` arm and it is `intent issues close` (`bin/intent_issues:282`, `ok: issue $id already $status`)** -- `data-model.md:373` attributes it correctly and the two code comments dropped the subject in transit. **v2's `st done` on a completed thread has no state check at all** (`bin/intent_st:446-535`, read): it resolves the thread wherever it sits, RE-RUNS THE GATE, re-`sed`s the status, re-stamps `completed:` from a fresh `date -u`, finds `CURRENT_DIR == NEW_DIR` so moves nothing, and exits 0. **So v2 matches v3's exit code by accident and differs on the two things that matter: v2 re-runs the gate, so it exits 1 once the contract has gone BLOCKED since the close, and v2 silently advances the completion date on every re-close.** v3 does neither. That is a sharper correction than the ruling's own prose claims, and the right one. **WHAT THIS ROW STILL CANNOT STATE IS WHAT THE NO-OP PRINTS.** At HEAD `st done` discards the facade `Outcome` and prints `ok: <ID> done` either way, while `todo done` -- which delegates to this very call -- prints `ok: <spec> was already done`. Nineteen render arms against two. Filed as issue 0050; the table has no notation for a per-row no-op message, so that half of the gap is mine and not the renderer's. Measured by cc against the v3 facade and by vc against v2 at 18 cells, fresh project per cell; edges re-read at HEAD by ic.",
-            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046"
+            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> done`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -491,14 +495,16 @@
             ],
             "stdout": "cancellation confirmation",
             "stderr": "`error: ...`",
-            "notes": "No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one)."
+            "notes": "No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one).",
+            "no_op": "`Marked steel thread as cancelled: <ID>: <TITLE>`, exit 0 -- ordinary success, same shape as `st done`: no state check, the `sed` re-applies `Cancelled` over `Cancelled` (bin/intent_st:536-598, read). No gate on this verb, so no BLOCKED arm."
           },
           "target": {
             "state": "corrected",
             "ratification": "hv, 2026-08-15 -- Machine 1 guards every edge into `Cancelled` with `reason recorded`; cc wired the facade at `2aec5f6` and left the flag for this table to declare.",
             "conflict_resolved": "RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.",
             "why_not_as_observed": "This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve.",
-            "ratified_in": "hv 2026-08-15"
+            "ratified_in": "hv 2026-08-15",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> cancelled`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -520,7 +526,8 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 1 (ThreadStatus) in data-model.md: the `Triage -> NotStarted` edge. `st new` now enters at `Triage`, so without this verb every new thread is stranded in its entry state and the machine's entry point is a trap.",
-            "note": "`Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with."
+            "note": "`Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> triaged`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -552,7 +559,8 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.",
-            "note": "`Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce."
+            "note": "`Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> on hold`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -574,7 +582,8 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 1: the `Hold -> Wip` edge, no guard.",
-            "note": "Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first."
+            "note": "Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> resumed`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -606,7 +615,8 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.",
-            "note": "`st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status."
+            "note": "`st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> reopened`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -638,7 +648,8 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.",
-            "note": "Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines."
+            "note": "Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID> reinstated`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -1228,12 +1239,14 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "`started: <ID>/WP-NN`, exit 0 -- ordinary success. No state check (bin/intent_wp:190-215, read); the `sed` writes `WIP` over `WIP`."
           },
           "target": {
             "state": "corrected",
             "ratification": "vc 2026-08-17 09:39Z under the standing grant; one ruling covering `st start`, `st done`, `wp start` and `wp done`, all deviating in the SAME single respect -- the from-state. Machine 2 admits `wp.start` from `not-started` ONLY, a DIRECT edge with no guard, so v3 REFUSES restarting a `wip` package and refuses restarting a `done` one; v2 accepted both, having no lifecycle state guard anywhere (vc's issue 0046). This is the cleanest of the four because there is no guard on the edge to confuse with the restriction. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc), AND IT MAKES THIS ROW PARITY ON THE SELF-LOOP AND A CORRECTION ONLY ON `done`.** `wp start` on an already-`wip` package returns exit 0 as a NO-OP via the `from == status` test placed FIRST in `set_wp_status` (`facade.rs:1512-1514`), ahead of the transition check. **What decides a self-loop is whether the current state equals the verb's TARGET, not whether the verb is declared from that state**, so `wip` leaves the refused set. v2 reaches the same exit code by a different route, with no guard on either side: its `wp start` has no state check either (`bin/intent_wp:190-215`, read), so it re-`sed`s `status: WIP` over `WIP` and prints `started:` at 0. **The deviation that survives is a `done` package, which v3 refuses and v2 SILENTLY REOPENS by `sed` -- issue 0046, and `wp reopen` is the edge that does it with a recorded reason.** Read at HEAD by ic after cc announced the commit; the paragraph this replaces said the ruling was unshipped, which was true when written. AC-04.6 REQUIRES the deviation.",
-            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046"
+            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID>/NN started`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -1279,14 +1292,16 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "`done: <ID>/WP-NN` plus the title line, exit 0 -- ordinary success, and it re-runs `warn_unedited_objective` and the all-WPs-complete hint. No state check (bin/intent_wp:135-185, read). **Exit 1 instead if the WP contract has gone BLOCKED since the close.**"
           },
           "target": {
             "state": "corrected",
             "note": "The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.",
             "machine_note": "hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked.",
             "ratification": "vc 2026-08-17 09:39Z under the standing grant; one ruling covering `st start`, `st done`, `wp start` and `wp done`. THE DEVIATION IS THE FROM-STATE AND ONLY THE FROM-STATE. Machine 2 admits `wp.done` from `wip` ONLY, so v3 REFUSES closing a `not-started` or already-`done` package where v2 had no lifecycle state guard and moved it. **The `GatePass` guard is PARITY and this row said so before ic touched it** -- the machine note below records that Machine 2's BLOCKED-gate refusal was ALREADY the measured v2 behaviour, and the measured exits carry `1 <- acceptance contract BLOCKED for the WP group`. That note caught ic over-claiming the gate as part of the correction, so it has earned its keep twice. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc) AND THE CONSEQUENCE THIS ROW PREDICTED IS NOW THE MEASURED BEHAVIOUR: `wp done` on an already-`done` package returns 0 EVEN WHERE THE GATE WOULD BLOCK**, because the short-circuit (`facade.rs:1512-1514`) precedes the gate. That is the POINT of the ruling and not a side effect -- a criterion added after a close must not block a unit that is legitimately finished, which happened in this very thread with AC-04.6. **AND IT HOLDS BY CONSTRUCTION RATHER THAN BY ORDERING, WHICH IS THE HALF THAT WAS NOT IN THE RULING.** `check_gate` now enforces `GatePass` from the `transitions.rs` declaration (`facade.rs:1213-1232`) instead of by hand in `st_done` and `wp_done`, so the gate sits after the `from == status` test structurally rather than because someone remembered the order. **The hand-written enforcement was a live Highlander defect in the file that implements AC-04.6**: deleting `GatePass` from the table changed nothing, which is exactly the declaration-versus-implementation split AC-04.6 exists to find. cc found it by getting this ordering right. **v2 IS THE OPPOSITE, AND THAT IS THE DEVIATION.** v2's `wp done` has no state check (`bin/intent_wp:135-185`, read), so a re-close RE-RUNS the gate and exits 1 when the contract has since gone BLOCKED, then re-`sed`s `status: Done` and reprints the full `done:` block. **Do not read the ruling's `already CLOSED` citation as v2 parity here** -- that string is `intent issues close`'s alone (`bin/intent_issues:282`); the `st done` row unpicks the claim once, and it is not repeated here. What the no-op PRINTS is issue 0050: this arm discards the `Outcome` and says `ok: <spec> done` regardless. Read beside `wp reopen`, which is `new-surface`: v2 shipped nothing that undid `wp done`.",
-            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046"
+            "ratified_in": "vc ruling 2026-08-17, recorded on issue 0046",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID>/NN done`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -1321,7 +1336,8 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.",
-            "note": "THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it."
+            "note": "THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID>/NN reopened`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -1343,7 +1359,44 @@
           "target": {
             "state": "new-surface",
             "ratification": "hv, 2026-08-15 -- Machine 2: the `Wip -> NotStarted` edge, no guard.",
-            "note": "No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified."
+            "note": "No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified.",
+            "no_op": "PRINTS THE MOVEMENT MESSAGE, `ok: <ID>/NN unstarted`, at exit 0 -- the arm discards the facade `Outcome` (issue 0050). **This is HEAD, not the target.** The ruled voice is `ok: <subject> already <state>` (vc 2026-08-17, on `bin/intent_issues:282`); it is not cited to a `render.rs` line because the implementation is not in a commit."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
+        },
+        {
+          "path": "wp rescope",
+          "help": "Change a work package's T-shirt size",
+          "args": [
+            {
+              "name": "specifier",
+              "type": "st-id/NN",
+              "arity": "1"
+            },
+            {
+              "name": "size",
+              "type": "enum",
+              "arity": "1",
+              "values": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL"
+              ]
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 2's second field (`WorkPackage.scope`): six `wp.rescope` edges, each with an EMPTY from-set, so the verb leaves any state including `absent`. Ratified as a machine before any surface existed for it.",
+            "note": "**THE VERB WAS BUILT AND NEVER WIRED, AND THE FIELD IS UNREACHABLE IN BOTH DIRECTIONS -- issue 0052.** `Facade::wp_rescope` (`facade.rs:1428`) is `pub` and implemented; its only callers in the workspace are two tests. `intent wp --help` listed seven subcommands and `rescope` was not among them, and `intent wp new --help` lists NO options, so the scope could not be supplied at creation either. Every work package v3 creates sits at `absent` permanently, and a migrated `scope_legacy` -- carried deliberately so a human can adjudicate it later rather than having a size coerced onto it -- can never be adjudicated. **This row exists so the verb can be wired: the spine builds the clap surface FROM this table, so there is nothing for `m.subcommand()` to match until the row is here** (cc, 2026-08-17). Shape is cc's; the `no_op` is ic's. **`wp new --scope` is a SEPARATE question and is deliberately not decided here** -- it is a workflow call (does sizing happen while you name a package, or after you have written it?) rather than a rendering one, both answers are defensible, and if hv rules `no flag` then this verb is the entrance as well as the exit and `absent` becomes the honest initial state rather than an accident. Raised to hv; not foreclosed by shipping a flag because it was easier.",
+            "no_op": "**THE ONLY ROW IN THE POPULATION WHOSE NO-OP IS NOT DECIDABLE FROM THE TWO STATES ALONE**, which is why it is worth stating rather than deriving. A rescope to the SAME size is a no-op only when the package carries no `scope_legacy`; with a carry present, the same from and the same to IS a movement, because resolving the carry is the change (`facade.rs:1443-1456`, and the facade already gets this right). So the declaration is: `ok: <ST/NN> already <size>` in the ruled house form when settled, and the ordinary movement message when a legacy value is being resolved. **Not yet implemented at HEAD -- there is no render arm, so today the verb prints nothing because it cannot be reached.** cc lands 0050's seventeen arms before this one deliberately, so it is born in the corrected voice rather than matching seventeen siblings that print a movement they did not make."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -1659,10 +1712,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -1691,7 +1746,8 @@
             "ratification": "cc, 2026-08-15, service half at `acf8491` -- the inverse D32 requires. `ac satisfy` was a one-way door: a verifier whose evidence later proved incomplete had to HAND-EDIT acceptance.md, the one file the CLI exists to own. Recorded here BEFORE the surface is wired, per AC-06.3, because the spine builds from this table and the command cannot exist until the row does.",
             "note": "Clears satisfaction and evidence TOGETHER, deliberately. Evidence outliving the claim it supported is the defect this fixes, not a convenience it preserves -- a cleared AC keeping its old evidence reads as satisfied-with-provenance to every later reader.",
             "consequence": "Refuses a test-backed AC (satisfaction there is COMPUTED from covering green ATs and never stored -- unsetting it would be writing to a derived field) and refuses an AC that is not satisfied (nothing to undo; silent success on a no-op is INV-01 territory).",
-            "placement": "FIRST sub-verb addition in this canon: every `new_surface[]` entry is a top-level command (search, sync, schema, export, ingest, backup, daemon, mcp). This one is recorded as a FAMILY ENTRY instead, because the spine places verbs under their family from `families[].entries[]` and a bare `ac unsatisfy` in the top-level array would have no parent. Flagged rather than assumed -- cc owns the spine and should confirm it builds from here; vc owns whether the contract wants one home or two."
+            "placement": "FIRST sub-verb addition in this canon: every `new_surface[]` entry is a top-level command (search, sync, schema, export, ingest, backup, daemon, mcp). This one is recorded as a FAMILY ENTRY instead, because the spine places verbs under their family from `families[].entries[]` and a bare `ac unsatisfy` in the top-level array would have no parent. Flagged rather than assumed -- cc owns the spine and should confirm it builds from here; vc owns whether the contract wants one home or two.",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -1821,10 +1877,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -1868,10 +1926,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -1940,10 +2000,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -1987,10 +2049,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2216,7 +2280,8 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "aliases": [
             "at done"
@@ -2227,7 +2292,8 @@
             "note": "THE GUARD IS NOT AN ARBITRARY RESTRICTION, WHICH IS WHY THIS IS NOT A DIVERGENCE WORTH BUYING. Requiring green to come from red means an AT cannot be marked passing without first having been recorded as failing -- it is the MECHANISED form of this thread's own central doctrine, that a check which has only ever passed is not verified. Drop it and the discipline survives only as prose, which is rule 12 exactly.",
             "consequence": "Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.",
             "open_to_cc": "v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported.",
-            "ratified_in": "ic, with the `at green` row's own basis"
+            "ratified_in": "ic, with the `at green` row's own basis",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2272,13 +2338,15 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "aliases": [
             "at notdone"
           ],
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2324,10 +2392,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2594,11 +2664,13 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm -- `move_issue`, bin/intent_issues:275-292, read at HEAD 2026-08-17 by ic after cc found the middle arm missing. Source-exact rather than paraphrased: the strings above are the echoes themselves."
-            }
+            },
+            "no_op": "`ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **The other of v2's two no-op arms, and the one hv's self-loop ruling cites.** It is also the only one that is a genuine no-op rather than a repeated write."
           },
           "target": {
             "state": "as-observed",
-            "question": "**v2 SPELLS ONE CONDITION THREE WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of all three rows at once.** Two source sites produce three rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home."
+            "question": "**v2 SPELLS ONE CONDITION THREE WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of all three rows at once.** Two source sites produce three rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home.",
+            "no_op": "`ok: issue <NNNN> already CLOSED`, exit 0 -- **SHIPPED, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1644-1647` (`fn already`, arms `ok: issue {number:04} -> {state}` and `ok: issue {number:04} already {state}`), landed by cc at `b504d91b` and asserted through the real binary in `issues_surface.rs`. Verified here from the commit with the tree clean, not from the announcement."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2644,11 +2716,13 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm -- `move_issue`, bin/intent_issues:275-292, read at HEAD 2026-08-17 by ic after cc found the middle arm missing. Source-exact rather than paraphrased: the strings above are the echoes themselves."
-            }
+            },
+            "no_op": "`ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283) -- the same `move_issue` arm, mirrored."
           },
           "target": {
             "state": "as-observed",
-            "question": "The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning."
+            "question": "The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning.",
+            "no_op": "`ok: issue <NNNN> already OPEN`, exit 0 -- **SHIPPED, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1644-1647` (`fn already`, arms `ok: issue {number:04} -> {state}` and `ok: issue {number:04} already {state}`), landed by cc at `b504d91b` and asserted through the real binary in `issues_surface.rs`. Verified here from the commit with the tree clean, not from the announcement."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2884,11 +2958,13 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
             "state": "as-observed",
-            "exposure": "EXPOSURE -- NOT a D42 one, and the first two versions of this note got that wrong (ic, audit 2026-08-15, corrected twice the same day). hv has narrowed D42 twice since I filed it: RETURNING a time is fine, and READING a clock to make a decision or to stamp when a command ran into a GENERATED artefact is fine too -- there is no need to be pathological about it. `--flush` is exactly that permitted case on both counts: v2 `flush_watermark` reads `date -u` and writes the instant into `todo.md`, which is a generated view, and the value is then used to decide DONE-bucket membership. So the clock read is legitimate and I withdraw the D42 complaint. WHAT SURVIVES IS A DIFFERENT AND BETTER DEFECT, found only by reading the v2 source to check the first claim: `generate()` reads the watermark BACK OUT of `todo.md` (`read_done_watermark`, bin/intent_todo:228), so the generated view is the watermark's ONLY store. Under the v3 truth model -- DB rebuildable, `rm` of a derived artefact always safe, md = generated views plus authored prose -- a watermark is neither, and deleting `todo.md` to regenerate it silently resets the flush to zero and resurrects every flushed item. The v3 watermark must live in the store. WP-03 owns the renderer and this is its constraint, not WP-06's."
+            "exposure": "EXPOSURE -- NOT a D42 one, and the first two versions of this note got that wrong (ic, audit 2026-08-15, corrected twice the same day). hv has narrowed D42 twice since I filed it: RETURNING a time is fine, and READING a clock to make a decision or to stamp when a command ran into a GENERATED artefact is fine too -- there is no need to be pathological about it. `--flush` is exactly that permitted case on both counts: v2 `flush_watermark` reads `date -u` and writes the instant into `todo.md`, which is a generated view, and the value is then used to decide DONE-bucket membership. So the clock read is legitimate and I withdraw the D42 complaint. WHAT SURVIVES IS A DIFFERENT AND BETTER DEFECT, found only by reading the v2 source to check the first claim: `generate()` reads the watermark BACK OUT of `todo.md` (`read_done_watermark`, bin/intent_todo:228), so the generated view is the watermark's ONLY store. Under the v3 truth model -- DB rebuildable, `rm` of a derived artefact always safe, md = generated views plus authored prose -- a watermark is neither, and deleting `todo.md` to regenerate it silently resets the flush to zero and resurrects every flushed item. The v3 watermark must live in the store. WP-03 owns the renderer and this is its constraint, not WP-06's.",
+            "no_op": "`ok: <spec> was already done`, exit 0 -- **the only arm at HEAD that reports the no-op, and the only one whose wording the ruling CHANGES.** vc ruled `ok: <subject> already <state>` over the participle: a no-op reports a PRESENT condition, and `was already done` reports a past one. It also fails to generalise -- `st hold` would have to say `was already held` for a state spelled `on hold`. So this row is the outlier in both directions: honest about the no-op, wrong about the voice."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2927,10 +3003,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2969,10 +3047,12 @@
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+            },
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "no_op": "unexamined -- nobody has run this verb against an entity already in its target state"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -6706,7 +6786,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 19,
+      "n": 20,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -6901,6 +6981,7 @@
       "wp done",
       "wp reopen",
       "wp unstart",
+      "wp rescope",
       "wp list",
       "wp show",
       "ac",
@@ -7014,6 +7095,7 @@
       "wp done",
       "wp reopen",
       "wp unstart",
+      "wp rescope",
       "wp list",
       "wp show",
       "ac",
@@ -7130,6 +7212,7 @@
       "wp done",
       "wp reopen",
       "wp unstart",
+      "wp rescope",
       "wp list",
       "wp show",
       "ac",
@@ -7211,6 +7294,36 @@
       "export",
       "ingest",
       "backup"
+    ],
+    "self_loop": [
+      "ac descope",
+      "ac reinstate",
+      "ac rescope",
+      "ac satisfy",
+      "ac unsatisfy",
+      "ac withdraw",
+      "at green",
+      "at na",
+      "at red",
+      "issues close",
+      "issues open",
+      "st cancel",
+      "st done",
+      "st hold",
+      "st reinstate",
+      "st reopen",
+      "st resume",
+      "st start",
+      "st triage",
+      "todo done",
+      "todo notdone",
+      "todo toggle",
+      "wp done",
+      "wp reopen",
+      "wp rescope",
+      "wp start",
+      "wp unstart"
     ]
-  }
+  },
+  "no_op_note": "**`no_op` STATES WHAT A VERB PRINTS WHEN IT IS ASKED FOR THE STATE THE ENTITY IS ALREADY IN**, and it exists because nothing else in this register could say it. Issue 0050: hv's self-loop ruling gave the facade `Outcome::AlreadyThere`, nineteen `render.rs` arms discard it and print the movement message anyway, and two read it -- so `intent todo done ST0001` answers `was already done` while `intent st done ST0001`, the call it DELEGATES to, answers `done`. The table declared help, flags and exit codes and had no notation for that difference, so no parity tool could hold the renderer to anything. **TWO FIELDS, NOT ONE, BECAUSE THE TABLE ALREADY SPLITS THAT WAY.** `observed.no_op` is v2's behaviour and `target.no_op` is v3's. A single field would record the answer and lose the question, which is the one thing a parity register must not do -- and `observed` is NOT empty here: v2 has two no-op arms, `ok: issue <ID> already CLOSED` (bin/intent_issues:282) and `skipped: <ID> already in progress` (bin/intent_st:635), in DIFFERENT prefixes. **Everything else v2 does on a no-op is a repeated write that happens to land on the same value**, which is a materially different thing from a no-op and is why each such row says so rather than saying `ok`. **WHERE THE v2 HALF IS ABSENT, IT IS ABSENT UNAMBIGUOUSLY.** `observed` exists on a row exactly when `target.state` is not `new-surface` -- true across all 26 rows of the population and mechanical, not a convention -- so a missing `observed.no_op` already means `v2 had no such command` and needs no sentinel of its own. The requirement is therefore: `target.no_op` on every row of the population, `observed.no_op` on every row of it that has an `observed` block. **THREE SHAPES, AND THE THIRD IS THE POINT** (cc's argument, adopted): absent must never mean both `no self-loop is possible here` and `nobody has looked`. So a row in `populations.self_loop` always carries the key, and a value beginning `unexamined` is a declaration of ignorance rather than the silence that reads like coverage. `new-surface` says v2 had no antecedent, so there is nothing to be faithful to. **EVERY `target` VALUE DESCRIBES HEAD.** The ruled voice is `ok: <subject> already <state>` (vc, 2026-08-17, over the participle `was already <verb>`, on the grounds that a no-op reports a PRESENT condition and that the participle only coincides with the state when verb and state share a word -- `st hold` breaks it immediately). At HEAD that voice is implemented in no commit, so no row cites a `render.rs` line for it. They cite the ruling and `bin/intent_issues:282`. The seventeen rows say what they print TODAY, which is the movement message, because a register that describes the fix rather than the code is the defect this thread has hit three times in one day."
 }
