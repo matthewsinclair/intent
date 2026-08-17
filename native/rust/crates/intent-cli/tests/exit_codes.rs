@@ -175,8 +175,14 @@ fn an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation() {
 /// test; its `2+` fail-open branch was correct all along and simply never
 /// reached. If someone reverts the exit code, a unit assertion above reds AND
 /// this reds with the user-visible symptom, which is the one worth reading.
-#[test]
-fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt() {
+/// Build a project fixture at `intent_version` and run the SHIPPED pre-commit
+/// hook inside it, returning (exit code, stderr).
+///
+/// **Extracted rather than copied.** The unmigrated case below differs from the
+/// migrated one by a single field, and a fifty-line fixture pasted twice is two
+/// fixtures that agree until somebody edits one -- which is the drift these
+/// tests exist to catch one layer up.
+fn shipped_hook_in(intent_version: &str) -> (Option<i32>, String) {
   let hook = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
     .join("../../../../lib/templates/hooks/pre-commit.sh")
     .canonicalize()
@@ -187,7 +193,9 @@ fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt()
   std::fs::create_dir_all(root.join("intent/.config")).expect("mkdir");
   std::fs::write(
     root.join("intent/.config/config.json"),
-    "{\"intent_version\":\"3.0.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}\n",
+    format!(
+      "{{\"intent_version\":\"{intent_version}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}}\n"
+    ),
   )
   .expect("write config");
   std::fs::write(root.join("script.sh"), "#!/bin/bash\necho hi\n").expect("write a shell file");
@@ -228,10 +236,18 @@ fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt()
     .env("PATH", path)
     .output()
     .expect("run the shipped hook");
-  let stderr = String::from_utf8_lossy(&out.stderr);
+  (
+    out.status.code(),
+    String::from_utf8_lossy(&out.stderr).to_string(),
+  )
+}
+
+#[test]
+fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt() {
+  let (code, stderr) = shipped_hook_in("3.0.0");
 
   assert_eq!(
-    out.status.code(),
+    code,
     Some(0),
     "the gate must fail OPEN when the critic is unavailable, not block the commit.\n{stderr}"
   );
@@ -242,5 +258,70 @@ fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt()
   assert!(
     !stderr.contains("commit blocked by findings"),
     "the remedy naming findings that do not exist is the half of 0038 a user actually meets:\n{stderr}"
+  );
+}
+
+/// **ISSUE 0045 (vc): an UNMIGRATED project must still be able to commit, and
+/// this test exists to fail on a day that has not arrived.**
+///
+/// The shipped gate reads `1` from `intent critic` as FINDINGS and blocks. But
+/// `Facade::open` calls `readable()` before anything else, so **every
+/// facade-opening command in an unmigrated project returns `Unmigrated ->
+/// Failure::Error -> 1`.** Build `critic` on `Facade::open` -- which is the
+/// obvious right thing to reach for -- and the gate blocks every commit in
+/// every unmigrated project, printing a remedy about findings that do not
+/// exist while the true remedy sits on screen above it, overridden.
+///
+/// **It passes today only because `critic` is unbuilt and answers 2**, into the
+/// fail-open branch issue 0038's fix created. That is a reprieve nobody chose
+/// and it ends when WP-07 does.
+///
+/// **The control is what stops this being decorative.** A guard that merely
+/// asserts "the gate returned 0" would pass on a fixture that was never
+/// unmigrated at all, which is the vacuous shape this file's own header records
+/// shipping as 0038. So the fixture is proven unmigrated first, through the
+/// same binary, and the refusal it produces is the exact one that would reach
+/// the gate.
+#[test]
+fn an_unmigrated_project_can_still_commit() {
+  // The fixture is genuinely in the state under test, and the refusal that
+  // would reach the gate is genuinely reachable -- at the code the gate reads
+  // as findings.
+  let dir = tempfile::tempdir().expect("tempdir");
+  std::fs::create_dir_all(dir.path().join("intent/.config")).expect("mkdir");
+  std::fs::write(
+    dir.path().join("intent/.config/config.json"),
+    "{\"intent_version\":\"2.19.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}\n",
+  )
+  .expect("write config");
+  let control = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(["st", "list"])
+    .current_dir(dir.path())
+    .output()
+    .expect("run a facade-opening command");
+  assert_eq!(
+    control.status.code(),
+    Some(1),
+    "precondition: a facade-opening command in an unmigrated project refuses at 1 -- the code the gate reads as findings. If this is no longer true the test \
+     below is guarding nothing"
+  );
+  assert!(
+    String::from_utf8_lossy(&control.stderr).contains("not been migrated"),
+    "precondition: and it refuses for the MIGRATION reason, not some other one"
+  );
+
+  let (code, stderr) = shipped_hook_in("2.19.0");
+
+  assert_eq!(
+    code,
+    Some(0),
+    "the shipped gate blocked a commit in an unmigrated project. **A command the gate invokes is answering in the code it reads as findings** -- almost \
+     certainly `critic` built on `Facade::open`, whose `readable()` refuses before anything else runs. `doctor` and the migrator are already exempt because \
+     their job IS this state; `critic` needs exempting on a different ground -- its consumer fails CLOSED on the refusal code.\n{stderr}"
+  );
+  assert!(
+    !stderr.contains("commit blocked by findings"),
+    "and it must never claim findings it does not have. The true remedy -- run `intent upgrade` -- is printed by the refusal and then overridden by one that \
+     cannot be followed:\n{stderr}"
   );
 }

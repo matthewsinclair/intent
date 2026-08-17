@@ -401,6 +401,31 @@ impl Facade {
   ///
   /// It also runs BEFORE the store is opened, so the refusal never depends on
   /// a DB that an unmigrated project has no reason to have.
+  ///
+  /// # `critic` MUST NOT BE BUILT ON THIS, and the ground is a new one
+  ///
+  /// **Issue 0045 (vc), and it does not reproduce today** -- which is exactly
+  /// why it is written at the point of temptation rather than in a backlog.
+  ///
+  /// The two exemptions above share a ground: their job IS the unmigrated
+  /// state. `critic`'s ground is different and this comment did not contemplate
+  /// it -- **its consumer fails CLOSED on the refusal code.** The shipped
+  /// pre-commit gate reads `1` from `intent critic` as FINDINGS and blocks the
+  /// commit; every refusal here becomes `Unmigrated -> Failure::Error -> 1`. So
+  /// a `critic` opened through this function blocks every commit in every
+  /// unmigrated project, printing a remedy about findings that do not exist
+  /// while the true remedy -- run `intent upgrade` -- sits on screen above it,
+  /// overridden by one that cannot be followed.
+  ///
+  /// **Moving the refusal to 2 is NOT the fix and was considered.** It clears
+  /// git and breaks Claude Code, whose `UserPromptSubmit` reads 2 as BLOCK.
+  /// That is issue 0043 rebuilt one consumer over. `critic` needs to reach the
+  /// canon without asking this question at all -- the same route `doctor`
+  /// takes -- rather than a different number.
+  ///
+  /// Held mechanically by `an_unmigrated_project_can_still_commit`, which drives
+  /// the SHIPPED hook in an unmigrated fixture and reds the day this is wired
+  /// the obvious way.
   fn readable(project: &Project) -> Result<(), FacadeError> {
     match project.migration() {
       Migration::Done => Ok(()),
