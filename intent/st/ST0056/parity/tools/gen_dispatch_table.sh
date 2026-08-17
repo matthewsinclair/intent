@@ -933,6 +933,92 @@ SPELLING_SELF="$(jq -r '
 [ -z "$SPELLING_SELF" ] || die "row(s) carry a \`target.spelling\` that names the row itself, which tells an operator nothing. The field answers what to type INSTEAD of a retired command and its only reader is the retirement refusal, which walks retired rows only -- so a self-referential spelling is both unread and meaningless. Drop it, or give it the replacement it was meant to name:
 $(printf '%s' "$SPELLING_SELF" | sed 's/^/  /')"
 
+# THE POPULATIONS BLOCK IS DERIVED AND LIVES INSIDE THE THING IT DERIVES FROM,
+# which is only safe because this arm exists. Same shape as `legal_pairs[].n`
+# fifty lines up: the census counts the classes, this enumerates their members,
+# and both are a generated claim sitting in a hand-authored file.
+#
+# **The reason it is enumerated rather than left to a shared library is that a
+# library closes the class only for the callers that source it, and nothing
+# makes them.** Measured on this toolchain: `lib_surface.sh` was built to be the
+# one home for these four populations, and afterwards `implemented_check.sh`
+# still declared its own exclusion list and `surface_check.sh` still hand-wrote
+# the walk four times, none of them sourcing it -- so the library did not reduce
+# the number of homes, it added one. That is 0037's own mechanism operating on
+# 0037's fix. A block every consumer READS cannot be bypassed by not sourcing
+# it, because there is nothing to source.
+#
+# The redundancy is deliberate. `retired` is `declared` minus `shipped` and
+# `probeable` is `shipped` minus `nonreturning`, and enumerating both anyway is
+# the entire point: a consumer that has to subtract is a consumer that is
+# computing, and computing is what produced five wrong populations in a week.
+#
+# ORDER IS COMPARED, not just membership. Two lists with the same members in a
+# different order mean the block was hand-edited rather than regenerated, and
+# the next regeneration would produce a diff nobody asked for. The message says
+# which of the two it is, because they send the reader to different places.
+#
+# `not_probed` is AUTHORED and cannot be checked against the corpus -- nothing
+# in a row says `daemon` is a long-running server. Three things ARE checked:
+# each exclusion names a row that actually ships (an exclusion for a command
+# that does not exist excludes nothing and reads as coverage), each carries a
+# non-empty `why`, and `probeable` is exactly `shipped` minus their paths.
+#
+# **THE `why` IS REQUIRED BECAUSE THE PREVIOUS VERSION OF THIS LIST LOST A
+# MEMBER TO ITS NAME.** It was `SURFACE_NONRETURNING` with three members; the
+# real list has four, and the missing one was `claude upgrade`, which returns
+# perfectly well and writes into the operator's real `~/.claude`. Two reasons,
+# one name, and the member that did not fit the name fell out. `claude start`
+# survived only because it satisfies both readings, so the surviving two-word
+# row made the list look complete. A member that states its own grounds cannot
+# be silently disqualified by a key name, which is why an empty `why` refuses
+# here rather than being tolerated as a missing comment.
+#
+# Mutation-proved 2026-08-17, six arms through the real generator:
+#   A  steady                                        -> silent
+#   B  a path dropped from `shipped`                 -> REFUSES, names it as omitted
+#   C  the same members in a different order         -> REFUSES, says ORDER specifically
+#   D  `not_probed` naming a non-shipped command     -> REFUSES, the exclusion names nothing
+#   E  the block absent entirely                     -> REFUSES
+#   F  an exclusion with an empty `why`              -> REFUSES by name
+POPULATIONS_SKEW="$(jq -r '
+  def rows: [.families[].entries[], .new_surface[]?];
+  def ships: select((.disposition != "retire") and (.target.state != "retire"));
+  def gone:  select((.disposition == "retire") or  (.target.state == "retire"));
+  . as $t
+  | if ($t | has("populations") | not)
+    then "the `populations` block is absent -- the four populations have no home and every consumer is back to re-deriving them"
+    else
+      ($t.populations) as $p
+      | ($p.not_probed // []) as $np
+      | ($np | map(.path)) as $nr
+      | ($t | rows | map(ships | .path)) as $shipped
+      | { declared:  ($t | rows | map(.path)),
+          shipped:   $shipped,
+          retired:   ($t | rows | map(gone | .path)),
+          probeable: ($shipped | map(select(. as $x | $nr | index($x) | not))) } as $corpus
+      | ( [ $corpus | keys[] ] | map(
+            . as $k
+            | $corpus[$k] as $want
+            | ($p[$k] // []) as $have
+            | if $want == $have then empty
+              else
+                (($have - $want) | join(", ")) as $extra
+                | (($want - $have) | join(", ")) as $miss
+                | "`populations." + $k + "`: "
+                  + (if $extra != "" then "lists " + $extra + " which the corpus does not. " else "" end)
+                  + (if $miss  != "" then "omits " + $miss + ". " else "" end)
+                  + (if $extra == "" and $miss == "" then "same members in a DIFFERENT ORDER -- hand-edited rather than regenerated." else "" end)
+              end) )
+        + ( [ $np[] | select(.path as $x | $shipped | index($x) | not)
+              | "`populations.not_probed` excludes `" + .path + "`, which is not a shipped row, so the exclusion names nothing" ] )
+        + ( [ $np[] | select(((.why // "") | length) == 0)
+              | "`populations.not_probed` excludes `" + .path + "` with no `why`. The list this replaced lost a member because its NAME defined admission; a member without stated grounds is back in that state" ] )
+      | join("\n")
+    end' "$IN")"
+[ -z "$POPULATIONS_SKEW" ] || die "the \`populations\` block disagrees with the corpus it is derived from. It is the one home for the four populations -- \`lib_surface.sh\` reads it and a Rust test binds \`Entry::is_shipped()\` to it -- so a block out of step with the rows sends every consumer a confident wrong answer, which is the whole class it was built to end. Regenerate it rather than hand-editing:
+$(printf '%s' "$POPULATIONS_SKEW" | sed 's/^/  /')"
+
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
 # reads as "reviewed and confident" in a diff and as "somebody meant to fill

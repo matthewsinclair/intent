@@ -859,3 +859,120 @@ fn the_root_help_is_not_borrowed_from_a_family() {
      output and the assertion above cannot tell which one it read"
   );
 }
+
+/// **`Entry::is_shipped()` and the canon's `populations` block are bound, and
+/// the binding is why the predicate may stay a predicate** (ic, 2026-08-17,
+/// closing 0037's remaining half).
+///
+/// The four populations had four homes: `lib_surface.sh`, `implemented_check.
+/// sh`'s own `EXCLUDED`, four inline walks in `surface_check.sh`, and this
+/// predicate. The one home is now `.populations` in the table, generated and
+/// refused-on-skew by `gen_dispatch_table.sh`, and every shell consumer reads
+/// it.
+///
+/// **The binary deliberately does NOT read it.** `is_shipped()` fails OPEN
+/// across two fields and is currently the only thing stopping a single
+/// hand-edit from shipping a retired command; replacing it with a lookup would
+/// make the list a third field carrying that power, and a list is edited by
+/// people who believe they are editing data. So the predicate stays and this
+/// test is what stops it drifting from the block.
+///
+/// **Two witnesses at the two moments, not one witness twice.** The generator
+/// arm catches a block edited away from the rows; this catches a predicate
+/// edited away from the block. The generator is a shell tool nobody runs on a
+/// push, which is why the second half has to live in the suite -- cc's argument
+/// about `KEY_UNCLASSED`, and it applies unchanged here.
+///
+/// Order is compared, not just membership: the block is generated in table
+/// order, so a set-equal-but-reordered block means it was hand-edited, and the
+/// next regeneration would produce a diff nobody asked for.
+#[test]
+fn the_populations_block_and_the_shipping_predicate_agree() {
+  let table = dispatch::table();
+  let raw: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  let pops = &raw["populations"];
+  assert!(
+    pops.is_object(),
+    "the table has no `populations` block, so this test would pass by having nothing to compare \
+     -- and every consumer is back to re-deriving the four populations by hand, which is the \
+     defect 0037 is about"
+  );
+
+  let list = |key: &str| -> Vec<String> {
+    pops[key]
+      .as_array()
+      .unwrap_or_else(|| panic!("`populations.{key}` is a list"))
+      .iter()
+      .map(|v| v.as_str().expect("a path is a string").to_string())
+      .collect()
+  };
+
+  // Every row, both homes, in table order -- the enumerator this whole class is
+  // about. `.families[].entries[]` alone is 104 where declared is 112.
+  let rows: Vec<&dispatch::Entry> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .collect();
+
+  let declared: Vec<String> = rows.iter().map(|e| e.path.clone()).collect();
+  let shipped: Vec<String> = rows
+    .iter()
+    .filter(|e| e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+  let retired: Vec<String> = rows
+    .iter()
+    .filter(|e| !e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+  // `not_probed` is authored and carries a reason per member, so the paths come
+  // out of the objects. The key is NOT `nonreturning`: that name admitted only
+  // one of the two reasons these are excluded for, and `claude upgrade` -- which
+  // returns fine and installs into the operator's real `~/.claude` -- fell out
+  // of the list because it did not fit the name.
+  let not_probed: Vec<String> = pops["not_probed"]
+    .as_array()
+    .expect("`populations.not_probed` is a list")
+    .iter()
+    .map(|m| {
+      m["path"]
+        .as_str()
+        .expect("a not_probed member has a path")
+        .to_string()
+    })
+    .collect();
+  let probeable: Vec<String> = shipped
+    .iter()
+    .filter(|p| !not_probed.contains(p))
+    .cloned()
+    .collect();
+
+  for (key, computed) in [
+    ("declared", &declared),
+    ("shipped", &shipped),
+    ("retired", &retired),
+    ("probeable", &probeable),
+  ] {
+    assert_eq!(
+      &list(key),
+      computed,
+      "`populations.{key}` disagrees with what the types compute from the rows. The block is the \
+       one home every shell consumer reads and the predicate is what the binary dispatches on, so \
+       a disagreement means one of them is telling somebody a confident wrong answer about which \
+       commands exist."
+    );
+  }
+
+  // The arithmetic is asserted rather than left to the two lists happening to
+  // agree today. A row retired in `new_surface` would otherwise be counted by
+  // neither, and both comparisons above would still pass.
+  assert_eq!(
+    shipped.len() + retired.len(),
+    declared.len(),
+    "shipped + retired does not equal declared, so a row is being counted by neither and the \
+     partition has a hole that per-list comparison cannot see"
+  );
+}

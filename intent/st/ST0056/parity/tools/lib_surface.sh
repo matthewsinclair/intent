@@ -5,7 +5,7 @@
 # directly does nothing useful, so it ships 644 like `lib_corpus.sh` and unlike
 # every other tool in this directory.
 #
-# WHY THIS IS SHARED RATHER THAN INLINE. `.families[].entries[]` reads like the
+# WHY THE POPULATIONS HAVE A NAME. `.families[].entries[]` reads like the
 # command surface and is not it, in BOTH directions at once:
 #
 #   too narrow   it omits the 8 top-level `new_surface[]` rows -- `search`,
@@ -15,26 +15,23 @@
 #                `organize`, `treeindex`, `help`, `st_zero` -- which do not
 #                exist in the binary, so probing them measures nothing
 #
-# 104 against 107 is three apart with opposite signs. **No count-based sanity
-# check flinches at that**, which is why the same hand-written jq produced the
-# same wrong population three times in one week: in a test, in a help scan
-# (issue 0037), and in the 0044 exit-code sweep.
+# 104 against 112 against 107 is three apart with opposite signs. **No
+# count-based sanity check flinches at that**, which is why the same hand-written
+# jq produced the same wrong population five times in one week.
 #
-# The fix is not vigilance. It is that the population has a name and one home.
-
-# THE PROBE EXCLUSIONS, NAMED RATHER THAN GUESSED. These three ship and are
-# deliberately not probeable: `daemon` and `mcp` are long-running servers and
-# `claude start` launches a real session. `implemented_check.sh` already
-# excludes the same three by name for the same reason -- this is that list,
-# lifted to where every consumer can see it instead of being re-derived.
+# THIS FILE NO LONGER COMPUTES THEM, AND THE REASON IS THAT ITS FIRST VERSION
+# DID. Built as the one home, it then sat beside `implemented_check.sh`'s own
+# `EXCLUDED` list and `surface_check.sh`'s four inline walks, none of which
+# sourced it -- so it did not reduce the number of homes, it added one, and
+# 0037's write-up recorded a consolidation that had not happened. **A sourced
+# library closes the class only for the callers that source it, and nothing
+# makes them.**
 #
-# NEWLINE-delimited, and that is not a style choice: `claude start` CONTAINS A
-# SPACE, so a space-separated list word-splits into `claude` and `start` and
-# would silently exclude two commands that are not in it. A path with a space is
-# the normal case in this table, not the exotic one.
-SURFACE_NONRETURNING='daemon
-mcp
-claude start'
+# So the one home moved to where it cannot be bypassed by not sourcing it:
+# `.populations` in `surface/dispatch-table.json`, generated and refused-on-skew
+# by `gen_dispatch_table.sh`, with `Entry::is_shipped()` bound to it by a test in
+# the Rust suite. **This file is now a READER.** Same four function names, same
+# newline-delimited output, so a caller that sources it needs no change.
 
 # Resolve the table once. Every function refuses rather than defaulting: a
 # population computed from a table that is not there is a complete, uniform,
@@ -53,44 +50,83 @@ _surface_table() {
   printf '%s\n' "$t"
 }
 
-# Every row the table declares, shipped or not. 112.
-surface_declared() {
-  local t; t="$(_surface_table)" || return 1
-  jq -r '([.families[].entries[].path] + [.new_surface[]?.path])[]' "$t"
+# Read one named population out of the block.
+#
+# REFUSES ON AN ABSENT OR EMPTY LIST rather than returning nothing. An empty
+# population and a missing one produce the same silence at a call site, and the
+# caller's next step is almost always a loop -- which runs zero times and looks
+# exactly like a clean sweep. Every one of these lists has members by
+# construction, so empty means the block is broken, not that the surface is.
+_surface_pop() {
+  local name="$1" t out
+  t="$(_surface_table)" || return 1
+  out="$(jq -er --arg k "$name" '
+    if (has("populations") | not) then error("no populations block")
+    elif (.populations[$k] | type) != "array" then error("populations." + $k + " is not a list")
+    elif (.populations[$k] | length) == 0 then error("populations." + $k + " is empty")
+    else .populations[$k][] end' "$t" 2>&1)" || {
+    echo "error: cannot read \`populations.$name\` from $t -- $out" >&2
+    echo "  the block is generated; run gen_dispatch_table.sh, which refuses when it disagrees with the rows" >&2
+    return 1
+  }
+  printf '%s\n' "$out"
 }
+
+# Every row the table declares, shipped or not. 112.
+surface_declared() { _surface_pop declared; }
 
 # Every row that exists in the binary. 107. THIS IS THE DEFAULT POPULATION for
 # anything asking a question about what the tool does.
-# BOTH retire predicates, deliberately. `surface_check.sh` REFUSES a row where
-# `disposition` and `target.state` disagree on `retire`, so testing one today
-# gives the same 107 as testing both -- and that agreement is a property of
-# ANOTHER instrument's guard, not of this one. A library that is correct because
-# something else refuses is a library whose precondition is written down nowhere,
-# which is exactly the class measured in issue 0042 today. Test both here and the
-# dependency disappears.
-surface_shipped() {
-  local t; t="$(_surface_table)" || return 1
-  jq -r '([.families[].entries[] | select((.disposition != "retire") and (.target.state != "retire")) | .path]
-          + [.new_surface[]? | select((.disposition != "retire") and (.target.state != "retire")) | .path])[]' "$t"
-}
+surface_shipped() { _surface_pop shipped; }
 
 # The rows that were removed. 5. Worth its own accessor because a retired
 # command is not absent from the WORLD -- v2 users still type it -- so the set
 # is the population for "what happens when someone runs the old command".
-surface_retired() {
+surface_retired() { _surface_pop retired; }
+
+# Shipped minus the four in `not_probed`. 103.
+#
+# **It was 104 an hour ago and the difference is `claude upgrade`** -- see
+# `surface_not_probed` below for why it was missing. Do not reconcile this 103
+# against the 103 in issue 0044: that one is a RETRACTED figure from a sweep run
+# with a broken hash, and the corrected sweep probed 104 and found 1. Two
+# different numbers that happen to be equal is worse than two that differ.
+surface_probeable() { _surface_pop probeable; }
+
+# The four that ship and are deliberately not probed. Paths only; each member's
+# stated reason lives in the block beside it.
+#
+# **THE NAME IS `not_probed` AND NOT `nonreturning`, BECAUSE THE OLD NAME LOST A
+# MEMBER.** This constant was `SURFACE_NONRETURNING` and carried three: `daemon`,
+# `mcp`, `claude start`. The real list has four. `claude upgrade` returns
+# perfectly well and installs into the operator's REAL `~/.claude`, so it is
+# excluded for a completely different reason -- writes outside the sandbox, not
+# never returns -- and it fell out of a list whose name was only ever entitled
+# to define one of the two reasons. `claude start` survived only because it
+# satisfies both readings, which is precisely why nothing looked wrong: the
+# surviving two-word row made the list look complete. Latent rather than
+# harmless -- `claude upgrade` is unimplemented today, and WP-07 makes it live
+# against a real home directory.
+#
+# NEWLINE-delimited on the way out, and that is not a style choice: two of the
+# four are TWO-WORD PATHS, so a space-separated list read word-wise excludes a
+# `claude` family and an `upgrade` row that were never named. Reading the block
+# through `jq -r '.[]'` gives whole lines for free, where a shell string would
+# have to be quoted correctly by every consumer.
+surface_not_probed() {
   local t; t="$(_surface_table)" || return 1
-  # Both homes and both predicates, so that `shipped` + `retired` == `declared`
-  # by construction rather than by today's data. A row retired in `new_surface`
-  # would otherwise be counted by neither and the arithmetic would not close.
-  jq -r '([.families[].entries[], .new_surface[]?]
-          | .[] | select((.disposition == "retire") or (.target.state == "retire")) | .path)' "$t"
+  jq -er '
+    if (has("populations") | not) then error("no populations block")
+    elif (.populations.not_probed | type) != "array" then error("populations.not_probed is not a list")
+    elif (.populations.not_probed | length) == 0 then error("populations.not_probed is empty")
+    else .populations.not_probed[].path end' "$t" || {
+    echo "error: cannot read \`populations.not_probed\` from $t" >&2
+    return 1
+  }
 }
 
-# Shipped minus the three that do not return. 104.
-#
-# `grep -vx -f -` rather than a built -e list: it reads the exclusions as whole
-# lines from stdin, so an entry containing a space is matched as one pattern and
-# there is no word-splitting to get wrong.
-surface_probeable() {
-  surface_shipped | grep -vxF -f <(printf '%s\n' "$SURFACE_NONRETURNING")
-}
+# Kept as a variable for callers that want the list without a subshell. The name
+# carries `NOT_PROBED` rather than `NONRETURNING` deliberately: a caller still
+# referring to the old spelling gets an empty string and an obvious break, which
+# is better than silently inheriting a list that is short by one.
+SURFACE_NOT_PROBED="$(surface_not_probed 2>/dev/null)"
