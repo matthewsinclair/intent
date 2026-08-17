@@ -43,26 +43,19 @@ if [ -z "$PROJECT_ROOT" ]; then
 fi
 cd "$PROJECT_ROOT" || exit 0
 
-# ---- Fail-open on missing intent CLI ----
-
-if ! command -v intent >/dev/null 2>&1; then
-  echo "intent critic gate: 'intent' CLI not on PATH; skipping." >&2
-  echo "  install Intent or add its bin/ to PATH to enable the gate." >&2
-  exit 0
-fi
-
-# Fail-open if this repo isn't an Intent project (the hook may have been
-# copied manually into a non-Intent repo). Without this check,
-# `intent critic` would exit non-zero with a "not in an Intent project"
-# message and the commit would be blocked for the wrong reason.
-# We already cd'd to the git toplevel above, and every later read
-# (languages, .intent_critic.yml) is relative to it, so the gate's
-# definition of "Intent project" is config.json at the git toplevel.
-if [ ! -f "intent/.config/config.json" ]; then
-  echo "intent critic gate: not inside an Intent project (intent/.config/config.json absent); skipping." >&2
-  exit 0
-fi
-
+# MOVED ABOVE BOTH FAIL-OPEN EXITS, 2026-08-17, because it was BELOW them and
+# the comment below has always said otherwise. Two exits sat between: no
+# `intent` on PATH, and no `intent/.config/config.json`. Either one returned 0
+# and NO whiteboard guard ran, with nothing printed to say so -- an exit written
+# when there was one arm is a claim that the run is over.
+#
+# The population is not exotic: the whiteboard is opt-in by DIRECTORY PRESENCE,
+# so a board in a repo that has not been `intent init`-ed is a state the design
+# permits, and every one of them was silently unguarded (cc's framing).
+#
+# Both cases now reach the block's OWN fail-open branch, which is loud and
+# already existed: it says the guards could not be located and names them. No
+# new machinery -- the ordering was the whole defect.
 # ---- Whiteboard guards (opt-in by directory presence) ----
 #
 # Run BEFORE the critic: they are exact, cheap, need no language, and a bad
@@ -209,6 +202,26 @@ if [ -d "intent/whiteboard" ]; then
     done
   fi
   [ "$WB_BLOCKED" -eq 0 ] || exit 1
+fi
+
+# ---- Fail-open on missing intent CLI ----
+
+if ! command -v intent >/dev/null 2>&1; then
+  echo "intent critic gate: 'intent' CLI not on PATH; skipping." >&2
+  echo "  install Intent or add its bin/ to PATH to enable the gate." >&2
+  exit 0
+fi
+
+# Fail-open if this repo isn't an Intent project (the hook may have been
+# copied manually into a non-Intent repo). Without this check,
+# `intent critic` would exit non-zero with a "not in an Intent project"
+# message and the commit would be blocked for the wrong reason.
+# We already cd'd to the git toplevel above, and every later read
+# (languages, .intent_critic.yml) is relative to it, so the gate's
+# definition of "Intent project" is config.json at the git toplevel.
+if [ ! -f "intent/.config/config.json" ]; then
+  echo "intent critic gate: not inside an Intent project (intent/.config/config.json absent); skipping." >&2
+  exit 0
 fi
 
 # ---- Read declared languages from project config ----
