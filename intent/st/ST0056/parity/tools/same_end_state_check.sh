@@ -107,6 +107,86 @@ set -uo pipefail
 
 die() { echo "same-end-state: $*" >&2; exit 2; }
 
+# ---------------------------------------------------------------------------
+# THE STORE IS COMPARED BY CONTENT, NOT BY BYTES, AND THE SUBJECT IS NOT NARROWED
+# (dc + ic measured independently, vc ruled the subject, 2026-08-18).
+#
+# ic's gate run against a commit came back exit 1 on ONE differing path,
+# `intent/.cache/intent.db`, after a real SIGKILL at 293 of 295 writes with all
+# 1371 other paths identical. Their control is what mattered: TWO CLEAN RUNS, no
+# kill, over the same pinned bytes, differ in that file too. So IDENTICAL was
+# unreachable by construction and nothing in the output said so -- the empty-tree
+# and unchanged-input family arriving a third time.
+#
+# THE PROPOSED FIX WAS TO EXCLUDE GITIGNORED PATHS AS "NOT CANON". IT WAS
+# DECLINED, AND CHECKING THE GROUNDS AT SOURCE IS WHY. Both cited authorities are
+# void in canon: D29's "a path git can never commit can never be canon" is the
+# derivation D29 ITSELF VOIDS (`design.md:243` -- "nothing follows from that
+# premise any more"), and "`rm intent.db` always safe" is named on D01's
+# do-not-cite list verbatim (`design.md:187`). D01 is REVERSED -- hv: "the db is
+# the SSOT and it's the FILES that are re-creatable" -- so excluding the store
+# would have dropped THE ONE ARTEFACT THE MODEL CALLS TRUTH and left a gate over
+# the copies. vc ruled the subject accordingly: not narrowed.
+#
+# THE DEFECT WAS THE PREDICATE, NOT THE SUBJECT. Byte-identity is the wrong test
+# for a container format; two byte-different SQLite files can hold identical
+# content exactly as two zips can. So the store is compared through `sqlite3
+# .dump`, which asks the question the gate actually means.
+#
+# AND THE CONTENT DIFFERS TOO, FOR A REASON NO CORRECTNESS CAN FIX: the schema
+# defaults `created_at`/`updated_at` to `strftime('%Y-%m-%dT%H:%M:%fZ')`, so 705
+# rows carry a stamp of WHEN THE MIGRATION RAN. Measured 117ms apart. That is D42
+# working exactly as specified -- the stamp is applied BY the write -- so two runs
+# of a PERFECT migrator can never produce the same database, permanently. It is
+# not nondeterminism: two operators get the same truth with two accurate
+# provenance records.
+#
+# So machine write-stamps are normalised and everything else is compared exactly.
+# THE PATTERN MATCHES THE SHAPE OF A MACHINE STAMP, NEVER A COLUMN NAME, so it
+# survives `created_at` being renamed or a third stamped column appearing -- the
+# `thread.json` lesson applied one layer down.
+#
+# A NORMALISATION IS A CLAIM THAT THE NEUTRALISED DIFFERENCE DOES NOT MATTER, SO
+# IT IS CANARIED AND COUNTED RATHER THAN TRUSTED. Three controls, all measured
+# before this landed: 42 distinct AUTHORED dates (`2026-08-14`, no `T`, no
+# milliseconds) pass through untouched; a planted content change (one thread
+# title) is still SEEN through the normalisation; and two clean runs still agree
+# through it. Without the second of those this would be a device for
+# manufacturing greens.
+#
+# The count is printed on every store comparison, because a normalisation nobody
+# can see is an exclusion wearing a comparison's clothes.
+# ---------------------------------------------------------------------------
+STAMP_RE='[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z'
+STORE_NORMALISED=0
+STORE_COMPARED=0
+
+# DERIVED FROM THE FILE'S OWN BYTES, never from its path. A check keyed to
+# `.cache/intent.db` stops discriminating the day the store moves or gains a
+# sibling, and it would go red for a reason nobody reads as timestamps.
+is_sqlite() { [ "$(head -c 15 "$1" 2>/dev/null)" = "SQLite format 3" ]; }
+
+store_content_hash() {
+  sqlite3 "$1" .dump 2>/dev/null | sed -E "s/$STAMP_RE/<WRITE-TIME>/g" | shasum -a 256 | awk '{print $1}'
+}
+
+# Returns 0 when two SQLite files hold the same content modulo write time.
+# REFUSES TO ANSWER rather than guessing when sqlite3 is absent or a dump is
+# empty -- an empty dump hashes equal to another empty dump, which is the
+# empty-tree trap in a new costume.
+store_same_content() {
+  command -v sqlite3 >/dev/null 2>&1 || return 1
+  local hx hy nx
+  hx="$(store_content_hash "$1")"
+  hy="$(store_content_hash "$2")"
+  [ -n "$hx" ] && [ -n "$hy" ] || return 1
+  nx="$(sqlite3 "$1" .dump 2>/dev/null | grep -cE "$STAMP_RE" || true)"
+  [ "$(sqlite3 "$1" .dump 2>/dev/null | wc -l | tr -d ' ')" -gt 0 ] || return 1
+  STORE_COMPARED=$((STORE_COMPARED + 1))
+  STORE_NORMALISED=$((STORE_NORMALISED + nx))
+  [ "$hx" = "$hy" ]
+}
+
 INPUT="${1:-}"; A="${2:-}"; B="${3:-}"
 [ -n "$INPUT" ] && [ -n "$A" ] && [ -n "$B" ] ||
   die "usage: same_end_state_check.sh <input-estate> <clean-run-tree> <rerun-tree>"
@@ -229,6 +309,12 @@ tree_delta() {
       1) ;;
       *) die "cannot read $f in both trees -- refusing rather than counting an unreadable file as unchanged" ;;
     esac
+    # The bytes differ. For a container format that is not yet an answer -- see
+    # the header block. A store holding the same content modulo write time is
+    # not a difference in end state.
+    if is_sqlite "$X/$f" && is_sqlite "$Y/$f" && store_same_content "$X/$f" "$Y/$f"; then
+      continue
+    fi
     CMP_DIFFERING=$((CMP_DIFFERING + 1))
     CMP_PATHS="${CMP_PATHS}
 ${f}"
@@ -260,10 +346,23 @@ echo
 
 if [ "$altered" -eq 0 ]; then
   echo "CANNOT MEASURE -- the clean run left the input estate byte-identical." >&2
-  echo "  The migrator did nothing, so both output trees are the input and they" >&2
+  echo "  The migrator wrote nothing, so both output trees are the input and they" >&2
   echo "  compare equal. IDENTICAL here would be a green from a door that never" >&2
   echo "  opened, which is what this arm exists to refuse." >&2
-  echo "  Check that the migration door is wired and reachable from a process." >&2
+  echo >&2
+  # TWO CAUSES, NAMED, AND NEITHER ASSERTED (ic, 2026-08-18). A BLOCKED migration
+  # also writes nothing -- and a door that refuses to convert a LIVE thread is the
+  # migrator working exactly as migration.md specifies. The first version of this
+  # arm printed "check that the door is wired", which is wrong advice for a
+  # correctly-blocking estate: it refuses for the right reason and names the wrong
+  # cause, which is vc's catch from the same morning in a different clause of this
+  # same file. THIS TOOL SEES TREES AND NEVER EXIT CODES, so it genuinely cannot
+  # tell them apart, and inventing a discriminator it does not have would be worse
+  # than saying so.
+  echo "  TWO CAUSES PRODUCE THIS AND THIS TOOL CANNOT TELL THEM APART:" >&2
+  echo "    - the migration door is unwired or unreachable from a process; or" >&2
+  echo "    - the migration BLOCKED, which is the door working as specified." >&2
+  echo "  The migrator's own exit code separates them. This sees only trees." >&2
   exit 2
 fi
 
@@ -277,6 +376,18 @@ n_only_a="$CMP_ONLY_A"
 n_only_b="$CMP_ONLY_B"
 report="$CMP_REPORT"
 diff_paths="$(printf '%s\n' "$CMP_PATHS" | grep . | sort || true)"
+
+# THE NORMALISATION IS REPORTED ON EVERY RUN THAT USED IT, PASS OR FAIL. A
+# normalisation nobody can see is an exclusion wearing a comparison's clothes,
+# and this one is the difference between a verdict and a verdict-shaped
+# arrangement. The count is also the positive control: 0 stores compared on an
+# estate that has one means the content comparison never ran and the bytes
+# decided it.
+if [ "$STORE_COMPARED" -gt 0 ]; then
+  echo "  $STORE_COMPARED store(s) compared by CONTENT (sqlite3 .dump), $STORE_NORMALISED machine write-stamp(s) normalised"
+  echo "  -- authored dates are untouched; a planted content change is still seen (canaried)"
+  echo
+fi
 
 if [ "$differing" -eq 0 ] && [ "$n_only_a" -eq 0 ] && [ "$n_only_b" -eq 0 ]; then
   echo "IDENTICAL -- the re-run reached the same end state as the clean run across all $na files."
