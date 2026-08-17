@@ -153,12 +153,37 @@ EOF
 
   dest="${dest:-$ROOT/tmp/corpus/$id}"
 
+  # THE CAPTURE FILE GOES BESIDE THE TREE, NEVER INSIDE IT.
+  #
+  # It used to live at `$dest/CAPTURE`, which made the captured directory hold
+  # one file the pinned revision does not: 1078 where git has 1077. Three things
+  # follow, and only the third was noticed by its author.
+  #
+  # 1. **A whole-tree comparator calls two captures of ONE revision DIFFERENT**,
+  #    because `captured_at` differs, in a file no migration touches. ic found
+  #    this on dc's `same_end_state_check.sh`, whose new three-subject signature
+  #    makes a fresh capture per subject the natural reading. Their workaround --
+  #    capture once, copy -- should not have been necessary.
+  # 2. **The migrator is handed a file the estate never had.** The corpus exists
+  #    to be a real v2 estate; an artefact of the instrument sitting at its root
+  #    is the instrument in the subject.
+  # 3. **`verify` and the census had BOTH been silently excluding it** -- one by
+  #    a `grep -v`, one by never emitting a row -- so the census published 1077
+  #    against a directory of 1078 and nothing anywhere compared those numbers.
+  #    Two exclusions agreeing is not the same as a file not being there.
+  #
+  # Beside the tree, the captured directory IS the estate, byte for byte, and
+  # two captures of one revision are byte-identical without anyone arranging it.
+  local marker="$dest.CAPTURE"
+
   # Never remove a directory this tool did not create. The ownership marker is
   # the CAPTURE file, so a mistyped path fails loudly instead of deleting
   # someone's work.
   if [ -e "$dest" ]; then
-    if [ -f "$dest/CAPTURE" ]; then
+    if [ -f "$marker" ]; then
       rm -rf "$dest" || die "cannot replace prior capture at $dest"
+    elif [ -f "$dest/CAPTURE" ]; then
+      die "$dest carries an IN-TREE CAPTURE file -- it predates the move to $marker and its file count is one above its revision's; re-capture rather than reusing it"
     else
       die "$dest exists and carries no CAPTURE file -- refusing to remove a directory this tool did not create"
     fi
@@ -191,7 +216,7 @@ EOF
     echo "#   $(basename "$0") capture $id <dest>"
     echo "# Or without this tool:"
     echo "#   git -C <repo> archive --format=tar $full $SUBTREE | (cd <dest> && tar -xf -)"
-  } >"$dest/CAPTURE" || die "cannot write $dest/CAPTURE"
+  } >"$marker" || die "cannot write $marker"
 
   # The guard runs inside the act, not after it.
   cmd_verify "$dest" || die "capture wrote $dest and it does NOT verify -- the directory is left in place for inspection"
@@ -204,10 +229,17 @@ cmd_verify() {
   [ -n "$dir" ] || die "usage: estate_corpus.sh verify <dir> [revision]"
   [ -d "$dir" ] || die "no such directory: $dir"
 
-  local capture="$dir/CAPTURE"
+  # Beside the tree, never inside it (see `cmd_capture`). An in-tree CAPTURE is
+  # a capture from before the move: it verifies fine, and its directory holds one
+  # file more than its revision does, so it fails loudly here rather than being
+  # quietly accepted by a tool that would then exclude the file again.
+  local capture="${dir%/}.CAPTURE"
+  [ -f "$capture" ] || [ ! -f "$dir/CAPTURE" ] ||
+    die "$dir carries an IN-TREE CAPTURE file -- it predates the move to $capture and its file count is one above its revision's; re-capture it"
+
   local repo
   if [ -z "$rev" ]; then
-    [ -f "$capture" ] || die "$dir carries no CAPTURE file and no revision was given -- a corpus that cannot name its revision cannot be verified"
+    [ -f "$capture" ] || die "$dir carries no CAPTURE file at $capture and no revision was given -- a corpus that cannot name its revision cannot be verified"
     rev="$(awk '$1 == "revision:" { print $2 }' "$capture")"
     [ -n "$rev" ] || die "$capture carries no revision: line"
   fi
@@ -279,8 +311,12 @@ EOF
 
   # The other direction. A file present in the capture and absent from the tree
   # is an ADDITION, and an addition to a corpus is how a fixture stops being the
-  # estate it claims to be. CAPTURE itself is this tool's own artefact and is
-  # the one expected extra.
+  # estate it claims to be. **There is no expected extra any more.** CAPTURE used
+  # to be one and was excluded here by a `grep -v`, which is how a captured
+  # directory came to hold 1078 files against a revision holding 1077 with no
+  # tool anywhere reporting the difference. The marker now lives beside the tree,
+  # so this arm compares the whole directory to the whole revision and an
+  # exclusion list is not needed to make the numbers agree.
   #
   # SET COMPARISON RATHER THAN A GREP PER FILE, AND THE REASON IS A DEFECT THIS
   # TOOL SHIPPED FOR ONE RUN. The first draft asked `printf "$listing" | grep -qF
@@ -293,7 +329,7 @@ EOF
   # the other direction. A green and a false alarm from one loop over one set.
   local extra=0 dirlist treelist
   dirlist="$(mktemp)" && treelist="$(mktemp)" || die "cannot create scratch files"
-  (cd "$dir" && find . -type f) | sed 's|^\./||' | grep -v '^CAPTURE$' | sort >"$dirlist"
+  (cd "$dir" && find . -type f) | sed 's|^\./||' | sort >"$dirlist"
   printf '%s\n' "$listing" | cut -f2- | sort >"$treelist"
   while IFS= read -r f; do
     [ -n "$f" ] || continue

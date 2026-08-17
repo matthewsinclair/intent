@@ -157,7 +157,7 @@ report() {
 # ---------------------------------------------------------------------------
 # A. Artefact conservation -- reachability, not presence.
 # ---------------------------------------------------------------------------
-a_conv=0 a_reloc=0 a_oom=0
+a_conv=0 a_reloc=0 a_oom=0 c_doubled=0 c_stranded=0
 while IFS=$'\t' read -r _ path kind id bucket; do
   case "$kind" in
     thread|wp) st="${id%%/*}" ;;
@@ -172,24 +172,43 @@ while IFS=$'\t' read -r _ path kind id bucket; do
       a_conv=$((a_conv + 1))
       continue
     fi
-    # A v2 artefact still sitting under its status bucket. Two shapes, and they
-    # are reported separately because their remedies differ: a file the model
-    # regenerates is DOUBLED (two artefacts claiming one role -- the 0011 class,
-    # manufactured by the migration rather than found in the estate), while a
-    # file nothing regenerates is simply UNREACHABLE.
+    # A v2 artefact still sitting under its status bucket. THE MIGRATION DOES NOT
+    # EMPTY THE BUCKETS -- deliberately, so a re-run does not collide on ids --
+    # so every one of these is expected to still be on disk. Expected is not a
+    # disposition, and the population splits in two with OPPOSITE ones. The test
+    # is the only one that matters and it is asked of the canon, not of the name:
+    # **does a counterpart exist under `st/<ID>/`?**
+    #
+    #   yes -> DOUBLED. A redundant original. The authored content reached canon
+    #          (ALTERED 0 / ADDED 0 over the compared sections is the evidence),
+    #          so the bucket copy is superseded and safe to rule out-of-model.
+    #   no  -> STRANDED. **THIS IS THE ONLY COPY.** Authored prose -- design.md,
+    #          impl.md, tasks.md -- that the migration neither moved nor named,
+    #          reachable from nothing in the model. Not redundant, not
+    #          out-of-model, just left behind. Half of a two-ended migration.
+    #
+    # Named STRANDED rather than UNREACHABLE because the class name is what a
+    # reader acts on, and "unreachable" describes the file's position while
+    # "stranded" describes its being the last copy. cc measured 171 of 269 bucket
+    # documents in this population on Intent's own estate at `d4648020` and it is
+    # the number that has to reach zero; it was being read as noise while it sat
+    # in one merged count with a population that is genuinely fine.
     case "$base" in
       info.md|acceptance.md)
         if [ -f "$CANON/st/$st/$base" ]; then
           report DOUBLED "$path (also generated at st/$st/$base -- two artefacts, one role)"
+          c_doubled=$((c_doubled + 1))
         else
-          report UNREACHABLE "$path (owner $id has canon at st/$st/, this is not under it)"
+          report STRANDED "$path (the only copy -- owner $id has canon at st/$st/ and the model regenerates this name, but nothing did)"
+          c_stranded=$((c_stranded + 1))
         fi
         ;;
       *)
         if [ -f "$CANON/st/$st/$base" ]; then
           a_reloc=$((a_reloc + 1))
         else
-          report UNREACHABLE "$path (owner $id has canon at st/$st/, this is not under it)"
+          report STRANDED "$path (the only copy -- authored prose under $id's v2 bucket, neither moved nor named out-of-model)"
+          c_stranded=$((c_stranded + 1))
         fi
         ;;
     esac
@@ -507,6 +526,11 @@ done < <(find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | sort)
 # when it fails cannot be told from a check that never ran.
 # ---------------------------------------------------------------------------
 echo "conservation: $n_census estate file(s) -- converted $a_conv, relocated $a_reloc, out-of-model $a_oom"
+# THE TWO BUCKET POPULATIONS ARE PRINTED SEPARATELY BECAUSE THEIR DISPOSITIONS
+# ARE OPPOSITE. Merged, they read as one large expected-noise number and the half
+# that is real loss hides inside the half that is fine. STRANDED is the one that
+# has to reach zero.
+echo "conservation: v2 status buckets -- DOUBLED $c_doubled (superseded originals, content reached canon), STRANDED $c_stranded (THE ONLY COPY, reachable from nothing)"
 # ALTERED is printed EXPLICITLY, including when it is zero, because against the
 # real migrator the healthy reading is `conserved 0`. `sections()` trims every
 # body, so nothing survives byte-identical and everything content-preserving lands

@@ -110,14 +110,26 @@ RECORDS="$SEC/records.tsv"
 # left blank. A census of a live worktree is legitimate and useful; a census of a
 # live worktree that reads like a census of a pinned corpus is not.
 #
-# Read as `./CAPTURE` and reported as `$PWD`: the `cd "$ROOT"` above already
-# happened, so a RELATIVE `$ROOT` no longer resolves from here. That is the same
-# defect class in one line -- a path whose referent moved while the identifier
-# stayed the same.
-if [ -f CAPTURE ]; then
+# Reported as `$PWD`: the `cd "$ROOT"` above already happened, so a RELATIVE
+# `$ROOT` no longer resolves from here. That is the same defect class in one line
+# -- a path whose referent moved while the identifier stayed the same.
+#
+# THE MARKER IS A SIBLING OF THE TREE, NOT A FILE IN IT (`estate_corpus.sh`). It
+# moved because a capture that carries its own marker holds one file its pinned
+# revision does not, so two captures of one revision differ under a whole-tree
+# comparator and the migrator is handed an artefact of the instrument. This tool
+# was one of the two silent excluders: it read `./CAPTURE` for identity and never
+# emitted a FILE row for it, so it published 1077 files against a directory of
+# 1078 and nothing compared those two numbers. An in-tree CAPTURE now REFUSES,
+# because a stale-shape capture silently downgraded to `unpinned` is a census
+# that stops naming its subject for a reason nobody is told.
+MARKER="$PWD.CAPTURE"
+[ -f "$MARKER" ] || [ ! -f CAPTURE ] ||
+  die "this estate carries an IN-TREE CAPTURE file -- it predates the move to a sibling marker and holds one file more than its revision; re-capture it with estate_corpus.sh"
+if [ -f "$MARKER" ]; then
   printf 'CORPUS\t%s\t%s\n' \
-    "$(awk '$1 == "member:" { print $2 }' CAPTURE)" \
-    "$(awk '$1 == "revision:" { print $2 }' CAPTURE)"
+    "$(awk '$1 == "member:" { print $2 }' "$MARKER")" \
+    "$(awk '$1 == "revision:" { print $2 }' "$MARKER")"
 else
   printf 'CORPUS\tunpinned\t%s\n' "$PWD"
 fi
