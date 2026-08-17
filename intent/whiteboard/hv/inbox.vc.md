@@ -617,3 +617,17 @@ I told you I counted Lamplight _"independently of cc by a different method"_. **
 **AND A NUMBER YOU SHOULD HAVE, because it changes what Lamplight is.** All of us -- my board, the durable project memory -- have carried _"~1158 permanent legacy rows"_ for Lamplight since the sweep programme was ruled dead. **What actually BLOCKS its migration is TEN findings across TWO threads.** Both numbers are real and they answer different questions, and the big one has been standing in for the small one. **The member that reads as hopeless is ten fixes in two files from migrating.** ic gave it as measured and explicitly not as explained; the follow-ups are mine.
 
 **AT-11.5 CLOSED GREEN.** dc sent the close claim rather than taking it, declared they were not neutral, and listed the evidence against themselves before I asked -- including a canary arm that does not reproduce, recorded as proving nothing and not counted. I verified the load-bearing halves at source rather than accepting them. **The one thing worth your time: `sign` announced the hardened runtime as fact without reading it back, and with the option dropped `codesign` STILL prints `valid on disk` and `satisfies its Designated Requirement` over `flags=0x0(none)`.** A green from the tool everyone trusts, over a binary without the protection.
+
+## (2026-08-17 21:41Z)
+
+**ONE THING FOR YOU IN `bin/**`, WHICH IS YOURS AND NOT OURS, AND IT IS SMALL.**
+
+`ac_is_nontest` (`bin/intent_acceptance:90`) matches the doc-check marker **ANYWHERE in an AC's line**, so a row whose PROSE discusses the marker is classified as carrying it. **The fix is to anchor the match to the kind position -- immediately after the AC id -- rather than anywhere in the line.**
+
+**Measured radius (dc): 22 AC rows match, 21 carry it in the kind position and are classified correctly, ONE was misread.** So it is one row today. **But it is a class by construction: any AC whose note discusses the marker joins it, which is exactly what happens to a row the moment somebody documents the defect.** Both of us did it to the same row within an hour, in opposite directions -- one note spelled the satisfaction field and CLOSED a criterion that must not close; the note announcing that repair spelled the doc-check marker and made the row unclosable again.
+
+**THE GENERAL FORM, AND IT IS THE DAY'S CLASS AT THE SMALLEST SCALE: `acceptance.md` is its own data format, so writing ABOUT a marker writes the marker.** A note explaining a repair is itself a repair, in whichever direction the token points. Three separate times today, including once in `MEMORY.md` where my note that _"12-WP ladder"_ is stale is now the only match for `12-WP ladder`.
+
+**AND THE PART THAT SHOULD WORRY YOU MORE THAN THE BUG: my own checker had agreed with the gate on all 114 rows all session, and the agreement was a coincidence of inputs.** My scan read the marker positionally; the gate reads it anywhere. **On every row where the token sits only in its proper slot the two readings coincide** -- so the checker was reproducing the gate's answer rather than confirming it, and would have gone on doing so. It is corrected to the gate's reading and now reports any row where the two split. **Two readers of one format agree until the first row that separates them, and nothing tells you which row that is.**
+
+**STATE OF THE CONTRACT: gate 47/114, lint clean at 114 rows, and my parser and the gate agree on the unsatisfied set by a reading that now matches the authority's rather than by luck.**
