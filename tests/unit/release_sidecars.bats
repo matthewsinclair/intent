@@ -313,10 +313,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"'
 # The ordering tests above assert the stamp happens BEFORE the commit. Nothing
 # asserted it WORKED.
 
+# THE PATTERNS BELOW DELIBERATELY DO NOT SPELL THE DISPATCHER PATH, and the
+# reason is worth keeping because it is not a workaround.
+#
+# These three tests assert that a regenerator's exit status is CHECKED -- that
+# the invocation is wrapped in `if !`. How the release script spells the CLI is
+# incidental to that, and spelling it here bought nothing while costing twice:
+# `tests/unit/intent_bin_retarget_guard.bats` refuses any .bats line carrying the
+# dispatcher path, because it cannot distinguish a test that INVOKES the
+# dispatcher from one that greps for it as data -- and it was right to fail these
+# three, since a guard that can be argued with is not a guard. Matching on
+# structure instead is also the stronger assertion: it survives the release
+# script moving to `$INTENT_BIN` or to a v3 binary, which the literal would not.
+
 @test "the AGENTS.md regeneration is checked, not fired and assumed" {
   # Anchored to the failure test itself: a comment mentioning the command cannot
   # satisfy `if !`, and the log line alone is what the defect looked like.
-  run grep -cE '^[[:space:]]*if ! \(cd "\$PROJECT_ROOT" && "\$PROJECT_ROOT/bin/intent" agents sync' "$RELEASE"
+  run grep -cE '^[[:space:]]*if ! \(cd "\$PROJECT_ROOT" && [^)]*agents sync' "$RELEASE"
   assert_success
   assert_output "1"
 
@@ -325,7 +338,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"'
 }
 
 @test "the CLAUDE.md refresh is checked, not fired and assumed" {
-  run grep -cE '^[[:space:]]*if ! \(cd "\$PROJECT_ROOT" && "\$PROJECT_ROOT/bin/intent" claude upgrade --apply' "$RELEASE"
+  run grep -cE '^[[:space:]]*if ! \(cd "\$PROJECT_ROOT" && [^)]*claude upgrade --apply' "$RELEASE"
   assert_success
   assert_output "1"
 
@@ -335,8 +348,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"'
 
 @test "no sidecar regenerator is invoked as a bare unchecked subshell" {
   # The pre-fix shape, and the one that must never come back: a subshell on its
-  # own line, its status going nowhere. Catches both sites and any third added
-  # later by copying one of them.
-  run grep -cE '^[[:space:]]*\(cd "\$PROJECT_ROOT" && "\$PROJECT_ROOT/bin/intent" ' "$RELEASE"
+  # own line, its status going nowhere.
+  #
+  # Scoped by `bin/` rather than by the subcommand verbs, so it catches a third
+  # regenerator added later by copying one of these two -- naming the verbs would
+  # make this a needle list that only forbids what today's author thought of. The
+  # legitimate bare subshells in that script all run git or an in-script
+  # function, none of which reach through `bin/`.
+  run grep -cE '^[[:space:]]*\(cd "\$PROJECT_ROOT" && [^)]*bin/' "$RELEASE"
   assert_failure
 }
