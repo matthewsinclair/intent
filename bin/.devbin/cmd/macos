@@ -394,11 +394,34 @@ artefact_source_commit() {
 # at the tag must return NOTHING, because a blocker function that fires on
 # everything reads exactly like a blocker function that works.
 #
-# `intentd` HAS NO `build.rs` YET, SO THIS REFUSES A PUBLISH TODAY. That is
-# deliberate and it is the fail-closed direction: the forty-two-hour artefact is
-# precisely the one that cannot answer for itself, and a check that passed it
-# while it stayed silent would be the vacuous green this row is about. It is a
-# stated blocker, not an oversight.
+# A RELEASE SHIPS THREE ARTEFACTS AND THIS EXAMINES TWO, WHICH IS A JUSTIFIED
+# ASYMMETRY AND NOT A GAP -- WRITTEN DOWN BECAUSE THE NEXT READER WILL SPOT THE
+# COUNT AND EITHER ADD A BOGUS CHECK OR ASSUME A HOLE. The two binaries are
+# COPIED here out of a build directory, so the only thing that knows what built
+# them is the artefact, and nothing in the checkout can answer for them. The
+# support tarball is ARCHIVED from the working tree by `tar -C "$ROOT"`, so its
+# provenance question is genuinely a question about the CHECKOUT -- "was the tree
+# clean when this was rolled up" -- and `provenance_blockers` answers it with a
+# NARROW `git status --porcelain -- $SUPPORT_PATHS`, which is the sharper of its
+# two arms precisely because dirt there is not a risk of shipping uncommitted
+# bytes, it IS shipping them. DIFFERENT ARTEFACTS, DIFFERENT SUBJECTS, DIFFERENT
+# CORRECT CHECKS. Adding a marker to a tarball of shell would be a check whose
+# subject does not exist; leaving the tarball unexamined would be the compound
+# artefact problem this function was built to fix. It is neither.
+#
+# BOTH BINARIES CARRY THE EMBED (`4c839def`), INCLUDING `intentd`. An earlier
+# draft of this comment said `intentd` had none and that a refused publish was
+# the deliberate fail-closed state; that was true for about an hour and is
+# corrected here rather than deleted, because the reasoning still governs the
+# next binary anyone adds to $BINARIES: a check that PASSED an artefact which
+# stayed silent would be the vacuous green this whole row is about, so a new
+# binary without the embed must refuse rather than be exempted.
+#
+# What still fails closed, correctly, is a STALE artefact: there is no
+# `rerun-if-changed` on `.git/HEAD` (that trigger means "a peer committed" in a
+# five-session clone), so a HEAD move outside a package leaves its embed naming
+# an earlier commit -- measured -- and that is exactly the disagreement this
+# refuses on. A `cargo build` at the tag is the remedy, and it is one command.
 artefact_commit_blockers() {
   local dir="$1" triple="$2" want="$3" b bin embedded
   for b in $BINARIES; do
