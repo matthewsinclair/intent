@@ -108,8 +108,14 @@ set -uo pipefail
 die() { echo "same-end-state: $*" >&2; exit 2; }
 
 # ---------------------------------------------------------------------------
-# THE STORE IS COMPARED BY CONTENT, NOT BY BYTES, AND THE SUBJECT IS NOT NARROWED
+# THE STORE IS REPORTED AS NOT JUDGED BY THIS TOOL, AND THE SUBJECT IS NOT NARROWED
 # (dc + ic measured independently, vc ruled the subject, 2026-08-18).
+#
+# A HEADING THAT OUTLIVES THE CODE BENEATH IT IS THE DEFECT THIS FILE KEEPS
+# WRITING ABOUT. This block first said COMPARED BY CONTENT and meant it; when the
+# mechanism was withdrawn the heading was the last thing to change, which is
+# exactly the shape of `f48ed6e9` -- a claim in the part that travels, corrected
+# only in the part that does not.
 #
 # ic's gate run against a commit came back exit 1 on ONE differing path,
 # `intent/.cache/intent.db`, after a real SIGKILL at 293 of 295 writes with all
@@ -157,35 +163,85 @@ die() { echo "same-end-state: $*" >&2; exit 2; }
 # The count is printed on every store comparison, because a normalisation nobody
 # can see is an exclusion wearing a comparison's clothes.
 # ---------------------------------------------------------------------------
-STAMP_RE='[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z'
-STORE_NORMALISED=0
-STORE_COMPARED=0
+STORE_UNJUDGED=0
+STORE_PATHS=""
 
 # DERIVED FROM THE FILE'S OWN BYTES, never from its path. A check keyed to
 # `.cache/intent.db` stops discriminating the day the store moves or gains a
-# sibling, and it would go red for a reason nobody reads as timestamps.
+# WAL sibling, and it would go red for a reason nobody reads as timestamps.
 is_sqlite() { [ "$(head -c 15 "$1" 2>/dev/null)" = "SQLite format 3" ]; }
 
-store_content_hash() {
-  sqlite3 "$1" .dump 2>/dev/null | sed -E "s/$STAMP_RE/<WRITE-TIME>/g" | shasum -a 256 | awk '{print $1}'
+# THE SIDECARS COUNT TOO, AND THE CANARY IS WHAT FOUND THAT. The first version
+# tested only the main database and a real migrated estate then failed on
+# `intent.db-shm` -- because a `-shm` does NOT begin with `SQLite format 3`, so
+# a magic-byte test alone misses it. Measured: BOTH clean runs of the pinned
+# canary leave `intent.db-wal` AND `intent.db-shm` behind, so this is the real
+# estate's shape and not a fixture artefact. D21 said so in advance -- "the DB
+# lives at intent/.cache/intent.db (+ WAL/SHM siblings at runtime)" -- and ic
+# named the exact failure when they warned that a check keyed to the store's
+# path stops discriminating the day it "gains a WAL sibling". I derived the main
+# file correctly and left its siblings keyed to nothing at all.
+#
+# DERIVED FROM SQLite's OWN NAMING CONTRACT, not from this project's paths: a
+# file is a store sidecar when stripping the `-wal`/`-shm` suffix SQLite itself
+# defines yields a path that passes the magic-byte test. Nothing here mentions
+# `.cache` or `intent.db`, so it survives the store moving.
+is_store_artefact() {
+  local p="$1" base
+  is_sqlite "$p" && return 0
+  case "$p" in
+    *-wal|*-shm)
+      base="${p%-wal}"; base="${base%-shm}"
+      is_sqlite "$base" && return 0
+      ;;
+  esac
+  return 1
 }
 
-# Returns 0 when two SQLite files hold the same content modulo write time.
-# REFUSES TO ANSWER rather than guessing when sqlite3 is absent or a dump is
-# empty -- an empty dump hashes equal to another empty dump, which is the
-# empty-tree trap in a new costume.
-store_same_content() {
-  command -v sqlite3 >/dev/null 2>&1 || return 1
-  local hx hy nx
-  hx="$(store_content_hash "$1")"
-  hy="$(store_content_hash "$2")"
-  [ -n "$hx" ] && [ -n "$hy" ] || return 1
-  nx="$(sqlite3 "$1" .dump 2>/dev/null | grep -cE "$STAMP_RE" || true)"
-  [ "$(sqlite3 "$1" .dump 2>/dev/null | wc -l | tr -d ' ')" -gt 0 ] || return 1
-  STORE_COMPARED=$((STORE_COMPARED + 1))
-  STORE_NORMALISED=$((STORE_NORMALISED + nx))
-  [ "$hx" = "$hy" ]
-}
+# ---------------------------------------------------------------------------
+# WHY THIS TOOL DOES NOT SHELL OUT TO `sqlite3`, AND WHY THE FIRST VERSION THAT
+# DID WAS WITHDRAWN (ic's objection, cc's canon, and a measurement of my own).
+#
+# The withdrawn version compared a differing store through `sqlite3 <db> .dump`
+# with machine write-stamps normalised, and it worked: on the pinned canary it
+# turned the one differing path into a match, canaried three ways.
+#
+# IT ALSO MADE THE VERDICT DEPEND ON WHICHEVER `sqlite3` THE MACHINE CARRIES,
+# AND IT FAILED SILENTLY WHEN THERE WAS NONE -- MEASURED, NOT ARGUED. Same three
+# trees, `sqlite3` removed from PATH: exit 1 instead of exit 0, with nothing in
+# the output saying the content comparison had not run. TWO MACHINES, ONE
+# SUBJECT, OPPOSITE VERDICTS, IN SILENCE. That is the exact class every other
+# clause in this file exists to refuse, shipped in the clause meant to fix one.
+#
+# `design.md:290` closes it from the product side and the reasoning binds an
+# instrument even though the guard does not: **`.dump` is a feature of the
+# `sqlite3` SHELL, not of the SQLite C API**, and Intent bundles SQLite
+# (`rusqlite` with `bundled`) *specifically so it does not depend on whatever
+# `sqlite3` binary a user's machine happens to carry*. A rostered gate that
+# reintroduces that dependency spends a decision canon paid for.
+#
+# AND THE NORMALISATION HAD A BLIND SPOT WORTH LOSING (ic). It could not
+# distinguish "this field correctly holds a machine stamp" from "this field
+# should have held an AUTHORED value and was overwritten by a machine stamp":
+# both runs make the identical substitution, both normalise to the same token,
+# the dumps agree and the estate's history is gone into the audit trail. Not
+# hypothetical -- `migration.md` restores an `st.new` carrying the authored date
+# and `Envelope.ts` is millisecond-precision by contract.
+#
+# SO THE STORE IS REPORTED AS NOT JUDGED BY THIS TOOL. That is NOT an exclusion
+# and NOT a silent pass: the path is named, the count is printed, and the verdict
+# line carries its own scope. vc ruled the subject is not narrowed (reversed D01:
+# the DB is the SSOT and the files are re-creatable), and reporting an artefact
+# as unjudged keeps it in the subject while admitting which instrument answers
+# for it. The store is compared by a typed test inside `intentsvcs`, which may
+# use rusqlite, reads rows rather than a regex over text, and lives in the crate
+# that owns it -- ic's, with cc.
+#
+# THE SCOPE IS IN THE VERDICT LINE AND NOT IN A FOOTNOTE, because a caveat in the
+# body does not travel. `f48ed6e9` is this estate's own example: a commit whose
+# subject claimed a gate measured passing and whose body correctly said otherwise,
+# and the subject is the half a reader a week later has.
+# ---------------------------------------------------------------------------
 
 INPUT="${1:-}"; A="${2:-}"; B="${3:-}"
 [ -n "$INPUT" ] && [ -n "$A" ] && [ -n "$B" ] ||
@@ -309,10 +365,12 @@ tree_delta() {
       1) ;;
       *) die "cannot read $f in both trees -- refusing rather than counting an unreadable file as unchanged" ;;
     esac
-    # The bytes differ. For a container format that is not yet an answer -- see
-    # the header block. A store holding the same content modulo write time is
-    # not a difference in end state.
-    if is_sqlite "$X/$f" && is_sqlite "$Y/$f" && store_same_content "$X/$f" "$Y/$f"; then
+    # The bytes differ. For a container format that is not an answer -- see the
+    # header block. Named, counted, and neither judged nor dropped.
+    if is_store_artefact "$X/$f" && is_store_artefact "$Y/$f"; then
+      STORE_UNJUDGED=$((STORE_UNJUDGED + 1))
+      STORE_PATHS="${STORE_PATHS}    ${f#./}
+"
       continue
     fi
     CMP_DIFFERING=$((CMP_DIFFERING + 1))
@@ -377,20 +435,27 @@ n_only_b="$CMP_ONLY_B"
 report="$CMP_REPORT"
 diff_paths="$(printf '%s\n' "$CMP_PATHS" | grep . | sort || true)"
 
-# THE NORMALISATION IS REPORTED ON EVERY RUN THAT USED IT, PASS OR FAIL. A
-# normalisation nobody can see is an exclusion wearing a comparison's clothes,
-# and this one is the difference between a verdict and a verdict-shaped
-# arrangement. The count is also the positive control: 0 stores compared on an
-# estate that has one means the content comparison never ran and the bytes
-# decided it.
-if [ "$STORE_COMPARED" -gt 0 ]; then
-  echo "  $STORE_COMPARED store(s) compared by CONTENT (sqlite3 .dump), $STORE_NORMALISED machine write-stamp(s) normalised"
-  echo "  -- authored dates are untouched; a planted content change is still seen (canaried)"
+# THE UNJUDGED STORES ARE NAMED ON EVERY RUN THAT FOUND ONE, PASS OR FAIL, AND
+# THE VERDICT LINE CARRIES THE SCOPE. An artefact quietly left out of a
+# comparison is an exclusion whatever the header calls it; one that is listed,
+# counted and named in the verdict is a stated limit of the instrument.
+if [ "$STORE_UNJUDGED" -gt 0 ]; then
+  echo "  $STORE_UNJUDGED store(s) differ and are NOT JUDGED BY THIS TOOL:"
+  printf '%s' "$STORE_PATHS"
+  echo "  A SQLite file is a container: byte-identity is the wrong test, and the"
+  echo "  schema stamps each row with WHEN it was written, so two runs of a correct"
+  echo "  migrator can never match byte for byte. Comparing content needs the"
+  echo "  sqlite3 SHELL, which would make this verdict depend on the machine."
+  echo "  The store is compared by a typed test inside intentsvcs."
   echo
 fi
 
 if [ "$differing" -eq 0 ] && [ "$n_only_a" -eq 0 ] && [ "$n_only_b" -eq 0 ]; then
-  echo "IDENTICAL -- the re-run reached the same end state as the clean run across all $na files."
+  if [ "$STORE_UNJUDGED" -gt 0 ]; then
+    echo "IDENTICAL IN FILES -- $((na - STORE_UNJUDGED)) file(s) match; $STORE_UNJUDGED store(s) NOT judged here (see above)."
+  else
+    echo "IDENTICAL -- the re-run reached the same end state as the clean run across all $na files."
+  fi
   exit 0
 fi
 
