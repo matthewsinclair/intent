@@ -165,10 +165,10 @@ copy_vendored() {
 # --- the manifest ------------------------------------------------------------
 #
 # `<sha256>  <path>` lines in the conventional shasum spelling, under a `#`
-# header carrying the two facts the file itself cannot supply: which devbin
-# wrote it, and where that devbin was. Both are read back -- the version by
-# doctor, the source by upgrade, which is what lets `devbin upgrade` be typed
-# with no arguments from inside the installed project.
+# header carrying the facts the file itself cannot supply: which devbin wrote
+# it, where that devbin was, and WHICH COMMIT OF IT. The first two are read back
+# -- the version by doctor, the source by upgrade, which is what lets `devbin
+# upgrade` be typed with no arguments from inside the installed project.
 
 manifest_path() { printf '%s\n' "$1/$DEVBIN_MANIFEST_REL"; }
 
@@ -194,6 +194,36 @@ manifest_field() {
 
 manifest_version() { manifest_field "$1" devbin_version; }
 manifest_source() { manifest_field "$1" source; }
+manifest_source_commit() { manifest_field "$1" source_commit; }
+
+# _source_commit <srcroot> -- WHICH devbin these bytes came from, as a line.
+#
+# `devbin_version` is a semver that moves once a release, so it cannot separate
+# two installs from the same release, and a consumer comparing its vendored tree
+# to this manifest is otherwise doing a purely internal check: a re-vendor
+# rewrites the files AND this header together, so it is indistinguishable from a
+# local patch with the manifest regenerated. Measured, not imagined -- a consumer
+# reported its tree "stock, 27 of 27" over an uncommitted re-vendor eleven
+# minutes old, and every check involved was correct. Nothing was asking what the
+# tree corresponds to OUTSIDE itself.
+#
+# DIRTY IS RECORDED RATHER THAN HIDDEN, because a sha read from a dirty source
+# describes bytes no commit has, and the bare sha would be a confident false
+# statement. Not a checkout at all says so in words: an ABSENT field is what an
+# older devbin wrote, and absent must never be readable as clean.
+_source_commit() {
+  local root="$1" sha
+  git -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
+    { printf 'not a git checkout -- these bytes name no commit\n'; return 0; }
+  sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)" || sha=""
+  [ -n "$sha" ] ||
+    { printf 'a checkout with no HEAD -- these bytes name no commit\n'; return 0; }
+  if [ -n "$(git -C "$root" status --porcelain 2>/dev/null)" ]; then
+    printf '%s +dirty -- THESE BYTES MATCH NO COMMIT\n' "$sha"
+  else
+    printf '%s\n' "$sha"
+  fi
+}
 
 # manifest_entries <root> -- the `<sha><TAB><relpath>` body, comments stripped.
 #
@@ -245,6 +275,7 @@ manifest_write() {
     printf '# Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.\n'
     printf '# devbin_version: %s\n' "$version"
     printf '# source: %s\n' "$srcroot"
+    printf '# source_commit: %s\n' "$(_source_commit "$srcroot")"
     # Retabbed through the same filter manifest_check uses, so this file has ONE
     # parser for its own line format rather than a second one written inline --
     # and a path containing a space survives both.

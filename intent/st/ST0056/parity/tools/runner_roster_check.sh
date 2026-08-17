@@ -85,6 +85,7 @@ provenance_check.sh        gated   431ms, three greps over the stamped artefacts
 ratified_in_check.sh       gated   178ms, static read of the dispatch table
 residue_class_check.sh     gated   42ms and a single line, the cheapest here
 runner_roster_check.sh     gated   782ms of which 263ms is asking the runner through the dispatcher, which is the price of not re-grepping its source; it is a *_check.sh and rosters itself
+self_provenance_check.sh   gated   504ms over 27 blobs read from the INDEX; whole-set because the failure is staging one of two facts, so a path trigger would have to fire on the path that is not there
 stale_at_check.sh          gated   70ms and a single line, reports presence only
 view_skew_check.sh         gated   3077ms, the slowest gated one, path-triggered
 drift_check.sh             manual  compares a STAMPED inventory against live canon, so gating it would block a dispatch-table edit until somebody re-runs a 27-family measurement sweep -- a measurement, not a fix

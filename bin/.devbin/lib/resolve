@@ -490,6 +490,18 @@ run_all() {
   if [ -z "$failed" ] && [ -z "$disagreed" ]; then
     printf '\n%sall %s options passed%s\n' "${green:-}" "$cmd" "${reset:-}"
   fi
+  # THE SUMMARY IS WHERE THE INCIDENT HAPPENED, and covering only the per-gate
+  # line would have missed it. A human read `FAILED: rust` in THIS block and had
+  # no way to know the tree had moved under it. Every per-gate `verdict:` now
+  # carries a referent, but this file already says out loud why that is not
+  # enough (see the ledger comment above): across a ten-option `all` those lines
+  # have scrolled away by the time the summary prints. A remedy sited only where
+  # the reader is not looking is built, correct, and absent from the exact screen
+  # it was filed from -- which reads as a close.
+  #
+  # ONE line, AFTER every verdict block, so it covers red, green and the refusal
+  # without being spelled three times.
+  print_run_referent
   if [ -n "$ledger" ]; then
     rm -f "$ledger"
     unset DEVBIN_SEAL_LEDGER

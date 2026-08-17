@@ -740,6 +740,58 @@ warn_if_tee_failed() {
   return 0
 }
 
+# print_run_referent -- echo the opaque string the PROJECT handed us. Verbatim.
+#
+# THE ONE HOME for the referent line, called from `print_run_verdict` here and
+# from `run_all`'s summary in lib/resolve. Two sites, one spelling.
+#
+# WHY IT EXISTS. A leg's verdict is written as a claim about the project --
+# `FAILED: rust` -- but what it measured is one tree at one instant, and the run
+# pair records neither which tree that was nor whether it still exists. On a
+# quiescent checkout the distinction is empty. On a repository several people
+# edit at once it is not: the interval between the compiler reading a file and a
+# human reading the verdict routinely contains edits, and **a verdict that has
+# outlived its tree is indistinguishable, by inspection, from a verdict about
+# landed code.** The incident: a red leg escalated as a regression, about a tree
+# that had ceased to exist 41 seconds after the leg finished.
+#
+# IT PRINTS ON GREEN TOO, AND THAT IS THE HALF THAT EARNS IT. A red gets
+# investigated and self-corrects. A green certifying a tree nobody has is
+# believed and never revisited -- so the green path is where an unreferenced
+# verdict does its damage, and it is the path a reporter is always tempted to
+# keep quiet. Unadorned, no colour, no verdict word: a project that composes a
+# warning into its string gets a line that stands out by being UNUSUAL rather
+# than by shouting, which only works if the ordinary case is present and calm.
+#
+# ---------------------------------------------------------------------------
+# DEVBIN NEVER PARSES THIS STRING AND MUST NEVER LEARN TO. THAT IS THE DESIGN,
+# NOT A STYLE NOTE.
+# ---------------------------------------------------------------------------
+#
+# The project composes the value; devbin prints it and knows nothing about it.
+# `git rev-parse HEAD` plus a dirty count is one project's answer, and it is not
+# devbin's answer, because **devbin is not a git tool and must not become one.**
+# A generic gate runner has no business knowing what a commit is: consumers that
+# are not checkouts at all still get gates, and the moment this file can tell a
+# sha from a hostname, the layer boundary has been moved by implementation
+# rather than by a decision -- and nothing in a diff would say so.
+#
+# So the whole implementation is a presence test and a printf. There is
+# deliberately no validation, no trimming, no length cap and no format check:
+# every one of those would require knowing what the string is FOR. A project
+# that wants its referent checked checks it before exporting -- which is where
+# the knowledge lives, and where the consumer that raised this already does it.
+#
+# THAT LEAVES ONE THING THE CONSUMER OWNS AND SHOULD BE TOLD: freshness. devbin
+# prints whatever is in the variable at the moment it prints. Composing it at
+# run START describes what was measured; composing it at report time describes
+# the tree the verdict was formed against. Both are defensible, they are not the
+# same claim, and devbin cannot choose between them without parsing.
+print_run_referent() {
+  [ -n "${DEVBIN_RUN_REFERENT:-}" ] || return 0
+  printf 'measured: %s\n' "$DEVBIN_RUN_REFERENT"
+}
+
 # print_run_verdict <rc> <keep_log> <log> [errors] -- the end-of-run pointer
 # block, and the ONE home for it.
 #
@@ -765,6 +817,13 @@ print_run_verdict() {
   local rc="$1" keep="$2" log="$3" errors="${4:-}" why
   if [ "$keep" = 1 ] && [ -n "$errors" ]; then
     printf 'verdict: %s\n' "$(abs_path "$errors")"
+    # DELIBERATELY INSIDE THIS BLOCK, so the two lines appear together or not at
+    # all. A referent with no verdict beside it is noise; a verdict with no
+    # referent is the defect this exists to close. Tying them means a reader who
+    # sees a verdict always sees what it was about, and there is no third state
+    # to reason about later. The residue is honest and small: at keep=0 neither
+    # line prints, because at keep=0 there is no pointer block at all.
+    print_run_referent
   fi
   if [ "$rc" -ne 0 ] && [ "$keep" = 1 ]; then
     printf '%s-> full log: %s (exit %s)%s\n' "${red:-}" "$log" "$rc" "${reset:-}"

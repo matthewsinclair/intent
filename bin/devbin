@@ -90,6 +90,25 @@ cfg_load "$DEVBIN_DIR/config.yaml" || exit 1
 # empty: empty is indistinguishable from a project that never declared one, so a
 # broken composer would silently restore the unreferenced verdict this closes.
 # Fail-open on the run -- a referent must never be able to stop a gate.
+#
+# YES, THIS IS AN `eval`, AND IT IS A DECISION RATHER THAN AN OVERSIGHT. devbin
+# executes a string the project wrote, which is the class the consumer who raised
+# this had already eliminated from its own config reader. What makes it sound is
+# the SOURCE and not the string: config.yaml is project-owned committed source,
+# exactly as trusted as `cmd/`, and anyone who can write this key can already
+# write `cmd/anything` and name it from a `run:` line. There is no privilege here
+# to escalate to.
+#
+# `eval` rather than `run:`'s word-split because a referent is a VALUE COMPOSER
+# and a pipeline is its natural spelling. `run:` refuses eval for a reason that
+# does not reach this line: a gate command line needing real quoting needs a
+# handler, so the gate stays legible. A one-shot substitution has no verdict to
+# keep legible.
+#
+# THE LINE THIS MUST NEVER CROSS IS THE ONE ABOVE: eval-ing the COMMAND is not
+# parsing the ANSWER. The moment devbin can tell a sha from a hostname, the layer
+# ruling has been reversed by implementation rather than by decision, and nothing
+# in a diff would say so.
 _devbin_referent_cmd="$(cfg_get project.referent "")"
 if [ -n "$_devbin_referent_cmd" ]; then
   DEVBIN_RUN_REFERENT="$(cd "$PROJECT_ROOT" && eval "$_devbin_referent_cmd" 2>/dev/null)" ||
