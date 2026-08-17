@@ -78,6 +78,14 @@ pub enum Verdict {
   /// The section IS carried and the renderer's own copy stands down for it.
   /// Canon is unchanged either way; what changes is the view.
   Deferred,
+  /// The bytes are kept and MOVED to the field the grammar puts them in.
+  ///
+  /// **The only verdict whose record is the sole evidence.** A drop can be
+  /// corroborated by observing canon is empty and a deferral by observing it is
+  /// not; a re-filing between two fields of one row is invisible to a census
+  /// that hashes the whole row, so nothing can confirm or refute it from the
+  /// outside.
+  Refiled,
 }
 
 impl Verdict {
@@ -85,6 +93,7 @@ impl Verdict {
     match self {
       Self::Dropped => "dropped",
       Self::Deferred => "deferred",
+      Self::Refiled => "refiled",
     }
   }
 }
@@ -750,7 +759,19 @@ fn acceptance(
       }
     } else if row.starts_with("AT-") {
       match acceptance_test(row) {
-        Some(t) => tests.push(t),
+        Some((t, qualifiers)) => {
+          for (ac, qualifier) in &qualifiers {
+            out.dispositions.push(Disposition {
+              owner: format!("{rel}:{line_no}"),
+              heading: t.id.clone(),
+              verdict: Verdict::Refiled,
+              reason: format!(
+                "`{ac} ({qualifier})` put prose inside an id in the covers clause, so the id could not resolve; the id is now {ac} and the qualifier is in the row's note, keyed to it"
+              ),
+            });
+          }
+          tests.push(t);
+        }
         None => out.record(
           closed,
           Finding::new(&rel, FindingClass::UnparseableRow, "AT row").at_line(line_no),
@@ -838,12 +859,15 @@ fn criterion(row: &str) -> Option<Criterion> {
 /// splitting the row on the separator over-splits exactly the rows carrying the
 /// most information. Searching for the three known keys leaves everything else
 /// as the note, whatever it contains.
-fn acceptance_test(row: &str) -> Option<AcceptanceTest> {
+fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)> {
   let (id, rest) = row.split_once(' ')?;
   if !id.starts_with("AT-") {
     return None;
   }
-  let covers = covers(rest)?;
+  let Covers {
+    ids: covers,
+    qualifiers,
+  } = covers(rest)?;
   if covers.is_empty() {
     return None;
   }
@@ -863,7 +887,7 @@ fn acceptance_test(row: &str) -> Option<AcceptanceTest> {
   // rather than reshaped into something that satisfies the grammar.
   let is_path = !non_test && file.contains('/') && !file.contains(':');
 
-  Some(AcceptanceTest {
+  let test = AcceptanceTest {
     id: id.to_string(),
     kind: if non_test {
       AtKind::NonTest
@@ -874,9 +898,47 @@ fn acceptance_test(row: &str) -> Option<AcceptanceTest> {
     prose: non_test.then(|| subject.trim_start_matches("(non-test)").trim().to_string()),
     covers,
     status,
-    note: note(rest),
+    // **KEYED TO THE AC IT QUALIFIES, never appended bare** (vc's ruling, and
+    // the requirement is forced by a real row rather than added defensively).
+    // `ST0009/AT-09.3` covers TWO criteria and only one carries a qualifier --
+    // `AC-09.3, AC-09.1 (render)` -- so a bare `render` in the note loses the
+    // association and lands on the wrong one half the time. The note is where
+    // this belongs: the row grammar already has a slot for unkeyed prose, and
+    // the qualifier is prose that was written into the id slot.
+    note: with_qualifiers(note(rest), &qualifiers),
     legacy: (!non_test && !is_path && !file.is_empty())
       .then(|| crate::model::Legacy { raw: file.clone() }),
+  };
+  // Returned rather than recorded here: this function has no `Scan`, and
+  // re-deriving them at the call site would be a second copy of the predicate
+  // -- the shape that makes a record describe something the code never did.
+  Some((test, qualifiers))
+}
+
+/// Fold the covers-clause qualifiers into the row's note, each keyed to the
+/// criterion it describes.
+///
+/// **Re-filing rather than dropping**, because the qualifier is the author
+/// saying WHY a coverage link holds and nobody writes that twice. It is a
+/// structural move -- the grammar's prose slot is the note -- and it is
+/// declared through the disposition mechanism, which on this one is not
+/// corroborating evidence but the ONLY evidence: vc's census declares `test`
+/// rows UNCOMPARED (it hashes the whole authored row; canon holds
+/// `.tests[].note`; no common bytes), so a note that gains text produces no
+/// ALTERED and no ADDED. **A conservation check cannot see this in either
+/// direction.**
+fn with_qualifiers(note: Option<String>, qualifiers: &[(String, String)]) -> Option<String> {
+  if qualifiers.is_empty() {
+    return note;
+  }
+  let folded = qualifiers
+    .iter()
+    .map(|(id, q)| format!("{id}: {q}"))
+    .collect::<Vec<_>>()
+    .join(" -- ");
+  Some(match note {
+    Some(existing) if !existing.trim().is_empty() => format!("{existing} -- {folded}"),
+    _ => folded,
   })
 }
 
@@ -889,18 +951,51 @@ fn acceptance_test(row: &str) -> Option<AcceptanceTest> {
 /// migrator confidently blaming an estate for its own grammar. Measured by
 /// running it, not by reading the spec: the spec says "covers" and the reader
 /// supplies the colon from habit.
-fn covers(row: &str) -> Option<Vec<String>> {
+/// A parsed covers clause: the ids, and any prose that was written inside one.
+///
+/// A named type rather than a tuple because the two halves are read in
+/// different places -- `ids` goes to the model and `qualifiers` to the note and
+/// the disposition record -- and positional access at three call sites is how
+/// they get swapped.
+struct Covers {
+  ids: Vec<String>,
+  /// `(criterion id, the prose that qualified it)`, keyed so a row covering
+  /// several criteria can say which one each qualifier belongs to.
+  qualifiers: Vec<(String, String)>,
+}
+
+fn covers(row: &str) -> Option<Covers> {
   const MARKER: &str = " -- covers ";
   let start = row.find(MARKER)? + MARKER.len();
   let rest = &row[start..];
   let end = rest.find(" -- ").unwrap_or(rest.len());
-  Some(
-    rest[..end]
-      .split(',')
-      .map(|s| s.trim().to_string())
-      .filter(|s| !s.is_empty())
-      .collect(),
-  )
+  let mut ids = Vec::new();
+  let mut qualifiers = Vec::new();
+  for span in rest[..end].split(',') {
+    let span = span.trim();
+    if span.is_empty() {
+      continue;
+    }
+    // **A PARENTHETICAL QUALIFIER IS NOT PART OF THE ID, AND READING IT AS ONE
+    // MANUFACTURES A BROKEN REFERENCE AGAINST A CLEAN ESTATE.** Three rows
+    // fleet-wide carry `AC-04.1 (render contract)`; the whole span was compared
+    // against the criterion ids, matched nothing, and the migrator reported a
+    // dangling reference to a criterion that is sitting in the same file.
+    //
+    // Zero instances on this estate, which is why it was vc's to find and why
+    // the fixture below is constructed rather than captured.
+    match span.split_once(" (") {
+      Some((id, qualifier)) => {
+        let qualifier = qualifier.trim_end().trim_end_matches(')').trim();
+        ids.push(id.trim().to_string());
+        if !qualifier.is_empty() {
+          qualifiers.push((id.trim().to_string(), qualifier.to_string()));
+        }
+      }
+      None => ids.push(span.to_string()),
+    }
+  }
+  Some(Covers { ids, qualifiers })
 }
 
 /// Everything after the status value, verbatim: the row's note.

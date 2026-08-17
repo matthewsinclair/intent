@@ -441,3 +441,156 @@ fn a_carried_reference_on_a_live_thread_is_reported() {
     report.findings
   );
 }
+
+// ---------------------------------------------------------------------------
+// The covers clause: a parenthetical qualifier is prose, not part of the id
+// ---------------------------------------------------------------------------
+
+/// **A qualifier read as part of the id MANUFACTURES A BROKEN REFERENCE AGAINST
+/// A CLEAN ESTATE**, which is the worst kind of finding: it sends an operator
+/// to repair a link that is not broken, in a file where the criterion it names
+/// is sitting a few lines away.
+///
+/// Three rows fleet-wide, all on Baize, **and ZERO on this estate** -- so the
+/// fixture is constructed rather than captured, and the mixed row below is
+/// vc's, measured, not invented to be thorough:
+///
+/// ```text
+/// AT-04.2  covers AC-04.1 (render contract)
+/// AT-06.2  covers AC-06.2 (revoke + last-superadmin guard)
+/// AT-09.3  covers AC-09.3, AC-09.1 (render)          <-- MIXED
+/// ```
+///
+/// **The mixed row is what forces the note to be KEYED.** `AT-09.3` covers two
+/// criteria and only one carries a qualifier, so a bare `render` appended to
+/// the note loses the association and lands on the wrong criterion half the
+/// time -- a coin flip, silently, in a migration.
+fn contract(fixture: &Fixture, rows: &str) {
+  fixture.write_file(
+    "intent/.config/config.json",
+    "{\"intent_version\":\"2.19.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
+  );
+  fixture.write_file(
+    "intent/st/ST0001/info.md",
+    "---\nstatus: Completed\ncreated: 20260816\n---\n\n# ST0001: A thread\n\n## Objective\n\nShip it.\n",
+  );
+  fixture.write_file(
+    "intent/st/ST0001/acceptance.md",
+    &format!("# ST0001 -- Acceptance\n\n## Criteria\n\n- AC-09.1 the first -- status: satisfied\n- AC-09.3 the third -- status: satisfied\n\n## Tests\n\n{rows}\n"),
+  );
+}
+
+#[test]
+fn a_parenthetical_qualifier_leaves_the_id_resolvable() {
+  let fixture = Fixture::new();
+  contract(
+    &fixture,
+    "- AT-09.1 `tests/a.rs` -- covers AC-09.1 (render contract) -- status: green",
+  );
+  let scan = scan(&fixture);
+  let test = &scan.threads[0].tests[0];
+
+  assert_eq!(
+    test.covers,
+    vec!["AC-09.1".to_string()],
+    "the id is the id; the parenthetical is not part of it"
+  );
+  assert!(
+    !scan
+      .residue
+      .iter()
+      .chain(scan.carried.iter())
+      .any(|f| f.class == FindingClass::BrokenReference),
+    "and no broken reference is manufactured against a criterion that is \
+     sitting in the same file: {:?}",
+    scan.carried
+  );
+  assert_eq!(
+    test.note.as_deref(),
+    Some("AC-09.1: render contract"),
+    "the qualifier is KEPT, keyed to the criterion it qualifies"
+  );
+}
+
+/// **vc's mixed row, and the reason the note is keyed rather than appended.**
+#[test]
+fn a_qualifier_on_one_of_two_covered_criteria_names_which_one() {
+  let fixture = Fixture::new();
+  contract(
+    &fixture,
+    "- AT-09.3 `tests/b.rs` -- covers AC-09.3, AC-09.1 (render) -- status: green",
+  );
+  let scan = scan(&fixture);
+  let test = &scan.threads[0].tests[0];
+
+  assert_eq!(
+    test.covers,
+    vec!["AC-09.3".to_string(), "AC-09.1".to_string()],
+    "both ids resolve and the order the author wrote them survives"
+  );
+  assert_eq!(
+    test.note.as_deref(),
+    Some("AC-09.1: render"),
+    "keyed to AC-09.1 and NOT to AC-09.3 -- a bare `render` here is the wrong \
+     criterion on a coin flip"
+  );
+}
+
+/// The re-filing is declared, and on this one the record is the ONLY evidence:
+/// a census that hashes the whole authored row cannot see text moving between
+/// two fields of it, in either direction.
+#[test]
+fn the_refiling_is_declared_because_nothing_else_can_observe_it() {
+  let fixture = Fixture::new();
+  contract(
+    &fixture,
+    "- AT-09.1 `tests/a.rs` -- covers AC-09.1 (render contract) -- status: green",
+  );
+  let scan = scan(&fixture);
+
+  let refiled: Vec<&intentsvcs::legacy::Disposition> = scan
+    .dispositions
+    .iter()
+    .filter(|d| d.verdict == intentsvcs::legacy::Verdict::Refiled)
+    .collect();
+  assert_eq!(refiled.len(), 1, "{:?}", scan.dispositions);
+  assert_eq!(refiled[0].heading, "AT-09.1", "the row it happened on");
+  assert!(
+    refiled[0].reason.contains("AC-09.1") && refiled[0].reason.contains("render contract"),
+    "the record carries the authored text, so the move is checkable by \
+     someone who was not there: {:?}",
+    refiled[0]
+  );
+}
+
+/// **THE CONTROL.** An ordinary covers clause must be untouched and must record
+/// nothing -- otherwise the rule above is indistinguishable from one that
+/// rewrites every row it sees.
+#[test]
+fn an_ordinary_covers_clause_is_untouched_and_records_nothing() {
+  let fixture = Fixture::new();
+  contract(
+    &fixture,
+    "- AT-09.1 `tests/a.rs` -- covers AC-09.1, AC-09.3 -- status: green -- the authored note",
+  );
+  let scan = scan(&fixture);
+  let test = &scan.threads[0].tests[0];
+
+  assert_eq!(
+    test.covers,
+    vec!["AC-09.1".to_string(), "AC-09.3".to_string()]
+  );
+  assert_eq!(
+    test.note.as_deref(),
+    Some("the authored note"),
+    "an existing note is not touched when there is nothing to fold into it"
+  );
+  assert!(
+    !scan
+      .dispositions
+      .iter()
+      .any(|d| d.verdict == intentsvcs::legacy::Verdict::Refiled),
+    "nothing was re-filed, so nothing is declared: {:?}",
+    scan.dispositions
+  );
+}
