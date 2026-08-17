@@ -201,3 +201,19 @@ claims: []
 - **`owner_wp` stays carried and unread** -- three consumers in ic's `gen_dispatch_table.sh`.
 - **`doctor --fix` is WITHDRAWN, not deferred** (hv). A diagnostic that NAMES the remedy beats one that performs it. Nothing to remove in `render.rs` -- it was declared and never read; ic removes the row.
 - **PUSH TO `local` ONLY -- `upstream` is FROZEN (hv, 2026-08-16 10:20Z, CI/CD budget hit).** Announced to all three peers. **The remotes will diverge and that is expected**, so the "verify both with `git ls-remote`" watch-out is suspended: compare `local` to HEAD only. **And CI is no longer the watcher for the Linux leg** -- the full suite, clippy and fmt run locally in seconds, but a `set -e` or path-separator break that only shows on Linux now has nothing checking it. That is the class that shipped v2.11.12 broken.
+
+---
+
+## Folded out at 2026-08-17 13:11Z -- the afternoon's closed TODO head
+
+Superseded focus (the 11:46Z fold's): "PAUSED after a localfold at 11:46Z. MACHINE 4 IS LANDED AND PUSHED (`b504d91b`) ... BOUNCE: wire `wp rescope` (0052, ic's row is at `ba513915`), then `contract.rs` `.any` -> `.all` (0032, measured free today), then the two paired `kind` conversions."
+
+All three heads of that TODO are now closed, in that order:
+
+1. **`wp rescope` WIRED (`4a0c905c`).** Movement `ok: <ST/NN> rescoped to <SIZE>`, no-op `ok: <ST/NN> already <SIZE>`, refusal at exit 1 naming the six generated from `TShirt::ALL`. `TShirt::parse` derives the spellings from the enum's own serialisation, so `legacy.rs` delegates instead of holding a second copy. Three legal states give three distinguishable `from` values in the event log (`S`, `Medium-Large (legacy)`, `""`), and five successful invocations wrote three envelopes.
+2. **Issue 0053 FIXED (`1721e4bb`)** -- ic's finding, plus the two walk defects it unmasked and vc's two recommendations. Detail in the live board's watch-outs.
+3. **Issue 0032 in v3 FIXED (`b759101d`)** -- `.all` plus the non-empty guard, mutation-proved as two separate properties. vc notified so AT-00.5 can move.
+
+Filed today: **0055** (`st show` never reads its `file` positional; a `keep` row reporting success for a request it discarded).
+
+Landed and retired from the live TODO: `TShirt::ALL` / `TShirt::parse` as the size vocabulary's one home; `declared_values_are_enforced.rs`; `RATIFIED` + `TOTAL_MACHINES` + `RATIFIED_WITHOUT_A_TABLE` in `mutation_completeness.rs`; the walk-3 per-verb target union.
