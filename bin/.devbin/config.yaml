@@ -35,6 +35,30 @@ project:
 # The devbin this project expects. Enforced by: devbin doctor
 devbin_version: "^0.1.0"
 
+# EVERY `run:` LINE BELOW IS WRAPPED IN `bin/.devbin/cmd/measured --exec`, WHICH
+# PRINTS ONE LINE AND THEN BECOMES THE COMMAND. That line records the commit and
+# the clean/dirty state AT RUN START, so the run log names the tree its verdict
+# describes. Without it a run over a dirty worktree and a run over a clean
+# checkout produce artefacts identical in form and incomparable in meaning --
+# measured here on 2026-08-17, when three sessions went into establishing that
+# two red legs were not regressions, and four GREEN legs from the same run
+# certified a tree nobody had.
+#
+# A WRAPPER, AND NOT SOMETHING PRETTIER, BECAUSE `run:` IS WORD-SPLIT AND
+# DELIBERATELY NOT `eval` (lib/resolve). `;` and `&&` arrive as literal argv, so
+# a two-command line is not expressible here; devbin's own comment states the
+# rule -- a command line that needs real quoting needs a handler. `--exec` is
+# that handler, kept to one job.
+#
+# IT LIVES IN THE PROJECT, NOT IN DEVBIN. Intent knows it is a git checkout;
+# devbin does not, and must not have to -- `bin/.devbin/lib/` contains zero git
+# invocations and that is what lets the sealed-gate subsystem run anywhere.
+#
+# ADDING A GATE? Wrap it too. The stamp reaches only `run:` lines, so the
+# builtins (`check critic`, `check toolchain`, the docs gates, `fmt md`) record
+# nothing -- about half this surface. `int measured` prints NONE RECORDED for
+# those rather than omitting them, because an unstamped run must never read like
+# a run that started clean.
 commands:
   test:
     options:
@@ -46,7 +70,7 @@ commands:
         # BATS_LIB_PATH, which every suite needs -- raw bats would find the
         # files and then fail them.
         summary: the BATS suite via the project runner (exports INTENT_HOME + BATS_LIB_PATH)
-        run: tests/run_tests.sh
+        run: bin/.devbin/cmd/measured --exec tests/run_tests.sh
 
       # THE CARGO WORKSPACE IS NOT AT THE PROJECT ROOT, AND THE CATALOGUE
       # ASSUMES IT IS. Every catalogue-derived cargo line -- `test rust`,
@@ -67,14 +91,14 @@ commands:
       # so keep the flags identical and the drift stays visible.
       rust:
         summary: the workspace suite (native/rust -- the catalogue assumes a root manifest)
-        run: cargo test --workspace --manifest-path native/rust/Cargo.toml
+        run: bin/.devbin/cmd/measured --exec cargo test --workspace --manifest-path native/rust/Cargo.toml
 
   check:
     options:
       clippy:
         # `--manifest-path` before the `--`; everything after it is rustc's.
         summary: clippy over the whole workspace, warnings as errors
-        run: cargo clippy --workspace --all-targets --manifest-path native/rust/Cargo.toml -- -D warnings
+        run: bin/.devbin/cmd/measured --exec cargo clippy --workspace --all-targets --manifest-path native/rust/Cargo.toml -- -D warnings
 
       # DECLARED BECAUSE `fmt rust` IS DECLARED, and devbin will not let it be
       # otherwise: builtin_check_format REFUSES a language whose `fmt` arm the
@@ -89,7 +113,7 @@ commands:
       # declared language set for exactly this reason.
       format:
         summary: rustfmt over the workspace, non-mutating
-        run: cargo fmt --all --manifest-path native/rust/Cargo.toml --check
+        run: bin/.devbin/cmd/measured --exec cargo fmt --all --manifest-path native/rust/Cargo.toml --check
 
       # OFF BECAUSE THIS PROJECT HAS NO PIN, AND `int check all` WAS RED FOREVER
       # FOR A REASON THAT COULD NEVER CHANGE. The gate checks that a
@@ -128,7 +152,7 @@ commands:
       # this covers the same 49 files as CI's invocation, set-for-set.
       rust:
         summary: rustfmt over the workspace, in place
-        run: cargo fmt --all --manifest-path native/rust/Cargo.toml
+        run: bin/.devbin/cmd/measured --exec cargo fmt --all --manifest-path native/rust/Cargo.toml
 
   build:
     group: Build

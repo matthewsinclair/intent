@@ -55,6 +55,105 @@ ROOT="${PROJECT_ROOT:?run me through bin/int}"
 # shellcheck source=lib/helpers
 . "${DEVBIN_LIB:?}/helpers"
 
+# ---------------------------------------------------------------------------
+# THE REFERENT LINE -- one home, three readers.
+#
+# `--stamp` prints it, `--exec` prints it and then becomes the gate command, and
+# report_run below reads it back out of a run log. All three go through
+# referent_line so the string written and the string parsed cannot drift.
+#
+# IT GOES INTO THE RUN LOG, WHICH IS WHAT THE EXTRACTION GRAMMARS PARSE.
+# run_gate does `"$@" 2>&1 | tee "$log"` and writes no header of its own, so this
+# becomes line 1 of the log and every grammar and counter sees it. Its shape is
+# therefore not cosmetic -- each of these constraints exists because a devbin
+# grammar would otherwise read this line as a failure, and a header that quietly
+# changes what a grammar extracts is a seal that no longer records the failure:
+#
+#   - NO BRACKETS.        credo opens a capture block on `[A-Z] ` ANYWHERE in a
+#                         line, not at the start.
+#   - NO COMMIT SUBJECT.  xcodebuild opens on `: error: ` ANYWHERE, and a real
+#                         subject ("fix: error: handling") would forge a Swift
+#                         diagnostic into the seal.
+#   - NO TIMESTAMP.       generic matches `<word>:<digits>: error`; a date moves
+#                         this line toward that shape for no gain, since the run
+#                         log's FILENAME already carries the start time.
+#   - NO LEADING SPACE.   credo's section rule matches an indented capitalised
+#                         line.
+#
+# Every field below is therefore machine-generated and closed: a short hex sha, a
+# decimal count, and fixed words. Nothing free-text is ever interpolated, and
+# assert_referent_safe enforces exactly that rather than trusting this comment.
+# ---------------------------------------------------------------------------
+REFERENT_TAG='devbin-referent:'
+
+# tree_state -- `<sha> <clean|dirty:N>`. THE ONE definition of "which tree", so
+# the line a run stamps and the line this report prints cannot disagree about
+# whether the tree was clean. Both callers below go through it.
+tree_state() {
+  local sha dirt n
+  if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    printf 'none not-a-git-checkout\n'
+    return 0
+  fi
+  sha="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || printf 'none')"
+  dirt="$(git -C "$ROOT" status --porcelain 2>/dev/null || printf '')"
+  if [ -z "$dirt" ]; then
+    printf '%s clean\n' "$sha"
+    return 0
+  fi
+  n="$(printf '%s\n' "$dirt" | grep -c '^' || true)"
+  printf '%s dirty:%s\n' "$sha" "$n"
+}
+
+referent_line() {
+  local st
+  st="$(tree_state)"
+  printf '%s commit=%s tree=%s\n' "$REFERENT_TAG" "${st%% *}" "${st##* }"
+}
+
+# assert_referent_safe <line> -- REFUSE to emit a line no grammar can misread.
+#
+# The whole value of this header is that it cannot be mistaken for a diagnostic.
+# A future edit that interpolates a branch name, a subject or a path would break
+# that silently -- the gate would still go green and the seal would quietly gain
+# a line. So the closed character set is checked at the moment of writing, on
+# every run, rather than asserted once in a test and trusted forever.
+assert_referent_safe() {
+  case "$1" in
+    "$REFERENT_TAG"*) ;;
+    *) die "referent line does not start with $REFERENT_TAG -- refusing to write it: $1" ;;
+  esac
+  case "$1" in
+    *'['* | *']'*) die "referent line contains a bracket, which credo reads as an issue tag: $1" ;;
+    *': error: '* | *': warning: '*)
+      die "referent line contains a diagnostic marker, which xcodebuild reads as a failure: $1"
+      ;;
+  esac
+  printf '%s\n' "$1" | grep -Eq '^devbin-referent: commit=[0-9a-f]+|^devbin-referent: commit=none' ||
+    die "referent line's commit field is not a hex sha: $1"
+}
+
+# --stamp / --exec are handled BEFORE anything else this script does. `--exec`
+# sits in front of every gated run, so it must cost a `git status` and nothing
+# more -- the scope walk below is a full tree traversal and has no business
+# running before someone else's test suite.
+case "${1:-}" in
+  --stamp)
+    line="$(referent_line)"
+    assert_referent_safe "$line"
+    printf '%s\n' "$line"
+    exit 0
+    ;;
+  --exec)
+    shift
+    [ $# -gt 0 ] || die "--exec needs a command to run"
+    line="$(referent_line)"
+    assert_referent_safe "$line"
+    printf '%s\n' "$line"
+    exec "$@"
+    ;;
+esac
+
 init_colors auto
 
 # Directories whose churn is not evidence about a gate. Named here and PRINTED
@@ -136,25 +235,65 @@ seal_state() {
 # moved_since <when> -- source files modified after <when>, newest-relevant only.
 # ---------------------------------------------------------------------------
 prune_expr() {
-  local first=1 d out=()
+  # `terms`, not `out`: report_run below uses `out` for a run-log PATH, and a
+  # local array here sharing that name left shellcheck reporting the string
+  # assignment as an array misuse (SC2178/SC2128). Both are locals so nothing
+  # was broken, which is the problem -- a reader gets the same collision the
+  # analyser did, with no warning attached.
+  local first=1 d terms=()
   for d in $PRUNE_NAMES; do
-    [ "$first" = 1 ] || out+=(-o)
-    out+=(-name "$d")
+    [ "$first" = 1 ] || terms+=(-o)
+    terms+=(-name "$d")
     first=0
   done
   for d in $PRUNE_PATHS; do
-    [ "$first" = 1 ] || out+=(-o)
-    out+=(-path "$ROOT/$d")
+    [ "$first" = 1 ] || terms+=(-o)
+    terms+=(-path "$ROOT/$d")
     first=0
   done
-  printf '%s\n' "${out[@]}"
+  printf '%s\n' "${terms[@]}"
 }
 
 moved_since() {
   local when="$1" expr=()
   while IFS= read -r tok; do expr+=("$tok"); done < <(prune_expr)
+  # `-newermt` reads a bare timestamp as LOCAL, and open_run_log names runs with
+  # `date +%Y%m%d-%H%M`, also local. The two agree by construction; measured
+  # rather than assumed, because an hour of disagreement here would UNDER-report
+  # movement, which is the silent direction.
   find "$ROOT" \( "${expr[@]}" \) -prune -o -type f -newermt "$when" -print 2>/dev/null |
     sed "s|^$ROOT/||"
+}
+
+# content_differs_from <ref> -- every path whose CONTENT is not what <ref> holds,
+# tracked or untracked, repo-relative and sorted.
+#
+# WHY THIS EXISTS (vc, 2026-08-17, and it is this tool's own defect class).
+# `moved` was purely an mtime test, and an mtime answers "was this file written"
+# -- NOT "is this tree different". A suite that backs a file up and restores it
+# rewrites identical bytes and moves the mtime: tests/unit/rule_index.bats does
+# exactly that to the LIVE canon index. On a real run, three of eleven files
+# reported as moved were byte-identical to HEAD. So the output said "changed
+# after the run started" and was read as "changed by someone other than the run"
+# -- different subjects, same line. An instrument reporting movement that is not
+# evidence is precisely what this command was built to stop, reintroduced inside
+# it, and it would cry wolf on every run containing a backup/restore test.
+#
+# "IDENTICAL" IS ONLY SAYABLE OF A FILE THAT IS IN <ref> AT ALL. The first
+# version derived the other bucket from `ls-files --others --exclude-standard`,
+# which by design omits IGNORED files -- so an ignored file that moved fell
+# through to "byte-identical", a claim nothing had checked and nothing could.
+# Membership of <ref>'s tree is the test that actually supports the word.
+content_differs_from() {
+  local ref="$1"
+  {
+    git -C "$ROOT" diff --name-only "$ref" 2>/dev/null || true
+    # Everything NOT in the reference tree: untracked, ignored, or newly added.
+    # None of these can be identical to a commit that does not contain them.
+    comm -23 \
+      <(git -C "$ROOT" ls-files --others --cached 2>/dev/null | sort -u) \
+      <(git -C "$ROOT" ls-tree -r --name-only "$ref" 2>/dev/null | sort -u)
+  } | sort -u
 }
 
 # in_scope_total -- how many files the scope covers at all.
@@ -173,24 +312,29 @@ in_scope_total() {
 # The current referent.
 # ---------------------------------------------------------------------------
 print_tree_now() {
-  local sha subject dirt n
+  local st sha state subject dirt
   printf '%sTREE NOW%s\n' "${bold:-}" "${reset:-}"
-  if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  st="$(tree_state)"
+  sha="${st%% *}"
+  state="${st##* }"
+  if [ "$state" = "not-a-git-checkout" ]; then
     printf '  %snot a git checkout -- nothing here can name a commit.%s\n\n' "${dim:-}" "${reset:-}"
     return 0
   fi
-  sha="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || printf '(none)')"
   subject="$(git -C "$ROOT" log -1 --format=%s 2>/dev/null || printf '')"
   printf '  commit   %s  %s%s%s\n' "$sha" "${dim:-}" "$subject" "${reset:-}"
 
-  dirt="$(git -C "$ROOT" status --porcelain 2>/dev/null || printf '')"
-  if [ -z "$dirt" ]; then
+  if [ "$state" = clean ]; then
     printf '  tree     %sclean -- a verdict taken now describes %s%s\n\n' "${green:-}" "$sha" "${reset:-}"
     return 0
   fi
-  n="$(printf '%s\n' "$dirt" | grep -c '^' || true)"
   printf '  tree     %s%s file(s) dirty -- A VERDICT TAKEN NOW DESCRIBES NO COMMIT%s\n' \
-    "${red:-}" "$n" "${reset:-}"
+    "${red:-}" "${state#dirty:}" "${reset:-}"
+  # The count above comes from tree_state, which is also what `--exec` stamps
+  # into a run log; the listing below is a second read, for display. If the tree
+  # changes between them the list may not match the count -- the verdict is the
+  # one that must never disagree with a stamp, and it does not.
+  dirt="$(git -C "$ROOT" status --porcelain 2>/dev/null || printf '')"
   # Read the index column positionally. `awk '{print $1}'` collapses the leading
   # space, so a worktree-only ` M` reads as staged -- measured here, it inflated
   # a count ninefold.
@@ -203,8 +347,73 @@ print_tree_now() {
 # ---------------------------------------------------------------------------
 # report_run <out-file>
 # ---------------------------------------------------------------------------
+# run_referent_of <out-file> -- the referent this run stamped, or empty.
+#
+# LINE 1 ONLY. `--exec` prints the stamp and then execs the gate command, so
+# there is no mechanism by which a real stamp lands anywhere else -- and any
+# window wider than the mechanism is a window that can LIE. Searching further
+# would let a run whose own OUTPUT contains the tag report a tree it never ran
+# against, and this project's tests of this very feature print such lines.
+#
+# This was `head -3` for exactly as long as it took a test to fire: the fixture's
+# log is one line, the planted line landed on line 2, and the report cheerfully
+# named a commit from the log body. Defensive slack, in a reader whose whole job
+# is to say WHICH TREE, is not defensive. If the stamp ever stops being line 1
+# this must go quiet (NONE RECORDED) rather than start guessing.
+run_referent_of() {
+  head -1 "$1" 2>/dev/null | grep -m1 "^$REFERENT_TAG " || true
+}
+
+# referent_commit_of <referent-line> -- the commit it names, or empty.
+#
+# Empty for an absent referent AND for a `commit=none` one, because both mean the
+# same thing to a caller: there is no commit here to compare against. A caller
+# that got the literal string `none` would hand it to git and get a confusing
+# error instead of the fallback it wanted.
+referent_commit_of() {
+  local c
+  [ -n "$1" ] || return 0
+  c="${1#*commit=}"
+  c="${c%% *}"
+  [ "$c" = "none" ] && return 0
+  printf '%s\n' "$c"
+}
+
+# print_run_referent <referent-line>
+#
+# ABSENT IS NOT CLEAN, and this is the same four-states-not-two lesson as the
+# seal. Only the five gates declared as `run:` lines in config.yaml carry the
+# stamp; `check critic`, the docs gates and `fmt md` are builtins with no `run:`
+# line to wrap, so their runs record nothing. Printing nothing for those would
+# let an unstamped run read exactly like a run that started clean -- which is the
+# defect this whole command exists to close, reintroduced one level up.
+print_run_referent() {
+  local ref="$1" commit tree
+  if [ -z "$ref" ]; then
+    printf '    referent  %sNONE RECORDED -- this run does not name a tree (not a declared run: gate)%s\n' \
+      "${yellow:-}" "${reset:-}"
+    return 0
+  fi
+  commit="${ref#*commit=}"
+  commit="${commit%% *}"
+  tree="${ref##*tree=}"
+  case "$tree" in
+    clean)
+      printf '    referent  %sstarted CLEAN at %s%s -- so this verdict describes that commit plus any movement below\n' \
+        "${green:-}" "$commit" "${reset:-}"
+      ;;
+    dirty:*)
+      printf '    referent  %sstarted DIRTY at %s (%s uncommitted) -- THIS VERDICT NEVER DESCRIBED A COMMIT%s\n' \
+        "${red:-}" "$commit" "${tree#dirty:}" "${reset:-}"
+      ;;
+    *)
+      printf '    referent  %s%s%s\n' "${dim:-}" "$ref" "${reset:-}"
+      ;;
+  esac
+}
+
 report_run() {
-  local out="$1" base gate suffix errors when state moved n
+  local out="$1" base gate suffix errors when state moved n ref
   base="$(basename "$out")"
   gate="$(basename "$(dirname "$out")")"
   suffix="${base#*.}"
@@ -212,6 +421,7 @@ report_run() {
   errors="${out%.out}.errors"
   when="$(run_start_of "$base")"
   state="$(seal_state "$errors")"
+  ref="$(run_referent_of "$out")"
 
   local colour="${dim:-}"
   case "$state" in
@@ -222,6 +432,7 @@ report_run() {
 
   printf '  %s%s/%s%s\n' "${bold:-}" "$gate" "$suffix" "${reset:-}"
   printf '    seal      %s%s%s  %s%s%s\n' "$colour" "$state" "${reset:-}" "${dim:-}" "$errors" "${reset:-}"
+  print_run_referent "$ref"
   if [ -z "$when" ]; then
     printf '    started   %s(unparseable name -- no start time, so no movement test)%s\n' "${dim:-}" "${reset:-}"
     return 0
@@ -235,12 +446,52 @@ report_run() {
     return 0
   fi
   n="$(printf '%s\n' "$moved" | grep -c '^' || true)"
-  printf '    moved     %s%s of %s in-scope file(s) changed AFTER this run started%s\n' \
+  printf '    moved     %s%s of %s in-scope file(s) have a newer mtime than this run%s\n' \
     "${yellow:-}" "$n" "$SCOPE_TOTAL" "${reset:-}"
-  printf '%s\n' "$moved" | head -10 | while IFS= read -r f; do
-    printf '                %s%s%s\n' "${dim:-}" "$f" "${reset:-}"
-  done
-  [ "$n" -le 10 ] || printf '                %s... and %s more%s\n' "${dim:-}" "$((n - 10))" "${reset:-}"
+
+  # SPLIT BY CONTENT, because an mtime alone cannot tell a real change from a
+  # test that restored a file over itself. The comparison is against the run's
+  # OWN referent when it recorded one -- that answers "has the tree changed since
+  # this run started" -- and falls back to HEAD, which answers a near-enough
+  # question and says which one it answered.
+  local against source differ touched dn tn
+  against="$(referent_commit_of "$ref")"
+  if [ -n "$against" ]; then
+    source="the referent this run recorded"
+  else
+    against="HEAD"
+    source="this run recorded no referent, so HEAD is the nearest question available"
+  fi
+  differ="$(comm -12 <(printf '%s\n' "$moved" | sort -u) <(content_differs_from "$against"))"
+  touched="$(comm -23 <(printf '%s\n' "$moved" | sort -u) <(content_differs_from "$against"))"
+  dn="$(printf '%s' "$differ" | grep -c '^' || true)"
+  tn="$(printf '%s' "$touched" | grep -c '^' || true)"
+
+  # THE REFERENCE IS NAMED UNCONDITIONALLY, even when nothing differs. A test
+  # caught this printing only alongside the differ bucket, which left a run whose
+  # movement was entirely byte-identical saying "9 are BYTE-IDENTICAL" without
+  # ever stating identical TO WHAT -- a measurement with an unstated subject,
+  # which is the whole defect this command exists to close.
+  printf '      vs      %scompared against %s -- %s%s\n' "${dim:-}" "$against" "$source" "${reset:-}"
+
+  if [ "$dn" -gt 0 ]; then
+    printf '      differ  %s%s differ in CONTENT from %s%s\n' \
+      "${red:-}" "$dn" "$against" "${reset:-}"
+    printf '%s\n' "$differ" | head -10 | while IFS= read -r f; do
+      printf '                %s%s%s\n' "${dim:-}" "$f" "${reset:-}"
+    done
+    [ "$dn" -le 10 ] || printf '                %s... and %s more%s\n' "${dim:-}" "$((dn - 10))" "${reset:-}"
+  fi
+  if [ "$tn" -gt 0 ]; then
+    printf '      touched %s%s are BYTE-IDENTICAL -- a newer mtime and nothing else%s\n' \
+      "${dim:-}" "$tn" "${reset:-}"
+    printf '              %sa suite that backs a file up and restores it moves the mtime;%s\n' "${dim:-}" "${reset:-}"
+    printf '              %sthat is not evidence about what this run measured.%s\n' "${dim:-}" "${reset:-}"
+    printf '%s\n' "$touched" | head -5 | while IFS= read -r f; do
+      printf '                %s%s%s\n' "${dim:-}" "$f" "${reset:-}"
+    done
+    [ "$tn" -le 5 ] || printf '                %s... and %s more%s\n' "${dim:-}" "$((tn - 5))" "${reset:-}"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -300,5 +551,7 @@ printf '  pruned    %sby name at any depth: %s%s\n' "${dim:-}" "$PRUNE_NAMES" "$
 printf '            %sby exact path:        %s%s\n' "${dim:-}" "$PRUNE_PATHS" "${reset:-}"
 printf '  %s"moved" IS A MOVEMENT TEST, NOT A WAS-IT-CLEAN-AT-START TEST.%s\n' "${yellow:-}" "${reset:-}"
 printf '  %sA run that BEGAN on a dirty tree and was never touched again reports no movement.%s\n' "${dim:-}" "${reset:-}"
-printf '  %sOnly a referent recorded AT run start could say otherwise, and nothing records one yet.%s\n' "${dim:-}" "${reset:-}"
+printf '  %sOnly the referent line can say otherwise, and ONLY the gates declared as run: lines%s\n' "${dim:-}" "${reset:-}"
+printf '  %sin config.yaml carry one. A gate reading NONE RECORDED is a builtin or a handler --%s\n' "${dim:-}" "${reset:-}"
+printf '  %shalf this surface -- and for those, movement is still all there is.%s\n' "${dim:-}" "${reset:-}"
 printf '\n'

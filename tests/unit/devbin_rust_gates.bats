@@ -31,8 +31,24 @@ CONFIG="${ROOT}/bin/.devbin/config.yaml"
 WORKFLOW="${ROOT}/.github/workflows/rust.yml"
 
 # The cargo command lines devbin will actually run, one per line.
+# THE WRAPPER IS NOT PART OF THE COMMAND LINE UNDER TEST. Every `run:` line is
+# prefixed with `bin/.devbin/cmd/measured --exec`, which stamps the run's
+# referent and then becomes the command; these tests are about the cargo
+# invocation that follows it. Stripping the prefix here keeps that subject
+# intact -- and this extractor going blind is not a silent failure, because the
+# `found -ge 3` floor below refuses to pass on zero lines. It fired on exactly
+# that when the wrapper first landed.
+DEVBIN_RUN_WRAPPER="bin/.devbin/cmd/measured --exec "
+
 devbin_cargo_lines() {
-  sed -n 's/^ *run: \(cargo .*\)$/\1/p' "$CONFIG"
+  sed -n 's/^ *run: \(.*\)$/\1/p' "$CONFIG" |
+    sed "s|^${DEVBIN_RUN_WRAPPER}||" |
+    grep '^cargo ' || true
+}
+
+# Every `run:` line, wrapper prefix intact, for the pin below.
+devbin_run_lines() {
+  sed -n 's/^ *run: \(.*\)$/\1/p' "$CONFIG"
 }
 
 # The cargo command lines CI runs. `rust.yml` is the only workflow that stands
@@ -163,4 +179,32 @@ normalise() {
   local langs
   langs="$(sed -n '/^  languages:/,/^[^ ]/p' "$CONFIG" | sed -n 's/^ *- \(.*\)$/\1/p' | sort | tr '\n' ' ')"
   [ "$langs" = "rust shell " ]
+}
+
+@test "EVERY gated run: line carries the referent wrapper" {
+  # THE INVARIANT THE WRAPPER INTRODUCES, and it fails silently without a pin:
+  # a `run:` line added or edited without the prefix runs perfectly, goes green,
+  # and seals a verdict that names no tree. That is the whole defect the wrapper
+  # exists to close, reachable by forgetting one path in a config file.
+  #
+  # `int measured` prints NONE RECORDED for such a run rather than omitting it,
+  # so the loss is visible -- but visible at read time, to whoever thinks to
+  # look. This is the check that does not rely on someone looking.
+  local line found=0
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    found=$((found + 1))
+    if [[ "$line" != "${DEVBIN_RUN_WRAPPER}"* ]]; then
+      echo "this gate seals a verdict that names no tree -- it lacks the referent wrapper:" >&2
+      echo "  run: $line" >&2
+      echo "  fix: run: ${DEVBIN_RUN_WRAPPER}$line" >&2
+      return 1
+    fi
+  done < <(devbin_run_lines)
+  # Zero `run:` lines would pass the loop vacuously, which is the same false
+  # green this file was written about.
+  [ "$found" -ge 5 ] || {
+    echo "expected at least 5 declared run: lines, found $found" >&2
+    return 1
+  }
 }
