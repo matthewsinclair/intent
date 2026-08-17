@@ -50,6 +50,25 @@ Output-equality across implementations cannot catch v3 faithfully reproducing a 
 
 **But the 60 are the finding, not the 2.** `wp show` sits among them with two output assertions -- title and objective -- and neither touches the status line that diverged. **A proxy this coarse over-reports by construction, so 60 is a floor and not an answer: it says these rows assert SOMETHING, and nothing at all about whether they assert the bytes their row describes.** That question cannot be answered by grep, which means **the contract's certification currently rests on 60 unrecorded human judgements, and the only one anybody has checked was wrong.** Bounding that is worth more than any further mechanical sweep of the same kind.
 
+### AND THE `observed` COLUMN ITSELF IS WRONG AT 4 OF 8 CHECKED -- ONE OF THEM WOULD HAVE CERTIFIED A LIVE DEFECT AS PARITY
+
+**ic, 2026-08-17 (`b71c0c24`), going to make the 12 literal rows machine-checked and measuring v2 first because the field is only worth having if it is right.** This supersedes the coverage question above in priority, and it is the more dangerous half.
+
+| row            | the register CLAIMED v2 prints | v2 MEASURED                               |
+| -------------- | ------------------------------ | ----------------------------------------- |
+| `ac satisfy`   | `ok: <AC> satisfied`           | `ok: AC-01.1 satisfied by evidence`       |
+| `ac rescope`   | `ok: <AC> back in scope`       | `ok: AC-01.1 back in scope (unsatisfied)` |
+| `ac reinstate` | `ok: <AC> back in scope`       | `ok: AC-01.2 back in scope (unsatisfied)` |
+| **`at na`**    | **`ok: <AT> -> n-a`**          | **`ok: AT-01.2 -> n/a`**                  |
+
+Three are transcription drift, and **the dropped suffix is the informative half** -- `back in scope` alone does not say whether satisfaction survived the round trip, which is the whole question a reinstate raises.
+
+**THE FOURTH IS THE ONE, AND IT IS VERIFIED INDEPENDENTLY** (vc, at `b71c0c24^`): the row carried **`ok: <AT> -> n-a`** -- **v3's token, in the column that records v2** -- on a row whose `target.state` is `as-observed`. **So a check comparing v3's output against this column would have found agreement and certified issue 0056 as correct parity.** The contamination was in place before anybody noticed the defect. **The defect reached the register that exists to catch it, and the register would then have vouched for it.**
+
+**An uncovered row is UNKNOWN; a wrongly-recorded row is CONFIDENTLY WRONG IN v3's FAVOUR**, and the second is worse because it is active rather than passive. Every `as-observed` row delegates its correctness to that column, **nothing anywhere compares the column to v2**, and **a wrong entry does not fail -- it silently redefines the target.** At a measured 4 in 8 on the only subset anyone has checked, this is not a tail risk.
+
+**AND THE STRUCTURAL CONCLUSION IS THE DEEPEST THING ON THIS THREAD, SO IT IS RECORDED AS THE REASON RATHER THAN THE TIDINESS ARGUMENT** (ic): the case for moving these values into a field a test imports was one-requirement-one-statement. **The better case is that the field forces the value to be MEASURED, and measuring is what found these four. Prose drifts because nothing ever reads it back; a field a test imports gets executed.** Generalised across the whole day: **every defect found on this thread was in something nothing read back** -- a doc comment, a note, a prose column, a restore that produced no output, a seal nobody parsed. Execution is not a nicer form of documentation; it is the only form that can be wrong out loud.
+
 ## The keep/retire/deviate register
 
 One row per BATS test file (finer-grained per-test rows where a file mixes classes), maintained from WP-05 and complete at WP-06 close:
