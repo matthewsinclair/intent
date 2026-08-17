@@ -690,7 +690,7 @@ cmd_verify() {
 # about to replace, and keeping it would let a stale artefact survive a rebuild.
 cmd_stage() {
   require_binaries
-  local triple blockers head
+  local triple blockers head sc
   triple="$(host_triple)"
 
   # RECORDED HERE, REFUSED AT `publish` -- this file's own rule turned on itself.
@@ -699,14 +699,22 @@ cmd_stage() {
   # would make every step untestable without a pristine checkout, which is the
   # kind of guard that gets worked around rather than kept. The same bytes in a
   # tap install a build nobody can trace back to anything.
+  #
+  # THE FIELD IS NAMED FOR WHAT WRITES IT, and it was not. `provenance_blockers`
+  # asks `git status`, so this field's subject is THE CHECKOUT -- but it was
+  # called `traceable`, which is a word about the ARTEFACTS, and `publish` duly
+  # refused on it with a sentence about the artefacts that this file's own
+  # `artefact_commit_blockers` contradicts. Renamed rather than re-worded: a
+  # sentence can go wrong again, and a field named for its own subject cannot
+  # carry the other claim in the first place.
   blockers="$(provenance_blockers "$ROOT")"
   head="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || printf 'unknown')"
   {
     printf 'commit: %s\n' "$head"
     if [ -z "$blockers" ]; then
-      printf 'traceable: yes\n'
+      printf 'checkout_clean: yes\n'
     else
-      printf 'traceable: no\n'
+      printf 'checkout_clean: no\n'
       printf '%s\n' "$blockers" | sed 's/^/  /'
     fi
   } >"$PROVENANCE_FILE" || die "could not record provenance at $PROVENANCE_FILE"
@@ -714,9 +722,9 @@ cmd_stage() {
   step "provenance"
   printf '    %-34s %s\n' "commit" "$head"
   if [ -z "$blockers" ]; then
-    printf '    %-34s %s\n' "traceable" "yes -- clean checkout"
+    printf '    %-34s %s\n' "checkout" "clean"
   else
-    printf '    %-34s %s\n' "traceable" "NO -- publish will refuse this"
+    printf '    %-34s %s\n' "checkout" "DIRTY -- publish will refuse this"
     printf '%s\n' "$blockers" | sed 's/^/      /'
   fi
 
@@ -727,6 +735,37 @@ cmd_stage() {
     /usr/bin/ditto "$RELEASE_DIR/$b" "$STAGE_DIR/$b-$triple" ||
       die "could not stage $b"
     printf '    %-34s <- target/release/%s\n' "$b-$triple" "$b"
+  done
+
+  # AND NOW ASK THE BYTES THEMSELVES. Everything printed above is a claim about
+  # the CHECKOUT, and `stage` used to stop there -- so it reported on binaries it
+  # had never asked anything, which is the three-indistinguishable-states defect
+  # in this command's own output. `stage` COPIES out of target/release rather than
+  # building, and that directory is shared mutable state in a clone several
+  # sessions write to, so the bytes it just copied can predate the commit it just
+  # recorded by any amount. Measured once at forty-two hours.
+  #
+  # THIS REPORTS AND DOES NOT REFUSE, deliberately, for the reason given above:
+  # the control belongs at publication. A report also cannot be worked around,
+  # because it blocks nothing -- and it costs an operator one glance here instead
+  # of a signing and notarisation round trip before `publish` tells them.
+  #
+  # Compared against HEAD, which is exactly why this cannot BE the control: there
+  # is no tag at stage time, publishing may legitimately happen after the branch
+  # moves on, and a HEAD comparison that REFUSED would refuse every late publish.
+  # The shas are printed and the match is DERIVED from them -- a label that states
+  # the expected result is a comment, and a comment cannot notice.
+  step "what the staged bytes say they were built from"
+  for b in $BINARIES; do
+    if sc="$(artefact_source_commit "$STAGE_DIR/$b-$triple")"; then
+      if [ "$sc" = "$head" ]; then
+        printf '    %-34s %s (the commit above)\n' "$b" "$sc"
+      else
+        printf '    %-34s %s (NOT the commit above)\n' "$b" "$sc"
+      fi
+    else
+      printf '    %-34s no marker -- these bytes name no commit at all\n' "$b"
+    fi
   done
 
   # The support tree. Built HERE, with the binaries, rather than in a later step,
@@ -1171,17 +1210,32 @@ cmd_publish() {
   # Compared against the TAG's commit rather than HEAD: publishing is allowed to
   # happen after the branch has moved on, and what matters is that the artefacts
   # match the thing being published, not the thing being worked on.
-  local prov_commit prov_traceable tag_commit
+  local prov_commit prov_clean tag_commit
   [ -f "$PROVENANCE_FILE" ] ||
     die "no provenance record at $PROVENANCE_FILE -- run 'int macos stage' (or 'prepare'), which writes it. Refusing to publish bytes whose source commit was never recorded."
   prov_commit="$(sed -n 's/^commit: //p' "$PROVENANCE_FILE" | head -1)"
-  prov_traceable="$(sed -n 's/^traceable: //p' "$PROVENANCE_FILE" | head -1)"
-  [ "$prov_traceable" = "yes" ] ||
-    die "the staged artefacts cannot name their source commit. $PROVENANCE_FILE records:
+  prov_clean="$(sed -n 's/^checkout_clean: //p' "$PROVENANCE_FILE" | head -1)"
+  # EVERY REFUSAL NAMES THE SUBJECT IT MEASURED, and this one did not. It read
+  # `git status` and said "the staged artefacts cannot name their source commit"
+  # -- a sentence about the BYTES. Driven, three cases, real repositories: with
+  # ONE unrelated file dirty and both binaries built at HEAD, this refused with a
+  # claim that `artefact_commit_blockers` twenty-eight lines below contradicts,
+  # and its remedy sent the operator to rebuild binaries that were never the
+  # problem. Not an edge case either -- the wide arm trips on dirt anywhere, so in
+  # a clone several sessions write to this is the ORDINARY message.
+  #
+  # An unreachable correct answer is the other half: this gate dies before the
+  # artefact gate runs, so in that case the check that could have answered was
+  # never reached. Left in this order deliberately -- the support tarball is
+  # archived from the working tree, so tree dirt is its own harm and not merely a
+  # proxy for stale bytes. What changed is that the sentence now says so.
+  [ "$prov_clean" = "yes" ] ||
+    die "the working tree was not clean when these artefacts were staged. $PROVENANCE_FILE records:
 $(sed 's/^/       /' "$PROVENANCE_FILE")
-       Commit or stash the work, rebuild, and stage again. This is refused at
-       publish rather than at stage because a staged tree nobody ships is
-       harmless; these bytes would go into a tap."
+       Commit the work and stage again. Whether the BINARIES came from this tag
+       is a separate question with a separate check, below, read off the bytes.
+       This is refused at publish rather than at stage because a staged tree
+       nobody ships is harmless; these bytes would go into a tap."
   tag_commit="$(git -C "$ROOT" rev-list -n 1 "$tag" 2>/dev/null)"
   [ -n "$tag_commit" ] ||
     die "could not resolve $tag to a commit, having just verified the tag exists -- refusing while the repository state is this confusing."

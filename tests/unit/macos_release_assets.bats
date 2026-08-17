@@ -322,9 +322,32 @@ git_fixture() {
   assert_success
   assert_output "1"
 
-  run grep -cF '[ "$prov_traceable" = "yes" ] ||' "$MACOS"
+  # THE FIELD IS NAMED FOR ITS OWN SUBJECT, and that is what this arm asserts
+  # rather than an incidental spelling. It used to be `traceable` -- a word about
+  # the ARTEFACTS -- while the thing that writes it is `git status`. Driven on
+  # real repositories, three cases: with ONE unrelated file dirty and both
+  # binaries built at HEAD, the refusal beneath this field claimed the artefacts
+  # could not name their commit, which the artefact check further down
+  # contradicts, and its remedy sent the operator to rebuild binaries that were
+  # never the problem.
+  run grep -cF '[ "$prov_clean" = "yes" ] ||' "$MACOS"
   assert_success
   assert_output "1"
+
+  # The refusal states the subject it actually measured.
+  run grep -cF 'die "the working tree was not clean when these artefacts were staged' "$MACOS"
+  assert_success
+  assert_output "1"
+
+  # AND THE REGRESSION GUARD, which is the half that would have caught the defect
+  # rather than described it: this refusal must claim NOTHING about what the bytes
+  # can name. That is a different question with its own check, on the bytes.
+  #
+  # Matched on `die "` and not on the sentence alone, so a comment ABOUT the old
+  # wording is not mistaken for the old wording being emitted -- mention is not
+  # invocation, and this file's subject now discusses its own history.
+  run grep -cF 'die "the staged artefacts cannot name' "$MACOS"
+  assert_output "0"
 
   # Compared against the TAG's commit, never HEAD: publishing may legitimately
   # happen after the branch has moved on.

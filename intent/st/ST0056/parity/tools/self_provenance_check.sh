@@ -151,8 +151,11 @@ fi
 # out of the binary.
 #
 # WHY IT IS NEEDED, MEASURED RATHER THAN ARGUED. `int macos stage` records
-# `commit: <HEAD>` and `traceable: yes` -- where traceable means the working tree
-# is clean -- and then COPIES binaries out of `target/release` it never built.
+# `commit: <HEAD>` and a clean-checkout flag -- and then COPIES binaries out of
+# `target/release` it never built. (That flag was called `traceable` when this
+# measurement was taken, which is a word about the ARTEFACTS over a field written
+# by `git status`; it is `checkout_clean` now, and the rename is recorded here
+# because this paragraph is the evidence and evidence names what it read.)
 # With HEAD at 2026-08-17T15:11:14Z, `intent` was three hours older than the
 # commit and `intentd` FORTY-TWO hours older, forty-two hours apart from each
 # other. cc's framing is the one to keep: that is not a stale field, it is A
@@ -197,6 +200,34 @@ fi
 # unexamined while the output still read as one verdict. cc's form, and it is
 # the store-scope lesson one layer up: A CHECK THAT COVERS PART OF A COMPOUND
 # ARTEFACT REPORTS ON THE ARTEFACT.
+# embed_coverage <binary-name> -- covered | uncovered | unknown.
+#
+# Answers whether a crate producing a binary of this NAME carries a `build.rs`
+# that includes the shared embed, so the marker-absent branch can say which of
+# two causes it is looking at instead of naming one. Matched on `name = "<b>"`,
+# which catches both a `[package] name` and a `[[bin]] name` -- `intent` is
+# produced by the crate `intent-cli`, so mapping binary to crate by directory
+# name would be wrong for the very first binary this ships.
+#
+# `unknown` is a real answer and is reported as one. A function that folded "no
+# such crate" into "uncovered" would state something it had not established,
+# which is the defect this whole change is correcting.
+embed_coverage() {
+  local want="$1" ct d
+  for ct in native/rust/crates/*/Cargo.toml; do
+    [ -f "$ct" ] || continue
+    grep -q "^name *= *\"$want\"" "$ct" || continue
+    d="$(dirname "$ct")"
+    if [ -f "$d/build.rs" ] && grep -q 'source_commit.rs' "$d/build.rs"; then
+      printf 'covered'
+    else
+      printf 'uncovered'
+    fi
+    return 0
+  done
+  printf 'unknown'
+}
+
 SELF_PROV_BINS="${INTENT_SELF_PROV_BIN:-}"
 if [ -z "$SELF_PROV_BINS" ]; then
   for b in intent intentd; do
@@ -222,7 +253,27 @@ else
 
     if [ -z "$marker" ]; then
       echo "self-provenance: $BIN carries NO source-commit marker -- it cannot name the commit it was built from."
-      echo "    Rebuild it; this binary predates the embed."
+      # WHICH OF THE TWO CAUSES, DERIVED RATHER THAN ASSERTED (ic, 2026-08-17).
+      # What this branch OBSERVES is an absent marker. It used to PRINT "this
+      # binary predates the embed" -- a cause, and one of at least two: the
+      # binary is older than the embed, or the embed never covered its crate.
+      # Today the first is true, and it is true because of a fact OUTSIDE this
+      # check -- that both binary-producing crates carry a `build.rs`. The day a
+      # third binary is added without one, an unchanged check would report the
+      # wrong cause with exactly the confidence it reports the right one now.
+      #
+      # Derived from the crate that declares this binary NAME, not from a list of
+      # binaries kept here: a needle list proves the cases somebody thought of.
+      case "$(embed_coverage "$(basename "$BIN")")" in
+        covered)
+          echo "    Its crate DOES carry the embed, so these bytes predate it. Rebuild." ;;
+        uncovered)
+          echo "    Its crate carries NO build.rs including the shared embed, so nothing" \
+               "was ever going to mark this binary. The embed must cover it first." ;;
+        *)
+          echo "    No crate here declares a binary by that name, so which of the two" \
+               "causes this is cannot be established from the tree. Stated, not guessed." ;;
+      esac
     elif [ "$embedded" = "unknown" ]; then
       echo "self-provenance: $BIN says its source commit is UNKNOWN -- built where git could not answer."
     elif [ "${embedded#dirty-}" != "$embedded" ]; then
