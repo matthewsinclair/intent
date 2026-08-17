@@ -343,6 +343,15 @@ mod tests {
     .expect("thread fixture")
   }
 
+  fn wp(seq: u32) -> crate::model::WorkPackage {
+    serde_json::from_value(serde_json::json!({
+      "seq": seq,
+      "title": format!("WP-{seq:02}"),
+      "status": "not-started",
+    }))
+    .expect("wp fixture")
+  }
+
   /// **Built through serde rather than as a struct literal, deliberately.**
   /// `Issue` is gaining `reporter` (cc, 2026-08-17); a literal here would red
   /// their commit from this file, and a fixture that breaks on a field it does
@@ -552,6 +561,53 @@ mod tests {
         "a migration wrote outside intent/: {path}"
       );
     }
+  }
+
+  /// **A thread WITH work packages, because `st/<ID>/WP/<NN>/info.md` is the
+  /// other zero-padded path in this estate and the issue canon has just shown
+  /// what a padding disagreement costs.**
+  ///
+  /// Every other fixture here has no WPs, so the WP view path was reached only
+  /// by the canary run -- which counts files and never checks where they went.
+  /// `Project::wp_info_view` is the single builder for it, so there is no
+  /// second spelling to disagree with today; this pins that there is not one
+  /// tomorrow either, and it pins the padding rather than the count.
+  #[test]
+  fn a_work_package_view_lands_at_the_zero_padded_path() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let project = project(dir.path());
+
+    let mut thread = thread("ST0001");
+    thread.wps = vec![wp(1), wp(12)];
+
+    let planned = plan(
+      &project,
+      &ctx(),
+      Scan {
+        threads: vec![thread],
+        ..Default::default()
+      },
+    )
+    .expect("plan");
+
+    // canon: 1 thread + 1 event log. views: info + acceptance + 2 WP covers +
+    // the index and the todo view. The globals are the two I left out of this
+    // line first time round, and the count is what said so.
+    assert_eq!(planned.writes.len(), 2 + 6);
+    planned.writes.commit().expect("commit").keep();
+
+    let after = tree(dir.path());
+    for seq in [1u32, 12] {
+      let rel = project.relative(&project.wp_info_view("ST0001", seq));
+      assert!(after.contains(&rel), "missing {rel} in {after:?}");
+    }
+    // Named literally as well as derived: the derived assertion above passes
+    // if BOTH sides drop the padding together, which is exactly how the issue
+    // defect stayed invisible -- each side self-consistent, neither crossed.
+    assert!(
+      after.contains(&"intent/st/ST0001/WP/01/info.md".to_string()),
+      "WP 1 must be `01`, not `1`: {after:?}"
+    );
   }
 
   /// **The invariant [`Blocked::Conservation`] guards, asserted from the other
