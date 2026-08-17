@@ -41,6 +41,26 @@ get_intent_version() {
 }
 export -f get_intent_version
 
+# --- numeric semver compare (major.minor.patch; non-digit suffix ignored) ---
+# THE version comparator. Relocated here from bin/intent_upgrade (ST0043), which
+# was its only home and therefore the only place that could ask the question.
+# That is why `intent upgrade` refused a downgrade while every writing command
+# ran happily on a project from the future: the knowledge existed and could not
+# be reached from the dispatcher.
+_vnum() { local n="${1//[!0-9]/}"; echo "$((10#${n:-0}))"; }
+version_gt() {
+  local a1 a2 a3 b1 b2 b3
+  IFS=. read -r a1 a2 a3 <<< "$1"
+  IFS=. read -r b1 b2 b3 <<< "$2"
+  a1=$(_vnum "$a1"); a2=$(_vnum "$a2"); a3=$(_vnum "$a3")
+  b1=$(_vnum "$b1"); b2=$(_vnum "$b2"); b3=$(_vnum "$b3")
+  if [ "$a1" -ne "$b1" ]; then [ "$a1" -gt "$b1" ]; return; fi
+  if [ "$a2" -ne "$b2" ]; then [ "$a2" -gt "$b2" ]; return; fi
+  [ "$a3" -gt "$b3" ]
+}
+export -f _vnum
+export -f version_gt
+
 # Calculate SHA256 checksum for a file
 calculate_checksum() {
   local file="$1"

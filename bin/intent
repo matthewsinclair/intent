@@ -225,6 +225,58 @@ else
   error "Missing intent_config library. Intent installation may be corrupted."
 fi
 
+# ---------------------------------------------------------------------------
+# REFUSE A PROJECT FROM THE FUTURE.
+#
+# v2 already knew how to ask this question and asked it in exactly one place.
+# `intent upgrade` has refused a downgrade since ST0043 -- "refusing downgrade:
+# project is at v3.0.0, target is v2.19.0" -- while every command that WRITES
+# ran happily against the same project. The knowledge existed; it could not be
+# reached from here, because the comparator lived in intent_upgrade alone.
+#
+# MEASURED 2026-08-17 against a project declaring 3.0.0: `st new` created SEVEN
+# files, `todo` wrote, `doctor` reported its own version and noticed nothing,
+# and the shipped pre-commit gate then landed the commit. Under v3 the markdown
+# is a GENERATED VIEW, so those writes land where the database has no row and
+# the next regeneration discards them without a word.
+#
+# The asymmetry that made it urgent: v3 in a v2 project REFUSES, and v2 in a v3
+# project OPERATED. The refusal existed in the direction that costs a user
+# nothing and was absent in the direction that destroys their work.
+#
+# WHY HERE, AND WHY NOTHING IS ALLOWLISTED. This point is past every early exit
+# the dispatcher already had -- `--version`, `help`, and the GLOBAL_COMMANDS
+# exec above -- so `upgrade` keeps its own more specific refusal, and `doctor`
+# and `info` stay readable on a project they cannot manage. Every exemption a
+# hand-written list would have argued for is structural. It is also past
+# load_intent_config, so the version is read from the resolved PROJECT_ROOT
+# rather than from whatever directory the user happened to be standing in.
+#
+# EXIT 2, NOT 1, AND THE CODE IS THE POINT. A refusal to operate is not a
+# failure of the operation. The shipped pre-commit gate declares exactly this
+# split -- 0 clean, 1 findings at or above threshold BLOCK, 2 invocation error
+# FAIL-OPEN -- so a project command refusing here fails that gate OPEN rather
+# than reporting a migration state to the user as a code-quality finding.
+# `error()` exits 1 and is therefore the wrong voice for this one thing.
+#
+# AND IT ASKS get_intent_version RATHER THAN READING $INTENT_VERSION, WHICH IS
+# NOT A STYLE CHOICE. bin/intent_config:50 OVERWRITES INTENT_VERSION with the
+# project's declared `intent_version` inside load_intent_config, which has run
+# by this line. So the variable names the TOOL at bin/intent:41 and names the
+# PROJECT from here on -- one identifier, two referents, switched silently and
+# stated nowhere. The first version of this guard read it and compared 3.0.0
+# against 3.0.0, so it never fired, and it never fired in the direction that
+# looks like a clean pass. get_intent_version is THE fallback site and always
+# answers for the install.
+_project_version="$(detect_project_version "$PROJECT_ROOT" 2>/dev/null || true)"
+_tool_version="$(get_intent_version)"
+if [ -n "$_project_version" ] && version_gt "$_project_version" "$_tool_version"; then
+  echo "error: this project declares Intent v$_project_version, and this is Intent v$_tool_version" >&2
+  echo "  '$COMMAND' would write to a project built by a newer Intent than this one understands" >&2
+  echo "  hint: use the Intent that matches the project, or check which 'intent' is on PATH" >&2
+  exit 2
+fi
+
 # Preserve the invoker's working directory so subcommands that accept a path
 # argument (treeindex, fileindex) can resolve relative paths correctly, then
 # enter the project root so subcommands can safely use project-relative paths.

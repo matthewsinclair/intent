@@ -61,18 +61,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# --- numeric semver compare (major.minor.patch; non-digit suffix ignored) -
-_vnum() { local n="${1//[!0-9]/}"; echo "$((10#${n:-0}))"; }
-version_gt() {
-  local a1 a2 a3 b1 b2 b3
-  IFS=. read -r a1 a2 a3 <<< "$1"
-  IFS=. read -r b1 b2 b3 <<< "$2"
-  a1=$(_vnum "$a1"); a2=$(_vnum "$a2"); a3=$(_vnum "$a3")
-  b1=$(_vnum "$b1"); b2=$(_vnum "$b2"); b3=$(_vnum "$b3")
-  if [ "$a1" -ne "$b1" ]; then [ "$a1" -gt "$b1" ]; return; fi
-  if [ "$a2" -ne "$b2" ]; then [ "$a2" -gt "$b2" ]; return; fi
-  [ "$a3" -gt "$b3" ]
-}
+# _vnum + version_gt now live in bin/intent_helpers (sourced at the top of this
+# file). They moved because the dispatcher needs the same comparison to refuse a
+# project from the future, and two copies of a version comparator is exactly the
+# drift Highlander forbids.
 
 _any_step_needs() {
   local step
