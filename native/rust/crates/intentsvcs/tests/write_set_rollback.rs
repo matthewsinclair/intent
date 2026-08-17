@@ -18,9 +18,16 @@
 //! under the reversed D01 it points at the one condition with no repair.
 //! Fixed by `Prior::written`.
 //!
-//! **And the case vc asked for turns out to be unreachable single-threaded.**
-//! That is recorded below with the constructions tried, rather than closed by
-//! a test that only appears to cover it.
+//! **The case vc asked for IS covered, and getting there took correcting an
+//! argument this file already contained.** An earlier pass enumerated four
+//! constructions, found none of them reached the variant, and concluded it was
+//! unreachable single-threaded. Every construction was correct and the
+//! conclusion was scoped to one producer: they are all about `WriteSet::commit`
+//! unwinding, where the restore follows the failed write with no caller in
+//! between. **`Applied::rollback` is the other producer and it has a
+//! caller-controlled window BY DESIGN** -- that window is the entire reason
+//! `Applied` exists. Both are recorded below, the narrow claim kept where it is
+//! true and the wider one withdrawn.
 
 mod common;
 
@@ -87,13 +94,17 @@ fn a_write_that_never_landed_is_not_reported_as_torn() {
   );
 }
 
-/// **`TornRollback` is a CONCURRENCY guard, and this records that finding
-/// rather than pretending to exercise it.**
+/// **`WriteSet::commit`'s OWN unwind cannot be torn without concurrent
+/// interference**, and the four constructions below are why.
 ///
-/// vc asked for the untested case to be tested, and building the test is what
-/// showed why it had none: on a single thread the variant appears
-/// unreachable. A restore fails only if the path stops being a writable file
-/// between the write and the unwind, and nothing a caller does can arrange
+/// **Scoped to that producer deliberately: this used to claim the VARIANT was
+/// unreachable, and it is not.** `a_rollback_that_cannot_restore_reports_the
+/// _estate_as_torn` reaches it through `Applied::rollback`. The enumeration
+/// here is sound and the conclusion drawn from it was not -- which is this
+/// estate's own two-writers rule turned on an argument instead of on code.
+///
+/// Within `commit`, a restore fails only if the path stops being a writable
+/// file between the write and the unwind, and nothing a caller does can arrange
 /// that --
 ///
 /// - a read-only DIRECTORY stops the write (temp + rename) rather than the
@@ -105,14 +116,12 @@ fn a_write_that_never_landed_is_not_reported_as_torn() {
 /// - adding the same path twice, or nesting one write under another, both
 ///   unwind cleanly.
 ///
-/// So the variant guards against ANOTHER PROCESS changing permissions or
-/// replacing a path mid-batch. That is a real hazard in a tree several agents
-/// and a daemon are writing to, so the variant should stay -- but it cannot be
-/// covered by a deterministic test, and a racing one would be flaky, which is
-/// worse than absent. Recorded for vc to rule on rather than closed by a test
-/// that only appears to cover it.
+/// So WITHIN `commit` the variant guards against another process changing
+/// permissions or replacing a path mid-batch -- a real hazard in a tree several
+/// agents and a daemon are writing to, and not one a deterministic test can
+/// arrange. A racing test would be flaky, which is worse than absent.
 #[test]
-fn torn_rollback_is_documented_as_unreachable_without_concurrent_interference() {
+fn the_commit_unwind_cannot_be_torn_without_concurrent_interference() {
   // The type still has to render its distinct message: a caller that could not
   // tell it from an ordinary failure would retry into the damage.
   let err = WriteError::TornRollback {
@@ -129,6 +138,93 @@ fn torn_rollback_is_documented_as_unreachable_without_concurrent_interference() 
   assert!(
     text.contains("intent/st/ST0001/info.md"),
     "and the path that triggered it: {text}"
+  );
+}
+
+/// **THE VARIANT HAS TWO PRODUCERS AND THE ANALYSIS ABOVE ONLY ENUMERATED ONE.**
+///
+/// Everything argued above is about `WriteSet::commit`'s own `unwind`, where
+/// the restore follows the failed write with no caller in between -- and for
+/// that producer it holds. **`Applied::rollback` is the other producer, and it
+/// has a caller-controlled window by design**: `commit` returns `Applied` so
+/// the caller can hold the batch while the DB write happens, and roll the files
+/// back if that fails. The window between those two calls is the whole reason
+/// the type exists.
+///
+/// So the variant is reachable deterministically, on one thread, and it is not
+/// a contrivance: a permission change in that window -- an operator, a peer
+/// agent, a deploy touching the tree -- produces exactly this, and under the
+/// reversed D01 a torn tree has no repair but the next successful mutation.
+///
+/// **This is the same shape as the rule this estate keeps re-finding, applied
+/// to an ARGUMENT rather than to code: enumerating the ways one of two writers
+/// can fail and concluding the failure is unreachable.** The four constructions
+/// above are all correct; the conclusion drawn from them was scoped to the
+/// producer that happened to be in view.
+#[cfg(unix)]
+#[test]
+fn a_rollback_that_cannot_restore_reports_the_estate_as_torn() {
+  let fixture = Fixture::new();
+  let dir = fixture.path("intent/st");
+  std::fs::create_dir_all(&dir).expect("mkdir");
+
+  let mut set = WriteSet::new();
+  set.add(dir.join("info.md"), "the projection".to_string());
+  let applied = set.commit().expect("the files land");
+  assert!(
+    dir.join("info.md").is_file(),
+    "precondition: the batch really landed, so the rollback below has something to undo"
+  );
+
+  // The window `Applied` exists to create: the DB write is happening, and the
+  // tree changes underneath. 0o555 leaves the file readable and the directory
+  // untouchable, which is what stops `remove_file` in the restore.
+  let was = chmod(&dir, 0o555);
+  let torn = applied.rollback();
+  chmod(&dir, was);
+
+  match torn {
+    Err(WriteError::TornRollback { unrestored, .. }) => {
+      assert_eq!(
+        unrestored, 1,
+        "the count is the operator's whole picture of the damage -- how many files are NOT as they were"
+      );
+    }
+    other => panic!(
+      "a rollback that could not restore must report the estate as TORN, not as an ordinary failure and not as success. A caller that cannot tell the two \
+       apart retries into the damage, and under the reversed D01 a torn tree has no repair but the next successful mutation. got: {other:?}"
+    ),
+  }
+
+  assert!(
+    dir.join("info.md").is_file(),
+    "and the file is still there, which is what TORN means: the estate is not as it was and the tool could not put it back"
+  );
+}
+
+/// **The discriminator, and without it the case above passes on an
+/// implementation that calls every rollback torn.**
+///
+/// Same fixture, same batch, same call -- only the permission change removed.
+/// A rollback that CAN restore must report success, or the loudest message the
+/// write layer has is raised for the calmest state.
+#[cfg(unix)]
+#[test]
+fn a_rollback_that_can_restore_is_not_reported_as_torn() {
+  let fixture = Fixture::new();
+  let dir = fixture.path("intent/st");
+  std::fs::create_dir_all(&dir).expect("mkdir");
+
+  let mut set = WriteSet::new();
+  set.add(dir.join("info.md"), "the projection".to_string());
+  let applied = set.commit().expect("the files land");
+
+  applied
+    .rollback()
+    .expect("an unobstructed rollback restores");
+  assert!(
+    !dir.join("info.md").exists(),
+    "the file did not exist before the batch, so restoring means removing it"
   );
 }
 
