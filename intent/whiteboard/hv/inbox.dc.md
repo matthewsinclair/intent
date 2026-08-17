@@ -203,3 +203,23 @@ cc's point, taken in their framing because they are right that half of this arri
 **No decision needed. Nothing is blocked on you.** The gate stands as you authorised it, vc is ruling whether my comparator is a sibling of theirs or should be absorbed into it, and the repo-wide `malformed-json` block has cleared.
 
 -- dc
+
+## (2026-08-17 19:40Z) WP-11 is now gated on exactly one thing, and it is your call rather than mine
+
+**RE-DERIVED FROM `intent ac gate ST0056`, NOT FROM MY BOARD** -- which has been staler than the contract four times, so I no longer quote it to you. WP-11's rows: **AC-11.2 and AC-11.3 satisfied; AC-11.1, AC-11.4 and AC-11.5 unsatisfied. All three need the same single thing: ONE PUBLICATION.**
+
+- **AC-11.1** asks that `brew install` on a machine that has never seen this repo produces a runnable `intent` and `intentd`. Only a published tap can answer that.
+- **AC-11.4** asks that the published checksum matches the bytes a user downloads. Hashing a local file asserts that about a file nobody fetches.
+- **AC-11.5** asks that an artefact assert its own provenance. **That is now BUILT on both binaries and refused at `publish` -- but the refusal has never RUN, because nothing has been published.**
+
+**I AM NOT ASKING YOU TO LIFT THE FREEZE, AND I HAVE NOT BUILT A WAY AROUND IT.** My own pre-flight refuses a push that reaches a frozen remote, by name and by URL, and it correctly refuses a v3 cut. **The wrong move is a quiet exception in the tool; I have not made one and will not.**
+
+**THE QUESTION IS NARROWER THAN THE POLICY.** The freeze's stated reason is cost per commit -- every push to `upstream` triggers the rust and tests workflows, and the habit this estate drilled into all of us was to push both remotes always. **A release is not a commit.** Whether the policy's reason covers a one-off publication is a judgement about your budget, and I have no way to make it. If the answer is no, that is a fine answer and WP-11 simply stays open; **what I want to avoid is the row sitting unsatisfied while everyone assumes someone else is blocked on something technical.** Nothing technical is blocked.
+
+**WHAT LANDED TODAY, so the picture is yours rather than assembled from four boards.** Both binaries now embed the commit they were built from, read back out of the artefact. The release pipeline got its first check whose subject is the ARTEFACT: `stage` wrote `commit: <HEAD>` and `publish` refused on `traceable` and on `prov_commit == tag_commit`, and **every one of those is a claim about the CHECKOUT** -- nothing anywhere compared the binaries to anything, so a clean checkout at the tag with bytes built forty-two hours earlier satisfied every gate that existed. **No individual check was wrong, which is why nobody saw it and why the remedy could never have been to check harder.**
+
+**AND A CONTRACT-PROCESS FINDING THAT IS YOURS RATHER THAN vc's OR MINE, because it is about how rulings work.** vc ruled that AT-11.5's move condition was defective for naming an EVENT while its criterion names a STATE. **I then re-wrote it to name a LOCATION AND A MECHANISM -- which is a state no more than an event is -- and vc ratified that too.** Reading the code found it: my version would have required a guard that a ruling already sitting in that same file forbids, and which in a five-session clone would have refused every dev stage. vc's own statement of it is the one worth keeping: **a contract holder who rules on a class and then fails to apply it to the very next sentence has ruled on an instance, not on a class.** Both of us, one hour apart, on one row.
+
+**One thing I will not let stand because it was said in my favour.** vc praised me for bringing them a question whose convenient answer was mine to take, and for declaring that I was not neutral. **The very next thing I wrote was a condition convenient in a different way -- it named work I had nearly finished rather than harm still standing.** The disclosure did not stop that and could not have. **Declaring an interest is a disclosure, not a control.** What caught it was a check whose subject was the code rather than the author.
+
+-- dc
