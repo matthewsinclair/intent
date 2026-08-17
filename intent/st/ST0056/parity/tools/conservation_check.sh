@@ -65,11 +65,12 @@ die() {
   exit 2
 }
 
-CENSUS="" MIGRATED="" OOM="" BINARY=""
+CENSUS="" MIGRATED="" OOM="" BINARY="" DISPO=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --out-of-model) OOM="${2:-}"; shift 2 || die "--out-of-model needs a file" ;;
     --binary) BINARY="${2:-}"; shift 2 || die "--binary needs a path" ;;
+    --dispositions) DISPO="${2:-}"; shift 2 || die "--dispositions needs a file" ;;
     -*) die "unknown flag: $1" ;;
     *)
       if [ -z "$CENSUS" ]; then CENSUS="$1"
@@ -359,6 +360,38 @@ trim_file() {
 #
 # Same shape as the DOUBLED/STRANDED split above: one count, two populations,
 # opposite answers to a question the count was not being asked.
+# The migrator's own per-section drop records, keyed the way this tool labels
+# sections. `--dispositions` takes the `upgrade` output (or any file holding its
+# `byte-identical to` lines); absent it, nothing is declared and every removal
+# stays a finding, which is the correct default for a check whose job is loss.
+EMPTY_SHA="$(printf '' | shasum -a 256 | cut -d' ' -f1)"
+c_drop=0
+: >"$WORK/declared"
+if [ -n "$DISPO" ]; then
+  [ -f "$DISPO" ] || die "no such dispositions file: $DISPO"
+  # `intent/st/<bucket>/ST0024/WP/06/info.md -- ## Acceptance -- byte-identical ...`
+  # becomes `wp ST0024/06 'Acceptance'`, the label compare_prose is called with.
+  # The sequence keeps the directory's OWN digits -- `WP/06` is labelled
+  # `ST0024/06`, not `ST0024/6`. A `0*` here stripped the zero and matched only
+  # the seq-10-and-above rows: 2 of 39. It still PRODUCED the new class, so
+  # "DECLARED-DROP appears in the output" would have read as working. Only the
+  # count caught it, which is why the count is printed below.
+  sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- byte-identical.*|wp \1/\2 '\3'|p" \
+    "$DISPO" | sort -u >"$WORK/declared"
+  n_dec="$(wc -l <"$WORK/declared" | tr -d ' ')"
+  n_raw="$(grep -c 'byte-identical to' "$DISPO" || true)"
+  # A parse that silently reads none of them would make every declared drop
+  # report as loss and look exactly like a migrator that declared nothing.
+  [ "$n_dec" -gt 0 ] || [ "$n_raw" -eq 0 ] ||
+    die "$DISPO holds $n_raw drop record(s) and this tool parsed 0 -- the format has moved and every drop would have been reported as loss"
+  echo "conservation: dispositions -- $n_dec declared drop(s) read from $DISPO"
+fi
+
+declared_drop() {
+  [ -s "$WORK/declared" ] || return 1
+  grep -qxF "$1" "$WORK/declared"
+}
+
 compare_prose() {
   local label="$1" raw="$2" trim="$3" file="$4" dest="${5:-modelled}" got
   got="$(shasum -a 256 <"$file" | cut -d' ' -f1)"
@@ -373,6 +406,21 @@ compare_prose() {
     echo "NORMALISED-PROSE $label (content identical; leading/trailing whitespace differs)"
     c_norm=$((c_norm + 1))
     [ "$dest" = carried ] && c_carried=$((c_carried + 1)) || c_modelled=$((c_modelled + 1))
+  elif declared_drop "$label" && [ "$got" = "$EMPTY_SHA" ]; then
+    # A DECLARED DROP IS NOT LOSS, AND VERIFYING IT IS NOT THE SAME AS TRUSTING
+    # IT. On Baize, cc's template-scaffolding drop turned 39 conserved sections
+    # into 39 ALTERED-PROSE findings under a line that calls itself "the number
+    # that means loss" -- so an instrument built to catch loss was reporting a
+    # deliberate, per-section-documented removal as exactly that.
+    #
+    # BOTH CONDITIONS ARE LOAD-BEARING. The disposition is a CLAIM by the
+    # migrator; emptiness is the OBSERVATION. Honouring the claim alone would
+    # let any future drop launder real alteration through a disposition line,
+    # which is a check certifying its own subject. A section declared dropped
+    # that still has content in canon stays ALTERED, because that is not what
+    # was declared.
+    echo "DECLARED-DROP $label (removed, and the migrator says why -- verified empty in canon)"
+    c_drop=$((c_drop + 1))
   else
     report ALTERED-PROSE "$label (estate $raw, canon $got)"
   fi
@@ -607,11 +655,19 @@ c_alt="$(grep -c '^ALTERED-PROSE ' "$WORK/log" || true)"
 # equal the rows READ, or some row took a path that counts it nowhere. An
 # equality refuses the documentation fix as well as the code fix, and only one of
 # those is ever what you wanted.
-c_acct=$((c_ok + c_norm + c_lost + c_alt + c_declared))
+c_acct=$((c_ok + c_norm + c_lost + c_alt + c_declared + c_drop))
 [ "$c_acct" -eq "$c_seen" ] ||
-  die "prose accounting does not reconcile: $c_seen census row(s) read, $c_acct dispositioned (ok $c_ok, normalised $c_norm, lost $c_lost, altered $c_alt, declared-uncompared $c_declared) -- the difference went somewhere this tool cannot name"
+  die "prose accounting does not reconcile: $c_seen census row(s) read, $c_acct dispositioned (ok $c_ok, normalised $c_norm, lost $c_lost, altered $c_alt, declared-uncompared $c_declared, declared-drop $c_drop) -- the difference went somewhere this tool cannot name"
 echo "conservation: prose -- ALTERED $c_alt (the number that means loss), ADDED $c_added (accretion IN THE MODEL -- \`.wps[].body\`, not in rendered views), conserved byte-identical $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
 echo "conservation: views -- DOUBLED-SECTION $c_dup (accretion IN THE RENDERING: one file, one heading, two copies -- invisible to the line above)"
+if [ -n "$DISPO" ]; then
+  n_dec="$(wc -l <"$WORK/declared" | tr -d ' ')"
+  echo "conservation: prose -- DECLARED-DROP $c_drop matched of $n_dec declared (removed on purpose, named per-section AND verified empty in canon -- not loss, not counted as ALTERED above)"
+  [ "$c_drop" -eq "$n_dec" ] ||
+    echo "conservation: prose -- WARNING: $((n_dec - c_drop)) declared drop(s) matched no census section, so they are reported as ALTERED or not at all -- a declared drop this tool cannot find is a claim it cannot check"
+else
+  echo "conservation: prose -- DECLARED-DROP not measured -- no --dispositions given, so every removal above is counted as loss whether or not the migrator named it"
+fi
 echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census section(s); NOT compared $c_declared, declared:${declared_kinds:- none}"
 # The conserved population split by what the destination KNOWS. Not "did the
 # bytes survive" -- that is the line above -- but "does the model understand
