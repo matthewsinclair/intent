@@ -97,7 +97,15 @@ rc=0
 
 ### THE REVERSE SWEEP, RUN 2026-08-17 (vc)
 
-The sweep owed at line 94 has been run. **309 probes, the whole declared surface** (104 entries from `surface/dispatch-table.json`, three probes each -- bare, `--help`, and one bogus positional; `claude start` excluded because it launches a real session). Every probe against a **fresh copy** of the fixture, so a mutating probe cannot contaminate the next. Binary rebuilt from a clean tree at `3088c39c`, invoked by explicit path, never on PATH.
+The sweep owed at line 94 has been run. **309 probes** over 104 entries from `surface/dispatch-table.json`, three probes each -- bare, `--help`, and one bogus positional; `claude start` excluded because it launches a real session. Every probe against a **fresh copy** of the fixture, so a mutating probe cannot contaminate the next. Binary rebuilt from a clean tree at `3088c39c`, invoked by explicit path, never on PATH.
+
+**CORRECTED 2026-08-17, on ic's measurement: the original sentence said "the whole declared surface" and that was FALSE, in both directions at once.** `.families[].entries[]` is 104; **the declared surface is 112 and the shipped surface is 107.** The sweep was **too narrow** -- the 8 top-level `new_surface[]` rows (`search`, `sync`, `schema`, `export`, `ingest`, `backup`, `daemon`, `mcp`) were never probed, and all 8 ship -- and **too wide**, because 5 of the 104 are retired (`st organize`, `organize`, `treeindex`, `help`, `st_zero`) so probing them measures a command that does not exist. **104 against 107 is three apart with opposite signs, which no count-based sanity check would flinch at**; it is the too-narrow-and-too-wide shape this thread has now hit three times with the same enumerator. **The unprobed rows were disproportionately the ones this issue is about** -- four are `one-way` mutations, and `daemon` and `mcp` are long-running processes whose exit-code semantics are the likeliest in the surface to diverge from a leaf command's.
+
+**ic ran the missing six** (`daemon` and `mcp` excluded for a stated reason: they do not return, and `implemented_check.sh` excludes them by name for the same reason), same method -- fresh scratch per probe, sandboxed `HOME`, scratch refused if it resolves inside an Intent project, binary by explicit path. **TYPE-A zero and TYPE-B zero hold on all six.** So the honest coverage claim is **the shipped surface minus `daemon` and `mcp`**, and those two are excluded deliberately rather than by accident.
+
+**And the six independently reproduce this issue's central claim on rows the sweep never reached, which is worth more than the extra coverage.** Exit `1` is spent on five distinct conditions in those six rows alone: **missing required argument** (`search` bare, clap), **unexpected argument** (`sync`/`export`/`backup` bogus, clap), **no Intent project found** (`sync`/`export`/`ingest`/`backup` bare, environment), **no such schema face** (`schema` bogus -- the tool's OWN vocabulary check, not clap's), and **file-not-found on a path argument** (`ingest` bogus, I/O). **A user outside a project and a user with a typo return the same code, and 0045 says the git gate blocks on it.**
+
+**One methodological limit of the rig, ic's, and it applies to the differential below as well: the bogus-positional probe is NOT uniform across rows.** For `search`, `zzbogus` is a perfectly valid query, so the command accepted it and failed later on the environment; for `ingest` it is a valid path, so it got as far as trying to read `zzbogus/intent/.config/config.json`. **Only for rows taking no positional does that probe test rejection at all.** The classification is by output and survives, but the probe's name implies a uniformity it does not have, and a reader comparing rows would be comparing three different tests.
 
 Classification is by **output**, then the code is read. Two mismatch classes were defined in advance:
 
@@ -134,14 +142,14 @@ Classification is by **output**, then the code is read. Two mismatch classes wer
 
 ### THE DIFFERENTIAL SWEEP, AND THE INSTRUMENT DEFECT THAT ALMOST PUBLISHED AN EMPTY CLASS
 
-The blind spot above was then closed on its own terms. **103 commands, three runs each -- bare, unknown flag (`--zzz`), unknown positional (`NOSUCHTHING`) -- and the two extra runs are compared TO THE BARE RUN rather than to any rule.** Identical output plus exit 0 means the argument was swallowed. No lexicon is involved, so silence is detectable.
+The blind spot above was then closed on its own terms. **Three runs per command -- bare, unknown flag (`--zzz`), unknown positional (`NOSUCHTHING`) -- and the two extra runs are compared TO THE BARE RUN rather than to any rule.** Identical output plus exit 0 means the argument was swallowed. No lexicon is involved, so silence is detectable.
 
-Built against a `git archive` extract at `0566985b`, compiled inside the extract so the binary resolves its own install tree. **Result:**
+Built against a `git archive` extract at `0566985b`, compiled inside the extract so the binary resolves its own install tree. **Run over the CORRECTED population** -- entries minus the 5 retired, plus the 8 `new_surface[]` rows, minus `daemon`, `mcp` and `claude start` because they do not return: **104 commands, 312 runs.** (Its first run used the same faulty `.families[].entries[]` enumerator corrected above; it was **re-run rather than annotated**, because a coverage caveat on a sweep that can simply be re-run is a caveat nobody should have to carry.) **Result:**
 
 | arm                  | swallowed      | of  |
 | -------------------- | -------------- | --- |
-| unknown flag `--zzz` | **0**          | 103 |
-| unknown positional   | **1** (`info`) | 103 |
+| unknown flag `--zzz` | **0**          | 104 |
+| unknown positional   | **1** (`info`) | 104 |
 
 **So INV-08's class is exactly one command wide and it is the positional half.** The flag half is refused everywhere -- `intent info --zzz` now exits 1 -- and nobody needs to go looking further.
 

@@ -104,4 +104,18 @@ Canary it: add a ninth row to `new_surface` carrying a WP id in its help, and wa
 
 ## Resolutions
 
-{{TBC}}
+### A FOURTH INSTANCE, 2026-08-17, AND IT IS MINE -- the author of this issue walked into it the next day
+
+**I filed this on 2026-08-16 and reproduced it on 2026-08-17 in a different tool**, hand-writing `jq -r '.families[].entries[].path'` for the 0044 exit-code sweep and describing the result as "the whole declared surface". Found by ic, measured rather than read: **104 probed, 107 shipped, 112 declared -- too narrow by the 8 `new_surface[]` rows and too wide by the 5 retired ones, three apart with opposite signs.**
+
+**That the person carrying this issue in working memory rewrote its exact defect the next day settles what kind of problem it is.** It is not a knowledge problem and it is not an attention problem: **the wrong enumerator is the SHORT one, the natural one, and the one that returns a plausible number.** Nothing about `.families[].entries[]` looks partial, and 104 looks exactly as much like a command surface as 107 does.
+
+**The unprobed rows were disproportionately the ones the sweep was about** -- four of the eight are `one-way` mutations, and `daemon` / `mcp` are the likeliest rows in the surface to spend an exit code on something structural. **A too-narrow enumerator does not remove a random sample; it removes whatever was added last, which is whatever is newest and least tested.**
+
+### The shell-side mechanism now exists: `parity/tools/lib_surface.sh`
+
+ic's suggestion, taken. A sourced-only library with one home for all four populations -- **declared 112, shipped 107, retired 5, probeable 104** -- registered in `MODULES.md` before it was written. `surface_shipped` is the default for any question about what the tool does; `surface_retired` exists on its own because a retired command is not absent from the WORLD (v2 users still type it), so it is the population for "what happens when someone runs the old command". It refuses rather than defaulting when the table cannot be located, on the same grounds as `probe.sh`: a population computed from a table that is not there is a complete, uniform, entirely fictional surface.
+
+**It also carries the exclusion list `implemented_check.sh` had been re-deriving** -- `daemon`, `mcp`, `claude start`, the three that do not return -- **newline-delimited, and that is not a style choice: `claude start` contains a space, so a space-separated list word-splits into two commands that are not in it.** A path with a space is the normal case in this table.
+
+**This does NOT close the issue.** The instance filed here is in Rust (`no_pm_state_in_output.rs`), and the fix there is Proposed Fix 1 -- `Entry::is_shipped()`, which `dispatch.rs` already applies, so it is reusing a decision rather than making a second one. **A shell library and a Rust predicate encoding the same four populations is itself the Highlander question this issue is about**, and whoever does the Rust side should decide whether the table grows a generated manifest both read, rather than adding a third hand-rolled walk.
