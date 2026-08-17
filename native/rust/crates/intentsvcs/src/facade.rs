@@ -278,7 +278,27 @@ pub enum FacadeError {
   /// **Nothing has been written when this is returned** (AC-10.2), and that is
   /// structural rather than careful: `migrate::plan` builds a `WriteSet` and
   /// does not commit it, so a refusal cannot have touched the estate.
-  #[error("{0}")]
+  ///
+  /// **`transparent` rather than `{0}`, and the rule it restores was already
+  /// written down one level below.** `Blocked::Residue` deliberately does NOT
+  /// carry its `Refusal` as a `#[source]`, and says why at `migrate.rs:110`: a
+  /// source there renders the whole list twice and every residue count reads
+  /// double. **`#[from]` implies `#[source]`**, so pairing it with `{0}`
+  /// recreated exactly that -- the entire classed report printed once as the
+  /// message and once as its own cause, summary line included. Measured on a
+  /// two-finding estate: ten lines for two findings, with `refused 2
+  /// finding(s)` appearing twice, the first occurrence mid-output where it
+  /// reads as the end of the list.
+  ///
+  /// **The rule survived being written down because the violation used a
+  /// different spelling.** A reader checking this variant against the comment
+  /// below looks for `#[source]` and does not find one. ic found it by reading
+  /// the operator's output rather than the type.
+  ///
+  /// `transparent` forwards Display AND source to the inner error, so the
+  /// chain now reaches what `Blocked` itself declares -- the serde error under
+  /// `Canon`, nothing under `Residue` -- instead of restating `Blocked`.
+  #[error(transparent)]
   MigrationBlocked(#[from] crate::migrate::Blocked),
   /// The migration stopped part way through, at a NAMED step.
   ///

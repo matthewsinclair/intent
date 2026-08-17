@@ -313,6 +313,67 @@ fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
   );
 }
 
+/// **A REFUSAL IS A WORK LIST, AND EVERY LINE OF IT APPEARS EXACTLY ONCE.**
+///
+/// `FacadeError::MigrationBlocked` carried `#[error("{0}")]` beside `#[from]`.
+/// `#[from]` implies `#[source]`, so the whole classed report printed once as
+/// the message and once again as its own cause -- summary line included.
+/// Measured on this fixture: eleven lines for two findings, `refused 2
+/// finding(s)` twice, the first occurrence mid-output where it reads as the end
+/// of the list.
+///
+/// **The rule was already written down one level below and survived being
+/// written down, because the violation used a different spelling.**
+/// `Blocked::Residue` deliberately does not carry its `Refusal` as a
+/// `#[source]` and says why at `migrate.rs:110` -- "a source here renders the
+/// whole list twice and every residue count reads double". A reader checking
+/// the outer variant against that comment looks for `#[source]` and does not
+/// find one.
+///
+/// **Why it is worth a test rather than a fix.** The doubling is invisible in
+/// the small: two findings look like a verbose error. **It scales with the
+/// estate**, and the operator who most needs the list is the one with the
+/// dirtiest estate -- ic's `show_tail` finding is the same hazard from the
+/// display end, where a clipped work list sends someone to fix nine of ten and
+/// hit the tenth on the next run.
+///
+/// The count is asserted, not the layout: a formatting change should not red
+/// this, and a line coming back twice must.
+#[test]
+fn a_refusal_names_each_finding_exactly_once() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  v2_project(dir.path(), "2.19.0");
+  for (id, bad) in [("ST0001", "Banana"), ("ST0002", "Kumquat")] {
+    v2_thread(dir.path(), id, "WIP");
+    let info = dir.path().join("intent/st").join(id).join("info.md");
+    let text = std::fs::read_to_string(&info).expect("read");
+    std::fs::write(
+      &info,
+      text.replace("status: WIP", &format!("status: {bad}")),
+    )
+    .expect("write");
+  }
+
+  let (out, err, code) = run(&["upgrade"], dir.path());
+  assert_eq!(code, 1, "premise: the estate must actually block");
+  let report = format!("{err}{out}");
+
+  for id in ["ST0001", "ST0002"] {
+    assert_eq!(
+      report.matches(&format!("intent/st/{id}/info.md")).count(),
+      1,
+      "{id} is named more than once, so the operator's work list is longer \
+       than the work:\n{report}"
+    );
+  }
+  assert_eq!(
+    report.matches("refused 2 finding(s)").count(),
+    1,
+    "the summary count appears twice, and the first one reads as the end of \
+     the list:\n{report}"
+  );
+}
+
 /// **AT-10.1: a sub-floor estate is refused, and the SAME estate at the floor
 /// is not.**
 ///
