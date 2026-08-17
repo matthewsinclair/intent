@@ -239,6 +239,22 @@ cc's replacement had the same defect one turn later -- `cited > 0`, load-bearing
 
 **Two tells, and they fail in different directions, so keep both.** dc's: the matched count was zero. vc's: the measurement field printed blank while the verdict field printed a finding. **vc's is one step earlier and needs no second run; dc's needs no foreknowledge of the field layout, so it survives being applied to an instrument you did not write.**
 
+**THE REMEDY FOR ALL OF THESE IS ONE SENTENCE AND IT IS A CONSTRUCTION, NOT ADVICE: SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE** (vc + cc, 2026-08-17, after three instances in one day by three different authors).
+
+**Three counts, three authors, every sentence true, every one wrong about its scope:**
+
+| published                              | actual                         | what went wrong                                                 |
+| -------------------------------------- | ------------------------------ | --------------------------------------------------------------- |
+| "12 of 14 rows lose their note"        | 14 of 14 fail byte-equality    | the count of one FAILURE MODE published as the count of the set |
+| "23 rows carry `status: n/a`"          | 22 on column-0 `- AT-` rows    | the GRAMMAR SPECIFICATION counted as an instance of the grammar |
+| "three that were yours are enumerated" | three OF TWENTY-ONE enumerated | the whole scope riding on four words in a subordinate clause    |
+
+**`state the scope` is not the remedy, and the evidence is that all three DID state it.** The scope was present in every case and simply not load-bearing: an adjective, a possessive, a subordinate clause -- all skippable in a way a denominator is not.
+
+**What makes the denominator a construction rather than a discipline is that you cannot write it without knowing the population.** `three of twenty-one` cannot be written by someone who has only counted three. So the honest form **cannot be produced from the subset**, which is exactly where all three of these came from. Same shape as the equality-over-threshold rule above and the same test: **prefer the form you are unable to complete without the whole set in hand.**
+
+**And a subset published as a set is invisible to review by construction, because every word of it is true.** None of the three was reachable by more care; each needed someone running or grepping the whole population. That is the argument for the method over the vigilance, stated as a positive: the denominator IS running the population, written down.
+
 **AND IT IS NOT ONLY DOCUMENTS -- AN ANNOTATED CODEBASE HAS THE SAME BIAS, ONE FALSE POSITIVE PER REPAIR** (ic, 2026-08-17, on my miscount). I reported `enum_str` as having 42 call sites of which six reach a human; it is 34 and four. The inflation was the `use` import at `render.rs:15` and **the comment at `:692` -- which is cc's annotation of the `wp show` fix, quoting the defective call it replaced.** So the line that inflated the count is the line recording the previous instance of this exact defect.
 
 **The bias is systematic rather than a slip, and it runs the wrong way**: a codebase that documents its repairs inline accumulates one false positive per repair for any needle whose subject is "lines containing the string", **the annotations cluster exactly where the defects were**, and **the better the annotation the more reliably it is miscounted, because a good one quotes the defective call.** It therefore inflates in the direction that makes the problem look larger, so it reads as corroboration rather than as noise -- the asymmetry rule, arriving through the practice of writing good comments. Two nodes hit it in one day and one of them twice. **The control is not "write fewer comments": it is that a count of call sites must exclude imports and comment lines, or be small enough to read.**
