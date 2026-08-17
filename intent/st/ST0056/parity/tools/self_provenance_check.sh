@@ -1,12 +1,19 @@
 #!/bin/bash
-# self_provenance_check.sh -- a vendored tree must agree with the record COMMITTED beside it.
+# self_provenance_check.sh -- an artefact must answer for its own provenance.
 #
 # AC-11.5 / AT-11.5: an artefact asserts its own provenance, and the assertion is
-# read from the artefact, never from a record written beside it. This is the arm
-# of that row which can be checked today; the binary arm waits on an embedded
-# build commit, so AT-11.5 is held at `red` while this passes -- a green AT would
-# satisfy AC-11.5 on one third of its criterion, because v2's gate satisfies an
-# AC on the FIRST green AT covering it (issue 0032).
+# read from the artefact, never from a record written beside it. TWO of the row's
+# three arms live here -- the vendored tree against its committed manifest, and
+# the binary against the commit embedded in it. The third is in Devbin and is
+# deliberately not cited from this side.
+#
+# THE HEADER ABOVE USED TO SAY "the binary arm waits on an embedded build
+# commit", AND IT IS CORRECTED RATHER THAN QUIETLY REPLACED, because the reason
+# it was written is the reason to keep it visible: AT-11.5 was held at `red`
+# while arm 1 passed, on the ground that a green AT would satisfy AC-11.5 on one
+# third of its criterion (v2's gate satisfies an AC on the FIRST green AT
+# covering it -- issue 0032). That hold was correct and it is now discharged for
+# arm 2 by building the thing rather than by relaxing the argument.
 #
 # WHY IT READS THE INDEX AND NOT THE WORKTREE, WHICH IS THE ENTIRE POINT. On
 # 2026-08-17 this repository's HEAD carried a manifest that disagreed with the
@@ -109,6 +116,87 @@ else
   echo "self-provenance: $matched matched, $diverged diverged, $absent absent -- the commit's vendored tree disagrees with its own record" >&2
   echo "    A re-vendor is two facts, the files and the record. Stage BOTH:" >&2
   echo "      git add $MANIFEST <the vendored files>" >&2
+fi
+
+# --------------------------------------------------------------------------
+# ARM 2 -- THE BINARY NAMES ITS OWN COMMIT (AC-11.5, previously declared unbuilt).
+#
+# The arm above asks whether a vendored TREE agrees with the record committed
+# beside it. This asks the harder half of the same criterion: can the ARTEFACT
+# answer for itself, with nothing written beside it consulted at all. `build.rs`
+# embeds the source commit into `intent` at build time and this reads it back
+# out of the binary.
+#
+# WHY IT IS NEEDED, MEASURED RATHER THAN ARGUED. `int macos stage` records
+# `commit: <HEAD>` and `traceable: yes` -- where traceable means the working tree
+# is clean -- and then COPIES binaries out of `target/release` it never built.
+# With HEAD at 2026-08-17T15:11:14Z, `intent` was three hours older than the
+# commit and `intentd` FORTY-TWO hours older, forty-two hours apart from each
+# other. cc's framing is the one to keep: that is not a stale field, it is A
+# RELEASE THAT IS TWO TREES WEARING ONE SHA. Every other check in that pipeline
+# asks whether the bytes agree with each other, and bytes built from a peer's
+# uncommitted work are perfectly self-consistent.
+#
+# IT REPORTS AND DOES NOT GATE, DELIBERATELY, AND THE PRECEDENT IS IN THIS
+# TOOLCHAIN. `ratified_in_check.sh` reports until its table is clean and then
+# graduates to refusing. The same reasoning is stronger here: this script is
+# GATED IN `int precommit`, so an arm that failed on a binary lacking the marker
+# would block every commit in a five-session clone until every stale artefact in
+# every `target/` had been rebuilt -- and `target/` is shared mutable state
+# several sessions write to. A GUARD THAT MUST BE BYPASSED IS A GUARD NOBODY
+# KEEPS; that lesson was paid for on this estate when a worktree-globbing
+# instrument froze every node's commits on a peer's in-flight file. The refusal
+# belongs where the HARM is, which is publication: `int macos publish` refuses an
+# artefact that cannot name its source commit, and it can now read that from the
+# binary rather than from the sidecar the criterion rejects.
+#
+# `dirty-<sha>` IS NOT A FINDING HERE. A development build from a dirty tree
+# SAYING it is dirty is the mechanism working, and in this clone the tree is
+# dirty almost always. It is reported as what it is.
+#
+# THE MARKER IS SELF-DELIMITING AND THE EXTRACTION RELIES ON THAT. Rodata packs
+# string literals with no separator, so an unterminated marker runs into
+# whatever the linker laid down next -- measured during the canary as
+# `intent-source-commit:<sha>unsafe`, with `unsafe` from an unrelated literal.
+# A greedy match would have captured the neighbour silently.
+#
+# `INTENT_SELF_PROV_BIN` EXISTS SO THIS ARM CAN BE DRIVEN AGAINST A BINARY THAT
+# IS NOT IN THE SHARED `target/`, AND THAT IS A REQUIREMENT RATHER THAN A
+# CONVENIENCE. Five sessions write `native/rust/target/`, so building there to
+# test a check is the "running a gate to test it mutates somebody else's tree"
+# failure this estate has already paid for. A check that can only be driven by
+# mutating shared state is a check nobody canaries. It is not a security control
+# and does not pretend to be one -- this arm REPORTS, so pointing it at a
+# friendly binary buys a liar nothing that simply not running it would not.
+BIN="${INTENT_SELF_PROV_BIN:-}"
+if [ -z "$BIN" ]; then
+  BIN="native/rust/target/release/intent"
+  [ -f "$BIN" ] || BIN="native/rust/target/debug/intent"
+fi
+
+if [ ! -f "$BIN" ]; then
+  # DETERMINATE ABSENCE, STATED RATHER THAN SKIPPED -- the same rule as the
+  # no-manifest case above. "Nothing is built here" and "the check did not run"
+  # are different answers and only one of them is reassuring.
+  echo "self-provenance: no built intent binary in native/rust/target -- nothing to ask for its provenance."
+else
+  marker="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
+  embedded="${marker#\[intent-source-commit:}"
+  embedded="${embedded%\]}"
+  head_sha="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+
+  if [ -z "$marker" ]; then
+    echo "self-provenance: $BIN carries NO source-commit marker -- it cannot name the commit it was built from."
+    echo "    Rebuild it; this binary predates the embed."
+  elif [ "$embedded" = "unknown" ]; then
+    echo "self-provenance: $BIN says its source commit is UNKNOWN -- built where git could not answer."
+  elif [ "${embedded#dirty-}" != "$embedded" ]; then
+    echo "self-provenance: $BIN was built from an UNCOMMITTED tree ($embedded) -- its bytes match no commit."
+  elif [ "$embedded" = "$head_sha" ]; then
+    echo "self-provenance: $BIN names $embedded, which is the current commit."
+  else
+    echo "self-provenance: $BIN names $embedded; the checkout is at $head_sha -- the binary is from an earlier tree."
+  fi
 fi
 
 exit $rc
