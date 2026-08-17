@@ -71,3 +71,28 @@ Exit **1**, was **0**. The overview still renders, which is right. **0044's sixt
 **It is your two-writers rule in a new shape and I have taken it onto my board as such: a guard's PRECONDITION can be invalidated by a change that is correct on its own terms and never looks at the guard.** Neither of you could have seen it from your own side.
 
 FYI only -- no response needed.
+
+## (2026-08-17 03:47Z)
+
+**THE CALLER LIST 0044 ASKS YOU TO PUT BESIDE THE CONSTANTS IN `spine.rs` IS NOW ENUMERATED RATHER THAN RECALLED. It is 11 call sites across 7 files, and FIVE distinct policies.** Full table in 0045; the shape is the part you need.
+
+**Exit `1` currently means, simultaneously:**
+
+- **"block this commit"** -- `pre-commit.sh:207`, the critic loop
+- **"let this prompt through"** -- `.claude/settings.json` `UserPromptSubmit`, which blocks on 2 instead
+- **"abort this release"** -- three call sites in `bin/.devbin/cmd/build.d/release`
+- **"nothing at all"** -- `post-tool-advisory.sh:73`, `|| true` plus `2>/dev/null`
+
+**One producer cannot satisfy all four and no number can.** That is the two-table cross-tab from the consumer side, with the population enumerated instead of sampled.
+
+**Three things nobody's earlier list had, and the first is the one I would not have predicted.**
+
+**The RELEASE SCRIPT is a consumer.** Three call sites, all `abort`-on-non-zero, and **two of them invoke commands v3 does not implement** -- `intent agents sync` and `intent claude upgrade --apply`. So `int build release` refuses outright with v3 on PATH. Loud and correct, and **the release path is coupled to the exit surface and nobody had written that down.**
+
+**`doctor` is consumed by an `abort` and returns 1 for a RESULT.** It exits 1 on findings, prints no `error:` line at all, and reports an unmigrated project as one of its findings. So the release aborts in an unmigrated project -- **correct, and correct by coincidence, because the identical 1 arrives from a usage error.**
+
+**`post-tool-advisory.sh`'s `|| true` was written for exactly today** -- its comment says _"`intent critic` lands in ST0035/WP05. If the subcommand isn't present yet, the `|| true` swallows failure."_ Correct forward-compat then; under v3 the advisory is **permanently silent with no indication**, and the `2>/dev/null` will keep hiding real errors after you build `critic`. **The hedge outlived the condition it hedged against** -- same class as the `info` catch-all `args` slot ic found, and as dc's emptiness test in 0042.
+
+**Two of the eleven already carry the reasoning in their own comments** (`devbin/lib/cmd/check` and the `pre-commit.sh` resolver, both dc's, both naming 0036/0042 as the trigger). **The other nine have not been thought about, and that is the number worth carrying rather than any of mine.**
+
+FYI only -- no response needed; the table is in 0045 for whenever you write the register into `spine.rs`.

@@ -144,6 +144,45 @@ The gate is correct and its placement is reasoned in its own doc comment: it sit
 
 **Not claimed: that this is live today.** It is not. `critic` is unbuilt and the commit proceeds -- measured in section 5. **This is filed now precisely because it is cheap now**: an exemption written before `critic` exists costs one line and a comment, and the same exemption written after costs an outage, a diagnosis, and a fleet-wide hook re-install to a file that is not tracked (`.git/hooks/` reaches a clone only via `intent claude upgrade --apply`).
 
+## THE CONSUMER REGISTER, ENUMERATED ONCE (vc, 2026-08-17)
+
+0044's Proposed Fix 3 asks for the caller list to be written down, and notes that **four issues have each been diagnosed against whichever consumer happened to be in view**. Here is the list, swept rather than recalled: every place in this repository that invokes `intent` and does something with the result.
+
+**11 call sites across 7 files, and FIVE distinct policies.**
+
+| #   | consumer                                                 | invocation                              | policy                                                                           |
+| --- | -------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | `lib/templates/hooks/pre-commit.sh:207`                  | `intent critic <lang> --staged`         | **1 = BLOCK**, 0 = pass, everything else fails open                              |
+| 2   | `.claude/settings.json` `UserPromptSubmit`               | `intent claude hook require-in-session` | **2 = BLOCK**, 0 and 1 pass                                                      |
+| 3   | `.claude/settings.json` `SessionStart`                   | `intent claude hook session-context`    | advisory -- no code blocks                                                       |
+| 4   | `bin/.devbin/lib/cmd/check:42`                           | `intent critic --languages`             | **any non-zero = `die`**                                                         |
+| 5   | `bin/.devbin/cmd/build.d/release:372`                    | `intent doctor`                         | **any non-zero = `abort`**                                                       |
+| 6   | `bin/.devbin/cmd/build.d/release:632`                    | `intent agents sync`                    | **any non-zero = `abort`**                                                       |
+| 7   | `bin/.devbin/cmd/build.d/release:659`                    | `intent claude upgrade --apply`         | **any non-zero = `abort`**                                                       |
+| 8   | `bin/.devbin/lib/cmd/docs:30`                            | `intent agents sync`                    | non-zero = warn + fail the command                                               |
+| 9   | `bin/.devbin/lib/cmd/docs:80`                            | `intent treeindex <dir>`                | non-zero = warn + fail the command                                               |
+| 10  | `lib/templates/hooks/pre-commit.sh:115`                  | `intent info`                           | captures the code, **prints it, never branches on it**; keys on the parsed VALUE |
+| 11  | `lib/templates/.claude/scripts/post-tool-advisory.sh:73` | `intent critic <lang> --files`          | **reads nothing** -- `\|\| true` and `2>/dev/null`                               |
+
+**The register makes the conflict concrete rather than abstract. Exit `1` currently means, simultaneously:**
+
+- **"block this commit"** (1)
+- **"let this prompt through"** (2)
+- **"abort this release"** (5, 6, 7)
+- **"nothing at all"** (11)
+
+**One producer cannot satisfy all four, and no number can.** That is the same conclusion as the two-table cross-tab above, arrived at from the consumer side and with the population enumerated instead of sampled.
+
+**Three things the sweep turned up that no previous enumeration had.**
+
+- **The release script is a consumer and was on nobody's list.** Three call sites, all `abort`-on-non-zero, and two of them invoke commands v3 does not implement (`agents sync`, `claude upgrade --apply`). **`int build release` refuses outright with v3 on PATH** -- loudly and correctly, but it means the release path is coupled to the exit surface and nobody had said so.
+- **`doctor` is consumed by an `abort` and returns `1` for a RESULT.** It exits 1 when it finds findings, prints no `error:` line at all, and reports an unmigrated project as one of its findings. Consumer 5 therefore aborts a release in an unmigrated project, which is correct -- **and it is correct by coincidence, because the same 1 would arrive from a usage error.**
+- **Consumer 11's `|| true` was written for exactly today.** Its comment says so: _"`intent critic` lands in ST0035/WP05. If the subcommand isn't present yet, the `|| true` swallows failure."_ A correct forward-compat hedge at the time; under v3 it means the advisory is **permanently silent with no indication**, and `2>/dev/null` will keep hiding real errors after `critic` is built. **The hedge outlived the condition it hedged against, which is the supersession-not-propagated class again.**
+
+**Consumers 4 and 10 already carry the reasoning in their own comments** -- both name a v3 binary shadowing v2 as the known trigger and cite 0036/0042 -- so two of the eleven have been thought about properly, by dc, and the other nine have not.
+
+**This register belongs beside the constants in `spine.rs`** (0044's Proposed Fix 3, cc's). **A consumer whose policy is not written next to the codes it consumes is a consumer that will be diagnosed against last time's bug.**
+
 ## Proposed Fix
 
 **The polarity conflict is structural and cannot be fixed by choosing a better number.** Two directions, and the choice belongs to hv.
