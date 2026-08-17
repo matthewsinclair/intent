@@ -370,6 +370,10 @@ Two of those were caused by vc adding ACs to a closed WP: **`wp done` exists and
 - **Every transition names a verb**, reachable from every surface (D32).
 - **Guards are declared, not implied** -- eg `Completed` requires a gate PASS.
 - **Direct vs Incidental** (cc, 2026-08-15): an edge that exists only as a side effect of changing a different field counts for reachability and **never discharges a trap**.
+- **SELF-LOOPS ARE LEGAL, AND THEY ARE ACCEPTED-AND-REPORTED AT EXIT 0 WITHOUT RE-RUNNING THE GUARD** -- RATIFIED (hv, 2026-08-17, on vc's recommendation; applies to all four machines at once). Asking a verb for the state an entity is already in is not a movement, so it is not a transition to declare and not an illegal one to refuse. **This CHANGES Machines 1-3 as previously ratified**, which refused a self-loop as `IllegalTransition`, and it brings v3 back to v2's measured behaviour: `intent issues close` on a closed issue returns 0 with `already CLOSED`.
+  - **"Without re-running the guard" is the load-bearing half, not a performance note.** `Completed` requires a gate PASS. Re-running the gate on `st done` against an already-completed thread would let a criterion added AFTER the close BLOCK a thread that is legitimately finished -- which is precisely the live inconsistency recorded below, where AC-04.6 was added under closed units on hv's D32. **A self-loop must not be able to fail for a reason that did not exist when the state was entered.**
+  - **The exit code follows from that**: refusing self-loops makes every idempotent script a special case, and idempotence is the property callers actually want from `done` / `close`.
+  - **This does NOT license the 0046 class, and the distinction is exact.** `wp start` on a `Wip` work package is a self-loop and is now accepted at 0. `wp start` on a `Done` work package is `Done -> Wip`, an UNDECLARED EDGE belonging to `wp reopen` with `reason recorded` as its guard, and it stays refused. A ruling that self-loops are legal says nothing about movements, and reading it as amnesty for undeclared edges would reintroduce the two-doors defect that issue 0046 is about.
 
 ### Machine 1 -- Steel thread (`ThreadStatus`)
 
@@ -458,6 +462,39 @@ States: `NotStarted` | `Wip` | `Done`. **Entry: `NotStarted`.**
 - **`AcceptanceTest.status`** -- `to-write` / `red` / `green` / `n-a`, entry `to-write`, one verb `at.set` reaching all four. **This is the machine with the most operational subtlety and the least written down**: that `to-write` means the test is UNWRITTEN while `red` means it EXISTS and fails, and that neither means "the criterion is unmet", is enforced by the linter's L2/L3 and recorded on a whiteboard, not here. The graph is trivial and the SEMANTICS are not, which is the opposite shape to `scope` and the reason it is called out rather than merely counted.
 
 **Neither is a gap in `transitions.rs`** -- both are classified, both are closed, and `mutation_completeness.rs` would refuse them if they were not. The gap was this document implying three.
+
+### The four `Unbuilt` fields -- RULED (hv, 2026-08-17, on vc's recommendation)
+
+`transitions.rs` carries four rows dispositioned `Disposition::Unbuilt`: **`Thread.acceptance`, `Criterion.kind`, `AcceptanceTest.kind`, `Issue.status`.** cc measured AC-04.6's second condition and found all four are values authored canon puts there with no verb to move them -- entered and unleaveable. Paying that debt means declaring edges, and declaring edges means declaring machines, which is the same criterion's FIRST condition. **So it was one ruling across four rows, not four calls, and it is the block `intent issues add|close|open` had been standing behind.**
+
+**The ruling is that only ONE of the four is a state machine.** A field that cannot move on its own is not a state variable, it is a **component** of one -- and three of the four cannot move on their own:
+
+| field                 | disposition                                                         |
+| --------------------- | ------------------------------------------------------------------- |
+| `Issue.status`        | **Machine 4**, below                                                |
+| `Criterion.kind`      | folded into **Machine 3** as a `(kind, state)` pair; no new machine |
+| `AcceptanceTest.kind` | folded into the **`AcceptanceTest.status`** machine; no new machine |
+| `Thread.acceptance`   | **immutable after creation**; no machine, no edge                   |
+
+**The pairing is enforced already and that is what settles it.** `model.rs:414-432` carries the `kind`/`state` invariant in the JSON Schema face, held by `tests/ac_kind_state_invariant.rs`: `{kind: test, state: satisfied}` records a satisfaction nothing computed, `{kind: non-test, state: computed}` claims a derivation with nothing to derive. **Flipping `kind` alone is schema-invalid**, so a kind conversion is one act moving two fields, which is a transition of the pair rather than of either field. `AcceptanceTest` has the identical shape -- a `(non-test)` AT is `n/a` by definition and can never be green -- so its `kind` folds into its own status machine the same way. **ic hit this from the register side independently, having no notation for a multi-field atomic move; that gap was diagnostic rather than clerical.**
+
+**`Thread.acceptance` is `Option<AcceptanceMode>` -- `exempt` or absent.** That is an attribute of a thread, not a lifecycle: changing it is AUTHORING, not a transition, and it gets no verb.
+
+**Correction to vc's own shorthand, made here rather than carried into the ratified text.** The recommendation hv adopted said "widen Machine 3 over the (kind, state) pair" for **both** `kind` rows. That is wrong as written: `AcceptanceTest.kind` pairs with `AcceptanceTest.status`, not with the criterion's state. **Each `kind` folds into the machine of the entity that owns it.** The shape of the recommendation is what was ruled; transcribing the shorthand literally would have put `AcceptanceTest.kind` in the wrong machine.
+
+#### Machine 4 -- Issue (`IssueStatus`)
+
+States: `Open` | `Closed`. **Entry: `Open`.** Declared from v2's MEASURED behaviour rather than designed, because `intent issues` is `keep`-classified and v3 reproduces it.
+
+| From     | To       | Verb           | Guard |
+| -------- | -------- | -------------- | ----- |
+| _(none)_ | `Open`   | `issues add`   | --    |
+| `Open`   | `Closed` | `issues close` | --    |
+| `Closed` | `Open`   | `issues open`  | --    |
+
+**No guards, deliberately.** v2 has none, the row is `keep`, and inventing one here would be a parity break wearing a ratification. **Self-loops are accepted at exit 0 per the rule above** -- which is exactly v2's `already CLOSED` behaviour, and the reason the self-loop question had to be settled before this machine could be declared.
+
+**What this discharges.** cc's block on the three `intent issues` mutations is lifted. Three of the four owed mutations become non-mutations: two are pair transitions inside existing machines, and `Thread.acceptance` is owed nothing at all. **AC-04.6's `Unbuilt` rows are re-dispositioned accordingly rather than built as four new machines**, which is materially less surface than the row implied.
 
 ### What this gives cc's `transitions.rs`
 
