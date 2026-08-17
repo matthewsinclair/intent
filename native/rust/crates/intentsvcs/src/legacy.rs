@@ -281,6 +281,36 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     // lands in, so it is read first and a thread whose status cannot be read
     // is treated as LIVE -- the conservative direction, because guessing
     // "closed" would silently carry rows that should have blocked.
+    //
+    // **ABSENT AND UNREADABLE ARE TWO FINDINGS, and this site was the last one
+    // saying they are one.** The work-package reader twenty lines down already
+    // draws it -- `FieldNotRecorded` for a file that predates the convention,
+    // `UnknownStatus` for a value v2 read as free text -- and it draws it
+    // because 79 work packages fleet-wide have no `status:` line at all. Here,
+    // an absent status was reported as `thread status "" is not in the v2
+    // vocabulary`: a sentence that sends the operator to fix a vocabulary
+    // problem that does not exist, on the arm that BLOCKS.
+    //
+    // **MEASURED, and the two arms have very different populations** (fleet
+    // working trees, 2026-08-17, 715 threads). ABSENT: zero -- every thread in
+    // the fleet carries a `status:` line, so the wording fixed here corrects no
+    // live estate and is not claimed to. **UNREADABLE: two** -- `SUPERSEDED` in
+    // Laksa and `DESCOPED` in Lamplight, both sitting in a `COMPLETED/` bucket
+    // whose name the migrator deliberately does not trust.
+    //
+    // So the arm nobody can reach today is the one being reworded, and the arm
+    // that IS reached is what makes the pair worth having: both land on the same
+    // unknowable-`closed` path, and a thread whose status cannot be read is a
+    // thread whose rows must not be carried on the strength of its directory.
+    // The absent arm is here because it is one decision applied to the second of
+    // two callers, and because the state is demonstrably reachable in this data
+    // model -- 79 times, for the sibling entity, in the same frontmatter.
+    //
+    // **The POLICY does not move, only the diagnosis.** Both arms still block,
+    // and they must: the thread's status is what decides `closed`, so a thread
+    // that cannot say whether it is closed cannot have the carry policy applied
+    // to it at all. Blocking a live thread until it is clean is hv's ruling;
+    // guessing "closed" here would silently carry every row underneath it.
     let raw_status = front.get("status").cloned().unwrap_or_default();
     let status = thread_status(&raw_status);
     let closed = matches!(
@@ -288,11 +318,18 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       Some(ThreadStatus::Completed | ThreadStatus::Cancelled)
     );
     if status.is_none() {
-      out.block(Finding::new(
-        &rel,
-        FindingClass::UnknownStatus,
-        format!("thread status {raw_status:?} is not in the v2 vocabulary"),
-      ));
+      let (class, detail) = if raw_status.trim().is_empty() {
+        (
+          FindingClass::FieldNotRecorded,
+          "no thread status was ever recorded: this file carries no `status:` line".to_string(),
+        )
+      } else {
+        (
+          FindingClass::UnknownStatus,
+          format!("thread status {raw_status:?} is not in the v2 vocabulary"),
+        )
+      };
+      out.block(Finding::new(&rel, class, detail));
     }
 
     if let Some(line) = conflict_marker_line(&text) {
@@ -515,29 +552,50 @@ fn retired_settings(project: &Project, out: &mut Scan) {
 /// a migrator that confused the two would report residue against data v2
 /// considered perfectly well-formed.
 fn thread_status(raw: &str) -> Option<ThreadStatus> {
-  match raw.trim().to_ascii_lowercase().as_str() {
-    "wip" | "in progress" | "inprogress" | "in-progress" => Some(ThreadStatus::Wip),
+  match token(raw).as_str() {
+    "wip" | "inprogress" => Some(ThreadStatus::Wip),
     // **TBC maps to NotStarted, NEVER to Triage** (migration.md, ratified).
     // In v2, TBC abbreviates "To Be Commenced" -- `bin/intent_st:46` spells it
     // out in the tool's own usage text. `Triage` reuses the three letters and
     // not the meaning, so mapping to it would invent a triage decision nobody
     // made, for every thread that ever carried the token.
-    "not started" | "notstarted" | "not-started" | "tbc" | "to be commenced" => {
-      Some(ThreadStatus::NotStarted)
-    }
+    "notstarted" | "tbc" | "tobecommenced" => Some(ThreadStatus::NotStarted),
     "completed" | "complete" | "done" => Some(ThreadStatus::Completed),
     "cancelled" | "canceled" => Some(ThreadStatus::Cancelled),
-    "on hold" | "onhold" | "on-hold" | "hold" => Some(ThreadStatus::Hold),
+    "onhold" | "hold" => Some(ThreadStatus::Hold),
     _ => None,
   }
 }
 
+/// **ONE normaliser, every v2 free-text vocabulary, and the separator family is
+/// CLOSED rather than enumerated.**
+///
+/// `scope` already folded ` `, `-` and `_` away before parsing; the two status
+/// tables matched literals instead, and spelled out the space and hyphen forms
+/// but not the underscore. So one file accepted `not started` and `not-started`
+/// and rejected `not_started` -- **and nothing about the field made underscore
+/// the odd one out**, which is why adding an arm for it would have been the
+/// wrong fix: it leaves two rules different in one file and the next spelling
+/// finds the same crack.
+///
+/// **Measured across the whole fleet before moving anything** (working trees,
+/// 2026-08-17): threads carry NO underscore spelling at all, so that caller is
+/// pure hygiene with zero behaviour change; work packages carry `NOT_STARTED`
+/// **13 times -- Lamplight 10 and Laksa 3**, and vc's fleet corpus reports 10
+/// because Laksa is not in it. Both figures are right for their subject.
+/// **All 13 sit in Completed threads**, so this changes nothing about what
+/// blocks: it moves 13 rows from "carried with a finding" to "read correctly".
+///
+/// Folding rather than listing also shortens the tables -- `not started`,
+/// `notstarted` and `not-started` were three literals for one token.
+fn token(raw: &str) -> String {
+  raw.trim().to_ascii_lowercase().replace([' ', '-', '_'], "")
+}
+
 fn wp_status(raw: &str) -> Option<WpStatus> {
-  match raw.trim().to_ascii_lowercase().as_str() {
-    "wip" | "in progress" | "inprogress" | "in-progress" => Some(WpStatus::Wip),
-    "not started" | "notstarted" | "not-started" | "tbc" | "to be commenced" => {
-      Some(WpStatus::NotStarted)
-    }
+  match token(raw).as_str() {
+    "wip" | "inprogress" => Some(WpStatus::Wip),
+    "notstarted" | "tbc" | "tobecommenced" => Some(WpStatus::NotStarted),
     "done" | "complete" | "completed" => Some(WpStatus::Done),
     _ => None,
   }
@@ -564,7 +622,7 @@ fn wp_status(raw: &str) -> Option<WpStatus> {
 /// update one and leave the other -- and the copy that gets left is the ingest
 /// one, because nothing an operator types exercises it.
 fn scope(raw: &str) -> Option<TShirt> {
-  let normalised = raw.trim().to_ascii_lowercase().replace([' ', '-', '_'], "");
+  let normalised = token(raw);
   let v2_long_form = match normalised.as_str() {
     "extrasmall" => Some(TShirt::XS),
     "small" => Some(TShirt::S),
