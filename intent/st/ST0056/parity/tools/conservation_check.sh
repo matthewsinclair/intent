@@ -81,7 +81,7 @@ while [ $# -gt 0 ]; do
 done
 
 [ -n "$CENSUS" ] && [ -n "$MIGRATED" ] ||
-  die "usage: conservation_check.sh <census.tsv> <migrated-root> [--out-of-model <file>]"
+  die "usage: conservation_check.sh <census.tsv> <migrated-project-root> [--out-of-model <file>]"
 [ -f "$CENSUS" ] || die "no such census: $CENSUS"
 [ -d "$MIGRATED" ] || die "no such migrated root: $MIGRATED"
 command -v jq >/dev/null 2>&1 || die "jq is required to read the canon"
@@ -110,9 +110,27 @@ esac
 # The canon root. `st/<ID>/thread.json` and `issues/<n>.json` are data-model.md's
 # canonical paths; a tree with neither has not been migrated, and saying so is
 # the whole difference between a refusal and a green.
-CANON="$MIGRATED"
-[ -d "$CANON/st" ] ||
-  die "$MIGRATED holds no st/ canon -- this is an UNMIGRATED tree, and a check that cannot see its subject does not pass it"
+# THE ARGUMENT IS A PROJECT ROOT -- the same kind of directory `estate_corpus.sh`
+# captures and `estate_census.sh` reads. It did not used to be. `CANON` was the
+# argument verbatim, so this tool alone among the three wanted the INTENT DIR,
+# and on the first run against a real migrated tree its author passed the project
+# root and got `holds no st/ canon` -- a REFUSAL, correctly worded, about a tree
+# that had just been migrated successfully. One identifier, two subjects, in the
+# session spent naming exactly that.
+#
+# Both spellings are accepted and **the resolution is PRINTED on every run**,
+# because the two are distinguishable by structure and a silent choice between
+# them is how the wrong tree gets measured without anyone finding out. Neither
+# present is still a refusal: that arm is what stops an unmigrated tree passing.
+if [ -d "$MIGRATED/intent/st" ]; then
+  CANON="$MIGRATED/intent"
+  echo "conservation: canon at $CANON (argument read as a project root)"
+elif [ -d "$MIGRATED/st" ]; then
+  CANON="$MIGRATED"
+  echo "conservation: canon at $CANON (argument read as an intent dir)"
+else
+  die "$MIGRATED holds no st/ canon at either $MIGRATED/intent/st or $MIGRATED/st -- this is an UNMIGRATED tree, and a check that cannot see its subject does not pass it"
+fi
 
 WORK="$(mktemp -d)" || die "cannot create a scratch directory"
 trap 'rm -rf "$WORK"' EXIT
@@ -316,8 +334,61 @@ compare_prose() {
   fi
 }
 
-c_ok=0 c_lost=0 c_norm=0
+# EVERY CENSUS PROSE KIND IS DECLARED HERE, COMPARED OR NOT, WITH A REASON.
+#
+# THIS EXISTS BECAUSE THE ARMS BELOW ENDED IN `[ "$kind" = thread ] || continue`,
+# which is a SILENT DROP. On the first run against a real migrated tree it
+# swallowed 509 of 2289 census rows -- every `criterion` and every `test` -- and
+# the summary line published `conserved 820, normalised 259, without a
+# destination 701` with no denominator, so nothing in the output was false and
+# nothing in it said that 22% of the census had not been looked at. It took
+# subtracting three printed numbers from a fourth printed elsewhere to see it.
+#
+# **This is the second time in one session, the same defect one layer over.** The
+# first cut of this arm compared threads only while counting 974 WP and 503 issue
+# sections it never opened; that was fixed by adding two arms. Adding arms does
+# not close the class, because the class is that the loop can grow a kind it has
+# no arm for and say nothing. A table that must name every kind does close it:
+# an unknown kind now REFUSES rather than passing through, so the next kind
+# anyone adds to the census cannot be silently uncompared.
+#
+# `criterion` and `test` are DECLARED-UNCOMPARED rather than quietly missing, and
+# the reason is real. The census records the whole authored ROW (table pipes and
+# all); canon holds the AC's `text` and the AT's `note` as fields, so there is no
+# byte on either side that is the same byte on the other, and comparing them
+# needs the census to hash the text CELL as well as the row. That is a change to
+# two instruments and a re-census of four members, which is not tonight's work
+# under the hold. **Their identity IS checked** -- LOST-ac and LOST-at ran clean,
+# so all 281 criteria and 228 tests survive by id. What is unchecked is their
+# INTERIOR, which is exactly the axis dc's synthesis says a check must not be
+# silent about. So it says it, on every run, in the summary.
+prose_kind_disposition() {
+  case "$1" in
+    thread | wp | issue) echo compared ;;
+    criterion) echo "uncompared:census hashes the whole AC row, canon holds .criteria[].text -- no common bytes; identity covered by LOST-ac" ;;
+    test) echo "uncompared:census hashes the whole AT row, canon holds .tests[].note -- no common bytes; identity covered by LOST-at" ;;
+    *) echo unknown ;;
+  esac
+}
+
+c_ok=0 c_lost=0 c_norm=0 c_seen=0 c_declared=0
+declared_kinds=""
 while IFS=$'\t' read -r _ kind id section bytes sha trim; do
+  c_seen=$((c_seen + 1))
+  disp="$(prose_kind_disposition "$kind")"
+  case "$disp" in
+    unknown)
+      die "census PROSE kind '$kind' is in no arm and in no declaration -- it would have been dropped silently, which is the one outcome this table exists to make impossible; add it to prose_kind_disposition()"
+      ;;
+    uncompared:*)
+      c_declared=$((c_declared + 1))
+      case "$declared_kinds" in
+        *" $kind:"*) : ;;
+        *) declared_kinds="$declared_kinds $kind:${disp#uncompared:}" ;;
+      esac
+      continue
+      ;;
+  esac
   # THE PREAMBLE HAS NO DESTINATION IN ANY OF THE THREE ARMS, so it is reported
   # once here rather than falling through each of them. In the WP and issue arms
   # it would otherwise be looked for as a `## (preamble)` heading inside a body,
@@ -364,7 +435,11 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
     continue
   fi
 
-  [ "$kind" = thread ] || continue
+  # `thread` is the only kind the table routes here. A kind reaching this line
+  # that is not `thread` means the table and the arms have drifted apart, which
+  # is the silent drop rebuilt, so it refuses rather than continuing.
+  [ "$kind" = thread ] ||
+    die "kind '$kind' is declared compared but reached no arm -- prose_kind_disposition() and the arms above have drifted apart"
   st="$id"
   j="$CANON/st/$st/thread.json"
   [ -f "$j" ] || continue
@@ -441,6 +516,21 @@ echo "conservation: $n_census estate file(s) -- converted $a_conv, relocated $a_
 # SECOND zero and the arithmetic dies on "0\n0". The log is created up front, so
 # swallowing the exit is all that is needed.
 c_alt="$(grep -c '^ALTERED-PROSE ' "$WORK/log" || true)"
+# THE DENOMINATOR IS PRINTED WITH THE NUMERATORS, AND THE TWO ARE RECONCILED.
+#
+# SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE -- a rule this file's author
+# has been applying to other people's work all week while this line published
+# four counts against no total. Every one of them was true. Together they covered
+# 1780 of 2289 rows and nothing said so.
+#
+# The equality is the point, not the print: `compared + declared-uncompared` must
+# equal the rows READ, or some row took a path that counts it nowhere. An
+# equality refuses the documentation fix as well as the code fix, and only one of
+# those is ever what you wanted.
+c_acct=$((c_ok + c_norm + c_lost + c_alt + c_declared))
+[ "$c_acct" -eq "$c_seen" ] ||
+  die "prose accounting does not reconcile: $c_seen census row(s) read, $c_acct dispositioned (ok $c_ok, normalised $c_norm, lost $c_lost, altered $c_alt, declared-uncompared $c_declared) -- the difference went somewhere this tool cannot name"
 echo "conservation: prose -- ALTERED $c_alt (the number that means loss), ADDED $c_added (the number that means accretion), conserved byte-identical $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
+echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census section(s); NOT compared $c_declared, declared:${declared_kinds:- none}"
 echo "conservation: $findings finding(s)"
 [ "$findings" -eq 0 ]
