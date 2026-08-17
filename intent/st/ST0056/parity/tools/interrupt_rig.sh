@@ -46,7 +46,7 @@
 # and kills it. Today the command does not exist and this refuses; the day it is
 # wired, this runs unchanged.
 #
-# WHY THE KILL LANDS ON A MEASURED THRESHOLD AND NEVER ON A DELAY.
+# WHY THE KILL WAITS ON A MEASURED SENTINEL AND NEVER ON A DELAY OR A COUNT.
 # The first version of this used guessed delays and wrote ZERO files at 12.8ms,
 # because harness process startup outlasts every delay worth guessing. dc's
 # sharpening is why it matters more than it looks: A KILL THAT LANDS TOO EARLY
@@ -54,10 +54,18 @@
 # WITHOUT HAVING INTERRUPTED ANYTHING. The failure mode of this rig is a false
 # GREEN, so every way it can be vacuous refuses instead.
 #
-# The threshold is a FACT ABOUT THE WORKLOAD rather than a guess about timing:
-# the clean run in tree A happens first and its file delta is counted, so the
-# kill in tree B fires at a fraction of a number that was measured minutes ago
-# on the same estate and the same binary.
+# Counting files replaced the delay and was ALSO measured failing, for a reason
+# that is a property of the thing under test rather than of the loop: the writes
+# are a 73ms burst at the end of a 134ms run, because nothing lands until
+# `WriteSet::commit()` -- the same design that makes AC-10.2 structural. A `find`
+# over the tree costs ~20ms, so a counting poll sees the whole window three or
+# four times and the kill arrives after the process has exited.
+#
+# So the sentinel is a PATH taken from the clean arm's observed write order, and
+# waiting on it is a single `test -e`. A delay is a guess about someone else's
+# timing; a COUNT is a guess about how fast you can observe them. **A sentinel is
+# a fact about their progress** -- and the file is chosen at a measured depth of
+# the same workload, so "kill it late" is something this can actually do.
 #
 # Exit codes follow the family: 0 clean, 1 a finding, 2 cannot measure.
 #
@@ -276,6 +284,11 @@ say "estate: $BASE_N files, two identical copies"
 # ---------------------------------------------------------------------------
 
 say "arm A: clean run"
+# A marker stamped immediately before the run, so "files this migration wrote"
+# is decided by a clock reading rather than by the template directory's own
+# mtime -- `cp -R` does not preserve times, so every copied file is newer than
+# the thing it was copied from and `-newer $TEMPLATE` would match all of them.
+touch "$WORKDIR/.arm-a-start"
 ( cd "$A" && eval "$MIGRATE_CMD" ) >"$WORKDIR/a.log" 2>&1
 A_STATUS=$?
 A_N="$(count_files "$A")"
@@ -293,9 +306,17 @@ if [ "$A_STATUS" -ne 0 ]; then
   die "a clean run that fails is not a baseline; there is nothing to compare against"
 fi
 
-# THE KILL THRESHOLD IS A FRACTION OF THIS NUMBER, so a clean run that adds no
-# files leaves nothing to fire on. Framed as what it is -- this rig cannot do its
-# job -- rather than as a verdict on the migration.
+# THE SENTINEL IS CHOSEN FROM THIS SET, so a clean run that adds no files leaves
+# nothing to wait for. Framed as what it is -- this rig cannot do its job --
+# rather than as a verdict on the migration.
+#
+# **A BLOCKED MIGRATION LANDS HERE, AND THAT IS THE RIGHT PLACE FOR IT TO LAND.**
+# `plan()` returns an uncommitted `WriteSet`, so a refusal writes nothing at all
+# -- measured on Lamplight, which blocked on 15 residue findings across 3 live
+# threads and left 5613 of 5613 files byte-identical to the pin. That estate has
+# no delta by construction, so the interruption property is untestable on it and
+# this says so rather than reporting a pass or a fault. Two results, not one:
+# AC-10.1's refusal arm exercised, AC-10.2's interruption arm not applicable.
 #
 # "DID THE MIGRATION CHANGE ANYTHING AT ALL" IS DELIBERATELY NOT ASKED HERE. It
 # is dc's, in `same_end_state_check.sh`, derived from the comparison already in
@@ -309,10 +330,57 @@ fi
 
 say "arm A: wrote $A_DELTA files ($BASE_N -> $A_N)"
 
-THRESHOLD=$((BASE_N + (A_DELTA * FRACTION / 100)))
-[ "$THRESHOLD" -gt "$BASE_N" ] ||
-  die "the kill threshold computed to the starting file count -- $A_DELTA files at ${FRACTION}% rounds to zero, so the kill could only land before any write"
-say "kill threshold: $THRESHOLD files (${FRACTION}% of the measured delta)"
+# ---------------------------------------------------------------------------
+# The sentinel: WHICH file, chosen from the clean run's observed write order.
+# ---------------------------------------------------------------------------
+#
+# COUNTING FILES CANNOT LAND A KILL HERE, AND THE REASON IS THE ATOMICITY DESIGN
+# RATHER THAN A SLOW LOOP. Measured 2026-08-17 against the real migrator on the
+# canary: the whole run is 134ms and the WRITE BURST IS 73ms of it -- 295 files.
+# Nothing is written until `WriteSet::commit()`, which is precisely what makes
+# AC-10.2 structural, and the consequence is that the file count goes from zero
+# to complete in under a tenth of a second. A poll loop doing `find` over a
+# 1372-file tree costs ~20ms an iteration, so it gets three or four looks at the
+# entire window and the kill lands after the process has already exited. Both
+# `--fraction 90` and `--fraction 50` raced every time and refused, correctly.
+#
+# SO THE SENTINEL IS A PATH, NOT A COUNT, AND THE PATH IS MEASURED. The clean arm
+# ran first, so its files can be sorted by modification time -- APFS records
+# fractional seconds, which is ample resolution across a 73ms burst -- and the
+# file at the requested percentile of that order becomes the thing arm B waits
+# for. Waiting is then a single `test -e`, microseconds rather than milliseconds,
+# so the poll is faster than the burst instead of slower than it.
+#
+# THIS IS NOT THE GUESSED DELAY THIS FILE WARNS ABOUT, and the distinction is the
+# whole point. The first version of this rig slept for a guessed interval from
+# process launch and wrote ZERO files at 12.8ms, because startup outlasted every
+# delay worth guessing. A delay is a guess about someone else's timing. **A
+# sentinel is a fact about their progress**: this waits for a specific file that
+# the same migrator wrote at a known depth of the same workload, and if that file
+# never appears the poll times out and refuses rather than killing blind.
+say "deriving the kill sentinel from the clean run's write order"
+
+SENTINEL_REL="$(
+  cd "$A" || exit 1
+  find . -type f -newer "$WORKDIR/.arm-a-start" -exec stat -f '%Fm %N' {} + 2>/dev/null |
+    sort -n |
+    awk -v frac="$FRACTION" '
+      { path[NR] = $2 }
+      END {
+        if (NR == 0) exit 1
+        i = int(NR * frac / 100)
+        if (i < 1) i = 1
+        if (i > NR) i = NR
+        print path[i]
+      }'
+)"
+
+[ -n "$SENTINEL_REL" ] ||
+  die "could not order the clean run's writes by mtime, so there is no measured point at which to kill. Without an ordering the only options are a guessed delay or a count, and both have been measured failing on this workload."
+[ -f "$A/$SENTINEL_REL" ] ||
+  die "the chosen sentinel $SENTINEL_REL is not a file in the clean tree -- the mtime ordering produced a path that does not exist"
+
+say "kill sentinel: ${SENTINEL_REL#./} (at ${FRACTION}% of $A_DELTA writes by observed order)"
 
 # ---------------------------------------------------------------------------
 # Arm B: kill it for real, then re-run.
@@ -322,41 +390,62 @@ say "arm B: starting the migration to interrupt it"
 ( cd "$B" && eval "$MIGRATE_CMD" ) >"$WORKDIR/b1.log" 2>&1 &
 CHILD=$!
 
-# Bounded, because an unbounded poll on a tree walk is how a previous version of
-# this spent seven minutes walking 400k paths before a timeout killed it.
-POLL_LIMIT=6000   # 6000 * 0.01s = 60s
-polls=0
+# A TIGHT SPIN WITH NO SLEEP, because the window is 73ms and any sleep worth
+# writing is a large fraction of it. The body is one `test -e` -- a single stat,
+# microseconds -- so this polls far faster than the burst writes, which is the
+# whole reason the sentinel is a path and not a count.
+#
+# Bounded anyway: an unbounded poll is how a previous version spent seven minutes
+# walking 400k paths before a timeout killed it. The bound here is wall-clock
+# rather than an iteration count, because iterations are now far too cheap to
+# reason about as a duration.
+POLL_DEADLINE=$(( $(date +%s) + 120 ))
 killed=0
 at_kill=0
 
-while [ "$polls" -lt "$POLL_LIMIT" ]; do
-  if ! kill -0 "$CHILD" 2>/dev/null; then break; fi
-  n="$(count_files "$B")"
-  if [ "$n" -ge "$THRESHOLD" ]; then
-    at_kill="$n"
+while :; do
+  if [ -e "$B/$SENTINEL_REL" ]; then
     kill -9 "$CHILD" 2>/dev/null
     killed=1
+    at_kill="$(count_files "$B")"
     break
   fi
-  polls=$((polls + 1))
-  sleep 0.01
+  if ! kill -0 "$CHILD" 2>/dev/null; then break; fi
+  if [ "$(date +%s)" -ge "$POLL_DEADLINE" ]; then break; fi
 done
 
 wait "$CHILD" 2>/dev/null
 B1_STATUS=$?
 
 if [ "$killed" -eq 0 ]; then
-  if [ "$polls" -ge "$POLL_LIMIT" ]; then
-    die "the migration ran for 60s without reaching $THRESHOLD files -- cannot interrupt what will not get there"
+  if [ "$(date +%s)" -ge "$POLL_DEADLINE" ]; then
+    die "the migration ran for 120s without ever writing $SENTINEL_REL -- cannot interrupt at a point the run does not reach. The sentinel came from the clean arm, so this means the two runs diverged."
   fi
-  # THE ARM IS VACUOUS AND SAYS SO. The process finished before the threshold,
-  # so nothing was interrupted; a re-run over a COMPLETE tree matching a clean
-  # run measures idempotence, which is a different and easier property.
-  die "the migration finished before the kill threshold -- this arm interrupted NOTHING, and a re-run over a complete tree would report IDENTICAL without testing interruption. Raise --fraction, or use a larger estate."
+  # THE ARM IS VACUOUS AND SAYS SO. The process finished without the sentinel
+  # ever appearing, so nothing was interrupted; a re-run over a COMPLETE tree
+  # matching a clean run measures idempotence, which is a different and easier
+  # property than the one this gate is about.
+  die "the migration finished without ever writing the sentinel $SENTINEL_REL -- this arm interrupted NOTHING, and a re-run over a complete tree would report IDENTICAL without testing interruption. The clean arm wrote that file, so the runs are not doing the same work."
 fi
 
 # 128 + SIGKILL(9). A child that exited some other way was not killed by this
 # rig, and the interruption it did suffer is not the one being reported.
+#
+# THE `got 0` CASE IS A RACE AND ITS REMEDY IS THE OPPOSITE OF THE ONE ABOVE, so
+# the two are separated rather than sharing a message. The threshold was reached
+# and the kill was issued, but the migration finished in the interval between
+# counting and signalling. Measured 2026-08-17 against the real migrator on the
+# canary: 295 files at `--fraction 90` raced every time, because the writes land
+# in a burst far faster than a `find` over a 1372-file tree can be walked, so
+# 90% of the delta is already the last instant of the run.
+#
+# **This is the arm that would otherwise produce the most convincing false
+# green**: an uninterrupted migration, a re-run over a complete tree, and an
+# IDENTICAL from a comparator doing its job perfectly. Only the exit status
+# distinguishes it, which is why the check is on the status and not on the tree.
+if [ "$B1_STATUS" -eq 0 ]; then
+  die "the kill was issued at $at_kill files but the migration had already finished -- exit 0, not 137. The threshold is too late for how fast this migrator writes: it reached ${FRACTION}% of the delta and completed before the signal landed. LOWER --fraction (try half of what you used); do not raise it. Nothing was interrupted, so a re-run here would report IDENTICAL over an uninterrupted migration."
+fi
 if [ "$B1_STATUS" -ne 137 ]; then
   die "expected the interrupted run to exit 137 (SIGKILL), got $B1_STATUS -- the kill did not land, so this arm's interruption is not the one it claims"
 fi
