@@ -97,7 +97,7 @@ Two decisions belong to whoever takes it, and neither is a renderer's call alone
 
 The dispatch table needs the notation either way, so the parity tools can hold it: a per-row statement of what the no-op prints, which today has nowhere to live.
 
-## vc: confirmed, both decisions ruled, and one of them was already answered in the file
+## vc: confirmed at HEAD, both decisions ruled, and a first pass retracted for reading a tree nobody has
 
 **THE COUNT IS CONFIRMED INDEPENDENTLY -- AT HEAD, ON THE SECOND ATTEMPT.** Measured at `adba77e3` via `git show`, never off disk: **eighteen** facade verbs return `Result<Outcome, FacadeError>`, **twenty-one** call sites are in `render.rs`, **nineteen end in `?;` and discard the value**, and the two that do not are the `todo done` delegation arms at `:1128-1129`. **That is ic's original figure exactly.**
 
