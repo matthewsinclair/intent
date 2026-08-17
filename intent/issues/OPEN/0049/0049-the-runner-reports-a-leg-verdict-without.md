@@ -81,7 +81,20 @@ A false regression reached the hypervisor and was escalated to two building node
 
 Two parts, and **the first matters more than the one this issue was originally filed about.**
 
-**1. Name the referent, so the verdict cannot decay.** At `open_run_log`, stamp into the log what is being measured: `git rev-parse HEAD` plus the list of dirty paths. A verdict that says `rust FAILED @ 78a12dce +9 dirty` is readable a week later; `FAILED: rust` is readable only while the tree holds still.
+**1. Name the referent, so the verdict cannot decay.** Report what is being measured -- `git rev-parse HEAD` plus the dirty path list. A verdict that says `measured: 78a12dce +9 dirty` is readable a week later; `FAILED: rust` is readable only while the tree holds still.
+
+**CORRECTED BY dc, 2026-08-17, and the correction is load-bearing. This originally said "stamp it into the log", which is ambiguous in the one direction that breaks the subsystem: IT CANNOT GO IN THE SEAL.** `write_errors_file` truncates `.errors` to empty on `rc -eq 0` (`runlog:210`), and the file says so itself twenty lines later -- _"An empty companion means 'completed green run' to every reader of this seal"_ (`:227`). A sha written there makes **every green run read as red**. Verified from source, not taken on report.
+
+**The right home is `print_run_verdict` (`:718`), and the reason is what actually failed today.** hv read `FAILED: rust` in a SUMMARY and had no way to know the tree was dirty; information reachable only by opening the log arrives after the reader already distrusts the verdict, which is too late to be the thing that creates the distrust. `print_run_verdict` fires on every kept run, single or aggregated, and already has rc, log and errors in hand:
+
+```
+verdict:  /Users/matts/.../20260817-1146.RUST.errors
+measured: b2173b1b +9 dirty -- THIS VERDICT DESCRIBES NO COMMIT
+```
+
+**It must print on GREEN runs too**, as a plain unadorned `measured: b2173b1b` with no warning voice, so the dirty line stands out by being unusual rather than by shouting. There is already precedent for exactly that in the same function: the `verdict:` line is emitted whenever `keep=1`, independent of rc, so a `measured:` line beside it is an addition to a block that already fires on green, not a new behaviour.
+
+**dc's second finding, which belongs here because it is why this location is worth more than it looks.** `DEVBIN_SEAL_LEDGER` is exported only inside `run_all` (`resolve:441`, unset at `:495`) and `record_seal` early-returns without it (`runlog:762`), so **the rc-versus-seal disagreement check fires only on `<cmd> all`** -- a single-gate run gets no check at all. Devbin's own open issue 0015 is a completed run that sealed in-flight, and its invocation was a single gate. **The one recorded upstream instance is on the path that check does not cover.** Putting the referent and the disagreement predicate together in `print_run_verdict` covers it, and makes one coherent change rather than two bolt-ons.
 
 This is the more fundamental defect, and it was found the hard way while filing this issue: vc reported "HEAD is green" to a peer, correctly, and the sentence was false forty minutes later because HEAD had moved -- a fact a second node hit independently in the same window and reported against their own measurement. **`HEAD` is a pointer, so a claim about HEAD is a claim about whatever it points at when read, not when written.** The runner has exactly the same bug in the same shape: a leg name is a pointer at a tree. Stamping the sha costs one subprocess at run start and converts every verdict from perishable to durable.
 
