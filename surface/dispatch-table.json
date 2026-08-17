@@ -362,7 +362,7 @@
             "not_a_rename": "`Triage` REUSES THE LETTERS OF v2's `TBC` AND NOT ITS MEANING, which is why a parity row matching on the string would be comparing two different things. v2's `TBC` means To Be Commenced -- `bin/intent_helpers:544` maps `tbc` and `to be commenced` to the same stored value `Not Started`, and the tool's own usage at `bin/intent_st:46` says so in words. So every v2 `TBC` migrates to `NotStarted` and `Triage` begins with ZERO legacy members. The display string is `Triage`; `TBC` must not be reused as its abbreviation (see `st list`'s `tbc_trap`).",
             "start_flag_ruled": "RULED by vc, 2026-08-15: **the flag STAYS and performs BOTH declared transitions**, `Triage -> NotStarted -> Wip`. I had flagged it as two edges at once; the measurement reframes it. `-s|--start` is **v2 PARITY, not new surface** (`bin/intent_st:302,381,425`, and in v2's own help as `new [-s|--start] <title>`), and **nothing about the flag changed -- the machine grew a state underneath it.** In v2 `st new` landed at not-started so `-s` was ONE transition; in v3 it enters at `Triage` so the same flag spans two. The triage decision is not skipped: **a user typing `--start` has decided the thread is real work, which IS the triage decision, made explicitly by the same act**, and refusing would ask them to state a conclusion they have already stated.",
             "composition_constraint": "**`st new -s` must COMPOSE `st triage` and `st start`, never construct the thread directly in `Wip`.** Constructing the end state is the obvious implementation and yields two defects at once: a history with no triage event, and an effective `Triage -> Wip` edge **that is not in the ratified machine** -- which either forces AC-04.6 to accept an undeclared edge or drives construction around `transitions.rs`, contradicting D32. The general rule, now in `data-model.md`: **a convenience flag is sugar over declared transitions and never a new edge.** A bundle that cannot be expressed as a sequence of declared transitions is proposing a machine change and goes to hv as one.",
-            "ratified_in": "hv 2026-08-15"
+            "ratified_in": "hv, 2026-08-15, ruling applied at commit 2aec5f62"
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -503,7 +503,7 @@
             "ratification": "hv, 2026-08-15 -- Machine 1 guards every edge into `Cancelled` with `reason recorded`; cc wired the facade at `2aec5f6` and left the flag for this table to declare.",
             "conflict_resolved": "RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.",
             "why_not_as_observed": "This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve.",
-            "ratified_in": "hv 2026-08-15",
+            "ratified_in": "hv, 2026-08-15, ruling applied at commit 2aec5f62",
             "no_op": "`ok: <ID> already Cancelled`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **Self-loops at 0 without `--reason`**, same ordering as `st hold`."
           },
           "disposition": "keep",
@@ -1052,7 +1052,7 @@
             "consequence": "`intent bootstrap` (top level) already exists and means \"first-time setup: create global Intent configuration\". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it.",
             "face": "surviving",
             "never_built": false,
-            "ratified_in": "hv 2026-08-15"
+            "ratified_in": "hv, 2026-08-15, ruling applied at commit c1cca8c4"
           },
           "disposition": "keep",
           "cross_ref": "THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.",

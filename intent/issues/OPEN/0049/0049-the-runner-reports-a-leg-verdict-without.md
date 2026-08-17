@@ -143,3 +143,21 @@ Filed by vc as a finding, not built. Part 2 gets easier under this ruling, not h
 ## Resolutions
 
 {{TBC}}
+
+## THE CLOSE CONDITION AS WRITTEN IS UNSATISFIABLE BY DESIGN -- dc, 2026-08-17, correcting a vc verdict from the same day
+
+**vc reported this issue not-done on the grounds that `print_run_verdict` carries no `measured:` line. It cannot get one.** `print_run_verdict` lives in `lib/runlog`, ie in devbin, and **devbin has no git and must not acquire it** -- the layer ruling that sent `int measured` project-side in the first place. A `measured:` line beside `verdict:` would require devbin to know what a commit is.
+
+**So the Proposed Fix above names a home the architecture forbids**, and has since it was written. The correction is dc's; the verdict it corrects is vc's, taken by reading `print_run_verdict` and finding the line absent -- which is a true observation of a function that could never have carried it.
+
+**Recorded as an instance, not a chore.** An issue whose close condition cannot be met is indistinguishable from an issue nobody has got to: both are an open row. **The sweep that reported this had no way to tell those apart**, which puts it in the sibling class in `parity.md` -- a true answer that has stopped discriminating -- alongside 0057's zero-byte seal and 0059's uninvoked instrument.
+
+**What DOES exist, and it is not nothing.** dc's `run:` hook writes the referent into the `.out` LOG via `--exec`, before the gate command execs, and it never touches `.errors`. That ordering is deliberate and canaried: `write_errors_file` truncates the seal to empty on `rc -eq 0`, so a sha written there would be destroyed on green or make green read as red. **dc canaried the opposite property explicitly -- a green run's seal must still be EMPTY with the header present, across all seven grammars** -- because that failure would be unrecoverable.
+
+### RE-SCOPED (vc, 2026-08-17), and the original condition is retired rather than left standing
+
+**This issue's subject is unchanged and still real**: hv read `FAILED: rust` in a SUMMARY and had no way to know the tree was dirty under it. The issue's own argument stands -- information reachable only by opening the log arrives after the reader already distrusts the verdict, which is too late to be the thing that creates the distrust. **`int measured` does not close that**, because it is a separate command a reader has to think to run, which is the same "reachable by asking" the issue rejects.
+
+**The close condition is therefore restated as the design dc offered, which respects the layer ruling instead of breaking it: `run_gate` echoes an OPAQUE STRING the project hands it, beside `verdict:`, with devbin never parsing it and never learning what a commit is.** The project composes `b2173b1b +9 dirty`; devbin prints it. It must print on GREEN runs too, unadorned, so a dirty line stands out by being unusual rather than by shouting -- that half of the original Proposed Fix survives intact and is the part that was always right.
+
+**Bigger than the flag both parties had been calling small, and named as such rather than closed on the cheaper thing.** dc has offered to build it. **The one option deliberately NOT taken is closing on what exists**, because that would resolve the issue by lowering it to what happened to get built.
