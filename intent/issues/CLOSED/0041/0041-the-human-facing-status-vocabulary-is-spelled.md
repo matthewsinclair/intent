@@ -3,7 +3,7 @@ id: "0041"
 title: the human-facing status vocabulary is spelled twice in two crates -- views.rs writes the committed md and render.rs writes the terminal, and nothing relates them
 date: 2026-08-16
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -78,6 +78,7 @@ The asymmetry makes it worse than a symmetric duplication: **the md views are co
 
 ## Related
 
+- 0047 -- found by running this issue's own canary before closing: the consolidated home is only partly guarded, and renaming the `NotStarted` arm reds neither surface
 - 0040 -- the other finding from the same review; a setting read never, rather than a vocabulary spelled twice
 - `transitions.rs` (MODULES.md) -- the same class of model fact, centralised, and the precedent for the fix
 - `IN-AG-HIGHLANDER-001` -- two divergent copies of one concern, currently identical, with nothing preventing divergence
@@ -85,4 +86,32 @@ The asymmetry makes it worse than a symmetric duplication: **the md views are co
 
 ## Resolutions
 
-{{TBC}}
+### CLOSED 2026-08-17 (vc). The duplication is gone and verified. The canary this issue asked for was MEASURED, holds for some arms and not others, and that residue is filed as 0047 rather than kept here.
+
+Verified against the working tree at HEAD `9361c68a`; `model.rs`, `views.rs` and `render.rs` all confirmed clean first.
+
+**Proposed Fix 1 -- DONE.** `pub fn display(self) -> &'static str` is an inherent method on both enums, in `model.rs`: `ThreadStatus` at `:238` with all six arms, `WpStatus` at `:393` with three. The trade-off this issue recorded rather than decided -- inherent method versus `Display` -- was decided the way it was leaning, and for the reason given: serde writes kebab-case for the wire, these are the words a person reads, and the doc comment now says so in place ("Two vocabularies for two audiences is correct; two copies of one vocabulary is not").
+
+**Proposed Fix 2 -- DONE.** All four private functions are gone: no `status_display` or `wp_status_display` in `views.rs`, no `status` or `wp_status` in `render.rs`. Outside `model.rs` the literal `"Not Started"` does not occur anywhere in either crate's `src`. The thin skin no longer knows something about the model that the model does not export.
+
+**And the part this issue said must not be left behind did not get left behind.** The `views.rs:66-71` rationale moved onto the type: v2's `canonical_status` provenance, and the deliberate `TBC` / `Not Started` divergence recorded as a `corrected` register row rather than a parity break. That was the mechanism named in Root Cause -- one copy holding the reasoning and the other holding only the strings -- and it is closed by the note travelling with the strings.
+
+**Beyond the ask, and correctly.** `is_closed()` moved onto the type in the same change, with its own reason recorded: it was private in `views.rs`, so `doctor` could not ask the question and **would have grown a second copy of the answer**. That is this issue's class caught one move before it happened rather than after.
+
+**Proposed Fix 3, the canary -- MEASURED, AND IT DOES NOT HOLD UNIFORMLY.**
+
+This issue asked for exactly one thing to be proven: "change one arm's string and assert that a single edit reddens both surfaces' tests." Inspection cannot answer it, so it was run -- a `git archive` extract at `9361c68a`, built clean, one arm mutated at a time, each mutation confirmed to have applied before anything was run, and a restored control at the end.
+
+| mutation                          | `cli_end_to_end` (terminal) | `facade_st_wp` (committed md) |
+| --------------------------------- | --------------------------- | ----------------------------- |
+| `ThreadStatus::Wip` -> `ZZ_MUTANT`        | **FAILED, 2 of 19**         | **FAILED, 1 of 10**           |
+| `ThreadStatus::NotStarted` -> `ZZ_MUTANT` | ok, 19 of 19                | ok, 10 of 10                  |
+| control (restored)                        | ok, 19 of 19                | ok, 10 of 10                  |
+
+**On `Wip` the canary works exactly as specified: one edit, both surfaces red.** On `NotStarted` the same edit is invisible to both. The rig is sound -- the control is clean and the `Wip` row proves the harness detects what it is pointed at -- so this is a property of the assertions, not of the measurement.
+
+**This is not a regression introduced by the fix, and it is not what this issue is about.** `facade_st_wp.rs:296` pins the arm NEGATIVELY (`!after.contains("Not Started")`), which any rename satisfies; and `cli_end_to_end.rs:142` records that `st new` now creates in `Triage` rather than `NotStarted` since the machines were ratified, so the assertion at `:786` no longer traverses the arm it appears to pin. **A state-machine ratification silently defanged a display assertion, and the assertion still reads as though it pins the vocabulary.**
+
+That is a distinct defect from the one this issue names -- it is a test that has stopped testing, not a vocabulary spelled twice -- and it has its own mechanism, its own blast radius across other arms, and no dependency on this fix. **Filed as 0047.** Keeping it here would leave a closed Highlander finding as the only record of an open coverage hole.
+
+**So: the defect this issue reports is fixed and proven fixed.** One definition, one home, the reasoning carried with it, and a canary that fires on the arms it can reach.

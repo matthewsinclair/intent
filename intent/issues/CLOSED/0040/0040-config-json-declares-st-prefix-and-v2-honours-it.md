@@ -3,7 +3,7 @@ id: "0040"
 title: config.json declares st_prefix and v2 honours it in six places, but v3 reads the field nowhere -- the id allocator and the legacy scanner both hardcode ST
 date: 2026-08-16
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -155,4 +155,18 @@ Two routes, and the choice belongs to hv because it is a scope call, not a code 
 
 ## Resolutions
 
-{{TBC}}
+### CLOSED 2026-08-17 (vc). hv's retirement ruling is discharged in all three parts, each measured rather than taken on report.
+
+Verified against the working tree at HEAD `9361c68a`, with `project.rs`, `model.rs`, `legacy.rs` and `data-model.md` all confirmed clean beforehand -- peers had uncommitted work elsewhere in the tree, so this names what was actually read.
+
+**Obligation 1 -- DISCHARGED. The field and its default are gone.** `pub st_prefix: String` and `fn default_st_prefix()` are both at zero occurrences in `project.rs`. What stands in their place is `RETIRED_ST_PREFIX_KEY` (`project.rs:190`), the key by the name it has in `config.json`, with the comment recording that there is deliberately no `default_st_prefix()` beside it. A v2 config carrying the field still round-trips: it lands in `extra`, which `project.rs:42` names as "the retirement working rather than" losing data.
+
+**Obligation 2 -- DISCHARGED, AND LANDED STRONGER THAN RULED.** The ruling said the migrator NAMES the field on a non-`ST` value. It BLOCKS. `retired_st_prefix.rs::a_retired_prefix_blocks_the_migration_and_names_the_field` requires exactly one `FindingClass::RetiredSetting` in the residue and asserts the detail carries the field, **the value the operator actually wrote**, and what v3 fixed it to -- and then asserts the remedy says the migration would MISS the artefacts, on the explicit ground that "an operator who reads this as a cosmetic rename will migrate anyway". Five tests, all green in the 2026-08-17 suite.
+
+That upgrade matters and is worth naming. This issue's whole complaint was that an unreadable estate returned `read: 0 thread(s)`, `residue: 0 blocking`, `ok: this estate parses`, exit 0 -- success over nothing. Naming the field in a report the operator might not read would have left that shape intact. Blocking removes it.
+
+**Obligation 3 -- DISCHARGED, and the count was higher than this issue recorded.** `len() == 6`, `starts_with("ST")` and `strip_prefix("ST")` are all at zero in `legacy.rs` and `facade.rs`. The one home is `THREAD_PREFIX` / `THREAD_DIGITS` (`model.rs:53-55`). The doc comment above them records that the id form had been spelled **four** separate times, not the three this issue enumerated, and identifies why the fourth was the dangerous one: `6` is `"ST".len() + 4`, the same fact written a second way **in a place that would not move if the first one did**.
+
+**Ratified.** `data-model.md:43` carries `~~st_prefix~~` struck through with **RETIRED (hv, 2026-08-16, issue 0040)**, and `:46-52` records the reasoning -- including the finding that reframed the issue, that `st_prefix` appears in no ST0056 spec, so the type was behind the design rather than ahead of it.
+
+**The severity call stands and is worth preserving.** Filed `high`, lowered to `medium` on a fleet survey showing all 16 projects use `ST`. The survey removed urgency and not the defect, and the fix shipped anyway. Closing on `medium` after a real fix is the outcome that ranking honestly was supposed to produce.
