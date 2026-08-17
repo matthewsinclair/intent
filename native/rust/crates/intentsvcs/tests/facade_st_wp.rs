@@ -281,6 +281,18 @@ fn an_unknown_thread_is_refused_by_name() {
   }
 }
 
+/// The index tracks a mutation without anyone regenerating it by hand.
+///
+/// **This is a STALENESS check and not a vocabulary one, and saying so is the
+/// point (issue 0047).** The `!contains("Not Started")` arm asserts the index no
+/// longer shows the state the thread passed THROUGH, which is a real property. It
+/// is not evidence that `Not Started` is spelled correctly: a negative assertion
+/// about a string is satisfied by that string not existing, so any rename
+/// satisfies it. vc measured exactly that -- renaming
+/// `ThreadStatus::NotStarted`'s spelling reddened no test in the estate -- and
+/// this assertion is one of the two that read as though it would have caught it.
+/// The spellings are pinned positively in `status_vocabulary.rs`; what is checked
+/// here is regeneration.
 #[test]
 fn views_are_regenerated_by_every_mutation() {
   let fx = Fixture::new();
