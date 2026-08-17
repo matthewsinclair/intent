@@ -137,17 +137,40 @@ slug() {
 dump_sections() {
   local file="$1" kind="$2" id="$3"
   awk -v pfx="$SEC/${2}__$(slug "$3")" '
+    function emit(label, text) {
+      path = pfx "__" (++n) ".sec"
+      printf "%s", text > path
+      close(path)
+      printf "PROSE\t%s\t%s\t%s\t%d\t%s\n", kind, id, label, length(text), path
+    }
     function flush_section() {
       if (name == "") return
-      path = pfx "__" n ".sec"
-      printf "%s", body > path
-      close(path)
-      printf "PROSE\t%s\t%s\t%s\t%d\t%s\n", kind, id, name, length(body), path
+      emit(name, body)
       body = ""
     }
-    /^## / { flush_section(); n++; name = substr($0, 4); next }
-    { if (name != "") body = body $0 "\n" }
-    END { flush_section() }
+    # THE REGION ABOVE THE FIRST `## `, WHICH THIS ENUMERATION COULD NOT SEE UNTIL
+    # cc POINTED AT IT (2026-08-17). `legacy.rs` only starts buffering once it has
+    # met a heading, so a preamble under the `# Title` is in no section, in no
+    # `objective`, and in no `body` -- and a census whose denominator is `## `
+    # sections cannot report it as ALTERED or as without-a-destination either,
+    # because it is not one. **Not a section that failed to convert: a region the
+    # enumeration cannot see**, which is the wrong-zero shape one level down and
+    # inside my own denominator this time.
+    #
+    # Frontmatter is skipped because it is structure, and the `# Title` line
+    # because `title` is a modelled field. What is left is authored prose with no
+    # section and no home, and it is emitted only when it holds something.
+    function flush_preamble() {
+      if (pre_done) return
+      pre_done = 1
+      if (pre ~ /[^ \t\r\n]/) emit("(preamble)", pre)
+    }
+    NR == 1 && $0 == "---" { fm = 1; next }
+    fm && $0 == "---" { fm = 0; next }
+    fm { next }
+    /^## / { flush_preamble(); flush_section(); name = substr($0, 4); next }
+    { if (name != "") body = body $0 "\n"; else if ($0 !~ /^# /) pre = pre $0 "\n" }
+    END { flush_preamble(); flush_section() }
   ' kind="$kind" id="$id" "$file" >>"$RECORDS"
 }
 
