@@ -53,6 +53,21 @@ It asserts that after starting a thread the view says WIP and no longer says Not
 
 **This is the class cc named as their sharpest watch-out on 2026-08-16, arriving in a different material**: a guard can be named for the exact defect it lets through. There it was `exit_codes.rs` asserting `code != 2 || ...` where the first disjunct was always true. Here it is two assertions whose names and shapes describe a pin they no longer apply.
 
+### Mechanism 2 is not confined to this file -- corroborated independently, 2026-08-17
+
+**cc hit the same mechanism in two more test binaries, by a completely different route**: implementing hv's self-loop ruling rather than mutating a display arm. Five tests asserted the retired behaviour and **three of them were passing for a reason other than the one their name gives.** Two of those three are mechanism 2 above, not merely the same family:
+
+- **`cli_end_to_end`** asserted that `st done` carries the gate's verdict -- **from a thread in `triage`, where `st.done` is not declared at all.** With the gate hoisted above the transition check it never reached the gate, so **the test whose whole subject is the gate was passing on a path that never consulted it.**
+- **`error_remedies`** provoked `IllegalTransition` with `st_resume` on a `wip` thread. **`st.resume` targets `wip`, so under the ruling it became a self-loop and the provocation stopped provoking.**
+
+Both are the same shape as `cli_end_to_end.rs:786`: a ratification changed which states a fixture reaches, and an assertion that depended on that traversal kept its name, its shape, and its green.
+
+**A third mechanism, new and worth naming separately:** the edge walk filtered on `accepts` rather than `leaves`, so `at.set -> to-write` was driven **from** `to-write`. It moved nothing, read `to-write` back, and passed -- **a test that compares a value to itself and reports coverage.** The undeclared-transition walk had the mirror of it, demanding a refusal for `st.triage` from `not-started`, which is `st.triage`'s own target. One insight covers both: **a self-loop is not a transition, so neither walk may enumerate `from == edge.to`** -- and `Edge::leaves` already said so.
+
+**Why this matters for this issue's scope.** The Reproduction states two of nine arms measured and seven unmeasured. That understated the problem in the other direction too: **mechanism 2 is not a property of the display vocabulary at all.** It is a property of any assertion whose reach depends on which states a fixture visits, and the ratifications that move fixtures are ongoing. Two nodes found it in three test binaries on two consecutive days by two unrelated methods, which is the signature of a class rather than a set of incidents.
+
+**Verified at the named commit:** `61069b16` -- fmt diff 0 bytes, clippy 0 warnings, **65 test binaries + 3 doctests, 482 passed, 0 failed**, all three return codes captured directly rather than through a pipe.
+
 ## Impact
 
 **The vocabulary that 0041 consolidated into one home is only partly guarded in that home, and the unguarded direction is the one that reaches committed artefacts.**
