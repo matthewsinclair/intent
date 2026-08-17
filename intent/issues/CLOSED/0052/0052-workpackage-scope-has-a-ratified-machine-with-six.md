@@ -3,7 +3,7 @@ id: "0052"
 title: WorkPackage.scope has a ratified machine with six edges and no way in or out from the command surface -- wp_rescope is implemented but unwired, and wp new takes no scope
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -107,6 +107,25 @@ Both need dispatch-table rows before they ship. `wp rescope` has one as of `ba51
 - `transitions.rs:366-374` -- the machine
 - `facade.rs:1428-1470` -- the implemented, unwired verb
 
-## Resolutions
+## Resolution -- CLOSED 2026-08-17, on hv's ruling: NO FLAG, `wp rescope` IS THE ENTRANCE
 
-{{TBC}}
+**hv, 2026-08-17: _"0052 no flag, wp rescope is the entrance"._** That is the second of the two options this issue's Proposed Fix set out, and it closes with no code to write.
+
+**Both halves are now settled and neither needed the other's answer to land.**
+
+- **The mechanical half shipped** (cc, `4a0c905c`). `intent wp rescope <SPECIFIER> <SIZE>` is wired -- verified at HEAD, not taken on report: the render arm is at `render.rs:639`, bound through `reported(...)` so it speaks the no-op grammar 0050 ruled, and `intent wp --help` lists `rescope` among the eight verbs. The T-shirt vocabulary has one home in `TShirt::parse`, derived from the enum's own serialisation.
+- **The entrance half is ruled rather than built.** `wp new` takes `<STID> <TITLE>` and no flags -- confirmed from the register at HEAD (`args=stid,title`, `flags=` empty). It stays that way.
+
+**What the ruling buys, in the issue's own terms.** The hardcoded `S` was the part that could not be defended: not because `S` is the wrong value -- it is right, and `render.rs:580-585` argues it correctly on parity grounds, since v2's `lib/templates/prj/st/WP/info.md` seeds `scope: Small` and a different default would be a parity break hiding in a value rather than in an output -- but because **a default nobody can override is a verdict, and a default with an exit is a starting value.** `wp rescope` is that exit. The same `S` now means something different without changing.
+
+**The `absent` trap was avoided and should stay avoided.** This issue's Proposed Fix named it explicitly: making `wp new` write `absent` would look like the principled fix, breaks parity with v2's template for no gain, and trades a wrong value for a missing one at the exact moment the exit verb is being wired to fill it. The ruling does not reopen that.
+
+**The self-loop distinction this issue flagged as having no user now has one.** `wp_rescope` treats a rescope to the same size as a no-op ONLY where there is no carried `scope_legacy`, because resolving the carry is a real movement with the same from and to (`facade.rs:1443-1456`). With `rescope` as the sole entrance, that is the mechanism by which a migrated `scope_legacy` gets adjudicated by a human instead of having a size coerced onto it -- which was the capability the unwired verb was denying.
+
+### OWED, and it is the reason this closure is not silent
+
+**`render.rs:633-634` still says _"The field's only exit, and until hv rules on `wp new --scope` its only entrance too"_.** hv has ruled, and the ruling makes it the entrance permanently rather than provisionally. **That comment is now stale in the worst direction: it tells the next reader the question is open when it is closed**, at the exact site where someone would go looking to answer it.
+
+**Not edited here.** `render.rs` is dirty under cc as this is written, and a peer's in-flight file is not vc's to touch. Handed to cc as a one-sentence change.
+
+**Recorded as an instance rather than a chore, because it is AC-05.5's subject exactly**: a decision taken in one contract artefact and absent from another, with both individually correct when read alone. The issue carries the ruling; the code comment carries the question; nothing joins them. The register was checked and carries no `open_question` on either row, so the comment is the only stale artefact -- which is only knowable because it was looked for.
