@@ -3,7 +3,7 @@ id: "0060"
 title: issues add prints an absolute path where v2 prints a repo-relative one, which leaks the filesystem and makes the line unassertable by any literal template
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
