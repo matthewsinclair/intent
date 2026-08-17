@@ -191,15 +191,37 @@ fn bin() -> &'static str {
   env!("CARGO_BIN_EXE_intent")
 }
 
-fn run(root: &Path, argv: &[String]) -> (String, bool) {
+/// Returns the two channels SEPARATELY, and that separation is the point.
+///
+/// **This used to concatenate stderr onto stdout and compare the merged string
+/// against a field named `stdout_exact`, in a file named `literal_stdout_parity`**
+/// (cc found it, 2026-08-17, and measured it before reporting it). A row would
+/// then have PASSED with the expected bytes on STDERR and stdout empty --
+/// which is precisely the defect class this register exists to catch, so the
+/// instrument was blind to its own subject.
+///
+/// **Not live when found, and it is worth recording that it was a hazard rather
+/// than a defect**: comparing stdout alone leaves every declared row green, so
+/// no row was passing on stderr. cc measured that in a worktree and I
+/// reproduced it here before changing anything. **A merge that nothing
+/// currently exercises stays correct right up until the day one command moves
+/// its answer to stderr -- and on that day the instrument reports parity.**
+///
+/// vc's mechanism for this is CHANNEL SHARING, from their own liveness defect:
+/// their probe ran `st list 2>&1`, so a refusal naming thread ids arrived on
+/// the same stream as the answer and **the failure was well-formed input**.
+/// Same shape, one layer down.
+fn run(root: &Path, argv: &[String]) -> (String, String, bool) {
   let out = Command::new(bin())
     .args(argv)
     .current_dir(root)
     .output()
     .expect("spawn intent");
-  let mut s = String::from_utf8_lossy(&out.stdout).into_owned();
-  s.push_str(&String::from_utf8_lossy(&out.stderr));
-  (s.trim_end().to_string(), out.status.success())
+  (
+    String::from_utf8_lossy(&out.stdout).trim_end().to_string(),
+    String::from_utf8_lossy(&out.stderr).trim_end().to_string(),
+    out.status.success(),
+  )
 }
 
 /// Which column a row is held to. Chosen by `target.state`, never by which
@@ -296,23 +318,44 @@ fn mismatches(decls: &[Decl]) -> Vec<String> {
     let dir = tempfile::tempdir().expect("tempdir");
     seed(dir.path());
     for s in &d.setup {
-      let (o, ok) = run(dir.path(), s);
+      let (o, e, ok) = run(dir.path(), s);
+      // Both channels here on purpose: a FAILING setup puts its reason on
+      // stderr, and this message exists to explain the failure rather than to
+      // assert parity. The comparison below is the one that must not merge.
       assert!(
         ok,
         "`{}`: setup `{}` failed, so the row was never driven to the state its \
-         template describes and the comparison below would be meaningless:\n{o}",
+         template describes and the comparison below would be meaningless:\n{o}{e}",
         d.path,
         s.join(" ")
       );
     }
-    let (got, _) = run(dir.path(), &d.argv);
+    let (got, err, _) = run(dir.path(), &d.argv);
     if got != d.template {
+      // **NAME THE CHANNEL WHEN THE CHANNEL IS THE DEFECT.** Without this the
+      // day the merge would have mattered reads as "v3 printed nothing", and
+      // the reader goes looking for a command that produced no output -- when
+      // what actually happened is that it produced exactly the right bytes on
+      // the wrong stream. That is the failure this whole file is about, so it
+      // must not arrive disguised as silence.
+      let note = if err == d.template {
+        format!(
+          "\n     WRONG CHANNEL: stdout was {}, and STDERR carried the required bytes exactly. \
+           This row's claim is about STDOUT.",
+          if got.is_empty() { "EMPTY" } else { "different" }
+        )
+      } else if got.is_empty() && !err.is_empty() {
+        format!("\n     stdout was EMPTY; stderr said: {err}")
+      } else {
+        String::new()
+      };
       wrong.push(format!(
-        "`{}`\n     invoked:  intent {}\n     required: {}\n     v3 printed: {}",
+        "`{}`\n     invoked:  intent {}\n     required: {}\n     v3 printed: {}{}",
         d.path,
         d.argv.join(" "),
         d.template,
-        got
+        got,
+        note
       ));
     }
   }
