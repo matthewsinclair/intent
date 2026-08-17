@@ -208,3 +208,43 @@ v2 canon  n/a  ->  Na  ->  n-a      <- the only lossy step, and it is the first
 ## Resolutions
 
 {{TBC}}
+
+## THERE ARE THREE SPELLINGS OF THIS ONE STATE, TWO OF THEM INSIDE ONE COMMAND (ic, 2026-08-17)
+
+**`intent at na` prints a different token depending on which arm it takes**, and neither is v2's:
+
+| path              | prints                    | source of the word                                      |
+| ----------------- | ------------------------- | ------------------------------------------------------- |
+| v2 `intent at na` | `ok: AT-01.2 -> n/a`      | v2's vocabulary, and its row grammar's only legal token |
+| v3 movement       | `ok: AT-01.2 na`          | **the CLI SUBCOMMAND NAME** (`render.rs:884-892`)       |
+| v3 self-loop      | `ok: AT-01.2 already n-a` | `enum_str` via `Outcome::AlreadyThere`                  |
+
+The movement arm never touches `AtStatus` for display at all:
+
+```rust
+Some((state @ ("green" | "red" | "na"), a)) => {
+  let status = match state { "green" => Green, "red" => Red, _ => Na };
+  reported(&open()?.at_set(&st, &id, status).map_err(fail)?, &id, state);
+                                                                  // ^^^^^ the SUBCOMMAND NAME
+}
+```
+
+**So `display()` alone does not close this.** It fixes `views.rs`, `at list` and the self-loop; the movement message would still print `na`, because it is echoing the verb the user typed rather than the state the entity reached. The third call site needs the enum, not the string.
+
+**AND THE HIDING MECHANISM REPEATS AT A SECOND LAYER, WHICH IS WHY NOBODY SAW IT.** The subcommand names are `green`, `red`, `na`. Two of the three are byte-identical to v2's tokens, so echoing the verb name is correct for `at green` and `at red` and wrong only for `at na` -- **the same two-of-three coincidence as the serde vocabulary, arriving independently, in a different mechanism, on the same command family.** A reviewer checking that the movement message names the right state would sample `green` or `red` and find agreement.
+
+## FIVE `as-observed` ROWS DO NOT REPRODUCE v2's STDOUT, FOUND BY EXECUTING THE REGISTER (ic, 2026-08-17)
+
+Measured by `literal_stdout_parity.rs`, which drives each row's declared invocation against a v3 binary and compares it to v2's measured bytes:
+
+| row            | v2                                        | v3                          |
+| -------------- | ----------------------------------------- | --------------------------- |
+| `ac satisfy`   | `ok: AC-01.1 satisfied by evidence`       | `ok: AC-01.1 satisfied`     |
+| `ac rescope`   | `ok: AC-01.1 back in scope (unsatisfied)` | `ok: AC-01.1 back in scope` |
+| `ac reinstate` | `ok: AC-01.1 back in scope (unsatisfied)` | `ok: AC-01.1 reinstated`    |
+| `at red`       | `ok: AT-01.1 -> red`                      | `ok: AT-01.1 red`           |
+| `at na`        | `ok: AT-01.2 -> n/a`                      | `ok: AT-01.2 na`            |
+
+**Only the last is this issue.** The other four are separate, previously unrecorded parity breaks on rows whose `target.state` is `as-observed` -- the arrow dropped across the AT family, the resulting-state suffix dropped from the AC undo verbs, and `ac reinstate` rewritten entirely. **`at red`'s `observed` column was CORRECT the whole time**; nothing compared it to the binary, so the divergence sat unrecorded next to an accurate record of what it should have been.
+
+They are listed here rather than filed separately because the fix for this issue touches the same arms, and whoever wires `display()` should decide all five voices at once. **Each is either a bug to fix or a deviation to ratify onto `corrected`; none is a template to edit.**

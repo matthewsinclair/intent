@@ -1710,11 +1710,24 @@
             "stdout": "`ok: <AC> satisfied by evidence`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
             "no_op": "`ok: AC-01.1 satisfied by evidence`, exit 0 -- the ORDINARY success message. v2 has no state check here: it re-runs the substitution and re-verifies the post-state, so the no-op is a repeated write that lands on the same value. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
-            "note": "**CORRECTED 2026-08-17: this row said `ok: <AC> satisfied` and v2 prints ` by evidence` after it.** Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
+            "note": "**CORRECTED 2026-08-17: this row said `ok: <AC> satisfied` and v2 prints ` by evidence` after it.** Measured against v2.19.0 on PATH, 2026-08-17 (ic).",
+            "stdout_exact": {
+              "setup": [],
+              "argv": [
+                "ac",
+                "satisfy",
+                "ST0001",
+                "AC-01.1",
+                "--evidence",
+                "ref"
+              ],
+              "template": "ok: AC-01.1 satisfied by evidence",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -1876,10 +1889,23 @@
             "stdout": "`ok: <AC> descoped to <ID>`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
-            "no_op": "`error: AC-01.1 is already descoped to ST0002 -- 'intent ac rescope' first if you mean to descope it`, exit 1. **v2 REFUSES, and names the verb that undoes it.** Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`error: AC-01.1 is already descoped to ST0002 -- 'intent ac rescope' first if you mean to descope it`, exit 1. **v2 REFUSES, and names the verb that undoes it.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "stdout_exact": {
+              "setup": [],
+              "argv": [
+                "ac",
+                "descope",
+                "ST0001",
+                "AC-01.1",
+                "--to",
+                "ST0002"
+              ],
+              "template": "ok: AC-01.1 descoped to ST0002",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -1925,11 +1951,31 @@
             "stdout": "`ok: <AC> back in scope (unsatisfied)`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
             "no_op": "`error: AC-01.1 is not descoped; nothing to rescope`, exit 1. **v2 refuses AND names the verb the user actually typed**, which v3 does not -- see the target side. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
-            "note": "**CORRECTED 2026-08-17: the parenthesised resulting state was missing.** v2 names the state the criterion lands in, which is the informative half -- `back in scope` alone does not say whether satisfaction survived the round trip. Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
+            "note": "**CORRECTED 2026-08-17: the parenthesised resulting state was missing.** v2 names the state the criterion lands in, which is the informative half -- `back in scope` alone does not say whether satisfaction survived the round trip. Measured against v2.19.0 on PATH, 2026-08-17 (ic).",
+            "stdout_exact": {
+              "setup": [
+                [
+                  "ac",
+                  "descope",
+                  "ST0001",
+                  "AC-01.1",
+                  "--to",
+                  "ST0002"
+                ]
+              ],
+              "argv": [
+                "ac",
+                "rescope",
+                "ST0001",
+                "AC-01.1"
+              ],
+              "template": "ok: AC-01.1 back in scope (unsatisfied)",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -2000,10 +2046,23 @@
             "stderr": "`error: ...` on stderr (INV-01)",
             "notes": "`--reason` being mandatory is the whole point of the verb: the alternative to withdrawing is deleting the line and losing the audit trail.",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
-            "no_op": "`error: AC-01.1 is already withdrawn -- 'intent ac reinstate' first if you mean to withdraw it`, exit 1. **v2 REFUSES, and names the undo.** Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`error: AC-01.1 is already withdrawn -- 'intent ac reinstate' first if you mean to withdraw it`, exit 1. **v2 REFUSES, and names the undo.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "stdout_exact": {
+              "setup": [],
+              "argv": [
+                "ac",
+                "withdraw",
+                "ST0001",
+                "AC-01.1",
+                "--reason",
+                "gone"
+              ],
+              "template": "ok: AC-01.1 withdrawn",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -2049,11 +2108,31 @@
             "stdout": "`ok: <AC> back in scope (unsatisfied)`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
             "no_op": "`error: AC-01.1 is not withdrawn; nothing to reinstate`, exit 1. **v2 refuses and names the right verb.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
-            "note": "**CORRECTED 2026-08-17: as `ac rescope`, and identical to it** -- the two verbs are distinguished by which off-scope state they undo, not by what they print on success. Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
+            "note": "**CORRECTED 2026-08-17: as `ac rescope`, and identical to it** -- the two verbs are distinguished by which off-scope state they undo, not by what they print on success. Measured against v2.19.0 on PATH, 2026-08-17 (ic).",
+            "stdout_exact": {
+              "setup": [
+                [
+                  "ac",
+                  "withdraw",
+                  "ST0001",
+                  "AC-01.1",
+                  "--reason",
+                  "gone"
+                ]
+              ],
+              "argv": [
+                "ac",
+                "reinstate",
+                "ST0001",
+                "AC-01.1"
+              ],
+              "template": "ok: AC-01.1 back in scope (unsatisfied)",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -2339,10 +2418,21 @@
             "stdout": "`ok: <AT> -> red`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
-            "no_op": "`ok: AT-01.1 -> red`, exit 0 -- the ORDINARY success message; v2 re-writes the row. Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`ok: AT-01.1 -> red`, exit 0 -- the ORDINARY success message; v2 re-writes the row. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "stdout_exact": {
+              "setup": [],
+              "argv": [
+                "at",
+                "red",
+                "ST0001",
+                "AT-01.1"
+              ],
+              "template": "ok: AT-01.1 -> red",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "aliases": [
             "at notdone"
@@ -2391,13 +2481,24 @@
             ],
             "stdout": "`ok: <AT> -> n/a`",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "notes": "`n-a` belongs to `(non-test)` rows only and never satisfies anything.",
+            "notes": "`n/a` is v2's token for a `(non-test)` row and the only one its row grammar admits; such a row never satisfies anything, because satisfaction lives on the AC's own line. **v3 spells the same state `n-a` -- that is issue 0056 and NOT v2 vocabulary.** This sentence carried the v3 token until 2026-08-17: the `stdout` above was corrected first and the gloss beside it was not, so the row stated the right value and the wrong vocabulary for one commit (found by vc). **A correction has to reach every field that repeats the value, not the field that was reported.**",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
             "no_op": "`ok: AT-01.2 -> n/a`, exit 0 -- the ordinary success message, on a `(non-test)` row. **Note v2's token is `n/a`.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
-            "note": "**CORRECTED 2026-08-17, AND THIS ONE IS NOT A TRANSCRIPTION SLIP.** The row said `n-a` -- **v3's token, in the column that records v2** -- and v2 prints `n/a`, which is also the only token its row grammar admits (`bin/intent_acceptance:181`). `target.state` here is `as-observed`, so **a check comparing v3's output to this column would have found agreement and certified issue 0056 as correct parity.** The defect had already propagated into the register that exists to catch it. Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
+            "note": "**CORRECTED 2026-08-17, AND THIS ONE IS NOT A TRANSCRIPTION SLIP.** The row said `n-a` -- **v3's token, in the column that records v2** -- and v2 prints `n/a`, which is also the only token its row grammar admits (`bin/intent_acceptance:181`). `target.state` here is `as-observed`, so **a check comparing v3's output to this column would have found agreement and certified issue 0056 as correct parity.** The defect had already propagated into the register that exists to catch it. Measured against v2.19.0 on PATH, 2026-08-17 (ic).",
+            "stdout_exact": {
+              "setup": [],
+              "argv": [
+                "at",
+                "na",
+                "ST0001",
+                "AT-01.2"
+              ],
+              "template": "ok: AT-01.2 -> n/a",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -2666,10 +2767,20 @@
               "Moves the issue directory between OPEN/ and CLOSED/ -- the v2 layout that retires under the ratified deviation"
             ],
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm -- `move_issue`, bin/intent_issues:275-292, read at HEAD 2026-08-17 by ic after cc found the middle arm missing. Source-exact rather than paraphrased: the strings above are the echoes themselves."
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
-            "no_op": "`ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **The other of v2's two no-op arms, and the one hv's self-loop ruling cites.** It is also the only one that is a genuine no-op rather than a repeated write."
+            "no_op": "`ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **The other of v2's two no-op arms, and the one hv's self-loop ruling cites.** It is also the only one that is a genuine no-op rather than a repeated write.",
+            "stdout_exact": {
+              "setup": [],
+              "argv": [
+                "issues",
+                "close",
+                "0001"
+              ],
+              "template": "ok: issue 0001 -> CLOSED",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
@@ -2718,10 +2829,26 @@
               "Moves the issue directory back"
             ],
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm -- `move_issue`, bin/intent_issues:275-292, read at HEAD 2026-08-17 by ic after cc found the middle arm missing. Source-exact rather than paraphrased: the strings above are the echoes themselves."
+              "class": "measured",
+              "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
-            "no_op": "`ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283) -- the same `move_issue` arm, mirrored."
+            "no_op": "`ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283) -- the same `move_issue` arm, mirrored.",
+            "stdout_exact": {
+              "setup": [
+                [
+                  "issues",
+                  "close",
+                  "0001"
+                ]
+              ],
+              "argv": [
+                "issues",
+                "open",
+                "0001"
+              ],
+              "template": "ok: issue 0001 -> OPEN",
+              "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
+            }
           },
           "target": {
             "state": "as-observed",
