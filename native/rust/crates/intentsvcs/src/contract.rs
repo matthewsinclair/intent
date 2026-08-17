@@ -60,17 +60,46 @@ pub fn group_of(id: &str) -> String {
     .unwrap_or_else(|| id.to_string())
 }
 
-/// A test-backed AC is satisfied exactly when a covering AT is GREEN.
+/// A test-backed AC is satisfied exactly when it has at least one covering AT
+/// and EVERY covering AT is green.
+///
+/// **AND, not OR -- issue 0032, classified `corrected` rather than
+/// `as-observed`.** v2 short-circuits (`bin/intent_acceptance:454`: `[
+/// "$(at_status "$atline")" = "green" ] && return 0`), so a criterion
+/// decomposed across several tests reported green as soon as its easiest arm
+/// landed. **That is not a v2 behaviour to reproduce faithfully, because it was
+/// not a decision**: hv's own filing says "the combining rule was chosen by an
+/// early-return rather than by a decision", and you cannot faithfully reproduce
+/// a decision nobody made. Reproducing it is what `parity.md` forbids in as many
+/// words -- laundering a v2 defect into a v3 requirement.
+///
+/// **This doc comment is why the defect survived being read.** It said "a
+/// test-backed AC is satisfied exactly when a covering AT is GREEN", which is an
+/// accurate description of `.any` and a false statement of the requirement -- so
+/// checking the code against its own documentation found agreement. It now states
+/// the requirement, and the code is what has to match it.
+///
+/// **The non-empty guard is not optional.** `Iterator::all` on an empty iterator
+/// is `true`, so `.all` alone would convert "no covering test at all" from
+/// unsatisfied to satisfied -- a worse defect than the one being fixed, and
+/// precisely the vacuous green issue 0015 is about.
 ///
 /// `to-write` and `red` are not coverage, and neither is `n-a` -- that is the
-/// non-test doc/eyeball status, and treating it as green is what let a
-/// contract look closed while nothing had been run (issue 0015).
+/// non-test doc/eyeball status, and treating it as green is what let a contract
+/// look closed while nothing had been run (issue 0015). **Under AND an `n-a` row
+/// stops being inert and starts blocking, and that is the ALREADY-DOCUMENTED
+/// consequence rather than a new decision**: `lint`'s L5 refuses a non-test AT
+/// covering a test-backed criterion, on the stated grounds that "a non-test AT is
+/// never green, so it can never satisfy it". The gate now behaves the way that
+/// lint already says it will, so the two agree instead of the lint warning about a
+/// consequence the gate did not have.
 pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
-  thread
+  let covering: Vec<&crate::model::AcceptanceTest> = thread
     .tests
     .iter()
     .filter(|t| t.covers.iter().any(|c| c == ac_id))
-    .any(|t| t.status == AtStatus::Green)
+    .collect();
+  !covering.is_empty() && covering.iter().all(|t| t.status == AtStatus::Green)
 }
 
 /// Resolve one AC's recorded state into the state the gate acts on.
@@ -371,10 +400,16 @@ pub fn contract_findings(
         )),
         // L5: the trap the non-test arm would otherwise bless. A non-test AT
         // is `n-a` by definition and `n-a` is never green, so a test-backed AC
-        // covered only by one can NEVER be satisfied -- an unclosable contract
-        // whose only symptom is a gate that will not move. Reproducing the
-        // symptom without the diagnosis would leave the operator staring at a
+        // covered by one can NEVER be satisfied -- an unclosable contract whose
+        // only symptom is a gate that will not move. Reproducing the symptom
+        // without the diagnosis would leave the operator staring at a
         // permanently unsatisfied AC with nothing to act on.
+        //
+        // **"covered ONLY by one" until issue 0032 landed, and the word mattered.**
+        // Under the OR gate such a row was inert beside a green sibling, so the
+        // trap needed the row to be the criterion's only coverage. Under AND it
+        // blocks unconditionally -- which is what this lint's own sentence always
+        // claimed, so the gate has stopped disagreeing with it.
         Some(c) if t.kind == AtKind::NonTest && c.kind != AcKind::NonTest => out.push(format!(
           "{} is a non-test AT covering {covered}, which is test-backed -- a non-test AT is never green, so it can never satisfy it. Mark {covered} non-test and satisfy it by evidence, or cover it with a real test",
           t.id

@@ -25,24 +25,70 @@ fn state(facade: &intentsvcs::facade::Facade, st: &str, ac: &str) -> Resolved {
   resolve(thread, criterion)
 }
 
+/// **AND, not OR -- issue 0032, and this test asserted the defect until it
+/// landed.**
+///
+/// It read: set one of two covering ATs red, and require the criterion to still be
+/// `Satisfied`, "because one covering AT is still green". That was a correct
+/// description of `.any` written as a requirement -- **the assertion and the
+/// function's doc comment agreed with each other and both were wrong about the
+/// rule**, so checking either against the other found nothing. The assertion is
+/// the one with teeth, because it runs.
+///
+/// Three arms, which is the shape vc specified, and the third is the one the naive
+/// fix gets wrong.
 #[test]
-fn a_test_backed_criterion_is_satisfied_only_by_a_green_test() {
+fn a_test_backed_criterion_needs_every_covering_test_green_and_at_least_one() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
+  // 1. ALL GREEN -- satisfied. The fixture ships AC-03.1 covered by two greens,
+  //    which is the only multi-AT shape this corpus actually contains.
   assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Satisfied);
 
-  // Both covering ATs must go red -- the fixture has two, and satisfaction is
-  // "ANY covering AT is green".
+  // 2. MIXED -- unsatisfied on the FIRST non-green, not on the last. This is the
+  //    verdict that changes, and no row in the real estate is in this state:
+  //    zero of 112 measured, so the fixture has to be synthetic (vc, and it saved
+  //    me looking for one).
   facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
   assert_eq!(
     state(&facade, "ST0056", "AC-03.1"),
-    Resolved::Satisfied,
-    "one covering AT is still green, so the criterion holds"
+    Resolved::Unsatisfied,
+    "a criterion decomposed across two tests is not satisfied by the one that landed -- the green \
+     sibling used to keep it satisfied, which is why the honest repair (add a row at `to-write` for \
+     the missing arm) had no effect on the verdict"
   );
+  // And it stays unsatisfied when the other goes too, so the assertion above is
+  // about the mixed state rather than about there being any red at all.
   facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
   assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Unsatisfied);
+
+  // 3. NO COVERING TEST AT ALL -- unsatisfied, and this is the arm `.all` alone
+  //    gets backwards. `Iterator::all` on an empty iterator is `true`, so the
+  //    non-empty guard is what stops the fix from converting "nothing covers this"
+  //    into "satisfied" -- a worse defect than the one being corrected, and the
+  //    vacuous green of issue 0015.
+  // **CONSTRUCTED, not searched for, and searching is instructive.** Looking for
+  // "a test-kind criterion with no covering AT" found AC-03.9 -- which is
+  // DESCOPED, so `resolve` answers on scope and never reaches the satisfaction
+  // question at all. The arm passed a `Descoped` verdict to an assertion about the
+  // empty guard: a well-formed answer to a question I had not asked, which is the
+  // day's class arriving inside the test written to close it. So the case is built:
+  // AC-03.1 is test-kind, in scope, and its coverage is stripped.
+  let mut thread = facade.st_show("ST0056").expect("thread").clone();
+  thread
+    .tests
+    .retain(|t| !t.covers.iter().any(|covered| covered == "AC-03.1"));
+  fx.write_thread(&thread);
+  let facade = fx.facade();
+  assert_eq!(
+    state(&facade, "ST0056", "AC-03.1"),
+    Resolved::Unsatisfied,
+    "a test-backed criterion with NO covering test is unsatisfied -- `.all` on an empty iterator is \
+     `true`, so without the non-empty guard this reports satisfied and the gate passes a criterion \
+     nothing tests"
+  );
 }
 
 /// The refusal that keeps satisfaction single-homed.

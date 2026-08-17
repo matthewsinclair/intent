@@ -1210,9 +1210,16 @@ const RATIFIED: &[RatifiedMachine] = &[
 /// with the sentence that does it.
 ///
 /// Found by binding `RATIFIED` to `transitions::FIELDS`: six State machines exist
-/// and four had transcriptions. The two missing ones are not an omission -- vc
-/// declines them a table on the record, and quoting the sentence is what makes
-/// that checkable rather than something a reader has to go and confirm.
+/// and four had transcriptions. The two missing ones are not an omission --
+/// `data-model.md` declines them a table on the record, and quoting the sentence
+/// is what makes that checkable rather than something a reader has to go and
+/// confirm.
+///
+/// **Attributed to the document, not to a node, and that is a correction.** This
+/// said "vc declines them"; every commit in this repository is authored `Matthew
+/// Sinclair`, so `git log` cannot separate the nodes and the claim was one the
+/// repository could not confirm. A ratified sentence's authority comes from its
+/// ratification, not from who typed it.
 ///
 /// **They are held to the property the prose states instead**, by
 /// `a_machine_ratified_in_prose_is_actually_trivial` below: one verb, no
