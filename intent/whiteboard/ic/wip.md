@@ -3,15 +3,35 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-17 14:00Z
-status: paused
-focus: "PAUSED FOR A COMPACT AT A LOCALFOLD (fold 19, 14:00Z). **literal_stdout_parity.rs IS 4 OF 4 GREEN AT d14cd0b5 AND THE GREEN WAS VERIFIED, NOT ACCEPTED** -- cc landed all five voices; no `template` line changed between 0f87fc2c and HEAD and native/+surface/ were byte-identical to HEAD, so the binary moved and not the column that records v2. A green here is the alarm condition unless attributed, and this is the first time today the provenance rule LICENSED the worktree instead of forcing an extract. **FOUR OF SIX TODO ITEMS CLOSED, ALL PUSHED**: corrected-row templates (0f87fc2c), the arm/line-scoped rows with two ruled corrected (795a8ccb), hv's 0052 ruling recorded (5798af98), the provenance grammar guard (81c3978c + 38152015). **FILED 0058** (agents template: `show` undeclared so v3 drops it, `list` advertises seven names `show` cannot deliver, every error on stdout against INV-01) **and 0060** (issues add prints an absolute path, which leaks the filesystem AND makes the line unassertable by any literal template). **TWO OF MY OWN CLAIMS WERE DISPROVED BY RUNNING SOMETHING** -- the ratified record pattern missed `issue NNNN` and would have sent someone to fix five correct rows, and my sentinel-collision warning was refuted byte-identically by a mutation. **ON THE BOUNCE: item 2, wiring three report-only checks into precommit, and it is BLOCKED until dc's devbin merge lands -- vc pings me.** Upstream frozen at 5765c5da; v3 NOT on PATH."
+heartbeat_at: 2026-08-17 14:44Z
+status: active
+focus: "0059 WIRED AND 0061 FIXED, both pushed (`67814555`, `0a7cc84c`). The gate runs ELEVEN guards and ran itself on its own commit; `runner_roster_check.sh` declares a gated/manual disposition per instrument and REFUSES on any `*_check.sh` it has no row for -- 9 gated, 4 manual, 0 undeclared. 0059 counted eleven instruments and there are THIRTEEN: the population moved before the remedy was written, which is why the check enumerates rather than remembers. `int hooks` then found two guards with no +x. On 0061 vc reported two fields and four were stale -- the fourth (`at red`) found by measuring the siblings of the row that WAS reported; `at green`/`at red` no_op checked the same way and CORRECT. vc's register-lag question measured: the cheap gate would flag ~28 of 29 rows, so NOT as specified -- the discriminator is measurement-vs-decision. hv PULLED ME UP ON ISSUE INFLATION and they are right: 11 filed today, 6 closed. 0060 and 0061 were both FIXED AND LEFT OPEN; both now closed. New rule: fix inline, message the owner, file only for a decision that changes what gets built. Upstream frozen at 5765c5da; v3 NOT on PATH."
 claims: []
 ---
 
 # Interface Claude (ic)
 
-## DOING -- THE INSTRUMENT WENT GREEN FOR THE RIGHT REASON, AND THAT WAS CHECKED
+## DOING -- A ROSTER THAT REFUSES, AND A CORRECTION SWEPT ONE FIELD FURTHER THAN IT WAS REPORTED
+
+**TWO LANDED AND PUSHED: `67814555` (0059) and `0a7cc84c` (0061).** Upstream still frozen at `5765c5da`; v3 still not on PATH.
+
+**0059 -- THE GATE RUNS ELEVEN GUARDS NOW, AND IT RAN ITSELF ON ITS OWN COMMIT.** Six wired. But the mechanical half was never the point: 0059 says in as many words **do not add them without the disposition field**, so the deliverable is `runner_roster_check.sh` -- a `gated`/`manual` disposition per `*_check.sh` with a required reason, which **enumerates the directory every run and REFUSES on any tool it has no row for.** Naming the remainder in prose is a claim that rots on the day a tool is added; a roster fails on that day instead. Nine gated, four manual, zero undeclared.
+
+**THE POPULATION HAD ALREADY MOVED BEFORE THE REMEDY WAS WRITTEN, WHICH IS THE ARGUMENT FOR THE REFUSAL.** 0059 counted eleven instruments at `0f87fc2c`; there are **thirteen**. `ratified_in_check.sh` landed hours after the census and `runner_roster_check.sh` is new -- both unwired, both unnoticed by any artefact. **My own tenth class, arriving inside the fix for it**: a correct measurement of a population that has silently acquired members. So the check never compares against a remembered count.
+
+**DECLARED AND INVOKED ARE MEASURED SEPARATELY**, because the guard-0 rot in `precommit`'s own header was precisely their disagreement -- named in the roster, implemented inline, `int hooks` reporting three guards as two. It asks `--list-guards` rather than re-grepping the source (263ms of its 782ms), because re-grepping the source is what rotted the thing it is checking.
+
+**AND `int hooks` IMMEDIATELY PAID FOR ITSELF: `corrected_check.sh` and `stale_at_check.sh` had no `+x`.** They run fine under `bash <path>`, which is exactly why nobody saw it -- the tool a human consults to find out was the thing that was wrong. Same shape as the rot above, two files over.
+
+**0061 -- vc REPORTED TWO FIELDS; FOUR WERE STALE.** `at na`'s `help` was the only authored site left in the estate where the wire spelling reached a human, and it survived **because** it is authored: nothing renders help from the enum, so no code fix could pass through it. Corrected, then verified by **rebuilding from a clean extract of HEAD with only that edit applied** -- a grep proves the file changed, not the shipped string.
+
+**`target.no_op` RE-MEASURED, NOT RETYPED, and the provenance rule earned itself twice in one day.** Three files under `native/` were dirty under cc, so the worktree binary would have attributed unlanded work to HEAD. Built from a `git archive` extract of `67814555`: movement `ok: AT-01.2 -> n/a`, self-loop `ok: AT-01.2 already n/a`.
+
+**THE FOURTH FIELD WAS NOBODY'S REPORT: `at red`'s `voice_ruling` still asked for an arrow `d14cd0b5` had already restored.** Found by measuring the siblings of the row that WAS reported. **`at green` and `at red`'s `no_op` were checked the same way and are CORRECT** -- three rows measured, one stale, no assumption applied to a family. The line held throughout: **`target.*` must describe HEAD, `observed.*` must describe v2 as measured**, so the `n-a` in `observed.notes` stays.
+
+**vc's OPEN QUESTION IS ANSWERED, AND THE ANSWER IS "NOT AS SPECIFIED".** 44 sha citations across 29 rows, 12 distinct shas. The cheap gate (`git log <sha>..HEAD` non-empty) would flag **11 of 12 shas, ~28 of 29 rows, on its first run** -- 0059's own warning turned on the remedy. **The discriminator it lacks is in the field names**: `no_op` (25) records a MEASUREMENT and goes stale; `ratification`/`ratified_in`/`scope_ruling` (12) record a DECISION and 94-commits-behind is their CORRECT state. Same cut as `target` vs `observed`, one level finer. Offered to vc, not built.
+
+## (previous) DOING -- THE INSTRUMENT WENT GREEN FOR THE RIGHT REASON, AND THAT WAS CHECKED
 
 **`literal_stdout_parity.rs` IS 4 OF 4 GREEN AT `d14cd0b5`, AND THE GREEN IS ATTRIBUTABLE.** cc landed all five voices: `ac satisfy` has ` by evidence`, the AT family has its `-> ` arrow, `at na` prints `n/a`, and both undo verbs print `ok: <AC> back in scope (<landing state>)` with the state computed from kind.
 
@@ -23,23 +43,24 @@ claims: []
 
 **FOUR OF SIX TODO ITEMS CLOSED THIS SESSION**, all pushed: the corrected-row template field (`0f87fc2c`), the arm- and line-scoped rows measured with two ruled `corrected` (`795a8ccb`), hv's 0052 ruling recorded (`5798af98`), and the provenance grammar guard (`81c3978c`, `38152015`). **Filed 0058 and 0060.**
 
-## TODO -- ONE ITEM IS hv's, ONE IS BLOCKED ON dc, THE REST STANDING
+## TODO -- TWO ARE hv's, ONE IS NEWLY URGENT BECAUSE I GATED THE FILES
 
-**Four closed since the fold**: the corrected-row template field, the arm/line-scoped rows, hv's 0052 ruling recorded, and the provenance grammar guard. `agents sync`'s voice warning went onto its row with the measurement rather than from memory of it -- there was a THIRD line nobody had recorded.
+**Closed since the fold**: item 2 (0059, `67814555` -- and it grew a roster) and 0061 (`0a7cc84c`). Nothing of mine is blocked; dc is clear to upgrade.
 
-1. **`st start` REFUSES FROM `triage` WHILE `st new --start` COMPOSES PAST IT. hv's, not mine.** Untouched, and the measurement still holds: `st triage` on a `wip` thread refuses with _"declared only from: triage"_. **Still the likeliest first-command bug report in v3.**
-2. **WIRE THE THREE REPORT-ONLY CHECKS INTO `bin/.devbin/cmd/precommit` -- MINE, AND BLOCKED ON dc.** `corrected_check.sh`, `class_vocab_check.sh`, `ratified_in_check.sh`, all report-only by construction so none can stop a commit. **`surface_check.sh` explicitly NOT** -- it drives the binary and would make every commit pay for it. **Blocked deliberately**: dc is about to `int upgrade` four locally-patched devbin files over a carry that changes `record_seal`, and `precommit` is in the blast radius, so my three lines and their merge would land in one file in one window and any breakage would be attributable to neither. vc pings me when it lands. **Eight of eleven `_check.sh` instruments have no execution site** (vc measured); this closes three.
+1. **MUTATION PROOFS FOR `class_vocab_check.sh` AND `stale_at_check.sh` -- MINE, AND THE PRIORITY WENT UP TODAY BECAUSE I WIRED BOTH INTO THE GATE.** An ungated check nobody has proved can discriminate is a weak claim; **a GATED one is an active liability** -- it now prints a verdict on every commit by four nodes, and a green from an instrument that cannot fail is the exact vacuous state 0059 is about. `runner_roster_check.sh` shipped with two proofs in it (unrostered tool -> exit 1; runner drops `TOOLS=` -> exit 2, refused not zero) and `RUNNER=` is overridable so dc can re-run the second. These two owe the same.
+2. **`st start` REFUSES FROM `triage` WHILE `st new --start` COMPOSES PAST IT. hv's, not mine.** Untouched, and the measurement still holds: `st triage` on a `wip` thread refuses with _"declared only from: triage"_. **Still the likeliest first-command bug report in v3.**
 3. **`agents template`'s REMEDY is hv's.** The class is ruled `corrected` -- `list` advertising seven names `show` cannot deliver is an output making a false claim about its sibling. The remedy is not mine: narrow `list`, widen `show`, or split the namespace all satisfy the class and differ in what the command DOES. On the row as `target.open_question`.
-4. **STANDING: mutation proofs CO-LOCATED, as each file is next touched.** Remaining: `class_vocab_check.sh`, `stale_at_check.sh`. `corrected_check.sh` came off the list the hard way -- see the watch-out. `ratified_in_check.sh` shipped with both proofs in it, and one of them **disproved the claim it was written to demonstrate**.
+4. **THE REGISTER-LAG DISCRIMINATOR -- MEASURED AND OFFERED, DELIBERATELY NOT BUILT.** vc's sketch flags ~28 of 29 rows on its first run. The fix is to split `target` fields by **what they record -- a measurement (goes stale) or a decision (does not)** -- which probably wants a `records:` key on the field rather than a heuristic over field names. That is a schema change to my SSOT, so it wants vc's ruling before code.
+5. **STANDING: mutation proofs CO-LOCATED, as each file is next touched.** `corrected_check.sh` came off the list the hard way -- see the watch-out. `ratified_in_check.sh` shipped with both proofs in it, and one of them **disproved the claim it was written to demonstrate**.
 
 ## Open with others -- LIVE ASKS ONLY
 
 **All four inboxes at the sentinel.** Peer traffic is on the agent channel at hv's instruction; five exchanges with vc since the fold.
 
-- **vc, NOTHING OWED EITHER WAY.** They ruled ELSEWHERE over parity.md membership (thirteen rows, eleven predating mine, so all-in or all-out), split my `agents template` question into a decidable class and an hv remedy, ratified the provenance grammar, and ruled `hv <date>` legal-but-counted-apart. They fixed their own two `ratified_in` rows within minutes of the worklist. **They also misrouted a cc item to me** -- subject was cc's file, recipient was me, and the word "your" throughout; I checked the shas before correcting them, and they conceded it as the class arriving in the addressing.
-- **cc, ACTIONABLE AND UNANSWERED**: both corrected rows are red against the ruling, and 0058/0060 are theirs to build. Their worktree currently makes four of my five legs pass with `at na` at `-> n-a`. **NOT RECORDED ANYWHERE and I told vc not to record it either** -- it is uncommitted, so it is weather.
-- **hv, TWO**: `agents template`'s remedy (item 3), and `st start` from `triage` (item 1). Both raised via vc, neither blocking.
-- **dc**: I am waiting on their devbin merge before touching `precommit`. Nothing owed to them.
+- **vc, TWO OWED TO THEM, BOTH DELIVERED, BOTH AWAITING THEIR VERDICT.** 0061 fixed at `0a7cc84c` with a fourth field they did not report; **Resolutions left at `{{TBC}}` because verification and close are theirs, not mine.** And their open question is measured: the cheap register-lag gate would flag ~28 of 29 rows, so it should not be built as specified -- the discriminator is measurement-vs-decision (TODO 4).
+- **dc, THE WIRING IS THEIRS TO REVIEW** at `67814555`, and **they are clear to upgrade** -- I hold nothing in `bin/.devbin/`. I named three things for them to push back on: it gates on findings (deliberate), 782ms of which 263ms is the dispatcher call (the price of asking rather than re-grepping), and **I did NOT quieten `ratified_in_check.sh`'s ten-line standing note** -- the one call here I would most readily reverse. Handed them one back: `int hooks` prints a single `NOT EXECUTABLE OR MISSING` for two states needing different remedies.
+- **cc, ACTIONABLE AND UNANSWERED**: 0058 and 0060 are theirs to build. Their worktree is dirty across three `native/` files, which is why 0061 was measured from an extract and not from the tree.
+- **hv, TWO**: `agents template`'s remedy (TODO 3), and `st start` from `triage` (TODO 2). Both raised via vc, neither blocking.
 
 ## Watch-outs
 
