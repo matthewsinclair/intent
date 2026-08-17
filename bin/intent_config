@@ -24,7 +24,13 @@ DEFAULT_INTENT_DIR="intent"
 
 # Load Intent configuration with hierarchy
 load_intent_config() {
-  # Initialize defaults (INTENT_VERSION already set above)
+  # Initialize defaults. INTENT_VERSION is set above and names THE INSTALLED
+  # TOOL, always; nothing in this function may reassign it. The project's own
+  # declaration is PROJECT_INTENT_VERSION and is empty when there is no project
+  # or the project declares nothing -- absent rather than defaulted, because
+  # "this project declares no version" and "this project declares the tool's
+  # version" are different facts and only one of them is true.
+  PROJECT_INTENT_VERSION=""
   INTENT_DIR="${DEFAULT_INTENT_DIR}"
   AUTHOR="${USER}"
   EDITOR="${EDITOR:-vim}"
@@ -47,7 +53,24 @@ load_intent_config() {
     value=$(read_config_field "$config_file" "intent_dir") && [ -n "$value" ] && INTENT_DIR="$value"
     value=$(read_config_field "$config_file" "author") && [ -n "$value" ] && AUTHOR="$value"
     value=$(read_config_field "$config_file" "editor") && [ -n "$value" ] && EDITOR="$value"
-    value=$(read_config_field "$config_file" "intent_version") && [ -n "$value" ] && INTENT_VERSION="$value"
+    # THE PROJECT'S DECLARATION GETS ITS OWN NAME. This line used to assign
+    # INTENT_VERSION, which made one identifier mean two different things: the
+    # TOOL at intent_config:17 and bin/intent:41, and the PROJECT from here on.
+    # Nothing said so, and the switch happened inside a function called for its
+    # side effects.
+    #
+    # The cost was not theoretical. THREE separate sites already re-derived the
+    # tool version locally rather than trust the shared variable --
+    # bin/intent:41, bin/intent_info:44 and bin/intent_st:342 -- each written by
+    # someone working around this and each looking like ordinary initialisation
+    # rather than a workaround. A variable nobody trusts is re-read everywhere,
+    # and the re-reads are invisible as evidence.
+    #
+    # It also silently disarmed the first version of bin/intent's
+    # future-project refusal, which read INTENT_VERSION after this ran and so
+    # compared 3.0.0 against 3.0.0 -- failing in the direction that looks like a
+    # clean pass.
+    value=$(read_config_field "$config_file" "intent_version") && [ -n "$value" ] && PROJECT_INTENT_VERSION="$value"
   fi
   
   # Environment variables override all
@@ -61,7 +84,7 @@ load_intent_config() {
   fi
   
   # Export for use in subcommands
-  export INTENT_VERSION INTENT_DIR AUTHOR EDITOR PROJECT_ROOT
+  export INTENT_VERSION PROJECT_INTENT_VERSION INTENT_DIR AUTHOR EDITOR PROJECT_ROOT
 }
 
 # Validate JSON syntax using jq
@@ -85,7 +108,11 @@ validate_json() {
 # Display configuration (for debugging)
 show_config() {
   echo "Intent Configuration:"
-  echo "  INTENT_VERSION: $INTENT_VERSION"
+  # Both, and labelled by WHAT THEY NAME rather than by variable, because the
+  # whole defect this printer sat over was one name for two subjects. A reader
+  # debugging a version problem needs to see the pair disagree.
+  echo "  INTENT_VERSION (installed tool): $INTENT_VERSION"
+  echo "  PROJECT_INTENT_VERSION (declared by this project): ${PROJECT_INTENT_VERSION:-<none declared>}"
   echo "  PROJECT_ROOT: ${PROJECT_ROOT:-<not in project>}"
   echo "  INTENT_DIR: $INTENT_DIR"
   echo "  AUTHOR: $AUTHOR"
