@@ -154,11 +154,6 @@ if [ -d "intent/whiteboard" ]; then
   # unreachable branch under-enforces once; a gate keyed to a moving code
   # under-enforces everywhere. So: if the guards can be located, they RUN, and
   # a failing resolver is said out loud instead of being acted on.
-  if [ "$wb_info_rc" -ne 0 ]; then
-    echo "intent gate: \`intent info\` exited ${wb_info_rc} while the whiteboard guards were being located." >&2
-    echo "  the guards below still run if they can be found; this line is the earliest signal that this coupling is breaking again." >&2
-  fi
-
   if [ ! -d "$INTENT_HOME_RESOLVED" ]; then
     # TOTAL non-enforcement, reported once and as itself. Named separately
     # because the remedy is different in kind: nothing is wrong with the guards
@@ -180,6 +175,23 @@ if [ -d "intent/whiteboard" ]; then
     # precisely because a tool that refuses everything is worse than one that
     # says so. A guard that must be bypassed is a guard nobody keeps.
   else
+    # rc REPORTS, IT DOES NOT GATE -- and it is reported HERE rather than above
+    # the branch, for two reasons vc priced before I did. The total-failure block
+    # already names the code in its own message, so saying it twice is how a
+    # block starts getting skimmed. And this is the only place the code is
+    # genuinely ANOMALOUS: the resolution worked, the guards are about to run,
+    # and the tool still said it failed. That is the earliest signal this
+    # coupling is breaking again, and it is the whole reason the code is read.
+    #
+    # Priced knowingly: the day `info` inherits the migration refusal's non-zero
+    # code, this prints on every commit in every unmigrated project until it
+    # upgrades. That is a line of noise where gating would have been silent
+    # non-enforcement, which is the right direction -- but a line a reader cannot
+    # act on is how a gate's output stops being read, so it says outright that
+    # the guards ran and that nothing is owed.
+    if [ "$wb_info_rc" -ne 0 ]; then
+      echo "intent gate: \`intent info\` exited ${wb_info_rc}, but the whiteboard guards WERE located and are running -- nothing to do here." >&2
+    fi
     for wb_entry in "${WB_GUARDS[@]}"; do
       wb_name="${wb_entry%%|*}"
       wb_unchecked="${wb_entry#*|}"
