@@ -49,6 +49,33 @@ _create_exclusive() {
   ) 2>/dev/null
 }
 
+# inflight_marker -- the single line `open_run_log` seeds a fresh `.errors` with.
+#
+# ONE HOME, because there are now two consumers and they are in different files:
+# `open_run_log` writes it, and `run_all`'s disagreement arm (lib/resolve) reads
+# it to tell "returned 0 without sealing a verdict" from "returned 0 while its
+# seal records a failure". Those send a reader to different places -- one to a
+# killed or timed-out gate, the other to a test that actually failed -- and one
+# message for two causes is how a guard gets ignored.
+#
+# A copy of this string in the reader would drift in exactly the silent
+# direction: reword the marker here and the reader classifies every UNSEALED run
+# as a sealed failure, which is a confident false statement about which of two
+# defects you have.
+inflight_marker() {
+  printf 'run in flight (or aborted before sealing) -- no completed verdict; see the .out log\n'
+}
+
+# seal_is_inflight <errors-path> -- true when this seal was never written, ie the
+# gate did not reach write_errors_file.
+#
+# `$(cat)` on both sides strips the trailing newline from each, so the comparison
+# does not depend on how either was written.
+seal_is_inflight() {
+  [ -f "$1" ] || return 1
+  [ "$(cat "$1")" = "$(inflight_marker)" ]
+}
+
 # open_run_log <keep_log 0|1> <out_dir> <suffix> -- set the `log` and `errors`
 # globals.
 #
@@ -112,7 +139,7 @@ open_run_log() {
     [ -n "$log" ] || die "could not create a run log in $dir (200 candidate names taken)"
     printf '%s\n' "$log"
     errors="${log%.out}.errors"
-    printf 'run in flight (or aborted before sealing) -- no completed verdict; see the .out log\n' >"$errors"
+    inflight_marker >"$errors"
     # The convenience pointers must never sink a run: a failed ln warns, the
     # datestamped pair stays the record. tr keeps this bash-3.2 safe.
     latest="$dir/LATEST_$(printf '%s' "$suffix" | tr '[:lower:]' '[:upper:]')"
@@ -702,7 +729,7 @@ print_run_verdict() {
   return 0
 }
 
-# record_seal <rc> <label> <errors> -- append a failed gate's seal to the ledger.
+# record_seal <rc> <label> <errors> -- append EVERY gate's seal to the ledger.
 #
 # Exists so the synthesised `all` (D8) can end with one block naming every gate
 # that failed AND where its seal is. Each gate already prints its own `verdict:`
@@ -710,17 +737,84 @@ print_run_verdict() {
 # summary points without re-deriving anything or dereferencing a LATEST_*
 # pointer.
 #
+# GREEN GATES ARE RECORDED TOO, and that is the change rather than an oversight.
+# This used to `return 0` early when rc was 0, so a green gate never appeared in
+# the ledger at all -- which made a disagreement between the two sources of truth
+# UNREPRESENTABLE. A gate's return code and the `.errors` companion it seals are
+# two independent claims about one run, and the row that a false green would have
+# to contradict was simply never written. So the fix is not a check bolted onto
+# the summary; it is recording the second source at all.
+#
+# `rc` is the FIRST field for the same reason it is now written: the summary
+# filters on it, and a reader that has to reach the end of the line to learn
+# which claim it is looking at will eventually stop looking.
+#
+# All three fields are non-empty by the guards above, so the empty-field collapse
+# `read -r` performs under IFS=<tab> cannot bite and no `-` placeholder is needed.
+# That is a property of the guards, not of the data: relax one and the
+# placeholder becomes required.
+#
 # A file rather than a variable because run_option execs handlers in separate
 # processes -- an exported variable cannot carry data back up. No ledger set
 # means no ledger written, so a gate run directly is unaffected.
 record_seal() {
   local rc="$1" label="$2" errors="$3"
   [ -n "${DEVBIN_SEAL_LEDGER:-}" ] || return 0
-  [ "$rc" -ne 0 ] || return 0
   [ -n "$errors" ] || return 0
-  printf '%s\t%s\n' "$label" "$(abs_path "$errors")" >>"$DEVBIN_SEAL_LEDGER" ||
+  printf '%s\t%s\t%s\n' "$rc" "$label" "$(abs_path "$errors")" >>"$DEVBIN_SEAL_LEDGER" ||
     warn "could not record the seal for $label in the run ledger"
   return 0
+}
+
+# seal_failures <ledger> -- the formatted block naming each FAILED gate's seal.
+# seal_disagreements <ledger> -- the formatted block naming each gate whose
+#   return code and seal contradict each other. Empty output means none.
+#
+# BOTH LIVE HERE, BESIDE record_seal, BECAUSE THEY READ THE FORMAT IT WRITES.
+# The reader used to sit in run_all (lib/resolve) while the writer sat here, so
+# one tab-separated format had two homes in two files and a field added at one
+# end was a silent mis-parse at the other. Adding the `rc` field is exactly that
+# change, which is what surfaced it.
+#
+# They print rather than set a variable so the caller stays a coordinator, and so
+# a test can drive them against a hand-built ledger. That matters more than usual
+# here: a CORRECT gate cannot produce a disagreement, so the refusal arm has no
+# natural fixture and would otherwise be reasoned about instead of exercised.
+seal_failures() {
+  local ledger="$1" srr label path
+  [ -n "$ledger" ] && [ -s "$ledger" ] || return 0
+  while IFS="$(printf '\t')" read -r srr label path; do
+    [ -n "$path" ] || continue
+    [ "$srr" = "0" ] && continue
+    # Point at the SEAL, not at a LATEST_* pointer: those are re-pointed by every
+    # run in the tree, so with more than one session working they are
+    # last-writer-wins and can name a peer's run (see print_run_verdict). The
+    # seals themselves are always exact.
+    printf '  %s%-18s %s%s\n' "${dim:-}" "$label" "$path" "${reset:-}"
+  done <"$ledger"
+}
+
+seal_disagreements() {
+  local ledger="$1" srr label path why
+  [ -n "$ledger" ] && [ -s "$ledger" ] || return 0
+  while IFS="$(printf '\t')" read -r srr label path; do
+    [ -n "$path" ] || continue
+    [ "$srr" = "0" ] || continue
+    [ -s "$path" ] || continue
+    # A NON-EMPTY SEAL IS NOT THE SAME AS A FAILURE. open_run_log SEEDS the file,
+    # so non-empty covers two states: a sealed failure, and a gate that never
+    # sealed at all. Same defect class -- the rc and the seal disagree -- but
+    # they send a reader to different places, and one message for both would
+    # send them hunting for a failing test that does not exist. The unsealed arm
+    # is the one most likely to fire in real life, because a killed or timed-out
+    # run produces it.
+    if seal_is_inflight "$path"; then
+      why="returned 0 WITHOUT SEALING A VERDICT -- killed, timed out, or aborted"
+    else
+      why="returned 0 while its seal RECORDS A FAILURE"
+    fi
+    printf '  %s%s: %s%s\n    %s\n' "${red:-}" "$label" "$why" "${reset:-}" "$path"
+  done <"$ledger"
 }
 
 # ============================================================================

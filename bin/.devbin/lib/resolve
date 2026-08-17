@@ -413,7 +413,7 @@ EOF
 run_all() {
   local cmd="$1"
   shift
-  local opt failed="" skipped="" rc=0 ledger="" label path
+  local opt failed="" skipped="" rc=0 ledger="" label path srr why disagreed=""
   init_colors auto
   # ZERO options is a REFUSAL, not a pass. Without this the loop below runs no
   # times and the tail prints "all <cmd> options passed" -- success reported for
@@ -456,20 +456,38 @@ run_all() {
   if [ -n "$skipped" ]; then
     printf '\n%sskipped (in_all: false):%s%s\n' "${dim:-}" "$skipped" "${reset:-}"
   fi
+  # A GATE'S RETURN CODE AND THE SEAL IT WRITES ARE TWO INDEPENDENT CLAIMS ABOUT
+  # ONE RUN, and until 2026-08-17 nothing compared them. Measured that day: the
+  # bats leg sealed a non-empty `.errors` (one failure of 1311) at 04:05:33, the
+  # Rust leg sealed empty at 04:06:47, and the run was reported to a human as
+  # "100% green (rust and bats)" at 04:07 -- who acted on it. `failed` was built
+  # from return codes alone, so the seal had nothing it could contradict.
+  #
+  # Computed BEFORE the FAILED block so that BOTH can print. The shape this was
+  # handed to me in was `if failed / elif disagreed`, which hides a false green
+  # behind an unrelated real failure -- and the false green is the more dangerous
+  # of the two, because it is the one nobody goes looking for. The two sets are
+  # disjoint by construction (this walk keeps only rc=0 rows and the FAILED walk
+  # drops them), so printing both is additive, never double-reporting.
+  disagreed="$(seal_disagreements "$ledger")"
   if [ -n "$failed" ]; then
     printf '\n%sFAILED:%s%s\n' "${red:-}" "$failed" "${reset:-}"
-    # Point at each failure's SEAL, not at a LATEST_* pointer: those are
-    # re-pointed by every run in the tree, so with more than one session working
-    # they are last-writer-wins and can name a peer's run (lib/runlog,
-    # print_run_verdict). The seals themselves are always exact.
-    if [ -n "$ledger" ] && [ -s "$ledger" ]; then
-      while IFS="$(printf '\t')" read -r label path; do
-        [ -n "$path" ] || continue
-        printf '  %s%-18s %s%s\n' "${dim:-}" "$label" "$path" "${reset:-}"
-      done <"$ledger"
-    fi
+    seal_failures "$ledger"
     rc=1
-  else
+  fi
+  # It REFUSES rather than reclassifying. Folding this into FAILED would assert
+  # which of the two sources is right, and the entire reason this arm exists is
+  # that we do not know. A gate returning 0 while its seal says otherwise is a
+  # bug in THE GATE, not a test failure, and saying exactly that is the useful
+  # output -- it names where to go and does not pretend to a verdict it lacks.
+  if [ -n "$disagreed" ]; then
+    printf '\n%sREFUSING A VERDICT -- a return code and its seal disagree:%s\n' "${red:-}" "${reset:-}"
+    printf '%s\n' "$disagreed"
+    printf '  %sthis is a bug in the gate, not a test failure: the run has NO trustworthy verdict.%s\n' \
+      "${dim:-}" "${reset:-}"
+    rc=1
+  fi
+  if [ -z "$failed" ] && [ -z "$disagreed" ]; then
     printf '\n%sall %s options passed%s\n' "${green:-}" "$cmd" "${reset:-}"
   fi
   if [ -n "$ledger" ]; then
