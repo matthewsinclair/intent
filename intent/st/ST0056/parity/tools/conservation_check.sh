@@ -121,8 +121,9 @@ trap 'rm -rf "$WORK"' EXIT
 [ -n "$OOM" ] && { [ -f "$OOM" ] || die "no such out-of-model file: $OOM"; sort -u "$OOM" >"$WORK/oom"; }
 
 findings=0
+: >"$WORK/log"
 report() {
-  echo "$1 $2"
+  echo "$1 $2" | tee -a "$WORK/log"
   findings=$((findings + 1))
 }
 
@@ -378,6 +379,15 @@ done < <(awk -F'\t' '$1 == "PROSE"' "$CENSUS")
 # when it fails cannot be told from a check that never ran.
 # ---------------------------------------------------------------------------
 echo "conservation: $n_census estate file(s) -- converted $a_conv, relocated $a_reloc, out-of-model $a_oom"
-echo "conservation: prose -- conserved $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
+# ALTERED is printed EXPLICITLY, including when it is zero, because against the
+# real migrator the healthy reading is `conserved 0`. `sections()` trims every
+# body, so nothing survives byte-identical and everything content-preserving lands
+# in NORMALISED -- a summary that only published `conserved` would show a zero on
+# a clean migration and read as total loss. The number that means loss is ALTERED.
+# `grep -c` prints 0 AND exits 1 when nothing matches, so `|| echo 0` emits a
+# SECOND zero and the arithmetic dies on "0\n0". The log is created up front, so
+# swallowing the exit is all that is needed.
+c_alt="$(grep -c '^ALTERED-PROSE ' "$WORK/log" || true)"
+echo "conservation: prose -- ALTERED $c_alt (the number that means loss), conserved byte-identical $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
 echo "conservation: $findings finding(s)"
 [ "$findings" -eq 0 ]
