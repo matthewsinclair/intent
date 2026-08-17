@@ -59,63 +59,86 @@ cd "$ROOT" || die "cannot reach the project root at $ROOT"
 git rev-parse --git-dir >/dev/null 2>&1 ||
   die "not a git checkout, so there is no commit to read a vendored tree out of"
 
-# DETERMINATE ABSENCE IS A FACT ABOUT THE PROJECT, REPORTED AND PASSED. A project
-# that vendors nothing has nothing to disagree with. It is stated rather than
-# skipped in silence, because "no vendored tree" and "the check did not run" are
-# different answers and only one of them is reassuring.
-if ! git cat-file -e ":$MANIFEST" 2>/dev/null; then
-  echo "self-provenance: no $MANIFEST in the commit -- this project vendors no devbin, so there is nothing to disagree with."
-  exit 0
-fi
-
 matched=0
 diverged=0
 absent=0
 rc=0
+has_manifest=1
 
-# `rel`, NOT `path`. zsh ties `path` to `PATH`, so `read -r sha path` replaces the
-# shell's entire PATH with a filename on the first iteration and every subsequent
-# command reports `command not found` -- and the corruption OUTLIVES the loop. It
-# has bitten two nodes on this estate in one day, both while measuring THIS
-# manifest, because `read -r sha path` is the obvious spelling for a `.sha256`
-# line. This file is bash and would survive it; the spelling is avoided anyway,
-# because the next person to copy this loop may not be.
-while read -r want rel; do
-  [ -n "$rel" ] || continue
-  if ! git cat-file -e ":$rel" 2>/dev/null; then
-    echo "self-provenance: $rel is named by the committed manifest and is NOT in the commit" >&2
-    absent=$((absent + 1))
-    rc=1
-    continue
-  fi
-  got="$(git cat-file blob ":$rel" | shasum -a 256 | awk '{print $1}')"
-  if [ "$got" = "$want" ]; then
-    matched=$((matched + 1))
+# DETERMINATE ABSENCE IS A FACT ABOUT THE PROJECT, REPORTED AND PASSED. A project
+# that vendors nothing has nothing to disagree with. It is stated rather than
+# skipped in silence, because "no vendored tree" and "the check did not run" are
+# different answers and only one of them is reassuring.
+#
+# THIS SET A FLAG AND `exit 0` UNTIL 2026-08-17, AND THE EXIT WAS CORRECT RIGHT
+# UP UNTIL IT WAS NOT. When arm 1 was the whole file, "no vendored tree" really
+# was the end of the run. Adding arm 2 silently made this a short-circuit that
+# skipped it: in ANY project without a vendored devbin -- which is every consumer
+# project, and every fixture -- the binary arm became dead code, and a binary
+# carrying an obviously wrong sha went unreported at exit 0. Measured, not
+# reasoned: a scratch repo with no manifest and a planted
+# `[intent-source-commit:deadbeef...]` reported only the no-manifest line, with a
+# control confirming the marker was findable in the file.
+#
+# It was found by trying to drive arm 2's third branch in a repo that has no
+# manifest -- so the reachability probe found a different defect from the one it
+# was looking for, which is the kind worth the ten minutes. THE GENERAL FORM IS
+# ALREADY ON THIS ESTATE'S BOARDS: adding a second consumer to a script does not
+# revisit the first one's exits, and an exit written when there was one arm is a
+# claim that the run is over.
+if ! git cat-file -e ":$MANIFEST" 2>/dev/null; then
+  echo "self-provenance: no $MANIFEST in the commit -- this project vendors no devbin, so there is nothing to disagree with."
+  has_manifest=0
+fi
+
+if [ "$has_manifest" -eq 1 ]; then
+  # `rel`, NOT `path`. zsh ties `path` to `PATH`, so `read -r sha path` replaces the
+  # shell's entire PATH with a filename on the first iteration and every subsequent
+  # command reports `command not found` -- and the corruption OUTLIVES the loop. It
+  # has bitten two nodes on this estate in one day, both while measuring THIS
+  # manifest, because `read -r sha path` is the obvious spelling for a `.sha256`
+  # line. This file is bash and would survive it; the spelling is avoided anyway,
+  # because the next person to copy this loop may not be.
+  while read -r want rel; do
+    [ -n "$rel" ] || continue
+    if ! git cat-file -e ":$rel" 2>/dev/null; then
+      echo "self-provenance: $rel is named by the committed manifest and is NOT in the commit" >&2
+      absent=$((absent + 1))
+      rc=1
+      continue
+    fi
+    got="$(git cat-file blob ":$rel" | shasum -a 256 | awk '{print $1}')"
+    if [ "$got" = "$want" ]; then
+      matched=$((matched + 1))
+    else
+      echo "self-provenance: $rel DIVERGED -- the commit holds bytes the committed manifest does not describe" >&2
+      echo "    manifest records  $want" >&2
+      echo "    the commit holds  $got" >&2
+      diverged=$((diverged + 1))
+      rc=1
+    fi
+  done < <(git cat-file blob ":$MANIFEST" | awk '/^#/ { next } NF >= 2 { p = $2; for (i = 3; i <= NF; i++) p = p " " $i; print $1, p }')
+
+  # THE MATCHED COUNT IS THE INSTRUMENT'S OWN CANARY, AND IT IS REPORTED WHETHER OR
+  # NOT ANYTHING FAILED. A run with zero matches is a broken run, not a wholly
+  # forked tree -- measured on this estate when a `read -r sha path` loop destroyed
+  # PATH and reported all 27 files diverged, one step away from being filed as an
+  # issue. A wrong ZERO certifies absence and a wrong MAXIMUM certifies
+  # catastrophe, and the second is the more persuasive because it looks like
+  # diligence rewarded. The matches are what say the tool ran.
+  #
+  # This still `die`s, so an INSTRUMENT failure stops the run before arm 2. That is
+  # deliberate: a broken instrument should not go on to render a second verdict.
+  [ "$matched" -gt 0 ] ||
+    die "the committed manifest named files and NOT ONE hashed -- this is the instrument failing, not $((diverged + absent)) genuine divergences"
+
+  if [ "$rc" -eq 0 ]; then
+    echo "self-provenance: $matched vendored file(s) in the commit match the manifest committed beside them."
   else
-    echo "self-provenance: $rel DIVERGED -- the commit holds bytes the committed manifest does not describe" >&2
-    echo "    manifest records  $want" >&2
-    echo "    the commit holds  $got" >&2
-    diverged=$((diverged + 1))
-    rc=1
+    echo "self-provenance: $matched matched, $diverged diverged, $absent absent -- the commit's vendored tree disagrees with its own record" >&2
+    echo "    A re-vendor is two facts, the files and the record. Stage BOTH:" >&2
+    echo "      git add $MANIFEST <the vendored files>" >&2
   fi
-done < <(git cat-file blob ":$MANIFEST" | awk '/^#/ { next } NF >= 2 { p = $2; for (i = 3; i <= NF; i++) p = p " " $i; print $1, p }')
-
-# THE MATCHED COUNT IS THE INSTRUMENT'S OWN CANARY, AND IT IS REPORTED WHETHER OR
-# NOT ANYTHING FAILED. A run with zero matches is a broken run, not a wholly
-# forked tree -- measured on this estate when a `read -r sha path` loop destroyed
-# PATH and reported all 27 files diverged, one step away from being filed as an
-# issue. A wrong ZERO certifies absence and a wrong MAXIMUM certifies
-# catastrophe, and the second is the more persuasive because it looks like
-# diligence rewarded. The matches are what say the tool ran.
-[ "$matched" -gt 0 ] ||
-  die "the committed manifest named files and NOT ONE hashed -- this is the instrument failing, not $((diverged + absent)) genuine divergences"
-
-if [ "$rc" -eq 0 ]; then
-  echo "self-provenance: $matched vendored file(s) in the commit match the manifest committed beside them."
-else
-  echo "self-provenance: $matched matched, $diverged diverged, $absent absent -- the commit's vendored tree disagrees with its own record" >&2
-  echo "    A re-vendor is two facts, the files and the record. Stage BOTH:" >&2
-  echo "      git add $MANIFEST <the vendored files>" >&2
 fi
 
 # --------------------------------------------------------------------------
