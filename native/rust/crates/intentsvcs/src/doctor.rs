@@ -257,10 +257,29 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   //
   // And the carry policy is a rule about WHERE a legacy value may appear, not
   // about its shape: hv ratified that CLOSED threads convert
-  // lossless-by-carrying while LIVE threads stay BLOCKED-until-clean, so a
-  // carried scope on a live thread is a defect however well-formed it is.
+  // lossless-by-carrying while LIVE threads stay BLOCKED-until-clean.
   // Ingest's `record` applies that split at migration time; this catches one
   // that arrived any other way, including by hand.
+  //
+  // **BOTH OF THESE ARE ADVISORY AND THE FIRST WORDING SAID OTHERWISE, WHICH
+  // COST TWO READERS AN EVENING.** It read "a live one is fixed, not carried"
+  // -- an OBLIGATION, indistinguishable in tone from `broken-reference`, which
+  // genuinely does refuse. Baize emits 66 of these and migrates at exit 0, so
+  // vc read 66 refusals that had not happened and went looking for a hole in
+  // AC-10.2's block arm; ic then read the `Blocked` enum, the nine residue
+  // classes and the class gate's output to establish there was none. **The
+  // estate did not send them, the sentence did**, and it fired toward
+  // suspecting the migrator both times.
+  //
+  // vc has since ruled these do NOT block (D47): the reference RESOLVES, so
+  // migrating one loses nothing, and `broken-reference` is the different
+  // predicate that earns a refusal. A blocking class that fires on well-formed
+  // estates is the guard that gets worked around.
+  //
+  // **So: a hygiene note describes a STATE, a refusal describes an OBLIGATION**
+  // (ic). The policy explanation is kept deliberately -- it is the only place
+  // the output says what the carry policy IS -- and losing that to gain the
+  // tone would be the wrong trade.
   for wp in &thread.wps {
     if wp.scope.is_some() && wp.scope_legacy.is_some() {
       add(
@@ -275,7 +294,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     if wp.scope_legacy.is_some() && !thread.status.is_closed() {
       add(
         format!(
-          "WP-{:02} carries a legacy scope on a thread that is still {} -- the carry policy is for CLOSED threads; a live one is fixed, not carried",
+          "WP-{:02} carries a legacy scope and its thread is still {} -- ADVISORY, not a refusal: the value is well-formed and nothing is blocked by it. The carry converts losslessly on a CLOSED thread, so a live one is worth rewriting in the v3 vocabulary next time the thread is touched",
           wp.seq,
           thread.status.display()
         ),
@@ -312,7 +331,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     if at.legacy.is_some() && !thread.status.is_closed() {
       add(
         format!(
-          "{} carries a legacy reference on a thread that is still {} -- the carry policy is for CLOSED threads; a live one is fixed, not carried",
+          "{} carries a legacy reference and its thread is still {} -- ADVISORY, not a refusal: the reference RESOLVES and nothing is blocked by it. The carry converts losslessly on a CLOSED thread, so a live one is worth rewriting in the v3 grammar next time the thread is touched",
           at.id,
           thread.status.display()
         ),

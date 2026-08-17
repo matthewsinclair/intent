@@ -355,7 +355,7 @@ fn a_carried_scope_on_a_live_thread_is_reported() {
       .findings
       .iter()
       .any(|f| f.class == FindingClass::ModelInconsistent
-        && f.detail.contains("carry policy is for CLOSED threads")),
+        && f.detail.contains("ADVISORY, not a refusal")),
     "a live thread is fixed, not carried: {:?}",
     report.findings
   );
@@ -436,7 +436,7 @@ fn a_carried_reference_on_a_live_thread_is_reported() {
       .iter()
       .any(|f| f.class == FindingClass::ModelInconsistent
         && f.detail.contains(&id)
-        && f.detail.contains("carry policy is for CLOSED threads")),
+        && f.detail.contains("ADVISORY, not a refusal")),
     "a live thread is fixed, not carried: {:?}",
     report.findings
   );
