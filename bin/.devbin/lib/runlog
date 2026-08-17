@@ -76,6 +76,52 @@ seal_is_inflight() {
   [ "$(cat "$1")" = "$(inflight_marker)" ]
 }
 
+# seal_disagreement_reason <rc> <errors> -- WHY this run's return code and its
+# seal contradict each other, or NOTHING AT ALL when they agree.
+#
+# ONE HOME, TWO CALLERS, AND THE SECOND CALLER IS THE WHOLE POINT.
+# `seal_disagreements` reads the ledger, and the ledger is exported by `run_all`
+# and by nothing else -- so a check living only there sees `<cmd> all` and misses
+# every single-gate invocation. `print_run_verdict` runs on EVERY kept run. The
+# one instance of this class on record (issue 0015) was a single gate, which is
+# to say: on the path the ledger cannot see.
+#
+# THE STATE IS REACHABLE AND THAT WAS MEASURED RATHER THAN ASSUMED, because it
+# looks unconstructible and very nearly is. `write_errors_file` TRUNCATES the
+# seal whenever rc==0, so rc==0 beside a non-empty seal should be impossible.
+# It is not: when the truncation FAILS -- a read-only seal, a vanished directory
+# -- that function WARNS AND RETURNS 0, and the seal keeps what it already held,
+# which is the marker `open_run_log` seeded. Driven against an unwritable seal:
+# write_errors_file returned 0, the marker survived, the gate reported green.
+# The only thing standing between that and a believed verdict was a warn, AND A
+# NOTE CANNOT NOTICE. A check for an unreachable state would have been worse than
+# no check, so the probe came before the code.
+#
+# SILENCE MEANS THEY AGREE. Callers test for empty output rather than for a
+# status, so there is one obvious falsy value and no exit-code convention to
+# remember at two call sites.
+seal_disagreement_reason() {
+  local rc="$1" errors="${2:-}"
+  # A NON-ZERO rc IS NEVER A DISAGREEMENT. A red run is SUPPOSED to seal
+  # non-empty, and write_errors_file enforces exactly that ("RED IS NEVER
+  # EMPTY"). Only a claimed GREEN can be contradicted by its own artefact.
+  [ "$rc" = "0" ] || return 0
+  # Empty `errors` is the keep_log=0 spool path, where no companion is kept at
+  # all -- documented at open_run_log. So `--no-out` runs stay silent here by
+  # construction rather than by a second flag being threaded down.
+  [ -n "$errors" ] && [ -s "$errors" ] || return 0
+  # A NON-EMPTY SEAL IS NOT THE SAME AS A FAILURE. open_run_log SEEDS the file,
+  # so non-empty covers two states: a sealed failure, and a gate that never
+  # sealed at all. Same defect class -- the rc and the seal disagree -- but they
+  # send a reader to different places, and one message for both would send them
+  # hunting for a failing test that does not exist.
+  if seal_is_inflight "$errors"; then
+    printf 'returned 0 WITHOUT SEALING A VERDICT -- killed, timed out, or the seal could not be written\n'
+  else
+    printf 'returned 0 while its seal RECORDS A FAILURE\n'
+  fi
+}
+
 # open_run_log <keep_log 0|1> <out_dir> <suffix> -- set the `log` and `errors`
 # globals.
 #
@@ -716,7 +762,7 @@ warn_if_tee_failed() {
 # colours as `${red:-}` so it survives `set -u` when init_colors was never
 # called.
 print_run_verdict() {
-  local rc="$1" keep="$2" log="$3" errors="${4:-}"
+  local rc="$1" keep="$2" log="$3" errors="${4:-}" why
   if [ "$keep" = 1 ] && [ -n "$errors" ]; then
     printf 'verdict: %s\n' "$(abs_path "$errors")"
   fi
@@ -725,6 +771,23 @@ print_run_verdict() {
     if [ -n "$errors" ] && [ -s "$errors" ]; then
       printf '%s-> errors:   %s%s\n' "${red:-}" "$errors" "${reset:-}"
     fi
+  fi
+  # THE RUN'S TWO CLAIMS, COMPARED AT THE ONE POINT WHERE BOTH ARE IN HAND.
+  # run_gate calls write_errors_file and then this, so the seal is on disk by
+  # now and `rc` is right here. Every other place that could ask has to go and
+  # find one of the two.
+  #
+  # This arm is why the check reaches single-gate runs at all: the ledger-based
+  # block in run_all only exists inside `<cmd> all`.
+  #
+  # It ANNOTATES AND NEVER SUPPRESSES. A red still prints its red above; this
+  # adds a line, downgrades nothing, and changes no exit status -- a guard that
+  # quietly demoted a failure would be a bypass wearing a safety label.
+  why="$(seal_disagreement_reason "$rc" "$errors")"
+  if [ -n "$why" ]; then
+    printf '%sREFUSING A VERDICT -- this gate %s%s\n' "${red:-}" "$why" "${reset:-}"
+    printf '%s  a return code and its seal disagree, so this run has NO trustworthy verdict.%s\n' \
+      "${dim:-}" "${reset:-}"
   fi
   return 0
 }
@@ -794,25 +857,18 @@ seal_failures() {
   done <"$ledger"
 }
 
+# The AGGREGATE face. It classifies nothing itself -- seal_disagreement_reason
+# owns that, and this walks rows and formats. Before the extraction the same
+# two-state classification existed here only, which is precisely why the
+# single-gate path had none: the knowledge was welded to the loop that read the
+# ledger, so it could only ever be applied where a ledger existed.
 seal_disagreements() {
   local ledger="$1" srr label path why
   [ -n "$ledger" ] && [ -s "$ledger" ] || return 0
   while IFS="$(printf '\t')" read -r srr label path; do
     [ -n "$path" ] || continue
-    [ "$srr" = "0" ] || continue
-    [ -s "$path" ] || continue
-    # A NON-EMPTY SEAL IS NOT THE SAME AS A FAILURE. open_run_log SEEDS the file,
-    # so non-empty covers two states: a sealed failure, and a gate that never
-    # sealed at all. Same defect class -- the rc and the seal disagree -- but
-    # they send a reader to different places, and one message for both would
-    # send them hunting for a failing test that does not exist. The unsealed arm
-    # is the one most likely to fire in real life, because a killed or timed-out
-    # run produces it.
-    if seal_is_inflight "$path"; then
-      why="returned 0 WITHOUT SEALING A VERDICT -- killed, timed out, or aborted"
-    else
-      why="returned 0 while its seal RECORDS A FAILURE"
-    fi
+    why="$(seal_disagreement_reason "$srr" "$path")"
+    [ -n "$why" ] || continue
     printf '  %s%s: %s%s\n    %s\n' "${red:-}" "$label" "$why" "${reset:-}" "$path"
   done <"$ledger"
 }

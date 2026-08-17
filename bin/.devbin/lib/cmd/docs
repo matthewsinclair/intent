@@ -63,7 +63,7 @@ builtin_docs_treeindex() {
       continue
     fi
     printf '    %s\n' "$d"
-    # CHECK THE INDEXER, NOT JUST THE DIRECTORY (issue 0044). `rc` moved only in
+    # CHECK THE INDEXER, NOT JUST THE DIRECTORY (issue 0016). `rc` moved only in
     # the absent-directory branch above, so a failing `intent treeindex` was
     # discarded entirely: measured under a v3 surface where `treeindex` is
     # retired, both directories errored on screen and this function still

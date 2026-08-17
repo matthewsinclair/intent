@@ -57,6 +57,22 @@ builtin_fmt_swift() {
 #
 # Conflab learned this and encoded it. Naming paths explicitly is the way to
 # format a file under those directories deliberately.
+#
+# NO `--prose-wrap` FLAG, AND ITS ABSENCE IS THE POINT (issue 0054, raised by a
+# consumer). This carried `--prose-wrap never` and a CLI FLAG BEATS A CONFIG
+# FILE, so `fmt md` imposed a prose style on every project that vendors devbin
+# while that project's own `.prettierrc.json` -- and every other prettier caller
+# in it, commit hooks included -- used a different one. The two then disagreed
+# about the same file, and the disagreement surfaced as a large phantom diff on
+# a file the author had just committed clean. Measured in Intent: 110 changed
+# lines on one document, 489 on another, against a tree that bare prettier
+# reproduces byte for byte.
+#
+# DEVBIN HAS NO BUSINESS HOLDING A CONSUMER'S PROSE STYLE. `.prettierrc.json` is
+# the mechanism prettier provides for exactly this, it is per-project, and it is
+# honoured by every caller rather than one. A project that wants prose unwrapped
+# sets `"proseWrap": "never"` there and gets it EVERYWHERE, which is the thing
+# the flag could never deliver.
 builtin_fmt_md() {
   _fmt_skip_without npx "install Node.js" || return 0
   if [ $# -eq 0 ]; then
@@ -64,7 +80,7 @@ builtin_fmt_md() {
     warn "pass explicit paths to format a file there deliberately"
     set -- ./*.md
   fi
-  npx --yes prettier --prose-wrap never --write "$@"
+  npx --yes prettier --write "$@"
 }
 
 run_builtin_gate fmt "$@"

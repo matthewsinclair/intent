@@ -27,12 +27,27 @@ builtin_check_critic() {
   require_tool intent "Install Intent: see intent/docs at the Intent install"
   require_tool jq "brew install jq"
 
-  local declared headless langs="" lang rc=0 hl_rc=0
-  declared="$(jq -r '(.languages // []) | .[]' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || true)"
+  local declared headless langs="" lang rc=0 hl_rc=0 jq_rc=0 cfg
+  cfg="$PROJECT_ROOT/intent/.config/config.json"
+  # THREE CONDITIONS, THREE DIAGNOSES (issue 0016). The `|| true` here collapsed
+  # an ABSENT config, an UNPARSEABLE one, and a genuinely EMPTY `languages` array
+  # into a single message -- and that message is right about exactly one of the
+  # three, so it offered `intent lang init <lang>` to someone whose config is
+  # missing or malformed. Measured: jq exits 2 on an absent file, 5 on a parse
+  # error, and 0 on `[]`. The status distinguishing them was there to be read.
+  #
+  # This line survived the sweep that fixed the one below it, in the same
+  # function, four lines apart. A sweep looks for the reported SHAPE; this one
+  # wears `|| true` where that one wore a discarded `$?`.
+  [ -f "$cfg" ] ||
+    die "no config at $cfg -- run this from an Intent project root (PROJECT_ROOT is $PROJECT_ROOT)"
+  declared="$(jq -r '(.languages // []) | .[]' "$cfg" 2>/dev/null)" || jq_rc=$?
+  [ "$jq_rc" -eq 0 ] ||
+    die "could not parse $cfg (jq exit $jq_rc) -- the config is not valid JSON. This is NOT an absence of declared languages."
   [ -n "$declared" ] ||
     die "no languages declared in intent/.config/config.json (intent lang init <lang>)"
   # "NO LANGUAGE HAS A HEADLESS CRITIC" AND "THE TOOL THAT LISTS THEM DID NOT
-  # ANSWER" ARE DIFFERENT ABSENCES (issue 0042's shape, one directory over).
+  # ANSWER" ARE DIFFERENT ABSENCES (issue 0016).
   # `|| true` discarded the status, so a CLI that cannot answer produced an empty
   # list, which produced an empty `langs`, which died naming the wrong cause --
   # blaming the project's language declarations for a failure of the tool. It
@@ -41,7 +56,7 @@ builtin_check_critic() {
   # is a v3 binary shadowing v2 on PATH.
   headless="$(intent critic --languages 2>/dev/null)" || hl_rc=$?
   [ "$hl_rc" -eq 0 ] ||
-    die "\`intent critic --languages\` failed (exit $hl_rc) -- cannot tell which languages have a headless critic. The tool did not answer; this is not an absence of critics. Check which \`intent\` is on PATH (a v3 binary shadowing a v2 install is the known cause -- issues 0036/0042)."
+    die "\`intent critic --languages\` failed (exit $hl_rc) -- cannot tell which languages have a headless critic. The tool did not answer; this is not an absence of critics. Check which \`intent\` is on PATH: a second install shadowing the expected one is the known cause."
 
   for lang in $declared; do
     case "
