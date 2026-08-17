@@ -1,0 +1,14 @@
+- AT-01.1 (non-test) read the rewritten interop section against the v1.x model in design.md -- covers AC-01.1, AC-01.2, AC-01.3 -- status: n/a -- doc / eyeball
+- AT-02.1 (non-test) read `/in-standards` Step 3 -- covers AC-02.1 -- status: n/a -- doc / eyeball
+- AT-03.1 (non-test) read the `_usage-rules.md` template -- covers AC-03.1, AC-03.2 -- status: n/a -- doc / eyeball
+- AT-01.1 `tests/unit/modules_commands.bats` -- covers AC-01.1 -- status: to-write -- red-first; modules check -- unregistered fixture flagged
+- AT-01.2 `tests/unit/modules_commands.bats` -- covers AC-01.2 -- status: to-write -- red-first; modules check -- umbrella apps/*/lib enumerated
+- AT-01.3 `tests/unit/modules_commands.bats` -- covers AC-01.3 -- status: to-write -- red-first; modules check -- exclusion set honoured
+- AT-01.4 `tests/unit/modules_commands.bats` -- covers AC-01.4 -- status: to-write -- red-first; modules check -- stale row still flagged
+- AT-02.1 `tests/unit/modules_commands.bats` -- covers AC-02.1 -- status: to-write -- red-first; modules sync -- registers unregistered, check then green
+- AT-02.2 `tests/unit/modules_commands.bats` -- covers AC-02.2 -- status: to-write -- red-first; modules sync -- idempotent zero-diff on re-run
+- AT-02.3 `tests/unit/modules_commands.bats` -- covers AC-02.3 -- status: to-write -- red-first; modules sync -- preserves provenance + sub-sections
+- AT-02.4 `tests/unit/modules_commands.bats` -- covers AC-02.4 -- status: to-write -- red-first; modules sync -- new row module->path + provenance
+- AT-02.5 `tests/unit/modules_commands.bats` -- covers AC-02.5 -- status: to-write -- red-first; modules sync -- deterministic ordering
+- AT-02.1 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.1 -- status: green -- test: in-whiteboard SKILL.md has no live 2.0 references
+- AT-02.2 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.2 -- status: green -- test: chaining skills reference 3.0 subcommands and no shipped doc hard-codes the flat-file model
