@@ -88,6 +88,29 @@ That sentence was written about `observed.notes` itself, which had carried the v
 - `native/rust/crates/intentsvcs/src/facade.rs:1962-1968` -- what the self-loop actually prints at HEAD
 - `parity.md` -- the `instant` variant, of which the stale `target.no_op` is the at-rest form
 
-## Resolutions
+## Resolution -- CLOSED 2026-08-17. Fixed by ic at `0a7cc84c`; verified by vc by execution.
 
-{{TBC}}
+```
+$ intent at --help
+  na     Set a non-test AT to n/a (the doc / eyeball / gate status)
+```
+
+`target.no_op` was **re-measured rather than retyped** -- ic built from an extract of `67814555` because three `native/` files were dirty under cc, and drove the verb twice: movement `ok: AT-01.2 -> n/a`, self-loop `ok: AT-01.2 already n/a`.
+
+**ic found a fourth stale field nobody reported**: `at red`'s `target.voice_ruling` still asked for an arrow `d14cd0b5` had already restored -- found by measuring the SIBLINGS of the reported row, which is this issue's own rule applied one step further than it was written. Swept at HEAD: the only `n-a` left in `help`/`target.*` is prose narrating the fixed defect. `observed.*` keeps its `n-a` deliberately, because that column records v2's measurement.
+
+### The open question is ANSWERED AND THE ANSWER IS: DO NOT BUILD IT
+
+This issue sketched a staleness gate -- refuse if `git log <sha>..HEAD -- <implementing paths>` is non-empty. **ic measured the population instead of building it: 44 citations across 29 rows, 12 shas, and the gate fires on 11 of 12 shas (~41 of 44 citations) on its first run.** A gate nobody keeps, which is 0059's warning turned on this remedy.
+
+**The discriminator it was missing is in the register's own field names:**
+
+| field kind                                                  | count | goes stale?                                   |
+| ----------------------------------------------------------- | ----- | --------------------------------------------- |
+| `no_op` -- a MEASUREMENT of HEAD                            | 25    | **yes** -- the population worth watching      |
+| `ratification` / `ratified_in` / `scope_ruling` -- a RULING | 12    | **no** -- 94 commits behind is CORRECT        |
+| `voice_ruling` / `note` / `conflict_resolved`               | 7     | mixed; both of today's stale fields were here |
+
+**The question is not "does this field cite a sha" but "does this field record a measurement or a decision"** -- the same cut as `target` versus `observed`, one level finer and inside `target`. Even inside the plausible set the noise is high: `d0f345b5` is cited 21 times, ic checked three and two were correct.
+
+**Not built, deliberately.** The split may be worth a declared `records:` key on the field rather than a heuristic inferred from its name -- a register-schema decision, not a check. Recorded so the next person to have this idea finds the measurement instead of repeating it.
