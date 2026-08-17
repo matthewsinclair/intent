@@ -346,3 +346,28 @@ So:
 **The pair covers both failure directions, which is why it is worth one message rather than two.** dc's rule: a wrong zero certifies absence, a wrong maximum certifies catastrophe, **and the second is far more persuasive because it looks like diligence rewarded** -- nobody re-checks an instrument that has just found something big. vc's produces the plausible zero; dc's produces the alarm. **A control that fires in the known-good direction is the only thing that separates either from a real finding.**
 
 Practical: quote or use arrays for multi-word command paths; never name a loop variable `path`; and prefer a script with a bash shebang over an inline loop for anything whose result you intend to write down.
+
+## (2026-08-17 10:57Z) Re: your "Some test regressions" report
+
+**THE RED IS NOT A REGRESSION. Nothing that has landed is broken, and you can stop worrying about it.** You ruled the legs to cc/ic and I have not touched them -- this is the diagnosis only, so they are not chasing a ghost.
+
+**Measured, not inferred:**
+
+| what                                                        | result                                                     |
+| ----------------------------------------------------------- | ---------------------------------------------------------- |
+| `78a12dce` (`git archive` extract, own target dir)          | **green, 21 passed 0 failed** -- the failing test included |
+| `b2173b1b` (dc, detached worktree, independent method)      | **green**, same two legs                                   |
+| `crates/intentsvcs/src/facade.rs` vs the rust leg finishing | modified **+41s AFTER**                                    |
+| `crates/intentsvcs/tests/close_gate_parity.rs`, same anchor | modified **+48s AFTER**                                    |
+
+So the leg compiled a tree that stopped existing 41 seconds later. The assertion that panicked -- `"the same gate refuses once the coverage goes red"` -- is **the one your own self-loop ruling retires**, and cc's tree already rewrites it to `Outcome::AlreadyThere` citing that ruling. The format leg is the same class nine minutes earlier: it caught cc's `Outcome` refactor before it was formatted.
+
+**What I did NOT verify, so you do not read more into this than it carries: whether cc's CURRENT tree passes.** That is one command and it is theirs.
+
+**FILED 0049 (medium, `304cf05b`), because the real defect is not that the tree moved -- it always will on a five-node estate.** It is that the run pair records **neither which tree it measured nor whether that tree survived**, so a stale verdict is indistinguishable from a live one by inspection. **The four stale GREENs from that same run are the worse half** -- a red gets read carefully, a green certifying a tree nobody has never gets questioned. That is dc's asymmetry pointed back at the instrument that produced it.
+
+**Filing it caught me in the same defect, in writing, inside the hour.** I told cc "HEAD (78a12dce) is GREEN" -- true when sent, false forty minutes later when cc landed `b2173b1b`. dc hit the identical thing in the same window against their own sha and flagged it unprompted. **`HEAD` is a pointer, so a claim about it is a claim about whatever it points at WHEN READ -- and `rust` is a pointer at a tree in exactly the same way.** That is the whole of 0049, and pinning the sha protects the measurement while only naming the commit protects the report. The issue itself was refuting itself in three places on first writing; fixed in the same commit, with the wrong sentence left visible as its own evidence.
+
+**Proposed fix is two separable parts, annotate-never-suppress:** stamp `git rev-parse HEAD` + the dirty list at run start so a verdict names its referent, and `find <scope> -newer <run-start anchor>` at seal so it also says whether the tree moved. Part 2 needs no clock and cannot false-positive on a quiescent tree; the mtime idiom is already in-house at `runlog:665`. **It narrows the window and does not close the class**, which the issue states rather than papers over.
+
+**It lands in `bin/.devbin/**`, so it is dc's call (0048) and I filed rather than built.** Nothing here needs you before you are back.
