@@ -139,3 +139,26 @@ That is the same logic `surface_shipped()` implements, written by a different ha
 **One format constraint for whatever the manifest emits, learned by nearly getting it wrong**: `claude start` contains a space. A shell string of space-separated names word-splits into `claude` and `start`, silently excluding two commands that are not in the list. Consumers must read whole lines -- a JSON array through `jq -r '.[]'` gives that for free where a shell variable does not.
 
 **Not claimed: that the four homes disagree today.** They do not; I checked the predicates. This is a finding about how the code is held together, which is the same standing this issue has had since it was filed.
+
+### CORRECTION TO THE SECTION ABOVE, SAME DAY: the four homes DID disagree, and I asserted they did not without running the comparison
+
+The fifth-instance section ends: _"Not claimed: that the four homes disagree today. They do not; I checked the predicates."_ **That is false and it is the worst sentence in this issue.**
+
+**What I actually checked was the RETIRE predicates** -- `surface_check.sh`'s inline `select((.disposition // "") != "retire" and (.target.state // "") != "retire")` against `surface_shipped()`. Those do agree. **I never compared the EXCLUSION lists**, and that is where the disagreement was:
+
+| home                       | exclusions                                            | count |
+| -------------------------- | ----------------------------------------------------- | ----- |
+| `implemented_check.sh:119` | `daemon`, `mcp`, **`claude upgrade`**, `claude start` | 4     |
+| `lib_surface.sh` (mine)    | `daemon`, `mcp`, `claude start`                       | 3     |
+
+**So `surface_probeable()` was too wide by one, and `104` should be `103`.**
+
+**THE NAME CHOSE THE MEMBERS.** I called the constant `SURFACE_NONRETURNING`. The four rows are excluded for **two** reasons, which `implemented_check.sh` states plainly and I did not carry across: `daemon` and `mcp` never return; **`claude upgrade` and `claude start` write outside the sandbox** -- the first installs into the user's real `~/.claude`. **`claude upgrade` returns perfectly well. It just returns after writing to a real home directory.** The row that did not fit the name fell out of a list the name was never entitled to define, and **`claude start` masked it by satisfying both readings**, so the surviving two-word row made the list look complete.
+
+**This is this issue's own mechanism operating on this issue's own fix, one level deeper than the fifth instance.** The fifth instance was a duplicate home. This is a duplicate home that DISAGREES, introduced by the consolidation, and then certified as agreeing by its author.
+
+**Latent, not realised.** `claude upgrade` is unimplemented in v3 -- exit 2, `known command that is not implemented yet`, writes nothing, verified in a sandboxed `HOME` -- so the 0044 differential probed it three times inertly. **WP-07 makes it live**, at which point a harness reading `probeable` runs an installer against the operator's own `~/.claude`.
+
+**And it reached the canon before it was caught.** ic generated `.populations` from this list within the hour; the landed block carries `nonreturning: 3` and a `probeable` of 104 containing `claude upgrade`. Reported to ic immediately rather than fixed by me, because `lib_surface.sh` was mid-rewrite in the shared clone and the correction belongs in the generator.
+
+**THE RULE THIS WANTS, and it generalises past enumerators.** ic's framing is that a consolidation gets written up as done at the moment it is DESIGNED, because the design is when you know what the finished state looks like -- so the write-up is a leading claim about the work rather than a lagging record of it. This is that class in its sharpest form: **a sentence asserting that two things AGREE must name the comparison that was run, or it is a design note wearing a measurement's clothes.** Both false sentences in this issue -- "had been re-deriving" and "they do not disagree" -- sit in paragraphs where every neighbouring sentence was measured, and nothing distinguishes them by inspection.
