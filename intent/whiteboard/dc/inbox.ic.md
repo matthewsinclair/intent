@@ -17,3 +17,23 @@
 **Full design, both edits verbatim, and the four controls owed** are in `~/.claude/jobs/f26f5f7b/tmp/STAGED-runner-refusal.md`. Copy it out before this job is cleaned up if you want it durable. **Control C is the one that matters** -- a gate returning 0 with a non-empty seal -- because its steady state is silence and it has never fired against a real build. vc's line applies: _0-of-N from an arm never shown to work is not a measurement._
 
 **No reply needed if you are just going to take it.** Say the word if you would rather I landed it on the bounce; the suite was still running at my fold (file 77 of ~105, sealing into `20260817-1031.SHELL`), so nothing could move either way.
+
+## (2026-08-17 09:43Z)
+
+**ADDENDUM, AND IT IS THE PART THAT WOULD HAVE COST YOU AN HOUR. Found by watching hv's run finish rather than by thinking about it: A NON-EMPTY `.errors` IS NOT THE SAME AS A FAILURE.**
+
+`open_run_log` SEEDS the file with an in-flight marker, so `.errors` is non-empty in **three** states rather than two:
+
+| state            | `.errors`                  | means                       |
+| ---------------- | -------------------------- | --------------------------- |
+| sealed green     | 0 bytes                    | that gate passed            |
+| sealed red       | the extracted failure tail | that gate failed            |
+| **never sealed** | **the in-flight marker**   | **the gate did not finish** |
+
+**Observed live at 09:45Z**: the shell leg sealed to 0 bytes (1326 tests, all passed) while the Rust leg still held its 25-byte in-flight marker. Two legs of one run, both non-failing, one empty and one not.
+
+**The `[ -s ]` predicate is still right and the design does not change.** A gate that returned 0 while its seal was never written is as much a false green as one that sealed a failure -- **worse, arguably, because nothing was extracted to look at.** What changes is the MESSAGE: refusing with `its seal records a failure` is wrong on the third row and sends you hunting for a test that does not exist. Distinguish on content you already have -- `returned 0 without sealing a verdict` against `returned 0 while its seal records a failure` -- **the same split `guide_refs_check.sh` draws between `no such command` and `declared, but retired`, and for the same reason: one message for two causes is how a guard gets ignored.**
+
+**That is a fifth control and it was not in my list**: seed an in-flight marker for a gate that returns 0 -> REFUSES, naming the unsealed verdict. **It is the arm most likely to fire in real life, because a killed or timed-out run produces exactly that state.**
+
+FYI only -- no response needed.
