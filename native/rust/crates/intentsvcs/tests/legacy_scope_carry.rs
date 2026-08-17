@@ -206,6 +206,100 @@ fn rescoping_a_carried_work_package_clears_the_legacy_value() {
   );
 }
 
+/// **The no-op is decidable from the two states alone in every LEGAL state, and
+/// the clause that says otherwise is reachable from exactly one state: the
+/// contradiction.**
+///
+/// `Facade::wp_rescope` reports a self-loop when `scope == Some(wanted) &&
+/// scope_legacy.is_none()`, and the dispatch row explains the second half as
+/// "with a carry present, the same from and the same to IS a movement, because
+/// resolving the carry is the change". **That reading assumes a carry can sit
+/// beside a recorded size, and in a valid model it cannot.** The three legal
+/// combinations are settled (a size, no carry), carried (no size, a carry) and
+/// absent (neither) -- and in the last two `from` is `"<raw> (legacy)"` or the
+/// empty string, so it is never equal to a size and the same-state question
+/// never arises. The clause's inputs are only jointly reachable in the fourth
+/// combination, which is the one `doctor` reports as residue.
+///
+/// **So the clause is right and its stated reason is not.** What it actually
+/// buys is a REPAIR: `wp rescope L` on a package recording `L` and carrying
+/// `Medium-Large` clears the carry and reports a movement, which is exactly
+/// right because the operator is deciding. Without it the command would answer
+/// `already L`, leave the residue in place, and there would be no verb in the
+/// tool that could clear it -- an operator's only route back would be editing
+/// the file the CLI exists to own, which is the shape issue 0052 was filed on.
+///
+/// Asserted as a trio in one test on purpose: each arm is meaningless without
+/// the others, because the property is that the three states are told APART.
+#[test]
+fn the_self_loop_is_decidable_from_the_states_except_where_the_model_contradicts_itself() {
+  // 1. SETTLED -- a size, no carry. The same size is a no-op, and it names the
+  //    size rather than the work package's status.
+  let fixture = Fixture::new();
+  let mut thread = common::sample_thread("ST0001");
+  thread.wps[0].scope = Some(TShirt::L);
+  thread.wps[0].scope_legacy = None;
+  fixture.write_thread(&thread);
+  let seq = thread.wps[0].seq;
+  let mut facade = fixture.facade();
+  assert_eq!(
+    facade
+      .wp_rescope("ST0001", seq, TShirt::L)
+      .expect("a self-loop is legal")
+      .already(),
+    Some("L"),
+    "a settled package asked for the size it already has has nothing to do"
+  );
+
+  // 2. CARRIED -- no size, a carry. `from` is the marked legacy display, so this
+  //    is a movement whatever size is asked for. There is no same-state case to
+  //    reach: the carry is not one of the six.
+  let fixture = Fixture::new();
+  let mut thread = common::sample_thread("ST0001");
+  thread.wps[0].scope = None;
+  thread.wps[0].scope_legacy = Some(Legacy {
+    raw: "Medium-Large".to_string(),
+  });
+  fixture.write_thread(&thread);
+  let mut facade = fixture.facade();
+  assert_eq!(
+    facade
+      .wp_rescope("ST0001", seq, TShirt::L)
+      .expect("rescope")
+      .already(),
+    None,
+    "resolving a carry is a movement, and `from` was never a size"
+  );
+
+  // 3. THE CONTRADICTION -- both, which is the only state that reaches the
+  //    `scope_legacy.is_none()` half of the guard. Same size in, same size out,
+  //    and it is still a movement because the carry goes.
+  let fixture = Fixture::new();
+  let mut thread = common::sample_thread("ST0001");
+  thread.wps[0].scope = Some(TShirt::L);
+  thread.wps[0].scope_legacy = Some(Legacy {
+    raw: "Medium-Large".to_string(),
+  });
+  fixture.write_thread(&thread);
+  let mut facade = fixture.facade();
+  assert_eq!(
+    facade
+      .wp_rescope("ST0001", seq, TShirt::L)
+      .expect("rescope")
+      .already(),
+    None,
+    "the same size in and the same size out, and reporting `already L` here would leave a residue \
+     `doctor` names with no verb able to clear it"
+  );
+  let wp = facade.wp_show("ST0001", seq).expect("wp");
+  assert_eq!(wp.scope, Some(TShirt::L));
+  assert_eq!(
+    wp.scope_legacy, None,
+    "and the contradiction is REPAIRED -- this is what the clause is for, rather than the \
+     carry-resolution case the row describes, which cannot occur"
+  );
+}
+
 /// **`doctor` reports the one combination that is a contradiction.**
 ///
 /// Two optional fields permit four combinations and only three mean anything.

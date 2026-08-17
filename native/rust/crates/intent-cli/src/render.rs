@@ -12,7 +12,7 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError, Outcome};
-use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus};
+use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
@@ -630,6 +630,22 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
+    // **The field's only exit, and until hv rules on `wp new --scope` its only
+    // entrance too** -- issue 0052. `Facade::wp_rescope` was `pub`, implemented
+    // and reachable from nothing but two tests, so `WorkPackage.scope` was a
+    // ratified machine with six edges the surface could drive none of. A
+    // migrated `scope_legacy` -- carried deliberately so a human can adjudicate
+    // it rather than have a size coerced onto it -- could never be adjudicated.
+    Some(("rescope", a)) => {
+      let (st, seq) = wp_target(a)?;
+      let size = t_shirt(&arg(a, "size")?)?;
+      reported(
+        &open()?.wp_rescope(&st, seq, size).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        &format!("rescoped to {}", enum_str(&size)),
+      );
+      Ok(())
+    }
     Some(("list", a)) => {
       let st = arg(a, "stid")?;
       let f = open()?;
@@ -859,7 +875,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         println!(
           "{}  {}  covers {}",
           t.id,
-          intentsvcs::model::enum_str(&t.status),
+          enum_str(&t.status),
           t.covers.join(", ")
         );
       }
@@ -1383,6 +1399,35 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
       "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0000/03"
     )),
   }
+}
+
+/// An operator's spelling of a T-shirt size.
+///
+/// **`values` on a positional in the dispatch table is a DECLARATION, not a
+/// constraint, so THIS is the enforcement the row is declaring and there is no
+/// other** (`arg_values_note`). `spine.rs` reads `values` in exactly two places
+/// -- expanding a `kind: subcommand` slot, and resolving a default -- and builds
+/// no `value_parser` from a positional's, so the six sizes on the `wp rescope`
+/// row reach clap as documentation. The way that becomes a defect is not a
+/// decision anyone takes: an author writes the array assuming clap has it, an
+/// implementer reads the row assuming the same, and nobody enforces it. That
+/// nearly happened here.
+///
+/// **The refusal names the permitted set, and generates it from the enum.** A
+/// bare parse error blames the spelling without saying what the spellings are,
+/// which spends the reader's next move on guessing; and a hand-written list of
+/// six would be a seventh copy of the vocabulary going stale in a string.
+fn t_shirt(raw: &str) -> Result<TShirt, Failure> {
+  TShirt::parse(raw).ok_or_else(|| {
+    Failure::Error(format!(
+      "error: `{raw}` is not a T-shirt size\n  remedy: one of: {}",
+      TShirt::ALL
+        .iter()
+        .map(enum_str)
+        .collect::<Vec<String>>()
+        .join(", ")
+    ))
+  })
 }
 
 /// `intent info` -- the installation and project overview.

@@ -356,6 +356,45 @@ pub enum TShirt {
   XXL,
 }
 
+impl TShirt {
+  /// The six sizes, smallest first.
+  ///
+  /// Ordered because two callers read it as a list a human sees: the CLI's
+  /// refusal names the permitted set, and a set printed in declaration order
+  /// reads as a scale while an arbitrary order reads as a bag.
+  pub const ALL: [TShirt; 6] = [
+    TShirt::XS,
+    TShirt::S,
+    TShirt::M,
+    TShirt::L,
+    TShirt::XL,
+    TShirt::XXL,
+  ];
+
+  /// A caller's spelling of a size, or `None`.
+  ///
+  /// **Derived from the serialisation rather than from a second table of
+  /// spellings.** A `match` on six string literals here would be the canonical
+  /// vocabulary written twice -- once in the enum and once in the parse -- and
+  /// the two would part company at the first rename, silently, because a rename
+  /// updates the variant and a literal has nothing pointing at it. So this asks
+  /// each variant how it serialises and compares against that.
+  ///
+  /// **Case-insensitive, and that is not a seventh value.** `l` and `L` are the
+  /// same one of the six the dispatch table declares; requiring the shift key
+  /// would refuse a correct answer over its typography. Anything outside the six
+  /// is `None` -- v2's long forms (`Small`, `Medium`) are a FOREIGN vocabulary
+  /// read at ingest, and [`crate::legacy`] adds them there rather than here,
+  /// because the set an operator may type and the set v2 may have written are
+  /// different questions that happen to overlap.
+  pub fn parse(raw: &str) -> Option<Self> {
+    let want = raw.trim().to_ascii_lowercase();
+    Self::ALL
+      .into_iter()
+      .find(|size| enum_str(size).to_ascii_lowercase() == want)
+  }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum WpStatus {

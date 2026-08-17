@@ -32,6 +32,8 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
+use intentsvcs::model::{TShirt, enum_str};
+
 fn project() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   let config = dir.path().join("intent").join(".config");
@@ -149,6 +151,13 @@ fn thread_state(root: &Path) -> String {
 
 fn wp_state(root: &Path) -> String {
   field(&stdout(&run(root, &["wp", "show", "ST0001/01"])), "status")
+}
+
+/// The work package's SIZE, which is a different field of the same entity from
+/// [`wp_state`] -- and `wp rescope` is the only verb here whose no-op names a
+/// field other than a status.
+fn wp_scope(root: &Path) -> String {
+  field(&stdout(&run(root, &["wp", "show", "ST0001/01"])), "scope")
 }
 
 /// Satisfy the fixture's one criterion, so the close gate passes.
@@ -277,6 +286,74 @@ fn wp_unstart_reports_the_second_call_as_a_no_op() {
     &["wp", "unstart", "ST0001/01"],
     "ST0001/01",
     wp_state,
+  );
+}
+
+/// **`wp rescope` -- the no-op that names a size rather than a status**, and the
+/// first arm born into the corrected voice instead of swept into it.
+///
+/// Wired on 2026-08-17 (issue 0052) after the other twenty-one had been fixed,
+/// deliberately in that order: an arm added to a renderer where twenty-one
+/// siblings printed a movement they did not make would have been written to match
+/// them.
+///
+/// **Driven to `L` from a fixture at `S`, because `twice` requires the first call
+/// to MOVE** -- and the moving call is what shows the reader is being asked at the
+/// right instant. Driven at `S` both calls are no-ops, both lines are correct, and
+/// the file would prove nothing.
+#[test]
+fn wp_rescope_reports_the_second_call_as_a_no_op() {
+  let dir = project();
+  seed(dir.path());
+  twice(
+    dir.path(),
+    &["wp", "rescope", "ST0001/01", "L"],
+    "ST0001/01",
+    wp_scope,
+  );
+}
+
+/// **The size is one of six values and the sixth spelling is refused by NAME.**
+///
+/// `spine.rs` builds no `value_parser` from a positional's `values`, so the six on
+/// the row are documentation and this layer is the only enforcement there is
+/// (`arg_values_note`). Two arms, because "it refuses" and "it says what to type
+/// instead" are different properties and only the second one ends the operator's
+/// guessing.
+///
+/// **`Small` is the interesting refusal.** It is a size v2's free-text `scope:`
+/// field really does contain, and `legacy.rs` still reads it at ingest -- so this
+/// asserts the boundary rather than an accident: the set an operator may type and
+/// the set v2 may have written are different questions, and only the first one is
+/// this positional's.
+#[test]
+fn wp_rescope_refuses_a_size_outside_the_six_and_names_them() {
+  let dir = project();
+  seed(dir.path());
+  for bad in ["Medium", "Small", "huge", ""] {
+    let out = run(dir.path(), &["wp", "rescope", "ST0001/01", bad]);
+    assert_eq!(
+      out.status.code(),
+      Some(1),
+      "`{bad}` is not one of the six, so it must be refused rather than resolved to a nearby size"
+    );
+    let text = String::from_utf8_lossy(&out.stderr).to_string();
+    // **The expectation is DERIVED from the enum, not spelled here.** A literal
+    // `"XS, S, M, L, XL, XXL"` in this file would be a seventh copy of the
+    // vocabulary -- the exact thing the helper's doc comment argues against --
+    // and it would pass while the remedy went stale in a different way. What
+    // this asserts is the property: the refusal names the permitted set.
+    let permitted: Vec<String> = TShirt::ALL.iter().map(enum_str).collect();
+    assert!(
+      text.contains(&permitted.join(", ")),
+      "the refusal must name the permitted set -- a bare parse error blames the spelling without \
+       saying what the spellings are. Got: {text}"
+    );
+  }
+  assert_eq!(
+    wp_scope(dir.path()),
+    "S",
+    "and a refused rescope changed nothing"
   );
 }
 

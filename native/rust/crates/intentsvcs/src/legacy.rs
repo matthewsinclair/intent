@@ -290,21 +290,24 @@ fn wp_status(raw: &str) -> Option<WpStatus> {
 /// reported as carried rather than blocking -- and the model has no
 /// marked-legacy form for a scope yet, which is a WP-10 dependency on
 /// data-model.md rather than something to invent here.
+///
+/// **The canonical six are NOT spelled again here.** [`TShirt::parse`] owns
+/// them, derived from the enum's own serialisation, and this adds only what is
+/// genuinely v2's: the long forms v2's free-text field actually contains. Two
+/// tables of the same six spellings is the Highlander shape that lets a rename
+/// update one and leave the other -- and the copy that gets left is the ingest
+/// one, because nothing an operator types exercises it.
 fn scope(raw: &str) -> Option<TShirt> {
-  match raw
-    .trim()
-    .to_ascii_lowercase()
-    .replace([' ', '-', '_'], "")
-    .as_str()
-  {
-    "xs" | "extrasmall" => Some(TShirt::XS),
-    "s" | "small" => Some(TShirt::S),
-    "m" | "medium" => Some(TShirt::M),
-    "l" | "large" => Some(TShirt::L),
-    "xl" | "extralarge" => Some(TShirt::XL),
-    "xxl" => Some(TShirt::XXL),
+  let normalised = raw.trim().to_ascii_lowercase().replace([' ', '-', '_'], "");
+  let v2_long_form = match normalised.as_str() {
+    "extrasmall" => Some(TShirt::XS),
+    "small" => Some(TShirt::S),
+    "medium" => Some(TShirt::M),
+    "large" => Some(TShirt::L),
+    "extralarge" => Some(TShirt::XL),
     _ => None,
-  }
+  };
+  TShirt::parse(&normalised).or(v2_long_form)
 }
 
 fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) -> Vec<WorkPackage> {
