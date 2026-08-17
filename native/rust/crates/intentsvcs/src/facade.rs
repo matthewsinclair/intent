@@ -1961,7 +1961,10 @@ impl Facade {
     // second transition at a second time for one event.
     if from == status {
       return Ok(Outcome::AlreadyThere {
-        state: crate::model::enum_str(&from),
+        // `display()`, not `enum_str` -- `AlreadyThere` is a state name a HUMAN
+        // reads, and the wire form spells `Na` as `n-a` (issue 0056). This was
+        // the second of the three spellings one command produced.
+        state: from.display().to_string(),
       });
     }
 

@@ -742,10 +742,44 @@ pub enum AtStatus {
   ToWrite,
   Red,
   Green,
+  // **`n-a` is the WIRE form and `n/a` is the printed one** -- see
+  // [`AtStatus::display`]. Deliberately a `//` and not a `///`: this is reasoning
+  // for a maintainer, and a `///` here is lifted verbatim into the committed JSON
+  // Schema and SDL faces. Putting it above the variant as documentation drifted
+  // both faces and reddened three tests, which is the rule this project already
+  // holds -- doc comments are shipped output, plain comments are reasoning -- and
+  // it was broken within hours of being written down.
   /// Non-test rows only -- the doc / eyeball / gate status. `n-a` is not
   /// green; satisfaction lives on the AC's own line.
   #[serde(rename = "n-a")]
   Na,
+}
+
+impl AtStatus {
+  /// The status as a human reads it -- in a printed line, in `at list`, and in
+  /// the generated `acceptance.md` row.
+  ///
+  /// **This is `enum_str`'s wire form leaking into human output, and it leaked
+  /// three ways at once** (ic, issue 0056). `Na` serialises as `n-a` because that
+  /// is its JSON tag, and the authored form is `n/a`: measured across this
+  /// estate's `acceptance.md` files, `status: n/a` appears 23 times and `n-a`
+  /// never. So the view was one projection away from rewriting 23 rows into a
+  /// spelling v2's own linter rejects at L1 -- a migration hazard rather than a
+  /// preference, and the same shape as `wp show` printing `wip` where every other
+  /// surface printed `WIP`.
+  ///
+  /// The other three agree with `enum_str` today, which is exactly why this was
+  /// hard to see: two of the three surface verbs are byte-identical to v2's
+  /// tokens, so echoing the wrong source is correct twice and wrong once. **The
+  /// coincidence is the hiding mechanism, not the absence of one.**
+  pub fn display(self) -> &'static str {
+    match self {
+      Self::ToWrite => "to-write",
+      Self::Red => "red",
+      Self::Green => "green",
+      Self::Na => "n/a",
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

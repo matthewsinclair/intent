@@ -583,6 +583,16 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       // `scope: Small`. A different default writes different canon for the
       // same command, which is a parity break hiding in a value rather than
       // in an output.
+      //
+      // **NO `--scope` FLAG, and hv ruled that permanently** (issue 0052, closed
+      // `8e5ef648`): sizing happens after you have written the package, not while
+      // you are naming it. So the value here stops being a verdict and becomes a
+      // starting value, because `wp rescope` is now the exit -- same `S`, and the
+      // only thing that changed is that it can be moved.
+      //
+      // **Not `absent`**: that would trade a wrong value for a missing one at the
+      // moment the exit verb arrived to fill it, and it would break the template
+      // parity above for nothing.
       let seq = f.wp_new(&st, &title, TShirt::S).map_err(fail)?;
       println!("created: {st}/{seq:02}");
       Ok(())
@@ -630,12 +640,26 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
-    // **The field's only exit, and until hv rules on `wp new --scope` its only
-    // entrance too** -- issue 0052. `Facade::wp_rescope` was `pub`, implemented
-    // and reachable from nothing but two tests, so `WorkPackage.scope` was a
-    // ratified machine with six edges the surface could drive none of. A
-    // migrated `scope_legacy` -- carried deliberately so a human can adjudicate
-    // it rather than have a size coerced onto it -- could never be adjudicated.
+    // **THE FIELD'S ONLY ENTRANCE AND ITS ONLY EXIT. hv RULED IT: no `wp new
+    // --scope`, permanently** (issue 0052, closed `8e5ef648`). This comment said
+    // "until hv rules", which was true when it was written and told the next
+    // reader the question was open at the exact site they would come to answer it.
+    //
+    // `Facade::wp_rescope` was `pub`, implemented and reachable from nothing but
+    // two tests, so `WorkPackage.scope` was a ratified machine with six edges the
+    // surface could drive none of.
+    //
+    // **What the ruling buys is a change of meaning with no change of code**
+    // (vc's framing): `wp new`'s hardcoded `S` was never the wrong VALUE -- see
+    // its own arm -- but a default nobody can override is a verdict, and a default
+    // with an exit is a starting value. Same `S`, different thing.
+    //
+    // **And this is where a migrated carry gets adjudicated.** `wp_rescope`
+    // treats a same-size rescope as a no-op only when no `scope_legacy` is
+    // carried, so rescoping a package whose v2 scope was outside the vocabulary
+    // resolves the carry rather than reporting nothing done -- a human deciding,
+    // which is exactly what the unwired verb was denying and the reason the
+    // migration refuses to coerce a size in the first place.
     Some(("rescope", a)) => {
       let (st, seq) = wp_target(a)?;
       let size = t_shirt(&arg(a, "size")?)?;
@@ -735,10 +759,21 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // is what refuses it, and it refuses `--evidence ""` as well as an absent
       // flag -- which re-checking the flag here could not do.
       let evidence = opt(a, "evidence").unwrap_or_default();
+      // **`by evidence`, restored -- issue 0056, and it is the one of the five
+      // that cannot be argued as tidying.** v2 prints `ok: <AC> satisfied by
+      // evidence`, and the phrase is MORE load-bearing in v3 than it was in v2:
+      // `AcState::Satisfied` carries evidence that cannot be empty, while a
+      // test-backed criterion is `Computed` with nothing stored. So v2's wording
+      // names a distinction this model made structural, and dropping it made the
+      // line say less about v3 than it said about v2.
+      //
+      // The no-op stays `already satisfied` -- `reported` composes it from the
+      // state, so the phrase is structurally unable to leak into a line where no
+      // evidence was recorded.
       reported(
         &open()?.ac_satisfy(&st, &id, &evidence).map_err(fail)?,
         &id,
-        "satisfied",
+        "satisfied by evidence",
       );
       Ok(())
     }
@@ -841,29 +876,63 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
+    // **BOTH UNDO VERBS PRINT THE SAME STRING, AND THE STATE IN IT IS COMPUTED**
+    // -- ic's ratification, issue 0056. `ok: <AC> back in scope (<landing
+    // state>)`, where the landing state is `AcState::entry(kind)`: `unsatisfied`
+    // for an authored criterion, `computed` for a test-backed one.
+    //
+    // **`corrected` rather than `as-observed`, and the deviation is forced by the
+    // model rather than chosen.** v2 prints one string across both verbs and both
+    // kinds -- `back in scope (unsatisfied)` -- because v2 had no `computed` to
+    // name. Restoring that literal would be WRONG for a test-backed criterion,
+    // which is the only reason this row is not held to v2's bytes.
+    //
+    // The two verbs differ in which off-scope state they UNDO, not in where they
+    // land, so `reinstated` was naming the verb the caller had just typed and
+    // dropping the part they did not already know.
+    //
+    // **The state is READ BACK from the facade, never spelled here.** It cannot be
+    // a literal -- it depends on the criterion's kind -- and reading it back means
+    // the movement line and the no-op line take their state from the same place,
+    // so they are structurally unable to disagree.
     Some(("rescope", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      reported(
-        &open()?.ac_rescope(&st, &id).map_err(fail)?,
-        &id,
-        "back in scope",
-      );
+      let mut f = open()?;
+      let outcome = f.ac_rescope(&st, &id).map_err(fail)?;
+      reported(&outcome, &id, &back_in_scope(&f, &st, &id)?);
       Ok(())
     }
     Some(("reinstate", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      reported(
-        &open()?.ac_reinstate(&st, &id).map_err(fail)?,
-        &id,
-        "reinstated",
-      );
+      let mut f = open()?;
+      let outcome = f.ac_reinstate(&st, &id).map_err(fail)?;
+      reported(&outcome, &id, &back_in_scope(&f, &st, &id)?);
       Ok(())
     }
     Some((verb, _)) => unwired("ac", verb),
     None => Err("error: an acceptance criterion command is required".into()),
   }
+}
+
+/// The movement phrase the two undo verbs share: `back in scope (<state>)`.
+///
+/// Read from the criterion AFTER the verb, because the landing state is
+/// `AcState::entry(kind)` and no literal here could name it -- `unsatisfied` for
+/// an authored criterion, `computed` for a test-backed one. **One helper for both
+/// verbs, because the ratification is that they print the same string**; two
+/// call sites composing it separately is how they would come to differ.
+fn back_in_scope(f: &Facade, st: &str, ac: &str) -> Result<String, Failure> {
+  let thread = f.st_show(st).map_err(fail)?;
+  let state = thread
+    .criteria
+    .iter()
+    .find(|c| c.id == ac)
+    .ok_or_else(|| Failure::Error(format!("error: no acceptance criterion {ac} in {st}")))?
+    .state
+    .name();
+  Ok(format!("back in scope ({state})"))
 }
 
 fn at(m: &ArgMatches) -> Result<(), Failure> {
@@ -872,15 +941,30 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       let st = arg(a, "stid")?;
       let f = open()?;
       for t in f.at_list(&st).map_err(fail)? {
+        // `display()`, not `enum_str` -- the wire form spells `Na` as `n-a` and
+        // every authored row in every estate says `n/a`.
         println!(
           "{}  {}  covers {}",
           t.id,
-          enum_str(&t.status),
+          t.status.display(),
           t.covers.join(", ")
         );
       }
       Ok(())
     }
+    // **THE MOVEMENT PHRASE COMES FROM THE STATUS, NOT FROM THE SUBCOMMAND NAME**
+    // -- issue 0056, ic's ruling. This passed `state` as the movement phrase, ie
+    // the verb the caller typed, so one command printed three spellings of one
+    // value: `na` on a move (the subcommand), `n-a` on a self-loop (`enum_str`,
+    // through `AlreadyThere`), against v2's `n/a`. **Echoing the verb is correct
+    // for `green` and `red` because those tokens happen to match v2's, which is
+    // the coincidence that hid it** -- the same two-of-three shape as the serde
+    // vocabulary, one layer down and on the same family.
+    //
+    // The `-> ` arrow is v2's and was dropped across the whole AT family. It is
+    // drift rather than a ruling, and this binary is the proof: `issues close`
+    // and `issues open` keep it and reproduce v2 exactly, so the AT family was
+    // the only place it went missing.
     Some((state @ ("green" | "red" | "na"), a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "atid")?;
@@ -889,7 +973,11 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         "red" => AtStatus::Red,
         _ => AtStatus::Na,
       };
-      reported(&open()?.at_set(&st, &id, status).map_err(fail)?, &id, state);
+      reported(
+        &open()?.at_set(&st, &id, status).map_err(fail)?,
+        &id,
+        &format!("-> {}", status.display()),
+      );
       Ok(())
     }
     Some(("lint", a)) => {

@@ -309,3 +309,71 @@ fn the_renderer_cannot_reach_a_clock_or_the_environment() {
     "views.rs reached for ambient input {hits:?} -- a generated view must be a function of the model and the tool version alone (vc law, 2026-08-14). HashMap/HashSet are banned alongside the clock because their iteration order is randomised per process, which is the same defect wearing a different hat."
   );
 }
+
+// ---------------------------------------------------------------------------
+// The generated view reproduces the AUTHORED vocabulary, not the wire one
+// ---------------------------------------------------------------------------
+
+/// **A generated view must write the token a human authored, and one status did
+/// not** -- issue 0056.
+///
+/// `test_line` rendered the AT status with `enum_str`, ie the JSON canon's tag. For
+/// three of the four values that is the same string an author writes; for `Na` the
+/// tag is `n-a` and the authored form is `n/a`. **Measured across this estate:
+/// `status: n/a` appears 23 times in `acceptance.md` files and `n-a` never** -- so
+/// the next projection over any thread with a non-test AT would have rewritten each
+/// of those rows into a spelling v2's own linter rejects at L1. Not a preference: a
+/// migration hazard, in the direction that silently damages authored files.
+///
+/// **This test exists because the fix was invisible to the whole suite.** Reverting
+/// `views.rs` to `enum_str` left 72 legs green and cargo exit 0 -- measured, with
+/// the run's own leg count checked first, because the same check run against a
+/// suite that had not executed printed the identical "nothing red" verdict. A fix
+/// whose green is identical either side of it has been performed rather than
+/// measured.
+///
+/// Asserted over EVERY variant rather than the one that was wrong, and against
+/// `display()` rather than a literal table: the property is that the view speaks
+/// the display vocabulary, and pinning four strings here would be a fifth copy of
+/// it.
+#[test]
+fn the_view_writes_every_at_status_in_the_authored_spelling() {
+  use intentsvcs::model::AtStatus;
+
+  for status in [
+    AtStatus::ToWrite,
+    AtStatus::Red,
+    AtStatus::Green,
+    AtStatus::Na,
+  ] {
+    let fixture = Fixture::new();
+    let mut thread = sample_thread("ST0056");
+    for test in thread.tests.iter_mut() {
+      test.status = status;
+    }
+    let canon = Canon {
+      threads: vec![thread],
+      issues: Vec::new(),
+      sections: Vec::new(),
+    };
+    // Rendered directly rather than through the projection: the claim is about
+    // the RENDERER's vocabulary, and reaching it through `write_all` would make a
+    // plumbing failure look like a spelling one.
+    let view = views::render_all(&fixture.project(), &canon, &ctx())
+      .into_iter()
+      .find(|v| v.path.to_string_lossy().ends_with("acceptance.md"))
+      .expect("the acceptance view is rendered")
+      .content;
+
+    assert!(
+      view.contains(&format!("status: {}", status.display())),
+      "the view must write `status: {}` -- the authored spelling -- and it wrote none of them:\n{view}",
+      status.display()
+    );
+    assert!(
+      !view.contains("status: n-a"),
+      "`n-a` is the WIRE form and must never reach a generated view: an authored file rewritten to \
+       it fails v2's linter at L1, and 23 rows in this estate carry `n/a`"
+    );
+  }
+}

@@ -153,6 +153,22 @@ fn wp_state(root: &Path) -> String {
   field(&stdout(&run(root, &["wp", "show", "ST0001/01"])), "status")
 }
 
+/// What `intent at list` reports as the row's status.
+///
+/// **This replaced a literal `"red"`, in the one file whose own header says the
+/// state is never written as a literal here.** The literal was correct, which is
+/// why it survived: `red` is spelled the same on the wire and to a human. `n/a` is
+/// not -- it is `n-a` in the JSON canon -- so a literal would have been right for
+/// three of the four statuses and wrong for the one that mattered (issue 0056).
+fn at_state(root: &Path, at: &str) -> String {
+  stdout(&run(root, &["at", "list", "ST0001"]))
+    .lines()
+    .find(|l| l.starts_with(at))
+    .and_then(|l| l.split_whitespace().nth(1))
+    .unwrap_or_else(|| panic!("no `{at}` row in `at list`"))
+    .to_string()
+}
+
 /// The work package's SIZE, which is a different field of the same entity from
 /// [`wp_state`] -- and `wp rescope` is the only verb here whose no-op names a
 /// field other than a status.
@@ -402,7 +418,38 @@ fn at_set_to_the_current_status_is_a_no_op() {
     dir.path(),
     &["at", "red", "ST0001", "AT-01.1"],
     "AT-01.1",
-    |_| "red".to_string(),
+    |root| at_state(root, "AT-01.1"),
+  );
+}
+
+/// **`at na` -- the status whose spelling was wrong in three places at once**
+/// (issue 0056), and the reason this file reads the state back rather than
+/// asserting it.
+///
+/// One command produced three strings for one value: `na` on a movement (the
+/// renderer echoed the SUBCOMMAND NAME as its movement phrase), `n-a` on a
+/// self-loop (`enum_str`, the JSON canon's tag, through `AlreadyThere`), against
+/// v2's `n/a`. **`green` and `red` are byte-identical to v2's tokens, so echoing
+/// the verb was correct twice and wrong once** -- the coincidence was the hiding
+/// mechanism, and the same two-of-three shape as the serde vocabulary one layer up.
+///
+/// Both lines are asserted here because the movement and the no-op took their
+/// spelling from different sources, so a test of either alone would have passed.
+#[test]
+fn at_na_prints_one_spelling_on_the_movement_and_the_no_op_alike() {
+  let dir = project();
+  seed(dir.path());
+  twice(
+    dir.path(),
+    &["at", "na", "ST0001", "AT-01.1"],
+    "AT-01.1",
+    |root| at_state(root, "AT-01.1"),
+  );
+  assert_eq!(
+    at_state(dir.path(), "AT-01.1"),
+    "n/a",
+    "the authored spelling, which is what every row in every estate carries -- `n-a` is the wire \
+     form and reaches no human-facing surface"
   );
 }
 
