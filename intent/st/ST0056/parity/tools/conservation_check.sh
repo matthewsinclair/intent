@@ -388,18 +388,38 @@ if [ -n "$DISPO" ]; then
   # the seq-10-and-above rows: 2 of 39. It still PRODUCED the class, so
   # "DECLARED-DROP appears in the output" would have read as working. Only the
   # count caught it, which is why the count is printed below.
-  sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- dropped --.*|wp \1/\2 '\3'|p" \
-    "$DISPO" | sort -u >"$WORK/declared"
+  # TWO SHAPES, BECAUSE THERE ARE TWO POPULATIONS. A work-package drop is
+  # `.../ST0024/WP/06/info.md` and a THREAD drop is `.../ST0024/info.md` -- no
+  # `WP/NN` segment at all -- and `compare_prose` labels them differently too
+  # (`wp ST0024/06 '<s>'` against `ST0024 '<s>'`, the call at the thread site).
+  # The second sed cannot match a work-package line: it requires `ST[0-9]+`
+  # IMMEDIATELY before `/info.md`, and what sits there in a WP path is the
+  # sequence.
+  {
+    sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- dropped --.*|wp \1/\2 '\3'|p" "$DISPO"
+    sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/info\.md -- ## ([A-Za-z ]+) -- dropped --.*|\1 '\2'|p" "$DISPO"
+  } | sort -u >"$WORK/declared"
   n_dec="$(wc -l <"$WORK/declared" | tr -d ' ')"
   n_raw="$(grep -cE ' -- dropped -- ' "$DISPO" || true)"
   n_defer="$(grep -cE ' -- deferred -- ' "$DISPO" || true)"
-  sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- deferred --.*|wp \1/\2 '\3'|p" \
-    "$DISPO" | sort -u >"$WORK/deferred"
-  # A parse that silently reads none of them would make every declared drop
-  # report as loss and look exactly like a migrator that declared nothing.
-  [ "$n_dec" -gt 0 ] || [ "$n_raw" -eq 0 ] ||
-    die "$DISPO holds $n_raw drop record(s) and this tool parsed 0 -- the format has moved and every drop would have been reported as loss"
-  echo "conservation: dispositions -- $n_dec declared drop(s) and $n_defer declared deferral(s) read from $DISPO"
+  {
+    sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/WP/([0-9]+)/info\.md -- ## ([A-Za-z ]+) -- deferred --.*|wp \1/\2 '\3'|p" "$DISPO"
+    sed -nE "s|^[[:space:]]*.*/(ST[0-9]+)/info\.md -- ## ([A-Za-z ]+) -- deferred --.*|\1 '\2'|p" "$DISPO"
+  } | sort -u >"$WORK/deferred"
+  # THE DENOMINATOR COMES FROM THE FILE, NEVER FROM THE PARSE, AND THAT IS THE
+  # WHOLE POINT OF THIS REFUSAL. The earlier form asked only whether the parse
+  # was ZERO, and printed `n_dec declared drop(s)` -- so when `Thread.body`
+  # landed 35 thread-level drops this parser could not match, it read 80 of 115
+  # and reported "80 matched of 80 declared". Complete, against its own blind
+  # spot. All 35 were then reported as LOST-PROSE, and 32 of them carried the
+  # sentence "the migrator did not name it" about sections the migrator had
+  # named in the very file being parsed -- 13,698 bytes of loss that had been
+  # explained. A partial parse is not a smaller version of a total parse
+  # failure; it is the harder one, because it produces the class and looks
+  # like it works. Equality, not "greater than zero".
+  [ "$n_dec" -eq "$n_raw" ] ||
+    die "$DISPO holds $n_raw drop record(s) and this tool parsed $n_dec -- a shape has moved or a new one has appeared, and the $((n_raw - n_dec)) unparsed record(s) would every one be reported as loss the migrator never explained"
+  echo "conservation: dispositions -- $n_dec of $n_raw declared drop(s) parsed and $n_defer declared deferral(s) read from $DISPO"
 fi
 
 declared_drop() {
@@ -573,25 +593,55 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
     Objective) field=objective ;;
     Context) field=context ;;
     "Related Steel Threads") field=related ;;
-    *)
-      report LOST-PROSE "$st '$section' ($bytes bytes -- no modelled field, and the migrator did not name it)"
-      c_lost=$((c_lost + 1))
-      continue
-      ;;
+    # `Thread.body` (cc, `bcbd02cd`) is the thread-level twin of D28's WP
+    # catch-all, so every remaining section now has a destination and this arm
+    # asks the same question the WP arm asks rather than assuming the answer.
+    #
+    # WHAT WAS HERE BEFORE AND WHY IT WAS WORSE THAN STALE. This branch reported
+    # `LOST-PROSE ... no modelled field, and the migrator did not name it` -- and
+    # the second clause was a hardcoded SENTENCE, not a reading. It never
+    # consulted the dispositions file it was asserting about. When `Thread.body`
+    # landed 35 declared thread-level drops, all 35 came through here and 32 were
+    # printed as unexplained loss with a claim about cc's output that this tool
+    # had not read: 13,698 bytes. My own separation, broken in my own instrument
+    # -- the disposition is the migrator's CLAIM and emptiness is my OBSERVATION,
+    # and a check that states the claim without observing it certifies itself.
+    *) field=body ;;
   esac
   if [ "$field" = related ]; then
     # `related` is a structured array rather than prose, so byte equality is the
     # wrong test: an EMPTY array against a populated section is the failure.
     if [ "$(jq -r '.related | length' "$j")" -eq 0 ]; then
-      report LOST-PROSE "$st 'Related Steel Threads' ($bytes bytes -- canon carries an empty related[])"
-      c_lost=$((c_lost + 1))
+      # THE SAME OMISSION ONE LEVEL DOWN, and it is why the run above still read
+      # `112 matched of 115`. An empty `related[]` is the right OBSERVATION for
+      # all 55 of this estate's sections, but 3 of them the migrator declared
+      # dropped as template scaffolding no author wrote -- so emptiness is the
+      # expected end state for those, and unexplained loss for the other 52. The
+      # observation alone cannot tell those apart; the claim has to be read.
+      if declared_drop "$st 'Related Steel Threads'"; then
+        echo "DECLARED-DROP $st 'Related Steel Threads' (removed, and the migrator says why -- verified empty in canon)"
+        c_drop=$((c_drop + 1))
+      else
+        report LOST-PROSE "$st 'Related Steel Threads' ($bytes bytes -- canon carries an empty related[])"
+        c_lost=$((c_lost + 1))
+      fi
     else
       c_ok=$((c_ok + 1))
     fi
     continue
   fi
+  # The catch-all holds every unmodelled section concatenated, so the named one
+  # is cut out of it first -- the same two steps the WP arm takes, through the
+  # same `section_text`, because two ways of asking one question is how the two
+  # answers start to differ.
+  if [ "$field" = body ]; then
+    jq -j ".body // \"\"" "$j" >"$WORK/body" 2>/dev/null || : >"$WORK/body"
+    section_text "$WORK/body" "$section" >"$WORK/f"
+    compare_prose "$st '$section'" "$sha" "$trim" "$WORK/f" carried
+    continue
+  fi
   jq -j ".\"$field\" // \"\"" "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
-  compare_prose "$st '$section'" "$sha" "$trim" "$WORK/f"
+  compare_prose "$st '$section'" "$sha" "$trim" "$WORK/f" modelled
 done < <(awk -F'\t' '$1 == "PROSE"' "$CENSUS")
 
 # ---------------------------------------------------------------------------
