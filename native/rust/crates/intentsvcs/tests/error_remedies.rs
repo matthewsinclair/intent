@@ -275,6 +275,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
     FacadeError::UnhonourableWindow(_) => "UnhonourableWindow",
     FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
+    FacadeError::MigrationBlocked(_) => "MigrationBlocked",
+    FacadeError::MigrationHalted { .. } => "MigrationHalted",
   }
 }
 
@@ -313,6 +315,8 @@ const ALL_VARIANTS: &[&str] = &[
   "ExportRoundTripFailed",
   "UnhonourableWindow",
   "NoSuchIssue",
+  "MigrationBlocked",
+  "MigrationHalted",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
@@ -331,6 +335,14 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `export_round_trip.rs` does exactly that; a call through the facade cannot
   // reach it, because every format the roster carries is honest.
   "ExportRoundTripFailed",
+  // Both need a v2 estate rather than a bad call, and both are the migration
+  // door rather than a verb: `MigrationBlocked` needs live-thread residue and
+  // `MigrationHalted` needs the filesystem to fail PART WAY THROUGH an
+  // `upgrade`, after the writes have committed. Neither is reachable from a
+  // facade a test can open, because `Facade::upgrade` exists precisely because
+  // there is no `Facade` to be had until it has run.
+  "MigrationBlocked",
+  "MigrationHalted",
 ];
 
 #[test]

@@ -65,6 +65,87 @@ pub struct FacadeContext {
   pub version: String,
 }
 
+/// What a completed migration did, for the door to report.
+///
+/// **`already_migrated` is a count of threads whose SOURCE changed, not of work
+/// skipped.** Those threads are in the plan like any other and re-emit
+/// byte-identical canon and views, so they stay inside every conservation
+/// denominator; what the number says is how much canon a previous run had
+/// already produced. On a first run it is zero, and on a re-run after an
+/// interruption it is exactly how far the interrupted run got.
+#[derive(Debug)]
+pub struct Upgraded {
+  pub threads: usize,
+  pub issues: usize,
+  /// Files written -- canon plus generated views.
+  pub files: usize,
+  /// Phase A's carried findings: reported so the counts reconcile, never so
+  /// that anyone acts on them.
+  pub carried: Vec<crate::finding::Finding>,
+  /// Thread ids read from committed canon rather than converted from markdown.
+  pub already_migrated: Vec<String>,
+}
+
+/// Ensure the runtime store's directory is gitignored.
+///
+/// **The store is per-machine and must never enter history (D34), and this is
+/// the one moment a project acquires one** -- so the ignore rule lands with the
+/// database rather than being a thing sixteen fleet projects each remember to
+/// add. On a project that already ignores it this is a no-op, which is every
+/// project the canary included.
+///
+/// **A PATH RULE AND DELIBERATELY NOT A CLASS RULE.** `*.db` would silently
+/// swallow a database a user genuinely wants tracked, in a tool whose whole
+/// promise is that it does not touch what it was not asked to.
+fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
+  let rule = format!(
+    "{}/.cache/",
+    project
+      .intent_dir()
+      .file_name()
+      .map(|n| n.to_string_lossy().into_owned())
+      .unwrap_or_else(|| "intent".to_string())
+  );
+  let path = project.root().join(".gitignore");
+  let current = std::fs::read_to_string(&path).unwrap_or_default();
+  if current.lines().any(|l| l.trim() == rule) {
+    return Ok(());
+  }
+  let mut next = current;
+  if !next.is_empty() && !next.ends_with('\n') {
+    next.push('\n');
+  }
+  next.push_str("\n# The Intent runtime store: per-machine, rebuilt from the committed extract.\n");
+  next.push_str(&rule);
+  next.push('\n');
+  std::fs::write(&path, next)
+}
+
+/// Write `intent_version` into `config.json`. **THE LAST ACT OF THE
+/// MIGRATION** -- see [`Facade::upgrade`] for the three reasons.
+///
+/// The file is rewritten from its parsed form with only this key replaced, so
+/// an unknown key a project carries survives: `config.json` is the operator's
+/// file and the migration has no business pruning it.
+fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
+  let path = Project::config_path(project.root());
+  let text = std::fs::read_to_string(&path)?;
+  let mut value: serde_json::Value = serde_json::from_str(&text).map_err(std::io::Error::other)?;
+  let Some(map) = value.as_object_mut() else {
+    return Err(std::io::Error::other(format!(
+      "{} is not a JSON object, so there is no version field to stamp",
+      project.relative(&path)
+    )));
+  };
+  map.insert(
+    "intent_version".to_string(),
+    serde_json::Value::String(crate::faces::INTENT_VER.to_string()),
+  );
+  let mut out = serde_json::to_string_pretty(&value).map_err(std::io::Error::other)?;
+  out.push('\n');
+  std::fs::write(&path, out)
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum FacadeError {
   #[error("no steel thread {id} in this project")]
@@ -170,6 +251,26 @@ pub enum FacadeError {
   ViewsNotWritten {
     #[source]
     cause: WriteError,
+  },
+  /// Phase A found live-thread residue, so no migration was planned.
+  ///
+  /// **Nothing has been written when this is returned** (AC-10.2), and that is
+  /// structural rather than careful: `migrate::plan` builds a `WriteSet` and
+  /// does not commit it, so a refusal cannot have touched the estate.
+  #[error("{0}")]
+  MigrationBlocked(#[from] crate::migrate::Blocked),
+  /// The migration stopped part way through, at a NAMED step.
+  ///
+  /// **The step is carried because the remedy depends on it and the operator
+  /// cannot see where it stopped.** Under hv's fix-forward ruling the recovery
+  /// is to run it again, and whether that is safe is a different answer before
+  /// the version stamp than after it -- so a bare IO error here would leave the
+  /// one question that matters unanswerable.
+  #[error("the migration stopped while {step}")]
+  MigrationHalted {
+    step: &'static str,
+    #[source]
+    cause: std::io::Error,
   },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
@@ -328,6 +429,21 @@ impl crate::remedy::Remedy for FacadeError {
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
       Self::Store(cause) => cause.remedy(),
+      // Delegated, for the same reason `Store` is: `Blocked` knows whether the
+      // estate needs repairing under v2 or whether the migrator itself failed,
+      // and those are different actions for different people.
+      Self::MigrationBlocked(cause) => cause.remedy(),
+      // **THE REMEDY IS TO RUN IT AGAIN, AND SAYING SO IS ONLY HONEST BECAUSE
+      // RE-RUNNING IS NOW IDEMPOTENT.** It was not until canon-wins landed: a
+      // re-run absorbed the renderer's own output and the estate grew every
+      // time, so this sentence would have sent an operator to corrupt their
+      // project by following it. It is safe because the version stamp is
+      // written LAST -- an interrupted migration still declares v2, so v3 sees
+      // an estate to migrate and every already-converted thread is read from
+      // its canon rather than re-parsed.
+      Self::MigrationHalted { .. } => {
+        "run `intent upgrade` again -- the migration is re-runnable, and threads already converted are read from their canon rather than converted twice".to_string()
+      }
       // **Delegated by INNER variant, because one remedy for the whole of
       // `IngestError` would tell someone whose history file is damaged to fix
       // their steel threads.** History is the one thing nothing recomputes, so
@@ -528,6 +644,91 @@ impl Facade {
 
   pub fn project(&self) -> &Project {
     &self.project
+  }
+
+  /// **The migration door, and the one entry point that deliberately does NOT
+  /// go through [`Facade::open`].**
+  ///
+  /// `open` calls `readable`, which refuses an unmigrated project -- and the
+  /// migrator runs on an unmigrated project by definition, so routing it
+  /// through the usual door would make the operation refuse the only estate it
+  /// exists for. It is an associated function rather than a method for the same
+  /// reason: there is no `Facade` to be had until this has run.
+  ///
+  /// **THE ORDER IS THE CONTRACT AND THE STAMP GOES LAST.** Plan (writes
+  /// nothing) -> commit the files -> rebuild the store -> converge gitignore ->
+  /// stamp the version. Three separate arguments land on that last step and
+  /// they are worth keeping apart:
+  ///
+  /// 1. A stamp written before the canon leaves a project claiming to be v3
+  ///    with no canon, and `readable`'s gate stops firing -- so the state that
+  ///    tells an operator what is wrong is the state the premature stamp
+  ///    destroyed. (v2 learned this in ST0043.)
+  /// 2. **v2 now REFUSES a project declaring a newer version than itself**, so
+  ///    between a premature stamp and complete canon the estate is locked out of
+  ///    BOTH toolchains at once -- v2 because the project is from the future, v3
+  ///    because the canon is not there. There is no tool left to fix it with.
+  /// 3. **It is what makes the re-run possible at all**, which is what hv's
+  ///    fix-forward ruling depends on: while the config still says v2, an
+  ///    interrupted estate is one v3 will migrate again. Stamp early and a
+  ///    half-migrated project is one v3 believes is finished, so fix-forward has
+  ///    nothing to fix forward with.
+  ///
+  /// **Nothing is written when this refuses** (AC-10.2). Before the commit that
+  /// is structural -- `plan` builds a `WriteSet` and does not apply it. After
+  /// it, a failure rolls the files back, so a halted migration leaves the estate
+  /// as it found it rather than half-converted.
+  pub fn upgrade(project: &Project, ctx: &FacadeContext) -> Result<Upgraded, FacadeError> {
+    let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {
+      step: "reading the v2 estate",
+      cause,
+    })?;
+    let plan = crate::migrate::plan(project, ctx, scan)?;
+    let crate::migrate::Plan {
+      writes,
+      threads,
+      issues,
+      carried,
+      already_migrated,
+    } = plan;
+
+    let files = writes.len();
+    let applied = writes.commit()?;
+
+    // Everything past here has files on disk, so a failure unwinds them rather
+    // than leaving a half-converted estate. `keep()` is reached only once the
+    // stamp has landed.
+    let finish = || -> Result<(), FacadeError> {
+      let mut store = Store::open(&project.db_path())?;
+      store.rebuild(&threads, &issues)?;
+      converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
+        step: "adding the store to .gitignore",
+        cause,
+      })?;
+      stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
+        step: "stamping the project version",
+        cause,
+      })
+    };
+    match finish() {
+      Ok(()) => {
+        applied.keep();
+        Ok(Upgraded {
+          threads: threads.len(),
+          issues: issues.len(),
+          files,
+          carried,
+          already_migrated,
+        })
+      }
+      Err(halted) => {
+        // The rollback's own failure is not allowed to hide the reason we are
+        // rolling back: it is reported as the cause of a halt at this step, and
+        // the original error is what the operator is told about.
+        applied.rollback()?;
+        Err(halted)
+      }
+    }
   }
 
   pub fn canon(&self) -> &Canon {
