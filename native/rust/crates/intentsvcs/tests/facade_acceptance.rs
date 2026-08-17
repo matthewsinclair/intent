@@ -213,20 +213,104 @@ fn rescope_and_reinstate_refuse_each_others_states_and_name_the_right_verb() {
   assert_eq!(state(&facade, "ST0056", "AC-03.8"), Resolved::Withdrawn);
 }
 
+/// **An in-scope criterion splits in two, and this test used to pin the wrong
+/// half as the whole rule** -- issue 0053.
+///
+/// It asserted `NotOffScope` for AC-03.1, which is a test-kind criterion at
+/// `Computed` -- ie a criterion ALREADY AT the state `reinstate` targets. Under
+/// hv's self-loop ruling that is a no-op at exit 0, and the refusal that made
+/// this green was a hand-written from-state check standing in front of the shared
+/// setter, so the self-loop test could never be reached. **The test name asserted
+/// the defect as the requirement**, which is why the sweep that fixed
+/// `ac_unsatisfy` twenty lines above left these two behind.
+///
+/// Both halves are asserted now, because either alone is satisfiable by the wrong
+/// implementation: refusing everything passes the second, accepting everything
+/// passes the first.
 #[test]
-fn reinstating_an_in_scope_criterion_is_refused() {
+fn reinstate_self_loops_at_the_entry_state_and_refuses_elsewhere_in_scope() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  match facade.ac_reinstate("ST0056", "AC-03.1") {
-    Err(FacadeError::NotOffScope { ac }) => assert_eq!(ac, "AC-03.1"),
+  // AC-03.1 is test-kind at `Computed`, which IS `AcState::entry(Test)`. Same
+  // state in, same state out: a self-loop, accepted and named.
+  assert_eq!(
+    facade
+      .ac_reinstate("ST0056", "AC-03.1")
+      .expect("a criterion already at the entry state is a self-loop, not a refusal")
+      .already(),
+    Some("computed")
+  );
+
+  // AC-03.2 is non-test and SATISFIED -- in scope, and not where `reinstate`
+  // points. `ac.reinstate` is declared only from `withdrawn`, so this is still an
+  // illegal transition, and the refusal it maps to is the one v2 gives.
+  match facade.ac_reinstate("ST0056", "AC-03.2") {
+    Err(e @ FacadeError::NotOffScope { .. }) => {
+      let rendered = e.render();
+      assert!(rendered.contains("AC-03.2"), "{rendered}");
+      assert!(
+        rendered.contains("nothing to reinstate"),
+        "the refusal names the verb the caller typed: {rendered}"
+      );
+      assert!(
+        rendered.contains("applies only to a withdrawn criterion"),
+        "and the remedy names the ONE state this verb undoes, not the union of both: {rendered}"
+      );
+    }
     other => panic!("expected NotOffScope, got: {other:?}"),
   }
 }
 
+/// **The mirror, and the reason the verb had to become a field.**
+///
+/// `NotOffScope` hardcoded `reinstate` in both its message and its remedy, so
+/// `ac rescope` on an in-scope criterion answered with advice about a different
+/// command -- twice, since the message and the remedy each said it. v2 gets this
+/// right (`AC-01.1 is not descoped; nothing to rescope`), so it was a regression.
 #[test]
-fn a_no_op_scope_change_is_refused_rather_than_silently_accepted() {
+fn rescope_self_loops_at_the_entry_state_and_names_itself_when_it_refuses() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+
+  assert_eq!(
+    facade
+      .ac_rescope("ST0056", "AC-03.1")
+      .expect("a criterion already at the entry state is a self-loop, not a refusal")
+      .already(),
+    Some("computed")
+  );
+
+  match facade.ac_rescope("ST0056", "AC-03.2") {
+    Err(e @ FacadeError::NotOffScope { .. }) => {
+      let rendered = e.render();
+      assert!(
+        rendered.contains("nothing to rescope"),
+        "typing `rescope` must not be answered with advice about `reinstate`: {rendered}"
+      );
+      assert!(
+        rendered.contains("applies only to a descoped criterion"),
+        "and the remedy names descoped, which is what THIS verb undoes: {rendered}"
+      );
+      assert!(
+        !rendered.contains("reinstate"),
+        "the other verb must not appear at all -- naming it is what sent the reader to the wrong \
+         command: {rendered}"
+      );
+    }
+    other => panic!("expected NotOffScope, got: {other:?}"),
+  }
+}
+
+/// **Renamed, because the name said the opposite of what the body asserts.** It
+/// read `..._is_refused_rather_than_silently_accepted` while asserting the
+/// no-op is accepted and reported -- correct assertion, stale name, and a reader
+/// scanning test names for the rule would have got the old one. Same class as
+/// issue 0053's test name, one file over and one severity down.
+#[test]
+fn a_no_op_scope_change_is_reported_rather_than_written_twice() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();

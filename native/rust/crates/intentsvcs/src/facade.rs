@@ -83,8 +83,21 @@ pub enum FacadeError {
     "{ac} is test-backed, so its satisfaction is computed from covering green acceptance tests and cannot be set directly"
   )]
   ComputedSatisfaction { ac: String },
-  #[error("{ac} is in scope, so there is nothing to reinstate")]
-  NotOffScope { ac: String },
+  /// **Carries the verb the caller actually typed** (ic, issue 0053). One
+  /// hardcoded `reinstate` served both entry points, so `intent ac rescope` on an
+  /// in-scope criterion was answered with advice about a different command --
+  /// and v2 gets this right, so it was a regression rather than a gap.
+  /// `WrongOffScopeState` next door already carried a `verb`; this is the same
+  /// field on its sibling.
+  #[error("{ac} is in scope, so there is nothing to {verb}")]
+  NotOffScope {
+    ac: String,
+    verb: String,
+    /// The one state this verb undoes -- `descoped` for `rescope`, `withdrawn`
+    /// for `reinstate`. The old remedy named both, which is the union of the two
+    /// verbs' preconditions and true of neither of them.
+    wanted: String,
+  },
   #[error("{ac} is not satisfied, so there is nothing to unsatisfy")]
   NotSatisfied { ac: String },
   #[error("{ac} is {state}, so it cannot be {verb}")]
@@ -221,8 +234,8 @@ impl crate::remedy::Remedy for FacadeError {
       Self::ComputedSatisfaction { ac } => format!(
         "set the covering test green instead -- `intent at set <AT> green` -- or make {ac} a non-test criterion with named evidence"
       ),
-      Self::NotOffScope { .. } => {
-        "reinstate applies only to a descoped or withdrawn criterion".to_string()
+      Self::NotOffScope { verb, wanted, .. } => {
+        format!("{verb} applies only to a {wanted} criterion")
       }
       Self::ViewsNotWritten { .. } => {
         // NOT bare `intent sync`, and that instruction was in this remedy
@@ -1761,35 +1774,69 @@ impl Facade {
   /// different acts: a descoped requirement still exists somewhere else, and a
   /// withdrawn one does not exist at all. Treating them as one verb would make
   /// the tool answer "done" to a question it had not been asked.
+  /// **The `_` arm DELEGATES rather than refusing ahead of the setter** -- issue
+  /// 0053, and this is 0051's mechanism in its third and fourth instances. A
+  /// hand-written from-state check placed before `set_ac_state` makes the shared
+  /// self-loop test unreachable for that verb, so `intent ac reinstate` on an
+  /// in-scope criterion exited 1 where hv's ruling makes it a self-loop at 0.
+  /// Both survivors sat twenty lines below the copy fixed in `ac_unsatisfy`, in
+  /// the same file, in the same commit -- found by ic driving the binary twice
+  /// rather than by reading the enumeration.
+  ///
+  /// **The mapping is equivalent by construction.** `ac.reinstate` declares its
+  /// edges only from `withdrawn`, and `Descoped` is handled above, so every
+  /// remaining `IllegalTransition` means exactly "in scope" -- while a criterion
+  /// already AT the entry state now reaches the self-loop arm instead of being
+  /// refused before it.
   pub fn ac_reinstate(&mut self, st: &str, ac: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     let entry = AcState::entry(criterion.kind);
     match &criterion.state {
-      AcState::Withdrawn { .. } => self.set_ac_state(st, ac, entry, "ac.reinstate", json!({})),
       AcState::Descoped { .. } => Err(FacadeError::WrongOffScopeState {
         ac: ac.to_string(),
         actual: "descoped".to_string(),
         wanted: "withdrawn".to_string(),
         verb: "rescope".to_string(),
       }),
-      _ => Err(FacadeError::NotOffScope { ac: ac.to_string() }),
+      _ => self
+        .set_ac_state(st, ac, entry, "ac.reinstate", json!({}))
+        .map_err(|cause| Self::in_scope(cause, ac, "reinstate", "withdrawn")),
     }
   }
 
   /// Undo a DESCOPE. The mirror of [`Facade::ac_reinstate`], refusing a
-  /// withdrawn criterion the same way.
+  /// withdrawn criterion the same way -- and self-looping the same way.
   pub fn ac_rescope(&mut self, st: &str, ac: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     let entry = AcState::entry(criterion.kind);
     match &criterion.state {
-      AcState::Descoped { .. } => self.set_ac_state(st, ac, entry, "ac.rescope", json!({})),
       AcState::Withdrawn { .. } => Err(FacadeError::WrongOffScopeState {
         ac: ac.to_string(),
         actual: "withdrawn".to_string(),
         wanted: "descoped".to_string(),
         verb: "reinstate".to_string(),
       }),
-      _ => Err(FacadeError::NotOffScope { ac: ac.to_string() }),
+      _ => self
+        .set_ac_state(st, ac, entry, "ac.rescope", json!({}))
+        .map_err(|cause| Self::in_scope(cause, ac, "rescope", "descoped")),
+    }
+  }
+
+  /// The refusal the two undo verbs used to raise before the setter, raised
+  /// AFTER it instead so the self-loop is reachable.
+  ///
+  /// One home for both, because the two call sites differ only in two words and
+  /// the mapping argument is identical: with the sibling off-scope state handled
+  /// by its own arm, an `IllegalTransition` from an undo verb can only mean the
+  /// criterion never left scope.
+  fn in_scope(cause: FacadeError, ac: &str, verb: &str, wanted: &str) -> FacadeError {
+    match cause {
+      FacadeError::IllegalTransition { .. } => FacadeError::NotOffScope {
+        ac: ac.to_string(),
+        verb: verb.to_string(),
+        wanted: wanted.to_string(),
+      },
+      other => other,
     }
   }
 
@@ -2401,6 +2448,8 @@ mod tests {
       },
       FacadeError::NotOffScope {
         ac: "AC-03.1".to_string(),
+        verb: "reinstate".to_string(),
+        wanted: "withdrawn".to_string(),
       },
     ];
     let mut remedies: Vec<String> = errors.iter().map(crate::remedy::Remedy::remedy).collect();

@@ -1082,7 +1082,21 @@ fn a_self_edge_is_not_an_exit() {
 /// the implementation to confirm itself. This is the second witness: a typo in
 /// either copy is a failure, and the only way to make both wrong in the same
 /// way is to make the same mistake twice.
-const RATIFIED_THREAD: &[(&str, &[&str], &str, &[Guard])] = &[
+/// One ratified edge as data-model.md states it: verb, from-states, to-state,
+/// guards. Named because the tuple appears in five places and clippy is right
+/// that the nested form stops being readable at the point it is being compared
+/// against another list of the same shape.
+type RatifiedEdge = (
+  &'static str,
+  &'static [&'static str],
+  &'static str,
+  &'static [Guard],
+);
+
+/// One machine: entity, field, and its ratified edges.
+type RatifiedMachine = (&'static str, &'static str, &'static [RatifiedEdge]);
+
+const RATIFIED_THREAD: &[RatifiedEdge] = &[
   ("st.triage", &["triage"], "not-started", &[]),
   ("st.start", &["not-started"], "wip", &[]),
   ("st.resume", &["hold"], "wip", &[]),
@@ -1116,7 +1130,7 @@ const RATIFIED_THREAD: &[(&str, &[&str], &str, &[Guard])] = &[
 /// "-> Unsatisfied" row is written for the authored criterion it had in mind.
 /// The second row is the test-backed case the same rule implies -- stated here
 /// rather than left implicit, so a disagreement surfaces as a failing test.
-const RATIFIED_CRITERION: &[(&str, &[&str], &str, &[Guard])] = &[
+const RATIFIED_CRITERION: &[RatifiedEdge] = &[
   (
     "ac.satisfy",
     &["unsatisfied"],
@@ -1153,7 +1167,7 @@ const RATIFIED_CRITERION: &[(&str, &[&str], &str, &[Guard])] = &[
 ];
 
 /// The ratified work-package machine, same discipline.
-const RATIFIED_WP: &[(&str, &[&str], &str, &[Guard])] = &[
+const RATIFIED_WP: &[RatifiedEdge] = &[
   ("wp.start", &["not-started"], "wip", &[]),
   ("wp.unstart", &["wip"], "not-started", &[]),
   ("wp.done", &["wip"], "done", &[Guard::GatePass]),
@@ -1165,10 +1179,77 @@ const RATIFIED_WP: &[(&str, &[&str], &str, &[Guard])] = &[
 /// No guards on either edge, and the empty lists are the ratified fact rather
 /// than an unfilled column: v2 has none, `intent issues` is `keep`, and hv ruled
 /// that inventing one here "would be a parity break wearing a ratification".
-const RATIFIED_ISSUE: &[(&str, &[&str], &str, &[Guard])] = &[
+const RATIFIED_ISSUE: &[RatifiedEdge] = &[
   ("issues.close", &["open"], "closed", &[]),
   ("issues.open", &["closed"], "open", &[]),
 ];
+
+/// **EVERY ratified machine, in ONE array, read by all three walks** (vc's
+/// recommendation, 2026-08-17).
+///
+/// The three walks each carried their own hand-written entity list, and two of
+/// them had gone short: Machine 4 was in the first and absent from the other two.
+/// **Both omissions were free**, and that is the worst state for them -- walk 3's
+/// because Machine 4 is total, and the justification guard's because
+/// `RATIFIED_ISSUE` declares no guards. Neither would red when it stopped being
+/// free.
+///
+/// The precedent is in this file: `Criterion` missing from the justification loop
+/// left `ac.withdraw`'s ratified `ReasonRecorded` transcribed, conformance-checked
+/// and dead. **That repair derived the VERB axis from the tables and left the
+/// ENTITY axis hand-written, while its comment reads as though both were done** --
+/// and the incident it describes was an entity omission. This is the other axis.
+const RATIFIED: &[RatifiedMachine] = &[
+  ("Thread", "status", RATIFIED_THREAD),
+  ("WorkPackage", "status", RATIFIED_WP),
+  ("Criterion", "state", RATIFIED_CRITERION),
+  ("Issue", "status", RATIFIED_ISSUE),
+];
+
+/// **Machines `data-model.md` ratifies IN PROSE rather than as an edge table**,
+/// with the sentence that does it.
+///
+/// Found by binding `RATIFIED` to `transitions::FIELDS`: six State machines exist
+/// and four had transcriptions. The two missing ones are not an omission -- vc
+/// declines them a table on the record, and quoting the sentence is what makes
+/// that checkable rather than something a reader has to go and confirm.
+///
+/// **They are held to the property the prose states instead**, by
+/// `a_machine_ratified_in_prose_is_actually_trivial` below: one verb, no
+/// from-restriction, reaching every state. A machine that grows a second verb or a
+/// guard has stopped being "any value, one verb, any value" and needs a table --
+/// and that test is what says so, rather than the machine quietly becoming
+/// non-trivial with nothing comparing it to anything.
+const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[
+  (
+    "WorkPackage",
+    "scope",
+    "data-model.md: \"six T-shirt values, all six initial ... with `wp rescope` the single exit. \
+     The reasoning lives in the code comment; it does not need a table because the graph is 'any \
+     value, one verb, any value'.\"",
+  ),
+  (
+    "AcceptanceTest",
+    "status",
+    "data-model.md: \"to-write / red / green / n-a, entry to-write, one verb `at.set` reaching all \
+     four ... The graph is trivial and the SEMANTICS are not, which is the opposite shape to \
+     scope.\"",
+  ),
+];
+
+/// Machines with NO undeclared (verb, state) pair, declared with the reason.
+///
+/// **A structural zero and an unvisited machine produce the same output -- none
+/// -- so the zero is declared rather than inferred** (vc's second point). A
+/// machine in this list is required to contribute zero pairs; one absent from it
+/// is required to contribute some. Either way the number is checked, which is what
+/// makes the vacuity readable instead of something a reader has to recompute by
+/// hand.
+const TOTAL_MACHINES: &[(&str, &str)] = &[(
+  "Issue",
+  "two states and two edges, so every (verb, state) pair is either declared or the verb's own \
+   target -- there is nothing undeclared left to refuse",
+)];
 
 fn declared(entity: &str, field: &str) -> &'static [Edge] {
   match find(entity, field).map(|f| &f.disposition) {
@@ -1193,14 +1274,108 @@ fn declared(entity: &str, field: &str) -> &'static [Edge] {
 /// failing for three distinguishable reasons is worth more than one failing for
 /// any of them. AT-04.6's closing condition now states the three behaviours
 /// rather than naming a test, so a rename here cannot invalidate it.
+/// **Every State machine in the code is ratified SOMEHOW, and the two ways are
+/// distinguished.** A machine with a table gets one; a machine ratified in prose
+/// gets the prose property checked. Nothing gets neither.
+///
+/// This is the entity axis closed at its root rather than at three loops. Without
+/// it, deleting a row from [`RATIFIED`] makes all three walks skip that machine in
+/// silence -- the omission this file has now been caught by twice, on `Criterion`
+/// and on `Issue`. **And writing it found two more**: six State machines exist and
+/// four had transcriptions, so AT-04.6's "the implemented graph matches the
+/// ratified machines exactly" was being discharged over two thirds of them.
+#[test]
+fn every_state_machine_is_ratified_by_a_table_or_by_prose_and_nothing_by_neither() {
+  let in_code: std::collections::BTreeSet<(String, String)> = intentsvcs::transitions::FIELDS
+    .iter()
+    .filter(|f| matches!(f.disposition, Disposition::State { .. }))
+    .map(|f| (f.entity.to_string(), f.field.to_string()))
+    .collect();
+  let tabled: std::collections::BTreeSet<(String, String)> = RATIFIED
+    .iter()
+    .map(|(entity, field, _)| (entity.to_string(), field.to_string()))
+    .collect();
+  let prose: std::collections::BTreeSet<(String, String)> = RATIFIED_WITHOUT_A_TABLE
+    .iter()
+    .map(|(entity, field, _)| (entity.to_string(), field.to_string()))
+    .collect();
+
+  // Disjoint, because a machine in both would be checked two ways that could
+  // disagree, and the prose check is the WEAKER one -- so the overlap would
+  // quietly become the only thing enforced if the table were later dropped.
+  let both: Vec<_> = tabled.intersection(&prose).collect();
+  assert!(
+    both.is_empty(),
+    "a machine is ratified by a table OR in prose, not both: {both:?}"
+  );
+
+  let covered: std::collections::BTreeSet<(String, String)> =
+    tabled.union(&prose).cloned().collect();
+  assert_eq!(
+    in_code, covered,
+    "the State fields in `transitions.rs` and the ratified machines must be the same set -- one \
+     missing is a machine every walk skips in silence, and one extra is a rule about a machine that \
+     no longer exists"
+  );
+}
+
+/// **A machine ratified in prose is held to what the prose says**: one verb, no
+/// from-restriction, reaching every state.
+///
+/// That is "any value, one verb, any value" stated mechanically. It is a weaker
+/// check than a transcription and it is the RIGHT weaker check: vc's reason for
+/// declining these two a table is that their graphs carry no information, so the
+/// thing to verify is precisely that claim. **The moment one grows a second verb, a
+/// guard, or a from-restriction the claim is false, the machine has information in
+/// its graph again, and this says so** -- which is the trigger for writing the
+/// table rather than a thing to notice later.
+#[test]
+fn a_machine_ratified_in_prose_is_actually_trivial() {
+  for (entity, field, sentence) in RATIFIED_WITHOUT_A_TABLE {
+    let edges = declared(entity, field);
+    let verbs: std::collections::BTreeSet<&str> = edges.iter().map(|e| e.verb).collect();
+    assert_eq!(
+      verbs.len(),
+      1,
+      "{entity}.{field} is ratified in prose as ONE verb and declares {verbs:?}. It now needs an \
+       edge table in data-model.md -- the sentence standing in for one says: {sentence}"
+    );
+    for edge in edges {
+      assert!(
+        edge.from.is_empty(),
+        "{entity}.{field}: `{}` -> `{}` is declared from {:?}, so the graph restricts something and \
+         is no longer 'any value, one verb, any value'. It needs a table: {sentence}",
+        edge.verb,
+        edge.to,
+        edge.from
+      );
+    }
+    let targets: std::collections::BTreeSet<&str> = edges.iter().map(|e| e.to).collect();
+    let states = initial_states(entity, field);
+    let unreachable: Vec<&&str> = states
+      .iter()
+      .filter(|s| !targets.contains(**s) && **s != "absent")
+      .collect();
+    assert!(
+      unreachable.is_empty(),
+      "{entity}.{field}: the one verb must reach every state, and {unreachable:?} cannot be reached \
+       -- which is the trap condition AC-04.6 forbids, hiding inside a machine nobody transcribed: \
+       {sentence}"
+    );
+  }
+}
+
+/// The states a field can be entered in, from the declaration.
+fn initial_states(entity: &str, field: &str) -> &'static [&'static str] {
+  match find(entity, field).map(|f| &f.disposition) {
+    Some(Disposition::State { initial, .. }) => initial,
+    _ => panic!("{entity}.{field} is not a State"),
+  }
+}
+
 #[test]
 fn the_transition_table_transcribes_the_ratified_machines_edge_for_edge() {
-  for (entity, field, ratified) in [
-    ("Thread", "status", RATIFIED_THREAD),
-    ("WorkPackage", "status", RATIFIED_WP),
-    ("Criterion", "state", RATIFIED_CRITERION),
-    ("Issue", "status", RATIFIED_ISSUE),
-  ] {
+  for (entity, field, ratified) in RATIFIED {
     let implemented = declared(entity, field);
     assert_eq!(
       implemented.len(),
@@ -1209,7 +1384,7 @@ fn the_transition_table_transcribes_the_ratified_machines_edge_for_edge() {
       implemented.len(),
       ratified.len()
     );
-    for (verb, from, to, guard) in ratified {
+    for (verb, from, to, guard) in ratified.iter() {
       let found = implemented
         .iter()
         .find(|e| e.verb == *verb && e.to == *to)
@@ -1297,26 +1472,56 @@ fn attempt(
 #[test]
 fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
   let mut checked = 0;
-  for (entity, ratified) in [
-    ("Thread", RATIFIED_THREAD),
-    ("WorkPackage", RATIFIED_WP),
-    ("Criterion", RATIFIED_CRITERION),
-  ] {
+  let mut per_machine: Vec<(&str, usize)> = Vec::new();
+  for (entity, _, ratified) in RATIFIED {
     let states: Vec<&str> = ratified
       .iter()
       .flat_map(|(_, from, to, _)| from.iter().copied().chain(std::iter::once(*to)))
       .collect::<std::collections::BTreeSet<_>>()
       .into_iter()
       .collect();
-    for (verb, from, to, _) in ratified {
-      // **Excluding the verb's own TARGET, because a self-loop is not an
+    let verbs: Vec<&str> = ratified
+      .iter()
+      .map(|(verb, _, _, _)| *verb)
+      .collect::<std::collections::BTreeSet<_>>()
+      .into_iter()
+      .collect();
+    let mut here = 0;
+    // **Grouped by VERB, not by edge, and that is a correctness fix rather than a
+    // tidy-up.** A verb can declare several edges, and the filter below has to
+    // exclude the whole union of its targets -- so iterating edges asked
+    // `ac.rescope` from `computed` to refuse, on the strength of the edge whose
+    // target is `unsatisfied`, while `computed` is that same verb's OTHER target.
+    // The self-loop predicate is "the current state equals the verb's TARGET"
+    // (data-model.md, hv 2026-08-17), and for a kind-dependent verb the target is
+    // a SET. Testing one member at a time gets a well-formed wrong answer.
+    //
+    // It was invisible until 2026-08-17 because `ac_rescope` and `ac_reinstate`
+    // hand-checked the from-state ahead of the shared setter and refused
+    // everything else -- so this walk passed on a refusal that was itself the
+    // defect of issue 0053. Removing that check unmasked the filter.
+    for verb in &verbs {
+      let from: std::collections::BTreeSet<&str> = ratified
+        .iter()
+        .filter(|(v, _, _, _)| v == verb)
+        .flat_map(|(_, from, _, _)| from.iter().copied())
+        .collect();
+      // **Excluding the verb's own TARGETS, because a self-loop is not an
       // undeclared transition -- it is not a transition** (data-model.md, hv
       // 2026-08-17: "asking a verb for the state an entity is already in is not a
       // movement, so it is not a transition to declare and not an illegal one to
       // refuse"). `st.triage` targets `not-started`, so asking it of a thread
       // already `not-started` is accepted at exit 0, and demanding a refusal
       // there would be this test requiring the behaviour the ruling retired.
-      for state in states.iter().filter(|s| !from.contains(s) && *s != to) {
+      let targets: std::collections::BTreeSet<&str> = ratified
+        .iter()
+        .filter(|(v, _, _, _)| v == verb)
+        .map(|(_, _, to, _)| *to)
+        .collect();
+      for state in states
+        .iter()
+        .filter(|s| !from.contains(*s) && !targets.contains(*s))
+      {
         let outcome = attempt(
           entity,
           verb,
@@ -1337,19 +1542,52 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
         // into `IllegalTransition` would trade a better message for a tidier
         // test. What must hold either way is that the transition does not
         // happen, and that is what is asserted.
-        if entity != "Criterion" {
+        if *entity != "Criterion" {
           assert!(
             matches!(outcome, Err(FacadeError::IllegalTransition { .. })),
             "{entity}: `{verb}` from `{state}` must be refused AS an illegal transition -- got {outcome:?}"
           );
         }
         checked += 1;
+        here += 1;
       }
     }
+    per_machine.push((entity, here));
+  }
+
+  // **Every machine's contribution is recorded, and a ZERO is declared** -- so a
+  // machine this walk never visited cannot look like a machine it visited and
+  // found nothing to refuse in. Both produce no assertions; only one is correct.
+  for (entity, count) in &per_machine {
+    let total = TOTAL_MACHINES.iter().find(|(name, _)| name == entity);
+    match total {
+      Some((_, why)) => assert_eq!(
+        *count, 0,
+        "{entity} is declared total ({why}), so this walk must find nothing undeclared in it -- \
+         finding {count} means the machine grew and the declaration is stale"
+      ),
+      None => assert!(
+        *count > 0,
+        "{entity} contributed NO undeclared pairs and is not declared total. Either the machine is \
+         total -- say so in TOTAL_MACHINES with the reason -- or this walk is not reaching it, \
+         which is the omission it cannot otherwise see. Counts: {per_machine:?}"
+      ),
+    }
+  }
+  // And the other direction: a machine declared total must have been VISITED.
+  // Without this, deleting its row from `RATIFIED` removes it from `per_machine`
+  // and the loop above has nothing to check -- the declaration would then be
+  // covering an absence instead of a zero.
+  for (entity, why) in TOTAL_MACHINES {
+    assert!(
+      per_machine.iter().any(|(name, _)| name == entity),
+      "{entity} is declared total ({why}) and this walk never visited it, so the zero above is an \
+       absence rather than a measurement. Counts: {per_machine:?}"
+    );
   }
   assert!(
     checked >= 20,
-    "only {checked} undeclared pairs were exercised -- the enumeration is collapsing, and a check that examines nothing passes"
+    "only {checked} undeclared pairs were exercised -- the enumeration is collapsing, and a check that examines nothing passes. Counts: {per_machine:?}"
   );
 }
 
@@ -1367,17 +1605,19 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
 /// `ReasonRecorded` that was transcribed, conformance-checked, and dead, while
 /// `ac.satisfy` could not even declare the evidence rule it needed. **An
 /// instrument that enumerates its subjects by hand can be wrong in exactly the
-/// place its subject is wrong, and it reports green.** The list is now derived
-/// from the ratified tables themselves.
+/// place its subject is wrong, and it reports green.**
+///
+/// **That repair derived the VERB axis and left the ENTITY axis hand-written**
+/// (vc, 2026-08-17), which is why the paragraph above read as though both were
+/// done while `Issue` was missing from this loop -- free only because
+/// `RATIFIED_ISSUE` declares no guards, so the day anyone gives `issues close` a
+/// reason this check would silently not run it. Both axes are derived now: the
+/// entity list is [`RATIFIED`].
 #[test]
 fn a_verb_declared_to_record_a_justification_refuses_a_blank_one() {
   let mut checked = 0;
-  for (entity, ratified) in [
-    ("Thread", RATIFIED_THREAD),
-    ("WorkPackage", RATIFIED_WP),
-    ("Criterion", RATIFIED_CRITERION),
-  ] {
-    for (verb, from, _, guards) in ratified {
+  for (entity, _, ratified) in RATIFIED {
+    for (verb, from, _, guards) in ratified.iter() {
       // Both prose guards, together, because they are one rule asked of two
       // fields and a check that knew only about reasons is what let the
       // evidence half go unwritten.

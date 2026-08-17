@@ -77,11 +77,23 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .export(Some("md"))
       .expect_err("md cannot be read back"),
   ));
+  // **THE THIRD TIME THIS FILE HAS BEEN CAUGHT BY THE SAME MECHANISM, and the
+  // first two are commented seventy lines below** (issue 0053). This provoked
+  // `NotOffScope` with `ac_reinstate` on AC-03.1 -- test-kind at `Computed`, which
+  // IS `AcState::entry(Test)`, so once the verb stopped refusing its own target
+  // state the provoker stopped provoking and `expect_err` panicked.
+  //
+  // **The route is chosen from the DECLARED machine rather than from what is
+  // refused today**, which is the property the two earlier swaps found by
+  // accident. `ac.reinstate` declares its edges only from `withdrawn`, so every
+  // in-scope state that is not the verb's own target is durably refusable --
+  // AC-03.2 is non-test and SATISFIED, so it is refused for a reason a ruling
+  // cannot reverse without changing the machine itself.
   out.push((
     "reinstate in-scope",
     facade
-      .ac_reinstate("ST0056", "AC-03.1")
-      .expect_err("in scope"),
+      .ac_reinstate("ST0056", "AC-03.2")
+      .expect_err("in scope, and not at the state reinstate targets"),
   ));
 
   // **`ScopeUnchanged` was provoked here and the variant is gone** (hv,

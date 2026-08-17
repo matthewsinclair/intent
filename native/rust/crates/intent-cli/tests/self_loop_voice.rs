@@ -468,6 +468,84 @@ fn the_two_arms_a_line_oriented_count_could_not_see() {
   );
 }
 
+/// **THE THIRD AND FOURTH INSTANCES OF 0051'S MECHANISM, AND THEY WERE TWENTY
+/// LINES BELOW THE COPY I FIXED** -- issue 0053, found by ic driving the binary
+/// twice rather than by reading my announcement.
+///
+/// `ac_rescope` and `ac_reinstate` each raised `NotOffScope` from a `_` arm placed
+/// ahead of `set_ac_state`, so the shared self-loop test was unreachable for both.
+/// `intent ac rescope` on an in-scope criterion exited 1 where hv's ruling makes
+/// it a self-loop at 0.
+///
+/// **My own report is what let them survive.** I reasoned from
+/// `AcState::entry(kind)` and published `already unsatisfied | already computed`
+/// -- exactly right about the value the SUCCESS arm hands the setter, and the
+/// self-loop never reached that arm. The subject I reasoned about and the subject
+/// I reported came apart, and the reasoning was well-formed either way.
+///
+/// **The refusal each verb still gives now names the verb the caller typed.**
+/// `NotOffScope` hardcoded `reinstate` in its message and its remedy, so typing
+/// `rescope` was answered with advice about a different command, twice. v2 gets
+/// this right, so it was a regression rather than a gap.
+#[test]
+fn ac_rescope_and_ac_reinstate_accept_a_self_loop_and_name_themselves_when_they_refuse() {
+  let dir = project();
+  seed(dir.path());
+
+  // AC-01.1 is non-test and unsatisfied, which IS the entry state both verbs
+  // target -- so both are self-loops from the fixture, with no setup at all.
+  // That is the measure of how reachable this was: two verbs, exit 1, on the
+  // fixture's own initial state.
+  for verb in ["rescope", "reinstate"] {
+    let out = run(dir.path(), &["ac", verb, "ST0001", "AC-01.1"]);
+    assert_eq!(
+      out.status.code(),
+      Some(0),
+      "`intent ac {verb}` on an in-scope criterion already at the entry state is a self-loop:\n{}",
+      String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(stdout(&out).trim(), "ok: AC-01.1 already unsatisfied");
+  }
+
+  // And from a state neither verb is declared from, each still refuses -- naming
+  // ITSELF, and naming the one state it undoes rather than the union of both.
+  line(
+    dir.path(),
+    &[
+      "ac",
+      "satisfy",
+      "ST0001",
+      "AC-01.1",
+      "--evidence",
+      "checked",
+    ],
+  );
+  for (verb, wanted, other) in [
+    ("rescope", "descoped", "reinstate"),
+    ("reinstate", "withdrawn", "rescope"),
+  ] {
+    let out = run(dir.path(), &["ac", verb, "ST0001", "AC-01.1"]);
+    assert_eq!(
+      out.status.code(),
+      Some(1),
+      "a satisfied criterion is in scope"
+    );
+    let text = String::from_utf8_lossy(&out.stderr).to_string();
+    assert!(
+      text.contains(&format!("nothing to {verb}")),
+      "the refusal names the verb typed: {text}"
+    );
+    assert!(
+      text.contains(&format!("applies only to a {wanted} criterion")),
+      "and the remedy names the state THIS verb undoes: {text}"
+    );
+    assert!(
+      !text.contains(other),
+      "`{other}` must not appear -- naming it is what sent the reader to the wrong command: {text}"
+    );
+  }
+}
+
 /// **`ac unsatisfy` on an already-unsatisfied criterion is ACCEPTED, and it
 /// refused at exit 1 until 2026-08-17.**
 ///
