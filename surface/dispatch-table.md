@@ -1612,7 +1612,7 @@ First-time setup: create global Intent configuration
 
 ## Family: `doctor`
 
-Diagnose and fix common Intent configuration issues
+Diagnose common Intent configuration issues
 
 - **v2 source:** `bin/intent_doctor`
 - **v2 help file:** none
@@ -1622,13 +1622,13 @@ Diagnose and fix common Intent configuration issues
 - Runs outside a project (measured: exit 0, 397B), so it is a global command.
 - v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
 
-| command  | args | flags                                         | help                                                | disposition |
-| -------- | ---- | --------------------------------------------- | --------------------------------------------------- | ----------- |
-| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --help/-h | Diagnose and fix common Intent configuration issues | keep        |
+| command  | args | flags                                         | help                                        | disposition |
+| -------- | ---- | --------------------------------------------- | ------------------------------------------- | ----------- |
+| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --help/-h | Diagnose common Intent configuration issues | keep        |
 
 ### `doctor`
 
-Diagnose and fix common Intent configuration issues
+Diagnose common Intent configuration issues
 
 - **v2:** bin/intent_doctor
 - **Flags:**

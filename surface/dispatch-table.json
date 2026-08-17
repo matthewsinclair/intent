@@ -3449,7 +3449,7 @@
     },
     {
       "name": "doctor",
-      "help": "Diagnose and fix common Intent configuration issues",
+      "help": "Diagnose common Intent configuration issues",
       "v2_source": "bin/intent_doctor",
       "v2_help_file": null,
       "owner_wp": "WP-06",
@@ -3460,7 +3460,7 @@
       "entries": [
         {
           "path": "doctor",
-          "help": "Diagnose and fix common Intent configuration issues",
+          "help": "Diagnose common Intent configuration issues",
           "args": [],
           "flags": [
             {

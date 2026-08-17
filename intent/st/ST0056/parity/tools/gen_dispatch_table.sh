@@ -594,6 +594,109 @@ STALE_ANOMALY="$(jq -r '
 [ -z "$STALE_ANOMALY" ] || die "rows carry a \`recoverability_anomaly\` while AGREEING with the derived withhold list -- the disagreement it documents is gone, so the note now describes a state that no longer exists. Remove it. Offending paths:
 $(printf '%s' "$STALE_ANOMALY" | sed 's/^/  /')"
 
+# A RETIRED FLAG WHOSE CAPABILITY THE ROW STILL PROMISES (the retirement's blast
+# radius). When a flag is dispositioned `retire`, the decision is recorded on the
+# flag -- and every OTHER field on the row that described that capability keeps
+# describing it, because nothing propagates a withdrawal outward.
+#
+# `doctor` is the measured instance and it carried THREE artefacts from ONE
+# withdrawn subject: `read_or_mutate: mutate` (grounded in `--fix` and nothing
+# else), an `mcp_review` defending that grounding, and a `help` string promising
+# `Diagnose and fix ...`. All three were found by three separate accidents on
+# three separate routes, none of them looking for this. That is the shape of a
+# class rather than three bugs: **a withdrawal is a decision with one home and
+# many readers, and the readers are not notified.**
+#
+# THE POPULATION IS SHIPPING ROWS ONLY, and the exclusion is not a convenience.
+# 14 flags are `retire` across 8 rows, but `organize`, `treeindex` and `st_zero`
+# are whole-command retirements -- their residue leaves with the row, so there is
+# no surviving reader to mislead. Exactly 3 retired flags sit on a row that still
+# ships (`todo done --flush`, `todo done --prune`, `doctor --fix`), and those 3
+# are the entire risk surface.
+#
+# THE DETECTOR IS THE FLAG'S OWN SPELLING, AS A WORD, AND THE OBVIOUS ALTERNATIVE
+# WAS BUILT FIRST AND REJECTED ON MEASUREMENT. Word-overlap between the flag help
+# and the entry help looks strictly better -- it catches a paraphrase -- and on
+# this corpus it reports `doctor (--fix -- still promised by: issues)` against the
+# CORRECTED help string, because `issues` is the SUBJECT the command and the flag
+# share by construction, not the capability. It also fired twice on `todo done`
+# for the word `done`, which is the command's own name. Both needed suppressing,
+# one by a path-word exclusion and one by a hand-list, and a refusal that needs a
+# growing exceptions list to stay quiet is the cry-wolf shape this toolchain keeps
+# refusing. **The spelling rule needs neither: 0 false positives on 107 shipping
+# rows, because a flag's spelling names its action and its help names its subject.**
+#
+# WHAT IT CANNOT SEE, stated here because a check's error message is where its
+# reader learns its scope and nothing verifies that message against its behaviour:
+# **a promise that does not use the flag's own word.** A `--force` retired from a
+# row whose help says `Overwrite existing files` passes this arm in silence. That
+# is a known hole and not a claim of coverage -- narrowing the detector until it
+# never lies was the trade, and the wider detector was measurably worse.
+#
+# MUTATION-PROVEN THREE WAYS, because its correct steady state is SILENCE:
+#   A (steady) live table -> silent.
+#   B (real)    jq '.families |= map(if .name=="doctor" then .entries |= map(
+#                 if .path=="doctor" then .help="Diagnose and fix common Intent
+#                 configuration issues" else . end) else . end)'
+#               -> REFUSES `doctor (--fix -- still promised by the word: fix)`.
+#               This is the historical defect, restored: the arm fires on the row
+#               it was built for, using that row's real prior value.
+#   C (scope)   same edit against `todo done`.help adding the word `flush`
+#               -> REFUSES `todo done (--flush ...)`. Without C, `it fired when I
+#               broke doctor` is equally consistent with an arm scoped to doctor.
+#   D (family)  jq '.families |= map(if .name=="doctor" then .help="Diagnose and
+#                 fix common Intent configuration issues" else . end)'
+#               -> REFUSES. This is the arm's own blind spot, restored: B and C
+#               both pass against the NARROW arm that reads entries only, so
+#               without D nothing distinguishes the two versions of this check.
+# THE ARM'S OWN BLAST RADIUS, FOUND ON ITS FIRST REAL RUN AND FIXED HERE RATHER
+# THAN NOTED. Built against `.families[].entries[]` + `.new_surface[]` -- the
+# population rule this file states everywhere -- it went silent on `doctor` the
+# moment the ENTRY help was reworded, and `families[].help` still said `Diagnose
+# and fix`. The string lives in TWO places and the arm was reading one.
+#
+# So the arm was itself an un-notified reader of the retirement it was built to
+# chase, which is the class stating itself one level up. **The population rule was
+# not wrong; it was answering `which rows are commands`, and this asks `which text
+# faces a user`, and those are different questions over the same file.**
+#
+# `families[].help` is NOT a duplicate and must not be collapsed: 11 of 27
+# families carry a help that differs from their root entry's, and in 10 of the 11
+# it is a deliberately richer sentence (`ac`, `at`, `todo`, `agents`, `claude`,
+# `critic`, `lang`, `llm`, `modules`, `ext`). `doctor` was the eleventh and the
+# only one where the difference was staleness. It is also NOT read by the binary
+# -- `pub struct Family` deserializes `name` and `entries` only -- so it is a view
+# field this generator consumes, and a stale promise there reaches the committed
+# `dispatch-table.md` rather than clap. Lower severity, same defect, same arm.
+#
+# The family help is attributed to the family ROOT entry (`path == family name`)
+# and to no other, because that is the row it describes. A retired flag on a leaf
+# verb does not oblige the family sentence.
+RETIRED_PROMISE="$(jq -r '
+  def words: ascii_downcase | [scan("[a-z]{3,}")];
+  def scan_row($e; $extra):
+    ([$e.help // ""] + [($e.args // [])[] | .help // ""] + [$extra]
+     | join(" ") | words) as $facing
+    | [ ($e.flags // [])[]
+        | select(.disposition == "retire")
+        | . as $f
+        | ([$f.spellings[] | words] | flatten | unique) as $named
+        | ($named | map(select(. as $w | $facing | any(. == $w)))) as $shared
+        | select(($shared | length) > 0)
+        | $e.path + " (" + $f.spellings[0] + " -- still promised by the word: "
+          + ($shared | join(", ")) + ")" ];
+  [ ( .families[] | . as $fam | $fam.entries[]
+      | select((.disposition // "") != "retire" and (.target.state // "") != "retire")
+      | scan_row(.; (if .path == $fam.name then ($fam.help // "") else "" end)) )
+  , ( .new_surface[]
+      | select((.disposition // "") != "retire" and (.target.state // "") != "retire")
+      | scan_row(.; "") )
+  ]
+  | flatten
+  | join("\n")' "$IN")"
+[ -z "$RETIRED_PROMISE" ] || die "rows still promise a capability whose flag is dispositioned \`retire\`. The user-facing text names the withdrawn flag's own word, so the row advertises something v3 does not ship -- reword the help, or reopen the flag's disposition. A retirement is one decision with many readers and nothing notifies them. Offending paths:
+$(printf '%s' "$RETIRED_PROMISE" | sed 's/^/  /')"
+
 [ -z "$NO_VERB_SLOT" ] || die "family roots declare no \`type: subcommand\` arg, so \`spine.rs\` defaults their verb slot to REQUIRED -- a default nobody chose, in the restrictive direction. Declare the slot with the arity the family actually wants (\`1\` if the bare command is illegal, \`0..1\` if it does something of its own). Offending paths:
 $(printf '%s' "$NO_VERB_SLOT" | sed 's/^/  /')"
 
