@@ -61,9 +61,17 @@ surface_declared() {
 
 # Every row that exists in the binary. 107. THIS IS THE DEFAULT POPULATION for
 # anything asking a question about what the tool does.
+# BOTH retire predicates, deliberately. `surface_check.sh` REFUSES a row where
+# `disposition` and `target.state` disagree on `retire`, so testing one today
+# gives the same 107 as testing both -- and that agreement is a property of
+# ANOTHER instrument's guard, not of this one. A library that is correct because
+# something else refuses is a library whose precondition is written down nowhere,
+# which is exactly the class measured in issue 0042 today. Test both here and the
+# dependency disappears.
 surface_shipped() {
   local t; t="$(_surface_table)" || return 1
-  jq -r '([.families[].entries[] | select(.disposition != "retire") | .path] + [.new_surface[]?.path])[]' "$t"
+  jq -r '([.families[].entries[] | select((.disposition != "retire") and (.target.state != "retire")) | .path]
+          + [.new_surface[]? | select((.disposition != "retire") and (.target.state != "retire")) | .path])[]' "$t"
 }
 
 # The rows that were removed. 5. Worth its own accessor because a retired
@@ -71,7 +79,11 @@ surface_shipped() {
 # is the population for "what happens when someone runs the old command".
 surface_retired() {
   local t; t="$(_surface_table)" || return 1
-  jq -r '[.families[].entries[] | select(.disposition == "retire") | .path][]' "$t"
+  # Both homes and both predicates, so that `shipped` + `retired` == `declared`
+  # by construction rather than by today's data. A row retired in `new_surface`
+  # would otherwise be counted by neither and the arithmetic would not close.
+  jq -r '([.families[].entries[], .new_surface[]?]
+          | .[] | select((.disposition == "retire") or (.target.state == "retire")) | .path)' "$t"
 }
 
 # Shipped minus the three that do not return. 104.

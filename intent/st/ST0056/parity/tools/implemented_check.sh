@@ -310,12 +310,19 @@ EOF
 [ "$PROBED" -gt 0 ]  || die "every shipped row was excluded -- nothing was probed"
 
 # --- the report ---------------------------------------------------------------
+# **`PROBED`, NOT `SHIPPED`, AND THE WORD IS THE FIX.** This line read `%d of %d
+# shipped rows` while the very next line reported `107 shipped of the table` -- one
+# word naming two numbers two lines apart, in a coverage instrument. The probed
+# population is shipped MINUS the 4 excluded by name MINUS the 5 family rows their
+# verbs answer, and a reader who carries 98 away as the surface size is carrying a
+# figure this tool never measured. Same class as the enumerator in issue 0037: a
+# label wider than the set under it.
 # **ZERO MATCHES IS A REFUSAL, NOT A CLEAN RUN.** Either the marker was reworded
 # and every row is now silently counted implemented, or the ladder is finished.
 # Both deserve a human; neither is something this script may decide.
 [ "$UNIMPL" -gt 0 ] || die "no row matched \`$MARKER\` -- either the message was reworded (and this sweep would report every row implemented) or the surface is now complete. Check which before trusting a green"
 
-printf 'implemented: %d of %d shipped rows answered; %d answered `%s`; %d never reached dispatch\n' \
+printf 'implemented: %d of %d probed rows answered; %d answered `%s`; %d never reached dispatch\n' \
   "$((PROBED - UNIMPL - UNREACHED))" "$PROBED" "$UNIMPL" "$MARKER" "$UNREACHED"
 printf '  population: %d shipped of the table, %d excluded by name (%s), %d family rows answered by their verbs\n' \
   "$SHIPPED" "$SKIPPED" "$(printf '%s' "$EXCLUDED" | tr '\n' ',' | sed 's/,/, /g; s/, $//')" "$BYVERB"
