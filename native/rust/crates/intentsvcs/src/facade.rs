@@ -84,6 +84,10 @@ pub struct Upgraded {
   pub carried: Vec<crate::finding::Finding>,
   /// Thread ids read from committed canon rather than converted from markdown.
   pub already_migrated: Vec<String>,
+  /// Sections dropped as template scaffolding, one record each, so a declared
+  /// drop can be reconciled against the estate's census rather than inferred
+  /// from a total that happens to be short.
+  pub dropped: Vec<crate::legacy::Dropped>,
 }
 
 /// Ensure the runtime store's directory is gitignored.
@@ -737,6 +741,7 @@ impl Facade {
       issues,
       carried,
       already_migrated,
+      dropped,
     } = plan;
 
     let files = writes.len();
@@ -766,6 +771,7 @@ impl Facade {
           files,
           carried,
           already_migrated,
+          dropped,
         })
       }
       Err(halted) => {

@@ -35,6 +35,31 @@ use crate::model::{
 use crate::project::Project;
 
 /// What Phase A found.
+/// The template a dropped section is claimed identical to, cited by PATH and
+/// REVISION and by the line of shell that substituted it (vc's condition 2,
+/// tightened once the substitution became part of the artefact).
+///
+/// **The path alone is a moving target**: the same estate migrated at two
+/// revisions would drop different sections with nothing saying why. A pinned
+/// citation makes the drop set re-derivable by someone who was not there.
+const WP_TEMPLATE_PATH: &str = "lib/templates/prj/st/WP/info.md";
+const WP_TEMPLATE_REV: &str = "0b1b3b5b";
+const WP_TEMPLATE_SUBST: &str = "bin/intent_wp:113";
+
+/// One section the migration dropped, and why.
+///
+/// **Thread id, heading, reason -- never a count.** The reason names the
+/// artefact and its revision, so the claim is checkable rather than asserted.
+#[derive(Debug, Clone)]
+pub struct Dropped {
+  /// The file as Intent names it, the same spelling every finding uses.
+  pub owner: String,
+  /// The `## ` heading, verbatim.
+  pub heading: String,
+  /// What makes it scaffolding, with the artefact cited.
+  pub reason: String,
+}
+
 #[derive(Debug, Default)]
 pub struct Scan {
   /// The model, as far as it could be built.
@@ -54,6 +79,20 @@ pub struct Scan {
   /// carry policy** and are reported so the count reconciles, never so that
   /// anyone acts on them.
   pub carried: Vec<Finding>,
+  /// Sections the migration DROPPED because no author wrote them.
+  ///
+  /// **Per section, never a count** (vc's condition 1): a count reconciles
+  /// arithmetically and tells nobody which section went, and **a drop with no
+  /// record is indistinguishable from a section that was never there.** This
+  /// is the third summary bucket beside modelled and carried, and it is what
+  /// lets a declared drop leave `LOST-PROSE` through the conservation check's
+  /// existing out-of-model arm while an undeclared one stays a finding.
+  ///
+  /// Not a `Finding`: a finding describes something a v2 AUTHOR left behind,
+  /// with a fix environment and a carry disposition. This describes something
+  /// the migration itself decided, and routing it through `record` would put a
+  /// remedy on a section nobody needs to act on.
+  pub dropped: Vec<Dropped>,
   /// Thread ids Phase A DECLINED TO RE-PARSE because committed canon already
   /// exists for them, sorted and deduplicated.
   ///
@@ -561,6 +600,45 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
     }
 
     let sections = sections(body);
+
+    // **The template's own words are not this author's.** A section byte-
+    // identical to the artefact that created the file is evidence that NOBODY
+    // WROTE IT, so carrying it is not the conservative option -- it files
+    // scaffolding as authored prose and the renderer emits it forever as
+    // though someone had written it, which FABRICATES AUTHORSHIP (vc's
+    // ruling, and the half I had backwards).
+    //
+    // **It was already shipping a visible defect: 40 of 140 migrated work-
+    // package views carried TWO `## Acceptance` sections** -- the carried one
+    // and the one `views::wp_info` generates -- saying the same thing in
+    // different words. 104 across the captured fleet, and every one of them is
+    // `Acceptance`; no other heading doubles anywhere (vc, by a different
+    // method on a different copy).
+    //
+    // **This is NOT a heading-name rule and must never become one.** `##
+    // Acceptance` is a legitimate authored section elsewhere in this estate,
+    // and the drop is keyed on the BYTES matching the substituted template,
+    // never on the name. Every error goes toward carrying: a file seeded from
+    // an older template generation fails the match and is carried, which is
+    // the safe outcome.
+    let template = wp_template_sections(seq);
+    let mut kept: Vec<(String, String)> = Vec::new();
+    for (heading, text) in &sections {
+      if heading == "Objective" {
+        continue;
+      }
+      match template.iter().any(|(k, v)| k == heading && v == text) {
+        true => out.dropped.push(Dropped {
+          owner: rel.clone(),
+          heading: heading.clone(),
+          reason: format!(
+            "byte-identical to `{WP_TEMPLATE_PATH}` at {WP_TEMPLATE_REV} with `WP-NN` substituted per `{WP_TEMPLATE_SUBST}`: no author wrote it"
+          ),
+        }),
+        false => kept.push((heading.clone(), text.clone())),
+      }
+    }
+
     wps.push(WorkPackage {
       seq,
       title: front
@@ -576,10 +654,9 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
       // D28: everything that is not the objective is the body, carried
       // verbatim, so a section the template never named survives -- **and in
       // the order it was written**, which is what `sections` returning a Vec
-      // rather than a map buys.
-      body: sections
+      // rather than a map buys. Minus the template's own scaffolding, above.
+      body: kept
         .iter()
-        .filter(|(k, _)| k.as_str() != "Objective")
         .map(|(k, v)| format!("## {k}\n\n{v}"))
         .collect::<Vec<_>>()
         .join("\n\n"),
@@ -854,6 +931,71 @@ fn title(body: &str) -> Option<String> {
 /// The `: ` that separates an id prefix from a title, when there is one.
 fn ididy_separator(heading: &str) -> Option<&'static str> {
   heading.contains(": ").then_some(": ")
+}
+
+/// v2's work-package template, embedded verbatim at
+/// `lib/templates/prj/st/WP/info.md`, revision `0b1b3b5b`.
+///
+/// **Embedded rather than read from the install, and that is vc's condition 3
+/// rather than a convenience.** The drop set has to be EXACTLY ONE template
+/// version or it becomes a function of which Intent happens to be on the
+/// machine -- the subject moving under the instrument, so the same estate
+/// migrated twice would lose different sections with nothing recording why.
+/// Pinned here, the drop set is re-derivable by someone who was not there.
+///
+/// **v2 is frozen, so this has no future revisions to track.**
+const WP_TEMPLATE_V2: &str = r#"---
+verblock: "[Date]:v0.1: [Author] - Initial version"
+wp_id: WP-NN
+title: "[Title]"
+scope: Small
+status: Not Started
+---
+
+# WP-NN: [Title]
+
+## Objective
+
+[Clear statement of what this work package aims to accomplish]
+
+## Deliverables
+
+- [List of concrete deliverables]
+
+## Acceptance
+
+Acceptance Criteria for this work package live in the steel thread's `acceptance.md`, under the `WP-NN` heading (single source of truth). Do not restate ACs here.
+
+## Dependencies
+
+- [List any dependencies on other WPs or external factors]
+"#;
+
+/// The template as it would have been WRITTEN for work package `seq`, parsed
+/// by the same reader the estate goes through.
+///
+/// **The substitution is the whole point and its absence was a real hole.**
+/// `bin/intent_wp:113` creates every work package with
+/// `sed -e "s/WP-NN/WP-$WP_NUM/g"`, so the artefact that produced these files
+/// is not the template -- it is the template with that substitution applied,
+/// which is citable to a line of shell rather than inferred from shape. A
+/// section carrying a placeholder can therefore never be byte-identical to the
+/// raw template, and `## Acceptance` is the one template section whose body
+/// carries one.
+///
+/// Measured against the raw template, `## Acceptance` matched **0 of 40** on
+/// this estate while `Deliverables` and `Dependencies` matched 20 each -- and
+/// the 40 it missed are exactly the 40 that were doubling in the rendered
+/// view. **Comparing against the raw template compares against a source no
+/// file was ever a copy of.**
+///
+/// Only `WP-NN` is applied. The template's other placeholders (`[Title]`,
+/// `[Date]`, `[Author]`) live in the frontmatter and the `# ` title line,
+/// which are outside every `## ` section.
+fn wp_template_sections(seq: u32) -> Vec<(String, String)> {
+  let filled = WP_TEMPLATE_V2.replace("WP-NN", &format!("WP-{seq:02}"));
+  let (_, body) = frontmatter(&filled);
+  sections(body)
 }
 
 /// `## Heading` sections with their verbatim bodies, **in the order the author

@@ -1154,6 +1154,17 @@ fn upgrade() -> Result<(), Failure> {
     }
   }
 
+  // **Per section, on stdout, beside `carried` -- never a count.** A total
+  // reconciles arithmetically and tells nobody which section went, and a drop
+  // the migration does not name cannot be told from a section that was never
+  // there. This is the third bucket: modelled, carried, dropped-as-scaffolding.
+  if !done.dropped.is_empty() {
+    println!("dropped (template scaffolding, nobody authored it):");
+    for d in &done.dropped {
+      println!("  {} -- ## {} -- {}", d.owner, d.heading, d.reason);
+    }
+  }
+
   eprintln!(
     "migrated: {} thread(s), {} issue(s), {} file(s) written",
     done.threads, done.issues, done.files

@@ -94,6 +94,10 @@ pub struct Plan {
   /// a silent skip is how an artefact disappears from a migration whose whole
   /// promise is that nothing does).
   pub already_migrated: Vec<String>,
+  /// Sections Phase A dropped as template scaffolding, passed through
+  /// untouched. **The third summary bucket beside modelled and carried**: a
+  /// drop with no record cannot be told from a section that was never there.
+  pub dropped: Vec<crate::legacy::Dropped>,
 }
 
 /// Why no plan exists.
@@ -241,6 +245,7 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
     residue,
     carried,
     already_migrated,
+    dropped,
   } = scan;
 
   if !residue.is_empty() {
@@ -249,6 +254,7 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
 
   let mut plan = assemble(project, ctx, threads, issues, carried)?;
   plan.already_migrated = already_migrated;
+  plan.dropped = dropped;
   Ok(plan)
 }
 
@@ -344,6 +350,9 @@ fn assemble(
     // parameter, because a fifth argument carrying a value this function
     // never reads would be a seam pretending to be a dependency.
     already_migrated: Vec::new(),
+    // Same reason as above: `assemble` never sees a scan, so it cannot know
+    // what Phase A dropped.
+    dropped: Vec::new(),
   })
 }
 
