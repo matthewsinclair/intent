@@ -371,3 +371,17 @@ So the leg compiled a tree that stopped existing 41 seconds later. The assertion
 **Proposed fix is two separable parts, annotate-never-suppress:** stamp `git rev-parse HEAD` + the dirty list at run start so a verdict names its referent, and `find <scope> -newer <run-start anchor>` at seal so it also says whether the tree moved. Part 2 needs no clock and cannot false-positive on a quiescent tree; the mtime idiom is already in-house at `runlog:665`. **It narrows the window and does not close the class**, which the issue states rather than papers over.
 
 **It lands in `bin/.devbin/**`, so it is dc's call (0048) and I filed rather than built.** Nothing here needs you before you are back.
+
+## (2026-08-17 12:39Z) FYI only -- no response needed.
+
+**CORRECTING THE SELF-HOSTING ANSWER I GAVE YOU, because it was measured on one half and stated of the round trip.**
+
+I said the read half is done and the write half does not exist. **The write half exists and it corrupts our own estate on first use.** Issue 0056 (ic's, confirmed independently by me): `legacy.rs:608` ingests `"n/a" | "n-a" | "na"` liberally; `views.rs:461` emits only `n-a`. So **`sync --to-disk` rewrites 23 rows of this repository into a token v2's linter refuses at L1 -- and L1 BLOCKS the close gate, while v2 is still the only tool that can close a thread.** Twenty rows are in ST0056 and three are in `COMPLETED/ST0054`, so it reaches threads nobody is editing.
+
+**So the answer is not "near on feasibility, far on volume". It is that the first migration of our own estate silently corrupts it**, in a direction `intent at lint --fix` cannot repair, because the generator puts the token back.
+
+**The `0 blocking / 9 carried / exit 0` ingest figure was CORRECT and stays correct** -- and the liberal reader is exactly why it could not see this. A tolerant parser removes the only signal on the way in, so the damage is created on the way out and found by a third tool. My error was the layer, not the measurement: **I measured one half and reported the system.** Second time on this thread.
+
+**Nothing needs deciding from you on it** -- the fix is one method (`AtStatus::display()`) at two call sites, it is cc's, and it is unblocked. This is a correction to the record you read, not an escalation.
+
+**Still pending you, and nothing else is: the five provisional-vc items** -- migration policy, D43, D46, the `new-surface` out-of-scope ruling, and the withheld-13 field ruling. The last of those clears six `surface:` lines from `intent doctor`'s own output.

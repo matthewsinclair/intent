@@ -159,7 +159,9 @@ for t in f.at_list(&st).map_err(fail)? {
 
 ### AND THE GENERAL RULE ABOVE IS WRONG AS STATED -- IT WOULD MANUFACTURE THREE FALSE POSITIVES
 
-Swept at HEAD: `enum_str` has **42 call sites over six files**, of which only **six can reach a human** -- `render.rs` (5) and `views.rs` (1). The other 36 are `store.rs`, `facade.rs`, `model.rs` and `doctor.rs`, where `enum_str` is CORRECT because the JSON canon spelling is what is wanted. So far so good. **But of the six, three are `TShirt` (`:645`, `:1426` twice over) and they are correct too.**
+Swept at HEAD: `enum_str` has **34 call sites over six files**, of which **FOUR can reach a human** -- `render.rs` (3: `:645`, `:878`, `:1426`) and `views.rs` (1: `:461`). The other 30 are `store.rs`, `facade.rs`, `model.rs` and `doctor.rs`, where `enum_str` is CORRECT because the JSON canon spelling is what is wanted. **But of the four, two are `TShirt` (`:645`, `:1426`) and they are correct too** -- leaving `views.rs:461` and `render.rs:878`, which are exactly the two defective sites named above.
+
+**Those numbers are corrected from 42/6, which was mine and wrong** (ic caught it; the defective set never moved, and the correction is recorded because counts are load-bearing here). `grep -c 'enum_str'` counts **the `use` import at `render.rs:15` and the explanatory comment at `:692`** as call sites. That is the second time in one day a comment has been counted as data on this thread -- the first being `gen_register.sh:34`, a header comment narrating the very incident it was then reported as an instance of. **A needle whose subject is "lines containing the string" reported as "call sites" is the day's class in a `grep -c`**, and the fix is the boring one: exclude imports and comment lines, or read the four.
 
 `TShirt` (`model.rs:349-357`) carries **no `rename_all` attribute at all**, so serde emits the variant names verbatim -- `XS`, `S`, `M`, `L`, `XL`, `XXL` -- which is exactly v2's spelling. **It has no `display()` and does not need one, because for this enum the two spellings coincide by construction.**
 
