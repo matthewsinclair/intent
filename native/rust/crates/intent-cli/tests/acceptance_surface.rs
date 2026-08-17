@@ -208,6 +208,45 @@ fn the_close_gate_still_names_what_it_is_waiting_on() {
   );
 }
 
+/// **The verdict goes where the detail lets it go** (vc ruled, 2026-08-17).
+///
+/// A tally is a phrase, so the verdict trails it and matches v2 byte for byte.
+/// A diagnosis is a sentence, and `... declare 'acceptance: exempt'. --
+/// BLOCKED` puts the verdict after a full stop -- which reads badly, and **a
+/// line that reads badly is one somebody later "improves"**, on 43 of Intent's
+/// own 56 threads. So the diagnosis case leads with the verdict instead.
+///
+/// **This is a property of the ARM, never a test on the string.** Sniffing for
+/// a trailing full stop would be a parser of our own output: right until the
+/// format moves, then silently wrong.
+#[test]
+fn ac_status_leads_with_the_verdict_when_the_detail_is_a_diagnosis() {
+  let dir = project();
+  seed(dir.path(), "ST0001", "", "");
+
+  assert_eq!(
+    stdout(&run(dir.path(), &["ac", "status", "ST0001"])),
+    "ac: BLOCKED -- the thread has zero acceptance criteria (empty contract). Define ACs, or declare 'acceptance: exempt'.",
+    "nothing trails the full stop"
+  );
+}
+
+/// **The tally case keeps v2's order, and this is the assertion that stops the
+/// placement rule being applied everywhere.** Without it, moving every verdict
+/// to the front reads as a tidy-up and breaks parity on the 13 threads of
+/// Intent's own estate that carry a contract.
+#[test]
+fn ac_status_keeps_v2s_order_when_the_detail_is_a_tally() {
+  let dir = project();
+  blocked(dir.path());
+
+  let printed = stdout(&run(dir.path(), &["ac", "status", "ST0001"]));
+  assert!(
+    printed.starts_with("ac: 1/3"),
+    "the count leads and the verdict trails, which is `bin/intent_acceptance:937`: {printed:?}"
+  );
+}
+
 // ---------------------------------------------------------------------------
 // `at lint` -- a check with an output
 // ---------------------------------------------------------------------------
@@ -279,31 +318,37 @@ fn a_thread_with_no_at_rows_says_zero_rather_than_looking_checked() {
   );
 }
 
+/// **One bad row out of TWO, deliberately.** With one finding over one row the
+/// two numbers are indistinguishable, so a line that printed the finding count
+/// in the denominator's place would read correctly and assert green.
+fn one_finding_over_two_rows(root: &Path) {
+  seed(
+    root,
+    "ST0001",
+    &criterion("AC-01.1"),
+    // L4 on the first row: a `covers` id naming no criterion in the contract.
+    &[at_row("AT-01.1", "AC-01.9"), at_row("AT-01.2", "AC-01.1")].join(", "),
+  );
+}
+
 /// The failing path carries the verdict too -- and its stderr stays EMPTY,
 /// because `Failure::Verdict` is the declared contract for this arm: the answer
 /// is on stdout where machines read it.
 #[test]
 fn at_lint_failing_prints_the_verdict_beside_the_findings() {
   let dir = project();
-  let root = dir.path();
-  // L4: a `covers` id naming no criterion in the contract.
-  seed(
-    root,
-    "ST0001",
-    &criterion("AC-01.1"),
-    &at_row("AT-01.1", "AC-01.9"),
-  );
+  one_finding_over_two_rows(dir.path());
 
-  let out = run(root, &["at", "lint", "ST0001"]);
+  let out = run(dir.path(), &["at", "lint", "ST0001"]);
   let printed = stdout(&out);
   assert!(
     printed.contains("AT-01.1 covers AC-01.9, which is not a criterion"),
     "the finding still names which rule fired: {printed:?}"
   );
   assert!(
-    printed.contains("lint: ST0001 FAILED -- 1 finding(s) over 1 AT row(s)"),
+    printed.contains("lint: ST0001 FAILED -- 1 finding(s) over 2 AT row(s)"),
     "and the verdict says how much was examined, so a reader can tell one bad \
-     row out of one from one out of a hundred: {printed:?}"
+     row out of two from one out of a hundred: {printed:?}"
   );
   assert_eq!(out.status.code(), Some(1));
   assert_eq!(
@@ -312,4 +357,27 @@ fn at_lint_failing_prints_the_verdict_beside_the_findings() {
     "`Failure::Verdict` is silent on stderr by construction -- the verdict is \
      already on stdout"
   );
+}
+
+/// **The gate's denominator was RESTORED, not added** (vc ruled, 2026-08-17).
+///
+/// v2 blocks with `N AT contract finding(s) over M row(s)`
+/// (`bin/intent_acceptance:1009`) and v3 had dropped the `over M`, so this is a
+/// regression against D17 rather than a deviation D17 has to license. **Three
+/// findings out of three rows and three out of a hundred and fourteen are
+/// different situations**, and the number was the only thing saying which.
+///
+/// The enumeration after the colon is v3's, and ruled: v2 sends the operator to
+/// its lint warnings instead.
+#[test]
+fn the_gate_says_how_many_rows_it_examined() {
+  let dir = project();
+  one_finding_over_two_rows(dir.path());
+
+  let out = run(dir.path(), &["ac", "gate", "ST0001"]);
+  assert_eq!(
+    stdout(&out),
+    "gate: ST0001 BLOCKED -- 1 acceptance test contract finding(s) over 2 row(s): AT-01.1 covers AC-01.9, which is not a criterion in this contract",
+  );
+  assert_eq!(out.status.code(), Some(1));
 }

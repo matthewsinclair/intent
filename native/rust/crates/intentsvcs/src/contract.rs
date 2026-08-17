@@ -199,13 +199,13 @@ impl References for AllResolve {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Verdict {
   Pass {
-    detail: String,
+    detail: Detail,
   },
   Exempt {
-    detail: String,
+    detail: Detail,
   },
   Blocked {
-    detail: String,
+    detail: Detail,
     /// The ids the gate is waiting on. **Held BESIDE the detail rather than
     /// inside it, because two surfaces want the same arithmetic and only one
     /// wants the enumeration** -- the gate names what blocks it (the operator
@@ -222,11 +222,44 @@ pub enum Verdict {
   },
 }
 
+/// What a verdict says beyond its word -- **and therefore where the word goes
+/// when the verdict is reported.**
+///
+/// The two are not a style choice. `ac status` puts the verdict LAST, which is
+/// v2's line and reads correctly after a count (`46/114 satisfied -- BLOCKED`)
+/// and badly after a sentence (`... declare 'acceptance: exempt'. -- BLOCKED`).
+/// **A line that reads badly is one somebody later "improves"**, and the
+/// improvement would land on 43 of Intent's own 56 threads.
+///
+/// **The distinction is a property of the ARM that produced it, never a test on
+/// the string.** Sniffing for a trailing full stop would be a parser of our own
+/// output, which is the same failure as recovering a summary by splitting the
+/// enumeration back off it: correct until the format moves, then silently
+/// wrong. vc ruled the placement; this is what makes the ruling structural.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Detail {
+  /// `N/M satisfied[, K descoped][, W withdrawn]` -- a phrase, so the verdict
+  /// can trail it.
+  Tally(String),
+  /// A sentence naming what is wrong and what to do about it. The verdict
+  /// leads, because nothing should follow a full stop.
+  Diagnosis(String),
+}
+
+impl Detail {
+  pub fn text(&self) -> &str {
+    match self {
+      Self::Tally(t) | Self::Diagnosis(t) => t,
+    }
+  }
+}
+
 impl Verdict {
-  /// A block with nothing to enumerate.
+  /// A block with nothing to enumerate. All four are diagnoses: they say what
+  /// is wrong rather than how far along it is.
   fn blocked(detail: impl Into<String>) -> Self {
     Self::Blocked {
-      detail: detail.into(),
+      detail: Detail::Diagnosis(detail.into()),
       unsatisfied: Vec::new(),
     }
   }
@@ -235,7 +268,11 @@ impl Verdict {
   /// <detail>`. Read by `st done` / `wp done` via the exit code, and by humans
   /// via the text; both carry over unchanged (D17).
   pub fn line(&self, scope_label: &str) -> String {
-    let mut line = format!("gate: {scope_label} {} -- {}", self.word(), self.detail());
+    let mut line = format!(
+      "gate: {scope_label} {} -- {}",
+      self.word(),
+      self.detail().text()
+    );
     if let Self::Blocked { unsatisfied, .. } = self
       && !unsatisfied.is_empty()
     {
@@ -263,8 +300,17 @@ impl Verdict {
   /// that says PASS where the close gate refuses is telling the operator they
   /// can close when they cannot**, which is the reading the two-walk split
   /// produced by accident rather than by design.
+  ///
+  /// **The verdict goes where the detail lets it go** (vc, 2026-08-17): after a
+  /// tally, which is v2's line; before a diagnosis, so nothing trails a full
+  /// stop. See [`Detail`] -- and note the arithmetic case is byte-identical to
+  /// v2 on every thread that carries a contract, which is what the placement
+  /// rule protects.
   pub fn status_line(&self) -> String {
-    format!("ac: {} -- {}", self.detail(), self.word())
+    match self.detail() {
+      Detail::Tally(t) => format!("ac: {t} -- {}", self.word()),
+      Detail::Diagnosis(d) => format!("ac: {} -- {d}", self.word()),
+    }
   }
 
   fn word(&self) -> &'static str {
@@ -275,7 +321,7 @@ impl Verdict {
     }
   }
 
-  fn detail(&self) -> &str {
+  fn detail(&self) -> &Detail {
     match self {
       Self::Pass { detail } | Self::Exempt { detail } | Self::Blocked { detail, .. } => detail,
     }
@@ -301,7 +347,7 @@ impl Verdict {
 pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   if thread.acceptance.is_some() {
     return Verdict::Exempt {
-      detail: "the thread declares 'acceptance: exempt'".to_string(),
+      detail: Detail::Diagnosis("the thread declares 'acceptance: exempt'".to_string()),
     };
   }
 
@@ -339,11 +385,20 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   // v2, the remedy text does not. v2 sends the operator to `at lint --fix`,
   // which in v3 has nothing to fix -- pointing at a command that cannot help
   // is a v2 defect, not a v3 design consequence.
+  //
+  // **`over N row(s)` is RESTORED, not added** (vc ruled, 2026-08-17). v2's line
+  // carries the denominator -- `$AT_LINT_FAILS AT contract finding(s) over
+  // $AT_LINT_ROWS row(s)` at `bin/intent_acceptance:1009` -- and v3 had dropped
+  // it, so this is a regression against D17 rather than a deviation D17 has to
+  // license. Three findings out of three rows and three out of a hundred and
+  // fourteen are different situations, and the number was the only thing saying
+  // which.
   let report = contract_report(thread, wanted.as_deref(), refs);
   if !report.findings.is_empty() {
     return Verdict::blocked(format!(
-      "{} acceptance test contract finding(s): {}",
+      "{} acceptance test contract finding(s) over {} row(s): {}",
       report.findings.len(),
+      report.rows,
       report.findings.join("; ")
     ));
   }
@@ -361,10 +416,10 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     // The WP-lenient rollup (ST0044): a WP with no ACs of its own rolls up to
     // the thread's contract. Announced, never inferred -- same rule as EXEMPT.
     return Verdict::Pass {
-      detail: format!(
+      detail: Detail::Diagnosis(format!(
         "no ACs in scope; rolls up to the {} contract ({thread_total} AC(s))",
         thread.id
-      ),
+      )),
     };
   }
 
@@ -392,14 +447,16 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     ));
   }
 
+  // The only two arms that report a COUNT rather than a diagnosis, and so the
+  // only two where `ac status` trails the verdict after the detail. See
+  // [`Detail`].
   let suffix = offscope_suffix(descoped, withdrawn);
+  let tally = Detail::Tally(format!("{satisfied}/{active} satisfied{suffix}"));
   if satisfied == active {
-    Verdict::Pass {
-      detail: format!("{satisfied}/{active} satisfied{suffix}"),
-    }
+    Verdict::Pass { detail: tally }
   } else {
     Verdict::Blocked {
-      detail: format!("{satisfied}/{active} satisfied{suffix}"),
+      detail: tally,
       unsatisfied: unsatisfied.iter().map(|id| (*id).to_string()).collect(),
     }
   }
