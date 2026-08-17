@@ -336,11 +336,33 @@ trim_file() {
 #   CONSERVED         bytes identical
 #   NORMALISED-PROSE  identical after trim -- reported, counted, NOT a finding
 #   ALTERED-PROSE     content differs -- a finding
+#
+# THE FIFTH ARGUMENT SPLITS *CONSERVED* INTO TWO POPULATIONS WITH THE SAME BYTES
+# AND DIFFERENT MEANINGS (cc, 2026-08-17). A section that survives into a
+# DECLARED field -- `Thread.objective`, `Thread.context` -- is modelled: the
+# system knows what it is. A section that survives into a CATCH-ALL --
+# `WorkPackage.body` (D28), and `Thread.body` when it lands -- is carried: the
+# bytes are safe and the system knows nothing about them beyond their heading.
+#
+# **Conservation cannot tell them apart and should not try; the summary must.**
+# Both are byte-equal and both are correct outcomes, so no finding is warranted
+# either way. But the day someone asks whether Intent knows what threads relate
+# to what, `## Related Steel Threads` will be sitting in a catch-all reading as
+# CONSERVED, and a single number would answer yes when the answer is no. cc is
+# about to move 55 threads from LOST to conserved by carrying the section
+# verbatim -- the right fix, because the alternative parses 126 authored rows of
+# which only 58% fit the declared `{id}: {note}` shape, and rendering them back
+# would rewrite 53 rows nobody wrote. **A count that hid that would make the
+# estate look more modelled than it is on the strength of a conservation win.**
+#
+# Same shape as the DOUBLED/STRANDED split above: one count, two populations,
+# opposite answers to a question the count was not being asked.
 compare_prose() {
-  local label="$1" raw="$2" trim="$3" file="$4" got
+  local label="$1" raw="$2" trim="$3" file="$4" dest="${5:-modelled}" got
   got="$(shasum -a 256 <"$file" | cut -d' ' -f1)"
   if [ "$got" = "$raw" ]; then
     c_ok=$((c_ok + 1))
+    [ "$dest" = carried ] && c_carried=$((c_carried + 1)) || c_modelled=$((c_modelled + 1))
     return
   fi
   trim_file "$file" "$WORK/trim"
@@ -348,6 +370,7 @@ compare_prose() {
   if [ "$got" = "$trim" ]; then
     echo "NORMALISED-PROSE $label (content identical; leading/trailing whitespace differs)"
     c_norm=$((c_norm + 1))
+    [ "$dest" = carried ] && c_carried=$((c_carried + 1)) || c_modelled=$((c_modelled + 1))
   else
     report ALTERED-PROSE "$label (estate $raw, canon $got)"
   fi
@@ -390,7 +413,7 @@ prose_kind_disposition() {
   esac
 }
 
-c_ok=0 c_lost=0 c_norm=0 c_seen=0 c_declared=0
+c_ok=0 c_lost=0 c_norm=0 c_seen=0 c_declared=0 c_modelled=0 c_carried=0
 declared_kinds=""
 while IFS=$'\t' read -r _ kind id section bytes sha trim; do
   c_seen=$((c_seen + 1))
@@ -429,11 +452,14 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
     [ -f "$j" ] || continue
     if [ "$section" = Objective ]; then
       jq -j ".wps[] | select(.seq == $seq) | .objective // \"\"" "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
+      dest=modelled
     else
       jq -j ".wps[] | select(.seq == $seq) | .body // \"\"" "$j" >"$WORK/body" 2>/dev/null || : >"$WORK/body"
       section_text "$WORK/body" "$section" >"$WORK/f"
+      # D28's catch-all. The bytes are safe; nothing knows what they mean.
+      dest=carried
     fi
-    compare_prose "wp $id '$section'" "$sha" "$trim" "$WORK/f"
+    compare_prose "wp $id '$section'" "$sha" "$trim" "$WORK/f" "$dest"
     continue
   fi
 
@@ -450,7 +476,9 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
       continue
     fi
     section_text "$body" "$section" >"$WORK/f"
-    compare_prose "issue $id '$section'" "$sha" "$trim" "$WORK/f"
+    # An authored markdown body beside the JSON: bytes preserved, structure not
+    # modelled, so it is carried for the same reason a WP's `body` is.
+    compare_prose "issue $id '$section'" "$sha" "$trim" "$WORK/f" carried
     continue
   fi
 
@@ -556,5 +584,10 @@ c_acct=$((c_ok + c_norm + c_lost + c_alt + c_declared))
   die "prose accounting does not reconcile: $c_seen census row(s) read, $c_acct dispositioned (ok $c_ok, normalised $c_norm, lost $c_lost, altered $c_alt, declared-uncompared $c_declared) -- the difference went somewhere this tool cannot name"
 echo "conservation: prose -- ALTERED $c_alt (the number that means loss), ADDED $c_added (the number that means accretion), conserved byte-identical $c_ok, whitespace-normalised $c_norm, without a destination $c_lost"
 echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census section(s); NOT compared $c_declared, declared:${declared_kinds:- none}"
+# The conserved population split by what the destination KNOWS. Not "did the
+# bytes survive" -- that is the line above -- but "does the model understand
+# them". A section in a declared field is modelled; a section in a catch-all is
+# carried, safe and opaque. Both are correct outcomes and neither is a finding.
+echo "conservation: prose -- of $((c_ok + c_norm)) conserved, MODELLED $c_modelled (reached a declared field), CARRIED $c_carried (reached a catch-all -- bytes safe, meaning unmodelled)"
 echo "conservation: $findings finding(s)"
 [ "$findings" -eq 0 ]
