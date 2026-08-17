@@ -1,0 +1,304 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Report which tree a run's verdict actually describes
+#
+# int measured           -- the current referent, and what each gate's most
+#                           recent run describes.
+# int measured <run>     -- one named run (its .out or .errors path).
+#
+# THE DEFECT THIS ANSWERS (issue 0049). A seal records WHICH TESTS FAILED.
+# Nothing anywhere records WHICH TREE they failed against. A run over a dirty
+# working tree and a run over a clean checkout produce artefacts IDENTICAL IN
+# FORM AND INCOMPARABLE IN MEANING, and nothing in the artefact carries the
+# difference. So `FAILED: rust` is readable only for as long as the tree holds
+# still, and a summary line outliving the tree state it describes is a confident
+# statement about nothing in particular.
+#
+# Measured 2026-08-17: the full suite went red on two legs; three sessions
+# established that neither was a regression, because both failure sites were in
+# files uncommitted in the shared tree. NOTHING MISBEHAVED. No gate was wrong, no
+# seal was wrong, no exit code was wrong -- every artefact was accurate about
+# what it measured, and no artefact could say what that was.
+#
+# THE HALF THAT COSTS MORE IS NOT THE RED ONE. That same run produced four GREEN
+# legs against the same dirty tree. A red gets investigated and self-corrects, at
+# the cost of three sessions' attention. A green certifying a tree nobody has is
+# believed, acted on, and never revisited, because nothing prompts a second look.
+# That asymmetry is why the current referent prints unconditionally here rather
+# than only when something has failed.
+#
+# WHY THIS LIVES IN THE PROJECT AND NOT IN DEVBIN -- hv's ruling, 2026-08-17, and
+# it dissolved a question the rest of us had been treating as a design problem.
+# INTENT KNOWS IT IS A GIT CHECKOUT. DEVBIN DOES NOT, AND MUST NOT HAVE TO. A
+# generic gate runner has no business knowing what a commit is. Measured:
+# `bin/.devbin/lib/` contains ZERO git invocations, and that property is what
+# lets the sealed-gate subsystem run anywhere. The dependency argument is true
+# and downstream of the layer argument. `cmd/` is project territory by the
+# manifest header's own words, so this adds no divergence to a vendored tree.
+#
+# IT NEVER TREATS A `LATEST_*` POINTER AS AUTHORITY. Those are re-pointed by
+# every run in the tree, so with several sessions working they are
+# last-writer-wins and can name a peer's run. The dated artefacts are always
+# exact, so the newest run per gate is derived from the FILENAMES and the file it
+# actually read is printed.
+#
+# THE RUN'S START TIME COMES FROM ITS FILENAME, NOT FROM ANY MTIME. `open_run_log`
+# names the pair `YYYYMMDD-HHMM[-SS[-N]]` at run start, then the `.out` is
+# appended to for the whole run -- so its mtime is the run's END, and the
+# `.errors` seal is rewritten at seal time, which is also the end. The name is
+# the only run-start fact either file carries.
+
+set -euo pipefail
+
+ROOT="${PROJECT_ROOT:?run me through bin/int}"
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?}/helpers"
+
+init_colors auto
+
+# Directories whose churn is not evidence about a gate. Named here and PRINTED
+# below, because a scope that is not stated is a scope nobody can disagree with.
+#
+# TWO LISTS, BECAUSE THE FIRST VERSION HAD ONE AND WAS WRONG BY A FACTOR OF
+# THREE THOUSAND. Pruning `$ROOT/target` matches nothing here: the cargo output
+# lives at `native/rust/target`, so build artefacts were never excluded and the
+# first run reported 164,142 files moved. That is the wrong-maximum shape --
+# an alarming number reads as a finding, and nobody re-checks an instrument that
+# has just found something big. The sanity control is below: a count near the
+# tree's total file count is a broken scope, not a busy afternoon.
+#
+# NAMES are pruned at any depth (build output nests); PATHS are exact, because
+# pruning every directory called `docs` or `cache` anywhere would silently
+# narrow the answer.
+PRUNE_NAMES=".git target node_modules .backup"
+PRUNE_PATHS="tmp intent/whiteboard intent/.cache"
+
+# ---------------------------------------------------------------------------
+# run_start_of <basename> -- the run's start as `YYYY-MM-DD HH:MM:SS`, or empty.
+#
+# Handles all three names the collision ladder can produce: the plain minute,
+# the second-qualified form, and the counter form.
+# ---------------------------------------------------------------------------
+run_start_of() {
+  local name="$1" d t s
+  case "$name" in
+    [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]*) ;;
+    *) return 0 ;;
+  esac
+  d="${name%%-*}"
+  t="${name#*-}"
+  t="${t%%.*}"
+  s="00"
+  case "$t" in
+    [0-9][0-9][0-9][0-9]-[0-9][0-9]*)
+      s="${t#*-}"
+      s="${s%%-*}"
+      t="${t%%-*}"
+      ;;
+  esac
+  printf '%s-%s-%s %s:%s:%s\n' \
+    "${d:0:4}" "${d:4:2}" "${d:6:2}" "${t:0:2}" "${t:2:2}" "$s"
+}
+
+# sort_key_of <basename> -- a comparable YYYYMMDDHHMMSS, for picking the newest.
+sort_key_of() {
+  local when
+  when="$(run_start_of "$1")"
+  [ -n "$when" ] || return 0
+  printf '%s\n' "$when" | tr -d '\-: '
+}
+
+# ---------------------------------------------------------------------------
+# seal_state <errors-file> -- GREEN | RED | IN-FLIGHT | ABSENT.
+#
+# FOUR STATES, NOT TWO. `open_run_log` SEEDS the seal with an in-flight marker,
+# so a non-empty seal covers two conditions that send a reader to different
+# places: a run that failed, and a run that never finished. And an ABSENT seal is
+# a third thing again -- it reads as "never run" to everything downstream.
+#
+# The marker text is matched as a PREFIX rather than compared whole, so a
+# reworded marker upstream degrades to reporting RED (loud) rather than to
+# reporting GREEN (silent). Failing toward the noisy answer is the whole point.
+# ---------------------------------------------------------------------------
+seal_state() {
+  local errors="$1"
+  [ -f "$errors" ] || { printf 'ABSENT\n'; return 0; }
+  [ -s "$errors" ] || { printf 'GREEN\n'; return 0; }
+  if head -1 "$errors" 2>/dev/null | grep -q '^run in flight'; then
+    printf 'IN-FLIGHT\n'
+  else
+    printf 'RED\n'
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# moved_since <when> -- source files modified after <when>, newest-relevant only.
+# ---------------------------------------------------------------------------
+prune_expr() {
+  local first=1 d out=()
+  for d in $PRUNE_NAMES; do
+    [ "$first" = 1 ] || out+=(-o)
+    out+=(-name "$d")
+    first=0
+  done
+  for d in $PRUNE_PATHS; do
+    [ "$first" = 1 ] || out+=(-o)
+    out+=(-path "$ROOT/$d")
+    first=0
+  done
+  printf '%s\n' "${out[@]}"
+}
+
+moved_since() {
+  local when="$1" expr=()
+  while IFS= read -r tok; do expr+=("$tok"); done < <(prune_expr)
+  find "$ROOT" \( "${expr[@]}" \) -prune -o -type f -newermt "$when" -print 2>/dev/null |
+    sed "s|^$ROOT/||"
+}
+
+# in_scope_total -- how many files the scope covers at all.
+#
+# THE CONTROL, and it is the same one as everywhere else in this estate: a count
+# is only meaningful beside the population it came from. "412 of 1,203 moved" is
+# a fact; "164,142 moved" is an instrument reporting its own breakage in the most
+# persuasive available direction.
+in_scope_total() {
+  local expr=()
+  while IFS= read -r tok; do expr+=("$tok"); done < <(prune_expr)
+  find "$ROOT" \( "${expr[@]}" \) -prune -o -type f -print 2>/dev/null | grep -c '^' || true
+}
+
+# ---------------------------------------------------------------------------
+# The current referent.
+# ---------------------------------------------------------------------------
+print_tree_now() {
+  local sha subject dirt n
+  printf '%sTREE NOW%s\n' "${bold:-}" "${reset:-}"
+  if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    printf '  %snot a git checkout -- nothing here can name a commit.%s\n\n' "${dim:-}" "${reset:-}"
+    return 0
+  fi
+  sha="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || printf '(none)')"
+  subject="$(git -C "$ROOT" log -1 --format=%s 2>/dev/null || printf '')"
+  printf '  commit   %s  %s%s%s\n' "$sha" "${dim:-}" "$subject" "${reset:-}"
+
+  dirt="$(git -C "$ROOT" status --porcelain 2>/dev/null || printf '')"
+  if [ -z "$dirt" ]; then
+    printf '  tree     %sclean -- a verdict taken now describes %s%s\n\n' "${green:-}" "$sha" "${reset:-}"
+    return 0
+  fi
+  n="$(printf '%s\n' "$dirt" | grep -c '^' || true)"
+  printf '  tree     %s%s file(s) dirty -- A VERDICT TAKEN NOW DESCRIBES NO COMMIT%s\n' \
+    "${red:-}" "$n" "${reset:-}"
+  # Read the index column positionally. `awk '{print $1}'` collapses the leading
+  # space, so a worktree-only ` M` reads as staged -- measured here, it inflated
+  # a count ninefold.
+  printf '%s\n' "$dirt" | while IFS= read -r line; do
+    printf '    %s%s %s%s\n' "${dim:-}" "${line:0:2}" "${line:3}" "${reset:-}"
+  done
+  printf '\n'
+}
+
+# ---------------------------------------------------------------------------
+# report_run <out-file>
+# ---------------------------------------------------------------------------
+report_run() {
+  local out="$1" base gate suffix errors when state moved n
+  base="$(basename "$out")"
+  gate="$(basename "$(dirname "$out")")"
+  suffix="${base#*.}"
+  suffix="${suffix%.out}"
+  errors="${out%.out}.errors"
+  when="$(run_start_of "$base")"
+  state="$(seal_state "$errors")"
+
+  local colour="${dim:-}"
+  case "$state" in
+    RED) colour="${red:-}" ;;
+    GREEN) colour="${green:-}" ;;
+    IN-FLIGHT) colour="${yellow:-}" ;;
+  esac
+
+  printf '  %s%s/%s%s\n' "${bold:-}" "$gate" "$suffix" "${reset:-}"
+  printf '    seal      %s%s%s  %s%s%s\n' "$colour" "$state" "${reset:-}" "${dim:-}" "$errors" "${reset:-}"
+  if [ -z "$when" ]; then
+    printf '    started   %s(unparseable name -- no start time, so no movement test)%s\n' "${dim:-}" "${reset:-}"
+    return 0
+  fi
+  printf '    started   %s\n' "$when"
+
+  moved="$(moved_since "$when" || true)"
+  if [ -z "$moved" ]; then
+    printf '    moved     %snone of %s in-scope file(s) has changed since it started%s\n' \
+      "${dim:-}" "$SCOPE_TOTAL" "${reset:-}"
+    return 0
+  fi
+  n="$(printf '%s\n' "$moved" | grep -c '^' || true)"
+  printf '    moved     %s%s of %s in-scope file(s) changed AFTER this run started%s\n' \
+    "${yellow:-}" "$n" "$SCOPE_TOTAL" "${reset:-}"
+  printf '%s\n' "$moved" | head -10 | while IFS= read -r f; do
+    printf '                %s%s%s\n' "${dim:-}" "$f" "${reset:-}"
+  done
+  [ "$n" -le 10 ] || printf '                %s... and %s more%s\n' "${dim:-}" "$((n - 10))" "${reset:-}"
+}
+
+# ---------------------------------------------------------------------------
+# newest_runs -- one `.out` per (gate dir, suffix), chosen by parsed START time.
+#
+# Derived from the dated names rather than from LATEST_*, which answers WHICH run
+# and never WHOSE, and is re-pointed by every run in the tree.
+# ---------------------------------------------------------------------------
+newest_runs() {
+  local out base key id
+  for out in "$ROOT"/tmp/*/*.out; do
+    [ -f "$out" ] || continue
+    base="$(basename "$out")"
+    key="$(sort_key_of "$base")"
+    [ -n "$key" ] || continue
+    id="$(basename "$(dirname "$out")")/${base#*.}"
+    printf '%s\t%s\t%s\n' "$id" "$key" "$out"
+  done | sort -t"$(printf '\t')" -k1,1 -k2,2r | awk -F'\t' '!seen[$1]++ { print $3 }'
+}
+
+# ---------------------------------------------------------------------------
+
+print_tree_now
+
+# Computed ONCE: it is a full tree walk, and every run below reports against the
+# same population, so recomputing it per run would be slower and would invite the
+# two numbers to disagree.
+SCOPE_TOTAL="$(in_scope_total)"
+
+printf '%sRUNS%s\n' "${bold:-}" "${reset:-}"
+
+if [ $# -gt 0 ]; then
+  target="$1"
+  case "$target" in
+    *.errors) target="${target%.errors}.out" ;;
+  esac
+  [ -f "$target" ] || die "no such run log: $target"
+  report_run "$target"
+else
+  found=0
+  while IFS= read -r out; do
+    [ -n "$out" ] || continue
+    found=1
+    report_run "$out"
+  done <<EOF
+$(newest_runs)
+EOF
+  if [ "$found" = 0 ]; then
+    printf '  %sno run logs under %s/tmp -- nothing has been gated here yet.%s\n' \
+      "${dim:-}" "$ROOT" "${reset:-}"
+  fi
+fi
+
+printf '\n%sSCOPE, stated rather than implied%s\n' "${bold:-}" "${reset:-}"
+printf '  in scope  %s%s file(s)%s\n' "${dim:-}" "$SCOPE_TOTAL" "${reset:-}"
+printf '  pruned    %sby name at any depth: %s%s\n' "${dim:-}" "$PRUNE_NAMES" "${reset:-}"
+printf '            %sby exact path:        %s%s\n' "${dim:-}" "$PRUNE_PATHS" "${reset:-}"
+printf '  %s"moved" IS A MOVEMENT TEST, NOT A WAS-IT-CLEAN-AT-START TEST.%s\n' "${yellow:-}" "${reset:-}"
+printf '  %sA run that BEGAN on a dirty tree and was never touched again reports no movement.%s\n' "${dim:-}" "${reset:-}"
+printf '  %sOnly a referent recorded AT run start could say otherwise, and nothing records one yet.%s\n' "${dim:-}" "${reset:-}"
+printf '\n'
