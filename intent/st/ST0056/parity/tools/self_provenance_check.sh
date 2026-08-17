@@ -191,35 +191,48 @@ fi
 # mutating shared state is a check nobody canaries. It is not a security control
 # and does not pretend to be one -- this arm REPORTS, so pointing it at a
 # friendly binary buys a liar nothing that simply not running it would not.
-BIN="${INTENT_SELF_PROV_BIN:-}"
-if [ -z "$BIN" ]; then
-  BIN="native/rust/target/release/intent"
-  [ -f "$BIN" ] || BIN="native/rust/target/debug/intent"
+# BOTH BINARIES, NOT JUST `intent`. A release ships two, and the one that was
+# measured FORTY-TWO hours older than the commit it was recorded under was
+# `intentd` -- so asking only `intent` would leave the motivating artefact
+# unexamined while the output still read as one verdict. cc's form, and it is
+# the store-scope lesson one layer up: A CHECK THAT COVERS PART OF A COMPOUND
+# ARTEFACT REPORTS ON THE ARTEFACT.
+SELF_PROV_BINS="${INTENT_SELF_PROV_BIN:-}"
+if [ -z "$SELF_PROV_BINS" ]; then
+  for b in intent intentd; do
+    if [ -f "native/rust/target/release/$b" ]; then
+      SELF_PROV_BINS="$SELF_PROV_BINS native/rust/target/release/$b"
+    elif [ -f "native/rust/target/debug/$b" ]; then
+      SELF_PROV_BINS="$SELF_PROV_BINS native/rust/target/debug/$b"
+    fi
+  done
 fi
 
-if [ ! -f "$BIN" ]; then
+if [ -z "$SELF_PROV_BINS" ]; then
   # DETERMINATE ABSENCE, STATED RATHER THAN SKIPPED -- the same rule as the
   # no-manifest case above. "Nothing is built here" and "the check did not run"
   # are different answers and only one of them is reassuring.
-  echo "self-provenance: no built intent binary in native/rust/target -- nothing to ask for its provenance."
+  echo "self-provenance: no built binaries in native/rust/target -- nothing to ask for its provenance."
 else
-  marker="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
-  embedded="${marker#\[intent-source-commit:}"
-  embedded="${embedded%\]}"
   head_sha="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  for BIN in $SELF_PROV_BINS; do
+    marker="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
+    embedded="${marker#\[intent-source-commit:}"
+    embedded="${embedded%\]}"
 
-  if [ -z "$marker" ]; then
-    echo "self-provenance: $BIN carries NO source-commit marker -- it cannot name the commit it was built from."
-    echo "    Rebuild it; this binary predates the embed."
-  elif [ "$embedded" = "unknown" ]; then
-    echo "self-provenance: $BIN says its source commit is UNKNOWN -- built where git could not answer."
-  elif [ "${embedded#dirty-}" != "$embedded" ]; then
-    echo "self-provenance: $BIN was built from an UNCOMMITTED tree ($embedded) -- its bytes match no commit."
-  elif [ "$embedded" = "$head_sha" ]; then
-    echo "self-provenance: $BIN names $embedded, which is the current commit."
-  else
-    echo "self-provenance: $BIN names $embedded; the checkout is at $head_sha -- the binary is from an earlier tree."
-  fi
+    if [ -z "$marker" ]; then
+      echo "self-provenance: $BIN carries NO source-commit marker -- it cannot name the commit it was built from."
+      echo "    Rebuild it; this binary predates the embed."
+    elif [ "$embedded" = "unknown" ]; then
+      echo "self-provenance: $BIN says its source commit is UNKNOWN -- built where git could not answer."
+    elif [ "${embedded#dirty-}" != "$embedded" ]; then
+      echo "self-provenance: $BIN was built from an UNCOMMITTED tree ($embedded) -- its bytes match no commit."
+    elif [ "$embedded" = "$head_sha" ]; then
+      echo "self-provenance: $BIN names $embedded, which is the current commit."
+    else
+      echo "self-provenance: $BIN names $embedded; the checkout is at $head_sha -- the binary is from an earlier tree."
+    fi
+  done
 fi
 
 exit $rc

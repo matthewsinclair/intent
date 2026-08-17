@@ -337,6 +337,90 @@ provenance_blockers() {
     printf 'the working tree is dirty, so target/release may hold bytes that match no commit\n'
 }
 
+# artefact_source_commit <mach-o> -- what the ARTEFACT says it was built from.
+#
+# THE ONE EXTRACTION SITE, because the marker's shape is a contract and a second
+# copy of a parser is how two readers come to disagree about one string. Embedded
+# by `build.rs` (AC-11.5) and read back out of the binary; `strings` and nothing
+# else, so this asks the bytes rather than any record shipped beside them.
+#
+# The marker is SELF-DELIMITING and that is load-bearing here rather than
+# cosmetic: rodata packs string literals with no separator, so an unterminated
+# marker runs into whatever the linker laid down next -- measured during this
+# row's canary as `intent-source-commit:<sha>unsafe`, with `unsafe` belonging to
+# an unrelated literal. The `[^]]*` stops at the bracket the artefact provides.
+#
+# Returns 1 and prints nothing when there is no marker, so "cannot say" is a
+# distinct answer from any value. A binary built before the embed landed has no
+# marker at all, and that is exactly the state this must not read as a pass.
+artefact_source_commit() {
+  local bin="$1" marker
+  marker="$(strings "$bin" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
+  [ -n "$marker" ] || return 1
+  marker="${marker#\[intent-source-commit:}"
+  printf '%s' "${marker%\]}"
+}
+
+# artefact_commit_blockers <stage-dir> <triple> <want-commit> -- reasons the
+# STAGED BYTES cannot be shown to have come from <want-commit>.
+#
+# THE GAP THIS CLOSES, AND IT IS STRUCTURAL RATHER THAN AN OVERSIGHT IN ANY ONE
+# CHECK. `stage` writes `commit: $(git rev-parse HEAD)`. `publish` refuses unless
+# `traceable: yes` and unless `prov_commit == tag_commit`. EVERY ONE OF THOSE IS
+# A CLAIM ABOUT THE CHECKOUT, and until this function existed nothing in the
+# pipeline compared the BINARIES to anything at all. So a clean checkout, at the
+# tag, with `target/release` holding bytes built forty-two hours earlier
+# satisfied every gate -- measured on this estate, `intent` three hours older
+# than the commit it was recorded under and `intentd` forty-two, and forty-two
+# hours apart from each other. Two trees wearing one sha (cc's phrase).
+#
+# It is the same shape as the round-trip check one level up: a set of controls
+# that all take their inputs from the same place cannot disagree, so their
+# agreement carries no information. THE QUESTION NONE OF THEM ASKED IS WHETHER
+# THESE ARE THE BYTES THE TAG NAMES, and only the artefact can answer it.
+#
+# COMPARED AGAINST THE TAG, NOT HEAD, for the reason publish already gives about
+# `prov_commit`: publishing is allowed to happen after the branch has moved on,
+# and what matters is correspondence to the thing being published rather than to
+# the thing being worked on. A stage-time comparison against HEAD would also be
+# a comparison between two things the checkout supplied, which is the class of
+# check AC-11.5 exists to reject.
+#
+# PURE AND PARAMETERISED SO IT CAN BE DRIVEN, following this file's own precedent
+# and for its stated reason: inline in `cmd_publish` this would be reachable only
+# through a full release -- stage, sign, and a multi-minute notarisation round
+# trip -- which is another way of saying its first exercise would have been a
+# release. The control that matters is the NEGATIVE one: staged binaries built
+# at the tag must return NOTHING, because a blocker function that fires on
+# everything reads exactly like a blocker function that works.
+#
+# `intentd` HAS NO `build.rs` YET, SO THIS REFUSES A PUBLISH TODAY. That is
+# deliberate and it is the fail-closed direction: the forty-two-hour artefact is
+# precisely the one that cannot answer for itself, and a check that passed it
+# while it stayed silent would be the vacuous green this row is about. It is a
+# stated blocker, not an oversight.
+artefact_commit_blockers() {
+  local dir="$1" triple="$2" want="$3" b bin embedded
+  for b in $BINARIES; do
+    bin="$dir/$b-$triple"
+    if [ ! -f "$bin" ]; then
+      printf '%s is not staged, so it cannot be asked what it was built from\n' "$b-$triple"
+      continue
+    fi
+    if ! embedded="$(artefact_source_commit "$bin")"; then
+      printf '%s carries NO source-commit marker -- its bytes name no commit at all, so nothing here can attach them to one\n' "$b-$triple"
+      continue
+    fi
+    if [ "$embedded" = "unknown" ]; then
+      printf '%s says its source commit is UNKNOWN -- built where git could not answer\n' "$b-$triple"
+    elif [ "${embedded#dirty-}" != "$embedded" ]; then
+      printf '%s was built from an UNCOMMITTED tree (%s) -- its bytes match no commit, so they match no tag\n' "$b-$triple" "$embedded"
+    elif [ "$embedded" != "$want" ]; then
+      printf '%s was built at %s, which is not %s -- these are bytes from an earlier tree\n' "$b-$triple" "$embedded" "$want"
+    fi
+  done
+}
+
 # --- subcommands -------------------------------------------------------------
 
 cmd_env() {
@@ -1082,6 +1166,38 @@ $(sed 's/^/       /' "$PROVENANCE_FILE")
     die "the staged artefacts were built at $prov_commit but $tag is $tag_commit.
        Publishing them would attach bytes to a tag they did not come from, and every
        hash in the pipeline would still agree with every other hash. Re-stage at $tag."
+
+  # THE PIPELINE'S ONLY CHECK WHOSE SUBJECT IS THE ARTEFACT, and that is the
+  # claim to hold rather than "a provenance field was added" (cc's sharpening,
+  # taken because it changes what the check is FOR). Everything above this line
+  # -- `traceable`, `prov_commit` against `tag_commit`, the round trip that
+  # re-downloads and re-hashes -- takes its input from the CHECKOUT or from the
+  # pipeline's own earlier output. None of them can disagree with the others, so
+  # their unanimity carries no information about the bytes.
+  #
+  # AND NO INDIVIDUAL CHECK ABOVE IS WRONG, which is why nobody noticed and why
+  # the remedy could never have been to check harder. Each is correct and each is
+  # necessary; the pipeline simply had one SUBJECT while appearing to have
+  # several. The number of controls says nothing -- the number of distinct
+  # subjects does.
+  local artefact_blockers
+  artefact_blockers="$(artefact_commit_blockers "$STAGE_DIR" "$(host_triple)" "$tag_commit")"
+  [ -z "$artefact_blockers" ] ||
+    die "the staged BYTES cannot be shown to have come from $tag ($tag_commit):
+$(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
+       This is read from each artefact's own embedded source commit, not from any
+       record written beside it, so it is the one check here a self-consistent
+       build from the wrong tree cannot satisfy. Rebuild at $tag and re-stage."
+
+  # THE POSITIVE CONTROL, PRINTED ON EVERY PASS. A blocker function that fired on
+  # nothing because it examined nothing reads exactly like one that passed, and
+  # this file already carries that lesson about `provenance_blockers`. Naming
+  # each binary and the commit it claims is what says the check ran.
+  local pb pbc
+  for pb in $BINARIES; do
+    pbc="$(artefact_source_commit "$STAGE_DIR/$pb-$(host_triple)")" || pbc="<none>"
+    printf '    %-34s names %s\n' "$pb" "$pbc"
+  done
 
   gh repo view "$TAP" >/dev/null 2>&1 ||
     die "cannot reach the tap $TAP -- check 'gh auth status'"

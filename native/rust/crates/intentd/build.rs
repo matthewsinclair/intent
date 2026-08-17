@@ -5,6 +5,13 @@
 //! provenance embed would drift silently. See that file for the reasoning: no
 //! build time (D42), no `rerun-if-changed` on `.git/HEAD`, `dirty-<sha>` when
 //! the tree is not clean, `unknown` when git cannot answer.
+//!
+//! `intentd` NEEDS THIS AS MUCH AS `intent-cli` AND ARGUABLY MORE: it is the
+//! binary that was measured FORTY-TWO hours older than the commit it was
+//! recorded under, and forty-two hours apart from its sibling. A check covering
+//! one binary of a two-binary release reports on the release, so half the embed
+//! would have left the pipeline's verdict reading as one verdict over an
+//! artefact that could not answer.
 
 include!("../../build-support/source_commit.rs");
 
