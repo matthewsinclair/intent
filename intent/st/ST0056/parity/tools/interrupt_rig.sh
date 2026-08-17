@@ -118,6 +118,38 @@ ROOT="$(cd "$HERE/../../../../.." && pwd)"
 die() { echo "interrupt-rig: $*" >&2; exit 2; }
 say() { echo "interrupt-rig: $*"; }
 
+# SHOW THE TAIL OF A LOG AND SAY SO WHEN IT IS A TAIL. $1 = file, $2 = lines.
+#
+# THIS EXISTS BECAUSE A BARE `tail -20` COST ME A FALSE FINDING AGAINST A PEER,
+# ON 2026-08-17, USING A RULE THAT WAS ALREADY ON MY OWN BOARD THAT MORNING.
+# The lamplight refusal listed 9 residue findings and its own summary said 10.
+# I read that as an off-by-one in the migrator's report and was one message away
+# from sending cc to investigate correct code. The tenth finding was
+# `ST0276/acceptance.md:81`, cut off the TOP by this tail. The migrator was
+# right, its count was right, and the display was lying by omission.
+#
+# **A REFUSAL IS THE WORST POSSIBLE THING TO TRUNCATE SILENTLY**, because its
+# entire purpose is to be a WORK LIST. An operator who acts on a silently
+# clipped list fixes what they were shown, re-runs, and is blocked again by a
+# finding they were never told about -- and the migration's own summary count is
+# the only clue, which is a clue nobody checks. cc's note is the sharpener: this
+# is the message an operator with a genuinely dirty estate actually reads, and
+# the dirtier the estate the more of it disappears.
+#
+# So the truncation is now VISIBLE rather than absent. The rig still shows a
+# tail -- the full log can be thousands of lines -- but it says how many lines
+# it did not show and where the whole thing is.
+show_tail() {
+  _st_file="$1"; _st_n="$2"
+  [ -f "$_st_file" ] || { echo "    (no output was captured at $_st_file)"; return 0; }
+  _st_total="$(wc -l <"$_st_file" | tr -d ' ')"
+  if [ "$_st_total" -gt "$_st_n" ]; then
+    echo "    [ $((_st_total - _st_n)) EARLIER LINE(S) NOT SHOWN of $_st_total -- full output: $_st_file ]"
+    echo "    [ if this is a refusal, the list above is INCOMPLETE: read the file, not this. ]"
+  fi
+  tail -"$_st_n" "$_st_file" | sed 's/^/    /'
+}
+
 MEMBER="canary"
 WORKDIR=""
 KEEP=0
@@ -517,7 +549,7 @@ A_DELTA=$((A_N - BASE_N))
 
 if [ "$A_STATUS" -ne 0 ]; then
   say "the clean run exited $A_STATUS -- last lines of its output:"
-  tail -20 "$WORKDIR/a.log" | sed 's/^/    /'
+  show_tail "$WORKDIR/a.log" 20
   # The unwired door is named specifically, because it is the failure this rig
   # will actually meet and "a clean run that fails" would send the reader into
   # the migrator instead of into the dispatch table.
@@ -767,7 +799,7 @@ B2_STATUS=$?
 
 if [ "$B2_STATUS" -ne 0 ]; then
   say "the re-run exited $B2_STATUS -- last lines of its output:"
-  tail -20 "$WORKDIR/b2.log" | sed 's/^/    /'
+  show_tail "$WORKDIR/b2.log" 20
   # NOT a refusal. A re-run that REFUSES to proceed over an interrupted estate is
   # a real finding about the property under test, not an inability to measure it.
   echo
