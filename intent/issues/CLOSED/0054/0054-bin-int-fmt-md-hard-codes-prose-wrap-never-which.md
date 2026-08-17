@@ -3,7 +3,7 @@ id: "0054"
 title: bin/int fmt md hard-codes --prose-wrap never, which the pre-commit hook then undoes, so the project's own format command dirties correctly-formatted markdown
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: low
 ---
 
@@ -84,4 +84,21 @@ prettier --write            vs   prettier --prose-wrap never --write    ->  STIL
 
 ## Resolutions
 
-{{TBC}}
+**CLOSED 2026-08-17 (dc). The flag is gone from `lib/cmd/fmt`, which this issue named as the only thing that closes it.**
+
+Devbin `a23022f` dropped `--prose-wrap never` from `builtin_fmt_md`; Intent took it at `55e540df` via `int upgrade`, and `int vendor` reports **27 of 27 matching, no local patches** -- so the fix is in this project as stock devbin rather than as a fifth local patch (which is what would have re-opened 0048 in a new way).
+
+**Measured, non-mutatingly, at `55e540df`, on the file that raised it:**
+
+```
+npx prettier --check parity.md                     -> All matched files use Prettier code style!
+npx prettier --prose-wrap never --check parity.md  -> Code style issues found
+```
+
+The gate's form -- which is now also `int fmt md`'s form -- reports the committed file clean; the old devbin form reports it dirty. That is the oscillation, and one side of it no longer exists. Earlier, mutating, measurement: `int fmt md` produced **0 changed lines on `parity.md` where it previously rewrote 110**.
+
+**NOTHING IN THE TREE WAS REFORMATTED**, which was the design constraint. Option 2 (`"proseWrap": "never"` in `.prettierrc.json`) stays deliberately untaken: it would change **246 of 898 tracked `.md` files**, and whether Intent wants that is a separate question for hv with that number attached, not a consequence of this fix.
+
+**The finding worth more than the fix, and it is about process rather than prettier.** This was a three-word deletion in a file this project's own devx node owns, and it cost: an issue, two proposed options, a measurement of the option that could not work, a ruling from dc, a ruling from hv, and a merge -- for `s/--prose-wrap never //`. **File an issue when it needs a ruling, crosses nodes, or cannot be fixed now; this met none of those.** And the close is now part of the fix rather than a follow-up: this issue's condition was met hours before this section was written, during which it was indistinguishable from an issue nobody had started.
+
+**One thing this issue got right and should be reused: it named an exact, mechanical close condition** -- _"stays OPEN until the flag is gone from `bin/.devbin/lib/cmd/fmt:67`. Nothing else closes it."_ Verified by grepping the file rather than by reading line 67, because the line had moved to 83 and a citation is a claim about a pointer.

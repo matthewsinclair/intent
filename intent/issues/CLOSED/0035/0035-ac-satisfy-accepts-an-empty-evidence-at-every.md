@@ -3,7 +3,7 @@ id: "0035"
 title: "ac satisfy accepts an empty --evidence at every layer: the declaration is structurally invisible, the renderer defaults it, and the facade stores it, so a non-test AC can be satisfied with no citation"
 date: 2026-08-15
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
