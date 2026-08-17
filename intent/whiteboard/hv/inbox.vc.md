@@ -385,3 +385,33 @@ I said the read half is done and the write half does not exist. **The write half
 **Nothing needs deciding from you on it** -- the fix is one method (`AtStatus::display()`) at two call sites, it is cc's, and it is unblocked. This is a correction to the record you read, not an escalation.
 
 **Still pending you, and nothing else is: the five provisional-vc items** -- migration policy, D43, D46, the `new-surface` out-of-scope ruling, and the withheld-13 field ruling. The last of those clears six `surface:` lines from `intent doctor`'s own output.
+
+## (2026-08-17 16:09Z)
+
+**Three decisions with no holder, and one of them is new since you left. Nothing here needs a reply to unblock me -- I am building. It needs a reply before the hoist lands.**
+
+**1. THE CONTRACT ROLE IS GENUINELY UNOWNED, AND IT IS A HOLE RATHER THAN A DEFERRAL.** You put me on the tools; I am on AC-10.5 and the split with cc meets your not-checking-my-own-homework condition structurally. But the contract work I was doing did not move to anyone. I offered it to ic and they declined correctly -- you had already put them on the migrator, and a peer cannot re-task them against that. So the five provisional-vc items (migration policy, D43, D46, the `new-surface` out-of-scope ruling, the withheld-13 field ruling) plus `ac gate`'s ratification have no holder while all four nodes build. They are enumerated with their homes in `intent/st/ST0056/deferred.md`. **The decision is not "who does the work" -- it is whether these wait for the hoist. I think they can. I want that said rather than assumed, because five provisional rulings quietly ageing into settled canon is how a contract stops meaning anything.**
+
+**2. NEW, FROM dc, AND IT BITES ON HOIST DAY IN THE DIRECTION NOBODY GUARDED.** Measured, not reasoned: a project declaring `intent_version: 3.0.0`, driven with **v2** on PATH.
+
+```
+intent upgrade   exit 1   "refusing downgrade: project is at v3.0.0, target is v2.19.0"
+intent st new    exit 0   and writes SEVEN files
+intent todo      exit 0   and writes
+intent doctor    exit 0   "doctor: intent v2.19.0" -- notices nothing
+git commit                LANDED through the shipped gate
+```
+
+**v2 knows the project is from the future -- it says so in those words -- and applies that knowledge at the one command that was already safe.** The asymmetry: v3-on-a-v2-project REFUSES, v2-on-a-v3-project WRITES. The guarded direction is the harmless one. And the unguarded direction is the state every session on this estate enters the moment the hoist lands: `which -a intent` returns three v2 entries and v3 is deliberately off PATH. In v3 the markdown is a generated view, so those writes are discarded at the next regeneration without anything reporting a loss.
+
+dc's framing, which I am passing on in their words rather than mine: **the migrator converts the PROJECT end and nothing converts the TOOL end** -- a two-ended migration done at one end. **AC-10.9's subject is "a project can still COMMIT with v3 installed", so the v2-installed case is OUTSIDE that row, not inside it** -- dc's sharpening of my first wording, and it is the better one. The row appears to answer "can a project still commit" and answers it for only one of the two binaries, which is exactly how a reader six weeks from now reads it as covered. The gap is a gap, not a wording quibble. **Neither dc nor I are proposing a criterion -- the moratorium is yours and it holds. Whether this needs a row, or is only a sequencing fact for the cutover, is your call.**
+
+**3. THE ONE POLICY QUESTION cc AND ic BOTH REFUSED TO EXTEND BY ANALOGY.** Your carry ruling covers a CLOSED **thread**: an unreadable row blocks in live work and carries in closed. Does it reach a CLOSED **issue** with an unreadable field? cc has told ic to BLOCK rather than carry as the conservative default and put it to you to widen. Both of them stopped at the boundary rather than reasoning across it, which I think is right and worth saying out loud.
+
+**Where I am, so this is not just a list of asks.** AC-10.5's corpus and denominator landed at `07b6e08a`. The canary is pinned at `42fb5269` -- chosen by a stated criterion, not by being newest: it is the last revision where `intent/issues/` populates BOTH arms (23 OPEN + 38 CLOSED). At HEAD the OPEN arm is empty, so a corpus captured there would ship the migrator's BLOCK path unexercised while every count reconciled against zero. dc found that.
+
+The split with cc had its first cross-check and it agrees: my census reads 56 threads / 140 WPs / 281 criteria / 228 tests / 1077 files, ic's independent Phase A read 56 / 140 / 283 / 230, and the +2/+2 is entirely two AC rows landed after the pin. Two parsers, two languages, two authors, agreeing exactly once the revision is held fixed.
+
+**Three conservation findings are with cc, all measured on that corpus.** The `body` catch-all that carries unnamed sections is on work packages and not on threads, so 178 thread sections and 106,678 bytes have no field to land in -- including `## Related Steel Threads` in 55 of 56 threads while `related` is hardcoded empty. Work-package section ORDER is lost in 140 of 140, because the reassembly is alphabetical. And ic's issue hole now has a size: 61 issues, 503 sections, 641,893 bytes, read by nothing.
+
+**FYI only unless you want to rule -- I am not blocked on any of the three.**

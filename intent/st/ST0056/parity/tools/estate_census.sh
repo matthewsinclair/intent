@@ -39,10 +39,33 @@
 # OUTPUT is TSV, one record per line, three record types, so a single pass feeds
 # all three checks:
 #
-#   FILE   <path>                                  every file in the estate
-#   ENTITY <kind> <id> <path>                      identity, not just count
-#   PROSE  <kind> <id> <section> <bytes> <sha256>  authored bytes, pinned
-#   COUNT  <kind> <n>                              the summary, last
+#   FILE   <path> <owner-kind> <owner-id> <v2-bucket>   every file, and whose it is
+#   ENTITY <kind> <id> <path>                           identity, not just count
+#   PROSE  <kind> <id> <section> <bytes> <sha256>       authored bytes, pinned
+#   COUNT  <kind> <n>                                   the summary, last
+#
+# WHY THE FILE RECORD CARRIES AN OWNER AND A BUCKET, WHICH IS THE WHOLE
+# DIFFERENCE BETWEEN THIS CHECK AND A VACUOUS ONE (ic, 2026-08-17, measured).
+# v2 RELOCATES a thread's directory on a status transition, so 55 of 56 threads
+# live at `intent/st/<BUCKET>/<ID>/` while v3's canonical path is `st/<ID>/`.
+# A migration writes fresh canon at the flat path and leaves every bucketed file
+# exactly where it was -- nothing is deleted, nothing is corrupted, and a
+# conservation check that asks "is every file the estate contained still
+# present" answers 100%. All of them are there, byte-identical.
+#
+# The loss is not of bytes, it is of REACHABILITY: the model points at
+# `st/ST0001/` and the authored prose is at `st/COMPLETED/ST0001/`. Two
+# consequences a bare path listing cannot see. The regenerated files DOUBLE --
+# two `info.md` per thread, one generated from the model and one v2 artefact
+# that nothing regenerates and everything still reads. And the authored prose
+# the model does not hold (`design.md`, `impl.md`, `tasks.md`, and the one-offs)
+# is markdown sitting in the repository at a path the model does not know about.
+#
+# So the FILE record binds every file to its owning entity and records the
+# bucket it was found in. That turns prose conservation into an equality between
+# the prose the estate CONTAINED and the prose REACHABLE FROM THE MIGRATED
+# MODEL, which is the claim AC-10.5 is actually making, rather than an equality
+# between two file listings, which is the claim that passes on this.
 #
 # ENTITY carries an id because a count is the weaker claim: two threads that
 # swap ids conserve the count perfectly. PROSE carries a sha rather than a
@@ -106,11 +129,45 @@ dump_sections() {
 # has done the right thing. Neither is checkable if the census quietly agrees
 # they do not count.
 # ---------------------------------------------------------------------------
-n_file=0
+#
+# The owner classifier is path-shaped because the v2 layout is: a thread's
+# status is expressed as a DIRECTORY, which is exactly the fact that makes
+# relocation necessary and makes it invisible to a listing.
+n_file=0 n_bucketed=0
 while IFS= read -r f; do
   printf 'FILE\t%s\n' "${f#./}" >>"$RECORDS"
   n_file=$((n_file + 1))
 done < <(find intent -type f | sort)
+
+awk -F'\t' -v OFS='\t' '
+  $1 != "FILE" { print; next }
+  {
+    n = split($2, p, "/")
+    kind = "-"; id = "-"; bucket = "-"
+    if (p[1] == "intent" && p[2] == "st") {
+      # `intent/st/<BUCKET>/<STID>/...` or the flat `intent/st/<STID>/...`
+      if (p[3] ~ /^ST[0-9][0-9][0-9][0-9]$/) { st = p[3]; i = 4 }
+      else if (p[4] ~ /^ST[0-9][0-9][0-9][0-9]$/) { st = p[4]; bucket = p[3]; i = 5 }
+      else { print; next }
+      if (p[i] == "WP" && p[i+1] ~ /^[0-9]+$/) { kind = "wp"; id = st "/" p[i+1] }
+      else { kind = "thread"; id = st }
+    } else if (p[1] == "intent" && p[2] == "issues" && p[4] ~ /^[0-9]+$/) {
+      # The id component must be NUMERIC. `intent/issues/CLOSED/.gitkeep` sits
+      # at the arm level and has no issue at all; a length test admits it and
+      # invents `CLOSED/.gitkeep` as an issue id -- an owner record naming a
+      # thing that does not exist, which is worse than no owner record.
+      kind = "issue"; id = p[3] "/" p[4]; bucket = p[3]
+    }
+    print $1, $2, kind, id, bucket
+  }
+' "$RECORDS" >"$RECORDS.owned" && mv "$RECORDS.owned" "$RECORDS" ||
+  die "classifying file ownership failed"
+
+# The number that makes ic's finding checkable rather than relayed: files that
+# belong to an entity AND sit under a v2 status bucket. Every one of them is at
+# a path the migrated model does not point at, and every one of them survives a
+# file-listing conservation check untouched.
+n_bucketed="$(awk -F'\t' '$1 == "FILE" && $3 != "-" && $5 != "-" && $5 != "OPEN" && $5 != "CLOSED"' "$RECORDS" | wc -l | tr -d ' ')"
 
 n_thread=0 n_wp=0 n_ac=0 n_at=0 n_issue=0 n_open=0 n_closed=0
 
@@ -213,3 +270,4 @@ printf 'COUNT\tissue\t%d\n' "$n_issue"
 printf 'COUNT\tissue_open\t%d\n' "$n_open"
 printf 'COUNT\tissue_closed\t%d\n' "$n_closed"
 printf 'COUNT\tsection\t%d\n' "$n_sec"
+printf 'COUNT\tbucketed_file\t%d\n' "$n_bucketed"
