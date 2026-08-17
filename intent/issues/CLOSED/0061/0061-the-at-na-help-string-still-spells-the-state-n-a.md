@@ -3,7 +3,7 @@ id: "0061"
 title: the at na help string still spells the state n-a, and the same row's target.no_op still records the pre-fix no-op -- the two fields of that row nobody corrected when the value moved
 date: 2026-08-17
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: low
 ---
 
