@@ -36,7 +36,7 @@ MACOS="${INTENT_MACOS_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/macos}"
 load_macos_fns() {
   local fns="${TEST_TEMP_DIR}/macosfns.sh"
   sed -n '/^BINARIES=/p;/^SUPPORT_ASSET=/p;/^SUPPORT_PATHS=/p' "$MACOS" >"$fns"
-  sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_tree_drift() {/,/^}/p' \
+  sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090
   . "$fns"
@@ -232,6 +232,123 @@ build_support_fixture() {
 
   run grep -F 'sha256 "$sha_support"' "$MACOS"
   assert_success
+}
+
+# --------------------------------------------------------------------
+# Provenance: the bytes must come from the tag they are published under
+# --------------------------------------------------------------------
+#
+# EVERY OTHER CHECK IN THIS PIPELINE ASKS WHETHER THE BYTES AGREE WITH EACH
+# OTHER. `publish` re-downloads what it uploaded and hashes THAT; `formula` reads
+# the sums file; `checksum` refuses an unclassified artefact. All of it is
+# internal consistency -- and a set of bytes built from a peer's uncommitted work
+# is perfectly self-consistent. Nothing was asking whether these are the bytes the
+# tag names.
+#
+# Two ways they might not be, both reachable today rather than theoretical.
+# `stage` COPIES out of native/rust/target/release instead of building, and that
+# directory is shared mutable state in a clone several sessions write to. And the
+# support tarball is archived with `tar -C "$ROOT"` from the WORKING TREE, so
+# uncommitted shell ships verbatim -- that one arrived with the support asset
+# itself and needs no peer and no stale cache to fire.
+
+# A checkout shaped like the part of the tree that ships, plus one file outside it.
+git_fixture() {
+  PROV_ROOT="${TEST_TEMP_DIR}/prov"
+  rm -rf "$PROV_ROOT"
+  mkdir -p "$PROV_ROOT/lib/templates/hooks" "$PROV_ROOT/src"
+  printf '#!/usr/bin/env bash\n' >"$PROV_ROOT/lib/templates/hooks/guard.sh"
+  printf 'fn main() {}\n' >"$PROV_ROOT/src/thing.rs"
+  git -C "$PROV_ROOT" init -q
+  git -C "$PROV_ROOT" config user.email t@t
+  git -C "$PROV_ROOT" config user.name t
+  git -C "$PROV_ROOT" add -A
+  git -C "$PROV_ROOT" commit -qm init
+}
+
+@test "BASELINE: a clean checkout has NO provenance blockers" {
+  # The negative control, and it is the one that makes every refusal below mean
+  # something. A blocker function that fires on everything reads exactly like a
+  # blocker function that works -- and it would refuse every release forever,
+  # which is the direction that gets a guard deleted rather than fixed.
+  load_macos_fns
+  git_fixture
+
+  run provenance_blockers "$PROV_ROOT"
+  assert_success
+  assert_output ""
+}
+
+@test "a dirty SUPPORT TREE is refused, and named, because it ships verbatim" {
+  # The certain one: these paths are archived out of the working tree, so dirt
+  # here is not a risk of shipping uncommitted bytes, it IS shipping them.
+  load_macos_fns
+  git_fixture
+  printf '# edited but never committed\n' >>"$PROV_ROOT/lib/templates/hooks/guard.sh"
+
+  run provenance_blockers "$PROV_ROOT"
+  assert_output_contains "archived VERBATIM"
+  assert_output_contains "guard.sh"
+}
+
+@test "a dirty tree OUTSIDE the support paths is still refused, for the weaker reason" {
+  # A source edit does not ship through the tarball, but it can be compiled into
+  # the binaries `stage` copies. Different evidence, different sentence -- one
+  # message for two causes is how a refusal gets skimmed.
+  load_macos_fns
+  git_fixture
+  printf 'fn extra() {}\n' >>"$PROV_ROOT/src/thing.rs"
+
+  run provenance_blockers "$PROV_ROOT"
+  assert_output_contains "may hold bytes that match no commit"
+  # It must NOT claim the support tree would ship, because it would not.
+  refute_output_contains "archived VERBATIM"
+}
+
+@test "a directory that is not a checkout at all is refused" {
+  load_macos_fns
+  mkdir -p "${TEST_TEMP_DIR}/notgit"
+
+  run provenance_blockers "${TEST_TEMP_DIR}/notgit"
+  assert_output_contains "not a git checkout"
+}
+
+@test "publish refuses on the provenance record, not merely on the tag existing" {
+  # `publish` already established that a tag EXISTS and then published bytes with
+  # no evidence they came from it. Three refusals, because the record can be
+  # absent, present-and-untraceable, or present-and-naming-another-commit, and
+  # they send the reader somewhere different each time.
+  run grep -cF 'no provenance record at $PROVENANCE_FILE' "$MACOS"
+  assert_success
+  assert_output "1"
+
+  run grep -cF '[ "$prov_traceable" = "yes" ] ||' "$MACOS"
+  assert_success
+  assert_output "1"
+
+  # Compared against the TAG's commit, never HEAD: publishing may legitimately
+  # happen after the branch has moved on.
+  run grep -cE 'tag_commit="\$\(git -C "\$ROOT" rev-list -n 1 "\$tag"' "$MACOS"
+  assert_success
+  assert_output "1"
+  run grep -cF '[ "$prov_commit" = "$tag_commit" ] ||' "$MACOS"
+  assert_success
+  assert_output "1"
+}
+
+@test "the provenance record lives OUTSIDE the staging directory" {
+  # Inside it, `unclassified_artefacts` would refuse it -- correctly, since it is
+  # not something that ships -- and `stage`'s own `rm -rf` would give it the same
+  # lifetime as the thing it describes.
+  run grep -cE '^PROVENANCE_FILE=.*/dist-provenance\.txt"$' "$MACOS"
+  assert_success
+  assert_output "1"
+
+  load_macos_fns
+  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin \
+    intent-support.tar.gz dist-provenance.txt
+  run unclassified_artefacts "aarch64-apple-darwin"
+  assert_output_contains "dist-provenance.txt"
 }
 
 @test "the formula's install block is agnostic about what the archive carries" {

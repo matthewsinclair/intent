@@ -158,6 +158,19 @@ BREW_TAP="matthewsinclair/intent"
 # control is still there underneath because catching it is free.
 STAGE_DIR="$ROOT/native/rust/target/dist"
 
+# WHAT COMMIT DID THESE BYTES COME FROM. Written by `stage`, read by `publish`.
+#
+# A SIBLING of STAGE_DIR rather than a file inside it, for two reasons that both
+# had to hold. `stage` opens with `rm -rf "$STAGE_DIR"`, so a record inside it
+# would be destroyed and rewritten by the very step whose inputs it describes --
+# harmless, but it makes the record's lifetime identical to the staging
+# directory's, which is exactly when you want to be able to compare them. And
+# `unclassified_artefacts` REFUSES any staged file that is not a proven binary or
+# the declared support asset, so a provenance file inside STAGE_DIR would be
+# rejected by the guard added beside it -- correctly, since it is not something
+# that ships.
+PROVENANCE_FILE="$ROOT/native/rust/target/dist-provenance.txt"
+
 # The triple comes from `rustc -vV`, never from `uname`: the artefact name is a
 # claim about what the compiler targeted, and only the compiler can answer that.
 host_triple() {
@@ -273,6 +286,55 @@ support_tree_drift() {
     <(cd "$ROOT" && find $SUPPORT_PATHS -type f ! -name '.DS_Store' | sort) \
     <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' | sort) |
     sed -e 's/^\t/       > /' -e 's/^\([^ \t]\)/       < \1/'
+}
+
+# provenance_blockers <root> -- the reasons this tree cannot produce a release
+# that names its own source, one per line. Empty output means it can.
+#
+# WHY THIS EXISTS, AND IT IS A HOLE IN THIS FILE THAT NOTHING WAS WATCHING.
+# `publish` already refuses a dev version, refuses to overwrite published bytes,
+# and refuses when the tag does not exist -- so it establishes that a tag IS
+# there, and then publishes bytes with no evidence they came from it. Two
+# independent ways they might not have:
+#
+#   1. `stage` COPIES the binaries out of `native/rust/target/release`. It does
+#      not build them. That directory is shared mutable state in a clone several
+#      sessions work in, so the bytes staged can be a peer's build of their own
+#      uncommitted work -- measured on this estate twice, once with a rebuild
+#      that silently compiled another node's in-flight edit.
+#   2. The support tarball is built with `tar -C "$ROOT"` straight from the
+#      WORKING TREE, so uncommitted shell ships verbatim. That one arrived with
+#      the support asset itself and is the sharper of the two, because it needs
+#      no peer and no stale cache -- an editor with unsaved-but-written changes
+#      is enough.
+#
+# The round-trip check in `publish` cannot see either. It re-downloads what it
+# uploaded and hashes THAT, which proves the pipeline is internally consistent
+# and says nothing about correspondence to the tag it publishes under. **Every
+# check here was asking "do these bytes agree with each other", and none was
+# asking "are these the bytes the tag names".**
+#
+# Pure and root-parameterised so it can be driven against fixture repositories.
+# The control that matters is the negative one -- a clean checkout must return
+# NOTHING -- because a blocker function that fires on everything reads exactly
+# like a blocker function that works.
+provenance_blockers() {
+  local root="$1" dirt
+  if ! git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
+    printf 'not a git checkout, so nothing staged here can name a commit\n'
+    return 0
+  fi
+  # Narrow first, because this one is certain: these paths are archived from the
+  # working tree, so dirt here is not a risk of shipping uncommitted bytes, it IS
+  # shipping them.
+  dirt="$(git -C "$root" status --porcelain -- $SUPPORT_PATHS 2>/dev/null)"
+  [ -z "$dirt" ] ||
+    printf 'the support tree is dirty and is archived VERBATIM from the working tree, so these WOULD ship:\n%s\n' "$dirt"
+  # Then the wide one, which is weaker evidence and still worth refusing on: a
+  # dirty tree anywhere means the release build may carry changes no commit has.
+  dirt="$(git -C "$root" status --porcelain 2>/dev/null)"
+  [ -z "$dirt" ] ||
+    printf 'the working tree is dirty, so target/release may hold bytes that match no commit\n'
 }
 
 # --- subcommands -------------------------------------------------------------
@@ -521,8 +583,35 @@ cmd_verify() {
 # about to replace, and keeping it would let a stale artefact survive a rebuild.
 cmd_stage() {
   require_binaries
-  local triple
+  local triple blockers head
   triple="$(host_triple)"
+
+  # RECORDED HERE, REFUSED AT `publish` -- this file's own rule turned on itself.
+  # The control goes where the HARM is. A staged tree that cannot name its commit
+  # harms nobody: it is how this pipeline gets exercised at all, and refusing here
+  # would make every step untestable without a pristine checkout, which is the
+  # kind of guard that gets worked around rather than kept. The same bytes in a
+  # tap install a build nobody can trace back to anything.
+  blockers="$(provenance_blockers "$ROOT")"
+  head="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+  {
+    printf 'commit: %s\n' "$head"
+    if [ -z "$blockers" ]; then
+      printf 'traceable: yes\n'
+    else
+      printf 'traceable: no\n'
+      printf '%s\n' "$blockers" | sed 's/^/  /'
+    fi
+  } >"$PROVENANCE_FILE" || die "could not record provenance at $PROVENANCE_FILE"
+
+  step "provenance"
+  printf '    %-34s %s\n' "commit" "$head"
+  if [ -z "$blockers" ]; then
+    printf '    %-34s %s\n' "traceable" "yes -- clean checkout"
+  else
+    printf '    %-34s %s\n' "traceable" "NO -- publish will refuse this"
+    printf '%s\n' "$blockers" | sed 's/^/      /'
+  fi
 
   step "staging $BINARIES for $triple"
   rm -rf "$STAGE_DIR"
@@ -959,6 +1048,40 @@ cmd_publish() {
 
   git -C "$ROOT" rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1 ||
     die "no tag $tag in this repository. The release cut owns tagging; this command only publishes artefacts for a cut that has already happened."
+
+  # THE BYTES MUST COME FROM THE TAG THEY ARE PUBLISHED UNDER, and until now
+  # nothing here asked. Every other check in this command asks whether these
+  # bytes agree with EACH OTHER -- the round trip re-downloads what it uploaded
+  # and hashes THAT, `formula` reads the sums file, `checksum` refuses an
+  # unclassified artefact. All of that is internal consistency, and a set of
+  # bytes built from a peer's uncommitted work is perfectly self-consistent.
+  #
+  # Two failures it closes, both reachable today. `stage` COPIES out of
+  # native/rust/target/release rather than building, and that directory is shared
+  # mutable state in a clone several sessions write to. And the support tarball is
+  # archived from the WORKING TREE, so uncommitted shell ships verbatim.
+  #
+  # Compared against the TAG's commit rather than HEAD: publishing is allowed to
+  # happen after the branch has moved on, and what matters is that the artefacts
+  # match the thing being published, not the thing being worked on.
+  local prov_commit prov_traceable tag_commit
+  [ -f "$PROVENANCE_FILE" ] ||
+    die "no provenance record at $PROVENANCE_FILE -- run 'int macos stage' (or 'prepare'), which writes it. Refusing to publish bytes whose source commit was never recorded."
+  prov_commit="$(sed -n 's/^commit: //p' "$PROVENANCE_FILE" | head -1)"
+  prov_traceable="$(sed -n 's/^traceable: //p' "$PROVENANCE_FILE" | head -1)"
+  [ "$prov_traceable" = "yes" ] ||
+    die "the staged artefacts cannot name their source commit. $PROVENANCE_FILE records:
+$(sed 's/^/       /' "$PROVENANCE_FILE")
+       Commit or stash the work, rebuild, and stage again. This is refused at
+       publish rather than at stage because a staged tree nobody ships is
+       harmless; these bytes would go into a tap."
+  tag_commit="$(git -C "$ROOT" rev-list -n 1 "$tag" 2>/dev/null)"
+  [ -n "$tag_commit" ] ||
+    die "could not resolve $tag to a commit, having just verified the tag exists -- refusing while the repository state is this confusing."
+  [ "$prov_commit" = "$tag_commit" ] ||
+    die "the staged artefacts were built at $prov_commit but $tag is $tag_commit.
+       Publishing them would attach bytes to a tag they did not come from, and every
+       hash in the pipeline would still agree with every other hash. Re-stage at $tag."
 
   gh repo view "$TAP" >/dev/null 2>&1 ||
     die "cannot reach the tap $TAP -- check 'gh auth status'"
