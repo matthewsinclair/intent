@@ -34,6 +34,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
+    Some(("upgrade", _)) => upgrade(),
     Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
     Some(("todo", m)) => todo(m),
@@ -1107,6 +1108,74 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
 /// job when it found things -- so writing findings to stderr would put the
 /// answer on the error channel. The nonzero exit is what a script reads, in
 /// the same shape `ac gate` uses.
+/// `intent upgrade` -- the migration door, and the only verb whose subject is
+/// the state every other verb refuses.
+///
+/// **It goes through [`context`] and NOT [`open`]**, for the reason `doctor`
+/// does: `open` loads canon through a gate that turns away an unmigrated
+/// project, and an unmigrated project is the only estate this verb exists for.
+/// Routing it through the usual door would make the remedy refuse the thing it
+/// is the remedy for -- and the binary already prints `run intent upgrade` when
+/// it refuses, so that spelling has to work.
+///
+/// **The exit codes are 0 and 1, and deliberately never 2.** [`Failure::Error`]
+/// is "the command ran and the answer is no", which is exactly what a blocked
+/// migration is; `Unavailable` (2) says this build cannot answer the question
+/// at all, and consumers written against v2 read it as fail-open. A refusal to
+/// convert an estate that would lose data is a verdict, not an absence, and
+/// reporting it as 2 would invite exactly the wrong response.
+///
+/// **Nothing is written when it refuses** -- structural, not careful: the
+/// facade plans into an uncommitted `WriteSet`.
+///
+/// The flags v2 carried here (`--backup-dir`, `--no-backup`) are NOT wired,
+/// because the table holds them at `disposition: pending` and pending does not
+/// ship. That is a live question -- v3 rolls back through git, so v2's backup
+/// flags may not apply at all -- and wiring them to satisfy the shape would
+/// answer it by accident, in a renderer, which is not where it gets answered.
+fn upgrade() -> Result<(), Failure> {
+  let (project, ctx) = context()?;
+  // The whole operation, including the refusal. `fail` renders the message,
+  // the cause chain and the remedy, and `MigrationBlocked` delegates its
+  // remedy to `Blocked` -- which knows whether the estate needs repairing
+  // under v2 or whether the migrator itself failed. Those are different
+  // actions for different people, so this arm must not flatten them into one
+  // hand-written sentence the way `ingest` does for its own single case.
+  let done = Facade::upgrade(&project, &ctx).map_err(fail)?;
+
+  // Carried findings get `ingest`'s treatment for `ingest`'s reason: the
+  // section header prints ONCE, and each line goes through `carried_line`
+  // rather than `Display`, which would lead with `residue:` and append a
+  // remedy telling the operator to fix a row the ruling says converts as it is.
+  if !done.carried.is_empty() {
+    println!("carried (converts as-is, no action):");
+    for finding in &done.carried {
+      println!("{}", finding.carried_line());
+    }
+  }
+
+  eprintln!(
+    "migrated: {} thread(s), {} issue(s), {} file(s) written",
+    done.threads, done.issues, done.files
+  );
+  // **Printed only when it happened, because on a first run it is noise and on
+  // a re-run it is the only thing the operator actually wants to know.** It
+  // says the previous run was interrupted and how far it got -- and it is a
+  // count of threads whose SOURCE differed, not of work skipped: they are in
+  // the plan like any other and re-emit byte-identical canon.
+  if !done.already_migrated.is_empty() {
+    eprintln!(
+      "already migrated: {} thread(s) read from committed canon rather than converted -- a previous run of this command was interrupted",
+      done.already_migrated.len()
+    );
+  }
+  eprintln!(
+    "ok: this project is now Intent v{} -- commit the canon and the generated views",
+    intentsvcs::faces::INTENT_VER
+  );
+  Ok(())
+}
+
 fn doctor() -> Result<(), Failure> {
   let (project, ctx) = context()?;
   // **Opened opportunistically, and a failure to open is not reported here.**
