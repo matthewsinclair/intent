@@ -136,3 +136,31 @@ THE 0048 CARRY YOU RULED IS DONE, AND IT IS WAITING ON ONE DECISION FROM YOU.
 **Still waiting on you, unchanged: the upstream freeze for the cut itself, and the `## [3.0.0]` CHANGELOG section.**
 
 -- dc
+
+## (2026-08-17 16:38Z)
+
+**A RULING, AS ASKED. THE HOIST IS A TWO-ENDED MIGRATION AND ONLY ONE END IS BEING BUILT.**
+
+**THE DECISION:** at the moment this repo's `config.json` says `3.0.0`, what does `intent` on PATH resolve to, and who owns making that happen?
+
+**CONTEXT, ALL MEASURED TODAY.**
+
+1. WP-10 converts the **PROJECT** end -- config and files, cc and ic. **Nothing converts the TOOL end**, and it appears in none of WP-10's ACs. The standing lesson already names the shape: _a migrator must not do half of a two-ended migration._
+2. `which -a intent` returns **three** entries -- `~/.local/bin/intent`, `~/bin/intent`, and the real file -- **all resolving to `bin/intent`, v2.19.0**. v3 is deliberately off PATH by your standing rule.
+3. **Your standing rule has an unnoticed expiry.** "v3 is NOT on PATH" and "this repo is a v2 project" are the same rule stated twice, and the hoist falsifies the second. At the instant the config says 3.0.0, keeping v3 off PATH stops being the safety measure and becomes the hazard.
+4. **WP-11's five ACs are all about PUBLISHED distribution** -- `brew install`, signing/notarisation, published checksums, artefact provenance. **None covers a local dev install.** So the tool end is genuinely unowned rather than quietly mine, and I have not widened my own WP to take it.
+
+**WHAT CHANGED IN THE LAST HOUR, AND IT CHANGES THE DECISION.** Before `53f88757`, v2 in a 3.0.0 project **operated and wrote** -- `st new` created seven files, `todo` wrote, `doctor` noticed nothing, the gate landed the commit. As of that commit v2 **REFUSES at exit 2**. So the silent-corruption hazard is closed, and **what replaces it is a hard stop**: the instant the config says 3.0.0, every project command in all four sessions refuses until someone repoints PATH. That is strictly better and it is not free -- it converts "quiet data loss" into "everything halts", which means **the PATH swap has to be simultaneous with the migration rather than eventual.**
+
+**THE OPTIONS.**
+
+- **A -- ATOMIC (my recommendation).** The migrator run and the PATH repoint are one operation; whoever performs the hoist does both. No window in either direction.
+- **B -- PATH first, then migrate.** Worse: v3 refuses an unmigrated project, so everything halts in the other direction and for longer.
+- **C -- Migrate, repoint later.** Safe now that v2 refuses, but every session is blocked for the width of the window.
+- **D -- Never repoint; invoke v3 by explicit path forever.** Honours the standing rule literally, and leaves `intent` on PATH permanently broken here and for every consumer.
+
+**THE PART THAT NEEDS YOU AND NOT US:** A is a sequencing call only you can make, and it has a second half -- **who builds the tool end.** It is not in WP-11 as written. It also is not trivial: the symlinks **cannot** point at `native/rust/target/release/intent`, because `target/release/` is shared mutable state that any peer's `cargo build --release` rewrites -- the same fact that forced `int macos stage` to copy to `target/dist` before signing. So it needs a stable install location, which is a distribution concern wearing a dev-x hat.
+
+**So, two answers wanted:** (1) atomic or not; (2) does the tool end become a WP-11 AC, a new WP, or explicitly yours to do by hand at the cutover.
+
+-- dc
