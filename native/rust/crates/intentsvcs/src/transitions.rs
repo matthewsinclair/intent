@@ -208,6 +208,12 @@ pub enum Disposition {
   /// An `Unbuilt` field must declare NO edges, so the day a mutation lands the
   /// disposition is contradicted and the test says so.
   ///
+  /// **"Carries no edges" is the WEAKER question, and `entry` is the other
+  /// half.** Edges are the exits, not the entrances: a field with no exits is
+  /// harmless only if nothing can put a value into it. So the variant carries
+  /// how a value gets IN, and that half is measured by driving canon rather
+  /// than asserted here.
+  ///
   /// **It carried an `owed_by: "WP-06"` beside the note until D37, and dropping
   /// it is not cosmetic.** `intentsvcs` is a library another project can depend
   /// on, so a field whose job is to name which of OUR work packages will build
@@ -215,7 +221,29 @@ pub enum Disposition {
   /// stranger's terminal -- which is the exact structural leak AC-00.9 was
   /// written from. Which work package owes this belongs in the contract that
   /// tracks it; what a reader needs is `note`, which says what is unavailable.
-  Unbuilt { note: &'static str },
+  Unbuilt { note: &'static str, entry: Entry },
+}
+
+/// How a value reaches a field no service verb writes.
+///
+/// **The distinction exists because the two cases want opposite conclusions.**
+/// A field nothing can enter is genuinely absent, and the absence is the whole
+/// story. A field authored canon CAN enter, with no verb to move it, is an
+/// entity sitting in a value nothing can change -- which is a trap wearing an
+/// absence's label, and the mutation is owed rather than the debt merely
+/// declared.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Entry {
+  /// Nothing outside the service layer can put a value here either, so there
+  /// is no entity holding an unleaveable value and nothing is owed.
+  Inert,
+  /// **Authored canon puts a value here and no verb can move it.** Measured by
+  /// driving ingest, never assumed: `mutation_completeness.rs` writes canon
+  /// carrying a non-initial value, reads it back through the facade, and
+  /// requires the measurement and this declaration to agree in BOTH
+  /// directions. A row claiming `Inert` that canon can populate fails, and so
+  /// does one claiming `Authored` after the entry path closes.
+  Authored,
 }
 
 /// One closed-domain field of one entity. `entity` is the JSON Schema
@@ -283,6 +311,11 @@ pub const FIELDS: &[Field] = &[
     field: "acceptance",
     disposition: Disposition::Unbuilt {
       note: "the close-gate exemption. v2 has NO verb for it either -- `bin/intent_acceptance:987` instructs the user to \"add 'acceptance: exempt' to its frontmatter\", ie the tool's own error message prescribes hand-editing the file the tool owns, which is hv's ruled defect in v2's voice. Three threads in this estate use it. The verb spelling is ic's lane, so it is named as owed rather than invented here",
+      // `st_new` hardcodes `None`, so `exempt` is a value only canon supplies
+      // -- and the entity IS service-creatable, which makes this the AC's
+      // literal case: a thread created in one value, moved to another by
+      // authoring, with nothing to move it back.
+      entry: Entry::Authored,
     },
   },
   Field {
@@ -347,6 +380,10 @@ pub const FIELDS: &[Field] = &[
     field: "kind",
     disposition: Disposition::Unbuilt {
       note: "test-backed against non-test. Converting one to the other when its test gets written is ordinary workflow and currently needs a hand-edit",
+      // The note already names the hand-edit, which IS the trap: `legacy.rs`
+      // decides the kind on the way in, so every criterion in the estate holds
+      // a value authored canon chose and no verb can revise.
+      entry: Entry::Authored,
     },
   },
   Field {
@@ -424,6 +461,7 @@ pub const FIELDS: &[Field] = &[
     field: "kind",
     disposition: Disposition::Unbuilt {
       note: "test against non-test, the AT-side mirror of `Criterion.kind` and owed for the same reason",
+      entry: Entry::Authored,
     },
   },
   Field {
@@ -450,7 +488,8 @@ pub const FIELDS: &[Field] = &[
     entity: "Issue",
     field: "status",
     disposition: Disposition::Unbuilt {
-      note: "the whole `issues` family is unported, so there is no verb to open or close one. Both values are reachable only by authoring canon directly",
+      note: "the read verbs ship; `add`, `close` and `open` do not, so there is no verb to open or close one. Both values are reachable only by authoring canon directly, and v2 HAD `issues close` -- this one is a regression rather than a gap never filled",
+      entry: Entry::Authored,
     },
   },
 ];
@@ -517,6 +556,22 @@ pub fn guard_for(entity: &str, field: &str, verb: &'static str) -> &'static [Gua
     .unwrap_or(&[])
 }
 
+/// Values with no way out, whatever put them there.
+///
+/// **The two conditions of the mutation-completeness rule differ only in what
+/// counts as ENTRY, so they share this one exit computation.** [`traps`] asks
+/// the narrower question -- entered by the declared graph -- and this asks it of
+/// every value in the domain, because authored canon can carry any value the
+/// schema accepts. Splitting entry from exit is what makes the two answerable
+/// with one definition of "no way out" instead of two that could drift.
+pub fn exitless(values: &[String], edges: &[Edge]) -> Vec<String> {
+  values
+    .iter()
+    .filter(|v| !edges.iter().any(|e| e.exits(v)))
+    .cloned()
+    .collect()
+}
+
 /// Values that can be ENTERED and not LEFT: hv's ruling, as a computation.
 ///
 /// A value is reachable if an entity can be created in it or ANY edge lands on
@@ -525,11 +580,9 @@ pub fn guard_for(entity: &str, field: &str, verb: &'static str) -> &'static [Gua
 /// side effect of some other verb genuinely produces a value, and genuinely is
 /// not a way out of one.
 pub fn traps(values: &[String], initial: &[&str], edges: &[Edge]) -> Vec<String> {
-  values
-    .iter()
+  exitless(values, edges)
+    .into_iter()
     .filter(|v| reachable(v, initial, edges))
-    .filter(|v| !edges.iter().any(|e| e.exits(v)))
-    .cloned()
     .collect()
 }
 

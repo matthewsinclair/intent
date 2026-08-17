@@ -75,10 +75,15 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     "hooks/pre-commit.sh",
     "info",
     Policy::Invokes(
-      "**A STDOUT CONTRACT, AND NO EXIT-CODE CONTRACT AT ALL.** It parses `INTENT_HOME:` out of stdout with \
-       `sed` and builds the whiteboard guards' paths from the result. Issue 0042: with the value empty both \
-       guards silently stopped enforcing, at ANY exit code -- so no choice of constant could have fixed it. \
-       The status IS captured now (`wb_info_rc`) and printed, though nothing branches on it.",
+      "**IT PARSES DISPLAY TEXT, WHICH IS WHY THIS ROW EXISTS.** It `sed`s `INTENT_HOME:` out of stdout and \
+       builds the whiteboard guards' paths from the result. Issue 0042: with the value empty both guards \
+       silently stopped enforcing, at ANY exit code -- so no choice of constant could have fixed it. \
+       **What `intent info` owes it, and the only thing this side may assert: the `INTENT_HOME:` line is \
+       printed even when the command FAILS, and the exit code is non-zero exactly when the install did not \
+       resolve.** Stated as our guarantee rather than as a description of the hook's branching, because the \
+       earlier wording described that branching and dc's own correct fix falsified the sentence within a day \
+       -- and nothing here was watching it. A row describing a consumer's internals is a claim this file \
+       cannot check; a row describing what we PROMISE is one `info_exit_code.rs` already does.",
     ),
   ),
   (

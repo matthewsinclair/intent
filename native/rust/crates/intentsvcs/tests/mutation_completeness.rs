@@ -25,12 +25,15 @@
 
 mod common;
 
-use common::{Fixture, sample_thread};
+use common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError};
 use intentsvcs::model::{
-  AcKind, AcState, AtStatus, Criterion, Thread, ThreadStatus, WpStatus, enum_str,
+  AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, IssueStatus, Thread, ThreadStatus,
+  WpStatus, enum_str,
 };
-use intentsvcs::transitions::{ABSENT, Disposition, Edge, FIELDS, Guard, find, traps, unreachable};
+use intentsvcs::transitions::{
+  ABSENT, Disposition, Edge, Entry, FIELDS, Guard, exitless, find, traps, unreachable,
+};
 use serde_json::Value;
 
 // ---------------------------------------------------------------------------
@@ -400,14 +403,19 @@ fn unreachable_states_are_exactly_the_declared_orphans() {
 /// in a state no service call can leave, and the disposition is a label on a
 /// defect rather than a description of one.
 ///
-/// The reading held here is the SERVICE-PATH one, stated because the
-/// alternative was considered and discriminates nothing: strict ingest accepts
-/// any schema-valid canon, so under "reachable by any path including ingest"
-/// every value of every closed-domain field is enterable, every `Unbuilt` row
-/// fails, and the test fires on everything. A test that fires on everything is
-/// not a test. D32 is a statement about what SERVICES expose, so that is what
-/// this measures -- and the residue (a value that can only arrive by authoring
-/// canon by hand) is real, named in each row's note, and owed to WP-06.
+/// **This measures the SERVICE-PATH half only, and the argument that once
+/// stood here for stopping at that half was wrong.** It ran: strict ingest
+/// accepts any schema-valid canon, so under "enterable by any path" every value
+/// of every closed-domain field is enterable, every row fails, and a test that
+/// fires on everything is not a test.
+///
+/// The flaw is that enterability was never the failure -- entry WITHOUT AN EXIT
+/// is, and the two are separate questions. Every value of every `State` field
+/// has an exiting edge, so the wider reading fires on none of them; the
+/// `Unbuilt` rows have no edges at all, so it fires on exactly those. It
+/// discriminates cleanly, and `the_wider_reading_fires_on_unbuilt_rows_only`
+/// holds that as a measurement rather than leaving it as the counter-argument
+/// to this one. The pair below is the second condition; this is the first.
 ///
 /// It measures by DRIVING the creation verbs rather than by reading them. That
 /// is how `WorkPackage.scope` was caught: `wp_new` takes the size from the
@@ -444,6 +452,174 @@ fn an_unbuilt_field_is_one_no_service_call_can_set() {
   }
 }
 
+/// **AC-04.6's second condition: an `Unbuilt` field's ENTRY path is measured by
+/// driving canon, and the table has to agree with the measurement.**
+///
+/// The measurement is one shape for every row: author canon carrying a value no
+/// service call could have put there, read it back through the facade, and see
+/// whether it is held as authored. If ingest normalised it away the field is
+/// genuinely `Inert`; if it survives, an entity is holding a value with no verb
+/// to move it.
+///
+/// **What this test does NOT do is discharge the criterion, and the distinction
+/// matters because getting it wrong is how a red row goes quietly green.** All
+/// four rows measure `Authored`, so all four are mutations owed; asserting the
+/// declaration matches the measurement makes the debt visible and guards
+/// against a fifth arriving unnoticed. It does not make an unleaveable value
+/// leaveable. The criterion stays red until the verbs exist, and each of the
+/// four needs a ratified machine first -- which is the same block `issues
+/// add|close|open` already stands behind, one row wider.
+#[test]
+fn an_unbuilt_fields_entry_path_is_measured_not_declared() {
+  for field in FIELDS {
+    let Disposition::Unbuilt { entry, .. } = &field.disposition else {
+      continue;
+    };
+    let measured = match (field.entity, field.field) {
+      // `st_new` hardcodes `acceptance: None`, so `exempt` is a value only
+      // canon supplies.
+      ("Thread", "acceptance") => {
+        let fx = Fixture::new();
+        let mut thread = sample_thread("ST0001");
+        thread.acceptance = Some(AcceptanceMode::Exempt);
+        fx.write_thread(&thread);
+        fx.facade()
+          .st_show("ST0001")
+          .expect("thread")
+          .acceptance
+          .is_some()
+      }
+      // **Two distinct authored values surviving distinctly**, which is the
+      // form that also catches an ingest path NORMALISING the field: one value
+      // read back correctly proves nothing a hardcoded default would not.
+      //
+      // **`kind` cannot be authored alone, and that is the sharpest thing this
+      // arm found.** Flipping it on a `computed` criterion is schema-INVALID:
+      // the pairing is enforced, so `Test` implies `computed` and `NonTest`
+      // implies one of the four recorded states. The verb owed here therefore
+      // has to move `kind` AND `state` in one act -- an unratified field and a
+      // ratified one together -- which is more than the row's "needs a
+      // hand-edit" suggests and is why it is not a small build.
+      ("Criterion", "kind") => {
+        let fx = Fixture::new();
+        let thread = sample_thread("ST0001");
+        fx.write_thread(&thread);
+        let read = fx.facade();
+        let kinds: Vec<AcKind> = read
+          .st_show("ST0001")
+          .expect("thread")
+          .criteria
+          .iter()
+          .map(|c| c.kind)
+          .collect();
+        kinds.contains(&AcKind::Test) && kinds.contains(&AcKind::NonTest)
+      }
+      // The AT mirror, and it has NO coupled field: `kind` and `status` are
+      // independent here, so a single flip is valid canon.
+      ("AcceptanceTest", "kind") => {
+        let fx = Fixture::new();
+        let mut thread = sample_thread("ST0001");
+        thread
+          .tests
+          .first_mut()
+          .expect("the fixture carries tests")
+          .kind = AtKind::NonTest;
+        fx.write_thread(&thread);
+        let read = fx.facade();
+        let kinds: Vec<AtKind> = read
+          .st_show("ST0001")
+          .expect("thread")
+          .tests
+          .iter()
+          .map(|t| t.kind)
+          .collect();
+        kinds.contains(&AtKind::Test) && kinds.contains(&AtKind::NonTest)
+      }
+      // v2 had `issues close`; v3 ships the read verbs only. So a closed issue
+      // in the estate is a value authored canon put there and nothing can undo.
+      ("Issue", "status") => {
+        let fx = Fixture::new();
+        fx.write_issue(&sample_issue(7));
+        // `closed` is only meaningful on a closed issue, so reopening the
+        // fixture means clearing the date with it -- the same two-fields-in-one-
+        // act shape the criterion arm found, one entity over.
+        let mut open = sample_issue(8);
+        open.status = IssueStatus::Open;
+        open.closed = None;
+        fx.write_issue(&open);
+        let read = fx.facade();
+        read.issue_show(7).expect("issue").status == IssueStatus::Closed
+          && read.issue_show(8).expect("issue").status == IssueStatus::Open
+      }
+      other => panic!(
+        "{other:?} is Unbuilt and no arm MEASURES how a value gets into it. Entry is driven, never assumed -- a row asserted inert on inspection is the exact \
+         reasoning this test replaced"
+      ),
+    };
+    let expected = matches!(entry, Entry::Authored);
+    assert_eq!(
+      measured, expected,
+      "{}.{} declares {entry:?} and canon says otherwise. Held to the measurement in BOTH directions: a row claiming Inert that canon can populate is an \
+       undeclared trap, and a row claiming Authored after the entry path closed is a debt still being reported after it was paid",
+      field.entity, field.field
+    );
+  }
+}
+
+/// **The wider reading of the second condition discriminates, and this is the
+/// measurement that says so.**
+///
+/// The argument for not measuring entry-by-any-path was that it would fire on
+/// every row and so distinguish nothing. It fires on the `Unbuilt` rows and on
+/// none of the `State` rows, because a `State` field's values all have exiting
+/// edges. Held as a test rather than settled as an argument, since the argument
+/// is what let the condition sit unmeasured -- and a future field that broke it
+/// would break it silently.
+///
+/// Both halves are asserted non-empty. A walk that found no fields of either
+/// kind would agree with every claim above.
+#[test]
+fn the_wider_reading_fires_on_unbuilt_rows_only() {
+  let mut state_fields = 0;
+  let mut unbuilt_fields = 0;
+
+  for (entity, field, values) in all_fields() {
+    let Some(disposition) = find(&entity, &field).map(|f| &f.disposition) else {
+      continue;
+    };
+    assert!(
+      !values.is_empty(),
+      "{entity}.{field} has a closed domain with no values in it, so nothing below is being tested"
+    );
+    match disposition {
+      Disposition::State { edges, .. } => {
+        state_fields += 1;
+        assert!(
+          exitless(&values, edges).is_empty(),
+          "{entity}.{field}: these values have no exiting edge, so the wider reading fires on a State field and the discrimination this test claims is gone: \
+           {:?}",
+          exitless(&values, edges)
+        );
+      }
+      Disposition::Unbuilt { .. } => {
+        unbuilt_fields += 1;
+        assert_eq!(
+          exitless(&values, &[]).len(),
+          values.len(),
+          "{entity}.{field} is Unbuilt, so EVERY value of it should be exitless. A subset means the row has acquired edges while still declaring the work \
+           unbuilt"
+        );
+      }
+    }
+  }
+
+  assert!(
+    state_fields > 0 && unbuilt_fields > 0,
+    "the walk found {state_fields} State and {unbuilt_fields} Unbuilt fields, and it needs both to be showing a difference between them rather than a property \
+     of an empty set"
+  );
+}
+
 /// An `Unbuilt` field says what is unavailable -- so the day a mutation for it
 /// lands, the disposition is contradicted rather than quietly outliving the gap
 /// it described.
@@ -462,7 +638,7 @@ fn an_unbuilt_field_is_one_no_service_call_can_set() {
 #[test]
 fn unbuilt_fields_say_what_is_unavailable_and_carry_no_edges() {
   for field in FIELDS {
-    if let Disposition::Unbuilt { note } = &field.disposition {
+    if let Disposition::Unbuilt { note, .. } = &field.disposition {
       assert!(
         !note.is_empty(),
         "{}.{} is Unbuilt and must say what is unavailable",
