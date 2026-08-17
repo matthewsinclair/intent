@@ -1305,7 +1305,9 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
 
 /// `intent info` -- the installation and project overview.
 ///
-/// **THIS COMMAND NEVER GATES, and that is the whole of issue 0042.** The
+/// **THIS COMMAND NEVER GATES ON PROJECT STATE, and that is the whole of issue
+/// 0042. It is not the same claim as "it never gates", which is what this
+/// comment used to say and what shipped as a defect the same day.** The
 /// shipped pre-commit gate resolves the Intent install by parsing this
 /// command's `INTENT_HOME:` line back out of its stdout, and it does so in
 /// projects that are not migrated, half-migrated, or not projects at all. A
@@ -1313,6 +1315,28 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
 /// exactly the situations the guards exist for -- which is what the
 /// unimplemented command was already doing, silently, by exiting 2 with no
 /// stdout at all. Both whiteboard guards stopped enforcing and neither said so.
+///
+/// **The over-general form of that rule cost an exit code.** Written as "never
+/// gates", it licensed returning `Ok(())` after failing to resolve the install
+/// -- so the command printed `<not set>`, named the reason on stderr, and told
+/// its caller everything was fine. dc found it by running a published-layout
+/// build, and the framing is theirs: **0044 is `1` meaning five things; this
+/// was `0` meaning "I could not do the thing you asked"** -- the worse half,
+/// because a wrong non-zero code stops a caller for the wrong reason and a zero
+/// on failure stops nothing at all. vc records that their own 0044 sweep was
+/// structurally blind to it: a table that classifies failures BY exit code puts
+/// a failure returning `0` in the success row by construction.
+///
+/// **The split this function now holds: an unmigrated project is not a failure
+/// of `info`; an unresolvable install is.** Project state degrades to what can
+/// honestly be printed. Install resolution is the tool's own footing -- if it
+/// is gone, the guards the gate builds from this output genuinely cannot run,
+/// and saying so is the only useful answer.
+///
+/// The code is `Failure::Error` (1) rather than `Unavailable` (2) deliberately:
+/// consumers read 2 as fail-open -- which is exactly wrong here -- and 0044 may
+/// reclassify the whole surface, so this takes the code that makes a caller
+/// stop rather than inventing a fourth meaning ahead of that decision.
 ///
 /// So the Installation block is unconditional, it is printed FIRST, and the
 /// project half degrades to what can honestly be said rather than taking the
@@ -1330,20 +1354,30 @@ fn info() -> Result<(), Failure> {
   println!();
   println!("Installation:");
 
+  // **Both facts are gathered BEFORE anything is printed and neither is acted
+  // on until the bottom**, so that the exit decision cannot be made by whichever
+  // branch happens to reach a `return` first. The previous shape returned
+  // `Ok(())` from the middle of the project block, which meant a bottom-of-
+  // function check would have been correct for a project and unreachable
+  // outside one -- the same "enforced on one of two writers, so enforced on
+  // neither reliably" shape that D44's window hit in `views::render_all`.
+  let install = intentsvcs::install::home();
+  let cwd = std::env::current_dir();
+
   // A broken install is NAMED on stderr and still prints v2's `<not set>` on
   // stdout. The token is v2's, so a consumer parsing this line sees a value it
   // already handles rather than a missing line it has no branch for -- and the
   // gate's fail-open message then quotes `<not set>` back at the operator
   // inside the path it tried, which says what went wrong at the point they can
-  // act on it. Silence on both streams is what this issue was.
-  let home = match intentsvcs::install::home() {
-    Ok(home) => home.display().to_string(),
-    Err(e) => {
-      eprintln!("error: {e}");
-      "<not set>".to_string()
+  // act on it. Silence on both streams is what issue 0042 was. **Printing it is
+  // not the same as succeeding at it**, which is what this function got wrong.
+  println!(
+    "  INTENT_HOME:     {}",
+    match &install {
+      Ok(home) => home.display().to_string(),
+      Err(_) => "<not set>".to_string(),
     }
-  };
-  println!("  INTENT_HOME:     {home}");
+  );
   println!("  Version:         {}", env!("CARGO_PKG_VERSION"));
   // v2 printed `which intent`, which answers "what would run" rather than
   // "what IS running" -- and those differ precisely during a v3 rollout, where
@@ -1355,23 +1389,50 @@ fn info() -> Result<(), Failure> {
   }
   println!();
 
-  let cwd = std::env::current_dir()
-    .map_err(|e| Failure::Error(format!("error: cannot read the working directory: {e}")))?;
-  let project = match Project::discover(&cwd) {
+  info_project(cwd.as_deref().ok());
+
+  // **THE ONE EXIT DECISION, and it is the last thing this function does.**
+  // Nothing above it returns, so every printable line is printed on every path
+  // -- including the `INTENT_HOME:` line the pre-commit gate parses, which has
+  // a stdout contract and no exit-code contract at all.
+  match (install, cwd) {
+    (Err(e), _) => Err(Failure::Error(format!("error: {e}"))),
+    (_, Err(e)) => Err(Failure::Error(format!(
+      "error: cannot read the working directory: {e}"
+    ))),
+    _ => Ok(()),
+  }
+}
+
+/// The project half of `intent info`. **Returns nothing, on purpose: no project
+/// state may reach the exit code** (issue 0042), so this half has no way to
+/// report a failure and no need of one.
+///
+/// `None` is a working directory that could not be read -- an environment
+/// failure rather than a statement about the project, so it is not reported as
+/// "not in a project", which would be a confident answer from no evidence.
+fn info_project(cwd: Option<&std::path::Path>) {
+  println!("Project:");
+
+  let Some(cwd) = cwd else {
+    println!("  cannot be determined -- the working directory is unreadable");
+    println!();
+    return;
+  };
+
+  let project = match Project::discover(cwd) {
     Ok(project) => project,
     Err(_) => {
-      println!("Project:");
       println!("  Not in an Intent project directory");
       println!();
       println!("To create a new project:  intent init");
       println!("To see available commands: intent help");
       println!();
-      return Ok(());
+      return;
     }
   };
 
   let config = project.config().clone();
-  println!("Project:");
   println!("  Location:        {}", project.root().display());
   println!("  Name:            {}", or_unknown(&config.project_name));
   println!("  Author:          {}", or_unknown(&config.author));
@@ -1423,7 +1484,6 @@ fn info() -> Result<(), Failure> {
     }
   }
   println!();
-  Ok(())
 }
 
 /// v2's placeholder for a config field it could not read. Kept because a blank
