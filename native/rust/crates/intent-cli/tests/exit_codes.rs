@@ -353,3 +353,81 @@ fn an_unmigrated_project_can_still_commit() {
      cannot be followed:\n{stderr}"
   );
 }
+
+/// **THE AGENT GUIDE'S EXIT-CODE PARAGRAPH IS EXECUTED, NOT READ.**
+///
+/// It told every agent that `intent critic` exits **2** when it has findings,
+/// "which is a verdict about your code and not a broken run", and that `1` is
+/// "every failure". **Both halves are backwards**, and this file's own opening
+/// paragraph had the correct contract written down two hundred lines above the
+/// false one.
+///
+/// Measured at v2's source: `bin/intent_critic:254` exits **1** with findings,
+/// `:89` and `:95` exit **2** when it cannot run -- and the shipped gate writes
+/// the contract out in its own comment at
+/// `lib/templates/hooks/pre-commit.sh:262`: *0 = clean, 1 = findings at or
+/// above threshold, 2 = invocation error (fail-open for that language)*.
+///
+/// **So `2` is the code the gate FAILS OPEN on**, and an agent following the
+/// guide would read a critic that never ran as a verdict on its code, and a
+/// real findings result -- the one that BLOCKS the commit -- as a broken run.
+///
+/// **The guide is generated, and that is exactly why this is needed.**
+/// `guide.rs` closes its own module doc with the reason: *completeness of the
+/// ROW SET comes for free; the truth of each rendered field does not, and no
+/// generator will ever check it.* The surface-wide facts are hand-written prose
+/// inside a generated document, so they are the part with no mechanism behind
+/// them -- and one of them was false.
+#[test]
+fn the_guides_exit_code_claims_are_what_the_binary_does() {
+  let out = run(&["llm", "guide"]);
+  assert_eq!(out.status.code(), Some(0), "the guide must render");
+  let guide = String::from_utf8_lossy(&out.stdout).into_owned();
+
+  // The claim about `2`, driven: a declared-but-unimplemented command, carrying
+  // the stderr line the guide tells an agent to recognise it by.
+  let unbuilt = run(&["critic", "shell"]);
+  assert_eq!(
+    unbuilt.status.code(),
+    Some(2),
+    "the guide's stated cause of a 2 does not produce one"
+  );
+  const PHRASE: &str = "is a known command that is not implemented yet";
+  assert!(
+    String::from_utf8_lossy(&unbuilt.stderr).contains(PHRASE),
+    "stderr: {}",
+    String::from_utf8_lossy(&unbuilt.stderr)
+  );
+  assert!(
+    guide.contains(PHRASE),
+    "the guide must name the stderr line an agent recognises a 2 by, or the \
+     code is unattributable"
+  );
+
+  // The claim about `1`, driven on a command that ran and refused.
+  assert_eq!(
+    run(&["st", "show"]).status.code(),
+    Some(1),
+    "the guide says 1 is the command running and answering no"
+  );
+
+  // **And no command may be given its own exit-code rule in prose while this
+  // build does not give it one.** `critic` is not implemented here, so every
+  // sentence the guide spends on its codes describes software that is not in
+  // the binary the reader is holding -- which is how the swap survived. Scoped
+  // to the surface-wide section, because the per-row reference names commands
+  // constantly and must.
+  let facts = guide
+    .split("## Facts about the whole surface")
+    .nth(1)
+    .unwrap_or_else(|| panic!("the guide has no surface-wide section:\n{guide}"))
+    .split("\n## ")
+    .next()
+    .expect("a section body");
+  assert!(
+    !facts.contains("critic"),
+    "the surface-wide facts state an exit-code rule for `critic`, which this \
+     build does not implement -- so the claim cannot be checked against \
+     anything the reader can run:\n{facts}"
+  );
+}

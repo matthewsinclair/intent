@@ -133,6 +133,27 @@ pub const EXIT_ERROR: i32 = 1;
 /// **The mechanism is the fix and the number is a parameter.** A v2 script or
 /// a person now reads `was retired in Intent v3` with the replacement where one
 /// exists; that information arrives whatever hv rules the code should be.
+///
+/// **CONSTRAINT ON `intent critic`, WHICH IS NOT IN THIS BUILD YET AND MUST NOT
+/// ARRIVE WITH THESE TWO CODES SWAPPED.** v2 exits `1` for findings at or above
+/// the threshold (`bin/intent_critic:254`) and `2` for an invocation error
+/// (`:89`, `:95`), and the shipped pre-commit gate writes the contract out in
+/// its own comment at `lib/templates/hooks/pre-commit.sh:262`: _0 = clean, 1 =
+/// findings at or above threshold, 2 = invocation error (fail-open for that
+/// language)_.
+///
+/// **So `2` is the code the gate FAILS OPEN on.** A `critic` that landed here
+/// exiting 1 for "cannot run" would put every migrated project in the fleet
+/// into refusing every commit, with a remedy nobody can follow -- and one
+/// exiting 2 for findings would have the gate wave through the code it was
+/// built to stop. The two errors fail in opposite directions and neither is
+/// visible from inside this crate.
+///
+/// **The agent guide asserted the swap in shipped prose until 2026-08-17**,
+/// telling every agent that `intent critic` exits 2 when it has findings and
+/// that this is "a verdict about your code and not a broken run". Both halves
+/// were backwards. It is recorded here rather than only fixed there because
+/// this is the file someone reads when they add the third exit code.
 pub const EXIT_UNAVAILABLE: i32 = 2;
 
 /// How a command failed, and therefore which code reports it.

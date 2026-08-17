@@ -115,7 +115,7 @@ fn surface_wide(table: &Table) -> Result<String, String> {
     "\
 ## Facts about the whole surface
 
-- **{}** ({}). `0` is success and `1` is every failure -- with two exceptions an agent must not read as failure. `intent critic` exits **2** when it has findings, which is a verdict about your code and not a broken run. A command this build has not implemented yet also exits **2**, with `is a known command that is not implemented yet` on stderr. **So `2` is ambiguous and the stderr line is what tells the two apart.**
+- **{}** ({}). `0` is success. `1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error. **`2` means this build cannot answer the question at all**, and in this build it has exactly one cause: a command that is declared but not implemented yet, which says `is a known command that is not implemented yet` on stderr. **Never read `2` as a verdict about your code, and never read `1` as a broken run.**
 - **{}** ({}). Results go to stdout; failures go to stderr with a lowercase `error: ` prefix. Nothing is banner-wrapped.
 - **{}** ({}). A usage error -- an unknown flag, a missing argument -- exits `1`, not clap's default of 2.
 - **{}** ({}). A command that needs to be inside an Intent project says so plainly when it is not, rather than half-working.
