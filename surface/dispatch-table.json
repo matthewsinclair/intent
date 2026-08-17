@@ -1982,7 +1982,7 @@
             "state": "corrected",
             "no_op": "**REFUSES A LEGAL SELF-LOOP AT EXIT 1 -- issue 0053, and this is the one place the announced value and the binary disagree.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). On a criterion already holding the verb's target -- `AcState::entry(kind)`, `unsatisfied` for a non-test and `computed` for a test-backed one -- it prints `error: <AC> is in scope, so there is nothing to reinstate` at exit 1, for BOTH verbs and BOTH kinds. 0051's mechanism: a hand-written from-state `match` whose `_` arm raises `NotOffScope` ahead of `set_ac_state`, which is where the shared self-loop test lives (`facade.rs:1764-1795`). **The value cc handed over -- `ok: <AC> already unsatisfied | already computed` -- was reasoned correctly from `AcState::entry(kind)`, which is what the SUCCESS arm passes the setter; the self-loop never reaches that arm.** Written from the binary rather than the handoff, which is the only reason the row is not wrong. **And the refusal names a verb the user did not type**: `NotOffScope` carries no verb, so one hardcoded message serves both entry points and `ac rescope` is answered about `reinstate` twice -- a REGRESSION, since v2 names the right verb in both.",
             "ratification": "ic, 2026-08-17, ruling the five voices cc was blocked on -- RATIFY onto `corrected`: `ok: <AC> back in scope (<landing state>)`, with the state COMPUTED FROM KIND. **v2 prints `back in scope (unsatisfied)` for BOTH kinds and BOTH verbs** -- measured, four invocations, one string modulo the id -- and v3 prints the bare `back in scope`. Restoring v2's literal would be wrong for half the cases: **a test-backed criterion lands at `computed`, not `unsatisfied`** (`AcState::entry(kind)`). **Keep the suffix, compute it.** The resulting state is the whole question an undo raises, and `back in scope` alone does not say whether satisfaction survived the round trip. **CORRECTED 2026-08-17, and the first version of this ruling EXCUSED v2.** It said v2 \"had no `computed` state to name, so it could only ever say one thing\". That is false. v2 has the concept: `bin/intent_acceptance:16` states that a test-backed AC \"is satisfied (computed) iff a covering AT is green\", and `:1084` refuses to hand-satisfy one on exactly that ground. What v2 lacks is the BRANCH AT THIS CALL SITE -- `:1259` prints the literal `(unsatisfied)` unconditionally, under a comment at `:1252-1254` that reasons only about the non-test case. **So v2 announces `unsatisfied` about a criterion whose satisfaction it computes elsewhere: the message's subject and the row's subject differ**, which is the day's class rather than a limit of v2's model. The deviation is forced by v2 being WRONG here, not by v3 being unable to reproduce it -- same destination, load-bearing difference in the grounds.",
-            "ratified_in": "ic, 2026-08-17, on this row's own voice ruling -- NOT parity.md, which does not cite it. Recorded as ratified elsewhere rather than added to parity.md's `Corrected` class unilaterally: that document is ST0056's ratified register and vc stewards it. **The teeth here are `target.stdout_exact`, not the citation** -- this row is asserted against v3 every run, which is a stronger check than membership in a list.",
+            "ratified_in": "ic, 2026-08-17, five-voice ruling recorded at commit `49db5aec` -- NOT parity.md, whose `Corrected` class does not cite these two and should not be extended to reach them (vc ruled: thirteen rows are ratified elsewhere and eleven predate these, so the coherent options are all-thirteen-in or all-thirteen-out). **Carries authority, date and an EXTERNAL record**, which is the grammar vc's `ratified_in` sweep arrived at: the first draft of this field said \"on this row's own voice ruling\" and a ratification pointing at the row it ratifies is not independent, by the same argument that a check is not independent unless its source is the corpus.",
             "stdout_exact": {
               "template": "ok: AC-01.2 back in scope (computed)",
               "basis": "the row's own `ratification`: the landing state computed from kind, and `AcState::entry(kind)` is `Computed` for a test-backed criterion. **NOT measured from v3.** These are the bytes v3 is REQUIRED to print; writing them from the binary would make the assertion say v3 == v3, which is the laundering this field exists to prevent. Expect this to be RED until cc implements the ruled voice -- a red here is an unimplemented ratification, NOT a parity break, and the two have different remedies."
@@ -2145,7 +2145,7 @@
             "state": "corrected",
             "no_op": "**REFUSES A LEGAL SELF-LOOP AT EXIT 1 -- issue 0053, and this is the one place the announced value and the binary disagree.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). On a criterion already holding the verb's target -- `AcState::entry(kind)`, `unsatisfied` for a non-test and `computed` for a test-backed one -- it prints `error: <AC> is in scope, so there is nothing to reinstate` at exit 1, for BOTH verbs and BOTH kinds. 0051's mechanism: a hand-written from-state `match` whose `_` arm raises `NotOffScope` ahead of `set_ac_state`, which is where the shared self-loop test lives (`facade.rs:1764-1795`). **The value cc handed over -- `ok: <AC> already unsatisfied | already computed` -- was reasoned correctly from `AcState::entry(kind)`, which is what the SUCCESS arm passes the setter; the self-loop never reaches that arm.** Written from the binary rather than the handoff, which is the only reason the row is not wrong. **And the refusal names a verb the user did not type**: `NotOffScope` carries no verb, so one hardcoded message serves both entry points and `ac rescope` is answered about `reinstate` twice -- a REGRESSION, since v2 names the right verb in both.",
             "ratification": "ic, 2026-08-17, ruling the five voices cc was blocked on -- RATIFY onto `corrected`, IDENTICAL in form to `ac rescope`. v3 currently prints `ok: <AC> reinstated`, which names the verb and drops the state entirely. **The two verbs differ in which off-scope state they UNDO, not in where they LAND** -- both reach `AcState::entry(kind)` -- so they must print the same thing, and v2 agreed: both said `back in scope (unsatisfied)`, measured. A message naming the verb tells the caller what they just typed; a message naming the state tells them something they did not already know. **Keep the suffix, compute it.** The resulting state is the whole question an undo raises, and `back in scope` alone does not say whether satisfaction survived the round trip. **CORRECTED 2026-08-17, and the first version of this ruling EXCUSED v2.** It said v2 \"had no `computed` state to name, so it could only ever say one thing\". That is false. v2 has the concept: `bin/intent_acceptance:16` states that a test-backed AC \"is satisfied (computed) iff a covering AT is green\", and `:1084` refuses to hand-satisfy one on exactly that ground. What v2 lacks is the BRANCH AT THIS CALL SITE -- `:1259` prints the literal `(unsatisfied)` unconditionally, under a comment at `:1252-1254` that reasons only about the non-test case. **So v2 announces `unsatisfied` about a criterion whose satisfaction it computes elsewhere: the message's subject and the row's subject differ**, which is the day's class rather than a limit of v2's model. The deviation is forced by v2 being WRONG here, not by v3 being unable to reproduce it -- same destination, load-bearing difference in the grounds.",
-            "ratified_in": "ic, 2026-08-17, on this row's own voice ruling -- NOT parity.md, which does not cite it. Recorded as ratified elsewhere rather than added to parity.md's `Corrected` class unilaterally: that document is ST0056's ratified register and vc stewards it. **The teeth here are `target.stdout_exact`, not the citation** -- this row is asserted against v3 every run, which is a stronger check than membership in a list.",
+            "ratified_in": "ic, 2026-08-17, five-voice ruling recorded at commit `49db5aec` -- NOT parity.md, whose `Corrected` class does not cite these two and should not be extended to reach them (vc ruled: thirteen rows are ratified elsewhere and eleven predate these, so the coherent options are all-thirteen-in or all-thirteen-out). **Carries authority, date and an EXTERNAL record**, which is the grammar vc's `ratified_in` sweep arrived at: the first draft of this field said \"on this row's own voice ruling\" and a ratification pointing at the row it ratifies is not independent, by the same argument that a check is not independent unless its source is the corpus.",
             "stdout_exact": {
               "template": "ok: AC-01.2 back in scope (computed)",
               "basis": "the row's own `ratification`: the landing state computed from kind, and `AcState::entry(kind)` is `Computed` for a test-backed criterion. **NOT measured from v3.** These are the bytes v3 is REQUIRED to print; writing them from the binary would make the assertion say v3 == v3, which is the laundering this field exists to prevent. Expect this to be RED until cc implements the ruled voice -- a red here is an unimplemented ratification, NOT a parity break, and the two have different remedies."
@@ -4189,9 +4189,16 @@
               "name": "subcommand",
               "type": "subcommand",
               "arity": "0..1",
+              "default": "list",
               "values": [
-                "list"
+                "list",
+                "show"
               ]
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "arity": "0..1"
             }
           ],
           "flags": [],
@@ -4200,31 +4207,38 @@
             "exit": [
               {
                 "code": 0,
-                "when": "listed or applied"
+                "when": "listed (bare or `list`), or `show <name>` where the template dir holds an AGENTS.md"
               },
               {
                 "code": 1,
-                "when": "unknown template"
+                "when": "`show` with no name -- `error: template name required` + a `Usage:` line, BOTH ON STDOUT"
+              },
+              {
+                "code": 1,
+                "when": "`show <name>` where the dir has no AGENTS.md -- `error: template '<name>' not found` ON STDOUT; true for SEVEN of the eight names `list` prints (0058)"
+              },
+              {
+                "code": 1,
+                "when": "any other subcommand -- `Unknown template subcommand: <x>` + a `Usage:` line, ON STDOUT and with NO `error:` prefix (0058)"
               }
             ],
-            "stdout": "template list or detail",
-            "stderr": "`error: ...` on stderr (INV-01)",
+            "stdout": "**FOUR ARMS, ONE ROW, and the schema cannot yet say so (0058).** `list` (and the bare invocation, byte-identical) prints `Available AGENTS.md templates:` then `  - <name>` per DIRECTORY under the plugin's `templates/`. `show <name>` cats `templates/<name>/AGENTS.md`. The two failure arms print to stdout too -- see `exit`. **No `stdout_exact` is declared: the list arm's content is the plugin's template DIRECTORY LISTING, so a literal template would assert that v3 reproduces v2's plugin layout, which is a different claim from reproducing its output.**",
+            "stderr": "**NOTHING. STDERR IS EMPTY ON EVERY ARM, INCLUDING BOTH FAILURES -- an INV-01 violation, measured (0058).** This field previously read \"`error: ...` on stderr (INV-01)\", a compliance claim nothing had checked, so anything auditing INV-01 from the register rather than from the binary passed this row. Verified by splitting the streams: `intent agents template rust 2>&1 1>/dev/null` prints nothing.",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
-            }
+              "class": "measured",
+              "why": "all four arms driven against v2.19.0 on PATH, 2026-08-17 (ic), with the STREAMS SPLIT rather than merged -- `2>&1` hides the INV-01 violation entirely and the first reading of it did. Was `read` until then, which is why three of the four defects on this row survived: the entry was written from the dispatch site, so `values` recorded the one subcommand the caller happened to name and `stderr` recorded the invariant the row was assumed to obey."
+            },
+            "notes": "**`show` was absent from `values` until 2026-08-17 and v3's clap surface renders from this row, so the subcommand was on course to be dropped silently (0058).** v2's own usage line names it: `Usage: intent agents template [list|show <name>]`. **`default: \"list\"` was also absent** -- `intent_agents:769` is `local subcommand=\"${1:-list}\"`, and the bare invocation is byte-identical to `list`, measured. **AND `list` ADVERTISES SEVEN NAMES `show` CANNOT DELIVER**: `list` enumerates directories (`-d`), `show` requires `<dir>/AGENTS.md` (`-f`), and only `elixir/` has one -- the other seven hold the ST0035 per-language canon packs (`ARCHITECTURE.md` + `RULES.md`). `list`'s subject is \"directories under templates/\" and `show`'s is \"directories containing AGENTS.md\"; the output cannot tell them apart. `list` did not break -- its meaning was changed underneath it by an unrelated feature and nothing re-read it."
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "open_question": "**IS `list` `as-observed` OR `corrected`? FILED AS 0058 AND DELIBERATELY NOT RULED HERE.** 0058 argues `corrected`: reproducing a list that advertises seven names its sibling cannot deliver launders a v2 defect into a v3 requirement, which `parity.md` forbids in as many words. **But this is a change to what the command ENUMERATES, not to how it speaks, so it is not a voice ruling and not mine to take alone** -- the five voices were ruled by ic because cc was blocked on output strings; this is behaviour. The row stays `as-observed` until it is adjudicated, so v3 building from it today would reproduce the defect: that is the cost of leaving it open and it is stated rather than hidden. The INV-01 and `show` halves need no ruling -- one is an invariant already ratified, the other is a subcommand v2 has."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "read",
           "mcp_review": {
-            "uncertain": [
-              "read_or_mutate"
-            ],
-            "why_uncertain": "No write primitive found near the arm, but I did not read the arm itself -- this is the one row classified `read` without either grounding or an obvious reading to fall back on."
+            "grounded_in": "intent/plugins/agents/bin/intent_agents:768-801 -- `list` reads the templates dir, `show` cats one file; no write primitive on any arm, so `read` is now grounded rather than assumed"
           }
         }
       ],
