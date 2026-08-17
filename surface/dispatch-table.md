@@ -830,7 +830,7 @@ Satisfy a non-test AC by named evidence
   - `1` -- missing --evidence
   - `1` -- AC not found, or is test-backed -- satisfaction there is computed, never written
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> satisfied`
+- **stdout:** `ok: <AC> satisfied by evidence`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** `ok: <AC> already satisfied`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -919,7 +919,7 @@ Undo a descope: back in scope, unsatisfied
   - `0` -- rescoped
   - `1` -- AC not found or not descoped
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> back in scope`
+- **stdout:** `ok: <AC> back in scope (unsatisfied)`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** **REFUSES A LEGAL SELF-LOOP AT EXIT 1 -- issue 0053, and this is the one place the announced value and the binary disagree.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). On a criterion already holding the verb's target -- `AcState::entry(kind)`, `unsatisfied` for a non-test and `computed` for a test-backed one -- it prints `error: <AC> is in scope, so there is nothing to reinstate` at exit 1, for BOTH verbs and BOTH kinds. 0051's mechanism: a hand-written from-state `match` whose `_` arm raises `NotOffScope` ahead of `set_ac_state`, which is where the shared self-loop test lives (`facade.rs:1764-1795`). **The value cc handed over -- `ok: <AC> already unsatisfied | already computed` -- was reasoned correctly from `AcState::entry(kind)`, which is what the SUCCESS arm passes the setter; the self-loop never reaches that arm.** Written from the binary rather than the handoff, which is the only reason the row is not wrong. **And the refusal names a verb the user did not type**: `NotOffScope` carries no verb, so one hardcoded message serves both entry points and `ac rescope` is answered about `reinstate` twice -- a REGRESSION, since v2 names the right verb in both.
@@ -965,7 +965,7 @@ Undo a withdrawal: back in scope, unsatisfied
   - `0` -- reinstated
   - `1` -- AC not found or not withdrawn
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> back in scope`
+- **stdout:** `ok: <AC> back in scope (unsatisfied)`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** **REFUSES A LEGAL SELF-LOOP AT EXIT 1 -- issue 0053, and this is the one place the announced value and the binary disagree.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). On a criterion already holding the verb's target -- `AcState::entry(kind)`, `unsatisfied` for a non-test and `computed` for a test-backed one -- it prints `error: <AC> is in scope, so there is nothing to reinstate` at exit 1, for BOTH verbs and BOTH kinds. 0051's mechanism: a hand-written from-state `match` whose `_` arm raises `NotOffScope` ahead of `set_ac_state`, which is where the shared self-loop test lives (`facade.rs:1764-1795`). **The value cc handed over -- `ok: <AC> already unsatisfied | already computed` -- was reasoned correctly from `AcState::entry(kind)`, which is what the SUCCESS arm passes the setter; the self-loop never reaches that arm.** Written from the binary rather than the handoff, which is the only reason the row is not wrong. **And the refusal names a verb the user did not type**: `NotOffScope` carries no verb, so one hardcoded message serves both entry points and `ac rescope` is answered about `reinstate` twice -- a REGRESSION, since v2 names the right verb in both.
@@ -1114,7 +1114,7 @@ Set a non-test AT to n-a (the doc / eyeball / gate status)
   - `0` -- set
   - `1` -- AT not found
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AT> -> n-a`
+- **stdout:** `ok: <AT> -> n/a`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `n-a` belongs to `(non-test)` rows only and never satisfies anything.
 - **Target:** `as-observed`

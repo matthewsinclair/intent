@@ -1707,13 +1707,14 @@
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "`ok: <AC> satisfied`",
+            "stdout": "`ok: <AC> satisfied by evidence`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             },
-            "no_op": "`ok: AC-01.1 satisfied by evidence`, exit 0 -- the ORDINARY success message. v2 has no state check here: it re-runs the substitution and re-verifies the post-state, so the no-op is a repeated write that lands on the same value. Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`ok: AC-01.1 satisfied by evidence`, exit 0 -- the ORDINARY success message. v2 has no state check here: it re-runs the substitution and re-verifies the post-state, so the no-op is a repeated write that lands on the same value. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "note": "**CORRECTED 2026-08-17: this row said `ok: <AC> satisfied` and v2 prints ` by evidence` after it.** Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
           },
           "target": {
             "state": "as-observed",
@@ -1921,13 +1922,14 @@
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "`ok: <AC> back in scope`",
+            "stdout": "`ok: <AC> back in scope (unsatisfied)`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             },
-            "no_op": "`error: AC-01.1 is not descoped; nothing to rescope`, exit 1. **v2 refuses AND names the verb the user actually typed**, which v3 does not -- see the target side. Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`error: AC-01.1 is not descoped; nothing to rescope`, exit 1. **v2 refuses AND names the verb the user actually typed**, which v3 does not -- see the target side. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "note": "**CORRECTED 2026-08-17: the parenthesised resulting state was missing.** v2 names the state the criterion lands in, which is the informative half -- `back in scope` alone does not say whether satisfaction survived the round trip. Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
           },
           "target": {
             "state": "as-observed",
@@ -2044,13 +2046,14 @@
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "`ok: <AC> back in scope`",
+            "stdout": "`ok: <AC> back in scope (unsatisfied)`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             },
-            "no_op": "`error: AC-01.1 is not withdrawn; nothing to reinstate`, exit 1. **v2 refuses and names the right verb.** Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`error: AC-01.1 is not withdrawn; nothing to reinstate`, exit 1. **v2 refuses and names the right verb.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "note": "**CORRECTED 2026-08-17: as `ac rescope`, and identical to it** -- the two verbs are distinguished by which off-scope state they undo, not by what they print on success. Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
           },
           "target": {
             "state": "as-observed",
@@ -2386,14 +2389,15 @@
                 "when": "outside a project -- `error: not in an Intent project directory` (INV-03)"
               }
             ],
-            "stdout": "`ok: <AT> -> n-a`",
+            "stdout": "`ok: <AT> -> n/a`",
             "stderr": "`error: ...` on stderr (INV-01)",
             "notes": "`n-a` belongs to `(non-test)` rows only and never satisfies anything.",
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             },
-            "no_op": "`ok: AT-01.2 -> n/a`, exit 0 -- the ordinary success message, on a `(non-test)` row. **Note v2's token is `n/a`.** Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
+            "no_op": "`ok: AT-01.2 -> n/a`, exit 0 -- the ordinary success message, on a `(non-test)` row. **Note v2's token is `n/a`.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
+            "note": "**CORRECTED 2026-08-17, AND THIS ONE IS NOT A TRANSCRIPTION SLIP.** The row said `n-a` -- **v3's token, in the column that records v2** -- and v2 prints `n/a`, which is also the only token its row grammar admits (`bin/intent_acceptance:181`). `target.state` here is `as-observed`, so **a check comparing v3's output to this column would have found agreement and certified issue 0056 as correct parity.** The defect had already propagated into the register that exists to catch it. Measured against v2.19.0 on PATH, 2026-08-17 (ic)."
           },
           "target": {
             "state": "as-observed",
