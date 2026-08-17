@@ -1155,13 +1155,25 @@ fn upgrade() -> Result<(), Failure> {
   }
 
   // **Per section, on stdout, beside `carried` -- never a count.** A total
-  // reconciles arithmetically and tells nobody which section went, and a drop
-  // the migration does not name cannot be told from a section that was never
-  // there. This is the third bucket: modelled, carried, dropped-as-scaffolding.
-  if !done.dropped.is_empty() {
-    println!("dropped (template scaffolding, nobody authored it):");
-    for d in &done.dropped {
-      println!("  {} -- ## {} -- {}", d.owner, d.heading, d.reason);
+  // reconciles arithmetically and tells nobody which section went, and a
+  // decision the migration does not name cannot be told from one it never
+  // made. Two verdicts: `dropped` removes a section from canon, `deferred`
+  // keeps it and stands the renderer's own copy down.
+  //
+  // **The deferral row exists because vc could not read a zero** -- their
+  // `DOUBLED-SECTION 20 -> 0` is produced identically by a migrator that
+  // deferred to the author and by one that stopped generating the section, and
+  // they separated the two only by going and reading which pointer survived.
+  if !done.dispositions.is_empty() {
+    println!("sections not carried as-is:");
+    for d in &done.dispositions {
+      println!(
+        "  {} -- ## {} -- {} -- {}",
+        d.owner,
+        d.heading,
+        d.verdict.as_str(),
+        d.reason
+      );
     }
   }
 

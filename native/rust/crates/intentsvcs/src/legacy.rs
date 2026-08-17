@@ -46,18 +46,47 @@ const WP_TEMPLATE_PATH: &str = "lib/templates/prj/st/WP/info.md";
 const WP_TEMPLATE_REV: &str = "0b1b3b5b";
 const WP_TEMPLATE_SUBST: &str = "bin/intent_wp:113";
 
-/// One section the migration dropped, and why.
+/// What the migration decided about one section, and why.
 ///
-/// **Thread id, heading, reason -- never a count.** The reason names the
+/// **File, heading, verdict, reason -- never a count.** The reason names the
 /// artefact and its revision, so the claim is checkable rather than asserted.
+///
+/// **Two verdicts and not one, because a zero in a conservation report has to
+/// be readable** (vc). Their `DOUBLED-SECTION 20 -> 0` on Baize is produced
+/// equally by a migrator that deferred to the author and by one that stopped
+/// generating the section at all -- they could separate them only by going and
+/// reading which pointer survived, and nobody running the tool would.
 #[derive(Debug, Clone)]
-pub struct Dropped {
+pub struct Disposition {
   /// The file as Intent names it, the same spelling every finding uses.
   pub owner: String,
   /// The `## ` heading, verbatim.
   pub heading: String,
-  /// What makes it scaffolding, with the artefact cited.
+  pub verdict: Verdict,
+  /// What justifies the verdict, with the artefact cited.
   pub reason: String,
+}
+
+/// **A DECISION THAT LEAVES NO RECORD CANNOT BE RECONCILED**, and both of these
+/// are decisions -- one removes content from canon, the other chooses between
+/// two renderings of it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Verdict {
+  /// The section is not carried: byte-identical to the template that made the
+  /// file, so no author wrote it.
+  Dropped,
+  /// The section IS carried and the renderer's own copy stands down for it.
+  /// Canon is unchanged either way; what changes is the view.
+  Deferred,
+}
+
+impl Verdict {
+  pub fn as_str(self) -> &'static str {
+    match self {
+      Self::Dropped => "dropped",
+      Self::Deferred => "deferred",
+    }
+  }
 }
 
 #[derive(Debug, Default)]
@@ -79,7 +108,7 @@ pub struct Scan {
   /// carry policy** and are reported so the count reconciles, never so that
   /// anyone acts on them.
   pub carried: Vec<Finding>,
-  /// Sections the migration DROPPED because no author wrote them.
+  /// What the migration decided about each section it did not simply carry.
   ///
   /// **Per section, never a count** (vc's condition 1): a count reconciles
   /// arithmetically and tells nobody which section went, and **a drop with no
@@ -92,7 +121,7 @@ pub struct Scan {
   /// with a fix environment and a carry disposition. This describes something
   /// the migration itself decided, and routing it through `record` would put a
   /// remedy on a section nobody needs to act on.
-  pub dropped: Vec<Dropped>,
+  pub dispositions: Vec<Disposition>,
   /// Thread ids Phase A DECLINED TO RE-PARSE because committed canon already
   /// exists for them, sorted and deduplicated.
   ///
@@ -628,15 +657,40 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
         continue;
       }
       match template.iter().any(|(k, v)| k == heading && v == text) {
-        true => out.dropped.push(Dropped {
+        true => out.dispositions.push(Disposition {
           owner: rel.clone(),
           heading: heading.clone(),
+          verdict: Verdict::Dropped,
           reason: format!(
             "byte-identical to `{WP_TEMPLATE_PATH}` at {WP_TEMPLATE_REV} with `WP-NN` substituted per `{WP_TEMPLATE_SUBST}`: no author wrote it"
           ),
         }),
         false => kept.push((heading.clone(), text.clone())),
       }
+    }
+
+    // **AND THE DEFERRAL IS A DECISION TOO, so it leaves a record** (vc's
+    // finding, and it is this file's own rule turned on the code that had just
+    // landed: 39 drop records and zero deferral records for 20 deferrals).
+    //
+    // The predicate is `views::carries_heading` rather than a second copy of
+    // it -- the renderer decides this and the record must be about what the
+    // renderer will actually do, so asking a different question here would be
+    // a record of something that never happens.
+    let carried_body = kept
+      .iter()
+      .map(|(k, v)| format!("## {k}\n\n{v}"))
+      .collect::<Vec<_>>()
+      .join("\n\n");
+    if crate::views::carries_heading(&carried_body, "Acceptance") {
+      out.dispositions.push(Disposition {
+        owner: rel.clone(),
+        heading: "Acceptance".to_string(),
+        verdict: Verdict::Deferred,
+        reason:
+          "this work package authors its own acceptance pointer, so the generated one stands down: canon is unchanged and the view carries the author's"
+            .to_string(),
+      });
     }
 
     wps.push(WorkPackage {
@@ -655,11 +709,7 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
       // verbatim, so a section the template never named survives -- **and in
       // the order it was written**, which is what `sections` returning a Vec
       // rather than a map buys. Minus the template's own scaffolding, above.
-      body: kept
-        .iter()
-        .map(|(k, v)| format!("## {k}\n\n{v}"))
-        .collect::<Vec<_>>()
-        .join("\n\n"),
+      body: carried_body,
     });
   }
   wps

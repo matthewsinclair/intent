@@ -304,7 +304,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
 /// One home for it: the same collision exists at thread level the moment
 /// `Thread.body` lands, and two private copies of "does the author already
 /// have this heading" is the drift the Highlander rule exists to stop.
-fn carries_heading(body: &str, heading: &str) -> bool {
+pub(crate) fn carries_heading(body: &str, heading: &str) -> bool {
   body
     .lines()
     .any(|l| l.strip_prefix("## ").is_some_and(|h| h.trim() == heading))

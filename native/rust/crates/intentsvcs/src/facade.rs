@@ -87,7 +87,7 @@ pub struct Upgraded {
   /// Sections dropped as template scaffolding, one record each, so a declared
   /// drop can be reconciled against the estate's census rather than inferred
   /// from a total that happens to be short.
-  pub dropped: Vec<crate::legacy::Dropped>,
+  pub dispositions: Vec<crate::legacy::Disposition>,
 }
 
 /// Ensure the runtime store's directory is gitignored.
@@ -741,7 +741,7 @@ impl Facade {
       issues,
       carried,
       already_migrated,
-      dropped,
+      dispositions,
     } = plan;
 
     let files = writes.len();
@@ -771,7 +771,7 @@ impl Facade {
           files,
           carried,
           already_migrated,
-          dropped,
+          dispositions,
         })
       }
       Err(halted) => {

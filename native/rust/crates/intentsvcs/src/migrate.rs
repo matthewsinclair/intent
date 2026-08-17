@@ -97,7 +97,7 @@ pub struct Plan {
   /// Sections Phase A dropped as template scaffolding, passed through
   /// untouched. **The third summary bucket beside modelled and carried**: a
   /// drop with no record cannot be told from a section that was never there.
-  pub dropped: Vec<crate::legacy::Dropped>,
+  pub dispositions: Vec<crate::legacy::Disposition>,
 }
 
 /// Why no plan exists.
@@ -245,7 +245,7 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
     residue,
     carried,
     already_migrated,
-    dropped,
+    dispositions,
   } = scan;
 
   if !residue.is_empty() {
@@ -254,7 +254,7 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
 
   let mut plan = assemble(project, ctx, threads, issues, carried)?;
   plan.already_migrated = already_migrated;
-  plan.dropped = dropped;
+  plan.dispositions = dispositions;
   Ok(plan)
 }
 
@@ -352,7 +352,7 @@ fn assemble(
     already_migrated: Vec::new(),
     // Same reason as above: `assemble` never sees a scan, so it cannot know
     // what Phase A dropped.
-    dropped: Vec::new(),
+    dispositions: Vec::new(),
   })
 }
 

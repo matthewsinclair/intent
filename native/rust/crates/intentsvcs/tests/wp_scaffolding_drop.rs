@@ -42,6 +42,7 @@
 mod common;
 
 use common::{Fixture, ctx};
+use intentsvcs::legacy::Verdict;
 use intentsvcs::{legacy, views};
 
 /// The v2 work-package template body, verbatim from
@@ -129,14 +130,18 @@ fn the_templates_own_sections_are_dropped_and_each_one_is_recorded() {
 
   // Per section, never a count -- a total reconciles arithmetically and tells
   // nobody which section went.
-  let headings: Vec<&str> = scan.dropped.iter().map(|d| d.heading.as_str()).collect();
+  let headings: Vec<&str> = scan
+    .dispositions
+    .iter()
+    .map(|d| d.heading.as_str())
+    .collect();
   assert_eq!(
     headings,
     vec!["Deliverables", "Acceptance", "Dependencies"],
     "each dropped section is named, in authored order; `Objective` is modelled \
      rather than dropped and must not appear here"
   );
-  for d in &scan.dropped {
+  for d in &scan.dispositions {
     assert!(
       d.owner.contains("WP/01/info.md"),
       "the record names the file: {d:?}"
@@ -177,16 +182,33 @@ fn an_edited_acceptance_section_is_carried_not_dropped() {
     "an author touched this section, so it is prose and must survive:\n{body}"
   );
   assert!(
-    !scan.dropped.iter().any(|d| d.heading == "Acceptance"),
-    "and it must not be recorded as a drop either: {:?}",
-    scan.dropped
+    !scan
+      .dispositions
+      .iter()
+      .any(|d| d.heading == "Acceptance" && d.verdict == Verdict::Dropped),
+    "and it must not be recorded as a DROP: {:?}",
+    scan.dispositions
+  );
+  // It IS recorded as a deferral, because it is carried and the renderer's own
+  // copy stands down for it. "Not dropped" and "no decision was made" are
+  // different facts and the record has to separate them.
+  assert!(
+    scan
+      .dispositions
+      .iter()
+      .any(|d| d.heading == "Acceptance" && d.verdict == Verdict::Deferred),
+    "the deferral is a decision and leaves its own record: {:?}",
+    scan.dispositions
   );
   // The sections around it are untouched scaffolding and still go, so this is
   // a test of the discriminator rather than of the detector being switched off.
   assert!(
-    scan.dropped.iter().any(|d| d.heading == "Deliverables"),
+    scan
+      .dispositions
+      .iter()
+      .any(|d| d.heading == "Deliverables"),
     "the unedited sections of the same file still drop: {:?}",
-    scan.dropped
+    scan.dispositions
   );
 }
 
@@ -210,10 +232,10 @@ fn each_work_package_is_compared_against_the_template_written_for_it() {
     );
   }
   assert_eq!(
-    scan.dropped.len(),
+    scan.dispositions.len(),
     6,
     "three sections each, both work packages: {:?}",
-    scan.dropped
+    scan.dispositions
   );
 }
 
@@ -322,6 +344,30 @@ fn an_authored_acceptance_section_wins_and_the_generated_one_defers() {
   assert!(
     !view.contains("This cover never restates them."),
     "the generated default defers rather than appearing alongside:\n{view}"
+  );
+
+  // **vc's finding, and it is this file's own rule turned on the deferral.**
+  // A conservation check reading `DOUBLED-SECTION 20 -> 0` cannot tell a
+  // migrator that deferred to the author from one that stopped generating the
+  // section at all -- both produce that zero. The record is what separates
+  // them, and without it the only way to know is to go and read which pointer
+  // survived, which nobody running the tool does.
+  let deferred: Vec<&legacy::Disposition> = scan
+    .dispositions
+    .iter()
+    .filter(|d| d.verdict == Verdict::Deferred)
+    .collect();
+  assert_eq!(
+    deferred.len(),
+    1,
+    "the deferral leaves exactly one record: {:?}",
+    scan.dispositions
+  );
+  assert_eq!(deferred[0].heading, "Acceptance");
+  assert!(
+    deferred[0].owner.contains("WP/01/info.md"),
+    "naming the file, like every other disposition: {:?}",
+    deferred[0]
   );
 }
 
