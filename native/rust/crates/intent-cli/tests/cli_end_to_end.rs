@@ -22,6 +22,8 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
+use intent_cli::spine::{EXIT_ERROR, EXIT_OK, EXIT_UNAVAILABLE};
+
 fn project() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   let config = dir.path().join("intent").join(".config");
@@ -398,9 +400,16 @@ fn every_wired_verb_takes_its_arguments_without_panicking() {
   ] {
     let out = run(root, &args);
     let code = out.status.code().expect("exited");
+    // **The set comes from `spine`, not from literals, and that is the fix
+    // rather than a tidy-up.** This read `code == 0 || code == 1` while its
+    // message talked about 101 -- so a legitimate `EXIT_UNAVAILABLE` would
+    // have failed it, reported as a panic, and sent the reader looking for a
+    // crash that never happened. The assertion and the message disagreed about
+    // what was being checked, and the message was the one telling the truth.
+    let declared = [EXIT_OK, EXIT_ERROR, EXIT_UNAVAILABLE];
     assert!(
-      code == 0 || code == 1,
-      "`intent {}` exited {code} -- 101 is a panic, which is neither a v2 exit code nor an Intent error\nstderr: {}",
+      declared.contains(&code),
+      "`intent {}` exited {code}, which is not one of this tool's declared codes {declared:?} -- 101 is a panic, and anything else is an exit nobody chose\nstderr: {}",
       args.join(" "),
       String::from_utf8_lossy(&out.stderr)
     );

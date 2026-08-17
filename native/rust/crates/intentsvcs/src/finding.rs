@@ -19,11 +19,21 @@ use std::fmt;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// Why an artefact was refused. Closed vocabulary; migration.md's residue
-/// classes plus the two WP-03 adds ([`ViewSkew`], [`MalformedJson`]).
+/// Why an artefact was refused. Closed vocabulary.
 ///
-/// [`ViewSkew`]: FindingClass::ViewSkew
-/// [`MalformedJson`]: FindingClass::MalformedJson
+/// **This used to say "migration.md's residue classes plus the two WP-03 adds",
+/// and by the time anyone read it the enum held seventeen.** A comment
+/// describing this type's relationship to ANOTHER document is the one claim no
+/// compiler and no test is looking at: the act that adds a variant is not the
+/// act that revisits a sentence about a file somewhere else, so it goes stale
+/// on the first addition and reads as current forever. Third instance of that
+/// shape in this thread, and it is recorded rather than merely corrected --
+/// replacing one count with another would just restart the clock.
+///
+/// So the description is per-variant, where the variant is, and nothing here
+/// counts. What IS enforced lives in [`FindingClass::meta`]: one exhaustive
+/// match supplies rank, wire spelling and remedy, so a new variant does not
+/// compile until all three are decided.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum FindingClass {

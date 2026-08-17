@@ -23,6 +23,34 @@
 //! project. The three tests at the foot of this file are the contract v2
 //! actually has, measured rather than inferred, and the last one drives the
 //! consumer instead of the number.
+//!
+//! # AT-10.9
+//!
+//! **The id lives here because the citation is checkable from both ends** -- the
+//! contract row names this FILE, and a file that does not name the row back
+//! leaves the link provable in one direction only. vc recorded the second end
+//! as owed; this is it.
+//!
+//! Both arms of AC-10.9 ("a project can still COMMIT with v3 installed --
+//! MIGRATED OR NOT") are driven END TO END through the shipped
+//! `lib/templates/hooks/pre-commit.sh`, never against a stub:
+//!
+//! - `a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt`
+//! - `an_unmigrated_project_can_still_commit`
+//!
+//! **The second arm is the one the criterion gained when issue 0045 widened it,
+//! and it did not exist until 2026-08-17.** The original wording was written
+//! against 0038, whose fixture is migrated -- so the criterion, the test built
+//! from it, and every instrument pointed at it inherited that scope, and the
+//! UNMIGRATED project, which is the state every project is in until WP-10 runs
+//! on it, was covered by nothing.
+//!
+//! **Neither arm asserts the exit code of `intent critic` directly**, and that
+//! is deliberate: such a test passes the moment someone changes 1 to 2 and
+//! proves nothing about the gate. The hook is the consumer whose behaviour
+//! changed, so the hook is what is driven.
+//!
+//! Status on the row is vc's to set, from a clean tree, and not from here.
 
 use std::process::{Command, Output};
 
