@@ -31,6 +31,28 @@
 //! which keys must drive behaviour, and the types say which keys they read.**
 //! Neither is restated here.
 //!
+//! **`Target`'s exemption was one word doing three jobs, and it now names which
+//! one** (ic, 2026-08-17). The reason written under it -- 40 prose keys, 28 of
+//! them on a single row, against 2 that code reads -- argues for exempting it
+//! from TOTALITY, and says nothing about the two arms that bind the declaration
+//! to the code. Those cost two list entries. `Target.spelling` was deserialized
+//! in `ac84dc10` and is read for the retirement message, so a read key sat in no
+//! list at all -- the exact state the five lost fields were in, inside the one
+//! type these checks did not look at. So `target` is now in scope for the
+//! declaration arms and stays exempt from `every_key_authored_on_a_leaf_is_
+//! classified_exactly_once` and from the generator's `KEY_UNCLASSED`.
+//!
+//! **EXEMPTING A TYPE FROM TOTALITY TIGHTENS WHAT IT MAY READ, and that reads
+//! backwards, which is why it is stated here rather than only in the canon.**
+//! The note list is what makes "read but deliberately unclassified" expressible
+//! -- `Entry.v2` is prose by classification, deserialized, and costs nothing.
+//! Remove the note list and the only surviving distinction is declared-or-not,
+//! so a key the type reads MUST be declared. `Target` therefore gets the
+//! STRICTER half of arm 2, not the looser one. The word "exempt" invites the
+//! opposite conclusion, and a later reader drawing it would relax the arm to
+//! match their expectation rather than discover the reasoning (cc, 2026-08-17,
+//! asking for it to sit next to the strictness).
+//!
 //! The types are asked what they read by SERIALIZING them. A hand-kept list of
 //! field names in this file would be a roster of the same kind that failed --
 //! and it would be wrong in precisely the place the type was wrong, since
@@ -124,11 +146,21 @@ fn strings(value: &serde_json::Value, class: &str, kind: &str) -> BTreeSet<Strin
     .collect()
 }
 
-/// The three leaf types, each with a real instance taken from the real table.
+/// The three leaf types plus `Target`, each with a real instance taken from the
+/// real table.
 ///
 /// From the table rather than from a constructed sample, so a type that
 /// deserializes a field the canon never carries has somewhere to show up.
-fn leaves() -> (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>) {
+///
+/// `Target` comes off the same entry, because `Entry.target` is a plain field
+/// rather than an `Option` -- every row has one, so the first row's is as good
+/// as any and there is no absent case to handle.
+fn leaves() -> (
+  BTreeSet<String>,
+  BTreeSet<String>,
+  BTreeSet<String>,
+  BTreeSet<String>,
+) {
   let table = dispatch::table();
   let entries: Vec<&dispatch::Entry> = table
     .families
@@ -147,7 +179,12 @@ fn leaves() -> (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>) {
     .flat_map(|e| e.args.iter())
     .next()
     .expect("the table has args");
-  (fields_of(entry), fields_of(flag), fields_of(arg))
+  (
+    fields_of(entry),
+    fields_of(flag),
+    fields_of(arg),
+    fields_of(&entry.target),
+  )
 }
 
 /// **Every key the canon classifies as a DECLARATION is deserialized.**
@@ -164,10 +201,15 @@ fn every_declared_key_is_read_by_the_type_that_owns_it() {
      the declaration/note split is what makes the check possible and its absence is the finding"
   );
 
-  let (entry, flag, arg) = leaves();
+  let (entry, flag, arg, target) = leaves();
   let mut missing = Vec::new();
 
-  for (class, read) in [("entry", &entry), ("flag", &flag), ("arg", &arg)] {
+  for (class, read) in [
+    ("entry", &entry),
+    ("flag", &flag),
+    ("arg", &arg),
+    ("target", &target),
+  ] {
     let declared = strings(classes, class, "declaration");
     assert!(
       !declared.is_empty(),
@@ -179,6 +221,23 @@ fn every_declared_key_is_read_by_the_type_that_owns_it() {
       ));
     }
   }
+
+  // **The scope of `target`'s exemption is asserted, not described** (cc's ask,
+  // 2026-08-17). Everything above passes equally well if someone deletes
+  // `spelling` from the declaration AND stops reading it, which is silent --
+  // the list would shrink to `state` and every arm would stay green while a
+  // shipped behaviour lost its only canon witness. `spelling` builds the
+  // remedy line of the retirement refusal (`spine.rs::retired_refusal`), and
+  // `retired_commands.rs` asserts that refusal names the replacement. So the
+  // fact has two witnesses at opposite ends -- the behaviour at one, the
+  // declaration at the other -- and neither can go quiet alone.
+  assert!(
+    strings(classes, "target", "declaration").contains("spelling"),
+    "`key_classes.target.declaration` no longer lists `spelling`. It is read by \
+     `retired_refusal` to build the `use X instead` remedy, so dropping the declaration \
+     either means the retirement message lost its replacement half, or a read key went \
+     back to being undeclared inside the one type the totality arm does not cover."
+  );
 
   assert!(
     missing.is_empty(),
@@ -207,14 +266,30 @@ fn nothing_is_read_that_the_canon_has_not_classified() {
     serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
   let classes = &classes["key_classes"];
 
-  let (entry, flag, arg) = leaves();
+  let (entry, flag, arg, target) = leaves();
   let mut unclassified = Vec::new();
 
-  for (class, read) in [("entry", &entry), ("flag", &flag), ("arg", &arg)] {
-    let known: BTreeSet<String> = strings(classes, class, "declaration")
-      .union(&strings(classes, class, "note"))
-      .cloned()
-      .collect();
+  for (class, read) in [
+    ("entry", &entry),
+    ("flag", &flag),
+    ("arg", &arg),
+    ("target", &target),
+  ] {
+    // **`target` is STRICTER here, and it follows from the exemption rather
+    // than being an extra rule.** A note list is what makes "read but
+    // deliberately unclassified" expressible. `target` is exempt from totality
+    // and so deliberately has none -- its 40 prose keys, 28 of them on one row,
+    // are the reason -- which leaves declared-or-not as the only distinction
+    // available. With no note list there is no way to tell a note key from an
+    // unclassified one, so on this type every key read must be declared.
+    let known: BTreeSet<String> = if class == "target" {
+      strings(classes, class, "declaration")
+    } else {
+      strings(classes, class, "declaration")
+        .union(&strings(classes, class, "note"))
+        .cloned()
+        .collect()
+    };
     for key in read.difference(&known) {
       unclassified.push(format!(
         "  `{class}` deserializes `{key}`, which key_classes does not list either way"

@@ -901,6 +901,38 @@ PAIR_COUNT_STALE="$(jq -r '
 [ -z "$PAIR_COUNT_STALE" ] || die "\`legal_pairs\` declares a row count that the corpus no longer matches. \`n\` is a live census of this table, not a snapshot of when the pair was added -- the pair matrix is read as analysis and the count is the part people quote. Reclassifying a row changes TWO counts in opposite directions, so the totals still balance and only this per-pair comparison sees it. Update the count, or fix the row that moved:
 $(printf '%s' "$PAIR_COUNT_STALE" | sed 's/^/  /')"
 
+# A `target.spelling` THAT NAMES ITS OWN ROW SAYS NOTHING, and two rows carried
+# one. The field answers "what should the operator type INSTEAD", and its only
+# reader is `spine.rs::retired_refusal`, which walks `table.retired()` and builds
+# the remedy line. So a `keep` row's spelling is never read at all, and a
+# spelling equal to `intent <path>` is the row pointing at itself.
+#
+# **The two instances had drifted to a SECOND MEANING, which is why this is a
+# refusal and not a tidy-up.** `st bootstrap` and `at green` both carried
+# `intent <their own path>`, read as "the v3 spelling of this command" rather
+# than "the replacement for this retired one". One field, two meanings, and only
+# one of them has a reader -- so the unread meaning was free to be authored
+# anywhere and mean nothing, while looking exactly like the load-bearing one.
+# `at green`'s ratification is about a guard and mentions no rename at all.
+#
+# The comparison is against `intent <path>` rather than against `path` because
+# the field holds a full command line -- that is what the remedy prints -- so
+# the self-reference is only visible with the prefix attached.
+#
+# Mutation-proved 2026-08-17, both driven through the real generator:
+#   A  steady table (one spelling, `st_zero` -> `intent st bootstrap`)  -> silent
+#   B  a self-referential spelling restored onto `at green`             -> REFUSES
+# B is the state HEAD was in an hour before this arm existed, so it is a
+# regression test rather than a hypothetical.
+SPELLING_SELF="$(jq -r '
+  [ .families[].entries[], .new_surface[]
+    | select((.target.spelling? // "") != "")
+    | select(.target.spelling == ("intent " + .path))
+    | .path + " (spelling: " + .target.spelling + ")" ]
+  | join("\n")' "$IN")"
+[ -z "$SPELLING_SELF" ] || die "row(s) carry a \`target.spelling\` that names the row itself, which tells an operator nothing. The field answers what to type INSTEAD of a retired command and its only reader is the retirement refusal, which walks retired rows only -- so a self-referential spelling is both unread and meaningless. Drop it, or give it the replacement it was meant to name:
+$(printf '%s' "$SPELLING_SELF" | sed 's/^/  /')"
+
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
 # reads as "reviewed and confident" in a diff and as "somebody meant to fill
