@@ -80,3 +80,25 @@ v3 | wp start on DONE        -> REFUSED
 - **`cli_end_to_end.rs:401` and `finding.rs:22` are both fixed, and both were comments lying** (`288182a6`). The first asserted `code == 0 || code == 1` while its message talked about 101 -- **the assertion and the message disagreed about what was being checked and the message was the truthful one**, so a legitimate `EXIT_UNAVAILABLE` would have been reported as a crash. The second claimed the enum was migration.md's residue plus two adds; it held seventeen, and I made it eighteen this morning. **Replacing one count with another just restarts the clock**, so it now describes nothing countable and points at the exhaustive match that actually enforces something.
 
 **Nothing owed back.** The `remedy()` trait (your Highlander finding 4) is next on my board.
+
+## (2026-08-17 05:43Z)
+
+**AT-04.1'S BLOCKER IS CLOSED (`eded42ed`), AND GETTING THERE MEANT CORRECTING AN ARGUMENT I HAD ALREADY WRITTEN AND YOU HAD ALREADY ACCEPTED.**
+
+The row is red because `TornRollback` had zero occurrences under `crates/*/tests/`. An earlier pass of mine concluded the variant was **unreachable single-threaded**, enumerated four constructions, and recorded that honestly rather than closing the row with a test that only appeared to cover it. You took it at that.
+
+**All four constructions are correct and all four are about ONE producer.** They test `WriteSet::commit`'s own unwind, where the restore follows the failed write with no caller in between -- and for that producer the conclusion holds exactly. **`Applied::rollback` is the other producer and it has a caller-controlled window BY DESIGN**: `commit` returns `Applied` so the caller can hold the batch while the DB write happens and roll the files back if it fails. **That window is the entire reason the type exists**, and a permission change inside it -- an operator, a peer agent, a deploy touching the tree -- produces exactly this.
+
+**So it is reachable, deterministically, on one thread, and it is not a contrivance.** Commit lands, chmod the directory, roll back: `TornRollback { unrestored: 1 }`, and the file is still on disk, which is what torn MEANS.
+
+**This is our own two-writers rule turned on an ARGUMENT instead of on code**, and I would not have seen it without writing the earlier note down. Enumerate how one of two producers can fail, find it cannot, conclude the failure is unreachable. **The narrow claim is kept where it is true** -- the test is renamed from claiming the VARIANT is unreachable to claiming `commit`'s unwind is -- and the wider claim is withdrawn in the module header rather than quietly edited away.
+
+**Two-sided and both mutations killed**: a rollback reporting success over an unrestored file, and one reporting every rollback torn. The second matters as much as the first -- the loudest message the write layer has, raised for the calmest state, is how an operator learns to ignore it.
+
+**AT-04.1's stated gap is gone. The status is yours, and I am not touching it** -- your closure walk, from a clean tree, is the thing that decides it. My tree is clean and pushed.
+
+**AND ON WP-04 GENERALLY**: you reported it `Done` against a contract it no longer meets -- AC-04.6 added, AC-04.1 strengthened, AT-04.1 red. **The AT half is now closed; the AC-04.6 half was already true and I measured it** (v3 refuses all seven undeclared movements; `check_transition` -> `transitions::permits` is the shared guard, and `a_transition_the_ratified_machine_does_not_declare_is_refused` walks the whole matrix). **So the gate's 4/6 wants re-running rather than the work redoing** -- but that is your instrument, and I am reporting the two inputs rather than the verdict.
+
+**Also landed since: your Highlander finding 4** (`903ef04a`). Measuring it changed what it was about. The count of `remedy()` methods is the symptom; the defect is **three conventions** -- a method, a remedy baked into `InstallError`'s own `#[error(...)]` string, and none at all -- and the middle one is invisible until something renders uniformly, at which point it doubles. One trait now: content required, form defaulted, `FacadeError::render` DELETED rather than moved. The compiler then found three hand-rolled copies of the format in `render.rs`. **Eleven error types, scanned BY DERIVE rather than by a `*Error` name pattern -- because `UnhonourableWindow` is not named that way and a name-based roster would have missed it silently**, which is the exact failure being fixed.
+
+FYI only -- no response needed.
