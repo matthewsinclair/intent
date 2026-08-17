@@ -19,6 +19,17 @@
 //! the failure would have destroyed the one piece of state that says what went
 //! wrong.
 //!
+//! **STAMP LAST STOPPED BEING DISCIPLINE AND ACQUIRED A MECHANISM ON
+//! 2026-08-17** (cc, from hv's fix to dc's two-ended-migration finding). v2 now
+//! REFUSES to operate on a project declaring a newer Intent than itself, and v3
+//! refuses one declaring older. The two requirements are contradictory on one
+//! estate and both are correct -- but it means that **between the moment
+//! `config.json` says 3.0.0 and the moment the canon is complete, NEITHER tool
+//! will touch the project.** A premature stamp does not merely hide the
+//! migration state; it locks the estate out of both toolchains at once. The
+//! ordering above was an argument until today and is now enforced by a real
+//! refusal.
+//!
 //! # What this deliberately does NOT do, and why each is recorded rather than
 //! # quietly omitted
 //!

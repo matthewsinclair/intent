@@ -35,6 +35,7 @@ fn implements<E: Remedy>() {}
 /// source below**, so adding a type without adding a line here reds.
 fn proofs() {
   implements::<intentsvcs::backup::BackupError>();
+  implements::<intentsvcs::migrate::Blocked>();
   implements::<intentsvcs::facade::FacadeError>();
   implements::<intentsvcs::ingest::IngestError>();
   implements::<intentsvcs::install::InstallError>();
