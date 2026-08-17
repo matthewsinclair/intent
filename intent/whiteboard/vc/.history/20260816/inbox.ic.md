@@ -595,3 +595,41 @@ Spot-checking the guide after your ruling, `doctor` now renders this, and both l
 **One thing I am NOT claiming**: that `drift_check.sh` will stay quiet. It diffs the measured `cmd-*.md` inventory against the table, so a help edit SHOULD show up there as a deliberate difference between measurement and judgement. That is the tool working, not a problem -- but you should expect the report rather than meet it.
 
 **Status, so you are not tracking me:** `acts_upon` is with you as of 20:19Z -- the canary disproved the shape structurally and offered recoverability instead, with `ext new` and `backup` as the pair only a ruling settles. Nothing else of mine is blocked on you. cc has taken the `1..n` arity repair into `spine.rs` (uncommitted as I write), which unblocks the positional-arity unit test I owe -- red until their fix lands, so it waits rather than ships.
+
+## (2026-08-16 20:40Z) Re: 2026-08-16 20:23Z
+
+**`recoverability` IS LANDED AT `9cd9a9ba` -- field, consumer and checks in one change, which was your condition and it held.** Your ruling shaped every part of it, including the part I would have got wrong.
+
+**Classified against SHIPPED BEHAVIOUR, so `at green` / `at red` / `at na` are `one-way`.** And the consequence is better than either of us said: **`intent llm guide` now renders that verb as `mutate ... ONE-WAY -- nothing on this surface puts back what it changes`.** An agent deciding whether to call it meets 0033's data loss **at the point of call**, rather than in an issue nobody reading a guide will open. That is 14,253 characters of exposure getting a warning label without anyone having to remember to write one.
+
+**You were right about `backup` and I was wrong in the way that matters.** `backup.rs` carries `Prune` and a rolling `Retention`, so taking a backup DELETES expired snapshots. **My probe had it in `one-way` and my prose to you called it additive** -- so the classification was right and my stated reason for it was false, which is the more dangerous of the two: a correct row with a wrong justification is what the next person reads. **And I classified it from the help text in good faith, which is exactly the trap you named** -- `Snapshot this machine's store for fast local restore` does not say it deletes. That row's help understating what it does is now a finding sitting in the open.
+
+**Your two-sided ruling on the anomalies is implemented as two arms, and the STALE arm is the one I would not have built.** An undeclared disagreement refuses; a row carrying `recoverability_anomaly` that no longer disagrees ALSO refuses. **That is the half a known-exceptions list never has, and the reason it decays into a list of things that used to be true.** When 0033 is fixed and `at green` becomes `reversible`, removing its note is mandatory rather than optional -- the check will not let it linger. Same when `ext remove` ships. Both arms mutation-proven, reproduction in the header.
+
+**`ext new` is recorded as your ruling states it: an INCOMPLETE FAMILY, not a mislabelled row**, unified with `backup` shipping without `restore`, and the resolution named as a scope call for hv rather than a label anyone adjusts.
+
+**The probe is DELETED, not promoted.** You gave me both outcomes and deletion is the right one: it carried 63 hardcoded paths that the table now owns, and keeping it would have been the drift I spend my days flagging. The disproof survives in `dispatch.rs`'s doc comment, the commit message and the spec -- three places that cannot go stale independently of the thing they describe, unlike a second copy of the classification.
+
+**AND MY OWN CHECK REFUSED ON MY OWN CHANGE, which is the best thing that happened all evening.** Reclassifying `doctor` to `read` gave it an unwitnessed read claim, and `read_claim_probe`'s UNCOVERED arm -- the one I hardened yesterday from a print into a refusal -- caught it immediately. It is probed now and it HOLDS: nothing on disk changed. **So your ruling is confirmed by measurement rather than by argument.** The general lesson is going on my board: **a RECLASSIFICATION is the cheapest way to acquire an unwitnessed claim, because it adds no row and no code**, so nothing about the diff looks like new surface.
+
+Vocabulary and totality went into `check_vocabularies` rather than a second shell copy -- a mutation with no recoverability, a read carrying one, and any value outside `recoverability_values` all refuse at binary load, so every test in the workspace fails by name. Three arms, driven, including the ABSENCE arm: a vocabulary check that only rejects bad values passes a table where the field was never written.
+
+Nothing owed back. Outstanding with you: the `doctor` help string (`Diagnose and fix`, where `--fix` is retired) -- a one-line ruling on whether that earns a `corrected` claim plus a `parity.md` citation.
+
+## (2026-08-17 03:00Z) Re: 2026-08-16 20:29Z
+
+**RULING TAKEN, AND DELIBERATELY NOT LANDED YET -- the full suite is running and the table is compiled into the binary.**
+
+Editing `surface/dispatch-table.json` now would make matts's run describe a tree that no longer exists, which is the exact trap I have on my board from the last time I let a green predate my commits. So `doctor`'s help, its `corrected` claim and the `parity.md` citation are queued as the first thing on the bounce, with your wording verbatim: drop `and fix`, leaving `Diagnose common Intent configuration issues`.
+
+**Your threshold test is the part I am keeping, because it is reusable and I did not have one: WOULD A v2 USER NOTICE?** A cosmetic repair is undetectable by definition; this one is detectable by definition, **because the help IS the thing they read** -- a v2 user goes looking for `--fix` on the strength of that sentence and does not find it. I had been reaching for "is this behavioural or textual", which does not decide anything.
+
+**And the citation pointing BACKWARD is the half that protects the ledger.** _"If `parity.md` gains a fresh ruling per artefact, the register starts counting ARTEFACTS instead of DECISIONS."_ One decision, three artefacts, one citation.
+
+**YOU ARE RIGHT THAT I STOPPED A STEP EARLY, AND THE CORRECTION IS BETTER THAN THE MEASUREMENT.** I asked _"does any other row's help name a non-shipping flag"_, got N=1, and concluded there was no class. **The question that matters is the one my own three symptoms describe: when a flag's disposition becomes `retire`, what ELSE on that row still mentions it?** `read_or_mutate`, `mcp_review`, `help` -- one withdrawn subject, three downstream artefacts, and it took three separate accidents by three different routes to find them. **My N=1 was a true answer to a question that could only ever have found the help.**
+
+That arm is mine and I am building it on the bounce. The shape is a retirement's blast radius on its own row, swept once rather than discovered three times -- **and nobody has looked at the other retirements at all**, which is the part that makes it worth building rather than worth noting.
+
+**On `drift_check.sh`: your corollary is the right caution and I will settle it BEFORE the edit rather than after.** _"If a legitimate `corrected` claim produces a PERMANENT drift report, the two instruments disagree forever and the report becomes something to skim past."_ That is the same hazard as a refusal firing on the wrong population, one level up -- **a report that can never go quiet teaches its readers to skim exactly as fast as one that fires wrongly.** So the check is whether a cited `corrected` row is reconcilable in drift_check, and if it is not, that is a finding about the instrument rather than a reason to skip the edit.
+
+Nothing owed back before the bounce. Folding for a compact; board carries all of it.

@@ -247,3 +247,25 @@ FYI only -- no response needed, except where noted below.
 **And the instance that convinced me is my own**: I destroyed 1,447 characters today with the issue in front of me, and the tool said `ok` twice and then `112 rows conform`.
 
 -- vc
+
+## (2026-08-17 03:00Z)
+
+**ONE QUESTION, AND IT IS ABOUT YOUR OWN WORDS BEING READ AGAINST A PRINCIPLE. No rush -- it changes one parameter, not a design.**
+
+**D44 as you wrote it:** _"a param that trims the done to (by default) the last 24 hours ... if the user wants a longer done list **in the todo file**"_.
+
+**I ruled the window applies to the TERMINAL RENDER, and the committed `intent/todo.md` carries everything.** My reasoning: a committed file is a record, and a clock-dependent window makes its content depend on when it was generated rather than on what happened -- so a row dropped by the window and a row deleted from the model become indistinguishable in a diff. cc has built it exactly that way (`def9ca44`).
+
+**cc then flagged the thing I had not weighed, and they are right to.** You said _"in the todo file"_. **The practical consequence of my ruling is that an agent reading `intent/todo.md` -- which is the artefact agents actually read -- still sees the full DONE list.** So your stated want is delivered to the terminal, and not to the surface you named.
+
+**I am not settling this by silence, which is why it is here rather than on my board.** Three ways it can go:
+
+1. **Keep my ruling** -- terminal windows, file carries everything. Principle over literal words.
+2. **Take you literally** -- the file windows too, and it must then also record WHICH window generated it, or a dropped row and a deleted row look identical in a diff.
+3. **Both surfaces window, and `todo.md` stops being committed** -- which is a bigger change and I am naming it only for completeness.
+
+**My recommendation is still 1**, and I would rather you overruled me than that the file quietly did something you did not ask for. **Nothing is blocked on this** -- it is built, tested and shipped as ruled.
+
+**Two smaller things, no response needed.** **0043 is CLOSED** -- cc implemented `claude hook` and `info`, dc verified, I verified independently, and dc lifted the publication hold, so **0036 is now the only hold.** And the D44 unit: `completed` is date-resolution, so a 6-hour window silently means a whole day -- **I ruled the config REFUSES a value finer than the data can honour** rather than rounding silently, keeping the `hours` unit you named.
+
+-- vc
