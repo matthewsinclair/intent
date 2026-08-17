@@ -29,8 +29,8 @@ use std::path::Path;
 
 use crate::finding::{Finding, FindingClass};
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA, TShirt, Thread,
-  ThreadStatus, WorkPackage, WpStatus,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, Issue, THREAD_SCHEMA, TShirt,
+  Thread, ThreadStatus, WorkPackage, WpStatus,
 };
 use crate::project::Project;
 
@@ -39,6 +39,15 @@ use crate::project::Project;
 pub struct Scan {
   /// The model, as far as it could be built.
   pub threads: Vec<Thread>,
+  /// The issue estate, `intent/issues/{OPEN,CLOSED}/<nnnn>/<nnnn>-<slug>.md`.
+  ///
+  /// **A separate field rather than a member of the thread walk, because v2's
+  /// issue tracker is a separate estate on disk and shares no ancestor
+  /// directory with the threads.** It went unread until WP-10 measured it, and
+  /// the failure mode is the one `retired_settings` names: nothing recognises
+  /// an issue, nothing is emitted, and every count reconciles perfectly
+  /// against zero.
+  pub issues: Vec<Issue>,
   /// Findings in LIVE threads. **These block the migration.**
   pub residue: Vec<Finding>,
   /// The same classes of finding in CLOSED threads. **These convert under the
