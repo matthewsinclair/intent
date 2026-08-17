@@ -265,3 +265,89 @@ fn the_rendered_view_carries_exactly_one_acceptance_section() {
      dropping the generated half instead would produce the same count:\n{view}"
   );
 }
+
+// ---------------------------------------------------------------------------
+// The OTHER half: an AUTHORED Acceptance section, which the drop rule is right
+// to keep and which therefore still collided with the generated one
+// ---------------------------------------------------------------------------
+
+/// **Baize is the estate that proved these were two problems, not one.** The
+/// scaffolding fix took its doubled views 53 -> 20, and the 20 survivors are
+/// authored prose: `33 dropped + 20 authored = 53`, the arithmetic closing
+/// exactly (vc). Intent's own estate has no authored survivors at all, which is
+/// why the verification estate had to be the one that did NOT find the defect.
+///
+/// **And the generated line is not merely redundant on those threads, it is
+/// wrong.** It asserts the criteria sit under a `WP-NN` heading; Baize's
+/// authored pointer says `AC-01`, because `AC-NN.M`'s major number is an AC
+/// GROUP ordinal there (vc's D47 ruling). The author had already stated the
+/// convention correctly and the tool was contradicting them.
+#[test]
+fn an_authored_acceptance_section_wins_and_the_generated_one_defers() {
+  let fixture = Fixture::new();
+  estate(&fixture);
+  // Baize's shape: the template's Acceptance replaced by the author's own,
+  // naming that project's AC-group convention rather than a WP heading.
+  let authored = TEMPLATE.replace(
+    "Acceptance Criteria for this work package live in the steel thread's `acceptance.md`, under the `WP-NN` heading (single source of truth). Do not restate ACs here.",
+    "Acceptance Criteria live in the steel thread's `acceptance.md` under `AC-01`.",
+  );
+  fixture.write_file(
+    "intent/st/ST0001/WP/01/info.md",
+    &format!(
+      "---\nwp_id: WP-01\ntitle: \"A work package\"\nscope: Small\nstatus: Done\n---\n\n{}",
+      authored.replace("WP-NN", "WP-01")
+    ),
+  );
+  let scan = scan(&fixture);
+  let thread = &scan.threads[0];
+
+  assert!(
+    body_of(&scan, 1).contains("under `AC-01`"),
+    "premise: the drop rule correctly KEEPS this, because an author wrote it"
+  );
+
+  let view = views::wp_info(thread, &thread.wps[0], &ctx());
+  assert_eq!(
+    view.lines().filter(|l| *l == "## Acceptance").count(),
+    1,
+    "one section, not two -- the collision the drop rule cannot reach:\n{view}"
+  );
+  assert!(
+    view.contains("under `AC-01`"),
+    "and the one that survives is the AUTHOR'S. Keeping the generated copy \
+     instead would produce the same count while destroying the project-specific \
+     fact and asserting a convention this project does not use:\n{view}"
+  );
+  assert!(
+    !view.contains("This cover never restates them."),
+    "the generated default defers rather than appearing alongside:\n{view}"
+  );
+}
+
+/// **The control, and without it the rule above is indistinguishable from
+/// deleting the generated section entirely.** A work package whose author wrote
+/// no Acceptance of their own must still get the pointer -- that is the case
+/// the section exists for, and it is every work package in a v3-native project.
+#[test]
+fn a_work_package_with_no_authored_acceptance_still_gets_the_pointer() {
+  let fixture = Fixture::new();
+  estate(&fixture);
+  wp(
+    &fixture,
+    1,
+    "\n## Risks and Edge Cases\n\nThe quokka clause.\n",
+  );
+  let scan = scan(&fixture);
+  let thread = &scan.threads[0];
+  let view = views::wp_info(thread, &thread.wps[0], &ctx());
+
+  assert!(
+    view.contains("## Acceptance") && view.contains("This cover never restates them."),
+    "the generated pointer is the default and must still appear:\n{view}"
+  );
+  assert!(
+    view.contains("## Risks and Edge Cases"),
+    "and the authored body around it is untouched:\n{view}"
+  );
+}

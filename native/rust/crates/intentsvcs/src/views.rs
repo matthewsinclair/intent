@@ -293,6 +293,23 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   finish(out, ctx, "thread.json")
 }
 
+/// Does this carried body already carry `## <heading>` of its own?
+///
+/// **Exact, line-anchored, and deliberately not a `contains`.** The bodies
+/// this is asked about are authored markdown containing fenced code, tables
+/// and quoted prose, so a substring test would defer to the word "Acceptance"
+/// appearing inside a sentence -- and the failure would be silent, because the
+/// generated section simply would not appear.
+///
+/// One home for it: the same collision exists at thread level the moment
+/// `Thread.body` lands, and two private copies of "does the author already
+/// have this heading" is the drift the Highlander rule exists to stop.
+fn carries_heading(body: &str, heading: &str) -> bool {
+  body
+    .lines()
+    .any(|l| l.strip_prefix("## ").is_some_and(|h| h.trim() == heading))
+}
+
 /// A prose block, normalised only in its trailing blank line -- the body
 /// itself is carried verbatim, never reflowed.
 fn section_body(text: &str) -> String {
@@ -543,11 +560,38 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   // The acceptance pointer, not the acceptance. v2's template says the same
   // thing and it is load-bearing: ACs live in the thread's `acceptance.md`,
   // and a work package restating them is a second copy that goes stale.
-  out.push_str("## Acceptance\n\n");
-  out.push_str(&format!(
-    "Acceptance Criteria for this work package live in `{}/acceptance.md`, under the `WP-{:02}` heading -- the single source of truth. This cover never restates them.\n\n",
-    thread.id, wp.seq
-  ));
+  //
+  // **AN AUTHORED ONE WINS, AND THE DEFAULT DEFERS TO IT.** `body` is a
+  // catch-all, so a work package whose author wrote their own `## Acceptance`
+  // renders two of them -- which shipped, on 40 views here and 104 across the
+  // fleet. `27c4ec98` closed the SCAFFOLDING half by dropping sections nobody
+  // wrote; **this is the other half, and they were always two problems.** On
+  // Baize the fix took 53 doubled views to 20, and the 20 survivors are
+  // authored prose that the drop rule is right to leave alone (vc measured it
+  // on the estate that did NOT find the defect, which is why it was the
+  // estate to verify on).
+  //
+  // **The deciding argument is not duplication, it is that the generated line
+  // can be FALSE.** It asserts the criteria sit "under the `WP-NN` heading",
+  // and `AC-NN.M`'s major number is an AC GROUP ordinal on some projects and a
+  // work-package number on others -- vc's D47 ruling, after doctor had
+  // silently picked one reading. Baize's own authored pointer says `AC-01`,
+  // which is correct there and is precisely what the generated one contradicts.
+  // **So the collision was the tool asserting a convention over the author who
+  // had already stated the right one**, and deferring keeps the true copy.
+  //
+  // Dropping was never available for these: nobody can say "no author wrote
+  // it" about them, and a project-specific fact would go with them. Renaming
+  // the generated heading was the other option and is worse -- it changes
+  // every view in the fleet to avoid a collision on a minority, and
+  // `Acceptance` is the right name for what it is.
+  if !carries_heading(&wp.body, "Acceptance") {
+    out.push_str("## Acceptance\n\n");
+    out.push_str(&format!(
+      "Acceptance Criteria for this work package live in `{}/acceptance.md`, under the `WP-{:02}` heading -- the single source of truth. This cover never restates them.\n\n",
+      thread.id, wp.seq
+    ));
+  }
 
   finish(out, ctx, "the thread canon")
 }
