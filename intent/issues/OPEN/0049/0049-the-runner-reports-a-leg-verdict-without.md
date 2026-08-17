@@ -75,6 +75,7 @@ A false regression reached the hypervisor and was escalated to two building node
 
 - **It is silent.** A stale verdict looks exactly like a live one, so the default reading is the wrong one, and it is wrong in the expensive direction (chase a regression that does not exist).
 - **The green case is worse than the red one.** A red verdict at least gets read carefully. A stale GREEN certifies a tree nobody has and is never questioned -- and this incident produced stale greens too, on four other legs, which nobody has any reason to distrust.
+- **The false-green half is not hypothetical, and the evidence was already in the file.** `resolve:459-464` records a measured incident from **04:05 the same morning**: the bats leg sealed a non-empty `.errors` (one failure of 1311) at 04:05:33, the Rust leg sealed empty at 04:06:47, and the run **was reported to a human as "100% green (rust and bats)" at 04:07 -- who acted on it.** That was a rc-versus-seal disagreement rather than a stale tree, but the shape and the cost are identical: a verdict asserting more than its measurement supports, believed because green is not read twice.
 - **It degrades exactly when the estate is busiest.** The window is the run's duration, so the slowest legs on the most-edited days have the widest exposure.
 
 ## Proposed Fix
