@@ -630,6 +630,45 @@ cmd_notarize() {
   rm -rf "$staging"
   printf '\n'
   ok
+  # WAIT FOR THE TICKET TO BECOME VISIBLE, BECAUSE `Accepted` AND `USABLE` ARE
+  # DIFFERENT FACTS AND THIS COMMAND USED TO RETURN ON THE FIRST ONE.
+  #
+  # MEASURED, not anticipated. A submission came back Accepted with both binaries
+  # signed and hardened-runtime-verified, and Gatekeeper then rejected one of them
+  # as `Unnotarized Developer ID` for over two minutes -- six polls, both copy
+  # methods agreeing at every moment, so it was the ticket and not the check. It
+  # then flipped to `Notarized` and stayed, for both binaries. Latency has a
+  # direction; that shape is what distinguishes it from a per-artefact gap.
+  #
+  # WHY IT MATTERS RATHER THAN BEING A CURIOSITY: `prepare` runs `checksum`
+  # seconds after this returns, and `checksum` refuses on `verify_notarised`. So
+  # the one-pass command was reaching into this window and refusing with "a staged
+  # artefact is not signed AND notarised" -- naming the artefact for a fact about
+  # a CDN. A refusal that names the wrong subject, in a pipeline being corrected
+  # for exactly that.
+  #
+  # THIS REPORTS AND DOES NOT REFUSE. The authoritative refusal stays in
+  # `checksum`, on the one `verify_notarised` implementation; putting a second one
+  # here would be the drift AC-11.4 forbids. All this does is stop asking the
+  # question during the interval when the answer is known to be meaningless.
+  step "waiting for the ticket to become visible to Gatekeeper"
+  local waited=0 visible=0 vb
+  while [ "$waited" -lt 300 ]; do
+    visible=1
+    for vb in $BINARIES; do
+      verify_notarised "$vb-$triple" >/dev/null 2>&1 || visible=0
+    done
+    [ "$visible" -eq 1 ] && break
+    sleep 15
+    waited=$((waited + 15))
+  done
+  if [ "$visible" -eq 1 ]; then
+    printf '    %-34s after %ss\n' "visible to Gatekeeper" "$waited"
+  else
+    printf '    %-34s NOT visible after %ss -- checksum will refuse, and that is\n' "still waiting" "$waited"
+    printf '    %-34s the right place for it to be decided\n' ""
+  fi
+
   printf '  Accepted. NOTHING IS STAPLED, and that is correct: a bare Mach-O\n'
   printf '  binary has nowhere to hold a ticket. The ticket lives on Apple'"'"'s\n'
   printf '  servers and Gatekeeper checks online. conflab ships exactly this way.\n'
@@ -1321,6 +1360,30 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
     pbc="$(artefact_source_commit "$STAGE_DIR/$pb-$(host_triple)")" || pbc="<none>"
     printf '    %-34s names %s\n' "$pb" "$pbc"
   done
+
+  # THE RELEASE BODY MAKES A PERMANENT PUBLIC CLAIM, SO IT IS MEASURED HERE AND
+  # NOT INHERITED. `gh release create` below writes "Both binaries are Developer
+  # ID signed and notarised" onto the releases page, where it outlives every
+  # terminal this pipeline ever printed to -- and until now `publish` established
+  # neither half. It leaned on `checksum` having refused, which is a claim about
+  # an earlier step surviving in a record beside the artefacts. That is the exact
+  # shape AC-11.5 forbids, and it sat on the most public surface in the pipeline.
+  #
+  # `verify_notarised` and nothing else, so this remains ONE implementation with
+  # three consumers rather than a second copy that drifts: it is the only check
+  # that proves the whole chain, on a quarantined copy, because `codesign
+  # --verify --strict` returns 0 over the linker's ad-hoc signature.
+  step "proving the claim the release body is about to make"
+  local vrc=0 vb
+  for vb in $BINARIES; do
+    verify_notarised "$vb-$(host_triple)" || vrc=1
+  done
+  [ "$vrc" -eq 0 ] ||
+    die "refusing to publish: the release notes assert both binaries are Developer ID
+       signed and notarised, and that could not be established on these bytes just
+       now. Nothing has been uploaded. Re-run 'int macos prepare' -- and note that
+       signing REWRITES a binary, so a re-sign after 'checksum' leaves hashes that
+       describe bytes no longer on disk."
 
   gh repo view "$TAP" >/dev/null 2>&1 ||
     die "cannot reach the tap $TAP -- check 'gh auth status'"
