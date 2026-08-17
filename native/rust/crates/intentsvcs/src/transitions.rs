@@ -564,6 +564,11 @@ pub fn guard_for(entity: &str, field: &str, verb: &'static str) -> &'static [Gua
 /// every value in the domain, because authored canon can carry any value the
 /// schema accepts. Splitting entry from exit is what makes the two answerable
 /// with one definition of "no way out" instead of two that could drift.
+///
+/// **Its failure mode is returning nothing, and most of its callers assert a set
+/// is empty** -- so breaking it toward empty is invisible to them.
+/// `the_wider_reading_fires_on_unbuilt_rows_only` is the arm that requires it to
+/// find something.
 pub fn exitless(values: &[String], edges: &[Edge]) -> Vec<String> {
   values
     .iter()

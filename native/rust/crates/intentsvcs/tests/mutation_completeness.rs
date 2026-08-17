@@ -578,6 +578,17 @@ fn an_unbuilt_fields_entry_path_is_measured_not_declared() {
 ///
 /// Both halves are asserted non-empty. A walk that found no fields of either
 /// kind would agree with every claim above.
+///
+/// **Mutation testing turned up a second thing this arm protects, and it was not
+/// the reason it was written.** `exitless` is now the one computation behind both
+/// conditions, so it is a single point of failure whose natural failure mode is
+/// returning nothing -- and every OTHER consumer asserts a set is EMPTY, so a
+/// neutered `exitless` makes them pass. Stubbing it to `Vec::new()` leaves
+/// `no_state_can_be_entered_and_not_left` green. The `Unbuilt` half below is the
+/// only assertion in the file that requires the computation to actually FIND
+/// something, which makes it the canary for the primitive the emptiness tests
+/// cannot watch. Worth knowing before anyone simplifies it away as redundant
+/// with the State half.
 #[test]
 fn the_wider_reading_fires_on_unbuilt_rows_only() {
   let mut state_fields = 0;
