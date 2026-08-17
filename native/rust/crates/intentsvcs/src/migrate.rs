@@ -76,6 +76,24 @@ pub struct Plan {
   /// wanted to inspect it first -- and the report belongs to the door, which
   /// knows whether anyone is watching.
   pub carried: Vec<Finding>,
+  /// Threads Phase A took from `thread.json` rather than from their markdown,
+  /// because they were already migrated.
+  ///
+  /// **For the REPORT and deliberately not for control flow.** They are in
+  /// [`Plan::threads`] like any other, so the plan re-emits byte-identical
+  /// canon and byte-identical views for them and the two global views render
+  /// from the whole estate. Skipping them here would be the truncation this
+  /// design exists to avoid, one layer down: `steel_threads.md` and `todo.md`
+  /// are rendered from the full thread list, so a plan that dropped 54 of 56
+  /// would rewrite the index with two rows while reporting `2 converted, 54
+  /// already` -- every word true.
+  ///
+  /// **What it buys is a re-run that says what it did.** `already_migrated +
+  /// converted` reconciles against the estate, so doing less stops being
+  /// indistinguishable from there being less (cc, `legacy.rs`'s own rule that
+  /// a silent skip is how an artefact disappears from a migration whose whole
+  /// promise is that nothing does).
+  pub already_migrated: Vec<String>,
 }
 
 /// Why no plan exists.
@@ -211,18 +229,27 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   // here would make a new Phase A output something the join silently drops,
   // which is the exact class this whole operation exists to prevent -- and it
   // would drop it in the one place with no reader to notice.
+  //
+  // **It fired on the first field to arrive after it was written**
+  // (`already_migrated`, cc, 2026-08-17), which is the whole of its case: the
+  // compiler stopped the workspace rather than the join quietly ignoring a
+  // Phase A output, and the decision about what to do with it was made here
+  // instead of defaulting to nothing.
   let Scan {
     threads,
     issues,
     residue,
     carried,
+    already_migrated,
   } = scan;
 
   if !residue.is_empty() {
     return Err(Blocked::Residue(Refusal::new(residue)));
   }
 
-  assemble(project, ctx, threads, issues, carried)
+  let mut plan = assemble(project, ctx, threads, issues, carried)?;
+  plan.already_migrated = already_migrated;
+  Ok(plan)
 }
 
 /// The whole of Phase B's work, over a model rather than over a scan.
@@ -312,6 +339,11 @@ fn assemble(
     threads: bundle.threads,
     issues: bundle.issues,
     carried,
+    // `assemble` works over a model and has no idea where any of it came
+    // from; `plan` fills this in from the scan. Empty here rather than a
+    // parameter, because a fifth argument carrying a value this function
+    // never reads would be a seam pretending to be a dependency.
+    already_migrated: Vec::new(),
   })
 }
 
