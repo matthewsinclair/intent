@@ -240,7 +240,17 @@ fi
 # database into a pass.
 HAVE_TOOLS=1
 if [ ! -d "$TOOLS" ]; then
-  warn "no ST0056 parity apparatus at $TOOLS -- those two gates SKIPPED this commit."
+  # NO COUNT IN THIS MESSAGE, DELIBERATELY, AND THE ABSENCE IS THE FIX. It read
+  # "those two gates" from the day dc wrote it (b186a0f3), when there were two.
+  # There are now NINE behind this branch, and the literal rotted silently
+  # through every addition -- so at the one moment coverage is degraded, the
+  # message a human reads understated the gap by seven.
+  #
+  # A count here can only ever be a second copy of the list below, and the copy
+  # is the half nobody updates. Naming the CLASS cannot rot; naming what still
+  # ran is what the reader actually needs, because the danger is reading "gates
+  # skipped" as "no gate ran".
+  warn "no ST0056 parity apparatus at $TOOLS -- every ST0056 parity gate SKIPPED this commit (the database and whiteboard guards still ran)."
   HAVE_TOOLS=0
 fi
 

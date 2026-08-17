@@ -132,7 +132,28 @@ guards_of() {
   # (the authority on what it checks). Grepping for a capability marker is not
   # the same mistake as grepping for the roster: this cannot go stale in a way
   # that under-reports, because a runner that declares the flag must contain it.
-  if ! grep -q -- '--list-guards' "$runner" 2>/dev/null; then
+  # ANCHORED ON THE HANDLER ARM, NEVER ON THE MENTION -- and the loose form was
+  # live until 2026-08-17, doing exactly what the comment above forbids.
+  #
+  # `cmd/prepush` carries the words `--list-guards` in a COMMENT and implements
+  # no handler for it. The old probe grepped for the bare string, matched that
+  # comment, and concluded prepush supported the flag. `int hooks` -- a
+  # read-only "what is wired?" report -- then ran `int prepush --list-guards`;
+  # prepush ignored the unrecognised flag and DID THE WHOLE THING, cloning HEAD
+  # and building both binaries, and its progress lines were parsed as a guard
+  # roster and printed as guards. Asking what was wired performed a clone and a
+  # build, which is the side-effect-as-probe failure named four lines up, caused
+  # by the mitigation written to prevent it.
+  #
+  # PROSE AND MECHANISM SHARE A SPELLING. A grep for a capability counts the
+  # sentences describing it, and documentation is exactly what accumulates
+  # around a mechanism other files consume. The invocation contract is the
+  # dispatch arm -- `"${1:-}" = "--list-guards"` -- which no comment contains
+  # and which a runner cannot honour without.
+  #
+  # It still cannot go stale in the under-reporting direction: a runner that
+  # answers the flag must contain the arm that answers it.
+  if ! grep -q '"\${1:-}" = "--list-guards"' "$runner" 2>/dev/null; then
     # Silence and "none" are different answers and only one of them is true;
     # printing nothing here would be the same false green this command exists
     # to expose.
@@ -145,10 +166,26 @@ guards_of() {
       # No script to stat. A legitimate state, not a missing file -- saying so
       # keeps the MISSING report below meaningful.
       printf '                 guard: %s\n' "$name"
-    elif [ -x "$ROOT/$script" ]; then
-      printf '                 guard: %s  [%s]\n' "$name" "$script"
+    elif [ ! -e "$ROOT/$script" ]; then
+      # GENUINELY BROKEN: the runner invokes `bash <path>`, and that fails on a
+      # file that is not there. The runner names it and cannot run it.
+      printf '                 guard: %s  [%s]  <- MISSING: the runner names a file that is not there\n' "$name" "$script"
+    elif [ ! -x "$ROOT/$script" ]; then
+      # NOT THE SAME STATE, AND NOT A FAULT IN THIS RUNNER. Measured 2026-08-17:
+      # every guard in cmd/precommit is invoked as `bash "$TOOLS/x.sh"`, which
+      # does not consult the execute bit -- so a guard with no +x runs, passes,
+      # and gates exactly as intended. Only DIRECT invocation is affected.
+      #
+      # These two were one message (`NOT EXECUTABLE OR MISSING`) until ic hit it,
+      # and the overload cost real work in the wrong direction: it reported two
+      # correctly-functioning guards as broken, and they were `chmod +x`ed to
+      # silence a tool rather than to fix anything. **A missing guard and an
+      # unexecutable one need opposite responses, and one message cannot carry
+      # both** -- the exit-code-overload shape this thread keeps finding, in
+      # prose rather than in a code.
+      printf '                 guard: %s  [%s]  <- no +x (the gate still runs it via bash; only direct invocation is affected)\n' "$name" "$script"
     else
-      printf '                 guard: %s  [%s]  <- NOT EXECUTABLE OR MISSING\n' "$name" "$script"
+      printf '                 guard: %s  [%s]\n' "$name" "$script"
     fi
   done < <("$ROOT/bin/int" "$1" --list-guards 2>/dev/null || true)
 }
