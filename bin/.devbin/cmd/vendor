@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Report which devbin-owned files this project has locally patched
+#
+# int vendor  -- REPORT the divergence between the vendored tree and its manifest.
+#
+# THE HOLE THIS EXISTS FOR (issue 0048). `bin/.devbin/manifest.sha256` lists the
+# files devbin OWNS, and its own header states the contract: "An edit to one is
+# DETECTED, not overwritten. Files not listed here -- config.yaml, cmd/, help/ --
+# belong to the project." Patching a vendored file is therefore a SUPPORTED
+# state, not damage.
+#
+# What was missing is that the detector the header refers to -- `devbin doctor`,
+# `devbin upgrade` -- lives in the Devbin SOURCE repository. From inside the
+# project that carries the patches there was nothing to run, so the divergence
+# had a size nobody knew and members nobody had enumerated. Measured 2026-08-17:
+# the count named in conversation was three and the truth was four, and two of
+# the four predated the discussion entirely and were news to everyone in it.
+#
+# Same shape as an unwired git hook (`int hooks`): the thing is not failing, it
+# is reporting NOTHING, and reporting nothing is indistinguishable from being in
+# the expected state.
+#
+# IT REPORTS AND DOES NOT REFUSE, deliberately, and this is the same call `int
+# hooks` makes in its bare form. A divergence nobody has ruled on yet is not a
+# reason to block every session in the repository, and a guard that must be
+# bypassed is a guard nobody keeps. The decision this feeds -- carry upstream, or
+# declare a deliberate fork -- is hv's, and a tool that made it by refusing would
+# be taking it.
+#
+# IT NEVER RESTAMPS THE MANIFEST. Rewriting the checksums would make this report
+# clean while changing nothing about the tree, and would erase the only signal
+# that the divergence exists. The manifest is evidence here, not a lockfile to be
+# refreshed.
+#
+# A NOTE FOR ANYONE REWRITING THIS WALK. Do not name the loop variable `path`.
+# Under zsh it is a special variable tied to `PATH`, so `while read -r want path`
+# destroys `PATH` on the first iteration; `shasum` is then not found, every
+# comparison fails, and every file reports as DIVERGED. The first hand-run of
+# this measurement reported all 27 entries drifted for exactly that reason --
+# **a broken instrument reporting maximum alarm, which reads exactly like a
+# catastrophic finding.** The MATCHES count below is the control that says the
+# tool works; a run with zero matches is a broken run, not a broken tree.
+set -euo pipefail
+
+ROOT="${PROJECT_ROOT:?run me through bin/int}"
+MANIFEST="$ROOT/bin/.devbin/manifest.sha256"
+VENDOR_DIR="$ROOT/bin/.devbin"
+
+# The library tree is what the manifest is a claim about. `cmd/`, `help/` and
+# `config.yaml` are declared project territory by the manifest header, so they
+# are not drift and are not reported as unlisted.
+OWNED_ROOTS="lib"
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?}/helpers"
+
+[ -f "$MANIFEST" ] ||
+  die "no manifest at $MANIFEST -- this tree was not installed by devbin, so there is nothing to compare against"
+
+matched=0
+diverged=""
+missing=""
+
+# `entry` and `p`, never `path` -- see the note above.
+while read -r want p; do
+  case "$want" in '#'* | '') continue ;; esac
+  [ -n "$p" ] || continue
+  if [ ! -f "$ROOT/$p" ]; then
+    missing="$missing $p"
+    continue
+  fi
+  got="$(shasum -a 256 "$ROOT/$p" | cut -d' ' -f1)"
+  if [ "$want" = "$got" ]; then
+    matched=$((matched + 1))
+  else
+    diverged="$diverged $p"
+  fi
+done <"$MANIFEST"
+
+# Files the manifest never listed, under a tree it claims to own. A different
+# state from DIVERGED: an edit to a known file is a patch, whereas a NEW file in
+# the owned tree is something the vendoring contract has no opinion about at all,
+# and it is the one that will surprise an upgrade rather than merely conflict.
+unlisted=""
+for owned in $OWNED_ROOTS; do
+  [ -d "$VENDOR_DIR/$owned" ] || continue
+  while IFS= read -r f; do
+    rel="${f#"$ROOT/"}"
+    grep -qF "  $rel" "$MANIFEST" || unlisted="$unlisted $rel"
+  done < <(find "$VENDOR_DIR/$owned" -type f ! -name '.DS_Store')
+done
+
+version="$(sed -n 's/^# devbin_version: //p' "$MANIFEST" | head -1)"
+source_repo="$(sed -n 's/^# source: //p' "$MANIFEST" | head -1)"
+
+printf '\n%svendored devbin%s  version %s\n' "${bold:-}" "${reset:-}" "${version:-unknown}"
+printf '  %ssource: %s%s\n' "${dim:-}" "${source_repo:-unknown}" "${reset:-}"
+printf '  %s%s file(s) MATCH the manifest%s\n' "${green:-}" "$matched" "${reset:-}"
+
+rc=0
+if [ -n "$diverged" ]; then
+  printf '\n%sDIVERGED -- locally patched, and devbin owns these files:%s\n' "${yellow:-}" "${reset:-}"
+  for f in $diverged; do printf '    %s\n' "$f"; done
+  printf '  %sSupported, not damage: the manifest header says an edit is DETECTED, never overwritten.%s\n' "${dim:-}" "${reset:-}"
+  printf '  %sSee issue 0048 -- the open question is carry-upstream vs declared fork, and it is hv'"'"'s.%s\n' "${dim:-}" "${reset:-}"
+fi
+
+if [ -n "$missing" ]; then
+  printf '\n%sMISSING -- the manifest lists these and the tree does not have them:%s\n' "${red:-}" "${reset:-}"
+  for f in $missing; do printf '    %s\n' "$f"; done
+  rc=1
+fi
+
+if [ -n "$unlisted" ]; then
+  printf '\n%sUNLISTED -- present under a tree devbin owns, and named by no manifest entry:%s\n' "${yellow:-}" "${reset:-}"
+  for f in $unlisted; do printf '    %s\n' "$f"; done
+fi
+
+if [ "$matched" -eq 0 ]; then
+  printf '\n%sZERO files matched, which is a BROKEN RUN rather than a wholly patched tree.%s\n' "${red:-}" "${reset:-}"
+  printf '  A tree this divergent would be a fork, not a patch set. Check that shasum resolves,\n'
+  printf '  and that no loop variable in this file is named `path` (zsh ties it to PATH).\n'
+  rc=1
+fi
+
+[ -n "$diverged$missing$unlisted" ] ||
+  printf '  %sno local patches -- this project is running stock devbin.%s\n' "${dim:-}" "${reset:-}"
+
+printf '\n'
+exit "$rc"
