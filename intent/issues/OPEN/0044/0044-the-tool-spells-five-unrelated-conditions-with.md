@@ -83,6 +83,18 @@ rc=0
 
 **Not claimed: that `d2b8e76d` should be reverted or narrowed.** It is correct and this issue depends on it being correct: `2` is reliable precisely because that fix made it so.
 
+### The sixth condition, and this sweep was structurally blind to it
+
+**`intent info` EXITS 0 WHILE PRINTING AN ERROR.** With the install unresolvable it prints `INTENT_HOME: <not set>`, states the reason on stderr, and returns `Ok(())`. Found by dc and owned by cc, 2026-08-17, after this issue was filed.
+
+**dc's framing is the one to keep: this issue is `1` meaning five things; that is `0` meaning "I could not do the thing you asked".** It is the same defect with the sign flipped, and it is the worse half -- a wrong non-zero code makes a caller stop for the wrong reason, and a zero code on failure makes it not stop at all.
+
+**The reason it is recorded here rather than filed separately is that MY SWEEP COULD NOT HAVE FOUND IT.** The Reproduction table above classifies conditions **by their exit code**, so a failure that returns `0` lands in the success row by construction. **I asked "what code does each failure produce" and never "does any failure produce success"** -- and the instrument answered the question I asked, completely and uselessly, for the case that matters most. Same shape as the population-versus-trigger error elsewhere in this thread: **a measurement is bounded by the question, and a clean result reports on the question rather than on the tool.**
+
+**So the honest count is that this issue documents five conditions collapsed onto `1` plus at least one collapsed onto `0`, and the second set has never been swept.** The sweep that would find it runs the other way round: **take every invocation that PRINTS an error and check its code, rather than taking every code and asking what produced it.** Nobody has run that.
+
+**Per the ordering above, the code CHOICE for `info` is not bundled into this issue either** (cc's own position). The distinction cc names is the load-bearing one and is worth quoting, because it is the reason this is not simply "make it exit non-zero": **"never gate on PROJECT state" is 0042's requirement and is not the same as "always exit 0" -- an unmigrated project is not a failure of `info`; an unresolvable install is.**
+
 ## Proposed Fix
 
 **The ordering claim first: this is NOT a blocker for 0043 and should not be bundled into it.** 0043 is a lockout and must be settled before publication. This can follow, and doing it under the same pressure risks a second constant chosen against a single consumer -- which is how the first three of these arrived.
