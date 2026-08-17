@@ -461,12 +461,41 @@ if [ "$STORE_UNJUDGED" -gt 0 ]; then
   echo
 fi
 
+# THIS TOOL COMPARES TWO RUNS TO EACH OTHER AND IS SILENT ON WHETHER EITHER IS
+# USABLE, AND THAT SENTENCE IS PRINTED WITH EVERY PASS RATHER THAN WRITTEN HERE
+# FOR MAINTAINERS.
+#
+# Paid for on 2026-08-17. This tool returned exit 0 and `IDENTICAL IN FILES --
+# 1371 file(s) match` against `252f9ed2`, correctly, over a migrated estate in
+# which every verb but `info` refused -- `st list`, `todo`, `export`, `search`,
+# `ac list`, `wp list`, `st new` all rc=1 (ic, measured on the kept tree). The
+# comparison was right. It was A CORRECT COMPARISON OF TWO CORPSES (ic's
+# phrase, and it is the one to keep).
+#
+# THE DESIGN LESSON IS NOT "ADD A LIVENESS CHECK HERE" -- liveness is a property
+# of the SUBJECT, and this tool is handed two trees it did not produce, so the
+# probe belongs in the rig that makes them, where ic has put it. The lesson is
+# about the VERDICT. This tool's scope line already named files-versus-store,
+# and that line worked: ic went hunting the store arm precisely because the
+# headline said it was missing. But bytes-versus-liveness was in no sentence at
+# all, so nothing pointed at it.
+#
+# A VERDICT THAT NAMES ITS SCOPE IS ONLY AS GOOD AS ITS ENUMERATION OF
+# DIMENSIONS, AND THE DIMENSION NOBODY THOUGHT OF DOES NOT READ AS AN OMISSION
+# -- IT READS AS COMPLETENESS. That is strictly worse than a missing caveat,
+# because a scope line is a signal to stop looking. So the line below is not
+# another caveat in a growing list, which would become noise nobody reads: it is
+# the one structural fact that bounds every verdict this tool can ever emit,
+# whatever dimensions get enumerated later. Same shape as "internal consistency
+# is not correspondence", one level up -- agreement between two runs is
+# consistency, and whether the result is a working project is correspondence.
 if [ "$differing" -eq 0 ] && [ "$n_only_a" -eq 0 ] && [ "$n_only_b" -eq 0 ]; then
   if [ "$STORE_UNJUDGED" -gt 0 ]; then
     echo "IDENTICAL IN FILES -- $((na - STORE_UNJUDGED)) file(s) match; $STORE_UNJUDGED store(s) NOT judged here (see above)."
   else
     echo "IDENTICAL -- the re-run reached the same end state as the clean run across all $na files."
   fi
+  echo "  SCOPE: this compares two RUNS to each other and is SILENT on whether either produced a usable project."
   exit 0
 fi
 
