@@ -762,8 +762,9 @@ impl AtStatus {
   /// **This is `enum_str`'s wire form leaking into human output, and it leaked
   /// three ways at once** (ic, issue 0056). `Na` serialises as `n-a` because that
   /// is its JSON tag, and the authored form is `n/a`: measured across this
-  /// estate's `acceptance.md` files, `status: n/a` appears 23 times and `n-a`
-  /// never. So the view was one projection away from rewriting 23 rows into a
+  /// estate's `acceptance.md` files, every authored AT row spells it `n/a` and
+  /// none spells it `n-a`. So the view was one projection away from rewriting
+  /// every one of them into a
   /// spelling v2's own linter rejects at L1 -- a migration hazard rather than a
   /// preference, and the same shape as `wp show` printing `wip` where every other
   /// surface printed `WIP`.

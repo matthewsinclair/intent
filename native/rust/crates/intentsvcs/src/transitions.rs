@@ -222,6 +222,45 @@ pub enum Disposition {
   /// written from. Which work package owes this belongs in the contract that
   /// tracks it; what a reader needs is `note`, which says what is unavailable.
   Unbuilt { note: &'static str, entry: Entry },
+  /// A value fixed when the entity is authored and moved by no SERVICE VERB
+  /// afterwards, so no mutation is owed and the absence of edges is the finished
+  /// answer rather than a gap. Authoring the file and re-ingesting is how it
+  /// changes, which is the ruling's point and not a loophole in it.
+  ///
+  /// **It is NOT called `Attribute`, and the near-miss is worth the sentence.**
+  /// data-model.md calls this row "an attribute of a thread, not a lifecycle",
+  /// which is what the variant is for -- but the SAME document calls
+  /// `WorkPackage.scope` "an attribute of the package", and scope is a `State`
+  /// whose values `wp rescope` moves freely. So "attribute" names two
+  /// dispositions in the ratified vocabulary, and a variant carrying that word
+  /// would invite exactly one wrong edit: moving scope here because the document
+  /// appears to say so. The phrase that picks out this row and only this row is
+  /// **"immutable after creation"**, from the same ruling.
+  ///
+  /// Quoted rather than cited by line: the ruling lives under data-model.md's
+  /// "The four `Unbuilt` fields" heading, the document is vc's and under active
+  /// edit, and a line number in a peer's live file is a promise that goes stale
+  /// without anybody touching this one.
+  ///
+  /// **It exists to stop `Unbuilt` meaning two things.** `Unbuilt` is a DEBT:
+  /// the variant is the count, and the day the verb lands the row becomes a
+  /// `State`. A field nothing will ever move is not a smaller debt, it is a
+  /// different claim, and filing it as `Unbuilt` reports a build that is never
+  /// coming -- which is a permanent red that a reader eventually learns to
+  /// discount.
+  ///
+  /// **`ruled` is what makes reclassification cost something, and without it
+  /// this variant is an escape hatch**: any red `Unbuilt` row could be
+  /// relabelled here and the red would go away. A row may only claim nothing is
+  /// owed by citing who ruled it, in the `<node> <YYYY-MM-DD>` form this file
+  /// already uses for Machine 4. It is provenance for a reviewer and is never
+  /// printed -- `intent-cli`'s `no_pm_state_in_output.rs` is what holds that,
+  /// since it drives the binary rather than reading this table.
+  Immutable {
+    note: &'static str,
+    entry: Entry,
+    ruled: &'static str,
+  },
 }
 
 /// How a value reaches a field no service verb writes.
@@ -309,13 +348,26 @@ pub const FIELDS: &[Field] = &[
   Field {
     entity: "Thread",
     field: "acceptance",
-    disposition: Disposition::Unbuilt {
-      note: "the close-gate exemption. v2 has NO verb for it either -- `bin/intent_acceptance:987` instructs the user to \"add 'acceptance: exempt' to its frontmatter\", ie the tool's own error message prescribes hand-editing the file the tool owns, which is hv's ruled defect in v2's voice. Three threads in this estate use it. The verb spelling is ic's lane, so it is named as owed rather than invented here",
-      // `st_new` hardcodes `None`, so `exempt` is a value only canon supplies
-      // -- and the entity IS service-creatable, which makes this the AC's
-      // literal case: a thread created in one value, moved to another by
-      // authoring, with nothing to move it back.
+    // **hv ruled it: immutable after creation, no machine, no edge, owed
+    // nothing.** `Option<AcceptanceMode>` is an attribute, not a lifecycle, so
+    // changing it is AUTHORING -- and the row spent two days as `Unbuilt`
+    // reporting a verb that was never coming.
+    //
+    // **This does not reverse hv's earlier reading of v2, because the two
+    // rulings are about different things.** v2's `bin/intent_acceptance:987`
+    // tells the user to "add 'acceptance: exempt' to its frontmatter" from
+    // inside an ERROR PATH, ie prescribes a hand-edit to work around a verb it
+    // is missing. The ruling here is that authoring the field is the interface
+    // rather than a workaround. Whether v2's message is still a defect in v2's
+    // voice is hv's to say, not this table's.
+    disposition: Disposition::Immutable {
+      note: "the close-gate exemption, fixed when the thread is authored and moved by nothing afterwards. Three threads in this estate use it",
+      // `st_new` hardcodes `None`, so `exempt` is a value only canon supplies.
+      // **`Entry::Authored` is the right measurement either side of the
+      // reclassification**, because it measures a property -- canon can put a
+      // value here -- rather than the classification the ruling changed.
       entry: Entry::Authored,
+      ruled: "hv 2026-08-17",
     },
   },
   Field {
@@ -535,7 +587,9 @@ fn edges_for(entity: &str, field: &str, verb: &'static str) -> impl Iterator<Ite
   find(entity, field)
     .and_then(|f| match &f.disposition {
       Disposition::State { edges, .. } => Some(*edges),
-      Disposition::Unbuilt { .. } => None,
+      // Both edgeless variants, named rather than caught by a `_`, so the day a
+      // third one lands the compiler asks here instead of assuming.
+      Disposition::Unbuilt { .. } | Disposition::Immutable { .. } => None,
     })
     .unwrap_or(&[])
     .iter()

@@ -457,7 +457,7 @@ fn test_line(t: &AcceptanceTest) -> String {
   }
   // **`display()`, not `enum_str`, and this one was a live migration hazard**
   // (issue 0056). The wire form spells `Na` as `n-a`; every authored row in this
-  // estate says `n/a` -- 23 of them, measured, against zero `n-a`. So the next
+  // estate says `n/a`, and none says `n-a`. So the next
   // projection over a thread with a non-test AT would have rewritten each of those
   // rows into a spelling v2's own linter rejects at L1. A generated view is
   // supposed to reproduce the authored form, not introduce a second one.

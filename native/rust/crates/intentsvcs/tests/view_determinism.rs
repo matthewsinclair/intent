@@ -320,7 +320,8 @@ fn the_renderer_cannot_reach_a_clock_or_the_environment() {
 /// `test_line` rendered the AT status with `enum_str`, ie the JSON canon's tag. For
 /// three of the four values that is the same string an author writes; for `Na` the
 /// tag is `n-a` and the authored form is `n/a`. **Measured across this estate:
-/// `status: n/a` appears 23 times in `acceptance.md` files and `n-a` never** -- so
+/// every authored AT row in `acceptance.md` spells it `n/a` and none spells it
+/// `n-a`** -- so
 /// the next projection over any thread with a non-test AT would have rewritten each
 /// of those rows into a spelling v2's own linter rejects at L1. Not a preference: a
 /// migration hazard, in the direction that silently damages authored files.
@@ -332,20 +333,45 @@ fn the_renderer_cannot_reach_a_clock_or_the_environment() {
 /// whose green is identical either side of it has been performed rather than
 /// measured.
 ///
-/// Asserted over EVERY variant rather than the one that was wrong, and against
-/// `display()` rather than a literal table: the property is that the view speaks
-/// the display vocabulary, and pinning four strings here would be a fifth copy of
-/// it.
+/// **IT COMPARED THE RENDERER TO `display()` UNTIL vc CAUGHT IT, AND THAT IS THE
+/// FUNCTION DEFINING THE RENDERER'S SPELLING.** The assertion was
+/// `view.contains(&format!("status: {}", status.display()))`, so changing
+/// `display()` to return `n@a` left it green: the only way to fail it was for
+/// `views.rs` to bypass `display()` altogether, which is a plumbing failure, not
+/// a spelling one. A self-consistency check wearing a parity name.
+///
+/// The reasoning that put it there is preserved because it is the instructive
+/// part: "pinning four strings here would be a fifth copy of it." **`display()`
+/// is not a copy of the property, it is the definition** -- and the property is
+/// not "the view speaks the display vocabulary" but "the view speaks the
+/// vocabulary a HUMAN AUTHORED". The only witness for that is authored bytes v3
+/// did not produce.
+///
+/// So the four spellings below are a TRANSCRIPTION of an external authority --
+/// `acceptance.md` files v2 wrote -- in the same posture as the `RATIFIED_*`
+/// consts that transcribe data-model.md. Their agreeing with `display()` is the
+/// claim, which means it has to be asserted rather than assumed.
+///
+/// **All four, and the three that coincide are the reason.** `to-write`, `red`
+/// and `green` are byte-identical between the wire tag and the authored form;
+/// only `n-a` against `n/a` diverges. That coincidence is the entire hiding
+/// mechanism -- it is why echoing the wrong source was correct three times and
+/// wrong once -- so a fixture carrying only the divergent variant would prove the
+/// fix and stop proving the other three still agree.
 #[test]
 fn the_view_writes_every_at_status_in_the_authored_spelling() {
-  use intentsvcs::model::AtStatus;
+  use intentsvcs::model::{AtStatus, enum_str};
 
-  for status in [
-    AtStatus::ToWrite,
-    AtStatus::Red,
-    AtStatus::Green,
-    AtStatus::Na,
-  ] {
+  // Transcribed from authored `acceptance.md` in this estate: every authored AT
+  // row spells `n/a` and none spells `n-a`.
+  let authored_spellings = [
+    (AtStatus::ToWrite, "to-write"),
+    (AtStatus::Red, "red"),
+    (AtStatus::Green, "green"),
+    (AtStatus::Na, "n/a"),
+  ];
+
+  for (status, authored) in authored_spellings {
     let fixture = Fixture::new();
     let mut thread = sample_thread("ST0056");
     for test in thread.tests.iter_mut() {
@@ -365,15 +391,32 @@ fn the_view_writes_every_at_status_in_the_authored_spelling() {
       .expect("the acceptance view is rendered")
       .content;
 
+    // The load-bearing one: the LITERAL a human wrote, not the function the
+    // renderer reads.
     assert!(
-      view.contains(&format!("status: {}", status.display())),
-      "the view must write `status: {}` -- the authored spelling -- and it wrote none of them:\n{view}",
-      status.display()
+      view.contains(&format!("status: {authored}")),
+      "the view must write `status: {authored}` -- the spelling transcribed from authored files -- and it wrote none of them:\n{view}"
     );
-    assert!(
-      !view.contains("status: n-a"),
-      "`n-a` is the WIRE form and must never reach a generated view: an authored file rewritten to \
-       it fails v2's linter at L1, and 23 rows in this estate carry `n/a`"
+    // The two enumerators agreeing IS the claim, so it is asserted. This is what
+    // reds if `display()` drifts to a spelling no author uses, which the previous
+    // form could not see.
+    assert_eq!(
+      status.display(),
+      authored,
+      "`display()` and the authored corpus disagree about {status:?}. One of them moved: if the corpus did, retranscribe the literal above and say what \
+       changed the authored vocabulary; if `display()` did, that is a view about to rewrite authored rows"
     );
+    // The wire form must never reach a view. **It only bites on `Na`, and saying
+    // so is the point** -- for the other three the wire tag and the authored form
+    // are the same string, so this assertion is vacuous on three quarters of the
+    // population and a reader should not mistake it for four checks.
+    let wire = enum_str(&status);
+    if wire != authored {
+      assert!(
+        !view.contains(&format!("status: {wire}")),
+        "`{wire}` is the WIRE form and must never reach a generated view: an authored file rewritten to it fails v2's linter at L1, and every authored row in this \
+         estate carries `{authored}`"
+      );
+    }
   }
 }

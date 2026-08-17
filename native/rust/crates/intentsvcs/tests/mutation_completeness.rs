@@ -28,11 +28,11 @@ mod common;
 use common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{
-  AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, Issue, IssueStatus, Thread,
-  ThreadStatus, WpStatus, enum_str,
+  AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, Issue, Thread, ThreadStatus,
+  WpStatus, enum_str,
 };
 use intentsvcs::transitions::{
-  ABSENT, Disposition, Edge, Entry, FIELDS, Guard, exitless, find, traps, unreachable,
+  ABSENT, Disposition, Edge, Entry, FIELDS, Field, Guard, exitless, find, traps, unreachable,
 };
 use serde_json::Value;
 
@@ -338,7 +338,12 @@ fn the_transition_table_classifies_exactly_the_schemas_closed_domain_fields() {
   for (entity, field, _) in &fields {
     assert!(
       find(entity, field).is_some(),
-      "{entity}.{field} has a closed value domain and the transition table does not classify it -- add it to transitions.rs as a State with its edges, or as Unbuilt naming the work package that owes it (D32)"
+      // **The old text said "or as Unbuilt naming the work package that owes
+      // it", and D37 deleted the field it was telling the reader to fill.** A
+      // failure message is the one piece of prose read at exactly the moment
+      // somebody acts on it, so a message prescribing a retired mechanism sends
+      // them to write code that will not compile.
+      "{entity}.{field} has a closed value domain and the transition table does not classify it -- add it to transitions.rs as a State with its edges, as Unbuilt with a note saying what is unavailable, or as Immutable citing the ruling that says nothing will ever move it (D32)"
     );
   }
   for declared in FIELDS {
@@ -394,7 +399,52 @@ fn unreachable_states_are_exactly_the_declared_orphans() {
   }
 }
 
-/// **An `Unbuilt` field must be one NO service call can put a value into.**
+/// An edgeless row, flattened: how a value gets in, what the row says, and
+/// whether a mutation is OWED.
+struct Edgeless {
+  note: &'static str,
+  entry: Entry,
+  /// `Unbuilt` owes a mutation; `Immutable` was ruled to owe none and must cite
+  /// the ruling. Carried rather than re-matched downstream so the checks below
+  /// can still say WHICH claim a failure breaks.
+  owed: bool,
+  ruled: Option<&'static str>,
+}
+
+/// The three immovability checks reach their population through here, and
+/// **the reason is a measurement, not a preference.**
+///
+/// Each used its own `let Disposition::Unbuilt { .. } = .. else { continue }`.
+/// Adding a second edgeless variant and moving `Thread.acceptance` into it left
+/// **20 passed, 0 failed** with the row gone from all four populations: three
+/// `let-else`s skipped it in silence, and the one count guard that could have
+/// noticed asserted `unbuilt_fields > 0`, which survives 4 becoming 3. The
+/// enumeration-gone-short class, caught only because the drop was performed
+/// deliberately to see whether anything would say so.
+///
+/// So the match here is exhaustive and it is the ONLY one: a third edgeless
+/// variant makes the compiler ask this function, and every check inherits the
+/// answer. `every_edgeless_row_is_accounted_for` holds the partition total, so a
+/// row cannot leave this population without the `State` walks picking it up.
+fn edgeless(field: &Field) -> Option<Edgeless> {
+  match &field.disposition {
+    Disposition::State { .. } => None,
+    Disposition::Unbuilt { note, entry } => Some(Edgeless {
+      note,
+      entry: *entry,
+      owed: true,
+      ruled: None,
+    }),
+    Disposition::Immutable { note, entry, ruled } => Some(Edgeless {
+      note,
+      entry: *entry,
+      owed: false,
+      ruled: Some(ruled),
+    }),
+  }
+}
+
+/// **An edgeless field must be one NO service call can put a value into.**
 ///
 /// vc's correction, and it is the load-bearing test of the pair: "carries no
 /// edges" only says the table is self-consistent, and **edges are the exits,
@@ -412,47 +462,70 @@ fn unreachable_states_are_exactly_the_declared_orphans() {
 /// The flaw is that enterability was never the failure -- entry WITHOUT AN EXIT
 /// is, and the two are separate questions. Every value of every `State` field
 /// has an exiting edge, so the wider reading fires on none of them; the
-/// `Unbuilt` rows have no edges at all, so it fires on exactly those. It
-/// discriminates cleanly, and `the_wider_reading_fires_on_unbuilt_rows_only`
+/// edgeless rows have no edges at all, so it fires on exactly those. It
+/// discriminates cleanly, and `the_wider_reading_fires_on_edgeless_rows_only`
 /// holds that as a measurement rather than leaving it as the counter-argument
 /// to this one. The pair below is the second condition; this is the first.
 ///
 /// It measures by DRIVING the creation verbs rather than by reading them. That
 /// is how `WorkPackage.scope` was caught: `wp_new` takes the size from the
 /// caller, so all six were entered at creation and none could be left.
+///
+/// **The requirement is the same for both edgeless variants and the failure
+/// means opposite things**, so the message branches on `owed`: for an `Unbuilt`
+/// row a settable field is a trap wearing an absence's label and the fix is to
+/// build the exit, while for an `Immutable` row it is the RULING that has been
+/// contradicted, and the fix is a conversation rather than a verb.
 #[test]
-fn an_unbuilt_field_is_one_no_service_call_can_set() {
+fn no_service_call_can_set_an_edgeless_field() {
   for field in FIELDS {
-    let Disposition::Unbuilt { .. } = &field.disposition else {
+    let Some(row) = edgeless(field) else {
       continue;
     };
     let settable = match (field.entity, field.field) {
       // `st_new` hardcodes `acceptance: None`; the caller has no say.
+      //
+      // **This is the stronger measurement of the two that would satisfy the
+      // ruling, and it is the one available today.** "Immutable after creation"
+      // would permit an `st new --exempt` setting it AT creation; nothing sets
+      // it at all, which implies it. If that flag ever lands, this arm becomes
+      // "created carrying it, and no verb moves it afterwards" -- a change of
+      // measurement, not of ruling.
       ("Thread", "acceptance") => {
         let fx = Fixture::new();
         let mut facade = fx.facade();
         let id = facade.st_new("a thread").expect("st new");
         facade.st_show(&id).expect("thread").acceptance.is_some()
       }
-      // No service call constructs a criterion, an acceptance test or an
-      // issue: they arrive only as authored canon. Asserted by the absence of
-      // a creation verb on the facade, which is a compile-time fact -- adding
-      // one and not adding an arm here leaves this returning false, so the
-      // arm below is what has to be kept honest, and the panic is the keeper.
-      ("Criterion", "kind") | ("AcceptanceTest", "kind") | ("Issue", "status") => false,
+      // No service call constructs a criterion or an acceptance test: they
+      // arrive only as authored canon. Asserted by the absence of a creation
+      // verb on the facade, which is a compile-time fact -- adding one and not
+      // adding an arm here leaves this returning false, so the arm below is what
+      // has to be kept honest, and the panic is the keeper.
+      //
+      // **`("Issue", "status")` was listed here and had been DEAD since Machine
+      // 4 landed**, because the row became a `State` and the loop stops before
+      // the match. A dead arm in a hand-written enumeration reads as coverage,
+      // which is the same thing a short enumeration does.
+      ("Criterion", "kind") | ("AcceptanceTest", "kind") => false,
       other => panic!(
-        "{other:?} is Unbuilt and no arm decides whether a service call can set it -- inertness is measured, never assumed"
+        "{other:?} is edgeless and no arm decides whether a service call can set it -- inertness is measured, never assumed"
       ),
+    };
+    let consequence = if row.owed {
+      "the row is describing a trap rather than an absence. Make it a State and give it the exit"
+    } else {
+      "the row says nothing moves this field and something does, so the ruling it cites has been contradicted -- revisit the ruling, do not relax the test"
     };
     assert!(
       !settable,
-      "{}.{} is declared Unbuilt and a service call CAN put a value into it -- so an entity can hold a value nothing can change, and the row is describing a trap rather than an absence. Make it a State and give it the exit",
+      "{}.{} declares no edges and a service call CAN put a value into it -- so an entity can hold a value nothing can change, and {consequence}",
       field.entity, field.field
     );
   }
 }
 
-/// **AC-04.6's second condition: an `Unbuilt` field's ENTRY path is measured by
+/// **AC-04.6's second condition: an edgeless field's ENTRY path is measured by
 /// driving canon, and the table has to agree with the measurement.**
 ///
 /// The measurement is one shape for every row: author canon carrying a value no
@@ -462,17 +535,21 @@ fn an_unbuilt_field_is_one_no_service_call_can_set() {
 /// to move it.
 ///
 /// **What this test does NOT do is discharge the criterion, and the distinction
-/// matters because getting it wrong is how a red row goes quietly green.** All
-/// four rows measure `Authored`, so all four are mutations owed; asserting the
-/// declaration matches the measurement makes the debt visible and guards
-/// against a fifth arriving unnoticed. It does not make an unleaveable value
-/// leaveable. The criterion stays red until the verbs exist, and each of the
-/// four needs a ratified machine first -- which is the same block `issues
-/// add|close|open` already stands behind, one row wider.
+/// matters because getting it wrong is how a red row goes quietly green.** Every
+/// row here measures `Authored`; asserting the declaration matches the
+/// measurement makes the position visible and guards against another arriving
+/// unnoticed. It does not make an unleaveable value leaveable.
+///
+/// **`Authored` no longer implies a mutation is owed, and that split is the
+/// point of the second variant.** For an `Unbuilt` row the criterion stays red
+/// until the verb exists; for `Thread.acceptance` hv ruled authoring IS the
+/// interface, so `Authored` is the finished answer rather than a debt. The
+/// measurement is identical either way because it measures a property -- canon
+/// can put a value here -- and not the classification.
 #[test]
-fn an_unbuilt_fields_entry_path_is_measured_not_declared() {
+fn an_edgeless_fields_entry_path_is_measured_not_declared() {
   for field in FIELDS {
-    let Disposition::Unbuilt { entry, .. } = &field.disposition else {
+    let Some(Edgeless { entry, .. }) = edgeless(field) else {
       continue;
     };
     let measured = match (field.entity, field.field) {
@@ -535,24 +612,15 @@ fn an_unbuilt_fields_entry_path_is_measured_not_declared() {
           .collect();
         kinds.contains(&AtKind::Test) && kinds.contains(&AtKind::NonTest)
       }
-      // v2 had `issues close`; v3 ships the read verbs only. So a closed issue
-      // in the estate is a value authored canon put there and nothing can undo.
-      ("Issue", "status") => {
-        let fx = Fixture::new();
-        fx.write_issue(&sample_issue(7));
-        // `closed` is only meaningful on a closed issue, so reopening the
-        // fixture means clearing the date with it -- the same two-fields-in-one-
-        // act shape the criterion arm found, one entity over.
-        let mut open = sample_issue(8);
-        open.status = IssueStatus::Open;
-        open.closed = None;
-        fx.write_issue(&open);
-        let read = fx.facade();
-        read.issue_show(7).expect("issue").status == IssueStatus::Closed
-          && read.issue_show(8).expect("issue").status == IssueStatus::Open
-      }
+      // **`("Issue", "status")` had an arm here and it had been DEAD since
+      // Machine 4 landed**, along with a comment reading "v3 ships the read
+      // verbs only" that `issues.close` and `issues.open` had already falsified.
+      // The row is a `State`, so the loop stops before the match ever reaches
+      // it. Removed on the same grounds as its twin above: an arm that cannot
+      // run is a coverage claim nothing honours, and a stale comment inside one
+      // is how the claim keeps reading as true.
       other => panic!(
-        "{other:?} is Unbuilt and no arm MEASURES how a value gets into it. Entry is driven, never assumed -- a row asserted inert on inspection is the exact \
+        "{other:?} is edgeless and no arm MEASURES how a value gets into it. Entry is driven, never assumed -- a row asserted inert on inspection is the exact \
          reasoning this test replaced"
       ),
     };
@@ -576,8 +644,12 @@ fn an_unbuilt_fields_entry_path_is_measured_not_declared() {
 /// is what let the condition sit unmeasured -- and a future field that broke it
 /// would break it silently.
 ///
-/// Both halves are asserted non-empty. A walk that found no fields of either
-/// kind would agree with every claim above.
+/// Every class is asserted non-empty AND the three are asserted to partition
+/// `FIELDS` exactly. A walk that found no fields of a kind would agree with every
+/// claim above, and **a count guard of the form `> 0` is what failed to notice
+/// `Thread.acceptance` leaving the `Unbuilt` population**: 4 became 3 and the
+/// assertion held. Summing to the total is the version that cannot be satisfied
+/// by a row going missing.
 ///
 /// **Mutation testing turned up a second thing this arm protects, and it was not
 /// the reason it was written.** `exitless` is now the one computation behind both
@@ -590,9 +662,10 @@ fn an_unbuilt_fields_entry_path_is_measured_not_declared() {
 /// cannot watch. Worth knowing before anyone simplifies it away as redundant
 /// with the State half.
 #[test]
-fn the_wider_reading_fires_on_unbuilt_rows_only() {
+fn the_wider_reading_fires_on_edgeless_rows_only() {
   let mut state_fields = 0;
-  let mut unbuilt_fields = 0;
+  let mut owed_fields = 0;
+  let mut immutable_fields = 0;
 
   for (entity, field, values) in all_fields() {
     let Some(disposition) = find(&entity, &field).map(|f| &f.disposition) else {
@@ -612,22 +685,36 @@ fn the_wider_reading_fires_on_unbuilt_rows_only() {
           exitless(&values, edges)
         );
       }
-      Disposition::Unbuilt { .. } => {
-        unbuilt_fields += 1;
+      // Both edgeless variants owe the same exitless property, and they are
+      // counted apart because the POPULATIONS are what go short, not the
+      // property.
+      Disposition::Unbuilt { .. } | Disposition::Immutable { .. } => {
+        if matches!(disposition, Disposition::Unbuilt { .. }) {
+          owed_fields += 1;
+        } else {
+          immutable_fields += 1;
+        }
         assert_eq!(
           exitless(&values, &[]).len(),
           values.len(),
-          "{entity}.{field} is Unbuilt, so EVERY value of it should be exitless. A subset means the row has acquired edges while still declaring the work \
-           unbuilt"
+          "{entity}.{field} declares no edges, so EVERY value of it should be exitless. A subset means the row has acquired edges while still declaring \
+           nothing moves the field"
         );
       }
     }
   }
 
   assert!(
-    state_fields > 0 && unbuilt_fields > 0,
-    "the walk found {state_fields} State and {unbuilt_fields} Unbuilt fields, and it needs both to be showing a difference between them rather than a property \
-     of an empty set"
+    state_fields > 0 && owed_fields > 0 && immutable_fields > 0,
+    "the walk found {state_fields} State, {owed_fields} Unbuilt and {immutable_fields} Immutable fields, and it needs all three to be showing a difference \
+     between them rather than a property of an empty set"
+  );
+  assert_eq!(
+    state_fields + owed_fields + immutable_fields,
+    FIELDS.len(),
+    "the walk classified {state_fields}+{owed_fields}+{immutable_fields} fields and the table declares {}. A row reached no arm, so it is being asserted \
+     about by nothing -- which is what a row silently changing disposition looks like",
+    FIELDS.len()
   );
 }
 
@@ -647,24 +734,119 @@ fn the_wider_reading_fires_on_unbuilt_rows_only() {
 /// act on. `note` is what a refusal is built from, so an empty one is a refusal
 /// that says nothing.
 #[test]
-fn unbuilt_fields_say_what_is_unavailable_and_carry_no_edges() {
+fn edgeless_fields_say_what_is_unavailable_and_carry_no_edges() {
   for field in FIELDS {
-    if let Disposition::Unbuilt { note, .. } = &field.disposition {
-      assert!(
-        !note.is_empty(),
-        "{}.{} is Unbuilt and must say what is unavailable",
-        field.entity,
-        field.field
-      );
-      assert!(
-        pm_free(note),
-        "{}.{} is Unbuilt and its note names Intent's own project-management state, which a \
-         consumer of this crate cannot look up: {note}",
-        field.entity,
-        field.field
-      );
-    }
+    let Some(row) = edgeless(field) else {
+      continue;
+    };
+    assert!(
+      !row.note.is_empty(),
+      "{}.{} declares no edges and must say what is unavailable",
+      field.entity,
+      field.field
+    );
+    assert!(
+      pm_free(row.note),
+      "{}.{} declares no edges and its note names Intent's own project-management state, which a \
+       consumer of this crate cannot look up: {}",
+      field.entity,
+      field.field,
+      row.note
+    );
   }
+}
+
+/// **A row claiming no mutation is owed must cite the ruling that closed it.**
+///
+/// Without this, `Immutable` is an escape hatch rather than a classification:
+/// every `Unbuilt` row is a standing red, and relabelling one clears the red at
+/// no cost. Requiring the citation makes the reclassification an act somebody
+/// signed -- the same posture `orphans` takes, where a known gap stays recorded
+/// with its evidence instead of being tolerated.
+///
+/// The shape asserted is `<node> <YYYY-MM-DD>`, which this file already uses for
+/// Machine 4. It is deliberately weak about WHO: checking the moniker against a
+/// roster would put the whiteboard's membership inside a library crate, which is
+/// the leak D37 is about. What it enforces is that a human decision was recorded
+/// and can be found, not who is allowed to make one.
+#[test]
+fn a_row_that_owes_no_mutation_cites_the_ruling_that_closed_it() {
+  let mut cited = 0;
+  for field in FIELDS {
+    let Some(row) = edgeless(field) else {
+      continue;
+    };
+    if row.owed {
+      assert!(
+        row.ruled.is_none(),
+        "{}.{} owes a mutation and carries a ruling, so the two claims disagree about whether the gap is a debt",
+        field.entity,
+        field.field
+      );
+      continue;
+    }
+    let ruled = row.ruled.unwrap_or_else(|| {
+      panic!(
+        "{}.{} owes no mutation and cites no ruling -- which is a red cleared by relabelling it",
+        field.entity, field.field
+      )
+    });
+    let (node, date) = ruled
+      .split_once(' ')
+      .unwrap_or_else(|| panic!("{ruled:?} is not `<node> <YYYY-MM-DD>`"));
+    assert!(
+      !node.is_empty()
+        && date.len() == 10
+        && date.split('-').count() == 3
+        && date.chars().all(|c| c.is_ascii_digit() || c == '-'),
+      "{}.{} cites {ruled:?}, which is not `<node> <YYYY-MM-DD>` -- a citation nobody can look up is not evidence",
+      field.entity,
+      field.field
+    );
+    cited += 1;
+  }
+  assert_eq!(
+    cited,
+    FIELDS
+      .iter()
+      .filter(|f| matches!(f.disposition, Disposition::Immutable { .. }))
+      .count(),
+    "the rows reached here and the Immutable rows in the table are different counts, so a row that owes nothing is having its citation checked by nobody"
+  );
+}
+
+/// **The population function is itself measured, and by an enumerator that fails
+/// the OPPOSITE way.**
+///
+/// Every immovability check reads its population from [`edgeless`], which makes
+/// that function a single point of failure whose natural failure mode is
+/// returning `None` -- and `None` means "skip", so a shortfall reads as a pass
+/// everywhere downstream. This is the shape that let `Thread.acceptance` leave
+/// four populations at **20 passed, 0 failed**.
+///
+/// So the count is taken twice and the two enumerators fail in opposite
+/// directions. [`edgeless`] matches each variant by name, so a new one must be
+/// added by hand and is OMITTED until it is; the negation below is `!State`, so a
+/// new variant is INCLUDED the moment it exists. They agree exactly when
+/// `edgeless` is complete, and the day they disagree the missing arm is the
+/// reason -- which is the one fact no downstream check can report, because from
+/// where it stands the row simply is not there.
+#[test]
+fn edgeless_reaches_every_row_that_declares_no_edges() {
+  let reached = FIELDS.iter().filter(|f| edgeless(f).is_some()).count();
+  let declared = FIELDS
+    .iter()
+    .filter(|f| !matches!(f.disposition, Disposition::State { .. }))
+    .count();
+  assert_eq!(
+    reached, declared,
+    "{declared} rows declare no edges and `edgeless` reaches {reached} of them -- the ones it drops are skipped by every check that reads through it, in \
+     silence and in green"
+  );
+  assert!(
+    declared > 0,
+    "no row declares no edges, so every immovability check above ranges over an empty set"
+  );
 }
 
 /// Whether a note is free of Intent's own thread and work-package ids.
