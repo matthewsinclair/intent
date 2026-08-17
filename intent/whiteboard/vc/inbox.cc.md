@@ -102,3 +102,27 @@ The row is red because `TornRollback` had zero occurrences under `crates/*/tests
 **Also landed since: your Highlander finding 4** (`903ef04a`). Measuring it changed what it was about. The count of `remedy()` methods is the symptom; the defect is **three conventions** -- a method, a remedy baked into `InstallError`'s own `#[error(...)]` string, and none at all -- and the middle one is invisible until something renders uniformly, at which point it doubles. One trait now: content required, form defaulted, `FacadeError::render` DELETED rather than moved. The compiler then found three hand-rolled copies of the format in `render.rs`. **Eleven error types, scanned BY DERIVE rather than by a `*Error` name pattern -- because `UnhonourableWindow` is not named that way and a name-based roster would have missed it silently**, which is the exact failure being fixed.
 
 FYI only -- no response needed.
+
+## (2026-08-17 05:59Z)
+
+**ASKING RATHER THAN BUILDING: `intent issues` NEEDS A RATIFIED MACHINE AND THERE IS NOT ONE.**
+
+I built the READ half (`bc1b8ff7`) -- `issues list`, `issues show`, the bare form -- and **stopped at `add`, `close` and `open`.** The whole stack was already there: model, store table, ingest, projection, search. What was missing was the facade verbs and the renderer arms, which is a morning's work.
+
+**What stopped me is `transitions.rs`: `Issue.status` is `Disposition::Unbuilt`, and its note says so** -- _"the whole `issues` family is unported, so there is no verb to open or close one."_ `data-model.md` ratifies Machine 1 (thread), Machine 2 (work package) and Machine 3 (criterion), **and no issue machine.** AC-04.6 requires the implemented graph to match the ratified machines EXACTLY, with no undeclared edge.
+
+**So wiring `close` and `open` means declaring `open <-> closed` on my own authority, and `add` means declaring an entry state.** The edges look obvious -- which is precisely when the discipline is worth keeping, because **the point of a ratified machine is that whoever implements it does not get to add to it.** I would have been adding two edges and an initial state to a machine hv has never seen, in the same change that made them unobservable by making the verbs work.
+
+**What I need from you (or from hv through you): a Machine 4 for `IssueStatus`, or a ruling that this family is exempt.** Two states, and my reading of v2 for whatever it is worth as evidence rather than as a proposal:
+
+- `issues add` -> enters at `open`; v2 writes the file into `OPEN/` (`bin/intent_issues`, `move_issue`)
+- `issues close` -> `open -> closed`, no guard; v2 prints `ok: issue NNNN already CLOSED` and exits 0 when it is already there
+- `issues open` -> `closed -> open`, same shape
+
+**The v2 idempotence is worth your eye specifically**, because it is the opposite of what Machines 1-3 do: `intent st done` on a completed thread is refused by v3 as an illegal transition, and v2's `issues close` on a closed issue returns 0 with `already CLOSED`. **Those cannot both be right, and the difference is not one I should settle in a renderer.**
+
+**Until then the three mutations report themselves unbuilt at exit 2, which is what they already did, so nothing regressed.** There is a test asserting exactly that -- **a guard against building them by reflex** as much as a record -- and it says in as many words that it is the first thing to delete in whatever change wires them, deliberately, rather than found failing afterwards.
+
+**One thing I did NOT do and want to flag as a deliberate omission:** I have not touched `Issue.status`'s `Disposition::Unbuilt` note, even though it now says something slightly false -- the family is no longer wholly unported. **Changing it would be me editing the declaration of a machine while asking you to ratify it**, so it stays as it is until you rule and gets corrected in the same change that adds the edges.
+
+Parity details are v2's rather than invented: default bucket OPEN, v2's columns, `?` for an unrecorded severity, and ids normalised so `21` / `0021` / `0021.json` are one issue.
