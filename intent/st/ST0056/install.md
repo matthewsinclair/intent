@@ -2,7 +2,7 @@
 
 **NOTHING BELOW WORKS YET, AND THAT IS DELIBERATE.** The tap `matthewsinclair/homebrew-intent` is live and **carries no formula**, because a formula pointing at a release that does not exist reads as "the tap is broken" rather than "the release is not out yet". These are the instructions the first `int macos publish` makes true; they become user-facing documentation at the WP-12 cutover, not before. Read the tense as future.
 
-**TWO hard holds stand between here and publication.** **Issue 0036** -- the refusal's remedy names a subcommand v3 does not have; verified still live at HEAD `304cd104`, `intent upgrade` exits 2. And **the packaging hold below: the formula installs the binaries and nothing else, so a brew-installed `intent` cannot find its own install tree.** Issue 0043, the prompt lockout, was a third and is RELEASED -- closed by `c6aee944` and re-measured here. A further gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document.
+**ONE hard hold stands between here and publication: issue 0036** -- the refusal's remedy names a subcommand v3 does not have; verified still live at HEAD `304cd104`, `intent upgrade` exits 2. Two others were live and are now RELEASED: **issue 0043** (the prompt lockout) closed by `c6aee944`, and **the packaging hold** -- the formula installed the binaries and nothing else, so a brew-installed `intent` could not find its own install tree -- closed by `7a41ff2e` and recorded below with what it did and did not prove. A further gate, the `## [3.0.0]` CHANGELOG section, belongs to the cut rather than to this document, as does hv's call on the upstream freeze.
 
 This document is about **getting the binary onto a machine and what that does to an install already there**. It is not the migration spec. The v2 -> v3 data migration -- preconditions, the flow, the carry policy, what the migrator refuses -- is `migration.md`, and is deliberately not restated here.
 
@@ -32,9 +32,11 @@ So one `brew install` does not upgrade anything and does not ask. **It puts a ne
 
 **Known sharp edge at cutover (issue 0036):** the refusal's remedy names `intent upgrade`, and until WP-10 lands, the v3 binary has no `upgrade` subcommand -- so following it verbatim gives `error: unrecognized subcommand 'upgrade'`. The remedy is right about the end state and unreachable today. **Do not publish before that resolves**, because the string is unreachable precisely for the user it was written for: the binary printing it is the one that now answers to `intent`.
 
-### HARD PUBLICATION HOLD: the formula ships `bin/` and nothing else, and the binary needs `lib/templates/` beside it
+### RELEASED -- the formula shipped `bin/` and nothing else, and the binary needs `lib/templates/` beside it
 
-**This is the one that breaks on the first published build, and it will look like a hook bug rather than a packaging one.** Raised by cc from the implementation side, measured here from the packaging side.
+**CLOSED BY `7a41ff2e`. Kept in full, because the instance is closed and the class is not**, and because the measurement below is the only record of what a published build would have done.
+
+**This is the one that would have broken on the first published build, and it would have looked like a hook bug rather than a packaging one.** Raised by cc from the implementation side, measured here from the packaging side.
 
 `intent claude hook <name>` does not reimplement the hooks -- it **execs `lib/templates/.claude/scripts/<name>.sh` out of the install root**, and `intent info` prints that same root for the pre-commit gate to parse back. The binary resolves the root by walking up from its symlink-resolved `current_exe()` to the directory containing `lib/templates/`. **There is no `INTENT_HOME` fallback and that is deliberate** (AC-11.3, and stronger than the AC asks): the environment read was removed rather than demoted, because a stale v2 export would otherwise make a v3 binary exec v2's hook scripts with nothing reporting the mismatch.
 
@@ -47,11 +49,24 @@ So one `brew install` does not upgrade anything and does not ask. **It puts a ne
 | `intent info`                           | **0** | `INTENT_HOME: <not set>`, with `cannot locate the Intent install` on stderr |
 | `intent claude hook require-in-session` | **1** | `cannot locate the Intent install this binary belongs to`                   |
 
-**Both fail QUIETLY, and the exit codes are why.** `claude hook` returning 1 does not block a prompt -- vc's rig established that exit 1 passes through -- so all three Claude Code hooks silently stop working rather than announcing themselves. And `intent info` **exits 0 while printing an error**, so the pre-commit gate's status check passes; only the empty `INTENT_HOME` parse catches it, which is the fail-open path from issue 0042. **The net effect of publishing today is that every consumer project silently loses its session hooks and its whiteboard guards, and nothing anywhere returns a failing code about it.**
+**Both failed QUIETLY, and the exit codes were why.** `claude hook` returning 1 does not block a prompt -- vc's rig established that exit 1 passes through -- so all three Claude Code hooks would have silently stopped working rather than announcing themselves. And `intent info` **exited 0 while printing an error**, so the pre-commit gate's status check passed; only the empty `INTENT_HOME` parse caught it, which is the fail-open path from issue 0042.
 
-**This is 0042 and 0043's shape reached by a third route.** Those were commands that did not exist; this is the same commands unable to find what they need. The remedy is packaging, not code: **`lib/templates/` must be staged into the prefix beside `bin/` and installed by the formula.** Homebrew's `bin/intent` symlink is not itself a problem -- the walk canonicalises before it climbs.
+**One half of that is now fixed at the source, by cc, in `501f5083`: `intent info` exits 1 when it cannot resolve the install.** So a packaged install that cannot find its tree is now LOUD on the gate side -- my 0042 fix captures the status and names every skipped guard -- rather than silent. The `claude hook` side is unchanged and still passes through at exit 1. Recorded because the row above is a measurement of a commit that has moved: **the table describes `304cd104`, not HEAD.**
 
-**Not yet decided and it belongs to the fix:** whether the templates ship inside the release asset (making the asset an archive rather than a bare Mach-O, which changes signing, notarisation and the checksum step) or are laid down some other way. That choice is WP-11's and it is the next thing on this workstream.
+**This was 0042 and 0043's shape reached by a third route.** Those were commands that did not exist; this was the same commands unable to find what they need.
+
+#### The fix, and what it proves
+
+`7a41ff2e`. A release now ships **three** artefacts: the two binaries plus `intent-support.tar.gz`.
+
+- **The archive is rooted at the INSTALL ROOT**, not at the templates directory, so the formula's install line is "put everything in this archive into `libexec`". `intent critic` and `intent claude rules` are unimplemented today (both exit 2) and will need the rule library, which lives **outside** the marker directory at `intent/plugins/claude/rules/`. Rooting the archive at the install root makes that a content change rather than a formula change and rather than a fourth asset.
+- **`libexec`, not `prefix/lib`, and not on taste.** Both layouts resolve. `lib` is a brew-LINKED directory -- measured, 858 keg symlinks in the shared prefix -- so `prefix/lib/templates` would publish a directory called `templates` into a global namespace under about as generic a name as exists. `libexec` is not linked. The binary must still sit beside the marker, so `bin` gets a symlink; `bats-core` ships this exact shape.
+- **Signing, notarisation and `verify` are untouched.** `notarize` already submitted a directory zip rather than a bare binary, so a third non-Mach-O artefact never reaches them.
+- **The identity that broke is the one worth naming: "staged artefact" and "must be proven signed and notarised" stopped being the same set**, because the tarball must be hashed and cannot be notarised. `checksum` now CLASSIFIES every staged file and REFUSES an unclassified one, so the next artefact gets a decision or gets refused -- it can neither ship as unproven bytes under a published hash, nor be silently omitted from `SHA256SUMS.txt` the way the old `*-$triple` glob would have omitted it. `publish` uploads and round-trips the same derived set, so what ships and what has a published hash cannot drift.
+
+**What is proven:** the real staged artefacts, the formula's install block replayed line for line including **both** symlink hops, all three consumers working, both whiteboard guards resolving, and the clock guard executing from the installed tree. The packaged scripts are byte-identical to the repo's, so 0042's enforcement canary carries over. The formula lints clean at a tap path with **no** offences. Every guard is mutation-tested.
+
+**What is NOT proven, and it is the standing one:** no release here has ever carried an asset, so `gh release create` and a real `brew install` remain unexercised. **Replaying the install block by hand is evidence about the layout, not about Homebrew.** That is the same unexercised surface WP-11 has carried throughout, neither widened nor narrowed by this change.
 
 ### RELEASED -- issue 0043: shadowing locked the user out of Claude Code, in every Intent project on the machine
 

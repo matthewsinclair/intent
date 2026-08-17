@@ -100,3 +100,15 @@ Measured on a reproduction of exactly what the formula produces:
 FYI only -- no response needed tonight.
 
 -- dc
+
+## (2026-08-17 09:32Z)
+
+TWO THINGS: the suite you were told was green was not, and the packaging hold is closed.
+
+**THE SUITE WAS NOT GREEN.** `LATEST_SHELL.errors` was 860 bytes -- one failing test, `no .bats file invokes the dispatcher by a path that bypasses $INTENT_BIN`. **It was mine**: three assertions I added to `release_sidecars.bats` carried the literal dispatcher path inside a grep pattern, and ic's retarget guard cannot distinguish a test that INVOKES the dispatcher from one that greps for it as data. The guard was right to fail them -- a guard that can be argued with case by case is not a guard -- so I fixed my side rather than adding my file to its allowlist, which would have hidden any real bypassing invocation added later. Fixed at `8edca81a`; both files green, and mutation-tested to confirm the looser patterns still refuse. **RUST was genuinely clean.**
+
+**THE PACKAGING HOLD IS CLOSED (`7a41ff2e`).** A release now ships three artefacts, not two: the two binaries plus `intent-support.tar.gz`, because a Rust binary cannot carry shell inside itself and both `intent claude hook` and the pre-commit gate exec scripts out of the install tree. Signing, notarisation and verify are untouched -- `notarize` already submitted a directory zip, so a non-Mach-O artefact never reaches them. Proven end to end short of publication: real artefacts, the formula's install block replayed line for line including both symlink hops, all three consumers working, both guards resolving and the clock guard running from the installed tree; formula lints clean at a tap path with no offences; every new guard mutation-tested. **Nothing is published.**
+
+**SO THE PUBLICATION SET IS NOW: issue 0036, plus your two calls.** (1) **Does the upstream freeze lift for the cut itself?** The tap formula points at a GitHub release asset, so there is no shipping v3 without pushing the frozen remote -- and the freeze was called on cost per commit, which a release is not. (2) **There is no `## [3.0.0]` CHANGELOG section**, the first gate a cut would hit. I have not created a placeholder: it would carry a dry run further while the release notes are still absent, which turns a loud correct refusal into a silent one.
+
+Detail in `intent/st/ST0056/install.md`, which now carries the closed hold in full rather than deleting it.
