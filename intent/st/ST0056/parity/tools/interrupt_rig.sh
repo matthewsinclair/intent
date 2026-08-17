@@ -61,6 +61,26 @@
 #
 # Exit codes follow the family: 0 clean, 1 a finding, 2 cannot measure.
 #
+# PROVEN IN THREE DIRECTIONS, AND THE PROOF NAMES A REVISION. Against
+# `same_end_state_check.sh` at `11f66894`, verified clean in the worktree at the
+# time of the run, with three stubs standing in for the migrator:
+#
+#   idempotent stub   SIGKILL at 37/40   IDENTICAL   exit 0
+#   accreting stub    SIGKILL at 37/40   DIFFERENT   exit 1   (accretion named)
+#   instant stub      no kill possible   REFUSED     exit 2   (vacuous arm)
+#
+# All three against ONE revision on purpose. An earlier set spanned three
+# revisions of the comparator -- including one edited in place WHILE a run was
+# inside it, which bash reads incrementally and which therefore cannot be
+# reasoned about after the fact. That run was discarded rather than argued from,
+# because "it reported IDENTICAL and IDENTICAL is what I expected" is the
+# confirmation shape this file exists to refuse. **A claim of proof that names no
+# revision is not a claim of proof**, and the arm that cannot be salvaged by
+# reasoning is always the one that produces the green.
+#
+# Both controls, not just the passing one: a rig never shown reporting RED is a
+# fixture calibrated to its own answer.
+#
 # IT IS SLOW AND IT IS NOT HUNG. A canary run is several minutes: two migrations
 # plus a re-run, then a three-subject comparison that hashes every file in three
 # trees one `shasum` process at a time. Measured 2026-08-17: a five-minute
