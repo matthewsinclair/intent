@@ -69,6 +69,12 @@ G_NODB="no database enters history (D34: the DB is per-machine truth, never comm
 G_PROV="provenance: artefacts from one measurement name one revision"
 G_SKEW="skew: committed generated views still match their canon"
 G_GENIN="generator inputs: git holds everything a committed artefact is made from"
+G_ROSTER="roster: every parity instrument declares whether this gate runs it"
+G_CORRECTED="corrected class: the ratified units and the claimed units are one set"
+G_VOCAB="class vocabulary: a claimed parity class is one parity.md names"
+G_RATIFIED="ratification provenance: a ratified row names authority, date and record"
+G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
+G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
 
 G_BOARD="whiteboard: header values are literal, never YAML-escaped"
 
@@ -78,6 +84,12 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_PROV" "intent/st/ST0056/parity/tools/provenance_check.sh"
   printf '%s\t%s\n' "$G_SKEW" "intent/st/ST0056/parity/tools/view_skew_check.sh"
   printf '%s\t%s\n' "$G_GENIN" "intent/st/ST0056/parity/tools/generator_inputs_check.sh"
+  printf '%s\t%s\n' "$G_ROSTER" "intent/st/ST0056/parity/tools/runner_roster_check.sh"
+  printf '%s\t%s\n' "$G_CORRECTED" "intent/st/ST0056/parity/tools/corrected_check.sh"
+  printf '%s\t%s\n' "$G_VOCAB" "intent/st/ST0056/parity/tools/class_vocab_check.sh"
+  printf '%s\t%s\n' "$G_RATIFIED" "intent/st/ST0056/parity/tools/ratified_in_check.sh"
+  printf '%s\t%s\n' "$G_RESIDUE" "intent/st/ST0056/parity/tools/residue_class_check.sh"
+  printf '%s\t%s\n' "$G_STALEAT" "intent/st/ST0056/parity/tools/stale_at_check.sh"
   exit 0
 fi
 
@@ -276,6 +288,76 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! bash "$TOOLS/generator_inputs_check.sh"; then
     rc=1
     failed="${failed}  generator_inputs_check.sh -- a committed artefact names an input git cannot hold
+"
+  fi
+
+  # 4. Instrument disposition -- the roster that says whether the list ABOVE is
+  #    the whole of what runs. Issue 0059: eleven instruments lived in the tools
+  #    directory, three had an execution site, and eight had none -- three of
+  #    those eight CITED BY A GREEN ACCEPTANCE ROW. Every individual record was
+  #    correct; nothing joined "this tool exists" to "something runs it".
+  #
+  #    IT GATES ON ITS FINDINGS, unlike the five below, and the asymmetry is
+  #    principled rather than a mood. Those are report-only because most of
+  #    their hits are a legitimate mid-ladder state -- a command not wired yet,
+  #    a row not ratified yet. There is no legitimate state in which a tool
+  #    exists and its disposition is undeclared: the fix is one line in the
+  #    roster, and forcing it on the day the tool ARRIVES is the entire point.
+  #    The roster is the only artefact here that cannot rot by omission.
+  step "$G_ROSTER"
+  if ! bash "$TOOLS/runner_roster_check.sh"; then
+    rc=1
+    failed="${failed}  runner_roster_check.sh -- an instrument's declared disposition disagrees with what this runner does
+"
+  fi
+
+  # 5-9. THE REGISTER CHECKS. All five are REPORT-ONLY BY CONSTRUCTION: each
+  #      exits 0 whether it is clean or has findings, and non-zero ONLY when it
+  #      cannot measure at all.
+  #
+  #      So a refusal from any of the five is never "the register is wrong" --
+  #      it is "this instrument could not answer", which is a broken instrument.
+  #      That distinction is not academic: corrected_check.sh spent a day dying
+  #      at exit 2 for all twenty corrected rows, because a ratification had
+  #      been written into a field it does not read. The refusal was correct,
+  #      loud, and by design, and it sat through a fold and a compact under a
+  #      board reading "nothing blocked" -- because nothing ran it. A refusal
+  #      and a silence look the same to anyone not looking.
+  #
+  #      Their FINDINGS print above and do not block. Read them; that is the
+  #      whole reason they are here rather than in somebody's shell history.
+  step "$G_CORRECTED"
+  if ! bash "$TOOLS/corrected_check.sh"; then
+    rc=1
+    failed="${failed}  corrected_check.sh -- could not measure the corrected class (exit 2; its findings never gate)
+"
+  fi
+
+  step "$G_VOCAB"
+  if ! bash "$TOOLS/class_vocab_check.sh"; then
+    rc=1
+    failed="${failed}  class_vocab_check.sh -- could not measure the class vocabulary (exit 2; its findings never gate)
+"
+  fi
+
+  step "$G_RATIFIED"
+  if ! bash "$TOOLS/ratified_in_check.sh"; then
+    rc=1
+    failed="${failed}  ratified_in_check.sh -- could not measure ratification provenance (exit 2; its findings never gate)
+"
+  fi
+
+  step "$G_RESIDUE"
+  if ! bash "$TOOLS/residue_class_check.sh"; then
+    rc=1
+    failed="${failed}  residue_class_check.sh -- could not measure the residue classes, or the two sets disagree
+"
+  fi
+
+  step "$G_STALEAT"
+  if ! bash "$TOOLS/stale_at_check.sh"; then
+    rc=1
+    failed="${failed}  stale_at_check.sh -- an AT row's status will not parse (exit 2; a stale-row report never gates)
 "
   fi
 fi
