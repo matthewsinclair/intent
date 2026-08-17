@@ -358,6 +358,22 @@ say "arm A: wrote $A_DELTA files ($BASE_N -> $A_N)"
 # sentinel is a fact about their progress**: this waits for a specific file that
 # the same migrator wrote at a known depth of the same workload, and if that file
 # never appears the poll times out and refuses rather than killing blind.
+#
+# **THE PERCENTILE IS APPROXIMATE AND LANDS LATE. STATED BECAUSE IT WAS MEASURED,
+# AND BECAUSE AN EARLIER VERSION OF THIS COMMENT CLAIMED OTHERWISE.** `--fraction`
+# selects by MTIME order, and mtime order is not the order the paths APPEAR:
+# `WriteSet::commit()` writes temp-and-renames, so a file's mtime is when its
+# temp was written while `test -e` can only see it after the rename. Measured on
+# the canary: `--fraction 25` picks a file whose mtime is 16ms into the burst and
+# lands the kill at 263 of 295 writes, where 25% would be about 74. `--fraction
+# 90` and `--fraction 75` both land at 293.
+#
+# So the honest claim is that this rig lands a GENUINE DEEP interruption and can
+# move it somewhat earlier, not that it can place the kill at a chosen depth.
+# Deep is what the gate needs -- a shallow kill leaves nothing to recover -- so
+# the limitation costs nothing here, but a future arm that needs an EARLY kill
+# will need appearance order, which means observing arm A rather than stat-ing it
+# afterwards.
 say "deriving the kill sentinel from the clean run's write order"
 
 SENTINEL_REL="$(
@@ -399,7 +415,19 @@ CHILD=$!
 # walking 400k paths before a timeout killed it. The bound here is wall-clock
 # rather than an iteration count, because iterations are now far too cheap to
 # reason about as a duration.
-POLL_DEADLINE=$(( $(date +%s) + 120 ))
+# NOTHING IN THIS LOOP MAY FORK, and that is a measured requirement rather than
+# a style preference. The first version of this spin called `date +%s` every
+# iteration to check its deadline -- a fork and an exec, milliseconds each, in a
+# window where the migrator writes a file every ~0.25ms. Measured: the sentinel
+# chosen at 25% of the writes appears **16ms** into the burst, and the kill still
+# landed at 293 of 295 files, because the loop was ~200 files behind by the time
+# it looked. The `find`-based count was replaced with a single `test -e` for
+# speed and a fork was left in beside it, which put the cost straight back.
+#
+# `$SECONDS` is a bash builtin, so the deadline costs nothing. `test -e` and
+# `kill -0` are a builtin and a syscall. The loop body now allocates no process.
+SECONDS=0
+POLL_LIMIT_S=120
 killed=0
 at_kill=0
 
@@ -407,11 +435,13 @@ while :; do
   if [ -e "$B/$SENTINEL_REL" ]; then
     kill -9 "$CHILD" 2>/dev/null
     killed=1
+    # Counted AFTER the signal, so this is an upper bound on what the run had
+    # written when the kill was issued, not an exact figure. Reported as such.
     at_kill="$(count_files "$B")"
     break
   fi
   if ! kill -0 "$CHILD" 2>/dev/null; then break; fi
-  if [ "$(date +%s)" -ge "$POLL_DEADLINE" ]; then break; fi
+  if [ "$SECONDS" -ge "$POLL_LIMIT_S" ]; then break; fi
 done
 
 wait "$CHILD" 2>/dev/null
