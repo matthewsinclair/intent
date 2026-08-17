@@ -91,3 +91,37 @@ Kept verbatim. Every red it describes is now green, VERIFIED rather than accepte
 **AND RATIFYING THOSE TWO ROWS THIS MORNING KILLED `corrected_check.sh` AT EXIT 2 FOR ALL TWENTY CORRECTED ROWS.** It reads `target.ratified_in`; I invented `voice_ruling` where eighteen of twenty rows already used the canonical `ratification`/`ratified_in` pair. A Highlander violation in my own SSOT, and the blast radius was the whole axis rather than the two rows I touched. Fixed; rc=0, 11 cited / 24 claimed / 13 elsewhere.
 
 **MY OWN RULING'S REASON WAS WRONG AND IT EXCUSED v2.** It said v2 "had no `computed` state to name". v2 HAS the concept -- `bin/intent_acceptance:16` and the refusal at `:1084`. What v2 lacks is the branch at the call site: `:1259` prints `(unsatisfied)` unconditionally under a comment at `:1252` reasoning only about the non-test case. **So v2 announces `unsatisfied` about a criterion whose satisfaction it computes elsewhere** -- vc's class again. Same destination, load-bearing difference in the grounds: v2 is wrong here, not model-limited. Measured against a fixture v2's OWN `at lint` validated first.
+
+## FOLD 20 (2026-08-17 15:00Z) -- archived DOING
+
+## DOING -- A ROSTER THAT REFUSES, AND A CORRECTION SWEPT ONE FIELD FURTHER THAN IT WAS REPORTED
+
+**TWO LANDED AND PUSHED: `67814555` (0059) and `0a7cc84c` (0061).** Upstream still frozen at `5765c5da`; v3 still not on PATH.
+
+**0059 -- THE GATE RUNS ELEVEN GUARDS NOW, AND IT RAN ITSELF ON ITS OWN COMMIT.** Six wired. But the mechanical half was never the point: 0059 says in as many words **do not add them without the disposition field**, so the deliverable is `runner_roster_check.sh` -- a `gated`/`manual` disposition per `*_check.sh` with a required reason, which **enumerates the directory every run and REFUSES on any tool it has no row for.** Naming the remainder in prose is a claim that rots on the day a tool is added; a roster fails on that day instead. Nine gated, four manual, zero undeclared.
+
+**THE POPULATION HAD ALREADY MOVED BEFORE THE REMEDY WAS WRITTEN, WHICH IS THE ARGUMENT FOR THE REFUSAL.** 0059 counted eleven instruments at `0f87fc2c`; there are **thirteen**. `ratified_in_check.sh` landed hours after the census and `runner_roster_check.sh` is new -- both unwired, both unnoticed by any artefact. **My own tenth class, arriving inside the fix for it**: a correct measurement of a population that has silently acquired members. So the check never compares against a remembered count.
+
+**DECLARED AND INVOKED ARE MEASURED SEPARATELY**, because the guard-0 rot in `precommit`'s own header was precisely their disagreement -- named in the roster, implemented inline, `int hooks` reporting three guards as two. It asks `--list-guards` rather than re-grepping the source (263ms of its 782ms), because re-grepping the source is what rotted the thing it is checking.
+
+**AND `int hooks` IMMEDIATELY PAID FOR ITSELF: `corrected_check.sh` and `stale_at_check.sh` had no `+x`.** They run fine under `bash <path>`, which is exactly why nobody saw it -- the tool a human consults to find out was the thing that was wrong. Same shape as the rot above, two files over.
+
+**0061 -- vc REPORTED TWO FIELDS; FOUR WERE STALE.** `at na`'s `help` was the only authored site left in the estate where the wire spelling reached a human, and it survived **because** it is authored: nothing renders help from the enum, so no code fix could pass through it. Corrected, then verified by **rebuilding from a clean extract of HEAD with only that edit applied** -- a grep proves the file changed, not the shipped string.
+
+**`target.no_op` RE-MEASURED, NOT RETYPED, and the provenance rule earned itself twice in one day.** Three files under `native/` were dirty under cc, so the worktree binary would have attributed unlanded work to HEAD. Built from a `git archive` extract of `67814555`: movement `ok: AT-01.2 -> n/a`, self-loop `ok: AT-01.2 already n/a`.
+
+**THE FOURTH FIELD WAS NOBODY'S REPORT: `at red`'s `voice_ruling` still asked for an arrow `d14cd0b5` had already restored.** Found by measuring the siblings of the row that WAS reported. **`at green` and `at red`'s `no_op` were checked the same way and are CORRECT** -- three rows measured, one stale, no assumption applied to a family. The line held throughout: **`target.*` must describe HEAD, `observed.*` must describe v2 as measured**, so the `n-a` in `observed.notes` stays.
+
+**vc's OPEN QUESTION IS ANSWERED, AND THE ANSWER IS "NOT AS SPECIFIED".** 44 sha citations across 29 rows, 12 distinct shas. The cheap gate (`git log <sha>..HEAD` non-empty) would flag **11 of 12 shas, ~28 of 29 rows, on its first run** -- 0059's own warning turned on the remedy. **The discriminator it lacks is in the field names**: `no_op` (25) records a MEASUREMENT and goes stale; `ratification`/`ratified_in`/`scope_ruling` (12) record a DECISION and 94-commits-behind is their CORRECT state. Same cut as `target` vs `observed`, one level finer. Offered to vc, not built.
+
+## (previous) DOING -- THE INSTRUMENT WENT GREEN FOR THE RIGHT REASON, AND THAT WAS CHECKED
+
+**`literal_stdout_parity.rs` IS 4 OF 4 GREEN AT `d14cd0b5`, AND THE GREEN IS ATTRIBUTABLE.** cc landed all five voices: `ac satisfy` has ` by evidence`, the AT family has its `-> ` arrow, `at na` prints `n/a`, and both undo verbs print `ok: <AC> back in scope (<landing state>)` with the state computed from kind.
+
+**A GREEN HERE IS THE ALARM CONDITION UNLESS IT IS ATTRIBUTED, AND THIS FILE SAYS SO IN ITS OWN DOC COMMENT.** Two cheap checks ruled it out rather than one expensive one: **no `template` line changed between `0f87fc2c` and HEAD** (so nothing was rewritten from the binary, which is how `at na` got `n-a` in the first place), and `git status --porcelain -- native/ surface/` was EMPTY, so the worktree WAS `d14cd0b5` and no extract was needed. **The provenance discipline earns its keep by telling the clean case from the dirty one, not only by refusing the dirty one** -- three times today it forced an extract, and this time it licensed the worktree in one command.
+
+**cc BUILT THE RATIFICATION RATHER THAN RESTORING IT, WHICH IS THE DISTINCTION THE TWO TEST LEGS EXIST FOR.** The landing state is read back from the facade after the call rather than written as a literal, so the movement line and the no-op line take their spelling from one place and cannot diverge. No literal can name `entry(kind)`.
+
+**AND THE THREE-SPELLINGS FINDING WAS FOUR.** cc found `views.rs::test_line` rendering `AtStatus` with `enum_str`, so the next projection over any thread with a non-test AT would have rewritten every such row from `n/a` to `n-a` -- **the wire form written into GENERATED CANON, on authored files, in a spelling v2's own linter rejects at L1.** 23 `status: n/a` against zero `n-a` across the estate. The other three sites damage a line of output; this one damages a file. **Their fix was unwitnessed until they checked** -- reverting it left 72 legs green -- and `view_determinism.rs` now derives the expected spelling from `display()`, so the mutant reds their view leg and my parity leg together. Two instruments, two layers, one spelling.
+
+**FOUR OF SIX TODO ITEMS CLOSED THIS SESSION**, all pushed: the corrected-row template field (`0f87fc2c`), the arm- and line-scoped rows measured with two ruled `corrected` (`795a8ccb`), hv's 0052 ruling recorded (`5798af98`), and the provenance grammar guard (`81c3978c`, `38152015`). **Filed 0058 and 0060.**
