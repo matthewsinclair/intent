@@ -107,9 +107,11 @@ This also keeps `datetime('now', ...)` inside the query legal under D42 without 
 | id             | string  | `ST0056`                                                                                               |
 | title          | string  |                                                                                                        |
 | slug           | string  |                                                                                                        |
+| preamble       | string? | authored prose ABOVE the first `## `, minus the `# ` title -- carried verbatim, never classified       |
 | objective      | string  | authored prose; may be empty (see below)                                                               |
 | context        | string  | authored prose, markdown, carried verbatim                                                             |
 | related        | array   | `{id, note?}` -- the Related Steel Threads block                                                       |
+| body           | string? | authored prose, every other section verbatim -- the thread-level twin of D28's WP catch-all            |
 | status         | enum    | `triage · not-started · wip · hold · completed · cancelled` -- **`tbc` is NOT a v3 value** (see below) |
 | status\_reason | string? | the reason for the CURRENT status; cleared by any transition that does not carry one                   |
 | created        | date    |                                                                                                        |
@@ -124,6 +126,26 @@ This also keeps `datetime('now', ...)` inside the query legal under D42 without 
 **`status_reason` is a denormalised read of the latest guarded transition, never a second source for history** (cc, 2026-08-15, on hv's _"feel free to add to the schema to support this kind of thing"_). The history is the event envelope, which every guarded verb writes. It is cleared by any transition that does not carry a reason -- otherwise `st hold --reason "waiting on the fleet"` followed by `st resume` leaves a running thread explaining why it was paused, which is a stale value that reads as current. **It is in AC-02.6's scope like every other field**: a file form must carry it, or the round-trip loses the reason at the clone boundary.
 
 No verblock: git is the history of structured files. Authored prose files keep the v2 verblock convention unchanged; generated views carry a generated-banner footer instead (the AGENTS.md pattern).
+
+#### `preamble` -- the region above the first heading, and it is a CONSERVATION FIX rather than an additive field (ruling, vc, 2026-08-17, on cc's measurement)
+
+**Definition, stated first because the boundary IS the measurement: everything after the frontmatter and before the first `## `, minus the `# ` title line, stripped.**
+
+**IT IS NOT CARRIED TODAY. IT IS LOST.** `legacy.rs:1373` buffers only once `current.is_some()`, so every byte before the first `## ` falls on the floor -- confirmed at source by cc, and reported independently as `LOST-PROSE ... in no section, no objective, no body` by `conservation_check.sh` since that arm was written. **cc proposed this field believing the region was carried verbatim and unclassified. The field is worth building under either premise, but its PURPOSE differs between them, which is why it is specced before it is written rather than after.**
+
+**Population: 396 regions / 88,648 bytes across nine projects** (cc, fleet-wide) -- Lamplight 194, Laksa 79, Conflab 47, Baize 29, Intent 20, then Utilz, Devbin, Courses, Prolix. On the canary at `42fb5269`: **20 regions, 15 thread-level and 5 work-package, 102 to 1020 bytes each.**
+
+**WHAT IS IN IT DECIDES THE CLASSIFICATION.** ST0010's 485 bytes are a deprecation blockquote carrying a supersession pointer, plus an authored metadata block. **A cancelled thread's "superseded by X" note is precisely what the cancellation discipline exists to preserve, and it is dropped with no drop record** -- so this is a conservation defect and not a convenience.
+
+**IT NEEDS ITS OWN FIELD AND MUST NOT GO IN `body`** (cc, and the reason is load-bearing rather than aesthetic): `wp_info` renders `body` after `## Objective`, so a preamble carried there comes back in the wrong place. **Bytes preserved, position changed -- which trades a silent DROP for a silent MOVE, and the second is harder to see than the first.**
+
+**CARRIED VERBATIM, NEVER CLASSIFIED.** cc's split of the canary regions found them largely metadata restatement (`- **Status**: ... / - **Created**: ... / - **Author**: ...`), and that is exactly why no classifier is built for them: a model naming the shapes it foresaw drops what it did not, and here the unforeseen remainder is the load-bearing half.
+
+**THE BOUNDARY IS THE STRIPPED FORM, AND THIS PARAGRAPH IS THE RULING THE CHECK REFUSES TO MAKE FOR ITSELF.** `conservation_check.sh` deliberately does not rule that trimming is acceptable -- _"a check that silently adopted the migrator's own normalisation would be certifying it"_ -- it only reports WHICH KIND of difference occurred. The contract rules it here: **the field stores the stripped region, and the surrounding blank lines are markdown layout the renderer re-emits.** Consequence, stated so nobody later reads it as a regression: **the 20 regions land as `NORMALISED-PROSE`, not `CONSERVED` -- a reported, counted, NON-finding, the same treatment every other section already receives.**
+
+**Both byte totals are correct and differ only by that strip, verified at the pin rather than argued.** Intent @ `42fb5269` reads **6135 stripped** and **6213 unstripped**, reproducing cc's figure and the census's figure exactly on one corpus; the 78 bytes are leading and trailing whitespace. **196 `info.md` at the pin against 197 in the working tree -- so the corpus moved and this measurement did not**, which is a stronger statement than agreement across two revisions.
+
+**THE PRICE, recorded before the field exists so the after can be checked against it** (canary, `conservation_check.sh` at `ed29ce08`): `LOST-PROSE` **575 -> 555**; those 20 move into `NORMALISED-PROSE` **267 -> 287**; `MODELLED` **237 -> 257**, because a declared field is modelled rather than carried. **Zero new findings in either direction, and 6213 census-boundary bytes move from lost to accounted.**
 
 #### Why objective / context / related are modelled (the info.md mixed-file resolution)
 
@@ -148,6 +170,7 @@ Deferring this to WP-10 was the rejected option. The migrator would have discove
 | scope          | enum    | `XS · S · M · L · XL · XXL`, plus a marked-legacy form for a v2 value outside the set (see below)                                  |
 | status         | enum    | `not-started · wip · done`                                                                                                         |
 | status\_reason | string? | as `steel_thread.status_reason` -- current status only, cleared by a transition carrying none                                      |
+| preamble       | string? | as `steel_thread.preamble` -- 5 of the canary's 20 regions are WP-level                                                            |
 | objective      | string? | authored prose, the `## Objective` section (D28)                                                                                   |
 | body           | string? | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured |
 
