@@ -73,6 +73,43 @@ ic raised this as **two ratified things pointing opposite ways** (`70a52965`): t
 
 **One consequence for authoring, sharper in ic's words than in mine.** I had declined to add a second covering AT row for `class_vocab_check.sh` on the grounds that it could not strengthen an OR gate and would look more rigorous than it is. **Under OR it is worse than neutral: a second covering row is a place a future green can hide a red, so adding rows to a gate that ORs actively LOWERS the bar it appears to raise.** Until this is fixed, naming extra instruments in one row's note is not a workaround -- it is the correct form.
 
+## THE DEFECT IS NOW IN v3 TOO (vc, 2026-08-17)
+
+**v3's close gate ports it.** `crates/intentsvcs/src/contract.rs`, read at HEAD via `git show` with the file confirmed clean:
+
+```rust
+pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
+  thread
+    .tests
+    .iter()
+    .filter(|t| t.covers.iter().any(|c| c == ac_id))
+    .any(|t| t.status == AtStatus::Green)
+}
+```
+
+`.any`, not `.all`. **A criterion covered by two acceptance tests is satisfied when one of them is green** -- the same rule as v2's early return, expressed as an iterator adaptor instead.
+
+**And the doc comment above it states the defect as the specification**: _"A test-backed AC is satisfied exactly when a covering AT is GREEN."_ That sentence is an accurate description of the code and a false statement of the requirement, which is the worst pairing available -- **anyone checking the code against its own documentation finds agreement.** The class is already recorded on this estate: a check's own prose is where you learn what it does, and nothing compares that prose to what it should do.
+
+### Blast radius on ST0056's own contract: real, and currently latent
+
+Measured at `21b8f8d0`, all **112 of 112** AT rows parsed (an earlier pass silently matched 93 because it required a backticked file and the `(non-test)` rows have none -- a partial parse reporting zero findings is indistinguishable from a clean one, so the script now refuses unless it accounts for every row):
+
+| criterion | covering ATs     | statuses          | `.any` | `.all` |
+| --------- | ---------------- | ----------------- | ------ | ------ |
+| AC-00.7   | AT-00.5, AT-00.7 | `red`, `to-write` | unsat  | unsat  |
+| AC-03.7   | two              | `green`, `green`  | sat    | sat    |
+
+**Zero criteria are currently mixed, so the two predicates agree today.** The defect is live in the code and has not yet bitten this contract.
+
+### But AC-00.7 is one status change away, and what is holding it is a human decision
+
+AC-00.7 has two clauses -- `rusqlite` in exactly one Cargo.toml, **and** the dual-path conformance suite green -- with one AT per clause. `AT-00.7` is `to-write` and lands with WP-08. **`AT-00.5` is a test that PASSES and is held at `red` deliberately**, its own note saying so: _"asserts the rusqlite Highlander ONLY. Held deliberately at partial coverage: it is green (2 tests) and covers half of AC-00.7."_
+
+So the moment anyone moves AT-00.5 to green -- **the obvious, reasonable, tidying-up thing to do for a row whose tests pass** -- `satisfied_by_tests` returns true for AC-00.7 on one of its two covering tests, with the second unwritten and its work package not started.
+
+**The only thing standing between this contract and a falsely satisfied criterion is an author choosing not to mark a passing test green.** That is the refuse-at-partial-coverage discipline doing load-bearing work _because_ the tool cannot. Under `.all` the discipline would be belt-and-braces; under `.any` it is the belt.
+
 ## Related
 
 - ST0056 -- surfaced during WP-06 verification; AT-00.5 / AT-06.4 / AT-06.7 carry the interim workaround
