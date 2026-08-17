@@ -1159,13 +1159,27 @@ fn upgrade() -> Result<(), Failure> {
     done.threads, done.issues, done.files
   );
   // **Printed only when it happened, because on a first run it is noise and on
-  // a re-run it is the only thing the operator actually wants to know.** It
-  // says the previous run was interrupted and how far it got -- and it is a
-  // count of threads whose SOURCE differed, not of work skipped: they are in
+  // a re-run it is the only thing the operator actually wants to know.** It is
+  // a count of threads whose SOURCE differed, not of work skipped: they are in
   // the plan like any other and re-emit byte-identical canon.
+  //
+  // **It reports the observation and NOT a cause, and the first version of
+  // this line got that wrong.** It said "a previous run of this command was
+  // interrupted", which is ONE of at least three ways to arrive here -- the
+  // others being a run that completed normally, and, until `426416e1`, a
+  // project stuck in the loop where every re-run reported success and changed
+  // nothing. ic caught it on a tree that had never been interrupted; their
+  // gate's arm B prints this same line where interruption genuinely IS the
+  // cause, and nothing in the output told the two apart.
+  //
+  // **The migrator was not present when that canon was written and must not
+  // narrate it.** Same class as a fabricated timestamp: an invented cause is
+  // indistinguishable by inspection from a recorded one, and it is worse than
+  // silence because it sends the reader looking for an interruption that never
+  // happened.
   if !done.already_migrated.is_empty() {
     eprintln!(
-      "already migrated: {} thread(s) read from committed canon rather than converted -- a previous run of this command was interrupted",
+      "already migrated: {} thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged",
       done.already_migrated.len()
     );
   }
