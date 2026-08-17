@@ -174,13 +174,24 @@ is_sqlite() { [ "$(head -c 15 "$1" 2>/dev/null)" = "SQLite format 3" ]; }
 # THE SIDECARS COUNT TOO, AND THE CANARY IS WHAT FOUND THAT. The first version
 # tested only the main database and a real migrated estate then failed on
 # `intent.db-shm` -- because a `-shm` does NOT begin with `SQLite format 3`, so
-# a magic-byte test alone misses it. Measured: BOTH clean runs of the pinned
-# canary leave `intent.db-wal` AND `intent.db-shm` behind, so this is the real
-# estate's shape and not a fixture artefact. D21 said so in advance -- "the DB
-# lives at intent/.cache/intent.db (+ WAL/SHM siblings at runtime)" -- and ic
-# named the exact failure when they warned that a check keyed to the store's
-# path stops discriminating the day it "gains a WAL sibling". I derived the main
-# file correctly and left its siblings keyed to nothing at all.
+# a magic-byte test alone misses it.
+#
+# CORRECTION, AND THE MEASUREMENT THAT PRODUCED THE CLAIM IS WHAT CREATED THE
+# THING IT REPORTED. This block first said "BOTH clean runs of the pinned canary
+# leave `intent.db-wal` AND `intent.db-shm` behind, so this is the real estate's
+# shape and not a fixture artefact." THAT IS FALSE and it was committed. A fresh
+# capture migrated once and inspected with `ls` alone holds `intent.db` and
+# NOTHING ELSE; running a single `sqlite3 SELECT` against it then creates the
+# 32KB `-shm` and the 0-byte `-wal`. My earlier trees had been dumped repeatedly
+# while I was comparing stores, so THE SIDECARS WERE MY OWN QUERIES. ic caught
+# it by noticing their `.cache/` held one file where mine held three -- a
+# discrepancy between two nodes measuring one estate, which is the only vantage
+# point from which it was visible.
+#
+# The sidecar handling below STAYS, and its reason changes rather than
+# evaporating: any tree an operator or an instrument has opened carries them, so
+# a comparator that reddens on `-shm` reddens on having been looked at. D21
+# named them as runtime siblings, and runtime is exactly when a reader arrives.
 #
 # DERIVED FROM SQLite's OWN NAMING CONTRACT, not from this project's paths: a
 # file is a store sidecar when stripping the `-wal`/`-shm` suffix SQLite itself
