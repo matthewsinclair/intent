@@ -95,6 +95,43 @@ rc=0
 
 **Per the ordering above, the code CHOICE for `info` is not bundled into this issue either** (cc's own position). The distinction cc names is the load-bearing one and is worth quoting, because it is the reason this is not simply "make it exit non-zero": **"never gate on PROJECT state" is 0042's requirement and is not the same as "always exit 0" -- an unmigrated project is not a failure of `info`; an unresolvable install is.**
 
+### THE REVERSE SWEEP, RUN 2026-08-17 (vc)
+
+The sweep owed at line 94 has been run. **309 probes, the whole declared surface** (104 entries from `surface/dispatch-table.json`, three probes each -- bare, `--help`, and one bogus positional; `claude start` excluded because it launches a real session). Every probe against a **fresh copy** of the fixture, so a mutating probe cannot contaminate the next. Binary rebuilt from a clean tree at `3088c39c`, invoked by explicit path, never on PATH.
+
+Classification is by **output**, then the code is read. Two mismatch classes were defined in advance:
+
+| class      | shape                              | found |
+| ---------- | ---------------------------------- | ----- |
+| **TYPE-A** | printed a failure, returned 0      | **0** |
+| **TYPE-B** | returned non-zero, printed nothing | **0** |
+
+**Both are empty, and the empty result is worth as much as a hit would have been**, because it bounds where the exit-0-on-failure class lives: dc's `info` case does not reproduce against a correctly-installed binary. It needs the unresolvable-install context, which is dc's WP-11 hold and not a property of the command surface.
+
+**What the sweep DID establish is the overload, read from the output side rather than the code side, and it is eight events rather than five:**
+
+| event                                                 | probes | example                                                           |
+| ----------------------------------------------------- | ------ | ----------------------------------------------------------------- |
+| missing required argument                             | 60     | `error: the following required arguments were not provided: <ID>` |
+| unrecognised subcommand (incl. every retired command) | 34     | `error: unrecognized subcommand 'treeindex'`                      |
+| unexpected argument                                   | 23     | `error: unexpected argument 'NOSUCHTHING' found`                  |
+| **the project cannot be read at all**                 | **22** | `error: this project has not been migrated to Intent v3 -- ...`   |
+| family root invoked with no subcommand                | 8      | `error: 'ext' requires a subcommand but one was not provided`     |
+| a lookup that found nothing                           | 6      | `error: 'NOSUCHTHING' is not a work package`                      |
+| a deliberate domain refusal                           | 3      | `error: 'todo done' needs something to do`                        |
+| **findings**, with no `error:` line at all            | 1      | `doctor` -- 1,175 bytes of report, rc 1                           |
+
+**Every row is exit 1**, and the first seven sum to the 156 anchored rc-1 probes exactly. The eighth is the one no lexical classifier can reach: `doctor` returns 1 for a **result**, not a failure, and prints no `error:` line at all -- so a caller cannot separate it from the other seven by code _or_ by output shape. The third row is the one that mattered and it has gone to **issue 0045**: it is a statement about the world rather than about the invocation, the tool already owns `2` for exactly that meaning, and the pre-commit gate reads `1` as _block this commit_.
+
+**Two smaller results, both checks on other people's work rather than new defects.**
+
+- **`intent info NOSUCHTHING` returns 0 with byte-identical output to `intent info`** -- the positional is swallowed. This is INV-08, already registered, **independently reproduced by an instrument that knew nothing about it**, which is a pass for the register rather than a finding against it. **v3 has half-fixed it**: `intent info --zzz` now exits 1, while the positional still swallows. The register's `args` note still reads "every argument is silently discarded", which described v2 and is now true of only half of v3. Raised with ic as register drift, not filed.
+- **32 commands now exit 2** (`agents`, `llm`, `init`, `upgrade`, `learn`, `fileindex`, `config`, `issues`, `lang`, `modules`, `plugin`, `ext`, `bootstrap`, `version` and their subcommands). 0038's blast-radius table re-measured at HEAD: the six "known command not implemented yet" rows have all moved to 2. **The four that stayed at 1 are exactly the retired ones** -- `organize`, `treeindex`, `help`, `st_zero` -- which is Proposed Fix 1 below, now measured rather than argued.
+
+**And this sweep has its own blind spot, found the same way dc found the last one -- by asking what the instrument cannot represent.** It classifies by _printed error_, so it is structurally blind to **a failure that prints nothing at all**. `intent info NOSUCHTHING` surfaced only because the harness ran a **differential** -- the same command with and without a bogus argument -- and compared the two outputs to each other rather than either to a rule. **A single reading can only find defects the signal it reads represents; the differential is what catches the case where every signal is silent.** The forward sweep read the code and was blind to failure-at-0. The reverse sweep reads the message and is blind to failure-with-no-message. Neither is fixable by widening the lexicon.
+
+**Coverage caveat, stated because a clean sweep invites the wrong conclusion: 22 of the 309 probes never reached the command.** They were refused at the migration gate, so what was measured is the gate, not the command behind it. **That slice cannot be measured in this build at all** -- `init` and `upgrade` are both unimplemented, so no v3 project can be brought into existence to run them in. **The reachable surface was swept; the surface behind the gate has never been swept by anyone**, and it becomes reachable the moment WP-10 lands.
+
 ## Proposed Fix
 
 **The ordering claim first: this is NOT a blocker for 0043 and should not be bundled into it.** 0043 is a lockout and must be settled before publication. This can follow, and doing it under the same pressure risks a second constant chosen against a single consumer -- which is how the first three of these arrived.

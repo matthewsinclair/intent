@@ -131,3 +131,11 @@ Two parts, and the second matters more than the first.
 - **`.git/hooks/` is not tracked**, so this fix reaches a clone only via `intent claude upgrade --apply`. Every existing clone keeps the hook it was born with until someone runs that.
 
 **Correction to line 82-91, mine, since I made the original one:** "the empty resolution is visible as a bare leading `/`" was accurate and is now obsolete -- that symptom was the only tell, and it is replaced by a message that states the condition outright.
+
+### INDEPENDENTLY REPRODUCED 2026-08-17 (vc) -- and this issue STAYS OPEN
+
+**dc's canary reproduces on a rig built without reference to dc's.** A throwaway v2 project carrying `intent/whiteboard/vc/wip.md`, the shipped `pre-commit.sh` at `.git/hooks/pre-commit`, the real v3 binary reached through a shim on a `PATH` scoped to the single `git commit`. A baseline commit passes; an inbox entry headed `## (2026-08-17 03:20)` -- no trailing `Z` -- is **REFUSED**, `commit rc=1`, with check B's full diagnosis and the correct current clock printed for copy-paste.
+
+Two things that measures which dc's own report could not: **`intent info` resolves `INTENT_HOME` correctly in an UNMIGRATED project** (v3 renders the pending state itself and exits 0 rather than gating), so the resolver path is live during the migration window and not only after it; and **the guard was located under `${INTENT_HOME}/lib/templates/hooks/` and executed**, so the fix is enforcing rather than merely reporting better.
+
+**It is NOT closed, and the reason is worth recording because two peers' boards said otherwise.** Both `cc/wip.md` and `dc/wip.md` carried "0042 CLOSED" at 03:01Z and 03:04Z; the file says OPEN with two outstanding items, and **the file is right** -- dc's own resolution above states plainly that this issue stays open. **Two boards agreeing is not two independent confirmations when one is reporting the other's claim**, and the artefact under discussion was the tiebreak. Of the two outstanding items, part of item 1 has since landed (`info` and `claude hook` are implemented, on 0043); `critic` is not, and item 2 -- the hook resolving a path by parsing display output -- is untouched.

@@ -3,7 +3,7 @@ id: "0038"
 title: v3 exits 1 for an unimplemented command, so a migrated project's pre-commit gate blocks every commit
 date: 2026-08-16
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
@@ -154,7 +154,38 @@ Three tests now cover this, and the mutation (reverting `Unavailable` to `Error`
 - `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation` -- all three codes asserted TOGETHER, so changing every code to one new value cannot pass
 - `a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt` -- drives the shipped hook
 
-### Outstanding
+### CLOSED 2026-08-17 (vc) -- re-measured end to end at `3088c39c`, clean tree, and both outstanding clauses discharged or routed
+
+**The reproduction was re-run from scratch rather than re-read.** Throwaway v2 project, `languages: ["shell"]`, the shipped `lib/templates/hooks/pre-commit.sh` installed at `.git/hooks/pre-commit`, one staged file, the v3 debug binary rebuilt from a verified-clean tree and reached through a shim directory on a `PATH` scoped to the single `git commit` invocation:
+
+```
+intent critic (shell) invocation error (exit 2); fail-open.
+error: `critic` is a known command that is not implemented yet
+
+commit rc=0   -- and the commit is in the log
+```
+
+**The commit lands.** Verified by counting commits in `git log`, not by trusting the return code.
+
+**The blast-radius table from Reproduction, re-measured at HEAD:**
+
+| invocation         | v3 message at HEAD                          | exit | vs filing |
+| ------------------ | ------------------------------------------- | ---- | --------- |
+| `intent agents`    | known command that is not implemented yet   | **2** | fixed |
+| `intent llm`       | known command that is not implemented yet   | **2** | fixed |
+| `intent organize`  | unrecognized subcommand                     | 1    | unchanged |
+| `intent treeindex` | unrecognized subcommand                     | 1    | unchanged |
+| `intent critic`    | required arguments were not provided <LANG> | 1    | unchanged |
+
+**32 commands now answer 2**, which is the fail-open population the hook's `*)` branch was always waiting for. **The four that stayed at 1 are exactly the retired ones** -- `organize`, `treeindex`, `help`, `st_zero` -- because a retired command is removed from the clap surface and never reaches dispatch, so the exit-code work cannot see it. **That residue is 0044's Proposed Fix 1 and is not this issue's**; the pre-commit hook calls only `critic` and `info`, neither of which is retired.
+
+**Clause 3 is DISCHARGED, and by a route this issue proposed against.** It asked for AC-10.4's path list to be widened to include `.git/hooks`. That is the wrong instrument and the argument is recorded in AC-10.9: a byte-identity criterion cannot see a semantic break, so adding a path buys coverage in the axis that already worked and none in the axis that failed. **AC-10.9 covers `.git/hooks` behaviourally instead** -- drive the shipped hook, assert the commit lands -- and AT-10.9 cites the test cc built.
+
+**Clause 2 (WP-07) stands and is not blocking.** `intent critic` with no `<LANG>` exits 2 in v2 and 1 in v3. It is a declared parity row (INV-02) that cannot be pinned until `critic` exists, which is exactly what this issue's own note says.
+
+**One thing found while re-measuring, and it is why AC-10.9 was widened the same day: this fix's fixture is MIGRATED, because that is the state this issue was about.** The unmigrated project -- the state every project in the estate occupies until WP-10 runs on it -- inherited that scope through the criterion, the test and every instrument pointed at it, and is covered by none of them. `Facade::open` gates on migration first, the refusal maps to `EXIT_ERROR`, and the same hook blocks the commit on it. **It does not reproduce today only because `critic` is unbuilt and lands in the very fail-open branch this issue's fix created.** Filed as **0045**, latent, with the polarity table that explains why no code choice fixes it.
+
+### Outstanding (at filing -- see the closure above for their disposition)
 
 - **Clause 3 (vc).** `.git/hooks` is still uncovered: AC-10.4 names `.claude/settings.json` + `.claude/scripts/**` only. AT-10.4 is still `to-write`, so the wording is still the cheap thing to fix rather than the test.
 - **One divergence deliberately not fixed here (WP-07).** `intent critic` with NO language exits 2 in v2 (its own arg parsing) and 1 in v3 (clap's usage error, INV-02). When WP-07 builds `critic`, its language validation owes v2's 2 -- the row exists in v2 and v3 cannot reach it yet, so pinning it now would assert a path that does not exist.
