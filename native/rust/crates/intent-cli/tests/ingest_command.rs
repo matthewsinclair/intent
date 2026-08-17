@@ -160,9 +160,21 @@ fn a_field_that_was_never_recorded_is_not_reported_as_a_wrong_value() {
     !out.contains("is not in the v2 vocabulary"),
     "an absent field must not be described as a value v2 would have rejected: {out}"
   );
+  // **How the report says "nothing to do" changed, and this assertion was left
+  // behind asserting the old way.** It required the remedy line `nothing to
+  // fix` to appear; then a carried finding stopped carrying a remedy at all,
+  // on the ruling that residue owes a remedy and a carry does not. The
+  // requirement is unchanged -- the operator must not be sent to fix this --
+  // so it is now stated against the mechanism that carries it, and stated as
+  // BOTH halves rather than one, because the header alone is satisfied by a
+  // report that prints a remedy underneath it.
   assert!(
-    out.contains("nothing to fix"),
-    "and its remedy says there is nothing to do, because there is not: {out}"
+    out.contains("converts as-is, no action"),
+    "the carried bucket says so in its own header: {out}"
+  );
+  assert!(
+    !out.contains("remedy:"),
+    "and nothing here owes a remedy, so none is offered: {out}"
   );
 }
 
