@@ -583,11 +583,36 @@ impl Project {
   /// which is exactly how a hole like this survives -- the case it fails on is
   /// a project whose live threads are migrated and whose ARCHIVE is not, and
   /// that project would have read as fully migrated.
+  ///
+  /// **And the question is PER THREAD, not per directory, which is the half
+  /// that was missing and which made a successful migration unreadable.**
+  /// `collect_legacy` can only ask whether `thread.json` sits BESIDE the
+  /// `info.md` it found. After a migration it never does: canon is written to
+  /// `st/<ID>/` and the v2 original stays where v2 left it, so every archived
+  /// thread answers "no `thread.json` here" while its canon sits one directory
+  /// up. Measured on this estate: 56 threads migrated, exit 0, 311 files
+  /// written -- and then 55 ids reported unmigrated, every one of them with
+  /// `st/<ID>/thread.json` present. **The detector was flagging the SOURCE of
+  /// a migration that had already succeeded** (ic), and every verb but `info`
+  /// refused, writes included, with a remedy that loops: a second `upgrade`
+  /// exits 0, reports 311 files, and changes nothing.
+  ///
+  /// So an id with canon anywhere is SUPERSEDED wherever else it appears, not
+  /// pending. That is the same rule `7628a02b` gave the ingest walk when canon
+  /// began winning on re-read; this is the one reader that never got it.
+  ///
+  /// **The retain does NOT weaken the case the two-level scan exists for**, and
+  /// the two are told apart by the same fact rather than by a special case: a
+  /// genuinely unmigrated archive has no `st/<ID>/thread.json` to find, so it
+  /// survives the filter and still convicts. Both directions are driven, in
+  /// one fixture, in `unmigrated_project.rs` -- a filter tested only on the
+  /// estate it is meant to clear is indistinguishable from deleting the check.
   fn legacy_thread_ids(&self) -> Vec<String> {
     let mut ids = Vec::new();
     collect_legacy(&self.st_dir(), true, &mut ids);
     ids.sort();
     ids.dedup();
+    ids.retain(|id| !self.thread_json(id).is_file());
     ids
   }
 

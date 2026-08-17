@@ -71,6 +71,34 @@ fn legacy(version: &str, threads: &[&str]) -> tempfile::TempDir {
   dir
 }
 
+/// The same, but with the threads in v2's status buckets, `st/<STATUS>/<ID>/`.
+///
+/// **Not only where `st done` relocates a thread -- where `st new` PUTS one.**
+/// v2 buckets by status from creation, so `NOT-STARTED/` is populated on a
+/// project that has never closed anything, and a bucket-free v2 project is one
+/// with no threads at all. Every captured estate has them: Utilz 12, Baize 21
+/// at pin `a519398d`, Lamplight 328.
+fn archived(version: &str, threads: &[(&str, &str)]) -> tempfile::TempDir {
+  let dir = legacy(version, &[]);
+  for (status, id) in threads {
+    let td = dir.path().join("intent").join("st").join(status).join(id);
+    std::fs::create_dir_all(&td).expect("mkdir archived thread");
+    std::fs::write(
+      td.join("info.md"),
+      format!(
+        "---\nstatus: {}\ncreated: 2026-01-01\n---\n\n# {id}: a bucketed thread\n",
+        match *status {
+          "COMPLETED" => "Completed",
+          "CANCELLED" => "Cancelled",
+          _ => "Not Started",
+        }
+      ),
+    )
+    .expect("write v2 info.md");
+  }
+  dir
+}
+
 /// `expect_err` needs `T: Debug`, and a `Facade` holds a live SQLite handle
 /// that has no business being printable. The panic message carries the same
 /// information.
@@ -181,23 +209,94 @@ fn a_v3_thread_carrying_a_generated_info_md_is_not_evidence() {
 /// threads quietly stop existing.
 #[test]
 fn v2_threads_relocated_into_a_status_directory_are_found() {
-  let dir = legacy("3.0.0", &[]);
-  for (status, id) in [("COMPLETED", "ST0001"), ("CANCELLED", "ST0002")] {
-    let td = dir.path().join("intent").join("st").join(status).join(id);
-    std::fs::create_dir_all(&td).expect("mkdir archived thread");
-    std::fs::write(
-      td.join("info.md"),
-      "---\nstatus: Completed\n---\n\n# archived\n",
-    )
-    .expect("write v2 info.md");
-  }
-
+  let dir = archived("3.0.0", &[("COMPLETED", "ST0001"), ("CANCELLED", "ST0002")]);
   let project = Project::open(dir.path()).expect("open");
   let p = pending(&project);
   assert_eq!(
     p.legacy_threads,
     vec!["ST0001".to_string(), "ST0002".to_string()],
     "the archive is canon too, and it is where most of a mature project lives"
+  );
+}
+
+/// **THE REGRESSION THAT MADE A SUCCEEDING MIGRATION UNUSABLE**, driven
+/// through the real migrator rather than a hand-built estate -- because the
+/// estate that breaks it IS the migrator's own ordinary output, and no fixture
+/// here had ever been through a migration.
+///
+/// Found by ic on Intent's own tree and reproduced on a sacrificial copy:
+/// `intent upgrade` exits 0, converts 56 threads and writes 311 files, and
+/// afterwards **every verb but `info` refuses** -- `st list`, `todo`, `export`,
+/// `search`, `ac list`, `wp list`, and the writes too, `st new` and `wp new` --
+/// naming 55 threads as unmigrated. All 55 had canon at `st/<ID>/thread.json`,
+/// written minutes earlier by the migration being complained about. **The
+/// remedy loops**: a second `upgrade` reports success and 311 files and leaves
+/// the project in the identical state, forever.
+///
+/// **THE SUPERSEDED THREAD HERE IS `NOT-STARTED/`, NOT `COMPLETED/`, AND THAT
+/// IS THE INVARIANT RATHER THAN A DETAIL** (ic). v2 buckets a thread by status
+/// FROM CREATION -- `intent st new` writes straight to `st/NOT-STARTED/<ID>/`
+/// -- so the population is not "every project that has completed a thread", it
+/// is **every v2 project with at least one thread in any status, ever**.
+/// Reproduced at N=1 on a four-command project: `intent init`, `st new`,
+/// `upgrade` (exit 0, 6 files), `st list` (exit 1). A fixture built on
+/// `COMPLETED/` would encode "closed threads are the hazard" and would pass a
+/// future implementation that supersedes only closed ids; `NOT-STARTED/` is
+/// the case a reader's intuition says should already be fine.
+///
+/// It also explains why nobody could produce the bucket-free control we were
+/// all looking for: **the only unaffected project is one with zero threads**,
+/// so the control is empty by construction rather than merely unavailable.
+///
+/// **Both directions run in ONE fixture, and that is the point of the test.**
+/// A filter exercised only on the estate it is meant to clear is
+/// indistinguishable from deleting the check it filters -- and ic measured
+/// that trap from the other side: a control built by DELETING the bucket
+/// directories came back exit 0 and rendering, because the buckets are the
+/// canon for 55 of 56 threads, so it had migrated 1 thread and 20 files. It
+/// read clean because there was nothing left in it to flag.
+#[test]
+fn a_migrated_archive_is_superseded_while_an_unmigrated_one_still_convicts() {
+  let dir = archived("2.19.0", &[("NOT-STARTED", "ST0001")]);
+  Facade::upgrade(&Project::open(dir.path()).expect("open"), &facade_ctx())
+    .expect("the migration itself must succeed -- everything below is about after");
+
+  let migrated = Project::open(dir.path()).expect("re-open");
+  assert!(
+    migrated.thread_json("ST0001").is_file(),
+    "premise: the migration wrote canon for the archived thread"
+  );
+  assert!(
+    dir
+      .path()
+      .join("intent/st/NOT-STARTED/ST0001/info.md")
+      .is_file(),
+    "premise: the v2 original is still where v2 left it. The migrator \
+     relocates nothing, so this is the estate every user ends up with -- if \
+     this assert ever fails the test below has stopped testing anything"
+  );
+  assert!(
+    matches!(migrated.migration(), Migration::Done),
+    "a thread whose canon exists is migrated, wherever its v2 source still sits"
+  );
+
+  // The other direction, in the same fixture and after the same migration: an
+  // archived thread with NO canon anywhere is exactly what the two-level scan
+  // exists for, and it must still convict.
+  let stray = dir.path().join("intent/st/CANCELLED/ST0002");
+  std::fs::create_dir_all(&stray).expect("mkdir");
+  std::fs::write(
+    stray.join("info.md"),
+    "---\nstatus: Cancelled\n---\n\n# ST0002: never migrated\n",
+  )
+  .expect("write v2 info.md");
+
+  let p = pending(&Project::open(dir.path()).expect("re-open"));
+  assert_eq!(
+    p.legacy_threads,
+    vec!["ST0002".to_string()],
+    "ST0002 has no canon anywhere and is genuinely pending -- and ST0001 must \
+     not reappear beside it"
   );
 }
 
