@@ -15,6 +15,15 @@
 //! and one is a field nobody wrote, and answering both with the same confident
 //! size is the answer-from-partial-evidence habit v3 exists to end -- silently,
 //! during a migration, on data whose original was about to be replaced.
+//!
+//! **THE FORM HAS TWO INSTANCES AND ONLY ONE WAS GUARDED.** `AcceptanceTest`
+//! carries `file` / `legacy` in exactly the shape `WorkPackage` carries
+//! `scope` / `scope_legacy` -- two optional fields the model generates
+//! independently, four constructible combinations, three that mean anything.
+//! The second set is at the foot of this file. **Guarding one of two
+//! structurally identical invariants is not half the coverage; the uncovered
+//! one is no less likely to break, only less likely to be looked at** -- and
+//! the file was named after the instance that happened to be built first.
 
 mod common;
 
@@ -252,6 +261,87 @@ fn a_carried_scope_on_a_live_thread_is_reported() {
       .findings
       .iter()
       .any(|f| f.class == FindingClass::ModelInconsistent
+        && f.detail.contains("carry policy is for CLOSED threads")),
+    "a live thread is fixed, not carried: {:?}",
+    report.findings
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The same form on `AcceptanceTest`: `file` / `legacy`
+// ---------------------------------------------------------------------------
+
+/// **An AT row that cites a test file AND carries a legacy reference is a
+/// contradiction**, exactly as a work package carrying both scopes is.
+///
+/// It says the reference was migrated into the 0017 grammar and also that it
+/// could not be expressed in it. **That is the state `at lint --fix` produced
+/// when it destroyed one end of a two-ended migration**, which is the whole
+/// reason `Legacy` exists rather than a hypothetical: a `::name` citation or a
+/// multi-file list has no 0017 spelling, and neither is guessed at.
+#[test]
+fn an_acceptance_test_carrying_both_a_file_and_a_legacy_reference_is_reported() {
+  let fixture = Fixture::new();
+  let mut thread = common::sample_thread("ST0001");
+  thread.status = intentsvcs::model::ThreadStatus::Completed;
+  thread.completed = Some("2026-08-15".to_string());
+  let at = thread
+    .tests
+    .iter_mut()
+    .find(|t| t.file.is_some())
+    .expect("the fixture has a test-kind row with a file");
+  at.legacy = Some(Legacy {
+    raw: "tests/foo_test.exs::the name".to_string(),
+  });
+  let id = at.id.clone();
+  fixture.write_thread(&thread);
+
+  let project = fixture.project();
+  let report = intentsvcs::facade::Facade::doctor(&project, &common::facade_ctx(), None);
+  assert!(
+    report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::ModelInconsistent
+        && f.detail.contains(&id)
+        && f.detail.contains("alternatives, not a pair")),
+    "the contradiction must be named, and named on the ROW -- a finding that says a thread is inconsistent without saying which test row cannot be acted on: {:?}",
+    report.findings
+  );
+}
+
+/// **And the carry policy is the same rule here**: a legacy reference belongs
+/// to a CLOSED thread, because hv ratified that closed threads convert
+/// lossless-by-carrying while live ones stay blocked-until-clean.
+///
+/// A live thread's AT row is FIXED, not carried -- the test it points at is
+/// still being written, so there is nothing to preserve verbatim.
+#[test]
+fn a_carried_reference_on_a_live_thread_is_reported() {
+  let fixture = Fixture::new();
+  let mut thread = common::sample_thread("ST0001");
+  thread.status = intentsvcs::model::ThreadStatus::Wip;
+  thread.completed = None;
+  let at = thread
+    .tests
+    .iter_mut()
+    .find(|t| t.file.is_some())
+    .expect("the fixture has a test-kind row with a file");
+  at.file = None;
+  at.legacy = Some(Legacy {
+    raw: "tests/foo_test.exs::the name".to_string(),
+  });
+  let id = at.id.clone();
+  fixture.write_thread(&thread);
+
+  let project = fixture.project();
+  let report = intentsvcs::facade::Facade::doctor(&project, &common::facade_ctx(), None);
+  assert!(
+    report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::ModelInconsistent
+        && f.detail.contains(&id)
         && f.detail.contains("carry policy is for CLOSED threads")),
     "a live thread is fixed, not carried: {:?}",
     report.findings

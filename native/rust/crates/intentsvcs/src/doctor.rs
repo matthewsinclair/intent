@@ -283,6 +283,43 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     }
   }
 
+  // **THE SAME TWO RULES ON THE ACCEPTANCE TEST'S OWN MARKED-LEGACY FORM, which
+  // had the precedent and not the guard.**
+  //
+  // `file` and `legacy` are the same shape as `scope` / `scope_legacy` one type
+  // over: the model generates both independently, so all four combinations are
+  // constructible and only three mean anything. **Carrying BOTH says the row
+  // cites a resolvable test path AND that its v2 reference could not be
+  // expressed in the 0017 grammar** -- and a reference that is both migrated
+  // and unmigratable is the state `--fix` produced when it destroyed one end of
+  // a two-ended migration, which is the whole reason `Legacy` exists.
+  //
+  // Guarding one of two structurally identical invariants is the shape this
+  // thread keeps finding: the uncovered one is not less likely to break, it is
+  // only less likely to be looked at.
+  for at in &thread.tests {
+    if at.file.is_some() && at.legacy.is_some() {
+      add(
+        format!(
+          "{} cites a test file AND carries a legacy reference ({:?}) -- these are alternatives, not a pair",
+          at.id,
+          at.legacy.as_ref().map(|l| &l.raw)
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    }
+    if at.legacy.is_some() && !thread.status.is_closed() {
+      add(
+        format!(
+          "{} carries a legacy reference on a thread that is still {} -- the carry policy is for CLOSED threads; a live one is fixed, not carried",
+          at.id,
+          thread.status.display()
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    }
+  }
+
   // Duplicate natural ids WITHIN a thread. Across threads is ingest's job; a
   // thread that names the same criterion twice validates fine, because the
   // schema constrains each element and not the collection.
