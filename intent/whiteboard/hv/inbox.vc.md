@@ -541,3 +541,29 @@ Today: **ic cited the void derivation to dc. I cited the same void derivation to
 **Why you are hearing it rather than just being told it is fixed: you ruled the adjacent question an hour ago without this in front of you, and it changes the priority, not the answer.** You called the bucket question not a priority -- correct about conservation and about `organize`, and not correct about this. **Nothing is needed from you unless you want to reorder something.** cc owns the `project.rs` fix and has it top of list; ic will re-drive the gate on two estates once it lands; I will not verify it only on the estate that found it.
 
 **One thing on my own harness, which is the honest half.** My fleet run recorded canary, Utilz and Baize as CONVERTING, and every conservation number still reproduces -- ALTERED 0, ADDED 0. **But nothing in that run ever asked whether the tool could still open the estate afterwards.** ic's framing is the right one and I have taken it: **a conservation green sitting on top of a liveness failure, where the two instruments cannot see each other.** Mine asks only whether the bytes survived. That is a gap in my harness rather than an error in its numbers, and I am closing it with a read verb after the convert **asserted on OUTPUT, not on exit code** -- the exit code is exactly what a lockout can fake.
+
+## (2026-08-17 20:15Z)
+
+**Asking you to re-rule D50 (`WpStatus` gains `Cancelled`), because the question I put to you was wrong and it produced the right answer to it.** cc found this going to write the match arm; I have verified every claim at source myself rather than relaying it.
+
+**MY FRAMING IS WHAT CAUSED IT.** I told you _"ten work packages across the fleet have no representable status"_. **That is true, and it is a FLOOR, and it invited exactly the answer you gave** -- _"Then add it. Why is that so hard? It's another value on the status enum?"_ **Which is the correct answer to "we need one more value" and does not reach the actual situation.**
+
+**MEASURED, and I counted it independently of cc by a different method and got the same total.** Lamplight's work-package rows that cannot be expressed as not-started / wip / done even after normalising case and separators:
+
+    cancelled 10   todo 5   pending 4   superseded 3   relocated 2   proposed 2
+    planned 1  phase-2a-complete 1  partial 1  moved 1  future 1  dropped 1
+    closed 1   absorbed 1
+    ------------------------------------------------------------
+    TOTAL 34, of which cancelled is 10
+
+**So `Cancelled` fixes 10 and leaves 24.** And `Superseded`, `Absorbed`, `Relocated`, `Dropped`, `Partial` are **not spelling variants of anything in the enum** -- they are distinct ideas with as good a claim to being a state as `Cancelled` has. **The problem is not a missing variant. v2's WP status was free text, and an enum cannot grow to 29 spellings.**
+
+**AND THERE IS A RATIFIED DECISION POINTING THE OTHER WAY THAT YOU WERE NOT SHOWN.** `data-model.md:454`, in the set you ratified on 2026-08-15: _"No `Hold` or `Cancelled` at WP level is proposed -- a WP that stops mattering is a scope change on the thread, not a state on the package."_ `transitions.rs:379` transcribes it. **Neither was in front of you when you ruled**, and I did not put it there because I did not know it was there -- cc found it only by going to write the code.
+
+**It is also not one variant even for the 10.** My own ratified rule (`data-model.md:383`) says **no terminal states: every state has at least one declared exit.** So `Cancelled` costs a verb to ENTER it, **a verb to LEAVE it**, a row in the ratified transition table, surface rows in the dispatch table, and three transcribing tests -- for 29% of the problem.
+
+**WHAT cc PROPOSES AND I AGREE WITH, offered as a recommendation and not a decision: a `status_legacy` companion, exactly like the `scope_legacy` that already exists.** Verified: `model.rs:314` carries `scope_legacy: Option<Legacy>` for precisely _"v2 recorded a value the v3 vocabulary cannot express"_, and **`status_legacy` does not exist at all.** That asymmetry is the real gap. It **covers all 34 rather than 10, needs no machine change, reverses no ratified decision, and puts the tail where a tail belongs: visible, marked, and not silently canonicalised into a lie.** It is also the same shape as a finding I sent cc earlier -- two structurally identical fields, one guarded and one not, and the unguarded one is not less likely to break, only less likely to be looked at.
+
+**THE CAUTION, AND YOU SHOULD HAVE IT BEFORE THE NUMBERS PERSUADE YOU: THE ENTIRE TAIL IS ONE ESTATE.** cc measured Lamplight only; Baize and Intent are clean (three spellings each, all mappable) and Utilz has no work-package directories at all. **So _"the fleet needs 15 concepts"_ and _"Lamplight is unusually messy"_ produce exactly the same table.** That does not change the arithmetic against the 10 -- those are Lamplight's too -- but the case rests on one member and I am not going to let my numbers imply four.
+
+**Nothing is blocked and nobody is overriding you.** cc has stopped on `WpStatus` rather than building either option, is doing the `covers` fix meanwhile, and has said plainly that if you still say add it, they will add it and build both verbs. **I am bringing you in because you asked to be brought in when needed, and a ruling made without a ratified decision that contradicts it is the case.**
