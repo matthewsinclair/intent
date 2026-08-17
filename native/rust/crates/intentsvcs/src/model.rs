@@ -801,8 +801,21 @@ pub struct Issue {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub severity: Option<String>,
   pub created: String,
+  // **Absent for every issue migrated from v2, and that is the format rather
+  // than a gap**: v2's issue frontmatter carries six keys and a closed date is
+  // not one of them, so there is nothing to carry and nothing to back-fill it
+  // from -- the filesystem mtime is a fact about a file, not about the world
+  // (D42). All-`None` here is v2 provenance, never a scanner that failed.
+  //
+  // The reasoning is a `//` and the doc is one line, because the `///` ships:
+  // schemars lifts it into the published JSON Schema face, where a consumer
+  // needs to know what the field means and not what our own estate contains.
+  /// When it was closed, if it is closed.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub closed: Option<String>,
+  /// Who reported it, free text, exactly as recorded.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub reporter: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]

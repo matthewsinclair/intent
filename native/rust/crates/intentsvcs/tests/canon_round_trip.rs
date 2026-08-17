@@ -27,7 +27,9 @@
 
 mod common;
 
-use common::{Fixture, sample_thread};
+use std::collections::BTreeSet;
+
+use common::{Fixture, PROJECT_ID, sample_thread};
 use intentsvcs::model::{
   AcceptanceMode, AcceptanceTest, AtKind, AtStatus, ISSUE_SCHEMA, Issue, IssueStatus, Thread,
   to_canonical_json,
@@ -65,7 +67,86 @@ fn issue(number: u32) -> Issue {
     severity: Some("high".to_string()),
     created: "2026-08-14".to_string(),
     closed: Some("2026-08-15".to_string()),
+    // Hostile for the same reason the title is: this fixture exists to prove
+    // the canonical JSON survives the characters that break naive quoting, and
+    // a name is the field most likely to carry an apostrophe in real data.
+    reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
   }
+}
+
+/// **Canon written where the EXPORTER names it must be canon the READERS can
+/// open** -- the two path builders compared by putting bytes on a disk between
+/// them.
+///
+/// The defect this closes: `export::canon_parts` emitted `issues/46.json` while
+/// `Project::issue_json` resolves `issues/0046.json`. Two spellings of one path,
+/// and every consumer afterwards is on the second -- so a migrated project wrote
+/// its issue canon, `issue_numbers()` enumerated it (the stem parse is tolerant
+/// and reads both spellings as the same number), and the very next open failed
+/// on a file that did not exist while the file that did sat beside it.
+///
+/// **It survived because both spellings were tested and neither test crossed
+/// between them** (ic's diagnosis, and it is what decided where this test
+/// lives). The test above writes canon THROUGH `Project::issue_json` and reads it
+/// back, so it is green on the padded spelling. `export_round_trip.rs` compares
+/// `canon_parts` to `canon_parts`, so it is green on the unpadded one -- it never
+/// puts a byte at a path anything else resolves. Each side was internally
+/// consistent and the boundary between them had no test at all, which is why
+/// "it has no callers" and "it is invisible" were one fact rather than two.
+///
+/// So the guard sits AT the crossing rather than inside either side, and it is
+/// two-sided by construction: a path the exporter invents that no reader
+/// resolves fails the set equality from one direction, and a reader path the
+/// exporter never writes fails it from the other. **Then it is DRIVEN** -- an
+/// equality between two path builders is still two builders agreeing, and only
+/// the resync proves the bytes are reachable.
+#[test]
+fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
+  let fx = Fixture::new();
+  let project = fx.project();
+  let threads = vec![maximal_thread("ST0001")];
+  // 1 and 46 rather than two neighbours: the defect was a MISSING pad, so a
+  // fixture whose numbers are already four digits wide cannot see it.
+  let issues = vec![issue(1), issue(46)];
+  let bundle =
+    intentsvcs::export::Bundle::new(PROJECT_ID, threads.clone(), issues.clone(), Vec::new());
+
+  let intent_dir = project.intent_dir();
+  let mut written = BTreeSet::new();
+  for (rel, text) in intentsvcs::export::canon_parts(&bundle).expect("canon of the bundle") {
+    let path = intent_dir.join(&rel);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(&path, text).expect("write canon");
+    written.insert(path);
+  }
+
+  // The readers' side, built from the resolvers every later consumer uses and
+  // never from the strings above.
+  let mut resolved = BTreeSet::new();
+  for t in &threads {
+    resolved.insert(project.thread_json(&t.id));
+  }
+  for i in &issues {
+    resolved.insert(project.issue_json(i.number));
+  }
+  resolved.insert(project.events_jsonl());
+
+  assert_eq!(
+    written, resolved,
+    "the exporter and the readers disagree about where canon lives -- whichever \
+     side is short, the estate has files nothing can open"
+  );
+
+  let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
+  intentsvcs::ingest::resync(&project, &mut store)
+    .expect("the canon the exporter wrote must be readable by ingest, unchanged");
+  let (out_threads, out_issues) = store.load_canon().expect("load back");
+  assert_eq!(
+    out_threads.len(),
+    threads.len(),
+    "every thread was reachable"
+  );
+  assert_eq!(out_issues.len(), issues.len(), "every issue was reachable");
 }
 
 /// Write canon, rebuild the store from it, read the model back out, and

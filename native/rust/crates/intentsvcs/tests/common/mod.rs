@@ -355,5 +355,11 @@ pub fn sample_issue(number: u32) -> Issue {
     severity: Some("medium".to_string()),
     created: "2026-08-14".to_string(),
     closed: Some("2026-08-14".to_string()),
+    // **Populated rather than `None`, and that is the whole point of setting
+    // it here.** An `Option` left empty in the one shared fixture round-trips
+    // byte-identically whether the column is wired or not, so every store and
+    // canon test that reaches this issue would pass with `reporter` dropped on
+    // the floor. A field is only pinned by a fixture that carries a value.
+    reporter: Some("matts".to_string()),
   }
 }

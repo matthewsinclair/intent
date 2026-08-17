@@ -277,5 +277,6 @@ fn sample_issue() -> Issue {
     severity: Some("medium".to_string()),
     created: "2026-08-14".to_string(),
     closed: Some("2026-08-14".to_string()),
+    reporter: Some("matts".to_string()),
   }
 }

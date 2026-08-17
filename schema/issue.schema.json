@@ -13,6 +13,7 @@
   "description": "An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).",
   "properties": {
     "closed": {
+      "description": "When it was closed, if it is closed.",
       "type": [
         "string",
         "null"
@@ -26,6 +27,13 @@
       "format": "uint32",
       "minimum": 0,
       "type": "integer"
+    },
+    "reporter": {
+      "description": "Who reported it, free text, exactly as recorded.",
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "schema": {
       "description": "Always [`ISSUE_SCHEMA`].",
@@ -58,5 +66,5 @@
   "title": "Issue",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 4
+  "x-schema-json-ver": 5
 }

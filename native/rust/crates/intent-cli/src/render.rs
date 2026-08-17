@@ -119,6 +119,40 @@ fn terminal_width() -> usize {
   100
 }
 
+/// Who is raising this issue: `git config user.name`, or nobody.
+///
+/// **v2 reads four sources and this reads ONE, and the three that are missing
+/// were refused by a ratified guard rather than dropped.** v2's chain
+/// (`bin/intent_issues:169`) is `INTENT_AUTHOR`, `AUTHOR`, `git config
+/// user.name`, `$USER` -- and AC-11.3 permits the shipped surface exactly one
+/// environment variable, `COLUMNS`. Adding three needs an hv ruling and a row
+/// in `ALLOWED`, which is a question in front of hv rather than something to
+/// take while they are away. **The guard caught this on the first run and its
+/// own message says why it has to: every machine here has those variables set,
+/// so a quiet addition would have failed nothing.**
+///
+/// So the divergence is stated rather than silent: a user who sets
+/// `INTENT_AUTHOR` is ignored until that ruling lands. The common case is
+/// unaffected -- any machine that has ever made a commit has `user.name` -- and
+/// `git config` is a subprocess rather than an environment read, so the leg that
+/// does the real work is the one that survives the constraint.
+///
+/// **`None` rather than a placeholder when there is no identity**, which is
+/// exactly AC-11.3's own scenario: a brew-installed binary on a machine with no
+/// clone and no git config. Inventing `unknown` would sign an issue nobody
+/// signed.
+fn reporter() -> Option<String> {
+  let out = std::process::Command::new("git")
+    .args(["config", "user.name"])
+    .output()
+    .ok()?;
+  out
+    .status
+    .success()
+    .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
+    .filter(|v| !v.is_empty())
+}
+
 /// v2's status synonyms, normalised (`bin/intent_helpers:canonical_status`).
 ///
 /// Case-insensitive, and both spellings of every state are accepted because
@@ -1807,8 +1841,11 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       // where the surface declares it -- if the table's default is ever removed,
       // the facade records the absence rather than this arm inventing one.
       let severity = opt(a, "severity");
+      let reporter = reporter();
       let mut f = open()?;
-      let number = f.issue_add(&title, severity.as_deref()).map_err(fail)?;
+      let number = f
+        .issue_add(&title, severity.as_deref(), reporter.as_deref())
+        .map_err(fail)?;
       // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
       // then `<id>:<title>`.
       //

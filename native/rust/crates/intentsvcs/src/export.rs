@@ -389,7 +389,14 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
   }
   for issue in &bundle.issues {
     out.push((
-      format!("issues/{}.json", issue.number),
+      // **ZERO-PADDED, and it was not.** This emitted `issues/46.json` while
+      // every reader in the estate resolves through `Project::issue_json`,
+      // which builds `issues/0046.json` -- two spellings of one path, and the
+      // exporter's was the one no reader could open. The thread arm above never
+      // had the defect because a thread id arrives already padded as text; a
+      // `u32` is padded by whoever formats it, so the two ends had to agree by
+      // convention and did not.
+      format!("issues/{:04}.json", issue.number),
       to_canonical_json(issue)?,
     ));
   }

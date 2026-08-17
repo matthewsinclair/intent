@@ -2015,7 +2015,25 @@ impl Facade {
   /// that default, so the flag's default belongs to the surface. `None` here
   /// means nobody said -- which `issues list` already renders as `?` rather than
   /// as a blank, deliberately.
-  pub fn issue_add(&mut self, title: &str, severity: Option<&str>) -> Result<u32, FacadeError> {
+  ///
+  /// **`reporter` is the caller's for the same reason `severity` is, and it is
+  /// the CREATE door for a field whose RESTORE door arrived with WP-10.** The
+  /// migration carries a reporter v2 recorded; this records the one raising it
+  /// now. Building only the restore half is the defect this estate already paid
+  /// for once, one field over -- `write_issue` was `write_thread` with the
+  /// create door missing, and it was correct only because every caller was
+  /// `rebuild`. **The door is a property of the ACT, not of the entity.**
+  ///
+  /// It is NOT taken from [`Ctx::principal`], which is the hard-coded `local`
+  /// until the 3.2 agent bus gives principals meaning. Writing that here would
+  /// assert every issue was reported by somebody called `local` -- a wrong
+  /// value where `None` at least reads as nobody said.
+  pub fn issue_add(
+    &mut self,
+    title: &str,
+    severity: Option<&str>,
+    reporter: Option<&str>,
+  ) -> Result<u32, FacadeError> {
     let number = self.next_issue_number();
     let issue = crate::model::Issue {
       schema: crate::model::ISSUE_SCHEMA.to_string(),
@@ -2026,6 +2044,7 @@ impl Facade {
       severity: severity.map(str::to_string),
       created: String::new(),
       closed: None,
+      reporter: reporter.map(str::to_string),
     };
     let mut next = self.canon.clone();
     next.issues.push(issue);

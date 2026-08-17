@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 3
+-- SCHEMA_DDL_VER: 4
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -113,6 +113,17 @@ CREATE TABLE IF NOT EXISTS tests (
 -- `created` is AUTHORED -- v2 users write it by hand in frontmatter, so it is a
 -- fact about the world and stays, with a DB stamp beside it rather than
 -- replaced by one.
+-- `closed` is NULL on every issue converted from a v2 estate, and that is the
+-- older format rather than a gap: its issue frontmatter carried six keys and a
+-- closed date was not one of them. There is nothing to back-fill it from, and a
+-- filesystem mtime is a fact about a file rather than about the world, so it
+-- stays NULL. All-NULL here means converted data, never a reader that failed.
+-- `reporter` is free text, and it is the one converted key that had no column
+-- until the estate was measured. It is modelled rather than carried as legacy
+-- because a name is not a value outside a vocabulary -- there is no enum for it
+-- to sit between, so `scope_legacy`'s shape would buy nothing. An issue is a
+-- report against a released version, which is what makes who filed it
+-- load-bearing rather than incidental.
 -- openness: carried by intent/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
   number INTEGER PRIMARY KEY,
@@ -122,6 +133,7 @@ CREATE TABLE IF NOT EXISTS issues (
   severity TEXT,
   created TEXT NOT NULL,
   closed TEXT,
+  reporter TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

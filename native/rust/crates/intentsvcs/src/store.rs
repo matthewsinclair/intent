@@ -176,6 +176,17 @@ CREATE TABLE IF NOT EXISTS tests (
 -- `created` is AUTHORED -- v2 users write it by hand in frontmatter, so it is a
 -- fact about the world and stays, with a DB stamp beside it rather than
 -- replaced by one.
+-- `closed` is NULL on every issue converted from a v2 estate, and that is the
+-- older format rather than a gap: its issue frontmatter carried six keys and a
+-- closed date was not one of them. There is nothing to back-fill it from, and a
+-- filesystem mtime is a fact about a file rather than about the world, so it
+-- stays NULL. All-NULL here means converted data, never a reader that failed.
+-- `reporter` is free text, and it is the one converted key that had no column
+-- until the estate was measured. It is modelled rather than carried as legacy
+-- because a name is not a value outside a vocabulary -- there is no enum for it
+-- to sit between, so `scope_legacy`'s shape would buy nothing. An issue is a
+-- report against a released version, which is what makes who filed it
+-- load-bearing rather than incidental.
 -- openness: carried by intent/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
   number INTEGER PRIMARY KEY,
@@ -185,6 +196,7 @@ CREATE TABLE IF NOT EXISTS issues (
   severity TEXT,
   created TEXT NOT NULL,
   closed TEXT,
+  reporter TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -303,7 +315,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 5;
+pub const SCHEMA_VERSION: i32 = 6;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -545,6 +557,21 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      SELECT thread_id, seq, title, scope, status, status_reason, objective, body, written_at FROM wps;
    DROP TABLE wps;
    ALTER TABLE wps_v5 RENAME TO wps;",
+), (
+  6,
+  // 5 -> 6: `issues.reporter` arrives, for the one v2 issue key that had no
+  // column (WP-10; 40 of 40 issues in this estate carry it).
+  //
+  // **An `ALTER` rather than a rebuild, and the difference is the constraint
+  // rather than the change.** A nullable column with no default is the one
+  // shape SQLite's `ADD COLUMN` accepts, so nothing is dropped, no row moves,
+  // and no foreign key is momentarily dangling.
+  //
+  // Every existing row gets NULL, which is correct and not a gap to fill
+  // later: a store built before this rung was built by a binary that never
+  // read the field, so there is no reporter it could have known and declined
+  // to record. The values arrive with the migration that reads them.
+  "ALTER TABLE issues ADD COLUMN reporter TEXT;",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -1072,9 +1099,15 @@ impl Store {
     };
     // Upserted for the same reason as a thread: durable identity, so
     // `created_at` must fire once rather than on every write.
+    //
+    // **A new column APPENDS to this statement rather than slotting in beside
+    // the field it belongs next to**, because `{dates}` above interpolates
+    // `?6` / `?7` by number: inserting a placeholder ahead of them silently
+    // renumbers what those two fragments bind to, and the result is a store
+    // whose dates are somebody else's column with no error anywhere.
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, {dates})
+        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8)
        ON CONFLICT (number) DO UPDATE SET
          slug = excluded.slug,
          title = excluded.title,
@@ -1082,10 +1115,11 @@ impl Store {
          severity = excluded.severity,
          created = excluded.created,
          closed = excluded.closed,
+         reporter = excluded.reporter,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
        RETURNING created, closed"
       ),
-      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed],
+      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     )?;
     Ok(stored)
@@ -1255,7 +1289,7 @@ impl Store {
     }
 
     let mut stmt = self.conn.prepare(
-      "SELECT number, slug, title, status, severity, created, closed FROM issues ORDER BY number",
+      "SELECT number, slug, title, status, severity, created, closed, reporter FROM issues ORDER BY number",
     )?;
     let issues = stmt
       .query_map([], |row| {
@@ -1267,24 +1301,28 @@ impl Store {
           row.get::<_, Option<String>>(4)?,
           row.get::<_, String>(5)?,
           row.get::<_, Option<String>>(6)?,
+          row.get::<_, Option<String>>(7)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
 
     let issues = issues
       .into_iter()
-      .map(|(number, slug, title, status, severity, created, closed)| {
-        Ok(Issue {
-          schema: ISSUE_SCHEMA.to_string(),
-          number,
-          slug,
-          title,
-          status: enum_from(&status)?,
-          severity,
-          created,
-          closed,
-        })
-      })
+      .map(
+        |(number, slug, title, status, severity, created, closed, reporter)| {
+          Ok(Issue {
+            schema: ISSUE_SCHEMA.to_string(),
+            number,
+            slug,
+            title,
+            status: enum_from(&status)?,
+            severity,
+            created,
+            closed,
+            reporter,
+          })
+        },
+      )
       .collect::<Result<Vec<_>, StoreError>>()?;
 
     Ok((threads, issues))

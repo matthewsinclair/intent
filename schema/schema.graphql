@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0-dev
-# SCHEMA_SDL_VER: 2
+# SCHEMA_SDL_VER: 3
 
 enum AcKind {
   TEST
@@ -137,7 +137,14 @@ type Issue {
   status: IssueStatus!
   severity: String
   created: String!
+  """
+  When it was closed, if it is closed.
+  """
   closed: String
+  """
+  Who reported it, free text, exactly as recorded.
+  """
+  reporter: String
 }
 
 enum IssueStatus {

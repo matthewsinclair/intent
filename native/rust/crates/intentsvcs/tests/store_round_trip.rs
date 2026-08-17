@@ -40,6 +40,9 @@ fn issue(number: u32) -> Issue {
     severity: Some("high".to_string()),
     created: "2026-08-14".to_string(),
     closed: None,
+    // An apostrophe in a value bound as a SQL parameter -- the one that would
+    // matter if any of these statements were ever built by interpolation.
+    reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
   }
 }
 

@@ -222,8 +222,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
     hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
   }
 
-  const PINNED_SCHEMA_HASH: u64 = 0x3f10_2462_20de_62f2;
-  const PINNED_FOR_VERSION: i32 = 5;
+  // 5 -> 6: `issues.reporter`, the one v2 issue key with no column. Added by
+  // `ALTER TABLE` rather than a rebuild -- a nullable column with no default is
+  // the one shape SQLite's `ADD COLUMN` accepts, so no row moves and no foreign
+  // key is momentarily dangling.
+  const PINNED_SCHEMA_HASH: u64 = 0xf727_0f1e_b861_03f0;
+  const PINNED_FOR_VERSION: i32 = 6;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

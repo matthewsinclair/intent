@@ -198,10 +198,18 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // still, and the contract changing loudly when it moves, is exactly the
   // discrimination the strip was built for; it was tested against a real change
   // one day after being written.
+  // **ALL THREE MOVED AT ONCE, which had not happened before, and the reason is
+  // worth recording because it is the case that looks like a broken
+  // instrument.** `Issue` gained a `reporter` column: a new SQL column, a new
+  // JSON property and a new SDL field are three faces of one change, so a
+  // single field on a modelled type is the shape that legitimately moves
+  // everything. It is not the discrimination failing -- the same commit rewrote
+  // the DDL's comment block at length and the DDL hash did not move at all,
+  // which is the strip doing its job in the same breath.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 3, 0x33b7_2271_e5c2_535c),
-    ("SCHEMA_SDL_VER", 2, 0xb956_84ec_c738_ad1b),
-    ("SCHEMA_JSON_VER", 4, 0xa5f4_a284_c838_e5db),
+    ("SCHEMA_DDL_VER", 4, 0xc536_bfd2_3fb3_fffa),
+    ("SCHEMA_SDL_VER", 3, 0x6ffa_ecb1_16f0_fe27),
+    ("SCHEMA_JSON_VER", 5, 0x64ab_b666_f11b_70c2),
   ];
 
   let mut moved = Vec::new();
