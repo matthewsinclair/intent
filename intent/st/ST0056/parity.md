@@ -23,6 +23,21 @@ Output-equality across implementations cannot catch v3 faithfully reproducing a 
 
 - **Scope-honouring (issue 0024):** an instrument that accepts a narrowing argument answers the narrowed question, and its output names the resolved scope. Found in v2: `at lint <ID>/NN` and `ac gate <ID>/NN` silently dropped the WP scope, and a scoped `--fix` rewrote rows OUTSIDE the scope; an equality-only suite would have carried that into v3 as certified behaviour.
 
+### THE CONTRACT'S HEADLINE CARRIES A SILENT QUANTIFIER, AND IT SHOULD BE STATED
+
+**"v3 is green when v2's own suite cannot tell the difference" means: cannot tell the difference IN THE WAYS IT LOOKS.** A byte no v2 test asserts is a byte where v2 and v3 may diverge freely while the harness reports parity, because the harness's subject is the bytes it asserts and its report's subject is the command's output. Same class as everything else here, sitting on the contract's central sentence.
+
+**Measured 2026-08-17 (vc) on the one live instance, and all four mechanisms missed it.** `intent wp show` printed `status: wip` where every other surface prints `WIP` -- a real v2 parity break, since v2 implements `wp show` by catting `info.md` and `views.rs` writes that line with `display()`.
+
+| mechanism                   | why it was silent                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| the dispatch row's note     | said the output was unchanged in kind -- TRUE, and about the binary's intent rather than its bytes      |
+| the row's `observed.stdout` | reads "the info.md contents": true, and one of the 50 of 62 `as-observed` rows too prose to assert (ic) |
+| **the v2 BATS estate**      | `tests/unit/wp_commands.bats:565` asserts the WP's TITLE and OBJECTIVE and never the status line        |
+| the v3 test                 | asserted `status: wip` -- it had pinned the divergence as expected output                               |
+
+**So the byte was outside every instrument the contract relies on, and was found only because cc's witness reads the state back FROM THE TOOL rather than writing it as a literal**, which put `st show` saying `WIP` and `wp show` saying `wip` in one run where the difference was visible at all. **The rule generalises and is adopted: never assert a state word as a literal; ask the tool what the state is and require the output to name that** (cc, via ic, 2026-08-17). Its limit is worth stating in the same breath -- **read-back is a CONSISTENCY check, so it catches two surfaces of v3 disagreeing and cannot catch v3 agreeing with itself and diverging from v2 uniformly.** For that, only a byte a v2 test actually asserts will do, which is why the table above is a coverage question and not a style one.
+
 ## The keep/retire/deviate register
 
 One row per BATS test file (finer-grained per-test rows where a file mixes classes), maintained from WP-05 and complete at WP-06 close:
