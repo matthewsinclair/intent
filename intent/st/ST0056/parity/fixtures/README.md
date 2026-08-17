@@ -43,7 +43,7 @@ Measured across the estate at `3ce298c3`, constrained to column-0 `- AT-` rows: 
 -- status: to-write -- red-first; modules check -- unregistered fixture flagged
 ```
 
-The note is introduced by a spaced `--` and then **contains another spaced `--`**. v2's grammar handles this by never parsing the note (`AT_G_NOTE='( -- .*)?'` is greedy to end-of-line). **Any v3 reader that splits on `--` rather than anchoring the status will round-trip this row wrongly**, and it will do so silently, because the two halves still look like a note. Eight of the nine ST0046 rows carry the same shape.
+The note is introduced by a spaced `--` and then **contains another spaced `--`**. v2's grammar handles this by never parsing the note (`AT_G_NOTE='( -- .*)?'` is greedy to end-of-line). **Any v3 reader that splits on `--` rather than anchoring the status will round-trip this row wrongly**, and it will do so silently, because the two halves still look like a note. **Nine of nine ST0046 rows carry the same shape** -- corrected from "eight of the nine" by cc, 2026-08-17, and re-measured here: every `to-write` row is `status: to-write -- red-first; modules <check|sync> -- <text>`. It changes nothing about the hazard and it is recorded because a count in a fixture README is a claim someone will scope a test to.
 
 This is the row most likely to fail and therefore the row worth keeping. **Do not "simplify" the fixture by dropping it.**
 
