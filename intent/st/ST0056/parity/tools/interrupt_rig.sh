@@ -549,7 +549,14 @@ A_DELTA=$((A_N - BASE_N))
 
 if [ "$A_STATUS" -ne 0 ]; then
   say "the clean run exited $A_STATUS -- last lines of its output:"
-  show_tail "$WORKDIR/a.log" 20
+  # 200 AND NOT 20, BECAUSE THIS PATH ONLY RUNS WHEN THE MIGRATION REFUSED.
+  # A small window is right for the noise of a run that worked. **It is wrong
+  # for a refusal, which IS the work list**, and the first version of this fix
+  # only DISCLOSED that rather than solving it: cc halved lamplight's output to
+  # 22 lines, the window was 20, and the display still cut finding 1 of 10 --
+  # the same `ST0276/acceptance.md:81` that started this. Announcing the cut is
+  # better than hiding it and is not the same as showing the list.
+  show_tail "$WORKDIR/a.log" 200
   # The unwired door is named specifically, because it is the failure this rig
   # will actually meet and "a clean run that fails" would send the reader into
   # the migrator instead of into the dispatch table.
@@ -799,7 +806,7 @@ B2_STATUS=$?
 
 if [ "$B2_STATUS" -ne 0 ]; then
   say "the re-run exited $B2_STATUS -- last lines of its output:"
-  show_tail "$WORKDIR/b2.log" 20
+  show_tail "$WORKDIR/b2.log" 200   # a refusal is a work list -- see the a.log call site
   # NOT a refusal. A re-run that REFUSES to proceed over an interrupted estate is
   # a real finding about the property under test, not an inability to measure it.
   echo
