@@ -95,7 +95,11 @@ version="$(sed -n 's/^# devbin_version: //p' "$MANIFEST" | head -1)"
 source_repo="$(sed -n 's/^# source: //p' "$MANIFEST" | head -1)"
 
 printf '\n%svendored devbin%s  version %s\n' "${bold:-}" "${reset:-}" "${version:-unknown}"
-printf '  %ssource: %s%s\n' "${dim:-}" "${source_repo:-unknown}" "${reset:-}"
+# NAMES WHERE THE VALUE CAME FROM, because nothing here established it. This
+# printed a bare `source:`, which reads as the tree's established origin, over a
+# field read out of the manifest that ships beside the tree and is rewritten by
+# the same act that changes it. The label now says which.
+printf '  %ssource (as the manifest beside it records): %s%s\n' "${dim:-}" "${source_repo:-unknown}" "${reset:-}"
 printf '  %s%s file(s) MATCH the manifest%s\n' "${green:-}" "$matched" "${reset:-}"
 
 rc=0

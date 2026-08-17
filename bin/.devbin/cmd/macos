@@ -529,7 +529,7 @@ cmd_doctor() {
 cmd_sign() {
   require_identity
   require_staged
-  local triple
+  local triple flags
   triple="$(host_triple)"
   printf 'identity: %s\n\n' "$IDENTITY"
   for b in $BINARIES; do
@@ -546,11 +546,30 @@ cmd_sign() {
     # something" for hours and it took a live incident to refute. The check that
     # means something is `verify_notarised`, on a quarantined copy.
     codesign --verify --strict --verbose=2 "$STAGE_DIR/$b-$triple" 2>&1 | sed 's/^/    /'
+    # READ THE HARDENED RUNTIME BACK OFF THE ARTEFACT. `--options runtime` above
+    # is a REQUEST; whether the flag is actually set is a property of the bytes,
+    # and the summary below used to assert it from the request alone. Measured
+    # both directions on real binaries before this was written: a binary signed
+    # without it reports `flags=0x0(none)`, with it `flags=0x10000(runtime)`, and
+    # an untouched Rust release binary `flags=0x20002(adhoc,linker-signed)`.
+    #
+    # Notarisation refuses without it, so an unmeasured claim here is discovered
+    # minutes later at Apple -- after this pipeline has reported success twice.
+    flags="$(codesign -d --verbose=2 "$STAGE_DIR/$b-$triple" 2>&1 |
+      sed -n 's/.*flags=\([^ ]*\).*/\1/p' | head -1)"
+    case "$flags" in
+      *runtime*) printf '    %-34s %s\n' "hardened runtime" "$flags" ;;
+      *) die "$b-$triple was signed but the hardened runtime is NOT set on it (flags=${flags:-<unreadable>}).
+       codesign accepted --options runtime and the artefact does not carry it, so
+       notarisation would refuse these bytes. Nothing further should hash or
+       publish them." ;;
+    esac
   done
   printf '\n'
   ok
-  printf '  Both STAGED artefacts carry a Developer ID signature with the hardened\n'
-  printf '  runtime. Signing rewrote their bytes, so any earlier checksum is stale.\n'
+  printf '  Both STAGED binaries carry a Developer ID signature, and the hardened\n'
+  printf '  runtime flag was read back off each one rather than assumed from the\n'
+  printf '  request. Signing rewrote their bytes, so any earlier checksum is stale.\n'
   printf '  NEXT: int macos notarize   (needs the notary credentials)\n'
 }
 
@@ -669,7 +688,11 @@ cmd_verify() {
   for b in $BINARIES; do
     verify_notarised "$b-$triple" || rc=1
   done
-  [ "$rc" -eq 0 ] && { ok; printf '  Signed, notarised, and Gatekeeper-clean from a quarantined download.\n'; }
+  # A QUARANTINED COPY, WHICH IS WHAT WAS MEASURED. This said "from a quarantined
+  # download", and nothing here downloads: the file is copied locally and given
+  # the quarantine attribute by hand, which is the only local check that means
+  # anything. "Download" asserts an origin, and the origin is this machine.
+  [ "$rc" -eq 0 ] && { ok; printf '  Signed, notarised, and Gatekeeper-clean from a quarantined copy.\n'; }
   return $rc
 }
 
@@ -804,7 +827,11 @@ $drift
   printf '\n'
   ok
   printf '  Staged into %s, which only this command writes.\n' "$STAGE_DIR"
-  printf '  These copies are UNSIGNED -- they carry whatever the linker applied.\n'
+  # SAYS WHAT THIS COMMAND DID, not what the bytes are. "These copies are
+  # UNSIGNED" was never measured -- nothing here inspects a signature -- and it is
+  # not even reliably true, since an ad-hoc signature IS a signature and
+  # `codesign --verify --strict` returns 0 over one.
+  printf '  Nothing here has signed these -- they carry whatever the linker applied.\n'
   printf '  NEXT: int macos sign\n'
 }
 
@@ -890,10 +917,18 @@ cmd_checksum() {
   ok
   printf '  staged: %s\n\n' "$STAGE_DIR"
   sed 's/^/    /' "$sums"
-  printf '\n  Every line above is a hash of a binary this command has just proven\n'
-  printf '  signed and notarised from a quarantined copy. Safe to paste into a\n'
-  printf '  formula. NOT REGENERATED ON RE-SIGN -- re-run `checksum` after any\n'
-  printf '  `sign`, because signing rewrites the bytes these hashes describe.\n'
+  # PER ARTEFACT, BECAUSE THE SET IS NOT UNIFORM. This said "every line above is
+  # a hash of a binary this command has just proven signed and notarised" -- and
+  # one line is the support tarball, which is not a Mach-O, was never signed and
+  # never notarised, and is stated as the exception twelve lines up before the
+  # summary asserted the rule over it. A summary that generalises past its own
+  # exception is an unmeasured assertion in the place people read first.
+  printf '\n  Each BINARY above was proven signed and notarised from a quarantined\n'
+  printf '  copy before it was hashed. %s is not a Mach-O: it carries no\n' "$SUPPORT_ASSET"
+  printf '  signature and no ticket, and nothing here claims it does -- its hash\n'
+  printf '  says the bytes are intact and says nothing about their origin.\n'
+  printf '  NOT REGENERATED ON RE-SIGN -- re-run `checksum` after any `sign`,\n'
+  printf '  because signing rewrites the bytes these hashes describe.\n'
 }
 
 # cmd_prepare -- the whole sequence, as one command, because it has to be one.
@@ -917,7 +952,11 @@ cmd_prepare() {
   printf '\n'
   cmd_checksum
   printf '\n'
-  printf 'prepare: staged, signed, notarised, proven and hashed in one pass.\n'
+  # NAMES THE STEPS THAT RAN, not a property of every artefact they touched --
+  # `sign` and `notarize` never touch the support tarball, so the participle list
+  # was asserting over an artefact two of its four words do not apply to.
+  printf 'prepare: stage, sign, notarize and checksum ran in one pass; each step\n'
+  printf '  reported above what it did and did not cover.\n'
   printf '  NEXT: int macos formula\n'
 }
 
@@ -1239,10 +1278,17 @@ $(sed 's/^/       /' "$PROVENANCE_FILE")
   tag_commit="$(git -C "$ROOT" rev-list -n 1 "$tag" 2>/dev/null)"
   [ -n "$tag_commit" ] ||
     die "could not resolve $tag to a commit, having just verified the tag exists -- refusing while the repository state is this confusing."
+  # SAYS WHAT IT MEASURED, WHICH IS WHERE THE STAGING RAN. `$prov_commit` is
+  # `git rev-parse HEAD` at stage time, so it is a fact about the CHECKOUT; this
+  # message used to say the artefacts "were built at" it, which nothing here
+  # established -- the same defect as the gate above, one step down, found by
+  # sweeping every surface rather than by fixing the one that was reported.
   [ "$prov_commit" = "$tag_commit" ] ||
-    die "the staged artefacts were built at $prov_commit but $tag is $tag_commit.
+    die "these artefacts were staged from a checkout at $prov_commit, but $tag is $tag_commit.
        Publishing them would attach bytes to a tag they did not come from, and every
-       hash in the pipeline would still agree with every other hash. Re-stage at $tag."
+       hash in the pipeline would still agree with every other hash. Re-stage at $tag.
+       What the BYTES were built from is a separate question and is read off the
+       bytes themselves, below -- a checkout can sit at the tag over any binaries."
 
   # THE PIPELINE'S ONLY CHECK WHOSE SUBJECT IS THE ARTEFACT, and that is the
   # claim to hold rather than "a provenance field was added" (cc's sharpening,
