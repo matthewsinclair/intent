@@ -123,6 +123,12 @@ while [ $# -gt 0 ]; do
     --help|-h)
       echo "usage: interrupt_rig.sh [--member <id>] [--fraction <1-99>] [--keep] [<workdir>]"
       echo "env:   MIGRATE_CMD  the command that performs the migration, run with cwd = the tree"
+      echo "       READ_CMD     a READ verb proving the migrated estate is usable (liveness)"
+      echo "       STORE_CMD    a read that answers FROM THE STORE, compared across both arms"
+      echo
+      echo "  The last two default to \`intent st list\` and \`intent export --format json\`"
+      echo "  on the workspace binary. Under a MIGRATE_CMD override they default to EMPTY,"
+      echo "  and each arm then reports that it DID NOT RUN rather than passing silently."
       exit 0 ;;
     -*) die "unknown option: $1" ;;
     *) WORKDIR="$1"; shift ;;
@@ -151,6 +157,13 @@ VERDICT="$HERE/same_end_state_check.sh"
 # neither describes a command this tool did not produce. It says so loudly: a
 # run under an override is a run about the override.
 MIGRATE_GIVEN="${MIGRATE_CMD:+yes}"
+
+# Bound before the branch, because `set -u` is on and the workspace path below
+# is the only place these get their defaults. An override run inherits whatever
+# the caller exported and otherwise leaves them empty -- which the liveness and
+# store arms report as NOT RUN rather than treating as satisfied.
+READ_CMD="${READ_CMD:-}"
+STORE_CMD="${STORE_CMD:-}"
 
 if [ -n "$MIGRATE_GIVEN" ]; then
   say "MIGRATE_CMD OVERRIDE IN FORCE -- the subject is '$MIGRATE_CMD', not the workspace binary."
@@ -203,6 +216,15 @@ else
   # never opened. The only honest probe is running it, which arm A does; the
   # unwired case is named there instead.
   MIGRATE_CMD="$BIN upgrade"
+
+  # THE LIVENESS PROBE AND THE STORE PROBE, both read-only, both through the
+  # shipped surface. `st list` is the cheapest verb that depends on project
+  # state; `info` would answer on a corpse, which is exactly the property that
+  # disqualifies it. `export --format json` reads the STORE rather than the
+  # files (`facade.rs:1146` -- `load_canon()` + `events()`), which is what makes
+  # it the store comparison dc's file-level verdict deliberately does not make.
+  READ_CMD="$BIN st list"
+  STORE_CMD="$BIN export --format json"
 fi
 
 # ---------------------------------------------------------------------------
@@ -329,6 +351,60 @@ fi
   die "the clean run added no files ($BASE_N -> $A_N), so there is no delta to place a kill inside. This rig interrupts by file count; a migrator that only rewrites in place needs a different sentinel, not a different fraction."
 
 say "arm A: wrote $A_DELTA files ($BASE_N -> $A_N)"
+
+# ---------------------------------------------------------------------------
+# LIVENESS: can the tool read the estate it just migrated?
+# ---------------------------------------------------------------------------
+#
+# THIS ARM EXISTS BECAUSE THIS RIG ALREADY PASSED ON AN ESTATE NO VERB COULD
+# OPEN. On 2026-08-17 the gate returned exit 0 against `252f9ed2` -- 1371 of
+# 1371 files identical, verified independently with `diff -r` -- and every
+# command but `info` refused that same tree: `st list`, `todo`, `export`,
+# `search`, `ac list`, `wp list`, and `st new` on the write side. The
+# comparison was correct and it was a comparison of two estates nobody can use.
+# **A re-run reaching the same end state says nothing about whether that end
+# state is a working project**, and those are two questions, not one.
+#
+# It is the same shape as vc's conservation green -- ALTERED 0 / ADDED 0 on
+# three fleet members that were all inoperable after converting -- and the
+# reason neither instrument caught it is that both were asking after the BYTES.
+# Conservation and liveness cannot see each other, so the gate has to ask both.
+#
+# A REFUSAL RATHER THAN A FAILURE, and the distinction is load-bearing. Exit 2
+# says the gate could not run; exit 1 would say the migration is not idempotent,
+# which is a claim about cc's code that this measurement does not support. The
+# interruption property may well hold on an estate that cannot be read -- it did
+# yesterday -- so reporting a dead subject as a FAILED gate would send the next
+# reader into `migrate.rs` looking for a bug that is not there.
+if [ -n "$READ_CMD" ]; then
+  ( cd "$A" && eval "$READ_CMD" ) >"$WORKDIR/a.read.log" 2>&1
+  A_READ_STATUS=$?
+  if [ "$A_READ_STATUS" -ne 0 ]; then
+    say "arm A migrated cleanly and the tool will not read the result:"
+    head -3 "$WORKDIR/a.read.log" | sed 's/^/    /'
+    die "the migrated estate does not answer \`$READ_CMD\` (exit $A_READ_STATUS). Comparing two trees neither of which the tool can open would be a true statement about bytes and a false impression of a working cutover -- this rig produced exactly that result on 2026-08-17 and it read as a pass.
+
+  KNOWN CAUSE AS AT 2026-08-17, so this does not send you hunting: v2 buckets
+  every thread by STATUS FROM CREATION (\`intent st new\` writes to
+  \`intent/st/NOT-STARTED/<ID>/\`), the migration writes canon to the flat
+  \`intent/st/<ID>/\` and correctly leaves the v2 originals alone, and
+  \`Project::legacy_thread_ids\` then counts those same originals as unmigrated
+  because it asks whether a \`thread.json\` sits BESIDE each \`info.md\` rather
+  than whether the thread's id has canon anywhere. Measured 100% false
+  positives fleet-wide (vc: bucketed-only = 0 on utilz, baize and this repo).
+  cc owns the supersession fix in \`project.rs\`; it is not a fault of the
+  migrator, and it is not a fault of this rig's subject either.
+
+  If that fix has landed and this still fires, the cause is NEW and the message
+  above is stale -- trust the output, not this note."
+  fi
+  say "arm A: liveness ok -- the migrated estate answers \`$READ_CMD\`"
+else
+  # NOT SILENT. An arm that quietly does not run is indistinguishable from one
+  # that found nothing, which is this board's most-repeated lesson and the
+  # reason this branch prints rather than skips.
+  say "arm A: LIVENESS ARM DID NOT RUN -- MIGRATE_CMD is overridden and no READ_CMD was given, so nothing here establishes that the migrated estate is usable"
+fi
 
 # ---------------------------------------------------------------------------
 # The sentinel: WHICH file, chosen from the clean run's observed write order.
@@ -522,10 +598,78 @@ echo
 "$VERDICT" "$TEMPLATE" "$A" "$B"
 STATUS=$?
 
+# ---------------------------------------------------------------------------
+# THE STORE ARM -- the half dc's tool declares out of scope, in its own words:
+# "1 store(s) differ and are NOT JUDGED BY THIS TOOL".
+# ---------------------------------------------------------------------------
+#
+# WHY IT IS NOT A `cmp` ON `intent.db`, and this is measured rather than
+# argued. Two CLEAN runs of a correct migrator produce databases that differ at
+# byte 4796: `created_at`/`updated_at` carry
+# `DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ'))` across 705 rows, so byte-identity
+# is false by construction and a byte test would fail forever on correct code.
+# Normalising those stamps out of a `.dump` makes the two identical across 827
+# lines with zero residual -- but that route needs the `sqlite3` SHELL, and dc
+# measured the consequence: same trees, `sqlite3` off PATH, exit 1 instead of
+# exit 0, silently. A verdict that depends on what is installed is not a verdict.
+#
+# SO IT GOES THROUGH THE SHIPPED SURFACE. `intent export --format json` reads
+# the STORE (`facade.rs:1146` -- `load_canon()` plus `events()`), not the files,
+# so this is a genuine store comparison rather than a re-derivation of the file
+# comparison above. It needs no `sqlite3`, and it keeps rusqlite out of
+# `intent-cli`, which D06 forbids and `dep_graph_guard.rs` enforces. The model
+# carries no record stamps -- they are DB columns, excluded from the model and
+# from `derived_dump()` for this same reason -- so the output is stable.
+#
+# MEASURED BEFORE BEING RELIED ON: two independent migrations of one estate
+# exported byte-identical, 225553 bytes, on 2026-08-17.
+#
+# **THE EVENT HALF IS TRIVIALLY EQUAL TODAY AND WILL NOT STAY THAT WAY.** A
+# migrated estate currently holds 0 events (measured: 0 `st.new`, 56 of 56
+# threads carrying `created` from v2 frontmatter rather than deriving it), so
+# the events array is empty in both arms and compares equal for a reason that
+# has nothing to do with this property. When cc lands the event log, `ts` is
+# DATABASE-supplied wall clock (D42) and two runs will differ there legitimately
+# -- at which point this arm must normalise `ts`, not be deleted. Written down
+# here because a green whose reason expires is the failure mode nobody re-reads.
+STORE_NOTE=""
+if [ "$STATUS" -eq 0 ] && [ -n "$STORE_CMD" ]; then
+  ( cd "$A" && eval "$STORE_CMD" ) >"$WORKDIR/a.store.json" 2>"$WORKDIR/a.store.err"
+  A_STORE_STATUS=$?
+  ( cd "$B" && eval "$STORE_CMD" ) >"$WORKDIR/b.store.json" 2>"$WORKDIR/b.store.err"
+  B_STORE_STATUS=$?
+
+  if [ "$A_STORE_STATUS" -ne 0 ] || [ "$B_STORE_STATUS" -ne 0 ]; then
+    # Cannot measure is not the same as measured equal, and it must not be
+    # allowed to read as one.
+    echo
+    echo "  STORE ARM COULD NOT RUN -- \`$STORE_CMD\` exited $A_STORE_STATUS (clean) / $B_STORE_STATUS (re-run)."
+    head -2 "$WORKDIR/a.store.err" 2>/dev/null | sed 's/^/    /'
+    STATUS=2
+    STORE_NOTE="the store was NOT compared"
+  elif cmp -s "$WORKDIR/a.store.json" "$WORKDIR/b.store.json"; then
+    echo
+    echo "  STORE: IDENTICAL -- \`$STORE_CMD\` byte-equal across both arms ($(wc -c <"$WORKDIR/a.store.json" | tr -d ' ') bytes)."
+    STORE_NOTE="store identical"
+  else
+    echo
+    echo "  STORE: DIFFERENT -- \`$STORE_CMD\` disagrees between the clean run and the re-run."
+    echo "    $(cmp "$WORKDIR/a.store.json" "$WORKDIR/b.store.json" 2>&1 | head -1)"
+    echo "    Under D01 as reversed the DB is the SSOT, so a store the re-run did"
+    echo "    not reproduce is a failure of the property even with the files identical."
+    STATUS=1
+    STORE_NOTE="store DIFFERENT"
+  fi
+elif [ -z "$STORE_CMD" ]; then
+  echo
+  echo "  STORE ARM DID NOT RUN -- MIGRATE_CMD is overridden and no STORE_CMD was given."
+  STORE_NOTE="store NOT compared"
+fi
+
 echo
 case "$STATUS" in
-  0) say "GATE ARM PASSED: interrupted at $B_AT_KILL_DELTA/$A_DELTA files, re-run reached the clean end state" ;;
-  1) say "GATE ARM FAILED: interrupted at $B_AT_KILL_DELTA/$A_DELTA files, re-run did NOT reach the clean end state" ;;
+  0) say "GATE ARM PASSED: interrupted at $B_AT_KILL_DELTA/$A_DELTA files, re-run reached the clean end state${STORE_NOTE:+ -- $STORE_NOTE}" ;;
+  1) say "GATE ARM FAILED: interrupted at $B_AT_KILL_DELTA/$A_DELTA files, re-run did NOT reach the clean end state${STORE_NOTE:+ -- $STORE_NOTE}" ;;
   *) say "the verdict tool could not measure (exit $STATUS)" ;;
 esac
 
