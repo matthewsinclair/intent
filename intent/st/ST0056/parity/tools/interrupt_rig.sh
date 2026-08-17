@@ -884,6 +884,24 @@ STATUS=$?
 # this should read the refusal text below rather than this comment, because the
 # refusal is what they will actually be looking at.
 #
+# **WHY THE STORE COMPARISON IS MEANINGFUL AT ALL, WHICH THIS NOTE USED TO LEAVE
+# UNSAID WHILE CAREFULLY BOUNDING WHAT IT COMPARES.** A bound on WHAT is compared
+# says nothing about the STATE the subjects were in, and I asked cc the wrong
+# half first: whether arm B's killed attempt leaves partial events behind, so
+# that the interrupted arm would hold its first attempt's rows PLUS the re-run's.
+# Answered from the code (cc, 2026-08-17) and the answer is structural:
+# `Facade::upgrade` runs `writes.commit()` -- all 295 file writes -- strictly
+# BEFORE `Store::open` is first called. **A kill at 293 of 295 therefore lands
+# before the store is ever opened on that attempt**, so no event and no store
+# mutation can survive it, whatever the event code eventually looks like. And
+# `rebuild` is a single transaction that opens by DELETEing every table, so a
+# kill landing later leaves the whole previous store or the whole new one and
+# never a partial. **The re-run consequently starts from the PRE-MIGRATION store
+# rather than a half-migrated one, and that -- not luck -- is what makes the two
+# arms comparable.** Recorded here because it is a property of the migrator that
+# this rig depends on and does not itself verify: if that ordering is ever
+# reversed, this arm's premise dies silently and nothing here would notice.
+#
 # **AND THE PROPERTY ITSELF IS STILL OPEN, WHICH IS vc's TO CLOSE.** cc's
 # preference, not a ruling: equality means the `(op, subject_type, subject_id,
 # payload)` SEQUENCE is identical -- it says the two runs did the same things in
@@ -955,6 +973,13 @@ store_events_are_comparable() {
   echo "           Normalise it ONLY if ids are still minted, and treat needing to as the finding."
   echo "    store.rs:1745 orders by \`id\` and a ULID sorts by time, so ordinal IS the log's own order."
   echo "    The other six columns carry no clock and no randomness; compare them as they are."
+  echo "    READ THE TWO COUNTS ABOVE BEFORE ANYTHING ELSE -- they distinguish three outcomes on their own:"
+  echo "      A = B   correct. Both arms did the same work."
+  echo "      B > A   the re-run emitted events for threads it READ FROM CANON rather than converted."
+  echo "              (NOT 'the interrupted arm kept its first attempt' -- it cannot. The kill lands"
+  echo "               before Store::open, so the first attempt writes no events at all.)"
+  echo "      B < A   the restore emits per CONVERTED thread, not per thread in the PLAN, so the"
+  echo "              interrupted arm legitimately emits fewer. 7628a02b makes canon win on re-read."
   return 1
 }
 
