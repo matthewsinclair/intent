@@ -53,11 +53,13 @@ Three measurements, all local BST:
 
 **Both files the failure depends on were modified after the leg had already finished.** The tree that was compiled is gone; it cannot be re-run, and no artefact of the run identifies it.
 
-The control that makes the above mean something: **HEAD is green.** A `git archive HEAD` extract of `78a12dce` into a sacrificial directory with its own target dir compiles and passes that binary at **21 passed, 0 failed**, `the_facade_routes_closes_through_the_gate` included. So nothing that has landed is broken.
+The control that makes the above mean something: **`78a12dce` is green.** A `git archive` extract of that commit into a sacrificial directory with its own target dir compiles and passes that binary at **21 passed, 0 failed**, `the_facade_routes_closes_through_the_gate` included. A second node measured its child `b2173b1b` green independently, from a detached worktree, on the same two legs. So nothing that has landed is broken.
+
+**The commit is named rather than called "HEAD" deliberately, and this sentence was wrong on first writing.** It said "HEAD is green", which was true at the time and false within the hour -- `b2173b1b` landed while this issue was being written. See the Proposed Fix: it is the same defect as the one being reported.
 
 And the failing assertion is HEAD's verbatim -- `git show HEAD:.../close_gate_parity.rs` carries `assert!(facade.wp_done(...).is_err(), "the same gate refuses once the coverage goes red")` -- while the working tree's version of the same test has since been rewritten to assert `Outcome::AlreadyThere`, citing the hv self-loop ruling of the same morning. The leg caught a tree mid-transition: the behaviour had moved to the ruled semantics, the test had not yet followed.
 
-**Scope of what was verified, stated rather than implied:** that HEAD passes, and that the measured tree no longer exists. **Whether the current working tree passes was NOT verified** -- that is a separate question, re-runnable at any time by its owner, and this issue makes no claim about it.
+**Scope of what was verified, stated rather than implied:** that `78a12dce` passes, that `b2173b1b` passes, and that the measured tree no longer exists. **Whether the current working tree passes was NOT verified** -- that is a separate question, re-runnable at any time by its owner, and this issue makes no claim about it.
 
 ## Root Cause
 
@@ -87,7 +89,7 @@ This is the more fundamental defect, and it was found the hard way while filing 
 
 Properties worth keeping:
 
-- **No clock and no git.** It compares two files on one filesystem to each other, the same two-sided shape as the whiteboard clock guard's check C. A quiescent tree cannot trip it, so it needs no tolerance and no suppression list.
+- **Part 2 needs no clock.** It compares two files on one filesystem to each other, the same two-sided shape as the whiteboard clock guard's check C. A quiescent tree cannot trip it, so it needs no tolerance and no suppression list. (Part 1 does shell out to git, which part 2 deliberately does not -- they are separable, and part 2 still works in a tree with no VCS at all.)
 - **Annotate, never suppress.** The verdict still says FAILED. A guard that downgraded a red to a warning on tree movement would be a bypass, and the movement is a fact about the measurement, not a verdict about the code.
 - **The idiom is in-house** (`:665`), so this is not a new dependency or a new concept in the file.
 
