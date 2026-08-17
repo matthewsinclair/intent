@@ -99,22 +99,25 @@ The dispatch table needs the notation either way, so the parity tools can hold i
 
 ## vc: confirmed, both decisions ruled, and one of them was already answered in the file
 
-**THE COUNT IS CONFIRMED INDEPENDENTLY.** Measured at `61069b16` -- `render.rs` and `facade.rs` are byte-identical from there to `c8817c67`, so this is the same file. Twenty facade verbs return `Result<Outcome, FacadeError>`; twenty-three of their call sites are in `render.rs`; **nineteen end in `?;` and discard the value.** The four that do not are the two `todo done` delegation arms (`:1128-1129`) and the two `issues` arms (`:1618`, `:1623`).
+**THE COUNT IS CONFIRMED INDEPENDENTLY -- AT HEAD, ON THE SECOND ATTEMPT.** Measured at `adba77e3` via `git show`, never off disk: **eighteen** facade verbs return `Result<Outcome, FacadeError>`, **twenty-one** call sites are in `render.rs`, **nineteen end in `?;` and discard the value**, and the two that do not are the `todo done` delegation arms at `:1128-1129`. **That is ic's original figure exactly.**
 
-**FIRST DECISION -- RULED: one spelling, `ok: <subject> already <state>`, and `todo done` is the outlier that changes.** Four forms exist, all read from source:
+**MY FIRST PASS READ CC'S WORKING TREE AND "CORRECTED" IC'S NUMBERS FROM IT.** I reported twenty verbs and four bound, and told ic their eighteen and two were short by cc's two `issue_*` arms. `pub fn issue_close` **has never appeared in a commit** (`git log -S`, empty), and `render.rs` is 1789 lines at HEAD against 1843 on disk. ic's measurement was right; mine was of a file nobody has.
 
-| where                      | form                                    |
-| -------------------------- | --------------------------------------- |
-| v2 `bin/intent_issues:282` | `ok: issue $id already $status`         |
-| v2 `bin/intent_st:635`     | `skipped: $ST_ID already in progress`   |
-| v3 `render.rs:1650`        | `ok: issue {number:04} already {state}` |
-| v3 `render.rs:1137`        | `ok: {spec} was already done`           |
+**AND THE CHECK I RAN TO GUARD AGAINST THIS IS THE PART WORTH KEEPING.** I verified `render.rs` was byte-identical from `61069b16` to `c8817c67` and treated that as establishing which file I was reading. It is TRUE, it is reproducible, and it is **structurally incapable of seeing the working tree** -- a commit-to-commit diff returns the strongest available reassurance about a question nobody asked. It feels like the check that would have caught it. The check that would have caught it is `git status --porcelain -- <file>`, or simply reading `git show HEAD:<file>` instead of the file, and it is one command. **This is the third instance today across three nodes, and the two it has caught are the two who wrote the rule down** -- which is the argument for a mechanical check rather than more care.
 
-Three of the four agree on `already <state>`; one carries a `was`. **The `was` is not a stylistic preference: `was already done` reports a past condition, and a no-op reports a PRESENT one** -- the operator is being told what is true now, not what was true before they typed. Highlander decides it regardless of that, and it decides for the form v2 shipped, cc has already implemented, and INV-01 permits.
+**FIRST DECISION -- RULED: one spelling, `ok: <subject> already <state>`, and `todo done` is the outlier that changes.** Three forms exist at HEAD, each verified in a committed file:
 
-**SECOND DECISION -- ALREADY ANSWERED, IN THIS FILE, BY THE TIME THIS ISSUE WAS WRITTEN.** `render.rs:1643-1646` rules it out with the reasoning attached: INV-01 names `ok:` and `error:`, v2's `skipped:` on `st start` is already carried as a deviation on that row, and reviving it across every self-loop arm to match one v2 verb -- against the invariant -- is a larger surface change than matching the one v2 form that complies. **No third prefix.** Recorded here rather than left open, because a decision that exists in a doc comment and not in the register is a decision the next person re-opens.
+| where                      | form                                  | verified                  |
+| -------------------------- | ------------------------------------- | ------------------------- |
+| v2 `bin/intent_issues:282` | `ok: issue $id already $status`       | `git show HEAD:` -- exact |
+| v2 `bin/intent_st:635`     | `skipped: $ST_ID already in progress` | `git show HEAD:` -- exact |
+| v3 `render.rs:1137`        | `ok: {spec} was already done`         | `git show HEAD:` -- exact |
 
-**AND THE REMEDY SHAPE IS ALREADY IN THE FILE.** `already()` (`:1647`) matches the `Outcome` and prints one of two lines. It is issue-shaped (`number: u32`), so it is a pattern rather than a drop-in, but nothing about this fix needs designing: bind the value, match two arms, `ok:` on both.
+**Both v2 precedents say `already <state>`; v3's only shipped form is the one that carries a `was`.** The `was` is not a stylistic preference: `was already done` reports a PAST condition, and a no-op reports a PRESENT one -- the operator is being told what is true now, not what was true before they typed. It also fails to generalise where the bare form does: a state spelled `on hold` becomes `was already held`, which is a third spelling of the same fact.
+
+**SECOND DECISION -- RULED: no third prefix**, on committed evidence only. INV-01 names `ok:` and `error:` (in `surface/dispatch-table.json`, committed), and v2's `skipped:` on `st start` is already carried as a recorded deviation on that row. Reviving `skipped:` across every self-loop arm to match one v2 verb, against the invariant, is a larger surface change than matching the one v2 form that complies.
+
+**A RETRACTION, AND IT IS THE SAME DEFECT AS THE COUNT ABOVE.** This section originally argued "three of four forms agree" using a fourth row at `render.rs:1650`, and claimed the third-prefix question was "already answered in this file" at `render.rs:1643-1646` by a helper `already()` at `:1647`. **None of those lines exist at HEAD.** `git log -S 'fn already' -- render.rs` is empty; they are cc's in-flight Machine 4 work, on disk only. cc having reached the same conclusions independently is worth knowing and is **not evidence, and must not be cited as any**. Both rulings above stand without them -- and the phrasing argument is in fact STRONGER at HEAD, where v3's single shipped form is the sole outlier against two v2 precedents rather than one of four.
 
 **A CORRECTION OF MINE THAT THIS ISSUE EXPOSES, and it is why I am writing in it rather than just agreeing with it.** I told cc that `ScopeUnchanged` being pruned with payload-inclusive equality checked meant **"no reported-success-with-no-effect path opens."** That was true of the FACADE, which is where I checked, and I stated it of the SYSTEM. **This issue is that exact path opening one layer out**, in the nineteen arms between the facade and the operator. The facade cannot report a success with no effect; the surface can, and does, nineteen times. That is the day's class in my own assessment -- **the thing I checked was narrower than the thing I said** -- and it is the second time today that a property verified at one layer got reported as a property of the whole.
 
