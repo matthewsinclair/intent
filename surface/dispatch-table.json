@@ -2455,7 +2455,7 @@
           "target": {
             "state": "as-observed",
             "no_op": "`ok: <AT> already red`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
-            "voice_ruling": "**BUG: restore the `-> ` arrow.** v2 prints `ok: <AT> -> red`, v3 prints `ok: <AT> red`. **This is drift, not a voice ruling, and v3's own output proves it: `issues close` and `issues open` KEEP the arrow** (`ok: issue 0001 -> CLOSED`) and both reproduce v2 exactly. So the arrow is v3's convention for a state transition and the AT family is the only place it is missing. Restoring costs nothing and fixes two rows; dropping it everywhere for consistency would break two rows that currently pass."
+            "voice_ruling": "**RULED DRIFT, AND FIXED at `d14cd0b5`.** v2 prints `ok: <AT> -> red`; v3 printed `ok: <AT> red`. It was drift rather than a voice ruling, and v3's own output proved it: `issues close` and `issues open` KEEP the arrow (`ok: issue 0001 -> CLOSED`) and both reproduce v2 exactly, so the arrow is v3's own convention for a state transition and the AT family was the only place it had gone missing. HEAD prints `ok: AT-01.1 -> red` and `ok: AT-01.1 already red`, measured at `67814555`. Restoring it cost nothing and fixed two rows; dropping it everywhere for consistency would have broken two that already passed. **This row was not reported by anyone** -- it was found by measuring the siblings of the row that was, on the rule this row's own family keeps re-teaching: a correction reaches the field that was reported and stops there unless somebody sweeps the rest."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2465,7 +2465,7 @@
         },
         {
           "path": "at na",
-          "help": "Set a non-test AT to n-a (the doc / eyeball / gate status)",
+          "help": "Set a non-test AT to n/a (the doc / eyeball / gate status)",
           "args": [
             {
               "name": "stid",
@@ -2518,8 +2518,8 @@
           },
           "target": {
             "state": "as-observed",
-            "no_op": "`ok: <AT> already n-a`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **THE STATE TOKEN IS SPELLED DIFFERENTLY FROM v2's: `n-a` here, `n/a` there.** v2 prints `ok: AT-01.2 -> n/a` and the row grammar itself writes `status: n/a`, so the slash is the authored spelling in every `acceptance.md` in the estate. This is the only row in the population whose no-op differs from v2 in the STATE WORD rather than in the sentence around it. **FILED AS 0056, and the no-op line is the smallest of its three faces**: `AtStatus` is the only status enum with no `display()`, so `views.rs:459-461` writes `status: n-a` into the GENERATED `acceptance.md` -- and v2's linter rejects that row L1, `unreadable AT status: 'n-a'`. 23 rows in this estate carry `status: n/a` today. Three of four variants coincide between the two spellings, which is what hid it.",
-            "voice_ruling": "**BUG TWICE OVER, and neither half is ratifiable.** v2 prints `ok: <AT> -> n/a`; v3 prints `ok: <AT> na` on a movement and `ok: <AT> already n-a` on a self-loop. Restore the arrow as on `at red`. **And the token must be `n/a`**: `views.rs` writes it into the generated `acceptance.md` and v2's linter rejects `n-a` at L1, so this is a migration hazard rather than a style choice (issue 0056). **The movement arm must take the word from the ENUM, not from the subcommand name** -- it currently passes `state`, the verb the user typed, which is why a move prints `na` while a self-loop prints `n-a`."
+            "no_op": "`ok: <AT> already n/a`, exit 0, stderr empty -- **RE-MEASURED at `67814555`** by driving the verb twice through a binary built from a clean `git archive` extract of HEAD, because three files under `native/` were dirty under cc at the time and the worktree binary would have attributed unlanded work to HEAD (ic, 2026-08-17). The previous value read `already n-a` and cited `d0f345b5`. That citation was honest provenance and it still went stale: `d14cd0b5` gave `AtStatus` a `display()` and the self-loop now takes its word from the enum. **A field that cites the commit it was measured at cannot say whether that commit is still HEAD** -- issue 0061, and the `instant` variant of `parity.md`'s class at rest. Re-measured rather than retyped: editing the token by hand would have produced a correct-looking value nothing measured, which is exactly how `n-a` reached the column that records v2.",
+            "voice_ruling": "**RULED A BUG, AND BOTH HALVES FIXED at `d14cd0b5`.** v2 prints `ok: <AT> -> n/a`; v3 printed `ok: <AT> na` on a movement and `ok: <AT> already n-a` on a self-loop -- two spellings from one verb, because the movement arm passed `state`, the word the USER TYPED, while the self-loop read the enum. Neither half was ratifiable: the token was a migration hazard rather than a style choice, since `views.rs` writes it into the generated `acceptance.md` and v2's linter rejects `n-a` at L1 (issue 0056, closed). HEAD prints `ok: AT-01.2 -> n/a` and `ok: AT-01.2 already n/a`, measured at `67814555`. **THE `help` STRING ABOVE OUTLIVED THIS FIX BY A DAY, AND THAT IS THE PART WORTH KEEPING.** Nothing renders help from the enum -- it is an authored literal -- so the single site where the wire spelling still reached a human was the one site no code fix could pass through. Filed as 0061 and corrected here."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
