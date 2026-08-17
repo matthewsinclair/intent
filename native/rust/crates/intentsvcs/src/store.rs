@@ -115,6 +115,11 @@ CREATE TABLE IF NOT EXISTS threads (
   -- byte-identical to the template that created the file are not here: no
   -- author wrote them, and carrying them files scaffolding as authored prose.
   body TEXT NOT NULL DEFAULT '',
+  -- Authored prose ABOVE the first heading, minus the `# ` title, STRIPPED.
+  -- Its own column and not part of `body`: `body` renders below the objective,
+  -- so a preamble carried there comes back in the wrong place -- bytes kept,
+  -- position moved, which is harder to see than a drop.
+  preamble TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -144,6 +149,8 @@ CREATE TABLE IF NOT EXISTS wps (
   status_reason TEXT,
   objective TEXT NOT NULL,
   body TEXT NOT NULL,
+  -- As `threads.preamble`; 5 of the canary's 20 regions are work-package ones.
+  preamble TEXT NOT NULL DEFAULT '',
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq)
 );
@@ -319,7 +326,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 7;
+pub const SCHEMA_VERSION: i32 = 8;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -591,6 +598,26 @@ const MIGRATIONS: &[(i32, &str)] = &[(
   // sections, so there is no prior content to preserve and no author's prose
   // being overwritten. The sections are re-read on the next ingest.
   "ALTER TABLE threads ADD COLUMN body TEXT NOT NULL DEFAULT '';",
+), (
+  8,
+  // 7 -> 8: `preamble` on BOTH tables -- the region above the first heading,
+  // which was not carried anywhere and was being reported as LOST-PROSE.
+  //
+  // **Two statements in one rung, because one field arrived at two levels.**
+  // 15 of the canary's 20 regions are thread-level and 5 are work-package, so
+  // shipping only the thread half would close 75% of a conservation hole and
+  // leave the rest reporting as lost with no record of why.
+  //
+  // Same ALTER argument as rung 7: `''` is a constant default, so SQLite
+  // permits it on a NOT NULL column, and nothing here changes shape.
+  //
+  // **APPENDED AT THE TAIL, and rung 7 is why that is written down twice.**
+  // The walk runs this array in order; placed at the head, this would run
+  // before rung 3 rebuilds `threads` by selecting the columns it knew about --
+  // silently dropping the column just added, then stamping the new version over
+  // a store with the old shape.
+  "ALTER TABLE threads ADD COLUMN preamble TEXT NOT NULL DEFAULT '';
+   ALTER TABLE wps ADD COLUMN preamble TEXT NOT NULL DEFAULT '';",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -1002,7 +1029,7 @@ impl Store {
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11)
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12)
          ON CONFLICT (id) DO UPDATE SET
            title = excluded.title,
            slug = excluded.slug,
@@ -1014,6 +1041,7 @@ impl Store {
            objective = excluded.objective,
            context = excluded.context,
            body = excluded.body,
+           preamble = excluded.preamble,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
          RETURNING created, completed"
       ),
@@ -1029,6 +1057,7 @@ impl Store {
         t.objective,
         t.context,
         t.body,
+        t.preamble,
       ],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     )?;
@@ -1040,7 +1069,7 @@ impl Store {
     }
     for wp in &t.wps {
       tx.execute(
-        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
         params![
           t.id,
           wp.seq,
@@ -1050,7 +1079,8 @@ impl Store {
           enum_str(&wp.status),
           wp.status_reason,
           wp.objective,
-          wp.body
+          wp.body,
+          wp.preamble
         ],
       )?;
     }
@@ -1255,7 +1285,7 @@ impl Store {
   pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
     let mut threads = Vec::new();
     let mut stmt = self.conn.prepare(
-      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body FROM threads ORDER BY id",
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble FROM threads ORDER BY id",
     )?;
     let rows = stmt.query_map([], |row| {
       Ok((
@@ -1270,6 +1300,7 @@ impl Store {
         row.get::<_, String>(8)?,
         row.get::<_, String>(9)?,
         row.get::<_, String>(10)?,
+        row.get::<_, String>(11)?,
       ))
     })?;
 
@@ -1290,11 +1321,13 @@ impl Store {
       objective,
       context,
       body,
+      preamble,
     ) in shells
     {
       threads.push(Thread {
         schema: THREAD_SCHEMA.to_string(),
         body,
+        preamble,
         related: self.related_of(&id)?,
         wps: self.wps_of(&id)?,
         criteria: self.criteria_of(&id)?,
@@ -1368,7 +1401,7 @@ impl Store {
   fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = self
       .conn
-      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -1380,13 +1413,14 @@ impl Store {
           row.get::<_, Option<String>>(5)?,
           row.get::<_, String>(6)?,
           row.get::<_, String>(7)?,
+          row.get::<_, String>(8)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
       .map(
-        |(seq, title, scope, scope_legacy, status, status_reason, objective, body)| {
+        |(seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble)| {
           Ok(WorkPackage {
             seq,
             title,
@@ -1396,6 +1430,7 @@ impl Store {
             status_reason,
             objective,
             body,
+            preamble,
           })
         },
       )

@@ -357,6 +357,11 @@
           "description": "What this work package ships: the one section every work package has.",
           "type": "string"
         },
+        "preamble": {
+          "default": "",
+          "description": "Authored prose above the first `## `, minus the `# ` title line, stripped.\n\nCarried verbatim and never classified, and rendered ABOVE the generated\nsections -- putting it in `body` would return it below `## Objective`,\nwhich preserves the bytes and moves them.",
+          "type": "string"
+        },
         "scope": {
           "anyOf": [
             {
@@ -466,6 +471,11 @@
       "description": "What this thread ships. Modelled rather than authored prose (vc ruling,\n2026-08-14): `objective` already carries tool opinion -- the 0010\nempty-objective warning -- which is the signature of a modelled field.\nMay be empty; the 0010 warning is COMPUTED from emptiness, never stored.",
       "type": "string"
     },
+    "preamble": {
+      "default": "",
+      "description": "Authored prose above the first `## `, minus the `# ` title line, stripped.\n\nCarried verbatim and never classified. The regions are largely metadata\nrestatement, and that is the reason no classifier exists for them rather\nthan a reason to build one: a model naming the shapes it foresaw drops\nwhat it did not, and the unforeseen remainder is the load-bearing half.\n\nStored STRIPPED. The surrounding blank lines are markdown layout the\nrenderer re-emits, so the trim is a normalisation rather than a loss --\nreported and counted as such, never silently adopted.",
+      "type": "string"
+    },
     "related": {
       "items": {
         "$ref": "#/$defs/Related"
@@ -518,5 +528,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 6
+  "x-schema-json-ver": 7
 }

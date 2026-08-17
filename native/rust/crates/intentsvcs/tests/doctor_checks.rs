@@ -30,6 +30,7 @@ use intentsvcs::model::{
 fn clean_thread(id: &str) -> Thread {
   Thread {
     body: String::new(),
+    preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: id.to_string(),
     title: "A clean thread".to_string(),
@@ -51,6 +52,7 @@ fn clean_thread(id: &str) -> Thread {
       status_reason: None,
       objective: String::new(),
       body: String::new(),
+      preamble: String::new(),
     }],
     criteria: vec![Criterion {
       id: "AC-01.1".to_string(),

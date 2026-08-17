@@ -246,6 +246,20 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
 
   out.push_str(&format!("# {}: {}\n\n", thread.id, thread.title));
 
+  // **ABOVE the first generated section, which is the whole reason this is its
+  // own field rather than part of `body`.** `body` renders below `## Context`,
+  // so a preamble carried there returns beneath two headings it was written
+  // above -- bytes preserved, position moved, and a silent MOVE is harder to
+  // see than a silent drop. Here the region goes back exactly where its author
+  // put it: after the title, before the first heading.
+  //
+  // Stored stripped, so the renderer re-emits the layout. That is the trade the
+  // contract rules explicitly: the blank lines are markdown, not content.
+  if !thread.preamble.is_empty() {
+    out.push_str(&thread.preamble);
+    out.push_str("\n\n");
+  }
+
   out.push_str("## Objective\n\n");
   out.push_str(&section_body(&thread.objective));
 
@@ -577,6 +591,13 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   out.push_str("---\n\n");
 
   out.push_str(&format!("# WP-{:02}: {}\n\n", wp.seq, wp.title));
+
+  // Same slot one level down -- above the first generated heading, where its
+  // author wrote it. 5 of the canary's 20 regions are work-package ones.
+  if !wp.preamble.is_empty() {
+    out.push_str(&wp.preamble);
+    out.push_str("\n\n");
+  }
 
   out.push_str("## Objective\n\n");
   out.push_str(&section_body(&wp.objective));

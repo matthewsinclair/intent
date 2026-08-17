@@ -209,6 +209,7 @@ fn copy_tree(from: &Path, to: &Path) {
 pub fn sample_thread(id: &str) -> Thread {
   Thread {
     body: String::new(),
+      preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: id.to_string(),
     title: "Intent v3.0.0".to_string(),
@@ -258,6 +259,7 @@ pub fn sample_thread(id: &str) -> Thread {
         status_reason: None,
         objective: "Stand up the cargo workspace and reify the model.".to_string(),
         body: String::new(),
+      preamble: String::new(),
       },
       WorkPackage {
         seq: 3,
@@ -272,6 +274,9 @@ pub fn sample_thread(id: &str) -> Thread {
         // work package body" is asserted by a word that cannot match a title.
         objective: "Land strict ingest, deterministic views and the sync engine.".to_string(),
         body: "## Why the incumbents go\n\nThe quokka clause: a section the template never named, carried verbatim.\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.".to_string(),
+        // Distinctive for the same reason, and ABOVE the first heading, which
+        // is the position the field exists to preserve.
+        preamble: "A numbat note the author wrote above every heading.".to_string(),
       },
     ],
     criteria: vec![

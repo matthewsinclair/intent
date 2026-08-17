@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 5
+-- SCHEMA_DDL_VER: 6
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -52,6 +52,11 @@ CREATE TABLE IF NOT EXISTS threads (
   -- byte-identical to the template that created the file are not here: no
   -- author wrote them, and carrying them files scaffolding as authored prose.
   body TEXT NOT NULL DEFAULT '',
+  -- Authored prose ABOVE the first heading, minus the `# ` title, STRIPPED.
+  -- Its own column and not part of `body`: `body` renders below the objective,
+  -- so a preamble carried there comes back in the wrong place -- bytes kept,
+  -- position moved, which is harder to see than a drop.
+  preamble TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -81,6 +86,8 @@ CREATE TABLE IF NOT EXISTS wps (
   status_reason TEXT,
   objective TEXT NOT NULL,
   body TEXT NOT NULL,
+  -- As `threads.preamble`; 5 of the canary's 20 regions are work-package ones.
+  preamble TEXT NOT NULL DEFAULT '',
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq)
 );

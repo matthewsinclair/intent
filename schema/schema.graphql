@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0-dev
-# SCHEMA_SDL_VER: 4
+# SCHEMA_SDL_VER: 5
 
 enum AcKind {
   TEST
@@ -280,6 +280,19 @@ type Thread {
   recorded individually rather than counted.
   """
   body: String!
+  """
+  Authored prose above the first `## `, minus the `# ` title line, stripped.
+  
+  Carried verbatim and never classified. The regions are largely metadata
+  restatement, and that is the reason no classifier exists for them rather
+  than a reason to build one: a model naming the shapes it foresaw drops
+  what it did not, and the unforeseen remainder is the load-bearing half.
+  
+  Stored STRIPPED. The surrounding blank lines are markdown layout the
+  renderer re-emits, so the trim is a normalisation rather than a loss --
+  reported and counted as such, never silently adopted.
+  """
+  preamble: String!
   related: [Related!]!
   wps: [WorkPackage!]!
   criteria: [Criterion!]!
@@ -358,6 +371,14 @@ type WorkPackage {
   anything unforeseen.
   """
   body: String!
+  """
+  Authored prose above the first `## `, minus the `# ` title line, stripped.
+  
+  Carried verbatim and never classified, and rendered ABOVE the generated
+  sections -- putting it in `body` would return it below `## Objective`,
+  which preserves the bytes and moves them.
+  """
+  preamble: String!
 }
 
 enum WpStatus {

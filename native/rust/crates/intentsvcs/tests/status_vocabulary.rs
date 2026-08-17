@@ -205,6 +205,7 @@ fn every_work_package_spelling_reaches_a_view_and_excludes_the_others() {
     thread.status = ThreadStatus::Cancelled;
     thread.status_reason = Some("so the thread's own spelling is none of the three".to_string());
     thread.wps = vec![WorkPackage {
+      preamble: String::new(),
       seq: 1,
       title: "one work package".to_string(),
       scope: None,

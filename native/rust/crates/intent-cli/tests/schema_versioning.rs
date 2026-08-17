@@ -212,10 +212,16 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // hashes were IDENTICAL before and after the version bump, which is the strip
   // separating the version from the contract -- so the three numbers below moved
   // for the field and not for their own bump.
+  //
+  // **THIRD TIME, AND THE FIRST ON TWO TYPES AT ONCE.** `preamble` landed on
+  // `Thread` AND `WorkPackage`, so all three faces moved for two fields rather
+  // than one -- the same arithmetic, twice, in one commit. It is the region
+  // above the first heading, which `legacy.rs` was dropping on the floor
+  // entirely; 396 regions / 88,648 bytes across nine projects.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 5, 0xc3ae_83b1_b68b_ab54),
-    ("SCHEMA_SDL_VER", 4, 0x1593_ed74_dce3_e903),
-    ("SCHEMA_JSON_VER", 6, 0x47ea_e1b2_97a3_3bc6),
+    ("SCHEMA_DDL_VER", 6, 0x17b3_ba4b_73a2_87f2),
+    ("SCHEMA_SDL_VER", 5, 0x2d83_3c2f_a2f4_c6ab),
+    ("SCHEMA_JSON_VER", 7, 0xcc1d_deba_981e_ea4c),
   ];
 
   let mut moved = Vec::new();

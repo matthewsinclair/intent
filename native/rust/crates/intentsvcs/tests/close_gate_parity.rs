@@ -29,6 +29,7 @@ use testkit::repo_root;
 fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
   Thread {
     body: String::new(),
+    preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: "ST0001".to_string(),
     title: "gate parity".to_string(),
@@ -50,6 +51,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
       status_reason: None,
       objective: String::new(),
       body: String::new(),
+      preamble: String::new(),
     }],
     criteria,
     tests,
@@ -199,6 +201,7 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
     status_reason: None,
     objective: String::new(),
     body: String::new(),
+    preamble: String::new(),
   });
   assert_eq!(
     gate(&t, Scope::WorkPackage(4), &AllResolve).line("ST0001/04"),
@@ -240,6 +243,7 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
     status_reason: None,
     objective: String::new(),
     body: String::new(),
+    preamble: String::new(),
   });
 
   assert_eq!(

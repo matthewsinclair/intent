@@ -202,6 +202,36 @@ pub struct Thread {
   /// recorded individually rather than counted.
   #[serde(default)]
   pub body: String,
+  // PUBLISHED (D37) -- provenance here, contract in the `///` below.
+  //
+  // A CONSERVATION FIX, not an additive field (vc's ruling, data-model.md,
+  // 2026-08-17). `legacy.rs` buffered a section only once a `## ` had been
+  // seen, so every byte above the first heading fell on the floor -- and
+  // `conservation_check.sh` had been reporting exactly that as LOST-PROSE from
+  // the day its arm was written. I proposed the field believing the region was
+  // carried and merely unclassified; it was not carried at all.
+  //
+  // 396 regions / 88,648 bytes across nine projects; 20 on the canary at
+  // `42fb5269`, 15 thread-level and 5 work-package, 102 to 1020 bytes each.
+  // ST0010's 485 bytes are a cancelled thread's deprecation blockquote and its
+  // supersession pointer -- exactly what the cancellation discipline exists to
+  // preserve, dropped with no drop record.
+  //
+  // NOT `body`, and the reason is load-bearing: `wp_info` renders `body` after
+  // `## Objective`, so a preamble carried there returns in the wrong place --
+  // trading a silent DROP for a silent MOVE, which is harder to see.
+  /// Authored prose above the first `## `, minus the `# ` title line, stripped.
+  ///
+  /// Carried verbatim and never classified. The regions are largely metadata
+  /// restatement, and that is the reason no classifier exists for them rather
+  /// than a reason to build one: a model naming the shapes it foresaw drops
+  /// what it did not, and the unforeseen remainder is the load-bearing half.
+  ///
+  /// Stored STRIPPED. The surrounding blank lines are markdown layout the
+  /// renderer re-emits, so the trim is a normalisation rather than a loss --
+  /// reported and counted as such, never silently adopted.
+  #[serde(default)]
+  pub preamble: String,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub related: Vec<Related>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -372,6 +402,16 @@ pub struct WorkPackage {
   /// anything unforeseen.
   #[serde(default)]
   pub body: String,
+  // Same field one level down, and it is not a symmetry argument: 5 of the
+  // canary's 20 regions are work-package ones, measured. See `Thread::preamble`
+  // for the ruling and the population.
+  /// Authored prose above the first `## `, minus the `# ` title line, stripped.
+  ///
+  /// Carried verbatim and never classified, and rendered ABOVE the generated
+  /// sections -- putting it in `body` would return it below `## Objective`,
+  /// which preserves the bytes and moves them.
+  #[serde(default)]
+  pub preamble: String,
 }
 
 /// T-shirt sizes -- the only sizing vocabulary in Intent.

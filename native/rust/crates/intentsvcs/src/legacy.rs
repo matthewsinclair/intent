@@ -374,6 +374,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
 
     out.threads.push(Thread {
       body: carried_body,
+      preamble: preamble(body),
       schema: THREAD_SCHEMA.to_string(),
       id: id.clone(),
       title: title(body).unwrap_or_else(|| id.clone()),
@@ -833,6 +834,7 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
     }
 
     wps.push(WorkPackage {
+      preamble: preamble(body),
       seq,
       title: front
         .get("title")
@@ -1359,6 +1361,40 @@ fn wp_template_sections(seq: u32) -> Vec<(String, String)> {
 /// **A `Vec` also stops a repeated heading being swallowed.** `insert` on a map
 /// let a second `## Notes` overwrite the first and the loss was invisible; two
 /// entries now come back as two.
+/// Authored prose above the first `## `, minus the `# ` title line, stripped.
+///
+/// **This is the region [`sections`] drops.** That walk buffers a line only
+/// once `current.is_some()`, so everything before the first heading falls on
+/// the floor -- and `conservation_check.sh` has been reporting exactly that as
+/// `LOST-PROSE` since its arm was written. **396 regions / 88,648 bytes across
+/// nine projects; 20 on the canary, 15 thread-level and 5 work-package.**
+///
+/// **The boundary IS the measurement**, so it is spelled out rather than
+/// implied: after the frontmatter (the caller has already split it), before the
+/// first `## `, dropping every `# ` line, then trimmed.
+///
+/// **Dropping `# ` lines rather than the FIRST one only**, which is measured
+/// rather than tidy: the region is defined by where the title line is, not by
+/// how many there are, and a thread carrying two `# ` lines would otherwise
+/// contribute a bare title to its own prose.
+///
+/// **STRIPPED, and that is a ruling rather than a convenience** (vc,
+/// data-model.md). The surrounding blank lines are markdown layout the renderer
+/// re-emits, so the trim is a normalisation -- reported and counted as
+/// `NORMALISED-PROSE` rather than silently adopted. The two byte totals for
+/// this estate differ by exactly that trim: 6135 stripped against 6213
+/// unstripped, both reproduced at `42fb5269`.
+fn preamble(body: &str) -> String {
+  body
+    .lines()
+    .take_while(|l| !l.starts_with("## "))
+    .filter(|l| !l.starts_with("# "))
+    .collect::<Vec<_>>()
+    .join("\n")
+    .trim()
+    .to_string()
+}
+
 fn sections(body: &str) -> Vec<(String, String)> {
   let mut out = Vec::new();
   let mut current: Option<String> = None;

@@ -19,6 +19,7 @@ use intentsvcs::store::Store;
 fn canon() -> (Vec<Thread>, Vec<Issue>) {
   let thread = Thread {
     body: String::new(),
+    preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: "ST0056".to_string(),
     title: "Intent v3.0.0".to_string(),
@@ -44,6 +45,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         status_reason: None,
         objective: String::new(),
         body: String::new(),
+        preamble: String::new(),
       },
       WorkPackage {
         seq: 2,
@@ -54,6 +56,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         status_reason: None,
         objective: String::new(),
         body: String::new(),
+        preamble: String::new(),
       },
     ],
     criteria: vec![

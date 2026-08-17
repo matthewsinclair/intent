@@ -1362,8 +1362,11 @@ impl Facade {
     }
     let thread = Thread {
       // A thread created by v3 has no authored sections beyond the two the
-      // model names; anything else arrives when a human writes it.
+      // model names; anything else arrives when a human writes it. The
+      // preamble is the same case: v2 estates carry one, a thread this tool
+      // creates does not until somebody writes above the first heading.
       body: String::new(),
+      preamble: String::new(),
       schema: crate::model::THREAD_SCHEMA.to_string(),
       id: id.clone(),
       title: title.to_string(),
@@ -1687,6 +1690,7 @@ impl Facade {
     find_thread_mut(&mut next, st)?.wps.push(WorkPackage {
       objective: String::new(),
       body: String::new(),
+      preamble: String::new(),
       seq,
       title: title.to_string(),
       // A work package created through v3 always has a real size: the legacy

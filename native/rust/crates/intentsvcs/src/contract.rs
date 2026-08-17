@@ -585,6 +585,7 @@ mod tests {
   fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     Thread {
       body: String::new(),
+      preamble: String::new(),
       schema: THREAD_SCHEMA.to_string(),
       id: "ST0056".to_string(),
       title: "t".to_string(),
@@ -598,6 +599,7 @@ mod tests {
       context: String::new(),
       related: Vec::new(),
       wps: vec![WorkPackage {
+        preamble: String::new(),
         seq: 3,
         title: "w".to_string(),
         scope: Some(crate::model::TShirt::L),
@@ -769,6 +771,7 @@ mod tests {
       vec![at("AT-00.1", "AC-00.1", AtStatus::Green)],
     );
     t.wps.push(WorkPackage {
+      preamble: String::new(),
       seq: 7,
       title: "later".to_string(),
       scope: Some(crate::model::TShirt::S),

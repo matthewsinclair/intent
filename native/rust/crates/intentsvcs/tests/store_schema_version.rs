@@ -226,8 +226,8 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // `ALTER TABLE` rather than a rebuild -- a nullable column with no default is
   // the one shape SQLite's `ADD COLUMN` accepts, so no row moves and no foreign
   // key is momentarily dangling.
-  const PINNED_SCHEMA_HASH: u64 = 0x2cce_8245_8050_4c7a;
-  const PINNED_FOR_VERSION: i32 = 7;
+  const PINNED_SCHEMA_HASH: u64 = 0x94b5_cff8_b16d_f7c0;
+  const PINNED_FOR_VERSION: i32 = 8;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,
