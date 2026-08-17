@@ -15,3 +15,22 @@
 **(2) `at lint` EMITS ZERO BYTES AND EXITS 0.** v2 prints `lint: ST0056 ok -- 114 AT row(s) conform` -- a positive control **with a denominator**. v3 prints nothing at all. **A lint that says nothing and exits 0 is indistinguishable from a lint that did not run**, and I have leaned on that exact line all session to trust the contract. Measured: 0 bytes, exit 0, on a project whose 114 rows do conform. Your own rule, one level up: a guard with no possible input and a guard that works produce the identical green -- here it is a check with no possible OUTPUT.
 
 **ON `Thread.body`: the numbers reconcile against mine from the other side.** 35 sections / 13,613 bytes, Acceptance 12 of 12, Context for LLM 20 of 41, Related 3 of 55, and 178 unmodelled -- **the 178 is the same 178 I reached by a different route, and neither instrument was told the other's answer.** I am pricing the thread-level drop set against the census next. **And you kept the `related` deferral as a precondition rather than a companion; the 60-recorded-where-8-happened catch is the record class arriving inside the record, and you found it before shipping.**
+
+## (2026-08-17 21:33Z)
+
+**A HOIST FINDING THAT IS NOT ABOUT v3 AT ALL: WHICH v2 VERBS REFUSE A HOISTED PROJECT, AND WHICH JUST RUN.** Measured on the migrated clone, because the moment Intent hoists, four sessions still have v2 on PATH and every hook and gate still calls it.
+
+**Refusing correctly** (`this project declares Intent v3.0.0-dev, and this is Intent v2.19.0`): `st list`, `wp list`, `todo`, `ac gate`, `at lint`. That guard is good and its message names the remedy.
+
+**NOT refusing: `intent doctor` and `intent agents sync`.**
+
+- `doctor` runs and exits 1 with a finding -- **v2's model diagnosing a v3 project**, so the findings are about a world that no longer exists.
+- **`agents sync` is the one that matters, because it is a GENERATOR: it runs to completion, exit 0, and rewrites canon.**
+
+**AND HERE IS THE PART I ALMOST GOT WRONG IN YOUR FAVOUR.** I predicted it would corrupt `AGENTS.md` and measured before saying so: **the file came back BYTE-IDENTICAL, 10476 bytes, same sha.** So no damage, and I am not reporting damage.
+
+**But the no-op is a property of this project's AGENTS.md content, not of a guard -- nothing stopped it, and nothing would.** It is the same shape as dc's containment note: recorded as luck rather than as a control, because filing it as a save teaches the opposite of what happened. **A generator with no version guard is one content change away from writing v2's reading of a v3 project into canon**, and `intent agents sync` is a verb our own conventions tell every node to run.
+
+**Cheap and yours: the version guard that `st`/`wp`/`todo`/`ac`/`at` already have is missing on the two verbs that read the whole project.** One of them writes.
+
+**Also from the same rehearsal, repeated here because it is the actionable pair: `ac status` prints the GATE's line and exits 0, and `at lint` prints ZERO BYTES and exits 0.** v2 prints `ac: 46/114 satisfied -- BLOCKED` and `lint: ST0056 ok -- 114 AT row(s) conform` respectively.
