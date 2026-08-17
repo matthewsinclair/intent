@@ -45,6 +45,34 @@ else
 fi
 export BIN_DIR PROJECT_ROOT DEVBIN_DIR DEVBIN_LIB
 
+# THE REFERENT (issue 0049). devbin prints this beside every `verdict:` and
+# beside the `all` summary, and never parses it -- Intent composes it because
+# Intent is the half that knows it is a git checkout.
+#
+# COMPOSED HERE, AT PROCESS START, WHICH IS RUN START for every gate this
+# invocation goes on to run. A referent read later would describe the tree the
+# verdict was printed against rather than the tree that was measured, and those
+# stop being the same thing in exactly the situation this exists for.
+#
+# UNCONDITIONAL, AND THE ~50ms IS BOUGHT DELIBERATELY. The obvious saving is to
+# skip it for commands that run no gates -- which requires a list of which
+# commands are gates, and a hardcoded list of that shape rotted TWICE in this
+# repository on the day this was written (a skip warning still saying "those two
+# gates" when there were nine, and a guard roster that had silently acquired two
+# members). A list that must be updated when a gate is added is a list that will
+# be wrong the first time someone adds one.
+#
+# ABSENT IS NOT CLEAN. If the composer cannot answer, the referent SAYS SO
+# rather than falling back to empty -- an empty referent is indistinguishable
+# from a project that never asked for one, so a broken composer would silently
+# restore exactly the unreferenced verdict this closes. Fail-open on the command
+# (a referent must never be able to stop a gate) and loud in the value.
+DEVBIN_RUN_REFERENT="$("$DEVBIN_DIR/cmd/measured" --value 2>/dev/null)" ||
+  DEVBIN_RUN_REFERENT=""
+[ -n "$DEVBIN_RUN_REFERENT" ] ||
+  DEVBIN_RUN_REFERENT="REFERENT UNAVAILABLE -- this verdict describes no known tree"
+export DEVBIN_RUN_REFERENT
+
 # shellcheck source=lib/helpers
 . "$DEVBIN_LIB/helpers"
 # shellcheck source=lib/config

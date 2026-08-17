@@ -111,6 +111,39 @@ referent_line() {
   printf '%s commit=%s tree=%s\n' "$REFERENT_TAG" "${st%% *}" "${st##* }"
 }
 
+# referent_value -- the same fact as referent_line, spelled for a HUMAN.
+#
+# TWO SPELLINGS, ONE SOURCE, and the split is deliberate rather than sloppy.
+# `referent_line` is written into the `.out` LOG, so it is tagged and its
+# character set is asserted closed -- it has to be findable later and it must
+# not be mistakable for a diagnostic by any grammar that scans the log. This
+# one is handed to devbin, which prints it to the TERMINAL beside `verdict:`
+# and never writes it anywhere. Different audience, different requirements;
+# both read `tree_state`, which stays THE one definition of "which tree".
+#
+# THE WARNING IS COMPOSED HERE, WHICH IS THE WHOLE POINT OF THE OPAQUE-STRING
+# DESIGN. devbin prints "-- THIS VERDICT DESCRIBES NO COMMIT" without knowing
+# what a commit is, because Intent wrote the sentence. A devbin that could
+# decide when to warn would be a devbin that had learned to read a sha.
+#
+# No safety assertion here, and the absence is reasoned rather than skipped:
+# this string never enters a log, so no extraction grammar ever sees it, and it
+# is built from a short sha, an integer and fixed text -- there is no
+# interpolated branch name, path or subject for a future edit to smuggle in.
+# The log-bound spelling above keeps its assertion for exactly the opposite
+# reason.
+referent_value() {
+  local st sha state
+  st="$(tree_state)"
+  sha="${st%% *}"
+  state="${st##* }"
+  case "$state" in
+    clean) printf '%s clean\n' "$sha" ;;
+    dirty:*) printf '%s +%s dirty -- THIS VERDICT DESCRIBES NO COMMIT\n' "$sha" "${state#dirty:}" ;;
+    *) printf 'not a git checkout -- this verdict describes no commit\n' ;;
+  esac
+}
+
 # assert_referent_safe <line> -- REFUSE to emit a line no grammar can misread.
 #
 # The whole value of this header is that it cannot be mistaken for a diagnostic.
@@ -142,6 +175,13 @@ case "${1:-}" in
     line="$(referent_line)"
     assert_referent_safe "$line"
     printf '%s\n' "$line"
+    exit 0
+    ;;
+  --value)
+    # What `bin/int` exports as DEVBIN_RUN_REFERENT. Kept behind the same early
+    # exit as --stamp because it runs on EVERY int invocation, so it must cost
+    # two git calls and nothing else.
+    referent_value
     exit 0
     ;;
   --exec)
