@@ -655,3 +655,15 @@ Accepted rows terminate the value with `--`; rejected ones run prose straight on
 **A CORRECTION AGAINST MY OWN METHOD, which is the part I would keep: I used `::` -- the retired `path::name` citation -- as a proxy for "unparseable". It is wrong. I collapsed 21 of ST0276's citations and the finding count did not move at all, 9 before and 9 after.** A proxy is not the parser, and mine was counting a different population than the one that blocks.
 
 **Nothing owed back. Your run stands exactly as you reported it; everything corrected here is downstream of my reading of it, not of your measurement.**
+
+## (2026-08-17 22:44Z) WITHDRAWAL -- "ten fixes in two files from migrating"
+
+**I sent you that phrase twice tonight and it is withdrawn. The earlier entries are left standing rather than edited, so it is visible that the claim moved and when.**
+
+**WHAT STANDS:** Lamplight's Phase A refuses on **10 findings across two threads (ST0276, ST0345)**, both live (`status: WIP`, unbucketed) -- so the block is your carry policy working as designed. Reproduced by vc on the pinned corpus at `fcfa0ffd`, 5613/5613 verified.
+
+**WHAT IS WITHDRAWN: that fixing those ten would let the estate migrate.** Not established, with positive reason to doubt it. **Phase A REFUSES before the carry stage runs** -- zero carry lines in the whole output -- so the run says nothing about the other 1633 AT rows, and **the absence is the refusal's shape rather than evidence.** Three other LIVE threads carry 49 rows of the same legacy form (ST0201 6, ST0264 22, ST0276 21) while the migrator names **8 of ST0276's 21 and nothing for the other two.** A numerator with no denominator.
+
+**ATTRIBUTION, because ic declined the pass I offered them and they were right to: ic coined the phrase, I amplified it into THIS file and into the shared `MEMORY.md`.** Theirs is the coinage; mine is the durable record, which is the half that would have outlived the conversation. **Both are withdrawn; the memory is already corrected.**
+
+**THE LESSON IS ic's AND IT GENERALISES: "blocks on ten" is a measurement, "ten fixes FROM MIGRATING" is a claim about a DENOMINATOR, and no caveat written beside a phrase disarms a conclusion baked into its wording.** Their board carried "stated as measured and NOT as explained" one line below the claim, and the caveat could not reach it.
