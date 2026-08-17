@@ -393,6 +393,28 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
     } else {
       a.action(ArgAction::Set)
     };
+    // **A LITERAL default reaches clap; a described one cannot** (issue 0039's
+    // remaining item). `Arg.default` was validated by `unreachable_defaults`
+    // and rendered by nothing, while `Flag.default` reached clap -- so the same
+    // word meant "honoured" on a flag and "recorded" on an argument.
+    //
+    // **It is three claims wearing one field name, and only one of them is a
+    // clap default.** Measured across the shipped table: two `enum` args carry
+    // a literal from a closed domain (`st show`/`st edit`, `info`); five
+    // `subcommand` slots carry a default VERB, which is a dispatch decision and
+    // not a value -- `intent todo` runs `todo list`, measured; and one `string`
+    // arg carries PROSE, `init`'s "the current directory name", which is a
+    // description of a computation and would reach clap as that literal text.
+    //
+    // So the domain has to be closed for the value to be honourable, which is
+    // the same question `unreachable_defaults` already asks in order to check
+    // it. Rendering the open case would put the sentence "the current directory
+    // name" into a project name.
+    if let Some(default) = &arg.default
+      && arg.kind == "enum"
+    {
+      a = a.default_value(default.clone());
+    }
     cmd = cmd.arg(a);
   }
   cmd
@@ -697,6 +719,89 @@ mod tests {
       checked >= 5,
       "only {checked} families were compared, so this passes by finding almost nothing -- the walk has stopped matching the surface it means to measure"
     );
+  }
+
+  /// **A LITERAL default reaches the surface; a DESCRIBED one must not.**
+  ///
+  /// Issue 0039's remaining item, and the reason it stayed open is that
+  /// `Arg.default` is three claims wearing one field name. Measured across the
+  /// shipped table: two `enum` args carry a value from a closed domain, five
+  /// `subcommand` slots carry a default VERB (a dispatch decision -- `intent
+  /// todo` runs `todo list`, measured through the binary), and one `string` arg
+  /// carries PROSE.
+  ///
+  /// **The prose case is the one that decides the rule.** `init`'s
+  /// `project_name` declares `"the current directory name"`, which is a
+  /// description of a computation. Rendered as a clap default it becomes that
+  /// sentence, and `intent init` in a fresh directory would create a project
+  /// literally named `the current directory name` -- a plausible-looking value
+  /// nobody typed, which is this thread's whole subject.
+  #[test]
+  fn a_literal_default_reaches_the_surface_and_a_described_one_does_not() {
+    let table = dispatch::table();
+    let surface = build(&table);
+
+    let mut literal = 0;
+    let mut described = 0;
+
+    for family in &table.families {
+      for entry in family.entries.iter().filter(|e| e.is_shipped()) {
+        for arg in &entry.args {
+          let Some(declared) = arg.default.as_deref() else {
+            continue;
+          };
+          // `subcommand` slots are not values; their default is honoured by
+          // dispatch, which `a_verb_slot_...` and the binary cover.
+          if arg.kind == "subcommand" {
+            continue;
+          }
+          let Some(cmd) = locate(&surface, entry) else {
+            continue;
+          };
+          let rendered = cmd
+            .get_arguments()
+            .find(|a| a.get_id() == arg.name.as_str())
+            .and_then(|a| a.get_default_values().first().cloned())
+            .map(|v| v.to_string_lossy().into_owned());
+
+          if arg.kind == "enum" {
+            assert_eq!(
+              rendered.as_deref(),
+              Some(declared),
+              "`{}` declares `{}` at a default of {declared:?} from a CLOSED domain, and the surface did not carry it. A declared default the surface ignores \
+               is a value the renderer has to invent a second time",
+              entry.path,
+              arg.name
+            );
+            literal += 1;
+          } else {
+            assert_eq!(
+              rendered, None,
+              "`{}` declares `{}` at a default of {declared:?} on an OPEN domain -- that is a description of a computation, not a value. Rendered as a clap \
+               default it becomes that sentence, and `intent init` would create a project literally named it",
+              entry.path, arg.name
+            );
+            described += 1;
+          }
+        }
+      }
+    }
+
+    assert!(
+      literal > 0 && described > 0,
+      "the table yielded {literal} literal and {described} described defaults -- this case needs BOTH to be measuring the distinction rather than one side of it"
+    );
+  }
+
+  /// The command on the built surface an entry belongs to, family or verb.
+  fn locate<'a>(surface: &'a clap::Command, entry: &Entry) -> Option<&'a clap::Command> {
+    let family = surface
+      .get_subcommands()
+      .find(|c| c.get_name() == entry.family())?;
+    match entry.verb() {
+      None => Some(family),
+      Some(verb) => family.get_subcommands().find(|c| c.get_name() == verb),
+    }
   }
 
   /// **The case that SEPARATES the three implementations, constructed because
