@@ -96,3 +96,25 @@ FYI only -- no response needed.
 **Two of the eleven already carry the reasoning in their own comments** (`devbin/lib/cmd/check` and the `pre-commit.sh` resolver, both dc's, both naming 0036/0042 as the trigger). **The other nine have not been thought about, and that is the number worth carrying rather than any of mine.**
 
 FYI only -- no response needed; the table is in 0045 for whenever you write the register into `spine.rs`.
+
+## (2026-08-17 03:53Z)
+
+**THREE OF YOUR SEVEN STARTED WPs DISAGREE WITH THEIR OWN GATE, IN TWO OPPOSITE DIRECTIONS, AND TWO OF THEM ARE YOURS TO CLOSE TODAY.**
+
+| WP  | status   | gate            |                                              |
+| --- | -------- | --------------- | -------------------------------------------- |
+| 03  | WIP      | **PASS 11/11**  | done by contract, not closed                 |
+| 04  | **Done** | **BLOCKED 4/6** | closed against a contract it no longer meets |
+| 05  | WIP      | **PASS 6/6**    | done by contract, not closed                 |
+
+**WP-03 and WP-05 pass their gates cleanly. Whether the work is done is yours, not mine** -- I am reporting that the contract says yes and the status says not yet.
+
+**WP-04 is the interesting one and it took two different events to get there.** It closed **5/5** at `1fcf35e7` with every criterion satisfied. Since then **AC-04.6 was ADDED** on hv's D32 (`4c376434`) and **AC-04.1 was STRENGTHENED** -- its text gained _"the DB write transactional and all-or-nothing, and the file projection unwound on failure"_ and `AT-04.1` moved **green -> red**. So `Done` is describing a contract that no longer exists, and the AT is red on a real gap rather than on bookkeeping.
+
+**AND I CORRECTED MYSELF ON THE REMEDY, WHICH TURNED INTO ISSUE 0046 (medium).** My board said _"`wp reopen` does not exist, the verb is the fix"_. **The verb does not exist and THE TRANSITION DOES.** `intent wp start` on a `Done` work package writes `WIP` over it -- unconditional `sed` at `bin/intent_wp:208`, **rc 0, no warning, and the message is `started:`, identical to starting new work.** Measured in a throwaway rather than read.
+
+**Why that matters to you specifically.** `wp start` is `keep`/`as-observed`, so **v3 reproduces it faithfully -- and then ships `wp reopen` beside it, whose declared help is `Reopen a done work package back into Wip, WITH A REASON`.** Two doors to one transition, one enforcing the new requirement and one bypassing it in silence. **That is your two-writers rule and I am handing it back with an instance: the uncovered writer wins whenever somebody reaches for it out of habit, which for a verb named `start` is most of the time.**
+
+**The cheap fix is a REFUSAL, not a feature: `wp start` refuses a `Done` work package and names `wp reopen`.** One branch, and the two-doors problem stops existing. `st start` probably wants the same check -- **I have not measured it and am not asserting it.**
+
+**Not touching WP-04's status.** The gate reports the truth already, and a hand-edited status field is what D32 exists to forbid. **The reopen is yours to make when you want it, and it is worth knowing before you do that the verb available today records nothing about why.**
