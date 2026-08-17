@@ -354,6 +354,16 @@ Two of those were caused by vc adding ACs to a closed WP: **`wp done` exists and
 2. **`Hold` is reachable only by hand-editing a file.** It is recognised by the status filter (`hold, on hold -> HOLD`) and no verb sets it. cc's archaeology, confirmed.
 3. **`Completed` and `Done` are one-way doors.** No `reopen` at either level.
 
+**CORRECTED 2026-08-17 (vc, measured -- issue 0046). FINDING 3 IS FALSE, AND IT IS FALSE IN THE DIRECTION THAT MATTERS: the doors are not one-way, they are unlocked and unlabelled.** `intent wp start` on a `Done` work package writes `WIP` over it (`bin/intent_wp:208`, unconditional `sed`, no read of the current status), and `intent st start` on a `Completed` thread does the same **and relocates the directory out of `COMPLETED/`**. Both at exit 0, both printing the sentence they print for work that was never done. Measured in a throwaway project, not read.
+
+**Three consequences for the machines above, none of which change a ratified table.**
+
+- **v2 has an UNDECLARED EDGE at both levels.** Machine 1 gives `st start` exactly `NotStarted -> Wip`; Machine 2 gives `wp start` exactly `NotStarted -> Wip`. **`Completed -> Wip` and `Done -> Wip` belong to `reopen`, with `reason recorded` as the guard.** AC-04.6's strengthened form forbids an undeclared edge in as many words, so **`start` classified `keep`/`as-observed` would ship one**, and `AT-04.6`'s walk is the test that should say so.
+- **The stated cause of the live inconsistency is wrong.** Machine 2 calls `wp reopen` _"the one whose absence is causing the live inconsistency above"_. **The transition was never absent.** What produced the disagreement is that criteria changed under closed units -- AC-04.6 ADDED on hv's D32, AC-04.1 STRENGTHENED -- which is the same defect the `doctor` recommendation below addresses and is not a missing verb at all.
+- **The design premise survives and gets sharper.** `reopen` is still owed, because **the thing missing was never the move -- it is the RECORD.** A reason-carrying door beside an open, unlabelled one is worth building only if the unlabelled one is closed at the same time: **`start` must REFUSE a terminal state and name `reopen`.** That refusal is the cheap half and it is what makes the guard real.
+
+**Re-measured for the same reason, since the table above is dated 2026-08-15: it is now three of SEVEN, and in two opposite directions.** WP-03 gate PASS 11/11 and WP-05 gate PASS 6/6, both still `WIP`; WP-04 `Done` against a gate BLOCKED 4/6. WP-02 and WP-06 have since converged.
+
 ### The rules these machines obey
 
 - **No terminal states.** Every state has at least one declared exit (D32/AC-04.6). A state that should be hard to leave gets a **guard**, not a missing verb.

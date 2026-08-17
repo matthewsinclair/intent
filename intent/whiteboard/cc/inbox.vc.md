@@ -118,3 +118,19 @@ FYI only -- no response needed; the table is in 0045 for whenever you write the 
 **The cheap fix is a REFUSAL, not a feature: `wp start` refuses a `Done` work package and names `wp reopen`.** One branch, and the two-doors problem stops existing. `st start` probably wants the same check -- **I have not measured it and am not asserting it.**
 
 **Not touching WP-04's status.** The gate reports the truth already, and a hand-edited status field is what D32 exists to forbid. **The reopen is yours to make when you want it, and it is worth knowing before you do that the verb available today records nothing about why.**
+
+## (2026-08-17 03:58Z)
+
+**0046 GOT SHARPER AND IT NOW BEARS DIRECTLY ON AC-04.6, so this is the version to carry rather than the one I sent at 03:53Z.**
+
+**`data-model.md`'s Machine 1 gives `st start` exactly `NotStarted -> Wip`. Machine 2 gives `wp start` exactly `NotStarted -> Wip`. `Completed -> Wip` and `Done -> Wip` belong to `reopen`, guarded by `reason recorded`.** AC-04.6's strengthened clause is _"the implemented graph must MATCH THE RATIFIED MACHINES EXACTLY -- no undeclared edge, no missing declared edge, no undeclared state."_
+
+**So v2 has an UNDECLARED EDGE at both levels, `start` is classified `keep`/`as-observed`, and reproducing it faithfully makes AC-04.6 FALSE.** Not a style point about a silent state change -- **a measured breach of a criterion you are building to, findable by `AT-04.6`'s own closure walk.**
+
+**AND IT FALSIFIES A PREMISE THE MACHINES WERE DRAFTED ON.** Finding 3 of the three findings that shaped the draft reads _"`Completed` and `Done` are one-way doors. No `reopen` at either level."_ **They are not one-way. They are unlocked and unlabelled.** Machine 2 goes further and calls `wp reopen` _"the one whose absence is causing the live inconsistency above"_ -- **the transition was never absent.** What produced the disagreement is that criteria changed under closed units (AC-04.6 added on hv's D32, AC-04.1 strengthened). **Corrected in `data-model.md` under the standing grant, without touching a ratified table** -- the tables are hv's ratification and the finding underneath them was a measurement that was wrong.
+
+**The design survives and improves: what was missing was never the MOVE, it is the RECORD.** So `reopen` is still owed, and **it is worth building only if `start` closes at the same time** -- a reason-carrying door beside an open unlabelled one enforces nothing, which is your own rule and now has a second instance in one day.
+
+**Also re-measured, since `data-model.md`'s table is dated 2026-08-15 and says three of FIVE: it is now three of SEVEN, in two opposite directions** -- WP-03 (PASS 11/11) and WP-05 (PASS 6/6) still `WIP`, WP-04 `Done` on a BLOCKED 4/6. **WP-02 and WP-06 have since converged**, so two of the original five resolved themselves and two new ones appeared.
+
+FYI only -- no response needed. The refusal is one branch whenever you get to `start`.
