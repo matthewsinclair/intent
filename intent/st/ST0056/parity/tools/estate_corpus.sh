@@ -59,18 +59,35 @@ die() {
   exit 2
 }
 
-# The fleet AC-10.5 names, in full. The three that cannot be captured from this
-# checkout are DECLARED and marked, never omitted: a table holding one member
-# reads exactly like a table holding the set, and scope belongs in a
-# denominator rather than in an adjective.
+# The fleet AC-10.5 names, in full: the Intent canary plus Lamplight, Utilz and
+# Baize. Every member is DECLARED whether or not it can be captured here, because
+# a table holding one member reads exactly like a table holding the set, and
+# scope belongs in a denominator rather than in an adjective.
 #
-# id | repo | revision | capturable | why this revision, or why not
+# CAPTURABILITY IS MEASURED AT RUN TIME AND NEVER DECLARED, AND THAT IS A FIX
+# RATHER THAN A DESIGN. The first version of this table asserted the three fleet
+# members were "not reachable from this checkout". All three are: they sit beside
+# this repository and each is a real v2 Intent estate. **An unverified claim,
+# written into a tool, in the same session its author spent flagging exactly that
+# in other people's work.** A `capturable` column is a fact about a machine, and
+# a fact about a machine belongs in a measurement.
+#
+# WHAT "post-sweep revision" MEANS NOW, STATED RATHER THAN QUIETLY REINTERPRETED.
+# AC-10.5 names the three fleet members "at named post-sweep revisions". The
+# sweep program was ruled off, so no post-sweep revision exists and none was ever
+# named. The criterion applied here is a DIFFERENT one and is labelled as such:
+# the member's committed HEAD at the moment it was pinned, recorded as a full sha
+# in this table. That is a real, named, immutable revision; it is not the thing
+# the AC asked for, and the row says so rather than letting a pin stand in for a
+# criterion nobody can satisfy.
+#
+# id | repo | revision | criterion
 members() {
   cat <<'EOF'
-canary|.|42fb5269|yes|the last committed revision at which intent/issues/ populates BOTH arms (23 OPEN + 38 CLOSED); at HEAD the OPEN arm is empty and the migrator's BLOCK path would ship unexercised
-lamplight|-|-|no|AC-10.5 names it at a "post-sweep revision"; the sweep program was ruled off, no revision was ever named, and the repository is not reachable from this checkout
-utilz|-|-|no|as lamplight: no revision named, not reachable from this checkout
-baize|-|-|no|as lamplight: no revision named, not reachable from this checkout
+canary|.|42fb5269610547f63f9ee170f8c8e7ab8c6e32c0|the last committed revision at which intent/issues/ populates BOTH arms (23 OPEN + 38 CLOSED); at HEAD the OPEN arm is empty and the migrator's BLOCK path would ship unexercised
+lamplight|../Lamplight|fcfa0ffde38bedb59f1862dd33d46d5621f9725f|committed HEAD at pinning, 2026-08-17; declares 2.19.0; the largest estate in the fleet by an order of magnitude (5613 files under intent/, 2207 info.md) -- NOT a post-sweep revision, because none exists
+utilz|../Utilz|367a75a3d357404645ffdfa9b4024712b12cb084|committed HEAD at pinning, 2026-08-17; declares 2.18.0, so it is a REAL PRE-2.19.0 ESTATE and the only member that gives AC-10.1's refusal arm genuine input -- NOT a post-sweep revision, because none exists
+baize|../Baize|a519398deec95d05d472e8963a98e7eff3b28679|committed HEAD at pinning, 2026-08-17; declares 2.19.0; 381 files, 142 info.md -- NOT a post-sweep revision, because none exists
 EOF
 }
 
@@ -78,10 +95,22 @@ member_row() {
   members | awk -F'|' -v id="$1" '$1 == id { print; found = 1 } END { exit !found }'
 }
 
+# Resolvable, MEASURED: does the repo path exist here and does it hold the pinned
+# revision? Both, because a repository that exists and has garbage-collected or
+# never fetched the pin is not a member this machine can capture, and reporting
+# it as capturable would move the failure to the capture.
+member_state() {
+  local repo="$1" rev="$2" src
+  src="$(cd "$ROOT/$repo" 2>/dev/null && pwd)" || { echo "no-repo"; return; }
+  git -C "$src" rev-parse --git-dir >/dev/null 2>&1 || { echo "not-git"; return; }
+  git -C "$src" rev-parse --verify "$rev^{commit}" >/dev/null 2>&1 || { echo "no-rev"; return; }
+  echo here
+}
+
 cmd_list() {
-  printf '%-10s %-10s %-12s %s\n' MEMBER CAPTURABLE REVISION CRITERION
-  members | while IFS='|' read -r id repo rev capturable why; do
-    printf '%-10s %-10s %-12s %s\n' "$id" "$capturable" "$rev" "$why"
+  printf '%-10s %-9s %-10s %s\n' MEMBER STATE REVISION CRITERION
+  members | while IFS='|' read -r id repo rev why; do
+    printf '%-10s %-9s %-10s %s\n' "$id" "$(member_state "$repo" "$rev")" "$(printf '%.8s' "$rev")" "$why"
   done
 }
 
@@ -97,13 +126,22 @@ cmd_capture() {
   local id="${1:-}" dest="${2:-}"
   [ -n "$id" ] || die "usage: estate_corpus.sh capture <member> [dest]"
 
-  local row repo rev capturable why
+  local row repo rev why state
   row="$(member_row "$id")" || die "unknown member: $id (try: estate_corpus.sh list)"
-  IFS='|' read -r _ repo rev capturable why <<EOF
+  IFS='|' read -r _ repo rev why <<EOF
 $row
 EOF
 
-  [ "$capturable" = yes ] || die "member $id is declared and NOT capturable from here -- $why"
+  # Measured, not declared. Each state names what is actually wrong, because
+  # "not capturable" covers three different situations with three remedies.
+  state="$(member_state "$repo" "$rev")"
+  case "$state" in
+    here) : ;;
+    no-repo) die "member $id names repo $repo, which does not resolve from $ROOT -- clone it beside this repository or capture on a machine that has it" ;;
+    not-git) die "member $id resolves to $ROOT/$repo, which is not a git repository" ;;
+    no-rev) die "member $id pins $rev, which is not in $ROOT/$repo -- a pinned corpus revision that has left history is not a corpus" ;;
+    *) die "member_state returned $state, which is not a state this reader knows" ;;
+  esac
 
   local src
   src="$(cd "$ROOT/$repo" 2>/dev/null && pwd)" || die "member $id names repo $repo, which does not resolve from $ROOT"
@@ -182,10 +220,27 @@ cmd_verify() {
     die "revision $rev is not in $src"
 
   # The referent: git's record of that tree. Nothing derived from $dir.
+  #
+  # `core.quotePath=false` IS LOAD-BEARING AND WAS LEARNED FROM A FALSE ALARM ON
+  # THE FIRST REAL FLEET ESTATE. By default `ls-tree` C-QUOTES any path holding a
+  # non-ASCII byte -- wrapping it in double quotes and octal-escaping the bytes --
+  # so a file whose name contains a curly quote is compared as a DISPLAY STRING
+  # against a real filename and reports as MISSING and EXTRA at once. Lamplight
+  # has two such files and produced exactly that: 5611/5613, two missing, two
+  # extra, the same two files counted as both. **The tool's subject was a quoted
+  # rendering and the report's subject was a path.**
   local listing
-  listing="$(git -C "$src" ls-tree -r "$rev" "$SUBTREE")" ||
+  listing="$(git -C "$src" -c core.quotePath=false ls-tree -r "$rev" "$SUBTREE")" ||
     die "cannot read tree $rev in $src"
   [ -n "$listing" ] || die "tree $rev holds nothing under $SUBTREE -- an empty referent would pass an empty corpus"
+
+  # `quotePath=false` unquotes non-ASCII and NOT a path containing a literal
+  # newline, quote or backslash. Those are rare and they are REFUSED rather than
+  # misreported, because the failure mode is a false MISSING+EXTRA pair that
+  # looks like data loss -- the one reading nobody should have to guess at.
+  if printf '%s\n' "$listing" | cut -f2- | grep -q '^"'; then
+    die "tree $rev holds path(s) git still quotes (embedded newline, quote or backslash) -- this reader compares raw paths and would report them as both MISSING and EXTRA"
+  fi
 
   local declared=0 matched=0 missing=0 diverged=0 nonblob=0
   local mode type sha path actual
