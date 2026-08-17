@@ -194,11 +194,11 @@ pub enum FacadeError {
   ExportRoundTripFailed { format: String, detail: String },
 }
 
-impl FacadeError {
+impl crate::remedy::Remedy for FacadeError {
   /// What the operator should DO. Every variant has one, and no two variants
   /// share a remedy text -- a remedy that fits two different causes is telling
   /// the operator to guess which one they hit (AC-04.4).
-  pub fn remedy(&self) -> String {
+  fn remedy(&self) -> String {
     match self {
       Self::NoSuchThread { .. } => {
         "run `intent st list` to see the threads this project has".to_string()
@@ -351,25 +351,13 @@ impl FacadeError {
       ),
     }
   }
-
-  /// The operator-facing rendering: the message, the FULL cause chain, and the
-  /// remedy.
-  ///
-  /// The chain is walked rather than summarised. v2's habit of collapsing a
-  /// failure to its outermost sentence is what made two different problems
-  /// print the same line, and the whole point of typed errors is that they
-  /// stop doing that.
-  pub fn render(&self) -> String {
-    let mut out = format!("error: {self}");
-    let mut source = std::error::Error::source(self);
-    while let Some(cause) = source {
-      out.push_str(&format!("\n  caused by: {cause}"));
-      source = cause.source();
-    }
-    out.push_str(&format!("\n  remedy: {}", self.remedy()));
-    out
-  }
 }
+
+// `render` is DELETED here, not moved: its body is now the `Remedy` trait's
+// default, so this type gets it by implementing the trait. It was the only
+// rendering in the workspace, and leaving it as an inherent method would mean
+// the one type that already had it kept a private copy while every other error
+// used the shared one -- which is how two renderings become normal.
 
 /// One row of `intent ac list`: the criterion, its computed state, and the
 /// tests that cover it.
@@ -2021,7 +2009,7 @@ mod tests {
         ac: "AC-03.1".to_string(),
       },
     ];
-    let mut remedies: Vec<String> = errors.iter().map(FacadeError::remedy).collect();
+    let mut remedies: Vec<String> = errors.iter().map(crate::remedy::Remedy::remedy).collect();
     let before = remedies.len();
     remedies.sort();
     remedies.dedup();

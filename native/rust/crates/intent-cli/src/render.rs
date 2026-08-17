@@ -14,6 +14,7 @@ use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus};
 use intentsvcs::project::Project;
+use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
 
 /// Everything a rendered failure says. The facade's own rendering already
@@ -1621,10 +1622,7 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
   let project = facade.project().clone();
 
   if flag(m, "list") {
-    let snapshots = facade
-      .store()
-      .snapshots()
-      .map_err(|e| format!("error: {e}\n  remedy: {}", e.remedy()))?;
+    let snapshots = facade.store().snapshots().map_err(|e| e.render())?;
     if snapshots.is_empty() {
       // Not silence: an empty list and a broken backup look identical on an
       // empty stream, and only one of them is fine.
@@ -1650,13 +1648,12 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
     return Ok(());
   }
 
-  let written = intentsvcs::backup::take(&project, facade.store())
-    .map_err(|e| format!("error: {e}\n  remedy: {}", e.remedy()))?;
+  let written = intentsvcs::backup::take(&project, facade.store()).map_err(|e| e.render())?;
   println!("created: {}", project.relative(&written));
 
   let retention = intentsvcs::backup::Retention::from_project(&project);
-  let removed = intentsvcs::backup::prune(&project, facade.store(), retention)
-    .map_err(|e| format!("error: {e}\n  remedy: {}", e.remedy()))?;
+  let removed =
+    intentsvcs::backup::prune(&project, facade.store(), retention).map_err(|e| e.render())?;
   for path in &removed {
     println!("removed: {}", project.relative(path));
   }

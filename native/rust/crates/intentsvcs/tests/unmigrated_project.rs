@@ -43,6 +43,7 @@ mod common;
 use common::{Fixture, facade_ctx};
 use intentsvcs::facade::{Facade, FacadeError};
 use intentsvcs::project::{Migration, Project};
+use intentsvcs::remedy::Remedy;
 
 /// A project whose config declares `version`, with `threads` in v2 shape:
 /// `info.md` and no `thread.json`, which is exactly what v2.19.0 leaves on

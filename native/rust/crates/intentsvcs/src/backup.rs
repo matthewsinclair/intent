@@ -56,8 +56,8 @@ pub enum BackupError {
   },
 }
 
-impl BackupError {
-  pub fn remedy(&self) -> String {
+impl crate::remedy::Remedy for BackupError {
+  fn remedy(&self) -> String {
     match self {
       Self::Directory { path, .. } => {
         format!("check that {} is writable by you", path.display())

@@ -184,6 +184,21 @@ pub struct JsonlError {
   pub source: serde_json::Error,
 }
 
+impl crate::remedy::Remedy for JsonlError {
+  /// **Restore the line; never delete it, and never truncate the file at it.**
+  ///
+  /// The log is the one artefact in the estate nothing recomputes -- the store
+  /// is rebuildable from the extract (D36) and history is rebuildable from
+  /// nothing -- so the instinct that works everywhere else, throw away the bad
+  /// part and regenerate, silently destroys the only copy here.
+  fn remedy(&self) -> String {
+    format!(
+      "restore line {} from git rather than deleting it -- the event log is the one artefact nothing recomputes, so a truncated log is permanent loss and looks exactly like a project that did less work",
+      self.line
+    )
+  }
+}
+
 /// The envelopes in `incoming` that `have` does not already carry, in incoming
 /// order.
 ///

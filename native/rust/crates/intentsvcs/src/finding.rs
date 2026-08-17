@@ -357,6 +357,21 @@ pub struct Refusal {
   pub findings: Vec<Finding>,
 }
 
+impl crate::remedy::Remedy for Refusal {
+  /// **The findings have already said what to do, one line each.**
+  ///
+  /// A refusal carrying twelve findings has twelve remedies above it, each
+  /// naming its own file and class. A thirteenth line summarising them would
+  /// be the least specific advice on screen sitting in the most prominent
+  /// position, so this points AT them rather than restating them.
+  fn remedy(&self) -> String {
+    format!(
+      "act on the {} finding(s) above -- each names its artefact and what to do; nothing here needs a decision this message could make for you",
+      self.findings.len()
+    )
+  }
+}
+
 impl Refusal {
   pub fn new(findings: Vec<Finding>) -> Self {
     Self { findings }

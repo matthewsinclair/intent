@@ -588,7 +588,7 @@ pub enum StoreError {
   MigrationLeftDanglingRows { violations: i64 },
 }
 
-impl StoreError {
+impl crate::remedy::Remedy for StoreError {
   /// What the operator should DO. Distinct per variant -- a remedy that fits
   /// two causes is telling the operator to guess which one they hit.
   ///
@@ -597,7 +597,7 @@ impl StoreError {
   /// moving either end, and the other is "nothing knows what this database
   /// is", which is not recoverable by the tool at all. Collapsing them would
   /// promise a migration for the case that cannot have one.
-  pub fn remedy(&self) -> String {
+  fn remedy(&self) -> String {
     match self {
       Self::SchemaMismatch { found, expected } if found > expected => format!(
         "this store was written by a NEWER intent than the one you are running -- upgrade intent rather than migrating the store down; it holds version {found} and this build speaks {expected}"

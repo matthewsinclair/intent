@@ -22,6 +22,7 @@ mod common;
 use common::{Fixture, sample_thread};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::AtStatus;
+use intentsvcs::remedy::Remedy;
 
 /// Provoke each error through the real facade, so the set under test is what
 /// operators can actually reach -- not a hand-built list that could drift from

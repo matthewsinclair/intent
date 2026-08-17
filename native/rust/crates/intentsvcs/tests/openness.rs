@@ -39,6 +39,7 @@
 mod common;
 
 use common::{Fixture, sample_issue, sample_thread};
+use intentsvcs::remedy::Remedy;
 use intentsvcs::store::{DDL, Store};
 use serde_json::Value;
 

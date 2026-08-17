@@ -137,13 +137,19 @@ impl UnhonourableWindow {
     }
   }
 
-  pub fn remedy(&self) -> String {
+  fn remedy_text(&self) -> String {
     let down = self.configured - (self.configured % self.resolution);
     let up = down + self.resolution;
     format!(
       "set todo.window_hours to a whole multiple of {} -- {down} or {up} -- in intent/.config/config.json",
       self.resolution
     )
+  }
+}
+
+impl crate::remedy::Remedy for UnhonourableWindow {
+  fn remedy(&self) -> String {
+    self.remedy_text()
   }
 }
 
@@ -203,6 +209,25 @@ pub enum ProjectError {
     #[source]
     source: serde_json::Error,
   },
+}
+
+impl crate::remedy::Remedy for ProjectError {
+  fn remedy(&self) -> String {
+    match self {
+      Self::NotFound(_) => {
+        "run `intent init` here, or change to a directory inside an Intent project".to_string()
+      }
+      Self::Io { path, .. } => {
+        format!("check that {path} exists and that this user can read it")
+      }
+      // The parse error above carries the line and column, which is the whole
+      // of the action -- and the second clause matters more than the first:
+      // this file is committed, so git holds the version before the edit.
+      Self::Config { path, .. } => format!(
+        "the parse error above names the position in {path}; if you did not mean to edit it, `git checkout -- {path}` restores the committed version"
+      ),
+    }
+  }
 }
 
 /// The v2 release a project must already be at before v3 can migrate it (D09,

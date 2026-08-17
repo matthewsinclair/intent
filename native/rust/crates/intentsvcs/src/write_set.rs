@@ -41,6 +41,25 @@ pub enum WriteError {
   },
 }
 
+impl crate::remedy::Remedy for WriteError {
+  fn remedy(&self) -> String {
+    match self {
+      // Nothing is half-written: the write set rolled back, so the estate is
+      // where it was. Saying so IS the remedy -- the useful action is to fix
+      // the permission and retry, and a caller who does not know the rollback
+      // succeeded will go looking for damage first.
+      Self::Io { path, .. } => format!(
+        "check that {path}'s directory exists and is writable, then retry -- the write set rolled back, so nothing was left half-written"
+      ),
+      // The one case where that is NOT true, which is why it is its own
+      // variant. A retry into a torn estate compounds it.
+      Self::TornRollback { unrestored, .. } => format!(
+        "DO NOT RETRY YET: {unrestored} file(s) were modified and could not be restored. Inspect with `git status` and restore them before running anything else"
+      ),
+    }
+  }
+}
+
 fn io_err(path: &Path, source: io::Error) -> WriteError {
   WriteError::Io {
     path: path.display().to_string(),

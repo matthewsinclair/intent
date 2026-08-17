@@ -53,12 +53,32 @@ pub const MARKER: &str = "lib/templates";
 #[derive(Debug, thiserror::Error)]
 pub enum InstallError {
   #[error(
-    "cannot locate the Intent install this binary belongs to (no {marker}/ at or above {exe})\n  \
-     remedy: reinstall Intent -- this binary is running from outside its own install tree"
+    "cannot locate the Intent install this binary belongs to (no {marker}/ at or above {exe})"
   )]
   NotFound { exe: String, marker: &'static str },
   #[error("cannot determine this executable's own path: {0}")]
   Exe(#[source] std::io::Error),
+}
+
+/// **The remedy came OUT of the Display string, and that is the fix rather than
+/// a move.** It used to be embedded in `NotFound`'s own `#[error(...)]`, so it
+/// arrived inside `{e}` -- and anything rendering `error: {e}` followed by a
+/// remedy line printed it twice. `intent info` escaped that only because it
+/// printed no remedy at all, which is luck rather than design.
+impl crate::remedy::Remedy for InstallError {
+  fn remedy(&self) -> String {
+    match self {
+      Self::NotFound { .. } => {
+        "reinstall Intent -- this binary is running from outside its own install tree".to_string()
+      }
+      // Not "reinstall", which is the same words for a different fault. This
+      // one means the OS could not name the running process's own image --
+      // the binary was replaced or deleted while running.
+      Self::Exe(_) => {
+        "the running binary could not be located on disk, which usually means it was replaced or removed mid-run -- start a fresh process before doing anything else".to_string()
+      }
+    }
+  }
 }
 
 /// Where Intent is installed.

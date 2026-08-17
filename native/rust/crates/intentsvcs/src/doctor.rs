@@ -39,6 +39,7 @@ use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
 use crate::model::{AcKind, AcState, AtKind, AtStatus, Thread, ThreadStatus};
 use crate::project::Project;
+use crate::remedy::Remedy;
 use crate::store::Store;
 use crate::sync::{self, FileState};
 use crate::views::{self, RenderContext};

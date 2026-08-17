@@ -33,6 +33,7 @@ mod common;
 
 use common::Fixture;
 use intentsvcs::model::{Thread, ThreadStatus};
+use intentsvcs::remedy::Remedy;
 use intentsvcs::views::TodoWindow;
 
 /// Inside any window, at any time this test is ever run.

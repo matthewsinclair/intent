@@ -36,6 +36,7 @@ pub mod legacy;
 pub mod model;
 pub mod project;
 pub mod prose;
+pub mod remedy;
 pub mod store;
 pub mod sync;
 pub mod transitions;

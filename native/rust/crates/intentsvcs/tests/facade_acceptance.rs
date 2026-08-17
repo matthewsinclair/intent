@@ -13,6 +13,7 @@ use common::{Fixture, sample_thread};
 use intentsvcs::contract::{Resolved, resolve};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcState, AtStatus};
+use intentsvcs::remedy::Remedy;
 
 fn state(facade: &intentsvcs::facade::Facade, st: &str, ac: &str) -> Resolved {
   let thread = facade.st_show(st).expect("thread");

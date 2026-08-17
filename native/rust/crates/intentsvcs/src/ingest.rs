@@ -64,6 +64,28 @@ pub enum IngestError {
   },
 }
 
+impl crate::remedy::Remedy for IngestError {
+  fn remedy(&self) -> String {
+    match self {
+      // The refusal has already listed every row it could not read, each with
+      // its file. Repeating "fix the errors" would be a remedy that adds
+      // nothing to the thing above it.
+      Self::Refused(_) => {
+        "fix the rows named above -- each names the file it came from, and the `carried:` lines are not yours to fix, they convert as they are".to_string()
+      }
+      // Restore, never delete. The event log is the one artefact in the estate
+      // that nothing recomputes: the store is rebuildable from the extract
+      // (D36) and history is not rebuildable from anything.
+      Self::EventLogUnreadable { path, .. } => format!(
+        "restore {path} from git (`git checkout -- {path}`) rather than deleting it -- history is the one artefact nothing recomputes"
+      ),
+      Self::Store(e) => crate::remedy::Remedy::remedy(e),
+      Self::Project(e) => crate::remedy::Remedy::remedy(e),
+      Self::Io { path, .. } => format!("check that {path} exists and that this user can read it"),
+    }
+  }
+}
+
 impl From<Refusal> for IngestError {
   fn from(refusal: Refusal) -> Self {
     Self::Refused(refusal)

@@ -85,6 +85,21 @@ pub enum SyncError {
   Time(#[from] time::error::Format),
 }
 
+impl crate::remedy::Remedy for SyncError {
+  fn remedy(&self) -> String {
+    match self {
+      Self::Io { path, .. } => format!("check that {path} is readable and that its directory is writable"),
+      // Deliberately not an operator action: the format string is compiled in,
+      // so a failure here is ours. A remedy telling someone to check their
+      // input for a fault in our binary is the misdirection AC-04.4 exists to
+      // prevent.
+      Self::Time(_) => {
+        "this is a build defect -- a timestamp format this binary carries did not apply, and nothing about the project caused it".to_string()
+      }
+    }
+  }
+}
+
 fn io_err(path: &Path, source: io::Error) -> SyncError {
   SyncError::Io {
     path: path.display().to_string(),

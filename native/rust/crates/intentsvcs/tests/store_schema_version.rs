@@ -22,6 +22,7 @@
 //!    a hand-kept number beside a generated artefact is exactly the thing this
 //!    estate keeps catching after the fact.
 
+use intentsvcs::remedy::Remedy;
 use intentsvcs::store::{DDL, SCHEMA_VERSION, Store, StoreError};
 use rusqlite::Connection;
 
