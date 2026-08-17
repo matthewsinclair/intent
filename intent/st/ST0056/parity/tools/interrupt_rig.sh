@@ -362,15 +362,34 @@ $(tail -5 "$WORKDIR/build.log" 2>/dev/null | sed 's/^/    /')"
   # cannot). In a five-session checkout `git status` is never empty, so every
   # binary dc can build says `dirty-<sha>` and the BARE-sha path has only ever
   # run in a fixture. A clone at a named commit should yield a bare sha equal to
-  # `--rev`; anything else -- `dirty-...`, `unknown`, a different sha -- means
-  # the tree was touched before the build or the embed is not doing what it says.
+  # `--rev`.
+  #
+  # EACH WRONG ANSWER GETS ITS OWN ARM BECAUSE EACH HAS A DIFFERENT CAUSE, AND
+  # THE OLD CATCH-ALL NAMED TWO OF THEM AS THOUGH THAT WERE THE WHOLE SET. It
+  # said "the tree was touched before the build, or the embed is not doing what
+  # it says" for every non-matching value -- an enumeration a reader takes as
+  # complete, asserting a cause the code has not established. dc classified the
+  # first two with me: `unknown` means the clone lost its `.git`; `dirty-` means
+  # something touched the tree. The third is theirs and neither of us had it:
+  # A WELL-FORMED SHA THAT IS SIMPLY THE WRONG ONE. Nothing in the embed can
+  # produce that today, which is precisely why it is worth naming -- if it ever
+  # appears, the failure is upstream of every check either of us owns, and the
+  # wrong instinct will be to debug the checker.
   EMBEDDED="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
   EMBEDDED="${EMBEDDED#\[intent-source-commit:}"
   EMBEDDED="${EMBEDDED%\]}"
   case "$EMBEDDED" in
     "$REV_SHA") say "  binary provenance: bare sha matching --rev ($REV_SHORT) -- clean-tree build confirmed" ;;
     "")         say "  binary provenance: NO MARKER -- this binary cannot name the commit it was built from" ;;
-    *)          say "  binary provenance: '$EMBEDDED' -- NOT the bare sha for $REV_SHORT; the tree was touched before the build, or the embed is not doing what it says" ;;
+    unknown)    say "  binary provenance: 'unknown' -- the build could not ask git, so this clone has lost its .git" ;;
+    dirty-*)    say "  binary provenance: '$EMBEDDED' -- a DIRTY-TREE build: something touched the clone before the build. The clean-clone assertion above should have refused before this line was reached, so reaching it is itself the finding." ;;
+    *)
+      if [ ${#EMBEDDED} -eq 40 ] && [ -z "$(printf '%s' "$EMBEDDED" | tr -d '0-9a-f')" ]; then
+        say "  binary provenance: '$EMBEDDED' -- A WELL-FORMED SHA THAT IS NOT $REV_SHORT. The marker is the right SHAPE and the wrong VALUE, so nothing here is malformed and nothing here is dirty. No path in the embed can produce this: the failure is UPSTREAM of this rig, dc's provenance check and cc's build.rs alike. Do not start by debugging the checker."
+      else
+        say "  binary provenance: '$EMBEDDED' -- not a marker shape this rig knows, and not a sha. Read build.rs before reading anything else."
+      fi
+      ;;
   esac
 
   # THE INSTRUMENT REVISION IS SELECTABLE AND DEFAULTS TO THE SUBJECT'S (dc's
