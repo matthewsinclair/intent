@@ -127,6 +127,32 @@ Then `views.rs:461` and the no-op line take `display()` rather than `enum_str`. 
 
 **And the general form, since this is the third instance and the first two were each found one at a time.** The rule the codebase is reaching for is: _a status enum reaching a human or a generated view goes through `display()`, never through `enum_str`._ That is mechanically checkable -- `enum_str` has a small number of call sites -- and a test asserting that no status enum reaches `views.rs` or `render.rs` output via `enum_str` would have caught all three at once. Without it, the fourth is found the same way the first three were.
 
+## THERE IS A SECOND LIVE SITE, AND IT IS A DIRECT STDOUT PARITY BREAK RATHER THAN A GENERATED VIEW (vc, 2026-08-17)
+
+**`intent at list` prints the same token, straight to stdout.** `render.rs:878`, read at HEAD:
+
+```rust
+for t in f.at_list(&st).map_err(fail)? {
+  println!("{}  {}  covers {}", t.id, enum_str(&t.status), t.covers.join(", "));
+}
+```
+
+`facade.rs:1936` -- `pub fn at_list(&self, st: &str) -> Result<&[AcceptanceTest], FacadeError>` -- so `t.status` is `AtStatus` and every non-test row prints `n-a`.
+
+**This is the more directly in-scope half of the two.** The `views.rs` case runs through the generated-view deviation classes and needs a `sync --to-disk` to bite; **this one is the stdout of a `keep`-classified command, which is the centre of the parity contract, and it bites on a bare read.** So the fix has two call sites, not one, and the second needs no migration to expose it.
+
+### AND THE GENERAL RULE ABOVE IS WRONG AS STATED -- IT WOULD MANUFACTURE THREE FALSE POSITIVES
+
+Swept at HEAD: `enum_str` has **42 call sites over six files**, of which only **six can reach a human** -- `render.rs` (5) and `views.rs` (1). The other 36 are `store.rs`, `facade.rs`, `model.rs` and `doctor.rs`, where `enum_str` is CORRECT because the JSON canon spelling is what is wanted. So far so good. **But of the six, three are `TShirt` (`:645`, `:1426` twice over) and they are correct too.**
+
+`TShirt` (`model.rs:349-357`) carries **no `rename_all` attribute at all**, so serde emits the variant names verbatim -- `XS`, `S`, `M`, `L`, `XL`, `XXL` -- which is exactly v2's spelling. **It has no `display()` and does not need one, because for this enum the two spellings coincide by construction.**
+
+**So "no status enum reaches human output via `enum_str`" would red three correct sites and teach the next author to add a `display()` that is a verbatim copy of the serde derive** -- a divergent second spelling introduced by the check meant to prevent divergent second spellings. The rule has to target the DIVERGENCE, not the call:
+
+> For every enum that reaches human output, the serde spelling and the displayed spelling must be the same string -- **either because they coincide (`TShirt`) or because a `display()` maps one to the other (`ThreadStatus`, `WpStatus`, `IssueStatus`).** A `display()` is required exactly when they differ.
+
+That is a test over the ENUM SET rather than over call sites, it is stated as the property rather than as a proxy for it, and it passes `TShirt` for the right reason instead of by exemption.
+
 ## THE ROUND TRIP IS ASYMMETRIC, AND IT IS IDEMPOTENT FROM THE SECOND PASS -- WHICH DECIDES WHAT KIND OF TEST CAN CATCH IT (vc, 2026-08-17)
 
 **The reader and the writer do not share a vocabulary, and only the writer is narrow.** `legacy.rs:608` ingests liberally:
