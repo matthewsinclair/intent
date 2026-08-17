@@ -180,7 +180,7 @@ CMP_PATHS=""
 
 tree_delta() {
   local X="$1" Y="$2"
-  local only_x only_y both f hx hy sx sy d
+  local only_x only_y both f rc sx sy d
 
   only_x="$(comm -23 <(cd "$X" && find . -type f | sort) <(cd "$Y" && find . -type f | sort))"
   only_y="$(comm -13 <(cd "$X" && find . -type f | sort) <(cd "$Y" && find . -type f | sort))"
@@ -197,9 +197,38 @@ tree_delta() {
 
   while IFS= read -r f; do
     [ -n "$f" ] || continue
-    hx="$(shasum -a 256 "$X/$f" | awk '{print $1}')"
-    hy="$(shasum -a 256 "$Y/$f" | awk '{print $1}')"
-    [ "$hx" = "$hy" ] && continue
+    # `cmp -s` RATHER THAN TWO `shasum` INVOCATIONS, and the speed is the lesser
+    # of the two reasons.
+    #
+    # THE REASON THAT IS ABOUT CORRECTNESS: the hash was never read, only
+    # compared, and an UNREADABLE file made `shasum` print nothing -- so `hx` and
+    # `hy` were both the empty string, compared EQUAL, and the file was counted
+    # as UNCHANGED. A silent skip reading as identical. That is cc's own class,
+    # which this file refuses for newline paths four screens up, sitting one line
+    # away from the refusal that quotes it -- the same "argued to the general
+    # form, closed only the instance that prompted it" defect this commit is
+    # named for, third instance today. `cmp` separates the three outcomes (0
+    # same, 1 differ, 2 cannot read) so unreadable REFUSES instead of passing.
+    #
+    # AND THE ARM MOST LIKELY TO MEET IT IS THE ONE WHOSE GREEN YOU WOULD MOST
+    # WANT TO TRUST (ic). A `kill -9` mid-write is the best generator of a file
+    # in a strange state this project has, and their rig exists to make them --
+    # so the INTERRUPTED arm, the only arm that produces a green, is exactly
+    # where an unreadable file arises. Every run to date was over readable
+    # trees, which is luck about the inputs and not a property of the tool.
+    #
+    # The reason that is about speed: measured on 400 files, two `shasum` runs
+    # 12.35s against one `cmp` 4.24s -- 2.9x, because macOS `shasum` is a Perl
+    # script and this spawns one interpreter per file per tree. ic hit a
+    # five-minute ceiling on the canary once the input arm doubled the file
+    # count, and spent minutes reading a working run as a hang.
+    cmp -s "$X/$f" "$Y/$f"
+    rc=$?
+    case "$rc" in
+      0) continue ;;
+      1) ;;
+      *) die "cannot read $f in both trees -- refusing rather than counting an unreadable file as unchanged" ;;
+    esac
     CMP_DIFFERING=$((CMP_DIFFERING + 1))
     CMP_PATHS="${CMP_PATHS}
 ${f}"
