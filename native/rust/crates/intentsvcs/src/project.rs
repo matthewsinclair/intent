@@ -11,11 +11,31 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-/// The authored prose files parsed into the model, at a thread's root.
+/// The authored prose files INDEXED for search, at a thread's root.
 ///
 /// Generated views (`info.md`, `acceptance.md`) are deliberately absent: a
 /// view is rendered from the model, so indexing it would index the model twice
 /// and let a stale view answer a search.
+///
+/// **INDEXED IS NOT CARRIED, and the difference is a live hole rather than a
+/// nicety.** These three go into `doc_sections` so `search` can find them, and
+/// into no model field at all -- `thread.json` has no `design`, no `impl` and
+/// no `tasks`. **748 authored sections across 163 files on this estate exist
+/// nowhere but those files**, measured by vc.
+///
+/// They are `.md`, so nothing about the extension rule excludes them: being
+/// named here is what makes [`Project::classify`] call them typed, and a typed
+/// document is deliberately never also an attachment. **The classifier is
+/// right and the declared set is right, and together they route 163 files into
+/// a hole.**
+///
+/// vc has put the resolution to hv (realisation.md, open question 7) with a
+/// recommendation to reclassify them as attachments -- a typed field earns its
+/// parsing because the model has fields for what comes out, and freeform prose
+/// under arbitrary headings has none, so parsing it discards structure into
+/// nothing. **If that is the ruling, the change is deleting this constant from
+/// the classifier rather than adding anything.** Recorded here because the
+/// next person will be standing at this list.
 pub const THREAD_PROSE: &[&str] = &["design.md", "impl.md", "tasks.md"];
 
 /// The file extensions carried as [`crate::model::Attachment`]s.
@@ -53,7 +73,10 @@ pub const ATTACHMENT_EXTENSIONS: &[&str] = &["md", "txt", "sh"];
 /// disk that becomes optional destroys whatever nothing said was uncovered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ThreadFile {
-  /// `design.md` / `impl.md` / `tasks.md` -- parsed into the model.
+  /// `design.md` / `impl.md` / `tasks.md` -- see [`THREAD_PROSE`], which is
+  /// where the open question about them lives. **Indexed for search and held
+  /// in no model field**, so this variant currently means "excluded from
+  /// carriage" rather than "carried some other way".
   TypedDoc,
   /// Rendered from the model: the thread's cover, its acceptance contract, a
   /// work package's cover.
