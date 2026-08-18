@@ -25,7 +25,7 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 **Committed and pushed:** rung 9 `issues.body` (40 v2 bodies, 443,643 bytes, no model field at all, VERBATIM), rung 10 `attachments` (110 carried, ONE constructor so `bytes`/`sha256` cannot drift, ONE classifier so ingest/migrator/doctor cannot disagree), `doctor` NAMING all 198 uncarried by path and counting NONE as faults.
 
-**Uncommitted at the fold, suite mid-run:** `related[]` -- 116 links from 123 bullets, ids from the LEADING region only so a note mentioning a thread is not a link -- and **rung 11**. The live store is ALREADY at 11, so this code must land or the tree and the store disagree.
+**Also landed (`387cab7d`):** `related[]` -- 116 links from 123 bullets, ids from the LEADING region only so a note mentioning a thread is not a link -- and **rung 11**. The live store was already at 11, so this had to land or the tree and the store disagreed.
 
 **Both prose fields are VERBATIM.** `Issue.body` was trimmed until vc scheduled its renderer: **a normalisation that requires a future component to compensate is a scheduled defect**, so the trim went rather than the precondition.
 
