@@ -833,12 +833,12 @@
     {
       "id": "AT-03.6",
       "kind": "test",
-      "file": "intent/st/ST0056/parity/tools/canon_names_committed_bytes.sh",
+      "file": "intent/st/ST0056/parity/tools/canon_commit_check.sh",
       "covers": [
         "AC-03.6"
       ],
-      "status": "to-write",
-      "note": "**MEASURE FIRST, BUILD SECOND (dc's stated unknown): count how many attachments diverge from the index across a working day on this four-node tree BEFORE building the refusal.** A guard that fires on every canon commit gets bypassed and then removed. Red-first arm: `c4f9bcbe` is the real historical instance -- canon there names bytes committed only at `addd4581`, so the check must flag that revision and pass on its successor."
+      "status": "red",
+      "note": "**RED FOR COVERAGE, NOT FOR FAILURE: THE INSTRUMENT IS BUILT AND WORKS.** dc landed `canon_commit_check.sh` at `13120309` with a `manual` roster row. **`to-write` expired the moment it was written; the row is RED because the CRITERION requires a REFUSAL AT COMMIT and nothing gates on this tool** -- the capability exists and no consumer consults it, which is AT-11.5's shape one thread over. **DRIVEN FOUR WAYS ON REAL HISTORY, NO FIXTURES**: vacuous exit 2, adds exit 1, inherited-not-failed exit 0, clean exit 0. **PLUS AN UNPLANTED CATCH ON ITS FIRST WHOLE-TREE RUN** -- it found a live divergence at HEAD that neither dc nor vc had noticed, and in the direction neither had reasoned about (the FILE ahead, canon BEHIND), which is what added this criterion's symmetry clause. **ic's vacuous-arm warning was a LIVE DEFECT in dc's first draft**: it `continue`d over a thread with zero attachments and printed _every attachment matches_ at exit 0 having compared nothing -- reproduced at `6ab155ef` before the rewrite, so **the instrument built to catch canon asserting what it had not measured was itself asserting what it had not measured.** It now exits 2 with _CANNOT MEASURE ... This is NOT a pass_, names its population on every run (277 of 277 across 56 measured + 1 unmeasurable), and **states its REACH in its OUTPUT: attachments only -- criteria, status fields and notes are invisible to it.** That reach statement is load-bearing: it is exactly why AC-03.13 exists as a separate subject. **MOVES TO GREEN WHEN A COMMIT CARRYING CANON THAT NAMES ABSENT BYTES IS REFUSED, with the inherited-breakage clause built rather than assumed.**"
     }
   ],
   "attachments": [
