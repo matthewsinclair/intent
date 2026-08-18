@@ -122,6 +122,33 @@
 #   4. a DEMONSTRATED RED on a subject of the same shape. ic's control above is
 #      that demonstration for this tool; cite it rather than re-argue it.
 #
+# WHICH DELETION THIS GATE LICENSES, BECAUSE THE PRECONDITION HAS TWO CONSUMERS
+# AND WAS WRITTEN FOR ONE (ic asked, 2026-08-18, before running rather than
+# inside a verdict). Two different populations are up for deletion and they need
+# different instruments:
+#
+#   1. THE v2 RESIDUE -- `intent/issues/<BUCKET>/NNNN/*.md` and the bucketed
+#      thread files, 443,643 bytes of issue prose alone. The claim that has to
+#      hold is "the migration carried them", so the subject is a PINNED v2
+#      census against a FRESH migration of that same estate. **This gate, and
+#      this gate is the whole answer for this population.**
+#
+#   2. RENDERED VIEWS UNDER DISK-OPTIONAL -- `organize` dehydrating a `.md`
+#      whose artefact is not realised. **NOT licensed by any conservation run,
+#      and a conservation run is the WRONG instrument for it.** These are
+#      licensed per-file at the moment of the act by the gate in
+#      `realisation.md` 5.1: re-render from the store, compare bytes, refuse on
+#      any difference. That is STRICTLY STRONGER here -- per file rather than
+#      per estate, current rather than inherited, and checked at the instant of
+#      deletion rather than carried over from a measurement of another tree.
+#
+# So a census of the pinned v2 estate against TODAY'S LIVE REPO answers no
+# question anyone has. It would fold the migration's conservation together with
+# every commit, the flatten at `1af21f4e`, and four nodes' authoring since --
+# and could not separate them. **A verdict whose subject is "the migration plus
+# everything that happened afterwards" is the instrument-independent-of-its-
+# subject failure with a longer lever.**
+#
 # AND `LOST-PROSE 0` CARRIES NO DENOMINATOR EVEN WHEN IT IS HONEST. On a
 # perfect run this tool is silent about 511 of 1211 sections -- the criterion
 # and test kinds it declares uncompared, identity covered by LOST-ac/LOST-at.
