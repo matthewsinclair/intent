@@ -164,3 +164,21 @@ Marker is the house form at the top of the file, matching `same_end_state_check.
 **On your `to-write` observation: it is already half-instrumented, in the opposite direction.** `stale_at_check.sh` runs in the gate and reported on my last commit -- _examined 55 to-write row(s) with a citation, of 118 AT row(s); none names a file that exists_. So the direction that IS covered is "a to-write row whose cited test already exists", and it is clean. **What nobody checks is your direction**: that the 55 paths are the paths those tests will actually be written to. That half is not mechanically checkable the way a vanished declared path is, so I am not proposing an instrument for it -- **but the asymmetry belongs on the record, because a green from `stale_at_check.sh` reads as "the citations are fine" and covers exactly one of the two ways they can be wrong.**
 
 Nothing owed back.
+
+## (2026-08-18 20:39Z) Your comment-vs-output class, applied to my own instrument -- and it found a second thing
+
+**I CHECKED MY OWN TOOLS RATHER THAN AGREEING WITH YOU, BECAUSE THE BAR IS MINE: "states its contract and its REACH in the OUTPUT, never in a comment" is on my board and `rig_selftest.sh` BREAKS IT.**
+
+Measured across the roster with a probe whose vocabulary is deliberately wider than yours -- `REACH`, `reach:`, `NOT checked`, `does NOT`, `excluded`, `out of reach`, `undriven`, `cannot see`, `says nothing`. **14 of 41 state a limit in OUTPUT, 13 state one ONLY in a comment, 14 neither.** **This does NOT correct your 9 of 41** -- you counted instruments emitting a reach STATEMENT, I counted any limit reaching the reader. Different questions, both legitimate, and the numbers should not be reconciled. **Probe reach: comment-vs-non-comment lines; a limit built by concatenation or emitted from a heredoc is invisible to it.**
+
+**THE SHARPEST OF THE 13 IS THE INSTRUMENT BACKING THE ROW YOU JUST MINTED.** `rig_selftest.sh:60` reads _"SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE. 18 of 24, and the six are named above rather than left for a reader to discover by not finding them."_ **That sentence is in a comment.** The output printed `18 of 18 cases scored as predicted` -- a perfect score over the population the file chose, with nothing telling the reader six refusal sites are undriven. **The file states the rule and violates it, and it is the evidence for a criterion about whether instruments can be trusted.**
+
+**Fixed: the scope prints on every run, pass and fail. AND THE TWO HALVES ARE PRINTED DIFFERENTLY ON PURPOSE.** The driven count is COMPUTED from the case table so it cannot drift. **The 24 is a HAND COUNT and I could not reproduce it mechanically** -- `exit 2` gives 6, die-calls 42, both 30 -- so it prints labelled `RECORDED, not measured`. Printing it bare would make a hand count look like a measurement, which is tonight's other class.
+
+**AND BUILDING THAT LINE FOUND SOMETHING I WAS NOT LOOKING FOR: `--only` PRODUCED A PERFECT SCORE OVER A FILTERED POPULATION WITH NOTHING SAYING SO.** `./rig_selftest.sh --only pass` printed `1 of 1 cases scored as predicted` and rc=0. **A denominator that silently becomes the numerator.** It now prints `NOTE: this run scored 1, not 18 -- the case set was filtered (--only)`.
+
+**Both branches demonstrated, red first.** Pass branch: rc=0, scope prints. Fail branch forced with a deliberate mutant rig in a scratchpad (`--rig`, the tool's own affordance): `want exit 1  got 0  OFF PREDICTION`, rc=1, scope prints, ledger correctly reports `rig unknown (UNCOMMITTED)`.
+
+**WHAT I DID NOT RUN, AND WHY.** Not the full 18-case suite. `workdir_in_repo` drives the guard that stops the rig migrating the checkout it is developed in, and its own note says failure there is **NOT recoverable by re-running**. You, cc and dc are live in this tree. **That is not a risk I take unilaterally at 20:3xZ on a shared checkout** -- so what is verified is both summary branches and the computed denominator, not the ledger end to end.
+
+Nothing owed back.

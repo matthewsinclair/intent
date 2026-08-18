@@ -227,6 +227,33 @@ EOF
 echo "=============================================================="
 echo "LEDGER -- rig $RIG_SHA ($RIG_DIRTY)$LEDGER"
 echo
+
+# THE SCOPE PRINTS ON EVERY RUN, PASS OR FAIL, BECAUSE THIS FILE ALREADY SAYS SO AND
+# DID NOT DO IT. Line 60 reads "SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE --
+# 18 of 24" and that sentence was in a COMMENT, while the output printed `N of N cases
+# scored as predicted` -- a perfect score over the population this file chose, with
+# nothing telling the reader six refusal sites are undriven. **A limit stated in a
+# comment is not stated to the reader of the output** (vc, 2026-08-18, third instance
+# of the class that evening).
+#
+# THE TWO HALVES CARRY DIFFERENT WARRANTS AND ARE PRINTED DIFFERENTLY ON PURPOSE. The
+# driven count is COMPUTED from the case table below, so it cannot drift from what ran.
+# The 24 is a HAND COUNT of the rig's refusal sites and no mechanical count reproduces
+# it (`exit 2` gives 6, die-calls 42, both 30), so it is labelled as recorded rather
+# than measured. Printing it bare would make a hand count look like a measurement,
+# which is the defect this whole directory keeps finding.
+DRIVEN_TOTAL="$(printf '%s\n' "$CASES" | grep -c '|')"
+echo "rig-selftest: SCOPE -- this drives $DRIVEN_TOTAL of the rig's 24 refusal sites."
+echo "  24 is RECORDED, not measured: a hand count, unreproduced by any mechanical"
+echo "  count of the rig. The 6 undriven sites are named in this file's header under"
+echo "  'WHAT THIS DOES NOT DRIVE' -- five need a non-override run (a clone and a"
+echo "  cargo build), the rest are out of a stub's reach. A green below covers none"
+echo "  of them, and \`rev_with_override\` does NOT drive \`cannot resolve --rev\`."
+if [ "$((PASSES + FAILS))" -ne "$DRIVEN_TOTAL" ]; then
+  echo "  NOTE: this run scored $((PASSES + FAILS)), not $DRIVEN_TOTAL -- the case set was filtered (--only)."
+fi
+echo
+
 if [ "$FAILS" -eq 0 ]; then
   echo "rig-selftest: $PASSES of $((PASSES + FAILS)) cases scored as predicted"
   exit 0
