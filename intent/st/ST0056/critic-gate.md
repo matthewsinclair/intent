@@ -19,9 +19,12 @@ Measured by dc across 2026-08-18; carried and cross-checked by vc. Every figure 
 - The hook calls `intent critic <lang>`.
 - `intent` on PATH is **v2**.
 - **v2 correctly refuses a v3-declared project at exit 2** (`bin/intent:277`).
-- **`2` is the code the hook treats as "clean, no findings"** (`bin/intent_critic:89,95`).
+- **`intent critic` emits `2` for its own invocation errors** (`bin/intent_critic:89,95`) -- and the version refusal exits `2` as well, so the hook cannot tell the two apart.
+- **The hook's `*)` branch treats every rc other than 0 or 1 as fail-open** (`lib/templates/hooks/pre-commit.sh:288-292`, contract stated at `:261-264`). It never sets `AGGREGATE`, so the commit proceeds.
 
 Nothing here is a bug on its own. The version guard is right, exit 2 is a legitimate refusal code, and the fail-open on 2 was deliberate. **The defect is the composition, and it only exists because the project hoisted.**
+
+**And it is not silent, which is the part worth keeping.** The `*)` branch prints `intent critic (<lang>) invocation error (exit 2); fail-open.` **once per declared language, on every commit** -- dc's own `d84ac27f` printed it five times, on the commit that documented the finding. **The gate has been announcing its own failure since the hoist**, so "nobody noticed" is a fact about attention, not about instrumentation. A pickup hunting a silent bug will not find one.
 
 ### The fix
 
@@ -42,6 +45,14 @@ ARM B  critic added to GLOBAL_COMMANDS   0 failures, 28 passes
 All 8 bats failures are the version guard, at `critic_report_format.bats` 219-225 and `intent_critic.bats` 644, failing verbatim with `error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0`. **They can ONLY appear in a hoisted tree**, which is why the "100% green" suite run earlier that day is not in conflict -- it was pre-hoist.
 
 **So one word does three things: un-darkens the gate, turns the suite green, and leaves the guard intact.**
+
+### Provenance -- RE-DRIVE THESE, DO NOT CITE THEM
+
+**The figures above were driven on 2026-08-18 and the commit they were driven at was NOT recorded.** That is a defect in the record rather than a hedge: a record names the commit it covers. `native/rust` moved substantially the same day and rung 11 landed after the run, so the tree under the arms is not the tree a pickup will have. **vc raised this before the numbers were carried, so it is a known limit and not a discovered one.**
+
+**Whoever picks this up re-drives both arms at their own HEAD and replaces the numbers, naming the commit.**
+
+One thing to know before re-driving: **the 4/4 rig does not clone.** `critic_global_rig.sh` copies `bin/intent` to a scratchpad pair (`intent.orig` / `intent.mut`), applies the one-line `sed` to the mutant, and points both at the REAL tree via `INTENT_HOME` -- so it reads live project state and live rules, and the only difference between control and subject is the line under test. It aborts if the mutant is byte-identical to the control, because a change proved against a copy of itself is proved against nothing.
 
 ## HALF B -- repaired, it can still only report on Elixir
 
