@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 19:47Z
+heartbeat_at: 2026-08-18 20:51Z
 status: active
-focus: "**LOCALFOLD 14. hv RULED ALL EIGHT OPEN QUESTIONS** -- carrying each to its owner; `--skip-rust-tests` is DROPPED on my own answer to their question. **A SHARED BINARY EMPTIED THE STORE**: cc reverted WP-01 in SOURCE, the ARTEFACT stayed, and `sync --to-store` printed _the store and the extract agree_ over **0 == 0** while `--to-disk` wiped 57 and 82 rows from two views. Restored from HEAD; canon never moved. **THE BINARY THAT WIPED THE ESTATE AND THE ONE THAT FIXED IT SHARE A MARKER BYTE FOR BYTE.** **AC-04.4's VIOLATOR IS STILL LIVE** -- pre-registered prediction FAILED, and the cause is that cc's correct guard sits on `write_all`, which has NO PRODUCTION CALLER. ST0056 118 rows, ST0057 43. Upstream FROZEN except dc's one ruled publication; v3 NOT on PATH."
+focus: "**NOTHING IS OPEN WITH hv. The damaged inbox is RESTORED at `11bb52da`** -- 42 entries, 923 insertions, one `--no-verify` hv authorised, with the trace in the commit body. **hv RE-RULED the runner ruling with the fact they had been denied**: their original go was given over dc's `:176` framing, from a transcript with ZERO occurrences of injection or disguised, so they authorised relaxing what was described as a capability ceiling and is an INJECTION BOUNDARY. Named-tool form stands. **Contract 118 -> 121 rows plus one AC-08.5 extension, and EVERY ROW CAME FROM A PEER'S MEASUREMENT.** cc built AC-03.14's fix at `4577e18e` -- verified correct, and **AT-03.15 HOLDS RED ON COVERAGE: 6 verbs of 31, enumeration clause unmet.** Four of my own figures were wrong before they travelled and I caught three of them."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,18 +13,15 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-- **hv RULED ALL EIGHT open questions (2026-08-18 evening).** Carrying each to its owner and minting what needs minting. **Nothing is open with hv except the one thing only they can release: the damaged inbox below.**
+- **Nothing is open with hv and nothing of mine is in flight.** All eight rulings carried, both parked decisions ruled, the inbox restored.
 
 ## TODO
 
-- **Carry the eight rulings**: critic exit-code = a DISTINCT CODE (my rec, proved by a RED); runner MAY shell out to `shellcheck`/`clippy` -- tell dc their nine declarations can assume a real parser; publication freeze LIFTED for dc's one publication; D50 = cc's `status_legacy` (**my reading of a terse "Ok" -- flagged to hv**); event-log READER to build, and hv's larger point that **all intentsvcs calls go through it** wants a design decision, not an AC; `doctor` = dc's option 3; **`--skip-rust-tests` = DROP IT, it is an escape hatch around a refusal I built on purpose.**
-- **AC-04.4's violator is STILL LIVE.** cc's guard at `views.rs:948-952` is correct and `write_all` HAS NO PRODUCTION CALLER -- the live path is `facade.rs:125`/`:150`, unguarded `fs::write`. Pre-registered prediction FAILED: sync 1 moved 20/20, sync 2 moved 20/20.
-- **ST0011** -- `completed` NULL, AC-08.5's first burning case.
-- **ST0057 WP-01 resumes with cc**: ~15 test fixtures each spell `intent/st/<ID>/thread.json` independently. Canon has NOT moved; `intent/.canon/` does not exist.
-
-## Open with hv -- ONE thing
-
-- **`hv/inbox.vc.md` IS DAMAGED AT HEAD: 1 entry against 41.** I truncated it with `open(f,"w").write(open(f).read() + entry)`. **The restoration is verified in my working tree -- 40 prior stamps present, 0 lost, prior bytes contained verbatim -- and the CLOCK GUARD REFUSES IT**, because restoring 888 lines makes every historical stamp look newly ADDED, including one out-of-order pair that already existed. **The guard's contract says check C never blocks on inherited breakage; a RESTORATION is where that promise fails.** I will not bypass a gate on my own say-so.
+- **AT-03.15 HOLDS RED and cc owes two things before I can record it**: the `AC-03.14 / AT-03.15` marker in `write_moves_only_what_changed.rs` (lint refuses the moment the row cites it), then I re-point the row off `write_exactness.rs`, which never existed. **The hold is COVERAGE, not correctness -- the fix at `4577e18e` is verified right.** 6 verbs of 31; `upgrade` and 24 of the 27 `apply` verbs undriven; nothing prints an N-of-31. **cc's own `st start` vacuous pass is the argument: a verb whose precondition is unmet hands you a free green, so "one skip covers them all" does not license a subset.**
+- **THE FORM BEFORE THE POPULATION** (dc). No row on instruments-state-their-reach until a form exists to count: four numbers were produced tonight across three nodes and only the first gap was a defect -- the rest were definitional, and the estate has no convention. **A criterion asserting it would grep for an undefined thing and return clean because nothing could ask.**
+- **ST0011** -- `completed` NULL, AC-08.5's first burning case. And **spec the marked-legacy AT form in `data-model.md`** before WP-08; both are the same question.
+- **Two sweeps owed across 121 + 43**: name the INSTRUMENT wherever two would disagree (from cc's AC-01.4 question), and qualify every bare `AC-XX.Y` with its thread (four threads carry an unrelated `AT-03.6`; ST0056 and ST0057 both carry an `AC-04.4`, and ST0056's is already SATISFIED, so a bare id resolves to a green row and reads as handled).
+- **ST0057 WP-01 is cc's next.** ic measured it: 3 files genuinely break, and a mechanical sweep would corrupt 14 more whose `intent/st/` references are historically-correct v2 prose. **No criterion covers that yet -- mint AC-01.6 before cc sweeps.**
 
 ## Rules that keep paying
 
@@ -78,6 +75,10 @@ claims: [ST0056, ST0057]
 
 ## Decisions
 
+- (2026-08-18) **hv AUTHORISED ONE `--no-verify` AND THE RESTORATION IS AT HEAD** -- `11bb52da`, 42 entries, 923 insertions, HEAD's body verified contained either side. **The guard was RIGHT to refuse and nothing about it changes on this evidence**: it cannot distinguish repair from regression, and the other reading would let any node launder a bad stamp through a revert. The commit body is the trace the bypass owes.
+- (2026-08-18) **hv CONFIRMED THE RUNNER RULING WITH THE FACT THEY HAD BEEN DENIED.** Their original go was given over dc's `:176` framing, from a transcript carrying ZERO occurrences of injection or disguised -- **so they authorised relaxing what was described as a capability ceiling and is an INJECTION BOUNDARY.** Re-ruled with it in hand: **named-tool declaration stands.** The rule names WHICH tool, the runner owns HOW, **rule files never contribute shell**, and a tool-armed rule REFUSES when its tool is absent rather than skipping. `critic_proxy_is_simple` is not relaxed.
+- (2026-08-18) **A RULING RELAYED BY ME IS NOT A GO** (cc, quoting my own precedent back after I broke it). A relay and a mistake are indistinguishable from the receiving end, so the accuracy of any particular relay is not evidence. **hv gives go-aheads on the node's own channel.**
+- (2026-08-18) **hv RULED cc's SEQUENCING: ITEM 1 (the `WriteSet` unchanged-skip) FIRST, THEN ST0057 WP-01.** Carried to cc. **The order is also the only measurable one**: WP-01 moves canon to new paths, where a prior-content skip can never fire, so measuring the churn AFTER the move would measure a population that had just changed underneath it.
 - (2026-08-18) **hv RULED ST0057 INTO THE 3.0.0 GATE** and restated it: disk<->db sync, the realiser and `.intentfiles` all work before release.
 - (2026-08-18) **hv ruled all eight open questions.** Recorded in TODO; `--skip-rust-tests` is dropped rather than built, on my own answer to their question.
 - (2026-08-18) **The issue body lives in the JSON**; **D57-7** opaque attachments as files under `intent/.canon/st/<ID>/`; **D57-8** `intent://` READ/WRITE, DB first, canon ALWAYS, views IF MARKED, and **no daemon may be required to read your own project.**
