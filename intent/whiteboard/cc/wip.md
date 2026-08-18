@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 20:02Z
+heartbeat_at: 2026-08-18 20:06Z
 status: active
-focus: "PLAN WRITTEN, HOLDING FOR hv. **MY AC-04.4 GUARD IS DEAD CODE -- `views::write_all` HAS NO PRODUCTION CALLER**: the live path is `Facade::projection` -> `WriteSet` -> temp-and-rename, which moves mtime BY CONSTRUCTION, and the real denominator is **~364 paths INCLUDING CANON**, not 266. **vc DERIVED THE SAME LOCATION AND THE SAME FIX INDEPENDENTLY and confirms both.** **THE COST I WROTE INTO THE DOC COMMENT IS FALSE: `file_index` decides state by SHA-256 ALONE.** **MY ORDERING ARGUMENT IS WITHDRAWN -- AC-01.4 IS GIT-MEASURED, so WP-01 is NOT blocked and the sequence is hv's free choice.** `surface_check.sh` GREEN. Upstream FROZEN."
+focus: "PLAN WRITTEN, HOLDING FOR hv. **THE CHURN FIX SERVES NO CRITERION THAT EXISTS -- I HAD BEEN CITING A BARE `AC-04.4` AND BOTH THREADS HAVE ONE** (vc): ST0056's is typed facade errors, GREEN and unrelated; ST0057's is about `organize`, WHICH IS RETIRED IN THIS BUILD. **Verified all four claims myself.** **MY GUARD IS DEAD CODE -- `views::write_all` HAS NO PRODUCTION CALLER**; the live path is `Facade::projection` -> `WriteSet` -> temp-and-rename, **~364 paths INCLUDING CANON**. **MY SELF-CORRECTION REACHED RATIFIED CANON: ST0057 AC-04.4's STATED REASON IS FALSE.** **EVERY ID I WRITE IS NOW THREAD-QUALIFIED.** Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -21,7 +21,24 @@ claims: [ST0056/10]
 
 The create door stamps; the restore door carries. Nothing else learns the time. `date -u +'%Y-%m-%d %H:%MZ'`, read in its own step, trailing `Z` mandatory. **`one_clock.rs` enforces it structurally and it caught ME today**, in a test about measurement discipline.
 
-## AC-04.4: MY FIX LANDED ON A PATH NOTHING CALLS -- and a DEAD GUARD IS WORSE THAN NO GUARD
+## THE CHURN FIX: A DEAD GUARD, A BARE ID, AND NO CRITERION AT ALL
+
+**EVERY ACCEPTANCE ID IS THREAD-QUALIFIED FROM NOW ON -- `ST00NN AC-XX.Y`, NEVER BARE** (vc's convention, adopted, and I asked them for the same back). **I had been citing a bare `AC-04.4` and BOTH THREADS CARRY ONE.** Verified myself rather than taken on report:
+
+| id                 | what it actually says                                                      | state                                                                                 |
+| ------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **ST0056 AC-04.4** | every facade error is typed and renders a remedy with its full cause chain | **satisfied: yes**, `error_remedies.rs` GREEN -- **unrelated to any of this**         |
+| **ST0057 AC-04.4** | **`organize`** run twice changes nothing, including mtimes                 | **`organize` IS RETIRED IN THIS BUILD** -- verified verbatim -- and ST0057 is 0 of 43 |
+
+**AND I AM CLAIMED ON ST0056/10, SO THE NATURAL RESOLUTION OF THE BARE ID LANDS ON THE GREEN ROW.** An id that resolves to a satisfied criterion is the worst possible ambiguity: it reads as _already handled_.
+
+**THE FIX SERVES NO CRITERION THAT EXISTS. I SEARCHED BOTH CONTRACTS INDEPENDENTLY AND REPRODUCED vc's RESULT: the ONLY mtime criterion in either thread is ST0057 AC-04.4, about the retired command.** ST0056 AC-03.3 is the READ side -- detecting a same-size same-mtime rewrite by hash. Nothing anywhere says a no-op sync writes zero files. **vc is minting the row and told me to build rather than wait; its subject is the WRITER, so ~364 is the denominator and 266 never was.**
+
+**WHY NOTHING EVER TRIPPED, AND IT IS STRUCTURAL RATHER THAN AN OVERSIGHT: ST0056 AC-03.2 IS CONTENT DETERMINISM -- _same model, same bytes, twice_ -- AND THE CHURN SATISFIES IT PERFECTLY.** The estate HAD an idempotence criterion; the defect is invisible to it by construction. **A criterion can be green, correct and complete about its own subject while the thing next to it rots.**
+
+**MY SELF-CORRECTION REACHED RATIFIED CANON, NOT JUST A DOC COMMENT.** ST0057 AC-04.4's own text justifies measuring mtime over a content diff because the defect _"corrupts `file_index`'s clean/changed state"_. **`FileState` is sha256-only, so that reason is false -- and vc wrote it.** The MEASUREMENT stands; the RATIONALE does not. vc is amending to the three real costs.
+
+## THE GUARD ITSELF: MY FIX LANDED ON A PATH NOTHING CALLS
 
 **vc pre-registered the prediction before rebuilding and it FAILED: sync 1 moved 20 of 20, sync 2 moved 20 of 20.** Two churny syncs in a row is my own stated form of the finding. **I verified the load-bearing half independently: `views::write_all` has NO production caller -- every caller is in `tests/`.** So the guard I committed at `843a69ce` is real, correct, and reaches nothing.
 
@@ -107,7 +124,7 @@ intent/.canon/       MUST BE COMMITTED
 
 **A PROPERTY MEASURED ON ONE CASE, ASSERTED ABOUT THE ADJACENT ONE.** Now FIVE instances in one day, every one caught by the node next door and none by any check: vc's manifest control measured the neighbouring directory; dc put a superlative on ic's unverified mechanism; dc measured ic's binary pair and asserted it of mine; **I claimed "no committed SDL in the tree" from a `find` scoped to `native/rust` while `schema/` sits at the project root**; and vc confirmed my mtime prediction with `git status`, **which reports CONTENT and is structurally blind to an mtime-only defect -- a probe that would have returned "zero churn" whether the fix existed or not.** **The tell is that the finding is TRUE -- of the thing that was actually measured.** Re-measure on the instance you are about to name, every time, even when the cases look identical. Especially then.
 
-**AN INSTRUMENT MUST BE ABLE TO FAIL THE WAY ITS SUBJECT FAILS.** AC-04.4's test does not sleep and does not trust filesystem timestamp resolution -- it ages every view to a FIXED synthetic stamp, so a rewritten file carries `now` and a skipped one keeps the stamp. A sleep-based version passes vacuously on a coarse-resolution filesystem, which is the exact failure the criterion detects.
+**AN INSTRUMENT MUST BE ABLE TO FAIL THE WAY ITS SUBJECT FAILS.** The mtime test does not sleep and does not trust filesystem timestamp resolution -- it ages every view to a FIXED synthetic stamp, so a rewritten file carries `now` and a skipped one keeps the stamp. A sleep-based version passes vacuously on a coarse-resolution filesystem, which is the exact failure the criterion detects.
 
 **ASSERT IT REACHED CANON, THEN ASK THE FACE** (ic). Their first `wp reopen` drive hit an unfired fixture -- the gate refused the `wp done`, so the verb returned `ok: already WIP` writing nothing and every face came back empty. **Emptiness from a face that does not render and emptiness from a verb that never recorded are indistinguishable when you only ask the face.**
 
