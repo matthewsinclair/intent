@@ -74,35 +74,136 @@ git rev-parse --git-dir >/dev/null 2>&1 ||
   die "not a git checkout, so there is no commit for canon to disagree with"
 command -v jq >/dev/null || die "jq is required to read a thread's attachments"
 
-# Emits "<thread> <count>" per thread carrying a thread.json at $1.
+# ------------------------------------------------------------- canon layout
+# THE ONLY PLACE THE ON-DISK LAYOUT IS WRITTEN DOWN. It was written down ELEVEN
+# times, across four concerns, and ic measured what that costs when ST0057 WP-01
+# moves canon to a flat `intent/.canon/st/<ID>.json`: the pathspec stops
+# matching, the `/thread.json$` filter cannot match a flat file, and the id
+# extraction returns a WRONG VALUE rather than an error. All three fail toward
+# "clean" -- an empty loop is a clean pass over nothing -- in the instrument that
+# gates ST0057 AC-03.6. And fixing any one alone produces no observable change,
+# which is what would make a partial fix read as done.
+#
+# THE ROOT CAUSE IS A PARAMETER-EXPANSION PROPERTY, MEASURED IN BASH RATHER THAN
+# READ FROM THE MANUAL: `${var#pat}` and `${var%pat}` return the string UNCHANGED
+# when the pattern is absent -- no error, no empty value, rc=0. So a half-migrated
+# extraction emitted `ST0056.json` as a steel-thread id and it flowed downstream
+# looking entirely plausible. `att_dir_of` below therefore ASSERTS that its strip
+# changed the string, which is that finding turned into a control.
+#
+# ic's rule -- an extractor that takes identity from CONTENT is immune to a
+# relocation by construction, one that takes it from the PATH is not -- is why
+# `id_at` reads `.id` out of the blob. It does NOT reach the second half:
+# `att_dir_of` rebuilds a PATH from parts, and no content-derived id fixes that.
+# Different failure, so it gets its own function and its own assertion.
+#
+# THE LAYOUT IS DETECTED PER REV RATHER THAN CONFIGURED, and that is deliberate:
+# a constant would have to be changed at the moment WP-01 lands, by someone who
+# remembers this file exists, and the failure mode of forgetting is a silent zero.
+# Detection cannot be forgotten. An ambiguous tree REFUSES, an empty one refuses
+# upstream at CANNOT MEASURE, and the gate path compares $REV against $REV^ --
+# which straddle the migration commit and legitimately carry different layouts.
+CANON_NESTED='^intent/st/[^/][^/]*/thread\.json$'   # today
+CANON_FLAT='^intent/\.canon/st/[^/][^/]*\.json$'     # after ST0057 WP-01
+CANON_ROOTS='^intent/st/|^intent/\.canon/st/'        # both, for scoping a file list
+CANON_PATHSPEC=(intent/st intent/.canon)             # both, for scoping a git call
+
+# Emits every thread canon file at $1, one per line. ONE ls-tree, both roots.
+canon_files_at() {
+  local rev="$1" all nested flat
+  all="$(git ls-tree -r --name-only "$rev" -- "${CANON_PATHSPEC[@]}" 2>/dev/null)"
+  nested="$(printf '%s\n' "$all" | grep -E "$CANON_NESTED" || true)"
+  flat="$(printf '%s\n' "$all" | grep -E "$CANON_FLAT" || true)"
+  if [ -n "$nested" ] && [ -n "$flat" ]; then
+    echo "error: AMBIGUOUS CANON LAYOUT at $rev -- $(printf '%s\n' "$nested" | grep -c .) nested and $(printf '%s\n' "$flat" | grep -c .) flat canon file(s)." >&2
+    echo "    A half-migrated tree cannot be measured: either set is a plausible whole population," >&2
+    echo "    so any count would close over the wrong one. Finish or revert the move, then re-run." >&2
+    return 2
+  fi
+  printf '%s\n' "$nested$flat" | grep -v '^$' || true
+}
+
+# The thread id, READ FROM THE CANON'S CONTENT. Empty (never a guess) on absence;
+# every caller checks, because `die` inside $( ) exits only the subshell.
+id_at() {
+  git show "$1:$2" 2>/dev/null | jq -r '.id // empty' 2>/dev/null
+}
+
+# The directory a thread's attachment bytes live under, derived from its canon
+# FILE so the two can never disagree. The ID-KEYED DIRECTORY survives both
+# layouts; only its parent moves.
+#   nested  intent/st/<ID>/thread.json   -> intent/st/<ID>
+#   flat    intent/.canon/st/<ID>.json   -> intent/.canon/st/<ID>
+att_dir_of() {
+  local d
+  case "$1" in
+    intent/.canon/st/*.json) d="${1%.json}" ;;
+    intent/st/*/thread.json) d="${1%/thread.json}" ;;
+    *) echo "error: not a thread canon file, so it has no attachment directory: $1" >&2; return 2 ;;
+  esac
+  # THE ASSERTION IS THE POINT: a strip whose pattern was absent returns the
+  # string unchanged at rc=0, which is how a wrong id shipped looking plausible.
+  [ "$d" != "$1" ] || { echo "error: layout strip did not change $1 -- refusing to emit a path built from a failed strip" >&2; return 2; }
+  printf '%s' "$d"
+}
+
+# Emits the blob path of every RECORDED attachment at $1, one per line. This is
+# the population "examined" can be drawn from, and nothing else is.
+att_blobs_at() {
+  local rev="$1" tj adir files
+  files="$(canon_files_at "$rev")" || return 2
+  while read -r tj; do
+    [ -n "$tj" ] || continue
+    adir="$(att_dir_of "$tj")" || return 2
+    git show "$rev:$tj" 2>/dev/null | jq -r --arg d "$adir" '(.attachments // [])[] | "\($d)/\(.path)"' 2>/dev/null
+  done <<< "$files"
+}
+
+# Emits "<thread> <count>" per thread carrying canon at $1.
 threads_at() {
-  local rev="$1" tj st n
+  local rev="$1" tj st n files
   git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
-  for tj in $(git ls-tree -r --name-only "$rev" -- intent/st 2>/dev/null | grep '/thread\.json$'); do
-    st="${tj#intent/st/}"; st="${st%/thread.json}"
+  files="$(canon_files_at "$rev")" || return 2
+  while read -r tj; do
+    [ -n "$tj" ] || continue
+    st="$(id_at "$rev" "$tj")"
+    [ -n "$st" ] || {
+      echo "error: CANNOT MEASURE -- canon at $rev:$tj carries no .id, so its attachments cannot be named." >&2
+      echo "    Canon without an id is a defect in the canon, not in this tool. Refusing rather than" >&2
+      echo "    dropping the thread: a population silently reduced by one still closes arithmetically." >&2
+      return 2; }
     n="$(git show "$rev:$tj" 2>/dev/null | jq '(.attachments // []) | length' 2>/dev/null)"
     echo "$st ${n:-0}"
-  done
+  done <<< "$files"
 }
 
 # Emits "<thread>/<path> DIVERGED|ABSENT" per bad attachment at $1.
 diverged_at() {
-  local rev="$1" only="${2:-}" tj st atts sha path have
+  local rev="$1" only="${2:-}" tj st adir atts sha path blob have files
   git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
-  for tj in $(git ls-tree -r --name-only "$rev" -- intent/st 2>/dev/null | grep '/thread\.json$'); do
-    st="${tj#intent/st/}"; st="${st%/thread.json}"
+  files="$(canon_files_at "$rev")" || return 2
+  while read -r tj; do
+    [ -n "$tj" ] || continue
+    st="$(id_at "$rev" "$tj")"
+    [ -n "$st" ] || { echo "error: CANNOT MEASURE -- canon at $rev:$tj carries no .id" >&2; return 2; }
+    adir="$(att_dir_of "$tj")" || return 2
     atts="$(git show "$rev:$tj" 2>/dev/null | jq -r '(.attachments // [])[] | "\(.sha256) \(.path)"' 2>/dev/null)"
     [ -n "$atts" ] || continue
     while read -r sha path; do
       [ -n "$path" ] || continue
-      [ -z "$only" ] || grep -qxF "$st/$path" "$only" || continue
-      if ! git cat-file -e "$rev:intent/st/$st/$path" 2>/dev/null; then
+      # KEYED ON THE BLOB PATH, NOT ON THE ID. The narrowing file is built from
+      # `git diff-tree` output, which is paths; keying both sides on the path
+      # means they agree by construction even if a thread's directory name and
+      # its content id ever disagree. The id is used for the LABEL only.
+      blob="$adir/$path"
+      [ -z "$only" ] || grep -qxF "$blob" "$only" || continue
+      if ! git cat-file -e "$rev:$blob" 2>/dev/null; then
         echo "$st/$path ABSENT"; continue
       fi
-      have="$(git cat-file blob "$rev:intent/st/$st/$path" | shasum -a 256)"
+      have="$(git cat-file blob "$rev:$blob" | shasum -a 256)"
       [ "${have%% *}" = "$sha" ] || echo "$st/$path DIVERGED"
     done <<< "$atts"
-  done
+  done <<< "$files"
 }
 
 REV="HEAD" HIST=0 EXHAUSTIVE=0
@@ -119,8 +220,8 @@ done
 # NAMED FIRST AND UNCONDITIONALLY. A verdict that cannot say which things it
 # describes is not a verdict, and a count is the only thing that says the
 # instrument reached its subject at all.
-subjects="$(threads_at "$REV")"
-[ -n "$subjects" ] || die "CANNOT MEASURE -- $REV carries no thread.json anywhere under intent/st"
+subjects="$(threads_at "$REV")" || exit 2
+[ -n "$subjects" ] || die "CANNOT MEASURE -- $REV carries thread canon under neither intent/st/<ID>/thread.json nor intent/.canon/st/<ID>.json"
 total=0
 while read -r st n; do [ -n "$st" ] && total=$((total + n)); done <<< "$subjects"
 # NAMED COMPACTLY, AND WHAT IS ENUMERATED IS THE GAP RATHER THAN THE COVERAGE.
@@ -149,12 +250,13 @@ fi
 
 if [ "$HIST" -gt 0 ]; then
   revs="$(git log --format=%h -"$HIST" "$REV" | tail -r 2>/dev/null || git log --format=%h -"$HIST" "$REV" | tac)"
-  prev="" measured=0 anydis=0 adds=0 vac=0
+  prev="" measured=0 anydis=0 adds=0 vac=0 rthreads=""
   for r in $revs; do
     rtot=0
-    while read -r st n; do [ -n "$st" ] && rtot=$((rtot + n)); done <<< "$(threads_at "$r")"
+    rthreads="$(threads_at "$r")" || exit 2
+    while read -r st n; do [ -n "$st" ] && rtot=$((rtot + n)); done <<< "$rthreads"
     if [ "$rtot" -eq 0 ]; then vac=$((vac + 1)); prev=""; continue; fi
-    cur="$(diverged_at "$r" | awk '{print $1}' | sort)"
+    cur="$(diverged_at "$r" | awk '{print $1}' | sort)" || exit 2
     measured=$((measured + 1))
     [ -n "$cur" ] && anydis=$((anydis + 1))
     new="$(comm -23 <(printf '%s\n' "$cur" | grep -v '^$') <(printf '%s\n' "$prev" | grep -v '^$') 2>/dev/null)"
@@ -180,6 +282,16 @@ fi
 # narrowed it is the SECOND-slowest thing in the gate, with a 25% margin, not
 # the comfortable one the first comment claimed.
 #
+# RE-MEASURED AT 4ba598f1 AFTER THE LAYOUT REWRITE, ON ONE MACHINE ONLY (the
+# figures above are two-machine; this is not, and the difference is part of the
+# figure): narrowed 2.49-2.55s, exhaustive 11.3-11.5s. IT GOT ~1.8x SLOWER ON
+# PURPOSE. The `scoped` count used to be the size of the narrowing FILTER, not
+# the number of attachments examined; correcting it costs one extra pass over
+# every thread canon (`att_blobs_at`). Four full passes now where there were
+# three. THE COST BUYS A COUNT THAT CLOSES OVER WHAT WAS EXAMINED -- which is
+# the property this whole tool exists to assert about somebody else, so it does
+# not get to ship a verdict line that lacks it.
+#
 # The two errors are worth keeping because both favoured the conclusion their
 # author wanted. (1) The times came from zsh's builtin `time` applied to a
 # SUBSHELL, which under-reported wall clock by roughly half -- 5.1s for a 9.6s
@@ -189,25 +301,38 @@ fi
 # measured all three on one machine and the discrepancy was theirs to find.
 #
 # --exhaustive turns the narrowing off and examines everything.
-ONLY="" scoped=""
+ONLY="" scoped="" adir="" blobs=""
 if [ "$EXHAUSTIVE" -eq 0 ] && git rev-parse --verify --quiet "$REV^{commit}" >/dev/null &&
    git rev-parse --verify --quiet "$REV^^{commit}" >/dev/null; then
   changed="$(git diff-tree --no-commit-id --name-only -r "$REV" 2>/dev/null)"
   ONLY="$(mktemp)"; trap 'rm -f "$ONLY"' EXIT
   # a thread whose canon moved: every one of its attachments is back in scope
-  printf '%s\n' "$changed" | grep '^intent/st/.*/thread\.json$' | while read -r tj; do
-    st="${tj#intent/st/}"; st="${st%/thread.json}"
-    git show "$REV:$tj" 2>/dev/null | jq -r --arg st "$st" '(.attachments // [])[] | "\($st)/\(.path)"' 2>/dev/null
+  printf '%s\n' "$changed" | grep -E "$CANON_NESTED|$CANON_FLAT" | while read -r tj; do
+    adir="$(att_dir_of "$tj")" || exit 2
+    git show "$REV:$tj" 2>/dev/null | jq -r --arg d "$adir" '(.attachments // [])[] | "\($d)/\(.path)"' 2>/dev/null
   done >> "$ONLY"
-  # an attachment whose own bytes moved
-  printf '%s\n' "$changed" | grep '^intent/st/' | grep -v '/thread\.json$' |
-    sed 's|^intent/st/||' >> "$ONLY"
+  # an attachment whose own bytes moved -- the blob path IS the key, so no strip
+  # and no id are involved. Over-inclusive by design: a non-attachment under
+  # either root adds a key nothing matches, which widens scope and never narrows it.
+  printf '%s\n' "$changed" | grep -E "$CANON_ROOTS" |
+    grep -vE "$CANON_NESTED|$CANON_FLAT" >> "$ONLY"
   sort -u "$ONLY" -o "$ONLY"
+  # INTERSECT WITH THE RECORDED ATTACHMENTS. Without this, `scoped` counts FILTER
+  # KEYS rather than attachments examined, and the two are different populations:
+  # the changed-file half sweeps in every file under the canon roots, attachment
+  # or not. Latent in the nested layout, where it merely overstated (86 of 278);
+  # the flat layout pushed it PAST the total and printed "EXAMINED 2 of 1 ... the
+  # other -1". A count that closes arithmetically over the wrong population is the
+  # defect this tool exists to find, so it does not get to ship one.
+  # Behaviourally a no-op: `diverged_at` only ever looks up recorded attachments,
+  # so a key that is not one is never consulted. This corrects the COUNT alone.
+  blobs="$(att_blobs_at "$REV")" || exit 2
+  comm -12 "$ONLY" <(printf '%s\n' "$blobs" | sort -u) > "$ONLY.i" && mv "$ONLY.i" "$ONLY"
   scoped="$(grep -c . "$ONLY")"
   echo "canon-commit: EXAMINED $scoped of $total -- narrowed to the attachment path(s) whose bytes or whose thread's canon THIS COMMIT changed. The other $((total - scoped)) carry their parent's status by construction and cannot be an ADD. --exhaustive examines all $total."
 fi
 
-cur="$(diverged_at "$REV" ${ONLY:+"$ONLY"} | sort)"
+cur="$(diverged_at "$REV" ${ONLY:+"$ONLY"} | sort)" || exit 2
 curp="$(printf '%s\n' "$cur" | awk '{print $1}' | grep -v '^$' | sort)"
 
 if [ -z "$curp" ]; then
@@ -229,7 +354,7 @@ if [ -z "$curp" ]; then
   exit 0
 fi
 
-parent="$(diverged_at "$REV^" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$' | sort)"
+parent="$(diverged_at "$REV^" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$' | sort)" || exit 2
 new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 
