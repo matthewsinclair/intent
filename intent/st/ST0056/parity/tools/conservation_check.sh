@@ -998,6 +998,27 @@ else
   echo "conservation: prose -- DECLARED-DROP not measured -- no --dispositions given, so every removal above is counted as loss whether or not the migrator named it"
 fi
 echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census section(s); NOT compared $c_declared, declared:${declared_kinds:- none}"
+# THE DENOMINATOR ABOVE THE DENOMINATOR, and it exists because a fact written in
+# this programme's own header never reached its output (ic, 2026-08-18).
+#
+# `estate_census.sh:61` has said since it was written that the model does not
+# hold `design.md` / `impl.md` / `tasks.md`. **It is true, I wrote it, and it
+# never connected to the gate** -- so `LOST-PROSE 0` could be read as "nothing
+# was lost" while 903 authored sections of this estate had never been enumerated
+# as prose at all. Not absent, not wrong: WRITTEN DOWN AND UNREAD. **A note would
+# not have fixed that and a bigger note would not either. A PRINTED LINE does.**
+#
+# WHAT THIS LINE CANNOT SAY, AND WHY, BECAUSE THE FIRST VERSION TRIED TO.
+# I wrote it to name the `.md` files that contributed no prose row, drove it, and
+# got `1153 of 1` and `-1152`. **A PROSE row carries no path** -- it is
+# `PROSE <kind> <id> <section> <bytes> <raw-sha> <trim-sha>`, seven fields, none
+# of them a file -- while a FILE row is five with the path at `$2`. So the
+# file-level mapping is not derivable from the census and the honest line states
+# the KINDS instead. **The nonsense number is why it was worth driving: a
+# negative count is unmissable, and a plausible wrong one would not have been.**
+md_files=$(awk -F'\t' '$1 == "FILE" && $2 ~ /\.md$/ { print $2 }' "$CENSUS" | sort -u | wc -l | tr -d ' ')
+prose_kinds=$(awk -F'\t' '$1 == "PROSE" { print $2 }' "$CENSUS" | sort -u | tr '\n' ' ')
+echo "conservation: SCOPE -- prose was enumerated from kind(s) [ ${prose_kinds}] only, which is thread and WP \`info.md\`, \`acceptance.md\` and issue markdown. The census holds $md_files estate \`.md\` file(s); a PROSE row carries NO PATH, so this tool cannot name which contributed nothing -- but every \`design.md\`, \`impl.md\`, \`tasks.md\` and one-off is OUTSIDE the population every line above is about."
 # The conserved population split by what the destination KNOWS. Not "did the
 # bytes survive" -- that is the line above -- but "does the model understand
 # them". A section in a declared field is modelled; a section in a catch-all is
