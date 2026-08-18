@@ -141,6 +141,10 @@ Requirements on the realisation:
 - **Regenerable, never authoritative.** It is a fallback. Nothing reads it back; there is no import path; `classify` never sees it.
 - **Cheap enough to be habitual.** If it is expensive nobody runs it, and an assurance nobody exercises is not one.
 
+**AND IT HAS A DEPENDENCY NOBODY HAD NAMED (cc, 2026-08-18, found while bootstrapping a scratch project to drive something else): `intent init` IS NOT IMPLEMENTED.** `error: 'init' is a known command that is not implemented yet`. A v3 project has to be hand-bootstrapped with a v3-stamped `config.json`.
+
+**That is a precondition of D57-5 rather than a neighbouring gap.** The whole value of a fallback is that someone can exercise it -- and the natural way to exercise "can I get everything back into text" is _make an empty project, export into it, read it_. **You cannot demonstrate a fallback from a clean directory if you cannot create a clean directory**, so `init` gates the assurance, not merely the onboarding. cc's line is the one to keep: _a text-export assurance nobody can exercise from a clean directory is exactly the assurance nobody exercises._
+
 ## D57-6 -- The 165, RULED
 
 **`design.md`, `impl.md` and `tasks.md` are carried as ATTACHMENTS. `THREAD_PROSE` is deleted from the classifier.**
