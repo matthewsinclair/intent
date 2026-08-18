@@ -625,3 +625,21 @@ vc measured `dispatch_ssot` dirtying the estate; I ran the same suite and got a 
 - **`EdgeKind::Incidental` STAYS despite having no user.** **`owner_wp` stays carried and unread.** **`doctor --fix` is WITHDRAWN, not deferred.** **`Outcome` is deliberately NOT `#[must_use]`** -- read it with `.already()`.
 - **ANNOTATE, NEVER SUPPRESS, on a run verdict.**
 - **v3 stays OFF PATH until dc repoints `~/.local/bin/intent`** -- it currently symlinks `bin/intent`, which now refuses this tree by name. **That symlink is the last mechanical step of self-hosting.**
+
+---
+
+## ARCHIVED at the 2026-08-18 10:33Z localfold -- WP-03 landed work, folded out of the live board
+
+### WP-03 as landed and pushed
+
+**Committed and pushed:** rung 9 `issues.body` (40 v2 bodies, 443,643 bytes, no model field at all, VERBATIM), rung 10 `attachments` (110 carried, ONE constructor so `bytes`/`sha256` cannot drift, ONE classifier so ingest/migrator/doctor cannot disagree), `doctor` NAMING all 198 uncarried by path and counting NONE as faults.
+
+**Also landed (`387cab7d`):** `related[]` -- 116 links from 123 bullets, ids from the LEADING region only so a note mentioning a thread is not a link -- and **rung 11**. The live store was already at 11, so this had to land or the tree and the store disagreed.
+
+**Both prose fields are VERBATIM.** `Issue.body` was trimmed until vc scheduled its renderer: **a normalisation that requires a future component to compensate is a scheduled defect**, so the trim went rather than the precondition.
+
+**`.sh` IS CARRIED** on vc's principle -- _no tool can make this again, versus a tool made this and can again._ **A mode bit does not survive; `+x` at hydration is the DECIDED answer**, recorded at the constant for whoever builds the write-back.
+
+### The day's shape, for whoever reads this cold
+
+**Four defects, none expressible by the suite**, and every one found by a person or a peer USING the tool rather than by a test: the rung-10 shape collision, the `st cancel` -> `doctor` contradiction, the `Triage -> Wip` ergonomics, and `created:` rewriting a tracked index while printing one word. 620 passing legs and not one of them creates a thread, cancels it, and asks the tool what it thinks. **The suite is not weak -- it is answering a different question, and finding out which question that is was the day's real output.**
