@@ -125,6 +125,24 @@ intent/.treeindex/
 # excludes IGNORED paths, so until this line existed the DB was outside the corpus
 # only by accident of path shape.
 intent/.cache/
+
+# `intent/.backup/` -- the SAME defect as the line above, in the sibling
+# directory, found the first time anyone actually ran `intent backup` on the
+# hoisted repo (cc, 2026-08-18). `/.backup/` at line 33 is ANCHORED TO THE REPO
+# ROOT and v3 writes snapshots to `intent/.backup/db/<UTC>.db`, so the rule and
+# the tool disagreed about the path and the rule silently covered nothing.
+#
+# **NOT because it would otherwise reach history.** `bin/.devbin/cmd/precommit`
+# refuses a staged `*.db`/`-wal`/`-shm`/`*.sqlite` by name AND by SQLite magic
+# under a name that does not say so, which is the class-wide protection this
+# file's own comment points at. That guard holds.
+#
+# It is here for the second reason the block above gives, which is the
+# load-bearing one: **D29's precondition.** The ingest corpus excludes IGNORED
+# paths, so until this line existed a snapshot of the store sat INSIDE the
+# corpus the store is built from -- and the only thing keeping it out was the
+# accident that nobody had taken a backup yet.
+intent/.backup/
 target/
 # The DDL face is a COMMITTED artefact (the global gitignore excludes *.sql).
 !schema/ddl.sql
