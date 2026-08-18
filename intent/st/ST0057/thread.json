@@ -390,7 +390,7 @@
     },
     {
       "id": "AC-08.5",
-      "text": "**Every writable field of every entity is settable through the mutation surface, and a field that cannot be written is reported BY NAME.** The burning case is ST0011's `completed`, which is NULL on the estate's one genuinely wrong row and has no field-setter verb today -- the criterion is the completeness of the surface, with the unsettable set as the printed output. **SECOND BURNING CASE (dc 2026-08-18): an AT row's `note`.** It is the only place this contract records WHY a row is where it is, several notes are load-bearing paragraphs, and **the only verbs that touch the row DESTROY it** (issue 0033) -- so the model holds a field the typed API cannot edit, and the sole route is a hand-edit of canon followed by `sync --to-store`. Recorded HERE rather than under a new decision number deliberately: a second home for one requirement is the failure this criterion exists to name.",
+      "text": "**Every writable field of every entity is settable through the mutation surface, and a field that cannot be written is reported BY NAME.** The burning case is ST0011's `completed`, which is NULL on the estate's one genuinely wrong row and has no field-setter verb today -- the criterion is the completeness of the surface, with the unsettable set as the printed output. **SECOND BURNING CASE (dc 2026-08-18): an AT row's `note`.** It is the only place this contract records WHY a row is where it is, several notes are load-bearing paragraphs, and **the only verbs that touch the row DESTROY it** (issue 0033) -- so the model holds a field the typed API cannot edit, and the sole route is a hand-edit of canon followed by `sync --to-store`. Recorded HERE rather than under a new decision number deliberately: a second home for one requirement is the failure this criterion exists to name. **AND SETTABLE IS NOT THE ONLY TEST (dc 2026-08-18, catching this criterion before it ratified): A VERB THAT WRITES A FIELD AS A DESTRUCTIVE SIDE EFFECT OF DOING SOMETHING ELSE FAILS THIS CRITERION TOO.** `at green|red|na` DO write the row, so a checker asking merely _can every field be set_ passes on `note` while the verb empties it. The criterion is therefore two-sided: every writable field is settable **intentionally**, and no verb silently clears a field it was not asked to change.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -399,6 +399,14 @@
     {
       "id": "AC-02.5",
       "text": "**`.intentfiles` names ARTEFACTS and never enumerates FILES; `Project::classify` remains the single answer to what a file IS.** (vc 2026-08-18, on cc's finding while building the collector.) The two answer different questions -- the manifest answers _which artefacts are realised_, classify answers _what is this file_ -- and they COMPOSE: `STEELTHREAD:ST0056` realises the thread and, through classify, whatever files that thread produces. **Neither may acquire a second, independent enumeration of files**, because two declarations of which-files-matter agree for months and then quietly do not. Held mechanically: the manifest grammar admits no file-valued line, so a second enumeration is unrepresentable rather than merely discouraged.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.5",
+      "text": "**`sync --to-store` REPORTS an attachment whose on-disk bytes differ from what the INDEX holds for that path** (dc 2026-08-18, from a live instance). The ingest path reads the WORKTREE, so an uncommitted edit sitting in the tree is carried into canon by whoever syncs next -- and canon then records an artefact whose bytes exist in NO COMMIT, indistinguishable on inspection from a correct one. **That is AC-11.5(c) of ST0056 arriving in canon rather than in vendored files, and the ratified remedy is NOT applied on this path**: arm 1 of `self_provenance_check.sh` reads `git cat-file blob :$rel` precisely to avoid it, but it validates the manifest and never an attachment, so it passes. **The rule currently exists only as an instruction between nodes -- commit yours first -- and a rule that lives in a peer message is followed until someone is mid-task**, which happened twice in one afternoon, once to the node who wrote the rule.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -803,6 +811,16 @@
       ],
       "status": "to-write",
       "note": "assert the grammar REJECTS a file-valued line, and that classify is the only consumer deciding file identity -- a Highlander problem born ratified is the failure this row exists to prevent, raised by cc before WP-02 started rather than discovered inside it"
+    },
+    {
+      "id": "AT-03.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/sync_reports_uncommitted_attachment.rs",
+      "covers": [
+        "AC-03.5"
+      ],
+      "status": "to-write",
+      "note": "drive it with an attachment edited in the worktree and NOT staged, then sync: the run must name the path. Demonstrated red first against a tree where the bytes agree with the index."
     }
   ],
   "attachments": [
