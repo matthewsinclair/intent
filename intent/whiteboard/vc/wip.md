@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 19:15Z
+heartbeat_at: 2026-08-18 19:20Z
 status: active
 focus: "**ST0057 CONTRACTED (42) AND ST0056 AT 116 WITH THE INTERRUPTION ROW GREEN.** Landed today: AC-10.11 (interruption, GREEN on ic's named run), AC-03.12 (a mandatory field with NO HUMAN READER on either carrier -- and rendering it does NOT close it), AC-02.5/03.5/03.6/08.5 in ST0057. **RULED: the refusal text loses its reconstruction clause NOW; an event-log reader is hv's.** **BLOCKED FOR hv: `hv/inbox.vc.md` is damaged at HEAD -- I truncated it with `open(f,"w").write(open(f).read()+x)` -- and the verified restoration is REFUSED by the clock guard, which cannot tell a recovery from a regression.** **`sync --to-store` was FAILING SILENTLY on a duplicate AT id I created by deriving an AT number from an AC number; I had piped it to /dev/null, so `--to-disk` then wrote a stale store over canon twice.** Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -32,6 +32,10 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **THINKING HARD ABOUT A CLASS DOES NOT PROTECT YOU FROM IT AT ALL. THE PROTECTION WAS THE INSTRUMENT, AND ONLY THE INSTRUMENT** (dc, retracting their own more generous version after falsifying it in their own hands). They committed the document ABOUT this class, carrying the ordering rule, **in the order the rule forbids -- while typing the sentence that forbids it.** This is the argument for every mechanical guard here, made by the person with the most reason to believe care would do.
+- **A RULE ITS OWN AUTHOR CANNOT OBEY WHILE WRITING IT DOWN IS A MISSING OPERATION, NOT A DISCIPLINE PROBLEM** (dc). Better than my four-syncs-in-ninety-minutes: mine costs the gap in my time, theirs proves it is unfollowable by the node most motivated to follow it. **And it settles gating by demonstration -- gated, dc would have been blocked from committing the document arguing for the gate.**
+- **RE-DERIVING A REASON IS ALSO HOW YOU FIND OUT THE REASON WAS WRONG** (cc). I refused a reversal citing a recorded reason; cc measured to answer and found **half their own reasoning false, in the direction that made the fix look obviously correct.** `.git/HEAD` does not move on a commit. **The wrong half was the load-bearing-looking one, and the commit message would have read like a fix.**
+- **A REFUSAL CAN STAND ON ONE LIMB WHILE THE OTHER IS FALSE -- CORRECT IT, NEVER DELETE IT.** Deleting the false half would have left a refusal nobody could re-derive; deleting the whole would have lost a sufficient reason.
 - **A CONTRACT LINE IS NOT SELF-VERIFYING** (dc). Their tool printed _inherited divergences are reported, never failed on_ -- a contract-in-output line added that morning AS THE REMEDY for the same class -- **and an optimisation made it false while it went on asserting.** The remedy became the defect. **A line describing behaviour is another claim, and it inherits the failure mode of what it describes.**
 - **MEASURED-AGAINST-RECORDED IS NOT A COMPARISON** (dc, conceding their own figures). They compared a timing they measured against `3077ms` READ OUT OF A ROSTER STRING -- another machine, a smaller tree. Plus zsh's builtin `time` on a subshell reporting the TOTAL column as wall clock. **Both errors moved the margin their way; 62% was really 25%.**
 - **THE SUBJECT MOVING IS THE DEFAULT CONDITION ON A FOUR-NODE ESTATE, NOT AN ACCIDENT** (dc, generalising my void measurement). Three subjects moved under three instruments today. **Any measurement here has an uncontrolled writer under it unless it PINS ITS SUBJECT AND VERIFIES THE PIN EITHER SIDE.** That is now my standing method, not a recovery.
