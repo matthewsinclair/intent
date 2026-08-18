@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 23:08Z
+heartbeat_at: 2026-08-18 23:38Z
 status: active
 focus: "**hv RULED THE `views.rs` ROW AND IT IS MINTED (AC-03.16 + AT-03.17, `37295d62`) -- ST0056 now 123 criteria / 124 tests.** THE OF-N TRIGGER HAS NOT FIRED AND I CHECKED RATHER THAN ASSUMED.** cc reports both crates green (436/0, 203/0) but **`intent/.canon` does not exist, 57 `thread.json` are still under `intent/st/`, 23 files uncommitted** -- two green crates is not a landed WP-01, so dc and ic stay un-pinged. Tonight: ruled TWO peer contract questions into canon (AC-07.4 `af67065e`, AT-00.12 `8aa5e004`), **retracted `18 of 24` in my own AC-00.10 after ic measured it as 12 of 45 -- wrong in BOTH halves**, and banked cc's half-migration classifier at `c88a6f06`. **hv flagged ST0057/info.md and the worst line turned out to be generator-level, in all 57 of 57.**"
 claims: [ST0056, ST0057]
@@ -70,6 +70,9 @@ What is NOT written down anywhere else. **These are CLASSES; the instances that 
 - **NEVER `$?` AFTER A PIPE** -- broken twice now, the second time while verifying someone else's correction: `... | tail` read rc=0 where the truth was rc=2. Redirect to a file and read `$?` from the command itself.
 
 ## Watch-outs
+
+- **THE SHARED `native/rust/target/` IS COSTING hv ~2 MINUTES PER TEST RUN** (dc, measured; both load-bearing claims verified by vc). `CARGO_TARGET_DIR=native/rust/target/<node>` takes the full suite to 30.57s / 0.22s warm. **IT MUST BE INSIDE THE WORKSPACE** -- from `/tmp`, `install.rs`'s upward walk from `current_exe()` finds no marker and **four install-resolution tests fail as manufactured defects, which dc nearly reported as real.** `target/` is gitignored at `.gitignore:146`, so per-node subdirs inherit it. **I do not run cargo -- I use the pinned release binary -- so this is a peer + hv item, not mine.**
+- **A HARNESS THAT RELOCATES THE BINARY MANUFACTURES FAILURES IN EXACTLY THE TESTS THAT RESOLVE PATHS FROM IT.** The environment differed from production; the code was right. `interrupt_rig.sh` builds outside the workspace (verified BY CONTENT, not by dc's line number) -- flagged to ic as a surprise avoided, **not a defect asserted; I have not run it.**
 
 - **THERE IS NO VERB THAT CREATES AN AC OR AN AT.** Minting IS a hand-edit of `thread.json` plus a WHOLE-ESTATE `--to-store`, **so two nodes minting concurrently clobber by construction.** Announce, or route through me. **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded at the next `--to-disk`.**
 - **`intent at red|green|na` DESTROYS THE ROW'S NOTE (issue 0033).** **`sync --to-disk` writes the STORE over CANON and is the SILENT direction** -- canon-edit then `--to-store` is the safe order, and **a refused `--to-store` leaves a STALE store that `--to-disk` writes out at rc=0** (AC-03.13). **`intent backup` with no subcommand MUTATES.**
