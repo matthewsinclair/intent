@@ -77,17 +77,45 @@ DISPATCH="$ROOT/bin/int"
 # Every cost below was MEASURED on 2026-08-17 at 55e540df, not estimated, per
 # the runner's own rule that coverage is reported as measured and never as
 # designed. Re-time before moving a row on cost grounds.
+# EVERY TIMING BELOW IS MEASURED AND NAMES WHAT IT IS A MEASUREMENT OF (ic,
+# 2026-08-18). They were previously bare -- eleven figures, not one naming a
+# machine, a revision or a tree size -- which dc counted after making the error
+# those figures invite: comparing a fresh measurement against 3077ms read out of
+# this string, taken on another machine at another time over a smaller tree.
+# MEASURED-AGAINST-RECORDED IS NOT A COMPARISON AT ALL, and a bare figure here is
+# an invitation to it. dc corrected their own row and correctly declined to
+# restate the other ten, since re-stating a figure you did not take repeats the
+# error; these are re-MEASURED, not re-stated.
+#
+# METHOD: /usr/bin/time -p wall clock (NOT the shell builtin over a subshell,
+# which under-reported dc's by roughly half), 5 runs each, min-max, darwin/arm64,
+# over 8f652d1b..08bed4b2 -- HEAD moved four whiteboard/canon commits during the
+# sweep and the figures were stable across it, which is stated rather than
+# resolved by pinning one sha the numbers were not all taken at.
+#
+# THE RE-MEASUREMENT WAS WORTH DOING BECAUSE THE OLD FIGURES WERE WRONG IN BOTH
+# DIRECTIONS, so no single correction factor explains them and no reader could
+# have adjusted for them: nine overstated by up to 39%, and ratified_in_check.sh
+# UNDERSTATED by 49% -- it reads the dispatch table, which has grown. Costs that
+# grow silently are the ones a stale figure hides, and the total gate cost is
+# ~4.6s measured against ~5.4s recorded. THE AFFORDABILITY ARGUMENT FOR ADMITTING
+# canon_commit_check.sh WAS CONDUCTED AGAINST THE STALE NUMBERS.
+#
+# Re-time before moving a row on cost grounds, and record the span you measured
+# over. One sub-figure is NOT mine and is left attributed: the 263ms dispatcher
+# component of runner_roster_check.sh is the original author's and I did not
+# reproduce the breakdown, only the total.
 ROSTER='
-class_vocab_check.sh       gated   57ms, two committed files, one-line verdict
-corrected_check.sh         gated   90ms, static, reports and never gates
-generator_inputs_check.sh  gated   211ms, index-only, whole-set by design
-provenance_check.sh        gated   431ms, three greps over the stamped artefacts
-ratified_in_check.sh       gated   178ms, static read of the dispatch table
-residue_class_check.sh     gated   42ms and a single line, the cheapest here
-runner_roster_check.sh     gated   782ms of which 263ms is asking the runner through the dispatcher, which is the price of not re-grepping its source; it is a *_check.sh and rosters itself
-self_provenance_check.sh   gated   504ms over 27 blobs read from the INDEX; whole-set because the failure is staging one of two facts, so a path trigger would have to fire on the path that is not there
-stale_at_check.sh          gated   70ms and a single line, reports presence only
-view_skew_check.sh         gated   3077ms, the slowest gated one, path-triggered
+class_vocab_check.sh       gated   30-40ms, two committed files, one-line verdict
+corrected_check.sh         gated   50-60ms, static, reports and never gates
+generator_inputs_check.sh  gated   140-180ms, index-only, whole-set by design
+provenance_check.sh        gated   290-310ms, three greps over the stamped artefacts
+ratified_in_check.sh       gated   240-290ms, static read of the dispatch table
+residue_class_check.sh     gated   40-50ms and a single line, the cheapest here
+runner_roster_check.sh     gated   470-490ms total (re-measured); the original row attributed 263ms of a then-782ms total to asking the runner through the dispatcher -- THAT COMPONENT IS NOT RE-MEASURED AND 263 OF 480 IS NOT THE SAME CLAIM AS 263 OF 782, so treat the breakdown as unverified, which is the price of not re-grepping its source; it is a *_check.sh and rosters itself
+self_provenance_check.sh   gated   470-510ms over 27 blobs read from the INDEX; whole-set because the failure is staging one of two facts, so a path trigger would have to fire on the path that is not there
+stale_at_check.sh          gated   50ms and a single line, reports presence only
+view_skew_check.sh         gated   2860-2940ms, the slowest gated one, path-triggered
 canon_commit_check.sh      manual  new 2026-08-18, awaiting roster admission -- there is no narrow attachment-sync verb, so the only order a gate would permit (sync canon, then commit file and canon together) is closed to nodes that may not sync; revisit after ST0057 WP-08. Reads git only: no worktree, no binary, no clock. 2.1-2.3s narrowed / 9.5-9.7s --exhaustive, measured at f2a2675f on two machines with /usr/bin/time -p -- STATED WITH SUBJECT AND REVISION BECAUSE THE BARE FIGURES IN THE ROWS ABOVE CANNOT BE COMPARED AGAINST ANYTHING: measuring your own tool and comparing it to one of them is measured-against-recorded across unknown machines, trees and dates, which is how the first timing claim for THIS row went wrong by half. Driven four ways on real history (vacuous 2, adds 1, inherited-not-failed 0, clean 0) and caught an unplanted divergence on its first whole-tree run
 conservation_check.sh      manual  takes a MIGRATED tree as an argument and no such tree exists until WP-10 lands, so there is no bare invocation for a gate to make; it refuses with exit 2 rather than passing when handed an unmigrated one, which is the behaviour a gate would have to bypass on every commit
 drift_check.sh             manual  compares a STAMPED inventory against live canon, so gating it would block a dispatch-table edit until somebody re-runs a 27-family measurement sweep -- a measurement, not a fix
