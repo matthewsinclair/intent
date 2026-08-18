@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-18 09:18Z
+heartbeat_at: 2026-08-18 09:25Z
 status: paused
-focus: "FOLDED AND PAUSED. **THE CONSERVATION BASELINE IS TAKEN, PINNED AND REPRODUCIBLE** -- method A on the pinned `hoist` estate, binary `2df3549c` with ZERO uncommitted, two independent full passes giving identical numbers: `ALTERED 2 / LOST-PROSE 0 / UNCONVERTED 0 / UNACCOUNTED 353 / STRANDED 192`, findings 741, stderr clean, LIVENESS 56/56. **NOT the gate (exit 1); what changed is the PROVENANCE, not the verdict.** **STRANDED 192 GOVERNS: 748 authored sections in design/impl/tasks that exist NOWHERE else -- 0 of 192 distinctive lines found in canon -- and they are exactly what disk-optional would delete. Waiting on hv open question 7.** `LOST-PROSE 0` is TRUE and NARROW: every section that HAS a destination reached it, and the companions are outside the population. **The day's arc: the gate could be driven TO zero in the morning and was pinned ABOVE zero at night, same root -- counters indexed to destinations the model had moved away from -- and vc rewrote it onto the VERDICT, which is why tonight's zero cannot authorise anything.** Five defects out of my own instruments, none found by reading. Off the live store: every subject under `$CLAUDE_JOB_DIR/tmp`, no process of mine running. v3 NOT on PATH; no pushes to upstream."
+focus: "HOLDING ON HV INSTRUCTION -- no work until further notice; session live, taking nothing. FOLDED AND PAUSED. **THE CONSERVATION BASELINE IS TAKEN, PINNED AND REPRODUCIBLE** -- method A on the pinned `hoist` estate, binary `2df3549c` with ZERO uncommitted, two independent full passes giving identical numbers: `ALTERED 2 / LOST-PROSE 0 / UNCONVERTED 0 / UNACCOUNTED 353 / STRANDED 192`, findings 741, stderr clean, LIVENESS 56/56. **NOT the gate (exit 1); what changed is the PROVENANCE, not the verdict.** **STRANDED 192 GOVERNS: 748 authored sections in design/impl/tasks that exist NOWHERE else -- 0 of 192 distinctive lines found in canon -- and they are exactly what disk-optional would delete. Waiting on hv open question 7.** `LOST-PROSE 0` is TRUE and NARROW: every section that HAS a destination reached it, and the companions are outside the population. **The day's arc: the gate could be driven TO zero in the morning and was pinned ABOVE zero at night, same root -- counters indexed to destinations the model had moved away from -- and vc rewrote it onto the VERDICT, which is why tonight's zero cannot authorise anything.** Five defects out of my own instruments, none found by reading. Off the live store: every subject under `$CLAUDE_JOB_DIR/tmp`, no process of mine running. v3 NOT on PATH; no pushes to upstream."
 claims: [ST0056/10]
 ---
 
@@ -23,7 +23,7 @@ claims: [ST0056/10]
 
 ## TODO -- NEXT, IN ORDER
 
-1. **THE GATE-SATISFYING RUN.** Provenance is solved; the verdict is not. Exit 0 needs `STRANDED 0`, which needs hv's question 7. **Nothing to do until that ruling lands** -- re-run the committed apparatus against it and report a verdict plus a denominator.
+1. **THE GATE-SATISFYING RUN.** Provenance is solved; the verdict is not. Exit 0 needs `STRANDED 0`, which needs hv's question 7 -- **now INVENTORIED AND RECOMMENDED BUT NOT RULED** (`bb0baf85`): vc enumerated the 233 `.md` under `intent/st` the census never touches (903 sections), found the 68 one-offs ALREADY CARRIED as attachments, and narrowed the question to exactly the 165 canonical-three files, with a SUBTRACTIVE fix -- three names out of the classifier's prose list, which cc confirms is a deletion on their side. **Still hv's call, so still nothing to do.** **AND NOTE THE BASELINE PREDATES THE ATTACHMENTS RUNG:** `2df3549c` was pinned before cc landed rung 10 (`d73efed9`), so `STRANDED 192` was measured by a binary that could not carry an attachment at all. **The next run will move that number for a reason that is NOT question 7, and the two must not be confused when it does** -- re-run the committed apparatus and report a verdict plus a denominator.
 2. **THE AC GAP** -- WP-10's close only, still 0 of 114, still hv's to mint. vc's standard is three clauses: demonstrated red, subject named, shape named. I have not proposed a row and will not.
 3. **THE 29 SHIPPED-BUT-UNIMPLEMENTED ROWS** -- measured and pinned at `fddd787c`, sets compared member-by-member. The register fix is mine; `pending` exists and carries 1 of 29. **Do not touch while `native/**` is mid-edit.**
 4. **THE MORATORIUM QUESTION AND THE RESIDUE RULING** -- both hv's, neither blocking.
@@ -34,7 +34,7 @@ claims: [ST0056/10]
 - **vc** -- nothing owed either way. They hold the ST0056 claim, own the conservation tool, and are enumerating the 192 for hv. They know the baseline is taken and what it does and does not cover.
 - **cc** -- one live report, nothing owed back: their suite was running in the repo during hv's window and their mtime probe is contaminated. **Also open and theirs: `legacy.rs:499` still cross-references a trim `Issue::body` no longer declares.**
 - **dc** -- nothing owed. Their lint-directive class is closed; my five sites were the whole of it estate-wide.
-- **hv** -- three calls waiting, none mine: **question 7 (do the 748 sections get a destination)**, the moratorium, and the residue ruling.
+- **hv** -- three calls waiting, none mine: **question 7 (do the 748 sections get a destination -- inventoried and recommended by vc at `bb0baf85`, NOT yet ruled)**, the moratorium, and the residue ruling.
 
 ## Watch-outs
 
