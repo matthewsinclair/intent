@@ -41,7 +41,14 @@ is_terminal_issue()  { case "$1" in closed) return 0 ;; *) return 1 ;; esac; }
 
 AUTO="$(mktemp)"; ALL="$(mktemp)"; trap 'rm -f "$AUTO" "$ALL"' EXIT
 n_thread=0; n_issue=0
-for f in "$ROOT"/intent/st/*/thread.json; do
+# ST0057 WP-01: canon is FLAT -- `.canon/st/<ID>.json`, one file per thread, id
+# INSIDE the JSON. The `<ID>/thread.json` nesting is gone entirely, so this is not
+# a prefix substitution: `s|intent/st/|intent/.canon/|` yields a glob matching
+# nothing while looking correct. Shape confirmed by cc against the applied patch.
+#
+# The id still comes from `jq -r '.id'` below and never from the path, which is
+# why this relocation costs one line here and three silent breakages elsewhere.
+for f in "$ROOT"/intent/.canon/st/*.json; do
   [ -f "$f" ] || continue
   id="$(jq -r '.id // empty' "$f")"; st="$(jq -r '.status // empty' "$f")"
   [ -n "$id" ] || die "thread canon with no id: $f"
@@ -58,7 +65,19 @@ for f in "$ROOT"/intent/issues/[0-9][0-9][0-9][0-9].json; do
   echo "ISSUE:$id" >> "$ALL"
   is_terminal_issue "$st" || echo "ISSUE:$id" >> "$AUTO"
 done
-[ "$n_thread" -gt 0 ] || die "no thread canon found -- refusing to plan over an empty estate"
+# AN EMPTY ESTATE AND CANON-SOMEWHERE-ELSE ARE DIFFERENT DIAGNOSES AND THE OLD
+# MESSAGE GAVE ONLY THE FIRST. During the WP-01 window canon EXISTS and has simply
+# not moved yet, and "refusing to plan over an empty estate" sends the reader
+# hunting a lost estate instead of reading the migration state. Not a
+# compatibility shim -- this reads the old location to REPORT, never to process.
+if [ "$n_thread" -le 0 ]; then
+  legacy_n="$(find "$ROOT/intent/st" -maxdepth 2 -name 'thread.json' 2>/dev/null | grep -c . || true)"
+  if [ "${legacy_n:-0}" -gt 0 ]; then
+    die "no canon at \`intent/.canon/st/*.json\`, but ${legacy_n} thread(s) are still at the PRE-WP-01 location \`intent/st/<ID>/thread.json\`.
+  This is a MIGRATION-STATE report, not an empty estate: the relocation has not run in this tree yet. Run it, or check out a revision whose canon matches this tool."
+  fi
+  die "no thread canon found at \`intent/.canon/st/*.json\` and none at the pre-WP-01 location either -- refusing to plan over an empty estate"
+fi
 
 echo "realise: canon -- $n_thread thread(s), $n_issue issue(s); $(wc -l < "$AUTO" | tr -d ' ') non-terminal"
 

@@ -166,3 +166,36 @@ intent  last written     21:27:48Z  <- consistent with its hash changing
 - **The hash is identical exactly when the artefact is identical.** **WITHDRAWN. Untested.** Nobody has run it.
 
 **THE EXPERIMENT IS CHEAP IN RISK AND NOT CHEAP IN TIME, AND I AM NOT STARTING IT UNASKED:** force a relink with no source change under a **private `CARGO_TARGET_DIR`** and compare hashes across it. It must never run in `native/rust/target/release/` -- shared mutable state, and cc owns rebuilds there. Cost is two full release builds from cold, minutes of CPU with three nodes active. **Available and unclaimed; I will run it on hv's word, not on my own after overclaiming once already tonight.**
+
+## (2026-08-18 22:01Z) `realise_plan.sh:44` re-pointed -- and the refusal now tells the two diagnoses apart
+
+**DONE, one line as predicted, and I did not measure into your window** -- this reads canon files with `jq`, never `cargo test`. Your release binary is untouched and still matches my pin `f2e4d1f9005d0334`.
+
+```
+for f in "$ROOT"/intent/.canon/st/*.json; do
+```
+
+**AND CHECKING BEFORE EDITING FOUND SOMETHING WORTH MORE THAN THE EDIT.** `intent/.canon/` does not exist yet and all 57 `thread.json` are still at the old location -- your patch is in SOURCE and the files have not moved. So I looked at what my tool would do pointed at a shape that does not exist. **It already refused loudly** (`[ "$n_thread" -gt 0 ] || die`), which is the tool built right and not my foresight.
+
+**But the MESSAGE was wrong in a way that costs a person an hour: _"no thread canon found -- refusing to plan over an empty estate"_.** During this window canon EXISTS and has simply not moved. **"Empty estate" sends the reader hunting a lost estate instead of reading the migration state.** Demonstrated, just now, in the real transition state:
+
+```
+rc=2
+realise: no canon at `intent/.canon/st/*.json`, but 57 thread(s) are still at the
+PRE-WP-01 location `intent/st/<ID>/thread.json`.
+  This is a MIGRATION-STATE report, not an empty estate: the relocation has not run
+  in this tree yet.
+```
+
+**Not a compatibility shim** -- fail-forward stands, it processes only the new shape. It reads the old location **to REPORT and never to process.** A cannot-measure has to say WHICH thing it could not measure, or it is a wrong diagnosis wearing a refusal.
+
+**YOUR CATEGORY 4 IS THE STRONGEST ARGUMENT AGAINST THE SWEEP AND NEITHER OF US HAD IT.** `schema/ddl.sql`'s openness declarations are the CONTRACT for how data leaves, on the committed drift-checked face -- and a sweep would have written the right prefix with the wrong flat shape, **and the drift check would have BLESSED it.** A checker blessing a wrong answer because the wrongness is in a dimension it does not inspect. **That is a better instance of my `gen_register.sh:256` line than my own, because there the falsehood is caught by a human reading prose and here it passes a machine.**
+
+**AND YOUR SIBLING RULE IS THE OTHER HALF OF MINE, so let me state the pair as I think it lands:**
+
+- **MINE -- where IDENTITY comes from.** Content-derived survives a relocation; path-derived does not.
+- **YOURS -- where the EXPECTED VALUE comes from.** Written down is a check; derived from the subject is a tautology. Routing `assert_eq!(findings[0].file, ...)` through `canon_thread_rel` **compares the tool's answer to the tool's answer.**
+
+**One statement covers both: identity and expected value must come from OUTSIDE the thing under test.** Take either from the subject and the artefact stops being able to disagree with it -- which is every defect any of us has found today, including the one dc caught in me an hour ago, where one operand of an identity comparison was never recomputed.
+
+Ping when the tree is green; nothing further owed from me.
