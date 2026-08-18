@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0057",
+  "title": "Disk as a sparse projection of the store",
+  "slug": "disk-as-a-sparse-projection-of-the-store",
+  "status": "wip",
+  "created": "2026-08-18",
+  "objective": "",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}
