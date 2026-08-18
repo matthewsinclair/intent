@@ -60,6 +60,27 @@
 # found it by reading the parser, and a conservation check that silently did
 # not cover it would have been the more expensive discovery.
 #
+# A FOURTH AXIS, ALSO NOT COVERED (cc, 2026-08-18, found by a fixture rather
+# than by this tool). **The record survives, its prose survives, every scalar is
+# right, and the ORDER is different.** The store read attachments back
+# `ORDER BY path` while canon carried them in production order, so
+# `reference.md, parity/cmd-st.md` went in and `parity/cmd-st.md, reference.md`
+# came out. Under D34 that is the property the whole extract rests on: **a store
+# that reorders is a store that does not give back what it was given.** Fixed
+# with an explicit `seq`, the way `related` already solves it.
+#
+# Every arm here returns clean on that, structurally. Sections are compared by
+# (kind, id, heading) and each is hashed independently, so two sections that
+# swap places both still match. **Sequence is not a byte in any section.**
+#
+# And it is a sibling of the third axis rather than a separate lesson: both are
+# **the record surviving while something ABOUT the record does not** -- a field
+# value in one case, an order in the other. Recorded, not built. Note cc's own
+# caveat, which is the part that makes it frightening: **it would have been
+# invisible on this estate**, because the migrator sorts by path so the walk's
+# order and path order coincide. Only a fixture that wrote them in a different
+# order could ever have caught it.
+#
 # IT REFUSES RATHER THAN PASSES WHEN IT CANNOT SEE ITS SUBJECT. A migrated root
 # with no `st/` canon exits 2, and so does an empty census. Both would otherwise
 # produce a green over an empty comparison, which is the wrong-zero this whole
@@ -326,11 +347,11 @@ while IFS=$'\t' read -r _ path kind id bucket; do
   fi
 
   if [ "$kind" = issue ]; then
-    num="${id##*/}"
-    if [ -f "$CANON/issues/$num.json" ]; then
+    j="$(issue_canon_path "$id")"
+    if [ -f "$j" ]; then
       a_conv=$((a_conv + 1))
     else
-      report UNCONVERTED "$path (issue $id has no issues/$num.json)"
+      report UNCONVERTED "$path (issue $id has no ${j#"$CANON"/})"
     fi
     continue
   fi
@@ -539,6 +560,22 @@ declared_defer() {
   grep -qxF "$1" "$WORK/deferred"
 }
 
+# THE ISSUE CANON PATH IS BUILT ONCE, BECAUSE TWO ARMS BUILT IT DIFFERENTLY AND
+# ONLY ONE WAS RIGHT (ic, 2026-08-18, on the green half of the store rewire).
+# The artefact arm used `${id##*/}` and found `issues/0001.json`. The prose arm
+# stripped the leading zeros and looked for `issues/1.json`, which the migrator
+# has never written -- the strip was correct for the old unpadded `.md` home and
+# outlived it, carried across by my own rewire an hour earlier.
+#
+# **NEITHER ARM WAS WRONG LOUDLY. The artefact arm's SUCCESS and the prose arm's
+# FAILURE land in different counters and nothing compares them**, so 332 sections
+# read as LOST while `UNCONVERTED` sat at 1 -- two verdicts about the same 40
+# files, disagreeing in silence. Deleting the `sed` would have fixed the
+# instance; one construction closes the class. Highlander pointed at a path
+# expression rather than at a module, and it is the fourth time today three of
+# us have made this argument about three different things.
+issue_canon_path() { printf '%s/issues/%s.json' "$CANON" "${1##*/}"; }
+
 compare_prose() {
   local label="$1" raw="$2" trim="$3" file="$4" dest="${5:-modelled}" got
   got="$(shasum -a 256 <"$file" | cut -d' ' -f1)"
@@ -721,17 +758,16 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
   # An EMPTY destination is still LOSS and is still reported. What changed is
   # WHERE the destination is looked for, not whether one is required.
   if [ "$kind" = issue ]; then
-    num="${id##*/}"; num="$(printf '%s' "$num" | sed 's|^0*||')"
-    j="$CANON/issues/$num.json"
+    j="$(issue_canon_path "$id")"
     if [ ! -f "$j" ]; then
-      report LOST-PROSE "issue $id '$section' ($bytes bytes -- no issues/$num.json)"
+      report LOST-PROSE "issue $id '$section' ($bytes bytes -- no ${j#"$CANON"/})"
       c_lost=$((c_lost + 1))
       continue
     fi
     jq -j '.body // ""' "$j" >"$WORK/ibody" 2>/dev/null || : >"$WORK/ibody"
     section_text "$WORK/ibody" "$section" >"$WORK/f"
     if [ ! -s "$WORK/f" ]; then
-      report LOST-PROSE "issue $id '$section' ($bytes bytes -- issues/$num.json holds no such section in .body)"
+      report LOST-PROSE "issue $id '$section' ($bytes bytes -- ${j#"$CANON"/} holds no such section in .body)"
       c_lost=$((c_lost + 1))
       continue
     fi
