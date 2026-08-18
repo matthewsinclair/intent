@@ -138,7 +138,10 @@ fn start_is_legal_straight_from_triage() {
   let root = dir.path();
 
   ok(root, &["st", "new", "Add a Rust-based CLI"]);
-  assert_eq!(ok(root, &["st", "start", "ST0001"]).trim(), "ok: ST0001 started");
+  assert_eq!(
+    ok(root, &["st", "start", "ST0001"]).trim(),
+    "ok: ST0001 started"
+  );
 
   let shown = ok(root, &["st", "show", "ST0001"]);
   assert!(

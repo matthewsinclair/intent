@@ -13,7 +13,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::Attachment;
 
-
 /// The file extensions carried as [`crate::model::Attachment`]s.
 ///
 /// **A LIST, so the question is decidable without opening the file**, and
