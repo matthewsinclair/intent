@@ -211,6 +211,31 @@ EOF
     echo "revision: $full"
     echo "subtree: $SUBTREE"
     echo "captured_at: $now"
+    echo
+    # WHAT THIS CAPTURE CANNOT HOLD, SAID BESIDE WHAT IT DOES -- because the
+    # `subtree:` line above states a FACT and readers were drawing the wrong
+    # CONSEQUENCE from it, including me (ic, 2026-08-18, caught by vc).
+    #
+    # I reported that an AT row cited "a file that does not exist". The file
+    # exists at HEAD and at the pinned revision; it is absent HERE, because the
+    # extractor carries this subtree and nothing else. A claim about existence
+    # with no tree named is the same defect as a count with no tree named, which
+    # is what the STRANDED line beside this one was just fixed for.
+    #
+    # THE CONSEQUENCE IS STRUCTURAL AND PERMANENT, not a gap to be closed: this
+    # is an ESTATE fixture, not a REPOSITORY fixture. Any acceptance criterion
+    # citing a path outside the subtree can NEVER be satisfied inside a capture,
+    # however correct that criterion is against the real repository.
+    #
+    # AND THE DANGEROUS REMEDY IS THE OBVIOUS ONE, which is why this is a warning
+    # and not a note: the row is red here and green at HEAD, so the tempting fix
+    # is to edit the AT row until the corpus run goes green -- breaking a correct
+    # criterion to satisfy a fixture that was never able to answer it.
+    echo "# NOT CARRIED: everything outside $SUBTREE. This is an ESTATE fixture, not a"
+    echo "# repository one. An acceptance criterion citing a path outside $SUBTREE can"
+    echo "# NEVER pass inside this capture, however correct it is against the real repo"
+    echo "# -- so a red row here is not evidence the row is wrong. DO NOT edit a"
+    echo "# criterion to make a corpus run go green; verify it at the revision instead."
     echo "criterion: $why"
     echo
     echo "# Reproduce exactly this directory:"

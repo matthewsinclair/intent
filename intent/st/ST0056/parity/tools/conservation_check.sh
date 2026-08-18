@@ -1000,7 +1000,21 @@ echo "conservation: $n_census estate file(s) -- converted $a_conv, relocated $a_
 # ARE OPPOSITE. Merged, they read as one large expected-noise number and the half
 # that is real loss hides inside the half that is fine. STRANDED is the one that
 # has to reach zero.
-echo "conservation: v2 status buckets -- DOUBLED $c_doubled (superseded originals, content reached canon), STRANDED $c_stranded (THE ONLY COPY, reachable from nothing) $(subject_revision)"
+# AND THE LINE SAYS WHEN IT MEASURES NOTHING, AT THE LINE ITSELF (ic, 2026-08-18).
+# Found by running this tool over an UNMIGRATED capture. The run correctly exits
+# 2 and the last line says the accounting does not reconcile -- but THIS line
+# still printed `STRANDED 0`, and this is the line a reader greps for and quotes.
+# The rc does not travel with the string; adding the revision beside it made it
+# look MORE authoritative, not less. That is dc's finding-shaped-line class in
+# the mirror: a REPORT-shaped line emitted from a run that could not measure.
+# `converted 0` is known here and is the exact tell, so the line names it rather
+# than leaving a zero to be read as "nothing was lost".
+if [ "$a_conv" -eq 0 ]; then
+  stranded_validity=" -- BUT converted 0: NOTHING WAS MIGRATED, so this figure measures nothing"
+else
+  stranded_validity=""
+fi
+echo "conservation: v2 status buckets -- DOUBLED $c_doubled (superseded originals, content reached canon), STRANDED $c_stranded (THE ONLY COPY, reachable from nothing) $(subject_revision)$stranded_validity"
 # ALTERED is printed EXPLICITLY, including when it is zero, because against the
 # real migrator the healthy reading is `conserved 0`. `sections()` trims every
 # body, so nothing survives byte-identical and everything content-preserving lands
