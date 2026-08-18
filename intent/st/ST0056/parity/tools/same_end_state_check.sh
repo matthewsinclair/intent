@@ -2,6 +2,9 @@
 # same_end_state_check.sh -- does a re-run over an INTERRUPTED estate reach the
 # same end state as a CLEAN run?
 #
+# AC-10.11 / AT-10.11: an interrupted migration and an uninterrupted one reach
+# the same end state, and the interruption is DEMONSTRATED rather than simulated.
+#
 # This is the gate hv authorised for the cutover. hv ruled the hoist "big bang
 # and fix forward", which makes RE-RUNNING the normal recovery path rather than
 # an exceptional one -- so the property the migrator must have is not rollback

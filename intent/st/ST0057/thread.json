@@ -395,6 +395,14 @@
       "state": {
         "is": "computed"
       }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "**`.intentfiles` names ARTEFACTS and never enumerates FILES; `Project::classify` remains the single answer to what a file IS.** (vc 2026-08-18, on cc's finding while building the collector.) The two answer different questions -- the manifest answers _which artefacts are realised_, classify answers _what is this file_ -- and they COMPOSE: `STEELTHREAD:ST0056` realises the thread and, through classify, whatever files that thread produces. **Neither may acquire a second, independent enumeration of files**, because two declarations of which-files-matter agree for months and then quietly do not. Held mechanically: the manifest grammar admits no file-valued line, so a second enumeration is unrepresentable rather than merely discouraged.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "tests": [
@@ -595,7 +603,7 @@
         "AC-04.4"
       ],
       "status": "to-write",
-      "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+      "note": "**THE CRITERION ALREADY HAS A LIVE VIOLATOR AT HEAD, AND IT IS THE NORMAL PATH RATHER THAN AN EDGE CASE** (cc 2026-08-18, found while building the glyph fix): `views::write_all` calls `std::fs::write` UNCONDITIONALLY for every rendered view, with no content comparison and no guard, so **every sync moves mtime on all 266 views** (57 thread info + 57 acceptance + 150 WP info + steel_threads + todo) whether the bytes changed or not. **`to-write` here means the TEST is unwritten; it does NOT mean nothing is known.** The violation is measured, located and one line. **A content diff would report this estate as clean, which is exactly why the criterion is measured as the count of files whose MTIME MOVED.** cc has not fixed it -- it is WP-04's territory rather than something to smuggle into a glyph commit."
     },
     {
       "id": "AT-04.5",
@@ -785,6 +793,16 @@
       ],
       "status": "to-write",
       "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+    },
+    {
+      "id": "AT-02.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/intentfiles_names_artefacts_only.rs",
+      "covers": [
+        "AC-02.5"
+      ],
+      "status": "to-write",
+      "note": "assert the grammar REJECTS a file-valued line, and that classify is the only consumer deciding file identity -- a Highlander problem born ratified is the failure this row exists to prevent, raised by cc before WP-02 started rather than discovered inside it"
     }
   ],
   "attachments": [
