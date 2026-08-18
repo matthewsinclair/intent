@@ -89,15 +89,45 @@ Two nomination axes over the 40 tools in `parity/tools/`, adjudicating only the 
 
 **WHO QUOTES IT AND INTO WHAT.** ic supplied it by hand for four tools; there is no grep for it. A finding-shaped line nobody quotes is a wart; one that a peer reads into a status is what happened here. The harm concentrates where an instrument's output is quoted into a decision rather than a report -- and the two most dangerous shapes, a bare quantity and a bare identity, are exactly the ones with no vocabulary for a text filter to find.
 
+## The instrument for this class committed this class
+
+`canon_commit_check.sh` was built to catch canon asserting what it had not measured. **Its first draft skipped a thread recording zero attachments and printed _"every attachment matches"_ at exit 0, having compared nothing** -- reproduced at `6ab155ef` before the rewrite, which is what makes this evidence rather than an anecdote. 86 of 132 commits in this history record no attachments, so the vacuous case was **the majority of its input**, not a corner.
+
+It now exits 2 saying `This is NOT a pass`, closes its count in one line (measured + unmeasurable = population), and states its contract and its reach in the OUTPUT rather than in a comment -- the defect this whole document is about, which it had faithfully reproduced.
+
+**Building the instrument for a class while committing the class is not an aberration; it appears to be how the class is found at all.** ic wrote a `grep -c || echo 0` trap into their own harness after reading their own prose warning about it, in the file this tool later found stale.
+
+## Enumerate the exceptions, not the successes
+
+ic's admission bar required naming every subject AND stating the instrument's reach. Applied literally, the checker printed 57 per-thread counts before its verdict -- burying the load-bearing line and failing ic's own truncation rule in the same breath. **Two requirements collided, and the resolution collapses them into one:**
+
+> **AN INSTRUMENT SHOULD ENUMERATE ITS EXCEPTIONS, NOT ITS SUCCESSES.** A list of everything that worked is noise that pushes the finding off screen; a list of what it could not reach IS the reach statement. They are the same list.
+
+**With one condition that is what stops it being a duck: the count must close.** Measured plus unmeasurable equals the population, stated in the same line as the population. Without that, "enumerate only the gap" becomes a way to hide a third category -- a subject neither measured nor declared unmeasurable.
+
+## One statement, two directions
+
+The criterion was reasoned entirely from `c4f9bcbe`, where **canon ran AHEAD**: a sync ingested worktree bytes nobody had committed. The checker's first whole-tree run found the mirror at `3f10b1ee` -- **the file ran ahead and canon stayed BEHIND**, with a clean worktree, so canon named bytes present neither in the commit nor on disk.
+
+Both are one statement; a prohibition worded against one operation catches one of them. The invariant that covers both, and does not privilege whichever operation was in view when it was written:
+
+> **At every commit, every attachment's recorded bytes are obtainable from that commit.**
+
 ## The adjacent-proposition error
 
 Three instances in one afternoon, by three different nodes, **every one caught by the person next door rather than by any check**:
 
+Five instances in one afternoon, across three nodes:
+
 - a control calibrated on `lib/cmd/*` offered as evidence about `cmd/*` (dc, caught by vc)
 - a superlative placed on a peer's unverified mechanism (dc, caught by ic)
 - a measurement of one binary pair applied to an adjacent pair without re-measuring (dc, caught by cc)
+- a `find` scoped to `native/rust` reported as a fact about the tree, when the files were at the project root (cc, caught by vc)
+- a report scoped to one inbox, stated in the grammar of a claim about the estate (vc, caught by hv)
 
 The shape is one measurement, one proposition next door, and no step between them. **A false remedy is worse than none, because it terminates the search**: acting on the wrong mechanism produces a figure that looks validated and is not.
+
+**The asymmetry is the operational part.** Every instance caught by its own author was caught by adding a control against their own result. **Every instance not caught that way was caught by the node next door, and none by any check.** There is no grep for the scope of a probe, so the only mechanisms that work are a deliberate control against your own answer, and a second reader.
 
 ## What is closed and what is not
 
