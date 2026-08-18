@@ -43,6 +43,12 @@ fn issue(number: u32) -> Issue {
     // An apostrophe in a value bound as a SQL parameter -- the one that would
     // matter if any of these statements were ever built by interpolation.
     reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
+    // The same hostility, at the one field big enough to contain all of it: an
+    // issue body is prose, so it holds the quote that ends a SQL string, the
+    // semicolon that starts a second statement, and the newlines that make the
+    // whole thing multi-line -- which is where a hand-built statement fails.
+    body: "# 0007: it broke\n\n## Detail\n\nIt printed 'ok'; then it wasn't. A \"quote\", a | pipe.\n\n```sql\nDROP TABLE issues; -- not a heading, not a statement\n```\n"
+      .to_string(),
   }
 }
 

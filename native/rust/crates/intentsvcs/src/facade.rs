@@ -1361,6 +1361,9 @@ impl Facade {
       return Err(FacadeError::ThreadExists { id });
     }
     let thread = Thread {
+      // A thread created here has no files beside it yet; the walk that finds
+      // them runs at ingest, not at creation.
+      attachments: Vec::new(),
       // A thread created by v3 has no authored sections beyond the two the
       // model names; anything else arrives when a human writes it. The
       // preamble is the same case: v2 estates carry one, a thread this tool
@@ -2329,6 +2332,18 @@ impl Facade {
       created: String::new(),
       closed: None,
       reporter: reporter.map(str::to_string),
+      // **Empty because nobody has written one, which is a state and not a
+      // gap.** `issues add` takes a title and a severity; there is no body on
+      // the way in, so inventing a template here would put prose in the record
+      // that no author wrote -- the same reasoning that keeps template-identical
+      // sections out of `Thread.body`.
+      //
+      // The CREATE door for this field is therefore still missing, and it is
+      // named rather than left to be discovered: v2 authors a body by editing
+      // the file, and under hv's disk-optional model that route stops existing.
+      // Raised with vc; it is a surface question, not a conservation one -- the
+      // migration's carry is what the gate measures.
+      body: String::new(),
     };
     let mut next = self.canon.clone();
     next.issues.push(issue);

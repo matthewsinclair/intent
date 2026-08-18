@@ -28,6 +28,7 @@ use testkit::repo_root;
 
 fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
   Thread {
+    attachments: Vec::new(),
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),

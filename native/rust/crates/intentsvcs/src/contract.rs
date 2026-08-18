@@ -584,6 +584,9 @@ mod tests {
 
   fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     Thread {
+      // A thread created here has no files beside it yet; the walk that finds
+      // them runs at ingest, not at creation.
+      attachments: Vec::new(),
       body: String::new(),
       preamble: String::new(),
       schema: THREAD_SCHEMA.to_string(),

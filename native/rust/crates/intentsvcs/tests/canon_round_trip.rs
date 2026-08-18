@@ -71,6 +71,11 @@ fn issue(number: u32) -> Issue {
     // the canonical JSON survives the characters that break naive quoting, and
     // a name is the field most likely to carry an apostrophe in real data.
     reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
+    // The body is where JSON's own escapes have to survive a round trip -- a
+    // literal backslash, an embedded quote and the newlines that make a one-
+    // line encoder look correct until it meets prose.
+    body: "# 0007: an issue with a \"quote\"\n\n## Detail\n\nA backslash \\\\ and a tab\tin the middle.\n"
+      .to_string(),
   }
 }
 

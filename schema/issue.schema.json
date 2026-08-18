@@ -12,6 +12,11 @@
   "additionalProperties": false,
   "description": "An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).",
   "properties": {
+    "body": {
+      "default": "",
+      "description": "The issue's authored prose: everything below the frontmatter, verbatim.\n\nCarried whole and never parsed. An issue's headings are its author's, not\na template's, so there are no fields for a parse to land in -- and\nparsing into nothing is how prose becomes a drop that no surface reports.\n\n**No normalisation at all**, including the blank line the format puts\nbetween the frontmatter and the first heading. Rendering the frontmatter\nand then this reproduces the file byte for byte, which is what makes the\nround trip lossless without anything having to compensate for it.",
+      "type": "string"
+    },
     "closed": {
       "description": "When it was closed, if it is closed.",
       "type": [
@@ -66,5 +71,5 @@
   "title": "Issue",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 7
+  "x-schema-json-ver": 9
 }

@@ -29,10 +29,10 @@ use std::path::Path;
 
 use crate::finding::{Finding, FindingClass};
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, Issue, THREAD_SCHEMA, TShirt,
-  Thread, ThreadStatus, WorkPackage, WpStatus,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, THREAD_SCHEMA,
+  TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
-use crate::project::Project;
+use crate::project::{Project, ThreadFile};
 
 /// What Phase A found.
 /// The template a dropped section is claimed identical to, cited by PATH and
@@ -76,6 +76,19 @@ pub struct Disposition {
 pub enum Verdict {
   /// The section is not carried: byte-identical to the template that made the
   /// file, so no author wrote it.
+  ///
+  /// **"STILL ON DISK" IS NOT THIS, and the distinction is what the reading
+  /// tool exists to say** (vc). `dropped` means content existed, was
+  /// deliberately not brought across, and canon is verified empty for it --
+  /// safe precisely because nobody wanted it. A file outside the carried
+  /// extensions is still on disk, still the only copy, and nothing was
+  /// removed.
+  ///
+  /// This record is a LICENCE rather than an account: `conservation_check.sh`
+  /// reads a declared drop as "removed on purpose, not loss" and stops
+  /// reporting it. **Admitting uncarried files here would silence the exact
+  /// population the check exists to find** -- a migrator zeroing a counter by
+  /// naming everything, which is certifying its own denominator.
   Dropped,
   /// The section IS carried and the renderer's own copy stands down for it.
   /// Canon is unchanged either way; what changes is the view.
@@ -372,7 +385,10 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       .collect::<Vec<_>>()
       .join("\n\n");
 
+    let attachments = attachments(project, &id, closed, &mut out);
+
     out.threads.push(Thread {
+      attachments,
       body: carried_body,
       preamble: preamble(body),
       schema: THREAD_SCHEMA.to_string(),
@@ -469,6 +485,77 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
   Ok(out)
 }
 
+/// Carry the authored files under a thread that no typed document holds.
+///
+/// **THE REPORT IS THE POINT, not the carry.** A file outside the declared
+/// extensions is recorded by path, every time, because the failure this whole
+/// field exists to prevent is not "the wrong files were carried" -- it is a
+/// disk becoming optional and something vanishing that no surface ever said
+/// was uncovered. On this estate that is 196 generated TAP baselines, 38 shell
+/// instruments and 2 `.tsv` census outputs: all of them things the repository
+/// versions and tools consume, none of them the record of the work.
+///
+/// **Text is carried with NO normalisation at all -- not even the trailing-
+/// newline trim `Issue::body` declares.** An attachment round-trips to a file
+/// on disk, so byte-equality is the property, and a trim would make every
+/// round trip lose one byte per file forever.
+fn attachments(project: &Project, id: &str, closed: bool, out: &mut Scan) -> Vec<Attachment> {
+  let dir = project.thread_dir(id);
+  let mut carried = Vec::new();
+  for rel in project.thread_files(id) {
+    match Project::classify(&rel) {
+      // Consumed by the parsers above -- carrying them here as well would give
+      // one file two homes in the model.
+      ThreadFile::TypedDoc | ThreadFile::GeneratedView | ThreadFile::Canon => continue,
+      ThreadFile::Attachment => {
+        let path = dir.join(&rel);
+        let name = project.relative(&path);
+        match std::fs::read(&path) {
+          // **Refused BY NAME with the reason, never stored as a blob and
+          // never skipped.** `sync` already takes this posture on a file it
+          // cannot read as text, and a migrator that silently drops what it
+          // cannot decode is the exact failure mode being fixed.
+          Ok(raw) => match String::from_utf8(raw) {
+            Ok(text) => carried.push(Attachment::new(rel.to_string_lossy(), text)),
+            Err(_) => out.record(
+              closed,
+              Finding::new(
+                &name,
+                FindingClass::UnknownFileShape,
+                "not valid UTF-8, so it cannot be carried as text",
+              ),
+            ),
+          },
+          Err(e) => out.record(
+            closed,
+            Finding::new(
+              &name,
+              FindingClass::UnknownFileShape,
+              format!("could not be read: {e}"),
+            ),
+          ),
+        }
+      }
+      // **NOT a disposition, and vc's reason is the founding sentence of the
+      // tool that reads that record: "still on disk" is not a disposition.**
+      //
+      // `dropped` means content existed, was deliberately not brought across,
+      // AND canon is verified empty for it -- safe because nobody wanted it.
+      // These files are still on disk, still the only copy, and nothing was
+      // removed. **The disposition record is a LICENCE, not an account**:
+      // `conservation_check.sh` reads a declared drop as "removed on purpose,
+      // not loss" and stops reporting it, so filing 237 uncarried files there
+      // would silence the exact population the check exists to find.
+      //
+      // Their home is `doctor`, because an uncarried file is a LIVE CONDITION
+      // rather than a record of what a migration once did.
+      ThreadFile::Unattached => continue,
+    }
+  }
+  carried.sort_by(|a, b| a.path.cmp(&b.path));
+  carried
+}
+
 /// v2's issue estate: `intent/issues/{OPEN,CLOSED}/<nnnn>/<nnnn>-<slug>.md`.
 ///
 /// **A SEPARATE WALK BECAUSE IT IS A SEPARATE ESTATE**, sharing no ancestor
@@ -500,13 +587,17 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
 /// means converted data, which is a readable answer; a plausible date would
 /// not be.
 ///
-/// **THE BODY HAS NO HOME AND THIS DOES NOT INVENT ONE.** 503 sections and
-/// 658,676 bytes across the 61, with 30 distinct headings of which **21 appear
-/// exactly once** -- the same catch-all argument `Thread.body` settled one
-/// entity over, and the same conservation hole. `Issue` has no body field, so
-/// it is not dropped here quietly: it is reported to vc to price, because a
-/// model change is theirs and because inventing a field mid-walk is how the
-/// preamble nearly went into `body`.
+/// **THE BODY NOW HAS A HOME AND IS CARRIED WHOLE.** It had none when this
+/// walk was written -- 503 sections and 658,676 bytes across the 61, 30
+/// distinct headings of which **21 appear exactly once** -- and the hole was
+/// reported to vc to price rather than closed here, because a model change is
+/// theirs and inventing a field mid-walk is how the preamble nearly went into
+/// `body`. vc specced [`Issue::body`]; this is the carry.
+///
+/// Everything below the frontmatter, verbatim, and nothing parsed out of it.
+/// **The `# <nnnn>: <title>` line is carried rather than reconstructed**: it
+/// rebuilds from `number` + `title` on 37 of this estate's 40 and fails on
+/// 0011, 0014 and 0035, whose v2 frontmatter quotes the title.
 fn issues(project: &Project, out: &mut Scan) {
   for bucket in ["OPEN", "CLOSED"] {
     let dir = project.intent_dir().join("issues").join(bucket);
@@ -537,7 +628,7 @@ fn issues(project: &Project, out: &mut Scan) {
         );
         continue;
       };
-      let (front, _body) = frontmatter(&text);
+      let (front, body) = frontmatter(&text);
 
       // **The id is QUOTED in v2 -- `id: "0015"` on all 61 -- so the quotes come
       // off before parsing.** Left on, every issue in the estate fails to parse
@@ -618,6 +709,18 @@ fn issues(project: &Project, out: &mut Scan) {
         created: front.get("date").cloned().unwrap_or_default(),
         closed: None,
         reporter: front.get("reporter").filter(|s| !s.is_empty()).cloned(),
+        // **VERBATIM, and not even trimmed** -- the leading blank line the
+        // format puts between the frontmatter and the title is part of the
+        // file, so it is part of the field.
+        //
+        // It WAS trimmed, on `Thread::preamble`'s precedent, and that was
+        // right only while nothing rendered an issue back to a disk. vc has
+        // since scheduled that renderer, at which point a trim guarantees a
+        // one-byte loss on every round trip unless a second place remembers to
+        // put the byte back. **A normalisation that needs a future component
+        // to compensate is a scheduled defect**; carrying the bytes needs
+        // nobody to remember anything.
+        body: body.to_string(),
       });
     }
   }

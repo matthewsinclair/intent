@@ -22,7 +22,7 @@ use serde::de::DeserializeOwned;
 
 use crate::finding::{Finding, FindingClass, Refusal};
 use crate::model::{ISSUE_SCHEMA, Issue, THREAD_SCHEMA, Thread};
-use crate::project::Project;
+use crate::project::{Project, THREAD_PROSE};
 use crate::prose::{self, DocSection};
 use crate::store::{Store, StoreError};
 use crate::sync::{self, FileState};
@@ -91,12 +91,6 @@ impl From<Refusal> for IngestError {
     Self::Refused(refusal)
   }
 }
-
-/// The authored prose files that belong to a thread. Generated views
-/// (`info.md`, `acceptance.md`) are deliberately absent: a view is rendered
-/// from the model, so indexing it would index the model twice and let a stale
-/// view answer a search.
-const THREAD_PROSE: &[&str] = &["design.md", "impl.md", "tasks.md"];
 
 /// Validate ONE thread's committed canon: parse, then the two checks that only
 /// make sense against the id the file was found under.
@@ -170,14 +164,21 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
           ));
           continue;
         }
-        let body = project.issue_md(number);
-        if body.is_file() {
-          let text = read_to_string(&body)?;
+        // **FROM THE FIELD, NOT FROM A SIBLING FILE, and the swap is the point
+        // of the field.** This read `issues/<nnnn>.md` if one existed. None
+        // ever did -- nothing wrote one -- so the branch indexed nothing here
+        // while all 40 bodies sat in the v2 estate the migration reads, and a
+        // search for an issue's own words returned an empty match.
+        //
+        // Keeping both would give one issue's prose two homes, which is the
+        // Highlander violation vc named as rule 1 of the attachment spec: a
+        // file is a typed doc OR carried content, never both.
+        if !issue.body.is_empty() {
           canon.sections.append(&mut prose::split(
             "issue",
             &number.to_string(),
-            &project.relative(&body),
-            &text,
+            &rel,
+            &issue.body,
           ));
         }
         canon.issues.push(issue);

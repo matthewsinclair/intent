@@ -288,3 +288,65 @@ fn an_absent_issue_estate_is_not_a_finding() {
   assert!(scan.issues.is_empty());
   assert!(scan.residue.is_empty() && scan.carried.is_empty());
 }
+
+/// **The body is carried WHOLE and byte-for-byte, which is the property that
+/// lets the disk stop being where an issue lives.**
+///
+/// It had no field at all until vc specced one: 40 files and 443,643 bytes on
+/// this project, in the v2 estate and nowhere else. Under the old model that
+/// was residue; under an index-plus-render-on-demand disk it is what the first
+/// render destroys.
+///
+/// **Reassembling the frontmatter and this reproduces the file exactly**, so
+/// the round trip needs nothing to compensate for it. An earlier cut trimmed,
+/// on `Thread::preamble`'s precedent, and that was safe only while nothing
+/// rendered an issue back to disk -- a normalisation that needs a future
+/// component to remember something is a scheduled defect, not a tidy-up.
+#[test]
+fn the_body_is_carried_verbatim_including_the_blank_line_below_the_frontmatter() {
+  let fixture = Fixture::new();
+  project(&fixture);
+  let front = v2_front("0007", "OPEN");
+  let body = "## Tags\n\nshell, parsing\n\n## Summary\n\nIt printed `ok` and was not.\n";
+  issue(&fixture, "OPEN", "0007", "x", &front, body);
+
+  let scan = scan(&fixture);
+  let carried = &scan.issues[0].body;
+
+  // The fixture writes `---\n{front}---\n\n# 0007: A title\n\n{body}`, so
+  // everything below the frontmatter fence is exactly this.
+  assert_eq!(
+    carried,
+    &format!("\n# 0007: A title\n\n{body}"),
+    "verbatim: the blank line, the `# ` title line and every heading the author \
+     wrote, in the order they wrote them"
+  );
+  assert!(
+    carried.ends_with('\n'),
+    "the trailing newline survives -- a POSIX text file has one, and losing it \
+     costs a byte on every round trip once the renderer exists"
+  );
+}
+
+/// **The `# <nnnn>: <title>` line is CARRIED, not reconstructed, and that is
+/// measured rather than assumed.**
+///
+/// It rebuilds from `number` + `title` on 37 of this project's 40 issues and
+/// fails on three, whose v2 frontmatter QUOTES the title -- so a reconstruction
+/// would have been correct-looking on 37 files, wrong on 3, and silent on all
+/// 40. The same estate is why `id` is unquoted before parsing.
+#[test]
+fn a_heading_that_does_not_match_the_frontmatter_title_still_survives() {
+  let fixture = Fixture::new();
+  project(&fixture);
+  fixture.write_file(
+    "intent/issues/OPEN/0011/0011-x.md",
+    "---\nid: \"0011\"\ntitle: \"a quoted title\"\ndate: 2026-08-05\nreporter: matts\nstatus: OPEN\nseverity: medium\n---\n\n# 0011: a quoted title\n\n## Summary\n\nx\n",
+  );
+
+  let scan = scan(&fixture);
+  assert!(
+    scan.issues[0].body.contains("# 0011: a quoted title"),
+    "the heading the author wrote is in the body, whatever the frontmatter says"
+  );
+}

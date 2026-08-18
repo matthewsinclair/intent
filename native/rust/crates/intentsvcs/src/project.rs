@@ -11,6 +11,61 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+/// The authored prose files parsed into the model, at a thread's root.
+///
+/// Generated views (`info.md`, `acceptance.md`) are deliberately absent: a
+/// view is rendered from the model, so indexing it would index the model twice
+/// and let a stale view answer a search.
+pub const THREAD_PROSE: &[&str] = &["design.md", "impl.md", "tasks.md"];
+
+/// The file extensions carried as [`crate::model::Attachment`]s.
+///
+/// **A LIST, so the question is decidable without opening the file**, and
+/// extending it is an explicit act rather than a classifier quietly changing
+/// its mind. Nothing here inspects content or forms a view about whether a
+/// file "feels authored".
+///
+/// **THE PRINCIPLE THE LIST ENCODES: no tool can make this again, versus a
+/// tool made this and can again** (vc, on measuring the estate). It is the
+/// authorship axis the view/attachment split already runs on, one level down,
+/// which makes it one idea in two places rather than two rules.
+///
+/// So `.sh` is IN. The shell here is hand-authored and unreproducible -- on
+/// this project it is the instruments that verify the migration, including the
+/// one whose whole job is to prove content was not lost, and a clone of the
+/// canon would not have contained the tools that prove the canon. Generated
+/// baselines stay out: a tool's committed output is regenerable, so carrying
+/// it buys nothing.
+///
+/// **One consequence carried openly rather than solved: a mode bit does not
+/// survive.** `text` is content, so an executable written back from the store
+/// arrives without its `+x`. That was the original reason to exclude
+/// executables and it has not stopped being true -- it is now outweighed,
+/// because a script that has to be `chmod +x` is recoverable and a script
+/// nobody kept is not.
+pub const ATTACHMENT_EXTENSIONS: &[&str] = &["md", "txt", "sh"];
+
+/// What a file sitting under a thread's directory is.
+///
+/// These partition the directory: every file is exactly one, and `Unattached`
+/// is the named remainder rather than a silent gap. **`doctor` reports the
+/// remainder by path, which is the property the whole scheme rests on** -- a
+/// disk that becomes optional destroys whatever nothing said was uncovered.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThreadFile {
+  /// `design.md` / `impl.md` / `tasks.md` -- parsed into the model.
+  TypedDoc,
+  /// Rendered from the model: the thread's cover, its acceptance contract, a
+  /// work package's cover.
+  GeneratedView,
+  /// `thread.json` -- the committed canon itself.
+  Canon,
+  /// Carried verbatim under [`ATTACHMENT_EXTENSIONS`].
+  Attachment,
+  /// Everything else. Reported by name, never silently skipped.
+  Unattached,
+}
+
 /// The per-project config (`intent/.config/config.json`).
 ///
 /// Unknown fields are PERMITTED here, and that is deliberate rather than an
@@ -448,14 +503,51 @@ impl Project {
     self.intent_dir().join("issues")
   }
 
+  /// What a file under a thread's directory IS, given its path relative to
+  /// that directory.
+  ///
+  /// **One classifier, because the alternative is three lists that drift.**
+  /// Ingest needs to know what to carry, `doctor` needs to know what is
+  /// uncovered, and the renderer needs to know what it owns -- and the moment
+  /// those are three separate answers, a file can be an attachment to one and
+  /// a view to another. Every caller asks here.
+  pub fn classify(rel: &Path) -> ThreadFile {
+    let name = rel.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+    let depth = rel.components().count();
+
+    // A generated view is checked FIRST and by its full shape, not its name.
+    // `info.md` at the thread root is the generated cover; `WP/01/info.md` is
+    // the work package's. A file called `info.md` three levels down under a
+    // parity directory is neither, and matching on the bare name would take
+    // an author's file and call it ours.
+    if depth == 1 && (name == "info.md" || name == "acceptance.md") {
+      return ThreadFile::GeneratedView;
+    }
+    if depth == 3 && name == "info.md" && rel.starts_with("WP") {
+      return ThreadFile::GeneratedView;
+    }
+    if depth == 1 && name == "thread.json" {
+      return ThreadFile::Canon;
+    }
+    if depth == 1 && THREAD_PROSE.contains(&name) {
+      return ThreadFile::TypedDoc;
+    }
+
+    let ext = rel
+      .extension()
+      .and_then(|e| e.to_str())
+      .unwrap_or_default()
+      .to_ascii_lowercase();
+    if ATTACHMENT_EXTENSIONS.contains(&ext.as_str()) {
+      ThreadFile::Attachment
+    } else {
+      ThreadFile::Unattached
+    }
+  }
+
   /// The committed structured canon for one issue, `issues/<nnnn>.json`.
   pub fn issue_json(&self, number: u32) -> PathBuf {
     self.issues_dir().join(format!("{number:04}.json"))
-  }
-
-  /// The authored issue body, `issues/<nnnn>.md`.
-  pub fn issue_md(&self, number: u32) -> PathBuf {
-    self.issues_dir().join(format!("{number:04}.md"))
   }
 
   /// The intentdb (D21) -- gitignored, and the durable SSOT rather than a
@@ -507,6 +599,35 @@ impl Project {
   /// A thread's generated acceptance contract + coverage map.
   pub fn acceptance_view(&self, id: &str) -> PathBuf {
     self.thread_dir(id).join("acceptance.md")
+  }
+
+  /// Every file under a thread's directory, sorted, each as a path RELATIVE to
+  /// that directory -- the address [`Attachment::path`] carries.
+  ///
+  /// Recursive, so `parity/cmd-st.md` and `WP/01/notes.md` are reached without
+  /// a per-level collection. **Gitignored paths are excluded (D29): a path git
+  /// does not carry cannot be canon**, which is also what keeps a stray
+  /// `.DS_Store` out of the report by rule rather than by a special case.
+  pub fn thread_files(&self, id: &str) -> Vec<PathBuf> {
+    let dir = self.thread_dir(id);
+    let mut out = Vec::new();
+    let mut walk = ignore::WalkBuilder::new(&dir);
+    walk
+      .hidden(false)
+      .git_ignore(true)
+      .parents(true)
+      .git_global(false)
+      .git_exclude(false);
+    for entry in walk.build().filter_map(Result::ok) {
+      let path = entry.into_path();
+      if path.is_file()
+        && let Ok(rel) = path.strip_prefix(&dir)
+      {
+        out.push(rel.to_path_buf());
+      }
+    }
+    out.sort();
+    out
   }
 
   /// Every thread id with committed canon, sorted. Absent `st/` is an empty

@@ -163,14 +163,19 @@ fn generated_views_are_not_indexed_as_prose() {
   );
 }
 
+/// **The body is indexed from the FIELD, and the sibling file is not a second
+/// route to the same place.**
+///
+/// This wrote `intent/issues/0021.md` and searched for a word in it. No such
+/// file was ever produced by anything -- the model had no body field, so the
+/// migration had nowhere to put one -- which made the test a demonstration
+/// that a file nothing writes is indexed when hand-written.
 #[test]
 fn an_issue_body_is_indexed_against_its_issue() {
   let fx = Fixture::new();
-  fx.write_issue(&common::sample_issue(21));
-  fx.write_file(
-    "intent/issues/0021.md",
-    "# 0021\n\nThe credo_checks mechanism was a second enforcement path.\n",
-  );
+  let mut issue = common::sample_issue(21);
+  issue.body = "# 0021\n\nThe credo_checks mechanism was a second enforcement path.\n".to_string();
+  fx.write_issue(&issue);
 
   let mut store = Store::open_in_memory().expect("open");
   ingest::load(&fx.project(), &mut store).expect("load");
@@ -179,4 +184,77 @@ fn an_issue_body_is_indexed_against_its_issue() {
   assert_eq!(hits.len(), 1);
   assert_eq!(hits[0].owner_type, "issue");
   assert_eq!(hits[0].owner_id, "21");
+  assert_eq!(
+    hits[0].file, "intent/issues/0021.json",
+    "the hit addresses the canon that holds the prose, not a markdown file \
+     beside it -- under disk-optional there may be no such file to name"
+  );
+}
+
+/// The counter-arm: a body-shaped file beside the canon is NOT a second home.
+///
+/// Without this, the test above passes whether the field is indexed or the old
+/// file branch is -- the two are indistinguishable when the fixture writes
+/// both, which is how the removed branch survived having no producer.
+#[test]
+fn a_markdown_file_beside_the_issue_canon_is_not_indexed() {
+  let fx = Fixture::new();
+  let mut issue = common::sample_issue(21);
+  issue.body = "# 0021\n\nThe modelled prose.\n".to_string();
+  fx.write_issue(&issue);
+  fx.write_file("intent/issues/0021.md", "# 0021\n\nA quokka wrote this.\n");
+
+  let mut store = Store::open_in_memory().expect("open");
+  ingest::load(&fx.project(), &mut store).expect("load");
+
+  assert!(
+    store.search("quokka").expect("search").is_empty(),
+    "a file beside the canon is not canon: an issue's prose has one home"
+  );
+  assert_eq!(
+    store.search("modelled").expect("search").len(),
+    1,
+    "and the one home is still indexed"
+  );
+}
+
+/// **A heading that appears TWICE in one file yields TWO sections, and neither
+/// is collapsed into the other.**
+///
+/// Asked by vc, who found the class in their own census: `section_text` cuts by
+/// NAME, so two sections sharing a heading cannot both be addressed there, and
+/// whether the same limit reached ingest was NOT established. It does not: the
+/// splitter keys on POSITION (`seq`) and the heading is a label, so a duplicate
+/// is two addressable sections that happen to be called the same thing.
+///
+/// **The estate has exactly two such files** -- `ST0026/impl.md` carries
+/// `## Test Status` at lines 262 and 275, and one issue carries `## Related`
+/// twice -- so this is a bounded class rather than a worry, and it is pinned
+/// here rather than argued from a reading of the splitter.
+#[test]
+fn a_heading_repeated_in_one_file_yields_two_sections_rather_than_one() {
+  let fx = Fixture::new();
+  fx.write_thread(&common::sample_thread("ST0026"));
+  fx.write_file(
+    "intent/st/ST0026/impl.md",
+    "# Impl\n\n## Test Status\n\nThe first pass, red.\n\n## Notes\n\nBetween.\n\n## Test Status\n\nThe second pass, green.\n",
+  );
+
+  let mut store = Store::open_in_memory().expect("open");
+  ingest::load(&fx.project(), &mut store).expect("load");
+
+  let sections = store
+    .doc_sections_for("intent/st/ST0026/impl.md")
+    .expect("query");
+  let repeated: Vec<&str> = sections
+    .iter()
+    .filter(|s| s.heading.as_deref() == Some("Test Status"))
+    .map(|s| s.body.trim())
+    .collect();
+  assert_eq!(
+    repeated,
+    vec!["The first pass, red.", "The second pass, green."],
+    "both survive, in document order, with their own bodies -- a name-keyed \
+     reader would have kept one and lost the other with nothing reporting it"
+  );
 }

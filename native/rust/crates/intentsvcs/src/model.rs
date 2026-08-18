@@ -114,6 +114,19 @@ pub fn to_canonical_json<T: Serialize>(value: &T) -> serde_json::Result<String> 
   Ok(out)
 }
 
+/// The lowercase hex SHA-256 of some bytes.
+///
+/// Here rather than in `sync`, which had the only copy, because [`Attachment`]
+/// needs the same answer and two hashers is how two subsystems come to disagree
+/// about whether a file changed. `sync::scan` calls this one.
+pub fn sha256_hex(bytes: &[u8]) -> String {
+  use sha2::{Digest, Sha256};
+  Sha256::digest(bytes)
+    .iter()
+    .map(|b| format!("{b:02x}"))
+    .collect()
+}
+
 // ---------------------------------------------------------------------------
 // Steel thread
 // ---------------------------------------------------------------------------
@@ -240,6 +253,73 @@ pub struct Thread {
   pub criteria: Vec<Criterion>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub tests: Vec<AcceptanceTest>,
+  // PUBLISHED (D37) -- provenance here, contract in the `///` below.
+  //
+  // **The precondition for disk becoming optional, and it is measured rather
+  // than argued.** Of 485 `.md` under the thread estate, 380 are in the store
+  // and 52 are not -- one-off documents nobody modelled, found by counting and
+  // named by no surface at all. Under the old model that was residue; under an
+  // index-plus-render-on-demand disk it is what the first render destroys.
+  //
+  // **The line is by extension because the population is not what the ask
+  // sounds like.** 304 files under thread directories are none of the
+  // canonical five: 196 generated TAP baselines, 66 `.md`, 38 executable
+  // shell instruments, 2 `.txt`, 2 `.tsv`. Carrying all of it would put
+  // generated baselines and executables into the record of intent, and a store
+  // holding executables wants mode bits, binary payloads and a merge story --
+  // which is a version control system, and there is one a directory up.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub attachments: Vec<Attachment>,
+}
+
+/// An authored file carried under a thread verbatim, because nothing else in
+/// the model has a place for it.
+///
+/// The typed documents are parsed into fields. Everything else an author wrote
+/// beside them -- a plan, a reference, a journal -- has no fields to parse
+/// into, so it is carried whole rather than classified. **The content is
+/// OPAQUE: nothing reads it, splits it or normalises it.**
+///
+/// Which files qualify is decided by EXTENSION and nothing else, so the
+/// question is answerable without opening a file or forming a view about
+/// whether it feels authored. A file outside that set is reported by name; it
+/// is never silently passed over.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct Attachment {
+  /// Path relative to the thread's own directory, eg `reference.md`.
+  ///
+  /// Relative to the THREAD rather than the project, so a file nested under it
+  /// is addressed without a second collection to hold it.
+  pub path: String,
+  /// The file's content, byte for byte.
+  pub text: String,
+  /// The content's length in bytes.
+  pub bytes: u64,
+  /// Lowercase hex SHA-256 of the content.
+  ///
+  /// What the file was when it was carried. Comparing it to the file on disk
+  /// is how a hand edit is reported rather than silently overwritten.
+  pub sha256: String,
+}
+
+impl Attachment {
+  /// Carry `text` as the attachment at `path`.
+  ///
+  /// **The one constructor, because `bytes` and `sha256` are FUNCTIONS of
+  /// `text` and a second way to set them is a way for them to disagree with
+  /// it.** A stored hash that no longer describes the stored content reports
+  /// skew against a file that is fine, or stays quiet about one that is not --
+  /// and both failures look exactly like the check working.
+  pub fn new(path: impl Into<String>, text: impl Into<String>) -> Self {
+    let text = text.into();
+    Self {
+      path: path.into(),
+      bytes: text.len() as u64,
+      sha256: sha256_hex(text.as_bytes()),
+      text,
+    }
+  }
 }
 
 /// The ratified steel-thread machine (data-model.md, hv 2026-08-15). Declared
@@ -885,6 +965,41 @@ pub struct Issue {
   /// Who reported it, free text, exactly as recorded.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub reporter: Option<String>,
+  // PUBLISHED (D37) -- provenance here, contract in the `///` below.
+  //
+  // **THE FIELD `legacy.rs` REFUSED TO INVENT MID-WALK.** Its `issues()` doc
+  // says so in as many words -- "THE BODY HAS NO HOME AND THIS DOES NOT INVENT
+  // ONE" -- and reported the hole to vc to price rather than quietly dropping
+  // it or growing the model from inside a converter. vc specced it; this is
+  // the other end of that report.
+  //
+  // Measured on this estate: 40 issue files, 443,643 bytes, each of them the
+  // one markdown file in a v2 issue directory and nowhere else. Under the old
+  // model that was residue. **Under hv's disk-optional ruling it is data loss
+  // at the first render**, which is what moved it from a TODO to a gate.
+  //
+  // ONE FIELD, NOT A PARSE, and the estate is why: 503 sections over 30
+  // distinct headings of which 21 appear exactly once. A model naming the
+  // shapes it foresaw drops the rest, and the unforeseen remainder is the
+  // load-bearing half -- the argument `Thread.body` settled one entity over.
+  //
+  // **The `# <nnnn>: <title>` line is CARRIED, not reconstructed, and that is
+  // measured rather than assumed**: it reconstructs from `number` + `title` on
+  // 37 of 40 and NOT on 0011, 0014 and 0035, whose v2 frontmatter quotes the
+  // title. Dropping it would have been correct-looking on 37 files and wrong
+  // on 3 -- and silent on all 40.
+  /// The issue's authored prose: everything below the frontmatter, verbatim.
+  ///
+  /// Carried whole and never parsed. An issue's headings are its author's, not
+  /// a template's, so there are no fields for a parse to land in -- and
+  /// parsing into nothing is how prose becomes a drop that no surface reports.
+  ///
+  /// **No normalisation at all**, including the blank line the format puts
+  /// between the frontmatter and the first heading. Rendering the frontmatter
+  /// and then this reproduces the file byte for byte, which is what makes the
+  /// round trip lossless without anything having to compensate for it.
+  #[serde(default)]
+  pub body: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]

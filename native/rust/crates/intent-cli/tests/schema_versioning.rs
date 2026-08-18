@@ -218,10 +218,20 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // than one -- the same arithmetic, twice, in one commit. It is the region
   // above the first heading, which `legacy.rs` was dropping on the floor
   // entirely; 396 regions / 88,648 bytes across nine projects.
+  //
+  // **FOURTH AND FIFTH TIME, in one commit, and all three faces both times.**
+  // `Issue::body` -- the issue's authored prose, which had no field at all --
+  // and then `Thread::attachments`, the authored files beside a thread that no
+  // typed document held. Two entities, one subject: prose whose only home was
+  // a file on a disk that is about to become optional.
+  //
+  // Attachments move the DDL further than a column does: they are the first
+  // NEW TABLE since the ladder began, so the DDL hash moves for a `CREATE`
+  // rather than an `ALTER`.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 6, 0x17b3_ba4b_73a2_87f2),
-    ("SCHEMA_SDL_VER", 5, 0x2d83_3c2f_a2f4_c6ab),
-    ("SCHEMA_JSON_VER", 7, 0xcc1d_deba_981e_ea4c),
+    ("SCHEMA_DDL_VER", 8, 0x27c4_1686_71d4_814e),
+    ("SCHEMA_SDL_VER", 7, 0x165e_d25f_65a9_015d),
+    ("SCHEMA_JSON_VER", 9, 0x4e68_ef4a_0561_0fe9),
   ];
 
   let mut moved = Vec::new();

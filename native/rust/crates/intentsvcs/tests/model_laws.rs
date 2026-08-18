@@ -3,8 +3,8 @@
 //! name, never dropped (design.md D05).
 
 use intentsvcs::model::{
-  AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, Issue, IssueStatus,
-  Legacy, Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
+  AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue,
+  IssueStatus, Legacy, Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
   to_canonical_json,
 };
 use proptest::prelude::*;
@@ -135,7 +135,21 @@ prop_compose! {
 }
 
 prop_compose! {
-  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), preamble in "[A-Za-z0-9 ,.`|_-]{0,80}", related in prop::collection::vec(related(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
+  /// Built through the constructor, never field by field: `bytes` and `sha256`
+  /// are functions of `text`, so a generator setting them independently would
+  /// produce models the code cannot make and prove the laws against fiction.
+  fn attachment()(
+    dir in prop_oneof![Just(""), Just("parity/"), Just("WP/01/")],
+    name in "[a-z][a-z0-9_-]{2,15}",
+    ext in prop_oneof![Just("md"), Just("txt")],
+    text in "(?s)[A-Za-z0-9 \n#`|_-]{0,200}",
+  ) -> Attachment {
+    Attachment::new(format!("{dir}{name}.{ext}"), text)
+  }
+}
+
+prop_compose! {
+  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), preamble in "[A-Za-z0-9 ,.`|_-]{0,80}", related in prop::collection::vec(related(), 0..3), attachments in prop::collection::vec(attachment(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
     Thread {
       body: String::new(),
       // GENERATED, not blanked. A field pinned to the empty string in the
@@ -157,6 +171,7 @@ prop_compose! {
       objective,
       context,
       related,
+      attachments,
       wps,
       criteria,
       tests,
@@ -233,6 +248,7 @@ fn unknown_fields_are_refused_by_name() {
 
 fn sample_thread() -> Thread {
   Thread {
+    attachments: Vec::new(),
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
@@ -291,5 +307,7 @@ fn sample_issue() -> Issue {
     created: "2026-08-14".to_string(),
     closed: Some("2026-08-14".to_string()),
     reporter: Some("matts".to_string()),
+    body: "# 0021: prune the dead mechanism\n\n## Summary\n\nTwo mechanisms, one concern.\n"
+      .to_string(),
   }
 }

@@ -1256,6 +1256,44 @@ fn doctor() -> Result<(), Failure> {
   for withheld in withheld_flags() {
     println!("{withheld}");
   }
+  // **Named, every one, and NOT as findings.** These files are outside the
+  // carried extensions by design, so they are inventory rather than faults and
+  // they do not move the exit code. They are printed because the alternative
+  // is silence, and silence is what lets a file vanish when the disk stops
+  // being the place things live.
+  if !report.unattached.is_empty() {
+    // **The count LEADS and it is complete.** A summary carrying a whole
+    // denominator is not a truncation; a `head -20` with an ellipsis is (vc).
+    // The shape is what a reader needs first -- on this project 196 of these
+    // are one thread's TAP baselines, which is an outlier rather than the
+    // normal case, and a bare list of 237 paths says none of that.
+    let mut by_ext: Vec<(String, usize)> = Vec::new();
+    for path in &report.unattached {
+      let ext = std::path::Path::new(path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("(none)")
+        .to_string();
+      match by_ext.iter_mut().find(|(e, _)| *e == ext) {
+        Some((_, n)) => *n += 1,
+        None => by_ext.push((ext, 1)),
+      }
+    }
+    by_ext.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+    let shape: Vec<String> = by_ext.iter().map(|(e, n)| format!("{n} *.{e}")).collect();
+    println!(
+      "doctor: {} file(s) under a thread are not carried by the store",
+      report.unattached.len()
+    );
+    println!("        {}", shape.join(", "));
+    // **Every path, and no ellipsis.** The rule this satisfies is that a file
+    // must never disappear from the report -- appearing inside a counted group
+    // is fine, vanishing is not. It stays inline until `doctor` has a machine
+    // face to carry it, which needs a surface row and is not mine to add.
+    for path in &report.unattached {
+      println!("  {path}");
+    }
+  }
   println!(
     "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s)",
     report.findings.len(),
@@ -1960,6 +1998,18 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         println!("created: {}", issue.created);
         if let Some(closed) = &issue.closed {
           println!("closed: {closed}");
+        }
+        // **v2's `cmd_show` cats the whole file** (`bin/intent_issues:270`), so
+        // until the body was modelled this command showed strictly LESS than
+        // the tool it replaces -- the prose, and `reporter`, both carried and
+        // both unreachable. A field nothing can read is a field that is not
+        // there, and an issue is mostly its prose.
+        if let Some(reporter) = &issue.reporter {
+          println!("reporter: {reporter}");
+        }
+        if !issue.body.is_empty() {
+          println!();
+          println!("{}", issue.body);
         }
       }
       Ok(())

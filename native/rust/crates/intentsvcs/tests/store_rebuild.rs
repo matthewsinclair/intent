@@ -18,6 +18,13 @@ use intentsvcs::store::Store;
 
 fn canon() -> (Vec<Thread>, Vec<Issue>) {
   let thread = Thread {
+    // Carried rather than empty: this file's whole subject is that a store
+    // rebuilt from an extract is IDENTICAL, and a collection left empty in the
+    // fixture is identical whether the table is wired or missing.
+    attachments: vec![
+      intentsvcs::model::Attachment::new("reference.md", "# Reference\n\nCarried whole.\n"),
+      intentsvcs::model::Attachment::new("parity/cmd-st.md", "# st\n\nNested.\n"),
+    ],
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
@@ -98,6 +105,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     created: "2026-08-14".to_string(),
     closed: Some("2026-08-14".to_string()),
     reporter: Some("matts".to_string()),
+    body: "# 0021: prune the dead mechanism\n\n## Summary\n\nCompiled, never run.\n".to_string(),
   };
   (vec![thread], vec![issue])
 }

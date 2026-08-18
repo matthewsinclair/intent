@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 6
+-- SCHEMA_DDL_VER: 8
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -69,6 +69,30 @@ CREATE TABLE IF NOT EXISTS related (
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq)
 );
+-- Authored files under a thread that no typed document has a place for -- a
+-- plan, a reference, a journal. Carried whole; nothing here is parsed.
+-- `path` is relative to the THREAD's directory, which is why a file nested
+-- under it needs no second table to hold it, and why it is the key.
+-- `bytes` and `sha256` DESCRIBE `text` -- they are written by one constructor
+-- and never set independently, so a stored hash cannot come to disagree with
+-- the content it describes.
+-- openness: carried by intent/st/<ID>/thread.json
+-- `seq` is the ORDER THE PRODUCER CHOSE, carried rather than re-derived. The
+-- store gives back what it was given: a read that sorted by `path` would
+-- reorder a thread whose attachments arrived any other way, and canon compared
+-- against its own round trip would differ for a reason nothing in the data
+-- explains. `path` is still unique, so it is a UNIQUE rather than the key.
+CREATE TABLE IF NOT EXISTS attachments (
+  thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+  seq INTEGER NOT NULL,
+  path TEXT NOT NULL,
+  text TEXT NOT NULL,
+  bytes INTEGER NOT NULL,
+  sha256 TEXT NOT NULL,
+  written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (thread_id, seq),
+  UNIQUE (thread_id, path)
+);
 -- openness: carried by intent/st/<ID>/thread.json
 -- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
 -- `legacy` do on `tests`. v2 read scope as free text and one work package in
@@ -135,6 +159,11 @@ CREATE TABLE IF NOT EXISTS tests (
 -- to sit between, so `scope_legacy`'s shape would buy nothing. An issue is a
 -- report against a released version, which is what makes who filed it
 -- load-bearing rather than incidental.
+-- `body` is the issue's authored prose, carried whole and never parsed. It is
+-- here rather than in a sibling `<nnnn>.md` because hv ruled that disk becomes
+-- optional: prose whose only home is a file is destroyed by the first render,
+-- which is the defect this column exists to close rather than a style choice
+-- about where markdown lives.
 -- openness: carried by intent/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
   number INTEGER PRIMARY KEY,
@@ -145,6 +174,7 @@ CREATE TABLE IF NOT EXISTS issues (
   created TEXT NOT NULL,
   closed TEXT,
   reporter TEXT,
+  body TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

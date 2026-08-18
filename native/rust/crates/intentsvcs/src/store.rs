@@ -132,6 +132,30 @@ CREATE TABLE IF NOT EXISTS related (
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq)
 );
+-- Authored files under a thread that no typed document has a place for -- a
+-- plan, a reference, a journal. Carried whole; nothing here is parsed.
+-- `path` is relative to the THREAD's directory, which is why a file nested
+-- under it needs no second table to hold it, and why it is the key.
+-- `bytes` and `sha256` DESCRIBE `text` -- they are written by one constructor
+-- and never set independently, so a stored hash cannot come to disagree with
+-- the content it describes.
+-- openness: carried by intent/st/<ID>/thread.json
+-- `seq` is the ORDER THE PRODUCER CHOSE, carried rather than re-derived. The
+-- store gives back what it was given: a read that sorted by `path` would
+-- reorder a thread whose attachments arrived any other way, and canon compared
+-- against its own round trip would differ for a reason nothing in the data
+-- explains. `path` is still unique, so it is a UNIQUE rather than the key.
+CREATE TABLE IF NOT EXISTS attachments (
+  thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+  seq INTEGER NOT NULL,
+  path TEXT NOT NULL,
+  text TEXT NOT NULL,
+  bytes INTEGER NOT NULL,
+  sha256 TEXT NOT NULL,
+  written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (thread_id, seq),
+  UNIQUE (thread_id, path)
+);
 -- openness: carried by intent/st/<ID>/thread.json
 -- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
 -- `legacy` do on `tests`. v2 read scope as free text and one work package in
@@ -198,6 +222,11 @@ CREATE TABLE IF NOT EXISTS tests (
 -- to sit between, so `scope_legacy`'s shape would buy nothing. An issue is a
 -- report against a released version, which is what makes who filed it
 -- load-bearing rather than incidental.
+-- `body` is the issue's authored prose, carried whole and never parsed. It is
+-- here rather than in a sibling `<nnnn>.md` because hv ruled that disk becomes
+-- optional: prose whose only home is a file is destroyed by the first render,
+-- which is the defect this column exists to close rather than a style choice
+-- about where markdown lives.
 -- openness: carried by intent/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
   number INTEGER PRIMARY KEY,
@@ -208,6 +237,7 @@ CREATE TABLE IF NOT EXISTS issues (
   created TEXT NOT NULL,
   closed TEXT,
   reporter TEXT,
+  body TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -326,7 +356,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 8;
+pub const SCHEMA_VERSION: i32 = 10;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -618,6 +648,55 @@ const MIGRATIONS: &[(i32, &str)] = &[(
   // a store with the old shape.
   "ALTER TABLE threads ADD COLUMN preamble TEXT NOT NULL DEFAULT '';
    ALTER TABLE wps ADD COLUMN preamble TEXT NOT NULL DEFAULT '';",
+), (
+  9,
+  // 8 -> 9: `issues.body` -- the issue's authored prose, which had no home in
+  // the model at all and lived only in the v2 files the migration reads.
+  //
+  // Same ALTER argument as rungs 7 and 8, and appended at the tail for rung
+  // 8's reason: the walk runs this array in order, and a rung placed ahead of
+  // rung 3's rebuild is dropped by it and then stamped over as though it had
+  // landed.
+  //
+  // **`''` on every existing row is the honest value here for a sharper reason
+  // than on rung 7.** A store at version 8 was written by a binary whose
+  // `Issue` had no `body` field, so no ingest could have read one and no
+  // author's prose is being overwritten. The content arrives when the estate
+  // is re-read -- and on an already-migrated estate that means re-running the
+  // v2 conversion, because the v3 canon written before this rung never carried
+  // it either. That is a data question, not a schema one, and it is why the
+  // migrator's carry is the same commit as this column.
+  "ALTER TABLE issues ADD COLUMN body TEXT NOT NULL DEFAULT '';",
+), (
+  10,
+  // 9 -> 10: `attachments` -- the authored files under a thread that no typed
+  // document has a place for.
+  //
+  // **A CREATE rather than an ALTER, which is the first new table since the
+  // ladder began, and it is the easy case**: an empty table is a correct
+  // representation of a store that never read one, so there is nothing to
+  // back-fill and no existing row to reshape.
+  //
+  // Appended at the tail for rung 8's reason -- the walk runs this array in
+  // order, and anything placed ahead of rung 3's rebuild is silently dropped
+  // by it and then stamped over as though it had landed.
+  //
+  // **`CREATE TABLE` here is NOT redundant with the `IF NOT EXISTS` in `DDL`,
+  // and the difference is which stores each one reaches.** `DDL` runs on a
+  // store being created; this runs on one that already exists and is being
+  // walked forward. A store at version 9 has been through `DDL` once, at a
+  // revision that did not contain this table.
+  "CREATE TABLE IF NOT EXISTS attachments (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     seq INTEGER NOT NULL,
+     path TEXT NOT NULL,
+     text TEXT NOT NULL,
+     bytes INTEGER NOT NULL,
+     sha256 TEXT NOT NULL,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, seq),
+     UNIQUE (thread_id, path)
+   );",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -1003,6 +1082,10 @@ impl Store {
     tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM related WHERE thread_id = ?1", params![t.id])?;
+    tx.execute(
+      "DELETE FROM attachments WHERE thread_id = ?1",
+      params![t.id],
+    )?;
     tx.execute("DELETE FROM wps WHERE thread_id = ?1", params![t.id])?;
     // **UPSERT, not delete-and-reinsert, and the record timestamps are the
     // whole reason** (AC-02.8). A thread has durable identity, so destroying
@@ -1065,6 +1148,12 @@ impl Store {
       tx.execute(
         "INSERT INTO related (thread_id, seq, id, note) VALUES (?1, ?2, ?3, ?4)",
         params![t.id, seq as i64, r.id, r.note],
+      )?;
+    }
+    for (seq, a) in t.attachments.iter().enumerate() {
+      tx.execute(
+        "INSERT INTO attachments (thread_id, seq, path, text, bytes, sha256) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![t.id, seq as i64, a.path, a.text, a.bytes, a.sha256],
       )?;
     }
     for wp in &t.wps {
@@ -1158,7 +1247,7 @@ impl Store {
     // whose dates are somebody else's column with no error anywhere.
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8)
+        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9)
        ON CONFLICT (number) DO UPDATE SET
          slug = excluded.slug,
          title = excluded.title,
@@ -1167,10 +1256,11 @@ impl Store {
          created = excluded.created,
          closed = excluded.closed,
          reporter = excluded.reporter,
+         body = excluded.body,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
        RETURNING created, closed"
       ),
-      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter],
+      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter, i.body],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     )?;
     Ok(stored)
@@ -1198,6 +1288,7 @@ impl Store {
       tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![id])?;
       tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![id])?;
       tx.execute("DELETE FROM related WHERE thread_id = ?1", params![id])?;
+      tx.execute("DELETE FROM attachments WHERE thread_id = ?1", params![id])?;
       tx.execute("DELETE FROM wps WHERE thread_id = ?1", params![id])?;
       tx.execute("DELETE FROM threads WHERE id = ?1", params![id])?;
     }
@@ -1240,7 +1331,7 @@ impl Store {
   /// the mutation path (see [`Store::apply_changes`]).
   pub fn rebuild(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
+    tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM attachments; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
     for t in threads {
       // The RESTORE door: these dates were recorded before, and rebuilding a
       // store is not the project happening again.
@@ -1329,6 +1420,7 @@ impl Store {
         body,
         preamble,
         related: self.related_of(&id)?,
+        attachments: self.attachments_of(&id)?,
         wps: self.wps_of(&id)?,
         criteria: self.criteria_of(&id)?,
         tests: self.tests_of(&id)?,
@@ -1346,7 +1438,7 @@ impl Store {
     }
 
     let mut stmt = self.conn.prepare(
-      "SELECT number, slug, title, status, severity, created, closed, reporter FROM issues ORDER BY number",
+      "SELECT number, slug, title, status, severity, created, closed, reporter, body FROM issues ORDER BY number",
     )?;
     let issues = stmt
       .query_map([], |row| {
@@ -1359,6 +1451,7 @@ impl Store {
           row.get::<_, String>(5)?,
           row.get::<_, Option<String>>(6)?,
           row.get::<_, Option<String>>(7)?,
+          row.get::<_, String>(8)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -1366,7 +1459,7 @@ impl Store {
     let issues = issues
       .into_iter()
       .map(
-        |(number, slug, title, status, severity, created, closed, reporter)| {
+        |(number, slug, title, status, severity, created, closed, reporter, body)| {
           Ok(Issue {
             schema: ISSUE_SCHEMA.to_string(),
             number,
@@ -1377,12 +1470,34 @@ impl Store {
             created,
             closed,
             reporter,
+            body,
           })
         },
       )
       .collect::<Result<Vec<_>, StoreError>>()?;
 
     Ok((threads, issues))
+  }
+
+  /// One thread's attachments, in the order they were written.
+  ///
+  /// `bytes` and `sha256` are read back rather than recomputed from `text`.
+  /// Recomputing would make the round trip agree with itself by construction
+  /// and pin nothing -- the point of storing them is that a later read can
+  /// disagree with the content and say so.
+  fn attachments_of(&self, thread: &str) -> Result<Vec<crate::model::Attachment>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, text, bytes, sha256 FROM attachments WHERE thread_id = ?1 ORDER BY seq",
+    )?;
+    let rows = stmt.query_map(params![thread], |row| {
+      Ok(crate::model::Attachment {
+        path: row.get(0)?,
+        text: row.get(1)?,
+        bytes: row.get(2)?,
+        sha256: row.get(3)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
   fn related_of(&self, thread: &str) -> Result<Vec<Related>, StoreError> {

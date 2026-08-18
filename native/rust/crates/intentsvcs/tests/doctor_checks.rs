@@ -29,6 +29,7 @@ use intentsvcs::model::{
 /// which do not exist in a one-thread fixture.
 fn clean_thread(id: &str) -> Thread {
   Thread {
+    attachments: Vec::new(),
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
@@ -582,5 +583,106 @@ fn skew_is_judged_against_the_rendering_version() {
   assert_ne!(
     VERSION, "9.9.9-not-the-fixture-version",
     "the two versions must actually differ or this proves nothing"
+  );
+}
+
+/// **A stored hash that no longer describes its content is reported, not
+/// repaired.**
+///
+/// `Attachment::new` derives `bytes` and `sha256` from `text` and is the only
+/// constructor, so nothing in the codebase can make them disagree --
+/// **deserialisation is where that guarantee ends**, because `thread.json` is a
+/// file and a file can be edited. Recomputing the hash here would make the
+/// record agree with itself and destroy the only evidence that something wrote
+/// a value it should not have.
+#[test]
+fn an_attachment_whose_hash_does_not_describe_its_text_is_found() {
+  let fx = Fixture::new();
+  let mut thread = clean_thread("ST0001");
+  let mut a = intentsvcs::model::Attachment::new("reference.md", "# Reference\n");
+  a.text = "# Reference\n\nEdited after the hash was taken.\n".to_string();
+  thread.attachments = vec![a];
+  seed(&fx, &thread);
+
+  assert!(
+    details(&run(&fx)).contains("attachment reference.md carries sha256"),
+    "the finding names the attachment and both hashes: {}",
+    details(&run(&fx))
+  );
+}
+
+/// The counter-arm: an attachment built the one legitimate way is silent.
+///
+/// Without it the test above passes on a check that flags EVERY attachment,
+/// which would red every healthy project carrying one -- the failure mode of
+/// a rule that describes the model rather than the data.
+#[test]
+fn an_attachment_built_through_its_constructor_is_not_reported() {
+  let fx = Fixture::new();
+  let mut thread = clean_thread("ST0001");
+  thread.attachments = vec![intentsvcs::model::Attachment::new(
+    "reference.md",
+    "# Reference\n",
+  )];
+  seed(&fx, &thread);
+
+  assert!(
+    !details(&run(&fx)).contains("attachment "),
+    "a consistent attachment says nothing: {}",
+    details(&run(&fx))
+  );
+}
+
+/// **A file under a thread that the store does not hold is NAMED, and it is
+/// not a fault.**
+///
+/// The failure this prevents is a disk becoming optional and something
+/// vanishing because no surface ever said it was uncovered -- silence and full
+/// coverage read identically. **But it must not be a finding**: these files
+/// are outside the carried extensions by design, so counting them as faults
+/// would red 100% of a population behaving correctly, which is a rule
+/// describing the model rather than the data and is how a check gets deleted.
+#[test]
+fn an_uncarried_file_is_listed_by_path_without_making_the_project_unhealthy() {
+  let fx = Fixture::new();
+  let thread = clean_thread("ST0001");
+  seed(&fx, &thread);
+  fx.write_file("intent/st/ST0001/parity/baseline.tap", "ok 1 - a test\n");
+
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  assert_eq!(
+    report.unattached,
+    vec!["intent/st/ST0001/parity/baseline.tap".to_string()],
+    "named by path, from the thread root down"
+  );
+  assert!(
+    report.is_healthy(),
+    "and it is inventory, not a fault: {}",
+    details(&report.findings)
+  );
+}
+
+/// The counter-arm, and it is what makes the test above mean anything: a file
+/// the store DOES hold is absent from the list.
+///
+/// Without it, a `unattached` that simply listed every file under a thread
+/// would satisfy the assertion above perfectly and report nothing true.
+#[test]
+fn a_carried_file_and_a_generated_view_are_absent_from_the_uncarried_list() {
+  let fx = Fixture::new();
+  let mut thread = clean_thread("ST0001");
+  thread.attachments = vec![intentsvcs::model::Attachment::new(
+    "reference.md",
+    "# Reference\n",
+  )];
+  seed(&fx, &thread);
+  fx.write_file("intent/st/ST0001/reference.md", "# Reference\n");
+  fx.write_file("intent/st/ST0001/parity/baseline.tap", "ok 1\n");
+
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  assert_eq!(
+    report.unattached,
+    vec!["intent/st/ST0001/parity/baseline.tap".to_string()],
+    "the attachment and the generated views are held; only the .tap is not"
   );
 }

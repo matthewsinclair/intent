@@ -222,12 +222,16 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
     hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
   }
 
-  // 5 -> 6: `issues.reporter`, the one v2 issue key with no column. Added by
-  // `ALTER TABLE` rather than a rebuild -- a nullable column with no default is
-  // the one shape SQLite's `ADD COLUMN` accepts, so no row moves and no foreign
-  // key is momentarily dangling.
-  const PINNED_SCHEMA_HASH: u64 = 0x94b5_cff8_b16d_f7c0;
-  const PINNED_FOR_VERSION: i32 = 8;
+  // 8 -> 9 -> 10 in one commit, both rungs on the same subject: prose whose
+  // only home was a file. `issues.body` is the issue's authored body, which had
+  // no column because it had no model field -- the migration read every v2
+  // issue file and kept the frontmatter. `attachments` is the authored files
+  // beside a thread that no typed document held, and it is the FIRST NEW TABLE
+  // since this ladder began: a `CREATE` rather than an `ALTER`, which is the
+  // easy rung, because an empty table is a correct representation of a store
+  // that never had one and there is nothing to back-fill.
+  const PINNED_SCHEMA_HASH: u64 = 0x0084_17fe_4392_259c;
+  const PINNED_FOR_VERSION: i32 = 10;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

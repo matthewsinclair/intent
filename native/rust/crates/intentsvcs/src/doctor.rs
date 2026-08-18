@@ -57,6 +57,20 @@ pub struct Report {
   pub issues_checked: usize,
   pub files_checked: usize,
   pub views_checked: usize,
+  /// Files under a thread that the store does not hold, by path.
+  ///
+  /// **NOT findings, and the distinction is the whole design.** A finding
+  /// makes the project unhealthy and `doctor` exit 1; these files are outside
+  /// the carried extensions BY DESIGN, so reporting them as faults would flag
+  /// 100% of a population that is behaving correctly -- a rule describing the
+  /// model rather than the data, which is the shape that gets a check deleted.
+  ///
+  /// **They are listed by path anyway, and that is not a compromise between
+  /// the two.** The failure this exists to prevent is a disk becoming optional
+  /// and something vanishing because no surface ever said it was uncovered.
+  /// Silence and a clean bill of health are indistinguishable to a reader; a
+  /// list is neither.
+  pub unattached: Vec<String>,
 }
 
 impl Report {
@@ -245,6 +259,42 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   let mut add = |detail: String, class: FindingClass| {
     out.push(Finding::new(file, class, detail));
   };
+
+  // **An attachment's `bytes` and `sha256` DESCRIBE its `text`, and this is
+  // where that stops being guaranteed.**
+  //
+  // `Attachment::new` is the only constructor and derives both, so nothing in
+  // this codebase can make them disagree. **Deserialisation is not in this
+  // codebase's gift**: `thread.json` is a file, a file can be edited, and serde
+  // will happily read three fields that contradict each other.
+  //
+  // Reported rather than recomputed, for the reason the whole estate keeps
+  // relearning. Silently fixing the hash makes the record agree with itself and
+  // destroys the only evidence that something wrote a value it should not have
+  // -- and a stored hash that no longer describes its content is exactly what
+  // the skew check will later trust.
+  for a in &thread.attachments {
+    let actual = crate::model::sha256_hex(a.text.as_bytes());
+    if actual != a.sha256 {
+      add(
+        format!(
+          "attachment {} carries sha256 {} and its text hashes to {actual}",
+          a.path, a.sha256
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    } else if a.bytes as usize != a.text.len() {
+      add(
+        format!(
+          "attachment {} records {} bytes and its text is {}",
+          a.path,
+          a.bytes,
+          a.text.len()
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    }
+  }
 
   // **The marked-legacy scope form's two rules, which the TYPE cannot state.**
   //
@@ -672,6 +722,21 @@ fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report
   let skew = views::skew(project, canon, ctx);
   report.views_checked = views::render_all(project, canon, ctx).len();
   report.findings.extend(skew);
+
+  // **Every file under a thread that nothing in the model holds, named.** The
+  // classifier is `Project::classify` rather than a list repeated here: a
+  // second opinion about what an attachment is would let a file be carried by
+  // ingest and reported as uncovered by this, or the reverse and worse.
+  for thread in &canon.threads {
+    for rel in project.thread_files(&thread.id) {
+      if crate::project::Project::classify(&rel) == crate::project::ThreadFile::Unattached {
+        report
+          .unattached
+          .push(project.relative(&project.thread_dir(&thread.id).join(&rel)));
+      }
+    }
+  }
+  report.unattached.sort();
 
   // The working tree, scanned fresh. `previous` is empty deliberately: doctor
   // asks "can every modelled file be read as what it claims to be", which does

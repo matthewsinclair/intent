@@ -122,19 +122,16 @@ fn a_word_in_an_issue_body_is_found() {
   std::fs::create_dir_all(&issues).expect("mkdir issues");
   std::fs::write(
     issues.join("0001.json"),
-    "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\"\n}\n",
+    "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\",\n  \"body\": \"# 0001: Pelican drift\\n\\nThe pelican index drifts after a rebuild.\\n\"\n}\n",
   )
   .expect("write issue canon");
-  std::fs::write(
-    issues.join("0001.md"),
-    "# Pelican drift\n\nThe pelican index drifts after a rebuild.\n",
-  )
-  .expect("write issue body");
   restore_from_disk(root);
 
   let hits = ok(root, &["search", "pelican"]);
+  // The prose is IN the canon now, so the address a hit carries is the canon
+  // file. It used to be a sibling `0001.md` that only this test ever created.
   assert!(
-    hits.contains("0001.md"),
+    hits.contains("0001.json"),
     "issue bodies are searchable: {hits:?}"
   );
 }

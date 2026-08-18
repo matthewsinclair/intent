@@ -309,3 +309,44 @@ fn views_are_regenerated_by_every_mutation() {
     "the index reflects the mutation without anyone regenerating it by hand"
   );
 }
+
+/// **A SECOND mutation on a thread carrying attachments must replace them, not
+/// duplicate them.**
+///
+/// The defect this pins, which I shipped and the suite caught: `attachments`
+/// was wired into the write, the wholesale rebuild and the read, and NOT into
+/// either of the two per-thread clears that every other child collection has.
+/// So the first mutation succeeded and the second died on
+/// `UNIQUE constraint failed: attachments.thread_id, attachments.path`.
+///
+/// **A new child collection has FIVE sites, not three**, and the two easy to
+/// miss are the ones spelled the same way four times in a row -- a shape the
+/// eye reads as one thing. Grep for the rule, do not read for it.
+#[test]
+fn a_thread_carrying_attachments_survives_being_mutated_twice() {
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0056");
+  thread.attachments = vec![intentsvcs::model::Attachment::new(
+    "reference.md",
+    "# Reference\n",
+  )];
+  fx.write_thread(&thread);
+
+  let mut f = fx.facade();
+  f.wp_start("ST0056", 3).expect("first mutation");
+  f.wp_done("ST0056", 3)
+    .expect("second mutation on the same thread");
+
+  let (threads, _) = f.store().load_canon().expect("read back");
+  let carried = &threads
+    .iter()
+    .find(|t| t.id == "ST0056")
+    .unwrap()
+    .attachments;
+  assert_eq!(
+    carried.len(),
+    1,
+    "one attachment in, one out -- not two, and not none: {carried:?}"
+  );
+  assert_eq!(carried[0].path, "reference.md");
+}

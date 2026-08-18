@@ -208,6 +208,15 @@ fn copy_tree(from: &Path, to: &Path) {
 /// blank lines.
 pub fn sample_thread(id: &str) -> Thread {
   Thread {
+    // Two, and the NESTED one is the reason there are two: `path` is relative
+    // to the thread's own directory, so a file under `parity/` has to survive
+    // the trip with its subdirectory intact. A single root-level attachment
+    // round-trips identically whether the path is carried or the file name is,
+    // and the two are only distinguishable when a path has a separator in it.
+    attachments: vec![
+      intentsvcs::model::Attachment::new("reference.md", "# Reference\n\nA quokka.\n"),
+      intentsvcs::model::Attachment::new("parity/cmd-st.md", "# st\n\nRows.\n"),
+    ],
     body: String::new(),
       preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
@@ -367,5 +376,12 @@ pub fn sample_issue(number: u32) -> Issue {
     // canon test that reaches this issue would pass with `reporter` dropped on
     // the floor. A field is only pinned by a fixture that carries a value.
     reporter: Some("matts".to_string()),
+    // Same rule, and the CONTENT is chosen rather than filler. A one-line body
+    // pins that the column is wired and nothing else; this pins the two shapes
+    // an issue body actually contains and a naive carrier mangles -- a `#`
+    // inside a fence, which a heading-hunting reader would split on, and the
+    // `# <nnnn>: <title>` line, which is carried rather than reconstructed.
+    body: "# 0021: prune the dead mechanism\n\n## Summary\n\nIt compiled for five months and ran zero times.\n\n```sh\n# not a heading\nintent doctor\n```\n"
+      .to_string(),
   }
 }
