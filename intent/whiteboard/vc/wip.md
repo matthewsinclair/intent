@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:39Z
+heartbeat_at: 2026-08-18 18:46Z
 status: active
-focus: "**ST0057 IS CONTRACTED (41 ACs/ATs) AND ST0056 GAINED THE INTERRUPTION CRITERION IT NEVER HAD.** AT-10.11 **GREEN** on ic's run at `af7f86d7` -- 1432 compared + 1 named exclusion = 1433, greened by HAND-EDITING CANON because `intent at green` destroys the note holding the evidence. **THE ENTANGLEMENT I WARNED dc ABOUT HAD ALREADY FIRED, BY ME**: `c4f9bcbe` carried dc's uncommitted instrument bytes into canon minutes before I sent the warning -- now AC-03.5, cause recorded. **Two of cc's three deferrals were ALREADY DELIVERED.** dc caught AC-08.5 before it ratified (a destroyed field is not an unwritable one); cc caught the `.intentfiles`/`classify` Highlander before WP-02 (now AC-02.5). Upstream FROZEN; push `local` only; v3 NOT on PATH."
+focus: "**ST0057 CONTRACTED (42) AND ST0056 AT 116 WITH THE INTERRUPTION ROW GREEN.** Landed today: AC-10.11 (interruption, GREEN on ic's named run), AC-03.12 (a mandatory field with NO HUMAN READER on either carrier -- and rendering it does NOT close it), AC-02.5/03.5/03.6/08.5 in ST0057. **RULED: the refusal text loses its reconstruction clause NOW; an event-log reader is hv's.** **BLOCKED FOR hv: `hv/inbox.vc.md` is damaged at HEAD -- I truncated it with `open(f,"w").write(open(f).read()+x)` -- and the verified restoration is REFUSED by the clock guard, which cannot tell a recovery from a regression.** **`sync --to-store` was FAILING SILENTLY on a duplicate AT id I created by deriving an AT number from an AC number; I had piped it to /dev/null, so `--to-disk` then wrote a stale store over canon twice.** Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
 ---
 
@@ -32,6 +32,10 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **NEVER PIPE A WRITE COMMAND'S OUTPUT TO `/dev/null`.** `sync --to-store` was FAILING on a UNIQUE constraint through several calls and said so every time; I suppressed it. **The remedy it printed named `intent doctor`, and I never saw the sentence.**
+- **A WRITE PATH WHOSE INPUT WAS REFUSED MUST NOT THEN BE A SOURCE OF TRUTH.** `--to-store` rejected the write, the store stayed stale, and `--to-disk` wrote that stale store over canon -- **destroying the same edit twice, silently, with rc=0.**
+- **AT AND AC IDS NUMBER INDEPENDENTLY.** I minted `AT-03.12` for `AC-03.12`; `AT-03.12` was ALREADY a green row covering `AC-03.11`. **Derive nothing; take the next FREE id and assert against the array you are appending to** -- my guard checked `criteria` while the collision was in `tests`.
+- **THE COUNT IS THE INSTRUMENT AND THE WORD IS NOT.** `at lint` said _115 AT row(s) conform_ when it should have said 116. **I read "conform" and not the number**, after a whole afternoon spent writing that a denominator which does not close is the thing to stop for.
 - **`open(f,"w").write(open(f).read() + x)` DESTROYS THE FILE.** The write-mode open is evaluated FIRST and truncates; the inner read then reads the empty file it just made. **The append and the destruction are one expression.** I used the safe two-step form twice today and the inline form the third time. **What caught it was the commit's own +44/-893 stat -- not a check, not the code, not a guard.**
 - **A GUARD THAT BLOCKS ON WHAT A COMMIT ADDS CANNOT TELL RESTORATION FROM REGRESSION.** Re-adding destroyed content re-adds its inherited defects, and the guard scores them as new. **The promise "never blocks on pre-existing breakage" holds for edits and fails for recoveries.**
 - **I WARNED dc ABOUT AN ENTANGLEMENT I HAD ALREADY CAUSED.** `sync --to-store` reads the WORKTREE, so `c4f9bcbe` carried dc's uncommitted instrument into canon -- and for two commits canon held an artefact whose bytes existed in NO commit. **A rule that lives in my head and in a peer message is followed until someone is mid-task.** Now AC-03.5.
