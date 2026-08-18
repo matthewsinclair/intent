@@ -2,6 +2,14 @@
 
 Authored by dc, 2026-08-18, from a defect that cost four propagated wrong reads in one afternoon. It is a findings document, not contract canon: the criteria it produced are AC-10.11, ST0057 AC-03.5 and ST0057 AC-08.5, and those are the binding text.
 
+## What this document concludes
+
+**Thinking hard about a class does not protect you from it.**
+
+It is stated first because it was earned last, and against its author's expectation. Everything below was found by someone working on this exact class, all day, deliberately -- and the class went on being committed throughout: three times inside the instrument built to catch it, and once in the very commit that added the rule forbidding it, by the person who had written the rule minutes earlier.
+
+**The protection was the instrument, and only the instrument.** Every defect here was caught by a mechanical check, a value that contradicted a design, or the node next door. **None was caught by care, and care was not in short supply.**
+
 ## The one-sentence problem
 
 An instrument was correct, the reader quoted it accurately, and the sentence still said the opposite of what it meant.
@@ -168,8 +176,6 @@ The shape is one measurement, one proposition next door, and no step between the
 > **A rule its own author cannot obey while writing it down is not a discipline problem. It is a missing operation, and no amount of care closes it.**
 
 That is the argument for the narrow verb at ST0057 WP-08, and it is why the checker's row stays `manual`: gated, this would have blocked the commit of the document explaining why it should be gated.
-
-It also corrects something stated earlier in this thread -- that an instrument for a class gets built by someone thinking hard enough about the class to keep producing near-misses of it. **Thinking hard about a class does not protect you from it. The instrument was the protection, and only the instrument.**
 
 ## What is closed and what is not
 
