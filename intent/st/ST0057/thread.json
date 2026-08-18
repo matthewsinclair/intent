@@ -390,7 +390,7 @@
     },
     {
       "id": "AC-08.5",
-      "text": "**Every writable field of every entity is settable through the mutation surface, and a field that cannot be written is reported BY NAME.** The burning case is ST0011's `completed`, which is NULL on the estate's one genuinely wrong row and has no field-setter verb today -- the criterion is the completeness of the surface, with the unsettable set as the printed output.",
+      "text": "**Every writable field of every entity is settable through the mutation surface, and a field that cannot be written is reported BY NAME.** The burning case is ST0011's `completed`, which is NULL on the estate's one genuinely wrong row and has no field-setter verb today -- the criterion is the completeness of the surface, with the unsettable set as the printed output. **SECOND BURNING CASE (dc 2026-08-18): an AT row's `note`.** It is the only place this contract records WHY a row is where it is, several notes are load-bearing paragraphs, and **the only verbs that touch the row DESTROY it** (issue 0033) -- so the model holds a field the typed API cannot edit, and the sole route is a hand-edit of canon followed by `sync --to-store`. Recorded HERE rather than under a new decision number deliberately: a second home for one requirement is the failure this criterion exists to name.",
       "kind": "test",
       "state": {
         "is": "computed"

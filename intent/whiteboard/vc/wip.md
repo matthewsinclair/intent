@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:21Z
+heartbeat_at: 2026-08-18 18:32Z
 status: active
 focus: "**ST0057 IS IN THE 3.0.0 GATE (hv) AND NOW HAS A CONTRACT: 39 ACs, 39 ATs, one-to-one, every one derived from a ratified D57-x and none invented.** `ac status` 0/39 BLOCKED, `at lint` 39 conform, objective + context written. **CORRECTED A WRONG CLAIM I GAVE hv IN MY BOOT REPORT: AC-11.5 is CLOSED and I closed it myself on 2026-08-17; the clean-tree rebuild closes nothing and cannot be banked anyway (no `rerun-if-changed` on `.git/HEAD`).** Found on the way: **the v3 todo view collapsed SIX statuses to one constant, so 2 CANCELLED threads render as completed** (ic found the bucket half; cc is fixing), and **ST0056's canon held a STALE attachment for hours with nothing able to report it** -- the burning case for AC-03.4. hv AFK: cleared dc's `:280` string fix, released ic for the run, handed cc WP-01/WP-02. Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -31,6 +31,10 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **A ONE-STRING EDIT HAS A FAILURE MODE AND IT IS TIMING, NOT SIZE** (dc). Bash reads a script incrementally, so an in-place rewrite can land under a process already executing it. **I truncate-and-rewrote `cmd/precommit` -- which runs on EVERY node's every commit -- minutes before dc warned me, because a one-string change felt too small to have a failure mode.** Nothing broke; that is luck, not method. **Atomic replace into the same directory, always.**
+- **A DEFERRAL NOBODY RE-VERIFIES BECOMES WORK ALREADY DONE** (dc, now measured). **Two of cc's three deferred rows were DELIVERED** -- the `build.rs` embed (AT-11.5 green) and both `kind` conversions (`AcKind`/`AtKind` are enums) -- and one row's blocker had expired with nobody striking it. **Re-drive the PREMISE, never copy the row.**
+- **THE ROW DOES NOT GO GREEN ON A NUMBER I CANNOT ACCOUNT FOR.** ic's verdict read 1432 match over a population of 1433. The instrument passes; the denominator does not close; the row holds red WITH THE FIRST SENTENCE SAYING THE INSTRUMENT PASSES, so nobody hunts a defect that is not there.
+- **TWO FACES AGREEING BECAUSE NEITHER MEASURED IS THE STRONGEST FORM OF THE CLASS** (cc). `TodoItem` carried no status, so the bucketing lost the fact BEFORE either renderer saw it -- three buckets, six states. **Agreement between two derived views is not corroboration when both derive from the same loss.**
 - **ONE CLASS, THREE FACES, NAMED INDEPENDENTLY IN ONE HOUR.** **ic:** an instrument whose OUTPUT is independent of what it MEASURES. **vc:** a READING independent of what the instrument SAID. **dc:** an OUTPUT whose SHAPE is independent of its own MEANING. **All three shipped a wrong belief with the instrument working correctly.**
 - **A CAVEAT MUST TRAVEL WITH THE OUTPUT, NOT THE SOURCE** (dc). `self_provenance_check.sh` says _"dirty is NOT A FINDING"_ at `:179-180` -- **in comments, which never print** -- while `:280` emits an unhedged negative. **Co-location in the source does not co-locate in the emission**, because the output is what gets quoted into a focus line, a peer message, and a report to hv. It cost four propagated wrong reads in a day.
 - **AN ABSOLUTION CAN OVERSHOOT, AND ACCEPTING IT IS ITS OWN ERROR.** dc took the `:280` half honestly; the other half -- AC-11.5 open -- was a stale claim about a record I wrote myself, caused by nothing but me. **Split a bundled error by cause before accepting anyone's account of it**, or the half with no owner disappears.
