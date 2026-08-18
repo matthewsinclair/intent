@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 19:18Z
-status: active
-focus: "**THE FLAT VIEW WAS RENDERING SIX STATES AS ONE AND TWO OF THEM WERE LIES** -- `intent/todo.md` carried 82 rows and one glyph, so 2 of the 54 rows under `## DONE` were CANCELLED work (ST0010, ST0015) presented as completed. Landed `d8412be` + `7e3210c4`: 82 rows / 1 glyph -> 82 rows / 4 glyphs, [x]52 [~]2 [ ]17 [-]11, 65 rows changed, nothing else in the file moved. **The cut was at `TodoItem`, not at the renderer** -- it carried no status, so `--json` lost the same fact and BOTH FACES AGREED BY BOTH BEING WRONG. **No test existed on that view at all**; six added. **NOW ON AC-04.4** -- `views::write_all` moved mtime on all 266 views every sync; test demonstrated RED (10 of 10) then guarded, green. Data NOT repaired: ST0010/ST0015 are correctly Cancelled in canon. Suite 629/0 before AC-04.4. Upstream FROZEN."
+heartbeat_at: 2026-08-18 19:35Z
+status: paused
+focus: "FOLDED AND PAUSED on hv's instruction for a compact. **Landed today: the todo view's six-states-as-one glyph defect, AC-04.4's mtime guard (a no-op sync was rewriting all 266 views), `status_reason` rendered on four faces, and item 4(a) WITHDRAWN after measuring found my own recorded reason was half false.** Suite 634/0 at my last full run. **ST0057 WP-01 (canon relocation to `intent/.canon/`) IS STARTED AND DELIBERATELY REVERTED -- patch saved, tree left GREEN for peers.** Nothing of mine outstanding. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -15,152 +15,89 @@ claims: [ST0056/10]
 
 **D01 IS REVERSED: THE DB IS THE SSOT AND THE FILES ARE RE-CREATABLE.** Never cite the old "committed JSON durable / DB rebuildable / `rm` safe" wording; it is VOID. D34: the committed extract is the interchange. D29: a gitignored path is never canon, **and the ingest corpus excludes ignored paths.**
 
-**hv's DISK MODEL: no status directories, disk becomes OPTIONAL, index plus render-on-demand.** The moment disk is optional, anything the store does not hold is destroyed by the first render. **`realisation.md` 5.1 is the dehydration gate; 5.1b is the attachment asymmetry.**
+**hv's DISK MODEL: no status directories, disk becomes OPTIONAL, index plus render-on-demand.** ST0057 is IN the 3.0.0 gate (hv). `realisation.md` 5.1 is the dehydration gate; 5.1b is the attachment asymmetry.
 
 ## D42 -- TIME. THE WHOLE RULE, AND IT HAS NO CLAUSES
 
-The create door stamps; the restore door carries. Nothing else learns the time. A timestamp not read off a clock is fabricated data, not an approximation. `date -u +'%Y-%m-%d %H:%MZ'`, read in its own step, trailing `Z` mandatory.
+The create door stamps; the restore door carries. Nothing else learns the time. `date -u +'%Y-%m-%d %H:%MZ'`, read in its own step, trailing `Z` mandatory. **`one_clock.rs` enforces it structurally and it caught ME today**, in a test about measurement discipline.
 
-## WHERE THIS STANDS -- WP-03's carry is LANDED and COMMITTED
+## NEXT: ST0057 WP-01 -- STARTED, REVERTED, RESUMABLE IN MINUTES
 
-**`86b74b6c` code / `d980e5b5` carry / `9a487cc9` issue bodies / `69033e4e` + `fd2e4067` ST0057 / `f0a25d8c` + `1a642249` boards / `4ef953db` chore. Suite 623/0 at HEAD.** Detail archived to `.history/20260818/`.
+**The code worked and the tree is green because I took it back out.** vc cleared me to move the live estate; hv called a compact first. Leaving 68 fixture-caused failures under four peers who are actively measuring is a cost nobody should pay for my convenience -- **ic asked explicitly not to be measured inside someone else's window.**
 
-**THE CARRY: 275 eligible / 275 carried / 0 missing / 0 byte-mismatched. Store 0 -> 275.** The disk-to-attachments path did not exist before this -- `legacy.rs` was the ONLY producer of an `Attachment`, so a file a person wrote into a thread directory was carried by nothing. `Project::collect_attachments` is the one collector; the carry runs ONLY in `facade::sync_from_disk`, deliberately.
+**PATCH: `<session-scratchpad>/wp01-canon-relocation.patch`, 159 lines, `export.rs` + `project.rs`.** If it is gone, it is 30 minutes of re-typing and every decision is below.
 
-**"THE REGENERATION" WAS NEVER A VERB.** Its criterion described a re-ingest from a v2 source that `1af21f4e` removed. Four boards carried it as an approved action with a pinned sequence and nobody had established what command performed it. **The write-back queued BEHIND it turned out to BE it.**
+**WHAT WAS BUILT:** `canon_dir()` = `intent/.canon/`; `canon_st_dir()`; `thread_json` -> `.canon/st/<ID>.json`; `issue_json` -> `.canon/issues/<nnnn>.json`; `issues_dir()` repointed (**the whole directory moves -- it held nothing but `<nnnn>.json`; an issue has no realised markdown to leave behind**); `thread_ids()` reads `.canon/st/` by file stem instead of walking `st/` for a nested file; **`classify`'s `thread.json` arm KEPT with a note saying why it is not dead** -- a v2 tree has one, and so does a tree caught mid-move, and it is what keeps a stale canon file out of the attachment carry.
 
-**IT COST 40 ISSUE BODIES, RECOVERED 40/40.** `sync --to-store` named all 40 in a warning before acting; I read the list, recognised the expected population, and classified a correct RED as confirmation. Recovered from a snapshot vc had MOVED rather than deleted.
+**THE HIGHLANDER FIX THAT FELL OUT, AND ITS OWN COMMENT PREDICTED IT:** the exporter spelled the canon path independently while every reader resolved `Project::thread_json`. Its neighbouring comment records the issue arm having ALREADY shipped that bug -- `issues/46.json` written where readers opened `issues/0046.json`, "two ends had to agree by convention and did not". **Relocating would have re-created it at the thread arm.** Both now call one `canon_thread_rel` / `canon_issue_rel`. Comment tense corrected too: it described the fixed bug in the present, which is history reading as state.
 
-## THE FLAT VIEW -- `d8412be`, and it was not a glyph bug
+**WHAT IS LEFT, in order:**
 
-**`intent/todo.md` rendered SIX states as ONE.** `views.rs::items()` emitted a literal `- [ ]` for every row of every bucket. Because the bucketing is three-valued and `ThreadStatus` is six-valued, **`Completed` and `Cancelled` share the DONE bucket -- so the glyph was the ONLY thing distinguishing them**, and 2 of the 54 rows under `## DONE` were cancelled work presented as completed (ST0010, ST0015).
+1. **Repoint ~15 test fixtures that spell `intent/st/<ID>/thread.json` independently** -- the same Highlander problem one level down. `canon_thread_rel` is `pub`, so tests can resolve through it and never spell it again. Failing binaries measured: `acceptance_surface`, `cli_end_to_end`, `declared_values_are_enforced`, `issues_surface`, `literal_stdout_parity`, `search_surface`, `self_loop_voice`, `upgrade_command`, `export_round_trip`, `facade_acceptance`, plus lib unittests. **Every failure is "no steel thread ST0001 in this project" -- the fixture writes canon where the tool no longer looks. Not a design problem.**
+2. **ic MEASURED the parity-harness exposure: 3 targeted edits, NOT a path migration.** `realise_plan.sh:44` (ic's, breaks), `canon_commit_check.sh:82,93,198,199,203` (dc's, breaks), `gen_register.sh:256` (**a GENERATED doc cell -- fails in the QUIET direction: nothing goes red and the register just becomes wrong about where canon lives**). **HAZARD ic measured so I would not hit it: a grep for `intent/st/` returns 17 of 41 tools, and most MUST NOT be touched** -- they are comments correctly describing the v2 layout, and a mechanical `s|intent/st/|intent/.canon/|` would rewrite true statements about v2 into false ones, silently, in the comments that explain why the migration works. Another 17 are the harness's own directory, which does not move.
+3. **The live move: 57 thread + 40 issue canon files. vc CLEARED it (`25605e6b`) and will not touch ST canon until I say it landed. Ping vc after.**
+4. **The four ATs**, all to-write: `canon_relocation.rs`, `canon_clone_completeness.sh`, `canon_relocation_roundtrip.rs`, `canon_concurrent_diff.sh`.
+5. **AC-01.5, minted by vc at `da3a52aa` on my report** -- see the hazard below.
 
-**THE CUT WAS AT `TodoItem`, NOT AT THE RENDERER** (ic's widening, which I found the second half of). It carried `{id, kind, title, label}` and no status, so `items()` had nothing to compute from **and `--json` had nothing to report** -- a machine consumer could not tell cancelled from completed either. **Both faces lost the same fact, so both AGREED**, which is precisely what `TodoItem`'s doc comment promises they cannot do. The promise was kept and the fact was gone. **Sweep rule that follows: "the value survives to the point of rendering", not "the site reads it from the model"** -- a read-site sweep passes `items()` clean while a struct two hops upstream is still dropping something.
+**AC-01.2 IS CHECKED BY CLONING, NEVER BY READING `.gitignore`** -- the question is what git DOES, not what a rule appears to say. AC-01.3 is AC-02.6 applied to the move, denominator printed. AC-01.4 rejects the consolidated `threads.jsonl` (D57-1 option B) by editing two threads and observing the changed-path set.
 
-**MEASURED:** 82 rows / 1 glyph -> 82 rows / 4 glyphs. `[x]` 52, `[~]` 2, `[ ]` 17, `[-]` 11; 52 + 2 = 54 is the DONE count. 65 rows changed = 82 less the 17 legitimately blank. Nothing else in the file moved. **Triage and Hold render NOWHERE in the live estate**, so those arms exist only under test -- the ones that rot.
+## THE `.canon/` HAZARD -- structural, and AC-01.2 only catches it at check time
 
-**NO DATA REPAIRED** (ic). ST0010/ST0015 carry `status: Cancelled` correctly; v2 held cancellation TWICE, as a `CANCELLED/` directory AND the field, and the hoist correctly flattened it -- **which left the field as the sole carrier, so a view discarding it was TOTAL loss, not cosmetic.**
+```
+intent/.treeindex/   ignored
+intent/.cache/       ignored
+intent/.backup/      ignored
+intent/.canon/       MUST BE COMMITTED
+```
 
-**NO TEST EXISTED ON THAT VIEW AT ALL** -- no `#[cfg(test)]` in `views.rs`. Not a weak test; nothing looked. Six added, all driving the real renderer over fixtures carrying both states, because a unit test of `glyph()` alone passes while the renderer emits a constant. **`glyph()` is exhaustive with NO wildcard**: v2's `status_box` has `*) printf '?'`, so a status v2 did not know rendered as a shrug and nobody learned. A seventh state must fail to compile.
+**Every existing `intent/.<x>/` is gitignored, so the convention reads "a dot directory under intent/ is local and never travels".** `.canon/` is the single deliberate exception. **A future tidy-up adding `intent/.*/` to `.gitignore` is natural, tidy-looking and correct-seeming, and would silently un-commit the entire estate** -- D29's failure with the whole model behind it, and the same shape as the 434KB of issue bodies that lived only in a gitignored store today. **AC-01.2 checks the STATE by cloning; AC-01.5 refuses the EDIT. The gap between those two moments is where this class lives.** The reasoning is in `canon_dir()`'s doc comment so it is re-derivable at the source even if the guard is never built.
 
-## AC-04.4 -- IN FLIGHT, red demonstrated then guarded
+## OPEN -- what is actually mine
 
-**`views::write_all` called `fs::write` UNCONDITIONALLY for every view**, so a byte-identical re-emission moved mtime on all 266 (57 info + 57 acceptance + 150 WP + steel_threads + todo) every sync -- and `file_index` derives clean/changed from mtime, so a no-op sync marked the whole estate changed.
+1. **WP-01, above.**
+2. **The cold-warm collection gap `doctor` has no arm for -- PARKED BEHIND WP-01, on vc's ruling and my reasoning.** The arm reports "a file on disk that canon does not know about", and **that sentence CHANGES MEANING under sparseness**: an absent file stops being an anomaly and a present-but-unknown one becomes the interesting case. Building it now would encode today's dense-disk assumption into the one check whose job is to police the sparse one. **I have already eaten that exact error once, with the replacing write-back.**
+3. **`critic rust` and `critic shell` arm ZERO rules** (0 of 6, 0 of 7). dc's Half A relit the gate; a green from either still means "nothing asked a question", and I move the most `.rs`. Half B is dc's.
+4. **THE BINARY MARKER -- (a) WITHDRAWN, (b) NOT MINE TO CLOSE.** **(a) STALENESS: withdrawn, and the withdrawal is the finding.** vc refused the reversal and asked what expired the reason. Nothing had -- **and measuring it found HALF MY OWN RECORDED REASONING WAS FALSE.** The comment claimed "HEAD moves when ANYONE commits ANYTHING"; **`.git/HEAD` is rewritten on a BRANCH SWITCH, not a commit** -- measured, six months stale against `refs/heads/main` moving seconds earlier. **The refusal stands on its other limb, sufficient alone: emitting ANY `rerun-if-changed` REPLACES cargo's package-file default**, so naming `.git/HEAD` would leave the embed stale on CODE changes, permanently and silently. **The naive fix is strictly worse than the gap, and the wrong reason was the one that made it look obviously correct.** Corrected in place at `a466f90f`. **(b) NON-IDENTITY (dc's, the one that actually bit):** `dirty-<HEAD>` gives two behaviourally different dirty builds one value. It names a commit; it was never an identity. Closed by vc's **AC-10.11** (content hash), not by any trigger of mine.
+5. **`surface_check.sh` refuses at rc=2** because the release binary is older than `surface/dispatch-table.json` and my `render.rs`. **Rostered MANUAL, not gated** (vc corrected ic's "blocks a gated check"). Mine to take in my next build window -- **and ANNOUNCE the rebuild first**, because `target/release/` is shared and a rebuild under a peer mid-measurement is what invalidated ic's run today.
 
-**The idempotence test beside it PASSES while this is live**, because it compares bytes. **Idempotent bytes is not idempotent writing.** Test written first and demonstrated RED (10 of 10 views moved), then the guard. **It does not sleep or trust timestamp resolution** -- every view is aged an hour between runs, so a skipped file keeps the aged stamp; a clock-racing test would pass vacuously on a coarse filesystem, which is the exact failure it exists to detect.
+## TODO -- queued, none started
 
-## `status_reason` -- a field four verbs DEMAND and no human face showed
-
-**Found by ic sweeping `views.rs` under the widened rule I gave them**, which is the rule that found it: _the value survives to the point of rendering_, not _the site reads it from the model_. There was no view site to score -- `status_reason` survives into the model, into canon, into the DB and into the committed SDL, and dies at the render boundary.
-
-**`st cancel` / `st hold` / `st reopen` / `wp reopen` REFUSE without a reason, and the refusal argued for the field while hiding it**: _"...and in the event log as part of the decision, which is what lets anyone reconstruct why later."_ I went to check the event log expecting the promise to rest there -- **`intent --help` declares 34 verbs and not one reads it.** `search` does not reach it either (`ingest.rs` never mentions the field). **A promise with no reader on EITHER carrier.**
-
-**ic's narrowing is the honest claim and I use it everywhere: MACHINE-VISIBLE, HUMAN-INVISIBLE.** `schema.graphql:292` (Thread) and `:413` (WorkPackage) expose `statusReason`. The wider "the value is lost" dies on "it is in the schema"; the narrow one survives.
-
-**FIXED on all four faces** -- `views.rs` thread + WP frontmatter, `render.rs` `st show` + `wp show` -- **and the frontmatter key is emitted only when there IS a reason**, so nothing in the live estate churns today. vc RULED the false clause struck without waiting for hv; **a reader for the event log is hv's**, and ic's point makes it cheap: `event.schema.json` is committed, so it is **a built carrier with no door**, not an unbuilt feature.
-
-**This does NOT close AC-03.12 and I am not claiming it** (vc). The field carries only the CURRENT status's reason -- any transition without one clears it -- so rendering it answers _why is it on hold now_ and never _reconstruct why later_. **Fixing the visible half would make the promise look kept.**
-
-**ic's CONTROL ORDERING is now my habit, and it is in both e2e tests: prove the value reached canon, THEN ask the face.** Their first WP drive hit an unfired fixture -- the gate refused the `wp done`, so `wp reopen` returned `ok: already WIP` writing nothing, and every face came back empty. **Emptiness from a face that does not render and emptiness from a verb that never recorded are indistinguishable when you only ask the face.**
-
-## D42 CAUGHT ME, IN A TEST ABOUT MEASUREMENT DISCIPLINE
-
-My AC-04.4 test aged the views with `SystemTime::now() - 3600s`. **`one_clock.rs` failed the suite naming my file** -- there is no clock in this workspace at all. Replaced with a FIXED synthetic stamp (`UNIX_EPOCH + 1_000_000_000s`), which is **stronger for obeying the rule**: the assertion became "still exactly this constant" rather than "still roughly where I put it". **Then re-ran the mutation test, because changing the mechanism invalidates the earlier RED.** 10 of 10 red with the guard off; green with it on. The guard caught it, not the author -- which is the case for structural guards over careful authors.
-
-## OPEN -- four things queued, none started
-
-1. ~~The `views::info` blank line~~ **DONE by vc while they were in canon, and it was never a rendering bug.** The v2 source had notice / blank / `# H1` / blank / status-list; **the migrator correctly lifted the H1 into a model field and left BOTH of its blank lines behind**, so `\n\n\n` was a removed line's ghost in the stored `preamble`. Repairing it to `\n\n` RESTORES fidelity rather than reformatting, so migration.md's "nothing reformatted" is not engaged. Verified: both preambles now run [1, 2], and a full `--to-store` + `--to-disk` round trip leaves the four views untouched. **My `legacy::preamble` fix stays correct and stays unreachable.**
-
-   **AND IT WAS NOT COSMETIC, WHICH NEITHER OF US SPOTTED WHILE WE BOTH LOOKED AT IT.** Every sync regenerated four views, the pre-commit guard reverted them, the next sync re-created them -- **a tree that cannot go clean is a tree whose binary can never name a clean commit, so this was BLOCKING AC-11.5's binary arm** that dc carried all afternoon as picked-up-not-started. I filed it as churn and priced it as an annoyance; the cost was somebody else's blocked work package.
-
-2. **Nothing collects attachments on a COLD warm, and `doctor` has no arm for it.** The carry is `sync_from_disk`-only so a cold warm reproduces the committed extract rather than letting disk outvote it -- correct, but it means no check reports a file on disk that canon does not know about. **That arm is what makes 5.1b's divergence rule observable.**
-3. **`critic rust` and `critic shell` arm ZERO rules** (0 of 6, 0 of 7). dc's Half A relit the gate -- `bin/intent:55` carries `critic` now, announced to me first, protocol working -- so the five fail-open lines are gone. **But a green from either critic means "nothing asked a question", not "clean", and I move the most `.rs`.** Half B scoped, not built.
-
-4. **THE BINARY MARKER -- (a) WITHDRAWN, (b) IS THE REAL ONE AND IS NOT MINE TO CLOSE.**
-
-   **(a) STALENESS -- WITHDRAWN 2026-08-18, AND THE WITHDRAWAL IS WORTH MORE THAN THE FIX WOULD HAVE BEEN.** vc refused the reversal and asked what expired the recorded reason. **Nothing had -- and measuring it to answer found HALF MY OWN RECORDED REASONING WAS FALSE.** `source_commit.rs` claimed "HEAD moves when ANYONE commits ANYTHING"; **`.git/HEAD` is rewritten on a BRANCH SWITCH, not on a commit** -- measured, `.git/HEAD` six months stale while `.git/refs/heads/main` and `.git/logs/HEAD` moved seconds earlier with the commit just landed. So the rebuild storm I priced against could never have happened.
-
-   **The refusal stands on its OTHER limb, which was always sufficient alone: emitting ANY `rerun-if-changed` REPLACES cargo's package-file default.** A line naming `.git/HEAD` would swap a trigger that follows the code for one following a file that almost never moves, leaving the embed stale on CODE changes, permanently and silently. **The naive fix is STRICTLY WORSE than the gap, and the wrong reason was the one that made it look obviously correct.** Corrected in place at `a466f90f`, not deleted. The expressible form if freshness is ever wanted is recorded there: `rerun-if-changed=src` PLUS `.git/logs/HEAD`. **Staleness is witnessed twice** (`b11ca6ac` at HEAD `010b2bbf`; `dirty-4ef953db` at HEAD `c83f624c`) and costs MEASUREMENT, not releases -- `publish` refuses `dirty-` outright.
-
-   **(b) NON-IDENTITY -- dc's, and the one that actually bit. NOT closed by any trigger.** The marker is `dirty-<HEAD>`, so two behaviourally different dirty builds at one commit share one value. **It names a commit; it was never an identity.** ic ate a false RED from exactly this -- my rebuild landed between their two arms, behaviour moved, marker held byte-identical. dc: not a wrong answer, a right answer to a different question. **Closed by vc's AC-10.11** -- a paired reading's binary identity must be a content hash, never a self-reported marker -- and not by anything of mine.
-
-   **Two verified traps that stay true regardless** (ic, out of that file): **`git archive` is the WRONG route to a clean tree** -- no `.git` means `rev-parse` fails and the embed stamps `unknown`, STRICTLY WORSE than dirty; the property is RETAINS `.git` AND IS CLEAN, so a clone at a sha qualifies and an archive extract never can. And **read the marker OUT OF THE BINARY** -- a manifest states what was meant to be built, only the artefact answers what was.
-
-   **`target/release/` is a SHARED MUTABLE ARTEFACT other nodes read.** Snapshot and sha256 before measuring against it; do not read it live while peers are in the tree. Announced to dc and ic.
-
-## TODO
-
-1. **D57-5 IS NEW AND IT IS MINE: a complete text realisation of the whole project into `.backup/text/<UTC>/`, as hv's on-disk fallback.** Not a duplicate of the dehydration gate and vc was precise about why: **the gate proves THE STORE holds it; the export proves A HUMAN CAN GET IT BACK WITHOUT THE TOOL.** Two assurances, one covered. Four requirements: **complete with a PRINTED DENOMINATOR** (a partial export reading as complete is worse than none), `.backup/text/<UTC>/` as a third mechanism in the established never-commit namespace beside `upgrade/` and `db/`, **regenerable and NEVER authoritative** (no import path, `classify` never sees it), and cheap enough to be habitual. **`intent init` is a PRECONDITION of this, not a neighbouring gap** (vc, `e7c11f14`): the natural way to exercise _does everything come back as text_ is to make an empty project, export into it and read it -- so `init` gates the ASSURANCE rather than the onboarding. **And it lands on a refusal of mine whose reason EXPIRES**: `export.rs:192`/`export.rs:208` refuse `--format md` because _"the views are already in the tree"_ -- true today, FALSE the moment the disk model lands, since that is the entire point of it. **RULED: withdrawn as PART of this thread and not before.** Same class as `Issue::body`'s trim -- a claim true when written, expiring on a change already scheduled -- except caught before it shipped rather than after.
-2. ~~The attachment write-back~~ **DONE** (`86b74b6c`). `Project::collect_attachments` is the one collector; `legacy::attachments` wraps it for the open/closed axis. **What is NOT done and is the next piece: nothing collects attachments on a COLD warm** -- the carry runs only in `facade::sync_from_disk`, deliberately, because a cold warm must reproduce the committed extract rather than let disk outvote it. A clone therefore gets attachments from canon, which is now correct, but `doctor` has no arm reporting a file on disk that canon does not know about. **That gap is the one 5.1b's divergence rule needs to be observable.**
-3. **`sync`'s "Safe: the files are re-creatable" is a claim about RECOVERABILITY, not correctness** (vc). Worth saying what it is safe FROM.
-4. **`created: ST0057` writes three files AND regenerates a tracked `steel_threads.md` while printing one word** (hv's dogfood). A command that modifies a tracked file the user did not name must say so, or they find it in `git status` and have to work out who did it.
-5. `upgrade`'s "their content is unchanged" -- a claim nothing computes. `doctor` naming a stale pre-versioning store before a cutover. **`views::info` adds a blank line after a deprecation blockquote** -- visible only on ST0010/ST0015, the only two threads carrying one. **Now UNBLOCKED and sequenced as step 4 above.** AC-10.8 egest; AT-10.2 (probed) / 10.3 / 10.4; `WpStatus::Cancelled`.
+1. **D57-5: a complete text realisation into `.backup/text/<UTC>/`, hv's on-disk fallback.** Not a duplicate of the dehydration gate: **the gate proves THE STORE holds it; the export proves A HUMAN CAN GET IT BACK WITHOUT THE TOOL.** Complete with a PRINTED DENOMINATOR, regenerable, NEVER authoritative, cheap enough to be habitual. **`intent init` IS NOT IMPLEMENTED and is a PRECONDITION** -- the natural way to exercise "does everything come back as text" is an empty project. **And it lands on a refusal of mine whose reason EXPIRES**: `export.rs` refuses `--format md` because "the views are already in the tree", which the disk model makes false. RULED withdrawn as part of that thread, not before.
+2. **A READER FOR THE EVENT LOG -- hv's, and the argument is that it is cheap.** `event.schema.json` is committed, so it is **a built carrier with no door**, not an unbuilt feature. `intent --help` declares 34 verbs and none reads it.
+3. `sync`'s "Safe: the files are re-creatable" is a claim about RECOVERABILITY, not correctness. **`created: ST0057` writes three files AND regenerates a tracked `steel_threads.md` while printing one word.** `upgrade`'s "their content is unchanged" -- a claim nothing computes. AC-10.8 egest; AT-10.2/10.3/10.4; `WpStatus::Cancelled`.
+4. **RE-DERIVE THE WHOLE TODO LIST after WP-01** (vc agreed: after, not instead -- the gate has a date). **Item 4(a) is the argument for it**: a queued item nobody re-derives is a reversal waiting to be committed with a message that reads like a fix.
 
 ## Watch-outs -- the mechanisms, distilled
 
-**A PROPERTY MEASURED ON ONE CASE, ASSERTED ABOUT THE ADJACENT ONE.** Three times in one afternoon, all caught by the node next door and none by any check: vc's manifest control measured the neighbouring directory; dc put a superlative on ic's unverified mechanism; dc measured ic's binary pair (same HEAD, no staleness) and asserted it of mine (genuinely stale). **The tell is that the finding is TRUE -- of the thing that was actually measured.** Re-measure on the instance you are about to name, every time, even when the cases look identical. Especially then.
+**A PROPERTY MEASURED ON ONE CASE, ASSERTED ABOUT THE ADJACENT ONE.** Now FIVE instances in one day, every one caught by the node next door and none by any check: vc's manifest control measured the neighbouring directory; dc put a superlative on ic's unverified mechanism; dc measured ic's binary pair and asserted it of mine; **I claimed "no committed SDL in the tree" from a `find` scoped to `native/rust` while `schema/` sits at the project root**; and vc confirmed my mtime prediction with `git status`, **which reports CONTENT and is structurally blind to an mtime-only defect -- a probe that would have returned "zero churn" whether the fix existed or not.** **The tell is that the finding is TRUE -- of the thing that was actually measured.** Re-measure on the instance you are about to name, every time, even when the cases look identical. Especially then.
 
-### A VERSION NUMBER IS A CLAIM ABOUT SHAPE -- a rung, once run anywhere, is PUBLISHED
+**AN INSTRUMENT MUST BE ABLE TO FAIL THE WAY ITS SUBJECT FAILS.** AC-04.4's test does not sleep and does not trust filesystem timestamp resolution -- it ages every view to a FIXED synthetic stamp, so a rewritten file carries `now` and a skipped one keeps the stamp. A sleep-based version passes vacuously on a coarse-resolution filesystem, which is the exact failure the criterion detects.
 
-**My worst defect of the day, and it reached hv rather than a test.** I added `seq` by EDITING rung 10, reasoning: _"the live store is at 9, so rung 10 has not been applied to any durable store, so editing it in place is safe."_ **Valid reasoning, false premise, never checked** -- one `PRAGMA user_version` would have said 10. Two shapes stamped 10, and every read of canon died on `no such column: seq`.
+**ASSERT IT REACHED CANON, THEN ASK THE FACE** (ic). Their first `wp reopen` drive hit an unfired fixture -- the gate refused the `wp done`, so the verb returned `ok: already WIP` writing nothing and every face came back empty. **Emptiness from a face that does not render and emptiness from a verb that never recorded are indistinguishable when you only ask the face.**
 
-**THE RULE, now on the ladder: once any store has run a rung, changing what that rung PRODUCES requires a NEW rung.** The old rung's output is already stamped and unreachable. **An unchecked assumption WEARING THE SHAPE OF A CHECK is the parent of most of the family below** -- it occupies the slot the check would have gone in.
+**MUTATION-TEST EVERY GUARD, AND RE-TEST IT WHEN THE MECHANISM CHANGES** -- a re-proof is required because the thing proved is not the thing now shipping. **The canary must come from the same fixture and branch the test drives.**
 
-**vc hit the same class the same day, in a document rather than a store**: they asserted a defect in `data-model.md` from a premise they had not checked, and what saved it was going looking for a rationale so hv would not rule against a straw man -- the ratification was sitting at `data-model.md:428` the whole time. **The save came from checking for a DIFFERENT reason, which is luck rather than method.** **THE CONCLUSION, and the narrowing is the whole of it.** _"Check your premises"_ is uncosted advice: it would not have found any of these and it prices out on contact. The rule that survives is **WHEN SOMEONE STATES A CLAIM AS THE LOAD-BEARING REASON FOR A DECISION, THAT SPECIFIC CLAIM IS THE ONE TO CHECK** -- bounded, and one grep each time. Both of today's aimed saves fit it exactly: vc went looking for the Triage rationale because hv was about to rule on it, and I greped `is_terminal` because vc had made _"terminal is the wrong word"_ the reason for a ruling. **And it is SOCIAL rather than solitary (vc's addition, and it is the load-bearing half): the person who states the reason is not usually the person who can see it is unchecked.** That is an argument for the peer structure, not for individual vigilance -- vc found `data-model.md:428` themselves only because they went looking for something else, since nobody had stated it back to them.
+**READ THE MARKER OUT OF THE BINARY, AND DO NOT TRUST IT AS AN IDENTITY.** A manifest states what was MEANT to be built; only the artefact answers what was -- **and the marker itself can be stale**, verified on myself. `git archive` is the WRONG route to a clean tree: no `.git` means `rev-parse` fails and the embed stamps `unknown`, STRICTLY WORSE than dirty. The property is RETAINS `.git` AND IS CLEAN.
 
-### A HUMAN TYPING THE SEQUENCE EXERCISES WHAT NO TEST EXPRESSES -- 3 for 3 in one day
+**`target/release/` IS A SHARED MUTABLE ARTEFACT other nodes read.** Snapshot and sha256 before measuring; announce before rebuilding.
 
-hv's dogfood beat the suite three times: the schema-10 shape collision (two commands, where 85 legs could not express it), `st new` -> `st triage` -> `st start` where v2 was two steps (_"this is STOOPID"_), and `created:` printing one word while rewriting a tracked index. **The project had even PREDICTED the adjacent drift** -- ic's EXP-04 recorded that `st new -s` now spans two transitions -- **and recorded the SEMANTIC cost while missing the ERGONOMIC one.** Nothing short of a person doing the ordinary thing surfaces "a user creates a thread and starts working on it".
+**`cd` DRIFT: use absolute paths.** Bitten three times today; the shell working directory resets after subshells.
 
-### A SUITE THAT ALWAYS STARTS FRESH CANNOT SEE A MIGRATION DEFECT
+**NEVER TRUNCATE A TEST RUN.** Reconcile `passed`/`failed` by summing every `test result:` line. I reported "3 failing" off a `head -40` when it was 9, and repeated it for an hour.
 
-Every fixture builds from the current `DDL`, so every test gets the current shape and passes. The remedy is a test whose fixture is **a store this binary did not create**. Same shape as: **a subject that cannot exhibit the defect cannot clear it** -- the gitignored store no clone could hold, and the attachment ordering the path-sorting migrator makes unobservable on the real tree. **In both cases the thing that found it differed from the subject BY ACCIDENT.**
-
-**AND ITS SIBLING, WHICH IS NOT THE SAME SENTENCE (vc): a suite that CONSTRUCTS a state directly never asks whether the VERB THAT REACHES IT produces a state the checker accepts.** Rung 10 was a fixture that could not HOLD the defect; this is a fixture that holds the STATE and skips the TRANSITION -- so **both arms of a contradiction test green while the path between them is broken.** `st cancel` -> `doctor` is the live instance: every doctor test builds its fixture, none drives a verb and then asks the instrument.
-
-### AND THE INVERSE, WHICH COST 434KB: A CORRECT RED, READ PAST BY A READER WHO ALREADY HAD AN EXPLANATION
-
-`sync --to-store` named all 40 issues under **"replacing the store from the extract OVERWRITES"** before it did anything -- AC-03.9's whole design, the warning delivered one moment EARLIER rather than as a receipt afterwards. **I read the list, recognised it as vc's expected 40, and classified the alarm as confirmation that the run was on track.** The instrument was accurate, specific, and correctly timed. It was defeated by my having a story ready that the list fitted.
-
-**This is not the five-greens family, it is its mirror, and it is worse**: a false green needs the instrument to fail, and this needed only a reader. **The tell was available -- "differs on disk" is not "is about to be improved"** -- and I never asked which direction the difference ran.
-
-**The general form: when an alarm matches something you were already expecting, that is the moment to check the DIRECTION rather than the identity.** Recognising the population is not reading the warning.
-
-### FIVE WAYS AN INSTRUMENT REPORTS GREEN WITHOUT MEASURING
-
-1. **It never ran** -- 6 compile errors, 0 legs, sentinel `0` reading as a clean estate.
-2. **It ran where the property held FOR ANOTHER REASON** -- my fixture's attachments happened to be in path order; vc's count agreed only because the live tree IS a git repo, so `require_git` was satisfied.
-3. **It returned the RIGHT answer without running** -- `grep -F` eating a leading dash.
-4. **Its alarm is the RECORD OF THE FIX** -- grepping `legacy.rs` for `trim` to ask whether the trim is gone, and hitting the comment saying it is. **The better the comment, the louder the false positive.**
-5. **Sampling** -- five legs green individually while the full run had 41 failures, off a sample chosen before the answer was known.
-
-**And the one that beats all of them: a harness that applies the transformation it is testing for cannot fail.** I compared `canon.body` to `source.strip()` and reported 40 of 40 byte-exact; vc hashed the raw remainder and got 40 of 40 off by one byte.
-
-### THE COUNTER-PATTERN, AND IT COSTS ONE LINE
-
-`conservation_check.sh:793` names its own blind spot. **`sync`'s refusal is that shipped**: it declines to guess, names both directions, marks which is destructive, and enumerates all 40 issues it would overwrite before doing nothing. **Never suppress a harness's stderr, never truncate its output, never read an exit code through a pipe. When a result would be BIG NEWS, test the harness before sending the news.**
-
-### A TEST THAT ASSERTS ITS OWN PREMISE RETIRES ITSELF
-
-My `related[]` parser falsified _"ingest does not populate `related`"_ and the test **failed on the PREMISE line** rather than quietly measuring something else. The counter-example keeps passing and stops meaning anything.
-
-### GIT, AND THE FOUR-NODE TREE
-
-**The push exit code carries no information** -- `ls-remote` plus `merge-base --is-ancestor` is the only witness. **`git commit --amend` rewrites whoever committed LAST.** Always `git commit --only <paths>`. **`cd` resets after a subshell** -- it drifted nine times in two sessions, once manufacturing a finding out of a failed `stat`. **We share one working tree, so a half-finished contract is on everyone's PATH the moment it compiles** -- and `cargo` rebuilding `target/debug/intent` can replace a binary a peer is running.
-
-### PROSE THAT IS A BUILD INPUT
-
-**A `///` doc comment is SHIPPED OUTPUT (D37)** -- schemars lifts it into JSON Schema, async-graphql into the SDL. Plain `//` for reasoning. Intent's own ST/WP/AC ids never reach output. **And a `/*` anywhere in shipped source trips the pm-state scanner by design.**
+**`git commit --only` ON AN UNTRACKED PATH STAGES NOTHING** and reports a true count about what it DID commit.
 
 ## Lane boundary
 
-`dc` owns dev-x, build, CI, release, install. **cc is services and app functionality**: intentsvcs, the facade, the model, ingest/views/store, **and the CLI's behaviour.** `surface/dispatch-table.json` is ic's; `acceptance.md` / `design.md` / `data-model.md` / `realisation.md` are vc's. **`bin/intent*` is cc's and FROZEN -- and that does NOT generalise: `lib/templates/` is not.**
+`native/**` and the v3 crates are mine. `bin/**` is not vc's to edit. The parity harness is ic's, `canon_commit_check.sh` is dc's -- **ic offered to route those two rather than have me edit dc's file; doing all three in WP-01 is fewer moving parts, and ic has already measured them.**
+
+**Every commit I make touching an attachment leaves canon divergent at that commit until vc syncs, and a later sync repairs the NEXT commit and never that one.** dc proved it by committing the document about this class in the order the document forbids -- **they could not have complied, because there is no narrow sync verb.** Commit attachment edits and ping vc; it is AC-08.5's missing operation, not my failure.
 
 ## Standing rulings
 
 - **THE ISSUE TRACKER IS FOR EXTERNAL USERS AGAINST A RELEASED VERSION** (hv). Everything found building v3 is work: fix it inline, reason in the commit, message the owner if it crosses a lane.
-- **An uncarried file is NOT a disposition** (vc). `dropped` licenses `conservation_check.sh` to stop looking; "still on disk" is the one thing that record exists to distinguish.
-- **`doctor` names uncarried files and counts none as faults.** A check that reds 100% of a population behaving as designed is a check that gets deleted, and the real finding goes with it.
-- **`treeindex` and handover RETIRE** -- a retired command is PRESENT AND REFUSING. **`EdgeKind::Incidental` STAYS with no user. `owner_wp` stays carried and unread. `doctor --fix` is WITHDRAWN. `Outcome` is deliberately NOT `#[must_use]`.**
+- **An uncarried file is NOT a disposition** (vc). **`doctor` names uncarried files and counts none as faults** -- a check that reds 100% of a population behaving as designed gets deleted, and the real finding goes with it.
+- **A REFUSAL IS RETIRED BY THE CHANGE THAT EXPIRES ITS REASON** (vc) -- **and re-deriving the reason is also how you find out the reason was wrong.**
+- **`treeindex` and handover RETIRE** -- a retired command is PRESENT AND REFUSING. **`EdgeKind::Incidental` STAYS with no user. `doctor --fix` is WITHDRAWN. `Outcome` is deliberately NOT `#[must_use]`.**
 - **ANNOTATE, NEVER SUPPRESS, on a run verdict.**
 - **v3 stays OFF PATH until dc repoints `~/.local/bin/intent`.**
