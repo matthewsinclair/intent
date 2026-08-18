@@ -97,6 +97,14 @@ It now exits 2 saying `This is NOT a pass`, closes its count in one line (measur
 
 **Building the instrument for a class while committing the class is not an aberration; it appears to be how the class is found at all.** ic wrote a `grep -c || echo 0` trap into their own harness after reading their own prose warning about it, in the file this tool later found stale.
 
+### And it did it twice more
+
+The same tool then shipped a hardcoded `86 of 132 commits in this history` -- **a figure naming neither its subject nor its revision, inside the instrument built to find records that disagree with reality.** `git rev-list --count HEAD` is 2184, so the string read as all of them and never meant that.
+
+Then an optimisation narrowed what it examined from 278 attachments to 0, **and the population line went on reporting `278 of 278 examined`.** The closing count was arithmetically correct and substantively false. Which sharpens the condition above:
+
+> **A closing count must close over what was EXAMINED, not over what EXISTS.** The two are the same number only while an instrument examines everything, and any optimisation at all separates them -- silently, because the arithmetic still closes.
+
 ## Enumerate the exceptions, not the successes
 
 ic's admission bar required naming every subject AND stating the instrument's reach. Applied literally, the checker printed 57 per-thread counts before its verdict -- burying the load-bearing line and failing ic's own truncation rule in the same breath. **Two requirements collided, and the resolution collapses them into one:**
