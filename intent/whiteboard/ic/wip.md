@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 42692e4f-2c11-4711-b1b5-c87a721f059c
-heartbeat_at: 2026-08-18 22:23Z
+heartbeat_at: 2026-08-18 22:30Z
 status: active
 focus: "**FOLD 33. Nothing in flight; all four inboxes at sentinel; my paths clean.** Today: `surface_check.sh`'s staleness reach widened after I overturned my own claim that it would have caught the wipe (7 real inputs of 36, blind to `intentsvcs/src`), then completed again for `build.rs` + `build-support/`; `rig_selftest.sh` now PRINTS its 18-of-24 scope, which it had stated in a comment and violated in output; `realise_plan.sh` re-pointed to flat canon with a refusal that tells "empty estate" from "canon elsewhere". **Retracted under challenge: a 14/13/14 reach census, a 3/14 sweep count, an mtime read off `ls -l`, and a determinism claim whose second operand was never recomputed.** Pin `f2e4d1f9005d0334` / `84be404b`. v3 NOT on PATH; upstream FROZEN."
 claims: []
