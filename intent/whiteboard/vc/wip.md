@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:32Z
+heartbeat_at: 2026-08-18 18:36Z
 status: active
-focus: "**ST0057 IS IN THE 3.0.0 GATE (hv) AND NOW HAS A CONTRACT: 39 ACs, 39 ATs, one-to-one, every one derived from a ratified D57-x and none invented.** `ac status` 0/39 BLOCKED, `at lint` 39 conform, objective + context written. **CORRECTED A WRONG CLAIM I GAVE hv IN MY BOOT REPORT: AC-11.5 is CLOSED and I closed it myself on 2026-08-17; the clean-tree rebuild closes nothing and cannot be banked anyway (no `rerun-if-changed` on `.git/HEAD`).** Found on the way: **the v3 todo view collapsed SIX statuses to one constant, so 2 CANCELLED threads render as completed** (ic found the bucket half; cc is fixing), and **ST0056's canon held a STALE attachment for hours with nothing able to report it** -- the burning case for AC-03.4. hv AFK: cleared dc's `:280` string fix, released ic for the run, handed cc WP-01/WP-02. Upstream FROZEN; push `local` only; v3 NOT on PATH."
+focus: "**ST0057 IS CONTRACTED (41 ACs/ATs) AND ST0056 GAINED THE INTERRUPTION CRITERION IT NEVER HAD.** AT-10.11 **GREEN** on ic's run at `af7f86d7` -- 1432 compared + 1 named exclusion = 1433, greened by HAND-EDITING CANON because `intent at green` destroys the note holding the evidence. **THE ENTANGLEMENT I WARNED dc ABOUT HAD ALREADY FIRED, BY ME**: `c4f9bcbe` carried dc's uncommitted instrument bytes into canon minutes before I sent the warning -- now AC-03.5, cause recorded. **Two of cc's three deferrals were ALREADY DELIVERED.** dc caught AC-08.5 before it ratified (a destroyed field is not an unwritable one); cc caught the `.intentfiles`/`classify` Highlander before WP-02 (now AC-02.5). Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-- **ST0057 is contracted and handed to cc.** Next of mine: re-drive cc's `deferred.md` section (the last un-re-driven one -- the file is not deleted until all three are), then ST0011's `completed` NULL, which AC-08.5 now names as its burning case.
+- **ST0057 is contracted and with cc; ST0056's interruption row is green.** Next of mine: ST0011's `completed` NULL (AC-08.5's first burning case), and `deferred.md` is now fully re-driven so the file can go once hv rules on what remains.
 
 ## TODO
 
@@ -31,6 +31,9 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **I WARNED dc ABOUT AN ENTANGLEMENT I HAD ALREADY CAUSED.** `sync --to-store` reads the WORKTREE, so `c4f9bcbe` carried dc's uncommitted instrument into canon -- and for two commits canon held an artefact whose bytes existed in NO commit. **A rule that lives in my head and in a peer message is followed until someone is mid-task.** Now AC-03.5.
+- **A CHECK THAT READS THE INDEX CANNOT SEE WHAT THE INGEST PATH READS FROM THE WORKTREE.** Arm 1 reads `git cat-file blob :$rel` precisely to catch this class, and validates the MANIFEST, never an attachment -- so it passes.
+- **SETTABLE IS NOT THE ONLY TEST** (dc, catching AC-08.5 before it ratified). `at green|red|na` DO write the row and DESTROY the note doing it, so "can every field be set?" passes on the exact field that is being lost. **A destructive side effect is not an unwritable field.**
 - **A ONE-STRING EDIT HAS A FAILURE MODE AND IT IS TIMING, NOT SIZE** (dc). Bash reads a script incrementally, so an in-place rewrite can land under a process already executing it. **I truncate-and-rewrote `cmd/precommit` -- which runs on EVERY node's every commit -- minutes before dc warned me, because a one-string change felt too small to have a failure mode.** Nothing broke; that is luck, not method. **Atomic replace into the same directory, always.**
 - **A DEFERRAL NOBODY RE-VERIFIES BECOMES WORK ALREADY DONE** (dc, now measured). **Two of cc's three deferred rows were DELIVERED** -- the `build.rs` embed (AT-11.5 green) and both `kind` conversions (`AcKind`/`AtKind` are enums) -- and one row's blocker had expired with nobody striking it. **Re-drive the PREMISE, never copy the row.**
 - **THE ROW DOES NOT GO GREEN ON A NUMBER I CANNOT ACCOUNT FOR.** ic's verdict read 1432 match over a population of 1433. The instrument passes; the denominator does not close; the row holds red WITH THE FIRST SENTENCE SAYING THE INSTRUMENT PASSES, so nobody hunts a defect that is not there.
