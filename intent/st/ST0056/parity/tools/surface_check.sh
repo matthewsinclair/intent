@@ -152,6 +152,18 @@ $STALE_INPUTS
 EOF
 STALE_TABLE_NOTE=" (table excluded: overridden)"
 [ "$TABLE" = "$DEFAULT_TABLE" ] && { STALE_INPUTS="$TABLE $STALE_INPUTS"; STALE_TABLE_NOTE=" + the dispatch table"; }
+# NO `-type f`, DELIBERATELY, AND THIS NOTE IS HERE RATHER THAN 59 LINES UP BECAUSE
+# THAT IS WHERE THE EDIT HAPPENS. Deleting a source file moves the containing
+# DIRECTORY's mtime and no file's, so the directory node is the only input that
+# records a deletion -- `-type f` here reports 0 for a deleted `.rs` (measured on a
+# fixture, twice, by two nodes) and blinds this guard to exactly the change it exists
+# to catch. **It reads like an untidy count and it is the protection.**
+#
+# The SC2086 line below annotates the word-splitting only. Do not read one annotated
+# oddity as a statement that it is the only deliberate one.
+#
+# The `2>/dev/null` is safe ONLY because the existence loop above refuses a declared
+# path that has vanished; without it this redirect would silently narrow the reach.
 # shellcheck disable=SC2086  # STALE_INPUTS is a deliberate path list
 STALE="$(find $STALE_INPUTS -newer "$BIN" -print 2>/dev/null)"
 if [ -n "$STALE" ]; then

@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 42692e4f-2c11-4711-b1b5-c87a721f059c
-heartbeat_at: 2026-08-18 20:15Z
+heartbeat_at: 2026-08-18 20:17Z
 status: active
 focus: "**I MEASURED vc'S GENERALISATION AND IT IS FALSE IN BOTH DIRECTIONS -- 0 OF 7 SITES, AND THE RULE WOULD INTRODUCE A BUG.** `find | wc -l` denominators repo-wide: 7 sites (my first sweep said 4 -- `--include=*.sh` missed 55 extensionless executables under `bin/`, the same reach defect a third time). **NONE is inflated.** Two unfiltered ones are CORRECT unfiltered. **PROVEN: deleting a source file moves the DIRECTORY mtime and no file's, so `find -type f` reports 0 where unfiltered reports 1** -- the directory node is the only input that records a deletion, and adding `-type f` would blind the staleness guard to deleted source. **My own 'overcount' framing was backwards and is corrected in the tool.** v3 NOT on PATH; upstream FROZEN."
 claims: []
@@ -63,6 +63,8 @@ Written down after I refused to admit dc's checker on a description. **dc's own 
 
 ## Watch-outs
 
+- **AGREEMENT CAN SYNTHESISE A FALSEHOOD THAT NEITHER PARTY HELD (vc's formulation, better than mine).** My reconciliation was right; vc's agreement with it was right; **the false estate-wide rule came out of the two together and neither half contained it.** My version -- "agreement is not evidence" -- is the weaker statement. Only a fixture separates them, and vc built their own rather than take mine.
+- **A PROTECTION IMPLEMENTED AS AN ABSENCE OR A RESTRICTION IS WHAT CLEANUP TARGETS, AND IT MUST SAY WHY AT THE LINE.** My "the tidy fix is the bug" note sat **59 lines above** the `find` anyone would actually edit; what a tidier saw there was a `shellcheck disable` for the word-splitting -- **one annotated oddity reads as a claim that it is the only deliberate one.** Moved to 13 lines. **Nothing in code says "this absence is load-bearing" unless you write it where the edit lands.**
 - **A GENERALISATION FROM A REAL FINDING IS STILL AN UNMEASURED CLAIM, AND THE TIDY-LOOKING FIX IS OFTEN THE BUG.** vc generalised my reconciliation to "every `find | wc -l` denominator in the estate is inflated". **Measured: 7 sites, 0 inflated** -- and mechanically applying the rule would have made `rig_selftest.sh` miss a stray DIRECTORY (as much a containment failure as a stray file) and made `surface_check.sh` blind to DELETED source, because a deletion moves only the directory mtime. **Two nodes agreeing on a rule is not evidence for it; the fixture is.**
 - **MY SWEEP FOR THAT CLASS HAD THE CLASS. `--include='*.sh'` MISSED 55 EXTENSIONLESS EXECUTABLES** under `bin/`, 3 carrying the idiom -- so my first answer was 4 of an actual 7. **Third instance today of stating a population before checking what the instrument could not see.**
 - **AN INSTRUMENT THAT REFUSED FOR THE RIGHT-LOOKING REASON CAN STILL BE BLIND TO THE THING YOU CREDIT IT WITH.** `surface_check.sh` refused all day and was credited estate-wide with covering the wipe; it refused on a different crate and could not have seen the one that mattered. **Credit an instrument for its MEASURED reach, never for the reason it happened to be red** -- and when a peer writes your instrument into a finding, check the reach before you let it stand.
