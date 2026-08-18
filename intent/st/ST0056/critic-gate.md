@@ -1,0 +1,89 @@
+---
+verblock: "18 Aug 2026:v0.1: vc - the pre-commit critic gate: approved, primed, unbuilt"
+---
+
+# The pre-commit critic gate -- APPROVED BY hv 2026-08-18, PRIMED, NOT YET BUILT
+
+**Status: hv approved BOTH halves and then had to reboot. Nothing is built. This document exists so the work can be picked up cold, by anyone, without reconstructing the argument.**
+
+Measured by dc across 2026-08-18; carried and cross-checked by vc. Every figure below is a measurement, and where it is not, it says so.
+
+## The one-sentence problem
+
+**Since the hoist at `0ec2ac79`, every commit any node has made passed a pre-commit gate that enforced NOTHING across all five declared languages, while reporting success.**
+
+## HALF A -- the gate fails open. One word.
+
+### Mechanism, and it is three correct behaviours composing into a wrong outcome
+
+- The hook calls `intent critic <lang>`.
+- `intent` on PATH is **v2**.
+- **v2 correctly refuses a v3-declared project at exit 2** (`bin/intent:277`).
+- **`2` is the code the hook treats as "clean, no findings"** (`bin/intent_critic:89,95`).
+
+Nothing here is a bug on its own. The version guard is right, exit 2 is a legitimate refusal code, and the fail-open on 2 was deliberate. **The defect is the composition, and it only exists because the project hoisted.**
+
+### The fix
+
+**Add `critic` to `GLOBAL_COMMANDS` at `bin/intent:55`**, so it dispatches BEFORE the version guard at `bin/intent:277`.
+
+This is the structural classification the guard's own comment already asks for: **`critic` reads the rule library and scans files, and never writes to the project.** It is not a hand-written exemption.
+
+### Evidence, both arms, driven in a sacrificial copy
+
+```
+4/4  critic runs (rc=0); `st list` and `wp list` STILL REFUSE at rc=2
+     -- so the version guard is not weakened
+
+ARM A  clone as-is                       8 failures, 20 passes
+ARM B  critic added to GLOBAL_COMMANDS   0 failures, 28 passes
+```
+
+All 8 bats failures are the version guard, at `critic_report_format.bats` 219-225 and `intent_critic.bats` 644, failing verbatim with `error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0`. **They can ONLY appear in a hoisted tree**, which is why the "100% green" suite run earlier that day is not in conflict -- it was pre-hoist.
+
+**So one word does three things: un-darkens the gate, turns the suite green, and leaves the guard intact.**
+
+## HALF B -- repaired, it can still only report on Elixir
+
+```
+shell   80 real project files -> rc=0,  0 findings    0 of 6 rules carry a greppable proxy
+rust    80 real project files -> rc=0,  0 findings    0 of 7 rules carry a greppable proxy
+elixir  41 real project files -> rc=1, 20 findings   19 of 19 rules carry a proxy
+```
+
+**Intent is 114 `.rs` + 57 `.sh` + 71 `bin/` scripts + 108 `.bats`.** The 41 Elixir files are almost entirely template payload under `lib/templates/ext-seeds/worker-bee/`. **A fully repaired gate would enforce Elixir rules on a project that is essentially not Elixir.**
+
+**Elixir at 19/19 is the positive control**, so the instrument is proven in both directions and the shell/rust zeros are a real absence rather than a broken measurement.
+
+### The cause is ours and it is documented
+
+**ST0039 stripped the non-mechanical `Greppable proxy` regexes out of the rule library** -- correctly, because a regex over source measures TEXT rather than BEHAVIOUR, and the headless runner now refuses a non-simple proxy outright. **Only the Elixir pack was ever re-armed.**
+
+### What Half B actually requires
+
+**Re-arm the rust and shell packs with proxies that are mechanically honest.** Six shell rules and seven rust rules currently carry none. **This is real work and nobody has scoped it** -- it is not a one-liner and should not be quoted as one.
+
+**The constraint from ST0039 stands: a proxy must be simple enough for the headless runner to honour, and a rule whose detection is genuinely non-mechanical should carry NO proxy rather than a misleading one.** The correct outcome for some rules may be "critic cannot check this", stated, rather than a regex that passes for the wrong reason.
+
+## Sequencing -- the shim CONFLICTS with Half A
+
+dc's shim resolves a project, reads its declared version, and execs the matching binary. **Installed, this project's `intent` routes to v3 -- and v3 answers `critic` with `known command that is not implemented yet`, exit 2.**
+
+**So installing the shim DEFEATS Half A**, because the fix lives in v2's dispatcher and the shim routes away from it. Both were measured separately, so the conflict is composition rather than inference.
+
+**RULING (dc, carried by vc, approved by hv): take the one-word fix, HOLD the shim.**
+
+## Adjacent, same lane, NOT approved and NOT scoped
+
+**`bin/.devbin/cmd/build.d/release:373-383` never runs `cargo test` at all.** The release pre-flight is `bin/intent doctor` (v2's doctor) then `tests/run_tests.sh` (bats). **On a 3.0.0 whose product IS the Rust binaries, the tag path never runs the Rust suite** -- which is why 2026-08-18's `dispatch_ssot` defect could never have been caught by cutting a release.
+
+dc's proposal, **not yet put to hv**: put `cargo test` in the pre-flight ahead of the dirty-tree check at `release:702`, which already re-reads `git status --porcelain` and **fails CLOSED**. No new mechanism; the gate that would catch it already exists and simply never sees the suite.
+
+**Boundary worth stating with it: `release:702` reads git, so it structurally cannot see a writer that only writes GITIGNORED paths** -- the runtime store being the live example. That is the limit of what that gate can be asked to prove, not an argument against it.
+
+## Ownership
+
+- **Half A** -- `bin/intent:55`. dc measured it and has not touched `bin/**`; that is theirs.
+- **Half B** -- the rule library. Needs scoping before it needs an owner.
+- **The shim** -- dc's, held.
+- **The release pre-flight** -- dc's, and still needs hv.
