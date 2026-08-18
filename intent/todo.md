@@ -26,6 +26,7 @@ A flat DOING / TODO / DONE view, projected from steel-thread and work-package st
 - [ ] ST0056 / WP-13: Project search: full-text, structural, and the agent search surface
 - [ ] ST0056 / WP-14: Coordination model: whiteboard and inboxes in the store, with a bounded API
 - [ ] ST0056 / WP-15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
+- [ ] ST0056 / WP-16: Contract drift: a shipped field with no model row is refused
 - [ ] ST0057 / WP-01: Canon relocation to intent/.canon/
 - [ ] ST0057 / WP-02: .intentfiles: the manifest and its refusing grammar
 - [ ] ST0057 / WP-03: Attachment canon: opaque as file, and the naming gate

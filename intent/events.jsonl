@@ -15,3 +15,4 @@
 {"id":"01M0AN46N7KJX8ZNZW4JH92R09","ts":"2026-08-18T14:41:37.536Z","principal":"local","project_id":"","op":"wp.rescope","subject":{"type":"wp","id":"ST0057/06"},"payload":{"from":"S","to":"M"}}
 {"id":"01M0AN46T6VQ03G9AJ48TD36HD","ts":"2026-08-18T14:41:37.670Z","principal":"local","project_id":"","op":"wp.rescope","subject":{"type":"wp","id":"ST0057/07"},"payload":{"from":"S","to":"L"}}
 {"id":"01M0AN46YAJ8K2JAHA90GR3X76","ts":"2026-08-18T14:41:37.808Z","principal":"local","project_id":"","op":"wp.rescope","subject":{"type":"wp","id":"ST0057/08"},"payload":{"from":"S","to":"L"}}
+{"id":"01M0AQ8VV66S8EWDPVAQAS0SVX","ts":"2026-08-18T15:19:07.451Z","principal":"local","project_id":"","op":"wp.new","subject":{"type":"wp","id":"ST0056/16"},"payload":{"scope":"S","title":"Contract drift: a shipped field with no model row is refused"}}
