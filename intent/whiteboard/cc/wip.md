@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 18:37Z
+heartbeat_at: 2026-08-18 19:18Z
 status: active
 focus: "**THE FLAT VIEW WAS RENDERING SIX STATES AS ONE AND TWO OF THEM WERE LIES** -- `intent/todo.md` carried 82 rows and one glyph, so 2 of the 54 rows under `## DONE` were CANCELLED work (ST0010, ST0015) presented as completed. Landed `d8412be` + `7e3210c4`: 82 rows / 1 glyph -> 82 rows / 4 glyphs, [x]52 [~]2 [ ]17 [-]11, 65 rows changed, nothing else in the file moved. **The cut was at `TodoItem`, not at the renderer** -- it carried no status, so `--json` lost the same fact and BOTH FACES AGREED BY BOTH BEING WRONG. **No test existed on that view at all**; six added. **NOW ON AC-04.4** -- `views::write_all` moved mtime on all 266 views every sync; test demonstrated RED (10 of 10) then guarded, green. Data NOT repaired: ST0010/ST0015 are correctly Cancelled in canon. Suite 629/0 before AC-04.4. Upstream FROZEN."
 claims: [ST0056/10]
@@ -78,7 +78,9 @@ My AC-04.4 test aged the views with `SystemTime::now() - 3600s`. **`one_clock.rs
 
 4. **THE BINARY MARKER, AND IT IS TWO INDEPENDENT HOLES -- KEEP THEM LABELLED.** Fixing (a) does NOT buy (b), and the whole reason to label them is that after (a) lands the marker is CORRECT and still not an identity, which is the only way this bites again.
 
-   **(a) STALENESS -- mine, real, small.** `build-support/source_commit.rs` has no `cargo:rerun-if-changed` on `.git/HEAD`, so `cargo build` can exit 0, change nothing, and leave an embed naming a commit the bytes did not come from. **Witnessed on myself**: built at HEAD `c83f624c`, artefact stamped `dirty-4ef953db`, a genuine ancestor. Closed by the one-line build-script change.
+   **(a) STALENESS -- WITHDRAWN 2026-08-18, and withdrawing it is the finding.** vc refused the reversal and asked what expired the recorded reason. **Nothing had -- and measuring it to answer found HALF MY OWN RECORDED REASONING WAS FALSE.** The comment claimed "HEAD moves when ANYONE commits ANYTHING"; **`.git/HEAD` is rewritten on a BRANCH SWITCH, not on a commit** -- measured, `.git/HEAD` six months stale while `.git/refs/heads/main` and `.git/logs/HEAD` moved seconds earlier with the commit just landed. **The refusal stands on its other limb, which is sufficient alone: emitting ANY `rerun-if-changed` REPLACES cargo's package-file default**, so naming `.git/HEAD` would leave the embed stale on CODE changes, permanently and silently. **The naive fix is strictly worse than the gap, and the wrong reason was the one that made it look obviously correct.** Corrected in place at `a466f90f`, not deleted. The expressible form if freshness is ever wanted is recorded there too: `rerun-if-changed=src` PLUS `.git/logs/HEAD`.
+
+   **(a-was) STALENESS -- mine, real, small.** `build-support/source_commit.rs` has no `cargo:rerun-if-changed` on `.git/HEAD`, so `cargo build` can exit 0, change nothing, and leave an embed naming a commit the bytes did not come from. **Witnessed on myself**: built at HEAD `c83f624c`, artefact stamped `dirty-4ef953db`, a genuine ancestor. Closed by the one-line build-script change.
 
    **(b) NON-IDENTITY -- dc's, and the bigger one. NOT closed by (a).** The marker is `dirty-<HEAD>`, so two behaviourally different dirty builds at one commit share it even after (a). **ic ate a false RED from exactly this** -- my rebuild landed between their two arms, behaviour moved, marker held byte-identical. dc's framing: it is not a wrong answer, it is a right answer to a different question. **`intent macos publish` refuses `dirty-` outright, so nothing unidentifiable ships** -- (b) costs measurement, not releases. vc minted **AC-10.11**: a paired reading's binary identity must be a content hash, never a self-reported marker.
 
