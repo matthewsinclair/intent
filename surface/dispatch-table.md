@@ -2,7 +2,7 @@
 
 > GENERATED VIEW -- the canon is `dispatch-table.json` beside this file. Regenerate with `parity/tools/gen_dispatch_table.sh`; do not hand-edit rows. Measured at `9ec1656` on 2026-08-14 by ic.
 
-**Status:** All 27 v2 families authored + 8 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling.
+**Status:** All 27 v2 families authored + 8 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.
 
 - THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.
 - This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.
