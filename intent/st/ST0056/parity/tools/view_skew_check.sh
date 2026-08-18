@@ -190,21 +190,21 @@ done <<< "$CHECKABLE"
 unregistered=""
 for f in "$ROOT/surface"/*.md "$P"/*.md; do
   [ -f "$f" ] || continue
-  rel="${f#$ROOT/}"
+  rel="${f#"$ROOT"/}"
 
   case "$CHECKABLE" in *"$rel|"*) continue ;; esac
 
   known=0
   while IFS='|' read -r pat _why; do
     [ -n "$pat" ] || continue
-    # shellcheck disable=SC2254 -- $pat is a deliberate glob (cmd-*.md)
+    # shellcheck disable=SC2254  # $pat is a deliberate glob (cmd-*.md)
     case "$rel" in $pat) known=1; break ;; esac
   done <<< "$UNCHECKABLE"
 
   if [ "$known" -eq 0 ]; then
     while IFS='|' read -r pat _what; do
       [ -n "$pat" ] || continue
-      # shellcheck disable=SC2254 -- deliberate glob, same as above
+      # shellcheck disable=SC2254  # deliberate glob, same as above
       case "$rel" in $pat) known=1; break ;; esac
     done <<< "$AUTHORED"
   fi

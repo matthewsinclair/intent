@@ -82,7 +82,7 @@ DISPATCH_TABLE="$TABLE"
 # `spine.rs` is stale no matter which table it is being asked about.
 STALE_INPUTS="$REPO_ROOT/native/rust/crates/intent-cli/src"
 [ "$TABLE" = "$DEFAULT_TABLE" ] && STALE_INPUTS="$TABLE $STALE_INPUTS"
-# shellcheck disable=SC2086 -- STALE_INPUTS is a deliberate path list
+# shellcheck disable=SC2086  # STALE_INPUTS is a deliberate path list
 STALE="$(find $STALE_INPUTS -newer "$BIN" -print 2>/dev/null)"
 if [ -n "$STALE" ]; then
   die "the binary at $BIN is OLDER than $(printf '%s\n' "$STALE" | wc -l | tr -d ' ') of its own inputs -- rebuild it first (\`int build cli\`, ~30s).
@@ -111,6 +111,7 @@ while IFS=$'\t' read -r path disp arity nflags flagjson; do
     *) die "row \`$path\` did not yield a flag array (got \"${flagjson:0:40}\") -- the TSV columns have shifted, and a row whose flags cannot be read reports clean rather than broken" ;;
   esac
 
+  # shellcheck disable=SC2086  # $path is a multi-word command path and MUST split
   out="$($BIN $path --help 2>&1)"; rc=$?
 
   # Unreachable. For a retired command that is the CORRECT outcome and the only
@@ -207,7 +208,7 @@ done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
   | select(((.flags | length) > 0)
         or (((.args // []) | map(select(.type == "subcommand")) | length) > 0))
   # NO FIELD IS EVER EMPTY -- the `-` placeholders are load-bearing, not tidiness.
-  # `read -r a b c d` with `IFS=$'\t'` COLLAPSES an empty field, in bash and zsh
+  # `read -r a b c d` with a TAB IFS COLLAPSES an empty field, in bash and zsh
   # alike (verified in both). An absent arity therefore shifted the flag JSON one
   # column left, `flagjson` came back empty, and the inner loop produced NOTHING
   # -- so every flag violation on every row without a subcommand slot vanished in
@@ -308,9 +309,18 @@ INV_PHANTOM="$(comm -13 <(printf '%s\n' "$INV_DECLARED") <(printf '%s\n' "$INV_K
 INV_N=0; INV_VIOL=""
 while IFS= read -r p; do
   INV_N=$((INV_N + 1))
-  # shellcheck disable=SC2086 -- $p is a multi-word command path and MUST split
-  ihelp_rc=0; $BIN $p --help >/dev/null 2>&1 || ihelp_rc=$?
+  ihelp_rc=0
+  # THREE DELIBERATE SPLITS NEED THREE DIRECTIVES, and the single one that used
+  # to sit here covered none of them. A directive applies to the NEXT COMMAND,
+  # and the next command was the `ihelp_rc=0` assignment that shared line 2's
+  # semicolon -- so the `$BIN $p` beside it and both lines below were unguarded.
+  # Invisible until now: the malformed `--` directive at the top of this file had
+  # stopped shellcheck reading anything past line 85 (dc, 2026-08-18).
+  # shellcheck disable=SC2086  # $p is a multi-word command path and MUST split
+  $BIN $p --help >/dev/null 2>&1 || ihelp_rc=$?
+  # shellcheck disable=SC2086  # $p is a multi-word command path and MUST split
   iout="$($BIN $p --zzz-not-a-flag 2>/dev/null)"; irc=$?
+  # shellcheck disable=SC2086  # $p is a multi-word command path and MUST split
   ierr="$($BIN $p --zzz-not-a-flag 2>&1 >/dev/null)"
   iline="$(printf '%s' "$ierr" | head -1)"
 
@@ -359,7 +369,7 @@ trap 'rm -rf "$INV3_TMP"' EXIT
 
 INV3_GATED=0
 while IFS= read -r p; do
-  # shellcheck disable=SC2086 -- $p is a multi-word command path and MUST split
+  # shellcheck disable=SC2086  # $p is a multi-word command path and MUST split
   gerr="$(cd "$INV3_TMP" && $BIN $p 2>&1 >/dev/null)"
   gline="$(printf '%s' "$gerr" | head -1)"
   case "$gline" in
