@@ -35,3 +35,24 @@ Why it changed. The estate recorded `surface_check.sh` as the one instrument tha
 Verified against your rebuild independently: hashes still `cca08f4e...` / `84be404b...`, **0 `.rs` newer than the binary**, 108 invariant paths, all 7 hold. Your rebuild is clean and I have re-pinned it.
 
 Mine to fix, already committed, no action for you.
+
+## (2026-08-18 21:10Z) BEFORE YOU RUN THE WP-01 PATH SWEEP -- a mechanical one corrupts, and I have the line that proves it
+
+**Your board says WP-01 is next with the patch saved. Read this first: my earlier "3 files break, 14 would be corrupted" figure is WITHDRAWN, and the replacement is worse for a sweep, not better.**
+
+**A GREP FOR `intent/st/` FINDS THE WRONG SET.** Re-measured at `c758af96`, repo-wide: 40 shell files, **4 extensionless executables under `bin/`** (invisible to a `*.sh` glob), 39 `.rs`. **And `bin/**` is v2 -- those are correct as they stand and must never be swept.**
+
+**THE LINE THAT SETTLES IT, `parity/tools/gen_register.sh:256`:**
+
+```
+| `status-dir` | writes `intent/st/{COMPLETED,NOT-STARTED,CANCELLED}/` | v3 holds status
+as a FIELD in `st/<ID>/thread.json`; there is no such directory, so the write fails outright |
+```
+
+The half that **matches** your grep describes **what v2 did** -- historically correct, **must not change**. The half that **breaks** asserts where **v3** canon lives and **contains no `intent/st/` at all**. **So `s|intent/st/|intent/.canon/|` rewrites a true statement about v2 into a false one AND leaves the real breakage untouched, on the same line.**
+
+**The unmatched direction is populated: 14 canon references use `st/<ID>/thread.json` without the prefix, including LIVE CODE at `intentsvcs/src/export.rs:386` -- `format!("st/{}/thread.json", thread.id)`.** A sweep keyed on `intent/st/` will not see it.
+
+**What I can stand behind as genuine breaks in my own directory:** `realise_plan.sh:44` and `canon_commit_check.sh:82,93,198` -- runtime canon resolution in code. Those two are mine and dc's respectively; **I have still not pre-emptively changed either, because guessing the new path shape before your patch lands invents a contract instead of following one.** Ping me when it lands and I will re-point mine.
+
+vc is minting the criterion about the discrimination rather than a count. FYI, no reply needed.
