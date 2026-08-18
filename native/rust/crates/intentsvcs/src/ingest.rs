@@ -22,7 +22,7 @@ use serde::de::DeserializeOwned;
 
 use crate::finding::{Finding, FindingClass, Refusal};
 use crate::model::{ISSUE_SCHEMA, Issue, THREAD_SCHEMA, Thread};
-use crate::project::{Project, THREAD_PROSE};
+use crate::project::Project;
 use crate::prose::{self, DocSection};
 use crate::store::{Store, StoreError};
 use crate::sync::{self, FileState};
@@ -140,7 +140,6 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   for id in project.thread_ids()? {
     match read_thread(project, &id, &read_to_string(&project.thread_json(&id))?) {
       Ok(thread) => {
-        collect_prose(project, &mut canon.sections, "thread", &id)?;
         collect_wp_text(project, &mut canon.sections, &thread);
         canon.threads.push(thread);
       }
@@ -262,6 +261,74 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
 /// (AC-03.5) rather than reading through it, and it leaves the file index
 /// updated so the sync engine can answer "what changed" without re-deriving
 /// it.
+/// Carry what is on disk into a canon's `attachments`, for the ONE direction
+/// where the files are authoritative.
+///
+/// **NOT part of [`read`], and the placement is the whole correctness of it.**
+/// `read` is shared by every load path, so collecting there overwrote canon's
+/// attachments with a disk scan on every read -- which destroyed them outright
+/// when the files were not present, and, worse, made an attachment divergence
+/// IMPOSSIBLE TO OBSERVE. 5.1b rules that an attachment divergence means the
+/// STORE is stale; a reader that always takes disk can never report one, so
+/// the check that exists to find it silently could not fail. `doctor`'s
+/// hash-mismatch arm caught this within one run of putting it in the wrong
+/// place.
+///
+/// So the disk wins HERE and nowhere else -- `sync --to-store` is the declared,
+/// destructive, files-are-authoritative direction, and the operator has already
+/// been shown what it overwrites (AC-03.9).
+pub fn collect_attachments_into(project: &Project, canon: &mut Canon) -> Vec<Finding> {
+  let mut findings = Vec::new();
+  for thread in &mut canon.threads {
+    let (mut carried, refused) = project.collect_attachments(&thread.id);
+
+    // **MERGED, NOT REPLACED, and the reason is the disk model rather than
+    // caution.** Disk is a SPARSE projection of the store (ST0057, in the
+    // 3.0.0 gate), so a file being absent is the NORMAL state of a dehydrated
+    // attachment and is not evidence that anything was deleted. Replacing
+    // outright made `sync --to-store` silently drop every attachment the
+    // extract carried and the tree had not materialised -- caught by the two
+    // round-trip tests, which is the shape D34 exists to prevent: the extract
+    // is the interchange, and a direction that quietly empties it is not a
+    // round trip.
+    //
+    // So a file present on disk WINS for its own path -- that is the
+    // files-are-authoritative direction doing its job -- and a path canon
+    // knows about with no file behind it is carried through untouched.
+    // Removing an attachment is therefore an explicit act, never a
+    // side effect of not having hydrated it.
+    // **CANON'S ORDER IS PRESERVED, and re-sorting it was a real defect rather
+    // than a cosmetic one.** The collector returns path-sorted results because
+    // the migrator needs a deterministic order for a thread it is seeing for
+    // the first time. Applying that sort to a thread canon ALREADY holds
+    // rewrites the extract's byte layout for no change in content -- and a
+    // round trip that rewrites its own output makes every real change
+    // invisible in the noise, which is the property `openness.rs` guards.
+    //
+    // So: canon's known paths keep their authored positions, a file on disk
+    // replaces its own entry in place, and only genuinely NEW paths are
+    // appended (in the collector's sorted order, which is deterministic).
+    let mut fresh: std::collections::HashMap<String, _> =
+      carried.drain(..).map(|a| (a.path.clone(), a)).collect();
+    let mut merged = Vec::with_capacity(thread.attachments.len() + fresh.len());
+    for existing in &thread.attachments {
+      match fresh.remove(&existing.path) {
+        Some(from_disk) => merged.push(from_disk),
+        None => merged.push(existing.clone()),
+      }
+    }
+    let mut added: Vec<_> = fresh.into_values().collect();
+    added.sort_by(|a, b| a.path.cmp(&b.path));
+    merged.append(&mut added);
+    thread.attachments = merged;
+
+    for (name, reason) in refused {
+      findings.push(Finding::new(&name, FindingClass::UnknownFileShape, reason));
+    }
+  }
+  findings
+}
+
 pub fn resync(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
   let previous = store.file_index()?;
   let entries = sync::scan(project.root(), &previous).map_err(|e| IngestError::Io {
@@ -471,10 +538,13 @@ impl Validated for Issue {
 /// Put each work package's text into the prose index (AC-06.4).
 ///
 /// AC-06.4 names three searchable sources -- ST prose, issue bodies and WP
-/// text -- and the first two are authored markdown that [`collect_prose`]
-/// picks up. WP text is not: v3 reifies work packages INTO `thread.json`, so
-/// after the port there is no `WP/<NN>/info.md` for anything to read, and a
-/// search for a work package's title found nothing at all.
+/// text. **ST prose is no longer among them and its absence is a ruling, not a
+/// regression** (D57-6): `design.md` / `impl.md` / `tasks.md` are carried as
+/// attachments now, and freeform prose under arbitrary headings has no model
+/// field to parse into, so splitting it discarded structure into nothing. WP
+/// text is reified INTO `thread.json`, so after the port there is no
+/// `WP/<NN>/info.md` for anything to read, and a search for a work package's
+/// title found nothing at all.
 ///
 /// This is not double truth. `work_packages` and `doc_sections` are both
 /// projections rebuilt from `thread.json` on every load, so this is one truth
@@ -516,6 +586,43 @@ pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Th
     });
   }
 
+  // **AC-06.4's ST-prose source, after `THREAD_PROSE` left the classifier**
+  // (D57-6, extended by vc to this consumer -- the ruling governed
+  // `project.rs` and this file was the constant's second reader).
+  //
+  // `design.md` / `impl.md` / `tasks.md` are attachments now, carried verbatim
+  // and no longer split by heading. **Deleting the split without replacing the
+  // index would have reinstated the exact class AC-06.4 was written to close**:
+  // a search over authored thread prose returning byte-identically to a
+  // genuine miss, which `an_unpopulated_index_is_not_the_same_answer_as_a_
+  // genuine_miss` exists to make impossible.
+  //
+  // **ONE UNSPLIT SECTION PER ATTACHMENT, and the "unsplit" is the whole
+  // ruling.** Rule 2 of the attachment spec objects to CARVING freeform prose
+  // into sections the model has no fields for -- that is how `## Related Steel
+  // Threads` became 52 rows of LOST-PROSE. A whole-file section carves
+  // nothing: no headings parsed, no structure discarded, and the text is
+  // already in the model byte-for-byte, so this adds an index rather than a
+  // truth.
+  //
+  // Every carried attachment, not a list of three names. A file the classifier
+  // decided was worth carrying is a file worth finding, and re-introducing a
+  // name list here would be `THREAD_PROSE` wearing a different constant.
+  for att in &thread.attachments {
+    if att.text.trim().is_empty() {
+      continue;
+    }
+    out.push(DocSection {
+      owner_type: "thread".to_string(),
+      owner_id: thread.id.clone(),
+      file: project.relative(&project.thread_dir(&thread.id).join(&att.path)),
+      seq: 0,
+      heading: Some(att.path.clone()),
+      level: 0,
+      body: att.text.clone(),
+    });
+  }
+
   for wp in &thread.wps {
     out.push(DocSection {
       owner_type: "work-package".to_string(),
@@ -537,27 +644,6 @@ pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Th
       },
     });
   }
-}
-
-fn collect_prose(
-  project: &Project,
-  out: &mut Vec<DocSection>,
-  owner_type: &str,
-  id: &str,
-) -> Result<(), IngestError> {
-  for name in THREAD_PROSE {
-    let path = project.thread_dir(id).join(name);
-    if path.is_file() {
-      let text = read_to_string(&path)?;
-      out.append(&mut prose::split(
-        owner_type,
-        id,
-        &project.relative(&path),
-        &text,
-      ));
-    }
-  }
-  Ok(())
 }
 
 fn read_to_string(path: &std::path::Path) -> Result<String, IngestError> {

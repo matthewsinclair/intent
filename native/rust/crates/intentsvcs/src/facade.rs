@@ -1040,7 +1040,43 @@ impl Facade {
   /// nothing either, because a service call with a stated direction has
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
   pub fn sync_from_disk(&mut self) -> Result<usize, FacadeError> {
-    let canon = ingest::resync(&self.project, &mut self.store)?;
+    let mut canon = ingest::resync(&self.project, &mut self.store)?;
+
+    // **The disk-to-attachments carry, and this is the only caller** (D57-6's
+    // second consumer; 5.1b). Until this landed the sole producer of an
+    // `Attachment` was the migrator, so a file a person wrote into a thread
+    // directory reached neither canon nor the index. Measured on this estate
+    // before the fix: 57 threads, 0 carrying attachments, with the files
+    // themselves sitting on disk.
+    //
+    // It runs after `resync` rather than inside it because `resync` also warms
+    // a COLD store, and a cold warm must reproduce the committed extract
+    // rather than let disk quietly outvote it. The second `rebuild` is the
+    // price of keeping that boundary honest, on a path that is explicit,
+    // infrequent and already declared destructive.
+    let refused = ingest::collect_attachments_into(&self.project, &mut canon);
+    if !refused.is_empty() {
+      return Err(IngestError::from(crate::finding::Refusal::new(refused)).into());
+    }
+    self.store.rebuild(&canon.threads, &canon.issues)?;
+
+    // **The index is derived during `read`, which by design has not seen the
+    // attachments yet, so it has to be re-derived here or the carry lands in
+    // canon and reaches the FTS index nowhere.** That is AC-06.4's failure
+    // shape exactly -- content present and findable by nothing -- so rebuilding
+    // the thread sections is part of the carry rather than a tidy-up after it.
+    if !canon.threads.is_empty() {
+      canon
+        .sections
+        .retain(|s| s.owner_type != "thread" && s.owner_type != "work-package");
+      let mut rebuilt = Vec::new();
+      for thread in &canon.threads {
+        ingest::collect_wp_text(&self.project, &mut rebuilt, thread);
+      }
+      canon.sections.append(&mut rebuilt);
+      self.store.replace_doc_sections(&canon.sections)?;
+    }
+
     ingest::restore_event_log(&self.project, &mut self.store)?;
     let all_threads: Vec<&Thread> = canon.threads.iter().collect();
     let all_issues: Vec<&Issue> = canon.issues.iter().collect();

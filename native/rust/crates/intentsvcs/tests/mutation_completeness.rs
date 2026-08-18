@@ -1280,7 +1280,7 @@ type RatifiedMachine = (&'static str, &'static str, &'static [RatifiedEdge]);
 
 const RATIFIED_THREAD: &[RatifiedEdge] = &[
   ("st.triage", &["triage"], "not-started", &[]),
-  ("st.start", &["not-started"], "wip", &[]),
+  ("st.start", &["triage", "not-started"], "wip", &[]),
   ("st.resume", &["hold"], "wip", &[]),
   (
     "st.hold",

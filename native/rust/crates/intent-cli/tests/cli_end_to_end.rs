@@ -116,6 +116,37 @@ fn the_first_command_in_a_fresh_project_succeeds() {
   assert_eq!(out.trim(), "created: ST0001");
 }
 
+/// **`st new` then `st start` lands at WIP, without `st triage` in between.**
+///
+/// The ratified machine made `Triage -> NotStarted -> Wip` the only route, and
+/// the first human to type it said so: _"this is STOOPID... I'd expect it to
+/// just end up at WIP"_ (hv, 2026-08-18). v2 was two commands and the ratified
+/// path cost three, on the only route anyone actually walks.
+///
+/// hv amended the machine rather than defaulting `st new` to `--start`
+/// (`data-model.md:430`, :436): starting work on a triaged item IS accepting
+/// it, so `Triage -> Wip` is a legitimate compound rather than a bypass.
+/// Defaulting `st new` instead would have left `Triage` with almost no
+/// population, which is the state's whole justification.
+///
+/// **Driven through the binary, because this class only ever showed up when a
+/// person typed the sequence** -- the suite expressed the semantics of every
+/// arm and could not express that the route was two commands too long.
+#[test]
+fn start_is_legal_straight_from_triage() {
+  let dir = project();
+  let root = dir.path();
+
+  ok(root, &["st", "new", "Add a Rust-based CLI"]);
+  assert_eq!(ok(root, &["st", "start", "ST0001"]).trim(), "ok: ST0001 started");
+
+  let shown = ok(root, &["st", "show", "ST0001"]);
+  assert!(
+    shown.contains("status: WIP"),
+    "two commands, and the thread is where the operator expected it: {shown}"
+  );
+}
+
 /// The full lifecycle, through the binary, writing real canon and real views.
 #[test]
 fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
@@ -149,15 +180,10 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
     "and the bare form is header + separator only, not an error and not silence"
   );
 
-  // A thread at `triage` has not been accepted into the backlog, so `st start`
-  // is refused BY THE MACHINE rather than being silently allowed.
-  let refused = run(root, &["st", "start", "ST0001"]);
-  assert_eq!(refused.status.code(), Some(1));
-  let why = String::from_utf8_lossy(&refused.stderr);
-  assert!(
-    why.contains("not a legal transition") && why.contains("not-started"),
-    "and the refusal names the state the verb IS declared from, so the operator can get there: {why}"
-  );
+  // **`st start` from `Triage` used to be asserted here as a REFUSAL and is
+  // now legal** (hv, 2026-08-18, `data-model.md:430`). The compound edge has
+  // its own test below; this one keeps driving the long way round, arm by arm,
+  // because every intermediate verb still has to work.
 
   // **Now drive the machine, arm by arm, asserting each verb's own success
   // line.** The previous version of this block stopped at the refusal above

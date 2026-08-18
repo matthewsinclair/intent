@@ -142,7 +142,7 @@ fn a_file_that_does_not_attach_is_not_carried_and_not_licensed_as_a_drop() {
 /// the model, so carrying it here as well would put one file's content in two
 /// places and let them disagree.
 #[test]
-fn the_typed_documents_and_the_generated_views_are_not_attached() {
+fn the_generated_views_are_not_attached() {
   let fixture = Fixture::new();
   project(&fixture);
   fixture.write_file("intent/st/ST0001/design.md", "# Design\n\n## Shape\n\nA.\n");
@@ -153,15 +153,27 @@ fn the_typed_documents_and_the_generated_views_are_not_attached() {
   );
 
   let thread = &scan(&fixture).threads[0];
-  assert!(
-    thread.attachments.is_empty(),
-    "info.md, design.md, acceptance.md and WP/NN/info.md all have homes already: {:?}",
-    thread
-      .attachments
-      .iter()
-      .map(|a| &a.path)
-      .collect::<Vec<_>>()
+  let carried: Vec<&String> = thread.attachments.iter().map(|a| &a.path).collect();
+
+  // **`design.md` MOVED SIDES on 2026-08-18 and the test says which side it is
+  // on now** (D57-6). It was a typed document with a home in the parser and no
+  // carriage; it is an attachment, carried verbatim, like any other authored
+  // markdown under a thread.
+  assert_eq!(
+    carried,
+    vec!["design.md"],
+    "design.md is carried now; the generated views still are not: {carried:?}"
   );
+
+  // The views are the unchanged half, and they are the reason this test exists:
+  // each is rendered FROM the model, so carrying one would give a single fact
+  // two homes and let a stale copy answer for the live one.
+  for view in ["info.md", "acceptance.md", "WP/01/info.md"] {
+    assert!(
+      !carried.iter().any(|p| p.as_str() == view),
+      "{view} is generated from the model and has a home already: {carried:?}"
+    );
+  }
 }
 
 /// **The view test keys on SHAPE, not on a bare filename**, and this is the
@@ -193,7 +205,9 @@ fn a_file_named_like_a_view_but_nested_is_an_authored_file() {
   );
   assert_eq!(
     Project::classify(std::path::Path::new("design.md")),
-    ThreadFile::TypedDoc
+    ThreadFile::Attachment,
+    "D57-6: THREAD_PROSE is deleted, so a thread's own design.md is carried \
+     verbatim like any other authored markdown rather than skipped"
   );
   assert_eq!(
     Project::classify(std::path::Path::new("parity/baseline.tap")),

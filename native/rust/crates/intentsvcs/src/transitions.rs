@@ -312,7 +312,7 @@ pub const FIELDS: &[Field] = &[
       // rather than a quiet divergence from the document both come from.
       edges: &[
         Edge::direct("st.triage", &["triage"], "not-started"),
-        Edge::direct("st.start", &["not-started"], "wip"),
+        Edge::direct("st.start", &["triage", "not-started"], "wip"),
         Edge::direct("st.resume", &["hold"], "wip"),
         Edge::guarded(
           "st.hold",

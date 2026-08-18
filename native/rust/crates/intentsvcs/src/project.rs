@@ -11,32 +11,8 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-/// The authored prose files INDEXED for search, at a thread's root.
-///
-/// Generated views (`info.md`, `acceptance.md`) are deliberately absent: a
-/// view is rendered from the model, so indexing it would index the model twice
-/// and let a stale view answer a search.
-///
-/// **INDEXED IS NOT CARRIED, and the difference is a live hole rather than a
-/// nicety.** These three go into `doc_sections` so `search` can find them, and
-/// into no model field at all -- `thread.json` has no `design`, no `impl` and
-/// no `tasks`. **748 authored sections across 163 files on this estate exist
-/// nowhere but those files**, measured by vc.
-///
-/// They are `.md`, so nothing about the extension rule excludes them: being
-/// named here is what makes [`Project::classify`] call them typed, and a typed
-/// document is deliberately never also an attachment. **The classifier is
-/// right and the declared set is right, and together they route 163 files into
-/// a hole.**
-///
-/// vc has put the resolution to hv (realisation.md, open question 7) with a
-/// recommendation to reclassify them as attachments -- a typed field earns its
-/// parsing because the model has fields for what comes out, and freeform prose
-/// under arbitrary headings has none, so parsing it discards structure into
-/// nothing. **If that is the ruling, the change is deleting this constant from
-/// the classifier rather than adding anything.** Recorded here because the
-/// next person will be standing at this list.
-pub const THREAD_PROSE: &[&str] = &["design.md", "impl.md", "tasks.md"];
+use crate::model::Attachment;
+
 
 /// The file extensions carried as [`crate::model::Attachment`]s.
 ///
@@ -73,11 +49,6 @@ pub const ATTACHMENT_EXTENSIONS: &[&str] = &["md", "txt", "sh"];
 /// disk that becomes optional destroys whatever nothing said was uncovered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ThreadFile {
-  /// `design.md` / `impl.md` / `tasks.md` -- see [`THREAD_PROSE`], which is
-  /// where the open question about them lives. **Indexed for search and held
-  /// in no model field**, so this variant currently means "excluded from
-  /// carriage" rather than "carried some other way".
-  TypedDoc,
   /// Rendered from the model: the thread's cover, its acceptance contract, a
   /// work package's cover.
   GeneratedView,
@@ -552,9 +523,6 @@ impl Project {
     if depth == 1 && name == "thread.json" {
       return ThreadFile::Canon;
     }
-    if depth == 1 && THREAD_PROSE.contains(&name) {
-      return ThreadFile::TypedDoc;
-    }
 
     let ext = rel
       .extension()
@@ -631,6 +599,50 @@ impl Project {
   /// a per-level collection. **Gitignored paths are excluded (D29): a path git
   /// does not carry cannot be canon**, which is also what keeps a stray
   /// `.DS_Store` out of the report by rule rather than by a special case.
+  /// Every carried attachment under a thread's directory, plus the files that
+  /// could not be carried and why.
+  ///
+  /// **THE ONE COLLECTOR, and "one" is the requirement rather than a tidiness
+  /// preference** (vc, condition 2). The migrator grew this walk first and
+  /// `sync` needed the same one; two walks over the same directory answering
+  /// the same question drift, and the drift would land exactly where it just
+  /// cost us -- content carried when it arrives by migration and dropped when
+  /// a person types it, with nothing comparing the two paths.
+  ///
+  /// **Refusals are RETURNED, not recorded**, because the two callers classify
+  /// them differently: the migrator files them against a thread's open/closed
+  /// disposition, and `sync` has no such axis. Returning `(path, reason)`
+  /// pairs lets each build its own finding without this function knowing about
+  /// either. A file that cannot be read is NEVER silently skipped -- it comes
+  /// back named, which is the posture `sync` already takes on undecodable
+  /// content.
+  pub fn collect_attachments(&self, id: &str) -> (Vec<Attachment>, Vec<(String, String)>) {
+    let dir = self.thread_dir(id);
+    let mut carried = Vec::new();
+    let mut refused = Vec::new();
+    for rel in self.thread_files(id) {
+      // Consumed by the parsers -- carrying them here as well would give one
+      // file two homes in the model.
+      if Project::classify(&rel) != ThreadFile::Attachment {
+        continue;
+      }
+      let path = dir.join(&rel);
+      let name = self.relative(&path);
+      match std::fs::read(&path) {
+        Ok(raw) => match String::from_utf8(raw) {
+          Ok(text) => carried.push(Attachment::new(rel.to_string_lossy(), text)),
+          Err(_) => refused.push((
+            name,
+            "not valid UTF-8, so it cannot be carried as text".to_string(),
+          )),
+        },
+        Err(e) => refused.push((name, format!("could not be read: {e}"))),
+      }
+    }
+    carried.sort_by(|a, b| a.path.cmp(&b.path));
+    (carried, refused)
+  }
+
   pub fn thread_files(&self, id: &str) -> Vec<PathBuf> {
     let dir = self.thread_dir(id);
     let mut out = Vec::new();

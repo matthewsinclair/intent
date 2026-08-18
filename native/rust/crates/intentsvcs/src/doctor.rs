@@ -37,7 +37,7 @@
 
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcKind, AcState, AtKind, AtStatus, Thread, ThreadStatus};
+use crate::model::{AcKind, AcState, AtKind, AtStatus, Thread};
 use crate::project::Project;
 use crate::remedy::Remedy;
 use crate::store::Store;
@@ -603,13 +603,27 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     }
   }
 
-  // Completion and status must agree in both directions.
+  // Completion and status must agree in both directions, and the predicate on
+  // both sides is `is_closed` rather than an equality with `Completed`. The
+  // field records an END, and `Cancelled` is an end -- the facade already says
+  // so by CLEARING the date on reopen (`cli_end_to_end.rs:329`), which is a
+  // statement about ending rather than about completing.
+  //
+  // Asking the same question on both arms is what gains the dateless-cancelled
+  // case, which an equality could not reach: it sat between the arms, flagged
+  // by neither, because one arm asked only about `Completed` and the other
+  // excluded everything else. A thread cancelled with no date recorded when
+  // is a real inconsistency and nothing reported it.
   match (thread.status, &thread.completed) {
-    (ThreadStatus::Completed, None) => add(
-      format!("{} is Completed with no completion date", thread.id),
+    (status, None) if status.is_closed() => add(
+      format!(
+        "{} is {} with no completion date",
+        thread.id,
+        status.display()
+      ),
       FindingClass::ModelInconsistent,
     ),
-    (status, Some(date)) if status != ThreadStatus::Completed => add(
+    (status, Some(date)) if !status.is_closed() => add(
       format!(
         "{} carries a completion date ({date}) while its status is {}",
         thread.id,

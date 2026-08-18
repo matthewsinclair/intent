@@ -32,7 +32,7 @@ use crate::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, Related,
   THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
-use crate::project::{Project, ThreadFile};
+use crate::project::Project;
 
 /// What Phase A found.
 /// The template a dropped section is claimed identical to, cited by PATH and
@@ -504,59 +504,17 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
 /// once its renderer was scheduled**, and the sentence pointing at it did not
 /// move -- the correction landing at the site and not at the cross-reference.
 fn attachments(project: &Project, id: &str, closed: bool, out: &mut Scan) -> Vec<Attachment> {
-  let dir = project.thread_dir(id);
-  let mut carried = Vec::new();
-  for rel in project.thread_files(id) {
-    match Project::classify(&rel) {
-      // Consumed by the parsers above -- carrying them here as well would give
-      // one file two homes in the model.
-      ThreadFile::TypedDoc | ThreadFile::GeneratedView | ThreadFile::Canon => continue,
-      ThreadFile::Attachment => {
-        let path = dir.join(&rel);
-        let name = project.relative(&path);
-        match std::fs::read(&path) {
-          // **Refused BY NAME with the reason, never stored as a blob and
-          // never skipped.** `sync` already takes this posture on a file it
-          // cannot read as text, and a migrator that silently drops what it
-          // cannot decode is the exact failure mode being fixed.
-          Ok(raw) => match String::from_utf8(raw) {
-            Ok(text) => carried.push(Attachment::new(rel.to_string_lossy(), text)),
-            Err(_) => out.record(
-              closed,
-              Finding::new(
-                &name,
-                FindingClass::UnknownFileShape,
-                "not valid UTF-8, so it cannot be carried as text",
-              ),
-            ),
-          },
-          Err(e) => out.record(
-            closed,
-            Finding::new(
-              &name,
-              FindingClass::UnknownFileShape,
-              format!("could not be read: {e}"),
-            ),
-          ),
-        }
-      }
-      // **NOT a disposition, and vc's reason is the founding sentence of the
-      // tool that reads that record: "still on disk" is not a disposition.**
-      //
-      // `dropped` means content existed, was deliberately not brought across,
-      // AND canon is verified empty for it -- safe because nobody wanted it.
-      // These files are still on disk, still the only copy, and nothing was
-      // removed. **The disposition record is a LICENCE, not an account**:
-      // `conservation_check.sh` reads a declared drop as "removed on purpose,
-      // not loss" and stops reporting it, so filing 237 uncarried files there
-      // would silence the exact population the check exists to find.
-      //
-      // Their home is `doctor`, because an uncarried file is a LIVE CONDITION
-      // rather than a record of what a migration once did.
-      ThreadFile::Unattached => continue,
-    }
+  // **The walk lives on `Project` now and `sync` shares it** (vc, condition
+  // 2). This wrapper exists for the one thing the collector deliberately does
+  // not know: which side of a thread's open/closed disposition a refusal is
+  // filed against. That axis is the migrator's and no other caller has one.
+  let (carried, refused) = project.collect_attachments(id);
+  for (name, reason) in refused {
+    out.record(
+      closed,
+      Finding::new(&name, FindingClass::UnknownFileShape, reason),
+    );
   }
-  carried.sort_by(|a, b| a.path.cmp(&b.path));
   carried
 }
 
@@ -1661,14 +1619,33 @@ fn wp_template_sections(seq: u32) -> Vec<(String, String)> {
 /// this estate differ by exactly that trim: 6135 stripped against 6213
 /// unstripped, both reproduced at `42fb5269`.
 fn preamble(body: &str) -> String {
-  body
-    .lines()
-    .take_while(|l| !l.starts_with("## "))
-    .filter(|l| !l.starts_with("# "))
-    .collect::<Vec<_>>()
-    .join("\n")
-    .trim()
-    .to_string()
+  let mut out: Vec<&str> = Vec::new();
+  let mut drop_next_blank = false;
+  for line in body.lines().take_while(|l| !l.starts_with("## ")) {
+    if line.starts_with("# ") {
+      // **The title line comes out and ONE of the two blank lines that
+      // surrounded it has to come with it.** Removing a line from the middle
+      // of a block and keeping both its neighbours leaves the block one blank
+      // line taller than its author wrote it -- and v2 put the title BETWEEN
+      // the deprecation blockquote and the status list, so exactly the threads
+      // carrying a blockquote grew a second blank line.
+      //
+      // Only the pair this removal creates is collapsed. An authored run of
+      // blank lines elsewhere in the preamble is layout the author chose and
+      // is left alone, which is the difference between repairing our own cut
+      // and normalising somebody's document.
+      drop_next_blank = out.last().is_some_and(|p: &&str| p.trim().is_empty());
+      continue;
+    }
+    if drop_next_blank {
+      drop_next_blank = false;
+      if line.trim().is_empty() {
+        continue;
+      }
+    }
+    out.push(line);
+  }
+  out.join("\n").trim().to_string()
 }
 
 fn sections(body: &str) -> Vec<(String, String)> {
@@ -1821,4 +1798,56 @@ fn conflict_marker_line(text: &str) -> Option<u32> {
     .enumerate()
     .find(|(_, l)| l.starts_with("<<<<<<< ") || l.starts_with(">>>>>>> ") || *l == "=======")
     .map(|(i, _)| (i + 1) as u32)
+}
+
+#[cfg(test)]
+mod tests {
+  use super::preamble;
+
+  /// **The fixture is ST0010's REAL v2 bytes** (`9b73e98f:intent/st/CANCELLED/
+  /// ST0010/info.md`), reduced to the region that carries the defect and not
+  /// retyped from memory.
+  ///
+  /// v2 put the `# Title` BETWEEN the deprecation blockquote and the status
+  /// list. Dropping the title line while keeping both its blank neighbours
+  /// left a run of two blank lines, and the renderer -- correctly -- re-emitted
+  /// what it was given. Only the two threads in the estate carrying a
+  /// blockquote could exhibit it, which is why it survived: **a subject that
+  /// cannot exhibit the defect cannot clear it**, and 54 of 56 threads could
+  /// not.
+  #[test]
+  fn removing_the_title_does_not_leave_the_blank_line_it_sat_between() {
+    let v2 = "> **Deprecated 2026-04-24.** Superseded by Intent v2.9.0.\n\
+              \n\
+              # ST0010: Anthropic MCP Integration\n\
+              \n\
+              - **Status**: Cancelled\n\
+              - **Author**: Matthew Sinclair\n";
+
+    let got = preamble(v2);
+
+    assert!(
+      !got.contains("\n\n\n"),
+      "the cut left the block a blank line taller than it was authored: {got:?}"
+    );
+    assert_eq!(
+      got,
+      "> **Deprecated 2026-04-24.** Superseded by Intent v2.9.0.\n\
+       \n\
+       - **Status**: Cancelled\n\
+       - **Author**: Matthew Sinclair"
+    );
+  }
+
+  /// The counterpart, and it is what stops the fix becoming a normaliser: a
+  /// blank run the AUTHOR wrote, with no title line removed anywhere near it,
+  /// is layout they chose and survives untouched.
+  #[test]
+  fn an_authored_blank_run_is_not_collapsed() {
+    let authored = "first para\n\n\nsecond para, deliberately spaced\n";
+    assert_eq!(
+      preamble(authored),
+      "first para\n\n\nsecond para, deliberately spaced"
+    );
+  }
 }
