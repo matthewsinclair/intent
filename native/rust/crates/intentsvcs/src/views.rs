@@ -726,6 +726,22 @@ pub struct TodoItem {
   pub glyph: char,
   /// Exactly what the markdown view prints after the glyph.
   pub label: String,
+  /// The work packages belonging to this thread, rendered INDENTED beneath it.
+  ///
+  /// **A thread and its work packages are a TREE, not a flat sibling list**
+  /// (hv, 2026-08-18). Flat rows repeated the thread id on every line, split
+  /// one thread's packages across DOING and TODO by their own status, and gave
+  /// no way to see a thread's shape at a glance. Nesting says it once.
+  ///
+  /// **Every work package appears, whatever its status** -- a `done` package
+  /// under a `wip` thread is exactly the progress a reader is looking for, and
+  /// the old view dropped it. The BUCKET is chosen by the THREAD's status
+  /// alone; a package's own status is carried by its glyph.
+  ///
+  /// Always empty for a work package: the tree is two levels deep because the
+  /// model is.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub children: Vec<TodoItem>,
 }
 
 /// The three buckets.
@@ -781,6 +797,26 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
   let mut done = Vec::new();
 
   for t in &ordered {
+    // **The whole roster, in sequence order, whatever each one's status.** The
+    // flat view showed a package only when it was `wip`, or `not-started`
+    // under a `wip` thread, and dropped every `done` one -- so a thread's
+    // finished work was invisible in the view whose job is showing progress.
+    let children: Vec<TodoItem> = t
+      .wps
+      .iter()
+      .map(|wp| TodoItem {
+        id: format!("{}/{:02}", t.id, wp.seq),
+        kind: "work-package",
+        title: wp.title.clone(),
+        status: wp.status.display(),
+        glyph: wp.status.glyph(),
+        // **The thread id is NOT repeated.** The row is already nested under
+        // it, and saying it twice is what made the flat view unreadable.
+        label: format!("{:02}: {}", wp.seq, wp.title),
+        children: Vec::new(),
+      })
+      .collect();
+
     let item = TodoItem {
       id: t.id.clone(),
       kind: "thread",
@@ -788,29 +824,16 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
       status: t.status.display(),
       glyph: t.status.glyph(),
       label: format!("{}: {}", t.id, t.title),
+      children,
     };
+    // **The THREAD's status alone chooses the bucket**, and it carries its
+    // packages with it. A package cannot be filed apart from its thread, which
+    // is what let one thread appear in two buckets at once.
     match t.status {
       ThreadStatus::Wip => doing.push(item),
       ThreadStatus::Triage | ThreadStatus::NotStarted | ThreadStatus::Hold => todo_items.push(item),
       ThreadStatus::Completed | ThreadStatus::Cancelled => {
         done.push(item);
-      }
-    }
-    for wp in &t.wps {
-      let item = TodoItem {
-        id: format!("{}/{:02}", t.id, wp.seq),
-        kind: "work-package",
-        title: wp.title.clone(),
-        status: wp.status.display(),
-        glyph: wp.status.glyph(),
-        label: format!("{} / WP-{:02}: {}", t.id, wp.seq, wp.title),
-      };
-      match wp.status {
-        crate::model::WpStatus::Wip => doing.push(item),
-        crate::model::WpStatus::NotStarted if t.status == ThreadStatus::Wip => {
-          todo_items.push(item)
-        }
-        _ => {}
       }
     }
   }
@@ -854,7 +877,7 @@ pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>, window: &TodoWindow) ->
 
   let mut out = String::new();
   out.push_str("# TODO\n\n");
-  out.push_str("A flat DOING / TODO / DONE view, projected from steel-thread and work-package status. Generated -- change a status with the CLI, never by editing this file.\n\n");
+  out.push_str("A DOING / TODO / DONE view, projected from steel-thread and work-package status: one row per steel thread, with its work packages nested beneath it. Generated -- change a status with the CLI, never by editing this file.\n\n");
   out.push_str(&bucket("DOING", &buckets.doing));
   out.push_str(&bucket("TODO", &buckets.todo));
   out.push_str("## DONE\n\n");
@@ -875,10 +898,23 @@ fn items(rows: &[TodoItem]) -> String {
   }
   let mut out = String::new();
   for row in rows {
-    out.push_str(&format!("- [{}] {}\n", row.glyph, row.label));
+    write_row(&mut out, row, 0);
   }
   out.push('\n');
   out
+}
+
+/// One row and everything under it, two spaces per level.
+///
+/// Recursive rather than a two-level loop because the shape is a tree and a
+/// hand-unrolled second level would have to be found and changed if the model
+/// ever grows a third. Today `children` is empty below depth one.
+fn write_row(out: &mut String, row: &TodoItem, depth: usize) {
+  let indent = "  ".repeat(depth);
+  out.push_str(&format!("{indent}- [{}] {}\n", row.glyph, row.label));
+  for child in &row.children {
+    write_row(out, child, depth + 1);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1095,6 +1131,11 @@ mod tests {
   }
 
   /// Work packages go through the same renderer and lost the same fact.
+  ///
+  /// **The row shape changed on 2026-08-18 (hv) and the glyph fact did not:**
+  /// a package is NESTED under its thread and no longer repeats the thread id,
+  /// but it still carries its OWN status glyph rather than its thread's, which
+  /// is what this test has always been for.
   #[test]
   fn work_package_rows_carry_their_own_glyph_not_their_threads() {
     let out = todo(
@@ -1107,8 +1148,40 @@ mod tests {
       "thread in:\n{out}"
     );
     assert!(
-      out.contains("- [ ] ST0001 / WP-01: the work package"),
-      "wp in:\n{out}"
+      out.contains("\n  - [ ] 01: the work package"),
+      "wp nested under its thread, own glyph, no repeated id, in:\n{out}"
+    );
+  }
+
+  /// **A thread carries its packages into whichever bucket its OWN status
+  /// picks, and every package comes along.**
+  ///
+  /// The flat view filed each package by its own status, so one thread could
+  /// appear in DOING and TODO at once, and a `done` package was dropped
+  /// entirely -- the finished work was invisible in the view whose job is
+  /// showing progress.
+  #[test]
+  fn a_thread_carries_every_work_package_into_its_own_bucket() {
+    let mut t = with_wp("ST0001", "not-started", "done");
+    t.wps.push(
+      serde_json::from_value(serde_json::json!({
+        "seq": 2, "title": "the second", "status": "wip"
+      }))
+      .expect("wp"),
+    );
+    let buckets = todo_buckets(&[t]);
+
+    assert!(buckets.doing.is_empty(), "the THREAD is not-started");
+    assert_eq!(buckets.todo.len(), 1, "one row for the thread, not three");
+    let rows: Vec<(&str, char)> = buckets.todo[0]
+      .children
+      .iter()
+      .map(|c| (c.label.as_str(), c.glyph))
+      .collect();
+    assert_eq!(
+      rows,
+      vec![("01: the work package", 'x'), ("02: the second", '-')],
+      "every package, in sequence order, each with its own glyph"
     );
   }
 
