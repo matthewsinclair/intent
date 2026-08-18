@@ -560,6 +560,14 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let t = f.st_show(&id).map_err(fail)?;
       println!("{}: {}", t.id, t.title);
       println!("status: {}", t.status.display());
+      // **Directly under the status, because it is the status's reason.** Four
+      // verbs REQUIRE one and refuse without it, and until now no human face
+      // showed it -- the field reached `thread.json` and the GraphQL SDL and
+      // nothing a person reads. It carries the CURRENT status's reason only;
+      // any transition without a reason clears it.
+      if let Some(reason) = &t.status_reason {
+        println!("reason: {reason}");
+      }
       println!("created: {}", t.created);
       if let Some(done) = &t.completed {
         println!("completed: {done}");
@@ -762,6 +770,11 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       // vocabularies is 0047's shape**, and a test that pinned the kebab was
       // pinning the divergence.
       println!("status: {}", wp.status.display());
+      // Same rule as `st show`: `wp reopen` is the WP transition the machine
+      // guards with a required reason, and nothing rendered it.
+      if let Some(reason) = &wp.status_reason {
+        println!("reason: {reason}");
+      }
       println!("scope: {}", wp.scope_display());
       Ok(())
     }

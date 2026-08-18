@@ -240,6 +240,13 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   out.push_str(&kv("st_id", &thread.id));
   out.push_str(&kv("title", &thread.title));
   out.push_str(&kv("status", thread.status.display()));
+  // **Only when there is one, unlike `completed` below.** The field exists only
+  // after a guarded transition, so emitting it always would put an empty key on
+  // every thread in the estate to say nothing. Conditional also means adding it
+  // churns no committed view today: nothing currently carries a reason.
+  if let Some(reason) = &thread.status_reason {
+    out.push_str(&kv("status_reason", reason));
+  }
   out.push_str(&kv("created", &thread.created));
   out.push_str(&kv("completed", thread.completed.as_deref().unwrap_or("")));
   out.push_str("---\n\n");
@@ -588,6 +595,10 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   out.push_str(&kv("title", &wp.title));
   out.push_str(&kv("scope", &wp.scope_display()));
   out.push_str(&kv("status", wp.status.display()));
+  // Same rule as the thread view one level up: present only when set.
+  if let Some(reason) = &wp.status_reason {
+    out.push_str(&kv("status_reason", reason));
+  }
   out.push_str("---\n\n");
 
   out.push_str(&format!("# WP-{:02}: {}\n\n", wp.seq, wp.title));
@@ -907,7 +918,23 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
   views
 }
 
-/// Write every view to disk.
+/// Write every view to disk, **skipping the ones already on disk byte for
+/// byte** (AC-04.4).
+///
+/// The skip is not an optimisation. It writes unconditionally otherwise, and a
+/// byte-identical re-emission still MOVES MTIME -- which `file_index` reads to
+/// decide clean from changed, so a sync that changed nothing marked the whole
+/// estate changed. The cost was the normal path rather than an edge case:
+/// every view, every run.
+///
+/// **It survived because the obvious test cannot see it.** The idempotence
+/// test beside it in `view_determinism.rs` compares BYTES after two runs and
+/// passes -- correctly, the bytes are identical. Idempotent bytes is not
+/// idempotent writing, and only the mtime distinguishes them.
+///
+/// The returned `Vec<View>` is still every view the model implies, not the
+/// subset written. Callers ask this function what the views ARE; what it had
+/// to touch to get there is its own business.
 pub fn write_all(
   project: &Project,
   canon: &Canon,
@@ -917,6 +944,11 @@ pub fn write_all(
   for view in &views {
     if let Some(parent) = view.path.parent() {
       std::fs::create_dir_all(parent)?;
+    }
+    let unchanged =
+      std::fs::read(&view.path).is_ok_and(|on_disk| on_disk == view.content.as_bytes());
+    if unchanged {
+      continue;
     }
     std::fs::write(&view.path, &view.content)?;
   }
@@ -1101,5 +1133,43 @@ mod tests {
   #[test]
   fn an_empty_bucket_renders_the_sentinel() {
     assert_eq!(items(&[]), "_(none)_\n\n");
+  }
+
+  /// **`status_reason` reached no human face at all.** Four verbs REQUIRE one
+  /// and refuse without it; it was written to the entity, stored, and exposed
+  /// on the GraphQL SDL -- and rendered by nothing a person reads. Reported by
+  /// ic, who round-tripped `st hold` and then `wp reopen` to prove it.
+  ///
+  /// The negative half is the one that keeps the view quiet: the key appears
+  /// only when there IS a reason, so a thread that never took a guarded
+  /// transition renders exactly as before.
+  #[test]
+  fn a_thread_with_a_status_reason_renders_it_and_one_without_stays_silent() {
+    let mut held = thread("ST0001", "hold");
+    held.status_reason = Some("waiting on the schema ruling".to_string());
+    let with = info(&held, &ctx());
+    assert!(
+      with.contains("status_reason: waiting on the schema ruling"),
+      "the view must show the reason the verb demanded:\n{with}"
+    );
+
+    let plain = info(&thread("ST0002", "wip"), &ctx());
+    assert!(
+      !plain.contains("status_reason"),
+      "no reason means no key, so nothing churns:\n{plain}"
+    );
+  }
+
+  /// The work-package half, which `wp reopen` guards the same way and which a
+  /// fix scoped to threads would have left open (ic).
+  #[test]
+  fn a_work_package_with_a_status_reason_renders_it_too() {
+    let mut t = with_wp("ST0001", "wip", "wip");
+    t.wps[0].status_reason = Some("reopened: the gate was wrong".to_string());
+    let rendered = wp_info(&t, &t.wps[0], &ctx());
+    assert!(
+      rendered.contains("status_reason: reopened: the gate was wrong"),
+      "the wp view must show it:\n{rendered}"
+    );
   }
 }

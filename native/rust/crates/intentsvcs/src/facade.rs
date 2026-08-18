@@ -407,7 +407,7 @@ impl crate::remedy::Remedy for FacadeError {
       }
       Self::ReasonRequired { verb } => {
         format!(
-          "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state, and in the event log as part of the decision, which is what lets anyone reconstruct why later"
+          "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state, and in the event log as part of the decision"
         )
       }
       Self::DescopeTargetRequired { ac } => {

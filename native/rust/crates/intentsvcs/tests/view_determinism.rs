@@ -93,6 +93,70 @@ fn writing_the_views_twice_leaves_the_bytes_unchanged() {
   );
 }
 
+/// **AC-04.4. The neighbour above passes while every single view is rewritten**,
+/// and that is the whole reason this exists.
+///
+/// Idempotent BYTES is not idempotent WRITING. `write_all` called `fs::write`
+/// unconditionally for every rendered view, so a byte-identical second run
+/// still moved mtime on all of them -- and `file_index`'s clean/changed state
+/// is derived from mtime, so a sync that changed nothing marked the whole
+/// estate changed. **A content diff reports this estate as clean**, which is
+/// exactly why the measure is the COUNT OF FILES WHOSE MTIME MOVED.
+///
+/// **It does not sleep, and it does not trust the filesystem's timestamp
+/// resolution.** Every view is aged an hour between the two runs, so a file
+/// the second run rewrote carries `now` and a file it skipped still carries
+/// the aged stamp. A test that raced the clock could pass vacuously on a
+/// coarse filesystem, which is the failure mode it is meant to detect.
+#[test]
+fn writing_the_views_twice_does_not_move_a_single_mtime() {
+  use std::time::{Duration, UNIX_EPOCH};
+
+  let fx = Fixture::new();
+  let project = fx.project();
+  let canon = canon();
+
+  let written = views::write_all(&project, &canon, &ctx()).expect("first write");
+  assert!(!written.is_empty(), "precondition: views were written");
+
+  // **A FIXED synthetic stamp, not `now()` minus an hour.** `one_clock.rs`
+  // refuses a clock anywhere in this workspace (D42) and is right to: an
+  // absolute constant makes the assertion "the mtime is still exactly this"
+  // rather than "it is still roughly where I put it", so the test is stronger
+  // for obeying the rule than it was for breaking it. 2001-09-09, and it is
+  // obviously synthetic on sight.
+  let aged = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
+  for view in &written {
+    std::fs::File::options()
+      .write(true)
+      .open(&view.path)
+      .expect("open to age")
+      .set_modified(aged)
+      .expect("age the view");
+  }
+
+  views::write_all(&project, &canon, &ctx()).expect("second write");
+
+  let moved: Vec<String> = written
+    .iter()
+    .filter(|view| {
+      std::fs::metadata(&view.path)
+        .and_then(|m| m.modified())
+        .map(|m| m != aged)
+        .unwrap_or(true)
+    })
+    .map(|view| project.relative(&view.path))
+    .collect();
+
+  assert!(
+    moved.is_empty(),
+    "{} of {} views had their mtime moved by a byte-identical re-emission; first few: {:?}",
+    moved.len(),
+    written.len(),
+    &moved[..moved.len().min(5)]
+  );
+}
+
 /// Every rendered table is already in the formatter's canonical padded form.
 ///
 /// Structural half of the formatter-stability contract, and it runs

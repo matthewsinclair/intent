@@ -929,3 +929,67 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   let again = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
   assert_eq!(view, again, "the view renders the same bytes twice");
 }
+
+/// **The reason four verbs DEMAND, finally shown to the human they demanded it
+/// from.** `st hold`, `st cancel`, `st reopen` and `wp reopen` refuse without a
+/// reason; the value then reached `thread.json` and the GraphQL SDL and no face
+/// a person reads. Reported by ic, who drove `st hold` and then `wp reopen`.
+///
+/// **THE CANON ASSERTION IS THE CONTROL AND IT IS LOAD-BEARING** (ic). Their
+/// first drive of the work-package half hit a fixture that never fired -- the
+/// gate refused the `wp done`, so `wp reopen` answered `ok: already WIP`
+/// without writing anything, and every read face came back empty. Emptiness
+/// from a face that does not render and emptiness from a verb that never
+/// recorded are indistinguishable when you only ask the face. So: prove the
+/// value reached canon, THEN ask the face.
+#[test]
+fn a_status_reason_reaches_a_human_face_on_both_entities() {
+  let dir = project();
+  let root = dir.path();
+  seed_closeable_thread(root);
+
+  // ---- thread half ----
+  ok(
+    root,
+    &["st", "hold", "ST0001", "--reason", "CANARY-THREAD-XYZZY"],
+  );
+
+  let canon = std::fs::read_to_string(root.join("intent/st/ST0001/thread.json")).expect("canon");
+  assert!(
+    canon.contains("CANARY-THREAD-XYZZY"),
+    "CONTROL: the verb must have recorded the reason before the face is worth asking:\n{canon}"
+  );
+
+  let shown = ok(root, &["st", "show", "ST0001"]);
+  assert!(
+    shown.contains("CANARY-THREAD-XYZZY"),
+    "st show must render the reason it refused to proceed without:\n{shown}"
+  );
+}
+
+/// The work-package half, guarded by `wp reopen` and left open by any fix
+/// scoped to `st show`.
+#[test]
+fn a_work_package_status_reason_reaches_the_human_face_too() {
+  let dir = project();
+  let root = dir.path();
+  seed_closeable_thread(root);
+
+  ok(root, &["wp", "done", "ST0001/01"]);
+  ok(
+    root,
+    &["wp", "reopen", "ST0001/01", "--reason", "CANARY-WP-PLUGH"],
+  );
+
+  let canon = std::fs::read_to_string(root.join("intent/st/ST0001/thread.json")).expect("canon");
+  assert!(
+    canon.contains("CANARY-WP-PLUGH"),
+    "CONTROL: `wp reopen` must have fired -- an `already WIP` no-op writes nothing and makes the face's silence meaningless:\n{canon}"
+  );
+
+  let shown = ok(root, &["wp", "show", "ST0001/01"]);
+  assert!(
+    shown.contains("CANARY-WP-PLUGH"),
+    "wp show must render it:\n{shown}"
+  );
+}
