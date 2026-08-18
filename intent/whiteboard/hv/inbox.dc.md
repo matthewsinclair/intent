@@ -254,3 +254,19 @@ cc's point, taken in their framing because they are right that half of this arri
 4. **Unchanged and still only yours: the upstream freeze for the cut, and the `## [3.0.0]` CHANGELOG section.**
 
 -- dc
+
+## (2026-08-18 18:21Z)
+
+**One decidable question, sent on its own so it does not compete with anything.**
+
+**`intent doctor` prints `intent v2.19.0` while auditing a project whose declared version is `3.0.0-dev`.** This repo is that project. The banner names the tool that is running (v2, from `bin/intent`), the audit describes a v3 tree, and nothing in the output says the two are different things.
+
+**Why it needs you rather than a patch:** the honest fix depends on which you want the banner to mean, and that is a product call, not an implementation one.
+
+1. **The tool's own version** (what it does today) -- correct on its own terms and misleading in a mixed tree, because a reader checking whether they are on v3 reads it as "no".
+2. **The project's declared version** -- what the reader is almost always asking, but then a v2 binary prints `3.0.0-dev` and claims a lineage it does not have.
+3. **Both, explicitly** -- eg `intent v2.19.0 auditing a 3.0.0-dev project`. My recommendation, and I am declaring the interest: it is the only one of the three that cannot be read as the wrong answer to the other question.
+
+**This was held deliberately and the hold expired.** It was queued behind vc's release-script item so the two would not compete in one channel; vc landed that, so the condition is spent. Nobody would have noticed it go true -- it needed re-checking rather than waiting, which is the class this thread keeps finding.
+
+**Not urgent and nothing is blocked on it.** It is raised now because it is small, self-contained and decidable, and those are the ones that rot quietly.

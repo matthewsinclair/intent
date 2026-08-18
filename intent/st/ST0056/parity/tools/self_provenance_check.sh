@@ -246,6 +246,14 @@ if [ -z "$SELF_PROV_BINS" ]; then
   echo "self-provenance: no built binaries in native/rust/target -- nothing to ask for its provenance."
 else
   head_sha="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  # THE ARM ANNOUNCES ITS OWN CONTRACT, BECAUSE FOUR OF THE FIVE BRANCHES BELOW
+  # ARE WORDED AS FINDINGS AND NONE OF THEM SETS `rc`. A comment saying so was
+  # never enough: it lived at :179 and never reached a reader, who quite
+  # reasonably read a passing line as an outstanding item and carried it into
+  # four places. The caveat has to travel with the OUTPUT, because the output
+  # is what gets quoted. Enforcement for this criterion lives at publication
+  # (AC-11.5), not here.
+  echo "self-provenance: the binary lines below are DIAGNOSTIC and this arm never fails -- enforcement is at \`int macos publish\`, which refuses an artefact that cannot name the tag's commit."
   for BIN in $SELF_PROV_BINS; do
     marker="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
     embedded="${marker#\[intent-source-commit:}"
