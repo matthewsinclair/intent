@@ -229,36 +229,151 @@ echo "LEDGER -- rig $RIG_SHA ($RIG_DIRTY)$LEDGER"
 echo
 
 # THE SCOPE PRINTS ON EVERY RUN, PASS OR FAIL, BECAUSE THIS FILE ALREADY SAYS SO AND
-# DID NOT DO IT. Line 60 reads "SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE --
-# 18 of 24" and that sentence was in a COMMENT, while the output printed `N of N cases
-# scored as predicted` -- a perfect score over the population this file chose, with
-# nothing telling the reader six refusal sites are undriven. **A limit stated in a
-# comment is not stated to the reader of the output** (vc, 2026-08-18, third instance
-# of the class that evening).
+# DID NOT DO IT. Line 60 reads "SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE"
+# and that sentence sat in a COMMENT while the output printed `N of N cases scored as
+# predicted` -- a perfect score over the population this file chose, with nothing
+# telling the reader that refusal sites were undriven. **A limit stated in a comment
+# is not stated to the reader of the output** (vc, 2026-08-18).
 #
-# THE TWO HALVES CARRY DIFFERENT WARRANTS AND ARE PRINTED DIFFERENTLY ON PURPOSE. The
-# driven count is COMPUTED from the case table below, so it cannot drift from what ran.
-# The 24 is a HAND COUNT of the rig's refusal sites and no mechanical count reproduces
-# it (`exit 2` gives 6, die-calls 42, both 30), so it is labelled as recorded rather
-# than measured. Printing it bare would make a hand count look like a measurement,
-# which is the defect this whole directory keeps finding.
-DRIVEN_TOTAL="$(printf '%s\n' "$CASES" | grep -c '|')"
-echo "rig-selftest: SCOPE -- this drives $DRIVEN_TOTAL (COMPUTED, from the case table below)"
-echo "  of the rig's 24 (RECORDED -- a hand count, and a claim carrying no evidence)."
-echo "  WHAT WOULD DERIVE THE 24, and does not exist: a declared marker on each refusal"
-echo "  site in interrupt_rig.sh, countable mechanically. Absent that definition there is"
-echo "  nothing to count against, and four probes give four answers -- \`exit 2\` 6,"
-echo "  die-calls 42, both 30, and vc's fourth 47. NONE of them is 24. Until the rig"
-echo "  declares its own refusal sites, this ratio pairs a derived number with an"
-echo "  underived one and the two are deliberately labelled differently."
-echo "  The 6 undriven sites are named in this file's header under"
-echo "  'WHAT THIS DOES NOT DRIVE' -- five need a non-override run (a clone and a"
-echo "  cargo build), the rest are out of a stub's reach. A green below covers none"
-echo "  of them, and \`rev_with_override\` does NOT drive \`cannot resolve --rev\`."
-if [ "$((PASSES + FAILS))" -ne "$DRIVEN_TOTAL" ]; then
-  echo "  NOTE: this run scored $((PASSES + FAILS)), not $DRIVEN_TOTAL -- the case set was filtered (--only)."
+# ----------------------------------------------------------------------------------
+# BOTH HALVES ARE NOW DERIVED, FROM ONE POPULATION. WHAT THIS REPLACED IS WORTH THE
+# SPACE, BECAUSE IT IS AC-00.11's DEFECT INSIDE THE INSTRUMENT THAT GATES AC-00.10.
+# The old line read `drives 18 of the rig's 24 refusal sites`. Both numbers were
+# wrong, and the ratio closed arithmetically anyway, which is why it survived review.
+#
+#   The 18 was the CASE COUNT. Only 12 of the 18 cases expect exit 2 at all -- four
+#   expect a FINDING (exit 1) and two are the CONTROLS (exit 0). So a numerator
+#   labelled `refusal sites` contained six cases that drive no refusal whatsoever.
+#
+#   The 24 was a hand count, and `^[[:space:]]*die ` reproduces it EXACTLY. That is
+#   not a coincidence, and the explanation is the useful part: THE REGEX REPRODUCES
+#   THE HAND COUNT'S METHOD -- scanning down the left margin for `die` -- so the two
+#   share one blind spot, missing 15 `|| die` forms, 2 case-arm ones, and 4 refusals
+#   that never call die at all. AN AGREEMENT BETWEEN TWO INSTRUMENTS THAT SHARE A
+#   METHOD IS EVIDENCE OF THE SHARED METHOD, NOT OF THE ANSWER, and here the exactness
+#   was the tell rather than the reassurance. It was found by looking for a derivation
+#   AFTER the target was known, which is fitting, not measuring -- reported, not banked.
+#
+# A REFUSAL SITE IS DEFINED BY THE OBSERVABLE AND NEVER BY A SYNTACTIC FORM: a distinct
+# point that can make the rig exit 2. Two forms reach it, and only one self-declares.
+#
+#   a `die` call      -- `die()` IS `exit 2`, so the call site is already its own marker
+#   `# REFUSAL-SITE:` -- everything that refuses WITHOUT calling die: three paths inside
+#                        `store_events_are_comparable()` that `return 1`, and one bare
+#                        `STATUS=2`. Marked INLINE, so placing them shifted no line
+#                        numbers and every existing citation of that file survived.
+#
+# THE ASYMMETRY IS DELIBERATE AND IS PRINTED RATHER THAN LEFT TO INFER: 41 redundant
+# markers on lines that already declare themselves is duplication that rots out of step
+# with the calls it shadows. Mark only what the mechanical rule cannot see.
+#
+# THE NUMERATOR IS DERIVED BY DRIVING, NOT BY READING, AND THAT IS NOT A STYLE CHOICE --
+# it is how the non-die refusal form was found at all. A careful READ of the rig gave a
+# confident wrong definition twice over; the two cases that mapped to ZERO die sites
+# could not be argued with. An instrument that reads its subject inherits the reader's
+# blind spots. One that drives it does not.
+SCOPE_UNMEASURED=0
+CASES_TOTAL="$(printf '%s\n' "$CASES" | grep -c '|' || true)"
+
+if [ ! -r "$RIG" ]; then
+  echo "rig-selftest: SCOPE -- CANNOT MEASURE: the rig at $RIG is not readable, so its"
+  echo "  refusal population cannot be enumerated. NO COVERAGE CLAIM IS MADE -- this is a"
+  echo "  refusal, not a finding, and not a zero."
+  SCOPE_UNMEASURED=1
+else
+  # PRECONDITION, CHECKED RATHER THAN ASSUMED. A `die ` inside a comment or a string
+  # would be counted as a call site and silently inflate the denominator -- the exact
+  # failure that produced the number this block replaces. Measured 0 at the time of
+  # writing. If it is ever not, REFUSE rather than print a figure that cannot stand up.
+  DIE_IN_COMMENT="$(grep -cE '^[[:space:]]*#.*die ' "$RIG" || true)"
+  DIE_SITES="$(grep -c 'die ' "$RIG" || true)"
+  MARKED_SITES="$(grep -c '# REFUSAL-SITE:' "$RIG" || true)"
+  SITE_LINES="$( { grep -n 'die ' "$RIG"; grep -n '# REFUSAL-SITE:' "$RIG"; } | cut -d: -f1 | sort -un )"
+  TOTAL_SITES="$(printf '%s\n' "$SITE_LINES" | grep -c . || true)"
+
+  if [ "${DIE_IN_COMMENT:-0}" -ne 0 ]; then
+    echo "rig-selftest: SCOPE -- CANNOT MEASURE: $DIE_IN_COMMENT comment line(s) in the rig contain"
+    echo "  \`die \`, so a call-site count cannot be trusted and the denominator would be"
+    echo "  inflated by exactly that many. NO COVERAGE CLAIM IS MADE."
+    SCOPE_UNMEASURED=1
+  elif [ "${TOTAL_SITES:-0}" -eq 0 ]; then
+    # THE VACUOUS-PASS ARM, EXPLICIT. A population of zero must never be reportable as
+    # full coverage; `0 of 0` closes arithmetically and means the instrument found nothing.
+    echo "rig-selftest: SCOPE -- CANNOT MEASURE: zero refusal sites found in $RIG. A rig with"
+    echo "  no refusal sites is not a rig with full coverage; it is a reach failure here."
+    SCOPE_UNMEASURED=1
+  else
+    DRIVEN_LINES=""; UNMAPPED=""; AMBIGUOUS=""; EXIT2_CASES=0
+    while IFS='|' read -r c_name c_2 c_3 c_4 c_5 c_6 c_exit c_text c_rest; do
+      [ -n "$c_name" ] || continue
+      [ "$c_exit" = "2" ] || continue
+      EXIT2_CASES=$((EXIT2_CASES + 1))
+      hits="$(grep -nF -- "$c_text" "$RIG" | cut -d: -f1)"
+      if [ -z "$hits" ]; then UNMAPPED="$UNMAPPED $c_name"; continue; fi
+      sites=""
+      for h in $hits; do
+        s="$(printf '%s\n' "$SITE_LINES" | awk -v n="$h" '$1 != "" && $1 <= n { s = $1 } END { if (s != "") print s }')"
+        [ -n "$s" ] && sites="$sites
+$s"
+      done
+      usites="$(printf '%s\n' "$sites" | grep -v '^$' | sort -un)"
+      n_us="$(printf '%s\n' "$usites" | grep -c . || true)"
+      if [ "${n_us:-0}" -eq 0 ]; then UNMAPPED="$UNMAPPED $c_name"; continue; fi
+      [ "$n_us" -gt 1 ] && AMBIGUOUS="$AMBIGUOUS $c_name"
+      DRIVEN_LINES="$DRIVEN_LINES
+$usites"
+    done <<CASEEOF
+$CASES
+CASEEOF
+    DRIVEN_SITES="$(printf '%s\n' "$DRIVEN_LINES" | grep -v '^$' | sort -un | grep -c . || true)"
+
+    echo "rig-selftest: SCOPE -- REFUSAL SITES DRIVEN: $DRIVEN_SITES of $TOTAL_SITES. BOTH DERIVED, ONE POPULATION."
+    echo "  A refusal site is a distinct point that can make the rig exit 2: $DIE_SITES \`die\` call-sites"
+    echo "  (die() is exit 2, so the call declares itself) plus $MARKED_SITES marked \`# REFUSAL-SITE:\`"
+    echo "  that refuse without calling die. Only the second kind needs a marker; marking the"
+    echo "  first would duplicate a declaration that is already there."
+    echo "  NUMERATOR DERIVED BY DRIVING, NOT BY READING: each exit-2 case's expected text is"
+    echo "  matched in the rig and attributed to the nearest refusal site at or above the match."
+    echo "  CASES ARE A DIFFERENT POPULATION AND ARE COUNTED SEPARATELY: $CASES_TOTAL cases, of which"
+    echo "  $EXIT2_CASES expect exit 2 -- the rest drive a finding or a control and cover no refusal"
+    echo "  site at all. The retired \`18 of 24\` paired these two populations against each other."
+    echo "  BOUNDARY, STATED BECAUSE IT IS NOT CLOSED: the rig can also exit 2 because dc's"
+    echo "  VERDICT TOOL refused -- \`STATUS=\$?\` at interrupt_rig.sh:955, reported at :1208."
+    echo "  Those refusals are real and reachable and are NOT enumerable from inside this"
+    echo "  instrument, so $TOTAL_SITES is a stated boundary and not a closed set."
+    # DRIFT IS REPORTED AND IS NOT A FINDING HERE, BECAUSE THE CASE ITSELF ALREADY
+    # CATCHES IT: a case whose expected phrase no longer appears in the rig scores OFF
+    # PREDICTION on the phrase check when the rig is actually driven, and that exits 1.
+    # What this line adds is the COVERAGE consequence, which the phrase check cannot
+    # see -- one fewer site credited. Two different consequences of one edit, and each
+    # is reported by the arm that can observe it.
+    if [ -n "$UNMAPPED" ]; then
+      echo "  DRIFT -- case(s) whose expected text matches NO line in the rig:$UNMAPPED"
+      echo "    Either the message was reworded or the case tests text that no longer exists."
+    fi
+    if [ -n "$AMBIGUOUS" ]; then
+      echo "  AMBIGUOUS -- case(s) whose expected text reaches more than one refusal site:$AMBIGUOUS"
+      echo "    The coverage credit for these is an overcount until the text is made distinct."
+    fi
+  fi
+fi
+
+if [ "$((PASSES + FAILS))" -ne "$CASES_TOTAL" ]; then
+  echo "  NOTE: this run scored $((PASSES + FAILS)), not $CASES_TOTAL -- the case set was filtered (--only)."
+  echo "    THE COVERAGE FIGURE ABOVE IS STILL THE FULL TABLE'S, not this run's."
 fi
 echo
+
+if [ "$SCOPE_UNMEASURED" -eq 1 ]; then
+  if [ "$FAILS" -eq 0 ]; then
+    echo "rig-selftest: $PASSES of $((PASSES + FAILS)) cases scored as predicted, BUT THE SCOPE COULD NOT BE MEASURED"
+    echo "  -- a drive with no coverage claim. Refusing rather than reporting a green that covers an unknown share."
+    exit 2
+  fi
+  echo "rig-selftest: $FAILS of $((PASSES + FAILS)) cases scored OFF PREDICTION -- read the logs named above"
+  echo "  (the scope could not be measured either, but a finding outranks a refusal here)"
+  exit 1
+fi
 
 if [ "$FAILS" -eq 0 ]; then
   echo "rig-selftest: $PASSES of $((PASSES + FAILS)) cases scored as predicted"

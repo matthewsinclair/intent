@@ -1089,7 +1089,7 @@ B_EVENT_COUNT=""
 store_events_are_comparable() {
   if ! command -v jq >/dev/null 2>&1; then
     echo
-    echo "  STORE ARM CANNOT VERIFY ITS OWN PREMISE -- \`jq\` is not on PATH, so the event log"
+    echo "  STORE ARM CANNOT VERIFY ITS OWN PREMISE -- \`jq\` is not on PATH, so the event log"   # REFUSAL-SITE: store-jq-absent
     echo "    cannot be counted. Against an empty log a byte comparison is sound; against a live"
     echo "    one it is meaningless, and this run cannot tell which of the two it is looking at."
     return 1
@@ -1106,7 +1106,7 @@ store_events_are_comparable() {
   case "$B_EVENT_COUNT" in ''|*[!0-9]*) bad=1 ;; esac
   if [ "$bad" -eq 1 ]; then
     echo
-    echo "  STORE ARM CANNOT VERIFY ITS OWN PREMISE -- \`.events\` did not read as an array in one"
+    echo "  STORE ARM CANNOT VERIFY ITS OWN PREMISE -- \`.events\` did not read as an array in one"   # REFUSAL-SITE: store-events-not-an-array
     echo "    or both exports (clean: '${A_EVENT_COUNT:-<nothing>}', re-run: '${B_EVENT_COUNT:-<nothing>}')."
     echo "    The export's SHAPE has moved. Re-read schema/event.schema.json before trusting this arm;"
     echo "    an arm that cannot find its subject must not report on it."
@@ -1116,7 +1116,7 @@ store_events_are_comparable() {
     return 0
   fi
   echo
-  echo "  STORE: NOT JUDGED -- THE EVENT LOG IS LIVE (clean: $A_EVENT_COUNT, re-run: $B_EVENT_COUNT) AND THIS ARM DOES NOT NORMALISE IT YET."
+  echo "  STORE: NOT JUDGED -- THE EVENT LOG IS LIVE (clean: $A_EVENT_COUNT, re-run: $B_EVENT_COUNT) AND THIS ARM DOES NOT NORMALISE IT YET."   # REFUSAL-SITE: store-event-log-live
   echo "    Every row carries a MINTED ULID (\`id\`, 48 bits of clock + 80 of randomness) and a"
   echo "    database-supplied \`ts\`, so the two arms differ there BY CONSTRUCTION and a byte"
   echo "    comparison would report DIFFERENT for a perfectly correct migrator."
@@ -1153,7 +1153,7 @@ if [ "$STATUS" -eq 0 ] && [ -n "$STORE_CMD" ]; then
     # caught this via arm A, so reaching here means the estate died between the
     # two probes -- worth saying rather than assuming impossible.
     echo
-    echo "  STORE ARM COULD NOT RUN -- \`$STORE_CMD\` exited $A_STORE_STATUS (clean) / $B_STORE_STATUS (re-run); NEITHER arm answers."
+    echo "  STORE ARM COULD NOT RUN -- \`$STORE_CMD\` exited $A_STORE_STATUS (clean) / $B_STORE_STATUS (re-run); NEITHER arm answers."   # REFUSAL-SITE: store-arm-could-not-run
     head -2 "$WORKDIR/a.store.err" 2>/dev/null | sed 's/^/    /'
     STATUS=2
     STORE_NOTE="the store was NOT compared"
