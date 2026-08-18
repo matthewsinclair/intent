@@ -336,18 +336,28 @@ Consequences that must hold together:
 - A row carrying `legacy` is reported as carried-legacy in coverage views, never silently counted as an ordinary green.
 - LIVE threads never produce one: they stay BLOCKED-until-clean, so a `legacy` row appearing in a live thread is itself a defect.
 
-### issue (`issues/<n>.json` + authored body `issues/<n>.md`)
+### issue (`issues/<n>.json`, body included)
 
-| Field    | Type   | Notes                                                                                 |
-| -------- | ------ | ------------------------------------------------------------------------------------- |
-| schema   | string | `intent/issue@3.0`                                                                    |
-| number   | int    | rendered `0021`                                                                       |
-| slug     | string |                                                                                       |
-| title    | string |                                                                                       |
-| status   | enum   | `open · closed` -- directories stop encoding status (parity deviation, see parity.md) |
-| severity | enum?  | as v2                                                                                 |
-| created  | date   |                                                                                       |
-| closed   | date?  |                                                                                       |
+| Field    | Type    | Notes                                                                                 |
+| -------- | ------- | ------------------------------------------------------------------------------------- |
+| schema   | string  | `intent/issue@3.0`                                                                    |
+| number   | int     | rendered `0021`                                                                       |
+| slug     | string  |                                                                                       |
+| title    | string  |                                                                                       |
+| status   | enum    | `open · closed` -- directories stop encoding status (parity deviation, see parity.md) |
+| severity | enum?   | as v2                                                                                 |
+| created  | date    |                                                                                       |
+| closed   | date?   |                                                                                       |
+| reporter | string? |                                                                                       |
+| body     | string  | the authored issue text, carried verbatim (see below)                                 |
+
+**CORRECTED 2026-08-18 (hv ruling), and the correction is the whole entry rather than a wording fix.** This heading previously read _"`issues/<n>.json` + authored body `issues/<n>.md`"_ and **the table carried no `body` row at all**, while `schema/issue.schema.json` declared `body` as a property. **Two specifications disagreeing, and NEITHER implemented: the flat layout has 40 `.json` and zero `.md`, and no canon file carried a `body` key.**
+
+**What that cost, measured: 434,357 bytes of authored issue text across all 40 issues lived ONLY in `intent/.cache/intent.db`.** That path is gitignored, so by D29 the content was never canon and by D34 it never travelled -- **absent from every clone since the hoist, and nothing anywhere said so.** It surfaced only because `sync --to-store` replaced the store from an extract that had never carried it, taking the last live copy with it; the loss was already there and the operation made it observable.
+
+**hv ruled for the schema: the body lives in the JSON.** The issue becomes self-contained the way a thread is, it round-trips under AC-02.6, and a rendered `issues/<n>.md` becomes a VIEW -- dehydratable like any other, never the place the content lives. **A sibling authored file whose canon record does not hold it is the two-ended shape this thread has now paid for twice.**
+
+**Recovered from a store snapshot taken 13:08:40Z, and the two sources were proved interchangeable rather than assumed:** all 40 snapshot bodies compared byte-for-byte against `9b73e98f`'s authored v2 originals with the YAML frontmatter stripped -- **40 identical, 0 differing**, the per-file gap being exactly the frontmatter block the migrator parsed into fields.
 
 ### event_log (DB-only, append-only; D15)
 
