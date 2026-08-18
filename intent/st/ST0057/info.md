@@ -10,11 +10,19 @@ completed:
 
 ## Objective
 
-_(not yet written)_
+Make disk optional without making anything unrecoverable.
+
+Every file under `intent/st` is there because that is where v2 kept truth. Under D01-as-reversed the store is truth and the files are a projection -- **but a projection nobody can regenerate is not a projection, it is the original with extra steps.** This thread ends with three things true at once: `intent/st` holds little more than an index and the live work; anything not on disk is provably reproducible; and a human with an editor and no working tool can still read the whole project.
 
 ## Context
 
-_(not yet written)_
+**hv ruled this thread INTO the 3.0.0 gate on 2026-08-18:** _"Definitely BEFORE the release. We're getting this whole thing feature complete before we release 3.0.0."_ It is a pre-release thread, not a follow-on.
+
+It was surfaced the way the problem is meant to be surfaced: hv looked at their own file tree, saw 50-odd hydrated steel-thread directories, and asked why. Measured at `6accab7e` -- 57 directories, 797 files, of which 468 belong to threads nobody is working on (52 completed, 2 cancelled, 1 not-started); `.intentfiles` and `intent/.canon/` do not exist.
+
+**The brief collapses two layers and the design separates three.** hv's framing was _"the DB is SSOT and disk is a sparse copy of the db out to realised files based on an index"_ -- right for views, fatal for canon. **Sparseness applies to VIEWS; canon is never sparse.** If the manifest governed canon, an unrealised artefact would exist only inside a gitignored database: absent from a fresh clone, destroyed by `rm -rf intent/.cache`. **D29 -- a gitignored path is never canon -- is what makes a clone complete**, and it is what makes every deletion here safe rather than careful: `organize` only ever removes a file it can regenerate, from a source sitting beside it in the same commit.
+
+The design is ratified as D57-1 through D57-8 in `design.md`. This contract is derived from those decisions and adds none of its own.
 
 ## Work Packages
 
