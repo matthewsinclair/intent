@@ -683,3 +683,55 @@ Accepted rows terminate the value with `--`; rejected ones run prose straight on
 **WHAT I AM DOING ABOUT IT, RUNNING NOW: the rehearsal re-run at `6248236e`, both halves on one tree** -- clean clone, dirty=0, its own target dir, binary built from that clone. Measuring v3 alone would be uninterpretable, because a 46 would be ambiguous between "v3 regressed" and "the contract moved" and **halves measured at different times cannot separate those.** **Predicted in writing before it started: 48/114 both sides, identical satisfied set, all 56 threads migrate, and the deleted-`.md` control still 48.** cc's sharpening is in the control: the surviving `.md` count is asserted **at the moment the store answers**, not at the moment the files were deleted, because a store quietly falling back to files still on disk returns the right number for the wrong reason.
 
 **Nothing here needs you except the ruling.** The re-run is mine and the result goes to you either way.
+
+## (2026-08-18 06:16Z)
+
+**THE HOIST, MEASURED AT `6248236e` RATHER THAN AT THE PIN I HAD BEEN QUOTING -- AND A RECOMMENDATION AT THE END, WHICH IS YOURS TO TAKE OR REFUSE.**
+
+**PARITY.** v2 over FILES, v3 over STORE, and a control with every `.md` under `intent/st` deleted **all print `48/114, 66 unsatisfied` -- and the three outputs are IDENTICAL BYTE FOR BYTE**, including the traversal quirk that emits `AC-08.8` before `AC-08.7`. **That ordering artefact is a fingerprint: v3 reproduces v2's traversal, not merely v2's answer**, which is not something a reimplementation reaches by agreeing. Migration: **56 threads, 40 issues, 352 files, exit 0.**
+
+**CONSERVATION, first ever run over Intent's OWN estate: ALTERED 0, ADDED 0, DOUBLED-SECTION 0, DEFERRAL-REFUTED 0, dispositions 115 of 115 parsed, liveness names all 56 threads.** Residue: **STRANDED 192, UNACCOUNTED 354, LOST-PROSE 384** -- the bucketed-path class, unchanged in kind. **Nothing is deleted or corrupted; those files sit at `intent/st/<BUCKET>/<ID>/` while canon is flat, so they are reachable from git and from a human and not from the model.**
+
+**AND A HAZARD THAT TURNS OUT NOT TO BE ONE, which I think is the single most useful line here: the migration does not touch `intent/whiteboard/` at all -- zero files.** It writes `intent/st` (74), `intent/issues` (40), `todo.md`, `events.jsonl`, `.config`. **So "four nodes writing their boards while the repo migrates" is not a conflict. That was the thing I understood to be blocking scheduling, and it does not exist.**
+
+**FOUR INSTRUMENT DEFECTS FOUND TODAY, ONE PER NODE, AND THEY ARE ONE CLASS.**
+
+- **ic:** `interrupt_rig.sh` killed a SUBSHELL, not the migrator. `wait` returned 137, the rig read that as proof the interruption landed, and the migration ran to completion -- it printed "interrupted at 36/40" over a tree holding 40 of 40. Fixed `77ddeb07`. **Their canary and baize convert PASSes are withdrawn pending re-run.**
+- **me:** `conservation_check.sh` printed `SUBJECT unpinned @ /Users/matts` for an estate elsewhere -- field 3 is a revision when pinned and a PATH when not, and I truncated both to 12 chars. Fixed `31ff8204`.
+- **dc:** the **`Intent Tests` (bats) CI leg has failed on all of the last 20 runs**, back to 2026-08-15, while Rust passed -- so **"597 passed / 0 failed" is one language of five.** `prepush_push_range.bats:97` calls bare `git init`, so the branch name comes from **your personal `~/.gitconfig`**; the runners have no `init.defaultBranch` and get `master`.
+- **cc:** `Facade::upgrade` -- the migrator -- **has exactly ONE test call in the whole workspace, and it is the unmigrated DETECTION.** Convert and refuse have no cargo coverage. I verified it.
+
+**THE THROUGH-LINE, and it is why I am reporting them together: in three of the four the defective arm had NEVER EXECUTED against the subject that mattered.** ic's kill path only runs when something is interrupted; my unpinned branch only runs on an estate without a `.CAPTURE` marker, which Intent's own is and no fleet member is; dc's fixture only diverges on a machine without your gitconfig line. **Each was green for as long as the inputs allowed and not one minute longer.**
+
+**THREE DECISIONS ARE YOURS.**
+
+1. **The moratorium ruling I reported last message** -- writing an AT for a row already at `to-write`. Ratify or reverse; cc is holding for you rather than taking it.
+2. **`rig_selftest.sh` is a NEW instrument built under a moratorium that bars new instruments.** ic's, not mine to bless, and they have made the withdrawal clean: delete it and the rig fixes stand. **They also declined to let it in through my ratification, which was the right call and not one I would have made for them.**
+3. **The interruption-property AC has changed shape.** A row minted from the DESIGN would have been satisfied by ic's broken rig -- it interrupted, re-ran, compared, and said so. **The standard I have ratified: an AT earns its green from an instrument demonstrated RED, and from a criterion naming the SUBJECT it was handed, not only the verdict.** ic's sharpening: a comparator that correctly says IDENTICAL over a never-interrupted tree is behaving properly, so the verdict alone discriminates nothing.
+
+**MY RECOMMENDATION, AND IT IS A CHANGE OF POSITION.** I have been treating the hoist as gated on instrument confidence. **I now think that is the wrong gate, because the hoist does not destroy anything.** Migration WRITES canon alongside the v2 files; the 192 stranded files stay in git; the store is per-project at `intent/.cache/intent.db`; and `git revert` undoes the commit. **The irreversible step is deleting the v2 files afterwards, and nobody is proposing that.**
+
+**So: hoist when you want to, and treat the residue questions as post-hoist work with the store in place.** What genuinely should NOT wait is cc's coverage gap -- **the migrator is about to become the most consequential code in the repo and the suite says nothing about it** -- but that is a reason to release cc to write those tests, not a reason to hold the migration. **You know things I do not; this is a recommendation and not a finding.**
+
+## (2026-08-18 06:20Z)
+
+**REFINING MY OWN RECOMMENDATION FROM 25 MINUTES AGO, because I tested the thing I had asserted and got it partly wrong.** I told you the hoist destroys nothing. **That is true with one exception I had not found, and the exception has a one-line remedy.**
+
+**WHAT I TESTED: the real hoist migrates a DIRTY tree** -- four nodes hold files in flight -- **and every rehearsal so far, mine included, has run at `dirty=0`.** Two ways that could go wrong in opposite directions: the migrator refuses on a dirty tree (so the hoist can never run), or it reads git HEAD rather than the working tree (so uncommitted prose is silently not carried).
+
+**RESULT, three cells varying one thing each:**
+
+- **A -- tracked `info.md`, edited and NOT committed: CARRIED**, into canon and into the store. **So the migrator reads the WORKING TREE, not HEAD, and uncommitted work is not lost. It does not refuse on a dirty tree either; exit 0.** That is the answer to the question and it is the good one.
+- **B -- an UNTRACKED `design.md`: not carried.**
+- **C -- a tracked but non-canonical `notes.md`: not carried.**
+- **The migrator names none of the three in its output.**
+
+**I PREDICTED B WOULD BE CARRIED AND IT WAS NOT, AND THE REASON MAKES IT A SMALLER FINDING THAN IT LOOKED.** A **committed** `design.md` is not carried verbatim either -- I checked ST0055's, 0 of 3 verbatim probes in the store. **So B is not about tracking at all: it is the bucketed-path residue my own conservation check already counts as STRANDED 192.** My experiment rediscovered a number I had already measured, by a different route. **Corroboration, not a new finding, and I would rather say that than let it read as a discovery.**
+
+**THE ONE PART THAT IS GENUINELY NEW, and it is the exception to "nothing is destroyed": for a TRACKED stranded file the content survives in git even though the model cannot reach it. For an UNTRACKED one it survives NOWHERE -- not in the store, not in git, and the migration does not name it.**
+
+**SO THE PRECONDITION, which is cheap and which I should have stated before recommending anything: commit everything under `intent/` before the hoist.** **I checked the live repo: untracked count under `intent/` is ZERO right now**, and the only dirt is two of ic's rig tools, modified and in flight. **So the hazard is not live -- it is a thing to check at the moment you go, not a thing to fix.**
+
+**MY RECOMMENDATION STANDS, with that precondition attached: hoist when you want to; commit first; treat the residue as post-hoist work.** The one thing I would still not defer is cc's coverage gap on the migrator.
+
+**And a caveat on my own probe, since I have been holding everyone else to this today: the verbatim-phrase test has a false-negative mode.** `acceptance.md` also scored 0 of 3, and that is NOT loss -- the migrator parses AC rows into `.criteria[].text` and `.tests[].note`, so a 70-character probe spanning a whole row cannot match by construction. **The probe answers "is this prose in the store verbatim", not "is this content carried", and those differ for anything structured.**
