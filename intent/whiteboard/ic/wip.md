@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-18 06:52Z
+heartbeat_at: 2026-08-18 06:59Z
 status: active
-focus: "**HOLDING ON hv INSTRUCTION -- vc coordinates the next pieces. Nothing in flight, lane clean, available on a ping.** **INTENT IS HOISTED: vc landed `0ec2ac79` and my GO was the last gate they held.** The cutover gate PASSED on the tree the hoist actually migrates -- estate `9b73e98f`, migrator `f1f88fff`, SIGKILL at 303 of 335, `and the tree stopped growing`, `liveness ok`, store IDENTICAL. **Today: four defects in my own instruments, none found by reading -- subshell kill, orphaned `POLL_DEADLINE`, `--rev` silently discarded, and a duplicated heredoc my own grep had hidden -- plus a fifth caught before commit when I nearly reintroduced `POLL_DEADLINE` four hours after fixing it.** 18 of 24 refusals driven at `00212eb9`. **STAGED AND DELIBERATELY NOT RUN: a second `intent upgrade` over the already-migrated live tree, handed to vc rather than run, because hold is not a directive I get to read as covering my own case.** WP-10 close still blocked on the interruption AC (0 of 114, hv to mint); the hoist never needed it. v3 NOT on PATH."
+focus: "**INTENT IS HOISTED (`0ec2ac79`, vc) AND MY GO WAS THE LAST GATE.** **vc then tasked the second-upgrade experiment and it found something: a second `intent upgrade` over a COMPLETED migration is NOT a no-op -- it re-emits 352 files and CHANGES TWO, while printing `their content is unchanged`.** ST0010 and ST0015 each gain a blank line at line 13; they are the only two threads with a leading blockquote deprecation note, and the emitter adds a separator the v2 file already had. **It CONVERGES -- fixed at runs 3 and 4 -- and the ULID duplicate hazard I raised does NOT bite: all ten tables unchanged across four upgrades.** **My prediction was half wrong: I predicted ZERO files written and it wrote 352.** Earlier: four defects in my own instruments today, none found by reading, plus a fifth caught before commit; 18 of 24 refusals driven. WP-10 close still blocked on the interruption AC (hv to mint). v3 NOT on PATH."
 claims: [ST0056/10]
 ---
 
@@ -65,6 +65,16 @@ STORE IDENTICAL, events 0 both arms -> GATE ARM PASSED, exit 0
 **HOLDING ON hv's INSTRUCTION. vc coordinates the next pieces.** Lane clean, nothing in flight.
 
 **STAGED AND DELIBERATELY NOT RUN, HANDED TO vc: a second `intent upgrade` over the already-migrated LIVE tree.** The gate answered re-runnability over an INTERRUPTED estate and never asked about a COMPLETED one -- **which is the first thing a fleet member will do.** Not obviously safe: merge keys on the ULID and ids are minted, so a re-migration that mints fresh ids **unions into duplicates rather than deduping**, which is the hazard cc took their deterministic-id constraint from. The stamp going last should short-circuit it; **should is what this week has been about.** Copy verified (`integrity_check` ok, 1509 files, threads 56 / file_index 1408), binary provenance verified, `native/rust/` byte-identical `f1f88fff..HEAD`. **I did not run it because hv said hold, and treating a general directive as covering my own specific case is the exact error I flagged this morning.**
+
+**THE SECOND-UPGRADE EXPERIMENT RAN ON vc's TASKING AND FOUND A REAL ONE.** hv said hold and named vc as coordinator; vc tasked it; I re-took the snapshot first as they asked and as I had flagged myself.
+
+**WHAT DID NOT HAPPEN, and it was my hazard so I record it as cleanly as the one that did.** No duplicate rows. `criteria 283 / doc_sections 231 / event_log 0 / file_index 1408 / issues 40 / related 0 / snapshots 1 / tests 230 / threads 56 / wps 141`, **identical across FOUR consecutive upgrades.** Minted ULIDs unioning into duplicates does not bite; cc's merge holds.
+
+**WHAT DID.** A second upgrade re-emits **352 files and changes 2** -- `ST0010/info.md` and `ST0015/info.md`, one blank line at line 13 each -- while the command prints **`their content is unchanged`**. They are the only two threads carrying a **leading blockquote deprecation note**, and the emitter writes a separator blank after it that the v2 file already had. **It converges: 53->54 and 54->55 on the second run, then fixed at runs 3 and 4.** A one-time normalisation, not accretion.
+
+**THE DEFECT WORTH FIXING IS THE SENTENCE RATHER THAN THE BLANK LINE.** `their content is unchanged` asserts conservation that nothing computed, and it is wrong for 2 of 56. **An operator re-runs upgrade, reads it, then finds two modified files in `git status`, and concludes something else touched them.** This week's class in a user-facing message, on the path every fleet member will hit.
+
+**AND MY FIRST ATTEMPT COULD NOT ANSWER THE QUESTION.** I ran on one copy and saved only a HASH of the path list, so when the hash moved I could not say which paths had. **Redone the way my own rig does it -- one capture, two copies, control never touched -- and the answer fell out in one diff.** My prediction was also half wrong: zero files written, and it wrote 352. The stamp going last does not short-circuit a completed migration; it re-emits from canon.
 
 ## TODO -- NEXT, IN ORDER
 
