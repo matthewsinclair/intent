@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 19:03Z
+heartbeat_at: 2026-08-18 19:10Z
 status: active
 focus: "**ST0057 CONTRACTED (42) AND ST0056 AT 116 WITH THE INTERRUPTION ROW GREEN.** Landed today: AC-10.11 (interruption, GREEN on ic's named run), AC-03.12 (a mandatory field with NO HUMAN READER on either carrier -- and rendering it does NOT close it), AC-02.5/03.5/03.6/08.5 in ST0057. **RULED: the refusal text loses its reconstruction clause NOW; an event-log reader is hv's.** **BLOCKED FOR hv: `hv/inbox.vc.md` is damaged at HEAD -- I truncated it with `open(f,"w").write(open(f).read()+x)` -- and the verified restoration is REFUSED by the clock guard, which cannot tell a recovery from a regression.** **`sync --to-store` was FAILING SILENTLY on a duplicate AT id I created by deriving an AT number from an AC number; I had piped it to /dev/null, so `--to-disk` then wrote a stale store over canon twice.** Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -32,6 +32,9 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **A CLOSING COUNT MUST CLOSE OVER WHAT WAS EXAMINED, NOT OVER WHAT EXISTS** (ic, corrected by the defect their own admission bar generated). They are the same number only while an instrument examines everything, and **any optimisation separates them silently, because the arithmetic still closes.** Live instance: a narrowing left `INHERITED 1` where the truth is 2, verdict still correct.
+- **REMOVE THE NEED FOR A PERMISSION RATHER THAN GRANTING IT.** ic asked whether they may run a narrow attachment sync so a proposed gate becomes satisfiable. **A gate whose only compliant path is closed to two of four nodes is one people learn to bypass** -- so the answer is the missing VERB, not a wider permission. **`intent sync` is whole-estate only, which is why the restriction exists at all: the rule is about the verb, not about the node.**
+- **I MEASURED A SUBJECT MOVING UNDER MY INSTRUMENT AND NEARLY REPORTED IT** (ic's hazard, from this morning). Two runs of one tool across a HEAD that a peer moved between them read rc=1 then rc=0, which I almost sent as _the modes disagree_. **Pin the subject and verify it either side, or the comparison is of two different things.**
 - **I READ `$?` THROUGH A PIPE AND TRUNCATED A VERDICT, IN ONE COMMAND, AN HOUR AFTER dc AND ic EACH REPORTED THOSE ABOUT THEMSELVES.** `tail -8` gave me rc=0 (tail's) where the instrument returned 1, and hid half its findings -- I recorded ADDS 1 where the truth was 2. **What saved it was that 0 contradicted the design**, which is the day's most reliable pattern: **the measurements that survived were saved by a value that CONTRADICTED THE DESIGN, never by care** (dc). A merely plausible number gets published every time.
 - **THE AT-ID-IN-FILE CONVENTION IS AMBIGUOUS FOR A CROSS-THREAD CITATION.** Four threads carry an unrelated `AT-03.6`. A tool HOUSED under ST0056 and CITED by ST0057 carrying the bare id names a different test to any reader. **Qualify with the thread.**
 - **`to-write` EXPIRES THE MOMENT THE TEST IS WRITTEN, and the next state is rarely green.** AT-03.6 went `to-write` -> `red`: the instrument works and NOTHING GATES ON IT. **A capability no consumer consults distinguishes nothing** -- AT-11.5's shape, one thread over.
