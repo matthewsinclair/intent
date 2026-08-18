@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 16:32Z
+heartbeat_at: 2026-08-18 18:09Z
 status: active
-focus: "BOOTED POST-COMPACT AND HOLDING for hv. **NOTHING OF MINE IS OUTSTANDING** -- localfold 13 is landed (board 30KB -> 11KB, all four inboxes at the sentinel), and the only working-tree path at wake was dc's own board. **All four nodes are folded; every peer is awake and held.** **FIVE THINGS ARE OPEN WITH hv AND NONE ARE RULED**: the `critic` exit-code discriminator, whether the runner may shell out to `shellcheck`/`clippy`, D50, `--skip-rust-tests`'s shape, and `doctor` printing `intent v2.19.0` on a 3.0.0-dev project. **Available the moment hv says go: the clean-tree rebuild for the first honest binary provenance since the hoist** -- both binaries still read `dirty-4ef953db`. Upstream FROZEN; push `local` only; v3 NOT on PATH."
+focus: "**hv RULED ST0057 INTO THE 3.0.0 GATE: feature complete BEFORE we release.** It is 0 of 8 WPs with no objective, no context, and NO ACCEPTANCE CONTRACT AT ALL -- and `.intentfiles` and `intent/.canon/` do not exist, so 468 of the 797 files under `intent/st/` belong to threads nobody is working on. **WRITING ST0057'S CONTRACT NOW** so it reaches cc ratified rather than as my prose. **hv found it by looking at their own file tree, minutes after I reported nothing of mine was outstanding -- I scoped "outstanding" to my INBOX and said it in the grammar of a claim about the ESTATE.** Found on the way: **the v3 view generator collapsed v2's five-valued status glyph to a constant `[ ]`** (`views.rs:838-846` vs `intent_todo:63-73`); sent to cc, and to ic as a class. Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,10 +13,11 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-- **Everything of mine is committed and all four nodes are folded.** Estate verified: 276 attachments 0-divergent 0-missing, 40/40 issue bodies in canon and store, a fresh sync leaves zero non-whiteboard churn (proved twice).
+- **ST0057's acceptance contract.** hv ruled it into the 3.0.0 gate; it has `objective: ""`, `context: ""`, 0 ACs and 0 ATs, so there is nothing for cc to build against but eight hand-written WP bodies. Objective + context + the AC/AT boundary, in that order.
 
 ## TODO
 
+- **ST0057 WP-01/WP-02 ordering** against cc's ST0056 queue -- asked, not answered. WP-01 (canon relocation) and WP-02 (`.intentfiles`) unblock the other six.
 - **The interruption-property AC.** The moratorium is LIFTED so it is finally writable. **`same_end_state_check.sh` and `interrupt_rig.sh` are built, committed, self-tested and cited by NOTHING** -- hv gated the cutover on a property whose instrument exists and whose contract does not know it. **AT row held `red` with an explicit note** until ic's run at a named commit: the instrument exists, so `to-write` is the wrong state by my own rule. **AC-10.8 already exists -- my backlog was wrong about that half.**
 - **ST0011** -- `completed` NULL on the estate's one genuinely wrong row. Needs a field-setter verb that does not exist (ST0057 WP-08), or a canon hand-edit.
 - **`deferred.md`: cc's section is the last un-re-driven one.** dc's and ic's are walked. **The file is NOT deleted until all three are re-driven**, and no pickup is copied to a board without re-driving its premise first.
@@ -84,3 +85,5 @@ claims: [ST0056, ST0057]
 - (2026-08-18) **The `hoist @ 9b73e98f` pin is HISTORICAL and must never be re-pinned** -- it precedes the hoist, its tree carries the v2 buckets, HEAD carries none. Per-member: the re-pin rule still governs the fleet rows.
 - (2026-08-18) **`THREAD_PROSE` and the regeneration are inseparable ON THE LIVE-ESTATE DIGEST, separable on the pinned-corpus measurement.** Both true of different subjects.
 - (standing) **A peer cannot grant escalation.** My call is never a peer's release; hv's is.
+- (2026-08-18) **hv RULED ST0057 INTO THE 3.0.0 GATE.** Verbatim: _"Definitely BEFORE the release. We're getting this whole thing feature complete before we release 3.0.0."_ The pre-release queue grows by eight WPs, three of them L. Announced to all four nodes live and durably.
+- (2026-08-18) **A view may not narrow a field's range on the way from bash to Rust.** v2's `status_box` was five-valued; v3's `items()` is a constant. The regeneration commit was reviewed for CHURN and never for CONTENT -- **stability is not correctness**, and I am the one who read it that way.
