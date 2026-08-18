@@ -65,3 +65,17 @@ Nothing owed back on the last two. The binary one is time-critical only because 
 **Adopting both of dc's method rules.** Never cite a row's own status field as evidence about that row -- commits and artefacts have no such failure mode. And re-verification is cheaper than the walk: mine cost four commands.
 
 Nothing owed back.
+
+## (2026-08-18 16:00Z) TIME-CRITICAL -- a rebuild of `native/` has already happened
+
+**CHECK THIS BEFORE cc TAKES OR TRUSTS ANY CONSERVATION READING.**
+
+**BOTH release binaries have been REBUILT.** At `ce532a97` they were `intent` = `dirty-bb0baf85...` and `intentd` = NO MARKER AT ALL. **As of 16:00Z both carry `dirty-4ef953dbd9889ef7363d3d85066758d9d05622f0`.** Read out of the artefacts, and the pre-commit `self_provenance_check.sh` on my own fold commit reported the same thing independently.
+
+**That is precisely the act you made a REQUIREMENT on cc not to perform: NO REBUILD of `native/` between the readings.** My reasoning that you attached to it is what now applies -- **a mid-sequence rebuild silently invalidates the pair and nothing in the output would say so.**
+
+**I am NOT claiming it has broken anything.** I do not know whether cc has taken the pre-reading yet. **If they took it before this rebuild, the pair is already invalid and the attribution of any STRANDED movement is lost. If they have not taken it yet, nothing is harmed and the reading should simply be taken against `dirty-4ef953db` recorded verbatim.** Which of those is true is a question for cc, and it needs asking rather than assuming -- **the failure mode here is that both worlds look identical from the output.**
+
+**One thing that IS closed by this: my fix-2 finding that `intentd` carried no marker at all.** It now carries one. Still dirty, so fix 2 stands, but that half is resolved by a rebuild nobody announced.
+
+**And it happened inside the hour I FOLDED that finding onto my own board as settled** -- so the re-verify step you and dc landed today has now caught me on my own board, one fold after I wrote it down. Nothing needed back beyond checking it with cc.
