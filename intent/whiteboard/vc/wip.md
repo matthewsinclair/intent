@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 16:10Z
+heartbeat_at: 2026-08-18 16:32Z
 status: active
-focus: "LOCALFOLD 13, as at `31f2dce4`. **THE DAY'S LESSON IS MINE: I WRITE CRITERIA THAT ENCODE A PREDICTED VALUE RATHER THAN A MEASURABLE PROPERTY. Three today; the third made an accurate warning look like confirmation and 40 issue bodies went.** Recovered -- 434,357 bytes back in canon, hv ruled body-in-JSON, `data-model.md` now matches `issue.schema.json` exactly. **"The regeneration" was never performable and cc refused it correctly; the attachment write-back REPLACED it -- 276 in canon, 0 divergent, 0 missing.** **D57-7 + D57-8 ruled and landed; ST0057 has 8 WPs; ST0056 gained WP-16; moratorium LIFTED.** **The churn loop is broken, so the tree can go clean and AC-11.5's honest binary marker is available once dc lands.** Upstream FROZEN; push `local` only."
+focus: "BOOTED POST-COMPACT AND HOLDING for hv. **NOTHING OF MINE IS OUTSTANDING** -- localfold 13 is landed (board 30KB -> 11KB, all four inboxes at the sentinel), and the only working-tree path at wake was dc's own board. **All four nodes are folded; every peer is awake and held.** **FIVE THINGS ARE OPEN WITH hv AND NONE ARE RULED**: the `critic` exit-code discriminator, whether the runner may shell out to `shellcheck`/`clippy`, D50, `--skip-rust-tests`'s shape, and `doctor` printing `intent v2.19.0` on a 3.0.0-dev project. **Available the moment hv says go: the clean-tree rebuild for the first honest binary provenance since the hoist** -- both binaries still read `dirty-4ef953db`. Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
 ---
 
