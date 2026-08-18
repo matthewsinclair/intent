@@ -394,3 +394,30 @@ Measured, not constructed. At HEAD `702b58f8` the committed `bin/devbin` is `410
 **Two axes, one root.** `devbin_version: 0.1.0` being constant across the thing it distinguishes is the FIELD-level failure; the worktree agreeing while the commit does not is the TENSE-level failure. The corollary is the same one the clock guard reached from the other end: **verify against what the COMMIT holds, for the same reason check C blocks only on the stamps the commit adds.**
 
 **And the instance is the class catching its own reporter, through the instrument built for it.** dc filed the `stage` defect -- a control that records a clean tree and never asks when the bytes were built -- and reported `27 of 27, stock devbin` in the same afternoon. That report was true of the worktree and false of the commit: the identical tense error, one lane over, about their own lane. **A rule you have just written down is not yet a rule you apply.**
+
+### THE PARITY MEASUREMENT HAS EXACTLY ONE REAL EXECUTION, AND IT IS MINUTES WIDE (vc, 2026-08-18, measured not reasoned)
+
+**The v2-versus-v3 comparison that this whole contract is built on becomes UNRUNNABLE the moment the hoist lands, and nothing in the plan carried that constraint until it was driven.** The migration writes `"intent_version": "3.0.0-dev"` into `intent/.config/config.json`; `bin/intent` grew a forward-compatibility guard at `53f88757` that refuses a project from the future. Run v2's gate against an already-migrated tree and it exits 2:
+
+```
+error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0
+  'ac' would write to a project built by a newer Intent than this one understands
+```
+
+**The guard is correct and must not change.** The consequence is procedural: **after cutover there is no v2 half, so v2-versus-v3 parity can never be measured again on this project.** Every rehearsal to date -- including the byte-identical run at `6248236e` -- is a rehearsal of a measurement that gets one execution, immediately before the hoist, on the actual tree being hoisted.
+
+**How it was found is the argument rather than a footnote: the guard is in `bin/intent_helpers`, the gate is three files away, and the link between them is a config value written by a third program.** No amount of reading connects those three. One command did. This is the same lever that produced every real finding of 2026-08-18 across all four nodes.
+
+**THE PROCEDURE, and every control in it exists because its absence produced a wrong green at least once:**
+
+1. **Clone the repo at the exact commit being hoisted and assert `dirty=0` BEFORE building.** A clean tree asserted after the build tells you nothing about what the build compiled.
+2. **Build v3 INSIDE that clone, with its own target directory.** A binary from a shared `target/` cannot be shown to have come from the commit under test -- and a fixture once passed only because cargo had put the binary inside the repository.
+3. **Run v2's gate over the FILES first, before migrating.** This is the half that ceases to exist afterwards; taking it second is taking it never.
+4. **Migrate, capturing stdout as the dispositions record.** Without `--dispositions` a conservation run counts every declared drop as loss -- measured at `ALTERED 112`, all of them ratified template removals.
+5. **Run v3's gate over the STORE.**
+6. **Delete every `.md` under `intent/st` and score again, printing the surviving `.md` count IN THE SAME BREATH as the score.** Asserting the deletion at deletion time is not the control: a store falling back to files still on disk returns the right number for the wrong reason. Note that the migration itself WRITES markdown, so this step deletes the generated views as well as the sources.
+7. **Compare with `diff`, not by eye and not by count.** The three outputs are expected byte-identical -- traversal artefacts included, such as `AC-08.8` printing before `AC-08.7`. **Set equality is the weak test; the ordering fingerprint is the strong one, because a reimplementation that merely agreed would not reproduce v2's traversal.**
+
+**BOTH HALVES RUN ON ONE TREE OR IT IS NOT A COMPARISON.** Measured on separate trees, a disagreement is ambiguous between "v3 regressed" and "the contract moved", and no amount of care separates them afterwards. The `46/114` figure quoted for three days was pinned at `bcbd02cd` while five of five components -- `legacy.rs`, `contract.rs`, `store.rs`, `model.rs`, `facade.rs` -- and `acceptance.md` itself had all moved under it.
+
+**TIMING IS NOT PART OF THIS MEASUREMENT.** Machine load moves it by more than an order of magnitude and it proves nothing about parity. Record it if convenient; never publish a speedup from a run whose load was not controlled.
