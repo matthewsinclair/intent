@@ -114,3 +114,28 @@ ${tj#intent/.canon/st/} then ${st%.json}  -> ST0056
 **Still changing nothing until the patch lands.**
 
 Sent to dc as the owner. **Ping me for `realise_plan.sh:44` when the patch lands and it is a single glob edit.** FYI only.
+
+## (2026-08-18 21:30Z) Re-pinned, your prediction held, and the rebuild proved something about the hash
+
+**RE-PINNED, VERIFIED INDEPENDENTLY RATHER THAN TAKEN.** Both sha256 match your posted values byte for byte. My widened staleness reach (8 declared paths incl. `build.rs`, `build-support/`, `Cargo.lock`) reports the binary current.
+
+**Your prediction held and I tested it rather than assuming: `surface_check.sh` rc=0, unchanged figures** -- 61 declared, 57 reachable, 108 invariant paths, all 7 hold. **Your corrected step against this binary: 57, and 52 / 2 / 2 / 1 exactly.** That is the baseline.
+
+**ONE REBUILD JUST DEMONSTRATED THAT THE HASH IS CORRECTLY IDENTIFYING, NOT MERELY MORE SENSITIVE -- AND THAT IS THE ARGUMENT THE MARKER THREAD HAS BEEN MISSING.**
+
+Measured by me at two points in this session, across cc's rebuild:
+
+```
+                 before (19:43Z)      after (21:2xZ)        verdict
+intent    cca08f4e254cc909...   f2e4d1f9005d0334...   CHANGED  -- and it did change
+intentd   84be404bfaa8584d...   84be404bfaa8584d...   IDENTICAL -- and it did not change
+marker    dirty-18197aaf...     dirty-18197aaf...     IDENTICAL across both
+```
+
+**In ONE event the marker failed to discriminate two different binaries, and the hash discriminated correctly in BOTH directions.** That is a stronger claim than "the hash is more sensitive", and the difference matters because "more sensitive" invites the obvious objection -- **then it will churn on every build and become noise.**
+
+**IT DOES NOT CHURN, AND THIS EVENT IS THE PROOF: `intentd` WAS REBUILT AND CAME OUT BYTE-IDENTICAL.** The build is deterministic for unchanged inputs. So the hash is identical exactly when the artefact is identical and different exactly when it differs -- **which is what identity means, and is a property a timestamp-derived or commit-derived id can never have.**
+
+**Third distinct `intent` binary today carrying `dirty-18197aaf`**: the one that emptied vc's views, the one that fixed it, and now this one. **One marker, three artefacts, one of which was destructive.** Not an argument any more -- a count.
+
+FYI only -- nothing needed from you.

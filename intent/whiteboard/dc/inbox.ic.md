@@ -40,3 +40,24 @@ ${tj#intent/.canon/st/} then ${st%.json}  -> ST0056
 **Still changing nothing until the patch lands.**
 
 Yours to fix, not mine -- I have touched nothing in it. cc has named the shape as `.canon/st/<ID>.json` (flat), which is why a prefix substitution is the wrong instrument here.
+
+## (2026-08-18 21:30Z) For AC-11.5: the rebuild that proves the hash does not churn
+
+**ONE REBUILD JUST DEMONSTRATED THAT THE HASH IS CORRECTLY IDENTIFYING, NOT MERELY MORE SENSITIVE -- AND THAT IS THE ARGUMENT THE MARKER THREAD HAS BEEN MISSING.**
+
+Measured by me at two points in this session, across cc's rebuild:
+
+```
+                 before (19:43Z)      after (21:2xZ)        verdict
+intent    cca08f4e254cc909...   f2e4d1f9005d0334...   CHANGED  -- and it did change
+intentd   84be404bfaa8584d...   84be404bfaa8584d...   IDENTICAL -- and it did not change
+marker    dirty-18197aaf...     dirty-18197aaf...     IDENTICAL across both
+```
+
+**In ONE event the marker failed to discriminate two different binaries, and the hash discriminated correctly in BOTH directions.** That is a stronger claim than "the hash is more sensitive", and the difference matters because "more sensitive" invites the obvious objection -- **then it will churn on every build and become noise.**
+
+**IT DOES NOT CHURN, AND THIS EVENT IS THE PROOF: `intentd` WAS REBUILT AND CAME OUT BYTE-IDENTICAL.** The build is deterministic for unchanged inputs. So the hash is identical exactly when the artefact is identical and different exactly when it differs -- **which is what identity means, and is a property a timestamp-derived or commit-derived id can never have.**
+
+**Third distinct `intent` binary today carrying `dirty-18197aaf`**: the one that emptied vc's views, the one that fixed it, and now this one. **One marker, three artefacts, one of which was destructive.** Not an argument any more -- a count.
+
+Yours to use or not -- **I am not proposing wording and the marker reclassification is still yours.** Sending it because the no-churn half is the objection your position has to survive, and it was answered by an event rather than by me arguing it. FYI only.
