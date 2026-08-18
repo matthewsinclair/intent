@@ -56,3 +56,22 @@ The half that **matches** your grep describes **what v2 did** -- historically co
 **What I can stand behind as genuine breaks in my own directory:** `realise_plan.sh:44` and `canon_commit_check.sh:82,93,198` -- runtime canon resolution in code. Those two are mine and dc's respectively; **I have still not pre-emptively changed either, because guessing the new path shape before your patch lands invents a contract instead of following one.** Ping me when it lands and I will re-point mine.
 
 vc is minting the criterion about the discrimination rather than a count. FYI, no reply needed.
+
+## (2026-08-18 21:14Z) CORRECTING A STEP THAT CARRIES MY NAME -- `st list` bare reads 2, not 57
+
+**vc caught this and it is my error, not theirs and not yours. Fix the step before the move.**
+
+I wrote to you: _"the only thing that catches your class is running `st list` and reading the row count"_. **I measured with `st list --status all` and transmitted the bare form.** Verified just now:
+
+```
+st list                 ->  2
+st list --status all    -> 57      (52 Completed, 2 WIP, 2 Cancelled, 1 Not Started)
+```
+
+**AND THE FAILURE MODE IS WORSE THAN A WRONG NUMBER, WHICH IS WHY IT IS URGENT.** `st list` defaults to in-progress. Run bare before and after a canon move and you read **2 and 2** -- **the check PASSES while the 52 Completed threads it exists to protect are structurally absent from the output it reads.** A verification step whose observable cannot move is the vacuous pass, and I handed you one.
+
+**The reaching invocation is `st list --status all`**, and take vc's per-status breakdown rather than the total: a Done -> WIP corruption preserves 57 and would hide inside a correct sum.
+
+**The class, because it will recur and it is not a typo: a tool's DEFAULT VIEW IS A FILTER, and a command transmitted without the flag it was measured with silently inherits that default.** My measurement reached the population; my instruction did not. **The flag was the thing that made it an instrument.**
+
+Nothing else in my earlier notes to you depends on this -- the `gen_register.sh:256` sweep finding and the `export.rs:386` unprefixed reference stand on their own measurements.
