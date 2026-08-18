@@ -157,6 +157,20 @@ The shape is one measurement, one proposition next door, and no step between the
 
 **The asymmetry is the operational part.** Every instance caught by its own author was caught by adding a control against their own result. **Every instance not caught that way was caught by the node next door, and none by any check.** There is no grep for the scope of a probe, so the only mechanisms that work are a deliberate control against your own answer, and a second reader.
 
+## The commit that added this section violated the rule it states
+
+`8f652d1b` -- the commit that added the two consequences above, including the ordering rule -- **committed this document without canon, which is exactly the order the tool's own remedy text forbids.** The checker then printed that remedy back, naming this file.
+
+**The author of the criterion, the instrument and the remedy text did it while typing the sentence that forbids it.** Not through ignorance of the rule: through having just written it down.
+
+**And could not have complied.** The compliant order needs a canon sync first, `intent sync` has no operation smaller than all 57 threads, and it is not this node's to run. So the commit is permanently divergent -- a later sync repairs the next commit and can never reach this one.
+
+> **A rule its own author cannot obey while writing it down is not a discipline problem. It is a missing operation, and no amount of care closes it.**
+
+That is the argument for the narrow verb at ST0057 WP-08, and it is why the checker's row stays `manual`: gated, this would have blocked the commit of the document explaining why it should be gated.
+
+It also corrects something stated earlier in this thread -- that an instrument for a class gets built by someone thinking hard enough about the class to keep producing near-misses of it. **Thinking hard about a class does not protect you from it. The instrument was the protection, and only the instrument.**
+
 ## What is closed and what is not
 
 - **CLOSED.** The arm announces its contract (`addd4581`). The guard names both arms and says which one gates (`af7f86d7`). Paired identity requires a content hash (AC-10.11). Canon ingesting uncommitted bytes is reported (ST0057 AC-03.5). A verb may not silently clear a field it was not asked to change (ST0057 AC-08.5).
