@@ -1,4 +1,8 @@
 #!/bin/bash
+# ST0057 AC-03.6 / AT-03.6: a commit must not contain canon that names bytes not in
+# that same commit. NOTE THE THREAD QUALIFIER -- this tool is HOUSED under ST0056 and
+# CITED by ST0057, and four threads each carry an unrelated AT-03.6, so the bare id is
+# ambiguous exactly where this file sits.
 # canon_commit_check.sh -- canon must not name bytes that are not in its own commit.
 #
 # COVERS ST0057 AC-03.6. Every thread's `thread.json` carries an `attachments`
