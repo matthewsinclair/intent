@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 21:28Z
+heartbeat_at: 2026-08-18 21:45Z
 status: active
-focus: "**AC-03.14 DONE (`4577e18e`) + 30-of-31 VERB COVERAGE (`6ee99149`) + hv's TODO TREE BUG (`3603f672`). Binary REBUILT and ANNOUNCED: `intent f2e4d1f9`, `intentd 84be404b` -- PIN THE SHA, the marker read `dirty-18197aaf` on BOTH sides again.** Estate verified `st list --status all` = 57 (52/2/2/1). **MY OWN REQUIRED STEP WAS THE 4th INSTANCE: bare `st list` returns 2 and CANNOT GO RED for a canon wipe** -- corrected. **AT-03.15 STILL RED: vc holds it on my hand-authored `DECLARED`, the 6th copy of a population whose declared home says it is the one home.** Deriving it from `dispatch-table.json` next. Upstream FROZEN."
+focus: "**ITEM 1 IS FULLY CLOSED. AC-03.14 (`4577e18e`), coverage (`6ee99149`), hv's TODO TREE BUG (`3603f672`), ROSTER DERIVED FROM `dispatch-table.json` (`49e2c4cf`).** **vc MEASURED IT LIVE: a no-op `sync --to-disk` moved 0 of 557 files on the real estate.** Coverage now **64 shipped mutators = 29 driven + 1 elsewhere + 2 out-of-estate + 32 UNPROVEN**, debt PRINTED and may not grow, mutation-proven. Binary `f2e4d1f9` / `84be404b` -- PIN THE SHA. Estate 57 (52/2/2/1). **NEXT: ST0057 WP-01, and AC-01.6 is now in canon (vc `732c6679`).** Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -48,7 +48,9 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 ## DONE: ST0056 AC-03.14 -- BUILT, GREEN, COMMITTED `4577e18e`; COVERAGE AT `6ee99149`
 
-**AT-03.15 IS STILL RED AND vc IS RIGHT TO HOLD IT -- NOW ON THE DENOMINATOR.** Coverage went 6 verbs -> **30 of 31**, `upgrade` named in `NOT_DRIVEN` with its reason, the table IS the driven set, mutation re-proved 30/30 red. **But `DECLARED` is a HAND-AUTHORED `const &[&str]`, and `surface/dispatch-table.json` is the population's DECLARED HOME** -- whose own `populations.why` records that this set _"was hand-written five times in one week"_ and _"This block is the one home."_ **Mine is the SIXTH copy, written tonight, after that block.** **`NOT_DRIVEN` protects `DECLARED`'s members and NOTHING protects `DECLARED`** -- a verb never added is invisible, and `30 of 31` reads as the surface when it is only the roster. **My own sentence, one level up, unapplied to the thing I was writing.** Deriving it from the table next. **OPEN QUESTION PUT TO vc: 31 shipped mutators have EMPTY `side_effects`, so deriving on that field would make an ABSENT DECLARATION MEAN "does not write" -- the exact defect the derivation removes.** Either they land by name as UNPROVEN, or vc mints the distinction first.
+**CLOSED `49e2c4cf`: THE ROSTER IS DERIVED FROM `surface/dispatch-table.json`, NEVER AUTHORED.** `64 shipped mutator(s): 29 driven here, 1 covered elsewhere, 2 out of estate, 32 UNPROVEN`. **Filter is `read_or_mutate` (present on ALL 113); `side_effects` could answer for only 3 of the 34 outside my driven set, and the table itself rules absence-as-meaning out.** Population is `families` UNION `new_surface` INTERSECTED with `populations.shipped` -- **the union because `entries` alone omits 8 shipping rows, the intersection because it admits `retire` rows the binary lacks.** **FOUR buckets, not three: vc's rule that _a key named for one reason cannot hold members admitted for another_ does not stop at 2 and 3 -- `upgrade` is COVERED ELSEWHERE, a claim WITH evidence, and merging it into UNPROVEN lets it lend credibility to the absence of one.** Debt PRINTED, may shrink, MAY NOT GROW; every mutator in EXACTLY one bucket; **a missing table PANICS rather than skips**, because a skip restores the authored denominator with nobody seeing it. **Mutation-proven: dropped `todo toggle` -> _is in 0 buckets_.**
+
+**THE HOLD, FOR THE RECORD, BECAUSE IT WAS RIGHT TWICE.** Coverage went 6 verbs -> **30 of 31**, `upgrade` named in `NOT_DRIVEN` with its reason, the table IS the driven set, mutation re-proved 30/30 red. **But `DECLARED` is a HAND-AUTHORED `const &[&str]`, and `surface/dispatch-table.json` is the population's DECLARED HOME** -- whose own `populations.why` records that this set _"was hand-written five times in one week"_ and _"This block is the one home."_ **Mine is the SIXTH copy, written tonight, after that block.** **`NOT_DRIVEN` protects `DECLARED`'s members and NOTHING protects `DECLARED`** -- a verb never added is invisible, and `30 of 31` reads as the surface when it is only the roster. **My own sentence, one level up, unapplied to the thing I was writing.** Deriving it from the table next. **OPEN QUESTION PUT TO vc: 31 shipped mutators have EMPTY `side_effects`, so deriving on that field would make an ABSENT DECLARATION MEAN "does not write" -- the exact defect the derivation removes.** Either they land by name as UNPROVEN, or vc mints the distinction first.
 
 **vc MINTED THE ROW AT `ccbf6394` AND I BUILT AGAINST IT.** The property is mine verbatim with vc's denominator: **a write moves mtime on EXACTLY the files whose bytes changed, and no others**, measured over the FILE ESTATE before and after, `moved == changed` as SETS, **31 verbs across 6 commit sites named in the row**, no `WriteSet` in the measurement. **`ac gate` is RESOLVED and NOT in the 31** -- vc traced `render.rs:788` read-only, so my 27 is a TOTAL.
 
@@ -180,6 +182,12 @@ intent/.canon/       MUST BE COMMITTED
 **SO I WITHDRAW THE ORDERING ARGUMENT.** It had one load-bearing leg -- _if AC-01.4 reads mtime this is a hard block_ -- and the condition resolved against it. What is left (S lands green, L takes the suite red, removing a false green before a 97-file move) is PREFERENCE, not blocking, and **the sequence is hv's free choice.** Re-litigating a conditional argument after its condition fails is how a preference gets dressed as a constraint.
 
 **AND THE QUESTION ITSELF WAS THE FINDING (vc): a criterion that does not name its instrument is defective when two plausible instruments disagree.** AC-01.4 will name `git diff --name-only`; vc owes a sweep across 118 + 43 rows. **I could not read the criterion correctly and the fix is in the criterion, not in the reading.**
+
+## MINE, OPEN, AND NEWLY FOUND
+
+**THE STALE-AT GUARD HAS A MIRROR BLIND SIDE (vc found it, it is mine).** It reports _"examined 56 to-write rows with a citation, of 121; none names a file that exists"_ -- it catches a row BEHIND reality and **cannot catch a row pointing at FICTION.** It passed clean all evening **while AT-03.15 sat `to-write` citing `write_exactness.rs`, a file that never existed.** **The green was TRUE and answered a question nobody had.** Wants its own red-first rather than folding into a commit; it should be a row, not a tidy-up.
+
+**THE 32 UNPROVEN ARE A WORK-LIST FOR THE TABLE, NOT FOR ME TONIGHT** -- shipped mutators whose writes are unestablished in either direction. Offered to vc as its own thread rather than smuggled into WP-01.
 
 ## OPEN -- what is actually mine
 
