@@ -1,0 +1,186 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0046",
+  "title": "Add modules (properly) to the intent cli",
+  "slug": "add-modules-properly-to-the-intent-cli",
+  "status": "not-started",
+  "created": "2026-06-15",
+  "objective": "Make `intent modules` a complete registry mechanism, not just a guardrail.\nToday it can CHECK (and warn at file-creation via the advisory write hook) but\nit cannot (a) reliably detect a pre-existing backlog of unregistered modules,\nnor (b) mechanically register them. Add a working full-tree unregistered-module\ndetector and a generator (`sync` / `--write`) so a project's\n`intent/llm/MODULES.md` can be brought to -- and kept at -- completeness by the\ntool rather than by hand.",
+  "context": "The Highlander Rule requires every module to be registered in\n`intent/llm/MODULES.md`. `intent modules` enforces this at creation time (the\nadvisory write hook) and detects stale rows (registry entries whose files are\ngone). Two gaps surfaced on Lamplight (a large Elixir umbrella):\n\n1. **`check` misses unregistered files.** `intent modules check` reports\n   `ok: registry matches filesystem` even when real modules are absent from the\n   registry. Proven: `apps/lamplight/lib/lamplight/ingestor/parser/action.ex`\n   exists on disk and `intent modules find Parser.Action` returns no matches,\n   yet `check` is green. An entire backlog (Lamplight's renamed gen4 authoring\n   substrate -- `Ingestor.ContentIngestor*`, `Authoring.*`, `Content.IRData`,\n   the `Content.*` publish family) is invisible to the guardrail.\n\n2. **No generator.** `--register` only prints guidance; there is no\n   `sync` / `--write` that adds the missing rows. The only path to completeness\n   is hand-authoring `MODULES.md` -- error-prone, and exactly what the\n   Highlander tooling should remove.\n\nSo a project that accrued modules before adopting the hook, or did a bulk\nrename/refactor (eg an umbrella reshape), has no mechanical path to reconcile\nits registry. This ST closes both gaps.",
+  "body": "## Related Steel Threads\n\n- None directly. Motivating case: the Lamplight gen4 authoring-substrate rename\n  left ~40 modules unregistered with no CLI path to reconcile the registry.",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "`intent modules check` flags a top-level module that exists on disk but has no `MODULES.md` row -- exits 1 and names the module + path.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "`check` is umbrella-aware: it enumerates modules under every `apps/*/lib` source root, not just `./lib`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "`check` respects the configured exclusion set (test / support / generated dirs, `deps`, `_build` are not flagged).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "`check` still reports stale rows (a registry row whose file is gone) -- no regression on existing behaviour.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.5",
+      "text": "Run on the Lamplight umbrella, `check` now flags the known backlog (eg `Lamplight.Ingestor.Parser.Action`) instead of reporting `ok: registry matches filesystem`",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "`intent modules sync` (or `check --write`) adds a row for every unregistered top-level module; afterwards `intent modules check` exits 0.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "`sync` is idempotent: a second run produces a zero diff.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "`sync` preserves existing rows verbatim -- hand-annotated provenance (ST/WP refs, `Highlander`) and curated thematic sub-sections survive.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "Each new row carries the correct `module -> path` mapping and a default `auto-discovered` provenance.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "Output ordering is deterministic (stable sort), so diffs are minimal and reviewable.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules check -- unregistered fixture flagged"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules check -- umbrella apps/*/lib enumerated"
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules check -- exclusion set honoured"
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules check -- stale row still flagged"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules sync -- registers unregistered, check then green"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules sync -- idempotent zero-diff on re-run"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules sync -- preserves provenance + sub-sections"
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-02.4"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules sync -- new row module->path + provenance"
+    },
+    {
+      "id": "AT-02.5",
+      "kind": "test",
+      "file": "tests/unit/modules_commands.bats",
+      "covers": [
+        "AC-02.5"
+      ],
+      "status": "to-write",
+      "note": "red-first; modules sync -- deterministic ordering"
+    }
+  ]
+}

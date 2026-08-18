@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 11,
+  "slug": "intent-st-list-enumerates-any-stnnnn-directory-at",
+  "title": "\"intent st list enumerates any STnnnn directory at any depth: a staging area under intent/st/ silently becomes duplicate live threads\"",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-01",
+  "reporter": "matts"
+}

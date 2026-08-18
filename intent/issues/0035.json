@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 35,
+  "slug": "ac-satisfy-accepts-an-empty-evidence-at-every",
+  "title": "\"ac satisfy accepts an empty --evidence at every layer: the declaration is structurally invisible, the renderer defaults it, and the facade stores it, so a non-test AC can be satisfied with no citation\"",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-15",
+  "reporter": "matts"
+}

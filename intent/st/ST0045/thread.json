@@ -1,0 +1,116 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0045",
+  "title": "Update whiteboard for per-workstream files",
+  "slug": "update-whiteboard-for-per-workstream-files",
+  "status": "completed",
+  "created": "2026-06-15",
+  "completed": "2026-06-15",
+  "objective": "Restructure the `in-whiteboard` coordination protocol from flat shared files (Protocol 2.0) to per-node directories with single-writer inboxes (Protocol 3.0). Eliminate the contention, unbounded growth, and cleanse-difficulty that the shared `asks.md` / per-stream files / `lamplight.md` accreted under N concurrent writers; make the human a first-class `hv` (hypervisor) node; rewrite the `in-whiteboard` skill; and roll the change out as a new Intent release. Lamplight is the reference implementation (migrated live 2026-06-15).",
+  "context": "Under Protocol 2.0 every coordination surface was a SHARED file with N writers: `asks.md` (all streams append and remove), the per-stream files (touched by peers during cross-stream `archive`), and `lamplight.md` (the shared platform-edit channel). The cost compounded with stream count -- edit collisions (`modified-since-read`), cleanse that required cross-stream judgment plus coordination to avoid collision, and files growing to tens of KB that were reloaded on every `pickup`, chewing context. Because cleanse was hard it was deferred, so the files ballooned.\n\nProtocol 3.0 gives every file exactly one writer. Each participant is a **node** with its own directory `intent/whiteboard/<node>/` holding `wip.md` (its live board, single-writer), `inbox.<sender>.md` (one per other node, each written only by that sender and cleansed only by the owner), and `.history/YYYYMMDD/`. Point-to-point messaging routes to `<recipient>/inbox.<me>.md`; broadcast is an `announce` that writes one line to every peer's inbox (subsuming `lamplight.md`); the recipient owns its inbox lifecycle (read -> action -> clear), so cleanse is single-owner and collision-free; and `archive` only ever touches your own directory. The human becomes a first-class node, conventionally `hv` (the hypervisor) -- generic in Intent, not project-specific -- giving escalations a real address (`hv/inbox.<me>.md`).\n\nSee `design.md` for the full model, the skill diff, the migration playbook, the rollout steps, and the open considerations (skill blast-radius, the inbox append/cleanse race, naming, archival discipline).",
+  "body": "## Related Steel Threads\n\n- (none -- standalone change to the `in-whiteboard` skill + protocol)",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "The `in-whiteboard` skill is Protocol 3.0 and generic: per-node `<node>/` directories, single-writer `wip.md` plus per-sender `inbox.<sender>.md`, the `hv` hypervisor convention, and no roster baked into the skill (nodes discovered by listing `intent/whiteboard/*/`).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "in-whiteboard SKILL.md is Protocol 3.0 + generic (per-node dirs, single-writer inboxes, hv node, no baked roster); shipped in v2.12.0 (matts)"
+      }
+    },
+    {
+      "id": "AC-01.1",
+      "text": "Inbox-file initialization is specified in the skill: the `# inbox: <sender> -> <recipient>` header + single-writer note + the `_(empty)_` sentinel, and which subcommand creates an absent inbox on first send.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "SKILL.md ## inbox.<sender>.md shape + ask step 1"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "The empty hidden archive dir scaffolding is documented: each node's `.history/` is tracked via `.history/.gitkeep` (git does not track empty directories).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "SKILL.md file-layout .history/.gitkeep + scaffolding note"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "The `hv` node variant is documented: human-driven, `session_id` optional or `none`, may carry a standing-directives section beyond the canonical body.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "SKILL.md ### The hv (hypervisor) node"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "The message-entry format is internally consistent and the required-vs-recommended fields are stated (timestamp granularity; `Re:` / `FYI only` optional).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "SKILL.md ### Message-entry format"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "The shipped `in-whiteboard/SKILL.md` contains no live references to the retired 2.0 model (`asks.md`, `lamplight.md`, `cookies.md`, the flat per-stream files, the `to:` / `from:` ask header) except where explicitly naming them as retired.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "The chaining skills (`in-session` pickup step, `in-finish` release step) reference the 3.0 subcommands, and no shipped skill / doc hard-codes the flat-file 2.0 model.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "Rollout is complete: v2.12.0 version bump, CHANGELOG + `intent/history/v2.12.0.md` entry covering Protocol 3.0, and `intent claude skills sync` installs the 3.0 skill.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "CHANGELOG + intent/history/v2.12.0.md written; 3.0 skill synced (in-session/in-finish/in-whiteboard updated); VERSION bump via scripts/release --minor (matts, immediately following)"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "ST0045 `tasks.md` + `impl.md` are populated (work breakdown + as-built).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "ST0045 tasks.md + impl.md populated"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/whiteboard_protocol_3_guard.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "test: in-whiteboard SKILL.md has no live 2.0 references"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/whiteboard_protocol_3_guard.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "test: chaining skills reference 3.0 subcommands and no shipped doc hard-codes the flat-file model"
+    }
+  ]
+}

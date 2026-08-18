@@ -1,0 +1,115 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0020",
+  "title": "Modernizing Intent's Elixir Support for Agentic Coding",
+  "status": "completed",
+  "created": "2026-02-17",
+  "completed": "2026-02-20",
+  "objective": "Modernize Intent's Elixir support from a subagent-only model to a layered skills + subagent architecture that shapes code as it is generated, adds missing coverage (Ash/Ecto, LiveView, testing, project structure), and rationalizes the LLM guidance file system (AGENTS.md + RULES.md + ARCHITECTURE.md) for target projects.",
+  "context": "",
+  "body": "## Problem\n\nIntent v2.3.4 ships an Elixir subagent with strong architectural principles but three structural weaknesses:\n\n1. **Reactive only** — subagents review after the fact; no enforcement during code generation\n2. **Overlapping rules** — 23 core rules with significant duplication (3 say \"pattern match\", 5 say \"use pipes\")\n3. **Missing coverage** — no Ash database patterns, no LiveView operational detail, no testing reference, no project structure guidance\n\nThe core symptom: Claude defaults to imperative nested `if/case/cond` instead of idiomatic multi-clause pattern matching, even with the subagent loaded, because rules are buried, overlapping, and lack concrete examples.\n\n## Solution\n\nA layered approach:\n\n- **Skills** (always-on, proactive) — `elixir-essentials`, `ash-ecto-essentials`, `phoenix-liveview` shape code as it is generated\n- **Subagent** (on-demand, reactive) — refactored agent.md with ~12 non-overlapping rules, plus new reference docs for deep review\n- **Templates** — `intent agents init --template elixir` creates pre-populated AGENTS.md, RULES.md, ARCHITECTURE.md\n- **Infrastructure** — `intent claude skills install/sync/uninstall` manages skill lifecycle like subagents\n\n## Work Packages\n\n- **WP-01**: Distill core Elixir rules (23 → ~12) — Foundation\n- **WP-02**: Create `elixir-essentials` skill — Highest-impact change\n- **WP-03**: Create Ash/Ecto reference doc + `ash-ecto-essentials` skill\n- **WP-04**: Create LiveView reference doc + `phoenix-liveview` skill\n- **WP-05**: Expand testing reference doc\n- **WP-06**: Skill installation infrastructure (`intent claude skills`)\n- **WP-07**: RULES.md / ARCHITECTURE.md templates and tooling\n- **WP-08**: Project structure reference doc\n- **WP-09**: Elixir upgrade skill for existing projects\n- **WP-10**: Intent usage-rules.md\n- **WP-11**: Elixir testing subagent + skill\n\n## Sequencing\n\n```\nPhase 0 (documentation): ST0020 docs — NO CODE until committed\nPhase 1 (foundation):    WP-01 + WP-08 in parallel\nPhase 2 (skills):        WP-02 + WP-03 + WP-04 in parallel\nPhase 3 (testing):       WP-05\nPhase 4 (infrastructure): WP-06 + WP-07\nPhase 5 (upgrade+docs):  WP-09 + WP-10 in parallel\nPhase 6 (roll-out):      Upgrade 8 target projects\nPhase 7 (testing):       WP-11\n```\n\n## Related Steel Threads\n\n- ST0019: Treeindex (directory summaries — used by subagent for navigation)\n\n## Key Decisions\n\n- Skills are installable artifacts with lifecycle management (not manual copy)\n- Ash-first, never raw Ecto — all target projects use Ash\n- Three-file LLM guidance: AGENTS.md (factual), RULES.md (prescriptive), ARCHITECTURE.md (descriptive)\n- Do NOT replace subagents with skills — they are complementary\n- Do NOT implement git hooks — Intent is not a hooks manager",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Distill Core Elixir Rules",
+      "scope": "S",
+      "status": "done",
+      "objective": "Deduplicate the 23 core Elixir programming rules in `agent.md` down to ~12 non-overlapping rules organized into clear categories.",
+      "body": "## Deliverables\n\n- Refactored `intent/plugins/claude/subagents/elixir/agent.md` with ~12 distilled rules\n- Rules organized into categories: Data Access, Control Flow, Composition, Error Handling, Code Hygiene\n- Minor alignment updates to `style.md` if needed\n\n## Current State\n\nRules 1-2, 7, 10-11 all cover pipe/composition. Rules 3, 9, 13 all cover pattern matching. Rules 14-15 both cover avoiding if/else. This dilution weakens the signal.\n\n## Target State\n\n~12 rules, each covering a distinct concern, with no overlap. Each rule should be actionable and memorable. The distilled rules become the basis for the `elixir-essentials` skill (WP-02) and RULES.md templates (WP-07).\n\n## Acceptance Criteria\n\n- [ ] No two rules cover the same concept\n- [ ] Each rule is a single clear imperative statement\n- [ ] Rules organized into 5 categories\n- [ ] Existing NEVER DO list preserved unchanged\n- [ ] Framework-specific patterns section unchanged\n- [ ] Code review workflow section unchanged\n- [ ] Antipattern/style guide references unchanged\n\n## Dependencies\n\n- None (foundation for all other WPs)",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Create elixir-essentials Skill",
+      "scope": "S",
+      "status": "done",
+      "objective": "Create an installable skill that enforces core Elixir coding patterns during code generation, fixing the problem of Claude defaulting to imperative nested conditionals.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/skills/elixir-essentials/SKILL.md` (~100-150 lines)\n\n## Installs To\n\n`.claude/skills/elixir-essentials/SKILL.md` in target projects\n\n## Mandatory Rules (8)\n\n1. **Multi-clause pattern matching over conditionals** — NEVER nested `if/case/cond` on struct/map fields\n2. **`@impl true` on all behaviour callbacks** — mount, handle_event, handle_info, init, etc.\n3. **Tagged tuples for fallible functions** — `{:ok, result}` or `{:error, reason}`, never bare nil\n4. **`with` for railway-oriented composition** — chain 2+ fallible operations\n5. **Pipe operator for transformations** — 2+ transforms use pipes, data is first argument\n6. **Naming conventions** — `?` for booleans, `!` for raising, `_` for unused\n7. **Assertive data access** — `struct.field` for required, `map[:key]` for optional\n8. **No debug artifacts** — no `IO.inspect/2`, no `dbg()`, no `IO.puts` debugging\n\nEach rule includes a concrete before/after code example.\n\n## Acceptance Criteria\n\n- [ ] File exists at correct path\n- [ ] Under 150 lines\n- [ ] 8 mandatory rules, each with before/after example\n- [ ] No overlap with ash-ecto-essentials or phoenix-liveview skills\n- [ ] Pure language patterns only (no framework specifics)\n\n## Dependencies\n\n- WP-01 (distilled rules are the basis)",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "Create Ash/Ecto Reference Doc + Skill",
+      "scope": "M",
+      "status": "done",
+      "objective": "Create comprehensive Ash/Ecto database access guidance — reference doc for deep consultation and skill for always-on enforcement. Ash-first, never raw Ecto.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/ash-ecto.md` — reference doc (~200-400 lines)\n- `intent/plugins/claude/skills/ash-ecto-essentials/SKILL.md` — skill (~150 lines)\n\n## Design Principles\n\n**Critical: Ash-first, never raw Ecto.**\n\n- No `mix ecto.gen.migration` — always `mix ash.codegen`\n- No direct Repo calls — all through Ash domain code interfaces\n- No raw Ecto.Query in web modules — use Ash.Query or code interface options\n- Explicitly conform to `deps/ash/usage-rules.md` and `deps/ash_ai/usage-rules.md`\n\n## Skill Rules (7)\n\n1. All database access through domain code interfaces\n2. `mix ash.codegen <name>` for migrations, never `mix ecto.gen.migration`\n3. Set actor on query/changeset, not on action call\n4. Prefer code interface options over manual Ash.Query pipelines\n5. Custom change/validation modules, not anonymous functions\n6. Atomic changes preferred; `require_atomic? false` only when necessary\n7. `Ash.Query.filter` is a macro — always `require Ash.Query`\n\n## Acceptance Criteria\n\n- [ ] Reference doc covers migrations, code interfaces, queries, relationships, changes, validations, preparations, notifiers, error handling\n- [ ] Skill under 150 lines with 7 rules + examples\n- [ ] References `deps/ash/usage-rules.md` as authoritative source\n- [ ] No overlap with elixir-essentials or phoenix-liveview skills\n- [ ] No raw Ecto patterns taught (Ash way only)\n\n## Dependencies\n\n- WP-01 (distilled rules inform Ash-specific patterns)",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "Create LiveView Reference Doc + Skill",
+      "scope": "M",
+      "status": "done",
+      "objective": "Create comprehensive LiveView guidance covering operational patterns missing from current agent.md — two-phase rendering, streams, navigation semantics, error boundaries.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/liveview.md` — reference doc (~200-300 lines)\n- `intent/plugins/claude/skills/phoenix-liveview/SKILL.md` — skill (~120 lines)\n\n## Coverage Gaps Being Filled\n\n- `connected?/1` guidance (prevents PubSub bugs during static render)\n- Two-phase rendering (mount called twice: static then connected)\n- `stream/3` for efficient large-list handling (Phoenix 1.7+)\n- `push_navigate/2` vs `push_patch/2` semantics\n- File upload patterns and security\n- Error boundary patterns\n- `assign_async/3` for non-blocking data loading\n\n## Skill Rules (~7)\n\n1. Two-phase mount — guard PubSub/async with `connected?(socket)`\n2. Streams for large lists — never assign full collections\n3. `@impl true` on all callbacks\n4. Thin LiveViews — domain logic in context/domain modules\n5. `push_navigate` vs `push_patch` — correct semantics\n6. `assign_async` for non-blocking data loading\n7. Component extraction for repeated HEEX patterns\n\n## Acceptance Criteria\n\n- [ ] Reference doc covers all gaps listed above\n- [ ] Skill under 150 lines with ~7 rules + examples\n- [ ] No overlap with elixir-essentials or ash-ecto-essentials\n- [ ] Covers Phoenix 1.7+ patterns (streams, verified routes)\n\n## Dependencies\n\n- WP-01 (distilled rules inform LiveView patterns)",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "Expand Testing Reference",
+      "scope": "M",
+      "status": "done",
+      "objective": "Create a comprehensive testing reference doc covering all major Elixir testing patterns that LLMs commonly get wrong.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/testing.md` (~200-400 lines)\n\n## Coverage\n\n- **DataCase** — Ecto sandbox, async tests, factory patterns\n- **ConnCase** — Controller tests, auth setup, JSON API testing\n- **LiveView testing** — render_component, live, follow redirect, form events\n- **Mox** — Behaviour-based mocking, expectations, stubs, verify_on_exit\n- **Ash testing** — Domain action tests, policy tests, Ash.Generator, globally unique values\n- **Changeset validation testing** — Error assertion patterns\n- **Async test considerations** — Sandbox ownership, concurrent tests\n- **File upload testing** — LiveView upload patterns\n\n## Acceptance Criteria\n\n- [ ] Covers all 8 areas listed above\n- [ ] Each section has concrete code examples\n- [ ] Follows existing style.md test conventions (success:/failure: prefixes)\n- [ ] References Ash testing patterns from agent.md\n- [ ] 200-400 lines\n\n## Dependencies\n\n- WP-03 (testing references Ecto/Ash patterns)\n- WP-04 (testing references LiveView patterns)",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "Skill Installation Infrastructure",
+      "scope": "L",
+      "status": "done",
+      "objective": "Create `intent claude skills` CLI command for managing skill lifecycle, mirroring the existing subagent architecture.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/bin/intent_claude_skills` — new CLI command\n- BATS tests for all subcommands\n\n## Commands\n\n- `intent claude skills list` — show available and installed skills\n- `intent claude skills install <name>` — copy SKILL.md to `.claude/skills/<name>/`\n- `intent claude skills sync` — update installed skills (SHA256 checksums)\n- `intent claude skills uninstall <name>` — remove skill from project\n- `intent claude skills show <name>` — display skill content and status\n\n## Architecture\n\n- Source directory: `intent/plugins/claude/skills/<name>/SKILL.md`\n- Target directory: `.claude/skills/<name>/SKILL.md` in target projects\n- Manifest: `~/.intent/skills/installed-skills.json` (SHA256 pattern from subagents)\n\n## Implementation Approach\n\nFactor out common install/sync/uninstall logic from `intent_claude_subagents` into shared functions. Build `intent_claude_skills` using the same patterns. Register in Intent's CLI command routing.\n\n## Acceptance Criteria\n\n- [ ] All 5 subcommands working\n- [ ] SHA256 manifest tracking matches subagent pattern\n- [ ] BATS tests for install, sync, uninstall, list, show\n- [ ] Command registered in Intent CLI routing\n- [ ] Installs SKILL.md to correct target path\n- [ ] Sync detects modified/stale skills correctly\n\n## Dependencies\n\n- WP-02 (needs at least one skill to install/test with)",
+      "preamble": ""
+    },
+    {
+      "seq": 7,
+      "title": "RULES.md / ARCHITECTURE.md Templates and Tooling",
+      "scope": "M",
+      "status": "done",
+      "objective": "Create Elixir-specific templates for the three-file LLM guidance system and update `intent agents init` to support `--template elixir`.",
+      "body": "## Deliverables\n\n- `intent/plugins/agents/templates/elixir/AGENTS.md` — Elixir project AGENTS.md template\n- `intent/plugins/agents/templates/elixir/RULES.md` — Pre-populated with distilled Elixir rules\n- `intent/plugins/agents/templates/elixir/ARCHITECTURE.md` — Project structure skeleton\n- Updated `intent agents init` to accept `--template elixir`\n- BATS tests for template functionality\n\n## Template Content\n\n### AGENTS.md Template\n\n- Project overview placeholders\n- Elixir/Erlang version prereqs\n- Mix commands (deps.get, test, format, credo)\n- Installed skills and subagents listing\n\n### RULES.md Template\n\n- Core Elixir rules (from WP-01 distillation)\n- Ash/Phoenix framework rules\n- NEVER DO list\n- Testing conventions\n- Placeholder for project-specific conventions\n\n### ARCHITECTURE.md Template\n\n- System overview placeholder\n- Elixir context/domain map structure\n- Directory structure mapping\n- Integration points placeholder\n- Decision log placeholder\n\n## Acceptance Criteria\n\n- [ ] All three templates exist in correct directory\n- [ ] `intent agents init --template elixir` creates all three files\n- [ ] `intent agents sync` updates AGENTS.md without touching RULES.md or ARCHITECTURE.md\n- [ ] RULES.md includes the shared 8 rules from real project analysis\n- [ ] BATS tests for template init functionality\n\n## Dependencies\n\n- WP-01 (distilled rules for RULES.md template)\n- WP-06 (skill infrastructure referenced in AGENTS.md template)",
+      "preamble": ""
+    },
+    {
+      "seq": 8,
+      "title": "Project Structure Reference Doc",
+      "scope": "S",
+      "status": "done",
+      "objective": "Create a reference doc covering the standard Phoenix/Ash project layout for subagent consultation during code reviews.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/project-structure.md` (~150-250 lines)\n\n## Coverage\n\n- Standard Phoenix project directory layout\n- Ash domain/resource organization patterns\n- Web layer structure (controllers, LiveViews, components)\n- Test directory mirroring conventions\n- Configuration file locations\n- Asset pipeline structure\n- Where new code goes (decision tree)\n\n## Acceptance Criteria\n\n- [ ] Covers standard Phoenix/Ash project layout\n- [ ] 150-250 lines\n- [ ] Provides clear guidance on where new code should be placed\n- [ ] Covers both traditional Phoenix contexts and Ash domain patterns\n\n## Dependencies\n\n- None (can run in parallel with WP-01)",
+      "preamble": ""
+    },
+    {
+      "seq": 9,
+      "title": "Elixir Upgrade Skill",
+      "scope_legacy": {
+        "raw": "Medium-Large"
+      },
+      "status": "done",
+      "objective": "Create upgrade functionality that diagnoses existing Intent+Elixir projects and migrates them to the new three-file guidance system with skills.",
+      "body": "## Deliverables\n\n- Upgrade diagnostic, plan generation, and execution capability\n- Tested on Intent, Prolix, Laksa, and Lamplight projects\n\n## Capabilities\n\n1. **Diagnose** — scan for existing files, report what exists vs missing\n2. **Plan** — generate project-specific upgrade checklist\n3. **Execute** — apply changes with user confirmation at each step\n\n## Files Scanned\n\n- `intent/llm/AGENTS.md` (version, staleness)\n- `intent/llm/RULES.md` (present/absent, shared vs project-specific rules)\n- `intent/llm/ARCHITECTURE.md` (present/absent)\n- `intent/llm/AGENTS-phx.md` (deprecated — merge into RULES.md)\n- `intent/llm/llm_preamble.md` (deprecated — remove)\n- `intent/llm/usage-rules.md` (deprecated — remove)\n- `.claude/skills/` (installed skills)\n- `.claude/agents/` (installed subagents)\n\n## Test Targets\n\n| Project   | Current State                     | Upgrade Needed                           |\n| --------- | --------------------------------- | ---------------------------------------- |\n| Intent    | Stale AGENTS.md, deprecated files | Regenerate AGENTS.md, delete deprecated  |\n| Prolix    | AGENTS.md + AGENTS-phx.md only    | Create RULES/ARCH, merge, install skills |\n| Laksa     | +RULES.md (10 rules)              | Create ARCH, merge AGENTS-phx            |\n| Lamplight | Most complete                     | Install skills, verify formats           |\n\n## Acceptance Criteria\n\n- [ ] Diagnose correctly identifies existing/missing files\n- [ ] Plan generates accurate upgrade steps\n- [ ] Execute applies changes with confirmation\n- [ ] Tested on at least Intent project\n- [ ] Handles deprecated file cleanup\n\n## Dependencies\n\n- WP-02, WP-03, WP-04 (skills to install)\n- WP-06 (skill installation infrastructure)\n- WP-07 (templates for generating missing files)",
+      "preamble": ""
+    },
+    {
+      "seq": 10,
+      "title": "Intent Usage-Rules.md",
+      "scope": "M",
+      "status": "done",
+      "objective": "Create a comprehensive usage-rules.md for Intent itself, following the Ash usage-rules.md pattern, so LLMs know how to use Intent correctly.",
+      "body": "## Deliverables\n\n- `usage-rules.md` in Intent's package root (<500 lines)\n\n## Content Structure\n\n1. **What Intent is** — one paragraph\n2. **Project structure** — directory layout with purposes\n3. **Core commands** — every command with usage, options, examples\n4. **Steel thread methodology** — create, manage, complete steel threads\n5. **LLM guidance file conventions** — AGENTS.md, RULES.md, ARCHITECTURE.md\n6. **Treeindex conventions** — usage and maintenance\n7. **Common workflows** — step-by-step for typical tasks\n8. **NEVER DO** — common LLM mistakes with Intent\n\n## Format\n\n- Direct imperative voice (\"Use X\", \"Never Y\")\n- Concrete command examples for every concept\n- No preamble or motivation — just \"here's how to use this tool\"\n- Under 500 lines — dense and scannable\n- Organized by topic with clear headers\n\n## Acceptance Criteria\n\n- [ ] Covers all Intent commands with examples\n- [ ] Follows imperative voice convention throughout\n- [ ] Under 500 lines\n- [ ] NEVER DO section covers common LLM mistakes\n- [ ] An LLM reading this file can correctly use Intent without additional guidance\n\n## Dependencies\n\n- WP-06 (references skill commands)\n- WP-07 (references template system)",
+      "preamble": ""
+    },
+    {
+      "seq": 11,
+      "title": "Diogenes Test Architect Subagent + intent-elixir-testing Skill",
+      "scope": "M",
+      "status": "done",
+      "objective": "Create a two-part testing quality system for Elixir projects:\n\n1. **Diogenes subagent** -- a Socratic dialog agent that extracts module intent and produces formal test specifications, then validates tests against those specifications\n2. **intent-elixir-testing skill** -- 8 always-on rules that enforce test quality when Claude writes ExUnit tests\n\nThe subagent addresses the root cause of bad AI-generated tests: Claude writes \"shape tests\" that check data structure rather than behavior, uses control flow in test bodies that hides failures, and produces fake implementations that pass by design.",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/diogenes/agent.md` -- Diogenes subagent\n- `intent/plugins/claude/skills/intent-elixir-testing/SKILL.md` -- Testing skill (8 rules)\n- `tests/unit/test_diogenes.bats` -- BATS tests for both artifacts\n- Updated documentation across all project docs\n\n## Design\n\nTwo-persona Socratic dialog (Aristotle + Diogenes) with two modes:\n\n- **specify**: 5-phase dialog to analyze a module and produce a `*.spec.md` file\n- **validate**: gap analysis comparing a spec against its test file\n\nSee `design.md` for full architecture.\n\n## Acceptance Criteria\n\n- [ ] Diogenes subagent installable via `intent claude subagents install diogenes`\n- [ ] intent-elixir-testing skill installable via `intent claude skills install intent-elixir-testing`\n- [ ] Both appear in `list` commands\n- [ ] Both sync correctly via `sync` commands\n- [ ] BATS tests pass\n- [ ] Tested against at least one real Elixir project\n\n## Dependencies\n\n- WP-05 (testing.md reference doc -- existing foundation)\n- WP-06 (skills infrastructure -- already built)",
+      "preamble": ""
+    }
+  ]
+}

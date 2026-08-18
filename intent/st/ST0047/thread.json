@@ -1,0 +1,345 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0047",
+  "title": "Add claude_with_intent script to Intent to support muilt-agent agentic coding (MAAC)",
+  "slug": "add-claude-with-intent-script-to-intent-to",
+  "status": "completed",
+  "created": "2026-06-25",
+  "completed": "2026-06-25",
+  "objective": "Add a `claude_with_intent` command to Intent that launches and manages **multi-agent agentic coding (MAAC)** sessions over the Intent Claude Whiteboard. One command provisions whiteboard **workstreams** (the Protocol 3.0 _nodes_), launches a Claude Code session bound to a workstream with the right effort / permission / context, and manages the workstream lifecycle (`new` / `list` / `archive` / `hygiene`). The whiteboard process was pioneered in Lamplight by convention; this ST productises it -- Baize is the MVP (the first first-class, scripted use), proven there, then promoted into Intent proper and back-filled into the sibling projects.",
+  "context": "Intent's Whiteboard (Protocol 3.0) coordinates concurrent Claude Code sessions, each a _node_ / _workstream_ with a single-writer board + inboxes. Starting a workstream session is today a manual, error-prone ritual: compose context, set effort, run `/in-session`, set a permission mode, paste a board -- and the naive form deadlocks against the `require-in-session` gate. This ST turns that ritual into one deterministic command, and adds the lifecycle ops the protocol describes but never automated (scaffold a node, list, archive, mechanical hygiene).\n\nIt sits beside the `/in-whiteboard` skill, not on top of it: the **skill** is the Claude-driven protocol (judgement ops -- pickup / ask / announce / decide / claim / the semantic archive); the **script** is the deterministic lifecycle + launch. Both honour one SSOT -- the Protocol 3.0 on-disk format.\n\n**Lamplight (`../Lamplight/intent/whiteboard`) is the prototype** -- the process was pioneered there by convention (five hand-run nodes) and it stays the reference for how MAAC actually works; consult it for any practical question. **Baize is the MVP** -- the first productised version, standing the process up as a first-class Intent capability rather than by hand. Its `hv` + `cc` + `ic` + `vc` whiteboard was hand-scaffolded to the protocol spec and is the **golden reference** that `ws new` must reproduce. Once proven there, the capability promotes into the existing `intent claude` namespace (which already serves `rules` + `skills`) and back-fills Laksa, Lamplight, and Intent itself. MAAC = several specialised Claudes (control / interface / validation / ...) plus the human (`hv`) working one codebase in concert.",
+  "body": "## Related Steel Threads\n\n- First exercised in Baize ST0012 (staff venue tools) + ST0013 (player participation) -- the two threads whose cc/ic/vc workstreams drove the need. (Baize repo, cross-project.)",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Whiteboard provisioner: ws new + ws list",
+      "scope": "S",
+      "status": "done",
+      "objective": "The deterministic node scaffolder and roster read -- the automated form of the Protocol 3.0 \"Scaffolding a node\". `ws new <wsid>` provisions a workstream to spec (any short-ish slug; `hv` as Workstream Zero on first creation); `ws list` reports the roster from frontmatter. This is the foundation `start` (WP-02) and the lifecycle ops (WP-03) build on.",
+      "body": "## Deliverables\n\n- `bin/claude_with_intent` skeleton (POSIX sh, `bin/cli` house style, subcommand dispatch) with `ws new` + `ws list`.\n- `ws new`: scaffolds `<wsid>/wip.md` (valid frontmatter), `<wsid>/.history/.gitkeep`, per-peer inboxes (header + `_(empty)_`); idempotent-safe (refuse-on-exist); id validation (No-Silent).\n- `hv` provisioned as Workstream Zero on first whiteboard creation; working nodes made-to-order.\n- `ws list`: one line per node from `wip.md` frontmatter, read-only.\n- The shell-test harness selection (bats vs plain-sh-runner) + AT-01.1..01.5.\n- Dogfood: regenerate the Baize `hv`+`cc`+`ic`+`vc` skeleton, diff against the golden reference (AC-01.6).\n\n## Dependencies\n\n- None (foundation WP). Reads the Protocol 3.0 format (the `/in-whiteboard` skill / README) as the scaffold spec.",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Session launcher: start|st with provision-if-absent",
+      "scope": "S",
+      "status": "done",
+      "objective": "The headline command: `start <ws>` launches a Claude Code session bound to a workstream with the verified flag combo and a composed context, lands it interactive, and waits. Includes the provision-if-absent flow and the `CWI_DRY_RUN` test seam.",
+      "body": "## Deliverables\n\n- `start|st <ws>`: assembles `claude --effort max --permission-mode auto --append-system-prompt \"$(compose_ctx <ws>)\" \"/in-session\"` (the verified 2.1.191 form).\n- `compose_ctx <ws>`: identity line + `.claude/restart.md` + the standing daily-plan-then-wait instruction (board excluded -- pickup reads it live).\n- `CWI_DRY_RUN` / `--dry-run`: print the assembled argv instead of exec (the unit-test hook + safe preview).\n- Provision-if-absent: absent `<ws>` -> report + prompt; `n` exits clean, `y` -> `ws new` then launch.\n- Resolve the proceed-to-plan spike (does the `/in-session` seed flow into the plan, or need a nudge); confirm the `auto` posture against the TUI status line + lock the value.\n- AT-02.1..02.3 (dry-run-backed) + AC-02.4/02.5 live-launch evidence.\n\n## Dependencies\n\n- WP-01 (`ws new` -- the provision-if-absent path calls it; `start` targets a provisioned workstream).\n- External: Claude Code >= 2.1.191; `require-in-session.sh` slash-exemption (the seed relies on it).",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "Workstream lifecycle: ws archive + ws hygiene",
+      "scope": "S",
+      "status": "done",
+      "objective": "Complete the deterministic lifecycle: retire a workstream while keeping its history, and run a programmatic (non-Claude) structural lint + tidy over a whiteboard. The mechanical complement to the Claude-driven `/in-whiteboard archive` (which keeps the semantic \"what is DONE\" judgement).",
+      "body": "## Deliverables\n\n- `ws archive <wsid>`: move a node out of active discovery (eg `.archived/<wsid>/`), `.history/` intact, gone from `ws list`.\n- `ws hygiene [<ws>]`: validate structure (parseable `wip.md` frontmatter + `.history/.gitkeep` per node; header + sentinel-or-entries per inbox); exit non-zero with a report on violation.\n- Mechanical tidy only: normalise sentinels / format; warn on oversized boards (the 30k-token autopsy lesson) + stale heartbeats; never touch DOING content.\n- AT-03.1..03.4 (archive round-trip; corrupt-fixture flag; DOING untouched; clean-board pass).\n\n## Dependencies\n\n- WP-01 (archive + hygiene operate on `ws new` output / the Protocol 3.0 shape).",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "Promote to Intent (intent claude) + back-fill siblings",
+      "scope": "S",
+      "status": "done",
+      "objective": "Lift the proven Baize prototype into first-class Intent: the `intent claude` command family gains `start` + `ws`, the scaffold logic shares one SSOT with the `/in-whiteboard` skill, and the capability back-fills the sibling projects.",
+      "body": "## Deliverables\n\n- Confirm the `intent claude` dispatch location (not a `bin/intent_claude` file) and relocate the capability into it -> `intent claude start|ws ...`.\n- Port the prototype, do not fork: `bin/claude_with_intent` logic + `test/cwi/cwi_test.sh` travel to Intent's home (where `critic-shell` governs).\n- Wire the one format SSOT: the `/in-whiteboard` skill's hand-scaffold prose points at `ws new` (no divergent scaffolder). (Highlander)\n- Back-fill Laksa + Lamplight + Intent (each runs `intent claude start <ws>` against its own whiteboard) -- per-project smoke.\n- Fold any Baize-specific assumptions (paths, restart-file name) into Intent config so the command is project-agnostic.\n- **Retire the Baize prototype in one cutover** once `intent claude` is proven + back-filled: a single Baize commit -- `git rm bin/claude_with_intent test/cwi/` + switch muscle-memory to `intent claude start <ws>`. The whiteboard data (`intent/whiteboard/`) STAYS; only the launcher leaves. No coexistence window (Highlander + no-backwards-compat-shims).\n\n## Dependencies\n\n- WP-01..03 green + the Baize dogfood pass (don't promote an unproven prototype).\n- External: the `intent` CLI dispatch internals; the `/in-whiteboard` skill (the SSOT it must converge with).",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "`ws new <wsid>` scaffolds a Protocol-3.0 node: `<wsid>/wip.md` with valid frontmatter (node, name, role, session*id, heartbeat_at, status, focus, claims), `<wsid>/.history/.gitkeep`, and an inbox (`# inbox: <peer> -> <wsid>` header + `*(empty)\\_` sentinel) for every existing peer.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "`ws new <wsid>` refuses with a non-zero exit and zero mutation when `<wsid>` already exists.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "`ws new` accepts any short-ish slug `[a-z0-9-]` and rejects an invalid id (uppercase / space / path separator / over-long) with a typed error, no partial scaffold. (No-Silent)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "On a whiteboard's first creation, `hv` is provisioned as Workstream Zero by default; working nodes appear only on an explicit `ws new`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.5",
+      "text": "`ws list` prints one line per node (id, status, focus, claims, heartbeat-age) read from each `wip.md` frontmatter, and performs no writes.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.6",
+      "text": "Regenerating the Baize `hv`+`cc`+`ic`+`vc` skeleton via `ws new` reproduces the hand-scaffolded golden reference (structural diff empty, modulo authored board content).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "dogfood 2026-06-25: ws new hv/cc/ic/vc reproduces the Baize golden board (28 paths); cwi_test.sh green"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "`start <ws>` for an existing workstream assembles `claude --effort max --permission-mode auto --append-system-prompt <ctx> \"/in-session\"` (verified via `CWI_DRY_RUN`).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "`compose_ctx <ws>` output carries the workstream identity line, `.claude/restart.md`, and the standing \"show a daily plan, then wait\" instruction; it does not bake in the live board.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "`start <ws>` for an ABSENT workstream stops, reports non-existence, and prompts to create; `n` exits with zero mutation, `y` runs `ws new` then launches. (No-Silent)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "A live `start ic` in Baize lands an interactive session that runs /in-session (gate released via the slash-exemption), picks up the cc opening assignment, and presents a plan.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "live 2026-06-25: bin/claude_with_intent start ic|vc booted sessions 201b7944/0ebe187b, ran /in-session+pickup, no typing"
+      }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "The launched posture is the hv-intended `auto` mode (not accept-edits / bypass), confirmed against the TUI status line.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "live 2026-06-25: permission-mode=auto recorded in both ic/vc transcripts"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "`ws archive <wsid>` retires a node out of active discovery (eg to `.archived/<wsid>/`) with its `.history/` intact; the node no longer appears in `ws list`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`ws hygiene [<ws>]` validates structure (every node: parseable `wip.md` frontmatter + `.history/.gitkeep`; every inbox: header + sentinel-or-entries) and exits non-zero with a report on violation.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "`ws hygiene` performs only mechanical tidy (normalise sentinels / format; warn on oversized boards + stale heartbeats); it never archives DOING content (the semantic archive stays the Claude-driven `/in-whiteboard archive`).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "`ws hygiene` passes a clean board (zero exit, no mutation beyond formatting) and flags an intentionally-corrupted fixture (bad frontmatter / missing sentinel / oversized).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "The validated capability is invocable as `intent claude start|ws ...` within the existing `intent claude` family.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "wired at `bin/intent` claude dispatch (`start|ws` -> `intent_claude_cwi`); `intent help claude` documents both; smoke + AT-04.1 green"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "`ws new` and the `/in-whiteboard` skill share one format SSOT (the skill points at the script; no divergent scaffold logic). (Highlander)",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "SKILL.md \"Scaffolding a node\" repointed at `intent claude ws new` + the lazy-inbox drift reconciled to the script; AT-04.2 green"
+      }
+    },
+    {
+      "id": "AC-04.3",
+      "text": "Back-filled into Laksa + Lamplight + Intent (each runs `intent claude start <ws>` against its own whiteboard).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "2026-06-25 smoke"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "test: \"AT-01.1 ws new scaffolds a protocol-3.0 node\""
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "test: \"AT-01.2 ws new refuses an existing wsid with no mutation\""
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "test: \"AT-01.3 ws new rejects invalid ids with no partial scaffold\""
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "test: \"AT-01.4 hv is workstream zero (active) by default; working nodes paused\""
+    },
+    {
+      "id": "AT-01.5",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-01.5"
+      ],
+      "status": "green",
+      "note": "test: \"AT-01.5 ws list prints one line per node from frontmatter, no writes\""
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "test: \"AT-02.1 start assembles the verified claude argv (dry-run)\""
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "test: \"AT-02.2 compose_ctx carries identity + pickup + plan instruction, not the board\""
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "test: \"AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches\""
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "test: \"AT-03.1 ws archive retires a node, history intact, gone from list\""
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "test: \"AT-03.2 ws hygiene flags a corrupted fixture non-zero with a report\""
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "test: \"AT-03.3 ws hygiene leaves DOING content untouched\""
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "green",
+      "note": "test: \"AT-03.4 ws hygiene passes a clean board (zero exit, no mutation)\""
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "test: \"AT-04.1 invocable as intent claude start|ws through the dispatch\""
+    },
+    {
+      "id": "AT-04.2",
+      "kind": "test",
+      "file": "tests/unit/claude_with_intent.bats",
+      "covers": [
+        "AC-04.2"
+      ],
+      "status": "green",
+      "note": "test: \"AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)\""
+    }
+  ]
+}

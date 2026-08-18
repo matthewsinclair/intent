@@ -1,0 +1,42 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0027",
+  "title": "Add /in-cost-analysis skill",
+  "slug": "add-in-cost-analysis-skill",
+  "status": "completed",
+  "created": "2026-03-06",
+  "completed": "2026-03-07",
+  "objective": "Add a new `/in-cost-analysis` skill that estimates the development cost of reproducing any codebase from scratch. The skill is language-agnostic, uses a Bash script for automated metrics collection, and produces a structured cost estimate report.",
+  "context": "A candidate skill existed at `~/tmp/in-cost-analysis-skill.md` that was project-specific (Swift/Metal) and overly long (~360 lines with ROI analysis). This steel thread generalizes it into a clean, reusable Intent skill following existing conventions.\n\nKey decisions:\n\n- Drop ROI analysis (pure cost estimation only)\n- Bash supporting script for automated metrics collection\n- Reference data (rate tables, multipliers) in a separate `data/` file\n- Follows `in-autopsy` pattern (SKILL.md + scripts/ + data/)",
+  "body": "## Related Steel Threads\n\n- ST0026: Intent v2.6.0 (skills system matured here)",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Steel thread docs + skill scaffold",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "## Acceptance Criteria\n\n- [ ] Criterion 1\n- [ ] Criterion 2",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Bash metrics script",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "## Acceptance Criteria\n\n- [ ] Criterion 1\n- [ ] Criterion 2",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "Integration testing",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "## Acceptance Criteria\n\n- [ ] Criterion 1\n- [ ] Criterion 2",
+      "preamble": ""
+    }
+  ]
+}

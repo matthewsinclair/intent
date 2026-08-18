@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 7,
+  "slug": "intent-ac-gate-reads-a-green-at-as-unsatisfied",
+  "title": "intent ac gate reads a green AT as unsatisfied when its status field carries markdown emphasis",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-07-29",
+  "reporter": "matts"
+}

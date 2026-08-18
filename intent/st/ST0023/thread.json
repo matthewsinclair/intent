@@ -1,0 +1,79 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0023",
+  "title": "Remove Backlog from Intent",
+  "slug": "remove-backlog-from-intent",
+  "status": "completed",
+  "created": "2026-02-24",
+  "completed": "2026-02-24",
+  "objective": "Remove all Backlog.md integration from Intent. This includes CLI commands (`bl`, `task`, `status`, `migrate`), documentation, templates, subagent definitions, tests, CI/CD pipeline dependencies, and example project artifacts.",
+  "context": "Backlog.md integration was a third-party npm tool (`backlog.md`) that Intent wrapped with several commands. The integration is no longer used and touches ~70+ files across the codebase. Removing it simplifies the codebase, eliminates a Node.js CI dependency, and drops 3 test files (~780 lines of backlog-specific tests).\n\nVersion bump: v2.4.0 -> v2.5.0.",
+  "body": "## Work Packages\n\n| WP   | Scope                                    | Status |\n| ---- | ---------------------------------------- | ------ |\n| WP01 | Documentation: Remove Backlog references | Done   |\n| WP02 | LLM Templates: Remove from generated     | Done   |\n| WP03 | Subagents: Remove from agent definitions | Done   |\n| WP04 | CLI Core: Remove commands and config     | Done   |\n| WP05 | Configuration: Remove config keys        | Done   |\n| WP06 | Tests: Remove/update test files          | Done   |\n| WP07 | CI/CD, Examples, and Cleanup             | Done   |\n| WP08 | Version Bump, CHANGELOG, Release         | Done   |\n\n## Related Steel Threads\n\n- ST0020: Elixir support (skills system)\n- ST0021: intent-autopsy skill\n- ST0022: st new hardening\n- ST0025: Fix Highlander Violations (spawned from audit during this work)",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Documentation - Remove Backlog References",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nAll user-facing, engineering, and LLM documentation. No code, no tests.\n\n## Files to Edit\n\n- README.md\n- CLAUDE.md\n- DEPRECATIONS.md\n- intent/usr/user_guide.md\n- intent/usr/reference_guide.md\n- intent/usr/deployment_guide.md\n- intent/llm/AGENTS.md\n- .github/workflows/README.md\n- tests/README.md\n\n## TPD Files (annotate)\n\n- intent/eng/tpd/2_requirements.md, 3_architecture.md, 4_detailed_design.md\n- intent/eng/tpd/6_deployment_and_operations.md, 7_technical_challenges_and_mitigations.md, 8_appendices.md\n\n## Blog Posts (editor's note)\n\n- docs/blog/0001-introduction-to-intent.md\n- docs/blog/0002-the-steel-thread-methodology.md\n- docs/blog/0004-llm-collaboration-with-intent.md\n- docs/blog/0005-getting-started-with-intent.md\n\n## Acceptance Criteria\n\n- No doc references Backlog as a current feature\n- CHANGELOG.md historical entries untouched\n- TPD has removal annotations; blogs have editor's notes",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "LLM Templates - Remove Backlog from Generated Content",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nTemplates that `intent init` copies into new projects.\n\n## Files to Edit\n\n- lib/templates/llm/\\_CLAUDE.md\n- lib/templates/llm/\\_llm_preamble.md\n- lib/help/agents.help.md\n\n## Acceptance Criteria\n\n- New `intent init` projects will not mention Backlog",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "Subagents - Remove Backlog from Agent Definitions",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nSubagent source definitions and installed copies.\n\n## Files to Edit\n\n- intent/plugins/claude/subagents/intent/agent.md\n- intent/plugins/claude/subagents/intent/metadata.json\n- .claude/agents/intent.md\n- intent/plugins/claude/subagents/socrates/README.md\n- intent/plugins/claude/subagents/worker-bee/agent.md\n\n## Acceptance Criteria\n\n- No subagent mentions backlog\n- metadata.json tags cleaned",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "CLI Core - Remove Backlog Commands and Config",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nDelete backlog-specific scripts, clean remaining scripts.\n\n## Files to DELETE\n\n- bin/intent_backlog (~448 lines)\n- bin/intent_bl (~9 lines)\n- bin/intent_migrate (~217 lines)\n- bin/intent_status (~24 lines)\n- bin/intent_task (~143 lines)\n\n## Files to Edit\n\n- bin/intent - Remove bl) case block\n- bin/intent_config - Remove backlog config vars\n- bin/intent_helpers - Remove backlog from helpers\n- bin/intent_init - Remove backlog init\n- bin/intent_upgrade - Remove backlog migration\n- bin/intent_bootstrap - Remove backlog from defaults\n- bin/intent_info - Remove backlog display\n- bin/intent_doctor - Remove backlog check\n\n## Acceptance Criteria\n\n- Backlog commands return \"Unknown command\"\n- `intent init` creates projects without backlog/\n- All remaining bin/ scripts load without errors",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "Configuration - Remove Backlog Config Keys",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nJSON config files.\n\n## Files to Edit\n\n- .intent/config.json - Remove backlog_dir and backlog_list_status\n- examples/hello-world/.intent/config.json - Remove backlog_dir\n\n## Acceptance Criteria\n\n- Config files are valid JSON without backlog keys",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "Tests - Remove/Update Test Files",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nDelete backlog test files, update remaining tests.\n\n## Files to DELETE\n\n- tests/unit/bl_commands.bats\n- tests/unit/task_commands.bats\n- tests/unit/migration.bats\n\n## Files to Edit\n\n- tests/core_functionality.bats - Remove backlog tests/assertions\n- tests/unit/project_commands.bats - Remove backlog test\n- tests/unit/bootstrap.bats - Remove backlog config assertion\n- tests/unit/agent_commands.bats - Update subagent assertions\n- tests/lib/test_helper.bash - Remove mkdir backlog\n\n## Acceptance Criteria\n\n- Test suite drops from 17 to 14 files\n- All remaining tests pass",
+      "preamble": ""
+    },
+    {
+      "seq": 7,
+      "title": "CI/CD, Examples, and Cleanup",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nCI pipeline, example projects, project backlog directory.\n\n## Directories to DELETE\n\n- backlog/ (project's own)\n- examples/hello-world/backlog/\n- examples/v0.0.0-project/backlog/\n- examples/v1.2.0-project/backlog/\n- examples/v1.2.1-project/backlog/\n\n## Files to Edit\n\n- .github/workflows/tests.yml - Remove Node.js setup\n- examples/hello-world/README.md, CLAUDE.md, intent/st/ST0001/design.md, info.md\n- examples/v0.0.0-project/.gitignore\n- examples/v1.2.0-project/.gitignore\n- examples/v1.2.1-project/.gitignore\n\n## Acceptance Criteria\n\n- CI has no Node.js or Backlog.md steps\n- No example has backlog/ directory\n- Project backlog/ removed",
+      "preamble": ""
+    },
+    {
+      "seq": 8,
+      "title": "Version Bump, CHANGELOG, Treeindex, and Release",
+      "status": "not-started",
+      "objective": "",
+      "body": "## Scope\n\nVersion bump to 2.5.0, changelog entry, treeindex regeneration, tag, and release.\n\n## Files to Edit\n\n- VERSION - 2.4.0 -> 2.5.0\n- .intent/config.json - Update version and intent_version\n- CHANGELOG.md - Add v2.5.0 entry\n- intent/wip.md - Update with ST0023 completion\n- intent/restart.md - Update restart context\n\n## Post-Edit Actions\n\n1. Regenerate treeindex\n2. Run full test suite\n3. Final grep sweep for stragglers\n4. Commit, tag, push, release\n\n## Acceptance Criteria\n\n- VERSION reads 2.5.0\n- CHANGELOG complete\n- All treeindex regenerated\n- 14 test files, all passing\n- Tag pushed, GitHub release created",
+      "preamble": ""
+    }
+  ]
+}

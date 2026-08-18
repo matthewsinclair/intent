@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 40,
+  "slug": "config-json-declares-st-prefix-and-v2-honours-it",
+  "title": "config.json declares st_prefix and v2 honours it in six places, but v3 reads the field nowhere -- the id allocator and the legacy scanner both hardcode ST",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-16",
+  "reporter": "matts"
+}

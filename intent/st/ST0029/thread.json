@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0029",
+  "title": "Add /in-handoff skill",
+  "slug": "add-in-handoff-skill",
+  "status": "completed",
+  "created": "2026-03-31",
+  "completed": "2026-03-31",
+  "objective": "Add a `/in-handoff` skill that generates a permanent handoff document summarizing session work for future agents/sessions.",
+  "context": "",
+  "body": "## As-Built\n\n- `intent/plugins/claude/skills/in-handoff/SKILL.md` -- 5-step procedural guide\n- `intent/plugins/claude/skills/in-handoff/scripts/handoff-prep.sh` -- bash 3.x helper (date, sequence, slug, git context)\n- Handoff docs stored at `intent/.handoff/YYYYMMDD-NNN-<slug>.md`\n- Registered in `intent/llm/MODULES.md` under Skills: Handoff\n- Also fixed: `intent claude skills list` display (dynamic name column, terminal-width-aware, compact format)\n- Also fixed: `get_terminal_width()` in `bin/intent_helpers` (removed `[ -t 1 ]` guard)\n\n## Related Steel Threads\n\n- ST0026 (skills system, in-\\* prefix convention)",
+  "preamble": ""
+}

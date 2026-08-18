@@ -1,0 +1,319 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0052",
+  "title": "Author project-type pack",
+  "slug": "author-project-type-pack",
+  "status": "completed",
+  "created": "2026-07-03",
+  "completed": "2026-07-03T20:47:23Z",
+  "objective": "Add non-code \"project-type\" packs to Intent and deliver the `author` pack (books, courseware, long-form authoring with Claude) end to end -- `intent lang init author` canon, an `IN-AU-*` rule library, a `critic-author` reader, and an `/in-author-essentials` skill -- reusing the existing `languages` axis. Establish the reusable pattern that a later `content` (web-content editing) pack will follow.",
+  "context": "hv wants Intent to support project kinds beyond programming languages: a `content` pack (editing web content) and an `author` pack (original long-form -- books, courseware, blog). Ratified direction (2026-07-03): reuse the existing `languages` axis rather than a parallel `domain` field -- one pack mechanism (rules + critic + skill + canon), so a repo can carry `languages: [elixir, author]` and both packs compose. `author` ships first: most of its rule set is already written as prose in the global `CLAUDE.md` (banned filler, `eg`-not-`e.g.`, no vanity metrics, T-shirt sizing, detrope-at-every-step), and there is a live corpus (the agentic course, blog drafts) to dogfood on.\n\nGrounding during scoping surfaced that \"reuse the `languages` axis\" spans TWO layers with different openness: the canon-template + config + `/in-session` layer is open (template-driven, no allowlist -- `intent lang init author` works once a template dir exists), but the rule-library + critic + ID layer carries a closed language-code enum (`AG|EX|RS|SW|LU|SH`) that needs a small, agreed schema bump to admit `AU`. See design.md D2.",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "AU language-code schema bump",
+      "scope": "S",
+      "status": "done",
+      "objective": "Admit `author` (code `AU`) as a first-class rule-library language by adding it to the ID/validation layer, so `IN-AU-*` rule IDs validate and the author rule pack + critic can exist. This is the foundation WP02 and WP03 build on. Scope is the ID/validation layer only; the headless runner (`bin/intent_critic`) is deliberately NOT touched (deferred with the headless prose gate, design.md D4).",
+      "body": "## Deliverables\n\n- `rules/_schema/rule-schema.md` -- `language` enum includes `author`.\n- `rules/_schema/id-scheme.md` -- language-codes table gains `AU`; the validator-regex doc (~:155) gains `AU`.\n- `rules/_schema/index-generator.md` -- the duplicate validator-regex doc (~:128) gains `AU`.\n- `intent/plugins/claude/bin/intent_claude_rules` -- validator regex (the check + the error string, ~:161-162) gains `AU`.\n- Guard test under `tests/unit/` asserting `IN-AU-STYLE-001` (and similar) now validates AND a malformed id still fails, so the enum widening cannot silently regress.\n- `bin/intent_critic` NOT modified (out of scope, D4).\n\n## Dependencies\n\n- None (first WP). Blocks WP02 and WP03 -- their `IN-AU-*` IDs and `critic-author` validation depend on the widened enum/regex.",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Author rule library seed",
+      "scope": "M",
+      "status": "done",
+      "objective": "Author the starter `IN-AU-*` rule library -- the mechanical `style` tier first, then the judgment `craft` tier -- and stand up the net-new mechanical trope surface (design.md D5). Regenerate the rule index. No trope catalogue is re-authored; only the mechanical detection layer is added, sourced Highlander from `llm-tropes`.",
+      "body": "## Deliverables\n\n- `rules/author/style/<slug>/RULE.md` (mechanical/default tier): banned filler + `eg`-not-`e.g.` + house style; no vanity metrics + T-shirt sizing; chapter/module front-matter + learning-objectives presence; heading hygiene; the mechanical trope pass.\n- `rules/author/craft/<slug>/RULE.md` (judgment/on-instruction tier): voice/register consistency; cross-chapter continuity; citation/attribution -- Detection = critic-as-reader; full-trope diagnosis references `/in-detrope` (no fork).\n- Mechanical trope surface (D5): resolve its form (⚙ rule Detection heuristics vs a vendored `data/trope-indicators` file), sourced from `llm-tropes`.\n- Textual Bad/Good examples in each `RULE.md` (prose has no runtime -- CI-LIMITATIONS textual-only).\n- Regenerated `rules/author/index.json` (+ top-level index).\n\n## Dependencies\n\n- WP01 (the `AU` code must validate before `IN-AU-*` IDs can exist). Blocks WP03 (the critic loads this library).",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "critic-author subagent",
+      "scope": "M",
+      "status": "done",
+      "objective": "Build `critic-author` -- a two-tier prose reader that runs the mechanical tier by default and hands off to `/in-detrope` for full LLM diagnosis only under direct instruction (design.md D3, D5). It reports; it never modifies (critic contract).",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/critic-author/agent.md` -- own `style`/`craft` categories + mode verbs (D6); tools Read/Grep/Bash (no Write); report format per the critic contract; mechanical tier by default incl. the mechanical trope pass; emits a `/in-detrope` handoff recommendation (the diogenes-handoff pattern) for full diagnosis under direct instruction.\n- `intent/plugins/claude/subagents/critic-author/metadata.json`.\n- Registration in `intent/plugins/claude/subagents/.manifest/global-agents.json`.\n\n## Dependencies\n\n- WP01 (`AU` validates) and WP02 (the rule library the critic loads, incl. the mechanical trope surface).",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "intent lang init author canon",
+      "scope": "S",
+      "status": "done",
+      "objective": "Make `intent lang init author` succeed -- supply the canon template so a project can declare itself an author project (adds `author` to config `languages` + installs the concretised author RULES canon).",
+      "body": "## Deliverables\n\n- `intent/plugins/agents/templates/author/RULES.md` -- the concretised author-rules canon (copied to `intent/llm/RULES-author.md` on init).\n- `intent/plugins/agents/templates/author/ARCHITECTURE.md` -- book/course information architecture (parts / chapters / modules / learning objectives).\n- Verified: `intent lang init author` installs `RULES-author.md`, appends the Language Packs entry to `intent/llm/RULES.md`, and adds `author` to `intent/.config/config.json` `languages`.\n- Optional (hv-flagged wart): fix `intent lang init <missing>` writing the RULES.md marker block before it validates the template exists (validate first, then mutate).\n\n## Dependencies\n\n- No hard dependency (can run alongside WP02/WP03); pairs with WP05 for the end-to-end declare-then-activate UX.",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "Skill and dispatch wiring",
+      "scope": "M",
+      "status": "done",
+      "objective": "Wire the author pack into the session + review flow so a project that declares `author` activates the pack automatically: the essentials skill loads on `/in-session`, and `/in-review` dispatches `critic-author` (and, per D7, NOT the code critics unless code languages are also declared).",
+      "body": "## Deliverables\n\n- `intent/plugins/claude/skills/in-author-essentials/SKILL.md` -- the authoring pipeline (outline -> draft -> detrope -> revise -> structural check; detrope-every-step).\n- `/in-review` SKILL.md -- add the `author -> critic-author` mapping to the language-dispatch list + a `Task(subagent_type=\"critic-author\", ...)` example (D7).\n- `/in-session` SKILL.md -- add the `author` row to the languages fan-out so `/in-author-essentials` loads when `author` is declared (D7).\n\n## Dependencies\n\n- WP03 (the critic must exist to dispatch to). The code-critic exclusion is already free from `/in-review`'s per-language dispatch; this WP is the author-side registration.",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "Dogfood, docs, and close",
+      "scope": "M",
+      "status": "done",
+      "objective": "Prove the assembled pack on a real authoring artifact, document it, and close ST0052 through its acceptance gate.",
+      "body": "## Deliverables\n\n- Dogfood: run `critic-author` (+ `/in-author-essentials`) on a real authoring artifact (the agentic course / a blog draft); capture and act on findings.\n- Docs: README + `usage-rules.md` + CHANGELOG entry + `docs/releases/<version>/` release note.\n- Acceptance: populate + satisfy the remaining `acceptance.md` ACs (per-WP + the ST-level sign-off, hv as verifier); close through the gate; relocate ST0052 to `intent/st/COMPLETED/`.\n\n## Dependencies\n\n- WP01-WP05 (dogfood needs the full pack assembled).",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "The author pack works end to end: a project declaring `languages: [author]` loads `/in-author-essentials` on `/in-session` and `/in-review` dispatches only `critic-author` (not the code critics); `critic-author` runs the mechanical tier by default and recommends `/in-detrope` for full diagnosis under direct instruction.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "impl.md dogfood (mechanical tier; D3/D4 evidence) + WP05 wiring tests (in_session_skill/critic_dispatch) + hv sign-off 'ship as minor v2.15.0' (2026-07-03); live Task(critic-author) available post-restart"
+      }
+    },
+    {
+      "id": "AC-01.1",
+      "text": "A well-formed author rule id (eg `IN-AU-STYLE-001`) passes the rule-id validator, and a malformed id (bad code, missing zero-padding) still fails.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "All four ID/validation sites carry `author`/`AU` consistently.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "grep of `rule-schema.md` enum + `id-scheme.md` codes/regex + `index-generator.md` regex + `intent_claude_rules` regex"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "The widening is scoped to the ID/validation layer -- `bin/intent_critic` and the config/template layer are untouched by WP-01 (D4).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "`git diff` for WP-01"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "Every author rule (style + craft) is schema-valid: `intent claude rules validate` passes it (frontmatter + all nine sections + a well-formed `IN-AU-*` id).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "The `style` tier carries greppable Detection (mechanical); the `craft` tier is judgment / critic-as-reader; each rule's severity + category are correct.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "style tier greppable (warning/reco); craft tier judgment (recommendation); category+severity split guarded by rule_pack_author.bats"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "The mechanical trope pass references `in-detrope/data/trope-catalog.md` (the single trope home), not a duplicated indicator set.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "mechanical-trope-pass Detection cites in-detrope/data/trope-catalog.md; no vendored indicators (guarded)"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "`rules/author/index.json` is regenerated and lists the author rules.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "rules/index.json regenerated; lists all 9 IN-AU-* rules"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "The `critic-author` subagent exists (`agent.md` + `metadata.json`), declares tools `Read, Grep, Glob, Bash` and neither `Write` nor `Edit`, and is registered in `.manifest/global-agents.json`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`agent.md` honours the two-tier contract (D3): a mechanical `style` pass by default (`review`) and a judgment `craft` pass on instruction (`craft-check`); it reports only and never writes, edits, or runs external fixers.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "agent.md: review (style/mechanical, default) + craft-check (craft/judgment, on instruction); read-only, no autofix; guarded by critic_author.bats"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "The two-form detrope (D5) is wired: the mechanical trope pass (`IN-AU-STYLE-005`) runs by default; the full `/in-detrope` diagnosis (`IN-AU-CRAFT-003`) is emitted as a handoff recommendation, never invoked by the critic.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "agent.md Two-form detrope: STYLE-005 mechanical pass by default; CRAFT-003 /in-detrope emitted as handoff, never invoked; guarded"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "Scope is on-demand only -- `bin/intent_critic` (the headless gate) is untouched (deferred D4); the widening is the subagent + its manifest row.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "git diff: subagents/critic-author + .manifest + acceptance.md + tests only; bin/intent_critic untouched (D4)"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "`intent lang init author` in a fresh project installs `intent/llm/RULES-author.md` and `intent/llm/ARCHITECTURE-author.md`, appends the `author` Language Packs entry to the agnostic `RULES.md`, and adds `author` to `config.json` `languages`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "`intent lang list` enumerates `author`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.3",
+      "text": "The author canon templates at `templates/author/{RULES.md,ARCHITECTURE.md}` carry the two-tier framing and the book/course IA (parts/chapters/modules/objectives), citing `IN-AU-*` ids.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "templates/author/RULES.md (two-tier framing + NEVER-DO citing IN-AU-*) + ARCHITECTURE.md (book/course IA: work layout, unit structure, objectives, pipeline, review)"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "The `/in-author-essentials` skill exists (`SKILL.md`, valid frontmatter) and carries the authoring pipeline (outline -> draft -> mechanical detrope -> revise -> structural check), references the nine `IN-AU-*` rule ids, and is renderer-safe (no em dashes, no `$N` positional tokens).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "`/in-review` dispatches `author -> critic-author` (a `subagent_type=\"critic-author\"` Task example) and documents the D7 exclusion (author-only runs no code critic; a mixed project runs both on their subtrees).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.3",
+      "text": "`/in-session` lists an `author` fan-out row invoking `/in-author-essentials` and includes `in-author-essentials` in `chains_to`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.1",
+      "text": "The pack is dogfooded: the mechanical `style` tier ran against real prose, the transcript is captured in-repo (`impl.md`), and there are no unresolved defects.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "impl.md WP06 dogfood: mechanical style tier run by hand against the pack's own prose; all hits house-style false positives; no unresolved defects"
+      }
+    },
+    {
+      "id": "AC-06.2",
+      "text": "Docs shipped: a CHANGELOG v2.15.0 entry, `intent/history/v2.15.0.md`, `docs/releases/2.15.0/RELEASE_NOTES.md`, and `usage-rules.md` author-pack entries (Skills, Subagents, Rule Library, Critics).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "CHANGELOG [2.15.0] + intent/history/v2.15.0.md + docs/releases/2.15.0/RELEASE_NOTES.md + usage-rules author entries"
+      }
+    },
+    {
+      "id": "AC-06.3",
+      "text": "Release framing ratified: minor v2.15.0 (new non-code project-type surface; opt-in).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "hv directive 2026-07-03: ship as minor v2.15.0"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/au_language_code_guard.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/rule_pack_author.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/critic_prose.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "deck renamed critic_author -> critic_prose in ST0053 WP03"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/intent_lang.bats",
+      "covers": [
+        "AC-04.1",
+        "AC-04.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "tests/unit/in_author_essentials_skill.bats",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-05.2",
+      "kind": "test",
+      "file": "tests/unit/critic_dispatch.bats",
+      "covers": [
+        "AC-05.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-05.3",
+      "kind": "test",
+      "file": "tests/unit/in_session_skill.bats",
+      "covers": [
+        "AC-05.3"
+      ],
+      "status": "green"
+    }
+  ]
+}

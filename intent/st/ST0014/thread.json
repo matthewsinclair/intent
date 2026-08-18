@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0014",
+  "title": "Directory Structure for Steel Threads",
+  "status": "completed",
+  "created": "2025-03-20",
+  "completed": "2025-07-09",
+  "objective": "Implement directory structure for steel threads based on their status to better organize the project.",
+  "context": "Steel threads are currently all stored in the same directory, making it difficult to quickly identify their status. By organizing them into separate directories based on status, we can improve the organization and make it easier to find specific types of steel threads.",
+  "body": "## Related Steel Threads\n\n- ST0004: Steel Thread Commands",
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-20\n- **Completed**: 2025-07-09\n- **Author**: Claude"
+}

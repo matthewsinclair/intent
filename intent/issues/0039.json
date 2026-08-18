@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 39,
+  "slug": "declared-command-aliases-are-not-deserialized-so",
+  "title": "declared command aliases are not deserialized, so four keep-classified aliases do not exist in the binary -- at done and at notdone are live parity breaks and no instrument covers the field",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-16",
+  "reporter": "matts"
+}

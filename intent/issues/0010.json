@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 10,
+  "slug": "st-done-accepts-a-thread-whose-info-md-objective",
+  "title": "st done accepts a thread whose info.md Objective is still the template placeholder",
+  "status": "closed",
+  "severity": "low",
+  "created": "2026-07-31",
+  "reporter": "matts"
+}

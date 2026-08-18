@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 52,
+  "slug": "workpackage-scope-has-a-ratified-machine-with-six",
+  "title": "WorkPackage.scope has a ratified machine with six edges and no way in or out from the command surface -- wp_rescope is implemented but unwired, and wp new takes no scope",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

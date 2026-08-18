@@ -1,0 +1,51 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0022",
+  "title": "Harden `st new` -- Special Characters, Slugs, and --start Flag",
+  "slug": "harden-st-new",
+  "status": "completed",
+  "created": "2026-02-20",
+  "completed": "2026-02-20",
+  "objective": "Fix three shortcomings in `intent st new`:\n\n1. Special characters in the title break `sed` substitution during creation\n2. There is no slug -- a URL/filename-safe identifier derived from the title -- making listings less scannable\n3. Creating then immediately starting a steel thread is two commands when it should be one",
+  "context": "",
+  "body": "## Problem\n\n**Special characters**: Titles containing `/`, `&`, `\\`, `$`, or backticks cause `sed` failures because the title is interpolated directly into `sed -e \"s/\\[Title\\]/$TITLE/g\"` without escaping. The heredoc fallback path also expands `$` and backticks in the title. Any user who puts a slash or ampersand in their title gets a broken info.md or a hard error.\n\n**No slugs**: `st list` and `steel_threads.md` show the full title, which can be long and hard to scan. There is no short, machine-friendly identifier beyond the ST number. A slug (e.g. `my-cool-feature`) would make listings more readable and provide a stable human-friendly label.\n\n**Two-step create+start**: Creating a new steel thread and immediately starting it requires `intent st new \"Title\"` followed by `intent st start ST####`. This is friction for the common case where you know you want to start working immediately.\n\n## Solution\n\nThree independent fixes to `bin/intent_st`, phased to avoid conflicts:\n\n1. **Escape function** -- `escape_sed_replacement()` that escapes `/ & \\` in sed replacement strings; fix the heredoc fallback to use a quoted heredoc (`<< 'TEMPLATE'`) with sed substitution\n2. **Slug system** -- `slugify()` function (lowercase, collapse non-alnum to hyphens, max 50 chars); add `slug:` field to frontmatter template and info.md; show slug instead of title in `st list` and `steel_threads.md`\n3. **`--start` flag** -- Parse `-s|--start` before the positional title argument; after creation, call existing start logic inline\n\n## Work Packages\n\n- **WP-01**: Special Character Handling -- make `st new` safe for any title string\n- **WP-02**: Slug Generation System -- auto-generate slugs, store in frontmatter, display in listings\n- **WP-03**: `-s|--start` Flag -- create and immediately start a steel thread in one command\n- **WP-04**: Documentation and Wrap-up -- update reference guide, user guide, CHANGELOG, run full test suite\n\n## Sequencing\n\n```\nPhase 0 (documentation): ST0022 docs -- NO CODE until committed\nPhase 1 (special chars):  WP-01\nPhase 2 (slugs):          WP-02\nPhase 3 (--start):        WP-03\nPhase 4 (wrap-up):        WP-04\n```\n\nLinear: WP-01 -> WP-02 -> WP-03 -> WP-04\n\n## Related Steel Threads\n\n- ST0020: Modernizing Intent's Elixir Support (established skills/subagent infrastructure)\n\n## Key Decisions\n\n- Slug replaces Title in the index table -- the table is already tight at 80 cols, adding a column would overflow\n- Slug is frontmatter-only, not an alternative ST identifier -- no `intent st show my-cool-feature`\n- Max slug length 50 chars, truncated on word boundary where possible\n- `--start` reuses existing start logic inline, not via subprocess\n- Escape function handles `/`, `&`, `\\` -- the three characters that break sed replacement strings (`$` is not special in sed replacement context)",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Special Character Handling",
+      "scope": "S",
+      "status": "done",
+      "objective": "Make `intent st new` safe for any title string including `/`, `&`, `\\`, `$`, backticks, quotes, and Unicode characters.",
+      "body": "## Deliverables\n\n- `escape_sed_replacement()` helper function in `bin/intent_st`\n- Apply escaping to the sed-template path (lines 361-369) for all `$TITLE` substitutions\n- Fix the heredoc-fallback path (lines 374-400) to avoid shell expansion of `$` and backticks in the title\n- Escape title in the `update_steel_threads_index()` call (line 427)\n- BATS tests covering all special character cases\n\n## Current State\n\nThe `new` command interpolates `$TITLE` directly into sed replacement strings:\n\n```bash\nsed -e \"s/\\[Title\\]/$TITLE/g\" \"$template\" > \"$output_file\"\n```\n\nCharacters `/`, `&`, `\\`, and `$` break this substitution. The heredoc fallback uses an unquoted delimiter (`<< EOF`) which causes shell expansion of `$` and backticks in the title.\n\n## Target State\n\nAny valid string can be used as a steel thread title. The created info.md contains the exact title verbatim, regardless of special characters.\n\n## Acceptance Criteria\n\n- [ ] `intent st new \"Features/Improvements\"` succeeds (slash)\n- [ ] `intent st new \"Costs & Benefits\"` succeeds (ampersand)\n- [ ] `intent st new 'Price is $100'` succeeds (dollar sign)\n- [ ] `intent st new \"Back\\slash\"` succeeds (backslash)\n- [ ] Created info.md contains the exact title verbatim in all cases\n- [ ] BATS tests cover all four special character types\n\n## Dependencies\n\n- None (foundation for WP-02)",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Slug Generation System",
+      "scope": "M",
+      "status": "done",
+      "objective": "Auto-generate a slug from the title when creating a steel thread, store it in frontmatter, and display it in listings instead of the full title.",
+      "body": "## Deliverables\n\n- `slugify()` function in `bin/intent_st` (lowercase, replace non-alnum with hyphens, collapse runs, strip leading/trailing hyphens, max 50 chars)\n- `slug:` field added to template `lib/templates/prj/st/ST####/info.md`\n- `slug:` field populated in both template-sed and heredoc paths of `st new`\n- `st list` shows \"Slug\" column instead of \"Title\" column\n- `st sync --write` writes slug to steel_threads.md index\n- Slug extracted from frontmatter in list/sync code path\n- Fallback to title for pre-existing STs without `slug:` field\n\n## Slug Algorithm\n\n```\n1. Lowercase the entire string\n2. Replace any run of non-alphanumeric characters with a single hyphen\n3. Strip leading and trailing hyphens\n4. If length > 50, truncate at the last hyphen before position 50\n   (if no hyphen found, hard-truncate at 50)\n5. Strip any trailing hyphen from truncation\n```\n\n## Acceptance Criteria\n\n- [ ] `intent st new \"My Cool Feature\"` creates frontmatter with `slug: my-cool-feature`\n- [ ] `intent st new \"Ash/Ecto Database Layer\"` creates `slug: ash-ecto-database-layer`\n- [ ] Title longer than 50 chars produces slug truncated to <= 50 chars\n- [ ] `intent st list --status all` shows slug column instead of title column\n- [ ] `steel_threads.md` index uses slug instead of title after `st sync --write`\n- [ ] Pre-existing STs without `slug:` field show title as fallback in listings\n- [ ] BATS tests cover slugification edge cases (special chars, long titles, Unicode)\n- [ ] BATS tests cover slug display in `st list`\n\n## Dependencies\n\n- WP-01 (escape function must be in place for sed substitution of slug)",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "-s|--start Flag for st new",
+      "scope": "S",
+      "status": "done",
+      "objective": "Add a `-s|--start` flag so `intent st new -s \"Title\"` creates and immediately starts the steel thread in one command.",
+      "body": "## Deliverables\n\n- Flag parsing (`-s|--start`) in `new` command, before positional title argument\n- After successful creation with flag, invoke start logic inline:\n  - Update `status:` from `Not Started` to `WIP` in frontmatter\n  - Update `- **Status**:` body line if present\n  - Move directory from `NOT-STARTED/` to `intent/st/`\n  - Update steel threads index\n- Help text updated to show `-s|--start` option\n- BATS tests covering both flag forms and flag position\n\n## Current State\n\nCreating and starting a steel thread requires two commands:\n\n```bash\nintent st new \"Quick Fix\"\nintent st start ST0023\n```\n\nThe user must note the ST ID from the first command's output to pass to the second.\n\n## Target State\n\nA single command creates and starts the steel thread:\n\n```bash\nintent st new -s \"Quick Fix\"\n```\n\nThe steel thread is created directly in `intent/st/` with `status: WIP`.\n\n## Acceptance Criteria\n\n- [ ] `intent st new -s \"Quick Fix\"` creates ST in `intent/st/` with `status: WIP`\n- [ ] `intent st new --start \"Quick Fix\"` also works (long form)\n- [ ] `intent st new \"Regular Thread\"` (without flag) still creates in `NOT-STARTED/` with `status: Not Started`\n- [ ] `intent st new \"Title\" -s` also works (flag after title)\n- [ ] BATS tests cover both `-s` and `--start` forms\n- [ ] BATS test covers flag-after-title position\n\n## Dependencies\n\n- WP-02 (slug must be in place so --start creates a complete ST with slug)",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "Documentation and Wrap-up",
+      "scope": "S",
+      "status": "done",
+      "objective": "Update all project documentation to reflect the three new features from WP-01 through WP-03, and verify the full test suite passes.",
+      "body": "## Deliverables\n\n- Update `intent/usr/reference_guide.md`:\n  - Document `-s|--start` flag syntax in `st new` section\n  - Document `slug:` frontmatter field in steel thread metadata section\n  - Document `escape_sed_replacement()` and `slugify()` as internal functions\n- Update `intent/usr/user_guide.md`:\n  - Add examples for `st new -s \"Title\"`\n  - Add note about slug generation\n- Update `CHANGELOG.md` with version entry listing all three features\n- Update test count in documentation after new BATS tests\n- Run full test suite, confirm all pass (302 + new tests)\n\n## Acceptance Criteria\n\n- [ ] Reference guide documents `-s|--start` flag syntax\n- [ ] Reference guide documents `slug:` frontmatter field\n- [ ] User guide has examples for the new flag\n- [ ] CHANGELOG entry lists all three features\n- [ ] Test count in docs matches actual count\n- [ ] All tests pass\n\n## Dependencies\n\n- WP-03 (all code changes must be complete before documenting)",
+      "preamble": ""
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 12,
+  "slug": "ws-hygiene-passes-a-board-whose-frontmatter-is",
+  "title": "ws hygiene passes a board whose frontmatter is not valid YAML, and ws list mis-renders one that is",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-02",
+  "reporter": "matts"
+}

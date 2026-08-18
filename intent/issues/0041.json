@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 41,
+  "slug": "the-human-facing-status-vocabulary-is-spelled",
+  "title": "the human-facing status vocabulary is spelled twice in two crates -- views.rs writes the committed md and render.rs writes the terminal, and nothing relates them",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-16",
+  "reporter": "matts"
+}

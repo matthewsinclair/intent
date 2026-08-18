@@ -1,0 +1,415 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0055",
+  "title": "Add `intent issues` command",
+  "slug": "add-in-intent-issues-command",
+  "status": "completed",
+  "created": "2026-07-10",
+  "completed": "2026-07-10T17:02:28Z",
+  "objective": "Add `intent issues` -- a first-class, lightweight issue tracker built into the Intent CLI. Formalise the ad-hoc `intent/issues/` convention (used today in Utilz and Lamplight) into a supported command with five verbs:\n\n    intent issues [list] [--kind open|closed|all]   # list all issues, or issues of a kind\n    intent issues add TITLE                          # add a new issue, print its ID:TITLE\n    intent issues show ID [--json]                   # show one issue, optionally as JSON\n    intent issues close ID                           # OPEN -> CLOSED (aka done)\n    intent issues open ID                            # CLOSED -> OPEN\n\nAn issue is the sub-steel-thread unit: a bug, follow-up, or observation too small for a full steel thread but worth tracking in-tree rather than leaving as prose drift.",
+  "context": "Issues are already managed ad-hoc across the fleet under `intent/issues/{OPEN,CLOSED}/` with a hand-copied `_templ/0000-issue-title.md`, but with no tooling. That has produced predictable drift: two divergent on-disk shapes (Utilz keeps flat `NNNN-slug.md` files; Lamplight grew directory-per-issue with attachments, JSON sources, and per-issue WP/ subdirs), inconsistent status values (`RESOLVED` alongside `CLOSED`), hand-allocated ids, and no listing.\n\nIntent already tracks large units (steel threads), their sub-units (work packages), and a flat cross-ST view (`intent todo`). Issues fill the gap **below** a steel thread and **outside** any ST -- ad-hoc trackable work. The growing \"Open follow-ups / Backlog\" prose in `restart.md` / `wip.md` is exactly the material that wants this home.\n\nGreenfield in Intent's own repo (no `intent/issues/` exists yet); the fleet adopts the command on `intent upgrade`. See `design.md` for the on-disk canon, status model, and the decision to formalise a single shape from the two ad-hoc ones.",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton",
+      "scope": "S",
+      "status": "wip",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all",
+      "scope": "S",
+      "status": "wip",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)",
+      "scope": "S",
+      "status": "wip",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate",
+      "scope": "S",
+      "status": "wip",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "Fleet normalisation (POST-SHIP, cross-repo): normalise Utilz/Lamplight intent/issues to canon",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "`bin/intent_issues` exists, is executable, and `intent issues` dispatches to it as a project command (fails cleanly outside an Intent project).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "The issue template lives at `lib/templates/issues/_ISSUE.md` (Intent-owned single source; no inline heredoc in `bin/intent_issues`).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "lib/templates/issues/_ISSUE.md exists; intent_issues stamps via sed, no heredoc; critic-shell no-heredoc clean"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "`MODULES.md` carries a row for `bin/intent_issues`, added before the module ships.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "MODULES.md 'Issue tracker' row for bin/intent_issues"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "`intent issues help` and an unknown subcommand both print usage listing the five verbs; exit code is 0 for `help`, non-zero for the unknown verb.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "`intent issues add \"Title\"` allocates the next zero-padded 4-digit id (max+1 across OPEN+CLOSED), writes `intent/issues/OPEN/NNNN/NNNN-slug.md` with stamped frontmatter (id/title/date/reporter/status=OPEN/severity), and prints `NNNN:Title`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "A second `add` allocates the next sequential id with no collision (gaps tolerated, ids not reused below max).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "`intent issues` and `intent issues list` (no args) list OPEN issues by default.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "`--kind open|closed|all` filters the listing; an empty bucket prints a clean empty state, not an error; an invalid `--kind` fails via `error()`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "The first `add` lazily scaffolds `intent/issues/{OPEN,CLOSED}/` (with `.gitkeep`); no per-project `_templ/` is written.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.6",
+      "text": "`add --severity SEV` sets the frontmatter severity; omitted defaults to `medium`; an invalid severity fails via `error()`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.7",
+      "text": "`new` is an alias for `add` (identical behaviour).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "`intent issues show ID` prints the issue's frontmatter + body for an id in either bucket.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`intent issues show ID --json` emits valid (jq-parseable) JSON with id/title/status/severity/date/reporter fields.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "`intent issues close ID` moves the whole `OPEN/NNNN/` directory to `CLOSED/NNNN/` and sets frontmatter `status: CLOSED`, atomically.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "`intent issues open ID` moves `CLOSED/NNNN/` to `OPEN/NNNN/` and sets `status: OPEN`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.5",
+      "text": "A legacy `RESOLVED` issue is read, listed, and shown as CLOSED (normalised; no third state surfaces).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.6",
+      "text": "An unknown/missing ID on show/close/open fails via `error()` (non-zero, clear message) -- no silent success.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "The new bats suite is green (matts runs the full suite).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "matts ran the full suite: all tests pass"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "`critic-shell` review of `bin/intent_issues` is clean (Highlander / Thin-Coordinator / No-Silent-Errors).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "critic-shell re-review: 0 critical, 0 warning; Highlander/Thin-Coordinator/portability clean"
+      }
+    },
+    {
+      "id": "AC-04.3",
+      "text": "`intent help` / `intent help issues` documents the command and its five verbs.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "intent help lists issues; intent issues help lists five verbs"
+      }
+    },
+    {
+      "id": "AC-04.4",
+      "text": "`intent doctor` is green after a scaffold.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "intent doctor: all checks passed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "Every fleet project with an `intent/issues/` tree (Lamplight, Conflab, Utilz, Intent) is normalised to the ratified canon: directory-per-issue `{OPEN,CLOSED}/NNNN/NNNN-slug.md`, `RESOLVED` -> CLOSED, vendored `_templ/` removed (Intent now owns the template).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "Utilz (0171297), Lamplight (7058fd3a8), Conflab (49428b4f), Intent (issue 0001) all dir-per-issue, statuses CLOSED, _templ dropped; verified via intent issues list --kind all"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "`issue_file` picks the frontmatter-bearing primary among a multi-`.md` issue directory (legacy satellites like `NNNN-resolved.md` / `-session.md` carry no frontmatter), so `show` / `list` never surface an empty satellite. Required to adopt Lamplight's rich issues.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "test: \"dispatch: intent issues routes to bin/intent_issues\""
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "test: \"help: usage lists the five verbs; unknown verb exits non-zero\""
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "test: \"add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title\""
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "test: \"add: second add increments id, no collision\""
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "test: \"list: default lists OPEN\""
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.4"
+      ],
+      "status": "green",
+      "note": "test: \"list: --kind filters; empty state clean; invalid kind errors\""
+    },
+    {
+      "id": "AT-02.5",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.5"
+      ],
+      "status": "green",
+      "note": "test: \"add: lazily scaffolds issues dirs, no _templ\""
+    },
+    {
+      "id": "AT-02.6",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.6"
+      ],
+      "status": "green",
+      "note": "test: \"add: --severity sets severity; invalid severity errors\""
+    },
+    {
+      "id": "AT-02.7",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-02.7"
+      ],
+      "status": "green",
+      "note": "test: \"add: 'new' is an alias for 'add'\""
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "test: \"show: prints frontmatter + body\""
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "test: \"show --json: valid json with expected fields\""
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "test: \"close: moves OPEN/NNNN dir to CLOSED + status\""
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "green",
+      "note": "test: \"open: moves CLOSED/NNNN dir to OPEN + status\""
+    },
+    {
+      "id": "AT-03.5",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-03.5"
+      ],
+      "status": "green",
+      "note": "test: \"read: RESOLVED normalised to CLOSED\""
+    },
+    {
+      "id": "AT-03.6",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-03.6"
+      ],
+      "status": "green",
+      "note": "test: \"error: unknown id on show/close/open exits non-zero\""
+    },
+    {
+      "id": "AT-05.2",
+      "kind": "test",
+      "file": "tests/unit/intent_issues.bats",
+      "covers": [
+        "AC-05.2"
+      ],
+      "status": "green",
+      "note": "test: \"show: picks the frontmatter-bearing primary among multi-file issue dirs\""
+    }
+  ]
+}

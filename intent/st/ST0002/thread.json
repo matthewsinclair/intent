@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0002",
+  "title": "Core Script Framework",
+  "status": "completed",
+  "created": "2025-03-06",
+  "completed": "2025-06-03",
+  "objective": "Implement the main `stp` script and command dispatching system that forms the core of the STP command-line interface.",
+  "context": "The STP system needs a command-line interface to manage steel threads, initialize projects, and provide help. This steel thread focuses on creating the core script framework that will dispatch commands to their specific implementations.",
+  "body": "## Related Steel Threads\n\n- ST0001: Directory Structure\n- ST0004: Steel Thread Commands\n- ST0005: Initialization Command\n- ST0006: Help System",
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: LLM Assisted"
+}

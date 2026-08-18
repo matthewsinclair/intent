@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 22,
+  "slug": "the-no-template-fallback-heredocs-in-intent-st",
+  "title": "The no-template fallback heredocs in intent_st and intent_wp are a divergent second copy of generated content, and both have already drifted from the templates they shadow",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-14",
+  "reporter": "matts"
+}

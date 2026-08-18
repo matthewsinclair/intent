@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 47,
+  "slug": "renaming-the-notstarted-display-arm-reds-neither",
+  "title": "renaming the NotStarted display arm reds neither surface -- a machine ratification moved st new to Triage and silently defanged the assertions that still read as though they pin the vocabulary",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

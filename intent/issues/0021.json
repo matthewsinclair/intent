@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 21,
+  "slug": "intent-ships-a-second-dead-elixir-enforcement",
+  "title": "Intent ships a second, dead Elixir enforcement mechanism: st zero installs credo_checks/ that nothing wires, duplicating the rule library it already enforces",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-14",
+  "reporter": "matts"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0033",
+  "title": "Make the intent CLI resilient to cwd when locating the project root",
+  "slug": "make-the-intent-cli-resilient-to-knowing-where",
+  "status": "completed",
+  "created": "2026-04-15",
+  "completed": "2026-04-15",
+  "objective": "`intent <cmd>` must work from any directory inside an Intent project, not only from the project root. Outside any project, it must fail cleanly with a \"not in an Intent project\" error and must not create `.intent/` or `intent/` at the invoker's cwd.",
+  "context": "`bin/intent_config:37` already has `find_project_root()` that walks up from cwd looking for `.intent/config.json` (and legacy `stp/` markers). `bin/intent` calls `load_intent_config` and errors correctly when no root is found. The defect is downstream: after dispatch, subcommand scripts (`intent_st`, `intent_wp`, `intent_init`, …) read relative paths off the unchanged cwd. When the invoker is in a subdirectory, these reads miss and commands either misbehave or create artefacts in the wrong place.\n\nFix locus: a single point in the dispatcher. After `load_intent_config` sets `PROJECT_ROOT`, export `INTENT_ORIG_CWD=$(pwd)` and `cd \"$PROJECT_ROOT\"` before `exec`'ing the subcommand. This is Highlander-compliant — no subcommand relative-path audit needed. Two subcommands that accept user-supplied path arguments (`intent_treeindex`, `intent_fileindex`) consult `INTENT_ORIG_CWD` when their argument is relative and does not resolve against the project root.",
+  "body": "## Related Steel Threads\n\n- ST0032: Fix Credo checks (shipped in the same release)\n- ST0026: Added `intent audit`, Credo integration, plugin discovery\n\n## Scope\n\n### In scope\n\n- `bin/intent` dispatcher: export `INTENT_ORIG_CWD`, `cd \"$PROJECT_ROOT\"` before exec.\n- `bin/intent_treeindex`: resolve relative `DIR` against `INTENT_ORIG_CWD` when needed.\n- `bin/intent_fileindex`: resolve relative `STARTDIR` against `INTENT_ORIG_CWD` when needed.\n- `tests/unit/subdir_invocation.bats`: regression tests covering read/write paths from subdirectories and a clean-failure test from outside any project.\n\n### Out of scope\n\n- Rewriting per-subcommand relative path usage (the dispatcher `cd` makes that moot).\n- Changing the \"not in an Intent project\" error text.\n- Touching the legacy `stp/` fallback branches in `find_project_root`.",
+  "preamble": ""
+}

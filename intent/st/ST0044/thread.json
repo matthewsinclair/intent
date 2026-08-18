@@ -1,0 +1,310 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0044",
+  "title": "Add in acceptance.md and supporting process",
+  "slug": "add-in-acceptance-md-and-supporting-process",
+  "status": "completed",
+  "created": "2026-06-13",
+  "completed": "2026-06-14",
+  "objective": "Add `acceptance.md` as a core default steel-thread document -- created by `intent st new` alongside `info.md`, `design.md`, `impl.md`, and `tasks.md` -- and establish the supporting acceptance-criteria / acceptance-test process. The aim is to make \"done\" an externally verified event rather than a self-reported claim: every steel thread carries a contract that states what must be verifiably true, and that contract is discharged by tests an independent reviewer has seen fail before the work starts and seen pass when it finishes.",
+  "context": "This process exists to counter a specific, repeatable failure mode in LLM-driven development: the agent under-perseveres and over-claims completeness. It stops at the first state that looks done and reports it as done, often silently narrowing scope to fit what it actually finished. Loaded prose rules (\"be complete\", \"do not declare done early\") do not fix this -- the failure recurs even when the rule is in front of the model every session. The only thing that binds it is mechanism: define \"done\" before work starts, express it as a checkable boundary, and move the done-verdict out of the producing agent's hands and into an independent check.\n\n`acceptance.md` is the artifact that carries that contract. Intent already engineers this discipline at the code level (the critic library, conformance fences, round-trip gates); ST0044 adds the equivalent at the process level and makes it a default rather than an opt-in. The process was designed and piloted in a sister project (2026-06-13) by sweeping a per-steel-thread `acceptance.md` across the open steel threads; the lessons from that pilot are folded into the template and conventions below.",
+  "body": "## The acceptance.md document\n\nOne per steel thread. Two sections: Acceptance Criteria (AC) and Acceptance Tests (AT).\n\n- AC is the ratified completeness boundary -- \"what must be verifiably true\". It is set from the ask, by someone other than the builder, before the build.\n- AT is the set of small, red-to-green tests that prove the ACs. Real test code lives in the test suite; `acceptance.md` references each test by resolvable identity (file path plus test name) and never holds test code.\n- The file is the contract plus the AC-to-AT coverage map plus live status -- the one place you can read \"what does done mean here, and how far along are we\".\n- `info.md` and per-WP `info.md` reference `acceptance.md` and never restate ACs. The ACs have one home; duplicating them is how they drift.\n- ACs that are not test-backed (a documentation deliverable, a human eyeball, a lint or critic gate) are first-class: they are marked as non-test and carry their named evidence instead of an AT.\n- An optional ST-level rollup AC states the \"whole steel thread is done\" bar, in addition to the per-WP ACs.\n\n## The template (what `intent st new` stamps)\n\n```markdown\n---\nverblock: \"<date>:v0.1: <author> - Initial version\"\nst_id: <STID>\ntitle: \"<title> -- acceptance contract\"\n---\n\n# <STID> <title> -- Acceptance\n\n> Canonical acceptance contract for <STID>. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).\n>\n> Done = every AC is covered by a GREEN AT, or (for a non-test AC) its named evidence is satisfied, AND the AC set is the ratified full boundary. Done is read from this map, never from a hand-ticked box.\n>\n> Change control: clarifying an AC or AT is verifier-and-builder; shrinking scope, or weakening an AT to make it pass, needs the owner.\n>\n> AT status vocabulary: to-write (red-first) | red | green | n/a (non-test: doc / eyeball / gate).\n\n## Acceptance Criteria\n\n### ST-level\n\n<the \"whole steel thread is done\" bar, or \"none -- WP-distributed\">\n\n### WP-01 -- <title> (status: ...)\n\n- AC-01.1 <what must be verifiably true>\n- AC-01.2 ...\n\n## Acceptance Tests\n\n### WP-01\n\n- AT-01.1 <test path::name> -- covers AC-01.1 -- status: to-write (red-first)\n- Coverage: <every AC has at least one AT, or list the uncovered ACs>\n```\n\n## The process (the five-step loop)\n\n1. The verifier writes the ACs from the ask and the design -- the completeness boundary, set by someone other than the builder.\n2. The builder evaluates and refines the ACs, then agrees them. Clarifying or correcting an AC is fine; shrinking scope (removing or weakening an AC) escalates to the steel-thread owner.\n3. The builder writes the ATs in small, sharp chunks -- never a big batch -- and hands back to the verifier, who (a) reviews each test's quality and (b) runs it and witnesses it RED before any production code is written.\n4. The builder builds until the ATs are GREEN. If an AC or AT turns out to be wrong, it is changed only in collaboration with the verifier (and the owner, for scope changes) -- never quietly weakened to pass.\n5. Repeat per chunk until every AC is covered by a green AT.\n\n## Gates\n\n- Open-gate: a work package does not start building until its completeness boundary (the ACs plus the source of truth that defines \"the full set\") is ratified. The gate's weight is proportional to the work's complexity -- a one-line rename is ratified in seconds; a large unit is where the real scoping conversation belongs. This is what closes the silent-scope-contraction hole.\n- Close-gate (hard block): no `intent wp done` or `intent st done` until every AC is covered by a green AT (or its non-test evidence is satisfied) AND an independent verifier has signed off, or a machine gate certifies. Done is computed from green ATs, never from a hand-ticked checkbox -- this removes the \"marked done with the criteria still unchecked\" failure by construction. No known red rides a close: a WP cannot close while any red -- even an \"unrelated\" or \"queued\" one -- sits in its own gate run (\"N-1 of N, the one red is known\" is not green).\n\n## Conventions (the rules that make it bite)\n\n- AC and AT are different axes. AC asks \"is the whole thing there?\" (coverage); AT asks \"does each part work?\" (proof). The agent reliably passes the second and fails the first, so completeness is tracked separately and explicitly.\n- ATs are small and red-first, never bulk-written then bulk-greened. A big AC list is fine; a big AT batch declared green all at once is exactly where the over-claim hides.\n- Red must be red for the right reason. The verifier confirms a failing AT fails because the behaviour is absent (not a typo or bad setup), asserts a concrete value (not shape), and would still fail if the feature were built wrong. A test that passes for any implementation is worse than no test.\n- Run the AT and confirm it actually ran. Green means the named test executed and asserted -- not that a filtered run reported success. A failure-filtered run (eg \"re-run only the failures\") can report zero tests after a rename orphans the failure id -- a silent false-pass; and a partial pass (N-1 of N) is not green. Run the specific file/test and confirm a non-zero, expected count executed. A strong assertion earns its keep by catching real defects during the build; if it does, do not weaken it to go green (that change needs the owner).\n- The builder is not the verifier. The builder proposes done; an independent reviewer disposes. The verifier's verdict is itself held to the evidence standard: it re-runs the tests and states what it checked and what it did not.\n- Prefer machine gates over human verification wherever the criterion can be expressed as code (a fence, a conformance test, a critic rule). Convert recurring hand-checks into standing checks over time, so the fallible human reviewer is needed less and less.\n\n## Lessons from the pilot (what the template is shaped to prevent)\n\nThe sweep across open steel threads surfaced four patterns, each now designed out:\n\n- Steel threads had no ST-level rollup AC -- acceptance was entirely per-WP with no \"whole thread done\" bar. The template adds the optional ST-level AC slot.\n- Many ACs were non-test (design docs, human eyeballs, lint gates) and did not fit a test-only model. The template makes non-test ACs first-class.\n- Tests were cited by suite name and pass-count, not resolvable paths, which is why \"verifiable\" was weak. The template requires a resolvable test identity per AT.\n- \"Done\" was repeatedly declared with the AC checkboxes left unchecked. Done is computed from green ATs, not hand-ticked boxes.\n\n## Build notes\n\nThe implementation breakdown (the `intent st new` template wiring, the doc-set registration so `acceptance.md` is created alongside the existing companions, and any `intent` skill or protocol text) belongs in `design.md` and `tasks.md` for this steel thread. This `info.md` is the what and the why.\n\n## Related Steel Threads\n\n- Originating pilot: a sister-project per-ST `acceptance.md` sweep, 2026-06-13.",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "ST0044 is done when: `acceptance.md` is stamped into every new ST by default; the `intent ac` / `intent at` instrumentation and the close-gate are green; and ST0044's own build has been carried through the five-step with an independent verifier (matts)",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "acceptance.md stamped by default; intent ac/at + close-gate green; ST0044's own build carried through the five-step with matts as verifier; every AT green + matts ST-level sign-off 2026-06-14"
+      }
+    },
+    {
+      "id": "AC-01.1",
+      "text": "`intent st new` stamps `acceptance.md` into every new ST's doc-set (default on, via the `lib/templates/prj/st/ST####/*.md` glob).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "The stamped `acceptance.md` is sourced from `lib/templates/prj/st/ST####/acceptance.md` with placeholders substituted (no raw `ST####` survives).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "`lib/templates/prj/st/ST####/acceptance.md` carries the contract preamble, the AC section (ST-level + per-WP), and the AT section. (Content provisional -- refinable in place; no flip gate, since the default is on.)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "`intent at list <stid>[/NN]` lists ATs (id, cited `path::name`, status); `intent ac list <stid>[/NN]` lists ACs with covering AT + derived satisfied state.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`intent at green` is reachable only from `red`; `intent at red` / `intent at na` set those states; `done` / `notdone` alias `green` / `red`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "`intent ac status <stid>` reports N/M ACs satisfied and the close-gate verdict (PASS / BLOCKED).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "`intent ac satisfy <stid> <acid> --evidence` succeeds for non-test ACs only; test-backed ACs cannot be hand-satisfied.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.5",
+      "text": "All `ac` / `at` commands read and write `acceptance.md` only (single source of truth); in-place status edits are linter-stable.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "`intent st done` / `intent wp done` refuse to close while any AC is unsatisfied (no green AT and no non-test evidence) or sign-off is unrecorded; the verdict is computed, never read from a hand-ticked box.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "The `info.md` and `WP/info.md` templates reference `acceptance.md` and contain no restated ACs.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "`intent st show <id> acceptance` displays `acceptance.md` and `intent st show <id> all` includes it in the doc-set; `intent st edit <id> <type>` (incl. `acceptance`) prints the file's absolute path instead of launching an editor.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.1",
+      "text": "The five-step is documented and mapped onto the skill set; the open-gate and close-gate are described where a builder will meet them",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "working-with-llms.md D11 + in-plan/in-verify/in-finish pointers"
+      }
+    },
+    {
+      "id": "AC-07.1",
+      "text": "ST0043 and ST0044 each carry an `acceptance.md`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.2",
+      "text": "ST0044's own build is run through the five-step with an independent verifier (matts) for at least one WP",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "ST0044 built through the five-step with matts as verifier: ACs ratified open-gate (STATUS block) before code; matts witnessed RED on the WP-01/03/04/05 laps before each green build (Coverage lines); close-gate verdict computed by intent ac gate, not hand-ticked"
+      }
+    },
+    {
+      "id": "AC-08.1",
+      "text": "The parser + gate module is registered in `intent/llm/MODULES.md` before its code exists",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "intent/llm/MODULES.md bin/intent_acceptance row, registered before code (fa90bb2)"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/st_commands.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md into the doc-set"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/st_commands.bats",
+      "covers": [
+        "AC-01.2",
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md content from the template file"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "test: at list and ac list render ids, paths, status"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "test: green only from red; to-write to green is refused"
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "test: done aliases green and notdone aliases red"
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "test: ac status reports counts and gate verdict"
+    },
+    {
+      "id": "AT-03.5",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "green",
+      "note": "test: ac satisfy refuses test-backed ACs"
+    },
+    {
+      "id": "AT-03.6",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.5"
+      ],
+      "status": "green",
+      "note": "test: status edit is linter-stable"
+    },
+    {
+      "id": "AT-03.7",
+      "kind": "test",
+      "file": "tests/unit/intent_acceptance_cli.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "normalisation lap: red then green, 2026-06-13 -- test: list accepts a bare numeric st id (normalised), like intent wp"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "test: wp done is blocked while a WP AC is uncovered"
+    },
+    {
+      "id": "AT-04.2",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "test: st done is blocked when the ST-level sign-off AC is unsatisfied"
+    },
+    {
+      "id": "AT-04.3",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "test: st done is allowed once every AC including sign-off is satisfied"
+    },
+    {
+      "id": "AT-04.4",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "test: st done is not gated for a freshly stamped ST with no real ACs"
+    },
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "tests/unit/st_new_acceptance.bats",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "green",
+      "note": "test: info templates reference acceptance.md and restate no ACs"
+    },
+    {
+      "id": "AT-05.2",
+      "kind": "test",
+      "file": "tests/unit/st_new_acceptance.bats",
+      "covers": [
+        "AC-05.2"
+      ],
+      "status": "green",
+      "note": "test: st show and edit know the acceptance file type"
+    },
+    {
+      "id": "AT-07.1",
+      "kind": "test",
+      "file": "tests/unit/st_new_acceptance.bats",
+      "covers": [
+        "AC-07.1"
+      ],
+      "status": "green",
+      "note": "test: open STs ST0043 and ST0044 each have an acceptance.md"
+    }
+  ]
+}

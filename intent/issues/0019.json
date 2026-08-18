@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 19,
+  "slug": "st-sync-write-persists-only-wip-rows-so-the",
+  "title": "st sync --write persists only WIP rows, so the canonical steel_threads.md empties as threads complete; the index updater's arguments were never read",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-14",
+  "reporter": "matts"
+}

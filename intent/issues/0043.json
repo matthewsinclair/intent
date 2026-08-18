@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 43,
+  "slug": "0038-s-fix-set-unimplemented-commands-to-exit-2",
+  "title": "0038's fix set unimplemented commands to exit 2, which is the UserPromptSubmit BLOCK code, so ANY project carrying the canon hooks blocks every Claude Code prompt the moment v3 is on PATH -- migration is not the trigger -- and cannot run the command that would clear it",
+  "status": "closed",
+  "severity": "critical",
+  "created": "2026-08-16",
+  "reporter": "matts"
+}

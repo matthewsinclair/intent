@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 54,
+  "slug": "bin-int-fmt-md-hard-codes-prose-wrap-never-which",
+  "title": "bin/int fmt md hard-codes --prose-wrap never, which the pre-commit hook then undoes, so the project's own format command dirties correctly-formatted markdown",
+  "status": "closed",
+  "severity": "low",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

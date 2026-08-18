@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0024",
+  "title": "Add work packages as first class citizens within a steel thread",
+  "slug": "add-work-packages-as-first-class-citizens-within",
+  "status": "completed",
+  "created": "2026-02-24",
+  "completed": "2026-02-24",
+  "objective": "Add a top-level `intent wp` command for managing work packages within steel threads. Work packages break a steel thread into smaller, trackable units of work, each with its own directory and info.md.",
+  "context": "Steel threads needed a way to decompose into smaller deliverables. Previously, task tracking was done in a flat tasks.md. Work packages provide structured subdirectories (STXXXX/WP/NN/info.md) with frontmatter-based status tracking, auto-numbering, and specifier shorthand syntax.",
+  "body": "## Related Steel Threads\n\n- ST0022: st new hardening (shared `escape_sed_replacement()` and `normalise_st_id()`)\n- ST0025: Fix Highlander Violations (shared helpers extracted during this work)\n\n## Deliverables\n\n- `bin/intent_wp` -- new command script (345 lines)\n- `lib/templates/prj/st/WP/info.md` -- WP template\n- `lib/help/wp.help.md` -- help text\n- `tests/unit/wp_commands.bats` -- 29 BATS tests\n- Documentation updates across README.md, CLAUDE.md, user_guide.md, reference_guide.md",
+  "preamble": ""
+}

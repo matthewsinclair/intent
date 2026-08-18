@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 60,
+  "slug": "issues-add-prints-an-absolute-path-where-v2",
+  "title": "issues add prints an absolute path where v2 prints a repo-relative one, which leaks the filesystem and makes the line unassertable by any literal template",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

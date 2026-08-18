@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 8,
+  "slug": "intent-agents-sync-writes-an-unconditional-bash-4",
+  "title": "intent agents sync writes an unconditional Bash 4.0+ prerequisite into every AGENTS.md, contradicting projects that target bash 3.2",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-07-29",
+  "reporter": "matts"
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 53,
+  "slug": "ac-rescope-and-ac-reinstate-refuse-a-legal-self",
+  "title": "ac rescope and ac reinstate refuse a legal self-loop at exit 1 -- 0051's mechanism surviving twenty lines from the copy cc fixed, and the refusal names the wrong verb",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

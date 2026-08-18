@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 14,
+  "slug": "an-at-covers-exactly-one-ac-and-the-parse-fails",
+  "title": "\"AT coverage is comma-separated only: 'and' as a separator, or an id with an adjacent character, drops the link silently\"",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-04",
+  "reporter": "matts"
+}

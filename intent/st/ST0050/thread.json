@@ -1,0 +1,396 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0050",
+  "title": "intent todo: a flat DOING/TODO/DONE view of steel threads and work packages",
+  "slug": "intent-todo-a-flat-doing-todo-done-view-of-steel",
+  "status": "completed",
+  "created": "2026-07-02",
+  "completed": "2026-07-02T21:36:06Z",
+  "objective": "Add `intent todo`, a CLI command that renders a single flat, nested checklist of a project's steel threads and their work packages -- bucketed into **DOING / TODO / DONE** and projected from each thread's real `status:`. It gives a \"50,000-foot\" view of the remaining work in one file (`intent/todo.md`) that no existing surface provides: `steel_threads.md` is a flat table, and per-project working notes are prose snapshots -- neither shows the WIP / not-started / just-done shape across steel threads _and_ work packages at a glance.",
+  "context": "The need surfaced in a downstream project running many concurrent steel threads across several worker sessions: there was no one place to answer \"what is in flight, what is queued, and what just landed\" spanning both steel threads and their work packages. `intent st list` and `intent wp list <ST>` answer per-status and per-thread questions, but not the whole-portfolio nested view.\n\nA working **read-path prototype already exists**, authored in the downstream project's checkout of Intent at `bin/intent_todo`: `intent todo update` and `intent todo [list]` generate and print `intent/todo.md`. It dispatches automatically through `intent`'s default `intent_<command>` rule (no change to `bin/intent`), reuses `intent_helpers` (Highlander -- no re-implemented frontmatter parsing), and is `shellcheck`-clean bar the repo-standard SC1091 source-follow note.\n\nThis steel thread captures that prototype and the remaining work to make `intent todo` a first-class, tested, released Intent feature: the mutation verbs (`done` / `notdone` / `toggle`), CLI/help integration, tests, docs, and release.\n\nThe design of record, the as-built prototype, the proposed work-package breakdown, and the open decisions are in `design.md`.",
+  "body": "## Related Steel Threads\n\n- **ST0046** (`add-modules-properly-to-the-intent-cli`) -- a sibling \"generate a portfolio view from the project tree\" concern. Both enumerate `intent/**` and render a derived, regenerable artifact; `intent todo` reads `intent/st/**` status the way a future `intent modules sync` reads modules.",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "`intent todo update` regenerates `intent/todo.md` as a nested GFM checklist bucketed DOING/TODO/DONE, projected from each unit's real `status:` (threads as `- [ ] STID: title`, work packages as indented `  - [ ] NN: title`).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "checkbox glyphs map status: `WIP`->`[-]`, `Not Started`->`[ ]`, `Completed`/`Done`->`[x]`, `Cancelled`->`[~]`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "buckets are correct: DOING = `WIP` threads (+ WPs); TODO = `Not Started`; DONE = threads whose `completed:` is at or after the `## DONE:<T>` watermark (WP-06; the first-generation default `<T>` = start of today, so the zero-flush view is \"completed today\").",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "on-hold threads (`on-hold: TRUE` + `status: WIP`) render in DOING with an `(on-hold)` tag.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.5",
+      "text": "`todo.md` contains ONLY the three `## DOING` / `## TODO` / `## DONE:<T>` headings and their data (the `_(none)_` sentinel when a bucket is empty) -- NO title line, NO `_Generated…_` provenance line, NO `_Legend…_` line (hv minimal-output).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.6",
+      "text": "output is prettier-stable: the generator's output equals the post-prettier file byte-for-byte (no reflow churn on commit).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.7",
+      "text": "`intent todo` / `intent todo list` prints `todo.md` (generating it first if absent); `intent todo help` prints usage.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.8",
+      "text": "`intent todo --json` emits valid JSON: an object keyed by bucket (doing/todo/done), each a list of threads carrying `id` / `title` / `status`, each thread carrying its work packages (`id` / `title` / `status`). The JSON and markdown emitters share one enumeration of `intent/st/**` (Highlander -- no second traversal).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "`intent todo done <ST[/NN]>` changes real status by wrapping `intent st done` / `intent wp done`, then regenerates `todo.md` -- it never hand-edits a checkbox or `status:`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "`intent todo done` INHERITS the ST0048 acceptance close-gate (D2): a unit with a BLOCKED contract is refused, the gate's message is surfaced verbatim, and status is left unchanged (no bypass).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "`intent todo notdone <ST[/NN]>` reopens a completed unit to `WIP` (D1), then regenerates.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "`intent todo toggle <ST[/NN]>` flips done/not-done from the unit's current status, then regenerates.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "the ST/WP specifier (`ST0011` / `11` / `ST0011/01` / `11/01`) is parsed via the shared `intent wp` specifier logic, not a reimplementation (Highlander).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "parse_wp_specifier extracted to bin/intent_helpers (Highlander); reused by intent_wp + intent_todo spec_info_file; 1/1 == ST1/1 == ST0001/01 proven"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "`todo` is registered in `intent_help` and the top-level usage listing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`intent todo <args>` dispatches end-to-end via `bin/intent`'s default `intent_<command>` fall-through (no dispatcher edit; the command runs from `PROJECT_ROOT`).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "a reusable fixture-project harness under `tests/` proves, green: projection correctness (WIP/Not-Started/Completed STs + WPs -> asserted `todo.md`), minimal-output shape, prettier-stability, the DONE self-sweep, mutation round-trips, gate-inheritance, and `--json` structure.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "`bin/intent_todo` is registered in `intent/llm/MODULES.md`; README and `usage-rules.md` document `intent todo` (commands, projection model, mutation semantics, `--json`).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "MODULES.md `Todo view` row; usage-rules.md `### Todo view`; README `See what's in flight`"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "CHANGELOG carries a 2.14.0 `intent todo` entry; `impl.md` records the as-built; `tasks.md` reflects completion.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "CHANGELOG `## [2.14.0]` (ST0050 + ST0051); impl.md as-built; tasks.md WP checklist"
+      }
+    },
+    {
+      "id": "AC-06.1",
+      "text": "`intent st done` stamps the frontmatter `completed:` as an ISO 8601 UTC timestamp (`YYYY-MM-DDThh:mm:ssZ`), not a bare `%Y%m%d` date. (The human `- **Completed**:` body bullet stays a `%Y-%m-%d` date; `steel_threads.md` renders the date part -- an ISO `completed:` on the fallback render path is truncated to its date.)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.2",
+      "text": "the DONE bucket is watermarked: the heading is `## DONE:<T>`, where `<T>` is the last-flush instant (ISO 8601 UTC). DONE lists threads whose `completed:` is at or after `<T>`; `update` preserves `<T>` (first generation defaults `<T>` to the start of today, UTC -- reproducing the \"completed today\" view as the zero-flush baseline).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.3",
+      "text": "DONE membership tolerates both timestamp forms: a legacy `completed: YYYYMMDD` and an ISO `completed:` are each compared correctly against `<T>` (legacy read as that day's 00:00:00Z).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.4",
+      "text": "`intent todo done --flush` advances `<T>` to now and empties the DONE view; a thread's real status is untouched (flush clears the view, not the record in `COMPLETED/`).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.5",
+      "text": "`intent todo done --prune` emits the pruned DONE items to stdout (for the caller to archive, eg `>> intent/done.md`; the advisory note goes to stderr), and then flushes.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.1",
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "test: update_projects_buckets_from_status"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "test: checkbox_glyphs_map_each_status"
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "test: done_bucket_self_sweeps_to_today"
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "test: on_hold_thread_tagged_in_doing"
+    },
+    {
+      "id": "AT-01.5",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.5"
+      ],
+      "status": "green",
+      "note": "test: todo_md_has_only_headings_and_data"
+    },
+    {
+      "id": "AT-01.6",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.6"
+      ],
+      "status": "green",
+      "note": "test: output_is_prettier_stable"
+    },
+    {
+      "id": "AT-01.7",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.7"
+      ],
+      "status": "green",
+      "note": "test: list_prints_and_help_shows_usage"
+    },
+    {
+      "id": "AT-01.8",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-01.8"
+      ],
+      "status": "green",
+      "note": "test: json_emits_valid_structured_buckets"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "test: done_wraps_st_wp_and_regenerates"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "test: done_inherits_close_gate_on_blocked"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "test: notdone_reopens_to_wip"
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-02.4"
+      ],
+      "status": "green",
+      "note": "test: toggle_flips_from_current_status"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "test: todo_registered_in_help_and_usage"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "test: dispatches_via_default_fallthrough"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "the file as a whole: the harness proving the ACs above"
+    },
+    {
+      "id": "AT-06.1",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-06.1"
+      ],
+      "status": "green",
+      "note": "test: st_done_stamps_iso_completed"
+    },
+    {
+      "id": "AT-06.2",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-06.2",
+        "AC-06.3"
+      ],
+      "status": "green",
+      "note": "test: done_bucket_watermarked_and_membership"
+    },
+    {
+      "id": "AT-06.3",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-06.4"
+      ],
+      "status": "green",
+      "note": "test: flush_advances_watermark_empties_done"
+    },
+    {
+      "id": "AT-06.4",
+      "kind": "test",
+      "file": "tests/unit/intent_todo.bats",
+      "covers": [
+        "AC-06.5"
+      ],
+      "status": "green",
+      "note": "test: prune_emits_then_flushes"
+    }
+  ]
+}

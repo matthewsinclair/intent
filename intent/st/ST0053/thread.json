@@ -1,0 +1,293 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0053",
+  "title": "Content (web-content) project-type pack",
+  "slug": "content-web-content-project-type-pack",
+  "status": "completed",
+  "created": "2026-07-07",
+  "completed": "2026-07-07T23:34:26Z",
+  "objective": "Add a `content` (web-content) project-type pack: a second non-code discipline on Intent's `languages` axis, after the `author` pack (ST0052). A project declaring `languages: [content]` (or `[elixir, content]`, `[author, content]`, ...) gets a web-content authoring rule pack, a prose critic, canon templates, and an essentials skill -- activated the same way a code language or the author pack is. Target surface: marketing pages, product docs, landing copy, blog posts, and site content, as distinct from the author pack's book / course focus.",
+  "context": "ST0052 stood up the `author` pack and, in doing so, built the first mechanical prose surface in Intent (banned-filler-and-house-style, no-vanity-metrics, heading-hygiene, front-matter-and-objectives, the mechanical trope pass) plus the `critic-author` two-form detrope. The web-content pack shares most of that mechanical surface; the differences are in the craft tier (web voice / SEO-adjacent structure / scannability vs long-form book continuity) and the information architecture (page + section + front-matter vs part + chapter + learning-objective).\n\nThe central design question -- to be ratified before any WP is authored -- is **reuse vs copy**. The restart framing was that content \"copies the author-pack shape\". Copying `IN-AU-STYLE-*` into `IN-WC-STYLE-*` would be a direct Highlander violation (two divergent copies of banned-filler / trope-pass / heading-hygiene). The Highlander-correct move is to **extract the shared mechanical surface into a common base** that both `author` and `content` reference, and let each pack own only its genuinely distinct rules. `design.md` frames this decision plus the open scope questions (language code, base-pack shape, critic reuse) for hv to rule on -- exactly as ST0052's D1-D7 were ratified before build.\n\nThis thread is a minor (new project-type surface; opt-in, zero behaviour change for non-adopting projects), so it ships as its own release (2.16.0), not folded into the 2.15.x patch line.",
+  "body": "## Related Steel Threads\n\n- ST0052 -- Author project-type pack (the pattern this thread reuses; source of the shared mechanical prose surface).\n- ST0037 -- Languages config field (the axis both packs activate on).",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "IN-PR-* prose base + author refactor",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "content (CO) rule tiers",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "critic-prose (rename critic-author)",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "content lang canon",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "in-content-essentials skill + dispatch",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "dogfood + docs + close",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "The content pack ships whole: the `IN-PR-*` prose base, the `IN-CO-*` content pack, the renamed `critic-prose`, `intent lang init content` canon, the `/in-content-essentials` skill, and `content -> critic-prose` dispatch -- strictly opt-in, with zero behaviour change until a project runs `intent lang init content`; hv accepts the dogfood (WP-06).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "all six WPs closed through their gates; docs/blog dogfood run + findings applied; hv signed off (2026-07-08)"
+      }
+    },
+    {
+      "id": "AC-01.1",
+      "text": "The `PR` (prose) language code is admitted by the rule-id validator (a well-formed `IN-PR-*` id validates; a malformed one still fails) and `prose` is registered in the canon-enumeration `LANG_SUBDIRS`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "The four shared mechanical rules live once, in the prose base (`rules/prose/style/`): each is schema-valid, declares `language: prose`, is enumerated under `--lang prose`, and carries its `IN-AU-STYLE-*` migration alias.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "The author pack retains only its discipline-specific rules -- one style rule (front-matter/objectives) plus the four craft rules (5 total) -- each still schema-valid and enumerated under `--lang author`; no moved rule remains under `rules/author/`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "The prose base carries no upward dependency on an author-specific rule (no base->discipline `related_rules`), and every downstream reference (author craft cross-links, the `/in-author-essentials` skill, the author canon templates) re-points to the `IN-PR-*` ids.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "heading-hygiene + mechanical-trope-pass `related_rules` emptied; author full-trope-diagnosis links `IN-PR-STYLE-004`; skill + `templates/author/{RULES,ARCHITECTURE}.md` cite `IN-PR-*`; full-library `rules validate` 58/58 green"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "The `CO` (content) language code is admitted by the validator and `content` is registered in `LANG_SUBDIRS`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "The content pack owns six web-distinct rules -- `style` (mechanical): page meta present (title/description/canonical), image alt-text, descriptive link text; `craft` (judgment): scannability, primary CTA, reading-level target -- each schema-valid and enumerated under `--lang content`. The generic prose hygiene (filler, vanity metrics, headings, trope pass) is the shared `IN-PR-*` base, not re-authored here.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "No `IN-CO-*` rule duplicates an `IN-PR-*` mechanical rule (Highlander).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "rule_pack_content.bats asserts no content dir reuses a prose-base slug and no content rule declares an `IN-PR-*` id; the content style tier is web-specific (meta/alt/links), disjoint from the base"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "`critic-author` is renamed to `critic-prose`: the subagent directory, `agent.md`, metadata, and the agent manifest all use `critic-prose`; no `critic-author` remains (dir gone, no manifest entry).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`critic-prose` loads the `IN-PR-*` base plus the declared discipline's rules, parameterised by language (author or content, resolved from config `languages`); its `agent.md` cites the `IN-PR-STYLE-004` mechanical pass and preserves the two-form detrope (mechanical default + `IN-AU-CRAFT-003` `/in-detrope` handoff, never invoked).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "`intent lang init content` installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md`, appends the Language Packs entry, and writes `content` to config `languages`; `intent lang list` enumerates `content`. (Allowlist-free: `templates/content/{RULES,ARCHITECTURE}.md` is all that was needed -- `lang init`/`lang list` are dir-driven.)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "The `/in-content-essentials` skill exists, is renderer-safe (no em dash, no `$N`), carries the content pipeline, and references the prose base + content rule ids.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "`content -> critic-prose` is wired into `/in-review` (dispatch map + the generalised \"Prose projects\" note + Task example) and `/in-session` (fan-out table row + `chains_to`); a prose-only project (`[author]` or `[content]`) runs no code critic, a mixed project runs each critic on its own subtree, and a project declaring both applies both discipline packs.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.1",
+      "text": "A real content target is dogfooded end-to-end (the pack applied via `intent lang init content` + a `critic-prose` pass) and hv signs off.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "real-target dogfood over `docs/blog/*.md` (7 posts; mechanical style tier by hand). Found IN-CO-STYLE-001 x7 (no description/canonical) + IN-PR-STYLE-004 x1 (\"seamless integration\"); false positives (fenced-code H1s, \"overall\" adjective, external-link anchors) rejected by the confirm step. hv ruled: apply the findings (description + canonical GitHub-repo URL added to all 7, \"seamless\" reworded) and drop \"overall\" from IN-PR-STYLE-001. hv signed off 2026-07-08"
+      }
+    },
+    {
+      "id": "AC-06.2",
+      "text": "The 2.16.0 release docs are updated: CHANGELOG, `intent/history/v2.16.0.md`, `docs/releases/2.16.0/`.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "CHANGELOG `[2.16.0] - in progress` (Added prose base + content pack + lang init + skill; Changed critic rename + author refactor); `intent/history/v2.16.0.md`; `docs/releases/2.16.0/RELEASE_NOTES.md`"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/pr_language_code_guard.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/rule_pack_prose.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "tests/unit/rule_pack_author.bats",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/in_author_essentials_skill.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "test: \"references the prose base + author rules by ID\""
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/co_language_code_guard.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/rule_pack_content.bats",
+      "covers": [
+        "AC-02.2",
+        "AC-02.3"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/critic_prose.bats",
+      "covers": [
+        "AC-03.1",
+        "AC-03.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/intent_lang.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "content cases: list enumerates content; init installs both files, appends the pack entry, writes config languages"
+    },
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "tests/unit/in_content_essentials_skill.bats",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-05.2",
+      "kind": "test",
+      "file": "tests/unit/critic_dispatch.bats",
+      "covers": [
+        "AC-05.2"
+      ],
+      "status": "green",
+      "note": "content cases; also exercised by tests/unit/in_session_skill.bats"
+    }
+  ]
+}

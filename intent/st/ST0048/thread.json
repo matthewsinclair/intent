@@ -1,0 +1,199 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0048",
+  "title": "Acceptance close-gate fails empty or missing contract",
+  "slug": "acceptance-close-gate-fails-empty-or-missing",
+  "status": "completed",
+  "created": "2026-06-29",
+  "completed": "2026-06-29",
+  "objective": "Make the acceptance close-gate refuse to mark a WP/ST done when it has no verifiable contract -- zero acceptance criteria, or no `acceptance.md` at all -- instead of vacuously passing. Provide one explicit, visible exemption (`acceptance: exempt`) as the sole escape hatch. Default = enforced.",
+  "context": "The acceptance model (`intent ac` / `intent at`, consumed by `intent st done` / `intent wp done`) computes \"done\" as \"every in-scope AC is satisfied.\" With zero ACs that predicate is vacuously true, so a unit closes with nothing to verify it against -- a real, repeated hole reported from a downstream Intent project. This is No-Silent-Errors applied to the acceptance layer: an absent contract is a failure that must surface, not a quiet pass.\n\nThe change reverses the deliberate opt-in-by-presence behaviour (matts, 2026-06-16; test `AT-04.4`). hv ratified it on 2026-06-29 as a shipped-as-broken fix, shipping in patch **2.13.1** with a migration-led release note. Companion documentation (the comprehensive 2.13.0 MAAC release note) is tracked separately and ships in the same 2.13.1 cut. Full design, decisions, and the open WP-granularity fork are in `design.md`; the ratified boundary is in `acceptance.md`.",
+  "body": "## Related Steel Threads\n\n- ST0044 -- introduced `acceptance.md`, the AC/AT process, and the opt-in close-gate this thread hardens.\n- ST0049 (pending) -- comprehensive 2.13.0 MAAC release note; ships in the same 2.13.1 cut.",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Gate hard-fails empty/missing contract + exemption",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Template + canon docs reflect fail-by-default",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "Migration + 2.13.1 release wrap",
+      "scope": "S",
+      "status": "done",
+      "objective": "[Clear statement of what this work package aims to accomplish]",
+      "body": "",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "The shipped close-gate matches the hv ruling: a WP/ST with no verifiable contract (zero in-scope ACs, or no `acceptance.md`) fails to close, and `acceptance: exempt` is the sole, visible escape.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "hv signed off 2026-06-29 (whiteboard session); fix + 2.13.x release notes reviewed"
+      }
+    },
+    {
+      "id": "AC-01.1",
+      "text": "`intent ac gate <st>` exits non-zero with a BLOCKED report when `acceptance.md` is present but has zero in-scope ACs and no exemption (was a vacuous exit 0).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "`intent ac gate <st>` exits non-zero with a BLOCKED report when `acceptance.md` is absent (no contract = fail), and the message names the escape hatch.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "`acceptance: exempt` in `acceptance.md` frontmatter opens the gate (exit 0) for a zero-AC contract AND the gate prints an `EXEMPT` line naming the exemption (No-Silent: announced, not silent).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "A real contract is unaffected: all-satisfied still passes (exit 0); any-unsatisfied still BLOCKS; malformed AC/AT lines still BLOCK (F1 regression guard).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.5",
+      "text": "`intent wp done <st>/NN` honours the ratified WP-granularity rule (design.md D3, WP-lenient): a WP with no own `AC-NN.x` closes iff the thread carries >=1 real AC or is exempt; a fully-empty, non-exempt thread BLOCKS `wp done`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "The stamped `acceptance.md` template documents the `acceptance: exempt` marker and ships WITHOUT it (default = enforced).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "template documents 'acceptance: exempt' in the preamble and ships WITHOUT the marker (default = enforced)"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "No \"opt-in / legacy-safe / closes exactly as before\" close-gate claim survives in the canon or code comments (gate header `bin/intent_acceptance`, `bin/intent_st` + `bin/intent_wp` consumer comments, `intent/docs/working-with-llms.md` D11); all describe fail-by-default + exemption. (Highlander)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "`docs/releases/2.13.1/RELEASE_NOTES.md` exists and LEADS with the behaviour change + the migration recipe (author ACs, or add `acceptance: exempt`).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "docs/releases/2.13.1/RELEASE_NOTES.md authored"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "Version stamped 2.13.1 (config.json + templates) + a CHANGELOG entry.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "v2.13.1 tagged (d01a1b2) + pushed to both remotes + GitHub release; VERSION=2.13.1; config.json intent_version=2.13.1 (intent upgrade stamp)"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "Dogfood: ST0048's own contract passes the NEW gate at close (`intent ac gate ST0048` exit 0 with real, satisfied ACs) -- the feature gates its own steel thread.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "dogfood: WP-01 + WP-02 both closed THROUGH the hardened gate (done: ST0048/WP-01, ST0048/WP-02)"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "test: \"gate blocks a present contract with zero in-scope ACs\""
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "test: \"gate blocks a missing acceptance.md (no contract)\""
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "test: \"gate passes and reports EXEMPT for acceptance: exempt with zero ACs\""
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "test: \"gate unaffected by a real satisfied contract; still blocks unsatisfied and malformed\""
+    },
+    {
+      "id": "AT-01.5",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-01.5"
+      ],
+      "status": "green",
+      "note": "test: \"wp done honours the WP-lenient granularity rule\""
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/acceptance_close_gate.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "test: \"no opt-in or closes-as-before claim survives in canon and comments\""
+    }
+  ]
+}

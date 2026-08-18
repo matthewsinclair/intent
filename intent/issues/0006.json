@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 6,
+  "slug": "intent-ac-satisfy-reports-ok-while-writing",
+  "title": "intent ac satisfy reports ok while writing nothing when the AC row has no satisfied field",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-07-28",
+  "reporter": "matts"
+}

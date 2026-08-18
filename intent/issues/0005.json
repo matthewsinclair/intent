@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 5,
+  "slug": "intent-lang-init-writes-an-install-relative-rule",
+  "title": "intent lang init writes an install-relative rule-pack path into the consumer project's RULES.md, where it dangles",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-07-27",
+  "reporter": "matts"
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0021",
+  "title": "Intent Autopsy -- Session Analysis & Memory Meta-Learning",
+  "status": "completed",
+  "created": "2026-02-20",
+  "completed": "2026-02-20",
+  "objective": "Build a memory-aware session analysis system that compares Claude Code session behavior against stated rules in MEMORY.md and CLAUDE.md. Identifies gaps, enforcement failures, undocumented conventions, and stale memory entries. Proposes concrete memory updates to close the loop.",
+  "context": "",
+  "body": "## Scope\n\n### In Scope\n\n- Elixir script (`autopsy.exs`) for pre-processing JSONL session files\n- Claude skill (`intent-autopsy`) for running analysis and producing reports\n- Extension to `intent claude skills install` for full directory copy (scripts alongside SKILL.md)\n- Default banned-words file with common AI-isms\n- BATS tests for skill lifecycle and directory install\n\n### Out of Scope\n\n- Interactive dashboard or web UI\n- Automatic memory updates (always proposes, never auto-applies)\n- Cross-project analysis (one project at a time)\n\n## Deliverables\n\n1. `intent/plugins/claude/skills/intent-autopsy/SKILL.md` -- skill definition\n2. `intent/plugins/claude/skills/intent-autopsy/scripts/autopsy.exs` -- Elixir preprocessor\n3. `intent/plugins/claude/skills/intent-autopsy/scripts/banned-words.txt` -- default banned words\n4. Modified `intent_claude_skills` -- full directory install support\n5. `tests/unit/test_autopsy.bats` -- BATS test suite\n6. Updated documentation (CHANGELOG, user guide, reference guide, deployment guide)\n\n## Related Steel Threads\n\n- ST0020: Skills system (foundation this builds on)\n\n## Context for LLM\n\nThis steel thread added the sixth Intent skill. Unlike the other skills (which are always-on enforcement rules), `intent-autopsy` is an analysis/diagnostic skill invoked on-demand via `/intent-autopsy`. It requires an Elixir script installed alongside the SKILL.md, which motivated extending the skills install mechanism to copy full directories.",
+  "preamble": ""
+}

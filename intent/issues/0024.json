@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 24,
+  "slug": "at-lint-and-ac-gate-accept-a-wp-scope-and",
+  "title": "at lint and ac gate accept a WP scope and silently drop it -- a scoped --fix rewrites rows outside the scope",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-14",
+  "reporter": "matts"
+}

@@ -1,0 +1,143 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0051",
+  "title": "intent output width: dft_width config for generated files, terminal width for stdout",
+  "slug": "intent-output-width-dft-width-config-for",
+  "status": "completed",
+  "created": "2026-07-02",
+  "completed": "2026-07-02",
+  "objective": "Give Intent a single, config-driven default width for generated files, and make every command that writes a file use it while commands that emit to the terminal use the live terminal width. Concretely: add `dft_width` (default 120) to project config; introduce a Highlander `get_default_width` helper (the file-side sibling of the existing `get_terminal_width`); and route the `intent st` table renderer by destination -- `sync --write` (the `steel_threads.md` file) at `dft_width`, `list` (stdout) at terminal width, with an explicit `--width N` overriding both.",
+  "context": "Surfaced while capturing ST0050 (`intent todo`): `intent st new` regenerated `steel_threads.md` in a narrow terminal and the slug column truncated (`add-modules-properly-t...`) in the tracked file. The file's width should not depend on the terminal that happened to run the command -- a file is read anywhere, so it wants a stable, generous default; only stdout should track the live terminal. Intent already has `get_terminal_width()` (`bin/intent_helpers:58`, Highlander) for the stdout side; the file writer wrongly reuses it (`bin/intent_st:844`, via the shared `sync`/`list` render path), which is the bug. This thread adds the file-side counterpart plus the destination-based rule, and a config knob so the default is tunable per project. The only current width-sensitive (columnar) generator is `steel_threads.md`; `intent todo`'s `todo.md` is a nested checklist and is width-agnostic. The thread also audits the remaining generators and documents the file-vs-stdout width principle so future generators comply.",
+  "body": "## Related Steel Threads\n\n- **ST0050** (`intent-todo-...`) -- co-shipping in the same release (2.14.0); capturing it surfaced this width bug. Independent of this thread: `todo.md` is a checklist, not a columnar table, so it does not consume the width helper.\n- **ST0046** (`add-modules-properly-to-the-intent-cli`) -- its slug is the one currently truncated in the `steel_threads.md` index; the fix restores it at width 120.",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "`get_default_width` returns the project config's `dft_width` value when it is set.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "`get_default_width` returns 120 when `dft_width` is absent or empty in config.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "`get_default_width` is the sole file-width source, reuses `read_config_field`, and leaves `get_terminal_width` unchanged (Highlander -- no duplicate width logic).",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "review of `bin/intent_helpers` (get_default_width wraps get_config_field; get_terminal_width untouched)"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "`intent st sync --write` sizes `steel_threads.md` from `get_default_width`, independent of the terminal width the command runs under.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "`intent st list` renders to stdout at the live terminal width (`get_terminal_width`).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "an explicit `--width N` overrides both the file path and the stdout path.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "the regenerated `steel_threads.md` renders every current thread's slug without ellipsis at width 120.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "the committed `intent/st/steel_threads.md` (ST0046 slug renders in full)"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "every other file-generating command is either non-columnar (width-agnostic) or routed through `get_default_width` for its file output; the audit is recorded in `impl.md`.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "`impl.md` generator-audit table"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "the file-vs-stdout width rule is documented where a future generator author will see it.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "`usage-rules.md` \"### Generated file width\" + the `get_default_width` helper comment + MODULES.md"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/output_width.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "test: dft_width_read_from_config"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "tests/unit/output_width.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "test: dft_width_defaults_to_120"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/output_width.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "test: sync_write_uses_default_width_not_terminal"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/output_width.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "test: list_uses_terminal_width"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "tests/unit/output_width.bats",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "test: explicit_width_overrides_both"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 59,
+  "slug": "eight-of-eleven-parity-check-instruments-have-no",
+  "title": "eight of eleven parity check instruments have no execution site, so a check that never ran is indistinguishable from one that ran green -- and all three AT-05.5 cites are among them",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 3,
+  "slug": "intent-critic-rejects-declared-author-content",
+  "title": "intent critic rejects declared author/content languages: pre-commit gate errors (exit 2) and fail-opens on every commit",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-07-13",
+  "reporter": "matts"
+}

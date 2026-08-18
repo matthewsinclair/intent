@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 4,
+  "slug": "intent-ac-gate-exits-0-for-an-unresolvable-st-wp",
+  "title": "intent ac gate exits 0 for an unresolvable ST/WP: the close-gate passes when it evaluated nothing",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-07-24",
+  "reporter": "matts"
+}

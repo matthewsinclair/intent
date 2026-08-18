@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 17,
+  "slug": "the-at-reference-field-has-no-grammar-at-pathname",
+  "title": "The AT reference field has no grammar: at_pathname takes the first backtick span, so a row can cite a selector, a bare filename or nothing at all, and no diagnostic fires",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-11",
+  "reporter": "matts"
+}

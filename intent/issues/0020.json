@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 20,
+  "slug": "st-list-status-all-silently-omits-any-thread",
+  "title": "st list --status all silently omits any thread whose status is not one of ten hardcoded literals, and sync --write now composes that view into the canonical index",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-14",
+  "reporter": "matts"
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 61,
+  "slug": "the-at-na-help-string-still-spells-the-state-n-a",
+  "title": "the at na help string still spells the state n-a, and the same row's target.no_op still records the pre-fix no-op -- the two fields of that row nobody corrected when the value moved",
+  "status": "closed",
+  "severity": "low",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

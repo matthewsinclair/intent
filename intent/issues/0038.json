@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 38,
+  "slug": "v3-exits-1-for-an-unimplemented-command-so-a",
+  "title": "v3 exits 1 for an unimplemented command, so a migrated project's pre-commit gate blocks every commit",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-16",
+  "reporter": "matts"
+}

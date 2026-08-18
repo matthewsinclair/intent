@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 56,
+  "slug": "atstatus-is-the-only-status-enum-with-no-display",
+  "title": "AtStatus is the only status enum with no display(), so v3 writes 'status: n-a' into the generated acceptance.md and v2's own linter rejects it L1 -- three of four variants coincide, which is what hid it",
+  "status": "closed",
+  "severity": "high",
+  "created": "2026-08-17",
+  "reporter": "matts"
+}

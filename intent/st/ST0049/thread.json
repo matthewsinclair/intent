@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0049",
+  "title": "Comprehensive 2.13.0 release note: how MAAC works",
+  "slug": "comprehensive-2-13-0-release-note-how-maac-works",
+  "status": "completed",
+  "created": "2026-06-29",
+  "completed": "2026-06-29",
+  "objective": "Author the comprehensive, retroactive v2.13.0 release note -- the canonical user-facing \"how the multi-agent agentic coding (MAAC) workstream works\" document. v2.13.0 introduced the MAAC command surface but shipped without a release note, and the `docs/releases/` series had lapsed after 2.9.0. This note covers the system end to end: the Protocol 3.0 whiteboard, the `/in-whiteboard` skill, and the `intent claude ws` / `intent claude start` commands.",
+  "context": "`docs/releases/` lapsed after 2.9.0 (2.10.0 through 2.13.0 never got notes). hv ruled: do not backfill 2.10-2.12, but author a comprehensive note for 2.13.0 because it introduced the MAAC workstream system, which is complex and needs explicit how-it-works docs. This ships in the 2.13.1 cut alongside the ST0048 gate fix.\n\nPure authorial task: this thread carries `acceptance: exempt` (the first real consumer of ST0048's exemption marker) -- hv reviews the note's accuracy as part of the release, rather than via a formal AC contract. Source: `intent/history/v2.13.0.md` (ST0047) + `v2.12.0.md` (ST0045 Protocol 3.0) + the `/in-whiteboard` skill + `intent/whiteboard/README.md`.",
+  "body": "## Related Steel Threads\n\n- ST0047 -- shipped the `intent claude ws` / `start` command surface this note documents.\n- ST0045 -- shipped Whiteboard Protocol 3.0 (v2.12.0), the model this note explains.\n- ST0048 -- the acceptance-gate fix; its `acceptance: exempt` marker is dogfooded by this thread; both ship in 2.13.1.",
+  "preamble": ""
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 2,
+  "slug": "intent-todo-shows-for-a-non-canonical-status",
+  "title": "intent todo shows [?] for a non-canonical status string",
+  "status": "closed",
+  "severity": "low",
+  "created": "2026-07-10",
+  "reporter": "matts"
+}
