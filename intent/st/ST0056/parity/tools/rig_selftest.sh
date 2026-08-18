@@ -243,9 +243,15 @@ echo
 # than measured. Printing it bare would make a hand count look like a measurement,
 # which is the defect this whole directory keeps finding.
 DRIVEN_TOTAL="$(printf '%s\n' "$CASES" | grep -c '|')"
-echo "rig-selftest: SCOPE -- this drives $DRIVEN_TOTAL of the rig's 24 refusal sites."
-echo "  24 is RECORDED, not measured: a hand count, unreproduced by any mechanical"
-echo "  count of the rig. The 6 undriven sites are named in this file's header under"
+echo "rig-selftest: SCOPE -- this drives $DRIVEN_TOTAL (COMPUTED, from the case table below)"
+echo "  of the rig's 24 (RECORDED -- a hand count, and a claim carrying no evidence)."
+echo "  WHAT WOULD DERIVE THE 24, and does not exist: a declared marker on each refusal"
+echo "  site in interrupt_rig.sh, countable mechanically. Absent that definition there is"
+echo "  nothing to count against, and four probes give four answers -- \`exit 2\` 6,"
+echo "  die-calls 42, both 30, and vc's fourth 47. NONE of them is 24. Until the rig"
+echo "  declares its own refusal sites, this ratio pairs a derived number with an"
+echo "  underived one and the two are deliberately labelled differently."
+echo "  The 6 undriven sites are named in this file's header under"
 echo "  'WHAT THIS DOES NOT DRIVE' -- five need a non-override run (a clone and a"
 echo "  cargo build), the rest are out of a stub's reach. A green below covers none"
 echo "  of them, and \`rev_with_override\` does NOT drive \`cannot resolve --rev\`."
