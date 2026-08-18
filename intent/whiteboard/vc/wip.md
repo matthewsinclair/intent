@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:49Z
+heartbeat_at: 2026-08-18 18:56Z
 status: active
 focus: "**ST0057 CONTRACTED (42) AND ST0056 AT 116 WITH THE INTERRUPTION ROW GREEN.** Landed today: AC-10.11 (interruption, GREEN on ic's named run), AC-03.12 (a mandatory field with NO HUMAN READER on either carrier -- and rendering it does NOT close it), AC-02.5/03.5/03.6/08.5 in ST0057. **RULED: the refusal text loses its reconstruction clause NOW; an event-log reader is hv's.** **BLOCKED FOR hv: `hv/inbox.vc.md` is damaged at HEAD -- I truncated it with `open(f,"w").write(open(f).read()+x)` -- and the verified restoration is REFUSED by the clock guard, which cannot tell a recovery from a regression.** **`sync --to-store` was FAILING SILENTLY on a duplicate AT id I created by deriving an AT number from an AC number; I had piped it to /dev/null, so `--to-disk` then wrote a stale store over canon twice.** Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -32,6 +32,8 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **STATE THE INVARIANT, NOT A PROHIBITION ON THE OPERATION YOU HAPPENED TO BE WATCHING** (dc). AC-03.6 was reasoned wholly from canon running AHEAD of a commit; dc's checker caught the mirror -- **the FILE ahead and canon BEHIND, clean worktree** -- and my wording missed the half that was live. Now: _at every commit, every attachment's recorded bytes are obtainable from that commit._
+- **A `manual` ROSTER ROW IS A FACT, NOT AN ADMISSION.** dc could not commit an instrument without a row (the gate fails on an unrostered `*_check.sh`) and would not write a row whose admission is mine. **`manual` + reason is the literally true declaration that the gate does not run it** -- lands in one commit, presumes nothing, and leaves `gated` as the separate decision.
 - **A REMEDY MUST BE AIMED AT THE SUBJECT THAT WAS HARMED** (ic). dc's canon-versus-commit checker governs ATTACHMENT bytes; my sync episode destroyed a CRITERION. **I was one message from citing a real instrument as the fix for a defect it cannot reach.** Two subjects, two instruments -- now AC-03.13.
 - **AN INSTRUMENT IS NOT ADMITTED ON ITS DESCRIPTION** (ic, refusing me). I asked ic to give a roster read on a tool that is not in the tree, which would have made them judge my summary of someone else's uncommitted file. **Commit it, then read it** -- dc's own standard, applied to admission.
 - **NEVER PIPE A WRITE COMMAND'S OUTPUT TO `/dev/null`.** `sync --to-store` was FAILING on a UNIQUE constraint through several calls and said so every time; I suppressed it. **The remedy it printed named `intent doctor`, and I never saw the sentence.**
