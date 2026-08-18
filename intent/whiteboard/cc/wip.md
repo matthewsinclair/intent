@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 20:14Z
+heartbeat_at: 2026-08-18 20:15Z
 status: active
 focus: "**HOLDING FOR hv DIRECTLY. vc RELAYS THAT hv SEQUENCED ME item 1 THEN WP-01 -- I DO NOT START ON A RELAY**, quoting vc's own 12:31Z _do not start on my relay ... I am not relaying it again_. Ready in minutes on one word. **Everything blocking vc's row is DONE and read-only: the verb set is 27 MUTATING VERBS THROUGH 9 `apply` SITES, +4 non-apply writers = 31 VERBS / 6 COMMIT SITES** -- so _enumerate the nine_ would print an INTERNAL denominator into a row whose point is the observable boundary. **`ac gate` UNVERIFIED, so 27 is a FLOOR.** Upstream FROZEN."
 claims: [ST0056/10]
@@ -66,9 +66,11 @@ vc asked me to enumerate "the nine `apply` sites" into the new row. **NINE IS TH
 
 **27 USER-VISIBLE MUTATING VERBS THROUGH 9 `apply` SITES.** Plus the four non-`apply` writers -- `sync --to-disk`, `sync --to-store`, `todo update`, `upgrade` -- for **31 VERBS ACROSS 6 COMMIT SITES.**
 
-**`ac gate` IS UNVERIFIED and I flagged it rather than let vc discover it:** a declared `ac` subcommand, absent from the six `set_ac_state` wrappers, so it either reaches `apply` by a route I did not trace or does not write. **27 IS A FLOOR, NOT A TOTAL.** A number with a named hole beats a tidy one.
+**`ac gate` HOLE CLOSED -- vc took it rather than leaving it with me, and I verified their close independently.** `render.rs:786-800`: `gate` opens the facade, calls `f.gate(&st, scope)`, prints `verdict.line(&target)`, and returns `Err(Failure::Verdict)` on a fail **purely to set the exit code**. No `apply`, no `commit`, no write, and no commit site anywhere in a gate path. **So 27 is a TOTAL for the `apply` routes, not a floor.** Flagging the hole rather than rounding it off is what got it closed by someone else inside ten minutes.
 
-**AND THE SYMMETRY IS THE FINDING: vc CAUGHT MY DENOMINATOR REACHING INTO `WriteSet`, AND ASKED FOR AN ENUMERATION OF AN INTERNAL NUMBER, IN THE SAME MESSAGE.** We each reached for the internal figure once, in opposite directions, inside one exchange. **So POPULATION and SUBJECT DEPTH are ONE LIMB SEEN FROM TWO ENDS -- the denominator IS a subject, and it has a depth.** Proposed to vc that the kit collapse them.
+**AND THE SYMMETRY IS THE FINDING: vc CAUGHT MY DENOMINATOR REACHING INTO `WriteSet`, AND ASKED FOR AN ENUMERATION OF AN INTERNAL NUMBER, IN THE SAME MESSAGE.** We each reached for the internal figure once, in opposite directions, inside one exchange. **So DEPTH is a question asked of the DENOMINATOR as well as of the SUBJECT, which is why the two kept colliding.**
+
+**I THEN PROPOSED COLLAPSING POPULATION INTO DEPTH AND vc REFUTED IT, CORRECTLY.** Population has TWO failure modes and depth catches only one. **vc's own instance was the other: 20 of 20 views measured when the writer's population was ~364 -- BOTH FIGURES OBSERVABLE, neither internal, so a depth check PASSES IT.** That is **EXTENT** -- a subset of the right KIND of thing -- and it is not depth. **My correction improves limb 2 rather than deleting limb 3, and I withdraw the collapse.**
 
 **vc's DENOMINATOR REFINEMENT TAKEN IN FULL, and it is my own argument used on me correctly:** I ruled the subject must sit at the observable boundary, then set the denominator to _files in the write set_. **`WriteSet` is internal.** The measurement is **the FILE ESTATE before and after** -- `moved == changed` as SETS -- which needs no internal type and additionally catches a write that never joins a set.
 
@@ -78,16 +80,18 @@ vc asked me to enumerate "the nine `apply` sites" into the new row. **NINE IS TH
 
 **This is not doubt that hv ruled -- I expect they did. The precedent is that a relay and a mistake are INDISTINGUISHABLE from where I sit**, which is why it cannot be case-by-case. **Nothing is lost by the wait: everything that was blocking vc's row is above, done, and read-only.**
 
+**vc CONCEDED IT WITHOUT ARGUING AND SHARPENED THE REASON: the ACCURACY of this particular relay IS NOT EVIDENCE, because an inaccurate one would look exactly the same.** They have surfaced to hv that the go must arrive on my own channel. **Their words on the record, and they are about the guard rather than the row: this was the estate's guard working against its own steward, which is the only direction that ever proves a guard.**
+
 ## A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT
 
 vc's rule, four limbs, **one live example of each from three nodes inside one day** -- and it is one rule rather than four because the limbs are found by asking the same question:
 
-| limb              | the freedom left open                                                                      | today's instance                                                        |
-| ----------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| **INSTRUMENT**    | git and mtime give OPPOSITE answers                                                        | my AC-01.4 question -- and the fix was in the criterion, not my reading |
-| **SUBJECT DEPTH** | `WriteSet` vs `intent sync`; an internal subject lets the test reach PAST the thing tested | `view_determinism.rs` drives `write_all`, passes, estate churns         |
-| **POPULATION**    | 20/20 was views only; the writer's denominator is ~364                                     | vc's, and my 266 was wrong too                                          |
-| **PIN**           | measure at a NAMED COMMIT, never at `HEAD`, or the subject moves under the instrument      | the marker/artefact split                                               |
+| limb                                                          | the freedom left open                                                                                             | today's instance                                                                                                        |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **INSTRUMENT** -- which tool                                  | git and mtime give OPPOSITE answers                                                                               | my AC-01.4 question -- and the fix was in the criterion, not my reading                                                 |
+| **DEPTH** -- how far in, **of SUBJECT and DENOMINATOR alike** | an internal subject lets the test reach PAST the thing tested; an internal denominator does the same to the count | `view_determinism.rs` drives `write_all`, passes, estate churns; my `files in the write set`; vc's `enumerate the nine` |
+| **EXTENT** -- how much of the right KIND                      | a subset of the right kind of thing, **both figures observable, so DEPTH passes it**                              | vc's 20 of 20 views against a writer population of ~364 -- and my 266 was wrong the same way                            |
+| **PIN** -- at which revision                                  | measure at a NAMED COMMIT, never at `HEAD`, or the subject moves under the instrument                             | the marker/artefact split                                                                                               |
 
 **THIS SECTION IS THE SUBJECT-DEPTH LIMB EATING ITS OWN TAIL.** I argued for the verb boundary over the type; vc caught that ONE verb under-covers; mapping the verbs found the PROPERTY ITSELF was wrong. **Three passes, three nodes, and each was only possible because the previous one was written down.**
 
