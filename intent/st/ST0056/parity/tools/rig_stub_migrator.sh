@@ -25,6 +25,43 @@
 # is the whole subject of two of the five cases.
 set -uo pipefail
 
+# THE STUB PLAYS ALL THREE OF THE RIG'S PARAMETERISED COMMANDS, because they are
+# one concern -- "a command the rig runs, whose behaviour is chosen" -- and three
+# files would be three places to look for the same idea. The role is the first
+# argument; without one it is the migrator.
+#
+#   rig_stub_migrator.sh          the migration       STUB_MODE
+#   rig_stub_migrator.sh read     the liveness probe  STUB_READ_MODE   ok|dead
+#   rig_stub_migrator.sh store    the store read      STUB_STORE_MODE  see below
+#
+# STUB_STORE_MODE, and every value exists to drive one arm of the store block:
+#   same        identical bytes, `events: []`          -- STORE: IDENTICAL
+#   differ      a per-arm value, `events: []`          -- STORE: DIFFERENT, exit 1
+#   live        `events` non-empty                     -- NOT JUDGED, exit 2
+#   nokey       no `events` key at all                 -- premise refusal, exit 2
+#   dead_b      fails in b-interrupted only            -- exactly one arm answers, exit 1
+ROLE="${1:-migrate}"
+ARM_NOW="$(basename "$PWD")"
+
+if [ "$ROLE" = "read" ]; then
+  case "${STUB_READ_MODE:-ok}" in
+    dead) echo "stub-read: this estate cannot be opened" >&2; exit 4 ;;
+    *)    echo "stub-read: ok"; exit 0 ;;
+  esac
+fi
+
+if [ "$ROLE" = "store" ]; then
+  case "${STUB_STORE_MODE:-same}" in
+    live)   printf '{"threads":[],"events":[{"id":"01J0","op":"thread.create"}]}\n' ;;
+    nokey)  printf '{"threads":[]}\n' ;;
+    differ) printf '{"threads":["%s"],"events":[]}\n' "$ARM_NOW" ;;
+    dead_b) [ "$ARM_NOW" = "b-interrupted" ] && { echo "stub-store: no store here" >&2; exit 5; }
+            printf '{"threads":[],"events":[]}\n' ;;
+    *)      printf '{"threads":[],"events":[]}\n' ;;
+  esac
+  exit 0
+fi
+
 MODE="${STUB_MODE:-pass}"
 N="${STUB_N:-40}"
 DELAY="${STUB_DELAY:-0.02}"
