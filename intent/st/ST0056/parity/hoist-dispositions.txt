@@ -1,0 +1,135 @@
+carried (converts as-is, no action):
+carried: intent/st/COMPLETED/ST0020/WP/09/info.md -- unknown-scope -- work-package scope "Medium-Large" is outside the T-shirt enum, so it is carried verbatim as legacy rather than guessed at
+carried: intent/st/COMPLETED/ST0023/WP/01/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/02/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/03/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/04/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/05/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/06/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/07/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+carried: intent/st/COMPLETED/ST0023/WP/08/info.md -- field-not-recorded -- this work package predates the frontmatter convention: no status was ever recorded
+sections not carried as-is:
+  intent/st/ST0056/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/04/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/05/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/06/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/07/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/08/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/09/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/10/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/11/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/12/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/13/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/ST0056/WP/15/info.md -- ## Acceptance -- deferred -- this work package authors its own acceptance pointer, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/ST0056/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/ST0056/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0012/info.md -- ## Related Steel Threads -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0017/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0018/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0019/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0020/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0022/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0023/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0026/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0027/WP/01/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0027/WP/01/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0027/WP/02/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0027/WP/02/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0027/WP/03/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0027/WP/03/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0031/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0031/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0034/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0035/info.md -- ## Work Packages -- deferred -- this thread authors its own section under a heading the renderer also generates, so the generated one stands down: canon is unchanged and the view carries the author's
+  intent/st/COMPLETED/ST0040/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0041/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0042/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0043/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0044/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0045/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0045/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0047/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0047/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0047/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0047/WP/04/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0047/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0047/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/01/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/01/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/02/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/02/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/03/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/WP/03/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0048/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0048/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0049/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0049/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0050/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0050/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0051/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0051/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0052/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0052/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0052/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0052/WP/04/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0052/WP/05/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0052/WP/06/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0052/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0052/info.md -- ## Related Steel Threads -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0052/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/01/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/01/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/02/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/02/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/03/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/03/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/04/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/04/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/04/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/05/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/05/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/05/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/06/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/06/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/WP/06/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0053/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0053/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/01/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/01/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/02/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/02/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/03/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/WP/03/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0054/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0054/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/01/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/01/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/01/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/02/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/02/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/02/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/03/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/03/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/03/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/04/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/04/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/04/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/05/info.md -- ## Deliverables -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/05/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/WP/05/info.md -- ## Dependencies -- dropped -- byte-identical to `lib/templates/prj/st/WP/info.md` at 0b1b3b5b with `WP-NN` substituted per `bin/intent_wp:113`: no author wrote it
+  intent/st/COMPLETED/ST0055/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0055/info.md -- ## Related Steel Threads -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/COMPLETED/ST0055/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/NOT-STARTED/ST0046/info.md -- ## Acceptance -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
+  intent/st/NOT-STARTED/ST0046/info.md -- ## Context for LLM -- dropped -- byte-identical to `lib/templates/prj/st/ST####/info.md` at 0b1b3b5b: no author wrote it
