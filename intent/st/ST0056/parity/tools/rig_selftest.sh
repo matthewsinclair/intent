@@ -39,12 +39,6 @@ set -uo pipefail
 # NOT. The rig has 24 refusal sites; these are the ones nothing here reaches, and
 # a green below says nothing about any of them:
 #
-#   REACHABLE, JUST NOT WRITTEN YET
-#     the workdir-inside-this-repository guard -- the ledger owns the workdir
-#     path, so driving it means handing the rig one inside the checkout. It is
-#     the guard that stops the rig migrating the live repository with four
-#     sessions working in it, and it is the most consequential undriven one.
-#
 #   NEEDS A NON-OVERRIDE RUN, SO A CLONE AND A BUILD
 #     `cannot resolve --rev`, the clone failures, the dirty-clone assertion,
 #     the cargo build failure, the per-tree config-marker assertion.
@@ -54,7 +48,7 @@ set -uo pipefail
 #     reachable but costs 120s a run; the kill-already-finished race (825) and
 #     the not-137 exit (828), both of which need a race won on purpose.
 #
-# SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE. 17 of 24, and the seven are
+# SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE. 18 of 24, and the six are
 # named above rather than left for a reader to discover by not finding them.
 
 
@@ -100,6 +94,7 @@ echo
 # with a syntax-error budget, which is exactly how both of this morning's defects
 # lived through four fleet estate runs.
 CASES='
+workdir_in_repo|pass|||1||2|is inside this repository|THE ONLY UNDRIVEN REFUSAL WHOSE FAILURE IS NOT RECOVERABLE BY RE-RUNNING: the guard that stops the rig migrating the checkout it is developed in, with four sessions working in it. Scored on containment as well as on the exit code, because a refusal that fired for another reason would also exit 2
 pass|pass|||||0|GATE ARM PASSED|the rig can report green when the property holds -- the control, without which every red below is a fixture that only knows one answer
 diverge|diverge|||||1|GATE ARM FAILED|the verdict is coupled to the bytes: a migrator stamping a per-run nonce cannot make the two arms agree
 nosentinel|nosentinel|||||2|interrupted NOTHING|the vacuous-kill refusal fires when the run ends without reaching the sentinel -- THE PATH b96188d1 BROKE
@@ -121,11 +116,37 @@ bad_member|pass||||--member no-such-member|2|could not capture|an estate the cor
 
 PASSES=0; FAILS=0; LEDGER=""
 
-while IFS='|' read -r name mode store_mode read_mode _spare extra_args want_exit want_phrase claim; do
+while IFS='|' read -r name mode store_mode read_mode wd_in_repo extra_args want_exit want_phrase claim; do
   [ -n "$name" ] || continue
   [ -z "$ONLY" ] || [ "$ONLY" = "$name" ] || continue
 
-  wd="$WORKROOT/$name"
+  # A WORKDIR INSIDE THE RIG'S OWN REPOSITORY IS A CASE, NOT AN ACCIDENT.
+  #
+  # The guard it drives is the one that stops the rig migrating the checkout it
+  # is developed in -- `Project::discover` walks `ancestors()` from the tree
+  # being migrated, so a workdir here puts the live repository on that path.
+  # **It is the only refusal on this file's undriven list whose failure is not
+  # recoverable by re-running**, which is why vc asked for it ahead of the five
+  # that need a clone and a build.
+  #
+  # THE RIG CREATES THE WORKDIR BEFORE IT CHECKS IT (`mkdir -p` at the top, the
+  # containment test twenty lines later), so this probe directory really does
+  # appear inside the repository for the length of one refusal. That is why the
+  # case asserts afterwards that it is still EMPTY: an empty directory means the
+  # guard fired before anything was built in it, and git does not track empty
+  # directories so nothing is left behind either way.
+  #
+  # **DRIVE THIS AGAINST A THROWAWAY CLONE BEFORE YOU DRIVE IT HERE.** If the
+  # guard is broken, running it against the live checkout IS the damage -- and
+  # the three refusals driven on 2026-08-18 were all defective, so "it is
+  # obviously fine" is precisely the assumption that had already failed.
+  if [ -n "$wd_in_repo" ]; then
+    rig_root="$(cd "$(dirname "$RIG")" && git rev-parse --show-toplevel 2>/dev/null)"
+    [ -n "$rig_root" ] || die "case $name needs the rig's repository root and git would not name one"
+    wd="$rig_root/.rig-selftest-inside-repo-probe"
+  else
+    wd="$WORKROOT/$name"
+  fi
   rm -rf "$wd"; mkdir -p "$wd" || die "cannot create $wd"
 
   # EMPTY MEANS THE ARM DOES NOT RUN, which is a case in itself: the rig must say
@@ -149,6 +170,22 @@ while IFS='|' read -r name mode store_mode read_mode _spare extra_args want_exit
   got_phrase=no
   grep -qF "$want_phrase" "$wd/run.log" && got_phrase=yes
 
+  # THE EXIT CODE IS NOT THE PROPERTY HERE. A refusal that fired for some other
+  # reason would also exit 2, so the case additionally measures what the guard
+  # exists to prevent: did anything get BUILT inside the repository. Anything
+  # beyond the run log this ledger redirected into it is the guard having failed
+  # while still returning the right number.
+  if [ -n "$wd_in_repo" ]; then
+    stray="$(find "$wd" -mindepth 1 ! -name run.log 2>/dev/null | wc -l | tr -d ' ')"
+    if [ "$stray" -ne 0 ]; then
+      echo "  CONTAINMENT: **$stray ENTRIES WERE BUILT INSIDE THE REPOSITORY** at $wd -- the guard did not stop the run."
+      find "$wd" -mindepth 1 ! -name run.log 2>/dev/null | head -10 | sed 's/^/      /'
+      got_phrase=no
+    else
+      echo "  CONTAINMENT: nothing was built inside the repository -- the guard fired before the workdir was used."
+    fi
+  fi
+
   if [ "$got_exit" -eq "$want_exit" ] && [ "$got_phrase" = yes ]; then
     verdict="AS PREDICTED"; PASSES=$((PASSES + 1))
   else
@@ -160,12 +197,17 @@ while IFS='|' read -r name mode store_mode read_mode _spare extra_args want_exit
   # for a reason nobody read is the same problem in a better mood.
   tail -6 "$wd/run.log" | sed 's/^/      /'
   echo "      full log: $wd/run.log"
+  # A probe directory inside the repository does not outlive its case. Copied
+  # out first so the log survives for reading, then removed.
+  if [ -n "$wd_in_repo" ]; then
+    mkdir -p "$WORKROOT/$name" && cp "$wd/run.log" "$WORKROOT/$name/run.log" 2>/dev/null
+    rm -rf "$wd"
+    echo "      probe directory removed from the repository; log copied to $WORKROOT/$name/run.log"
+  fi
   echo
   LEDGER="$LEDGER
   $(printf '%-14s want exit %s  got %-3s  phrase %-3s  %s' "$name" "$want_exit" "$got_exit" "$got_phrase" "$verdict")"
 done <<EOF
-$CASES
-EOF
 $CASES
 EOF
 
