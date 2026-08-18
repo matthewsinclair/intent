@@ -643,3 +643,43 @@ vc measured `dispatch_ssot` dirtying the estate; I ran the same suite and got a 
 ### The day's shape, for whoever reads this cold
 
 **Four defects, none expressible by the suite**, and every one found by a person or a peer USING the tool rather than by a test: the rung-10 shape collision, the `st cancel` -> `doctor` contradiction, the `Triage -> Wip` ergonomics, and `created:` rewriting a tracked index while printing one word. 620 passing legs and not one of them creates a thread, cancels it, and asks the tool what it thinks. **The suite is not weak -- it is answering a different question, and finding out which question that is was the day's real output.**
+
+# cc history -- archived 2026-08-18 15:57Z (localfold, aggressive)
+
+Rolled out of the live board after WP-03's carry landed and was committed.
+
+## DONE 2026-08-18 15:14Z -- THE CARRY LANDED, AND "THE REGENERATION" NEVER EXISTED
+
+**Commits: `86b74b6c` (code), `d980e5b5` (carry), `9a487cc9` (issue bodies), `69033e4e` (ST0057).** Suite 623/0 at the code commit. Binary that ran the carry, verbatim: `dirty-ce532a979fb735aab2da599f4a2b12efe4491e5c`.
+
+**THE HEADLINE: hv's step 4 was not a verb.** "Regenerate the estate" had an acceptance criterion describing a re-ingest from v2 SOURCE. The v2 status buckets were collapsed at `1af21f4e`, so no such source is in the live tree. **Four boards carried it as an approved action with a pinned sequence, and nobody had established what command performed it.** vc found it after I refused to guess at the irreversible step. **The write-back I had queued BEHIND the regeneration turned out to BE it.**
+
+**THE CARRY: 275 eligible / 275 carried / 0 missing / 0 byte-mismatched. Store 0 -> 275.** 56 of 57 threads (the 57th has no eligible file). 106 paths moved of 1330; nothing moved that should not have -- zero `acceptance.md`, zero `todo.md`, zero `steel_threads.md`.
+
+**THE COST: `sync --to-store` wiped 40 issue bodies, and the alarm had already fired.** It named all 40 under _"replacing the store from the extract OVERWRITES"_ before doing anything. **I read the list, recognised it as the expected 40, and classified a correct RED as the expected direction.** AC-03.9 worked perfectly and the operator pattern-matched past it. Recovered 40/40 from a snapshot vc had MOVED rather than deleted; `data-model.md` and the schema had disagreed about where a body lives, both went unimplemented, and 434KB sat in a gitignored store, never canon (D29), never travelling (D34), absent from every clone since the hoist. **The run destroyed the last live copy of data that was already not travelling.**
+
+**STEP 4a IS CORRECT AND UNREACHABLE.** `legacy::preamble` no longer leaves the blank line where it cut the title out, mutation-proved against the estate's own bytes -- **and it is in the MIGRATOR, which this estate will never run again.** ST0010/ST0015 still render the extra line. A fix pointed at a door nobody walks through.
+
+**SKEW CLOSED AFTER THE COMMITS.** `sync --to-store` re-run: store now 40/40 bodies (434,357 bytes) and 275 attachments; canon unchanged; `git status` clean for issues. **While canon was the richer side, `--to-disk` -- the SILENT direction with no warning banner -- was the destructive one.** That inversion is worth remembering: the posture of the two commands is not fixed, it depends on which side is richer.
+
+## AFTER THE CHECK-IN -- three findings the commits themselves produced
+
+**SEVEN COMMITS: `86b74b6c` code, `d980e5b5` carry, `9a487cc9` issue bodies, `69033e4e` ST0057, `f0a25d8c` boards, `fd2e4067` the WP covers, `4ef953db` restart/critic-gate/deferred.** Suite 623/0 at HEAD.
+
+### `git commit --only <dir>` ON AN UNTRACKED DIRECTORY STAGES NOTHING, AND REPORTS A TRUE COUNT
+
+`git commit --only intent/st/ST0057/` committed the tracked files beside eight untracked `WP/NN/info.md` and said **"4 files changed"**. That number was correct about its inputs and silent about my intent. **A commit's file count is a fact about what it committed, never about what you meant to commit** -- the only check is reading `git status` afterwards. Fixed at `fd2e4067`; it would have shipped a thread whose work packages existed on disk and in no clone.
+
+### THE `views::info` BLANK LINE IS LIVE CHURN, NOT A STATIC DEFECT -- AND MY FIX CANNOT REACH IT
+
+Every `sync` re-renders the extra line into ST0010/ST0015; **the commit hook's formatter strips it.** So HEAD is correct, the worktree regenerates the defect after every sync, and the file reappears in `git status` forever. **`legacy::preamble` is the MIGRATOR and this estate will never be migrated again**, so the reachable repair is a CANON DATA FIX -- collapse the `\n\n\n` in those two threads' stored `preamble`. That is a hand-edit of canon, which is WP-08's mutation-surface gap, so it wants doing deliberately rather than at the end of a session. **Queued, not done.**
+
+### THE DIVERGENCE DETECTION WORKS, AND I HAVE A LIVE INSTANCE RATHER THAN AN ARGUMENT
+
+The verifier reported `BYTE-MISMATCHED: 1` on `ST0056/deferred.md` -- canon 28,938 bytes, disk 29,111, a 173-byte edit landing after the last sync. **This is exactly the property I nearly destroyed**: with the collection in shared `read()`, disk always won, canon could never disagree with a file, and 5.1b's rule had nothing to fire on. **A system that cannot be wrong cannot be checked.** I left the red standing rather than clearing it with a `sync --to-store` that would have swept vc's in-flight `data-model.md` into canon mid-edit -- same call as not rewriting three failing tests this morning.
+
+## THE GATE IS NO LONGER DARK (dc, `15:32Z`) -- MY NEXT COMMIT IS THE FIRST LINTED ONE SINCE THE HOIST
+
+`bin/intent:55` now carries `critic` in `GLOBAL_COMMANDS`. **`bin/intent` is my FROZEN lane and dc changed it with hv's approval and an announcement to me first** -- which is the protocol working, not a crossing. The five `invocation error (exit 2); fail-open.` lines are gone: languages returning rc=2 went 5 -> 0.
+
+**AND THE HALF THAT MATTERS FOR ME: `critic rust` and `critic shell` still arm ZERO rules (0 of 6, 0 of 7).** A green from either means **"nothing asked a question"**, not "clean" -- and I move more `.rs` than anyone. Half B is scoped, not built.
