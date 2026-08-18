@@ -17,10 +17,38 @@ use std::process::Command;
 
 use intent_cli::dispatch;
 
+/// A directory that is inside NO Intent project, shared by every invocation in
+/// this file that does not build a project of its own.
+///
+/// WHY THIS EXISTS, AND IT IS NOT HYGIENE. `intent` finds its project by walking
+/// UP from the process cwd, and a test binary's cwd is the crate root -- which
+/// is inside Intent's own estate. Three invocation sites here inherited it, so
+/// running this target against the real repo CONVERTED the real repo: it created
+/// `intent/.cache/intent.db`, wrote all 40 issue bodies, and rewrote
+/// `ST0010/info.md` and `ST0015/info.md`, in a single pass, **while reporting a
+/// full green** (found by dc live on the working tree, reproduced by vc in a
+/// clean clone and bisected to this target, 2026-08-18; the write burst carries
+/// one mtime to the second).
+///
+/// THE PART WORTH KEEPING. `no_unbuilt_command_leaks_intents_own_project_state`
+/// below was written to prevent exactly this and uses a tempdir to do it -- in
+/// the SAME FILE as three sites that did not. A guard stated against one
+/// mechanism does not bind a different mechanism with the same effect, and a
+/// reader checking for the guard finds one and stops. The remedy is therefore a
+/// shared helper rather than a third correct call site: a future invocation that
+/// forgets `.current_dir` is the same defect again.
+fn outside_any_project() -> &'static std::path::Path {
+  static DIR: std::sync::OnceLock<tempfile::TempDir> = std::sync::OnceLock::new();
+  DIR
+    .get_or_init(|| tempfile::tempdir().expect("tempdir"))
+    .path()
+}
+
 fn help(args: &[&str]) -> String {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .arg("--help")
+    .current_dir(outside_any_project())
     .output()
     .expect("run the v3 binary");
   format!(
@@ -416,8 +444,11 @@ fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
     if !entry.is_shipped() {
       continue;
     }
+    // BARE, so it reaches the dispatcher rather than clap's help -- which is
+    // precisely why this site, and not the `--help` ones, did the writing.
     let out = Command::new(env!("CARGO_BIN_EXE_intent"))
       .arg(&family.name)
+      .current_dir(outside_any_project())
       .output()
       .expect("run the v3 binary");
     let text = format!(
@@ -788,6 +819,7 @@ fn a_retired_rows_alias_does_not_come_back() {
 fn run_raw(args: &[&str]) -> String {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
+    .current_dir(outside_any_project())
     .output()
     .expect("run the v3 binary");
   format!(
