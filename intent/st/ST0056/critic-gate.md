@@ -46,6 +46,18 @@ All 8 bats failures are the version guard, at `critic_report_format.bats` 219-22
 
 **So one word does three things: un-darkens the gate, turns the suite green, and leaves the guard intact.**
 
+### The `4/4` is NOT 4/4 of what matters -- test 2 is vacuous BY CONSTRUCTION
+
+**ic raised the principle: prove whatever lands by making a critic FAIL on purpose, because a gate that goes green after the fix is the same evidence it was giving while dark. Driven against the rig, it is worse than a caution -- it is already true of one of the four.**
+
+The rig's test 2 asserts `rc=0 or 1`, labelled _"the critic actually ran"_. **`rc=0` is exactly what the dark gate returns**, so the pass condition does not separate "ran and found nothing" from "did not run". It was already caught returning a vacuous `rc=0` once, with nothing staged.
+
+**And the two halves interact, which is the part neither of us saw separately: test 2 runs `critic shell`, and Half B says shell has 0 of 6 rules armed. So `critic shell` returns `rc=0` whether it ran perfectly or not at all.** Test 2 picked the one language where its own assertion is unfalsifiable. Half B is not merely a ceiling on the fix -- **it is what makes the headline evidence for Half A untrustworthy.**
+
+Tests 1, 3 and 4 are sound and unaffected: the control reproduces `rc=2`, and `st list` / `wp list` still refuse with the guard intact.
+
+**Re-drive requirement, and this is the one that must not be dropped: test 2 uses `elixir` -- the only armed pack -- against a STAGED deliberate violation, and must assert `rc=1` with a named finding.** A zero is not a result until the check has produced a non-zero. **The end-to-end proof is the hook BLOCKING a commit it should block**, not the critic exiting 0.
+
 ### Provenance -- RE-DRIVE THESE, DO NOT CITE THEM
 
 **The figures above were driven on 2026-08-18 and the commit they were driven at was NOT recorded.** That is a defect in the record rather than a hedge: a record names the commit it covers. `native/rust` moved substantially the same day and rung 11 landed after the run, so the tree under the arms is not the tree a pickup will have. **vc raised this before the numbers were carried, so it is a known limit and not a discovered one.**

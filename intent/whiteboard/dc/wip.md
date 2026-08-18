@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-18 09:18Z
-status: paused
-focus: "four bin/** items with hv; the critic gate is dark and the release never runs the Rust suite"
+heartbeat_at: 2026-08-18 10:46Z
+status: active
+focus: "hv APPROVED BOTH HALVES of the critic finding -- 'Ok do it' to each -- and then rebooted. NOTHING IS BUILT. The whole argument is primed for cold pickup at intent/st/ST0056/critic-gate.md (ce0ac764), corrected by me at this fold. Holding on hv instruction."
 claims: [ST0056/11]
 ---
 
@@ -30,16 +30,16 @@ claims: [ST0056/11]
 
 ## DOING
 
-Nothing in flight. Everything measured today is either with hv below or archived.
+Nothing in flight. Holding on hv's instruction while hv reboots.
 
-## TODO -- all four are `bin/**`, so all four are hv's
+## TODO
 
-1. **`sed -i '' 's/^GLOBAL_COMMANDS="help doctor/GLOBAL_COMMANDS="critic help doctor/' bin/intent`** (line 55). Three proofs: the gate's critic actually runs; the 8 red bats tests go green (0 fail / 28 pass, vs 8 / 20); `st list` and `wp list` still refuse at rc=2 so the guard is intact. **`critic` is read-only -- it never writes the project -- which is the structural classification `bin/intent:248` demands rather than a hand-written exemption.**
-2. **The shim: HOLD.** It does not fix the gate (both binaries exit 2 on `critic`); it **defeats** item 1 by routing away from v2's dispatcher; and it pointed at a schema-stale release binary. Built and driven three arms; install was refused by the harness and a peer cannot convert hv's "go for it" into a grant.
-3. **`cargo test` into the release pre-flight, ahead of `release:702`.**
-4. **`doctor` prints `intent v2.19.0` while auditing a 3.0.0-dev project** -- the version-appropriate doctor is the one that never runs.
+**THE CRITIC GATE IS APPROVED AND UNBUILT.** hv said _"Ok do it"_ to each half and then had to reboot. **Both halves, every figure, the shim ruling and the adjacent release item live at `intent/st/ST0056/critic-gate.md` (published `ce0ac764` by vc; corrected by me at this fold). It is written to be picked up COLD -- read it there, do not reconstruct the argument here.**
 
-**Ceiling on item 1, and it must travel with it: a repaired gate reports ELIXIR ONLY.** 0 of 6 shell rules and 0 of 7 rust rules carry a greppable proxy; elixir is 19 of 19 (positive control: 20 findings on 41 files). `critic_runner.sh:18` skips a proxy-less rule **silently**. Intent is 114 `.rs` + 57 `.sh` + 71 `bin/` scripts. **Necessary, not sufficient.** Arming shell/rust is a program: shellcheck 0.11.0 and clippy 0.1.97 are installed and the rules name their own SC codes, but `critic_proxy_is_simple()` accepts only a bare `grep`, so delegation needs a runner change. **293 shellcheck findings across 85 shell files (9 error) are what the dark gate has never mentioned** -- including `bin/intent_st:196`/`:211`, `for dir in $(find ...)` in the **steel-thread ID-allocation path**, violating Intent's own `no-parse-ls` rule.
+1. **Half A -- `sed -i '' 's/^GLOBAL_COMMANDS="help doctor/GLOBAL_COMMANDS="critic help doctor/' bin/intent`** (line 55). Approved. `bin/**`, so mine to build. **RE-DRIVE BOTH ARMS AT PICKUP HEAD BEFORE QUOTING ANY NUMBER** -- the recorded figures name no commit and rung 11 landed after them. **And the `4/4` is really 3/4: test 2 asserts `rc=0 or 1` on `shell`, which Half B says has 0 of 6 rules armed, so it cannot fail. Re-drive test 2 on `elixir` against a STAGED violation and assert `rc=1`.**
+2. **Half B -- re-arm the rust and shell proxy packs.** Approved in principle. **Real work, unscoped, and it must not be quoted as a one-liner.** ST0039 binds: a genuinely non-mechanical rule carries NO proxy rather than a misleading one.
+3. **The shim: HOLD.** It DEFEATS Half A by routing away from v2's dispatcher, and it pointed at a schema-stale binary. Measured separately, so the conflict is composition rather than inference.
+4. **Never put to hv, still mine to raise: `cargo test` into the release pre-flight** ahead of `release:702`; and **`doctor` prints `intent v2.19.0` while auditing a 3.0.0-dev project.**
 
 ## Watch-outs
 
@@ -56,6 +56,7 @@ Nothing in flight. Everything measured today is either with hv below or archived
 - **macOS: signing MUTATES the binary, notarisation does NOT -- checksum AFTER signing.** Only a quarantined copy under `spctl` means anything.
 - **`target/release/` IS SHARED MUTABLE STATE.** Private `CARGO_TARGET_DIR`; never sign there.
 - **A control refuses; documentation reminds; only one is load-bearing.** My own watch-outs are not controls.
+- **THE HALF-A CEILING NO LONGER LIVES ON THIS BOARD.** The shell / rust / elixir proxy-coverage table and its denominator are `## HALF B` in `critic-gate.md`, which is committed. **Two copies drift; the doc is the one -- and restating the figures here is where the drift would have started.**
 
 ## Decisions
 
@@ -73,3 +74,6 @@ Nothing in flight. Everything measured today is either with hv below or archived
 - **A RECORD NAMES THE COMMIT IT COVERS, NEVER "HEAD".**
 - **MIS-CREDITING TOWARD YOURSELF GETS CAUGHT; MIS-CREDITING AWAY FROM YOURSELF DOES NOT.**
 - **THE PUSH RESULT CARRIES NO INFORMATION ABOUT THE REMOTE IN EITHER DIRECTION.** Only `git ls-remote` plus `merge-base --is-ancestor` is evidence.
+- **A LOUD FAIL-OPEN IS STILL A FAIL-OPEN, AND THE NOISE IS WHERE IT HID.** `pre-commit.sh:288-292` has printed `intent critic (<lang>) invocation error (exit 2); fail-open.` **once per declared language on every commit since the hoist** -- five lines on my own `d84ac27f`, the commit documenting the finding. **A pickup hunting a SILENT defect would have concluded there was none.**
+- **A DOCUMENT WRITTEN FOR COLD PICKUP MUST CARRY ITS OWN STALENESS.** vc's re-drive caution arrived in a peer message, which archives; the numbers it qualifies sat in a committed doc, which does not. **The caveat has to live in the same file as the figure, or the figure outlives it.**
+- **A PASS CONDITION THAT ACCEPTS THE DEFECT'S OWN OUTPUT IS NOT A TEST.** My rig's test 2 accepted `rc=0` as "the critic ran", and `rc=0` is exactly what the dark gate returns -- **on `shell`, which Half B says has 0 of 6 rules armed, so the assertion is unfalsifiable by construction.** ic raised the principle from the outside; the instance was in my own rig. **The two halves interacted and neither of us could see it from one side.**
