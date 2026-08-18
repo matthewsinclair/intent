@@ -435,6 +435,14 @@
       "state": {
         "is": "computed"
       }
+    },
+    {
+      "id": "AC-01.7",
+      "text": "**AN OPENNESS DECLARATION MUST RESOLVE, NOT MERELY PARSE.** (cc 2026-08-18, found while applying the WP-01 patch, and declining to mint it themselves.) Every `-- openness: carried by <path>` in `schema/ddl.sql` names a path that EXISTS in the tree the face ships with -- checked by resolving each declared path, with the declaration count and the resolved count both printed. **`tests/openness.rs` DOES NOT CHECK THIS AND CANNOT.** Its `declaration_gaps` verifies that a table declares SOMETHING and that the string starts with `carried by ` or is `DERIVED -- <why>`; it never looks at the referent. **So after the relocation, 7 of the 8 declarations name a path that does not exist and the test stays GREEN** -- six `intent/st/<ID>/thread.json`, one `intent/issues/<NNNN>.json`; only `intent/events.jsonl` survives. **A check that validates the FORM of a claim and never its REFERENT is the same shape as every other instrument that could not go red tonight.** **AND THIS IS NOT A STALE COMMENT, IT IS A BROKEN CONTRACT ON A TRAVELLING ARTEFACT.** `ddl.sql` is a committed, versioned, GENERATED face (`SCHEMA_DDL_VER: 8`, master `store.rs`, regenerated via `INTENT_BLESS`), served by `intent schema ddl.sql`, and its own header states **_EVERY TABLE DECLARES HOW ITS DATA LEAVES_** and **_Absence of a declaration is never the answer_**. Under D34 the face travels while the DB never does, so **a consumer following the declaration to get their data out would follow it to nothing** -- and AC-02.6, the openness row, is the estate's DURABILITY mechanism. **A false statement about how to recover the data is strictly worse than no statement**, which is precisely what the openness block was written to prevent. The fix is mechanical because `store.rs` is the master; the criterion exists because **nothing today requires a declared path to still resolve after canon moves.** Pinned at `11fdc168`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "tests": [
@@ -875,6 +883,16 @@
       ],
       "status": "to-write",
       "note": "**Red-first arm is the historical bug, and it is free: `export.rs:386` spelled the canon path independently until cc's WP-01 build unified it.** Re-introduce any second independent spelling and the test must go red. **Drive it by configuring a NON-DEFAULT `intent_dir` and asserting every canon artefact lands under the resolver's answer** -- a site that spells the path itself lands somewhere else, which is the whole failure. **Assert the negative arm too: `thread_dir()` still answers `intent/st/<ID>/` and `info.md`/`acceptance.md` still resolve there**, or a wholesale move passes. **DO NOT ASSERT A COUNT** -- ic withdrew 3-of-17 as a measurement of their probe's reach (one directory of 41 against a repo-wide concern), and vc's narrowed 23 missed `export.rs` entirely. **Both fixtures named in AC-01.6 belong in this file as regression cases**, since each refutes a different sweep. **And the guard cc's board names for the live move is broken as written: bare `intent st list` returns 2, not 57** -- it defaults to in-progress only, `--all` is not a flag, and the invocation that reaches the estate is `st list --status all` (measured 57, breakdown 52 Completed / 2 Cancelled / 2 WIP / 1 NotStarted). The Done population is exactly what a canon move risks and it is structurally absent from the default output."
+    },
+    {
+      "id": "AT-01.7",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/openness.rs",
+      "covers": [
+        "AC-01.7"
+      ],
+      "status": "to-write",
+      "note": "**EXTENDS THE EXISTING FILE RATHER THAN ADDING ONE** -- `openness.rs` already owns the openness face and already parses the declarations; a second home would be the Highlander problem this estate keeps meeting. **Red-first is free and must be driven the way the defect will actually arrive: apply the WP-01 relocation and require the test to go RED on 7 declarations**, not by hand-editing a path to something bogus. A synthetic bad path proves the checker parses; the relocation proves it catches the real event. **Assert the RESOLVED count against the DECLARED count and print both**, so a declaration silently dropped from the DDL cannot read as full coverage -- the shrunken-roster failure that took AT-03.15 five versions. **`DERIVED` declarations are out of scope by construction**: they name no path, and the criterion is about referents. State that in the test rather than leaving it to be inferred from the filter."
     }
   ],
   "attachments": [
