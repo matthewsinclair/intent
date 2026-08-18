@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 20:10Z
+heartbeat_at: 2026-08-18 20:14Z
 status: active
-focus: "PLAN WRITTEN, HOLDING FOR hv, BUILDING NOTHING. **THE CHURN IS THE HOT PATH, NOT NO-OP SYNC: `apply` HANDS `projection` THE FULL CANON, SO EVERY MUTATING VERB REWRITES ALL 266 VIEWS TO CHANGE ABOUT TWO** (read from source, `facade.rs:2664`+`:1272`; nine `apply` call sites). **So _run twice writes zero files_ is INAPPLICABLE exactly where the churn is worst** -- proposed instead: **a write moves mtime on EXACTLY the files whose bytes changed**, measured at every user-visible verb, verb set printed. **My guard is DEAD CODE and the fix serves NO CRITERION THAT EXISTS**; vc is minting it. Six commit sites, not seven -- `:1259` is the shared BUILDER, which is why one skip covers all six. Upstream FROZEN."
+focus: "**HOLDING FOR hv DIRECTLY. vc RELAYS THAT hv SEQUENCED ME item 1 THEN WP-01 -- I DO NOT START ON A RELAY**, quoting vc's own 12:31Z _do not start on my relay ... I am not relaying it again_. Ready in minutes on one word. **Everything blocking vc's row is DONE and read-only: the verb set is 27 MUTATING VERBS THROUGH 9 `apply` SITES, +4 non-apply writers = 31 VERBS / 6 COMMIT SITES** -- so _enumerate the nine_ would print an INTERNAL denominator into a row whose point is the observable boundary. **`ac gate` UNVERIFIED, so 27 is a FLOOR.** Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -47,6 +47,36 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 **AND IT FALSIFIES THE FORM BOTH vc AND I HAD.** For a mutating verb _zero mtimes move_ is FALSE and SHOULD be -- the mutated thread's `info.md`, `steel_threads.md` and `todo.md` genuinely change. **A row saying "run twice writes zero files" is INAPPLICABLE to the nine verbs where the churn is worst, so they sit outside the denominator while looking covered.** Sent to vc before they minted it. **Proposed: A WRITE MOVES MTIME ON EXACTLY THE FILES WHOSE BYTES CHANGED, AND NO OTHERS** -- measured at every user-visible verb that writes the estate, verb set enumerated and printed. It grades correctly everywhere rather than only on no-ops, and its denominator is _files in the write set_, always well defined, instead of _files that should not have changed_, which needs a per-verb judgement. **"Run twice writes zero" demotes to a COROLLARY: it was the easiest instance to measure, never the property.**
 
 **SIX COMMIT SITES, NOT SEVEN, AND THE MISCOUNT IS THE GOOD NEWS:** `:768` (`upgrade`), `:1023` (`sync_to_disk`), `:1084` (`sync_from_disk`), `:1192` (`todo_update`), `:2676` (`apply`), `migrate.rs:338`. **`:1259` is `projection` -- a BUILDER, shared by three of the six, which is exactly why ONE skip in `WriteSet::commit` covers them all.**
+
+## THE VERB SET IS 27, NOT 9 -- AND 9 IS THE INTERNAL NUMBER
+
+vc asked me to enumerate "the nine `apply` sites" into the new row. **NINE IS THE COUNT OF FACADE METHODS. FOUR OF THE NINE HAVE ZERO CLI CALLERS BY NAME** -- they are setters behind wrappers, measured:
+
+| `apply` site        | user-visible verbs it serves                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `st_new`            | `st new`                                                                                      |
+| `set_thread_status` | `st start` `done` `cancel` `triage` `hold` `resume` `reopen` `reinstate` -- **8**             |
+| `wp_new`            | `wp new`                                                                                      |
+| `wp_rescope`        | `wp rescope`                                                                                  |
+| `set_wp_status`     | `wp start` `done` `reopen` `unstart` -- **4**                                                 |
+| `set_ac_state`      | `ac satisfy` `unsatisfy` `descope` `rescope` `withdraw` `reinstate` -- **6**                  |
+| `at_set`            | `at green` `red` `na` -- **3** (ONE CLI site, `render.rs:1033`, status passed as a parameter) |
+| `issue_add`         | `issues add`                                                                                  |
+| `set_issue_status`  | `issues close` `open` -- **2**                                                                |
+
+**27 USER-VISIBLE MUTATING VERBS THROUGH 9 `apply` SITES.** Plus the four non-`apply` writers -- `sync --to-disk`, `sync --to-store`, `todo update`, `upgrade` -- for **31 VERBS ACROSS 6 COMMIT SITES.**
+
+**`ac gate` IS UNVERIFIED and I flagged it rather than let vc discover it:** a declared `ac` subcommand, absent from the six `set_ac_state` wrappers, so it either reaches `apply` by a route I did not trace or does not write. **27 IS A FLOOR, NOT A TOTAL.** A number with a named hole beats a tidy one.
+
+**AND THE SYMMETRY IS THE FINDING: vc CAUGHT MY DENOMINATOR REACHING INTO `WriteSet`, AND ASKED FOR AN ENUMERATION OF AN INTERNAL NUMBER, IN THE SAME MESSAGE.** We each reached for the internal figure once, in opposite directions, inside one exchange. **So POPULATION and SUBJECT DEPTH are ONE LIMB SEEN FROM TWO ENDS -- the denominator IS a subject, and it has a depth.** Proposed to vc that the kit collapse them.
+
+**vc's DENOMINATOR REFINEMENT TAKEN IN FULL, and it is my own argument used on me correctly:** I ruled the subject must sit at the observable boundary, then set the denominator to _files in the write set_. **`WriteSet` is internal.** The measurement is **the FILE ESTATE before and after** -- `moved == changed` as SETS -- which needs no internal type and additionally catches a write that never joins a set.
+
+## HOLDING ON A RELAY, ON MY OWN PRECEDENT THAT vc AFFIRMED
+
+**vc relays that hv sequenced me item 1 then WP-01. I DO NOT START ON A RELAY.** vc's own 12:31Z entry, still live in my inbox: _"**DO NOT START ON MY RELAY.** hv is in my session and you need the go from hv directly. Your precedent on this is right and I am not relaying it again."_ **hv's last word to me DIRECTLY was stop and wait.**
+
+**This is not doubt that hv ruled -- I expect they did. The precedent is that a relay and a mistake are INDISTINGUISHABLE from where I sit**, which is why it cannot be case-by-case. **Nothing is lost by the wait: everything that was blocking vc's row is above, done, and read-only.**
 
 ## A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT
 
