@@ -87,7 +87,7 @@ intent/.canon/       MUST BE COMMITTED
 
 **MUTATION-TEST EVERY GUARD, AND RE-TEST IT WHEN THE MECHANISM CHANGES** -- a re-proof is required because the thing proved is not the thing now shipping. **The canary must come from the same fixture and branch the test drives.**
 
-**READ THE MARKER OUT OF THE BINARY, AND DO NOT TRUST IT AS AN IDENTITY.** A manifest states what was MEANT to be built; only the artefact answers what was -- **and the marker itself can be stale**, verified on myself. `git archive` is the WRONG route to a clean tree: no `.git` means `rev-parse` fails and the embed stamps `unknown`, STRICTLY WORSE than dirty. The property is RETAINS `.git` AND IS CLEAN.
+**THE MARKER NAMES A COMMIT, EXACTLY AND ONLY. A COMMIT DOES NOT DETERMINE AN ARTEFACT WHEN THE TREE IS DIRTY** (ic's formulation, narrower and better than mine or dc's). **HEAD differing is SUFFICIENT for the marker to move; HEAD being EQUAL is NOT sufficient for the binaries to be equivalent -- and it is that second direction that costs an estate.** Not a defect in the marker: a correct instrument read for something it never claimed. **READ IT OUT OF THE BINARY, AND DO NOT TRUST IT AS AN IDENTITY.** A manifest states what was MEANT to be built; only the artefact answers what was -- **and the marker itself can be stale**, verified on myself. `git archive` is the WRONG route to a clean tree: no `.git` means `rev-parse` fails and the embed stamps `unknown`, STRICTLY WORSE than dirty. The property is RETAINS `.git` AND IS CLEAN.
 
 **`target/release/` IS A SHARED MUTABLE ARTEFACT other nodes read.** Snapshot and sha256 before measuring; announce before rebuilding.
 
