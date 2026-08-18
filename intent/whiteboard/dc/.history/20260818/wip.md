@@ -181,3 +181,96 @@ Standing only, consolidated at the 2026-08-17 fold.
 - **THE TELL IS THE MEASUREMENT FIELD, NOT THE VERDICT (vc's, better than mine, taken).** Their manifest check printed 27 MISMATCH with 27 **empty** `actual:` values. Mine printed all-diverged and I caught it by the matched count being zero. **Theirs is one step earlier and needs no second run; mine needs no foreknowledge of the field layout, so it survives being applied to an instrument you did not write.** Keep both -- they fail in different directions.
 - **AND THE CAUSE WAS THE SAME BUG IN BOTH OF US: `while read -r sha path`.** vc first diagnosed it as "unresolvable inside the loop's subshell", which fits the evidence and names no mechanism, so it generalises to nothing and the next loop is written identically. **A diagnosis that fits the evidence without naming the mechanism is a story, and it passes review exactly as well as an explanation does.** vc then reproduced both directions and added the half I did not have: **the corruption OUTLIVES the loop** -- a later loop in the same invocation still had no `cat` -- so a script that appears to recover is measuring with a `PATH` of one filename. **The bait is in the data format**: `read -r sha path` is the obvious spelling for a line of a `.sha256` manifest, so anyone who writes this loop writes this bug.
 - **hv CLEARED THE ISSUE TRACKER, AND THE DIAGNOSIS WAS MINE BEFORE THE RULING WAS.** hv: _"The honest diagnosis is that the issue file is duplicating the agent channel. Exactly. So stop doing that, please."_ then _"Just clear the tracker, findings live in commits."_ Sharpened rule: **an issue is an external user's report against a released version; everything we find building v3 is just work.** Measured at the time: **11 filed today against 5 closed, and 41,780 words across 25 open rows.** The asymmetry is structural rather than anyone's fault -- filing is one act, closing is three (verify by execution, write the resolution, move the directory) -- so the queue could only grow. **My exemplar is 0054: a three-word flag deletion in a file I own that cost an issue, two options, a measurement of the option that could not work, two rulings and a merge.** From here: fix inline, put the reasoning in the commit against the diff, and if it describes what "done" means it is an AC row, because the gate can score an AC and cannot score an issue.
+
+---
+
+## localfold snapshot 2026-08-18 09:16Z (ultra-aggressive, pre-compact)
+
+---
+
+node: dc
+name: DevX Claude
+role: worker
+session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
+heartbeat_at: 2026-08-18 08:17Z
+status: active
+focus: "the critic gate is dark for shell and rust -- 0 of 6 and 0 of 7 rules carry a proxy, and the runner skips them silently"
+claims: [ST0056/11]
+---
+
+# DevX Claude (dc)
+
+## D42 -- TIME. Read this before writing anything, anywhere.
+
+**DB records have a timestamp field. That is the source of truth for time. Nothing else. Ever.** No clauses. hv ruled it four times and it was reinterpreted after three of them, twice by me inside ten minutes.
+
+- **You never ask what time it is.** Not the OS, not `date`, not the filesystem, **and not the database either.** Asking SQLite and then writing the answer is still writing a time you obtained.
+- **The stamp is applied BY the write**, at INSERT/UPDATE/UPSERT/DELETE. Read-then-write leaves a gap that two writers interleave in, so two records get stamped in the opposite order to the one they were written in.
+- **hv's structural close, and it is the form to build against: NO cli or intentsvcs function TAKES a time.** Functions may RETURN times, and every one returned was set by SQLite on a record. **Direction is not symmetric -- IN is forbidden, OUT is fine**: a returned time is evidence a record was written; an accepted time is a second clock with extra steps.
+- **THE RULE IS ABOUT SIGNATURES, NOT VALUES, WHICH IS WHY THIS VERSION WILL HOLD.** Every earlier statement of D42 asked where a value came from and whether its source was legitimate -- judgement calls this estate failed three times in one day from three nodes. **A time-typed input parameter is a defect by inspection.** Asking where a caller got a value is a discussion; asking whether a signature accepts one is a grep. **A signature that accepts a time is a standing invitation that gets accepted eventually**, no matter how careful today's author is.
+- **The defect is always one step earlier.** Reaching for a clock means you are about to write a time into something that is not a durable record. The fix is never a better clock; it is not writing the time.
+- **Not exceptions:** test fixtures; "only reading it"; **"but it came from the database"**; "it's just a label". The third fooled cc, vc and me independently -- **better provenance is not the absence of a confection.**
+- **SCOPE, hv: devbin is NOT Intent** -- external, vendored, no db, does what it likes with time. My whole D42 directive resolved to a no-op, and reporting that beat inventing work to look responsive.
+- **A board stamp is a label, not data, and nothing may read it as one.** The ordering that exists and cannot be fabricated is the **commit**. The `## (...)` heading is legacy, kept only because nodes parse the shipped format live.
+
+## The truth model -- canon, held not restated
+
+Ratified in `design.md` (D01 as reversed) and `data-model.md`, and deliberately not duplicated here, because a second home is how two copies drift. The three points that change what I DO: **the db is the durable SSOT and files are re-creatable secondary artefacts**; **the typed API is the only door in**, so conformance is by construction rather than by anyone checking; **migrations are normal** -- anything justified by "we can never migrate" rests on a constraint nobody made.
+
+## DOING
+
+- **The critic gate is dark, and the version guard is the smaller half.** Measured, with Elixir as the positive control so the zeros are a result and not an absence:
+
+  | lang   | real project files | rc  | findings | rules carrying a greppable proxy |
+  | ------ | ------------------ | --- | -------- | -------------------------------- |
+  | shell  | 80                 | 0   | 0        | 0 of 6                           |
+  | rust   | 80                 | 0   | 0        | 0 of 7                           |
+  | elixir | 41                 | 1   | 20       | 19 of 19                         |
+
+  `critic_runner.sh:18` -- a rule without a proxy is **skipped silently**. ST0039 stripped the non-mechanical proxies and only the Elixir pack was ever re-armed. Intent is 114 `.rs` + 57 `.sh` + 71 `bin/` scripts; the 41 Elixir files are `ext-seeds/worker-bee` template payload. **A repaired gate would enforce Elixir rules on a project that is not Elixir.**
+
+- **What the dark gate has been missing**: 293 shellcheck findings across 85 shell files (9 error, 75 warning, 209 note) -- and that is an UNDERCOUNT, see the parity-tool item. `shellcheck 0.11.0` and `clippy 0.1.97` are both present on this machine.
+
+- **A real defect in the shipped CLI**: `bin/intent_st:196` and `:211` use `for dir in $(find ...)` in the steel-thread **ID-allocation** path -- the first static signal in Intent's own `no-parse-ls` rule, plus `local x=$(...)` (SC2155) alongside. Unreported for as long as the gate has been dark.
+
+- **Reported to ic** (their tools, I touched nothing): `# shellcheck disable=SCxxxx -- reason` is invalid syntax and shellcheck **abandons the rest of the file**, it does not merely fail to suppress. `surface_check.sh` 79% unchecked (dies at 85 of 416), `view_skew_check.sh` 12% (200 of 229). 5 sites, both files, nowhere else. Proved with a two-arm rig: the correct `#` form catches an SC2086 that the `--` form never reports.
+
+- **WP-11 / release path, measured today.** `int build release` (tag path) pre-flight is `intent doctor` + `tests/run_tests.sh` only -- **no `cargo test` anywhere in the file**; `int macos publish` (asset path) verifies signing, notarisation and `--version` on a quarantined copy, but runs no tests either. **So no part of the release pipeline runs the Rust suite, on a 3.0.0 whose product is the Rust binaries.** CI runs it; CI is not a release gate.
+- **The good news, and the cheapest correct fix seen today**: `release:702` re-reads `git status --porcelain` AFTER the tests and aborts with "refusing to tag a dirty tree". Ordering is 311 -> 380 (tests) -> 702. **So the moment `cargo test` joins the pre-flight, the estate-write class is caught by a gate that already exists, in the direction that already works, with no new mechanism.**
+- **Boundary on that gate, vc's correction, verified: `.gitignore:127` ignores `intent/.cache/`, so `--porcelain` cannot see the store**, and the release has zero references to it. **Under D01-reversed the store IS the SSOT, so the release verifies the generated views and never the truth.** Not an argument against the gate -- the limit of what it can be asked to prove.
+- **The release does NOT build or run natives by design** (`int macos publish` owns assets). I nearly filed that split as a defect; checking the other half first is what stopped it.
+
+## TODO
+
+- **hv holds both**: (1) `sed -i '' 's/^GLOBAL_COMMANDS="help doctor/GLOBAL_COMMANDS="critic help doctor/' bin/intent` -- proven 4/4, critic runs and `st list`/`wp list` still refuse; (2) the shim -- **recommended HOLD**, it defeats (1) by routing to v3 where `critic` is unimplemented, and it pointed at the schema-stale release binary.
+- Make the silent skip LOUD -- smallest, highest-value change; a gate that says "no findings" when it means "I checked nothing" is the whole defect class.
+- Arming shell/rust is a program, not a patch: the rules name their own SC codes but `critic_proxy_is_simple()` accepts only a bare `grep`, so linter delegation needs a runner change.
+
+## Watch-outs
+
+- **THIS REPO IS NOW A v3 PROJECT, AND THE ENTRY HERE PREVIOUSLY SAID THE OPPOSITE.** It declares `3.0.0-dev`, the store is `intent/.cache/intent.db` (gitignored, 3.3M), and **v2 refuses every verb here at exit 2.** Until the shim lands, invoke the v3 binary by explicit path.
+- **PUSH `local` ONLY.** `upstream` is closed (hv, 2026-08-16, CI/CD budget). Now enforced.
+- **NEVER `git pull --rebase` in this shared tree; a peer `.git/index.lock` means WAIT, never remove it. ALWAYS `git commit --only <paths>`** -- a bare commit sweeps a peer staged index, and `--amend` ignores `--only` entirely.
+- **NEVER mutate `bin/**` or `tests/**` in place while anything is running them.** Both `~/.local/bin/intent` and `~/bin/intent` symlink into `bin/intent`. **And check for a live suite before starting one: I raced hv twice today.**
+- **COMMIT BEFORE ANY `intent at` STATUS CHANGE.** `intent at red|green|na` DESTROYS the row note (issue 0033).
+- **A PEER CANNOT WAIVE AN hv RULE, AND BEING RIGHT ON THE SUBSTANCE IS NOT THE SAME AS BEING ENTITLED TO SAY SO.** vc told me committing my own fixes never needed authorisation. They were right; I asked hv anyway. **If I take a peer read on when an hv rule applies, their being right is luck rather than method.** Same shape as: a peer cannot authorise what a harness refused.
+- **MY SHELL IS zsh AND IT DOES NOT WORD-SPLIT AN UNQUOTED `$var`.** `"$B" $v` with `v="st list"` passes ONE argument. It bit cc and me on the same day, and **both times the harness failure was indistinguishable from the finding being hunted.**
+- **NEVER `$?` AFTER A PIPE** -- you get the last stage status. Three of us hit it today.
+- **`--date=format:` IGNORES `TZ`; `--date=format-local:` RESPECTS IT.** `git log` prints LOCAL time; reading one and appending `Z` is wrong by exactly the local offset and looks perfect.
+- **macOS: signing MUTATES the binary, notarisation does NOT -- checksum AFTER signing.** The only check that means anything is a quarantined copy under `spctl`; `codesign --verify --strict` returns 0 on an ad-hoc signature.
+- **`target/release/` IS SHARED MUTABLE STATE.** Build into a private `CARGO_TARGET_DIR`; never sign there.
+- **A control refuses; documentation reminds; only one is load-bearing.** My own watch-outs are not controls and I should stop expecting them to be.
+
+## Decisions
+
+- **THE DAY RULE, and every finding and every error of mine reduces to it: A GREEN PRODUCED BY SOMETHING OTHER THAN THE THING UNDER TEST.** A binary arm dead behind an `exit 0`; a fixture that passed because cargo put the binary inside the repository; a refusal that read `git status` and spoke about the bytes; a checker reading a marker positionally while the gate read it anywhere. **None was caught by care. Each was caught by MOVING something** -- the target dir, the subject, the clock, the desk.
+- **PROVE THE DISCRIMINATOR DISCRIMINATES BEFORE TRUSTING IT.** Three of my checks in one day discriminated NOTHING and each looked like a pass: `bash -n` on a `.bats` file fails identically on the control, because `@test "..." {` is not bash; `bats --count` on a scratchpad copy fails identically because it cannot resolve `../lib/test_helper.bash`; and `info` prints the same banner from v2 and v3. **Running the control exposed all three.**
+- **THE REHEARSAL POPULATION CANNOT HOLD WHAT THE REAL POPULATION HAS -- three mechanisms in one morning, and "clone and test" reads as the CAREFUL option, which is why it wins.** vc: the real subject holds `intent/.cache/intent.db`, which no clone can contain because it is gitignored. cc: the real subject held my fix, which no clone could contain because it was uncommitted. **Mine is the only one where instrument and subject were both fine and the INTERVAL was the defect** -- a peer changed the state between my two readings and I told them their live finding was a phantom. **The remedy differs: the other two are answered by looking at the real subject; mine by re-reading at the moment of the claim.**
+- **A LISTING IS NOT AN INVENTORY, AND `--help` IS SERVED BEFORE DISPATCH.** v3 help lists 31 commands; `intent config --help` succeeds while `intent config` says "not implemented yet". **My first coverage probe was void, and my second -- counting parent verbs -- conflated "no implementation at all" with "bare form unimplemented, subcommands fine".** The leaf count was 6 of 31, **a floor with a stated depth limit of two levels**, which is why I missed `claude ws` and cc found it.
+- **A CLASSIFIER KEYED ON A MESSAGE IS BLIND TO THE POPULATION THAT NEVER PRINTS ONE.** I reported hv failures as 297 version-guard / 2 other; it was 299 / 0. The two stragglers assert with `[[ ]]`, which prints nothing on failure. **The broken classification and the correct one would have agreed on "2 remain"; only reading a failing block in full told them apart.**
+- **A LEGEND MUST BE DERIVED FROM THE DATA IT LABELS.** My check printed a hit for `exit 3` and a hardcoded "(empty = 3 is unused)" underneath it -- an hour after I said the same thing about someone else instrument.
+- **BYPASS IS A RESPONSE TO NOISE, NOT TO STRICTNESS** (mine, vc adopted). A gate that is deterministic, fires once, has one remedy, and cannot fire spuriously does not teach bypass. **Five fail-open lines on every commit is what teaches people to stop reading gate output.**
+- **VERIFY THE PREMISE OF A QUEUED ACTION AT THE MOMENT YOU ACT ON IT.** I wrote that rule and then handed vc a task built on a stale one.
+- **A RECORD NAMES THE COMMIT IT COVERS, NEVER "HEAD"; A MEASURED FIGURE NAMES ITS SUBJECT AND REVISION.** A ceiling and a total render identically; a filter that cannot discriminate does not announce itself.
+- **MIS-CREDITING TOWARD YOURSELF GETS CAUGHT; MIS-CREDITING AWAY FROM YOURSELF DOES NOT.** ic credited me with `same_end_state_check.sh`; I doubted it, checked, and my own history said I built it (`66ba461d`). **Checking was right even though the answer was "yes, yours".**
+- **THE PUSH RESULT CARRIES NO INFORMATION ABOUT THE REMOTE IN EITHER DIRECTION.** Only `git ls-remote` plus `merge-base --is-ancestor` is evidence.
