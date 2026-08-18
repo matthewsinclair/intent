@@ -147,6 +147,42 @@ No verblock: git is the history of structured files. Authored prose files keep t
 
 **THE PRICE, recorded before the field exists so the after can be checked against it** (canary, `conservation_check.sh` at `ed29ce08`): `LOST-PROSE` **575 -> 555**; those 20 move into `NORMALISED-PROSE` **267 -> 287**; `MODELLED` **237 -> 257**, because a declared field is modelled rather than carried. **Zero new findings in either direction, and 6213 census-boundary bytes move from lost to accounted.**
 
+#### `attachments` -- arbitrary authored files under a thread, and the rule that keeps disk optional (spec, vc, 2026-08-18, on hv's ask)
+
+**hv's requirement: _"whatever is in the `ST####/**/*.{md,txt,...}` can also be attached to the db in a lossless manner."_** It exists because hv ruled that disk becomes optional -- an index plus render-on-demand -- and **the moment disk is optional, anything the store does not hold is destroyed by the first render.** Measured on this estate the day the hoist landed: of 485 `.md` under `intent/st`, **380 are in the store, 52 are NOT, and 53 are too short for the probe to test either way.** The 52 are one-off documents nobody modelled: `reference.md`, `dogfood-journal.md`, `phase0_summary.md`, `phase1_plan.md`, `done.md`, `README.md`.
+
+**THE POPULATION IS NOT WHAT THE ASK SOUNDS LIKE, AND THE DESIGN TURNS ON IT.** 304 files under thread directories are not one of the canonical five:
+
+| ext    | count | what it is                                        |
+| ------ | ----- | ------------------------------------------------- |
+| `.tap` | 196   | TAP baselines under `ST0056/parity/tap-baseline/` |
+| `.md`  | 66    | authored prose                                    |
+| `.sh`  | 38    | the parity instruments -- executable code         |
+| `.txt` | 2     | data                                              |
+| `.tsv` | 2     | census output                                     |
+
+**So "attach everything under `ST####/**`" would put 196 generated test baselines and 38 executable shell instruments into the record of intent.** Those are files the repository versions and tools consume; they are not what anyone authored _as the record of the work_. **The store is the record of intent, not a second filesystem** -- and a store holding executables needs mode bits, binary payloads and a merge story, which is a version control system that already exists one directory up.
+
+**THE LINE, and it is mechanical rather than a judgement made per file: attachment is by DECLARED EXTENSION.** `.md` and `.txt` attach. The declared set is a list, extending it is an explicit decision, and nothing is classified by inspecting content or by anyone's opinion about whether a file "feels authored". On this estate that is **68 files**, which is the tractable set and it is the one the loss numbers actually count.
+
+**AND THE PROPERTY THAT MATTERS MORE THAN THE LINE ITSELF: A FILE THAT DOES NOT ATTACH MUST BE NAMED, NEVER SILENTLY SKIPPED.** `doctor` reports every unattached file under a thread by path. Without that, the rule reproduces the exact defect this whole thread has spent a week cataloguing -- **disk becomes optional and something vanishes because nothing ever said it was not covered**, and an absence is indistinguishable from a decision. The 52 above were found by measurement, not by any surface saying so, which is the evidence that silence is not good enough.
+
+| Field    | Type   | Notes                                                                                                                 |
+| -------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| `path`   | string | relative to the THREAD root, so `WP/01/notes.md` is covered without a WP-level collection                             |
+| `text`   | string | **VERBATIM. Never parsed, never normalised, never section-split.** The round trip is byte-exact or it is not lossless |
+| `bytes`  | int    | as read                                                                                                               |
+| `sha256` | string | the round-trip test: write it back and the hash matches, or `doctor` reports skew                                     |
+
+**Four rules.**
+
+1. **A file is a typed doc OR an attachment, never both.** The canonical five are parsed into the model; everything else in the declared set is carried verbatim. Two homes for one file is the Highlander violation this field would otherwise introduce.
+2. **`text` is opaque.** The typed docs earn their parsing because the model has fields for what comes out. An attachment has no such fields, so parsing it would discard structure into nothing -- which is how `## Related Steel Threads` became 52 rows of `LOST-PROSE`.
+3. **Non-UTF-8 is REFUSED BY NAME with a remedy**, never stored as a blob and never skipped. `sync` already does this (`unknown-file-shape -- not valid UTF-8`) and it is the correct posture.
+4. **Attachments feed `doc_sections` so `search` finds them.** That index is derived and rebuildable; the attachment record is the authority.
+
+**What this discharges.** It is the precondition for hv's disk-optional model, and the gate is already built and does not need writing: `conservation_check.sh` asks whether every authored section has a destination and whether the bytes that arrive are the bytes that left. **When `LOST-PROSE` and `UNACCOUNTED` reach zero on this estate, disk is safe to make optional -- a measurement rather than a judgement.** The issue `body` field is the other half and is tracked separately.
+
 #### Why objective / context / related are modelled (the info.md mixed-file resolution)
 
 D02 forbids mixed files, and v2's `info.md` is flatly one: frontmatter and status (structure), Objective and Context (authored prose), Related Steel Threads (structured links), and a "Context for LLM" template block. design.md's layout table makes `info.md` a generated cover while listing "objective/context prose" as authored -- naming no file for it. Surfaced by cc at WP-03 start, when the view renderer became the thing that would have had to discover the answer.
