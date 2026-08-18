@@ -7,9 +7,17 @@
 # prediction written before the run. This file is that row's cited evidence.
 #
 # AT-00.10 IS HELD RED AND THIS INSTRUMENT PASSES, so a reader arriving here hunting a
-# broken selftest will not find one. Red because coverage is PARTIAL -- 18 of 24
-# refusal sites, the six named below -- and because `rev_with_override`'s own
-# `cannot resolve --rev` path is undriven. Never because the selftest fails.
+# broken selftest will not find one. Red because coverage is PARTIAL and because
+# `rev_with_override`'s own `cannot resolve --rev` path is undriven. Never because the
+# selftest fails.
+#
+# NO FIGURE IN THIS HEADER, BECAUSE A COMMENT SHADOWING A NUMBER IS A SECOND COPY ON ITS
+# OWN DECAY SCHEDULE (vc, 2026-08-18, having quoted me the rule an hour before finding
+# this). The coverage ratio is DERIVED and printed on every run; read it there. This
+# header said `18 of 24` for hours after the output began printing `12 of 45`, and said
+# `the six` where the out-of-reach set is 33 -- **the output was repaired and the prose
+# then broke the same rule from the other side.** Only the output is invariant under
+# repair.
 #
 # WHY THIS EXISTS, AND IT IS NOT TIDINESS. `MODULES.md` says the rig was "proven
 # in three directions before use -- idempotent stub IDENTICAL, accreting stub
@@ -41,24 +49,29 @@
 #   ./rig_selftest.sh --only escape       # one case
 #
 # COST: no clone and no cargo build. `MIGRATE_CMD` buys out of both, and the
-# estate is the smallest member in the corpus. Five cases in about a minute.
+# estate is the smallest member in the corpus; a full run is about a minute.
 set -uo pipefail
 
-# WHAT THIS DOES **NOT** DRIVE, LISTED BECAUSE 17 OF 17 READS AS COVERAGE AND IS
-# NOT. The rig has 24 refusal sites; these are the ones nothing here reaches, and
-# a green below says nothing about any of them:
+# WHAT THIS DOES **NOT** DRIVE, LISTED BECAUSE A CLEAN SCORE READS AS COVERAGE AND IS
+# NOT. These are refusal sites nothing here reaches, and a green below says nothing
+# about any of them. NAMED BY THEIR MESSAGE TEXT AND NEVER BY LINE NUMBER: this list
+# formerly cited 709, 711, 825 and 828, and ALL FOUR had rotted onto unrelated code --
+# the refusals had moved to 754, 756, 870 and 873. A message survives an edit above it;
+# a line number does not, and it rots silently while still looking precise.
 #
 #   NEEDS A NON-OVERRIDE RUN, SO A CLONE AND A BUILD
 #     `cannot resolve --rev`, the clone failures, the dirty-clone assertion,
 #     the cargo build failure, the per-tree config-marker assertion.
 #
 #   STRUCTURALLY OUT OF REACH OF A STUB
-#     the mtime-ordering failures (709, 711); the 120s poll timeout, which is
-#     reachable but costs 120s a run; the kill-already-finished race (825) and
-#     the not-137 exit (828), both of which need a race won on purpose.
+#     `could not order the clean run's writes by mtime` and `the mtime ordering
+#     produced a directory`; the 120s poll timeout, reachable but costing 120s a
+#     run; `the migration had already finished` and `expected the interrupted run
+#     to exit 137`, both of which need a race won on purpose.
 #
-# SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE. 18 of 24, and the six are
-# named above rather than left for a reader to discover by not finding them.
+# SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE -- and the denominator is PRINTED,
+# not restated here. The out-of-reach set is whatever the run's two figures differ by;
+# the entries above are the ones worth naming, not the whole of it.
 
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -79,7 +92,9 @@ while [ $# -gt 0 ]; do
     # Adding lines above silently truncates this help from the bottom -- it was already
     # cutting the usage block mid-list at `2,30` before AC-00.10's marker was inserted.
     # If you edit the header, re-check that `--help` still ends at the last usage line.
-    --help|-h) sed -n '2,41p' "$0"; exit 0 ;;
+    --help|-h) sed -n '2,52p' "$0"; exit 0 ;;   # MEASURED, not guessed: 52 is the last
+               # header line before `set -uo pipefail`. It was 41 and the header grew.
+               # A range that outlives the text it slices truncates the help silently.
     *) die "unknown option: $1" ;;
   esac
 done
