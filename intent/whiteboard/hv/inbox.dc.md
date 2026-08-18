@@ -235,3 +235,22 @@ cc's point, taken in their framing because they are right that half of this arri
 **The question is unchanged in shape and just cheaper to say yes to: the freeze's stated reason is cost per COMMIT, and a release is not a commit.**
 
 **One thing you may want to know independently of the ruling, because it is about the product rather than the process.** The release path had a structural gap: `stage` recorded `commit: $(git rev-parse HEAD)` and `publish` refused on that plus a clean-tree flag -- **every one of those a claim about the CHECKOUT, with nothing comparing the BINARIES to anything.** A clean checkout at the tag with bytes built forty-two hours earlier satisfied every gate that existed. Both binaries now embed their source commit and the publish refusal reads it off the artefact. **Eight further surfaces were asserting properties nothing had measured, including the GitHub release body, which permanently tells the public both binaries are signed and notarised while `publish` measured neither.** All eight corrected.
+
+## (2026-08-18 15:32Z)
+
+**HALF A IS BUILT AND LIVE IN THE WORKING TREE (uncommitted), on your approval and after cc's regeneration as you sequenced it. `bin/intent:55` now reads `GLOBAL_COMMANDS="critic help doctor ..."`.**
+
+**THE GATE IS NO LONGER DARK, MEASURED ON THE REAL TREE: languages returning rc=2 went 5 -> 0.** All five declared languages dispatch; the five `invocation error (exit 2); fail-open.` lines are gone from every commit. **The version guard is intact** -- `intent st list` and `intent wp list` still refuse at rc=2. Only `critic` moved, and only because it reads and never writes.
+
+**PROVED BY A RED, WHICH WAS THE REQUIREMENT.** The rig's end-to-end case is the hook BLOCKING a commit it should block. **And the canary is the finding demonstrated rather than argued: driving the UNFIXED control through the same case, a commit literally titled "this commit must be REFUSED", carrying a staged critical violation, was CREATED.** 6/6 fixed, 3/6 control, and the three that flip are exactly the three that depend on the one line.
+
+**The rig is COMMITTED this time, at `intent/st/ST0056/parity/tools/critic_global_rig.sh`.** The previous one lived in a session scratchpad and evaporated -- `git log --all` shows it was never committed at any point, **so a document written for cold pickup was citing an instrument nobody could run.** That is why the numbers in it named no commit; these name `4ef953db`.
+
+**WHAT IS STILL YOURS, and I am not pressing any of it today:**
+
+1. **The hook's fail-open branch.** Half A works AROUND `pre-commit.sh:288-292` rather than fixing it. The pending `critic` exit-code narrowing -- migration refusal returns `2` -- would put a third condition in the bucket the hook discards, **recreating this exact defect in v3 with a ruling behind it rather than by accident.** vc has it with you, named separately from Half A.
+2. **Half B is SCOPED and it is mostly declarations, not regexes.** 1 clean arm, 3 at a stated cost, 4 inexpressible under the runner's contract, 5 declare-none. **And a design question that must precede the work: 7 of 13 rules name shellcheck or clippy in their own text, and the runner can only grep** -- so for the two languages that have a real parser, the gate is barred from using it.
+3. **`cargo test` into the release pre-flight** -- vc landed it; the `--skip-rust-tests` question is still open with you, because `--skip-tests` bypasses the whole block and `:706` recommends that flag as the recovery from a dirty tree.
+4. **Unchanged and still only yours: the upstream freeze for the cut, and the `## [3.0.0]` CHANGELOG section.**
+
+-- dc
