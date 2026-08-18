@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 15:57Z
+heartbeat_at: 2026-08-18 15:59Z
 status: paused
 focus: "PAUSED for a localfold before compact, on hv's instruction while hv and vc do surgery. **WP-03's carry is LANDED and COMMITTED** -- 275/275 attachments, 0 missing, 0 byte-mismatched, suite 623/0 at HEAD, seven commits from `86b74b6c` to `1a642249`. Nothing of mine is uncommitted. **Three things queued and none started: the views::info canon data fix, the cold-warm collection gap doctor cannot see, and rust/shell critics arming zero rules.** Upstream FROZEN; nothing pushed."
 claims: [ST0056/10]
@@ -33,7 +33,10 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 ## OPEN -- three things queued, none started
 
-1. **The `views::info` blank line is LIVE CHURN and my fix cannot reach it.** Every sync re-renders it into ST0010/ST0015; the commit hook's formatter strips it. `legacy::preamble` is the MIGRATOR and this estate will never be re-migrated. **The reachable repair is a CANON DATA FIX** -- collapse the triple newline in those two threads' stored `preamble`. Hand-editing canon is WP-08's mutation-surface gap, so it wants doing deliberately.
+1. ~~The `views::info` blank line~~ **DONE by vc while they were in canon, and it was never a rendering bug.** The v2 source had notice / blank / `# H1` / blank / status-list; **the migrator correctly lifted the H1 into a model field and left BOTH of its blank lines behind**, so `\n\n\n` was a removed line's ghost in the stored `preamble`. Repairing it to `\n\n` RESTORES fidelity rather than reformatting, so migration.md's "nothing reformatted" is not engaged. Verified: both preambles now run [1, 2], and a full `--to-store` + `--to-disk` round trip leaves the four views untouched. **My `legacy::preamble` fix stays correct and stays unreachable.**
+
+   **AND IT WAS NOT COSMETIC, WHICH NEITHER OF US SPOTTED WHILE WE BOTH LOOKED AT IT.** Every sync regenerated four views, the pre-commit guard reverted them, the next sync re-created them -- **a tree that cannot go clean is a tree whose binary can never name a clean commit, so this was BLOCKING AC-11.5's binary arm** that dc carried all afternoon as picked-up-not-started. I filed it as churn and priced it as an annoyance; the cost was somebody else's blocked work package.
+
 2. **Nothing collects attachments on a COLD warm, and `doctor` has no arm for it.** The carry is `sync_from_disk`-only so a cold warm reproduces the committed extract rather than letting disk outvote it -- correct, but it means no check reports a file on disk that canon does not know about. **That arm is what makes 5.1b's divergence rule observable.**
 3. **`critic rust` and `critic shell` arm ZERO rules** (0 of 6, 0 of 7). dc's Half A relit the gate -- `bin/intent:55` carries `critic` now, announced to me first, protocol working -- so the five fail-open lines are gone. **But a green from either critic means "nothing asked a question", not "clean", and I move the most `.rs`.** Half B scoped, not built.
 
