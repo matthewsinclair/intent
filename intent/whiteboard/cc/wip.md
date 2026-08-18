@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-18 07:29Z
-status: paused
-focus: "PAUSED at an aggressive localfold, 07:29Z. **INTENT IS SELF-HOSTED ON INTENT3** -- vc hoisted at `0ec2ac79`; I verified it independently rather than took it. **My part: I killed my own top blocker by RE-MEASURING it instead of citing it** (v2 writes ZERO files into a v3 estate; `53f88757` had closed it and my board carried the stale reading as live), and I enumerated the fifteen gitignored artefacts a clone cannot hold, migrating one carrying fourteen -- **56/40/352, byte-identical to a plain clone -- so the stale store was the ONLY blocker rather than the first.** **Landed and published: `de9292a4` doctor 77 -> 5, `ba63b344` doctor 10.6s -> 0.68s (vc's hypothesis REFUTED -- the view-skew arm was 8.7ms of a 7.40s problem; `sync::scan` walked 613,811 paths to answer about 1,511, and the excess was UNBOUNDED and MACHINE-LOCAL), `cf3ca82e` the first hoist casualty, `b37efea7` the ignore rule that covered nothing, `43e08208` the board.** 83 legs / 598 passed / 0 failed, fmt 0, clippy 0, every exit code read WITHOUT a pipe. **NEXT IS vc's TWO BUILD ITEMS AND THEY ARE NOW A GATE, NOT A NICETY: hv has ruled disk OPTIONAL, so anything the store does not hold is destroyed by the first render.** Upstream FROZEN; push `local` only."
+heartbeat_at: 2026-08-18 08:57Z
+status: active
+focus: "**SCHEMA 10 LANDED AND PUSHED -- `36bc02c5` + `d73efed9`, verified ancestors of `local/main` off `ls-remote`.** Rung 9 `issues.body` (40 v2 bodies, 443,643 bytes, no model field at all, carried VERBATIM) and rung 10 `attachments` (110 carried, ONE constructor so `bytes`/`sha256` cannot drift, ONE classifier so ingest/migrator/doctor cannot disagree). **`doctor` NAMES all 198 uncarried by path and counts NONE of them as faults.** 84 legs / 612 passed / 0 failed, clippy 0, fmt 0, **and the estate sentinel moved ZERO files across a full workspace run** -- the first direct proof on the damaged tree that the isolation fix holds. **THREE DEFECTS OF MY OWN ON THE WAY IN, all kept as method: a harness that applies the transformation it tests cannot fail; a store that reordered on the round trip and was UNOBSERVABLE on this estate; a child collection has FIVE sites and I wired three.** NEXT: `related: Vec::new()` -- 52 LOST-PROSE, unblocked and mine. Upstream FROZEN; push `local` only."
 claims: [ST0056/10]
 ---
 
@@ -25,17 +25,20 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 A transition to the state a thing is already in is a NO-OP that says so, never an error and never a silent success.
 
-## DOING -- vc's two build items, and hv's disk ruling makes them the gate
+## DOING -- both of vc's items are LANDED; next is the other half of the prose loss
 
-**1. `attachments`** -- specced at `1ffe8868` in `data-model.md`; **read the spec before building.** Fields: `path` (relative to the THREAD root, so `WP/01/notes.md` needs no WP-level collection), `text` (VERBATIM -- never parsed, never normalised, never section-split), `bytes`, `sha256`.
+**`36bc02c5` + `d73efed9`, pushed and witnessed.** Rungs 9 and 10. Faces JSON 7 -> 9, DDL 6 -> 8, SDL 5 -> 7. `attachments` is the first NEW TABLE since the ladder began.
 
-- **DECLARED EXTENSION, not everything.** 304 files under thread dirs are none of the canonical five: 196 `.tap`, 66 `.md`, 38 `.sh`, 2 `.txt`, 2 `.tsv`. **`.md` + `.txt` to start = 68 files.** Attaching generated baselines and executable shell would need mode bits, binary payloads and a merge story -- **which is a VCS, and there is one a directory up.**
-- **BUILD FIRST, because it is the part that matters: a file that does NOT attach must be NAMED by `doctor`, never silently skipped.** Otherwise the rule reproduces the defect of the week -- disk goes optional and something vanishes because no surface said it was uncovered.
-- **Two constraints, not notes.** A file is a typed doc **or** an attachment, never both (the Highlander violation this introduces if you let it). And `text` is OPAQUE: **an attachment has no fields to parse INTO, and parsing into nothing is exactly how `## Related Steel Threads` became 52 rows of `LOST-PROSE`.**
+**BOTH PROSE FIELDS ARE VERBATIM, and the second changed BECAUSE vc scheduled a renderer.** A normalisation that requires a future component to compensate is a scheduled defect, so the trim went rather than the precondition.
 
-**2. The issue `body` field** -- 503 `LOST-PROSE`, all `kind=issue`, my own two-derivation figure (hand count off the files, and the acceptance instrument, agreeing). vc measured on the live estate: **an issue body probe returns ZERO from the store, and `intent/issues/CLOSED/NNNN/*.md` is the only copy of all 40.** Residue under the old model; **data loss on the first render under hv's.**
+**`.sh` IS CARRIED** (vc, on measuring: every one of the 240 non-canonical files is under ST0056, and the 39 `.sh` are the instruments that verify the migration -- including the one whose job is to prove content was not lost). The principle is at the constant, not in a commit: **no tool can make this again, versus a tool made this and can again.** One consequence carried openly: **a mode bit does not survive**; `+x` at hydration is the DECIDED answer, recorded for whoever builds the write-back.
 
-**MEASURED GREEN LIGHT, so nobody has to judge when this is done: when `LOST-PROSE` and `UNACCOUNTED` hit ZERO on this estate, disk is safe to make optional.** `conservation_check.sh` already asks both questions; ic runs it.
+**WAITING ON RULINGS, NOT ON WORK -- two, and the second is the biggest thing found today:**
+
+1. **The write-back.** vc ruled the policy (authority follows AUTHORSHIP: a view divergence means the FILE is stale, an attachment divergence means the STORE is stale, `organize` resolves neither). Buildable.
+2. **THE 163 TYPED DOCS HAVE NO DESTINATION.** vc measured 748 authored sections across 163 `design.md`/`impl.md`/`tasks.md` that exist nowhere but those files. They are `.md`, so the extension rule never excluded them -- **being named in `THREAD_PROSE` is what makes `classify` call them typed, and a typed doc is never also an attachment.** Two correct rules composing into a gap. hv has it as open question 7; vc recommends reclassifying, in which case **the change is DELETING the constant from the classifier rather than adding a field.**
+
+**AND THE HOLE WAS HIDDEN BY A CLAIM I WROTE AN HOUR EARLIER.** I documented `THREAD_PROSE` as "parsed into the model". False -- they are indexed for search and land in no field. A variant called `TypedDoc` plus that sentence both assert a destination, so a reader checking for one finds the claim and stops. Corrected at `d73efed9`. **A fresh instance of my own "a claim nothing computes", written while working on the field that exists because of the last one.**
 
 ## TODO
 
@@ -47,6 +50,22 @@ A transition to the state a thing is already in is a NO-OP that says so, never a
 **AT-10.2 IS PROBED AND READY, so a later session does not redo it.** A fixture with 3 convertible CLOSED threads + 1 LIVE thread carrying residue refuses at exit 1 with a two-class per-line report (`broken-reference: 1, unknown-status: 1`); **12 files before and 12 after, 0 canon, 0 db**; and the SAME fixture with the residue removed converts 4 threads and writes 15 files. **That control is what makes the atomicity arm non-vacuous.** Note `covers AC-01.1 (see the correction)` now parses fine -- `959b0190` fixed it -- so it is no longer a source of residue.
 
 ## Watch-outs -- the mechanisms, distilled
+
+### A HARNESS THAT APPLIES THE TRANSFORMATION IT IS TESTING FOR CANNOT FAIL
+
+**My own, 2026-08-18, and it is the sharpest form of the family below.** I checked the issue-body carry by comparing `canon.body` against `source.strip()` -- I trimmed the source, then declared the trimmed source and the trimmed field identical, and reported **40 of 40 byte-exact**. vc stripped only the frontmatter, hashed the raw remainder, and got **40 of 40 off by one byte**. Every mismatch was `\ No newline at end of file`.
+
+**The comparison had no failing case in it.** Not a bug in the check -- the check was structurally incapable of returning no. It generalises past this: vc's schema-6 pinned binary, ic's reverted treatment, and vc's already-converged control were all subjects PRE-ADJUSTED to agree with the question.
+
+### A CONVERGING WRITER WRITES NOTHING WHEN THERE IS NOTHING LEFT TO CONVERGE
+
+vc measured `dispatch_ssot` dirtying the estate; I ran the same suite and got a CLEAN sentinel; both were correct. **vc restored the estate before every target, so the writer had work; mine ran against an estate already converged.** My clean run was never evidence against the finding -- it was evidence the subject was already in the state their run kept undoing. **Two measurements that look contradictory, distinguished by the STATE OF THE SUBJECT rather than by the method.**
+
+### A GREEN SUITE THAT MUTATES THE USER'S DATA
+
+`cargo test` rewrote Intent's own estate on every run and reported **598 passed / 0 failed / exit 0** doing it -- a test binary's cwd is the crate root, and `intent` walks UP to find a project. Fixed at `1ff7f2c1` (not mine) with a shared helper rather than a third correct call site. **The guard against exactly this already existed IN THE SAME FILE, using a tempdir, three lines from sites that did not** -- a guard stated against one mechanism does not bind a different mechanism with the same effect, and a reader who finds the guard stops looking.
+
+**And I nearly published its opposite.** I ran the reproducer with a sentinel, got `files moved: 0`, and the suite had not compiled -- **6 errors, 0 legs, a perfect zero from a run that never happened.** ic's message is the only reason I checked.
 
 ### A HARNESS IS AN INSTRUMENT AND GETS THE SAME TREATMENT AS ANY OTHER
 
