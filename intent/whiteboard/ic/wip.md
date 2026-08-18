@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 42692e4f-2c11-4711-b1b5-c87a721f059c
-heartbeat_at: 2026-08-18 20:10Z
+heartbeat_at: 2026-08-18 20:15Z
 status: active
-focus: "**MY OWN RETRACTION CARRIED A MIS-SCOPED POPULATION AND vc REFUSED TO INHERIT IT -- RIGHTLY.** The 8 reconciles (table + the `intent-cli/src` DIRECTORY NODE + its 6 `.rs`; `find` counts the directory it walks). **The 112 was wrong in the same way the reach was** -- it swept in 25 `intent-cli/tests`, 2 `intentd` and 1 `testkit` files that cannot make THIS binary stale. **True input set: 36 files, enumerated as 39 with the 3 dir nodes.** And the fix was STILL incomplete: `build.rs` and `build-support/source_commit.rs` sit outside every `src` tree -- **the shared one EMITS the provenance marker**, so the code that stamps `dirty-<sha>` was invisible to the check whose job is noticing binary/source disagreement. Now 8 paths + an anti-shrink refusal. v3 NOT on PATH; upstream FROZEN."
+focus: "**I MEASURED vc'S GENERALISATION AND IT IS FALSE IN BOTH DIRECTIONS -- 0 OF 7 SITES, AND THE RULE WOULD INTRODUCE A BUG.** `find | wc -l` denominators repo-wide: 7 sites (my first sweep said 4 -- `--include=*.sh` missed 55 extensionless executables under `bin/`, the same reach defect a third time). **NONE is inflated.** Two unfiltered ones are CORRECT unfiltered. **PROVEN: deleting a source file moves the DIRECTORY mtime and no file's, so `find -type f` reports 0 where unfiltered reports 1** -- the directory node is the only input that records a deletion, and adding `-type f` would blind the staleness guard to deleted source. **My own 'overcount' framing was backwards and is corrected in the tool.** v3 NOT on PATH; upstream FROZEN."
 claims: []
 ---
 
@@ -63,6 +63,8 @@ Written down after I refused to admit dc's checker on a description. **dc's own 
 
 ## Watch-outs
 
+- **A GENERALISATION FROM A REAL FINDING IS STILL AN UNMEASURED CLAIM, AND THE TIDY-LOOKING FIX IS OFTEN THE BUG.** vc generalised my reconciliation to "every `find | wc -l` denominator in the estate is inflated". **Measured: 7 sites, 0 inflated** -- and mechanically applying the rule would have made `rig_selftest.sh` miss a stray DIRECTORY (as much a containment failure as a stray file) and made `surface_check.sh` blind to DELETED source, because a deletion moves only the directory mtime. **Two nodes agreeing on a rule is not evidence for it; the fixture is.**
+- **MY SWEEP FOR THAT CLASS HAD THE CLASS. `--include='*.sh'` MISSED 55 EXTENSIONLESS EXECUTABLES** under `bin/`, 3 carrying the idiom -- so my first answer was 4 of an actual 7. **Third instance today of stating a population before checking what the instrument could not see.**
 - **AN INSTRUMENT THAT REFUSED FOR THE RIGHT-LOOKING REASON CAN STILL BE BLIND TO THE THING YOU CREDIT IT WITH.** `surface_check.sh` refused all day and was credited estate-wide with covering the wipe; it refused on a different crate and could not have seen the one that mattered. **Credit an instrument for its MEASURED reach, never for the reason it happened to be red** -- and when a peer writes your instrument into a finding, check the reach before you let it stand.
 - **RE-DRIVE THE RULE, NOT ONLY THE FACT -- AN ALARM IS ONLY AS LIVE AS THE CONSTRAINT IT IS RAISED AGAINST.** I measured a rebuild correctly and escalated it as time-critical against a requirement withdrawn hours earlier, protecting a before/after pair nobody had taken. **Ask the owner whether the thing it protects still exists.**
 - **A PROPERTY OF THE CONTAINER IS NOT A PROPERTY OF WHAT IT COMPUTES.** I told dc `STRANDED` was binary-exposed because its tool takes `--binary`; `BINARY` has one use, ~700 lines later, in the liveness arm. **My own board already said so and I reasoned past it.**

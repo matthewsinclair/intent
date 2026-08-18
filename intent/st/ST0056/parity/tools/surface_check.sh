@@ -85,12 +85,19 @@ DISPATCH_TABLE="$TABLE"
 # in either crate makes the binary stale -- but this list named only the first.
 # MEASURED against a binary older than every input, and the count RECONCILED after
 # vc refused to inherit it: the check enumerated **8** -- `dispatch-table.json`, the
-# `intent-cli/src` directory NODE, and the 6 `.rs` inside it (`find` counts the
-# directory it walks, so 8 enumerated is 7 real inputs; the guard has always
-# overcounted itself by one per directory). **The true input set is 36 files** -- 6 +
+# `intent-cli/src` directory NODE, and the 6 `.rs` inside it -- `find` counts the
+# directory it walks. **AND THE DIRECTORY NODE IS NOT NOISE HERE, WHICH IS THE
+# OPPOSITE OF WHAT I FIRST WROTE.** Deleting a source file updates the containing
+# directory's mtime and NO file's, so the directory node is the ONLY input that
+# records a deletion -- and a deleted `.rs` certainly makes this binary stale.
+# MEASURED, not reasoned: delete a file from a fixture and `find` without a filter
+# reports 1 while `find -type f` reports 0. **So adding `-type f` here to make the
+# count "honest" would make this guard blind to deleted source**, and 39 is the
+# correct denominator: 36 files plus 3 directories, all of them inputs whose mtime
+# can move. The tidy-looking fix is the bug. **The true input set is 36 files** -- 6 +
 # build.rs + Cargo.toml in intent-cli, 23 + Cargo.toml in intentsvcs, source_commit.rs,
-# the workspace Cargo.toml and Cargo.lock, and the table. It now enumerates 39, which
-# is those 36 plus the 3 directory nodes, and that is how the count reconciles. The 23
+# the workspace Cargo.toml and Cargo.lock, and the table; it enumerates 39 with the
+# 3 directory nodes, and that is how the count reconciles. The 23
 # it could not see were exactly the 23 `.rs` of `intentsvcs/src`, among them
 # `project.rs`, whose line 482 (`intent_dir().join("st")`) IS the canon path.
 #
