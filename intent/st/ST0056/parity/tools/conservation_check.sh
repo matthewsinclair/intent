@@ -346,6 +346,22 @@ while IFS=$'\t' read -r _ path kind id bucket; do
     continue
   fi
 
+# ONE CONSTRUCTION FOR THE ISSUE CANON PATH, AND IT IS DEFINED ABOVE ITS FIRST
+# CALLER RATHER THAN BETWEEN ITS TWO CALLERS. The helper closed a real class --
+# the artefact arm built `issues/0001.json` and the prose arm stripped the zeros
+# and looked for `issues/1.json`, so two verdicts disagreed about the same 40
+# files in silence. But it was first defined at line 577, BETWEEN the call at 350
+# and the call at 761: bash resolves a function at CALL time, so the earlier arm
+# got `command not found`, an empty path, and reported all 40 issues UNCONVERTED
+# while the later arm worked perfectly. Measured on the pinned hoist estate:
+#
+#   published   LOST 0  UNCONVERTED 40  stderr 40 lines
+#   moved here  LOST 0  UNCONVERTED 0   stderr 0
+#
+# ALTERED stays 2 across both, so the two `issue CLOSED/0059 'Related'` findings
+# are real and newly visible rather than an artefact of the breakage.
+issue_canon_path() { printf '%s/issues/%s.json' "$CANON" "${1##*/}"; }
+
   if [ "$kind" = issue ]; then
     j="$(issue_canon_path "$id")"
     if [ -f "$j" ]; then
@@ -574,7 +590,6 @@ declared_defer() {
 # instance; one construction closes the class. Highlander pointed at a path
 # expression rather than at a module, and it is the fourth time today three of
 # us have made this argument about three different things.
-issue_canon_path() { printf '%s/issues/%s.json' "$CANON" "${1##*/}"; }
 
 compare_prose() {
   local label="$1" raw="$2" trim="$3" file="$4" dest="${5:-modelled}" got
