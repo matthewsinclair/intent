@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-18 09:17Z
+heartbeat_at: 2026-08-18 10:18Z
 status: paused
-focus: "PAUSED at an ultra-aggressive fold. **vc's TWO BUILD ITEMS ARE LANDED: rung 9 `issues.body` and rung 10 `attachments`** (`36bc02c5`, `d73efed9`), plus `related[]` and **rung 11**, which exists because I EDITED rung 10 after a store had already run it. **Waiting on hv, not on work: question 7 (163 typed docs with no destination) and the estate regeneration, which happens ONCE after that ruling because the ruling changes what the migration writes.** The regeneration is MINE, in a window vc calls. Upstream FROZEN; push `local` only."
+focus: "PAUSED at a localfold, HOLDING for vc to finish spec work. **vc's two build items are LANDED** -- rung 9 `issues.body`, rung 10 `attachments` (`36bc02c5`, `d73efed9`) -- plus `related[]` and **rung 11**, which exists because I EDITED rung 10 after a store had already run it (`387cab7d`). **NEXT ON THE BOUNCE, in order: the `Triage -> Wip` transition row hv just amended into existence, then hv's ruling on question 7, then the estate regeneration -- MINE, one window, vc calls it.** Nothing of mine is dirty; `ST0057` and the view churn are hv's dogfood. Upstream FROZEN; push `local` only."
 claims: [ST0056/10]
 ---
 
@@ -33,11 +33,13 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 ## TODO
 
-1. **THE 163 TYPED DOCS HAVE NO DESTINATION** (vc measured 748 sections). They are `.md`, so the extension rule never excluded them -- **being named in `THREAD_PROSE` is what makes `classify` call them typed.** hv has it as question 7; if vc's recommendation carries, **the change is DELETING that constant, not adding a field.**
+0. **`Triage -> Wip` VIA `st start` -- hv AMENDED THEIR OWN 2026-08-15 RULING and the declared transition row is MINE** (doc side `53bc2c10`). Two more fall out. **`st new --start` can now span ONE transition instead of two, so check whether the flag WALKS the machine or SETS the state** -- those differ now, and it retires ic's EXP-04 rather than documenting it. And **a naming collision to settle BEFORE `is_terminal()` lands**: the refusal says _"the machine has no terminal states"_ (every state has an exit) while `is_terminal()` will mean `Completed | Cancelled`. Same word, two meanings, neither shipped yet -- rename the predicate or say "no absorbing states".
+1. **THE 163 TYPED DOCS HAVE NO DESTINATION** (vc measured 748 sections). They are `.md`, so the extension rule never excluded them -- **being named in `THREAD_PROSE` is what makes `classify` call them typed.** hv has it as question 7 (ic: inventoried, not ruled, `c5b274aa`); if vc's recommendation carries, **the change is DELETING that constant, not adding a field.** **It is NOT only the 165 that exist: `st new` no longer creates those files, but `THREAD_PROSE` still names them, so a hand-written `design.md` in a v3 thread is indexed and carried by nothing. The 166th has the same answer as the 165.**
 2. **The estate regeneration -- MINE, one window, vc calls it, after question 7.** Canon holds no bodies and no attachments; the store holds the TRIMMED bodies the defective test run left. **Neither `sync` direction is correct today** -- `--to-store` drops them, `--to-disk` reintroduces exactly what I reverted -- and the right content is only derivable by a fresh migration from the v2 markdown.
 3. **The attachment write-back.** vc ruled the policy (5.1b): authority follows AUTHORSHIP, so a view divergence means the FILE is stale and an attachment divergence means the STORE is stale, and `organize` resolves neither.
 4. **`sync`'s "Safe: the files are re-creatable" is a claim about RECOVERABILITY, not correctness** (vc). Worth saying what it is safe FROM.
-5. `upgrade`'s "their content is unchanged" -- a claim nothing computes. `doctor` naming a stale pre-versioning store before a cutover. AC-10.8 egest; AT-10.2 (probed) / 10.3 / 10.4; `WpStatus::Cancelled`.
+5. **`created: ST0057` writes three files AND regenerates a tracked `steel_threads.md` while printing one word** (hv's dogfood). A command that modifies a tracked file the user did not name must say so, or they find it in `git status` and have to work out who did it.
+6. `upgrade`'s "their content is unchanged" -- a claim nothing computes. `doctor` naming a stale pre-versioning store before a cutover. AC-10.8 egest; AT-10.2 (probed) / 10.3 / 10.4; `WpStatus::Cancelled`.
 
 ## Watch-outs -- the mechanisms, distilled
 
@@ -46,6 +48,10 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 **My worst defect of the day, and it reached hv rather than a test.** I added `seq` by EDITING rung 10, reasoning: _"the live store is at 9, so rung 10 has not been applied to any durable store, so editing it in place is safe."_ **Valid reasoning, false premise, never checked** -- one `PRAGMA user_version` would have said 10. Two shapes stamped 10, and every read of canon died on `no such column: seq`.
 
 **THE RULE, now on the ladder: once any store has run a rung, changing what that rung PRODUCES requires a NEW rung.** The old rung's output is already stamped and unreachable. **An unchecked assumption WEARING THE SHAPE OF A CHECK is the parent of most of the family below** -- it occupies the slot the check would have gone in.
+
+### A HUMAN TYPING THE SEQUENCE EXERCISES WHAT NO TEST EXPRESSES -- 3 for 3 in one day
+
+hv's dogfood beat the suite three times: the schema-10 shape collision (two commands, where 85 legs could not express it), `st new` -> `st triage` -> `st start` where v2 was two steps (_"this is STOOPID"_), and `created:` printing one word while rewriting a tracked index. **The project had even PREDICTED the adjacent drift** -- ic's EXP-04 recorded that `st new -s` now spans two transitions -- **and recorded the SEMANTIC cost while missing the ERGONOMIC one.** Nothing short of a person doing the ordinary thing surfaces "a user creates a thread and starts working on it".
 
 ### A SUITE THAT ALWAYS STARTS FRESH CANNOT SEE A MIGRATION DEFECT
 
