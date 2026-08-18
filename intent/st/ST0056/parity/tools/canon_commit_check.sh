@@ -171,10 +171,24 @@ fi
 # A NEW divergence can only arise among attachments where THIS COMMIT changed
 # either the attachment's own bytes or its thread's canon. Everything else has
 # the same status it had in the parent, so it is inherited BY CONSTRUCTION and
-# can never be an ADD. Examining all 278 took 5.1s, which is slower than the
-# slowest gated instrument in the roster; narrowed it is a fraction of that,
-# and the narrowing is stated in the output rather than left to be discovered.
-# --exhaustive turns it off and examines everything.
+# can never be an ADD.
+#
+# TIMING, AND BOTH FIGURES ARE MEASURED RATHER THAN QUOTED, BECAUSE THE FIRST
+# VERSION OF THIS COMMENT WAS WRONG TWICE OVER. At 8d0e8736 on two machines with
+# `/usr/bin/time -p`: exhaustive 9.5-9.7s, narrowed 2.1-2.3s, against
+# view_skew_check.sh -- the slowest gated instrument -- at 2.87-2.97s. So
+# narrowed it is the SECOND-slowest thing in the gate, with a 25% margin, not
+# the comfortable one the first comment claimed.
+#
+# The two errors are worth keeping because both favoured the conclusion their
+# author wanted. (1) The times came from zsh's builtin `time` applied to a
+# SUBSHELL, which under-reported wall clock by roughly half -- 5.1s for a 9.6s
+# run. (2) They were compared against `3077ms` READ OUT OF THE ROSTER STRING in
+# runner_roster_check.sh: a figure recorded on another machine at another time
+# over a smaller tree. Measured-against-recorded is not a comparison. ic
+# measured all three on one machine and the discrepancy was theirs to find.
+#
+# --exhaustive turns the narrowing off and examines everything.
 ONLY="" scoped=""
 if [ "$EXHAUSTIVE" -eq 0 ] && git rev-parse --verify --quiet "$REV^{commit}" >/dev/null &&
    git rev-parse --verify --quiet "$REV^^{commit}" >/dev/null; then
@@ -213,7 +227,13 @@ new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)
 inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 
 [ -z "$inherited" ] || {
-  echo "canon-commit: INHERITED $(printf '%s\n' "$inherited" | grep -c .) -- present in $REV^ too, so $REV did not introduce them:"
+  # THE QUALIFIER IS NOT DECORATION (vc, third instance of this tool's own class).
+  # Narrowed, this count is over the EXAMINED set, so it reads 1 where the true
+  # figure across all attachments is 2 -- verdict correct, ADDS correct, and a
+  # reader believing there is one inherited divergence where there are two. ADDS
+  # already carried "of N examined"; INHERITED did not, so nothing said the count
+  # was partial. Every count in this tool now names the set it is over.
+  echo "canon-commit: INHERITED $(printf '%s\n' "$inherited" | grep -c .) of ${scoped:-$total} attachment(s) examined${ONLY:+ (NARROWED -- there may be more across the $total recorded; --exhaustive counts them all)} -- present in $REV^ too, so $REV did not introduce them:"
   printf '%s\n' "$inherited" | sed 's/^/    /'
   echo "    Never blocked: a guard that must be bypassed to work is one nobody keeps."
 }
