@@ -217,7 +217,14 @@ if [ -z "$curp" ]; then
   else
     echo "canon-commit: ADDS 0 -- all $total examined attachment(s) match the bytes $REV holds at their paths."
   fi
-  echo "canon-commit: GATES on what this commit ADDS; inherited divergences are reported, never failed on."
+  if [ -n "$ONLY" ]; then
+    echo "canon-commit: GATES on what this commit ADDS."
+    echo "canon-commit: INHERITED -- NOT EXAMINED in narrowed mode, and this is structural rather than an omission."
+    echo "    An inherited divergence is BY DEFINITION in a path this commit did not touch, which is exactly"
+    echo "    what the narrowing excludes. The ADDS proof does not license the inherited arm. --exhaustive sees them."
+  else
+    echo "canon-commit: GATES on what this commit ADDS; inherited divergences are reported, never failed on."
+  fi
   echo "canon-commit: REACH -- attachments only. Criteria, status fields and notes are invisible to this tool."
   exit 0
 fi
@@ -226,17 +233,29 @@ parent="$(diverged_at "$REV^" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$'
 new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 
-[ -z "$inherited" ] || {
-  # THE QUALIFIER IS NOT DECORATION (vc, third instance of this tool's own class).
-  # Narrowed, this count is over the EXAMINED set, so it reads 1 where the true
-  # figure across all attachments is 2 -- verdict correct, ADDS correct, and a
-  # reader believing there is one inherited divergence where there are two. ADDS
-  # already carried "of N examined"; INHERITED did not, so nothing said the count
-  # was partial. Every count in this tool now names the set it is over.
-  echo "canon-commit: INHERITED $(printf '%s\n' "$inherited" | grep -c .) of ${scoped:-$total} attachment(s) examined${ONLY:+ (NARROWED -- there may be more across the $total recorded; --exhaustive counts them all)} -- present in $REV^ too, so $REV did not introduce them:"
+# THE INHERITED ARM IS STRUCTURALLY OUTSIDE THE NARROWING, AND SAYING SO IS THE
+# WHOLE FIX (ic). An inherited divergence is BY DEFINITION in a path this commit
+# did not touch -- which is precisely the population the narrowing excludes. So
+# the ADDS proof, that only touched paths can be a NEW divergence, licenses the
+# ADDS half and nothing else. Narrowed, vc measured INHERITED 1 where the truth
+# was 2; ic measured the section VANISHING ENTIRELY while two existed, one of
+# them this file's own canon record -- an instrument blind to its own record,
+# whose negative result was a fact about the instrument. And the narrowed run
+# was printing "inherited divergences are reported" while reporting none: a
+# guard declaring an arm it does not run, which is the defect this tool's author
+# fixed in self_provenance_check.sh the same afternoon, reappearing in the line
+# added here to prevent it. The verdict was correct throughout; the promise
+# outran the mode.
+if [ -n "$ONLY" ]; then
+  echo "canon-commit: INHERITED -- NOT EXAMINED in narrowed mode, and structurally so, not by omission."
+  echo "    An inherited divergence is by definition in a path this commit did not touch, which is exactly"
+  echo "    what the narrowing excludes. Any count printed here would be over the wrong population."
+  echo "    --exhaustive examines all $total and reports them."
+elif [ -n "$inherited" ]; then
+  echo "canon-commit: INHERITED $(printf '%s\n' "$inherited" | grep -c .) of $total attachment(s) examined -- present in $REV^ too, so $REV did not introduce them:"
   printf '%s\n' "$inherited" | sed 's/^/    /'
   echo "    Never blocked: a guard that must be bypassed to work is one nobody keeps."
-}
+fi
 
 if [ -z "$new" ]; then
   echo "canon-commit: ADDS 0 of ${scoped:-$total} attachment(s) examined -- nothing this commit introduced."
