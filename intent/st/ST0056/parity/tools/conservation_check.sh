@@ -45,6 +45,21 @@
 # `.claude/**` half. Recorded rather than built, deliberately: an unstated limit
 # is how a green starts meaning something its author never claimed.
 #
+# A THIRD AXIS, AND THIS TOOL IS BLIND TO IT TOO (cc, 2026-08-18, found by a
+# different method entirely). **The record survives, its prose survives, and a
+# MODELLED SCALAR is corrupted.** Three issue titles in live canon -- 0011,
+# 0014, 0035 -- carry literal double quotes, because `legacy.rs` strips v2's
+# YAML quoting from `id` and from `wp.title` and not from `issue.title`.
+#
+# Every arm here returns clean on that. The census emits CORPUS, COUNT, ENTITY,
+# FILE and PROSE rows; ENTITY checks identity by id so the entity IS present,
+# COUNT reconciles, and PROSE hashes `## ` SECTION bodies so nothing compares a
+# field. **A title can gain two bytes in canon and this tool reports 0
+# findings** -- the same shape as the two axes above: a check built for section
+# interiors is structurally silent about field values. Recorded, not built. cc
+# found it by reading the parser, and a conservation check that silently did
+# not cover it would have been the more expensive discovery.
+#
 # IT REFUSES RATHER THAN PASSES WHEN IT CANNOT SEE ITS SUBJECT. A migrated root
 # with no `st/` canon exits 2, and so does an empty census. Both would otherwise
 # produce a green over an empty comparison, which is the wrong-zero this whole
