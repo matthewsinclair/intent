@@ -24,6 +24,19 @@ broken_install() {
   rm -rf "$root"
   mkdir -p "$root/lib/templates"
   cp -R "${INTENT_PROJECT_ROOT}/bin" "$root/bin"
+  # Carry VERSION. Without it `get_intent_version` warns and falls back to a
+  # hardcoded 2.2.1, so this install claims to be OLDER than the fixture it is
+  # pointed at, and `bin/intent`'s forward-compatibility guard refuses at exit 2
+  # BEFORE any template lookup runs. The assertion below then fails against a
+  # message that was never going to be printed -- and because it asserts with
+  # `[[ ]]`, which prints nothing on failure, the refusal never appears in the
+  # output either. It reads as a missing template message; it is a version
+  # refusal wearing that failure's clothes.
+  #
+  # THE POINT OF THIS FIXTURE IS THAT TEMPLATES ARE MISSING. Breaking version
+  # resolution as well is a second defect riding along, and a fixture that
+  # breaks two things tests neither.
+  cp "${INTENT_PROJECT_ROOT}/VERSION" "$root/VERSION"
   echo "$root"
 }
 

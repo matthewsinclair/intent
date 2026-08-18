@@ -92,9 +92,18 @@ setup() {
 
   # TWO remotes, which is the whole point: one bare repo per remote, named the
   # way this project names them, with `upstream` tracked exactly as here.
-  git init -q --bare "$TEST_TEMP_DIR/local.git"
-  git init -q --bare "$TEST_TEMP_DIR/upstream.git"
-  git init -q "$REPO"
+  # Name the branch EXPLICITLY on all three, because the default is not ours to
+  # assume: bare `git init` takes its branch name from `init.defaultBranch` in the
+  # user's own `~/.gitconfig`. matts has that set to `main`, so this fixture built
+  # `main` here and passed; the CI runners do not set it, so they built `master`
+  # and every test in this file died in `setup` with `src refspec main does not
+  # match any` -- 29 consecutive red runs of the `Intent Tests` leg while the
+  # `rust` leg stayed green. The test was passing on this machine because of a
+  # line in a personal config file, not because the gate under it was correct.
+  # `release_script.bats:34` already writes it this way.
+  git init -q -b main --bare "$TEST_TEMP_DIR/local.git"
+  git init -q -b main --bare "$TEST_TEMP_DIR/upstream.git"
+  git init -q -b main "$REPO"
   git -C "$REPO" config user.email t@t
   git -C "$REPO" config user.name t
   mkdir -p "$REPO/native/rust" "$REPO/intent/whiteboard"

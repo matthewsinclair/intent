@@ -39,6 +39,27 @@ fi
 # Export INTENT_HOME for tests
 export INTENT_HOME="$PROJECT_ROOT"
 
+# Fixtures must declare the version of the binary THIS script drives.
+#
+# `create_test_project` in tests/lib/test_helper.bash defaults the fixture's
+# `intent_version` to 3.0.0, because the same .bats files run against both
+# binaries and v3 is the one under active development. Its comment already
+# names the remedy for the other direction -- "INTENT_FIXTURE_VERSION=2.19.0
+# restores a v2-shaped estate" -- and until now NOTHING IN THE TREE SET IT:
+# the only two mentions of the variable were the comment describing it and the
+# line reading it. A capability no consumer consults distinguishes nothing.
+#
+# It went unnoticed because it needed a second commit to bite. `53f88757` gave
+# v2 a forward-compatibility guard that refuses a project from the future --
+# correctly. From then on this script built v3 fixtures and drove a v2 binary
+# at them, and v2 refused all of them: 299 failures across 24 files, 297 of
+# them that one refusal, including all five files that guard the acceptance
+# gate. Neither commit is wrong; the pair is.
+#
+# Read from VERSION rather than written as a literal, so this tracks the tool
+# instead of becoming a second place that has to be remembered at a release.
+export INTENT_FIXTURE_VERSION="$(cat "$PROJECT_ROOT/VERSION")"
+
 # Export BATS_LIB_PATH for bats libraries
 export BATS_LIB_PATH="$SCRIPT_DIR/lib"
 
