@@ -75,7 +75,7 @@ G_VOCAB="class vocabulary: a claimed parity class is one parity.md names"
 G_RATIFIED="ratification provenance: a ratified row names authority, date and record"
 G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
 G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
-G_SELFPROV="self-provenance: a vendored tree agrees with the record COMMITTED beside it"
+G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`int macos publish\`)"
 
 G_BOARD="whiteboard: header values are literal, never YAML-escaped"
 
