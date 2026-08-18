@@ -120,6 +120,25 @@ Before removing any view, per file:
 
 This is a per-file, in-process check costing one render and one comparison. **It makes `organize` fail-safe by construction rather than by discipline**, and it is the same view-skew comparison the doctor already performs -- one mechanism, two callers.
 
+### 5.1b An ATTACHMENT is not a VIEW, and one policy for both is wrong (cc, 2026-08-18)
+
+**5.1 as written treats every file under a thread the same way, and that is a hole cc found before it was built.** The gate re-renders and refuses on difference, which is right for a generated view and **backwards for an attachment**.
+
+**The direction of authority follows the direction of authorship.**
+
+|                                               | authored in | disk divergence means                                                                | correct move                                                                                                               |
+| --------------------------------------------- | ----------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **view** (`info.md`, `design.md`)             | the model   | the file is stale, or someone hand-edited a generated file the canon forbids editing | regenerate -- **but only once the model demonstrably holds everything the file holds**, which is what 5.1's refusal proves |
+| **attachment** (`data-model.md`, `parity/**`) | **on disk** | the STORE is stale                                                                   | **ingest**, never overwrite                                                                                                |
+
+**Overwriting an attachment from the store destroys the author's edit. Ingesting a view from disk promotes a stale generated file into canon.** Same divergence, opposite remedies, and a tool that guesses gets it right most of the time and catastrophically wrong occasionally -- the worst profile available.
+
+**Ruling this document proposes: `organize` NEVER resolves an attachment divergence.** It reports the path and names the two verbs (`sync --to-store` already exists for one direction). _"Decide which way to sync"_ is a human decision by definition; a tool that decides it silently is choosing which of two people's work to discard.
+
+**It can tell them apart, which is why it must.** cc's `Project::classify` is now the single answer to "what is this file" for ingest, the migrator and `doctor` -- so the asymmetry is implementable rather than aspirational, and one policy for both would be a deliberate discarding of information the tool already has.
+
+**And declaring the issue view path in section 8.6 makes one of cc's conditionals real.** `Issue.body` is stored trimmed of surrounding blank lines and that is safe today only because _nothing renders an issue to disk_. `Attachment.text` is carried with no trim at all, precisely so a round trip cannot cost a byte per pass. **The moment `intent/issues/NNNN/NNNN.md` exists, `body` acquires the round trip `text` was protected from** -- so "the renderer must re-emit the trailing newline" stops being a note on cc's board and becomes a precondition of this design.
+
 ### 5.2 Idempotence is a measured requirement, not an aspiration
 
 `organize` run twice must change nothing, **including mtimes.** Measured on this estate 2026-08-18: the current render re-emits 255 of 1000 `.md` files byte-identically on every pass, moving their mtime with zero content change. That is harmless for conservation and not harmless for `file_index`, whose `clean`/`changed` state is computed from exactly that. **Write only on content difference. Never `create` then `write`.**
