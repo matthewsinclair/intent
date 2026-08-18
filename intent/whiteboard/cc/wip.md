@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 19:57Z
+heartbeat_at: 2026-08-18 20:01Z
 status: active
-focus: "BACK FROM THE COMPACT. PLAN WRITTEN, HOLDING FOR hv. **MY AC-04.4 GUARD IS DEAD CODE -- `views::write_all` HAS NO PRODUCTION CALLER** (vc predicted it, I verified it): the live path is `Facade::projection` -> `WriteSet` -> temp-and-rename, which moves mtime BY CONSTRUCTION, and the real denominator is **~364 paths INCLUDING CANON**, not 266. **vc's located cause names the wrong lines and I warned them before they acted on it.** **AND THE COST I WROTE INTO THE DOC COMMENT IS FALSE: `file_index` decides state by SHA-256 ALONE.** `surface_check.sh` GREEN at rc=0. ST0057 WP-01 still reverted, patch saved. Upstream FROZEN."
+focus: "PLAN WRITTEN, HOLDING FOR hv. **MY AC-04.4 GUARD IS DEAD CODE -- `views::write_all` HAS NO PRODUCTION CALLER**: the live path is `Facade::projection` -> `WriteSet` -> temp-and-rename, which moves mtime BY CONSTRUCTION, and the real denominator is **~364 paths INCLUDING CANON**, not 266. **vc DERIVED THE SAME LOCATION AND THE SAME FIX INDEPENDENTLY and confirms both.** **THE COST I WROTE INTO THE DOC COMMENT IS FALSE: `file_index` decides state by SHA-256 ALONE.** **MY ORDERING ARGUMENT IS WITHDRAWN -- AC-01.4 IS GIT-MEASURED, so WP-01 is NOT blocked and the sequence is hv's free choice.** `surface_check.sh` GREEN. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -33,7 +33,9 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 **THE COST I WROTE INTO THE DOC COMMENT IS FALSE, AND IT IS MINE.** `write_all`'s comment claims the mtime move matters because "`file_index` reads it to decide clean from changed, so a sync that changed nothing marked the whole estate changed". **`sync.rs:317-326` decides `FileState` from SHA-256 ALONE**, and the module doc says stat is never a gate -- "size and mtime are carried as reporting metadata" -- on vc's own 2026-08-14 ruling that the contract governs over `design.md`. **The churn does not touch the index.** The real costs: the criterion is ratified and unmet; it defeats every external mtime instrument INCLUDING the one vc measured with; and touching 364 files per no-op sync is the opposite of what ST0057 is about. **SIXTH instance of the class in two days and THE FIRST NO PEER CAUGHT -- found only because I went to re-measure my own sentence instead of citing it.**
 
-**PROPOSED, NOT STARTED, HOLDING FOR hv: put the skip in `WriteSet::commit`, not in views.** `record()` has ALREADY read the prior content, so **the comparison costs no I/O at all** -- unlike the views guard, which added a read. `Prior.written: false` is the EXISTING semantics for "nothing to undo here", so rollback stays correct with no new state and no new field. **Then make `write_all` build a `WriteSet` and commit it rather than deleting it**: its six test files keep working unchanged and start exercising the mechanism the estate runs. **Red-first must be driven through `Facade`, or it proves nothing a second time.**
+**PROPOSED, NOT STARTED, HOLDING FOR hv: put the skip in `WriteSet::commit`, not in views.** `record()` has ALREADY read the prior content, so **the comparison costs no I/O at all** -- unlike the views guard, which added a read. `Prior.written: false` is the EXISTING semantics for "nothing to undo here", so rollback stays correct with no new state and no new field. **Then make `write_all` build a `WriteSet` and commit it rather than deleting it**: its six test files keep working unchanged and start exercising the mechanism the estate runs. **Red-first must be driven through `Facade`, or it proves nothing a second time.** **vc CONFIRMS the location and the fix, BOTH DERIVED INDEPENDENTLY this morning before my message landed** -- two nodes reaching one location separately is worth more than either reaching it once -- and their board's wrong pointer is struck.
+
+**vc's CAUTION ON THE RED, AND IT IS THE STEP THAT DECIDES WHETHER ANY OF THIS IS REAL: DRIVE THE WHOLE-ESTATE DIRECTION, NEVER A SINGLE-THREAD PROJECTION.** A per-thread `projection` writes a SUBSET, and **a subset that happens to be entirely changed goes GREEN against an unguarded writer** -- the discriminating case is simply absent from the population. **THAT IS THE THIRD INSTANCE OF ONE SHAPE IN TWO DAYS AND IT DESERVES ITS OWN NAME: A PROBE WHOSE POPULATION CANNOT CONTAIN THE FAILURE IT TESTS FOR.** `sync` printing _the store and the extract agree_ over **0 == 0**; `git status` confirming an **mtime-only** prediction it is structurally blind to; and now an all-changed subset vouching for a skip that never fired. **Every one returns the right answer for the wrong population, and every one reads as a pass.**
 
 ## NEXT: ST0057 WP-01 -- STARTED, REVERTED, RESUMABLE IN MINUTES
 
@@ -65,6 +67,14 @@ intent/.canon/       MUST BE COMMITTED
 ```
 
 **Every existing `intent/.<x>/` is gitignored, so the convention reads "a dot directory under intent/ is local and never travels".** `.canon/` is the single deliberate exception. **A future tidy-up adding `intent/.*/` to `.gitignore` is natural, tidy-looking and correct-seeming, and would silently un-commit the entire estate** -- D29's failure with the whole model behind it, and the same shape as the 434KB of issue bodies that lived only in a gitignored store today. **AC-01.2 checks the STATE by cloning; AC-01.5 refuses the EDIT. The gap between those two moments is where this class lives.** The reasoning is in `canon_dir()`'s doc comment so it is re-derivable at the source even if the guard is never built.
+
+## ORDERING: RESOLVED AGAINST MY OWN RECOMMENDATION
+
+**AC-01.4 IS MEASURED BY GIT, CONTENT-BASED, so the churn CANNOT pollute it and WP-01 IS NOT ORDERED BEHIND THE `WriteSet` SKIP** (vc, three independent legs: the criterion's word is _diffs_ and mtime has no diff; its PURPOSE is rejecting consolidated `threads.jsonl`, a version-control GRANULARITY property mtime cannot express at all; and a sync moved 10/10 view mtimes while `git status` reported 0). **My own correction gives it a fourth leg I did not claim: `entry_for` decides `FileState` from sha256 alone, so Intent's OWN change detection is immune too. Nothing in the estate that matters is mtime-gated.**
+
+**SO I WITHDRAW THE ORDERING ARGUMENT.** It had one load-bearing leg -- _if AC-01.4 reads mtime this is a hard block_ -- and the condition resolved against it. What is left (S lands green, L takes the suite red, removing a false green before a 97-file move) is PREFERENCE, not blocking, and **the sequence is hv's free choice.** Re-litigating a conditional argument after its condition fails is how a preference gets dressed as a constraint.
+
+**AND THE QUESTION ITSELF WAS THE FINDING (vc): a criterion that does not name its instrument is defective when two plausible instruments disagree.** AC-01.4 will name `git diff --name-only`; vc owes a sweep across 118 + 43 rows. **I could not read the criterion correctly and the fix is in the criterion, not in the reading.**
 
 ## OPEN -- what is actually mine
 
