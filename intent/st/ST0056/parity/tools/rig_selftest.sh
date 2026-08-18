@@ -329,7 +329,10 @@ CASEEOF
 
     echo "rig-selftest: SCOPE -- REFUSAL SITES DRIVEN: $DRIVEN_SITES of $TOTAL_SITES. BOTH DERIVED, ONE POPULATION."
     echo "  A refusal site is a distinct point that can make the rig exit 2: $DIE_SITES \`die\` call-sites"
-    echo "  (die() is exit 2, so the call declares itself) plus $MARKED_SITES marked \`# REFUSAL-SITE:\`"
+    echo "  -- COUNTED IN THREE FORMS, because naming the KIND is what let the retired 24 stand:"
+    echo "  statement-position, \`|| die\`, and case-arm. A left-margin scan sees only the first and"
+    echo "  gives 24; counting the observable gives $DIE_SITES. Both were once called \"die call-sites\"."
+    echo "  Plus $MARKED_SITES marked \`# REFUSAL-SITE:\`"
     echo "  that refuse without calling die. Only the second kind needs a marker; marking the"
     echo "  first would duplicate a declaration that is already there."
     echo "  NUMERATOR DERIVED BY DRIVING, NOT BY READING: each exit-2 case's expected text is"

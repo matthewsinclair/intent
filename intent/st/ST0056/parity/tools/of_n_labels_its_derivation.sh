@@ -93,6 +93,12 @@ echo "  with numeric-ish tokens both sides of \` of \`. NOT SEEN, stated because
 echo "  read as coverage: Rust instruments; the extensionless executables under \`bin/\`; a ratio"
 echo "  assembled across two emissions or inside a helper; a printf whose format string is built"
 echo "  at runtime; and any operand whose variable is assigned outside this file."
+echo "of-n-labels: AND THE LIMIT A BLIND ADJUDICATION FOUND IN THIS TOOL (vc, 2026-08-18): it checks"
+echo "  that a derivation EXISTS in the source; it NEVER checks that the WORDS naming that derivation"
+echo "  identify a countable thing. \`die call-sites\` named a derivation and admitted two incompatible"
+echo "  ones -- a left-margin scan giving 24, the observable giving 41. THAT IS A REFERENT CHECK, it is"
+echo "  open-ended the way vocabulary matching is, and this tool does not attempt it. A reader is the"
+echo "  instrument for it, which is why a second pair of eyes found it and a second grep would not."
 echo
 
 # ---------------------------------------------------------------------------------
