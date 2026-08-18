@@ -137,7 +137,20 @@ This is a per-file, in-process check costing one render and one comparison. **It
 
 **It can tell them apart, which is why it must.** cc's `Project::classify` is now the single answer to "what is this file" for ingest, the migrator and `doctor` -- so the asymmetry is implementable rather than aspirational, and one policy for both would be a deliberate discarding of information the tool already has.
 
-**And declaring the issue view path in section 8.6 makes one of cc's conditionals real.** `Issue.body` is stored trimmed of surrounding blank lines and that is safe today only because _nothing renders an issue to disk_. `Attachment.text` is carried with no trim at all, precisely so a round trip cannot cost a byte per pass. **The moment `intent/issues/NNNN/NNNN.md` exists, `body` acquires the round trip `text` was protected from** -- so "the renderer must re-emit the trailing newline" stops being a note on cc's board and becomes a precondition of this design.
+**Declaring the issue view path in 8.6 briefly made this a precondition, and cc removed the NEED for it rather than accepting it.** `Issue.body` was stored trimmed of surrounding blank lines, safe only while nothing rendered an issue to disk; scheduling that renderer turned the trim into a defect with a date on it. **cc's ruling, and it is the better one: a normalisation that requires a FUTURE COMPONENT TO COMPENSATE is a scheduled defect, so the byte stays.** `body` is now carried VERBATIM, like `Attachment.text`, and frontmatter plus `body` reproduces the source file exactly. **There is nothing for the issue renderer to remember, which is worth more than a precondition somebody has to honour.** Consequence for the census: these bucket as `conserved byte-identical`, not `whitespace-normalised` -- the softer bucket was the trim, and the trim is gone.
+
+### 5.1c An UNCARRIED file is not a DROPPED one, and the migration record must not say it is
+
+cc asked whether the ~237 files the classifier reports as uncarried should enter the migrator's disposition record with verdict `dropped`. **No, and the reason is the founding sentence of the tool that reads that record:** _"WHY 'STILL ON DISK' IS NOT A DISPOSITION, WHICH IS THE ONE THING THIS TOOL EXISTS TO SAY."_
+
+The two are different facts:
+
+- **dropped** -- content existed, was deliberately not brought across, **and canon is verified empty for it.** Safe because nobody wanted it. The existing 115 are template boilerplate no author wrote.
+- **uncarried** -- content is **still on disk**, is **not in the model**, and **is still the only copy.** Nothing was removed and nothing is safe.
+
+**The disposition record is a LICENCE, not an account.** `conservation_check.sh` reads a declared drop as _"removed on purpose, not loss"_ and stops reporting it. Admitting 237 uncarried files under that verdict would silence the exact population the check exists to find -- **which is the attack ic drove on 2026-08-18 through `--out-of-model`: the migrator zeroes a counter by naming everything, certifying its own denominator.** Same move, different door.
+
+**Home for the fact: `doctor`, which already names them.** An uncarried file is a LIVE CONDITION, not a record of what a migration once did. Widening `Dropped`'s doc rather than adding a vocabulary member was the right instinct -- it keeps the reading tool from breaking on an unknown word -- and the answer it protects is not needed, because these do not belong in that record at all.
 
 ### 5.2 Idempotence is a measured requirement, not an aspiration
 
@@ -192,7 +205,7 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 3. **`intent edit` over `intent wip`** -- confirm, given the four existing meanings of `wip`.
 4. **Default rule.** Proposed: realise every artefact whose status is not terminal. Terminal = `Completed | Cancelled` for threads, `Closed` for issues -- **reusing the `is_terminal()` cc is adding for the doctor's completion arm rather than spelling the vocabulary a second time.** On this estate that default realises 2 threads of 56 and 0 issues of 40.
 5. **Work packages.** A WP is realised with its thread, not independently. Confirm, or `WORKPACKAGE:ST0056/10` becomes a third sigil.
-6. **Issues have no rendered-view path in v3, and `intent edit <ISSUE>` therefore has nowhere to write.** `intent/issues/NNNN.json` is canon and now carries `body`; the only rendered issue markdown in the estate is v2's `issues/<BUCKET>/NNNN/NNNN-slug.md`, which is precisely the residue this design retires. A path has to be declared -- `intent/issues/NNNN/NNNN.md` is the obvious shape and matches the thread arrangement. **Found by the plan tool rather than by writing this document**, which is the argument for building the second derivation: a probe looking only at the v3 path reported all 40 issues absent, and "absent" reads as nothing-to-do.
+6. **Issues have no rendered-view path in v3, and `intent edit <ISSUE>` therefore has nowhere to write.** (The trailing-newline precondition this originally carried is retired -- cc made `body` verbatim rather than ask the renderer to compensate.) `intent/issues/NNNN.json` is canon and now carries `body`; the only rendered issue markdown in the estate is v2's `issues/<BUCKET>/NNNN/NNNN-slug.md`, which is precisely the residue this design retires. A path has to be declared -- `intent/issues/NNNN/NNNN.md` is the obvious shape and matches the thread arrangement. **Found by the plan tool rather than by writing this document**, which is the argument for building the second derivation: a probe looking only at the v3 path reported all 40 issues absent, and "absent" reads as nothing-to-do.
 
 ## 9. A second derivation exists and disagrees usefully
 
