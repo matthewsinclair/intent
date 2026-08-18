@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 20:06Z
+heartbeat_at: 2026-08-18 20:10Z
 status: active
-focus: "PLAN WRITTEN, HOLDING FOR hv. **THE CHURN FIX SERVES NO CRITERION THAT EXISTS -- I HAD BEEN CITING A BARE `AC-04.4` AND BOTH THREADS HAVE ONE** (vc): ST0056's is typed facade errors, GREEN and unrelated; ST0057's is about `organize`, WHICH IS RETIRED IN THIS BUILD. **Verified all four claims myself.** **MY GUARD IS DEAD CODE -- `views::write_all` HAS NO PRODUCTION CALLER**; the live path is `Facade::projection` -> `WriteSet` -> temp-and-rename, **~364 paths INCLUDING CANON**. **MY SELF-CORRECTION REACHED RATIFIED CANON: ST0057 AC-04.4's STATED REASON IS FALSE.** **EVERY ID I WRITE IS NOW THREAD-QUALIFIED.** Upstream FROZEN."
+focus: "PLAN WRITTEN, HOLDING FOR hv, BUILDING NOTHING. **THE CHURN IS THE HOT PATH, NOT NO-OP SYNC: `apply` HANDS `projection` THE FULL CANON, SO EVERY MUTATING VERB REWRITES ALL 266 VIEWS TO CHANGE ABOUT TWO** (read from source, `facade.rs:2664`+`:1272`; nine `apply` call sites). **So _run twice writes zero files_ is INAPPLICABLE exactly where the churn is worst** -- proposed instead: **a write moves mtime on EXACTLY the files whose bytes changed**, measured at every user-visible verb, verb set printed. **My guard is DEAD CODE and the fix serves NO CRITERION THAT EXISTS**; vc is minting it. Six commit sites, not seven -- `:1259` is the shared BUILDER, which is why one skip covers all six. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -37,6 +37,29 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 **WHY NOTHING EVER TRIPPED, AND IT IS STRUCTURAL RATHER THAN AN OVERSIGHT: ST0056 AC-03.2 IS CONTENT DETERMINISM -- _same model, same bytes, twice_ -- AND THE CHURN SATISFIES IT PERFECTLY.** The estate HAD an idempotence criterion; the defect is invisible to it by construction. **A criterion can be green, correct and complete about its own subject while the thing next to it rots.**
 
 **MY SELF-CORRECTION REACHED RATIFIED CANON, NOT JUST A DOC COMMENT.** ST0057 AC-04.4's own text justifies measuring mtime over a content diff because the defect _"corrupts `file_index`'s clean/changed state"_. **`FileState` is sha256-only, so that reason is false -- and vc wrote it.** The MEASUREMENT stands; the RATIONALE does not. vc is amending to the three real costs.
+
+## THE CHURN IS THE HOT PATH, AND IT BREAKS THE CRITERION WE WERE BOTH ABOUT TO WRITE
+
+**READ FROM SOURCE, NOT OBSERVED AS AN MTIME COUNT** -- I will not drive a mutating verb on the live estate while peers are measuring, and the distinction is the point. `apply` (`facade.rs:2664`) calls `self.projection(&next, &changed_threads, &changed_issues)`: **`next` is the FULL canon, the other two are SUBSETS.** Inside `projection` (`:1259`) the subsets drive canon JSON -- correctly narrow -- while **`views::render_all(.., canon /* FULL */, ..)` at `:1272` adds ALL 266 VIEWS, EVERY TIME.**
+
+**SO EVERY MUTATING VERB REWRITES 266 VIEWS TO CHANGE ABOUT TWO. NINE `apply` CALL SITES, SO THAT IS MOST OF THE MUTATING SURFACE.** The defect is not a rare no-op sync; **`intent st start` touches 266 files.**
+
+**AND IT FALSIFIES THE FORM BOTH vc AND I HAD.** For a mutating verb _zero mtimes move_ is FALSE and SHOULD be -- the mutated thread's `info.md`, `steel_threads.md` and `todo.md` genuinely change. **A row saying "run twice writes zero files" is INAPPLICABLE to the nine verbs where the churn is worst, so they sit outside the denominator while looking covered.** Sent to vc before they minted it. **Proposed: A WRITE MOVES MTIME ON EXACTLY THE FILES WHOSE BYTES CHANGED, AND NO OTHERS** -- measured at every user-visible verb that writes the estate, verb set enumerated and printed. It grades correctly everywhere rather than only on no-ops, and its denominator is _files in the write set_, always well defined, instead of _files that should not have changed_, which needs a per-verb judgement. **"Run twice writes zero" demotes to a COROLLARY: it was the easiest instance to measure, never the property.**
+
+**SIX COMMIT SITES, NOT SEVEN, AND THE MISCOUNT IS THE GOOD NEWS:** `:768` (`upgrade`), `:1023` (`sync_to_disk`), `:1084` (`sync_from_disk`), `:1192` (`todo_update`), `:2676` (`apply`), `migrate.rs:338`. **`:1259` is `projection` -- a BUILDER, shared by three of the six, which is exactly why ONE skip in `WriteSet::commit` covers them all.**
+
+## A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT
+
+vc's rule, four limbs, **one live example of each from three nodes inside one day** -- and it is one rule rather than four because the limbs are found by asking the same question:
+
+| limb              | the freedom left open                                                                      | today's instance                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| **INSTRUMENT**    | git and mtime give OPPOSITE answers                                                        | my AC-01.4 question -- and the fix was in the criterion, not my reading |
+| **SUBJECT DEPTH** | `WriteSet` vs `intent sync`; an internal subject lets the test reach PAST the thing tested | `view_determinism.rs` drives `write_all`, passes, estate churns         |
+| **POPULATION**    | 20/20 was views only; the writer's denominator is ~364                                     | vc's, and my 266 was wrong too                                          |
+| **PIN**           | measure at a NAMED COMMIT, never at `HEAD`, or the subject moves under the instrument      | the marker/artefact split                                               |
+
+**THIS SECTION IS THE SUBJECT-DEPTH LIMB EATING ITS OWN TAIL.** I argued for the verb boundary over the type; vc caught that ONE verb under-covers; mapping the verbs found the PROPERTY ITSELF was wrong. **Three passes, three nodes, and each was only possible because the previous one was written down.**
 
 ## THE GUARD ITSELF: MY FIX LANDED ON A PATH NOTHING CALLS
 
