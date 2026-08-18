@@ -59,6 +59,8 @@ Static signals:
 - Cross-shell scripts that set `set -e` and rely on identical behaviour under zsh without documentation.
 - Zsh scripts that use bash-specific syntax (arrays with bash semantics, `[[ ]]` with bash-only regex flavour) without an `emulate bash` directive.
 
+**No greppable proxy is authoritative for this rule, and NO TOOL EXISTS -- which is a different sentence from "the runner is too narrow", and the difference matters to whoever reads it next.** Driven against shellcheck 0.11.0: a file whose shebang is `#!/bin/zsh` is refused outright with `SC1071 (error): ShellCheck only supports sh/bash/dash/ksh/'busybox sh' scripts. Sorry!` The only mature static analyser for shell declines the language this rule is about, so there is nothing to shell out to and no future widening of the runner could unlock it. Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, not in the headless pre-commit gate.
+
 ## Bad
 
 ```zsh

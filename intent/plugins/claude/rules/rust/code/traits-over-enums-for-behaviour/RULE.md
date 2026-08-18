@@ -54,6 +54,8 @@ Static signals:
 
 Clippy does not lint this directly; structural review is the detection mechanism.
 
+**No greppable proxy is authoritative for this rule, and this rule's own Detection already said so**: _"Clippy does not lint this directly; structural review is the detection mechanism."_ The signal is that a `match` is DISPATCHING rather than reshaping data, which is a judgement about intent that neither a regex nor a lint reaches. **Confirmed against clippy 0.1.97: no lint in the 825-entry list covers it.** Apply this rule via the LLM-driven `critic-rust` subagent during `/in-review`, not in the headless pre-commit gate.
+
 ## Bad
 
 ```rust

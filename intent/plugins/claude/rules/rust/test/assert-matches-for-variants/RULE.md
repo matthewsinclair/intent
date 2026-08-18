@@ -57,6 +57,8 @@ Static signals:
 
 Clippy has no direct lint; structural review and test-brittleness are the signals.
 
+**No greppable proxy is authoritative for this rule, and this rule's own Detection already said so**: _"Clippy has no direct lint; structural review and test-brittleness are the signals."_ The violation is an assertion broader than what it means to prove -- a property of the test's intent rather than of its text. **Confirmed against clippy 0.1.97: no lint covers it.** Apply this rule via the LLM-driven `critic-rust` subagent during `/in-review`, not in the headless pre-commit gate.
+
 ## Bad
 
 ```rust

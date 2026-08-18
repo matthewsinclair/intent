@@ -66,6 +66,8 @@ Static signals:
 
 ShellCheck: indirectly via SC2148 (missing shebang) and SC2154 (unset variable) — the latter is effectively unreachable unless `-u` is on.
 
+**No greppable proxy is authoritative for this rule.** The violation is an ABSENCE -- a script that carries no `set -` directive -- and one `grep` can express only a positive match; there is no `grep -L` inside the headless runner's contract. **And no tool answers it either, which is the more important half: driven against shellcheck 0.11.0, a bash script containing nothing but a shebang and an `echo` produces NO diagnostic at all.** The two lints this rule's own Detection names apply only indirectly and neither reports the absence: SC2148 is a missing shebang, and SC2154 fires on an unset variable, which is a CONSEQUENCE of `-u` being absent rather than a report of it. Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, not in the headless pre-commit gate.
+
 ## Bad
 
 ```bash

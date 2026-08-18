@@ -57,6 +57,8 @@ Static signals:
 - A new script that does not start with `source "$INTENT_HOME/bin/intent_helpers"` (or the project's equivalent) and yet invokes things like `error` or `get_intent_version`.
 - Pull requests adding a utility function to one script while an identical function already exists in the shared library.
 
+**No greppable proxy is authoritative for this rule.** The signal is one function name defined in more than one file, which requires COUNTING across the corpus; a single `grep` invocation cannot aggregate, and the headless runner accepts exactly one. **No shellcheck lint asks it either** -- cross-file duplication is outside what a per-file parser sees at all, so this is not a limit the runner imposes. Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, not in the headless pre-commit gate.
+
 ## Bad
 
 ```bash

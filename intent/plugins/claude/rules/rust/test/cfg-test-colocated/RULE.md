@@ -53,6 +53,8 @@ Static signals:
 - Source files with no colocated `#[cfg(test)] mod tests { ... }` despite having non-trivial internal logic.
 - Tests in `tests/` whose first action is to call a setup function that exists only to reach private state.
 
+**No greppable proxy is authoritative for this rule.** Its central signal -- _"source files with no colocated `#[cfg(test)] mod tests`"_ -- is an ABSENCE, and the headless runner can express only a positive match. **No clippy lint asks it either**: clippy reports on code that is present, and _this file should have contained a test module_ is a judgement about what is missing. Apply this rule via the LLM-driven `critic-rust` subagent during `/in-review`, not in the headless pre-commit gate.
+
 ## Bad
 
 ```rust
