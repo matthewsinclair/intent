@@ -767,3 +767,35 @@ ic enumerated `interrupt_rig.sh`'s refusal sites: **24 of them, 11 driven**, now
 **The one-shot parity procedure is now written down** -- `parity.md`, under Measurement rules, at `6280e281`. Seven steps, each control present because its absence produced a wrong green at least once. **It had been living as a shell script in a scratch directory that is deleted with the job: an instrument for a measurement with exactly ONE execution, in ephemeral storage.** Same class as everything else today, in my own lane.
 
 **And ic's finding upgrades the method argument in a way worth having when you rule on the moratorium.** Their first two defects came from driving a case that FAILED. The third came from a case that **PASSED**, and was a finding only because a prediction had been written down first. **So the method is not "drive it" -- it is predict, drive, score against the prediction, and the third step is what turns a green into a defect.** ic is making that argument to you themselves, with the denominator attached (17 of 24, not 17 of 17). **I am not making it for them; I am confirming the three-part form is what the evidence actually supports.**
+
+## (2026-08-18 06:51Z)
+
+**INTENT IS HOISTED. `0ec2ac79`, on `local`, verified by reading the remote's own ref. The estate lives in the v3 store and the committed canon is its extract.**
+
+```
+v2 gate over FILES (one-shot, taken FIRST)   48/114, 66 unsatisfied, 143s
+migrate                                      56 threads, 40 issues, 352 files, exit 0
+sync --to-store                              store and extract agree
+v3 gate over STORE                           48/114, 66 unsatisfied
+COMPARISON                                   IDENTICAL BYTE FOR BYTE
+commit                                       353 files, 25277 insertions
+search whiteboard                            exit 0
+```
+
+**THE MIGRATION REFUSED ON ITS FIRST ATTEMPT, and this is the part worth your time.** A pre-versioning store from 2026-08-15 was sitting at `intent/.cache/intent.db`, and the migrator would not guess at a schema nothing had recorded. **`intent/.cache/` is GITIGNORED -- so a clone cannot contain that file by construction, and NO rehearsal any of us could have built would ever have found it.** Not an untested branch: **an input the test environment is structurally incapable of holding.**
+
+**cc then closed the class rather than the instance, in about a minute, and it is the cheapest check anyone ran today:** a clone plus all fourteen OTHER gitignored artefacts in this repo -- twelve `.DS_Store`, two of them inside the migrator's own walks, plus `.treeindex/` -- converts to the identical 56/40/352. **The database was not the first of a class. It was the only one.** The general remedy is not a better rehearsal; it is knowing which inputs your rehearsal structurally cannot hold, and going to look at those directly.
+
+**The old store held ZERO canonical rows** -- 775 `file_index` entries, derived from disk, empty WAL -- so nothing existed only there. **Moved, never deleted; it is at `~/.intent-prehoist-store-20260818T064735Z` and restores in one command.**
+
+**FOUR THINGS I GOT WRONG TODAY, since you will read the peer traffic.** My first move put the old store at `intent/.cache.pre-hoist-<stamp>`, which the ignore rule does not match, so I turned a hidden object into a visible artefact and `sync` correctly refused it. My subject-stability guard compared a full sha256 against its own 16-char DISPLAY truncation and refused while printing two identical-looking values. My out-of-band re-check disagreed with the script because `shasum` embeds the filename and one form ran relative and one absolute. **And I told three nodes the parity comparison could "never be measured again", which is too strong: a clone at a pre-hoist commit still has a v2 config, so the committed state is re-derivable. Taking it first was still right; the irreversibility was overstated and dc had already elevated it to critical path on my word.**
+
+**PEER WORK WAS NEVER AT RISK: the migration writes nothing under `intent/whiteboard/`, and the commit excludes every file that was in another node's hands.**
+
+**WHAT IS NOW OPEN, and none of it blocks anything today.**
+
+- **dc's shim is the last mechanical step of (a) and it is YOURS.** 21 v2 projects sit behind global symlinks at `~/.local/bin/intent` and `~/bin/intent`; flip them and those break, leave them and Intent is unusable from tomorrow. **Both guards are correct -- the entry point is what must become project-aware.** dc built and drove it three ways and has NOT installed it. **v3 is still not on PATH.**
+- **`doctor` exits 1 on a freshly migrated estate (`backup-stale`)** -- the first thing every node runs will report a residue. With cc for after.
+- **`intent claude ws` is unimplemented**, and 6 of 31 v3 leaves besides. Not blocking: boards are plain files.
+- **The interruption AC is still 0 of 114 and still blocks WP-10's CLOSE, not the hoist.** ic's gate PASSED on the real subject before I committed.
+- **The residue question you were asked in one line by ic is still open** and I am not treating "crack on" as its answer.
