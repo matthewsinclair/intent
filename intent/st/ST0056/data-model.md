@@ -197,7 +197,13 @@ No verblock: git is the history of structured files. Authored prose files keep t
 3. **Non-UTF-8 is REFUSED BY NAME with a remedy**, never stored as a blob and never skipped. `sync` already does this (`unknown-file-shape -- not valid UTF-8`) and it is the correct posture.
 4. **Attachments feed `doc_sections` so `search` finds them.** That index is derived and rebuildable; the attachment record is the authority.
 
-**What this discharges.** It is the precondition for hv's disk-optional model, and the gate is already built and does not need writing: `conservation_check.sh` asks whether every authored section has a destination and whether the bytes that arrive are the bytes that left. **When `LOST-PROSE` and `UNACCOUNTED` reach zero on this estate, disk is safe to make optional -- a measurement rather than a judgement.** The issue `body` field is the other half and is tracked separately.
+**What this discharges.** It is the precondition for hv's disk-optional model, and the gate is already built and does not need writing: `conservation_check.sh` asks whether every authored section has a destination and whether the bytes that arrive are the bytes that left.
+
+**THE PHRASING THAT STOOD HERE UNTIL 2026-08-18 WAS "when `LOST-PROSE` and `UNACCOUNTED` reach zero, disk is safe to make optional", AND IT WOULD HAVE AUTHORISED DELETING 192 FILES HOLDING 748 AUTHORED SECTIONS WHILE PRINTING A ZERO.** ic drove both counters to zero on an unconserved estate in the morning and found them pinned above zero on a conserved one at night; the same day, `LOST-PROSE` reached zero legitimately and **that is when the shorthand became lethal, because it is TRUE and it means something narrower than it reads.** `LOST-PROSE 0` means _every section that HAS a destination reached it_. It says nothing about sections with no destination, and **those are exactly the population disk-optional deletes.**
+
+**Measured on the live estate, all of it rather than a sample: 163 `design.md` / `impl.md` / `tasks.md` files probed for their longest distinctive line in their own thread's canon -- 0 found. `thread.json` has no `design`, `impl` or `tasks` field, so the content exists nowhere but those files.**
+
+**THE GATE IS THE VERDICT AT FULL SCOPE, NEVER A COUNTER:** exit 0 AND a printed `conservation: 0 finding(s)` line (its ABSENCE is a refusal, not a zero) AND the denominator AND a pinned subject, per `conservation_check.sh`'s own header. **On this estate that is unreachable while one file is STRANDED, which is the correct behaviour and is why the verdict is the gate.** The issue `body` field landed; the 748 sections are an open design question -- see below.
 
 #### Why objective / context / related are modelled (the info.md mixed-file resolution)
 
