@@ -382,6 +382,30 @@ preflight() {
   fi
   log_info "test suite green"
 
+  # Rust workspace. THE BATS SUITE ABOVE NEVER COMPILES THE NATIVE TREE -- the
+  # only other `cargo` in this whole file is `cargo metadata` for the lock
+  # refresh -- so until this landed, a Rust product was gated on a shell test
+  # suite. CI runs `cargo test --workspace` (.github/workflows/rust.yml) and the
+  # release did not, which is the wrong way round: CI reports, the release
+  # DECIDES.
+  #
+  # GUARDED ON THE MANIFEST EXISTING, NOT ON STAMP_NATIVE, and the difference is
+  # not stylistic. STAMP_NATIVE is not assigned until the sidecar-sync section,
+  # which runs AFTER this function -- so reading it here would test an empty
+  # string and skip in silence on every release. That is the exact shape of gate
+  # this change exists to remove, and it would have shipped inside the fix for
+  # it.
+  if [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ]; then
+    if ! command -v cargo >/dev/null 2>&1; then
+      abort "cargo not found in PATH and $NATIVE_MANIFEST_REL is present -- refusing to release a native tree this machine cannot test"
+    fi
+    log_info "running cargo test --workspace (this may take several minutes)"
+    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo test --workspace >/dev/null 2>&1); then
+      abort "cargo test --workspace failed -- fix before releasing (re-run it directly to see which test)"
+    fi
+    log_info "cargo test green"
+  fi
+
   # gh auth (we'll need it later).
   if ! command -v gh >/dev/null 2>&1; then
     abort "gh CLI not found in PATH"
@@ -443,6 +467,16 @@ case "$HEADER_LINE" in
 esac
 
 # --------------------------------------------------------------------
+# Native workspace location
+# --------------------------------------------------------------------
+# Defined HERE, above preflight's CALL, and not beside STAMP_NATIVE in the
+# sidecar section below -- because preflight needs them and the sidecar section
+# runs after it. A second copy inside preflight() would be two homes for one
+# pair of paths; this is one definition hoisted above its first reader.
+NATIVE_MANIFEST_REL="native/rust/Cargo.toml"
+NATIVE_LOCK_REL="native/rust/Cargo.lock"
+
+# --------------------------------------------------------------------
 # Pre-flight (after we know the target so error messages can reference it)
 # --------------------------------------------------------------------
 preflight
@@ -474,8 +508,6 @@ SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL"
 #
 # The condition retires itself. Once 2.x stops being cut there is no other arm,
 # and this collapses to an unconditional sidecar.
-NATIVE_MANIFEST_REL="native/rust/Cargo.toml"
-NATIVE_LOCK_REL="native/rust/Cargo.lock"
 STAMP_NATIVE=false
 case "$TARGET" in
   [3-9].* | [1-9][0-9]*.*) [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ] && STAMP_NATIVE=true ;;
@@ -703,7 +735,13 @@ if [ "$DRY_RUN" != "true" ]; then
   if [ -n "$LEFTOVER" ]; then
     log_warn "working tree is not clean after the sidecar sync:"
     printf '%s\n' "$LEFTOVER" | sed 's/^/  /' >&2
-    abort "refusing to tag a dirty tree -- commit or revert the above, then re-run with --skip-tests"
+    # DELIBERATELY NO LONGER RECOMMENDS `--skip-tests` (dc, 2026-08-18). That
+    # flag returns from preflight() before doctor, before the bats suite and
+    # before the cargo gate above -- so the tool's own documented recovery path
+    # from a dirty tree was "re-run with every correctness gate off", on exactly
+    # the run that tags. The releaser following the instruction was the failure,
+    # not the releaser being lazy.
+    abort "refusing to tag a dirty tree -- commit or revert the above, then re-run"
   fi
 fi
 

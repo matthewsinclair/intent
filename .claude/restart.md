@@ -9,7 +9,7 @@
 
 **v2.19.0 shipped the morning of 2026-08-14 (tag `071c612`); ST0056 opened the same afternoon.** The architecture is ratified in `intent/st/ST0056/design.md` (D01-D36): schema-as-truth (Rust types generate JSON Schema + DDL + SDL faces, committed and drift-checked), **the intentdb as the DURABLE SSOT with everything on disk a secondary artefact** (D01 REVERSED by hv 2026-08-15 -- "committed JSON canon as durable truth, rebuildable per-project SQLite, `rm` always safe, no DB migrations ever" is false in every clause; do not reason from it), the committed extract as the interchange that travels while the DB never leaves the machine (D34), migrations normal, `rm intent.db` not an operation (D36), md as generated views + authored prose, `intentsvcs` as sole owner of DB and files, CLI dual-mode (in-process or GraphQL to one machine-level intentd), intentd IN the 3.0.0 gate, migration floored at v2.19.0.
 
-**Roles (hv ruling): cc builds, ic runs parity/interface, vc stewards** (contract, WP-close verification, hv interface; holds the ST0056 claim). WP-01 (design canon) and WP-02 (workspace + reified model) are closed through the gate; **WP-03 (ingest, views, sync) is cc's next**. The estate is pushed to both remotes, CI green twice on `736033d` (first rust run 31812129560: macOS+Linux, fmt/clippy/tests; plus Intent Tests). devbin is adopted: `bin/int`, and `bin/release` is now `bin/int build release` (`bin/intent` untouched).
+**Roles (hv ruling): cc builds, ic runs parity/interface, vc stewards** (contract, WP-close verification, hv interface; holds the ST0056 claim). **Status at `ce532a97`: WP-01/02/04 Done; WP-03/05/06/10/11 WIP; WP-07/08/09/12/13/14/15 Not Started.** The old "WP-03 is cc's next" line was true on 2026-08-14 and has been false since. **Intent is SELF-HOSTED on v3**, and ST0057 carries the ruled disk model, which hv has put IN the 3.0.0 gate. The estate is pushed to both remotes, CI green twice on `736033d` (first rust run 31812129560: macOS+Linux, fmt/clippy/tests; plus Intent Tests). devbin is adopted: `bin/int`, and `bin/release` is now `bin/int build release` (`bin/intent` untouched).
 
 **The consumer-sweep program is DEAD** (Lamplight's hv ruled AT remediation on Done work off; their ~1158 legacy rows are permanent). hv-ruled migration policy in `migration.md`: CLOSED threads convert lossless-by-carrying; LIVE threads stay BLOCKED-until-clean; neither ever lossy. `organize` (both faces) is planned vestigial by construction. v2 maintenance is DEFAULT-DEFER, show-stoppers only.
 
@@ -17,8 +17,8 @@
 
 ## Next
 
-1. **WP-03 (cc)**: strict ingest, deterministic views, sync engine -- read `migration.md` as landed. vc reviews at the close claim.
-2. **vc**: spec the marked-legacy AT form in `data-model.md` before WP-08 (the carry policy's model consequence).
+1. **cc -- IN FLIGHT** (released by hv directly): `Triage->Wip`, `has_end_date()`, delete `THREAD_PROSE`, fix `views::info`'s blank line, then regenerate. vc reviews at the close claim.
+2. **vc**: the interruption property + AC-10.8 into the AC set -- BLOCKED on hv answering whether the AC moratorium is lifted. (The marked-legacy AT form is DONE -- specced at `data-model.md:320`, `legacy` in `schema/thread.schema.json`, `legacy: Option<Legacy>` on the `AcceptanceTest` struct. It sat here as "next" for four days after it shipped.)
 3. **ic**: per-test register rows for the 40 `split` files (`corrected` is ratified); charter + roster-row asks still open with hv.
 4. **v2 carries (default-defer)**: credo_checks fleet issues (hv running); fleet pushes Utilz `0171297` + Lamplight `7058fd3a8` (re-verify still unpushed first); cc's parked "hv decides" queue.
 

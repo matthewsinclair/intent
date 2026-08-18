@@ -109,6 +109,14 @@ dc's shim resolves a project, reads its declared version, and execs the matching
 
 dc's proposal, **not yet put to hv**: put `cargo test` in the pre-flight ahead of the dirty-tree check at `release:702`, which already re-reads `git status --porcelain` and **fails CLOSED**. No new mechanism; the gate that would catch it already exists and simply never sees the suite.
 
+### CORRECTION (dc, driven against the file at working-tree `ce532a97`) -- READ THIS BEFORE QUOTING THE PARAGRAPH ABOVE
+
+**Both line numbers are right and they name DIFFERENT sites; neither is stale.** `release:373-383` is inside `preflight()` (opens `:307`) and is the site of the ABSENCE -- `bin/intent doctor` at `:373`, `tests/run_tests.sh` at `:380`, no `cargo test`. Exhaustively: the only `cargo` in the 801-line file is `cargo metadata` for the lock refresh at `:558-573`, so **the Rust suite is never invoked on the tag path**. `release:702` is a separate site in the TAG path, outside `preflight()`.
+
+**But one clause above is WRONG, and it is dc's own.** **`:702` catches a DIRTY TREE. It does not catch a RED SUITE and never could.** The mechanism that would actually catch a failing `cargo test` is `preflight()`'s own abort pattern -- `:381` aborts when `tests/run_tests.sh` fails -- which already fails closed. **So the corrected proposal is: insert beside `:380`, inheriting `:381`'s abort.** _"No new mechanism"_ survives; _"the gate that would catch it"_ pointing at `:702` does not. `:702` belongs here only for the boundary stated below -- it reads git, so it cannot see a gitignored writer. **The error was conflating the fail-closed exemplar with the gate that does the catching.**
+
+**AND THE PROPOSAL IS INCOMPLETE, WHICH IS WHY IT MUST NOT GO TO hv AS A ONE-LINER.** **`--skip-tests` bypasses the entire block being extended**: `:366-369` returns from `preflight()` before doctor and before the suite, so a `cargo test` added at `:380` inherits that bypass exactly. **And `:706` ACTIVELY RECOMMENDS THE FLAG** -- _"refusing to tag a dirty tree -- commit or revert the above, then re-run with `--skip-tests`"_. **The tool's own documented recovery from the dirty-tree gate is to re-run with the test gates off, and that re-run is the one that tags.** The realistic failure is a releaser following the instruction, not a releaser being lazy. More than one shape of fix exists (a separate `--skip-rust-tests`; or `:706` recommending something narrower), so it is hv's call and it is not scoped here.
+
 **Boundary worth stating with it: `release:702` reads git, so it structurally cannot see a writer that only writes GITIGNORED paths** -- the runtime store being the live example. That is the limit of what that gate can be asked to prove, not an argument against it.
 
 ## Ownership
