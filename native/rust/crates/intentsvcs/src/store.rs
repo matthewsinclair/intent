@@ -356,7 +356,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 10;
+pub const SCHEMA_VERSION: i32 = 11;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -697,6 +697,56 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      PRIMARY KEY (thread_id, seq),
      UNIQUE (thread_id, path)
    );",
+), (
+  11,
+  // 10 -> 11: `attachments` gains `seq` -- and this rung exists because I
+  // EDITED RUNG 10 AFTER A STORE HAD ALREADY RUN IT.
+  //
+  // **THE RULE, and it belongs here rather than in the commit that learned it:
+  // a version number is a CLAIM ABOUT SHAPE, so once any store has run a rung,
+  // changing what that rung PRODUCES requires a new rung and never an edit to
+  // the old one.** The old rung's output is already stamped and permanently
+  // unreachable -- version-gated so it cannot run again, and `CREATE TABLE IF
+  // NOT EXISTS` would skip it even if it did. It is the ladder's form of not
+  // rewriting published history.
+  //
+  // What actually happened: this project's own store ran rung 10 at a revision
+  // before `seq` existed, reached 10, and kept a table with no `seq` column.
+  // Then `attachments_of` learned `ORDER BY seq` and every read of the canon
+  // failed with `no such column: seq` -- found by hv driving `st list` through
+  // the CLI, not by any test.
+  //
+  // **AND NO TEST COULD HAVE FOUND IT, which is the part worth keeping.** Every
+  // test starts from a fresh store, so every test gets the current `DDL` with
+  // `seq` and passes. The defect is reachable only from a store that existed
+  // BEFORE the change -- ours, and any real user's. A suite that always starts
+  // fresh cannot see a migration defect at all.
+  //
+  // **A REBUILD, and it reads only the columns BOTH shapes have**, because two
+  // different tables are stamped 10 and nothing in the store can tell them
+  // apart. `seq` is synthesised from `rowid`, which is insertion order -- so a
+  // store that already had the column keeps the order it recorded rather than
+  // being silently re-sorted, and one that never had it gets the order its rows
+  // arrived in. Rows are carried; the live store happened to hold none, and a
+  // rung must not assume that.
+  "CREATE TABLE attachments_v11 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     seq INTEGER NOT NULL,
+     path TEXT NOT NULL,
+     text TEXT NOT NULL,
+     bytes INTEGER NOT NULL,
+     sha256 TEXT NOT NULL,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, seq),
+     UNIQUE (thread_id, path)
+   );
+   INSERT INTO attachments_v11 (thread_id, seq, path, text, bytes, sha256, written_at)
+     SELECT thread_id,
+            ROW_NUMBER() OVER (PARTITION BY thread_id ORDER BY rowid) - 1,
+            path, text, bytes, sha256, written_at
+       FROM attachments;
+   DROP TABLE attachments;
+   ALTER TABLE attachments_v11 RENAME TO attachments;",
 )];
 
 /// Which of the two write acts is happening (D42).

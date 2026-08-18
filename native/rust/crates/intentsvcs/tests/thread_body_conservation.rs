@@ -173,18 +173,33 @@ fn an_authored_section_wins_over_the_generated_one_of_the_same_name() {
 /// ingest and the renderer guards its block on that, so nothing stood down.
 /// Recording those is a record of a decision never made -- the class the record
 /// exists to prevent, arriving inside the record.
+/// **ITS PREMISE EXPIRED AND THE ASSERTION CAUGHT IT, which is the whole
+/// reason the premise was asserted rather than assumed.**
+///
+/// The fixture was `- ST0002: the other one`, and the premise was "ingest does
+/// not populate `related`". Landing the `related` parser made that false, and
+/// this test failed on the PREMISE line rather than quietly changing what it
+/// tested. A test that states its premise retires itself; one that relies on it
+/// silently starts testing something else.
+///
+/// The property is unchanged and the fixture now holds it durably: a bullet
+/// that names no thread is not a link, so `related` stays empty, so the
+/// renderer generates nothing, so there is nothing to defer. **Nine bullets on
+/// the real estate are exactly this shape** -- five of them say "None" in so
+/// many words -- so the case is not contrived.
 #[test]
 fn a_generated_section_that_would_not_have_been_emitted_is_not_a_deferral() {
   let fixture = Fixture::new();
   estate(
     &fixture,
-    "\n## Related Steel Threads\n\n- ST0002: the other one\n",
+    "\n## Related Steel Threads\n\n- None currently -- a new capability\n",
   );
   let scan = scan(&fixture);
 
   assert!(
     scan.threads[0].related.is_empty(),
-    "premise: ingest does not populate `related`, so the renderer's block is skipped"
+    "premise: this bullet names no thread, so nothing is modelled and the \
+     renderer's block is skipped"
   );
   assert!(
     scan.threads[0].body.contains("## Related Steel Threads"),

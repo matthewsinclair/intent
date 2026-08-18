@@ -222,6 +222,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
     hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
   }
 
+  // 11 is the ladder learning its own rule: rung 10 was EDITED after a store
+  // had run it, so two shapes were stamped 10 and the reader could not tell
+  // them apart. A version is a claim about SHAPE -- changing what a rung
+  // produces needs a NEW rung. The DDL itself did not move, which is why this
+  // hash is unchanged and only the version is.
+  //
   // 8 -> 9 -> 10 in one commit, both rungs on the same subject: prose whose
   // only home was a file. `issues.body` is the issue's authored body, which had
   // no column because it had no model field -- the migration read every v2
@@ -231,7 +237,7 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // easy rung, because an empty table is a correct representation of a store
   // that never had one and there is nothing to back-fill.
   const PINNED_SCHEMA_HASH: u64 = 0x0084_17fe_4392_259c;
-  const PINNED_FOR_VERSION: i32 = 10;
+  const PINNED_FOR_VERSION: i32 = 11;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,
@@ -247,5 +253,89 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
      open cleanly and fail at whichever query first names the new shape.\n\
      Bump SCHEMA_VERSION, re-pin PINNED_SCHEMA_HASH to {hash:#018x}, and ship the migration in the \
      same commit."
+  );
+}
+
+/// **A STORE BUILT BY AN EARLIER LADDER OPENS AND READS -- the case a suite
+/// that always starts fresh cannot see.**
+///
+/// Found by hv driving `intent st list` against this project's own store, not
+/// by any test. Rung 10 was EDITED after that store had already run it: it
+/// reached version 10 with an `attachments` table that had no `seq`, the rung
+/// is version-gated so it can never run again, and `attachments_of` then
+/// learned `ORDER BY seq`. Every read of the canon failed with
+/// `no such column: seq`.
+///
+/// **Every other test here builds its store from the current `DDL`, so every
+/// other test gets the current shape and passes.** The defect is reachable only
+/// from a store that predates the change -- ours, and any real user's. This is
+/// the only test in the file whose fixture is a store this binary did not
+/// create, and that is the whole point of it.
+///
+/// **The rule the failure earned: a version number is a claim about SHAPE, so
+/// once any store has run a rung, changing what that rung produces needs a NEW
+/// rung.** The old rung's output is already stamped and unreachable.
+#[test]
+fn a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = dir.path().join("intent.db");
+
+  // Version 10 exactly as the earlier draft of rung 10 left it: `attachments`
+  // with no `seq`, keyed on (thread_id, path). Written by hand because no
+  // binary that still exists produces this shape.
+  {
+    let conn = Connection::open(&path).expect("create");
+    conn.execute_batch(DDL).expect("apply the current DDL");
+    conn
+      .execute_batch(
+        "DROP TABLE attachments;
+         CREATE TABLE attachments (
+           thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+           path TEXT NOT NULL,
+           text TEXT NOT NULL,
+           bytes INTEGER NOT NULL,
+           sha256 TEXT NOT NULL,
+           written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+           PRIMARY KEY (thread_id, path)
+         );
+         INSERT INTO threads (id, title, status, created, objective, context, body, preamble)
+           VALUES ('ST0001', 't', 'wip', '2026-08-18', '', '', '', '');
+         INSERT INTO attachments (thread_id, path, text, bytes, sha256)
+           VALUES ('ST0001', 'reference.md', '# R\n', 4, 'deadbeef'),
+                  ('ST0001', 'parity/cmd-st.md', '# s\n', 4, 'cafebabe');",
+      )
+      .expect("lay down the pre-seq shape");
+    conn.pragma_update(None, "user_version", 10).expect("stamp");
+  }
+
+  let store = Store::open(&path).expect("a store from an earlier ladder must open, not refuse");
+  drop(store);
+
+  assert_eq!(
+    version_of(&path),
+    SCHEMA_VERSION,
+    "and it is walked all the way forward"
+  );
+
+  let conn = Connection::open(&path).expect("reopen");
+  let mut stmt = conn
+    .prepare("SELECT seq, path FROM attachments WHERE thread_id = 'ST0001' ORDER BY seq")
+    .expect("the column the reader needs now exists");
+  let rows: Vec<(i64, String)> = stmt
+    .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+    .expect("query")
+    .collect::<Result<_, _>>()
+    .expect("rows");
+
+  // **Rows are CARRIED, not dropped.** This store's real counterpart happened
+  // to hold none, and a rung that quietly relied on that would be correct once.
+  assert_eq!(
+    rows,
+    vec![
+      (0, "reference.md".to_string()),
+      (1, "parity/cmd-st.md".to_string())
+    ],
+    "both rows survive, and `seq` is INSERTION order rather than path order -- \
+     a store that already recorded an order keeps it instead of being re-sorted"
   );
 }

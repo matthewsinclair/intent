@@ -29,8 +29,8 @@ use std::path::Path;
 
 use crate::finding::{Finding, FindingClass};
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, THREAD_SCHEMA,
-  TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, Related,
+  THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
 use crate::project::{Project, ThreadFile};
 
@@ -408,7 +408,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       // placeholder.
       objective: section(&sections, "Objective"),
       context: section(&sections, "Context"),
-      related: Vec::new(),
+      related: related_links(&sections),
       wps,
       criteria,
       tests,
@@ -495,10 +495,14 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
 /// instruments and 2 `.tsv` census outputs: all of them things the repository
 /// versions and tools consume, none of them the record of the work.
 ///
-/// **Text is carried with NO normalisation at all -- not even the trailing-
-/// newline trim `Issue::body` declares.** An attachment round-trips to a file
-/// on disk, so byte-equality is the property, and a trim would make every
-/// round trip lose one byte per file forever.
+/// **Text is carried with NO normalisation at all.** An attachment round-trips
+/// to a file on disk, so byte-equality is the property, and a trim would make
+/// every round trip lose one byte per file forever.
+///
+/// This once said "not even the trailing-newline trim `Issue::body` declares".
+/// **`Issue::body` stopped declaring one within the hour, for this same reason
+/// once its renderer was scheduled**, and the sentence pointing at it did not
+/// move -- the correction landing at the site and not at the cross-reference.
 fn attachments(project: &Project, id: &str, closed: bool, out: &mut Scan) -> Vec<Attachment> {
   let dir = project.thread_dir(id);
   let mut carried = Vec::new();
@@ -1694,6 +1698,98 @@ fn sections(body: &str) -> Vec<(String, String)> {
 /// **First match rather than last**, which is the map's old behaviour inverted
 /// on purpose: with duplicates now preserved, the authored document's first
 /// `## Objective` is the one a reader sees at the top of the file.
+/// v2's `## Related Steel Threads` bullets, as modelled links.
+///
+/// **The prose was never lost -- it is carried in `body` like every other
+/// unmodelled section, and the view still shows it.** What was missing is the
+/// MODELLING: `related` was `Vec::new()` on all 56 threads, so `doctor`'s
+/// broken-reference check had nothing to fire on across the whole estate, and
+/// a check whose subject is empty is not a passing check.
+///
+/// # The rule, and every clause of it is measured on this estate's 123 bullets
+///
+/// **Ids come from the LEADING REGION only** -- everything before the first
+/// ` -- `, ` — `, ` – `, ` (` or `: `. **7 bullets mention another thread
+/// inside their note** ("overtaken by ST0034"), and taking every id in the line
+/// would model those as links nobody drew.
+///
+/// **Every id in that region counts, not just the first.** Two bullets read
+/// `ST0034/ST0035 -- produced most of the surface under review`: one note, two
+/// genuine links, and taking the first would model half a fact silently.
+///
+/// **A bullet with no id in that region contributes nothing, and loses
+/// nothing.** There are 9, and none is a link: five say "None" or "(none)" in
+/// so many words, and the rest are prose relations -- a tech note, an
+/// originating pilot, a sister-project sweep. All of it stays in `body`.
+///
+/// 123 bullets across 52 files yield **116 links, none with an empty note**.
+fn related_links(sections: &[(String, String)]) -> Vec<Related> {
+  let body = section(sections, "Related Steel Threads");
+  let mut out = Vec::new();
+  for line in body.lines() {
+    let line = line.trim();
+    let Some(bullet) = line.strip_prefix("- ").or_else(|| line.strip_prefix("* ")) else {
+      continue;
+    };
+    let (lead, rest) = split_lead(bullet);
+    let note = rest.trim().trim_end_matches(')').trim();
+    for id in thread_ids_in(lead) {
+      out.push(Related {
+        id,
+        note: (!note.is_empty()).then(|| note.to_string()),
+      });
+    }
+  }
+  out
+}
+
+/// The bullet's id region and its note, split at the first separator v2 uses.
+///
+/// Four separators appear on this estate -- 42 bullets use `: `, 27 open a
+/// parenthesis, 23 use `--` and 22 use an em dash -- so a reader that knew only
+/// one would take a title for an id region on most of the corpus.
+fn split_lead(bullet: &str) -> (&str, &str) {
+  let mut best: Option<(usize, usize)> = None;
+  for (marker, keep) in [
+    (" -- ", 4),
+    (" — ", " — ".len()),
+    (" – ", " – ".len()),
+    (" (", 2),
+    (": ", 2),
+  ] {
+    if let Some(at) = bullet.find(marker)
+      && best.is_none_or(|(b, _)| at < b)
+    {
+      best = Some((at, keep));
+    }
+  }
+  match best {
+    Some((at, len)) => (&bullet[..at], &bullet[at + len..]),
+    None => (bullet, ""),
+  }
+}
+
+/// Every steel-thread id in `text`, in order, deduplicated.
+///
+/// The width and prefix come from [`crate::model::is_thread_id`]'s vocabulary
+/// rather than a literal `ST\d{4}`, so this cannot disagree with the one place
+/// that decides what an id looks like.
+fn thread_ids_in(text: &str) -> Vec<String> {
+  let width = crate::model::THREAD_PREFIX.len() + crate::model::THREAD_DIGITS;
+  let bytes: Vec<char> = text.chars().collect();
+  let mut out: Vec<String> = Vec::new();
+  for start in 0..bytes.len() {
+    if start + width > bytes.len() {
+      break;
+    }
+    let candidate: String = bytes[start..start + width].iter().collect();
+    if crate::model::is_thread_id(&candidate) && !out.contains(&candidate) {
+      out.push(candidate);
+    }
+  }
+  out
+}
+
 fn section(sections: &[(String, String)], name: &str) -> String {
   sections
     .iter()
