@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 19:35Z
-status: paused
-focus: "FOLDED AND PAUSED on hv's instruction for a compact. **Landed today: the todo view's six-states-as-one glyph defect, AC-04.4's mtime guard (a no-op sync was rewriting all 266 views), `status_reason` rendered on four faces, and item 4(a) WITHDRAWN after measuring found my own recorded reason was half false.** Suite 634/0 at my last full run. **ST0057 WP-01 (canon relocation to `intent/.canon/`) IS STARTED AND DELIBERATELY REVERTED -- patch saved, tree left GREEN for peers.** Nothing of mine outstanding. Upstream FROZEN."
+heartbeat_at: 2026-08-18 19:57Z
+status: active
+focus: "BACK FROM THE COMPACT. PLAN WRITTEN, HOLDING FOR hv. **MY AC-04.4 GUARD IS DEAD CODE -- `views::write_all` HAS NO PRODUCTION CALLER** (vc predicted it, I verified it): the live path is `Facade::projection` -> `WriteSet` -> temp-and-rename, which moves mtime BY CONSTRUCTION, and the real denominator is **~364 paths INCLUDING CANON**, not 266. **vc's located cause names the wrong lines and I warned them before they acted on it.** **AND THE COST I WROTE INTO THE DOC COMMENT IS FALSE: `file_index` decides state by SHA-256 ALONE.** `surface_check.sh` GREEN at rc=0. ST0057 WP-01 still reverted, patch saved. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -20,6 +20,20 @@ claims: [ST0056/10]
 ## D42 -- TIME. THE WHOLE RULE, AND IT HAS NO CLAUSES
 
 The create door stamps; the restore door carries. Nothing else learns the time. `date -u +'%Y-%m-%d %H:%MZ'`, read in its own step, trailing `Z` mandatory. **`one_clock.rs` enforces it structurally and it caught ME today**, in a test about measurement discipline.
+
+## AC-04.4: MY FIX LANDED ON A PATH NOTHING CALLS -- and a DEAD GUARD IS WORSE THAN NO GUARD
+
+**vc pre-registered the prediction before rebuilding and it FAILED: sync 1 moved 20 of 20, sync 2 moved 20 of 20.** Two churny syncs in a row is my own stated form of the finding. **I verified the load-bearing half independently: `views::write_all` has NO production caller -- every caller is in `tests/`.** So the guard I committed at `843a69ce` is real, correct, and reaches nothing.
+
+**vc's CONCLUSION is right and vc's LOCATED CAUSE is wrong, and the difference would have cost a second dead guard.** They named `facade.rs:125` and `:150` as the live path; those are `converge_gitignore` and `stamp_version`, which write `.gitignore` and `config.json` and have never written a view. **Measured live path: `Facade::projection` (facade.rs:1253) -> `views::render_all` (:1272) -> `WriteSet` -> `write_set.rs:254` `write_atomically`, which is temp-file-plus-rename.** A rename swaps in a new inode, so **that path CANNOT be mtime-idempotent without an explicit skip.** Three production entry points, all through `WriteSet`: `projection` (both sync directions + `apply`), `todo_update` (:1188), `migrate::assemble` (:338).
+
+**THE DENOMINATOR IS NOT 266.** `projection` adds 57 `thread.json` + 40 issue JSON to the same unconditional set, plus the event log: **~364 paths churn per no-op sync, CANON INCLUDED.** vc's 20-of-20 was a subset and my 266 was too.
+
+**WHY IT WAS INVISIBLE: `projection`'s own doc comment says "THE ONE PLACE THE db -> disk DIRECTION IS EXPRESSED", and `write_all` is a second expression of exactly that.** A Highlander violation is what let a correct guard be unreachable. `view_determinism.rs` is GREEN on a property of a function nothing calls -- **the file that could not see the defect now also cannot see the fix.**
+
+**THE COST I WROTE INTO THE DOC COMMENT IS FALSE, AND IT IS MINE.** `write_all`'s comment claims the mtime move matters because "`file_index` reads it to decide clean from changed, so a sync that changed nothing marked the whole estate changed". **`sync.rs:317-326` decides `FileState` from SHA-256 ALONE**, and the module doc says stat is never a gate -- "size and mtime are carried as reporting metadata" -- on vc's own 2026-08-14 ruling that the contract governs over `design.md`. **The churn does not touch the index.** The real costs: the criterion is ratified and unmet; it defeats every external mtime instrument INCLUDING the one vc measured with; and touching 364 files per no-op sync is the opposite of what ST0057 is about. **SIXTH instance of the class in two days and THE FIRST NO PEER CAUGHT -- found only because I went to re-measure my own sentence instead of citing it.**
+
+**PROPOSED, NOT STARTED, HOLDING FOR hv: put the skip in `WriteSet::commit`, not in views.** `record()` has ALREADY read the prior content, so **the comparison costs no I/O at all** -- unlike the views guard, which added a read. `Prior.written: false` is the EXISTING semantics for "nothing to undo here", so rollback stays correct with no new state and no new field. **Then make `write_all` build a `WriteSet` and commit it rather than deleting it**: its six test files keep working unchanged and start exercising the mechanism the estate runs. **Red-first must be driven through `Facade`, or it proves nothing a second time.**
 
 ## NEXT: ST0057 WP-01 -- STARTED, REVERTED, RESUMABLE IN MINUTES
 
@@ -58,7 +72,7 @@ intent/.canon/       MUST BE COMMITTED
 2. **The cold-warm collection gap `doctor` has no arm for -- PARKED BEHIND WP-01, on vc's ruling and my reasoning.** The arm reports "a file on disk that canon does not know about", and **that sentence CHANGES MEANING under sparseness**: an absent file stops being an anomaly and a present-but-unknown one becomes the interesting case. Building it now would encode today's dense-disk assumption into the one check whose job is to police the sparse one. **I have already eaten that exact error once, with the replacing write-back.**
 3. **`critic rust` and `critic shell` arm ZERO rules** (0 of 6, 0 of 7). dc's Half A relit the gate; a green from either still means "nothing asked a question", and I move the most `.rs`. Half B is dc's.
 4. **THE BINARY MARKER -- (a) WITHDRAWN, (b) NOT MINE TO CLOSE.** **(a) STALENESS: withdrawn, and the withdrawal is the finding.** vc refused the reversal and asked what expired the reason. Nothing had -- **and measuring it found HALF MY OWN RECORDED REASONING WAS FALSE.** The comment claimed "HEAD moves when ANYONE commits ANYTHING"; **`.git/HEAD` is rewritten on a BRANCH SWITCH, not a commit** -- measured, six months stale against `refs/heads/main` moving seconds earlier. **The refusal stands on its other limb, sufficient alone: emitting ANY `rerun-if-changed` REPLACES cargo's package-file default**, so naming `.git/HEAD` would leave the embed stale on CODE changes, permanently and silently. **The naive fix is strictly worse than the gap, and the wrong reason was the one that made it look obviously correct.** Corrected in place at `a466f90f`. **(b) NON-IDENTITY (dc's, the one that actually bit):** `dirty-<HEAD>` gives two behaviourally different dirty builds one value. It names a commit; it was never an identity. Closed by vc's **AC-10.11** (content hash), not by any trigger of mine.
-5. **`surface_check.sh` refuses at rc=2** because the release binary is older than `surface/dispatch-table.json` and my `render.rs`. **Rostered MANUAL, not gated** (vc corrected ic's "blocks a gated check"). Mine to take in my next build window -- **and ANNOUNCE the rebuild first**, because `target/release/` is shared and a rebuild under a peer mid-measurement is what invalidated ic's run today.
+5. **`surface_check.sh` CLOSED, GREEN at rc=0** -- 61 declared commands, 57 reachable, all 7 invariants hold across every declared non-retire path. **The 19:40Z rebuild unblocked it; nothing of mine fixed it, and saying so is the point** -- it was rc=2 because the binary predated `surface/dispatch-table.json` and my `render.rs`, which is the same stale-artefact class as the incident. **Rostered MANUAL, not gated** (vc corrected ic's "blocks a gated check").
 
 ## TODO -- queued, none started
 
