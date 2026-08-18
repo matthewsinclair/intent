@@ -180,6 +180,24 @@ fi
 # SAYING it is dirty is the mechanism working, and in this clone the tree is
 # dirty almost always. It is reported as what it is.
 #
+# AND IT IS NOT AN IDENTITY, WHICH IS A SEPARATE FACT THAT COST REAL DAMAGE
+# BEFORE IT WAS STATED IN THE OUTPUT. The marker names a COMMIT; a commit does
+# not determine an artefact when the tree is dirty. Measured 2026-08-18: three
+# distinct `intent` binaries carried `dirty-18197aaf` inside one day, read
+# independently by three nodes, and one of them wrote empty views over 57 and 82
+# rows of the estate. vc compared two of them by marker and read them as the same
+# artefact. So every line this arm prints now carries a sha256, and the reason it
+# does is printed too -- a caveat that lives only in a comment is not a caveat the
+# reader has, which is this file's own earlier defect at `:179-181` recurring one
+# concern over.
+#
+# WHAT IS DELIBERATELY NOT CLAIMED: that a rebuild of unchanged inputs reproduces
+# the hash. ic offered an event as evidence -- `intentd` byte-identical across a
+# rebuild -- and the mtime showed nothing had rewritten it; the file was never
+# rebuilt in the window measured. The claim may well be true and it is untested,
+# so the output asserts only what was demonstrated: the hash distinguished two
+# artefacts the marker could not.
+#
 # THE MARKER IS SELF-DELIMITING AND THE EXTRACTION RELIES ON THAT. Rodata packs
 # string literals with no separator, so an unterminated marker runs into
 # whatever the linker laid down next -- measured during the canary as
@@ -254,13 +272,20 @@ else
   # is what gets quoted. Enforcement for this criterion lives at publication
   # (AC-11.5), not here.
   echo "self-provenance: the binary lines below are DIAGNOSTIC and this arm never fails -- enforcement is at \`int macos publish\`, which refuses an artefact that cannot name the tag's commit."
+  echo "self-provenance: THE MARKER IS PROVENANCE AND IS NOT AN IDENTITY. It names a COMMIT, and a commit does not determine an artefact when the tree is dirty, so the sha256 on each line below is what distinguishes one build from another. Measured 2026-08-18: THREE distinct \`intent\` binaries carried \`dirty-18197aaf\` within one day -- read independently by three nodes -- and one of them emptied two of the estate's views. Pin by the hash, never by the marker. NOT CLAIMED HERE: that rebuilding unchanged inputs reproduces the hash; that is untested, and the case offered as evidence for it turned out to be a file nothing had rewritten."
   for BIN in $SELF_PROV_BINS; do
+    # THE IDENTITY, COMPUTED FOR EVERY BRANCH RATHER THAN FOR THE INTERESTING ONE.
+    # A reader comparing two runs of this tool reads the line, and until now the
+    # only distinguishing token on it was the marker -- which is exactly the
+    # comparison that failed: vc recorded two binaries as the same artefact
+    # because their markers matched byte for byte.
+    binsha="$(shasum -a 256 "$BIN" 2>/dev/null | cut -c1-16)"
     marker="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
     embedded="${marker#\[intent-source-commit:}"
     embedded="${embedded%\]}"
 
     if [ -z "$marker" ]; then
-      echo "self-provenance: $BIN carries NO source-commit marker -- it cannot name the commit it was built from."
+      echo "self-provenance: $BIN [sha256 $binsha] carries NO source-commit marker -- it cannot name the commit it was built from."
       # WHICH OF THE TWO CAUSES, DERIVED RATHER THAN ASSERTED (ic, 2026-08-17).
       # What this branch OBSERVES is an absent marker. It used to PRINT "this
       # binary predates the embed" -- a cause, and one of at least two: the
@@ -283,13 +308,13 @@ else
                "causes this is cannot be established from the tree. Stated, not guessed." ;;
       esac
     elif [ "$embedded" = "unknown" ]; then
-      echo "self-provenance: $BIN says its source commit is UNKNOWN -- built where git could not answer."
+      echo "self-provenance: $BIN [sha256 $binsha] says its source commit is UNKNOWN -- built where git could not answer."
     elif [ "${embedded#dirty-}" != "$embedded" ]; then
-      echo "self-provenance: $BIN was built from an UNCOMMITTED tree ($embedded) -- its bytes match no commit."
+      echo "self-provenance: $BIN [sha256 $binsha] was built from an UNCOMMITTED tree ($embedded) -- its bytes match no commit, and this marker does not distinguish it from any other build of the same dirty tree."
     elif [ "$embedded" = "$head_sha" ]; then
-      echo "self-provenance: $BIN names $embedded, which is the current commit."
+      echo "self-provenance: $BIN [sha256 $binsha] names $embedded, which is the current commit."
     else
-      echo "self-provenance: $BIN names $embedded; the checkout is at $head_sha -- the binary is from an earlier tree."
+      echo "self-provenance: $BIN [sha256 $binsha] names $embedded; the checkout is at $head_sha -- the binary is from an earlier tree."
     fi
   done
 fi
