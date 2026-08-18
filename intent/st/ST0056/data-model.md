@@ -427,6 +427,14 @@ Prose (stored verbatim, FTS-indexed). Rules/skills/templates (shipped content, e
 
 > **RATIFIED.** hv answered the four open questions on 2026-08-15: (1) `st new` enters at **`Triage`** -- yes; (2) `wp done` is **refused** on a BLOCKED gate **and** `doctor` reports any unit whose status disagrees with its gate -- both, as recommended; (3) **no** `Hold`/`Cancelled` at WP level -- confirmed; (4) a test-backed AC is **never** `satisfy`-ed by hand and the AC machine therefore has two variants -- confirmed. **The `Tbc` -> `Triage` rename is ratified by hv's use of the name in answer (1)**; it is stated here rather than inferred, so a disagreement surfaces now rather than at a WP close.
 
+> **AMENDED by hv, 2026-08-18: `st.start` is legal from `Triage` as well as from `NotStarted`.** Answer (1) stands -- `st new` still enters at `Triage` -- and the reason it was right is untouched: `Triage` is not v2's `TBC` renamed, so it begins with zero legacy members and no thread is given a triage decision nobody made.
+>
+> **What changed is that the ruling was made in this document and then met by a human for the first time on 2026-08-18, and the ratified path cost TWO EXTRA COMMANDS on the only route anyone actually walks.** `st new` then `st triage` then `st start`, where v2 was `st new` then `st start`. hv, on typing it: _"this is STOOPID... I'd expect it to just end up at WIP."_
+>
+> **The project had already recorded the ADJACENT drift and missed this one.** `design.md:193` (ic, EXP-04) notes that `st new -s|--start` came through the parity register as `keep` while _"the meaning moved, because `st new` now enters at `Triage` and the flag spans two transitions instead of one"_. **The semantic cost of Triage-as-entry was predicted; the ergonomic cost was not, and nothing short of a human typing the sequence would have surfaced it** -- 85 test legs and a 56-thread migration did not, because neither exercises "a person creates a thread and starts working on it".
+>
+> **Why this edge rather than defaulting `st new` to `--start`:** starting work on a triaged item IS accepting it -- `st triage` already prints `accepted out of triage` -- so `Triage -> Wip` is a legitimate compound rather than a bypass, and the guard is gained rather than weakened. Defaulting `st new` to `--start` would instead leave `Triage` with almost no population, which is the state's whole justification.
+
 Drafted on hv's instruction after the `TBC` / `On Hold` / `satisfied` rulings: _"we will obviously need state toggles and a state machine process that moves threads programmatically thru the states. So we should take a beat now and define the states and the legal transitions."_ These are **proposals for ratification**, not canon; the enums they describe are already in `model.rs` and the transitions mostly are not.
 
 ### Why now, with live evidence
@@ -492,6 +500,7 @@ States: `Triage` (proposed rename of `Tbc`) | `NotStarted` | `Wip` | `Hold` | `C
 | ------------ | ------------ | -------------- | ------------------ |
 | _(none)_     | `Triage`     | `st new`       | --                 |
 | `Triage`     | `NotStarted` | `st triage`    | --                 |
+| `Triage`     | `Wip`        | `st start`     | --                 |
 | `Triage`     | `Cancelled`  | `st cancel`    | reason recorded    |
 | `NotStarted` | `Wip`        | `st start`     | --                 |
 | `NotStarted` | `Hold`       | `st hold`      | reason recorded    |
