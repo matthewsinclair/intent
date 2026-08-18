@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-18 08:55Z
+heartbeat_at: 2026-08-18 09:00Z
 status: active
 focus: "THE CONSERVATION GATE: THE INSTRUMENT PASSED AND THE CONTRACT FAILED, and they are different artefacts with different owners. Drove vc's conservation_check.sh on baize -- real capture, real census, real migrate -- and the CONTROL is itself the demonstrated red: exit 1, 522 findings, LOST-PROSE 33, UNACCOUNTED 135, `compared 700 of 1211`. **But the gate was worded on two counters and BOTH are zeroable while the estate is not conserved: strip the PROSE rows and LOST-PROSE 33 -> 0 with ALTERED 103 -> 0; hand it the 135 paths as --out-of-model and UNACCOUNTED 135 -> 0.** Neither produced a green -- vc's reverse-direction arm rose ADDED 0 -> 403 and findings went UP 522 -> 789 -- so the fix was the precondition, not the tool. vc rewrote it (`5de5dca0`) and took my clause-3 sharpening (`232608cb`): check the SUBJECT at the MOMENT OF THE ACT, not over a window. **Separately ANSWERED vc's accretion rider on a subject that could have confirmed it: 255, 0, 0, 0, 0 -- one-shot normalisation, NOT unbounded, which removes the reason to fear the render under disk-optional. And the better finding nobody asked for: 255 of 1000 .md move their mtime with ZERO content change every render -- content-stable, disk-noisy, and cc's file_index computes clean/changed off exactly that.** Fixed dc's finding in MY tools (`9fd9c0b7`): a malformed `--` lint directive had stopped shellcheck reading 79% of surface_check.sh, hiding two real bugs. **Baseline STILL not taken and still correctly blocked on cc's attachments + issue body; build fresh against the live schema, target/release speaks 6 against a store at 8.** v3 NOT on PATH; no pushes to upstream."
 claims: [ST0056/10]
@@ -66,6 +66,19 @@ byte-identical 827 / normalised 288 / compared 1614 of 2127 / DECLARED-DROP 115 
 **vc's REWRITTEN GATE IS SAFE; THE TWO-COUNTER SHORTHAND IS LETHAL, and I checked which rather than assumed.** `report()` increments `findings` and STRANDED goes through it: 353 + 194 + 192 + 2 = **741 exactly**, the reported total (`NORMALISED-PROSE` and `DECLARED-DROP` print WITHOUT counting, which is why the classes appear to sum to 1161). **So exit 0 is unreachable while one file is stranded -- clause 1 holds BECAUSE it gates on the verdict rather than the counters, which is this morning's finding making tonight's safe.** But `LOST-PROSE and UNACCOUNTED at zero` would authorise deleting 192 files holding 748 sections and print a zero doing it.
 
 **CLOSED vc's OPEN QUESTION AND THE ANSWER WAS NEITHER HYPOTHESIS: the duplicate-heading second member is not silently collapsed -- it never enters the prose population**, because no `impl.md` section does. So `ALTERED 2` is the WHOLE of that class, not its visible half. **NOT CLAIMED: that the migration is wrong. STRANDED is the correct loud report for a file with no destination; whether those 748 sections SHOULD have one is hv's call.**
+
+**FRESH-BINARY PASS DONE AND THE PROVENANCE PROBLEM IS GONE: snapshot HEAD `2df3549c`, ZERO uncommitted, and that revision is PUBLISHED.** cc is out of the tree, so the binary traces to a published commit rather than a dirty snapshot. **Two independent full passes -- separate snapshot, build, target dir and capture -- give IDENTICAL numbers**, so the baseline is reproducible across the whole apparatus rather than a repeated read of one tree.
+
+```
+ALTERED 2  LOST-PROSE 0  UNCONVERTED 0  UNACCOUNTED 353  STRANDED 192  findings 741
+byte-identical 1192  normalised 305  compared 1614 of 2127  LIVENESS 56/56  stderr clean
+```
+
+**NOT the gate: exit is 1 and clause 1 wants exit 0 with a printed `0 finding(s)`. What changed is the PROVENANCE, not the verdict** -- this is now a run whose subject AND instrument are both nameable, so it is the reference the next one gets compared against. **vc built the scope finding INTO the tool**, which beats recording it: it now prints that prose came from `[criterion issue test thread wp]` only, that every `design.md`/`impl.md`/`tasks.md` is outside that population, and -- the part I would not have written -- that **a PROSE row carries no path so the tool cannot name which files contributed nothing.** The instrument declaring the limit of its own denominator.
+
+**ONE INACCURACY IN MY OWN RIG, KEPT BECAUSE IT IS THE DAY'S CLASS AT ITS SMALLEST: my script prints `BINARY UNPINNED` unconditionally.** It computes the uncommitted count, prints it, then prints the label without consulting it -- so it emitted `PLUS 0 uncommitted -- BINARY UNPINNED` in one breath. **A label that does not read its own measurement is the same shape as an instrument that does not read its subject.** Harmless only because the datum sits beside it.
+
+**OPEN AND NOT CONCLUDED: `is Issue.body VERBATIM?` still reports `legacy.rs still mentions trim` at a CLEAN `2df3549c`.** Either cc's verbatim change is not on main or my probe tests the wrong symbol; **I have not established which and will not report a conclusion from an unvalidated probe.** `whitespace-normalised 305` is the number that should fall if it lands.
 
 ## TODO -- NEXT, IN ORDER
 
