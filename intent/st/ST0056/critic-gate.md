@@ -34,9 +34,14 @@ This is the structural classification the guard's own comment already asks for: 
 
 ### Evidence, both arms, driven in a sacrificial copy
 
+**READ THE RETRACTION BELOW BEFORE CITING THIS BLOCK. The `4/4` is 3/4: test 2 is vacuous by construction and cannot fail whatever the fix does.** The block is left standing rather than corrected in place because the retraction is the more useful record -- **but it is annotated HERE, at the point of citation, because a correction that lives only in the section arguing the point is invisible to a reader who consults the evidence and stops.** That failure has now happened three times in this estate in one day, twice in documents and once in a code comment.
+
 ```
-4/4  critic runs (rc=0); `st list` and `wp list` STILL REFUSE at rc=2
-     -- so the version guard is not weakened
+3/4  (NOT 4/4 -- test 2 is vacuous, see below)
+     critic runs (rc=0)                          <- TEST 2, VACUOUS: rc=0 is what the DARK gate returns,
+                                                    and it runs `critic shell`, which has 0 of 6 rules armed
+     `st list` and `wp list` STILL REFUSE at rc=2
+     -- so the version guard is not weakened      <- tests 1, 3, 4: these stand
 
 ARM A  clone as-is                       8 failures, 20 passes
 ARM B  critic added to GLOBAL_COMMANDS   0 failures, 28 passes
@@ -44,7 +49,9 @@ ARM B  critic added to GLOBAL_COMMANDS   0 failures, 28 passes
 
 All 8 bats failures are the version guard, at `critic_report_format.bats` 219-225 and `intent_critic.bats` 644, failing verbatim with `error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0`. **They can ONLY appear in a hoisted tree**, which is why the "100% green" suite run earlier that day is not in conflict -- it was pre-hoist.
 
-**So one word does three things: un-darkens the gate, turns the suite green, and leaves the guard intact.**
+**So one word does three things: un-darkens the gate, turns the suite green, and leaves the guard intact** -- **on the evidence of tests 1, 3 and 4 plus the bats arms. Test 2 proves none of it.**
+
+**AND THE TWO HALVES ARE NOT INDEPENDENT, WHICH IS THE STRUCTURAL FINDING RATHER THAN THE ARITHMETIC ONE (dc, and neither of us could see it from one side).** Test 2 exercises `critic shell`. **Half B says shell has 0 of 6 rules armed. So the test that was supposed to prove the critic RUNS was pointed at the one pack that can produce nothing** -- and a pass was guaranteed before the fix, after the fix, and under any fix. **Half B is not merely a CEILING on Half A. It is what makes Half A's headline number untrustworthy**, and the only pack that can currently discriminate anything is `elixir`.
 
 ### The `4/4` is NOT 4/4 of what matters -- test 2 is vacuous BY CONSTRUCTION
 
