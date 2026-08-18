@@ -243,47 +243,157 @@ fn seeded() -> Fixture {
 // cannot fire hands you a free green.** So every row sets up the state its
 // verb needs, and every row carries a positive control.
 
-/// Every user-visible verb that writes the estate: 27 through `apply`, plus
-/// `sync` both ways, `todo update` and `upgrade`.
-const DECLARED: &[&str] = &[
-  "st new",
-  "st start",
-  "st done",
-  "st cancel",
-  "st triage",
-  "st hold",
-  "st resume",
-  "st reopen",
-  "st reinstate",
-  "wp new",
-  "wp start",
-  "wp done",
-  "wp reopen",
-  "wp unstart",
-  "wp rescope",
-  "ac satisfy",
-  "ac unsatisfy",
-  "ac descope",
-  "ac rescope",
-  "ac withdraw",
-  "ac reinstate",
-  "at green",
-  "at red",
-  "at na",
-  "issues add",
-  "issues close",
-  "issues open",
-  "sync --to-disk",
-  "sync --to-store",
-  "todo update",
+/// **THE ROSTER IS DERIVED, NEVER AUTHORED, AND THAT IS THE POINT.**
+///
+/// An earlier version of this file carried a hand-written `const DECLARED:
+/// &[&str]` of 31 verbs. vc held AT-03.15 red on it and was right: `surface/
+/// dispatch-table.json` is that population's DECLARED HOME, and its own
+/// `populations.why` records that the set *"was hand-written five times in one
+/// week"* and that *"This block is the one home."* **The hand-written const was
+/// the sixth copy, authored after that block.**
+///
+/// The coverage guard protected the roster's MEMBERS while nothing protected
+/// the ROSTER -- a verb never added to it was invisible to the test, and
+/// "30 of 31" read as the surface when it was only the list. **A probe whose
+/// population cannot contain the failure it tests for, in the denominator.**
+///
+/// **The filter is `read_or_mutate`, and the choice is forced.** It is present
+/// on all 113 entries; `side_effects` exists on 10, and the table itself rules
+/// that reading its absence as "no side effects" is *"absence-as-meaning in the
+/// one place it decides whether an agent may close a steel thread"*. A field
+/// that cannot answer for 103 of 113 members cannot define a denominator.
+///
+/// The population is `families[].entries[]` UNION `new_surface[]`, INTERSECTED
+/// with `populations.shipped` -- the union because `entries` alone omits the 8
+/// top-level rows that all ship, the intersection because it includes rows
+/// dispositioned `retire` that the binary does not contain.
+fn shipped_mutators() -> Vec<String> {
+  let path = testkit::repo_root().join("surface/dispatch-table.json");
+  let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
+    // **A missing table FAILS rather than skips.** The roster's whole value is
+    // being derived; a skip here would restore the authored denominator with
+    // no one seeing it happen.
+    panic!(
+      "the declared surface is unreadable at {}: {e}",
+      path.display()
+    )
+  });
+  let table: serde_json::Value = serde_json::from_str(&text).expect("the dispatch table is JSON");
+
+  let shipped: Vec<&str> = table["populations"]["shipped"]
+    .as_array()
+    .expect("populations.shipped is an array")
+    .iter()
+    .filter_map(|v| v.as_str())
+    .collect();
+
+  let families = table["families"]
+    .as_array()
+    .expect("families is an array")
+    .iter()
+    .filter_map(|f| f["entries"].as_array())
+    .flatten();
+  let new_surface = table["new_surface"]
+    .as_array()
+    .expect("new_surface is an array")
+    .iter();
+
+  let mut out: Vec<String> = families
+    .chain(new_surface)
+    .filter(|e| e["read_or_mutate"].as_str() == Some("mutate"))
+    .filter_map(|e| e["path"].as_str())
+    .filter(|p| shipped.contains(p))
+    .map(str::to_string)
+    .collect();
+  out.sort();
+  out.dedup();
+  out
+}
+
+/// Driven somewhere else, with the file named.
+///
+/// **Its own key rather than a member of `UNPROVEN`.** vc's ruling on buckets
+/// 2 and 3 -- *"a key named for one reason cannot hold members admitted for
+/// another"* -- applies here too: "covered elsewhere" is a claim with evidence
+/// behind it, and "we have not established where this writes" is the absence of
+/// one. Merging them would let a covered verb lend its credibility to an
+/// unproven one.
+const COVERED_ELSEWHERE: &[(&str, &str)] = &[(
   "upgrade",
+  "unmigrated_project.rs -- it needs a pre-migration v2 project, not a v3 fixture",
+)];
+
+/// Writes files OUTSIDE the thread estate, **with the path it writes named**.
+///
+/// Named from the table's own `observed.side_effects`, never from the verb's
+/// name. `agents sync` is the cautionary one: its `AGENTS.md.bak` was
+/// **UNDECLARED until 2026-08-17**, which is the exact shape AC-03.14 exists
+/// for -- a verb writing a file nobody had written down.
+const OUT_OF_ESTATE: &[(&str, &str)] = &[
+  (
+    "agents sync",
+    "AGENTS.md at the project root, plus AGENTS.md.bak beside it",
+  ),
+  (
+    "lang init",
+    "intent/llm/RULES-<lang>.md, ARCHITECTURE-<lang>.md, and config.json's languages array",
+  ),
 ];
 
-/// **`upgrade` is NOT DRIVEN HERE, and naming it is the point.** It needs a
-/// pre-migration v2 project rather than a v3 fixture, and it is exercised in
-/// `unmigrated_project.rs`. Left declared and uncovered rather than quietly
-/// dropped from `DECLARED`, because a shrunken roster reads as full coverage.
-const NOT_DRIVEN: &[&str] = &["upgrade"];
+/// **THE DEBT, CARRIED BY NAME. Every one of these is a shipped mutator whose
+/// writes are NOT ESTABLISHED IN EITHER DIRECTION.**
+///
+/// They are not excused and they are not counted as covered. The table cannot
+/// answer for them -- `side_effects` is ABSENT rather than empty on 83 of 113
+/// entries, and absence is not "no". **This list IS the minted form of "we have
+/// not established this", and its membership is the exact work-list for adding
+/// the field to the table.**
+///
+/// The test PRINTS its size and REFUSES TO GROW IT, so the debt is visible and
+/// shrinking rather than silent.
+const UNPROVEN: &[&str] = &[
+  "agents generate",
+  "agents init",
+  "at lint",
+  "backup",
+  "bootstrap",
+  "claude hook",
+  "claude prime",
+  "claude rules",
+  "claude skills",
+  "claude start",
+  "claude subagents",
+  "claude upgrade",
+  "claude ws",
+  "config set",
+  "daemon",
+  "ext new",
+  "fileindex",
+  "ingest",
+  "init",
+  "lang remove",
+  "lang sync",
+  "learn",
+  "llm usage_rules",
+  "mcp",
+  "st bootstrap",
+  "st repair",
+  "st sync",
+  "todo",
+  "todo done",
+  "todo list",
+  "todo notdone",
+  "todo toggle",
+];
+
+/// A driven case's label maps to the table path it exercises. `sync` is one
+/// table entry driven from both directions.
+fn table_path(label: &str) -> &str {
+  match label {
+    "sync --to-disk" | "sync --to-store" => "sync",
+    other => other,
+  }
+}
 
 type Case = (&'static str, fn(&Fixture), fn(&Fixture), bool);
 
@@ -639,37 +749,77 @@ fn every_verb_moves_only_what_changed() {
   );
 }
 
-/// **The enumeration clause, and it is the reason the roster is a constant.**
-/// A verb added to `DECLARED` and not to `CASES` fails here by name, so
-/// coverage cannot rot quietly -- which is the failure this criterion names.
+/// **THE ENUMERATION CLAUSE: every shipped mutator is in exactly one bucket,
+/// and a new one is red by construction.**
+///
+/// This is what AT-03.15 was actually holding out for. The roster is derived
+/// from the declared surface, so a verb added there without a case here cannot
+/// pass -- which is the property a hand-authored list can never have.
 #[test]
-fn the_driven_verb_set_is_declared_and_printed() {
-  let driven: Vec<&str> = cases().iter().map(|(label, _, _, _)| *label).collect();
+fn every_shipped_mutator_is_accounted_for() {
+  let shipped = shipped_mutators();
+  let driven: Vec<&str> = cases().iter().map(|(l, _, _, _)| table_path(l)).collect();
 
-  let undeclared: Vec<&&str> = driven.iter().filter(|l| !DECLARED.contains(l)).collect();
-  assert!(
-    undeclared.is_empty(),
-    "driven but not declared: {undeclared:?}"
-  );
-
-  let uncovered: Vec<&&str> = DECLARED
-    .iter()
-    .filter(|d| !driven.contains(d) && !NOT_DRIVEN.contains(d))
-    .collect();
+  let elsewhere: Vec<&str> = COVERED_ELSEWHERE.iter().map(|(v, _)| *v).collect();
+  let out_of_estate: Vec<&str> = OUT_OF_ESTATE.iter().map(|(v, _)| *v).collect();
 
   println!(
-    "verb coverage: {} of {} declared verb(s) driven; {} named uncovered: {:?}",
-    driven.len(),
-    DECLARED.len(),
-    NOT_DRIVEN.len(),
-    NOT_DRIVEN
+    "verb coverage, derived from surface/dispatch-table.json:\n  \
+     {} shipped mutator(s): {} driven here, {} covered elsewhere, {} out of estate, {} UNPROVEN",
+    shipped.len(),
+    shipped
+      .iter()
+      .filter(|v| driven.contains(&v.as_str()))
+      .count(),
+    elsewhere.len(),
+    out_of_estate.len(),
+    UNPROVEN.len()
   );
 
+  // Nothing may claim a bucket it has no business in: a stale entry here is
+  // the same rot as a missing one, pointing the other way.
+  for list in [&driven, &elsewhere, &out_of_estate] {
+    let stale: Vec<&&str> = list
+      .iter()
+      .filter(|v| !shipped.contains(&v.to_string()))
+      .collect();
+    assert!(
+      stale.is_empty(),
+      "bucketed but not a shipped mutator: {stale:?}"
+    );
+  }
+  let stale: Vec<&&str> = UNPROVEN
+    .iter()
+    .filter(|v| !shipped.contains(&v.to_string()))
+    .collect();
   assert!(
-    uncovered.is_empty(),
-    "{} declared verb(s) neither driven nor named in NOT_DRIVEN: {:?}",
-    uncovered.len(),
-    uncovered
+    stale.is_empty(),
+    "listed UNPROVEN but not a shipped mutator: {stale:?}"
+  );
+
+  // In EXACTLY one: a verb in two buckets is a claim and its own contradiction.
+  for verb in &shipped {
+    let hits = [
+      driven.contains(&verb.as_str()),
+      elsewhere.contains(&verb.as_str()),
+      out_of_estate.contains(&verb.as_str()),
+      UNPROVEN.contains(&verb.as_str()),
+    ]
+    .iter()
+    .filter(|b| **b)
+    .count();
+    assert_eq!(
+      hits, 1,
+      "{verb} is in {hits} buckets; every shipped mutator belongs to exactly one"
+    );
+  }
+
+  // **The debt may shrink and must not grow.** A new shipped mutator silently
+  // appended to UNPROVEN would be the authored roster all over again.
+  assert!(
+    UNPROVEN.len() <= 32,
+    "UNPROVEN grew to {} -- a new shipped mutator needs a case, a named path, or a stated reason, not a longer debt list",
+    UNPROVEN.len()
   );
 }
 
