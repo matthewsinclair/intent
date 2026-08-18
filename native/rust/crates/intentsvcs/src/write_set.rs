@@ -111,6 +111,13 @@ impl WriteSet {
 
   /// Apply every write. On failure, restore everything already written and
   /// return the original error -- the estate is as it was.
+  ///
+  /// **A path whose bytes already match is not written at all**, so a write
+  /// moves mtime on exactly the files whose content changed. Measured at the
+  /// verb boundary in `write_moves_only_what_changed.rs`; the property is
+  /// stated there because a criterion whose subject is this type could be
+  /// satisfied by a test that drove this type, which is the trap the previous
+  /// attempt fell into.
   pub fn commit(self) -> Result<Applied, WriteError> {
     let mut priors: Vec<Prior> = Vec::with_capacity(self.writes.len());
 
@@ -119,7 +126,24 @@ impl WriteSet {
         Ok(prior) => prior,
         Err(e) => return Err(unwind(priors, path, e)),
       };
+      // **THE BYTES ARE ALREADY WHAT THIS WRITE WOULD PUT THERE, SO IT IS
+      // SKIPPED.** `record` has ALREADY read the file, so the comparison costs
+      // NO EXTRA I/O -- the earlier attempt at this guard sat in `views` and
+      // added a second read to a function nothing called.
+      //
+      // It cannot be an optimisation left to the filesystem: `write_atomically`
+      // is temp-file-plus-rename, and a rename swaps in a NEW INODE, so a
+      // byte-identical re-emission moves mtime BY CONSTRUCTION. Without this,
+      // `intent st hold` rewrote every view of every unrelated thread.
+      //
+      // `written: false` is the EXISTING "nothing to undo for this path"
+      // semantics -- the same state a path that FAILED carries -- so rollback
+      // stays correct with no new field and no new case.
+      let unchanged = prior.content.as_deref() == Some(content.as_bytes());
       priors.push(prior);
+      if unchanged {
+        continue;
+      }
       if let Err(e) = write_atomically(path, content) {
         return Err(unwind(priors, path, e));
       }

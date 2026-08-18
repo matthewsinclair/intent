@@ -30,6 +30,7 @@ use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
 use crate::model::{AcState, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus, WorkPackage};
 use crate::project::Project;
+use crate::write_set::WriteSet;
 
 /// Everything a render is allowed to depend on besides the model.
 ///
@@ -918,19 +919,22 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
   views
 }
 
-/// Write every view to disk, **skipping the ones already on disk byte for
-/// byte** (AC-04.4).
+/// Render every view and write it through a [`WriteSet`].
 ///
-/// The skip is not an optimisation. It writes unconditionally otherwise, and a
-/// byte-identical re-emission still MOVES MTIME -- which `file_index` reads to
-/// decide clean from changed, so a sync that changed nothing marked the whole
-/// estate changed. The cost was the normal path rather than an edge case:
-/// every view, every run.
+/// **THIS FUNCTION HAS NO PRODUCTION CALLER AND IS NOT A SECOND WRITE PATH.**
+/// Every caller is a test. It once wrote views itself with a bare `fs::write`
+/// loop, which made it a divergent expression of the db -> disk direction that
+/// [`crate::facade::Facade::projection`] already declares it owns -- and the
+/// consequence was not theoretical. A skip-when-unchanged guard was added
+/// HERE, was correct, and reached nothing; `view_determinism.rs` drove it
+/// directly and stayed green while every real verb churned the estate.
 ///
-/// **It survived because the obvious test cannot see it.** The idempotence
-/// test beside it in `view_determinism.rs` compares BYTES after two runs and
-/// passes -- correctly, the bytes are identical. Idempotent bytes is not
-/// idempotent writing, and only the mtime distinguishes them.
+/// So it now BUILDS A WRITE SET AND COMMITS IT: one write mechanism, and the
+/// tests that use this exercise the one the estate runs. Deleting it instead
+/// would have left the concern with no test at all.
+///
+/// **The mtime skip is NOT here.** It lives in [`WriteSet::commit`], which is
+/// where every production write already goes.
 ///
 /// The returned `Vec<View>` is still every view the model implies, not the
 /// subset written. Callers ask this function what the views ARE; what it had
@@ -941,17 +945,14 @@ pub fn write_all(
   ctx: &RenderContext<'_>,
 ) -> Result<Vec<View>, std::io::Error> {
   let views = render_all(project, canon, ctx);
+  let mut set = WriteSet::new();
   for view in &views {
-    if let Some(parent) = view.path.parent() {
-      std::fs::create_dir_all(parent)?;
-    }
-    let unchanged =
-      std::fs::read(&view.path).is_ok_and(|on_disk| on_disk == view.content.as_bytes());
-    if unchanged {
-      continue;
-    }
-    std::fs::write(&view.path, &view.content)?;
+    set.add(view.path.clone(), view.content.clone());
   }
+  // `WriteError` is flattened into `io::Error` rather than widening this
+  // signature across six test files. The Display chain is preserved, so a
+  // torn-rollback still says so in the message it carries.
+  set.commit().map_err(std::io::Error::other)?.keep();
   Ok(views)
 }
 

@@ -93,21 +93,35 @@ fn writing_the_views_twice_leaves_the_bytes_unchanged() {
   );
 }
 
-/// **AC-04.4. The neighbour above passes while every single view is rewritten**,
-/// and that is the whole reason this exists.
+/// **The neighbour above passes while every single view is rewritten**, and
+/// that is the whole reason this exists.
 ///
-/// Idempotent BYTES is not idempotent WRITING. `write_all` called `fs::write`
-/// unconditionally for every rendered view, so a byte-identical second run
-/// still moved mtime on all of them -- and `file_index`'s clean/changed state
-/// is derived from mtime, so a sync that changed nothing marked the whole
-/// estate changed. **A content diff reports this estate as clean**, which is
-/// exactly why the measure is the COUNT OF FILES WHOSE MTIME MOVED.
+/// Idempotent BYTES is not idempotent WRITING. A byte-identical re-emission
+/// still moves mtime, and **a content diff reports this estate as clean** --
+/// which is exactly why the measure is the COUNT OF FILES WHOSE MTIME MOVED.
+///
+/// **CORRECTED 2026-08-18, and the correction is the point.** This comment
+/// used to justify itself by saying `file_index`'s clean/changed state is
+/// derived from mtime. **It is not.** `sync::entry_for` decides `FileState`
+/// from SHA-256 ALONE and the module doc says stat is never a gate; mtime is
+/// carried as reporting metadata. The churn never touched the index. The real
+/// costs are ST0056 AC-03.14, every external mtime instrument, and a sparse
+/// disk being the opposite of touching hundreds of files per no-op run. **The
+/// measurement was right and its stated reason was invented, which is the
+/// harder failure to see because nothing goes red.**
+///
+/// **This test is now a UNIT check on one function, not the criterion.**
+/// `write_all` has no production caller; AC-03.14 is measured at the verb
+/// boundary in `write_moves_only_what_changed.rs`, because a guard proved only
+/// here is a guard proved on a path the failure does not take -- which is
+/// precisely what happened when the skip was first written into `views`.
 ///
 /// **It does not sleep, and it does not trust the filesystem's timestamp
-/// resolution.** Every view is aged an hour between the two runs, so a file
-/// the second run rewrote carries `now` and a file it skipped still carries
-/// the aged stamp. A test that raced the clock could pass vacuously on a
-/// coarse filesystem, which is the failure mode it is meant to detect.
+/// resolution.** Every view is aged to a fixed synthetic stamp between the two
+/// runs, so a file the second run rewrote carries whatever the filesystem gave
+/// it and a file it skipped still carries the constant exactly. A test that
+/// raced the clock could pass vacuously on a coarse filesystem, which is the
+/// failure mode it is meant to detect.
 #[test]
 fn writing_the_views_twice_does_not_move_a_single_mtime() {
   use std::time::{Duration, UNIX_EPOCH};
