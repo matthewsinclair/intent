@@ -212,6 +212,19 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 - **give the model `design` / `impl` / `tasks` fields**, or
 - **reclassify them as ATTACHMENTS**, which needs no new extension since `.md` is already declared.
 
+**THE INVENTORY, so the decision is made against content rather than a number.** Every `.md` under `intent/st` the census never enumerates -- everything that is not a thread/WP `info.md` or an `acceptance.md`:
+
+```
+canonical three (design/impl/tasks)   165 files    702,880 bytes   580 sections
+one-off .md under a thread             68 files    809,832 bytes   323 sections
+                                      ---------------------------------------
+TOTAL never enumerated as prose        233 files  1,512,712 bytes   903 sections
+```
+
+**AND THE SPLIT IS THE WHOLE POINT: the 68 one-offs are ALREADY CARRIED.** `pertest.md` (264 KB), `parity.md`, `data-model.md`, `register.md`, the 30-odd `cmd-*.md` surface docs, the fleet reports -- **`.md` is in the declared extension set and `classify` does not call them typed, so they are attachments today** (consistent with cc's carried count of 110, being these 68 plus 39 `.sh` plus 2 `.txt`).
+
+**So question 7 governs exactly the 165, and the fix is subtractive: three names come OUT of the classifier's `THREAD_PROSE` list and 165 files start being carried.** Not a new field, not a new extension, not a new vocabulary member -- **deleting three strings.** cc has confirmed the same: if hv takes this, the change is removing the constant rather than adding to it.
+
 **Recommended: attachments, on this spec's own rule 2.** A typed field earns its parsing because the model has fields for what comes out. These are freeform prose under arbitrary headings and the model has no fields for what is inside them, **so parsing them would discard structure into nothing -- which is precisely how `## Related Steel Threads` became 52 rows of `LOST-PROSE`.** Carry them verbatim.
 
 **This is the population disk-optional destroys, and it is why `LOST-PROSE 0` is true and narrow at the same time.** Nothing may dehydrate a thread until these have a destination -- `realisation.md` 5.1's fourth disposition would report them UNCLAIMED and refuse to remove them, so the design fails safe, but a thread whose `design.md` can never be carried is a thread that can never be fully dehydrated.
