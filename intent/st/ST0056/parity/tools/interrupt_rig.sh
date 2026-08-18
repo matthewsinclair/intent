@@ -717,8 +717,29 @@ say "kill sentinel: ${SENTINEL_REL#./} (at ${FRACTION}% of $A_DELTA writes by ob
 # ---------------------------------------------------------------------------
 
 say "arm B: starting the migration to interrupt it"
+
+# `set -m` IS LOAD-BEARING AND IS THE WHOLE REASON THE KILL REACHES THE
+# MIGRATOR. `( cd "$B" && eval "$MIGRATE_CMD" ) &` starts a SUBSHELL, and bash
+# does not exec the migrator in its place because the body is a `&&` list
+# rather than one simple command. So `$!` is the subshell and the migrator is
+# its CHILD -- and `kill -9 "$CHILD"` reaps the wrapper while the migration
+# runs on. MEASURED 2026-08-18 with a stub writing one file every 20ms: the
+# kill was issued at 6 files, `wait` returned 137, and the tree kept growing to
+# 20 files half a second later and 48 a second after that, with the writer
+# still alive. **Every assertion this rig makes about the kill was satisfied
+# and nothing had been interrupted.**
+#
+# With job control on, the subshell leads a new process group whose PGID is its
+# own pid, so `kill -9 -"$CHILD"` -- note the minus -- signals the migrator too.
+# Same stub under the group kill: 8 files at the signal, then 9, 9, 9.
+#
+# THE MECHANISM IS NOT TRUSTED, IT IS CHECKED. The settle assertion after the
+# kill measures the EFFECT -- did writing stop -- because this defect was a
+# mechanism that looked right and a rig that never asked what it achieved.
+set -m
 ( cd "$B" && eval "$MIGRATE_CMD" ) >"$WORKDIR/b1.log" 2>&1 &
 CHILD=$!
+set +m
 
 # A TIGHT SPIN WITH NO SLEEP, because the window is 73ms and any sleep worth
 # writing is a large fraction of it. The body is one `test -e` -- a single stat,
@@ -747,7 +768,12 @@ at_kill=0
 
 while :; do
   if [ -e "$B/$SENTINEL_REL" ]; then
-    kill -9 "$CHILD" 2>/dev/null
+    # THE MINUS IS THE FIX: `-$CHILD` is the process group, `$CHILD` alone is
+    # the wrapper subshell that does no work. The fallback runs only if job
+    # control was unavailable and there is no group to signal; that path is
+    # strictly no worse than the old behaviour, and the settle assertion below
+    # is what catches it rather than a comment promising it cannot happen.
+    kill -9 -"$CHILD" 2>/dev/null || kill -9 "$CHILD" 2>/dev/null
     killed=1
     # Counted AFTER the signal, so this is an upper bound on what the run had
     # written when the kill was issued, not an exact figure. Reported as such.
@@ -762,7 +788,15 @@ wait "$CHILD" 2>/dev/null
 B1_STATUS=$?
 
 if [ "$killed" -eq 0 ]; then
-  if [ "$(date +%s)" -ge "$POLL_DEADLINE" ]; then
+  # `$SECONDS` AND NOT `POLL_DEADLINE`. `b96188d1` took the fork out of the
+  # poll loop -- it deleted `POLL_DEADLINE=$(( $(date +%s) + 120 ))` and
+  # rewrote the in-loop test -- and left this third reference behind. Under
+  # `set -u` that is not a wrong answer, it is an abort: bash prints
+  # `POLL_DEADLINE: unbound variable` and exits **1**, which is this rig's code
+  # for GATE ARM FAILED, a claim about the migrator. So both refusals guarding
+  # the vacuous kill reported a migration defect instead of a rig defect, and
+  # neither had ever been driven.
+  if [ "$SECONDS" -ge "$POLL_LIMIT_S" ]; then
     die "the migration ran for 120s without ever writing $SENTINEL_REL -- cannot interrupt at a point the run does not reach. The sentinel came from the clean arm, so this means the two runs diverged."
   fi
   # THE ARM IS VACUOUS AND SAYS SO. The process finished without the sentinel
@@ -794,11 +828,50 @@ if [ "$B1_STATUS" -ne 137 ]; then
   die "expected the interrupted run to exit 137 (SIGKILL), got $B1_STATUS -- the kill did not land, so this arm's interruption is not the one it claims"
 fi
 
+# ---------------------------------------------------------------------------
+# DID THE WRITING ACTUALLY STOP? Measured, because the exit status cannot say.
+# ---------------------------------------------------------------------------
+#
+# `B1_STATUS -eq 137` says a process this rig started was SIGKILLed. It does not
+# say the MIGRATION stopped, and for the first version of this file those were
+# different processes -- so every check above could pass over a tree that was
+# still being written. That is the worst failure this rig has available: a
+# migration allowed to run to completion, a re-run over the finished tree, and
+# an IDENTICAL from a comparator doing its job perfectly. **The count printed
+# beside it would still look like a deep interruption**, because it is read at
+# the instant of the signal and the tree grows afterwards.
+#
+# So the kill is verified by its EFFECT rather than by its mechanism. Two reads
+# a settle-interval apart: a tree that is still growing was not interrupted.
+# The interval is 0.5s against a measured 73ms write burst -- ~7x the whole
+# workload -- and it costs nothing on a run measured in minutes.
+#
+# ONE FILE OF MOVEMENT IS EXPECTED AND IS NOT A FAILURE: the write in flight
+# when the signal landed may complete. Growth beyond that is the migration
+# still running. The settled count, not the count at the signal, is what the
+# re-run actually starts from, so that is the one reported and used.
+#
+# THIS CANNOT PROVE A NEGATIVE and does not claim to. A migrator that pauses
+# longer than the settle interval between writes would pass this and still be
+# alive; the group kill is what makes that not happen, and this is the check
+# that the group kill worked. Neither alone is enough, which is why there are
+# two.
+settle_before="$at_kill"
+sleep 0.5
+settle_after="$(count_files "$B")"
+if [ "$((settle_after - settle_before))" -gt 1 ]; then
+  die "THE KILL DID NOT STOP THE MIGRATION. The tree went $settle_before -> $settle_after files in the 0.5s AFTER the SIGKILL, so the migrator is still writing and \`wait\` returned 137 for a wrapper process instead. Every count this arm prints would look like a genuine interruption and the re-run would be measured over a tree that is still being built -- or already finished, which reports IDENTICAL. Cause to look at first: the launch above must run under \`set -m\` and the kill must be \`kill -9 -\$CHILD\` (the process GROUP). Refusing rather than measuring that."
+fi
+if [ "$settle_after" -ne "$settle_before" ]; then
+  say "arm B: settled at $settle_after files (the write in flight at the signal completed)"
+fi
+at_kill="$settle_after"
+
 B_AT_KILL_DELTA=$((at_kill - BASE_N))
 [ "$B_AT_KILL_DELTA" -gt 0 ] ||
   die "the kill landed with no files written -- an interruption before the first write leaves an unmigrated tree, which a re-run trivially matches"
 
-say "arm B: SIGKILL landed at $at_kill files ($B_AT_KILL_DELTA written of $A_DELTA)"
+say "arm B: SIGKILL landed at $at_kill files ($B_AT_KILL_DELTA written of $A_DELTA), and the tree stopped growing"
 
 say "arm B: re-running over the interrupted estate"
 ( cd "$B" && eval "$MIGRATE_CMD" ) >"$WORKDIR/b2.log" 2>&1
