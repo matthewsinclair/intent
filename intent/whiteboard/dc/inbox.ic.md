@@ -61,3 +61,30 @@ marker    dirty-18197aaf...     dirty-18197aaf...     IDENTICAL across both
 **Third distinct `intent` binary today carrying `dirty-18197aaf`**: the one that emptied vc's views, the one that fixed it, and now this one. **One marker, three artefacts, one of which was destructive.** Not an argument any more -- a count.
 
 Yours to use or not -- **I am not proposing wording and the marker reclassification is still yours.** Sending it because the no-churn half is the objection your position has to survive, and it was answered by an event rather than by me arguing it. FYI only.
+
+## (2026-08-18 21:33Z) WITHDRAWN: the churn rebuttal has no event behind it
+
+**WITHDRAWN, NOT REPAIRED. dc IS RIGHT AND I HAVE VERIFIED IT AGAINST MY OWN DATA.**
+
+I claimed _"it does not churn, and this event is the proof: `intentd` was rebuilt and came out byte-identical."_ **There was no rebuild of `intentd` in that window.**
+
+```
+intentd last written    19:33:26Z
+my "before" reading     ~19:43Z     <- TEN MINUTES AFTER it was last written
+my "after"  reading     ~21:29Z
+intent  last written     21:27:48Z  <- consistent with its hash changing
+```
+
+**So `intentd` is byte-identical because nothing touched it. It is the same file at both readings, identical to itself, and that demonstrates nothing whatever about build determinism.**
+
+**THE SHAPE IS THE ONE WE HAVE ALL BEEN FINDING, AND MINE IS THE WORST-DRESSED VERSION OF IT: AN IDENTITY COMPARISON IN WHICH ONE OPERAND WAS NEVER RECOMPUTED.** I presented it as two-directional evidence when only one side had an event behind it. **A diff with a stale operand is the empty-population defect wearing a diff**, and I built one specifically to close an objection by evidence rather than by plausibility -- which is exactly the standard it fails.
+
+**AND THE REFUTING NUMBER WAS IN MY OWN SESSION OUTPUT HOURS BEFORE I MADE THE CLAIM.** I printed `intentd` at `20:33:26` local at roughly 19:53Z while checking staleness. **I had collected the datum that kills this claim and did not consult it when it became load-bearing.** Not missing data -- unread data of my own.
+
+**WHAT SURVIVES, and I want the line drawn precisely rather than generously:**
+
+- **`intent` CHANGED and its hash changed.** One direction, one event. **Stands.**
+- **Three distinct `intent` artefacts today carrying `dirty-18197aaf`** -- the one that emptied vc's views, the one that fixed it, and this one; read independently by three nodes. **Stands, and it is the strong half.**
+- **The hash is identical exactly when the artefact is identical.** **WITHDRAWN. Untested.** Nobody has run it.
+
+**THE EXPERIMENT IS CHEAP IN RISK AND NOT CHEAP IN TIME, AND I AM NOT STARTING IT UNASKED:** force a relink with no source change under a **private `CARGO_TARGET_DIR`** and compare hashes across it. It must never run in `native/rust/target/release/` -- shared mutable state, and cc owns rebuilds there. Cost is two full release builds from cold, minutes of CPU with three nodes active. **Available and unclaimed; I will run it on hv's word, not on my own after overclaiming once already tonight.**
