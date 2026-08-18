@@ -260,6 +260,19 @@ MIGRATE_GIVEN="${MIGRATE_CMD:+yes}"
 READ_CMD="${READ_CMD:-}"
 STORE_CMD="${STORE_CMD:-}"
 
+# BOUND HERE FOR THE SAME REASON, AND THE REASON IS A DEFECT I COMMITTED THIS
+# MORNING AND ALMOST COMMITTED AGAIN FOUR HOURS LATER. `INSTR_SHORT` is assigned
+# inside the REVISION branch below, so on the override path it does not exist --
+# and a refusal message that names it would abort under `set -u` with
+# `INSTR_SHORT: unbound variable` at exit 1, which is this rig's code for GATE
+# ARM FAILED. That is exactly what `b96188d1` did with `POLL_DEADLINE`: a
+# variable referenced on a path where nothing had bound it, on a branch that
+# only runs when something is already wrong.
+#
+# The default is DESCRIPTIVE rather than empty, because "the instruments came
+# from the worktree" is the true and useful thing to print on that path.
+INSTR_SHORT="${INSTR_SHORT:-the worktree (no revision was pinned)}"
+
 if [ -n "$MIGRATE_GIVEN" ]; then
   # TWO SUBJECTS NAMED AT ONCE IS A CONTRADICTION, NOT A PREFERENCE, and this
   # refuses rather than picking one. FOUND BY THE LEDGER RATHER THAN BY READING:
@@ -514,8 +527,24 @@ say "capturing $MEMBER via estate_corpus.sh"
 # IS this repository and a full clone carries its pin. So the default member
 # would have passed green with the bug latent for every other member, which is a
 # false green wearing the one result anybody checks.
-ROOT="$ROOT" "$CORPUS" capture "$MEMBER" "$TEMPLATE" >/dev/null ||
-  die "estate_corpus.sh could not capture $MEMBER -- run '$CORPUS list' to see why"
+if ! ROOT="$ROOT" "$CORPUS" capture "$MEMBER" "$TEMPLATE" >/dev/null; then
+  # THE PINNED INSTRUMENTS AND THE WORKTREE ONES ARE DIFFERENT FILES, AND THAT IS
+  # THE FIRST THING TO SAY WHEN THIS FAILS. Measured on 2026-08-18: a `hoist`
+  # member was added to the worktree corpus and committed, the rig was pointed at
+  # an OLDER revision, and the clone's corpus had never heard of it. The refusal
+  # was correct and it read as a defect in the estate, because "unknown member"
+  # says nothing about WHICH corpus did not know it -- and the one the operator
+  # can see on disk knew it perfectly well.
+  #
+  # This costs one `grep` on a path that has already failed, and it turns a
+  # two-minute confusion into a sentence naming the fix.
+  if [ "$CORPUS" != "$HERE/estate_corpus.sh" ] && [ -x "$HERE/estate_corpus.sh" ] &&
+     ! ROOT="$ROOT" "$CORPUS" list 2>/dev/null | grep -q "^$MEMBER[[:space:]]" &&
+     ROOT="$ROOT" "$HERE/estate_corpus.sh" list 2>/dev/null | grep -q "^$MEMBER[[:space:]]"; then
+    die "the member '$MEMBER' EXISTS IN THE WORKTREE CORPUS AND NOT IN THE PINNED ONE. The instruments come from $INSTR_SHORT, not from your working copy -- so a corpus row you added and committed AFTER that revision is not in this run. Point --instruments-rev (or --rev) at a commit that contains the row, verified with \`git merge-base --is-ancestor <row-commit> <rev>\` rather than by assuming HEAD has moved forward. Nothing here is a statement about the estate."
+  fi
+  die "estate_corpus.sh could not capture $MEMBER -- run '$CORPUS list' to see why. That is the PINNED copy at $INSTR_SHORT, not the one in your worktree."
+fi
 
 # CAPTURED ONCE AND COPIED, NEVER CAPTURED TWICE. `capture` stamps `captured_at`
 # into the tree's CAPTURE file, so two captures differ in a file the migration
