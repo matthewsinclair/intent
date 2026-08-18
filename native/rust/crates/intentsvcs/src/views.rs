@@ -684,6 +684,16 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
 /// consumer re-join them: the markdown view and `intent todo --json` are two
 /// renderings of one bucketing, and a second place that builds `"{id}: {title}"`
 /// is a second place for the two to disagree about what an item is called.
+///
+/// **It did not carry the status, and that was the whole defect.** The bucket a
+/// row lands in is three-valued and the status is six-valued, so bucketing
+/// alone DESTROYS the distinction between the states that share a bucket --
+/// `Completed` and `Cancelled` both land in DONE. The markdown renderer then
+/// had nothing to compute a glyph from and emitted a constant; `--json` had
+/// nothing to report and omitted it. **Both faces lost the same fact, so both
+/// agreed, which is exactly the agreement this struct exists to guarantee** --
+/// the doc above promises the two renderings cannot disagree about what an item
+/// is called, and they did not: they were both wrong in the same way.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct TodoItem {
   /// `ST0001`, or `ST0001/02` for a work package.
@@ -691,7 +701,18 @@ pub struct TodoItem {
   /// `thread` or `work-package`.
   pub kind: &'static str,
   pub title: String,
-  /// Exactly what the markdown view prints.
+  /// The state as a human reads it, from
+  /// [`ThreadStatus::display`](crate::model::ThreadStatus::display) or
+  /// [`WpStatus::display`](crate::model::WpStatus::display). **Carried because
+  /// the bucket cannot be read back into it:** DONE means completed-or-cancelled
+  /// and a `--json` consumer cannot recover which.
+  pub status: &'static str,
+  /// The checkbox glyph, from
+  /// [`ThreadStatus::glyph`](crate::model::ThreadStatus::glyph) or
+  /// [`WpStatus::glyph`](crate::model::WpStatus::glyph). Computed where the
+  /// status is still in scope, which is the only place it can be computed.
+  pub glyph: char,
+  /// Exactly what the markdown view prints after the glyph.
   pub label: String,
 }
 
@@ -752,6 +773,8 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
       id: t.id.clone(),
       kind: "thread",
       title: t.title.clone(),
+      status: t.status.display(),
+      glyph: t.status.glyph(),
       label: format!("{}: {}", t.id, t.title),
     };
     match t.status {
@@ -766,6 +789,8 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
         id: format!("{}/{:02}", t.id, wp.seq),
         kind: "work-package",
         title: wp.title.clone(),
+        status: wp.status.display(),
+        glyph: wp.status.glyph(),
         label: format!("{} / WP-{:02}: {}", t.id, wp.seq, wp.title),
       };
       match wp.status {
@@ -814,30 +839,31 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
 pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>, window: &TodoWindow) -> String {
   let mut buckets = todo_buckets(threads);
   buckets.done.retain(|item| window.shows(&item.id));
-  let labels =
-    |rows: &[TodoItem]| -> Vec<String> { rows.iter().map(|i| i.label.clone()).collect() };
 
   let mut out = String::new();
   out.push_str("# TODO\n\n");
   out.push_str("A flat DOING / TODO / DONE view, projected from steel-thread and work-package status. Generated -- change a status with the CLI, never by editing this file.\n\n");
-  out.push_str(&bucket("DOING", &labels(&buckets.doing)));
-  out.push_str(&bucket("TODO", &labels(&buckets.todo)));
+  out.push_str(&bucket("DOING", &buckets.doing));
+  out.push_str(&bucket("TODO", &buckets.todo));
   out.push_str("## DONE\n\n");
-  out.push_str(&items(&labels(&buckets.done)));
+  out.push_str(&items(&buckets.done));
   finish(out, ctx, "the thread canon")
 }
 
-fn bucket(name: &str, entries: &[String]) -> String {
-  format!("## {name}\n\n{}", items(entries))
+fn bucket(name: &str, rows: &[TodoItem]) -> String {
+  format!("## {name}\n\n{}", items(rows))
 }
 
-fn items(entries: &[String]) -> String {
-  if entries.is_empty() {
+/// **Takes the rows, not their labels.** It was handed `&[String]` and so could
+/// only emit a constant glyph -- the status had been dropped one call earlier,
+/// which is why no test of this function could have caught it.
+fn items(rows: &[TodoItem]) -> String {
+  if rows.is_empty() {
     return "_(none)_\n\n".to_string();
   }
   let mut out = String::new();
-  for entry in entries {
-    out.push_str(&format!("- [ ] {entry}\n"));
+  for row in rows {
+    out.push_str(&format!("- [{}] {}\n", row.glyph, row.label));
   }
   out.push('\n');
   out
@@ -927,4 +953,153 @@ pub fn skew(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<Fi
     }
   }
   findings
+}
+
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::model::{THREAD_SCHEMA, ThreadStatus, WpStatus};
+
+  /// The wire spelling is kebab-case (`#[serde(rename_all)]`), so these are the
+  /// status values as `thread.json` carries them.
+  fn thread(id: &str, status: &str) -> Thread {
+    serde_json::from_value(serde_json::json!({
+      "schema": THREAD_SCHEMA,
+      "id": id,
+      "title": format!("{id} title"),
+      "status": status,
+      "created": "2026-08-18",
+    }))
+    .expect("thread fixture")
+  }
+
+  fn with_wp(id: &str, status: &str, wp_status: &str) -> Thread {
+    serde_json::from_value(serde_json::json!({
+      "schema": THREAD_SCHEMA,
+      "id": id,
+      "title": format!("{id} title"),
+      "status": status,
+      "created": "2026-08-18",
+      "wps": [{ "seq": 1, "title": "the work package", "status": wp_status }],
+    }))
+    .expect("thread-with-wp fixture")
+  }
+
+  fn ctx() -> RenderContext<'static> {
+    RenderContext {
+      version: "3.0.0-test",
+    }
+  }
+
+  /// **THE test, and it drives the real renderer over a fixture carrying both
+  /// states.** `Completed` and `Cancelled` share the DONE bucket, so the glyph
+  /// is the ONLY thing in the rendered file that distinguishes them -- which is
+  /// why a constant glyph presented cancelled work as completed rather than
+  /// merely looking plain. Re-constant the glyph and this fails.
+  #[test]
+  fn cancelled_and_completed_share_the_done_bucket_and_still_render_differently() {
+    let threads = vec![thread("ST0001", "completed"), thread("ST0002", "cancelled")];
+    let out = todo(&threads, &ctx(), &TodoWindow::All);
+    let done = out.split("## DONE").nth(1).expect("a DONE section");
+
+    assert!(done.contains("- [x] ST0001"), "completed row in:{done}");
+    assert!(done.contains("- [~] ST0002"), "cancelled row in:{done}");
+  }
+
+  /// The anti-collapse canary: six states, six glyphs, pairwise distinct.
+  ///
+  /// A vocabulary that reuses a glyph re-creates the defect one state at a
+  /// time, and the renderer above would still look correct on any fixture that
+  /// happened to omit the colliding pair.
+  #[test]
+  fn the_six_thread_states_have_six_distinct_glyphs() {
+    let all = [
+      ThreadStatus::Triage,
+      ThreadStatus::NotStarted,
+      ThreadStatus::Wip,
+      ThreadStatus::Hold,
+      ThreadStatus::Completed,
+      ThreadStatus::Cancelled,
+    ];
+    let glyphs: Vec<char> = all.iter().map(|s| s.glyph()).collect();
+    let mut distinct = glyphs.clone();
+    distinct.sort_unstable();
+    distinct.dedup();
+    assert_eq!(
+      distinct.len(),
+      all.len(),
+      "two states share a glyph: {glyphs:?}"
+    );
+
+    let wp: Vec<char> = [WpStatus::NotStarted, WpStatus::Wip, WpStatus::Done]
+      .iter()
+      .map(|s| s.glyph())
+      .collect();
+    let mut wp_distinct = wp.clone();
+    wp_distinct.sort_unstable();
+    wp_distinct.dedup();
+    assert_eq!(wp_distinct.len(), 3, "two wp states share a glyph: {wp:?}");
+  }
+
+  /// `items` renders all three buckets, so the defect spanned all three and the
+  /// fix has to as well. DONE is covered above; this is DOING and TODO.
+  #[test]
+  fn every_bucket_computes_its_glyph_because_one_function_renders_all_three() {
+    let threads = vec![
+      thread("ST0001", "wip"),
+      thread("ST0002", "not-started"),
+      thread("ST0003", "triage"),
+      thread("ST0004", "hold"),
+    ];
+    let out = todo(&threads, &ctx(), &TodoWindow::All);
+
+    assert!(out.contains("- [-] ST0001"), "wip in:\n{out}");
+    assert!(out.contains("- [ ] ST0002"), "not-started in:\n{out}");
+    assert!(out.contains("- [?] ST0003"), "triage in:\n{out}");
+    assert!(out.contains("- [!] ST0004"), "hold in:\n{out}");
+  }
+
+  /// Work packages go through the same renderer and lost the same fact.
+  #[test]
+  fn work_package_rows_carry_their_own_glyph_not_their_threads() {
+    let out = todo(
+      &[with_wp("ST0001", "wip", "not-started")],
+      &ctx(),
+      &TodoWindow::All,
+    );
+    assert!(
+      out.contains("- [-] ST0001: ST0001 title"),
+      "thread in:\n{out}"
+    );
+    assert!(
+      out.contains("- [ ] ST0001 / WP-01: the work package"),
+      "wp in:\n{out}"
+    );
+  }
+
+  /// **The `--json` face lost the same fact and nobody had reported it.** The
+  /// bucket is three-valued and the status is six, so `done` alone cannot be
+  /// read back into a status -- a machine consumer could not tell cancelled
+  /// from completed either.
+  #[test]
+  fn the_json_face_carries_the_status_the_bucket_cannot_recover() {
+    let buckets = todo_buckets(&[thread("ST0001", "completed"), thread("ST0002", "cancelled")]);
+    let rows: Vec<(&str, &str, char)> = buckets
+      .done
+      .iter()
+      .map(|i| (i.id.as_str(), i.status, i.glyph))
+      .collect();
+    assert_eq!(
+      rows,
+      vec![("ST0001", "Completed", 'x'), ("ST0002", "Cancelled", '~')]
+    );
+  }
+
+  /// The control: an empty bucket is still a sentinel, not a stray glyph.
+  #[test]
+  fn an_empty_bucket_renders_the_sentinel() {
+    assert_eq!(items(&[]), "_(none)_\n\n");
+  }
 }

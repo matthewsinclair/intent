@@ -4,17 +4,17 @@ A flat DOING / TODO / DONE view, projected from steel-thread and work-package st
 
 ## DOING
 
-- [ ] ST0055 / WP-01: Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton
-- [ ] ST0055 / WP-02: Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all
-- [ ] ST0055 / WP-03: Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)
-- [ ] ST0055 / WP-04: Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate
-- [ ] ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
-- [ ] ST0056 / WP-03: Ingest, views and sync engine
-- [ ] ST0056 / WP-05: CLI in-process mode and BATS conformance harness
-- [ ] ST0056 / WP-06: CLI parity long tail
-- [ ] ST0056 / WP-10: Migration and fleet ingest harness
-- [ ] ST0056 / WP-11: Distribution: cargo-dist, Homebrew, signing
-- [ ] ST0057: Disk as a sparse projection of the store
+- [-] ST0055 / WP-01: Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton
+- [-] ST0055 / WP-02: Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all
+- [-] ST0055 / WP-03: Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)
+- [-] ST0055 / WP-04: Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate
+- [-] ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
+- [-] ST0056 / WP-03: Ingest, views and sync engine
+- [-] ST0056 / WP-05: CLI in-process mode and BATS conformance harness
+- [-] ST0056 / WP-06: CLI parity long tail
+- [-] ST0056 / WP-10: Migration and fleet ingest harness
+- [-] ST0056 / WP-11: Distribution: cargo-dist, Homebrew, signing
+- [-] ST0057: Disk as a sparse projection of the store
 
 ## TODO
 
@@ -38,60 +38,60 @@ A flat DOING / TODO / DONE view, projected from steel-thread and work-package st
 
 ## DONE
 
-- [ ] ST0001: Directory Structure
-- [ ] ST0002: Core Script Framework
-- [ ] ST0003: Template System
-- [ ] ST0004: Steel Thread Commands
-- [ ] ST0005: Initialization Command
-- [ ] ST0006: Help System
-- [ ] ST0007: User Documentation
-- [ ] ST0008: LLM Integration
-- [ ] ST0009: Process Refinement
-- [ ] ST0010: Anthropic MCP Integration
-- [ ] ST0011: Test Suite Implementation
-- [ ] ST0012: Document Sync Command
-- [ ] ST0013: STP Blog Post Series
-- [ ] ST0014: Directory Structure for Steel Threads
-- [ ] ST0015: Enhanced Steel Thread Templates and File Types
-- [ ] ST0016: Rename STP CLI to INTENT (v2.0.0)
-- [ ] ST0017: Add an Intent sub-agent for Claude Code to Intent
-- [ ] ST0018: Worker-Bee Intent Agent for WDD Architecture Enforcement
-- [ ] ST0019: Treeindex -- Directory Summaries for Claude Navigation
-- [ ] ST0020: Modernizing Intent's Elixir Support for Agentic Coding
-- [ ] ST0021: Intent Autopsy -- Session Analysis & Memory Meta-Learning
-- [ ] ST0022: Harden `st new` -- Special Characters, Slugs, and --start Flag
-- [ ] ST0023: Remove Backlog from Intent
-- [ ] ST0024: Add work packages as first class citizens within a steel thread
-- [ ] ST0025: Fix Highlander Violations
-- [ ] ST0026: Steel Thread Zero
-- [ ] ST0027: Add /in-cost-analysis skill
-- [ ] ST0028: TCA v3.0 -- Process Doc Update + Skill Suite
-- [ ] ST0029: Add /in-handoff skill
-- [ ] ST0030: Cherry-Pick Superpowers Patterns for Intent
-- [ ] ST0031: TCA suite hardening (post-Lamplight ST0121)
-- [ ] ST0032: Fix Intent's Elixir Credo Checks
-- [ ] ST0033: Make the intent CLI resilient to cwd when locating the project root
-- [ ] ST0034: Agentic Software Engineering Suite
-- [ ] ST0035: Canonical LLM Config + Fleet Rollout
-- [ ] ST0036: Directory relocation: `.intent/` → `intent/.config/`
-- [ ] ST0037: Language config: replace filesystem probes with explicit config
-- [ ] ST0038: critic-elixir false positives on canonical OTP/Mix idioms
-- [ ] ST0039: Critic gate: strict proxies and rule-library cleanup
-- [ ] ST0040: Whiteboard protocol for multi-Claude sessions in the one repo
-- [ ] ST0041: Explore 'MFIC — Mechanically-Falsifiable Independent Control'
-- [ ] ST0042: Fable 5 Review of Intent codebase
-- [ ] ST0043: Rethink 'intent upgrade'
-- [ ] ST0044: Add in acceptance.md and supporting process
-- [ ] ST0045: Update whiteboard for per-workstream files
-- [ ] ST0047: Add claude_with_intent script to Intent to support muilt-agent agentic coding (MAAC)
-- [ ] ST0048: Acceptance close-gate fails empty or missing contract
-- [ ] ST0049: Comprehensive 2.13.0 release note: how MAAC works
-- [ ] ST0050: intent todo: a flat DOING/TODO/DONE view of steel threads and work packages
-- [ ] ST0051: intent output width: dft_width config for generated files, terminal width for stdout
-- [ ] ST0052: Author project-type pack
-- [ ] ST0053: Content (web-content) project-type pack
-- [ ] ST0054: Update Intent for latest usage-rules.md format
-- [ ] ST0055: Add `intent issues` command
+- [x] ST0001: Directory Structure
+- [x] ST0002: Core Script Framework
+- [x] ST0003: Template System
+- [x] ST0004: Steel Thread Commands
+- [x] ST0005: Initialization Command
+- [x] ST0006: Help System
+- [x] ST0007: User Documentation
+- [x] ST0008: LLM Integration
+- [x] ST0009: Process Refinement
+- [~] ST0010: Anthropic MCP Integration
+- [x] ST0011: Test Suite Implementation
+- [x] ST0012: Document Sync Command
+- [x] ST0013: STP Blog Post Series
+- [x] ST0014: Directory Structure for Steel Threads
+- [~] ST0015: Enhanced Steel Thread Templates and File Types
+- [x] ST0016: Rename STP CLI to INTENT (v2.0.0)
+- [x] ST0017: Add an Intent sub-agent for Claude Code to Intent
+- [x] ST0018: Worker-Bee Intent Agent for WDD Architecture Enforcement
+- [x] ST0019: Treeindex -- Directory Summaries for Claude Navigation
+- [x] ST0020: Modernizing Intent's Elixir Support for Agentic Coding
+- [x] ST0021: Intent Autopsy -- Session Analysis & Memory Meta-Learning
+- [x] ST0022: Harden `st new` -- Special Characters, Slugs, and --start Flag
+- [x] ST0023: Remove Backlog from Intent
+- [x] ST0024: Add work packages as first class citizens within a steel thread
+- [x] ST0025: Fix Highlander Violations
+- [x] ST0026: Steel Thread Zero
+- [x] ST0027: Add /in-cost-analysis skill
+- [x] ST0028: TCA v3.0 -- Process Doc Update + Skill Suite
+- [x] ST0029: Add /in-handoff skill
+- [x] ST0030: Cherry-Pick Superpowers Patterns for Intent
+- [x] ST0031: TCA suite hardening (post-Lamplight ST0121)
+- [x] ST0032: Fix Intent's Elixir Credo Checks
+- [x] ST0033: Make the intent CLI resilient to cwd when locating the project root
+- [x] ST0034: Agentic Software Engineering Suite
+- [x] ST0035: Canonical LLM Config + Fleet Rollout
+- [x] ST0036: Directory relocation: `.intent/` → `intent/.config/`
+- [x] ST0037: Language config: replace filesystem probes with explicit config
+- [x] ST0038: critic-elixir false positives on canonical OTP/Mix idioms
+- [x] ST0039: Critic gate: strict proxies and rule-library cleanup
+- [x] ST0040: Whiteboard protocol for multi-Claude sessions in the one repo
+- [x] ST0041: Explore 'MFIC — Mechanically-Falsifiable Independent Control'
+- [x] ST0042: Fable 5 Review of Intent codebase
+- [x] ST0043: Rethink 'intent upgrade'
+- [x] ST0044: Add in acceptance.md and supporting process
+- [x] ST0045: Update whiteboard for per-workstream files
+- [x] ST0047: Add claude_with_intent script to Intent to support muilt-agent agentic coding (MAAC)
+- [x] ST0048: Acceptance close-gate fails empty or missing contract
+- [x] ST0049: Comprehensive 2.13.0 release note: how MAAC works
+- [x] ST0050: intent todo: a flat DOING/TODO/DONE view of steel threads and work packages
+- [x] ST0051: intent output width: dft_width config for generated files, terminal width for stdout
+- [x] ST0052: Author project-type pack
+- [x] ST0053: Content (web-content) project-type pack
+- [x] ST0054: Update Intent for latest usage-rules.md format
+- [x] ST0055: Add `intent issues` command
 
 ---
 

@@ -384,6 +384,39 @@ impl ThreadStatus {
       Self::Cancelled => "Cancelled",
     }
   }
+
+  /// The checkbox glyph for the flat work view.
+  ///
+  /// **On the type beside [`display`], for the third time and the same reason.**
+  /// It was not spelled twice here -- it was not spelled at all. `views.rs`
+  /// emitted a constant `- [ ]` for every row of every bucket, so the flat view
+  /// rendered six states as one, and two CANCELLED threads appeared under
+  /// `## DONE` indistinguishable from the 52 completed ones. A glyph computed
+  /// from nothing is an instrument whose output is independent of the thing it
+  /// measures (ic), and nothing could have caught it downstream: the value was
+  /// not wrong for some inputs, it was constant for all of them.
+  ///
+  /// The vocabulary is v2's (`status_box`, `bin/intent_todo:63`) on the four
+  /// states v2 had, and the two v3 added take the remaining ground:
+  /// `Triage` claims the `?` that was v2's fallthrough for a status it could
+  /// not read, which is what triage now NAMES, and `Hold` takes `!`.
+  ///
+  /// **Exhaustive, with no wildcard arm, deliberately.** A `_ => '?'` would
+  /// make this total by making it silent, and the next variant added would
+  /// render as undecided instead of failing to compile. Six states, six
+  /// glyphs; a seventh must be decided here.
+  ///
+  /// [`display`]: ThreadStatus::display
+  pub fn glyph(self) -> char {
+    match self {
+      Self::Triage => '?',
+      Self::NotStarted => ' ',
+      Self::Wip => '-',
+      Self::Hold => '!',
+      Self::Completed => 'x',
+      Self::Cancelled => '~',
+    }
+  }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
@@ -583,6 +616,19 @@ impl WpStatus {
       Self::NotStarted => "Not Started",
       Self::Wip => "WIP",
       Self::Done => "Done",
+    }
+  }
+
+  /// The checkbox glyph, same one-home rule as [`ThreadStatus::glyph`] and the
+  /// same defect: the flat view emitted a constant for work packages too.
+  ///
+  /// v2 folded a work package's `Done` into `Completed` before asking for a
+  /// glyph, so `x` is v2's answer as well as this one.
+  pub fn glyph(self) -> char {
+    match self {
+      Self::NotStarted => ' ',
+      Self::Wip => '-',
+      Self::Done => 'x',
     }
   }
 }
