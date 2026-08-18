@@ -147,6 +147,10 @@ This is a per-file, in-process check costing one render and one comparison. **It
 
 Four nodes and, until `1ff7f2c1`, a test suite all write this estate. `organize` takes an exclusive lock for the run, and **re-checks the digest of anything it is about to delete immediately before deleting it** -- not over a window, at the moment of the act. A repo with live writers has no demonstrably quiet interval, so the check has to be instantaneous or it is unsatisfiable.
 
+**And the lock is against ANY process, not other `organize` runs (ic, measured 2026-08-18).** `info`, `st list`, `doctor` and `export` all **materialise the store on access** -- a fresh clone's first read verb builds it, 4 MB, from canon. That is disk-optional arriving early and it is correct behaviour, but it means **a peer typing `intent st list` opens the same file `organize` is reconciling against.** So "the estate was quiet when I measured it" is not establishable over any window at all, and the moment-of-act digest stops being the careful option and becomes the only defence that survives a concurrent READ.
+
+One consequence worth carrying rather than fixing: **the store is created at the BINARY's schema.** A read in a project with no store leaves one at the current rung, and an older binary then refuses -- which is exactly `target/release/intent` speaking 6 against a store at 8, met live this morning. The remedy is _build fresh before you measure_, not _stop things touching the estate_.
+
 ### 5.4 Output carries a denominator
 
 ```
