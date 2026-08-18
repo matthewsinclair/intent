@@ -1117,6 +1117,14 @@
       "state": {
         "is": "computed"
       }
+    },
+    {
+      "id": "AC-03.15",
+      "text": "**A VERB THAT WOULD REDUCE A POPULATION TO ZERO MUST REFUSE OR NAME IT; SUCCEEDING AT rc=0 IS NOT AVAILABLE.** (ic 2026-08-18, from vc's live instance.) `sync --to-disk` wrote empty views over a non-empty estate at rc=0: `steel_threads.md` 57 rows -> 0, `todo.md` 82 -> 0. **NOTHING WAS REFUSED AND NOTHING MALFUNCTIONED IN THE EGEST** -- the store legitimately held zero threads, because a shared `target/release/` binary built from a reverted WP-01 tree had ingested zero and `sync --to-store` had reported success over it. The egest wrote exactly what it was given, correctly, by its own lights. **THIS IS NOT AC-03.13**, which requires an ingest to have been REFUSED; here nothing was refused, which is precisely why that row does not reach this and why the two are separate criteria rather than one. **The property is that a write which would empty a non-empty face must refuse or say so in its output.** **ic's own note is why this row is worth more than most tonight: it is the only finding of the evening whose positive control actually works** -- 57 and 82 are non-zero, observable before the verb runs, and cannot be confused with a correct answer, unlike a zero that is indistinguishable from a legitimately empty population. **Same class one verb upstream**: `sync --to-store` printing _the store and the extract agree_ over `0 == 0` is an instrument reporting success over an empty population, and this row is what that class looks like when the downstream verb is destructive.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "tests": [
@@ -2242,6 +2250,16 @@
       ],
       "status": "to-write",
       "note": "intended home; red-first at the verb boundary over the file estate, not through WriteSet"
+    },
+    {
+      "id": "AT-03.16",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/egest_refuses_to_empty_the_estate.rs",
+      "covers": [
+        "AC-03.15"
+      ],
+      "status": "to-write",
+      "note": "red-first needs no broken binary: empty the store, then --to-disk against a 57-thread canon, and assert refusal or a named report. Do NOT drive it with output suppressed -- the original loss was silent only because vc piped the write verb to /dev/null."
     }
   ],
   "attachments": [
