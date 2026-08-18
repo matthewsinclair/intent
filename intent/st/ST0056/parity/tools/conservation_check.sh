@@ -81,6 +81,24 @@
 # order and path order coincide. Only a fixture that wrote them in a different
 # order could ever have caught it.
 #
+# A DUPLICATE `## ` HEADING IS NOT REPRESENTABLE BY A HEADING-KEYED MODEL, AND
+# THAT IS A LIMIT OF THE MODEL RATHER THAN A BUG IN EITHER END (surfaced by ic's
+# `ALTERED 2`, 2026-08-18; class measured here rather than left as one instance).
+# `section_text` cuts a section out by NAME, so two sections sharing a heading in
+# one file cannot both be addressed -- **in this census AND in cc's ingest, which
+# is why it is worth stating once for both.**
+#
+# ENUMERATED, so it is a bounded class and not a worry: **2 files of 526.**
+#
+#   intent/issues/CLOSED/0059/...-parity-check-instruments-have-no.md   `## Related`     x2 (lines 84, 160)
+#   intent/st/ST0026/impl.md                                            `## Test Status` x2
+#
+# ic's run surfaced the FIRST as two census rows with different hashes against
+# one canon copy. **Whether the second is reported or silently collapsed is NOT
+# established** -- `impl.md` routes through a different arm -- and an unchecked
+# second member is exactly how a class gets mistaken for an incident. One check
+# closes it; it is not closed here.
+#
 # IT REFUSES RATHER THAN PASSES WHEN IT CANNOT SEE ITS SUBJECT. A migrated root
 # with no `st/` canon exits 2, and so does an empty census. Both would otherwise
 # produce a green over an empty comparison, which is the wrong-zero this whole
