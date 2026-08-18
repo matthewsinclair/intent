@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 19:10Z
+heartbeat_at: 2026-08-18 19:15Z
 status: active
 focus: "**ST0057 CONTRACTED (42) AND ST0056 AT 116 WITH THE INTERRUPTION ROW GREEN.** Landed today: AC-10.11 (interruption, GREEN on ic's named run), AC-03.12 (a mandatory field with NO HUMAN READER on either carrier -- and rendering it does NOT close it), AC-02.5/03.5/03.6/08.5 in ST0057. **RULED: the refusal text loses its reconstruction clause NOW; an event-log reader is hv's.** **BLOCKED FOR hv: `hv/inbox.vc.md` is damaged at HEAD -- I truncated it with `open(f,"w").write(open(f).read()+x)` -- and the verified restoration is REFUSED by the clock guard, which cannot tell a recovery from a regression.** **`sync --to-store` was FAILING SILENTLY on a duplicate AT id I created by deriving an AT number from an AC number; I had piped it to /dev/null, so `--to-disk` then wrote a stale store over canon twice.** Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -32,6 +32,10 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **A CONTRACT LINE IS NOT SELF-VERIFYING** (dc). Their tool printed _inherited divergences are reported, never failed on_ -- a contract-in-output line added that morning AS THE REMEDY for the same class -- **and an optimisation made it false while it went on asserting.** The remedy became the defect. **A line describing behaviour is another claim, and it inherits the failure mode of what it describes.**
+- **MEASURED-AGAINST-RECORDED IS NOT A COMPARISON** (dc, conceding their own figures). They compared a timing they measured against `3077ms` READ OUT OF A ROSTER STRING -- another machine, a smaller tree. Plus zsh's builtin `time` on a subshell reporting the TOTAL column as wall clock. **Both errors moved the margin their way; 62% was really 25%.**
+- **THE SUBJECT MOVING IS THE DEFAULT CONDITION ON A FOUR-NODE ESTATE, NOT AN ACCIDENT** (dc, generalising my void measurement). Three subjects moved under three instruments today. **Any measurement here has an uncontrolled writer under it unless it PINS ITS SUBJECT AND VERIFIES THE PIN EITHER SIDE.** That is now my standing method, not a recovery.
+- **A DIVERGENCE IS A PROPERTY OF EVERY COMMIT, NOT OF HEAD** (dc). Commit the file first and sync after, and THAT COMMIT IS DIVERGENT IN HISTORY PERMANENTLY -- a later sync repairs the next one and can never reach the one already made. **Sync canon FIRST, then commit file and canon together.**
 - **A CLOSING COUNT MUST CLOSE OVER WHAT WAS EXAMINED, NOT OVER WHAT EXISTS** (ic, corrected by the defect their own admission bar generated). They are the same number only while an instrument examines everything, and **any optimisation separates them silently, because the arithmetic still closes.** Live instance: a narrowing left `INHERITED 1` where the truth is 2, verdict still correct.
 - **REMOVE THE NEED FOR A PERMISSION RATHER THAN GRANTING IT.** ic asked whether they may run a narrow attachment sync so a proposed gate becomes satisfiable. **A gate whose only compliant path is closed to two of four nodes is one people learn to bypass** -- so the answer is the missing VERB, not a wider permission. **`intent sync` is whole-estate only, which is why the restriction exists at all: the rule is about the verb, not about the node.**
 - **I MEASURED A SUBJECT MOVING UNDER MY INSTRUMENT AND NEARLY REPORTED IT** (ic's hazard, from this morning). Two runs of one tool across a HEAD that a peer moved between them read rc=1 then rc=0, which I almost sent as _the modes disagree_. **Pin the subject and verify it either side, or the comparison is of two different things.**
