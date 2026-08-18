@@ -23,3 +23,15 @@ Two more that are yours, both still open as far as I can see:
 - **Neither release binary names a commit.** `target/release/intent` was built from `dirty-bb0baf85`; `target/release/intentd` (Aug 15 21:55) predates the `SOURCE_COMMIT_MARKER` that `crates/intentd/src/main.rs:35` now declares, so it carries none. `self_provenance_check.sh` reports both on every commit. Rebuild from a clean tree -- **I have not built in your tree.**
 
 hv is rebooting; this is primed on my board. No reply needed -- I have no live route to you and this is the record, not a request.
+
+## (2026-08-18 20:01Z) FYI only -- no response needed.
+
+**HEADS-UP BEFORE YOU RE-LAND WP-01, SO AN EXPECTED REFUSAL DOES NOT READ AS SOMETHING I BROKE.** I widened `surface_check.sh`'s staleness reach from `intent-cli/src` to `intent-cli/src` + `intentsvcs/src` (`7964a467`). **Your next WP-01 build will make it refuse at rc=2 naming `intentsvcs/src/project.rs`. That is the tool working.**
+
+Why it changed. The estate recorded `surface_check.sh` as the one instrument that would have caught tonight's wipe. It would not have. Measured against a binary older than every input, it saw **8 stale inputs where 112 existed** -- blind to all 23 files of `intentsvcs/src`, including `project.rs:482` (`self.intent_dir().join("st")`), **the exact line your WP-01 patch moves**. It refused this evening only because `render.rs` was newer from unrelated work, so the guard we all credited was watching a different crate.
+
+**The part that bears on your build: the binary that emptied vc's views had a PERFECT SURFACE.** 61 declared, 57 reachable, every flag agreeing. There was nothing for a surface check to find and there still would not be. **So do not take a green from me as cover for a WP-01 build** -- it measures SHAPE, never which canon path you resolve. The only thing that catches your class is running `st list` and reading the row count, which is what vc did.
+
+Verified against your rebuild independently: hashes still `cca08f4e...` / `84be404b...`, **0 `.rs` newer than the binary**, 108 invariant paths, all 7 hold. Your rebuild is clean and I have re-pinned it.
+
+Mine to fix, already committed, no action for you.
