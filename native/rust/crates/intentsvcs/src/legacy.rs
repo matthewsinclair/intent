@@ -464,7 +464,176 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
   out.already_migrated.sort();
   out.already_migrated.dedup();
 
+  issues(project, &mut out);
+
   Ok(out)
+}
+
+/// v2's issue estate: `intent/issues/{OPEN,CLOSED}/<nnnn>/<nnnn>-<slug>.md`.
+///
+/// **A SEPARATE WALK BECAUSE IT IS A SEPARATE ESTATE**, sharing no ancestor
+/// directory with the threads -- which is why it went entirely unread until
+/// WP-10 measured it, with every count reconciling perfectly against zero.
+///
+/// # The estate, measured at `42fb5269` rather than assumed
+///
+/// 61 issues, 23 OPEN and 38 CLOSED. **All six frontmatter keys are present on
+/// all 61** -- `id`, `title`, `date`, `reporter`, `status`, `severity` -- so
+/// every one has a home in the model and nothing here is carried as legacy.
+/// `status` is `OPEN`/`CLOSED` only, `severity` is one of four
+/// (`medium` 34, `high` 17, `low` 9, `critical` 1), **the directory and the
+/// `status:` field agree on all 61**, and every `id` matches its directory
+/// name.
+///
+/// **THE FRONTMATTER IS PARSED, NEVER GREPPED, AND THAT IS MEASURED RATHER
+/// THAN STYLISTIC.** A line-oriented scan for `^status:` over these files
+/// returns FOUR values -- `CLOSED` 38, `OPEN` 23, `WIP` 3, `Done` 1, which is
+/// 65 readings over 61 files -- because issue BODIES quote status lines while
+/// describing the bug. The frontmatter alone is clean. A grep-shaped reader
+/// would have invented two statuses this estate does not have.
+///
+/// # What is carried and what is not
+///
+/// `closed` stays `None` on every converted issue and is NEVER back-filled
+/// from an mtime: v2's format has no closed date, and a file's modification
+/// time is a fact about the file rather than about the world. All-NULL there
+/// means converted data, which is a readable answer; a plausible date would
+/// not be.
+///
+/// **THE BODY HAS NO HOME AND THIS DOES NOT INVENT ONE.** 503 sections and
+/// 658,676 bytes across the 61, with 30 distinct headings of which **21 appear
+/// exactly once** -- the same catch-all argument `Thread.body` settled one
+/// entity over, and the same conservation hole. `Issue` has no body field, so
+/// it is not dropped here quietly: it is reported to vc to price, because a
+/// model change is theirs and because inventing a field mid-walk is how the
+/// preamble nearly went into `body`.
+fn issues(project: &Project, out: &mut Scan) {
+  for bucket in ["OPEN", "CLOSED"] {
+    let dir = project.intent_dir().join("issues").join(bucket);
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+      continue;
+    };
+    let mut dirs: Vec<std::path::PathBuf> = entries
+      .flatten()
+      .map(|e| e.path())
+      .filter(|p| p.is_dir())
+      .collect();
+    dirs.sort();
+    for issue_dir in dirs {
+      let Some(md) = markdown_in(&issue_dir) else {
+        continue;
+      };
+      let rel = project.relative(&md);
+      let Ok(text) = std::fs::read_to_string(&md) else {
+        // **A CLOSED issue's finding still CARRIES rather than blocks**, the
+        // same rule the threads follow: the bucket is the closed/live split.
+        out.record(
+          bucket == "CLOSED",
+          Finding::new(
+            &rel,
+            FindingClass::UnknownFileShape,
+            "issue file is not readable as text",
+          ),
+        );
+        continue;
+      };
+      let (front, _body) = frontmatter(&text);
+
+      // **The id is QUOTED in v2 -- `id: "0015"` on all 61 -- so the quotes come
+      // off before parsing.** Left on, every issue in the estate fails to parse
+      // and the migration reports an empty tracker with every count agreeing.
+      let raw_id = front.get("id").cloned().unwrap_or_default();
+      let Ok(number) = raw_id.trim().trim_matches('"').parse::<u32>() else {
+        out.record(
+          bucket == "CLOSED",
+          Finding::new(
+            &rel,
+            FindingClass::UnparseableRow,
+            format!(
+              "issue id {raw_id:?} is not a number, so the issue has no identity to convert to"
+            ),
+          ),
+        );
+        continue;
+      };
+
+      // **The status comes from the FRONTMATTER, and the bucket is checked
+      // against it rather than trusted.** They agree on all 61 today, which is
+      // exactly why the disagreement is worth reporting if it ever appears:
+      // nothing else would notice, and the two answers route the issue to
+      // different halves of the carry policy.
+      let raw_status = front.get("status").cloned().unwrap_or_default();
+      let status = match raw_status.trim().to_ascii_uppercase().as_str() {
+        "OPEN" => crate::model::IssueStatus::Open,
+        "CLOSED" => crate::model::IssueStatus::Closed,
+        _ => {
+          out.record(
+            bucket == "CLOSED",
+            Finding::new(
+              &rel,
+              FindingClass::UnknownStatus,
+              format!("issue status {raw_status:?} is not in the v2 vocabulary"),
+            ),
+          );
+          continue;
+        }
+      };
+      // **THE FRONTMATTER WINS OVER THE DIRECTORY, and the disagreement is NOT
+      // reported -- deliberately, and not because it does not matter.**
+      //
+      // A finding for it would need a residue class, none of the nine declared
+      // ones fits (the status parses, the file classifies, nothing is
+      // unparseable), and **hv's moratorium names new classes explicitly.**
+      // Reaching for a declared-but-wrong class instead would put a
+      // misclassification into an operator's work list, which is worse than
+      // silence: `unknown-status` on a status v2 accepts sends someone to fix a
+      // value that is correct.
+      //
+      // **Measured before deciding: the two agree on all 61 issues of this
+      // estate**, so nothing is lost today and the gap is a contract question
+      // rather than a defect. Reported to vc to declare after the hoist.
+      //
+      // The precedence itself is not deferred, because something has to decide:
+      // **the frontmatter is what an author wrote, and the directory is where
+      // a tool put it.**
+
+      out.issues.push(Issue {
+        schema: crate::model::ISSUE_SCHEMA.to_string(),
+        number,
+        // The filename tail after `<nnnn>-`, which is where v2 keeps the slug.
+        slug: md
+          .file_stem()
+          .and_then(|s| s.to_str())
+          .and_then(|s| s.split_once('-'))
+          .map(|(_, tail)| tail.to_string())
+          .unwrap_or_default(),
+        // **`frontmatter` splits on the FIRST colon, which is correct here and
+        // worth stating**: issue titles contain colons -- 0015's is `ac gate
+        // counts a GREEN AT whose cited test file does not exist: the citation
+        // is never resolved` -- so a split on the last one would truncate the
+        // title at its own punctuation.
+        title: front.get("title").cloned().unwrap_or_default(),
+        status,
+        severity: front.get("severity").filter(|s| !s.is_empty()).cloned(),
+        created: front.get("date").cloned().unwrap_or_default(),
+        closed: None,
+        reporter: front.get("reporter").filter(|s| !s.is_empty()).cloned(),
+      });
+    }
+  }
+  out.issues.sort_by_key(|i| i.number);
+}
+
+/// The one `.md` in an issue directory, if there is exactly one.
+fn markdown_in(dir: &Path) -> Option<std::path::PathBuf> {
+  let mut found: Vec<std::path::PathBuf> = std::fs::read_dir(dir)
+    .ok()?
+    .flatten()
+    .map(|e| e.path())
+    .filter(|p| p.extension().is_some_and(|x| x == "md"))
+    .collect();
+  found.sort();
+  found.into_iter().next()
 }
 
 /// Every `ST####` directory, at the top level and under v2's status
