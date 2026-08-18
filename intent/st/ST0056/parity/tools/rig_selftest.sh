@@ -35,6 +35,29 @@
 # estate is the smallest member in the corpus. Five cases in about a minute.
 set -uo pipefail
 
+# WHAT THIS DOES **NOT** DRIVE, LISTED BECAUSE 17 OF 17 READS AS COVERAGE AND IS
+# NOT. The rig has 24 refusal sites; these are the ones nothing here reaches, and
+# a green below says nothing about any of them:
+#
+#   REACHABLE, JUST NOT WRITTEN YET
+#     the workdir-inside-this-repository guard -- the ledger owns the workdir
+#     path, so driving it means handing the rig one inside the checkout. It is
+#     the guard that stops the rig migrating the live repository with four
+#     sessions working in it, and it is the most consequential undriven one.
+#
+#   NEEDS A NON-OVERRIDE RUN, SO A CLONE AND A BUILD
+#     `cannot resolve --rev`, the clone failures, the dirty-clone assertion,
+#     the cargo build failure, the per-tree config-marker assertion.
+#
+#   STRUCTURALLY OUT OF REACH OF A STUB
+#     the mtime-ordering failures (709, 711); the 120s poll timeout, which is
+#     reachable but costs 120s a run; the kill-already-finished race (825) and
+#     the not-137 exit (828), both of which need a race won on purpose.
+#
+# SCOPE GOES IN A DENOMINATOR, NEVER IN AN ADJECTIVE. 17 of 24, and the seven are
+# named above rather than left for a reader to discover by not finding them.
+
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RIG="$HERE/interrupt_rig.sh"
 STUB="$HERE/rig_stub_migrator.sh"
@@ -77,22 +100,28 @@ echo
 # with a syntax-error budget, which is exactly how both of this morning's defects
 # lived through four fleet estate runs.
 CASES='
-pass|pass|||0|GATE ARM PASSED|the rig can report green when the property holds -- the control, without which every red below is a fixture that only knows one answer
-diverge|diverge|||1|GATE ARM FAILED|the verdict is coupled to the bytes: a migrator stamping a per-run nonce cannot make the two arms agree
-nosentinel|nosentinel|||2|interrupted NOTHING|the vacuous-kill refusal fires when the run ends without reaching the sentinel -- THE PATH b96188d1 BROKE
-nowrite|nowrite|||2|added no files|a migrator that writes nothing leaves nowhere to place a kill, and that is a refusal rather than a pass
-escape|escape|||2|KILL DID NOT STOP THE MIGRATION|the settle assertion is coupled: a writer that escapes the process group is caught by measuring the tree, not the exit status
-liveness|pass||dead|2|does not answer|the liveness arm refuses an estate no verb can open -- this rig once returned exit 0 over 1371 identical files that every command but `info` rejected
-store_same|pass|same||0|STORE: IDENTICAL|the store arm actually compares, and prints the event count beside the verdict so a trivially-equal zero is visible in the run
-store_differ|pass|differ||1|STORE: DIFFERENT|a store the re-run did not reproduce is a failure of the property even with the files identical -- D01 as reversed
-store_live|pass|live||2|THE EVENT LOG IS LIVE|the arm refuses rather than byte-comparing minted ULIDs and DDL-defaulted timestamps, which differ BY CONSTRUCTION for a correct migrator
-store_nokey|pass|nokey||2|did not read as an array|absence must not be spelled the same way as emptiness: `jq .events | length` gives 0 for a MISSING key, so the arm asks for the type first
-store_dead_b|pass|dead_b||1|exactly one arm answers|one usable project and one dead one is the end states DISAGREEING at exit 1, not an inability to measure at exit 2
+pass|pass|||||0|GATE ARM PASSED|the rig can report green when the property holds -- the control, without which every red below is a fixture that only knows one answer
+diverge|diverge|||||1|GATE ARM FAILED|the verdict is coupled to the bytes: a migrator stamping a per-run nonce cannot make the two arms agree
+nosentinel|nosentinel|||||2|interrupted NOTHING|the vacuous-kill refusal fires when the run ends without reaching the sentinel -- THE PATH b96188d1 BROKE
+nowrite|nowrite|||||2|added no files|a migrator that writes nothing leaves nowhere to place a kill, and that is a refusal rather than a pass
+escape|escape|||||2|KILL DID NOT STOP THE MIGRATION|the settle assertion is coupled: a writer that escapes the process group is caught by measuring the tree, not the exit status
+liveness|pass||dead|||2|does not answer|the liveness arm refuses an estate no verb can open -- this rig once returned exit 0 over 1371 identical files that every command but `info` rejected
+store_same|pass|same||||0|STORE: IDENTICAL|the store arm actually compares, and prints the event count beside the verdict so a trivially-equal zero is visible in the run
+store_differ|pass|differ||||1|STORE: DIFFERENT|a store the re-run did not reproduce is a failure of the property even with the files identical -- D01 as reversed
+store_live|pass|live||||2|THE EVENT LOG IS LIVE|the arm refuses rather than byte-comparing minted ULIDs and DDL-defaulted timestamps, which differ BY CONSTRUCTION for a correct migrator
+store_nokey|pass|nokey||||2|did not read as an array|absence must not be spelled the same way as emptiness: `jq .events | length` gives 0 for a MISSING key, so the arm asks for the type first
+store_dead_b|pass|dead_b||||1|exactly one arm answers|one usable project and one dead one is the end states DISAGREEING at exit 1, not an inability to measure at exit 2
+unwired|unwired|||||2|NOT WIRED|the unwired-door refusal: a verb advertised in --help that returns `not implemented yet` writes nothing, and a whole-tree diff would call two untouched trees IDENTICAL
+cleanfail|cleanfail|||||2|not a baseline|a clean run that fails leaves nothing to compare against, and that is an inability to measure rather than a property failing
+rerunfail|rerunfail|||||1|FINDING|THE GATE ARM THE WHOLE THING EXISTS FOR: a re-run that will not complete over an interrupted estate is the failure hv gated the cutover on, and it is exit 1 rather than a refusal
+bad_fraction|pass||||--fraction 100|2|must be between 1 and 99|argument validation refuses before any estate is captured -- 100 is not an interruption and 0 writes nothing
+rev_with_override|pass||||--rev no-such-ref-here|2|will not choose between them|TWO SUBJECTS AT ONCE. This case was written to drive the `cannot resolve --rev` refusal, scored OFF PREDICTION at exit 0, and the miss WAS the finding: under an override no revision is resolved, so the flag was accepted and silently discarded. The rig now refuses. **The `cannot resolve` path itself remains UNDRIVEN** -- reaching it needs a non-override run, which needs a clone and a build
+bad_member|pass||||--member no-such-member|2|could not capture|an estate the corpus cannot produce is a refusal, not an empty tree that would compare equal to itself
 '
 
 PASSES=0; FAILS=0; LEDGER=""
 
-while IFS='|' read -r name mode store_mode read_mode want_exit want_phrase claim; do
+while IFS='|' read -r name mode store_mode read_mode _spare extra_args want_exit want_phrase claim; do
   [ -n "$name" ] || continue
   [ -z "$ONLY" ] || [ "$ONLY" = "$name" ] || continue
 
@@ -114,7 +143,7 @@ while IFS='|' read -r name mode store_mode read_mode want_exit want_phrase claim
   STUB_MODE="$mode" STUB_STORE_MODE="${store_mode:-same}" STUB_READ_MODE="${read_mode:-ok}" \
     STUB_N=40 STUB_DELAY=0.02 \
     MIGRATE_CMD="$STUB" STORE_CMD="$store_cmd" READ_CMD="$read_cmd" \
-    "$RIG" --member "$MEMBER" "$wd" >"$wd/run.log" 2>&1
+    "$RIG" --member "$MEMBER" $extra_args "$wd" >"$wd/run.log" 2>&1
   got_exit=$?
 
   got_phrase=no

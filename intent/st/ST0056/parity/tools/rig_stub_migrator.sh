@@ -83,6 +83,22 @@ fi
 
 [ "$MODE" = "nowrite" ] && { echo "stub: mode=nowrite, wrote nothing, exiting 0"; exit 0; }
 
+# THE UNWIRED DOOR, in the migrator's own words. The rig names this failure
+# specifically because it is the one it will actually meet, and `intent upgrade`
+# really did print this at exit 2 while being advertised in `--help`.
+[ "$MODE" = "unwired" ] && { echo "stub: not implemented yet" >&2; exit 2; }
+
+# A CLEAN RUN THAT FAILS IS NOT A BASELINE. Nothing downstream is measurable.
+[ "$MODE" = "cleanfail" ] && { echo "stub: the migration refused" >&2; exit 6; }
+
+# THE RE-RUN FAILS AND THE FIRST RUN DOES NOT -- the gate's actual purpose,
+# reached only in `b-interrupted` and only once the killed run has left files
+# behind, which is how this tells a re-run from a first run without a counter.
+if [ "$MODE" = "rerunfail" ] && [ "$ARM_NOW" = "b-interrupted" ] && [ -n "$(ls -A "$OUT" 2>/dev/null)" ]; then
+  echo "stub: this estate was interrupted and I will not resume it" >&2
+  exit 7
+fi
+
 mkdir -p "$OUT" || { echo "stub: cannot create $OUT" >&2; exit 1; }
 
 # The nonce is what makes `diverge` diverge. It is per-PROCESS, so the clean arm,

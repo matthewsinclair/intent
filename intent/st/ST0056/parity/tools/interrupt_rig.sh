@@ -158,6 +158,10 @@ KEEP=0
 # them); an empty value here means "follow the subject".
 REV="HEAD"
 INSTR_REV=""
+# Tracked separately from the values, because the DEFAULT is indistinguishable
+# from an explicit `--rev HEAD` and only the explicit one is a contradiction.
+REV_GIVEN=0
+INSTR_GIVEN=0
 # Fraction of the clean run's file delta at which the kill fires. Late on
 # purpose: the accretion this gate exists to catch lives in the generated views,
 # which are written after the canon, so a kill in the first third would leave
@@ -167,8 +171,8 @@ FRACTION=90
 while [ $# -gt 0 ]; do
   case "$1" in
     --member) MEMBER="${2:-}"; shift 2 || die "--member needs a value" ;;
-    --rev) REV="${2:-}"; shift 2 || die "--rev needs a value" ;;
-    --instruments-rev) INSTR_REV="${2:-}"; shift 2 || die "--instruments-rev needs a value" ;;
+    --rev) REV="${2:-}"; REV_GIVEN=1; shift 2 || die "--rev needs a value" ;;
+    --instruments-rev) INSTR_REV="${2:-}"; INSTR_GIVEN=1; shift 2 || die "--instruments-rev needs a value" ;;
     --fraction) FRACTION="${2:-}"; shift 2 || die "--fraction needs a value" ;;
     --keep) KEEP=1; shift ;;
     --help|-h)
@@ -257,6 +261,18 @@ READ_CMD="${READ_CMD:-}"
 STORE_CMD="${STORE_CMD:-}"
 
 if [ -n "$MIGRATE_GIVEN" ]; then
+  # TWO SUBJECTS NAMED AT ONCE IS A CONTRADICTION, NOT A PREFERENCE, and this
+  # refuses rather than picking one. FOUND BY THE LEDGER RATHER THAN BY READING:
+  # `rig_selftest.sh` predicted exit 2 for `--rev no-such-ref-here` and got 0,
+  # because the override path never resolves a revision at all -- so a flag
+  # naming the subject was accepted and silently discarded. A caller who passes
+  # `--rev <sha>` with an override believes they are measuring that commit; the
+  # run's output would say the subject is the override, and nothing would say
+  # their flag had been dropped. **A value that appears to be doing something and
+  # is doing nothing** is the class this whole file has spent a day on.
+  if [ "$REV_GIVEN" -eq 1 ] || [ "$INSTR_GIVEN" -eq 1 ]; then
+    die "--rev / --instruments-rev name a REVISION as the subject, and MIGRATE_CMD names a COMMAND as the subject. Both were given, and this rig will not choose between them: under an override no revision is resolved, cloned or built, so the flag would be silently discarded and the run would read as a statement about that commit. Drop the flag, or drop the override."
+  fi
   say "MIGRATE_CMD OVERRIDE IN FORCE -- the subject is '$MIGRATE_CMD', not a revision."
   say "  This run says NOTHING about any commit of intentsvcs. It exercises this rig."
   # An override has no revision to take instruments from, so they come from the
