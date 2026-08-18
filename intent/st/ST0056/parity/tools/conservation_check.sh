@@ -225,6 +225,44 @@ done
 [ -d "$MIGRATED" ] || die "no such migrated root: $MIGRATED"
 command -v jq >/dev/null 2>&1 || die "jq is required to read the canon"
 
+# ---------------------------------------------------------------------------
+# THE FIGURE THAT GATES A DELETION TRAVELS WITH THE REVISION IT IS A CLAIM ABOUT.
+#
+# STRANDED is the only number gating any deletion in this thread, and it is
+# quoted bare. A bare count has no vocabulary in it, so nothing about the string
+# invites a reader to ask WHICH TREE it describes -- dc's evidence-shaped class,
+# where a token stops the search rather than starting it.
+#
+# THE IDENTITY THAT MUST TRAVEL BESIDE A FIGURE IS THE ONE THE FIGURE IS A CLAIM
+# ABOUT (ic + dc, 2026-08-18). For a paired binary reading that is a content
+# hash. For STRANDED it is the CORPUS REVISION, because the number is a claim
+# about a pinned tree and nothing else. Pinning a binary hash here would be a
+# remedy aimed at the wrong subject: `BINARY` has one use, in the liveness arm,
+# and the stranded count is computed ~700 lines before it is ever invoked.
+#
+# NOT HYPOTHETICAL. `estate_corpus.sh` carried a rule reading "re-pin whenever
+# HEAD moves"; following it after the hoist would have pointed this number at a
+# tree with no v2 source, making STRANDED a claim about nothing. A bare 192
+# cannot be checked for that at all.
+#
+# AND THE UNRECORDED CASE IS SAID OUT LOUD RATHER THAN OMITTED, because a figure
+# that silently drops its qualifier is the truncation half of the same class --
+# the reader's view is not the author's string. A subject with no capture record
+# reports that it has none; it never prints a bare number as though the question
+# had not been asked.
+subject_revision() {
+  local marker="${MIGRATED%/}.CAPTURE" rev="" member=""
+  if [ -f "$marker" ]; then
+    rev="$(sed -n 's/^revision: *//p' "$marker" | head -1)"
+    member="$(sed -n 's/^member: *//p' "$marker" | head -1)"
+  fi
+  if [ -n "$rev" ]; then
+    printf 'over %s @ %s' "${member:-<unnamed member>}" "$rev"
+  else
+    printf 'over a subject with NO CAPTURE RECORD -- revision UNKNOWN, so this figure names no tree'
+  fi
+}
+
 n_census="$(awk -F'\t' '$1 == "FILE"' "$CENSUS" | wc -l | tr -d ' ')"
 [ "$n_census" -gt 0 ] ||
   die "census names no files -- an empty denominator passes every migration ever written"
@@ -962,7 +1000,7 @@ echo "conservation: $n_census estate file(s) -- converted $a_conv, relocated $a_
 # ARE OPPOSITE. Merged, they read as one large expected-noise number and the half
 # that is real loss hides inside the half that is fine. STRANDED is the one that
 # has to reach zero.
-echo "conservation: v2 status buckets -- DOUBLED $c_doubled (superseded originals, content reached canon), STRANDED $c_stranded (THE ONLY COPY, reachable from nothing)"
+echo "conservation: v2 status buckets -- DOUBLED $c_doubled (superseded originals, content reached canon), STRANDED $c_stranded (THE ONLY COPY, reachable from nothing) $(subject_revision)"
 # ALTERED is printed EXPLICITLY, including when it is zero, because against the
 # real migrator the healthy reading is `conserved 0`. `sections()` trims every
 # body, so nothing survives byte-identical and everything content-preserving lands
