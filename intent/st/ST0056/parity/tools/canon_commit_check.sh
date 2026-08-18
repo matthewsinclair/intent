@@ -242,9 +242,11 @@ echo "canon-commit: $REV -- $total recorded attachment(s), across $((nthreads - 
 
 if [ "$total" -eq 0 ]; then
   echo "canon-commit: CANNOT MEASURE -- every thread at $REV records zero attachments, so nothing was compared." >&2
-  echo "    This is NOT a pass. Measured over the commits from 0ec2ac79 (canon's first) to dec6b1b9:" >&2
-  echo "    86 of 132 recorded no attachments. That figure names THAT range and no other -- the range" >&2
-  echo "    grows, and 'in this history' would have read as all 2184 commits, which it never meant." >&2
+  echo "    This is NOT a pass. THE FIGURE BELOW IS RECORDED, NOT COMPUTED BY THIS RUN (dc, 2026-08-18)," >&2
+  echo "    and saying so matters because the branch printing it has just reported that it measured nothing:" >&2
+  echo "    over the 132 commits from 0ec2ac79 (canon's first) to dec6b1b9, 86 recorded no attachments." >&2
+  echo "    It names THAT range and no other, this run did not recount it, the range grows, and" >&2
+  echo "    'in this history' would have read as all 2184 commits, which it never meant." >&2
   exit 2
 fi
 
