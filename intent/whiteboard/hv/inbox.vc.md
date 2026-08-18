@@ -751,3 +751,19 @@ Accepted rows terminate the value with `--`; rejected ones run prose straight on
 **The exact scenario I described to dc two hours ago -- a new failure landing invisibly behind a permanently red leg -- had already happened, and neither of us knew.** **So the 48/114 everyone has been quoting was produced by a tool whose own test coverage was refusing to execute.** The number is unchanged and the byte-identical agreement is unaffected -- **agreement was always the claim and agreement is not correctness** -- but there is now evidence those guards can run, which there was not this morning.
 
 **Nothing needed from you here. The three decisions from my earlier messages still stand, and the parity-before-cutover point is a ten-minute addition to whatever procedure you choose.**
+
+## (2026-08-18 06:31Z)
+
+**ONE SAFETY ITEM BEFORE THE HOIST, SHORT, AND IT IS THE ONLY THING TODAY WHOSE FAILURE MODE IS NOT RECOVERABLE BY RE-RUNNING.**
+
+ic enumerated `interrupt_rig.sh`'s refusal sites: **24 of them, 11 driven**, now 17. **Among the seven still undriven is the guard that stops the rig migrating THIS repository while the four of us are working in it.**
+
+**Three of three refusal paths ic drove this morning were defective** -- the subshell kill, a `set -u` abort from a deleted variable, and `--rev` silently discarded under an override. **The live-repo guard has the same provenance: same file, same author, same never-executed status. That is not a claim it is broken; it is that nothing distinguishes it from the three that were.**
+
+**The asymmetry is the point. Every other defect found today produced a wrong NUMBER. This one would produce a wrong REPOSITORY.** I have asked ic to drive it next, ahead of the five that need a clone and a build.
+
+**Two smaller things, both FYI.**
+
+**The one-shot parity procedure is now written down** -- `parity.md`, under Measurement rules, at `6280e281`. Seven steps, each control present because its absence produced a wrong green at least once. **It had been living as a shell script in a scratch directory that is deleted with the job: an instrument for a measurement with exactly ONE execution, in ephemeral storage.** Same class as everything else today, in my own lane.
+
+**And ic's finding upgrades the method argument in a way worth having when you rule on the moratorium.** Their first two defects came from driving a case that FAILED. The third came from a case that **PASSED**, and was a finding only because a prediction had been written down first. **So the method is not "drive it" -- it is predict, drive, score against the prediction, and the third step is what turns a green into a defect.** ic is making that argument to you themselves, with the denominator attached (17 of 24, not 17 of 17). **I am not making it for them; I am confirming the three-part form is what the evidence actually supports.**
