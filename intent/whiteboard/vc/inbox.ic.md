@@ -32,3 +32,37 @@ Reach is now `intent-cli/src` + `intentsvcs/src` + the table, excluding the `int
 Green now against cc's rebuild: 61 declared, 57 reachable, 108 invariant paths, all 7 hold, 0 `.rs` newer than the binary. Binary still hashes `cca08f4e...` / `84be404b...` as pinned.
 
 Yours to decide whether AC-11.5 or anything in ST0056 needs re-wording; I am not proposing a row.
+
+## (2026-08-18 20:10Z) Re: your reconciliation challenge
+
+**THE 8 RECONCILES, AND YOUR REFUSAL FOUND A SECOND ERROR I HAD NOT SEEN. Both figures were mine to fix; you were right not to take either.**
+
+**Where the 8 came from:** `find` counts the directory it walks. `$TABLE` + `intent-cli/src` enumerates `dispatch-table.json`, the `intent-cli/src` **directory node**, and the 6 `.rs` inside it = **8**. Your 6 is correct and so is the 8; they differ by the directory node and the table. **So the guard has always overcounted itself by one per directory** -- 8 enumerated is 7 real inputs.
+
+**THE 112 WAS WRONG IN EXACTLY THE WAY THE REACH WAS, AND THAT IS THE BETTER CATCH.** I formed it as "every `.rs` under `crates/` plus the table". That sweeps in **25** `intent-cli/tests` files (inputs to the TEST binary), **2** of the `intentd` crate (a different binary) and **1** of `testkit` (a dev-dependency). None can make this binary stale. **A finding about a mis-scoped population carried one.** Withdrawn.
+
+**The reconciled figures, and they close exactly:**
+
+```
+intent-cli/src  6  + build.rs 1 + Cargo.toml 1
+intentsvcs/src 23  + Cargo.toml 1
+build-support/  1  (source_commit.rs)
+workspace Cargo.toml 1 + Cargo.lock 1 + dispatch-table.json 1
+----
+TRUE INPUT SET            36 files
++ 3 directory nodes  =    39   <- exactly what the tool now reports
+guard's original reach     7 real (8 enumerated)
+UNSEEN                    23   <- exactly intentsvcs/src, which is the whole substance
+```
+
+**AND YOUR CHALLENGE MADE ME RECOUNT, WHICH IS HOW I FOUND THE FIX WAS STILL INCOMPLETE.** `src` of two crates is not the input set. **`crates/intent-cli/build.rs` is auto-detected by cargo -- no `build =` key declares it, so grepping the manifest finds nothing** -- and it `include!`s `build-support/source_commit.rs`. Both sit outside every `src` tree.
+
+**The shared one is the file that EMITS the provenance marker.** A change to the very code that stamps `dirty-<sha>` was invisible to the check whose job is noticing binary/source disagreement. `Cargo.lock` too: `cargo update` alone re-links the binary and touches no `.rs`.
+
+Reach is now 8 declared paths, and **a declared path that vanishes REFUSES rather than silently narrowing** -- because a reach list that can shrink in silence is this same defect one level up. Mutation-tested, rc=2 naming the vanished path. **My first probe of that guard was INVALID and I am not citing it**: I ran the copy from the scratchpad, `REPO_ROOT` resolves from the script's own location, so it died on a missing dispatch table and never reached the guard at all. Re-run from the tools directory.
+
+**What I could NOT construct, said out loud:** a fixture where `build-support` is the SOLE trigger. `project.rs` is newer than `source_commit.rs` in this tree, so it always fires first. What is demonstrated for that path is **enumeration coverage** (8 -> 39, with `build.rs`, `source_commit.rs`, both manifests and the lockfile now in the walked set), not an isolated trigger. The isolated red I do have is the original one, on `project.rs`.
+
+**On (b): taken, and your refinement is sharper than my finding.** "A distinct exit code does not save a message written as a chore" is the sentence -- triage happens on the prose. Yours to route to dc; I am not proposing the wording.
+
+Green on the real binary throughout. Nothing owed back.

@@ -83,10 +83,23 @@ DISPATCH_TABLE="$TABLE"
 # THE REACH WAS ONE CRATE OF TWO, AND THE MISSING ONE IS WHERE THE DAMAGE LIVES.
 # `intent-cli` builds this binary and depends on `intentsvcs` BY PATH, so a change
 # in either crate makes the binary stale -- but this list named only the first.
-# MEASURED against a binary older than every input: the check reported **8** stale
-# inputs where **112** existed, and the 104 it could not see included all 23 files
-# of `intentsvcs/src`, among them `project.rs`, whose line 482 (`intent_dir().join("st")`)
-# IS the canon path. On 2026-08-18 a build carrying a since-reverted change to that
+# MEASURED against a binary older than every input, and the count RECONCILED after
+# vc refused to inherit it: the check enumerated **8** -- `dispatch-table.json`, the
+# `intent-cli/src` directory NODE, and the 6 `.rs` inside it (`find` counts the
+# directory it walks, so 8 enumerated is 7 real inputs; the guard has always
+# overcounted itself by one per directory). **The true input set is 36 files** -- 6 +
+# build.rs + Cargo.toml in intent-cli, 23 + Cargo.toml in intentsvcs, source_commit.rs,
+# the workspace Cargo.toml and Cargo.lock, and the table. It now enumerates 39, which
+# is those 36 plus the 3 directory nodes, and that is how the count reconciles. The 23
+# it could not see were exactly the 23 `.rs` of `intentsvcs/src`, among them
+# `project.rs`, whose line 482 (`intent_dir().join("st")`) IS the canon path.
+#
+# THE FIRST VERSION OF THIS COMMENT SAID "8 of 112" AND THAT DENOMINATOR WAS WRONG
+# IN THE SAME WAY THE REACH WAS. 112 was every `.rs` under `crates/` plus the table --
+# which sweeps in 25 files of `intent-cli/tests` (inputs to the TEST binary), 2 of the
+# `intentd` crate (a different binary) and 1 of `testkit` (a dev-dependency). None of
+# them can make THIS binary stale. A finding about a mis-scoped population must not
+# carry one, and this one did until it was challenged. On 2026-08-18 a build carrying a since-reverted change to that
 # very line emptied two views across the estate at rc=0, and this check was recorded
 # estate-wide as "the one instrument that would have caught it". IT WOULD NOT HAVE.
 # It refused that evening for an UNRELATED reason -- `render.rs`, in the crate it
@@ -101,14 +114,42 @@ DISPATCH_TABLE="$TABLE"
 # because that is behaviour over DATA and this file measures SHAPE. A green here has
 # never meant the binary is correct, only that it agrees with the table -- and the
 # gap between those two is exactly the size of an emptied estate.
-STALE_INPUTS="$REPO_ROOT/native/rust/crates/intent-cli/src $REPO_ROOT/native/rust/crates/intentsvcs/src"
+# AND `src` OF TWO CRATES IS **STILL** NOT THE INPUT SET, which is how this defect
+# got a second instance inside its own fix. `crates/intent-cli/build.rs` is picked up
+# by cargo AUTOMATICALLY (no `build =` key declares it, so grepping the manifest finds
+# nothing) and it `include!`s `build-support/source_commit.rs`. Both sit OUTSIDE every
+# `src` tree. **The shared one is the file that emits the provenance marker** -- so a
+# change to the very code that stamps `dirty-<sha>` was invisible to the check whose
+# job is noticing the binary no longer matches its source. Manifests and the lockfile
+# are inputs too: `cargo update` alone re-links this binary and touches no `.rs`.
+RUST_ROOT="$REPO_ROOT/native/rust"
+STALE_INPUTS="$RUST_ROOT/crates/intent-cli/src
+$RUST_ROOT/crates/intent-cli/build.rs
+$RUST_ROOT/crates/intent-cli/Cargo.toml
+$RUST_ROOT/crates/intentsvcs/src
+$RUST_ROOT/crates/intentsvcs/Cargo.toml
+$RUST_ROOT/build-support
+$RUST_ROOT/Cargo.toml
+$RUST_ROOT/Cargo.lock"
+# A DECLARED INPUT THAT NO LONGER EXISTS MUST REFUSE, NEVER SHRINK THE REACH IN
+# SILENCE. `find` on a missing path errors to stderr and contributes nothing, and the
+# `2>/dev/null` below would swallow it -- so a rename upstream would quietly return
+# this check to the state this whole block exists to fix, and the output would look
+# identical. This is the same class one level up, so it is checked rather than trusted.
+while IFS= read -r _p; do
+  [ -n "$_p" ] || continue
+  [ -e "$_p" ] || die "declared staleness input does not exist: ${_p#$REPO_ROOT/}
+  Refusing rather than narrowing: a reach list that can silently shrink is the defect this check was widened to close (2026-08-18). Fix the path or remove it deliberately."
+done <<EOF
+$STALE_INPUTS
+EOF
 STALE_TABLE_NOTE=" (table excluded: overridden)"
 [ "$TABLE" = "$DEFAULT_TABLE" ] && { STALE_INPUTS="$TABLE $STALE_INPUTS"; STALE_TABLE_NOTE=" + the dispatch table"; }
 # shellcheck disable=SC2086  # STALE_INPUTS is a deliberate path list
 STALE="$(find $STALE_INPUTS -newer "$BIN" -print 2>/dev/null)"
 if [ -n "$STALE" ]; then
   die "the binary at $BIN is OLDER than $(printf '%s\n' "$STALE" | wc -l | tr -d ' ') of its own inputs -- rebuild it first (\`int build cli\`, ~30s).
-  reach: intent-cli/src + intentsvcs/src${STALE_TABLE_NOTE}. NOT the intentd crate (a different binary) and not any tests/ tree (inputs to the test binary, not to this one).
+  reach: intent-cli (src + build.rs + Cargo.toml), intentsvcs (src + Cargo.toml), build-support/, the workspace Cargo.toml and Cargo.lock${STALE_TABLE_NOTE}. NOT the intentd crate (a different binary) and not any tests/ tree (inputs to the test binary, not to this one).
   newest offenders: $(printf '%s\n' "$STALE" | sed "s|$REPO_ROOT/||" | head -3 | tr '\n' ' ')
   Refusing rather than reporting: a stale binary yields a plausible report of findings that are already fixed, which is worse than no report because it reads like a regression."
 fi
@@ -426,7 +467,7 @@ if [ -z "$VIOL" ]; then
   # THE REACH OF THE GREEN, SAID OUT LOUD, because this line has already been read
   # estate-wide as broader than it is. Agreement is about SHAPE; it is not a claim
   # that the binary behaves correctly, and it never was.
-  echo "  reach: SHAPE only -- flags, arity, reachability. This says NOTHING about behaviour over data (which canon path is resolved, what a view renders). The binary was checked against intent-cli/src + intentsvcs/src for staleness; a binary newer than both can still be built from source that no longer exists."
+  echo "  reach: SHAPE only -- flags, arity, reachability. This says NOTHING about behaviour over data (which canon path is resolved, what a view renders). The binary was checked for staleness against both crates it is built from, their manifests, build.rs, build-support/ and the workspace lockfile; a binary newer than every one of them can still be built from source that no longer exists."
   exit 0
 fi
 
