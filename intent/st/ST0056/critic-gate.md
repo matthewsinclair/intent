@@ -2,7 +2,7 @@
 verblock: "18 Aug 2026:v0.1: vc - the pre-commit critic gate: approved, primed, unbuilt"
 ---
 
-# The pre-commit critic gate -- APPROVED BY hv 2026-08-18, PRIMED, NOT YET BUILT
+# The pre-commit critic gate -- HALF A BUILT AND LANDED, HALF B RE-DERIVED UNDER hv's RULING AND NOT YET BUILT
 
 **Status: hv approved BOTH halves and then had to reboot. Nothing is built. This document exists so the work can be picked up cold, by anyone, without reconstructing the argument.**
 
@@ -109,41 +109,77 @@ Tests 1, 3 and 4 are sound and unaffected: the control reproduces `rc=2`, and `s
 
 **Rebuilt and COMMITTED at `intent/st/ST0056/parity/tools/critic_global_rig.sh`**, with the properties the old paragraph claimed and one it lacked: it still does not clone the tool (control and subject are two copies of `bin/intent` pointed at the REAL tree via `INTENT_HOME`, so the only difference is the line under test), it still **aborts if the mutant is byte-identical to the control** -- a change proved against a copy of itself is proved against nothing -- and it now carries `RIG_CANARY=1`, which asks the rig to produce the failures it claims to detect.
 
-## HALF B -- SCOPED (dc, 2026-08-18, driven at HEAD `ce532a97`, worktree dirty: 25 files)
+## HALF B -- RE-DERIVED under hv's ruling (dc, 2026-08-18, adjudicated against shellcheck 0.11.0 and clippy 0.1.97)
 
-**Scoped on hv's approval-in-principle. The headline is that "re-arm the rust and shell packs" is NOT achievable, and the honest outcome is mostly declarations rather than regexes.** Two of the figures this section previously carried were wrong; both are corrected below with the probe that settled them.
+**The original scoping said "re-arm the rust and shell packs" is NOT achievable and the honest outcome is mostly declarations. hv then authorised the runner to use a real parser, which VOIDED THE REASON four of the thirteen were classified inexpressible** -- so the partition was re-derived from scratch rather than carried forward, because nine declarations written on a premise that had gone false is the defect this whole document is about.
 
-### The runner's contract is the binding constraint, and it is narrower than "a regex"
+**The headline is now smaller and better: five rules get a real parser, six are declared unanswerable, and two carry a stated cost.** All three CRITICAL rules across the two packs -- `IN-SH-CODE-001`, `IN-SH-CODE-005`, `IN-RS-CODE-001` -- are silent today; two of them become tool-armed.
 
-`critic_proxy_is_simple` (`intent/plugins/claude/lib/critic_runner.sh:92-120`) accepts exactly one shape:
+**MEASURED STARTING POINT, so the change has a denominator: all 13 shell and rust rules carry NO `Greppable proxy` and NO declaration today.** `critic_runner.sh:18` skips a proxy-less rule silently, so `critic shell` and `critic rust` return rc=0 because nothing was ever asked -- indistinguishable from clean. **That third state, neither armed nor declared, is what Half B exists to eliminate.**
+
+Two of the figures this section previously carried were wrong; both are corrected below with the probe that settled them.
+
+### The runner's contract is an INJECTION BOUNDARY, and reading it as a capability ceiling is what produced this section's worst error
+
+**Read the purpose before the grammar, because the first version of this section did not and the mistake travelled four steps.** `critic_proxy_is_simple` (`intent/plugins/claude/lib/critic_runner.sh:92-120`) refuses shell metacharacters in path arguments -- `|`, `;`, `&`, `<`, `>`, `$`, backtick and `'` -- and the runner's own comment at `:103` says why in as many words: **"preventing pipelines disguised as args."** A `Greppable proxy` block is DATA read out of a rule file, and executing it as shell in the pre-commit gate of every fleet project is the one thing the predicate exists to prevent.
+
+**AN EARLIER VERSION OF THIS DOCUMENT TRANSCRIBED THAT BULLET AND DROPPED THOSE FIVE WORDS.** It kept the constraint -- "path args free of shell metacharacters" -- and lost the reason, so the sections below read the predicate as a CAPABILITY CEILING and said the gate was "architecturally barred" from using a real parser. Occurrences of `injection` or `disguised` in the 228 lines that resulted: **zero**. hv then ruled on that framing. **So the authorisation to let the runner use a real parser was given over a description with the security rationale removed** -- reported upward by vc, re-ruled by hv with the fact present, and the named-tool form below is the ruling that stands.
+
+The accepted shape is unchanged and is not to be relaxed:
 
 ```
 grep [-r|-n|-E|--include=GLOB ...] '<pattern>' [<path>...]
 ```
 
-One `grep`. No pipes, no chains. Flag clusters drawn from `{r,n,E}` only -- **`-L`, `-v`, `-l`, `-c`, `-o`, `-w`, `-x`, `-A`, `-B` are all rejected.** Single-quoted pattern; path args free of shell metacharacters.
+One `grep`. No pipes, no chains. Flag clusters drawn from `{r,n,E}` only -- **`-L`, `-v`, `-l`, `-c`, `-o`, `-w`, `-x`, `-A`, `-B` are all rejected.** Single-quoted pattern; **path args free of shell metacharacters, preventing pipelines disguised as args.**
 
-**Consequence, and it decides four of the thirteen before any judgement is applied: the proxy can only express a POSITIVE match. A rule whose violation is an ABSENCE is inexpressible** -- there is no `grep -L` and no `grep -v`. **And a rule needing to aggregate across files (the same function name defined twice) is inexpressible for the same reason: one grep cannot count.**
+**Consequence for a GREP proxy, which is real and unchanged: it can only express a POSITIVE match.** A rule whose violation is an ABSENCE has no `grep -L` and no `grep -v`; a rule needing to aggregate across files cannot be counted by one grep. **What changed is not that consequence but its FINALITY** -- it is a limit on proxies, never a limit on the gate, and the two were conflated here.
 
-### Per-rule verdicts -- 13 rules, and at most 4 can carry a proxy
+### THE RULING -- a named-tool declaration, and the boundary does not move
 
-| rule                                         | severity       | verdict                   | why                                                                                                                                                                                                                                                                                     |
-| -------------------------------------------- | -------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `IN-SH-CODE-002` no-parse-ls                 | warning        | **ARM**                   | `in $(ls` and `ls \|` are literal token sequences. Narrow, positive, honest. The only clean one.                                                                                                                                                                                        |
-| `IN-SH-CODE-005` no-silent-exit-codes        | critical       | **ARM as NOMINATOR only** | `\|\| true`, `\|\| :`, `2>/dev/null` are literal -- but the rule's own condition is _"without an adjacent comment explaining why"_, and one grep cannot evaluate the adjacent line. **It fires on every documented, correct use.**                                                      |
-| `IN-RS-CODE-001` result-over-panic           | critical       | **ARM at a STATED COST**  | `.unwrap()` / `.expect(` are literal. **But the rule's own suggested grep uses `rg -v '#[cfg(test)]'`, and `-v` is refused.** Rust colocates unit tests in the same file -- `IN-RS-TEST-001` mandates it -- so `--include=` cannot separate them either. Fires on every colocated test. |
-| `IN-RS-CODE-004` thiserror/anyhow            | warning        | **ARM PARTIALLY**         | `Result<..., Box<dyn Error>>` / `Result<..., String>` are greppable and `--include=lib.rs` scopes the library half. The binary half (elaborate enums that only reach `main`) is not expressible.                                                                                        |
-| `IN-SH-CODE-003` set-euo-pipefail            | warning        | **INEXPRESSIBLE**         | the violation is the ABSENCE of a `set -` line. Needs `grep -L`.                                                                                                                                                                                                                        |
-| `IN-SH-CODE-004` setopt-err-exit             | warning        | **INEXPRESSIBLE**         | absence, as above.                                                                                                                                                                                                                                                                      |
-| `IN-SH-CODE-006` module-highlander           | warning        | **INEXPRESSIBLE**         | needs the same function name COUNTED across files. One grep cannot aggregate.                                                                                                                                                                                                           |
-| `IN-RS-TEST-001` cfg-test-colocated          | warning        | **INEXPRESSIBLE**         | _"source files with no colocated `#[cfg(test)]`"_ -- absence.                                                                                                                                                                                                                           |
-| `IN-SH-CODE-001` quote-expansions            | critical       | **DECLARE none**          | shellcheck SC2086/2046/2206/2068 is the parser. A regex cannot tell `[[ ]]` (no word-split) from `[ ]`, nor an assignment from an argument.                                                                                                                                             |
-| `IN-RS-CODE-002` ownership-before-clone      | warning        | **DECLARE none**          | clippy `needless_pass_by_value`, `redundant_clone`, `clone_on_copy`. _"cloned value is only read"_ is dataflow.                                                                                                                                                                         |
-| `IN-RS-CODE-005` lifetime-elision-first      | style          | **DECLARE none**          | clippy `needless_lifetimes`, `extra_unused_lifetimes`. Requires applying the elision rules, ie a parser.                                                                                                                                                                                |
-| `IN-RS-CODE-003` traits-over-enums           | recommendation | **DECLARE none**          | **the rule text already says so**: _"Clippy does not lint this directly; structural review is the detection mechanism."_                                                                                                                                                                |
-| `IN-RS-TEST-002` assert-matches-for-variants | warning        | **DECLARE none**          | **the rule text already says so**: _"Clippy has no direct lint; structural review and test-brittleness are the signals."_                                                                                                                                                               |
+**hv authorised the runner to use `shellcheck` and `clippy`. vc ruled the shape, and the shape is an OBLIGATION rather than a widening:**
 
-**Tally: 1 clean arm, 3 arms carrying a stated cost, 4 inexpressible under the contract, 5 declare-none.** **So the work is roughly one regex, three regexes with recorded limitations, and nine written declarations** -- and the nine are the part that changes the gate's behaviour least and its honesty most.
+- **The rule names WHICH tool answers it; the runner owns HOW it is invoked, in the runner's own code.** One invocation site, auditable, Highlander. **Rule files never contribute shell, ever.** Relaxing `critic_proxy_is_simple` is the correct-seeming, tidy-looking edit that opens exactly the hole it exists to close.
+- **A tool-armed rule REFUSES when its tool is absent, or is declared EXPLICITLY optional. It must never degrade to skipped** (`IN-AG-NO-SILENT-001`). External tools add a cause of unarmed that does not exist today -- the tool is not installed on this machine -- which turns a green gate into a gate that checked nothing, on someone else's machine, silently.
+- **Optional is a property of the PROJECT, not of the RULE** -- the seam is `.intent_critic.yml` (`bin/intent_critic:227`). A rule author cannot exempt their own rule; a project owner doing so is a visible, reviewable act.
+- **OPTIONAL IS ALLOWED, INVISIBLE IS NOT.** A run that left N rules unarmed says so in its NORMAL output, every run. The gate must be able to distinguish CHECKED AND CLEAN from CHECKED NOTHING, and today it cannot.
+- **Arming mode and RUN CONTEXT are separate axes.** A whole-workspace `cargo clippy` does not belong in a per-commit hook at any arming mode; it belongs where the compile already happens.
+
+### Per-rule verdicts -- RE-DERIVED under the ruling, and adjudicated with the tools rather than from the rule text
+
+**The test is vc's and it is narrower than "a real parser exists": IS THERE A NAMED TOOL WHOSE OWN OUTPUT ANSWERS THIS RULE?** A rule may name a tool that answers an ADJACENT proposition, and two of them do. Every verdict below was driven against `shellcheck 0.11.0` and `clippy 0.1.97` on fixtures; the four load-bearing measurements are named in the row.
+
+| rule                                         | severity       | verdict                   | why, and what settled it                                                                                                                                                                                                                                                                                    |
+| -------------------------------------------- | -------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IN-SH-CODE-001` quote-expansions            | critical       | **TOOL-ARMED** shellcheck | SC2086/SC2046/SC2206/SC2068 ARE the rule's four static signals, not neighbours of them. **Driven: SC2086 x3, SC2046, SC2206 on a fixture.** Silent today, and the highest-value row here.                                                                                                                   |
+| `IN-SH-CODE-002` no-parse-ls                 | warning        | **TOOL-ARMED** shellcheck | SC2012. **Was the one clean grep arm; the ruling upgrades it.** A parser will not fire on `ls` inside a comment or a string, which a regex cannot avoid.                                                                                                                                                    |
+| `IN-RS-CODE-001` result-over-panic           | critical       | **TOOL-ARMED** clippy     | `unwrap-used` / `expect-used` / `panic`, all **restriction** (opt-in). **THE STATED COST IS GONE, VERIFIED:** default `cargo clippy` flags the production `.unwrap()` and NOT a colocated `#[cfg(test)]` one; `--all-targets` flags both. The runner must therefore NOT pass `--all-targets` for this rule. |
+| `IN-RS-CODE-005` lifetime-elision-first      | style          | **TOOL-ARMED** clippy     | `needless-lifetimes` / `extra-unused-lifetimes`, both in **clippy::all** -- on by default, nothing to enable.                                                                                                                                                                                               |
+| `IN-RS-CODE-002` ownership-before-clone      | warning        | **TOOL-ARMED AT A COST**  | `clone-on-copy` is in clippy::all, `needless-pass-by-value` is **pedantic**, and **`redundant-clone` is NURSERY -- unstable by clippy's own classification, and it is the lint answering the rule's PRIMARY signal.** Arming on it imports that instability into a gate. Declared, not hidden.              |
+| `IN-SH-CODE-005` no-silent-exit-codes        | critical       | **GREP AT A STATED COST** | **The named tools answer ADJACENT propositions.** SC2015 is `&&`/`\|\|` mixing and SC2164 is `cd` without a check; shellcheck lints neither `\|\| true` nor `2>/dev/null` nor `set +e`, and cannot evaluate the rule's own "without an adjacent comment" qualifier. Fires on every documented, correct use. |
+| `IN-RS-CODE-004` error-types                 | warning        | **GREP PARTIALLY**        | No lint named and none found. `Result<..., Box<dyn Error>>` / `Result<..., String>` are greppable and `--include=lib.rs` scopes the library half; the binary half is not expressible.                                                                                                                       |
+| `IN-SH-CODE-003` set-euo-pipefail            | warning        | **DECLARE none**          | **Driven: shellcheck says NOTHING on a bash script lacking `set -euo pipefail`.** The rule's own text admits its tools apply only "indirectly" -- SC2148 is a missing shebang and SC2154 is a consequence of `-u`, not its absence. No tool answers this, and the violation is an absence.                  |
+| `IN-SH-CODE-004` setopt-err-exit             | warning        | **DECLARE none**          | **Driven: `SC1071 (error): ShellCheck only supports sh/bash/dash/ksh/'busybox sh' scripts. Sorry!`** The only named tool for shell REFUSES the language this rule is about. The strongest declare-none here, and it is a fact about the world rather than about the runner.                                 |
+| `IN-SH-CODE-006` module-highlander           | warning        | **DECLARE none**          | Needs the same function name COUNTED across files. No shellcheck lint aggregates, and one grep cannot count.                                                                                                                                                                                                |
+| `IN-RS-TEST-001` cfg-test-colocated          | warning        | **DECLARE none**          | _"source files with no colocated `#[cfg(test)]`"_ -- an absence, and no clippy lint asks it.                                                                                                                                                                                                                |
+| `IN-RS-CODE-003` traits-over-enums           | recommendation | **DECLARE none**          | **The rule text already says so**: _"Clippy does not lint this directly; structural review is the detection mechanism."_                                                                                                                                                                                    |
+| `IN-RS-TEST-002` assert-matches-for-variants | warning        | **DECLARE none**          | **The rule text already says so**: _"Clippy has no direct lint; structural review and test-brittleness are the signals."_                                                                                                                                                                                   |
+
+**Tally: 5 tool-armed (one at a stated cost), 2 grep-armed at a stated cost, 6 declare-none.** **Both CRITICAL shell rules and the critical rust rule are now answerable by a real tool, and all three are silent today.**
+
+### The prediction, and where it was wrong
+
+**Recorded before the re-derivation so the falsification is honest.** Predicted: three declare-none become armable; two stay on their own rule text; `IN-RS-CODE-001` loses its cost; the four inexpressible stay; **"nine declarations become about four."**
+
+**Held:** all four structural claims, and `IN-RS-CODE-001`'s cost is gone by measurement rather than by argument.
+
+**Wrong in three ways, all in the direction of overstating how much the ruling simplifies:**
+
+1. **`IN-SH-CODE-002` also upgrades.** It was the one clean grep arm and the prediction did not consider that a named tool improves an already-armed rule. The ruling reaches further than predicted.
+2. **`IN-RS-CODE-002` is armable AT A COST, not cleanly** -- `redundant-clone` is nursery. Predicting "armable" from the presence of a lint name skipped the question of whether the lint is fit to gate on.
+3. **The declaration count is SIX, not four.** Understated by a third.
+
+**And the probe that found the lint groups was wrong first, in the way everything was wrong today: clippy lists its lints HYPHENATED (`clippy::needless-lifetimes`), my grep used underscores, and seven of eight came back ABSENT.** A lint list of 825 entries reported as almost entirely missing, from a probe measuring its own vocabulary. Caught only because `clippy::panic` DID match and one hit among eight is not a pattern anybody should believe.
 
 ### CORRECTION 1 -- "19 of 19 rules carry a proxy" was FALSE, and the true figure is a better positive control
 
@@ -171,11 +207,11 @@ rules/elixir   6 commits        <- POSITIVE CONTROL: the probe works
 
 ST0039 (`2bb1ab2c`) stripped elixir proxies, which is what the ST says it did. **The shell and rust packs shipped untriaged from ST0034 and have never been examined. "Re-arm" is the wrong verb; nothing is being restored.**
 
-### THE DESIGN QUESTION THIS SURFACES, WHICH IS hv'S AND NOT MINE
+### THE DESIGN QUESTION THIS SURFACED -- ANSWERED, and the answer is above
 
-**7 of the 13 rules name a real parser in their own Detection text** -- shellcheck (`SC2086`, `SC2046`, `SC2206`, `SC2068`, `SC2012`, `SC2015`, `SC2164`, `SC2148`, `SC2154`) or clippy (`unwrap_used`, `expect_used`, `panic`, `needless_pass_by_value`, `redundant_clone`, `clone_on_copy`, `needless_lifetimes`, `extra_unused_lifetimes`). **The runner accepts only `grep`, so for the two languages that HAVE a mature parser, the gate is architecturally barred from using it.**
+**7 of the 13 rules name a real parser in their own Detection text**, and this section used to say the gate was "architecturally barred" from using it. **That sentence was the lossy one** -- see the contract section above -- and it is the sentence hv first ruled on.
 
-**This is my own standing rule pointed at the gate: a proxy is not the parser -- nominate with a proxy, adjudicate with the real tool.** The gate currently has no adjudication step at all. **Whether the runner should be able to shell out to `shellcheck` / `cargo clippy` is a design decision, and it is stated here rather than decided.** It would change what a proxy is FOR, so it should be settled before nine declarations are written on the assumption that grep is the only instrument.
+**Answered: hv authorised the capability, vc ruled the shape, hv re-ruled with the security rationale present.** The form is a named-tool declaration and `critic_proxy_is_simple` does not move. Naming a parser is now the START of the question rather than the end of it: **7 rules name one, and only 5 have a tool whose output actually ANSWERS them.** Two name tools that answer adjacent propositions, which is the standing rule pointed at itself -- **a proxy is not the parser, and a NAMED parser is not necessarily an answer either.**
 
 ### BOUNDARY -- the `.bats` estate is invisible to the gate regardless of Half B
 
@@ -194,7 +230,7 @@ bin/intent_critic                  ACCEPTED   <- positive control, extension-les
 
 ### The constraint that still stands
 
-**ST0039: a proxy must be simple enough for the headless runner to honour, and a rule whose detection is genuinely non-mechanical carries NO proxy rather than a misleading one.** Nine of thirteen land there. **The correct outcome for most of this pack is "critic cannot check this", stated** -- which is a smaller change than re-arming and a larger improvement than a regex that passes for the wrong reason.
+**ST0039: a proxy must be simple enough for the headless runner to honour, and a rule whose detection is genuinely non-mechanical carries NO proxy rather than a misleading one.** **Six of thirteen land there** -- down from the nine this section claimed before the re-derivation, because a named tool now answers five. **The correct outcome for six of this pack is still "critic cannot check this", stated** -- a smaller change than re-arming and a larger improvement than a regex that passes for the wrong reason. **And the six are now declared for reasons that are claims about the WORLD rather than about the runner**, which is a different sentence to a reader: `SC1071` means no tool exists for zsh, where "the runner only takes grep" meant somebody could widen the runner.
 
 ## Sequencing -- the shim CONFLICTS with Half A
 
