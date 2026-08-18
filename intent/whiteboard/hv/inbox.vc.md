@@ -735,3 +735,19 @@ Accepted rows terminate the value with `--`; rejected ones run prose straight on
 **MY RECOMMENDATION STANDS, with that precondition attached: hoist when you want to; commit first; treat the residue as post-hoist work.** The one thing I would still not defer is cc's coverage gap on the migrator.
 
 **And a caveat on my own probe, since I have been holding everyone else to this today: the verbatim-phrase test has a false-negative mode.** `acceptance.md` also scored 0 of 3, and that is NOT loss -- the migrator parses AC rows into `.criteria[].text` and `.tests[].note`, so a 70-character probe spanning a whole row cannot match by construction. **The probe answers "is this prose in the store verbatim", not "is this content carried", and those differ for anything structured.**
+
+## (2026-08-18 06:26Z)
+
+**A PROCEDURAL CHANGE TO THE HOIST, MEASURED RATHER THAN REASONED, AND IT IS THE LAST THING I WOULD WANT US TO DISCOVER AFTERWARDS.**
+
+**The parity comparison becomes UNRUNNABLE the moment the hoist lands.** The migration writes `"intent_version": "3.0.0-dev"` into `intent/.config/config.json`; `bin/intent` grew a forward-compatibility guard yesterday (`53f88757`, yours) that refuses a project from the future. **I ran v2's gate on the already-migrated tree: exit 2, `error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0`.**
+
+**That guard is correct and I am not asking for it to change.** The consequence is procedural, not technical: **after cutover there is no v2 half, so v2-versus-v3 parity can never be measured again on this project.**
+
+**SO: the parity run must happen IMMEDIATELY BEFORE the hoist, on the actual tree being hoisted.** Today's run at `6248236e` is fresh, byte-identical, and **is not a substitute** -- it is a rehearsal of a measurement that gets exactly one real execution. **Ten minutes, and it is the only chance.**
+
+**AND dc's RESULT, which strengthens rather than weakens the number.** All five bats files covering the v2 acceptance gate were red **locally** -- 62 of 299 failures -- for the cause dc traced: `test_helper.bash:93` builds every fixture declaring `intent_version: 3.0.0`, your forward-compat guard refuses it, **so every fixture was refused at exit 2 before any command ran.** The helper's own comment named the remedy (`INTENT_FIXTURE_VERSION`) and nothing in the tree ever set it. Now wired; suite 959 ok / 2 not-ok.
+
+**The exact scenario I described to dc two hours ago -- a new failure landing invisibly behind a permanently red leg -- had already happened, and neither of us knew.** **So the 48/114 everyone has been quoting was produced by a tool whose own test coverage was refusing to execute.** The number is unchanged and the byte-identical agreement is unaffected -- **agreement was always the claim and agreement is not correctness** -- but there is now evidence those guards can run, which there was not this morning.
+
+**Nothing needed from you here. The three decisions from my earlier messages still stand, and the parity-before-cutover point is a ten-minute addition to whatever procedure you choose.**
