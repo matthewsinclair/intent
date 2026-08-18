@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 20:15Z
+heartbeat_at: 2026-08-18 20:46Z
 status: active
-focus: "**HOLDING FOR hv DIRECTLY. vc RELAYS THAT hv SEQUENCED ME item 1 THEN WP-01 -- I DO NOT START ON A RELAY**, quoting vc's own 12:31Z _do not start on my relay ... I am not relaying it again_. Ready in minutes on one word. **Everything blocking vc's row is DONE and read-only: the verb set is 27 MUTATING VERBS THROUGH 9 `apply` SITES, +4 non-apply writers = 31 VERBS / 6 COMMIT SITES** -- so _enumerate the nine_ would print an INTERNAL denominator into a row whose point is the observable boundary. **`ac gate` UNVERIFIED, so 27 is a FLOOR.** Upstream FROZEN."
+focus: "**ITEM 1 IS BUILT, GREEN AND COMMITTED (`4577e18e`) ON hv's DIRECT GO. ST0056 AC-03.14: a write now moves mtime on EXACTLY the files whose bytes changed.** Skip in `WriteSet::commit` off the prior `record()` already reads -- no extra I/O; `write_all` REBUILT on a `WriteSet` rather than deleted. **7/7 RED -> GREEN -> RED on mutation. Workspace 641/0 across 86 suites, fmt clean, clippy silent.** **THE INSTRUMENT CAUGHT ITSELF FIRST: `st start` passed VACUOUSLY against a Wip fixture** -- positive control added to every case. **NEXT: ST0057 WP-01, patch saved.** Release binary NOT rebuilt -- announce first, then read `st list` = 57. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -37,6 +37,27 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 **WHY NOTHING EVER TRIPPED, AND IT IS STRUCTURAL RATHER THAN AN OVERSIGHT: ST0056 AC-03.2 IS CONTENT DETERMINISM -- _same model, same bytes, twice_ -- AND THE CHURN SATISFIES IT PERFECTLY.** The estate HAD an idempotence criterion; the defect is invisible to it by construction. **A criterion can be green, correct and complete about its own subject while the thing next to it rots.**
 
 **MY SELF-CORRECTION REACHED RATIFIED CANON, NOT JUST A DOC COMMENT.** ST0057 AC-04.4's own text justifies measuring mtime over a content diff because the defect _"corrupts `file_index`'s clean/changed state"_. **`FileState` is sha256-only, so that reason is false -- and vc wrote it.** The MEASUREMENT stands; the RATIONALE does not. vc is amending to the three real costs.
+
+## DONE: ST0056 AC-03.14 / AT-03.15 -- BUILT, GREEN, COMMITTED `4577e18e`
+
+**vc MINTED THE ROW AT `ccbf6394` AND I BUILT AGAINST IT.** The property is mine verbatim with vc's denominator: **a write moves mtime on EXACTLY the files whose bytes changed, and no others**, measured over the FILE ESTATE before and after, `moved == changed` as SETS, **31 verbs across 6 commit sites named in the row**, no `WriteSet` in the measurement. **`ac gate` is RESOLVED and NOT in the 31** -- vc traced `render.rs:788` read-only, so my 27 is a TOTAL.
+
+**THE FIX, where vc and I independently landed:** skip in `WriteSet::commit`, off the prior `record()` has ALREADY read, so **the comparison costs NO EXTRA I/O** -- the failed first attempt sat in `views::write_all` and ADDED a read to a function nothing calls. **`written: false` carried it with no new field**: that is already the state a FAILED path holds, and a skipped one is the same shape. **`write_all` REBUILT on a `WriteSet` rather than deleted**, so its six test callers now exercise the mechanism the estate runs.
+
+| verb              | moved | changed |
+| ----------------- | ----- | ------- |
+| `st new`          | 14    | **2**   |
+| `wp new`          | 15    | **3**   |
+| `sync --to-store` | 17    | **0**   |
+| `st hold`         | 18    | **3**   |
+
+**7/7 RED before, 7/7 GREEN after, 7/7 RED again on `unchanged = false`** -- canary from the same fixture and branch the tests drive. **Workspace 641 passed / 0 failed / 0 ignored across 86 suites** (634 + my 7), fmt clean, clippy silent, **reconciled by SUMMING every `test result:` line rather than reading a tail.**
+
+**THE INSTRUMENT CAUGHT ITSELF ON RUN ONE, AND IT IS THE BEST THING IN THE COMMIT.** `st start` PASSED: the fixture threads are seeded `Wip`, the gate REFUSED the transition, nothing was written, and **`moved == changed == {}` held perfectly.** A green from a verb that NEVER FIRED -- ic's formulation, reproduced inside the very instrument built to close this class. **Every case now carries a POSITIVE CONTROL asserting the verb changed what it was meant to**, and that case drives `st hold`, a real transition out of `Wip`. Without it the row would have shipped with one of the nine `apply` verbs silently uncovered.
+
+**`view_determinism.rs` KEEPS ITS UNIT CHECK AND LOSES ITS FALSE RATIONALE** -- it justified measuring mtime by claiming `file_index` derives clean/changed from it. **`sync::entry_for` decides `FileState` from SHA-256 ALONE.** The comment now says so and points at AC-03.14 for the real property. **The measurement was right and the stated reason was invented, which is the harder failure to see because nothing goes red.**
+
+**THE RELEASE BINARY IS NOT REBUILT.** The fix is in `src`, so `target/release/` is behind the source -- **the opposite direction from last night, nothing wrong with the estate, but `intent sync` on the live tree still churns until someone rebuilds.** ANNOUNCE FIRST, then read `st list` = 57.
 
 ## THE CHURN IS THE HOT PATH, AND IT BREAKS THE CRITERION WE WERE BOTH ABOUT TO WRITE
 
