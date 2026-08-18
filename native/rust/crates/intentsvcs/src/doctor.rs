@@ -419,9 +419,29 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
 
   // A criterion whose group names a work package that does not exist. Group
   // `00` is thread-level and always legitimate.
+  //
+  // **A THREAD WITH NO WORK PACKAGES AT ALL IS EXEMPT, and that is a model
+  // correction rather than a suppression.** Grouping criteria BY work package
+  // is a convention used where work packages exist; in a thread that has none,
+  // the group number is a bare grouping device and `AC-01.1` never referenced a
+  // WP-01, because there was never one to reference. Six threads in this estate
+  // are built that way -- ST0043, ST0044, ST0045, ST0046, ST0050, ST0051 --
+  // carrying 72 such rows between them, and v2 accepted every one.
+  //
+  // **The check keeps the value it actually had.** Measured on the hoisted
+  // estate before the clause landed: of 72 orphan-group findings, 72 came from
+  // threads with zero work packages and NONE came from the 37 threads that
+  // carry them. So a group naming a missing WP in a thread that uses WPs is
+  // still a genuine inconsistency and is still reported -- the clause removes
+  // no finding this estate was ever entitled to raise.
+  //
+  // vc is correcting `data-model.md:193` ("group = WP seq or `00` for
+  // ST-level") to match, which was written from ST0056's shape rather than
+  // from the estate's.
   for criterion in &thread.criteria {
     if let Some(seq) = group_seq(&criterion.id)
       && seq != 0
+      && !thread.wps.is_empty()
       && !thread.wps.iter().any(|w| w.seq == seq)
     {
       add(

@@ -183,6 +183,52 @@ fn a_criterion_in_a_group_with_no_work_package_is_found() {
   assert!(details(&run(&fx)).contains("AC-07.1 belongs to WP-07"));
 }
 
+/// **A thread that uses NO work packages at all is exempt, and the two threads
+/// in this test differ by exactly one thing.**
+///
+/// Grouping criteria BY work package is a convention used where work packages
+/// exist. In a thread that has none, the group number is a bare grouping
+/// device: `AC-07.1` never referenced a WP-07, because there was never one to
+/// reference. Six threads in Intent's own estate are built that way and carry
+/// 72 such rows between them (measured on the hoisted repo, 2026-08-18); v2
+/// accepted every one.
+///
+/// **The control is the point and it comes from the same fixture.** The
+/// with-WP arm below is `clean_thread` unchanged, which carries one work
+/// package at seq 1; the without-WP arm is the same thread with `wps` cleared
+/// and nothing else touched. One variable. Without it, "no finding" would be
+/// satisfied by a fixture that could not have produced one -- and this file
+/// already has a test asserting the finding IS raised, so an exemption test
+/// that never reached the check would agree with it and mean nothing.
+#[test]
+fn a_thread_with_no_work_packages_at_all_is_exempt_while_one_that_uses_them_is_not() {
+  // Arm A: work packages exist, and a group naming a missing one is a real
+  // inconsistency. This is the behaviour the clause must NOT remove.
+  let fx = Fixture::new();
+  let mut with_wps = clean_thread("ST0001");
+  with_wps.criteria[0].id = "AC-07.1".to_string();
+  with_wps.tests[0].covers = vec!["AC-07.1".to_string()];
+  seed(&fx, &with_wps);
+  assert!(
+    details(&run(&fx)).contains("AC-07.1 belongs to WP-07"),
+    "a thread that USES work packages must still be held to them"
+  );
+
+  // Arm B: the same thread with its work packages removed and nothing else
+  // changed. The group number is now a grouping device, not a reference.
+  let fx = Fixture::new();
+  let mut no_wps = clean_thread("ST0001");
+  no_wps.criteria[0].id = "AC-07.1".to_string();
+  no_wps.tests[0].covers = vec!["AC-07.1".to_string()];
+  no_wps.wps.clear();
+  seed(&fx, &no_wps);
+  let found = details(&run(&fx));
+  assert!(
+    !found.contains("belongs to WP-"),
+    "a thread with no work packages cannot have a criterion orphaned from one: {found}"
+  );
+}
+
 #[test]
 fn a_thread_level_group_is_not_mistaken_for_a_missing_work_package() {
   let fx = Fixture::new();
