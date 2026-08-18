@@ -21,8 +21,45 @@ use std::process::{Command, Stdio};
 use intent_cli::dispatch;
 use testkit::workspace_root;
 
-/// The Intent install root, which is also an UNMIGRATED v2 project -- the state
-/// this repository is genuinely in, and the one the differential below needs.
+/// An unmigrated v2 project, BUILT rather than borrowed.
+///
+/// **This used to be `install_root()`, on the grounds that this repository was
+/// itself an unmigrated v2 project. The hoist made that false** (2026-08-18):
+/// Intent now declares `3.0.0-dev` and carries its own canon, so `st list` here
+/// SUCCEEDS at 0 and the differential below lost the genuine refusal it is
+/// built on. The test caught it -- its precondition assertion names exactly
+/// this -- but it caught a property it had borrowed from its environment, and
+/// the environment was always free to move.
+///
+/// So the condition is created here instead. Nothing about the property under
+/// test needs this repository specifically; it needs *a live command that ran
+/// and said no*, which an unmigrated project produces by construction
+/// (AC-10.7). The install is still resolved from the binary's own path, not
+/// from the working directory, so pointing the runs at a temporary project
+/// costs nothing.
+fn unmigrated_project() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let config = dir.path().join("intent").join(".config");
+  std::fs::create_dir_all(&config).expect("mkdir .config");
+  std::fs::write(
+    config.join("config.json"),
+    "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Retired\",\n  \"author\": \"matts\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"shell\"]\n}\n",
+  )
+  .expect("write config");
+  // A thread in v2 shape -- `info.md` and no `thread.json` -- so the project is
+  // unmigrated by EVIDENCE as well as by declaration, which is the pair
+  // AC-10.7 detects on.
+  let td = dir.path().join("intent").join("st").join("ST0001");
+  std::fs::create_dir_all(&td).expect("mkdir thread");
+  std::fs::write(
+    td.join("info.md"),
+    "---\nstatus: In Progress\n---\n\n# ST0001: a real thread\n",
+  )
+  .expect("write v2 info.md");
+  dir
+}
+
+/// The Intent install root.
 fn install_root() -> PathBuf {
   workspace_root()
     .parent()
@@ -123,20 +160,21 @@ fn every_retired_spelling_is_refused_by_name() {
 /// **vc's canary, and it is the one assertion this issue reduces to: a retired
 /// command must not answer in the same code as a command that RAN and said no.**
 ///
-/// The differential is measured rather than assumed. This repository is an
-/// unmigrated v2 project, so a live command here produces a genuine runtime
+/// The differential is measured rather than assumed. The fixture is an
+/// unmigrated v2 project, so a live command there produces a genuine runtime
 /// refusal -- the exact condition 0044 records as sharing `1` with retirement.
 /// `critic` would be the sharper partner and is not built yet; the property is
 /// the same one, driven through the refusal that ships today.
 #[test]
 fn a_retired_command_and_a_genuine_refusal_do_not_share_a_code() {
-  let root = install_root();
+  let project = unmigrated_project();
+  let root = project.path().to_path_buf();
 
   let (refusal_code, refusal) = run(&["st", "list"], &root);
   assert_eq!(
     refusal_code,
     Some(1),
-    "precondition: a live command in this unmigrated repository refuses at 1. If this changed, the comparison below is measuring something else: {refusal}"
+    "precondition: a live command in an unmigrated project refuses at 1. If this changed, the comparison below is measuring something else: {refusal}"
   );
   assert!(
     !refusal.contains("retired"),
