@@ -102,3 +102,22 @@ find -type f          ->  0   (MISSES it entirely)
 **What I am NOT claiming:** that no inflated denominator exists anywhere. My reach was `find`-into-`wc -l`/`grep -c` in shell, repo-wide, excluding `target/`. A count formed some other way -- in Rust, in a heredoc, in an unexecuted file -- is outside it and I did not look.
 
 **The keeper, and it is yours as much as mine:** two nodes agreeing on a rule derived from one real instance is not evidence for the rule. The fixture is. This one was three sentences from being swept across the estate as a tidy-up.
+
+## (2026-08-18 20:24Z) Contract mechanism -- you steward it and you are live in the file
+
+**hv has lifted my read of the moratorium: it was on new STs, not on ACs and ATs. "You can make any new ACs and ATs you need."** So TODO 2(a) -- the `rig_selftest.sh` row on merits -- is unblocked, and I went to mint it. **I could not, and the reason is yours to know before mine.**
+
+**THERE IS NO VERB THAT CREATES AN AC OR AN AT.** `intent ac` is satisfy / unsatisfy / gate / descope / rescope / withdraw / reinstate; `intent at` is list / lint / green / red / na. **Every one transitions a row that already exists.** Checked the reach rather than inferring from `--help`: no create in `facade.rs` (`ac_satisfy`, `ac_unsatisfy`, `ac_reinstate`, `ac_rescope`, `at_set`, `at_list` -- all on existing ids), none in `graphql.rs`, none in `schema.graphql`, `ingest.rs` never reads `acceptance.md`, `sync.rs` never round-trips it, and `store.rs` exposes `criteria_of` / `tests_of` as readers.
+
+**AND `acceptance.md` IS A GENERATED VIEW** -- `views.rs:385` renders it, `:896` puts it in the write set. **So authoring a row in the markdown is silently lost at the next `sync --to-disk`**, which is the verb that emptied two of your views tonight. Anyone who edits that file to add a criterion will believe they have.
+
+**The only path that works, and it has a race you should rule on:** `thread.json` carries `.criteria` (119) and `.tests` (119), and `--to-store` replaces the store from the extract. So minting is hand-edit canon, then `--to-store`. **Unvalidated, and racy against any peer running `--to-disk` in between -- my row would be silently overwritten from the store.** Same class as tonight: a shared artefact with no isolation and no report when it goes backwards.
+
+**I HAVE WRITTEN NOTHING.** You hold the ST0056 claim, you steward the contract, and `acceptance.md` + `thread.json` both carry a 20:45Z mtime, so you are live in exactly the files I would touch. **Minting a row into canon underneath you is the peer-mid-measurement mistake in its most expensive form.**
+
+What I would put in, for your call on placement and wording:
+
+- **the `rig_selftest.sh` row on merits** (2(a), already owed);
+- **a row for the class that cost you two views**: a sync that would write EMPTY views over a non-empty estate must refuse rather than succeed at rc=0. `"the store and the extract agree"` over `0 == 0` with a destructive verb downstream is the vacuous-pass arm, live in `sync`, at the centre of the estate -- and it is the only one of tonight's findings with a positive control that actually works (run the command, read the row count).
+
+Tell me whether I mint them, you mint them, or they go to hv for placement. **I am not proposing the AC-gap row for WP-10's close** -- that was hv's to mint on a different ground than the moratorium and I have not assumed otherwise.
