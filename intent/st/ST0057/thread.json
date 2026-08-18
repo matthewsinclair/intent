@@ -253,6 +253,14 @@
       }
     },
     {
+      "id": "AC-04.6",
+      "text": "**AFTER `organize`, THE TREE HOLDS ONLY WHAT `.intentfiles` NAMES -- ASSERTED AS AN EQUALITY OF TWO INDEPENDENTLY DERIVED SETS, OVER THE WHOLE ESTATE.** (hv 2026-08-18, stating the expectation explicitly for the record.) The on-disk population is derived by LISTING THE FILESYSTEM and the declared population by PARSING `.intentfiles`; the criterion is `on_disk == declared`, **printed with both counts, and it is an EQUALITY rather than a containment in either direction** -- a subset check passes on a tree that removed nothing, and a superset check passes on an empty one. **THE REASON THIS ROW EXISTS: EVERY ONE OF ST0057 AC-04.1 THROUGH AC-04.5 IS SATISFIED BY AN `organize` THAT REMOVES NOTHING AT ALL.** Report-never-remove (04.1), refuse-on-hand-edit (04.2), never-resolve-a-divergence (04.3), run-twice-changes-nothing (04.4), refuse-on-digest-change (04.5). **They are all BRAKES, correctly specified, and not one of them says the car moves.** D57-3's table declares DEHYDRATE as an action and AC-04.1 requires every row EXERCISED, **which one dehydrated file satisfies** -- a subset of the right kind, which is the EXTENT failure this estate has now met three times. **THE POSITIVE CONTROL IS PART OF THE CRITERION, NOT THE TEST'S BUSINESS:** it must be driven FROM A FULLY REALISED TREE, because a run against an already-sparse fixture is the vacuous pass. **Measured at `ddf8a080`, before any of this lands: `intent/st/` holds 57 ST directories and 799 files, `intent/issues/` holds 40 canon files and 82 files total.** Those are the numbers the first real run must move. **INDEX VIEWS ARE NAMED, NOT INFERRED.** `intent/st/steel_threads.md` is renderer-produced but is not a per-artefact view and does not appear in the manifest; it and anything like it are declared as an explicit exempt set with the reason, **rather than left to be caught by D57-3's fifth row** -- UNCLAIMED means _a human put this here_, and using it to shelter something the renderer DOES produce would make the report meaningless. Attachments remain out by AC-04.3.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-05.1",
       "text": "**`intent edit <ID>` dispatches on id shape, hydrates when absent, and prints a path that EXISTS after the call** -- for every id shape the verb accepts, denominator printed over that set.",
       "kind": "test",
@@ -654,6 +662,16 @@
       ],
       "status": "to-write",
       "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+    },
+    {
+      "id": "AT-04.6",
+      "kind": "test",
+      "file": "intent/st/ST0057/parity/tools/sparse_tree_equals_manifest.sh",
+      "covers": [
+        "AC-04.6"
+      ],
+      "status": "to-write",
+      "note": "**A PARITY TOOL RATHER THAN A RUST TEST, DELIBERATELY: the subject is THIS estate's real tree, and the fixture that makes it meaningful is the 57-thread live one.** A tempdir fixture can be built sparse and prove nothing. **Red-first: run it against the tree AS IT STANDS TODAY -- 57 ST directories against a manifest that does not yet exist -- and it must go red on the largest possible margin.** That red is free, it is available now, and it is the only moment the full-realisation baseline can be captured honestly. **Derive the two sets with two different instruments** -- `find`/`ls` for disk, the `.intentfiles` parser for declared -- **and never compare a set to itself.** Print both counts and the symmetric difference in BOTH directions, named: present-but-undeclared and declared-but-absent are different defects with different fixes. **Denominator caution, learnt the hard way here:** a `find | wc -l` over a directory tree counts directory nodes as well as files unless filtered, and filtering with `-type f` BLINDS the count to a deletion -- the directory node is the only input whose mtime records one (ic, 2026-08-18). State which you are counting and why. **The exempt set is asserted, not skipped**: `steel_threads.md` must appear in the tool's output as an EXEMPTION WITH ITS REASON, so an exemption silently growing is visible -- the shrunken-roster failure that took ST0056 AT-03.15 five versions to close."
     },
     {
       "id": "AT-05.1",
