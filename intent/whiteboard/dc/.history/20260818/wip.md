@@ -353,3 +353,49 @@ Nothing in flight. Everything measured today is either with hv below or archived
 - **A RECORD NAMES THE COMMIT IT COVERS, NEVER "HEAD".**
 - **MIS-CREDITING TOWARD YOURSELF GETS CAUGHT; MIS-CREDITING AWAY FROM YOURSELF DOES NOT.**
 - **THE PUSH RESULT CARRIES NO INFORMATION ABOUT THE REMOTE IN EITHER DIRECTION.** Only `git ls-remote` plus `merge-base --is-ancestor` is evidence.
+
+---
+
+# LOCALFOLD 2 -- 2026-08-18 15:57Z (aggressive). Half A shipped; board pruned to what still changes what I do.
+
+## DONE THIS FOLD -- Half A, end to end
+
+**THE PRE-COMMIT CRITIC GATE WAS DARK IN ALL FIVE LANGUAGES FROM THE HOIST UNTIL `92a51134`.** `intent` on PATH is v2, the project declares `3.0.0-dev`, v2 refuses a newer tree at exit 2, `intent critic` also emits 2 for its own invocation errors, and `pre-commit.sh:288-292` cannot tell them apart and fails open. Three correct behaviours composing into a gate that enforced nothing while reporting success.
+
+**SHIPPED:** `bin/intent:55` now reads `GLOBAL_COMMANDS="critic help doctor ..."`. Three commits, pushed `local`, verified by `ls-remote` + `merge-base --is-ancestor`, upstream untouched at `5765c5da`:
+
+- `92a51134` the one word + the rig
+- `aa220755` `critic-gate.md`: Half A re-driven at a named commit, Half B scoped, two corrected figures
+- `945aec68` the announce to all four nodes
+
+**MEASURED AFTER APPLYING: languages returning rc=2 went 5 -> 0.** The five `invocation error (exit 2); fail-open.` lines are gone; `st list` / `wp list` still refuse at rc=2, guard intact. **Confirmed live on my own first commit -- the hook ran and printed no fail-open lines.**
+
+**THE EVIDENCE, and the canary is the part worth keeping.** Rig 6/6 with the fix; `RIG_CANARY=1` drives the CONTROL through the same cases for 3/6, where the end-to-end case fails **by the commit SUCCEEDING** -- a commit titled _"rig: this commit must be REFUSED"_, carrying a staged critical violation, created. bats ARM A 20/8, ARM B 28/0, both at `4ef953db`. Test 2 corrected off `shell` (0 rules armed, unfalsifiable) onto `elixir` against a STAGED violation asserting rc=1; test 3 is its mandatory partner in the other direction.
+
+**THE RIG I WAS TOLD TO RE-DRIVE WITH DID NOT EXIST.** Cited by name with its internals described, in the paragraph telling a cold re-driver how to use it -- and `git log --all --diff-filter=A` finds it added at no point in history. It lived in a session scratchpad and evaporated. Rebuilt and COMMITTED at `parity/tools/critic_global_rig.sh`.
+
+## DONE THIS FOLD -- Half B scoped (not built)
+
+**"Re-arm the rust and shell packs" is NOT achievable.** The runner (`critic_runner.sh:92-120`) takes ONE `grep`, flags from `{r,n,E}` + `--include=`, and refuses `-v` and `-L` -- so a rule whose violation is an ABSENCE, or which must COUNT across files, is inexpressible before judgement applies. **1 clean arm / 3 at a stated cost / 4 inexpressible / 5 declare-none.** Full per-rule table in `critic-gate.md` at `aa220755`.
+
+**Two figures that document carried were wrong.** Elixir is 9 armed + 10 declared-none, not 19 armed -- and the true property is the better control: every elixir rule has MADE the decision and RECORDED it. And ST0039 did not strip shell/rust: `git log --all -S'Greppable proxy'` is 0 commits each against 6 for elixir. **Those packs shipped untriaged; "re-arm" is the wrong verb.**
+
+## DONE THIS FOLD -- the `deferred.md` walk, and the release pre-flight
+
+**My section was two lines and BOTH were wrong in the list.** `devbin upgrade` was never a deferral (a scope judgement -- devbin is not Intent). The AC-11.5 binary arm was never blocked on cc's `build.rs`: `b11ca6ac` landed it the same afternoon, `merge-base --is-ancestor` puts it after the cited `f4a10ba6`, and `build.rs` exists in both crates. **vc's walk procedure would have made the false blocker durable with my name on it.** Procedure changed to re-verify before pickup; deletion held until cc and ic re-drive.
+
+**The release pre-flight**: my own `critic-gate.md` sentence pointed at `release:702` as _"the gate that would catch it"_ -- `:702` catches a DIRTY TREE, never a RED SUITE. Corrected to `:380` inheriting `:381`'s abort. **And the proposal was incomplete: `--skip-tests` (`:366-369`) bypasses the whole block, and `:706` actively recommended that flag as the recovery from a dirty tree -- on the run that tags.** vc landed the fix; `:706` no longer recommends it.
+
+## DECISIONS ARCHIVED THIS FOLD -- settled, or recorded in a committed document
+
+- **THE REHEARSAL POPULATION CANNOT HOLD WHAT THE REAL POPULATION HAS**, and "clone and test" reads as the CAREFUL option, which is why it wins. vc: gitignored. cc: uncommitted. **Mine: the INTERVAL** -- a peer changed state between my two readings and I told them their live finding was a phantom. **The other two are answered by looking at the real subject; mine by re-reading at the moment of the claim.**
+- **A LEGEND MUST BE DERIVED FROM THE DATA IT LABELS.**
+- **BYPASS IS A RESPONSE TO NOISE, NOT TO STRICTNESS** (mine, vc adopted).
+- **CHECK THE OTHER HALF BEFORE FILING A DESIGN SPLIT AS A DEFECT.** "The release never runs what it ships" was about to go to hv; `int macos publish` verifies the binary on a quarantined copy. The accurate finding was narrower and better.
+- **A POPULATION CAN BE A FACT ABOUT THE CORPUS, NOT THE WRITER.** Three nodes measured "two files changed" against three different suspected causes. Exactly two `info.md` carry a deprecation blockquote.
+- **DEFERRED WORK MUST BE WALKED, NOT INHERITED.** Of my two `deferred.md` lines, one was never a deferral (a scope judgement -- devbin is not Intent) and the other was never blocked by the moratorium (it waits on cc's `build.rs`). **The list I was on said neither.** A lifted prohibition would have handed me two items to start, and the correct outcome was one struck and one named-but-not-started. **A LIFT IS NOT A SCHEDULE.**
+- **A FAIL-CLOSED EXEMPLAR IS NOT THE GATE THAT CATCHES, AND I CITED ONE AS THE OTHER IN A DOCUMENT WRITTEN FOR COLD PICKUP.** I wrote _"the gate that would catch it already exists"_ pointing at `release:702`, which fails closed on a DIRTY TREE and could never catch a RED SUITE. The gate that catches is `preflight()`'s abort at `:381`. **Two true facts -- that gate exists, and it fails closed -- composed into a false claim about WHAT it gates.** Caught only by reading the file to settle a line-number dispute that turned out not to exist.
+- **A DISPUTE OVER A CITATION IS WORTH SETTLING EVEN WHEN BOTH SIDES ARE RIGHT.** vc and I named `:373-383` and `:702` and one of us assumed the other was stale. Both were correct, different sites -- **and the read that proved it is the only reason the wrong clause and the `--skip-tests` bypass were found at all, minutes before vc briefed hv from the paragraph containing them.**
+- **MIS-CREDITING TOWARD YOURSELF GETS CAUGHT; MIS-CREDITING AWAY FROM YOURSELF DOES NOT.**
+- **A LOUD FAIL-OPEN IS STILL A FAIL-OPEN, AND THE NOISE IS WHERE IT HID.** `pre-commit.sh:288-292` has printed `intent critic (<lang>) invocation error (exit 2); fail-open.` **once per declared language on every commit since the hoist** -- five lines on my own `d84ac27f`, the commit documenting the finding. **A pickup hunting a SILENT defect would have concluded there was none.**
+- **A PASS CONDITION THAT ACCEPTS THE DEFECT'S OWN OUTPUT IS NOT A TEST.** My rig's test 2 accepted `rc=0` as "the critic ran", and `rc=0` is exactly what the dark gate returns -- **on `shell`, which Half B says has 0 of 6 rules armed, so the assertion is unfalsifiable by construction.** ic raised the principle from the outside; the instance was in my own rig. **The two halves interacted and neither of us could see it from one side.**
