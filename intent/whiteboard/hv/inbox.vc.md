@@ -855,3 +855,43 @@ What it changes, per node:
 What is mine, starting now: ST0057 has no acceptance contract at all. I am writing the objective, the context, and the AC/AT set so the thread reaches cc as a ratified boundary rather than as my prose.
 
 FYI only -- no response needed. Reply only if the WP-01/WP-02 ordering is wrong against your own queue.
+
+## (2026-08-18 18:20Z)
+
+vc -> hv. While you were AFK. **One correction you are holding a wrong claim from, two decisions I made under "push on", and one sequencing ask that is yours.**
+
+## 1. CORRECTION -- I gave you a wrong claim in my boot report
+
+I told you: _"Available the moment you say go: the clean-tree rebuild, for the first honest binary provenance since the hoist"_, and that it closes dc's AC-11.5 binary arm. **Both halves are wrong, and they are wrong for two different reasons with two different owners.**
+
+- **AC-11.5 is CLOSED.** It is green, AT-11.5 is green, and **I closed it myself on 2026-08-17** on dc's finding. No arm was ever waiting on a clean tree. **That half is entirely mine** -- a stale claim about a record I wrote.
+- **"the first honest binary provenance"** came from misreading the provenance checker. `self_provenance_check.sh:280` emits _"was built from an UNCOMMITTED tree (dirty-...) -- its bytes match no commit."_ Capitalised, negative, unhedged: finding-shaped. The words _"IS NOT A FINDING HERE... the mechanism working"_ exist only at `:179-180`, **in comments, which never print.** dc calls that half theirs and offered the fix; I have cleared it.
+
+And the action was worthless anyway, which I had not considered: **there is deliberately no `rerun-if-changed` on `.git/HEAD`, so a clean rebuild buys a marker that dies on the next commit by anyone.** I was proposing an action whose value expires before its purpose arrives, and your ruling just moved the cut further out.
+
+**Three of us independently named one class today and the three faces fit together:**
+
+| whose  | the failure                                                           |
+| ------ | --------------------------------------------------------------------- |
+| **ic** | an instrument whose **output** is independent of what it **measures** |
+| **vc** | a **reading** independent of what the instrument **said**             |
+| **dc** | an **output** whose **shape** is independent of its own **meaning**   |
+
+## 2. DECISIONS I MADE -- reverse any of them
+
+- **CLEARED dc's one-line fix** to `self_provenance_check.sh:280` -- string only, no control flow, no rc, no branch, so AT-11.5's green rests on unchanged behaviour. Conditions: string only, re-run both arms, record it in AT-11.5's note by hand (`intent at` destroys notes -- issue 0033).
+- **RELEASED ic to run `same_end_state_check.sh`** at a named commit. Your own arrangement holds them for instructions from _hv AND vc_, so I gave the instruction rather than granted an escalation. I told them to refuse it if they read it otherwise.
+- **APPROVED dc's mirror sweep** -- adjudicate their own three instruments by reading control flow, NOMINATE only for the other 37 by vocabulary, report as nominated-not-audited.
+- **HANDED cc the ST0057 contract** and told them WP-01/WP-02 unblock the rest.
+
+## 3. YOURS TO RULE -- dc's sequencing ask, carried unedited
+
+**ST0057/WP-01 before ST0056/WP-11.** dc's ground: WP-11 is largely unbuilt -- no `dist-workspace.toml`, no `[workspace.metadata.dist]`, no formula in the tap, and the binary's only embedded asset is outside `intent/`. **So your ruling is a SAVING for WP-11, not a cost** -- but only if WP-01 lands first, because starting WP-11 now would CREATE the layout assumption rather than inherit it.
+
+Still open and unruled from before: the `critic` exit-code discriminator, whether the runner may shell out to `shellcheck`/`clippy`, D50, `--skip-rust-tests`'s shape. dc is putting `doctor` printing `v2.19.0` to you separately.
+
+## 4. DONE while you were away
+
+**ST0057 now has a contract: 39 criteria, 39 tests, one-to-one, every one derived from a ratified D57-x decision and none invented.** `ac status` 0/39 BLOCKED, `at lint` 39 conform. Objective and context written.
+
+Also caught: **ST0056's canon held a STALE attachment for hours.** ic amended `estate_corpus.sh` on disk at `31f2dce4`; the commit landed and canon kept the old text (canon@HEAD `ec898e41`, disk `113b26b7`). `sync --to-store` carried the disk version in, which is correct -- attachments are authored on disk. **Nothing reported it and nothing could have.** It is the burning case for ST0057 AC-03.4.

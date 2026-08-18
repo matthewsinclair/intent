@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:09Z
+heartbeat_at: 2026-08-18 18:21Z
 status: active
-focus: "**hv RULED ST0057 INTO THE 3.0.0 GATE: feature complete BEFORE we release.** It is 0 of 8 WPs with no objective, no context, and NO ACCEPTANCE CONTRACT AT ALL -- and `.intentfiles` and `intent/.canon/` do not exist, so 468 of the 797 files under `intent/st/` belong to threads nobody is working on. **WRITING ST0057'S CONTRACT NOW** so it reaches cc ratified rather than as my prose. **hv found it by looking at their own file tree, minutes after I reported nothing of mine was outstanding -- I scoped "outstanding" to my INBOX and said it in the grammar of a claim about the ESTATE.** Found on the way: **the v3 view generator collapsed v2's five-valued status glyph to a constant `[ ]`** (`views.rs:838-846` vs `intent_todo:63-73`); sent to cc, and to ic as a class. Upstream FROZEN; push `local` only; v3 NOT on PATH."
+focus: "**ST0057 IS IN THE 3.0.0 GATE (hv) AND NOW HAS A CONTRACT: 39 ACs, 39 ATs, one-to-one, every one derived from a ratified D57-x and none invented.** `ac status` 0/39 BLOCKED, `at lint` 39 conform, objective + context written. **CORRECTED A WRONG CLAIM I GAVE hv IN MY BOOT REPORT: AC-11.5 is CLOSED and I closed it myself on 2026-08-17; the clean-tree rebuild closes nothing and cannot be banked anyway (no `rerun-if-changed` on `.git/HEAD`).** Found on the way: **the v3 todo view collapsed SIX statuses to one constant, so 2 CANCELLED threads render as completed** (ic found the bucket half; cc is fixing), and **ST0056's canon held a STALE attachment for hours with nothing able to report it** -- the burning case for AC-03.4. hv AFK: cleared dc's `:280` string fix, released ic for the run, handed cc WP-01/WP-02. Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,15 +13,14 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-- **ST0057's acceptance contract.** hv ruled it into the 3.0.0 gate; it has `objective: ""`, `context: ""`, 0 ACs and 0 ATs, so there is nothing for cc to build against but eight hand-written WP bodies. Objective + context + the AC/AT boundary, in that order.
+- **ST0057 is contracted and handed to cc.** Next of mine: re-drive cc's `deferred.md` section (the last un-re-driven one -- the file is not deleted until all three are), then ST0011's `completed` NULL, which AC-08.5 now names as its burning case.
 
 ## TODO
 
-- **ST0057 WP-01/WP-02 ordering** against cc's ST0056 queue -- asked, not answered. WP-01 (canon relocation) and WP-02 (`.intentfiles`) unblock the other six.
+- **dc's sequencing ask is with hv, unruled**: ST0057/WP-01 before ST0056/WP-11, because WP-11 is largely unbuilt so the ruling is a SAVING -- but only if WP-01 lands first, else starting WP-11 CREATES the layout assumption.
 - **The interruption-property AC.** The moratorium is LIFTED so it is finally writable. **`same_end_state_check.sh` and `interrupt_rig.sh` are built, committed, self-tested and cited by NOTHING** -- hv gated the cutover on a property whose instrument exists and whose contract does not know it. **AT row held `red` with an explicit note** until ic's run at a named commit: the instrument exists, so `to-write` is the wrong state by my own rule. **AC-10.8 already exists -- my backlog was wrong about that half.**
 - **ST0011** -- `completed` NULL on the estate's one genuinely wrong row. Needs a field-setter verb that does not exist (ST0057 WP-08), or a canon hand-edit.
 - **`deferred.md`: cc's section is the last un-re-driven one.** dc's and ic's are walked. **The file is NOT deleted until all three are re-driven**, and no pickup is copied to a board without re-driving its premise first.
-- **WP-07/WP-08 acceptance criteria** for ST0057, now that ACs can be minted.
 
 ## Open with hv
 
@@ -32,6 +31,10 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **ONE CLASS, THREE FACES, NAMED INDEPENDENTLY IN ONE HOUR.** **ic:** an instrument whose OUTPUT is independent of what it MEASURES. **vc:** a READING independent of what the instrument SAID. **dc:** an OUTPUT whose SHAPE is independent of its own MEANING. **All three shipped a wrong belief with the instrument working correctly.**
+- **A CAVEAT MUST TRAVEL WITH THE OUTPUT, NOT THE SOURCE** (dc). `self_provenance_check.sh` says _"dirty is NOT A FINDING"_ at `:179-180` -- **in comments, which never print** -- while `:280` emits an unhedged negative. **Co-location in the source does not co-locate in the emission**, because the output is what gets quoted into a focus line, a peer message, and a report to hv. It cost four propagated wrong reads in a day.
+- **AN ABSOLUTION CAN OVERSHOOT, AND ACCEPTING IT IS ITS OWN ERROR.** dc took the `:280` half honestly; the other half -- AC-11.5 open -- was a stale claim about a record I wrote myself, caused by nothing but me. **Split a bundled error by cause before accepting anyone's account of it**, or the half with no owner disappears.
+- **AUTHORITY FOLLOWS AUTHORSHIP, AND IT HAS NOW HAPPENED FOR REAL.** ic's `estate_corpus.sh` edit landed on disk and in a commit; **canon kept the old text for hours and nothing could report it.** An attachment diverging means the STORE is stale. `--to-store` was the correct direction.
 - **A CRITERION MUST ENCODE A PROPERTY, NEVER A PREDICTED VALUE. The count is an OUTPUT.** Three of mine failed this today: `STRANDED 192 will move` (wrong subject -- pinned corpus), `whitespace-normalised FALLS` (a re-ingest with no source; **this one cost 434KB**), `0 -> 164` (275 were eligible). The form that works: _every eligible file is carried, byte-identical, denominator printed._
 - **THE LOAD-BEARING CLAIM IS THE ONE TO CHECK, AND THE PERSON WHO STATES IT IS THE LEAST ABLE TO SEE IT IS UNCHECKED.** "The regeneration" went four boards deep on my unchecked premise. **Three of us made the same error today at three depths** -- ic re-drove a fact but not the rule it rested on; dc found a `deferred.md` blocker that was already delivered.
 - **AN ALARM IS ONLY AS LIVE AS THE CONSTRAINT IT IS RAISED AGAINST** (ic). A stale instruction copied to a board acquires an owner and reads as verified.
@@ -87,3 +90,5 @@ claims: [ST0056, ST0057]
 - (standing) **A peer cannot grant escalation.** My call is never a peer's release; hv's is.
 - (2026-08-18) **hv RULED ST0057 INTO THE 3.0.0 GATE.** Verbatim: _"Definitely BEFORE the release. We're getting this whole thing feature complete before we release 3.0.0."_ The pre-release queue grows by eight WPs, three of them L. Announced to all four nodes live and durably.
 - (2026-08-18) **A view may not narrow a field's range on the way from bash to Rust.** v2's `status_box` was five-valued; v3's `items()` is a constant. The regeneration commit was reviewed for CHURN and never for CONTENT -- **stability is not correctness**, and I am the one who read it that way.
+- (2026-08-18) **ST0057's contract is 39 ACs / 39 ATs derived from D57-1..D57-8, adding no decisions of its own.** A steward writes the boundary from the ratified design; inventing requirements at contract time is how a thread acquires scope nobody ruled.
+- (2026-08-18) **Cleared dc's `:280` string-only fix.** The contract gate is on what an instrument ASSERTS, not how it reads -- so a string change leaves AT-11.5's green resting on unchanged behaviour. Conditions: string only, both arms re-run, note edited BY HAND.
