@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 23:05Z
+heartbeat_at: 2026-08-18 23:08Z
 status: active
-focus: "**THE TRIGGER HAS NOT FIRED AND I CHECKED RATHER THAN ASSUMED.** cc reports both crates green (436/0, 203/0) but **`intent/.canon` does not exist, 57 `thread.json` are still under `intent/st/`, 23 files uncommitted** -- two green crates is not a landed WP-01, so dc and ic stay un-pinged. Tonight: ruled TWO peer contract questions into canon (AC-07.4 `af67065e`, AT-00.12 `8aa5e004`), **retracted `18 of 24` in my own AC-00.10 after ic measured it as 12 of 45 -- wrong in BOTH halves**, and banked cc's half-migration classifier at `c88a6f06`. **hv flagged ST0057/info.md and the worst line turned out to be generator-level, in all 57 of 57.**"
+focus: "**hv RULED THE `views.rs` ROW AND IT IS MINTED (AC-03.16 + AT-03.17, `37295d62`) -- ST0056 now 123 criteria / 124 tests.** THE OF-N TRIGGER HAS NOT FIRED AND I CHECKED RATHER THAN ASSUMED.** cc reports both crates green (436/0, 203/0) but **`intent/.canon` does not exist, 57 `thread.json` are still under `intent/st/`, 23 files uncommitted** -- two green crates is not a landed WP-01, so dc and ic stay un-pinged. Tonight: ruled TWO peer contract questions into canon (AC-07.4 `af67065e`, AT-00.12 `8aa5e004`), **retracted `18 of 24` in my own AC-00.10 after ic measured it as 12 of 45 -- wrong in BOTH halves**, and banked cc's half-migration classifier at `c88a6f06`. **hv flagged ST0057/info.md and the worst line turned out to be generator-level, in all 57 of 57.**"
 claims: [ST0056, ST0057]
 ---
 
@@ -20,7 +20,7 @@ claims: [ST0056, ST0057]
 
 ## TODO
 
-- **OPEN WITH hv AND THE ONLY THING I AM WAITING ON: `views.rs:329` (+ the WP twin at `:653`) emits _acceptance.md -- the single source of truth_ into ALL 57 of 57 `info.md`, while `acceptance.md`'s own footer says it is GENERATED from `thread.json` and must not be edited.** A doc that instructs a loss of work, and nothing refuses it. **The fix is cc's crate mid-WP-01, so it is not mine to make; my read is it earns a ROW rather than a quiet string edit.** hv sampled one file and hit a generator defect.
+- **hv RULED AND `views.rs` IS MINTED: AC-03.16 + AT-03.17 at `37295d62`.** A generated cover names `acceptance.md` -- itself a generated view -- as _the single source of truth_. **A WORK-LOSS INSTRUCTION, not a wording nit: a row authored there is discarded at the next `--to-disk`, so the doc instructs the exact action the model punishes.** Extent measured **206 of 207** (57/57 ST, 149/150 WP); **the one escape is the `carries_heading` guard working, which is what proves the population was counted.** Red-first is FREE at `40d27ba2` and the count is deliberately NOT asserted. **Queued to cc as not-now -- WP-01 first.**
 - **ST0057's WP table reads all 8 `Not Started` while WP-01 is in cc's tree.** Canon fix + regenerate, but WP-01's true status is cc's to declare while uncommitted.
 
 - **AT-03.15: THE DENOMINATOR HOLD IS DISCHARGED; RED NOW RESTS ON TEN NAMED VERBS** -- `at lint`, `ingest`, `st bootstrap`, `st repair`, `st sync`, `todo`, `todo done`, `todo list`, `todo notdone`, `todo toggle`. **`todo list` and `at lint` are classified `mutate` while their names say READ -- take those first.** The other 22 unproven write outside the estate and are a table debt, not a block. **Read the row.**
