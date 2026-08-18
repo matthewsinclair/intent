@@ -90,10 +90,20 @@
 #      and a gate reading two counters cannot see it. Require compared plus NOT
 #      compared to equal the census total, and require every NOT-compared kind
 #      to name the arm that covers it.
-#   3. the SUBJECT. A verdict describes whatever `conservation: SUBJECT` names,
-#      and an unpinned run describes a DIRECTORY that peers are still writing
-#      to. A deletion authorised by a measurement must be applied to a tree
-#      DEMONSTRATED identical to the one measured, never assumed to be.
+#   3. the SUBJECT, checked at the MOMENT OF THE ACT rather than over a window
+#      (ic sharpened this, 2026-08-18, and the sharpening is what makes it
+#      satisfiable). A verdict describes whatever `conservation: SUBJECT`
+#      names, and an unpinned run describes a DIRECTORY that peers are still
+#      writing to -- so refuse an unpinned subject flat; the tool already says
+#      `unpinned` in its own voice. My first phrasing asked for a tree
+#      "demonstrated identical" to the measured one, which reads as a property
+#      of a time WINDOW, and in a repo with four live writers NO window is ever
+#      demonstrably quiet -- unsatisfiable in precisely the situation it exists
+#      for. Instead: digest the measured tree, RE-COMPUTE that digest
+#      immediately before the irreversible step, and refuse on any difference.
+#      Same guarantee, and it asks the deleter to prove the tree it is deleting
+#      from is the tree that was measured, rather than asking anyone to prove a
+#      quiet interval.
 #   4. a DEMONSTRATED RED on a subject of the same shape. ic's control above is
 #      that demonstration for this tool; cite it rather than re-argue it.
 #
