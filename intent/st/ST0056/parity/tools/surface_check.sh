@@ -80,12 +80,35 @@ DISPATCH_TABLE="$TABLE"
 #
 # The SOURCE half is checked unconditionally, because a binary older than
 # `spine.rs` is stale no matter which table it is being asked about.
-STALE_INPUTS="$REPO_ROOT/native/rust/crates/intent-cli/src"
-[ "$TABLE" = "$DEFAULT_TABLE" ] && STALE_INPUTS="$TABLE $STALE_INPUTS"
+# THE REACH WAS ONE CRATE OF TWO, AND THE MISSING ONE IS WHERE THE DAMAGE LIVES.
+# `intent-cli` builds this binary and depends on `intentsvcs` BY PATH, so a change
+# in either crate makes the binary stale -- but this list named only the first.
+# MEASURED against a binary older than every input: the check reported **8** stale
+# inputs where **112** existed, and the 104 it could not see included all 23 files
+# of `intentsvcs/src`, among them `project.rs`, whose line 482 (`intent_dir().join("st")`)
+# IS the canon path. On 2026-08-18 a build carrying a since-reverted change to that
+# very line emptied two views across the estate at rc=0, and this check was recorded
+# estate-wide as "the one instrument that would have caught it". IT WOULD NOT HAVE.
+# It refused that evening for an UNRELATED reason -- `render.rs`, in the crate it
+# does watch, was newer from other work -- so the refusal everyone read as vigilance
+# was a coincidence of which crate happened to be dirty. Had only `project.rs` been
+# reverted, this file would have run and printed GREEN, correctly: the wiping build's
+# SURFACE was perfect. Flags and arity were never wrong.
+#
+# So widening the reach is necessary and is NOT sufficient, which is why the pass
+# line below states what staleness was checked against. Staleness only ever REFUSES;
+# it cannot detect. No surface check can catch "resolves canon at the wrong path",
+# because that is behaviour over DATA and this file measures SHAPE. A green here has
+# never meant the binary is correct, only that it agrees with the table -- and the
+# gap between those two is exactly the size of an emptied estate.
+STALE_INPUTS="$REPO_ROOT/native/rust/crates/intent-cli/src $REPO_ROOT/native/rust/crates/intentsvcs/src"
+STALE_TABLE_NOTE=" (table excluded: overridden)"
+[ "$TABLE" = "$DEFAULT_TABLE" ] && { STALE_INPUTS="$TABLE $STALE_INPUTS"; STALE_TABLE_NOTE=" + the dispatch table"; }
 # shellcheck disable=SC2086  # STALE_INPUTS is a deliberate path list
 STALE="$(find $STALE_INPUTS -newer "$BIN" -print 2>/dev/null)"
 if [ -n "$STALE" ]; then
   die "the binary at $BIN is OLDER than $(printf '%s\n' "$STALE" | wc -l | tr -d ' ') of its own inputs -- rebuild it first (\`int build cli\`, ~30s).
+  reach: intent-cli/src + intentsvcs/src${STALE_TABLE_NOTE}. NOT the intentd crate (a different binary) and not any tests/ tree (inputs to the test binary, not to this one).
   newest offenders: $(printf '%s\n' "$STALE" | sed "s|$REPO_ROOT/||" | head -3 | tr '\n' ' ')
   Refusing rather than reporting: a stale binary yields a plausible report of findings that are already fixed, which is worse than no report because it reads like a regression."
 fi
@@ -400,6 +423,10 @@ fi
 
 if [ -z "$VIOL" ]; then
   echo "surface: the binary and the table agree on every flag of every reachable command."
+  # THE REACH OF THE GREEN, SAID OUT LOUD, because this line has already been read
+  # estate-wide as broader than it is. Agreement is about SHAPE; it is not a claim
+  # that the binary behaves correctly, and it never was.
+  echo "  reach: SHAPE only -- flags, arity, reachability. This says NOTHING about behaviour over data (which canon path is resolved, what a view renders). The binary was checked against intent-cli/src + intentsvcs/src for staleness; a binary newer than both can still be built from source that no longer exists."
   exit 0
 fi
 
