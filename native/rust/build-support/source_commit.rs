@@ -37,16 +37,44 @@
 // beside it in a second field, so a consumer that forgets to read the second
 // field cannot silently treat a dirty build as clean.
 //
-// AND THERE IS DELIBERATELY NO `cargo:rerun-if-changed` ON `.git/HEAD`. In a
-// clone five sessions commit into, HEAD moves when ANYONE commits ANYTHING, so
-// that trigger does not mean "the code changed", it means "a peer committed".
+// AND THERE IS DELIBERATELY NO `cargo:rerun-if-changed` ON `.git/HEAD`.
 // Emitting NO line is not "no trigger": it restores cargo's default of
 // re-running this script when any file in the PACKAGE changes, which is the
-// trigger that tracks the code. MEASURED COST, so it is a known limitation
-// rather than a discovery waiting to happen: a HEAD move outside the package
-// leaves the embed stale -- witnessed with the binary still naming `b11ca6ac`
-// at HEAD `010b2bbf`, and updating on a package-file touch. That staleness is
-// what `int macos publish` refuses on, so it fails closed.
+// trigger that tracks the code. **Emitting ANY `rerun-if-changed` REPLACES
+// that default**, so a line naming `.git/HEAD` would swap a trigger that
+// follows the code for one that does not follow it at all -- the embed would
+// then go stale on CODE changes, permanently and silently. The naive fix is
+// strictly worse than the gap, and worse in the direction nothing reports.
+//
+// **THE ORIGINAL REASON RECORDED HERE WAS FACTUALLY WRONG AND IS CORRECTED
+// RATHER THAN DELETED** (cc 2026-08-18, measured after vc refused a reversal
+// that cited it). It said "in a clone five sessions commit into, HEAD moves
+// when ANYONE commits ANYTHING". **It does not.** `.git/HEAD` holds
+// `ref: refs/heads/main` and is rewritten on a BRANCH SWITCH, not on a commit:
+// measured in this repo with `.git/HEAD` at an mtime six months old while
+// `.git/refs/heads/main` and `.git/logs/HEAD` had both moved seconds earlier
+// with the commit just landed. So the rebuild storm this paragraph priced
+// against would never have occurred -- **the conclusion was right and one of
+// its two reasons was not**, which is the more dangerous shape, because the
+// wrong reason is the one that makes the fix look obviously correct.
+//
+// If freshness is ever wanted the expressible form is BOTH lines --
+// `rerun-if-changed=src` plus `.git/logs/HEAD`, the file that actually moves
+// on a commit -- and that does cost a build-script re-run per peer commit,
+// which is the cost originally priced, just against the wrong file.
+//
+// MEASURED COST, so it is a known limitation rather than a discovery waiting
+// to happen: a HEAD move outside the package leaves the embed stale --
+// witnessed with the binary still naming `b11ca6ac` at HEAD `010b2bbf`, and
+// again on 2026-08-18 naming `dirty-4ef953db` at HEAD `c83f624c`. That
+// staleness is what `int macos publish` refuses on, so it fails closed.
+//
+// AND STALENESS IS THE SMALLER HALF (dc). Even with the embed always fresh,
+// the marker is `dirty-<HEAD>`, so two behaviourally different dirty builds at
+// one commit share one value -- it is not a wrong answer, it is a right answer
+// to a different question. **The marker names a commit; it was never an
+// identity**, and no trigger makes it one. A paired reading needs a content
+// hash (vc, AC-10.11), which is where that harm is actually closed.
 //
 // GIT ABSENT IS `unknown`, NOT A GUESS. A source tarball has no `.git`, and a
 // determinate "this artefact cannot say" is a fact about the build; a
