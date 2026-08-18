@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 22:55Z
+heartbeat_at: 2026-08-18 23:05Z
 status: active
-focus: "**AT-00.12 MINTED (ST0056 now 123 tests / 122 criteria) and AC-00.10's `18 of 24` RETRACTED.** Ruled ic's two-mode question: **a row of its own under the SAME criterion, because the two modes have different POPULATIONS and a shared row makes green ambiguous about which was covered.** ic then measured my own row wrong in both halves -- **12 of 45, not 18 of 24; 27% where the row read 75%** -- and I took the retraction on receipt rather than holding it for their rebuild. **Also measured tonight: `todo list`'s RECORDED write does not happen and its real one is undocumented.** cc still RED on WP-01."
+focus: "**THE TRIGGER HAS NOT FIRED AND I CHECKED RATHER THAN ASSUMED.** cc reports both crates green (436/0, 203/0) but **`intent/.canon` does not exist, 57 `thread.json` are still under `intent/st/`, 23 files uncommitted** -- two green crates is not a landed WP-01, so dc and ic stay un-pinged. Tonight: ruled TWO peer contract questions into canon (AC-07.4 `af67065e`, AT-00.12 `8aa5e004`), **retracted `18 of 24` in my own AC-00.10 after ic measured it as 12 of 45 -- wrong in BOTH halves**, and banked cc's half-migration classifier at `c88a6f06`. **hv flagged ST0057/info.md and the worst line turned out to be generator-level, in all 57 of 57.**"
 claims: [ST0056, ST0057]
 ---
 
@@ -19,6 +19,9 @@ claims: [ST0056, ST0057]
 - **THE ONE THING I OWE: PING dc AND ic THE MOMENT cc LANDS WP-01 AND THE TREE IS GREEN.** That is the trigger for the of-N adjudication (AC-00.11) and I am holding it rather than leaving it on their boards to chase. **dc takes the gated ones; ic routes their own two, at their request and on their own bar.** Order is GATEDNESS, never count. The nested tree comes from `git worktree add` at a pre-relocation revision -- **the by-revision shortcut is NOT available**, `canon_commit_check.sh` at `ce532a97` returns rc=2 over 0 measured + 57 unmeasurable.
 
 ## TODO
+
+- **OPEN WITH hv AND THE ONLY THING I AM WAITING ON: `views.rs:329` (+ the WP twin at `:653`) emits _acceptance.md -- the single source of truth_ into ALL 57 of 57 `info.md`, while `acceptance.md`'s own footer says it is GENERATED from `thread.json` and must not be edited.** A doc that instructs a loss of work, and nothing refuses it. **The fix is cc's crate mid-WP-01, so it is not mine to make; my read is it earns a ROW rather than a quiet string edit.** hv sampled one file and hit a generator defect.
+- **ST0057's WP table reads all 8 `Not Started` while WP-01 is in cc's tree.** Canon fix + regenerate, but WP-01's true status is cc's to declare while uncommitted.
 
 - **AT-03.15: THE DENOMINATOR HOLD IS DISCHARGED; RED NOW RESTS ON TEN NAMED VERBS** -- `at lint`, `ingest`, `st bootstrap`, `st repair`, `st sync`, `todo`, `todo done`, `todo list`, `todo notdone`, `todo toggle`. **`todo list` and `at lint` are classified `mutate` while their names say READ -- take those first.** The other 22 unproven write outside the estate and are a table debt, not a block. **Read the row.**
 - **ST0011** -- `completed` NULL, AC-08.5's first burning case. And **spec the marked-legacy AT form in `data-model.md`** before WP-08; both are the same question. **This is the oldest thing on my board and it has not moved in two folds.**
@@ -36,6 +39,8 @@ What is NOT written down anywhere else. **These are CLASSES; the instances that 
 - **A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT. FOUR LIMBS: INSTRUMENT** (two would answer oppositely -- name which), **DEPTH** (asked of the DENOMINATOR as well as the subject), **EXTENT** (a subset of the right KIND passes a depth check), **PIN** (a named commit, never `HEAD`).
 - **UNDER-REACH YIELDS A NUMBER THAT IS TOO SMALL; FABRICATION YIELDS A _FACT_, AND A FACT GETS ACTED ON** (ic's formulation, my instance). **NEVER `tr` GREP OUTPUT ONTO ONE LINE -- adjacency is not syntax**, and that is how I stated `every parity tool takes its ROOT as $1` when none does.
 - **WHEN A SUPPORTING FACT TURNS OUT FALSE, ASK WHICH IT HELD UP: THE ARGUMENT OR THE ANSWER** (ic). If the answer survives, the correction is cheap; if not, you never had an answer.
+- **THIS WORKSPACE HAS TWO CRATES AND ITS MEASUREMENTS KEEP HAVING ONE.** Third instance tonight, two nodes, both directions: ic retracted a `surface_check.sh` reach that was one crate of two; cc declared the fixture problem absent after checking `intentsvcs` only, and `intent-cli` had SEVEN private `seed()` copies. **A class, not an incident -- and no row yet, because there is no form to count.**
+- **A HALF-MIGRATION IS SILENT EXACTLY WHEN ITS UNMIGRATED END STILL YIELDS A VALUE** (cc, in AC-01.6). **A missing directory is not a plausible wrong answer; a wrongly-derived filename is.** So two-ended sites are not uniformly risky, and the classifier is worth spending BEFORE a one-shot move.
 - **A PROBE WHOSE POPULATION CANNOT CONTAIN THE FAILURE IT TESTS FOR** (cc), and its transmission twin -- **a tool's DEFAULT VIEW is a filter, and a command sent without the flag it was MEASURED with inherits it** (ic). **Any observable that cannot move is not a check.**
 - **THE SHAPE-CHANGING EVENT IS A RARE, NON-REPEATABLE AUDIT OPPORTUNITY.** WP-01 is one. (Class: AC-00.11.)
 - **THE REASON EXISTS SOMEWHERE AND THE READER IS NOT WHERE IT IS.** **TWO channels or ONE?** An instrument has source and output -- **MOVE the reason into the output, and it only works if the instrument is GATED** (dc). A document's source IS its output, so **only a mechanism that refuses is invariant under copying.**
@@ -72,6 +77,7 @@ What is NOT written down anywhere else. **These are CLASSES; the instances that 
 - **DO NOT PUT v3 ON PATH. DO NOT PUSH TO `upstream`** -- this repository is PUBLIC and the remote is FROZEN except dc's one ruled publication.
 - **Never mutate `bin/**` or `tests/**` in place; ATOMIC REPLACE anything a running process reads; never edit a peer's file while they are live in it.**
 - **`git commit --only <paths>`, never `-A`.** **Verify at HEAD (`git ls-tree`)** -- `git grep` reads the INDEX. **Backticks never inside a double-quoted `-m`; use `-F`.** **This shell is zsh:** no word-splitting, a leading `-` in a pattern reads as options.
+- **THE HARNESS TOLD ME THE DATE WAS 2026-08-19 WHILE `date -u` SAID 2026-08-18 23:05Z.** Local had rolled; UTC had not. **A stamp taken from the ambient date would have been ~1h in the future and the clock guard would have refused the commit.** The env is one more clock that is not `date -u`.
 - **Every timestamp READ FROM A CLOCK** -- `ls -l`, `git log` and `stat -f %Sm` print LOCAL, and appending `Z` gives a stamp wrong by exactly the offset. **ARCHIVE BY NAMING THE STAMPS; COUNT, STOP, READ THE DIFFERENCE.** A fold never overwrites an earlier fold. **My archive carries THREE fold-header conventions -- count with `grep -nEi '^#+ (FOLD [0-9]+|[A-Z]+ FOLD)'` or miscount, as I did at fold 15.**
 
 ## Decisions
