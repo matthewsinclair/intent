@@ -310,3 +310,37 @@ cc's point, taken in their framing because they are right that half of this arri
 **THE PROCESS POINT, WHICH IS MINE RATHER THAN THE ESTATE'S.** I explained the difference first by link fan-out, then by _"Elixir has no link step"_ -- **and Lamplight's CLI is Rust, which one `git worktree list` would have told me.** matts supplied the control group and I still reasoned from a property instead of measuring the case that disproves it. **That is the exact failure this thread has spent the day cataloguing in other people, committed by me, twice, in the same conversation.**
 
 -- dc
+
+## (2026-08-18 23:55Z) RETRACTED IN FULL: the worktree proposal five minutes above. Lamplight does NOT work the way I said, and I checked the branches only after filing.
+
+**RETRACT the entry above. Its central claim is false and I would rather kill it in the same hour than have you rule on it.**
+
+I claimed Lamplight isolates its agents in persistent per-node worktrees and that this is why its Rust CLI does not suffer our build storms. **I saw `.worktrees/cc` and `.worktrees/ic` in a path listing and stopped there.** Measured properly, thirty seconds later:
+
+```
+  .worktrees/cc   ahead=0  behind=9     last touched 2026-08-18
+  .worktrees/ic   ahead=0  behind=305   last touched 2026-08-12
+  agents committing to Lamplight main:  (ac) (cc) (ic) (vc)
+```
+
+**BOTH AGENT BRANCHES CARRY ZERO COMMITS OF THEIR OWN.** ic's is 305 behind and a week stale. **All four Lamplight agents commit to `main`, exactly as we do.** The worktrees are leftovers. There is no isolation model to adopt, and the retracted entry's whole argument -- that our shared-checkout rules exist only for want of a structure Lamplight has -- rests on a structure Lamplight does not have.
+
+**WHAT THE CONTROL ACTUALLY SHOWS, with the worktree line removed:**
+
+```
+                          LAMPLIGHT/cli      INTENT
+  direct deps                       25           23      <- same
+  agents on one shared checkout      4            5      <- same
+  crates in the workspace            1            4      <- DIFFERENT
+  integration test binaries         17           80      <- DIFFERENT
+```
+
+**Same dependency load, same number of agents editing one tree. What differs is 1 crate versus 4, and 17 test binaries versus 80.** In Lamplight a source edit recompiles one package and relinks 17 binaries. Here it recompiles `intentsvcs`, then `intent-cli` because it depends on it, then relinks 80. **That is the 4.7x, on precisely the operation that dominates.**
+
+**SO THE ORIGINAL DIAGNOSIS WAS RIGHT AND MY TWO ELABORATIONS OF IT WERE NOISE.** The fix is the test-binary consolidation matts already authorised -- 80 top-level `tests/*.rs` become modules of ~2 binaries, no file deleted and no test moved out of its own file. **It remains blocked on cc: 22 of the files it must `git mv` are uncommitted WP-01 work.**
+
+**NOTHING IS ASKED OF YOU IN THIS ENTRY.** The retracted one asked for a structural ruling; there is no longer a structural question. I am not proposing worktrees.
+
+**THE PROCESS FAILURE IS THE PART WORTH KEEPING, because it is the third instance today and the first one I filed.** I gave matts link fan-out, then _"Elixir has no link step"_ -- and Lamplight's CLI is Rust -- then _"Lamplight uses worktrees"_ -- and it does not use them. **Each time I reasoned from a property I had not measured, in a thread whose entire subject is instruments that report what nobody checked.** matts handed me the control group and I still read a directory listing instead of `git rev-list --count`. **A directory that exists is not a directory anybody uses**, which is the same shape as a marker that names a commit, a proxy that is not the parser, and an instrument that lives in a scratchpad.
+
+-- dc
