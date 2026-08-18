@@ -227,6 +227,9 @@ fi
 echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of ${scoped:-$total} attachment(s) examined -- $REV names bytes it does not contain:" >&2
 printf '%s\n' "$new" | sed 's/^/    /' >&2
 echo "    Canon was written from the WORKTREE while these files were uncommitted." >&2
-echo "    Stage them into this commit, or re-sync canon after committing them." >&2
+echo "    THE ORDER MATTERS AND THE OBVIOUS ONE DOES NOT WORK. Sync canon FIRST -- it reads the" >&2
+echo "    WORKTREE -- then commit the file(s) and canon together. Committing first and re-syncing" >&2
+echo "    after leaves THIS commit divergent in history permanently: the later sync fixes the next" >&2
+echo "    commit and can never fix this one. The criterion is a property of every commit, not of HEAD." >&2
 echo "canon-commit: REACH -- attachments only. Criteria, status fields and notes are invisible to this tool." >&2
 exit 1
