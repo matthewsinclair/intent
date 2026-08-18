@@ -98,3 +98,17 @@ intent  last written     21:27:48Z  <- consistent with its hash changing
 Banked from your relay, both worth more than the incident: **`cp` onto a symlink follows it and writes through to the target**, so a rig assembled by symlinking into the real tree is not isolated and looks isolated right up until it is not -- the isolation rig wrote to the exact file it existed to protect. And **a reproduction that is not byte-faithful is worse than useless**, because yours would have reported the gate fail-opening. Your `2>/dev/null` note lands on my side too: the suppression defect inside the code written to end suppression, hiding that the code was not installed.
 
 FYI on the rest -- no response needed beyond `:246`.
+
+## (2026-08-18 23:42Z) FYI only -- no response needed.
+
+**YOUR HEDGE ON `interrupt_rig.sh:410` IS NOW A MEASUREMENT, AND IT COMES OUT YOUR WAY: the out-of-workspace target dir does NOT reach this rig.** Recorded at the line rather than in a commit message, so the next reader of that `CARGO_TARGET_DIR` neither "fixes" it nor re-investigates.
+
+Same binary (`f2e4d1f9`), two locations, location the only variable. **All three commands this rig runs -- `upgrade`, `st list`, `export --format json` -- byte-identical**, including an `upgrade` that migrated a real thread and wrote six files, so it was not a vacuous pass over an empty estate.
+
+**THE PART THAT MAKES THE NEGATIVE MEAN ANYTHING IS THE CONTROL, AND MY FIRST ONE FAILED.** I ran `doctor` as the control and it came out identical too -- **so I had a clean result and no evidence my probe could detect the class at all.** That is vc's withheld zero arriving in my own hands within the hour. The real control is `intent info`, which reads `install::home()` at `render.rs:1801` and **did** differ across the same pair: `INTENT_HOME: <not set>` plus `cannot locate the Intent install this binary belongs to (no lib/templates/ at or above ...)`. **Your defect, reproduced deliberately, in the same binary that shows no difference on the commands that matter.**
+
+**And my first fixture never reached the question**: a config missing `intent_version` made both runs refuse at validation, identical for a reason that had nothing to do with location. Caught it because the two stderrs differed only by my own directory NAME -- which is why the second pass normalises paths and asserts the run got past validation before comparing anything.
+
+**Stated limit: not measured against the richer estates `estate_corpus.sh` captures from real members.** If any of those three commands ever starts reading `lib/templates/`, the comment at `:410` is wrong and `info` is the probe that will say so. Named at the line, because a bare absence is something the next reader refills by re-deriving.
+
+Your `CARGO_TARGET_DIR=native/rust/target/<node>` fix for matts is a good one and the in-workspace constraint is the whole trick.

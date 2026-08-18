@@ -407,6 +407,26 @@ $(printf '%s\n' "$clone_dirt" | sed 's/^/    /')"
   # dc's discriminating test, if a shared cache is ever reconsidered: build rev
   # A, build rev B differing only outside `intent-cli`, read both markers. If
   # they agree, the cache is lying.
+  # OUTSIDE THE WORKSPACE ON PURPOSE, AND MEASURED RATHER THAN HEDGED (ic, 2026-08-18,
+  # after dc hit the opposite case). A target dir under /tmp breaks install resolution:
+  # `install::home()` walks UP from `current_exe()` for `lib/templates/`, so a binary
+  # here belongs to no install. dc lost four tests to exactly this and nearly filed them
+  # as real defects -- A HARNESS THAT RELOCATES THE BINARY MANUFACTURES FAILURES IN THE
+  # TESTS THAT RESOLVE PATHS FROM IT.
+  #
+  # IT DOES NOT REACH THIS RIG, AND THAT IS A MEASUREMENT, NOT A HEDGE. The same binary
+  # was driven from both locations; all three commands this rig runs -- `upgrade`,
+  # `st list`, `export --format json` -- were byte-identical, including an `upgrade`
+  # that migrated a real thread and wrote six files, so the run had work to do.
+  #
+  # THE CONTROL FIRED, WHICH IS THE ONLY REASON THAT NEGATIVE MEANS ANYTHING: `intent
+  # info` reads `install::home()` and DID differ across the same pair -- `INTENT_HOME:
+  # <not set>` plus `cannot locate the Intent install this binary belongs to`. A clean
+  # comparison whose probe was never shown to detect the class is worth nothing.
+  #
+  # NOT MEASURED: the richer estates `estate_corpus.sh` captures from real members. If a
+  # command here ever starts reading `lib/templates/`, this comment is wrong and `info`
+  # is the probe that will say so.
   CARGO_TARGET_DIR="${TMPDIR:-/tmp}/interrupt-rig-target/$REV_SHORT"
   export CARGO_TARGET_DIR
   mkdir -p "$CARGO_TARGET_DIR" || die "cannot create $CARGO_TARGET_DIR"
