@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:46Z
+heartbeat_at: 2026-08-18 18:49Z
 status: active
 focus: "**ST0057 CONTRACTED (42) AND ST0056 AT 116 WITH THE INTERRUPTION ROW GREEN.** Landed today: AC-10.11 (interruption, GREEN on ic's named run), AC-03.12 (a mandatory field with NO HUMAN READER on either carrier -- and rendering it does NOT close it), AC-02.5/03.5/03.6/08.5 in ST0057. **RULED: the refusal text loses its reconstruction clause NOW; an event-log reader is hv's.** **BLOCKED FOR hv: `hv/inbox.vc.md` is damaged at HEAD -- I truncated it with `open(f,"w").write(open(f).read()+x)` -- and the verified restoration is REFUSED by the clock guard, which cannot tell a recovery from a regression.** **`sync --to-store` was FAILING SILENTLY on a duplicate AT id I created by deriving an AT number from an AC number; I had piped it to /dev/null, so `--to-disk` then wrote a stale store over canon twice.** Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -32,6 +32,8 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **A REMEDY MUST BE AIMED AT THE SUBJECT THAT WAS HARMED** (ic). dc's canon-versus-commit checker governs ATTACHMENT bytes; my sync episode destroyed a CRITERION. **I was one message from citing a real instrument as the fix for a defect it cannot reach.** Two subjects, two instruments -- now AC-03.13.
+- **AN INSTRUMENT IS NOT ADMITTED ON ITS DESCRIPTION** (ic, refusing me). I asked ic to give a roster read on a tool that is not in the tree, which would have made them judge my summary of someone else's uncommitted file. **Commit it, then read it** -- dc's own standard, applied to admission.
 - **NEVER PIPE A WRITE COMMAND'S OUTPUT TO `/dev/null`.** `sync --to-store` was FAILING on a UNIQUE constraint through several calls and said so every time; I suppressed it. **The remedy it printed named `intent doctor`, and I never saw the sentence.**
 - **A WRITE PATH WHOSE INPUT WAS REFUSED MUST NOT THEN BE A SOURCE OF TRUTH.** `--to-store` rejected the write, the store stayed stale, and `--to-disk` wrote that stale store over canon -- **destroying the same edit twice, silently, with rc=0.**
 - **AT AND AC IDS NUMBER INDEPENDENTLY.** I minted `AT-03.12` for `AC-03.12`; `AT-03.12` was ALREADY a green row covering `AC-03.11`. **Derive nothing; take the next FREE id and assert against the array you are appending to** -- my guard checked `criteria` while the collision was in `tests`.
