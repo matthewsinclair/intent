@@ -152,12 +152,21 @@ $STALE_INPUTS
 EOF
 STALE_TABLE_NOTE=" (table excluded: overridden)"
 [ "$TABLE" = "$DEFAULT_TABLE" ] && { STALE_INPUTS="$TABLE $STALE_INPUTS"; STALE_TABLE_NOTE=" + the dispatch table"; }
-# NO `-type f`, DELIBERATELY, AND THIS NOTE IS HERE RATHER THAN 59 LINES UP BECAUSE
-# THAT IS WHERE THE EDIT HAPPENS. Deleting a source file moves the containing
-# DIRECTORY's mtime and no file's, so the directory node is the only input that
-# records a deletion -- `-type f` here reports 0 for a deleted `.rs` (measured on a
-# fixture, twice, by two nodes) and blinds this guard to exactly the change it exists
-# to catch. **It reads like an untidy count and it is the protection.**
+# THE MISSING `-type f` IS THE PROTECTION. THAT IS WHAT THIS NOTE IS FOR; everything
+# below is detail. Deleting a source file moves the containing DIRECTORY's mtime and
+# no file's, so the directory node is the ONLY input that records a deletion -- and a
+# deleted `.rs` certainly makes this binary stale. `-type f` reports 0 for exactly
+# that case (measured on a fixture, twice, by two nodes) and blinds this guard to the
+# change it exists to catch. It reads like an untidy count. It is the protection.
+#
+# STATED AS THE REASON RATHER THAN AS A CONSEQUENCE, DELIBERATELY, because proximity
+# alone has been measured INSUFFICIENT. `critic_proxy_is_simple` in critic_runner.sh
+# carries its injection boundary in a comment DIRECTLY above the function and it was
+# read as a capability ceiling anyway -- because that block's opening sentence frames
+# the function as "what the headless runner can faithfully execute", and the security
+# purpose arrives as a trailing clause of the fourth bullet. **A first sentence
+# assigns the category, and anything after it is read as detail WITHIN that category.**
+# So the first line here names the purpose, not the mechanism.
 #
 # The SC2086 line below annotates the word-splitting only. Do not read one annotated
 # oddity as a statement that it is the only deliberate one.
