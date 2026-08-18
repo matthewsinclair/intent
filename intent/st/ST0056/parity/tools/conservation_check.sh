@@ -57,6 +57,51 @@
 # and AC-10.8 already says the out-of-model set must be NAMED in the output
 # rather than silently absent. A migrator that names nothing gets every
 # unowned file reported UNACCOUNTED, which is the correct and loud answer.
+#
+# HOW TO GATE ON THIS TOOL, AND IT IS NOT ON THE COUNTERS (ic, 2026-08-18,
+# DRIVEN on baize at `a519398d` -- real capture, real `intent upgrade`, this
+# script at HEAD; I verified the three runs off their trees rather than took
+# the numbers). I wrote the deletion precondition as "LOST-PROSE and
+# UNACCOUNTED at ZERO" and THAT PHRASING IS WRONG. Both counters are
+# independently zeroable while the estate is not conserved, and neither attack
+# needs a bug in this file:
+#
+#   strip every PROSE row from the census   ->  LOST-PROSE 33 -> 0, ALTERED 103 -> 0
+#   pass the 135 unowned paths --out-of-model ->  UNACCOUNTED 135 -> 0
+#
+# The second is this tool's DESIGNED behaviour, stated in the paragraph above.
+# A gate phrased on that counter re-admits exactly the denominator-certification
+# the flag exists to refuse -- through the gate's wording instead of the code.
+#
+# NEITHER ATTACK PRODUCED A GREEN, and that is the half worth keeping. Emptying
+# the prose population made this tool LOUDER, not quieter: 522 findings -> 789,
+# because the reverse arm rose ADDED 0 -> 403 and caught in C2 precisely what
+# C1 had lost the ability to see. The out-of-model run held at exit 1 / 387.
+# The two-directional design is what defeats the attack; a forward-only check
+# would have returned a clean LOST-PROSE 0 with nothing else moving.
+#
+# SO GATE ON THE VERDICT AND ITS SCOPE, NEVER ON A COUNTER:
+#
+#   1. exit 0 AND a printed `conservation: 0 finding(s)` line. The ABSENCE of
+#      that line is a REFUSAL, not a zero. Read the line; never parse a count
+#      out of output that was never produced.
+#   2. the printed denominator. `compared 700 of 1211` against `compared 0 of 0`
+#      is the entire difference between the control and the emptied population,
+#      and a gate reading two counters cannot see it. Require compared plus NOT
+#      compared to equal the census total, and require every NOT-compared kind
+#      to name the arm that covers it.
+#   3. the SUBJECT. A verdict describes whatever `conservation: SUBJECT` names,
+#      and an unpinned run describes a DIRECTORY that peers are still writing
+#      to. A deletion authorised by a measurement must be applied to a tree
+#      DEMONSTRATED identical to the one measured, never assumed to be.
+#   4. a DEMONSTRATED RED on a subject of the same shape. ic's control above is
+#      that demonstration for this tool; cite it rather than re-argue it.
+#
+# AND `LOST-PROSE 0` CARRIES NO DENOMINATOR EVEN WHEN IT IS HONEST. On a
+# perfect run this tool is silent about 511 of 1211 sections -- the criterion
+# and test kinds it declares uncompared, identity covered by LOST-ac/LOST-at.
+# It discloses that inline, correctly. A gate phrase reading "LOST-PROSE 0"
+# reads as 1211 when it means 700. Scope in a denominator, not an adjective.
 
 set -uo pipefail
 
