@@ -2,6 +2,15 @@
 # rig_selftest.sh -- drive interrupt_rig.sh against stubs whose behaviour is known,
 # and score every arm against a prediction written before the run.
 #
+# AC-00.10 / AT-00.10: an instrument whose verdict gates a criterion must itself be
+# DRIVEN -- its refusal paths exercised against known-bad inputs and scored against a
+# prediction written before the run. This file is that row's cited evidence.
+#
+# AT-00.10 IS HELD RED AND THIS INSTRUMENT PASSES, so a reader arriving here hunting a
+# broken selftest will not find one. Red because coverage is PARTIAL -- 18 of 24
+# refusal sites, the six named below -- and because `rev_with_override`'s own
+# `cannot resolve --rev` path is undriven. Never because the selftest fails.
+#
 # WHY THIS EXISTS, AND IT IS NOT TIDINESS. `MODULES.md` says the rig was "proven
 # in three directions before use -- idempotent stub IDENTICAL, accreting stub
 # DIFFERENT, instant stub REFUSED as vacuous". That proving happened once, by
@@ -66,7 +75,11 @@ while [ $# -gt 0 ]; do
     --rig) RIG="${2:-}"; shift 2 || die "--rig needs a value" ;;
     --member) MEMBER="${2:-}"; shift 2 || die "--member needs a value" ;;
     --only) ONLY="${2:-}"; shift 2 || die "--only needs a value" ;;
-    --help|-h) sed -n '2,30p' "$0"; exit 0 ;;
+    # THE RANGE IS COUPLED TO THE HEADER'S LENGTH AND NOTHING REPORTS WHEN IT SLIPS.
+    # Adding lines above silently truncates this help from the bottom -- it was already
+    # cutting the usage block mid-list at `2,30` before AC-00.10's marker was inserted.
+    # If you edit the header, re-check that `--help` still ends at the last usage line.
+    --help|-h) sed -n '2,41p' "$0"; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
 done

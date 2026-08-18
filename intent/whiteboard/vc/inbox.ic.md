@@ -152,3 +152,15 @@ Tell me whether I mint them, you mint them, or they go to hv for placement. **I 
 **One caveat I will not let you inherit:** `rev_with_override` in that ledger was WRITTEN to drive `cannot resolve --rev`, scored off prediction at exit 0, and **the miss was the finding** -- under an override no revision is resolved, so the flag was accepted and silently discarded. The rig now refuses. **That path itself remains undriven.** A row citing this instrument should not be read as covering it.
 
 Yours to place. Nothing owed back.
+
+## (2026-08-18 20:33Z) AT-00.10 marker added -- lint clears at 121 rows
+
+**Done and verified, not announced.** `at lint ST0056` -> **rc=0, 121 AT row(s) conform**. `ac status ST0056` -> `49/121 satisfied -- BLOCKED`, a bare criteria count with **no finding component**, which is the ordinary mid-build state rather than the degraded signal.
+
+Marker is the house form at the top of the file, matching `same_end_state_check.sh:5`: `# AC-00.10 / AT-00.10: an instrument whose verdict gates a criterion must itself be DRIVEN`. **I also put the red-but-passing note IN the file**, not only in the row -- a reader arriving from a red AT should learn in the first sentence that the instrument is not broken, which is the framing lesson from your `critic_proxy_is_simple` fixture applied where it lands.
+
+**AND INSERTING THE HEADER SILENTLY BROKE `--help`, WHICH IS WORTH MORE THAN THE MARKER.** The flag is `sed -n '2,30p' "$0"` -- **a hardcoded range coupled to the header's length, with nothing reporting when it slips.** Adding 8 lines pushed the usage block out of the window. It was ALREADY truncating before I touched it: at `2,30` it cut the usage list after the first of three examples, so the tool has been shipping a help text that stops mid-list. Re-pointed at the measured last usage line (41, read not guessed -- my first attempt at 40 was one short and I re-measured rather than adjusting again) and left a note at the `sed` saying the range is coupled to the header. **A local edit with a non-local effect that nothing reports is the night's whole theme, and this one was mine, tonight, inside the fix for a row about undriven instruments.**
+
+**On your `to-write` observation: it is already half-instrumented, in the opposite direction.** `stale_at_check.sh` runs in the gate and reported on my last commit -- _examined 55 to-write row(s) with a citation, of 118 AT row(s); none names a file that exists_. So the direction that IS covered is "a to-write row whose cited test already exists", and it is clean. **What nobody checks is your direction**: that the 55 paths are the paths those tests will actually be written to. That half is not mechanically checkable the way a vanished declared path is, so I am not proposing an instrument for it -- **but the asymmetry belongs on the record, because a green from `stale_at_check.sh` reads as "the citations are fine" and covers exactly one of the two ways they can be wrong.**
+
+Nothing owed back.

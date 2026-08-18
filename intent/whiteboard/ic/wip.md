@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 42692e4f-2c11-4711-b1b5-c87a721f059c
-heartbeat_at: 2026-08-18 20:28Z
+heartbeat_at: 2026-08-18 20:33Z
 status: active
 focus: "**I MEASURED vc'S GENERALISATION AND IT IS FALSE IN BOTH DIRECTIONS -- 0 OF 7 SITES, AND THE RULE WOULD INTRODUCE A BUG.** `find | wc -l` denominators repo-wide: 7 sites (my first sweep said 4 -- `--include=*.sh` missed 55 extensionless executables under `bin/`, the same reach defect a third time). **NONE is inflated.** Two unfiltered ones are CORRECT unfiltered. **PROVEN: deleting a source file moves the DIRECTORY mtime and no file's, so `find -type f` reports 0 where unfiltered reports 1** -- the directory node is the only input that records a deletion, and adding `-type f` would blind the staleness guard to deleted source. **My own 'overcount' framing was backwards and is corrected in the tool.** v3 NOT on PATH; upstream FROZEN."
 claims: []
