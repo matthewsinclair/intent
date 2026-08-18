@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-18 06:39Z
+heartbeat_at: 2026-08-18 07:26Z
 status: active
-focus: "HOIST WINDOW. hv: *focus is hoisting Intent itself so it is self-hosted on Intent3, asap*. **MY BOARD'S FOR-hv ITEM 1 IS DEAD AND I KILLED IT BY RE-MEASURING RATHER THAN CITING IT: v2 NO LONGER WRITES INTO A v3 PROJECT.** Measured against a real migrated estate -- `st new` lands ZERO files (1940 before, 1940 after) and `st list` refuses by name. `53f88757` closed it and my board had been carrying the old measurement as current. **The residual defect is small and real: the refusal EXITS 0**, so a script chaining on success proceeds through a no-op. **HOIST REHEARSAL AT HEAD `9b73e98f`: 56 threads, 40 issues, 352 files, exit 0, 0.42s.** **CANARY RESIDUAL MEASURED ON ONE TREE AT `42fb5269`: ALTERED 0, DECLARED-DROP 115/115, and the entire prose loss is TWO causes -- 503 issue-body sections (`Issue` has no field) + 52 `## Related Steel Threads` (`related: Vec::new()`). 555 = 503 + 52, no third cause.** **STRANDED 192 = 54 tasks.md + 54 impl.md + 54 design.md + 30 one-offs, so vc's 192 and mine are THE SAME FILES -- a constant, and a constant corroborates nothing.** AT-10.2 probed and ready to write (refusal fires 2-class per-line at exit 1; 12 files before and after; same fixture without residue converts 4 threads / 15 files) but PARKED -- the hoist outranks it. Upstream FROZEN; v3 NOT on PATH; push `local` only."
+focus: "**INTENT IS SELF-HOSTED ON INTENT3.** Hoisted by vc at `0ec2ac79`, verified independently: config `3.0.0-dev`, canon at the flat path, 3MB store, ancestor of `local/main`. **MY PART: the v2-write blocker was DEAD and I killed it by re-measuring my own board claim rather than citing it** (`st new` into a v3 estate writes ZERO files, 1940 before and after; `53f88757` had closed it). **I enumerated the fifteen gitignored artefacts a clone cannot hold and migrated one carrying fourteen of them -- 56/40/352, byte-identical to a plain clone -- so vc knew the stale store was the ONLY blocker rather than the first.** Added `sync --to-store` to the procedure or search lands dead. **THEN vc's TWO ITEMS, both done and committed: `de9292a4` doctor 77 -> 5 (the AC group is a grouping device where no WPs exist; measured 72 not 73, two derivations, mutation-proven test); `ba63b344` doctor 10.6s -> 0.68s -- vc's view-skew hypothesis REFUTED at 8.7ms, the cause was `sync::scan` at 7.40s walking 613,811 paths to answer about 1,511, and the excess was UNBOUNDED and MACHINE-LOCAL so runtime varied with a build directory.** Plus `cf3ca82e` (the first hoist casualty: a test that BORROWED its precondition from this repo being unmigrated) and `b37efea7` (`intent/.backup/` outside the root-anchored ignore rule -- D29's precondition, not a history hazard; the precommit guard already held that door). **83 legs / 598 passed / 0 failed, fmt 0, clippy 0, each exit code read WITHOUT a pipe.** **AND I BROKE MY OWN HARNESS SIX TIMES TODAY, ONE FAMILY -- see the watch-out; four of the six wore the finding's face.** Upstream FROZEN; push `local` only."
 claims: [ST0056/10]
 ---
 
@@ -150,6 +150,35 @@ A4. **MUTATIONS NOW RUN IN A PRIVATE WORKTREE, and this is a repo-shape rule rat
 - **PUSH TO `local` ONLY.** upstream frozen (hv, CI/CD budget). **CI is no longer the watcher for the Linux leg** -- a `set -e` or path-separator break that only shows on Linux has nothing checking it. That is the class that shipped v2.11.12 broken.
 
 ## Watch-outs -- grouped by MECHANISM
+
+### I BROKE MY OWN INSTRUMENT SIX TIMES ON 2026-08-18, ALL ONE FAMILY: THE HARNESS ALTERED OR HID THE MEASUREMENT
+
+**Not six unrelated slips. One mechanism, six costumes, and in four of them the harness's failure mode WORE THE FINDING'S FACE.**
+
+| #   | harness                                                           | what it produced                                              | what it nearly cost                                                                                                                                                                    |
+| --- | ----------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `$B $v` unquoted in **zsh**, which does NOT word-split parameters | `unrecognized subcommand 'st list'` for every multi-word verb | one send from telling four people **v3's entire command surface was missing** on hoist day                                                                                             |
+| 2   | `jq ... 2>/dev/null`                                              | empty output                                                  | **I muzzled the instrument and read its silence as "no orphan ACs"**; it was erroring on all 56 files                                                                                  |
+| 3   | `run_tests.sh \| tail -25`                                        | 27 lines of a 1403-test run                                   | could not say whether 2 tests failed or 299                                                                                                                                            |
+| 4   | `cargo test \| tail -30`                                          | 12 legs                                                       | the suite has ~83; I reported the tail as the whole                                                                                                                                    |
+| 5   | piping either of the above                                        | `exit code 0`                                                 | **that is `tail`'s exit code, not the runner's** -- same class as last night's `&&` short-circuit that hid clippy                                                                      |
+| 6   | private `CARGO_TARGET_DIR` in scratchpad                          | 2 failures                                                    | tests resolve the install by walking UP from the binary for `lib/templates/`; **my target dir moved the binary out of the tree, so the failures were mine and looked like the code's** |
+
+**THE RULE, and it is not "be careful": A HARNESS IS AN INSTRUMENT AND GETS THE SAME TREATMENT AS ANY OTHER.** Never suppress its stderr. Never truncate its output before reading it. Never read an exit code through a pipe. **And when a result would be BIG NEWS, test the harness before sending the news** -- #1 and #2 were both caught by that and nothing else.
+
+### THE THREE REHEARSAL FAILURES OF HOIST DAY -- ONE HOLE, THREE MECHANISMS, AND "CLONE AND TEST" IS THE MOVE THAT LOSES
+
+**The rehearsal population cannot hold what the real population has.** All three of us hit it inside two hours, on the day it mattered most.
+
+- **vc**: the real subject held `intent/.cache/intent.db`, a pre-versioning store that **blocked the migration**. No clone can hold it -- `.gitignore:127`, so it is absent by construction.
+- **cc (mine)**: I cloned to answer _does the bats suite survive the hoist_, migrated the clone, got two failures, and nearly filed them as a hoist finding. **My clone lacked dc's fix because it was UNCOMMITTED.** Different mechanism, same hole.
+- **dc**: worse in kind -- **the real subject was mutated by a peer between their two readings**, so they told vc a live `backup-stale` finding was an artefact of their instrument. It was real; I had fixed it at 07:53:25 and they measured after.
+
+**dc's sentence is the one to keep: "clone and test" READS AS THE CAREFUL OPTION.** It is the move you reach for when being responsible, which is exactly when you stop asking whether the copy carries the property under test. **The remedy is not a better rehearsal -- it is knowing which inputs your rehearsal is structurally incapable of holding, and going to look at those directly.** I enumerated all fifteen gitignored artefacts and migrated a clone carrying fourteen of them: **56/40/352, byte-identical to the plain clone.** One minute, and it turned "the database was the first of these" into "the database is the only one".
+
+### AND IT BIT ME AGAIN AN HOUR LATER, ON MY OWN PERF FIX
+
+My first after-measurement showed findings 5 -> 3 and files 1408 -> 1215 and I was ready to attribute it to my change. **The tree had moved: ~193 staged deletions of the old bucketed `info.md` files.** Rebuilt a clean pre-fix binary and ran the two **back to back on the same tree, both printing their finding counts**, so any further movement would show in both. It did not: `BEFORE 10.62s/77` vs `AFTER 0.68s/5`, twice, with **1215 files / 56 threads / 40 issues / 255 views identical on both sides** -- which is the arm that proves the scoping narrowed nothing.
 
 ### THE COUNTER-PATTERN, AND IT IS THE DESIGN FOR AC-10.5: AN INSTRUMENT THAT NAMES ITS OWN BLIND SPOT IN THE SAME BREATH AS ITS VERDICT
 
