@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 21:00Z
+heartbeat_at: 2026-08-18 21:14Z
 status: active
-focus: "**LOCALFOLD 15, cut hard: anything that reached canon tonight is now a POINTER rather than prose.** Nothing open with hv, nothing of mine in flight. Contract **118 -> 121 rows** plus an AC-08.5 extension, both threads lint clean. **EVERY ROW TONIGHT CAME FROM A PEER'S MEASUREMENT** and four of my own figures were wrong before they travelled -- I caught three. cc's AC-03.14 fix at `4577e18e` is verified correct and **AT-03.15 HOLDS RED ON COVERAGE: 6 verbs of 31.** hv inbox RESTORED at `11bb52da`; hv RE-RULED the runner ruling after learning their first go was given over a transcript with the security rationale stripped out."
+focus: "**POST-COMPACT. AC-01.6 MINTED BEFORE cc RESUMED WP-01 -- the time-critical one, and it landed with NO COUNT IN IT.** ST0057 43 -> 44 rows. **THREE NODES INDEPENDENTLY ESTABLISHED THAT A TEXT SWEEP IS THE WRONG INSTRUMENT FOR THE CANON MOVE**, from three directions, and every probe involved -- ic's, cc's and MINE -- measured its own reach rather than the population. **I MEASURED cc's LIVE-MOVE GUARD AND IT READS 2, NOT 57**: bare `st list` is in-progress-only, so the 55 Done threads a canon move risks are STRUCTURALLY ABSENT from the guard written to protect them. cc verified and is fixing it. **SYNC IS HELD** -- cc's release binary is 20:40 and predates their own AC-03.14 fix."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,14 +13,16 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-- **Nothing open with hv and nothing of mine in flight.** cc is on ST0057 WP-01; dc is holding, building to named-tool; ic is green.
+- **AC-01.6 IS IN ST0057 CANON AND NOT YET SYNCED.** The hand-edit is inert until `--to-store`; **held on cc's stale binary** (release is 20:40, older than their own `write_set.rs` fix -- they rebuild once after hv's todo-view bug and ping with the sha256). Then `--to-store`, READ THE RC, `--to-disk`, and commit canon + `acceptance.md` together.
+- cc is on hv's todo-view bug, WP-01 resumable in minutes from a saved patch; dc is building to named-tool; ic is green and re-measuring.
 
 ## TODO
 
-- **AT-03.15 HOLDS RED and cc owes two things**: the `AC-03.14 / AT-03.15` marker in `write_moves_only_what_changed.rs` (lint refuses the moment the row cites it), then I re-point the row off `write_exactness.rs`, which never existed. **The hold is COVERAGE, not correctness.** 6 verbs of 31; nothing prints an N-of-31. **cc's own `st start` vacuous pass is the argument: a verb whose precondition is unmet hands you a free green.**
-- **Mint AC-01.6 BEFORE cc sweeps.** ic measured WP-01: 3 files genuinely break, **14 more would be corrupted** by a mechanical path sweep -- their `intent/st/` references are historically-correct v2 prose. **No criterion covers it.**
+- **AT-03.15 RE-POINTED AND STILL RED -- THE HOLD MOVED FROM THE NUMERATOR TO THE DENOMINATOR.** File was `write_exactness.rs`, **which never existed**; the real one is `write_moves_only_what_changed.rs` at `6ee99149`. **cc drove 30 verbs (from 6) and re-proved mutation 30/30; the instrument PASSES.** **But `DECLARED` is a hand-authored const of 31 against `surface/dispatch-table.json`'s 64 shipped `mutate` entries** -- a STRICT SUBSET, so short rather than wrong, and **three of the 34 absent write the estate on the table's OWN declared side effects** (`agents sync`, `lang init`, `config set`). **Read the row; it carries the whole argument.** Green requires the roster DERIVED from the one home.
+- **AC-01.6 IS MINTED (ST0057 44 rows) -- see Decisions. Nothing owed on it but the sync.**
 - **ST0011** -- `completed` NULL, AC-08.5's first burning case. And **spec the marked-legacy AT form in `data-model.md`** before WP-08; both are the same question.
-- **Two sweeps across 121 + 43**: name the INSTRUMENT wherever two would disagree, and qualify every bare `AC-XX.Y` with its thread -- **both ST0056 and ST0057 carry an `AC-04.4` and ST0056's is already SATISFIED, so a bare id resolves to a green row and reads as HANDLED rather than wrong.**
+- **THE QUALIFICATION SWEEP IS DONE AND FOUND NOTHING -- DO NOT RE-OPEN IT.** Measured at `6ee99149`: **84 ids exist in BOTH threads** and there are **115 bare references against 3 qualified**, so the population looked enormous. Narrowed to bare refs to a SHARED id in a row that also names the other thread: **2 candidates, and BOTH resolve correctly to their own thread.** **The defect count inside canon is ZERO.** The real instances were in PROSE OUTSIDE canon -- my board, and dc's instrument at `38723bad`. **I had sized the remedy to my probe's population instead of to a measured defect, which is the exact class I spent the night catching in others.** Keep the practice when writing cross-thread; there is nothing to sweep.
+- **STILL OPEN: name the INSTRUMENT across 121 + 43 wherever two would disagree.** This is the half with real content and it needs a row-by-row read, not a grep.
 - **NO ROW on instruments-state-their-reach until a FORM exists to count** (dc).
 
 ## How this estate catches things
@@ -33,6 +35,7 @@ What is NOT written down anywhere else:
 - **A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT. FOUR LIMBS**, one live instance of each on 2026-08-18: **INSTRUMENT** (git vs mtime answer oppositely), **DEPTH** (`WriteSet` vs `intent sync` -- asked of the DENOMINATOR as well as the subject), **EXTENT** (20/20 was views only against ~364 -- a subset of the right KIND, which a depth check passes), **PIN** (a named commit, never `HEAD`).
 - **THE REASON EXISTS SOMEWHERE AND THE READER IS NOT WHERE IT IS**, and the remedy splits on a checkable test -- **does the artefact have TWO channels or ONE?** An instrument has source and output, so **MOVE the reason into the output**; a document's source IS its output, so **only a mechanism that refuses is invariant under copying.** **A purpose that must survive transcription will eventually meet a transcriber.**
 - **THE EDIT THAT READS AS CLEANUP REMOVES THE PROTECTION**, because the protection is implemented as an ABSENCE and nothing says an absence is load-bearing (ic). Third fixture: **`find -type f` blinds the staleness guard to a DELETED file -- the directory node is the only input whose mtime records a deletion.**
+- **A TOOL'S DEFAULT VIEW IS A FILTER, AND A COMMAND TRANSMITTED WITHOUT THE FLAG IT WAS MEASURED WITH SILENTLY INHERITS THAT DEFAULT** (ic, 2026-08-18, on their own instruction). **They ran `st list --status all` to measure and wrote the bare form to cc**, so the measurement reached the population and the instruction did not. **The result is not a wrong number but a VACUOUS PASS: bare, it reads 2 before and 2 after, and the 52 Completed threads the check exists to protect cannot appear in the output it reads.** Generalises past this CLI: **any observable that cannot move is not a check.**
 - **THE FORM MUST BE MINTED BEFORE THE POPULATION CAN BE** (dc). You cannot count a convention that does not exist; every number is then a measurement of the probe. **And a keyword probe for GOOD PRACTICE has its false positives exactly where the practice was done well, in the author's own words** (ic).
 - **AGREEMENT CAN SYNTHESISE A FALSEHOOD NEITHER PARTY HELD.** ic's reconciliation was right, my agreement was right, the rule that came out of the pair was false. **Only the fixture separates them.**
 - **RE-MEASURE YOUR OWN SENTENCE INSTEAD OF CITING IT** (cc, three times today): **a false RATIONALE never goes red**, so it survives every test run.
@@ -50,6 +53,7 @@ What is NOT written down anywhere else:
 ## Verification kit
 
 - **MEASURE AT A PINNED SHA AND NAME THE COMMIT.** **Pin a BINARY by content hash, never by its marker.**
+- **`intent st list` DEFAULTS TO IN-PROGRESS ONLY AND RETURNS 2. `--all` IS NOT A FLAG.** The invocation that reaches the estate is **`st list --status all`** -- 57 at `6ee99149`, breakdown **52 Completed / 2 Cancelled / 2 WIP / 1 NotStarted**. **PRINT THE BREAKDOWN, NEVER THE BARE TOTAL**: many wrong states satisfy a correct 57. This was cc's REQUIRED STEP for the live canon move, so the guard could not have gone red for the failure it was written to catch.
 - **CHECK THE BINARY'S AGE AGAINST ITS INPUTS -- but NOT via `surface_check.sh`. The old claim on this board that it was "the only thing that surfaces it" is RETRACTED** (ic, 2026-08-18): its reach was one crate of two, blind to all 23 files of `intentsvcs/src`, and **the wiping build's SURFACE WAS PERFECT.** Staleness only REFUSES and can never DETECT. **What caught the wipe was running `sync` and reading the row counts.**
 - **`to-write` = UNWRITTEN. `red` = it EXISTS and does not pass.** Neither means the criterion is unmet.
 - **An AT earns green from an instrument DEMONSTRATED RED**, a criterion naming its SUBJECT, and one naming the SHAPE OF THE INPUT. **Hold red WITH AN EXPLICIT NOTE saying the instrument passes.** And **a distinct exit code does not save a message written as a chore** -- triage happens on the prose.
@@ -66,6 +70,7 @@ What is NOT written down anywhere else:
 
 ## Decisions
 
+- (2026-08-18) **AC-01.6 IS THE DISCRIMINATION, NOT A COUNT -- READ THE ROW, IT CARRIES ALL THE EVIDENCE.** What is NOT in the row: **three probes, one per node, and every one measured its own reach** -- ic's `parity/tools/*.sh` glob (blind to 4 extensionless executables under `bin/`), cc's ~15-fixture estimate, and **my narrowed 23 that missed `export.rs:386` outright.** **The one that found the truth was cc's, and it was not a probe at all -- they BUILT the relocation and the missing site fell out.**
 - (2026-08-18) **hv AUTHORISED ONE `--no-verify`; the restoration is at HEAD** (`11bb52da`, 42 entries, verified contained either side). **The guard was RIGHT to refuse and nothing about it changes** -- it cannot distinguish repair from regression, and the other reading would let any node launder a bad stamp through a revert.
 - (2026-08-18) **hv CONFIRMED THE RUNNER RULING WITH THE FACT THEY HAD BEEN DENIED** -- the first go was given over dc's `:176` framing, from a transcript with ZERO occurrences of injection or disguised. **Named-tool declaration stands**: the rule names WHICH tool, the runner owns HOW, **rule files never contribute shell**, and a tool-armed rule REFUSES when its tool is absent. **`critic_proxy_is_simple` is an INJECTION BOUNDARY and is not relaxed.**
 - (2026-08-18) **A RULING RELAYED BY ME IS NOT A GO** (cc, quoting my own precedent back after I broke it). **hv gives go-aheads on the node's own channel.**
