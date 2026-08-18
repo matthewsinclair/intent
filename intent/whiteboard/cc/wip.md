@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 23:14Z
+heartbeat_at: 2026-08-18 23:50Z
 status: active
-focus: "**WP-01: BOTH CRATES GREEN -- intentsvcs 436/0, intent-cli 203/0, fmt clean. NOT LANDED: the openness declarations, AT-01.6, the LIVE MOVE, AC-01.5 remain.** Nothing committed; the repointing is uncommitted in my tree. **Release binary UNTOUCHED at `f2e4d1f9` -- vc has pins on it; ANNOUNCE BEFORE ANY REBUILD.** **I CORRECTED MYSELF WRONGLY ONCE: `intent-cli` has SEVEN PRIVATE `seed()` COPIES, so my board's ORIGINAL prediction was right and my correction to it was not.** Upstream FROZEN."
+focus: "**WP-01: OPENNESS DECLARATIONS DONE (7 moved, face blessed, drift clean) and AT-01.6 DONE (5 tests, BOTH exporter arms mutation-proven RED).** **AT-01.6's FIRST VERSION DID NOT CATCH THE HISTORICAL BUG -- 4 green tests while `export.rs` spelled the path itself; found by MUTATING, not by assuming.** Remaining: **THE LIVE MOVE** (57 + 40) and AC-01.5. **Binary UNTOUCHED at `f2e4d1f9`; vc holds pins -- ANNOUNCE BEFORE ANY REBUILD.** dc is BLOCKED on my uncommitted test files for the 88-binary consolidation. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -156,7 +156,23 @@ vc's rule, four limbs, **one live example of each from three nodes inside one da
 
 **CATEGORY 4, WHICH NEITHER vc NOR ic HAD AND WHICH IS THE STRONGEST ARGUMENT AGAINST A SWEEP: `schema/ddl.sql` CARRIES 8 `-- openness: carried by <path>` DECLARATIONS AND 7 NAME CANON PATHS THAT MOVE.** That is the OPENNESS CONTRACT on a **committed, versioned, drift-checked** face served by `intent schema ddl.sql` -- its own header says _EVERY TABLE DECLARES HOW ITS DATA LEAVES_. **Under D34 it TRAVELS while the DB never does, so a consumer following the declaration to recover their data follows it to nothing.** **A sweep would have written the right prefix with the wrong flat shape AND THE DRIFT CHECK WOULD HAVE BLESSED IT** -- a checker blessing a wrong answer because the wrongness is in a dimension it does not inspect. **vc minted AC-01.7 and found the matching hole: `openness.rs` checks a declaration EXISTS and that its string starts with `carried by `, and NEVER LOOKS AT THE REFERENT.**
 
-## WP-01 STATE: TESTS GREEN, WORK NOT LANDED
+## WP-01: OPENNESS + AT-01.6 LANDED; THE LIVE MOVE IS WHAT REMAINS
+
+**AC-01.7 / OPENNESS: 7 declarations moved in `store.rs` (6 thread + 1 issue), `intent/events.jsonl` correctly LEFT ALONE, face regenerated with `INTENT_BLESS=1`, drift clean.** **RED-FIRST TAKEN AS THE ROW SPECIFIES -- driven by APPLYING THE RELOCATION, not by a synthetic bad path**: the drift check failed on the real change, then passed on the bless.
+
+**AT-01.6 `canon_resolver_singularity.rs`: 5 tests green.** Driven by a **NON-DEFAULT `intent_dir`** (`workspace`), which is the whole mechanism -- under the default `intent/` a hand-spelled path and a resolved one are the same bytes, **so every independent spelling passes.** Negative arm asserted: `thread_dir()` still answers the view directory and `info.md`/`acceptance.md` still land there. **NO COUNT ASSERTED** (ic withdrew 3-of-17 as their probe's reach; vc's 23 missed `export.rs`).
+
+**AND ITS FIRST VERSION WAS WRONG IN THE EXACT WAY THE AC-03.14 GUARD WAS. I mutated `export.rs` to spell the canon path itself -- the historical bug the row names as its red-first arm -- AND ALL FOUR TESTS STAYED GREEN.** They drove `sync_*`, which reaches canon through `Facade::projection`; **the EXPORTER is a different route to the same files and nothing went near it.** A correct test on a path the failure does not take, for the second time in one day. **Fixed by driving `export::canon_parts` directly. NOW mutation-proven on BOTH arms: thread arm spelling its own path -> RED; issue arm UNPADDED (`issues/46.json`, the bug that actually shipped) -> RED; restored -> green.**
+
+**ONE NAMED EXEMPTION IN AT-01.6, AND IT IS A DESIGN FACT I HAD NOT KNOWN: `config.json` DOES NOT MOVE WITH `intent_dir`.** `Project::config_path` always answers `intent/.config/config.json` -- **something must be findable before anything is configured, and that file is what DECLARES where the rest lives.** Exempted by EXACT PATH rather than by prefix, so a second stray file under `intent/` is still caught.
+
+## THE LIVE MOVE -- measured, and my board was WRONG about the issues directory
+
+**57 thread canon + 40 issue canon, all 97 tracked by git.** **BUT `intent/issues/` ALSO HOLDS 42 TRACKED v2-LEGACY FILES** in `OPEN/` and `CLOSED/` (`<nnnn>/<nnnn>-<slug>.md` plus two `.gitkeep`). **My board said the whole directory moves because _it held nothing but `<nnnn>.json`_. FALSE, and unmeasured when written.**
+
+**Only the 40 canon files move. The 42 v2-legacy files STAY**, and that is correct rather than a compromise: **`legacy.rs:565` composes `intent_dir().join("issues").join(bucket)` ITSELF and never goes through `issues_dir()`.** That is NOT an AC-01.6 violation -- **AC-01.6 governs CANON paths, and v2's layout is a historical fact that does not move.** A migrator that resolved v2 paths through the v3 resolver would look for the old estate in the new place, which is the sweep failure in code.
+
+## WP-01 EARLIER STATE: TESTS GREEN, WORK NOT LANDED
 
 **`intentsvcs` 436/0, `intent-cli` 203/0, fmt clean.** **STILL OUTSTANDING and vc has said two green crates is not a landed WP-01: (1) the 7 openness declarations + `INTENT_BLESS`; (2) AT-01.6 `canon_resolver_singularity.rs`; (3) THE LIVE MOVE of 57 + 40 files; (4) AC-01.5's commit guard.** Nothing is committed. **DO NOT COMMIT ON vc's ACCOUNT -- their syncs are canon-only and never read my Rust tree, so a green tree buys them nothing and a half-landed WP-01 committed is worse than an uncommitted one.**
 
