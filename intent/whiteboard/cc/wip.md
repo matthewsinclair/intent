@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 15:14Z
+heartbeat_at: 2026-08-18 15:54Z
 status: active
 focus: "WP-03 carry LANDED and committed -- 275/275 attachments into canon, 0 missing, 0 byte-mismatched, across `86b74b6c` `d980e5b5` `9a487cc9` `69033e4e`. **'The regeneration' was never a verb** -- its criterion described a re-ingest from a v2 source that `1af21f4e` removed, and the write-back queued behind it turned out to BE it. **`sync --to-store` wiped 40 issue bodies after naming all 40 in a warning I read past**; recovered 40/40 from vc's snapshot, skew now closed. Step 4a correct but unreachable -- it lives in the migrator. Suite 623/0."
 claims: [ST0056/10]
@@ -34,6 +34,28 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 **STEP 4a IS CORRECT AND UNREACHABLE.** `legacy::preamble` no longer leaves the blank line where it cut the title out, mutation-proved against the estate's own bytes -- **and it is in the MIGRATOR, which this estate will never run again.** ST0010/ST0015 still render the extra line. A fix pointed at a door nobody walks through.
 
 **SKEW CLOSED AFTER THE COMMITS.** `sync --to-store` re-run: store now 40/40 bodies (434,357 bytes) and 275 attachments; canon unchanged; `git status` clean for issues. **While canon was the richer side, `--to-disk` -- the SILENT direction with no warning banner -- was the destructive one.** That inversion is worth remembering: the posture of the two commands is not fixed, it depends on which side is richer.
+
+## AFTER THE CHECK-IN -- three findings the commits themselves produced
+
+**SEVEN COMMITS: `86b74b6c` code, `d980e5b5` carry, `9a487cc9` issue bodies, `69033e4e` ST0057, `f0a25d8c` boards, `fd2e4067` the WP covers, `4ef953db` restart/critic-gate/deferred.** Suite 623/0 at HEAD.
+
+### `git commit --only <dir>` ON AN UNTRACKED DIRECTORY STAGES NOTHING, AND REPORTS A TRUE COUNT
+
+`git commit --only intent/st/ST0057/` committed the tracked files beside eight untracked `WP/NN/info.md` and said **"4 files changed"**. That number was correct about its inputs and silent about my intent. **A commit's file count is a fact about what it committed, never about what you meant to commit** -- the only check is reading `git status` afterwards. Fixed at `fd2e4067`; it would have shipped a thread whose work packages existed on disk and in no clone.
+
+### THE `views::info` BLANK LINE IS LIVE CHURN, NOT A STATIC DEFECT -- AND MY FIX CANNOT REACH IT
+
+Every `sync` re-renders the extra line into ST0010/ST0015; **the commit hook's formatter strips it.** So HEAD is correct, the worktree regenerates the defect after every sync, and the file reappears in `git status` forever. **`legacy::preamble` is the MIGRATOR and this estate will never be migrated again**, so the reachable repair is a CANON DATA FIX -- collapse the `\n\n\n` in those two threads' stored `preamble`. That is a hand-edit of canon, which is WP-08's mutation-surface gap, so it wants doing deliberately rather than at the end of a session. **Queued, not done.**
+
+### THE DIVERGENCE DETECTION WORKS, AND I HAVE A LIVE INSTANCE RATHER THAN AN ARGUMENT
+
+The verifier reported `BYTE-MISMATCHED: 1` on `ST0056/deferred.md` -- canon 28,938 bytes, disk 29,111, a 173-byte edit landing after the last sync. **This is exactly the property I nearly destroyed**: with the collection in shared `read()`, disk always won, canon could never disagree with a file, and 5.1b's rule had nothing to fire on. **A system that cannot be wrong cannot be checked.** I left the red standing rather than clearing it with a `sync --to-store` that would have swept vc's in-flight `data-model.md` into canon mid-edit -- same call as not rewriting three failing tests this morning.
+
+## THE GATE IS NO LONGER DARK (dc, `15:32Z`) -- MY NEXT COMMIT IS THE FIRST LINTED ONE SINCE THE HOIST
+
+`bin/intent:55` now carries `critic` in `GLOBAL_COMMANDS`. **`bin/intent` is my FROZEN lane and dc changed it with hv's approval and an announcement to me first** -- which is the protocol working, not a crossing. The five `invocation error (exit 2); fail-open.` lines are gone: languages returning rc=2 went 5 -> 0.
+
+**AND THE HALF THAT MATTERS FOR ME: `critic rust` and `critic shell` still arm ZERO rules (0 of 6, 0 of 7).** A green from either means **"nothing asked a question"**, not "clean" -- and I move more `.rs` than anyone. Half B is scoped, not built.
 
 ## TODO
 
