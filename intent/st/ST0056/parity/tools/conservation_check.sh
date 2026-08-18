@@ -102,7 +102,17 @@ n_census="$(awk -F'\t' '$1 == "FILE"' "$CENSUS" | wc -l | tr -d ' ')"
 awk -F'\t' '$1 == "PROSE" && $7 !~ /^[0-9a-f]{64}$/ { exit 1 }' "$CENSUS" ||
   die "census PROSE rows carry no trimmed sha -- produced before the census published both hashes, so this check cannot tell a content change from a whitespace normalisation; re-run estate_census.sh"
 
-SUBJECT="$(awk -F'\t' '$1 == "CORPUS" { print $2 " @ " substr($3, 1, 12); exit }' "$CENSUS")"
+# `$3` IS POLYMORPHIC AND THE TRUNCATION WAS ONLY CORRECT FOR ONE OF ITS TWO
+# SHAPES. estate_census.sh writes a git REVISION there when the estate carries a
+# `.CAPTURE` marker and the estate's PATH when it does not, so `substr($3, 1, 12)`
+# is a short sha on the first and `/Users/matts` on the second -- a real directory
+# that is not the subject, printed beside the word "unpinned", which is itself
+# correct. The reader is told the estate is unpinned and then told the wrong place.
+#
+# Found on the FIRST run against an unpinned estate, which was Intent's own -- the
+# hoist subject. Every fleet member carries a marker, so this arm had never once
+# executed in the life of the tool, and its greens were all from the pinned path.
+SUBJECT="$(awk -F'\t' '$1 == "CORPUS" { print ($2 == "unpinned" ? $2 " @ " $3 : $2 " @ " substr($3, 1, 12)); exit }' "$CENSUS")"
 [ -n "$SUBJECT" ] ||
   die "census carries no CORPUS record -- it was produced before the census named its own subject, and a verdict that cannot say which estate it describes is not a verdict; re-run estate_census.sh"
 case "$SUBJECT" in
