@@ -93,6 +93,18 @@ Two nomination axes over the 40 tools in `parity/tools/`, adjudicating only the 
 
 **The filter was deliberately NOT patched to catch `:284`.** Adding `earlier|predate|behind|older` catches the one case already found and teaches nothing about the ones not yet seen -- a detector fitted to its own validation sample measures the sample. Reporting the false negative is the more useful artefact than removing it.
 
+## What the stale figures actually were
+
+The producer rule -- _a figure must travel with the subject and revision it is a claim about_ -- was argued from one instance. ic then re-measured all eleven timings in the roster (**re-measured, not re-stated**: every one is gated, so every one has a bare invocation they could drive). The result is stronger than the argument.
+
+**Nine overstated, one understated by 49%, and one was near-exact.** So **no single correction factor explains them and no reader could have adjusted.** Had they all been high, "taken on a slower machine" would have covered it and the figures would have stayed.
+
+**The one that understates is the dangerous one, and it is dangerous for a structural reason.** `ratified_in_check.sh` is a _static read of the dispatch table_, and the dispatch table has grown. **A cost that grows silently is exactly what a stale figure hides**, and it is the only direction where the recorded number reassures you about something getting worse.
+
+**And it lands on the argument the figures were being used for.** Total gate cost measures **~4.6s against ~5.4s recorded**. The whole affordability discussion about admitting a new instrument -- _"acceptable rather than comfortable"_, a 62% margin that became 25% -- **was conducted against stale numbers on both sides.** Both parties were careful about the new figure and neither questioned the baseline it was compared to. **That is measured-against-recorded one level up from where it was caught.**
+
+**One further correction worth keeping, because it is the rule arriving one step late on its own author's edit.** Replacing a composite total while leaving its sub-figure standing produced `470-490ms of which 263ms is asking the runner through the dispatcher` -- and **263 of 480 is not the claim 263 of 782 was.** The row would have read as coherent while being nothing of the kind. The breakdown is now marked as the original author's and unverified: **retraction at the point of citation, not in a header.**
+
 ## The axis neither filter has
 
 **WHO QUOTES IT AND INTO WHAT.** ic supplied it by hand for four tools; there is no grep for it. A finding-shaped line nobody quotes is a wart; one that a peer reads into a status is what happened here. The harm concentrates where an instrument's output is quoted into a decision rather than a report -- and the two most dangerous shapes, a bare quantity and a bare identity, are exactly the ones with no vocabulary for a text filter to find.
