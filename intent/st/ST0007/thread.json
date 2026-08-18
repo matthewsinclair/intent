@@ -8,5 +8,25 @@
   "objective": "Create comprehensive user documentation for the STP system, including a user guide, reference guide, and deployment guide.",
   "context": "Good documentation is critical for tool adoption and effective use. This steel thread focuses on creating user-focused documentation that explains how to use STP, its features, and how to customize it for different project needs.",
   "body": "## Related Steel Threads\n\n- ST0003: Template System\n- ST0006: Help System\n- ST0008: LLM Integration\n\n## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0007: User Documentation\n\n## Approach\n\n1. Identify key documentation needs for different user types\n2. Create templates for all documentation types\n3. Write comprehensive documentation for all STP features\n4. Include examples, use cases, and best practices\n5. Organize documentation in a logical, accessible manner\n",
+      "bytes": 328,
+      "sha256": "5c4c2a7c6802df6135aeb7cac63f2619f79a30bb5e419a2c4493cf5e0c834af0"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0007: User Documentation\n\n## Implementation Notes\n\n### Documentation Structure\n\nThe user documentation is divided into three main documents:\n\n1. **User Guide**: Focuses on getting started and common tasks\n   - Introduction to STP\n   - Installation and setup\n   - Basic workflows\n   - Best practices\n   - Getting help\n\n2. **Reference Guide**: Provides detailed information on all commands\n   - Complete command reference\n   - Configuration options\n   - File formats\n   - Template customization\n   - Advanced usage\n\n3. **Deployment Guide**: For system administrators and team leads\n   - System requirements\n   - Installation options\n   - Team configuration\n   - Integration with other tools\n   - Maintenance tasks\n\n### Documentation Design Principles\n\nThe documentation follows these principles:\n\n1. **Task-oriented**: Organized around user tasks rather than system features\n2. **Progressive disclosure**: Basic information first, with links to more advanced topics\n3. **Consistent structure**: Each section follows a consistent format\n4. **Examples-rich**: Every feature includes practical examples\n5. **Visual aids**: Diagrams and screenshots where helpful\n\n### Cross-References\n\nThe documentation maintains consistent cross-references:\n\n- Between documents (eg from user guide to reference guide)\n- To specific command help documentation\n- To steel thread documents for technical details\n- To external resources where appropriate\n",
+      "bytes": 1452,
+      "sha256": "4f74e3007645f371cfaa627fd85e2a50ddf6a12a46ff49f8b8d955859c3ef920"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0007: User Documentation\n\n## Tasks\n\n- [x] Create a documentation template structure\n- [x] Write the user guide covering basic usage\n- [x] Write the reference guide documenting all commands and options\n- [x] Write the deployment guide for system administrators\n- [x] Add usage examples for common scenarios\n- [x] Include troubleshooting information\n- [x] Document customization options\n- [x] Test documentation clarity with sample users\n- [x] Implement feedback from documentation testing\n",
+      "bytes": 500,
+      "sha256": "0f17ba24e16382a955b12e466a0892a23c9924780382b30c517aaa79ba21c5d8"
+    }
+  ]
 }

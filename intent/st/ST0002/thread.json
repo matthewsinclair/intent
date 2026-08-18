@@ -8,5 +8,25 @@
   "objective": "Implement the main `stp` script and command dispatching system that forms the core of the STP command-line interface.",
   "context": "The STP system needs a command-line interface to manage steel threads, initialize projects, and provide help. This steel thread focuses on creating the core script framework that will dispatch commands to their specific implementations.",
   "body": "## Related Steel Threads\n\n- ST0001: Directory Structure\n- ST0004: Steel Thread Commands\n- ST0005: Initialization Command\n- ST0006: Help System",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: LLM Assisted"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: LLM Assisted",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0002: Core Script Framework\n\n## Approach\n\n1. Create a main `stp` script that handles command dispatching\n2. Implement environment variable handling and script location detection\n3. Create a modular framework for command implementations\n4. Implement error handling and usage information\n5. Create a help system for displaying command documentation\n",
+      "bytes": 360,
+      "sha256": "ea6e559e50a593b3fc3931e7721eb80565a2151a1e738fc79328a6229c566161"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0002: Core Script Framework\n\n## Implementation Notes\n\n### Core Script Design\n\nThe core script framework follows a modular design where:\n\n1. The main `stp` script:\n   - Validates input parameters\n   - Determines the STP_HOME directory\n   - Dispatches to the appropriate command implementation\n   - Handles basic error conditions\n\n2. Command implementations:\n   - Each command is implemented in a separate script named `stp_<command>`\n   - Commands receive parameters directly from the main script\n   - Commands handle their own parameter validation\n   - Commands provide specific error messages\n\n3. Help system:\n   - Implemented in `stp_help`\n   - Reads help documentation from `.help` directory\n   - Provides both general and command-specific help\n\n### Script Environment\n\nThe scripts use environment variables to maintain configuration:\n\n- `STP_HOME`: Location of the STP installation\n- `STP_PROJECT`: Current project name\n- `STP_AUTHOR`: Default author name\n- `STP_EDITOR`: Preferred text editor\n\nThe main script can determine `STP_HOME` automatically if not set.\n\n### Error Handling\n\nError handling follows these principles:\n\n- Exit with non-zero status on error\n- Provide clear error messages to stderr\n- Check prerequisites before operations\n- Validate input parameters\n- Handle script permissions issues\n\n### Help Documentation\n\nHelp documentation follows a standard format with sections:\n\n- `@short`: Brief one-line description\n- `@desc`: Detailed description\n- `@usage`: Usage information, parameters, and examples\n",
+      "bytes": 1544,
+      "sha256": "3d074e4e0bf9e7779bdb2d39f8174e561cb64a2fd9bf50e4f473462a6f138bca"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0002: Core Script Framework\n\n## Tasks\n\n- [x] Implement main `stp` script with command dispatching\n- [x] Implement environment variable handling\n- [x] Implement error handling framework\n- [x] Create the help system script\n- [x] Create help documentation for core commands\n- [x] Implement the init script for project initialization\n- [x] Implement the steel thread management script\n- [x] Test script functionality in various environments\n- [x] Add verbose output mode for debugging\n",
+      "bytes": 493,
+      "sha256": "b240aab6f7a30eebc75df7c6bc2a3d0efe61b4147b32c8529de3207ce57e02a5"
+    }
+  ]
 }

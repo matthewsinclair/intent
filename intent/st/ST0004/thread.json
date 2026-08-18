@@ -8,5 +8,25 @@
   "objective": "Implement the steel thread command subsystem (`stp st`) to enable users to create, manage, and track steel threads throughout a project lifecycle.",
   "context": "Steel threads are a core concept in the STP system, representing discrete units of work that can be tracked and documented. This steel thread implements the command-line interface for managing steel threads, including creating new threads, listing existing threads, marking threads as complete, and viewing thread details.",
   "body": "## Related Steel Threads\n\n- ST0001: Directory Structure\n- ST0002: Core Script Framework\n- ST0003: Template System\n- ST0006: Help System\n\n## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0004: Steel Thread Commands\n\n## Approach\n\n1. Design a command-line interface for managing steel threads\n2. Implement the core `stp_st` script with subcommands\n3. Create templates for steel thread documents\n4. Implement a steel thread index for tracking all threads\n5. Ensure user-friendly error handling and documentation\n",
+      "bytes": 335,
+      "sha256": "b176d4ffb50b2b5b4e83007fa5d156c82cdc16eef71ec43f712898ff98ab9e76"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0004: Steel Thread Commands\n\n## Implementation Notes\n\n### Command Structure\n\nThe steel thread command subsystem includes the following commands:\n\n- `stp st new <title>` - Create a new steel thread with the given title\n- `stp st list [--status <status>]` - List all steel threads, optionally filtered by status\n- `stp st show <id>` - Display the contents of a specific steel thread\n- `stp st done <id>` - Mark a steel thread as complete\n- `stp st edit <id>` - Open a steel thread in the default editor\n\n### Steel Thread ID Format\n\nSteel threads follow a consistent ID format:\n\n- IDs are in the format ST#### (eg ST0001)\n- Numbers are padded to 4 digits with leading zeros\n- IDs are automatically assigned in sequence\n\nTo improve usability, commands accept abbreviated IDs:\n\n- Just the number (eg `1`)\n- The number with or without leading zeros (eg `0001`)\n- The full ID (eg `ST0001`)\n\n### Steel Thread Index\n\nThe system maintains a steel thread index file (`steel_threads.md`) that:\n\n- Lists all steel threads with their status, creation date, and completion date\n- Is automatically updated when creating or marking threads as complete\n- Provides a Markdown table for easy viewing\n- Includes links to the individual steel thread files\n\n### Cross-Platform Support\n\nThe `edit` command is designed to work across platforms:\n\n- Uses `open` on macOS\n- Uses `xdg-open` on Linux\n- Uses `start` on Windows\n- Falls back to environment variables or vi as a last resort\n",
+      "bytes": 1479,
+      "sha256": "7f00a1f482adf9ad50c89deb4fc4dd10097e6b473f7aa50a9d657920b411d18a"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0004: Steel Thread Commands\n\n## Tasks\n\n- [x] Design the command-line interface for `stp st`\n- [x] Implement the `stp st new` command for creating new steel threads\n- [x] Implement the `stp st list` command for listing all steel threads\n- [x] Implement the `stp st show` command for viewing a specific thread\n- [x] Implement the `stp st done` command for marking threads as complete\n- [x] Implement the `stp st edit` command for opening threads in an editor\n- [x] Create a steel thread index file and update mechanism\n- [x] Add error handling and user-friendly messages\n- [x] Write documentation for the steel thread commands\n",
+      "bytes": 637,
+      "sha256": "5ca294c66692b2e10d214c6702b978c75ed496d2e48c24438b5d07427566d44e"
+    }
+  ]
 }

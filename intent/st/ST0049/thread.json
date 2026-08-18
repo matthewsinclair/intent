@@ -9,5 +9,25 @@
   "objective": "Author the comprehensive, retroactive v2.13.0 release note -- the canonical user-facing \"how the multi-agent agentic coding (MAAC) workstream works\" document. v2.13.0 introduced the MAAC command surface but shipped without a release note, and the `docs/releases/` series had lapsed after 2.9.0. This note covers the system end to end: the Protocol 3.0 whiteboard, the `/in-whiteboard` skill, and the `intent claude ws` / `intent claude start` commands.",
   "context": "`docs/releases/` lapsed after 2.9.0 (2.10.0 through 2.13.0 never got notes). hv ruled: do not backfill 2.10-2.12, but author a comprehensive note for 2.13.0 because it introduced the MAAC workstream system, which is complex and needs explicit how-it-works docs. This ships in the 2.13.1 cut alongside the ST0048 gate fix.\n\nPure authorial task: this thread carries `acceptance: exempt` (the first real consumer of ST0048's exemption marker) -- hv reviews the note's accuracy as part of the release, rather than via a formal AC contract. Source: `intent/history/v2.13.0.md` (ST0047) + `v2.12.0.md` (ST0045 Protocol 3.0) + the `/in-whiteboard` skill + `intent/whiteboard/README.md`.",
   "body": "## Related Steel Threads\n\n- ST0047 -- shipped the `intent claude ws` / `start` command surface this note documents.\n- ST0045 -- shipped Whiteboard Protocol 3.0 (v2.12.0), the model this note explains.\n- ST0048 -- the acceptance-gate fix; its `acceptance: exempt` marker is dogfooded by this thread; both ship in 2.13.1.",
-  "preamble": ""
+  "preamble": "",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0049: Comprehensive 2.13.0 release note: how MAAC works\n\n## Approach\n\n[Planned approach for implementing this steel thread, including methodology and key steps]\n\n## Design Decisions\n\n[Key design decisions and their rationale]\n\n## Architecture\n\n[Architectural considerations and diagrams if applicable]\n\n## Alternatives Considered\n\n[Other approaches that were considered and why they were not chosen]\n",
+      "bytes": 413,
+      "sha256": "ca572693aa734b1b6656a134fb1ac94d546f29df3b0d04517929c685d0f7cde1"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0049: Comprehensive 2.13.0 release note: how MAAC works\n\n## Implementation\n\n[Notes on implementation details, decisions, challenges, and their resolutions]\n\n## Code Examples\n\n[Key code snippets and examples]\n\n## Technical Details\n\n[Specific technical details and considerations]\n\n## Challenges & Solutions\n\n[Challenges encountered during implementation and how they were resolved]\n",
+      "bytes": 402,
+      "sha256": "e3533761769cfea0b6c1ee79242030c02284322091ab0d2d6802e1274fe0dfed"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0049: Comprehensive 2.13.0 release note: how MAAC works\n\n## Tasks\n\n- [ ] Task 1\n- [ ] Task 2\n- [ ] Task 3\n- ...\n\n## Task Notes\n\n[Additional notes about specific tasks if needed]\n\n## Dependencies\n\n[Task dependencies and sequencing requirements]\n",
+      "bytes": 256,
+      "sha256": "1a77bcc54040f74f9c52868385bb85411c1f6b63d46d76d51ccd1f57497e8492"
+    }
+  ]
 }

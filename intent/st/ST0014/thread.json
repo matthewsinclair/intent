@@ -8,5 +8,25 @@
   "objective": "Implement directory structure for steel threads based on their status to better organize the project.",
   "context": "Steel threads are currently all stored in the same directory, making it difficult to quickly identify their status. By organizing them into separate directories based on status, we can improve the organization and make it easier to find specific types of steel threads.",
   "body": "## Related Steel Threads\n\n- ST0004: Steel Thread Commands",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-20\n- **Completed**: 2025-07-09\n- **Author**: Claude"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-20\n- **Completed**: 2025-07-09\n- **Author**: Claude",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0014: Directory Structure for Steel Threads\n\n## Approach\n\n1. Create subdirectories based on status (COMPLETED, NOT-STARTED, CANCELLED)\n2. Modify the ST commands to handle the new directory structure\n3. Update the upgrade script to organize files during upgrades\n4. Update documentation to reflect the new structure\n",
+      "bytes": 328,
+      "sha256": "8523f397aa3b109b38e18c578d362c73d87ff89d5d27369eac27874d10ace13d"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0014: Directory Structure for Steel Threads\n\n## Implementation Notes\n\nThe implementation includes:\n\n- Directory structure: COMPLETED, NOT-STARTED, CANCELLED directories\n- Files in IN-PROGRESS and ON-HOLD status stay in the main directory\n- The organize_st.sh script handles moving files to their appropriate directories\n- The upgrade script runs organize_st.sh to ensure files are in the right places\n",
+      "bytes": 422,
+      "sha256": "4bc2d2f45a1d47f2c6481c42ad4bc04d709bb15f1297c48a3bf5ad54eb97ea27"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0014: Directory Structure for Steel Threads\n\n## Tasks\n\nTasks are tracked in Backlog. View with: `stp task list ST0014`\n",
+      "bytes": 131,
+      "sha256": "89c43c611717909c28d4907517464a0076d05f178509c53e341b20e6360c1e25"
+    }
+  ]
 }

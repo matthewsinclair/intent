@@ -8,5 +8,25 @@
   "objective": "Create a new `stp st sync` command that will maintain the steel_threads.md document by synchronizing it with the current state of individual steel thread files.",
   "context": "Currently, the `stp/prj/st/steel_threads.md` document needs to be manually kept in sync with the individual ST####.md files. The `stp st list` command now reads directly from the ST files, but the summary document needs to be updated separately.\n\nThis causes inconsistencies when steel thread status changes or when new steel threads are added. A mechanism is needed to ensure the summary document accurately reflects the current state of all steel threads.",
   "body": "## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-07\n- **Completed**: 2025-03-07\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-07\n- **Completed**: 2025-03-07\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0012: Document Sync Command\n\n## Approach\n\n1. Create a new `sync` option in the `stp_st` script\n2. Add support for section markers in the steel_threads.md document\n3. Read metadata from each ST####.md file\n4. Generate updated content for the marked sections in steel_threads.md\n5. Either output the updated content to stdout or write it to the file based on options\n",
+      "bytes": 378,
+      "sha256": "56cb0e3507090aa69b8a8ff35b0fa4bdd643dfa2d2205a6986b0c358f20ae90f"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0012: Document Sync Command\n\n## Implementation Notes\n\nThe implementation uses section markers in the form of HTML-like comments to identify the parts of the document that should be updated:\n\n```\n<!-- BEGIN: STEEL_THREAD_INDEX -->\n(content will be replaced during sync)\n<!-- END: STEEL_THREAD_INDEX -->\n```\n\nThis allows for automatic updates to specific sections while preserving the rest of the document.\n\n### Key Implementation Details\n\n1. **New `sync` Command**: Added a new `sync` subcommand to the `stp_st` script that reads the individual steel thread files and updates the steel_threads.md document.\n\n2. **Metadata Extraction**: The command extracts metadata (status, created date, completed date) from individual ST####.md files using both:\n   - Metadata in the YAML frontmatter (with keys `status`, `created`, and `completed`)\n   - Information in the document body (with lines like `- **Status**: In Progress`)\n\n3. **Section Markers**: Added HTML-style comment markers to designate sections in the steel_threads.md file that can be automatically updated.\n\n4. **Configurable Output**: Added options to customize the output:\n   - `--write`: Updates the steel_threads.md file directly\n   - `--width N`: Specifies the width of the output table for proper column alignment\n5. **Format Consistency**: Ensures proper table formatting and column alignment for better readability.\n\nThis approach makes the system more maintainable by ensuring the steel_threads.md document stays in sync with the individual ST files, reducing manual maintenance work.\n",
+      "bytes": 1571,
+      "sha256": "19699f92718217316298684b3dd9a80bdef4b1a284bbe8148485fb4422749940"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0012: Document Sync Command\n\n## Tasks\n\n- [x] Add section markers to the steel_threads.md document\n- [x] Create a new `sync` subcommand in the `stp_st` script\n- [x] Implement logic to extract metadata from ST files\n- [x] Add functionality to update sections between markers\n- [x] Add `--write` option for file updates\n- [x] Add `--width` option for configurable table formatting\n- [x] Add documentation for the new command\n- [x] Update tests to ensure proper functionality\n",
+      "bytes": 484,
+      "sha256": "6964df1e3b215e8b786602236a8a0d9abc8af9e638a49e8b4c1428babbbc7aaa"
+    }
+  ]
 }

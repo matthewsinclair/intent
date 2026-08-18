@@ -8,5 +8,25 @@
   "objective": "Create the initial directory structure and placeholder files for the Steel Thread Process (STP) system.",
   "context": "The STP system requires a specific directory structure to organize templates, scripts, and documentation. This steel thread will establish the foundation upon which the rest of the system will be built.",
   "body": "## Related Steel Threads\n\n- ST0002: Core Script Framework\n- ST0003: Template System",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: LLM Assisted"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: LLM Assisted",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0001: Directory Structure\n\n## Approach\n\n1. Create the primary directories based on the specification\n2. Create placeholder files to maintain directory structure\n3. Set up the necessary template directory structure\n4. Document the directory layout for future reference\n",
+      "bytes": 281,
+      "sha256": "b261333045e91263bb58219e5d67900f8fc9c7df51ae3588f085ae132e3230fd"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0001: Directory Structure\n\n## Implementation Notes\n\n### Directory Structure Created\n\nThe following directory structure has been established:\n\n```\nSTP/\n├── stp/                # Main STP directory\n│   ├── _templ/         # Templates directory\n│   │   ├── prj/        # Project document templates\n│   │   │   ├── _wip.md\n│   │   │   ├── _journal.md\n│   │   │   └── st/\n│   │   │       ├── _steel_threads.md\n│   │   │       └── _ST####.md\n│   │   ├── eng/        # Engineering document templates\n│   │   │   └── tpd/\n│   │   │       ├── _technical_product_design.md\n│   │   │       ├── _1_introduction.md\n│   │   │       ├── ...\n│   │   ├── usr/        # User document templates\n│   │   │   ├── _user_guide.md\n│   │   │   ├── _reference_guide.md\n│   │   │   └── _deployment_guide.md\n│   │   └── llm/        # LLM document templates\n│   │       └── _llm_preamble.md\n│   ├── bin/            # STP scripts\n│   │   ├── .help       # Help for each STP command\n│   │   ├── stp         # Main STP command\n│   │   ├── stp_init    # Init command implementation\n│   │   ├── stp_st      # Steel thread command implementation\n│   │   ├── stp_help    # Help command implementation\n│   │   └── ...         # Other command implementations\n│   ├── prj/            # Project documentation\n│   │   ├── st/         # Steel threads\n│   │   │   ├── steel_threads.md   # Steel thread index\n│   │   │   ├── ST0001.md          # Individual steel thread\n│   │   │   └── ...\n│   │   ├── wip.md      # Work in progress\n│   │   └── journal.md  # Project journal\n│   ├── eng/            # Engineering docs\n│   │   └── tpd/        # Technical Product Design\n│   │       ├── technical_product_design.md   # Main TPD document\n│   │       ├── 1_introduction.md            # TPD sections\n│   │       └── ...\n│   ├── usr/            # User documentation\n│   │   ├── user_guide.md\n│   │   ├── reference_guide.md\n│   │   └── deployment_guide.md\n│   └── llm/            # LLM-specific content\n│       ├── llm_preamble.md\n│       └── *.prompt.md     # Canned prompts\n├── bin/                # Executable scripts (outside the stp structure)\n```\n\n### Naming Conventions\n\n- All templates begin with an underscore (\\_)\n- All steel thread documents follow the pattern ST####.md (with 4-digit IDs)\n- All scripts follow the pattern stp_command\n\n### Template Organization\n\nTemplates are organized to mirror the actual directory structure where the instantiated files will reside. This makes it easier to understand the relationship between templates and their final locations.\n",
+      "bytes": 3014,
+      "sha256": "0522e5ca7eeb8d28d9f768d75d0140318b5c2141e1a2127fe455c57f6d0ca63e"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0001: Directory Structure\n\n## Tasks\n\n- [x] Create root level directory structure\n- [x] Create subdirectories for each component\n- [x] Create placeholder files for templates\n- [x] Document directory structure in the technical product design\n- [ ] Create symbolic links or references between related directories\n- [ ] Validate directory structure against requirements\n",
+      "bytes": 378,
+      "sha256": "bd9ea9c2a51916fae22ce5a373db4ac485206df3ebfc288b4d644e8567b59edf"
+    }
+  ]
 }

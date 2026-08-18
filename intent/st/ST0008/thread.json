@@ -8,5 +8,25 @@
   "objective": "Integrate Large Language Model (LLM) capabilities into the STP system to assist with document generation, code creation, and project management tasks.",
   "context": "LLMs offer powerful capabilities for automating and enhancing many aspects of software development and documentation. This steel thread implements LLM integration into STP, allowing users to leverage AI assistance for various tasks while maintaining human oversight and quality control.",
   "body": "## Related Steel Threads\n\n- ST0003: Template System\n- ST0004: Steel Thread Commands\n- ST0007: User Documentation\n- ST0009: Process Refinement\n\n## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0008: LLM Integration\n\n## Approach\n\n1. Identify key integration points for LLM assistance\n2. Design a prompt engineering system specific to STP\n3. Create LLM-specific sections in templates\n4. Implement LLM preamble files to provide consistent context\n5. Develop documentation for effective LLM use within STP\n",
+      "bytes": 322,
+      "sha256": "0820a62945e75e0c1a5dc6c31ec4c75f053231bb92a6a8d3a6638be1913d0f42"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0008: LLM Integration\n\n## Implementation Notes\n\n### LLM Integration Points\n\nThe STP system integrates LLMs at several key points:\n\n1. **Document Generation**: Templates include LLM-specific context sections that help guide the model in generating appropriate content\n2. **Steel Thread Management**: LLMs can assist in planning and documenting steel threads\n3. **Technical Design**: LLMs can help with creating and refining technical product design documents\n4. **Code Generation**: LLMs can assist with implementation tasks based on steel thread documentation\n\n### LLM Preamble System\n\nThe system uses a standardized preamble approach:\n\n1. A base LLM preamble file (`llm_preamble.md`) provides project context\n2. Document-specific context sections explain the purpose and structure of each document type\n3. Task-specific prompts guide the LLM for particular activities\n\n### LLM-Aware Document Structure\n\nDocuments are structured to be LLM-friendly:\n\n1. Clear section headings and hierarchical organization\n2. Explicit placeholders and instructions\n3. Context sections that are hidden from final rendered output\n4. Semantic organization that helps the LLM understand document relationships\n\n### Prompt Engineering Guidance\n\nThe implementation includes:\n\n1. Example prompts for common tasks\n2. Guidance on prompt construction\n3. Strategies for effective LLM collaboration\n4. Troubleshooting techniques for common LLM challenges\n",
+      "bytes": 1447,
+      "sha256": "7f14616cd09340024c4a73b341b21d30df27b13268363ac1782f5eb264f2b871"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0008: LLM Integration\n\n## Tasks\n\n- [x] Create an LLM preamble file structure\n- [x] Add LLM context sections to all templates\n- [x] Develop standard prompts for common tasks\n- [x] Implement LLM-aware document formatting\n- [x] Create guidance for effective prompt engineering\n- [x] Document LLM integration features\n- [x] Test LLM effectiveness with various tasks\n- [x] Develop best practices for human-LLM collaboration\n- [x] Implement feedback from LLM integration testing\n",
+      "bytes": 485,
+      "sha256": "51038ed65d10704179ac451b660fa0c1c984c9fa20b90b7375fb12f4ae9e4302"
+    }
+  ]
 }

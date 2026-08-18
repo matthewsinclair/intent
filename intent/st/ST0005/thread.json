@@ -8,5 +8,25 @@
   "objective": "Implement the initialization command (`stp init`) that sets up a new STP project structure with all necessary directories and template files.",
   "context": "The initialization command is a critical component of the STP system, allowing users to quickly bootstrap a new project with the correct directory structure and template files. This steel thread implements the `stp init` command and its supporting functionality.",
   "body": "## Related Steel Threads\n\n- ST0001: Directory Structure\n- ST0002: Core Script Framework\n- ST0003: Template System\n- ST0006: Help System\n\n## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0005: Initialization Command\n\n## Approach\n\n1. Design the initialization process workflow\n2. Implement the `stp_init` script to create the directory structure\n3. Add functionality to copy template files to their appropriate locations\n4. Create configuration file management\n5. Add customization options for project-specific settings\n",
+      "bytes": 345,
+      "sha256": "40b96e7468fa2b71ac706fda9d2ccc44a41d865d862a8825b66cb9f8041503c0"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0005: Initialization Command\n\n## Implementation Notes\n\n### Directory Structure Creation\n\nThe initialization command creates the following directory structure:\n\n```\nproject/\n├── prj/            # Project documentation\n│   ├── st/         # Steel threads\n│   │   └── steel_threads.md\n│   ├── wip.md      # Work in progress\n│   └── journal.md  # Project journal\n├── eng/            # Engineering docs\n│   └── tpd/        # Technical Product Design\n│       ├── technical_product_design.md\n│       ├── 1_introduction.md\n│       └── ...\n├── usr/            # User documentation\n│   ├── user_guide.md\n│   ├── reference_guide.md\n│   └── deployment_guide.md\n└── llm/            # LLM-specific content\n    └── llm_preamble.md\n```\n\n### Template Instantiation\n\nDuring initialization, the system:\n\n1. Creates all required directories\n2. Copies template files from the template directory to their respective locations\n3. Removes the leading underscore from template filenames\n4. Populates project-specific metadata in templates (project name, date, author, etc.)\n\n### Configuration Management\n\nThe initialization process creates a `.stp-config` file that contains:\n\n- Project name\n- Project creation date\n- Author information\n- Project-specific settings\n- Paths to important directories and files\n\nThis configuration file is used by other STP commands to locate resources and customize behavior.\n\n### User Interaction\n\nThe initialization command:\n\n- Prompts for project name if not provided as an argument\n- Automatically detects the current user as the author (can be overridden)\n- Provides clear feedback during initialization\n- Warns if attempting to initialize an existing project\n- Displays a success message with next steps after completion\n",
+      "bytes": 1874,
+      "sha256": "5330b38ab563167aa1011923eff19b1730641d5b4a4e0aaf8b06e8c260f48ef5"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0005: Initialization Command\n\n## Tasks\n\n- [x] Design the directory structure to be created during initialization\n- [x] Implement the basic `stp init` command\n- [x] Add logic to copy templates from the template directory\n- [x] Create a configuration file for project-specific settings\n- [x] Add support for customizing project metadata during initialization\n- [x] Add verification to prevent re-initialization of existing projects\n- [x] Implement error handling and user feedback\n- [x] Document the initialization process\n- [x] Test initialization on different operating systems\n",
+      "bytes": 590,
+      "sha256": "0d399d126915329a6c0e13c37ab083145033b4dae0bfa8a71a032ae72eb36b68"
+    }
+  ]
 }

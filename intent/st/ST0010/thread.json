@@ -8,5 +8,25 @@
   "objective": "Explore and implement the potential use of Anthropic's Machine Control Protocol (MCP) to enable STP scripts to interact with LLMs in a more robust and controlled manner.",
   "context": "Several STP commands could benefit from LLM integration, such as \"stp st done STID\" and other operations that might require AI assistance. Currently, these interactions are not standardized. Using MCP could provide a more structured and reliable way for STP scripts to leverage LLM capabilities programmatically.\n\nThis steel thread explores whether an MCP implementation (or proxy) could allow STP scripts to more effectively control LLM interactions, potentially enabling the LLM to call itself in a parameterized way from within the STP framework.",
   "body": "## Related Steel Threads\n\n- ST0002: Core Script Framework\n- ST0004: Steel Thread Commands\n\n## Context for LLM\n\nThis steel thread explores the integration of Anthropic's Machine Control Protocol (MCP) into the STP system to enhance LLM interactions within STP scripts. This is a low-priority exploration for now that can be implemented later after more critical components are in place.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "> **Deprecated 2026-04-24.** Superseded by Intent v2.9.0 — the skill / subagent / extension system (`~/.intent/ext/`, `intent ext`, critic-_ family, `/in-_` skills) provides the parameterised LLM-interaction surface this ST was scoping. Cancelled under ST0035 (canonical LLM config). The original objective and context below are preserved for historical reference only.\n\n\n- **Status**: Cancelled\n- **Created**: 2025-06-03\n- **Completed**: 2026-04-24\n- **Author**: Matthew Sinclair"
+  "preamble": "> **Deprecated 2026-04-24.** Superseded by Intent v2.9.0 — the skill / subagent / extension system (`~/.intent/ext/`, `intent ext`, critic-_ family, `/in-_` skills) provides the parameterised LLM-interaction surface this ST was scoping. Cancelled under ST0035 (canonical LLM config). The original objective and context below are preserved for historical reference only.\n\n\n- **Status**: Cancelled\n- **Created**: 2025-06-03\n- **Completed**: 2026-04-24\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0010: Anthropic MCP Integration\n\n## Approach\n\n1. Research Anthropic's MCP specification and implementation requirements\n2. Identify STP commands that would benefit from LLM integration\n3. Design a lightweight MCP integration layer for STP scripts\n4. Prototype the integration with at least one STP command (eg \"stp st done STID\")\n5. Evaluate effectiveness and limitations\n6. Document the approach and implementation details\n",
+      "bytes": 437,
+      "sha256": "0f758d03ab9285ac8d0d9834c21f6df8e27ff8880add2e62ac0f6dc05d0e29d1"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0010: Anthropic MCP Integration\n\n## Implementation Notes\n\n[Notes on implementation details, decisions, challenges, and their resolutions]\n",
+      "bytes": 159,
+      "sha256": "d06384d5994629ef46819bbbf3342a7fb1d3af5c517fcfd6088b941bc1a093d0"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0010: Anthropic MCP Integration\n\n## Tasks\n\n- [ ] Research and document current MCP capabilities and limitations\n- [ ] Analyze STP commands to identify candidates for MCP integration\n- [ ] Design MCP integration architecture for STP\n- [ ] Implement prototype for at least one command (eg \"stp st done\")\n- [ ] Test the implementation with various scenarios\n- [ ] Document the implementation and usage guidelines\n- [ ] Create examples of MCP-enhanced STP commands\n",
+      "bytes": 473,
+      "sha256": "94d0c82ee9d2cd028c5db2613a00caed74b47b4831b2e6d868a38261b6de94e2"
+    }
+  ]
 }

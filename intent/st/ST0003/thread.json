@@ -8,5 +8,25 @@
   "objective": "Create a template system for STP that provides standardized starting points for all document types and ensures consistency across the project.",
   "context": "Templates are essential for maintaining consistency in documentation and providing users with immediate guidance on what information to include. This steel thread implements the template system for STP, creating templates for project documents, engineering documents, user documents, and steel threads themselves.",
   "body": "## Related Steel Threads\n\n- ST0001: Directory Structure\n- ST0002: Core Script Framework\n- ST0005: Initialization Command\n\n## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0003: Template System\n\n## Approach\n\n1. Identify all document types that require templates\n2. Create template files with placeholder content and instructions\n3. Design a template directory structure that mirrors the final document structure\n4. Implement consistent formatting and styles across all templates\n5. Add LLM-specific guidance within templates\n",
+      "bytes": 366,
+      "sha256": "70a3d7b201c1c5ee2e1a329338db377fc66e3a06182efb79095cb8af454baa5b"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0003: Template System\n\n## Implementation Notes\n\n### Template Organization\n\nTemplates are organized in a directory structure that mirrors their final location:\n\n```\n_templ/\n├── prj/        # Project document templates\n│   ├── _wip.md\n│   ├── _journal.md\n│   └── st/\n│       ├── _steel_threads.md\n│       └── _ST####.md\n├── eng/        # Engineering document templates\n│   └── tpd/\n│       ├── _technical_product_design.md\n│       ├── _1_introduction.md\n│       └── ...\n├── usr/        # User document templates\n│   ├── _user_guide.md\n│   ├── _reference_guide.md\n│   └── _deployment_guide.md\n└── llm/        # LLM document templates\n    └── _llm_preamble.md\n```\n\n### Template Design Principles\n\n1. All templates begin with an underscore (\\_) to distinguish them from actual documents\n2. Templates include placeholders marked with [brackets] to indicate information that needs to be filled in\n3. Each template includes guidance text that explains its purpose and how to complete it\n4. Templates for modular documents (like technical product design) are split into logical sections\n5. All templates include a version block section at the top for tracking changes\n\n### LLM Integration\n\nEach template includes a \"Context for LLM\" section that provides:\n\n- The purpose of the document type\n- Instructions for updating and maintaining the document\n- Guidance on what information to include in each section\n- Related documents that may be relevant\n",
+      "bytes": 1586,
+      "sha256": "a6f93e954b6e41c796b719bb1dce921912f08dcf056642a88ece1bea96591dd6"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0003: Template System\n\n## Tasks\n\n- [x] Design template directory structure\n- [x] Create project document templates (journal, WIP, steel threads)\n- [x] Create engineering document templates (technical product design)\n- [x] Create user document templates (user guide, reference guide, deployment guide)\n- [x] Add LLM-specific guidance sections to all templates\n- [x] Test template instantiation process\n- [x] Document template system in the technical product design\n",
+      "bytes": 476,
+      "sha256": "50483ffcde32d2a8cb5846a779bbb6d317ba60a60ec58375fdcad7c8e8a6017a"
+    }
+  ]
 }

@@ -8,5 +8,25 @@
   "objective": "Implement a comprehensive help system for STP that provides users with command-specific guidance, usage examples, and general information about the system.",
   "context": "A good help system is essential for improving user experience and adoption. This steel thread implements the help system for STP, including the `stp help` command, command-specific help, and a methodology for maintaining help documentation alongside the code.",
   "body": "## Related Steel Threads\n\n- ST0002: Core Script Framework\n- ST0004: Steel Thread Commands\n- ST0005: Initialization Command\n- ST0007: User Documentation\n\n## Context for LLM\n\nThis document represents a single steel thread - a self-contained unit of work focused on implementing a specific piece of functionality. When working with an LLM on this steel thread, start by sharing this document to provide context about what needs to be done.\n\n### How to update this document\n\n1. Update the status as work progresses\n2. Check off tasks as they are completed\n3. Add implementation notes as decisions are made or challenges encountered\n4. Add results when the steel thread is completed\n5. Mark the completion date when finished\n\nThe LLM should assist with implementation details and help maintain this document as work progresses.",
-  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair"
+  "preamble": "- **Status**: Completed\n- **Created**: 2025-03-06\n- **Completed**: 2025-06-03\n- **Author**: Matthew Sinclair",
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design - ST0006: Help System\n\n## Approach\n\n1. Design the help system architecture\n2. Create a help file format and structure\n3. Implement the `stp help` command and its subcommands\n4. Create help files for all existing commands\n5. Ensure the help system is extensible for future commands\n",
+      "bytes": 290,
+      "sha256": "0409d8894bb660588c7e5d04e0e5ad328618d58bc6b355b2a9c270a973041649"
+    },
+    {
+      "path": "impl.md",
+      "text": "# Implementation - ST0006: Help System\n\n## Implementation Notes\n\n### Help File Structure\n\nHelp files are stored in the `.help` directory and follow a consistent format:\n\n- Filename pattern: `command.help.md`\n- Structure:\n\n  ```\n  @short: Brief one-line description\n  @desc:\n  Detailed multi-line description\n\n  @usage:\n  command [options] <arguments>\n\n  @examples:\n  command example1\n  command example2\n  ```\n\n### Help Command Implementation\n\nThe `stp help` command:\n\n1. Without arguments, displays a list of all available commands with short descriptions\n2. With a command argument (eg `stp help init`), displays detailed help for that command\n3. Dynamically discovers available commands by scanning for `stp_*` scripts\n\n### Dynamic Command Discovery\n\nThe system:\n\n- Scans the bin directory for `stp_*` scripts to identify available commands\n- Extracts short descriptions from corresponding help files\n- Formats the output in a consistent and readable way\n- Handles the case of missing help files gracefully\n\n### Multi-line Description Handling\n\nThe help system properly formats multi-line descriptions, maintaining:\n\n- Proper indentation\n- Paragraph structure\n- Code blocks and examples\n- Lists and other formatting\n",
+      "bytes": 1218,
+      "sha256": "a36dc176081e0fe8b4fdf0dec7b73885e5546d8b90f855915c32651706d8d483"
+    },
+    {
+      "path": "tasks.md",
+      "text": "# Tasks - ST0006: Help System\n\n## Tasks\n\n- [x] Design the help file format and structure\n- [x] Implement the `stp help` command\n- [x] Implement command-specific help (eg `stp help init`)\n- [x] Create help files for all existing commands\n- [x] Add functionality to list all available commands\n- [x] Implement dynamic discovery of commands for help listings\n- [x] Add examples and usage scenarios to help documentation\n- [x] Document the help system and how to extend it\n- [x] Test help system with various commands and scenarios\n",
+      "bytes": 528,
+      "sha256": "c4d9f4212acb489b2aa6648d0939692992f958b9944f46e25d2ccd1ca5237fbc"
+    }
+  ]
 }
