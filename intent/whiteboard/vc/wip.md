@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 22:29Z
+heartbeat_at: 2026-08-18 22:52Z
 status: active
-focus: "**LOCALFOLD 16. Everything that reached canon tonight is a POINTER here, not prose.** ST0056 **122** rows, ST0057 **46** -- four mints (AC-00.11, AC-01.6, AC-01.7, AC-04.6), all synced and committed, all four inboxes at sentinel. **THE NIGHT'S SHAPE: every probe run by any node measured its own reach, and the thing that found the truth was cc BUILDING the relocation rather than anyone grepping for it.** I corrected a row I had minted an hour earlier -- **dc caught a FABRICATED fact in it** -- and discharged AT-03.15's denominator hold down to ten named verbs. **ONE LIVE COMMITMENT: I ping dc and ic when cc lands WP-01 and the tree is green.**"
+focus: "**AT-00.12 MINTED (ST0056 now 123 tests / 122 criteria) and AC-00.10's `18 of 24` RETRACTED.** Ruled ic's two-mode question: **a row of its own under the SAME criterion, because the two modes have different POPULATIONS and a shared row makes green ambiguous about which was covered.** ic then measured my own row wrong in both halves -- **12 of 45, not 18 of 24; 27% where the row read 75%** -- and I took the retraction on receipt rather than holding it for their rebuild. **Also measured tonight: `todo list`'s RECORDED write does not happen and its real one is undocumented.** cc still RED on WP-01."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,6 +13,8 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
+- **AT-00.12 IS MINTED AND `of_n_labels_its_derivation.sh` IS UNWRITTEN -- ic is building both drive modes.** The row states its own population (every instrument emitting an `N of M`, path shape or not) and carries ic's discipline: **it maps each recorded number to the population that would derive it, because a declarative check that only greps for a LABEL passes on a label attached to nothing.**
+- **AC-00.10 + AT-00.10 CARRY THE RETRACTION NOW, NOT AFTER THE REBUILD.** The standing text reassured at 75% where the observable says 27%; **a wrong number that comforts is worse than no number.** The derived figure lands with ic.
 - **NOTHING OF MINE IS IN FLIGHT AND NOTHING IS OPEN WITH hv.** cc has WP-01 applied and the tree RED by announcement (71 failures / 17 binaries) -- that is the patch, not a regression; the release binary is untouched at `f2e4d1f9`. dc is holding. ic is compacting.
 - **THE ONE THING I OWE: PING dc AND ic THE MOMENT cc LANDS WP-01 AND THE TREE IS GREEN.** That is the trigger for the of-N adjudication (AC-00.11) and I am holding it rather than leaving it on their boards to chase. **dc takes the gated ones; ic routes their own two, at their request and on their own bar.** Order is GATEDNESS, never count. The nested tree comes from `git worktree add` at a pre-relocation revision -- **the by-revision shortcut is NOT available**, `canon_commit_check.sh` at `ce532a97` returns rc=2 over 0 measured + 57 unmeasurable.
 
@@ -39,7 +41,7 @@ What is NOT written down anywhere else. **These are CLASSES; the instances that 
 - **THE REASON EXISTS SOMEWHERE AND THE READER IS NOT WHERE IT IS.** **TWO channels or ONE?** An instrument has source and output -- **MOVE the reason into the output, and it only works if the instrument is GATED** (dc). A document's source IS its output, so **only a mechanism that refuses is invariant under copying.**
 - **THE EDIT THAT READS AS CLEANUP REMOVES THE PROTECTION** -- the protection is an ABSENCE and nothing says an absence is load-bearing (ic).
 - **THE FORM MUST BE MINTED BEFORE THE POPULATION CAN BE** (dc). **A keyword probe for GOOD PRACTICE false-positives exactly where the practice was done well** (ic).
-- **AGREEMENT CAN SYNTHESISE A FALSEHOOD NEITHER PARTY HELD.** Only the fixture separates them.
+- **AGREEMENT CAN SYNTHESISE A FALSEHOOD NEITHER PARTY HELD.** Only the fixture separates them. **AND THE MECHANISM IS NOW VISIBLE RATHER THAN INFERRED** (ic): a regex reproduced a hand count EXACTLY because it reproduced the hand count's METHOD -- both scanned the left margin. **Exact agreement between two instruments sharing a blind spot is evidence that one method was used twice.** Its twin: **a probe found by searching for one that hits a KNOWN target is fitted to the answer, and its exactness is the evidence of fitting, not of correctness.**
 - **RE-MEASURE YOUR OWN SENTENCE INSTEAD OF CITING IT** (cc): **a false RATIONALE never goes red.**
 - Mechanical: **`open(f,"w").write(open(f).read() + x)` DESTROYS THE FILE.** **AT and AC ids number INDEPENDENTLY.** **A REVERT OF SOURCE IS NOT A REVERT OF ARTEFACTS.**
 
@@ -58,6 +60,7 @@ What is NOT written down anywhere else. **These are CLASSES; the instances that 
 - **MEASURE AT A PINNED SHA AND NAME THE COMMIT. PIN A BINARY BY CONTENT HASH, NEVER BY ITS MARKER** -- now ENFORCED in `self_provenance_check.sh`'s output (dc `9f9167cd`, off my own episode of reading two distinct binaries as one artefact). **It also names what it does NOT claim**, which is rarer and better.
 - **`intent st list` DEFAULTS TO IN-PROGRESS ONLY AND RETURNS 2. `--all` IS NOT A FLAG.** Use **`st list --status all`** -- 57, breakdown **52 Completed / 2 Cancelled / 2 WIP / 1 NotStarted**. **PRINT THE BREAKDOWN, NEVER THE BARE TOTAL.**
 - **CHECK THE BINARY'S AGE AGAINST ITS INPUTS -- but NOT via `surface_check.sh`** (retracted, ic): its reach was one crate of two and **the wiping build's surface was PERFECT.** **What caught the wipe was running `sync` and reading the row counts.**
+- **A VERB'S RECORDED SIDE EFFECT IS NOT ITS MEASURED ONE.** `todo list` documents _generates intent/todo.md if absent_ and **does not**; what it actually writes is a 10MB `intent/.cache/intent.db`, undocumented. **And store materialisation cannot evidence `mutate` -- `st list`, classified `read`, does it identically.** So a write-exactness driver keying on _any file appeared_ trips on pure reads, and one keying on the tracked tree is blind to 10MB because `.cache` is gitignored. **Name the observable.**
 - **`to-write` = UNWRITTEN. `red` = it EXISTS and does not pass.** Neither means the criterion is unmet. **An AT earns green from an instrument DEMONSTRATED RED**; hold red WITH A NOTE saying the instrument passes.
 - **NEVER `$?` AFTER A PIPE** -- broken twice now, the second time while verifying someone else's correction: `... | tail` read rc=0 where the truth was rc=2. Redirect to a file and read `$?` from the command itself.
 
@@ -72,6 +75,8 @@ What is NOT written down anywhere else. **These are CLASSES; the instances that 
 - **Every timestamp READ FROM A CLOCK** -- `ls -l`, `git log` and `stat -f %Sm` print LOCAL, and appending `Z` gives a stamp wrong by exactly the offset. **ARCHIVE BY NAMING THE STAMPS; COUNT, STOP, READ THE DIFFERENCE.** A fold never overwrites an earlier fold. **My archive carries THREE fold-header conventions -- count with `grep -nEi '^#+ (FOLD [0-9]+|[A-Z]+ FOLD)'` or miscount, as I did at fold 15.**
 
 ## Decisions
+
+- (2026-08-18) **TWO DRIVE MODES WITH DIFFERENT POPULATIONS GET TWO ROWS, NOT ONE ROW WITH TWO ARMS** -- ic's finding, my ruling. Bundling them makes a green ambiguous about which population was covered, **which is AC-00.11's own defect committed by the row that enforces AC-00.11.** The criterion never changed; only the driver was under-scoped. **An unstated population is how a nomination's horizon travels into the drive**, so AT-00.11 now states its own.
 
 - (2026-08-18) **THE OF-N SWEEP IS A CRITERION, NOT A SWEEP, AND IT DOES NOT RUN BEFORE cc LANDS.** dc's "closing window" premise was FALSE and checked rather than accepted -- `git worktree add` needs no parameterisation at all. **A sweep finds today's ten and protects nothing from the eleventh; ic then FOUND an eleventh, invisible to dc's proxy, from inside the set that had just adjudicated itself.**
 - (2026-08-18) **hv AUTHORISED ONE `--no-verify`** (`11bb52da`). **The guard was RIGHT to refuse and nothing about it changes** -- it cannot distinguish repair from regression.
