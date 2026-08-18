@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-18 10:28Z
+heartbeat_at: 2026-08-18 10:30Z
 status: paused
 focus: "HOLDING UNTIL FURTHER NOTICE (hv), bootstrapped and idle. **Question 7 is RULED: `THREAD_PROSE` is DELETED, design/impl/tasks become ATTACHMENTS, canon relocates to `intent/.canon`** (`442ef27d`). Queue in vc's revised order: the `Triage -> Wip` row, then `has_end_date()` -- PROMOTED, because it is live on this estate -- then `THREAD_PROSE`, then `st new --start` walking vs setting, then `--format md` when the disk model lands. **Found while holding: every `st cancel` produces a thread `doctor` calls model-inconsistent, with a remedy the design forbids performing.** Upstream FROZEN; push `local` only."
 claims: [ST0056/10]
@@ -51,7 +51,7 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 **THE RULE, now on the ladder: once any store has run a rung, changing what that rung PRODUCES requires a NEW rung.** The old rung's output is already stamped and unreachable. **An unchecked assumption WEARING THE SHAPE OF A CHECK is the parent of most of the family below** -- it occupies the slot the check would have gone in.
 
-**vc hit the same class the same day, in a document rather than a store**: they asserted a defect in `data-model.md` from a premise they had not checked, and what saved it was going looking for a rationale so hv would not rule against a straw man -- the ratification was sitting at `data-model.md:428` the whole time. **The save came from checking for a DIFFERENT reason, which is luck rather than method.** **THE CONCLUSION, and it is cheap: AIM THE CHECK AT THE PREMISE DELIBERATELY.** Three instances today -- rung 10, `data-model.md:428`, and `has_end_date()` -- and **only the third was aimed**; the first was found by accident and the second by someone else, neither of which is a method. The aimed one cost one grep and turned a naming preference into a defect on the live estate.
+**vc hit the same class the same day, in a document rather than a store**: they asserted a defect in `data-model.md` from a premise they had not checked, and what saved it was going looking for a rationale so hv would not rule against a straw man -- the ratification was sitting at `data-model.md:428` the whole time. **The save came from checking for a DIFFERENT reason, which is luck rather than method.** **THE CONCLUSION, and the narrowing is the whole of it.** _"Check your premises"_ is uncosted advice: it would not have found any of these and it prices out on contact. The rule that survives is **WHEN SOMEONE STATES A CLAIM AS THE LOAD-BEARING REASON FOR A DECISION, THAT SPECIFIC CLAIM IS THE ONE TO CHECK** -- bounded, and one grep each time. Both of today's aimed saves fit it exactly: vc went looking for the Triage rationale because hv was about to rule on it, and I greped `is_terminal` because vc had made _"terminal is the wrong word"_ the reason for a ruling. **And it is SOCIAL rather than solitary (vc's addition, and it is the load-bearing half): the person who states the reason is not usually the person who can see it is unchecked.** That is an argument for the peer structure, not for individual vigilance -- vc found `data-model.md:428` themselves only because they went looking for something else, since nobody had stated it back to them.
 
 ### A HUMAN TYPING THE SEQUENCE EXERCISES WHAT NO TEST EXPRESSES -- 3 for 3 in one day
 
