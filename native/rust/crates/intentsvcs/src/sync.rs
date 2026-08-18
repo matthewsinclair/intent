@@ -205,28 +205,65 @@ impl Ignored {
   /// The walker reports what it keeps, not what it drops, so the set is
   /// derived rather than read off. Cheap enough here because the tree is the
   /// project's own and already being scanned.
+  /// **SCOPED TO WHAT [`scan`] ACTUALLY CONSULTS, and that is a correctness
+  /// property before it is a performance one.**
+  ///
+  /// The ignored set is queried in exactly two places -- the three
+  /// [`ROOT_FILES`] by name, and each child during the walk of `intent/`. It is
+  /// never asked about anything else. Rooting the walks at the project root
+  /// therefore enumerated an enormous set of paths that had no consumer.
+  ///
+  /// **Measured on Intent's own tree, 2026-08-18, and this is why `doctor` took
+  /// ten seconds while every other verb took ten milliseconds.** The
+  /// `standard_filters(false)` walk visits paths a gitignore-respecting walk
+  /// skips, so it descended into the cargo build directory:
+  ///
+  /// ```text
+  ///   paths the gitignore-respecting walk sees      1,929
+  ///   paths the unfiltered walk visited           613,811
+  ///   of which native/rust/target/                601,783
+  ///   paths `scan` can ever ask about              ~1,511
+  /// ```
+  ///
+  /// **The reason this is not merely slow is that the excess is UNBOUNDED and
+  /// MACHINE-LOCAL.** A build directory is not part of the project; its size
+  /// depends on who has compiled what and how recently. So `doctor`'s runtime
+  /// varied with an artefact the answer does not depend on, and a fresh clone
+  /// and a working machine would disagree about how long the same check takes
+  /// on the same estate.
+  ///
+  /// The two-walk difference is kept, because it is the technique that gets the
+  /// answer from git's own rules rather than from a hand-maintained list. Only
+  /// its DOMAIN changes, to the union of the two things `scan` looks at.
   fn for_root(root: &Path) -> Self {
-    let visible: std::collections::HashSet<PathBuf> = ignore::WalkBuilder::new(root)
-      .hidden(false)
-      // Committed and shared -- the repository's own statement about what it
-      // will never carry, and the same on every clone and every machine.
-      .git_ignore(true)
-      .parents(true)
-      // Machine-local and clone-local respectively. Honouring either makes the
-      // corpus a property of who is running the tool.
-      .git_global(false)
-      .git_exclude(false)
-      .build()
-      .filter_map(Result::ok)
-      .map(|e| e.into_path())
-      .collect();
-    let all: std::collections::HashSet<PathBuf> = ignore::WalkBuilder::new(root)
-      .hidden(false)
-      .standard_filters(false)
-      .build()
-      .filter_map(Result::ok)
-      .map(|e| e.into_path())
-      .collect();
+    // `intent/`, walked in full, plus the project root at depth 1 so the three
+    // ROOT_FILES are covered. Depth 1 yields the root's immediate children and
+    // does not descend, so a build directory is one entry rather than a tree.
+    let mut visible = std::collections::HashSet::new();
+    let mut all = std::collections::HashSet::new();
+    for (base, depth) in [(root.join("intent"), None), (root.to_path_buf(), Some(1))] {
+      if !base.exists() {
+        continue;
+      }
+      let mut vb = ignore::WalkBuilder::new(&base);
+      vb.hidden(false)
+        // Committed and shared -- the repository's own statement about what it
+        // will never carry, and the same on every clone and every machine.
+        .git_ignore(true)
+        .parents(true)
+        // Machine-local and clone-local respectively. Honouring either makes
+        // the corpus a property of who is running the tool.
+        .git_global(false)
+        .git_exclude(false);
+      let mut ab = ignore::WalkBuilder::new(&base);
+      ab.hidden(false).standard_filters(false);
+      if let Some(d) = depth {
+        vb.max_depth(Some(d));
+        ab.max_depth(Some(d));
+      }
+      visible.extend(vb.build().filter_map(Result::ok).map(|e| e.into_path()));
+      all.extend(ab.build().filter_map(Result::ok).map(|e| e.into_path()));
+    }
     Self {
       paths: all.difference(&visible).cloned().collect(),
     }
