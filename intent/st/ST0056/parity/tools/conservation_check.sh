@@ -703,21 +703,40 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
     continue
   fi
 
-  # ISSUES. data-model.md gives them `issues/<n>.json` plus an authored body at
-  # `issues/<n>.md`, so the destination is declared and the only question is
-  # whether anything arrived. A missing body file is a LOSS and not an absence:
-  # the estate held the prose and the canon declares a home for it.
+  # ISSUES. THIS ARM ASKED A DISK QUESTION ABOUT A STORE-RESIDENT MODEL, AND IT
+  # COULD NOT REACH ZERO NO MATTER WHAT ANYONE BUILT (ic, 2026-08-18, measured on
+  # the first post-`attachments` baseline: 332 of 384 LOST-PROSE were this one
+  # line). It looked for `issues/<n>.md` because data-model.md declared that home
+  # when files were canon. **D01 REVERSED, and my instrument did not follow it.**
+  # cc has since put the prose in `issues/<n>.json`'s `body`; disk-optional
+  # deliberately does not write `issues/<n>.md`; and under `realisation.md` that
+  # file would exist only for REALISED issues, which would make a conservation
+  # number depend on the realisation set. **A check that reads disk is measuring
+  # the projection, not the truth.**
+  #
+  # ic verified the bytes were conserved the whole time -- 40 of 40 bodies
+  # non-empty, 434,437 bytes, issue 0001 byte-identical to its v2 source -- so
+  # the arm was reporting 432 KB of loss over prose sitting safely in the store.
+  #
+  # An EMPTY destination is still LOSS and is still reported. What changed is
+  # WHERE the destination is looked for, not whether one is required.
   if [ "$kind" = issue ]; then
     num="${id##*/}"; num="$(printf '%s' "$num" | sed 's|^0*||')"
-    body="$CANON/issues/$num.md"
-    if [ ! -f "$body" ]; then
-      report LOST-PROSE "issue $id '$section' ($bytes bytes -- no issues/$num.md)"
+    j="$CANON/issues/$num.json"
+    if [ ! -f "$j" ]; then
+      report LOST-PROSE "issue $id '$section' ($bytes bytes -- no issues/$num.json)"
       c_lost=$((c_lost + 1))
       continue
     fi
-    section_text "$body" "$section" >"$WORK/f"
-    # An authored markdown body beside the JSON: bytes preserved, structure not
-    # modelled, so it is carried for the same reason a WP's `body` is.
+    jq -j '.body // ""' "$j" >"$WORK/ibody" 2>/dev/null || : >"$WORK/ibody"
+    section_text "$WORK/ibody" "$section" >"$WORK/f"
+    if [ ! -s "$WORK/f" ]; then
+      report LOST-PROSE "issue $id '$section' ($bytes bytes -- issues/$num.json holds no such section in .body)"
+      c_lost=$((c_lost + 1))
+      continue
+    fi
+    # Bytes preserved, structure not modelled, so it is carried for the same
+    # reason a WP's `body` is.
     compare_prose "issue $id '$section'" "$sha" "$trim" "$WORK/f" carried
     continue
   fi
@@ -764,8 +783,28 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
         echo "DECLARED-DROP $st 'Related Steel Threads' (removed, and the migrator says why -- verified empty in canon)"
         c_drop=$((c_drop + 1))
       else
-        report LOST-PROSE "$st 'Related Steel Threads' ($bytes bytes -- canon carries an empty related[])"
-        c_lost=$((c_lost + 1))
+        # THE STRUCTURE BEING EMPTY IS NOT THE TEXT BEING GONE, AND THIS TOOL
+        # ALREADY HAD A WORD FOR THE DIFFERENCE (ic, 2026-08-18). `related[]` is
+        # empty for all 56 threads, and the section's bytes reached the D28
+        # catch-all -- verified independently on ST0010, whose `.body` opens with
+        # `## Related Steel Threads` followed by both rows, byte-for-byte the
+        # rendered view. **What is missing is the MODELLING, not the prose**,
+        # which is exactly `CARRIED` -- "bytes safe, meaning unmodelled" -- and
+        # this arm was calling it LOST. Two verdicts of mine disagreeing about
+        # one set of sections.
+        #
+        # So ask the catch-all before concluding. An absent section is still
+        # LOSS, reported as such rather than handed to `compare_prose`, which
+        # would call an empty destination ALTERED -- the number that means the
+        # bytes arrived WRONG, which is a different and worse claim.
+        jq -j '.body // ""' "$j" >"$WORK/rbody" 2>/dev/null || : >"$WORK/rbody"
+        section_text "$WORK/rbody" 'Related Steel Threads' >"$WORK/f"
+        if [ ! -s "$WORK/f" ]; then
+          report LOST-PROSE "$st 'Related Steel Threads' ($bytes bytes -- empty related[] AND no such section in .body)"
+          c_lost=$((c_lost + 1))
+        else
+          compare_prose "$st 'Related Steel Threads'" "$sha" "$trim" "$WORK/f" carried
+        fi
       fi
     else
       c_ok=$((c_ok + 1))
