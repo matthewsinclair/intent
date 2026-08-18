@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-18 15:59Z
+heartbeat_at: 2026-08-18 16:11Z
 status: paused
-focus: "PAUSED for a localfold before compact, on hv's instruction while hv and vc do surgery. **WP-03's carry is LANDED and COMMITTED** -- 275/275 attachments, 0 missing, 0 byte-mismatched, suite 623/0 at HEAD, seven commits from `86b74b6c` to `1a642249`. Nothing of mine is uncommitted. **Three things queued and none started: the views::info canon data fix, the cold-warm collection gap doctor cannot see, and rust/shell critics arming zero rules.** Upstream FROZEN; nothing pushed."
+focus: "AWAKE POST-COMPACT AND HOLDING for hv + vc, who are in surgery. **NOTHING OF MINE IS OUTSTANDING** -- tree was clean at `31f2dce4` on wake. **ANSWERED ic's 16:00Z TIME-CRITICAL REBUILD ALARM: neither of their two worlds -- the no-rebuild requirement bound an operation that was never performed**, since it guarded a before/after pair bracketing "the regeneration" and there was no regeneration; the write-back's verification is a SINGLE-pass byte comparison with no two readings to span. Both binaries read `dirty-4ef953db` out of the artefact, mtime 15:51Z; **I cannot attribute the build and it may have been mine.** ic's `intentd` no-marker half is CLOSED. **Two items queued and unstarted: the cold-warm collection gap `doctor` has no arm for, and rust/shell critics arming zero rules (dc scoped Half B).** New third: `build-support/source_commit.rs` has no `cargo:rerun-if-changed` on `.git/HEAD`, so a build can exit 0 and leave a STALE embed -- mine, ic verified it. Upstream FROZEN."
 claims: [ST0056/10]
 ---
 
@@ -31,7 +31,7 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 **IT COST 40 ISSUE BODIES, RECOVERED 40/40.** `sync --to-store` named all 40 in a warning before acting; I read the list, recognised the expected population, and classified a correct RED as confirmation. Recovered from a snapshot vc had MOVED rather than deleted.
 
-## OPEN -- three things queued, none started
+## OPEN -- four things queued, none started
 
 1. ~~The `views::info` blank line~~ **DONE by vc while they were in canon, and it was never a rendering bug.** The v2 source had notice / blank / `# H1` / blank / status-list; **the migrator correctly lifted the H1 into a model field and left BOTH of its blank lines behind**, so `\n\n\n` was a removed line's ghost in the stored `preamble`. Repairing it to `\n\n` RESTORES fidelity rather than reformatting, so migration.md's "nothing reformatted" is not engaged. Verified: both preambles now run [1, 2], and a full `--to-store` + `--to-disk` round trip leaves the four views untouched. **My `legacy::preamble` fix stays correct and stays unreachable.**
 
@@ -39,6 +39,8 @@ The create door stamps; the restore door carries. Nothing else learns the time. 
 
 2. **Nothing collects attachments on a COLD warm, and `doctor` has no arm for it.** The carry is `sync_from_disk`-only so a cold warm reproduces the committed extract rather than letting disk outvote it -- correct, but it means no check reports a file on disk that canon does not know about. **That arm is what makes 5.1b's divergence rule observable.**
 3. **`critic rust` and `critic shell` arm ZERO rules** (0 of 6, 0 of 7). dc's Half A relit the gate -- `bin/intent:55` carries `critic` now, announced to me first, protocol working -- so the five fail-open lines are gone. **But a green from either critic means "nothing asked a question", not "clean", and I move the most `.rs`.** Half B scoped, not built.
+
+4. **`build-support/source_commit.rs` has NO `cargo:rerun-if-changed` on `.git/HEAD`, so `cargo build` can exit 0, change nothing, and leave a STALE embed.** ic verified it in that file (`b11ca6ac` embedded under HEAD `010b2bbf`) and it is mine -- `native/**` is my lane. **Two consequences worth keeping separate: a manifest states what was MEANT to be built, so only the artefact answers what WAS -- read the marker out of the binary, never off the build. And `git archive` is the WRONG route to a clean tree**: no `.git` means `rev-parse` fails and the embed stamps `unknown`, which is STRICTLY WORSE than a dirty marker. The property is not "sanitised", it is RETAINS `.git` AND IS CLEAN -- a clone at a sha qualifies, an archive extract never can. vc hit this and corrected their own kit rule.
 
 ## TODO
 
