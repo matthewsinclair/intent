@@ -799,3 +799,27 @@ search whiteboard                            exit 0
 - **`intent claude ws` is unimplemented**, and 6 of 31 v3 leaves besides. Not blocking: boards are plain files.
 - **The interruption AC is still 0 of 114 and still blocks WP-10's CLOSE, not the hoist.** ic's gate PASSED on the real subject before I committed.
 - **The residue question you were asked in one line by ic is still open** and I am not treating "crack on" as its answer.
+
+## (2026-08-18 06:57Z)
+
+**COORDINATING AS YOU ASKED. THREE NODES TASKED, AND TWO THINGS NEED YOU.**
+
+**YOUR QUESTION FIRST: NO FORCING NEEDED, IT IS ONE CLAUSE, AND THE MODEL IS WHAT IS WRONG.**
+
+`doctor.rs` asserts that an AC's group names a work package. **ST0043, ST0044, ST0045, ST0046, ST0050 and ST0051 have ZERO work-package directories and 73 AC rows between them.** `AC-01.1` on ST0044 never referenced a WP-01 -- there isn't one and there never was. **In a thread with no WPs the group is a numbering device; grouping BY work package is a convention used where WPs exist.** The fix is `&& !thread.wps.is_empty()` and it kills **73 of the 78 findings**.
+
+**It hides nothing: 37 threads DO carry work packages and not one of them is in the finding set** -- I checked that specifically, because a suppression that also hides real defects is the thing we have been catching all day. **And the fault is MINE: `data-model.md:193` said "group = WP seq or `00` for ST-level", which I wrote from ST0056's shape.** Corrected in this commit. **So we are not forcing acceptance on old threads and not editing six closed ST's contracts -- we are fixing a rule that was over-specified.**
+
+**YOUR OTHER POINT, THE 11 SECONDS: it is real and it is the only outlier.** Measured on the hoisted repo: `st list` 0s, `ac gate` 0s, `at lint` 0s, `todo` 0s, **`doctor` 23s** (debug build; your release run was 11.05s user / 19.1s wall). **The gate went 95s to 0.02s by moving off file parsing; doctor looks like it stayed on it** -- 255 views have to be rendered and compared to disk. **Hypothesis, not measurement; cc is tasked to test it rather than take it.**
+
+**TASKED:** cc -- the one-clause fix, the doctor performance, and two after-items. ic -- the second-upgrade experiment (what happens when `upgrade` runs twice on an already-migrated project: **ids are minted not derived, so a re-run could union into duplicates**; nobody has asked and every fleet member will do it). dc -- `backup-stale`, and a judgement call on the gate below.
+
+**NOW THE TWO THAT ARE YOURS.**
+
+**1. THE PRE-COMMIT GATE NOW EXITS 0 AND ENFORCES NOTHING, ACROSS ALL FIVE LANGUAGES, SILENTLY. I CAUSED THIS BY HOISTING.** dc measured it on the real repo at `0ec2ac79`: `intent` on PATH is v2, v2 correctly refuses the migrated tree at exit 2, **and 2 is the code the gate fails open on.** Three correct behaviours composing into a gate that passes while measuring nothing. **It is a DEGRADATION, not a blocker -- commits and pushes work. What is gone is rule enforcement, and it went quietly.**
+
+**dc's shim is the fix and it is your call, not ours.** It resolves the project, reads the version the project declares, and execs the matching binary; driven three arms (v2 project, v3 project, outside any project -- the third matters because `init` and `bootstrap` are not built in v3). **It is not installed. `~/.local/bin/intent` and `~/bin/intent` are machine-GLOBAL and 21 other projects on this machine are v2** -- flip them naively and those break. dc has refused to install it twice on the grounds that it is outward-facing and yours. **They were right both times.**
+
+**2. THE MORATORIUM WAS "UNTIL THE HOIST LANDS" AND THE HOIST HAS LANDED, so by its own terms it is spent -- but I am asking rather than reading.** ic made the point this morning that a general directive read as answering a specific question is how a decision nobody made ends up cited by two independent sources, and they were right about "crack on". **So: is the moratorium lifted?** Nothing in flight depends on it -- cc's two items are fixes to existing code -- but WP-15's ACs and the interruption-property AC both wait on the answer.
+
+**Your residue question from ic is still open too, and I am still not treating "crack on" as its answer.**
