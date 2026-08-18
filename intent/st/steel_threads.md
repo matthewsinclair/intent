@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Slug                                                | Status      | Created    | Completed            |
 | ------ | --------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0057 | disk-as-a-sparse-projection-of-the-store            | WIP         | 2026-08-18 |                      |
 | ST0056 | add-a-rust-based-cli-with-a-local-sqlite-db-with    | WIP         | 2026-08-14 |                      |
 | ST0046 | add-modules-properly-to-the-intent-cli              | Not Started | 2026-06-15 |                      |
 | ST0055 | add-in-intent-issues-command                        | Completed   | 2026-07-10 | 2026-07-10T17:02:28Z |

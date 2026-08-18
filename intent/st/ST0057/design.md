@@ -164,6 +164,82 @@ Two arguments carried it. **Rule 2 of the attachment spec:** a typed field earns
 
 **This document is the demonstration.** Written as `design.md` it was, until this ruling, the one filename in the estate that would not be carried; written as anything else it would have been. **The tool's own default name for a design document was the only name it would not keep.**
 
+## D57-7 -- Where ancillary files live, and the one directory they cannot
+
+Text attachments need no home: they live inline in canon as `Attachment.text`, and the working copy dehydrates. **Everything else does need one**, and the estate is mostly everything else.
+
+```
+under intent/st           787 files
+  md                      490      (of which the generated views dehydrate today)
+  tap                     196      ST0056/parity/tools/tap-baseline, ONE directory
+  json                     57
+  sh                       39
+  txt / tsv                 4
+                        ------
+  NEITHER md NOR json     240
+```
+
+**REJECTED -- `intent/.cache/`.** It is gitignored at `.gitignore:127`, holds exactly one file (`intent.db`, 5.7 MB), and **0 files under it are tracked**. The ignore rule's own comment records what it is for: the database was showing as `?? intent/.cache/`, _"one `git add -A` from entering history as a binary blob"_, and the line **is the precondition for D29** -- the ingest corpus excludes ignored paths, so until it existed the DB was outside the corpus only by accident of path shape. Committing that directory reverses both protections at once.
+
+**And the name is the sharper objection, because it fails in the dangerous direction.** `cache` means regenerable-and-discardable. An opaque attachment is precisely what is NOT regenerable. `rm -rf intent/.cache` is a reasonable thing to do to a cache, and under that layout it would destroy the only copy of a hand-authored file. The ignore rule already concedes _"`intent/.cache/` remains a name that contradicts the model"_; adding committed content compounds a documented defect rather than repairing one.
+
+**REJECTED -- opaque attachments never dehydrate.** This was the first answer and it was wrong. It pins all 240 files to disk permanently, **including long after their thread closes** -- 196 `.tap` baselines surviving ST0056 forever -- which is the exact condition `.intentfiles` exists to end. **The error was reading D57-3's "regenerate" as "re-render from JSON".** The rule says _a source sitting beside it in the same commit_, and it does not say the source must be JSON.
+
+**RULED. Canon holds the truth; the working copy dehydrates like everything else.**
+
+```
+intent/.canon/st/ST0056.json          text attachments, inline as `text`
+intent/.canon/st/ST0056/<path>        opaque attachments, as FILES
+intent/st/ST0056/<path>               realised working copy -- DEHYDRATES
+intent/.cache/                        gitignored, store only, never committed
+```
+
+**One rule, uniformly: everything under `intent/st/` is a realised working copy, and everything dehydrates.** Canon holds truth in whichever form suits it -- inline for text, as a sibling file for bytes. Regeneration of an opaque attachment is a byte copy from a source in the same commit, which satisfies D57-3 exactly rather than bending it.
+
+Three things fall out, and each removes work rather than adding it:
+
+- **No `.intentfiles` grammar change.** Attachments are per-thread, so `STEELTHREAD:ST0056` hydrates the thread AND its files. The manifest still names threads only.
+- **`sha256` in canon buys drift detection on the working copy** -- an attachment edited on disk without the store knowing is 5.1b's divergence case, and `doctor` can now report it by comparison rather than by inference.
+- **The naming rule protects two things with one check.** A file that cannot be named safely can be given neither a canon path nor a URL (D57-8), so rejection at the gate covers storage and addressing together. Rejection is NOT retroactive: existing violators -- the estate already carries a `.webloc` with spaces in its name, which split into eight fragments under `xargs` while the run still printed a plausible total -- are reported by `organize` as UNCLAIMED under its fifth row and never silently removed.
+
+**OPEN, and it is an optimisation rather than a design question:** copy versus hardlink on hydration. Copy is simpler and doubles bytes for hydrated threads only, which for 196 tap files is nothing.
+
+## D57-8 -- `intent://`, the address of a piece of data
+
+**Hydration makes a file path a statement about a moment.** `intent/st/ST0034/design.md` either exists or does not depending on what `organize` last did, so every reference to it is conditional. **Measured at `ce532a97`: 80 citations of `intent/st/ST####/<file>.md` in tracked estate prose, the most-cited single artefact being `ST0034/design.md` at 23 -- a COMPLETED thread, and therefore among the first to dehydrate.** Three AT rows also point inside `intent/`; the other 87 point at `native/rust` code and are unaffected.
+
+**So references must name the ENTITY, never the file.**
+
+```
+intent:///threads/{stid}
+intent:///threads/{stid}/wp/{wpid}
+intent:///threads/{stid}/ac/{acid}
+intent:///threads/{stid}/at/{atid}
+intent:///threads/{stid}/attachments/{path}
+intent:///issues/{issueid}
+intent:///nodes/{moniker}
+intent:///nodes/{moniker}/inbox/{sender}/{stamp}
+intent:///events/{id}
+```
+
+**Empty authority means THIS project.** Nearly every reference is intra-project, and one that hard-codes the project name breaks on rename or fork. Cross-project references carry the slug and resolve against intentd's project registry.
+
+**VIEWS GET NO URL, and this is what stops the scheme becoming a path alias.** A view is derivable from its entity, so a reference to a view is a reference to its source. Giving views addresses would re-create, inside the scheme, the exact conditionality the scheme exists to remove. **`?format=` selects a REPRESENTATION of the addressed entity; a path segment would name a separate thing.**
+
+**READ/WRITE (hv, 2026-08-18). The URI is the address of a piece of data, and the data is mutable.** The write path is **DB first, then canon ALWAYS, then views IF MARKED** -- not "disk if marked", which collapses canon into views and would leave a dehydrated artefact inside a gitignored database, absent from a fresh clone. That collapse is the one this document opened by separating, and it is an attractor rather than a slip: the same wording produced it twice, from the same author, a day apart.
+
+- **Create splits two ways.** Caller-assigned ids (`AC-10.11`, `AT-10.11`) are a `PUT` to the entity address. Server-assigned ids (threads, issues, WP seq) are a `POST` to the COLLECTION address, which returns the new address -- you cannot address `ST0058` before the tool has decided it is `ST0058`.
+- **The mutation format IS the interchange format.** `GET ?format=json`, modify, `PUT` the same shape back. **This gives AC-02.6 a second job: a field that does not round-trip is now a field that cannot be WRITTEN**, so the lossless 1-1 mapping stops being only a durability guarantee at the clone boundary and becomes the completeness guarantee for the whole mutation surface.
+- **`GET` accepts `json` and `md`. `PUT` accepts `json` only.** Writing markdown to an address would promote a stale rendering into canon, which 5.1b forbids. **The one exception is not an exception:** an ATTACHMENT is authored on disk, so for attachments the authority runs the other way and text-in is correct. Authorship decides direction, and `Project::classify` is the single answer to what a file is, so the asymmetry is implementable rather than aspirational.
+- **If an entity has more than one rendering, it is UNDER-ADDRESSED.** `/threads/ST0056` returns the cover; `/threads/ST0056/ac` returns the acceptance view. One rendering per address, and no `?view=` stacked on `?format=`.
+- **Hold the format set at exactly `json` and `md` for 3.0.0.** Two formats with a ratified meaning each beats four that drift.
+
+**Resolution lives in `intentsvcs`, which already owns the DB and the files. The CLI calls it in-process; intentd calls THE SAME FUNCTION and serves it over GraphQL.** Neither implements resolution. The failure mode to guard is intentd growing its own resolver because GraphQL wants different shapes -- two resolvers agreeing exactly until one moves, with nothing watching.
+
+**And `?format=md` needs no new renderer.** `views::render_all` already returns `Vec<View { path, content }>` and already has three callers -- `facade.rs:1236` (what `sync` writes), `doctor.rs:737` (skew), `migrate.rs:293`. Serving `View.content` makes **the served markdown byte-match the file `organize` would hydrate TRUE BY CONSTRUCTION rather than by test**, because `View.path` is literally where it would land. `views::skew()` is already the dehydration gate's render-and-compare. One renderer, three jobs.
+
+**REQUIREMENT, not a nicety: no daemon may be required to read your own project.** Because the CLI resolves in-process through the same `intentsvcs`, a fully dehydrated estate stays readable with intentd stopped, uninstalled or never started. **This is an acceptance criterion rather than an implementation accident** -- if reading a dehydrated thread came to need a running daemon, the disk model would have made the estate LESS accessible than a pile of markdown, which inverts D57-5's whole reason for existing. The risk is not that intentd serves content; it is that intentd becomes the only thing that does.
+
 ## What must be true before ANY dehydration ships
 
 - **Attachments** -- landed `36bc02c5`. **`THREAD_PROSE` deletion outstanding (D57-6).**
@@ -171,5 +247,7 @@ Two arguments carried it. **Rule 2 of the attachment spec:** a typed field earns
 - **`ROOT_FILES`** -- `AGENTS.md`, `CLAUDE.md`, `usage-rules.md` have no v3 generator. Out of `.intentfiles` scope, but they are on disk and something emptied `AGENTS.md` on 2026-08-18, so they need their generator before anyone reasons about them as derivable.
 - **The conservation verdict** -- green at full scope over a pinned subject, per `conservation_check.sh`'s header. **Currently `STRANDED 192` and that is the number the deletion rests on.**
 - **The full text realisation (D57-5)** -- because the human fallback is a precondition of sparseness, not a nicety that follows it.
+- **Opaque-attachment canon (D57-7)** -- an opaque attachment cannot be dehydrated until canon holds its bytes as a file, because until then there is no source beside it in the commit and the removal is unrecoverable rather than merely careless.
+- **Addressing (D57-8)** -- 80 tracked citations name artefact FILES that dehydration makes conditional. Shipping sparseness before addressing breaks them with no replacement to migrate to.
 
 **Build `organize` and `edit` now; ship dehydration behind the gate.** Hydration and realisation are additive and safe immediately.

@@ -14,6 +14,7 @@ A flat DOING / TODO / DONE view, projected from steel-thread and work-package st
 - [ ] ST0056 / WP-06: CLI parity long tail
 - [ ] ST0056 / WP-10: Migration and fleet ingest harness
 - [ ] ST0056 / WP-11: Distribution: cargo-dist, Homebrew, signing
+- [ ] ST0057: Disk as a sparse projection of the store
 
 ## TODO
 
@@ -25,6 +26,14 @@ A flat DOING / TODO / DONE view, projected from steel-thread and work-package st
 - [ ] ST0056 / WP-13: Project search: full-text, structural, and the agent search surface
 - [ ] ST0056 / WP-14: Coordination model: whiteboard and inboxes in the store, with a bounded API
 - [ ] ST0056 / WP-15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
+- [ ] ST0057 / WP-01: Canon relocation to intent/.canon/
+- [ ] ST0057 / WP-02: .intentfiles: the manifest and its refusing grammar
+- [ ] ST0057 / WP-03: Attachment canon: opaque as file, and the naming gate
+- [ ] ST0057 / WP-04: intent organize: four answers, one refusal, one gate
+- [ ] ST0057 / WP-05: intent edit <ID>
+- [ ] ST0057 / WP-06: The full text realisation, and the refusal that expires
+- [ ] ST0057 / WP-07: intent:// addressing and read resolution
+- [ ] ST0057 / WP-08: The mutation surface: write-by-address and the missing verbs
 
 ## DONE
 

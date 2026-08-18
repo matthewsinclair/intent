@@ -16,6 +16,19 @@ _(not yet written)_
 
 _(not yet written)_
 
+## Work Packages
+
+| WP    | Title                                                        | Size | Status      |
+| ----- | ------------------------------------------------------------ | ---- | ----------- |
+| WP-01 | Canon relocation to intent/.canon/                           | M    | Not Started |
+| WP-02 | .intentfiles: the manifest and its refusing grammar          | S    | Not Started |
+| WP-03 | Attachment canon: opaque as file, and the naming gate        | M    | Not Started |
+| WP-04 | intent organize: four answers, one refusal, one gate         | L    | Not Started |
+| WP-05 | intent edit <ID>                                             | S    | Not Started |
+| WP-06 | The full text realisation, and the refusal that expires      | M    | Not Started |
+| WP-07 | intent:// addressing and read resolution                     | L    | Not Started |
+| WP-08 | The mutation surface: write-by-address and the missing verbs | L    | Not Started |
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests live in `acceptance.md` -- the single source of truth. This cover never restates them.
