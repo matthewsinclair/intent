@@ -19,7 +19,12 @@
 # NO ATTACHMENTS RECORDED AT ALL. The first draft `continue`d on the third and
 # printed "every attachment matches" over a commit where nothing had been
 # compared -- reproduced at 6ab155ef, exit 0, examining zero. That is not a
-# corner: 86 of 132 commits in this thread's history record no attachments, so
+# corner: over the 132 commits from 0ec2ac79 (canon's first) to dec6b1b9, 86
+# recorded no attachments -- a figure that names ITS OWN RANGE, because the
+# first version of this line said '86 of 132 commits in this history' and ic
+# caught it: `git rev-list --count HEAD` is 2184, so the string named a subset
+# it did not identify, inside a tool built to find records that disagree with
+# reality. The range grows; the figure does not. So
 # the vacuous case is the MAJORITY of the input. A count is therefore printed on
 # every run, and an empty population exits 2 (cannot measure) and never 0.
 #
@@ -82,7 +87,7 @@ threads_at() {
 
 # Emits "<thread>/<path> DIVERGED|ABSENT" per bad attachment at $1.
 diverged_at() {
-  local rev="$1" tj st atts sha path have
+  local rev="$1" only="${2:-}" tj st atts sha path have
   git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
   for tj in $(git ls-tree -r --name-only "$rev" -- intent/st 2>/dev/null | grep '/thread\.json$'); do
     st="${tj#intent/st/}"; st="${st%/thread.json}"
@@ -90,6 +95,7 @@ diverged_at() {
     [ -n "$atts" ] || continue
     while read -r sha path; do
       [ -n "$path" ] || continue
+      [ -z "$only" ] || grep -qxF "$st/$path" "$only" || continue
       if ! git cat-file -e "$rev:intent/st/$st/$path" 2>/dev/null; then
         echo "$st/$path ABSENT"; continue
       fi
@@ -99,10 +105,11 @@ diverged_at() {
   done
 }
 
-REV="HEAD" HIST=0
+REV="HEAD" HIST=0 EXHAUSTIVE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --history) HIST="${2:?--history needs a count}"; shift 2 ;;
+    --exhaustive) EXHAUSTIVE=1; shift ;;
     -*) die "unknown option: $1" ;;
     *) REV="$1"; shift ;;
   esac
@@ -128,13 +135,15 @@ nunmeasured="$(printf '%s\n' "$unmeasured" | grep -c .)"
 # Without that, "enumerate only the gap" becomes a way to hide a THIRD category
 # -- a subject neither measured nor declared unmeasurable. The closure is what
 # makes an absence admissible instead of a summary that quietly drops rows.
-echo "canon-commit: $REV -- $total of $total recorded attachment(s) examined, across $((nthreads - nunmeasured)) measured + $nunmeasured unmeasurable = $nthreads thread(s)."
+echo "canon-commit: $REV -- $total recorded attachment(s), across $((nthreads - nunmeasured)) measured + $nunmeasured unmeasurable = $nthreads thread(s)."
 [ "$nunmeasured" -eq 0 ] ||
   echo "canon-commit: NOT EXAMINED -- $nunmeasured thread(s) record zero attachments: $(printf '%s\n' "$unmeasured" | tr '\n' ' ')"
 
 if [ "$total" -eq 0 ]; then
   echo "canon-commit: CANNOT MEASURE -- every thread at $REV records zero attachments, so nothing was compared." >&2
-  echo "    This is NOT a pass. 86 of 132 commits in this history are in this state." >&2
+  echo "    This is NOT a pass. Measured over the commits from 0ec2ac79 (canon's first) to dec6b1b9:" >&2
+  echo "    86 of 132 recorded no attachments. That figure names THAT range and no other -- the range" >&2
+  echo "    grows, and 'in this history' would have read as all 2184 commits, which it never meant." >&2
   exit 2
 fi
 
@@ -158,17 +167,48 @@ if [ "$HIST" -gt 0 ]; then
   exit 0
 fi
 
-cur="$(diverged_at "$REV" | sort)"
+# ------------------------------------------------------------------ narrowing
+# A NEW divergence can only arise among attachments where THIS COMMIT changed
+# either the attachment's own bytes or its thread's canon. Everything else has
+# the same status it had in the parent, so it is inherited BY CONSTRUCTION and
+# can never be an ADD. Examining all 278 took 5.1s, which is slower than the
+# slowest gated instrument in the roster; narrowed it is a fraction of that,
+# and the narrowing is stated in the output rather than left to be discovered.
+# --exhaustive turns it off and examines everything.
+ONLY="" scoped=""
+if [ "$EXHAUSTIVE" -eq 0 ] && git rev-parse --verify --quiet "$REV^{commit}" >/dev/null &&
+   git rev-parse --verify --quiet "$REV^^{commit}" >/dev/null; then
+  changed="$(git diff-tree --no-commit-id --name-only -r "$REV" 2>/dev/null)"
+  ONLY="$(mktemp)"; trap 'rm -f "$ONLY"' EXIT
+  # a thread whose canon moved: every one of its attachments is back in scope
+  printf '%s\n' "$changed" | grep '^intent/st/.*/thread\.json$' | while read -r tj; do
+    st="${tj#intent/st/}"; st="${st%/thread.json}"
+    git show "$REV:$tj" 2>/dev/null | jq -r --arg st "$st" '(.attachments // [])[] | "\($st)/\(.path)"' 2>/dev/null
+  done >> "$ONLY"
+  # an attachment whose own bytes moved
+  printf '%s\n' "$changed" | grep '^intent/st/' | grep -v '/thread\.json$' |
+    sed 's|^intent/st/||' >> "$ONLY"
+  sort -u "$ONLY" -o "$ONLY"
+  scoped="$(grep -c . "$ONLY")"
+  echo "canon-commit: EXAMINED $scoped of $total -- narrowed to the attachment path(s) whose bytes or whose thread's canon THIS COMMIT changed. The other $((total - scoped)) carry their parent's status by construction and cannot be an ADD. --exhaustive examines all $total."
+fi
+
+cur="$(diverged_at "$REV" ${ONLY:+"$ONLY"} | sort)"
 curp="$(printf '%s\n' "$cur" | awk '{print $1}' | grep -v '^$' | sort)"
 
 if [ -z "$curp" ]; then
-  echo "canon-commit: all $total attachment(s) match the bytes $REV holds at their paths."
+  if [ -n "$ONLY" ]; then
+    echo "canon-commit: ADDS 0 -- of the $scoped attachment(s) this commit could have changed, none diverges from the bytes $REV holds."
+    [ "$scoped" -gt 0 ] || echo "    This commit touched no attachment bytes and no thread's canon, so there was nothing it could have added."
+  else
+    echo "canon-commit: ADDS 0 -- all $total examined attachment(s) match the bytes $REV holds at their paths."
+  fi
   echo "canon-commit: GATES on what this commit ADDS; inherited divergences are reported, never failed on."
   echo "canon-commit: REACH -- attachments only. Criteria, status fields and notes are invisible to this tool."
   exit 0
 fi
 
-parent="$(diverged_at "$REV^" | awk '{print $1}' | grep -v '^$' | sort)"
+parent="$(diverged_at "$REV^" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$' | sort)"
 new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 
@@ -179,12 +219,12 @@ inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev
 }
 
 if [ -z "$new" ]; then
-  echo "canon-commit: ADDS 0 of $total attachment(s) examined -- nothing this commit introduced."
+  echo "canon-commit: ADDS 0 of ${scoped:-$total} attachment(s) examined -- nothing this commit introduced."
   echo "canon-commit: REACH -- attachments only. Criteria, status fields and notes are invisible to this tool."
   exit 0
 fi
 
-echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of $total attachment(s) examined -- $REV names bytes it does not contain:" >&2
+echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of ${scoped:-$total} attachment(s) examined -- $REV names bytes it does not contain:" >&2
 printf '%s\n' "$new" | sed 's/^/    /' >&2
 echo "    Canon was written from the WORKTREE while these files were uncommitted." >&2
 echo "    Stage them into this commit, or re-sync canon after committing them." >&2
