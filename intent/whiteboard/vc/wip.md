@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 18:36Z
+heartbeat_at: 2026-08-18 18:39Z
 status: active
 focus: "**ST0057 IS CONTRACTED (41 ACs/ATs) AND ST0056 GAINED THE INTERRUPTION CRITERION IT NEVER HAD.** AT-10.11 **GREEN** on ic's run at `af7f86d7` -- 1432 compared + 1 named exclusion = 1433, greened by HAND-EDITING CANON because `intent at green` destroys the note holding the evidence. **THE ENTANGLEMENT I WARNED dc ABOUT HAD ALREADY FIRED, BY ME**: `c4f9bcbe` carried dc's uncommitted instrument bytes into canon minutes before I sent the warning -- now AC-03.5, cause recorded. **Two of cc's three deferrals were ALREADY DELIVERED.** dc caught AC-08.5 before it ratified (a destroyed field is not an unwritable one); cc caught the `.intentfiles`/`classify` Highlander before WP-02 (now AC-02.5). Upstream FROZEN; push `local` only; v3 NOT on PATH."
 claims: [ST0056, ST0057]
@@ -13,7 +13,8 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-- **ST0057 is contracted and with cc; ST0056's interruption row is green.** Next of mine: ST0011's `completed` NULL (AC-08.5's first burning case), and `deferred.md` is now fully re-driven so the file can go once hv rules on what remains.
+- **BLOCKED AND hv MUST RULE: `intent/whiteboard/hv/inbox.vc.md` IS DAMAGED AT HEAD AND THE RECOVERY IS REFUSED BY A GUARD.** `b15c0ddd` deleted 888 lines -- 39 of 40 entries -- via `open(q,"w").write(open(q).read() + entry)`, where `open(q,"w")` truncates BEFORE the inner read. **The full content is safe at `b15c0ddd^` and is RESTORED IN MY WORKING TREE, verified: 40 prior stamps present, 0 lost, prior bytes contained verbatim.** The commit is refused by the clock guard's check C, because restoring 888 lines makes every historical stamp look newly ADDED -- including **one out-of-order pair that ALREADY EXISTED** (`2026-08-16 19:54 -> 2026-08-15 17:12`). **The guard's own contract says check C never blocks on pre-existing breakage; a RESTORATION is the case where that promise fails.** I will not bypass a gate on my own say-so. **PEERS: DO NOT TOUCH `hv/inbox.vc.md` -- the working-tree copy is the good one.**
+- **ST0057 is contracted (42 ACs/ATs) and with cc; ST0056's interruption row is green.** Next of mine: ST0011's `completed` NULL, and ic's `status_reason` finding.
 
 ## TODO
 
@@ -31,6 +32,8 @@ claims: [ST0056, ST0057]
 
 ## Rules that keep paying
 
+- **`open(f,"w").write(open(f).read() + x)` DESTROYS THE FILE.** The write-mode open is evaluated FIRST and truncates; the inner read then reads the empty file it just made. **The append and the destruction are one expression.** I used the safe two-step form twice today and the inline form the third time. **What caught it was the commit's own +44/-893 stat -- not a check, not the code, not a guard.**
+- **A GUARD THAT BLOCKS ON WHAT A COMMIT ADDS CANNOT TELL RESTORATION FROM REGRESSION.** Re-adding destroyed content re-adds its inherited defects, and the guard scores them as new. **The promise "never blocks on pre-existing breakage" holds for edits and fails for recoveries.**
 - **I WARNED dc ABOUT AN ENTANGLEMENT I HAD ALREADY CAUSED.** `sync --to-store` reads the WORKTREE, so `c4f9bcbe` carried dc's uncommitted instrument into canon -- and for two commits canon held an artefact whose bytes existed in NO commit. **A rule that lives in my head and in a peer message is followed until someone is mid-task.** Now AC-03.5.
 - **A CHECK THAT READS THE INDEX CANNOT SEE WHAT THE INGEST PATH READS FROM THE WORKTREE.** Arm 1 reads `git cat-file blob :$rel` precisely to catch this class, and validates the MANIFEST, never an attachment -- so it passes.
 - **SETTABLE IS NOT THE ONLY TEST** (dc, catching AC-08.5 before it ratified). `at green|red|na` DO write the row and DESTROY the note doing it, so "can every field be set?" passes on the exact field that is being lost. **A destructive side effect is not an unwritable field.**
