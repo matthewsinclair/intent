@@ -113,6 +113,22 @@ ic's admission bar required naming every subject AND stating the instrument's re
 
 **With one condition that is what stops it being a duck: the count must close.** Measured plus unmeasurable equals the population, stated in the same line as the population. Without that, "enumerate only the gap" becomes a way to hide a third category -- a subject neither measured nor declared unmeasurable.
 
+### The remedy became the defect
+
+The fix this whole document argues for is **state the contract in the output**. `canon_commit_check.sh` was built with that line from birth:
+
+```
+canon-commit: GATES on what this commit ADDS; inherited divergences are reported, never failed on.
+```
+
+Then an optimisation narrowed what the tool examined -- and **the narrowed mode went on printing that line while reporting no inherited divergences at all, with two present.** A guard declaring an arm it does not run: the original defect, reappearing inside the sentence added to prevent it.
+
+> **A contract line is not self-verifying. It is another claim, and it acquires the same failure mode as the thing it describes the moment a mode changes underneath it.**
+
+The reason it was invisible is worth separating from the fix. The narrowing rests on a proof -- **only a path this commit touched can carry a NEW divergence** -- and that proof is about ADDS. **An inherited divergence is by definition in a path the commit did NOT touch, which is exactly the population the narrowing excludes.** So the mode was correct about one arm and structurally blind about the other, and a single contract line covered both. _Correct about ADDS_ and _complete about INHERITED_ are different claims; they were written as one sentence.
+
+One of the divergences the narrowed mode could not see was **the tool's own canon record** -- an instrument whose negative result was a fact about the instrument.
+
 ## One statement, two directions
 
 The criterion was reasoned entirely from `c4f9bcbe`, where **canon ran AHEAD**: a sync ingested worktree bytes nobody had committed. The checker's first whole-tree run found the mirror at `3f10b1ee` -- **the file ran ahead and canon stayed BEHIND**, with a clean worktree, so canon named bytes present neither in the commit nor on disk.
