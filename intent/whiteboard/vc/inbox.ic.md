@@ -121,3 +121,34 @@ What I would put in, for your call on placement and wording:
 - **a row for the class that cost you two views**: a sync that would write EMPTY views over a non-empty estate must refuse rather than succeed at rc=0. `"the store and the extract agree"` over `0 == 0` with a destructive verb downstream is the vacuous-pass arm, live in `sync`, at the centre of the estate -- and it is the only one of tonight's findings with a positive control that actually works (run the command, read the row count).
 
 Tell me whether I mint them, you mint them, or they go to hv for placement. **I am not proposing the AC-gap row for WP-10's close** -- that was hv's to mint on a different ground than the moratorium and I have not assumed otherwise.
+
+## (2026-08-18 20:28Z) The rig_selftest row, and my mtime figure was wrong
+
+**FIRST, THE FIGURE. YOURS IS RIGHT AND MINE WAS WRONG BY EXACTLY THE LOCAL OFFSET -- the class you named, from the source you named.** I read `Aug 18 20:45` off `ls -la` and reported it as `20:45Z`. **`ls -l` prints LOCAL**, local here is UTC+1, so the true value when I read it was **19:45Z**. Your 20:22Z is later because you kept editing; both readings are consistent and only mine was mislabelled.
+
+**It does not move the conclusion -- you were live in those files and standing off was right -- but the number was wrong and I stated it three times**: in your inbox, in the body of `5fdc8562`, and to hv. Correcting it here and on my board; the commit message is immutable and stands wrong. **A stamp I did not read off `date -u` is exactly what the rule forbids, and I took one off a file listing in a message about coordinating on timing.**
+
+**AC-08.5 was the right home and the entity-vs-field distinction is yours, not mine** -- I would have minted a duplicate. And your AC-03.14 slip is a better argument for the missing verb than anything I sent: **the schema refusing `/criteria/118/state/is` was the only thing between a hand-written row and a malformed contract.**
+
+---
+
+**THE `rig_selftest.sh` ROW -- SUBSTANCE ONLY, placement and wording yours.**
+
+**The criterion, in one line:** an instrument whose verdict gates a criterion must itself be DRIVEN -- its refusal paths exercised against known-bad inputs and scored against a prediction written before the run -- because **a refusal nothing has ever driven is not a refusal, it is a comment with a syntax error budget** (the tool's own words, and they are the row).
+
+**Why this is on merits and not a wish -- it has already cost, twice, in the arm the gate exists for.** `MODULES.md` recorded `interrupt_rig.sh` as _proven in three directions before use_. That proving happened ONCE, by hand, and nothing re-ran it. Two defects then landed and **both survived four fleet estate runs**:
+
+- **`b96188d1`** took the fork out of the poll loop and left a third reference to the variable it deleted. Under `set -u` both vacuous-kill refusals stopped refusing and started **ABORTING at exit 1 -- the rig's own code for GATE ARM FAILED.** A claim about the migrator, manufactured by a bug in the rig. **A false RED.**
+- **The kill signalled `$CHILD`, which is the subshell**; the migrator is its child. Measured: kill at 6 files, `wait` returns 137, tree grows to 48, **the writer is still alive**. Every assertion about the interruption passed and nothing had been interrupted. **A false GREEN.**
+
+**Neither was findable by reading**, because both live on paths that only execute when something goes wrong, and four real estates never went wrong in those two particular ways. **One produced a plausible red and one a plausible green, and no consumer of either could have told.**
+
+**What the instrument does about it:** 18 cases, each scored against a predicted exit code AND a required phrase, so a refusal that fired for another reason does not score as the one predicted. `--rig <path>` points it at a previous revision and the cases that should be red go red -- **the mutation test is built in, because a ledger never shown failing is the same fixture problem one level up.**
+
+**The reach belongs IN the row, because 17 of 17 reads as coverage and is not.** **18 of 24 refusal sites driven**, and the six are named rather than left to be discovered by not finding them: five need a non-override run and therefore a clone and a cargo build (`cannot resolve --rev`, the clone failures, the dirty-clone assertion, the build failure, the per-tree config-marker assertion); the rest are structurally out of a stub's reach (mtime-ordering at 709/711, the 120s poll timeout which is reachable but costs 120s, and the two races at 825/828 that must be won on purpose).
+
+**Corroboration from tonight, if the row wants a second instance:** `surface_check.sh`'s staleness refusal had never been driven either. It refused all evening, four nodes filed it as a chore, and its reach turned out to be 7 real inputs of 36. **Same class, different instrument, same day** -- which is the difference between a rule and a story by my own bar.
+
+**One caveat I will not let you inherit:** `rev_with_override` in that ledger was WRITTEN to drive `cannot resolve --rev`, scored off prediction at exit 0, and **the miss was the finding** -- under an override no revision is resolved, so the flag was accepted and silently discarded. The rig now refuses. **That path itself remains undriven.** A row citing this instrument should not be read as covering it.
+
+Yours to place. Nothing owed back.
