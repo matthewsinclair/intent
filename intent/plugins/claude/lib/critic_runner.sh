@@ -163,6 +163,47 @@ critic_load_rule_paths() {
   done < <(enumerate_all_rule_files)
 }
 
+# THE ARMING CENSUS -- what the gate could not ask, reported rather than skipped.
+#
+# `:18` of this file says rules without a greppable proxy are "skipped
+# silently", and that sentence is a NO-SILENT violation (IN-AG-NO-SILENT-001)
+# sitting in the rule library itself. Measured 2026-08-18: ALL 13 shell and rust
+# rules carry no proxy and no declaration, so `intent critic shell` returns rc=0
+# having asked nothing, and its output is INDISTINGUISHABLE from `intent critic
+# elixir` after asking nine real questions. Both print `ok: no <lang> findings`.
+#
+# vc's ruling, 2026-08-18: REPORTING IS UNCONDITIONAL AND IS NOT PART OF ANY
+# TRADE-OFF. It costs zero fleet breakage -- reporting is not refusing -- and it
+# is owed whether or not any rule is ever armed with a real tool. Refusal is a
+# separate axis, scoped to rules a project has armed via `.intent_critic.yml`.
+#
+# FOUR STATES, because three of them were previously one:
+#   armed       a greppable block with at least one headless-runnable line
+#   declared    an explicit "No greppable proxy is authoritative for this rule"
+#   unrunnable  a block whose every line the runner must refuse (ST0039)
+#   undeclared  neither a block nor a declaration -- nobody has decided
+#
+# `unrunnable` and `undeclared` were both invisible: the first emitted one
+# deduped stderr note nobody reads, the second emitted nothing at all.
+critic_arming_census() {
+  local lang="$1" path rule_id block pats
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    rule_id="$(rule_fm_scalar "$path" id)"
+    [ -n "$rule_id" ] || rule_id="$path"
+    block="$(critic_extract_greppable_block "$path")"
+    if [ -n "$block" ]; then
+      pats="$(critic_patterns_from_grep_block "$path" "$rule_id" 2>/dev/null)"
+      if [ -n "$pats" ]; then printf '%s armed\n' "$rule_id"
+      else printf '%s unrunnable\n' "$rule_id"; fi
+    elif grep -qi 'No greppable proxy is authoritative' "$path"; then
+      printf '%s declared\n' "$rule_id"
+    else
+      printf '%s undeclared\n' "$rule_id"
+    fi
+  done < <(critic_load_rule_paths "$lang")
+}
+
 # Check whether a rule is disabled in the given .intent_critic.yml file.
 # Looks for a flat `disabled:` list with the rule ID. Returns 0 if
 # disabled, 1 otherwise. Field name aligns with intent/docs/critics.md

@@ -237,6 +237,51 @@ findings="$(
     | critic_filter_severity "$min_rank"
 )"
 
+# ---- Arming census: what could NOT be asked, said out loud, every run ----
+# vc's ruling 2026-08-18: reporting is unconditional and costs zero fleet
+# breakage, because reporting is not refusing. Without this, `critic shell`
+# returns rc=0 having asked nothing of six rules and prints the same sentence
+# as `critic elixir` after asking nine -- the gate cannot distinguish CHECKED
+# AND CLEAN from CHECKED NOTHING, which is IN-AG-NO-SILENT-001 in the library.
+#
+# WHAT IS ENUMERATED IS THE GAP, NOT THE COVERAGE. `declared` is a decision on
+# record, so it is counted; `undeclared` and `unrunnable` are rules nobody has
+# ruled on, so they are NAMED. Naming all of them would bury the verdict.
+census="$(critic_arming_census "$LANG")"
+if [ -z "$census" ]; then
+  # AN EMPTY CENSUS IS A COULD-NOT-CHECK AND SAYS SO. Skipping quietly here
+  # would reintroduce, in the reporting path, the exact silence this reporting
+  # exists to end -- and it did: the first version wrapped the call in
+  # `2>/dev/null`, so a missing helper produced an empty census and no report,
+  # in the code written that same day about suppressed channels.
+  printf 'critic: %s -- ARMING CENSUS UNAVAILABLE. This run cannot say which rules it was able to ask, so a clean result below is not evidence that anything was checked.\n' "$LANG" >&2
+else
+  c_total="$(printf '%s\n' "$census" | grep -c . || true)"
+  c_armed="$(printf '%s\n' "$census" | grep -c ' armed$' || true)"
+  c_decl="$(printf '%s\n' "$census" | grep -c ' declared$' || true)"
+  c_undecl="$(printf '%s\n' "$census" | grep -c ' undeclared$' || true)"
+  c_unrun="$(printf '%s\n' "$census" | grep -c ' unrunnable$' || true)"
+  c_quiet=$((c_decl + c_undecl + c_unrun))
+  # json keeps stdout a parseable document; the census goes to stderr there.
+  if [ "$FORMAT" = json ]; then c_fd=2; else c_fd=1; fi
+  {
+    printf 'critic: %s -- %d of %d rule(s) armed; a clean result covers those and says nothing about the rest.\n' \
+      "$LANG" "$c_armed" "$c_total"
+    if [ "$c_quiet" -gt 0 ]; then
+      printf 'critic: %s -- %d rule(s) asked nothing: %d declared unanswerable, %d undeclared, %d with a proxy this runner must refuse.\n' \
+        "$LANG" "$c_quiet" "$c_decl" "$c_undecl" "$c_unrun"
+    fi
+    if [ "$c_undecl" -gt 0 ]; then
+      printf 'critic: %s -- UNDECLARED, nobody has recorded whether these are mechanically checkable: %s\n' \
+        "$LANG" "$(printf '%s\n' "$census" | awk '$2 == "undeclared" { printf "%s ", $1 }')"
+    fi
+    if [ "$c_unrun" -gt 0 ]; then
+      printf 'critic: %s -- UNRUNNABLE proxy, present but outside the runner contract: %s\n' \
+        "$LANG" "$(printf '%s\n' "$census" | awk '$2 == "unrunnable" { printf "%s ", $1 }')"
+    fi
+  } >&$c_fd
+fi
+
 if [ -z "$findings" ]; then
   case "$FORMAT" in
     json) echo "[]" ;;
