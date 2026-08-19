@@ -62,7 +62,20 @@
 # captured 14 v2-authored rows and found nine whose note contains a further ` -- `.
 set -uo pipefail
 
-STID="${1:-ST0056}"
+# **NO ARGUMENT MEANS EVERY LIVE THREAD, AND IT USED TO MEAN ST0056** (vc
+# 2026-08-19). The default was one thread and the pre-commit hook invokes this
+# with NO argument, so **ST0057 had never been examined once** -- 46 of the
+# release gate's 64 rows, unwatched by the only instrument that looks in the
+# understatement direction. Three of its rows were stale when the scope was
+# fixed. cc found one by hand, which is the only reason the blind spot
+# surfaced.
+#
+# **THE DEFECT WAS NOT THE DEFAULT BEING WRONG. It was a scoped tool with an
+# unscoped caller producing a clean report that meant "clean, within a scope
+# nobody at the call site had chosen"** -- and the count line said `of 132 AT
+# rows` while the estate held 294, so the number that exists to stop a silent
+# zero was itself silently scoped.
+STID="${1:-}"
 
 # Walk up to the project root by its marker rather than counting `..` levels.
 # Counting is what broke this on its first run: the tool sits five directories
@@ -81,15 +94,53 @@ fi
 
 cd "$ROOT" || exit 1
 
-ACC=""
-for candidate in "intent/st/${STID}/acceptance.md" "intent/st/"*"/${STID}/acceptance.md"; do
-  [ -f "$candidate" ] && ACC="$candidate" && break
-done
+ACC=()
+SKIPPED=()
+if [ -n "$STID" ]; then
+  for candidate in "intent/st/${STID}/acceptance.md" "intent/st/"*"/${STID}/acceptance.md"; do
+    [ -f "$candidate" ] && ACC=("$candidate") && break
+  done
+  if [ "${#ACC[@]}" -eq 0 ]; then
+    echo "error: no acceptance.md for ${STID}" >&2
+    echo "remedy: name a thread that has one, or run from the project root" >&2
+    exit 1
+  fi
+else
+  # **A THREAD THAT HAS NOT STARTED CITES INTENDED HOMES RATHER THAN WRITTEN
+  # TESTS, SO ITS ROWS ARE NOT STALE -- AND A CANCELLED THREAD IS FROZEN.**
+  # Widening the default to every thread immediately printed NINE ST0046 rows,
+  # all citing one v2 bats file that happens to exist. **Nine unactionable lines
+  # on every commit is how an instrument dies:** a report nobody can act on
+  # trains the reader to skip it, and the tenth line is the one that mattered.
+  #
+  # **`completed` IS DELIBERATELY IN SCOPE.** A finished thread carrying a
+  # to-write row whose test exists is a real defect and this should say so. None
+  # exists today; a filter that skipped them would hide the class, not the noise.
+  for candidate in "intent/st/"*"/acceptance.md" "intent/st/"*/*"/acceptance.md"; do
+    [ -f "$candidate" ] || continue
+    tid="$(basename "$(dirname "$candidate")")"
+    tstatus="$(jq -r '.status // "unknown"' "intent/.canon/st/${tid}.json" 2>/dev/null)"
+    [ -n "$tstatus" ] || tstatus="unknown"
+    case "$tstatus" in
+      not-started|cancelled) SKIPPED+=("${tid}(${tstatus})") ;;
+      *) ACC+=("$candidate") ;;
+    esac
+  done
+  if [ "${#ACC[@]}" -eq 0 ]; then
+    # A project with no live thread is a real state and NOT a clean run: the
+    # whole point of the count line is that "nothing violated" and "nothing was
+    # examined" must never print the same thing.
+    echo "error: no live thread with an acceptance.md under intent/st/" >&2
+    echo "remedy: run this inside an Intent project that has threads" >&2
+    exit 1
+  fi
+fi
 
-if [ -z "$ACC" ]; then
-  echo "error: no acceptance.md for ${STID}" >&2
-  echo "remedy: name a thread that has one, or run from the project root" >&2
-  exit 1
+# **THE SKIP GOES ON THE COUNT LINE, NEVER ONLY IN A COMMENT.** A scoped report
+# that does not say it is scoped is the exact defect repaired above.
+SKIPNOTE=""
+if [ "${#SKIPPED[@]}" -gt 0 ]; then
+  SKIPNOTE=" (skipped ${#SKIPPED[@]} not-started/cancelled thread(s): ${SKIPPED[*]})"
 fi
 
 # The citation is the first backticked span on the row; the status is the token
@@ -161,7 +212,7 @@ awk '
     }
   }
   END { print "COUNT\t" matched + 0 "\t" examined + 0 }
-' "$ACC" | {
+' "${ACC[@]}" | {
   found=0
   bad=0
   matched=0
@@ -202,10 +253,10 @@ awk '
   # The population is on the ok line, so zero examined reads as zero rather than
   # as clean.
   if [ "$found" -eq 0 ]; then
-    echo "ok: examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s); none names a file that exists"
+    echo "ok: examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)${SKIPNOTE}; none names a file that exists"
   else
     echo ""
-    echo "examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)"
+    echo "examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)${SKIPNOTE}"
     echo "note: presence is not greenness. Run each test before moving its row."
     echo "note: a row whose test exists and fails belongs at red WITH the reason named,"
     echo "      never at to-write -- to-write is exempt from L2 and L3."
