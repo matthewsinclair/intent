@@ -203,6 +203,17 @@ pub struct Plan {
   /// intends.** A gate whose answer exists only inside the destructive call is
   /// one nobody can report on before running it.
   pub preconditions: Verdict,
+  /// The estate root, carried so [`Plan::run`] has a FLOOR it cannot prune
+  /// above.
+  ///
+  /// **A directory-removing loop without a declared floor walks to `/`.** The
+  /// cascade below removes a parent that its child's removal emptied, and the
+  /// only thing stopping that from continuing past `intent/st` is a bound
+  /// stated in data rather than inferred from a path shape. Carried on the plan
+  /// rather than passed to `run`, so a plan can be inspected for the region it
+  /// is allowed to touch, exactly as `preconditions` lets it be inspected for
+  /// what it is allowed to do.
+  pub estate_root: PathBuf,
 }
 
 impl Plan {
@@ -588,6 +599,62 @@ pub fn plan(
     steps,
     digest,
     preconditions: preconditions::check(canon),
+    estate_root: project.st_dir(),
+  }
+}
+
+/// Remove the directories THIS RUN EMPTIED, and only those.
+///
+/// **`rmdir` SEMANTICS, NEVER A RECURSIVE DELETE.** [`std::fs::remove_dir`]
+/// refuses a directory that still holds anything, so a directory carrying a
+/// file this run did not plan to remove survives untouched. That refusal is the
+/// whole safety argument, and it is the filesystem's rather than this
+/// function's -- which is why the recursive variant must never be substituted
+/// here, however similar the name.
+///
+/// **CANDIDATES ARE ANCESTORS OF REMOVED FILES, DEEPEST FIRST.** Only a
+/// directory that held something this run deleted is a candidate, so a
+/// directory that was already empty before the run is not touched -- the run
+/// did not empty it, and removing it would be this verb doing something nobody
+/// asked for. Deepest-first is what makes the cascade work without a second
+/// pass: `ST0001/WP/01` is tried and removed before `ST0001/WP` is tried, so
+/// the parent is genuinely empty by the time its turn comes.
+///
+/// **THE FLOOR IS THE ESTATE ROOT AND IT IS A BOUND, NOT A CONVENTION.** A
+/// candidate that is not a strict descendant of `root` is skipped, so no
+/// cascade can reach `intent/` or above however many levels it climbs.
+///
+/// # Why this exists
+///
+/// `organize` removed 423 files from this project's estate and left 54 empty
+/// directory shells behind, because the only removal it performed was
+/// `remove_file`. vc judged that harmless on the grounds git does not track an
+/// empty directory; hv looked at the tree and counted 58 directories where 3
+/// threads were declared. **Both readings are correct about different estates,
+/// and the one a person opens is the one that matters.** A sweep with `rmdir`
+/// cleared them once and would have recurred on the next dehydration, which is
+/// what makes this a code change rather than a tidy-up.
+fn prune_emptied(root: &Path, removed: &[PathBuf], pruned: &mut Vec<PathBuf>) {
+  // **DEDUPLICATED THROUGH A SET, NOT BY `dedup()` AFTER THE DEPTH SORT.**
+  // `sort_by_key` on depth alone leaves equal paths merely at the same depth
+  // rather than adjacent, and `Vec::dedup` only collapses NEIGHBOURS -- so the
+  // obvious spelling silently keeps duplicates whenever two threads are pruned
+  // in one run. It happens to be harmless here, because the second
+  // `remove_dir` fails and contributes nothing, but a correctness argument that
+  // rests on a later step failing is one that stops holding when the later step
+  // changes.
+  let unique: BTreeSet<PathBuf> = removed
+    .iter()
+    .flat_map(|p| p.ancestors().skip(1).map(Path::to_path_buf).collect::<Vec<_>>())
+    .filter(|d| d.starts_with(root) && d != root)
+    .collect();
+  let mut candidates: Vec<PathBuf> = unique.into_iter().collect();
+  candidates.sort_by_key(|d| std::cmp::Reverse(d.components().count()));
+
+  for dir in candidates {
+    if std::fs::remove_dir(&dir).is_ok() {
+      pruned.push(dir);
+    }
   }
 }
 
@@ -616,6 +683,13 @@ pub struct Report {
   /// over one hand-edited file would make every other thread's realisation
   /// hostage to an edit nobody has read yet.
   pub refused: Vec<OrganizeError>,
+  /// Directories this run emptied and then removed.
+  ///
+  /// **REPORTED BECAUSE IT IS DESTRUCTIVE.** Removing a directory is a smaller
+  /// act than removing a file and it is not a smaller KIND of act, and every
+  /// other removal on this report is named. A prune that happened silently
+  /// would be the one line of this verb an operator could not review.
+  pub pruned: Vec<PathBuf>,
 }
 
 impl Report {
@@ -729,6 +803,9 @@ impl Plan {
           Err(refusal) => report.refused.push(refusal),
         }
       }
+      if mode.performs() {
+        prune_emptied(&self.estate_root, &report.dehydrated, &mut report.pruned);
+      }
     }
 
     // Every write goes through ONE `WriteSet`, which is where the
@@ -807,5 +884,59 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
       path: step.path.clone(),
       bytes: on_disk.len(),
     }),
+  }
+}
+
+#[cfg(test)]
+mod prune_floor {
+  //! **THE FLOOR IS EXERCISED HERE AND NOT IN THE INTEGRATION TEST, BECAUSE THE
+  //! INTEGRATION TEST CANNOT REACH IT.**
+  //!
+  //! `organize_prunes_what_it_emptied.rs` asserts the estate root survives a run
+  //! that emptied everything under it, and that assertion **passed with the
+  //! floor deleted** -- measured, as a surviving mutation arm. The reason is
+  //! that a real estate root always holds `steel_threads.md`, so `remove_dir`
+  //! refuses it whatever the candidate filter says. **The root was protected by
+  //! the index happening to live there, not by the bound this code claims to
+  //! have**, and a test that cannot tell those apart is not testing the bound.
+  //!
+  //! So the floor is driven directly, against a root that IS empty and would
+  //! therefore be removed by any code that considered it a candidate.
+
+  use super::prune_emptied;
+  use std::path::PathBuf;
+
+  /// A root holding nothing but one prunable child. Without the `d != root`
+  /// filter, the cascade reaches the root and removes it.
+  #[test]
+  fn an_empty_estate_root_is_never_a_candidate() {
+    let tmp = std::env::temp_dir().join(format!("intent-prune-floor-{}", std::process::id()));
+    let root = tmp.join("st");
+    let child = root.join("ST0001");
+    std::fs::create_dir_all(&child).expect("lay out the fixture");
+    let file = child.join("info.md");
+    std::fs::write(&file, "realised").expect("write");
+    std::fs::remove_file(&file).expect("the run removed it");
+
+    let mut pruned: Vec<PathBuf> = Vec::new();
+    prune_emptied(&root, std::slice::from_ref(&file), &mut pruned);
+
+    assert!(
+      !child.exists(),
+      "precondition of the real property: the emptied child IS pruned"
+    );
+    assert!(
+      root.is_dir(),
+      "AND THE ROOT SURVIVES with nothing left in it. This is the assertion the \n       \
+       integration test could not make: here the root is genuinely empty, so \n       \
+       `remove_dir` would succeed on it and only the declared floor stops the \n       \
+       cascade. A bound that is never reached is not a bound that was tested."
+    );
+    assert!(
+      !pruned.iter().any(|p| p == &root),
+      "and the root is not reported as pruned. pruned: {pruned:?}"
+    );
+
+    std::fs::remove_dir_all(&tmp).ok();
   }
 }

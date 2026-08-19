@@ -1519,6 +1519,7 @@ impl Facade {
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
+      estate_root: whole.estate_root.clone(),
     };
     // **`hydrate` IS ALWAYS `Mode::Apply`, AND IT NEEDS NO FLAG TO BE.** The
     // preview/apply split exists because `organize` REMOVES; `hydrate` only
