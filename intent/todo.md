@@ -1,40 +1,39 @@
 # TODO
 
-A flat DOING / TODO / DONE view, projected from steel-thread and work-package status. Generated -- change a status with the CLI, never by editing this file.
+A DOING / TODO / DONE view, projected from steel-thread and work-package status: one row per steel thread, with its work packages nested beneath it. Generated -- change a status with the CLI, never by editing this file.
 
 ## DOING
 
-- [-] ST0055 / WP-01: Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton
-- [-] ST0055 / WP-02: Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all
-- [-] ST0055 / WP-03: Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)
-- [-] ST0055 / WP-04: Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate
 - [-] ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
-- [-] ST0056 / WP-03: Ingest, views and sync engine
-- [-] ST0056 / WP-05: CLI in-process mode and BATS conformance harness
-- [-] ST0056 / WP-06: CLI parity long tail
-- [-] ST0056 / WP-10: Migration and fleet ingest harness
-- [-] ST0056 / WP-11: Distribution: cargo-dist, Homebrew, signing
+  - [x] 01: Design canon: architecture, data model, migration and parity specs
+  - [x] 02: Workspace and reified model: intentsvcs types, schema faces, store
+  - [-] 03: Ingest, views and sync engine
+  - [x] 04: intentsvcs facade: core command families
+  - [-] 05: CLI in-process mode and BATS conformance harness
+  - [-] 06: CLI parity long tail
+  - [ ] 07: Canon and claude subsystem
+  - [ ] 08: intentd daemon
+  - [ ] 09: MCP server and agent guide
+  - [-] 10: Migration and fleet ingest harness
+  - [-] 11: Distribution: cargo-dist, Homebrew, signing
+  - [ ] 12: Cutover and v3.0.0 release
+  - [ ] 13: Project search: full-text, structural, and the agent search surface
+  - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
+  - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
+  - [ ] 16: Contract drift: a shipped field with no model row is refused
 - [-] ST0057: Disk as a sparse projection of the store
+  - [ ] 01: Canon relocation to intent/.canon/
+  - [ ] 02: .intentfiles: the manifest and its refusing grammar
+  - [ ] 03: Attachment canon: opaque as file, and the naming gate
+  - [ ] 04: intent organize: four answers, one refusal, one gate
+  - [ ] 05: intent edit <ID>
+  - [ ] 06: The full text realisation, and the refusal that expires
+  - [ ] 07: intent:// addressing and read resolution
+  - [ ] 08: The mutation surface: write-by-address and the missing verbs
 
 ## TODO
 
 - [ ] ST0046: Add modules (properly) to the intent cli
-- [ ] ST0056 / WP-07: Canon and claude subsystem
-- [ ] ST0056 / WP-08: intentd daemon
-- [ ] ST0056 / WP-09: MCP server and agent guide
-- [ ] ST0056 / WP-12: Cutover and v3.0.0 release
-- [ ] ST0056 / WP-13: Project search: full-text, structural, and the agent search surface
-- [ ] ST0056 / WP-14: Coordination model: whiteboard and inboxes in the store, with a bounded API
-- [ ] ST0056 / WP-15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
-- [ ] ST0056 / WP-16: Contract drift: a shipped field with no model row is refused
-- [ ] ST0057 / WP-01: Canon relocation to intent/.canon/
-- [ ] ST0057 / WP-02: .intentfiles: the manifest and its refusing grammar
-- [ ] ST0057 / WP-03: Attachment canon: opaque as file, and the naming gate
-- [ ] ST0057 / WP-04: intent organize: four answers, one refusal, one gate
-- [ ] ST0057 / WP-05: intent edit <ID>
-- [ ] ST0057 / WP-06: The full text realisation, and the refusal that expires
-- [ ] ST0057 / WP-07: intent:// addressing and read resolution
-- [ ] ST0057 / WP-08: The mutation surface: write-by-address and the missing verbs
 
 ## DONE
 
@@ -57,41 +56,167 @@ A flat DOING / TODO / DONE view, projected from steel-thread and work-package st
 - [x] ST0017: Add an Intent sub-agent for Claude Code to Intent
 - [x] ST0018: Worker-Bee Intent Agent for WDD Architecture Enforcement
 - [x] ST0019: Treeindex -- Directory Summaries for Claude Navigation
+  - [x] 01: intent treeindex CLI command
+  - [ ] 02: Treeindex Claude Code subagent
+  - [ ] 03: Integration and registration
 - [x] ST0020: Modernizing Intent's Elixir Support for Agentic Coding
+  - [x] 01: Distill Core Elixir Rules
+  - [x] 02: Create elixir-essentials Skill
+  - [x] 03: Create Ash/Ecto Reference Doc + Skill
+  - [x] 04: Create LiveView Reference Doc + Skill
+  - [x] 05: Expand Testing Reference
+  - [x] 06: Skill Installation Infrastructure
+  - [x] 07: RULES.md / ARCHITECTURE.md Templates and Tooling
+  - [x] 08: Project Structure Reference Doc
+  - [x] 09: Elixir Upgrade Skill
+  - [x] 10: Intent Usage-Rules.md
+  - [x] 11: Diogenes Test Architect Subagent + intent-elixir-testing Skill
 - [x] ST0021: Intent Autopsy -- Session Analysis & Memory Meta-Learning
 - [x] ST0022: Harden `st new` -- Special Characters, Slugs, and --start Flag
+  - [x] 01: Special Character Handling
+  - [x] 02: Slug Generation System
+  - [x] 03: -s|--start Flag for st new
+  - [x] 04: Documentation and Wrap-up
 - [x] ST0023: Remove Backlog from Intent
+  - [ ] 01: Documentation - Remove Backlog References
+  - [ ] 02: LLM Templates - Remove Backlog from Generated Content
+  - [ ] 03: Subagents - Remove Backlog from Agent Definitions
+  - [ ] 04: CLI Core - Remove Backlog Commands and Config
+  - [ ] 05: Configuration - Remove Backlog Config Keys
+  - [ ] 06: Tests - Remove/Update Test Files
+  - [ ] 07: CI/CD, Examples, and Cleanup
+  - [ ] 08: Version Bump, CHANGELOG, Treeindex, and Release
 - [x] ST0024: Add work packages as first class citizens within a steel thread
 - [x] ST0025: Fix Highlander Violations
 - [x] ST0026: Steel Thread Zero
+  - [x] 01: Skill Rename (intent-* to in-*)
+  - [x] 02: Workflow Skills
+  - [x] 03: LLM Templates (D2, D3, D6)
+  - [x] 04: Memory Injection (D8)
+  - [x] 05: Archetype Templates (D4)
+  - [x] 06: Automated Enforcement (D5a, D5b)
+  - [x] 07: Health Check & Learnings (D7, D10)
+  - [x] 08: Guardrails (D9, D11)
+  - [x] 09: Retrofit Installation (D12)
+  - [x] 10: Integrator Command (D1)
+  - [x] 11: TN004 Tech Note (Total Codebase Audit)
 - [x] ST0027: Add /in-cost-analysis skill
+  - [x] 01: Steel thread docs + skill scaffold
+  - [x] 02: Bash metrics script
+  - [x] 03: Integration testing
 - [x] ST0028: TCA v3.0 -- Process Doc Update + Skill Suite
 - [x] ST0029: Add /in-handoff skill
 - [x] ST0030: Cherry-Pick Superpowers Patterns for Intent
+  - [x] 01: Skill Dependency Chains
+  - [x] 02: Rationalization Tables
+  - [x] 03: in-verify Skill
+  - [x] 04: Plan Granularity Standards
+  - [x] 05: in-debug Skill
+  - [x] 06: in-review Skill
 - [x] ST0031: TCA suite hardening (post-Lamplight ST0121)
+  - [x] 01: Doc rules: provisioning invariants and FP benchmarks
+  - [x] 02: Init hardening: provisioning guards and FP guidance requirement
+  - [x] 03: Finish guard: pre-flight check to block premature close-out
+  - [x] 04: Rename --st-dir to --tca-dir, audit metadata line, chains_to
 - [x] ST0032: Fix Intent's Elixir Credo Checks
 - [x] ST0033: Make the intent CLI resilient to cwd when locating the project root
 - [x] ST0034: Agentic Software Engineering Suite
+  - [x] 01: Architecture and rule schema
+  - [x] 02: Extension system foundation
+  - [x] 03: Skill and subagent rationalisation
+  - [x] 04: Agnostic rule pack
+  - [x] 05: Elixir rule pack
+  - [x] 06: Rust Swift Lua rule packs
+  - [x] 07: Critic subagent family
+  - [x] 08: Worker-bee extraction
+  - [x] 09: Migration and upgrade chain
+  - [x] 10: Documentation
+  - [ ] 11: Release and fleet upgrade
+  - [x] 12: Shell rule pack (bash + zsh)
 - [x] ST0035: Canonical LLM Config + Fleet Rollout
+  - [x] 01: Self-upgrade Intent to v2.10.0 and cancel ST0010 and ST0015
+  - [x] 02: Refresh root usage-rules.md to current state
+  - [x] 03: Write intent/docs/working-with-llms.md canon tech note
+  - [x] 04: Ship .claude/settings.json template with session hooks
+  - [x] 05: Implement bin/intent_critic headless critic runner
+  - [x] 06: Ship .git/hooks/pre-commit template for critic gate
+  - [x] 07: Ship .intent_critic.yml default template
+  - [x] 08: Rewrite root AGENTS.md generator
+  - [x] 09: Rewrite root CLAUDE.md template as Claude overlay
+  - [x] 10: Delete deprecated intent/llm/AGENTS.md and _llm_preamble.md
+  - [x] 11: Extend intent claude upgrade to apply canon artefacts
+  - [x] 12: Socrates Diogenes FAQ and cross-refs
+  - [x] 13: Update Intent own CLAUDE.md to reference canon
+  - [x] 14: Self-apply canon to Intent repo (dogfood)
+  - [x] 15: Canary rollout across in-scope fleet projects
+  - [x] 16: Fleet rollout (Intent ecosystem)
+  - [x] 17: Verification sweep and dogfood journal
+  - [x] 18: Review and update (or retire) intent/usr/*.md
+  - [x] 19: Per-language canon: intent lang command + intent init --lang flag
 - [x] ST0036: Directory relocation: `.intent/` → `intent/.config/`
+  - [x] 01: Migration function: atomic .intent to intent/.config relocation
+  - [x] 02: Path probes for intent/.config root
+  - [x] 03: Literal sweep: replace .intent/ with intent/.config/
+  - [x] 04: Template and generator updates
+  - [x] 05: BATS fixtures and create_test_project flip
+  - [x] 06: Ignore patterns: gitignore and treeindexignore
+  - [x] 07: Migration guide: intent/docs/migration-v2.10.0.md
+  - [x] 08: Intent self-apply directory relocation
+  - [x] 09: Merge with ST0035 fleet rollout (coord)
 - [x] ST0037: Language config: replace filesystem probes with explicit config
 - [x] ST0038: critic-elixir false positives on canonical OTP/Mix idioms
 - [x] ST0039: Critic gate: strict proxies and rule-library cleanup
 - [x] ST0040: Whiteboard protocol for multi-Claude sessions in the one repo
 - [x] ST0041: Explore 'MFIC — Mechanically-Falsifiable Independent Control'
 - [x] ST0042: Fable 5 Review of Intent codebase
+  - [x] 01: Eliminate config eval
+  - [x] 02: Finish rules-path drift + mechanical guard
+  - [x] 03: Kill reports-success-while-doing-nothing
+  - [x] 04: Fix AGENTS.md generation paths and sections
+  - [x] 05: Highlander consolidation pass
+  - [x] 06: Prune dead and legacy code
+  - [x] 07: Reconcile MODULES.md registry
+  - [x] 08: Canon docs reconciliation + st cancel
+  - [x] 09: Test-suite hardening
 - [x] ST0043: Rethink 'intent upgrade'
 - [x] ST0044: Add in acceptance.md and supporting process
 - [x] ST0045: Update whiteboard for per-workstream files
 - [x] ST0047: Add claude_with_intent script to Intent to support muilt-agent agentic coding (MAAC)
+  - [x] 01: Whiteboard provisioner: ws new + ws list
+  - [x] 02: Session launcher: start|st with provision-if-absent
+  - [x] 03: Workstream lifecycle: ws archive + ws hygiene
+  - [x] 04: Promote to Intent (intent claude) + back-fill siblings
 - [x] ST0048: Acceptance close-gate fails empty or missing contract
+  - [x] 01: Gate hard-fails empty/missing contract + exemption
+  - [x] 02: Template + canon docs reflect fail-by-default
+  - [x] 03: Migration + 2.13.1 release wrap
 - [x] ST0049: Comprehensive 2.13.0 release note: how MAAC works
 - [x] ST0050: intent todo: a flat DOING/TODO/DONE view of steel threads and work packages
 - [x] ST0051: intent output width: dft_width config for generated files, terminal width for stdout
 - [x] ST0052: Author project-type pack
+  - [x] 01: AU language-code schema bump
+  - [x] 02: Author rule library seed
+  - [x] 03: critic-author subagent
+  - [x] 04: intent lang init author canon
+  - [x] 05: Skill and dispatch wiring
+  - [x] 06: Dogfood, docs, and close
 - [x] ST0053: Content (web-content) project-type pack
+  - [x] 01: IN-PR-* prose base + author refactor
+  - [x] 02: content (CO) rule tiers
+  - [x] 03: critic-prose (rename critic-author)
+  - [x] 04: content lang canon
+  - [x] 05: in-content-essentials skill + dispatch
+  - [x] 06: dogfood + docs + close
 - [x] ST0054: Update Intent for latest usage-rules.md format
+  - [x] 01: Rewrite the usage_rules interop doc to the v1.x model
+  - [x] 02: Topical sub-rule folders in /in-standards + peer skills
+  - [x] 03: Template freshness + name-collision note in _usage-rules.md
 - [x] ST0055: Add `intent issues` command
+  - [-] 01: Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton
+  - [-] 02: Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all
+  - [-] 03: Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)
+  - [-] 04: Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate
+  - [ ] 05: Fleet normalisation (POST-SHIP, cross-repo): normalise Utilz/Lamplight intent/issues to canon
 
 ---
 
