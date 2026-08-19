@@ -140,6 +140,57 @@ pub enum Entity {
   },
 }
 
+impl Entity {
+  /// The form's name, for a caller that has to REPORT over the form set.
+  ///
+  /// **Derived by a match rather than kept as a list, so a tenth form does not
+  /// compile until it is named here.** A denominator printed over "the forms
+  /// this tool knows" is only honest if the set cannot silently shrink, and a
+  /// hand-kept roster beside an enum is the shape that shrinks.
+  pub fn form(&self) -> &'static str {
+    match self {
+      Self::Threads => "threads",
+      Self::Thread { .. } => "thread",
+      Self::AcCollection { .. } => "ac-collection",
+      Self::Wp { .. } => "wp",
+      Self::Ac { .. } => "ac",
+      Self::At { .. } => "at",
+      Self::Attachment { .. } => "attachment",
+      Self::Issue { .. } => "issue",
+      Self::Node { .. } => "node",
+      Self::NodeInbox { .. } => "node-inbox",
+      Self::Event { .. } => "event",
+    }
+  }
+
+  /// The ARTEFACT whose files this address lives in, if any.
+  ///
+  /// **Most forms are not artefacts and still resolve to one.** An `Ac`, an
+  /// `At`, a `Wp` and an `AcCollection` have no files of their own -- they are
+  /// carried by their thread's views -- so realising any of them means realising
+  /// the thread. That is not a shortcut: `.intentfiles` names ARTEFACTS and
+  /// nothing finer, so the artefact is the smallest thing realisation can
+  /// address.
+  ///
+  /// `None` is the honest answer for the rest, and each is `None` for its own
+  /// reason: a COLLECTION is not a thing with files; a whiteboard node and its
+  /// inbox are authored by hand and outside the manifest's vocabulary; an event
+  /// has no file form at all.
+  pub fn artefact(&self) -> Option<(crate::intentfiles::Sigil, &str)> {
+    use crate::intentfiles::Sigil;
+    match self {
+      Self::Thread { id } => Some((Sigil::SteelThread, id)),
+      Self::AcCollection { thread }
+      | Self::Wp { thread, .. }
+      | Self::Ac { thread, .. }
+      | Self::At { thread, .. }
+      | Self::Attachment { thread, .. } => Some((Sigil::SteelThread, thread)),
+      Self::Issue { id } => Some((Sigil::Issue, id)),
+      Self::Threads | Self::Node { .. } | Self::NodeInbox { .. } | Self::Event { .. } => None,
+    }
+  }
+}
+
 /// A parsed `intent://` address.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Address {

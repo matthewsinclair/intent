@@ -50,6 +50,21 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   std::fs::write(fx.path("intent/.intentfiles"), "NOTASIGIL:ST0056\n")
     .expect("write a malformed manifest");
+  // **An address form that names nothing realisation can create.** Provoked
+  // rather than exempted: it needs no broken world, only an ordinary call with
+  // an address that is perfectly valid and names a thing with no file form.
+  out.push((
+    "an address that is not an artefact",
+    facade
+      .hydrate(&intentsvcs::address::Address {
+        authority: None,
+        entity: intentsvcs::address::Entity::Event {
+          id: "1".to_string(),
+        },
+        format: None,
+      })
+      .expect_err("an event has no file form"),
+  ));
   out.push((
     "malformed realisation manifest",
     facade
@@ -360,6 +375,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Organize(_) => "Organize",
     FacadeError::Intentfiles(_) => "Intentfiles",
     FacadeError::ManifestUnreadable { .. } => "ManifestUnreadable",
+    FacadeError::NotHydratable { .. } => "NotHydratable",
   }
 }
 
@@ -370,6 +386,7 @@ fn variant(err: &FacadeError) -> &'static str {
 /// look like oversights -- an exemption that is announced, never inferred
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
+  "NotHydratable",
   "Organize",
   "Intentfiles",
   "ManifestUnreadable",

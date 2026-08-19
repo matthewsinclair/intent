@@ -358,6 +358,15 @@ pub enum FacadeError {
     #[source]
     source: std::io::Error,
   },
+  /// The address names something realisation cannot make exist.
+  ///
+  /// **It names the FORM, and the form is why it is counted rather than
+  /// dropped.** AC-05.1 wants a denominator over the forms the verb dispatches
+  /// on, and a denominator is only honest if the refusals are IN it -- a verb
+  /// that silently skips four of eleven forms reports the same number as one
+  /// that handles all eleven.
+  #[error("`{form}` is not something that can be realised to disk: {why}")]
+  NotHydratable { form: &'static str, why: String },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -485,7 +494,20 @@ impl crate::remedy::Remedy for FacadeError {
       }
       Self::ReasonRequired { verb } => {
         format!(
-          "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state, and in the event log as part of the decision"
+          // **THE EVENT-LOG CLAUSE IS GONE, BY hv's RULING (AC-03.12).**
+          //
+          // It read "and in the event log as part of the decision", and before
+          // that "which is what lets anyone reconstruct why later" -- a
+          // justification citing a store NO SHIPPED VERB CAN READ. `intent
+          // --help` declares no `events`, no `log`, no `history`, and
+          // `ingest.rs` never mentions the field so `search` does not reach it
+          // either. **A refusal that argues from a capability the operator
+          // cannot exercise is arguing from nothing**, and the operator cannot
+          // tell the difference from the message.
+          //
+          // The remaining sentence is the one the tool can keep: the reason IS
+          // on the entity, and it IS rendered.
+          "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state"
         )
       }
       Self::DescopeTargetRequired { ac } => {
@@ -550,6 +572,9 @@ impl crate::remedy::Remedy for FacadeError {
       // getting this sentence. `StoreError::remedy` distinguishes them, and
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
+      Self::NotHydratable { form, .. } => format!(
+        "address an ARTEFACT instead -- a thread or an issue. A `{form}` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread."
+      ),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
@@ -1323,6 +1348,146 @@ impl Facade {
           .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
       })
       .map_err(FacadeError::Organize)
+  }
+
+  /// Make an addressed artefact's files exist on disk, and say which ones do.
+  ///
+  /// **TWO INDEPENDENT IDEMPOTENT STEPS, NEITHER GUARDING THE OTHER** (ic's
+  /// correction, and it killed a defect before it existed). Materialise if
+  /// absent, then pin if not pinned. The obvious shape -- return early when the
+  /// files are already there -- skips the PIN in exactly the ordinary case: the
+  /// artefact is realised because it is currently `wip`, its id sits in the
+  /// GENERATED region, and it is not pinned. **Presence is true and pinned-ness
+  /// is false, and they disagree on the common path rather than in a corner.**
+  /// `edit_writes_pinned_region.rs` already reds that, so the estate had the
+  /// test before it had this caller.
+  ///
+  /// **Pinning is what makes the decision outlive STATUS.** The generated region
+  /// is a function of today's board; a pin is a durable statement that this
+  /// artefact stays on disk. Hydrating without pinning hands the files straight
+  /// back to the next `organize`.
+  ///
+  /// **IT DISPATCHES ON `entity` AND IGNORES `format`** (ic). `?format=json` and
+  /// `?format=md` name the SAME artefact and must realise identically, so a verb
+  /// that read the format would have acquired an opinion about REPRESENTATION
+  /// that AC-05.1 never asked for. A non-empty `authority` is refused rather
+  /// than ignored: that names a DIFFERENT PROJECT, and realising another
+  /// project's artefact into this tree is not a representation question.
+  ///
+  /// **AND IT REUSES `organize`'s PLAN RATHER THAN RESTATING WHAT AN ARTEFACT
+  /// OWNS.** The plan is computed for the whole estate and then FILTERED to this
+  /// artefact's steps, so the classification -- which paths a thread owns, which
+  /// are renderable, which are attachments the store carries -- has exactly one
+  /// expression. A second list here would be the fourth answer to "what files
+  /// does this artefact have", and the one that goes stale is always the one
+  /// nobody is looking at when a new view kind lands.
+  pub fn hydrate(&mut self, address: &Address) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+    if let Some(authority) = &address.authority {
+      return Err(FacadeError::NotHydratable {
+        form: address.entity.form(),
+        why: format!(
+          "the address names the project `{authority}` rather than this one, and realising another project's artefact into this tree is not something an empty authority would have meant"
+        ),
+      });
+    }
+    let Some((sigil, id)) = address.entity.artefact() else {
+      return Err(FacadeError::NotHydratable {
+        form: address.entity.form(),
+        why: "only an artefact -- a thread or an issue -- is named by `.intentfiles`, so it is the smallest thing realisation can address".to_string(),
+      });
+    };
+    let id = id.to_string();
+
+    // STEP ONE: PIN. First, and unconditionally, because it is the step the
+    // obvious ordering skips.
+    let path = self.project.intentfiles_path();
+    let before =
+      std::fs::read_to_string(&path).map_err(|source| FacadeError::ManifestUnreadable {
+        path: path.display().to_string(),
+        source,
+      })?;
+    let after = intentfiles::pin(&before, sigil, &id, None).map_err(FacadeError::Intentfiles)?;
+    if after != before {
+      let mut set = WriteSet::new();
+      set.add(path, after);
+      set.commit()?.keep();
+    }
+
+    // STEP TWO: MATERIALISE. Independent of the first -- it runs whether or not
+    // the pin moved, and the pin ran whether or not this will write anything.
+    let raw = std::fs::read_to_string(self.project.intentfiles_path()).map_err(|source| {
+      FacadeError::ManifestUnreadable {
+        path: self.project.intentfiles_path().display().to_string(),
+        source,
+      }
+    })?;
+    let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+    let (tree, digest) =
+      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let whole = {
+      let ctx = self.render_ctx()?;
+      organize::plan(&self.project, &self.canon, &manifest, &ctx, &tree, digest)
+    };
+
+    // **SCOPED TO THIS ARTEFACT'S DIRECTORY, AND THE FILTER IS WHY THIS IS NOT
+    // AN `organize`.** `intent edit ST0001` must not reconcile the estate; it
+    // must make one artefact's files exist. The plan is whole-estate because
+    // classification needs the whole estate as its denominator, and the ACT is
+    // narrow.
+    let home = match sigil {
+      intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
+      intentfiles::Sigil::Issue => self.project.issues_dir(),
+    };
+    let mine: Vec<_> = whole
+      .steps
+      .iter()
+      .filter(|s| s.path.starts_with(&home))
+      .cloned()
+      .collect();
+    let scoped = organize::Plan {
+      steps: mine,
+      digest: whole.digest.clone(),
+      preconditions: whole.preconditions.clone(),
+    };
+    scoped
+      .apply(&|| {
+        organize::observe(&self.project, &previous)
+          .map(|(_, digest)| digest)
+          .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
+      })
+      .map_err(FacadeError::Organize)?;
+
+    // **PATHS THAT NOW EXIST, NOT PATHS THIS RUN HAD A STEP FOR, AND THE
+    // DIFFERENCE IS A DEFECT MY OWN TEST CAUGHT.** Returning the plan's steps
+    // looks right and is not: `plan` deliberately emits NO step for an
+    // attachment already agreeing with the store, so the first call returned six
+    // paths and the second returned four -- the same artefact, the same tree,
+    // two different answers. A caller asking "does my file exist now" would have
+    // been told no on the run where nothing needed doing.
+    //
+    // **So the set is asked of the two owners rather than reconstructed.**
+    // `views::render_all` is THE renderer and says which views exist for this
+    // artefact; canon's `attachments` is THE store's own list. Neither is a
+    // restatement of what an artefact owns -- both are the authority for their
+    // half, filtered to this artefact's directory.
+    let mut owned: Vec<std::path::PathBuf> = {
+      let ctx = self.render_ctx()?;
+      views::render_all(&self.project, &self.canon, &ctx)
+        .into_iter()
+        .map(|v| v.path)
+        .filter(|p| p.starts_with(&home))
+        .collect()
+    };
+    if let Some(thread) = self.canon.threads.iter().find(|t| t.id == id) {
+      for attachment in &thread.attachments {
+        owned.push(self.project.thread_dir(&id).join(&attachment.path));
+      }
+    }
+    owned.retain(|p| p.exists());
+    owned.sort();
+    owned.dedup();
+    Ok(owned)
   }
 
   pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
