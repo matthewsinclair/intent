@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 18:23Z
+heartbeat_at: 2026-08-19 18:43Z
 status: active
 focus: "**GATE 34 of 64. hv RULED: WIRE THE `organize` HANDLER NOW -- dc is going, five rows (AT-04.1..04.5), the largest single move on the board.** The deciding argument inverts the intuition dc and I both had: wiring NOW exercises the REFUSAL path in anger for the gate's whole remaining life; wiring LATE puts the first real run next to the permitting state. **dc's objection stands unrefuted -- the gate opens BY CONSTRUCTION at the last green -- and that argues for an arming step, not for delay.** **I WITHDREW MY OWN HEADLINE TODAY: `intent at green` is NOT safe over a hand-edited canon file. dc traced it deeper (`load_fresh` never reads the files; `ingest.rs:301` promises it does), ic closed a second door on the remedy I was recommending.** **Six of the nineteen declared preconditions are cc's WP-03 rows, so cc's next greens move the estate's arming state and cc has been told.**"
 claims: [ST0056, ST0057]
@@ -27,7 +27,19 @@ claims: [ST0056, ST0057]
 
 **MEASURED, NOT INFERRED: `intent organize --apply` in a disposable clone, refusal read directly with no pipe.** That is the shipped gate answering about itself, which is the only source that cannot drift from the gate.
 
-**rev `5f7df553`, 2026-08-19 18:18Z: `19 checked of 19 declared, 8 unmet`, 744 files conserved.**
+**rev `43a08a0e`, 2026-08-19 18:42Z: `19 checked of 19 declared, 6 unmet`, 744 files conserved.** Thirteen at 16:52Z, eight at 18:18Z, six now.
+
+    AC-00.3  AC-00.4  AC-03.6  AC-06.3  AC-06.4  AC-07.5
+
+**AND THE NUMBER THAT DECIDES WHAT ARMING MEANS, MEASURED BY vc AT `43a08a0e`: `.intentfiles` DECLARES ZERO THREADS. 57 EXIST ON DISK.** Twenty-six lines, every one a comment or blank, generated region empty. ic surfaced it; vc confirmed it independently.
+
+**SO THE ESTATE IS NOT SIX PRECONDITIONS AWAY FROM A CAREFUL PARTIAL DEHYDRATION. IT IS SIX PRECONDITIONS AWAY FROM A COMPLETE ONE: nothing is declared, everything is realised, and `organize --apply` plans 544 REMOVALS.** That is dc's 544 seen from the other side.
+
+**THE NINETEEN PRECONDITIONS ASK WHETHER THE ESTATE CAN PUT FILES BACK. NOT ONE ASKS WHETHER ANYBODY HAS SAID WHICH FILES TO KEEP.** An empty manifest is a valid declaration -- ic's own `Declared(empty)` is _somebody saying none_ and is honoured deliberately -- so the gate opening over an unpopulated manifest is CORRECT BEHAVIOUR meeting a state nobody has filled in.
+
+**WHAT MAKES IT SURVIVABLE IS ic's POLARITY RULING FROM THIS AFTERNOON, AND NOBODY ARGUED IT ON THESE GROUNDS AT THE TIME: `organize` previews by default, so the first thing a human sees is `544 to remove` and `--apply` is a second, deliberate act.** Under the polarity v3 shipped with this morning -- bare spelling acts -- the gate opening would have been one keystroke from an empty estate. **That ruling is load-bearing for a reason its own argument did not name.**
+
+**hv's, not vc's, and it is the FIRST thing to put to him.** Not urgent in the sense of imminent -- six remain and the gate refuses -- but it is the fact that decides whether arming is a milestone or an event.
 
     dc   4   AC-06.1 06.2 06.3 06.4   ST0057/06, claimed 18:20Z, in progress
     cc   2   AC-03.6, AC-00.4         03.6 needs `--staged`; 00.4 was UNOWNED until 18:20Z
