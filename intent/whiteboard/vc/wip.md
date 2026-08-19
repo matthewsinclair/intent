@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 18:56Z
+heartbeat_at: 2026-08-19 19:00Z
 status: active
 focus: "**GATE 34 of 64. hv RULED: WIRE THE `organize` HANDLER NOW -- dc is going, five rows (AT-04.1..04.5), the largest single move on the board.** The deciding argument inverts the intuition dc and I both had: wiring NOW exercises the REFUSAL path in anger for the gate's whole remaining life; wiring LATE puts the first real run next to the permitting state. **dc's objection stands unrefuted -- the gate opens BY CONSTRUCTION at the last green -- and that argues for an arming step, not for delay.** **I WITHDREW MY OWN HEADLINE TODAY: `intent at green` is NOT safe over a hand-edited canon file. dc traced it deeper (`load_fresh` never reads the files; `ingest.rs:301` promises it does), ic closed a second door on the remedy I was recommending.** **Six of the nineteen declared preconditions are cc's WP-03 rows, so cc's next greens move the estate's arming state and cc has been told.**"
 claims: [ST0056, ST0057]
@@ -36,13 +36,21 @@ claims: [ST0056, ST0057]
 
 **ic's RECOMMENDATION, ON THE RECORD AND NOT ADOPTED: realised iff the thread is NOT TERMINAL** -- not `completed`, not `cancelled`. Their grounds: `design.md:115` offers _the artefact you opened is closed_ as the REASON a hand pin is needed, **which presupposes closed-implies-unrealised**, and it makes the pinned region's purpose coherent -- **you pin precisely to override the terminal case.**
 
-**vc MEASURED THE CONSEQUENCE SO hv DECIDES WITH NUMBERS RATHER THAN A PROPOSAL (at `29d4db5e`):**
+**BOTH SCENARIOS DRIVEN THROUGH THE PLANNER BY ic, CANDIDATE MANIFEST WRITTEN INTO A DISPOSABLE CLONE. THESE ARE PLANNER OUTPUTS, NOT vc's DIRECTORY CENSUS:**
 
-    realised    3 threads, 321 files   ST0046 (not-started), ST0056 (wip), ST0057 (wip)
-    dehydrated 54 threads, 423 files
-    today                  544 removals planned, because NOTHING is declared
+    A  nothing declared (today)      545 removals    ST0046 + ST0056 + ST0057 go too
+    B  realised iff not terminal     423 removals    ST0046, ST0056, ST0057 KEPT
+    both                             199 unclaimed, unchanged by the rule
 
-**So the rule REDUCES the blast radius from 544 to ~423 AND keeps both live threads, which is the design working rather than an empty form being obeyed.** It is a plausible, well-argued reading. **It is not vc's to adopt, and _probably agree_ is not the standard for a deletion policy.**
+**THE STATUS QUO IS THE MORE DESTRUCTIVE OPTION AND IT IS SIMPLY GATED. The proposal is not _start deleting things_ -- it is delete 122 FEWER, and keep both live threads and the one not yet started.**
+
+**vc's 423 came from a directory census (744 minus 321 realised) and HAPPENED to equal the planner's answer, because `organize` removes EVERYTHING under a dehydrated thread's directory rather than only its views. vc did not verify that mechanism before publishing the number; ic did, by driving it.** ic set out to correct the figure, modelled the verb as removing `GeneratedView` files only, computed 234, **and would have UNDERSTATED the blast radius by 189 files in a number going to hv to decide a deletion policy.** They caught it because the planner disagreed with their model.
+
+**544 -> 545 IS EXPLAINED AND CHECKABLE: it is ic's own `intentfiles_reviewable.sh`, a new file under `intent/st/ST0057/` that is removable while nothing is declared.** dc measured 544 before it landed. **A count that tracks the estate rather than a figure drifting.**
+
+**AND THE COUNT IS NOT ON STDOUT. vc confirmed independently: the summary line reads `0 hydrated, 0 rewritten, 0 unchanged, 0 REMOVED, 199 unclaimed, 0 diverged, 1 refused` while stderr carries `would remove 545 file(s)`.** So **a reader of the summary alone sees ZERO on a run that planned 545** -- `1 refused` is the only hint and it carries no magnitude. **The summary line agrees with two different worlds: _nothing was going to be removed_ and _545 were, and the gate stopped them_.** dc moved the count onto stdout for the UNREFUSED case; the refused case still carries it only in the stream people suppress. Queued, not minted.
+
+**It is a plausible, well-argued reading. It is not vc's to adopt, and _probably agree_ is not the standard for a deletion policy.**
 
 ## THE ARMING LEDGER -- vc OWNS THIS NUMBER AND MEASURES IT FROM THE SHIPPED GATE
 
