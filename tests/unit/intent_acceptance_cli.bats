@@ -95,7 +95,13 @@ setup_fixture_st() {
   assert_success
   run run_intent at green ST0001 AT-01.1
   assert_success
-  run grep -E '^- AT-01\.1 .*status: green$' "$ACC"
+  # THE STATUS LANDED **AND** THE NOTE SURVIVED (issue 0033). The `$` anchor
+  # after `green` used to be the whole assertion, and it PASSED ONLY BECAUSE THE
+  # NOTE HAD BEEN DESTROYED -- the fixture row carries ` -- red-first`, so a row
+  # ending at the status is a row that lost a declared field. The test encoded
+  # the defect as the expected shape, which is why twelve green tests over a
+  # live data-loss bug were not a contradiction.
+  run grep -E '^- AT-01\.1 .*-- status: green -- red-first$' "$ACC"
   assert_success
 }
 
@@ -104,13 +110,55 @@ setup_fixture_st() {
 
   run run_intent at notdone ST0001 AT-01.1
   assert_success
-  run grep -E '^- AT-01\.1 .*status: red$' "$ACC"
+  run grep -E '^- AT-01\.1 .*-- status: red -- red-first$' "$ACC"
   assert_success
 
   run run_intent at done ST0001 AT-01.1
   assert_success
-  run grep -E '^- AT-01\.1 .*status: green$' "$ACC"
+  run grep -E '^- AT-01\.1 .*-- status: green -- red-first$' "$ACC"
   assert_success
+}
+
+@test "an at transition preserves the row note (issue 0033)" {
+  # THE NOTE IS A DECLARED FIELD, NOT TRAILING TEXT. `AT_G_NOTE` is part of the
+  # row grammar, the tool NORMALISES a malformed note and COACHES the author on
+  # the delimiter -- and until 2026-08-19 every `at red` and `at green` then
+  # discarded it, because the substitution ended `-- status:.*` and carried
+  # nothing forward. Certain rather than probable: it fired on every transition
+  # of every row that had one.
+  #
+  # It survived because NOTHING READ THE FIELD BACK. There was no `at_note`
+  # reader; the post-write verifier checked field 5 while the damage was in
+  # field 6; and the two assertions above anchored `status: green$`, so they
+  # PASSED ONLY WHEN THE NOTE WAS GONE. A destroyed note leaves a grammatical
+  # row, a correct status, a quiet linter and a satisfied gate -- the only
+  # witness is an author who remembers writing something that is not there.
+  setup_fixture_st
+
+  run run_intent at red ST0001 AT-01.1
+  assert_success
+  run grep -cF -- '-- status: red -- red-first' "$ACC"
+  assert_success
+
+  run run_intent at green ST0001 AT-01.1
+  assert_success
+  run grep -cF -- '-- status: green -- red-first' "$ACC"
+  assert_success
+}
+
+@test "a row with no note stays a row with no note" {
+  # The other arm, and it is not symmetry for its own sake: a fix that preserves
+  # notes by appending an empty ` -- ` would satisfy every assertion above and
+  # push every unannotated row out of the grammar. AT-01.2 is seeded `red` with
+  # no note.
+  setup_fixture_st
+
+  run run_intent at green ST0001 AT-01.2
+  assert_success
+  run grep -E '^- AT-01\.2 .*-- status: green$' "$ACC"
+  assert_success
+  run grep -cF -- 'status: green -- ' "$ACC"
+  assert_failure
 }
 
 @test "ac status reports counts and gate verdict" {
