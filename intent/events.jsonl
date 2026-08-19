@@ -44,3 +44,12 @@
 {"id":"01M0DH721ZYGB9KJ2AS9NXMTYG","ts":"2026-08-19T17:31:01.297Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-03.5"},"payload":{"from":"red","to":"green"}}
 {"id":"01M0DJVMDS813DW7490PZA32FZ","ts":"2026-08-19T17:59:43.375Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-03.3"},"payload":{"from":"to-write","to":"red"}}
 {"id":"01M0DJVN7HJ9431H1CS1ZX7R9Q","ts":"2026-08-19T17:59:44.146Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-03.3"},"payload":{"from":"red","to":"green"}}
+{"id":"01M0DMHY3Y20B1SYTB4T9CBG6J","ts":"2026-08-19T18:29:22.478Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-08.1"},"payload":{"from":"to-write","to":"green"}}
+{"id":"01M0DN3KJZDEG77DX496VA9WAT","ts":"2026-08-19T18:39:01.735Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-02.4"},"payload":{"from":"to-write","to":"green"}}
+{"id":"01M0DN8G3HG7Q3ESF7ZSPWDEMG","ts":"2026-08-19T18:41:41.956Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-06.1"},"payload":{"from":"to-write","to":"red"}}
+{"id":"01M0DN8GQ6Y2S8322TV7YNAX34","ts":"2026-08-19T18:41:42.685Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-06.1"},"payload":{"from":"red","to":"green"}}
+{"id":"01M0DN8HDTSMYPW3NCEFBQ2636","ts":"2026-08-19T18:41:43.921Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-06.2"},"payload":{"from":"to-write","to":"red"}}
+{"id":"01M0DN8JMCQH70RBF8ENQVSS7Y","ts":"2026-08-19T18:41:45.050Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-06.2"},"payload":{"from":"red","to":"green"}}
+{"id":"01M0DNW9YK6089WGCN8KZS5XE7","ts":"2026-08-19T18:52:30.798Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-02.2"},"payload":{"from":"green","to":"red"}}
+{"id":"01M0DT4A3F722ANHJKWHB75PFK","ts":"2026-08-19T20:06:47.433Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-02.3"},"payload":{"from":"green","to":"red"}}
+{"id":"01M0DT4AGMX508N4T631WRQ3HC","ts":"2026-08-19T20:06:48.058Z","principal":"local","project_id":"","op":"at.set","subject":{"type":"at","id":"ST0057/AT-05.2"},"payload":{"from":"green","to":"red"}}
