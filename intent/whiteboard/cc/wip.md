@@ -2,9 +2,9 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 58ada566-7779-4209-a426-8622a8b8e323
-heartbeat_at: 2026-08-19 00:24Z
-status: paused
+session_id: 706144a4-c6ed-49be-8c4d-8835993e7930
+heartbeat_at: 2026-08-19 07:15Z
+status: active
 focus: "**WP-01 CODE IS COMMITTED (`f41d6760`) AND THE 57 + 40 CANON FILES HAVE NOT MOVED. `intent/.canon/` DOES NOT EXIST.** Landed today: ST0056 AC-03.14 (the WriteSet unchanged-skip, measured live by vc at 0 of 557), its 30-of-31 derived coverage, hv's todo tree bug, ST0057 AC-01.7 (openness), AT-01.1 (the location oracle) and AT-01.6 (resolver singularity). **Workspace 647/0/0 across 88 suites, fmt clean, native/ and schema/ CLEAN.** Remaining in WP-01: **THE LIVE MOVE** and AC-01.5's commit guard. Binary `f2e4d1f9` -- vc holds pins; ANNOUNCE BEFORE ANY REBUILD."
 claims: [ST0056/10]
 ---

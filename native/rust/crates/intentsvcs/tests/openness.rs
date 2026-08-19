@@ -42,6 +42,8 @@ use common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::remedy::Remedy;
 use intentsvcs::store::{DDL, Store};
 use serde_json::Value;
+use std::path::{Path, PathBuf};
+use testkit::repo_root;
 
 // ---------------------------------------------------------------------------
 // Enumeration -- from the DDL face, never from a list here
@@ -237,6 +239,164 @@ fn a_table_that_declares_nothing_is_refused() {
   assert!(
     declaration_gaps(DDL).is_empty(),
     "precondition: the real DDL is clean, so the failures above are the injected ones"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Referents -- ST0057 AC-01.7 / AT-01.7: a declaration must RESOLVE
+// ---------------------------------------------------------------------------
+
+/// Where a declared path actually points, or `None` when nothing is there.
+///
+/// **Resolved against the repository the face ships with, never a fixture.** A
+/// declaration is a promise made to a consumer who has the extract and not the
+/// DB, so the only tree that can answer it is the one that travels.
+///
+/// `<ID>` and `<NNNN>` each stand for one path component, and the literal text
+/// around a placeholder still binds: `<NNNN>.json` matches `0033.json` and not
+/// `steel_threads.md`. Walked segment by segment rather than handed to a glob,
+/// because the interesting failure is WHICH segment stopped resolving, and an
+/// empty glob result cannot say whether a directory was missing or merely
+/// empty.
+fn resolves_under(root: &Path, declared: &str) -> Option<PathBuf> {
+  let mut candidates = vec![root.to_path_buf()];
+  for segment in declared.split('/').filter(|s| !s.is_empty()) {
+    let mut next = Vec::new();
+    match segment.split_once('<') {
+      Some((prefix, rest)) => {
+        let suffix = rest.split_once('>')?.1;
+        for base in &candidates {
+          let Ok(entries) = std::fs::read_dir(base) else {
+            continue;
+          };
+          for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.len() >= prefix.len() + suffix.len()
+              && name.starts_with(prefix)
+              && name.ends_with(suffix)
+            {
+              next.push(entry.path());
+            }
+          }
+        }
+      }
+      None => {
+        for base in &candidates {
+          let joined = base.join(segment);
+          if joined.exists() {
+            next.push(joined);
+          }
+        }
+      }
+    }
+    if next.is_empty() {
+      return None;
+    }
+    // Sorted so a failure names the same file on every machine; `read_dir`
+    // order is the filesystem's business, not this test's.
+    next.sort();
+    candidates = next;
+  }
+  candidates.into_iter().next()
+}
+
+/// The `carried by` declarations as (table, path), with the path ALONE.
+///
+/// **The first whitespace token only, and that is load-bearing rather than
+/// tidy.** [`declarations_in`] deliberately absorbs the comment lines following
+/// a declaration -- adjacency is how a declaration and its table are bound --
+/// so two of the real ones arrive with a paragraph of prose attached. Taking
+/// the whole remainder as the path yields a referent that cannot resolve **for
+/// a reason that has nothing to do with where canon lives**: red before the
+/// relocation, red after it, and reading exactly like a failed move.
+fn carried_paths(ddl: &str) -> Vec<(String, String)> {
+  declarations_in(ddl)
+    .into_iter()
+    .filter_map(|(table, decl)| {
+      let path = decl?
+        .strip_prefix("carried by ")?
+        .split_whitespace()
+        .next()?
+        .to_string();
+      Some((table, path))
+    })
+    .collect()
+}
+
+/// AC-01.7: every `carried by` path names something that is really there.
+///
+/// **[`declaration_gaps`] cannot do this, and that is a limit rather than an
+/// oversight.** It verifies the FORM of a claim -- that a table declares
+/// something, and that the something starts with `carried by ` or is
+/// `DERIVED -- <why>` -- and it never looks at the referent. A declaration
+/// naming a path that has never existed passes it clean. **A check that
+/// validates the form of a claim and never its referent is the shape this
+/// estate keeps meeting.**
+///
+/// Under D34 the face travels while the DB never does, so a consumer following
+/// the declaration to get their data out follows it to nothing, and **a false
+/// statement about how to recover the data is strictly worse than no
+/// statement** -- which is precisely what the openness block exists to prevent.
+///
+/// `DERIVED` declarations are out of scope BY CONSTRUCTION and not because the
+/// filter happens to drop them: they name no path, and this criterion is about
+/// referents. The partition is asserted so that the exclusion stays visible
+/// instead of being inferred from a filter.
+///
+/// **Both figures are printed and the partition is asserted to close**, because
+/// `resolved == declared` passes vacuously when a declaration is quietly
+/// dropped from the DDL -- the shrunken-roster failure this estate has already
+/// paid for. That the roster covers every table is held by
+/// [`the_enumeration_reads_the_ddl_and_finds_every_table`] and
+/// [`every_table_declares_a_file_form_or_a_reasoned_exemption`]; this test does
+/// not restate it.
+///
+/// **RED-FIRST, DRIVEN BY THE REAL EVENT RATHER THAN A BOGUS PATH.** At
+/// `f41d6760` the DDL was repointed to `intent/.canon/` while the 57 + 40 files
+/// were still under `intent/st/` and `intent/issues/`, so at that revision this
+/// goes red on 7 of 8 against the live tree -- six `intent/.canon/st/<ID>.json`,
+/// one `intent/.canon/issues/<NNNN>.json`, with only `intent/events.jsonl`
+/// resolving. The WP-01 file move is what turns it green. A hand-edited bogus
+/// path would only have proved the checker parses.
+#[test]
+fn every_carried_by_declaration_resolves_to_something_on_disk() {
+  let root = repo_root();
+  let face = root.join("schema").join("ddl.sql");
+  let ddl = std::fs::read_to_string(&face)
+    .unwrap_or_else(|e| panic!("the shipped face {} is unreadable: {e}", face.display()));
+
+  let carried = carried_paths(&ddl);
+  let declarations = declarations_in(&ddl);
+  let derived = declarations
+    .iter()
+    .filter(|(_, d)| d.as_deref().is_some_and(|d| d.starts_with("DERIVED")))
+    .count();
+
+  assert_eq!(
+    carried.len() + derived,
+    declarations.len(),
+    "the partition does not close: {} carried by + {derived} DERIVED over {} declarations -- \
+     something declares in a third form and this test is silently not looking at it",
+    carried.len(),
+    declarations.len()
+  );
+
+  let declared = carried.len();
+  let mut dangling = Vec::new();
+  for (table, path) in &carried {
+    if resolves_under(&root, path).is_none() {
+      dangling.push(format!("{table}: `carried by {path}` resolves to nothing"));
+    }
+  }
+  let resolved = declared - dangling.len();
+
+  assert!(
+    dangling.is_empty(),
+    "{resolved} of {declared} carried-by declarations resolve under {}; {} name a path \
+     that is not there:\n  {}",
+    root.display(),
+    dangling.len(),
+    dangling.join("\n  ")
   );
 }
 
