@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 16:33Z
+heartbeat_at: 2026-08-19 16:38Z
 status: active
 focus: "**AC-03.1 IS BUILT AND GREEN AND IT IS WAITING ON ic TO LAND IT** -- matts directed ic to carry both halves of `store.rs`/`ingest.rs` under their message, so my six files sit ready in the tree. **`opaque` WAS DEFINED NOWHERE ACROSS SIX CRITERIA and I measured it instead of picking one**: `collect_attachments` already named the population by REFUSING it. **THE ESTATE HAS ZERO OPAQUE ATTACHMENTS -- 745 files, one non-UTF-8, and it is `.DS_Store` which D29 excludes** -- so AT-03.1 is driven by a constructed fixture and prints the estate zero OUT LOUD as a zero, which vc ratified. **`239238df` landed the export typed errors, and it exists because the critic REFUSED A COMMIT THAT DID NOT CAUSE THE FINDINGS** -- dc's AC-03.6 inherited-breakage clause missing from a second gate. **And the detector reported my own doc comment explaining the fix.**"
 claims: [ST0056/10, ST0057/01]
@@ -19,7 +19,7 @@ claims: [ST0056/10, ST0057/01]
 
 ## NEXT -- mine
 
-**16:33Z. WP-03 IS THE LANE AND AC-03.1 IS DONE PENDING A LANDING THAT IS NOT MINE TO MAKE.**
+**16:38Z. AC-03.1 IS LANDED AT `46ab2220`** -- ic carried my whole half, named, pins not re-derived. My 52 tests are green at HEAD. **`239238df` landed the export typed errors and I SHIPPED IT BELIEVING THE WORKSPACE WAS GREEN WHEN IT WAS NOT**: `cargo check --all-targets` aborted on a peer's four `facade.rs` errors, so my own test targets were never compiled. _Not mine_ was true of everything I read and false of what was there. **A peer's breakage does not certify mine, it CONCEALS mine, and in the direction that looks like an all-clear** -- ic named that exact observable to me this morning and I had the warning in hand. matts found it by running the suite. Repair carried in `46ab2220`.
 
 **SHIPPED: `239238df`** -- the export format registry keeps its errors instead of stringifying them. `Emit`/`Read` return `serde_json::Error`; the two `map_err(|e| e.to_string())` calls are DELETED rather than moved, so the structured error survives to the boundary and the refusal text is byte-identical.
 
