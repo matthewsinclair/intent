@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 12:00Z
+heartbeat_at: 2026-08-19 12:13Z
 status: active
-focus: "**CORRECTED BY dc AT THE SUBJECT, AND THE SENTENCE I TRUSTED SHIPPED IN THE SAME COMMIT AS THE THING IT DEFENDED.** I told dc `int macos stage` would refuse a dirty checkout. **It records and carries on** -- I asserted a REFUSAL without opening `cmd_stage`. I got it from `source_commit.rs:102-104`, authored at `2870b99d`, **the commit that narrowed `DIRT_SCOPE`**, so the narrowing's safety argument and the false claim offered as its evidence landed together. **Standing work unchanged: AC-10.12 re-cut so AT-10.12 is unblocked, AT-03.17 measured GREEN (AC-03.16 should close at 51 of 131), and AC-10.13 reads satisfied while `migrate.rs:306` and `render.rs:1244` are untouched.**"
+focus: "**RE-AIMED. THE 3.0.0 GATE IS BIDI SYNC AND MY MORNING PLAN WAS NOT POINTED AT IT.** hv had to repeat a directive that appears on ZERO of five boards as a directive -- it is on vc's once, as the QUESTION hv asked -- and `hv/wip.md` has no `## Standing directives` section at all. **A directive with no write surface is a memory**, the inverse of dc's queue-with-no-reader finding. **Recorded as a standing ruling here, which is the only surface I actually read at pickup.** Doing now: AC-03.17's churn loop, which needs no ruling and is the TRUST half of vc's verdict -- make `views.rs` emit what the formatter would leave alone, as `kv()` already does. Blocked on hv: `sync` has no scope."
 claims: [ST0056/10, ST0057/01]
 ---
 
@@ -134,6 +134,9 @@ claims: [ST0056/10, ST0057/01]
 **NOTHING IS WRITTEN INTO THAT DIRECTORY UNTIL matts RULES.**
 
 ## Standing rulings
+
+- **THE 3.0.0 RELEASE GATE IS FULL DISK-TO-DB BIDI SYNC, WORKING AND USABLE. NOTHING ELSE CUTS IT** (hv, 2026-08-19, after saying it repeatedly to a board that had never once recorded it). **MEASURED ZERO: the phrase appears on exactly one of five boards, on vc's, as a QUESTION hv ASKED -- never as a directive -- and `hv/wip.md` has no `## Standing directives` section at all**, which the protocol provides for precisely this. **A DIRECTIVE WITH NO WRITE SURFACE IS A MEMORY, NOT A DIRECTIVE** -- the exact inverse of dc's `b645767a` finding that a write surface with no named reader is a queue. **AND MY OWN MORNING PLAN IS THE PROOF IT DOES NOT REACH ANYONE: I led with AT-10.12 and AC-10.13, which are `upgrade`, not sync, and nothing in the mechanism contradicted me.** Every node reads its own claims at pickup and the gate is in nobody's claims.
+- **WHAT THE GATE ACTUALLY NEEDS IS MEASURED AND IS vc'S -- DO NOT RE-DERIVE IT** (`vc/wip.md` `## ON RESUME`). The round trip WORKS and is PROVEN: 12 of 18 WP-03 rows green, including canon -> DB -> canon (AT-03.8), `sync` naming its direction (AT-03.10), and content-hash external-edit detection (AT-03.3). **Three things decide usability and TWO ARE NOT ROWS AT ALL: (1) `intent sync` HAS NO SCOPE -- whole-estate only, and it has already ingested two peers' uncommitted instruments into canon TWICE IN ONE DAY; (2) AC-03.17's CHURN LOOP IS LIVE, HEAD 12 lines divergent from canon right now, so `doctor` reports zero skew TRUTHFULLY and is wrong minutes later; (3) `--to-store` is NOT read-only on disk.** **ALL THREE LAND IN MY LANE** -- `views.rs` is the renderer remedy and the `sync` scope is CLI surface. **(1) NEEDS ONE RULING FROM hv (consolidated item 14, still unruled); (2) NEEDS NOTHING AND IS MINE TODAY.**
 
 - **EVERY ACCEPTANCE ID IS THREAD-QUALIFIED -- `ST00NN AC-XX.Y`, NEVER BARE.** Both threads carry an `AC-04.4`; four carry an unrelated `AT-03.6`. **An id resolving to a SATISFIED criterion is the worst ambiguity: it reads as DONE, which is the one failure mode that stops a reader looking further.**
 - **THE ISSUE TRACKER IS FOR EXTERNAL USERS AGAINST A RELEASED VERSION** (hv). Everything found building v3 is work.
