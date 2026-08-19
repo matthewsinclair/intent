@@ -344,3 +344,25 @@ I claimed Lamplight isolates its agents in persistent per-node worktrees and tha
 **THE PROCESS FAILURE IS THE PART WORTH KEEPING, because it is the third instance today and the first one I filed.** I gave matts link fan-out, then _"Elixir has no link step"_ -- and Lamplight's CLI is Rust -- then _"Lamplight uses worktrees"_ -- and it does not use them. **Each time I reasoned from a property I had not measured, in a thread whose entire subject is instruments that report what nobody checked.** matts handed me the control group and I still read a directory listing instead of `git rev-list --count`. **A directory that exists is not a directory anybody uses**, which is the same shape as a marker that names a commit, a proxy that is not the parser, and an instrument that lives in a scratchpad.
 
 -- dc
+
+## (2026-08-19 15:58Z)
+
+**AC-00.1's DEHYDRATION SHIP GATE IS BUILT, MUTATION-PROVEN AND LANDED (`edbd7640`). YOUR DECLARATION WAS BUILDABLE EXACTLY AS RULED.** The gate reads the delimited `<<PRECONDITIONS ... PRECONDITIONS>>` block out of ST0057's own AC-00.1 -- from CANON, never from `acceptance.md`, which `Project::classify` calls a `GeneratedView` and which `organize` itself regenerates. It resolves each id through `contract::resolve`, the same answer `ac list` and the close gate give, so it never becomes a second opinion on whether a criterion is met.
+
+**ONE THING IS ASKED, AND IT IS A SEQUENCING CALL RATHER THAN A DESIGN ONE.**
+
+**vc's standing caution was "wiring the `organize` handler is the moment the estate becomes destructible -- wire the gate first". THE GATE IS NOW WIRED, AND IT SHUTS THAT MOMENT BY CONSTRUCTION.** With AC-00.3, AC-00.4, all of WP-03, all of WP-06 and all of WP-07 unmet, a wired handler cannot dehydrate anything: every removal is refused, all nineteen declared ids are checked, and the refusal names each unmet one with the denominator printed.
+
+**So the technical objection to wiring is closed. I have not wired it, because a peer raised the flag, you sequence the work, and I am not going to make the estate destructible-in-principle on my own reading of my own gate.** The question is yours: wire `organize` now (safe, and it makes the verb drivable end to end, which is what AT-00.1's shell parity tool needs), or hold it until more of the seven land.
+
+**Two things you should know before answering.**
+
+**The gate refuses by default and that is structural, not remembered.** `Verdict`'s fields are private and `check()` is its only constructor, so there is no error channel a caller can fall open on and no way to hand-write permission -- including from a test. An absent thread, absent criterion, missing block, TWO blocks, empty block or a malformed token all refuse and each says which.
+
+**And an empty declaration REFUSES rather than opening**, because this gate is scaffolding with a defined end: when every precondition is green, the commit that ships dehydration is the one that DELETES the module. Emptying its input would be the quiet version of the same thing, and an empty block is far likelier to be a deletion nobody noticed.
+
+**ONE FINDING FOR THE ESTATE, MEASURED ON ME:** `cargo fmt --all` is a whole-workspace second writer. I wrote a test file at ~15:47Z and my own patch failed to find its anchor at ~15:49Z because a peer's `cargo fmt --all` had rustfmt-wrapped a line I wrote flat. I had run no formatter. It is the markdown-formatter defect in a second language, and worse -- `--all` reaches crates the author is not working in. Told to all three build nodes; `cargo fmt -p <crate>` is the fix.
+
+**AND ONE OF MINE THAT REVIEW MISSED AND A MUTATION CAUGHT.** Deleting the ship gate from `apply` left one of my own tests GREEN: it left the tree empty, so the per-file gate could not READ the files, every removal was refused for an unrelated reason, and "nothing was dehydrated" held no matter what the gate did. **An assertion that cannot fail reads exactly like one that holds.** Fixed by materialising the files from the plan's own render. Ten mutations, all killed, after that.
+
+-- dc
