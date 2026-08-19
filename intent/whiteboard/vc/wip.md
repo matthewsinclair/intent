@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 18:17Z
+heartbeat_at: 2026-08-19 18:23Z
 status: active
 focus: "**GATE 34 of 64. hv RULED: WIRE THE `organize` HANDLER NOW -- dc is going, five rows (AT-04.1..04.5), the largest single move on the board.** The deciding argument inverts the intuition dc and I both had: wiring NOW exercises the REFUSAL path in anger for the gate's whole remaining life; wiring LATE puts the first real run next to the permitting state. **dc's objection stands unrefuted -- the gate opens BY CONSTRUCTION at the last green -- and that argues for an arming step, not for delay.** **I WITHDREW MY OWN HEADLINE TODAY: `intent at green` is NOT safe over a hand-edited canon file. dc traced it deeper (`load_fresh` never reads the files; `ingest.rs:301` promises it does), ic closed a second door on the remedy I was recommending.** **Six of the nineteen declared preconditions are cc's WP-03 rows, so cc's next greens move the estate's arming state and cc has been told.**"
 claims: [ST0056, ST0057]
@@ -20,6 +20,25 @@ claims: [ST0056, ST0057]
 **hv's SECOND DIRECTIVE, AND IT CHANGED HOW vc WORKS: _stop worrying about what isn't there and only worry about what is GOING TO BE THERE ONCE THIS IS DONE._** Send nodes the END STATE and who makes it true, never the gap list.
 
 **WHAT WILL BE TRUE WHEN IT IS DONE:** `intent organize` runs and the tree holds only what `.intentfiles` names, as an EQUALITY of two independently derived sets with both counts printed; the eleven real files in a thread are edited directly and the two renderings refuse and name the verb; everything is addressable through `intent://` for read AND write, json and md, with **no daemon required to read your own project**; a pin keeps a closed thread realised; a fresh clone rebuilds and matches; a node syncs its own thread without touching anyone else's; and **a human can realise the whole estate as text and read it with no tool at all**.
+
+## THE ARMING LEDGER -- vc OWNS THIS NUMBER AND MEASURES IT FROM THE SHIPPED GATE
+
+**NOBODY INFERS THE TOTAL. dc named the gap: each node tracked its own preconditions correctly and THE SUBSETS DO NOT SUM TO NINETEEN.** vc watches the union; builders watch their own rows.
+
+**MEASURED, NOT INFERRED: `intent organize --apply` in a disposable clone, refusal read directly with no pipe.** That is the shipped gate answering about itself, which is the only source that cannot drift from the gate.
+
+**rev `5f7df553`, 2026-08-19 18:18Z: `19 checked of 19 declared, 8 unmet`, 744 files conserved.**
+
+    dc   4   AC-06.1 06.2 06.3 06.4   ST0057/06, claimed 18:20Z, in progress
+    cc   2   AC-03.6, AC-00.4         03.6 needs `--staged`; 00.4 was UNOWNED until 18:20Z
+    ic   1   AC-07.5                  ST0057/07, claimed
+    vc   1   AC-00.3                  TAKEN by vc 18:20Z -- evidence-backed, was UNOWNED
+
+**OWNING THE TOTAL IS WHAT SURFACED THE HOLE: AC-00.3 AND AC-00.4 WERE ON NO NODE'S CLAIMS.** WP-00 is ST-level and there is no WP 00, so both fell between every lane. **They would have been LAST precisely because nobody was on them.**
+
+**AC-00.3 IS `kind: non-test`, covered by AT-00.3 at `n-a`, and is satisfied by EVIDENCE rather than by a green test** -- _the conservation verdict is green at full scope over a pinned subject, and the finding names the revision it was measured at_. **A pinned-revision measurement is vc's desk, which is why vc took it rather than routing it.**
+
+**CORRECTION ON THE RECORD: vc told dc that WP-06's fourth row was the arming moment. IT IS NOT -- four others remain after it.** dc caught it before starting. **The arming moment has no owner and no predictable shape: it is four nodes finishing four unrelated things, and the last one is whoever finishes last.** That is exactly why nobody may infer it.
 
 ## DOING
 
