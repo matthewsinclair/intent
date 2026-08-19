@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 20:26Z
-status: paused
-focus: "**LOCALFOLDED FOR A COMPACT. SEVEN ROWS GREEN TODAY, ALL MUTATION-PROVEN; EVERYTHING OF MINE COMMITTED.** AT-03.14, AT-03.16, AT-03.13, AT-08.1, AT-02.4, AT-02.2 (rebuilt after hv replaced the design), AT-08.4's POST limb. **~32 mutation arms, 31 red; every survivor named and predicted, none counted as covered.** **NEXT: AC-05.2 -- the lifecycle verbs edit the list, and they WARN rather than refuse (vc corrected their own premise at `9b887765`).**"
+heartbeat_at: 2026-08-19 21:10Z
+status: active
+focus: "**AT-02.2 AND AT-07.5 GREEN, AND `organize` NOW PRUNES THE DIRECTORIES IT EMPTIED (`dd06342a`).** hv cleared the ship gate and the estate is DEHYDRATED -- 423 removed, 0 refused, block 18 -> 14, 0 unmet. **NEXT: `st hydrate`, claimed off dc, one render arm against my `<address>` spec.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,22 +13,21 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. Everything of mine is committed.** The only dirt in the tree is `intent/events.jsonl` (written by verbs, shared) and peers' files.
+**`st hydrate` -- CLAIMED OFF dc, who was redirected to the hosting gap.** One render arm; `Facade::hydrate` is built and pinned to `Mode::Apply`. **Ruled: the argument is `<address>`, and the CLI PROMOTES a bare artefact id to one** (`ST0057` -> `intent:///threads/ST0057`) because `address::parse` demands the scheme and nobody will type it. Safe because it DELEGATES -- `is_thread_id`/`is_issue_id` own the fact and `Sigil::accepts` already calls them. **A malformed argument is a USAGE error naming both forms, never "no such thread".**
 
 ## ON RESUME -- read this first
 
-1. **READ AC-05.2 AT HEAD BEFORE PLANNING IT.** It changed twice in the last hour. **The closing verbs do NOT delete files** -- vc traced their own premise and retracted it at `9b887765`: `organize.rs:695` is the ONLY line in the tool that removes an estate file. So `st done`/`st cancel` **WARN, naming the paths**, and are not a second authority over deletion. **A second gate would be worse than a divergent copy: it answers a different question than the realiser's gate** -- _are there unsynced bytes_ versus _can the store reproduce these bytes_ -- so the two would disagree BY CONSTRUCTION rather than by drift.
-2. **`.intentfiles` IS DURABLE STATE, NOT "AUTHORED".** Commands write it routinely -- `st new` adds, `st done` removes, `hydrate`/`dehydrate` do it directly. **What no longer happens is RECOMPUTATION.** vc corrected me on that word mid-build; do not regress to "nothing writes this file".
-3. **DO NOT REBUILD ANY OF TODAY'S WORK.** Seven rows are green and committed. The design changed under two of them and they were REBUILT, not patched.
-4. **OPEN AND MINE, unruled while hv is out:** the `st edit` fork (declared, unimplemented, and hv's generated-view ruling makes its DEFAULT argument a thing it must refuse). Flagged to vc; not ruled.
-5. **OPEN AND NOT MINE TO CLOSE:** the 6-of-43 gate-visibility ask in `hv/inbox.ic.md`. hv answered exactly the question in front of him and this was in the same inbox. **A ruling arriving as "resolved" is easy to read as clearing the queue it sat in.**
+1. **THE ESTATE IS DEHYDRATED AND THE GATE IS OPEN.** hv cleared it on one word; `organize --apply` removed 423, refused 0. `intent/st` holds ST0046, ST0056, ST0057 only. **AC-03.6, AC-06.3, AC-06.4 and AC-07.5 left the DECLARED BLOCK and are NOT WITHDRAWN** -- the block is about what GATES, not what is wanted. Every one is still owed.
+2. **THE ROUND TRIP IS PROVEN** (vc, `e7f00e65`): ST0001 back into the list, `organize --apply`, five files returned, all five byte-identical to git. The database regenerates the exact bytes.
+3. **DO NOT REBUILD TODAY'S WORK.** AT-02.2, AT-07.5 and the prune are landed and mutation-proven.
 
 ## TODO -- LIVE ONLY
 
-1. **AC-05.2: the lifecycle verbs edit the list.** `st new` adds; `st new --dehydrate` does not; `st done`/`st cancel` remove; `st reopen`/`st reinstate` add back; `st done --keep` closes without removing. **WARN on unsynced attachment bytes; `Facade::sync_uncommitted` (cc's, built today) answers exactly that question.**
-2. **`hydrate` DISPATCH ROW IS dc's AND THEY ASKED ME ONE QUESTION I HAVE NOT ANSWERED: `<address>` or `<id>` for the argument.** The address grammar is mine. **Answer it.**
-3. **AT-08.4's row moves green when vc verifies the POST limb** -- `Facade::post` is in at `0543f64b`, 8 tests, 5 arms all red.
-4. **`issues dehydrate` is in 0 buckets** -- the one workspace red at my last run. dc's row, ahead of its accounting.
+1. **`st hydrate` render arm.** Spec is in DOING and dc has accepted it whole.
+2. **`Report.pruned` IS NOT RENDERED.** `render.rs` is dc's and was in flight, so the prune is reported at the API and invisible at the CLI. **A destructive act nobody can see is the defect, not the gap.** Chase it.
+3. **AC-05.2: the lifecycle verbs edit the list.** They WARN on unsynced attachment bytes; `Facade::sync_uncommitted` answers exactly that. Build the warning, NOT a gate -- vc retracted the refuse clause at `9b887765`.
+4. **`intent init` IS NOW HOSTING WORK, NOT GATE WORK, AND IT HAS A DECISION INSIDE IT:** a project declaring NO preconditions cannot dehydrate at all -- `organize --apply` says _0 checked of 0 declared, so nothing is proved_. Fail-closed, absence is not permission. **So a freshly initialised project is born unable to dehydrate until someone declares one.** vc says look at this next.
+5. **`issues dehydrate` in 0 buckets** -- dc's, flagged, still the one crate red.
 
 ## Watch-outs
 
