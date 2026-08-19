@@ -1,0 +1,125 @@
+REV        | rc  OLD_examined   | rc  NEW_examined   | DELTA
+f2a2675f   | 0   1 of 278       | 0   1 of 278       | 0
+bc6cb09e   | 0   0 of 278       | 0   0 of 278       | 0
+942abca8   | 0   1 of 278       | 0   1 of 278       | 0
+48d48d20   | 0   2 of 278       | 0   1 of 278       | +1 OVERSTATED
+95cfcafa   | 0   0 of 278       | 0   0 of 278       | 0
+8d0e8736   | 0   1 of 278       | 0   1 of 278       | 0
+d2638e11   | 1   1 of 278       | 1   1 of 278       | 0
+336f956e   | 1   1 of 278       | 1   1 of 278       | 0
+4b3034ff   | 0   0 of 278       | 0   0 of 278       | 0
+ece4498c   | 0   0 of 278       | 0   0 of 278       | 0
+38723bad   | 0   85 of 278      | 0   85 of 278      | 0
+4002aa86   | 0   0 of 278       | 0   0 of 278       | 0
+5a0d0e00   | 0   87 of 278      | 0   86 of 278      | +1 OVERSTATED
+e3df4b5b   | 1   2 of 277       | 1   2 of 277       | 0
+dec6b1b9   | 1   1 of 277       | 1   1 of 277       | 0
+13120309   | 1   2 of 277       | 1   1 of 277       | +1 OVERSTATED
+b13afe10   | 0   0 of 277       | 0   0 of 277       | 0
+e1b632ca   | 0   2 of 277       | 0   1 of 277       | +1 OVERSTATED
+c48aec74   | 0   84 of 277      | 0   84 of 277      | 0
+f561145a   | 0   0 of 277       | 0   0 of 277       | 0
+3f10b1ee   | 1   1 of 277       | 1   1 of 277       | 0
+c9ecf0c3   | 0   0 of 277       | 0   0 of 277       | 0
+1f0e73cd   | 0   85 of 277      | 0   84 of 277      | +1 OVERSTATED
+87d6267b   | 0   0 of 276       | 0   0 of 276       | 0
+14890e4c   | 0   2 of 276       | 0   1 of 276       | +1 OVERSTATED
+3c3c29a4   | 0   0 of 276       | 0   0 of 276       | 0
+bf6654fb   | 0   1 of 276       | 0   0 of 276       | +1 OVERSTATED
+83938013   | 0   86 of 276      | 0   84 of 276      | +2 OVERSTATED
+9fa056ec   | 0   0 of 276       | 0   0 of 276       | 0
+4b1c6e14   | 0   0 of 276       | 0   0 of 276       | 0
+7d4b9ce3   | 0   0 of 276       | 0   0 of 276       | 0
+00245815   | 0   0 of 276       | 0   0 of 276       | 0
+65f41600   | 0   0 of 276       | 0   0 of 276       | 0
+31d2412f   | 0   0 of 276       | 0   0 of 276       | 0
+b15c0ddd   | 0   2 of 276       | 0   1 of 276       | +1 OVERSTATED
+98471129   | 0   86 of 276      | 0   84 of 276      | +2 OVERSTATED
+7e3210c4   | 0   0 of 276       | 0   0 of 276       | 0
+9a102880   | 0   0 of 276       | 0   0 of 276       | 0
+d8412be6   | 0   0 of 276       | 0   0 of 276       | 0
+6eb36007   | 0   86 of 276      | 0   84 of 276      | +2 OVERSTATED
+addd4581   | 0   1 of 276       | 0   1 of 276       | 0
+c4f9bcbe   | 1   86 of 276      | 1   84 of 276      | +2 OVERSTATED
+b4ef9a0d   | 0   0 of 276       | 0   0 of 276       | 0
+aff18ce1   | 0   0 of 276       | 0   0 of 276       | 0
+af7f86d7   | 0   0 of 276       | 0   0 of 276       | 0
+d6f3cbdc   | 0   0 of 276       | 0   0 of 276       | 0
+aa65eb66   | 0   0 of 276       | 0   0 of 276       | 0
+efee7753   | 0   86 of 276      | 0   84 of 276      | +2 OVERSTATED
+a59f685e   | 0   1 of 276       | 0   1 of 276       | 0
+088035ae   | 0   0 of 276       | 0   0 of 276       | 0
+3226064f   | 0   0 of 276       | 0   0 of 276       | 0
+6accab7e   | 0   0 of 276       | 0   0 of 276       | 0
+c25f2d96   | 0   0 of 276       | 0   0 of 276       | 0
+0fe1e767   | 0   0 of 276       | 0   0 of 276       | 0
+c83f624c   | 0   0 of 276       | 0   0 of 276       | 0
+8fed6cfb   | 0   0 of 276       | 0   0 of 276       | 0
+31f2dce4   | 1   1 of 276       | 1   1 of 276       | 0
+be6671a6   | 0   0 of 276       | 0   0 of 276       | 0
+1ee5fce9   | 0   0 of 276       | 0   0 of 276       | 0
+e6960efe   | 0   0 of 276       | 0   0 of 276       | 0
+0a479ea8   | 0   0 of 276       | 0   0 of 276       | 0
+66b4b6f7   | 0   0 of 276       | 0   0 of 276       | 0
+881e6cae   | 0   0 of 276       | 0   0 of 276       | 0
+81906fb1   | 0   0 of 276       | 0   0 of 276       | 0
+948b2a6e   | 0   0 of 276       | 0   0 of 276       | 0
+8eada6a9   | 0   90 of 276      | 0   90 of 276      | 0
+26133919   | 0   0 of 276       | 0   0 of 276       | 0
+7ee3019b   | 1   85 of 276      | 1   83 of 276      | +2 OVERSTATED
+1a642249   | 0   0 of 275       | 0   0 of 275       | 0
+945aec68   | 0   0 of 275       | 0   0 of 275       | 0
+aa220755   | 1   1 of 275       | 1   1 of 275       | 0
+92a51134   | 0   1 of 275       | 0   0 of 275       | +1 OVERSTATED
+4ef953db   | 0   2 of 275       | 0   2 of 275       | 0
+fd2e4067   | 0   8 of 275       | 0   0 of 275       | +8 OVERSTATED
+f0a25d8c   | 0   0 of 275       | 0   0 of 275       | 0
+69033e4e   | 0   3 of 275       | 0   1 of 275       | +2 OVERSTATED
+9a487cc9   | 0   0 of 275       | 0   0 of 275       | 0
+d980e5b5   | 1   275 of 275     | 1   275 of 275     | 0
+86b74b6c   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+ce532a97   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+e74a52d6   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+459b2b12   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+8a94ecea   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+dac5d1bb   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+00288bc9   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+28ba8f19   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+93b3bd57   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+1712d364   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+5a928752   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+2cbf9479   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+a04e35b9   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+ce0ac764   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+ab68683a   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+ee4eb231   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+c332242b   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+e7c11f14   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+3d6fc401   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+442ef27d   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+04e6b13a   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+53bc2c10   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+c5b274aa   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+f90dcb83   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+8ecdb2c5   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+387cab7d   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+d84ac27f   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+eb7ad45a   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+bb0baf85   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+394304f5   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+0870831f   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+19722da9   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+a4038873   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+5aab3a64   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+cf5e02fd   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+9fa91032   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+2df3549c   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+d73efed9   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+07226bf6   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+36bc02c5   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+027bbc2c   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+86af7c5f   | 2   NO-VERDICT     | 2   NO-VERDICT     | NO-VERDICT
+
+DRIVEN 120 revision(s): 17 overstated + 61 agreed + 42 no-verdict + 0 unreadable = 120  CLOSES.
+SCORED 78 of 120 -- the denominator is revisions DRIVEN, not revisions requested.
+REACH -- nested layout only. The negative remainder on record (EXAMINED 2 of 1 ... the other -1) needs the FLAT layout and is OUT OF REACH here.

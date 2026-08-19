@@ -1,0 +1,30 @@
+of_n_closes_over_examined -- AT-00.11. Does an emitted `N of M` close over what was EXAMINED?
+
+SUBJECTS -- 1 instrument(s), read from of_n_population.sh's OUTPUT, in its gatedness order.  FILTERED by --only canon_commit_check.sh.
+  canon_commit_check.sh
+
+INSTRUMENTS -- one version, taken from /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b8c3fcaf-8c58-4d9c-83b6-b019cbef8192/scratchpad/wt-head, driven against BOTH trees. Only the tree's shape varies.
+TREES -- nested /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b8c3fcaf-8c58-4d9c-83b6-b019cbef8192/scratchpad/wt-new (57 thread.json) against flat /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b8c3fcaf-8c58-4d9c-83b6-b019cbef8192/scratchpad/wt-head (57 canon file(s)).
+
+FINDINGS -- 0 instrument(s), 0 emission(s)
+  (none)
+
+EXCEPTIONS -- enumerated rather than the successes, because a reader cannot discover an omission by not finding it.
+  canon_commit_check.sh -- DIVERGED (a NOMINATION, not a finding): nested [0 of 279 ] against flat [87 of 280 ]. Whether M followed the examined population needs a read; this arm cannot decide it.
+
+DRIVEN 1 of 1 instrument(s): 0 finding + 1 diverged + 0 stable + 0 unmeasured = 1  CLOSES.
+SCORED 1 of 1 -- the denominator is the population, and 0 were NOT examined.
+
+REACH -- what this cannot see, so that no pass is read as coverage:
+  1. ARM C NOMINATES AND DOES NOT ADJUDICATE. A ratio may move between layouts for
+     correct reasons. Divergence is where to look, never a verdict.
+  2. ONLY LITERAL `N of M` IS READ. A verdict assembled across two statements, or
+     built from variables named nothing like `of`, is invisible here. Derivation is
+     of_n_labels_its_derivation.sh's question; this tool drives, it does not parse.
+  3. AN INSTRUMENT WHOSE M CANNOT MOVE UNDER THE RELOCATION IS OUT OF THIS POPULATION
+     BY CONSTRUCTION. Driving it through a two-tree differential is a vacuous pass.
+  4. THE RECORDED `EXAMINED 2 of 1 ... the other -1` IS UNREACHABLE AT ANY COMMITTED
+     REVISION: the defective tool refuses against a fully flat tree, so that figure
+     needs a HALF-MIGRATED tree and none exists in history.
+  5. FILE-SELECTION CORRECTNESS IS NOT DENOMINATOR CORRECTNESS. An instrument that
+     survives this differential on which files it selects can still print a wrong M.

@@ -1,0 +1,272 @@
+#!/bin/bash
+# of_n_closes_over_examined.sh -- AT-00.11, covering AC-00.11.
+#
+# MODE 1 OF THE CRITERION. An instrument printing `N of M` must derive M from the
+# population it EXAMINED, never from the FILTER that selected it. This drives the
+# population across a NESTED tree and a FLAT tree -- the two layouts ST0057 WP-01
+# separates -- because a filter-derived M only becomes legible when the population
+# changes SHAPE. While the nested layout held, canon_commit_check.sh printed
+# `EXAMINED 86 of 278` and CLOSED ARITHMETICALLY; the flat layout pushed the same
+# count PAST the total and printed `EXAMINED 2 of 1 ... the other -1`.
+#
+# THIS IS THE DRIVER, NOT THE PARSER. of_n_labels_its_derivation.sh (AT-00.12) reads
+# the SOURCE and asks whether each operand is derived, recorded or laundered. This
+# reads the OUTPUT of a RUNNING instrument in two trees. Different populations,
+# different questions, deliberately not one row: bundled, a green over one would
+# stand for the other's denominator, which is AC-00.11's own defect committed by the
+# instrument enforcing AC-00.11.
+#
+# WHY THE POPULATION IS NOT A LIST IN THIS FILE. It is read from the OUTPUT of
+# of_n_population.sh (dc). A list here would be a second copy on its own decay
+# schedule, and the estate has already paid for one: `10 of 41` sits in a criterion
+# whose nominating probe was never committed, so nothing can reproduce it.
+#
+# WHAT AN `N of M` MOVING BETWEEN TREES DOES AND DOES NOT PROVE -- stated because a
+# nomination read as an adjudication is how a remedy gets sized to a probe:
+#   ARM A  IMPOSSIBLE          N > M. A finding. No population makes this true.
+#   ARM B  NON-CLOSING         a stated remainder that is not M - N. A finding.
+#   ARM C  DIVERGED            the ratio moved between trees. A NOMINATION. A ratio
+#                              may move for good reasons; this arm cannot tell.
+#   ARM D  STABLE              identical in both trees.
+# Arms A and B are mechanical and decidable. Arm C is not, and says so.
+#
+# CANNOT-MEASURE IS DISTINCT FROM A FINDING, at every level. A tool that refuses,
+# crashes, times out or emits no ratio is UNMEASURED, never PASSED. The counts below
+# close over what was EXAMINED and the exceptions are enumerated, not the successes.
+set -u
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
+POP_TOOL="${POP_TOOL:-$HERE/of_n_population.sh}"
+NESTED_REV="${NESTED_REV:-8bb47e49}"   # pre-relocation: 57 thread.json, 0 .canon
+FLAT_REV="${FLAT_REV:-16048f82}"       # post-relocation: 0 thread.json, 97 .canon
+PER_TOOL_TIMEOUT="${PER_TOOL_TIMEOUT:-120}"
+NESTED_DIR="" FLAT_DIR="" TOOLS_FROM="" KEEP=0
+
+die() { echo "error: $*" >&2; exit 2; }
+
+usage() {
+  cat <<USAGE
+usage: of_n_closes_over_examined.sh [--nested DIR] [--flat DIR] [--keep] [--only NAME]
+  --nested DIR  an existing checkout in the NESTED layout (default: worktree at $NESTED_REV)
+  --flat DIR    an existing checkout in the FLAT layout   (default: worktree at $FLAT_REV)
+  --tools-from DIR  the checkout the INSTRUMENTS THEMSELVES are taken from. Defaults to
+                the flat tree. One version drives both trees, so the only thing varying
+                is the tree's SHAPE.
+  --only NAME   drive a single instrument by filename. THE FILTER IS REPORTED BESIDE
+                THE SCORE, because a denominator that silently becomes the numerator
+                is this contract's own defect.
+USAGE
+}
+
+ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --nested) NESTED_DIR="${2:-}"; shift 2 ;;
+    --flat)   FLAT_DIR="${2:-}"; shift 2 ;;
+    --tools-from) TOOLS_FROM="${2:-}"; shift 2 ;;
+    --only)   ONLY="${2:-}"; shift 2 ;;
+    --keep)   KEEP=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[ -x "$POP_TOOL" ] || [ -f "$POP_TOOL" ] || die "CANNOT MEASURE -- the population source is absent: $POP_TOOL. This tool does not carry its own list on purpose."
+
+# ---------------------------------------------------------------- the two trees
+WORK="$(mktemp -d)" || die "could not create a working directory"
+cleanup() {
+  [ "$KEEP" -eq 1 ] && { echo "kept: $WORK" >&2; return; }
+  [ -n "${MADE_NESTED:-}" ] && git -C "$ROOT" worktree remove --force "$MADE_NESTED" 2>/dev/null
+  [ -n "${MADE_FLAT:-}" ] && git -C "$ROOT" worktree remove --force "$MADE_FLAT" 2>/dev/null
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
+
+if [ -z "$NESTED_DIR" ]; then
+  MADE_NESTED="$WORK/nested"
+  git -C "$ROOT" worktree add --detach "$MADE_NESTED" "$NESTED_REV" >/dev/null 2>&1 ||
+    die "CANNOT MEASURE -- could not check out the nested revision $NESTED_REV"
+  NESTED_DIR="$MADE_NESTED"
+fi
+if [ -z "$FLAT_DIR" ]; then
+  MADE_FLAT="$WORK/flat"
+  git -C "$ROOT" worktree add --detach "$MADE_FLAT" "$FLAT_REV" >/dev/null 2>&1 ||
+    die "CANNOT MEASURE -- could not check out the flat revision $FLAT_REV"
+  FLAT_DIR="$MADE_FLAT"
+fi
+
+# THE IDENTITY OF WHAT IS COMPARED IS ESTABLISHED, NOT INHERITED. A pair of trees
+# that are both nested, or both flat, yields a byte-identical differential and a
+# clean sweep that means nothing -- the vacuous pass this row exists to prevent.
+n_nested_here="$(find "$NESTED_DIR/intent/st" -name thread.json 2>/dev/null | grep -c . || true)"
+n_flat_here="$(ls "$FLAT_DIR/intent/.canon/st/" 2>/dev/null | grep -c '\.json$' || true)"
+[ "${n_nested_here:-0}" -gt 0 ] || die "CANNOT MEASURE -- the tree given as NESTED carries no intent/st/<ID>/thread.json ($NESTED_DIR)"
+[ "${n_flat_here:-0}" -gt 0 ] || die "CANNOT MEASURE -- the tree given as FLAT carries no intent/.canon/st/*.json ($FLAT_DIR)"
+
+# A tree supplied by path is named BY ITS PATH. Printing the default revision
+# literal there would name a subject the run was not measured from.
+TOOLS_FROM="${TOOLS_FROM:-$FLAT_DIR}"
+[ -d "$TOOLS_FROM/intent/st/ST0056/parity/tools" ] || die "CANNOT MEASURE -- no parity tools under the checkout given as --tools-from: $TOOLS_FROM"
+TOOLS_LABEL="${TOOLS_FROM}"
+[ "$TOOLS_FROM" = "${MADE_FLAT:-}" ] && TOOLS_LABEL="$FLAT_REV"
+[ "$TOOLS_FROM" = "${MADE_NESTED:-}" ] && TOOLS_LABEL="$NESTED_REV"
+NESTED_LABEL="${MADE_NESTED:+$NESTED_REV}"; NESTED_LABEL="${NESTED_LABEL:-$NESTED_DIR}"
+FLAT_LABEL="${MADE_FLAT:+$FLAT_REV}"; FLAT_LABEL="${FLAT_LABEL:-$FLAT_DIR}"
+
+# ---------------------------------------------------------------- the population
+"$POP_TOOL" > "$WORK/pop.txt" 2>"$WORK/pop.err" || die "CANNOT MEASURE -- the population source refused (rc from $POP_TOOL). Its stderr: $(head -3 "$WORK/pop.err" | tr '\n' ' ')"
+awk '/^AT-00\.11 POPULATION/{f=1;next} /^AT-00\.12 POPULATION/{f=0} f && /^ +[A-Za-z0-9_.-]+\.sh$/{gsub(/ /,"");print}' "$WORK/pop.txt" > "$WORK/subjects.txt"
+if [ -n "$ONLY" ]; then grep -Fx "$ONLY" "$WORK/subjects.txt" > "$WORK/s.i" && mv "$WORK/s.i" "$WORK/subjects.txt" || die "CANNOT MEASURE -- --only $ONLY is not in the AT-00.11 population"; fi
+POP="$(grep -c . "$WORK/subjects.txt" || true)"
+[ "${POP:-0}" -gt 0 ] || die "CANNOT MEASURE -- the AT-00.11 population is EMPTY. A zero population must never report that all instruments match."
+
+# NAMES EVERY SUBJECT FIRST, so the reader knows what was in scope before any verdict.
+echo "of_n_closes_over_examined -- AT-00.11. Does an emitted \`N of M\` close over what was EXAMINED?"
+echo
+echo "SUBJECTS -- $POP instrument(s), read from $(basename "$POP_TOOL")'s OUTPUT, in its gatedness order.${ONLY:+  FILTERED by --only $ONLY.}"
+sed 's/^/  /' "$WORK/subjects.txt"
+echo
+echo "INSTRUMENTS -- one version, taken from ${TOOLS_LABEL}, driven against BOTH trees. Only the tree's shape varies."
+echo "TREES -- nested ${NESTED_LABEL} ($n_nested_here thread.json) against flat ${FLAT_LABEL} ($n_flat_here canon file(s))."
+echo
+
+# ---------------------------------------------------------------- driving
+# Portable bounded run: no `timeout(1)` on a stock macOS. A tool that outruns the
+# bound is UNMEASURED, never passed.
+run_bounded() {  # $1=dir $2=tool-path $3=outfile
+  ( cd "$1" && ROOT="$1" bash "$2" ) > "$3.out" 2> "$3.err" &
+  local pid=$! waited=0
+  while kill -0 "$pid" 2>/dev/null && [ "$waited" -lt "$PER_TOOL_TIMEOUT" ]; do
+    sleep 1; waited=$((waited + 1))
+  done
+  if kill -0 "$pid" 2>/dev/null; then kill -9 "$pid" 2>/dev/null; wait "$pid" 2>/dev/null; return 124; fi
+  wait "$pid"; return $?
+}
+
+# Reads every literal `N of M` an instrument emitted, with the words around it so a
+# non-closing remainder can be checked. grep -a: an instrument may emit blob bytes,
+# and grep then declines to print any match at all -- a third way to manufacture a
+# clean-looking zero.
+ratios_of() { cat "$1.out" "$1.err" 2>/dev/null | grep -a -oE '[0-9]+ of [0-9]+' | sort -u; }
+remainders_of() { cat "$1.out" "$1.err" 2>/dev/null | grep -a -oE 'The other -?[0-9]+' | grep -a -oE '\-?[0-9]+' | sort -u; }
+
+n_impossible=0 n_nonclosing=0 n_diverged=0 n_stable=0 n_unmeasured=0 n_driven=0 n_flagged=0
+: > "$WORK/findings.txt"; : > "$WORK/exceptions.txt"
+
+while read -r tool; do
+  [ -n "$tool" ] || continue
+  n_driven=$((n_driven + 1))
+  # ONE TOOL VERSION, TWO TREES. Taking the script from each tree would vary the
+  # INSTRUMENT and the SHAPE together, so a divergence could not be attributed to
+  # either -- a confounded differential wearing a controlled one's name. This is the
+  # bar this row holds others to (establish the identity of what you compare, never
+  # inherit it) and the first build of it broke the bar.
+  tn="$TOOLS_FROM/intent/st/ST0056/parity/tools/$tool"
+  tf="$tn"
+  if [ ! -f "$tn" ] || [ ! -f "$tf" ]; then
+    n_unmeasured=$((n_unmeasured + 1))
+    echo "  $tool -- UNMEASURED: absent from one of the two trees, so there is nothing to compare." >> "$WORK/exceptions.txt"
+    continue
+  fi
+  run_bounded "$NESTED_DIR" "$tn" "$WORK/$tool.n"; rcn=$?  # same script
+  run_bounded "$FLAT_DIR"   "$tf" "$WORK/$tool.f"; rcf=$?
+  rn="$(ratios_of "$WORK/$tool.n")"; rf="$(ratios_of "$WORK/$tool.f")"
+
+  if [ "$rcn" -eq 124 ] || [ "$rcf" -eq 124 ]; then
+    n_unmeasured=$((n_unmeasured + 1))
+    echo "  $tool -- UNMEASURED: outran the ${PER_TOOL_TIMEOUT}s bound (nested rc=$rcn, flat rc=$rcf)." >> "$WORK/exceptions.txt"
+    continue
+  fi
+  if [ -z "$rn" ] && [ -z "$rf" ]; then
+    n_unmeasured=$((n_unmeasured + 1))
+    echo "  $tool -- UNMEASURED: emitted no \`N of M\` in either tree (nested rc=$rcn, flat rc=$rcf). Its ratio may be assembled across statements, which this driver cannot read." >> "$WORK/exceptions.txt"
+    continue
+  fi
+
+  hit=0
+  for side in n f; do
+    [ "$side" = n ] && lbl="nested" || lbl="flat"
+    while read -r r; do
+      [ -n "$r" ] || continue
+      a="${r%% of *}"; b="${r##* of }"
+      if [ "$a" -gt "$b" ]; then
+        n_impossible=$((n_impossible + 1)); hit=1
+        echo "  $tool [$lbl] IMPOSSIBLE -- emitted \`$r\`. No population makes a subset larger than its whole; M did not come from what was examined." >> "$WORK/findings.txt"
+      fi
+    done <<< "$(ratios_of "$WORK/$tool.$side")"
+    while read -r k; do
+      [ -n "$k" ] || continue
+      if [ "$k" -lt 0 ]; then
+        n_nonclosing=$((n_nonclosing + 1)); hit=1
+        echo "  $tool [$lbl] NON-CLOSING -- stated a remainder of $k. A remainder that cannot exist is a partition that did not close." >> "$WORK/findings.txt"
+      fi
+    done <<< "$(remainders_of "$WORK/$tool.$side")"
+  done
+  [ "$hit" -eq 1 ] && { n_flagged=$((n_flagged + 1)); continue; }
+
+  if [ "$rn" = "$rf" ]; then n_stable=$((n_stable + 1))
+  else
+    n_diverged=$((n_diverged + 1))
+    echo "  $tool -- DIVERGED (a NOMINATION, not a finding): nested [$(echo "$rn" | tr '\n' ' ')] against flat [$(echo "$rf" | tr '\n' ' ')]. Whether M followed the examined population needs a read; this arm cannot decide it." >> "$WORK/exceptions.txt"
+  fi
+done < "$WORK/subjects.txt"
+
+# ---------------------------------------------------------------- the verdict
+n_findings=$((n_impossible + n_nonclosing))
+# TWO DIFFERENT COUNTERS, PRINTED AS TWO. n_flagged is INSTRUMENTS and is the
+# partition operand; n_findings is EMISSIONS and is detail. One instrument can
+# emit several. Summing the second into a partition over the first is exactly
+# the defect this row names.
+echo "FINDINGS -- $n_flagged instrument(s), $n_findings emission(s)"
+[ "$n_flagged" -eq 0 ] && echo "  (none)" || cat "$WORK/findings.txt"
+echo
+echo "EXCEPTIONS -- enumerated rather than the successes, because a reader cannot discover an omission by not finding it."
+[ -s "$WORK/exceptions.txt" ] && cat "$WORK/exceptions.txt" || echo "  (none)"
+echo
+# THE COUNT CLOSES OVER WHAT WAS EXAMINED AND THE CLOSURE IS ASSERTED IN THE OUTPUT,
+# never left available to a reader who adds up. A remainder that happens to come out
+# positive is as silent as one that comes out zero; the `-1` on record was loud only
+# because subtraction produced an impossible value, and that was luck, not design.
+sum=$((n_flagged + n_diverged + n_stable + n_unmeasured))
+printf 'DRIVEN %d of %d instrument(s): %d finding + %d diverged + %d stable + %d unmeasured = %d' \
+  "$n_driven" "$POP" "$n_flagged" "$n_diverged" "$n_stable" "$n_unmeasured" "$sum"
+if [ "$sum" -eq "$n_driven" ] && [ "$n_driven" -eq "$POP" ]; then echo "  CLOSES."; else echo "  ** DOES NOT CLOSE -- this verdict is not safe to bank. **"; exit 2; fi
+scored=$((n_flagged + n_diverged + n_stable))
+echo "SCORED $scored of $POP -- the denominator is the population, and $n_unmeasured were NOT examined."
+if [ "$scored" -eq 0 ]; then
+  echo
+  echo "REFUSING -- $POP instrument(s) in scope and NONE were measurable. A sweep that examined nothing must never report that nothing is wrong."
+  exit 2
+fi
+cat <<'REACH'
+
+REACH -- what this cannot see, so that no pass is read as coverage:
+  1. ARM C NOMINATES AND DOES NOT ADJUDICATE. A ratio may move between layouts for
+     correct reasons. Divergence is where to look, never a verdict.
+  2. ONLY LITERAL `N of M` IS READ. A verdict assembled across two statements, or
+     built from variables named nothing like `of`, is invisible here. Derivation is
+     of_n_labels_its_derivation.sh's question; this tool drives, it does not parse.
+  3. AN INSTRUMENT WHOSE M CANNOT MOVE UNDER THE RELOCATION IS OUT OF THIS POPULATION
+     BY CONSTRUCTION. Driving it through a two-tree differential is a vacuous pass.
+  4. THE RECORDED `EXAMINED 2 of 1 ... the other -1` IS UNREACHABLE AT ANY COMMITTED
+     REVISION: the defective tool refuses against a fully flat tree, so that figure
+     needs a HALF-MIGRATED tree and none exists in history.
+  5. FILE-SELECTION CORRECTNESS IS NOT DENOMINATOR CORRECTNESS. An instrument that
+     survives this differential on which files it selects can still print a wrong M.
+  6. THE TWO TREES ARE NECESSARILY DIFFERENT REVISIONS, AND THAT CONFOUND CANNOT BE
+     REMOVED. A nested tree and a flat tree are two points in history; no revision
+     exists in both shapes, because the only tree that ever held both was half-migrated
+     and none was committed. So an instrument keyed on HEAD examines a DIFFERENT COMMIT
+     on each side, and ARM C's divergence then has an innocent explanation BY
+     CONSTRUCTION -- the revision moved, not the denominator. Measured on the first real
+     subject: canon_commit_check.sh reports `0 of 279` nested and `87 of 280` flat, and
+     that is fully explained by the two HEADs without any defect at all.
+     THIS IS A PROPERTY OF THE METHOD, NOT A GAP IN THIS BUILD, and it is why ARM C
+     NOMINATES. Only arms A and B are safe alone: an impossible ratio and a negative
+     remainder are wrong at ANY revision. A DIVERGENCE IS NOT EVIDENCE OF A DEFECT AND
+     A NON-DIVERGENCE IS NOT EVIDENCE OF ITS ABSENCE.
+REACH
+[ "$n_flagged" -gt 0 ] && exit 1
+exit 0
