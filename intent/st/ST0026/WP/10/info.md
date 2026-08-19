@@ -60,7 +60,7 @@ intent st zero --check                 # Verify ST0000 compliance
 
 ## Acceptance
 
-Acceptance Criteria for this work package live in `ST0026/acceptance.md`, under the `WP-10` heading -- the single source of truth. This cover never restates them.
+Acceptance Criteria for this work package are RENDERED into `ST0026/acceptance.md`, under the `WP-10` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0026.json`, then `intent sync --to-store`. This cover never restates them.
 
 ---
 

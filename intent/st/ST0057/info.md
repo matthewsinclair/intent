@@ -39,7 +39,7 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 
 ## Acceptance
 
-Acceptance Criteria and Acceptance Tests live in `acceptance.md` -- the single source of truth. This cover never restates them.
+Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0057.json`, then `intent sync --to-store`. This cover never restates them.
 
 ---
 

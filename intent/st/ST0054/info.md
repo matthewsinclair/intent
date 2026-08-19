@@ -41,7 +41,7 @@ Both tools are current (Intent 2.16.0, usage_rules 1.2.6); the gap is Intent's _
 
 ## Acceptance
 
-Acceptance Criteria and Acceptance Tests live in `acceptance.md` -- the single source of truth. This cover never restates them.
+Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0054.json`, then `intent sync --to-store`. This cover never restates them.
 
 ---
 

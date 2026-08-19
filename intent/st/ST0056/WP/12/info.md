@@ -25,7 +25,7 @@ Cut v3.0.0: shell pruned fail-forward, docs converged, release docs written befo
 
 ## Acceptance
 
-Acceptance Criteria for this work package live in `ST0056/acceptance.md`, under the `WP-12` heading -- the single source of truth. This cover never restates them.
+Acceptance Criteria for this work package are RENDERED into `ST0056/acceptance.md`, under the `WP-12` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0056.json`, then `intent sync --to-store`. This cover never restates them.
 
 ---
 
