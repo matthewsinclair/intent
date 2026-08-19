@@ -1,6 +1,15 @@
 //! AT-02.2 / AC-02.2: **`organize` makes disk match the list, in both
 //! directions, and regenerates nothing.**
 //!
+//! AT-02.3 / AC-02.3: **the list wins over status, both directions** -- a
+//! `completed` or `cancelled` artefact that IS listed stays through `organize`,
+//! and a `wip` artefact that is NOT listed is removed by it. Proven here by
+//! [`the_list_wins_over_status_in_both_directions`], and on the live estate at
+//! `e7f00e65` across four statuses: 52 completed and 2 cancelled removed while
+//! unlisted, 1 not-started and 2 wip kept while listed, plus ST0010
+//! (`cancelled`) listed -> hydrated -> kept -> unlisted -> removed. **Status has
+//! no vote at `organize` time at all.**
+//!
 //! hv, 2026-08-19, replacing the two-region design: *why isn't the organise
 //! operation simply: a) look at `.intentfiles`, b) hydrate the items in the
 //! file, c) dehydrate any previously hydrated items that are no longer in the
