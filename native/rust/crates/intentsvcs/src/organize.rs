@@ -214,9 +214,7 @@ pub enum OrganizeError {
   /// and re-run -- and a count with no denominator cannot be told from a gate
   /// that checked nothing.
   #[error(
-    "refusing to dehydrate: this run would remove {removals} file(s), and the estate has not proved it can put them back -- {verdict}. The declaration is {thread}'s {criterion}; `intent ac list {thread}` shows the state of each, and this gate records no answer of its own.",
-    thread = preconditions::DECLARING_THREAD,
-    criterion = preconditions::DECLARING_CRITERION,
+    "refusing to dehydrate: this run would remove {removals} file(s), and this estate has not proved it can put them back -- {verdict}. Each precondition is an acceptance criterion of this project; `intent ac list` shows the state of every one, and this gate records no answer of its own."
   )]
   PreconditionsUnmet { removals: usize, verdict: Verdict },
 
@@ -272,11 +270,7 @@ impl crate::remedy::Remedy for OrganizeError {
       // this estate. This one names work that has to land first, and inventing
       // an override would hand out exactly the bypass the gate exists to
       // refuse.
-      Self::PreconditionsUnmet { .. } => format!(
-        "nothing here is yours to change: dehydration is gated until {}'s declared preconditions are met. `intent ac list {}` shows the state of each. Hydration and verification in the same run were not affected.",
-        preconditions::DECLARING_THREAD,
-        preconditions::DECLARING_THREAD
-      ),
+      Self::PreconditionsUnmet { .. } => "dehydration stays gated until this project's declared preconditions are met, and the refusal above names every one that is not. `intent ac list` shows the state of each. Nothing here needs undoing: hydration and verification in the same run were unaffected, and no file was removed.".to_string(),
       Self::Scan { .. } => "the tree could not be walked, so nothing was planned and nothing was touched. The cause above names the path -- check it is readable and re-run.".to_string(),
       Self::Io { path, .. } => format!(
         "check that {} exists and is readable. This is a file `organize` had already decided about, so the tree moved or a permission changed between the plan and the act.",

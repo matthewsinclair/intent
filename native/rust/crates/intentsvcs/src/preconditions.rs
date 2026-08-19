@@ -49,11 +49,28 @@ use std::fmt;
 use crate::contract::{self, Resolved};
 use crate::ingest::Canon;
 
-/// Where the declaration lives. An ADDRESS, not a copy of the list.
-pub const DECLARING_THREAD: &str = "ST0057";
-/// The criterion whose text carries the declaration.
-pub const DECLARING_CRITERION: &str = "AC-00.1";
-
+/// **THE DELIMITER IS THE ADDRESS. There is no thread id and no criterion id in
+/// this file, and their absence is the design rather than an omission.**
+///
+/// The first version hard-coded the declaring thread and criterion as
+/// constants, and `no_shipped_string_literal_carries_pm_state` refused it. That
+/// guard is a string-literal scan standing in for a semantic rule, and here the
+/// proxy caught the real defect: **this gate ships inside a binary other
+/// projects run, and Intent's own thread ids mean nothing in a consumer's
+/// estate.** A consumer hitting the refusal would have been told to go and read
+/// a thread that does not exist for them.
+///
+/// So the declaration SELF-IDENTIFIES: exactly one criterion in the estate
+/// carries the delimited block, and this finds it by the delimiter. The
+/// delimiter is a machine-shaped token rather than project-management state, so
+/// it is the same in every estate that has one and absent from every estate that
+/// does not.
+///
+/// **THE ADDRESS THAT CANNOT GO STALE IS THE ONE THAT DOES NOT EXIST.** The
+/// previous version's virtue was that a wrong address finds nothing and finding
+/// nothing refuses. This is strictly better: there is no address to be wrong,
+/// and the thing that identifies the declaration is the thing that makes it
+/// machine-readable in the first place.
 const OPEN: &str = "<<PRECONDITIONS";
 const CLOSE: &str = "PRECONDITIONS>>";
 
@@ -98,11 +115,22 @@ impl fmt::Display for Unmet {
 /// silently checked a subset.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Unreadable {
-  NoThread,
-  NoCriterion,
-  NoBlock,
+  /// No criterion anywhere in canon carries the block.
+  ///
+  /// **This is the ordinary state of every project that is not Intent, and its
+  /// message says so rather than naming Intent's own paperwork.** The refusal
+  /// still stands -- an estate that has declared no preconditions has proved
+  /// nothing about its ability to put files back.
+  NoDeclaration,
+  /// More than one criterion carries a block. **The duplication the whole row
+  /// exists to forbid, so choosing between them is the one thing this must not
+  /// do.**
+  TwoDeclarations,
+  /// One criterion carries two blocks -- the same duplication, one level in.
   TwoBlocks,
   Empty,
+  /// An opening delimiter with no closer.
+  Unterminated,
   /// A token inside the block that is not an `AC-<gg>.<n>` id. **Refused
   /// rather than filtered out**: filtering is how a declaration of nineteen
   /// becomes a check of eighteen with nothing saying so.
@@ -112,15 +140,24 @@ pub enum Unreadable {
 impl fmt::Display for Unreadable {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Self::NoThread => write!(f, "canon holds no {DECLARING_THREAD}"),
-      Self::NoCriterion => write!(f, "{DECLARING_THREAD} has no {DECLARING_CRITERION}"),
-      Self::NoBlock => write!(
+      // **No Intent identifier here, and that is the point.** This is what a
+      // consumer of the tool sees, and it has to be a sentence about THEIR
+      // estate.
+      Self::NoDeclaration => write!(
         f,
-        "{DECLARING_THREAD}'s {DECLARING_CRITERION} carries no `{OPEN} ... {CLOSE}` block"
+        "this project declares no dehydration preconditions, so nothing has been proved about removing files from it"
+      ),
+      Self::TwoDeclarations => write!(
+        f,
+        "more than one acceptance criterion carries a `{OPEN} ... {CLOSE}` block, so there is no single declaration to read and choosing between them is exactly what a gate must not do"
       ),
       Self::TwoBlocks => write!(
         f,
-        "{DECLARING_THREAD}'s {DECLARING_CRITERION} carries more than one `{OPEN} ... {CLOSE}` block, so there is no single declaration to read"
+        "one acceptance criterion carries more than one `{OPEN} ... {CLOSE}` block, so there is no single declaration to read"
+      ),
+      Self::Unterminated => write!(
+        f,
+        "a `{OPEN}` opens a declaration that is never closed with `{CLOSE}`"
       ),
       Self::Empty => write!(
         f,
@@ -234,12 +271,22 @@ impl fmt::Display for Verdict {
 /// is resolved HERE -- a caller that had to find `ST0057` itself would be the
 /// second place the address lives.
 pub fn check(canon: &Canon) -> Verdict {
-  let Some(thread) = canon.threads.iter().find(|t| t.id == DECLARING_THREAD) else {
-    return Verdict::refuse(Unreadable::NoThread);
+  // **Every criterion in the estate is a candidate, and finding TWO refuses.**
+  // Scanning for the sole carrier is what makes the declaration single by
+  // MEASUREMENT rather than by an address that asserts it -- an address points
+  // at one and says nothing about whether a second exists somewhere else.
+  let mut carriers = canon
+    .threads
+    .iter()
+    .flat_map(|t| t.criteria.iter().map(move |c| (t, c)))
+    .filter(|(_, c)| c.text.contains(OPEN));
+
+  let Some((thread, criterion)) = carriers.next() else {
+    return Verdict::refuse(Unreadable::NoDeclaration);
   };
-  let Some(criterion) = thread.criteria.iter().find(|c| c.id == DECLARING_CRITERION) else {
-    return Verdict::refuse(Unreadable::NoCriterion);
-  };
+  if carriers.next().is_some() {
+    return Verdict::refuse(Unreadable::TwoDeclarations);
+  }
 
   let declared = match declared_in(&criterion.text) {
     Ok(ids) => ids,
@@ -283,14 +330,17 @@ pub fn check(canon: &Canon) -> Verdict {
 pub fn declared_in(text: &str) -> Result<Vec<String>, Unreadable> {
   let mut opens = text.match_indices(OPEN);
   let Some((open_at, _)) = opens.next() else {
-    return Err(Unreadable::NoBlock);
+    return Err(Unreadable::NoDeclaration);
   };
   if opens.next().is_some() {
     return Err(Unreadable::TwoBlocks);
   }
   let after = &text[open_at + OPEN.len()..];
   let Some(close_at) = after.find(CLOSE) else {
-    return Err(Unreadable::NoBlock);
+    // An opening delimiter with no closer. Reachable from [`check`] only
+    // because the carrier was found BY the opener, so a half-written block
+    // refuses rather than reading to the end of the criterion.
+    return Err(Unreadable::Unterminated);
   };
   let body = &after[..close_at];
 

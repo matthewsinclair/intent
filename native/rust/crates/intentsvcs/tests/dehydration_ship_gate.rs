@@ -255,28 +255,79 @@ fn with_ac_00_1_text(text: &str) -> Canon {
 }
 
 #[test]
-fn an_absent_declaring_thread_refuses() {
+fn an_estate_that_declares_nothing_refuses() {
+  // **The ordinary state of every project that is not this one**, and the reason
+  // the message names no thread: a consumer of the tool would otherwise be sent
+  // to read paperwork that does not exist in their estate.
   let v = preconditions::check(&canon_of(vec![sample_thread("ST0001")]));
   assert!(!v.permits());
-  assert_eq!(v.unreadable(), Some(&Unreadable::NoThread));
+  assert_eq!(v.unreadable(), Some(&Unreadable::NoDeclaration));
 }
 
 #[test]
-fn an_absent_declaring_criterion_refuses() {
-  let mut thread = declaring_thread(&[("AC-00.9", AcKind::NonTest, met("landed"))]);
-  thread.criteria.retain(|c| c.id != "AC-00.1");
-  let v = preconditions::check(&canon_of(vec![thread]));
-  assert!(!v.permits());
-  assert_eq!(v.unreadable(), Some(&Unreadable::NoCriterion));
-}
-
-#[test]
-fn a_missing_block_refuses() {
+fn a_criterion_carrying_no_block_is_not_the_declaration() {
   let v = preconditions::check(&with_ac_00_1_text(
     "the preconditions are the seven bullets in design.md",
   ));
   assert!(!v.permits());
-  assert_eq!(v.unreadable(), Some(&Unreadable::NoBlock));
+  assert_eq!(v.unreadable(), Some(&Unreadable::NoDeclaration));
+}
+
+#[test]
+fn the_declaration_is_found_by_its_delimiter_not_by_an_address() {
+  // The whole point of the rewrite: no thread id and no criterion id in the
+  // module, so the same declaration is found wherever an author puts it.
+  let mut thread = declaring_thread(&[("AC-00.9", AcKind::NonTest, met("landed"))]);
+  let text = thread
+    .criteria
+    .iter()
+    .find(|c| c.id == "AC-00.1")
+    .expect("fixture carries it")
+    .text
+    .clone();
+  thread.criteria.retain(|c| c.id != "AC-00.1");
+  thread.criteria.push(Criterion {
+    id: "AC-04.7".to_string(),
+    text,
+    kind: AcKind::NonTest,
+    state: AcState::Unsatisfied,
+  });
+  let v = preconditions::check(&canon_of(vec![thread]));
+  assert!(
+    v.permits(),
+    "moving the block to another criterion must change nothing: {v}"
+  );
+  assert_eq!(ids(v.declared()), vec!["AC-00.9"]);
+}
+
+#[test]
+fn a_declaration_in_another_thread_is_found_too() {
+  let mut carrier = declaring_thread(&[("AC-00.9", AcKind::NonTest, met("landed"))]);
+  carrier.id = "ST0099".to_string();
+  let v = preconditions::check(&canon_of(vec![sample_thread("ST0001"), carrier]));
+  assert!(v.permits(), "got: {v}");
+}
+
+#[test]
+fn two_carriers_anywhere_in_the_estate_refuse() {
+  // **SINGLE BY MEASUREMENT RATHER THAN BY ASSERTION, and this is the arm the
+  // address version could not have had.** An address points at one declaration
+  // and says nothing about whether a second exists somewhere else.
+  let one = declaring_thread(&[("AC-00.9", AcKind::NonTest, met("landed"))]);
+  let mut two = declaring_thread(&[("AC-00.8", AcKind::NonTest, met("landed"))]);
+  two.id = "ST0099".to_string();
+  let v = preconditions::check(&canon_of(vec![one, two]));
+  assert!(!v.permits());
+  assert_eq!(v.unreadable(), Some(&Unreadable::TwoDeclarations));
+}
+
+#[test]
+fn an_unterminated_block_refuses() {
+  let v = preconditions::check(&with_ac_00_1_text(
+    "<<PRECONDITIONS AC-00.2 and then the sentence just carries on",
+  ));
+  assert!(!v.permits());
+  assert_eq!(v.unreadable(), Some(&Unreadable::Unterminated));
 }
 
 #[test]
@@ -340,7 +391,36 @@ fn an_unreadable_declaration_prints_zero_of_zero_and_says_why() {
     rendered.contains("0 checked of 0 declared"),
     "got: {rendered}"
   );
-  assert!(rendered.contains("ST0057"), "got: {rendered}");
+  assert!(
+    rendered.contains("declares no dehydration preconditions"),
+    "got: {rendered}"
+  );
+}
+
+#[test]
+fn no_refusal_this_gate_can_produce_names_this_project_s_own_paperwork() {
+  // **THE CONSUMER-FACING ARM, AND THE STRING-LITERAL GUARD IS A PROXY FOR IT.**
+  // This gate ships inside a binary other projects run. A refusal naming a
+  // thread of Intent's own is unactionable in a consumer's estate -- they cannot
+  // read it, cannot satisfy it, and cannot tell whether it is about them.
+  // `no_pm_state_in_output.rs` caught the first version by scanning literals;
+  // this asserts the property that scan stands in for, from the side that
+  // renders, so the two fail independently.
+  let every = [
+    Unreadable::NoDeclaration,
+    Unreadable::TwoDeclarations,
+    Unreadable::TwoBlocks,
+    Unreadable::Unterminated,
+    Unreadable::Empty,
+    Unreadable::Malformed("attachments".to_string()),
+  ];
+  for why in every {
+    let rendered = why.to_string();
+    assert!(
+      !rendered.contains("ST00") && !rendered.contains("AC-0"),
+      "a shipped refusal must not name this project's own paperwork: {rendered}"
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

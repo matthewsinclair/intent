@@ -44,13 +44,17 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // malformed, both reachable through the ordinary call.
   out.push((
     "no realisation manifest",
-    facade.organize().expect_err("a project with no .intentfiles cannot organize"),
+    facade
+      .organize()
+      .expect_err("a project with no .intentfiles cannot organize"),
   ));
   std::fs::write(fx.path("intent/.intentfiles"), "NOTASIGIL:ST0056\n")
     .expect("write a malformed manifest");
   out.push((
     "malformed realisation manifest",
-    facade.organize().expect_err("a manifest with an unknown sigil is refused"),
+    facade
+      .organize()
+      .expect_err("a manifest with an unknown sigil is refused"),
   ));
   out.push((
     "unknown work package",

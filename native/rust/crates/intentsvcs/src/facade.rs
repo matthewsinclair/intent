@@ -60,8 +60,8 @@ use crate::store::{Store, StoreError};
 use crate::sync::Scope as SyncScope;
 use crate::transitions;
 use crate::views::{self, RenderContext};
-use crate::{intentfiles, organize};
 use crate::write_set::{Applied, WriteError, WriteSet};
+use crate::{intentfiles, organize};
 
 /// Ambient facts a facade call runs with. Explicit rather than discovered, so
 /// a verb's result is a function of its arguments.
@@ -1303,17 +1303,11 @@ impl Facade {
     let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
 
-    let (tree, digest) = organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let (tree, digest) =
+      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
     let plan = {
       let ctx = self.render_ctx()?;
-      organize::plan(
-        &self.project,
-        &self.canon,
-        &manifest,
-        &ctx,
-        &tree,
-        digest,
-      )
+      organize::plan(&self.project, &self.canon, &manifest, &ctx, &tree, digest)
     };
 
     let project = &self.project;
