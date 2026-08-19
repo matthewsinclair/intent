@@ -336,6 +336,40 @@ Consequences that must hold together:
 - A row carrying `legacy` is reported as carried-legacy in coverage views, never silently counted as an ordinary green.
 - LIVE threads never produce one: they stay BLOCKED-until-clean, so a `legacy` row appearing in a live thread is itself a defect.
 
+#### Figure provenance: MEASURED versus RECORDED (ruling, vc, 2026-08-19, on findings by dc and ic)
+
+**THE FIX FOR AN UNVERIFIABLE FIGURE IS NEVER A BETTER FIGURE.** A number written into a durable record reads as a claim about a measurement, and nothing in this model distinguishes a figure that can be re-derived from one that was observed once and cannot. That gap is not theoretical: three instances surfaced on 2026-08-19, none of them found by looking.
+
+- **`EXAMINED 86 of 278` in AC-00.11.** It names no revision. ic reproduced the defect but not the figures -- 86 of 276, against 84 examined -- and could not determine whether the row was wrong or whether it named a revision they had not swept. **That inability is the defect, not a step on the way to finding it.**
+- **`10 of 41` in AC-00.11.** The nominating probe was never committed: no tool, no board history carrying its text. dc's reconstruction returns 14. A recorded number wearing a derived number's clothes.
+- **ST0011's `completed`.** The value survives only in an undeclared home (body prose); the declared home was empty and the carry read the declared home correctly. Two homes for one fact, silent until they disagreed.
+
+Both peers declined to hand over replacement numbers, independently and for the same reason: **a replacement mints a third figure on a fresh decay schedule and retires nothing.**
+
+The form:
+
+```
+MEASURED   <figure> @ <revision>      -- reproducible; anyone can re-derive it
+RECORDED   <figure> (RECORDED)        -- observed once; explicitly not reproducible
+```
+
+`<revision>` is a commit sha. Not a date, not a branch, and never `HEAD` -- `HEAD` names a different tree tomorrow, which is the property being defended against. A figure carrying neither mark is a defect.
+
+**WHY THIS IS A PROSE CONVENTION AND NOT A JSON FIELD.** These figures live inside criterion text and AT notes, embedded in argument. A structured field beside the prose would be a second home for one fact, on its own decay schedule, repaired independently -- which is the exact failure this section exists to name, rebuilt one level up. **The mark lives where the figure lives.**
+
+**DISTINCT FROM `legacy`, AND THE TWO MUST NEVER MERGE.** They are adjacent in this document and they answer different questions:
+
+- `legacy.raw` answers **this row came from the v2 grammar and we did not parse it**. It is about MIGRATION, and a row authored under the v3 grammar never carries one.
+- A provenance mark answers **this figure was observed once and cannot be re-derived**. It is about PROVENANCE, and a row authored today under the v3 grammar can need one. AC-00.11 is precisely that: minted 2026-08-18, no `legacy`, two unverifiable figures.
+
+Merging them would admit members under a key named for another reason, and a marked-legacy row would lend its migration excuse to a figure that has none. **They share exactly one rule, and it is the load-bearing one in both: a marked thing is never silently counted as an unmarked one.** A `legacy` row is reported as carried-legacy and never as an ordinary green; a RECORDED figure is never counted as a measurement.
+
+**WHAT THE MARK DOES NOT DO.** It does not make the figure true, and it is not an apology for it. It stops a reader spending an afternoon reproducing something unreproducible, and it stops a one-off observation being read as a measurement by the next person to build on it. ic's sentence is the specification and is better than any restatement of it: _I cannot tell you whether the row is wrong or whether it is a revision I have not swept, which is precisely the point._
+
+**THIS SECTION IS THE FORM. IT IS NOT THE ENFORCEMENT.** A convention recorded in prose is invariant under nothing -- only a mechanism that refuses is invariant under copying, and a document's source is its own output. The criterion and its instrument are separate work and are what make this bind.
+
+**THE POPULATION IS DELIBERATELY NOT SIZED HERE.** The form is minted before the population can be, and sizing it is not a precondition for minting it. A sweep run now would size the remedy to the reach of the probe that ran it, which is how a partial count becomes a total.
+
 ### issue (`issues/<n>.json`, body included)
 
 | Field    | Type    | Notes                                                                                 |

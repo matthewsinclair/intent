@@ -2,7 +2,7 @@
 # canon-ignore-guard.sh -- refuse a commit that adds an ignore rule reaching
 # `intent/.canon/`.
 #
-# ST0057 AC-01.5. **AC-01.2 checks the STATE, by cloning. This refuses the
+# ST0057 AT-01.5, covering AC-01.5. **AC-01.2 checks the STATE, by cloning. This refuses the
 # EDIT, and the gap between those two moments is where the class lives.**
 #
 # WHY THE HAZARD IS STRUCTURAL AND NOT HYPOTHETICAL. Every other `intent/.<x>/`
