@@ -67,7 +67,9 @@ fn a_restore_from_stale_files_destroys_a_change_the_store_alone_holds() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = store_ahead_of_disk(&fx);
 
-  facade.sync_from_disk().expect("restore from disk");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("restore from disk");
 
   assert_eq!(
     facade.st_show("ST0056").expect("thread").status,
@@ -94,7 +96,9 @@ fn the_routine_direction_rewrites_the_stale_files_from_truth() {
     "precondition: the files are stale"
   );
 
-  facade.sync_to_disk().expect("project from the store");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("project from the store");
 
   assert!(
     fx.read_canon("ST0056").contains("cancelled"),
@@ -120,7 +124,9 @@ fn the_overwrite_is_named_before_the_restore_runs() {
   fx.write_thread(&sample_thread("ST0056"));
   let facade = store_ahead_of_disk(&fx);
 
-  let would_lose = facade.sync_overwrite().expect("preview");
+  let would_lose = facade
+    .sync_overwrite(&intentsvcs::sync::Scope::All)
+    .expect("preview");
   assert!(
     would_lose.iter().any(|line| line.contains("ST0056")),
     "the preview names the thread that would be overwritten: {would_lose:?}"
@@ -151,7 +157,10 @@ fn an_estate_in_step_has_nothing_to_overwrite() {
     .expect("a legal mutation from wip");
 
   assert!(
-    facade.sync_overwrite().expect("preview").is_empty(),
+    facade
+      .sync_overwrite(&intentsvcs::sync::Scope::All)
+      .expect("preview")
+      .is_empty(),
     "a tree that already matches the store would lose nothing, and must say so"
   );
 }
@@ -170,9 +179,15 @@ fn the_directions_round_trip_on_a_healthy_estate() {
   let canon_before = fx.read_canon("ST0056");
   let db_before = facade.store().derived_dump().expect("snapshot");
 
-  facade.sync_to_disk().expect("db -> disk");
-  facade.sync_from_disk().expect("disk -> db");
-  facade.sync_to_disk().expect("db -> disk again");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("db -> disk");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("disk -> db");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("db -> disk again");
 
   assert_eq!(
     fx.read_canon("ST0056"),
@@ -194,6 +209,16 @@ fn both_directions_report_a_count_rather_than_a_bare_ok() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  assert_eq!(facade.sync_to_disk().expect("to disk"), 1);
-  assert_eq!(facade.sync_from_disk().expect("from disk"), 1);
+  assert_eq!(
+    facade
+      .sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect("to disk"),
+    1
+  );
+  assert_eq!(
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("from disk"),
+    1
+  );
 }

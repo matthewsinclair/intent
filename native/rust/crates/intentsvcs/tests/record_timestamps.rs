@@ -207,7 +207,9 @@ fn a_row_written_through_the_facade_is_stamped_although_the_caller_had_no_time()
     let mut facade = fx.facade_on_disk();
     fx.write_thread(&sample_thread("ST0056"));
     fx.write_issue(&sample_issue(21));
-    facade.sync_from_disk().expect("ingest");
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("ingest");
   }
 
   let conn = Connection::open(&db).expect("open the store directly");
@@ -243,7 +245,9 @@ fn a_second_write_moves_updated_at_and_leaves_created_at_where_it_was() {
   let (first_created, first_updated) = {
     let mut facade = fx.facade_on_disk();
     fx.write_thread(&sample_thread("ST0056"));
-    facade.sync_from_disk().expect("ingest");
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("ingest");
     let conn = Connection::open(&db).expect("open");
     (
       stamp(&conn, "SELECT created_at FROM threads"),
@@ -291,7 +295,9 @@ fn a_rebuild_restamps_the_record_time_and_carries_the_authored_date_through() {
   {
     let mut facade = fx.facade_on_disk();
     fx.write_thread(&sample_thread("ST0056"));
-    facade.sync_from_disk().expect("ingest");
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("ingest");
   }
   let authored = {
     let conn = Connection::open(&db).expect("open");
@@ -304,7 +310,9 @@ fn a_rebuild_restamps_the_record_time_and_carries_the_authored_date_through() {
   let clone_db = clone.project().db_path();
   {
     let mut facade = clone.facade_on_disk();
-    facade.sync_from_disk().expect("ingest on the clone");
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("ingest on the clone");
   }
 
   let conn = Connection::open(&clone_db).expect("open the clone");

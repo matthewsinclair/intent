@@ -462,7 +462,9 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
 
   {
     let mut facade = fx.facade_on_disk();
-    facade.sync_to_disk().expect("db -> disk");
+    facade
+      .sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect("db -> disk");
   }
 
   // **A real clone, not a deleted store.** The extract is copied to a machine
@@ -471,7 +473,9 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
   // rules out, in a test about how data travels.
   let elsewhere = fx.clone_extract();
   let mut restored = elsewhere.facade_on_disk();
-  restored.sync_from_disk().expect("disk -> db");
+  restored
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("disk -> db");
 
   let (threads, issues) = restored.store().load_canon().expect("load");
   assert_eq!(threads.len(), 2, "both threads came back");
@@ -530,7 +534,9 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
 fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
   let (fx, _) = populated();
   let mut facade = fx.facade_on_disk();
-  facade.sync_to_disk().expect("first emit");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("first emit");
 
   let paths = [
     "intent/.canon/st/ST0056.json",
@@ -544,8 +550,12 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
   // repositories fight over every file forever.
   let elsewhere = fx.clone_extract();
   let mut second_pass = elsewhere.facade_on_disk();
-  second_pass.sync_from_disk().expect("read it all back");
-  second_pass.sync_to_disk().expect("second emit");
+  second_pass
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("read it all back");
+  second_pass
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("second emit");
 
   for (path, before) in paths.iter().zip(&first) {
     assert_eq!(
@@ -566,7 +576,9 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
 #[test]
 fn the_file_forms_parse_as_plain_json_with_no_model_types() {
   let (fx, _) = populated();
-  fx.facade_on_disk().sync_to_disk().expect("emit");
+  fx.facade_on_disk()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("emit");
 
   let thread: Value = serde_json::from_str(&fx.read_canon("ST0056")).expect("plain JSON");
   assert_eq!(thread["id"], "ST0056");
@@ -612,7 +624,9 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
 #[test]
 fn the_history_extract_is_scanned_as_jsonl_not_skipped_for_its_suffix() {
   let (fx, _) = populated();
-  fx.facade_on_disk().sync_to_disk().expect("emit");
+  fx.facade_on_disk()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("emit");
   let root = fx.root();
 
   let clean = intentsvcs::sync::scan(root, &[]).expect("scan");
@@ -660,7 +674,9 @@ fn the_history_extract_is_scanned_as_jsonl_not_skipped_for_its_suffix() {
 #[test]
 fn a_damaged_event_line_is_refused_by_number() {
   let (fx, _) = populated();
-  fx.facade_on_disk().sync_to_disk().expect("emit");
+  fx.facade_on_disk()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("emit");
 
   let good = fx.read("intent/events.jsonl");
   let mut lines: Vec<String> = good.lines().map(ToString::to_string).collect();
@@ -669,7 +685,7 @@ fn a_damaged_event_line_is_refused_by_number() {
 
   let err = fx
     .facade_on_disk()
-    .sync_from_disk()
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
     .expect_err("a damaged history file must refuse");
   let rendered = err.render();
   assert!(

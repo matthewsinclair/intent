@@ -86,8 +86,12 @@ fn seeded() -> Fixture {
     fx.write_issue(&issue(n));
   }
   let mut facade = fx.facade();
-  facade.sync_from_disk().expect("ingest");
-  facade.sync_to_disk().expect("project");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("ingest");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("project");
   fx
 }
 

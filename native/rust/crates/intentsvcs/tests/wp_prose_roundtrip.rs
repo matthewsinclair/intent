@@ -106,7 +106,8 @@ fn rendering_leaves_the_canon_byte_identical() {
   std::fs::write(&path, &before).expect("write canon");
 
   let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
-  let canon = intentsvcs::ingest::resync(&project, &mut store).expect("resync");
+  let canon = intentsvcs::ingest::resync(&project, &mut store, &intentsvcs::sync::Scope::All)
+    .expect("resync");
   views::write_all(&project, &canon, &ctx()).expect("write views");
 
   let after = std::fs::read_to_string(&path).expect("read canon");

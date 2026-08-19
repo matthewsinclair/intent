@@ -86,7 +86,9 @@ fn a_snapshot_restores_to_the_same_estate_it_was_taken_from() {
   let fx = Fixture::new();
   let mut facade = fx.facade_on_disk();
   fx.write_thread(&sample_thread("ST0056"));
-  facade.sync_from_disk().expect("ingest the fixture");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("ingest the fixture");
 
   let (threads, issues) = (facade.st_list().len(), facade.canon().issues.len());
   let dump = facade.store().derived_dump().expect("dump the source");

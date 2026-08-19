@@ -25,7 +25,7 @@ use crate::model::{ISSUE_SCHEMA, Issue, THREAD_SCHEMA, Thread};
 use crate::project::Project;
 use crate::prose::{self, DocSection};
 use crate::store::{Store, StoreError};
-use crate::sync::{self, FileState};
+use crate::sync::{self, FileState, Scope};
 
 /// Everything the committed canon says, in memory, validated.
 #[derive(Debug, Clone, Default)]
@@ -251,7 +251,12 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
   }
 
   // Cold store: ingest once, from the files, and warm it.
-  resync(project, store)
+  //
+  // **`Scope::All` here is forced, not a default.** A cold store is the normal
+  // state of every fresh clone, and warming it with anything less would leave
+  // the tool answering questions from a store that holds part of the estate --
+  // silently, because a partial store looks exactly like a small project.
+  resync(project, store, &Scope::All)
 }
 
 /// Re-read the committed canon and rebuild the store from it -- the expensive,
@@ -329,7 +334,66 @@ pub fn collect_attachments_into(project: &Project, canon: &mut Canon) -> Vec<Fin
   findings
 }
 
-pub fn resync(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
+/// Does this section belong to `id`'s thread?
+///
+/// A thread's own sections carry its id; a work package's carry the thread id
+/// with the sequence appended. Both forms are matched, because a scope that
+/// took a thread's prose and left its work packages' prose behind would leave
+/// the search index describing a thread that no longer exists in that shape --
+/// AC-06.4's failure, content present and findable as something else.
+fn section_of_thread(section: &DocSection, id: &str) -> bool {
+  section.owner_id == id || section.owner_id.starts_with(&format!("{id}/"))
+}
+
+/// The canon a SCOPED restore installs: named threads take their value from
+/// disk, everything else keeps the value the store already holds.
+///
+/// **This composition is the whole feature and its absence is the trap.**
+/// `resync` finishes with a whole-store `rebuild`, so handing it only the
+/// named threads would DELETE every thread the operator did not name -- a far
+/// worse defect than the estate-wide read it exists to fix, and a silent one,
+/// because the node that ran it was saving its own work.
+///
+/// **Issues and prose compose the same way, and the prose half is the one that
+/// is easy to miss.** `doc_sections` feeds the full-text index, so a scoped
+/// restore that replaced every section from disk would take a peer's
+/// uncommitted prose into search while correctly keeping it out of canon --
+/// the same leak, one table over, and invisible because nothing about canon
+/// would look wrong.
+fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon, IngestError> {
+  let scoped = |id: &str| named.iter().any(|n| n == id);
+  let (stored_threads, stored_issues) = store.load_canon()?;
+
+  let mut threads: Vec<Thread> = stored_threads
+    .into_iter()
+    .filter(|t| !scoped(&t.id))
+    .collect();
+  threads.extend(disk.threads.into_iter().filter(|t| scoped(&t.id)));
+  threads.sort_by(|a, b| a.id.cmp(&b.id));
+
+  let mut sections: Vec<DocSection> = store
+    .doc_sections()?
+    .into_iter()
+    .filter(|s| !named.iter().any(|id| section_of_thread(s, id)))
+    .collect();
+  sections.extend(
+    disk
+      .sections
+      .into_iter()
+      .filter(|s| named.iter().any(|id| section_of_thread(s, id))),
+  );
+
+  // Issues are not threads, so a thread scope does not name any of them and
+  // they all keep the store's value. `sync <issue>` is a surface that does not
+  // exist yet; when it does, it composes here by the same rule.
+  Ok(Canon {
+    threads,
+    issues: stored_issues,
+    sections,
+  })
+}
+
+pub fn resync(project: &Project, store: &mut Store, scope: &Scope) -> Result<Canon, IngestError> {
   let previous = store.file_index()?;
   let entries = sync::scan(project.root(), &previous).map_err(|e| IngestError::Io {
     path: project.root().display().to_string(),
@@ -346,9 +410,23 @@ pub fn resync(project: &Project, store: &mut Store) -> Result<Canon, IngestError
   }
 
   let canon = read(project)?;
+  let canon = match scope.named() {
+    None => canon,
+    Some(named) => compose_scoped(store, canon, named)?,
+  };
   store.rebuild(&canon.threads, &canon.issues)?;
   store.replace_doc_sections(&canon.sections)?;
-  store.replace_file_index(&entries)?;
+  // **The file index is left alone under a scope, deliberately.** It records
+  // what was last INGESTED, and a scoped run ingested only part of what the
+  // scan saw -- so writing the whole scan would mark a peer's file as seen
+  // when nothing read it, and the next unscoped run would find no change in a
+  // file that has never entered the store. Leaving it means the next run
+  // re-reads more than it strictly must, which costs a hash and cannot lose
+  // anything. That is the safe direction of a check whose whole job is to
+  // notice change.
+  if scope.named().is_none() {
+    store.replace_file_index(&entries)?;
+  }
   // **HISTORY IS RESTORED HERE TOO, and its absence was a silent defect.**
   // This function rebuilt seven tables from the extract and skipped the ONE
   // the extract exists to carry. Every other table is derived, so a resync

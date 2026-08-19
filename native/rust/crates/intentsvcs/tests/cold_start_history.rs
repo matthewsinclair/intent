@@ -49,7 +49,7 @@ fn estate_with_history() -> Fixture {
     f.st_triage(&id).expect("st triage");
     f.st_start(&id).expect("st start");
     f.st_hold(&id, "waiting on a peer").expect("st hold");
-    f.sync_to_disk()
+    f.sync_to_disk(&intentsvcs::sync::Scope::All)
       .expect("project the estate, event log included");
   }
   fixture

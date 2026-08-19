@@ -121,7 +121,9 @@ fn a_facade_mutation_produces_a_database_stamped_event() {
   let fx = Fixture::new();
   let mut facade = fx.facade_on_disk();
   fx.write_thread(&sample_thread("ST0056"));
-  facade.sync_from_disk().expect("ingest");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("ingest");
   facade
     .st_hold("ST0056", "waiting on the fleet")
     .expect("hold");

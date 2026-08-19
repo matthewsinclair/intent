@@ -114,7 +114,7 @@ impl Project {
   /// The full daily-driver load, which is what actually refused on a Mac.
   fn resync(&self) -> Result<intentsvcs::ingest::Canon, intentsvcs::ingest::IngestError> {
     let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
-    intentsvcs::ingest::resync(&self.project(), &mut store)
+    intentsvcs::ingest::resync(&self.project(), &mut store, &intentsvcs::sync::Scope::All)
   }
 }
 

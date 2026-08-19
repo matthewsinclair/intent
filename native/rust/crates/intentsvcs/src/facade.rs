@@ -40,6 +40,14 @@ use serde_json::json;
 
 use crate::address::{Address, Entity as AddrEntity, Format as AddrFormat};
 use crate::contract::{self, Scope, Verdict};
+// **Aliased because this crate has two `Scope` types and they are different
+// questions.** `contract::Scope` selects an AC GROUP WITHIN one thread
+// (`Thread` or `WorkPackage(seq)`); `sync::Scope` selects WHICH THREADS a sync
+// takes from its source. Importing the second bare would shadow nothing and
+// resolve silently to the first -- which is exactly what happened while this
+// was being written, and the compiler caught it only because the two have no
+// methods in common. Two types one word apart deserve the alias at the seam
+// rather than a reader inferring which is meant.
 use crate::event::{self, Envelope, Subject};
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
@@ -49,6 +57,7 @@ use crate::model::{
 };
 use crate::project::{Migration, Pending, Project};
 use crate::store::{Store, StoreError};
+use crate::sync::Scope as SyncScope;
 use crate::transitions;
 use crate::views::{self, RenderContext};
 use crate::write_set::{Applied, WriteError, WriteSet};
@@ -1021,7 +1030,27 @@ impl Facade {
   /// artefacts derived from it. Nothing authored can be lost, because nothing
   /// it writes is authored -- prose lives in modelled fields (D22, D28), which
   /// is what makes the whole projection disposable.
-  pub fn sync_to_disk(&mut self) -> Result<usize, FacadeError> {
+  /// Refuse a scope that names a thread the estate does not have.
+  ///
+  /// **A scope selecting nothing must not report success.** An id is typed by
+  /// hand, so a typo is the common case, and a sync that "completed" over an
+  /// empty selection is indistinguishable from one that landed the work --
+  /// which leaves the operator believing their thread is saved. Every named id
+  /// is checked, not just the first, so `sync ST0056 ST9999` refuses on the
+  /// one that is wrong rather than half-running.
+  fn check_scope(&self, scope: &SyncScope, threads: &[Thread]) -> Result<(), FacadeError> {
+    let Some(named) = scope.named() else {
+      return Ok(());
+    };
+    for id in named {
+      if !threads.iter().any(|t| &t.id == id) {
+        return Err(FacadeError::NoSuchThread { id: id.clone() });
+      }
+    }
+    Ok(())
+  }
+
+  pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let sections = self.store.doc_sections().map_err(FacadeError::Store)?;
     let canon = Canon {
@@ -1029,15 +1058,33 @@ impl Facade {
       issues,
       sections,
     };
-    let all_threads: Vec<&Thread> = canon.threads.iter().collect();
-    let all_issues: Vec<&Issue> = canon.issues.iter().collect();
+    self.check_scope(scope, &canon.threads)?;
+    let all_threads: Vec<&Thread> = canon
+      .threads
+      .iter()
+      .filter(|t| scope.selects(&t.id))
+      .collect();
+    // **Issues are not threads, so a thread scope names none of them and none
+    // of them are written.** Projecting them anyway would mean `sync --to-disk
+    // ST0056` rewrote forty issue files nobody asked about, which is the
+    // estate-wide write this exists to stop wearing a narrower name.
+    let all_issues: Vec<&Issue> = match scope.named() {
+      None => canon.issues.iter().collect(),
+      Some(_) => Vec::new(),
+    };
+    let count = all_threads.len();
     let mut set = self.projection(&canon, &all_threads, &all_issues)?;
     // History travels only if something writes it out. Every other entity in
     // this set can be re-derived from a file that is already there; this one
     // cannot be re-derived from anything.
+    //
+    // **It travels under a SCOPE too, and that is deliberate rather than an
+    // oversight.** The log is not any thread's artefact, so no scope excludes
+    // it; and it is the one table whose omission is unrecoverable, so the
+    // asymmetry runs the safe way -- writing it more often than strictly
+    // needed costs a file write, and not writing it loses the data outright.
     self.add_event_log(&mut set)?;
     set.commit()?.keep();
-    let count = canon.threads.len();
     self.canon = canon;
     Ok(count)
   }
@@ -1055,8 +1102,18 @@ impl Facade {
   /// method does not print, because the facade renders nothing; it refuses
   /// nothing either, because a service call with a stated direction has
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
-  pub fn sync_from_disk(&mut self) -> Result<usize, FacadeError> {
-    let mut canon = ingest::resync(&self.project, &mut self.store)?;
+  pub fn sync_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
+    // **Validated against DISK, because disk is this direction's SOURCE.**
+    // Checking the store instead would refuse a thread that exists only on
+    // disk, which is the one case a restore is most obviously for. The extra
+    // read costs a canon parse on scoped runs only, and it happens before
+    // anything is written -- a refusal after `resync` would arrive with the
+    // store already rebuilt.
+    if scope.named().is_some() {
+      let on_disk = ingest::read(&self.project)?;
+      self.check_scope(scope, &on_disk.threads)?;
+    }
+    let mut canon = ingest::resync(&self.project, &mut self.store, scope)?;
 
     // **The disk-to-attachments carry, and this is the only caller** (D57-6's
     // second consumer; 5.1b). Until this landed the sole producer of an
@@ -1094,11 +1151,23 @@ impl Facade {
     }
 
     ingest::restore_event_log(&self.project, &mut self.store)?;
-    let all_threads: Vec<&Thread> = canon.threads.iter().collect();
-    let all_issues: Vec<&Issue> = canon.issues.iter().collect();
+    // **The projection narrows with the scope too, and forgetting that is the
+    // subtle half.** A restore also rewrites the views of what it read; left
+    // unfiltered it would regenerate all 266 views from a store whose unscoped
+    // threads it deliberately did not touch -- churning files the operator
+    // did not name, which is the estate-wide write this exists to stop.
+    let all_threads: Vec<&Thread> = canon
+      .threads
+      .iter()
+      .filter(|t| scope.selects(&t.id))
+      .collect();
+    let all_issues: Vec<&Issue> = match scope.named() {
+      None => canon.issues.iter().collect(),
+      Some(_) => Vec::new(),
+    };
+    let count = all_threads.len();
     let set = self.projection(&canon, &all_threads, &all_issues)?;
     set.commit()?.keep();
-    let count = canon.threads.len();
     self.canon = canon;
     Ok(count)
   }
@@ -1114,9 +1183,25 @@ impl Facade {
   /// It compares the store against the files by VALUE, so an entity present in
   /// both and identical is not listed -- the usual case is an empty answer,
   /// and an empty answer is what makes a non-empty one worth reading.
-  pub fn sync_overwrite(&self) -> Result<Vec<String>, FacadeError> {
+  /// **The warning narrows with the scope, and a warning that over-reports is
+  /// not merely noisy.** It would name files the run will not touch, so the
+  /// operator either stops for a loss that is not coming or learns to skim the
+  /// list. Both end with the warning unread, which is the state it exists to
+  /// prevent -- and it is the same failure as an under-report, arrived at from
+  /// the other side.
+  pub fn sync_overwrite(&self, scope: &SyncScope) -> Result<Vec<String>, FacadeError> {
     let (stored_threads, stored_issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let on_disk = ingest::read(&self.project)?;
+    let stored_threads: Vec<Thread> = stored_threads
+      .into_iter()
+      .filter(|t| scope.selects(&t.id))
+      .collect();
+    // Issues are not threads, so a thread scope names none of them and none of
+    // them can be overwritten by the run this is warning about.
+    let stored_issues: Vec<Issue> = match scope.named() {
+      None => stored_issues,
+      Some(_) => Vec::new(),
+    };
     let mut out = Vec::new();
     for thread in &stored_threads {
       match on_disk.threads.iter().find(|t| t.id == thread.id) {

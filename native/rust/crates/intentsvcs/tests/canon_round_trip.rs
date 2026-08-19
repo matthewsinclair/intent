@@ -143,7 +143,7 @@ fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
   );
 
   let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
-  intentsvcs::ingest::resync(&project, &mut store)
+  intentsvcs::ingest::resync(&project, &mut store, &intentsvcs::sync::Scope::All)
     .expect("the canon the exporter wrote must be readable by ingest, unchanged");
   let (out_threads, out_issues) = store.load_canon().expect("load back");
   assert_eq!(
@@ -178,7 +178,7 @@ fn canon_survives_the_store_byte_for_byte() {
   }
 
   let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
-  intentsvcs::ingest::resync(&project, &mut store).expect("resync");
+  intentsvcs::ingest::resync(&project, &mut store, &intentsvcs::sync::Scope::All).expect("resync");
   let (out_threads, out_issues) = store.load_canon().expect("load back");
 
   assert_eq!(out_threads.len(), threads.len(), "every thread came back");
