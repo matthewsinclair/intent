@@ -437,18 +437,6 @@ pub enum FacadeError {
   /// this and why it needs a variant of its own.
   #[error("this would write an empty estate over one that is not empty: {evidence}")]
   EgestWouldEmptyTheEstate { evidence: String },
-  /// **The declaration of WHICH STATUSES ARE REALISED could not be read**
-  /// (AC-02.2).
-  ///
-  /// **Its own variant rather than [`FacadeError::ManifestUnreadable`], and the
-  /// first version used that one wrongly.** The manifest read perfectly; what
-  /// is missing is a DECLARATION IN CANON, which is a different file, a
-  /// different author and a different fix. Worse, `ManifestUnreadable` renders
-  /// only its path, so the explanation went into a `source` the message never
-  /// prints -- **a true sentence filed where no reader reaches it**, which is
-  /// the defect this estate keeps finding in its own records.
-  #[error("the rule for which statuses are realised to disk could not be read: {why}")]
-  RealisationRuleUnreadable { why: String },
 }
 
 impl crate::remedy::Remedy for FacadeError {
@@ -697,9 +685,6 @@ impl crate::remedy::Remedy for FacadeError {
       // where the data still IS -- on disk, in the commit -- is the honest help;
       // sending the operator to a verb would be sending them to a second write
       // over a state nobody has diagnosed.
-      Self::RealisationRuleUnreadable { .. } => {
-        "add a `<<REALISED ... REALISED>>` block to an acceptance criterion naming the thread statuses that are realised to disk, then re-run. Until one exists `organize` will not guess, because the answer decides which files it removes".to_string()
-      }
       Self::EgestWouldEmptyTheEstate { .. } => {
         "the store is empty, not the project. Your work is still on disk and in the commit; find out why the store holds nothing -- a `sync --to-store` that read zero and reported success is the usual cause -- before writing in either direction".to_string()
       }
@@ -1396,82 +1381,21 @@ impl Facade {
         source,
       }
     })?;
-    // **THE GENERATED REGION IS REWRITTEN FROM STATUS BEFORE ANYTHING IS
-    // PLANNED. This is AC-02.2, and it was the missing call site.**
+    // **NOTHING REGENERATES THIS FILE, BY hv's RULING (`d2b63bc3`).** organize
+    // is: read the list, hydrate what is in it, dehydrate what is on disk and
+    // is not. **Status has no vote here at all.**
     //
-    // `intentfiles::render` was correct, tested and green with ZERO production
-    // callers, so the region had never been written by any run of any verb.
-    // That is why this estate's manifest declared nothing while 57 threads sat
-    // on disk, and why `organize --apply` planned to remove all of them: not an
-    // unfilled form, an unconnected writer.
+    // A previous version of this function rewrote a generated region from a
+    // declared function of status, and it was removed rather than fixed. The
+    // two-region design existed ONLY because the file was machine-written: if
+    // organize rewrote the list every run, a hand-added line would be wiped, so
+    // a protected region was needed. **Take away the regeneration and the
+    // protected region has nothing to protect against.**
     //
-    // **The realised set is READ FROM CANON, never transcribed here.** hv ruled
-    // it as a delimited block precisely so an implementation reads the block; a
-    // `match` arm listing the statuses would be a second copy of a ruling,
-    // going stale in silence.
-    //
-    // **An unreadable declaration REFUSES rather than defaulting.** A default
-    // set decides which files get deleted, and the moment the tool understands
-    // the rule least is the worst moment to act confidently on one.
-    //
-    // **`hydrate` deliberately does NOT do this.** It materialises one
-    // addressed artefact; rewriting the whole region as a side effect of
-    // realising one thing would make `intent edit` a verb that reorganises the
-    // estate.
-    let realised = crate::preconditions::realised_statuses(&self.canon).map_err(|why| {
-      // **THE SHARED `Unreadable` TYPE SPEAKS ABOUT PRECONDITIONS, AND THIS IS
-      // NOT THAT DECLARATION.** Reusing the block READER is right -- one
-      // grammar, one home -- but its `NoDeclaration` message reads "this
-      // project declares no dehydration preconditions", which for a missing
-      // REALISED block is a confident sentence about the wrong subject.
-      FacadeError::RealisationRuleUnreadable {
-        why: match why {
-          crate::preconditions::Unreadable::NoDeclaration => {
-            "no criterion carries a `<<REALISED ... REALISED>>` block, so nothing declares which statuses are realised to disk. `organize` refuses rather than guessing: the answer decides which files are removed".to_string()
-          }
-          other => other.to_string(),
-        },
-      }
-    })?;
-    let generated: Vec<intentfiles::Generated> = self
-      .canon
-      .threads
-      .iter()
-      .filter(|t| realised.contains(&t.status))
-      .map(|t| intentfiles::Generated::new(intentfiles::Sigil::SteelThread, t.id.clone()))
-      .collect();
-    let rewritten = intentfiles::render(&raw, &generated).map_err(FacadeError::Intentfiles)?;
-    let manifest = intentfiles::parse(&rewritten).map_err(FacadeError::Intentfiles)?;
-
-    // **WRITTEN ONLY ON APPLY, AND BEFORE THE TREE IS OBSERVED.** Both halves
-    // were found by a guard rather than by reasoning.
-    //
-    // ONLY ON APPLY, because the manifest is the CAUSE half of AC-02.4: writing
-    // the region during a preview would put the cause in the working tree while
-    // the effect stayed hypothetical -- the same diff unreadable from the other
-    // end.
-    //
-    // BEFORE `observe`, because the write MOVES THE TREE. The first version
-    // wrote it between planning and applying, and `Plan::run`'s digest guard
-    // refused every apply with `TreeMoved` -- correctly: it cannot tell my
-    // write from a peer's. **The guard caught a real defect in the wiring on
-    // its first run.**
-    //
-    // Writing before the plan also means the manifest is corrected even when
-    // the removals are then REFUSED by the ship gate, which is the behaviour
-    // this estate needs: the declaration becomes right now, and the removals
-    // stay gated until the preconditions are met. Deferring the write until a
-    // fully successful apply would leave the empty declaration standing until
-    // the very moment it becomes dangerous.
-    if mode == organize::Mode::Apply && rewritten != raw {
-      std::fs::write(self.project.intentfiles_path(), &rewritten).map_err(|source| {
-        FacadeError::ManifestUnreadable {
-          path: self.project.intentfiles_path().display().to_string(),
-          source,
-        }
-      })?;
-    }
-
+    // It also settles a mystery this estate spent an evening on:
+    // `intentfiles::render` had no production caller because **the thing it
+    // does is not needed**, not because anybody forgot to wire it.
+    let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
 
     let (tree, digest) =

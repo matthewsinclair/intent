@@ -885,6 +885,11 @@ mod tests {
   #[test]
   fn paths_decompose_into_family_and_verb() {
     let st = Entry {
+      // Added when `Entry` gained the field for dc's accepted-but-never-shown
+      // `organise` alias. Empty here: these are fixtures for a different
+      // property and inventing an alias would put a spelling into a test that
+      // no table declares.
+      hidden_aliases: Vec::new(),
       path: "st new".to_string(),
       help: String::new(),
       args: vec![],
@@ -929,6 +934,7 @@ mod tests {
       default: Some(default.to_string()),
     };
     let with = |arg: Arg| Entry {
+      hidden_aliases: Vec::new(),
       path: "todo".to_string(),
       help: String::new(),
       args: vec![arg],

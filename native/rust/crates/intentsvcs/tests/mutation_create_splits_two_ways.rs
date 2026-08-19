@@ -12,6 +12,16 @@
 //! for the other: a surface that quietly accepted `PUT intent:///threads/ST0058`
 //! would either invent an id the tool did not choose, or write to a thread
 //! that is not the one the caller meant.
+//!
+//! # The row was RED for evidencing one limb of two, and this is the other
+//!
+//! vc ruled it red on a measured gap rather than on pending evidence: `fn post`
+//! had zero hits in `facade.rs`, so the criterion's second clause -- *a POST to
+//! the COLLECTION address RETURNING THE NEW ADDRESS* -- had no implementation
+//! at all. **ic had offered the PUT refusal for the server-assigned side as
+//! though it were coverage of the POST side.** It is not: refusing the wrong
+//! door is not the same as opening the right one, and a criterion naming two
+//! capabilities is not satisfied by one of them plus a refusal.
 
 mod common;
 
@@ -134,4 +144,135 @@ fn put_updates_without_disturbing_the_rest_of_the_thread() {
     before_others, after_others,
     "a PUT addressed at one row must not move a sibling"
   );
+}
+
+// ---------------------------------------------------------------------------
+// The POST half -- the limb this row was red for.
+// ---------------------------------------------------------------------------
+
+/// **THE PROPERTY.** A POST to the collection creates and hands back the
+/// address the tool assigned.
+#[test]
+fn post_to_the_collection_creates_and_returns_the_new_address() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+
+  let made = facade
+    .post(
+      &parse("intent:///threads").expect("the collection resolves"),
+      r#"{"title":"a thread the caller could not have named"}"#,
+    )
+    .expect("posting to the collection creates");
+
+  // **THE RETURN IS AN ADDRESS, NOT AN ID, AND THAT IS THE CRITERION'S WORD.**
+  // A caller handed a bare id has to build the address itself, which is a
+  // second spelling of the scheme at every call site.
+  let url = made.to_url();
+  assert!(
+    url.starts_with("intent:///threads/ST"),
+    "the new address names the thread the tool assigned: {url}"
+  );
+  assert_ne!(
+    url, "intent:///threads/ST0056",
+    "and it is a NEW id, not the one already there"
+  );
+
+  // And the address it handed back actually resolves to the thing it made.
+  let id = url.rsplit('/').next().expect("an id");
+  assert_eq!(
+    facade.st_show(id).expect("the posted thread exists").title,
+    "a thread the caller could not have named",
+    "the returned address is usable -- an address naming nothing is not a create"
+  );
+}
+
+/// **THE CONTROL.** Two POSTs make two threads, so the id is genuinely assigned
+/// per call rather than derived from the body.
+///
+/// Without it the case above passes on an implementation that returns a
+/// constant address and writes once.
+#[test]
+fn two_posts_make_two_threads() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+  let coll = parse("intent:///threads").expect("resolves");
+
+  let a = facade.post(&coll, r#"{"title":"first"}"#).expect("creates");
+  let b = facade.post(&coll, r#"{"title":"second"}"#).expect("creates");
+  assert_ne!(
+    a.to_url(),
+    b.to_url(),
+    "the tool assigns a fresh id per POST -- an id derived from the body would\n       \
+     collide the moment two callers posted the same title"
+  );
+}
+
+/// **POST to an ENTITY address is refused, which is the mirror of
+/// `put_to_a_server_assigned_id_is_refused`.**
+///
+/// The two refusals together are what make the split a rule rather than two
+/// independent behaviours: each verb refuses exactly where the other works.
+#[test]
+fn post_to_an_entity_address_is_refused_and_names_the_verb_that_works() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+
+  let err = facade
+    .post(
+      &parse("intent:///threads/ST0056/ac/AC-01.1").expect("resolves"),
+      r#"{"title":"x"}"#,
+    )
+    .expect_err("its id is already known, so POST is the wrong door");
+  let said = err.to_string();
+  assert!(
+    said.contains("PUT"),
+    "the refusal names the door that DOES open -- sending a caller away without\n       \
+     one is how a surface acquires a reputation for arbitrary refusals: {said}"
+  );
+  // **`said.contains("ac")` WAS THE FIRST VERSION AND IT WAS VACUOUS.** The
+  // error renders the URL, and the URL is `.../ac/AC-01.1` -- so the assertion
+  // passed on the address being echoed back rather than on the form being
+  // named, and a mutant that dropped the form name entirely survived it.
+  //
+  // A `node-inbox` discriminates because its FORM NAME is not a substring of
+  // its own URL: the address spells `nodes` and `inbox` separately, so only a
+  // message that actually names the form can contain `node-inbox`.
+  let err = facade
+    .post(
+      &parse("intent:///nodes/ic/inbox/vc/2026-08-19T11:41Z").expect("resolves"),
+      r#"{"title":"x"}"#,
+    )
+    .expect_err("a node inbox is not a collection this tool assigns ids in");
+  let said = err.to_string();
+  assert!(
+    said.contains("node-inbox"),
+    "the refusal names the FORM it refused, so it is countable rather than\n       \
+     generic -- and the form name is not spelled anywhere in the address, so\n       \
+     this cannot pass on the URL being echoed: {said}"
+  );
+}
+
+/// A posted thread still has to be a legal thread: a blank title is refused
+/// rather than defaulted.
+///
+/// **The door being new is not a reason for it to be laxer than `st new`.** A
+/// create arriving through a different surface must not be able to make an
+/// entity the verb refuses to make.
+#[test]
+fn a_posted_thread_without_a_title_is_refused() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+  let coll = parse("intent:///threads").expect("resolves");
+
+  for bad in [r#"{}"#, r#"{"title":""}"#, r#"{"title":"   "}"#, "not json"] {
+    assert!(
+      facade.post(&coll, bad).is_err(),
+      "`{bad}` must be refused -- a thread with no title is unfindable in every\n       \
+       view that lists it"
+    );
+  }
 }

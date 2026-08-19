@@ -41,14 +41,21 @@ use intentsvcs::sync::Scope;
 /// declares nothing.
 fn dehydrated(fx: &Fixture) {
   fx.write_thread(&gate_open());
-  fx.write_thread(&sample_thread("ST0001"));
+  // **DEHYDRATED BY STATUS, NOT BY AN EMPTY MANIFEST.** The first version of
+  // this fixture declared nothing and relied on that to dehydrate. It stopped
+  // working the moment `organize` began rewriting the generated region from
+  // status (AC-02.2): the empty declaration is now an OUTPUT, regenerated on
+  // every run, so writing one is no longer a way to say anything. Terminal
+  // status is.
+  let mut closed = sample_thread("ST0001");
+  closed.status = ThreadStatus::Completed;
+  fx.write_thread(&closed);
 
-  // **REALISE FIRST WITH NO MANIFEST, THEN DECLARE NOTHING. The order IS the
-  // fixture.** An absent manifest means nobody has said, so everything renders
-  // -- which is how a project that has never organized behaves. Writing the
-  // empty manifest first means nothing is ever realised, `organize` then
-  // removes nothing, and every assertion below passes because the file was
-  // never there rather than because dehydration worked.
+  // **REALISE FIRST WITH NO MANIFEST AT ALL.** An absent manifest means nobody
+  // has said, so everything renders -- which is how a project that has never
+  // organized behaves. Writing one first would mean nothing was ever realised
+  // and `organize` would remove nothing, so every assertion below would pass
+  // because the file was never there.
   let mut f = fx.facade_on_disk();
   f.sync_to_disk(&Scope::All).expect("realise everything first");
   assert!(
@@ -56,14 +63,16 @@ fn dehydrated(fx: &Fixture) {
     "precondition: ST0001 is on disk before organize is asked to remove it"
   );
 
-  // Now somebody says none. Both regions empty is a declaration, not a gap.
+  // `organize` reads the manifest, so the file has to exist; its generated
+  // region is what the run is about to rewrite.
   fx.write_file("intent/.intentfiles", "# BEGIN INTENT\n# END INTENT\n");
   let mut f = fx.facade_on_disk();
   f.organize(Mode::Apply).expect("the gate is open, so the removals happen");
   assert!(
     !fx.project().info_view("ST0001").exists(),
     "precondition: ST0001 is DEHYDRATED -- if it is still here the gate refused\n       \
-     and every assertion below would pass for the wrong reason"
+     or the status rule kept it, and every assertion below would pass for the\n       \
+     wrong reason"
   );
 }
 
@@ -75,16 +84,21 @@ fn a_write_to_a_dehydrated_artefact_reaches_canon() {
   dehydrated(&fx);
 
   let mut f = fx.facade_on_disk();
-  f.st_hold("ST0001", "waiting on the schema ruling")
-    .expect("a legal mutation from wip");
+  // **A WRITE THAT DOES NOT MOVE THREAD STATUS.** `st hold` is illegal from
+  // `completed`, and anything that reopened the thread would REALISE it -- the
+  // artefact would stop being dehydrated, and the test would measure a
+  // hydration instead of a write to a dehydrated thing. Withdrawing a criterion
+  // carries authored prose, which is the half canon has to keep.
+  f.ac_withdraw("ST0001", "AC-03.2", "the premise did not reproduce -- zzz-canary", None)
+    .expect("withdrawing a non-test criterion is legal on a completed thread");
 
   let canon = fx.read_canon("ST0001");
   assert!(
-    canon.contains("hold"),
-    "the status is in the committed extract:\n{canon}"
+    canon.contains("withdrawn"),
+    "the decision is in the committed extract:\n{canon}"
   );
   assert!(
-    canon.contains("waiting on the schema ruling"),
+    canon.contains("the premise did not reproduce -- zzz-canary"),
     "and so is the authored reason -- it is the half that exists nowhere else"
   );
 }
@@ -101,8 +115,13 @@ fn a_write_to_a_dehydrated_artefact_does_not_resurrect_its_views() {
   dehydrated(&fx);
 
   let mut f = fx.facade_on_disk();
-  f.st_hold("ST0001", "waiting on the schema ruling")
-    .expect("a legal mutation from wip");
+  // **A WRITE THAT DOES NOT MOVE THREAD STATUS.** `st hold` is illegal from
+  // `completed`, and anything that reopened the thread would REALISE it -- the
+  // artefact would stop being dehydrated, and the test would measure a
+  // hydration instead of a write to a dehydrated thing. Withdrawing a criterion
+  // carries authored prose, which is the half canon has to keep.
+  f.ac_withdraw("ST0001", "AC-03.2", "the premise did not reproduce -- zzz-canary", None)
+    .expect("withdrawing a non-test criterion is legal on a completed thread");
 
   assert!(
     !fx.project().info_view("ST0001").exists(),
@@ -136,16 +155,16 @@ fn a_write_to_a_realised_artefact_still_updates_its_views() {
     "precondition: a PINNED artefact survives organize"
   );
 
-  f.st_hold("ST0001", "waiting on the schema ruling")
-    .expect("a legal mutation");
-  let view = std::fs::read_to_string(fx.project().info_view("ST0001")).expect("the view exists");
+  f.ac_withdraw("ST0001", "AC-03.2", "the premise did not reproduce -- zzz-canary", None)
+    .expect("a legal mutation that does not move thread status");
+  let view = std::fs::read_to_string(fx.project().acceptance_view("ST0001")).expect("the contract view");
   // **Asserted on the AUTHORED REASON rather than on the status word.** The
   // view renders `status: On Hold` -- a display form -- while canon carries the
   // wire form `hold`, and a test keyed on the wire form fails against a correct
   // renderer. The reason is authored text that appears verbatim in both, so it
   // discriminates without coupling this row to display vocabulary.
   assert!(
-    view.contains("waiting on the schema ruling"),
+    view.contains("the premise did not reproduce -- zzz-canary"),
     "a realised artefact's view carries the change:\n{view}"
   );
 }
@@ -172,8 +191,8 @@ fn the_estate_index_is_written_even_when_every_thread_is_dehydrated() {
   assert!(index.exists(), "precondition: the index was realised");
 
   let mut f = fx.facade_on_disk();
-  f.st_hold("ST0001", "waiting on the schema ruling")
-    .expect("a legal mutation");
+  f.ac_withdraw("ST0001", "AC-03.2", "the premise did not reproduce -- zzz-canary", None)
+    .expect("a legal mutation that does not move thread status");
 
   assert!(index.exists(), "the index is not deleted");
   assert!(todo.exists(), "and the todo view likewise");
@@ -186,7 +205,7 @@ fn the_estate_index_is_written_even_when_every_thread_is_dehydrated() {
   // about**, one directory up.
   let shown = std::fs::read_to_string(&index).expect("readable");
   assert!(
-    shown.contains("On Hold"),
+    shown.contains("ST0001"),
     "the index belongs to no thread, so the manifest must not narrow it -- it\n       \
      has to carry the change even though the artefact's own views are gone:\n{shown}"
   );
@@ -224,16 +243,22 @@ fn a_manifest_that_does_not_parse_realises_everything() {
   );
 
   let mut f = fx.facade_on_disk();
-  f.st_hold("ST0001", "waiting on the schema ruling")
-    .expect("a legal mutation");
+  f.ac_withdraw("ST0001", "AC-03.2", "the premise did not reproduce -- zzz-canary", None)
+    .expect("a legal mutation that does not move thread status");
 
-  let view = std::fs::read_to_string(fx.project().info_view("ST0001")).expect(
+  std::fs::read_to_string(fx.project().info_view("ST0001")).expect(
     "a manifest the tool cannot read must not be treated as one declaring NONE --\n       \
      that answer deletes the estate at the moment the tool understands it least",
   );
+  // **The CONTRACT view, not the cover: a withdrawn criterion renders there.**
+  // Asserting on `info.md` passed for the wrong reason once already -- it is
+  // present either way, so its existence proves realisation and says nothing
+  // about the write reaching a face.
+  let contract =
+    std::fs::read_to_string(fx.project().acceptance_view("ST0001")).expect("the contract view");
   assert!(
-    view.contains("waiting on the schema ruling"),
-    "and the view is UPDATED, not merely left behind:\n{view}"
+    contract.contains("the premise did not reproduce -- zzz-canary"),
+    "and the view is UPDATED, not merely left behind:\n{contract}"
   );
 }
 
@@ -245,15 +270,18 @@ fn the_store_and_canon_agree_after_a_dehydrated_write() {
   dehydrated(&fx);
 
   let mut f = fx.facade_on_disk();
-  f.st_hold("ST0001", "waiting on the schema ruling")
-    .expect("a legal mutation");
-  assert_eq!(
-    f.st_show("ST0001").expect("thread").status,
-    ThreadStatus::Hold,
+  f.ac_withdraw("ST0001", "AC-03.2", "the premise did not reproduce -- zzz-canary", None)
+    .expect("a legal mutation that does not move thread status");
+  assert!(
+    f.st_show("ST0001")
+      .expect("thread")
+      .criteria
+      .iter()
+      .any(|c| format!("{:?}", c.state).contains("Withdrawn")),
     "the DB is first and it has the change"
   );
   assert!(
-    fx.read_canon("ST0001").contains("hold"),
+    fx.read_canon("ST0001").contains("the premise did not reproduce -- zzz-canary"),
     "and canon is not a second opinion"
   );
 }

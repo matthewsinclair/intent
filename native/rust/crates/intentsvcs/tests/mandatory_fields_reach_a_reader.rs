@@ -99,7 +99,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // dc's, arriving mid-session with `Facade::hydrate`. It refuses because an
     // entity form has no file to make exist, not because a value was left out
     // -- there is no authored prose behind it for a reader to lose.
-    | FacadeError::NotHydratable { .. } => None,
+    | FacadeError::NotHydratable { .. }
+    // A wrapped realisation failure. It reports that making files exist did not
+    // work, not that a value was left out -- no authored prose behind it.
+    | FacadeError::Realise(_) => None,
   }
 }
 

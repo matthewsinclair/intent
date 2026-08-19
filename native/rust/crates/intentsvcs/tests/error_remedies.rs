@@ -373,6 +373,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
     FacadeError::EgestWouldEmptyTheEstate { .. } => "EgestWouldEmptyTheEstate",
+    FacadeError::Realise(_) => "Realise",
     FacadeError::Organize(_) => "Organize",
     FacadeError::Intentfiles(_) => "Intentfiles",
     FacadeError::ManifestUnreadable { .. } => "ManifestUnreadable",
@@ -425,11 +426,19 @@ const ALL_VARIANTS: &[&str] = &[
   "MigrationHalted",
   "EgestFromRefusedIngest",
   "EgestWouldEmptyTheEstate",
+  "Realise",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **DECLARED BY ic, NOT BY ITS AUTHOR, AND THEY SHOULD OVERTURN IT IF IT IS
+  // WRONG.** The variant landed in HEAD without this arm, so the workspace did
+  // not compile for any node; the arm is mechanical and the exemption is the
+  // one judgement in it. `Realise` wraps a realisation failure -- a filesystem
+  // that would not write -- which is the broken-world class this list is for.
+  // If it is reachable by a bad CALL, it belongs provoked instead.
+  "Realise",
   // Needs a TREE in a particular state rather than a bad call -- a hand-edited
   // view, a tree that moved mid-apply, an attachment divergence, or an unmet
   // ship precondition. All four are driven where the state can be built:
