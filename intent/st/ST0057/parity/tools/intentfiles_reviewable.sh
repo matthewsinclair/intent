@@ -2,7 +2,12 @@
 # intentfiles_reviewable.sh -- a realisation change is reviewable: the manifest
 # line that caused it lands in the same working tree.
 #
-# COVERS ST0057 AC-02.4. The committed-manifest ruling rests on reviewability:
+# COVERS ST0057 AC-02.4, AND IS CITED BY AT-02.4. Both ids are spelled out
+# because the row and the file each look correct alone and only the PAIR can be
+# wrong -- `intent at lint` refused this file for naming the criterion and not
+# the row, which is the same defect vc hit on AT-03.18.
+#
+# The committed-manifest ruling rests on reviewability:
 # `.intentfiles` is tracked so that when realisation changes, a reader of the
 # diff sees the CAUSE beside the EFFECT. Files appearing or vanishing with no
 # visible reason is the state the ruling exists to prevent -- and it is not a
