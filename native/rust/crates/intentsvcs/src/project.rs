@@ -316,6 +316,161 @@ pub fn canon_blob_rel(id: &str, path: &str) -> String {
   format!(".canon/st/{id}/{path}")
 }
 
+/// Why an attachment path cannot be carried (ST0057 AC-03.3).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BadName {
+  /// Its canon path would land outside the thread's own canon directory.
+  EscapesCanon { would_be: String },
+  /// It is not already normalised, so two different attachment paths would
+  /// share one canon file and the second write would destroy the first.
+  Collides { would_be: String },
+  /// It cannot be addressed: the URL built from it does not parse back to the
+  /// same path.
+  NotAddressable { url: String, reason: String },
+}
+
+impl std::fmt::Display for BadName {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::EscapesCanon { would_be } => write!(
+        f,
+        "its canon copy would be written to {would_be}, outside the thread's own directory"
+      ),
+      Self::Collides { would_be } => write!(
+        f,
+        "it is not already normalised: its canon copy would be written to {would_be}, which is \
+         also where the attachment actually named that would go -- two paths, one file, and the \
+         second write destroys the first"
+      ),
+      Self::NotAddressable { url, reason } => {
+        write!(f, "it cannot be addressed -- {url} {reason}")
+      }
+    }
+  }
+}
+
+/// Whether an attachment path can be given BOTH a canon path and a URL
+/// (ST0057 AC-03.3, D57-8).
+///
+/// # It is DERIVED from the two consumers, never a list of bad characters
+///
+/// A hand-written character list is a second opinion about what those two
+/// mechanisms accept, and a second opinion drifts the moment either of them
+/// changes -- silently, and in the direction that admits a name one of them
+/// cannot take. So each half is answered by ASKING the mechanism:
+///
+/// - **The canon half** builds the real path through [`canon_blob_rel`] and
+///   requires it to stay inside the thread's own canon directory once `.` and
+///   `..` are resolved. This is not a tidiness rule: hydration WRITES to that
+///   path, so a name that escapes it is a write outside the thread, chosen by
+///   whoever named the file.
+/// - **The URL half** builds `intent:///threads/{id}/attachments/{path}` and
+///   requires [`crate::address::parse`] to return the SAME path. Round-tripping
+///   through the real parser is what stops this rule and the addressing layer
+///   disagreeing: a path that survives the trip is addressable by construction,
+///   and one that does not is rejected for the parser's own reason rather than
+///   for a reason invented here.
+///
+/// # Lexical resolution, deliberately, and it is the stricter answer
+///
+/// `..` is resolved textually rather than by asking the filesystem. A
+/// filesystem answer depends on what exists at the moment of asking -- a
+/// symlink, a directory not yet created -- so the same name could be legal on
+/// one machine and not another, and the check would pass on the estate that
+/// wrote it and refuse on the clone that received it.
+///
+/// # WHAT THIS DOES NOT CATCH, said out loud
+///
+/// **The URL half is exactly as strict as [`crate::address::parse`], which is
+/// the point and also the limit.** Measured against the accepted set: a name
+/// containing a SPACE, a `#`, or a control character such as a newline is
+/// ACCEPTED, because the parser takes them. A `#` would truncate the address in
+/// any standard URL reader, and a newline breaks every line-oriented tool that
+/// ever handles the path.
+///
+/// **That is not a hole to patch here.** Adding a character list would rebuild
+/// the second opinion this function exists to avoid, and it would then disagree
+/// with the addressing layer in the direction where a name is refused although
+/// the parser would happily take it. **If those names should be refused, the
+/// parser is where it belongs -- and then both consumers gain it at once, which
+/// is the whole return on deriving the rule.** Reported to whoever owns D57-8
+/// rather than worked around.
+///
+/// **So a green from this function means "canon and the addressing layer can
+/// both take this name", and does NOT mean "this name is safe in a shell".**
+/// The two are different claims and only the first is being made.
+pub fn attachment_name(thread: &str, path: &str) -> Result<(), BadName> {
+  let rel = canon_blob_rel(thread, path);
+  let prefix = format!(".canon/st/{thread}/");
+
+  // Resolve `.` and `..` lexically. A leading `..` pops past the prefix and the
+  // containment test below fails, which is the whole point.
+  let mut resolved: Vec<&str> = Vec::new();
+  for part in rel.split('/') {
+    match part {
+      "." | "" => {}
+      ".." => {
+        resolved.pop();
+      }
+      other => resolved.push(other),
+    }
+  }
+  let resolved = resolved.join("/");
+  // **RESOLUTION MUST BE A NO-OP, not merely land inside the directory, and the
+  // difference is a collision rather than a nicety.** `a/./b.md` resolves to
+  // `a/b.md`, which is contained -- and is the SAME canon file as the
+  // attachment actually named `a/b.md`. Two distinct attachment paths, one
+  // sidecar, and the second write silently destroys the first. Requiring the
+  // path to be already-normalised catches that, and catches `..`, `//`,
+  // a trailing separator and the empty path in the same rule instead of four.
+  //
+  // Found by probing the accepted set rather than by reading this function: the
+  // containment test passed `a/./b.md` and looked correct doing it.
+  // **CONTAINMENT FIRST, and the order is not cosmetic.** Both tests fire for
+  // `../x.md`, and only one of them describes it: it escapes the thread, and it
+  // also happens to be un-normalised. Answering "collision" for a path
+  // traversal sends an operator looking for a duplicate that does not exist,
+  // and buries the write-outside-the-thread finding under a tidiness one.
+  //
+  // The first version had these the other way round and every escape in the
+  // probe set came back mislabelled -- correct refusals, wrong reasons, which
+  // is the shape a reader trusts and acts on.
+  if !resolved.starts_with(&prefix) || resolved.len() == prefix.len() {
+    return Err(BadName::EscapesCanon { would_be: resolved });
+  }
+  // **Reported as a COLLISION and not as an escape, because `a/./b.md` resolves
+  // INSIDE the directory.** Calling that "outside the thread" would describe a
+  // fault the file does not have.
+  if resolved != rel {
+    return Err(BadName::Collides { would_be: resolved });
+  }
+
+  let url = format!("intent:///threads/{thread}/attachments/{path}");
+  match crate::address::parse(&url) {
+    Ok(address) => match &address.entity {
+      crate::address::Entity::Attachment {
+        path: round_tripped,
+        ..
+      } if round_tripped == path => Ok(()),
+      crate::address::Entity::Attachment {
+        path: round_tripped,
+        ..
+      } => Err(BadName::NotAddressable {
+        url,
+        reason: format!("reads back as {round_tripped:?} rather than {path:?}"),
+      }),
+      other => Err(BadName::NotAddressable {
+        url,
+        reason: format!("reads back as {other:?} rather than as an attachment"),
+      }),
+    },
+    Err(e) => Err(BadName::NotAddressable {
+      url,
+      reason: format!("does not parse: {e}"),
+    }),
+  }
+}
+
 /// One issue's canon path, relative to the intent directory. Zero-padded,
 /// which is the half that was wrong before.
 pub fn canon_issue_rel(number: u32) -> String {
@@ -715,6 +870,22 @@ impl Project {
       }
       let path = dir.join(&rel);
       let name = self.relative(&path);
+      // **THE NAMING GATE, AT INGEST** (ST0057 AC-03.3). A path that cannot be
+      // given both a canon path and a URL is refused HERE, which is the only
+      // door into the model -- so a name nothing could store or address never
+      // becomes canon in the first place.
+      //
+      // **REJECTION IS NOT RETROACTIVE, and that falls out rather than being
+      // arranged.** Refusing here means the file is not carried; `organize`
+      // then meets a `ThreadFile::Attachment` the store does not hold and
+      // reports it UNCLAIMED at row five, which it never removes because it is
+      // the only copy. So an existing violator is named on every run and left
+      // exactly where its author put it.
+      let attachment_rel = rel.to_string_lossy().replace('\\', "/");
+      if let Err(bad) = crate::project::attachment_name(id, &attachment_rel) {
+        refused.push((name, bad.to_string()));
+        continue;
+      }
       match std::fs::read(&path) {
         // **FORM FOLLOWS CONTENT, and this is the only place that decides it**
         // (ST0057 AC-03.2). Valid UTF-8 is carried inline as `text`; anything
