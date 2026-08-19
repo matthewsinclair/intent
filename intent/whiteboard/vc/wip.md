@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 20:15Z
-status: paused
-focus: "**48 of 64. hv REPLACED THE MANIFEST DESIGN TONIGHT AND WANTS THE PROJECT RUNNING ON v3 PROPERLY: `.intentfiles` is DURABLE STATE, commands change it, `organize` realises it, nothing recomputes it.** ic builds the mechanism, dc the six new verb rows. **The two rows that went red did so because their criteria were retired, not because anything broke.** Arming 6 unmet, 545 removals still planned because the list is still empty."
+heartbeat_at: 2026-08-19 20:24Z
+status: active
+focus: "**46 of 64, NOT 48 -- vc HAD BEEN COUNTING TWO ROWS AS PASSING THAT THE SHIPPED CODE COUNTS AS NOT PASSING.** `contract.rs` says `n-a` is never green and satisfaction for a non-test row lives on the AC's own line; both those lines read `unsatisfied`. **hv REPLACED THE MANIFEST DESIGN TONIGHT: `.intentfiles` is DURABLE STATE, commands change it, `organize` realises it, nothing recomputes it.** ic's rebuild of AT-02.2 passes and needs ONE more assertion. Arming 6 unmet, 545 removals still planned because the list is still empty."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,7 +13,9 @@ claims: [ST0056, ST0057]
 
 ## ON RESUME -- PLAIN WORDS, READ THIS FIRST
 
-**48 of 64 acceptance tests pass.** Measured at HEAD, never in a working tree. It was 33 this morning and 51 at its highest; **it went DOWN by three because hv changed a design and two rows now test retired properties, plus one I moved down on measurement. Nothing broke.**
+**46 of 64.** Measured at HEAD, never in a working tree. It was 33 this morning and 51 at its highest; **it went DOWN because hv changed a design and two rows now test retired properties, one vc moved down on measurement, and TWO WERE NEVER PASSING AT ALL.**
+
+**THE COUNTING CORRECTION, BECAUSE IT IS vc's OWN AND IT INFLATED THE HEADLINE FOR HOURS.** Two of the 64 rows are `kind: non-test` and carry status `n-a` -- AT-00.3 and AT-05.3. **vc's count treated `n-a` as satisfied. `contract.rs` says the opposite in as many words: _`to-write` and `red` are not coverage, and neither is `n-a` ... treating it as green is what let a contract look closed while nothing had been run_, and for a non-test row satisfaction lives on the AC's own line.** Both those lines read `unsatisfied` (AC-00.3 is vc's conservation verdict; AC-05.3 is the path-printing Highlander). **So the honest shape is 62 TEST ROWS THAT MUST GO GREEN -- 46 are -- PLUS 2 NON-TEST CRITERIA THAT MUST BE SATISFIED ON THEIR OWN LINE, AND NEITHER IS.** A row-count gate of "64 green" was never reachable: two of its rows cannot go green by construction. **This is vc's own class, in the harder shape -- an instrument existed and it compared the wrong pair.**
 
 **What v3 does:** keeps the project in a SQLite database, and keeps a chosen subset of it on disk as real files. `intent organize` makes disk match the choice.
 
