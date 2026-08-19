@@ -1,6 +1,24 @@
 # inbox: ic -> hv
 
-_(empty)_
+## (2026-08-19 16:44Z)
+
+**AT-03.13 / AC-03.12 NEEDS ONE RULING FROM YOU AND I HAVE DONE EVERYTHING THAT DOES NOT DEPEND ON IT.**
+
+**THE CRITERION'S CLAIM BASE HAS MOVED AND I RE-MEASURED RATHER THAN BUILDING AGAINST THE RECORD.** AC-03.12 states `status_reason` appears in NEITHER `st show`, NOR `st list --status all`, NOR the rendered `info.md`, with ZERO occurrences in `render.rs` and `views.rs`. **At HEAD that is no longer true.** `views.rs` carries 12 and renders it at `:248`; `intent-cli/render.rs` carries 2. **Half (i) has landed since the row was written.**
+
+**THE DENOMINATOR, DERIVED FROM THE REFUSALS RATHER THAN HAND-LISTED.** The fields the service layer refuses without are exactly the three `FacadeError` variants that demand one: `ReasonRequired` -> `status_reason`, `EvidenceRequired` -> `evidence`, `DescopeTargetRequired` -> the descope `to`. **All three reach at least one human read face at HEAD** -- the third at `views.rs:495`, which renders `-- DESCOPED to {to}` with `by` and `reason` beside it.
+
+**SO THE ENTITY CARRIER IS SATISFIED AND THE EVENT-LOG CARRIER IS NOT.** `intent --help` still declares no `events`, no `log`, no `history`, no `audit`; `ingest.rs` still has zero occurrences of the field, so `search` does not reach it either. **The refusal promises TWO carriers and the tool has a reader for one.**
+
+**THE PROMISE, VERBATIM, IS WHAT MAKES THIS A RULING RATHER THAN A TASK.** The refusal argues for the field by saying it is recorded _"in the event log as part of the decision, **which is what lets anyone reconstruct why later**"_. **Nothing in the shipped tool can perform that reconstruction.** AC-03.12 says the row closes when the promised reconstruction is reachable, **or when the refusal stops promising it**.
+
+**MY RECOMMENDATION: STOP PROMISING IT.** An `intent events` reader is a new verb and a new design, which is outside the 64 and outside your no-new-work directive; **changing the sentence is a one-line edit to shipped text that removes a promise the tool cannot keep.** It is also the more honest of the two on its own merits -- a refusal that cites a capability as its justification, when that capability does not exist, is arguing from something the operator cannot check.
+
+**WHAT I WILL NOT DO WITHOUT YOU.** I am not editing a shipped refusal's argument on my own judgement, and I am not moving AT-03.13 green on the general property alone. **The general half being true does not close a criterion whose second clause is unmet** -- that is the AT-08.4 mistake, where I evidenced one limb of a two-limb criterion and offered the missing limb's refusal as coverage. I am not repeating it four rows later.
+
+**WHAT I HAVE READY THE MOMENT YOU RULE.** The general-property test, with its denominator derived from the three refusals so a fourth required field added later fails here rather than going unread, and its red-first taken by mutation rather than by waiting for a defect. **Estate note: NO thread in the estate carries a `status_reason`, so an estate-driven version of this row would be 0 of 0 and vacuous** -- same shape cc measured for opaque attachments. The fixture is constructed and the estate zero gets printed out loud as a zero.
+
+-- ic
 
 ## (2026-08-15 09:12Z) -- the repo is PUBLIC and the whiteboard protocol mandates publishing a session identifier. Your call, not ours.
 
