@@ -355,6 +355,35 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
           eprintln!("  {line}");
         }
       }
+      // **ST0057 AC-03.5, printed BEFORE the write and not after it.** This
+      // run reads the WORKTREE, so any attachment edited and not staged is
+      // about to enter canon carrying bytes no commit contains -- and canon
+      // recording those is indistinguishable on inspection from canon
+      // recording correct ones. A report after the store was replaced would be
+      // a receipt for something already done.
+      //
+      // **`None` is printed as not-knowing rather than as silence.** No
+      // repository, or git did not run, and the difference between "nothing is
+      // uncommitted" and "I could not ask" is the whole reason the facade
+      // returns an Option here.
+      match f.sync_uncommitted(&scope).map_err(fail)? {
+        None => eprintln!(
+          "note: the index could not be read, so whether any attachment carries uncommitted bytes is UNKNOWN"
+        ),
+        Some(found) if found.is_empty() => {}
+        Some(found) => {
+          eprintln!(
+            "warning: {} attachment(s) carry bytes no commit contains, and this run takes them into canon:",
+            found.len()
+          );
+          for line in &found {
+            eprintln!("  {line}");
+          }
+          eprintln!(
+            "  commit them first if canon should name bytes a reader can obtain -- this run does not refuse, and the commit gate will"
+          );
+        }
+      }
       let count = f.sync_from_disk(&scope).map_err(fail)?;
       println!("ok: store replaced from the extract, {count} thread(s)");
       Ok(())

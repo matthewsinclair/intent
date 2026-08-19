@@ -1318,7 +1318,14 @@ impl Facade {
   /// **AND THE RE-WALK IS PAID FOR ONLY WHEN SOMETHING IRREVERSIBLE IS ABOUT TO
   /// HAPPEN.** `apply` calls the closure exclusively on a plan that will remove,
   /// so a pure hydration walks the tree once.
-  pub fn organize(&mut self) -> Result<organize::Report, FacadeError> {
+  /// Reconcile the tree with `.intentfiles` (D57-3).
+  ///
+  /// **THE MODE IS A PARAMETER RATHER THAN A DEFAULT HERE, AND THE SURFACE OWNS
+  /// THE POLARITY.** ic ruled preview-by-default at the command (AC-05.1); this
+  /// layer refuses to hold a second opinion about it, because a default living
+  /// in two places is how v2 came to ship `--dry-run` on one face and `--write`
+  /// on the other.
+  pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {
     let raw = std::fs::read_to_string(self.project.intentfiles_path()).map_err(|source| {
       FacadeError::ManifestUnreadable {
         path: self.project.intentfiles_path().display().to_string(),
@@ -1337,7 +1344,7 @@ impl Facade {
 
     let project = &self.project;
     plan
-      .apply(&|| {
+      .run(mode, &|| {
         organize::observe(project, &previous)
           .map(|(_, digest)| digest)
           // **A FAILED RE-OBSERVATION MUST NOT READ AS AN UNCHANGED TREE.** The
@@ -1450,8 +1457,13 @@ impl Facade {
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
     };
+    // **`hydrate` IS ALWAYS `Mode::Apply`, AND IT NEEDS NO FLAG TO BE.** The
+    // preview/apply split exists because `organize` REMOVES; `hydrate` only
+    // ever writes, and a caller naming an address has already said what they
+    // want to happen to it. Making the safe verb ask twice would teach the
+    // reflex that makes the dangerous one's question invisible.
     scoped
-      .apply(&|| {
+      .run(organize::Mode::Apply, &|| {
         organize::observe(&self.project, &previous)
           .map(|(_, digest)| digest)
           .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
@@ -1648,6 +1660,46 @@ impl Facade {
   /// list. Both end with the warning unread, which is the state it exists to
   /// prevent -- and it is the same failure as an under-report, arrived at from
   /// the other side.
+  /// Attachments whose worktree bytes the git index does not hold (ST0057
+  /// AC-03.5).
+  ///
+  /// **Reported BEFORE the store is written, because after it the report is a
+  /// receipt.** `sync --to-store` reads the WORKTREE, so an uncommitted edit
+  /// sitting in the tree is carried into canon by whoever syncs next -- and
+  /// canon then records an artefact whose bytes exist in no commit, which is
+  /// indistinguishable on inspection from a correct one. dc measured that
+  /// happening twice in one afternoon, once to the node who wrote the
+  /// commit-yours-first rule. **A rule that lives in a peer message is followed
+  /// until somebody is mid-task.**
+  ///
+  /// **It REPORTS and does not refuse, deliberately.** The harm is not at sync
+  /// -- canon holding uncommitted bytes in a working tree is a dirty tree:
+  /// normal, reversible, nobody's problem. It becomes permanent at the COMMIT,
+  /// which is AC-03.6's gate and dc's `canon_commit_check.sh`. Refusing here
+  /// would block the ordinary act of saving your own in-flight work, which is
+  /// the guard nobody keeps.
+  ///
+  /// **`None` means the question could not be asked** -- no repository, or git
+  /// did not run -- and is not an empty list. The caller must be able to say "I
+  /// do not know" rather than print a clean bill of health it did not earn.
+  pub fn sync_uncommitted(&self, scope: &SyncScope) -> Result<Option<Vec<String>>, FacadeError> {
+    let canon = ingest::read(&self.project)?;
+    let mut paths = Vec::new();
+    for thread in canon.threads.iter().filter(|t| scope.selects(&t.id)) {
+      for att in &thread.attachments {
+        paths.push(
+          self
+            .project
+            .relative(&self.project.thread_dir(&thread.id).join(&att.path)),
+        );
+      }
+    }
+    Ok(
+      crate::sync::uncommitted(self.project.root(), &paths)
+        .map(|found| found.iter().map(ToString::to_string).collect()),
+    )
+  }
+
   pub fn sync_overwrite(&self, scope: &SyncScope) -> Result<Vec<String>, FacadeError> {
     let (stored_threads, stored_issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let on_disk = ingest::read(&self.project)?;

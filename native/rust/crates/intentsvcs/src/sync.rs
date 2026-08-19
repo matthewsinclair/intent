@@ -14,6 +14,7 @@
 //! the optimisation is a recorded deviation with its own evidence, never an
 //! accident that silently reintroduces the blind spot.
 
+use std::collections::BTreeSet;
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -482,6 +483,125 @@ fn is_marker(line: &str, c: char) -> bool {
 
 fn hex(bytes: &[u8]) -> String {
   bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// Why a file's bytes are not in the index (ST0057 AC-03.5).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NotInIndex {
+  /// Tracked, and the working tree differs from what is staged.
+  Modified,
+  /// Not in the index at all, so no commit can contain these bytes.
+  Untracked,
+}
+
+impl NotInIndex {
+  fn describe(self) -> &'static str {
+    match self {
+      Self::Modified => "edited in the working tree and not staged",
+      Self::Untracked => "untracked, so no commit contains it",
+    }
+  }
+}
+
+/// One file whose worktree bytes the index does not hold.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Uncommitted {
+  /// Project-relative, forward-slashed -- the same spelling [`scan`] uses.
+  pub path: String,
+  pub state: NotInIndex,
+}
+
+impl std::fmt::Display for Uncommitted {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}: {}", self.path, self.state.describe())
+  }
+}
+
+/// Run a git plumbing command under `root` and split its NUL-separated output.
+///
+/// **`-z` AND NUL SPLITTING, NEVER WHITESPACE, AND THIS ESTATE HAS THE
+/// COUNTEREXAMPLE ON DISK.** It carries a file whose name contains spaces --
+/// the `.webloc` AC-03.3's naming gate exists to reject -- and a whitespace
+/// split of a path list turned that ONE file into EIGHT fragments while the run
+/// printed a plausible four-digit total. Porcelain output additionally QUOTES
+/// such paths, which a reader then has to unquote correctly or silently
+/// mis-handle; `-z` emits them raw and the problem does not arise.
+///
+/// A non-zero exit is `None` rather than an empty list. The two are not the
+/// same: no repository, or a git that could not run, means the question was not
+/// answered, and reporting an unanswered question as "nothing is wrong" is how
+/// a check comes to mean nothing.
+fn git_paths(root: &Path, args: &[&str]) -> Option<Vec<String>> {
+  let out = std::process::Command::new("git")
+    .args(args)
+    .current_dir(root)
+    .output()
+    .ok()?;
+  if !out.status.success() {
+    return None;
+  }
+  Some(
+    out
+      .stdout
+      .split(|b| *b == 0)
+      .filter(|s| !s.is_empty())
+      .map(|s| String::from_utf8_lossy(s).into_owned())
+      .collect(),
+  )
+}
+
+/// Which of `paths` have bytes the index does not hold (ST0057 AC-03.5).
+///
+/// # The comparison is against the INDEX, not against HEAD
+///
+/// `git commit` records the index, so the index is what the NEXT commit will
+/// contain -- which makes it the right thing to ask about a file whose bytes are
+/// on their way into canon. A comparison against HEAD would report every staged
+/// file as uncommitted, which is the normal state of a commit being assembled,
+/// and a check that fires on ordinary work is one people learn to skip.
+///
+/// # Two questions, because "not in the index" has two shapes
+///
+/// `diff-files` compares the working tree to the index and answers for TRACKED
+/// files. It says nothing about a file the index has never heard of -- so an
+/// attachment created ten seconds ago is absent from its output, and a check
+/// built on it alone would be silent about the file whose bytes are LEAST
+/// likely to be in any commit. `ls-files --others` is the other half.
+///
+/// # No repository is `None`, not an empty list
+///
+/// Same reason as [`git_paths`]: an unanswered question reported as a clean
+/// answer is worse than no check. The caller decides what to do about not
+/// knowing; this cannot decide it by returning a reassuring value.
+pub fn uncommitted(root: &Path, paths: &[String]) -> Option<Vec<Uncommitted>> {
+  let wanted: BTreeSet<&str> = paths.iter().map(String::as_str).collect();
+
+  // Whole-repo queries intersected in memory, rather than passing 280 paths as
+  // arguments -- an argv list that grows with the estate is a limit nobody
+  // notices until the day it truncates, and a truncated list here reads as
+  // "nothing is wrong".
+  let modified = git_paths(root, &["diff-files", "--name-only", "-z"])?;
+  let untracked = git_paths(root, &["ls-files", "--others", "--exclude-standard", "-z"])?;
+
+  let mut out = Vec::new();
+  for path in modified {
+    if wanted.contains(path.as_str()) {
+      out.push(Uncommitted {
+        path,
+        state: NotInIndex::Modified,
+      });
+    }
+  }
+  for path in untracked {
+    if wanted.contains(path.as_str()) {
+      out.push(Uncommitted {
+        path,
+        state: NotInIndex::Untracked,
+      });
+    }
+  }
+  out.sort_by(|a, b| a.path.cmp(&b.path));
+  Some(out)
 }
 
 #[cfg(test)]
