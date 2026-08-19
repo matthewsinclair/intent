@@ -550,7 +550,7 @@
       "covers": [
         "AC-02.2"
       ],
-      "status": "red",
+      "status": "green",
       "note": "**RE-POINTED TO `intentfiles_is_the_list.rs` (ic, `0543f64b`). THE OLD FINDING IS SETTLED AND WITHDRAWN** -- `intentfiles::render` had no caller because the thing it does is not needed, not because anyone failed to wire it. **vc RAN THE NEW FILE AT `a34f4cda`: 4 passed, 0 failed, 0 build errors**, and they drive the VERB rather than the function -- both directions in one run, the list beating status both ways, the file byte-identical across a run that moved files, and a second run that moves nothing. **THE ONE THING THE CRITERION ASKS FOR THAT IS NOT ASSERTED:** it says the reconciliation is _asserted as an equality of two independently derived sets with both counts printed_, and the tests assert per-file existence on two named threads instead. **A sample of two cannot be told from a rule that handles exactly those two ids, and the live estate is 545 removals.** **IT GOES GREEN ON ONE ASSERTION: derive the realised set from disk, derive the listed set from `.intentfiles`, assert equality, print both counts.**"
     },
     {

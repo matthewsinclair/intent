@@ -1,17 +1,22 @@
-# .intentfiles -- which ARTEFACTS are realised to disk (ST0057 WP-02).
+# .intentfiles -- WHICH DATABASE ARTEFACTS ALSO HAVE A REALISED FORM ON DISK.
 #
-# Two regions, and the distinction is POSITIONAL, not by content:
+# hv, 2026-08-19, replacing the two-region design: REALISATION IS DRIVEN FROM
+# THIS FILE. Commands change it; `intent organize` realises it. Nothing
+# recomputes it from status, which is why there is no protected region any
+# more -- a write here is a CHANGE TO STATE, never a REGENERATION of it.
 #
-#   Outside the markers  PINS. Written by a human, survive an `intent organize`
-#                        rewrite byte for byte. Pin a thread here to keep it
-#                        realised after it closes -- without this the pin would
-#                        vanish with the files and nothing would name the
-#                        decision.
-#   Inside the markers   GENERATED from current status by `intent organize`.
-#                        A function of status, not a memory of what realisation
-#                        last produced, so there is nothing here to go stale.
-#                        A hand edit inside the markers is REVERTED, not
-#                        refused, on the next run -- write it above instead.
+# Many writers, one meaning. `st new` adds the id, `st done` and `st cancel`
+# remove it, `st hydrate` / `st dehydrate` and the ISSUE equivalents do it
+# directly, and a human may edit it by hand. All of those are ordinary writers;
+# none is privileged.
+#
+# THE DATABASE ALWAYS HOLDS EVERY ARTEFACT IN FULL. This file decides only what
+# is ALSO on disk, so dehydration is never a loss and hydration is a
+# regeneration rather than a restore.
+#
+# ABSENT is not EMPTY. A missing file means nobody has said, and everything
+# stays; a file present and declaring nothing means keep nothing. This file
+# exists, so what it declares is the whole of what is realised.
 #
 # Grammar: `<SIGIL>:<ID>`, sigil in STEELTHREAD | ISSUE, optional trailing
 # `# comment`. Nothing else. A line the parser cannot read ABORTS the run with
@@ -22,5 +27,10 @@
 # answer to what a file IS, and the two compose: STEELTHREAD:ST0056 realises
 # the thread and, through classify, whatever files it produces.
 
-# BEGIN INTENT
-# END INTENT
+# The live estate, 2026-08-19: every thread that is not completed or cancelled.
+# 52 completed and 2 cancelled threads are deliberately absent -- they live in
+# the store in full, and `intent st hydrate <ID>` brings any of them back.
+# All 40 issues are closed, so none is declared.
+STEELTHREAD:ST0046
+STEELTHREAD:ST0056
+STEELTHREAD:ST0057
