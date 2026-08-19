@@ -197,6 +197,26 @@ pub struct Entry {
   /// retired command back through its old spelling.
   #[serde(default)]
   pub aliases: Vec<String>,
+  /// Spellings that are ACCEPTED and never SHOWN.
+  ///
+  /// **A second list rather than a flag on the first, because they are two
+  /// dispositions rather than one list with an attribute.** `aliases` above is
+  /// registered VISIBLE on the stated ground that v2 documents those spellings
+  /// (`done|notdone`) and a hidden one would be undiscoverable -- "a different
+  /// way of not shipping it". That reasoning is correct and stays.
+  ///
+  /// **This list is for the opposite case: a spelling accepted as a COURTESY
+  /// that must never become a second name for the verb.** hv, 2026-08-19, on
+  /// `organise`: _handle 'organise' and 'organize' but only ever show the 'z'
+  /// version to keep things simple._ A courtesy spelling rendered anywhere --
+  /// `--help`, the guide, an error message, the table's own view -- stops being
+  /// a courtesy and becomes a second documented name, which is the outcome the
+  /// ruling exists to prevent.
+  ///
+  /// **The tell is built in: if one of these ever appears in output, something
+  /// is echoing the user's spelling back instead of naming the verb.**
+  #[serde(default)]
+  pub hidden_aliases: Vec<String>,
   /// Whether WP-09's MCP tool tier exposes this command (AC-09.1).
   ///
   /// **Deliberately NOT `#[serde(default)]`.** All 112 rows carry it and ic's

@@ -81,6 +81,25 @@ fn run(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
   )
 }
 
+/// The same run, read from STDOUT.
+///
+/// **A second helper rather than widening `run`'s tuple**, because every
+/// existing caller here is asking about a REFUSAL and refusals are stderr
+/// (INV-01). A name leaking into help text is a stdout question, and the two
+/// surfaces are checked for opposite reasons.
+fn run_stdout(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
+  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(args)
+    .current_dir(cwd)
+    .stdin(Stdio::null())
+    .output()
+    .expect("run the v3 binary");
+  (
+    out.status.code(),
+    String::from_utf8_lossy(&out.stdout).to_string(),
+  )
+}
+
 /// Every spelling the table retires, as argv, with the row it came from.
 ///
 /// **A RECLAIMED SPELLING IS EXCLUDED, AND IT IS NOT THE SAME AS A RETIRED ONE**
@@ -262,6 +281,65 @@ fn retired_rows_are_ordered_longest_path_first() {
 
 /// **An unknown command is still an unknown command.** The retired path must
 /// not become a catch-all that reports every typo as a retirement.
+/// **A COURTESY SPELLING IS ACCEPTED AND NEVER RENDERED** (hv, 2026-08-19:
+/// _handle 'organise' and 'organize' but only ever show the 'z' version_).
+///
+/// **THE TELL IS THE SUBJECT, NOT THE ACCEPTANCE.** That the alias runs is one
+/// line to check. The failure with teeth is the other half: a hidden spelling
+/// that leaks into `--help`, the guide, or an error string stops being a
+/// courtesy and becomes a SECOND DOCUMENTED NAME for the verb -- which is
+/// exactly what the ruling exists to prevent. **And if it ever appears, the
+/// cause is always the same: something echoed the user's spelling back instead
+/// of naming the verb**, which is the seventh-reclaim-site class in a new place.
+///
+/// Driven from the table rather than from the word `organise`, so the second
+/// courtesy spelling is covered on the day it is declared.
+#[test]
+fn a_hidden_alias_is_accepted_and_appears_in_no_output() {
+  let root = install_root();
+  let table = dispatch::table();
+  let hidden: Vec<(String, String)> = dispatch::shipped_entries(&table)
+    .iter()
+    .flat_map(|e| {
+      e.hidden_aliases
+        .iter()
+        .map(|a| (e.path.clone(), a.clone()))
+        .collect::<Vec<_>>()
+    })
+    .collect();
+  assert!(
+    !hidden.is_empty(),
+    "the table must declare at least one hidden alias, or this arm measures nothing"
+  );
+
+  for (path, alias) in &hidden {
+    // The alias reaches the same verb: it must not be an unknown subcommand.
+    let spelled: Vec<&str> = alias.split(' ').collect();
+    let (code, stderr) = run(&spelled, &root);
+    assert!(
+      !stderr.contains("unrecognized") && !stderr.contains("Unknown"),
+      "`intent {alias}` must be ACCEPTED as a spelling of `{path}`: {stderr}"
+    );
+    assert_ne!(
+      code,
+      Some(2),
+      "and it must not be answered as retired or unavailable: {stderr}"
+    );
+
+    // **AND IT IS SHOWN NOWHERE.** Root help, the verb's own help, and the
+    // verb's own output -- the three surfaces a name reaches a reader through.
+    for probe in [vec!["--help"], vec![path.as_str(), "--help"], spelled.clone()] {
+      let (_, err) = run(&probe, &root);
+      let (_, out) = run_stdout(&probe, &root);
+      assert!(
+        !err.contains(alias.as_str()) && !out.contains(alias.as_str()),
+        "`intent {}` rendered the hidden spelling `{alias}` -- something is echoing the user's word back instead of naming `{path}`",
+        probe.join(" ")
+      );
+    }
+  }
+}
+
 /// **A NAME THIS BUILD RECLAIMED IS A LIVE COMMAND, AND A TYPO ON IT IS A TYPO.**
 ///
 /// `retired_refusal` is consulted after clap fails, and clap fails for two very

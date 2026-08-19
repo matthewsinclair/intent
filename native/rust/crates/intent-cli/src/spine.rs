@@ -343,6 +343,14 @@ fn command_for(name: &str, entry: &Entry) -> Command {
     // a different way of not shipping it.
     cmd = cmd.visible_alias(alias.to_string());
   }
+  // **ACCEPTED AND NEVER SHOWN** -- `alias`, not `visible_alias`. See
+  // `Entry::hidden_aliases` for why this is a separate list rather than a flag
+  // on the one above: these are two dispositions, and the visible one's reason
+  // (v2 documents the spelling, so hiding it would be a way of not shipping it)
+  // is exactly what does NOT apply to a courtesy spelling.
+  for alias in &entry.hidden_aliases {
+    cmd = cmd.alias(alias.to_string());
+  }
   cmd
 }
 

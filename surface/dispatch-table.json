@@ -6880,7 +6880,11 @@
         "open_to_ic": "The surface is ic's (AC-05.1) and this is the second decision on this row I am declining to make alone -- the flag polarity is the other. If ic reads the blast-radius argument as beating the undoability rule, the row flips and the anomaly gets recorded then, with a reason that is about this verb rather than about my discomfort with it."
       },
       "recoverability": "idempotent",
-      "flag_polarity_ruled_by_ic": "**OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling. **RULED 2026-08-19 -- see the `--apply` flag's `disposition_basis` above.** The row is kept rather than deleted because it records WHY the polarity was left open by whoever wired the entry, and that reasoning is the reason the ruling was available to be made by the node that owns the surface instead of settled silently in a commit about something else."
+      "flag_polarity_ruled_by_ic": "**OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling. **RULED 2026-08-19 -- see the `--apply` flag's `disposition_basis` above.** The row is kept rather than deleted because it records WHY the polarity was left open by whoever wired the entry, and that reasoning is the reason the ruling was available to be made by the node that owns the surface instead of settled silently in a commit about something else.",
+      "hidden_aliases": [
+        "organise"
+      ],
+      "hidden_aliases_basis": "**hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there."
     }
   ],
   "provenance": {
@@ -7058,6 +7062,7 @@
         "exposed_on_mcp",
         "flags",
         "help",
+        "hidden_aliases",
         "owner_wp",
         "path",
         "read_or_mutate",
@@ -7074,6 +7079,7 @@
         "d34_wording",
         "direction_selector",
         "flag_polarity_ruled_by_ic",
+        "hidden_aliases_basis",
         "input_selector_gap",
         "kind",
         "mcp_review",
