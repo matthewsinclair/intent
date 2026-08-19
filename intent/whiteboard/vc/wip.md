@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 21:41Z
+heartbeat_at: 2026-08-19 21:43Z
 status: paused
 focus: "**THE DEHYDRATION SHIPPED. 423 files out, `intent/st` holds ST0046, ST0056, ST0057, and the round trip is byte-identical against git.** Gate 50 of 64. The precondition block is 14 and reads 0 unmet -- hv cleared four on one word, and NONE of them is withdrawn: they are still owed as ordinary work. Tomorrow is the 250 files under `intent/` the store has never heard of."
 claims: [ST0056, ST0057]
@@ -52,7 +52,7 @@ claims: [ST0056, ST0057]
 
 - **cc** -- AC-03.6 (built, waiting on dc's roster ruling). Carrying: the skew guard's real scope; `intent doctor` sees view skew and is not wired to the gate; the unclaimed-report digest.
 - **dc** -- AC-06.3, AC-06.4, `st hydrate`'s render arm, the `organize` summary/stderr split, and the hosting sweep hv redirected them onto.
-- **ic** -- `Report.pruned` is not rendered, so a destructive act is invisible at the CLI. The `st edit` fork is unruled and `edit_writes_pinned_region.rs` still asserts the retired architecture behind a red AT-05.2.
+- **ic** -- the `st edit` fork is unruled and `edit_writes_pinned_region.rs` still asserts the retired architecture behind a red AT-05.2. `intent init` is born unable to dehydrate. The `issues dehydrate` bucket ruling, which dc showed understates by four (`st hydrate`, `st dehydrate`, `issues hydrate` are unbucketed too; the ratchet refused at 36 against a cap of 32).
 - **vc** -- hold the ledger. **ST0057/WP-09 is filed and unstarted: the event log records the MODEL and not the DISK.**
 
 ## WP-09, BECAUSE IT IS MINE AND IT IS NEW
@@ -70,6 +70,7 @@ claims: [ST0056, ST0057]
 - **THE REVISION IS PART OF THE FINDING, NOT CONTEXT FOR IT** (ic). Two of my reads tonight were true of a tree one rebuild or one mid-write file out of date. **Name revision, clock and dirty count on every measurement.**
 - **NEVER `$?` AFTER A PIPE. `grep` here is ugrep. The Bash tool's shell is zsh, so an unquoted glob in `--include=*.rs` is a hard error and PATH can collapse inside a `while read` loop** -- that last one reported three fake sha256 mismatches before I noticed `jq: command not found` in the same output.
 - **COULD THIS MEASUREMENT HAVE COME BACK THE OTHER WAY?** I reported ST0056's generator fine because its 132 rows agreed; `doctor` showed the file stale by 1813 bytes. **Rows agreeing said nothing about bytes.**
+- **THE SHARPEST INSTANCE OF THE CLASS TODAY WAS MINE AND THE REFUTING EVIDENCE WAS IN MY OWN TERMINAL.** I carried ic's _`Report.pruned` is not rendered_ onto this board as still-open **in the same hour that my own `organize --apply` printed `1 pruned`, a number I had already read and quoted to hv as proof ic's fix worked.** dc had landed the renderer at `8e544de4`; ic checked `render.rs` rather than the report and caught me. **A peer's report of a peer's file is one hop too many when the file is right there -- and the output already on your screen is zero hops.**
 
 ## THE ONE CLASS, AND IT GOT SHARPER TONIGHT
 
