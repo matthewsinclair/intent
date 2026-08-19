@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 21:00Z
-status: active
-focus: "**AC-00.4 IS DONE, BOTH HALVES, AND THE ESTATE DEHYDRATED WHILE I BUILT THE SECOND ONE.** `intent agents generate` at `b277013a`; `rootfiles::sync` + a v3-generated `AGENTS.md` at `30ce8ba2`. **The `.bak` is gone and hv RATIFIED the deviation** -- gitignored, so it guarded a loss git already prevents. **423 files left disk and all three root files survived, which is exactly what the not-a-view design was for: the hazard was hypothetical this morning and the estate ran the experiment tonight.** `organize` now previews 0 refused. **HELD: my `render.rs` arm, because that file also carries dc's in-flight `claude rules` handler.** Three reds at HEAD, all attributed to dc, one of which aborts every test target in the crate."
+heartbeat_at: 2026-08-19 21:41Z
+status: paused
+focus: "**FOLDED HARD (fold 4) FOR hv'S GLOBALFOLD. AC-00.4 SHIPPED BOTH HALVES AND THE DEHYDRATION WENT LIVE THE SAME EVENING** -- `e7f00e65` removed 423 files, `intent/st` holds three threads, and all three ROOT_FILES survived, which is precisely what the not-a-view call was for. Gate 50 of 64; precondition block 14, 0 unmet. **AC-03.6 is still owed as ordinary work and no longer gates anything.** Nothing of mine is uncommitted. **Tomorrow: 250 files under `intent/` are not in the store at all, and hv wants some of them in.**"
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -13,94 +13,64 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 ## THE MODEL -- canon, hv ratified
 
-**D01 IS REVERSED: THE DB IS THE SSOT AND THE FILES ARE RE-CREATABLE.** Never cite the old "committed JSON durable / DB rebuildable / `rm` safe" wording; it is VOID. **D34: the committed extract is the interchange -- it TRAVELS while the DB never does.** D29: a gitignored path is never canon. **ST0057 is INSIDE the 3.0.0 gate** (hv).
+**D01 IS REVERSED: THE DB IS THE SSOT AND THE FILES ARE RE-CREATABLE.** Never cite the old "committed JSON durable / DB rebuildable / `rm` safe" wording; it is VOID. **D34: the committed extract is the interchange -- it TRAVELS while the DB never does.** D29: a gitignored path is never canon.
 
-**D42 -- TIME, and it has no clauses.** `date -u +'%Y-%m-%d %H:%MZ'`, read in its own step, trailing `Z`. `one_clock.rs` enforces it structurally and has caught me. **And reading it is not enough: I reported file times to matts with a `Z` while `stat` was printing LOCAL. The guard catches the stamp you write; it cannot catch the one you format wrong on the way out.**
+**D42 -- TIME, and it has no clauses.** `date -u +'%Y-%m-%d %H:%MZ'`, read in its own step, trailing `Z`. **Reading it is not enough: I reported file times with a `Z` while `stat` was printing LOCAL. The guard catches the stamp you write; it cannot catch the one you format wrong on the way out.**
 
 ## NEXT -- mine
 
-**FOLDED 2026-08-19 20:17Z (fold 3). Today's settled narrative is at `.history/20260819/wip.md`.**
+**FOLDED 2026-08-19 21:41Z (fold 4). Today's settled narrative -- AC-00.4, WP-03, the parity-form question, the bidi gate -- is at `.history/20260819/wip.md`.**
 
-**WP-03 IS CLOSED AS WORK. Five rows green and the sixth built:** AT-03.1 `46ab2220`, AT-03.2 `49aa64db`, AT-03.4 `3c6d20f6`, AT-03.5 `18a9ab6b`, AT-03.3 `61b93440`, and AT-03.6's `--staged` at `19268867`. Also `239238df` (export typed errors) and `fb333464` (the daemon that could not open the store).
+**1. THE ESTATE IS `intent/` ITSELF, AND IT IS NOT IN THE STORE.** hv, tonight: 250 files under `intent/` are in no artefact at all -- `docs/`, `llm/`, `history/`, `eng/`, `plugins/`, `done.md`, `wip.md`. _Not all of that should be in the db, but certainly some of it should._ **Start by asking which of the 250 an artefact could even OWN**, because the manifest names ARTEFACTS and never FILES, and a file with no owning artefact cannot be declared no matter what anybody decides about it.
 
-**1. ST0057 AC-00.4 -- DONE, BOTH HALVES. `b277013a` (generate) and `30ce8ba2` (sync).**
+**2. AC-03.6 -- OWED AS ORDINARY WORK, NO LONGER GATING.** `canon_commit_check.sh --staged` at `19268867`, byte-proven at five episode commits, dc approved. dc has taken the ruling and will drive the planted-divergence control themselves before admitting it to the roster. **Nothing is owed from me until they do.**
 
-- `rootfiles.rs` + `lib/templates/llm/_AGENTS.md` + `root_files_generated.rs` at 10 arms, **7 mutations proven red**.
-- **`[[DATE]]` REFUSES.** `RenderContext` is documented as never carrying the moment of rendering; a file that stamps its own generation differs from itself every run. Both sites came OUT of `_CLAUDE.md`; v2 substitutes with a plain `sed` chain (`bin/intent_init:134`) so an absent token is a no-op -- **checked, not assumed.**
-- **NO `.bak`, AND hv RATIFIED IT** rather than my deciding it. The table marks the row `as-observed` and says a deviation wants ratifying. Grounds: `*.bak` is gitignored so it never reached git and guarded a loss git already prevents (hv's own AC-00.3 test), and `backup.rs` already carries D35. **Pinned by a test so it cannot come back quietly.**
-- **THROUGH `WriteSet`, NEVER `fs::write`.** `views::write_all` is the precedent in the negative -- a bare loop made it a divergent expression of db-to-disk, and its skip guard was correct while reaching nothing. Second `agents sync` on the live tree leaves mtime untouched, measured.
-- **THE MIGRATION GATE WAS THE ONE REAL DEFECT AND IT WAS MINE.** `agents generate` shipped calling `context()` not `open()`, so it emitted a v3 document over an unmigrated v2 estate at exit 0. `context` only DISCOVERS; `open` is the gate. **Only `doctor` is entitled to `context`, because it is the verb you reach for when the project will not open.** Found by dc's `unmigrated_surface` sweep -- the row that exists for exactly this.
-- **THE NOT-A-VIEW CALL WAS TESTED BY THE ESTATE, NOT BY ME.** 423 files dehydrated tonight and all three root files survived. A `GeneratedView` under a thread goes; root files escape only because `thread_relative` answers `None`. **The hazard was hypothetical this morning.**
-
-**2. AT-03.6's ROW MOVE, waiting on dc.** My half is landed and byte-proven; **admitting the tool to the gate is dc's decision and vc's condition 3 says it is not mine.** Roster disposition untouched at 10 gated / 7 manual.
-
-**3. REPORTED, NOT MINE, LIVE AT HEAD:** two `error_remedies` failures on dc's `FacadeError::Intentfiles`. Its `#[error]` is a fixed string that never interpolates the source, so every parse failure renders identically -- **and what it discards is the line number `.intentfiles`'s own header promises.** Same defect as the `unused variable: cause` warning, which was silenced with an underscore rather than fixed.
+**3. `intent doctor` SEES VIEW SKEW AND IS NOT WIRED TO THE GATE.** It named both stale acceptance views tonight when nothing else did. `view_skew_check.sh` never covered `intent/st/**` in any mode -- its `CHECKABLE` is ONE triple in `surface/`. **The instrument exists and the wiring does not, which is the cheaper half of a fix nobody has scheduled.**
 
 ## Watch-outs -- the live set
 
-**Folded 20:17Z. The full accumulated set is in `.history/20260819/wip.md`; these are the ones still unencoded and still biting.**
+**Folded 21:41Z. Superseded ones are in `.history/20260819/`; these still bite.**
 
-**A PEER'S RED CONCEALS MINE AND LOOKS EXACTLY LIKE AN ALL-CLEAR.** `cargo check --all-targets` aborts at the lib, so a peer's broken file means my own test targets are never compiled. I read four `facade.rs` errors, concluded _not mine_, and shipped `239238df` with a red target. **ic had named that exact observable to me the same morning.** matts found it by running the suite.
+**`git commit --only` SEPARATES FILES, NOT AUTHORS -- AND IT BIT BOTH WAYS IN ONE DAY.** `924d556b` carried ic's WP-02 under dc's message; `b277013a` carried dc's live MUTATION under mine, so HEAD shipped a deliberate defect for thirteen minutes looking like a fix. **Neither of us misused the tool; the tool assumes one writer.** The guard is not "build your work" -- it is **build the WHOLE WORKSPACE before you commit, because what you are checking is the tree you are about to publish, not the edit you made.** Checking my own crate is what let it through.
 
-**A ZERO IS NOT A RESULT UNTIL THE CHECK HAS PRODUCED A NON-ZERO -- four instances in one day.** A short-circuited `cd` leaving `awk` on a stale file (a plausible `56 passed`); a `| tail` before `$?` reading the pipe's status; an empty grep after a cwd-drifted command; **a byte-identical comparison of two identical FAILURES, where every cell said IDENTICAL and rc=2 was the tell.** And a full-workspace run reporting `0 binaries` whose totals printed empty. **A run that reports no suites is not a run that reports no failures.**
+**A ZERO IS NOT A RESULT UNTIL THE CHECK HAS PRODUCED A NON-ZERO.** Five instances today, the last one tonight: a `--workspace` run that summed to `passed: 0 failed: 0` because a peer's compile error aborted every target before any test ran. **A run that reports no suites is not a run that reports no failures.**
 
-**A DETECTOR THAT CANNOT TELL A SUBJECT FROM A MENTION TAXES WHOEVER DOCUMENTS THE REPAIR -- AND I BUILT IT WITHIN AN HOUR OF FINDING IT.** The critic reported my own doc comment as an instance of the defect it documented. Then my inbox broadcast tested for the `_(empty)_` sentinel with a SUBSTRING SEARCH, matched that token quoted inside my own earlier prose, and **wrote hv's inbox back unchanged at rc=0 -- silently dropping the human from two broadcasts.** The whiteboard header guard refuses to scan prose for precisely this reason.
+**A PEER'S RED CONCEALS MINE AND LOOKS EXACTLY LIKE AN ALL-CLEAR.** `cargo check --all-targets` aborts at the lib. I shipped `239238df` with a red target on this; tonight `organize::Plan` gaining a field stopped every `intentsvcs` test target compiling, for everyone.
 
-**A STAMP AUTHORED IN THE SAME COMMAND THAT READS THE CLOCK IS FABRICATED.** Twice today: `16:45Z` for `16:38Z`, caught by the guard; `18:14Z` for `18:12Z`, caught by me. **D42 says read it in its own step, and that is the whole of the fix.**
+**cwd PERSISTS BETWEEN TOOL CALLS AND I DRIFTED EIGHT TIMES TODAY.** A `cd` into `native/rust` made a later heredoc write fail, a binary path return `rc=127`, and a `grep` return nothing -- each of which reads as a result. **Absolute paths, always; there is no version of this I get right by remembering.**
+
+**I MEASURED A PATH AND STATED A CONCLUSION ABOUT A SUBJECT.** `ls .intentfiles` at the repo root said no such file, and I told two peers in bold that the manifest was **absent**. It is at `intent/.intentfiles`. **Absent and present-and-declaring-nothing are opposite states** -- absent keeps everything, empty keeps nothing -- and the 545-file removal plan I was warning about was itself the proof my premise was wrong.
+
+**I ASSERTED A COUNT I HAD NOT RUN, INSIDE THE ARGUMENT THAT THE LIST WAS TOO LONG TO READ.** Told dc the unclaimed files sat in two directories; it is four. vc caught it. **The best evidence for that finding was the mistake in the message making it.**
+
+**A LOOSE PREDICTION IS ONE NOBODY CAN DRIVE.** I wrote that an unclaimed-set change is _not distinguishable at any scroll length_. vc drove it: ADD moves the count and is visible today; **only a SWAP at constant cardinality is invisible.** The remedy I proposed -- count plus directories -- carries exactly the two quantities a same-directory swap leaves untouched, **so it would have reproduced the defect and hidden the list behind a flag nobody passes.** A digest of the sorted set is what satisfies the property. **State the arm you would falsify, or the remedy gets built against the wrong sentence.**
+
+**A CONSISTENCY CHECK CONFIRMS THE PARTS AGREE WITH EACH OTHER AND SAYS NOTHING ABOUT WHETHER THEY AGREE WITH THE WORLD.** `runner_roster_check.sh` went green at 11 gated on a wiring that judged the wrong commit. **A roster verifies a tool is DISPATCHED; nothing verifies that dispatching it MEASURES the right subject.** Third instance of the family today, counting vc's skew guard and the unclaimed report.
+
+**A DETECTOR THAT CANNOT TELL A SUBJECT FROM A MENTION TAXES WHOEVER DOCUMENTS THE REPAIR.** My inbox broadcast matched the `_(empty)_` sentinel inside my own quoted prose and wrote hv's inbox back unchanged at rc=0, **silently dropping the human from two broadcasts.** The whiteboard header guard refuses to scan prose for exactly this reason.
 
 **IN A FOUR-NODE CHECKOUT, PRESENCE IDENTIFIES A FILE AND NEVER ITS AUTHOR.** Three misattributions onto me in one day, each inferring the author from who was most recently active in the area. **The AT row that cites a file names its owner; `git log` and `git status` cannot, because the file is untracked precisely while it is in flight.**
 
-**A COMMAND WHOSE BLAST RADIUS EXCEEDS WHAT IT WAS AIMED AT, RUN INSIDE A RIG.** `git reset --hard` to clear a planted divergence took my uncommitted prototype with it; scoped `git restore --staged <path>` was the right tool. dc did the same with `git stash pop` the same afternoon.
+**A COMMAND WHOSE BLAST RADIUS EXCEEDS WHAT IT WAS AIMED AT, RUN INSIDE A RIG.** `git reset --hard` to clear a planted divergence took my uncommitted prototype with it; scoped `git restore --staged <path>` was the right tool.
 
-**A CONSISTENCY CHECK CONFIRMS THE PARTS AGREE WITH EACH OTHER AND SAYS NOTHING ABOUT WHETHER THEY AGREE WITH THE WORLD.** `runner_roster_check.sh` went green at 11 gated on a wiring that judged the wrong commit. **A roster verifies a tool is DISPATCHED; nothing verifies that dispatching it MEASURES the right subject.**
+**`TZ=UTC git log --date=format:` DOES NOT RESPECT `TZ`. ONLY `--date=format-local:` DOES.** `format:` renders the commit's OWN recorded zone, so a careful command produces a `Z` that is a lie. Cross-check with `date -u -r $(git log -1 --format=%at)`.
 
-**A RECORDED REASON MADE FALSE BY A COMMIT SOMEWHERE ELSE, WITH NO INSTRUMENT WATCHING THE JOIN.** `canon_commit_check.sh` was held `manual` because there was no narrow attachment-sync verb; `sync --to-store <ID>` landed at `212b0075` and killed the reason. **A stale ROW is detectable because it cites a file; a stale REASON cites a condition, and conditions are not on disk.**
+**A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT** (vc): **INSTRUMENT**, **DEPTH**, **EXTENT**, **PIN** (a named commit, never `HEAD`).
 
-**`TZ=UTC git log --date=format:` DOES NOT RESPECT `TZ`. ONLY `--date=format-local:` DOES.** `format:` renders the commit's OWN recorded zone, so a fabricated-looking `Z` is produced by a careful command.
-
-    format:        2026-08-19 08:31:17Z   <- the Z is a lie
-    format-local:  2026-08-19 07:31:17Z   <- true
-    date -u -r $(git log -1 --format=%at) <- independent cross-check
-
-**A CRITERION MUST CLOSE EVERY DEGREE OF FREEDOM THAT LETS A PASSING TEST COEXIST WITH THE DEFECT** (vc): **INSTRUMENT** (which tool -- git and mtime give opposite answers), **DEPTH** (an internal subject reaches past the thing tested), **EXTENT** (a subset of the right kind, both figures observable so DEPTH passes it), **PIN** (measure at a named commit, never `HEAD`).
-
-**ATTACHMENTS ARE DISK-FIRST; VIEWS ARE DISK-DISCARDED. SAME DIRECTORY, SAME APPARENT KIND, OPPOSITE DIRECTIONS, BOTH SILENT** (vc). Directly my lane, and the reason AC-03.4's remedy leads with _copy the file aside first_.
-
-**EVERY COMMIT I MAKE TOUCHING AN ATTACHMENT LEAVES CANON DIVERGENT AT THAT COMMIT UNTIL A SYNC, AND A LATER SYNC REPAIRS THE NEXT COMMIT AND NEVER THAT ONE.** Proven on myself: I committed `--staged` into `canon_commit_check.sh`, which IS an attachment of ST0056, and **my own AT-03.4 caught the stale hash.** The compliant order is sync canon FIRST, then commit the file and canon together.
-
-## Pending hv -- the ST0057 parity directory
-
-**`intent/st/ST0057/parity/tools/` DOES NOT EXIST, AND THE FIRST TOOL WRITTEN THERE BECOMES ITS FORM BY DEFAULT RATHER THAN BY CHOICE.** ic proposed reviewing my first tool on the ground that ST0056's 43 siblings carry conventions the estate converged on slowly. **MEASURED, AND THEY DO NOT.** Denominator 43 (and it should be 39 -- four of the 43 ARE the libs):
-
-    sources a lib_*.sh    SETTLED 7 of 39 (ic reconciled; command on record)
-    # REACH heading       2-3
-    [RECORDED: ...]       1
-    DERIVED-BY:           1
-
-**`lib_*.sh` is the ONLY inheritable precedent, and its real uptake is 7 of 39 -- SETTLED, not contested.** ic posted their command and decomposed it: `grep -lE '(source|\.) .*lib_[a-z]+\.sh'` leaked on **the word `SOURCED` inside a comment** (`lib_mdfmt.sh:4`, `lib_classify.sh:4`), and their strict reconstruction then DROPPED a real sourcer -- `coverage_map.sh:31` `. "$(dirname "${BASH_SOURCE[0]}")/lib_corpus.sh"` -- because they wrote `[^ ]*lib_` and that path contains SPACES. **Two failure modes, opposite directions, same author, same ten minutes.** My `.*` spanned the spaces, so both my reconstructions already held it. **Three independent routes now agree at 7.** **A DISAGREEMENT RECONCILED TO A COMMAND IS SETTLED; ONE RECONCILED TO A NUMBER IS NOT.** The single `[RECORDED: ...; DERIVED-BY: ...]` file is `of_n_labels_its_derivation.sh`, first appearing at `887345b1` **dated 2026-08-19 -- ic's own tool, authored TODAY**, cited by ic as the estate's slow convergence. ic self-diagnosed the circularity off my measurement; **the timeline makes it stronger than a sampling error, because there was no interval in which it could have become a convention.**
-
-**MY OWN PROBES WERE WRONG TWICE IN THE SAME DIRECTION AND BOTH WERE LABEL-NOT-SUBJECT.** `grep -il reach` returned **27** (prose: "cannot reach", "UNREACHABLE"); the real REACH-heading count is 2. `grep -l 'lib_.*\.sh'` returned **14**; seven of those are the four libs naming each other plus **three files citing a lib as PRECEDENT IN PROSE**. **The 27 -> 10 -> 2 tightening happened BEFORE I reported, which is the only reason ic did not receive corroboration for a convention that does not exist.** Report after tightening, never before.
-
-**THE ARGUMENT SURVIVES WITH ITS REASON REPLACED (fourth time today).** Not _a bad first tool deviates from an established form_ -- there is no established form. **In an empty directory the first tool IS the form.** So the "review" is not a review: it is ic and me deciding the ST0057 form once, deliberately, knowing 43 siblings largely did not converge, and ic should not supply it from a sample of one.
-
-**AND THE ASSIGNMENT QUESTION IS NOT THE WP QUESTION** (ic, on the record at their own request). I claim ST0057/01, so AT-01.2 and AT-01.4 are IN MY SCOPE and there is no ownership dispute to adjudicate -- my handover to ic was itself the owner-from-kind error. **Assignment on the assignment's merits; ic's no-WP gap on the gate arithmetic; settled in the same breath, NEITHER DECIDING THE OTHER.** A structural gap that starts routing tasks has stopped being structural, and one that routes work to the node who raised it is the worst version.
-
-**NOTHING IS WRITTEN INTO THAT DIRECTORY UNTIL matts RULES.**
+**ATTACHMENTS ARE DISK-FIRST; VIEWS ARE DISK-DISCARDED. SAME DIRECTORY, SAME APPARENT KIND, OPPOSITE DIRECTIONS, BOTH SILENT** (vc). The reason AC-03.4's remedy leads with _copy the file aside first_ -- and the reason ROOT_FILES are deliberately not views, which the estate tested tonight by removing 423 files around them.
 
 ## Standing rulings
 
-- **THE 3.0.0 RELEASE GATE IS FULL DISK-TO-DB BIDI SYNC, WORKING AND USABLE. NOTHING ELSE CUTS IT** (hv, 2026-08-19, after saying it repeatedly to a board that had never once recorded it). **MEASURED ZERO: the phrase appears on exactly one of five boards, on vc's, as a QUESTION hv ASKED -- never as a directive -- and `hv/wip.md` has no `## Standing directives` section at all**, which the protocol provides for precisely this. **A DIRECTIVE WITH NO WRITE SURFACE IS A MEMORY, NOT A DIRECTIVE** -- the exact inverse of dc's `b645767a` finding that a write surface with no named reader is a queue. **AND MY OWN MORNING PLAN IS THE PROOF IT DOES NOT REACH ANYONE: I led with AT-10.12 and AC-10.13, which are `upgrade`, not sync, and nothing in the mechanism contradicted me.** Every node reads its own claims at pickup and the gate is in nobody's claims.
-- **WHAT THE GATE ACTUALLY NEEDS IS MEASURED AND IS vc'S -- DO NOT RE-DERIVE IT** (`vc/wip.md` `## ON RESUME`). The round trip WORKS and is PROVEN: 12 of 18 WP-03 rows green, including canon -> DB -> canon (AT-03.8), `sync` naming its direction (AT-03.10), and content-hash external-edit detection (AT-03.3). **Three things decide usability and TWO ARE NOT ROWS AT ALL: (1) `intent sync` HAS NO SCOPE -- whole-estate only, and it has already ingested two peers' uncommitted instruments into canon TWICE IN ONE DAY; (2) AC-03.17's CHURN LOOP IS LIVE, HEAD 12 lines divergent from canon right now, so `doctor` reports zero skew TRUTHFULLY and is wrong minutes later; (3) `--to-store` is NOT read-only on disk.** **ALL THREE LAND IN MY LANE** -- `views.rs` is the renderer remedy and the `sync` scope is CLI surface. **(1) NEEDS ONE RULING FROM hv (consolidated item 14, still unruled); (2) NEEDS NOTHING AND IS MINE TODAY.**
-
-- **EVERY ACCEPTANCE ID IS THREAD-QUALIFIED -- `ST00NN AC-XX.Y`, NEVER BARE.** Both threads carry an `AC-04.4`; four carry an unrelated `AT-03.6`. **An id resolving to a SATISFIED criterion is the worst ambiguity: it reads as DONE, which is the one failure mode that stops a reader looking further.**
+- **EVERY ACCEPTANCE ID IS THREAD-QUALIFIED -- `ST00NN AC-XX.Y`, NEVER BARE.** Both threads carry an `AC-04.4`; four carry an unrelated `AT-03.6`. **An id resolving to a SATISFIED criterion is the worst ambiguity: it reads as DONE.**
 - **THE ISSUE TRACKER IS FOR EXTERNAL USERS AGAINST A RELEASED VERSION** (hv). Everything found building v3 is work.
 - **An uncarried file is NOT a disposition** (vc). **A REFUSAL IS RETIRED BY THE CHANGE THAT EXPIRES ITS REASON -- and re-deriving the reason is how you find out the reason was wrong.**
-- **`treeindex` and handover RETIRE** -- a retired command is PRESENT AND REFUSING. **`EdgeKind::Incidental` STAYS with no user. `doctor --fix` is WITHDRAWN. `Outcome` is deliberately NOT `#[must_use]`.**
-- **ANNOTATE, NEVER SUPPRESS, on a run verdict.** **v3 stays OFF PATH until dc repoints `~/.local/bin/intent`.**
+- **A DEVIATION FROM AN `as-observed` ROW WANTS RATIFYING, NOT FIXING.** The `.bak` went because hv ruled, not because I judged it redundant. The grounds generalise: **a safeguard that guards a loss git already prevents is not a safeguard.**
+- **`treeindex` and handover RETIRE** -- a retired command is PRESENT AND REFUSING. **`doctor --fix` is WITHDRAWN. `Outcome` is deliberately NOT `#[must_use]`.**
+- **ANNOTATE, NEVER SUPPRESS, on a run verdict.** **v3 stays OFF PATH until dc repoints `~/.local/bin/intent`** -- and dc measured why that is not merely pending: v3 answers exit 2 for 14 of 32 families, and `intent claude` implements 1 of its 8 verbs against ~230 call sites in this repo's own machinery.
 - **`config.json` DOES NOT MOVE WITH `intent_dir`** -- `Project::config_path` always answers `intent/.config/config.json`, because something must be findable before anything is configured.
 
 ## Lane boundary
 
-`native/**` and the v3 crates are mine. `bin/**` is not vc's to edit. The parity harness is ic's; `canon_commit_check.sh` and the pre-commit roster are dc's. **Canon writes route through vc.** `CARGO_TARGET_DIR=native/rust/target/cc` **for tests only** -- a release build must keep landing at `native/rust/target/release/` where four nodes read it, and nothing under `target/cc` is an artefact anyone else reads.
+`native/**` and the v3 crates are mine. `bin/**` is not vc's to edit. The parity harness is ic's; `canon_commit_check.sh` and the pre-commit roster are dc's. **Canon writes route through vc.** `CARGO_TARGET_DIR=native/rust/target/cc` **for tests only** -- a release build must land at `native/rust/target/release/` where four nodes read it.
 
-**Every commit I make touching an attachment leaves canon divergent at that commit until vc syncs, and a later sync repairs the NEXT commit and never that one** -- commit and ping vc; it is AC-08.5's missing operation, not my failure.
+**Every commit I make touching an attachment leaves canon divergent at that commit until vc syncs, and a later sync repairs the NEXT commit and never that one** -- so sync canon FIRST, then commit the file and canon together. Proven on myself: I committed `--staged` into `canon_commit_check.sh`, which IS an attachment of ST0056, and my own AT-03.4 caught the stale hash.
