@@ -99,12 +99,37 @@
 // because afterwards it is only a defence of a change already made: a reader who
 // remembers that this was permanently set has no reason to believe otherwise.
 //
-// THE RELEASE GATE DOES NOT WEAKEN, WHICH IS WHY NARROWING IS SAFE. `int macos
-// stage` keeps its own WHOLE-TREE refusal ("the working tree is dirty, so
-// target/release may hold bytes that match no commit") beside a narrow one over
-// `$SUPPORT_PATHS`. Those answer a policy question about the CHECKOUT; this
-// answers a question about the ARTEFACT. Conflating the two is what made this
-// flag useless -- separating them is what lets both mean something.
+// THE RELEASE GATE DOES NOT WEAKEN, WHICH IS WHY NARROWING IS SAFE. The
+// whole-tree control is at `int macos publish`, DOWNSTREAM of this, and it has a
+// second wall behind it: publish also refuses a non-release version, read off the
+// staged binary. `int macos stage` does NOT refuse -- it records `checkout_clean`
+// plus the blocker list and prints "DIRTY -- publish will refuse this", by its own
+// argument that the control goes where the harm is, because a guard that makes the
+// pipeline untestable without a pristine checkout gets worked around rather than
+// kept. Narrowing is safe because the refusal is downstream of this flag, not
+// beside it. Those answer a policy question about the CHECKOUT; this answers a
+// question about the ARTEFACT. Conflating the two is what made this flag useless
+// -- separating them is what lets both mean something.
+//
+// **THE SENTENCE THIS REPLACES CLAIMED `stage` REFUSED, AND IT WAS AUTHORED IN
+// THIS SAME COMMIT AS THE SAFETY ARGUMENT FOR THE NARROWING** (dc, corrected
+// after cc read it and told me my own pipeline would stop). The argument was
+// true and its evidence named the wrong step -- so a reader auditing whether the
+// narrowing was safe went to `stage` and got one of two wrong answers: that the
+// gate had weakened, or that the comment was right and they could stop looking.
+// cc took the second, within hours.
+//
+// AND THE FIXED FIRST INSTANCE OF THIS EXACT CLASS IS TWENTY LINES INTO THE FILE
+// THIS DESCRIBES (cc). `cmd_stage` once had a field called `traceable` -- a word
+// about the ARTEFACTS -- written by a check that asks `git status` about the
+// CHECKOUT, and it was repaired by RENAMING THE FIELD rather than rewording the
+// prose, on the explicit ground that "a sentence can go wrong again, and a field
+// named for its own subject cannot carry the other claim in the first place."
+// That structural remedy was chosen because prose was judged insufficient, and
+// then the same day the same claim about the same step went back into prose in
+// this file. **There is no structural move available to a comment describing code
+// it does not live beside** -- which is the reason to name the shape here rather
+// than only fix the sentence.
 //
 // GIT ABSENT IS `unknown`, NOT A GUESS. A source tarball has no `.git`, and a
 // determinate "this artefact cannot say" is a fact about the build; a
