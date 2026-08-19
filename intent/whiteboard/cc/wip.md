@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 16:38Z
+heartbeat_at: 2026-08-19 17:58Z
 status: active
-focus: "**AC-03.1 IS BUILT AND GREEN AND IT IS WAITING ON ic TO LAND IT** -- matts directed ic to carry both halves of `store.rs`/`ingest.rs` under their message, so my six files sit ready in the tree. **`opaque` WAS DEFINED NOWHERE ACROSS SIX CRITERIA and I measured it instead of picking one**: `collect_attachments` already named the population by REFUSING it. **THE ESTATE HAS ZERO OPAQUE ATTACHMENTS -- 745 files, one non-UTF-8, and it is `.DS_Store` which D29 excludes** -- so AT-03.1 is driven by a constructed fixture and prints the estate zero OUT LOUD as a zero, which vc ratified. **`239238df` landed the export typed errors, and it exists because the critic REFUSED A COMMIT THAT DID NOT CAUSE THE FINDINGS** -- dc's AC-03.6 inherited-breakage clause missing from a second gate. **And the detector reported my own doc comment explaining the fix.**"
+focus: "**WP-03 IS FIVE OF SIX. AT-03.1/03.2/03.3/03.4/03.5 ALL GREEN AND LANDED.** **AT-03.6 IS THE ONE LEFT AND IT CANNOT BE CLOSED BY WIRING THE TOOL** -- I built the wiring end to end, `runner_roster_check.sh` went green at 11 gated, and the positive control killed it: `canon_commit_check.sh` compares $REV to $REV^, so at pre-commit it judges THE PARENT. Planted divergence in the index -> EXAMINED 0 of 280, exit 0. Same tool at `d980e5b5` -> ADDS 3, exit 1. **The harmful commit passes and the NEXT one is blocked for its parent fault, which is dc inherited-breakage clause inverted.** Needs a --staged mode; asked vc who builds it since the row is mine and the tool is dc. **AND THE ROSTER REASON HOLDING IT MANUAL EXPIRED THIS MORNING BECAUSE OF MY OWN sync --to-store SCOPE, with nothing watching the join.** Reverted clean."
 claims: [ST0056/10, ST0057/01]
 ---
 
@@ -19,37 +19,37 @@ claims: [ST0056/10, ST0057/01]
 
 ## NEXT -- mine
 
-**16:38Z. AC-03.1 IS LANDED AT `46ab2220`** -- ic carried my whole half, named, pins not re-derived. My 52 tests are green at HEAD. **`239238df` landed the export typed errors and I SHIPPED IT BELIEVING THE WORKSPACE WAS GREEN WHEN IT WAS NOT**: `cargo check --all-targets` aborted on a peer's four `facade.rs` errors, so my own test targets were never compiled. _Not mine_ was true of everything I read and false of what was there. **A peer's breakage does not certify mine, it CONCEALS mine, and in the direction that looks like an all-clear** -- ic named that exact observable to me this morning and I had the warning in hand. matts found it by running the suite. Repair carried in `46ab2220`.
+**17:58Z. FIVE OF WP-03's SIX ROWS ARE GREEN AND LANDED.**
 
-**SHIPPED: `239238df`** -- the export format registry keeps its errors instead of stringifying them. `Emit`/`Read` return `serde_json::Error`; the two `map_err(|e| e.to_string())` calls are DELETED rather than moved, so the structured error survives to the boundary and the refusal text is byte-identical.
+| row     | commit     | what it turned on                                                                             |
+| ------- | ---------- | --------------------------------------------------------------------------------------------- |
+| AT-03.1 | `46ab2220` | opaque bytes in canon as a file; **estate denominator 0 of 280, printed as a zero**           |
+| AT-03.2 | `49aa64db` | form follows content BOTH ways; **one sentence, two claims, denominators three orders apart** |
+| AT-03.4 | `3c6d20f6` | drift by COMPARISON; **the sharpest arm detects nothing**                                     |
+| AT-03.5 | `18a9ab6b` | bytes in no commit; **the staged arm proves index-not-HEAD**                                  |
+| AT-03.3 | `61b93440` | the naming gate, **derived from its two consumers**                                           |
 
-**BUILT AND GREEN, IN THE TREE, FOR ic TO LAND:** `model.rs` (`text: Option<String>`, `blob`, `opaque()`, `is_opaque`, `as_bytes`), `project.rs` (`canon_blob_rel` + the carry), `export.rs` (`canon_blobs`), `doctor.rs`, `organize.rs` (2 lines), `store.rs` rung **13**, `ingest.rs` sidecar load, `faces.rs`, and seven test files including **`opaque_attachment_canon.rs` -- AT-03.1, five arms, three mutations each killing exactly one.** Pins: SCHEMA_VERSION 13, PINNED hash `0x2769_d55e_632d_8fd6`, DDL 10, **SDL 8 and JSON 10 because optional `text` moves those two faces as well**.
+Plus `239238df` -- the export format registry keeps its errors instead of stringifying them, which exists only because the critic **refused a commit that did not cause its findings**.
 
-**THE DEFINITION WAS THE WORK, NOT THE PLUMBING.** `opaque` carried six criteria and was defined in no criterion, no design doc, no canon and no board -- the closest thing is vc's own D57-7 note that _"my BINARIES never dehydrate was wrong"_. **`collect_attachments` had already named the population by refusing it**: _not valid UTF-8, so it cannot be carried as text_. So the refused become the carried, the carry list does not widen, and no policy was invented.
+**AT-03.6 IS BLOCKED ON A ROLE RULING, NOT ON THE WORK.** The row says the criterion is unmet because nothing gates the tool. **True, and not the blocker.** `canon_commit_check.sh` takes a COMMITTED revision and compares `$REV` to `$REV^`; at pre-commit HEAD is the PARENT of the commit being made. Measured both ways in an isolated worktree: a divergence planted in the INDEX gives `EXAMINED 0 of 280` at exit 0, and the same tool at `d980e5b5` gives `ADDS 3 of 275` at exit 1. **So gating it fails in both directions at once** -- the harmful commit passes, and the next one is blocked for its parent's fault. It needs a `--staged` mode, because at pre-commit "that same commit" IS THE INDEX. Row is mine, tool is dc's, vc to rule who builds it.
 
-**THE ESTATE ZERO IS THE FINDING WITH THE LONGEST LEGS.** 745 files under `intent/st/`, exactly ONE not valid UTF-8, and it is `.DS_Store` which D29 puts outside the corpus. **AC-03.1's estate denominator can only ever be 0 of 0**, so a green over the estate alone would be vacuous by construction. Fixture + printed zero, ratified by vc.
+**AND EVERY INSTRUMENT THAT WATCHES THE WIRING SAID IT WAS CORRECT.** Roster, runner and disposition all agreed at 11 gated / 6 manual. **Only the planted divergence disagreed.** A roster verifies a tool is DISPATCHED; nothing verifies that dispatching it measures the right SUBJECT.
 
-**AND design.md's COST ARGUMENT FOR THE WHOLE MECHANISM WAS MEASURED AGAINST THE WRONG POPULATION.** The 196 `.tap` baselines are all valid UTF-8, so the sidecar form cannot reach them under any reading; what pins them is `ATTACHMENT_EXTENSIONS`. **vc ruled it a doc defect, theirs to re-cut, and added a second error I had not seen: the 240 are pinned to disk by GIT under BOTH options, so the rejected alternative was charged a cost both alternatives pay.** vc also corrected `project.rs:33`'s stated reason -- take the conclusion, not the argument: **regenerating a baseline destroys the comparison it exists to make.**
-
-**TWO GATE FINDINGS, BOTH SENT TO vc AS ROW-SHAPED:**
-
-- **The critic scans whole STAGED FILES, not added lines**, so it refused a commit whose four findings were byte-identical in HEAD. That is dc's AC-03.6 inherited-breakage clause missing from a second gate, and dc's own 23-of-46 measurement is the argument.
-- **THE DETECTOR TAXES THE PERSON DOCUMENTING THE REPAIR.** My first fix was still reported because the doc comment explaining it quoted the signature it removed -- a grep cannot tell a subject from a mention, so explaining the fix was indistinguishable from committing the defect. **The whiteboard header guard already refuses to scan prose for exactly this reason**, so the estate has ratified the principle in one guard and violated it in another.
-
-**NOT MINE, BOTH REPORTED:**
-
-1. **`intentsvcs` DOES NOT COMPILE in the live tree** -- 4 errors in `facade.rs`, a new `Facade::organize` mapping into three `FacadeError` variants that do not exist. **That is hv's just-ruled `organize` wiring landing in a file ic declared as theirs**, and neither had announced it to the other. Told both.
-2. **`preconditions.rs` is RED AT HEAD and it is dc's** (`edbd7640`), not mine and not untracked -- ic reported it both ways round. The remedy is a design call between _the gate may name the criterion it reads_ and _shipped strings carry no PM state_, so I flagged it rather than picking one from outside the row.
+**THE ROSTER REASON HOLDING IT `manual` HAD ALREADY EXPIRED, BY MY OWN HAND, WITH NOTHING WATCHING THE JOIN.** It read _there is no narrow attachment-sync verb_. `sync --to-store <ID>` landed at `212b0075` this morning. Same shape as vc's stale-AT finding one level up: a recorded reason made false by a commit somewhere else.
 
 **NEXT, IN ORDER:**
 
-1. **AC-03.2 and the projection half** -- `Facade::projection` must write the sidecars on `sync --to-disk`, and `WriteSet` needs a bytes-capable `add`. **Both are ic's files this pass**, so it goes after their landing, not before.
-2. **AC-03.4 / AC-03.5** -- drift by COMPARISON through `doctor`, and `sync --to-store` reporting an attachment whose disk bytes differ from the INDEX. `organize` already has the comparison (`AttachmentDiverged`, and a MISSING hash counted as divergence); `doctor`'s half is model-internal only so far.
-3. **AC-03.3 naming gate.** The `.webloc` violator is **NOT an attachment**: it is valid UTF-8 XML under `intent/docs/`, so it is not opaque and not under a thread. Its defect is the NAME alone.
-4. **AC-00.4 `root_files_generated.rs`**, unchanged.
-5. **REBUILD `target/release` -- ANNOUNCE FIRST**, still `377d5267` from `8d00a490`.
+1. **AT-03.6's `--staged` mode**, on vc's ruling. Shape in hand: `git show :<path>` and `git diff-index --cached` are the index-side counterparts of what the tool already does.
+2. **ST0057 AC-00.4 -- `root_files_generated.rs`.** Unblocked, unclaimed, and the most separable thing left. `AGENTS.md` / `CLAUDE.md` / `usage-rules.md` have NO v3 generator, and **something EMPTIED `AGENTS.md` on 2026-08-18**, so their derivability is an assumption about a file already lost once.
+3. **REBUILD `target/release` -- ANNOUNCE FIRST.** Still `377d5267` from `8d00a490`, which now predates sync scope, the whole attachment canon, and the `organize` wiring.
 
-**MY GREENS ARE NOW LOAD-BEARING BEYOND MY ROWS (vc).** Six of the dehydration ship gate's nineteen declared preconditions are AC-03.1 through AC-03.6, so the day WP-03 goes green I am moving the estate's arming state. A vacuous green in WP-03 is now a vacuous green that helps unlock dehydration.
+**CARRIED FROM TODAY, THREE THAT ARE MINE TO NOT REPEAT:**
+
+**A PEER'S RED CONCEALS MINE AND LOOKS LIKE AN ALL-CLEAR.** `239238df` shipped with a broken test target because `cargo check --all-targets` aborted on a peer's `facade.rs` before reaching mine. matts found it by running the suite. ic had named that exact observable to me the same morning.
+
+**A ZERO IS NOT A RESULT UNTIL THE CHECK HAS PRODUCED A NON-ZERO -- and it bit twice more today.** A short-circuited `cd` left `awk` reading a stale file and reporting a plausible `56 passed`; a `| tail` before `$?` reported the pipe's status, which is vc's own watch-out.
+
+**AND 26 FAILURES THAT WERE NOBODY'S.** A workspace run reported 26 CLI failures; every one passed alone and none reproduced. A peer rebuilding the shared `target/` while those tests invoke the binary is the only fit -- **a concurrent workspace run measures the build directory as much as the code.**
 
 ## THE TWO-ENDED CLASSIFIER -- still live, and MORE dangerous after the move
 
