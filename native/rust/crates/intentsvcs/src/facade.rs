@@ -354,7 +354,7 @@ pub enum FacadeError {
   /// `.intentfiles` could not be parsed. Its own variant because the manifest
   /// error already carries the LINE NUMBER, and folding it into a generic read
   /// failure would drop the one field that makes it actionable.
-  #[error("could not read the realisation manifest")]
+  #[error("could not read the realisation manifest: {0}")]
   Intentfiles(#[from] intentfiles::IntentfilesError),
   /// `.intentfiles` is not there, or is not readable.
   ///
@@ -437,6 +437,18 @@ pub enum FacadeError {
   /// this and why it needs a variant of its own.
   #[error("this would write an empty estate over one that is not empty: {evidence}")]
   EgestWouldEmptyTheEstate { evidence: String },
+  /// **The declaration of WHICH STATUSES ARE REALISED could not be read**
+  /// (AC-02.2).
+  ///
+  /// **Its own variant rather than [`FacadeError::ManifestUnreadable`], and the
+  /// first version used that one wrongly.** The manifest read perfectly; what
+  /// is missing is a DECLARATION IN CANON, which is a different file, a
+  /// different author and a different fix. Worse, `ManifestUnreadable` renders
+  /// only its path, so the explanation went into a `source` the message never
+  /// prints -- **a true sentence filed where no reader reaches it**, which is
+  /// the defect this estate keeps finding in its own records.
+  #[error("the rule for which statuses are realised to disk could not be read: {why}")]
+  RealisationRuleUnreadable { why: String },
 }
 
 impl crate::remedy::Remedy for FacadeError {
@@ -590,15 +602,30 @@ impl crate::remedy::Remedy for FacadeError {
       // refusals happened and this does not.
       Self::Organize(cause) => cause.remedy(),
       Self::Realise(cause) => cause.remedy(),
-      // **The cause is not interpolated and that is deliberate: it is already
-      // the DISPLAY body of this variant, so naming it again would render the
-      // failing line twice -- once as the error and once inside its own
-      // remedy.** Bound and ignored rather than left unnamed, so the arm reads
-      // as a decision rather than as a pattern nobody finished.
-      Self::Intentfiles(_cause) => format!(
-        "correct the line named above in `intent/.intentfiles`. Each entry is `<SIGIL>:<ID>` on its own line, with STEELTHREAD and ISSUE the only sigils; `{}` is the generated region and is rewritten, so a hand-written entry belongs above it.",
-        "# BEGIN INTENT"
-      ),
+      // **DELEGATED, LIKE EVERY NEIGHBOUR, AND THE HAND-WRITTEN VERSION HERE
+      // WAS A DEFECT I DEFENDED IN A COMMENT.** `Store`, `Organize` and
+      // `Realise` all delegate on the stated ground that the source knows which
+      // of its refusals happened and this does not. This arm did not, and its
+      // source is the most specific of the four: every `IntentfilesError`
+      // carries the LINE NUMBER and the offending text.
+      //
+      // **THE `#[error]` STRING WAS FIXED, SO EVERY MANIFEST FAULT RENDERED
+      // IDENTICALLY** -- an unknown sigil on line 12 and an unterminated region
+      // on line 40 both came out as `could not read the realisation manifest`.
+      // The doc comment on the variant itself says folding it into a generic
+      // read failure "would drop the one field that makes it actionable", and
+      // the variant did precisely that, one line below the sentence forbidding
+      // it. `.intentfiles`'s own header promises the line number.
+      //
+      // **AND I MADE IT WORSE BY UNDERSCORING THE BINDING TO SILENCE THE
+      // WARNING.** `unused variable: cause` was not noise; it was the compiler
+      // reporting that the cause reached nothing, which is the defect. I wrote
+      // a comment claiming the cause was "already the DISPLAY body of this
+      // variant" so interpolating it would double the line -- **that was false
+      // by inspection: the format string contained no `{0}`.** Third time today
+      // a comment asserted what the code did not do, and the first two were
+      // other people's.
+      Self::Intentfiles(cause) => cause.remedy(),
       Self::ManifestUnreadable { path, .. } => format!(
         "create `{path}` -- an absent manifest declares nothing, so `organize` would read the whole estate as undeclared. `intent edit <ID>` pins an artefact into it, and the generated region is written by the tool."
       ),
@@ -670,6 +697,9 @@ impl crate::remedy::Remedy for FacadeError {
       // where the data still IS -- on disk, in the commit -- is the honest help;
       // sending the operator to a verb would be sending them to a second write
       // over a state nobody has diagnosed.
+      Self::RealisationRuleUnreadable { .. } => {
+        "add a `<<REALISED ... REALISED>>` block to an acceptance criterion naming the thread statuses that are realised to disk, then re-run. Until one exists `organize` will not guess, because the answer decides which files it removes".to_string()
+      }
       Self::EgestWouldEmptyTheEstate { .. } => {
         "the store is empty, not the project. Your work is still on disk and in the commit; find out why the store holds nothing -- a `sync --to-store` that read zero and reported success is the usual cause -- before writing in either direction".to_string()
       }
@@ -1366,7 +1396,82 @@ impl Facade {
         source,
       }
     })?;
-    let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
+    // **THE GENERATED REGION IS REWRITTEN FROM STATUS BEFORE ANYTHING IS
+    // PLANNED. This is AC-02.2, and it was the missing call site.**
+    //
+    // `intentfiles::render` was correct, tested and green with ZERO production
+    // callers, so the region had never been written by any run of any verb.
+    // That is why this estate's manifest declared nothing while 57 threads sat
+    // on disk, and why `organize --apply` planned to remove all of them: not an
+    // unfilled form, an unconnected writer.
+    //
+    // **The realised set is READ FROM CANON, never transcribed here.** hv ruled
+    // it as a delimited block precisely so an implementation reads the block; a
+    // `match` arm listing the statuses would be a second copy of a ruling,
+    // going stale in silence.
+    //
+    // **An unreadable declaration REFUSES rather than defaulting.** A default
+    // set decides which files get deleted, and the moment the tool understands
+    // the rule least is the worst moment to act confidently on one.
+    //
+    // **`hydrate` deliberately does NOT do this.** It materialises one
+    // addressed artefact; rewriting the whole region as a side effect of
+    // realising one thing would make `intent edit` a verb that reorganises the
+    // estate.
+    let realised = crate::preconditions::realised_statuses(&self.canon).map_err(|why| {
+      // **THE SHARED `Unreadable` TYPE SPEAKS ABOUT PRECONDITIONS, AND THIS IS
+      // NOT THAT DECLARATION.** Reusing the block READER is right -- one
+      // grammar, one home -- but its `NoDeclaration` message reads "this
+      // project declares no dehydration preconditions", which for a missing
+      // REALISED block is a confident sentence about the wrong subject.
+      FacadeError::RealisationRuleUnreadable {
+        why: match why {
+          crate::preconditions::Unreadable::NoDeclaration => {
+            "no criterion carries a `<<REALISED ... REALISED>>` block, so nothing declares which statuses are realised to disk. `organize` refuses rather than guessing: the answer decides which files are removed".to_string()
+          }
+          other => other.to_string(),
+        },
+      }
+    })?;
+    let generated: Vec<intentfiles::Generated> = self
+      .canon
+      .threads
+      .iter()
+      .filter(|t| realised.contains(&t.status))
+      .map(|t| intentfiles::Generated::new(intentfiles::Sigil::SteelThread, t.id.clone()))
+      .collect();
+    let rewritten = intentfiles::render(&raw, &generated).map_err(FacadeError::Intentfiles)?;
+    let manifest = intentfiles::parse(&rewritten).map_err(FacadeError::Intentfiles)?;
+
+    // **WRITTEN ONLY ON APPLY, AND BEFORE THE TREE IS OBSERVED.** Both halves
+    // were found by a guard rather than by reasoning.
+    //
+    // ONLY ON APPLY, because the manifest is the CAUSE half of AC-02.4: writing
+    // the region during a preview would put the cause in the working tree while
+    // the effect stayed hypothetical -- the same diff unreadable from the other
+    // end.
+    //
+    // BEFORE `observe`, because the write MOVES THE TREE. The first version
+    // wrote it between planning and applying, and `Plan::run`'s digest guard
+    // refused every apply with `TreeMoved` -- correctly: it cannot tell my
+    // write from a peer's. **The guard caught a real defect in the wiring on
+    // its first run.**
+    //
+    // Writing before the plan also means the manifest is corrected even when
+    // the removals are then REFUSED by the ship gate, which is the behaviour
+    // this estate needs: the declaration becomes right now, and the removals
+    // stay gated until the preconditions are met. Deferring the write until a
+    // fully successful apply would leave the empty declaration standing until
+    // the very moment it becomes dangerous.
+    if mode == organize::Mode::Apply && rewritten != raw {
+      std::fs::write(self.project.intentfiles_path(), &rewritten).map_err(|source| {
+        FacadeError::ManifestUnreadable {
+          path: self.project.intentfiles_path().display().to_string(),
+          source,
+        }
+      })?;
+    }
+
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
 
     let (tree, digest) =
@@ -3093,6 +3198,78 @@ impl Facade {
   /// rendering into canon. The attachment exception is not an exception:
   /// an attachment is AUTHORED on disk, so authority runs the other way and
   /// text-in is correct. Authorship decides direction.
+  /// **POST to a COLLECTION address: the tool assigns the id and hands back the
+  /// address it assigned** (AC-08.4).
+  ///
+  /// **The other half of `put`, and the split is not a REST convention borrowed
+  /// for its own sake.** You cannot address `ST0058` before the tool has
+  /// decided it is `ST0058`, so a create whose id the SERVER chooses has no
+  /// entity address for the caller to `PUT` to -- there is nothing to name yet.
+  /// The collection is the only address that exists before the id does.
+  ///
+  /// **It returns an `Address` rather than an id, and that is the criterion's
+  /// wording rather than decoration.** A caller handed `ST0058` has to build
+  /// the address itself to do anything with it, which is a second spelling of
+  /// the scheme at every call site; handing back the address means the one
+  /// resolver stays the one resolver.
+  ///
+  /// **Every refusal names the FORM and is counted rather than dropped.** A
+  /// surface that silently ignored the collections it cannot create into would
+  /// report the same success as one that handles them all.
+  pub fn post(&mut self, address: &Address, body: &str) -> Result<Address, FacadeError> {
+    if !address.is_local() {
+      return Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: "a cross-project write resolves against intentd's project registry".to_string(),
+      });
+    }
+    match &address.entity {
+      AddrEntity::Threads => {
+        let title = Self::posted_title(address, body)?;
+        let id = self.st_new(&title)?;
+        Ok(Address {
+          authority: None,
+          entity: AddrEntity::Thread { id },
+          format: address.format,
+        })
+      }
+      // **REFUSED BY NAME, WITH THE REASON THAT DECIDES IT: the id is already
+      // known, so the entity address exists and `PUT` is the verb that reaches
+      // it.** This is not "unsupported"; it is the other side of AC-08.4's
+      // split, and saying so sends the caller to a door that opens.
+      other => Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: format!(
+          "`{}` is not a collection whose ids this tool assigns -- POST creates only where the id does not exist yet. Its id is already known, so `PUT` to the entity address instead",
+          other.form()
+        ),
+      }),
+    }
+  }
+
+  /// The title a POST to `threads` carries, or a refusal naming what is missing.
+  ///
+  /// **A blank title is refused rather than defaulted.** `st new` takes a title
+  /// because a thread without one is unfindable in every view that lists it,
+  /// and a create arriving through a different door must not be able to make
+  /// the entity that verb refuses to make.
+  fn posted_title(address: &Address, body: &str) -> Result<String, FacadeError> {
+    let refuse = |why: &str| FacadeError::WriteNotAddressable {
+      url: address.to_url(),
+      why: why.to_string(),
+    };
+    let value: serde_json::Value = serde_json::from_str(body)
+      .map_err(|e| refuse(&format!("the body is not JSON: {e}")))?;
+    let title = value
+      .get("title")
+      .and_then(|t| t.as_str())
+      .ok_or_else(|| refuse("a posted thread needs a `title` -- a thread without one is unfindable in every view that lists it"))?;
+    if title.trim().is_empty() {
+      return Err(refuse("`title` is blank, and a blank title is refused rather than defaulted"));
+    }
+    Ok(title.to_string())
+  }
+
   pub fn put(&mut self, address: &Address, body: &str) -> Result<Outcome, FacadeError> {
     if !address.is_local() {
       return Err(FacadeError::WriteNotAddressable {
