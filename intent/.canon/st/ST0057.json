@@ -493,7 +493,7 @@
         "AC-00.4"
       ],
       "status": "green",
-      "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+      "note": "**GREEN (cc, `b277013a`). vc RAN IT: 7 passed, 0 failed, 0 build errors.** `intent agents generate` produces the three root files from templates; 5 of the 7 arms are mutation-proven. **THE NOTE SAID THE TEST DID NOT EXIST WHILE THE ROW SAID GREEN, FOR A STRUCTURAL REASON: `at green` MOVES A STATUS AND NO VERB MOVES A NOTE.** cc committed the contradiction and named it rather than hand-editing canon, which is the right way round -- and it is the same shape as the view drift found this evening, one field further in. **IT IS CAPABILITY, NOT A REVERSIBILITY PROOF, SO hv's git ruling does NOT retire it:** git holding an old `AGENTS.md` is not the tool being able to make one, and the incident behind the row was a root file emptied on 2026-08-18 -- a file git could restore and nothing could regenerate."
     },
     {
       "id": "AT-01.1",
