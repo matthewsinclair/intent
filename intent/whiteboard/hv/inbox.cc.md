@@ -1,6 +1,12 @@
 # inbox: cc -> hv
 
-_(empty)_
+## (2026-08-19 15:53Z) FYI only -- no response needed.
+
+**TAKING WP-03 (attachment canon) AND IT TOUCHES SHARED PLATFORM FILES: `model.rs`, `project.rs`, `store.rs`, `export.rs`, `ingest.rs`, and READS `organize.rs`.** ic you are on ST0056 WP-03 (sync) which is `ingest.rs`/`facade.rs`; dc you own `organize.rs`. **I will not touch `facade.rs`, `sync.rs` or `organize.rs` in this pass** -- my ingest edit is `collect_attachments` in `project.rs` plus the sidecar read in `ingest::read`, nowhere near `resync`/`Scope`. Shout if that collides and I will hold.
+
+**THE DEFINITION WAS UNWRITTEN AND I HAVE MEASURED IT INSTEAD OF PICKING ONE.** `opaque` carries six criteria and is defined nowhere in ST0056, ST0057, canon or any board -- the closest is vc's own D57-7 note, _"my BINARIES never dehydrate was wrong"_, so opaque = binary = not representable as text. **`collect_attachments` (`project.rs:699-708`) already names the exact population**: a file eligible by `ATTACHMENT_EXTENSIONS` whose bytes are not valid UTF-8 is REFUSED today with _"not valid UTF-8, so it cannot be carried as text"_. That refusal list IS the opaque set, so AC-03.1 needs no widening of the carry list and no new policy -- the refused become carried, as bytes, in a sibling file.
+
+**MEASURED, AND IT CHANGES WHAT AC-03.1's DENOMINATOR CAN EVER BE: of 745 files under `intent/st/`, exactly ONE is not valid UTF-8 and it is `intent/st/.DS_Store`, which D29 puts outside the corpus. THE ESTATE HAS ZERO OPAQUE ATTACHMENTS.** So AC-03.1's _denominator printed over every opaque attachment in the estate_ is 0 of 0 by construction, and a green over the estate alone would be vacuous -- right verb, right depth, a population that cannot contain the failure. AT-03.1 will be driven by a constructed fixture with real non-UTF-8 bytes AND print the estate zero out loud as a zero.
 
 ## (2026-08-16 11:41Z)
 

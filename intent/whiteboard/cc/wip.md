@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 15:29Z
-status: paused
-focus: "**FOLDED AND PAUSED. THE GATE IS 33 of 64 AND FOUR OF THIS SESSION'S COMMITS ARE IN IT.** **SYNC SCOPE IS DONE END TO END** -- type, facade, CLI -- and the composition is the feature: narrowing the read would have DELETED every thread not named, silently, in the hand of a node saving its own work. **The prose half nearly got away: `doc_sections` feeds the FTS index, so a scoped restore would have taken a peer's uncommitted prose into SEARCH while correctly keeping it out of canon.** **THE CHURN LOOP IS CLOSED AT ITS CAUSE** -- the pre-commit hook was a second writer of all 266 views -- and vc's 263-view regeneration proved it with ZERO emphasis flips, so AT-03.18 is green on the ESTATE. AT-01.3 and AT-00.2 landed. **NEXT IS ST0057 WP-03 attachment canon, assigned, with AC-03.1 the hard precondition on dehydration.**"
+heartbeat_at: 2026-08-19 16:33Z
+status: active
+focus: "**AC-03.1 IS BUILT AND GREEN AND IT IS WAITING ON ic TO LAND IT** -- matts directed ic to carry both halves of `store.rs`/`ingest.rs` under their message, so my six files sit ready in the tree. **`opaque` WAS DEFINED NOWHERE ACROSS SIX CRITERIA and I measured it instead of picking one**: `collect_attachments` already named the population by REFUSING it. **THE ESTATE HAS ZERO OPAQUE ATTACHMENTS -- 745 files, one non-UTF-8, and it is `.DS_Store` which D29 excludes** -- so AT-03.1 is driven by a constructed fixture and prints the estate zero OUT LOUD as a zero, which vc ratified. **`239238df` landed the export typed errors, and it exists because the critic REFUSED A COMMIT THAT DID NOT CAUSE THE FINDINGS** -- dc's AC-03.6 inherited-breakage clause missing from a second gate. **And the detector reported my own doc comment explaining the fix.**"
 claims: [ST0056/10, ST0057/01]
 ---
 
@@ -19,24 +19,37 @@ claims: [ST0056/10, ST0057/01]
 
 ## NEXT -- mine
 
-**FOLDED 2026-08-19 15:29Z. Today's settled narrative is archived at `.history/20260819/wip.md` (fold 2). THE GATE IS 33 of 64** -- ST0056 WP-03 and ST0057, and **hv verbatim: bidi sync plus the intentfiles realiser, fully and completely, self-hosted on the SQLite DB and the Rust CLI. NOTHING ELSE MATTERS.** Recorded as a standing ruling below; it had never been on any board.
+**16:33Z. WP-03 IS THE LANE AND AC-03.1 IS DONE PENDING A LANDING THAT IS NOT MINE TO MAKE.**
 
-**SHIPPED THIS SESSION:** `.prettierignore` + `generated_views_are_not_formatted.rs` (`91380693`) -- **the churn loop closed at its cause, and vc's 263-view regeneration proved it on the estate with ZERO emphasis flips; AT-03.18 GREEN.** Sync scope end to end (`27769d1c` type, `2a08cd93` facade, `212b0075` CLI). **AT-01.3** (`9c160af3`, 6,268 fields, zero loss) and **AT-00.2** (`d4a8fb41`, 166 of 166 prose files carried and byte-compared).
+**SHIPPED: `239238df`** -- the export format registry keeps its errors instead of stringifying them. `Emit`/`Read` return `serde_json::Error`; the two `map_err(|e| e.to_string())` calls are DELETED rather than moved, so the structured error survives to the boundary and the refusal text is byte-identical.
 
-**NEXT, IN vc'S ORDER, AND THE FIRST IS ASSIGNED:**
+**BUILT AND GREEN, IN THE TREE, FOR ic TO LAND:** `model.rs` (`text: Option<String>`, `blob`, `opaque()`, `is_opaque`, `as_bytes`), `project.rs` (`canon_blob_rel` + the carry), `export.rs` (`canon_blobs`), `doctor.rs`, `organize.rs` (2 lines), `store.rs` rung **13**, `ingest.rs` sidecar load, `faces.rs`, and seven test files including **`opaque_attachment_canon.rs` -- AT-03.1, five arms, three mutations each killing exactly one.** Pins: SCHEMA_VERSION 13, PINNED hash `0x2769_d55e_632d_8fd6`, DDL 10, **SDL 8 and JSON 10 because optional `text` moves those two faces as well**.
 
-1. **ST0057 WP-03 -- ATTACHMENT CANON. 6 rows, 5 to-write + AT-03.6 red. MINE, assigned by vc on the ground that I landed the attachment work at `36bc02c5`.** **AC-03.1 is the HARD PRECONDITION ON DEHYDRATION**: an opaque attachment cannot be removed from disk until canon holds its bytes as a file, or the removal is unrecoverable rather than merely careless. **AC-03.2 is one rule checked BOTH ways** -- no opaque stored inline, no text stored as a sibling -- because a check catching one direction passes an estate that drifted the other. **AC-03.3's naming gate has a LIVE VIOLATOR waiting: a `.webloc` with spaces that split into eight fragments under `xargs` while the run printed a plausible total.** Rejection is NOT retroactive; `organize` reports it UNCLAIMED and never silently removes it.
-2. **ST0057 AC-00.4 -- `root_files_generated.rs`.** `AGENTS.md` / `CLAUDE.md` / `usage-rules.md` have NO v3 generator, sit outside `.intentfiles` scope, and **something EMPTIED `AGENTS.md` on 2026-08-18** -- so their derivability is an assumption, and an assumption about a file already lost once is exactly what a row is for. A port of v2's `intent agents sync`, and the most separable of the four.
-3. **REBUILD `target/release` -- ANNOUNCE FIRST.** It is sha256 `377d5267` from `8d00a490`, which PREDATES all four sync-scope commits, **so the shipped binary has no scope.** Four nodes read that path and vc has measurements running. Nothing of mine is blocked on it; the next regeneration is safe rather than lucky once it lands.
+**THE DEFINITION WAS THE WORK, NOT THE PLUMBING.** `opaque` carried six criteria and was defined in no criterion, no design doc, no canon and no board -- the closest thing is vc's own D57-7 note that _"my BINARIES never dehydrate was wrong"_. **`collect_attachments` had already named the population by refusing it**: _not valid UTF-8, so it cannot be carried as text_. So the refused become the carried, the carry list does not widen, and no policy was invented.
 
-**BLOCKED, EACH ON A NAMED PERSON -- none of these is mine to unblock:**
+**THE ESTATE ZERO IS THE FINDING WITH THE LONGEST LEGS.** 745 files under `intent/st/`, exactly ONE not valid UTF-8, and it is `.DS_Store` which D29 puts outside the corpus. **AC-03.1's estate denominator can only ever be 0 of 0**, so a green over the estate alone would be vacuous by construction. Fixture + printed zero, ratified by vc.
 
-4. **AT-01.2 / AT-01.4 -- hv on the assignment, AND vc STILL OWES THE AC-01.2 RULING** (_rule before minting_). Measured: git ignore rules apply only to UNTRACKED paths, so existing canon stays tracked and clones perfectly while only artefacts minted AFTER the bad edit vanish -- **`--no-index` is load-bearing on any AT-01.2.** In my claimed scope (ST0057/01), so no ownership dispute; **my handover to ic was an owner-from-kind error.** The directory does not exist, so the first tool written there BECOMES its form -- `lib_*.sh` at **7 of 39 (settled)** is the only inheritable precedent. **ic said their next touch is that directory, and I have WITHDRAWN the form question: it is not on the gate, so whoever writes first sets it and we stop paying for the debate.**
-5. **AC-01.5's guard is BUILT and UNWIRED.** dc's, with the distinct-exit-code re-cut, one commit, gated on hv.
-6. **AC-10.12 / AC-10.13's CAUSES ARE UNFIXED AND THE ROW READS SATISFIED.** `migrate.rs:306` still passes `Vec::new()`; `render.rs:1244` still prints _their content is unchanged_. **AT-10.13 is the COMMIT guard -- it refuses the commit, not the verb -- so neither of AC-10.13's two conjuncts is true.** Sent to vc's queue for a second row or a re-cut. **NOT on the gate, so it waits, and it must not be picked up ahead of WP-03.**
-7. **Parked, unchanged:** the footer (114 views name `thread.json` -> 0 files; hv ruled `intent://`, ST0057 WP-07, Not Started); AT-03.16 (`egest_refuses_to_empty_the_estate.rs`, missing, my crate); the cold-warm `doctor` arm; `critic rust` / `critic shell` arm ZERO rules, dc owns Half B.
+**AND design.md's COST ARGUMENT FOR THE WHOLE MECHANISM WAS MEASURED AGAINST THE WRONG POPULATION.** The 196 `.tap` baselines are all valid UTF-8, so the sidecar form cannot reach them under any reading; what pins them is `ATTACHMENT_EXTENSIONS`. **vc ruled it a doc defect, theirs to re-cut, and added a second error I had not seen: the 240 are pinned to disk by GIT under BOTH options, so the rejected alternative was charged a cost both alternatives pay.** vc also corrected `project.rs:33`'s stated reason -- take the conclusion, not the argument: **regenerating a baseline destroys the comparison it exists to make.**
 
-**VOID -- DO NOT CITE: the 81 -> 3 test-binary consolidation.** dc retracted the Gatekeeper mechanism outright and the subject is gone too -- post-slate `int test rust` is 9.3s. **A real effect does not vindicate a refuted mechanism** (dc). `target/cc` stays TESTS-ONLY.
+**TWO GATE FINDINGS, BOTH SENT TO vc AS ROW-SHAPED:**
+
+- **The critic scans whole STAGED FILES, not added lines**, so it refused a commit whose four findings were byte-identical in HEAD. That is dc's AC-03.6 inherited-breakage clause missing from a second gate, and dc's own 23-of-46 measurement is the argument.
+- **THE DETECTOR TAXES THE PERSON DOCUMENTING THE REPAIR.** My first fix was still reported because the doc comment explaining it quoted the signature it removed -- a grep cannot tell a subject from a mention, so explaining the fix was indistinguishable from committing the defect. **The whiteboard header guard already refuses to scan prose for exactly this reason**, so the estate has ratified the principle in one guard and violated it in another.
+
+**NOT MINE, BOTH REPORTED:**
+
+1. **`intentsvcs` DOES NOT COMPILE in the live tree** -- 4 errors in `facade.rs`, a new `Facade::organize` mapping into three `FacadeError` variants that do not exist. **That is hv's just-ruled `organize` wiring landing in a file ic declared as theirs**, and neither had announced it to the other. Told both.
+2. **`preconditions.rs` is RED AT HEAD and it is dc's** (`edbd7640`), not mine and not untracked -- ic reported it both ways round. The remedy is a design call between _the gate may name the criterion it reads_ and _shipped strings carry no PM state_, so I flagged it rather than picking one from outside the row.
+
+**NEXT, IN ORDER:**
+
+1. **AC-03.2 and the projection half** -- `Facade::projection` must write the sidecars on `sync --to-disk`, and `WriteSet` needs a bytes-capable `add`. **Both are ic's files this pass**, so it goes after their landing, not before.
+2. **AC-03.4 / AC-03.5** -- drift by COMPARISON through `doctor`, and `sync --to-store` reporting an attachment whose disk bytes differ from the INDEX. `organize` already has the comparison (`AttachmentDiverged`, and a MISSING hash counted as divergence); `doctor`'s half is model-internal only so far.
+3. **AC-03.3 naming gate.** The `.webloc` violator is **NOT an attachment**: it is valid UTF-8 XML under `intent/docs/`, so it is not opaque and not under a thread. Its defect is the NAME alone.
+4. **AC-00.4 `root_files_generated.rs`**, unchanged.
+5. **REBUILD `target/release` -- ANNOUNCE FIRST**, still `377d5267` from `8d00a490`.
+
+**MY GREENS ARE NOW LOAD-BEARING BEYOND MY ROWS (vc).** Six of the dehydration ship gate's nineteen declared preconditions are AC-03.1 through AC-03.6, so the day WP-03 goes green I am moving the estate's arming state. A vacuous green in WP-03 is now a vacuous green that helps unlock dehydration.
 
 ## THE TWO-ENDED CLASSIFIER -- still live, and MORE dangerous after the move
 
