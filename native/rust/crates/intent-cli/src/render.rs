@@ -45,6 +45,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
+    Some(("agents", m)) => agents(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -1385,8 +1386,36 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // the refusal TEXT on stderr and that is right, so the COUNT has to appear
   // here or stdout is quietly complete-looking at precisely the moment it is
   // least complete.
+  // **AND THE REFUSAL COUNT WAS STILL NOT ENOUGH, BECAUSE IT COUNTS REFUSALS
+  // AND THE READER IS ASKING ABOUT FILES.** `PreconditionsUnmet` is deliberately
+  // ONE refusal for the whole run (`organize.rs`, at the push), so a gate
+  // holding back four hundred removals renders as `1 refused` -- which is
+  // accurate, three orders of magnitude too small, and sits in the same line as
+  // `0 to remove`. Measured on this estate by cc: stdout `0 to remove, 1
+  // refused` beside a stderr refusal reading `would remove 423 file(s)`, same
+  // run. Both true; only one of them gets grepped.
+  //
+  // **THE FIGURE GOES IN THE SUMMARY LINE ITSELF RATHER THAN A NOTE UNDER IT**,
+  // for the reason the tense is in every line above: these lines get separated
+  // from their context, and a line that has been separated must still tell the
+  // truth. `0 to remove (423 blocked)` does; `0 to remove` with the real number
+  // one line down does not.
+  //
+  // **AND `0 to remove` IS NOT A BUG THAT THIS PAPERS OVER -- IT IS CORRECT AND
+  // THAT IS THE HAZARD.** In a preview, `to remove` answers *what would
+  // `--apply` remove*, and today the answer is genuinely none, because the gate
+  // refuses. It becomes 423 on the day the last precondition goes green, with
+  // no edit to this verb and nothing in the output having changed shape. The
+  // parenthetical is what makes the pending state visible while it is still
+  // pending.
+  let blocked = report.blocked();
+  let blocked = if blocked == 0 {
+    String::new()
+  } else {
+    format!(" ({blocked} blocked)")
+  };
   println!(
-    "{head} {} {}, {} {}, {} unchanged, {} {}, {} unclaimed, {} diverged, {} refused",
+    "{head} {} {}, {} {}, {} unchanged, {} {}{:.0}, {} unclaimed, {} diverged, {} refused",
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
@@ -1394,6 +1423,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     report.unchanged.len(),
     report.dehydrated.len(),
     if previewing { "to remove" } else { "removed" },
+    blocked,
     report.unclaimed.len(),
     report.diverged.len(),
     report.refused.len()
@@ -2538,4 +2568,40 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
     println!("removed: {}", project.relative(path));
   }
   Ok(())
+}
+
+/// The `agents` family -- the `ROOT_FILES` generator (ST0057 AC-00.4).
+///
+/// **`generate` is wired and its four siblings are not, and that is a chosen
+/// boundary rather than partial delivery.** The dispatch table records `agents
+/// sync` as writing `AGENTS.md.bak` beside the file it rewrites; v3 already has
+/// [`intentsvcs::backup`] carrying D35's rolling snapshots, so wiring the write
+/// half tonight would pick between two backup mechanisms by accident, at the
+/// hour when the person who owns that call is asleep. `generate` is the half
+/// the table itself calls "pure emit-path -- writes nothing", and it is the
+/// whole of what AC-00.4 asks for: a generator, so that the derivability of
+/// these three files stops being an assumption.
+///
+/// Errors render through [`Remedy::render`] rather than a second format string
+/// here -- that trait exists precisely so a caller cannot invent a rival
+/// rendering, and `fail` is not reusable because it takes a `FacadeError`.
+fn agents(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("generate", _)) => {
+      let (project, _) = context()?;
+      let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
+      let ctx = views::RenderContext {
+        version: env!("CARGO_PKG_VERSION"),
+      };
+      let content = intentsvcs::rootfiles::render(&home, "AGENTS.md", project.config(), &ctx)
+        .map_err(|e| Failure::Error(e.render()))?;
+      // `print!`, not `println!` -- the template ends with its own newline and
+      // a second one would put the generated file one byte away from what the
+      // generator produced, which is exactly the comparison AC-00.4 exists for.
+      print!("{content}");
+      Ok(())
+    }
+    Some((verb, _)) => unwired("agents", verb),
+    None => unwired("agents", ""),
+  }
 }

@@ -43,6 +43,8 @@ fn proofs() {
   implements::<intentsvcs::project::ProjectError>();
   implements::<intentsvcs::project::UnhonourableWindow>();
   implements::<intentsvcs::finding::Refusal>();
+  implements::<intentsvcs::rootfiles::Fault>();
+  implements::<intentsvcs::rootfiles::RootFileError>();
   implements::<intentsvcs::store::StoreError>();
   implements::<intentsvcs::sync::SyncError>();
   implements::<intentsvcs::write_set::WriteError>();

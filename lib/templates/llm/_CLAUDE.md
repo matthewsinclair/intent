@@ -50,10 +50,10 @@ Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
 ## Project-specific
 
 <!-- user:start -->
-<!-- Author: [[AUTHOR]], created [[DATE]]. Add project-specific Claude directives below this line. Preserved across regeneration. -->
+<!-- Author: [[AUTHOR]]. Add project-specific Claude directives below this line. Preserved across regeneration. -->
 
 <!-- user:end -->
 
 ---
 
-_Generated from `lib/templates/llm/_CLAUDE.md` on [[DATE]] for Intent v[[INTENT_VERSION]]._
+_Generated from `lib/templates/llm/_CLAUDE.md` for Intent v[[INTENT_VERSION]]._

@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 20:17Z
-status: paused
-focus: "**FOLDED AND PAUSED (fold 3). WP-03 IS CLOSED AS WORK -- five rows green and the sixth built.** AT-03.1/02/03/04/05 landed; AT-03.6 `--staged` at `19268867`, byte-proven at the five episode commits, dc approved, and **the row waits only on a gating decision that is deliberately not mine.** **THE FINDING WAS BIGGER THAN THE ROW: every instrument that watches the wiring said it was correct at 11 gated, and only a planted divergence disagreed** -- a roster verifies a tool is DISPATCHED, nothing verifies that dispatching it MEASURES the right subject. **NEXT IS AC-00.4, CLAIMED AND FULLY DESIGNED ON THIS BOARD, NOT BUILT** -- the ROOT_FILES generator, template-not-heredoc, and deliberately NOT a view because a view under a thread dehydrates."
+heartbeat_at: 2026-08-19 20:44Z
+status: active
+focus: "**AC-00.4 IS LANDED AND ARMING IS 4, NOT 6.** The `ROOT_FILES` generator ships behind `intent agents generate` -- prose in a TEMPLATE not a heredoc, deliberately NOT a `views::View`, and **`[[DATE]]` REFUSES rather than passing through** because a generated file that stamps its own generation differs from itself on every run. 7 arms, 5 mutation-proven, whole intentsvcs suite green. hv withdrew AC-00.3. **Of the four unmet left, AC-03.6 is mine and is BUILT -- it waits on dc's gating decision, not on code.**"
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -23,15 +23,15 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **WP-03 IS CLOSED AS WORK. Five rows green and the sixth built:** AT-03.1 `46ab2220`, AT-03.2 `49aa64db`, AT-03.4 `3c6d20f6`, AT-03.5 `18a9ab6b`, AT-03.3 `61b93440`, and AT-03.6's `--staged` at `19268867`. Also `239238df` (export typed errors) and `fb333464` (the daemon that could not open the store).
 
-**1. ST0057 AC-00.4 -- CLAIMED, DESIGNED, NOT BUILT. This is the next build.** One of the eight unmet dehydration preconditions, and it was on NOBODY's claims until vc measured the union -- **each node tracked its own preconditions correctly and nothing tracked the whole.**
+**1. ST0057 AC-00.4 -- LANDED 2026-08-19. `intent agents generate` is the generator, and AC-00.4 is satisfied.**
 
-The design is decided, so do not re-derive it:
-
-- **The prose goes in a TEMPLATE, never in the generator.** The project's own rule: _all generated content comes from `lib/templates/` via substitution; no inline heredocs duplicating template content._ v2's generator predates it and carries 19 sections inline across 835 lines of `intent/plugins/agents/bin/intent_agents`, with 15 language-conditional references.
-- **Porting that prose into Rust is wrong twice**: it bakes v2's shipped-and-frozen content into the v3 binary, and it bakes THIS project's content into a tool every consumer installs.
-- So: `lib/templates/llm/_AGENTS.md` as the skeleton -- v2 ships `_CLAUDE.md` and `_usage-rules.md` and no `_AGENTS.md` -- substitution on the four tokens the existing templates already use (**`[[PROJECT_NAME]]`, `[[INTENT_VERSION]]`, `[[DATE]]`, `[[AUTHOR]]`**), and language-conditional sections keyed on `config.languages`.
-- **NOT joining `views::render_all`, and that is a hazard rather than a preference.** A `GeneratedView` under a thread DEHYDRATES; root files escape only because `thread_relative` returns `None` for them and `organize` skips them. Making them views puts three root files one classifier change away from removal -- and **`AGENTS.md` is the file this criterion exists because something already emptied it.**
-- **AT-00.4 must NOT assert byte-equality against disk.** Those files are v2 v2.19.0 output and say so in their own footers. The property is _v3 can produce each of the three_, plus **the emptied-file case is detected**, that being the live instance the row cites.
+- **`native/rust/crates/intentsvcs/src/rootfiles.rs`** + **`lib/templates/llm/_AGENTS.md`** (new -- v2 ships `_CLAUDE.md` and `_usage-rules.md` and never had one) + **`root_files_generated.rs`**, 7 arms.
+- **`[[DATE]]` IS REFUSED, AND THAT WAS THE ONE REAL DESIGN CALL.** `RenderContext` is documented as carrying facts about the tool or the data and **never about the moment of rendering** -- so a date token would make the file differ from itself on every run, which is AC-03.17's churn loop wearing a timestamp. Both `[[DATE]]` sites came OUT of `_CLAUDE.md`; v2 substitutes with a plain `sed` chain (`bin/intent_init:134`), so **a token absent from a template is a no-op and v2 cannot break** -- checked, not assumed.
+- **`split_inclusive('\n')`, never `lines()`.** The first cut appended a newline to a template that lacked one. Every real template ends with one so it would never have shown -- **which is exactly why a generator that silently adds a byte is never caught.**
+- **FIVE MUTATIONS, EACH PROVEN RED**: blocks never resolved; an unknown token expanding to empty instead of refusing; `render_all` covering only the first file; nesting permitted; and a root file planted into `views::render_all`. That last one is the hazard guard, and it is behavioural rather than a comment.
+- **NOT byte-equality against disk**, deliberately: those three files are v2 v2.19.0 output and say so in their own footers.
+- **`agents sync` is NOT wired and the boundary is chosen.** The dispatch table records it writing `AGENTS.md.bak`, and v3 already has `backup.rs` with D35's rolling snapshots -- wiring the write half tonight picks between two backup mechanisms by accident, at the hour the owner is asleep. `generate` is the half the table itself calls "pure emit-path -- writes nothing", and it is the whole of what the criterion asks.
+- **Dropped from v2's output: the Installed Skills / Installed Subagents enumerations.** No v3 source, and a snapshot of what is installed goes stale the moment anything is installed with nothing regenerating the file to notice. The template names the two commands that answer live. **Stated, not silently omitted.**
 
 **2. AT-03.6's ROW MOVE, waiting on dc.** My half is landed and byte-proven; **admitting the tool to the gate is dc's decision and vc's condition 3 says it is not mine.** Roster disposition untouched at 10 gated / 7 manual.
 
