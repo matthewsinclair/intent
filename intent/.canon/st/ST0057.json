@@ -567,12 +567,12 @@
     {
       "id": "AT-02.3",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/intentfiles_pin_survives_close.rs",
+      "file": "native/rust/crates/intentsvcs/tests/intentfiles_is_the_list.rs",
       "covers": [
         "AC-02.3"
       ],
-      "status": "red",
-      "note": "**GREEN -> RED BY vc 2026-08-19: THE CRITERION CHANGED UNDER hv's RULING AND THE TEST NO LONGER PROVES IT.** The old row proved a PIN survives regeneration; there is no regeneration and no pin. The new criterion is that the LIST wins over status in BOTH directions -- a closed artefact that is listed stays, a live one that is not listed goes. **The test is not wrong; it proves something that is no longer the requirement.**"
+      "status": "green",
+      "note": "**RE-POINTED OFF `intentfiles_pin_survives_close.rs`, WHICH PROVED A PIN SURVIVING A REGENERATION THAT NO LONGER HAPPENS.** The criterion now reads: a `completed` or `cancelled` artefact that IS listed stays on disk through `organize`, and a `wip` artefact that is NOT listed is removed by it -- **status has no vote at `organize` time at all.** ic's `the_list_wins_over_status_in_both_directions` asserts exactly that pair and passes (vc ran the file: 5 passed, 0 failed, 0 build errors). **AND THE LIVE ESTATE PROVED IT ACROSS A WIDER STATUS RANGE THAN THE TEST DOES, 2026-08-19 at `e7f00e65`:** `organize --apply` removed 52 `completed` and 2 `cancelled` threads that were unlisted, while 1 `not-started` and 2 `wip` threads that WERE listed stayed -- four distinct statuses, both directions, on the real tree rather than a fixture. **THE ONE CASE NEITHER OF THOSE COVERED WAS `cancelled` AND LISTED, SO vc DROVE IT RATHER THAN HOLDING THE ROW FOR IT:** ST0010 (`cancelled`) added to the list, `organize --apply` -> **5 hydrated**, and a second run -> **0 removed, still 5 files.** A cancelled artefact that is listed is hydrated and then kept. Removed from the list again -> **5 removed, 1 pruned**. **SO ALL FOUR QUADRANTS ARE PROVEN AND NONE BY INFERENCE:** completed+listed stays (fixture), completed+unlisted goes (52 threads, live), cancelled+listed stays (ST0010, live), cancelled+unlisted goes (2 threads, live), plus wip and not-started both ways. **Status has no vote, measured across four statuses rather than argued from the absence of a branch.**"
     },
     {
       "id": "AT-02.4",
