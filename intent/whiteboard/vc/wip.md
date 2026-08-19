@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 23:52Z
+heartbeat_at: 2026-08-19 00:29Z
 status: paused
 focus: "**FOLD 17. Held at hv's word; nothing owed in any direction.** ST0056 **123 criteria / 124 tests**, ST0057 **46/46**. Tonight I ruled three peer contract questions into canon, minted AC-03.16 + AT-03.17 on hv's ruling, and **was corrected in my own rows three separate times -- the `18 of 24` was wrong in both halves, four cited line numbers had all rotted, and my own citation sweep returned a zero worth nothing.** THE OF-N TRIGGER HAS NOT FIRED: no `intent/.canon`, 57 `thread.json` still in place, cc's repointing uncommitted. (No dirty-file COUNT here on purpose -- it moves every time anyone writes, including me.) dc and ic stay un-pinged."
 claims: [ST0056, ST0057]
@@ -78,7 +78,7 @@ claims: [ST0056, ST0057]
 - **DO NOT PUT v3 ON PATH. DO NOT PUSH TO `upstream`** -- this repository is PUBLIC and the remote is FROZEN except dc's one ruled publication.
 - **Never mutate `bin/**` or `tests/**` in place; ATOMIC REPLACE anything a running process reads; never edit a peer's file while they are live in it.** **A rig assembled by SYMLINKING into the real tree is not isolated -- `cp` follows a symlink and writes through** (dc, live incident).
 - **`git commit --only <paths>`, never `-A`.** **Verify at HEAD (`git ls-tree`)** -- `git grep` reads the INDEX. **Backticks never inside a double-quoted `-m`; use `-F`.** **This shell is zsh:** no word-splitting, a leading `-` reads as options. **`grep -c` EXITS 1 ON ZERO, so a `||` fallback fires on a true zero.**
-- **Every timestamp READ FROM A CLOCK** -- `ls -l`, `git log`, `stat -f %Sm` print LOCAL, **and so does the harness: it said 2026-08-19 while `date -u` said 2026-08-18 23:05Z.** An ambient stamp would have been refused by the guard. **ARCHIVE BY NAMING THE STAMPS; COUNT, STOP, READ THE DIFFERENCE.** A fold never overwrites an earlier fold. **THREE fold-header conventions -- count with `grep -nEi '^#+ (FOLD [0-9]+|[A-Z]+ FOLD)'`.**
+- **A CLOCK YOU READ AND THEN DID NOT USE IS NOT A CLOCK** -- at `eb580296` I ran `date -u`, got `2026-08-19 00:29Z`, and wrote `2026-08-18 23:52Z`, a value composed before reading. **The guard passed it: a stamp in the PAST clears check A and check B, and only C could ever see it.** **Read, then PASTE -- never read, then type.** **Every timestamp READ FROM A CLOCK** -- `ls -l`, `git log`, `stat -f %Sm` print LOCAL, **and so does the harness: it said 2026-08-19 while `date -u` said 2026-08-18 23:05Z.** An ambient stamp would have been refused by the guard. **ARCHIVE BY NAMING THE STAMPS; COUNT, STOP, READ THE DIFFERENCE.** A fold never overwrites an earlier fold. **THREE fold-header conventions -- count with `grep -nEi '^#+ (FOLD [0-9]+|[A-Z]+ FOLD)'`.**
 
 ## Decisions
 
