@@ -301,17 +301,22 @@ else
     if [ "$c_absent" -gt 0 ]; then
       printf 'critic: %s -- ARMED but NOT RUN HERE, THE TOOL IS ABSENT ON THIS MACHINE. These rules are UNENFORCED and a clean result below does not cover them: %s\n' \
         "$LANG" "$(printf '%s\n' "$census" | awk '$3 == "not-run:tool-absent" { printf "%s(%s) ", $1, $4 }')"
-      # NOT A REFUSAL, DELIBERATELY, AND NOT AN OVERSIGHT. AC-07.4 rules that a
+      # THIS IS THE REFUSAL, AND IT LANDED WITH THE HOOK'S BRANCH IN ONE COMMIT
+      # (dc 2026-08-19, hv approved), which is the condition this block recorded
+      # for itself and declined to act on until it was met. AC-07.4 rules that a
       # tool-armed rule REFUSES when its tool is absent on a project that armed
-      # it. Refusing needs an exit code the pre-commit hook can TELL APART from
-      # an invocation error -- and today it cannot: the hook's `*)` branch
-      # fail-opens on every rc that is not 0 or 1, which is Half A's entire
-      # defect. Emitting a new code before the hook can read it would put a
-      # third condition in the bucket that already conflates two, on purpose
-      # this time, which is strictly worse than the accident. The refusal lands
-      # WITH the hook's distinct-exit-code change, in one commit, both ends
-      # together.
-      :
+      # it. Until now the hook's `*)` fail-opened on every rc that was not 0 or 1,
+      # so emitting a new code first would have put a THIRD condition in a bucket
+      # already conflating two -- on purpose, which is worse than the accident.
+      # `lib/templates/hooks/pre-commit.sh` now reads 3 as a refusal and BLOCKS.
+      #
+      # WHY 3 AND NOT 2. 2 is the invocation error and it fails OPEN, correctly:
+      # a gate that blocks every commit because the gate itself is broken is
+      # issue 0043 on the git side. A refusal is the other kind of fact -- the
+      # project armed a rule and this machine cannot honour it -- and it has two
+      # ordinary remedies the developer owns. **A gate fails open on its own
+      # breakage and closed on yours**, and one exit code cannot say both.
+      CRITIC_REFUSED=1
     fi
   } >&$c_fd
 fi
@@ -322,6 +327,11 @@ if [ -z "$findings" ]; then
     text) printf 'ok: no %s findings at severity >= %s across %d file(s)\n' \
            "$LANG" "$SEVERITY_MIN" "${#FILES[@]}" ;;
   esac
+  # A CLEAN RUN THAT REFUSED IS NOT A CLEAN RUN. The findings list is empty and
+  # the coverage is not what the project asked for, so exiting 0 here would be
+  # the exact sentence the census above prints in order to deny: a clean result
+  # that does not cover what was armed.
+  [ "${CRITIC_REFUSED:-0}" -eq 0 ] || exit 3
   exit 0
 fi
 
@@ -330,4 +340,9 @@ case "$FORMAT" in
   json) printf '%s\n' "$findings" | critic_format_json ;;
 esac
 
+# REFUSAL OUTRANKS FINDINGS, and the findings are printed either way above. Both
+# codes block, so precedence changes no gate decision -- it changes what the
+# caller is TOLD. "There are findings" is a complete account of the run only if
+# nothing went unenforced, and here something did.
+[ "${CRITIC_REFUSED:-0}" -eq 0 ] || exit 3
 exit 1

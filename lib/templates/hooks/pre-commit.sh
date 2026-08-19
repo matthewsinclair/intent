@@ -88,12 +88,49 @@ cd "$PROJECT_ROOT" || exit 0
 #
 # Format is `basename|what goes unchecked if it is missing`, so the fail-open
 # message can name the specific hole rather than saying "a guard".
-WB_GUARDS=(
-  'whiteboard-clock-guard.sh|timestamps are UNCHECKED'
-  'whiteboard-header-guard.sh|header values are UNCHECKED'
+#
+# THE APPLICABILITY TEST IS PER-GUARD AND NOT PER-ROSTER, AND THAT IS THE WHOLE
+# GENERALISATION (dc 2026-08-19, hv approved). The roster was whiteboard-only and
+# so was its gate -- one `[ -d intent/whiteboard ]` around the lot -- which meant
+# a guard about anything else had nowhere to be declared. `canon-ignore-guard.sh`
+# was written, shipped, and named in NO roster: it existed and never ran, which is
+# precisely the invisible non-enforcement this mechanism exists to end, occurring
+# inside the mechanism. **A guard nothing dispatches is indistinguishable from a
+# guard that passes**, and no output anywhere said otherwise.
+#
+# Format is `applies-when|basename|what goes unchecked if it is missing`.
+# `applies-when` is a PATH whose presence makes the guard relevant, so a project
+# without a board runs no whiteboard guard and a project without canon runs no
+# canon guard -- each opts in by the thing it protects existing, rather than by a
+# roster-wide condition that has to be true for all of them at once.
+GUARDS=(
+  'intent/whiteboard|whiteboard-clock-guard.sh|timestamps are UNCHECKED'
+  'intent/whiteboard|whiteboard-header-guard.sh|header values are UNCHECKED'
+  'intent/.canon|canon-ignore-guard.sh|an ignore rule reaching canon is UNCHECKED'
+  # `intent` RATHER THAN EITHER SUBJECT, AND THE WIDTH IS DELIBERATE (cc's
+  # proposal, taken). This guard has TWO subjects -- `intent/whiteboard/*/.history/**`
+  # and `intent/events.jsonl` -- so neither path alone is right, and two entries
+  # would dispatch one guard twice. `intent` is the smallest path containing both.
+  #
+  # IT DOES WEAKEN THE PROPERTY THE COMMENT ABOVE ARGUES FOR, and saying so is
+  # cheaper than discovering it: this guard opts in by BEING AN INTENT PROJECT
+  # rather than by its subjects existing, so an Intent project with neither an
+  # events log nor a board still pays for it. The cost is one
+  # `git diff --cached --numstat` that returns empty and exits 0, and **the guard
+  # re-tests both subjects itself regardless of why it was dispatched** -- so
+  # `applies-when` is a cheap pre-filter here and not the real gate.
+  'intent|append-only-guard.sh|a write where an append was meant is UNCHECKED'
 )
 
-if [ -d "intent/whiteboard" ]; then
+# Applicable = at least one rostered guard's subject is present. Computed before
+# the INTENT_HOME resolution below because resolving costs an `intent info` call,
+# and a project with neither a board nor canon owes nothing and should pay nothing.
+GUARDS_APPLY=0
+for g_entry in "${GUARDS[@]}"; do
+  [ -e "${g_entry%%|*}" ] && GUARDS_APPLY=1
+done
+
+if [ "$GUARDS_APPLY" -eq 1 ]; then
   # ONE GUARD ABSENT AND THE RESOLVER ABSENT ARE DIFFERENT ABSENCES (issue 0042).
   # These were one `else` branch, and it could not tell them apart: when the
   # resolution fails EVERY guard is missing at once, so the loop printed one
@@ -152,14 +189,22 @@ if [ -d "intent/whiteboard" ]; then
     # because the remedy is different in kind: nothing is wrong with the guards
     # and there is nothing to install -- the tool that locates them did not
     # answer, so fixing any one guard would change nothing.
-    echo "intent gate: NO whiteboard guard ran for this commit -- not one is missing, ALL are." >&2
+    echo "intent gate: NO guard ran for this commit -- not one is missing, ALL are." >&2
     # The resolved value is QUOTED BACK rather than described, because the two
     # ways this fails look nothing alike to an operator and only one of them is
     # obviously wrong: an empty resolution reads as "the tool said nothing",
     # while `<not set>` reads as a legitimate answer until you notice it is not
     # a path. Naming it is what makes the second case self-evident.
     echo "  no usable INTENT_HOME (\`intent info\` exit ${wb_info_rc}, resolved to '${INTENT_HOME_RESOLVED}'), so the guards could not be located." >&2
-    echo "  skipped: ${WB_GUARDS[*]%%|*}" >&2
+    # Only the APPLICABLE ones are named. Listing a canon guard as skipped in a
+    # project with no canon would report a hole that does not exist, and a
+    # message that overstates is one a reader learns to discount.
+    g_skipped=""
+    for g_entry in "${GUARDS[@]}"; do
+      g_rest="${g_entry#*|}"
+      [ -e "${g_entry%%|*}" ] && g_skipped="$g_skipped ${g_rest%%|*}"
+    done
+    echo "  skipped:${g_skipped}" >&2
     echo "  the guards are fine; the tool that finds them is what did not answer." >&2
     echo "  check \`intent info\` -- a binary running outside its own install tree, or a v3 binary shadowing a v2 install on PATH, are the known causes (issues 0036/0043)." >&2
     # Deliberately fail-open, and this is a considered call rather than an
@@ -183,11 +228,18 @@ if [ -d "intent/whiteboard" ]; then
     # act on is how a gate's output stops being read, so it says outright that
     # the guards ran and that nothing is owed.
     if [ "$wb_info_rc" -ne 0 ]; then
-      echo "intent gate: \`intent info\` exited ${wb_info_rc}, but the whiteboard guards WERE located and are running -- nothing to do here." >&2
+      echo "intent gate: \`intent info\` exited ${wb_info_rc}, but the guards WERE located and are running -- nothing to do here." >&2
     fi
-    for wb_entry in "${WB_GUARDS[@]}"; do
-      wb_name="${wb_entry%%|*}"
-      wb_unchecked="${wb_entry#*|}"
+    for wb_entry in "${GUARDS[@]}"; do
+      wb_when="${wb_entry%%|*}"
+      wb_rest="${wb_entry#*|}"
+      wb_name="${wb_rest%%|*}"
+      wb_unchecked="${wb_rest#*|}"
+      # NOT APPLICABLE IS SILENT, AND ABSENT IS LOUD. A project with a board and
+      # no canon must not be told a canon guard did not run -- it has nothing to
+      # guard, so there is no hole. The two are different facts and only one of
+      # them is a finding.
+      [ -e "$wb_when" ] || continue
       wb_guard="${INTENT_HOME_RESOLVED}/lib/templates/hooks/${wb_name}"
       if [ -f "$wb_guard" ]; then
         bash "$wb_guard" || WB_BLOCKED=1
@@ -196,7 +248,7 @@ if [ -d "intent/whiteboard" ]; then
         # the other guards really did run. Named, not silent: a board present
         # with no guard behind it is exactly the invisible non-enforcement this
         # whole mechanism exists to end.
-        echo "intent gate: intent/whiteboard/ present but ${wb_name} was not found;" >&2
+        echo "intent gate: ${wb_when} present but ${wb_name} was not found;" >&2
         echo "  ${wb_unchecked} this commit. (looked in: ${wb_guard})" >&2
       fi
     done
@@ -279,10 +331,36 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # Capture output so we can surface findings only when present.
     out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
     rc=$?
+    # THREE OUTCOMES, NOT TWO-AND-A-BUCKET. `*)` used to swallow every rc that
+    # was not 0 or 1 and fail open on all of them, which was fine only while
+    # exactly one such code existed. AC-07.4 rules that a tool-armed rule REFUSES
+    # when its tool is absent on a project that armed it, and that refusal needs
+    # a code this gate can tell apart from "the critic could not start". Adding
+    # the refusal without this branch would have put a THIRD condition in a
+    # bucket that already conflated two -- deliberately this time, which is worse
+    # than the accident. So both ends move together, in one commit.
+    #
+    # 3 BLOCKS AND 2 FAILS OPEN, AND THE DIFFERENCE IS WHETHER ANYONE CAN ACT.
+    # An invocation error means the gate is broken; blocking every commit until
+    # someone fixes the gate is issue 0043 rebuilt on the git side, and a guard
+    # that must be bypassed is a guard nobody keeps. A refusal is the opposite:
+    # the project ARMED a rule, the tool is not here, and there are two ordinary
+    # remedies the developer owns -- install the tool, or disarm the rule. **A
+    # gate should fail open on its own breakage and closed on yours.**
     case "$rc" in
       0) ;;
       1)
         printf '%s\n' "$out" >&2
+        AGGREGATE=1
+        ;;
+      3)
+        # The findings, if any, are still printed: a refusal does not make the
+        # rest of the run uninteresting, and suppressing them would trade one
+        # silent gap for another.
+        [ -n "$out" ] && printf '%s\n' "$out" >&2
+        echo "intent critic ($lang) REFUSED: a rule this project armed could not be enforced here." >&2
+        echo "  this is not a gate failure -- the gate is telling you it cannot cover what you asked for." >&2
+        echo "  remedy: install the missing tool, or disarm that rule for this project." >&2
         AGGREGATE=1
         ;;
       *)

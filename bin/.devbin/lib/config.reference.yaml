@@ -43,6 +43,26 @@ project:
   # handlers. Default: <NAME>_ROOT, upper-cased.
   root_var: CONFLAB_ROOT
 
+  # Optional. A COMMAND devbin runs once per invocation, whose stdout it prints
+  # verbatim beneath every verdict as `measured: <answer>`.
+  #
+  # THE ANSWER IS OPAQUE AND STAYS OPAQUE. devbin evals the command and never
+  # parses what comes back -- it cannot tell a sha from a hostname from a
+  # timestamp, and that is the point. The project knows what identifies one of
+  # its runs; devbin knows only that a reader needs to see it. **The moment
+  # devbin could interpret the answer, this layer split would have been reversed
+  # by implementation rather than by decision, and no diff would say so.**
+  #
+  # WHY IT EXISTS: a human reading `FAILED: rust` in a summary had no way to know
+  # which tree it described. Every verdict now carries the project's own answer
+  # to "what was measured".
+  #
+  # Declared and unanswering is LOUD, never silent: a command that fails or
+  # prints nothing yields `REFERENT UNAVAILABLE -- 'project.referent' is declared
+  # and did not answer`, because a declared referent that quietly vanishes leaves
+  # the verdict looking unlabelled rather than broken.
+  referent: bin/.devbin/cmd/measured --value
+
   # Optional. Where the project version is read from. Default: VERSION.
   #
   # Names the FILE, never how to parse it: devbin knows how to read a version

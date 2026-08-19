@@ -143,6 +143,10 @@ seal_disagreement_reason() {
 # trap.
 open_run_log() {
   local keep="$1" dir="$2" suffix="$3" stamp latest
+  # The wall clock for print_run_overhead. Set unconditionally and here, because
+  # this is the one point every gate passes through on its way to running -- a
+  # timer started anywhere else would measure a different span for each caller.
+  DEVBIN_RUN_T0="$(date +%s)"
   if [ "$keep" = 1 ]; then
     mkdir -p "$dir"
     stamp="$(date +%Y%m%d-%H%M)"
@@ -792,6 +796,77 @@ print_run_referent() {
   printf 'measured: %s\n' "$DEVBIN_RUN_REFERENT"
 }
 
+# print_run_overhead <log> -- how much of this run was NOT the tests.
+#
+# TWO DURATIONS, NEITHER BANKABLE ALONE, DIVIDED, GIVE A MEASUREMENT THAT IS
+# (ic, 2026-08-19; the decomposition is theirs). A runner's own `finished in` is
+# a property of the ARTEFACT: it barely moves between machines. Wall-clock is a
+# property of the APPARATUS. **The ratio between them measures the apparatus, and
+# it needs no mechanism named** -- which is why it works where five successive
+# explanations of a slow estate did not.
+#
+# The measurement that produced it, on one project, same tests throughout:
+#
+#     8.51s tests / 11m 20s wall  =  80x     something is eating the machine
+#    11.87s tests / 22m 40s wall  = 115x     still eating it
+#     8.18s tests /  9.3s   wall  = 1.14x    quiet
+#
+# The summed term barely moved across all three. Only the ratio collapsed. Two
+# days and five wrong causes were spent on the wall-clock figure alone; the
+# ratio says "the apparatus is loud" without claiming to know why, and that is
+# the whole of its value.
+#
+# THREE LIMITS, ALL IN THE CODE RATHER THAN IN A NOTE, BECAUSE A READER MEETS
+# THE OUTPUT AND NEVER THE COMMENT.
+#
+#   1. It needs a runner that reports its own time. Where no recognised form
+#      appears this is SILENT -- no line beats a made-up denominator.
+#   2. It detects OVERHEAD, not slowness. A confound that slows the TESTS moves
+#      both terms and the ratio stays near 1. It is not a performance meter and
+#      must never be described as one.
+#   3. **It assumes wall ~= summed + overhead, which holds only while test
+#      binaries run SEQUENTIALLY.** Parallelise them and wall drops BELOW summed,
+#      and a ratio under 1 does not mean a quiet apparatus -- it means the model
+#      stopped applying. So sub-1 reports UNDEFINED, never a comfortable number.
+#      That gives the meter a free self-check: it detects its own obsolescence,
+#      and it announces it to the one person who will never read a note about a
+#      ratio -- whoever changed the runner underneath it.
+#
+# Granularity is whole seconds (`date +%s`; perl is not assumable -- see the
+# shasum note in lib/helpers). That is ample for a meter whose job is separating
+# 1x from 100x, and it is why very short runs are not reported.
+print_run_overhead() {
+  local log="${1:-}" wall parsed summed n
+  [ -n "${DEVBIN_RUN_T0:-}" ] || return 0
+  [ -f "$log" ] || return 0
+  wall=$(( $(date +%s) - DEVBIN_RUN_T0 ))
+  # Under 3s the integer clock cannot resolve a ratio worth printing.
+  [ "$wall" -ge 3 ] || return 0
+  # Both spellings the corpus actually emits: cargo's `finished in 0.12s` and
+  # ExUnit's `Finished in 1.2 seconds`. An unrecognised runner yields n=0.
+  parsed="$(awk '
+    {
+      if (match($0, /[Ff]inished in [0-9]+(\.[0-9]+)?/)) {
+        seg = substr($0, RSTART, RLENGTH)
+        sub(/[Ff]inished in /, "", seg)
+        s += seg + 0; n++
+      }
+    }
+    END { if (n > 0) printf "%.2f %d", s, n }
+  ' "$log" 2>/dev/null)"
+  [ -n "$parsed" ] || return 0
+  summed="${parsed%% *}"; n="${parsed##* }"
+  awk -v w="$wall" -v s="$summed" -v n="$n" '
+    BEGIN {
+      if (s <= 0) exit 0
+      if (w < s) {
+        printf "overhead: UNDEFINED -- wall %ds is BELOW the %ss the runner reports for %d suite(s), so the binaries are not running sequentially and this meter'"'"'s model does not hold.\n", w, s, n
+      } else {
+        printf "overhead: %.2fx -- %ds wall against %ss of reported test time across %d suite(s).\n", w / s, w, s, n
+      }
+    }'
+}
+
 # print_run_verdict <rc> <keep_log> <log> [errors] -- the end-of-run pointer
 # block, and the ONE home for it.
 #
@@ -824,6 +899,9 @@ print_run_verdict() {
     # to reason about later. The residue is honest and small: at keep=0 neither
     # line prints, because at keep=0 there is no pointer block at all.
     print_run_referent
+    # Third member of the same block and for the same reason: a reader who sees
+    # a verdict sees what it was about AND how much of the run was not the work.
+    print_run_overhead "$log"
   fi
   if [ "$rc" -ne 0 ] && [ "$keep" = 1 ]; then
     printf '%s-> full log: %s (exit %s)%s\n' "${red:-}" "$log" "$rc" "${reset:-}"

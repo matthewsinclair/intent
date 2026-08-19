@@ -76,11 +76,50 @@
 // identity**, and no trigger makes it one. A paired reading needs a content
 // hash (vc, AC-10.11), which is where that harm is actually closed.
 //
+// THE DIRT IS MEASURED OVER `native/rust/**` AND NOT THE WHOLE WORKTREE, AND
+// THAT SCOPE IS THE ENTIRE VALUE OF THE FLAG (dc 2026-08-19, vc's release
+// condition for minting the drift field). Measured: EVERY binary in this estate
+// carried `dirty-`, including a release build of EXACTLY HEAD, because five
+// nodes share this clone and somebody always holds an uncommitted board. A flag
+// that is always set carries no information -- and it is worse than absent,
+// because it occupies the slot where a real signal would go and reads as if it
+// had been checked (ic). The marker's claim is about the BINARY, so its evidence
+// has to be the paths that enter the binary.
+//
+// IT IS A BOOLEAN OVER A SUBTREE AND IT IS NOT A MAGNITUDE. It answers "does
+// this artefact contain uncommitted code in its own sources" and cannot say how
+// much, or which commit that code diverges from: one uncommitted line and five
+// hundred set it identically. The question is named here because leaving it
+// unnamed produces two OPPOSITE misreads -- a clean flag over a large
+// uncommitted change reads as the flag being broken, and a set flag reads as a
+// big change.
+//
+// NARROWING MAKES IT READ CLEAN WHERE IT USED TO READ DIRTY. That is the fix
+// working, not the flag failing, and it is written here BEFORE the change lands
+// because afterwards it is only a defence of a change already made: a reader who
+// remembers that this was permanently set has no reason to believe otherwise.
+//
+// THE RELEASE GATE DOES NOT WEAKEN, WHICH IS WHY NARROWING IS SAFE. `int macos
+// stage` keeps its own WHOLE-TREE refusal ("the working tree is dirty, so
+// target/release may hold bytes that match no commit") beside a narrow one over
+// `$SUPPORT_PATHS`. Those answer a policy question about the CHECKOUT; this
+// answers a question about the ARTEFACT. Conflating the two is what made this
+// flag useless -- separating them is what lets both mean something.
+//
 // GIT ABSENT IS `unknown`, NOT A GUESS. A source tarball has no `.git`, and a
 // determinate "this artefact cannot say" is a fact about the build; a
 // fabricated or inherited sha would be a false one.
 
 use std::process::Command;
+
+/// The paths whose dirt can actually reach the binary.
+///
+/// `:(top)` is load-bearing: cargo runs a build script with its CWD at the
+/// PACKAGE root (`crates/intent-cli`), and a bare relative pathspec would
+/// resolve against that and silently match nothing -- a scope that excludes
+/// everything reports clean forever, which is the same defect as a scope that
+/// includes everything, in the direction nothing reports.
+const DIRT_SCOPE: &str = ":(top)native/rust";
 
 fn git(args: &[&str]) -> Option<String> {
   let out = Command::new("git").args(args).output().ok()?;
@@ -94,7 +133,7 @@ fn git(args: &[&str]) -> Option<String> {
 fn emit_source_commit() {
   let value = match git(&["rev-parse", "HEAD"]) {
     None => "unknown".to_string(),
-    Some(sha) => match git(&["status", "--porcelain"]) {
+    Some(sha) => match git(&["status", "--porcelain", "--", DIRT_SCOPE]) {
       Some(s) if s.is_empty() => sha,
       Some(_) => format!("dirty-{sha}"),
       // git answered `rev-parse` and refused `status`: this cannot say whether

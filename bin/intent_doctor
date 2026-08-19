@@ -145,8 +145,44 @@ doctor_check() {
     version="$(get_intent_version)"
   fi
   
+  # THE BANNER NAMES BOTH VERSIONS, AND THE ONE-VERSION FORM WAS ACTIVELY
+  # MISLEADING IN THE ONE SITUATION THAT MATTERS (hv ruled 2026-08-19: "Fix,
+  # both"). It named the TOOL that is running, correctly, while the audit below
+  # describes the PROJECT -- and nothing said they were different things. In a
+  # mixed tree that is the wrong answer to the question a reader is actually
+  # asking: this repo declares 3.0.0-dev, `bin/intent` is v2.19.0, and a reader
+  # checking whether they are on v3 read `intent v2.19.0` as "no".
+  #
+  # The two rejected options and why. Printing only the PROJECT's version makes a
+  # v2 binary announce `3.0.0-dev` and claim a lineage it does not have. Leaving
+  # it as the tool's own version is correct on its own terms and misleading in
+  # exactly the case the reader cares about. Naming both is the only form that
+  # cannot be read as the wrong answer to the other question.
+  #
+  # BOTH ARE PRINTED WHENEVER A PROJECT IS DETECTED, INCLUDING WHEN THEY AGREE.
+  # Suppressing the project half on a match would make the PHRASE'S ABSENCE carry
+  # information -- the reader would have to know that "no project clause" means
+  # "they matched" rather than "no project was found", which are different facts.
+  # A little redundancy beats a silent signal that has to be learned.
+  #
+  # SOURCES ARE DELIBERATELY DIFFERENT FUNCTIONS AND NOT ONE VARIABLE.
+  # `$INTENT_VERSION` names the TOOL at bin/intent:41 and is OVERWRITTEN with the
+  # PROJECT's declared version by bin/intent_config:50 inside load_intent_config
+  # -- one identifier, two referents, switched silently. That already produced a
+  # version guard comparing 3.0.0 against itself and never firing. So the tool
+  # half asks get_intent_version and the project half asks
+  # detect_project_version, each of which answers for exactly one subject.
+  local project_version=""
+  if [ -n "${PROJECT_ROOT:-}" ] && command -v detect_project_version >/dev/null 2>&1; then
+    project_version="$(detect_project_version "$PROJECT_ROOT" 2>/dev/null || true)"
+  fi
+
   if [ "$QUIET" != true ]; then
-    echo "doctor: intent v$version"
+    if [ -n "$project_version" ]; then
+      echo "doctor: intent v$version auditing a $project_version project"
+    else
+      echo "doctor: intent v$version"
+    fi
     echo ""
   fi
   

@@ -305,7 +305,16 @@ _cfg_path_known() {
         # cli_task: the mix task the `cli` and `repl` built-ins call. Defaults
         # to `<name>.cli`, which is what the whole first fleet uses; the Arca
         # pair needs it because their tasks are `arca.cli` and `arca.config`.
-        case "${p[1]}" in name | alias | cli_task | root_var | version_from) return 0 ;; esac
+        # `referent`: issue 0049's key, and it was READABLE BY THE RUNTIME AND
+        # UNKNOWN TO THE SCHEMA for two days -- the exact mismatch this validator
+        # exists to catch, occurring in the validator. `print_run_referent` reads
+        # it and prints it verbatim, so the feature worked perfectly while
+        # `devbin doctor` reported the consumer's correct config as an unknown
+        # key. **A gate that rejects the configuration its own runtime honours is
+        # worse than no gate**, because the failure names the project's file and
+        # the defect is here. Same shape as the `log`/`grammar` omission recorded
+        # above it: the feature landed, the allowlist did not follow.
+        case "${p[1]}" in name | alias | cli_task | root_var | version_from | referent) return 0 ;; esac
         return 1
       fi
       # project.languages.<N> -- drives which built-ins are active by default

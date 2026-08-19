@@ -269,7 +269,37 @@ builtin_check_toolchain() {
   [ $# -eq 0 ] ||
     die "check toolchain takes no arguments (got: $*)
        It compares .tool-versions against the running toolchain, whole-project."
-  [ -f "$tv" ] || die "no .tool-versions at $tv"
+  # A MISSING .tool-versions IS THE SAME DETERMINATE FACT AS A PRESENT ONE THAT
+  # PINS NOTHING, AND THIS FUNCTION ALREADY REPORT-AND-PASSES ON THE SECOND.
+  # Twenty lines below, a file with no elixir/erlang pin warns "nothing to
+  # compare" and returns 0. No file at all was `die`-ing -- so one gate answered
+  # "this project declares no pin" in two opposite ways depending on whether the
+  # project expressed it by omitting a line or by omitting a file.
+  #
+  # `builtin_check_format` above settles which way is right: it treats a
+  # determinate "nothing to check" as REPORT AND PASS, on the grounds that it is
+  # a fact about the PROJECT rather than a run that went wrong. The distinction
+  # that matters there is UNSET versus EMPTY, and it applies here unchanged --
+  # absent-and-determinate is not the same as could-not-tell.
+  #
+  # WHY IT MATTERS BEYOND TIDINESS: `check toolchain` is an arm of `int check
+  # all`, the one command a developer runs to ask "is anything wrong". A project
+  # that legitimately pins nothing got a PERMANENT red for a reason that could
+  # never change, and a permanently-red aggregate is worse than a slow one --
+  # a slow gate gets bypassed, an always-red gate gets ignored, and the real
+  # failure then hides inside the noise. Intent measured exactly that on
+  # 2026-08-16: clippy, format and critic all passed; toolchain was the whole
+  # of the red, on every run, forever.
+  #
+  # THIS DOES NOT WEAKEN THE GATE. Its subject is SKEW between a pin and what is
+  # running, and a project with no pin has no skew to have. It still fails on a
+  # pin that disagrees with the live toolchain, which is the whole reason it
+  # exists. What it stops doing is reporting the ABSENCE of a policy as a
+  # violation of one.
+  if [ ! -f "$tv" ]; then
+    printf '    no .tool-versions -- this project declares no toolchain pin\n'
+    return 0
+  fi
 
   local pin_ex pin_erl pin_erl_full live_ex live_erl erl_root otp_file coarse=0
   local dockerfile img_ex img_erl
