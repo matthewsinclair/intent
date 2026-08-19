@@ -140,15 +140,17 @@ Manage steel threads for the project
 | command                             | args        | flags                                       | help                                                                                                                               | disposition |
 | ----------------------------------- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | `st`                                | <command>   | help/--help/-h                              | Manage steel threads for the project                                                                                               | keep        |
-| `st new`                            | <title>     | -s/--start                                  | Create a new steel thread                                                                                                          | keep        |
+| `st new`                            | <title>     | -s/--start, --dehydrate                     | Create a new steel thread                                                                                                          | keep        |
 | `st start`                          | <id>        | --                                          | Mark a steel thread as in progress                                                                                                 | keep        |
-| `st done`                           | <id>        | --                                          | Mark a steel thread as complete                                                                                                    | keep        |
+| `st done`                           | <id>        | --keep                                      | Mark a steel thread as complete                                                                                                    | keep        |
 | `st cancel`                         | <id>        | --reason <text>                             | Mark a steel thread as cancelled, with a reason                                                                                    | keep        |
 | `st triage`                         | <id>        | --                                          | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
 | `st hold`                           | <id>        | --reason <text>                             | Put a thread on hold, with a reason                                                                                                | new-surface |
 | `st resume`                         | <id>        | --                                          | Take a thread off hold and back into Wip                                                                                           | new-surface |
 | `st reopen`                         | <id>        | --reason <text>                             | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
 | `st reinstate`                      | <id>        | --reason <text>                             | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
+| `st hydrate`                        | <id>        | --                                          | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
+| `st dehydrate`                      | <id>        | --                                          | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
 | `st list`                           | --          | --status <status>, --width <n>, --markdown  | List steel threads (default: in progress only)                                                                                     | keep        |
 | `st show`                           | <id> [file] | --                                          | Show details of a specific steel thread                                                                                            | keep        |
 | `st edit`                           | <id> [file] | --                                          | Print the absolute path to a steel thread file                                                                                     | keep        |
@@ -195,6 +197,9 @@ Create a new steel thread
 - **Flags:**
   - `-s`, `--start` (bool) -- Mark the new thread in progress immediately
     - **disposition:** keep
+  - `--dehydrate` (bool) -- Create the thread without listing it in .intentfiles, so no files are written
+    - **disposition:** keep
+    - **disposition basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **`st new` now ADDS the entry, so this opts out of that.** A flag rather than a second verb: it changes a side effect of creation, not the act, and a `st new-dehydrated` would be two names for one lifecycle transition.
 - **Exit codes:**
   - `0` -- created
   - `1` -- no title -- `error: Steel thread title is required`
@@ -244,6 +249,10 @@ Mark a steel thread as complete
 - **v2:** bin/intent_st:446-535
 - **Arguments:**
   - `id` (st-id, arity `1`)
+- **Flags:**
+  - `--keep` (bool) -- Close the thread but leave its entry in .intentfiles, so its files stay on disk
+    - **disposition:** keep
+    - **disposition basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **`st done` now REMOVES the entry, and this opts out. THE OPT-OUT POLARITY IS DEFENSIBLE HERE AND WOULD NOT BE ON `organize`, WHICH IS THE COMPARISON THAT HAD TO BE MADE.** ic ruled `organize` previews by default because safety-by-opt-in fails the operator who does not know to ask. That argument does not carry here for one reason: **the data-loss case is closed by a CONSTRAINT rather than by the operator remembering a flag.** AC requires `st done` to run the unsynced-attachment check first and REFUSE BY NAME when the artefact holds on-disk bytes the store has never seen (`Facade::sync_uncommitted`, cc's AC-03.5). A check is a claim about a reachable state; that refusal removes the state. What `--keep` opts out of is the removal of REPRODUCIBLE files, which the store can rewrite -- so the flag governs convenience, not loss.
 - **Exit codes:**
   - `0` -- closed
   - `1` -- no id / thread not found
@@ -259,6 +268,7 @@ Mark a steel thread as complete
 - **no op:** `ok: <ID> already Completed`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **side effect ruled:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two.
 
 ### `st cancel`
 
@@ -283,6 +293,7 @@ Mark a steel thread as cancelled, with a reason
 - **no op:** `ok: <ID> already Cancelled`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **Self-loops at 0 without `--reason`**, same ordering as `st hold`.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **side effect ruled:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two.
 
 ### `st triage`
 
@@ -362,6 +373,36 @@ Reinstate a cancelled thread into NotStarted, with a reason
 - **no op:** `ok: <ID> already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). Shares the `Not Started` display with `st triage` and is a different machine state underneath.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+
+### `st hydrate`
+
+Add a steel thread to .intentfiles and write its files
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
+- **owner wp:** ST0057 WP-02
+- **recoverability:** idempotent
+- **note:** **PAIRED WITH `dehydrate` AND SHIPPING AHEAD OF IT, DELIBERATELY (ic + dc, 2026-08-19).** `hydrate` is wired to a mechanism that exists -- `Facade::hydrate` takes an `Address` and `Entity::artefact()` already refuses the forms that have no file. Declaring both together would put a verb into `--help`, the agent guide and the MCP tool list ahead of the code that honours it, which is the table-leads-the-reader ordering used in the wrong direction: for `--apply` the behaviour existed and only the surface lagged.
+
+### `st dehydrate`
+
+Remove a steel thread from .intentfiles and delete its files
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
+- **owner wp:** ST0057 WP-02
+- **recoverability:** reversible
+- **note:** **THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one.
 
 ### `st list`
 
@@ -1148,14 +1189,16 @@ Track issues without the ceremony of a steel thread
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
-| command                           | args      | flags                               | help                                                | disposition |
-| --------------------------------- | --------- | ----------------------------------- | --------------------------------------------------- | ----------- |
-| `issues`                          | [command] | --                                  | Track issues without the ceremony of a steel thread | keep        |
-| `issues list`                     | --        | --kind open/closed/all              | List issues (default: open)                         | keep        |
-| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low | Add a new issue, print its ID:TITLE                 | keep        |
-| `issues show`                     | <id>      | --json                              | Show one issue (optionally as JSON)                 | keep        |
-| `issues close`                    | <id>      | --                                  | Mark an issue done: OPEN -> CLOSED                  | keep        |
-| `issues open`                     | <id>      | --                                  | Reopen an issue: CLOSED -> OPEN                     | keep        |
+| command                           | args      | flags                               | help                                                   | disposition |
+| --------------------------------- | --------- | ----------------------------------- | ------------------------------------------------------ | ----------- |
+| `issues`                          | [command] | --                                  | Track issues without the ceremony of a steel thread    | keep        |
+| `issues list`                     | --        | --kind open/closed/all              | List issues (default: open)                            | keep        |
+| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low | Add a new issue, print its ID:TITLE                    | keep        |
+| `issues show`                     | <id>      | --json                              | Show one issue (optionally as JSON)                    | keep        |
+| `issues close`                    | <id>      | --                                  | Mark an issue done: OPEN -> CLOSED                     | keep        |
+| `issues open`                     | <id>      | --                                  | Reopen an issue: CLOSED -> OPEN                        | keep        |
+| `issues hydrate`                  | <id>      | --                                  | Add an issue to .intentfiles and write its files       | new-surface |
+| `issues dehydrate`                | <id>      | --                                  | Remove an issue from .intentfiles and delete its files | new-surface |
 
 ### `issues`
 
@@ -1280,6 +1323,36 @@ Reopen an issue: CLOSED -> OPEN
 - **no op:** `ok: issue <NNNN> already OPEN`, exit 0 -- **SHIPPED at `b504d91b`, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1739-1741` (`fn already`). Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+
+### `issues hydrate`
+
+Add an issue to .intentfiles and write its files
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
+- **owner wp:** ST0057 WP-02
+- **recoverability:** idempotent
+- **note:** **PAIRED WITH `dehydrate` AND SHIPPING AHEAD OF IT, DELIBERATELY (ic + dc, 2026-08-19).** `hydrate` is wired to a mechanism that exists -- `Facade::hydrate` takes an `Address` and `Entity::artefact()` already refuses the forms that have no file. Declaring both together would put a verb into `--help`, the agent guide and the MCP tool list ahead of the code that honours it, which is the table-leads-the-reader ordering used in the wrong direction: for `--apply` the behaviour existed and only the surface lagged.
+
+### `issues dehydrate`
+
+Remove an issue from .intentfiles and delete its files
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
+- **owner wp:** ST0057 WP-02
+- **recoverability:** reversible
+- **note:** **THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one.
 
 ## Family: `todo`
 
