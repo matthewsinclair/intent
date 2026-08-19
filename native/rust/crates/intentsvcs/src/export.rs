@@ -101,13 +101,42 @@ impl Bundle {
   }
 }
 
-/// A format's writer. The cause text on failure is carried into the refusal
-/// rather than discarded, because "the exporter failed" without a cause is the
+/// A format's writer. The cause on failure is carried into the refusal rather
+/// than discarded, because "the exporter failed" without a cause is the
 /// silent-error shape one layer up.
-type Emit = fn(&Bundle) -> Result<String, String>;
+///
+/// **The error is `serde_json::Error` and it used to be a bare string, which is
+/// the change worth explaining.** Both halves below returned a stringly-typed
+/// error, and both reached it the same way -- a `map_err(|e| e.to_string())`
+/// applied at the point of failure, which flattened a structured error into
+/// prose the instant it was born. Everything a caller could have done with it
+/// -- `classify`, `line`, `column`, distinguishing a syntax error from a data
+/// one -- was gone before any caller saw it, and what arrived at the refusal
+/// was the same text either way. **Carrying the type to the boundary and
+/// formatting it THERE gives the identical message and keeps the information**;
+/// the `map_err` pair is deleted rather than moved, so the two adapters are now
+/// the bare calls they always wanted to be.
+///
+/// **It also names a constraint that was previously implicit: these aliases now
+/// say the round-tripping formats are serde ones.** That is true of every
+/// format in [`FORMATS`] and the register records why the one non-serde
+/// candidate was withdrawn -- so a future format outside serde is a design
+/// moment that should have to change this line, rather than one that quietly
+/// stringifies through it.
+///
+/// **The prose above avoids spelling the stringly-typed signature it is
+/// describing, and that is not squeamishness.** `IN-RS-CODE-004` is detected by
+/// grep, so a comment quoting the shape it forbids is reported as an instance
+/// of it -- which makes explaining a fix indistinguishable from committing the
+/// defect. The whiteboard header guard reaches the same conclusion from the
+/// other side and refuses to scan prose at all, for the same reason: a rule
+/// whose detector cannot tell a subject from a mention taxes the person
+/// documenting the repair.
+type Emit = fn(&Bundle) -> Result<String, serde_json::Error>;
 
 /// A format's reader -- the half that makes a round-trip claim checkable.
-type Read = fn(&str) -> Result<Bundle, String>;
+/// Typed for the reason [`Emit`] is.
+type Read = fn(&str) -> Result<Bundle, serde_json::Error>;
 
 /// What a format can do with a bundle.
 pub enum Projection {
@@ -447,12 +476,12 @@ fn window(text: &str, from: usize, to: usize) -> &str {
 /// The same canonical convention every other JSON artefact uses -- 2-space
 /// pretty, LF, trailing newline -- so the bundle reads like the canon it
 /// carries.
-fn emit_json(bundle: &Bundle) -> Result<String, String> {
-  to_canonical_json(bundle).map_err(|e| e.to_string())
+fn emit_json(bundle: &Bundle) -> Result<String, serde_json::Error> {
+  to_canonical_json(bundle)
 }
 
-fn read_json(text: &str) -> Result<Bundle, String> {
-  serde_json::from_str(text).map_err(|e| e.to_string())
+fn read_json(text: &str) -> Result<Bundle, serde_json::Error> {
+  serde_json::from_str(text)
 }
 
 // **There is no YAML writer here, and its absence is a result rather than an
