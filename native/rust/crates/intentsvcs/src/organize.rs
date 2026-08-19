@@ -11,12 +11,30 @@
 //! `organize` REFUSES to do -- and a refusal is only observable if the thing it
 //! refuses can be set up cheaply.
 //!
-//! **WHAT IS BUILT: plan, gate and apply. WHAT IS NOT: the dispatch entry.**
-//! Said here rather than left to be inferred, because a module whose docstring
-//! describes a verb reads as a verb a user can type. `intent organize` is not a
-//! command yet -- `dispatch.rs` asserts that no top-level `organize` ships, on a
-//! ratification retiring the **v2** command of that name, and the collision is
-//! hv's to rule. The library is unaffected by it.
+//! **WHAT IS BUILT: plan, gate and apply. WHAT IS NOT: the HANDLER.** Said here
+//! rather than left to be inferred, because a module whose docstring describes a
+//! verb reads as a verb a user can type. `intent organize` is now a declared
+//! command -- hv reclaimed the name for v3 on 2026-08-19 and the dispatch row
+//! ships -- but nothing calls into this module, so the verb answers rc=2, `is a
+//! known command that is not implemented yet`. Driven in a disposable clone by
+//! vc: 744 files under `intent/st/` before, 744 after.
+//!
+//! **THIS PARAGRAPH SAID "WHAT IS NOT: the dispatch entry" UNTIL THE ENTRY
+//! LANDED, AND THEN IT WAS FALSE IN THE OTHER DIRECTION** -- a build-state claim
+//! with no revision on it, which is the class I spent the same day writing down
+//! twice elsewhere. A docstring about what exists yet is a claim about a moment;
+//! it goes stale by being right at the time.
+//!
+//! **AND WHEN THE HANDLER IS WIRED, THAT IS THE MOMENT THE ESTATE BECOMES
+//! DESTRUCTIBLE** (vc, flagged once rather than gated on). Four of D57's seven
+//! dehydration preconditions are unbuilt: AC-00.1's gate is `to-write` and its
+//! file absent, the conservation verdict is STRANDED, WP-06's text realisation is
+//! unbuilt, and opaque-attachment canon is unstarted. `.intentfiles` currently
+//! declares NOTHING -- every line a comment, the generated region empty -- against
+//! 745 files under `intent/st/`. **A verb that dehydrates what the manifest does
+//! not name, wired before the gate that refuses when a precondition is unmet,
+//! ships able to do precisely what the gate exists to prevent.** Wire the gate
+//! first.
 //!
 //! **IT REUSES `Project::classify` RATHER THAN RESTATING THE ELIGIBILITY
 //! CONTRACT.** `ThreadFile::Unattached` already IS D57-3's fifth row. A second
