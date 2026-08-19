@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 17:21Z
+heartbeat_at: 2026-08-19 18:29Z
 status: active
-focus: "**BOTH ROWS LANDED AND GREEN. AT-03.14 and AT-03.16 are in at `46ab2220`, rows moved at `1808912e` THROUGH THE VERB.** matts directed me to land all three nodes' interleaved halves in one commit naming each -- 26 files, 2291 insertions, mine + cc's WP-03 attachment canon + dc's organize wiring. Workspace 797 pass / 1 fail, the 1 inherited from `edbd7640` (dc's `preconditions.rs`). **NEXT: AT-03.13 (`mandatory_fields_reach_a_reader.rs`), red-first arm is `status_reason`.**"
+focus: "**FOUR ROWS GREEN TODAY: AT-03.14, AT-03.16, AT-03.13, AT-08.1.** All mutation-proven -- 22 arms, 21 red, the one survivor named and predicted. **AC-05.1 polarity RULED and dc has built it** (`organize` previews, `--apply` performs). **OPEN AND MINE: `st edit` is declared, unimplemented, and hv's generated-view ruling makes its DEFAULT argument incoherent -- flagged to vc, not ruled while hv is out.** Next candidates: AT-05.1 (blocked on that fork), AT-07.5, AT-02.4."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,17 +13,13 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. AT-03.14 AND AT-03.16 ARE LANDED AND GREEN.**
+**NOTHING IN FLIGHT.** AT-08.1 landed at `a11580b6`, row green. Everything of mine is committed.
 
-`46ab2220` -- the work, three nodes in one commit on matts's direction. `1808912e` -- the two rows, moved with `intent at green`, never by hand-editing canon.
-
-**WHAT LANDED, in case any of it needs finding again.** An `ingests` table + rung 12 + `ingest::recording` as the single home of the recording; `Facade::sync_to_disk` refuses on a store whose last load did not finish (`EgestFromRefusedIngest`) and on a write that would empty a populated estate (`EgestWouldEmptyTheEstate`); a four-line `WriteSet::writes()` so the second check runs while the write is still preventable.
-
-**THE ONE ORDERING WORTH REMEMBERING: the attempt row is COMMITTED BEFORE `Store::rebuild`'s transaction opens.** The refusal it records is a SQLite failure inside that transaction, so a record written there rolls back with the failure it exists to record. dc generalised it and the general form is the keeper: **a record of an attempt, written inside the thing whose failure it records, cannot survive that failure.**
+**WHAT AT-08.1 CHANGED, because it is a SHARED WRITE PATH.** `Facade::projection` is manifest-aware: canon writes unconditional, only rendered views narrow. `apply` and both sync directions go through it. **Three states named rather than two** -- `Realised::NothingSaid` (no manifest, realise all), `Declared(set)` (an EMPTY set is somebody saying none and is honoured), `Unreadable` (fail-open, realises all, and has NO READER yet -- that gap is named in the source).
 
 ## ON RESUME -- read this first
 
-0. **AT-03.14 AND AT-03.16 ARE DONE, GREEN AND COMMITTED (`46ab2220`, rows at `1808912e`). DO NOT REBUILD EITHER.** Next is AT-03.13. Read `## DOING` first; the mechanism, the three non-obvious decisions and the file list are all there. The only open action is the commit window and then moving the row.
+0. **AT-03.14, AT-03.16, AT-03.13 AND AT-08.1 ARE DONE, GREEN AND COMMITTED (`46ab2220`, rows at `1808912e`). DO NOT REBUILD EITHER.** Next is AT-03.13. Read `## DOING` first; the mechanism, the three non-obvious decisions and the file list are all there. The only open action is the commit window and then moving the row.
 
 1. **(DONE) AT-03.14** (`refused_ingest_blocks_egest.rs`). Red-first is EXACTLY REPRODUCIBLE and vc handed me the recipe: duplicate `id` in one thread's `tests`, `--to-store` refuses, `--to-disk` then DESTROYS the authored edit at rc=0. **A criterion whose failure I can construct on demand is the one to build first.**
 2. **(DONE) AT-03.16 HAD A HARD REQUIREMENT, NOT A CAUTION: DO NOT DRIVE IT WITH OUTPUT SUPPRESSED.** The original data loss was silent ONLY because vc piped the write verb to `/dev/null`. **A test that reproduces the loss under suppression is measuring the suppression.** Assert on the STREAM, and say in the row how the run was driven.
