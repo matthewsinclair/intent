@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 17:58Z
+heartbeat_at: 2026-08-19 18:19Z
 status: active
-focus: "**WP-03 IS FIVE OF SIX. AT-03.1/03.2/03.3/03.4/03.5 ALL GREEN AND LANDED.** **AT-03.6 IS THE ONE LEFT AND IT CANNOT BE CLOSED BY WIRING THE TOOL** -- I built the wiring end to end, `runner_roster_check.sh` went green at 11 gated, and the positive control killed it: `canon_commit_check.sh` compares $REV to $REV^, so at pre-commit it judges THE PARENT. Planted divergence in the index -> EXAMINED 0 of 280, exit 0. Same tool at `d980e5b5` -> ADDS 3, exit 1. **The harmful commit passes and the NEXT one is blocked for its parent fault, which is dc inherited-breakage clause inverted.** Needs a --staged mode; asked vc who builds it since the row is mine and the tool is dc. **AND THE ROSTER REASON HOLDING IT MANUAL EXPIRED THIS MORNING BECAUSE OF MY OWN sync --to-store SCOPE, with nothing watching the join.** Reverted clean."
+focus: "**WP-03 IS FIVE OF SIX GREEN, AND AT-03.6 NOW WAITS ONLY ON A GATING DECISION THAT IS NOT MINE.** `--staged` landed at `19268867`: the index is spelled as the EMPTY REVISION, which is git own syntax, so every existing $rev:$path addresses the index for free and NOT ONE BYTE READ CHANGED. Byte-identical at the five episode commits plus HEAD, with byte counts printed -- because my FIRST run of that proof said IDENTICAL for all six at rc=2, both copies failing out of /tmp, and two identical failures compare identically. **Also fixed a live breakage: intentd could not open the store at all** -- user_version 13 against a daemon built at SCHEMA_VERSION 11 -- rungs 12 and 13 landed and nothing rebuilt it. Both binaries rebuilt and verified."
 claims: [ST0056/10, ST0057/01]
 ---
 
@@ -19,7 +19,7 @@ claims: [ST0056/10, ST0057/01]
 
 ## NEXT -- mine
 
-**17:58Z. FIVE OF WP-03's SIX ROWS ARE GREEN AND LANDED.**
+**18:19Z. WP-03 IS FIVE OF SIX GREEN. AT-03.6's BUILD IS DONE AND THE ROW WAITS ON A DECISION THAT IS DELIBERATELY NOT MINE.**
 
 | row     | commit     | what it turned on                                                                             |
 | ------- | ---------- | --------------------------------------------------------------------------------------------- |
@@ -28,28 +28,30 @@ claims: [ST0056/10, ST0057/01]
 | AT-03.4 | `3c6d20f6` | drift by COMPARISON; **the sharpest arm detects nothing**                                     |
 | AT-03.5 | `18a9ab6b` | bytes in no commit; **the staged arm proves index-not-HEAD**                                  |
 | AT-03.3 | `61b93440` | the naming gate, **derived from its two consumers**                                           |
+| AT-03.6 | `19268867` | `--staged`, so the tool can judge **the commit being made**                                   |
 
-Plus `239238df` -- the export format registry keeps its errors instead of stringifying them, which exists only because the critic **refused a commit that did not cause its findings**.
+Plus `239238df` (export typed errors) and `fb333464` (the daemon breakage).
 
-**AT-03.6 IS BLOCKED ON A ROLE RULING, NOT ON THE WORK.** The row says the criterion is unmet because nothing gates the tool. **True, and not the blocker.** `canon_commit_check.sh` takes a COMMITTED revision and compares `$REV` to `$REV^`; at pre-commit HEAD is the PARENT of the commit being made. Measured both ways in an isolated worktree: a divergence planted in the INDEX gives `EXAMINED 0 of 280` at exit 0, and the same tool at `d980e5b5` gives `ADDS 3 of 275` at exit 1. **So gating it fails in both directions at once** -- the harmful commit passes, and the next one is blocked for its parent's fault. It needs a `--staged` mode, because at pre-commit "that same commit" IS THE INDEX. Row is mine, tool is dc's, vc to rule who builds it.
+**AT-03.6 GOES GREEN WHEN THE TOOL IS GATED, AND ADMITTING IT IS dc's CALL.** vc's condition 3 and I have not been near it -- roster disposition is untouched at 10 gated / 7 manual. My half is built, byte-proven and approved by dc.
 
-**AND EVERY INSTRUMENT THAT WATCHES THE WIRING SAID IT WAS CORRECT.** Roster, runner and disposition all agreed at 11 gated / 6 manual. **Only the planted divergence disagreed.** A roster verifies a tool is DISPATCHED; nothing verifies that dispatching it measures the right SUBJECT.
+**THE FINDING WAS BIGGER THAN THE ROW: EVERY INSTRUMENT THAT WATCHES THE WIRING SAID IT WAS CORRECT.** `runner_roster_check.sh` green at 11 gated / 6 manual, roster and runner and disposition all agreeing. **Only a planted divergence disagreed.** A roster verifies a tool is DISPATCHED; nothing verifies that dispatching it MEASURES the right subject. dc has recorded it; vc has queued it.
 
-**THE ROSTER REASON HOLDING IT `manual` HAD ALREADY EXPIRED, BY MY OWN HAND, WITH NOTHING WATCHING THE JOIN.** It read _there is no narrow attachment-sync verb_. `sync --to-store <ID>` landed at `212b0075` this morning. Same shape as vc's stale-AT finding one level up: a recorded reason made false by a commit somewhere else.
+**AND A LIVE BREAKAGE FOUND WHILE REBUILDING: `intentd` COULD NOT OPEN THE STORE.** `user_version` 13 against a daemon built from `8d00a490` at `SCHEMA_VERSION` 11, refused at open by design. ic's rung 12 and my rung 13 landed and nothing rebuilt it. **Nobody noticed because nobody had run it.** Both rebuilt -- `intent` `b99789aff383f8bb`, `intentd` `b672a608d56e984d` -- and **both are dirty-tree builds, which is structural in a four-node checkout**; the two even came out of ONE `cargo build` carrying DIFFERENT commit markers, so the marker does not identify the build invocation, let alone the tree.
 
-**NEXT, IN ORDER:**
+**NEXT:**
 
-1. **AT-03.6's `--staged` mode**, on vc's ruling. Shape in hand: `git show :<path>` and `git diff-index --cached` are the index-side counterparts of what the tool already does.
-2. **ST0057 AC-00.4 -- `root_files_generated.rs`.** Unblocked, unclaimed, and the most separable thing left. `AGENTS.md` / `CLAUDE.md` / `usage-rules.md` have NO v3 generator, and **something EMPTIED `AGENTS.md` on 2026-08-18**, so their derivability is an assumption about a file already lost once.
-3. **REBUILD `target/release` -- ANNOUNCE FIRST.** Still `377d5267` from `8d00a490`, which now predates sync scope, the whole attachment canon, and the `organize` wiring.
+1. **ST0057 AC-00.4 -- `root_files_generated.rs`**, IF it is mine; vc did not list it among my four. `AGENTS.md` / `CLAUDE.md` / `usage-rules.md` have no v3 generator and something emptied `AGENTS.md` on 2026-08-18.
+2. **AT-03.6's row move**, once dc decides the gating.
 
-**CARRIED FROM TODAY, THREE THAT ARE MINE TO NOT REPEAT:**
+**FOUR THAT ARE MINE TO NOT REPEAT, ALL FROM TODAY:**
 
-**A PEER'S RED CONCEALS MINE AND LOOKS LIKE AN ALL-CLEAR.** `239238df` shipped with a broken test target because `cargo check --all-targets` aborted on a peer's `facade.rs` before reaching mine. matts found it by running the suite. ic had named that exact observable to me the same morning.
+**A PEER'S RED CONCEALS MINE AND LOOKS LIKE AN ALL-CLEAR** -- `239238df` shipped with a broken test target because the workspace check aborted on a peer's file before reaching mine.
 
-**A ZERO IS NOT A RESULT UNTIL THE CHECK HAS PRODUCED A NON-ZERO -- and it bit twice more today.** A short-circuited `cd` left `awk` reading a stale file and reporting a plausible `56 passed`; a `| tail` before `$?` reported the pipe's status, which is vc's own watch-out.
+**A ZERO IS NOT A RESULT UNTIL THE CHECK HAS PRODUCED A NON-ZERO** -- and it bit four times: a short-circuited `cd` leaving `awk` on a stale file, a `| tail` before `$?`, an empty grep after a cwd-drifted command, and **a byte-identical comparison of two identical failures.**
 
-**AND 26 FAILURES THAT WERE NOBODY'S.** A workspace run reported 26 CLI failures; every one passed alone and none reproduced. A peer rebuilding the shared `target/` while those tests invoke the binary is the only fit -- **a concurrent workspace run measures the build directory as much as the code.**
+**I FOUND THE SUBJECT-VERSUS-MENTION DEFECT AND THEN BUILT IT.** The critic reported my own doc comment as an instance of what it documented; within the hour my broadcast helper tested for the `_(empty)_` sentinel with a SUBSTRING SEARCH, matched the token quoted inside my own earlier prose, and **wrote hv's inbox back UNCHANGED at rc=0 -- silently dropping the human from two broadcasts.**
+
+**A STAMP AUTHORED IN THE SAME COMMAND THAT READS THE CLOCK IS FABRICATED.** Twice: `16:45Z` for `16:38Z`, caught by the guard; `18:14Z` for `18:12Z`, caught by me. **D42 says read it in its own step and that is the whole of the fix.**
 
 ## THE TWO-ENDED CLASSIFIER -- still live, and MORE dangerous after the move
 

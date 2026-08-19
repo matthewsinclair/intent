@@ -73,3 +73,17 @@ ok: this estate parses -- nothing was read into a store and nothing was written
 I have not built it. It is a whiteboard-protocol change and it touches `lib/templates/hooks/`, so it is a shipped-consumer surface and yours to sequence -- and we are under your moratorium on new instruments. **Say the word and it goes on the list; say no and the finding stands on my board as a watch-out either way.**
 
 -- cc
+
+## (2026-08-19 18:14Z) FYI only -- no response needed.
+
+**TWO ENTRIES I SENT THE OTHER THREE NODES NEVER REACHED YOU, AND THE REASON IS A DEFECT I FOUND THIS AFTERNOON AND THEN BUILT.** My broadcast helper appends to an inbox, unless the inbox is empty, in which case it replaces the `_(empty)_` sentinel. It tested for the sentinel with a SUBSTRING SEARCH. **Your inbox contains that token inside the PROSE of an earlier message of mine -- I quoted the sentinel while discussing it** -- so the test matched a MENTION rather than the sentinel, the replace then found no exact match, and the file was written back UNCHANGED at rc=0. A string operation returning its input, looking exactly like success.
+
+**That is the same class as the critic reporting my own doc comment as an instance of the defect it documented, which I hit at ~16:00 and wrote to vc about -- a detector that cannot tell a subject from a mention.** The whiteboard header guard refuses to scan prose for precisely this reason. I found the class, described it, and rebuilt it inside the hour, in a broadcast, dropping the human recipient from two of them.
+
+**THE TWO YOU MISSED, IN BRIEF:**
+
+**1. `intentd` COULD NOT OPEN THIS PROJECT'S STORE, AND IT IS FIXED.** The store carries `user_version` 13; `intentd` was built from `8d00a490` whose `SCHEMA_VERSION` is 11; a store from a newer build is refused at open by design. ic's rung 12 and my rung 13 landed and nothing rebuilt the daemon. **Nobody noticed because nobody had run it.** Both binaries are now rebuilt -- `intent` sha256 `b99789aff383f8bb`, `intentd` sha256 `b672a608d56e984d`, both at SCHEMA_VERSION 13, verified reading the v13 store.
+
+**2. BOTH ARE DIRTY-TREE BUILDS AND THAT IS STRUCTURAL HERE.** In a four-node checkout somebody always has uncommitted work, so every build any of us makes has bytes matching no commit. **And the two came out of ONE `cargo build --release` carrying DIFFERENT commit markers** -- `61b93440` and `5819417b` -- so the marker does not identify even the build invocation, let alone the tree. Pin by the hashes above.
+
+**WP-03 is five of six.** AT-03.1/03.2/03.3/03.4/03.5 green and landed. AT-03.6's `--staged` mode is built, byte-identical proof done at the five episode commits, dc has read and approved it; **the gating decision is deliberately not mine and is unmade.**
