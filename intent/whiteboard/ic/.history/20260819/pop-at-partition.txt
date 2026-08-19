@@ -1,0 +1,128 @@
+of_n_population -- the population AT-00.11 and AT-00.12 drive, ENUMERATED
+
+EXAMINED 43 instrument(s) of 43 matched by the glob.
+  Both operands are counted in the sweep loop below, and they are DIFFERENT
+  counters: the glob population and the files actually opened. An N of N here
+  means nothing was skipped, not that the ratio is decorative.
+  THIS FILE IS IN ITS OWN POPULATION. Excluding the tool that grades the
+  estate treats a one-file problem that this is not (ic, on the AT-00.12
+  self-grading hazard), and it emits an N of M like everything else here.
+
+AT-00.11 POPULATION -- names the `intent/st` path shape, so its M CAN move.
+  18 of 43 examined. ORDERED BY GATEDNESS, which is the adjudication order.
+  gated         5
+                  provenance_check.sh
+                  residue_class_check.sh
+                  runner_roster_check.sh
+                  stale_at_check.sh
+                  view_skew_check.sh
+  manual        2
+                  canon_commit_check.sh
+                  conservation_check.sh
+  unrostered   11
+                  coverage_map.sh
+                  critic_global_rig.sh
+                  estate_census.sh
+                  fixture_probe.sh
+                  gen_dispatch_table.sh
+                  gen_inventory.sh
+                  gen_pertest.sh
+                  gen_register.sh
+                  interrupt_rig.sh
+                  of_n_population.sh
+                  realise_plan.sh
+
+AT-00.12 POPULATION -- emits an `N of M`, path shape or not.
+  27 of 43 examined. A vacuous pass under a two-tree differential when it
+  carries no path shape, which is why this row is not AT-00.11 with a wider net.
+  LOOSENESS: 12 of those 27 match ONLY on comment lines and can emit no ratio at
+  all; 15 carry at least one non-comment match. THIS IS THE NOMINATION SIZE, NOT
+  A CORRECTION -- the population above is unchanged and this tool still does not
+  adjudicate. DO NOT DIFFERENCE EITHER FIGURE AGAINST of_n_labels_its_derivation.sh:
+  these count FILES and that counts RATIO INSTANCES, so a numeral they happen to
+  share reads as a cross-reference and does no such work.
+
+  COMMENT-ONLY -- structural over-nominations. No ratio can be emitted from a
+  comment, so these need no per-file adjudication from anyone.
+  comment-only 12
+                  burn.sh
+                  corrected_check.sh
+                  coverage_map.sh
+                  critic_global_rig.sh
+                  estate_corpus.sh
+                  fixture_probe.sh
+                  gen_inventory.sh
+                  gen_pertest.sh
+                  guide_refs_check.sh
+                  lib_classify.sh
+                  same_end_state_check.sh
+                  self_provenance_check.sh
+  WITH A NON-COMMENT MATCH -- THE WORK-LIST. Whether each actually emits a ratio
+  is of_n_labels_its_derivation.sh to answer; this arm cannot and does not.
+  work-list    15
+                  canon_commit_check.sh
+                  conservation_check.sh
+                  estate_census.sh
+                  gen_dispatch_table.sh
+                  gen_register.sh
+                  implemented_check.sh
+                  interrupt_rig.sh
+                  of_n_labels_its_derivation.sh
+                  of_n_population.sh
+                  realise_plan.sh
+                  rig_selftest.sh
+                  rig_stub_migrator.sh
+                  runner_roster_check.sh
+                  stale_at_check.sh
+                  surface_check.sh
+  BOTH LISTS ARE PRINTED IN FULL rather than one list and a count, so the reader
+  never derives one population by SUBTRACTING from the other (ic).
+  gated         4
+                  corrected_check.sh
+                  runner_roster_check.sh
+                  self_provenance_check.sh
+                  stale_at_check.sh
+  manual        6
+                  canon_commit_check.sh
+                  conservation_check.sh
+                  guide_refs_check.sh
+                  implemented_check.sh
+                  same_end_state_check.sh
+                  surface_check.sh
+  unrostered   17
+                  burn.sh
+                  coverage_map.sh
+                  critic_global_rig.sh
+                  estate_census.sh
+                  estate_corpus.sh
+                  fixture_probe.sh
+                  gen_dispatch_table.sh
+                  gen_inventory.sh
+                  gen_pertest.sh
+                  gen_register.sh
+                  interrupt_rig.sh
+                  lib_classify.sh
+                  of_n_labels_its_derivation.sh
+                  of_n_population.sh
+                  realise_plan.sh
+                  rig_selftest.sh
+                  rig_stub_migrator.sh
+
+NEITHER ARM: 13 of 43 examined.
+
+REACH -- what these arms CANNOT see, so that no pass is read as coverage:
+  1. ARM 2 IS A PROXY AND A PROXY IS NOT THE PARSER. It matches printf-shaped
+     `N of M` forms. A verdict assembled across two statements, or built from
+     variables named nothing like `of`, is invisible to it. Adjudicate with
+     of_n_labels_its_derivation.sh, never with this count.
+  2. ARM 1 IS A LITERAL. An instrument deriving the canon path from a variable,
+     a config read, or a caller argument carries no `intent/st` literal and is
+     structurally absent from the AT-00.11 column. `10 IS A FLOOR` was said of
+     the original nomination and it is said again here, of this one.
+  3. THE ROSTER GLOBS `*_check.sh` ONLY, so a parity tool named any other way
+     can never hold a roster row and lands in `unrostered` by its FILENAME
+     rather than by any judgement. interrupt_rig.sh is one, and AC-00.10 is
+     entirely about it. `unrostered` here means UNCLASSIFIED, not `not gated`.
+  4. THIS TOOL NOMINATES. It has driven nothing and opened no tree.
+
+ok: population enumerated; take this output as the population, not a remembered count

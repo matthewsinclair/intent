@@ -35,3 +35,53 @@ git push                   # NO -- may carry a configured upstream without you n
 **Treating it as STANDING, not a one-session pause** -- it is on my board under watch-outs rather than in DOING, so it survives my compact. If hv lifts it, that is hv's to say.
 
 -- ic
+
+## (2026-08-19 09:45Z) -- ic's nine open asks, written down because a chat-delivered ask has no home. Already surfaced by vc in chat; this is the durable copy.
+
+**vc consolidated all nine to you verbally. This entry exists so they survive the session** -- I argued to vc that an inbox is the durable record and not merely a channel, so not writing them down would have been arguing for a mechanism and then not using it. Nothing here is new to you.
+
+**ALREADY IN THIS INBOX, STILL UNANSWERED:**
+
+1. **(2026-08-15) The repo is PUBLIC and the whiteboard protocol REQUIRES publishing a session UUID.** `session_id` is a mandatory header field peers compare to decide who is live. Low risk; protocol-level, so not a node's to change.
+2. **(same note) Do you want this volume of unedited working transcript public under your name?** vc and I both think the candour is what catches things. **Us agreeing among ourselves is not you deciding.** vc has since coupled this to dc's publication ask: nothing has been pushed since the freeze, so **the freeze has been incidentally containing this**, and a yes on publication may carry the boards into a history nobody can rewrite.
+
+**FROM 2026-08-19:**
+
+3. **Who writes AT-01.2 and AT-01.4?** They are shell parity tools; cc holds ST0057/01 but drafted Rust. **My recommendation: cc writes them, and cc and I agree the directory's form first** -- `intent/st/ST0057/parity/tools/` is empty, so the first tool becomes the pattern by default rather than by choice.
+4. **Does my work sit under any WP? It does not, so none of it counts toward the 3.0.0 gate.** Raised three times. **Please decide it SEPARATELY from item 3** -- coupling them turns a structural gap into a task-routing mechanism, and one that hands work to the node who raised it. cc asked for the same separation independently.
+5. **EXP-09 + the guard-population hole + the clap short-circuit are one entangled entry** and need a ruling from you, not a new criterion.
+6. **The roster globs `*_check.sh` only, so 26 of 43 parity tools can never hold a roster row** -- including `interrupt_rig.sh`, which AC-00.10 is entirely about. **A naming convention is doing a declaration's job.** dc found it; framing mine.
+7. **Whiteboard freshness defect** -- `claim` mandates a fresh read of peers' claims, `pickup` reads once, and nothing requires a re-read before asserting. Two nodes hit it inside two hours today. Routed jointly by vc as cc's, vc's and mine.
+8. **`intent sync` has no scope.** Owed to me for shape first, then you for the yes.
+9. **Your go to start AT-00.12's partition.** Ungated by any peer, method agreed and banked. **I am holding because you said plan-then-hold; vc encouraged me to start and I refused it, because a peer cannot grant escalation and that reads the same for work initiation as for work assignment.**
+
+FYI, no response needed: my two of_n instruments are static over shell source, so nothing of mine was exposed to the stale-binary hazard or to the clean slate.
+
+-- ic
+
+## (2026-08-19 10:24Z) -- SUPERSEDES item 4 of my previous entry. You said "Not sure I get it"; you were right, and the framing was at fault.
+
+**My earlier wording was _my work sits under no WP, so none of it counts toward the 3.0.0 gate_. That sounds like a credit question. It is a measurement question, it is not about my work, and here it is as a count you can check rather than an absence you have to take on trust.**
+
+You were right on the premise: all of this IS v3 work. That was never what I was asking.
+
+**MEASURED ACROSS BOTH THREADS:**
+
+    43   parity instruments on disk
+    15   cited by an AT row
+     6   cited AND on disk      <- what the release gate can see today
+     9   cited but NOT on disk
+    37   on disk, cited by no row  (8 libs/generators + 29 real instruments)
+
+**THE GATE FAILS IN TWO DIRECTIONS AND THEY ARE ONE DEFECT:**
+
+1. **29 real instruments the arithmetic cannot see.** The gate is measured by AC/AT rows grouped under WPs; these hold no row, so a WP can read Done on rows adjudicated by an instrument that is unbuilt, unowned or wrong, and the arithmetic cannot express that. **Sixteen WPs cover building v3; none covers building the things that prove v3 is built.** The three AT-00.x rows are ST-level and there is no WP 00, so they are outside WP grouping by construction.
+2. **9 rows the arithmetic COUNTS but nothing can falsify** -- they cite instruments that do not exist. That is legitimate (`to-write` means unwritten; my own AT-00.11 is one). **But nothing checks that what eventually gets built matches the KIND the row declared**, which is how cc came within one clean slate of compiling two Rust files against two shell-declared rows.
+
+**HONESTY CHECK, vc's and I am keeping it: 29 uncited is NOT 29 defects.** Some should never hold rows. **The claim is about the gate's VISIBILITY, not about missing rows.**
+
+**And it is AC-00.11's own defect at estate scale -- a closing count that does not close over what it examined.** The measured set is the sixteen WPs; the measuring apparatus is not in it.
+
+**NOT ASKING FOR A WP FOR ME.** Asking whether the gate should be able to see the instruments that decide it. dc's tools are in the same position as mine.
+
+-- ic

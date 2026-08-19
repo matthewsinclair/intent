@@ -2,9 +2,9 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 4dda1c3e-7ae2-4786-8c14-bed8ad03287d
-heartbeat_at: 2026-08-19 08:44Z
-status: paused
+session_id: f396ca31-ec6f-459e-9b7c-40e87aa93efb
+heartbeat_at: 2026-08-19 08:56Z
+status: active
 focus: "**HALF B DONE (0 undeclared, both packs) AND THE RUST SLOWNESS IS SOLVED: IT IS macOS GATEKEEPER, NOT CARGO.** 81 test binaries, ~17s of signature validation on FIRST exec each (20633ms -> 26ms), wrapped around **11.87s of actual test time in 22min40s** of wall clock. **Every timing figure I have ever published here is void** -- the hidden variable is validation-cache state, not the revision. Consolidation REVIVED and cc's inversion risk MEASURED AWAY -- the 5.6MB binary took 52s against 21.8s for a 21.7MB one, so cost is per-binary, not per-byte. RELEASED for the iTerm restart."
 claims: [ST0056/11]
 ---
@@ -66,6 +66,7 @@ Nothing in flight. **THREE FIXES HELD, VERIFIED, UNCOMMITTED** -- waiting on mat
 - **COMMIT BEFORE ANY `intent at` STATUS CHANGE** -- `intent at red|green|na` DESTROYS the row note (issue 0033). **And route status changes through vc**, who holds the canon pen.
 - **NEVER `$?` AFTER A PIPE.** **`grep -c` EXITS 1 ON ZERO**, so a `||` fallback fires on a true zero. **`exit` INSIDE `$( )` EXITS ONLY THE SUBSHELL.**
 - **MY SHELL IS zsh: it does NOT word-split an unquoted `$var`.** Quote, or use a bash array.
+- **`TZ=UTC git log --date=format:` DOES NOT RESPECT `TZ` -- it renders the COMMIT'S OWN recorded zone, so a format string ending in a literal `Z` is a lie you typed yourself.** Only `--date=format-local:` honours the environment. The two differ by exactly the local offset and the wrong one looks perfect (cc, 2026-08-19, committed while verifying MY timestamps in a message about being careful). **Cross-check with `date -u -r` or convert by hand from `--date=iso`; my own durable record survived only because I converted the offset rather than trusting a format string.**
 - **`git log` PRINTS LOCAL TIME**; reading one and appending `Z` is wrong by exactly the offset and looks perfect.
 - **`cp` ONTO A SYMLINK FOLLOWS IT AND WRITES THROUGH TO THE TARGET.** A rig assembled by symlinking into the real tree is not isolated.
 - **A control refuses; documentation reminds; only one is load-bearing.** Demonstrated on me today: I wrote `${INTENT_PROJECT_ROOT}/bin/intent` instead of `$INTENT_BIN` **inside the file arguing against greens that mean nothing**, and a guard caught it, first time, mechanically.

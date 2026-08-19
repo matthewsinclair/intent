@@ -1,0 +1,20 @@
+FILE                               RATIOS   PARSER VERDICT
+canon_commit_check.sh              2        ratio SEEN and classified
+conservation_check.sh              1        ratio SEEN and classified
+estate_census.sh                   0        NO ratio in reach
+gen_dispatch_table.sh              0        NO ratio in reach
+gen_register.sh                    0        NO ratio in reach
+implemented_check.sh               0        NO ratio in reach
+interrupt_rig.sh                   0        NO ratio in reach
+of_n_labels_its_derivation.sh      1        ratio SEEN and classified
+of_n_population.sh                 0        NO ratio in reach
+realise_plan.sh                    0        NO ratio in reach
+rig_selftest.sh                    6        ratio SEEN and classified
+rig_stub_migrator.sh               1        ratio SEEN, none classifiable
+runner_roster_check.sh             0        NO ratio in reach
+stale_at_check.sh                  1        ratio SEEN, none classifiable
+surface_check.sh                   0        NO ratio in reach
+
+CLOSURE: 12 ratio instance(s) across the work-list; 12 across the whole estate.
+  CLOSES -- every ratio the parser can see lives inside the nominated work-list,
+  so the other 28 files carry none and the nomination missed nothing the parser sees.
