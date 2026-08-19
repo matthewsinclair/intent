@@ -373,8 +373,8 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
   facade.sync_to_disk().expect("first emit");
 
   let paths = [
-    "intent/st/ST0056/thread.json",
-    "intent/issues/0021.json",
+    "intent/.canon/st/ST0056.json",
+    "intent/.canon/issues/0021.json",
     "intent/events.jsonl",
   ];
   let first: Vec<String> = paths.iter().map(|p| fx.read(p)).collect();
@@ -408,8 +408,7 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
   let (fx, _) = populated();
   fx.facade_on_disk().sync_to_disk().expect("emit");
 
-  let thread: Value =
-    serde_json::from_str(&fx.read("intent/st/ST0056/thread.json")).expect("plain JSON");
+  let thread: Value = serde_json::from_str(&fx.read_canon("ST0056")).expect("plain JSON");
   assert_eq!(thread["id"], "ST0056");
   assert!(
     thread["criteria"][0]["state"]["is"].is_string(),
@@ -417,7 +416,7 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
     thread["criteria"][0]
   );
 
-  let issue: Value = serde_json::from_str(&fx.read("intent/issues/0021.json")).expect("plain JSON");
+  let issue: Value = serde_json::from_str(&fx.read(&fx.issue_canon_rel(21))).expect("plain JSON");
   assert_eq!(issue["number"], 21);
 
   // JSONL: one self-describing object per line, no framing to reimplement.

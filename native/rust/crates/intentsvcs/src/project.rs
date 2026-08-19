@@ -283,6 +283,26 @@ impl crate::remedy::Remedy for ProjectError {
 /// reimplements the v2 ledger.
 pub const MIGRATION_FLOOR: (u64, u64, u64) = (2, 19, 0);
 
+/// One thread's canon path, relative to the intent directory (D57-1).
+///
+/// **ONE SPELLING, TWO CONSUMERS, AND THE SECOND ONE IS WHY THIS IS A
+/// FUNCTION.** [`Project::thread_json`] resolves it against a root; the
+/// exporter emits it as the name INSIDE the portable extract, promising that
+/// "the paths are the real ones so a refusal names a file the operator can go
+/// and look at". Those were two independent `format!` calls, and the issue arm
+/// beside it had already shipped the resulting defect -- `issues/46.json`
+/// written where every reader opened `issues/0046.json`. Two ends agreeing by
+/// convention is how that happens; agreeing by construction is this.
+pub fn canon_thread_rel(id: &str) -> String {
+  format!(".canon/st/{id}.json")
+}
+
+/// One issue's canon path, relative to the intent directory. Zero-padded,
+/// which is the half that was wrong before.
+pub fn canon_issue_rel(number: u32) -> String {
+  format!(".canon/issues/{number:04}.json")
+}
+
 /// Whether this project's canon is in a form THIS binary can read.
 ///
 /// The question exists because "no threads found" and "threads this binary
@@ -487,13 +507,43 @@ impl Project {
     self.st_dir().join(id)
   }
 
-  /// The committed structured canon for one thread.
-  pub fn thread_json(&self, id: &str) -> PathBuf {
-    self.thread_dir(id).join("thread.json")
+  /// `intent/.canon/` -- every artefact's committed structured canon (D57-1).
+  ///
+  /// **A DOT DIRECTORY THAT MUST BE COMMITTED, AND IT IS THE ONLY ONE.** The
+  /// three siblings beside it -- `.treeindex/`, `.cache/`, `.backup/` -- are
+  /// every one of them gitignored, so `intent/.<x>/` currently reads as "local,
+  /// never travels". This breaks that pattern deliberately: hv's requirement is
+  /// that `intent/st` stop holding a bajillion files, and D29 requires canon to
+  /// travel. **A future tidy-up adding `intent/.*/` to `.gitignore` would
+  /// silently un-commit the entire estate**, which is why AC-01.2 checks by
+  /// CLONING rather than by reading the ignore file: the question is what git
+  /// DOES, not what a rule appears to say.
+  pub fn canon_dir(&self) -> PathBuf {
+    self.intent_dir().join(".canon")
   }
 
+  /// The committed structured canon for one thread, `.canon/st/<ID>.json`.
+  ///
+  /// **One file per artefact, not one consolidated file** (D57-1 rejects
+  /// option B). Four nodes commit into this estate; a single `threads.jsonl`
+  /// is a merge-conflict generator, and per-artefact means two nodes editing
+  /// two threads touch two paths and never collide.
+  pub fn thread_json(&self, id: &str) -> PathBuf {
+    self.intent_dir().join(canon_thread_rel(id))
+  }
+
+  /// `.canon/st/` -- thread canon, flat, one file per thread.
+  pub fn canon_st_dir(&self) -> PathBuf {
+    self.canon_dir().join("st")
+  }
+
+  /// `.canon/issues/` -- issue canon.
+  ///
+  /// **The whole directory moved, because the whole directory WAS canon.**
+  /// `intent/issues/` held nothing but `<nnnn>.json`; unlike a thread, an
+  /// issue has no realised markdown to leave behind.
   pub fn issues_dir(&self) -> PathBuf {
-    self.intent_dir().join("issues")
+    self.canon_dir().join("issues")
   }
 
   /// What a file under a thread's directory IS, given its path relative to
@@ -519,6 +569,12 @@ impl Project {
     if depth == 3 && name == "info.md" && rel.starts_with("WP") {
       return ThreadFile::GeneratedView;
     }
+    // **NOT dead after D57-1's relocation, and worth saying so.** Canon now
+    // lives at `.canon/st/<ID>.json`, so no healthy thread directory holds a
+    // `thread.json` -- but a v2 tree does, and so does a tree caught mid-move.
+    // Classifying it as canon is what keeps it out of the attachment carry;
+    // deleting the arm would make a stale canon file `Unattached` and invite
+    // some later reader to treat it as an author's.
     if depth == 1 && name == "thread.json" {
       return ThreadFile::Canon;
     }
@@ -535,9 +591,9 @@ impl Project {
     }
   }
 
-  /// The committed structured canon for one issue, `issues/<nnnn>.json`.
+  /// The committed structured canon for one issue, `.canon/issues/<nnnn>.json`.
   pub fn issue_json(&self, number: u32) -> PathBuf {
-    self.issues_dir().join(format!("{number:04}.json"))
+    self.intent_dir().join(canon_issue_rel(number))
   }
 
   /// The intentdb (D21) -- gitignored, and the durable SSOT rather than a
@@ -667,14 +723,14 @@ impl Project {
   /// Every thread id with committed canon, sorted. Absent `st/` is an empty
   /// project, not an error -- `intent init` creates the directory lazily.
   pub fn thread_ids(&self) -> Result<Vec<String>, ProjectError> {
-    let dir = self.st_dir();
-    let Ok(entries) = std::fs::read_dir(&dir) else {
+    let Ok(entries) = std::fs::read_dir(self.canon_st_dir()) else {
       return Ok(Vec::new());
     };
     let mut ids: Vec<String> = entries
       .filter_map(Result::ok)
-      .filter(|e| e.path().join("thread.json").is_file())
-      .filter_map(|e| e.file_name().to_str().map(str::to_string))
+      .map(|e| e.path())
+      .filter(|p| p.extension().is_some_and(|x| x == "json"))
+      .filter_map(|p| p.file_stem().and_then(|s| s.to_str()).map(str::to_string))
       .collect();
     ids.sort();
     Ok(ids)
@@ -851,11 +907,20 @@ mod tests {
     let project = Project::open(dir.path()).expect("open");
     assert_eq!(
       project.thread_json("ST0056"),
-      dir.path().join("intent/st/ST0056/thread.json")
+      dir.path().join("intent/.canon/st/ST0056.json")
     );
     assert_eq!(
       project.issue_json(21),
-      dir.path().join("intent/issues/0021.json")
+      dir.path().join("intent/.canon/issues/0021.json")
+    );
+    // **The negative arm, beside the positive one (AC-01.6).** Canon moved and
+    // the VIEWS did not: `thread_dir` still answers the directory a reader
+    // browses, because `info.md` and `acceptance.md` hang off it. Asserting
+    // only the first two would pass for a wholesale relocation that emptied
+    // `intent/st/` entirely.
+    assert_eq!(
+      project.thread_dir("ST0056"),
+      dir.path().join("intent/st/ST0056")
     );
     assert_eq!(
       project.db_path(),

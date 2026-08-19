@@ -47,6 +47,32 @@ pub struct Fixture {
 }
 
 impl Fixture {
+  /// A project whose intent directory is NOT the default.
+  ///
+  /// **The one fixture that can catch a path spelled independently** (AC-01.6).
+  /// Every canon site that resolves through `Project` follows this; a site that
+  /// writes `intent/...` itself lands somewhere else entirely, which is visible
+  /// rather than subtle. `intent_dir` is already an operator-configurable field,
+  /// so this is a supported configuration and not a synthetic one.
+  pub fn with_intent_dir(name: &str) -> Self {
+    let dir = tempfile::tempdir().expect("tempdir");
+    // **`config.json` is a FIXED BOOTSTRAP POINT and does not move with
+    // `intent_dir`.** `Project::config_path` always answers
+    // `intent/.config/config.json`, by design: something has to be findable
+    // before anything is configured, and that file is what declares where the
+    // rest lives. So the config stays here while the content goes elsewhere.
+    let config = dir.path().join("intent").join(".config");
+    std::fs::create_dir_all(&config).expect("mkdir .config");
+    std::fs::write(
+      config.join("config.json"),
+      format!(
+        "{{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"{name}\",\n  \"languages\": [\"rust\"]\n}}\n"
+      ),
+    )
+    .expect("write config");
+    Self { dir }
+  }
+
   /// A project with config.json and nothing else.
   pub fn new() -> Self {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -132,6 +158,38 @@ impl Fixture {
         self.write_file(cited, &format!("// {}: a cited test file\n", test.id));
       }
     }
+  }
+
+  /// A thread's canon file, resolved rather than spelled.
+  ///
+  /// **Added for WP-01, and the reason is the whole of AC-01.6.** Assertion
+  /// sites used to write `intent/st/<ID>/thread.json` themselves -- a second
+  /// independent spelling of the canon path, in fifty places, which is the
+  /// Highlander problem one level below the one the relocation fixes. They
+  /// resolve through here now.
+  ///
+  /// **This is safe ONLY because `canon_relocation.rs` pins the resolver to a
+  /// literal location a human wrote down.** Without that oracle these helpers
+  /// compare the tool's answer to the tool's answer and would pass with canon
+  /// anywhere at all.
+  pub fn canon_path(&self, id: &str) -> PathBuf {
+    self.project().thread_json(id)
+  }
+
+  pub fn read_canon(&self, id: &str) -> String {
+    std::fs::read_to_string(self.canon_path(id))
+      .unwrap_or_else(|e| panic!("read canon for {id}: {e}"))
+  }
+
+  /// The canon path as the tool REPORTS it -- relative to the project root,
+  /// slash-joined. For assertions about output rather than about the
+  /// filesystem.
+  pub fn canon_rel(&self, id: &str) -> String {
+    format!("intent/{}", intentsvcs::project::canon_thread_rel(id))
+  }
+
+  pub fn issue_canon_rel(&self, number: u32) -> String {
+    format!("intent/{}", intentsvcs::project::canon_issue_rel(number))
   }
 
   /// Write raw bytes as a thread's canon -- for the cases where the point is

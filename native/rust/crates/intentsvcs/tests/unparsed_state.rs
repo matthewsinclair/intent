@@ -98,7 +98,7 @@ fn a_conflict_markered_thread_json_is_refused_by_ingest() {
   // side its regex hit first, which is the silent-wrong-answer this replaces.
   let found = findings(ingest::read(&fx.project()).expect_err("must refuse"));
   assert_eq!(found[0].class, FindingClass::MalformedJson);
-  assert_eq!(found[0].file, "intent/st/ST0056/thread.json");
+  assert_eq!(found[0].file, "intent/.canon/st/ST0056.json");
 }
 
 #[test]

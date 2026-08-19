@@ -22,7 +22,7 @@ fn st_new_creates_canon_and_every_view() {
   let id = facade.st_new("Add a Rust-based CLI").expect("st new");
   assert_eq!(id, "ST0001", "the first thread in an empty project");
 
-  assert!(fx.path("intent/st/ST0001/thread.json").is_file());
+  assert!(fx.canon_path("ST0001").is_file());
   assert!(fx.path("intent/st/ST0001/info.md").is_file());
   assert!(fx.path("intent/st/ST0001/acceptance.md").is_file());
   assert!(fx.path("intent/st/steel_threads.md").is_file());
@@ -165,7 +165,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
     .st_hold("ST0056", "waiting on the fleet")
     .expect("a legal mutation from wip");
 
-  let canon_before = fx.read("intent/st/ST0056/thread.json");
+  let canon_before = fx.read_canon("ST0056");
   let info_before = fx.read("intent/st/ST0056/info.md");
   let index_before = fx.read("intent/st/steel_threads.md");
   let db_before = facade.store().derived_dump().expect("snapshot");
@@ -195,7 +195,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   );
 
   assert_eq!(
-    fx.read("intent/st/ST0056/thread.json"),
+    fx.read_canon("ST0056"),
     canon_before,
     "the canon file is byte-identical -- the write landed and the batch unwound it"
   );

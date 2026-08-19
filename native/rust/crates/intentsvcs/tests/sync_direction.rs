@@ -88,7 +88,7 @@ fn the_routine_direction_rewrites_the_stale_files_from_truth() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = store_ahead_of_disk(&fx);
 
-  let on_disk_before = fx.read("intent/st/ST0056/thread.json");
+  let on_disk_before = fx.read_canon("ST0056");
   assert!(
     !on_disk_before.contains("cancelled"),
     "precondition: the files are stale"
@@ -97,8 +97,7 @@ fn the_routine_direction_rewrites_the_stale_files_from_truth() {
   facade.sync_to_disk().expect("project from the store");
 
   assert!(
-    fx.read("intent/st/ST0056/thread.json")
-      .contains("cancelled"),
+    fx.read_canon("ST0056").contains("cancelled"),
     "the files now carry the change the store held"
   );
   assert_eq!(
@@ -168,7 +167,7 @@ fn the_directions_round_trip_on_a_healthy_estate() {
     .st_hold("ST0056", "waiting on the fleet")
     .expect("a legal mutation from wip");
 
-  let canon_before = fx.read("intent/st/ST0056/thread.json");
+  let canon_before = fx.read_canon("ST0056");
   let db_before = facade.store().derived_dump().expect("snapshot");
 
   facade.sync_to_disk().expect("db -> disk");
@@ -176,7 +175,7 @@ fn the_directions_round_trip_on_a_healthy_estate() {
   facade.sync_to_disk().expect("db -> disk again");
 
   assert_eq!(
-    fx.read("intent/st/ST0056/thread.json"),
+    fx.read_canon("ST0056"),
     canon_before,
     "the canon file is byte-identical after a full round trip"
   );

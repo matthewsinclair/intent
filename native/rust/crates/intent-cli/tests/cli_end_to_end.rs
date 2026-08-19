@@ -49,10 +49,10 @@ fn project() -> tempfile::TempDir {
 /// under any other number the WP scope would match nothing and block for
 /// arithmetic reasons rather than contractual ones.
 fn seed_closeable_thread(root: &Path) {
-  let dir = root.join("intent/st/ST0001");
+  let dir = root.join("intent/.canon/st");
   std::fs::create_dir_all(&dir).expect("mkdir");
   std::fs::write(
-    dir.join("thread.json"),
+    dir.join("ST0001.json"),
     r#"{
   "schema": "intent/thread@3.0",
   "id": "ST0001",
@@ -157,7 +157,7 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   let root = dir.path();
 
   ok(root, &["st", "new", "Add a Rust-based CLI"]);
-  assert!(root.join("intent/st/ST0001/thread.json").is_file(), "canon");
+  assert!(root.join("intent/.canon/st/ST0001.json").is_file(), "canon");
   assert!(
     root.join("intent/st/ST0001/info.md").is_file(),
     "cover view"
@@ -628,7 +628,7 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   // restore from it. The restore must name the overwrite before taking it --
   // a summary afterwards is a receipt for a loss the operator needed one
   // moment earlier.
-  let canon = root.join("intent/st/ST0001/thread.json");
+  let canon = root.join("intent/.canon/st/ST0001.json");
   let text = std::fs::read_to_string(&canon).expect("canon");
   std::fs::write(
     &canon,
@@ -847,7 +847,7 @@ fn wp_new_defaults_to_v2s_template_scope() {
   ok(root, &["st", "new", "a thread"]);
   ok(root, &["wp", "new", "ST0001", "a package"]);
 
-  let canon = std::fs::read_to_string(root.join("intent/st/ST0001/thread.json")).expect("canon");
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
   assert!(
     canon.contains("\"scope\": \"S\""),
     "the canon carries S, as v2's template seeds: {canon}"
@@ -871,7 +871,7 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   ok(root, &["st", "new", "a thread"]);
   ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
 
-  let canon_path = root.join("intent/st/ST0001/thread.json");
+  let canon_path = root.join("intent/.canon/st/ST0001.json");
   let authored = "## Why the incumbents go\n\nA section the template never named, carried verbatim.\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.";
   let text = std::fs::read_to_string(&canon_path).expect("canon");
   let edited = text.replace(
@@ -954,7 +954,7 @@ fn a_status_reason_reaches_a_human_face_on_both_entities() {
     &["st", "hold", "ST0001", "--reason", "CANARY-THREAD-XYZZY"],
   );
 
-  let canon = std::fs::read_to_string(root.join("intent/st/ST0001/thread.json")).expect("canon");
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
   assert!(
     canon.contains("CANARY-THREAD-XYZZY"),
     "CONTROL: the verb must have recorded the reason before the face is worth asking:\n{canon}"
@@ -981,7 +981,7 @@ fn a_work_package_status_reason_reaches_the_human_face_too() {
     &["wp", "reopen", "ST0001/01", "--reason", "CANARY-WP-PLUGH"],
   );
 
-  let canon = std::fs::read_to_string(root.join("intent/st/ST0001/thread.json")).expect("canon");
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
   assert!(
     canon.contains("CANARY-WP-PLUGH"),
     "CONTROL: `wp reopen` must have fired -- an `already WIP` no-op writes nothing and makes the face's silence meaningless:\n{canon}"

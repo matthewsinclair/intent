@@ -53,10 +53,10 @@ fn project() -> tempfile::TempDir {
 /// somewhere downstream of triage and a fixture at the entry state would make
 /// half these cases refusals instead of movements.
 fn seed(root: &Path) {
-  let dir = root.join("intent/st/ST0001");
+  let dir = root.join("intent/.canon/st");
   std::fs::create_dir_all(&dir).expect("mkdir");
   std::fs::write(
-    dir.join("thread.json"),
+    dir.join("ST0001.json"),
     r#"{
   "schema": "intent/thread@3.0",
   "id": "ST0001",
@@ -78,9 +78,9 @@ fn seed(root: &Path) {
 "#,
   )
   .expect("write canon");
-  std::fs::create_dir_all(root.join("intent/issues")).expect("mkdir issues");
+  std::fs::create_dir_all(root.join("intent/.canon/issues")).expect("mkdir issues");
   std::fs::write(
-    root.join("intent/issues/0001.json"),
+    root.join("intent/.canon/issues/0001.json"),
     "{\"schema\":\"intent/issue@3.0\",\"number\":1,\"slug\":\"a-thing\",\"title\":\"A thing\",\"status\":\"open\",\"created\":\"2026-08-01\"}\n",
   )
   .expect("write issue");

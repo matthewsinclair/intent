@@ -143,9 +143,9 @@ fn seed(root: &Path) {
   )
   .expect("write config");
 
-  std::fs::create_dir_all(root.join("intent/st/ST0001")).expect("mkdir st1");
+  std::fs::create_dir_all(root.join("intent/.canon/st")).expect("mkdir canon st");
   std::fs::write(
-    root.join("intent/st/ST0001/thread.json"),
+    root.join("intent/.canon/st/ST0001.json"),
     r#"{
   "schema": "intent/thread@3.0", "id": "ST0001", "slug": "probe",
   "title": "Probe", "status": "wip", "created": "2026-08-17",
@@ -166,9 +166,8 @@ fn seed(root: &Path) {
   )
   .expect("write thread");
 
-  std::fs::create_dir_all(root.join("intent/st/ST0002")).expect("mkdir st2");
   std::fs::write(
-    root.join("intent/st/ST0002/thread.json"),
+    root.join("intent/.canon/st/ST0002.json"),
     r#"{ "schema": "intent/thread@3.0", "id": "ST0002", "slug": "sink",
   "title": "Sink", "status": "wip", "created": "2026-08-17",
   "objective": "", "context": "", "wps": [], "criteria": [], "tests": [] }
@@ -176,9 +175,9 @@ fn seed(root: &Path) {
   )
   .expect("write sink");
 
-  std::fs::create_dir_all(root.join("intent/issues")).expect("mkdir issues");
+  std::fs::create_dir_all(root.join("intent/.canon/issues")).expect("mkdir issues");
   std::fs::write(
-    root.join("intent/issues/0001.json"),
+    root.join("intent/.canon/issues/0001.json"),
     r#"{ "schema": "intent/issue@3.0", "number": 1, "slug": "probe",
   "title": "Probe issue", "status": "open", "created": "2026-08-17",
   "severity": "low" }

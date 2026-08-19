@@ -383,20 +383,24 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
   let mut out = Vec::with_capacity(bundle.threads.len() + bundle.issues.len() + 1);
   for thread in &bundle.threads {
     out.push((
-      format!("st/{}/thread.json", thread.id),
+      crate::project::canon_thread_rel(&thread.id),
       to_canonical_json(thread)?,
     ));
   }
   for issue in &bundle.issues {
     out.push((
       // **ZERO-PADDED, and it was not.** This emitted `issues/46.json` while
-      // every reader in the estate resolves through `Project::issue_json`,
-      // which builds `issues/0046.json` -- two spellings of one path, and the
-      // exporter's was the one no reader could open. The thread arm above never
-      // had the defect because a thread id arrives already padded as text; a
-      // `u32` is padded by whoever formats it, so the two ends had to agree by
-      // convention and did not.
-      format!("issues/{:04}.json", issue.number),
+      // every reader resolved `issues/0046.json` -- two spellings of one path,
+      // and the exporter's was the one no reader could open. A thread id
+      // arrives already padded as text; a `u32` is padded by whoever formats
+      // it, so the two ends had to agree by CONVENTION and did not.
+      //
+      // **THE CONVENTION IS GONE, WHICH IS THE ACTUAL FIX** (D57-1's
+      // relocation): both arms now call the one function that spells a canon
+      // path, so there is no second end to disagree. The note stays because it
+      // says why a shared spelling is required rather than tidy -- delete it
+      // and the next person to want a literal here has only the aesthetics.
+      crate::project::canon_issue_rel(issue.number),
       to_canonical_json(issue)?,
     ));
   }

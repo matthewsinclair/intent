@@ -70,7 +70,7 @@ fn a_prose_body_round_trips_byte_identical() {
   ingest::load(&fx.project(), &mut store).expect("load");
 
   let sections = store
-    .doc_sections_for("intent/issues/0056.json")
+    .doc_sections_for("intent/.canon/issues/0056.json")
     .expect("query sections");
   assert!(!sections.is_empty(), "the body was indexed");
   assert_eq!(
@@ -91,7 +91,7 @@ fn a_fenced_hash_does_not_split_a_section() {
   ingest::load(&fx.project(), &mut store).expect("load");
 
   let headings: Vec<String> = store
-    .doc_sections_for("intent/issues/0056.json")
+    .doc_sections_for("intent/.canon/issues/0056.json")
     .expect("query")
     .into_iter()
     .filter_map(|s| s.heading)
@@ -118,7 +118,7 @@ fn a_body_is_retrievable_by_full_text_query() {
 
   let hits = store.search("idempotent").expect("search");
   assert_eq!(hits.len(), 1, "one section matches: {hits:?}");
-  assert_eq!(hits[0].file, "intent/issues/0056.json");
+  assert_eq!(hits[0].file, "intent/.canon/issues/0056.json");
   assert_eq!(hits[0].heading.as_deref(), Some("Views"));
   assert_eq!(hits[0].owner_type, "issue");
   assert_eq!(hits[0].owner_id, "56");
@@ -204,7 +204,7 @@ fn an_issue_body_is_indexed_against_its_issue() {
   assert_eq!(hits[0].owner_type, "issue");
   assert_eq!(hits[0].owner_id, "21");
   assert_eq!(
-    hits[0].file, "intent/issues/0021.json",
+    hits[0].file, "intent/.canon/issues/0021.json",
     "the hit addresses the canon that holds the prose, not a markdown file \
      beside it -- under disk-optional there may be no such file to name"
   );
@@ -261,7 +261,7 @@ fn a_heading_repeated_in_one_file_yields_two_sections_rather_than_one() {
   ingest::load(&fx.project(), &mut store).expect("load");
 
   let sections = store
-    .doc_sections_for("intent/issues/0026.json")
+    .doc_sections_for("intent/.canon/issues/0026.json")
     .expect("query");
   let repeated: Vec<&str> = sections
     .iter()

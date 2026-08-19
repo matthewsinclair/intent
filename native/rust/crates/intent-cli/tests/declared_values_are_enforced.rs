@@ -134,10 +134,10 @@ fn project() -> tempfile::TempDir {
     "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Values\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
   )
   .expect("write config");
-  let st = dir.path().join("intent/st/ST0001");
+  let st = dir.path().join("intent/.canon/st");
   std::fs::create_dir_all(&st).expect("mkdir");
   std::fs::write(
-    st.join("thread.json"),
+    st.join("ST0001.json"),
     r#"{
   "schema": "intent/thread@3.0",
   "id": "ST0001",

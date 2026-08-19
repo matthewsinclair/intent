@@ -185,9 +185,8 @@ fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
     assert!(
       dir
         .path()
-        .join("intent/st")
-        .join(id)
-        .join("thread.json")
+        .join("intent/.canon/st")
+        .join(format!("{id}.json"))
         .is_file(),
       "no committed canon for {id}"
     );
@@ -233,7 +232,7 @@ fn running_it_twice_leaves_the_tree_byte_identical() {
   // **Anti-vacuity.** Two empty trees compare equal, so the comparison below
   // is only worth running if the first one actually produced the canon.
   assert!(
-    after_first.contains_key("intent/st/ST0001/thread.json"),
+    after_first.contains_key("intent/.canon/st/ST0001.json"),
     "the first run wrote no canon, so comparing the trees would prove nothing"
   );
 
@@ -297,7 +296,7 @@ fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
      estate out of v2 AND v3 at once"
   );
   assert!(
-    !dir.path().join("intent/st/ST0001/thread.json").exists(),
+    !dir.path().join("intent/.canon/st/ST0001.json").exists(),
     "a refused migration wrote canon"
   );
   assert!(
@@ -427,7 +426,7 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
     "a refused migration stamped the version anyway"
   );
   assert!(
-    !below.path().join("intent/st/ST0001/thread.json").exists(),
+    !below.path().join("intent/.canon/st/ST0001.json").exists(),
     "a refused migration wrote canon"
   );
   assert!(
@@ -450,7 +449,7 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
   assert!(
     at_floor
       .path()
-      .join("intent/st/ST0001/thread.json")
+      .join("intent/.canon/st/ST0001.json")
       .is_file(),
     "the control estate reported success and wrote no canon"
   );

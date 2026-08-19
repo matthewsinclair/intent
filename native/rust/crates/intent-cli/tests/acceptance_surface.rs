@@ -61,10 +61,12 @@ fn project() -> tempfile::TempDir {
 /// each fixture here is a particular CONTRACT SHAPE, and reaching it through
 /// `ac`/`at` movements would make the setup depend on the surfaces under test.
 fn seed(root: &Path, id: &str, criteria: &str, tests: &str) {
-  let dir = root.join("intent/st").join(id);
+  // Canon is flat under `intent/.canon/st/` after WP-01; the id is the file
+  // name, not a directory. `intent/st/` keeps the VIEWS and nothing else.
+  let dir = root.join("intent/.canon/st");
   std::fs::create_dir_all(&dir).expect("mkdir");
   std::fs::write(
-    dir.join("thread.json"),
+    dir.join(format!("{id}.json")),
     format!(
       r#"{{
   "schema": "intent/thread@3.0",

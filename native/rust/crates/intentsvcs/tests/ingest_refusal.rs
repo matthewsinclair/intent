@@ -40,7 +40,7 @@ fn an_unknown_field_is_refused_by_name() {
   let findings = refusal(ingest::read(&fx.project()).expect_err("must refuse"));
   assert_eq!(findings.len(), 1, "one defect, one finding: {findings:?}");
   assert_eq!(findings[0].class, FindingClass::SchemaInvalid);
-  assert_eq!(findings[0].file, "intent/st/ST0056/thread.json");
+  assert_eq!(findings[0].file, "intent/.canon/st/ST0056.json");
   assert!(
     findings[0].detail.contains("bogus_field"),
     "the refusal names the offending field, got: {}",
@@ -124,8 +124,8 @@ fn every_finding_is_reported_never_only_the_first() {
   let findings = refusal(ingest::read(&fx.project()).expect_err("must refuse"));
   let files: Vec<&str> = findings.iter().map(|f| f.file.as_str()).collect();
   assert!(
-    files.contains(&"intent/st/ST0056/thread.json")
-      && files.contains(&"intent/st/ST0057/thread.json"),
+    files.contains(&"intent/.canon/st/ST0056.json")
+      && files.contains(&"intent/.canon/st/ST0057.json"),
     "both broken threads are named -- one fix-and-rerun cycle, not one per defect: {files:?}"
   );
 }
@@ -318,7 +318,7 @@ fn a_satisfaction_carrying_no_evidence_is_refused() {
 
   let findings = refusal(ingest::read(&fx.project()).expect_err("must refuse"));
   assert_eq!(findings[0].class, FindingClass::SchemaInvalid);
-  assert_eq!(findings[0].file, "intent/st/ST0056/thread.json");
+  assert_eq!(findings[0].file, "intent/.canon/st/ST0056.json");
   assert!(
     findings[0].detail.contains("evidence"),
     "the refusal names the field that is empty, so the author knows what to write: {}",

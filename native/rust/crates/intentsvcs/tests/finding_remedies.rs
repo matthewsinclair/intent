@@ -201,14 +201,14 @@ fn the_operation_matcher_reads_commands_and_not_the_middles_of_words() {
 #[test]
 fn the_rendered_finding_carries_its_remedy() {
   let rendered = Finding::new(
-    "intent/st/ST0001/thread.json",
+    "intent/.canon/st/ST0001.json",
     FindingClass::SchemaInvalid,
     "at /status: \"wip \" is not one of the declared values",
   )
   .to_string();
 
   assert!(
-    rendered.contains("residue: intent/st/ST0001/thread.json"),
+    rendered.contains("residue: intent/.canon/st/ST0001.json"),
     "{rendered}"
   );
   assert!(

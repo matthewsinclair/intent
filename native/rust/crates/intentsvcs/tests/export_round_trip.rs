@@ -436,7 +436,7 @@ fn a_projection_that_drops_or_alters_data_is_refused_rather_than_emitted() {
   };
   assert_eq!(name, "reads-no-as-false");
   assert!(
-    detail.contains("ST0001/thread.json"),
+    detail.contains("st/ST0001.json"),
     "the refusal names the file the difference is in: {detail}"
   );
   assert!(

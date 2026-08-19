@@ -118,7 +118,7 @@ fn a_word_in_an_issue_body_is_found() {
   let root = dir.path();
   ok(root, &["st", "new", "a thread"]);
 
-  let issues = root.join("intent/issues");
+  let issues = root.join("intent/.canon/issues");
   std::fs::create_dir_all(&issues).expect("mkdir issues");
   std::fs::write(
     issues.join("0001.json"),
@@ -177,7 +177,7 @@ fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
 
   // The body is authored prose in a modelled field (D22/D28), so it is set in
   // canon and brought in through the ingest gate -- not written to a view.
-  let canon_path = root.join("intent/st/ST0001/thread.json");
+  let canon_path = root.join("intent/.canon/st/ST0001.json");
   let text = std::fs::read_to_string(&canon_path).expect("canon");
   let edited = text.replace(
     "\"body\": \"\"",
@@ -366,7 +366,7 @@ fn a_phrase_in_a_thread_objective_is_found() {
 
   // Authored canon: the objective is a modelled field, so writing it here is
   // writing the same bytes the tool writes, not a v2-style hand edit.
-  let canon = root.join("intent/st/ST0001/thread.json");
+  let canon = root.join("intent/.canon/st/ST0001.json");
   let text = std::fs::read_to_string(&canon).expect("read canon");
   let edited = text.replace(
     "\"objective\": \"\"",

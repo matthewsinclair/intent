@@ -99,7 +99,7 @@ impl Fixture {
 
   fn thread(&self, id: &str) {
     self.write(
-      &format!("intent/st/{id}/thread.json"),
+      &format!("intent/.canon/st/{id}.json"),
       format!(
         "{{\n  \"schema\": \"intent/thread@3.0\",\n  \"id\": \"{id}\",\n  \"title\": \"A thread\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-14\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n"
       )

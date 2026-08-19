@@ -418,7 +418,7 @@ fn satisfaction_has_no_second_home_to_go_stale() {
   facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
   facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
 
-  let canon = fx.read("intent/st/ST0056/thread.json");
+  let canon = fx.read_canon("ST0056");
   let value: serde_json::Value = serde_json::from_str(&canon).expect("parse canon");
   let criterion = value["criteria"]
     .as_array()

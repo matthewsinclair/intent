@@ -85,7 +85,7 @@ impl Project {
 
   fn thread(&self, id: &str) {
     self.write(
-      &format!("intent/st/{id}/thread.json"),
+      &format!("intent/.canon/st/{id}.json"),
       format!(
         "{{\n  \"schema\": \"intent/thread@3.0\",\n  \"id\": \"{id}\",\n  \"title\": \"A thread\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-14\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n"
       )
@@ -154,7 +154,7 @@ fn an_untracked_but_unignored_thread_still_ingests() {
   fx.write("intent/st/.DS_Store", NOT_UTF8);
 
   let status = Command::new("git")
-    .args(["status", "--porcelain", "intent/st/ST0001/thread.json"])
+    .args(["status", "--porcelain", "intent/.canon/st/ST0001.json"])
     .current_dir(fx.root())
     .output()
     .expect("git status");

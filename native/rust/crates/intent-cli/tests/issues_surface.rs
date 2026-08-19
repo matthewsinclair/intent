@@ -28,7 +28,9 @@ fn project() -> tempfile::TempDir {
   )
   .expect("write config");
 
-  let issues = dir.path().join("intent/issues");
+  // Issue canon moved with thread canon: `intent/.canon/issues/`, flat and
+  // zero-padded. The whole directory moved -- it held nothing but canon.
+  let issues = dir.path().join("intent/.canon/issues");
   std::fs::create_dir_all(&issues).expect("mkdir issues");
   // **An OPEN one with a severity and a CLOSED one WITHOUT**, because the two
   // differences are what every case below discriminates on, and a fixture whose
@@ -330,9 +332,9 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
   // The line is now repo-relative, as v2's is, so it can be asserted whole: v2
   // prints a path built from `$INTENT_DIR`, v3 prints one relativised against the
   // project root, and neither embeds the machine. The FLAT layout is the ratified
-  // half (`intent/issues/<NNNN>.json`); the absoluteness was the defect.
+  // half (`intent/.canon/issues/<NNNN>.json`); the absoluteness was the defect.
   assert_eq!(
-    lines[0], "created: intent/issues/0022.json",
+    lines[0], "created: intent/.canon/issues/0022.json",
     "the first line names the file this write produced, repo-relative -- an absolute path here \
      leaks $HOME into a line whose whole purpose is to be copied, and cannot be asserted by any \
      literal template (issue 0060)"
