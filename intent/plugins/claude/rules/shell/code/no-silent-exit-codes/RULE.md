@@ -67,6 +67,18 @@ Static signals:
 
 ShellCheck: SC2015 (`&&` and `||` mixing pitfall), SC2164 (`cd` without error handling).
 
+**GREPPABLE PROXY, ARMED AT A STATED COST -- and the cost is that it fires on correct code.** The named tools answer ADJACENT propositions and were checked before this was written: SC2015 is `&&`/`||` mixing and SC2164 is `cd` without a check, and shellcheck 0.11.0 lints neither `|| true` nor `2>/dev/null` nor `set +e` at all. **So no tool answers this rule and the proxy is what there is.** The three patterns below are POSITIVE matches on the constructs; **NONE of them can evaluate this rule's own qualifier -- _without an adjacent comment explaining why_ -- because that is a property of the neighbouring line, and one grep cannot read a neighbour.** A documented, deliberate, correct `|| true` matches exactly as loudly as a silent one. **That is a KNOWN false-positive rate on a CRITICAL rule, stated here rather than discovered by whoever the gate stops first**, and it is the reason this rule is armed rather than declared: a critical rule that is silent today is worse than one that is noisy and says why.
+
+Greppable proxy (not authoritative; Critic confirms by reading body):
+
+```bash
+grep -rnE '\|\| *(true|:)([[:space:]]|$)' bin/
+grep -rnE '2>/dev/null' bin/
+grep -rnE 'set \+e([[:space:]]|$)' bin/
+```
+
+The reliable structural signal is "if this command fails, does anything downstream know?" -- which needs the adjacent comment and the surrounding block, so the `critic-shell` subagent is the one that can actually answer it.
+
 ## Bad
 
 ```bash

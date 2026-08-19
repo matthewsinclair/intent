@@ -59,6 +59,25 @@ Static signals:
 - Missing `#[from]` conversions where manual `map_err` forwarding could be a one-line derive.
 - Error messages that lose the underlying cause: `return Err(MyError::Io)` discarding the `io::Error`'s detail.
 
+**GREPPABLE PROXY, ARMED PARTIALLY -- and the stated cost is that it FIRES ON CODE THIS RULE CALLS CORRECT.** No clippy lint answers this rule; `clippy 0.1.97` was searched and none was found, so a named tool is not available and the proxy is what there is.
+
+**THE LIBRARY HALF IS SYNTACTIC AND THE PROXY FINDS IT**: `Result<T, Box<dyn Error>>` and `Result<T, String>` are tokens, and both patterns below were driven against a fixture and fired.
+
+**THE PROXY CANNOT TELL THE LIBRARY HALF FROM THE BINARY HALF, AND AN EARLIER DRAFT OF THIS PARAGRAPH CLAIMED IT COULD.** That draft carried `--include=lib.rs` and said the flag _scopes the match to the library surface_. **IT DOES NOT. The runner extracts only the single-quoted PATTERN from each line and discards every flag and path** (`critic_patterns_from_grep_block`), so the flag was decorative and the sentence describing it was false as executed. **Driven, after the claim was written: a fixture at `src/main.rs` -- where `Result<T, Box<dyn Error>>` is exactly what this rule PRESCRIBES -- produced two WARNING findings, byte-identical to the ones from `src/lib.rs` where it is a violation.** A declaration must RESOLVE and not merely parse; this one parsed.
+
+**SO THE COST IS STATED AS MEASURED: every `.rs` under `src/` is matched, `main.rs` and `bin/*.rs` included, and on those the finding is a FALSE POSITIVE BY THE RULE'S OWN TEXT.** `applies_to` is `src/**/*.rs` and it is the only scoping in play.
+
+**AND THE SECOND HALF REMAINS INEXPRESSIBLE FOR A DIFFERENT REASON** -- _elaborate `thiserror` enums whose errors only ever flow to `fn main() -> anyhow::Result<()>`_ is a judgement about where a value ENDS UP, and the violation is the absence of a justification rather than the presence of a token. **No widening of a grep reaches it.** A green from these patterns is a statement about token presence, never about this rule.
+
+Greppable proxy (not authoritative; Critic confirms by reading body):
+
+```bash
+grep -rnE 'Result<[^>]*, *Box<dyn ([a-z_]+::)*Error>>' src/
+grep -rnE 'Result<[^>]*, *String>' src/
+```
+
+The `#[from]` and lost-cause signals are structural and are the `critic-rust` subagent's, not the runner's.
+
 ## Bad
 
 ```rust
