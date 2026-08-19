@@ -250,3 +250,85 @@ fn the_generator_is_not_a_view_and_must_not_become_one() {
     "render_all produced no views at all, so the absence asserted above is vacuous"
   );
 }
+
+// ---------------------------------------------------------------------------
+// The write half (`intent agents sync`)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn sync_puts_down_exactly_what_generate_emits() {
+  let home = repo_root();
+  let cfg = config(&["rust"]);
+  let dir = tempfile::tempdir().expect("a temp project root");
+
+  let written = rootfiles::sync(dir.path(), &home, "AGENTS.md", &cfg, &ctx()).expect("sync writes");
+  let on_disk = std::fs::read_to_string(&written).expect("the written file reads back");
+  let emitted = rootfiles::render(&home, "AGENTS.md", &cfg, &ctx()).expect("generate emits");
+
+  assert_eq!(
+    on_disk, emitted,
+    "`sync` put down something other than what `generate` emits, so the two halves are separate \
+     answers to one question and only one of them is ever looked at"
+  );
+  assert_eq!(written, dir.path().join("AGENTS.md"));
+}
+
+#[test]
+fn sync_leaves_no_bak_sibling_and_that_is_the_ratified_deviation() {
+  let home = repo_root();
+  let cfg = config(&["rust"]);
+  let dir = tempfile::tempdir().expect("a temp project root");
+
+  std::fs::write(dir.path().join("AGENTS.md"), "the previous version").expect("a prior file");
+  rootfiles::sync(dir.path(), &home, "AGENTS.md", &cfg, &ctx()).expect("sync overwrites");
+
+  // v2 wrote `AGENTS.md.bak` here. hv ratified dropping it (2026-08-19): it was
+  // gitignored, so it never reached git and guarded a loss git already
+  // prevents -- and v3 already carries D35's snapshots in `backup`. **Pinned so
+  // it cannot quietly come back as a second backup mechanism.**
+  assert!(
+    !dir.path().join("AGENTS.md.bak").exists(),
+    "a `.bak` sibling reappeared -- that is a second backup mechanism beside `backup.rs`, for one \
+     file, guarding a loss git already prevents"
+  );
+  let siblings: Vec<String> = std::fs::read_dir(dir.path())
+    .expect("the temp root lists")
+    .flatten()
+    .map(|e| e.file_name().to_string_lossy().to_string())
+    .collect();
+  assert_eq!(
+    siblings,
+    vec!["AGENTS.md".to_string()],
+    "sync left more than the file it was asked to write: {siblings:?}"
+  );
+}
+
+#[test]
+fn a_second_sync_with_the_same_bytes_does_not_move_the_mtime() {
+  let home = repo_root();
+  let cfg = config(&["rust"]);
+  let dir = tempfile::tempdir().expect("a temp project root");
+
+  let p = rootfiles::sync(dir.path(), &home, "AGENTS.md", &cfg, &ctx()).expect("first sync");
+  let first = std::fs::metadata(&p).expect("stat").modified().expect("mtime");
+
+  rootfiles::sync(dir.path(), &home, "AGENTS.md", &cfg, &ctx()).expect("second sync");
+  let second = std::fs::metadata(&p).expect("stat").modified().expect("mtime");
+
+  assert_eq!(
+    first, second,
+    "an unchanged root file was rewritten, moving its mtime -- that is the churn loop, and on a \
+     file at the project root it wakes every watcher in the tree for nothing"
+  );
+
+  // **The control: a run that SHOULD write must move it**, or the equality
+  // above is satisfied by a `sync` that never writes at all.
+  rootfiles::sync(dir.path(), &home, "AGENTS.md", &config(&["elixir"]), &ctx())
+    .expect("third sync, different content");
+  let third = std::fs::metadata(&p).expect("stat").modified().expect("mtime");
+  assert_ne!(
+    second, third,
+    "changed content did not move the mtime either, so `sync` is not writing and the skip asserted \
+     above proves nothing"
+  );
+}

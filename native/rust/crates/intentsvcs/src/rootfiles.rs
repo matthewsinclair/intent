@@ -53,6 +53,12 @@ pub enum RootFileError {
   },
   #[error("the template {path} is malformed: {fault}")]
   Malformed { path: String, fault: Fault },
+  #[error("cannot write {path}")]
+  Unwritable {
+    path: String,
+    #[source]
+    source: crate::write_set::WriteError,
+  },
 }
 
 impl crate::remedy::Remedy for RootFileError {
@@ -64,6 +70,12 @@ impl crate::remedy::Remedy for RootFileError {
       }
       Self::Malformed { .. } => {
         "fix the template in the Intent install -- the generated file is not written from a template this binary cannot expand".to_string()
+      }
+      // The rendered document was fine and the disk refused it, so the remedy
+      // is about the path rather than about the template. Naming the template
+      // here would send the reader to the one place that is working.
+      Self::Unwritable { .. } => {
+        "check the project root is writable and has space -- the file was rendered and could not be put down".to_string()
       }
     }
   }
@@ -156,6 +168,47 @@ pub fn render_all(
     });
   }
   Ok(out)
+}
+
+/// Render one root file and put it on disk. The write half of `intent agents
+/// sync`.
+///
+/// **THROUGH [`crate::write_set::WriteSet`], NOT `fs::write`, AND THAT IS THE
+/// WHOLE OF THE MECHANISM CHOICE.** `views::write_all` once wrote with a bare
+/// loop and became a divergent expression of the db-to-disk direction; the
+/// consequence was a skip-when-unchanged guard that was correct and reached
+/// nothing. One write path means this file gets the rollback and the mtime skip
+/// for free -- and the skip matters here more than most, because a root file
+/// whose bytes did not change must not move its mtime and wake every watcher in
+/// the tree.
+///
+/// **NO `.bak` SIBLING, AND THE DEVIATION IS RATIFIED RATHER THAN OVERLOOKED**
+/// (hv, 2026-08-19). v2 wrote `AGENTS.md.bak` beside the file -- undeclared
+/// until 2026-08-17, and covered by `*.bak` in `.gitignore`, so it never
+/// reached git. It therefore guarded against a loss git already prevents, which
+/// is the exact test hv used the same evening to withdraw AC-00.3. The
+/// alternative was worse than redundant: v3 already carries D35's rolling
+/// snapshots in [`crate::backup`], and a second backup mechanism for one file
+/// is the Highlander violation this project names first.
+pub fn sync(
+  root: &Path,
+  home: &Path,
+  name: &str,
+  cfg: &Config,
+  ctx: &RenderContext<'_>,
+) -> Result<PathBuf, RootFileError> {
+  let content = render(home, name, cfg, ctx)?;
+  let path = root.join(name);
+  let mut set = crate::write_set::WriteSet::new();
+  set.add(path.clone(), content);
+  set
+    .commit()
+    .map_err(|source| RootFileError::Unwritable {
+      path: path.display().to_string(),
+      source,
+    })?
+    .keep();
+  Ok(path)
 }
 
 // ---------------------------------------------------------------------------

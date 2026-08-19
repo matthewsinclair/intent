@@ -93,6 +93,30 @@ bats tests/
 
 [[/lang]]
 
+### Building
+
+[[#lang elixir]]
+
+```bash
+mix compile
+```
+
+[[/lang]]
+[[#lang rust]]
+
+```bash
+cargo build
+```
+
+[[/lang]]
+[[#lang swift]]
+
+```bash
+swift build
+```
+
+[[/lang]]
+
 ### Validation
 
 ```bash
@@ -164,6 +188,7 @@ The coding-rule library is served by the installed Intent tool, not vendored int
 ```bash
 intent claude rules list        # enumerate
 intent claude rules show <id>   # inspect
+intent claude rules validate    # schema check
 ```
 
 ## Extensions
