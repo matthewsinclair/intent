@@ -191,3 +191,141 @@ fn a_second_run_with_an_unchanged_list_moves_nothing() {
      second run has nothing to do"
   );
 }
+
+/// **THE RECONCILIATION AS AN EQUALITY OF TWO INDEPENDENTLY DERIVED SETS, WITH
+/// BOTH COUNTS PRINTED** -- AC-02.2's actual wording, which the four tests
+/// above do not satisfy.
+///
+/// **vc's objection, and it is right: a sample of two cannot be told from a
+/// rule that handles exactly those two ids.** Every assertion above names
+/// `ST0001` and `ST0002` and checks one path each. A `organize` that special-
+/// cased two ids and ignored the rest would pass all four, and the live estate
+/// is 545 removals.
+///
+/// So: ten threads, an unlisted majority, and the sets derived from two sources
+/// that do not consult each other.
+///
+/// **NEITHER DERIVATION CALLS THE PRODUCTION CODE UNDER TEST.** The listed set
+/// is parsed here rather than through `intentfiles::parse`, and the realised
+/// set is read off the filesystem rather than through `organize`'s own plan.
+/// Deriving either one from the code being tested would make the equality a
+/// tautology -- the two sets have to be able to disagree for their agreement to
+/// mean anything, which is why the pre-state is asserted to disagree first.
+#[test]
+fn the_realised_set_equals_the_listed_set() {
+  use std::collections::BTreeSet;
+
+  let fx = Fixture::new();
+  fx.write_thread(&gate_open()); // ST0057
+  for n in 1..=9 {
+    fx.write_thread(&sample_thread(&format!("ST{n:04}")));
+  }
+
+  // Realise the whole estate: ten threads on disk, nothing said about any.
+  fx.facade_on_disk()
+    .sync_to_disk(&Scope::All)
+    .expect("realise everything");
+
+  // The list declares an odd, non-contiguous minority -- so a rule keyed on
+  // "the first two" or "the low ids" is a different set from this one.
+  //
+  // **THE `ISSUE:` LINE IS LOAD-BEARING AND WAS ADDED BECAUSE A MUTATION ARM
+  // SURVIVED WITHOUT IT.** Deleting the sigil filter from the derivation below
+  // left this test green while the fixture held steel threads only -- the
+  // filter had nothing to exclude, so an untested branch sat inside the very
+  // derivation whose independence is the point. A manifest carries both
+  // sigils; this one now does too.
+  fx.write_file(
+    "intent/.intentfiles",
+    "\
+# hand-authored
+STEELTHREAD:ST0002
+STEELTHREAD:ST0003
+ISSUE:0042
+STEELTHREAD:ST0005
+STEELTHREAD:ST0007
+STEELTHREAD:ST0057
+",
+  );
+
+  // --- derivation one: what the LIST says, parsed here, not by the tool ------
+  let listed: BTreeSet<String> = fx
+    .read("intent/.intentfiles")
+    .lines()
+    .map(str::trim)
+    .filter(|l| !l.is_empty() && !l.starts_with('#'))
+    .filter_map(|l| l.split_once(':'))
+    .filter(|(sigil, _)| *sigil == "STEELTHREAD")
+    .map(|(_, id)| id.to_string())
+    .collect();
+
+  // --- derivation two: what is REALISED, read off the filesystem ------------
+  // The estate directory is SCANNED -- the ids are discovered, not supplied --
+  // and a thread counts as realised iff its cover view is present. Written as a
+  // closure because it is evaluated twice: the disagreement before and the
+  // agreement after are the same measurement at two times.
+  //
+  // **`is a non-empty directory` WAS THE FIRST PREDICATE AND IT IS WRONG.**
+  // Measured, not reasoned: after a run that dehydrated 20 files, every one of
+  // the five unlisted threads still had a directory holding an empty `WP/`.
+  // Dehydration removes FILES; the directory shell it leaves behind is not
+  // recorded anywhere as intended or unintended, so this test does not assert
+  // on it in either direction -- it just declines to measure realisation with a
+  // predicate the residue satisfies. Reported to vc rather than ruled here.
+  let realised = || -> BTreeSet<String> {
+    std::fs::read_dir(fx.project().st_dir())
+      .expect("the estate directory")
+      .filter_map(Result::ok)
+      .filter(|e| e.path().is_dir())
+      .map(|e| e.file_name().to_string_lossy().into_owned())
+      .filter(|id| fx.project().info_view(id).exists())
+      .collect()
+  };
+
+  // **THE PRE-STATE MUST DISAGREE**, or the equality below is satisfied by an
+  // estate where nothing ever needed doing.
+  let before = realised();
+  assert_ne!(
+    before, listed,
+    "PRECONDITION: realised ({}) and listed ({}) must differ before the run,\n       \
+     otherwise the equality afterwards is satisfied by an estate that never\n       \
+     needed reconciling",
+    before.len(),
+    listed.len()
+  );
+
+  let report = fx
+    .facade_on_disk()
+    .organize(Mode::Apply)
+    .expect("organize reconciles");
+
+  let after = realised();
+  assert_eq!(
+    after,
+    listed,
+    "THE RECONCILIATION IS AN EQUALITY OF TWO SETS.\n       \
+     realised on disk: {} {:?}\n       \
+     listed in .intentfiles: {} {:?}\n       \
+     was realised before the run: {} {:?}\n       \
+     Each set is derived from its own source and neither consults the other.",
+    after.len(),
+    after,
+    listed.len(),
+    listed,
+    before.len(),
+    before,
+  );
+
+  // **THE RUN DID THE WORK, AND THE REPORT SAYS SO IN ITS OWN WORDS.** Set
+  // equality alone cannot tell a reconciliation from an estate that was already
+  // reconciled -- the pre-state assertion above closes half of that, and this
+  // closes the other half by requiring the verb to have MOVED files in both
+  // directions on this run.
+  assert!(
+    !report.dehydrated.is_empty() && !report.hydrated.is_empty(),
+    "the equality must be the RESULT of this run: hydrated {} / dehydrated {} / refused {}",
+    report.hydrated.len(),
+    report.dehydrated.len(),
+    report.refused.len()
+  );
+}
