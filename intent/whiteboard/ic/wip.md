@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 21:10Z
-status: active
-focus: "**AT-02.2 AND AT-07.5 GREEN, AND `organize` NOW PRUNES THE DIRECTORIES IT EMPTIED (`dd06342a`).** hv cleared the ship gate and the estate is DEHYDRATED -- 423 removed, 0 refused, block 18 -> 14, 0 unmet. **NEXT: `st hydrate`, claimed off dc, one render arm against my `<address>` spec.**"
+heartbeat_at: 2026-08-19 21:41Z
+status: paused
+focus: "**AGGRESSIVELY FOLDED FOR EOD ON hv's INSTRUCTION. NOTHING OF MINE UNCOMMITTED.** Four green today, all mutation-proven: AT-02.2, AT-02.3, AT-07.5, plus the directory prune as a code fix. **NEXT: the `st hydrate` render arm -- render.rs is clear at `8e544de4` and the spec is landed at `8a6ae532`; it is a two-line call.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,37 +13,36 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**`st hydrate` -- CLAIMED OFF dc, who was redirected to the hosting gap.** One render arm; `Facade::hydrate` is built and pinned to `Mode::Apply`. **Ruled: the argument is `<address>`, and the CLI PROMOTES a bare artefact id to one** (`ST0057` -> `intent:///threads/ST0057`) because `address::parse` demands the scheme and nobody will type it. Safe because it DELEGATES -- `is_thread_id`/`is_issue_id` own the fact and `Sigil::accepts` already calls them. **A malformed argument is a USAGE error naming both forms, never "no such thread".**
+**NOTHING IN FLIGHT.** Everything of mine is committed; the tree's dirt is generated files and peers'.
 
 ## ON RESUME -- read this first
 
-1. **THE ESTATE IS DEHYDRATED AND THE GATE IS OPEN.** hv cleared it on one word; `organize --apply` removed 423, refused 0. `intent/st` holds ST0046, ST0056, ST0057 only. **AC-03.6, AC-06.3, AC-06.4 and AC-07.5 left the DECLARED BLOCK and are NOT WITHDRAWN** -- the block is about what GATES, not what is wanted. Every one is still owed.
-2. **THE ROUND TRIP IS PROVEN** (vc, `e7f00e65`): ST0001 back into the list, `organize --apply`, five files returned, all five byte-identical to git. The database regenerates the exact bytes.
-3. **DO NOT REBUILD TODAY'S WORK.** AT-02.2, AT-07.5 and the prune are landed and mutation-proven.
+1. **TAKE THE `st hydrate` RENDER ARM FIRST. IT IS TWO LINES AND EVERYTHING UNDER IT EXISTS.** `address::promote(arg)?` then `facade.hydrate(&addr)`. `render.rs` is clear (dc, `8e544de4`); `promote` is landed with 6 tests and 3 red arms (`8a6ae532`); `Facade::hydrate` is built and pinned to `Mode::Apply`. **Pass the WHOLE STRING to `promote`, never an id extracted from it** -- rebuilding the URL from its id is the spelling that reads fine and silently turns a cross-project reference into a local one, and hydrate's refusal never fires because the authority is gone before it is called.
+2. **THEN RULE THE ROSTER, BECAUSE IT IS MINE AND IT IS FOUR ROWS NOT ONE.** dc found `issues dehydrate in 0 buckets` UNDERSTATES: the assert fires on the first unbucketed verb and stops. **`st hydrate`, `st dehydrate` and `issues hydrate` are unbucketed too**, the ratchet refused at 36 against a cap of 32, and dc reverted rather than re-bucket on my roster at midnight. **COVERED_ELSEWHERE is defensible for `st hydrate` ONCE IT LANDS** -- they write through `Plan::run`, which `organize_idempotent_mtime.rs` measures -- **and dishonest for the three that do not exist.**
+3. **DO NOT REBUILD TODAY'S WORK.** AT-02.2, AT-02.3, AT-07.5 and the prune are landed, verified end-to-end by vc on the live estate, and mutation-proven.
 
 ## TODO -- LIVE ONLY
 
-1. **`st hydrate` render arm.** Spec is in DOING and dc has accepted it whole.
-2. **`Report.pruned` IS NOT RENDERED.** `render.rs` is dc's and was in flight, so the prune is reported at the API and invisible at the CLI. **A destructive act nobody can see is the defect, not the gap.** Chase it.
-3. **AC-05.2: the lifecycle verbs edit the list.** They WARN on unsynced attachment bytes; `Facade::sync_uncommitted` answers exactly that. Build the warning, NOT a gate -- vc retracted the refuse clause at `9b887765`.
-4. **`intent init` IS NOW HOSTING WORK, NOT GATE WORK, AND IT HAS A DECISION INSIDE IT:** a project declaring NO preconditions cannot dehydrate at all -- `organize --apply` says _0 checked of 0 declared, so nothing is proved_. Fail-closed, absence is not permission. **So a freshly initialised project is born unable to dehydrate until someone declares one.** vc says look at this next.
-5. **`issues dehydrate` in 0 buckets** -- dc's, flagged, still the one crate red.
+1. **`st hydrate` render arm** (see ON RESUME 1).
+2. **Roster ruling on the four unbucketed hydrate/dehydrate verbs** (see ON RESUME 2).
+3. **AC-05.2: the lifecycle verbs edit the list.** Build the WARNING, not a gate -- vc retracted the refuse clause at `9b887765`, and `organize.rs:695` is the only line in the tool that removes an estate file. `Facade::sync_uncommitted` answers the unsynced-bytes question exactly.
+4. **`intent init` HAS A DESIGN DECISION INSIDE IT AND THE COMMAND DOES NOT EXIST YET, WHICH IS THE CHEAPEST MOMENT TO MAKE IT.** A project declaring NO preconditions cannot dehydrate at all -- `organize --apply` answers _0 checked of 0 declared, so nothing is proved and nothing may be removed_. Fail-closed; absence is not permission. **So a freshly initialised project is born unable to dehydrate until someone declares one.**
+5. **THE `st edit` FORK IS UNRULED AND `edit_writes_pinned_region.rs` STILL ASSERTS THE RETIRED TWO-REGION ARCHITECTURE** behind a red row. vc's ruling: tolerable while a red row names it, **not tolerable the moment someone greens that row without deleting the file.** hv's, not mine.
+6. **hv, FOR TOMORROW: 250 files under `intent/` are not in the store at all** -- `docs/`, `llm/`, `history/`, `eng/`, `plugins/`, project-level `done.md` / `wip.md`. _"Not all of that should be in the db, but certainly some of it should."_
 
 ## Watch-outs
 
-- **A MUTATION BATTERY MUST NOT RUN IN THE SHARED CHECKOUT, AND TODAY IT COULD NOT BE AVOIDED.** dc's `852/1` measured a tree my arm had broken. **A peer mid-edit gives you a tree that will not compile or fails honestly; a mutation battery gives you one that COMPILES AND LIES.** Isolation was attempted twice and failed: **it needs a consistent snapshot and there is not one** -- my work, theirs and HEAD are three trees and no two agree.
-- **THE DRIVER NOW RESTORES ON SIGTERM AND CHECKS THE BASELINE COMPILES BEFORE INJECTING.** Both earned their place the same hour: a timeout once left a mutant live, and five arms once scored VOID for a peer's broken file rather than anything of mine. **A VOID from someone else's breakage is indistinguishable from a VOID from your own.**
-- **`cargo test --no-fail-fast` RETURNS 101 FOR A BUILD FAILURE AND A TEST FAILURE ALIKE. The discriminator is whether ANY `test result:` line was emitted; zero lines is UNMEASURED, never green.** HEAD itself did not compile twice today and every node read it as red.
-- **AN ASSERTION CAN PASS ON THE ADDRESS BEING ECHOED BACK.** `said.contains("ac")` was satisfied by the URL `/ac/AC-01.1` in the error, not by the form being named; a mutant dropping the form name survived it. **Pick a token that is not a substring of its own input.**
-- **A TRUE MEASUREMENT FILED WHERE NOTHING READS IT DOES NO WORK.** I recorded _no `intentfiles::render` call in `organize.rs`_ in one row's note while another row's green sat one screen away, and it survived two validation reads. vc's general form: **two artefacts disagree and no third thing reads both.**
-- **I RULED ON THE VERB THAT READS THE MANIFEST WITHOUT EVER READING THE MANIFEST.** The polarity ruling was right, and the fact that would have persuaded anyone in one sentence was twenty-six lines away, unlooked-at. **Luck wearing method's clothes.**
-- **I LED WITH A CORRECTION INSTEAD OF A REPRODUCTION AND THE CORRECTION WAS WRONG.** vc's 423 was right; my model of what `organize` removes was not. **I had the confirming measurement in hand and read it as coincidence because it disagreed with a model I had just built** -- the least-tested object in the room outranking two agreeing measurements.
-- **`git commit --only <path>` COMMITS THE WORKING-TREE STATE OF THAT PATH.** It defends against the INDEX, not against a peer editing the same file. dc named this after sweeping my work into their commit.
-- **STILL TRUE: run the workspace not the crate; every restore path absolute; a mutant that does not compile is not a red; `stat` without `-u` prints LOCAL; the Bash tool's cwd persists between calls, so a relative `cd` is itself an anchor that can silently miss.**
+- **A MUTATION BATTERY IN A SHARED CHECKOUT GIVES A TREE THAT COMPILES AND LIES.** A peer mid-edit gives you one that will not compile or fails honestly; a battery gives you a green that is false. dc's `852/1` measured a tree my arm had broken, and dc later swept a live mutant into HEAD under cc's commit message. **Isolation needs a consistent snapshot and there is not one while four nodes hold interleaved work.** Restore on SIGTERM/atexit, check the baseline compiles AND passes before injecting, and **measure the exit status WITHOUT A PIPE** -- `bash "$F" | tail -3; echo $?` reports tail's.
+- **THE BASH TOOL'S SHELL IS ZSH AND IT BIT ME TWICE TONIGHT IN TWO DIFFERENT WAYS.** Unquoted `$var` does NOT word-split, so a probe loop passes `st show ST0001` as ONE argument and records `unrecognized subcommand` -- which reads exactly like a real failure. And **backticks inside a double-quoted `-m` are COMMAND SUBSTITUTION**: a commit landed at exit 0 with a sentence missing its subject. Use arrays or `bash -c` for probes; feed commit messages from a quoted heredoc through `-F -`.
+- **A GREEN CAN BE A FACT ABOUT THE ESTATE RATHER THAN ABOUT THE PROPERTY.** Deleting the prune's floor left all five integration tests green, including the one asserting the estate root survives -- the root was protected by `steel_threads.md` happening to live in it, not by the bound the code claims. **A bound that is never reached is not a bound that was tested.** Same class as AT-07.5's behavioural arm being green because the daemon does not exist, and vc's skew guard reporting `nothing to check` all evening.
+- **AN ASSERTION CAN PASS ON ITS OWN INPUT ECHOED BACK**, and a FILTER WITH NOTHING TO EXCLUDE IS AN UNTESTED BRANCH. `said.contains("ac")` was satisfied by the URL in the error; my sigil filter survived a mutation because the fixture held no `ISSUE:` line. **Fix the fixture, not the note.**
+- **A TRUE MEASUREMENT FILED WHERE NOTHING READS IT DOES NO WORK.** vc's general form: two artefacts disagree and no third thing reads both. **Live instance tonight: vc told me `Report.pruned` is unrendered while dc had already rendered it inside the 211 lines vc could not see.** Check the file, not the report.
+- **`git commit --only <path>` COMMITS THE WORKING-TREE STATE OF THAT PATH** -- it defends against the INDEX, not against a peer editing the same file.
+- **STILL TRUE: run the workspace not the crate; every restore path absolute; a mutant that does not compile is not a red; a mutant that changes no behaviour is not a survivor; `stat` without `-u` prints LOCAL.**
 
 ## Decisions
 
-- (2026-08-19) **AC-05.1 POLARITY, RULED AND BUILT: `intent organize` PREVIEWS, `--apply` PERFORMS.** Precedent rather than taste -- AC-03.9 already ruled the destructive direction states what it will overwrite before it costs it. v2 shipped BOTH polarities for one operation; v3 kept the acting one and dropped the preview.
-- (2026-08-19) **TOP-LEVEL `intent hydrate` / `dehydrate`, NOT `st hydrate`.** hv's two sentences conflict -- he typed the spelling and required _any st **or issue**_, and `st` cannot carry issues. **The capability is the requirement; the spelling was the nearest shape he reached for.** Provisional, reversible, it is a table row.
-- (2026-08-19) **hv REPLACED THE TWO-REGION DESIGN. `organize` reads the list, hydrates what is in it, dehydrates what is not, and RECOMPUTES NOTHING.** The regions existed only because the file was machine-written. **My status-rule wiring was REMOVED rather than fixed** -- I had built the thing he then took away, and the mechanism already did his a/b/c.
-- (2026-08-19) **THE NEGATIVE-PIN QUESTION IS DISSOLVED, NOT FILLED.** With no function of status, _dehydrate_ is simply _remove the id from the list_. The prefix design I recommended is not needed.
+- (2026-08-19) **`intent hydrate <address>`, WITH A BARE ARTEFACT ID PROMOTED TO ONE.** The argument is an address because the SERVICE refuses in address terms -- two of `Facade::hydrate`'s three refusal arms are unreachable from a bare id. The promotion is safe because it **DELEGATES rather than guesses**: `is_thread_id` / `is_issue_id` own the fact and `Sigil::accepts` already calls them. **An inference from SHAPE that reads a spelling is the class `intrinsic` exists to kill; one that calls the module owning the fact is not.** A malformed argument is a USAGE error naming both forms, never a not-found.
+- (2026-08-19) **A REALISED ARTEFACT IS ONE WHOSE COVER VIEW EXISTS, NEVER ONE WHOSE DIRECTORY DOES** (vc's rule, from my wrong predicate). Dehydration removes files; it now also removes the directories it emptied, `rmdir` semantics only.
+- (2026-08-19) **FOUR CRITERIA LEFT THE DECLARED PRECONDITION BLOCK WITHOUT BEING WITHDRAWN.** AC-03.6, AC-06.3, AC-06.4, AC-07.5. **The block is about what GATES, not about what is wanted** -- every one is still owed as ordinary work. A note saying "they came off the gate" reads as done.
+- (2026-08-19) **hv's GIT GROUNDS RETIRE A PRECONDITION ONLY WHERE GIT CAN SUBSTITUTE FOR THE PROOF.** AC-00.3 was a reversibility proof and git substitutes exactly. AC-07.5 is an ACCESSIBILITY claim and **reaching for git falsifies its subject** -- restoring the estate re-hydrates it. Withdrawability is not a property of being a precondition.
