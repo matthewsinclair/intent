@@ -43,6 +43,65 @@ pub const ROOT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "usage-rules.md"];
 /// there: a copy of truth must never re-enter through the ingest gate.
 pub const SKIPPED_DIRS: &[&str] = &[".cache", ".treeindex", ".backup"];
 
+/// Which threads a `sync` run takes from its SOURCE.
+///
+/// **Both directions were whole-estate only until hv ruled otherwise on
+/// 2026-08-19, and on a shared board that makes the routine act of saving your
+/// own work a read of everybody else's.** vc measured it twice in one day,
+/// both times while holding the pen and warning the others, and ran thirteen
+/// estate-wide restores in one session -- each carrying whatever four nodes
+/// happened to have on disk at that instant. dc's framing is why care cannot
+/// fix it: a workflow whose correct form requires an operation only safe for
+/// one actor is a single-writer bottleneck wearing a per-node procedure's
+/// clothes.
+///
+/// **IT NAMES WHICH THREADS TAKE THEIR VALUE FROM THE SOURCE, NOT WHICH ONES
+/// GET READ.** The distinction is load-bearing on the restore direction:
+/// `sync_from_disk` finishes with a whole-store `rebuild`, so a scope that
+/// merely narrowed the READ would hand `rebuild` a shortened set and DELETE
+/// every thread it did not name. That is a far worse defect than the one this
+/// exists to fix, and a silent one -- the node that ran it was saving its own
+/// work. So an unnamed thread keeps the value the destination already holds
+/// and the rebuild runs unchanged over the union, which keeps one write path
+/// rather than growing a second store surface.
+///
+/// **There is no `None` variant and that is deliberate.** A scope that selects
+/// nothing is a typo, not an intention, and the verbs refuse it rather than
+/// reporting success over an empty selection -- otherwise a mistyped id is
+/// indistinguishable from a completed sync and the operator believes their
+/// work has landed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Scope {
+  /// Every thread. The only form the verb had before the ruling, and still
+  /// the right one for a fresh clone, a full regeneration, or the migrator.
+  All,
+  /// Only the threads named, by id.
+  Threads(Vec<String>),
+}
+
+impl Scope {
+  /// Does this scope take `id` from the source?
+  pub fn selects(&self, id: &str) -> bool {
+    match self {
+      Scope::All => true,
+      Scope::Threads(ids) => ids.iter().any(|named| named == id),
+    }
+  }
+
+  /// The ids this scope names, or `None` when it names the whole estate.
+  ///
+  /// Callers that must REFUSE an unmatched id need the list; callers that only
+  /// filter do not. Returning `None` for `All` keeps "no restriction" and "an
+  /// empty restriction" from collapsing into one value, which is the same
+  /// distinction the missing `None` variant above is about.
+  pub fn named(&self) -> Option<&[String]> {
+    match self {
+      Scope::All => None,
+      Scope::Threads(ids) => Some(ids),
+    }
+  }
+}
+
 /// What the scan concluded about one file.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
