@@ -670,6 +670,24 @@ impl crate::remedy::Remedy for FacadeError {
 // the one type that already had it kept a private copy while every other error
 // used the shared one -- which is how two renderings become normal.
 
+/// What `.intentfiles` says about which threads are realised.
+///
+/// **Three states rather than two, because absence and unreadability are
+/// different facts and only one of them is somebody's decision.**
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Realised {
+  /// There is no manifest. Nobody has said, so everything is realised -- the
+  /// state of every project that has never run `organize`.
+  NothingSaid,
+  /// A manifest was read. **An EMPTY set is somebody saying NONE and is
+  /// honoured**, which is what makes this different from [`Realised::NothingSaid`].
+  Declared(std::collections::BTreeSet<String>),
+  /// A manifest exists and does not parse. Treated as [`Realised::NothingSaid`]
+  /// by every current caller, and kept distinct so a reporter can tell them
+  /// apart without going back to the filesystem.
+  Unreadable,
+}
+
 /// One row of `intent ac list`: the criterion, its computed state, and the
 /// tests that cover it.
 #[derive(Debug, Clone)]
@@ -1856,6 +1874,67 @@ impl Facade {
     })
   }
 
+  /// What `.intentfiles` says about which threads are realised.
+  ///
+  /// **THREE INPUTS, THREE STATES, AND THE THIRD ONE HAD TO BE ARGUED FOR.**
+  /// The first version returned `Option<BTreeSet<String>>` and wrote
+  /// `.ok()?` twice -- which collapsed an UNPARSEABLE manifest into the same
+  /// `None` as an ABSENT one (vc, and it is my own finding an hour old wearing
+  /// a different hat: `cargo test` returns 101 for a build failure and a test
+  /// failure alike, and the discriminator had to be added there too).
+  /// **Two-valued returns are the default shape, so the third state has to be
+  /// argued for every single time.**
+  ///
+  /// The two absent-ish states behave IDENTICALLY here -- both realise
+  /// everything -- so collapsing them costs nothing at this call site and
+  /// everything at the next one. They are separate values so that a reader
+  /// which needs to tell them apart does not have to re-derive the distinction
+  /// from the filesystem.
+  fn realised_threads(&self) -> Realised {
+    let path = self.project.intentfiles_path();
+    let Ok(raw) = std::fs::read_to_string(&path) else {
+      return Realised::NothingSaid;
+    };
+    match intentfiles::parse(&raw) {
+      Ok(manifest) => Realised::Declared(
+        manifest
+          .entries
+          .iter()
+          .filter(|e| e.sigil == intentfiles::Sigil::SteelThread)
+          .map(|e| e.id.clone())
+          .collect(),
+      ),
+      // **FAIL-OPEN, AND THE DIRECTION IS CHOSEN RATHER THAN INHERITED.** A
+      // broken manifest realises everything and can never dehydrate, so the
+      // failure cannot delete anybody's files. Refusing instead would make one
+      // malformed line break every write in the project, and the grammar's real
+      // refusal belongs on the verbs that read the manifest deliberately, where
+      // the operator is asking about it and can act on the answer.
+      //
+      // **WHAT IS STILL MISSING IS A READER, AND IT IS NAMED RATHER THAN
+      // LEFT.** Nothing reports this state, so an operator whose manifest is
+      // broken has their declared dehydration silently stop being honoured.
+      // The value exists here so that `doctor` can ask; that it does not yet
+      // ask is a gap, not a design.
+      Err(_) => Realised::Unreadable,
+    }
+  }
+
+  /// Which thread's directory a view lives under, if any.
+  ///
+  /// Estate-wide views -- the thread index, the todo view -- belong to no
+  /// thread and answer `None`, so they are always written. **They are a
+  /// function of the whole model rather than of any artefact**, and narrowing
+  /// them with a manifest would make the index disagree with the estate it
+  /// indexes.
+  fn owning_thread(&self, path: &std::path::Path, canon: &Canon) -> Option<String> {
+    canon
+      .threads
+      .iter()
+      .find(|t| path.starts_with(self.project.thread_dir(&t.id)))
+      .map(|t| t.id.clone())
+  }
+
   /// Every file the model projects onto disk, as one batch.
   ///
   /// THE ONE PLACE THE db -> disk DIRECTION IS EXPRESSED. `apply` and both
@@ -1881,7 +1960,28 @@ impl Facade {
         to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
+    // **VIEWS IF MARKED, AND CANON REGARDLESS** (AC-08.1). The canon writes
+    // above are unconditional; only the RENDERED views narrow.
+    //
+    // Without this, every mutation re-rendered every thread's views from full
+    // canon -- so a dehydrated artefact came back the moment anybody touched
+    // anything, and `organize` was undone by the next verb anyone ran. **The
+    // sparse projection was not a state the estate could hold**, which is
+    // ST0057's whole subject.
+    //
+    // **An ABSENT manifest realises everything, deliberately.** A project that
+    // has never run `organize` has no `.intentfiles`, and reading that absence
+    // as "nothing is declared" would silently stop rendering every view in
+    // every project that has not opted in. Absence means nobody has said, not
+    // that the answer is none.
+    let realised = self.realised_threads();
     for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
+      if let Realised::Declared(ref declared) = realised
+        && let Some(owner) = self.owning_thread(&view.path, canon)
+        && !declared.contains(&owner)
+      {
+        continue;
+      }
       set.add(view.path, view.content);
     }
     Ok(set)

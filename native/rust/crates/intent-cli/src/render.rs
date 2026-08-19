@@ -34,7 +34,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
-    Some(("organize", _)) => organize(),
+    Some(("organize", m)) => organize(m),
     Some(("upgrade", _)) => upgrade(),
     Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
@@ -1333,10 +1333,22 @@ fn upgrade() -> Result<(), Failure> {
 /// **WHAT MAKES THAT SAFE TODAY IS A GATE, NOT A HABIT.** Every removal is
 /// refused while any declared dehydration precondition is unmet, and separately
 /// each removal must re-render byte for byte before it happens.
-fn organize() -> Result<(), Failure> {
+fn organize(m: &ArgMatches) -> Result<(), Failure> {
+  // **PREVIEW UNLESS ASKED, RULED BY ic ON AC-05.1 (2026-08-19).** The polarity
+  // is the surface's to decide and it is decided in the dispatch table; this
+  // reads the answer rather than holding one. See the `--apply` flag's
+  // `disposition_basis` for the three grounds -- the short version is that v2
+  // shipped BOTH polarities for this one operation, and resolving toward
+  // preview resolves it in the direction that cannot lose data.
+  let mode = if flag(m, "apply") {
+    intentsvcs::organize::Mode::Apply
+  } else {
+    intentsvcs::organize::Mode::Preview
+  };
+  let previewing = mode == intentsvcs::organize::Mode::Preview;
   let (project, ctx) = context()?;
   let mut facade = Facade::open(project.clone(), ctx).map_err(fail)?;
-  let report = facade.organize().map_err(fail)?;
+  let report = facade.organize(mode).map_err(fail)?;
   // **PROJECT-RELATIVE, THROUGH THE PROJECT'S OWN ANSWER.** Measured on a real
   // estate before this was added: 199 unclaimed paths printed absolute, each
   // carrying 90 characters of temp-directory prefix before the part that
@@ -1350,19 +1362,46 @@ fn organize() -> Result<(), Failure> {
   // a trailing dot-dot-dot is. This verb's whole subject is files appearing and
   // disappearing, so a path must never be able to vanish from its own report --
   // being inside a counted group is fine, being dropped is not.
+  //
+  // **THE TENSE IS IN EVERY LINE, NOT ONLY IN A FOOTER, AND THAT IS THE WHOLE
+  // SAFETY PROPERTY OF THE PREVIEW.** A trailing "nothing was written" is
+  // correct and useless: these lines get grepped, pasted into a message, and
+  // read one at a time, and a single line reading `removed: intent/st/...` is
+  // indistinguishable from a run that removed it. Carrying the tense per line
+  // costs six words and makes a line that has been separated from its footer
+  // still tell the truth.
+  let (head, hyd, rew, rem) = if previewing {
+    ("organize (preview):", "to-hydrate", "to-rewrite", "to-remove")
+  } else {
+    ("organize:", "hydrated", "rewritten", "removed")
+  };
+  // **THE REFUSAL COUNT IS ON STDOUT WITH THE OTHERS, AND IT IS NOT DECORATION.**
+  // Measured on a real estate: the summary read `0 to remove` while the refusal
+  // on STDERR read `would remove 544 file(s)`. Both are true and they answer
+  // different questions -- this run removes nothing, and 544 are blocked behind
+  // the ship gate -- but a caller capturing only stdout saw `0 to remove, 0
+  // diverged` at exit 0 and had every reason to conclude the estate was
+  // reconciled. It is not; it is 544 removals behind a shut gate. INV-01 puts
+  // the refusal TEXT on stderr and that is right, so the COUNT has to appear
+  // here or stdout is quietly complete-looking at precisely the moment it is
+  // least complete.
   println!(
-    "organize: {} hydrated, {} rewritten, {} unchanged, {} removed, {} unclaimed, {} diverged",
+    "{head} {} {}, {} {}, {} unchanged, {} {}, {} unclaimed, {} diverged, {} refused",
     report.hydrated.len(),
+    if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
+    if previewing { "to rewrite" } else { "rewritten" },
     report.unchanged.len(),
     report.dehydrated.len(),
+    if previewing { "to remove" } else { "removed" },
     report.unclaimed.len(),
-    report.diverged.len()
+    report.diverged.len(),
+    report.refused.len()
   );
   for (label, paths) in [
-    ("hydrated", &report.hydrated),
-    ("rewritten", &report.rewritten),
-    ("removed", &report.dehydrated),
+    (hyd, &report.hydrated),
+    (rew, &report.rewritten),
+    (rem, &report.dehydrated),
   ] {
     for path in paths {
       println!("  {label}: {}", show(path));
@@ -1380,17 +1419,47 @@ fn organize() -> Result<(), Failure> {
     println!("  diverged: {}", show(path));
   }
 
+  // **THE FOOTER IS BELT-AND-BRACES, NOT THE MECHANISM.** The per-line tense
+  // above is what makes a preview unmistakable; this says it once more in plain
+  // words and names the spelling that performs it, so the operator never has to
+  // go and look the flag up.
+  if previewing {
+    println!(
+      "organize: preview only -- nothing was written or removed. `intent organize --apply` performs it."
+    );
+  }
+
   if report.refused.is_empty() {
     return Ok(());
   }
-  // **A REFUSAL MOVES THE EXIT CODE, AND A REPORT DOES NOT.** Something asked to
-  // be removed and was not, so a script treating this run as success would carry
-  // on believing the estate is reconciled. The full rendering goes to stderr
-  // through `Failure::Error` for the LAST one and the rest are printed here --
-  // every refusal is shown, because "27 removals refused" with one example is
-  // the truncation this verb can least afford.
+  // **EVERY REFUSAL IS SHOWN, IN BOTH MODES.** "27 removals refused" with one
+  // example is the truncation this verb can least afford, and in a preview the
+  // refusals are the most valuable thing on the screen: they are the answer to
+  // "what will happen if I now type `--apply`", which is the only question the
+  // preview exists to answer.
   for refusal in &report.refused {
     eprintln!("{}", refusal.render());
+  }
+
+  // **A REFUSAL MOVES THE EXIT CODE ON THE APPLY PATH AND NOT ON THE PREVIEW,
+  // AND THIS IS THE ONE PLACE THE TWO MODES DELIBERATELY DISAGREE.**
+  //
+  // On `--apply` the code must move: something asked to be removed and was not,
+  // so a script treating the run as success carries on believing the estate is
+  // reconciled when it is not.
+  //
+  // A preview did exactly what it was asked to do -- it previewed -- and
+  // nothing about the estate is now mis-believed, because nothing changed. The
+  // deciding argument is what the alternative costs TODAY: nineteen
+  // preconditions are unmet, so every preview on this estate carries a
+  // `PreconditionsUnmet` refusal, and a preview that exited non-zero would make
+  // the BARE, DEFAULT spelling of a routine verb fail permanently on a healthy
+  // project. That is the always-on alarm that `Plan::run` already refuses to
+  // build on the digest guard, arriving one layer up at the exit code -- and an
+  // always-failing default is how an operator learns to stop reading this
+  // command's output at all, which costs exactly the refusals above.
+  if previewing {
+    return Ok(());
   }
   Err(Failure::Verdict)
 }

@@ -128,6 +128,39 @@ impl Action {
   }
 }
 
+/// Whether a run may touch the disk.
+///
+/// **THE PREVIEW AND THE PERFORMED RUN ARE ONE BODY TAKING THIS PARAMETER, NOT
+/// TWO IMPLEMENTATIONS THAT AGREE BY INSPECTION.** A preview computed by its own
+/// path is a *promise* about what the other path would do, and the two drift in
+/// the direction nobody notices: the preview stays green while the act changes
+/// underneath it, so the operator is shown a reassurance rather than a
+/// measurement. Here the preview IS the act with three things withheld -- the
+/// removal, the write, and the digest guard that stands over the removal -- so
+/// "what it said it would do" and "what it does" are not two things the code is
+/// able to disagree about.
+///
+/// **v2 SHIPPED BOTH ANSWERS FOR ONE OPERATION AND THAT IS WHY THIS IS AN ENUM
+/// RATHER THAN A `bool`.** `intent organize` took `--dry-run`, `intent st
+/// organize` took `--write`: same operation, opposite defaults, recorded in the
+/// dispatch table as a live Highlander violation. A `bool` at this seam is a
+/// parameter whose meaning has to be remembered at every call site, which is
+/// exactly the condition under which two faces come to disagree.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+  /// Decide everything; touch nothing. The default spelling of the verb.
+  Preview,
+  /// Decide everything and perform it. Reached only by `--apply`.
+  Apply,
+}
+
+impl Mode {
+  /// Whether this run is permitted to change the tree.
+  pub fn performs(&self) -> bool {
+    matches!(self, Mode::Apply)
+  }
+}
+
 /// One decided path.
 #[derive(Debug, Clone)]
 pub struct Step {
@@ -598,8 +631,15 @@ impl Plan {
   /// planned is what lets the guard mean "somebody else wrote here".
   ///
   /// `digest_now` is supplied by the caller rather than computed here, so the
-  /// guard can be driven without racing a real process against a test.
-  pub fn apply(&self, digest_now: &dyn Fn() -> String) -> Result<Report, OrganizeError> {
+  /// guard can be driven without racing a real process against a test. In
+  /// [`Mode::Preview`] it is never called -- there is no moment of acting to
+  /// stand in front of.
+  ///
+  /// **`Mode::Preview` CLASSIFIES EXACTLY AS `Mode::Apply` DOES, INCLUDING THE
+  /// PER-FILE GATE.** A preview that skipped `gate` would report 544 removals
+  /// where the run would perform 517 and refuse 27, which is the one number the
+  /// operator is consulting the preview for.
+  pub fn run(&self, mode: Mode, digest_now: &dyn Fn() -> String) -> Result<Report, OrganizeError> {
     let mut report = Report::default();
 
     // **GUARDED ONLY WHEN THERE IS SOMETHING IRREVERSIBLE TO GUARD.** A plan that
@@ -612,7 +652,15 @@ impl Plan {
     // hard `Err` that would abort the hydration half too. A run that is already
     // forbidden from removing anything must not also lose its safe work to a
     // guard standing over a step it is not going to take.
-    let will_remove = self.is_destructive() && self.preconditions.permits();
+    //
+    // **THE NAME IS `removals_permitted` RATHER THAN `will_remove`, BECAUSE A
+    // PREVIEW ENTERS THE SAME BRANCH AND REMOVES NOTHING.** The condition is a
+    // property of the ESTATE -- is there anything to remove, and does the ship
+    // gate allow it -- and it has to be answered identically in both modes, or
+    // the preview reports on a different question than the one the run asks.
+    // `Mode` is consulted separately, at each of the three points that actually
+    // touch the world.
+    let removals_permitted = self.is_destructive() && self.preconditions.permits();
 
     if self.is_destructive() && !self.preconditions.permits() {
       // ONE refusal for the whole run, not one per file. The unmet precondition
@@ -624,7 +672,13 @@ impl Plan {
       });
     }
 
-    if will_remove {
+    // **THE RE-OBSERVATION GUARD STANDS ON THE APPLY PATH AND NOWHERE ELSE.**
+    // `TreeMoved` is about the moment of acting -- it asks whether the tree is
+    // still the one that was planned against, immediately before the step that
+    // cannot be taken back. A preview takes no such step, so there is nothing
+    // for it to guard, and refusing a preview because a peer wrote a file would
+    // deny the operator the one reading that is always safe to take.
+    if removals_permitted && mode.performs() {
       let now = digest_now();
       if now != self.digest {
         return Err(OrganizeError::TreeMoved {
@@ -633,11 +687,13 @@ impl Plan {
       }
     }
 
-    if will_remove {
+    if removals_permitted {
       for step in self.with(Action::Dehydrate) {
         match gate(step) {
           Ok(()) => {
-            std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
+            if mode.performs() {
+              std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
+            }
             report.dehydrated.push(step.path.clone());
           }
           Err(refusal) => report.refused.push(refusal),
@@ -675,7 +731,7 @@ impl Plan {
       }
       set.add(step.path.clone(), content.clone());
     }
-    if !set.is_empty() {
+    if !set.is_empty() && mode.performs() {
       set
         .commit()
         .map_err(|e| OrganizeError::Io {

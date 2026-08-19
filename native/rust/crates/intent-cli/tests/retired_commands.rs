@@ -262,6 +262,94 @@ fn retired_rows_are_ordered_longest_path_first() {
 
 /// **An unknown command is still an unknown command.** The retired path must
 /// not become a catch-all that reports every typo as a retirement.
+/// **A NAME THIS BUILD RECLAIMED IS A LIVE COMMAND, AND A TYPO ON IT IS A TYPO.**
+///
+/// `retired_refusal` is consulted after clap fails, and clap fails for two very
+/// different reasons: a name that does not exist, and a USAGE ERROR on a name
+/// that does. It matched argv by prefix against the retired roster, so for the
+/// one name v3 reclaimed the second case was answered as the first.
+///
+/// **Measured before the fix: `intent organize --zzz-not-a-flag` answered _`intent
+/// organize` was retired in Intent v3 and is not a command in this build_,
+/// remedy _there is no v3 replacement -- remove it from any script that calls
+/// it_, at exit 2.** A working verb told an operator who mistyped a flag to
+/// delete it from their automation. Exit 2 is additionally the code the
+/// pre-commit gate fails open on.
+///
+/// **DRIVEN FROM THE TABLE, never from the name `organize`.** The reclaimed set
+/// is one row today and the defect is a property of reclamation, not of that
+/// verb; a test naming it would stop covering the second reclamation on the day
+/// it lands. `retired_spellings()` above already excludes shipped paths, so this
+/// hole is invisible to every other assertion in this file by construction --
+/// which is exactly why it needs its own arm rather than a wider filter.
+#[test]
+fn a_live_command_that_reclaimed_a_retired_name_is_not_answered_as_retired() {
+  let root = install_root();
+  let table = dispatch::table();
+  let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
+    .iter()
+    .map(|e| e.path.as_str())
+    .collect();
+
+  let reclaimed: Vec<String> = table
+    .retired()
+    .iter()
+    .map(|e| e.path.clone())
+    .filter(|p| shipped.contains(p.as_str()))
+    .collect();
+
+  // Not an assertion that the set is non-empty: reclamation is a thing the
+  // estate may legitimately have none of. It IS reported, so a run where the
+  // set silently emptied does not read as a pass over a population.
+  println!("reclaimed names measured: {reclaimed:?}");
+
+  for path in &reclaimed {
+    let mut args: Vec<&str> = path.split(' ').collect();
+    args.push("--zzz-not-a-flag");
+    let (code, stderr) = run(&args, &root);
+    assert!(
+      !stderr.contains("retired"),
+      "`intent {}` SHIPS in this build; a usage error on it must not answer as a retirement -- that tells an operator to delete a working command from their scripts: {stderr}",
+      path
+    );
+    assert_eq!(
+      code,
+      Some(1),
+      "`intent {}` -- a usage error on a live command is exit 1, not the unavailable code the gate fails open on: {stderr}",
+      path
+    );
+  }
+}
+
+/// **AND THE RECLAMATION MUST NOT HAVE UN-RETIRED THE FACE BENEATH IT.** The
+/// guard walks the whole spelling, so `st organize` stays retired while
+/// `organize` is live -- `st` is reachable and `organize` UNDER it is not. A
+/// guard that checked only the first token would have answered `st organize` as
+/// a usage error and quietly resurrected a v2 face.
+#[test]
+fn a_retired_face_under_a_live_parent_is_still_refused_by_name() {
+  let root = install_root();
+  let nested: Vec<Vec<String>> = retired_spellings()
+    .into_iter()
+    .map(|(s, _)| s)
+    .filter(|s| s.len() > 1)
+    .collect();
+  assert!(
+    !nested.is_empty(),
+    "the table must declare at least one retired SUBcommand, or this arm measures nothing"
+  );
+  for spelling in &nested {
+    let args: Vec<&str> = spelling.iter().map(String::as_str).collect();
+    let (code, stderr) = run(&args, &root);
+    assert!(
+      stderr.contains("retired"),
+      "`intent {}` is a retired face under a live parent and must still be refused by name: {stderr}",
+      spelling.join(" ")
+    );
+    assert_eq!(code, Some(2), "and at the unavailable code: {stderr}");
+  }
+}
+
 #[test]
 fn a_command_that_never_existed_is_not_reported_as_retired() {
   let root = install_root();

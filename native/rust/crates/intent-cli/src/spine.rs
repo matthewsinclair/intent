@@ -628,10 +628,43 @@ fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
   // is an alias on a retired row; answering it by naming `st organize` asks
   // someone mid-migration to reconcile two spellings before they can read the
   // one fact they need, and the difference is a single letter.
+  // **A NAME THIS BUILD SHIPS IS NEVER ANSWERED AS RETIRED, AND WITHOUT THIS THE
+  // DOC COMMENT ABOVE IS ASPIRATIONAL RATHER THAN TRUE.** It says a name clap
+  // can parse is dispatched and never reaches here. That holds for a name clap
+  // parses SUCCESSFULLY -- and a usage error on a LIVE command lands here too,
+  // carrying a name that a retired row may also spell.
+  //
+  // **MEASURED, ON THE ONE RECLAIMED NAME THE ESTATE HAS:** `intent organize
+  // --zzz-not-a-flag` answered _`intent organize` was retired in Intent v3 and
+  // is not a command in this build_, remedy _there is no v3 replacement --
+  // remove it from any script that calls it_, at exit 2. A shipped, working verb
+  // told an operator who mistyped a flag that the command does not exist and to
+  // delete it from their automation -- confident, actionable, and wrong in the
+  // direction that costs the user working scripts. Exit 2 is also the code the
+  // pre-commit gate FAILS OPEN on, so the wrong answer arrives through the gate
+  // that is meant to stop wrong answers.
+  //
+  // **THE SURFACE IS ASKED, NOT THE TABLE, BECAUSE THE SURFACE IS WHAT RAN.**
+  // Re-deriving reachability from dispositions would put a second authority in
+  // front of the built surface -- the exact failure the doc comment above warns
+  // about, rebuilt inside the guard against it. Walking the spelling token by
+  // token is what keeps `st organize` retired while `organize` is live: `st` is
+  // reachable, `organize` UNDER it is not, and only the whole path answers.
+  let surface = build(table);
+  let reachable = |spelling: &[&str]| {
+    let mut node = &surface;
+    for token in spelling {
+      match node.find_subcommand(*token) {
+        Some(next) => node = next,
+        None => return false,
+      }
+    }
+    true
+  };
   let (entry, typed) = table.retired().into_iter().find_map(|e| {
     e.spellings()
       .into_iter()
-      .find(|spelling| given.starts_with(spelling.as_slice()))
+      .find(|spelling| given.starts_with(spelling.as_slice()) && !reachable(spelling))
       .map(|spelling| (e, spelling.join(" ")))
   })?;
   let remedy = if entry.target.spelling.is_empty() {

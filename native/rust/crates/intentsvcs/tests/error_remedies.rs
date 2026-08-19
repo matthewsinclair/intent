@@ -22,6 +22,7 @@ mod common;
 use common::{Fixture, sample_thread};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::AtStatus;
+use intentsvcs::organize::Mode;
 use intentsvcs::remedy::Remedy;
 
 /// Provoke each error through the real facade, so the set under test is what
@@ -45,7 +46,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "no realisation manifest",
     facade
-      .organize()
+      .organize(Mode::Apply)
       .expect_err("a project with no .intentfiles cannot organize"),
   ));
   std::fs::write(fx.path("intent/.intentfiles"), "NOTASIGIL:ST0056\n")
@@ -68,7 +69,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "malformed realisation manifest",
     facade
-      .organize()
+      .organize(Mode::Apply)
       .expect_err("a manifest with an unknown sigil is refused"),
   ));
   out.push((

@@ -30,7 +30,7 @@ use common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::Attachment;
-use intentsvcs::organize::{Action, Plan, TreeState, plan};
+use intentsvcs::organize::{Action, Mode, Plan, TreeState, plan};
 use intentsvcs::project::Project;
 
 const MANIFEST: &str = "STEELTHREAD:ST0001\n\n# BEGIN INTENT\n# END INTENT\n";
@@ -111,7 +111,7 @@ fn a_second_run_moves_no_mtimes() {
 
   // First run: an empty tree, so everything declared hydrates.
   let first = a_plan(&project, &TreeState::default());
-  let report = first.apply(&|| "d".to_string()).expect("first run applies");
+  let report = first.run(Mode::Apply, &|| "d".to_string()).expect("first run applies");
   assert!(
     !report.hydrated.is_empty(),
     "the first run must actually write, or the second proves nothing"
@@ -132,7 +132,7 @@ fn a_second_run_moves_no_mtimes() {
     .collect();
   let second = a_plan(&project, &tree_after(&written, &attachments));
   let report2 = second
-    .apply(&|| "d".to_string())
+    .run(Mode::Apply, &|| "d".to_string())
     .expect("second run applies");
   let after = mtimes(&written);
 
@@ -176,7 +176,7 @@ fn the_measurement_can_see_an_mtime_move() {
   let project = fx.project();
 
   let first = a_plan(&project, &TreeState::default());
-  let report = first.apply(&|| "d".to_string()).expect("first run applies");
+  let report = first.run(Mode::Apply, &|| "d".to_string()).expect("first run applies");
   let written = report.hydrated.clone();
   let before = mtimes(&written);
 
@@ -197,7 +197,7 @@ fn the_measurement_can_see_an_mtime_move() {
   }
   let second = a_plan(&project, &tree_after(&written, &attachments));
   let report2 = second
-    .apply(&|| "d".to_string())
+    .run(Mode::Apply, &|| "d".to_string())
     .expect("second run applies");
   let after = mtimes(&views);
 

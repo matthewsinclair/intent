@@ -22,7 +22,7 @@ use std::path::PathBuf;
 use common::{Fixture, ctx, gate_open, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
-use intentsvcs::organize::{Action, OrganizeError, Plan, Step, TreeState, plan};
+use intentsvcs::organize::{Action, Mode, OrganizeError, Plan, Step, TreeState, plan};
 use intentsvcs::preconditions;
 
 const PLANNED: &str = "digest-as-planned";
@@ -74,7 +74,7 @@ fn a_matching_digest_lets_the_removal_proceed() {
   let fx = Fixture::new();
   let (path, p) = removal_plan(&fx, "doomed.md");
   let report = p
-    .apply(&|| PLANNED.to_string())
+    .run(Mode::Apply, &|| PLANNED.to_string())
     .expect("an unmoved tree applies");
   assert_eq!(report.dehydrated, vec![path.clone()]);
   assert!(!path.exists(), "the removal must actually happen");
@@ -87,7 +87,7 @@ fn a_moved_tree_refuses_and_the_file_survives() {
   // would fail -- the error would arrive exactly the same.
   let fx = Fixture::new();
   let (path, p) = removal_plan(&fx, "doomed.md");
-  let err = p.apply(&|| MOVED.to_string()).unwrap_err();
+  let err = p.run(Mode::Apply, &|| MOVED.to_string()).unwrap_err();
   assert!(
     matches!(err, OrganizeError::TreeMoved { .. }),
     "a moved tree must refuse, got {err:?}"
@@ -102,7 +102,7 @@ fn a_moved_tree_refuses_and_the_file_survives() {
 fn the_refusal_names_the_difference() {
   let fx = Fixture::new();
   let (_, p) = removal_plan(&fx, "doomed.md");
-  let text = p.apply(&|| MOVED.to_string()).unwrap_err().to_string();
+  let text = p.run(Mode::Apply, &|| MOVED.to_string()).unwrap_err().to_string();
   assert!(
     text.contains(PLANNED) && text.contains(MOVED),
     "AC-04.5 asks for the difference to be NAMED, not merely detected: {text}"
@@ -137,7 +137,7 @@ fn a_plan_with_nothing_to_remove_does_not_consult_the_digest() {
   // digest function that could disagree with itself between calls.
   let consulted = Cell::new(false);
   let report = p
-    .apply(&|| {
+    .run(Mode::Apply, &|| {
       consulted.set(true);
       MOVED.to_string()
     })

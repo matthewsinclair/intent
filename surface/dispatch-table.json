@@ -6846,15 +6846,26 @@
     },
     {
       "path": "organize",
-      "help": "Reconcile the tree with .intentfiles: realise what is declared, remove what is not",
+      "help": "Reconcile the tree with .intentfiles: realise what is declared, remove what is not (previews unless --apply)",
       "args": [],
-      "flags": [],
+      "flags": [
+        {
+          "spellings": [
+            "--apply"
+          ],
+          "type": "bool",
+          "help": "Perform the reconciliation. Without it, organize previews and touches nothing",
+          "disposition": "keep",
+          "disposition_basis": "RULED BY ic, 2026-08-19, on AC-05.1, on the open row below. **`intent organize` PREVIEWS BY DEFAULT AND `--apply` PERFORMS.** The ruling rests on precedent rather than taste: AC-03.9 already settled this shape for the estate's other destructive verb -- the destructive direction states what it will overwrite BEFORE it costs it, because a summary afterwards is a receipt for a loss the operator needed one moment earlier. A second destructive verb answering the same question differently is the Highlander problem arriving in the surface. **`--apply` rather than `--dry-run`, and not only because of the default: `--dry-run` makes safety opt-in, and the operator who most needs the preview is the one who does not know to ask for it.** It also matches `organize::Mode::Apply` in the model, so surface and model spell one concept one way.",
+          "measured_before_the_ruling": "ic measured v3 rather than relaying it: `intent organize --help` answered `Usage: intent organize` with `-h` alone. **It had inherited v2's ACTING polarity and dropped v2's preview** -- and its own one-line help advertises `remove what is not` in the same sentence, so the destructive half was advertised and unobservable at once, with no way to learn what it would delete except by letting it. Against a real estate that was 544 planned removals.",
+          "counter_argument_recorded_unsupported": "`organize` is meant to be routine and idempotent, so a required flag trains reflexive typing. The usual answer -- a settled estate plans EMPTY, so the flag is only typed when there is something to do -- **does not hold on this estate today**, where 544 removals sit planned behind the AC-00.1 ship gate. It will hold once the preconditions land. ic recorded it as UNSUPPORTED rather than dismissing it, and offered to re-open on argument; dc did not take that up, because the three grounds above are about the day the gate opens and the reflex argument is about every other day."
+        }
+      ],
       "v2": "new-surface",
       "basis": "D57-3 (hv, 2026-08-18): the reconciliation verb of the sparse-projection model -- hydrate, verify, dehydrate, and refuse. Implemented at `intentsvcs::organize`.",
       "owner_wp": "ST0057 WP-04",
       "acceptance": "ST0057 AC-04.1 through AC-04.6",
       "name_reclaimed": "**THE NAME IS RECLAIMED, THE v2 FACE STAYS RETIRED, AND THE TWO SHARE NOTHING BUT THE WORD** (hv, 2026-08-19). The `organize` FAMILY in this table is the v2 command -- `bin/intent_organize` plus `st organize` -- which moved ST directories into status folders, and whose ratified retire of 2026-08-14 is untouched: a strictly structured model cannot hold data in the wrong place, so the disorder it repaired cannot arise. This row is a different program that happens to take the same word: it hydrates and dehydrates artefacts against `.intentfiles`. **THREE ASSERTIONS FORBADE THE TOKEN, NOT THE FACE** -- `dispatch.rs`, `spine.rs` and `dispatch_ssot.rs` each hard-coded the string `organize`, so the ratification was expressed three times and in a form that could not tell a reclaimed name from a resurrected command. All three now key on the retired v2 ANTECEDENT, which is the thing hv actually retired.",
-      "flag_polarity_open_to_ic": "**OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling.",
       "target": {
         "state": "new-surface"
       },
@@ -6868,7 +6879,8 @@
         "why_uncertain": "**I LEANED WITHHOLD AND THE DECLARED RULE OVERRODE ME, WHICH IS THE RIGHT WAY ROUND.** My reason was blast radius: this is the only shipped verb that REMOVES committed files, and an agent's mistake here is an absent file rather than a bad edit. The rule this table actually encodes is narrower and is about UNDOABILITY -- MCP withholds a mutation the surface cannot undo -- and `organize` can be undone: every removal is gated on the store reproducing the bytes byte for byte, so re-declaring in `.intentfiles` and re-running restores exactly what was removed. **The same blast-radius argument would withhold `sync --to-store`, whose own row records that a wrong invocation can overwrite this machine's store from a stale extract, and that row ships EXPOSED.** Carving an exception for my own row on the first day it exists, against a rule that already decided a harder case the other way, is how a vocabulary stops meaning anything. Recorded rather than resolved silently, because the generator explicitly refuses a label adjusted to make the number come out and I want it visible that the label was NOT what moved.",
         "open_to_ic": "The surface is ic's (AC-05.1) and this is the second decision on this row I am declining to make alone -- the flag polarity is the other. If ic reads the blast-radius argument as beating the undoability rule, the row flips and the anomaly gets recorded then, with a reason that is about this verb rather than about my discomfort with it."
       },
-      "recoverability": "idempotent"
+      "recoverability": "idempotent",
+      "flag_polarity_ruled_by_ic": "**OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling. **RULED 2026-08-19 -- see the `--apply` flag's `disposition_basis` above.** The row is kept rather than deleted because it records WHY the polarity was left open by whoever wired the entry, and that reasoning is the reason the ruling was available to be made by the node that owns the surface instead of settled silently in a commit about something else."
     }
   ],
   "provenance": {
@@ -7061,7 +7073,7 @@
         "cross_ref",
         "d34_wording",
         "direction_selector",
-        "flag_polarity_open_to_ic",
+        "flag_polarity_ruled_by_ic",
         "input_selector_gap",
         "kind",
         "mcp_review",
@@ -7090,7 +7102,9 @@
         "accepts",
         "composition_with_face_arg",
         "count_corrected_twice",
+        "counter_argument_recorded_unsupported",
         "disposition_basis",
+        "measured_before_the_ruling",
         "note",
         "ordering_note",
         "spelling_note",
