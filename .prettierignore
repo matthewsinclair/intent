@@ -1,0 +1,50 @@
+# Generated views have ONE writer, and it is the renderer.
+#
+# ST0056 AC-03.17, ruled by hv 2026-08-19. D02 applied to WRITERS rather than
+# to content: `.git/hooks/pre-commit` runs `prettier --write` over every staged
+# markdown file and re-stages the result, so before this file existed the
+# formatter was a second writer of all 266 generated views -- and a silent one,
+# because the hook `git add`s its own rewrite back.
+#
+# WHAT THAT COST. The renderer emits canon's bytes verbatim; prettier rewrites
+# markup the author wrote (`*emphasis*` -> `_emphasis_`, an interior double
+# space collapsed); the skew check then compares canon to the committed view and
+# reports drift on files nobody edited; regenerating restores the renderer's
+# bytes and the next commit rewrites them again. Forever, with every pass
+# looking like a legitimate repair. Measured across the estate: 7 rows diverged,
+# and three commits in a row reported "1 file changed" because at stage time the
+# view matched HEAD again.
+#
+# WHY NOT FIX THE RENDERER, which is what this criterion first asked for. It was
+# tried. Authored prose passes through the renderer VERBATIM by rule --
+# migration.md forbids reflowing or improving it -- so normalising markup there
+# is the one thing the renderer is forbidden to do. And it does not work even
+# setting that aside: over 6,095 authored lines a conservative normaliser
+# produced EIGHT changes where the formatter makes SEVEN, the extra being
+# ST0056 AC-10.9, whose prose runs backticks straight into words so the real
+# parser's code-span boundaries fall where a hand-rolled segmenter cannot see
+# them. Rewriting a site the formatter leaves alone is the same loop with the
+# arrow reversed, and it is invisible without running the real formatter.
+#
+# WHY NOT FIX THE PROSE. Repairing the seven authored strings is the trap the
+# criterion names: it looks like a repair, and it leaves the loop running for
+# the next row anyone writes with emphasis in it.
+#
+# THE ROSTER IS NOT MAINTAINED HERE. `generated_views_are_not_formatted.rs`
+# asks `views::render_all` for its own output set and requires every path in it
+# to be ignored, using `prettier --file-info` so the test agrees with the
+# formatter by construction. Add a view and that test fails until this file
+# covers it. Its second arm requires `intent/st/ST0056/design.md` -- authored,
+# and sitting in the same directory as two of the patterns below -- to still be
+# formatted, because a `.prettierignore` of `*` would satisfy the first arm
+# completely.
+#
+# NOTHING ELSE IS EXCLUDED. Authored ST prose (design.md, impl.md, tasks.md),
+# the whiteboard, docs and the root canon are hand-written and keep their
+# formatting.
+
+intent/st/*/info.md
+intent/st/*/acceptance.md
+intent/st/*/WP/*/info.md
+intent/st/steel_threads.md
+intent/todo.md
