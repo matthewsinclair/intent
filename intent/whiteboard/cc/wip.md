@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 20:44Z
+heartbeat_at: 2026-08-19 21:00Z
 status: active
-focus: "**AC-00.4 IS LANDED AND ARMING IS 4, NOT 6.** The `ROOT_FILES` generator ships behind `intent agents generate` -- prose in a TEMPLATE not a heredoc, deliberately NOT a `views::View`, and **`[[DATE]]` REFUSES rather than passing through** because a generated file that stamps its own generation differs from itself on every run. 7 arms, 5 mutation-proven, whole intentsvcs suite green. hv withdrew AC-00.3. **Of the four unmet left, AC-03.6 is mine and is BUILT -- it waits on dc's gating decision, not on code.**"
+focus: "**AC-00.4 IS DONE, BOTH HALVES, AND THE ESTATE DEHYDRATED WHILE I BUILT THE SECOND ONE.** `intent agents generate` at `b277013a`; `rootfiles::sync` + a v3-generated `AGENTS.md` at `30ce8ba2`. **The `.bak` is gone and hv RATIFIED the deviation** -- gitignored, so it guarded a loss git already prevents. **423 files left disk and all three root files survived, which is exactly what the not-a-view design was for: the hazard was hypothetical this morning and the estate ran the experiment tonight.** `organize` now previews 0 refused. **HELD: my `render.rs` arm, because that file also carries dc's in-flight `claude rules` handler.** Three reds at HEAD, all attributed to dc, one of which aborts every test target in the crate."
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -23,15 +23,14 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **WP-03 IS CLOSED AS WORK. Five rows green and the sixth built:** AT-03.1 `46ab2220`, AT-03.2 `49aa64db`, AT-03.4 `3c6d20f6`, AT-03.5 `18a9ab6b`, AT-03.3 `61b93440`, and AT-03.6's `--staged` at `19268867`. Also `239238df` (export typed errors) and `fb333464` (the daemon that could not open the store).
 
-**1. ST0057 AC-00.4 -- LANDED 2026-08-19. `intent agents generate` is the generator, and AC-00.4 is satisfied.**
+**1. ST0057 AC-00.4 -- DONE, BOTH HALVES. `b277013a` (generate) and `30ce8ba2` (sync).**
 
-- **`native/rust/crates/intentsvcs/src/rootfiles.rs`** + **`lib/templates/llm/_AGENTS.md`** (new -- v2 ships `_CLAUDE.md` and `_usage-rules.md` and never had one) + **`root_files_generated.rs`**, 7 arms.
-- **`[[DATE]]` IS REFUSED, AND THAT WAS THE ONE REAL DESIGN CALL.** `RenderContext` is documented as carrying facts about the tool or the data and **never about the moment of rendering** -- so a date token would make the file differ from itself on every run, which is AC-03.17's churn loop wearing a timestamp. Both `[[DATE]]` sites came OUT of `_CLAUDE.md`; v2 substitutes with a plain `sed` chain (`bin/intent_init:134`), so **a token absent from a template is a no-op and v2 cannot break** -- checked, not assumed.
-- **`split_inclusive('\n')`, never `lines()`.** The first cut appended a newline to a template that lacked one. Every real template ends with one so it would never have shown -- **which is exactly why a generator that silently adds a byte is never caught.**
-- **FIVE MUTATIONS, EACH PROVEN RED**: blocks never resolved; an unknown token expanding to empty instead of refusing; `render_all` covering only the first file; nesting permitted; and a root file planted into `views::render_all`. That last one is the hazard guard, and it is behavioural rather than a comment.
-- **NOT byte-equality against disk**, deliberately: those three files are v2 v2.19.0 output and say so in their own footers.
-- **`agents sync` is NOT wired and the boundary is chosen.** The dispatch table records it writing `AGENTS.md.bak`, and v3 already has `backup.rs` with D35's rolling snapshots -- wiring the write half tonight picks between two backup mechanisms by accident, at the hour the owner is asleep. `generate` is the half the table itself calls "pure emit-path -- writes nothing", and it is the whole of what the criterion asks.
-- **Dropped from v2's output: the Installed Skills / Installed Subagents enumerations.** No v3 source, and a snapshot of what is installed goes stale the moment anything is installed with nothing regenerating the file to notice. The template names the two commands that answer live. **Stated, not silently omitted.**
+- `rootfiles.rs` + `lib/templates/llm/_AGENTS.md` + `root_files_generated.rs` at 10 arms, **7 mutations proven red**.
+- **`[[DATE]]` REFUSES.** `RenderContext` is documented as never carrying the moment of rendering; a file that stamps its own generation differs from itself every run. Both sites came OUT of `_CLAUDE.md`; v2 substitutes with a plain `sed` chain (`bin/intent_init:134`) so an absent token is a no-op -- **checked, not assumed.**
+- **NO `.bak`, AND hv RATIFIED IT** rather than my deciding it. The table marks the row `as-observed` and says a deviation wants ratifying. Grounds: `*.bak` is gitignored so it never reached git and guarded a loss git already prevents (hv's own AC-00.3 test), and `backup.rs` already carries D35. **Pinned by a test so it cannot come back quietly.**
+- **THROUGH `WriteSet`, NEVER `fs::write`.** `views::write_all` is the precedent in the negative -- a bare loop made it a divergent expression of db-to-disk, and its skip guard was correct while reaching nothing. Second `agents sync` on the live tree leaves mtime untouched, measured.
+- **THE MIGRATION GATE WAS THE ONE REAL DEFECT AND IT WAS MINE.** `agents generate` shipped calling `context()` not `open()`, so it emitted a v3 document over an unmigrated v2 estate at exit 0. `context` only DISCOVERS; `open` is the gate. **Only `doctor` is entitled to `context`, because it is the verb you reach for when the project will not open.** Found by dc's `unmigrated_surface` sweep -- the row that exists for exactly this.
+- **THE NOT-A-VIEW CALL WAS TESTED BY THE ESTATE, NOT BY ME.** 423 files dehydrated tonight and all three root files survived. A `GeneratedView` under a thread goes; root files escape only because `thread_relative` answers `None`. **The hazard was hypothetical this morning.**
 
 **2. AT-03.6's ROW MOVE, waiting on dc.** My half is landed and byte-proven; **admitting the tool to the gate is dc's decision and vc's condition 3 says it is not mine.** Roster disposition untouched at 10 gated / 7 manual.
 
