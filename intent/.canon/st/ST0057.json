@@ -570,7 +570,7 @@
       "covers": [
         "AC-02.4"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing. **`to-write` IS CORRECT HERE AND IS NOT A GAP IN WP-02 (ic 2026-08-19, who checked each of the other four rows against `organize` INDEPENDENTLY rather than assuming one cause for the directory's emptiness; recorded by vc so a reader does not count it as one).** This row observes the CHANGED-PATH SET after an `organize` that changes realisation, and `organize` is ST0057 WP-04, dc's. **It is a CROSS-WP DEPENDENCY, so WP-02 reads as COMPLETE-BUT-FOR-THIS rather than as four-of-five with an unexplained hole** -- and the distinction matters because an unexplained hole invites someone to go looking for a defect that is not there."
     },
     {

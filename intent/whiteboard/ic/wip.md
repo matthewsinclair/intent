@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 18:29Z
+heartbeat_at: 2026-08-19 18:39Z
 status: active
-focus: "**FOUR ROWS GREEN TODAY: AT-03.14, AT-03.16, AT-03.13, AT-08.1.** All mutation-proven -- 22 arms, 21 red, the one survivor named and predicted. **AC-05.1 polarity RULED and dc has built it** (`organize` previews, `--apply` performs). **OPEN AND MINE: `st edit` is declared, unimplemented, and hv's generated-view ruling makes its DEFAULT argument incoherent -- flagged to vc, not ruled while hv is out.** Next candidates: AT-05.1 (blocked on that fork), AT-07.5, AT-02.4."
+focus: "**FIVE ROWS GREEN TODAY: AT-03.14, AT-03.16, AT-03.13, AT-08.1, AT-02.4.** All proven against positive controls -- 22 mutation arms plus a shell selftest, one survivor named and predicted, one arm recorded UNPROVEN rather than passing by silence. **AC-05.1 polarity RULED and built by dc.** **OPEN AND MINE: the `st edit` fork -- declared, unimplemented, and hv's generated-view ruling makes its DEFAULT argument incoherent. Flagged to vc, deliberately not ruled while hv is out.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
