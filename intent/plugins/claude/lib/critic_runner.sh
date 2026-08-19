@@ -165,43 +165,161 @@ critic_load_rule_paths() {
 
 # THE ARMING CENSUS -- what the gate could not ask, reported rather than skipped.
 #
-# `:18` of this file says rules without a greppable proxy are "skipped
-# silently", and that sentence is a NO-SILENT violation (IN-AG-NO-SILENT-001)
+# `:18` of this file said rules without a greppable proxy are "skipped
+# silently", and that sentence was a NO-SILENT violation (IN-AG-NO-SILENT-001)
 # sitting in the rule library itself. Measured 2026-08-18: ALL 13 shell and rust
-# rules carry no proxy and no declaration, so `intent critic shell` returns rc=0
-# having asked nothing, and its output is INDISTINGUISHABLE from `intent critic
-# elixir` after asking nine real questions. Both print `ok: no <lang> findings`.
+# rules carried no proxy and no declaration, so `intent critic shell` returned
+# rc=0 having asked nothing, and its output was INDISTINGUISHABLE from `intent
+# critic elixir` after asking nine real questions. Both printed `ok: no <lang>
+# findings`.
 #
 # vc's ruling, 2026-08-18: REPORTING IS UNCONDITIONAL AND IS NOT PART OF ANY
 # TRADE-OFF. It costs zero fleet breakage -- reporting is not refusing -- and it
 # is owed whether or not any rule is ever armed with a real tool. Refusal is a
 # separate axis, scoped to rules a project has armed via `.intent_critic.yml`.
 #
-# FOUR STATES, because three of them were previously one:
-#   armed       a greppable block with at least one headless-runnable line
-#   declared    an explicit "No greppable proxy is authoritative for this rule"
-#   unrunnable  a block whose every line the runner must refuse (ST0039)
-#   undeclared  neither a block nor a declaration -- nobody has decided
+# TWO AXES, NOT ONE, AND THE SECOND ONE IS WHY THIS WAS REWRITTEN (vc, ruling
+# dc 2026-08-19). Every row is `<rule_id> <arming> <disposition> <by>`.
 #
-# `unrunnable` and `undeclared` were both invisible: the first emitted one
-# deduped stderr note nobody reads, the second emitted nothing at all.
+#   ARMING -- a property of the RULE and the project's config. Whether anything
+#   COULD answer this rule.
+#     armed       a greppable block with a runnable line, or a named tool
+#     declared    an explicit "No greppable proxy is authoritative for this rule"
+#     unrunnable  a block whose every line the runner must refuse (ST0039)
+#     undeclared  none of the above -- nobody has decided
+#
+#   DISPOSITION -- a property of THIS INVOCATION. Whether it actually asked.
+#     ran                     the question was put to this file
+#     not-run:tool-absent     armed on a tool this machine does not have
+#     not-run:out-of-context  armed on a tool that does not belong in this run
+#     n-a                     nothing to run; the arming axis already said why
+#
+# THE SECOND AXIS EXISTS BECAUSE THREE OF THE FIVE TOOL-ARMED RULES ARE CLIPPY
+# RULES, AND `cargo clippy` IS A WHOLE-WORKSPACE COMPILE THAT DOES NOT BELONG IN
+# A PER-COMMIT HOOK AT ANY ARMING MODE. Collapsing that into `declared` hides a
+# real capability behind a word meaning nothing can ever answer this; collapsing
+# it into a bare `armed` reports a question this run did not ask -- which is this
+# census's founding defect with a friendlier name and a better reason. `armed` +
+# `not-run:out-of-context` says both true things at once.
+#
+# A FIFTH ARMING VALUE WAS THE FIRST DESIGN AND IT WAS WRONG: it would put a
+# property of the INVOCATION into a key whose other members are properties of the
+# rule, and then `armed` would mean two things depending on which member you read.
 critic_arming_census() {
-  local lang="$1" path rule_id block pats
+  local lang="$1" path rule_id block pats tool ctx
   while IFS= read -r path; do
     [ -z "$path" ] && continue
     rule_id="$(rule_fm_scalar "$path" id)"
     [ -n "$rule_id" ] || rule_id="$path"
+    tool="$(rule_fm_scalar "$path" critic_tool)"
+    if [ -n "$tool" ]; then
+      ctx="$(rule_fm_scalar "$path" critic_tool_context)"
+      ctx="${ctx:-per-file}"
+      # CONTEXT IS TESTED BEFORE AVAILABILITY, AND THE ORDER IS THE RULING.
+      # A tool this run was never going to invoke cannot be blamed on the
+      # machine: reporting `tool-absent` for a workspace analyser during a
+      # per-file run states a fact about the host in answer to a question about
+      # the invocation, and the reader would go install something that would
+      # still not run. Absence matters in the run that WOULD have used it.
+      if [ "$ctx" != "per-file" ]; then
+        printf '%s armed not-run:out-of-context %s\n' "$rule_id" "$tool"
+      elif ! critic_tool_available "$tool"; then
+        printf '%s armed not-run:tool-absent %s\n' "$rule_id" "$tool"
+      else
+        printf '%s armed ran %s\n' "$rule_id" "$tool"
+      fi
+      continue
+    fi
     block="$(critic_extract_greppable_block "$path")"
     if [ -n "$block" ]; then
       pats="$(critic_patterns_from_grep_block "$path" "$rule_id" 2>/dev/null)"
-      if [ -n "$pats" ]; then printf '%s armed\n' "$rule_id"
-      else printf '%s unrunnable\n' "$rule_id"; fi
+      if [ -n "$pats" ]; then printf '%s armed ran grep\n' "$rule_id"
+      else printf '%s unrunnable n-a -\n' "$rule_id"; fi
     elif grep -qi 'No greppable proxy is authoritative' "$path"; then
-      printf '%s declared\n' "$rule_id"
+      printf '%s declared n-a -\n' "$rule_id"
     else
-      printf '%s undeclared\n' "$rule_id"
+      printf '%s undeclared n-a -\n' "$rule_id"
     fi
   done < <(critic_load_rule_paths "$lang")
+}
+
+# ---------------------------------------------------------------------------
+# NAMED-TOOL ARMING -- the rule says WHICH tool; the runner owns HOW.
+#
+# hv authorised the runner to use shellcheck and clippy; vc ruled the shape, and
+# the shape is an OBLIGATION rather than a widening. A rule file names a tool and
+# the diagnostics of that tool which ANSWER it. **RULE FILES NEVER CONTRIBUTE
+# SHELL, EVER.** The invocation lives here, once per tool, auditable, Highlander
+# -- and `critic_proxy_is_simple` is NOT relaxed, because it is an injection
+# boundary ("preventing pipelines disguised as args") and relaxing it is the
+# correct-seeming, tidy-looking edit that opens exactly the hole it exists to
+# close.
+#
+# NAMING A PARSER IS THE START OF THE QUESTION, NOT THE END OF IT. 7 of the 13
+# shell and rust rules name a real parser in their own Detection text and only 5
+# have a tool whose output actually ANSWERS them; the other two name tools that
+# answer ADJACENT propositions. A proxy is not the parser, and a NAMED parser is
+# not necessarily an answer either.
+# ---------------------------------------------------------------------------
+
+# IS THE NAMED TOOL DRIVEABLE ON THIS MACHINE? Per-tool, because the probe is
+# not uniform and a uniform one is WRONG: `clippy` is not a command. It ships as
+# the cargo subcommand `cargo-clippy`, so `command -v clippy` returns false on a
+# machine with a perfectly good clippy -- which is what the first version of this
+# function did, and it reported all three clippy rules as `not-run:tool-absent`
+# on a machine where `cargo clippy --version` prints 0.1.97. **A probe that
+# measures the wrong name reports a real capability as missing, and the output
+# reads exactly like a true absence.**
+critic_tool_available() {
+  case "$1" in
+    clippy) command -v cargo-clippy >/dev/null 2>&1 ;;
+    *)      command -v "$1" >/dev/null 2>&1 ;;
+  esac
+}
+
+# shellcheck: ONE invocation site. `--format=gcc` gives `path:line:col: sev:
+# message [SCxxxx]`, and the rule's declared codes select which of them are
+# this rule's business -- without that, IN-SH-CODE-001 and IN-SH-CODE-002 would
+# each claim every shellcheck finding.
+#
+# NO `--enable`, NO `--severity`, NO `--shell`: a flag that changes what the
+# tool SEES belongs to the runner's judgement, and IN-RS-CODE-001's case (where
+# the remedy is the ABSENCE of `--all-targets`) is why a rule file must never
+# supply one.
+critic_shellcheck_findings() {
+  local file="$1" rule_id="$2" severity="$3" codes="$4"
+  local out code_re line_no content
+  code_re="$(printf '%s' "$codes" | tr ' ' '|')"
+  [ -n "$code_re" ] || return 0
+  out="$(shellcheck --format=gcc "$file" 2>/dev/null || true)"
+  [ -n "$out" ] || return 0
+  # DEDUPED ON THE LINE, matching the grep path's dedup on (line, content).
+  # shellcheck reports per COLUMN, so one line carrying two defects this rule
+  # owns -- `for f in ${arr[@]}; do echo $f; done` is SC2068 at col 10 and
+  # SC2086 at col 29 -- arrives as two findings whose rendered output is the
+  # same line printed twice. Two identical lines read as two defects, and a
+  # count taken off them overstates.
+  printf '%s\n' "$out" | grep -E "\[($code_re)\]" | awk -F: 'NF > 1 && !seen[$2]++ { print $2 }' | while IFS= read -r line_no; do
+    [ -n "$line_no" ] || continue
+    content="$(sed -n "${line_no}p" "$file" 2>/dev/null | sed 's/\t/    /g' | cut -c1-200)"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$severity" "$rule_id" "$file" "$line_no" "$content"
+  done
+}
+
+# Dispatch. An unknown tool name is a REFUSAL and never a silent skip: a rule
+# naming a tool the runner cannot drive is exactly the state this whole census
+# exists to make visible.
+critic_tool_findings() {
+  local tool="$1" file="$2" rule_id="$3" severity="$4" codes="$5"
+  case "$tool" in
+    shellcheck) critic_shellcheck_findings "$file" "$rule_id" "$severity" "$codes" ;;
+    clippy)     return 0 ;;
+    *)
+      printf 'critic: %s names tool `%s`, which this runner cannot drive -- the rule is UNENFORCED\n' \
+        "$rule_id" "$tool" >&2
+      return 0
+      ;;
+  esac
 }
 
 # Check whether a rule is disabled in the given .intent_critic.yml file.
@@ -317,6 +435,23 @@ critic_apply_rule() {
   # so umbrella layouts (apps/<app>/lib/..., apps/<app>/test/...) match
   # rules declared as `lib/**/*.ex` / `test/**/*_test.exs` (ST0038).
   if ! critic_rule_applies_to_file "$rule_path" "$file"; then
+    return 0
+  fi
+
+  # NAMED-TOOL ARM -- takes precedence over a greppable block, and a rule
+  # carrying both is a rule that has not decided. The tool is driven only when
+  # it is present AND this run is its context; both other cases are reported by
+  # the census, never silently skipped here.
+  local tool tool_ctx tool_codes
+  tool="$(rule_fm_scalar "$rule_path" critic_tool)"
+  if [ -n "$tool" ]; then
+    tool_ctx="$(rule_fm_scalar "$rule_path" critic_tool_context)"
+    tool_ctx="${tool_ctx:-per-file}"
+    [ "$tool_ctx" = "per-file" ] || return 0
+    critic_tool_available "$tool" || return 0
+    tool_codes="$(rule_fm_list "$rule_path" critic_tool_codes | tr '\n' ' ')"
+    tool_codes="${tool_codes% }"
+    critic_tool_findings "$tool" "$file" "$rule_id" "$severity" "$tool_codes"
     return 0
   fi
 

@@ -33,6 +33,9 @@ references:
 related_rules:
   - IN-SH-CODE-001
 aliases: []
+critic_tool: shellcheck
+critic_tool_context: per-file
+critic_tool_codes: [SC2012]
 status: active
 version: 1
 ---
@@ -62,6 +65,12 @@ Static signals:
 - Counting with `$(ls | wc -l)` — use `find . -maxdepth 1 -type f | wc -l` instead, or a glob loop.
 
 ShellCheck: SC2012.
+
+**TOOL-ARMED: shellcheck, SC2012 -- _"Use find instead of ls to better handle non-alphanumeric filenames"_, which is this rule stated by the tool.**
+
+**IT WAS THE ONE CLEAN GREP ARM IN THIS PACK AND THE NAMED-TOOL RULING UPGRADES IT, WHICH IS THE PART WORTH RECORDING.** A `grep` for `ls` is a token match: it fires on `ls` inside a comment, inside a string, and on any word ending in those two letters, and no amount of regex care removes that because a regex has no grammar. **shellcheck parses, so it fires on the COMMAND and not on the letters.** The prediction made before this partition was re-derived did not consider that a named tool improves an ALREADY-ARMED rule; it does, and this is the row that proved it.
+
+**The rule names WHICH tool and WHICH diagnostic. The runner owns HOW.** No flags here.
 
 ## Bad
 

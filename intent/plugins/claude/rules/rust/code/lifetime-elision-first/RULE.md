@@ -29,6 +29,9 @@ tags:
   - rust
   - lifetimes
   - style
+critic_tool: clippy
+critic_tool_context: workspace
+critic_tool_codes: [clippy::needless_lifetimes, clippy::extra_unused_lifetimes]
 status: active
 version: 1
 ---
@@ -52,6 +55,12 @@ Static signals:
 - Impl blocks where every method in the block uses the same unused lifetime.
 
 Clippy lints: `clippy::needless_lifetimes`, `clippy::extra_unused_lifetimes`.
+
+**TOOL-ARMED: clippy -- `needless_lifetimes` and `extra_unused_lifetimes`, BOTH in `clippy::all`.** On by default; nothing to enable, no group to opt into, no flag to pass. The cheapest arm in either pack.
+
+**THE PROBE THAT FOUND THESE WAS WRONG FIRST, AND THE WAY IT WAS WRONG IS WORTH MORE THAN THE RESULT.** `clippy --help`'s lint listing spells its lints HYPHENATED (`clippy::needless-lifetimes`); the probe used underscores and reported **seven of eight lints ABSENT from a list of 825 entries**. A near-total miss, produced by an instrument measuring its own vocabulary rather than the tool's. It was caught only because `clippy::panic` DID match, and one hit among eight is not a pattern anybody should believe. **The declarations above use the UNDERSCORED form, which is what the attribute and `-W` flag take; the hyphenated form is what the listing prints. Both name the same lint, and a grep that does not know this returns a confident zero.**
+
+**Context is `workspace`: `cargo clippy` is a whole-workspace compile and does not belong in a per-file gate.** Reported as ARMED but NOT RUN HERE, never as clean.
 
 ## Bad
 

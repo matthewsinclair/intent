@@ -256,19 +256,31 @@ if [ -z "$census" ]; then
   # in the code written that same day about suppressed channels.
   printf 'critic: %s -- ARMING CENSUS UNAVAILABLE. This run cannot say which rules it was able to ask, so a clean result below is not evidence that anything was checked.\n' "$LANG" >&2
 else
-  c_total="$(printf '%s\n' "$census" | grep -c . || true)"
-  c_armed="$(printf '%s\n' "$census" | grep -c ' armed$' || true)"
-  c_decl="$(printf '%s\n' "$census" | grep -c ' declared$' || true)"
-  c_undecl="$(printf '%s\n' "$census" | grep -c ' undeclared$' || true)"
-  c_unrun="$(printf '%s\n' "$census" | grep -c ' unrunnable$' || true)"
+  # TWO AXES, so each count is read off the field that owns it. `grep -c
+  # ' armed$'` was correct while a row was `<id> <state>` and became wrong the
+  # moment a row grew a disposition -- an anchored pattern that silently returns
+  # zero when the shape changes under it, which is the class this whole census
+  # is about. Field tests cannot rot that way.
+  c_total="$(printf '%s\n' "$census" | awk 'NF { n++ } END { print n + 0 }')"
+  c_armed="$(printf '%s\n' "$census" | awk '$2 == "armed" { n++ } END { print n + 0 }')"
+  c_decl="$(printf '%s\n' "$census" | awk '$2 == "declared" { n++ } END { print n + 0 }')"
+  c_undecl="$(printf '%s\n' "$census" | awk '$2 == "undeclared" { n++ } END { print n + 0 }')"
+  c_unrun="$(printf '%s\n' "$census" | awk '$2 == "unrunnable" { n++ } END { print n + 0 }')"
+  c_ran="$(printf '%s\n' "$census" | awk '$3 == "ran" { n++ } END { print n + 0 }')"
+  c_absent="$(printf '%s\n' "$census" | awk '$3 == "not-run:tool-absent" { n++ } END { print n + 0 }')"
+  c_ooc="$(printf '%s\n' "$census" | awk '$3 == "not-run:out-of-context" { n++ } END { print n + 0 }')"
   c_quiet=$((c_decl + c_undecl + c_unrun))
   # json keeps stdout a parseable document; the census goes to stderr there.
   if [ "$FORMAT" = json ]; then c_fd=2; else c_fd=1; fi
   {
-    printf 'critic: %s -- %d of %d rule(s) armed; a clean result covers those and says nothing about the rest.\n' \
-      "$LANG" "$c_armed" "$c_total"
+    # THE HEADLINE IS THE DISPOSITION, NOT THE ARMING. `armed` says something
+    # COULD answer the rule; only `ran` says this invocation ASKED. Leading with
+    # the arming count would report questions that were never put -- which is
+    # this census's founding defect, one level up.
+    printf 'critic: %s -- %d of %d rule(s) ASKED of this run; %d armed in total. A clean result covers what was ASKED and says nothing about the rest.\n' \
+      "$LANG" "$c_ran" "$c_total" "$c_armed"
     if [ "$c_quiet" -gt 0 ]; then
-      printf 'critic: %s -- %d rule(s) asked nothing: %d declared unanswerable, %d undeclared, %d with a proxy this runner must refuse.\n' \
+      printf 'critic: %s -- %d rule(s) could not be armed at all: %d declared unanswerable, %d undeclared, %d with a proxy this runner must refuse.\n' \
         "$LANG" "$c_quiet" "$c_decl" "$c_undecl" "$c_unrun"
     fi
     if [ "$c_undecl" -gt 0 ]; then
@@ -278,6 +290,28 @@ else
     if [ "$c_unrun" -gt 0 ]; then
       printf 'critic: %s -- UNRUNNABLE proxy, present but outside the runner contract: %s\n' \
         "$LANG" "$(printf '%s\n' "$census" | awk '$2 == "unrunnable" { printf "%s ", $1 }')"
+    fi
+    # ARMED AND NOT ASKED -- the second axis, and the reason it exists. These
+    # rules are enforceable; this run did not enforce them, and saying which is
+    # the difference between an honest gate and a quiet one.
+    if [ "$c_ooc" -gt 0 ]; then
+      printf 'critic: %s -- ARMED but NOT RUN HERE, the tool does not belong in this context (a whole-workspace analyser is not a per-file gate): %s\n' \
+        "$LANG" "$(printf '%s\n' "$census" | awk '$3 == "not-run:out-of-context" { printf "%s(%s) ", $1, $4 }')"
+    fi
+    if [ "$c_absent" -gt 0 ]; then
+      printf 'critic: %s -- ARMED but NOT RUN HERE, THE TOOL IS ABSENT ON THIS MACHINE. These rules are UNENFORCED and a clean result below does not cover them: %s\n' \
+        "$LANG" "$(printf '%s\n' "$census" | awk '$3 == "not-run:tool-absent" { printf "%s(%s) ", $1, $4 }')"
+      # NOT A REFUSAL, DELIBERATELY, AND NOT AN OVERSIGHT. AC-07.4 rules that a
+      # tool-armed rule REFUSES when its tool is absent on a project that armed
+      # it. Refusing needs an exit code the pre-commit hook can TELL APART from
+      # an invocation error -- and today it cannot: the hook's `*)` branch
+      # fail-opens on every rc that is not 0 or 1, which is Half A's entire
+      # defect. Emitting a new code before the hook can read it would put a
+      # third condition in the bucket that already conflates two, on purpose
+      # this time, which is strictly worse than the accident. The refusal lands
+      # WITH the hook's distinct-exit-code change, in one commit, both ends
+      # together.
+      :
     fi
   } >&$c_fd
 fi

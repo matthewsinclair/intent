@@ -67,17 +67,25 @@ Static signals:
 
 ShellCheck: SC2015 (`&&` and `||` mixing pitfall), SC2164 (`cd` without error handling).
 
-**GREPPABLE PROXY, ARMED AT A STATED COST -- and the cost is that it fires on correct code.** The named tools answer ADJACENT propositions and were checked before this was written: SC2015 is `&&`/`||` mixing and SC2164 is `cd` without a check, and shellcheck 0.11.0 lints neither `|| true` nor `2>/dev/null` nor `set +e` at all. **So no tool answers this rule and the proxy is what there is.** The three patterns below are POSITIVE matches on the constructs; **NONE of them can evaluate this rule's own qualifier -- _without an adjacent comment explaining why_ -- because that is a property of the neighbouring line, and one grep cannot read a neighbour.** A documented, deliberate, correct `|| true` matches exactly as loudly as a silent one. **That is a KNOWN false-positive rate on a CRITICAL rule, stated here rather than discovered by whoever the gate stops first**, and it is the reason this rule is armed rather than declared: a critical rule that is silent today is worse than one that is noisy and says why.
+**DECLARED: NO GREPPABLE PROXY IS AUTHORITATIVE FOR THIS RULE, AND NO TOOL EXISTS EITHER. THIS ROW WAS ARMED FOR ONE HOUR ON 2026-08-19 AND THE MEASUREMENT RETIRED IT.** Both halves are recorded because the reversal is the useful part.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+**NO TOOL, DRIVEN**: shellcheck 0.11.0 lints none of this rule's three constructs. SC2015 is `&&`/`||` mixing and SC2164 is `cd` without a check -- **adjacent propositions, not this one** -- and a rule naming a tool that answers a neighbouring question is the standing trap pointed at itself.
 
-```bash
-grep -rnE '\|\| *(true|:)([[:space:]]|$)' bin/
-grep -rnE '2>/dev/null' bin/
-grep -rnE 'set \+e([[:space:]]|$)' bin/
-```
+**SO A PROXY WAS THE ONLY CANDIDATE, AND IT WAS ARMED ON THREE POSITIVE PATTERNS. THEN IT WAS MEASURED ACROSS THE ESTATE, AND THE MEASUREMENT IS THE WHOLE ARGUMENT:**
 
-The reliable structural signal is "if this command fails, does anything downstream know?" -- which needs the adjacent comment and the surrounding block, so the `critic-shell` subagent is the one that can actually answer it.
+| construct              | hits | files (of 128 shell files)  |
+| ---------------------- | ---- | --------------------------- |
+| `2>/dev/null`          | 395  | **87 -- 68% of the estate** |
+| `\|\| true` / `\|\| :` | 48   | 22                          |
+| `set +e`               | 3    | 2                           |
+
+**ARMING ON THESE MAKES THE GATE REFUSE TWO THIRDS OF EVERY SHELL FILE IN THE PROJECT, ON A CRITICAL RULE, OVER CODE THAT IS CORRECT.** It was not a prediction: the armed version blocked a real commit within the hour and produced **13 findings on one file, all 13 of them deliberate `2>/dev/null` on `git` and `jq` probes where absence is the expected outcome.**
+
+**THE REASON NO PROXY CAN WORK IS STRUCTURAL AND IS NOT ABOUT REGEX CARE.** This rule's content IS its qualifier -- _`|| true` **without an adjacent comment explaining why**_, _`2>/dev/null` **without `|| handle_error` or a comment**_. The violation is the ABSENCE of a neighbouring justification. A `Greppable proxy` is one `grep` with flag clusters drawn from `{r,n,E}`; **`-A` and `-B` are refused, so the neighbouring line is unreachable by construction.** Every pattern can therefore match the construct and none can evaluate the condition that makes it a defect.
+
+**AND A GATE THAT MUST BE BYPASSED TO WORK IS ONE NOBODY KEEPS** -- this estate's own words, learned from a guard that fired four times in one day on peers' in-flight code and whose author hand-built workarounds four times in one session. Arming here buys one honest-looking green and spends the gate's credibility on 87 files.
+
+**THIS IS NOT A RETREAT TO SILENCE, WHICH IS THE DISTINCTION THAT MATTERS AND THE REASON THIS IS NOT A REGRESSION.** Before 2026-08-19 this rule was UNDECLARED: the runner skipped it without asking and without saying so, and `critic shell` returned rc=0 as though the question had been put. A DECLARE-NONE is REPORTED IN NORMAL OUTPUT ON EVERY RUN -- named, counted, and attributed to the `critic-shell` subagent. **Unenforced-and-stated is not invisible; unenforced-and-silent was the founding defect.** Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, which can read the adjacent line.
 
 ## Bad
 

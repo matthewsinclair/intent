@@ -34,6 +34,9 @@ references:
 related_rules:
   - IN-SH-CODE-005
 aliases: []
+critic_tool: shellcheck
+critic_tool_context: per-file
+critic_tool_codes: [SC2086, SC2046, SC2206, SC2068]
 status: active
 version: 1
 ---
@@ -60,6 +63,12 @@ Static signals:
 - Test expressions: `[ -f $file ]` fails on filenames with spaces; use `[ -f "$file" ]` or `[[ -f $file ]]`.
 
 Linters: `shellcheck` flags these with SC2086, SC2046, SC2206, SC2068.
+
+**TOOL-ARMED: shellcheck. This rule's four static signals ARE four shellcheck codes -- not neighbours of them, which is the test that matters and the one two other rules in this pack fail.** SC2086 (unquoted expansion), SC2046 (unquoted command substitution), SC2206 (unquoted array assignment) and SC2068 (unquoted array expansion) each answer one of the signals above, in the tool's own words. **Driven against shellcheck 0.11.0 on a fixture: SC2086 x2, SC2206, SC2068.** A parser reads the shell grammar, so it does not fire inside a comment, a single-quoted string, or a heredoc -- which a regex cannot avoid, and which is why this rule is armed on a tool rather than on a proxy.
+
+**THE RULE NAMES WHICH TOOL AND WHICH DIAGNOSTICS. THE RUNNER OWNS HOW IT IS INVOKED, IN THE RUNNER'S OWN CODE.** No flag appears here. A rule file that supplied one would be a rule file contributing shell to the pre-commit gate of every fleet project, and `critic_proxy_is_simple` exists to prevent exactly that -- it is an injection boundary, not a capability ceiling, and it is not relaxed to make room for this.
+
+**THIS RULE WAS SILENT UNTIL 2026-08-19.** It is CRITICAL, it had no proxy and no declaration, and the runner skipped it without asking anything and without saying so -- so `critic shell` returned rc=0 on a file this rule would have failed. It is the highest-value row in the pack.
 
 ## Bad
 

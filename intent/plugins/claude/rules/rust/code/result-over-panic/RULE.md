@@ -30,6 +30,9 @@ tags:
   - rust
   - error-handling
   - no-silent-errors
+critic_tool: clippy
+critic_tool_context: workspace
+critic_tool_codes: [clippy::unwrap_used, clippy::expect_used, clippy::panic]
 status: active
 version: 1
 ---
@@ -54,6 +57,12 @@ Static signals (Clippy lints `unwrap_used`, `expect_used`, `panic` are the canon
 - `assert!`, `assert_eq!`, `debug_assert!` used for input validation in a library API rather than invariant checks.
 
 A rough grep — `rg -n '\.unwrap\(\)|\.expect\(' src/ --type rust | rg -v '#\[cfg\(test\)\]|// SAFETY:'` — flags candidates. The Critic inspects each to confirm the call is on a fallible value and not inside a `#[cfg(test)]` block.
+
+**TOOL-ARMED: clippy -- `unwrap_used`, `expect_used`, `panic`, all in the `restriction` group and therefore opt-in.**
+
+**THE COST THIS ROW USED TO CARRY IS GONE, AND IT WENT BY MEASUREMENT RATHER THAN BY ARGUMENT.** The concern was that arming here would flood test code, where `.unwrap()` is normal and correct. **Driven against clippy 0.1.97: default `cargo clippy` flags the production `.unwrap()` and does NOT flag a colocated `#[cfg(test)]` one; `--all-targets` flags both.** **So the remedy is the ABSENCE of a flag** -- and that is precisely why a rule file must never supply flags. A rule naming `--all-targets` would be a rule file contributing shell in order to make a lint see LESS, and the next reader would have no way to tell the flag was load-bearing. **The rule names the tool and the lints; the runner owns the invocation, and its job here is to not pass one specific flag.**
+
+**RUN CONTEXT IS A SEPARATE AXIS FROM ARMING, AND THIS ROW IS WHY THE SECOND AXIS EXISTS.** `cargo clippy` is a whole-workspace compile. It does not belong in a per-commit hook at any arming mode -- it belongs where the compile already happens. So this rule is `critic_tool_context: workspace`, and a per-file run reports it as **ARMED but NOT RUN HERE** rather than as armed-and-clean. **Reporting a question that was never asked is the defect this pack exists to end; a real capability hidden behind a word meaning "nothing can answer this" is the same defect facing the other way.**
 
 ## Bad
 
