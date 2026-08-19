@@ -20,8 +20,8 @@ use intentsvcs::views;
 /// Everything a rendered failure says. The facade's own rendering already
 /// carries the message, the full cause chain and the remedy (AC-04.4), so this
 /// adds nothing and hides nothing.
-fn fail(e: FacadeError) -> String {
-  e.render()
+fn fail(e: FacadeError) -> Failure {
+  Failure::Error(e.render())
 }
 
 /// Dispatch one parsed invocation.
@@ -60,7 +60,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
 /// INV-03, the project-context gate: a command that needs a project says so
 /// when there is not one, rather than half-working. The marker is the config
 /// file's presence, never an environment variable (issue 0025).
-fn open() -> Result<Facade, String> {
+fn open() -> Result<Facade, Failure> {
   let (project, ctx) = context()?;
   Facade::open(project, ctx).map_err(fail)
 }
@@ -71,7 +71,7 @@ fn open() -> Result<Facade, String> {
 /// Split out from [`open`] because `doctor` needs exactly this much and no
 /// more: it has to run on a project that cannot be opened, since that is when
 /// someone reaches for it. Every other verb goes on to [`Facade::open`].
-fn context() -> Result<(Project, FacadeContext), String> {
+fn context() -> Result<(Project, FacadeContext), Failure> {
   let cwd = std::env::current_dir()
     .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
   let project = Project::discover(&cwd).map_err(|e| {
@@ -194,7 +194,7 @@ fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
 /// shows WIP only, while the index covers everything -- issue 0019, because
 /// `steel_threads.md` says it indexes ALL threads and was being built from the
 /// WIP-only view, so it decayed to empty at every release close.
-fn st_table(f: &Facade, a: &ArgMatches) -> Result<String, String> {
+fn st_table(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
   let wanted = match opt(a, "status") {
     Some(spec) => status_filter(&spec)?,
     // v2's default: WIP only. NOT the same as `--status all`.
@@ -205,7 +205,7 @@ fn st_table(f: &Facade, a: &ArgMatches) -> Result<String, String> {
 
 /// The index scope: every thread, whatever `--status` would have said.
 /// `st sync` has no status filter in v2 -- the index is the whole estate.
-fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, String> {
+fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
   st_rows(f, a, None)
 }
 
@@ -213,11 +213,15 @@ fn st_rows(
   f: &Facade,
   a: &ArgMatches,
   wanted: Option<Vec<ThreadStatus>>,
-) -> Result<String, String> {
+) -> Result<String, Failure> {
   let markdown = flag(a, "markdown");
   let width = match opt(a, "width").map(|w| w.parse::<usize>()) {
     Some(Ok(n)) if n > 0 => n,
-    Some(Err(_)) => return Err("error: --width takes a number of columns".to_string()),
+    Some(Err(_)) => {
+      return Err(Failure::Error(
+        "error: --width takes a number of columns".to_string(),
+      ));
+    }
     _ => terminal_width(),
   };
 
@@ -297,7 +301,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
     ),
     (true, false) => {
       let mut f = open()?;
-      let count = f.sync_to_disk().map_err(fail)?;
+      let count = f.sync_to_disk(&intentsvcs::sync::Scope::All).map_err(fail)?;
       println!("ok: extract written for {count} thread(s)");
       Ok(())
     }
@@ -314,7 +318,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // and is vc's to price -- in a non-interactive invocation "one moment
       // earlier" is one line earlier -- so it is recorded here rather than
       // quietly resolved by inventing surface.
-      let overwrite = f.sync_overwrite().map_err(fail)?;
+      let overwrite = f.sync_overwrite(&intentsvcs::sync::Scope::All).map_err(fail)?;
       if overwrite.is_empty() {
         eprintln!("note: the store and the extract agree; this restore overwrites nothing");
       } else {
@@ -323,13 +327,13 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
           eprintln!("  {line}");
         }
       }
-      let count = f.sync_from_disk().map_err(fail)?;
+      let count = f.sync_from_disk(&intentsvcs::sync::Scope::All).map_err(fail)?;
       println!("ok: store replaced from the extract, {count} thread(s)");
       Ok(())
     }
     (false, false) => {
       let f = open()?;
-      let overwrite = f.sync_overwrite().map_err(fail)?;
+      let overwrite = f.sync_overwrite(&intentsvcs::sync::Scope::All).map_err(fail)?;
       eprintln!("error: `sync` has two directions and will not guess which one you mean");
       eprintln!(
         "  --to-disk   rewrites the files from the store. Safe: the files are re-creatable"
@@ -592,7 +596,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
         // v2's `st sync` regenerates `steel_threads.md` from the threads --
         // a projection, which under the reversed D01 is the db -> disk
         // direction. It maps onto the SAFE half, never the restore.
-        let count = f.sync_to_disk().map_err(fail)?;
+        let count = f.sync_to_disk(&intentsvcs::sync::Scope::All).map_err(fail)?;
         // v2 prints the index path, and that is kept because it is the file
         // this verb is named for and what a script greps. The COUNT is added
         // because it would otherwise be the narrower-than-the-act message
@@ -1698,16 +1702,16 @@ fn scope_of(target: &str) -> (String, Scope) {
   }
 }
 
-fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
+fn wp_target(a: &ArgMatches) -> Result<(String, u32), Failure> {
   let target = arg(a, "specifier")?;
   match scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
-    _ => Err(format!(
+    _ => Err(Failure::Error(format!(
       // The worked example is `ST0000` deliberately (D37): it is the STZero
       // retrofit id, so it names something in the READER's own project rather
       // than a thread in ours.
       "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0000/03"
-    )),
+    ))),
   }
 }
 
@@ -1915,7 +1919,10 @@ fn info_project(cwd: Option<&std::path::Path>) {
           println!("  Cancelled:       {}", count(ThreadStatus::Cancelled));
         }
         Err(e) => {
-          println!("  unavailable: {}", fail(e));
+          // `fail` yields a `Failure` now, and this site wants the TEXT --
+          // taken from the same renderer `fail` uses rather than from a second
+          // formatting of the error.
+          println!("  unavailable: {}", e.render());
         }
       }
     }
@@ -2182,7 +2189,7 @@ fn llm(m: &ArgMatches) -> Result<(), Failure> {
     Some(("guide", _)) => {
       print!(
         "{}",
-        crate::guide::render(&dispatch::table()).map_err(Failure::Error)?
+        crate::guide::render(&dispatch::table())?
       );
       Ok(())
     }
@@ -2252,13 +2259,13 @@ fn hook(a: &ArgMatches) -> Result<(), Failure> {
 /// message and exit 101 -- neither a v2 exit code nor an Intent error. This
 /// turns a table/renderer mismatch into a named failure, which is what
 /// No Silent Errors asks for at a seam between two things that must agree.
-fn arg(m: &ArgMatches, name: &str) -> Result<String, String> {
+fn arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
   match m.try_get_one::<String>(name) {
     Ok(Some(value)) => Ok(value.clone()),
-    Ok(None) => Err(format!("error: {name} is required")),
-    Err(e) => Err(format!(
+    Ok(None) => Err(Failure::Error(format!("error: {name} is required"))),
+    Err(e) => Err(Failure::Error(format!(
       "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
-    )),
+    ))),
   }
 }
 

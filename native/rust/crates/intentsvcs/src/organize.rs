@@ -478,7 +478,9 @@ impl Plan {
     // beside the real path reached nothing at all.
     let mut set = WriteSet::new();
     for step in &self.steps {
-      let Some(content) = &step.content else { continue };
+      let Some(content) = &step.content else {
+        continue;
+      };
       if !matches!(
         step.action,
         Action::Hydrate | Action::HydrateAttachment | Action::Verify

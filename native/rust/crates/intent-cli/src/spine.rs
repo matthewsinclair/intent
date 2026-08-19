@@ -946,10 +946,22 @@ mod tests {
     for expected in ["st", "wp", "ac", "at", "issues", "todo", "doctor"] {
       assert!(names.contains(&expected.to_string()), "missing {expected}");
     }
-    assert!(
-      !names.contains(&"organize".to_string()),
-      "a ratified retire does not reach the surface"
-    );
+    // **DERIVED, NOT NAMED.** This used to assert `!names.contains("organize")`,
+    // which stopped being true when hv reclaimed the name for v3 (2026-08-19) --
+    // and a literal could not tell that from a retired command coming back. The
+    // property actually wanted is that nothing reaches the surface without a
+    // shipped row behind it, which covers every retire at once and needs no edit
+    // the next time one is ruled either way.
+    let shipped_families: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
+      .iter()
+      .map(|e| e.family())
+      .collect();
+    for name in &names {
+      assert!(
+        shipped_families.contains(name.as_str()),
+        "`{name}` reaches the clap surface with no shipped row behind it -- a retired command must not be dispatchable"
+      );
+    }
   }
 
   /// **Every slot the table declares mandatory is mandatory ON THE SURFACE.**

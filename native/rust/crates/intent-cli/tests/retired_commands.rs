@@ -82,11 +82,30 @@ fn run(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
 }
 
 /// Every spelling the table retires, as argv, with the row it came from.
+///
+/// **A RECLAIMED SPELLING IS EXCLUDED, AND IT IS NOT THE SAME AS A RETIRED ONE**
+/// (hv, 2026-08-19). `path` stopped being unique across this table when hv
+/// reclaimed `organize` for v3: the v2 face is still a retired row, and a
+/// separate shipped row now carries the same word for a different program. Typing
+/// it reaches the shipped verb, correctly, and answers `is a known command that
+/// is not implemented yet` -- which is a true statement about v3 and is not the
+/// retirement message this file asserts.
+///
+/// **THE COST OF THE EXCLUSION IS STATED RATHER THAN HIDDEN:** for a reclaimed
+/// spelling, nothing here checks that the v2 face is refused, because there is no
+/// longer any way to type it. That is a real loss of coverage and it is the
+/// unavoidable half of reclaiming a name -- the alternative is asserting a
+/// refusal the surface cannot produce.
 fn retired_spellings() -> Vec<(Vec<String>, String)> {
   let table = dispatch::table();
+  let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
+    .iter()
+    .map(|e| e.path.as_str())
+    .collect();
   table
     .retired()
     .iter()
+    .filter(|e| !shipped.contains(e.path.as_str()))
     .flat_map(|e| {
       e.spellings()
         .into_iter()

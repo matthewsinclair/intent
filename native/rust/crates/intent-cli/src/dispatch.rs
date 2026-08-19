@@ -954,9 +954,30 @@ mod tests {
   fn retired_entries_are_not_shipped_but_pending_hv_ones_are() {
     let t = table();
     let shipped = shipped_entries(&t);
+    // **THE RETIRE IS OF A FACE, NOT OF A WORD** (hv, 2026-08-19). This used to
+    // read `!e.path.starts_with("organize")`, which forbade the TOKEN -- and a
+    // token check cannot tell a name being reclaimed from a command being
+    // resurrected. hv retired `bin/intent_organize` and `st organize`, the pair
+    // that moved ST directories into status folders; ST0057's `organize` is a
+    // different program that reconciles the tree against `.intentfiles` and
+    // shares nothing with it but the spelling.
+    //
+    // Keyed on the v2 ANTECEDENT, which is the thing that was actually retired
+    // and the one field a reclaimed name cannot accidentally satisfy: a
+    // new-surface row carries `new-surface` there by construction.
     assert!(
-      !shipped.iter().any(|e| e.path.starts_with("organize")),
-      "organize is a ratified retire (hv, 2026-08-14): vestigial by construction"
+      !shipped.iter().any(|e| e.v2 == "bin/intent_organize"),
+      "the v2 `organize` face is a ratified retire (hv, 2026-08-14): a strictly structured model cannot hold data in the wrong place, so the disorder it repaired cannot arise"
+    );
+    // And the reclamation is ASSERTED, not merely permitted. Loosening the line
+    // above without this one would leave the v3 verb free to vanish from the
+    // table with nothing noticing -- a check that stops forbidding something is
+    // not the same as one that requires it.
+    assert!(
+      shipped
+        .iter()
+        .any(|e| e.path == "organize" && e.v2 == "new-surface"),
+      "the v3 `organize` verb is reclaimed (hv, 2026-08-19) and must ship"
     );
     assert!(
       shipped.iter().any(|e| e.target.state == "pending-hv"),

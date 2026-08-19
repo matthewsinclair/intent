@@ -205,11 +205,27 @@ fn no_unbuilt_command_leaks_intents_own_project_state() {
 
 #[test]
 fn a_retired_family_does_not_reach_the_surface() {
-  let surface = surface_families();
-  assert!(
-    !surface.contains(&"organize".to_string()),
-    "`organize` is a ratified retire (hv, 2026-08-14): a strictly structured model cannot hold data in the wrong place, so the disorder it repairs cannot arise"
-  );
+  // **DERIVED FROM THE TABLE, NOT FROM A NAME.** This asserted
+  // `!surface.contains("organize")` until hv reclaimed the name for v3
+  // (2026-08-19). The v2 face's retire is untouched -- a strictly structured
+  // model cannot hold data in the wrong place, so the disorder it repaired
+  // cannot arise -- but the v3 verb is a different program wearing the same
+  // word, and a token check cannot tell those apart.
+  //
+  // It was one of THREE hard-coded copies of that ratification, in three files.
+  // Each had to be found and edited by hand for one ruling, which is the cost a
+  // literal charges every time the world changes; the derived form charges none.
+  let table = dispatch::table();
+  let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
+    .iter()
+    .map(|e| e.family())
+    .collect();
+  for family in surface_families() {
+    assert!(
+      shipped.contains(family.as_str()),
+      "`{family}` reaches the surface with no shipped row behind it -- a retired family must not be dispatchable"
+    );
+  }
 }
 
 /// Every leaf verb, per family, both ways.

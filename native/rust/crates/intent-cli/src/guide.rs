@@ -49,6 +49,7 @@
 //! **Completeness of the ROW SET comes for free; the truth of each rendered
 //! field does not, and no generator will ever check it.**
 
+use crate::spine::Failure;
 use crate::dispatch::{self, Arg, Entry, Flag, Table};
 
 /// Render the guide.
@@ -57,7 +58,27 @@ use crate::dispatch::{self, Arg, Entry, Flag, Table};
 /// facts out of the table BY ID, and a lookup that finds nothing must refuse
 /// rather than render a guide with a hole in it. Same posture as the argument
 /// lookups in `render.rs`: a build defect says so, loudly, in the terminal.
-pub fn render(table: &Table) -> Result<String, String> {
+/// **THE CRATE'S OWN ERROR TYPE, NOT A `String` AND NOT A NEW ONE**
+/// (IN-RS-CODE-004). These three signatures used to carry a bare `String` as the
+/// error, which the rule flags because such an error cannot be matched on -- a
+/// caller wanting to treat one cause differently has to parse prose.
+///
+/// **THE PRIOR SPELLING IS DESCRIBED RATHER THAN QUOTED, AND THAT IS NOT
+/// SQUEAMISHNESS.** IN-RS-CODE-004's greppable proxy matches the literal type
+/// expression, and it reads comments -- so writing the old signature out here
+/// tripped the rule inside the doc explaining its own remedy, and the pre-commit
+/// gate blocked the fix. A checker that cannot separate code from prose makes
+/// DOCUMENTING a defect an instance of it, which is the same shape as a guard
+/// that would refuse a whiteboard message reporting a bad timestamp.
+///
+/// `Failure` rather than a `thiserror` enum of this module's own, for two
+/// reasons that point the same way. `intent-cli` is a BINARY and carries no
+/// `thiserror` dependency; adding one to give a single-variant error its own type
+/// is ceremony the rule's own `does_not_apply_when` disclaims. And `Failure` is
+/// already this crate's one error vocabulary, carrying the exit code with it --
+/// a second type beside it would be the Highlander violation, and the call site
+/// in `render.rs` was already converting into it by hand.
+pub fn render(table: &Table) -> Result<String, Failure> {
   let mut out = String::new();
 
   out.push_str(&format!(
@@ -97,17 +118,20 @@ missing. Each command carries, in this order:
 /// So the four IDs are named here and their titles are not. A retitled
 /// invariant reaches this section; a deleted or renamed one refuses the render
 /// by name instead of quietly dropping a fact an agent parses exit codes on.
-fn surface_wide(table: &Table) -> Result<String, String> {
-  let inv = |id: &str| -> Result<&str, String> {
+fn surface_wide(table: &Table) -> Result<String, Failure> {
+  let inv = |id: &str| -> Result<&str, Failure> {
     table
       .invariants
       .iter()
       .find(|i| i.id == id)
       .map(|i| i.title.as_str())
       .ok_or_else(|| {
-        format!(
+        // Byte-identical to the string this replaced, leading `error: ` included:
+        // the prefix belongs to the output contract, and moving it in the same
+        // change as the type would make a parity failure impossible to attribute.
+        Failure::Error(format!(
           "error: the agent guide cites invariant `{id}`, which the dispatch table does not declare\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
-        )
+        ))
       })
   };
 
@@ -395,12 +419,30 @@ mod tests {
   fn no_retired_command_appears() {
     let table = dispatch::table();
     let text = guide();
+    // **`path` IS NO LONGER UNIQUE ACROSS THE TABLE, AND THAT IS RULED RATHER
+    // THAN ACCIDENTAL** (hv, 2026-08-19). The table is two registers in one: a
+    // parity record of what became of each v2 command, and a declaration of what
+    // v3 ships. When hv reclaimed `organize` for v3 those two registers came to
+    // hold the same word -- a retired v2 face and a shipped v3 verb -- so a
+    // reclaimed name is excluded here by asking whether a SHIPPED row also
+    // carries it.
+    //
+    // **THE RESIDUAL BLIND SPOT IS NAMED RATHER THAN LEFT TO BE FOUND.** For a
+    // reclaimed path this test can no longer tell the retired row's heading from
+    // the shipped one's, because they are the same string. That is tolerable only
+    // because the guide is GENERATED from shipped entries and a retired row has
+    // no path into it -- if the generator ever walked the full table, this check
+    // would go quiet on exactly the rows it exists for.
+    let shipped_paths: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
+      .iter()
+      .map(|e| e.path.as_str())
+      .collect();
     let retired: Vec<String> = table
       .families
       .iter()
       .flat_map(|f| f.entries.iter())
       .chain(table.new_surface.iter())
-      .filter(|e| !e.is_shipped())
+      .filter(|e| !e.is_shipped() && !shipped_paths.contains(e.path.as_str()))
       .map(|e| e.path.clone())
       .collect();
     assert!(
@@ -476,7 +518,18 @@ mod tests {
       "the committed table renders, or every case below passes for the wrong reason"
     );
     table.invariants.retain(|i| i.id != "INV-04");
-    let err = render(&table).expect_err("a cited invariant vanished and the guide rendered anyway");
+    // `Failure` carries the message rather than BEING it, since the error type
+    // stopped being a `String` (IN-RS-CODE-004). Asserted on the rendered text
+    // rather than on the variant, deliberately: what this test is about is what
+    // an operator READS, and a variant match would keep passing while the
+    // sentence rotted into something that names neither the id nor the cause.
+    // Matched rather than `to_string()`d: `Failure` carries its message and does
+    // not implement `Display`, and adding one to a shared type to satisfy a test
+    // in another module is a wider change than this needed.
+    let err = match render(&table).expect_err("a cited invariant vanished and the guide rendered anyway") {
+      Failure::Error(msg) | Failure::Unavailable(msg) => msg,
+      Failure::Verdict => panic!("a build defect must carry a message, not a bare verdict"),
+    };
     assert!(
       err.contains("INV-04") && err.contains("build defect"),
       "the refusal must name the missing id and say it is a build defect, got: {err}"

@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 8 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 9 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -831,7 +831,7 @@
           },
           "target": {
             "state": "as-observed",
-            "note": "Under authored-once, `edit` on a GENERATED view (info/acceptance) hands the user a path to a file their edits will lose at the next regeneration. v3 emitting the path unchanged is defensible only if the skew check (AC-03.4) catches the edit. Flagged for the WP-05 surface cut, not decided here."
+            "note": "RULED (hv, 2026-08-19), and this deferral is CLOSED. `intent edit` REFUSES on a generated view and NAMES THE AUTHORING SURFACE instead. The earlier defence -- emitting the path unchanged if the skew check (AC-03.4) catches the edit -- does not hold: AC-03.4 is green and does catch a hand-edited view, but it catches it AFTER it is written and the user's work is already gone. DETECTION IS NOT PREVENTION, and this estate has lost work to exactly this twice (a row authored into `acceptance.md` dies at the next `--to-disk`; AC-03.16 exists because a generated view was inviting authoring in itself). The refusal names where to go: `acceptance.md` -> `intent ac` / `intent at`; `info.md` and WP covers -> `intent st` / `intent wp`; an ATTACHMENT is opened without hesitation, because the file on disk IS the authoring surface. Measured so the refusal is not read as broader than it is: ST0056's thread directory holds 13 files at depth 1 and only TWO are generated views. Implemented as `Project::edit_disposition`, derived from `classify()` rather than from a list of filenames, so there is no second answer to what a file is."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -6597,6 +6597,14 @@
     {
       "path": "sync",
       "help": "Sync this machine's store with the committed extract, in both directions",
+      "args": [
+        {
+          "name": "id",
+          "type": "string",
+          "arity": "0..n",
+          "note": "RULED by hv 2026-08-19, requested by vc as the highest-value thing left in the estate. Both directions were WHOLE-ESTATE ONLY, so on a shared board the routine act of landing your own thread reads every other node's uncommitted files -- measured happening twice in one day by the node holding the pen and warning the others, across thirteen estate-wide restores in one session. dc's framing is why it is structural rather than an ergonomics complaint: a workflow whose correct form requires an operation only safe for one actor is a single-writer bottleneck wearing a per-node procedure's clothes; and vc's half is why care cannot fix it -- staying off the estate protects a node from WRITING, and the hazard is a READ THAT WRITES. **NO IDS MEANS THE WHOLE ESTATE, which keeps every existing invocation meaning exactly what it meant** -- a fresh clone, a full regeneration and the migrator all want the estate and should not have to name 57 threads to say so. **IT NAMES WHICH THREADS TAKE THEIR VALUE FROM THE SOURCE, NOT WHICH ONES GET READ**: on `--to-store` the run ends in a whole-store rebuild, so a scope that narrowed the READ would hand the rebuild a shortened set and delete every thread it did not name -- a worse defect than the one being fixed, and silent, since the node that ran it was saving its own work. An id that matches no thread REFUSES rather than succeeding over an empty selection, because a typo would otherwise be indistinguishable from a completed sync."
+        }
+      ],
       "flags": [
         {
           "spellings": [
@@ -6835,6 +6843,32 @@
       },
       "flags": [],
       "recoverability": "one-way"
+    },
+    {
+      "path": "organize",
+      "help": "Reconcile the tree with .intentfiles: realise what is declared, remove what is not",
+      "args": [],
+      "flags": [],
+      "v2": "new-surface",
+      "basis": "D57-3 (hv, 2026-08-18): the reconciliation verb of the sparse-projection model -- hydrate, verify, dehydrate, and refuse. Implemented at `intentsvcs::organize`.",
+      "owner_wp": "ST0057 WP-04",
+      "acceptance": "ST0057 AC-04.1 through AC-04.6",
+      "name_reclaimed": "**THE NAME IS RECLAIMED, THE v2 FACE STAYS RETIRED, AND THE TWO SHARE NOTHING BUT THE WORD** (hv, 2026-08-19). The `organize` FAMILY in this table is the v2 command -- `bin/intent_organize` plus `st organize` -- which moved ST directories into status folders, and whose ratified retire of 2026-08-14 is untouched: a strictly structured model cannot hold data in the wrong place, so the disorder it repaired cannot arise. This row is a different program that happens to take the same word: it hydrates and dehydrates artefacts against `.intentfiles`. **THREE ASSERTIONS FORBADE THE TOKEN, NOT THE FACE** -- `dispatch.rs`, `spine.rs` and `dispatch_ssot.rs` each hard-coded the string `organize`, so the ratification was expressed three times and in a form that could not tell a reclaimed name from a resurrected command. All three now key on the retired v2 ANTECEDENT, which is the thing hv actually retired.",
+      "flag_polarity_open_to_ic": "**OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling.",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": true,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
+        "why_uncertain": "**I LEANED WITHHOLD AND THE DECLARED RULE OVERRODE ME, WHICH IS THE RIGHT WAY ROUND.** My reason was blast radius: this is the only shipped verb that REMOVES committed files, and an agent's mistake here is an absent file rather than a bad edit. The rule this table actually encodes is narrower and is about UNDOABILITY -- MCP withholds a mutation the surface cannot undo -- and `organize` can be undone: every removal is gated on the store reproducing the bytes byte for byte, so re-declaring in `.intentfiles` and re-running restores exactly what was removed. **The same blast-radius argument would withhold `sync --to-store`, whose own row records that a wrong invocation can overwrite this machine's store from a stale extract, and that row ships EXPOSED.** Carving an exception for my own row on the first day it exists, against a rule that already decided a harder case the other way, is how a vocabulary stops meaning anything. Recorded rather than resolved silently, because the generator explicitly refuses a label adjusted to make the number come out and I want it visible that the label was NOT what moved.",
+        "open_to_ic": "The surface is ic's (AC-05.1) and this is the second decision on this row I am declining to make alone -- the flag polarity is the other. If ic reads the blast-radius argument as beating the undoability rule, the row flips and the anomaly gets recorded then, with a reason that is about this verb rather than about my discomfort with it."
+      },
+      "recoverability": "idempotent"
     }
   ],
   "provenance": {
@@ -6963,7 +6997,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 20,
+      "n": 21,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7027,9 +7061,11 @@
         "cross_ref",
         "d34_wording",
         "direction_selector",
+        "flag_polarity_open_to_ic",
         "input_selector_gap",
         "kind",
         "mcp_review",
+        "name_reclaimed",
         "not_backup",
         "not_export",
         "note",
@@ -7247,7 +7283,8 @@
       "ingest",
       "backup",
       "daemon",
-      "mcp"
+      "mcp",
+      "organize"
     ],
     "shipped": [
       "st",
@@ -7357,7 +7394,8 @@
       "ingest",
       "backup",
       "daemon",
-      "mcp"
+      "mcp",
+      "organize"
     ],
     "retired": [
       "st organize",
@@ -7470,7 +7508,8 @@
       "schema",
       "export",
       "ingest",
-      "backup"
+      "backup",
+      "organize"
     ],
     "self_loop": [
       "ac descope",

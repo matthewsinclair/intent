@@ -221,8 +221,12 @@ fn seeded() -> Fixture {
     fx.write_thread(&sample_thread(id));
   }
   let mut facade = fx.facade();
-  facade.sync_from_disk().expect("ingest the seeded canon");
-  facade.sync_to_disk().expect("project it back");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("ingest the seeded canon");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("project it back");
   fx
 }
 
@@ -318,10 +322,16 @@ fn shipped_mutators() -> Vec<String> {
 /// behind it, and "we have not established where this writes" is the absence of
 /// one. Merging them would let a covered verb lend its credibility to an
 /// unproven one.
-const COVERED_ELSEWHERE: &[(&str, &str)] = &[(
-  "upgrade",
-  "unmigrated_project.rs -- it needs a pre-migration v2 project, not a v3 fixture",
-)];
+const COVERED_ELSEWHERE: &[(&str, &str)] = &[
+  (
+    "upgrade",
+    "unmigrated_project.rs -- it needs a pre-migration v2 project, not a v3 fixture",
+  ),
+  (
+    "organize",
+    "organize_idempotent_mtime.rs -- ST0057 AC-04.4 IS this file's property for this verb, measured as MTIMES MOVED rather than as a content diff, and it carries the positive control that a zero-movement result needs. Driving it here as well would be a second expression of one claim, and the two would answer to different fixtures.",
+  ),
+];
 
 /// Writes files OUTSIDE the thread estate, **with the path it writes named**.
 ///
@@ -407,7 +417,9 @@ fn cases() -> Vec<Case> {
       "sync --to-disk",
       NOOP,
       |fx| {
-        fx.facade().sync_to_disk().expect("sync to disk");
+        fx.facade()
+          .sync_to_disk(&intentsvcs::sync::Scope::All)
+          .expect("sync to disk");
       },
       false,
     ),
@@ -415,7 +427,9 @@ fn cases() -> Vec<Case> {
       "sync --to-store",
       NOOP,
       |fx| {
-        fx.facade().sync_from_disk().expect("sync from store");
+        fx.facade()
+          .sync_from_disk(&intentsvcs::sync::Scope::All)
+          .expect("sync from store");
       },
       false,
     ),
@@ -833,7 +847,9 @@ fn a_second_sync_writes_nothing_at_all() {
   let fx = seeded();
   let before = snapshot(fx.root());
   age_everything(&before);
-  fx.facade().sync_to_disk().expect("second sync");
+  fx.facade()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("second sync");
   let Verdict {
     moved,
     changed,
