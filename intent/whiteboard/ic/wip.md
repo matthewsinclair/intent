@@ -3,15 +3,26 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b8c3fcaf-8c58-4d9c-83b6-b019cbef8192
-heartbeat_at: 2026-08-19 08:23Z
-status: active
-focus: "**AT-00.11 BUILT AND DRIVEN RED-FIRST; POSITIVE CONTROL MEASURED OVER 120 REVISIONS.** Control: defective `f2a2675f` against repaired `8bb47e49` -- 17 overstated + 61 agreed + 42 refused = 120, CLOSES, P1 holds; specimen `fd2e4067` prints 8 examined where the truth is 0. `of_n_closes_over_examined.sh` written, 7 of 7 predicted arms as predicted, 4 refusal arms all exit 2. **THE MUTANTS FOUND TWO DEFECTS IN IT AND THE CLOSURE ASSERTION FOUND THE WORSE ONE.** **I claimed a defect was LIVE AT HEAD and it was fixed three commits earlier -- withdrawn.** HOLDING ALL COMMITS: matts is running the suite."
+heartbeat_at: 2026-08-19 08:42Z
+status: paused
+focus: "**LOCALFOLD, PAUSED FOR AN iTERM RESTART. EVERYTHING IS COMMITTED AT `7e4cf86b`** -- board plus the whole AT-00.11 day in `.history/20260819/`. Control MEASURED: defective `f2a2675f` against repaired `8bb47e49`, 17 overstated + 61 agreed + 42 refused = 120, CLOSES; specimen `fd2e4067` prints 8 where the truth is 0. `of_n_closes_over_examined.sh` is parked as `.pending` and NOT in `parity/tools/` -- that move is under `intent/st/`, which I told cc is clean. **STOOD DOWN ON THE 18 UNTIL vc WEAKENS AT-00.11: a two-tree differential cannot deliver the row's sentence.** All timing figures of mine are WITHDRAWN on dc's code-signature finding."
 claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
+
+**NOTHING IN FLIGHT. Folded and paused for matts's iTerm restart; all my work is committed at `7e4cf86b`, nothing of mine is dirty, `intent/st/` reads clean.**
+
+## ON RESUME -- read this first
+
+1. **The artefacts are in `intent/whiteboard/ic/.history/20260819/`**, and its README says what each is. The instrument is `of_n_closes_over_examined.sh.pending`; its home is `intent/st/ST0056/parity/tools/of_n_closes_over_examined.sh` and it has NOT been moved there.
+2. **DO NOT DRIVE THE 18 UNTIL vc HAS WEAKENED AT-00.11.** vc has ruled the ROW wrong rather than the harness and owes the wording; they offered to send it before minting and I accepted. Build to the corrected row, never around the current one.
+3. **What WOULD deliver the row's strong reading, offered to vc as input and NOT as row text:** a CONSTRUCTED FIXTURE, not a second tree -- one input where the filter and examined populations are both known by construction, checked against the number built in. One tree, one revision, nothing to confound. Cost is one fixture per instrument. **The cheap generic arm to try first: where an instrument both prints a count AND enumerates its members, the count must equal the enumeration's length** -- no fixture, no second tree, revision-independent, and it cannot be satisfied by a label.
+4. **Every timing figure I produced today is WITHDRAWN** on dc's finding that `cargo test` here is ~99% macOS code-signature validation and cache state moves a number up to 800x. The sweep's counts and ratios are unaffected -- they are not durations.
+
+## SUPERSEDED (kept only so it is not re-derived)
 
 **`of_n_closes_over_examined.sh` is built, driven and RED-FIRST, and it is NOT COMMITTED -- matts is running the full suite with a dep update in it, and cc and vc are both holding estate writes.**
 
