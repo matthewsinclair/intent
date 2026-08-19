@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 18:56Z
+heartbeat_at: 2026-08-19 19:28Z
 status: active
-focus: "**FIVE ROWS GREEN TODAY; ONE OF MY EARLIER GREENS WENT BACK TO RED ON MY OWN FINDING (AT-02.2, vc `29d4db5e`) AND I CONFIRMED IT RATHER THAN OVERTURNING IT.** **THE DAY'S BIGGEST FINDING: `intentfiles::render` HAS NO PRODUCTION CALLER** -- which is why the manifest declares 0 of 57, why `organize --apply` plans 544 removals, and why AC-02.2 cannot close. **BLOCKED ON A RULE THAT DOES NOT EXIST: nothing anywhere states WHICH STATUSES ARE REALISED.** Recommendation with vc; not building it on my own judgement because it changes what the gate does when it opens."
+focus: "**AT-08.4's MISSING LIMB IS BUILT, GREEN AND PROVEN (5 arms, all red) AND HELD UNCOMMITTED** -- `facade.rs` carries my `Facade::post` alongside a peer's in-flight `FacadeError::Realise`, whose arm is missing from `error_remedies.rs`, so landing would break HEAD. **Five rows green today; AT-02.2 went back to red on my own finding and I confirmed it.** **BLOCKED ON hv: the status-to-realisation rule (AC-02.2), the `st edit` fork (AC-05.1), the 6-of-43 gate ask.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,9 +13,15 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** AT-08.1 landed at `a11580b6`, row green. Everything of mine is committed.
+**AT-08.4 / AC-08.4 -- BUILT, GREEN, MUTATION-PROVEN, HELD.**
 
-**WHAT AT-08.1 CHANGED, because it is a SHARED WRITE PATH.** `Facade::projection` is manifest-aware: canon writes unconditional, only rendered views narrow. `apply` and both sync directions go through it. **Three states named rather than two** -- `Realised::NothingSaid` (no manifest, realise all), `Declared(set)` (an EMPTY set is somebody saying none and is honoured), `Unreadable` (fail-open, realises all, and has NO READER yet -- that gap is named in the source).
+`Facade::post(&Address, body) -> Result<Address, FacadeError>`. **POST to a COLLECTION address; the tool assigns the id and hands back the ADDRESS it assigned** -- not the id, because a caller handed a bare id has to build the address itself, which is a second spelling of the scheme at every call site. `Entity::Threads` creates; every other form is **refused BY NAME and counted**, with the reason that decides it: the id is already known, so `PUT` reaches it.
+
+**8 tests in `mutation_create_splits_two_ways.rs`, five arms, ALL RED.**
+
+**ONE ARM FOUND A VACUOUS ASSERTION OF MINE.** I asserted the refusal names the form with `said.contains("ac")` -- **and the error renders the URL, which is `.../ac/AC-01.1`**, so it passed on the address being echoed rather than on the form being named. A mutant dropping the form name entirely survived it. **Now driven with a `node-inbox` address, whose form name is NOT a substring of its own URL** (the address spells `nodes` and `inbox` separately), so only a message that actually names the form can pass.
+
+**WHY IT IS HELD:** `facade.rs` carries my `post` and a peer's uncommitted `FacadeError::Realise`, and `error_remedies.rs` has no arm for it -- **2 compile errors at HEAD if I land.** Their variant, their exemption reasoning. **It lands the moment they arm it; nothing of mine needs redoing.**
 
 ## ON RESUME -- read this first
 
@@ -61,6 +67,9 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 - **AND DIRECTION 2 IS cc'S KIND HOLE WITH A POPULATION.** Their board: _the stale-AT guard catches a `to-write` row citing a file that EXISTS, and cannot catch one citing FICTION._ **Nine rows cite fiction now, and NOTHING checks that what eventually appears matches the KIND the row declared** -- which is how cc came within one clean slate of compiling two Rust files against two shell rows. vc had queued it as a capability gap with ONE member, that member an averted near-miss; **it has nine, measurable today.** **The right frame is not `none of the 16 WPs covers the instruments` (an absence, taken on trust) but `6 of 43` (a count matts can check).**
 
 - **AN INBOX IS ALSO A DURABLE RECORD, AND THE ARGUMENT I MADE AGAINST RETIRING IT IS WHY THE RULING TOOK THE SHAPE IT DID.** **RESOLVED: the inbox STAYS; vc monitors and surfaces; hv rulings land in vc's `## Decisions
+
+- (2026-08-19) **A MUTATION BATTERY MUST NOT RUN IN THE SHARED CHECKOUT, AND I COULD NOT OBEY THAT TODAY.** dc's `852 passed, 1 failed` measured a tree my arm D3 had broken. **A peer mid-edit gives you a tree that will not compile or fails honestly; a mutation battery gives you one that COMPILES AND LIES.** I tried a disposable worktree twice and failed: **isolation needs a consistent snapshot and there is not one**, because my work, theirs and HEAD are three trees and no two agree.
+- (2026-08-19) **TWO DRIVER FIXES THAT BOTH EARNED THEIR PLACE THE SAME HOUR.** Restore on SIGTERM/SIGINT and at exit -- proved by killing the driver mid-arm and verifying a byte-identical restore. **And a BASELINE COMPILE CHECK before injecting: five arms scored VOID and the cause was a peer's broken file, not my mutants.** A VOID from a peer's breakage is indistinguishable from a VOID from my own. The check narrows to the target under test rather than `--tests`, so an unrelated broken test target cannot score my arms.
 
 - (2026-08-19) **AT-02.2 IS BACK TO RED AND I CONFIRMED IT ON MEASUREMENT.** AC-02.2's subject is the VERB -- _survive an `organize` rewrite ... with the generated region changing IN THE SAME RUN_ -- and `intentfiles_two_regions.rs` calls `render(` seven times and `Facade|organize(` zero. **The verb provably cannot do it: no call site.** Not a coverage gap; a criterion whose subject does not perform its verb.
 - (2026-08-19) **vc's DISCRIMINATOR AGAINST THE AT-04.x GAP IS MECHANICAL RATHER THAN A JUDGEMENT: IS THE CALL SITE PRESENT?** There the mechanism was wired and one limb was hand-evidenced. Here the wiring does not exist. Same-sounding shape, opposite verdict.
