@@ -993,3 +993,63 @@ fn a_work_package_status_reason_reaches_the_human_face_too() {
     "wp show must render it:\n{shown}"
   );
 }
+
+/// **The scope reaches the facade FROM THE COMMAND LINE**, which the unit
+/// tests cannot show.
+///
+/// `sync_scope.rs` proves the facade narrows when handed a scope. It cannot
+/// prove that typing one produces a scope: the dispatch table declares `id` at
+/// `0..n`, and clap accepts a declaration whether or not anything reads it --
+/// the class this file's `sync` comment already names. **A declared narrowing
+/// nothing consumes is worse than an undeclared one, because the operator
+/// believes their peers' files are safe.**
+///
+/// The unscoped run is the control. "1 thread" alone is also what a scope that
+/// silently matched nothing would print if the count came from the wrong place.
+#[test]
+fn sync_narrows_to_the_threads_named_on_the_command_line() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "First"]);
+  ok(root, &["st", "new", "Second"]);
+
+  let scoped = ok(root, &["sync", "--to-disk", "ST0001"]);
+  let all = ok(root, &["sync", "--to-disk"]);
+
+  assert!(
+    all.contains("2 thread"),
+    "precondition: the unscoped run covers both threads, so the scoped count below is a NARROWING \
+     rather than the only number this can print. got: {all:?}"
+  );
+  assert!(
+    scoped.contains("1 thread"),
+    "naming one thread did not narrow the run: {scoped:?}"
+  );
+}
+
+/// A scope naming no such thread refuses, and names the id it could not find.
+///
+/// The refusal is the arm that proves the ids reach the facade rather than
+/// being parsed and dropped: a discarded argument produces a whole-estate
+/// success, which is indistinguishable from a completed sync at the terminal
+/// and leaves the operator believing a thread they mistyped has been saved.
+#[test]
+fn a_sync_scope_naming_no_such_thread_refuses_and_says_which() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "First"]);
+
+  let out = run(root, &["sync", "--to-disk", "ST9999"]);
+  assert_ne!(
+    out.status.code(),
+    Some(0),
+    "a scope naming a thread that does not exist SUCCEEDED, so the ids are being dropped rather \
+     than honoured"
+  );
+  let said = format!("{}{}", stdout(&out), String::from_utf8_lossy(&out.stderr));
+  assert!(
+    said.contains("ST9999"),
+    "the refusal does not name the id that could not be found, so the operator cannot tell which \
+     of their arguments was wrong: {said:?}"
+  );
+}

@@ -290,7 +290,34 @@ fn st_rows(
 /// checks. It is also the mechanical shape of a whole class -- a discarded
 /// `ArgMatches` drops every flag on the command silently, because clap accepts
 /// what the table declares whether or not anything reads it.
+/// The threads named on the command line, or the whole estate when none are.
+///
+/// **The table declares `id` at `0..n` and this is what reads it.** The comment
+/// on `sync` below already records the class: a discarded `ArgMatches` drops
+/// every argument the table declares, silently, because clap accepts the
+/// declaration whether or not anything consumes it. Declaring the scope and
+/// not reading it would have advertised a narrowing that never happened --
+/// worse than not shipping it, because the operator would believe their peers'
+/// files were safe.
+///
+/// **No ids means the whole estate**, so every invocation that worked
+/// yesterday means what it meant.
+fn sync_scope(m: &ArgMatches) -> intentsvcs::sync::Scope {
+  let ids: Vec<String> = m
+    .try_get_many::<String>("id")
+    .ok()
+    .flatten()
+    .map(|vals| vals.cloned().collect())
+    .unwrap_or_default();
+  if ids.is_empty() {
+    intentsvcs::sync::Scope::All
+  } else {
+    intentsvcs::sync::Scope::Threads(ids)
+  }
+}
+
 fn sync(m: &ArgMatches) -> Result<(), Failure> {
+  let scope = sync_scope(m);
   match (flag(m, "to-disk"), flag(m, "to-store")) {
     // Both is not "do both": they are opposite directions over the same two
     // endpoints, so running them in either order makes one of them pointless
@@ -301,7 +328,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
     ),
     (true, false) => {
       let mut f = open()?;
-      let count = f.sync_to_disk(&intentsvcs::sync::Scope::All).map_err(fail)?;
+      let count = f.sync_to_disk(&scope).map_err(fail)?;
       println!("ok: extract written for {count} thread(s)");
       Ok(())
     }
@@ -318,7 +345,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // and is vc's to price -- in a non-interactive invocation "one moment
       // earlier" is one line earlier -- so it is recorded here rather than
       // quietly resolved by inventing surface.
-      let overwrite = f.sync_overwrite(&intentsvcs::sync::Scope::All).map_err(fail)?;
+      let overwrite = f.sync_overwrite(&scope).map_err(fail)?;
       if overwrite.is_empty() {
         eprintln!("note: the store and the extract agree; this restore overwrites nothing");
       } else {
@@ -327,13 +354,13 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
           eprintln!("  {line}");
         }
       }
-      let count = f.sync_from_disk(&intentsvcs::sync::Scope::All).map_err(fail)?;
+      let count = f.sync_from_disk(&scope).map_err(fail)?;
       println!("ok: store replaced from the extract, {count} thread(s)");
       Ok(())
     }
     (false, false) => {
       let f = open()?;
-      let overwrite = f.sync_overwrite(&intentsvcs::sync::Scope::All).map_err(fail)?;
+      let overwrite = f.sync_overwrite(&scope).map_err(fail)?;
       eprintln!("error: `sync` has two directions and will not guess which one you mean");
       eprintln!(
         "  --to-disk   rewrites the files from the store. Safe: the files are re-creatable"
