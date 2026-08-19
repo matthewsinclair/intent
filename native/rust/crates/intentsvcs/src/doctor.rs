@@ -779,12 +779,79 @@ fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report
       for entry in entries.iter().filter(|e| e.state == FileState::Unparsed) {
         report.findings.extend(entry.findings.iter().cloned());
       }
+      attachment_drift(project, canon, &entries, report);
     }
     Err(e) => report.findings.push(Finding::new(
       project.relative(project.root()),
       FindingClass::UnknownFileShape,
       format!("the working tree could not be scanned: {e}"),
     )),
+  }
+}
+
+/// **An attachment whose working copy no longer matches the bytes canon
+/// records for it, reported BY PATH** (ST0057 AC-03.4).
+///
+/// # By comparison, which is the criterion's own word
+///
+/// The hash on disk against the hash in canon. Nothing here consults mtime,
+/// size, or whether anything was recently written -- every one of those infers
+/// change from a proxy, and a proxy that says "unchanged" is exactly the answer
+/// that lets a divergence through. `sync::scan` has already hashed every file
+/// in the corpus, so this costs no read: the SOLE identity test its own
+/// docstring names is the one being compared.
+///
+/// **One hasher, and it is not this function.** `organize::observe` builds its
+/// `sha256` map from the same `scan`, so doctor and organize cannot come to
+/// different views of whether a file has moved. A second hash computed here
+/// would be a second opinion about identity, which is how one surface reports
+/// drift and the other silently plans a removal over it.
+///
+/// # An ABSENT attachment is not drift, and getting that wrong would be worse
+/// than missing the drift
+///
+/// Under `.intentfiles` a dehydrated thread's attachments are legitimately gone
+/// from disk -- that is the feature, not a fault. Reporting absence as
+/// divergence would make `doctor` unhealthy for every dehydrated thread in the
+/// estate, which is a check that flags a population behaving correctly, and the
+/// shape that gets a check deleted rather than fixed.
+///
+/// **So absence is silence here, and that silence is bounded rather than
+/// blanket**: `Report::unattached` and the ship gate speak to files that ought
+/// to be present, and AC-03.1 refuses a canon whose opaque bytes cannot be
+/// obtained. This function answers one question -- of the attachments that ARE
+/// realised, do they still say what canon says they say.
+fn attachment_drift(
+  project: &Project,
+  canon: &Canon,
+  entries: &[crate::sync::FileEntry],
+  report: &mut Report,
+) {
+  let on_disk: std::collections::BTreeMap<&str, &crate::sync::FileEntry> =
+    entries.iter().map(|e| (e.path.as_str(), e)).collect();
+
+  for thread in &canon.threads {
+    for att in &thread.attachments {
+      let path = project.thread_dir(&thread.id).join(&att.path);
+      let rel = project.relative(&path);
+      // Dehydrated, or outside the corpus. Neither is this check's business.
+      let Some(entry) = on_disk.get(rel.as_str()) else {
+        continue;
+      };
+      if entry.sha256 == att.sha256 {
+        continue;
+      }
+      report.findings.push(Finding::new(
+        &rel,
+        FindingClass::AttachmentDrift,
+        format!(
+          "the working copy hashes to {} and canon records {} for it. An attachment is authored, \
+           so nothing can re-derive either side: one of them is an edit somebody made and the \
+           other is what the store will write over it",
+          entry.sha256, att.sha256
+        ),
+      ));
+    }
   }
 }
 

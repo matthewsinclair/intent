@@ -75,6 +75,17 @@ pub enum FindingClass {
   /// hand-edit that would otherwise be silently overwritten, or silently
   /// believed.
   ViewSkew,
+  /// An ATTACHMENT on disk differs from the bytes canon records for it.
+  ///
+  /// **Not [`FindingClass::ViewSkew`], and the difference is what the operator
+  /// must do about it.** A view is re-derivable, so skew is repaired by
+  /// re-rendering and the hand-edit is the thing being lost. An attachment is
+  /// AUTHORED -- nothing can regenerate it -- so a divergence is two versions
+  /// of a file that only a person can reconcile, and whichever side is
+  /// overwritten loses work that has no other copy. Reporting them under one
+  /// class would put "run the renderer" and "decide which of these you meant"
+  /// behind the same word.
+  AttachmentDrift,
   /// The canon parses and validates, but says two things that cannot both be
   /// true -- an acceptance test covering a criterion that does not exist, a
   /// completed thread with no completion date. The schema cannot catch these:
@@ -246,6 +257,32 @@ impl FindingClass {
         6,
         "view-skew",
         "`intent sync --to-disk` regenerates the views from the store, DISCARDING the hand edit -- copy anything you meant to keep out first",
+      ),
+      // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
+      // padding.** Unlike `ViewSkew` above, neither side here is derivable:
+      // both are authored bytes, and whichever one loses is gone. So the first
+      // safe act is the one that costs nothing and removes the irreversibility,
+      // before any question of which version was meant.
+      //
+      // **It names ONE command, and the asymmetry is imposed rather than
+      // chosen.** The blast-radius rule (vc, 2026-08-15) forbids every remedy
+      // from naming the store-ward direction, on the ground that it replaces
+      // the whole store. That conclusion holds for the UNSCOPED form and its
+      // stated reason does not survive reading `Store::rebuild`, which deletes
+      // tests, criteria, related, attachments, wps, threads and issues -- and
+      // NOT `events`. Reported to vc rather than worked around here: a check
+      // whose premise has moved is theirs to re-cut, and editing their rule to
+      // let my remedy through would be the reverse of taking it seriously.
+      //
+      // The consequence is real and worth stating where a reader meets it: for
+      // an authored attachment the disk copy may be the only good one, and no
+      // remedy is currently permitted to name the command that keeps it. Hence
+      // the copy-aside instruction, which reaches the same safety without a
+      // command at all.
+      Self::AttachmentDrift => (
+        6,
+        "attachment-drift",
+        "copy the working file somewhere outside the project FIRST -- nothing can re-derive either side, so this is the only step that cannot lose anything. Then compare it against what the store holds and decide which one you meant; `intent sync --to-disk <ID>` writes the store's version over the file, discarding the working copy you just saved",
       ),
       Self::ModelInconsistent => (
         7,
