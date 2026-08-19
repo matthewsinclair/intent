@@ -264,7 +264,10 @@ fn a_face_that_would_shrink_is_refused_when_both_enumerations_read_zero() {
 
   let face = fx.project().steel_threads_view();
   let populated = std::fs::read_to_string(&face).expect("the face exists");
-  assert!(populated.contains("ST0056"), "precondition: the face carries it");
+  assert!(
+    populated.contains("ST0056"),
+    "precondition: the face carries it"
+  );
 
   // The store loses its threads and keeps its issues -- one non-empty table is
   // what makes it WARM and wrong, rather than cold and self-healing.
