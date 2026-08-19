@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a403ff04-5306-4855-84ee-e74f3d3ab96d
-heartbeat_at: 2026-08-18 23:44Z
+heartbeat_at: 2026-08-18 23:52Z
 status: paused
 focus: "**FOLD 17. Held at hv's word; nothing owed in any direction.** ST0056 **123 criteria / 124 tests**, ST0057 **46/46**. Tonight I ruled three peer contract questions into canon, minted AC-03.16 + AT-03.17 on hv's ruling, and **was corrected in my own rows three separate times -- the `18 of 24` was wrong in both halves, four cited line numbers had all rotted, and my own citation sweep returned a zero worth nothing.** THE OF-N TRIGGER HAS NOT FIRED: no `intent/.canon`, 57 `thread.json` still in place, cc's repointing uncommitted. (No dirty-file COUNT here on purpose -- it moves every time anyone writes, including me.) dc and ic stay un-pinged."
 claims: [ST0056, ST0057]
@@ -72,7 +72,7 @@ claims: [ST0056, ST0057]
 ## Watch-outs
 
 - **THERE IS NO VERB THAT CREATES AN AC OR AN AT.** Minting IS a hand-edit of `thread.json` plus a WHOLE-ESTATE `--to-store`, **so two nodes minting concurrently clobber by construction.** Route through me. **`acceptance.md` is a GENERATED VIEW.**
-- **`intent at red|green|na` DESTROYS THE ROW'S NOTE (issue 0033).** **`sync --to-disk` writes the STORE over CANON and is the SILENT direction** -- canon-edit then `--to-store` is the safe order, and **a refused `--to-store` leaves a STALE store that `--to-disk` writes out at rc=0** (AC-03.13). **`intent backup` with no subcommand MUTATES.**
+- **`intent at red|green|na` DESTROYS THE ROW'S NOTE (issue 0033).** **`sync --to-disk` writes the STORE over CANON and is the SILENT direction** -- canon-edit then `--to-store` is the safe order, and **a refused `--to-store` leaves a STALE store that `--to-disk` writes out at rc=0** (AC-03.13). **`intent backup` with no subcommand MUTATES.** **AND `--to-store` IS NOT READ-ONLY ON DISK: it REWRITES THE GENERATED VIEWS** (measured in a throwaway copy 2026-08-18, after cc handed back two `acceptance.md` I could not account for). **Every `--to-store` leaves view files dirty, so a mint is a two-file commit and the second file is one I never edited.**
 - **Every attachment edit by any node leaves canon divergent until I sync**, and a later sync repairs the NEXT commit, never that one. **Commit first, then ping me.**
 - **THE SHARED `native/rust/target/` COSTS hv ~2 MIN PER TEST RUN** (dc, verified by me). `CARGO_TARGET_DIR=native/rust/target/<node>` -- **MUST be inside the workspace**, or `install.rs`'s walk from `current_exe()` finds no marker and **four tests fail as manufactured defects.** **A HARNESS THAT RELOCATES THE BINARY MANUFACTURES FAILURES IN EXACTLY THE TESTS THAT RESOLVE PATHS FROM IT.**
 - **DO NOT PUT v3 ON PATH. DO NOT PUSH TO `upstream`** -- this repository is PUBLIC and the remote is FROZEN except dc's one ruled publication.
