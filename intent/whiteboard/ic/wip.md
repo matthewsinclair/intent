@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 16:08Z
+heartbeat_at: 2026-08-19 16:23Z
 status: active
-focus: "**AT-03.14 IS BUILT, GREEN AND MUTATION-PROVEN, AND CANNOT BE COMMITTED YET.** 8 cases, red-first reproduced vc's live instance byte for byte, 7 mutation arms / 6 red. Workspace 786 pass / 1 fail (cc's `preconditions.rs`, in HEAD). **BLOCKED ON cc: `store.rs` +279 and `ingest.rs` +117 each carry my half AND cc's `attachments.blob` half, so neither of us can `--only` out.** The AT-03.14 row moves to green in the same breath as that commit and NOT BEFORE -- green today would cite a file in no commit, which is vc's Direction-2 hole reached deliberately."
+focus: "**TWO ROWS BUILT, GREEN AND MUTATION-PROVEN, BOTH HELD BEHIND ONE COMMIT WINDOW.** AT-03.14 (7 arms / 6 red, survivor named) and AT-03.16 (5 arms / 5 red). Workspace 792 pass / 1 fail (cc's `preconditions.rs`, in HEAD). **BLOCKED ON cc landing `store.rs` + `ingest.rs`, which carry both our halves; vc has RULED the coordinated landing with three conditions and I have satisfied condition one in words.** AT-03.16 found a FALSE POSITIVE in its own guard and then a VACUOUS CONTROL that hid it -- both caught by mutation, neither by review."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,7 +13,20 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**AT-03.14 / AC-03.13 -- BUILT AND GREEN, AWAITING A COMMIT WINDOW.**
+**AT-03.14 / AC-03.13 AND AT-03.16 / AC-03.15 -- BOTH BUILT AND GREEN, AWAITING ONE COMMIT WINDOW.**
+
+**AT-03.16 / AC-03.15 -- `egest_refuses_to_empty_the_estate.rs`, 6 cases, 5 mutation arms ALL RED.** `sync_to_disk` refuses via `refuse_if_this_would_empty_a_populated_face`, new `FacadeError::EgestWouldEmptyTheEstate { evidence }` (one variant carrying its evidence, per the `WriteNotAddressable` precedent), plus a purely additive `WriteSet::writes()` accessor so the check runs while the write is still preventable.
+
+**TWO ARMS, AND ARM ONE ALONE WOULD HAVE BEEN THE VACUOUS FIX.** Arm one compares the store's population against the canon files. **It does NOT catch the live instance**: that binary was built from a reverted WP-01 tree, so its resolver read zero from disk for the same reason it had ingested zero -- canon zero, store zero, no refusal. **Arm two compares the BYTES ABOUT TO BE WRITTEN against the bytes on disk**, because `steel_threads.md` did not move in WP-01 and is the one witness a wrong resolver cannot have misread.
+
+**TWO DEFECTS OF MY OWN, BOTH FOUND BY MUTATION AND NEITHER BY READING.**
+
+1. **A FALSE POSITIVE ON THE ORDINARY PATH.** Arm two first ran whenever EITHER population was zero -- and most projects have no issues -- so it ran on every egest and refused every legitimate shrink. Gated on threads, which are the population with a FACE. **A guard that refuses the ordinary path is worse than the hole it closes, because it gets turned off rather than fixed.**
+2. **THE CONTROL I WROTE FOR (1) WAS VACUOUS AND PASSED ANYWAY.** It drove the edit through `sync --to-store`, which PROJECTS at the end of its own run -- so the views were already short before the verb under test ran, nothing shrank, and removing the gate changed no outcome. **The arm surviving is the only reason it was found; the test was green throughout and reads exactly like a control.** Fixed by moving the store directly.
+
+**MEASURED IN PASSING, NOT ASSERTED: ISSUES HAVE NO INDEX VIEW.** The write set for a store that lost its issues is seven paths, every one byte-identical, not one about issues -- so an egest that drops an issue writes nothing and leaves the stale canon file standing. Not this row's subject; recorded because a population with no face cannot be protected by any face comparison.
+
+**AT-03.14 / AC-03.13 -- BUILT AND GREEN.**
 
 **THE MECHANISM, so it can be reconstructed if this is lost.** The store now records whether its last load from canon FINISHED. New `ingests` table in the `DDL`, migration rung 12, `Store::begin_ingest` / `finish_ingest` / `last_ingest`, `IngestOutcome`, `IngestRecord::succeeded()`. One wrapper `ingest::recording` is the single home of the recording; `load` and `resync` go through it and `Facade::sync_from_disk` wraps the whole disk -> store region. `Facade::sync_to_disk` refuses via `refuse_if_the_last_ingest_was_refused`, new `FacadeError::EgestFromRefusedIngest`.
 
@@ -25,14 +38,14 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 2. **`None` IS NOT A REFUSAL.** An existing store gets the table EMPTY at rung 12. Reading absence as failure blocks the fleet's egest for something nobody observed.
 3. **The PROJECTION is outside the recording.** A failure there is `ViewsNotWritten`, whose documented repair IS `sync --to-disk`; recording it would block the verb the error tells the operator to run.
 
-**FILES I HOLD (uncommitted).** `store.rs`, `ingest.rs` (both CONTESTED with cc), `facade.rs`, `faces.rs` (`SCHEMA_DDL_VER` 8 -> 9), `tests/refused_ingest_blocks_egest.rs` (new), `tests/error_remedies.rs`, `tests/store_schema_version.rs` (pin 12 / `0x35c1_9788_df6d_c5db`), `tests/schema_versioning.rs` (pin `SCHEMA_DDL_VER` 9 / `0x014f_6d84_7cea_56a3`), `schema/ddl.sql`. **cc's rung 13 supersedes my pins -- all three are theirs to move, and I have told them so.**
+**FILES I HOLD (uncommitted).** `store.rs`, `ingest.rs` (both CONTESTED with cc), `facade.rs` (BOTH guards), `write_set.rs` (+15, the accessor), `tests/egest_refuses_to_empty_the_estate.rs` (new), `faces.rs` (`SCHEMA_DDL_VER` 8 -> 9), `tests/refused_ingest_blocks_egest.rs` (new), `tests/error_remedies.rs`, `tests/store_schema_version.rs` (pin 12 / `0x35c1_9788_df6d_c5db`), `tests/schema_versioning.rs` (pin `SCHEMA_DDL_VER` 9 / `0x014f_6d84_7cea_56a3`), `schema/ddl.sql`. **cc's rung 13 supersedes my pins -- all three are theirs to move, and I have told them so.**
 
 ## ON RESUME -- read this first
 
-0. **AT-03.14 IS DONE, GREEN AND UNCOMMITTED. DO NOT REBUILD IT.** Read `## DOING` first; the mechanism, the three non-obvious decisions and the file list are all there. The only open action is the commit window and then moving the row.
+0. **AT-03.14 AND AT-03.16 ARE DONE, GREEN AND UNCOMMITTED. DO NOT REBUILD EITHER.** Read `## DOING` first; the mechanism, the three non-obvious decisions and the file list are all there. The only open action is the commit window and then moving the row.
 
 1. **(DONE) AT-03.14** (`refused_ingest_blocks_egest.rs`). Red-first is EXACTLY REPRODUCIBLE and vc handed me the recipe: duplicate `id` in one thread's `tests`, `--to-store` refuses, `--to-disk` then DESTROYS the authored edit at rc=0. **A criterion whose failure I can construct on demand is the one to build first.**
-2. **AT-03.16 HAS A HARD REQUIREMENT, NOT A CAUTION: DO NOT DRIVE IT WITH OUTPUT SUPPRESSED.** The original data loss was silent ONLY because vc piped the write verb to `/dev/null`. **A test that reproduces the loss under suppression is measuring the suppression.** Assert on the STREAM, and say in the row how the run was driven.
+2. **(DONE) AT-03.16 HAD A HARD REQUIREMENT, NOT A CAUTION: DO NOT DRIVE IT WITH OUTPUT SUPPRESSED.** The original data loss was silent ONLY because vc piped the write verb to `/dev/null`. **A test that reproduces the loss under suppression is measuring the suppression.** Assert on the STREAM, and say in the row how the run was driven.
 3. **AT-03.13** (`mandatory_fields_reach_a_reader.rs`) -- every field the service layer REFUSES without must reach a human read face. Red-first arm is `status_reason`.
 4. **DO NOT RE-DERIVE ANY OF TODAY'S WORK.** ST0057 WP-02/05/07/08 are built to their edges and committed. Four rows wait on dc (hydration primitive / dehydration) and each says so in canon.
 
