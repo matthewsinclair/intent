@@ -57,7 +57,9 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
 fn a_matching_digest_lets_the_removal_proceed() {
   let fx = Fixture::new();
   let (path, p) = removal_plan(&fx, "doomed.md");
-  let report = p.apply(&|| PLANNED.to_string()).expect("an unmoved tree applies");
+  let report = p
+    .apply(&|| PLANNED.to_string())
+    .expect("an unmoved tree applies");
   assert_eq!(report.dehydrated, vec![path.clone()]);
   assert!(!path.exists(), "the removal must actually happen");
 }

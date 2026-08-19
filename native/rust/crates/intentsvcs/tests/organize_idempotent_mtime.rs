@@ -93,7 +93,10 @@ fn tree_after(hydrated: &[PathBuf], attachments: &[PathBuf]) -> TreeState {
   }
 }
 
-fn moved(before: &BTreeMap<PathBuf, SystemTime>, after: &BTreeMap<PathBuf, SystemTime>) -> Vec<PathBuf> {
+fn moved(
+  before: &BTreeMap<PathBuf, SystemTime>,
+  after: &BTreeMap<PathBuf, SystemTime>,
+) -> Vec<PathBuf> {
   before
     .iter()
     .filter(|(p, t)| after.get(*p).is_some_and(|now| now != *t))
@@ -115,7 +118,11 @@ fn a_second_run_moves_no_mtimes() {
   );
   let written: Vec<PathBuf> = report.hydrated.clone();
   let before = mtimes(&written);
-  assert_eq!(before.len(), written.len(), "every hydrated file must exist");
+  assert_eq!(
+    before.len(),
+    written.len(),
+    "every hydrated file must exist"
+  );
 
   // Second run: the same plan against a tree that now HAS those files, so every
   // declared view is a Verify. Byte-identical, and must therefore not be written.
@@ -124,7 +131,9 @@ fn a_second_run_moves_no_mtimes() {
     .map(|s| s.path.clone())
     .collect();
   let second = a_plan(&project, &tree_after(&written, &attachments));
-  let report2 = second.apply(&|| "d".to_string()).expect("second run applies");
+  let report2 = second
+    .apply(&|| "d".to_string())
+    .expect("second run applies");
   let after = mtimes(&written);
 
   assert_eq!(
@@ -146,7 +155,10 @@ fn a_second_run_moves_no_mtimes() {
   // goes stale the moment the shared fixture grows a work package, and it goes
   // stale by passing.
   let verifies = second.with(Action::Verify).count();
-  assert!(verifies > 0, "the second run must actually verify something");
+  assert!(
+    verifies > 0,
+    "the second run must actually verify something"
+  );
   assert_eq!(
     report2.unchanged.len(),
     verifies,
@@ -171,7 +183,10 @@ fn the_measurement_can_see_an_mtime_move() {
   // Hand-edit the VIEWS only. A clobbered attachment is a divergence and is
   // deliberately NOT rewritten -- authority follows authorship -- so including
   // them here would be asserting the opposite of AC-04.3.
-  let views: Vec<PathBuf> = first.with(Action::Hydrate).map(|s| s.path.clone()).collect();
+  let views: Vec<PathBuf> = first
+    .with(Action::Hydrate)
+    .map(|s| s.path.clone())
+    .collect();
   let attachments: Vec<PathBuf> = first
     .with(Action::HydrateAttachment)
     .map(|s| s.path.clone())
@@ -181,7 +196,9 @@ fn the_measurement_can_see_an_mtime_move() {
     std::fs::write(p, "clobbered by a human\n").expect("write");
   }
   let second = a_plan(&project, &tree_after(&written, &attachments));
-  let report2 = second.apply(&|| "d".to_string()).expect("second run applies");
+  let report2 = second
+    .apply(&|| "d".to_string())
+    .expect("second run applies");
   let after = mtimes(&views);
 
   assert_eq!(
