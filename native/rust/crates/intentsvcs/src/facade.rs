@@ -60,6 +60,7 @@ use crate::store::{Store, StoreError};
 use crate::sync::Scope as SyncScope;
 use crate::transitions;
 use crate::views::{self, RenderContext};
+use crate::{intentfiles, organize};
 use crate::write_set::{Applied, WriteError, WriteSet};
 
 /// Ambient facts a facade call runs with. Explicit rather than discovered, so
@@ -331,6 +332,32 @@ pub enum FacadeError {
     #[source]
     cause: std::io::Error,
   },
+  /// `organize` refused, or could not read the tree.
+  ///
+  /// **Delegated rather than given a remedy here**, for the reason `Store` is:
+  /// a hand-edited view, a moved tree, an attachment divergence and an unmet
+  /// ship precondition are four different problems with four different actions,
+  /// and one sentence covering all of them is the collapse `error_remedies.rs`
+  /// exists to refuse.
+  #[error("could not reconcile the tree")]
+  Organize(#[from] organize::OrganizeError),
+  /// `.intentfiles` could not be parsed. Its own variant because the manifest
+  /// error already carries the LINE NUMBER, and folding it into a generic read
+  /// failure would drop the one field that makes it actionable.
+  #[error("could not read the realisation manifest")]
+  Intentfiles(#[from] intentfiles::IntentfilesError),
+  /// `.intentfiles` is not there, or is not readable.
+  ///
+  /// **Distinct from a parse failure, because absent and malformed have
+  /// opposite remedies** -- one is created, the other is corrected -- and a
+  /// verb whose whole subject is what the manifest declares must not report
+  /// "no manifest" as though the file were broken.
+  #[error("could not read {path}")]
+  ManifestUnreadable {
+    path: String,
+    #[source]
+    source: std::io::Error,
+  },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -365,6 +392,32 @@ pub enum FacadeError {
   /// handing them a file that silently is not their data.
   #[error("`{format}` did not survive its own round-trip, so nothing was written")]
   ExportRoundTripFailed { format: String, detail: String },
+  /// **The store's last load from canon did not finish, so the store may be
+  /// older than the canon it is about to overwrite** (AC-03.13).
+  ///
+  /// Its own variant rather than folded into [`FacadeError::Ingest`], because
+  /// the two are opposite in time and in subject. `Ingest` says "this canon is
+  /// not readable, now"; this says "canon read fine, and the LAST attempt to
+  /// take it did not land" -- reported by a verb reading in the other
+  /// direction, which never touched the canon at all. An operator told the
+  /// second when the first was meant would go looking for a defect in the file
+  /// they are pointing at.
+  #[error(
+    "the store's last ingest was not accepted (recorded at {at}), so it may be older than the canon this would overwrite: {detail}"
+  )]
+  EgestFromRefusedIngest { at: String, detail: String },
+  /// **A write that would reduce a populated face to zero** (AC-03.15).
+  ///
+  /// Separate from [`FacadeError::EgestFromRefusedIngest`] because the two are
+  /// reached by disjoint routes and the criteria say so: that one requires an
+  /// ingest to have been REFUSED, and in the live instance here **nothing was
+  /// refused and nothing malfunctioned**. The store legitimately held zero,
+  /// because a binary built from a reverted tree had ingested zero and reported
+  /// success over it. The egest wrote exactly what it was given, correctly, by
+  /// its own lights -- which is why a guard on the ingest's outcome cannot see
+  /// this and why it needs a variant of its own.
+  #[error("this would write an empty estate over one that is not empty: {evidence}")]
+  EgestWouldEmptyTheEstate { evidence: String },
 }
 
 impl crate::remedy::Remedy for FacadeError {
@@ -498,6 +551,16 @@ impl crate::remedy::Remedy for FacadeError {
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
       Self::Store(cause) => cause.remedy(),
+      // Delegated for the same reason: `organize` knows which of its four
+      // refusals happened and this does not.
+      Self::Organize(cause) => cause.remedy(),
+      Self::Intentfiles(cause) => format!(
+        "correct the line named above in `intent/.intentfiles`. Each entry is `<SIGIL>:<ID>` on its own line, with STEELTHREAD and ISSUE the only sigils; `{}` is the generated region and is rewritten, so a hand-written entry belongs above it.",
+        "# BEGIN INTENT"
+      ),
+      Self::ManifestUnreadable { path, .. } => format!(
+        "create `{path}` -- an absent manifest declares nothing, so `organize` would read the whole estate as undeclared. `intent edit <ID>` pins an artefact into it, and the generated region is written by the tool."
+      ),
       // Delegated, for the same reason `Store` is: `Blocked` knows whether the
       // estate needs repairing under v2 or whether the migrator itself failed,
       // and those are different actions for different people.
@@ -550,6 +613,28 @@ impl crate::remedy::Remedy for FacadeError {
       Self::ExportRoundTripFailed { detail, .. } => format!(
         "{detail}. Nothing was written and the project is untouched -- this is a defect in the exporter, and it refused rather than hand you an artefact that cannot be read back"
       ),
+      // **NAMES A COMMAND THAT ACTUALLY CLEARS IT.** A refusal whose remedy
+      // does not lift the refusal is a dead end, and the operator who finds
+      // that out is already in the failure -- so `refused_ingest_blocks_egest`
+      // drives the repair through to a working egest rather than asserting the
+      // wording.
+      //
+      // It does NOT offer a way to proceed anyway. The store being older than
+      // the canon is exactly the condition under which proceeding destroys the
+      // authored work, so "run it with a flag" would be an escape hatch onto
+      // the one path this exists to close.
+      // **DOES NOT NAME A COMMAND, BECAUSE THERE IS NO SAFE ONE TO NAME.** The
+      // store being empty over a populated estate means something upstream
+      // already went wrong, and every verb that could "fix" it writes. Saying
+      // where the data still IS -- on disk, in the commit -- is the honest help;
+      // sending the operator to a verb would be sending them to a second write
+      // over a state nobody has diagnosed.
+      Self::EgestWouldEmptyTheEstate { .. } => {
+        "the store is empty, not the project. Your work is still on disk and in the commit; find out why the store holds nothing -- a `sync --to-store` that read zero and reported success is the usual cause -- before writing in either direction".to_string()
+      }
+      Self::EgestFromRefusedIngest { .. } => {
+        "fix what the ingest refused and run `intent sync --to-store` again -- a load that succeeds clears this. Your canon holds authored work the store has never taken, so writing the store over it now is the loss, not the repair".to_string()
+      }
     }
   }
 }
@@ -1050,7 +1135,204 @@ impl Facade {
     Ok(())
   }
 
+  /// **A write path whose input was REFUSED must not then be used as a source
+  /// of truth** (AC-03.13).
+  ///
+  /// The two verbs are opposite directions of one operation and nothing carried
+  /// the failure of one into the other, so a refused `sync --to-store`
+  /// correctly rolled the store back and a routine `sync --to-disk` then wrote
+  /// that stale store over the canon it had declined -- at rc=0, destroying an
+  /// authored criterion twice (vc, 2026-08-18).
+  ///
+  /// **`None` is not a refusal.** A store with no recorded load has no
+  /// evidence either way, which is the state of every store written before the
+  /// `ingests` table shipped; reading absence as failure would block the egest
+  /// across the fleet for something nobody observed.
+  ///
+  /// It refuses rather than warning, which is the stricter of the two the
+  /// criterion allows. A warning on a path that has already succeeded silently
+  /// once is a line of output above a completed data loss.
+  fn refuse_if_the_last_ingest_was_refused(&self) -> Result<(), FacadeError> {
+    let Some(last) = self.store.last_ingest().map_err(FacadeError::Store)? else {
+      return Ok(());
+    };
+    if last.succeeded() {
+      return Ok(());
+    }
+    Err(FacadeError::EgestFromRefusedIngest {
+      at: last.updated_at,
+      detail: last
+        .detail
+        .filter(|d| !d.is_empty())
+        // An `attempted` row that nothing ever closed: the process died inside
+        // the load. There is no detail to give because nothing survived to
+        // write one, and saying so is the honest answer -- inventing a cause
+        // here would put a guess in the operator's hands under the tool's name.
+        .unwrap_or_else(|| "the load did not finish and recorded no cause".to_string()),
+    })
+  }
+
+  /// **A VERB THAT WOULD REDUCE A POPULATION TO ZERO MUST REFUSE OR NAME IT**
+  /// (AC-03.15).
+  ///
+  /// `sync --to-disk` wrote empty views over a non-empty estate at rc=0:
+  /// `steel_threads.md` 57 rows -> 0, `todo.md` 82 -> 0. The store held zero
+  /// legitimately, so nothing in the egest was wrong -- which is exactly what
+  /// makes the silence possible, and why the check has to be a comparison
+  /// against the estate rather than a sanity check inside the write.
+  ///
+  /// **Compared against the STORE'S canon, not the scope-filtered subset, and
+  /// that is deliberate.** A scope narrowing the write to nothing is the
+  /// operator's own instruction; an empty STORE empties every view under any
+  /// scope, because views render from full canon. So the question is whether
+  /// truth is empty, and a scope cannot make it less so.
+  ///
+  /// **The zero on the disk side is what makes this measurable at all** (and
+  /// it is the reason this row is worth more than most): 57 and 82 are non-zero,
+  /// observable before the verb runs, and cannot be confused with a correct
+  /// answer -- unlike a zero, which is indistinguishable from a legitimately
+  /// empty population.
+  fn refuse_if_this_would_empty_a_populated_face(
+    &self,
+    canon: &Canon,
+    set: &crate::write_set::WriteSet,
+  ) -> Result<(), FacadeError> {
+    // **ARM ONE: the canon files this binary can see.** Direct, cheap, and the
+    // clearest thing to tell an operator -- "the estate has 57 and the store
+    // holds none" needs no interpretation.
+    if canon.threads.is_empty() {
+      let on_disk = self
+        .project
+        .thread_ids()
+        .map_err(|e| FacadeError::Ingest(e.into()))?
+        .len();
+      if on_disk > 0 {
+        return Err(FacadeError::EgestWouldEmptyTheEstate {
+          evidence: format!("the store holds no steel threads and the estate has {on_disk}"),
+        });
+      }
+    }
+    if canon.issues.is_empty() {
+      let on_disk = self
+        .project
+        .issue_numbers()
+        .map_err(|e| FacadeError::Ingest(e.into()))?
+        .len();
+      if on_disk > 0 {
+        return Err(FacadeError::EgestWouldEmptyTheEstate {
+          evidence: format!("the store holds no issues and the estate has {on_disk}"),
+        });
+      }
+    }
+
+    // **ARM TWO, AND ARM ONE DOES NOT SUBSUME IT -- IT IS BLIND TO THE LIVE
+    // INSTANCE.**
+    //
+    // The binary that caused the episode was built from a REVERTED WP-01 TREE,
+    // so its canon resolver pointed at the old location: it read zero threads
+    // from disk for the same reason it had ingested zero. Canon zero, disk
+    // zero, no refusal. **Right verb, right depth, a population that cannot
+    // contain the failure** -- an instrument reading its subject through the
+    // very assumption that is broken.
+    //
+    // **What survives a stale resolver is the FACE**, because `steel_threads.md`
+    // and `todo.md` did not move in WP-01. So compare the bytes about to be
+    // written against the bytes already there: a file that SHRINKS is the
+    // estate saying it holds more than the store does, in the one place a wrong
+    // resolver cannot have misread.
+    //
+    // **GATED ON THREADS SPECIFICALLY, AND THE FIRST VERSION OF THIS WAS A
+    // FALSE-POSITIVE GENERATOR.** It ran whenever EITHER population was zero --
+    // and most projects have no issues at all, so on those it ran on every
+    // egest and refused any legitimate shrink: an edited-down objective, a
+    // removed work package, a shortened note. **A guard that refuses the
+    // ordinary path is worse than the hole it closes**, because it gets
+    // disabled rather than fixed.
+    //
+    // Threads are the right gate because they are the population with a FACE.
+    // Issues have no index view -- measured: the write set for a store that
+    // lost its issues is seven paths, every one byte-identical and not one of
+    // them about issues -- so there is nothing for a shrink to be observed in.
+    // A population with no face cannot be protected this way, and pretending
+    // otherwise is what produced the false positive.
+    if !canon.threads.is_empty() {
+      return Ok(());
+    }
+    for (path, content) in set.writes() {
+      let Ok(meta) = std::fs::metadata(path) else {
+        continue;
+      };
+      let on_disk = meta.len() as usize;
+      if on_disk > content.len() {
+        return Err(FacadeError::EgestWouldEmptyTheEstate {
+          evidence: format!(
+            "{} would go from {on_disk} bytes to {} -- the file on disk carries more than the store does, so the store is behind the estate rather than the other way round",
+            path.display(),
+            content.len()
+          ),
+        });
+      }
+    }
+    Ok(())
+  }
+
+  /// Reconcile the tree with `.intentfiles` (D57-3, ST0057 WP-04).
+  ///
+  /// **THIS IS A THIN COORDINATOR AND IT MUST STAY ONE.** Observe, plan, apply.
+  /// Every decision -- which of D57-3's five rows a path falls in, whether a
+  /// removal is safe, whether the estate may dehydrate at all -- lives in
+  /// [`organize`], because a reconciliation rule expressed here would be a
+  /// second answer beside the one the acceptance tests drive.
+  ///
+  /// **THE DIGEST IS RE-OBSERVED THROUGH THE SAME FUNCTION THAT PRODUCED IT.**
+  /// `apply` takes the re-observation as a closure so the moment-of-act guard
+  /// can be driven in tests without racing a real process; production hands it
+  /// the real walk. Passing anything else -- a cached value, a cheaper proxy --
+  /// would make the guard compare the tree against itself.
+  ///
+  /// **AND THE RE-WALK IS PAID FOR ONLY WHEN SOMETHING IRREVERSIBLE IS ABOUT TO
+  /// HAPPEN.** `apply` calls the closure exclusively on a plan that will remove,
+  /// so a pure hydration walks the tree once.
+  pub fn organize(&mut self) -> Result<organize::Report, FacadeError> {
+    let raw = std::fs::read_to_string(self.project.intentfiles_path()).map_err(|source| {
+      FacadeError::ManifestUnreadable {
+        path: self.project.intentfiles_path().display().to_string(),
+        source,
+      }
+    })?;
+    let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+
+    let (tree, digest) = organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let plan = {
+      let ctx = self.render_ctx()?;
+      organize::plan(
+        &self.project,
+        &self.canon,
+        &manifest,
+        &ctx,
+        &tree,
+        digest,
+      )
+    };
+
+    let project = &self.project;
+    plan
+      .apply(&|| {
+        organize::observe(project, &previous)
+          .map(|(_, digest)| digest)
+          // **A FAILED RE-OBSERVATION MUST NOT READ AS AN UNCHANGED TREE.** The
+          // guard compares this against the planned digest, so returning the
+          // planned value on error would say "nothing moved" precisely when
+          // nothing is known -- and the removals would proceed. A sentinel that
+          // can never equal a sha256 refuses instead.
+          .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
+      })
+      .map_err(FacadeError::Organize)
+  }
+
   pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
+    self.refuse_if_the_last_ingest_was_refused()?;
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let sections = self.store.doc_sections().map_err(FacadeError::Store)?;
     let canon = Canon {
@@ -1074,6 +1356,7 @@ impl Facade {
     };
     let count = all_threads.len();
     let mut set = self.projection(&canon, &all_threads, &all_issues)?;
+    self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
     // History travels only if something writes it out. Every other entity in
     // this set can be re-derived from a file that is already there; this one
     // cannot be re-derived from anything.
@@ -1113,44 +1396,61 @@ impl Facade {
       let on_disk = ingest::read(&self.project)?;
       self.check_scope(scope, &on_disk.threads)?;
     }
-    let mut canon = ingest::resync(&self.project, &mut self.store, scope)?;
-
-    // **The disk-to-attachments carry, and this is the only caller** (D57-6's
-    // second consumer; 5.1b). Until this landed the sole producer of an
-    // `Attachment` was the migrator, so a file a person wrote into a thread
-    // directory reached neither canon nor the index. Measured on this estate
-    // before the fix: 57 threads, 0 carrying attachments, with the files
-    // themselves sitting on disk.
+    // **THE RECORDING SPANS THE WHOLE DISK -> STORE OPERATION, NOT JUST
+    // `resync`.** `resync` writes the store and returns Ok, and the three steps
+    // after it can still refuse -- so an inner recording would have closed the
+    // record `succeeded` and left the outer refusal invisible, which is the
+    // exact silence AC-03.13 exists to break, reached through the machinery
+    // built to break it. `ingest::recording` is re-entrant for this: the
+    // outermost open load owns the row and the one inside `resync` joins it.
     //
-    // It runs after `resync` rather than inside it because `resync` also warms
-    // a COLD store, and a cold warm must reproduce the committed extract
-    // rather than let disk quietly outvote it. The second `rebuild` is the
-    // price of keeping that boundary honest, on a path that is explicit,
-    // infrequent and already declared destructive.
-    let refused = ingest::collect_attachments_into(&self.project, &mut canon);
-    if !refused.is_empty() {
-      return Err(IngestError::from(crate::finding::Refusal::new(refused)).into());
-    }
-    self.store.rebuild(&canon.threads, &canon.issues)?;
+    // **The projection is deliberately OUTSIDE it, and the reason is that the
+    // remedy has to stay true.** A failure there is `ViewsNotWritten` -- the
+    // store holds the change and the files do not -- and the documented repair
+    // for that is `sync --to-disk`. Recording it as a refused ingest would
+    // block the very verb the error tells the operator to run.
+    let project = &self.project;
+    let canon = ingest::recording(&mut self.store, |store| {
+      let mut canon = ingest::resync(project, store, scope)?;
 
-    // **The index is derived during `read`, which by design has not seen the
-    // attachments yet, so it has to be re-derived here or the carry lands in
-    // canon and reaches the FTS index nowhere.** That is AC-06.4's failure
-    // shape exactly -- content present and findable by nothing -- so rebuilding
-    // the thread sections is part of the carry rather than a tidy-up after it.
-    if !canon.threads.is_empty() {
-      canon
-        .sections
-        .retain(|s| s.owner_type != "thread" && s.owner_type != "work-package");
-      let mut rebuilt = Vec::new();
-      for thread in &canon.threads {
-        ingest::collect_wp_text(&self.project, &mut rebuilt, thread);
+      // **The disk-to-attachments carry, and this is the only caller** (D57-6's
+      // second consumer; 5.1b). Until this landed the sole producer of an
+      // `Attachment` was the migrator, so a file a person wrote into a thread
+      // directory reached neither canon nor the index. Measured on this estate
+      // before the fix: 57 threads, 0 carrying attachments, with the files
+      // themselves sitting on disk.
+      //
+      // It runs after `resync` rather than inside it because `resync` also warms
+      // a COLD store, and a cold warm must reproduce the committed extract
+      // rather than let disk quietly outvote it. The second `rebuild` is the
+      // price of keeping that boundary honest, on a path that is explicit,
+      // infrequent and already declared destructive.
+      let refused = ingest::collect_attachments_into(project, &mut canon);
+      if !refused.is_empty() {
+        return Err(IngestError::from(crate::finding::Refusal::new(refused)));
       }
-      canon.sections.append(&mut rebuilt);
-      self.store.replace_doc_sections(&canon.sections)?;
-    }
+      store.rebuild(&canon.threads, &canon.issues)?;
 
-    ingest::restore_event_log(&self.project, &mut self.store)?;
+      // **The index is derived during `read`, which by design has not seen the
+      // attachments yet, so it has to be re-derived here or the carry lands in
+      // canon and reaches the FTS index nowhere.** That is AC-06.4's failure
+      // shape exactly -- content present and findable by nothing -- so rebuilding
+      // the thread sections is part of the carry rather than a tidy-up after it.
+      if !canon.threads.is_empty() {
+        canon
+          .sections
+          .retain(|s| s.owner_type != "thread" && s.owner_type != "work-package");
+        let mut rebuilt = Vec::new();
+        for thread in &canon.threads {
+          ingest::collect_wp_text(project, &mut rebuilt, thread);
+        }
+        canon.sections.append(&mut rebuilt);
+        store.replace_doc_sections(&canon.sections)?;
+      }
+
+      ingest::restore_event_log(project, store)?;
+      Ok(canon)
+    })?;
     // **The projection narrows with the scope too, and forgetting that is the
     // subtle half.** A restore also rewrites the views of what it read; left
     // unfiltered it would regenerate all 266 views from a store whose unscoped

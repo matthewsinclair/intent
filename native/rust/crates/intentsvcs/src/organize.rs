@@ -227,12 +227,63 @@ pub enum OrganizeError {
   )]
   AttachmentDiverged { path: PathBuf },
 
+  /// The tree could not be READ. Its own variant rather than folded into
+  /// [`OrganizeError::Io`]: a failed walk means the plan was computed against a
+  /// population that is not the estate, and every other refusal here is about a
+  /// named file the walk succeeded on.
+  #[error("could not read the tree to reconcile it: {source}")]
+  Scan {
+    #[source]
+    source: crate::sync::SyncError,
+  },
+
   #[error("could not read {path}: {source}")]
   Io {
     path: PathBuf,
     #[source]
     source: std::io::Error,
   },
+}
+
+impl crate::remedy::Remedy for OrganizeError {
+  /// **ONE ACTION PER REFUSAL, AND THEY ARE GENUINELY DIFFERENT ACTIONS.**
+  /// Four of these are the verb doing its job, so a shared sentence here would
+  /// tell an operator nothing on the occasions the verb is most useful: a hand
+  /// edit is reconciled, a moved tree is re-run, a divergence is a CHOICE the
+  /// verb refuses to make, and an unmet precondition is not the operator's to
+  /// fix at all.
+  fn remedy(&self) -> String {
+    match self {
+      Self::HandEdited { path, .. } => format!(
+        "decide which copy is right. `intent doctor` names the difference; if the file at {} is the one you want, take it into canon with `intent sync --to-store` before re-running, and if the store is right, delete the file and re-run.",
+        path.display()
+      ),
+      // **The action is to run it again, and saying so is only honest because
+      // re-running re-plans from scratch.** A guard whose remedy is "retry"
+      // trains an operator to retry until it passes, so the sentence has to say
+      // what the second run does differently.
+      Self::TreeMoved { .. } => "re-run `intent organize`. It re-plans against the tree as it is now rather than resuming the plan it refused, so the second run is a fresh decision and not the first one forced through.".to_string(),
+      Self::AttachmentDiverged { path } => format!(
+        "choose, because `organize` will not: `intent sync --to-store` takes the copy at {} as authoritative, or restore the file from git if the store is right. An attachment is authored ON DISK, so this means the STORE is stale -- the opposite remedy from a divergent view.",
+        path.display()
+      ),
+      // **NOT THE OPERATOR'S TO FIX, AND THE REMEDY SAYS SO RATHER THAN
+      // OFFERING A LEVER.** Every other remedy here names something to do to
+      // this estate. This one names work that has to land first, and inventing
+      // an override would hand out exactly the bypass the gate exists to
+      // refuse.
+      Self::PreconditionsUnmet { .. } => format!(
+        "nothing here is yours to change: dehydration is gated until {}'s declared preconditions are met. `intent ac list {}` shows the state of each. Hydration and verification in the same run were not affected.",
+        preconditions::DECLARING_THREAD,
+        preconditions::DECLARING_THREAD
+      ),
+      Self::Scan { .. } => "the tree could not be walked, so nothing was planned and nothing was touched. The cause above names the path -- check it is readable and re-run.".to_string(),
+      Self::Io { path, .. } => format!(
+        "check that {} exists and is readable. This is a file `organize` had already decided about, so the tree moved or a permission changed between the plan and the act.",
+        path.display()
+      ),
+    }
+  }
 }
 
 fn io_err(path: &Path, source: std::io::Error) -> OrganizeError {
@@ -272,6 +323,60 @@ fn thread_relative(project: &Project, path: &Path) -> Option<PathBuf> {
     return None;
   }
   Some(rel)
+}
+
+/// Read the tree as [`plan`] needs it, and fingerprint it in the same pass.
+///
+/// **THE WALK AND THE DIGEST COME FROM ONE OBSERVATION, WHICH IS THE ONLY WAY
+/// THE MOMENT-OF-ACT GUARD MEANS ANYTHING.** AC-04.5 compares the tree as
+/// planned against the tree as found immediately before the irreversible step.
+/// Two separate walks -- one for the listing, one for the hash -- would compare
+/// a fingerprint of one moment against a plan built from another, so the guard
+/// could pass while the thing it guards had already moved.
+///
+/// **It reuses `sync::scan` rather than walking the tree again.** That function
+/// already owns what counts as an estate file: the gitignore-derived corpus,
+/// `SKIPPED_DIRS`, the name-ordered deterministic walk, and the sha256 of every
+/// file. A second walker here would be a fourth answer to "what is in this
+/// estate", and the one that goes stale is always the one nobody is looking at
+/// when a new ignore rule lands.
+///
+/// **The hash covers PATH AND CONTENT, not mtime.** A digest that moved when a
+/// file was rewritten with identical bytes would refuse `organize`'s own quiet
+/// second run -- an alarm that is always on, which is the defect AC-04.4 exists
+/// to measure the absence of.
+pub fn observe(
+  project: &Project,
+  previous: &[crate::sync::FileEntry],
+) -> Result<(TreeState, String), OrganizeError> {
+  let root = project.root();
+  let entries =
+    crate::sync::scan(root, previous).map_err(|source| OrganizeError::Scan { source })?;
+
+  let mut present = BTreeSet::new();
+  let mut sha256 = BTreeMap::new();
+  // Sorted by construction: `scan` walks name-ordered, and both collections are
+  // ordered maps. The digest below depends on that and must not depend on it
+  // silently, so it re-derives its order from the map rather than the walk.
+  for entry in &entries {
+    let path = root.join(&entry.path);
+    present.insert(path.clone());
+    sha256.insert(path, entry.sha256.clone());
+  }
+
+  let mut hasher = <sha2::Sha256 as sha2::Digest>::new();
+  for (path, sha) in &sha256 {
+    sha2::Digest::update(&mut hasher, path.to_string_lossy().as_bytes());
+    sha2::Digest::update(&mut hasher, b"\0");
+    sha2::Digest::update(&mut hasher, sha.as_bytes());
+    sha2::Digest::update(&mut hasher, b"\n");
+  }
+  let digest = sha2::Digest::finalize(hasher)
+    .iter()
+    .map(|b| format!("{b:02x}"))
+    .collect::<String>();
+
+  Ok((TreeState { present, sha256 }, digest))
 }
 
 /// Compute a plan without touching the tree.
@@ -355,7 +460,14 @@ pub fn plan(
           steps.push(Step {
             path,
             action: Action::Dehydrate,
-            content: Some(att.text.clone()),
+            // **`None` for an OPAQUE attachment, and that is AC-03.1's
+            // precondition arriving for free rather than a gap.** `gate` reads
+            // a `None` as _no bytes to compare against, and unproven is not
+            // permission_, so an opaque attachment is REFUSED removal until its
+            // bytes can travel here. Writing `Some(String::new())` to satisfy
+            // the type would turn that refusal into a byte comparison against
+            // nothing, which passes for an empty file and destroys every other.
+            content: att.text.clone(),
           });
         }
         continue;
@@ -364,7 +476,10 @@ pub fn plan(
         steps.push(Step {
           path,
           action: Action::HydrateAttachment,
-          content: Some(att.text.clone()),
+          // Same `None`, the other direction: the write loop skips a step with
+          // no content, so an opaque attachment is not hydrated as a zero-byte
+          // file. Absent and reported beats present and wrong.
+          content: att.text.clone(),
         });
         continue;
       }

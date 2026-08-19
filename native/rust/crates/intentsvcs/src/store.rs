@@ -149,12 +149,25 @@ CREATE TABLE IF NOT EXISTS attachments (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   seq INTEGER NOT NULL,
   path TEXT NOT NULL,
-  text TEXT NOT NULL,
+  -- NULLABLE, and its absence is what OPAQUE means. An attachment carries text
+  -- or it carries bytes, never both and never neither, which the CHECK below
+  -- states so the table cannot hold a shape the model forbids.
+  text TEXT,
+  -- An opaque attachment's bytes. The store is the authoritative record, so
+  -- these live HERE as well as in the committed extract's sidecar file -- a
+  -- store that held only the hash could report divergence and never hydrate
+  -- the file back.
+  blob BLOB,
   bytes INTEGER NOT NULL,
   sha256 TEXT NOT NULL,
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq),
-  UNIQUE (thread_id, path)
+  UNIQUE (thread_id, path),
+  -- **EXACTLY ONE, enforced by the database rather than by every writer.** The
+  -- model's constructors already guarantee it, and the model is not the only
+  -- thing that has ever written this table -- a migration rung is a writer too,
+  -- and rung 11 exists because one of them produced a shape nobody checked.
+  CHECK ((text IS NULL) <> (blob IS NULL))
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 -- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
@@ -321,6 +334,33 @@ CREATE TABLE IF NOT EXISTS snapshots (
   taken_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+-- **WHETHER THE LAST LOAD FROM CANON FINISHED.**
+--
+-- A reader of this face needs it because the answer decides whether the store
+-- can be projected back over the files: a store whose last load was refused may
+-- be older than the canon beside it, and writing it out would overwrite
+-- authored work the store never took.
+--
+-- A row is written BEFORE the load is attempted and updated after, which is the
+-- `snapshots` shape and is here for the same reason plus a sharper one: the
+-- refusal this exists to record is a SQLite failure INSIDE the rebuild
+-- transaction, so anything written in that transaction rolls back with it. The
+-- attempt row has to be committed before the rebuild opens, or the store
+-- forgets it was ever asked.
+--
+-- An unfinished row therefore reads `attempted`, which is not `succeeded`, so a
+-- crash mid-ingest fails the safe way without anything having to catch it.
+-- openness: DERIVED -- an operations log about THIS machine's store, recording
+-- whether the store is currently older than the canon beside it. It describes
+-- nothing about the project: a clone's copy of the estate cannot inherit
+-- another machine's load history, and would be wrong if it did.
+CREATE TABLE IF NOT EXISTS ingests (
+  id INTEGER PRIMARY KEY,
+  outcome TEXT NOT NULL DEFAULT 'attempted',
+  detail TEXT,
+  started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- openness: carried by intent/events.jsonl
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
@@ -356,7 +396,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 11;
+pub const SCHEMA_VERSION: i32 = 13;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -747,6 +787,81 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        FROM attachments;
    DROP TABLE attachments;
    ALTER TABLE attachments_v11 RENAME TO attachments;",
+),(
+  12,
+  // 11 -> 12: `ingests` arrives. Purely additive -- no existing table is read
+  // or rewritten -- so the rung is the bare `CREATE`.
+  //
+  // **The rung is not redundant with the `IF NOT EXISTS` in [`DDL`], and this
+  // is the trap [`SCHEMA_VERSION`]'s own doc names from the other side.** The
+  // DDL apply after the ladder would indeed create the table; what it would not
+  // do is move `user_version`, so an 11-stamped store would migrate on every
+  // open forever, correct in shape and permanently unstamped. The rung exists
+  // to carry the version, and the `CREATE` is here so the two never disagree
+  // about which rung created what.
+  //
+  // **Existing stores arrive with the table EMPTY, and that is the right
+  // starting state rather than a gap.** An empty history means nothing was
+  // recorded, which is exactly true of every store written before this shipped
+  // -- back-filling a `succeeded` row would be asserting a load nobody
+  // observed, and back-filling a `refused` one would block the egest on every
+  // upgraded project at once. `Store::last_ingest` returning `None` is the
+  // honest answer and the egest guard reads it as "no evidence either way".
+  "CREATE TABLE IF NOT EXISTS ingests (
+     id INTEGER PRIMARY KEY,
+     outcome TEXT NOT NULL DEFAULT 'attempted',
+     detail TEXT,
+     started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   );",
+), (
+  13,
+  // 12 -> 13: `attachments.text` becomes NULLABLE and `blob` arrives, so an
+  // OPAQUE attachment has somewhere to be (ST0057 AC-03.1). The CHECK is
+  // AC-03.2 -- form follows content, both ways -- stated where the database
+  // enforces it rather than where a writer promises it.
+  //
+  // **THE CRITERION IDS LIVE HERE, IN A RUST COMMENT, AND NOT IN THE `DDL`
+  // STRING ABOVE.** `intent schema ddl.sql` PRINTS that string, so a `-- ...
+  // (ST0057 AC-03.2)` inside it ships this project's own work tracking to every
+  // consumer of the published contract. `no_pm_state_in_output` caught exactly
+  // that, on this table, in this commit. The SQL comments say what the column
+  // means; the reasoning about which row required it says so out here.
+  //
+  // **A REBUILD rather than two `ALTER`s, because SQLite cannot drop a NOT NULL
+  // constraint in place.** `ADD COLUMN blob BLOB` alone would leave `text NOT
+  // NULL` standing, and every opaque insert would then fail at the database
+  // with a constraint error rather than being impossible to express -- which is
+  // the failure that looks like a bug in the caller.
+  //
+  // **Rung 12 is ic's `ingests` table and this is 13, deliberately.** ic bumped
+  // 11 -> 12 in the same working tree on the same afternoon; two rungs sharing
+  // a number is precisely what rung 11's own note is about -- two shapes
+  // stamped one version, and nothing in the store able to tell them apart.
+  //
+  // Every existing row is text by construction: `text NOT NULL` was the old
+  // shape, so no row can carry bytes and none needs a `blob`. The CHECK is
+  // therefore satisfied by the carried rows without inspecting them, and if it
+  // were not the rung would fail LOUDLY at the constraint rather than quietly
+  // dropping whatever offended it.
+  "CREATE TABLE attachments_v13 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     seq INTEGER NOT NULL,
+     path TEXT NOT NULL,
+     text TEXT,
+     blob BLOB,
+     bytes INTEGER NOT NULL,
+     sha256 TEXT NOT NULL,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, seq),
+     UNIQUE (thread_id, path),
+     CHECK ((text IS NULL) <> (blob IS NULL))
+   );
+   INSERT INTO attachments_v13 (thread_id, seq, path, text, blob, bytes, sha256, written_at)
+     SELECT thread_id, seq, path, text, NULL, bytes, sha256, written_at
+       FROM attachments;
+   DROP TABLE attachments;
+   ALTER TABLE attachments_v13 RENAME TO attachments;",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -855,6 +970,19 @@ fn enum_from<T: serde::de::DeserializeOwned>(wire: &str) -> Result<T, StoreError
 
 pub struct Store {
   conn: Connection,
+  /// How many loads-from-canon are open on this store right now.
+  ///
+  /// **Re-entrancy, because the operation that must be recorded is not the one
+  /// that writes.** `Facade::sync_from_disk` calls `ingest::resync`, which
+  /// rebuilds the store, and then does more work that can still refuse. If the
+  /// inner call closed the record, the outer refusal would land on a store
+  /// whose history said `succeeded` -- the exact silence this table exists to
+  /// break, arrived at through the machinery built to break it.
+  ///
+  /// So the OUTERMOST open load owns the row, and an inner one joins it.
+  ingest_depth: u32,
+  /// The row the outermost open load is recording into.
+  ingest_attempt: Option<i64>,
 }
 
 /// Everything ONE mutation changes, written in ONE transaction.
@@ -891,6 +1019,65 @@ pub struct SnapshotRecord {
   pub outcome: String,
   pub detail: Option<String>,
   pub taken_at: String,
+}
+
+/// How a load from canon ended (AC-03.13).
+///
+/// Named rather than a `bool` for the reason [`Stamp`] and [`SnapshotOutcome`]
+/// are: the two worlds here are "the store now holds what canon holds" and "the
+/// store is older than the canon beside it", and a `true` at a call site says
+/// neither.
+///
+/// **There is no `Attempted` variant, and its absence is the mechanism.** That
+/// value is written by [`Store::begin_ingest`] and spelled by no caller, so it
+/// can only ever mean "nothing reported an outcome" -- a crash, a panic, a
+/// process killed mid-rebuild. A caller able to write it could report the
+/// unfinished state deliberately, and then an unfinished state would stop being
+/// evidence of anything.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IngestOutcome {
+  Succeeded,
+  Refused,
+}
+
+impl IngestOutcome {
+  fn as_str(self) -> &'static str {
+    match self {
+      Self::Succeeded => "succeeded",
+      Self::Refused => "refused",
+    }
+  }
+}
+
+/// One recorded load of canon into this store.
+///
+/// `detail` is optional because a row exists from the moment the load STARTS,
+/// and an attempt that died before anything could describe it is a real record
+/// with nothing to say -- which is the state this table was added to make
+/// visible.
+#[derive(Debug, Clone)]
+pub struct IngestRecord {
+  pub id: i64,
+  /// `attempted` · `succeeded` · `refused`.
+  pub outcome: String,
+  pub detail: Option<String>,
+  pub started_at: String,
+  pub updated_at: String,
+}
+
+impl IngestRecord {
+  /// **The single home of what counts as a finished, accepted load.**
+  ///
+  /// Spelled once rather than at each reader, so the egest guard and `doctor`
+  /// cannot come to disagree about whether `attempted` is good enough.
+  ///
+  /// It tests for SUCCESS rather than against failure, and that is the whole
+  /// safety of it: `attempted`, and any string a future rung might add, read
+  /// false. A `!= "refused"` test would call a crashed load healthy, and a
+  /// crashed load leaves exactly the stale store AC-03.13 is about.
+  pub fn succeeded(&self) -> bool {
+    self.outcome == IngestOutcome::Succeeded.as_str()
+  }
 }
 
 /// What the database stored for one thread's DOMAIN dates.
@@ -1010,7 +1197,11 @@ impl Store {
         });
       }
     }
-    Ok(Self { conn })
+    Ok(Self {
+      conn,
+      ingest_depth: 0,
+      ingest_attempt: None,
+    })
   }
 
   /// Every table this database actually has, including FTS shadow tables.
@@ -1202,8 +1393,8 @@ impl Store {
     }
     for (seq, a) in t.attachments.iter().enumerate() {
       tx.execute(
-        "INSERT INTO attachments (thread_id, seq, path, text, bytes, sha256) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![t.id, seq as i64, a.path, a.text, a.bytes, a.sha256],
+        "INSERT INTO attachments (thread_id, seq, path, text, blob, bytes, sha256) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![t.id, seq as i64, a.path, a.text, a.blob, a.bytes, a.sha256],
       )?;
     }
     for wp in &t.wps {
@@ -1537,7 +1728,7 @@ impl Store {
   /// disagree with the content and say so.
   fn attachments_of(&self, thread: &str) -> Result<Vec<crate::model::Attachment>, StoreError> {
     let mut stmt = self.conn.prepare(
-      "SELECT path, text, bytes, sha256 FROM attachments WHERE thread_id = ?1 ORDER BY seq",
+      "SELECT path, text, bytes, sha256, blob FROM attachments WHERE thread_id = ?1 ORDER BY seq",
     )?;
     let rows = stmt.query_map(params![thread], |row| {
       Ok(crate::model::Attachment {
@@ -1545,6 +1736,11 @@ impl Store {
         text: row.get(1)?,
         bytes: row.get(2)?,
         sha256: row.get(3)?,
+        // Read back as stored, never re-derived from `text`, for the reason
+        // the doc above already gives about `bytes` and `sha256`: a value the
+        // reader reconstructs agrees with the reader by construction and can
+        // never disagree with what was written.
+        blob: row.get(4)?,
       })
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
@@ -1713,6 +1909,82 @@ impl Store {
   /// unpopulated index answers every query the same way a genuine miss does,
   /// and a caller cannot tell those apart without asking this question
   /// (AC-06.4).
+  /// Open a load-from-canon and record that it started (AC-03.13).
+  ///
+  /// **Committed on its own, before the rebuild transaction opens, and that
+  /// ordering is the whole correctness of the table.** The refusal this exists
+  /// to record is a SQLite failure INSIDE `Store::rebuild`'s transaction, so
+  /// anything written there rolls back with it -- a store that recorded the
+  /// attempt in the same transaction would forget it had ever been asked, and
+  /// report the stale contents as though nothing had happened. Which is the
+  /// original defect, reproduced by the fix for it.
+  ///
+  /// Re-entrant: an inner load joins the outer one and does not open a second
+  /// row. See [`Store::ingest_depth`]'s note for why the outermost caller has
+  /// to be the one that owns the outcome.
+  pub fn begin_ingest(&mut self) -> Result<(), StoreError> {
+    if self.ingest_depth == 0 {
+      self
+        .conn
+        .execute("INSERT INTO ingests (outcome) VALUES ('attempted')", [])?;
+      self.ingest_attempt = Some(self.conn.last_insert_rowid());
+    }
+    self.ingest_depth += 1;
+    Ok(())
+  }
+
+  /// Close the load opened by [`Store::begin_ingest`], recording how it ended.
+  ///
+  /// Only the OUTERMOST close writes; an inner one just unwinds the depth. A
+  /// close with nothing open is a no-op rather than an error, because the
+  /// caller that would see that error is the error path of an ingest, and
+  /// failing there would replace the operator's real refusal with a
+  /// book-keeping one.
+  pub fn finish_ingest(&mut self, outcome: IngestOutcome, detail: &str) -> Result<(), StoreError> {
+    self.ingest_depth = self.ingest_depth.saturating_sub(1);
+    if self.ingest_depth > 0 {
+      return Ok(());
+    }
+    let Some(id) = self.ingest_attempt.take() else {
+      return Ok(());
+    };
+    self.conn.execute(
+      "UPDATE ingests
+          SET outcome = ?1,
+              detail = ?2,
+              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+        WHERE id = ?3",
+      rusqlite::params![outcome.as_str(), detail, id],
+    )?;
+    Ok(())
+  }
+
+  /// The most recent load of canon into this store, or `None` if none has been
+  /// recorded.
+  ///
+  /// **`None` means no evidence, and readers must not read it as failure.** A
+  /// store written before this table shipped has no rows, and so does a store
+  /// warmed by a path that predates the recording; treating either as a refusal
+  /// would block the egest on every upgraded project at once, for something
+  /// nobody observed.
+  pub fn last_ingest(&self) -> Result<Option<IngestRecord>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, outcome, detail, started_at, updated_at
+         FROM ingests ORDER BY id DESC LIMIT 1",
+    )?;
+    let mut rows = stmt.query([])?;
+    let Some(row) = rows.next()? else {
+      return Ok(None);
+    };
+    Ok(Some(IngestRecord {
+      id: row.get(0)?,
+      outcome: row.get(1)?,
+      detail: row.get(2)?,
+      started_at: row.get(3)?,
+      updated_at: row.get(4)?,
+    }))
+  }
+
   /// Open a backup attempt and return its id and the stamp the DATABASE gave
   /// it.
   ///

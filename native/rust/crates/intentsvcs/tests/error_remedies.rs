@@ -38,6 +38,20 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "unknown thread",
     facade.st_show("ST9999").expect_err("no such thread"),
   )];
+  // **`organize` reads a manifest, so a project without one refuses -- and the
+  // two ways it can refuse have opposite remedies.** Provoked here rather than
+  // exempted because neither needs a broken world: one file absent, one file
+  // malformed, both reachable through the ordinary call.
+  out.push((
+    "no realisation manifest",
+    facade.organize().expect_err("a project with no .intentfiles cannot organize"),
+  ));
+  std::fs::write(fx.path("intent/.intentfiles"), "NOTASIGIL:ST0056\n")
+    .expect("write a malformed manifest");
+  out.push((
+    "malformed realisation manifest",
+    facade.organize().expect_err("a manifest with an unknown sigil is refused"),
+  ));
   out.push((
     "unknown work package",
     facade.wp_start("ST0056", 99).expect_err("no such wp"),
@@ -235,6 +249,55 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("a thread id is server-assigned -- POST to the collection"),
   ));
 
+  // **ITS OWN FIXTURE, because provoking this one POISONS the store it is
+  // provoked against.** The whole property is that the block PERSISTS, so
+  // reaching for the shared facade would refuse every later egest in this
+  // function for a reason that has nothing to do with the case being made --
+  // and a provocation whose side effect is a second, unrelated refusal is how
+  // a roster starts asserting the wrong thing about the right variant.
+  let refused_ingest = Fixture::new();
+  refused_ingest.write_thread(&sample_thread("ST0056"));
+  let mut blocked = refused_ingest.facade();
+  // **ANY refused load will do, and using the CHEAPEST one is the point.** The
+  // variant is about the recorded OUTCOME, not about the cause that produced
+  // it, so provoking it from a schema refusal rather than from the store-level
+  // one that motivated it is a small independent check that the guard did not
+  // quietly become specific to a single failure.
+  refused_ingest.write_raw_thread("ST0057", r#"{"schema":"intent/thread@3.0","id":"ST0057"}"#);
+  blocked
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect_err("canon missing its mandatory fields refuses the ingest");
+  out.push((
+    "egest from a store whose last ingest was refused",
+    blocked
+      .sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect_err("the store may be older than the canon this would overwrite"),
+  ));
+
+  // Its own fixture too, and for a different reason from the one above: this
+  // one needs a store that is WARM and wrong, which no call on a healthy facade
+  // produces. One non-empty table is what makes it warm -- an entirely empty
+  // store is COLD and warms itself from the files on the next open.
+  let emptied = Fixture::new();
+  emptied.write_thread(&sample_thread("ST0056"));
+  emptied.write_issue(&common::sample_issue(21));
+  emptied
+    .facade_on_disk()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("a healthy estate projects");
+  {
+    let mut store = intentsvcs::store::Store::open(&emptied.project().db_path()).expect("open");
+    let (_, issues) = store.load_canon().expect("read");
+    store.rebuild(&[], &issues).expect("the threads are gone");
+  }
+  out.push((
+    "egest that would empty a populated estate",
+    emptied
+      .facade_on_disk()
+      .sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect_err("the store holds no threads and the estate has one"),
+  ));
+
   out
 }
 
@@ -288,6 +351,11 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
     FacadeError::MigrationBlocked(_) => "MigrationBlocked",
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
+    FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
+    FacadeError::EgestWouldEmptyTheEstate { .. } => "EgestWouldEmptyTheEstate",
+    FacadeError::Organize(_) => "Organize",
+    FacadeError::Intentfiles(_) => "Intentfiles",
+    FacadeError::ManifestUnreadable { .. } => "ManifestUnreadable",
   }
 }
 
@@ -298,6 +366,9 @@ fn variant(err: &FacadeError) -> &'static str {
 /// look like oversights -- an exemption that is announced, never inferred
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
+  "Organize",
+  "Intentfiles",
+  "ManifestUnreadable",
   "NoSuchThread",
   "ThreadExists",
   "NoSuchWorkPackage",
@@ -330,11 +401,19 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchIssue",
   "MigrationBlocked",
   "MigrationHalted",
+  "EgestFromRefusedIngest",
+  "EgestWouldEmptyTheEstate",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // Needs a TREE in a particular state rather than a bad call -- a hand-edited
+  // view, a tree that moved mid-apply, an attachment divergence, or an unmet
+  // ship precondition. All four are driven where the state can be built:
+  // `organize_dehydration_gate.rs`, `organize_moment_of_act_digest.rs`,
+  // `organize_attachment_divergence.rs` and `dehydration_ship_gate.rs`.
+  "Organize",
   "Write",           // an unwritable directory -- `write_set_rollback.rs`
   "ViewsNotWritten", // the same, after the DB has committed
   "Store",           // a damaged SQLite file

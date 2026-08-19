@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 8
+-- SCHEMA_DDL_VER: 10
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -86,12 +86,25 @@ CREATE TABLE IF NOT EXISTS attachments (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   seq INTEGER NOT NULL,
   path TEXT NOT NULL,
-  text TEXT NOT NULL,
+  -- NULLABLE, and its absence is what OPAQUE means. An attachment carries text
+  -- or it carries bytes, never both and never neither, which the CHECK below
+  -- states so the table cannot hold a shape the model forbids.
+  text TEXT,
+  -- An opaque attachment's bytes. The store is the authoritative record, so
+  -- these live HERE as well as in the committed extract's sidecar file -- a
+  -- store that held only the hash could report divergence and never hydrate
+  -- the file back.
+  blob BLOB,
   bytes INTEGER NOT NULL,
   sha256 TEXT NOT NULL,
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq),
-  UNIQUE (thread_id, path)
+  UNIQUE (thread_id, path),
+  -- **EXACTLY ONE, enforced by the database rather than by every writer.** The
+  -- model's constructors already guarantee it, and the model is not the only
+  -- thing that has ever written this table -- a migration rung is a writer too,
+  -- and rung 11 exists because one of them produced a shape nobody checked.
+  CHECK ((text IS NULL) <> (blob IS NULL))
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 -- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
@@ -256,6 +269,33 @@ CREATE TABLE IF NOT EXISTS snapshots (
   outcome TEXT NOT NULL DEFAULT 'attempted',
   detail TEXT,
   taken_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- **WHETHER THE LAST LOAD FROM CANON FINISHED.**
+--
+-- A reader of this face needs it because the answer decides whether the store
+-- can be projected back over the files: a store whose last load was refused may
+-- be older than the canon beside it, and writing it out would overwrite
+-- authored work the store never took.
+--
+-- A row is written BEFORE the load is attempted and updated after, which is the
+-- `snapshots` shape and is here for the same reason plus a sharper one: the
+-- refusal this exists to record is a SQLite failure INSIDE the rebuild
+-- transaction, so anything written in that transaction rolls back with it. The
+-- attempt row has to be committed before the rebuild opens, or the store
+-- forgets it was ever asked.
+--
+-- An unfinished row therefore reads `attempted`, which is not `succeeded`, so a
+-- crash mid-ingest fails the safe way without anything having to catch it.
+-- openness: DERIVED -- an operations log about THIS machine's store, recording
+-- whether the store is currently older than the canon beside it. It describes
+-- nothing about the project: a clone's copy of the estate cannot inherit
+-- another machine's load history, and would be wrong if it did.
+CREATE TABLE IF NOT EXISTS ingests (
+  id INTEGER PRIMARY KEY,
+  outcome TEXT NOT NULL DEFAULT 'attempted',
+  detail TEXT,
+  started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 -- openness: carried by intent/events.jsonl

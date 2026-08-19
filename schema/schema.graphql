@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0-dev
-# SCHEMA_SDL_VER: 7
+# SCHEMA_SDL_VER: 8
 
 enum AcKind {
   TEST
@@ -124,9 +124,21 @@ type Attachment {
   """
   path: String!
   """
-  The file's content, byte for byte.
+  The file's content when it is TEXT, byte for byte. `None` when the
+  attachment is OPAQUE, and that absence is the ONLY marker of which it is.
+  
+  **One representation, because a second field saying `opaque: true` would
+  be a way for the two to disagree** -- the same argument [`Attachment::new`]
+  already makes below about `bytes` and `sha256`. A reader asks whether the
+  text is here; there is nothing else to consult and nothing to contradict.
+  
+  **Absence is unambiguous rather than merely convenient**: every attachment
+  in every canon file written before this field became optional carries a
+  `text`, so no existing artefact reads as opaque by omission. And because
+  `Some(s)` serialises exactly as the old `String` did, the 98 canon files
+  on disk do not move a byte.
   """
-  text: String!
+  text: String
   """
   The content's length in bytes.
   """

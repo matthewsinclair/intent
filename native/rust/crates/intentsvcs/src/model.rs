@@ -310,8 +310,21 @@ pub struct Attachment {
   /// Relative to the THREAD rather than the project, so a file nested under it
   /// is addressed without a second collection to hold it.
   pub path: String,
-  /// The file's content, byte for byte.
-  pub text: String,
+  /// The file's content when it is TEXT, byte for byte. `None` when the
+  /// attachment is OPAQUE, and that absence is the ONLY marker of which it is.
+  ///
+  /// **One representation, because a second field saying `opaque: true` would
+  /// be a way for the two to disagree** -- the same argument [`Attachment::new`]
+  /// already makes below about `bytes` and `sha256`. A reader asks whether the
+  /// text is here; there is nothing else to consult and nothing to contradict.
+  ///
+  /// **Absence is unambiguous rather than merely convenient**: every attachment
+  /// in every canon file written before this field became optional carries a
+  /// `text`, so no existing artefact reads as opaque by omission. And because
+  /// `Some(s)` serialises exactly as the old `String` did, the 98 canon files
+  /// on disk do not move a byte.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub text: Option<String>,
   /// The content's length in bytes.
   pub bytes: u64,
   /// Lowercase hex SHA-256 of the content.
@@ -319,6 +332,21 @@ pub struct Attachment {
   /// What the file was when it was carried. Comparing it to the file on disk
   /// is how a hand edit is reported rather than silently overwritten.
   pub sha256: String,
+  /// An OPAQUE attachment's bytes. **Never serialised into the thread's canon
+  /// JSON** -- they travel as a sibling FILE at `intent/.canon/st/<ID>/<path>`,
+  /// which is AC-03.2's rule in the direction that a `#[serde(skip)]` can
+  /// actually enforce: there is no code path that could write them inline,
+  /// rather than a convention that nobody writes them inline.
+  ///
+  /// **So a canon file parsed on its own yields an attachment with NEITHER
+  /// half**, and that intermediate is real rather than hypothetical.
+  /// [`crate::ingest::read`] closes it in the same step that opens the JSON,
+  /// and a missing sidecar is a REFUSAL there -- canon naming bytes that do not
+  /// exist is AC-03.6's invariant one level down, and reporting it as an empty
+  /// attachment would be the silent form of exactly that.
+  #[serde(skip)]
+  #[graphql(skip)]
+  pub blob: Option<Vec<u8>>,
 }
 
 impl Attachment {
@@ -335,7 +363,53 @@ impl Attachment {
       path: path.into(),
       bytes: text.len() as u64,
       sha256: sha256_hex(text.as_bytes()),
-      text,
+      text: Some(text),
+      blob: None,
+    }
+  }
+
+  /// Carry `bytes` as the OPAQUE attachment at `path`.
+  ///
+  /// **The same one-constructor argument, and it is stronger here**: an opaque
+  /// attachment's `sha256` is the only thing that can ever say whether the
+  /// sidecar in canon is the file the author wrote, because nobody can read the
+  /// content and notice it is wrong. A hash set by hand beside bytes set
+  /// separately is a hash describing whatever was in the other variable.
+  pub fn opaque(path: impl Into<String>, bytes: impl Into<Vec<u8>>) -> Self {
+    let raw = bytes.into();
+    Self {
+      path: path.into(),
+      bytes: raw.len() as u64,
+      sha256: sha256_hex(&raw),
+      text: None,
+      blob: Some(raw),
+    }
+  }
+
+  /// Whether this attachment's content is bytes rather than text.
+  ///
+  /// **Asked of `text`, never of `blob`, and the asymmetry is deliberate.**
+  /// `blob` is `#[serde(skip)]`, so a canon file parsed on its own produces
+  /// `blob: None` for a text attachment AND for an opaque one -- keying on it
+  /// would call every attachment text at exactly the moment the distinction
+  /// matters. `text` survives the parse, so it is the half that can answer.
+  pub fn is_opaque(&self) -> bool {
+    self.text.is_none()
+  }
+
+  /// The content as bytes, whichever form it is carried in.
+  ///
+  /// The one place the two halves rejoin, so a caller that only needs bytes --
+  /// hydration, hashing, a byte comparison against disk -- never has to know
+  /// which it got, and cannot get it wrong in one of the two arms.
+  pub fn as_bytes(&self) -> Option<&[u8]> {
+    match (&self.text, &self.blob) {
+      (Some(text), _) => Some(text.as_bytes()),
+      (None, Some(raw)) => Some(raw),
+      // An opaque attachment whose sidecar has not been loaded. Neither half is
+      // present and inventing an empty one here is how a missing file becomes a
+      // zero-byte write.
+      (None, None) => None,
     }
   }
 }

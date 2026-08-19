@@ -228,10 +228,45 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // Attachments move the DDL further than a column does: they are the first
   // NEW TABLE since the ladder began, so the DDL hash moves for a `CREATE`
   // rather than an `ALTER`.
+  //
+  // **SIXTH, AND THE FIRST TIME ONLY ONE OF THE THREE MOVED -- which is the
+  // discrimination being demonstrated rather than merely claimed.** `ingests`
+  // is a new table recording whether the store's last load from canon finished,
+  // and it has no modelled type: nothing about it is serialised, so there is no
+  // JSON property and no SDL field for it to become. The DDL moves for a
+  // `CREATE`; the other two must not move at all, and the pins below are what
+  // says so.
+  //
+  // Every entry above this one is a case where a single field on a modelled
+  // type legitimately moved all three, and the comments spend their length
+  // arguing that the instrument was not broken. This is the other side of the
+  // same evidence: a change that reaches exactly one face, reaching exactly one.
+  //
+  // **SEVENTH, AND IT SHIPPED IN THE SAME COMMIT AS THE SIXTH, WHICH IS WHY
+  // THAT PARAGRAPH IS TRUE OF ic's CHANGE AND NOT OF THIS COMMIT.** ST0057
+  // AC-03.1 makes `Attachment::text` OPTIONAL, so a modelled field on a
+  // modelled type changed shape: the SDL's `text: String!` became `text:
+  // String`, the JSON property's type widened, and the DDL's `text TEXT NOT
+  // NULL` became `text TEXT` beside a new `blob BLOB` and a CHECK. Three faces,
+  // one cause -- the ordinary case, arriving alongside the extraordinary one.
+  //
+  // **`blob` itself reaches EXACTLY ONE face, and that is the load-bearing
+  // half.** It is `#[serde(skip)]` and `#[graphql(skip)]`, so it appears in the
+  // DDL and in NEITHER published contract -- which is AC-03.2 stated where a
+  // reader can check it rather than where an author can promise it: opaque
+  // bytes cannot be serialised inline because there is no serialisation of them
+  // to reach. If `blob` ever shows up in `schema.graphql` or
+  // `thread.schema.json`, that skip has been removed and the criterion is
+  // broken; these pins are what would say so.
+  //
+  // So the two entries above and this one are three DIFFERENT results from the
+  // same instrument in one commit: one face (ic's table, no modelled type),
+  // three faces (an optional field on a modelled type), and one face again for
+  // a field deliberately kept out of the published contracts.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 8, 0x27c4_1686_71d4_814e),
-    ("SCHEMA_SDL_VER", 7, 0x165e_d25f_65a9_015d),
-    ("SCHEMA_JSON_VER", 9, 0x4e68_ef4a_0561_0fe9),
+    ("SCHEMA_DDL_VER", 10, 0x6966_d5f9_6ad7_8928),
+    ("SCHEMA_SDL_VER", 8, 0x7712_a811_9724_49a8),
+    ("SCHEMA_JSON_VER", 10, 0xb996_589d_af2f_d02b),
   ];
 
   let mut moved = Vec::new();

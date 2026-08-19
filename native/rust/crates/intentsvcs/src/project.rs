@@ -297,6 +297,25 @@ pub fn canon_thread_rel(id: &str) -> String {
   format!(".canon/st/{id}.json")
 }
 
+/// One OPAQUE attachment's canon path, relative to the intent directory
+/// (ST0057 AC-03.1, D57-7).
+///
+/// **A function for the same reason [`canon_thread_rel`] is one, and the
+/// consumers are further apart here**: the exporter names the file, `ingest`
+/// opens it, and `organize` will one day copy it back onto disk. Three
+/// `format!` calls agreeing by convention is exactly the shape that shipped
+/// `issues/46.json`, and a disagreement here is worse than that one was -- an
+/// unreadable path means the bytes are gone, not merely unfindable, because
+/// the working copy is what dehydration removed.
+///
+/// **The thread's canon file and its attachment directory are SIBLINGS with
+/// the same stem**: `.canon/st/ST0056.json` beside `.canon/st/ST0056/`. That
+/// is not a collision -- one is a file and one is a directory -- and it keeps
+/// a thread's whole record in one place a reader can list.
+pub fn canon_blob_rel(id: &str, path: &str) -> String {
+  format!(".canon/st/{id}/{path}")
+}
+
 /// One issue's canon path, relative to the intent directory. Zero-padded,
 /// which is the half that was wrong before.
 pub fn canon_issue_rel(number: u32) -> String {
@@ -697,13 +716,32 @@ impl Project {
       let path = dir.join(&rel);
       let name = self.relative(&path);
       match std::fs::read(&path) {
+        // **FORM FOLLOWS CONTENT, and this is the only place that decides it**
+        // (ST0057 AC-03.2). Valid UTF-8 is carried inline as `text`; anything
+        // else is carried as bytes, in a sidecar file under canon.
+        //
+        // **It is decided by DECODING, never by the extension.** The extension
+        // already answered a different question one step above -- whether the
+        // file is carried at all -- and reusing it here would make `.sh` mean
+        // "text" for a shell script with one Latin-1 byte in a comment, which
+        // is precisely the file that would be silently mangled.
+        //
+        // **This arm used to REFUSE**, with "not valid UTF-8, so it cannot be
+        // carried as text", and the refusal was right for as long as canon had
+        // nowhere to put the bytes. It now has one, and a refusal here would
+        // leave the file uncarried, therefore unrecoverable, therefore pinned
+        // to disk forever -- the condition `.intentfiles` exists to end.
         Ok(raw) => match String::from_utf8(raw) {
           Ok(text) => carried.push(Attachment::new(rel.to_string_lossy(), text)),
-          Err(_) => refused.push((
-            name,
-            "not valid UTF-8, so it cannot be carried as text".to_string(),
+          Err(not_text) => carried.push(Attachment::opaque(
+            rel.to_string_lossy(),
+            not_text.into_bytes(),
           )),
         },
+        // Still a refusal, and a different kind: unreadable is not the same as
+        // unrepresentable. Nothing here can carry bytes it could not obtain,
+        // and carrying an empty attachment in their place would record a file
+        // that never existed.
         Err(e) => refused.push((name, format!("could not be read: {e}"))),
       }
     }

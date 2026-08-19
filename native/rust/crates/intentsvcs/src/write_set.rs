@@ -109,6 +109,21 @@ impl WriteSet {
     self.writes.len()
   }
 
+  /// What this set WOULD write, for a caller that has to decide before it
+  /// commits.
+  ///
+  /// **A read, and the only one this type offers.** It exists because a check
+  /// on the consequences of a write has to run while the write is still
+  /// preventable: everything after `commit` is a receipt for something that
+  /// already happened, which is the same objection AC-03.9 makes to a summary
+  /// printed after a restore.
+  pub fn writes(&self) -> impl Iterator<Item = (&std::path::Path, &str)> {
+    self
+      .writes
+      .iter()
+      .map(|(path, content)| (path.as_path(), content.as_str()))
+  }
+
   /// Apply every write. On failure, restore everything already written and
   /// return the original error -- the estate is as it was.
   ///

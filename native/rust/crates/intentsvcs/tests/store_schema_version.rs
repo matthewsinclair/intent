@@ -236,8 +236,17 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // since this ladder began: a `CREATE` rather than an `ALTER`, which is the
   // easy rung, because an empty table is a correct representation of a store
   // that never had one and there is nothing to back-fill.
-  const PINNED_SCHEMA_HASH: u64 = 0x0084_17fe_4392_259c;
-  const PINNED_FOR_VERSION: i32 = 11;
+  //
+  // 12 is `ingests`: whether the last load from canon finished. A second NEW
+  // TABLE, and the same easy rung as `attachments` for the same reason -- an
+  // empty table is a correct representation of a store with no load history,
+  // and it is the ONLY correct one here. Back-filling a `succeeded` row would
+  // assert a load nobody observed; back-filling a `refused` one would block
+  // every upgraded project's egest at once. So the rung creates and stops, and
+  // `Store::last_ingest` returning `None` carries "no evidence either way"
+  // rather than either invented answer.
+  const PINNED_SCHEMA_HASH: u64 = 0x2769_d55e_632d_8fd6;
+  const PINNED_FOR_VERSION: i32 = 13;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

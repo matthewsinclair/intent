@@ -126,7 +126,10 @@ fn every_thread_prose_file_is_carried_and_its_bytes_round_trip() {
       .strip_prefix(&st_dir)
       .expect("found under intent/st by construction");
     let mut parts = rel.components();
-    let Some(thread_id) = parts.next().map(|c| c.as_os_str().to_string_lossy().to_string()) else {
+    let Some(thread_id) = parts
+      .next()
+      .map(|c| c.as_os_str().to_string_lossy().to_string())
+    else {
       problems.push(format!("{}: no thread directory above it", rel.display()));
       continue;
     };
@@ -149,15 +152,26 @@ fn every_thread_prose_file_is_carried_and_its_bytes_round_trip() {
     };
     checked += 1;
 
-    let on_disk = std::fs::read_to_string(file).unwrap_or_else(|e| panic!("read {rel:?}: {e}"));
-    if carried.text != on_disk {
-      problems.push(format!(
+    // **Read and compared as BYTES rather than as a `String`.** The criterion
+    // says byte-identical, and a prose file that is not valid UTF-8 is carried
+    // as an OPAQUE attachment (AC-03.1) -- `read_to_string` would refuse it and
+    // the comparison would never run, so the one file most likely to be
+    // mishandled is the one a string comparison cannot reach.
+    let on_disk = std::fs::read(file).unwrap_or_else(|e| panic!("read {rel:?}: {e}"));
+    match carried.as_bytes() {
+      Some(held) if held == on_disk.as_slice() => {}
+      Some(held) => problems.push(format!(
         "{thread_id}/{within}: carried, but the bytes differ -- canon holds {} byte(s), disk holds \
          {}. Presence is not the property; an attachment carried with the wrong content passes \
          every check that looks for it",
-        carried.text.len(),
+        held.len(),
         on_disk.len()
-      ));
+      )),
+      None => problems.push(format!(
+        "{thread_id}/{within}: carried with NEITHER text nor bytes -- canon records {} byte(s) and \
+         holds none of them",
+        carried.bytes
+      )),
     }
   }
 

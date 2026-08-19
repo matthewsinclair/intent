@@ -437,6 +437,45 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
   Ok(out)
 }
 
+/// The OPAQUE attachments a bundle carries, as `(canon path, bytes)` (ST0057
+/// AC-03.1).
+///
+/// **Separate from [`canon_parts`] because the two cannot share a return type,
+/// and that is the design rather than a limitation.** `canon_parts` returns
+/// `String`s; an opaque attachment's content is not a `String` and the whole
+/// point of AC-03.2 is that it never becomes one. Widening `canon_parts` to
+/// bytes would make every JSON caller handle a `Vec<u8>` it will never receive,
+/// and would let a future writer put opaque bytes through the inline path with
+/// nothing objecting.
+///
+/// **They partition rather than overlap**: a path is in exactly one of the two,
+/// because `text.is_none()` decides it and a canon JSON path is never an
+/// attachment path. So "everything canon holds" is their union, and a caller
+/// that writes both has written all of it.
+///
+/// Empty for every project in this estate today -- there are no opaque
+/// attachments to carry -- which is a fact about the corpus and not about the
+/// function, and is why the test for it constructs its own.
+pub fn canon_blobs(bundle: &Bundle) -> Vec<(String, Vec<u8>)> {
+  let mut out = Vec::new();
+  for thread in &bundle.threads {
+    for att in &thread.attachments {
+      // **Asked of `blob`, not of `is_opaque`, and the difference is a file.**
+      // An opaque attachment whose sidecar was never loaded is `is_opaque()`
+      // and has no bytes; emitting it would write an EMPTY file over the only
+      // copy of its content. `blob` is `Some` exactly when there is something
+      // to write.
+      if let Some(raw) = &att.blob {
+        out.push((
+          crate::project::canon_blob_rel(&thread.id, &att.path),
+          raw.clone(),
+        ));
+      }
+    }
+  }
+  out
+}
+
 /// Name the first byte that differs, with a little of each side around it.
 ///
 /// **A diff that says only "they differ" costs the reader the whole

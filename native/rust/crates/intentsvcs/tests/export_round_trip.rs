@@ -381,25 +381,30 @@ fn a_format_that_cannot_carry_the_canon_back_is_refused_by_name_with_a_reason_an
 fn a_projection_that_drops_or_alters_data_is_refused_rather_than_emitted() {
   let bundle = bundle();
 
-  fn read_json(text: &str) -> Result<Bundle, String> {
-    serde_json::from_str(text).map_err(|e| e.to_string())
+  // These three stand in for a format's real adapters, so they carry the same
+  // error type the aliases do -- and the `map_err(|e| e.to_string())` each of
+  // them used to end with is deleted for the reason the aliases record: it
+  // flattened a structured error at the point of failure, and every caller here
+  // formats it with Display anyway.
+  fn read_json(text: &str) -> Result<Bundle, serde_json::Error> {
+    serde_json::from_str(text)
   }
 
   // A projection that writes everything except the history.
-  fn emit_without_events(bundle: &Bundle) -> Result<String, String> {
+  fn emit_without_events(bundle: &Bundle) -> Result<String, serde_json::Error> {
     let mut copy = bundle.clone();
     copy.events.clear();
-    serde_json::to_string(&copy).map_err(|e| e.to_string())
+    serde_json::to_string(&copy)
   }
 
   // A projection that writes everything and gets ONE character wrong -- the
   // encoding bug, rather than the missing-field bug.
-  fn emit_with_a_mangled_title(bundle: &Bundle) -> Result<String, String> {
+  fn emit_with_a_mangled_title(bundle: &Bundle) -> Result<String, serde_json::Error> {
     let mut copy = bundle.clone();
     if let Some(thread) = copy.threads.first_mut() {
       thread.title = thread.title.replace("no", "false");
     }
-    serde_json::to_string(&copy).map_err(|e| e.to_string())
+    serde_json::to_string(&copy)
   }
 
   let dropped = Format {

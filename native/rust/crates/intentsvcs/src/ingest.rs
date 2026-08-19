@@ -24,7 +24,7 @@ use crate::finding::{Finding, FindingClass, Refusal};
 use crate::model::{ISSUE_SCHEMA, Issue, THREAD_SCHEMA, Thread};
 use crate::project::Project;
 use crate::prose::{self, DocSection};
-use crate::store::{Store, StoreError};
+use crate::store::{IngestOutcome, Store, StoreError};
 use crate::sync::{self, FileState, Scope};
 
 /// Everything the committed canon says, in memory, validated.
@@ -131,6 +131,46 @@ pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Ve
   Ok(thread)
 }
 
+/// Fill in every OPAQUE attachment's bytes from its sidecar in canon (ST0057
+/// AC-03.1).
+///
+/// **A missing sidecar is a FINDING, never an empty attachment.** Canon naming
+/// bytes that do not exist is AC-03.6's invariant one level down, and the
+/// silent form of it is the dangerous one: an attachment that reads as present
+/// with zero bytes satisfies every check that looks for it, and `organize`
+/// would then hydrate an empty file over the author's -- or, worse, gate a
+/// removal against an empty comparison and pass.
+///
+/// **The hash is NOT verified here and that is deliberate.** `doctor` compares
+/// them and REPORTS; doing it at read time would either refuse a project the
+/// operator needs to open in order to fix it, or silently drop the attachment
+/// that failed. Reading answers "are the bytes here"; judging whether they are
+/// the right bytes is a different question with a different verb.
+fn load_blobs(project: &Project, thread: &mut Thread) -> Vec<Finding> {
+  let mut findings = Vec::new();
+  let intent_dir = project.intent_dir();
+  for att in &mut thread.attachments {
+    if !att.is_opaque() {
+      continue;
+    }
+    let rel = crate::project::canon_blob_rel(&thread.id, &att.path);
+    let path = intent_dir.join(&rel);
+    match std::fs::read(&path) {
+      Ok(raw) => att.blob = Some(raw),
+      Err(e) => findings.push(Finding::new(
+        &rel,
+        FindingClass::BrokenReference,
+        format!(
+          "canon records {} as an opaque attachment of {} carrying {} byte(s), and the file is not \
+           readable: {e}",
+          att.path, thread.id, att.bytes
+        ),
+      )),
+    }
+  }
+  findings
+}
+
 /// Read and validate the entire committed canon. Refuses with EVERY finding,
 /// never the first -- one fix-and-rerun cycle, not one per defect.
 pub fn read(project: &Project) -> Result<Canon, IngestError> {
@@ -139,7 +179,12 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
 
   for id in project.thread_ids()? {
     match read_thread(project, &id, &read_to_string(&project.thread_json(&id))?) {
-      Ok(thread) => {
+      Ok(mut thread) => {
+        // **The sidecars are loaded in the SAME step that parsed the JSON, so
+        // no caller ever observes the half-formed state** an opaque attachment
+        // has between the two (`model::Attachment::blob`). A `Canon` handed out
+        // of here holds bytes for every opaque attachment or refuses.
+        findings.append(&mut load_blobs(project, &mut thread));
         collect_wp_text(project, &mut canon.sections, &thread);
         canon.threads.push(thread);
       }
@@ -193,15 +238,64 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   }
 }
 
+/// **Run a load-from-canon with its outcome recorded ON the store** -- the one
+/// home of that recording (AC-03.13).
+///
+/// A write path whose input was refused must not then be used as a source of
+/// truth, and the two verbs that make up that sentence live in different
+/// modules. Nothing carried the failure of the first into the second, so
+/// `sync --to-store` refused, rolled back correctly, and `sync --to-disk` then
+/// wrote the stale store over the canon it had just declined to read -- at
+/// rc=0, destroying the same authored criterion twice (vc, 2026-08-18).
+///
+/// The carrier is the store itself rather than a return value, because the two
+/// verbs are separate invocations of separate processes. A value handed back
+/// from the ingest reaches nothing; a row in the database is still there when
+/// the egest opens it tomorrow.
+///
+/// **It wraps rather than being called in pairs.** `begin` / `finish` at the
+/// call sites would need a `finish` on every `?` in a function whose whole
+/// business is refusing -- and the one that got missed would be an unrecorded
+/// refusal, which is the original defect with more code in front of it.
+///
+/// The closure takes the store as an argument instead of capturing it, which is
+/// what lets the caller keep using it inside.
+pub fn recording<T>(
+  store: &mut Store,
+  f: impl FnOnce(&mut Store) -> Result<T, IngestError>,
+) -> Result<T, IngestError> {
+  store.begin_ingest()?;
+  let out = f(store);
+  let (outcome, detail) = match &out {
+    Ok(_) => (IngestOutcome::Succeeded, String::new()),
+    Err(e) => (IngestOutcome::Refused, e.to_string()),
+  };
+  let recorded = store.finish_ingest(outcome, &detail);
+  match out {
+    // **THE OPERATOR'S ERROR WINS.** A book-keeping failure must never replace
+    // the refusal that caused it -- the operator needs to know their canon has
+    // a duplicate id, not that a log row would not update. The row is left
+    // `attempted`, which reads as not-succeeded, so losing the write here fails
+    // in the safe direction rather than silently clearing the block.
+    Err(e) => Err(e),
+    Ok(v) => {
+      recorded?;
+      Ok(v)
+    }
+  }
+}
+
 /// Read the canon and load it into the store, atomically.
 ///
 /// The store is touched only after the whole estate has validated, so a
 /// refusal leaves the previous DB contents exactly as they were.
 pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
-  let canon = read(project)?;
-  store.rebuild(&canon.threads, &canon.issues)?;
-  store.replace_doc_sections(&canon.sections)?;
-  Ok(canon)
+  recording(store, |store| {
+    let canon = read(project)?;
+    store.rebuild(&canon.threads, &canon.issues)?;
+    store.replace_doc_sections(&canon.sections)?;
+    Ok(canon)
+  })
 }
 
 /// Load the model for a command to answer from -- **from the STORE when the
@@ -394,6 +488,13 @@ fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon,
 }
 
 pub fn resync(project: &Project, store: &mut Store, scope: &Scope) -> Result<Canon, IngestError> {
+  recording(store, |store| resync_inner(project, store, scope))
+}
+
+/// The body of [`resync`], separated only so the recording wraps every exit
+/// from it -- including the `?` on the rebuild, which is the one that produced
+/// the live instance.
+fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<Canon, IngestError> {
   let previous = store.file_index()?;
   let entries = sync::scan(project.root(), &previous).map_err(|e| IngestError::Io {
     path: project.root().display().to_string(),
@@ -687,7 +788,15 @@ pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Th
   // decided was worth carrying is a file worth finding, and re-introducing a
   // name list here would be `THREAD_PROSE` wearing a different constant.
   for att in &thread.attachments {
-    if att.text.trim().is_empty() {
+    // **An opaque attachment contributes NO prose section, and skipping it is
+    // the whole of the reasoning.** `doc_sections` feeds the full-text index;
+    // a binary has no words, so indexing its bytes would put whatever a hex
+    // dump happens to spell into search results and make the index answer for
+    // a file no reader can read.
+    let Some(text) = att.text.as_deref() else {
+      continue;
+    };
+    if text.trim().is_empty() {
       continue;
     }
     out.push(DocSection {
@@ -697,7 +806,7 @@ pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Th
       seq: 0,
       heading: Some(att.path.clone()),
       level: 0,
-      body: att.text.clone(),
+      body: text.to_string(),
     });
   }
 

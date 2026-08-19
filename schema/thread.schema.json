@@ -222,13 +222,15 @@
           "type": "string"
         },
         "text": {
-          "description": "The file's content, byte for byte.",
-          "type": "string"
+          "description": "The file's content when it is TEXT, byte for byte. `None` when the\nattachment is OPAQUE, and that absence is the ONLY marker of which it is.\n\n**One representation, because a second field saying `opaque: true` would\nbe a way for the two to disagree** -- the same argument [`Attachment::new`]\nalready makes below about `bytes` and `sha256`. A reader asks whether the\ntext is here; there is nothing else to consult and nothing to contradict.\n\n**Absence is unambiguous rather than merely convenient**: every attachment\nin every canon file written before this field became optional carries a\n`text`, so no existing artefact reads as opaque by omission. And because\n`Some(s)` serialises exactly as the old `String` did, the 98 canon files\non disk do not move a byte.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
         "path",
-        "text",
         "bytes",
         "sha256"
       ],
@@ -565,5 +567,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 9
+  "x-schema-json-ver": 10
 }

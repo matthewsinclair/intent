@@ -65,7 +65,8 @@ fn an_authored_file_is_carried_whole_and_addressed_from_the_thread_root() {
 
   let nested = &thread.attachments[0];
   assert_eq!(
-    nested.text, "\n  ragged  \n\n",
+    nested.text.as_deref(),
+    Some("\n  ragged  \n\n"),
     "**NOT trimmed, and not even the trailing newline.** An attachment round \
      trips to a file on disk, so byte-equality is the property and a trim \
      would cost one byte per file on every trip, forever. `Issue::body` holds \
@@ -81,8 +82,12 @@ fn an_authored_file_is_carried_whole_and_addressed_from_the_thread_root() {
 #[test]
 fn bytes_and_sha256_describe_the_text_they_were_built_from() {
   let a = Attachment::new("reference.md", "# Reference\n");
-  assert_eq!(a.bytes as usize, a.text.len());
-  assert_eq!(a.sha256, intentsvcs::model::sha256_hex(a.text.as_bytes()));
+  let text = a
+    .text
+    .as_deref()
+    .expect("a text attachment carries its text");
+  assert_eq!(a.bytes as usize, text.len());
+  assert_eq!(a.sha256, intentsvcs::model::sha256_hex(text.as_bytes()));
   assert_ne!(
     a.sha256,
     intentsvcs::model::sha256_hex(b""),

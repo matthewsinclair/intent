@@ -600,7 +600,7 @@ fn an_attachment_whose_hash_does_not_describe_its_text_is_found() {
   let fx = Fixture::new();
   let mut thread = clean_thread("ST0001");
   let mut a = intentsvcs::model::Attachment::new("reference.md", "# Reference\n");
-  a.text = "# Reference\n\nEdited after the hash was taken.\n".to_string();
+  a.text = Some("# Reference\n\nEdited after the hash was taken.\n".to_string());
   thread.attachments = vec![a];
   seed(&fx, &thread);
 

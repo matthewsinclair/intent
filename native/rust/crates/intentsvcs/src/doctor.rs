@@ -274,22 +274,39 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   // -- and a stored hash that no longer describes its content is exactly what
   // the skew check will later trust.
   for a in &thread.attachments {
-    let actual = crate::model::sha256_hex(a.text.as_bytes());
+    // **An OPAQUE attachment reaches here with NEITHER half when its sidecar
+    // was never loaded, and that is a finding rather than a skip.** Canon
+    // names bytes at `.canon/st/<ID>/<path>`; if nothing put them in the
+    // model, the record describes a file this process cannot produce. Passing
+    // over it would report the one attachment whose content nobody can eyeball
+    // as the one with nothing to say about it.
+    let Some(content) = a.as_bytes() else {
+      add(
+        format!(
+          "attachment {} is opaque and carries no bytes -- canon names {} byte(s) at sha256 {} \
+           and the sidecar was not loaded",
+          a.path, a.bytes, a.sha256
+        ),
+        FindingClass::ModelInconsistent,
+      );
+      continue;
+    };
+    let actual = crate::model::sha256_hex(content);
     if actual != a.sha256 {
       add(
         format!(
-          "attachment {} carries sha256 {} and its text hashes to {actual}",
+          "attachment {} carries sha256 {} and its content hashes to {actual}",
           a.path, a.sha256
         ),
         FindingClass::ModelInconsistent,
       );
-    } else if a.bytes as usize != a.text.len() {
+    } else if a.bytes as usize != content.len() {
       add(
         format!(
-          "attachment {} records {} bytes and its text is {}",
+          "attachment {} records {} bytes and its content is {}",
           a.path,
           a.bytes,
-          a.text.len()
+          content.len()
         ),
         FindingClass::ModelInconsistent,
       );

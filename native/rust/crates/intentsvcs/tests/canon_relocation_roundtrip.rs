@@ -130,11 +130,7 @@ fn compare(before: &ingest::Canon, after: &ingest::Canon) -> (usize, Vec<String>
       .iter()
       .find(|i| i.number == original.number)
       .unwrap_or_else(|| panic!("{id} is absent after the round trip"));
-    check(
-      &id,
-      field_map(&id, original),
-      field_map(&id, returned),
-    );
+    check(&id, field_map(&id, original), field_map(&id, returned));
   }
 
   (examined, out)
