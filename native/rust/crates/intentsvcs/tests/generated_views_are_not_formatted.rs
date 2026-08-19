@@ -1,6 +1,24 @@
-//! ST0056 AC-03.17: **a generated view must be a fixed point of the project's
-//! formatter**, and the only way to guarantee that for authored prose is to
-//! keep the formatter off the file.
+//! AT-03.18 / ST0056 AC-03.17: **a generated view has ONE writer, and it is
+//! the renderer.**
+//!
+//! # Fixed-point-ness was the SYMPTOM
+//!
+//! The criterion was minted asking that a view be a fixed point of the
+//! project's formatter. It is the right property to have NOTICED and the wrong
+//! one to assert: **a fixed point is a coincidence somebody must maintain
+//! forever, and an exclusion is structural** (vc, on ruling the remedy). So
+//! what is asserted here is one-writer-per-file, and the only way to guarantee
+//! that for AUTHORED prose is to keep the formatter off the file.
+//!
+//! # A GREEN HERE DOES NOT MAKE THE ROW GREEN, and that is deliberate
+//!
+//! AT-03.18 stands at `red` while both arms below pass, because **the subject
+//! is the ESTATE and not the instrument.** The committed views still carry the
+//! formatter's bytes from before the exclusion existed, and they carry them
+//! until something regenerates them -- which is estate-wide until `sync` gets
+//! the scope hv ruled. **The row goes green when the views are regenerated, not
+//! when this file passes.** A reader who finds this test green and the row red
+//! has found the two facts agreeing, not disagreeing.
 //!
 //! # Why not the renderer
 //!
