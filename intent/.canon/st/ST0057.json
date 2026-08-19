@@ -457,12 +457,12 @@
     {
       "id": "AT-00.1",
       "kind": "test",
-      "file": "intent/st/ST0057/parity/tools/dehydration_gate_check.sh",
+      "file": "native/rust/crates/intentsvcs/tests/dehydration_ship_gate.rs",
       "covers": [
         "AC-00.1"
       ],
-      "status": "to-write",
-      "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+      "status": "green",
+      "note": "**RE-CITED FROM A SHELL PARITY TOOL ONTO THE RUST BATTERY (vc 2026-08-19), AND THE SHELL TOOL IS WITHDRAWN RATHER THAN DEFERRED.** The row cited `intent/st/ST0057/parity/tools/dehydration_gate_check.sh`, which never existed. dc built `dehydration_ship_gate.rs` and asked rather than moving the row. **THE SHELL FORM IS NOT MERELY HARDER, IT IS FORBIDDEN BY THE CRITERION IT WOULD TEST:** a shell driver either drives the CLI -- blocked, the `organize` handler is unwired -- or resolves satisfaction itself in shell, which is the SECOND ANSWER TO _is this criterion met_ that AC-00.1 exists to forbid. There is no third shell shape. **THIS DOES NOT GENERALISE TO THE OTHER FIVE `parity/tools` ROWS AND MUST NOT BE READ AS DOING SO:** AT-01.2, AT-01.4, AT-02.4, AT-04.6 and AT-07.5 each assert an EQUALITY OF TWO INDEPENDENTLY DERIVED SETS, or a property about the estate as a human meets it, and for those the shell form is the STRONGER instrument -- a Rust test deriving both sides through one code path loses exactly the independence that is the evidence. AC-00.1 has nothing to derive independently, because satisfaction must have ONE answer. **FOUR LIMBS, ALL DRIVEN, NONE STANDING IN FOR ANOTHER (vc verified, 21 tests pass):** no removal while unmet (`no_file_is_removed_while_a_precondition_is_unmet`, and dc's mutation deleting the gate from `apply` is killed); the refusal names EVERY unmet one (`every_unmet_precondition_is_named_not_just_the_first`, asserting three in order, plus a negative that a MET id must not appear); the denominator printed on BOTH answers; and the declaration is single (`two_blocks_refuse_because_there_is_no_single_declaration`), read from THIS criterion in canon rather than from `acceptance.md`, which `Project::classify` calls a `GeneratedView` -- a gate reading its own verb's output would check a copy whose currency the verb controls. **THE POSITIVE CONTROL IS WHAT SEPARATES THIS FROM AT-08.4: `the_positive_control_removes_the_same_file_when_the_declaration_is_met` proves the gate PERMITS, so the greens are not a gate refusing everything for an unrelated reason.** Refuse-by-default is structural rather than remembered: `Verdict`'s fields are private and `check()` its only constructor, so no caller can hand-write a permitting value, and `permits()` requires readable AND non-empty AND no-unmet -- an empty declaration refuses rather than opens."
     },
     {
       "id": "AT-00.2",
