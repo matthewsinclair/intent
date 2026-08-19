@@ -2,30 +2,42 @@
 
 ## First actions after `/compact` or new session
 
-1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell at HEAD; cc's uncommitted spread adds rust + others.) Whiteboard present (`intent/whiteboard/`, hv+cc+vc+ic) -- `/in-session` chains `/in-whiteboard pickup`. Solo unless launched as a node via `intent claude start <ws>`.
+1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
 
-## State: ST0056 (Intent v3.0.0) underway; WP-01 + WP-02 DONE
+## State (as at `58397c5a`, 2026-08-19)
 
-**v2.19.0 shipped the morning of 2026-08-14 (tag `071c612`); ST0056 opened the same afternoon.** The architecture is ratified in `intent/st/ST0056/design.md` (D01-D36): schema-as-truth (Rust types generate JSON Schema + DDL + SDL faces, committed and drift-checked), **the intentdb as the DURABLE SSOT with everything on disk a secondary artefact** (D01 REVERSED by hv 2026-08-15 -- "committed JSON canon as durable truth, rebuildable per-project SQLite, `rm` always safe, no DB migrations ever" is false in every clause; do not reason from it), the committed extract as the interchange that travels while the DB never leaves the machine (D34), migrations normal, `rm intent.db` not an operation (D36), md as generated views + authored prose, `intentsvcs` as sole owner of DB and files, CLI dual-mode (in-process or GraphQL to one machine-level intentd), intentd IN the 3.0.0 gate, migration floored at v2.19.0.
+**TWO LIVE THREADS, BOTH IN THE 3.0.0 GATE, AND INTENT IS SELF-HOSTED ON v3.** `bin/intent` (v2, 2.19.0) and `native/rust` (v3, 3.0.0-dev) coexist; a v2 binary REFUSES a v3-declared tree at exit 2.
 
-**Roles (hv ruling): cc builds, ic runs parity/interface, vc stewards** (contract, WP-close verification, hv interface; holds the ST0056 claim). **Status at `ce532a97`: WP-01/02/04 Done; WP-03/05/06/10/11 WIP; WP-07/08/09/12/13/14/15 Not Started.** The old "WP-03 is cc's next" line was true on 2026-08-14 and has been false since. **Intent is SELF-HOSTED on v3**, and ST0057 carries the ruled disk model, which hv has put IN the 3.0.0 gate. The estate is pushed to both remotes, CI green twice on `736033d` (first rust run 31812129560: macOS+Linux, fmt/clippy/tests; plus Intent Tests). devbin is adopted: `bin/int`, and `bin/release` is now `bin/int build release` (`bin/intent` untouched).
+**ST0056 (v3.0.0 rewrite)** -- architecture in `design.md` (D01-D36). **The intentdb is the DURABLE SSOT; nothing on disk is truth.** D01 was REVERSED by hv 2026-08-15 -- "committed JSON canon as durable truth, rebuildable SQLite, `rm` always safe, no DB migrations ever" is false in every clause, **do not reason from it**. The committed extract is the INTERCHANGE that travels while the DB never leaves the machine (D34); migrations are normal; `rm intent.db` is not an operation (D36). Contract: **123 criteria / 124 tests**. WPs 01/02/04 Done, 03/05/06/10/11 WIP.
 
-**The consumer-sweep program is DEAD** (Lamplight's hv ruled AT remediation on Done work off; their ~1158 legacy rows are permanent). hv-ruled migration policy in `migration.md`: CLOSED threads convert lossless-by-carrying; LIVE threads stay BLOCKED-until-clean; neither ever lossy. `organize` (both faces) is planned vestigial by construction. v2 maintenance is DEFAULT-DEFER, show-stoppers only.
+**ST0057 (disk as a sparse projection)** -- D57-1..D57-8 ruled. **Sparseness applies to VIEWS; canon is NEVER sparse**, and D29 (a gitignored path is never canon) is what makes a clone complete. Contract: **46/46**. WP-01 WIP (started BY the close-out commit, not by the pin), 02-08 Not Started.
 
-**A whiteboard clock guard is live in pre-commit** (`ddac6ba` + `98ce764`): commits adding board stamps without a trailing `Z`, postdating the commit, or sending an inbox backwards are REFUSED. Stamp from `date -u`, never rounded up.
+**THE ONE FACT THAT GOVERNS TOMORROW: cc committed WP-01's CODE at `f41d6760` -- canon RESOLVES at `intent/.canon/` -- but THE 57 + 40 FILES HAVE NOT MOVED AND `intent/.canon/` DOES NOT EXIST.** The live move is next and it happens once.
+
+**Three layers, and confusing them is the recurring error:** canon (`thread.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, rebuilt) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded at the next `--to-disk`.**
+
+**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057).
 
 ## Next
 
-1. **cc -- IN FLIGHT** (released by hv directly): `Triage->Wip`, `has_end_date()`, delete `THREAD_PROSE`, fix `views::info`'s blank line, then regenerate. vc reviews at the close claim.
-2. **vc**: the interruption property + AC-10.8 into the AC set -- BLOCKED on hv answering whether the AC moratorium is lifted. (The marked-legacy AT form is DONE -- specced at `data-model.md:320`, `legacy` in `schema/thread.schema.json`, `legacy: Option<Legacy>` on the `AcceptanceTest` struct. It sat here as "next" for four days after it shipped.)
-3. **ic**: per-test register rows for the 40 `split` files (`corrected` is ratified); charter + roster-row asks still open with hv.
-4. **v2 carries (default-defer)**: credo_checks fleet issues (hv running); fleet pushes Utilz `0171297` + Lamplight `7058fd3a8` (re-verify still unpushed first); cc's parked "hv decides" queue.
+1. **cc**: the live move of 57 + 40 files, then the 88-binary test consolidation with dc.
+2. **vc**: ping dc and ic the moment the move lands and the tree is green -- the of-N adjudication trigger (AC-00.11), **gated on the FILE move, not the code**. Then ST0011 (`completed` NULL) and AC-03.16's fix.
+3. **dc**: Half B against AC-07.4 -- six declarations, two cost-bearing grep arms, the RED.
+4. **ic**: `of_n_labels_its_derivation.sh` (AT-00.12, red); `of_n_closes_over_examined.sh` gated on the move.
+5. **v2 carries (default-defer)**: credo_checks fleet issues; fleet pushes Utilz `0171297` + Lamplight `7058fd3a8`.
 
-## Standing lessons (this cycle)
+## Traps that cost real time (this cycle)
 
-Grep for a Highlander rule, never read for it. Mutation-test every guard -- and the canary must come from the same fixture and branch the test drives (applied is not reached). A migrator must not do half of a two-ended migration. Diagnose by running, not reading; run the real path in a sacrificial copy. Verify the premise of a queued action at the moment you act on it. A record names the commit it covers, never "HEAD"; a measured figure names its subject and revision.
+- **A LESSON WRITTEN DOWN IS NOT A MECHANISM.** `restart.md` already said a line number in a durable record expires -- and four rotted ones still shipped into a criterion, found by a peer, not by the note.
+- **`sync --to-store` REWRITES THE GENERATED VIEWS.** It is not read-only on disk, so a canon edit is a two-file commit and the second file is one you never edited.
+- **`at lint` and the read verbs read the STORE, not canon** -- lint straight after a canon edit reads stale. Edit canon, `--to-store`, THEN lint.
+- **`intent st list` defaults to in-progress only and returns 2; `--all` is NOT a flag.** Use `st list --status all` (57: 52 Completed / 2 Cancelled / 2 WIP / 1 NotStarted) and print the breakdown, never the bare total.
+- **Read the clock, then PASTE -- never read, then type.** A past-dated stamp clears the guard's future-check and its `Z`-check both.
+- **A rig assembled by symlinking into the real tree is not isolated** -- `cp` follows the symlink and writes through to production.
+- **`grep -c` exits 1 on zero**, so a `||` fallback fires on a true zero.
+- **Never `$?` after a pipe.** Redirect to a file and read `$?` from the command itself.
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z`. matts runs the full suite externally. matts is the acceptance verifier. NEVER `--no-confirm` on the release. Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **DO NOT PUT v3 ON PATH. DO NOT PUSH TO `upstream`** -- public and frozen. Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.

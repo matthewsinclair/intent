@@ -20,7 +20,7 @@ title: Disk as a sparse projection of the store
 - AC-00.3 (non-test) **The conservation verdict is green at full scope over a pinned subject, and the finding names the revision it was measured at** -- `HEAD` is a pointer and a conservation figure that does not name its subject cannot be re-checked. -- satisfied: no
 - AC-00.4 **`ROOT_FILES` (`AGENTS.md`, `CLAUDE.md`, `usage-rules.md`) have a v3 generator before anyone reasons about them as derivable.** They are on disk, they are outside `.intentfiles` scope, and something emptied `AGENTS.md` on 2026-08-18 -- so their derivability is currently an assumption rather than a mechanism. -- satisfied: no (computed)
 
-### WP-01 -- Canon relocation to intent/.canon/ (status: Not Started)
+### WP-01 -- Canon relocation to intent/.canon/ (status: WIP)
 
 - AC-01.1 **Canon for every thread and every issue resolves under `intent/.canon/`, one file per artefact, and `intent/st/` holds no `thread.json`.** Both populations are printed and the canon count equals the artefact count -- the criterion is the equality, not either figure. -- satisfied: no (computed)
 - AC-01.2 **No path under `intent/.canon/` is matched by any ignore rule, and a fresh clone contains canon for every artefact the source tree has** (D29). This is the criterion that makes a clone complete; it is checked by cloning, never by reading `.gitignore`, because the question is what git DOES and not what a rule appears to say. -- satisfied: no (computed)
@@ -95,7 +95,7 @@ title: Disk as a sparse projection of the store
 - AT-00.3 (non-test) `conservation_check.sh` run at full scope over a named revision; vc reads the verdict and records the revision in the finding -- covers AC-00.3 -- status: n/a
 - AT-00.4 `native/rust/crates/intentsvcs/tests/root_files_generated.rs` -- covers AC-00.4 -- status: to-write -- unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing.
 
-### WP-01 -- Canon relocation to intent/.canon/ (status: Not Started)
+### WP-01 -- Canon relocation to intent/.canon/ (status: WIP)
 
 - AT-01.1 `native/rust/crates/intentsvcs/tests/canon_relocation.rs` -- covers AC-01.1 -- status: to-write -- unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing.
 - AT-01.2 `intent/st/ST0057/parity/tools/canon_clone_completeness.sh` -- covers AC-01.2 -- status: to-write -- unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing.

@@ -28,7 +28,7 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 
 | WP    | Title                                                        | Size | Status      |
 | ----- | ------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Canon relocation to intent/.canon/                           | M    | Not Started |
+| WP-01 | Canon relocation to intent/.canon/                           | M    | WIP         |
 | WP-02 | .intentfiles: the manifest and its refusing grammar          | S    | Not Started |
 | WP-03 | Attachment canon: opaque as file, and the naming gate        | M    | Not Started |
 | WP-04 | intent organize: four answers, one refusal, one gate         | L    | Not Started |

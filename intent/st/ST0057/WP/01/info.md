@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Canon relocation to intent/.canon/
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Canon relocation to intent/.canon/

@@ -1,33 +1,40 @@
 ---
-verblock: "14 Aug 2026:v1.09: vc - WP-01 + WP-02 Done; bounce rulings landed; first pushes, CI green; WP-03 next"
+verblock: "19 Aug 2026:v1.10: vc - ST0057 in the gate, WP-01 code committed, files not moved; contract at 123/124 + 46/46"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-## Current State
+## Current State (as at `58397c5a`, 2026-08-19)
 
-**ST0056 -- Intent v3.0.0 -- is the live work; WP-01 and WP-02 are DONE (gates 4/4 and 5/5) and WP-03 (ingest, views, sync) is next, in cc's hands.** The architecture is ratified and recorded in `intent/st/ST0056/design.md` (D01-D21) with the WP-01 specs beside it (`data-model.md`, `migration.md`, `parity.md`) and a 62-AC contract, lint-clean. Roles per hv: **cc and ic write the code; vc stewards** (contract, verification at WP closes, hv interface). The v3 estate is **pushed to both remotes with CI green twice on `736033d`** -- the first rust workflow run (31812129560: macOS+Linux, fmt --check + clippy -D warnings + tests, 1m47s) and the BATS Intent Tests. WP-02 closed on cc's claim after AC-02.6 renumbered to AC-04.5 (the envelope test cannot exist before WP-04's facade verbs). devbin is adopted (`bin/int`; `bin/release` is now `bin/int build release`; `bin/intent` untouched by design; suite 1240 green at `3563ff4`, which surfaced and fixed issue 0025).
+**This heading names a COMMIT, not a date.** A wip file is read as current and written as a snapshot; if you cannot say what it is current as at, that is the finding.
 
-**The bounce rulings (hv, 2026-08-14 pm) are all landed**: the `corrected` parity class is RATIFIED (parity.md); the migration carry policy is RULED (migration.md: closed threads lossless-by-carrying, live threads BLOCKED-until-clean, neither ever lossy -- forced by Lamplight's ~1158 permanent legacy rows; the sweep program is dead and WP-10's corpus is the fleet AS IT IS); `organize` (both faces) is planned VESTIGIAL by construction (a strictly structured model cannot hold data in the wrong spot or format -- both implementations retire at the surface cut, dissolving their Highlander); pushes happen when they make sense; v2 maintenance is DEFAULT-DEFER, show-stoppers only. 0024 (scoped `at lint`/`ac gate` dropped the WP scope) closed at `e685e90`, vc-reviewed sound, guard hardened at `8b7d382`.
+**Two live threads, both inside the 3.0.0 gate.** **ST0056** is the v3.0.0 rewrite -- architecture ratified in `design.md` (D01-D36), contract at **123 criteria / 124 tests** (7 red, 58 to-write, 40 green, 19 n-a). **ST0057** is the disk model -- disk as a sparse projection of the store, D57-1..D57-8 ruled, contract at **46/46** (1 red, 43 to-write, 2 n-a). hv put ST0057 in the gate verbatim: _"all of that has to happen before we do the 3.0.0 release."_
 
-**ic delivered the parity substrate and a new enforcement gate**: 26 `parity/cmd-*.md` files, the `INTENT_BIN` harness retarget (711/1235 tests reach the CLI), the register regenerated at `393a8e1`, and the **whiteboard clock guard** (`ddac6ba` + `98ce764`): pre-commit now refuses board stamps without a trailing `Z`, stamps postdating their commit, or an inbox going backwards.
+**Intent is SELF-HOSTED on v3.** `bin/intent` (v2, 2.19.0) and `native/rust` (v3, 3.0.0-dev) coexist; a v2 binary REFUSES a v3-declared tree at exit 2.
+
+**ST0056 WPs:** 01/02/04 Done; 03/05/06/10/11 WIP; 07/08/09/12/13/14/15/16 Not Started.
+**ST0057 WPs:** 01 WIP; 02-08 Not Started. (**The WP-01 start is made BY this commit, not by `58397c5a`** -- the pin names what was measured, not what this fold changes.)
+
+**ST0057 WP-01 -- THE STATE THAT MATTERS FOR TOMORROW.** cc committed the **code** at `f41d6760`: canon resolves at `intent/.canon/`, workspace 647 passed / 0 failed across 88 suites, fmt clean. **THE 57 + 40 FILES HAVE NOT MOVED AND `intent/.canon/` DOES NOT EXIST.** The live move is the next action and it happens once. Landed with it: AC-01.7's openness declarations (7 moved in `store.rs`, `ddl.sql` re-blessed, drift clean) and `canon_resolver_singularity.rs` for AT-01.6.
+
+**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds both claims).
 
 ## Next Up
 
-1. **WP-03 (cc)**: strict ingest, deterministic views, the sync engine -- migration.md read as landed (the carry policy shapes the sync write path).
-2. **Spec the marked-legacy AT form in data-model.md before WP-08** (the carry policy's named model consequence; vc).
-3. **ic**: per-test register rows for the 40 `split` files (`corrected` now ratified); the charter + roster-row asks remain open with hv.
-4. **v2 carries (default-defer)**: credo_checks fleet issues (hv running); fleet pushes Utilz `0171297` + Lamplight `7058fd3a8` (re-verify still unpushed first); cc's parked "hv decides" queue.
-5. The tree carries cc's uncommitted lang-init spread (config languages + per-lang `RULES-*`/`ARCHITECTURE-*`) -- cc's lane.
+1. **cc -- the live move of 57 + 40 files.** AC-01.6 carries the classifier it needs BEFORE it runs: **a half-migration is silent exactly when its unmigrated end can still produce a value.** Sites whose unmigrated end still yields a value need a driven test; the rest announce themselves.
+2. **vc -- ping dc and ic the moment the move lands and the tree is green.** That is the of-N adjudication trigger (AC-00.11). Gated on the FILE move, not the code. Order is gatedness, never count.
+3. **dc -- Half B** (six declarations, two cost-bearing grep arms, the RED) against **AC-07.4** as elaborated. Also blocked on cc for the 88-binary test consolidation, which changes one spelling for everyone and wants announcing.
+4. **ic -- `of_n_labels_its_derivation.sh`** (AT-00.12, red, file exists) and `of_n_closes_over_examined.sh` (AT-00.11, to-write, gated on the move).
+5. **vc -- ST0011** (`completed` NULL, AC-08.5's first burning case) and **AC-03.16's fix**, queued to cc as not-now.
+6. **v2 carries (default-defer):** credo_checks fleet issues; fleet pushes Utilz `0171297` + Lamplight `7058fd3a8`.
 
 ## Recent
 
-- **2026-08-14 (late pm)**: bounce rulings landed; first v3 pushes, CI green twice on `736033d`; AC-02.1 satisfied; WP-02 CLOSED (5/5) with the AC-02.6 renumber; 0024 reviewed sound; clock guard live.
-- **2026-08-14 (pm)**: ST0056 begun -- v3.0.0 architecture ratified with hv, Conflab + Lamplight trawled, 12 WPs cut; WP-01 closed 4/4; roles ruling (cc/ic build, vc stewards); devbin adopted; sweep program ruled dead by Lamplight evidence.
-- **2026-08-14 (am)**: v2.19.0 SHIPPED (tag `071c612`). Fifteen issues, 0009-0023; release docs written pre-cut for the first time.
-- **2026-07-30**: v2.18.0 + v2.17.4 shipped. Earlier: `intent/history/202607-done.md`.
+- **2026-08-18/19**: ST0057 ruled into the gate, all eight questions answered. Contract rulings into canon: **AC-07.4** (the critic runner's silent skip is the defect, not the default -- 13 of 13 rules were unaskable and the runner returned 0), **AT-00.12** (two drive modes with different populations get two rows), **AC-03.16** (a generated cover naming `acceptance.md` as _the single source of truth_ is a work-loss instruction, 206 of 207 covers), **AC-01.6** extended with the half-migration classifier. **AC-00.10's `18 of 24` RETRACTED -- measured 12 of 45, wrong in both halves.**
+- **2026-08-14**: v2.19.0 SHIPPED (tag `071c612`, fifteen issues 0009-0023). ST0056 opened the same afternoon.
+- Earlier: `intent/history/`.
 
 ## Parked
 
-- 3.x steel threads (post-v3.0.0, each on its own): TUI dashboard; the agent bus (whiteboard restructure + hv oversight gates); Laksa web page; macOS menubar app; `intent_ex` hex client; sqlite-vec semantic search.
+3.x steel threads, post-3.0.0, each on its own: TUI dashboard; the agent bus; Laksa web page; macOS menubar app; `intent_ex` hex client; sqlite-vec semantic search.
