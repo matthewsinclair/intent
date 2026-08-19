@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 20:24Z
+heartbeat_at: 2026-08-19 20:31Z
 status: active
-focus: "**46 of 64, NOT 48 -- vc HAD BEEN COUNTING TWO ROWS AS PASSING THAT THE SHIPPED CODE COUNTS AS NOT PASSING.** `contract.rs` says `n-a` is never green and satisfaction for a non-test row lives on the AC's own line; both those lines read `unsatisfied`. **hv REPLACED THE MANIFEST DESIGN TONIGHT: `.intentfiles` is DURABLE STATE, commands change it, `organize` realises it, nothing recomputes it.** ic's rebuild of AT-02.2 passes and needs ONE more assertion. Arming 6 unmet, 545 removals still planned because the list is still empty."
+focus: "**`intent at green`/`at red` REWRITE CANON AND LEAVE THE COMMITTED VIEW SAYING THE OPPOSITE, AT rc=0 -- clone-measured, and NOTHING REPAIRS IT TODAY.** ST0057's `acceptance.md` contradicts canon on 7 of 46 rows, both directions, and reads _0 of 8 WPs_. `st hydrate` is the only repair path and it is `unrecognized subcommand`. **GATE IS 46 OF 64, NOT 48 -- vc had been counting two `n-a` rows as passing that `contract.rs` counts as never green.** AC-05.2's `refuse` clause withdrawn on measurement; AT-02.2 re-pointed and one assertion short. Arming 6 unmet."
 claims: [ST0056, ST0057]
 ---
 
@@ -27,6 +27,20 @@ claims: [ST0056, ST0057]
 **Many writers, no recomputation.** `st new` adds the id, `st done` removes it, `st hydrate`/`st dehydrate` do it directly, a human may edit it. **Nothing derives it from status.** That is the only difference from the old two-region design, and it is why the protected region became unnecessary -- **a write is a change to state, never a regeneration of it.** It also explains why `intentfiles::render` had no caller: the thing it does is not needed.
 
 **_AUTHORED_ WAS vc's WORD FOR THIS AND IT WAS WRONG.** hv corrected it before either builder committed to a shape. It does not mean untouched by commands; it means nothing recomputes it.
+
+## THE ONE THING THAT STOPS THE PROJECT RUNNING ON v3 TONIGHT
+
+**`intent at green` / `at red` REWRITE CANON AND LEAVE THE COMMITTED VIEW SAYING THE OPPOSITE, AT rc=0, ON EVERY USE.** Clone `8b81b871`, binary `b99789aff383f8bb`: `at red ST0057 AT-00.1` printed `ok: AT-00.1 -> red`, canon sha `092bdc09 -> 2dbfb769`, view sha `84527f99 -> 84527f99`, row still reading `status: green`.
+
+**LIVE: `intent/st/ST0057/acceptance.md` DISAGREES WITH CANON ON 7 OF 46 ROWS, BOTH DIRECTIONS, FROZEN SINCE `35cfb080` (19:00 local), AND IT SAYS _ST0057 IS 0 OF 8 WPs_.** Three read green where canon says red (AT-02.2, AT-02.3, AT-05.2), four read `to-write` where canon says green (AT-02.4, AT-06.1, AT-06.2, AT-08.1). **ST0056's view agrees on all 132, so the generator is fine** -- ST0057 went nine status commits without a view write.
+
+**NOTHING REPAIRS IT TODAY, AND EACH DOOR WAS DRIVEN RATHER THAN READ.** `sync --to-disk ST0057` writes the extract only -- **a marker line appended to `acceptance.md` SURVIVED the sync**, drift 7 before and 7 after. `organize --apply` writes views and is gate-blocked. **`st hydrate ST0057` is `unrecognized subcommand`** -- declared in dc's table, absent from the binary, and it is now the only repair path there is.
+
+**THE SKEW GUARD (cc, AC-03.4) CANNOT FIRE ON IT:** it reports _no generated view was touched by this change -- nothing to check_, because it compares views IN THE COMMIT against canon and no verb puts a view in a commit. **vc stopped on that line twice today.**
+
+**THE QUESTION FOR hv, AND IT MAY BE A DESIGN RATHER THAN A DEFECT:** under _the DB is the SSOT and disk is a projection_, a status change updating only the SSOT is correct and the projection refreshes at `organize`. **But the views are COMMITTED, so between organize runs git holds a face that contradicts the truth, and that face is what a human opens.** Either the status verbs project the one thread they touched, or `st hydrate` must exist before anyone runs the project on v3 for real.
+
+**`intent st new` ALSO WRITES NOTHING TO DISK AND NOTHING TO `.intentfiles`** (clone: `created: ST0058`, no `intent/st/ST0058/`, manifest still 0 non-comment lines) -- the gap ic and dc are closing.
 
 ## WHO IS ON WHAT
 
@@ -52,7 +66,7 @@ claims: [ST0056, ST0057]
 
 ## WATCH-OUTS THAT COST REAL WORK TODAY
 
-- **EDIT A FILE ON DISK, COMMIT IT, AND THE STORE NEVER HEARS.** vc did this to its own fix and was one routine `sync --to-disk` from losing it. **`intent sync --to-store <ID>` before any verb.** cc's `attachment_drift_detected` catches it on the live estate.
+- **EACH SYNC DIRECTION DESTROYS WHATEVER EXISTS ONLY ON THE OTHER SIDE, AND vc HAD THE LABEL BACKWARDS.** `--to-disk` destroys unsynced DISK edits; `--to-store` destroys unprojected STORE state -- and it is `sync_from_disk` that the code itself calls _the DESTRUCTIVE direction_, under the reversed D01. vc edited a fix on disk, committed it, and was one routine sync from losing it. **`intent sync --to-store <ID>` before any verb, and know which side your change is on.**
 - **`intent at green` REWRITES THE WHOLE DOCUMENT FROM THE STORE.** A hand edit to canon made at ANY time before the command is discarded at rc=0 -- `load_fresh` returns from the store and never reads the files, and `ingest.rs:301` promises the opposite in its own summary line.
 - **COULD THIS MEASUREMENT HAVE COME BACK THE OTHER WAY?** `head -30` over 63 test binaries cannot report a red, so "fully green" was never a possible finding. A bare `render(` cannot tell `intentfiles::render` from `views::render`, so its 14 was never evidence.
 - **NEVER `$?` AFTER A PIPE** -- vc did it three times today, twice on its own documented rule. **`grep` here is ugrep and a `{...}` pattern can silently match nothing.**
