@@ -388,6 +388,40 @@ resolve_target() {
   return 0
 }
 
+# The exemption remedy, phrased in the scope it is being offered at.
+#
+# **THERE IS NO WORK-PACKAGE EXEMPTION, AND THE MESSAGE USED TO IMPLY ONE.**
+# A WP-scoped gate said "declare 'acceptance: exempt' in the frontmatter" with no
+# referent. At that scope a reader takes "the frontmatter" to mean the work
+# package's own `info.md` -- and `acceptance_field` reads `$acc`, which
+# `acc_file` resolves to `$TARGET_DIR/acceptance.md`, the THREAD's file, for WP
+# gates too. So the natural reading reaches nothing.
+#
+# **AND THE OTHER READING IS WORSE THAN INERT.** A thread has exactly one
+# `acceptance.md`, so the flag exempts the WHOLE thread: measured on Lamplight's
+# ST0346, declaring it to silence a refusal about 3 work-package ACs would have
+# discarded the standing of all 35 rows in the thread, 15 of them satisfied.
+# **The remedy was either a no-op or catastrophic, with nothing in the sentence
+# distinguishing them** -- so it now states the count it would void, because a
+# number is the part a reader cannot skim past.
+#
+# The sibling message one branch up always had this right ("add ... to ITS
+# frontmatter", where `acceptance.md` is named in the same breath). The defect
+# was a dropped referent, and the fix is one expression both branches share
+# rather than three sentences that can drift apart again.
+#
+# Found by ic and verified by vc on Lamplight, 2026-08-19; the plumbing was
+# already known there, and what was new is that the tool's own remedy text was
+# teaching the wrong move.
+exempt_remedy() {
+  local scope="$1" id="$2" thread_total="$3"
+  if [ "$scope" = "${scope%/*}" ]; then
+    printf "declare 'acceptance: exempt' in the frontmatter of %s/acceptance.md." "$id"
+    return 0
+  fi
+  printf "THERE IS NO WORK-PACKAGE EXEMPTION: a thread has ONE acceptance.md, so 'acceptance: exempt' there exempts the whole of %s and discards the standing of all %s AC(s) in it -- not just these. Putting the flag in this work package's own info.md reaches nothing; the gate never reads it. If %s as a whole is deliberately contract-free, declare it in %s/acceptance.md; otherwise leave the gate blocked and record in prose why this unit has no live contract." "$id" "$thread_total" "$id" "$id"
+}
+
 # The contract file of an already-resolved target. resolve_target runs first.
 acc_file() {
   local acc="$TARGET_DIR/acceptance.md"
@@ -1039,7 +1073,7 @@ $(ac_lines "$acc")
 EOF
   active=$((total - desc - wdrawn))
   if [ "$thread_total" -eq 0 ]; then
-    echo "gate: $scope BLOCKED -- acceptance.md has zero acceptance criteria (empty contract). Define ACs, or mark 'acceptance: exempt' in the frontmatter."
+    echo "gate: $scope BLOCKED -- acceptance.md has zero acceptance criteria (empty contract). Define ACs, or $(exempt_remedy "$scope" "$id" "$thread_total")"
     exit 1
   fi
   if [ "$total" -eq 0 ]; then
@@ -1054,7 +1088,7 @@ EOF
     # empty set: ST0048's rule is that an exemption is announced, never inferred
     # from emptiness, and a contract emptied one descope at a time is still
     # emptiness. Two ways to say "no contract to check" would be one too many.
-    echo "gate: $scope BLOCKED -- all $total in-scope AC(s) are descoped or withdrawn; nothing is left to verify. If this unit is deliberately contract-free, declare 'acceptance: exempt' in the frontmatter."
+    echo "gate: $scope BLOCKED -- all $total in-scope AC(s) are descoped or withdrawn; nothing is left to verify. $(exempt_remedy "$scope" "$id" "$thread_total")"
     exit 1
   fi
   if [ "$sat" -eq "$active" ]; then

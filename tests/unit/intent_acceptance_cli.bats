@@ -186,6 +186,39 @@ setup_fixture_st() {
   assert_output_contains "PASS"
 }
 
+@test "a WP-scoped exemption refusal names the file and the cost" {
+  # THE REMEDY WAS EITHER INERT OR CATASTROPHIC AND THE SENTENCE COULD NOT TELL
+  # YOU WHICH. The WP-scoped refusal said "declare 'acceptance: exempt' in the
+  # frontmatter" with no referent. At WP scope a reader takes that to mean the
+  # work package's own info.md -- which `acceptance_field` never reads, because
+  # `acc_file` resolves to the THREAD's acceptance.md for WP gates too. The
+  # other reading exempts the whole thread: measured on Lamplight's ST0346,
+  # silencing a refusal about 3 WP criteria would have discarded all 35 rows.
+  #
+  # Found by ic and verified by vc on Lamplight, 2026-08-19.
+  setup_fixture_st
+  # The fixture's acceptance.md NAMES WP-01 in a heading; the DIRECTORY that makes
+  # it a real work package is created here, or the gate refuses with "no such work
+  # package" and never reaches the branch under test.
+  run run_intent wp new ST0001 "sample"
+  assert_success
+
+  # Empty WP-01's contract so the gate reaches the descoped-or-withdrawn branch.
+  # `withdraw` rather than `descope`: descope needs a real destination thread and
+  # the fixture has one thread. The branch counts `desc + wdrawn` together, so
+  # either empties it, and withdraw needs no second thread to exist.
+  run run_intent ac withdraw ST0001 AC-01.1 --reason "not a real criterion"
+  assert_success
+  run run_intent ac withdraw ST0001 AC-01.2 --reason "not a real criterion"
+  assert_success
+
+  run run_intent ac gate ST0001/01
+  assert_failure
+  assert_output_contains "NO WORK-PACKAGE EXEMPTION"
+  assert_output_contains "info.md reaches nothing"
+  assert_output_contains "ST0001/acceptance.md"
+}
+
 @test "ac satisfy refuses test-backed ACs" {
   setup_fixture_st
 
