@@ -90,8 +90,34 @@ names_path_shape() {
 # ARM 2 -- does the instrument emit an `N of M` verdict? A NOMINATION only:
 # it matches the printf-shaped forms this estate actually writes, and a verdict
 # assembled from variables across two statements is invisible to it.
+# THE REGEX HAS ONE HOME, because the looseness measurement below applies the
+# SAME pattern to a SUBSET of the lines. Two copies would drift into measuring
+# two different things while reporting one number.
+OF_N_RE='(%[sd][^"]*of |[0-9]+ of |of %[sd]|of \$)'
+
 emits_of_n() {
-  grep -qE '(%[sd][^"]*of |[0-9]+ of |of %[sd]|of \$)' "$1"
+  grep -qE "$OF_N_RE" "$1"
+}
+
+# ARM 2's LOOSENESS, MEASURED RATHER THAN CAUTIONED (dc 2026-08-19, on ic's
+# adjudication of 27-versus-12). The reach note below has always SAID arm 2
+# over-nominates and never said BY HOW MUCH -- and a limitation named without a
+# number reads as a caveat when it is a measurement. A file whose only arm-2
+# hits are on comment lines can emit no ratio at all, so it is a STRUCTURAL
+# over-nomination and costs the parser no per-file adjudication.
+#
+# NOT A THIRD ARM AND NOT A FILTER. The AT-00.12 population is unchanged; this
+# says how loose the nomination is, it does not narrow it. Narrowing here would
+# make this tool the adjudicator it explicitly refuses to be.
+#
+# ITS OWN REACH: a matched line is "comment" if it starts with `#` after leading
+# whitespace. A `#`-leading line inside a heredoc counts as a comment and a
+# trailing `# ...` on a code line correctly does not. That is a proxy over a
+# proxy, and it is stated here rather than discovered.
+of_n_is_comment_only() {
+  local coded
+  coded="$(grep -E "$OF_N_RE" "$1" | sed 's/^[[:space:]]*//' | grep -cv '^#')"
+  [ "$coded" -eq 0 ]
 }
 
 # ---------------------------------------------------------------------------
@@ -105,6 +131,8 @@ globbed=0
 p11_gated=""; p11_manual=""; p11_unrostered=""
 p12_gated=""; p12_manual=""; p12_unrostered=""
 neither=0
+p12_comment_only=0
+p12_co_names=""; p12_code_names=""
 
 for path in "$HERE"/*.sh; do
   globbed=$((globbed + 1))
@@ -123,6 +151,11 @@ for path in "$HERE"/*.sh; do
     esac
   fi
   if [ "$in12" -eq 1 ]; then
+    if of_n_is_comment_only "$path"; then
+      p12_comment_only=$((p12_comment_only + 1)); p12_co_names="$p12_co_names $f"
+    else
+      p12_code_names="$p12_code_names $f"
+    fi
     case "$cls" in
       gated)  p12_gated="$p12_gated $f" ;;
       manual) p12_manual="$p12_manual $f" ;;
@@ -175,6 +208,21 @@ printf '\n'
 printf 'AT-00.12 POPULATION -- emits an `N of M`, path shape or not.\n'
 printf '  %d of %d examined. A vacuous pass under a two-tree differential when it\n' "$n12" "$examined"
 printf '  carries no path shape, which is why this row is not AT-00.11 with a wider net.\n'
+printf '  LOOSENESS: %d of those %d match ONLY on comment lines and can emit no ratio at\n' "$p12_comment_only" "$n12"
+printf '  all; %d carry at least one non-comment match. THIS IS THE NOMINATION SIZE, NOT\n' "$((n12 - p12_comment_only))"
+printf '  A CORRECTION -- the population above is unchanged and this tool still does not\n'
+printf '  adjudicate. DO NOT DIFFERENCE EITHER FIGURE AGAINST of_n_labels_its_derivation.sh:\n'
+printf '  these count FILES and that counts RATIO INSTANCES, so a numeral they happen to\n'
+printf '  share reads as a cross-reference and does no such work.\n'
+printf '\n'
+printf '  COMMENT-ONLY -- structural over-nominations. No ratio can be emitted from a\n'
+printf '  comment, so these need no per-file adjudication from anyone.\n'
+emit_group "comment-only" "$p12_co_names"
+printf '  WITH A NON-COMMENT MATCH -- THE WORK-LIST. Whether each actually emits a ratio\n'
+printf '  is of_n_labels_its_derivation.sh to answer; this arm cannot and does not.\n'
+emit_group "work-list"   "$p12_code_names"
+printf '  BOTH LISTS ARE PRINTED IN FULL rather than one list and a count, so the reader\n'
+printf '  never derives one population by SUBTRACTING from the other (ic).\n'
 emit_group "gated"      "$p12_gated"
 emit_group "manual"     "$p12_manual"
 emit_group "unrostered" "$p12_unrostered"
