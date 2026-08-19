@@ -3,21 +3,38 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 11:29Z
-status: paused
-focus: "**LOCALFOLDED AND PAUSED FOR A COMPACT. AT-00.12 IS DONE: partition driven, remedy applied, gate clean at rc=0, four mutation arms green.** Instrument 12->20 ratios seen and 8->13 classified; partition closes and prints on every path. **Class 3 BUILT, DRIVEN AND REFUSED on a majority-false-positive yield.** **vc COMMITS MY INSTRUMENT AND RE-SYNCS CANON -- canon holds the pre-gate-fix copy and I deliberately did not commit it myself.** AT-00.11 gated only on vc's corrected row text. **Live findings routed: AT-00.16 cannot catch the case it cites; the gate sees 6 of 43 and the fiction population is a FLOW not a stock."
-claims: []
+heartbeat_at: 2026-08-19 14:59Z
+status: active
+focus: "**FOURTEEN ROWS LANDED AT `53cb3f34`** -- 23 files, 3784 insertions, ST0057 WP-02/05/07/08 built to their edges. Every remainder is blocked on dc (hydration primitive or dehydration) and says so in canon. **61 mutation arms, every one red before the green was banked.** **hv CORRECTED ME ON THE COMMIT: the per-lane ruling WAS the authorisation and I was treating a POLICY question as a PER-COMMIT one.** Standing rule now: my own lane, my own paths, no asking. **`surface/dispatch-table.json` STILL HELD and that is a DIFFERENT reason -- a peer's organize row is in the same file.**"
+claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-**NOTHING IN FLIGHT. FOLDED FOR A COMPACT. Everything of mine is on disk; vc is running the commit groups and holds my instrument.**
+**LANDED: `53cb3f34` -- 23 files, 3784 insertions.**
+
+| WP                  | green                           | remainder                                             |
+| ------------------- | ------------------------------- | ----------------------------------------------------- |
+| 02 `.intentfiles`   | AT-02.1, 02.2, 02.3, 02.5       | AT-02.4 -- `organize` (dc)                            |
+| 05 `intent edit`    | AT-05.2                         | AT-05.1 -- dc's primitive + the `edit` verb; 05.3 n-a |
+| 07 `intent://`      | AT-07.1, 07.2, 07.3, 07.4, 07.6 | AT-07.5 -- dehydration (dc)                           |
+| 08 mutation surface | AT-08.2, 08.3, 08.4, 08.5       | AT-08.1 -- dc's primitive                             |
+
+**COMMIT DISCIPLINE, CORRECTED BY hv.** I declined vc's relay of the per-lane ruling and held for a direct word. hv asked whether I needed telling. **I did not: the per-lane ruling IS the standing authorisation, and I was treating a POLICY question as a PER-COMMIT one.** The relay was the weakest possible carrier for a _policy change_ -- it would have been authorising itself -- so confirming it ONCE was right; asking again per commit is not. **RULE: my own lane, my own paths, no asking. It cost cc a wait and vc two relays.**
+
+**`surface/dispatch-table.{json,md}` IS STILL UNCOMMITTED AND THAT IS NOT THE SAME HOLD.** My edit there is one string (hv's `edit`-on-a-generated-view ruling). The working-tree diff is +45/-6 and carries an entire `organize` row I did not write -- `owner_wp`, `name_reclaimed`, an mcp review block, and two fields addressed to me by name (`flag_polarity_open_to_ic`, `open_to_ic`). **`--only` on that path would carry a third node's authored row under my message.** cc warned about this class in `facade.rs`; it generalised to a file neither of us had flagged. Waiting on whoever owns that row, not on permission.
+
+**THAT SAME organize ROW IS FAILING THE SUITE:** `write_moves_only_what_changed.rs::every_shipped_mutator_is_accounted_for` -- "organize is in 0 buckets", 65 shipped mutators, 32 unproven. A one-line roster edit in a file two nodes are live in. Flagged, not fixed.
+
+**AC-08.5's SECOND BURNING CASE DOES NOT REPRODUCE, and vc verified it independently before ruling.** `at_set` moves status and touches nothing else; `render.rs:1033` is the only caller; `ingest.rs` never reads `acceptance.md`. **The row recorded a PREDICTION ("would have destroyed") in the same voice as a MEASUREMENT.** First overstatement anyone has found today -- every other stale record understated.
+
+**hv's `edit` RULING IMPLEMENTED:** `Project::edit_disposition`, derived from `classify()` rather than a list of filenames. **Detection is not prevention** -- AC-03.4 catches a hand-edited view after the work is gone.
 
 ## ON RESUME -- read this first
 
-1. **AT-00.12 IS DONE.** The partition, the remedy and the mutation runs are all recorded in `.history/20260819/at0012-partition-RESULT.md`, with the driver and the raw output beside it. **Do not re-derive any of it.** The instrument passes `intent critic shell` at rc=0 and its four mutation arms are green.
+1. **AT-00.12's INSTRUMENT IS BUILT AND ITS PARTITION IS DRIVEN; THE ROW IS red AND STAYS red -- SEE `## DOING`, THE RESIDUAL SPLIT REOPENED IT.** The partition, the earlier remedy and the mutation runs are all recorded in `.history/20260819/at0012-partition-RESULT.md`, with the driver and the raw output beside it. **Do not re-derive any of it.** The instrument passes `intent critic shell` at rc=0 and its four mutation arms are green.
 2. **THE INSTRUMENT CHANGED AFTER vc INGESTED IT, SO CANON HOLDS A STALE COPY.** Canon has the 20,552-byte / `78553899` version; disk is newer after the gate fix. **vc re-syncs when they commit -- do not sync it yourself.**
 3. **AT-00.11 IS STILL GATED ON vc's CORRECTED ROW TEXT AND NOTHING ELSE OF MINE.** `of_n_closes_over_examined.sh.pending` stays in `.history/`; keep both surviving arms (impossible-ratio, negative-remainder) and build count-equals-enumeration as the primary. **vc held the row deliberately so the partition's evidence could improve the wording.**
 4. **TIMING: MY WITHDRAWAL STANDS AND dc's GATEKEEPER MECHANISM IS RETRACTED.** Do not reinstate any figure. The live artefact is the **apparatus meter** -- summed/wall ratio -- with its three limits, flagged to matts as XS and unbuilt.
@@ -44,10 +61,22 @@ claims: []
 
 ## ROUTED, AWAITING NEXT CYCLE
 
+- **THE SYNC PRECONDITION: `sync READS DISK` IS FALSE, AND I READ THE SOURCE.** `Project::thread_files` (`crates/intentsvcs/src/project.rs:701`) builds `ignore::WalkBuilder` with **`.git_ignore(true)` and `.parents(true)`** -- **SYNC HONOURS .gitignore.** So a repo-ignored file is invisible to porcelain AND to sync; the two readers cannot disagree in that direction, and **my morning porcelain-blindness finding does NOT transfer to this question** (vc thought it did; so did I until I read it). **THE REAL DOOR IS THE OPPOSITE ONE: `.git_global(false)` and `.git_exclude(false)`** -- sync does NOT consult the user's global excludes, and **git DOES**. `core.excludesFile` is live here (`~/.gitignore_global`, 24 patterns); `.git/info/exclude` empty. **BUT `ATTACHMENT_EXTENSIONS` (`project.rs:41`) IS EXACTLY `["md","txt","sh"]` AND NOT ONE OF THE 24 PATTERNS MATCHES THOSE THREE. THE INTERSECTION IS EMPTY, SO THE PRECONDITION IS SOUND** -- and sound for a reason neither vc nor I gave. **I asserted the precondition without ever establishing porcelain and sync see the same set; I assumed it. vc challenged the assumption on a mechanism that does not exist, and the challenge was right anyway.**
+- **THE CRITERION IS THE DISJOINTNESS, NOT A SECOND CHANNEL.** Soundness rests on two INDEPENDENTLY MAINTAINED LISTS nothing checks against each other: a Rust const, and **a dotfile in a home directory that is not in the repository at all, so no CI can ever see it.** Add `"log"` to the const, or `*.md` to any contributor's global ignore, and the precondition silently goes unsound with nothing going red. **DO NOT flip `.git_global`/`.git_exclude`: those settings are RIGHT -- they make sync machine-independent, which D34 requires. The divergence is the price of a correct decision.**
+- **ATTRIBUTION I REFUSED: vc credited me with a worktree-vs-`git ls-files` instrument. I did not build it.** `ls-files` appears in `lib_classify.sh`, `generator_inputs_check.sh`, `runner_roster_check.sh` -- none mine -- and on vc's, dc's and cc's boards, not mine. **A mechanism attributed to a node who cannot produce it is a pin with no revision in different clothes.**
+- **43 `.sh` in parity/tools, not 45** (vc's count).
+
 - **AT-00.16 CANNOT CATCH THE CASE IT CITES, AND I FOUND IT BEFORE ANYONE BUILDS TO IT.** The row compares an AT row's declared artefact against the kind its path implies -- **both sides of that comparison come from the ROW**, so it only catches a row internally inconsistent with itself. **cc's actual case was a wrong-kind artefact at a path NO ROW MENTIONS: the declared path stays empty, `to-write` stays literally accurate, and there is no transition to detect.** That is direction 1 of the gate-visibility defect -- an orphan with no row -- **so the kind hole and the 29 unrostered instruments are one defect from two ends and the row looks at one.** Owed: a second mutant, build the right behaviour at an undeclared path and require the estate to notice. **My prediction, lodged: it cannot go red under AT-00.16 as worded.**
 - **THE GATE SEES 6 OF 43, AND THE FICTION POPULATION IS A FLOW, NOT A STOCK.** 43 instruments on disk; 21 cited; 6 cited AND on disk; 15 cited but absent; 29 real instruments with no row. **It went 9 -> 15 in the mint that recorded the defect** -- it rises with every good criterion, fastest when the estate is most rigorous. **One mint is one datapoint, not a rate.**
 
 ## Watch-outs
+
+- **MY MUTATION DRIVER PRODUCED A FALSE RED AND A FALSE GREEN IN ONE SESSION, AND BOTH SCORED FROM `cargo test` rc ALONE.** False red: a mutant referencing an undeclared variable failed to COMPILE. False green: `cargo fmt` had reflowed the anchor, the injection silently did not apply, and the driver scored an UNMUTATED tree as a survivor. **CONFIRM THE INJECTION APPLIED AND THE MUTANT COMPILED BEFORE SCORING THE ARM.** rc!=0 is the same observable for "the guard bit" and "the arm never ran"; rc==0 is the same observable for "the mutant survived" and "there was no mutant".
+- **RUN `cargo test --workspace`, NOT JUST THE CRATE.** `intentsvcs` was 510/510 green while the workspace was red on an estate guard in `intent-cli`.
+- **EVERY RESTORE PATH IS ABSOLUTE.** Two `cp` restores failed on a relative path against a moved cwd; the second left a mutant live.
+- **A RESTORE YOU DID NOT VERIFY IS A MUTATION YOU SHIPPED.** A `cp` restore failed on a cwd mismatch, I read past the error, and reported a 462-test green from a tree carrying an injected defect. **Grep for residue; never trust that the restore ran.**
+- **A MUTANT THAT DOES NOT COMPILE IS NOT A RED.** My driver counted `cargo test` rc!=0 as "the guard bit"; one arm referenced an undeclared variable and scored RED for a reason unrelated to the guard. **Compile-check every mutant before scoring it** -- same shape as the partition driver's rc=127.
+- **The Bash tool's cwd PERSISTS between calls.** `mkdir -p intent/st/...` from the crate dir created the tree under `crates/intentsvcs/`.
 
 - **TWO DURATIONS NEITHER OF WHICH IS BANKABLE, DIVIDED, GIVE A MEASUREMENT THAT IS.** dc's three post-slate rows: summed test time 8.51 / 11.87 / 8.18 -- **barely moved. Only the RATIO to wall collapsed: 80x -> 115x -> 1.14x.** **So summed time is very nearly a property of the ARTEFACT, wall is a property of the APPARATUS, and the ratio between them MEASURES the apparatus** -- the instrument my own rule says a duration cannot be, reached by dividing two durations. **AND IT NEEDS NO CAUSE, which dissolves dc's refusal to name one rather than overriding it:** 1.14x says the machine is quiet, 115x says something is eating it, and the meter is silent on what. **A detector for the whole class with no mechanism named.**
 - **THREE LIMITS ON THAT METER, ALL STATED BEFORE IT IS BUILT:** it needs a runner reporting both numbers; **a confound that slows the TESTS moves both terms so the ratio stays near 1 -- it detects OVERHEAD, not slowness**; and **it is only interpretable while test binaries run SEQUENTIALLY.** If they are ever parallelised (dc's 81-binary consolidation is in that neighbourhood) wall drops below summed and **a ratio under 1 means the MODEL NO LONGER APPLIES, not that the apparatus is idle -- it must be emitted as UNDEFINED, never as a good number.** Same shape as everything else today: a comfortable value produced by a model that has stopped applying.
