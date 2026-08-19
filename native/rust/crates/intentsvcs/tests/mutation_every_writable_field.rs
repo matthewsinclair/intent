@@ -44,7 +44,7 @@
 
 mod common;
 
-use common::{Fixture, facade_ctx, sample_thread};
+use common::{Fixture, sample_thread};
 use intentsvcs::model::{AtStatus, Thread};
 use serde_json::Value;
 
