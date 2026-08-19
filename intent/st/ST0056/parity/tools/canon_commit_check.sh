@@ -130,14 +130,38 @@ id_at() {
 }
 
 # The directory a thread's attachment bytes live under, derived from its canon
-# FILE so the two can never disagree. The ID-KEYED DIRECTORY survives both
-# layouts; only its parent moves.
+# FILE so the two can never disagree.
 #   nested  intent/st/<ID>/thread.json   -> intent/st/<ID>
-#   flat    intent/.canon/st/<ID>.json   -> intent/.canon/st/<ID>
+#   flat    intent/.canon/st/<ID>.json   -> intent/st/<ID>
+#
+# **THE FLAT ARM SAID `intent/.canon/st/<ID>` UNTIL 2026-08-19 AND THAT WAS A
+# PREDICTION, NOT A MEASUREMENT.** The comment here read _the ID-KEYED DIRECTORY
+# survives both layouts; only its parent moves_ -- written BEFORE ST0057 WP-01
+# landed, describing a move that had not happened yet. **The move did something
+# else: it relocated the canon FILE into a separate tree and left the ATTACHMENT
+# DIRECTORY exactly where it was.** `intent/st/ST0001/design.md` is still
+# `intent/st/ST0001/design.md`; `intent/.canon/st/ST0001` does not exist and
+# never did.
+#
+# **THE COST OF THAT ONE WRONG WORD WAS A TOTAL FALSE POSITIVE**: on the first
+# whole-tree run after the move, all 279 recorded attachments reported as ADDS
+# -- `HEAD names bytes it does not contain` -- because the tool was resolving
+# every one of them under a directory that does not exist. A tool that reports
+# 279 of 279 divergent is not reporting 279 divergences; it is reporting its own
+# resolution failure in the vocabulary of a finding, **and it exits 1 while doing
+# it, which is the shape of a gate that would have been believed.**
+#
+# The lesson is the one this file already carries in another form: a strip whose
+# pattern was absent returns the string unchanged. Here the strip SUCCEEDED and
+# produced a well-formed path to nowhere, which no assertion about the strip can
+# catch. **The id is taken from the BASENAME, and the parent is stated as the
+# literal it is rather than derived from where the canon happens to sit.**
 att_dir_of() {
-  local d
+  local d base
   case "$1" in
-    intent/.canon/st/*.json) d="${1%.json}" ;;
+    intent/.canon/st/*.json)
+      base="${1##*/}"
+      d="intent/st/${base%.json}" ;;
     intent/st/*/thread.json) d="${1%/thread.json}" ;;
     *) echo "error: not a thread canon file, so it has no attachment directory: $1" >&2; return 2 ;;
   esac
