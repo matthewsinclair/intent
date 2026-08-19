@@ -58,6 +58,27 @@ fn reads_no_model(path: &str) -> Option<&'static str> {
     // (Exemption added by cc with the wiring that made it reachable; ic owns
     // the renderer and this list, and should reword if the framing is wrong.)
     "llm guide" => Some("generated from the compiled-in table; it never reads a project"),
+    // The rule library belongs to the INSTALL, not to any project -- the same
+    // category as `schema` and `llm guide`, and verified rather than assumed:
+    // `rules.rs` resolves its roots from `install::home()` and `ext::base()`,
+    // touches no facade and opens no project.
+    //
+    // **AND IT IS THE SECOND COMMAND AN AGENT IN AN UNMIGRATED PROJECT NEEDS
+    // MOST, for the same reason `llm guide` is the first.** `CLAUDE.md` and
+    // `AGENTS.md` tell every agent to read the four rules of the road with
+    // `intent claude rules show <id>`; those files are laid down by the
+    // migration and are the FIRST thing an agent meets in a project that has
+    // not been migrated yet. Refusing here would hand an agent a contract and
+    // withhold the contract's text, in exactly the state most likely to
+    // violate it.
+    //
+    // **The gating question is `does it read the project`, never `does it look
+    // project-scoped`** -- `intent claude` reads as project-scoped and none of
+    // this family's shipped verbs are. `claude hook` execs an install script;
+    // this serves install assets. A sibling verb that DOES open a project must
+    // not inherit this exemption, which is why the entry is the full path and
+    // not the family.
+    "claude rules" => Some("serves install assets; it never reads a project"),
     _ => None,
   }
 }

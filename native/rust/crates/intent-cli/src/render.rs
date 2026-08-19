@@ -1371,10 +1371,16 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // indistinguishable from a run that removed it. Carrying the tense per line
   // costs six words and makes a line that has been separated from its footer
   // still tell the truth.
-  let (head, hyd, rew, rem) = if previewing {
-    ("organize (preview):", "to-hydrate", "to-rewrite", "to-remove")
+  let (head, hyd, rew, rem, prn) = if previewing {
+    (
+      "organize (preview):",
+      "to-hydrate",
+      "to-rewrite",
+      "to-remove",
+      "to-prune",
+    )
   } else {
-    ("organize:", "hydrated", "rewritten", "removed")
+    ("organize:", "hydrated", "rewritten", "removed", "pruned")
   };
   // **THE REFUSAL COUNT IS ON STDOUT WITH THE OTHERS, AND IT IS NOT DECORATION.**
   // Measured on a real estate: the summary read `0 to remove` while the refusal
@@ -1415,7 +1421,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     format!(" ({blocked} blocked)")
   };
   println!(
-    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} unclaimed, {} diverged, {} refused",
+    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} unclaimed, {} diverged, {} refused",
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
@@ -1424,6 +1430,16 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     report.dehydrated.len(),
     if previewing { "to remove" } else { "removed" },
     blocked,
+    // **PRUNED SITS BESIDE REMOVED BECAUSE IT IS THE SAME KIND OF ACT.** ic
+    // added the field with the reason on it -- removing a directory is a
+    // SMALLER act than removing a file and not a smaller KIND -- and then could
+    // not render it, because this file was mid-edit in my tree. A destructive
+    // act recorded on the report and absent from the report's own summary is
+    // the one line of this verb an operator cannot review, which is precisely
+    // what `0 to remove` beside a 423-file refusal already was tonight. Twice
+    // in one evening, same shape, different field.
+    report.pruned.len(),
+    if previewing { "to prune" } else { "pruned" },
     report.unclaimed.len(),
     report.diverged.len(),
     report.refused.len()
@@ -1432,6 +1448,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     (hyd, &report.hydrated),
     (rew, &report.rewritten),
     (rem, &report.dehydrated),
+    (prn, &report.pruned),
   ] {
     for path in paths {
       println!("  {label}: {}", show(path));
@@ -2436,9 +2453,165 @@ fn llm(m: &ArgMatches) -> Result<(), Failure> {
 fn claude(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("hook", a)) => hook(a),
+    Some(("rules", a)) => rules(a),
     Some((verb, _)) => unwired("claude", verb),
     None => unwired("claude", ""),
   }
+}
+
+/// `intent claude rules` -- the highest-traffic verb in the tool.
+///
+/// **125 CALL SITES IN THIS REPO'S OWN MACHINERY**, measured across `.claude/`,
+/// `lib/templates/`, `intent/plugins/`, `AGENTS.md`, `CLAUDE.md` and
+/// `usage-rules.md` -- against 230 for the whole `claude` family. The four rules
+/// of the road are not vendored into a consuming project; every agent reads them
+/// through this command, so while it answered `2` the agentic contract named a
+/// command that could not be run.
+///
+/// **THE VERB DEFAULTS TO `list`, per the table's `default: "list"` on the
+/// slot.** Bare `intent claude rules` lists, which is what every consumer that
+/// omits the verb already expects.
+///
+/// **`validate` AND `index` ARE DELIBERATELY LEFT ANSWERING `2`, AND THAT IS NOT
+/// AN OVERSIGHT.** The row's `target.state` is `pending-hv` with a real
+/// question on it -- *in v3 rules are embedded in the binary (WP-07), so `index`
+/// has no installation to mutate and arguably retires with the on-disk rules
+/// root*. `list` and `show` carry no part of that question: they are pure reads
+/// and they are what the 125 call sites use. **Implementing the unquestioned
+/// half does not resolve the questioned half**, and shipping `index` to make the
+/// family look complete would settle a pending ruling by writing code.
+fn rules(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("list", a)) => rules_list(a),
+    Some(("show", a)) => rules_show(a),
+    Some((verb, _)) => unwired("claude", &format!("rules {verb}")),
+    None => rules_list(m),
+  }
+}
+
+/// The library this binary serves.
+///
+/// **NO PROJECT IS OPENED, AND THAT IS THE POINT.** The rule library belongs to
+/// the INSTALL, so `intent claude rules` must answer from anywhere -- including
+/// the directory an operator is about to run `intent init` in. Reaching for
+/// `context()` here would make the command that explains the rules require a
+/// project that does not exist yet.
+fn library() -> Result<intentsvcs::rules::Library, Failure> {
+  let home = intentsvcs::install::home()
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
+  // **CANON ONLY TONIGHT, AND THE `None` IS A HELD RULING RATHER THAN A GAP.**
+  // v2 also serves rule packs from `~/.intent/ext`, resolved through
+  // `$INTENT_EXT_DIR` / `$INTENT_EXT_DISABLE` / `$HOME`. Wiring that here fails
+  // `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`
+  // -- `ALLOWED` is `["COLUMNS"]`, exactly one -- and that test says in its own
+  // failure message that a further read "needs an hv ruling and a row in
+  // ALLOWED, not a quiet addition", because every machine here has the variable
+  // set so nothing else would fail.
+  //
+  // **The extension case is genuinely different from `$INTENT_HOME` and that is
+  // why it is a question rather than a refusal**: the assets are unversioned and
+  // operator-authored, so there is no v2/v3 skew to serve wrongly. But the
+  // invariant is one variable, the ruling is hv's, and the seam is a parameter
+  // rather than a rewrite -- ext support is this argument and nothing else.
+  //
+  // **THE CONSEQUENCE IS NAMED, NOT SWALLOWED:** an operator with rules under
+  // `~/.intent/ext` sees them from v2 and not from v3, and `Provenance::Ext`
+  // exists and is currently unreachable.
+  Ok(intentsvcs::rules::Library::new(&home, None))
+}
+
+/// `intent claude rules list [--lang <lang>]`.
+///
+/// **THE COLUMN WIDTHS ARE v2's, TO THE CHARACTER, AND THEY ARE NOT DECORATION.**
+/// This output is read by people and pasted into messages; a v3 that reflows it
+/// makes every existing screenshot, doc and habit subtly wrong for no gain. v2
+/// picked them so the widest real value fits with slack -- `id` is dominated by
+/// `IN-AG-THIN-COORD-001` at 20, `severity` by the `recommendation` enum at 14,
+/// `category` by `architecture` at 12 -- and the `prov` column is wide because
+/// it carries `ext:<name>` rather than just `canon`.
+///
+/// **AN EMPTY FILTER RESULT PRINTS THE HEADER AND `total: 0`, not silence.** A
+/// command that prints nothing is indistinguishable from one that failed to run,
+/// and `--lang` is exactly where a typo lands.
+fn rules_list(m: &ArgMatches) -> Result<(), Failure> {
+  let lang = m.get_one::<String>("lang").cloned();
+  let all = library()?.rules().map_err(|e| Failure::Error(e.render()))?;
+  let shown: Vec<_> = all
+    .iter()
+    .filter(|r| lang.as_ref().is_none_or(|l| &r.language == l))
+    .collect();
+
+  println!(
+    "{:<22} {:<14} {:<10} {:<14} {:<14} {}",
+    "id", "severity", "language", "category", "prov", "title"
+  );
+  println!(
+    "{:<22} {:<14} {:<10} {:<14} {:<14} {}",
+    "--", "--------", "--------", "--------", "----", "-----"
+  );
+  for r in &shown {
+    println!(
+      "{:<22} {:<14} {:<10} {:<14} {:<14} {}",
+      r.id,
+      dash(&r.severity),
+      dash(&r.language),
+      dash(&r.category),
+      r.provenance.to_string(),
+      dash(&r.title)
+    );
+  }
+  println!();
+  println!("total: {} rule(s)", shown.len());
+  Ok(())
+}
+
+/// `intent claude rules show <id>`.
+///
+/// **AN UNKNOWN ID EXITS 1, NOT 2** -- the table's `observed` says so, and the
+/// distinction is the one the whole exit-code contract turns on. `1` means the
+/// command RAN and the answer is no; `2` means this build cannot answer at all.
+/// A mistyped rule id is emphatically the first.
+///
+/// **THE REMEDY NAMES THE COMMAND THAT LISTS THEM, and does not guess at a near
+/// match.** A "did you mean" that is wrong sends the reader to the wrong rule
+/// with confidence; `rules list` is one command and always correct.
+fn rules_show(m: &ArgMatches) -> Result<(), Failure> {
+  let id = arg(m, "id")?;
+  let found = library()?
+    .show(&id)
+    .map_err(|e| Failure::Error(e.render()))?;
+  match found {
+    Some((rule, body)) => {
+      // **v2's HEADER, KEPT VERBATIM, and the provenance line is why.** Without
+      // it the reader cannot tell a rule the tool ships from one this machine
+      // adds -- which is the difference between "file a bug against Intent" and
+      // "look at your own extension", and it is invisible in the body. The
+      // source path is absolute on purpose: an agent told to go and edit the
+      // rule needs somewhere to go.
+      println!("# Rule: {}", rule.id);
+      println!("# Provenance: {}", rule.provenance);
+      println!("# Source: {}", rule.path.display());
+      println!();
+      print!("{body}");
+      if !body.ends_with('\n') {
+        println!();
+      }
+      Ok(())
+    }
+    // `Error`, not `Verdict`: nothing has been written to stdout, so the
+    // operator needs the message on stderr. Both are exit 1.
+    None => Err(Failure::Error(format!(
+      "error: no rule with id `{id}`\n  remedy: `intent claude rules list` names every rule this build serves, canon and extension alike"
+    ))),
+  }
+}
+
+/// A field the frontmatter did not carry, shown rather than left blank.
+///
+/// v2 prints `?` for an absent value. Blank would make a malformed rule look
+/// like a narrow column, which is the failure mode where nobody ever fixes it.
+fn dash(value: &str) -> &str {
+  if value.is_empty() { "?" } else { value }
 }
 
 /// `intent claude hook <name>` -- run a shipped Claude Code lifecycle hook.
@@ -2588,17 +2761,49 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
 fn agents(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("generate", _)) => {
-      let (project, _) = context()?;
+      // **`open`, not `context`, and the difference is a defect this shipped
+      // with for thirteen minutes.** `context` only DISCOVERS the project, so
+      // the first cut emitted a v3 `AGENTS.md` over an unmigrated v2 estate at
+      // exit 0 -- a generator answering about a project it cannot read. Only
+      // `doctor` is entitled to `context`, because it is the verb you reach for
+      // precisely when the project will not open. Found by dc's
+      // `unmigrated_surface` sweep, which is the row that exists for this.
+      let f = open()?;
       let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
       let ctx = views::RenderContext {
         version: env!("CARGO_PKG_VERSION"),
       };
-      let content = intentsvcs::rootfiles::render(&home, "AGENTS.md", project.config(), &ctx)
+      let content = intentsvcs::rootfiles::render(&home, "AGENTS.md", f.project().config(), &ctx)
         .map_err(|e| Failure::Error(e.render()))?;
       // `print!`, not `println!` -- the template ends with its own newline and
       // a second one would put the generated file one byte away from what the
       // generator produced, which is exactly the comparison AC-00.4 exists for.
       print!("{content}");
+      Ok(())
+    }
+    Some(("sync", _)) => {
+      let f = open()?;
+      let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
+      let ctx = views::RenderContext {
+        version: env!("CARGO_PKG_VERSION"),
+      };
+      // **THIS VOICE IS v2's AND IT IS NOT TIDIED.** A bare capitalised progress
+      // line with a trailing ellipsis, then a line carrying a full stop -- both
+      // against the house style issue 0023 spent a release enforcing, both
+      // recorded `as-observed` on the dispatch-table row, and reproducing them
+      // IS the contract. The third line v2 printed announced `AGENTS.md.bak`;
+      // it is gone because the backup is, and that deviation was RATIFIED
+      // rather than cleaned up -- see `rootfiles::sync`.
+      println!("Syncing AGENTS.md with latest project state...");
+      intentsvcs::rootfiles::sync(
+        f.project().root(),
+        &home,
+        "AGENTS.md",
+        f.project().config(),
+        &ctx,
+      )
+      .map_err(|e| Failure::Error(e.render()))?;
+      println!("ok: AGENTS.md updated at project root.");
       Ok(())
     }
     Some((verb, _)) => unwired("agents", verb),

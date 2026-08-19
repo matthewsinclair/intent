@@ -44,6 +44,7 @@ pub mod prose;
 pub mod realise;
 pub mod remedy;
 pub mod rootfiles;
+pub mod rules;
 pub mod store;
 pub mod sync;
 pub mod transitions;

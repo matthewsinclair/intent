@@ -65,6 +65,12 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
       }],
       digest: PLANNED.to_string(),
       preconditions: preconditions::check(&gate_is_open()),
+      // **THE FIXTURE'S OWN TREE, NOT THE REAL ESTATE.** `estate_root` bounds
+      // where `prune_emptied` may remove a directory, so a fixture pointing it
+      // anywhere real would let a digest-guard test delete outside its tempdir.
+      // These arms all refuse before pruning, which is exactly why the value has
+      // to be safe rather than merely unused today.
+      estate_root: fx.path(""),
     },
   )
 }
