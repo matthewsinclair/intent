@@ -3,85 +3,41 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 19:00Z
-status: active
-focus: "**GATE 34 of 64. hv RULED: WIRE THE `organize` HANDLER NOW -- dc is going, five rows (AT-04.1..04.5), the largest single move on the board.** The deciding argument inverts the intuition dc and I both had: wiring NOW exercises the REFUSAL path in anger for the gate's whole remaining life; wiring LATE puts the first real run next to the permitting state. **dc's objection stands unrefuted -- the gate opens BY CONSTRUCTION at the last green -- and that argues for an arming step, not for delay.** **I WITHDREW MY OWN HEADLINE TODAY: `intent at green` is NOT safe over a hand-edited canon file. dc traced it deeper (`load_fresh` never reads the files; `ingest.rs:301` promises it does), ic closed a second door on the remedy I was recommending.** **Six of the nineteen declared preconditions are cc's WP-03 rows, so cc's next greens move the estate's arming state and cc has been told.**"
+heartbeat_at: 2026-08-19 19:37Z
+status: paused
+focus: "**50 of 64 acceptance tests pass (was 33 this morning). ONE DECISION WAITS FOR hv AND IT IS SIMPLE: `intent organize` keeps the files listed in `.intentfiles` and deletes the rest -- and that list is EMPTY, so it currently proposes deleting 545 files.** The list is empty because the code that fills it was never connected, and that is because nobody ever wrote down the rule for what belongs in it. **Option A: leave it, 545 deletions. Option B (ic): keep unfinished threads, 423 deletions, every live thread survives. Option C: hv writes the rule.** Nothing is blocked on the answer; one test is correctly red until it is settled."
 claims: [ST0056, ST0057]
 ---
 
 # Validation Claude (vc)
 
-## ON RESUME -- THE GATE IS ONE NUMBER. READ THIS, DO NOT RE-DERIVE IT.
+## ON RESUME -- READ THIS FIRST, IN PLAIN WORDS
 
-**hv's DIRECTIVE, VERBATIM AND STANDING: _"We CANNOT make a release until we FULLY and COMPLETELY implement the disk-to-db sync with the intentfiles realiser in FULL and COMPLETE WORKING ORDER. Having INTENT SELF-HOSTED AND SEAMLESSLY USING THE SQLITE DB AND THE RUST NATIVE CLI IS WHY WE ARE HERE. NOTHING ELSE MATTERS."_** He has said it three times. It appears on no board as a directive except this one.
+**Where we are: 50 of 64 acceptance tests pass.** That is the release number. It was 33 this morning. The 14 that remain are spread across four people; nobody is idle and nothing is unowned.
 
-**THE GATE IS 64 ROWS: ST0057 (all 46) + ST0056 WP-03 (all 18). WE ARE AT 47** -- measured at HEAD `35cfb080`, 2026-08-19 18:00Z. **ST0057 30/46; ST0056 WP-03 is 17 of 18 and ONLY AT-03.15 (red, the 32 unproven shipped mutators) REMAINS IN THAT WHOLE WORK PACKAGE.** **`organize` IS WIRED AND THE FIVE AT-04 ROWS ARE GREEN** -- hv ruled wire-now, dc built it, and the first run in anger held 544 files. **REPORT THIS NUMBER AND NOTHING ELSE AS PROGRESS.** Session start 28, this session's resume 33. **AND MEASURE IT AT HEAD, NEVER IN THE WORKTREE: a green measured in a dirty tree and recorded against a sha is a claim that revision cannot support** (cc caught vc doing exactly this), which nothing downstream can detect. **Four nodes are writing faster than the tree can be measured -- three readings of one build inside two minutes -- so every measurement claim names REVISION, CLOCK and DIRTY COUNT.**
+**What v3 is supposed to do, in one sentence:** keep the project's files in a SQLite database, keep only a chosen subset of them on disk as real files, and let you regenerate the rest whenever you want. The command that does the cleanup is `intent organize`.
 
-**hv's SECOND DIRECTIVE, AND IT CHANGED HOW vc WORKS: _stop worrying about what isn't there and only worry about what is GOING TO BE THERE ONCE THIS IS DONE._** Send nodes the END STATE and who makes it true, never the gap list.
+**The one thing hv must decide, in plain words:**
 
-**WHAT WILL BE TRUE WHEN IT IS DONE:** `intent organize` runs and the tree holds only what `.intentfiles` names, as an EQUALITY of two independently derived sets with both counts printed; the eleven real files in a thread are edited directly and the two renderings refuse and name the verb; everything is addressable through `intent://` for read AND write, json and md, with **no daemon required to read your own project**; a pin keeps a closed thread realised; a fresh clone rebuilds and matches; a node syncs its own thread without touching anyone else's; and **a human can realise the whole estate as text and read it with no tool at all**.
+`organize` keeps the files listed in `intent/.intentfiles` and deletes the rest. **That list is empty right now, so `organize` currently proposes to delete 545 files.** It does not do it -- a safety gate refuses, and the command only previews unless you type `--apply` -- but that is the state.
 
-## FOR hv, FIRST THING, AND IT IS ONE QUESTION: WHAT IS THE FUNCTION OF STATUS?
+The list is empty for a concrete reason, not an oversight. The code that fills it in (`intentfiles::render`) was written and tested but never connected to anything. It was never connected because **nobody ever wrote down the rule for what should be in the list.** Two documents say the list is "a function of status" and neither says what the function is.
 
-**vc IS HOLDING THIS RATHER THAN RULING IT, AND THE REASON IS THE LINE BETWEEN vc AND hv.** Every other ruling vc made today INTERPRETED EXISTING TEXT -- AC-06.3's own disjunction, AC-06.6's two populations, AC-00.1's declaration. **This one has nothing to interpret: ic measured that NOTHING ANYWHERE STATES THE FUNCTION.** `.intentfiles`' header says _a function of status_; `design.md:115` says _the generated region is a function of status_; **no criterion, no design line and no canon field says realised-iff-what.** Ruling it would be CREATING policy, not reading it -- and the policy decides WHICH FILES GET DELETED. **vc has held the arming decision for hv all afternoon; ruling the deletion policy while refusing to rule arming would be incoherent.** Nothing forces it: AT-02.2 red is cheap and honest, and no row is waiting on a guess.
+**So the question is: which steel threads keep their files on disk?**
 
-**THE CHAIN, COMPLETE, AS A CAUSE RATHER THAN A NUMBER (ic found it, vc verified each limb):**
+- **Option A -- do nothing.** The list stays empty. When the safety gate opens, `organize --apply` deletes 545 files, including the two threads we are working in. Nobody would run it, but that is the default sitting there.
+- **Option B -- ic's proposal: keep threads that are not finished or cancelled.** Measured by running it: **423 deletions instead of 545**, and ST0056, ST0057 and ST0046 keep their files. Every thread anyone is working in survives. This is the option that matches what the design seems to assume.
+- **Option C -- something else.** hv writes the rule.
 
-    `intentfiles::render` writes the generated region     -- 0 qualified callers in any src/
-      -> the generated region has never been written      -- 26 lines, all comment/blank
-        -> zero threads declared, 57 on disk
-          -> `organize --apply` plans 544 removals
-    and render has no caller PARTLY BECAUSE NOBODY COULD HAVE WRITTEN ONE:
-      the two-region design specified the SHAPE of the answer and never the ANSWER.
+**vc did not decide this.** Every other judgement call today was reading text that already existed. This one has no text to read, so choosing would be inventing policy, and the policy decides which files get deleted.
 
-**ic's RECOMMENDATION, ON THE RECORD AND NOT ADOPTED: realised iff the thread is NOT TERMINAL** -- not `completed`, not `cancelled`. Their grounds: `design.md:115` offers _the artefact you opened is closed_ as the REASON a hand pin is needed, **which presupposes closed-implies-unrealised**, and it makes the pinned region's purpose coherent -- **you pin precisely to override the terminal case.**
+**Nothing is blocked on the answer.** One acceptance test (AT-02.2) is correctly red until it is settled, and the other 13 remaining items are unaffected.
 
-**BOTH SCENARIOS DRIVEN THROUGH THE PLANNER BY ic, CANDIDATE MANIFEST WRITTEN INTO A DISPOSABLE CLONE. THESE ARE PLANNER OUTPUTS, NOT vc's DIRECTORY CENSUS:**
+## WHAT ELSE IS WAITING FOR hv
 
-    A  nothing declared (today)      545 removals    ST0046 + ST0056 + ST0057 go too
-    B  realised iff not terminal     423 removals    ST0046, ST0056, ST0057 KEPT
-    both                             199 unclaimed, unchanged by the rule
-
-**THE STATUS QUO IS THE MORE DESTRUCTIVE OPTION AND IT IS SIMPLY GATED. The proposal is not _start deleting things_ -- it is delete 122 FEWER, and keep both live threads and the one not yet started.**
-
-**vc's 423 came from a directory census (744 minus 321 realised) and HAPPENED to equal the planner's answer, because `organize` removes EVERYTHING under a dehydrated thread's directory rather than only its views. vc did not verify that mechanism before publishing the number; ic did, by driving it.** ic set out to correct the figure, modelled the verb as removing `GeneratedView` files only, computed 234, **and would have UNDERSTATED the blast radius by 189 files in a number going to hv to decide a deletion policy.** They caught it because the planner disagreed with their model.
-
-**544 -> 545 IS EXPLAINED AND CHECKABLE: it is ic's own `intentfiles_reviewable.sh`, a new file under `intent/st/ST0057/` that is removable while nothing is declared.** dc measured 544 before it landed. **A count that tracks the estate rather than a figure drifting.**
-
-**AND THE COUNT IS NOT ON STDOUT. vc confirmed independently: the summary line reads `0 hydrated, 0 rewritten, 0 unchanged, 0 REMOVED, 199 unclaimed, 0 diverged, 1 refused` while stderr carries `would remove 545 file(s)`.** So **a reader of the summary alone sees ZERO on a run that planned 545** -- `1 refused` is the only hint and it carries no magnitude. **The summary line agrees with two different worlds: _nothing was going to be removed_ and _545 were, and the gate stopped them_.** dc moved the count onto stdout for the UNREFUSED case; the refused case still carries it only in the stream people suppress. Queued, not minted.
-
-**It is a plausible, well-argued reading. It is not vc's to adopt, and _probably agree_ is not the standard for a deletion policy.**
-
-## THE ARMING LEDGER -- vc OWNS THIS NUMBER AND MEASURES IT FROM THE SHIPPED GATE
-
-**NOBODY INFERS THE TOTAL. dc named the gap: each node tracked its own preconditions correctly and THE SUBSETS DO NOT SUM TO NINETEEN.** vc watches the union; builders watch their own rows.
-
-**MEASURED, NOT INFERRED: `intent organize --apply` in a disposable clone, refusal read directly with no pipe.** That is the shipped gate answering about itself, which is the only source that cannot drift from the gate.
-
-**rev `43a08a0e`, 2026-08-19 18:42Z: `19 checked of 19 declared, 6 unmet`, 744 files conserved.** Thirteen at 16:52Z, eight at 18:18Z, six now.
-
-    AC-00.3  AC-00.4  AC-03.6  AC-06.3  AC-06.4  AC-07.5
-
-**AND THE NUMBER THAT DECIDES WHAT ARMING MEANS, MEASURED BY vc AT `43a08a0e`: `.intentfiles` DECLARES ZERO THREADS. 57 EXIST ON DISK.** Twenty-six lines, every one a comment or blank, generated region empty. ic surfaced it; vc confirmed it independently.
-
-**SO THE ESTATE IS NOT SIX PRECONDITIONS AWAY FROM A CAREFUL PARTIAL DEHYDRATION. IT IS SIX PRECONDITIONS AWAY FROM A COMPLETE ONE: nothing is declared, everything is realised, and `organize --apply` plans 544 REMOVALS.** That is dc's 544 seen from the other side.
-
-**THE NINETEEN PRECONDITIONS ASK WHETHER THE ESTATE CAN PUT FILES BACK. NOT ONE ASKS WHETHER ANYBODY HAS SAID WHICH FILES TO KEEP.** An empty manifest is a valid declaration -- ic's own `Declared(empty)` is _somebody saying none_ and is honoured deliberately -- so the gate opening over an unpopulated manifest is CORRECT BEHAVIOUR meeting a state nobody has filled in.
-
-**WHAT MAKES IT SURVIVABLE IS ic's POLARITY RULING FROM THIS AFTERNOON, AND NOBODY ARGUED IT ON THESE GROUNDS AT THE TIME: `organize` previews by default, so the first thing a human sees is `544 to remove` and `--apply` is a second, deliberate act.** Under the polarity v3 shipped with this morning -- bare spelling acts -- the gate opening would have been one keystroke from an empty estate. **That ruling is load-bearing for a reason its own argument did not name.**
-
-**hv's, not vc's, and it is the FIRST thing to put to him.** Not urgent in the sense of imminent -- six remain and the gate refuses -- but it is the fact that decides whether arming is a milestone or an event.
-
-    dc   4   AC-06.1 06.2 06.3 06.4   ST0057/06, claimed 18:20Z, in progress
-    cc   2   AC-03.6, AC-00.4         03.6 needs `--staged`; 00.4 was UNOWNED until 18:20Z
-    ic   1   AC-07.5                  ST0057/07, claimed
-    vc   1   AC-00.3                  TAKEN by vc 18:20Z -- evidence-backed, was UNOWNED
-
-**OWNING THE TOTAL IS WHAT SURFACED THE HOLE: AC-00.3 AND AC-00.4 WERE ON NO NODE'S CLAIMS.** WP-00 is ST-level and there is no WP 00, so both fell between every lane. **They would have been LAST precisely because nobody was on them.**
-
-**AC-00.3 IS `kind: non-test`, covered by AT-00.3 at `n-a`, and is satisfied by EVIDENCE rather than by a green test** -- _the conservation verdict is green at full scope over a pinned subject, and the finding names the revision it was measured at_. **A pinned-revision measurement is vc's desk, which is why vc took it rather than routing it.**
-
-**CORRECTION ON THE RECORD: vc told dc that WP-06's fourth row was the arming moment. IT IS NOT -- four others remain after it.** dc caught it before starting. **The arming moment has no owner and no predictable shape: it is four nodes finishing four unrelated things, and the last one is whoever finishes last.** That is exactly why nobody may infer it.
+- **`st edit`** -- the command's default target is a generated file, which hv's earlier ruling says the command must refuse. ic flagged it; nobody is stuck.
+- **Arming.** When the last of 6 safety preconditions is met, the gate opens by itself. vc is watching that number and has told dc to stop and say so rather than let it happen unattended.
+- **A queue of real findings that are deliberately NOT being worked on** while hv is away, because he asked for nothing outside the release to be started.
 
 ## DOING
 
