@@ -232,6 +232,17 @@ pub enum AddressError {
   /// that they mistyped something.
   #[error("`{segment}` is a VIEW, and views have no address")]
   ViewAddressed { segment: String },
+  /// [`promote`]'s refusal, and it has its own variant because the alternative
+  /// is the one wrong answer that matters.
+  ///
+  /// **`intent hydrate ST57` MUST NOT REPORT A MISSING THREAD.** It is a typo
+  /// in the argument grammar, and reporting it as "no such thread" sends an
+  /// operator into the estate looking for something that was never addressed.
+  /// `NotAnIntentUrl` is equally wrong here: a caller who typed a bare id was
+  /// not trying to write a URL, and telling them an address begins `intent://`
+  /// answers a question they did not ask.
+  #[error("`{input}` is neither an address nor an artefact id")]
+  NotAddressable { input: String },
 }
 
 impl Remedy for AddressError {
@@ -259,6 +270,9 @@ impl Remedy for AddressError {
       }
       AddressError::ViewAddressed { .. } => {
         "address the ENTITY and select a representation: `/threads/ST0000?format=md`".into()
+      }
+      AddressError::NotAddressable { .. } => {
+        format!("name a thread (`ST0000`), an issue (`0042`), or a full address (`{SCHEME}/threads/ST0000`)")
       }
     }
   }
@@ -525,4 +539,51 @@ pub fn serve_md(
     .ok_or_else(|| ServeError::NotFound {
       url: address.to_url(),
     })
+}
+
+/// Parse an address, accepting a BARE ARTEFACT ID as shorthand for one.
+///
+/// **THE COMMAND LINE'S DOOR. [`parse`] REMAINS THE GRAMMAR.**
+///
+/// `parse` demands the `intent://` scheme, which is right for a scheme and
+/// wrong for a person: it makes the everyday invocation
+/// `intent hydrate intent:///threads/ST0057`. Nobody types that, and a verb
+/// people route around is a verb that does not exist. So the CLI takes
+/// `<address>` -- because the services it calls refuse in address terms, and
+/// two of `Facade::hydrate`'s three refusal arms are unreachable from a bare
+/// id -- and promotes a bare artefact id to one before calling them.
+///
+/// # Why the promotion is safe, and it is not because ids "look different"
+///
+/// **It DELEGATES rather than guesses.** [`model::is_thread_id`] and
+/// [`model::is_issue_id`] own the question of what an id is; [`Sigil::accepts`]
+/// already calls exactly these two, so this adds no second declaration of
+/// identity. An inference from SHAPE that reads a spelling is the class the
+/// dispatch table's `intrinsic` discussion exists to kill; an inference that
+/// calls the module owning the fact is not the same thing.
+///
+/// The two predicates are disjoint by construction -- a thread id is `ST` plus
+/// four digits, an issue id is exactly four digits -- so the promotion is total
+/// and unambiguous over well-formed ids, and there is no precedence rule to get
+/// wrong.
+///
+/// # The third case is the one worth getting right
+///
+/// Anything that is neither is [`AddressError::NotAddressable`], which names
+/// both accepted forms. It is deliberately NOT `NotAnIntentUrl` (a caller who
+/// typed `ST57` was not writing a URL) and deliberately NOT a not-found (the
+/// argument never named anything, so nothing was missing).
+pub fn promote(input: &str) -> Result<Address, AddressError> {
+  if input.starts_with(SCHEME) {
+    return parse(input);
+  }
+  if model::is_thread_id(input) {
+    return parse(&format!("{SCHEME}/threads/{input}"));
+  }
+  if model::is_issue_id(input) {
+    return parse(&format!("{SCHEME}/issues/{input}"));
+  }
+  Err(AddressError::NotAddressable {
+    input: input.to_string(),
+  })
 }
