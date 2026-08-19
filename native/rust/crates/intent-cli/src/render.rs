@@ -1414,6 +1414,15 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // no edit to this verb and nothing in the output having changed shape. The
   // parenthetical is what makes the pending state visible while it is still
   // pending.
+  // **EMPTY MEANS EMPTY, and a digest of nothing would be a constant that looks
+  // like a measurement.** A reconciled estate prints `0 unclaimed` with no
+  // parenthetical rather than `0 unclaimed (e3b0c44298fc)`, which is sha256 of
+  // the empty input and says nothing at all while looking authoritative.
+  let unclaimed_digest = if report.unclaimed.is_empty() {
+    String::new()
+  } else {
+    format!(" ({})", report.unclaimed_digest())
+  };
   let blocked = report.blocked();
   let blocked = if blocked == 0 {
     String::new()
@@ -1421,7 +1430,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     format!(" ({blocked} blocked)")
   };
   println!(
-    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} unclaimed, {} diverged, {} refused",
+    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} unclaimed{}, {} diverged, {} refused",
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
@@ -1441,6 +1450,14 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     report.pruned.len(),
     if previewing { "to prune" } else { "pruned" },
     report.unclaimed.len(),
+    // **THE DIGEST RIDES ON THE SUMMARY LINE, WHICH IS THE ONLY LINE THAT MUST
+    // ANSWER `DID ANYTHING CHANGE` WITHOUT A FLAG.** Grouping the 199 paths by
+    // directory took the report from 199 lines to 4, and vc measured that it
+    // still fails a same-directory SWAP -- byte-identical output across a
+    // membership change, the changed entry at position 2 of 199. Count and
+    // directory set are exactly the two quantities such a swap preserves.
+    // Cardinality moves the count; membership moves this.
+    unclaimed_digest,
     report.diverged.len(),
     report.refused.len()
   );
@@ -1459,8 +1476,41 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // divergence means the STORE is stale and the remedy is the operator's
   // choice. Both are inventory the operator has to see, and neither moves the
   // exit code -- they are not failures of this run.
+  // **GROUPED BY DIRECTORY, AND THIS IS NOT A TRUNCATION.** hv met the
+  // unbounded form directly: 199 unclaimed paths, printed in full on every run,
+  // wrapping the eight lines that carry the decision. Measured by cc -- 196
+  // `.tap`, 2 `.tsv`, 1 `.gitkeep`, across exactly TWO directories -- and
+  // **nothing will ever move them out of that bucket**: they are not views (the
+  // renderer cannot produce a `.tap`), not attachments (`ATTACHMENT_EXTENSIONS`
+  // is md/txt/sh), and not declarable, because `.intentfiles` names ARTEFACTS
+  // and never FILES. Permanently unclaimed by construction.
+  //
+  // **A REPORT WHOSE FIRST TWO HUNDRED LINES ARE IDENTICAL ON EVERY RUN TRAINS
+  // ITS READER TO STOP LOOKING**, and the run where one of those lines changes
+  // is then the run nobody sees. That is the third instance of one class today
+  // -- `view_skew_check.sh` printing a clean-sounding summary while the drift it
+  // existed for grew, and `runner_roster_check.sh` green at 11 gated over a
+  // wiring that judged the wrong commit. Both were PRESENT and technically
+  // correct. This one arrives through volume rather than wording.
+  //
+  // **THE COUNT-AND-NO-ELLIPSIS RULE ABOVE IS HONOURED, NOT WAIVED.** Its own
+  // words are *being inside a counted group is fine, being dropped is not*, and
+  // a directory line carrying its own count is exactly a counted group -- the
+  // total still reconciles against the summary. The rule's justification is
+  // that this verb's subject is files appearing and DISAPPEARING; an unclaimed
+  // file is doing neither. It is inventory, and inventory groups.
+  let mut by_dir: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
   for path in &report.unclaimed {
-    println!("  unclaimed: {}", show(path));
+    let shown = std::path::PathBuf::from(show(path).to_string());
+    let dir = shown
+      .parent()
+      .map(|d| d.display().to_string())
+      .filter(|d| !d.is_empty())
+      .unwrap_or_else(|| ".".to_string());
+    *by_dir.entry(dir).or_default() += 1;
+  }
+  for (dir, count) in &by_dir {
+    println!("  unclaimed: {dir}/ ({count} file(s))");
   }
   for path in &report.diverged {
     println!("  diverged: {}", show(path));

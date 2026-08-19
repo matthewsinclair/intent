@@ -374,3 +374,52 @@ fn a_run_the_gate_does_not_block_reports_nothing_blocked() {
     report.refused
   );
 }
+
+#[test]
+fn the_unclaimed_digest_moves_on_membership_and_not_on_order() {
+  // **THE ROW EXISTS FOR THE CASE THE COUNT CANNOT SEE.** vc measured both arms
+  // on the live estate: ADDING an unclaimed file moves `199 unclaimed` to `200`
+  // and was already visible in the line the summary always printed; SWAPPING
+  // one file for another inside a single directory left the whole output
+  // byte-identical, with the changed entry at position 2 of 199. Grouping the
+  // report by directory -- the first fix -- fails that swap for the same reason
+  // the count does: same directory, same cardinality.
+  let path = |p: &str| std::path::PathBuf::from(p);
+  let report = |paths: &[&str]| Report {
+    unclaimed: paths.iter().map(|p| path(p)).collect(),
+    ..Default::default()
+  };
+
+  let before = report(&["a/one.tap", "a/two.tap", "b/three.tap"]);
+  let swapped = report(&["a/one.tap", "a/CHANGED.tap", "b/three.tap"]);
+  let reordered = report(&["b/three.tap", "a/two.tap", "a/one.tap"]);
+
+  // The swap is invisible to everything the summary carried before this.
+  assert_eq!(
+    before.unclaimed.len(),
+    swapped.unclaimed.len(),
+    "the fixture must hold cardinality constant, or it is testing the count"
+  );
+  assert_ne!(
+    before.unclaimed_digest(),
+    swapped.unclaimed_digest(),
+    "a same-directory swap must move the digest -- it is the only thing that can see it"
+  );
+
+  // **AND THE OTHER HALF, without which the digest is a nuisance rather than an
+  // instrument.** If walk order moved it, the detector would fire on the walk
+  // instead of on the estate and a reader would learn to ignore it in a day.
+  assert_eq!(
+    before.unclaimed_digest(),
+    reordered.unclaimed_digest(),
+    "the same SET in a different order is the same set"
+  );
+
+  // Twelve hex characters, so the summary line stays readable.
+  let d = before.unclaimed_digest();
+  assert_eq!(d.len(), 12, "digest should be 12 chars, got {d}");
+  assert!(
+    d.chars().all(|c| c.is_ascii_hexdigit()),
+    "digest should be hex: {d}"
+  );
+}

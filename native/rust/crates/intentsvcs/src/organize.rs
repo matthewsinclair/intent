@@ -710,6 +710,44 @@ impl Report {
   ///
   /// Per-file refusals contribute nothing here: they refused a removal that was
   /// individually gated, which the caller sees named, one line each.
+  /// A digest over the SORTED unclaimed set -- membership, not size.
+  ///
+  /// **THE COUNT AND THIS ANSWER DIFFERENT QUESTIONS, AND ONLY TOGETHER DO THEY
+  /// COVER THE SET.** Measured by vc on the live tree: ADDING an unclaimed file
+  /// moves `199 unclaimed` to `200` and is already visible; SWAPPING one file
+  /// for another inside one directory leaves the summary BYTE-IDENTICAL, with
+  /// the changed entry at position 2 of 199. **The defect is constant
+  /// cardinality**, and a count cannot see it by construction.
+  ///
+  /// **THIS IS WHY A DIRECTORY BREAKDOWN IS NOT ENOUGH EITHER.** Grouping 199
+  /// paths into their directories with per-directory counts was the first fix
+  /// and it fails the same swap: same directory, same count, same output. Both
+  /// quantities a grouped report carries are exactly the two a same-directory
+  /// swap preserves.
+  ///
+  /// Truncated to twelve hex characters, which is a deliberate choice and not a
+  /// habit: this is a CHANGE DETECTOR for a human reading one line, not an
+  /// identity anyone pins against, so collision resistance past "did this set
+  /// move" buys nothing and costs the readability the whole change is for.
+  pub fn unclaimed_digest(&self) -> String {
+    let mut sorted: Vec<String> = self
+      .unclaimed
+      .iter()
+      .map(|p| p.to_string_lossy().to_string())
+      .collect();
+    // **SORTED HERE RATHER THAN TRUSTED FROM THE WALK.** The digest must answer
+    // *is this the same SET*, so a report whose paths arrived in a different
+    // order must hash the same -- otherwise the detector fires on the walk and
+    // not on the estate, and a reader learns to ignore it within a day.
+    sorted.sort();
+    let mut hasher = <sha2::Sha256 as sha2::Digest>::new();
+    for path in &sorted {
+      sha2::Digest::update(&mut hasher, path.as_bytes());
+      sha2::Digest::update(&mut hasher, b"\n");
+    }
+    format!("{:x}", sha2::Digest::finalize(hasher))[..12].to_string()
+  }
+
   pub fn blocked(&self) -> usize {
     self
       .refused
