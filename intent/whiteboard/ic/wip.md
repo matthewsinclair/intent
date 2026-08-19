@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7c9b8dad-5c1f-49af-a9fd-9dbd287fc26d
-heartbeat_at: 2026-08-19 15:30Z
-status: paused
-focus: "**LOCALFOLDED FOR A COMPACT. SIXTEEN ROWS BUILT, FIFTEEN GREEN, ALL COMMITTED** -- `53cb3f34` (fourteen), `9ce1bb36` (board), `23a5642f` + `390b09c8` (two defects of my own). **RE-LANED ONTO ST0056 WP-03 -- three rows, nobody blocking, the bidi-sync half of the gate. NOTHING STARTED YET.** Gate 30 of 64. **AT-08.4 IS RED AND I CONCEDED IT: I evidenced one limb of a two-limb criterion and offered the refusal for the missing limb as coverage.**"
+heartbeat_at: 2026-08-19 16:08Z
+status: active
+focus: "**AT-03.14 IS BUILT, GREEN AND MUTATION-PROVEN, AND CANNOT BE COMMITTED YET.** 8 cases, red-first reproduced vc's live instance byte for byte, 7 mutation arms / 6 red. Workspace 786 pass / 1 fail (cc's `preconditions.rs`, in HEAD). **BLOCKED ON cc: `store.rs` +279 and `ingest.rs` +117 each carry my half AND cc's `attachments.blob` half, so neither of us can `--only` out.** The AT-03.14 row moves to green in the same breath as that commit and NOT BEFORE -- green today would cite a file in no commit, which is vc's Direction-2 hole reached deliberately."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,11 +13,25 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. FOLDED FOR A COMPACT. Everything of mine is committed.**
+**AT-03.14 / AC-03.13 -- BUILT AND GREEN, AWAITING A COMMIT WINDOW.**
+
+**THE MECHANISM, so it can be reconstructed if this is lost.** The store now records whether its last load from canon FINISHED. New `ingests` table in the `DDL`, migration rung 12, `Store::begin_ingest` / `finish_ingest` / `last_ingest`, `IngestOutcome`, `IngestRecord::succeeded()`. One wrapper `ingest::recording` is the single home of the recording; `load` and `resync` go through it and `Facade::sync_from_disk` wraps the whole disk -> store region. `Facade::sync_to_disk` refuses via `refuse_if_the_last_ingest_was_refused`, new `FacadeError::EgestFromRefusedIngest`.
+
+**THE ONE ORDERING THAT IS THE WHOLE CORRECTNESS: the attempt row is COMMITTED BEFORE `Store::rebuild`'s transaction opens.** The refusal it exists to record IS a SQLite failure inside that transaction, so a record written in the same transaction rolls back with the failure -- the store would forget it had ever been asked and report stale contents as though nothing happened. That is the original defect, reproduced by the fix for it.
+
+**THREE DECISIONS THAT ARE NOT DERIVABLE FROM THE CODE.**
+
+1. **REFUSE, not warn.** AC-03.13 allows either. A warning on a path that already succeeded silently once is a line of output above a completed data loss.
+2. **`None` IS NOT A REFUSAL.** An existing store gets the table EMPTY at rung 12. Reading absence as failure blocks the fleet's egest for something nobody observed.
+3. **The PROJECTION is outside the recording.** A failure there is `ViewsNotWritten`, whose documented repair IS `sync --to-disk`; recording it would block the verb the error tells the operator to run.
+
+**FILES I HOLD (uncommitted).** `store.rs`, `ingest.rs` (both CONTESTED with cc), `facade.rs`, `faces.rs` (`SCHEMA_DDL_VER` 8 -> 9), `tests/refused_ingest_blocks_egest.rs` (new), `tests/error_remedies.rs`, `tests/store_schema_version.rs` (pin 12 / `0x35c1_9788_df6d_c5db`), `tests/schema_versioning.rs` (pin `SCHEMA_DDL_VER` 9 / `0x014f_6d84_7cea_56a3`), `schema/ddl.sql`. **cc's rung 13 supersedes my pins -- all three are theirs to move, and I have told them so.**
 
 ## ON RESUME -- read this first
 
-1. **START ON AT-03.14** (`refused_ingest_blocks_egest.rs`). Red-first is EXACTLY REPRODUCIBLE and vc handed me the recipe: duplicate `id` in one thread's `tests`, `--to-store` refuses, `--to-disk` then DESTROYS the authored edit at rc=0. **A criterion whose failure I can construct on demand is the one to build first.**
+0. **AT-03.14 IS DONE, GREEN AND UNCOMMITTED. DO NOT REBUILD IT.** Read `## DOING` first; the mechanism, the three non-obvious decisions and the file list are all there. The only open action is the commit window and then moving the row.
+
+1. **(DONE) AT-03.14** (`refused_ingest_blocks_egest.rs`). Red-first is EXACTLY REPRODUCIBLE and vc handed me the recipe: duplicate `id` in one thread's `tests`, `--to-store` refuses, `--to-disk` then DESTROYS the authored edit at rc=0. **A criterion whose failure I can construct on demand is the one to build first.**
 2. **AT-03.16 HAS A HARD REQUIREMENT, NOT A CAUTION: DO NOT DRIVE IT WITH OUTPUT SUPPRESSED.** The original data loss was silent ONLY because vc piped the write verb to `/dev/null`. **A test that reproduces the loss under suppression is measuring the suppression.** Assert on the STREAM, and say in the row how the run was driven.
 3. **AT-03.13** (`mandatory_fields_reach_a_reader.rs`) -- every field the service layer REFUSES without must reach a human read face. Red-first arm is `status_reason`.
 4. **DO NOT RE-DERIVE ANY OF TODAY'S WORK.** ST0057 WP-02/05/07/08 are built to their edges and committed. Four rows wait on dc (hydration primitive / dehydration) and each says so in canon.
