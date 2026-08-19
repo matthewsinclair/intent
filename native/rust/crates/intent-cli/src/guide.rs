@@ -49,8 +49,8 @@
 //! **Completeness of the ROW SET comes for free; the truth of each rendered
 //! field does not, and no generator will ever check it.**
 
-use crate::spine::Failure;
 use crate::dispatch::{self, Arg, Entry, Flag, Table};
+use crate::spine::Failure;
 
 /// Render the guide.
 ///
@@ -526,10 +526,11 @@ mod tests {
     // Matched rather than `to_string()`d: `Failure` carries its message and does
     // not implement `Display`, and adding one to a shared type to satisfy a test
     // in another module is a wider change than this needed.
-    let err = match render(&table).expect_err("a cited invariant vanished and the guide rendered anyway") {
-      Failure::Error(msg) | Failure::Unavailable(msg) => msg,
-      Failure::Verdict => panic!("a build defect must carry a message, not a bare verdict"),
-    };
+    let err =
+      match render(&table).expect_err("a cited invariant vanished and the guide rendered anyway") {
+        Failure::Error(msg) | Failure::Unavailable(msg) => msg,
+        Failure::Verdict => panic!("a build defect must carry a message, not a bare verdict"),
+      };
     assert!(
       err.contains("INV-04") && err.contains("build defect"),
       "the refusal must name the missing id and say it is a build defect, got: {err}"

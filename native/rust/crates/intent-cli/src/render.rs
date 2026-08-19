@@ -34,6 +34,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
+    Some(("organize", _)) => organize(),
     Some(("upgrade", _)) => upgrade(),
     Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
@@ -623,7 +624,9 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
         // v2's `st sync` regenerates `steel_threads.md` from the threads --
         // a projection, which under the reversed D01 is the db -> disk
         // direction. It maps onto the SAFE half, never the restore.
-        let count = f.sync_to_disk(&intentsvcs::sync::Scope::All).map_err(fail)?;
+        let count = f
+          .sync_to_disk(&intentsvcs::sync::Scope::All)
+          .map_err(fail)?;
         // v2 prints the index path, and that is kept because it is the file
         // this verb is named for and what a script greps. The COUNT is added
         // because it would otherwise be the narrower-than-the-act message
@@ -1281,6 +1284,86 @@ fn upgrade() -> Result<(), Failure> {
     intentsvcs::faces::INTENT_VER
   );
   Ok(())
+}
+
+/// `intent organize` -- reconcile the tree with `.intentfiles` (D57-3).
+///
+/// **PARSE, CALL, RENDER. Every decision is `intentsvcs::organize`'s** -- which
+/// of D57-3's five rows a path falls in, whether a removal is safe, whether the
+/// estate may dehydrate at all. A reconciliation rule expressed in a renderer
+/// would be a second answer beside the one the acceptance tests drive.
+///
+/// **NO FLAGS, AND THAT IS THE TABLE'S CALL RATHER THAN MINE.** The dispatch row
+/// declares `"flags": []` and records the polarity question as OPEN and ic's
+/// (AC-05.1): v2's two `organize` faces took OPPOSITE polarity for the same
+/// operation, and a polarity chosen at wiring time by whoever happened to build
+/// the entry is exactly how that pair came to disagree. So this ships what the
+/// table declares, and a `--dry-run` arrives by adding the flag to the table
+/// first. Worth stating plainly: that means the bare spelling ACTS.
+///
+/// **WHAT MAKES THAT SAFE TODAY IS A GATE, NOT A HABIT.** Every removal is
+/// refused while any declared dehydration precondition is unmet, and separately
+/// each removal must re-render byte for byte before it happens.
+fn organize() -> Result<(), Failure> {
+  let (project, ctx) = context()?;
+  let mut facade = Facade::open(project.clone(), ctx).map_err(fail)?;
+  let report = facade.organize().map_err(fail)?;
+  // **PROJECT-RELATIVE, THROUGH THE PROJECT'S OWN ANSWER.** Measured on a real
+  // estate before this was added: 199 unclaimed paths printed absolute, each
+  // carrying 90 characters of temp-directory prefix before the part that
+  // identifies the file. A report whose every line starts with the same
+  // irrelevant 90 characters is one nobody reads to the end of, and the end is
+  // where the removals are.
+  let show = |path: &std::path::Path| project.relative(path);
+
+  // **THE COUNTS LEAD AND THE PATHS FOLLOW, WITH NO ELLIPSIS ANYWHERE.** A
+  // summary carrying a whole denominator is not a truncation; a `head -20` with
+  // a trailing dot-dot-dot is. This verb's whole subject is files appearing and
+  // disappearing, so a path must never be able to vanish from its own report --
+  // being inside a counted group is fine, being dropped is not.
+  println!(
+    "organize: {} hydrated, {} rewritten, {} unchanged, {} removed, {} unclaimed, {} diverged",
+    report.hydrated.len(),
+    report.rewritten.len(),
+    report.unchanged.len(),
+    report.dehydrated.len(),
+    report.unclaimed.len(),
+    report.diverged.len()
+  );
+  for (label, paths) in [
+    ("hydrated", &report.hydrated),
+    ("rewritten", &report.rewritten),
+    ("removed", &report.dehydrated),
+  ] {
+    for path in paths {
+      println!("  {label}: {}", show(path));
+    }
+  }
+  // **Reported, never acted on, and named rather than counted.** An unclaimed
+  // path means a human put it there and the renderer cannot produce it; a
+  // divergence means the STORE is stale and the remedy is the operator's
+  // choice. Both are inventory the operator has to see, and neither moves the
+  // exit code -- they are not failures of this run.
+  for path in &report.unclaimed {
+    println!("  unclaimed: {}", show(path));
+  }
+  for path in &report.diverged {
+    println!("  diverged: {}", show(path));
+  }
+
+  if report.refused.is_empty() {
+    return Ok(());
+  }
+  // **A REFUSAL MOVES THE EXIT CODE, AND A REPORT DOES NOT.** Something asked to
+  // be removed and was not, so a script treating this run as success would carry
+  // on believing the estate is reconciled. The full rendering goes to stderr
+  // through `Failure::Error` for the LAST one and the rest are printed here --
+  // every refusal is shown, because "27 removals refused" with one example is
+  // the truncation this verb can least afford.
+  for refusal in &report.refused {
+    eprintln!("{}", refusal.render());
+  }
+  Err(Failure::Verdict)
 }
 
 fn doctor() -> Result<(), Failure> {
@@ -2214,10 +2297,7 @@ fn or_unknown(value: &str) -> &str {
 fn llm(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("guide", _)) => {
-      print!(
-        "{}",
-        crate::guide::render(&dispatch::table())?
-      );
+      print!("{}", crate::guide::render(&dispatch::table())?);
       Ok(())
     }
     Some((verb, _)) => unwired("llm", verb),
