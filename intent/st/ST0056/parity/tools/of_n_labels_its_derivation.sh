@@ -82,17 +82,49 @@ done
 # ---------------------------------------------------------------------------------
 # CONTRACT AND REACH, IN THE OUTPUT AND NOT IN A COMMENT, AND FIRST.
 # ---------------------------------------------------------------------------------
-CANDIDATE_FILES="$(printf '%s\n' $TARGETS | grep -c . || true)"
+# COUNTED BY THE SAME `for ... in $TARGETS` SPLIT THE EXAMINE LOOP USES, NOT BY A PIPELINE.
+# The previous form was `printf '%s\n' $TARGETS | grep -c . || true` and the gate refused it
+# CRITICAL on IN-SH-CODE-001 (vc caught it at commit, 2026-08-19). The rule's escape --
+# intentional word-splitting, documented -- is for a READER; the headless runner is a
+# greppable proxy and cannot read a comment, so documenting it does not and should not clear
+# the gate. THIS IS NOT THE SAME VIOLATION IN A FORM THE PROXY CANNOT SEE: `for x in $LIST`
+# is shell's own idiom for iterating a word list, it is what the examine loop already does
+# two blocks down, and it is strictly better code here -- no subshell, no pipeline, and no
+# `grep -c` exiting 1 on a true zero, which was the reason the masking `|| true` existed and
+# is a trap this estate has already been bitten by.
+CANDIDATE_FILES=0
+for _t in $TARGETS; do
+  CANDIDATE_FILES=$((CANDIDATE_FILES + 1))
+done
 echo "of-n-labels: CONTRACT -- for every emitted \`N of M\`, is each operand DERIVED from a"
 echo "  population, or a LITERAL? A literal is reported and never failed. THE FINDING IS A"
 echo "  LITERAL LAUNDERED THROUGH A VARIABLE: it reads as derived at the emission site and"
 echo "  in the output, and it is neither."
 echo "of-n-labels: SUBJECTS -- $CANDIDATE_FILES file(s), named below before any verdict."
 echo "of-n-labels: REACH -- shell only, and only a ratio EMITTED ON ONE LINE by echo/printf/say"
-echo "  with numeric-ish tokens both sides of \` of \`. NOT SEEN, stated because a pass must not"
+echo "  with numeric-ish tokens both sides of \` of \`, where numeric-ish now includes a \`%d\`/\`%s\`"
+echo "  format specifier RESOLVED TO ITS printf ARGUMENT. A WHOLE-LINE COMMENT IS SKIPPED -- the"
+echo "  emitter test alone matched this tool's OWN comment documenting the fix, which is a grep"
+echo "  selecting on text rather than subject, self-inflicted (ic 2026-08-19). NOT SEEN, stated"
+echo "  because a pass must not"
 echo "  read as coverage: Rust instruments; the extensionless executables under \`bin/\`; a ratio"
 echo "  assembled across two emissions or inside a helper; a printf whose format string is built"
 echo "  at runtime; and any operand whose variable is assigned outside this file."
+echo "of-n-labels: THE OPERAND MUST BE THE TOKEN ADJACENT TO \` of \`, AND THAT IS A REFUSAL RATHER"
+echo "  THAN A GAP. A bounded 3-token window either side WAS built and driven (ic 2026-08-19): it"
+echo "  added 5 rows to the listed set, of which THREE WERE PROSE -- \`set of 0/1/2\`, \`48 bits of"
+echo "  clock + 80 of randomness\`, and a \`%d\` belonging to a different clause. One was a real"
+echo "  catch. A MAJORITY-FALSE-POSITIVE YIELD, and a finding manufactured by an instrument's own"
+echo "  reach is worse than a missed one because it gets acted on. SO A RATIO SEPARATED FROM ITS"
+echo "  OPERAND BY ANY WORD IS NOT SEEN -- named, measured, and deliberately not fixed."
+echo "of-n-labels: rc IS NOT THE COVERAGE CHANNEL, AND A GATE THAT READS rc ALONE IS NOT COVERED"
+echo "  (vc's ruling, 2026-08-19). rc is two-state; the fact is three -- clean, UNASSESSED, defective."
+echo "  rc=0 says the run completed and nothing was defective AMONG WHAT IT COULD ASSESS. It does"
+echo "  NOT say the estate is clean. The coverage claim is the PARTITION printed at the end, scoped"
+echo "  to the classified subset. ANY GATE CONSUMING THIS INSTRUMENT MUST READ THE PARTITION, NOT"
+echo "  JUST rc -- a channel that exists, is correct, and nothing is required to read is the same"
+echo "  reader-obligation defect as an inbox nobody pumps. rc=2 is reserved for the cases rc CAN"
+echo "  carry: nothing examined, or nothing classifiable."
 echo "of-n-labels: AND THE LIMIT A BLIND ADJUDICATION FOUND IN THIS TOOL (vc, 2026-08-18): it checks"
 echo "  that a derivation EXISTS in the source; it NEVER checks that the WORDS naming that derivation"
 echo "  identify a countable thing. \`die call-sites\` named a derivation and admitted two incompatible"
@@ -148,7 +180,33 @@ check_declaration() {
   [ "$pos" -le "$DECL_WINDOW" ] && echo OK || echo DISTANT
 }
 
-EXAMINED=0; RATIOS=0; FINDINGS=0; UNCLASS=0
+# ---------------------------------------------------------------------------------
+# A FORMAT SPECIFIER IS NOT AN OPERAND, IT IS A POINTER TO ONE. `printf '%d of %d' "$a" "$b"`
+# carries its derivation in the ARGUMENT LIST, so classifying the token `%d` can only ever
+# return UNCLASSIFIABLE -- which is how widening the numeric-ish test turned 8 silent misses
+# into 10 loud unknowns. Resolve the specifier to its argument, then classify THAT.
+# REACH, stated because this is a parser and parsers overstate: it handles a single-quoted
+# format string followed by whitespace-separated arguments. A format built at runtime, a
+# concatenated format, or arguments carrying spaces inside quotes are NOT resolved and stay
+# UNCLASSIFIABLE, which is the honest answer rather than a guess.
+resolve_specifier() {
+  local text="$1" side="$2" fmt rest idx arg
+  fmt="$(printf '%s' "$text" | sed -n "s/^[^']*'\([^']*\)'.*/\1/p")"
+  [ -n "$fmt" ] || { echo ""; return; }
+  rest="$(printf '%s' "$text" | sed -n "s/^[^']*'[^']*'//p")"
+  [ -n "$rest" ] || { echo ""; return; }
+  # index = how many specifiers precede the ratio's LEFT operand inside the format string
+  idx="$(printf '%s' "$fmt" | awk -v side="$side" '
+    { i = index($0, " of "); if (i == 0) { print -1; exit }
+      before = substr($0, 1, i - 1)
+      n = gsub(/%[-0-9.]*[sdiufxX]/, "&", before)
+      print (side == "left") ? n - 1 : n }')"
+  [ "$idx" -ge 0 ] 2>/dev/null || { echo ""; return; }
+  arg="$(printf '%s' "$rest" | tr -s ' ' '\n' | sed 's/^"//; s/"$//' | grep -vE '^$' | sed -n "$((idx + 1))p")"
+  printf '%s' "$arg"
+}
+
+EXAMINED=0; RATIOS=0; FINDINGS=0; UNCLASS=0; ZEROLIT=0
 FINDING_LINES=""; RECORDED_LINES=""; UNCLASS_LINES=""; ZEROLIT_LINES=""
 
 for f in $TARGETS; do
@@ -164,9 +222,17 @@ for f in $TARGETS; do
     # The tool REFUSED rather than reporting a clean estate, which is the arm working.
     left="$(printf '%s' "$text"  | awk -F' of ' '{n=split($1,a," "); print a[n]}')"
     right="$(printf '%s' "$text" | awk -F' of ' '{split($2,b," "); print b[1]}')"
-    case "$left"  in *[0-9]*|*'$'*) : ;; *) continue ;; esac
-    case "$right" in *[0-9]*|*'$'*) : ;; *) continue ;; esac
+    # A `%d` OR `%s` IS AN OPERAND AND THIS TEST USED TO REJECT BOTH -- the token needed a
+    # digit or a `$`, and a format specifier carries neither. printf-format ratios are the
+    # estate's commonest emission shape and NOT ONE was visible: three in of_n_population.sh,
+    # the tool that supplies this row's own population. Found by the AT-00.12 partition
+    # (ic 2026-08-19) by driving dc's nomination against this parser file by file.
+    case "$left"  in *[0-9]*|*'$'*|*%d*|*%s*) : ;; *) continue ;; esac
+    case "$right" in *[0-9]*|*'$'*|*%d*|*%s*) : ;; *) continue ;; esac
     RATIOS=$((RATIOS + 1))
+    # RESOLVE A FORMAT SPECIFIER TO THE ARGUMENT IT POINTS AT BEFORE CLASSIFYING IT.
+    case "$left"  in *%d*|*%s*) r="$(resolve_specifier "$text" left)";  [ -n "$r" ] && left="$r"  ;; esac
+    case "$right" in *%d*|*%s*) r="$(resolve_specifier "$text" right)"; [ -n "$r" ] && right="$r" ;; esac
     cl="$(classify_operand "$left" "$f")"
     cr="$(classify_operand "$right" "$f")"
     row="$(printf '%s:%s  N=%s [%s]  M=%s [%s]' "$base" "$ln" "$left" "$cl" "$right" "$cr")"
@@ -177,7 +243,7 @@ for f in $TARGETS; do
       UNCLASS=$((UNCLASS + 1)); UNCLASS_LINES="$UNCLASS_LINES
     $row"
     elif [ "$cl" = ZEROLIT ] || [ "$cr" = ZEROLIT ]; then
-      ZEROLIT_LINES="$ZEROLIT_LINES
+      ZEROLIT=$((ZEROLIT + 1)); ZEROLIT_LINES="$ZEROLIT_LINES
     $row"
     elif [ "$cl" = RECORDED ] || [ "$cr" = RECORDED ]; then
       [ "$cl" = RECORDED ] && num="$left" || num="$right"
@@ -194,7 +260,7 @@ for f in $TARGETS; do
       esac
     fi
   done <<INNER
-$(grep -nE '(echo|printf|say)[^#]* of ' "$f" 2>/dev/null)
+$(grep -nE '(echo|printf|say|die|emit)[^#]* of ' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*#')
 INNER
 done
 
@@ -202,6 +268,10 @@ done
 # THE CLOSING COUNT CLOSES OVER WHAT WAS EXAMINED, NEVER OVER WHAT EXISTS.
 # ---------------------------------------------------------------------------------
 echo "of-n-labels: EXAMINED $EXAMINED of $CANDIDATE_FILES file(s); $RATIOS ratio(s) matched the reach above."
+echo "  THE $RATIOS COUNTS RATIO INSTANCES, NOT FILES -- one file may carry several and most carry none."
+echo "  DO NOT DIFFERENCE IT AGAINST of_n_population.sh's nomination, which counts FILES (dc + ic,"
+echo "  2026-08-19, after both of us nearly did). Two numbers about one property in different units"
+echo "  read as a cross-reference and do no such work."
 if [ "$EXAMINED" -eq 0 ]; then
   echo "of-n-labels: CANNOT MEASURE -- nothing was examined. A zero here is a reach failure and never a clean estate."
   exit 2
@@ -218,12 +288,41 @@ fi
 [ -n "$ZEROLIT_LINES" ] && { echo; echo "of-n-labels: BARE ZERO -- states a measured result rather than recording a figure; this tool cannot read the guard, so it claims nothing:$ZEROLIT_LINES"; }
 [ -n "$UNCLASS_LINES" ] && { echo; echo "of-n-labels: UNCLASSIFIABLE -- this tool could not decide, so it claims nothing about them:$UNCLASS_LINES"; }
 
+# THE PARTITION IS THE COVERAGE CHANNEL (vc's rc ruling, 2026-08-19), SO IT PRINTS ON EVERY
+# PATH. It used to print only on the clean branch, which meant the channel a gate is obliged
+# to read DISAPPEARED exactly when there was a finding -- the coverage question is not less
+# urgent when something is wrong, it is more.
+echo
+CLASSIFIED=$((RATIOS - UNCLASS - ZEROLIT))
+echo "of-n-labels: PARTITION of the $RATIOS ratio instance(s) -- $CLASSIFIED classified,"
+echo "  $UNCLASS unclassifiable, $ZEROLIT bare-zero. THE PARTITION CLOSES: $CLASSIFIED + $UNCLASS + $ZEROLIT = $RATIOS."
 echo
 if [ "$FINDINGS" -eq 0 ]; then
-  echo "of-n-labels: across $RATIOS ratio(s) in $EXAMINED file(s), no operand is pretending to be"
-  echo "  derived, and every recorded one is declared AT its number with a derivation named."
-  echo "  THIS IS NOT A CLAIM THAT ANY RATIO IS CORRECT -- whether M closes over the examined"
-  echo "  population is AT-00.11's question and is not asked here."
+  # THE CLAIM CLOSES OVER THE POPULATION IT ACTUALLY COVERS, NOT OVER THE ONE MATCHED.
+  # This block used to read "across $RATIOS ratio(s) ... no operand is pretending to be
+  # derived" while UNCLASSIFIABLE and ZEROLIT rows above it said the tool claims NOTHING
+  # about them -- so the claim held over the classified subset and the denominator named
+  # the whole. That is AC-00.11's own defect inside the instrument enforcing AC-00.11,
+  # found by ic 2026-08-19 reading this tool's own output, and it is the third time this
+  # estate has committed the defect in the thing that rules against it.
+  if [ "$CLASSIFIED" -eq 0 ]; then
+    echo "of-n-labels: CANNOT MEASURE -- $RATIOS ratio(s) matched and NOT ONE was classifiable, so"
+    echo "  the clean result below would cover an empty set. A published population of zero is the"
+    echo "  vacuous pass wearing a disclosure."
+    exit 2
+  fi
+  echo "of-n-labels: across the $CLASSIFIED CLASSIFIED ratio(s) in $EXAMINED file(s), no operand is"
+  echo "  pretending to be derived, and every recorded one is declared AT its number with a"
+  echo "  derivation named."
+  if [ "$UNCLASS" -gt 0 ]; then
+    echo "of-n-labels: AND THE CLAIM ABOVE DOES NOT REACH THE $UNCLASS UNCLASSIFIABLE ratio(s) LISTED"
+    echo "  EARLIER. LAUNDERED is this tool's only finding class, and an operand it could not"
+    echo "  classify is exactly where a laundered one would sit -- so those are OPEN WORK, not"
+    echo "  a covered subset. WHAT WOULD SETTLE EACH: resolve the operand's variable to its"
+    echo "  assignments, which this tool declines to do across file boundaries."
+  fi
+  echo "of-n-labels: THIS IS NOT A CLAIM THAT ANY RATIO IS CORRECT -- whether M closes over the"
+  echo "  examined population is AT-00.11's question and is not asked here."
   exit 0
 fi
 echo "of-n-labels: FINDING -- $FINDINGS ratio(s):$FINDING_LINES"
