@@ -102,11 +102,41 @@ fn no_two_classes_share_a_remedy() {
 /// 2026-08-15): a remedy must not propose an operation whose blast radius
 /// exceeds the fault it repairs.
 ///
-/// `sync --to-store` replaces the ENTIRE store from the extract, and
-/// `event_log` is the one table that is durable truth and not reconstructible
-/// from the files -- so an operator following it to repair a single artefact
-/// could lose history that exists nowhere else. Deleting the store is the same
-/// class with the volume up, and D36 already forbids it.
+/// **THE STATED GROUND WAS FALSE AND IS WITHDRAWN RATHER THAN QUIETLY
+/// REPLACED (cc measured it 2026-08-19; vc verified and re-cut).** It read:
+/// `sync --to-store` replaces the entire store and `event_log` is durable
+/// truth no file can reconstruct, so an operator repairing one artefact could
+/// lose history that exists nowhere else. **`Store::rebuild` (`store.rs:1575`)
+/// deletes `tests`, `criteria`, `related`, `attachments`, `wps`, `threads`,
+/// `issues` -- and NOT `events`.** The event log is not in the batch and never
+/// was, so the harm this rule named cannot happen and could not happen on the
+/// day the rule was written.
+///
+/// **THE BAN SURVIVES ON A DIFFERENT AND REAL HAZARD: the UNSCOPED form takes
+/// disk for EVERY thread**, so it discards store state not yet extracted for
+/// threads the operator is not repairing, and reads every peer's uncommitted
+/// disk state into the store -- measured happening twice in one day. That
+/// radius is wider than any single-artefact fault.
+///
+/// **AND THE SCOPED FORM IS *NOT* BEING PERMITTED, THOUGH IT NOW EXISTS AND ITS
+/// RADIUS IS ONE ARTEFACT.** cc hit this rule on AC-03.4, declined to edit it
+/// so their remedy would pass, and wrote a better remedy than the one the ban
+/// forbade: **lead with _copy the working file outside the project FIRST_ --
+/// the only step that cannot lose anything -- then name the disk-ward command
+/// with its consequence.** An arm asserts the copy-aside instruction comes
+/// BEFORE the overwriting command, because an operator acting on the first
+/// sentence must not destroy what the second was about to protect.
+///
+/// **So the hole cc identified is real and is already closed from the other
+/// side: an attachment is the one finding class with NO re-derivable side --
+/// both copies are authored bytes -- and the remedy that survives the ban
+/// protects it without naming any sync at all.** Loosening the rule would
+/// permit remedies strictly worse than the one it forced. The cost turned out
+/// to be the benefit; that is luck rather than design, and it is recorded as
+/// luck.
+///
+/// Deleting the store is the same class with the volume up, and D36 already
+/// forbids it.
 ///
 /// `sync --to-disk` is deliberately NOT banned: it rewrites artefacts that are
 /// re-creatable from the store by definition, so its radius is bounded to
@@ -116,7 +146,7 @@ fn no_remedy_proposes_an_operation_wider_than_the_fault() {
   const FORBIDDEN: &[(&str, &str)] = &[
     (
       "--to-store",
-      "replaces the whole store; event_log is durable truth no file can reconstruct",
+      "the UNSCOPED form takes disk for every thread, including peers' uncommitted state; see the withdrawn premise above -- `events` is NOT in Store::rebuild's delete batch",
     ),
     ("rm", "D36: the store is the source of truth, not a cache"),
     ("delete the store", "D36"),
