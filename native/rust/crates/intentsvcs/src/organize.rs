@@ -5,17 +5,18 @@
 //! falls in, and do the minimum that makes disk agree with the declaration.
 //!
 //! **PLAN AND APPLY ARE SPLIT, AND THE SPLIT IS THE TESTABILITY.** [`plan`]
-//! reads and decides; nothing here writes or removes. All five rows are
-//! therefore drivable without a filesystem mutation, which matters because four
-//! of the six criteria on this work package are about what `organize` REFUSES to
-//! do -- and a refusal is only observable if the thing it refuses can be set up
-//! cheaply.
+//! reads and decides; [`Plan::apply`] is the only thing that writes or removes.
+//! All five rows are therefore drivable without a filesystem mutation, which
+//! matters because four of the six criteria on this work package are about what
+//! `organize` REFUSES to do -- and a refusal is only observable if the thing it
+//! refuses can be set up cheaply.
 //!
-//! **WHAT IS BUILT SO FAR: the plan and the gate. THE APPLY PATH IS NOT.** Said
-//! here rather than left to be inferred from an absent function, because a module
-//! whose docstring describes a verb reads as a verb that exists. `plan` decides,
-//! [`gate`] proves a removal safe, and no caller yet turns either into a write --
-//! so `intent organize` is not a runnable command at this commit.
+//! **WHAT IS BUILT: plan, gate and apply. WHAT IS NOT: the dispatch entry.**
+//! Said here rather than left to be inferred, because a module whose docstring
+//! describes a verb reads as a verb a user can type. `intent organize` is not a
+//! command yet -- `dispatch.rs` asserts that no top-level `organize` ships, on a
+//! ratification retiring the **v2** command of that name, and the collision is
+//! hv's to rule. The library is unaffected by it.
 //!
 //! **IT REUSES `Project::classify` RATHER THAN RESTATING THE ELIGIBILITY
 //! CONTRACT.** `ThreadFile::Unattached` already IS D57-3's fifth row. A second
@@ -41,6 +42,7 @@ use crate::ingest::Canon;
 use crate::intentfiles::{Manifest, Sigil};
 use crate::project::{Project, ThreadFile};
 use crate::views::{self, RenderContext, View};
+use crate::write_set::WriteSet;
 
 /// Views that the renderer produces but which name no single artefact.
 ///
@@ -407,6 +409,121 @@ pub fn plan(
 /// than restate it.
 pub fn exempt_reason() -> &'static str {
   EXEMPT_REASON
+}
+
+/// What a run actually did.
+///
+/// **`unchanged` IS A FIELD AND NOT AN OMISSION.** AC-04.4 measures idempotence
+/// as the count of files whose mtime moved, so a second run has to be able to say
+/// "I considered these and touched none of them". A report listing only what it
+/// wrote cannot distinguish a correctly quiet run from one that examined nothing.
+#[derive(Debug, Default)]
+pub struct Report {
+  pub hydrated: Vec<PathBuf>,
+  pub rewritten: Vec<PathBuf>,
+  pub unchanged: Vec<PathBuf>,
+  pub dehydrated: Vec<PathBuf>,
+  pub unclaimed: Vec<PathBuf>,
+  pub diverged: Vec<PathBuf>,
+  /// Removals the gate refused. **Reported, and the run continues** -- the
+  /// criterion refuses the REMOVAL, not the reconciliation. Aborting everything
+  /// over one hand-edited file would make every other thread's realisation
+  /// hostage to an edit nobody has read yet.
+  pub refused: Vec<OrganizeError>,
+}
+
+impl Plan {
+  /// Apply this plan.
+  ///
+  /// **REMOVALS HAPPEN FIRST, AND THE ORDER IS THE WHOLE CORRECTNESS OF THE
+  /// DIGEST GUARD.** AC-04.5 wants the digest re-computed immediately before the
+  /// irreversible step. Writing first and re-digesting after would compare a tree
+  /// this function had just changed against the one it measured, so the guard
+  /// would fire on `organize`'s OWN writes -- an alarm that is always on, which is
+  /// the always-set-marker defect wearing different clothes. Removals are the
+  /// irreversible half, and doing them while the tree still matches what was
+  /// planned is what lets the guard mean "somebody else wrote here".
+  ///
+  /// `digest_now` is supplied by the caller rather than computed here, so the
+  /// guard can be driven without racing a real process against a test.
+  pub fn apply(&self, digest_now: &dyn Fn() -> String) -> Result<Report, OrganizeError> {
+    let mut report = Report::default();
+
+    // **GUARDED ONLY WHEN THERE IS SOMETHING IRREVERSIBLE TO GUARD.** A plan that
+    // removes nothing has no step worth refusing over, and refusing a pure
+    // hydration because a peer touched an unrelated file would train operators to
+    // re-run until it passes -- which is how a guard stops being one.
+    if self.is_destructive() {
+      let now = digest_now();
+      if now != self.digest {
+        return Err(OrganizeError::TreeMoved {
+          detail: format!("planned against {}, found {}", self.digest, now),
+        });
+      }
+    }
+
+    for step in self.with(Action::Dehydrate) {
+      match gate(step) {
+        Ok(()) => {
+          std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
+          report.dehydrated.push(step.path.clone());
+        }
+        Err(refusal) => report.refused.push(refusal),
+      }
+    }
+
+    // Every write goes through ONE `WriteSet`, which is where the
+    // skip-when-unchanged already lives. Deciding here which files "need"
+    // writing would be a second such guard, and the first one to be written
+    // beside the real path reached nothing at all.
+    let mut set = WriteSet::new();
+    for step in &self.steps {
+      let Some(content) = &step.content else { continue };
+      if !matches!(
+        step.action,
+        Action::Hydrate | Action::HydrateAttachment | Action::Verify
+      ) {
+        continue;
+      }
+      // **A `Verify` IS CLASSIFIED HERE, BEFORE THE WRITE, AND THE ORDER IS THE
+      // WHOLE MEASUREMENT.** The first version read the file AFTER the commit and
+      // asked whether it matched the render -- by which point every file matches,
+      // because the commit had just made it so. Every rewrite reported itself as
+      // unchanged, and AC-04.4 is measured on exactly that distinction. Caught by
+      // the positive control in AT-04.4, not by review: the quiet arm was green
+      // and the arm that MUST see movement was the one that failed.
+      if step.action == Action::Verify {
+        match std::fs::read_to_string(&step.path) {
+          Ok(disk) if disk == *content => report.unchanged.push(step.path.clone()),
+          _ => report.rewritten.push(step.path.clone()),
+        }
+      }
+      set.add(step.path.clone(), content.clone());
+    }
+    if !set.is_empty() {
+      set
+        .commit()
+        .map_err(|e| OrganizeError::Io {
+          path: PathBuf::from("<write set>"),
+          source: std::io::Error::other(e),
+        })?
+        .keep();
+    }
+
+    for step in &self.steps {
+      match step.action {
+        Action::Hydrate | Action::HydrateAttachment => report.hydrated.push(step.path.clone()),
+        Action::Unclaimed => report.unclaimed.push(step.path.clone()),
+        Action::AttachmentDiverged => report.diverged.push(step.path.clone()),
+        // `Verify` was classified above, against the bytes as they were BEFORE
+        // the write. Doing it here as well would overwrite a true answer with a
+        // tautological one.
+        Action::Verify | Action::Dehydrate | Action::Exempt => {}
+      }
+    }
+
+    Ok(report)
+  }
 }
 
 /// The dehydration gate (AC-04.2).
