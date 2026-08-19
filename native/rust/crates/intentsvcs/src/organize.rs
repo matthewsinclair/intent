@@ -58,6 +58,7 @@ use thiserror::Error;
 
 use crate::ingest::Canon;
 use crate::intentfiles::{Manifest, Sigil};
+use crate::preconditions::{self, Verdict};
 use crate::project::{Project, ThreadFile};
 use crate::views::{self, RenderContext, View};
 use crate::write_set::WriteSet;
@@ -162,6 +163,13 @@ pub struct Plan {
   /// The tree digest as measured while planning. Re-computed immediately before
   /// the irreversible step; any difference refuses the run.
   pub digest: String,
+  /// AC-00.1's ship gate, resolved while planning.
+  ///
+  /// **Carried on the plan rather than consulted inside `apply`, so a plan can
+  /// be inspected for what it would be ALLOWED to do and not only for what it
+  /// intends.** A gate whose answer exists only inside the destructive call is
+  /// one nobody can report on before running it.
+  pub preconditions: Verdict,
 }
 
 impl Plan {
@@ -197,6 +205,20 @@ pub enum OrganizeError {
     "refusing to apply: the tree changed between the plan and the act ({detail}). Every read verb materialises the store on access, so a peer running `intent st list` is enough -- re-run and it will re-plan against what is there now."
   )]
   TreeMoved { detail: String },
+
+  /// The dehydration SHIP gate (AC-00.1). The estate has not yet proved it can
+  /// put back what dehydration would remove.
+  ///
+  /// **It names every unmet precondition and prints the denominator**, because
+  /// a refusal reporting only the first one trains an operator to fix that one
+  /// and re-run -- and a count with no denominator cannot be told from a gate
+  /// that checked nothing.
+  #[error(
+    "refusing to dehydrate: this run would remove {removals} file(s), and the estate has not proved it can put them back -- {verdict}. The declaration is {thread}'s {criterion}; `intent ac list {thread}` shows the state of each, and this gate records no answer of its own.",
+    thread = preconditions::DECLARING_THREAD,
+    criterion = preconditions::DECLARING_CRITERION,
+  )]
+  PreconditionsUnmet { removals: usize, verdict: Verdict },
 
   /// An attachment diverges from the store (AC-04.3). `organize` reports and
   /// modifies neither side.
@@ -420,7 +442,11 @@ pub fn plan(
   }
 
   steps.sort_by(|a, b| a.path.cmp(&b.path));
-  Plan { steps, digest }
+  Plan {
+    steps,
+    digest,
+    preconditions: preconditions::check(canon),
+  }
 }
 
 /// The reason an index view is kept. Exposed so the report can print it rather
@@ -471,7 +497,25 @@ impl Plan {
     // removes nothing has no step worth refusing over, and refusing a pure
     // hydration because a peer touched an unrelated file would train operators to
     // re-run until it passes -- which is how a guard stops being one.
-    if self.is_destructive() {
+    // **THE SHIP GATE IS CONSULTED BEFORE THE DIGEST GUARD, AND THE ORDER IS
+    // NOT COSMETIC.** If AC-00.1 refuses, this run removes nothing, so there is
+    // no irreversible step for the digest to protect -- and `TreeMoved` is a
+    // hard `Err` that would abort the hydration half too. A run that is already
+    // forbidden from removing anything must not also lose its safe work to a
+    // guard standing over a step it is not going to take.
+    let will_remove = self.is_destructive() && self.preconditions.permits();
+
+    if self.is_destructive() && !self.preconditions.permits() {
+      // ONE refusal for the whole run, not one per file. The unmet precondition
+      // is a property of the estate, so N copies of an identical sentence would
+      // bury the per-file refusals that ARE about their file.
+      report.refused.push(OrganizeError::PreconditionsUnmet {
+        removals: self.with(Action::Dehydrate).count(),
+        verdict: self.preconditions.clone(),
+      });
+    }
+
+    if will_remove {
       let now = digest_now();
       if now != self.digest {
         return Err(OrganizeError::TreeMoved {
@@ -480,13 +524,15 @@ impl Plan {
       }
     }
 
-    for step in self.with(Action::Dehydrate) {
-      match gate(step) {
-        Ok(()) => {
-          std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
-          report.dehydrated.push(step.path.clone());
+    if will_remove {
+      for step in self.with(Action::Dehydrate) {
+        match gate(step) {
+          Ok(()) => {
+            std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
+            report.dehydrated.push(step.path.clone());
+          }
+          Err(refusal) => report.refused.push(refusal),
         }
-        Err(refusal) => report.refused.push(refusal),
       }
     }
 

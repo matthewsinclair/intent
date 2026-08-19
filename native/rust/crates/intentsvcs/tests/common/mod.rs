@@ -443,3 +443,57 @@ pub fn sample_issue(number: u32) -> Issue {
       .to_string(),
   }
 }
+
+/// An `ST0057` whose `AC-00.1` carries a REAL precondition declaration naming
+/// `entries`, with one criterion per entry in the state given.
+///
+/// **NOTHING HERE BYPASSES THE SHIP GATE, AND THAT IS DELIBERATE.** `Verdict`'s
+/// fields are private and `preconditions::check` is its only constructor, so a
+/// test that wants `organize` to remove anything has to build canon in which
+/// the real declaration is really satisfied -- the same work the estate has to
+/// do. A helper that handed out a permitting verdict would make the gate
+/// enforced by everyone remembering not to call it.
+///
+/// The declaration is written the way hv ruled it: one line, delimited, ids
+/// only. The surrounding prose is a sentence naming an AC id ON PURPOSE -- the
+/// criterion's real text does the same, and a reader that scanned the whole
+/// text rather than the block would sweep it in.
+pub fn declaring_thread(entries: &[(&str, AcKind, AcState)]) -> Thread {
+  let ids: Vec<&str> = entries.iter().map(|(id, _, _)| *id).collect();
+  let block = format!("<<PRECONDITIONS {} PRECONDITIONS>>", ids.join(" "));
+  let mut criteria = vec![Criterion {
+    id: "AC-00.1".to_string(),
+    text: format!(
+      "No dehydration path removes any file while any declared precondition is unmet. Mentioned outside the block for the scanner to trip on: AC-99.9. {block}"
+    ),
+    kind: AcKind::NonTest,
+    state: AcState::Unsatisfied,
+  }];
+  for (id, kind, state) in entries {
+    criteria.push(Criterion {
+      id: (*id).to_string(),
+      text: format!("a declared precondition ({id})"),
+      kind: *kind,
+      state: state.clone(),
+    });
+  }
+  Thread {
+    criteria,
+    tests: Vec::new(),
+    attachments: Vec::new(),
+    wps: Vec::new(),
+    ..sample_thread("ST0057")
+  }
+}
+
+/// The declaring thread with its one precondition met, for tests whose subject
+/// is something OTHER than the ship gate and which need removals to happen.
+pub fn gate_open() -> Thread {
+  declaring_thread(&[(
+    "AC-00.9",
+    AcKind::NonTest,
+    AcState::Satisfied {
+      evidence: "met, so this gate is not the subject of the test".to_string(),
+    },
+  )])
+}

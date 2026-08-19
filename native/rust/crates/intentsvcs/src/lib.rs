@@ -38,6 +38,7 @@ pub mod legacy;
 pub mod migrate;
 pub mod model;
 pub mod organize;
+pub mod preconditions;
 pub mod project;
 pub mod prose;
 pub mod remedy;

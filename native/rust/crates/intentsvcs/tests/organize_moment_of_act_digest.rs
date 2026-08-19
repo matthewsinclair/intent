@@ -19,10 +19,11 @@ mod common;
 use std::cell::Cell;
 use std::path::PathBuf;
 
-use common::{Fixture, ctx, sample_thread};
+use common::{Fixture, ctx, gate_open, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::organize::{Action, OrganizeError, Plan, Step, TreeState, plan};
+use intentsvcs::preconditions;
 
 const PLANNED: &str = "digest-as-planned";
 const MOVED: &str = "digest-after-a-peer-wrote";
@@ -30,6 +31,20 @@ const MOVED: &str = "digest-after-a-peer-wrote";
 fn canon() -> Canon {
   Canon {
     threads: vec![sample_thread("ST0001")],
+    ..Default::default()
+  }
+}
+
+/// Canon in which AC-00.1's ship gate is genuinely open.
+///
+/// **The digest guard is the subject here, so the OTHER gate has to be out of
+/// the way -- and the only honest way to move it is to satisfy it.** With the
+/// ship gate refusing, `apply` takes no irreversible step at all, so every
+/// assertion below would pass for the wrong reason: the file survives because
+/// nothing was ever going to remove it, not because the digest moved.
+fn gate_is_open() -> Canon {
+  Canon {
+    threads: vec![gate_open()],
     ..Default::default()
   }
 }
@@ -49,6 +64,7 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
         content: Some(body.to_string()),
       }],
       digest: PLANNED.to_string(),
+      preconditions: preconditions::check(&gate_is_open()),
     },
   )
 }
