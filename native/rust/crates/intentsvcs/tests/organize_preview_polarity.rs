@@ -275,3 +275,102 @@ fn a_preview_reports_the_refusal_rather_than_counting_it_as_a_removal() {
     "and it must name the unmet precondition: {refusal}"
   );
 }
+
+#[test]
+fn the_blocked_count_is_files_and_not_refusals() {
+  // **THE DEFECT THIS ROW EXISTS FOR IS AN UNDERSTATEMENT, NOT AN ERROR.**
+  // `PreconditionsUnmet` is deliberately ONE refusal for the whole run, so
+  // `refused.len()` is 1 whether the gate is holding one removal or four
+  // hundred. Every number in that sentence is true and the one a reader sees is
+  // the wrong one: cc measured stdout `0 to remove, 1 refused` beside a stderr
+  // refusal reading `would remove 423 file(s)`, same run, this estate.
+  //
+  // **SO THE ASSERTION IS THE INEQUALITY, NOT THE VALUE.** `blocked() == 3`
+  // alone would pass against an implementation that returned `dehydrated.len()`,
+  // or `refused.len()`, or any other quantity that happened to be 3 in a fixture
+  // sized to make them agree. Requiring `blocked() > refused.len()` is the shape
+  // of the bug, and it can only hold if the count reaches INSIDE the refusal.
+  let fx = Fixture::new();
+  let project = fx.project();
+  let undeclared = ["ST0002", "ST0003", "ST0004"];
+  let mut threads = vec![declaring_thread(&[(
+    "AC-00.3",
+    AcKind::NonTest,
+    AcState::Unsatisfied,
+  )])];
+  threads.extend(undeclared.iter().map(|id| sample_thread(id)));
+
+  let tree = TreeState {
+    present: undeclared.iter().map(|id| project.info_view(id)).collect(),
+    ..Default::default()
+  };
+  let p = plan(
+    &project,
+    &canon_of(threads),
+    &intentfiles::parse(MANIFEST).expect("manifest parses"),
+    &ctx(),
+    &tree,
+    "digest".to_string(),
+  );
+  // **POSITIVE CONTROL, and it is the one this fixture can most easily lose.**
+  // A manifest that silently declared these, or a canon that did not carry them,
+  // yields zero candidates -- and then `blocked() == 0 == refused.len()` fails
+  // the inequality for a reason that has nothing to do with the count.
+  assert_eq!(
+    p.with(Action::Dehydrate).count(),
+    undeclared.len(),
+    "the fixture must produce one candidate per undeclared thread"
+  );
+  for step in p.with(Action::Dehydrate) {
+    let content = step.content.as_ref().expect("a removal carries its render");
+    if let Some(parent) = step.path.parent() {
+      std::fs::create_dir_all(parent).expect("fixture dirs");
+    }
+    std::fs::write(&step.path, content).expect("fixture write");
+  }
+
+  let report = p
+    .run(Mode::Preview, &|| "digest".to_string())
+    .expect("preview");
+  assert_eq!(
+    report.refused.len(),
+    1,
+    "the gate speaks once for the whole run -- if this is 3, the refusal was made per-file and this row is measuring something else: {:?}",
+    report.refused
+  );
+  assert_eq!(
+    report.blocked(),
+    undeclared.len(),
+    "every gated removal must be counted, not the refusal carrying them"
+  );
+  assert!(
+    report.blocked() > report.refused.len(),
+    "the count a reader is shown must not collapse {} files into {} refusal",
+    report.blocked(),
+    report.refused.len()
+  );
+}
+
+#[test]
+fn a_run_the_gate_does_not_block_reports_nothing_blocked() {
+  // **THE OTHER HALF, AND WITHOUT IT THE ROW ABOVE IS SATISFIED BY A CONSTANT.**
+  // `blocked()` returning the candidate count unconditionally would pass every
+  // assertion in the previous test. Here the preconditions are met, the same
+  // shape of estate produces the same removals, and the figure must be zero --
+  // so the number has to be reading the GATE and not the plan.
+  let fx = Fixture::new();
+  let (doomed, p) = one_removal(&fx, gate_open());
+  let report = p
+    .run(Mode::Preview, &|| "digest".to_string())
+    .expect("preview");
+  assert!(
+    p.with(Action::Dehydrate).any(|s| s.path == doomed),
+    "the fixture must still carry a removal, or zero is vacuous"
+  );
+  assert_eq!(
+    report.blocked(),
+    0,
+    "nothing is held back when the gate permits: {:?}",
+    report.refused
+  );
+}

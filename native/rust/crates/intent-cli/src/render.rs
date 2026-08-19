@@ -1415,7 +1415,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     format!(" ({blocked} blocked)")
   };
   println!(
-    "{head} {} {}, {} {}, {} unchanged, {} {}{:.0}, {} unclaimed, {} diverged, {} refused",
+    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} unclaimed, {} diverged, {} refused",
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),

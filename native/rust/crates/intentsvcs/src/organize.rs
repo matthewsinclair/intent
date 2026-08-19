@@ -618,6 +618,36 @@ pub struct Report {
   pub refused: Vec<OrganizeError>,
 }
 
+impl Report {
+  /// How many removals the ship gate is holding back.
+  ///
+  /// **THE REPORT ANSWERS THIS, NOT THE RENDERER**, because it is a property of
+  /// what happened and every face that shows a run has the same question to
+  /// answer. A fold living inline in one renderer is a fold the next one gets
+  /// subtly different (IN-AG-HIGHLANDER-001).
+  ///
+  /// **IT IS NOT `refused.len()`, AND THE GAP BETWEEN THE TWO IS THE WHOLE
+  /// REASON THIS EXISTS.** `PreconditionsUnmet` is deliberately ONE refusal for
+  /// the entire run rather than one per file -- the unmet precondition is a
+  /// property of the estate, so N copies of an identical sentence would bury the
+  /// per-file refusals that ARE about their file. The consequence is that a gate
+  /// holding four hundred removals counts as `1`. Accurate, and three orders of
+  /// magnitude too small for the only question a reader is asking.
+  ///
+  /// Per-file refusals contribute nothing here: they refused a removal that was
+  /// individually gated, which the caller sees named, one line each.
+  pub fn blocked(&self) -> usize {
+    self
+      .refused
+      .iter()
+      .map(|refusal| match refusal {
+        OrganizeError::PreconditionsUnmet { removals, .. } => *removals,
+        _ => 0,
+      })
+      .sum()
+  }
+}
+
 impl Plan {
   /// Apply this plan.
   ///
