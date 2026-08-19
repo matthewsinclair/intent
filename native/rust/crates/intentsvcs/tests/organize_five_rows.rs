@@ -27,7 +27,7 @@ use std::path::PathBuf;
 use common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
-use intentsvcs::organize::{Action, Step, plan};
+use intentsvcs::organize::{Action, Step, TreeState, plan};
 
 /// A manifest declaring ST0001 and deliberately NOT ST0002.
 ///
@@ -71,19 +71,24 @@ fn the_five_rows_of_d57_3() {
   let human_file = project.st_dir().join("ST0001").join("diagram.png");
   let index_view = project.steel_threads_view();
 
-  let on_disk = vec![
-    declared_present.clone(),
-    undeclared_present.clone(),
-    human_file.clone(),
-    index_view.clone(),
-  ];
+  let tree = TreeState {
+    present: [
+      declared_present.clone(),
+      undeclared_present.clone(),
+      human_file.clone(),
+      index_view.clone(),
+    ]
+    .into_iter()
+    .collect(),
+    ..Default::default()
+  };
 
   let p = plan(
     &project,
     &canon,
     &manifest,
     &ctx(),
-    &on_disk,
+    &tree,
     "digest-under-test".to_string(),
   );
 
@@ -128,7 +133,10 @@ fn the_fifth_row_is_never_destructive() {
     &canon(),
     &intentfiles::parse(MANIFEST).expect("manifest parses"),
     &ctx(),
-    std::slice::from_ref(&human_file),
+    &TreeState {
+      present: [human_file.clone()].into_iter().collect(),
+      ..Default::default()
+    },
     "d".to_string(),
   );
   let step = step_for(&p.steps, &human_file).expect("the unclaimed file is reported");
@@ -157,7 +165,10 @@ fn an_index_view_is_exempt_rather_than_dehydrated() {
     &canon(),
     &intentfiles::parse(MANIFEST).expect("manifest parses"),
     &ctx(),
-    std::slice::from_ref(&index_view),
+    &TreeState {
+      present: [index_view.clone()].into_iter().collect(),
+      ..Default::default()
+    },
     "d".to_string(),
   );
   let step = step_for(&p.steps, &index_view).expect("the index view is accounted for");
@@ -185,7 +196,14 @@ STEELTHREAD:ST0001
   let fx = Fixture::new();
   let project = fx.project();
   let manifest = intentfiles::parse(pinned_only).expect("manifest parses");
-  let p = plan(&project, &canon(), &manifest, &ctx(), &[], "d".to_string());
+  let p = plan(
+    &project,
+    &canon(),
+    &manifest,
+    &ctx(),
+    &TreeState::default(),
+    "d".to_string(),
+  );
   for id in ["ST0001", "ST0002"] {
     let path = project.info_view(id);
     assert_eq!(

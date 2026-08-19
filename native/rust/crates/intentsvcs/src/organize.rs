@@ -70,6 +70,13 @@ pub enum Action {
   Unclaimed,
   /// A renderer-produced view that no manifest entry can imply. Kept, always.
   Exempt,
+  /// Declared, carried in the store, absent from disk. Write it from the store's
+  /// copy. Attachments are not rendered, so this is a distinct row from
+  /// [`Action::Hydrate`] and shares none of its bytes.
+  HydrateAttachment,
+  /// Present on disk and NOT what the store carries. **Reported, both remedies
+  /// named, neither side touched** (AC-04.3).
+  AttachmentDiverged,
 }
 
 impl Action {
@@ -77,6 +84,26 @@ impl Action {
   /// has exactly one place to stand.
   pub fn is_destructive(&self) -> bool {
     matches!(self, Action::Dehydrate)
+  }
+
+  /// What a human is asked to do, for the rows `organize` deliberately will not
+  /// resolve itself.
+  ///
+  /// **BOTH VERBS, NEVER ONE (AC-04.3).** Authority follows AUTHORSHIP: a view
+  /// diverging means the FILE is stale, an attachment diverging means the STORE
+  /// is. Same observation, opposite remedies -- so naming only one would be this
+  /// verb quietly choosing whose work to discard, right most of the time and
+  /// catastrophically wrong occasionally, which is the worst profile available.
+  pub fn remedy(&self) -> Option<&'static str> {
+    match self {
+      Action::AttachmentDiverged => Some(
+        "an attachment is authored ON DISK, so this means the STORE is stale: `intent sync --to-store` takes the disk copy. If the store is the one you want, restore the file instead. organize will not choose for you.",
+      ),
+      Action::Unclaimed => Some(
+        "nothing renders this and nothing carries it. Leave it, or make it an attachment -- organize is not the thing that decides an unrecognised file is rubbish.",
+      ),
+      _ => None,
+    }
   }
 }
 
@@ -88,6 +115,24 @@ pub struct Step {
   /// The rendered bytes, for the rows that have any. `None` for [`Action::Unclaimed`]
   /// -- the renderer cannot produce those, which is what makes them unclaimed.
   pub content: Option<String>,
+}
+
+/// What [`plan`] needs to know about the tree.
+///
+/// Passed in rather than walked inside `plan`, so every row can be driven against
+/// a constructed population -- which is what makes the four refusal criteria on
+/// this work package cheap to exercise.
+#[derive(Debug, Clone, Default)]
+pub struct TreeState {
+  /// Every file present under the realised locations.
+  pub present: BTreeSet<PathBuf>,
+  /// SHA-256 of the ATTACHMENTS on disk, lowercase hex.
+  ///
+  /// **Attachments only, and the omission is deliberate.** A view's identity is
+  /// its rendered bytes, which the plan already holds in `renderable`; hashing
+  /// one would be a second way to ask a question already answered exactly, and
+  /// the second way is the one that goes stale.
+  pub sha256: BTreeMap<PathBuf, String>,
 }
 
 /// A decided run, not yet applied.
@@ -197,7 +242,7 @@ pub fn plan(
   canon: &Canon,
   manifest: &Manifest,
   ctx: &RenderContext<'_>,
-  on_disk: &[PathBuf],
+  tree: &TreeState,
   digest: String,
 ) -> Plan {
   let declared = declared_artefacts(manifest);
@@ -231,7 +276,7 @@ pub fn plan(
     }
   }
 
-  let present: BTreeSet<&PathBuf> = on_disk.iter().collect();
+  let present = &tree.present;
   let mut steps = Vec::new();
 
   // Rows one and two: declared. Absent -> hydrate, present -> verify.
@@ -249,9 +294,60 @@ pub fn plan(
     });
   }
 
+  // THE ATTACHMENT ARM. Attachments are AUTHORED ON DISK, so nothing renders
+  // them and `renderable` says nothing about them -- the store carries a copy
+  // plus the sha it had when it was carried. Three outcomes, and only one of them
+  // is a write.
+  let mut attachment_paths: BTreeSet<PathBuf> = BTreeSet::new();
+  for thread in &canon.threads {
+    let declared_thread = declared.contains(&(Sigil::SteelThread.as_str(), thread.id.clone()));
+    for att in &thread.attachments {
+      let path = project.st_dir().join(&thread.id).join(&att.path);
+      attachment_paths.insert(path.clone());
+      if !declared_thread {
+        // Undeclared and present: row four, through the same gate. The store
+        // carries this file's bytes, so removing it is safe EXACTLY WHEN the
+        // gate proves the copy matches -- which is why the attachment's text
+        // travels on the step, as the view's rendered bytes do.
+        if present.contains(&path) {
+          steps.push(Step {
+            path,
+            action: Action::Dehydrate,
+            content: Some(att.text.clone()),
+          });
+        }
+        continue;
+      }
+      if !present.contains(&path) {
+        steps.push(Step {
+          path,
+          action: Action::HydrateAttachment,
+          content: Some(att.text.clone()),
+        });
+        continue;
+      }
+      match tree.sha256.get(&path) {
+        // Agrees with what the store carries: nothing to do, and saying so costs
+        // a step that means "no action" in a list whose every other member means
+        // one.
+        Some(on_disk) if *on_disk == att.sha256 => {}
+        // **A MISSING HASH IS TREATED AS DIVERGENCE, NOT AS AGREEMENT.** If the
+        // caller could not hash the file, whether it matches the store is
+        // UNANSWERED -- and reporting an unanswered question as agreement is how
+        // a check comes to mean nothing. Reporting costs a line; the other
+        // direction costs the file.
+        _ => steps.push(Step {
+          path,
+          action: Action::AttachmentDiverged,
+          content: None,
+        }),
+      }
+    }
+  }
+
   // Rows four and five, over what is actually on disk.
-  for path in on_disk {
-    if declared_paths.contains(path) {
+  for path in &tree.present {
+    if declared_paths.contains(path) || attachment_paths.contains(path) {
       continue; // already decided above
     }
     if exempt.contains(path) {
@@ -282,9 +378,17 @@ pub fn plan(
         action: Action::Dehydrate,
         content: renderable.get(path).cloned(),
       }),
-      // Canon and attachments are not this verb's business. Canon is not a view,
-      // and an attachment is authored on disk -- AC-04.3 keeps both out.
-      ThreadFile::Canon | ThreadFile::Attachment => {}
+      // Canon is not a view and is not this verb's business.
+      ThreadFile::Canon => {}
+      // An attachment the STORE DOES NOT CARRY. The arm above decided every
+      // attachment canon knows about, so reaching here means disk holds a
+      // carryable file with no record -- which is an ingest question, not a
+      // realisation one. Reported, never removed: it is the only copy.
+      ThreadFile::Attachment => steps.push(Step {
+        path: path.clone(),
+        action: Action::Unclaimed,
+        content: None,
+      }),
       // Row five. Reported by name, never removed, and it carries no content
       // because there is nothing that could render it.
       ThreadFile::Unattached => steps.push(Step {
