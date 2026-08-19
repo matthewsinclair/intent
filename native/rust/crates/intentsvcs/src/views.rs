@@ -29,7 +29,7 @@ use crate::contract::{group_of, satisfied_by_tests};
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
 use crate::model::{AcState, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus, WorkPackage};
-use crate::project::Project;
+use crate::project::{Project, canon_thread_rel};
 use crate::write_set::WriteSet;
 
 /// Everything a render is allowed to depend on besides the model.
@@ -325,9 +325,10 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   // migrated estate and double 52 threads in the same commit.
   if !carries_heading(&thread.body, "Acceptance") {
     out.push_str("## Acceptance\n\n");
-    out.push_str(
-      "Acceptance Criteria and Acceptance Tests live in `acceptance.md` -- the single source of truth. This cover never restates them.\n\n",
-    );
+    out.push_str(&format!(
+      "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `{}`, then `intent sync --to-store`. This cover never restates them.\n\n",
+      canon_thread_rel(&thread.id)
+    ));
   }
 
   if !thread.related.is_empty() && !carries_heading(&thread.body, "Related Steel Threads") {
@@ -375,7 +376,7 @@ fn section_body(text: &str) -> String {
 // ---------------------------------------------------------------------------
 
 const ACCEPTANCE_PREAMBLE: &str = "\
-> Canonical acceptance contract. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them.
+> **THIS FILE IS A GENERATED VIEW, AND A ROW AUTHORED HERE IS DISCARDED BY THE NEXT SYNC.** The acceptance contract is canon in the thread model; this file renders it. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them.
 >
 > Done = every AC is covered by a GREEN AT, or (for a non-test AC) its named evidence is satisfied, AND the AC set is the ratified full boundary. Done is read from this map, never from a hand-ticked box.
 >
@@ -650,8 +651,10 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   if !carries_heading(&wp.body, "Acceptance") {
     out.push_str("## Acceptance\n\n");
     out.push_str(&format!(
-      "Acceptance Criteria for this work package live in `{}/acceptance.md`, under the `WP-{:02}` heading -- the single source of truth. This cover never restates them.\n\n",
-      thread.id, wp.seq
+      "Acceptance Criteria for this work package are RENDERED into `{}/acceptance.md`, under the `WP-{:02}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `{}`, then `intent sync --to-store`. This cover never restates them.\n\n",
+      thread.id,
+      wp.seq,
+      canon_thread_rel(&thread.id)
     ));
   }
 

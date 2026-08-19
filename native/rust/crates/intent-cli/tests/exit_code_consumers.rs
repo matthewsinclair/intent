@@ -109,6 +109,18 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
       "an advisory `echo` telling the author to run `intent modules check` -- the hook itself runs `grep`",
     ),
   ),
+  (
+    "hooks/canon-ignore-guard.sh",
+    "gate",
+    Policy::Names(
+      "it INVOKES no `intent` at all -- every question it asks goes to `git check-ignore`, because the \
+       subject is what git DOES with an ignore rule and `intent` has no opinion on that. The only \
+       appearance is its own `intent gate:` message prefix on the inherited-breakage report, matching \
+       the pre-commit gate it runs under. Its OWN exit codes are 0 clean/not-applicable/inherited-only \
+       and 1 this commit adds a rule reaching `intent/.canon/`; nothing downstream reads them yet, \
+       because nothing consults this guard (ST0057 AC-01.5, unwired pending the roster generalisation).",
+    ),
+  ),
 ];
 
 /// The shipped canon: what a consumer project receives.
