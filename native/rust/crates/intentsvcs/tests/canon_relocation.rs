@@ -7,7 +7,7 @@
 //! RATHER THAN A DESCRIPTION.**
 //!
 //! Every other test may assert where a file landed by asking
-//! [`Project`] — `thread_json`, `issue_json`, `canon_thread_rel` — and that is
+//! `Project` — `thread_json`, `issue_json`, `canon_thread_rel` — and that is
 //! correct, because a second independent spelling of the canon path is exactly
 //! what AC-01.6 forbids. **But a resolver-based assertion has no oracle of its
 //! own: it compares the tool's answer to the tool's answer, and every one of
@@ -34,7 +34,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::model::{ISSUE_SCHEMA, Issue, IssueStatus};
-use intentsvcs::project::{Project, canon_issue_rel, canon_thread_rel};
+use intentsvcs::project::{canon_issue_rel, canon_thread_rel};
 
 /// Written out by hand, deliberately, in the one file whose job is to disagree
 /// with the resolver if the resolver moves.
