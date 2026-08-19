@@ -3,13 +3,62 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 10:53Z
-status: active
-focus: "**FOLD 20, POST-RESTART. PLAN PRESENTED AND UNSTARTED; everything below was peer-driven against the clean-slate deadline.** Settled cc's AC-00.10 WITHOUT rendering 263 views -- `criterion_line` pushes `c.text` VERBATIM, `cell()` is not on that path, and the inline-code-span versus prose asymmetry can only come from a formatter; staleness excluded at ONE revision. **THE CHURN LOOP IS LIVE.** Then read the source-commit marker off the last surviving binary minutes before the slate: `dirty-18197aaf`, **158 commits behind HEAD** -- which proved dc+ic's source-commit half AND refuted their demotion of the hash, since that same marker sat on three distinct binaries in one day. **Two primaries, one held field, partition closes over currency + identity + drift.** ONE CLAIM OF MINE WITHDRAWN: cc's `cp -p` was faithful, verified to the second."
+heartbeat_at: 2026-08-19 11:32Z
+status: paused
+focus: "**FOLD 20 -- COMPACTED. EVERYTHING IS COMMITTED; the tree was clean at fold.** Minted EIGHT criteria (123->131, 124->132), three amended after minting because peers read them against reality rather than my description. **hv RULED ALL FIFTEEN consolidated asks and authorised the push.** **ON RESUME hv WANTS ONE THING: how close is disk-to-db bidi sync to being usable -- THE ANSWER IS IN THE SECTION BELOW, MEASURED, DO NOT RE-DERIVE IT.**"
 claims: [ST0056, ST0057]
 ---
 
 # Validation Claude (vc)
+
+## ON RESUME -- hv's QUESTION, ANSWERED AND MEASURED AT FOLD 20. DO NOT RE-DERIVE.
+
+**hv asked: how close are we to disk-to-db bidi sync working properly and usable?**
+
+**THE MECHANISM IS LARGELY THERE. THE ERGONOMICS AND THE TRUST ARE NOT. Those are different problems and only
+the second is subtle.**
+
+**GREEN, 12 of 18 AT rows in WP-03** -- and they are the load-bearing ones: **AT-03.8 canon ROUND-TRIPS through
+the store (canon -> DB -> canon)**, AT-03.2 view rendering is deterministic and idempotent, **AT-03.10 `sync`
+NAMES ITS DIRECTION and refuses to guess**, AT-03.4 the skew check catches a hand-edited view, AT-03.3 the
+stat-scan detects external edits by CONTENT HASH including same-size same-mtime, AT-03.12 a cold start restores
+the event log, plus ingest refusal, unparsed state, prose/FTS round-trip, ignored-path corpus, machine
+independence, backup snapshot. **The loop closes and is proven.**
+
+**NOT GREEN, 6 rows:** AT-03.15 **red** (a write moves mtime on exactly the files whose bytes changed);
+AT-03.13, AT-03.14, AT-03.16, AT-03.17, AT-03.18 all `to-write`.
+
+**BUT THE ROW COUNT IS NOT THE ANSWER. THREE MEASURED THINGS DECIDE USABILITY AND TWO ARE NOT ROWS AT ALL:**
+
+1. **`intent sync` HAS NO SCOPE, and this is the single biggest usability blocker.** `--to-store` / `--to-disk`
+   are WHOLE-ESTATE ONLY. **Measured twice today, both times by vc, once while holding the pen and warning
+   others: it ingested two peers' UNCOMMITTED instruments into canon.** On a multi-node board every node needs
+   an unscoped estate-wide write to land its own work. dc's form: _a workflow whose correct form requires an
+   operation only safe for one actor is a single-writer bottleneck wearing a per-node procedure's clothes._
+   **vc's half: staying off the estate protects a node from WRITING, and the hazard is a READ THAT WRITES.**
+   Routed to hv as consolidated item 14; hv has not ruled. **THREE RESOLUTIONS (dc's): serialise through vc
+   (makes today's defect permanent by policy), GIVE SYNC A SCOPE (the real fix, CLI surface, inside the 3.0.0
+   gate), or announce-and-take-the-pen (adopted, and it has now cost twice).**
+
+2. **AC-03.17's CHURN LOOP IS LIVE AND WAS MEASURED IN THE COMMIT SERIES THAT MINTED IT.** Canon carries
+   `DISAGREE ON *KIND*`; the committed view carries `DISAGREE ON _KIND_`. `criterion_line` (`views.rs:463`)
+   pushes `c.text` VERBATIM, so no render path can produce that -- **a markdown formatter normalising
+   `*emphasis*` to `_emphasis_` is the only writer that can, and it wins the race every time.** Three commits in
+   a row reported _1 file changed_ because at stage time the view matched HEAD again. **HEAD is 12 lines
+   divergent from canon RIGHT NOW and that is the criterion's evidence, not a chore.** **CONSEQUENCE FOR TRUST:
+   `doctor` can report zero skew TRUTHFULLY and be wrong minutes later.** Remedy is AC-03.17's: make the
+   RENDERER emit what the formatter would leave alone, as `views.rs` `kv()` already does for trailing
+   whitespace. **Repairing the text is the trap -- it looks like a repair and leaves the loop.**
+
+3. **`--to-store` IS NOT READ-ONLY ON DISK.** A canon edit is a TWO-FILE commit and the second file is one you
+   never edited. Combined with (2), the second file may not land at all.
+
+**AND THE OTHER HALF OF THE STORY IS BARELY STARTED: ST0057 (disk as a sparse projection) is 1 WP WIP, 7 NOT
+STARTED.** WP-01 (canon relocation) is the WIP; `intent://` addressing is WP-07 and unbuilt, which is why hv's
+ruling on the view footer is a surface question rather than a string fix.
+
+**HONEST ONE-LINE VERDICT: the round trip works and is proven; you cannot yet trust the committed view to match
+canon, and every sync is estate-wide. Fix the scope and the renderer's output form and it becomes usable.**
 
 ## DOING
 
@@ -64,6 +113,8 @@ claims: [ST0056, ST0057]
 
 ## Decisions
 
+- (2026-08-19) **vc SWEPT A PEER'S STAGED INDEX WITH A BARE `git commit`, WHICH IS THE RULE vc QUOTES AT OTHERS.** `c884edf5` is titled _views(0056): the view finally lands matching canon_ and contains **one file, 59 insertions: cc's `.history/20260819/wip.md`** -- their localfold archive, staged when vc committed. **The view is not in it, and cc's own commit then failed with `cannot lock ref HEAD` because HEAD had moved underneath them.** **ic had flagged the staged peer entry MINUTES EARLIER and declined to unstage it** -- touching a peer's index is the same class as editing their board -- **so the warning arrived before the mistake, not after.** History NOT rewritten: the content is intact and verified (80 lines, marker present); **what is wrong is the provenance, and a reader looking for when cc's fold landed will not find it.** **`--only` from here, without exception.**
+- (2026-08-19) **AT-10.13 to-write -> GREEN and AT-03.17 to-write -> RED, both on cc's stale-AT flags.** 10.13 is evidenced (nine arms, both directions, both members, isolated rig). **03.17 is RED rather than green because the file exists and no green run is on record** -- `to-write` means UNWRITTEN, `red` means it EXISTS and does not pass, and **a built instrument recorded as unwritten understates the estate in the one direction nobody audits.** **ac status 49 -> 50 of 131: AC-10.13 is the first criterion from today's mint to close.**
 - (2026-08-19) **hv RULED ALL FIFTEEN CONSOLIDATED ASKS.** Surface flags: **four verbosity flags SHIP; `--no-backup` AND `--backup-dir` BOTH WITHDRAWN** -- the second on measured grounds, since `.gitignore` protects backups by HARD-CODED PATH (`/.backup/` root-anchored, `intent/.backup/` added after that defect bit 2026-08-18) and a flag that relocates a backup writes it where no ignore rule names it. `doctor` banner: **both, explicitly.** Toolchain: **NO pin, no `.tool-versions`, nothing imposed on a user** -- so the fix is dc's own `builtin_check_format` note, report-no-pin-and-pass rather than fail. Pre-commit re-cut, `## [3.0.0]` CHANGELOG (**vc assembles, spans four nodes**), archive guard (approved, _bike-shedding_ noted -- build it LEAN), `upgrade` defects, protocol fix: all GO. **Evidence store REJECTED** -- _more process for the sake of process; the point is the db as SSOT._ Footer: **use `intent://`**, which is specified in canon (20 occurrences, triple slash) and implemented NOWHERE -- so it is ST0057 WP-07's, not a string fix. **MINTING: GO. ic's AT-00.12 partition: GO.**
 - (2026-08-19) **THE PUSH IS AUTHORISED ON BOTH HALVES AND THE BOARDS GO PUBLIC DELIBERATELY.** hv: _just push it, I will use this stuff for later training and refinement, it's worth keeping._ **Blast radius measured BEFORE the ruling and it reframed the question: the whiteboard was ALREADY public** -- 70 files / 14,620 lines / 446 commits reached upstream at `dcf9d3b6` (2026-08-16). The delta is **+68 files, +13,895 lines, 576 whiteboard commits**; 15 session UUIDs, 9 files carrying `/Users/matts`. **It was never publish-or-not, only whether the next tranche follows the first.** ic's 2026-08-15 disclosure question is RULED, not pending. **dc confirms directly with hv before pushing** -- a public push is the least reversible act available and vc's relay is not a go for it.
 - (2026-08-19) **TWO NODES INDEPENDENTLY REFUSED vc's RELAY AS AUTHORISATION, ON THE DAY vc's RELAY FAILED ONCE, AND BOTH WERE RIGHT.** ic named the precedent: vc read _we don't really need a specific hv channel_ as _retired_ and three nodes stopped writing on vc's word. **Accuracy was never the question -- a channel that produced a wrong answer this morning is not trusted this afternoon because the next answer looks right.** hv gave both the word directly. **Standing: vc relays are INFORMATION; the go comes from hv.**
