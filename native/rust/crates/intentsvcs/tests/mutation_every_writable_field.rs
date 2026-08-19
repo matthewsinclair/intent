@@ -197,40 +197,86 @@ fn the_unsettable_field_set_is_exactly_what_the_row_records() {
 
 /// **Entity creation is a different axis from field completeness**, and a
 /// surface can be field-complete while offering no way to bring the entity
-/// into existence. Recorded in AC-08.5's fourth instance; asserted here.
+/// into existence. AC-08.5's fourth instance.
+///
+/// # This test was WRONG when it shipped, and the way it was wrong is the
+/// # lesson
+///
+/// The first version grepped `facade.rs` for `fn at_new`, `fn at_add`,
+/// `fn at_create`, `fn ac_new`, `fn ac_add` and asserted none existed. It
+/// PASSED -- while `Facade::put` in the same file created both, by
+/// insert-if-absent, thirty lines away. **The pin measured a NAME and the
+/// criterion is about a CAPABILITY**, so a capability arriving under an
+/// unlisted name was invisible to it. Shipped in `53cb3f34`; caught when vc
+/// asked whether the commit message's claim superseded the row.
+///
+/// That is the same defect cc found in the `organize` retirement -- a
+/// ratification expressed as a string literal cannot tell a name being
+/// reclaimed from a command being resurrected -- and it is the day's recurring
+/// shape: an observable that agrees with two different worlds.
+///
+/// **So it is behavioural now.** It creates rows that do not exist and asserts
+/// they land. A creator arriving under any name at all satisfies it, and no
+/// renaming can make it lie.
 #[test]
-fn no_verb_creates_an_acceptance_test_or_criterion() {
+fn an_ac_and_an_at_can_be_created_through_the_surface() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  let _facade = fx.facade();
-  let _ = facade_ctx();
+  let mut facade = fx.facade();
 
-  let surface = std::fs::read_to_string(
-    testkit::repo_root().join("native/rust/crates/intentsvcs/src/facade.rs"),
+  let before = facade.canon().threads[0].clone();
+  assert!(
+    !before.tests.iter().any(|t| t.id == "AT-09.9"),
+    "precondition: the AT must be absent or this tests an update"
+  );
+  assert!(
+    !before.criteria.iter().any(|c| c.id == "AC-09.9"),
+    "precondition: the AC must be absent"
+  );
+
+  facade
+    .put(
+      &intentsvcs::address::parse("intent:///threads/ST0001/at/AT-09.9").expect("resolves"),
+      r#"{"id":"AT-09.9","kind":"test","file":"native/rust/crates/intentsvcs/tests/n.rs",
+         "covers":["AC-09.9"],"status":"to-write","note":"created, not transitioned"}"#,
+    )
+    .expect("an AT is creatable through the address surface");
+
+  let landed = facade.canon().threads[0]
+    .tests
+    .iter()
+    .find(|t| t.id == "AT-09.9")
+    .expect("the AT exists now");
+  assert_eq!(
+    landed.note.as_deref(),
+    Some("created, not transitioned"),
+    "and it carries a field no transitioning verb could have set"
+  );
+
+  // The AC half. Asserted separately because a surface can create one and not
+  // the other, and AC-08.5 names both.
+  let ac_body = serde_json::to_string(
+    facade.canon().threads[0]
+      .criteria
+      .first()
+      .expect("the fixture carries a criterion"),
   )
-  .expect("facade.rs is readable");
-
-  let creators: Vec<&str> = [
-    "fn at_new",
-    "fn at_add",
-    "fn at_create",
-    "fn ac_new",
-    "fn ac_add",
-  ]
-  .into_iter()
-  .filter(|needle| surface.contains(needle))
-  .collect();
+  .expect("serialises");
+  let mut ac: serde_json::Value = serde_json::from_str(&ac_body).expect("parses");
+  ac["id"] = serde_json::json!("AC-09.9");
+  facade
+    .put(
+      &intentsvcs::address::parse("intent:///threads/ST0001/ac/AC-09.9").expect("resolves"),
+      &serde_json::to_string(&ac).expect("serialises"),
+    )
+    .expect("an AC is creatable through the address surface");
 
   assert!(
-    creators.is_empty(),
-    "A CREATE VERB HAS APPEARED and this pin is stale -- {creators:?}. Move\n  \
-     AT-08.5 toward green and delete this assertion.\n\n  \
-     What it was pinning: no verb creates an AC or an AT. `intent ac` is list/status/satisfy/unsatisfy/\n  \
-     gate/descope/rescope/withdraw/reinstate and `intent at` is list/lint/green/red/na\n  \
-     -- every one TRANSITIONS a row that already exists.\n\n  \
-     The only path is a hand-edit, and `acceptance.md` is a GENERATED VIEW, so a\n  \
-     criterion authored there is discarded at the next `sync --to-disk` and its\n  \
-     author believes they added it. The working route is a hand-edit of canon plus\n  \
-     `sync --to-store`, racy against any peer syncing the other way."
+    facade.canon().threads[0]
+      .criteria
+      .iter()
+      .any(|c| c.id == "AC-09.9"),
+    "the AC exists now -- AC-08.5's fourth instance is superseded for the SERVICE
+            surface. It remains true at the CLI, which has no create verb wired."
   );
 }
