@@ -111,7 +111,12 @@ CANON_PATHSPEC=(intent/st intent/.canon)             # both, for scoping a git c
 # Emits every thread canon file at $1, one per line. ONE ls-tree, both roots.
 canon_files_at() {
   local rev="$1" all nested flat
-  all="$(git ls-tree -r --name-only "$rev" -- "${CANON_PATHSPEC[@]}" 2>/dev/null)"
+  if [ "$STAGED" -eq 1 ] && [ -z "$rev" ]; then
+    # The index has no tree object to walk, so it is listed rather than read.
+    all="$(git ls-files --cached -- "${CANON_PATHSPEC[@]}" 2>/dev/null)"
+  else
+    all="$(git ls-tree -r --name-only "$rev" -- "${CANON_PATHSPEC[@]}" 2>/dev/null)"
+  fi
   nested="$(printf '%s\n' "$all" | grep -E "$CANON_NESTED" || true)"
   flat="$(printf '%s\n' "$all" | grep -E "$CANON_FLAT" || true)"
   if [ -n "$nested" ] && [ -n "$flat" ]; then
@@ -186,7 +191,12 @@ att_blobs_at() {
 # Emits "<thread> <count>" per thread carrying canon at $1.
 threads_at() {
   local rev="$1" tj st n files
-  git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
+  # The index is not a commit, so the existence guard is SKIPPED rather than
+  # failed -- `--staged` reaching `return 0` here would report an empty
+  # population as a clean run, which is the vacuous pass this tool was rewritten
+  # to refuse.
+  [ "$STAGED" -eq 1 ] && [ -z "$rev" ] ||
+    git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
   files="$(canon_files_at "$rev")" || return 2
   while read -r tj; do
     [ -n "$tj" ] || continue
@@ -204,7 +214,8 @@ threads_at() {
 # Emits "<thread>/<path> DIVERGED|ABSENT" per bad attachment at $1.
 diverged_at() {
   local rev="$1" only="${2:-}" tj st adir atts sha path blob have files
-  git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
+  [ "$STAGED" -eq 1 ] && [ -z "$rev" ] ||
+    git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
   files="$(canon_files_at "$rev")" || return 2
   while read -r tj; do
     [ -n "$tj" ] || continue
@@ -230,11 +241,17 @@ diverged_at() {
   done <<< "$files"
 }
 
-REV="HEAD" HIST=0 EXHAUSTIVE=0
+REV="HEAD" HIST=0 EXHAUSTIVE=0 STAGED=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --history) HIST="${2:?--history needs a count}"; shift 2 ;;
     --exhaustive) EXHAUSTIVE=1; shift ;;
+    # **THE INDEX IS SPELLED AS THE EMPTY REVISION, WHICH IS GIT'S OWN SYNTAX
+    # RATHER THAN A TRICK.** `git cat-file blob :path` reads the index entry, so
+    # every `"$rev:$path"` already in this file addresses the index when `$rev`
+    # is empty. Only the three places that ask git for a TREE or for a PARENT
+    # need an index branch; not one byte read does.
+    --staged) STAGED=1; REV=""; shift ;;
     -*) die "unknown option: $1" ;;
     *) REV="$1"; shift ;;
   esac
@@ -244,8 +261,15 @@ done
 # NAMED FIRST AND UNCONDITIONALLY. A verdict that cannot say which things it
 # describes is not a verdict, and a count is the only thing that says the
 # instrument reached its subject at all.
+# **A DISPLAY NAME, because the index has no name of its own.** `$REV` is the
+# empty string in staged mode -- exactly how git spells the index, and exactly
+# what a reader must not be shown. Every message below names $SUBJECT, so an
+# empty revision cannot reach the output as a blank and be read as a formatting
+# slip rather than as the index.
+if [ "$STAGED" -eq 1 ]; then SUBJECT="the index (staged)"; PARENT="HEAD"; else SUBJECT="$REV"; PARENT="$REV^"; fi
+
 subjects="$(threads_at "$REV")" || exit 2
-[ -n "$subjects" ] || die "CANNOT MEASURE -- $REV carries thread canon under neither intent/st/<ID>/thread.json nor intent/.canon/st/<ID>.json"
+[ -n "$subjects" ] || die "CANNOT MEASURE -- $SUBJECT carries thread canon under neither intent/st/<ID>/thread.json nor intent/.canon/st/<ID>.json"
 total=0
 while read -r st n; do [ -n "$st" ] && total=$((total + n)); done <<< "$subjects"
 # NAMED COMPACTLY, AND WHAT IS ENUMERATED IS THE GAP RATHER THAN THE COVERAGE.
@@ -260,12 +284,12 @@ nunmeasured="$(printf '%s\n' "$unmeasured" | grep -c .)"
 # Without that, "enumerate only the gap" becomes a way to hide a THIRD category
 # -- a subject neither measured nor declared unmeasurable. The closure is what
 # makes an absence admissible instead of a summary that quietly drops rows.
-echo "canon-commit: $REV -- $total recorded attachment(s), across $((nthreads - nunmeasured)) measured + $nunmeasured unmeasurable = $nthreads thread(s)."
+echo "canon-commit: $SUBJECT -- $total recorded attachment(s), across $((nthreads - nunmeasured)) measured + $nunmeasured unmeasurable = $nthreads thread(s)."
 [ "$nunmeasured" -eq 0 ] ||
   echo "canon-commit: NOT EXAMINED -- $nunmeasured thread(s) record zero attachments: $(printf '%s\n' "$unmeasured" | tr '\n' ' ')"
 
 if [ "$total" -eq 0 ]; then
-  echo "canon-commit: CANNOT MEASURE -- every thread at $REV records zero attachments, so nothing was compared." >&2
+  echo "canon-commit: CANNOT MEASURE -- every thread at $SUBJECT records zero attachments, so nothing was compared." >&2
   echo "    This is NOT a pass. THE FIGURE BELOW IS RECORDED, NOT COMPUTED BY THIS RUN (dc, 2026-08-18)," >&2
   echo "    and saying so matters because the branch printing it has just reported that it measured nothing:" >&2
   echo "    over the 132 commits from 0ec2ac79 (canon's first) to dec6b1b9, 86 recorded no attachments." >&2
@@ -328,9 +352,19 @@ fi
 #
 # --exhaustive turns the narrowing off and examines everything.
 ONLY="" scoped="" adir="" blobs=""
-if [ "$EXHAUSTIVE" -eq 0 ] && git rev-parse --verify --quiet "$REV^{commit}" >/dev/null &&
-   git rev-parse --verify --quiet "$REV^^{commit}" >/dev/null; then
-  changed="$(git diff-tree --no-commit-id --name-only -r "$REV" 2>/dev/null)"
+if [ "$EXHAUSTIVE" -eq 0 ] &&
+   { { [ "$STAGED" -eq 1 ] && git rev-parse --verify --quiet HEAD >/dev/null; } ||
+     { git rev-parse --verify --quiet "$REV^{commit}" >/dev/null &&
+       git rev-parse --verify --quiet "$REV^^{commit}" >/dev/null; }; }; then
+  # **THE INDEX IS DIFFED AGAINST HEAD, WHICH IS ITS PARENT-TO-BE.** `diff-tree`
+  # needs two trees and the index is not one, so the staged arm asks
+  # `diff-index --cached` the same question: what does this prospective commit
+  # change relative to the commit it will sit on.
+  if [ "$STAGED" -eq 1 ]; then
+    changed="$(git diff-index --cached --name-only HEAD 2>/dev/null)"
+  else
+    changed="$(git diff-tree --no-commit-id --name-only -r "$REV" 2>/dev/null)"
+  fi
   ONLY="$(mktemp)"; trap 'rm -f "$ONLY"' EXIT
   # a thread whose canon moved: every one of its attachments is back in scope
   printf '%s\n' "$changed" | grep -E "$CANON_NESTED|$CANON_FLAT" | while read -r tj; do
@@ -363,10 +397,10 @@ curp="$(printf '%s\n' "$cur" | awk '{print $1}' | grep -v '^$' | sort)"
 
 if [ -z "$curp" ]; then
   if [ -n "$ONLY" ]; then
-    echo "canon-commit: ADDS 0 -- of the $scoped attachment(s) this commit could have changed, none diverges from the bytes $REV holds."
+    echo "canon-commit: ADDS 0 -- of the $scoped attachment(s) this commit could have changed, none diverges from the bytes $SUBJECT holds."
     [ "$scoped" -gt 0 ] || echo "    This commit touched no attachment bytes and no thread's canon, so there was nothing it could have added."
   else
-    echo "canon-commit: ADDS 0 -- all $total examined attachment(s) match the bytes $REV holds at their paths."
+    echo "canon-commit: ADDS 0 -- all $total examined attachment(s) match the bytes $SUBJECT holds at their paths."
   fi
   if [ -n "$ONLY" ]; then
     echo "canon-commit: GATES on what this commit ADDS."
@@ -380,7 +414,12 @@ if [ -z "$curp" ]; then
   exit 0
 fi
 
-parent="$(diverged_at "$REV^" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$' | sort)" || exit 2
+# **`$PARENT`, NOT `"$REV^"`.** In staged mode `$REV` is empty, so `"$REV^"`
+# would be the literal `^` -- which `diverged_at` refuses at its existence guard
+# and returns 0 for, reporting NO inherited divergence over a population it
+# never read. A silent empty comparison, in the arm whose whole job is to
+# separate what this commit adds from what it inherited.
+parent="$(diverged_at "$PARENT" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$' | sort)" || exit 2
 new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 
@@ -403,7 +442,7 @@ if [ -n "$ONLY" ]; then
   echo "    what the narrowing excludes. Any count printed here would be over the wrong population."
   echo "    --exhaustive examines all $total and reports them."
 elif [ -n "$inherited" ]; then
-  echo "canon-commit: INHERITED $(printf '%s\n' "$inherited" | grep -c .) of $total attachment(s) examined -- present in $REV^ too, so $REV did not introduce them:"
+  echo "canon-commit: INHERITED $(printf '%s\n' "$inherited" | grep -c .) of $total attachment(s) examined -- present in $PARENT too, so $SUBJECT did not introduce them:"
   printf '%s\n' "$inherited" | sed 's/^/    /'
   echo "    Never blocked: a guard that must be bypassed to work is one nobody keeps."
 fi
@@ -414,7 +453,7 @@ if [ -z "$new" ]; then
   exit 0
 fi
 
-echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of ${scoped:-$total} attachment(s) examined -- $REV names bytes it does not contain:" >&2
+echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of ${scoped:-$total} attachment(s) examined -- $SUBJECT names bytes it does not contain:" >&2
 printf '%s\n' "$new" | sed 's/^/    /' >&2
 echo "    Canon was written from the WORKTREE while these files were uncommitted." >&2
 echo "    THE ORDER MATTERS AND THE OBVIOUS ONE DOES NOT WORK. Sync canon FIRST -- it reads the" >&2
