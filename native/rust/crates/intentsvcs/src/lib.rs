@@ -41,6 +41,7 @@ pub mod organize;
 pub mod preconditions;
 pub mod project;
 pub mod prose;
+pub mod realise;
 pub mod remedy;
 pub mod store;
 pub mod sync;

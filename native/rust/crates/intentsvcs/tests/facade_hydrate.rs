@@ -19,7 +19,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, Entity, Format};
-use intentsvcs::facade::{Facade, FacadeError};
+use intentsvcs::facade::FacadeError;
 use intentsvcs::intentfiles;
 
 const MANIFEST: &str = "\

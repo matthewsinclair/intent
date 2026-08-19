@@ -49,6 +49,7 @@ use crate::contract::{self, Scope, Verdict};
 // methods in common. Two types one word apart deserve the alias at the seam
 // rather than a reader inferring which is meant.
 use crate::event::{self, Envelope, Subject};
+use crate::realise;
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::model::{
@@ -341,6 +342,15 @@ pub enum FacadeError {
   /// exists to refuse.
   #[error("could not reconcile the tree")]
   Organize(#[from] organize::OrganizeError),
+  /// The text realisation could not be written (AC-06.1 / AC-06.2).
+  ///
+  /// **Its own variant rather than folded into an IO error, because its two
+  /// causes have opposite subjects**: a missing sidecar means CANON names bytes
+  /// it does not carry, which is a repair to the estate; a write failure means
+  /// the destination is unusable, which is a repair to the machine. Delegated
+  /// for the same reason `Organize` is.
+  #[error("could not write the text realisation")]
+  Realise(#[from] realise::RealiseError),
   /// `.intentfiles` could not be parsed. Its own variant because the manifest
   /// error already carries the LINE NUMBER, and folding it into a generic read
   /// failure would drop the one field that makes it actionable.
@@ -579,7 +589,13 @@ impl crate::remedy::Remedy for FacadeError {
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
       Self::Organize(cause) => cause.remedy(),
-      Self::Intentfiles(cause) => format!(
+      Self::Realise(cause) => cause.remedy(),
+      // **The cause is not interpolated and that is deliberate: it is already
+      // the DISPLAY body of this variant, so naming it again would render the
+      // failing line twice -- once as the error and once inside its own
+      // remedy.** Bound and ignored rather than left unnamed, so the arm reads
+      // as a decision rather than as a pattern nobody finished.
+      Self::Intentfiles(_cause) => format!(
         "correct the line named above in `intent/.intentfiles`. Each entry is `<SIGIL>:<ID>` on its own line, with STEELTHREAD and ISSUE the only sigils; `{}` is the generated region and is rewritten, so a hand-written entry belongs above it.",
         "# BEGIN INTENT"
       ),
@@ -1838,6 +1854,47 @@ impl Facade {
   /// `None` takes [`export::DEFAULT_FORMAT`]. The default is declared with the
   /// roster rather than here, so the surface, the help and this agree by
   /// construction.
+  /// Write the whole estate as readable files under `intent/.backup/text/<stamp>/`
+  /// (ST0057 WP-06, AC-06.1 / AC-06.2).
+  ///
+  /// **THE STAMP IS THE DATABASE'S AND THIS IS THE ONLY PLACE IT IS OBTAINED**
+  /// (D42). The envelope is minted without a time, `append_event` returns what
+  /// the INSERT actually wrote, and that value names the directory -- the same
+  /// mechanism `backup.rs` uses for a snapshot filename. `realise::realise`
+  /// therefore takes a DESTINATION and never a time, so no signature below the
+  /// facade accepts one.
+  ///
+  /// **The event is recorded BEFORE the files are written, and that ordering is
+  /// deliberate.** A realisation that fails half way has still happened, and
+  /// its directory has to be named and findable; recording afterwards would
+  /// leave the partial tree anonymous -- which is the one state a human
+  /// consulting the fallback must never meet.
+  pub fn realise(&mut self) -> Result<realise::Realisation, FacadeError> {
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      "text.realise",
+      Subject {
+        kind: "project".to_string(),
+        id: self.ctx.project_id.clone(),
+      },
+      serde_json::Value::Null,
+    );
+    let stamp = self.store.append_event(&envelope).map_err(FacadeError::Store)?;
+    // Colons and dots are replaced for the same reason `backup.rs` replaces
+    // them: an ISO timestamp is a poor filename on some filesystems and an
+    // awkward one on all of them. The ORDER is preserved, because the
+    // substitution is character-for-character.
+    let root = self
+      .project
+      .intent_dir()
+      .join(".backup")
+      .join("text")
+      .join(stamp.replace([':', '.'], "-"));
+    let ctx = self.render_ctx()?;
+    realise::realise(&self.project, &self.canon, &ctx, &root).map_err(FacadeError::Realise)
+  }
+
   pub fn export(&self, format: Option<&str>) -> Result<String, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let events = self.store.events().map_err(FacadeError::Store)?;
