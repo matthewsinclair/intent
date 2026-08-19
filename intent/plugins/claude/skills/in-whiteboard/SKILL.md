@@ -23,6 +23,18 @@ A project that wants the human in the loop gives them a node, conventionally `hv
 - **Heartbeat is advisory.** A stale `hv` heartbeat does not mark anything reclaimable -- the human is always authoritative -- so the 7-day reclaim rule does not apply to `hv`.
 - **Standing directives.** Beyond the canonical `wip.md` body, `hv` may carry a `## Standing directives` section: durable instructions every node honours (sequencing, scope rulings, release policy). Peers read it at pickup the way they read `## Decisions`.
 
+#### What the hv inbox is FOR, and who is obliged to read it
+
+**The `hv` inbox is the DURABLE escalation surface: the record that survives when a node cannot reach the human live.** Everything above describes its structure and none of it says that, and the omission is not cosmetic -- **a channel described only by its shape gets used as a queue and mistaken for a delivery.**
+
+**It is required wherever a node cannot reach the human on a live channel.** Where a live channel does exist it is redundant for that exchange, not for the project: reachability is a property of a RUN, not of a project. The same human is reachable during an interactive session and unreachable at 3am, so a project-level exemption would retire the durable surface at exactly the moments it was designed for.
+
+**AND A WRITE SURFACE WITH NO NAMED READER IS A QUEUE, NOT A CHANNEL.** So the project's `README.md` roster MUST name who is obliged to read `hv/inbox.*` and surface its contents to the human. Without that, writing succeeds every time, delivery never happens, and **nothing observable distinguishes the two** -- measured on this protocol in August 2026: four nodes wrote correctly into `hv` inboxes for four days, in the right format, and the human was reading none of it. Not one write failed, so nothing reported the gap.
+
+Intent's own roster names the validation node, in the human's words: _the workstreams can write in the hv channel FOR me, but I need that stuff surfaced TO me by vc._ **The obligation is what matters, not the mechanism** -- a reader, a bot, a scheduled sweep and a store trigger all satisfy it, and a project that keeps the whiteboard in a database rather than in files owes exactly the same thing.
+
+**A node reporting an escalation is not finished when the write returns.** It is finished when a named reader has it. If the roster names nobody, that is the defect to fix first -- ahead of whatever was being escalated.
+
 ## When to invoke
 
 - `pickup` -- chained from `/in-session`; read own board + own inboxes + peer state, touch heartbeat.
