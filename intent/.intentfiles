@@ -1,0 +1,26 @@
+# .intentfiles -- which ARTEFACTS are realised to disk (ST0057 WP-02).
+#
+# Two regions, and the distinction is POSITIONAL, not by content:
+#
+#   Outside the markers  PINS. Written by a human, survive an `intent organize`
+#                        rewrite byte for byte. Pin a thread here to keep it
+#                        realised after it closes -- without this the pin would
+#                        vanish with the files and nothing would name the
+#                        decision.
+#   Inside the markers   GENERATED from current status by `intent organize`.
+#                        A function of status, not a memory of what realisation
+#                        last produced, so there is nothing here to go stale.
+#                        A hand edit inside the markers is REVERTED, not
+#                        refused, on the next run -- write it above instead.
+#
+# Grammar: `<SIGIL>:<ID>`, sigil in STEELTHREAD | ISSUE, optional trailing
+# `# comment`. Nothing else. A line the parser cannot read ABORTS the run with
+# its line number -- a skipped line drops an artefact from realisation and
+# leaves an estate indistinguishable from one that never listed it.
+#
+# It names ARTEFACTS and never FILES. `Project::classify` stays the single
+# answer to what a file IS, and the two compose: STEELTHREAD:ST0056 realises
+# the thread and, through classify, whatever files it produces.
+
+# BEGIN INTENT
+# END INTENT

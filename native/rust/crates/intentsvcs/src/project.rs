@@ -507,6 +507,19 @@ impl Project {
     self.st_dir().join(id)
   }
 
+  /// `intent/.intentfiles` -- the realisation manifest (AC-02.1..02.5).
+  ///
+  /// **Under `intent_dir`, so it MOVES with a configured one**, which is the
+  /// difference between it and [`Project::config_path`]. That one is a fixed
+  /// bootstrap point by design -- something has to be findable before anything
+  /// is configured. Nothing has to find the manifest before the project is
+  /// open, so it has no claim on a fixed location and takes the ordinary rule
+  /// instead. `Fixture::with_intent_dir` is what catches the alternative: a
+  /// site spelling `intent/.intentfiles` itself lands somewhere else entirely.
+  pub fn intentfiles_path(&self) -> PathBuf {
+    self.intent_dir().join(".intentfiles")
+  }
+
   /// `intent/.canon/` -- every artefact's committed structured canon (D57-1).
   ///
   /// **A DOT DIRECTORY THAT MUST BE COMMITTED, AND IT IS THE ONLY ONE.** The
@@ -865,9 +878,126 @@ pub fn relative(root: &Path, path: &Path) -> String {
     .join("/")
 }
 
+/// What `intent edit <path>` should do with a file (AC-05.1, hv 2026-08-19).
+///
+/// **A generated view is REFUSED and the refusal names where to author
+/// instead.** Canon had this deferred at `surface/dispatch-table.json:834` on
+/// the argument that emitting the path unchanged is defensible if the skew
+/// check catches the edit. AC-03.4 is green and does catch it -- **but it
+/// catches it AFTER it is written, and the user's work is already gone.
+/// Detection is not prevention**, and this estate has lost work to exactly
+/// this twice: a row authored into `acceptance.md` dies at the next
+/// `--to-disk`, and AC-03.16 exists because a generated view was inviting
+/// authoring in itself.
+///
+/// **And a refusal that only refuses is worse than useless here**, because the
+/// user has a real edit to make and no idea where it goes. So the disposition
+/// carries the destination.
+///
+/// Measured, so the refusal is not read as broader than it is: ST0056's thread
+/// directory holds 13 files at depth 1 and **only two are generated views**.
+/// The other eleven are attachments, authored on disk, and `edit` hands those
+/// over without hesitation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EditDisposition {
+  /// The file on disk IS the authoring surface. Hand over the path.
+  Open,
+  /// Generated from the model. Refuse, and say what authors it.
+  Refuse { author_with: &'static str },
+}
+
+impl Project {
+  /// Whether `intent edit` may hand this path to an editor.
+  ///
+  /// **Derived from [`Project::classify`] rather than from a list of
+  /// filenames**, because a second answer to "what is this file" is the
+  /// two-declarations defect AC-02.5 names -- and it would drift the day
+  /// somebody adds a view.
+  pub fn edit_disposition(rel: &Path) -> EditDisposition {
+    match Project::classify(rel) {
+      ThreadFile::GeneratedView => {
+        let name = rel.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+        EditDisposition::Refuse {
+          author_with: match name {
+            // Named per view rather than one generic message: an operator who
+            // wanted to add a criterion and one who wanted to retitle a thread
+            // need different verbs, and "this is generated" sends both to the
+            // same dead end.
+            "acceptance.md" => "`intent ac` for criteria and `intent at` for test rows",
+            _ => "`intent st` for thread fields and `intent wp` for work packages",
+          },
+        }
+      }
+      ThreadFile::Canon => EditDisposition::Refuse {
+        author_with: "canon is written by the verbs; `intent st`, `intent wp`, `intent ac`, `intent at`",
+      },
+      // An attachment is AUTHORED on disk -- authority runs the other way, and
+      // `--to-store` ingests what you wrote. Unattached files are not ours to
+      // refuse: the estate holds files Intent does not model and never claimed
+      // to, and refusing them would make `edit` narrower than the directory.
+      ThreadFile::Attachment | ThreadFile::Unattached => EditDisposition::Open,
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// hv's ruling (2026-08-19): `intent edit` refuses a generated view and
+  /// names the authoring surface instead. Detection is not prevention -- the
+  /// skew check catches a hand-edited view AFTER the work is gone.
+  #[test]
+  fn edit_refuses_generated_views_and_opens_authored_files() {
+    // The two generated views at a thread's root, and a WP's cover.
+    for (view, expect_verb) in [("info.md", "intent st"), ("acceptance.md", "intent ac")] {
+      match Project::edit_disposition(Path::new(view)) {
+        EditDisposition::Refuse { author_with } => assert!(
+          author_with.contains(expect_verb),
+          "{view} must name the verb that authors it, said `{author_with}`"
+        ),
+        EditDisposition::Open => panic!("{view} is GENERATED and must be refused"),
+      }
+    }
+    assert!(matches!(
+      Project::edit_disposition(&PathBuf::from("WP").join("01").join("info.md")),
+      EditDisposition::Refuse { .. }
+    ));
+    assert!(matches!(
+      Project::edit_disposition(Path::new("thread.json")),
+      EditDisposition::Refuse { .. }
+    ));
+
+    // **The discriminating half, and it is the larger population.** ST0056
+    // holds 13 files at depth 1 and only two are views; refusing the rest
+    // would make `edit` narrower than the directory it serves.
+    for authored in [
+      "design.md",
+      "data-model.md",
+      "parity.md",
+      "impl.md",
+      "tasks.md",
+      "migration.md",
+      "install.md",
+      "deferred.md",
+      "critic-gate.md",
+      "output-contracts.md",
+      "realisation.md",
+    ] {
+      assert_eq!(
+        Project::edit_disposition(Path::new(authored)),
+        EditDisposition::Open,
+        "{authored} is AUTHORED on disk -- the file is the authoring surface"
+      );
+    }
+
+    // `info.md` deep under a parity directory is an author's file, not our
+    // cover -- classify decides by shape, and edit inherits that.
+    assert_eq!(
+      Project::edit_disposition(&PathBuf::from("parity").join("fixtures").join("info.md")),
+      EditDisposition::Open
+    );
+  }
 
   fn fixture() -> tempfile::TempDir {
     let dir = tempfile::tempdir().expect("tempdir");

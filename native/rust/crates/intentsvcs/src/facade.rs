@@ -38,6 +38,7 @@
 
 use serde_json::json;
 
+use crate::address::{Address, Entity as AddrEntity, Format as AddrFormat};
 use crate::contract::{self, Scope, Verdict};
 use crate::event::{self, Envelope, Subject};
 use crate::export::{self, ExportRefusal};
@@ -152,6 +153,14 @@ fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
 
 #[derive(Debug, thiserror::Error)]
 pub enum FacadeError {
+  /// A write the address scheme can express and this surface will not perform.
+  ///
+  /// One variant carrying a REASON rather than four variants, because every
+  /// case is "you addressed something real and asked for a write that is not
+  /// available here" -- and the operator needs the rule that sent them away,
+  /// not a taxonomy of refusals.
+  #[error("`{url}` cannot be written: {why}")]
+  WriteNotAddressable { url: String, why: String },
   #[error("no steel thread {id} in this project")]
   NoSuchThread { id: String },
   #[error("steel thread {id} already exists")]
@@ -355,6 +364,13 @@ impl crate::remedy::Remedy for FacadeError {
   /// the operator to guess which one they hit (AC-04.4).
   fn remedy(&self) -> String {
     match self {
+      // The `why` already carries the rule that refused; a remedy repeating it
+      // would be the doubled rendering `IngestError::Refused` documents.
+      Self::WriteNotAddressable { .. } => {
+        "`PUT` json to a caller-assigned id (an AC or an AT); everything else is a \
+         `POST` to the collection address"
+          .to_string()
+      }
       Self::NoSuchThread { .. } => {
         "run `intent st list` to see the threads this project has".to_string()
       }
@@ -2304,6 +2320,139 @@ impl Facade {
         next,
       )
       .map(|()| Outcome::Moved)
+  }
+
+  /// **Write by address** -- `PUT` an entity's json form (AC-08.3, AC-08.4).
+  ///
+  /// The mutation format IS the interchange format: `GET ?format=json`,
+  /// modify, `PUT` the same shape back. That is what gives AC-02.6 its second
+  /// job -- a field that does not round-trip is a field that cannot be
+  /// WRITTEN.
+  ///
+  /// **`PUT` is for CALLER-ASSIGNED ids only** (AC-08.4). An AC or an AT is
+  /// named by its author, so the address exists before the row does and `PUT`
+  /// creates it. Threads, issues and WP sequences are server-assigned -- you
+  /// cannot address `ST0058` before the tool has decided it is `ST0058` -- so
+  /// those are a `POST` to the collection and are refused here rather than
+  /// half-supported.
+  ///
+  /// **json only.** Writing markdown to an address would promote a stale
+  /// rendering into canon. The attachment exception is not an exception:
+  /// an attachment is AUTHORED on disk, so authority runs the other way and
+  /// text-in is correct. Authorship decides direction.
+  pub fn put(&mut self, address: &Address, body: &str) -> Result<Outcome, FacadeError> {
+    if !address.is_local() {
+      return Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: "a cross-project write resolves against intentd's project registry".to_string(),
+      });
+    }
+    let is_attachment = matches!(address.entity, AddrEntity::Attachment { .. });
+    if address.format == Some(AddrFormat::Md) && !is_attachment {
+      return Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: "PUT accepts json; markdown would promote a stale rendering into canon".to_string(),
+      });
+    }
+
+    match &address.entity {
+      AddrEntity::At { thread, at } => {
+        let row: AcceptanceTest =
+          serde_json::from_str(body).map_err(|e| FacadeError::WriteNotAddressable {
+            url: address.to_url(),
+            why: format!("the body is not an acceptance test: {e}"),
+          })?;
+        if &row.id != at {
+          return Err(FacadeError::WriteNotAddressable {
+            url: address.to_url(),
+            why: format!("the body names `{}` and the address names `{at}`", row.id),
+          });
+        }
+        let mut next = self.canon.clone();
+        let holder = find_thread_mut(&mut next, thread)?;
+        let outcome = match holder.tests.iter_mut().find(|t| &t.id == at) {
+          Some(existing) => {
+            if *existing == row {
+              return Ok(Outcome::AlreadyThere {
+                state: "unchanged".to_string(),
+              });
+            }
+            *existing = row;
+            Outcome::Moved
+          }
+          None => {
+            holder.tests.push(row);
+            holder.tests.sort_by(|a, b| a.id.cmp(&b.id));
+            Outcome::Moved
+          }
+        };
+        self
+          .apply(
+            "at.put",
+            Subject {
+              kind: "at".to_string(),
+              id: format!("{thread}/{at}"),
+            },
+            json!({ "via": "address" }),
+            next,
+          )
+          .map(|()| outcome)
+      }
+      AddrEntity::Ac { thread, ac } => {
+        let row: Criterion =
+          serde_json::from_str(body).map_err(|e| FacadeError::WriteNotAddressable {
+            url: address.to_url(),
+            why: format!("the body is not a criterion: {e}"),
+          })?;
+        if &row.id != ac {
+          return Err(FacadeError::WriteNotAddressable {
+            url: address.to_url(),
+            why: format!("the body names `{}` and the address names `{ac}`", row.id),
+          });
+        }
+        let mut next = self.canon.clone();
+        let holder = find_thread_mut(&mut next, thread)?;
+        let outcome = match holder.criteria.iter_mut().find(|c| &c.id == ac) {
+          Some(existing) => {
+            if *existing == row {
+              return Ok(Outcome::AlreadyThere {
+                state: "unchanged".to_string(),
+              });
+            }
+            *existing = row;
+            Outcome::Moved
+          }
+          None => {
+            holder.criteria.push(row);
+            holder.criteria.sort_by(|a, b| a.id.cmp(&b.id));
+            Outcome::Moved
+          }
+        };
+        self
+          .apply(
+            "ac.put",
+            Subject {
+              kind: "ac".to_string(),
+              id: format!("{thread}/{ac}"),
+            },
+            json!({ "via": "address" }),
+            next,
+          )
+          .map(|()| outcome)
+      }
+      // Server-assigned ids. Named individually rather than falling into a
+      // catch-all, so the refusal can say WHICH rule sent them away.
+      AddrEntity::Threads | AddrEntity::Thread { .. } | AddrEntity::Issue { .. } => {
+        Err(FacadeError::WriteNotAddressable {
+          url: address.to_url(),
+          why: "this id is server-assigned -- POST to the collection address".to_string(),
+        })
+      }
+      other => Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: format!("{other:?} has no write path yet"),
+      }),
+    }
   }
 
   pub fn at_list(&self, st: &str) -> Result<&[AcceptanceTest], FacadeError> {

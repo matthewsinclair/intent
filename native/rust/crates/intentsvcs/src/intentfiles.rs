@@ -1,0 +1,452 @@
+//! `.intentfiles` -- the realisation manifest and its REFUSING grammar.
+//!
+//! WP-02 of ST0057. The manifest declares WHICH ARTEFACTS are realised to disk.
+//! It is committed, it has two regions, and its parser refuses rather than
+//! skips.
+//!
+//! # The grammar refuses (AC-02.1)
+//!
+//! A line the parser cannot read ABORTS the parse with its line number. It is
+//! never skipped, and the distinction is the whole point: a skipped line drops
+//! an artefact from realisation and leaves an estate **indistinguishable from
+//! one that never listed it**. There is no signal, no diff, and no way to tell
+//! the two apart afterwards -- the silent-drop shape v2.19.0 already paid for
+//! twice, in `ac gate`'s F1 fix and in the AT row grammar's `at lint`.
+//!
+//! # Two regions (AC-02.2, AC-02.3)
+//!
+//! Lines between [`BEGIN_MARKER`] and [`END_MARKER`] are GENERATED from status
+//! by `intent organize`. Lines outside them are PINS and survive a rewrite
+//! byte for byte.
+//!
+//! The generated region is a FUNCTION OF CURRENT STATUS, not a memory of what
+//! realisation last produced. Nothing is remembered, so nothing can go stale --
+//! which is why a hand edit is distinguished from generated content BY POSITION
+//! rather than by content. A hand realisation written to the pinned region
+//! survives; written to the generated region the next run REVERTS it (AC-05.2).
+//!
+//! Without the split: pin `ST0011` to keep reading it, it closes, `organize`
+//! regenerates the block from status, and the pin is gone along with the files
+//! with nothing in the output naming the decision (AC-02.3).
+//!
+//! # Artefacts, never files (AC-02.5)
+//!
+//! The manifest answers _which artefacts are realised_; [`crate::project::Project::classify`]
+//! answers _what is this file_. They COMPOSE -- `STEELTHREAD:ST0056` realises
+//! the thread and, through `classify`, whatever files that thread produces.
+//!
+//! **Neither may acquire a second, independent enumeration of files.** Two
+//! declarations of which-files-matter agree for months and then quietly do not.
+//! That is held MECHANICALLY here rather than by convention: an id must satisfy
+//! [`model::is_thread_id`] or [`model::is_issue_id`], and no path satisfies
+//! either -- `/` is not an ascii digit and no path is four digits long. A
+//! file-valued line is therefore UNREPRESENTABLE, not merely discouraged, and
+//! the refusal costs no separate check.
+
+use crate::model;
+use crate::remedy::Remedy;
+use thiserror::Error;
+
+/// Opens the generated region. Everything after it, up to [`END_MARKER`], is
+/// rewritten from status by `organize`.
+pub const BEGIN_MARKER: &str = "# BEGIN INTENT";
+/// Closes the generated region.
+pub const END_MARKER: &str = "# END INTENT";
+
+/// What kind of artefact a manifest line names.
+///
+/// Exactly two, closed. A third sigil is a model change and must be one --
+/// an open sigil space is the second enumeration AC-02.5 forbids, arriving
+/// through the vocabulary instead of through the grammar.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Sigil {
+  SteelThread,
+  Issue,
+}
+
+impl Sigil {
+  /// The wire form, which is also the only accepted spelling.
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      Sigil::SteelThread => "STEELTHREAD",
+      Sigil::Issue => "ISSUE",
+    }
+  }
+
+  /// Parse a sigil, or `None`. Case-sensitive: a manifest is committed and
+  /// diffed, so one spelling keeps the diff about the change.
+  pub fn parse(s: &str) -> Option<Self> {
+    match s {
+      "STEELTHREAD" => Some(Sigil::SteelThread),
+      "ISSUE" => Some(Sigil::Issue),
+      _ => None,
+    }
+  }
+
+  /// Whether `id` is well-formed FOR THIS SIGIL.
+  ///
+  /// Delegated to `model`, which owns identity. A shape asserted here as well
+  /// would be a second declaration of one fact.
+  pub fn accepts(&self, id: &str) -> bool {
+    match self {
+      Sigil::SteelThread => model::is_thread_id(id),
+      Sigil::Issue => model::is_issue_id(id),
+    }
+  }
+}
+
+/// Which region a line came from. **The pin/generated distinction is
+/// POSITIONAL**, so it is carried on the entry rather than inferred later from
+/// content -- inferring it from content is exactly the mistake the two-region
+/// design exists to prevent.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Region {
+  /// Outside the markers. Survives an `organize` rewrite byte for byte.
+  Pinned,
+  /// Between the markers. Rewritten from status on every run.
+  Generated,
+}
+
+/// One artefact the manifest names.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Entry {
+  pub sigil: Sigil,
+  pub id: String,
+  /// The trailing comment with its `#` and surrounding space removed, if the
+  /// line carried one. This is where AC-02.3's "nothing names the decision"
+  /// gets its answer, so it is preserved rather than discarded at parse.
+  pub comment: Option<String>,
+  pub region: Region,
+  /// 1-indexed, as a human reads the file.
+  pub line: usize,
+}
+
+/// A parsed manifest.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Manifest {
+  pub entries: Vec<Entry>,
+}
+
+impl Manifest {
+  /// The pinned entries, in file order.
+  pub fn pinned(&self) -> impl Iterator<Item = &Entry> {
+    self.entries.iter().filter(|e| e.region == Region::Pinned)
+  }
+
+  /// The generated entries, in file order.
+  pub fn generated(&self) -> impl Iterator<Item = &Entry> {
+    self
+      .entries
+      .iter()
+      .filter(|e| e.region == Region::Generated)
+  }
+}
+
+/// Why a manifest could not be read.
+///
+/// **Every variant carries the 1-indexed line number**, because AC-02.1 asks
+/// for it in the output and an error that names only the reason sends the
+/// operator to search a file for a line the parser already knew.
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum IntentfilesError {
+  #[error("line {line}: `{found}` is not a known sigil -- expected STEELTHREAD or ISSUE")]
+  UnknownSigil { line: usize, found: String },
+  #[error("line {line}: `{line_text}` is not `<SIGIL>:<ID>`")]
+  NotAnEntry { line: usize, line_text: String },
+  #[error("line {line}: `{id}` is not a valid id for {sigil}")]
+  MalformedId {
+    line: usize,
+    sigil: &'static str,
+    id: String,
+  },
+  #[error("line {line}: END marker with no matching BEGIN")]
+  UnopenedRegion { line: usize },
+  #[error("line {line}: BEGIN marker inside an already-open generated region")]
+  NestedRegion { line: usize },
+  #[error("line {line}: the generated region opened here is never closed")]
+  UnclosedRegion { line: usize },
+}
+
+impl IntentfilesError {
+  /// The 1-indexed line the refusal is about.
+  ///
+  /// Exposed so a caller can report position without re-parsing the message,
+  /// which is the shape that lets one rendering serve a CLI and a test alike.
+  pub fn line(&self) -> usize {
+    match self {
+      IntentfilesError::UnknownSigil { line, .. }
+      | IntentfilesError::NotAnEntry { line, .. }
+      | IntentfilesError::MalformedId { line, .. }
+      | IntentfilesError::UnopenedRegion { line }
+      | IntentfilesError::NestedRegion { line }
+      | IntentfilesError::UnclosedRegion { line } => *line,
+    }
+  }
+}
+
+impl Remedy for IntentfilesError {
+  fn remedy(&self) -> String {
+    match self {
+      IntentfilesError::UnknownSigil { .. } => {
+        "write STEELTHREAD:<ID> or ISSUE:<ID>; the manifest names artefacts, never files".into()
+      }
+      IntentfilesError::NotAnEntry { .. } => {
+        "each line is blank, a comment, a BEGIN/END marker, or `<SIGIL>:<ID>` with an optional trailing `# comment`".into()
+      }
+      IntentfilesError::MalformedId { sigil, .. } => match *sigil {
+        "STEELTHREAD" => "a steel-thread id is ST followed by four digits, eg ST0000".into(),
+        _ => "an issue id is four digits, eg 0042".into(),
+      },
+      IntentfilesError::UnopenedRegion { .. } => {
+        format!("remove this line, or add `{BEGIN_MARKER}` above the generated block")
+      }
+      IntentfilesError::NestedRegion { .. } => {
+        format!("close the open region with `{END_MARKER}` before opening another")
+      }
+      IntentfilesError::UnclosedRegion { .. } => {
+        format!("add `{END_MARKER}` after the generated block")
+      }
+    }
+  }
+}
+
+/// Parse a manifest, refusing at the first line that is not readable.
+///
+/// **First failure wins and the parse aborts.** Collecting every bad line and
+/// reporting them together reads as more helpful and is not: a manifest is
+/// written a line at a time, so the second reported error is usually a
+/// consequence of the first, and a caller that receives a list has to decide
+/// which one to act on. AC-02.1 asks that the run exit non-zero and name the
+/// offending line -- singular.
+pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
+  let mut entries = Vec::new();
+  let mut region = Region::Pinned;
+  let mut opened_at = 0usize;
+
+  for (idx, raw) in text.lines().enumerate() {
+    let line = idx + 1;
+    let trimmed = raw.trim();
+
+    if trimmed == BEGIN_MARKER {
+      if region == Region::Generated {
+        return Err(IntentfilesError::NestedRegion { line });
+      }
+      region = Region::Generated;
+      opened_at = line;
+      continue;
+    }
+    if trimmed == END_MARKER {
+      if region == Region::Pinned {
+        return Err(IntentfilesError::UnopenedRegion { line });
+      }
+      region = Region::Pinned;
+      continue;
+    }
+
+    // Blank and whole-line comments carry no artefact. They are admitted
+    // rather than refused because AC-02.3's stated purpose is that the file
+    // NAME THE DECISION behind a pin, and a committed file a human edits that
+    // cannot hold a sentence defeats that on its own terms.
+    if trimmed.is_empty() || trimmed.starts_with('#') {
+      continue;
+    }
+
+    let (body, comment) = match trimmed.split_once('#') {
+      Some((b, c)) => (b.trim_end(), Some(c.trim().to_string())),
+      None => (trimmed, None),
+    };
+
+    let Some((sigil_text, id)) = body.split_once(':') else {
+      return Err(IntentfilesError::NotAnEntry {
+        line,
+        line_text: trimmed.to_string(),
+      });
+    };
+    let (sigil_text, id) = (sigil_text.trim(), id.trim());
+
+    let Some(sigil) = Sigil::parse(sigil_text) else {
+      return Err(IntentfilesError::UnknownSigil {
+        line,
+        found: sigil_text.to_string(),
+      });
+    };
+    if !sigil.accepts(id) {
+      return Err(IntentfilesError::MalformedId {
+        line,
+        sigil: sigil.as_str(),
+        id: id.to_string(),
+      });
+    }
+
+    entries.push(Entry {
+      sigil,
+      id: id.to_string(),
+      comment,
+      region,
+      line,
+    });
+  }
+
+  if region == Region::Generated {
+    return Err(IntentfilesError::UnclosedRegion { line: opened_at });
+  }
+
+  Ok(Manifest { entries })
+}
+
+// ---------------------------------------------------------------------------
+// The writer -- AC-02.2, AC-02.3
+// ---------------------------------------------------------------------------
+
+/// What `organize` wants in the generated region: an artefact, nothing more.
+///
+/// **Deliberately NOT [`Entry`].** An `Entry` carries `line` and `region`,
+/// which are facts about a file that has already been read; a caller computing
+/// the region from status has neither and would have to invent both. A type
+/// that forces a caller to fabricate a field is a type that will be handed a
+/// fabricated one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Generated {
+  pub sigil: Sigil,
+  pub id: String,
+}
+
+impl Generated {
+  pub fn new(sigil: Sigil, id: impl Into<String>) -> Self {
+    Self {
+      sigil,
+      id: id.into(),
+    }
+  }
+}
+
+/// Rewrite the generated region, leaving everything outside it untouched.
+///
+/// **The pinned lines are COPIED FROM THE SOURCE, never re-rendered from the
+/// parsed model** -- that is the whole of AC-02.2 and it is the one thing a
+/// natural implementation gets wrong. Parsing to `Entry` and printing it back
+/// reproduces the artefacts and silently normalises everything else: a comment
+/// hanging off a pin, two spaces before the `#`, a blank line a human left to
+/// group things. Every one of those is content somebody wrote on purpose, and
+/// "byte for byte" is the criterion precisely because a diff that reformats
+/// the region it was not asked to touch is a diff nobody can review.
+///
+/// A file with no markers gets them appended, which is `organize`'s first run
+/// on a manifest that has only ever been hand-written. Refusing instead would
+/// mean a human had to lay out the region before the tool could use it, and
+/// the layout is the tool's business.
+///
+/// Refuses on the same grounds [`parse`] does -- an unreadable manifest has no
+/// pinned region to preserve, and rewriting one on a guess is how a pin is
+/// lost.
+pub fn render(original: &str, generated: &[Generated]) -> Result<String, IntentfilesError> {
+  parse(original)?;
+
+  let block: Vec<String> = generated
+    .iter()
+    .map(|g| format!("{}:{}", g.sigil.as_str(), g.id))
+    .collect();
+
+  let mut out: Vec<String> = Vec::new();
+  let mut inside = false;
+  let mut saw_markers = false;
+
+  for raw in original.lines() {
+    if raw.trim() == BEGIN_MARKER {
+      inside = true;
+      saw_markers = true;
+      out.push(raw.to_string());
+      out.extend(block.iter().cloned());
+      continue;
+    }
+    if raw.trim() == END_MARKER {
+      inside = false;
+      out.push(raw.to_string());
+      continue;
+    }
+    if !inside {
+      // Verbatim. Not trimmed, not normalised, not re-rendered.
+      out.push(raw.to_string());
+    }
+  }
+
+  if !saw_markers {
+    if !out.is_empty() && !out.last().map(|l| l.trim().is_empty()).unwrap_or(false) {
+      out.push(String::new());
+    }
+    out.push(BEGIN_MARKER.to_string());
+    out.extend(block);
+    out.push(END_MARKER.to_string());
+  }
+
+  let mut text = out.join("\n");
+  // A text file ends with a newline. The original's trailing byte is not
+  // consulted: `lines()` has already dropped it, so preserving it would mean
+  // re-deriving it, and a manifest that sometimes lacks one is a diff that
+  // sometimes carries a spurious last-line change.
+  text.push('\n');
+  Ok(text)
+}
+
+/// Add a PIN for `id`, so the artefact realises regardless of status.
+///
+/// This is what a hand realisation records (AC-05.2). `intent edit ST0011`
+/// hydrates a thread the estate is not otherwise realising, and the record of
+/// that decision has exactly one correct home: **the pinned region**. Written
+/// to the generated region it would survive until the next `organize` and then
+/// vanish, because that region is a function of status and the thing somebody
+/// opened by hand is typically the thing status does not offer.
+///
+/// The pin lands at the END of the pinned region, immediately above the
+/// markers, so hand-added pins accumulate in the order they were made and a
+/// diff shows one added line rather than a reflow.
+///
+/// **Idempotent.** Pinning an already-pinned id returns the input unchanged
+/// rather than adding a second line -- `intent edit` on the same thread twice
+/// is an ordinary thing to do, and a manifest that grows a line each time
+/// turns a no-op into a diff.
+///
+/// **A pin whose id the grammar would refuse is refused here**, at the point
+/// of writing, rather than being written and refused on the next read. The
+/// alternative writes a file that the tool cannot subsequently parse, which
+/// takes a typo and makes it a broken manifest.
+pub fn pin(
+  original: &str,
+  sigil: Sigil,
+  id: &str,
+  reason: Option<&str>,
+) -> Result<String, IntentfilesError> {
+  let existing = parse(original)?;
+  if !sigil.accepts(id) {
+    return Err(IntentfilesError::MalformedId {
+      line: 0,
+      sigil: sigil.as_str(),
+      id: id.to_string(),
+    });
+  }
+  if existing.pinned().any(|e| e.sigil == sigil && e.id == id) {
+    return Ok(original.to_string());
+  }
+
+  let line = match reason {
+    Some(r) if !r.trim().is_empty() => format!("{}:{}  # {}", sigil.as_str(), id, r.trim()),
+    _ => format!("{}:{}", sigil.as_str(), id),
+  };
+
+  let mut out: Vec<String> = Vec::new();
+  let mut placed = false;
+  for raw in original.lines() {
+    if raw.trim() == BEGIN_MARKER && !placed {
+      out.push(line.clone());
+      placed = true;
+    }
+    out.push(raw.to_string());
+  }
+  if !placed {
+    out.push(line);
+  }
+
+  let mut text = out.join("\n");
+  text.push('\n');
+  Ok(text)
+}

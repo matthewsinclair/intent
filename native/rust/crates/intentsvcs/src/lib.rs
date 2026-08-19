@@ -21,6 +21,7 @@
 //! beside the decisions and acquired their authority; it was never a
 //! constraint anyone asked for.
 
+pub mod address;
 pub mod backup;
 pub mod contract;
 pub mod doctor;

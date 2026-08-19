@@ -225,6 +225,15 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .todo_view_windowed()
       .expect_err("6 hours is not a whole number of days and `completed` is a date"),
   ));
+  out.push((
+    "PUT to a server-assigned id",
+    facade
+      .put(
+        &intentsvcs::address::parse("intent:///threads/ST0058").expect("resolves"),
+        "{}",
+      )
+      .expect_err("a thread id is server-assigned -- POST to the collection"),
+  ));
 
   out
 }
@@ -247,6 +256,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
 /// a derive dependency.
 fn variant(err: &FacadeError) -> &'static str {
   match err {
+    FacadeError::WriteNotAddressable { .. } => "WriteNotAddressable",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::NoSuchWorkPackage { .. } => "NoSuchWorkPackage",
@@ -314,6 +324,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Ingest",
   "NoSuchFormat",
   "LossyFormat",
+  "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
   "ExportRoundTripFailed",
   "UnhonourableWindow",
   "NoSuchIssue",

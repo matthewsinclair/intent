@@ -53,6 +53,9 @@ pub const ISSUE_SCHEMA: &str = "intent/issue@3.0";
 pub const THREAD_PREFIX: &str = "ST";
 /// How many digits follow [`THREAD_PREFIX`]. Zero-padded, fixed width.
 pub const THREAD_DIGITS: usize = 4;
+/// How many digits an issue id carries. Zero-padded, fixed width, no prefix --
+/// `intent/.canon/issues/0001.json` is the on-disk form this describes.
+pub const ISSUE_DIGITS: usize = 4;
 
 /// The finest interval [`Thread::completed`] can distinguish, in hours.
 ///
@@ -87,6 +90,21 @@ pub fn is_thread_id(name: &str) -> bool {
     && name[THREAD_PREFIX.len()..]
       .bytes()
       .all(|b| b.is_ascii_digit())
+}
+
+/// Whether `name` is an issue id.
+///
+/// Width DERIVED from [`ISSUE_DIGITS`] for the same reason [`is_thread_id`]
+/// derives its own: a validator and a formatter that assert the width
+/// separately are two declarations of one fact, and they agree until they do
+/// not.
+pub fn is_issue_id(name: &str) -> bool {
+  name.len() == ISSUE_DIGITS && name.bytes().all(|b| b.is_ascii_digit())
+}
+
+/// The sequence number in an issue id, or `None` if it is not one.
+pub fn issue_seq(name: &str) -> Option<u32> {
+  is_issue_id(name).then(|| name.parse().ok()).flatten()
 }
 
 /// The sequence number in a thread id, or `None` if it is not one.
