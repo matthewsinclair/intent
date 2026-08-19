@@ -2317,7 +2317,7 @@
       "covers": [
         "AC-03.13"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "**red-first arm is reproducible exactly: put a duplicate `id` in one thread's `tests` array, `sync --to-store` (refuses), then `sync --to-disk` -- the authored edit is destroyed at rc=0.** Assert the egest refuses or names the stale ingest. **Do NOT drive this by suppressing output: the refusal was loud every time and vc piped it to `/dev/null`, which is what made the loss silent.**"
     },
     {
@@ -2347,7 +2347,7 @@
       "covers": [
         "AC-03.15"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "red-first needs no broken binary: empty the store, then --to-disk against a 57-thread canon, and assert refusal or a named report. Do NOT drive it with output suppressed -- the original loss was silent only because vc piped the write verb to /dev/null."
     },
     {
