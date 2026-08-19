@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: intent organize: four answers, one refusal, one gate
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-04: intent organize: four answers, one refusal, one gate

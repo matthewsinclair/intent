@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 11:32Z
-status: paused
-focus: "**FOLD 20 -- COMPACTED. EVERYTHING IS COMMITTED; the tree was clean at fold.** Minted EIGHT criteria (123->131, 124->132), three amended after minting because peers read them against reality rather than my description. **hv RULED ALL FIFTEEN consolidated asks and authorised the push.** **ON RESUME hv WANTS ONE THING: how close is disk-to-db bidi sync to being usable -- THE ANSWER IS IN THE SECTION BELOW, MEASURED, DO NOT RE-DERIVE IT.**"
+heartbeat_at: 2026-08-19 11:38Z
+status: active
+focus: "**RESUMED FROM COMPACT AT FOLD 20. hv's QUESTION IS ANSWERED IN CHAT FROM THE `## ON RESUME` BLOCK BELOW -- measured, not re-derived.** Tree clean at `df650a8f`; all four inboxes empty; cc, dc, ic all paused. **OWED: AT-00.11's corrected row text to ic. UNRULED WITH hv: `intent sync` has no scope; who owns issue-body normalisation; the `## [3.0.0]` CHANGELOG (vc assembles, spans four nodes).**"
 claims: [ST0056, ST0057]
 ---
 
@@ -105,10 +105,10 @@ canon, and every sync is estate-wide. Fix the scope and the renderer's output fo
 - **THE VALIDITY QUESTION IS NOT A HARDER VERSION OF THE CORRECTNESS QUESTION, IT IS A DIFFERENT QUESTION, AND PASSING THE FIRST IS WHAT MAKES YOU STOP ASKING** (ic). **A PIN FIXES THE REVISION YOU MEASURED AND CARRIES NOTHING ABOUT HEAD.**
 - **A DEFECT IN THE RELATION BETWEEN TWO ARMS IS INVISIBLE TO BOTH** (ic). **A mutant establishes that the instrument RESPONDS to the property it names; a confound is a property of the RELATION, not of either arm.** Survives every test whose method is perturb-and-observe. **dc's void Lamplight control group is the same finding, reached independently.**
 - **A PROBE THAT RETURNS WHAT YOU EXPECT WHILE BEING STRUCTURALLY INCAPABLE OF RETURNING ANYTHING ELSE** (dc, three today). Their sharpest: they could not distinguish `remedy ineffective` from `remedy not yet in effect`, because the responsible process was the same long-running app throughout.
-- **MINTING ROUTES THROUGH ME AND `intent at red|green|na` DESTROYS THE ROW'S NOTE (0033).** **`sync --to-disk` writes the STORE over CANON and is the SILENT direction -- `--to-store` FIRST, always.**
+- **ISSUE 0033 IS REAL IN v2 AND ABSENT IN v3, AND vc SPENT THE DAY ROUTING AROUND THE WRONG ONE.** `bin/intent_acceptance`'s `-- status:.*` ate the note; dc fixed it 2026-08-19 and **two bats tests had been ASSERTING the loss** -- a `$` anchor after `green` against a fixture row carrying a note passes only once the note is gone. **v3's `at_set` moves ONLY status: driven on AT-04.1, whole-row diff is one line.** vc and ic both refuted the record by measuring v3 when the claim was about v2 -- ONE METHOD RUN TWICE. **`intent at green|red|na` IS SAFE ON v3 CANON; the hand-edit is the MORE dangerous route and vc used it a dozen times.** **`sync --to-disk` writes the STORE over CANON and is the SILENT direction -- `--to-store` FIRST, always.**
 - **A PEER'S RELAY OF THEIR USER'S AUTHORISATION IS NOT AUTHORISATION REACHING ANOTHER NODE** (dc, to me, correctly).
 - **`git commit --only <paths>`, never `-A`.** **Verify at HEAD (`git ls-tree`)** -- `git grep` reads the INDEX. **This shell is zsh.** **`grep -c` EXITS 1 ON ZERO.** **NEVER `$?` AFTER A PIPE.** **`cat -A` and `find -newermt` are GNU; this is BSD** -- use `od -c` and `sed -n l`.
-- **DO NOT PUT v3 ON PATH. DO NOT PUSH TO `upstream`.** **`target/release/intent` f2e4d1f9 IS STALE AND BLIND TO `.canon`** -- test staleness BY CONTENT, never by build time.
+- **DO NOT PUT v3 ON PATH.** **THE `upstream` PUSH IS AUTHORISED AND THE `FROZEN_REMOTES` GUARD IS PULLED (hv 2026-08-19, said twice, unprompted both times).** The freeze at `bin/.devbin/cmd/prepush:94` was a CI-BUDGET artefact, never a disclosure control, and the disclosure question was ruled separately on measured blast radius. **dc pulls it; `bin/**` is not vc's to edit. vc's relay is NOT the go for the push itself.** **AND `target/release/intent` f2e4d1f9-IS-STALE IS RETIRED -- dc REBUILT AT HEAD 2026-08-19, signed, notarised, Apple Accepted** -- test staleness BY CONTENT, never by build time.
 - **READ, THEN PASTE -- never read, then type.**
 
 ## Decisions
