@@ -1521,7 +1521,7 @@
       "covers": [
         "AC-03.12"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "**enumerate every field the service layer REFUSES without, and assert each reaches at least one human read face** -- the general property, not the one instance. Red-first arm is `status_reason`. **THE TWO HALVES ARE SEPARATELY UNSATISFYING AND THE ROW NEEDS BOTH: (i) render the field -- cc's, small, and it does NOT close the row; (ii) the event log is WRITE-ONLY from the CLI, which is a verb and a design question and may want hv.** **ic's invalid probe recorded so it is not repeated: `st show --json` returned nothing because `--json` IS NOT A DECLARED FLAG (`Usage: intent st show <ID> [FILE]`, rc=1)** -- that reading was a fact about the invocation. `severity` and `reporter` were flagged as candidates and are FINE, rendering at `render.rs:1996`/`:2008`. **THIS ROW'S OWN ID IS A LESSON: vc first minted it as AT-03.12, which was ALREADY a green row covering AC-03.11 -- AT and AC ids number INDEPENDENTLY, and deriving one from the other collided with a live row and broke `sync --to-store` on a UNIQUE constraint.**"
     },
     {
