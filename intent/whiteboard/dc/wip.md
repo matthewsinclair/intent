@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: f396ca31-ec6f-459e-9b7c-40e87aa93efb
-heartbeat_at: 2026-08-19 11:29Z
-status: paused
-focus: "**LOCALFOLD, RELEASED.** The day is committed -- `2870b99d` the gate work, `b645767a` the hv-inbox reader obligation, `0b484c58` of_n looseness; devbin upstream `f558b1d` `4f66166` `dbc1564`, 576/576 each. **MY GATEKEEPER FINDING IS REFUTED BY MY OWN HAND** (40 fresh binaries in 364ms against a published ~30s each) -- the phenomenon was real, the mechanism was not, and the clean slate both removed it and supplied the population that killed it. The overhead METER now ships: the ratio measures the apparatus and names no cause. **OWED AND MISREPORTED AS DONE: `--skip-rust-tests` and Half B design question.**"
+heartbeat_at: 2026-08-19 11:58Z
+status: active
+focus: "**WP-11: THE SCOPE FIX IS PROVEN ON A SHIPPING ARTEFACT.** Whole tree dirty, `native/rust` clean, marker comes out a BARE sha at HEAD where it read `dirty-` unconditionally before. **hv ANSWERED: the tap needs ONLY the release asset, no repo access** -- read off `cmd_formula`, plus an anonymous-GET control at http=200. **v2.19.0 HAS ZERO RELEASE ASSETS: D39/D40 has never been exercised once.** Release gate measured at 9.26s warm / 89 suites / 0 compiles against a script warning `several minutes`; cold unmeasured and that is the whole question (ic). **I WAS TOLD `exit code 0` BY A CHAIN ENDING IN `tail` AND REASONED FOR TWENTY MINUTES ON A BUILD THAT NEVER RAN.**"
 claims: [ST0056/11]
 ---
 
