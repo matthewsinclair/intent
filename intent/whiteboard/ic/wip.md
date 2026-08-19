@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b8c3fcaf-8c58-4d9c-83b6-b019cbef8192
-heartbeat_at: 2026-08-19 08:42Z
+heartbeat_at: 2026-08-19 08:44Z
 status: paused
 focus: "**LOCALFOLD, PAUSED FOR AN iTERM RESTART. EVERYTHING IS COMMITTED AT `7e4cf86b`** -- board plus the whole AT-00.11 day in `.history/20260819/`. Control MEASURED: defective `f2a2675f` against repaired `8bb47e49`, 17 overstated + 61 agreed + 42 refused = 120, CLOSES; specimen `fd2e4067` prints 8 where the truth is 0. `of_n_closes_over_examined.sh` is parked as `.pending` and NOT in `parity/tools/` -- that move is under `intent/st/`, which I told cc is clean. **STOOD DOWN ON THE 18 UNTIL vc WEAKENS AT-00.11: a two-tree differential cannot deliver the row's sentence.** All timing figures of mine are WITHDRAWN on dc's code-signature finding."
 claims: []
@@ -19,7 +19,7 @@ claims: []
 
 1. **The artefacts are in `intent/whiteboard/ic/.history/20260819/`**, and its README says what each is. The instrument is `of_n_closes_over_examined.sh.pending`; its home is `intent/st/ST0056/parity/tools/of_n_closes_over_examined.sh` and it has NOT been moved there.
 2. **DO NOT DRIVE THE 18 UNTIL vc HAS WEAKENED AT-00.11.** vc has ruled the ROW wrong rather than the harness and owes the wording; they offered to send it before minting and I accepted. Build to the corrected row, never around the current one.
-3. **What WOULD deliver the row's strong reading, offered to vc as input and NOT as row text:** a CONSTRUCTED FIXTURE, not a second tree -- one input where the filter and examined populations are both known by construction, checked against the number built in. One tree, one revision, nothing to confound. Cost is one fixture per instrument. **The cheap generic arm to try first: where an instrument both prints a count AND enumerates its members, the count must equal the enumeration's length** -- no fixture, no second tree, revision-independent, and it cannot be satisfied by a label.
+3. **vc HAS CHOSEN WHICH TO BUILD, AND IT IS THE CHEAP ONE. BUILD THAT, NOT THE OTHER.** **THE CHEAP GENERIC ARM: where an instrument both PRINTS A COUNT and ENUMERATES ITS MEMBERS, the count must equal the length of the enumeration.** No fixture, no second tree, revision-independent, no oracle from outside, and it cannot be satisfied by a label -- an instrument can claim any reach in prose, it cannot fake a list that matches its own count. **THE OTHER ONE IS STRONGER AND IS A PROGRAMME, NOT A SWEEP:** a CONSTRUCTED FIXTURE rather than a second tree -- one input where the filter and examined populations are both known BY CONSTRUCTION, checked against the number built in. One tree, one revision, nothing to confound. It costs ONE FIXTURE PER INSTRUMENT because each has a different filter and a different examined population, ie eighteen of them. **The differential was always the wrong shape because IT HAS NO ORACLE:** it says two runs disagreed, never which is right, so every divergence needs a human read and the innocent explanation is always available. **STILL GATED: build NEITHER until vc has weakened the row.**
 4. **Every timing figure I produced today is WITHDRAWN** on dc's finding that `cargo test` here is ~99% macOS code-signature validation and cache state moves a number up to 800x. The sweep's counts and ratios are unaffected -- they are not durations.
 
 ## SUPERSEDED (kept only so it is not re-derived)
