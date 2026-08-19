@@ -35,7 +35,13 @@
 
 load "../lib/test_helper.bash"
 
-CRITIC="${INTENT_PROJECT_ROOT}/bin/intent"
+# THE DISPATCHER IS REACHED THROUGH `$INTENT_BIN`, NEVER BY PATH. Spelling the
+# path runs v2's shell script whatever INTENT_BIN points at, so under a v3
+# binary the test silently keeps testing v2 and reports green -- a green that
+# means nothing, which is the class this whole file is about. I wrote the
+# violation into the file arguing against it, and
+# `intent_bin_retarget_guard.bats` caught it rather than any care of mine.
+CRITIC="$INTENT_BIN"
 
 # A PATH with no shellcheck on it. `/opt/homebrew/bin` is where both shellcheck
 # and jq live on this machine, so this is a genuine absence rather than a stub
@@ -44,12 +50,34 @@ NO_TOOL_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
 
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-census-XXXXXX)"
+  # LOCAL SUBJECTS, DELIBERATELY. These arms assert on the CENSUS -- what the
+  # run ASKED -- which is a property of the rule library and not of any file.
+  # Pointing them at `bin/intent` and at a crate source file gave them shared
+  # dependencies they never needed: several nodes edit both, and a finding
+  # appearing or disappearing in either would move a test about arming.
+  SUBJECT="${TEST_TEMP_DIR}/subject.sh"
+  cat > "$SUBJECT" <<'SUBJ'
+#!/bin/bash
+set -euo pipefail
+d="$1"
+printf '%s\n' "$d"
+SUBJ
+  # The rust subject sits under `src/` because the rust rules declare
+  # `applies_to: src/**/*.rs`; outside it, applies_to excludes the file and the
+  # rule returns clean for a reason that has nothing to do with the rule. That
+  # cost me a failed positive control earlier today.
+  mkdir -p "${TEST_TEMP_DIR}/src"
+  RS_SUBJECT="${TEST_TEMP_DIR}/src/lib.rs"
+  cat > "$RS_SUBJECT" <<'RSUBJ'
+pub fn ok() -> u32 {
+  1
+}
+RSUBJ
   # shellcheck source=/dev/null
   source "${INTENT_PROJECT_ROOT}/intent/plugins/claude/lib/rules_lib.sh"
   # shellcheck source=/dev/null
   source "${INTENT_PROJECT_ROOT}/intent/plugins/claude/lib/critic_runner.sh"
 }
-
 teardown() {
   if [ -d "${TEST_TEMP_DIR}" ]; then
     rm -rf "${TEST_TEMP_DIR}"
@@ -124,13 +152,13 @@ teardown() {
 # --- ARM 2: the counts appear in NORMAL output, every run ------------------
 
 @test "output: a normal run states how many rules it ASKED, not just how many are armed" {
-  run "$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent"
+  run "$CRITIC" critic shell --files "$SUBJECT"
   [[ "$output" == *"rule(s) ASKED of this run"* ]]
   [[ "$output" == *"armed in total"* ]]
 }
 
 @test "output: shell asks a non-zero number of rules" {
-  asked="$("$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent" 2>&1 \
+  asked="$("$CRITIC" critic shell --files "$SUBJECT" 2>&1 \
     | sed -n 's/^critic: shell -- \([0-9][0-9]*\) of .* ASKED.*/\1/p')"
   [ -n "$asked" ]
   [ "$asked" -gt 0 ]
@@ -141,20 +169,20 @@ teardown() {
 @test "absent tool: a tool-armed rule reports NOT RUN rather than passing quietly" {
   # Driven by a PATH that genuinely lacks shellcheck, not by reading the code:
   # a code read cannot tell `refuses` from `would refuse`.
-  run env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent"
+  run env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT"
   [[ "$output" == *"THE TOOL IS ABSENT ON THIS MACHINE"* ]]
   [[ "$output" == *"IN-SH-CODE-001"* ]]
   [[ "$output" == *"UNENFORCED"* ]]
 }
 
 @test "absent tool: the ASKED count drops to zero and says so" {
-  asked="$(env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent" 2>&1 \
+  asked="$(env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT" 2>&1 \
     | sed -n 's/^critic: shell -- \([0-9][0-9]*\) of .* ASKED.*/\1/p')"
   [ "$asked" = "0" ]
 }
 
 @test "out of context: a whole-workspace analyser reports NOT RUN HERE in a per-file run" {
-  run "$CRITIC" critic rust --files "${INTENT_PROJECT_ROOT}/native/rust/crates/intent-cli/src/main.rs"
+  run "$CRITIC" critic rust --files "$RS_SUBJECT"
   [[ "$output" == *"the tool does not belong in this context"* ]]
   [[ "$output" == *"IN-RS-CODE-001(clippy)"* ]]
   # It is ARMED, not declared -- the capability is real and must not be hidden
@@ -209,8 +237,8 @@ EOF
   # AC-07.4 in one line. Before Half B both of these printed `ok: no shell
   # findings`, identically, and the gate could not tell CHECKED AND CLEAN from
   # CHECKED NOTHING.
-  asked="$("$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent" 2>&1 | grep '^critic: shell -- .* ASKED')"
-  none="$(env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent" 2>&1 | grep '^critic: shell -- .* ASKED')"
+  asked="$("$CRITIC" critic shell --files "$SUBJECT" 2>&1 | grep '^critic: shell -- .* ASKED')"
+  none="$(env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT" 2>&1 | grep '^critic: shell -- .* ASKED')"
   [ -n "$asked" ]
   [ -n "$none" ]
   [ "$asked" != "$none" ]
@@ -219,7 +247,7 @@ EOF
 @test "discrimination: shell and elixir do not print the same sentence after asking different questions" {
   # The original symptom, kept as a regression: `critic shell` returning rc=0
   # having asked nothing was byte-identical to `critic elixir` after asking nine.
-  sh="$("$CRITIC" critic shell --files "${INTENT_PROJECT_ROOT}/bin/intent" 2>&1 | grep '^critic: shell')"
+  sh="$("$CRITIC" critic shell --files "$SUBJECT" 2>&1 | grep '^critic: shell')"
   [ -n "$sh" ]
   [[ "$sh" == *"ASKED"* ]]
 }

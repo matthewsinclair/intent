@@ -102,6 +102,27 @@ run_critic() {
   run "$INTENT_BIN" critic shell --rules "$RULES_DIR" "$@"
 }
 
+# STDOUT ONLY. `run` merges stderr into $output, and the arming census is
+# written to STDERR precisely so that `--format json` keeps stdout a parseable
+# document. Merging the two puts the census banner in front of the JSON, so a
+# test that parses $output is parsing a stream no consumer ever sees.
+#
+# THIS IS A TEST DEFECT AND THE PRODUCT IS CORRECT -- established by driving
+# both streams rather than by reading: `intent critic --format json 2>/dev/null`
+# emits `[]` and parses at rc=0, while the merged stream fails jq at rc=5. It
+# arrived with the census at 3a646965 (0 failures before it, 2 after) and the
+# right fix is to stop merging, never to move the census onto stdout, which
+# would break every real json consumer to satisfy a test harness.
+# `run --separate-stderr` would be the obvious form and is NOT used: it needs
+# `bats_require_minimum_version 1.5.0`, which raises the floor for every
+# consumer of this suite to satisfy two assertions. Redirecting inside the
+# invocation is version-agnostic and `bash -c` propagates the critic's own exit
+# status, which the tests assert on.
+run_critic_stdout() {
+  run bash -c '"$1" critic shell --rules "$2" "${@:3}" 2>/dev/null' _ \
+    "$INTENT_BIN" "$RULES_DIR" "$@"
+}
+
 # ====================================================================
 # Text format
 # ====================================================================
@@ -142,7 +163,7 @@ run_critic() {
 # ====================================================================
 
 @test "json report: emits valid JSON with severity/rule_id/file/line/excerpt" {
-  run_critic --files "$TARGET" --severity-min warning --format json
+  run_critic_stdout --files "$TARGET" --severity-min warning --format json
   [ "$status" -eq 1 ]
   printf '%s\n' "$output" | jq -e . > /dev/null \
     || fail "output is not valid JSON: $output"
@@ -153,7 +174,7 @@ run_critic() {
 }
 
 @test "json report: clean run emits an empty array and exits 0" {
-  run_critic --files "$CLEAN_TARGET" --severity-min warning --format json
+  run_critic_stdout --files "$CLEAN_TARGET" --severity-min warning --format json
   [ "$status" -eq 0 ]
   [ "$(printf '%s\n' "$output" | jq -r 'length')" = "0" ]
 }
