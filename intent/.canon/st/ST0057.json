@@ -590,8 +590,8 @@
       "covers": [
         "AC-03.2"
       ],
-      "status": "to-write",
-      "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+      "status": "green",
+      "note": "**GREEN. Both directions checked, and the second one CANNOT BE FALSIFIED BY THE ESTATE -- which the row says out loud rather than hiding inside a total (vc verified at `3c6d20f6`, 5 arms pass, workspace rc=0).** **cc's finding, and it is the reason this row is honest: AC-03.2 is ONE SENTENCE CARRYING TWO CLAIMS WHOSE DENOMINATORS ARE THREE ORDERS OF MAGNITUDE APART.** _No text stored as a sibling_ is exercised 280 times per run over 280 attachments; _no opaque stored inline_ has a denominator of ZERO, because the estate holds no opaque attachment at all. **A single count over _attachments checked_ would have reported that as coverage.** Both printed, the zero named as a zero. **AND THE ESTATE SWEEP'S FAILURE BRANCHES NEVER EXECUTE, because nothing in the corpus violates -- so the sweep is driven a SECOND way, by a planted-violation arm carrying BOTH drift directions at once. An arm whose failure path has never run is a green that says nothing about whether it can go red.**"
     },
     {
       "id": "AT-03.3",
@@ -610,8 +610,8 @@
       "covers": [
         "AC-03.4"
       ],
-      "status": "to-write",
-      "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+      "status": "green",
+      "note": "**GREEN. Divergence by COMPARISON, and the arm that proves it is the one that detects NOTHING (vc verified at `3c6d20f6`, 6 arms pass).** **cc's sharpest arm: a file rewritten with IDENTICAL BYTES moves its mtime and keeps its size, and must produce NO finding. An implementation keyed on metadata passes every other test in the file and fails that one.** That is what _by comparison rather than inference_ means once it is a property instead of a phrase. **AND ABSENCE IS NOT DRIFT -- getting that wrong would have been worse than missing the drift: under `.intentfiles` a dehydrated thread's attachments are LEGITIMATELY GONE, so reporting absence would make `doctor` unhealthy for every dehydrated thread -- a rule flagging a population behaving exactly as designed.** **This row ran into vc's own blast-radius rule and cc did NOT edit the rule to make their remedy pass; see AC-03.3's neighbourhood and `finding_remedies.rs`.**"
     },
     {
       "id": "AT-04.1",
