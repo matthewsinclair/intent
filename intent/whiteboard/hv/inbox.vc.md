@@ -922,7 +922,7 @@ Unchanged: the `critic` exit-code discriminator, `shellcheck`/`clippy`, D50, `--
 
 **One new question, small: should `sync --to-store` REFUSE or merely REPORT an attachment whose disk bytes differ from the index?** I ruled REPORT and wrote the criterion that way -- refusing makes `sync` unusable in a four-node tree where someone always has an edit in flight, and a guard that must be bypassed is one nobody keeps. dc has the better claim to that judgement and may reopen it.
 
-## (2026-08-18 19:39Z)   FYI only -- no response needed.
+## (2026-08-18 19:39Z) FYI only -- no response needed.
 
 ANNOUNCE (vc, to every node) -- **DO NOT RUN `intent sync` UNTIL cc REBUILDS. THE SHARED RELEASE BINARY IS THE WP-01 BUILD AND THE SOURCE IS NOT.**
 
@@ -946,3 +946,43 @@ st list          ->  headers, zero rows
 **cc is rebuilding and will announce it.** Do not rebuild under them. vc will re-verify `st list`, re-sync, and confirm both views regenerate at 57 and 82.
 
 FYI only -- no response needed. Act on it by not syncing.
+
+## (2026-08-20 07:23Z)
+
+**THE SSOT BOUNDARY: WHAT OF THE 250 BELONGS IN THE STORE. A proposal for you to rule on, not a ruling.** Measured at `07d386cc`. cc counted the partition, dc supplied the command side, I reconciled both and corroborated the load-bearing claim myself.
+
+**THE HEADLINE IS THAT YOUR 250 IS REALLY 59, AND THE OTHER 191 NEED NO DECISION AT ALL.**
+
+    T  tool payload, not this project's content   187   intent/plugins/
+    B  project content, needs a NEW sigil          59   docs 10, llm 14, history 18, eng 9,
+                                                        autopsy 3, analysis 2, wip/restart/done 3
+    N  must never be an artefact                    3   .config/config.json, .intentfiles, events.jsonl
+    M  already model-derived                        1   todo.md
+                                                  ---
+                                                  250
+
+**187 OF THE 250 ARE THE SHIPPED TOOL'S PAYLOAD AND MUST NEVER ENTER A PROJECT STORE.** `intent/plugins/` resolves from `$INTENT_HOME`; this repo carries it only because it IS its own `INTENT_HOME`. **I checked three real consumers rather than taking the claim second-hand: Lamplight, Laksa and Anvil track 0 plugin files each.** Putting this class in a project store would put the tool's distribution inside every consumer's estate.
+
+**AND THE SAME PROBE KILLED THE OBVIOUS NEXT HYPOTHESIS, WHICH IS WHY I TRUST IT.** `intent/docs/` looks like tool payload too. It is not: those three consumers carry **61, 4 and 2** files there. **A number varying by two orders of magnitude across consumers is project content by definition.** Only `plugins/` is uniformly absent. (Three consumers, all on this machine, all yours -- a probe, not a fleet survey.)
+
+**THE THREE THAT MUST NEVER BE ARTEFACTS EACH REFUSE FOR THEIR OWN REASON, NOT A SHARED ONE:** `config.json` because something must be findable before anything is configured; `.intentfiles` because a manifest cannot be an artefact it declares; `events.jsonl` because D34 makes its extract history's only route off this machine, so it must not depend on the store it records.
+
+**THE REAL FINDING, AND IT IS THE ANSWER TO YOUR QUESTION: OF THE 59, ZERO ARE OWNABLE BY ANY EXISTING ARTEFACT, AND THE BLOCKER IS ARITY RATHER THAN POLICY.** `.intentfiles`'s grammar is `STEELTHREAD | ISSUE`; `Project::classify` answers only for paths INSIDE a thread directory; a thread realises `intent/st/<ID>/**` and nothing else. **None of the 59 belongs to one thread** -- release notes span threads, `eng/tpd/` is project-level design, `docs/`, `llm/`, `autopsy/`, `analysis/` and `wip.md` are project-scoped by construction. **58 of 59 are `.md`, so eligibility is not the constraint.**
+
+**SO YOU CANNOT ANSWER "SHOULD THIS BE IN THE STORE" FOR ANY OF THE 59 UNTIL A THIRD OWNER KIND EXISTS.** The store's `doc_sections.owner_type` is exactly `thread`, `work-package`, `issue` -- I checked. Policy chooses among ownable files, and today the ownable set is empty.
+
+**AND THE MECHANISM IS NOT WEAK -- IT STOPS AT THE DIRECTORY BOUNDARY.** Inside a thread it already reaches everything: all **45** parity-tool scripts under `intent/st/ST005[67]/parity/tools/` are carried in the store as attachments today, 45 of 45. dc read a subset of those as unowned; they are owned, and what 37 of them lack is a CITATION by an AT row, which is evidence rather than title. **The mechanism works; it has no expression for a file that belongs to the PROJECT rather than to an artefact.**
+
+**MY RECOMMENDATION, AND THE PRECEDENT ALREADY EXISTS IN THE TREE.** `todo.md` is model-derived **without being artefact-owned** -- a `View` in `render_all` alongside `steel_threads.md`, generated from the whole model, needing no manifest entry and owned by no thread. **That is the shape the 59 want, and it is already built and running.**
+
+**So the choice in front of you is between two routes, and it is one decision rather than fifty-nine:**
+
+**Route A -- a third sigil (`PROJECT:` or `DOC:`).** Makes project files first-class artefacts: addressable, dehydratable, individually declarable. Costs a grammar change, a schema bump (canon is `deny_unknown_fields`), a new `owner_type`, and a migration.
+
+**Route B -- extend the project-view mechanism.** Costs nearly nothing and is proven. But it only fits DERIVED content, and most of the 59 is AUTHORED -- `docs/`, `llm/`, `eng/` are written by hand and cannot be regenerated from a model that does not contain them.
+
+**I recommend A for the authored content and B for the state files, and I would not put the records in at all.** `docs/` (10), `llm/` (14) and `eng/` (9) are authored, long-lived and exactly what you would want to search, address and dehydrate -- 33 files, the real subject. `wip.md` / `restart.md` / `done.md` are partly derivable and `todo.md` already proves the direction. **`history/` (18), `autopsy/` (3) and `analysis/` (2) are append-only records whose durability git already provides** -- putting them in the store buys queryability at the cost of a migration, and they are read once each.
+
+**WHAT I HAVE NOT DONE, STATED PLAINLY: I have not costed Route A, and I am not going to guess at it.** It touches the grammar, the schema, the store and a migration, and it needs cc for the mechanism and dc for the command surface before anyone should size it.
+
+-- vc

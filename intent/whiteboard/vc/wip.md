@@ -2,84 +2,72 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 590c4fbc-ea99-41b3-9c10-75344a715f96
-heartbeat_at: 2026-08-19 21:43Z
-status: paused
-focus: "**THE DEHYDRATION SHIPPED. 423 files out, `intent/st` holds ST0046, ST0056, ST0057, and the round trip is byte-identical against git.** Gate 50 of 64. The precondition block is 14 and reads 0 unmet -- hv cleared four on one word, and NONE of them is withdrawn: they are still owed as ordinary work. Tomorrow is the 250 files under `intent/` the store has never heard of."
+session_id: b8e50395-2c15-45b8-800b-d97acece15c5
+heartbeat_at: 2026-08-20 07:23Z
+status: active
+focus: "**doctor went 235 findings at rc=1 to ZERO, and the 235th was real and had been invisible for a day inside 234 false ones.** WP-10 done, WP-09 half done -- organize and hydrate now record what they did to the disk, mutation-proven both polarities. **Two of four rostered commit guards have NEVER run, and one of them is the alarm on the event log.** The SSOT boundary is with hv: 250 is really 59, and the blocker is arity, not policy."
 claims: [ST0056, ST0057]
 ---
 
 # Validation Claude (vc)
 
-## ON RESUME -- PLAIN WORDS, READ THIS FIRST
+## WHAT LANDED TODAY (2026-08-20)
 
-**v3 keeps the project in a database and keeps a chosen subset of it on disk as real files. `.intentfiles` is the list of what is on disk. `intent organize` makes disk match the list.** That is the whole architecture and it is now RUNNING, not designed.
+**`intent doctor` is 0 findings at rc=0.** It was 235 at rc=1 this morning: 234 were views of threads `.intentfiles` does not declare, absent by design since `e7f00e65`, each telling the operator to regenerate a file the design says should not exist.
 
-**WHAT SHIPPED TONIGHT.** `organize --apply` removed **423 files** at `e7f00e65`. `intent/st/` now holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`. Fifty-two completed and two cancelled threads live only in the database.
+**THE 235th WAS REAL AND SAT AT LINE 1 FOR A DAY.** `ST0011 is Completed with no completion date` -- the only one of 52 completed threads missing the field. **That is WP-10's cost demonstrated rather than argued: one true finding invisible inside 234 false ones, in a report that exits 1 either way.** Fixed from the thread's own body (`2025-06-03`), validated against ST0012/ST0013 where body and canon agree exactly.
 
-**AND IT IS PROVEN REVERSIBLE, MEASURED RATHER THAN ARGUED.** ST0001 back onto the list -> five files returned, **all five byte-identical to what git holds**. A fence-heavy pair (ST0016 at 48 fence markers, ST0034 at 180 non-ASCII chars) -> **fifteen files, all byte-identical**. All 282 attachments in canon verify against their own `sha256` and byte count. **Dehydration is not a loss.**
+- **WP-10 DONE** (`b082b488`). `doctor` asks the manifest. `Realised` + `owning_thread` lifted out of `Facade` so the write path and the diagnostic path have ONE answer each. Mutation-proven both ways: pre-fix behaviour fails one arm, blanket silence fails three.
+- **WP-09 HALF DONE, WIP** (`07d386cc`). `organize` and `hydrate` record what they did, PATH SET as subject, not routed through `apply`. Silent on non-acts. **AC-09.1's denominator is 2 of 4 -- `sync_to_disk` and `sync_from_disk` still do not emit.**
+- **LEDGER** (`608e9721`). AC-09.1/09.2 + AC-10.1/10.2 minted with AT rows; ST0057 46 -> 50. **WP-09 and WP-10 had NO acceptance rows at all** -- criteria carry no `wp` field, association is the id convention, and the groups stopped at 08.
+- **CANON REWORDS.** AT-01.5 (`5b59a14c`) and AC-06.3 (`07d386cc`).
 
-**GATE: 50 of 64.** Green tonight: AT-00.1, AT-00.4, AT-02.2, AT-02.3, AT-03.1--03.5, AT-04.1--04.5, AT-06.1, AT-06.2, AT-07.5. It was 33 this morning.
+## THE FINDING WORTH KEEPING: TWO OF FOUR COMMIT GUARDS HAVE NEVER RUN
 
-## THE PRECONDITION BLOCK IS 14 AND READS 0 UNMET -- READ THIS BEFORE ASSUMING ANYTHING IS DONE
+**THERE ARE THREE DISPATCHERS IN THIS REPO AND THEY DO NOT AGREE.**
 
-**hv cleared four preconditions out of AC-00.1's declared block on one word (_Word_), and AC-00.3 earlier on the git ruling.** The block went 19 -> 18 -> 14.
+    guard                     pre-commit.intent   cmd/precommit   template roster   RUNS HERE
+    whiteboard-clock-guard            1                 0                1            YES
+    whiteboard-header-guard           0                 2                1            YES
+    canon-ignore-guard                0                 0                1            NO
+    append-only-guard                 0                 0                1            NO
 
-**NOT ONE OF THEM IS WITHDRAWN EXCEPT AC-00.3. AC-03.6, AC-06.3, AC-06.4 and AC-07.5 REMAIN LIVE CRITERIA AND ARE STILL OWED.** The distinction is dc's and it is the useful half of the whole exercise: **the question was never whether the work is wanted, it is whether a GATE should hold on it.** A board that records "they came off the gate" reads as done to whoever opens it next, which is why this section exists.
+git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy from 2026-08-14, ONE hard-coded guard, no roster) -> prettier -> `bin/int precommit`. **Two run; NEITHER runs through the roster.** The roster is the only artefact naming all four and it is the one this repo's commit path never reads.
 
-    withdrawn   AC-00.3   migration-conservation verdict -- a safety proof git substitutes for exactly
-    still owed  AC-03.6   cc -- DETECTION of canon/disk divergence. Git preserves files; it does not
-                          stop canon and disk disagreeing
-    still owed  AC-06.3   dc -- CAPABILITY. the third `Projection` variant, `md` sayable not refused
-    still owed  AC-06.4   dc -- `intent init` from an empty dir. Reversibility proof AS A GATE, but
-                          independently required as HOSTING work: a tool that cannot create a project
-                          is not one anyone can host on
-    still owed  AC-07.5   ic -- MET. green tonight
+**`append-only-guard.sh` IS THE ALARM ON `intent/events.jsonl` AND IT HAS NEVER FIRED.** Its declared subject is _a write where an append was meant_. Seven commits have touched that file without a conflict, which I had priced as luck at 55 rows -- it is **luck with the alarm disconnected**. AC-09.2 carries it.
 
-**THE TEST FOR WITHDRAWING A PRECONDITION, AND ic's HALF IS THE BETTER HALF:** hv's git grounds retire a precondition **only where git can SUBSTITUTE for the proof**. ic: _restoring the estate from git RE-HYDRATES it, which destroys the precondition under test_ -- reaching for git falsifies the subject, so an ACCESSIBILITY claim is never withdrawable on those grounds and a SAFETY claim usually is.
+**cc AND I MADE THE SAME ERROR IN OPPOSITE DIRECTIONS INSIDE ONE HOUR.** cc read `pre-commit.intent` (too narrow) and reported three guards dead; I EXECUTED `lib/templates/hooks/pre-commit.sh` under `bash -x`, watched all four dispatch, and reported the roster live (too new). **Neither of us read the chain. A trace tells you what the file you ran does; it does not tell you that git runs that file.**
 
-## FOR TOMORROW, hv's OWN QUESTION
+## THE SSOT BOUNDARY IS WITH hv AND 250 IS REALLY 59
 
-**250 files under `intent/` are not in the store at all** -- `docs/` (12), `llm/` (14), `history/` (18), `eng/` (10), `plugins/` (191), `autopsy/`, `analysis/`, and the project-level `done.md`, `wip.md`, `restart.md`, `todo.md`. The store holds **threads, work packages and issues, and nothing else** (`doc_sections.owner_type` is exactly those three).
+    T  tool payload (intent/plugins/)        187   never in a project store; 0 tracked in 3 consumers
+    B  project content, needs a NEW sigil     59   ZERO ownable by any existing artefact
+    N  must never be an artefact               3   config.json, .intentfiles, events.jsonl
+    M  already model-derived                   1   todo.md -- and it is the precedent
 
-**hv: _not all of that should be in the db, but certainly some of it should. A job for tomorrow._**
+**THE BLOCKER IS ARITY, NOT POLICY.** Grammar is `STEELTHREAD | ISSUE`; `Project::classify` answers only inside a thread directory; `doc_sections.owner_type` is exactly thread/work-package/issue. **Policy chooses among ownable files and today the ownable set is empty.**
 
-**THE TRAP IN MEASURING IT: there IS a `done.md` in the store -- ten of them -- and they are `intent/st/ST0019/done.md` and siblings, per-thread attachments.** A grep for `done.md` returns hits and the project-level file is not among them.
+**THE MECHANISM IS NOT WEAK, IT STOPS AT THE DIRECTORY BOUNDARY** -- all 45 parity-tool scripts are carried as attachments today, 45 of 45. **`todo.md` is model-derived without being artefact-owned, and that is the shape the 59 want.**
 
-**The same gap from the command side is dc's measurement: 16 of 32 top-level families dispatch, 14 answer exit 2, `intent claude` implements 1 of its 8 verbs, against 230 `intent claude <verb>` call sites in this repo's own machinery.** Everything that manages STEEL THREADS is done; everything that manages INTENT ITSELF is not. **Two faces of one gap, found from opposite ends on the same evening.**
+## WATCH-OUTS -- FOUR OF TODAY'S ARE MINE
 
-## WHAT IS OWED, BY NODE
+- **`grep -c` EXITS 1 ON ZERO, so a `|| echo 0` fallback fires on a true zero and every zero prints twice.** On this board already; used it anyway. cc fired the same trap in the same hour.
+- **NEVER `$?` AFTER A PIPE.** Reported `intent critic` as rc=0 five times through a `head`; the real answer is **rc=2 in all five languages**, which is the code `pre-commit.sh:367` **fails open** on.
+- **A FILE LABELLED "log tail" IS NOT THE FAILURE SET.** Reported `cargo fmt` as 3 hunks in 1 file; ic measured **45 hunks in 20 files**. The instrument said so in its own first line.
+- **I STAMPED TWO MESSAGES WITH TIMES I NEVER READ FROM A CLOCK.** Not a wrong zone -- I ran neither `date` nor `date -u` and appended a `Z`. ic caught it. **Those two stamps are unverifiable and their ordering must not be relied on.** They will not be repaired: a corrected-looking fake is worse than an admitted one.
+- **THE LIVE CHANNEL IS UNGUARDED AND CARRIES NEARLY ALL OUR TRAFFIC.** The clock guard reads board files and inbox entries; SendMessage passes no hook. **The shift to the live channel is INSTRUCTED, not drift** (ic), so coverage went to near zero with nobody doing anything wrong. Reader-side `date -u` check is the cheap fix.
+- **ANY WORKSPACE-WIDE COMMAND ACTS ON EVERYONE'S UNCOMMITTED WORK.** `--only` separates FILES, not AUTHORS (dc, after `0a9a7341` carried dc's hand-written test under a no-semantics message -- third instance). I then ran a workspace `cargo fmt` over ic's in-flight files. **Name the paths AND read `git diff --cached`; scope the formatter too.**
+- **`dirty-<sha>` IS UNINTERPRETABLE IN BOTH DIRECTIONS, AND ONLY ONE WAS EVER ARGUED (dc, 2026-08-20).** The estate's recorded hazard is that the marker goes STALE and understates an artefact's age. **It also OVERSTATES it**: a binary built from a dirty tree may contain strictly MORE than the commit it names, because the uncommitted content it was built from later BECAME the commits that follow. dc read `dirty-5b59a14c` against a HEAD of `07d386cc`, concluded the binary predated the doctor fix, said so, and was wrong -- the bytes had it. **The label cannot distinguish the two directions.** What settled it was RUNNING the binary once. **A check that reads the marker and stops is not a check; it has to be behavioural.**
+- **`sync --to-store` REWRITES THE GENERATED VIEWS.** A canon edit is a two-file commit and the second is one you never edited.
+- **`intent/events.jsonl` LAGS THE STORE.** The file is a projection written by `sync_to_disk`; `event_log` had 65 rows against the file's 55. **The record that travels in git is not the record.**
 
-- **cc** -- AC-03.6 (built, waiting on dc's roster ruling). Carrying: the skew guard's real scope; `intent doctor` sees view skew and is not wired to the gate; the unclaimed-report digest.
-- **dc** -- AC-06.3, AC-06.4, `st hydrate`'s render arm, the `organize` summary/stderr split, and the hosting sweep hv redirected them onto.
-- **ic** -- the `st edit` fork is unruled and `edit_writes_pinned_region.rs` still asserts the retired architecture behind a red AT-05.2. `intent init` is born unable to dehydrate. The `issues dehydrate` bucket ruling, which dc showed understates by four (`st hydrate`, `st dehydrate`, `issues hydrate` are unbucketed too; the ratchet refused at 36 against a cap of 32).
-- **vc** -- hold the ledger. **ST0057/WP-09 is filed and unstarted: the event log records the MODEL and not the DISK.**
+## OWED BY ME
 
-## WP-09, BECAUSE IT IS MINE AND IT IS NEW
+- **WP-09's other half**: `sync_to_disk` / `sync_from_disk` emission, and AC-09.2's concurrent-append decision (hv's).
+- **ST0056/WP-07 deliverable 1 reword** -- it names `rust-embed` as the MECHANISM while `rules.rs:17-21` states the design that replaced it and satisfies the criterion. Same shape as AC-00.1. dc's finding.
+- **WP-07's status** -- `Not Started` is wrong; dc has the row-by-row evidence and is holding the claim question for hv.
+- **The hv inbox has 43 entries and has never been cleared.** I am the named obliged reader.
 
-**`Facade::apply` (`facade.rs:3504`) is a real chokepoint and a good one** -- it DIFFS `next` against loaded canon rather than trusting a caller's list, because the declared-list version made _the mutation did not persist_ reachable by naming the wrong id while the DB and the return value both said success.
+## THE BLOCKER FOR "INTENT FULLY WORKING ON v3"
 
-**`grep -c 'apply(' organize.rs` returns 0.** `organize`, `sync_to_disk`, `sync_from_disk` and `hydrate` all write the filesystem without passing it. **So 423 files left this estate tonight and the log recorded nothing.** The only act all evening that destroyed anything is the only class absent from the one table that cannot be re-derived from anything else on disk.
-
-**Two non-fixes are written into the WP.** Do not route `organize` through `apply` -- it diffs canon and organize changes no canon, so the event would be a lie about its own mechanism. Do not add a pruner -- 55 events in 35 hours at ~229 bytes is under 4MB a year. **The thing worth deciding while there are 55 rows rather than 17,000 is concurrent append**, a tracked append-only file written by four sessions minutes apart.
-
-## WATCH-OUTS THAT COST REAL WORK
-
-- **EACH SYNC DIRECTION DESTROYS WHATEVER EXISTS ONLY ON THE OTHER SIDE, AND vc HAD THE LABEL BACKWARDS.** `--to-disk` destroys unsynced DISK edits; `--to-store` destroys unprojected STORE state, and it is `sync_from_disk` the code itself calls _the DESTRUCTIVE direction_. **`intent sync --to-store <ID>` before any verb, and know which side your change is on.**
-- **`at green` MOVES A STATUS AND NO VERB MOVES A NOTE.** Twice tonight a row read green above prose saying the test does not exist. Canon prose routes through vc; the builder commits the contradiction and names it rather than hand-editing canon.
-- **THE REVISION IS PART OF THE FINDING, NOT CONTEXT FOR IT** (ic). Two of my reads tonight were true of a tree one rebuild or one mid-write file out of date. **Name revision, clock and dirty count on every measurement.**
-- **NEVER `$?` AFTER A PIPE. `grep` here is ugrep. The Bash tool's shell is zsh, so an unquoted glob in `--include=*.rs` is a hard error and PATH can collapse inside a `while read` loop** -- that last one reported three fake sha256 mismatches before I noticed `jq: command not found` in the same output.
-- **COULD THIS MEASUREMENT HAVE COME BACK THE OTHER WAY?** I reported ST0056's generator fine because its 132 rows agreed; `doctor` showed the file stale by 1813 bytes. **Rows agreeing said nothing about bytes.**
-- **THE SHARPEST INSTANCE OF THE CLASS TODAY WAS MINE AND THE REFUTING EVIDENCE WAS IN MY OWN TERMINAL.** I carried ic's _`Report.pruned` is not rendered_ onto this board as still-open **in the same hour that my own `organize --apply` printed `1 pruned`, a number I had already read and quoted to hv as proof ic's fix worked.** dc had landed the renderer at `8e544de4`; ic checked `render.rs` rather than the report and caught me. **A peer's report of a peer's file is one hop too many when the file is right there -- and the output already on your screen is zero hops.**
-
-## THE ONE CLASS, AND IT GOT SHARPER TONIGHT
-
-**TWO ARTEFACTS DISAGREE AND NO THIRD THING READS BOTH** -- and the harder sub-shape, **a third thing exists and compares the WRONG PAIR**, because a reader checking for the class finds an instrument already there and stops.
-
-**Four instances tonight, three of them in instruments that were reporting green.** The skew guard printed _nothing to check_ for hours while ST0057's committed view contradicted canon on 7 of 46 rows. cc's roster check went green gated on a wiring that judged the wrong commit. ic's floor filter was protected by `steel_threads.md` happening to exist rather than by the bound the code claims. And my own gate count read `n-a` as passing for hours while `contract.rs` says in as many words that it never is.
-
-**THE PROGRESSION WORTH KEEPING IS THE FOURTH: cc PREDICTED an instance instead of finding one.** _A report whose first two hundred lines are byte-identical on every run trains its reader to stop looking._ **I drove it in thirty seconds and it is false for ADD (the count moves) and true for SWAP -- the real boundary is CONSTANT CARDINALITY**, which is a thing dc can build against and the loose sentence was not. **A named class earns its keep when it makes the next instance cheap to pin, and the difference was falsifiability rather than luck.** cc's proposed remedy -- count plus distinct directories -- **failed the property cc themselves stated**, since a same-directory swap leaves both untouched. The digest closes it.
-
-## QUEUED AND DELIBERATELY NOT BUILT
-
-Nothing outside the 64 gets started before the release. **Best candidate remains ic's: nothing cross-reads a row's EVIDENCE against another row's STATUS, and both inputs are already committed text.** Also: the critic scans whole staged files rather than added lines; no edge exists from _a capability landed_ to _a decision waiting on it_; `organize`'s stdout still says `0 to remove` beside a stderr saying 423; a manifest PARSE ERROR is still indistinguishable from an ABSENT one; AT-03.15's debt is a second CLI-level instrument, not 31 more cases.
+**`intent critic` answers rc=2 in all five declared languages, and `pre-commit.sh:367` FAILS OPEN on that code.** So v3 on PATH silently disables the critic gate here and in fifteen other projects through one symlink. **That is why the standing no-v3-on-PATH rule exists, and it makes `critic` a PRECONDITION of full self-hosting rather than merely its biggest row.** dc found it; I verified it end to end. It lives in ST0056/WP-07.
