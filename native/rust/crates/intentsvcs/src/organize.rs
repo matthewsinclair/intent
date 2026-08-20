@@ -645,7 +645,12 @@ fn prune_emptied(root: &Path, removed: &[PathBuf], pruned: &mut Vec<PathBuf>) {
   // changes.
   let unique: BTreeSet<PathBuf> = removed
     .iter()
-    .flat_map(|p| p.ancestors().skip(1).map(Path::to_path_buf).collect::<Vec<_>>())
+    .flat_map(|p| {
+      p.ancestors()
+        .skip(1)
+        .map(Path::to_path_buf)
+        .collect::<Vec<_>>()
+    })
     .filter(|d| d.starts_with(root) && d != root)
     .collect();
   let mut candidates: Vec<PathBuf> = unique.into_iter().collect();

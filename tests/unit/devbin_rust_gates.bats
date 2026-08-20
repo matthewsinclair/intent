@@ -149,24 +149,44 @@ normalise() {
 
 @test "the set of disabled gates is pinned" {
   # `enabled: false` removes a gate from `int check all` AND from help, so a
-  # disabled gate is invisible rather than merely off. That is the right lever --
-  # `check toolchain` demands a `.tool-versions` this project deliberately does
-  # not have, and a permanently-red aggregate trains everyone to ignore the one
-  # command that would tell them something is wrong -- but it is a lever that
-  # silently shrinks what "all" means.
+  # disabled gate is invisible rather than merely off. That is the right lever,
+  # but it is one that silently shrinks what "all" means -- so the set is pinned
+  # rather than the mechanism forbidden: turning a gate off becomes a deliberate
+  # act with a test to update, instead of a config line nobody reviews. Each
+  # entry should carry its reason in config.yaml beside the flag.
   #
-  # So the set is pinned rather than the mechanism forbidden: turning off a
-  # second gate becomes a deliberate act with a test to update, instead of a
-  # config line nobody reviews. Each entry here should carry its reason in
-  # config.yaml beside the flag.
-  local disabled
+  # THE SET IS NOW EMPTY, AND IT CAUGHT THE CHANGE GOING THE OTHER WAY. The pin
+  # read `toolchain ` from 2026-08-16, when `check toolchain` was disabled for
+  # dying on a `.tool-versions` this project deliberately does not have. hv ruled
+  # on 2026-08-19 that a project legitimately declaring no pin must not read as a
+  # violation, so `2870b99d` made the arm report-and-pass and re-enabled the
+  # gate -- and did not touch this pin, which went red the next run. A tripwire
+  # written for gates being switched OFF fired on one being switched back ON,
+  # which is the pin working rather than the pin being in the way.
+  local disabled enabled
   # `[a-z0-9_-]` and not `[a-z-]`: the first mutation of this test disabled a gate
   # called `clippy2` and the extractor SILENTLY DID NOT SEE IT, so the test passed
   # over exactly the change it exists to catch. A needle that skips the names
   # nobody has invented yet is the allowlist-versus-needle-list lesson, one file
   # over, in a test written the same day.
   disabled="$(grep -B1 '^ *enabled: false' "$CONFIG" | sed -n 's/^ *\([a-z][a-z0-9_-]*\):$/\1/p' | sort | tr '\n' ' ')"
-  [ "$disabled" = "toolchain " ]
+
+  # THE POSITIVE CONTROL IS REQUIRED BY THE EXPECTED VALUE BEING EMPTY, and
+  # without it this assertion is the strictly weaker test that replaced it.
+  # An empty needle result has two causes -- nothing is disabled, or the
+  # extractor stopped matching the config's shape -- and `= ""` cannot tell them
+  # apart, so a config restructure that blinded the grammar would turn this
+  # green. That is the `clippy2` failure above with the polarity flipped, and it
+  # arrives by editing the config rather than by editing a gate.
+  #
+  # So the same needle is driven at the opposite polarity, where the answer is
+  # known to be non-empty: if the extractor can still see `enabled: true` it can
+  # see `enabled: false`, and the empty set above is a fact about the config
+  # rather than a fact about the grep.
+  enabled="$(grep -B1 '^ *enabled: true' "$CONFIG" | sed -n 's/^ *\([a-z][a-z0-9_-]*\):$/\1/p' | sort | tr '\n' ' ')"
+  [ -n "$enabled" ]
+
+  [ "$disabled" = "" ]
 }
 
 @test "the declared language set is pinned" {

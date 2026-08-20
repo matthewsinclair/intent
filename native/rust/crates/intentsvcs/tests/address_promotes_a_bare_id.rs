@@ -31,7 +31,9 @@ fn a_bare_thread_id_becomes_this_project_s_thread() {
      would silently address someone else's estate"
   );
   assert_eq!(
-    a.entity.artefact().map(|(s, id)| (s.as_str().to_string(), id.to_string())),
+    a.entity
+      .artefact()
+      .map(|(s, id)| (s.as_str().to_string(), id.to_string())),
     Some(("STEELTHREAD".to_string(), "ST0057".to_string())),
     "and it resolves to the artefact the manifest names with that sigil"
   );
@@ -44,7 +46,9 @@ fn a_bare_thread_id_becomes_this_project_s_thread() {
 fn a_bare_issue_id_becomes_this_project_s_issue() {
   let a = promote("0042").expect("an issue id is addressable");
   assert_eq!(
-    a.entity.artefact().map(|(s, id)| (s.as_str().to_string(), id.to_string())),
+    a.entity
+      .artefact()
+      .map(|(s, id)| (s.as_str().to_string(), id.to_string())),
     Some(("ISSUE".to_string(), "0042".to_string()))
   );
 }

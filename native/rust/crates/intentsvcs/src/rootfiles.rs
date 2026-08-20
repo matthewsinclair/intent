@@ -222,7 +222,10 @@ pub fn sync(
 /// leave no way to write about the syntax in a template's prose.
 fn opener(line: &str) -> Option<Block> {
   let t = line.trim();
-  if let Some(rest) = t.strip_prefix("[[#lang ").and_then(|r| r.strip_suffix("]]")) {
+  if let Some(rest) = t
+    .strip_prefix("[[#lang ")
+    .and_then(|r| r.strip_suffix("]]"))
+  {
     return Some(Block::Lang(rest.trim().to_string()));
   }
   if t == "[[#nolang]]" {

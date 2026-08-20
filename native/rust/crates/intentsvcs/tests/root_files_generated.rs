@@ -202,8 +202,12 @@ fn a_malformed_block_refuses_and_names_which_one() {
   );
 
   assert_eq!(
-    rootfiles::substitute("[[#lang rust]]\n[[#lang shell]]\nx\n[[/lang]]\n[[/lang]]\n", &cfg, &ctx())
-      .expect_err("nested blocks refuse"),
+    rootfiles::substitute(
+      "[[#lang rust]]\n[[#lang shell]]\nx\n[[/lang]]\n[[/lang]]\n",
+      &cfg,
+      &ctx()
+    )
+    .expect_err("nested blocks refuse"),
     Fault::Nested("[[#lang shell]]".to_string(), "[[#lang rust]]".to_string()),
     "blocks nested silently, so a template can express a condition this generator does not \
      actually evaluate"
@@ -310,10 +314,16 @@ fn a_second_sync_with_the_same_bytes_does_not_move_the_mtime() {
   let dir = tempfile::tempdir().expect("a temp project root");
 
   let p = rootfiles::sync(dir.path(), &home, "AGENTS.md", &cfg, &ctx()).expect("first sync");
-  let first = std::fs::metadata(&p).expect("stat").modified().expect("mtime");
+  let first = std::fs::metadata(&p)
+    .expect("stat")
+    .modified()
+    .expect("mtime");
 
   rootfiles::sync(dir.path(), &home, "AGENTS.md", &cfg, &ctx()).expect("second sync");
-  let second = std::fs::metadata(&p).expect("stat").modified().expect("mtime");
+  let second = std::fs::metadata(&p)
+    .expect("stat")
+    .modified()
+    .expect("mtime");
 
   assert_eq!(
     first, second,
@@ -325,7 +335,10 @@ fn a_second_sync_with_the_same_bytes_does_not_move_the_mtime() {
   // above is satisfied by a `sync` that never writes at all.
   rootfiles::sync(dir.path(), &home, "AGENTS.md", &config(&["elixir"]), &ctx())
     .expect("third sync, different content");
-  let third = std::fs::metadata(&p).expect("stat").modified().expect("mtime");
+  let third = std::fs::metadata(&p)
+    .expect("stat")
+    .modified()
+    .expect("mtime");
   assert_ne!(
     second, third,
     "changed content did not move the mtime either, so `sync` is not writing and the skip asserted \

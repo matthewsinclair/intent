@@ -49,7 +49,6 @@ use crate::contract::{self, Scope, Verdict};
 // methods in common. Two types one word apart deserve the alias at the seam
 // rather than a reader inferring which is meant.
 use crate::event::{self, Envelope, Subject};
-use crate::realise;
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::model::{
@@ -57,6 +56,7 @@ use crate::model::{
   ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use crate::project::{Migration, Pending, Project};
+use crate::realise;
 use crate::store::{Store, StoreError};
 use crate::sync::Scope as SyncScope;
 use crate::transitions;
@@ -1910,7 +1910,10 @@ impl Facade {
       },
       serde_json::Value::Null,
     );
-    let stamp = self.store.append_event(&envelope).map_err(FacadeError::Store)?;
+    let stamp = self
+      .store
+      .append_event(&envelope)
+      .map_err(FacadeError::Store)?;
     // Colons and dots are replaced for the same reason `backup.rs` replaces
     // them: an ISO timestamp is a poor filename on some filesystems and an
     // awkward one on all of them. The ORDER is preserved, because the
@@ -3183,14 +3186,16 @@ impl Facade {
       url: address.to_url(),
       why: why.to_string(),
     };
-    let value: serde_json::Value = serde_json::from_str(body)
-      .map_err(|e| refuse(&format!("the body is not JSON: {e}")))?;
+    let value: serde_json::Value =
+      serde_json::from_str(body).map_err(|e| refuse(&format!("the body is not JSON: {e}")))?;
     let title = value
       .get("title")
       .and_then(|t| t.as_str())
       .ok_or_else(|| refuse("a posted thread needs a `title` -- a thread without one is unfindable in every view that lists it"))?;
     if title.trim().is_empty() {
-      return Err(refuse("`title` is blank, and a blank title is refused rather than defaulted"));
+      return Err(refuse(
+        "`title` is blank, and a blank title is refused rather than defaulted",
+      ));
     }
     Ok(title.to_string())
   }

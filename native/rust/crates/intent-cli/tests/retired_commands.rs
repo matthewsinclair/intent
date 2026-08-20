@@ -328,7 +328,11 @@ fn a_hidden_alias_is_accepted_and_appears_in_no_output() {
 
     // **AND IT IS SHOWN NOWHERE.** Root help, the verb's own help, and the
     // verb's own output -- the three surfaces a name reaches a reader through.
-    for probe in [vec!["--help"], vec![path.as_str(), "--help"], spelled.clone()] {
+    for probe in [
+      vec!["--help"],
+      vec![path.as_str(), "--help"],
+      spelled.clone(),
+    ] {
       let (_, err) = run(&probe, &root);
       let (_, out) = run_stdout(&probe, &root);
       assert!(

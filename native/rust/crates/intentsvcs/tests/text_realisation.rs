@@ -123,8 +123,13 @@ fn a_text_attachment_is_realised_with_its_bytes() {
   // so `== 1` asserted a property of the fixture rather than of the realiser --
   // and it would break the day the fixture grew a file, in a test about
   // something else entirely.
-  let bare = realise::realise(&fx.project(), &canon_of(vec![sample_thread("ST0001")]), &ctx(), &fx.path("bare"))
-    .expect("realises");
+  let bare = realise::realise(
+    &fx.project(),
+    &canon_of(vec![sample_thread("ST0001")]),
+    &ctx(),
+    &fx.path("bare"),
+  )
+  .expect("realises");
   let r = realise::realise(&fx.project(), &canon, &ctx(), &fx.path("r")).expect("realises");
   assert_eq!(
     r.totals.attachments,

@@ -108,7 +108,10 @@ fn a_moved_tree_refuses_and_the_file_survives() {
 fn the_refusal_names_the_difference() {
   let fx = Fixture::new();
   let (_, p) = removal_plan(&fx, "doomed.md");
-  let text = p.run(Mode::Apply, &|| MOVED.to_string()).unwrap_err().to_string();
+  let text = p
+    .run(Mode::Apply, &|| MOVED.to_string())
+    .unwrap_err()
+    .to_string();
   assert!(
     text.contains(PLANNED) && text.contains(MOVED),
     "AC-04.5 asks for the difference to be NAMED, not merely detected: {text}"

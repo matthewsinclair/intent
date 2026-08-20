@@ -272,7 +272,9 @@ impl Remedy for AddressError {
         "address the ENTITY and select a representation: `/threads/ST0000?format=md`".into()
       }
       AddressError::NotAddressable { .. } => {
-        format!("name a thread (`ST0000`), an issue (`0042`), or a full address (`{SCHEME}/threads/ST0000`)")
+        format!(
+          "name a thread (`ST0000`), an issue (`0042`), or a full address (`{SCHEME}/threads/ST0000`)"
+        )
       }
     }
   }

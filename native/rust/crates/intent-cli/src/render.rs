@@ -1434,7 +1434,11 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
-    if previewing { "to rewrite" } else { "rewritten" },
+    if previewing {
+      "to rewrite"
+    } else {
+      "rewritten"
+    },
     report.unchanged.len(),
     report.dehydrated.len(),
     if previewing { "to remove" } else { "removed" },

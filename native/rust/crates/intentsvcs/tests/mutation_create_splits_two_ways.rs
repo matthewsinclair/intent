@@ -200,7 +200,9 @@ fn two_posts_make_two_threads() {
   let coll = parse("intent:///threads").expect("resolves");
 
   let a = facade.post(&coll, r#"{"title":"first"}"#).expect("creates");
-  let b = facade.post(&coll, r#"{"title":"second"}"#).expect("creates");
+  let b = facade
+    .post(&coll, r#"{"title":"second"}"#)
+    .expect("creates");
   assert_ne!(
     a.to_url(),
     b.to_url(),

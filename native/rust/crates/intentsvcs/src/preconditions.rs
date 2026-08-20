@@ -328,7 +328,6 @@ pub fn check(canon: &Canon) -> Verdict {
 /// six of them -- and a whole-text scan would sweep those in, producing a
 /// declaration nobody wrote.
 pub fn declared_in(text: &str) -> Result<Vec<String>, Unreadable> {
-
   let mut opens = text.match_indices(OPEN);
   let Some((open_at, _)) = opens.next() else {
     return Err(Unreadable::NoDeclaration);

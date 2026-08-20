@@ -113,7 +113,11 @@ impl Realisation {
     note("threads", self.counts.threads, self.totals.threads);
     note("work packages", self.counts.wps, self.totals.wps);
     note("issues", self.counts.issues, self.totals.issues);
-    note("attachments", self.counts.attachments, self.totals.attachments);
+    note(
+      "attachments",
+      self.counts.attachments,
+      self.totals.attachments,
+    );
     note("views", self.counts.views, self.totals.views);
     out
   }
@@ -206,7 +210,9 @@ pub fn realise(
     let json = serde_json::to_string_pretty(issue)
       .unwrap_or_else(|e| format!("{{\"unserialisable\": \"{e}\"}}"));
     set.add(
-      root.join("issues").join(format!("{:04}.json", issue.number)),
+      root
+        .join("issues")
+        .join(format!("{:04}.json", issue.number)),
       json,
     );
     counts.issues += 1;

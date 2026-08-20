@@ -497,7 +497,9 @@ fn no_file_is_removed_while_a_precondition_is_unmet() {
       ("AC-00.4", AcKind::NonTest, met("landed")),
     ]),
   );
-  let report = p.run(Mode::Apply, &|| "digest".to_string()).expect("apply returns");
+  let report = p
+    .run(Mode::Apply, &|| "digest".to_string())
+    .expect("apply returns");
 
   assert!(
     doomed.exists(),
@@ -528,7 +530,9 @@ fn the_positive_control_removes_the_same_file_when_the_declaration_is_met() {
   // by a fixture that stopped producing a dehydration candidate at all.
   let fx = Fixture::new();
   let (doomed, p) = one_removal(&fx, gate_open());
-  let report = p.run(Mode::Apply, &|| "digest".to_string()).expect("apply returns");
+  let report = p
+    .run(Mode::Apply, &|| "digest".to_string())
+    .expect("apply returns");
 
   assert!(
     !doomed.exists(),
@@ -581,7 +585,9 @@ fn one_refusal_covers_the_run_rather_than_one_per_file() {
   materialise(&p);
   let candidates: Vec<_> = p.with(Action::Dehydrate).map(|s| s.path.clone()).collect();
 
-  let report = p.run(Mode::Apply, &|| "digest".to_string()).expect("apply returns");
+  let report = p
+    .run(Mode::Apply, &|| "digest".to_string())
+    .expect("apply returns");
   let refusals = report
     .refused
     .iter()
@@ -617,7 +623,9 @@ fn a_plan_with_no_removals_does_not_report_the_ship_gate() {
     "digest".to_string(),
   );
   assert_eq!(p.with(Action::Dehydrate).count(), 0);
-  let report = p.run(Mode::Apply, &|| "digest".to_string()).expect("apply returns");
+  let report = p
+    .run(Mode::Apply, &|| "digest".to_string())
+    .expect("apply returns");
   assert!(
     !report
       .refused

@@ -307,9 +307,7 @@ pub enum RulesError {
   /// `concretised_by:` reference -- so a file without one is unreachable by
   /// construction. Dropping it quietly means the library reports 63 of 64 and
   /// nothing says which one went.
-  #[error(
-    "the rule at {path} declares no `id:` in its frontmatter, so nothing can address it"
-  )]
+  #[error("the rule at {path} declares no `id:` in its frontmatter, so nothing can address it")]
   Unidentified { path: PathBuf },
   #[error("cannot read the rule library at {path}: {source}")]
   Io {

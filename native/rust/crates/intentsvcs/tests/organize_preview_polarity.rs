@@ -147,7 +147,10 @@ fn the_preview_and_the_run_report_exactly_the_same_thing() {
   let fx = Fixture::new();
   let (_doomed, p) = one_removal(&fx, gate_open());
 
-  let previewed = fingerprint(&p.run(Mode::Preview, &|| "digest".to_string()).expect("preview"));
+  let previewed = fingerprint(
+    &p.run(Mode::Preview, &|| "digest".to_string())
+      .expect("preview"),
+  );
   let performed = fingerprint(&p.run(Mode::Apply, &|| "digest".to_string()).expect("apply"));
 
   assert_eq!(
@@ -177,15 +180,10 @@ fn a_preview_writes_nothing_either() {
   p.run(Mode::Preview, &|| "digest".to_string())
     .expect("preview");
   for path in &hydrating {
-    assert!(
-      !path.exists(),
-      "PREVIEW WROTE A FILE: {}",
-      path.display()
-    );
+    assert!(!path.exists(), "PREVIEW WROTE A FILE: {}", path.display());
   }
 
-  p.run(Mode::Apply, &|| "digest".to_string())
-    .expect("apply");
+  p.run(Mode::Apply, &|| "digest".to_string()).expect("apply");
   for path in &hydrating {
     assert!(
       path.exists(),
@@ -230,7 +228,10 @@ fn a_preview_never_asks_whether_the_tree_moved() {
       "A TREE THAT HAS MOVED".to_string()
     })
     .expect_err("CONTROL FAILED: an apply against a moved tree must refuse");
-  assert!(matches!(err, OrganizeError::TreeMoved { .. }), "got {err:?}");
+  assert!(
+    matches!(err, OrganizeError::TreeMoved { .. }),
+    "got {err:?}"
+  );
   assert_eq!(asked_on_apply.get(), 1, "the apply path asks exactly once");
 }
 
@@ -269,7 +270,9 @@ fn a_preview_reports_the_refusal_rather_than_counting_it_as_a_removal() {
     .refused
     .iter()
     .find(|e| matches!(e, OrganizeError::PreconditionsUnmet { .. }))
-    .expect("the preview must carry the refusal -- it is the answer to `what happens if I type --apply`");
+    .expect(
+      "the preview must carry the refusal -- it is the answer to `what happens if I type --apply`",
+    );
   assert!(
     refusal.to_string().contains("AC-00.3"),
     "and it must name the unmet precondition: {refusal}"

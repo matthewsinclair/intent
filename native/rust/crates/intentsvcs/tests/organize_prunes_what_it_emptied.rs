@@ -83,7 +83,10 @@ fn an_ancestor_emptied_by_its_child_goes_in_the_same_run() {
   fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0057\n");
 
   let wp_dir = fx.project().thread_dir("ST0001").join("WP");
-  assert!(wp_dir.is_dir(), "precondition: the WP directory is realised");
+  assert!(
+    wp_dir.is_dir(),
+    "precondition: the WP directory is realised"
+  );
 
   fx.facade_on_disk()
     .organize(Mode::Apply)
@@ -146,7 +149,10 @@ fn the_estate_root_is_never_removed() {
      cascade without a declared floor walks to `/`"
   );
   assert!(
-    !report.pruned.iter().any(|p| p == &root || root.starts_with(p)),
+    !report
+      .pruned
+      .iter()
+      .any(|p| p == &root || root.starts_with(p)),
     "and nothing at or above the root may even be attempted. pruned: {:?}",
     report.pruned
   );

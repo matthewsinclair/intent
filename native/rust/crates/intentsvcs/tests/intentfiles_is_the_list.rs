@@ -295,7 +295,8 @@ STEELTHREAD:ST0057
   // estate where nothing ever needed doing.
   let before = realised();
   assert_ne!(
-    before, listed,
+    before,
+    listed,
     "PRECONDITION: realised ({}) and listed ({}) must differ before the run,\n       \
      otherwise the equality afterwards is satisfied by an estate that never\n       \
      needed reconciling",

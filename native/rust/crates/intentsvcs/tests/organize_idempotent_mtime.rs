@@ -111,7 +111,9 @@ fn a_second_run_moves_no_mtimes() {
 
   // First run: an empty tree, so everything declared hydrates.
   let first = a_plan(&project, &TreeState::default());
-  let report = first.run(Mode::Apply, &|| "d".to_string()).expect("first run applies");
+  let report = first
+    .run(Mode::Apply, &|| "d".to_string())
+    .expect("first run applies");
   assert!(
     !report.hydrated.is_empty(),
     "the first run must actually write, or the second proves nothing"
@@ -176,7 +178,9 @@ fn the_measurement_can_see_an_mtime_move() {
   let project = fx.project();
 
   let first = a_plan(&project, &TreeState::default());
-  let report = first.run(Mode::Apply, &|| "d".to_string()).expect("first run applies");
+  let report = first
+    .run(Mode::Apply, &|| "d".to_string())
+    .expect("first run applies");
   let written = report.hydrated.clone();
   let before = mtimes(&written);
 
