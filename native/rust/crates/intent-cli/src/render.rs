@@ -2963,7 +2963,7 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   // `--languages` is a pure read of the roster and answers before anything else,
   // including before a language is required.
   if m.get_flag("languages") {
-    for l in ["elixir", "rust", "swift", "lua", "shell"] {
+    for l in intentsvcs::critic::HEADLESS_LANGUAGES {
       println!("{l}");
     }
     return Ok(());
@@ -2989,11 +2989,10 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   // project's declared language list silently disables checking for it** --
   // the failure reads as a pass, which is the one shape this command exists to
   // prevent. v2 refuses with exit 2 and the same roster.
-  const KNOWN: [&str; 5] = ["elixir", "rust", "swift", "lua", "shell"];
-  if !KNOWN.contains(&lang.as_str()) {
+  if !intentsvcs::critic::HEADLESS_LANGUAGES.contains(&lang.as_str()) {
     return Err(Failure::Unavailable(format!(
       "error: first argument must be a language ({}) or a prose discipline (author content)",
-      KNOWN.join(" ")
+      intentsvcs::critic::HEADLESS_LANGUAGES.join(" ")
     )));
   }
 

@@ -66,6 +66,29 @@ use thiserror::Error;
 
 use crate::rules::{Library, RulesError};
 
+/// The languages that have a HEADLESS code critic -- the roster `--languages`
+/// prints and the roster an unknown language is refused against.
+///
+/// **ONE HOME, BECAUSE TWO DRIFT SILENTLY IN THE DIRECTION SOMEONE WILL
+/// ACTUALLY TAKE THEM.** This was a pair of literals twenty-six lines apart in
+/// `render.rs`, with a comment between them asserting the gate *carries no
+/// language knowledge of its own and cannot drift from this registry* --
+/// singular, while there were two (cc, 2026-08-20). Add a sixth language to the
+/// refusal list alone and `critic <newlang>` runs, `--languages` omits it,
+/// `bin/.devbin/lib/cmd/check` reads that list, and **the language is silently
+/// dropped from the check loop -- the failure reads as a pass.** The opposite
+/// order fails loudly at the refusal, so the dangerous direction is the one
+/// that looks like the smaller edit.
+///
+/// **IT IS NOT [`crate::rules::LANGUAGES`] AND MUST NOT BE COLLAPSED INTO IT.**
+/// That is the RULE-PACK roster and carries nine -- `agnostic`, `prose`,
+/// `author` and `content` besides these five. Those have rules and no headless
+/// runner: `author` and `content` are a deliberate clean no-op here because
+/// prose critique is on-demand via the subagent. **Two rosters that overlap are
+/// not one roster**, and merging them would make `--languages` advertise four
+/// languages this command cannot mechanically check.
+pub const HEADLESS_LANGUAGES: [&str; 5] = ["elixir", "rust", "swift", "lua", "shell"];
+
 /// How serious a rule's findings are. Ordered, because `--severity-min` filters
 /// on it and a filter needs a total order rather than a set of names.
 ///
@@ -1130,6 +1153,20 @@ mod tests {
       ..base
     };
     assert_eq!(both.exit_code(), 3);
+  }
+
+  #[test]
+  fn every_headless_language_has_a_rule_pack() {
+    // The two rosters are deliberately different sizes, but they cannot be
+    // unrelated: a language with a headless critic and no rule pack would
+    // advertise itself in `--languages`, accept a run, and find nothing --
+    // a clean result over a library that does not exist.
+    for l in HEADLESS_LANGUAGES {
+      assert!(
+        crate::rules::LANGUAGES.contains(&l),
+        "{l} has a headless critic and no rule pack"
+      );
+    }
   }
 
   #[test]
