@@ -35,8 +35,18 @@
 //! MIGRATED OR NOT") are driven END TO END through the shipped
 //! `lib/templates/hooks/pre-commit.sh`, never against a stub:
 //!
-//! - `a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt`
+//! - `a_migrated_project_can_still_commit`
 //! - `an_unmigrated_project_can_still_commit`
+//!
+//! **The first was renamed on 2026-08-20 and lost a clause it could no longer
+//! keep.** It read `..._while_a_hook_invoked_command_is_unbuilt`; `critic`
+//! landed at `5043d0c4` and a `shell` fixture stopped meeting one. AC-10.9's
+//! own words are "a project can still COMMIT with v3 installed -- MIGRATED OR
+//! NOT", which never mentioned an unbuilt command, so the criterion is
+//! unchanged and the test name simply stopped over-promising. The fail-open
+//! behaviour that clause was really about is now its own test,
+//! `the_gate_fails_open_and_names_the_language_when_the_critic_cannot_answer`,
+//! which is NOT an AT-10.9 arm.
 //!
 //! **The second arm is the one the criterion gained when issue 0045 widened it,
 //! and it did not exist until 2026-08-17.** The original wording was written
@@ -145,14 +155,50 @@ fn success_exits_0() {
 ///
 /// So the real form asks for the code on an invocation that FAILS, and the
 /// disjunction is gone: there is one number and it is asserted.
+///
+/// # The exemplar changed on 2026-08-20 because the old one got BUILT
+///
+/// This drove `critic shell --staged`, whose 2 was the *unwired* 2 -- so a test
+/// named for INV-04 was measuring it through a stand-in for the very command
+/// INV-04 is about, and would have kept passing if `critic`'s own codes were
+/// wrong in every particular. `critic` landed at `5043d0c4`, the stand-in
+/// started exiting 0, and the test got STRONGER by being broken: it now drives
+/// `intent critic` rejecting its own invocation, which is INV-04's 2 itself.
 #[test]
 fn the_unavailable_exception_is_not_flattened_by_the_override() {
-  let out = run(&["critic", "shell", "--staged"]);
+  let out = run(&["critic", "klingon"]);
   assert_eq!(
     out.status.code(),
     Some(2),
     "INV-04's 2 survives INV-02's blanket override of clap's usage codes.\nstderr: {}",
     String::from_utf8_lossy(&out.stderr)
+  );
+
+  // **THE CONTROL, AND IT MUST COME BACK 1.** Without it a build that had
+  // simply STOPPED overriding clap would satisfy the assertion above and look
+  // correct -- clap's own default for a usage error is 2, so "2 survived" and
+  // "2 was never converted in the first place" are indistinguishable from one
+  // measurement. This one is a usage error clap raises, and INV-02 still turns
+  // it into 1.
+  //
+  // **AND THE PAIR RECORDS A DIVERGENCE INSIDE `critic` THAT IS dc's TO RULE,
+  // NOT MINE TO ENCODE AS CORRECT.** Both invocations are usage errors and they
+  // exit differently: `critic klingon` is 2 (fail-open, language named
+  // UNENFORCED) while `critic --no-such-flag` is 1, which the shipped gate
+  // reads as FINDINGS and blocks on, printing a remedy for findings that do not
+  // exist -- issue 0038's exact symptom through a different door. It is LATENT
+  // rather than live: measured on 2026-08-20, the installed
+  // `.git/hooks/pre-commit.intent` and `lib/templates/hooks/pre-commit.sh` pass
+  // the same four flags, so nothing reaches this arm today. It becomes
+  // reachable on hook/binary flag skew, and that skew is this repo's normal
+  // state -- the installed hook is an install-time COPY.
+  let flag = run(&["critic", "shell", "--no-such-flag"]);
+  assert_eq!(
+    flag.status.code(),
+    Some(1),
+    "the blanket override is no longer converting clap's usage codes, so the assertion above \
+     proves nothing about INV-04 surviving it.\nstderr: {}",
+    String::from_utf8_lossy(&flag.stderr)
   );
 }
 
@@ -167,9 +213,24 @@ fn the_unavailable_exception_is_not_flattened_by_the_override() {
 /// than inferred from its source, and the measurement narrowed the fix: two of
 /// the three cases issue 0038 proposed separating **already matched v2 and had
 /// to stay 1**. Only "this build cannot answer" was wrong.
+///
+/// # The exemplar is BORROWED, and it will expire again
+///
+/// `st dehydrate` stands in for "a known command this build has not wired",
+/// replacing `critic shell`, which stopped being one when `critic` landed at
+/// `5043d0c4`. **The roster of record is `declared_but_unwired.rs`, not this
+/// file** -- that one drives every member and goes red when any is built, which
+/// is the mechanism; this borrows a single member and says so rather than
+/// keeping a second list that could drift from it silently.
+///
+/// So this WILL red again the day `st dehydrate` is implemented, and that is
+/// the design working: pick another member from the roster. On the day the
+/// roster empties, these three assertions have no subject left in the surface
+/// and should be RETIRED rather than repaired -- there would be no
+/// declared-but-unimplemented command for the contract to be about.
 #[test]
 fn an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation() {
-  let unbuilt = run(&["critic", "shell", "--staged"]).status.code();
+  let unbuilt = run(&["st", "dehydrate", "ST0056"]).status.code();
   let unknown = run(&["nosuchfamily"]).status.code();
   let usage = run(&["st", "show"]).status.code();
 
@@ -189,28 +250,19 @@ fn an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation() {
   );
 }
 
-/// **The consumer, driven end to end -- because the number is only worth what
-/// the thing reading it does with it.**
-///
-/// Every assertion above is about a number in isolation. The defect was never
-/// about a number: it was that a project migrating to v3 while any
-/// hook-invoked command was still unwired **could not commit at all**, and the
-/// remedy it printed named findings that did not exist, leaving `--no-verify`
-/// as the only way through -- which trains a habit that outlives the cause.
-///
-/// So this drives the SHIPPED hook against the real binary, the way the defect
-/// was found. The hook is not modified by the fix and is not modified by this
-/// test; its `2+` fail-open branch was correct all along and simply never
-/// reached. If someone reverts the exit code, a unit assertion above reds AND
-/// this reds with the user-visible symptom, which is the one worth reading.
-/// Build a project fixture at `intent_version` and run the SHIPPED pre-commit
-/// hook inside it, returning (exit code, stderr).
+/// Build a project fixture at `intent_version` declaring `language`, and run
+/// the SHIPPED pre-commit hook inside it, returning (exit code, stderr).
 ///
 /// **Extracted rather than copied.** The unmigrated case below differs from the
 /// migrated one by a single field, and a fifty-line fixture pasted twice is two
 /// fixtures that agree until somebody edits one -- which is the drift these
 /// tests exist to catch one layer up.
-fn shipped_hook_in(intent_version: &str) -> (Option<i32>, String) {
+///
+/// `language` became a parameter on 2026-08-20: the hook dispatches one critic
+/// per declared language, so it is the only lever a caller has over what the
+/// gate MEETS, and the fail-open arm now needs a language the critic will not
+/// answer for.
+fn shipped_hook_in(intent_version: &str, language: &str) -> (Option<i32>, String) {
   let hook = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
     .join("../../../../lib/templates/hooks/pre-commit.sh")
     .canonicalize()
@@ -222,7 +274,7 @@ fn shipped_hook_in(intent_version: &str) -> (Option<i32>, String) {
   std::fs::write(
     root.join("intent/.config/config.json"),
     format!(
-      "{{\"intent_version\":\"{intent_version}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}}\n"
+      "{{\"intent_version\":\"{intent_version}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"{language}\"]}}\n"
     ),
   )
   .expect("write config");
@@ -270,22 +322,113 @@ fn shipped_hook_in(intent_version: &str) -> (Option<i32>, String) {
   )
 }
 
+/// **The consumer, driven end to end -- because the number is only worth what
+/// the thing reading it does with it.**
+///
+/// Every assertion above is about a number in isolation. The defect was never
+/// about a number: it was that a project migrating to v3 while any
+/// hook-invoked command was still unwired **could not commit at all**, and the
+/// remedy it printed named findings that did not exist, leaving `--no-verify`
+/// as the only way through -- which trains a habit that outlives the cause.
+///
+/// So this drives the SHIPPED hook against the real binary, the way the defect
+/// was found. The hook is not modified by the fix and is not modified by this
+/// test.
+///
+/// # This was ONE test and it was carrying TWO properties, and BOTH legs moved
+///
+/// It read `a_migrated_project_can_still_commit_while_a_hook_invoked_command_
+/// is_unbuilt`, drove a `shell` fixture against an unwired `critic`, and
+/// asserted the commit survived AND that the gate said why. **Two separate
+/// things then happened to it, and only one of them was visible.**
+///
+/// - `b2609e26` (hole 3) reworded the `*)` arm's printed line from `invocation
+///   error (exit $rc); fail-open` to `did not check ... UNENFORCED`, because
+///   the gate was diagnosing a cause it never measured. **The literal
+///   `fail-open` moved into a COMMENT, and this test's second assertion had
+///   been pinned to it, so the test went red there** -- before `critic`
+///   existed, for a reason that had nothing to do with `critic`.
+/// - `5043d0c4` built `critic`, which deleted the SCENARIO: a `shell` fixture
+///   no longer meets an unbuilt hook-invoked command at all.
+///
+/// **The first cause was hidden by the second being on its way.** Repairing
+/// only for `critic` would have re-pinned a Rust test to a sentence in a shell
+/// script in another tree -- and the lesson of `b2609e26` is that nobody
+/// rewording that arm can be expected to know this file exists. A peer's prose
+/// is not an API, and asserting on it makes it one without telling them.
+///
+/// So the two properties are now two tests, and the assertion below anchors on
+/// `UNENFORCED` -- the hook's own load-bearing token (the array name, the
+/// digest word, and the concept) rather than an incidental phrase.
 #[test]
-fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt() {
-  let (code, stderr) = shipped_hook_in("3.0.0");
+fn a_migrated_project_can_still_commit() {
+  let (code, stderr) = shipped_hook_in("3.0.0", "shell");
 
   assert_eq!(
     code,
     Some(0),
-    "the gate must fail OPEN when the critic is unavailable, not block the commit.\n{stderr}"
-  );
-  assert!(
-    stderr.contains("fail-open"),
-    "and it must say WHY it let the commit through, rather than passing silently:\n{stderr}"
+    "the shipped gate blocked a commit in a migrated project.\n{stderr}"
   );
   assert!(
     !stderr.contains("commit blocked by findings"),
     "the remedy naming findings that do not exist is the half of 0038 a user actually meets:\n{stderr}"
+  );
+  // **THE CONTROL, AND IT IS EXACTLY AS STRONG AS IT READS.** It separates
+  // "the commit survived because the gate PASSED" from "the commit survived
+  // because the gate FELL OPEN", which are the same 0 and the same silence
+  // otherwise. It does NOT establish that the critic scanned anything -- the
+  // hook prints `out` only on the 1 and `*)` arms, so a clean run and a no-op
+  // are indistinguishable from here. That question is `critic`'s own parity
+  // suite's, one layer down, and claiming it here would be a count of
+  // containers reported as a count of contents.
+  assert!(
+    !stderr.contains("UNENFORCED"),
+    "the commit went through, but the gate FELL OPEN rather than passing -- so this test would be \
+     asserting that a commit survived a gate that was not running:\n{stderr}"
+  );
+}
+
+/// **THE FAIL-OPEN ARM, AND IT NEEDED A SUBJECT THAT CANNOT BE BUILT.**
+///
+/// The property is the one issue 0038 was really about: when `intent critic`
+/// answers in a code the gate does not recognise, the commit proceeds AND the
+/// gate says which language went unchecked. That protects every consumer, and
+/// it is worth a test that does not expire.
+///
+/// Every previous subject expired. An unwired `critic` stopped being unwired;
+/// any declared-but-unimplemented verb gets implemented eventually. **An
+/// undeclared LANGUAGE never becomes declared** -- the hook dispatches whatever
+/// `languages` names, `intent critic` owns the registry, and a name outside it
+/// is a usage error at 2 forever. So the fixture declares one.
+///
+/// This is a fixture, not a claim that anyone ships `klingon`: the hook's own
+/// comment says it "needs no language knowledge of its own", and driving it
+/// with a name it cannot know is the cleanest way to hold it to that.
+#[test]
+fn the_gate_fails_open_and_names_the_language_when_the_critic_cannot_answer() {
+  let (code, stderr) = shipped_hook_in("3.0.0", "klingon");
+
+  assert_eq!(
+    code,
+    Some(0),
+    "the gate must fail OPEN when the critic cannot answer, not block the commit -- a gate that \
+     must be bypassed is a guard nobody keeps.\n{stderr}"
+  );
+  assert!(
+    stderr.contains("UNENFORCED"),
+    "and it must say WHAT WENT UNCHECKED, rather than passing silently. **If this reds after a \
+     reword of the `*)` arm or the digest in lib/templates/hooks/pre-commit.sh, the hook is \
+     probably fine and this string is the stale half** -- the property is that the gate names \
+     the unchecked language, not that it uses this word:\n{stderr}"
+  );
+  assert!(
+    stderr.contains("klingon"),
+    "the digest must NAME the language; `1 of 1 went unenforced` without the name leaves the \
+     operator nothing to act on:\n{stderr}"
+  );
+  assert!(
+    !stderr.contains("commit blocked by findings"),
+    "and it must never claim findings it does not have:\n{stderr}"
   );
 }
 
@@ -300,9 +443,20 @@ fn a_migrated_project_can_still_commit_while_a_hook_invoked_command_is_unbuilt()
 /// every unmigrated project, printing a remedy about findings that do not
 /// exist while the true remedy sits on screen above it, overridden.
 ///
-/// **It passes today only because `critic` is unbuilt and answers 2**, into the
-/// fail-open branch issue 0038's fix created. That is a reprieve nobody chose
-/// and it ends when WP-07 does.
+/// **THE DAY ARRIVED ON 2026-08-20 AND THE TEST HELD.** This doc used to read
+/// *it passes today only because `critic` is unbuilt and answers 2 -- a
+/// reprieve nobody chose, and it ends when WP-07 does.* WP-07 ended at
+/// `5043d0c4`, and measured in a git-initialised unmigrated fixture the built
+/// `critic` exits **0** and scans normally: dc built it on the project-optional
+/// path, so `Facade::open`'s `readable()` is never reached and the refusal this
+/// test feared never forms.
+///
+/// **Recorded rather than deleted, because the two outcomes look identical from
+/// the green.** A test written to fail on a named day, which does not fail on
+/// that day, has either been vindicated or quietly lost its subject -- and the
+/// only thing that tells them apart is someone checking WHY it passed on the
+/// day. It was vindicated: the hazard it named was real, was reachable by the
+/// obvious implementation, and was avoided.
 ///
 /// **The control is what stops this being decorative.** A guard that merely
 /// asserts "the gate returned 0" would pass on a fixture that was never
@@ -338,7 +492,7 @@ fn an_unmigrated_project_can_still_commit() {
     "precondition: and it refuses for the MIGRATION reason, not some other one"
   );
 
-  let (code, stderr) = shipped_hook_in("2.19.0");
+  let (code, stderr) = shipped_hook_in("2.19.0", "shell");
 
   assert_eq!(
     code,
@@ -384,9 +538,11 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
   assert_eq!(out.status.code(), Some(0), "the guide must render");
   let guide = String::from_utf8_lossy(&out.stdout).into_owned();
 
-  // The claim about `2`, driven: a declared-but-unimplemented command, carrying
-  // the stderr line the guide tells an agent to recognise it by.
-  let unbuilt = run(&["critic", "shell"]);
+  // The claim about `2`, FIRST cause, driven: a declared-but-unimplemented
+  // command, carrying the stderr line the guide tells an agent to recognise it
+  // by. Exemplar borrowed from `declared_but_unwired.rs`; see the note on
+  // `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation`.
+  let unbuilt = run(&["st", "dehydrate", "ST0056"]);
   assert_eq!(
     unbuilt.status.code(),
     Some(2),
@@ -411,12 +567,15 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
     "the guide says 1 is the command running and answering no"
   );
 
-  // **And no command may be given its own exit-code rule in prose while this
-  // build does not give it one.** `critic` is not implemented here, so every
-  // sentence the guide spends on its codes describes software that is not in
-  // the binary the reader is holding -- which is how the swap survived. Scoped
-  // to the surface-wide section, because the per-row reference names commands
-  // constantly and must.
+  // **THE GUARD HERE USED TO BE ITS OWN INVERSE, AND THE FLIP IS THE POINT.**
+  // It read `!facts.contains("critic")`, on the ground that *`critic` is not
+  // implemented here, so every sentence the guide spends on its codes describes
+  // software that is not in the binary the reader is holding*. That ground
+  // expired at `5043d0c4`. The RULE it served did not: **no command may be
+  // given its own exit-code rule in prose unless this build gives it one** --
+  // and now that it does, the obligation reverses from "do not mention it" to
+  // "mention it, and be drivable". Scoped to the surface-wide section, because
+  // the per-row reference names commands constantly and must.
   let facts = guide
     .split("## Facts about the whole surface")
     .nth(1)
@@ -425,9 +584,29 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
     .next()
     .expect("a section body");
   assert!(
-    !facts.contains("critic"),
-    "the surface-wide facts state an exit-code rule for `critic`, which this \
-     build does not implement -- so the claim cannot be checked against \
-     anything the reader can run:\n{facts}"
+    facts.contains("critic"),
+    "`intent critic` is the one command in this build whose 2 is not the unwired 2, and the \
+     surface-wide facts no longer say so -- an agent meeting it has nothing to read:\n{facts}"
+  );
+
+  // The claim about `2`, SECOND cause, driven -- because the sentence above is
+  // only worth the behaviour behind it. **This is the assertion the old guard
+  // could not make**: while `critic` was unbuilt there was nothing to run, so
+  // the rule could only be enforced by silence.
+  //
+  // **3 IS NAMED BY INV-04's TITLE AND DELIBERATELY LEFT UNEXPLAINED HERE.**
+  // It is REFUSED -- a rule the project armed could not be enforced -- and the
+  // gate BLOCKS on it, so it matters to a reader. This test cannot drive one:
+  // dc's commit records that arm as having no live population, covered by a
+  // fixture inside `critic`'s own suite. Adding prose for it would be exactly
+  // the unexecutable claim this test exists to prevent, so the gap is dc's to
+  // close from the side that can drive it.
+  let bad_lang = run(&["critic", "klingon"]);
+  assert_eq!(
+    bad_lang.status.code(),
+    Some(2),
+    "the guide tells an agent that `intent critic` rejecting an invocation it cannot act on is a \
+     2.\nstderr: {}",
+    String::from_utf8_lossy(&bad_lang.stderr)
   );
 }

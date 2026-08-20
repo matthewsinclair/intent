@@ -139,7 +139,7 @@ fn surface_wide(table: &Table) -> Result<String, Failure> {
     "\
 ## Facts about the whole surface
 
-- **{}** ({}). `0` is success. `1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error. **`2` means this build cannot answer the question at all**, and in this build it has exactly one cause: a command that is declared but not implemented yet, which says `is a known command that is not implemented yet` on stderr. **Never read `2` as a verdict about your code, and never read `1` as a broken run.**
+- **{}** ({}). `0` is success. `1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error. **`2` means this build cannot answer the question at all**, and it has two causes: a command that is declared but not implemented yet, which says `is a known command that is not implemented yet` on stderr; and `intent critic` rejecting an invocation it cannot act on, such as a language it does not know. Both mean the TOOL is unavailable rather than that your code is bad, which is why the shipped pre-commit gate fails open on `2`. **Never read `2` as a verdict about your code, and never read `1` as a broken run.**
 - **{}** ({}). Results go to stdout; failures go to stderr with a lowercase `error: ` prefix. Nothing is banner-wrapped.
 - **{}** ({}). A usage error -- an unknown flag, a missing argument -- exits `1`, not clap's default of 2.
 - **{}** ({}). A command that needs to be inside an Intent project says so plainly when it is not, rather than half-working.
@@ -530,6 +530,15 @@ mod tests {
       match render(&table).expect_err("a cited invariant vanished and the guide rendered anyway") {
         Failure::Error(msg) | Failure::Unavailable(msg) => msg,
         Failure::Verdict => panic!("a build defect must carry a message, not a bare verdict"),
+        // Added 2026-08-20 when `critic` introduced `Refused` (`5043d0c4`) and
+        // this match stopped compiling. **The absence of a `_` arm is why
+        // anyone was told**: a wildcard would have swallowed a new variant here
+        // in silence, and the type system asking the question is the whole
+        // reason the arms are enumerated.
+        Failure::Refused(msg) => panic!(
+          "a missing invariant is a BUILD DEFECT, not a refusal -- `Refused` says a rule this \
+           project armed could not be enforced, and the guide arms nothing: {msg}"
+        ),
       };
     assert!(
       err.contains("INV-04") && err.contains("build defect"),
