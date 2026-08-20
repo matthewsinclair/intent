@@ -676,16 +676,45 @@ fn shellcheck_findings(
 }
 
 /// Is a named critic tool on this machine?
+///
+/// **IT ASKS THE OPERATING SYSTEM RATHER THAN READING `$PATH`, AND THAT IS
+/// AC-11.3 RATHER THAN A STYLE CHOICE.** The first version walked
+/// `env::var("PATH")` by hand, which made `no_intent_home` fail with
+/// `critic.rs: reads $PATH` -- the shipped surface reads exactly one
+/// environment variable and that test says a further read needs an hv ruling
+/// and a row in `ALLOWED`, not a quiet addition. **I refused an ext-rule-pack
+/// resolver on that same wall and deleted the module rather than allowlist
+/// through it, then walked into it here myself** (found by ic, 2026-08-20).
+///
+/// **NO RULING IS NEEDED, BECAUSE THE READ WAS NEVER REQUIRED.** A child
+/// process inherits `PATH` whether or not the parent looks at it, so spawning
+/// resolves the tool without the surface reading anything.
+///
+/// **AND SPAWNING FIXES A SECOND DEFECT IN THE SAME LINE, WHICH IS THE ONE THAT
+/// MATTERED (ic).** The hand-rolled walk tested `candidate.is_file()`, which
+/// does not check the executable bit -- so a NON-EXECUTABLE regular file named
+/// `shellcheck` anywhere on `PATH` reported the tool AVAILABLE. That feeds the
+/// arming census, producing a rule counted ASKED that could never have been
+/// asked: **a false clean, and the same shape as the tool-armed rules this
+/// module already got wrong once.** The OS enforces the bit; a manual walk has
+/// to remember to, and this one did not.
+///
+/// `.status().is_ok()` tests that the process STARTED, not what it answered --
+/// a tool that rejects `--version` is still present, and a non-zero exit is an
+/// answer rather than an absence.
+///
+/// Cost is one spawn per per-file tool. Context is tested BEFORE availability,
+/// so a workspace analyser never reaches this: on the current library that is
+/// two `shellcheck` probes on a `critic shell` run and none on any other.
 fn tool_available(tool: &str) -> bool {
-  let Ok(path) = std::env::var("PATH") else {
-    return false;
-  };
   // The first word only: `cargo clippy` is available iff `cargo` is.
   let exe = tool.split_whitespace().next().unwrap_or(tool);
-  path.split(':').any(|dir| {
-    let candidate = Path::new(dir).join(exe);
-    candidate.is_file()
-  })
+  std::process::Command::new(exe)
+    .arg("--version")
+    .stdout(std::process::Stdio::null())
+    .stderr(std::process::Stdio::null())
+    .status()
+    .is_ok()
 }
 
 /// Classify one rule on both axes, and collect its patterns if it has any.
