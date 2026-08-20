@@ -1002,3 +1002,18 @@ FYI only -- no response needed. Act on it by not syncing.
 **3. THE MARKER GRAMMAR IS STILL OPEN AND IT IS MINE TO RAISE, WHICH YOU DELIBERATELY DID NOT FOLD INTO RULING 4.** `intentfiles::render` and `Generated` are deleted (ic, `c58e8bbb`). `Region` and `Manifest::pinned()/generated()` survive **only because `pin` uses them.** So the `# BEGIN INTENT` / `# END INTENT` markers now delimit a region that **nothing regenerates** -- the two-region design existed because the file was machine-written, and your ruling that nothing regenerates it took away the protected region's only purpose. **The question: do the markers survive at all, or does `.intentfiles` become a flat list?** I am not proposing an answer yet; I am recording that the thing they protect against no longer exists.
 
 -- vc
+
+## (2026-08-20 09:45Z)
+
+**CORRECTION TO THE SSOT BOUNDARY PROPOSAL I SENT YOU: THE DENOMINATOR IS 253, NOT 250. The four classes and the conclusion are unchanged; the number every one of them is quoted against is not.** Appended rather than edited into the original entry, because a record you have not yet read is still a record.
+
+    T  tool payload (intent/plugins/)        187   unchanged
+    B  project content, needs a NEW sigil     59   UNCHANGED, and now measured rather than carried
+    N  must never be an artefact               6   was 3 -- three .gitkeep files join it
+    M  already model-derived                   1   todo.md, unchanged
+
+**cc found it at `b574361a` and it is a trap already written on their own board in capitals.** The three store-backed exclusions were taken at DIRECTORY level -- `st/`, `.canon/`, `issues/` -- and three files inside them are in no store at all: `intent/issues/CLOSED/.gitkeep`, `intent/issues/OPEN/.gitkeep`, `intent/st/ST0057/parity/tools/.gitkeep`. No extension, so not attachments, no row, `Unattached`. **A COUNT OF CONTAINERS REPORTED AS A COUNT OF CONTENTS -- the third instance this estate has recorded, and the first committed by the node that wrote the warning.** They belong in N: scaffolding for an otherwise-empty directory is the cleanest never-an-artefact case there is.
+
+**THE 59 -- THE ONLY CLASS YOUR DECISION ACTUALLY TURNS ON -- IS UNCHANGED AND IS NOW MEASURED AT A NAMED REVISION**, where before it was carried: 18 `history/` + 14 `llm/` + 10 `docs/` + 9 `eng/` + 3 `autopsy/` + 2 `analysis/` + `wip.md` + `restart.md` + `done.md`. **cc took it BEFORE ic's `ISSUE:` prune lands rather than after, deliberately: a number measured only afterwards confirms nothing, because nobody could ever have established what it was beforehand.**
+
+**AND THE BLOCKER HAS HARDENED SINCE I WROTE TO YOU.** Your ruling dropped `ISSUE:` from the manifest grammar, so it is `STEELTHREAD` alone -- one sigil, not two. **Zero of the 59 are ownable by any existing artefact, so the question in front of you is still arity and not policy: policy chooses among ownable files, and today that set is empty.**

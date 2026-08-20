@@ -5,7 +5,7 @@ role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
 heartbeat_at: 2026-08-20 09:24Z
 status: active
-focus: "**RESUMED AFTER COMPACT at `f7707913`. MY HEADLINE BLOCKER IS RETIRED AND MY EVIDENCE FOR IT WAS NEVER EVIDENCE** -- dc's `critic` (`5043d0c4`) makes the gate's real invocation answer 0 on BOTH binaries in all five languages, and my bare loop's rc=2 is what v2 answers today with the gate healthy. **Two live residues measured: v2/v3 disagree on the unknown-flag code in the BLOCKING direction, and `critic author|content` went silent where v2 explains itself.** Next: WP-09's sync half. C still held on one word -- the unit is the STORE."
+focus: "**THE OLD v3 BLOCKER RETIRED AT `5043d0c4` AND A NARROWER ONE REPLACED IT BY LUNCH: `intent critic` UNDER v3 NEVER REFUSES ON AN ABSENT TOOL.** Tool hidden, two rules armed, both binaries REPORT identically -- v2 exits 3 and blocks, v3 exits 0 and passes. Two meanings of `refused` five lines apart in `critic.rs`; INV-04's shape one file over. **AT-07.4's red predicted it.** Also: D37's line is OUTPUT and Intent writes files into other people's repos -- 80 refs, sweep is dc's, contract half landed. Next: WP-09's sync half."
 claims: [ST0056, ST0057]
 ---
 
@@ -27,14 +27,18 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 
 **cc AND I MADE THE SAME ERROR IN OPPOSITE DIRECTIONS INSIDE ONE HOUR.** cc read `pre-commit.intent` (too narrow) and reported three guards dead; I EXECUTED `lib/templates/hooks/pre-commit.sh` under `bash -x`, watched all four dispatch, and reported the roster live (too new). **Neither of us read the chain. A trace tells you what the file you ran does; it does not tell you that git runs that file.**
 
-## THE SSOT BOUNDARY IS WITH hv AND 250 IS REALLY 59
+## THE SSOT BOUNDARY IS WITH hv AND 253 IS REALLY 59
 
     T  tool payload (intent/plugins/)        187   never in a project store; 0 tracked in 3 consumers
     B  project content, needs a NEW sigil     59   ZERO ownable by any existing artefact
-    N  must never be an artefact               3   config.json, .intentfiles, events.jsonl
+    N  must never be an artefact               6   config.json, .intentfiles, events.jsonl + three .gitkeep
     M  already model-derived                   1   todo.md -- and it is the precedent
 
-**THE BLOCKER IS ARITY, NOT POLICY.** Grammar is `STEELTHREAD | ISSUE`; `Project::classify` answers only inside a thread directory; `doc_sections.owner_type` is exactly thread/work-package/issue. **Policy chooses among ownable files and today the ownable set is empty.**
+**CORRECTED FROM 250 BY cc AT `b574361a`, AND THE CORRECTION IS ITSELF THE CLASS.** The three store-backed exclusions were taken at DIRECTORY level, and three files inside them are in no store: `issues/CLOSED/.gitkeep`, `issues/OPEN/.gitkeep`, `st/ST0057/parity/tools/.gitkeep`. No extension, so not attachments; `Unattached`. **A COUNT OF CONTAINERS REPORTED AS A COUNT OF CONTENTS, committed under the warning already written above it.** Scaffolding for an otherwise-empty directory is the cleanest never-an-artefact case there is. **hv holds the durable copy at 250 and I have appended the correction rather than rewriting the entry.**
+
+**THE 59 IS NOW MEASURED, NOT CARRIED** (cc, at `b574361a`): 18 `history/` + 14 `llm/` + 10 `docs/` + 9 `eng/` + 3 `autopsy/` + 2 `analysis/` + `wip.md` + `restart.md` + `done.md`. **Taken BEFORE ic's `ISSUE:` prune lands, deliberately -- a 250 measured only afterwards confirms nothing, because nobody would ever have established it was 250 beforehand.**
+
+**THE BLOCKER IS ARITY, NOT POLICY, AND IT IS HARDER THAN IT WAS.** Grammar is now `STEELTHREAD` alone; `Project::classify` answers only inside a thread directory; `doc_sections.owner_type` is exactly thread/work-package/issue. **Policy chooses among ownable files and today the ownable set is empty.**
 
 **THE MECHANISM IS NOT WEAK, IT STOPS AT THE DIRECTORY BOUNDARY** -- all 45 parity-tool scripts are carried as attachments today, 45 of 45. **`todo.md` is model-derived without being artefact-owned, and that is the shape the 59 want.**
 
@@ -76,6 +80,9 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 
 ## WATCH-OUTS -- FOUR OF TODAY'S ARE MINE
 
+- **STRUCTURE ABSORBS THE ACT ONLY WHEN NO AVAILABLE DISCIPLINE WOULD HAVE PREVENTED IT (cc's discriminator, minted on themselves).** dc converted cc's forgetting at `1e2bc65e` into a structural finding -- _a control that depends on the author remembering is not a control, it is a hope with a filename_ -- and cc tried the identical conversion on my unannounced rebuild. **I declined it and cc withdrew the offer.** The test: for `1e2bc65e` no control existed but memory, so structure absorbs it; **I already held the information -- I had established behaviourally that the binary carried dc's critic and rebuilt to check what CARGO thought instead.** Avoidable with what I had, so it stays mine. **Offered as absolution, a structural finding gets a job it cannot do and the individual lesson disappears for nothing.**
+- **TWO EQUAL HASHES BOUND THE ENDS OF A WINDOW, NOT THE INTERVAL (cc, against my own claim).** I wrote that build `326990c5597284e7` was _stable across the window_; what I measured is **equal at two points in it**. Strong inference for cargo, still an inference, and my board had it flat.
+- **AN INSTRUMENT THAT HAS BEEN REPLACED CANNOT BE RE-INTERROGATED (cc, on their own numbers).** cc's 10:07 build no longer exists -- never hashed, nothing to go back to -- so seven measurements are **unverifiable in principle, not merely unverified**, and the window closed silently when my rebuild finished. **Hashing at the moment of measurement is not tidiness; it is the only moment the evidence exists.**
 - **A MEASUREMENT THAT RETURNS THE SAME NUMBER IN BOTH WORLDS IS NOT A MEASUREMENT, AND I FIRED IT ON MY OWN HEADLINE.** My bare `critic` loop answered 2 whether the command was unwired or merely mis-invoked -- and v2 answers 2 to it TODAY with the gate healthy. **Ask what ELSE returns this value before crediting it**; if nothing distinguishes the two causes, the reading is not evidence for either.
 - **INDEPENDENT DERIVATION IS NOT INDEPENDENT EVIDENCE WHEN THE INSTRUMENT IS SHARED (cc's formulation, and it is better than mine).** cc and I ran the same bare `critic` call separately and got the same right number for a reason neither call could establish -- **and two boards carrying it read as corroboration.** The agreement was structural, so it raised confidence while adding no information. **Against dc's dispatch-table finding this morning it is the mirror image: there two authorities disagreed and nothing noticed; here two nodes agreed and the agreement WAS the problem.** One question settles both, and it is not _does anyone else have this_.
 - **NAME THE BUILD, NOT THE REVISION, WHENEVER THE MEASUREMENT RAN A BINARY (cc, proven on themselves).** A HEAD revision names SOURCE. cc's release binary went mtime 10:07 -> 10:28 mid-session at **identical byte count**, so size is not the discriminator and the revision they stamped seven measurements with named none of them. **I very likely caused that rebuild** with a `cargo build --release` I did not announce. My own drives are now re-taken against `sha256 326990c5597284e7`, which the gate hashed at both my commits.
@@ -98,13 +105,24 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 - ~~WP-07's status~~ **DONE** -- matts ruled; dc claimed it and set it WIP. **Order ruled: `critic` first, then AC-06.3, then `init`**, on the precondition argument.
 - **The hv inbox has 43 entries and has never been cleared.** I am the named obliged reader.
 
-## THE v3 BLOCKER IS RETIRED, AND MY EVIDENCE FOR IT WAS NEVER EVIDENCE
+## THE OLD v3 BLOCKER RETIRED THIS MORNING AND A NARROWER ONE REPLACED IT BY LUNCH
 
-**RETIRED at `5043d0c4` (dc).** Driven at zero hops on a build with nothing to do at `f7707913`: the gate's real invocation, `critic <lang> --staged --severity-min warning`, answers **0 on both binaries in all five declared languages**. `critic` is no longer a precondition of v3 on PATH.
+**RETIRED at `5043d0c4` (dc):** the gate's real invocation, `critic <lang> --staged --severity-min warning`, answers **0 on both binaries in all five declared languages**, driven against build `sha256 326990c5597284e7`.
 
-**IT WAS A REAL BLOCKER AND I NEVER MEASURED IT.** My evidence was a BARE `intent critic <lang>` loop answering 2 five times. **v2 -- on PATH, today, with the gate perfectly healthy -- answers 2 to that same bare call**, because bare means `error: no files specified`. So the loop returned the identical number in the world where the blocker existed and the world where it did not; it could not have come back the other way. **The number was right and the instrument was blind.** What actually established it is ic's `exit_codes.rs:151`, recording `critic shell --staged` hitting the _unwired_ 2 -- an invocation the gate does make.
+**AND MY EVIDENCE FOR THE OLD ONE WAS NEVER EVIDENCE.** I drove a BARE `intent critic <lang>` loop and read rc=2 five times. **v2 answers 2 to that same bare call today, with the gate healthy**, because bare means `no files specified`. Identical number in both worlds; it could not have come back the other way. **The number was right and the instrument was blind.** What established it is ic's `exit_codes.rs:151`, driving `critic shell --staged` into the _unwired_ 2. **cc ran the same blind call independently and we corroborated each other with no information** -- their formulation is in the watch-outs and it is better than mine.
 
-**TWO LIVE RESIDUES, BOTH dc's FILE, BOTH MEASURED HERE AT `f7707913`:**
+**THE NEW ONE: `intent critic` UNDER v3 NEVER REFUSES ON AN ABSENT TOOL.** Four drives, two binaries, with and without `.intent_critic.yml`:
 
-1. **v2 AND v3 DISAGREE ON THE UNKNOWN-FLAG CODE, IN THE DIRECTION THAT BLOCKS.** `critic shell --no-such-flag` is **2 under v2** (gate fails open) and **1 under v3** (gate reads FINDINGS and BLOCKS). A mistyped flag in the gate then refuses every commit with a remedy nobody can follow -- which the gate's own comment names as issue 0043 rebuilt on the git side. ic flagged the divergence as internal to `critic`; the v2 half is the measurement that makes it a v2/v3 parity break.
-2. **`critic author|content` EMITS ZERO BYTES UNDER v3 WHERE v2 EMITS 136.** v2 says _prose discipline; on-demand via critic-prose, not the headless runner -- nothing to do._ v3 says nothing at all. Both exit 0, so the gate is unaffected, and dc's parity claim never covered these two -- an unclaimed gap, not a false claim. **But silence at rc=0 cannot distinguish NOT APPLICABLE from CHECKED AND CLEAN, and v2's line can.** The instrument that declines to claim, running backwards.
+    shellcheck hidden from PATH, IN-SH-CODE-001 + 002 armed, one shell file
+    v2   "ARMED but NOT RUN HERE, THE TOOL IS ABSENT ... UNENFORCED"    rc=3   gate BLOCKS
+    v3   "ARMED but NOT RUN HERE, the tool is not on this machine"      rc=0   gate PASSES
+
+**THE CENSUS IS AT PARITY AND ONLY THE EXIT DIFFERS**, which is what let it through. The cause is two meanings of one word stated five lines apart in v3's own file: `critic.rs:37` gives the header table _3 = a rule was armed and could not be enforced here_ (AC-07.4's meaning) and `critic.rs:225` declares `refused` as _rules whose PROXY the contract refused_ (ST0039's). `render.rs:3042` keys `Failure::Refused` on the latter. **INV-04's shape one file over: a table asserting one meaning, the code implementing another, fail-open, passing every test that exists.**
+
+**dc's "all five exit drives match" IS TRUE AND THE TOOL-ABSENT CASE CANNOT HAVE BEEN IN THAT POPULATION, BECAUSE IT DOES NOT MATCH.** Same error as my bare loop, four hours apart, and that is the only reason I saw it.
+
+**AT-07.4's RED PREDICTED THIS.** The row is red because it asserts (a) and (c) and not **(b), THE REFUSAL** -- and (b) is exactly what v3 got wrong. **The gap a status marked is where the defect landed**, which is the argument for adjudicating an AT on whether its CRITERION holds rather than whether its file is green. Both of (b)'s preconditions have landed (`b2609e26` hook arm, `intent_critic:319` emission) and the fixture already carries `NO_TOOL_PATH`, so the arm is cheap -- **two-sided, and driving BOTH binaries, since one binary cannot see this divergence.**
+
+**AND A FALSE CLAUSE IN MY OWN ELABORATION, WHICH WAS THE SAFETY ARGUMENT.** AC-07.4 said _a project with no `.intent_critic.yml` has armed nothing_. **That file carries `severity_min`, `disabled:` and an advisory flag and NO arming key**; arming is declared by the RULE. A scratch project with no yml, tool absent, still exits 3 under v2. Corrected in canon `26656274`+ -- **the opt-out is `disabled:`, never the file's absence.**
+
+**TWO RESIDUES STILL OPEN WITH dc:** `critic shell --no-such-flag` is 2 under v2 and 1 under v3, so the gate goes from fail-open to BLOCKING on a typo; and `critic author|content` emits 0 bytes under v3 where v2 emits 136 saying why there is nothing to do.
