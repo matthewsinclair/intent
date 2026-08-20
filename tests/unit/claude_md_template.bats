@@ -67,11 +67,33 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "user:end"
 }
 
-@test "template uses the four canonical placeholders" {
+@test "template uses the three canonical placeholders" {
   assert_file_contains "$TEMPLATE" "[[PROJECT_NAME]]"
   assert_file_contains "$TEMPLATE" "[[INTENT_VERSION]]"
   assert_file_contains "$TEMPLATE" "[[AUTHOR]]"
-  assert_file_contains "$TEMPLATE" "[[DATE]]"
+}
+
+@test "template carries no [[DATE]]: a generated file never stamps its own generation" {
+  # ST0057 AC-00.4 (`b277013a`). `[[DATE]]` was REFUSED rather than substituted,
+  # and it was the one real design call in that change.
+  #
+  # `RenderContext` carries facts about the tool or about the project's data,
+  # never about the MOMENT OF RENDERING. A generated file that stamps its own
+  # generation differs from itself on every run -- which is AC-03.17's churn
+  # loop with a timestamp in it, and D42's rule reached from the other side.
+  #
+  # THIS IS A NEGATIVE ASSERTION ON PURPOSE, AND THAT IS THE WHOLE POINT OF IT.
+  # Trimming the positive test from four placeholders to three RECORDS the
+  # removal without DEFENDING it: a re-added `[[DATE]]` passes a
+  # three-placeholder test in silence, and the refusal above is then something
+  # the next author never meets. Going red is what puts them in front of it.
+  #
+  # Neither line breaks on the token being absent, and that was checked rather
+  # than assumed: v3's renderer refuses an unknown token outright, and v2
+  # substitutes with a plain `sed` chain (`bin/intent_init:134`) where an absent
+  # token is a no-op.
+  run grep -F '[[DATE]]' "$TEMPLATE"
+  [ "$status" -ne 0 ] || fail "template re-introduced [[DATE]] -- a generated file that stamps its own generation differs from itself on every run (ST0057 AC-00.4, b277013a)"
 }
 
 @test "template routes rule access through the CLI, not a local rules directory" {
