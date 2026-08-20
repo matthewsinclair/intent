@@ -2,7 +2,7 @@
 wp_id: WP-09
 title: The event log records the model and not the disk
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-09: The event log records the model and not the disk

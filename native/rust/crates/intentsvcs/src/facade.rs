@@ -1357,6 +1357,66 @@ impl Facade {
   /// layer refuses to hold a second opinion about it, because a default living
   /// in two places is how v2 came to ship `--dry-run` on one face and `--write`
   /// on the other.
+  /// Record an act that changed the DISK (ST0057 WP-09, AC-09.1).
+  ///
+  /// **`Facade::apply` is the door for MODEL mutation and this is deliberately
+  /// NOT it.** `apply` diffs `next` against loaded canon; the realisation verbs
+  /// change no canon at all -- disk is their subject -- so routing them through
+  /// it would make the diff a no-op and the event a lie about its own
+  /// mechanism. They emit against the same `Store::append_event` instead, and
+  /// the subject is the PATH SET rather than an artefact id.
+  ///
+  /// **The gap this closes was measured rather than supposed**: on 2026-08-19
+  /// `organize --apply` removed 423 files from this estate and the log recorded
+  /// nothing. Its 55 events at that moment were all model mutations -- `at.set`,
+  /// `wp.new`, `st.start` and their kin. **The only act all evening that
+  /// destroyed anything was the only class of act absent from the one table
+  /// that cannot be re-derived from anything else on disk.**
+  ///
+  /// **Silent on a no-op, and that is the contract rather than an optimisation.**
+  /// An `organize` that moved nothing did not change the disk, so an event for
+  /// it would be a record of an act that did not happen -- and a log padded with
+  /// non-acts is one a reader stops trusting to mean anything.
+  ///
+  /// **RECORDED AFTER THE ACT, and the trade is named rather than hidden.**
+  /// `realise` records BEFORE its write precisely so a half-finished directory
+  /// is still findable; here the act set is not known until the run returns, so
+  /// recording early would record a PLAN and call it an act. The cost is real
+  /// and bounded: a crash mid-run leaves the partial change unrecorded. Naming
+  /// the paths that actually moved is worth more than covering that window with
+  /// a claim about paths that might have.
+  fn record_disk_act(&self, op: &str, payload: serde_json::Value) -> Result<(), FacadeError> {
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      op,
+      Subject {
+        kind: "paths".to_string(),
+        id: self.ctx.project_id.clone(),
+      },
+      payload,
+    );
+    self
+      .store
+      .append_event(&envelope)
+      .map_err(FacadeError::Store)?;
+    Ok(())
+  }
+
+  /// The paths a [`WriteSet`] is about to write, relative to the project root.
+  ///
+  /// Read from the set itself rather than rebuilt from the inputs: a second
+  /// list would be a second opinion about what a sync writes, and the one that
+  /// goes stale is the one nobody is looking at.
+  fn written_paths(&self, set: &WriteSet) -> Vec<String> {
+    let mut out: Vec<String> = set
+      .writes()
+      .map(|(path, _)| self.project.relative(path))
+      .collect();
+    out.sort();
+    out
+  }
+
   pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {
     let raw = std::fs::read_to_string(self.project.intentfiles_path()).map_err(|source| {
       FacadeError::ManifestUnreadable {
@@ -1389,7 +1449,7 @@ impl Facade {
     };
 
     let project = &self.project;
-    plan
+    let report = plan
       .run(mode, &|| {
         organize::observe(project, &previous)
           .map(|(_, digest)| digest)
@@ -1400,7 +1460,43 @@ impl Facade {
           // can never equal a sha256 refuses instead.
           .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
       })
-      .map_err(FacadeError::Organize)
+      .map_err(FacadeError::Organize)?;
+
+    // **A PREVIEW CHANGED NOTHING, SO IT RECORDS NOTHING.** `Mode::Preview`
+    // decides everything and touches the tree not at all; an event for it would
+    // put a decision in the record of acts, which is the one distinction this
+    // verb's two modes exist to keep.
+    if mode.performs() {
+      let rel = |ps: &[std::path::PathBuf]| -> Vec<String> {
+        let mut v: Vec<String> = ps.iter().map(|p| self.project.relative(p)).collect();
+        v.sort();
+        v
+      };
+      // The four ACTS. `unchanged`, `unclaimed` and `diverged` are findings
+      // about the tree rather than changes to it, and a log that carried them
+      // would answer "what happened" with a list of things that did not.
+      let hydrated = rel(&report.hydrated);
+      let rewritten = rel(&report.rewritten);
+      let dehydrated = rel(&report.dehydrated);
+      let pruned = rel(&report.pruned);
+      if !(hydrated.is_empty()
+        && rewritten.is_empty()
+        && dehydrated.is_empty()
+        && pruned.is_empty())
+      {
+        self.record_disk_act(
+          "disk.organize",
+          serde_json::json!({
+            "hydrated": hydrated,
+            "rewritten": rewritten,
+            "dehydrated": dehydrated,
+            "pruned": pruned,
+            "refused": report.refused.len(),
+          }),
+        )?;
+      }
+    }
+    Ok(report)
   }
 
   /// Make an addressed artefact's files exist on disk, and say which ones do.
@@ -1460,7 +1556,8 @@ impl Facade {
         source,
       })?;
     let after = intentfiles::pin(&before, sigil, &id, None).map_err(FacadeError::Intentfiles)?;
-    if after != before {
+    let pin_moved = after != before;
+    if pin_moved {
       let mut set = WriteSet::new();
       set.add(path, after);
       set.commit()?.keep();
@@ -1509,7 +1606,7 @@ impl Facade {
     // ever writes, and a caller naming an address has already said what they
     // want to happen to it. Making the safe verb ask twice would teach the
     // reflex that makes the dangerous one's question invisible.
-    scoped
+    let run = scoped
       .run(organize::Mode::Apply, &|| {
         organize::observe(&self.project, &previous)
           .map(|(_, digest)| digest)
@@ -1546,6 +1643,39 @@ impl Facade {
     owned.retain(|p| p.exists());
     owned.sort();
     owned.dedup();
+    // **WHAT THIS RUN CHANGED, NOT WHAT NOW EXISTS -- and the two differ on the
+    // ordinary path, which is what makes it worth guarding.** `owned` is
+    // deliberately *paths that now exist* so a caller can ask "is my file
+    // there"; gating the event on it would record an act every time anyone
+    // hydrated an already-realised artefact, and a log of non-acts is one a
+    // reader stops trusting. **The two steps are independently idempotent**, so
+    // either can be the real change: the pin can move over an already-present
+    // tree, and the tree can be written under an already-pinned id.
+    let wrote = !(run.hydrated.is_empty() && run.rewritten.is_empty());
+    if pin_moved || wrote {
+      self.record_disk_act(
+        "disk.hydrate",
+        serde_json::json!({
+          // The artefact is named by sigil and id rather than by a rendered
+          // address: `?format=` names a REPRESENTATION and `hydrate` dispatches
+          // on entity alone, so carrying the format would record a distinction
+          // the act does not make.
+          "sigil": sigil.as_str(),
+          "id": id,
+          "pinned": pin_moved,
+          "hydrated": run
+            .hydrated
+            .iter()
+            .map(|p| self.project.relative(p))
+            .collect::<Vec<_>>(),
+          "rewritten": run
+            .rewritten
+            .iter()
+            .map(|p| self.project.relative(p))
+            .collect::<Vec<_>>(),
+        }),
+      )?;
+    }
     Ok(owned)
   }
 
