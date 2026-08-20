@@ -158,7 +158,7 @@ EOF
   assert_output_contains "commit blocked by findings"
 }
 
-@test "hook fails open on critic invocation error (exit 2)" {
+@test "hook fails open when the critic does not check (exit 2)" {
   cat > "$STUB_BIN/intent" << EOF
 #!/bin/bash
 echo "\$@" >> "$CALL_LOG"
@@ -166,6 +166,17 @@ exit 2
 EOF
   chmod +x "$STUB_BIN/intent"
   run run_hook_with_languages '["shell"]'
+  # THE FAIL-OPEN IS THE RULING AND IT IS UNCHANGED. Only the CLAIM changed:
+  # this arm asserted `invocation error (exit 2); fail-open` until 2026-08-18,
+  # a diagnosis the gate never made -- it knows the exit code was unrecognised
+  # and nothing else, and under a v3 binary it printed that over a checker that
+  # ran perfectly and simply is not built yet.
   [ "$status" -eq 0 ]
-  assert_output_contains "invocation error (exit 2); fail-open"
+  assert_output_contains "did not check (exit 2)"
+  assert_output_contains "shell is UNENFORCED in this commit"
+  # THE NEGATIVE IS THE HALF THAT WOULD HAVE CAUGHT THIS ONE. Nothing connects a
+  # message to the assertions quoting it, so the retirement went into the
+  # implementation and its sibling in pre_commit_hook.bats and stopped here.
+  # A positive assertion cannot notice a string coming back; this can.
+  refute_output_contains "invocation error"
 }
