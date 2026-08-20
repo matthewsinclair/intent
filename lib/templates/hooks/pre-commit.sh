@@ -310,12 +310,27 @@ if [ -f ".intent_critic.yml" ]; then
 fi
 
 # ---- Run critic per language ----
-# Exit codes per language:
+#
+# **THE CODES BELOW ARE `intent critic`'s, AND THIS LEGEND WAS WRONG IN BOTH
+# DIRECTIONS UNTIL 2026-08-20** -- it omitted 3 entirely and called 2 an
+# invocation error, which is a CAUSE rather than a code. Driven, not read:
+#
 #   0 = clean
-#   1 = findings at or above threshold
-#   2 = invocation error (fail-open for that language)
+#   1 = findings at or above threshold          (BLOCKS)
+#   3 = REFUSED -- a rule this project armed could not be enforced here (BLOCKS)
+#   * = anything else. The gate does NOT know what it means. Fails open, LOUDLY.
+#
+# **`2` IS DELIBERATELY NOT LISTED, AND THAT IS THE FIX RATHER THAN AN OMISSION.**
+# v2 uses 2 for a usage error; v3 uses it for `known command, not implemented`.
+# One code, two meanings, two binaries -- so a legend that named 2 would be
+# false of whichever binary it was not describing. The gate treats every
+# unrecognised code identically and says so, which is the only claim it is
+# entitled to make.
 
 AGGREGATE=0
+# Languages whose critic did not run. Collected rather than counted so the
+# digest below can NAME them -- see the summary block after the loop.
+UNENFORCED=()
 # Length-guard the loop. Under `set -u` (set above), expanding "${LANGS[@]}"
 # on an empty array errors as "unbound variable" on some bash versions
 # (notably the CI macOS runner). v2.11.0 introduced the empty-array path
@@ -364,11 +379,49 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
         AGGREGATE=1
         ;;
       *)
-        echo "intent critic ($lang) invocation error (exit $rc); fail-open." >&2
+        # **THE GATE DOES NOT KNOW WHY, AND MUST NOT SAY THAT IT DOES.** This
+        # arm read `invocation error (exit $rc); fail-open` -- a DIAGNOSIS the
+        # gate never made. It knows the code was unrecognised and nothing else.
+        # Under a v3 binary it printed `invocation error` over a checker that
+        # ran perfectly and simply is not built yet, which is a confident claim
+        # about a cause it did not measure -- the class that cost this estate
+        # seven wrong readings on 2026-08-20, and the only one of them with a
+        # live consumer in every project that installs this hook.
+        #
+        # **THE FAIL-OPEN IS UNCHANGED AND IS A RULING, NOT AN OVERSIGHT.** A
+        # gate that blocks the moment `intent` is shadowed is issue 0043 rebuilt
+        # on the git side. What changes is only what the gate CLAIMS.
+        #
+        # **AND IT STATES THE CONSEQUENCE FOR THE COMMIT, NOT THE FATE OF THE
+        # COMMAND** (dc). `did not check (exit 2)` is honest and is still a fact
+        # about the tool; the operator's question is what happened to their
+        # commit, and the answer is that a language they declared went
+        # unenforced. A gate that fails open must at minimum be clear that it did.
+        #
+        # Only the LANGUAGE is named, never the rules: the gate knows what it
+        # dispatched and does not know which rules would have fired. Naming
+        # those would be the same overreach one level down.
+        UNENFORCED+=("$lang")
+        echo "intent critic ($lang) did not check (exit $rc) -- $lang is UNENFORCED in this commit." >&2
         [ -n "$out" ] && printf '%s\n' "$out" >&2
         ;;
     esac
   done
+fi
+
+# **ONE DIGEST WITH A DENOMINATOR, NOT N IDENTICAL LINES** (dc). Five declared
+# languages all answering an unrecognised code printed five near-identical
+# lines, and **a report that never changes trains its reader to stop looking**.
+#
+# **THE DENOMINATOR IS THE LOAD-BEARING PART.** `1 of 5` is a bad day; `5 of 5`
+# is a gate that is not running at all, and those must never look alike. It is
+# the same `of N` discipline this estate applies everywhere else, and it is what
+# makes the line impossible to skim past on the day it changes.
+if [ "${#UNENFORCED[@]}" -gt 0 ]; then
+  echo "" >&2
+  echo "intent critic gate: ${#UNENFORCED[@]} of ${#LANGS[@]} declared language(s) went UNENFORCED (${UNENFORCED[*]})." >&2
+  echo "  the commit is NOT blocked by this -- the gate fails open on its own breakage by design." >&2
+  echo "  nothing else reports this, so if it persists the gate is not protecting what you think it is." >&2
 fi
 
 if [ "$AGGREGATE" -eq 1 ]; then

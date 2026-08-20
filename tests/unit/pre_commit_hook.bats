@@ -388,3 +388,104 @@ stage_bad_board() {
   [ "$status" -ne 0 ]
   assert_output_contains "whiteboard timestamp cannot be a real clock read"
 }
+
+# ---------------------------------------------------------------------------
+# An unrecognised critic exit: the gate must not diagnose a cause it never
+# measured, and must say what happened to the COMMIT
+# ---------------------------------------------------------------------------
+
+# A shim whose `intent critic <lang>` exits with a code chosen per language.
+# `info` is answered from the real tree so the guard block is not the subject
+# of these tests.
+shim_critic() {  # shim_critic <lang>=<rc> ...
+  mkdir -p "${TEST_TEMP_DIR}/shim"
+  {
+    echo '#!/bin/sh'
+    echo 'if [ "$1" = "info" ]; then'
+    echo "  echo '  INTENT_HOME: ${INTENT_PROJECT_ROOT}'"
+    echo '  exit 0'
+    echo 'fi'
+    echo 'if [ "$1" = "critic" ]; then'
+    echo '  case "$2" in'
+    for pair in "$@"; do
+      echo "    ${pair%%=*}) exit ${pair##*=} ;;"
+    done
+    echo '    *) exit 0 ;;'
+    echo '  esac'
+    echo 'fi'
+    echo "exec '${INTENT_BIN}' \"\$@\""
+  } > "${TEST_TEMP_DIR}/shim/intent"
+  chmod +x "${TEST_TEMP_DIR}/shim/intent"
+}
+
+declare_languages() {  # declare_languages elixir rust ...
+  local langs=""
+  for l in "$@"; do langs="${langs}${langs:+,}\"${l}\""; done
+  cat > intent/.config/config.json <<EOF
+{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[${langs}]}
+EOF
+  git add intent/.config
+}
+
+@test "an unrecognised critic exit states the CONSEQUENCE and does not diagnose a CAUSE" {
+  # The arm read `invocation error (exit $rc); fail-open` -- a diagnosis the gate
+  # never made. It knows the code was unrecognised and nothing else. Under a v3
+  # binary it printed that over a checker that ran perfectly and simply is not
+  # built yet.
+  declare_languages elixir
+  shim_critic elixir=2
+  echo x > f.txt && git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "unrecognised-code"
+
+  # The fail-open is a RULING and is unchanged: only the claim changes.
+  assert_success
+  assert_output_contains "did not check (exit 2)"
+  assert_output_contains "elixir is UNENFORCED in this commit"
+
+  # THE DEFECT ITSELF. The gate cannot tell a broken tool from an unimplemented
+  # command, and must not name either.
+  refute_output_contains "invocation error"
+}
+
+@test "the unenforced digest carries a denominator, so 1 of N cannot read as N of N" {
+  # A report that never changes trains its reader to stop looking. One of five
+  # is a bad day; five of five is a gate that is not running at all, and those
+  # must not look alike -- which is what the denominator is for.
+  declare_languages elixir rust shell
+  shim_critic elixir=2 rust=2 shell=0
+  echo x > f.txt && git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "digest-denominator"
+
+  assert_success
+  assert_output_contains "2 of 3 declared language(s) went UNENFORCED"
+  assert_output_contains "elixir rust"
+  # A fail-open that does not say it failed open is the thing being fixed.
+  assert_output_contains "the commit is NOT blocked by this"
+}
+
+@test "total non-enforcement is visibly different from partial" {
+  declare_languages elixir rust shell
+  shim_critic elixir=2 rust=2 shell=2
+  echo x > f.txt && git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "total-non-enforcement"
+
+  assert_success
+  assert_output_contains "3 of 3 declared language(s) went UNENFORCED"
+}
+
+@test "the blocking arms are unaffected: findings block, and so does a REFUSAL" {
+  # The whole point of touching this case is that the fail-open arm was the only
+  # one that needed to change. If either blocking arm moved, the fix went too far.
+  declare_languages elixir
+  shim_critic elixir=1
+  echo x > f.txt && git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "findings-block"
+  assert_failure
+  assert_output_contains "commit blocked by findings"
+
+  shim_critic elixir=3
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "refusal-blocks"
+  assert_failure
+  assert_output_contains "REFUSED"
+  assert_output_contains "commit blocked by findings"
+}
