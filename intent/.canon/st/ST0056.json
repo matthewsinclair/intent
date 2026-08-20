@@ -1956,7 +1956,7 @@
       "covers": [
         "AC-10.2"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "asserts atomicity: nothing written on BLOCKED"
     },
     {
@@ -2498,7 +2498,7 @@
       "covers": [
         "AC-10.14"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "**RED-FIRST AND THE FIXTURE IS THE WHOLE DIFFICULTY: the estate under test must hold a thread that has CANON AND NO DIRECTORY at the moment the migrator runs.** That is the population the defect is invisible to, so a fixture where every thread is realised passes against the broken migrator and proves nothing.\n\n**REACH THE DEHYDRATED STATE THROUGH `organize`, NOT BY DELETING A DIRECTORY** -- `write_path_canon_always.rs` already establishes this shape and its reasoning transfers verbatim: a fixture that side-steps the gate measures the side-step. The pre-existing `common::gate_open` + terminal-status recipe is the honest route.\n\n**THE ASSERTION IS AN EQUALITY OF TWO POPULATIONS, NOT A ROW COUNT:** the ids named in the regenerated `steel_threads.md` equal the ids `Project::thread_ids()` returns. **A count-based assertion passes on a migrator that names 57 of the wrong threads**, and the two sets are independently derived, which is what makes the equality worth asserting -- the same shape AC-04.6 takes over the whole estate.\n\n**MUTATION REQUIRED: the test must FAIL against `legacy::scan` as it stands at `183f7342`**, or it is asserting a property of the fixture rather than of the migrator.\n\n**THE ASSERTION IS TWO-SIDED BECAUSE THE DAMAGE IS: the regenerated index AND the rebuilt store must both name every canon thread.** A test asserting only the views passes on a fix that repairs the rendering and still rebuilds the SSOT from three threads -- **and that half is the one no `git status` would ever show.**"
     }
   ],

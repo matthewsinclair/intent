@@ -25,7 +25,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar
   - [-] 03: Attachment canon: opaque as file, and the naming gate
-  - [-] 04: intent organize: four answers, one refusal, one gate
+  - [x] 04: intent organize: four answers, one refusal, one gate
   - [-] 05: intent edit <ID>
   - [x] 06: The full text realisation, and the refusal that expires
   - [x] 07: intent:// addressing and read resolution
