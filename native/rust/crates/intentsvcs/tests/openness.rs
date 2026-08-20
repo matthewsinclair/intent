@@ -145,7 +145,9 @@ fn declaration_gaps(ddl: &str) -> Vec<String> {
       let rest = rest.trim_start_matches(['-', ' ']).trim();
       let (name, why) = rest.split_once(char::is_whitespace).unwrap_or((rest, ""));
       if name.is_empty() {
-        gaps.push(format!("{table} claims ON DEMAND without naming the file form: {decl:?}"));
+        gaps.push(format!(
+          "{table} claims ON DEMAND without naming the file form: {decl:?}"
+        ));
       } else if why.trim_start_matches(['-', ' ']).trim().len() < 20 {
         gaps.push(format!(
           "{table} claims ON DEMAND without saying why it is not projected: {decl:?}"
@@ -669,8 +671,7 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
   // the form to wherever it is produced rather than lapsing with the projection.
   let events = {
     let held = fx.facade_on_disk().store().events().expect("events");
-    let bundle =
-      intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), held);
+    let bundle = intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), held);
     intentsvcs::export::canon_parts(&bundle)
       .expect("canon parts")
       .into_iter()
