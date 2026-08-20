@@ -92,6 +92,29 @@ pub enum FindingClass {
   /// every one of them is individually well-formed, and only the RELATIONSHIP
   /// is wrong. This is what `doctor`'s model half reports (AC-06.2).
   ModelInconsistent,
+  /// A unit's recorded STATUS disagrees with what its GATE says.
+  ///
+  /// **hv ratified this arm on 2026-08-15** (`data-model.md:472`): *`wp done` is
+  /// refused on a BLOCKED gate AND `doctor` reports any unit whose status
+  /// disagrees with its gate -- both, as recommended.* The refusal landed and
+  /// the report did not, so for five days nothing watched the join.
+  ///
+  /// **A SEPARATE CLASS FROM `ModelInconsistent`, ON THAT CLASS'S OWN
+  /// ARGUMENT.** This is a relationship defect and would fit there by shape --
+  /// but its remedy is a verb the operator runs (`wp start` / `wp done`) or a
+  /// contract to re-examine, where `ModelInconsistent`'s is *correct the
+  /// artefact*. `AttachmentDrift` was split from it for exactly this reason:
+  /// putting two different remedies behind one word tells an operator nothing
+  /// to do.
+  ///
+  /// **THE DANGEROUS DIRECTION IS `Done` OVER A BLOCKED GATE, AND IT ARRIVES
+  /// WITHOUT ANYONE DOING ANYTHING WRONG.** `wp done` consults the gate at the
+  /// moment of closing, and nothing re-checks afterwards -- so a WP closed
+  /// legitimately becomes a false green the instant its contract GROWS.
+  /// Measured 2026-08-20 by vc across all 26 work packages: four disagreed, and
+  /// ST0056/04 was `Done` at 5 of 6 because AC-04.6 was minted after the close.
+  /// **The `Done` was true when it was set and false afterwards.**
+  StatusGateDisagreement,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -288,6 +311,11 @@ impl FindingClass {
         7,
         "model-inconsistent",
         "the canon says two things that cannot both be true; correct the artefact named above",
+      ),
+      Self::StatusGateDisagreement => (
+        7,
+        "status-gate-disagreement",
+        "the status and the gate disagree, and only you can say which one is wrong. If the work really is finished, the contract is missing something -- read the blocking ids and either satisfy them or take them out of scope. If it is not finished, `intent wp start <ST>/<NN>` says so. Do NOT reach for `wp done`: it is refused on a blocked gate, which is the same ruling as this report",
       ),
       Self::BackupStale => (
         8,

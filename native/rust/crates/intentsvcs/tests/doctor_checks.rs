@@ -20,8 +20,8 @@ mod common;
 use common::{Fixture, VERSION, ctx};
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::{
-  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA, TShirt, Thread,
-  ThreadStatus, WorkPackage, WpStatus,
+  AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
+  TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
 
 /// A thread with nothing wrong with it: every reference resolves, and it names
@@ -49,7 +49,17 @@ fn clean_thread(id: &str) -> Thread {
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,
-      status: WpStatus::Wip,
+      // **`Done`, NOT `Wip`, AND THE FIXTURE'S NAME IS THE ARGUMENT.** This
+      // thread's only criterion is satisfied by a green AT, so its gate PASSES
+      // -- and a work package recorded WIP over a passing gate is exactly what
+      // hv ratified `doctor` should report (data-model.md:472). A fixture
+      // called `clean_thread` that carries a live disagreement is a fixture
+      // whose name is false, and every test building on it would have been
+      // asserting health over an estate that is not healthy.
+      //
+      // Found by the arm firing on it, which is the fixture being tested by
+      // the check rather than the check being tested by the fixture.
+      status: WpStatus::Done,
       status_reason: None,
       objective: String::new(),
       body: String::new(),
@@ -690,3 +700,144 @@ fn a_carried_file_and_a_generated_view_are_absent_from_the_uncarried_list() {
 // ---------------------------------------------------------------------------
 // AC-09.2 (B): history that exists only in this store is REPORTED, not judged
 // ---------------------------------------------------------------------------
+
+/// **hv RATIFIED THIS ARM ON 2026-08-15 AND ONLY HALF OF IT SHIPPED**
+/// (`data-model.md:472`): *`wp done` is refused on a BLOCKED gate AND `doctor`
+/// reports any unit whose status disagrees with its gate -- both, as
+/// recommended.* The refusal landed; the report did not, and nothing watched
+/// the join for five days.
+///
+/// **THE INSTANCE IS SYNTHETIC AND THAT IS THE RULING, NOT A CONVENIENCE** (vc,
+/// 2026-08-20): neither the instance, nor the control, nor the predicate may be
+/// drawn from the thing under test. A red-first keyed on a live disagreement
+/// would make the disagreement a fixture, and the estate would not be free to
+/// fix it -- which is precisely what this arm exists to help it do.
+///
+/// **THE DANGEROUS DIRECTION IS THE ONE DRIVEN HERE**, because it reported ZERO
+/// against the live estate and a zero is not a result until the check has
+/// produced a non-zero.
+#[test]
+fn a_done_work_package_over_a_blocked_gate_is_found() {
+  let fx = Fixture::new();
+  let mut thread = clean_thread("ST0001");
+  // The contract GROWS after the close: a second criterion nothing satisfies.
+  // This is ST0056/04's real history in one line -- the `Done` was true when it
+  // was set and false afterwards, with nobody doing anything wrong.
+  thread.criteria.push(Criterion {
+    id: "AC-01.2".to_string(),
+    text: "the second thing works".to_string(),
+    kind: AcKind::Test,
+    state: AcState::Computed,
+  });
+  seed(&fx, &thread);
+
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let hit: Vec<&Finding> = report
+    .findings
+    .iter()
+    .filter(|f| f.class == FindingClass::StatusGateDisagreement)
+    .collect();
+  assert_eq!(
+    hit.len(),
+    1,
+    "a Done work package over a blocked gate must be reported exactly once: {}",
+    details(&report.findings)
+  );
+  assert!(
+    hit[0].detail.contains("ST0001/WP-01") && hit[0].detail.contains("BLOCKED"),
+    "the finding must NAME the unit and the direction -- an operator cannot act on a count: {}",
+    hit[0].detail
+  );
+}
+
+/// **PAIRED, SO THE ARM ABOVE CANNOT PASS BY REPORTING EVERYTHING.** The same
+/// thread with its contract intact must report nothing.
+#[test]
+fn a_done_work_package_over_a_passing_gate_is_not_found() {
+  let fx = Fixture::new();
+  seed(&fx, &clean_thread("ST0001"));
+
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  assert!(
+    !report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::StatusGateDisagreement),
+    "a Done work package whose gate passes is the healthy state and must be silent: {}",
+    details(&report.findings)
+  );
+}
+
+/// **THE THREE POPULATIONS THIS ARM DELIBERATELY DOES NOT JUDGE, driven rather
+/// than asserted in a comment.** Each was found by running the arm against the
+/// live estate and reading what it said: the count went 96, then 8, then 6.
+///
+/// All three are one rule -- **this compares a status to a VERDICT ABOUT A
+/// CONTRACT, and a gate with no contract to judge has not returned one** -- and
+/// each produced findings that were true of the arithmetic and false of the
+/// estate.
+#[test]
+fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
+  // 1. A thread with ZERO criteria. `gate` blocks it by design, which is right
+  //    for `wp done` and meaningless here. 52 completed v2 threads are in this
+  //    state and the first cut reported 96 findings across them.
+  let fx = Fixture::new();
+  let mut empty = clean_thread("ST0001");
+  empty.criteria.clear();
+  empty.tests.clear();
+  empty.wps[0].status = WpStatus::Done;
+  seed(&fx, &empty);
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  assert!(
+    !report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::StatusGateDisagreement),
+    "a thread with no contract cannot disagree with a verdict about one: {}",
+    details(&report.findings)
+  );
+
+  // 2. `acceptance: exempt`. The thread declined to be judged, and reading that
+  //    as "every criterion is satisfied" would call a WIP package finished.
+  let fx = Fixture::new();
+  let mut exempt = clean_thread("ST0001");
+  exempt.acceptance = Some(AcceptanceMode::Exempt);
+  exempt.wps[0].status = WpStatus::Wip;
+  seed(&fx, &exempt);
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  assert!(
+    !report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::StatusGateDisagreement),
+    "an exempt thread has declined to be judged: {}",
+    details(&report.findings)
+  );
+
+  // 3. A WP with no criteria IN ITS OWN SCOPE passes vacuously, for the same
+  //    reason `0 of 0` is always green. ST0056/WP-15 and WP-16 are exactly
+  //    this, and the second cut called them work already done.
+  let fx = Fixture::new();
+  let mut vacuous = clean_thread("ST0001");
+  vacuous.wps.push(WorkPackage {
+    seq: 9,
+    title: "A package with no criteria of its own".to_string(),
+    scope: Some(TShirt::S),
+    scope_legacy: None,
+    status: WpStatus::NotStarted,
+    status_reason: None,
+    objective: String::new(),
+    body: String::new(),
+    preamble: String::new(),
+  });
+  seed(&fx, &vacuous);
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  assert!(
+    !report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::StatusGateDisagreement),
+    "an empty scope passes vacuously and is not evidence the work is done: {}",
+    details(&report.findings)
+  );
+}

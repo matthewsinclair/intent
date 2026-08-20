@@ -175,10 +175,137 @@ pub fn diagnose(
     model_checks(thread, &canon, &file, &mut report.findings);
   }
 
+  // **ABOVE `db_checks` AND NOT INSIDE IT, BECAUSE THIS READS CANON AND NOTHING
+  // ELSE.** `db_checks` returns early three ways -- canon that will not rebuild,
+  // a store that will not open, a cold store -- and every one of those is a
+  // NORMAL state for a fresh clone. A status arm hooked in there would be
+  // silently skipped on exactly the estate a new reader is looking at, and a
+  // check that does not run looks the same as one that found nothing.
+  status_gate_disagreement(&canon, project, &mut report.findings);
   db_checks(&canon, project, &mut report.findings);
   file_checks(project, &canon, ctx, &mut report);
 
   report
+}
+
+/// **A unit's recorded status must agree with its gate** -- hv, ratified
+/// 2026-08-15 (`data-model.md:472`), in these words: *`wp done` is refused on a
+/// BLOCKED gate AND `doctor` reports any unit whose status disagrees with its
+/// gate -- both, as recommended.*
+///
+/// **The refusal shipped and this half did not**, so the ruling sat half-built
+/// for five days. vc found it on 2026-08-20 by auditing all 26 work packages by
+/// hand and finding FOUR that disagreed -- which is the measurement this arm
+/// exists to make unnecessary.
+///
+/// # It asks the gate rather than recomputing satisfaction
+///
+/// `contract::gate` is the single home for *is this scope closeable*, and it is
+/// what `wp done` consults. Recomputing the same arithmetic here would be a
+/// second answer to one question, and the two would disagree the first time
+/// either changed -- with this arm reporting the disagreement as a defect in
+/// the estate rather than in itself. `RepoFiles` is passed for the same reason:
+/// it is what the facade's own `gate` passes, so this reports what `wp done`
+/// would decide and not what some other reference resolver would.
+///
+/// # Two directions, and only two, because the gate has only two answers
+///
+/// **`Done` over a blocked gate is the dangerous one** and it arrives with
+/// nobody doing anything wrong: the gate is consulted at the moment of closing
+/// and never again, so a legitimately-closed WP becomes a false green the
+/// instant its contract grows. **Not-`Done` over a passing gate** is the
+/// benign one -- the work is finished and the field understates it, which is
+/// what makes a plan sequenced off these fields wrong.
+///
+/// **WHAT THIS DELIBERATELY DOES NOT REPORT: partial progress.** A
+/// `NotStarted` WP at three criteria of four is visibly under way, and vc's
+/// hand audit flagged one -- but the GATE cannot say it, because a gate answers
+/// closeable or not. Inventing a third predicate here would put a claim in
+/// `doctor` that no ruling backs and that `wp done` does not share, which is
+/// the second-answer problem in a different direction. It is named here so the
+/// gap is a stated limit rather than something a reader assumes is covered.
+fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
+  let refs = crate::contract::RepoFiles(project.root());
+  for thread in &canon.threads {
+    // **A THREAD WITH NO CONTRACT IS NOT A DISAGREEMENT, AND THE FIRST CUT OF
+    // THIS REPORTED NINETY-SIX OF THEM.** `gate` returns BLOCKED for a thread
+    // with zero criteria -- correct for `wp done`, which must refuse to close
+    // what has no contract -- and this estate carries 52 completed v2 threads
+    // that were closed before criteria existed at all. Comparing a status
+    // against a verdict that means "there is nothing to compare against"
+    // produced a finding per work package, all of them false.
+    //
+    // Same for `acceptance: exempt`: the gate returns EXEMPT, which means the
+    // thread declined to be judged, and reading that as "every criterion is
+    // satisfied" would report a WIP work package as finished on a thread with
+    // no criteria at all.
+    //
+    // **BOTH SKIPS ARE THE SAME RULE: this arm compares a status to a VERDICT,
+    // and a gate that declines to judge has not returned one.**
+    if thread.acceptance.is_some() || thread.criteria.is_empty() {
+      continue;
+    }
+    let file = project.relative(&project.thread_json(&thread.id));
+    for wp in &thread.wps {
+      // **A WP WITH NO CRITERIA OF ITS OWN PASSES ITS GATE VACUOUSLY, AND THE
+      // SECOND CUT OF THIS REPORTED TWO OF THEM.** `gate` filters the thread's
+      // criteria to the WP's group and asks whether all of them are satisfied;
+      // over an empty group that is true for the same reason `0 of 0` is always
+      // green. ST0056/WP-15 and WP-16 are `Not Started` with zero criteria
+      // each, and this arm called them work already done.
+      //
+      // **The skip is the same rule as the two above it, one level down: this
+      // compares a status to a VERDICT ABOUT A CONTRACT, and an empty scope has
+      // no contract to have a verdict about.** Three populations, one
+      // sentence -- and each was found by driving the arm rather than by
+      // reading it, which is why the count went 96, then 8, then this.
+      let group = format!("{:02}", wp.seq);
+      let in_scope = thread
+        .criteria
+        .iter()
+        .filter(|c| crate::contract::group_of(&c.id) == group)
+        .count();
+      if in_scope == 0 {
+        continue;
+      }
+      let verdict =
+        crate::contract::gate(thread, crate::contract::Scope::WorkPackage(wp.seq), &refs);
+      // **`Exempt` IS NOT FOLDED IN WITH `Pass` HERE**, even though both mean
+      // closeable to `wp done`. It cannot arise after the skip above, and
+      // matching it anyway would leave a live arm nothing could reach -- which
+      // reads as coverage and is not.
+      let detail = match (wp.status, &verdict) {
+        (crate::model::WpStatus::Done, crate::contract::Verdict::Blocked { .. }) => format!(
+          "{}/WP-{:02} is recorded Done and its gate is BLOCKED -- it reads as finished work and would be refused if closed today",
+          thread.id, wp.seq
+        ),
+        (
+          crate::model::WpStatus::NotStarted | crate::model::WpStatus::Wip,
+          crate::contract::Verdict::Pass { .. },
+        ) => format!(
+          "{}/WP-{:02} is recorded {} and its gate PASSES -- every criterion in its scope is satisfied, so anything sequencing off this field is planning work that is already done",
+          thread.id,
+          wp.seq,
+          match wp.status {
+            crate::model::WpStatus::NotStarted => "Not Started",
+            _ => "WIP",
+          }
+        ),
+        _ => continue,
+      };
+      // **THE DETAIL STATES WHAT WAS OBSERVED AND NOT WHY.** Its first version
+      // said the close was consulted against a contract that has since GROWN --
+      // which is the usual cause, is what happened to ST0056/04, and is not
+      // something this arm measures. A real finding is the best possible cover
+      // for an invented mechanism attached to it; the remedy on the class names
+      // the causes as possibilities, where a detail line reads as a reading.
+      out.push(Finding::new(
+        file.clone(),
+        FindingClass::StatusGateDisagreement,
+        detail,
+      ));
+    }
+  }
 }
 /// Unwrap an ingest failure into findings. A refusal already carries them; any
 /// other failure (an unreadable file, a bad directory) becomes one finding, so
