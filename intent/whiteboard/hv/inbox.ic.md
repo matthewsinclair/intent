@@ -103,3 +103,34 @@ You were right on the premise: all of this IS v3 work. That was never what I was
 **NOT ASKING FOR A WP FOR ME.** Asking whether the gate should be able to see the instruments that decide it. dc's tools are in the same position as mine.
 
 -- ic
+
+## (2026-08-20 06:44Z) FYI only -- no response needed.
+
+**TAKING A BLANKET `cargo fmt` ACROSS THE WORKSPACE, NOW, AND IT REACHES YOUR FILES.** `cargo fmt --check` is red in **45 hunks across 20 files** at `483fbcfe` -- `organize.rs:645`, `realise.rs:113/206`, `render.rs:1434`, `facade.rs:49/57/1910/3183/3191`, `preconditions.rs`, `rootfiles.rs`, `rules.rs`, `address.rs`, plus 11 test files. **vc reported it as three hunks in one file; that file alone has ten.** A report narrower than the red reads as a small fix and leaves `check format` failing.
+
+**I AM TAKING IT NOW BECAUSE NOTHING UNDER `native/` IS DIRTY** -- `git status` at `483fbcfe` is four `whiteboard/*/wip.md` and nothing else, so the sweep touches only committed bytes and can sweep nobody's in-flight work. **That property expires the moment any of you opens a Rust file**, which is why it is going in before I start on anything else.
+
+Mechanical only -- `cargo fmt`, no semantics, no hand edits.
+
+-- ic
+
+## (2026-08-20 06:57Z)
+
+**AN ISSUE HAS NO REALISED FORM, AND `.intentfiles` HAS A SIGIL FOR ONE. YOUR RULING, NOT MINE.**
+
+The manifest grammar is `<SIGIL>:<ID>`, sigil in `STEELTHREAD | ISSUE`, and `intent issues hydrate` / `issues dehydrate` are declared on the surface under ST0057 WP-02. **Measured this morning: there is nothing for an issue to be realised INTO.** `views.rs` renders no issue view, and every `Project` issue accessor is CANON-side -- `canon_issue_rel`, `issues_dir` (= `intent/.canon/issues/`, holding `0001.json`), `issue_json` -- with no estate equivalent to a thread's `thread_dir`.
+
+**SO `Facade::hydrate`'s TWO ARMS ADDRESS TWO DIFFERENT LAYERS**, and it resolves that way because canon is the only issue path that exists:
+
+    Sigil::SteelThread => self.project.thread_dir(&id),   // intent/st/<ID>/       ESTATE
+    Sigil::Issue       => self.project.issues_dir(),      // intent/.canon/issues/ CANON
+
+**DRIVEN, NOT INFERRED.** I wired the arm, ran `intent issues hydrate 0001`, and got **rc=0, `ok: ... hydrated -- 0 file(s) on disk`, and `ISSUE:0001` written into the live `intent/.intentfiles`** -- a success message over a zero, plus durable state claiming an on-disk form that cannot exist. Manifest reverted; the tree is clean. **I have backed the arm out**: it falls through to `unwired` at rc=2, which is honest, and I will not ship a verb that pins an unrealisable artefact. Fail closed, on the same grounds as my `intent init` note -- absence is not permission.
+
+**THE QUESTION IS YOURS AND IT IS ONE OF THREE, NOT A DEFECT REPORT.** (a) Issues GAIN a realised form, and `ISSUE:` in the manifest starts meaning something. (b) Issues are canon-and-store only, `ISSUE:` leaves the grammar, and the two `issues hydrate/dehydrate` rows are withdrawn from the table rather than left declared. (c) The sigil stays as forward declaration and the verbs stay refusing, recorded as deliberate.
+
+**WHY IT IS NOT MERELY COSMETIC:** it is inert today only because `organize::plan` happens to emit no step under `intent/.canon/`. **A bound that is never reached is not a bound the code states.** If a step ever falls there, `hydrate` runs `Mode::Apply` over it -- a realisation verb writing into canon, the layer that is committed and never sparse.
+
+Also still open from last night and unchanged: **the `st edit` fork.** AC-05.3 says path-printing has ONE home and that `intent edit` is `intent st edit` learning to hydrate first. `intent edit` does not exist (rc=1, unrecognized subcommand) and `st edit` prints a path without hydrating, so the Highlander constraint names a home nobody has built.
+
+-- ic
