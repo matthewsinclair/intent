@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 07:35Z
+heartbeat_at: 2026-08-20 07:46Z
 status: active
-focus: "**THE GATE HAS THREE DISPATCHERS AND THEY DISAGREE. Two of four rostered guards run, and NEITHER runs through the roster** -- clock via `pre-commit.intent`, header via `bin/.devbin/cmd/precommit`, `canon-ignore-guard.sh` and `append-only-guard.sh` NOWHERE ON GIT'S PATH. vc and I converged on identical tables from opposite errors: I read too narrow, vc read too new, neither read the chain. **AC-01.5 is unmeetable by any edit to the guard, the roster or the template** -- with dc to rule. #144 fixed and mutation-proven, UNCOMMITTED. Next: the 250-file ownability partition."
+focus: "**THE GATE SEES 268 VIEWS INSTEAD OF 1.** `thread_view_skew_check.sh` at `1e2bc65e`, rostered `manual` awaiting dc -- 130-150ms against the sibling's 2860-2940ms, ten arms driven. Only honest downstream of vc's WP-10. **AC-03.6 THEN FIRED ON ME UNPLANTED**: `1e2bc65e` committed an attachment without syncing canon, `ADDS 1 of 1` at rc=1, permanently divergent; `9e191824` demonstrates the compliant order at `ADDS 0 of 88`. dc says an unplanted control beats a planted one and their admission condition is substantially met. doctor rc=0, workspace green, roster 18/18."
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -21,7 +21,9 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **Fold 4's narrative is at `.history/20260819/wip.md`. Today reshaped it by 06:47Z.**
 
-**0. OPEN FOR matts, AND IT IS A POLICY QUESTION RATHER THAN A TASK.** vc called it as steward in matts's absence: COMMIT, scoped, `--only`, because four nodes holding a day of work in one checkout is the bigger risk. ic had already committed; vc committed `5b59a14c`. **I am HOLDING, and the reason is specific rather than pious: the rule names matts, and the hazard vc's call is built on does not reach my two files** -- `cc/wip.md` is single-writer mine and `claude_md_template.bats` has no other node in it. **Three nodes ran three readings of one rule for an hour and none knew.** matts's word settles it; my work lands in seconds either way.
+**0. THE GATE ARM LANDED -- `1e2bc65e`, rostered `manual` awaiting dc.** `intent/st/ST0056/parity/tools/thread_view_skew_check.sh`. **Gated skew coverage was 1 of 269**: the sibling's `CHECKABLE` is ONE triple under `surface/`, and the missing 268 are the thread covers, acceptance contracts and WP covers. **130-150ms at `f0c2805c` on one machine against 2860-2940ms for the sibling**, so it would be the CHEAPEST gated instrument rather than the most expensive. **It forms no verdict** -- `views::skew` stays the single home and this parses one answer rather than computing a second. **It refuses at exit 2 when it cannot read doctor's summary**, because a text-reading gate whose needle stops matching goes green forever and nothing says so. Ten arms; the last two are a MENTION/SUBJECT pair taking identical decoy lines to opposite verdicts. **The parse carries a NAMED EXPIRY** (`9e191824`): when `doctor --json` lands, delete it rather than keeping both. **Ungateable before vc's `b082b488` -- the blocker was never the wiring.**
+
+**0b. AND AC-03.6 FIRED ON ME, UNPLANTED, WHILE DOING IT.** `1e2bc65e` edited `runner_roster_check.sh` -- an ATTACHMENT of ST0056 -- and committed it with canon naming the old bytes. `canon_commit_check.sh`: `ADDS 1 of 1` rc=1 at `1e2bc65e`, clean at `aa4c3ac0`, `ADDS 0 of 88` at `9e191824`. **`1e2bc65e` is permanently divergent in history.** **dc corrected my framing and the correction is the finding**: the rule being on my board is why the instrument exists, not why the commit diverged -- **a control that depends on the author remembering is not a control, it is a hope with a filename.** `manual` costs a divergent commit roughly whenever anyone is busy. dc: an unplanted positive control is strictly better evidence than a planted one, and their admission condition is substantially met.
 
 **1. THE GATE HAS THREE DISPATCHERS AND THEY AGREE WITH EACH OTHER NOWHERE.** Measured at `483fbcfe`, 06:45Z, and vc converged on the identical table independently:
 
