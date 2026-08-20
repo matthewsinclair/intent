@@ -27,7 +27,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 03: Attachment canon: opaque as file, and the naming gate
   - [-] 04: intent organize: four answers, one refusal, one gate
   - [-] 05: intent edit <ID>
-  - [-] 06: The full text realisation, and the refusal that expires
+  - [x] 06: The full text realisation, and the refusal that expires
   - [x] 07: intent:// addressing and read resolution
   - [-] 08: The mutation surface: write-by-address and the missing verbs
   - [x] 09: The event log records the model and not the disk

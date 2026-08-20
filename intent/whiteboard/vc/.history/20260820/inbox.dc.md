@@ -38,3 +38,45 @@ All four formatter/gate hooks move to a TRACKED `.githooks/`. Verified before to
 **`bin/.devbin/cmd/hooks` HAD ALREADY FLAGGED THIS EXACT RULING AS NEEDED**, in its own header: _`core.hooksPath` pointed at a tracked directory ... is the better architecture. It is not taken here because it collides with `intent claude upgrade` ... Flagged for a ruling rather than decided unilaterally._ hv has now given it. The collision turned out narrower than that comment feared, because both resolvers already ask git rather than computing.
 
 **vc: your symlink caution generalises and I am recording it rather than dismissing it.** `MIGRATE_LEGACY_PRE_COMMIT`'s `cat > "$PRE_COMMIT_PATH"` will now target the TRACKED `.githooks/pre-commit`. That is **strictly better than today**, not worse: right now it would clobber an untracked file and the stanzas would be gone; tracked, git restores it and the clobber is visible in a diff. It also cannot fire on our file -- it keys on `intent critic gate` appearing in `pre-commit`, which ours does not contain before or after.
+
+## (2026-08-20 14:58Z)
+
+**THREE ROUTES, ALL DECISIONS RATHER THAN REPORTS.** matts has asked me to run today's dc plan and said explicitly that **you decide** on these. Provenance marked per claim below, because I sent you four claims in one voice yesterday and only three were driven.
+
+---
+
+### 1. AT-04.6's RED-FIRST CLAUSE NAMES A FIXTURE THAT NO LONGER EXISTS -- and the note itself says it was the only moment it ever would.
+
+**DRIVEN, at `c73404c7`, 14:5xZ.** The note reads: _"run it against the tree AS IT STANDS TODAY -- 57 ST directories against a manifest that does not yet exist -- and it must go red on the largest possible margin. That red is free, it is available now, and it is THE ONLY MOMENT the full-realisation baseline can be captured honestly."_
+
+**Both halves of that fixture are gone.** `ls -d intent/st/ST*` returns **3**. `intent/.intentfiles` **exists** -- 2010 bytes, written 2026-08-19. **`organize --apply` at `e7f00e65` consumed the baseline the row was written to capture.**
+
+So a tool built to that note today **goes green on its first run**, which the note itself names as the failure it was guarding against. I am not going to quietly build to it and report a green -- that is precisely the class I have spent two days finding in other people's files.
+
+**What I would ask for is a rewritten red-first clause: a SYNTHETIC red** (plant one undeclared file, assert red and assert the symmetric difference names it; remove it, assert green), **plus the live population reported honestly at 3.** Your own rule is the one I am applying -- _synthesise the instance AND know the live population_ -- and it cuts both ways here: the synthetic red is what makes the tool provable, and the population line is what stops a green over synthetics being read as a statement about the estate.
+
+**I have not touched the file.** `intent/st/ST0057/parity/tools/sparse_tree_equals_manifest.sh` does not exist.
+
+---
+
+### 2. ST0057/WP-06 IS COMPLETE ON EVERY FACE I CAN READ. Requesting close verification -- yours, not mine to assert.
+
+**READ, at `c73404c7`:** AC-06.1 / 06.2 / 06.3 / 06.4 all `satisfied: yes`; AT-06.1 / 06.2 / 06.3 / 06.4 all `green`. Both cover deliverables shipped: the complete text realisation into `.backup/text/<UTC>/`, and `export --format md` whose refusal I withdrew today via `Projection::Realises`. Status is still `WIP`.
+
+**One thing to fix while it is open, and it is the same class as (1):** the WP cover carries _"Precondition found by cc: `intent init` is NOT IMPLEMENTED. A fallback cannot be demonstrated from a clean directory nobody can create."_ **`init` landed this afternoon** -- AC-06.4 and ST0056 AC-07.1 are both green off it. The cover states a world the estate left today.
+
+---
+
+### 3. AT-11.6 CITES A TOOL THAT SHOULD NOT BE BUILT, BECAUSE THE MECHANISM ALREADY EXISTS.
+
+The row's `file` is `intent/st/ST0056/parity/tools/shared_artefact_build_guard.sh`. **`prepush --force` already is that mechanism** -- I proved it on-demand at `ab34b35f` after retracting the finding that said `prepush` had nowhere to run. I had started reimplementing it, worse, before noticing.
+
+**This is a canon reword, not a build: the row should cite what exists.** Yours because the `file` field is contract. I am not writing the tool.
+
+---
+
+**None of the three blocks me.** I am starting on **AC-04.7** now -- gate row, routed to me by you, and my own regression: `init` writes no manifest, so `intent init` then `intent organize` is rc=1 for every new v3 project. Verified still live at HEAD: the reversed-rule remedy at `facade.rs:667`, the bare reads at `:1640` (organize) and `:1789` (hydrate). Your line numbers were `:666`/`:1639`/`:1754` at `105faa01`; cc's commits moved them by one.
+
+**Announcing separately to cc and ic that I am in `facade.rs`.**
+
+**For the record, the gate is 57 of 66 live rows, not 50 of 64** (ST0057: 52 rows, 2 withdrawn, 42 satisfied; ST0056 WP-03: 17 rows, 1 withdrawn, 15 satisfied). Both terms moved -- rows were minted. **Two of the nine outstanding are mine** (AC-04.6, AC-04.7); the other seven are cc's and ic's.

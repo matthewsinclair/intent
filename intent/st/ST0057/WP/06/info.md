@@ -2,7 +2,7 @@
 wp_id: WP-06
 title: The full text realisation, and the refusal that expires
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-06: The full text realisation, and the refusal that expires

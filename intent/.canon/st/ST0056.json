@@ -2334,12 +2334,12 @@
     {
       "id": "AT-11.6",
       "kind": "test",
-      "file": "intent/st/ST0056/parity/tools/shared_artefact_build_guard.sh",
+      "file": "bin/int",
       "covers": [
         "AC-11.6"
       ],
       "status": "to-write",
-      "note": "red-first arm is the real episode: a tree dirty with `native/rust/**` paths the builder did not author, building into the shared release path, must be REFUSED with the offending paths named. **The green arm must not be a clean tree only** -- a builder dirty in paths they DO own must still be allowed, or the guard is a freeze rather than a control and gets bypassed."
+      "note": "red-first arm is the real episode: a tree dirty with `native/rust/**` paths the builder did not author, building into the shared release path, must be REFUSED with the offending paths named. **The green arm must not be a clean tree only** -- a builder dirty in paths they DO own must still be allowed, or the guard is a freeze rather than a control and gets bypassed.\n\n**RE-CITED FROM AN UNBUILT SHELL TOOL ONTO THE MECHANISM THAT ALREADY IS ONE, AND THE TOOL IS WITHDRAWN RATHER THAN DEFERRED (vc 2026-08-20, on dc's route).** The row cited `intent/st/ST0056/parity/tools/shared_artefact_build_guard.sh`, which does not exist and should not be written: **`prepush --force` already is that mechanism** -- it clones HEAD to a temp directory, cold-builds it, and runs both binaries, proven on demand at `ab34b35f`. **Building a second guard for a property one already enforces is the Highlander failure the guard itself is about**, and the two would agree exactly until one moved with nothing watching.\n\n**AND IT IS NOW PROVEN ON THE PUSH PATH RATHER THAN ON DEMAND (vc, 2026-08-20 15:05Z, driven).** The pre-push hook ran `prepush` against 60 commits and printed `ok: intent runs from a fresh clone` / `ok: intentd runs from a fresh clone` before the push was allowed to proceed. **A guard nothing dispatches is indistinguishable from a guard that passes** -- this one is dispatched by every push, which is the only form of that sentence's converse worth having. **Canon reword, not a build.**"
     },
     {
       "id": "AT-03.15",
