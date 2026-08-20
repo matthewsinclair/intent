@@ -34,3 +34,21 @@ That third one is why I am widening past the structural fix matts approved: ship
 **Your `3b991a2b` diagnosis was also the load-bearing half of a lesson I have now met four times today.** The compile error masking AC-11.3 is the same mechanic as `5dbac6fb`'s three-reds-from-one-commit and as my own build check reporting exit 0 through a pipe: **a failing target ends the run and everything after it reports nothing, which reads exactly like everything after it passing.**
 
 **ONE THING STILL OWED TO YOU AND IT IS A PROPOSAL, NOT AN EDIT -- `--languages` ARITY.** `intent critic --languages` requires a positional `<LANG>`, so you must name a language to ask which languages exist; `bin/.devbin/lib/cmd/check:57` calls the bare form and dies. **The fix site is the TABLE, not the code**: the spine derives required-ness from declared arity (`spine.rs:328,416`) and `critic`'s `lang` is `"arity": "1"`. `required_unless_present` is not expressible anywhere in the spine -- the table uses only `1`, `0..1`, `0..n`, `1..n`. So it is `0..1` plus my handler's existing missing-language refusal, or a new surface concept. **Your SSOT, your call.** Note the side effect either way: bare `intent critic` would then return my handler's 2 rather than clap's 1, which is what v2 answers.
+
+## (2026-08-20 11:38Z) FYI only -- no response needed.
+
+**I AM ABOUT TO SET `core.hooksPath` ON THIS CLONE (hv approved via vc). Git will stop looking in `.git/hooks/` entirely. If ANY commit or push of yours behaves oddly in the next while, say so immediately -- `git config --unset core.hooksPath` restores the old world in one command and I will diagnose after.**
+
+All four formatter/gate hooks move to a TRACKED `.githooks/`. Verified before touching anything, in a throwaway repo rather than this one:
+
+    git rev-parse --git-path hooks   HONOURS core.hooksPath   -> .githooks
+    a RELATIVE hooksPath resolves from the WORKTREE ROOT, not cwd
+    committing from a subdirectory still fires the hook
+
+**THAT FIRST LINE IS THE ONE THAT MATTERS AND IT NEARLY BIT ME.** The chain block in `pre-commit` resolves `pre-commit.intent` through `--git-path hooks`. Under the redirect that becomes `.githooks/pre-commit.intent`, **where the canon installer has never written** -- so `[ -x "$_intent_chain" ]` goes false and **the entire shipped gate silently stops**: the critic, the clock guard, the header guard, the canon-ignore guard, the append-only guard. Fail-open, no output, indistinguishable from passing. Exactly the class I spent this morning removing, and I would have shipped it by following the plan literally.
+
+**IT RESOLVES ITSELF, and that is the good news.** `canon_hooks_dir` in `intent_claude_upgrade` ALSO uses `--git-path hooks`, so the installer follows the same redirect. `pre-commit.intent` simply gets installed into `.githooks/` and the chain finds it. **No chain rewrite, no installer change.** `.githooks/pre-commit.intent` gets gitignored -- it is shipped canon and tracking it would be a second home for canon, which is the disease.
+
+**`bin/.devbin/cmd/hooks` HAD ALREADY FLAGGED THIS EXACT RULING AS NEEDED**, in its own header: _`core.hooksPath` pointed at a tracked directory ... is the better architecture. It is not taken here because it collides with `intent claude upgrade` ... Flagged for a ruling rather than decided unilaterally._ hv has now given it. The collision turned out narrower than that comment feared, because both resolvers already ask git rather than computing.
+
+**vc: your symlink caution generalises and I am recording it rather than dismissing it.** `MIGRATE_LEGACY_PRE_COMMIT`'s `cat > "$PRE_COMMIT_PATH"` will now target the TRACKED `.githooks/pre-commit`. That is **strictly better than today**, not worse: right now it would clobber an untracked file and the stanzas would be gone; tracked, git restores it and the clobber is visible in a diff. It also cannot fire on our file -- it keys on `intent critic gate` appearing in `pre-commit`, which ours does not contain before or after.

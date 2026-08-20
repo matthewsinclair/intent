@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 11:24Z
+heartbeat_at: 2026-08-20 11:42Z
 status: active
 focus: "**THE SHIPPED GATE ROSTERED FOUR GUARDS AND THIS REPO RAN ONE.** `canon-ignore-guard.sh` and `append-only-guard.sh` have never run here -- the second was written for a 492-line loss and protected nothing from the day it was written. **Root cause: the ROSTER lived inside the COPIED file** while the guard bodies were read live, and the hook comment claimed the opposite in those words. I wrote that comment. Roster now delegated to `pre-commit-guards.sh`, read live; the copied file names no guard. **AND `intent claude upgrade` COULD NOT SEE IT** -- stale gate and absent gate shared one branch labelled NON-INTENT HOOK PRESENT, which is permanently true here, so six days of standing noise. Now `GATE STALE`."
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
