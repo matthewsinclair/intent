@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 14:39Z
-status: paused
-focus: "**FOLDED 2026-08-20 14:04Z. RULINGS 2 AND 3 BOTH LANDED AT `a6e336a7` -- AC-05.2, AC-05.1 and AC-05.3, 17 files, 964 pass / 0 fail / 137 targets verified in a DETACHED WORKTREE at the commit rather than in the shared tree.** `main` had been broken by a `--only` sweep of my caller and is fixed forward. **THREE FINDINGS, ALL IN INSTRUMENTS: `Realised` models ABSENT IS NOT EMPTY and the realisation path never consults it; `apply` re-realises what it projects -- **WITHDRAWN 14:40Z, IT WAS FALSE**; `flag_reachability`s marker list missed 10 of its own 18.** Nothing of mine red, nothing uncommitted."
+heartbeat_at: 2026-08-20 15:55Z
+status: active
+focus: "**LANDED AT `e7d038c3` -- TEN FILES, ONE COMMIT, MEASURED ON THE PUBLISHED TREE AT 139 / 982 / 0 WITH ZERO DIRTY.** AC-05.2's payload arm is driven (`Fixture::git_init` was the whole blocker); `AddressError::Incomplete` splits too-FEW from too-many; `Entity::Issues` + `Entity::WpCollection` complete D57-8's three POST populations; AC-08.5's two-literal pin is a measurement and STILL RED by its own denominator. **Four mutations, four kill-sets. My own `edit` test had declared 11 forms and passed over 13.** Next: AC-05.3 (unread), `doctor --json`, `declared_but_unwired` synthetic member."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,7 +13,19 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. NOTHING UNCOMMITTED.** Landed at `a6e336a7`; the published tree builds and passes **964 / 0 over 137 targets**, measured in a detached worktree at that commit.
+**NOTHING IN FLIGHT. NOTHING UNCOMMITTED. LANDED AT `e7d038c3`, 2026-08-20 15:5xZ.**
+
+**VERIFIED ON THE PUBLISHED TREE, WHICH IS THE ONLY CHECK THAT CATCHES THE `--only` CLASS**: detached worktree AT the commit, `git status --porcelain` 0 lines, `CARGO_TARGET_DIR` inside it -- **139 targets / 982 passed / 0 failed, rc=0; clippy `-D warnings` rc=0.**
+
+**ONE COMMIT AND THAT IS A CONSEQUENCE, NOT A PREFERENCE.** `address.rs` and `address_resolution_single_home.rs` each carry BOTH bodies, and **`git commit --only` is PATH-scoped** -- separating them needs hunk staging, which is unavailable here.
+
+What landed:
+
+1. **AC-05.2's second limb, driven at its payload.** The file had DECLARED it undriven; the blocker was a fixture, not a judgement. `Fixture::git_init`. Five tests, and the fixture **commits BOTH attachments and disturbs ONE** so the name-them-all implementation dies. All three `sync_uncommitted` answers separately driven.
+2. **`AddressError::Incomplete`** -- too-FEW segments stops being reported as too-many. Short forms **DERIVED** by truncating `d57_8_forms()`.
+3. **`Entity::Issues` + `Entity::WpCollection`** -- D57-8's three server-assigned populations all POST now. Denominator read **from the design, never from `address.rs`**. `DEFAULT_WP_SCOPE` and `TShirt::spellings()` have one home each.
+4. **AC-08.5's pin became a measurement and the row STAYS RED.** The denominator is in the assertion: one entity, one door.
+5. **My own `edit` test declared 11 forms and passed over 13.** Compile-time witness added; the corrected list then caught a guess -- `wp-collection` is EDITABLE.
 
 ## ON RESUME -- read this first
 
@@ -27,10 +39,11 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## TODO -- LIVE ONLY
 
-1. **AC-08.4 / AC-08.5** (WP-08) -- red, untouched, mine.
-2. **`doctor --json` surface row** (cc's ask). Trap: declare `--json` at BOTH family and verb level.
-3. **`declared_but_unwired.rs` gets a synthetic member** per cc's ruling, and the borrowed `st dehydrate` stops being load-bearing.
-4. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
+1. **AC-08.4 -- REPORT, DO NOT COLLECT A GREEN.** vc's red rests on _`fn post` HAS ZERO HITS_. **That closed at `0543f64b`, 2026-08-19 21:19** -- `post` is `facade.rs:3666`, returns the new `Address`, 8 tests pass. **But the criterion is wider than the bar: three server-assigned id mints (`st_new`, `wp_new`, `issue_add` via `next_issue_number`) and ONE collection address.** `post` reads complete because the grammar offers it exactly one collection to be complete over. **Whether issues and WPs should be POSTable is a D57-8 question and it is vc/hv's, not mine.**
+2. **AC-08.5 -- THE FILE CONTRADICTS ITSELF AND BOTH HALVES PASS.** `writable_field_roster()` is a hand-written literal asserting `note` has no setter; `an_ac_and_an_at_can_be_created_through_the_surface`, four tests later in the SAME FILE, drives `put` and asserts the created rows carry a `note`. **The file's own docstring explains why the sibling pin was wrong -- _the pin measured a NAME and the criterion is about a CAPABILITY_ -- and the fix was applied to one of the two.** MEASURE FIRST: can `put` UPDATE an existing row's `note`, or only create? If it updates, the roster measures VERBS while AC-08.5 says _through the mutation surface_.
+3. **`doctor --json` surface row** (cc's ask). Trap: declare `--json` at BOTH family and verb level.
+4. **`declared_but_unwired.rs` gets a synthetic member** per cc's ruling, and the borrowed `st dehydrate` stops being load-bearing.
+5. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
 
 ## Watch-outs
 
@@ -44,6 +57,10 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 - **A PEER'S HALF-WRITTEN FILE BLOCKS YOUR BUILD, THREE TIMES TODAY.** Not a defect and not worth escalating -- retry, and read WHOSE file before diagnosing.
 
 ### Instruments, which is where every finding today actually was
+
+- **A CROSS-CHECK RECONCILES WHEN BOTH SIDES SHARE THE SAME ERROR, AND IT THEN READS AS CONFIRMATION.** dc reported the workspace at **139 / 978** and derived it correctly -- _ic's 138/974 plus my one new target and its four arms_; 974 + 4 = 978 and 138 + 1 = 139, both true. **HEAD alone, measured in a clean detached worktree, is 139 / 971.** The extra 7 are my five AT-05.2 tests and two address tests, dirty in the shared checkout, **present on BOTH sides of the comparison** -- so the sum agreed to the digit while the attribution was wrong by seven. **The arithmetic was right and the SUBJECT was wrong**, which is the `at green` shape (one method run twice, agreeing, concluding wrongly) arriving in a subtraction.
+  - **AND THE CONSEQUENCE IS THE BAD KIND: IT SELF-HEALS.** 978 becomes a true statement about HEAD the moment I commit, and nothing afterwards can show it was false when written. **A number measured in a shared checkout is a number about a tree nobody else has.**
+- **A CLEAN `git apply --3way` IS NOT A CORRECT REBASE.** All ten of my files applied cleanly onto dc's HEAD **after `organize::plan` changed its signature underneath them.** Apply reports on TEXT; only the suite reports on meaning.
 
 - **AN ABSENCE IS ONLY EVIDENCE WITHIN THE SCOPE YOU ACTUALLY READ, AND A CALL BOUNDARY IS NOT A SCOPE BOUNDARY.** I read `Facade::apply`'s last thirty lines, found no manifest read, and reported that every mutation re-realises a dehydrated artefact. **The manifest read is one call down, in the function `apply` delegates to** -- and the fix had landed the day before, with a comment stating the harm in the same words I used to report it. **A grep of the function you are looking at cannot see the function it calls.**
 - **AND THE THING THAT MADE IT CHEAP TO KILL WAS MARKING THE SCOPE.** I sent it fenced as _a read of `apply`'s last thirty lines plus the absence of any manifest read in them_; vc says that sentence is what told them where to check. **Mark every absence claim with the scope it was read over -- unmarked, that one would have gone into canon.**
