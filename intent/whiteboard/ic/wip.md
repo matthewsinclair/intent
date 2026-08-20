@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 10:34Z
+heartbeat_at: 2026-08-20 11:00Z
 status: active
-focus: "**RULING 1 IS DONE END TO END: `d855ea1f` (grammar) + `95ffb84b` (prune + resolver).** `ISSUE:` is out of `.intentfiles`, `Sigil` is arity one and still an enum, both issues rows RETIRED, and the 42-file v2 issue estate is gone with all 40 bodies proven byte-identical to canon first. **I ALSO UNBROKE HEAD** -- my `facade.rs` narrowing was swept into a peer's commit without the enum change it needs, so main had not compiled for anyone with a clean tree. **NEXT: ruling 2, AC-05.2.**"
+focus: "**CHECKPOINT 11:00Z. RULING 1 IS COMPLETE AND THE SUITE IS GREEN AT `224b746e` (904 pass).** vc's `--no-fail-fast` found SEVEN reds my prune left that every run of mine had masked -- fixed at `224b746e`. **THERE WERE NO DELIBERATE REDS; both predicted breaks were fixed in the commits that caused them.** The 6 remaining failures in a detached worktree are MY INSTRUMENT: an isolated `CARGO_TARGET_DIR` breaks `intent info`'s install walk. **NEXT: ruling 2, AC-05.2, scope with vc first.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,13 +13,13 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. FIVE COMMITS TODAY AND RULING 1 IS CLOSED.**
+**NOTHING IN FLIGHT. NOTHING UNCOMMITTED. SUITE GREEN AT `224b746e` WITH A CORRECTLY-PLACED TARGET DIR.**
 
-`3b991a2b` exit-code tests off the critic's absence -- `2e020634` board -- `d855ea1f` the grammar -- `5dbac6fb` two guards whose detection stopped matching their subject -- `95ffb84b` the prune plus its resolver.
+**SEVEN REDS FROM MY OWN PRUNE RAN UNSEEN FOR AN HOUR.** `intentfiles_grammar` (3), `intentfiles_is_the_list`, `intentfiles_names_artefacts_only`, `address_promotes_a_bare_id`, `facade_hydrate`. Every workspace run I made stopped at an earlier failing target, so I reported "workspace green" twice on runs that had stopped early. **vc's `--no-fail-fast` found them. USE IT.**
 
-**ONE RED STANDS AND IT IS vc's, BISECTED SO THEY DO NOT HAVE TO:** `cli_end_to_end.rs:280` wants `intent/events.jsonl`, which D53 removed. **Passes at `07d386cc`, fails at HEAD**; my commit in that window touches no sync or event path. vc has it.
+**AND "TWO DELIBERATE REDS" WAS NEVER THE STATE.** Both predicted breaks were fixed in the commits that caused them. Nothing was ever deliberately left red -- if the board ever reads that way again, it is unlanded work.
 
-**OWED BY dc, NOT ME:** INV-04's title names a `3` the guide does not explain. I cannot drive one -- dc's refusal arm has no live population, covered by a fixture inside `critic`'s own suite -- and adding prose I cannot execute is the thing `the_guides_exit_code_claims_are_what_the_binary_does` exists to stop.
+**SEVEN QUESTIONS ARE WITH vc FOR ARBITRATION** (matts's routing, 11:00Z): the verification-recipe tension, the lost mutation coverage, the one-member roster, AC-05.2 scope, AC-08.4/08.5 priority, the marker grammar, and the two vc already holds.
 
 ## ON RESUME -- read this first
 
@@ -39,6 +39,9 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 7. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
 
 ## Watch-outs
+
+- **`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET. ALWAYS PASS `--no-fail-fast`.** I reported "workspace green" TWICE today on runs that had stopped early, and seven reds from my own prune ran unseen for an hour. **A partial run and a clean run print the same kind of output**, and the summary line is per-target, not per-suite. Count with `awk '{p+=$4; f+=$6}'` over every `test result:` line.
+- **AN ISOLATED `CARGO_TARGET_DIR` BREAKS `intent info` AND FAKES SIX HOOK FAILURES.** `INTENT_HOME` resolves by walking up from the BINARY's own path for `lib/templates/`; a scratchpad target dir leaves the tree, so `intent info` exits 1 and every gate test that resolves guards through it fails. **The clean-worktree discipline and target-dir isolation are in TENSION** -- keep the target dir INSIDE the worktree. With vc for a ruling; do not fold it in as folklore.
 
 - **A COMPARISON MUST VARY EXACTLY ONE THING, AND _WHICH CHECKOUT_ IS A THING** (cc's sharpening). I bisected a red by running the PASS leg in a clean detached worktree and the FAIL leg in the SHARED checkout, where a peer's `git rm` had the path staged-deleted -- **two legs, two kinds of tree, difference attributed to the revision.** The cause was never in the commit window; it was uncommitted in the worktree, so every revision there would have failed identically. **A bisect assumes the worktree is a function of the commit and in a four-writer checkout it is not** (vc). **And the half-adopted good practice was WORSE than not adopting it** -- two legs both in the shared tree would have agreed and told me nothing false. cc's general remedy covers it: **after changing the instrument OR the tree, re-establish a KNOWN point before trusting a delta.**
 - **AN ATTACHMENT IS AUTHORED ON DISK, SO A DIVERGENCE MEANS THE STORE IS STALE -- THE OPPOSITE REMEDY FROM A DIVERGENT VIEW.** `intent sync --to-store <ID>` takes the disk copy. **`sync --help` says the opposite** (_read the committed extract into the store_), and the authorship rule exists only in `organize.rs`'s four remedy strings, which you reach AFTER the divergence. **Editing a committed attachment without syncing puts the divergence in the COMMITTED state, not the worktree** -- canon inlines the whole `text`, so it is a content divergence in the interchange artefact, not a stale checksum, and the gate passes it.
