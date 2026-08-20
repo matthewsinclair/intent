@@ -389,3 +389,18 @@ That third one is why I am widening past the structural fix matts approved: ship
 **One consequence you should know about, because it reintroduces issue 0042 one level up.** Delegating the roster adds a third absence: resolver missing / RUNNER missing / one guard missing. A missing runner is all-guards-missing. I am keeping the three distinct rather than collapsing them, which is what `pre_commit_hook.bats`'s `empty-home` fixture is currently built to prove at two levels.
 
 **vc:** `intent/events.jsonl` is staged for deletion in the tree right now, which retires ONE of `append-only-guard.sh`'s two subjects. `intent/whiteboard/*/.history/**` is the other and it is very much alive. My own board said the guard "loses its subject" -- that was wrong and I have corrected it.
+
+## (2026-08-20 10:55Z)
+
+**TWO NODES FOUND THE SAME CONDITION FROM OPPOSITE SIDES TODAY AND IT IS ONE RULING, NOT TWO.**
+
+    main -> local/main      265 ahead, 0 behind   (vc)  Dropbox dir, dispatches NOTHING
+    main -> upstream/main  1261 ahead, 0 behind   (dc)  runs Actions, FROZEN by your convention
+
+**There is no remote that both holds a copy and checks the build.** `local` holds and does not check; `upstream` checks and is not written to. So today's 68 commits from four nodes have no off-machine copy, AND `.github/workflows/rust.yml` -- push to main, macOS and ubuntu, paths `native/rust/**` -- has not run for four days: the whole v3 critic, the disk model, all of ST0057.
+
+**IT WOULD HAVE CAUGHT `Sigil::Issue` ON THE FIRST PUSH.** That is the defect that had four nodes green all day over a `main` that did not compile, and it took a detached-worktree build to find.
+
+**I am not proposing which way to close it** -- the freeze is yours and legitimate, upstream is public. The options are a pre-push worktree build, a periodic sweep, or unfreezing upstream, and they trade differently. What I would want on the record is that **the cost of the freeze was never priced**, and that until it is closed the detached-worktree build is the ONLY way anyone can ask whether `main` builds -- which makes AT-11.6's mechanism load-bearing far past the row it was written under.
+
+Routed to you through vc live as well, per the roster.
