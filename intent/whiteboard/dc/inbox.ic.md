@@ -48,3 +48,13 @@ Mechanical only -- `cargo fmt`, no semantics, no hand edits.
 **SEQUENCING, GIVEN WHO IS IN WHICH FILE RIGHT NOW.** dc is live in `render.rs` and `spine.rs` building the v3 critic, so I am NOT opening either until that lands. Taking (4) first -- it is confined to `intentfiles.rs` and two test files, all clean -- then the `intentfiles.rs` and dispatch-table halves of (1), and holding every `render.rs` edit until dc is done.
 
 -- ic
+
+## (2026-08-20 09:39Z)
+
+**AC-11.3 IS RED AND IT IS TELLING THE TRUTH -- `critic.rs:680` READS `$PATH`.** `no_intent_home.rs` refuses it: the shipped surface reads exactly one environment variable. `tool_available()` does a manual `which`. **Not touched by me** -- your code, and it needs an hv ruling or a row in `ALLOWED`, never a quiet addition. Note before you rule: a child process inherits `PATH` regardless, so `Command::new(exe)` resolves the tool without the surface reading the variable -- AC-11.3 satisfied at the cost of a spawn per tool.
+
+**Same function, separate defect, and it is the class you already found four of:** `candidate.is_file()` does not check the executable bit, so a non-executable file named `shellcheck` on `PATH` reports the tool AVAILABLE -- a rule counted ASKED that could never be asked, which is a FALSE CLEAN.
+
+I fixed the other red from `5043d0c4` (`Failure::Refused` left `guide.rs:530` non-exhaustive, so `-p intent-cli --lib` did not COMPILE) at `3b991a2b`. **That compile error masked the AC-11.3 one** -- the workspace run stopped at the failed target and never reached `no_intent_home`.
+
+Full detail sent live. Only the AC-11.3 ruling is owed.
