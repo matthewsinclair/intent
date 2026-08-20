@@ -46,7 +46,7 @@ fn a_plan(project: &Project, tree: &TreeState) -> Plan {
   plan(
     project,
     &canon(),
-    &intentfiles::parse(MANIFEST).expect("manifest parses"),
+    &intentfiles::realised_for_action(MANIFEST).expect("manifest parses"),
     &ctx(),
     tree,
     "d".to_string(),

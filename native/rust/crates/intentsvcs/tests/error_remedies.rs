@@ -39,16 +39,26 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "unknown thread",
     facade.st_show("ST9999").expect_err("no such thread"),
   )];
-  // **`organize` reads a manifest, so a project without one refuses -- and the
-  // two ways it can refuse have opposite remedies.** Provoked here rather than
-  // exempted because neither needs a broken world: one file absent, one file
-  // malformed, both reachable through the ordinary call.
+  // **THE PROVOCATION THAT USED TO BE HERE WAS `organize` ON A PROJECT WITH NO
+  // MANIFEST, AND IT STOPPED REFUSING (ST0057 AC-04.7).** Absent is now nobody
+  // having said, so it is not an error at all -- and the comment that stood
+  // here said *"a project without one refuses"*, which was the premise rather
+  // than the detail. **A provocation whose subject stops refusing goes green by
+  // failing to provoke**, which is why this file asserts the variant it got
+  // rather than merely that it got one.
+  //
+  // The two manifest faults that remain are both REAL, and neither is absence:
+  // a manifest that is there and cannot be READ, and one that is there and will
+  // not PARSE. A directory in the file's place is the first, needs no `chmod`,
+  // and behaves the same on every platform this ships to.
+  std::fs::create_dir(fx.path("intent/.intentfiles")).expect("a directory in the manifest's place");
   out.push((
-    "no realisation manifest",
+    "unreadable realisation manifest",
     facade
       .organize(Mode::Apply)
-      .expect_err("a project with no .intentfiles cannot organize"),
+      .expect_err("a manifest that is there and cannot be read is refused"),
   ));
+  std::fs::remove_dir(fx.path("intent/.intentfiles")).expect("take it away again");
   std::fs::write(fx.path("intent/.intentfiles"), "NOTASIGIL:ST0056\n")
     .expect("write a malformed manifest");
   // **An address form that names nothing realisation can create.** Provoked
@@ -71,6 +81,27 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     facade
       .organize(Mode::Apply)
       .expect_err("a manifest with an unknown sigil is refused"),
+  ));
+  // **AND THE SAME BROKEN FILE REFUSES A LIFECYCLE VERB, THROUGH A DIFFERENT
+  // VARIANT, WHICH IS THE WHOLE REASON THERE ARE TWO.** `edit_list` hands the
+  // malformed TEXT to `pin`, so the refusal is about the edit not being
+  // expressible and carries no path -- the caller supplied the text and knows
+  // which file it came from. `organize` above opened the file itself, so its
+  // refusal names it. Provoked here rather than exempted because it needs no
+  // broken world, only an ordinary `st new` over a manifest somebody mistyped.
+  // **A DIFFERENT PARSE FAULT, DELIBERATELY.** Both variants delegate to the
+  // parse error for their remedy, so provoking this one with the SAME unknown
+  // sigil would make two causes share a remedy -- which this file refuses, on
+  // the ground that a remedy fitting two causes tells the operator to guess.
+  // Per-fault remedies are the whole design; using two faults is what
+  // exercises it, rather than a weakness worked around.
+  std::fs::write(fx.path("intent/.intentfiles"), "NONSENSE\n")
+    .expect("a line that is not an entry at all");
+  out.push((
+    "a lifecycle verb over a malformed manifest",
+    facade
+      .st_new("a thread whose listing cannot be written")
+      .expect_err("the list edit cannot be expressed against a manifest that will not parse"),
   ));
   out.push((
     "unknown work package",
@@ -391,6 +422,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Organize(_) => "Organize",
     FacadeError::Intentfiles(_) => "Intentfiles",
     FacadeError::ManifestUnreadable { .. } => "ManifestUnreadable",
+    FacadeError::ManifestMalformed { .. } => "ManifestMalformed",
     FacadeError::NotHydratable { .. } => "NotHydratable",
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
@@ -410,6 +442,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Organize",
   "Intentfiles",
   "ManifestUnreadable",
+  "ManifestMalformed",
   "NoSuchThread",
   "ThreadExists",
   "NoSuchWorkPackage",

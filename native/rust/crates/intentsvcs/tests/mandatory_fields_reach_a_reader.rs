@@ -96,6 +96,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::Organize(_)
     | FacadeError::Intentfiles(_)
     | FacadeError::ManifestUnreadable { .. }
+    // The manifest exists and will not parse. It reports a file the operator
+    // has to correct, not a value they left out of a call -- and the field it
+    // carries beyond the cause is the PATH, which the reader needs in order to
+    // act and never authored.
+    | FacadeError::ManifestMalformed { .. }
     // dc's, arriving mid-session with `Facade::hydrate`. It refuses because an
     // entity form has no file to make exist, not because a value was left out
     // -- there is no authored prose behind it for a reader to lose.

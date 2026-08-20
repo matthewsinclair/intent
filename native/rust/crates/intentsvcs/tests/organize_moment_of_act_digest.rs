@@ -134,7 +134,7 @@ fn a_plan_with_nothing_to_remove_does_not_consult_the_digest() {
   let p = plan(
     &project,
     &canon(),
-    &intentfiles::parse("STEELTHREAD:ST0001\n\n# BEGIN INTENT\n# END INTENT\n")
+    &intentfiles::realised_for_action("STEELTHREAD:ST0001\n\n# BEGIN INTENT\n# END INTENT\n")
       .expect("manifest parses"),
     &ctx(),
     &TreeState::default(),

@@ -248,16 +248,50 @@ pub fn realised(path: &std::path::Path) -> Realised {
 /// list.rs` records that no fixture can currently catch its removal.
 pub fn realised_from(text: &str) -> Realised {
   match parse(text) {
-    Ok(manifest) => Realised::Declared(
-      manifest
-        .entries
-        .iter()
-        .filter(|e| e.sigil == Sigil::SteelThread)
-        .map(|e| e.id.clone())
-        .collect(),
-    ),
+    Ok(manifest) => Realised::Declared(declared_set(&manifest)),
     Err(_) => Realised::Unreadable,
   }
+}
+
+/// The thread ids a PARSED manifest declares realised.
+///
+/// **Extracted so the two doors cannot disagree**, which is the same reason
+/// `realised` was lifted out of `Facade` when `doctor` became its second
+/// reader. [`realised_from`] and [`realised_for_action`] differ ONLY in what
+/// they do with a parse failure; if they also each spelled the filter, a
+/// change to the sigil space would have to be made twice and the second site
+/// would be found by a user.
+fn declared_set(manifest: &Manifest) -> std::collections::BTreeSet<String> {
+  manifest
+    .entries
+    .iter()
+    .filter(|e| e.sigil == Sigil::SteelThread)
+    .map(|e| e.id.clone())
+    .collect()
+}
+
+/// What an ACTING verb sees in the manifest's text: the same three-state model
+/// as [`realised_from`], except that **a manifest which exists and will not
+/// parse is an `Err` rather than a fail-open `Unreadable`.**
+///
+/// **THE TWO DOORS EXIST BECAUSE THE TWO CALLERS OWE THE OPERATOR DIFFERENT
+/// THINGS, AND THIS MODULE ALREADY SAID SO BEFORE THE DOOR EXISTED.**
+/// [`realised`]'s own comment: *"the grammar's real refusal belongs on the
+/// verbs that read the manifest deliberately, where the operator is asking
+/// about it and can act on the answer."* A REPORTER (`doctor`) must answer
+/// about a broken manifest rather than refuse to run, so it fails open. An
+/// ACTOR (`organize`, `edit`) is about to write and remove files on the
+/// strength of what the manifest says, and **acting on a file it could not
+/// read is the one thing it must never do** -- so the refusal, with its line
+/// number, belongs here.
+///
+/// **ABSENCE IS NOT THIS FUNCTION'S BUSINESS**, and that is deliberate: it
+/// takes TEXT, so a caller holding text has already established the file is
+/// there. Absent is decided at the filesystem, once, by the caller that
+/// touches the filesystem -- rather than being inferred here from an empty
+/// string, which is a real and different state (a manifest declaring NONE).
+pub fn realised_for_action(text: &str) -> Result<Realised, IntentfilesError> {
+  Ok(Realised::Declared(declared_set(&parse(text)?)))
 }
 
 /// Why a manifest could not be read.

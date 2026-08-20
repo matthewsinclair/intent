@@ -55,7 +55,7 @@ fn canon_of(threads: Vec<Thread>) -> Canon {
 fn one_removal(fx: &Fixture, declaration: Thread) -> (std::path::PathBuf, Plan) {
   let project = fx.project();
   let canon = canon_of(vec![declaration, sample_thread("ST0002")]);
-  let manifest = intentfiles::parse(MANIFEST).expect("manifest parses");
+  let realised = intentfiles::realised_for_action(MANIFEST).expect("manifest parses");
   let doomed = project.info_view("ST0002");
   let tree = TreeState {
     present: [doomed.clone()].into_iter().collect(),
@@ -64,7 +64,7 @@ fn one_removal(fx: &Fixture, declaration: Thread) -> (std::path::PathBuf, Plan) 
   let p = plan(
     &project,
     &canon,
-    &manifest,
+    &realised,
     &ctx(),
     &tree,
     "digest".to_string(),
@@ -310,7 +310,7 @@ fn the_blocked_count_is_files_and_not_refusals() {
   let p = plan(
     &project,
     &canon_of(threads),
-    &intentfiles::parse(MANIFEST).expect("manifest parses"),
+    &intentfiles::realised_for_action(MANIFEST).expect("manifest parses"),
     &ctx(),
     &tree,
     "digest".to_string(),

@@ -57,7 +57,7 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 use crate::ingest::Canon;
-use crate::intentfiles::{Manifest, Sigil};
+use crate::intentfiles::Realised;
 use crate::preconditions::{self, Verdict};
 use crate::project::{Project, ThreadFile};
 use crate::views::{self, RenderContext, View};
@@ -331,21 +331,6 @@ fn io_err(path: &Path, source: std::io::Error) -> OrganizeError {
   }
 }
 
-/// The artefacts the manifest declares, as a set of `(sigil, id)`.
-///
-/// **PINNED AND GENERATED ARE UNIONED, AND THE REGION IS NOT CONSULTED HERE.**
-/// The two regions differ in who WRITES them and whether they survive a rewrite
-/// -- both declare realisation equally. Filtering to one region would silently
-/// dehydrate every pinned thread, which is the exact decision AC-02.3 exists to
-/// preserve.
-fn declared_artefacts(manifest: &Manifest) -> BTreeSet<(&'static str, String)> {
-  manifest
-    .entries
-    .iter()
-    .map(|e| (e.sigil.as_str(), e.id.clone()))
-    .collect()
-}
-
 /// A path re-based from the project root onto the THREAD directory, which is the
 /// frame [`Project::classify`] reads.
 ///
@@ -425,13 +410,11 @@ pub fn observe(
 pub fn plan(
   project: &Project,
   canon: &Canon,
-  manifest: &Manifest,
+  realised: &Realised,
   ctx: &RenderContext<'_>,
   tree: &TreeState,
   digest: String,
 ) -> Plan {
-  let declared = declared_artefacts(manifest);
-
   // Everything the renderer can produce, keyed by path. This is BOTH the source
   // of hydration bytes and the denominator for "unclaimed" -- a path absent from
   // this map is one the renderer cannot make, which is the fifth row's exact
@@ -451,7 +434,7 @@ pub fn plan(
   // helpers already own.
   let mut declared_paths: BTreeSet<PathBuf> = BTreeSet::new();
   for thread in &canon.threads {
-    if !declared.contains(&(Sigil::SteelThread.as_str(), thread.id.clone())) {
+    if !realised.declares(&thread.id) {
       continue;
     }
     declared_paths.insert(project.info_view(&thread.id));
@@ -485,7 +468,7 @@ pub fn plan(
   // is a write.
   let mut attachment_paths: BTreeSet<PathBuf> = BTreeSet::new();
   for thread in &canon.threads {
-    let declared_thread = declared.contains(&(Sigil::SteelThread.as_str(), thread.id.clone()));
+    let declared_thread = realised.declares(&thread.id);
     for att in &thread.attachments {
       let path = project.st_dir().join(&thread.id).join(&att.path);
       attachment_paths.insert(path.clone());

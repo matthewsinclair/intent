@@ -57,7 +57,7 @@ fn the_five_rows_of_d57_3() {
   let fx = Fixture::new();
   let project = fx.project();
   let canon = canon();
-  let manifest = intentfiles::parse(MANIFEST).expect("manifest parses");
+  let realised = intentfiles::realised_for_action(MANIFEST).expect("manifest parses");
 
   // ROW 1 declared + absent      -> ST0001/acceptance.md  (not in on_disk)
   // ROW 2 declared + present     -> ST0001/info.md
@@ -86,7 +86,7 @@ fn the_five_rows_of_d57_3() {
   let p = plan(
     &project,
     &canon,
-    &manifest,
+    &realised,
     &ctx(),
     &tree,
     "digest-under-test".to_string(),
@@ -131,7 +131,7 @@ fn the_fifth_row_is_never_destructive() {
   let p = plan(
     &project,
     &canon(),
-    &intentfiles::parse(MANIFEST).expect("manifest parses"),
+    &intentfiles::realised_for_action(MANIFEST).expect("manifest parses"),
     &ctx(),
     &TreeState {
       present: [human_file.clone()].into_iter().collect(),
@@ -163,7 +163,7 @@ fn an_index_view_is_exempt_rather_than_dehydrated() {
   let p = plan(
     &project,
     &canon(),
-    &intentfiles::parse(MANIFEST).expect("manifest parses"),
+    &intentfiles::realised_for_action(MANIFEST).expect("manifest parses"),
     &ctx(),
     &TreeState {
       present: [index_view.clone()].into_iter().collect(),
@@ -195,11 +195,11 @@ STEELTHREAD:ST0001
 ";
   let fx = Fixture::new();
   let project = fx.project();
-  let manifest = intentfiles::parse(pinned_only).expect("manifest parses");
+  let realised = intentfiles::realised_for_action(pinned_only).expect("manifest parses");
   let p = plan(
     &project,
     &canon(),
-    &manifest,
+    &realised,
     &ctx(),
     &TreeState::default(),
     "d".to_string(),

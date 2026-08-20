@@ -438,7 +438,7 @@ fn one_removal(
 ) -> (std::path::PathBuf, intentsvcs::organize::Plan) {
   let project = fx.project();
   let canon = canon_of(vec![declaration, sample_thread("ST0002")]);
-  let manifest = intentfiles::parse(MANIFEST).expect("manifest parses");
+  let realised = intentfiles::realised_for_action(MANIFEST).expect("manifest parses");
   let doomed = project.info_view("ST0002");
   let tree = TreeState {
     present: [doomed.clone()].into_iter().collect(),
@@ -447,7 +447,7 @@ fn one_removal(
   let p = plan(
     &project,
     &canon,
-    &manifest,
+    &realised,
     &ctx(),
     &tree,
     "digest".to_string(),
@@ -560,7 +560,7 @@ fn one_refusal_covers_the_run_rather_than_one_per_file() {
     sample_thread("ST0002"),
     sample_thread("ST0003"),
   ]);
-  let manifest = intentfiles::parse(MANIFEST).expect("manifest parses");
+  let realised = intentfiles::realised_for_action(MANIFEST).expect("manifest parses");
   let present: Vec<_> = vec![
     project.info_view("ST0002"),
     project.acceptance_view("ST0002"),
@@ -573,7 +573,7 @@ fn one_refusal_covers_the_run_rather_than_one_per_file() {
   let p = plan(
     &project,
     &canon,
-    &manifest,
+    &realised,
     &ctx(),
     &tree,
     "digest".to_string(),
@@ -612,12 +612,13 @@ fn a_plan_with_no_removals_does_not_report_the_ship_gate() {
     AcKind::NonTest,
     AcState::Unsatisfied,
   )])]);
-  let manifest =
-    intentfiles::parse("STEELTHREAD:ST0057\n\n# BEGIN INTENT\n# END INTENT\n").expect("parses");
+  let realised =
+    intentfiles::realised_for_action("STEELTHREAD:ST0057\n\n# BEGIN INTENT\n# END INTENT\n")
+      .expect("parses");
   let p = plan(
     &project,
     &canon,
-    &manifest,
+    &realised,
     &ctx(),
     &TreeState::default(),
     "digest".to_string(),

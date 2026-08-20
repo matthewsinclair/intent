@@ -389,6 +389,25 @@ pub enum FacadeError {
     #[source]
     source: std::io::Error,
   },
+  /// `.intentfiles` exists and will not parse, raised by the door that OPENED
+  /// it (AC-04.7 arm (b)).
+  ///
+  /// **NOT A SECOND SPELLING OF [`FacadeError::Intentfiles`], AND THE
+  /// DIFFERENCE IS WHO KNOWS THE PATH.** `Intentfiles` is raised where the
+  /// CALLER supplied the text -- `pin`, `unpin` -- and is about the edit being
+  /// expressible; the path is that caller's own business and naming it would
+  /// be a guess made twice. This one is raised by [`Facade::manifest_for_
+  /// action`], the only reader that opened a file and therefore the only one
+  /// that can say which. **AC-04.7 arm (b) requires the refusal to name the
+  /// path**, and it requires it precisely because the fix for arm (a) removes
+  /// the absent case from the refusal entirely: what survives has to be
+  /// actionable on its own.
+  #[error("could not read {path}: {cause}")]
+  ManifestMalformed {
+    path: String,
+    #[source]
+    cause: intentfiles::IntentfilesError,
+  },
   /// The address names something realisation cannot make exist.
   ///
   /// **It names the FORM, and the form is why it is counted rather than
@@ -663,9 +682,31 @@ impl crate::remedy::Remedy for FacadeError {
       // a comment asserted what the code did not do, and the first two were
       // other people's.
       Self::Intentfiles(cause) => cause.remedy(),
+      // **THE REMEDY THIS REPLACES STATED hv's RULE BACKWARDS, AND IT WAS THE
+      // FIRST MESSAGE A NEW v3 PROJECT SHOWED ANYBODY** (AC-04.7 arm (c)). It
+      // read *"an absent manifest declares nothing, so `organize` would read
+      // the whole estate as undeclared"* -- the PRE-REVERSAL reading, four
+      // files from `Realised::declares`, whose own comment is **ABSENT IS NOT
+      // EMPTY** and whose code answers `true` for everything. Absent means
+      // realise everything; the message said absent means realise nothing.
+      // **So it did not merely fail to consult the model -- it TAUGHT the
+      // reversed rule to the one person with no other source.**
+      //
+      // **AND THE TEXT IS NOW HONEST BECAUSE THE STATE IS UNREACHABLE, NOT
+      // BECAUSE IT WAS REWORDED.** No site maps `NotFound` here any more:
+      // `manifest_for_action` answers `NothingSaid`, `edit`'s pin step and
+      // `edit_list` both no-op. What is left is a file that IS there
+      // and cannot be read -- a permissions fault, a directory in its place, a
+      // bad mount -- which is a repair to the MACHINE and never to the estate.
+      // A remedy telling that operator to `create` the file would send them to
+      // overwrite something they cannot currently read.
       Self::ManifestUnreadable { path, .. } => format!(
-        "create `{path}` -- an absent manifest declares nothing, so `organize` would read the whole estate as undeclared. `intent edit <ID>` pins an artefact into it, and the generated region is written by the tool."
+        "`{path}` is there and could not be read -- check its permissions and the mount it sits on. This is not the absent case: a MISSING manifest is not an error at all, because nobody having said means everything stays realised."
       ),
+      // Delegated to the parse error, which knows WHICH line and WHY, exactly
+      // as `Intentfiles` does -- the path this variant adds is context for the
+      // message, not a substitute for the remedy.
+      Self::ManifestMalformed { cause, .. } => cause.remedy(),
       // Delegated, for the same reason `Store` is: `Blocked` knows whether the
       // estate needs repairing under v2 or whether the migrator itself failed,
       // and those are different actions for different people.
@@ -1636,13 +1677,52 @@ impl Facade {
     })
   }
 
-  pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {
-    let raw = std::fs::read_to_string(self.project.intentfiles_path()).map_err(|source| {
-      FacadeError::ManifestUnreadable {
-        path: self.project.intentfiles_path().display().to_string(),
-        source,
+  /// Open `.intentfiles` for a verb that is about to ACT on what it says.
+  ///
+  /// **THREE STATES, KEPT APART, BECAUSE TWO OF THEM WERE THE SAME ONE AND THE
+  /// COLLAPSE WAS THE DEFECT (AC-04.7).** Both callers below used to open the
+  /// file with a bare `read_to_string` mapped to `ManifestUnreadable`, so an
+  /// ABSENT manifest -- **the shipped initial condition of every project
+  /// `intent init` creates** -- refused to run and reported the estate broken.
+  /// `intentfiles::realised()` had modelled hv's rule completely and correctly
+  /// the whole time, four files away, and nothing that ACTED consulted it:
+  /// **one rule, one correct model, three readers of which one used it.**
+  ///
+  /// - **ABSENT: not an error.** Nobody has said, so everything is realised.
+  ///   The verb proceeds and removes nothing.
+  /// - **PRESENT AND UNPARSEABLE: refused, with the line AND the path.**
+  ///   Fail-open belongs to reporters; a verb about to remove files must never
+  ///   act on a declaration it could not read.
+  /// - **PRESENT AND UNREADABLE: refused.** A permissions fault is not an
+  ///   absence, and folding it into one would let a broken mount read as
+  ///   "nobody has said" and silently dehydrate the estate.
+  ///
+  /// **THE SAME RULE, INLINE, IS AT [`Facade::edit_list`]** (ic,
+  /// AC-05.2) -- and it is not extracted into this helper because the two ask
+  /// different questions: that one needs the manifest's TEXT in order to
+  /// rewrite it, this one needs its DECLARATION in order to plan against it.
+  /// Sharing a return type would make one of them convert back.
+  fn manifest_for_action(&self) -> Result<intentfiles::Realised, FacadeError> {
+    let path = self.project.intentfiles_path();
+    match std::fs::read_to_string(&path) {
+      Ok(raw) => {
+        intentfiles::realised_for_action(&raw).map_err(|cause| FacadeError::ManifestMalformed {
+          path: path.display().to_string(),
+          cause,
+        })
       }
-    })?;
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
+        Ok(intentfiles::Realised::NothingSaid)
+      }
+      Err(source) => Err(FacadeError::ManifestUnreadable {
+        path: path.display().to_string(),
+        source,
+      }),
+    }
+  }
+
+  pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {
+    let realised = self.manifest_for_action()?;
     // **NOTHING REGENERATES THIS FILE, BY hv's RULING (`d2b63bc3`).** organize
     // is: read the list, hydrate what is in it, dehydrate what is on disk and
     // is not. **Status has no vote here at all.**
@@ -1657,14 +1737,13 @@ impl Facade {
     // It also settles a mystery this estate spent an evening on:
     // `intentfiles::render` had no production caller because **the thing it
     // does is not needed**, not because anybody forgot to wire it.
-    let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
 
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
     let plan = {
       let ctx = self.render_ctx()?;
-      organize::plan(&self.project, &self.canon, &manifest, &ctx, &tree, digest)
+      organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest)
     };
 
     let project = &self.project;
@@ -1771,34 +1850,59 @@ impl Facade {
     // STEP ONE: PIN. First, and unconditionally, because it is the step the
     // obvious ordering skips.
     let path = self.project.intentfiles_path();
-    let before =
-      std::fs::read_to_string(&path).map_err(|source| FacadeError::ManifestUnreadable {
-        path: path.display().to_string(),
-        source,
-      })?;
-    let after = intentfiles::pin(&before, sigil, &id, None).map_err(FacadeError::Intentfiles)?;
-    let pin_moved = after != before;
-    if pin_moved {
-      let mut set = WriteSet::new();
-      set.add(path, after);
-      set.commit()?.keep();
-    }
+    let pinned = match std::fs::read_to_string(&path) {
+      Ok(before) => Some(before),
+      // **AN ABSENT MANIFEST IS LEFT ABSENT, AND THE ALTERNATIVE IS
+      // DESTRUCTIVE RATHER THAN MERELY DIFFERENT.** Creating one here to hold
+      // this single entry would declare that this id is THE WHOLE of what is
+      // realised, and the next `organize` would remove every other thread's
+      // files on the strength of one `intent edit`. Nobody has said, so
+      // everything is already realised and there is nothing for a pin to add
+      // -- the no-op is the rule applying, not a case being skipped. hv ruled
+      // this for the lifecycle verbs; `edit_list` is the same arm,
+      // written by ic, and AC-04.7 states expressly that it does not decide
+      // this one beyond requiring that absence not be REPORTED as unreadable.
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
+      // Any other IO fault is raised. A file that exists and cannot be read is
+      // not a file that does not exist, and letting a permissions error answer
+      // as "nobody has said" is the silent swallow this estate forbids.
+      Err(source) => {
+        return Err(FacadeError::ManifestUnreadable {
+          path: path.display().to_string(),
+          source,
+        });
+      }
+    };
+    // **`false` FOR THE ABSENT CASE IS A FACT ABOUT THE RUN, NOT A DEFAULT.**
+    // This value is what `disk.hydrate` records as `pinned`, and nothing was
+    // pinned: no manifest was read, none was written, and none was created.
+    // Reporting `true` because the artefact is realised would record an act
+    // that did not happen, in the log this estate treats as the durable one.
+    let pin_moved = match pinned {
+      None => false,
+      Some(before) => {
+        let after =
+          intentfiles::pin(&before, sigil, &id, None).map_err(FacadeError::Intentfiles)?;
+        if after != before {
+          let mut set = WriteSet::new();
+          set.add(path, after);
+          set.commit()?.keep();
+          true
+        } else {
+          false
+        }
+      }
+    };
 
     // STEP TWO: MATERIALISE. Independent of the first -- it runs whether or not
     // the pin moved, and the pin ran whether or not this will write anything.
-    let raw = std::fs::read_to_string(self.project.intentfiles_path()).map_err(|source| {
-      FacadeError::ManifestUnreadable {
-        path: self.project.intentfiles_path().display().to_string(),
-        source,
-      }
-    })?;
-    let manifest = intentfiles::parse(&raw).map_err(FacadeError::Intentfiles)?;
+    let realised = self.manifest_for_action()?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
     let whole = {
       let ctx = self.render_ctx()?;
-      organize::plan(&self.project, &self.canon, &manifest, &ctx, &tree, digest)
+      organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest)
     };
 
     // **SCOPED TO THIS ARTEFACT'S DIRECTORY, AND THE FILTER IS WHY THIS IS NOT

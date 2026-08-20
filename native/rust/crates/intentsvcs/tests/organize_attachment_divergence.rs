@@ -61,7 +61,13 @@ fn plan_in(fx: &Fixture, manifest: &str, tree: TreeState) -> Vec<Step> {
   plan(
     &fx.project(),
     &canon(),
-    &intentfiles::parse(manifest).expect("manifest parses"),
+    // **`realised_for_action` RATHER THAN `realised_from`, TO KEEP THE
+    // `expect`.** The fail-open door answers `Unreadable` for a manifest that
+    // does not parse, and `Unreadable` realises everything -- so a typo in a
+    // fixture string here would silently become "declare the whole estate"
+    // and the test would go on measuring something else. The acting door
+    // returns the parse error, so the fixture still has to be valid.
+    &intentfiles::realised_for_action(manifest).expect("manifest parses"),
     &ctx(),
     &tree,
     "d".to_string(),
