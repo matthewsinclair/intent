@@ -1,34 +1,54 @@
-//! AT-05.2 / AC-05.2: **a hand realisation writes to the PINNED region and
-//! survives the next `organize`.**
+//! AT-05.2 / AC-05.2 -- **AND THIS FILE DOES NOT YET TEST AC-05.2's CRITERION.
+//! THE ROW STAYS RED. SAYING SO IS THE POINT OF THIS HEADER.**
 //!
-//! Writing it to the generated region means the next run reverts it, because
-//! that region is a function of status and the artefact opened by hand is
-//! typically closed.
+//! What it holds today is the subset of the old file that survives hv's
+//! 2026-08-19 ruling: the properties of `intentfiles::pin` itself, which are
+//! still true and still worth pinning down. What it no longer holds is anything
+//! about a GENERATED REGION being rewritten from status.
 //!
-//! # What this row tests that AT-02.3 does not
+//! # What was deleted and why
 //!
-//! AT-02.3 proves an EXISTING pin survives a status change. It says nothing
-//! about where a NEW one goes, and the two are separate failures: a `pin` that
-//! wrote into the generated region would pass every AT-02.3 case, because that
-//! row starts from a manifest whose pin is already in the right place. **The
-//! defect this row exists for is a correct mechanism fed from the wrong end.**
+//! The old file's headline case was *a hand realisation writes to the PINNED
+//! region and survives the next `organize`*, driven through
+//! `intentfiles::render` with `Generated` entries standing for "what status
+//! offers". **hv replaced that design**: `.intentfiles` is durable state,
+//! commands CHANGE it, and NOTHING recomputes it from status. With no
+//! regeneration there is no reversion to survive, so the case had no subject --
+//! and `render` and `Generated` are deleted from the module entirely.
 //!
-//! So every case here does the writing itself and then runs the rewrite, and
-//! the assertion is never "the pin is present" alone -- presence one line
-//! after writing it proves only that a string was appended somewhere. It is
-//! presence AFTER an `organize` that does not offer the artefact.
+//! Two tests went with them: `a_hand_pin_survives_an_organize_that_drops_it_
+//! from_status` and its control `an_unpinned_thread_in_the_same_run_does_not_
+//! survive`. A third, `pinning_an_artefact_already_in_the_generated_region_
+//! still_pins_it`, is kept in its surviving half -- the early-return trap it
+//! guards is a fact about `pin`, not about the rewrite it used to check through.
 //!
-//! # The discriminating case
+//! # What AC-05.2 now requires, and what will replace this file
 //!
-//! A thread that is ALREADY in the generated region when it is pinned by hand.
-//! That is the realistic shape -- you open something the estate is currently
-//! realising, it later closes, and the question is whether your decision
-//! outlives status. A `pin` that saw the id already present and returned early
-//! would pass a naive presence check and lose the artefact one `organize`
-//! later, which is AC-02.3's harm arriving through the edit path.
+//! That the LIFECYCLE VERBS edit the list: `st new` adds the entry and
+//! `--dehydrate` does not, `st done` and `st cancel` remove it and `--keep` does
+//! not, `st reopen` and `st reinstate` add it back -- **and that the closing
+//! verbs WARN, naming the paths, when the artefact holds on-disk bytes the store
+//! has never seen.** A warning and never a refusal: `organize.rs:695` is the
+//! only line in the tool that removes an estate file, and a second authority
+//! over a destructive act it does not perform would refuse work the real
+//! authority allows.
+//!
+//! **None of that is built** -- no lifecycle verb touches `.intentfiles` today,
+//! and `--dehydrate` and `--keep` are declared, documented, and read by nothing.
+//! So this file cannot yet assert it, AT-05.2 is correctly red, and **a green
+//! here before those verbs exist would be the failure the whole row is about.**
+//!
+//! # One thing that will break here shortly, deliberately left to break
+//!
+//! `pins_accumulate_in_order_without_disturbing_the_file` pins an `ISSUE:`.
+//! hv ruled on 2026-08-20 that issues are canon-and-store only and `ISSUE:`
+//! leaves the grammar, so `Sigil::Issue` is going. Left as-is rather than
+//! pre-emptively rewritten: the compiler naming this line is a better record of
+//! the dependency than a comment predicting it.
 
-use intentsvcs::intentfiles::{Generated, Region, Sigil, parse, pin, render};
+use intentsvcs::intentfiles::{Region, Sigil, parse, pin};
 
+/// `ST0011` sits inside the markers; nothing is pinned.
 const STARTING: &str = "\
 # BEGIN INTENT
 STEELTHREAD:ST0056
@@ -36,92 +56,31 @@ STEELTHREAD:ST0011
 # END INTENT
 ";
 
-/// `organize` running with `ST0011` no longer in status -- it has closed.
-fn organize_without_st0011(text: &str) -> String {
-  render(text, &[Generated::new(Sigil::SteelThread, "ST0056")]).expect("renders")
-}
-
+/// The early-return trap, and it is the reason `pin` cannot test PRESENCE.
+///
+/// `ST0011` is already visible in the file, so a `pin` that returned early on
+/// "the id is here" would do nothing -- and the caller's decision would never be
+/// recorded. **Presence and pinned-ness disagree on the ordinary path**, not in
+/// a corner: `Facade::hydrate` runs its pin step unconditionally for exactly
+/// this reason, and its own doc cites this file as having reddened it first.
 #[test]
-fn a_hand_pin_survives_an_organize_that_drops_it_from_status() {
-  let pinned = pin(
-    STARTING,
-    Sigil::SteelThread,
-    "ST0011",
-    Some("opened by hand: still cited by the completed-NULL work"),
-  )
-  .expect("pinning a valid id succeeds");
-
-  // Before the rewrite it must be in the PINNED region, not merely present.
-  let m = parse(&pinned).expect("parses");
-  let p = m.pinned().find(|e| e.id == "ST0011").expect(
-    "the hand pin must land OUTSIDE the markers -- inside, the next\n       \
-             organize reverts it, which is the whole of AC-05.2",
-  );
-  assert_eq!(p.region, Region::Pinned);
-  assert_eq!(
-    p.comment.as_deref(),
-    Some("opened by hand: still cited by the completed-NULL work"),
-    "the reason travels with the pin or the next reader deletes it as unexplained"
-  );
-
-  // And now the actual property: it outlives status.
-  let after = organize_without_st0011(&pinned);
-  let m = parse(&after).expect("parses");
-  let survivors: Vec<Region> = m
-    .entries
-    .iter()
-    .filter(|e| e.id == "ST0011")
-    .map(|e| e.region)
-    .collect();
-  assert_eq!(
-    survivors,
-    vec![Region::Pinned],
-    "exactly one ST0011 remains and it is the pin -- the generated copy is gone\n       \
-     because status no longer offers it, and that is the contrast being tested"
-  );
-}
-
-/// **The control.** Without it, the case above passes against a `render` that
-/// never removes anything at all.
-#[test]
-fn an_unpinned_thread_in_the_same_run_does_not_survive() {
-  let pinned = pin(STARTING, Sigil::SteelThread, "ST0011", None).expect("pins");
-  let after = render(&pinned, &[]).expect("organize with nothing in status");
-  let m = parse(&after).expect("parses");
-
-  assert!(
-    m.entries.iter().any(|e| e.id == "ST0011"),
-    "the pinned one stays"
-  );
-  assert!(
-    !m.entries.iter().any(|e| e.id == "ST0056"),
-    "the unpinned one goes -- if both survive, the pin distinguishes nothing"
-  );
-}
-
-/// Pinning something the generated region already carries. The early-return
-/// trap: `ST0011` is present, so a `pin` that checked PRESENCE rather than
-/// PINNED-NESS would do nothing and lose it at the next rewrite.
-#[test]
-fn pinning_an_artefact_already_in_the_generated_region_still_pins_it() {
+fn pinning_an_artefact_already_present_still_pins_it() {
   let before = parse(STARTING).expect("parses");
   assert_eq!(
     before.pinned().count(),
     0,
-    "the fixture starts with ST0011 in the GENERATED region only"
+    "the fixture starts with ST0011 present but NOT pinned -- if it starts pinned, \
+     this test proves nothing"
   );
   assert!(before.generated().any(|e| e.id == "ST0011"));
 
-  let pinned = pin(STARTING, Sigil::SteelThread, "ST0011", None).expect("pins");
-  let after = organize_without_st0011(&pinned);
-  assert!(
-    parse(&after)
-      .expect("parses")
-      .pinned()
-      .any(|e| e.id == "ST0011"),
-    "a pin must be written even when the id is already visible in the region --\n       \
-     checking presence instead of region is how the decision is silently dropped"
-  );
+  let after = pin(STARTING, Sigil::SteelThread, "ST0011", None).expect("pins");
+  let m = parse(&after).expect("parses");
+  let pinned = m
+    .pinned()
+    .find(|e| e.id == "ST0011")
+    .expect("a pin must be written even when the id is already visible in the file");
+  assert_eq!(pinned.region, Region::Pinned);
 }
 
 /// `intent edit` on the same thread twice is ordinary. The manifest must not

@@ -364,96 +364,26 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
 // ---------------------------------------------------------------------------
 // The writer -- AC-02.2, AC-02.3
 // ---------------------------------------------------------------------------
-
-/// What `organize` wants in the generated region: an artefact, nothing more.
-///
-/// **Deliberately NOT [`Entry`].** An `Entry` carries `line` and `region`,
-/// which are facts about a file that has already been read; a caller computing
-/// the region from status has neither and would have to invent both. A type
-/// that forces a caller to fabricate a field is a type that will be handed a
-/// fabricated one.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Generated {
-  pub sigil: Sigil,
-  pub id: String,
-}
-
-impl Generated {
-  pub fn new(sigil: Sigil, id: impl Into<String>) -> Self {
-    Self {
-      sigil,
-      id: id.into(),
-    }
-  }
-}
-
-/// Rewrite the generated region, leaving everything outside it untouched.
-///
-/// **The pinned lines are COPIED FROM THE SOURCE, never re-rendered from the
-/// parsed model** -- that is the whole of AC-02.2 and it is the one thing a
-/// natural implementation gets wrong. Parsing to `Entry` and printing it back
-/// reproduces the artefacts and silently normalises everything else: a comment
-/// hanging off a pin, two spaces before the `#`, a blank line a human left to
-/// group things. Every one of those is content somebody wrote on purpose, and
-/// "byte for byte" is the criterion precisely because a diff that reformats
-/// the region it was not asked to touch is a diff nobody can review.
-///
-/// A file with no markers gets them appended, which is `organize`'s first run
-/// on a manifest that has only ever been hand-written. Refusing instead would
-/// mean a human had to lay out the region before the tool could use it, and
-/// the layout is the tool's business.
-///
-/// Refuses on the same grounds [`parse`] does -- an unreadable manifest has no
-/// pinned region to preserve, and rewriting one on a guess is how a pin is
-/// lost.
-pub fn render(original: &str, generated: &[Generated]) -> Result<String, IntentfilesError> {
-  parse(original)?;
-
-  let block: Vec<String> = generated
-    .iter()
-    .map(|g| format!("{}:{}", g.sigil.as_str(), g.id))
-    .collect();
-
-  let mut out: Vec<String> = Vec::new();
-  let mut inside = false;
-  let mut saw_markers = false;
-
-  for raw in original.lines() {
-    if raw.trim() == BEGIN_MARKER {
-      inside = true;
-      saw_markers = true;
-      out.push(raw.to_string());
-      out.extend(block.iter().cloned());
-      continue;
-    }
-    if raw.trim() == END_MARKER {
-      inside = false;
-      out.push(raw.to_string());
-      continue;
-    }
-    if !inside {
-      // Verbatim. Not trimmed, not normalised, not re-rendered.
-      out.push(raw.to_string());
-    }
-  }
-
-  if !saw_markers {
-    if !out.is_empty() && !out.last().map(|l| l.trim().is_empty()).unwrap_or(false) {
-      out.push(String::new());
-    }
-    out.push(BEGIN_MARKER.to_string());
-    out.extend(block);
-    out.push(END_MARKER.to_string());
-  }
-
-  let mut text = out.join("\n");
-  // A text file ends with a newline. The original's trailing byte is not
-  // consulted: `lines()` has already dropped it, so preserving it would mean
-  // re-deriving it, and a manifest that sometimes lacks one is a diff that
-  // sometimes carries a spurious last-line change.
-  text.push('\n');
-  Ok(text)
-}
+//
+// **`Generated` AND `render` WERE DELETED HERE (hv ruling, 2026-08-20).** They
+// rewrote a GENERATED REGION from status, which is the design hv replaced on
+// 2026-08-19: `.intentfiles` is durable state, commands CHANGE it, and nothing
+// recomputes it. `facade.rs` had already written the epitaph -- *`render` had
+// no production caller because the thing it does is not needed* -- and remove
+// the regeneration and the protected region has nothing left to protect
+// against.
+//
+// **They were deleted rather than left because two test files were still
+// driving them GREEN.** `edit_writes_pinned_region.rs` at least sat behind a
+// RED row (AT-05.2) naming it; `intentfiles_pin_survives_close.rs` was named by
+// no AT row at all after AT-02.3 was re-pointed onto
+// `intentfiles_is_the_list.rs`, so it was nine passing assertions over a design
+// that no longer exists. **A red row says work is owed; an unnamed green file
+// says work is done, which is strictly worse.**
+//
+// `Region` and `Manifest::pinned()/generated()` survive because `pin` still
+// uses them. Whether the BEGIN/END marker grammar should survive AT ALL is a
+// separate question, deliberately not folded into this ruling.
 
 /// Add a PIN for `id`, so the artefact realises regardless of status.
 ///
