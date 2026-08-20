@@ -84,9 +84,64 @@ fn v2_estate_with_hooks() -> Fixture {
     ".claude/scripts/post-tool-advisory.sh",
     "#!/usr/bin/env bash\nset -euo pipefail\nintent critic \"$1\" || true\n",
   );
+  // **`.githooks/` IS A SEPARATE CRITERION AND NOT A SECOND EXAMPLE OF THIS
+  // ONE** (AC-10.15, vc 2026-08-20). AC-10.4's body enumerates only the
+  // `.claude` paths while its TITLE reads *Hooks continuity*, and `.githooks/`
+  // is where `core.hooksPath` actually points -- the whole commit gate.
+  // Measured before this fixture existed: `.githooks` appeared in **zero** test
+  // files in either crate and **zero** times in `intentsvcs/src`.
+  fx.write_file(
+    ".githooks/pre-commit",
+    "#!/usr/bin/env bash\nset -euo pipefail\nbin/int precommit \"$@\"\n",
+  );
+  fx.write_file(
+    ".githooks/pre-push",
+    "#!/usr/bin/env bash\nset -euo pipefail\nbin/int prepush \"$@\"\n",
+  );
   v2_thread(&fx, "ST0001", "WIP");
   v2_thread(&fx, "ST0002", "Completed");
   fx
+}
+
+/// Every path the plan intends to write that sits under `dir`, relative to the
+/// project root.
+///
+/// **Matched on a path COMPONENT of the estate-relative path, not a substring
+/// of the absolute one.** A substring test over an absolute path is a claim
+/// about the temp directory as much as about the plan; stripping the root first
+/// makes it a fact about the project and nothing else.
+fn planned_under(plan: &migrate::Plan, fx: &Fixture, dir: &str) -> Vec<String> {
+  let project = fx.project();
+  plan
+    .writes
+    .writes()
+    .map(|(p, _)| p)
+    .filter(|p| {
+      p.strip_prefix(fx.root())
+        .is_ok_and(|rel| rel.components().any(|c| c.as_os_str() == dir))
+    })
+    .map(|p| project.relative(p))
+    .collect()
+}
+
+/// A plan over a clean estate, with both threads' canon asserted present so the
+/// emptiness assertions below are over a real migration rather than an empty
+/// set.
+fn a_real_plan(fx: &Fixture) -> migrate::Plan {
+  let project = fx.project();
+  let scan = legacy::scan(&project).expect("a v2 estate scans");
+  let plan = migrate::plan(&project, &facade_ctx(), scan).expect("a clean v2 estate plans");
+  let planned: Vec<PathBuf> = plan.writes.writes().map(|(p, _)| p.to_path_buf()).collect();
+  for id in ["ST0001", "ST0002"] {
+    let canon = project.thread_json(id);
+    assert!(
+      planned.contains(&canon),
+      "the plan must be a real migration -- {} is not among its {} writes",
+      project.relative(&canon),
+      planned.len()
+    );
+  }
+  plan
 }
 
 /// **ARM ONE, AND ITS CONTROL, WHICH MUST BE THE SAME RUN.**
@@ -139,42 +194,47 @@ fn upgrade_leaves_the_hook_estate_byte_identical_and_the_same_run_did_convert() 
 #[test]
 fn the_migration_plan_names_no_path_under_dot_claude() {
   let fx = v2_estate_with_hooks();
-  let project = fx.project();
-
-  let scan = legacy::scan(&project).expect("a v2 estate scans");
-  let plan = migrate::plan(&project, &facade_ctx(), scan).expect("a clean v2 estate plans");
-  let planned: Vec<PathBuf> = plan.writes.writes().map(|(p, _)| p.to_path_buf()).collect();
 
   // **NON-VACUITY, and it is deliberately not `!planned.is_empty()`**: a plan
   // holding one unrelated file satisfies that and says nothing about a
-  // migration having been planned. Both threads' canon must be in the set --
-  // and the expected path is READ FROM `Project` rather than typed here, so the
+  // migration having been planned. `a_real_plan` requires both threads' canon,
+  // with the expected path READ FROM `Project` rather than typed, so the
   // predicate cannot be quietly fitted to whatever the planner happened to do.
-  for id in ["ST0001", "ST0002"] {
-    let canon = project.thread_json(id);
-    assert!(
-      planned.contains(&canon),
-      "the plan must be a real migration -- {} is not among its {} writes",
-      project.relative(&canon),
-      planned.len()
-    );
-  }
-
-  // **Matched on a path COMPONENT of the estate-relative path, not on a
-  // substring of the absolute one.** A substring test over the absolute path is
-  // a claim about the temp directory as much as about the plan; stripping the
-  // root first makes this a fact about the project and nothing else.
-  let hooks: Vec<String> = planned
-    .iter()
-    .filter(|p| {
-      p.strip_prefix(fx.root())
-        .is_ok_and(|rel| rel.components().any(|c| c.as_os_str() == ".claude"))
-    })
-    .map(|p| project.relative(p))
-    .collect();
+  let hooks = planned_under(&a_real_plan(&fx), &fx, ".claude");
 
   assert!(
     hooks.is_empty(),
     "`migrate::plan` names the hook estate, so `upgrade` now owns files it must not: {hooks:?}"
+  );
+}
+
+/// **AT-10.17 / AC-10.15: `upgrade` does not plan a write under `.githooks/`.**
+///
+/// **A SEPARATE CRITERION RATHER THAN A SECOND PREFIX ON AC-10.4, AND THE
+/// REASON IS A FOURTH WAY A ROW CAN PROMISE MORE THAN IT DELIVERS** (vc,
+/// 2026-08-20). AC-10.4 is titled *Hooks continuity* and its body enumerates
+/// only `.claude/settings.json` and `.claude/scripts/**`. **A criterion whose
+/// NAME covers a thing its BODY does not reads as covered to anyone who does
+/// not open it** -- and it is invisible to every instrument we own, because the
+/// row is internally consistent. Not stale, not uncited, not vacuous.
+///
+/// What it left uncovered is not a corner: `.githooks/` is where
+/// `core.hooksPath` points, so it is **the entire commit gate**. Measured
+/// before this test existed -- `.githooks` appeared in zero test files across
+/// both crates and zero times in `intentsvcs/src`.
+///
+/// **The byte-identity form is refused here for the reason established at
+/// AC-10.4**: nothing on `upgrade`'s path writes to `.githooks/` today, so a
+/// byte comparison is true by construction and passes on a build that does
+/// nothing at all. The write set is where an act would be declared.
+#[test]
+fn the_migration_plan_names_no_path_under_dot_githooks() {
+  let fx = v2_estate_with_hooks();
+  let hooks = planned_under(&a_real_plan(&fx), &fx, ".githooks");
+
+  assert!(
+    hooks.is_empty(),
+    "`migrate::plan` names the commit gate, so `upgrade` now owns the hooks that decide \
+     whether its own output can be committed: {hooks:?}"
   );
 }
