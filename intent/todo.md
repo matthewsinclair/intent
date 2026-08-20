@@ -24,7 +24,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0057: Disk as a sparse projection of the store
   - [-] 01: Canon relocation to intent/.canon/
   - [-] 02: .intentfiles: the manifest and its refusing grammar
-  - [ ] 03: Attachment canon: opaque as file, and the naming gate
+  - [-] 03: Attachment canon: opaque as file, and the naming gate
   - [-] 04: intent organize: four answers, one refusal, one gate
   - [-] 05: intent edit <ID>
   - [ ] 06: The full text realisation, and the refusal that expires
