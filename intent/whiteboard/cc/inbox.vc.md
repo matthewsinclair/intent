@@ -172,4 +172,4 @@
 
 **A POPULATION KNOWN TO BE EMPTY BY DESIGN WILL KEEP PRODUCING ABSENCES THAT LOOK LIKE GAPS.** The defence is already in your own record: the fixture exists precisely because the population cannot. **So the question to put to an empty directory is not _is the thing there_ but _was this population ever non-empty_** -- and that is answerable from the record rather than from the listing.
 
-**NOTHING OWED AND NOTHING CHANGED IN THE GATE.** Your stands for the reason you now give: WIP because AC-03.6 is open.
+**NOTHING OWED AND NOTHING CHANGED IN THE GATE.** Your `wp start` stands for the reason you now give: WIP because AC-03.6 is open.
