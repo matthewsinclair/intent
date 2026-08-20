@@ -331,6 +331,42 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
     "organize",
     "organize_idempotent_mtime.rs -- ST0057 AC-04.4 IS this file's property for this verb, measured as MTIMES MOVED rather than as a content diff, and it carries the positive control that a zero-movement result needs. Driving it here as well would be a second expression of one claim, and the two would answer to different fixtures.",
   ),
+  (
+    "st hydrate",
+    "facade_hydrate.rs -- `the_call_is_idempotent_in_what_it_returns`, `the_pin_is_idempotent` and `hydrating_something_already_on_disk_still_pins_it` are this criterion for this verb, driven at the primitive the CLI arm is two lines over. NOT organize_idempotent_mtime.rs, which measures the ESTATE-WIDE verb: hydrate runs a plan FILTERED to one artefact, so the whole-estate file covers the mechanism and not the scoping, and citing it would name a file that cannot fail when this verb regresses.",
+  ),
+];
+
+/// **DECLARED ON THE SURFACE, IMPLEMENTED BY NOTHING -- so the writes are not
+/// unproven, they are provably EMPTY.**
+///
+/// Its own key rather than a member of [`UNPROVEN`], by the same ruling that
+/// split `COVERED_ELSEWHERE` off: *a key named for one reason cannot hold
+/// members admitted for another.* `UNPROVEN` means **we have not established
+/// what this writes**; these verbs write nothing and the binary says so, at
+/// `rc=2`, with `is a known command that is not implemented yet` on stderr.
+/// Filing a known zero as a debt would inflate the debt and hide the fact.
+///
+/// **AND THE MEMBERSHIP IS DRIVEN, NOT ASSERTED HERE.** The named file runs
+/// each of these against the real binary and requires the refusal; the day one
+/// is implemented it stops exiting 2 and that file goes RED, which forces the
+/// re-bucket rather than leaving a live mutator sitting in an excuse list.
+/// **It measures the CAPABILITY (does the binary refuse?) and never a NAME** --
+/// the distinction ST0057 AC-08.5 paid for, where a pin grepping `facade.rs`
+/// for `fn at_new` passed while `put` created both rows thirty lines away.
+const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
+  (
+    "st dehydrate",
+    "declared_but_unwired.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built",
+  ),
+  (
+    "issues hydrate",
+    "declared_but_unwired.rs -- `Facade::hydrate` would take it, and the arm is deliberately NOT wired: an issue has no realised form (no view renderer, and every `Project` issue accessor is CANON-side), so hydrating one pinned `ISSUE:0001` into `.intentfiles` and reported `ok` over 0 files. Escalated to hv.",
+  ),
+  (
+    "issues dehydrate",
+    "declared_but_unwired.rs -- neither the primitive nor a realised form for an issue to be dehydrated FROM",
+  ),
 ];
 
 /// Writes files OUTSIDE the thread estate, **with the path it writes named**.
@@ -776,23 +812,72 @@ fn every_shipped_mutator_is_accounted_for() {
 
   let elsewhere: Vec<&str> = COVERED_ELSEWHERE.iter().map(|(v, _)| *v).collect();
   let out_of_estate: Vec<&str> = OUT_OF_ESTATE.iter().map(|(v, _)| *v).collect();
+  let unwired: Vec<&str> = DECLARED_BUT_UNWIRED.iter().map(|(v, _)| *v).collect();
+
+  // **EVERY FIGURE IS AN INTERSECTION WITH `shipped`, AND THE LINE STATES ITS
+  // OWN ARITHMETIC** (vc, 2026-08-20, who caught the old form contradicting the
+  // assertion two lines below it).
+  //
+  // The old line mixed one intersected count with three raw list lengths under
+  // a single denominator and never said whether they summed. On the run that
+  // found this it printed `69 shipped mutator(s): 29 driven here, 2 covered
+  // elsewhere, 2 out of estate, 32 UNPROVEN` -- **65 presented as 69** -- while
+  // the assertion below reported ONE unbucketed verb. Four were unbucketed.
+  // Neither line was false; nothing read both.
+  //
+  // **A SUMMARY THAT CANNOT DISAGREE WITH ITSELF IS THE FIX, NOT A BIGGER
+  // NUMBER.** So the tally is printed with its total and the shortfall is named
+  // rather than left to subtraction -- this is the estate's own recurring class,
+  // a count of containers standing in for a count of contents, and it had got
+  // inside the instrument that exists to measure coverage.
+  let tally = |bucket: &[&str]| {
+    shipped
+      .iter()
+      .filter(|v| bucket.contains(&v.as_str()))
+      .count()
+  };
+  let (d, e, o, u, n) = (
+    tally(&driven),
+    tally(&elsewhere),
+    tally(&out_of_estate),
+    tally(&unwired),
+    tally(&UNPROVEN.to_vec()),
+  );
+  let unbucketed: Vec<&str> = shipped
+    .iter()
+    .filter(|v| {
+      ![
+        &driven,
+        &elsewhere,
+        &out_of_estate,
+        &unwired,
+        &UNPROVEN.to_vec(),
+      ]
+      .iter()
+      .any(|b| b.contains(&v.as_str()))
+    })
+    .map(String::as_str)
+    .collect();
 
   println!(
     "verb coverage, derived from surface/dispatch-table.json:\n  \
-     {} shipped mutator(s): {} driven here, {} covered elsewhere, {} out of estate, {} UNPROVEN",
+     {} shipped mutator(s) = {d} driven here + {e} covered elsewhere + {o} out of estate \
+     + {u} declared-but-unwired + {n} UNPROVEN = {}{}",
     shipped.len(),
-    shipped
-      .iter()
-      .filter(|v| driven.contains(&v.as_str()))
-      .count(),
-    elsewhere.len(),
-    out_of_estate.len(),
-    UNPROVEN.len()
+    d + e + o + u + n,
+    if unbucketed.is_empty() {
+      String::new()
+    } else {
+      format!(
+        "\n  {} in NO bucket, named rather than counted: {unbucketed:?}",
+        unbucketed.len()
+      )
+    }
   );
 
   // Nothing may claim a bucket it has no business in: a stale entry here is
   // the same rot as a missing one, pointing the other way.
-  for list in [&driven, &elsewhere, &out_of_estate] {
+  for list in [&driven, &elsewhere, &out_of_estate, &unwired] {
     let stale: Vec<&&str> = list
       .iter()
       .filter(|v| !shipped.contains(&v.to_string()))
@@ -812,21 +897,39 @@ fn every_shipped_mutator_is_accounted_for() {
   );
 
   // In EXACTLY one: a verb in two buckets is a claim and its own contradiction.
-  for verb in &shipped {
-    let hits = [
-      driven.contains(&verb.as_str()),
-      elsewhere.contains(&verb.as_str()),
-      out_of_estate.contains(&verb.as_str()),
-      UNPROVEN.contains(&verb.as_str()),
-    ]
+  //
+  // **EVERY OFFENDER IS REPORTED, NOT THE FIRST** (vc, 2026-08-20). The old form
+  // asserted inside the loop, so it aborted on the first verb it found and named
+  // ONE -- while the summary line above it proved FOUR were unbucketed. A reader
+  // fixing the named verb would have re-run and met the second, then the third:
+  // four rounds to learn a fact the instrument already held in full. Same
+  // reasoning as `every_verb_moves_only_what_changed`'s own comment thirty lines
+  // up -- **one writer serves them all, so the SHAPE of the failure is the
+  // diagnosis** -- which this loop was the last one in the file not to honour.
+  let misfiled: Vec<String> = shipped
     .iter()
-    .filter(|b| **b)
-    .count();
-    assert_eq!(
-      hits, 1,
-      "{verb} is in {hits} buckets; every shipped mutator belongs to exactly one"
-    );
-  }
+    .filter_map(|verb| {
+      let hits: Vec<&str> = [
+        ("driven here", driven.contains(&verb.as_str())),
+        ("covered elsewhere", elsewhere.contains(&verb.as_str())),
+        ("out of estate", out_of_estate.contains(&verb.as_str())),
+        ("declared-but-unwired", unwired.contains(&verb.as_str())),
+        ("UNPROVEN", UNPROVEN.contains(&verb.as_str())),
+      ]
+      .iter()
+      .filter(|(_, hit)| *hit)
+      .map(|(name, _)| *name)
+      .collect();
+      (hits.len() != 1).then(|| format!("  {verb}: in {} bucket(s) {hits:?}", hits.len()))
+    })
+    .collect();
+  assert!(
+    misfiled.is_empty(),
+    "{} of {} shipped mutator(s) are not in exactly one bucket:\n{}",
+    misfiled.len(),
+    shipped.len(),
+    misfiled.join("\n")
+  );
 
   // **The debt may shrink and must not grow.** A new shipped mutator silently
   // appended to UNPROVEN would be the authored roster all over again.

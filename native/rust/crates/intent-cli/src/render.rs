@@ -10,6 +10,7 @@ use clap::ArgMatches;
 
 use crate::dispatch;
 use crate::spine::Failure;
+use intentsvcs::address;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError, Outcome};
 use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
@@ -489,6 +490,55 @@ fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
   )))
 }
 
+/// `st hydrate` and `issues hydrate`: ONE implementation behind two doors.
+///
+/// **Two family verbs, not two behaviours.** `Facade::hydrate` dispatches on
+/// the address's ENTITY, so a thread and an issue reach the same code by
+/// construction -- and a second copy here would be the Highlander defect in the
+/// one place the estate can least afford it, since the two would agree on the
+/// day they were written and drift the first time a view kind lands.
+///
+/// **THE WHOLE ARGUMENT GOES TO `promote`, NEVER AN ID LIFTED OUT OF IT.** The
+/// verb takes an ADDRESS because the SERVICE refuses in address terms: two of
+/// `Facade::hydrate`'s three refusal arms -- a foreign authority, and an entity
+/// that is not an artefact -- are unreachable from a bare id. Extracting the id
+/// and rebuilding `intent:///threads/<id>` is the spelling that reads fine and
+/// silently converts a cross-project reference into a local one, and the
+/// authority refusal never fires because the authority is gone before it is
+/// called.
+///
+/// A malformed argument is a USAGE error naming both accepted forms, never a
+/// not-found: `AddressError::NotAddressable` exists for exactly that, so an
+/// operator who typed `ST57` is not sent into the estate hunting a thread that
+/// was never addressed.
+fn hydrated(argument: &str) -> Result<(), Failure> {
+  let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
+  let mut facade = open()?;
+  let paths = facade.hydrate(&address).map_err(fail)?;
+
+  // **`exists`, NOT `wrote`, AND THE DISTINCTION IS THE FACADE'S OWN.**
+  // `hydrate` documents its return as *paths that NOW EXIST, not paths this run
+  // had a step for* -- it is idempotent in both of its steps, so the ordinary
+  // second call writes nothing and returns the same set. Labelling these
+  // `wrote:` would be a count of one thing standing for a count of another,
+  // which is the class that let `1 refused` speak for 423 files.
+  // **THE URL RATHER THAN THE ARGUMENT, SO THE PROMOTION IS VISIBLE.** An
+  // operator who typed `ST0056` is told what it was promoted to, which is the
+  // one place the bare-id shorthand can be seen doing its work; echoing their
+  // own argument back would confirm only that it was received.
+  let project = facade.project();
+  println!(
+    "ok: {} hydrated -- listed in {}, {} file(s) on disk",
+    address.to_url(),
+    project.relative(&project.intentfiles_path()),
+    paths.len()
+  );
+  for path in &paths {
+    println!("  exists: {}", project.relative(path));
+  }
+  Ok(())
+}
+
 fn st(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("new", a)) => {
@@ -673,6 +723,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
+    Some(("hydrate", a)) => hydrated(&arg(a, "id")?),
     Some((verb, _)) => unwired("st", verb),
     None => Err("error: a steel thread command is required".into()),
   }
@@ -2406,6 +2457,34 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
+    // **`issues hydrate` IS DELIBERATELY NOT WIRED, AND `unwired`'s rc=2 IS THE
+    // HONEST ANSWER UNTIL AN ISSUE HAS A REALISED FORM AT ALL** (ic,
+    // 2026-08-20, measured before wiring it and backed out after).
+    //
+    // Driving it once proved the shape: `intent issues hydrate 0001` returned
+    // rc=0, printed `ok: ... hydrated -- 0 file(s) on disk`, and wrote
+    // `ISSUE:0001` into the live `.intentfiles`. **A success message over a
+    // zero, plus a durable claim that a file exists which cannot.**
+    //
+    // The cause is a LAYER confusion in the primitive, not a gap here.
+    // `Facade::hydrate` picks the artefact's realisation home as
+    // `thread_dir(id)` for a thread -- `intent/st/<ID>/`, the ESTATE -- and
+    // `issues_dir()` for an issue, which is `canon_dir().join("issues")`, ie
+    // `intent/.canon/issues/`, **CANON**. The two arms of one match address two
+    // different layers. It resolves that way because canon is the only issue
+    // path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and
+    // `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders
+    // no issue view. So an issue has no realised form to hydrate INTO.
+    //
+    // It is inert today only because `organize::plan` happens to emit no step
+    // under `intent/.canon/`, and a bound that is never reached is not a bound
+    // this code states -- a realisation verb whose home resolves into canon is
+    // a hole with nothing but a neighbouring function's behaviour over it.
+    //
+    // Wiring it would ship the table-leads-the-reader ordering the `st hydrate`
+    // row's own note argues against, in the direction that note calls wrong.
+    // Escalated to hv (does an issue have a realised form?) and to vc, who is
+    // live in `facade.rs`. Fail closed: absence is not permission.
     Some((verb, _)) => unwired("issues", verb),
   }
 }
