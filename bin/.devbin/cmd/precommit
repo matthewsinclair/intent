@@ -59,12 +59,17 @@ set -euo pipefail
 # THE PATH IS REPO-RELATIVE AND WHOLE, not a basename `int hooks` re-roots.
 # It used to emit bare filenames and the reader prefixed the ST0056 tools
 # directory, which quietly redefined the second field as "a script UNDER
-# $TOOLS". The moment a guard's script lived anywhere else -- guard 0b now
-# delegates to shipped canon under lib/ -- that reader had exactly two wrong
+# $TOOLS". The moment a guard's script lived anywhere else -- guard 0b then
+# delegated to shipped canon under lib/ -- that reader had exactly two wrong
 # answers available and no right one: report a real script as MISSING, or emit
 # a dash claiming there is none. Same anchoring error as the defect recorded
 # above, one field along: the roster is the authority on what it checks AND on
 # where those checks live.
+#
+# Guard 0b has since gone entirely (see below) and every remaining path is back
+# under $TOOLS, so the case that motivated the whole-path field is not currently
+# live. The field stays whole. A format narrowed to the population that happens
+# to occupy it today is how the basename version got written in the first place.
 G_NODB="no database enters history (D34: the DB is per-machine truth, never committed)"
 G_PROV="provenance: artefacts from one measurement name one revision"
 G_SKEW="skew: committed generated views still match their canon"
@@ -77,11 +82,24 @@ G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
 G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
 G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`int macos publish\`)"
 
-G_BOARD="whiteboard: header values are literal, never YAML-escaped"
+# THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
+# this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
+# GOES AWAY: when `.git/hooks/pre-commit.intent` here is reinstalled from the
+# updated canon, the shipped hook runs this guard itself and this call becomes
+# the second of two." Reinstalled 2026-08-20; the shipped gate now dispatches it
+# from the delegated roster in `lib/templates/hooks/pre-commit-guards.sh`.
+#
+# It was never merely redundant, which is why it is gone rather than left as a
+# cheap double-check. It was COMPENSATION for a defect one layer down: the
+# installed hook carried a frozen Aug 14 roster running one guard of four, and
+# this call papered over exactly one of the three that were missing. A local
+# workaround for a shipped hole is the worst possible place for it -- it makes
+# the hole invisible HERE, which is the one repository where somebody would
+# have noticed. Two guards it did not compensate for (`canon-ignore-guard.sh`,
+# `append-only-guard.sh`) ran nowhere at all, and nothing said so.
 
 if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t-\n' "$G_NODB"
-  printf '%s\t%s\n' "$G_BOARD" "lib/templates/hooks/whiteboard-header-guard.sh"
   printf '%s\t%s\n' "$G_PROV" "intent/st/ST0056/parity/tools/provenance_check.sh"
   printf '%s\t%s\n' "$G_SKEW" "intent/st/ST0056/parity/tools/view_skew_check.sh"
   printf '%s\t%s\n' "$G_GENIN" "intent/st/ST0056/parity/tools/generator_inputs_check.sh"
@@ -179,57 +197,6 @@ if [ -n "$staged_db" ]; then
   rc=1
   failed="${failed}  a SQLite database is staged -- D34 says the DB is never committed
 ${staged_db}"
-fi
-
-# GUARD 0b: a whiteboard header value that has been YAML-ESCAPED.
-#
-# DELEGATED, NOT IMPLEMENTED. This check was born here as an inline block and
-# has since gone UPSTREAM as canon -- vc ruled it ships (opt-in by the presence
-# of `intent/whiteboard/`), as a SEPARATE guard rather than folded into the
-# clock guard, whose name and contract are timestamps. Keeping a second copy
-# here would be two homes for one check, which is the exact defect the ST0056
-# gates keep finding in other people's code.
-#
-# So this repository runs THE BYTES THAT SHIP. That is strictly better than
-# dogfooding a copy of them: a divergence between what we enforce and what our
-# consumers receive cannot happen if there is only one file.
-#
-# THE INLINE VERSION HAD TWO DEFECTS THE PORT FOUND AND FIXED, both measured
-# rather than reasoned, and both in the over-refusing direction:
-#
-#   - `case` and git pathspec wildcards BOTH cross `/`, so
-#     `intent/whiteboard/*/wip.md` reached `.history/`. Measured on this
-#     repository: 21 files matched, SIXTEEN of them archived boards. An archive
-#     replays an old header verbatim, so it was refusing the protocol's own
-#     housekeeping over a historical record.
-#   - `sed -n '2,/^---$/p'` scans the WHOLE FILE when there is no header block,
-#     turning every line of prose into a candidate.
-#
-# The canon guard also only reports lines the commit ADDS, so pre-existing
-# breakage cannot wedge a board -- and it exempts prose, which matters today:
-# five tracked board files quote `\"` while REPORTING this class to a peer, one
-# of them a live board. Scanning prose would make reporting the defect an
-# offence.
-#
-# WHEN THIS BLOCK GOES AWAY: when `.git/hooks/pre-commit.intent` here is
-# reinstalled from the updated canon (`intent claude upgrade --apply`), the
-# shipped hook runs this guard itself and this call becomes the second of two.
-# It is harmless until then -- the guard is idempotent and exits 0 on a clean
-# board -- but it is redundant, and the precondition is named so it is not a
-# deferral that quietly becomes permanent.
-step "$G_BOARD"
-BOARD_GUARD="${PROJECT_ROOT}/lib/templates/hooks/whiteboard-header-guard.sh"
-if [ -f "$BOARD_GUARD" ]; then
-  if ! bash "$BOARD_GUARD"; then
-    rc=1
-    failed="${failed}  a whiteboard header value is YAML-escaped -- the block is NOT YAML (report above)
-"
-  fi
-else
-  # Named, not silent -- the same rule the rest of this runner follows. A guard
-  # in the roster with nothing behind it is the invisible non-enforcement this
-  # mechanism exists to end.
-  warn "canon guard missing at $BOARD_GUARD -- whiteboard headers UNCHECKED this commit."
 fi
 
 # Named, not silent -- the clock guard's precedent. Apparatus present with no

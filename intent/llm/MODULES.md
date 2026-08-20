@@ -85,9 +85,12 @@
 | WIP template              | `lib/templates/prj/_wip.md`                           | Work-in-progress file                                                               |
 | Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`              | Dependency rules template                                                           |
 | Hook template             | `lib/templates/hooks/module_check_hook.json`          | Advisory write hook for Claude Code                                                 |
-| Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                   | `.git/hooks/pre-commit` template; runs `intent critic --staged` (ST0035/WP06)       |
+| Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                   | `.git/hooks/pre-commit` template; critic gate + delegates guards to the runner      |
+| Pre-commit guard runner   | `lib/templates/hooks/pre-commit-guards.sh`            | THE GUARD ROSTER. Read live from `INTENT_HOME`, never copied into a project.        |
 | Whiteboard clock guard    | `lib/templates/hooks/whiteboard-clock-guard.sh`       | Pre-commit block on fabricated whiteboard timestamps; 3 checks (issue 0026)         |
 | Whiteboard header guard   | `lib/templates/hooks/whiteboard-header-guard.sh`      | Pre-commit block on a YAML-escaped header value; the block is NOT YAML              |
+| Canon ignore guard        | `lib/templates/hooks/canon-ignore-guard.sh`           | Pre-commit block on an ignore rule reaching `intent/.canon/` (ST0057 AC-01.5)       |
+| Append-only guard         | `lib/templates/hooks/append-only-guard.sh`            | Pre-commit block on a line REMOVED from an append-only path (ST0056 AC-10.13)       |
 | Critic config template    | `lib/templates/_intent_critic.yml`                    | `.intent_critic.yml` install default (ST0035/WP07)                                  |
 | Claude settings template  | `lib/templates/.claude/settings.json`                 | Canonical hook stanzas (ST0035)                                                     |
 | Session context hook      | `lib/templates/.claude/scripts/session-context.sh`    | SessionStart: project/git/WIP context                                               |

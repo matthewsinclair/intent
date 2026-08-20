@@ -840,16 +840,40 @@ else
         add_action "INSTALL_PRE_COMMIT"
       fi
     else
-      if [ -f "$PRE_COMMIT_INTENT_PATH" ] && canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_INTENT_PATH"; then
-        if canon_chain_block_present "$PRE_COMMIT_PATH"; then
-          canon_print ".git/hooks/pre-commit" "${GREEN}CHAINED${NC} (chain block present)"
-        else
-          canon_print ".git/hooks/pre-commit" "${YELLOW}CHAIN_REQUIRED${NC} (gate installed; chain block missing)"
-          add_action "CHAIN_PRE_COMMIT_BLOCK"
-        fi
-      else
-        canon_print ".git/hooks/pre-commit" "${YELLOW}NON-INTENT HOOK PRESENT${NC}"
+      # NO GATE AND A STALE GATE ARE DIFFERENT FACTS. They used to share one
+      # compound `&&` and therefore one `else`, labelled NON-INTENT HOOK
+      # PRESENT -- which describes the first and is silent about the second.
+      #
+      # Measured on the Intent repository itself, 2026-08-20: canon rostered
+      # four guards, `.git/hooks/pre-commit.intent` was the Aug 14 copy running
+      # ONE, and two guards had never run there at all. The report said
+      # NON-INTENT HOOK PRESENT, which was TRUE -- that repo's `pre-commit` runs
+      # formatters and a repo-local runner and always will -- so the line is
+      # permanent, expected, and correct on every single run. The one run where
+      # it ALSO meant "your gate is three guards behind" was byte-identical to
+      # the six hundred where it did not.
+      #
+      # The remedy was never missing: `CHAIN_PRE_COMMIT` reinstalls
+      # `pre-commit.intent` from canon, so a single `--apply` would have fixed
+      # it on any of those days. **Nothing ever said there was anything to fix.**
+      # A label that is unconditionally true of a healthy project cannot carry a
+      # finding, and an operator who reads it every time has already learned to
+      # skip it. Hence a distinct state and a distinct colour.
+      #
+      # This is a precondition for the delegated roster rather than a tidy-up
+      # beside it: the day `pre-commit.sh` changes, every consumer's copy is
+      # stale by definition, and without this branch not one of them is told.
+      if [ ! -f "$PRE_COMMIT_INTENT_PATH" ]; then
+        canon_print ".git/hooks/pre-commit" "${YELLOW}NON-INTENT HOOK PRESENT${NC} (no gate installed)"
         add_action "CHAIN_PRE_COMMIT"
+      elif ! canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_INTENT_PATH"; then
+        canon_print ".git/hooks/pre-commit" "${RED}GATE STALE${NC} (pre-commit.intent differs from canon; guards may not be running)"
+        add_action "CHAIN_PRE_COMMIT"
+      elif canon_chain_block_present "$PRE_COMMIT_PATH"; then
+        canon_print ".git/hooks/pre-commit" "${GREEN}CHAINED${NC} (chain block present)"
+      else
+        canon_print ".git/hooks/pre-commit" "${YELLOW}CHAIN_REQUIRED${NC} (gate installed; chain block missing)"
+        add_action "CHAIN_PRE_COMMIT_BLOCK"
       fi
     fi
   else

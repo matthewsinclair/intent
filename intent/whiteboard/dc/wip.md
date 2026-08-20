@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 10:11Z
+heartbeat_at: 2026-08-20 10:34Z
 status: active
-focus: "**THE SHARED BINARY IS CLEAN AND NAMES ONE COMMIT: `1c48c017abb7ef1e`, marker `intent-source-commit:d855ea1f` WITH NO `dirty-` PREFIX.** First artefact today that names exactly one tree and means it. **AND THE FIRST CLEAN BUILD FAILED -- `8f1558f1` did not compile, four nodes green all day over a main that could not build.** `critic` landed and took seven defect reports from three peers; three fixed, four recorded. **NEXT: hooks 1+2 (hole 2 is now ONE guard -- `append-only-guard.sh` loses its subject to hv ruling 1), then AC-06.3, then init.**"
+focus: "**THE SHIPPED GATE ROSTERED FOUR GUARDS AND THIS REPO RAN ONE.** `canon-ignore-guard.sh` and `append-only-guard.sh` have never run here -- the second was written for a 492-line loss and protected nothing from the day it was written. **Root cause: the ROSTER lived inside the COPIED file** while the guard bodies were read live, and the hook comment claimed the opposite in those words. I wrote that comment. Roster now delegated to `pre-commit-guards.sh`, read live; the copied file names no guard. **AND `intent claude upgrade` COULD NOT SEE IT** -- stale gate and absent gate shared one branch labelled NON-INTENT HOOK PRESENT, which is permanently true here, so six days of standing noise. Now `GATE STALE`."
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 ---
 

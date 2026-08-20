@@ -304,7 +304,7 @@ stage_bad_board() {
 
   # Fail-open is the contract, and it is why the message has to carry the weight.
   assert_success
-  assert_output_contains "NO whiteboard guard ran"
+  assert_output_contains "NO guard ran for this commit"
   assert_output_contains "not one is missing, ALL are"
   assert_output_contains "exit 2"
 
@@ -328,7 +328,7 @@ stage_bad_board() {
   PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "resolver-nonplace"
 
   assert_success
-  assert_output_contains "NO whiteboard guard ran"
+  assert_output_contains "NO guard ran for this commit"
   assert_output_contains "not one is missing, ALL are"
   # The operator has to SEE the non-place. Described rather than quoted, this
   # reads as a legitimate answer; quoted, it is self-evidently not a path.
@@ -359,13 +359,39 @@ stage_bad_board() {
   [ "$status" -ne 0 ]
   assert_output_contains "whiteboard timestamp cannot be a real clock read"
   assert_output_contains "exited 1"
-  refute_output_contains "NO whiteboard guard ran"
+  refute_output_contains "NO guard ran for this commit"
+}
+
+@test "resolver resolves but the install has NO RUNNER: total failure, and NOT the resolver's fault" {
+  # THE THIRD ABSENCE, and it arrived with the delegated roster. `INTENT_HOME`
+  # resolves to a real directory and the guard runner is not in it -- an install
+  # older than the mechanism. Total, like an absent resolver, but the remedy
+  # shares nothing with it, so the message must not send the operator at
+  # `intent info`, which is the one component working correctly here.
+  mkdir -p "${TEST_TEMP_DIR}/empty-home/lib/templates/hooks"
+  shim_intent nohome
+  stage_bad_board
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "runner-absent"
+
+  assert_success
+  assert_output_contains "this install has no guard runner"
+  assert_output_contains "the resolver is not the problem"
+  # The per-guard wording appearing here would be the collapse this whole
+  # taxonomy exists to prevent, one level up from issue 0042.
+  refute_output_contains "was not found;"
 }
 
 @test "resolver works, guard files absent: reports the one hole, NOT total failure" {
   # The other direction. A fix that shouted "ALL guards missing" whenever any
   # single guard was absent would pass the test above and be just as wrong.
+  #
+  # THE RUNNER IS INSTALLED AND THE GUARDS ARE NOT, which is what makes this
+  # distinct from the test above rather than a second copy of it. Before the
+  # roster was delegated an empty `lib/templates/hooks` WAS this case; it is now
+  # the more-broken one, so the fixture has to say which it means.
   mkdir -p "${TEST_TEMP_DIR}/empty-home/lib/templates/hooks"
+  cp "${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit-guards.sh" \
+    "${TEST_TEMP_DIR}/empty-home/lib/templates/hooks/"
   shim_intent nohome
   stage_bad_board
   PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "guard-absent"
@@ -373,7 +399,7 @@ stage_bad_board() {
   assert_success
   assert_output_contains "whiteboard-clock-guard.sh was not found"
   assert_output_contains "timestamps are UNCHECKED"
-  refute_output_contains "NO whiteboard guard ran"
+  refute_output_contains "NO guard ran for this commit"
 }
 
 @test "resolver works and guards are present: a bad stamp BLOCKS the commit" {
