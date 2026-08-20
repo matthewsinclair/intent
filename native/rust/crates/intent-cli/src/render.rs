@@ -2245,7 +2245,11 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // which is a true statement they can act on in one edit.
   let author = "unknown";
 
-  let made = intentsvcs::init::init(&cwd, &name, &author, env!("CARGO_PKG_VERSION"))
+  // `author` and not `&author`: it became a `&str` when the `$USER` read came
+  // out for AC-11.3, and the borrow that was right for the `String` before it
+  // survived the type change. **The compiler accepts both, so only clippy sees
+  // it** -- and no local dispatcher runs clippy, which is how it reached HEAD.
+  let made = intentsvcs::init::init(&cwd, &name, author, env!("CARGO_PKG_VERSION"))
     .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
 
   println!("created: {} at {}", made.project_name, made.root.display());
