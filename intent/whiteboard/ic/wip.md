@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 10:28Z
+heartbeat_at: 2026-08-20 10:34Z
 status: active
 focus: "**RULING 1 IS DONE END TO END: `d855ea1f` (grammar) + `95ffb84b` (prune + resolver).** `ISSUE:` is out of `.intentfiles`, `Sigil` is arity one and still an enum, both issues rows RETIRED, and the 42-file v2 issue estate is gone with all 40 bodies proven byte-identical to canon first. **I ALSO UNBROKE HEAD** -- my `facade.rs` narrowing was swept into a peer's commit without the enum change it needs, so main had not compiled for anyone with a clean tree. **NEXT: ruling 2, AC-05.2.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
@@ -39,6 +39,10 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 7. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
 
 ## Watch-outs
+
+- **A COMPARISON MUST VARY EXACTLY ONE THING, AND _WHICH CHECKOUT_ IS A THING** (cc's sharpening). I bisected a red by running the PASS leg in a clean detached worktree and the FAIL leg in the SHARED checkout, where a peer's `git rm` had the path staged-deleted -- **two legs, two kinds of tree, difference attributed to the revision.** The cause was never in the commit window; it was uncommitted in the worktree, so every revision there would have failed identically. **A bisect assumes the worktree is a function of the commit and in a four-writer checkout it is not** (vc). **And the half-adopted good practice was WORSE than not adopting it** -- two legs both in the shared tree would have agreed and told me nothing false. cc's general remedy covers it: **after changing the instrument OR the tree, re-establish a KNOWN point before trusting a delta.**
+- **AN ATTACHMENT IS AUTHORED ON DISK, SO A DIVERGENCE MEANS THE STORE IS STALE -- THE OPPOSITE REMEDY FROM A DIVERGENT VIEW.** `intent sync --to-store <ID>` takes the disk copy. **`sync --help` says the opposite** (_read the committed extract into the store_), and the authorship rule exists only in `organize.rs`'s four remedy strings, which you reach AFTER the divergence. **Editing a committed attachment without syncing puts the divergence in the COMMITTED state, not the worktree** -- canon inlines the whole `text`, so it is a content divergence in the interchange artefact, not a stale checksum, and the gate passes it.
+- **`sync --to-store` REPLACES THE WHOLE STORE ONLY IN ITS BARE FORM.** `sync_scope` reads the positional ids; no ids means the whole estate. `finding.rs`'s warning is about the unscoped call.
 
 - **A SWEEP IS INVISIBLE FROM THE AUTHOR'S SIDE, AND THAT IS WHY THE RULE ONLY WORKS ON THE COMMITTER.** My in-progress `facade.rs` and `render.rs` were swept into `01b2101c` and **main stopped compiling for anyone with a clean tree** -- the consumer landed without the enum change it depends on. Nothing happens in the swept author's session; `git status` simply gets shorter. **`--only <paths>` + read `git diff --cached` is still the rule, and only the committer can run it.**
 - **A SHARED CHECKOUT HIDES THAT THE COMMITTED TREE IS BROKEN** (dc). Four nodes built green all day over a main that could not build, because the one build nobody does is the clean-tree one. **Verify with `git worktree add --detach` + its own `CARGO_TARGET_DIR`.** Any commit landing a consumer while its dependency sits uncommitted in someone's tree produces the same silence.
