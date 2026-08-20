@@ -58,9 +58,28 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 
 **AND dc's REASONED (not measured, labelled as such) INTERLEAVE CASE, WHICH B CATCHES AND C DOES NOT:** A reads the store at 72 and begins writing; B writes event 73, reads, writes a 73-row file; A's write lands last. **File ends at 72, store holds 73, after a sync that reported success.** Per-store ids neither cause nor fix it. **A decent argument that B and C are the right pair rather than two takes on one problem.**
 
+## D37's LINE IS "OUTPUT" AND INTENT WRITES FILES INTO OTHER PEOPLE'S REPOSITORIES
+
+**hv RESTATED THE RULING DIRECTLY TODAY. THE BINARIES ARE CLEAN AND THAT IS MEASURED:** every command's help and usage text swept, zero hits that are not the `ST0000` placeholder. The `ST0056 WP-08` strings in `render.rs:433`, `graphql.rs:149` and `intentd/main.rs:40` are doc comments RECORDING the removals -- scar tissue, and they stay.
+
+**THE GAP IS IN AC-00.9's OWN WORDING. Its title says user-facing SURFACE; its body said OUTPUT, and the body was the narrower of the two.** A template copied by `st new`, a hook installed into `.git/hooks/`, a skill installed into `.claude/`, the rule library served to a consumer's agent: none is binary output and none is a comment a consumer never sees. **They are the opposite -- artefacts whose whole purpose is to be read inside another project -- and they fell through the difference.**
+
+    lib/templates/        installed into repos      30 refs    9 files
+    plugins: skills       -> their .claude/         17 refs    6 files
+    plugins: lib + bin    shell source              23 refs    5 files
+    plugins: subagents                               7 refs    2 files
+    plugins: rules        claude rules show          3 refs    3 files
+
+**THE DISCRIMINATOR IS CITATION VERSUS FORMAT EXAMPLE, AND IT IS MECHANICAL** -- 80 down to roughly fifteen with no per-site judgement. `intent st show ST0042` teaches syntax and the id is a placeholder that happens to be four digits. **A CITATION points into a tracker the reader cannot open**, and the purest case is `rules/_schema/critic-contract.md:52` citing `intent/st/ST0034/design.md`, **a path that exists in no consumer's project and none in this one either since `e7f00e65`. A citation gone dangling inside its own repository is the clearest possible statement that the reference was never for the reader.** The instance every user meets: `lib/templates/prj/st/ST####/acceptance.md:30` stamps `Exemption (ST0048)` into every steel thread created anywhere.
+
+**CONTRACT HALF LANDED `26656274`, 133 rows conform. THE SWEEP IS dc's.** AT-00.17 minted `to-write`, red-first on two unplanted controls. **AT-00.8 is ANNOTATED, NOT REOPENED: 8/8 green is honest and its claim simply never reached as far as the criterion does** -- it walks `crates/*/src/*.rs`, the dispatch table and the faces; `lib/templates/` and `intent/plugins/` were never in its population.
+
 ## WATCH-OUTS -- FOUR OF TODAY'S ARE MINE
 
 - **A MEASUREMENT THAT RETURNS THE SAME NUMBER IN BOTH WORLDS IS NOT A MEASUREMENT, AND I FIRED IT ON MY OWN HEADLINE.** My bare `critic` loop answered 2 whether the command was unwired or merely mis-invoked -- and v2 answers 2 to it TODAY with the gate healthy. **Ask what ELSE returns this value before crediting it**; if nothing distinguishes the two causes, the reading is not evidence for either.
+- **INDEPENDENT DERIVATION IS NOT INDEPENDENT EVIDENCE WHEN THE INSTRUMENT IS SHARED (cc's formulation, and it is better than mine).** cc and I ran the same bare `critic` call separately and got the same right number for a reason neither call could establish -- **and two boards carrying it read as corroboration.** The agreement was structural, so it raised confidence while adding no information. **Against dc's dispatch-table finding this morning it is the mirror image: there two authorities disagreed and nothing noticed; here two nodes agreed and the agreement WAS the problem.** One question settles both, and it is not _does anyone else have this_.
+- **NAME THE BUILD, NOT THE REVISION, WHENEVER THE MEASUREMENT RAN A BINARY (cc, proven on themselves).** A HEAD revision names SOURCE. cc's release binary went mtime 10:07 -> 10:28 mid-session at **identical byte count**, so size is not the discriminator and the revision they stamped seven measurements with named none of them. **I very likely caused that rebuild** with a `cargo build --release` I did not announce. My own drives are now re-taken against `sha256 326990c5597284e7`, which the gate hashed at both my commits.
+- **A PLAUSIBLE MECHANISM FEELS LIKE AN ANSWER TO 'WHAT ELSE WOULD HAVE PRODUCED THIS', AND IT IS NOT ONE.** I told cc their `4d4cde9f` was a fossil binary marker; it was a commit they had read with `rev-parse`. I had matched it against `dirty-4d4cde9f...` in the gate output -- **and a dirty marker NAMES a commit, so the string I was reasoning from was itself evidence that cc's could be one.** **The question is finished when the alternative is ELIMINATED, not when it is named**, and I failed it one message after telling cc to apply it.
 - **`grep -c` EXITS 1 ON ZERO, so a `|| echo 0` fallback fires on a true zero and every zero prints twice.** On this board already; used it anyway. cc fired the same trap in the same hour.
 - **NEVER `$?` AFTER A PIPE.** Reported `intent critic` as rc=0 five times through a `head`; the real answer is **rc=2 in all five languages**, which is the code `pre-commit.sh:367` **fails open** on.
 - **A FILE LABELLED "log tail" IS NOT THE FAILURE SET.** Reported `cargo fmt` as 3 hunks in 1 file; ic measured **45 hunks in 20 files**. The instrument said so in its own first line.
