@@ -71,6 +71,34 @@ pub struct Report {
   /// Silence and a clean bill of health are indistinguishable to a reader; a
   /// list is neither.
   pub unattached: Vec<String>,
+  /// Events this store holds that the projected file does not carry.
+  ///
+  /// **REPORTED, NEVER A FINDING, and that is the whole of the design.** The
+  /// store is ahead of the file after EVERY mutation -- that is the normal
+  /// working state of a project somebody is using, not a defect. A finding here
+  /// would fire on nearly every run, and `history_checks`'s own docstring names
+  /// what that costs: *a finding that fires routinely is the
+  /// trained-to-be-ignored failure*. It would also put `doctor` back to a
+  /// permanent rc=1 on a healthy tree, which is WP-10's defect rebuilt with a
+  /// different cause.
+  ///
+  /// **It is reported anyway, for `unattached`'s reason: silence and a clean
+  /// bill of health are indistinguishable to a reader, and a number is
+  /// neither.** Under D34 the projected file is history's only route off this
+  /// machine, so every event counted here is one that would not survive the
+  /// loss of `intent/.cache/` -- gitignored and per-machine by design.
+  ///
+  /// **The threshold is ZERO and that is a ruling, not a default** (vc, hv
+  /// 2026-08-20, answering the question `history_checks` explicitly left open:
+  /// *how current must the committed extract be*). One unsynced event is one
+  /// event that dies with the machine, so there is no tolerance to set. What
+  /// stops it being noise is that it REPORTS rather than judges.
+  ///
+  /// **Expected to fall to ~zero on its own once `intentd` backgrounds the
+  /// sync** (hv): the lag then becomes the daemon's wakeup time rather than a
+  /// human remembering to run a verb. This is a transitional instrument and
+  /// says so.
+  pub unsynced_events: usize,
 }
 
 impl Report {
@@ -177,7 +205,7 @@ pub fn diagnose(
 
   db_checks(&canon, project, &mut report.findings);
   file_checks(project, &canon, ctx, &mut report);
-  history_checks(project, &canon, store, &mut report.findings);
+  report.unsynced_events = history_checks(project, &canon, store, &mut report.findings);
 
   report
 }
@@ -210,16 +238,19 @@ fn history_checks(
   canon: &crate::ingest::Canon,
   store: Option<&crate::store::Store>,
   findings: &mut Vec<Finding>,
-) {
+) -> usize {
   if canon.threads.is_empty() && canon.issues.is_empty() {
-    return;
+    return 0;
   }
   let Some(store) = store else {
-    return;
+    return 0;
   };
-  let recorded = store.events().map(|e| e.len()).unwrap_or_default();
+  let Ok(events) = store.events() else {
+    return 0;
+  };
+  let recorded = events.len();
   if recorded == 0 {
-    return;
+    return 0;
   }
   let path = project.events_jsonl();
   // Asked by SIZE rather than by existence, so a truncated log -- which a
@@ -235,6 +266,20 @@ fn history_checks(
       ),
     ));
   }
+
+  // **COUNTED BY ULID SET, NEVER BY LENGTH.** A length comparison answers
+  // wrongly the moment the file carries an envelope this store does not -- a
+  // clone that arrived with another machine's history, which is exactly the
+  // state the per-store projection is designed to produce. Set membership
+  // cannot go negative and cannot report a false zero when both sides have
+  // moved.
+  let carried: std::collections::BTreeSet<String> = std::fs::read_to_string(&path)
+    .unwrap_or_default()
+    .lines()
+    .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+    .filter_map(|v| v.get("id").and_then(|i| i.as_str().map(str::to_string)))
+    .collect();
+  events.iter().filter(|e| !carried.contains(&e.id)).count()
 }
 
 /// Unwrap an ingest failure into findings. A refusal already carries them; any
