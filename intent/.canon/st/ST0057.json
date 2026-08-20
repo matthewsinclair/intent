@@ -482,7 +482,17 @@
     },
     {
       "id": "AC-09.2",
-      "text": "**THE CONCURRENT-APPEND DECISION IS MADE AND RECORDED WHILE THERE ARE 55 ROWS TO MIGRATE, NOT 17,000.** `intent/events.jsonl` is a TRACKED, APPEND-ONLY file written by four sessions committing minutes apart, so every concurrent write is a same-line git conflict waiting to happen. Seven commits have touched it without one, **which is luck at 55 rows rather than a property**. The candidates are per-node event files that merge, or a store-side sequence the file is projected from. **AND THE ALARM IS DISCONNECTED, WHICH IS WHY THIS IS NOT MERELY TIDY-UP (vc + cc, 2026-08-20):** `append-only-guard.sh` is the guard whose declared subject is *a write where an append was meant*, it is rostered in `pre-commit.sh`, and it has **ZERO call sites on the path git actually takes** -- so a truncating write over the event log is currently caught by nothing. **NOT A PRUNER**: growth is not the problem. Measured at ~229 bytes over 55 events in the first 35 hours, a year is ~17k events and under 4MB, and a retention policy on the one unrecoverable table trades a real loss for an imaginary one.",
+      "text": "**[VOID] -- THE SUBJECT OF THIS CRITERION NO LONGER EXISTS (hv ruling D53, 2026-08-20). `intent/events.jsonl` is deleted and untracked; the event log lives in the store alone.** There is no tracked append-only file, so there is no concurrent append, no same-line git conflict, no per-node or per-store sharding question, and no truncating write for `append-only-guard.sh` to alarm on. **The conclusion this criterion reached was correct and is now unreachable**: the decision it demanded be made at 55 rows rather than 17,000 was made at 55 rows, and the answer was that the file should not exist. **Everything below is retained as derivation and must not be cited as live.** Superseded by AC-09.3.\n\n**THE CONCURRENT-APPEND DECISION IS MADE AND RECORDED WHILE THERE ARE 55 ROWS TO MIGRATE, NOT 17,000.** `intent/events.jsonl` is a TRACKED, APPEND-ONLY file written by four sessions committing minutes apart, so every concurrent write is a same-line git conflict waiting to happen. Seven commits have touched it without one, **which is luck at 55 rows rather than a property**. The candidates are per-node event files that merge, or a store-side sequence the file is projected from. **AND THE ALARM IS DISCONNECTED, WHICH IS WHY THIS IS NOT MERELY TIDY-UP (vc + cc, 2026-08-20):** `append-only-guard.sh` is the guard whose declared subject is *a write where an append was meant*, it is rostered in `pre-commit.sh`, and it has **ZERO call sites on the path git actually takes** -- so a truncating write over the event log is currently caught by nothing. **NOT A PRUNER**: growth is not the problem. Measured at ~229 bytes over 55 events in the first 35 hours, a year is ~17k events and under 4MB, and a retention policy on the one unrecoverable table trades a real loss for an imaginary one.",
+      "kind": "non-test",
+      "state": {
+        "is": "withdrawn",
+        "reason": "hv ruling D53, 2026-08-20: the tracked `intent/events.jsonl` is deleted and the event log lives in the store alone, so this criterion's entire subject ceases to exist. There is no append-only file, so no concurrent append, no same-line git conflict, no per-node or per-store sharding question, and no truncating write for `append-only-guard.sh` to alarm on. WITHDRAWN RATHER THAN SATISFIED, and the distinction is the point: the criterion demanded that the concurrent-append decision be MADE while there were 55 rows to migrate rather than 17,000. It was made at 55 rows and the answer was that the file should not exist -- so the decision this criterion existed to force was taken, and the mechanism it would have governed was removed instead of governed. Nothing here was measured green and this record must not imply it was. Superseded by AC-09.3, which covers the surface that replaces the file. KIND MOVES test -> non-test WITH THE WITHDRAWAL, and the linter is what taught it: a non-test AT can never be green, so it can never satisfy a test-backed criterion. A criterion nothing will ever run a test against is not test-backed, whatever it was when it was live -- the same shape AC-00.3 already carries, and it is enforced structurally rather than remembered.",
+        "by": "hv (matts), 2026-08-20"
+      }
+    },
+    {
+      "id": "AC-09.3",
+      "text": "**THE HISTORY IS QUERYABLE FROM THE ONE PLACE IT LIVES.** (hv ruling D53, 2026-08-20: _\"we could then trivially expose an intent cli command that gave queryable access to the logs in the db\"_.) `intent events` reads `event_log` from the store and answers without touching disk. **THE VERB IS NOT OPTIONAL POLISH, IT IS THE OTHER HALF OF THE RULING**: dropping the tracked file removes the only way anyone could read the log at all, since **no `events` verb existed in either binary** and the file was the sole reader-facing surface. Removing it without the verb trades an unread projection for an unreadable table. **A DENOMINATOR IS OWED AND IT IS THE ROW COUNT, NOT THE VERB COUNT** -- an `events` that answers only the newest N is a count of containers again. **Filters are the point rather than a convenience**: the table is append-only and monotone, so an unfiltered dump is the one output guaranteed to become unusable, and a reader who must pipe to `grep` has been handed the file back with extra steps. **AND IT MUST BE ABLE TO SAY THAT IT HAS NOTHING**: a fresh clone under D53 has zero events, which is the accepted cost, and **an empty answer must read as `no history in this store` and never as a clean bill of health** -- the exact distinction `critic author` lost by emitting zero bytes at rc=0.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -976,13 +986,23 @@
     },
     {
       "id": "AT-09.2",
-      "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/event_log_concurrent_append.rs",
+      "kind": "non-test",
+      "prose": "the criterion is withdrawn under D53; its subject -- a tracked append-only event file -- no longer exists, so there is nothing to drive",
       "covers": [
         "AC-09.2"
       ],
+      "status": "n-a",
+      "note": "**WITHDRAWN 2026-08-20 (hv ruling D53).** Both arms named a tracked `intent/events.jsonl`: two writers appending concurrently, and a truncating write being refused. **The file is deleted, so neither arm has a subject** -- and the second was always a test of a guard with no call site, which this ruling also retires. **Not withdrawn because it was hard: withdrawn because the thing it tested stopped existing.** Replaced by AT-09.3.\n\n**Two arms, and the second is the one nobody writes.** Arm one: two writers append concurrently and both records survive. Arm two: **a TRUNCATING write over the log is refused** -- which is `append-only-guard.sh`'s declared subject and is currently caught by nothing, since that guard has zero call sites on git's real path (`.git/hooks/pre-commit` -> `pre-commit.intent` -> `bin/int precommit`, neither of which reads the roster naming it). **A test here does not fix the wiring and must not be read as fixing it**; AT-01.5 carries that finding."
+    },
+    {
+      "id": "AT-09.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/events_are_queryable.rs",
+      "covers": [
+        "AC-09.3"
+      ],
       "status": "to-write",
-      "note": "**Two arms, and the second is the one nobody writes.** Arm one: two writers append concurrently and both records survive. Arm two: **a TRUNCATING write over the log is refused** -- which is `append-only-guard.sh`'s declared subject and is currently caught by nothing, since that guard has zero call sites on git's real path (`.git/hooks/pre-commit` -> `pre-commit.intent` -> `bin/int precommit`, neither of which reads the roster naming it). **A test here does not fix the wiring and must not be read as fixing it**; AT-01.5 carries that finding."
+      "note": "**Replaces AT-09.2, whose subject D53 deleted.** Arms: the verb returns rows the store holds; a filter NARROWS rather than truncating, driven by asserting a filtered run's rows are a strict subset of an unfiltered one's AND that a row matching the filter is present; **an empty store answers `no history` distinguishably from a clean run**; and the count reported is ROWS, not a page size. **THE NEGATIVE CONTROL IS THE ONE THAT MATTERS AND IT IS CHEAP HERE**: a verb that always printed everything would pass every positive arm. **AND IT MUST NOT READ THE FILESYSTEM.** Under D53 the store is the only home, so an arm that passes because a stray `events.jsonl` was left in the fixture would be testing the thing that was just removed -- assert on a project where no such file exists, which after the removal is every project."
     },
     {
       "id": "AT-10.1",
