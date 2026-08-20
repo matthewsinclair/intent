@@ -223,6 +223,54 @@ impl Fixture {
     std::fs::read_to_string(self.path(rel)).expect("read file")
   }
 
+  /// Make this fixture a real git repository (AC-05.2, AC-03.5).
+  ///
+  /// **The question the closing verbs ask is GIT's -- what does the index hold
+  /// -- so a reimplementation would disagree exactly where it matters.**
+  /// Without a repository `sync::uncommitted` answers `None`, and that is a
+  /// legitimate answer meaning *the question could not be asked*. A fixture
+  /// that never initialises a repo can drive that arm and the suppression
+  /// rules and **can never drive the arm that NAMES PATHS** -- which is how
+  /// AC-05.2 came to have its wiring proven and its payload undriven.
+  ///
+  /// **`core.excludesFile` is pointed at `/dev/null` so the answer does not
+  /// depend on whose machine is running.** `ls-files --exclude-standard`
+  /// honours the user's global ignore file; a pattern there matching a fixture
+  /// attachment would hide it from the untracked list, and the test would go
+  /// GREEN on a machine where the check had silently stopped looking.
+  ///
+  /// **`commit.gpgSign` is off for the same reason** -- a globally-signed
+  /// commit fails in a fixture with no key, which reads as a defect in the
+  /// subject rather than in the environment.
+  ///
+  /// `sync_reports_uncommitted_attachment.rs` carries its own `Repo` running
+  /// the same commands. It predates this, and it exercises `sync::uncommitted`
+  /// with no Intent project around it; **when it next needs a project it should
+  /// collapse into here rather than grow one.**
+  pub fn git_init(&self) -> &Self {
+    self.git(&["init", "-q"]);
+    self.git(&["config", "user.email", "t@example.com"]);
+    self.git(&["config", "user.name", "t"]);
+    self.git(&["config", "core.excludesFile", "/dev/null"]);
+    self.git(&["config", "commit.gpgSign", "false"]);
+    self
+  }
+
+  /// Run a git command in the fixture, RAISING on failure.
+  ///
+  /// A git command that silently failed would leave the tree in a state the
+  /// test did not ask for, and every assertion after it would then measure the
+  /// wrong world -- passing or failing for a reason unrelated to the subject.
+  pub fn git(&self, args: &[&str]) {
+    let ok = std::process::Command::new("git")
+      .args(args)
+      .current_dir(self.root())
+      .status()
+      .expect("run git")
+      .success();
+    assert!(ok, "git {args:?} failed in the fixture");
+  }
+
   /// **A fresh machine holding only this project's committed extract** -- what
   /// `git clone` leaves behind.
   ///

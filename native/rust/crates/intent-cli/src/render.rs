@@ -842,7 +842,9 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       // **Not `absent`**: that would trade a wrong value for a missing one at the
       // moment the exit verb arrived to fill it, and it would break the template
       // parity above for nothing.
-      let seq = f.wp_new(&st, &title, TShirt::S).map_err(fail)?;
+      let seq = f
+        .wp_new(&st, &title, intentsvcs::model::DEFAULT_WP_SCOPE)
+        .map_err(fail)?;
       println!("created: {st}/{seq:02}");
       Ok(())
     }
@@ -2504,11 +2506,7 @@ fn t_shirt(raw: &str) -> Result<TShirt, Failure> {
   TShirt::parse(raw).ok_or_else(|| {
     Failure::Error(format!(
       "error: `{raw}` is not a T-shirt size\n  remedy: one of: {}",
-      TShirt::ALL
-        .iter()
-        .map(enum_str)
-        .collect::<Vec<String>>()
-        .join(", ")
+      TShirt::spellings()
     ))
   })
 }

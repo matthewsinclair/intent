@@ -278,3 +278,123 @@ fn a_posted_thread_without_a_title_is_refused() {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// THE POPULATION, WHICH IS THREE AND WAS COVERED AT ONE
+// ---------------------------------------------------------------------------
+
+/// **D57-8's OWN LIST IS THE DENOMINATOR: _server-assigned ids (threads,
+/// issues, WP seq)_.**
+///
+/// `post` covered `threads` and refused everything else with *not a collection
+/// whose ids this tool assigns* -- **which was false of two of the three, and
+/// unreachable besides**: `intent:///issues` and `intent:///threads/<id>/wp`
+/// did not parse, so the refusal could not fire and nothing ever reported the
+/// gap.
+///
+/// **A verb cannot be measured complete over a population its parser cannot
+/// express.** The thing bounding the measurement and the thing measured were
+/// authored by the same hand, so `post` read complete at a third of its
+/// subject, and the only instrument that could have said otherwise was a list
+/// like this one taken from the DESIGN rather than from the code.
+#[test]
+fn every_server_assigned_population_posts_to_its_collection() {
+  // Verbatim from D57-8, as the URL and the form the returned address must
+  // carry. Written from the design, never from `address.rs` -- a denominator
+  // read out of the implementation agrees with it by construction.
+  let populations = [
+    (
+      "intent:///threads",
+      r#"{"title":"a posted thread"}"#,
+      "thread",
+    ),
+    ("intent:///issues", r#"{"title":"a posted issue"}"#, "issue"),
+    (
+      "intent:///threads/ST0056/wp",
+      r#"{"title":"a posted work package"}"#,
+      "wp",
+    ),
+  ];
+
+  for (url, body, expected_form) in populations {
+    let fx = Fixture::new();
+    fx.write_thread(&sample_thread("ST0056"));
+    let mut facade = fx.facade();
+
+    let collection = parse(url).unwrap_or_else(|e| {
+      panic!("`{url}` is a collection D57-8 requires and the grammar refused it: {e}")
+    });
+    let made = facade
+      .post(&collection, body)
+      .unwrap_or_else(|e| panic!("POST {url} must create: {e}"));
+
+    assert_eq!(
+      made.entity.form(),
+      expected_form,
+      "POST {url} must hand back the address of the ENTITY it made, not of the \
+       collection it was sent to"
+    );
+    // **AND THE ADDRESS IT HANDED BACK MUST RESOLVE.** An address naming
+    // nothing is not a create, and a returned address is the only thing the
+    // caller has -- they did not choose the id and cannot reconstruct it.
+    let back = parse(&made.to_url())
+      .unwrap_or_else(|e| panic!("the address POST {url} returned does not parse: {e}"));
+    assert_eq!(back, made, "the returned address must round-trip");
+  }
+}
+
+/// **THE CONTROL FOR THE TWO NEW ARMS: THE ID IS ASSIGNED PER CALL.**
+///
+/// Without it both arms pass on an implementation that returns a constant
+/// address and writes once -- which is exactly what the `threads` arm needed
+/// [`two_posts_make_two_threads`] to rule out.
+#[test]
+fn two_posts_to_each_new_collection_make_two_entities() {
+  for url in ["intent:///issues", "intent:///threads/ST0056/wp"] {
+    let fx = Fixture::new();
+    fx.write_thread(&sample_thread("ST0056"));
+    let mut facade = fx.facade();
+    let collection = parse(url).expect("resolves");
+
+    let first = facade
+      .post(&collection, r#"{"title":"the first"}"#)
+      .expect("creates");
+    let second = facade
+      .post(&collection, r#"{"title":"the second"}"#)
+      .expect("creates");
+
+    assert_ne!(
+      first.to_url(),
+      second.to_url(),
+      "two POSTs to `{url}` returned one address, so the id is derived rather \
+       than assigned"
+    );
+  }
+}
+
+/// **A SIZE THE CALLER SPELLED WRONGLY IS REFUSED BY NAME, NOT DEFAULTED.**
+///
+/// Defaulting here would size somebody else's work package on their behalf and
+/// report success -- indistinguishable from having understood them. Omitting
+/// the field is a different act and keeps the shared default.
+#[test]
+fn a_posted_work_package_says_which_sizes_exist_rather_than_guessing() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+  let collection = parse("intent:///threads/ST0056/wp").expect("resolves");
+
+  let err = facade
+    .post(&collection, r#"{"title":"sized wrong","scope":"HUGE"}"#)
+    .expect_err("`HUGE` is not one of the six");
+  let said = err.to_string();
+  assert!(
+    said.contains("XS") && said.contains("XXL"),
+    "the refusal must NAME the sizes -- an operator told only that theirs is \
+     wrong has to go and find the list: {said}"
+  );
+
+  facade
+    .post(&collection, r#"{"title":"sized by nobody"}"#)
+    .expect("an ABSENT scope is not an error -- it takes the shared default");
+}

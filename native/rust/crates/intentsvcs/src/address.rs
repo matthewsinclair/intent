@@ -97,6 +97,21 @@ pub enum Entity {
   /// server-assigned ids are a `POST` to one -- you cannot address `ST0058`
   /// before the tool has decided it is `ST0058`.
   Threads,
+  /// The issues COLLECTION.
+  ///
+  /// **D57-8 names THREE server-assigned populations -- _threads, issues, WP
+  /// seq_ -- and until now the grammar could express one of them.** `post`
+  /// therefore read complete while covering a third of its subject: a verb
+  /// cannot be measured complete over a population its parser cannot express.
+  Issues,
+  /// A thread's work-package COLLECTION -- the third of D57-8's three.
+  ///
+  /// `WP` sequence numbers are assigned by the tool (`wp_new` returns the
+  /// `u32` it chose), so the entity address does not exist until the write has
+  /// happened and `PUT` has nothing to reach.
+  WpCollection {
+    thread: String,
+  },
   Thread {
     id: String,
   },
@@ -150,6 +165,8 @@ impl Entity {
   pub fn form(&self) -> &'static str {
     match self {
       Self::Threads => "threads",
+      Self::Issues => "issues",
+      Self::WpCollection { .. } => "wp-collection",
       Self::Thread { .. } => "thread",
       Self::AcCollection { .. } => "ac-collection",
       Self::Wp { .. } => "wp",
@@ -188,12 +205,14 @@ impl Entity {
     match self {
       Self::Thread { id } => Some((Sigil::SteelThread, id)),
       Self::AcCollection { thread }
+      | Self::WpCollection { thread }
       | Self::Wp { thread, .. }
       | Self::Ac { thread, .. }
       | Self::At { thread, .. }
       | Self::Attachment { thread, .. } => Some((Sigil::SteelThread, thread)),
       Self::Issue { .. }
       | Self::Threads
+      | Self::Issues
       | Self::Node { .. }
       | Self::NodeInbox { .. }
       | Self::Event { .. } => None,
@@ -233,6 +252,25 @@ pub enum AddressError {
   MalformedId { kind: &'static str, id: String },
   #[error("`{input}` has trailing segments after a complete address")]
   TrailingSegments { input: String },
+  /// **THE OPPOSITE DEFECT FROM [`AddressError::TrailingSegments`], AND IT USED
+  /// TO BE REPORTED AS ONE.**
+  ///
+  /// A proper prefix of a valid form has too FEW segments. Reporting it as
+  /// trailing tells the operator to remove something when they need to add
+  /// something -- an instruction that is not merely unhelpful but points the
+  /// wrong way, and the remedy compounded it: *an address ends at the entity
+  /// it names* is advice for the other error entirely.
+  ///
+  /// Measured at `c73404c7` by driving six URLs through [`parse`]:
+  /// `intent:///issues`, `intent:///nodes`, `intent:///events` and
+  /// `intent:///threads/ST0001/wp` all came back as trailing segments. None of
+  /// them has one.
+  #[error("`{input}` stops short of an entity -- it needs {wanted}")]
+  Incomplete {
+    input: String,
+    wanted: &'static str,
+    example: &'static str,
+  },
   #[error("`{found}` is not a format -- `?format=` accepts exactly json and md")]
   UnknownFormat { found: String },
   #[error("`{found}` is not a query this scheme accepts -- only `format=` exists")]
@@ -274,6 +312,13 @@ impl Remedy for AddressError {
       },
       AddressError::TrailingSegments { .. } => {
         "an address ends at the entity it names; use `?format=` for a representation".into()
+      }
+      // **THE REMEDY IS THE HALF THAT WAS DOING THE DAMAGE.** The message
+      // above merely named the wrong defect; this told the operator what to do
+      // about it, and what it told them was to delete a segment they had not
+      // written.
+      AddressError::Incomplete { example, .. } => {
+        format!("name the entity too, eg `{SCHEME}{example}`")
       }
       AddressError::UnknownFormat { .. } | AddressError::UnknownQuery { .. } => {
         "`?format=json` or `?format=md`, and nothing else".into()
@@ -385,8 +430,21 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
   let trailing = || AddressError::TrailingSegments {
     input: input.to_string(),
   };
+  let incomplete = |wanted: &'static str, example: &'static str| AddressError::Incomplete {
+    input: input.to_string(),
+    wanted,
+    example,
+  };
   match segments {
     ["threads"] => Ok(Entity::Threads),
+    // **THE TWO COLLECTIONS D57-8 REQUIRES AND THE GRAMMAR DID NOT HAVE.**
+    // Both were reported as short addresses until 2026-08-20, which was true of
+    // the grammar and false of the design: `POST` needs a collection address
+    // for every population whose ids the tool assigns, and there are three.
+    ["issues"] => Ok(Entity::Issues),
+    ["threads", id, "wp"] => Ok(Entity::WpCollection {
+      thread: thread(id)?,
+    }),
     ["threads", id] => Ok(Entity::Thread { id: thread(id)? }),
     ["threads", id, "ac"] => Ok(Entity::AcCollection {
       thread: thread(id)?,
@@ -425,6 +483,41 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
       stamp: stamp.to_string(),
     }),
     ["events", id] => Ok(Entity::Event { id: id.to_string() }),
+    // **A PROPER PREFIX OF A VALID FORM COMES FIRST, BECAUSE IT IS THE OTHER
+    // ARITY ERROR AND THE ARM BELOW USED TO SWALLOW IT.** The comment there
+    // already said "wrong arity" and then named only one of the two
+    // directions; these are the cases with too FEW segments rather than too
+    // many. `["threads"]` and `["threads", id, "ac"]` are absent because they
+    // are complete addresses in their own right -- the collections that ARE
+    // entities.
+    //
+    // The thread id is validated before the arity is reported: an operator who
+    // wrote both a bad id and a short address is told about the id, which is
+    // the earlier segment and the one they can see.
+    ["nodes"] => Err(incomplete("a node moniker", "/nodes/ic")),
+    ["events"] => Err(incomplete("an event id", "/events/1")),
+    ["threads", id, "at"] => {
+      thread(id)?;
+      Err(incomplete(
+        "an acceptance test id",
+        "/threads/ST0000/at/<AT id>",
+      ))
+    }
+    ["threads", id, "attachments"] => {
+      thread(id)?;
+      Err(incomplete(
+        "an attachment path",
+        "/threads/ST0000/attachments/design.md",
+      ))
+    }
+    ["nodes", _, "inbox"] => Err(incomplete(
+      "the sender whose inbox it is",
+      "/nodes/ic/inbox/vc/2026-08-20 14:00Z",
+    )),
+    ["nodes", _, "inbox", _] => Err(incomplete(
+      "the entry's timestamp",
+      "/nodes/ic/inbox/vc/2026-08-20 14:00Z",
+    )),
     // A known collection with the wrong arity is a trailing-segment problem,
     // not an unknown collection -- telling an operator "threads is not a
     // collection" when they wrote one extra segment sends them the wrong way.
@@ -444,6 +537,8 @@ impl Address {
     let authority = self.authority.as_deref().unwrap_or("");
     let path = match &self.entity {
       Entity::Threads => "threads".to_string(),
+      Entity::Issues => "issues".to_string(),
+      Entity::WpCollection { thread } => format!("threads/{thread}/wp"),
       Entity::Thread { id } => format!("threads/{id}"),
       Entity::AcCollection { thread } => format!("threads/{thread}/ac"),
       Entity::Wp { thread, wp } => format!("threads/{thread}/wp/{wp}"),

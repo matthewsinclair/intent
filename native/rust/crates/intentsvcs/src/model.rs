@@ -630,6 +630,15 @@ pub enum TShirt {
   XXL,
 }
 
+/// The size a work package gets when its creator did not choose one.
+///
+/// **ONE HOME, because two doors create work packages and they were defaulting
+/// separately.** `render.rs` passed a bare `TShirt::S` at the CLI's `wp new`,
+/// and `POST` to a WP collection needed the same answer; a second literal would
+/// have agreed on the day it was written and drifted the first time either door
+/// changed its mind, with nothing pointing from one to the other.
+pub const DEFAULT_WP_SCOPE: TShirt = TShirt::S;
+
 impl TShirt {
   /// The six sizes, smallest first.
   ///
@@ -644,6 +653,21 @@ impl TShirt {
     TShirt::XL,
     TShirt::XXL,
   ];
+
+  /// The six sizes as an operator would type them, comma-joined.
+  ///
+  /// **One home because two refusals print this set** -- the CLI's `--scope`
+  /// parse and `POST` to a work-package collection -- and a set spelled twice
+  /// is a rename away from two doors describing different vocabularies.
+  /// Derived from the serialisation, like [`TShirt::parse`], so it cannot drift
+  /// from what is actually accepted.
+  pub fn spellings() -> String {
+    Self::ALL
+      .iter()
+      .map(enum_str)
+      .collect::<Vec<String>>()
+      .join(", ")
+  }
 
   /// A caller's spelling of a size, or `None`.
   ///

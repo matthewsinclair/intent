@@ -35,15 +35,28 @@
 //! are [`Facade::st_new_listing`] and [`Facade::st_done_listing`], and they are
 //! driven here.
 //!
-//! **THE `UnsyncedAttachments` ARM IS NOT DRIVEN AND I AM SAYING SO RATHER
-//! THAN LETTING THE FILE IMPLY IT.** AC-05.2 requires a closing verb to NAME
-//! THE PATHS when the artefact holds on-disk bytes no commit contains.
-//! Reaching that arm needs a fixture that is a real git repository with a real
-//! index, and `common::Fixture` is a bare temp directory. What is driven below
-//! is the `None` arm -- the question could not be asked -- plus the suppression
-//! rules and the independence of the note from the edit. **So the warning's
-//! WIRING is proven and its PAYLOAD is not**, and a green here must not be read
-//! as the second.
+//! # The payload arm IS driven now, and a fixture was the whole of what was
+//! # missing
+//!
+//! This file used to declare `UnsyncedAttachments` undriven, and the reason
+//! was never a judgement -- it was that reaching the arm needs a real
+//! repository with a real index and `common::Fixture` was a bare temp
+//! directory. **[`Fixture::git_init`] closes that**, so AC-05.2's second limb
+//! -- *WARN, NAMING THE PATHS, when the artefact holds on-disk bytes the store
+//! has never seen* -- is now driven at its PAYLOAD and not only at its wiring.
+//!
+//! **The three answers `sync_uncommitted` can give are asserted to be three.**
+//! `None` (no repository, so the question could not be asked), `Some([])` (a
+//! clean index, so there is nothing to warn about) and `Some([..])` (paths, by
+//! name) each have their own test, because the first two collapse into "no
+//! note" under any implementation that reads an unanswered question as a clean
+//! bill of health -- **the exact folding `sync_uncommitted` returns an
+//! `Option` to prevent.** Driving only two of the three cannot tell them apart.
+//!
+//! **And the fixture commits BOTH attachments and then disturbs ONE.** An
+//! implementation that named every attachment of a closing thread -- the
+//! plausible wrong one, since canon has the list sitting right there -- passes
+//! any test that merely asks whether a path was named. It names two here.
 
 mod common;
 
@@ -577,5 +590,173 @@ fn a_thread_with_no_attachments_is_not_reported_as_unknown() {
   assert!(
     !declared(&fx).declares("ST0056"),
     "and it still leaves the list -- the note and the edit are independent"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AC-05.2's SECOND LIMB: WARN, **NAMING THE PATHS**
+// ---------------------------------------------------------------------------
+
+/// A real repository holding **both** of the sample thread's attachments in a
+/// commit, so a test can disturb exactly one of them.
+///
+/// **Committing both is what makes the assertions discriminating.** The
+/// attachment list is sitting in canon, so the plausible wrong implementation
+/// names all of it; with one attachment in the fixture that implementation is
+/// indistinguishable from the right one.
+fn committed_fixture() -> Fixture {
+  let fx = Fixture::new();
+  fx.git_init();
+  fx.write_thread(&sample_thread("ST0056"));
+  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_prose("ST0056", "reference.md", "bytes that are in a commit\n");
+  fx.write_prose("ST0056", "parity/cmd-st.md", "bytes that are in a commit\n");
+  fx.git(&["add", "-A"]);
+  fx.git(&["commit", "-qm", "the estate as it stands"]);
+  fx
+}
+
+/// The paths a closing note names, or a panic saying what came back instead.
+fn named_paths(notes: &[Note]) -> &[String] {
+  match notes {
+    [Note::UnsyncedAttachments(paths)] => paths,
+    other => panic!("expected one UnsyncedAttachments note, got {other:?}"),
+  }
+}
+
+/// **THE HEADLINE: A CLOSE NAMES THE FILE WHOSE BYTES ARE IN NO COMMIT, AND
+/// NAMES ONLY THAT ONE.**
+#[test]
+fn a_close_names_the_attachment_whose_bytes_are_in_no_commit() {
+  let fx = committed_fixture();
+  fx.write_prose("ST0056", "reference.md", "bytes that are in no commit\n");
+
+  let mut facade = fx.facade();
+  let outcome = facade.st_done("ST0056").expect("done");
+
+  assert_eq!(
+    named_paths(outcome.notes()),
+    ["intent/st/ST0056/reference.md: edited in the working tree and not staged"],
+    "AC-05.2 names the paths AT RISK. `parity/cmd-st.md` is an attachment of \
+     the same thread and is in the commit, so naming it would be telling the \
+     operator to check a file that is safe -- which is how the ones that matter \
+     stop being read"
+  );
+}
+
+/// **THE NOTE DOES NOT GATE, AND THE TWO LIMBS ARE INDEPENDENT.** hv's ruling
+/// is that `organize` holds the only line that removes an estate file, so this
+/// warns and closes. A note that also suppressed the list edit would leave the
+/// thread closed and still listed -- silently doing `--keep` on the operator's
+/// behalf, which is a decision they did not make.
+#[test]
+fn the_warning_closes_the_thread_and_still_makes_the_edit() {
+  let fx = committed_fixture();
+  fx.write_prose("ST0056", "reference.md", "bytes that are in no commit\n");
+
+  let mut facade = fx.facade();
+  let outcome = facade.st_done("ST0056").expect("done");
+
+  assert!(outcome.moved(), "a note is not a refusal: {outcome:?}");
+  assert!(
+    !named_paths(outcome.notes()).is_empty(),
+    "precondition: it warned"
+  );
+  assert_eq!(
+    facade.st_show("ST0056").unwrap().status,
+    ThreadStatus::Completed
+  );
+  let list = declared(&fx);
+  assert!(
+    !list.declares("ST0056"),
+    "the edit is independent of the warning -- a note that suppressed it would \
+     be `--keep` chosen by the tool"
+  );
+  assert!(
+    list.declares("ST0099"),
+    "and the neighbour is untouched, or the verb rewrote the whole file"
+  );
+}
+
+/// **UNTRACKED AND MODIFIED DO NOT SHARE A SENTENCE.** They are different
+/// situations for the operator: one file has bytes in some earlier commit to
+/// fall back on and the other has none anywhere. A single "not committed"
+/// message would be true of both and useful for neither.
+#[test]
+fn an_untracked_attachment_is_named_and_says_so_in_its_own_words() {
+  let fx = Fixture::new();
+  fx.git_init();
+  fx.write_thread(&sample_thread("ST0056"));
+  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_prose("ST0056", "parity/cmd-st.md", "bytes that are in a commit\n");
+  fx.git(&["add", "-A"]);
+  fx.git(&[
+    "commit",
+    "-qm",
+    "one attachment committed, the other never added",
+  ]);
+  fx.write_prose("ST0056", "reference.md", "bytes that were never added\n");
+
+  let mut facade = fx.facade();
+  let outcome = facade.st_done("ST0056").expect("done");
+
+  assert_eq!(
+    named_paths(outcome.notes()),
+    ["intent/st/ST0056/reference.md: untracked, so no commit contains it"],
+    "an untracked attachment is the worse case and must not be reported in the \
+     modified case's words"
+  );
+}
+
+/// **A CLEAN INDEX SAYS NOTHING, AND THAT IS A DIFFERENT ANSWER FROM `UNKNOWN`.**
+///
+/// This is the arm nothing drove. Paired with
+/// [`a_close_reports_what_it_could_not_ask_and_still_closes`] it pins the
+/// three-way split: an implementation that folded "the question could not be
+/// asked" into "nothing is wrong" passes THIS test and fails that one, and an
+/// implementation that warned on every close passes that one and fails this.
+/// **Neither test can catch that alone.**
+#[test]
+fn a_clean_repository_says_nothing_and_that_is_not_the_unknown_answer() {
+  let fx = committed_fixture();
+  let mut facade = fx.facade();
+  let outcome = facade.st_done("ST0056").expect("done");
+
+  assert!(
+    outcome.notes().is_empty(),
+    "every attachment of this thread is in a commit, so there is nothing at \
+     risk and nothing to say: {outcome:?}"
+  );
+}
+
+/// **`--keep` STAYS SILENT EVEN WITH REAL UNCOMMITTED BYTES ON DISK, AND THIS
+/// IS THE SUPPRESSION TEST THAT COULD FAIL.**
+///
+/// [`keep_closes_without_a_note_because_nothing_is_being_dehydrated`] runs
+/// outside a repository, where the note would have been `UnsyncedUnknown`
+/// anyway -- so it cannot tell "suppressed because nothing is being
+/// dehydrated" from "suppressed because there was nothing to say". Here there
+/// is something to say and the answer is still nothing, because **the note is
+/// tied to the REMOVAL and not to the verb.**
+#[test]
+fn keep_stays_silent_even_when_there_are_uncommitted_bytes_to_warn_about() {
+  let fx = committed_fixture();
+  fx.write_prose("ST0056", "reference.md", "bytes that are in no commit\n");
+
+  let mut facade = fx.facade();
+  let outcome = facade
+    .st_done_listing("ST0056", ListEdit::Suppressed)
+    .expect("done");
+
+  assert!(
+    outcome.notes().is_empty(),
+    "`--keep` leaves the artefact listed, so no dehydration is coming and the \
+     files are not at risk. Warning anyway would be correct-looking and is how \
+     an operator learns to skim: {outcome:?}"
+  );
+  assert!(
+    declared(&fx).declares("ST0056"),
+    "precondition: `--keep` really did leave it listed, or the silence above \
+     was measured on the wrong situation"
   );
 }

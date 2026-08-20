@@ -202,6 +202,10 @@ fn a_refused_view_is_still_realised_because_the_refusal_is_about_authoring() {
 fn every_address_form_is_edited_or_refused_by_name() {
   let forms = [
     Entity::Threads,
+    Entity::Issues,
+    Entity::WpCollection {
+      thread: "ST0001".to_string(),
+    },
     Entity::Thread {
       id: "ST0001".to_string(),
     },
@@ -261,7 +265,7 @@ fn every_address_form_is_edited_or_refused_by_name() {
 
   assert_eq!(
     editable + refused.len(),
-    11,
+    13,
     "the partition must cover every form: {editable} editable, refused {refused:?}"
   );
   assert_eq!(
@@ -270,8 +274,15 @@ fn every_address_form_is_edited_or_refused_by_name() {
     // moving between buckets in silence -- which is how `issue` travelled from
     // hydratable to refused with nothing reporting it until a list like this
     // one said otherwise.
-    vec!["threads", "issue", "node", "node-inbox", "event"],
-    "the refused set is declared, so a form moving between buckets is visible"
+    vec!["threads", "issues", "issue", "node", "node-inbox", "event"],
+    "the refused set is declared, so a form moving between buckets is visible.\n\n  \
+     `wp-collection` is EDITABLE and I had it here on a guess until this \
+     assertion\n  \
+     said otherwise: it resolves to its thread exactly as `ac-collection` \
+     does, so\n  \
+     editing one realises the thread and hands over the thread's file. The two \
+     COLLECTIONS\n  \
+     that refuse are the ones owning no thread -- `threads` and `issues`."
   );
 }
 
@@ -302,4 +313,59 @@ fn the_renderer_calls_the_edit_door_exactly_once() {
      call sites means a second one has appeared, and two that agree today are \
      two that can drift tomorrow."
   );
+}
+
+// ---------------------------------------------------------------------------
+// THE DENOMINATOR'S DENOMINATOR
+// ---------------------------------------------------------------------------
+
+/// **THE COMPILER IS THE ONLY THING THAT CAN COUNT AN ENUM'S VARIANTS, SO IT
+/// COUNTS THEM.**
+///
+/// The list in [`every_address_form_is_edited_or_refused_by_name`] is written
+/// by hand, and a hand list stops covering on the day somebody adds a variant.
+/// **That is not hypothetical: `Issues` and `WpCollection` landed on
+/// 2026-08-20 and the list of eleven went on passing**, reporting a complete
+/// partition over eleven of thirteen forms. The test that existed to close the
+/// denominator had a denominator of its own and nothing was watching it.
+///
+/// This match is EXHAUSTIVE, so a fourteenth variant fails to compile HERE --
+/// in the file that then has to grow a case for it -- rather than passing
+/// quietly next door.
+///
+/// **What it does NOT do is check that the list above was updated too**, and
+/// saying so matters: it converts a silent miss into a compile error pointing
+/// at the right file, which is a smaller claim than coverage and is the whole
+/// of what a language without variant reflection allows.
+fn _every_variant_is_accounted_for(entity: &Entity) -> &'static str {
+  match entity {
+    Entity::Threads => "threads",
+    Entity::Issues => "issues",
+    Entity::WpCollection { .. } => "wp-collection",
+    Entity::Thread { .. } => "thread",
+    Entity::AcCollection { .. } => "ac-collection",
+    Entity::Wp { .. } => "wp",
+    Entity::Ac { .. } => "ac",
+    Entity::At { .. } => "at",
+    Entity::Attachment { .. } => "attachment",
+    Entity::Issue { .. } => "issue",
+    Entity::Node { .. } => "node",
+    Entity::NodeInbox { .. } => "node-inbox",
+    Entity::Event { .. } => "event",
+  }
+}
+
+/// The witness above agrees with the implementation's own naming, so the two
+/// cannot drift into calling the same form different things.
+#[test]
+fn the_witness_names_forms_the_way_the_implementation_does() {
+  for entity in [
+    Entity::Threads,
+    Entity::Issues,
+    Entity::WpCollection {
+      thread: "ST0001".to_string(),
+    },
+  ] {
+    assert_eq!(_every_variant_is_accounted_for(&entity), entity.form());
+  }
 }

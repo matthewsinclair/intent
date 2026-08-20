@@ -21,7 +21,8 @@
 //! a second resolver has to spell `intent://` somewhere, and the one place
 //! that string legitimately appears is this module.
 
-use intentsvcs::address::{Address, Entity, Format, SCHEME, parse};
+use intentsvcs::address::{Address, AddressError, Entity, Format, SCHEME, parse};
+use intentsvcs::remedy::Remedy;
 use std::path::Path;
 use testkit::repo_root;
 
@@ -287,4 +288,115 @@ fn trailing_segments_are_refused_rather_than_truncated() {
   assert!(parse("intent:///threads/ST0056/attachments/a/b/c/d.sh").is_ok());
   // But an attachments address with NO path names nothing.
   assert!(parse("intent:///threads/ST0056/attachments").is_err());
+}
+
+// ---------------------------------------------------------------------------
+// THE OTHER ARITY ERROR
+// ---------------------------------------------------------------------------
+
+/// **AN ADDRESS WITH TOO FEW SEGMENTS IS REPORTED AS SHORT, NEVER AS TRAILING.**
+///
+/// Every prefix here used to come back `has trailing segments after a complete
+/// address` -- **the opposite defect** -- with the remedy *an address ends at
+/// the entity it names*. An operator who wrote `intent:///issues` was being
+/// told to delete a segment they had not written. The arm's own comment said
+/// "wrong arity" and then named one of the two directions.
+///
+/// # The denominator is DERIVED, not listed
+///
+/// The prefixes are computed by truncating [`d57_8_forms`] -- the same list
+/// `every_d57_8_form_resolves` uses -- at every segment boundary. **So a
+/// tenth form added to the design brings its own prefixes with it**, and this
+/// test starts asking about them without anybody remembering to add a case.
+/// A hand-written list of eight would keep passing while a new form's short
+/// address reported the wrong direction.
+///
+/// A prefix that is ITSELF a valid address is allowed to parse: `/threads` and
+/// `/threads/<id>/ac` are the two collections that are entities in their own
+/// right, and `/threads/<id>/attachments/a` is a real attachment path.
+#[test]
+fn a_short_address_is_reported_as_short_and_never_as_trailing() {
+  let mut incomplete = Vec::new();
+  for (url, _) in d57_8_forms() {
+    let path = url
+      .strip_prefix(SCHEME)
+      .expect("every form carries the scheme")
+      .trim_start_matches('/');
+    let segments: Vec<&str> = path.split('/').collect();
+    for n in 1..segments.len() {
+      let short = format!("{SCHEME}/{}", segments[..n].join("/"));
+      match parse(&short) {
+        // A proper prefix that is a complete address in its own right.
+        Ok(_) => {}
+        Err(AddressError::Incomplete { .. }) => {
+          if !incomplete.contains(&short) {
+            incomplete.push(short);
+          }
+        }
+        Err(other) => panic!(
+          "`{short}` is a proper prefix of `{url}`, so it has too FEW segments.\n       \
+           The refusal must say so and it said: {other}"
+        ),
+      }
+    }
+  }
+
+  incomplete.sort();
+  assert_eq!(
+    incomplete,
+    // **DECLARED as well as derived.** The loop above proves each prefix is
+    // reported in the right DIRECTION; this proves the SET has not moved --
+    // a form losing a required segment would quietly shrink the list while
+    // every remaining case still passed.
+    vec![
+      "intent:///events".to_string(),
+      "intent:///nodes".to_string(),
+      "intent:///nodes/ic/inbox".to_string(),
+      "intent:///nodes/ic/inbox/vc".to_string(),
+      "intent:///threads/ST0056/at".to_string(),
+      "intent:///threads/ST0056/attachments".to_string(),
+    ],
+    "the set of short addresses derived from D57-8's forms has changed.\n\n  \
+     It was EIGHT and is now SIX: `intent:///issues` and \
+     `intent:///threads/<id>/wp`\n  \
+     became ADDRESSES when the two collections D57-8's POST clause requires \
+     were added.\n  \
+     A form leaving this list is the bucket move the declared half exists to \
+     show."
+  );
+}
+
+/// **THE TWO ARITY ERRORS MUST NOT SHARE A REMEDY, AND THE REMEDY IS THE HALF
+/// THAT WAS DOING THE DAMAGE.**
+///
+/// The message named the wrong defect; the remedy told the operator what to do
+/// about it, and what it told them was to remove something. A single message
+/// covering both directions would be true of neither.
+#[test]
+fn too_few_and_too_many_segments_are_told_apart_in_words() {
+  // **`nodes` rather than `issues`, and the swap is the point.**
+  // `intent:///issues` was this example until the issues COLLECTION became
+  // addressable; a whiteboard node has no collection address because D57-8
+  // assigns node monikers to no one -- a human writes them.
+  let short = parse("intent:///nodes").expect_err("too few segments");
+  let long =
+    parse("intent:///nodes/ic/inbox/vc/2026-08-19T11:41Z/extra").expect_err("too many segments");
+
+  assert_ne!(
+    short.remedy(),
+    long.remedy(),
+    "one instruction cannot serve both: `{}` vs `{}`",
+    short.remedy(),
+    long.remedy()
+  );
+  assert!(
+    short.remedy().contains("intent:///nodes/ic"),
+    "the short form's remedy shows what a complete one looks like, so the fix \
+     is a copy-paste rather than a guess: {}",
+    short.remedy()
+  );
+  assert!(
+    !short.to_string().contains("trailing"),
+    "and it must not still call it a trailing segment: {short}"
+  );
 }

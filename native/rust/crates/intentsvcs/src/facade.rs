@@ -3776,11 +3776,59 @@ impl Facade {
     }
     match &address.entity {
       AddrEntity::Threads => {
-        let title = Self::posted_title(address, body)?;
+        let value = Self::posted_json(address, body)?;
+        let title = Self::posted_title(address, &value)?;
         let id = self.st_new(&title)?;
         Ok(Address {
           authority: None,
           entity: AddrEntity::Thread { id },
+          format: address.format,
+        })
+      }
+      // **THE SECOND AND THIRD OF D57-8's THREE SERVER-ASSIGNED POPULATIONS.**
+      // `_threads, issues, WP seq_` is the design's own list; until 2026-08-20
+      // the grammar could express one of them, so this verb read complete while
+      // covering a third of its subject.
+      AddrEntity::Issues => {
+        let value = Self::posted_json(address, body)?;
+        let title = Self::posted_title(address, &value)?;
+        let number = self.issue_add(
+          &title,
+          value.get("severity").and_then(|v| v.as_str()),
+          value.get("reporter").and_then(|v| v.as_str()),
+        )?;
+        Ok(Address {
+          authority: None,
+          entity: AddrEntity::Issue {
+            id: format!("{number:04}"),
+          },
+          format: address.format,
+        })
+      }
+      AddrEntity::WpCollection { thread } => {
+        let value = Self::posted_json(address, body)?;
+        let title = Self::posted_title(address, &value)?;
+        // **A SIZE THE CALLER DID NOT CHOOSE COMES FROM ONE PLACE**, shared with
+        // the CLI's `wp new`. A size they DID choose and spelled wrongly is
+        // refused by name rather than defaulted: silently sizing someone else's
+        // work package is the kind of help that is indistinguishable from a bug.
+        let scope = match value.get("scope").and_then(|v| v.as_str()) {
+          None => crate::model::DEFAULT_WP_SCOPE,
+          Some(raw) => TShirt::parse(raw).ok_or_else(|| FacadeError::WriteNotAddressable {
+            url: address.to_url(),
+            why: format!(
+              "`{raw}` is not a size -- the six are {}",
+              TShirt::spellings()
+            ),
+          })?,
+        };
+        let seq = self.wp_new(thread, &title, scope)?;
+        Ok(Address {
+          authority: None,
+          entity: AddrEntity::Wp {
+            thread: thread.clone(),
+            wp: format!("{seq:02}"),
+          },
           format: address.format,
         })
       }
@@ -3804,13 +3852,23 @@ impl Facade {
   /// because a thread without one is unfindable in every view that lists it,
   /// and a create arriving through a different door must not be able to make
   /// the entity that verb refuses to make.
-  fn posted_title(address: &Address, body: &str) -> Result<String, FacadeError> {
+  /// A posted body, parsed once.
+  ///
+  /// Separate from [`Facade::posted_title`] because three collections read
+  /// different fields out of the same body, and parsing per field would report
+  /// "the body is not JSON" once for each of them.
+  fn posted_json(address: &Address, body: &str) -> Result<serde_json::Value, FacadeError> {
+    serde_json::from_str(body).map_err(|e| FacadeError::WriteNotAddressable {
+      url: address.to_url(),
+      why: format!("the body is not JSON: {e}"),
+    })
+  }
+
+  fn posted_title(address: &Address, value: &serde_json::Value) -> Result<String, FacadeError> {
     let refuse = |why: &str| FacadeError::WriteNotAddressable {
       url: address.to_url(),
       why: why.to_string(),
     };
-    let value: serde_json::Value =
-      serde_json::from_str(body).map_err(|e| refuse(&format!("the body is not JSON: {e}")))?;
     let title = value
       .get("title")
       .and_then(|t| t.as_str())
