@@ -15,7 +15,7 @@
 
 use std::process::Command;
 
-use intent_cli::dispatch;
+use intent_cli::{dispatch, render};
 
 /// A directory that is inside NO Intent project, shared by every invocation in
 /// this file that does not build a project of its own.
@@ -674,9 +674,52 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
     "doctor's account of the withheld surface disagrees with the table:\n  {}",
     wrong.join("\n  ")
   );
+  // **THE SHIPPED FLOOR STAYS ON THE LIVE TABLE AND THE WITHHELD ONE DOES NOT,
+  // AND THE ASYMMETRY IS THE RULING** (vc, 2026-08-20). A shipped population
+  // reaching zero would be a real finding about the estate; a WITHHELD one
+  // reaching zero is the estate being CORRECT, and until D55 this assertion
+  // could not tell those apart. It read `withheld > 0 && shipped > 0` and
+  // panicked at `0 withheld and 75 shipped` on the commit that resolved the
+  // last `pending` flag -- **failing on good news, because it proved it could
+  // discriminate by requiring a live instance of the defect it detects.**
+  //
+  // **An instrument that borrows a live instance has made the defect a fixture,
+  // and the estate is then not free to fix it.** The general form, now a
+  // ruling: an instrument's discrimination is a property of the INSTRUMENT,
+  // never of the estate's current defect count -- so where a red-first arm
+  // needs an instance, the instance is SYNTHETIC.
+  //
+  // `declared_but_unwired.rs` is the mirror worth reading beside this: it is
+  // self-invalidating BY DESIGN and worries in its own header about going from
+  // three members to one. This one was self-invalidating BY ACCIDENT and
+  // reached zero. **The difference is whether anyone chose it.**
   assert!(
-    withheld > 0 && shipped > 0,
-    "this needs both kinds to be discriminating: {withheld} withheld and {shipped} shipped"
+    shipped > 0,
+    "no shipped flag on any shipped entry -- that is a finding about the table, not about this test"
+  );
+
+  // The synthetic instance: the live table with exactly one flag forced
+  // `pending`. It proves `withheld_flags` NAMES a withholding, which is the
+  // half the live table can no longer exercise.
+  let mut fixture = dispatch::table();
+  let mut planted = None;
+  'plant: for family in &mut fixture.families {
+    for entry in &mut family.entries {
+      if let Some(flag) = entry.flags.iter_mut().find(|f| f.disposition == "keep") {
+        flag.disposition = "pending".to_string();
+        planted = Some((entry.path.clone(), flag.spellings.join(" / ")));
+        break 'plant;
+      }
+    }
+  }
+  let (path, spellings) =
+    planted.expect("the live table carries at least one `keep` flag to force `pending`");
+  let named = render::withheld_flags(&fixture);
+  assert!(
+    named
+      .iter()
+      .any(|l| l.contains(&format!("`{path}`")) && l.contains(&spellings)),
+    "a flag forced to `pending` was not named by `withheld_flags`; the withheld surface is unreported and nothing on the live table can say so any more\n  planted: `{path}` {spellings}\n  named:   {named:#?}"
   );
 
   // **A withholding is not a defect and must not inflate the finding count**,

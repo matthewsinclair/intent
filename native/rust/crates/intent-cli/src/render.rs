@@ -1763,7 +1763,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // warnings", so the line between kept and dropped is already drawn by the
   // estate: anything that does not move the exit code goes.
   if !quiet {
-    for withheld in withheld_flags() {
+    for withheld in withheld_flags(&dispatch::table()) {
       println!("{withheld}");
     }
   }
@@ -2155,10 +2155,22 @@ fn export(a: &ArgMatches) -> Result<(), Failure> {
 /// make `doctor` exit nonzero. A deliberate, ratified withholding is not a
 /// defect in the estate, and reporting it as one would train a reader to
 /// ignore the number that matters.
-fn withheld_flags() -> Vec<String> {
-  let table = dispatch::table();
+/// **THE TABLE IS A PARAMETER SO THE DISCRIMINATION CAN BE TESTED WITHOUT A
+/// LIVE DEFECT** (vc ruling, 2026-08-20). It read `dispatch::table()` itself,
+/// which made the compiled-in table the only possible input -- so the only way
+/// to prove this function NAMES a withheld flag was for the estate to be
+/// carrying one. D55 resolved the last of them, the withheld population reached
+/// zero, and `dispatch_ssot.rs`'s discrimination check panicked at `0 withheld
+/// and 75 shipped`: **an instrument that borrows a live instance of the defect
+/// has made the defect a fixture, and the estate is then not free to fix it.**
+///
+/// The ruling that generalises: **an instrument's discrimination is a property
+/// of the INSTRUMENT, never of the estate's current defect count.** Taking the
+/// table by reference costs one argument and makes a synthetic instance
+/// constructible, which is the whole of the fix.
+pub fn withheld_flags(table: &dispatch::Table) -> Vec<String> {
   let mut out = Vec::new();
-  for entry in dispatch::shipped_entries(&table) {
+  for entry in dispatch::shipped_entries(table) {
     for flag in &entry.flags {
       if flag.disposition == "pending" {
         out.push(format!(

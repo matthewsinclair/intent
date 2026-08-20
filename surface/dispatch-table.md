@@ -1727,8 +1727,8 @@ First-time setup: create global Intent configuration
   - `--force`, `-f` (bool) -- Force recreation of config even if it exists
     - **disposition:** keep
   - `--quiet`, `-q` (bool) -- Suppress informational output
-    - **disposition:** pending
-    - **disposition basis:** VERBOSITY CLUSTER. Same undecided design question as `doctor --quiet`, and it is one question, not four: does v3 carry per-command verbosity flags or one global pair? Classified together so the answer lands in one place instead of being re-litigated per command.
+    - **disposition:** keep
+    - **disposition basis:** hv RULED IT SHIPS, D55, 2026-08-20; vc ruled the VALUE `keep`, 2026-08-20, refusing a fourth value cc proposed. cc's objection was that the family is unimplemented so neither `pending` nor `keep` is true -- and it asks this field about the wrong subject. `disposition` is a claim about a FLAG: under `keep` the table says the flag is kept and the spine keeps it, which is AGREEMENT. What disagrees with reality is the COMMAND, which already has its own honest report (`is a known command that is not implemented yet`). `pending` would be the only one of the two that states something FALSE to a user, asserting a decision is pending after hv has made it. Before extending a vocabulary, check whether the field is being asked about the right subject.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
@@ -2871,8 +2871,8 @@ Maintain checkbox file indexes
   - `-r` (bool) -- Recurse
     - **disposition:** keep
   - `-v` (bool) -- Verbose
-    - **disposition:** pending
-    - **disposition basis:** VERBOSITY CLUSTER -- log-level verbosity, same open question as `doctor --verbose`. NOT the same thing as `claude skills -v` / `claude subagents -v`, which are a list display mode and ship.
+    - **disposition:** keep
+    - **disposition basis:** hv RULED IT SHIPS, D55, 2026-08-20; vc ruled the VALUE `keep`, 2026-08-20, refusing a fourth value cc proposed. cc's objection was that the family is unimplemented so neither `pending` nor `keep` is true -- and it asks this field about the wrong subject. `disposition` is a claim about a FLAG: under `keep` the table says the flag is kept and the spine keeps it, which is AGREEMENT. What disagrees with reality is the COMMAND, which already has its own honest report (`is a known command that is not implemented yet`). `pending` would be the only one of the two that states something FALSE to a user, asserting a decision is pending after hv has made it. Before extending a vocabulary, check whether the field is being asked about the right subject.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
