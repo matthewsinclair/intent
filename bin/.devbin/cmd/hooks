@@ -42,15 +42,31 @@
 # forever. This answers "is THIS clone protected", which is a question only a
 # working clone can be asked.
 #
-# WHAT THIS CANNOT DO. It cannot make the repository carry the wiring. Git will
-# not adopt tracked hooks on its own -- that is a deliberate security property,
-# not an oversight -- so some per-clone action is irreducible. `core.hooksPath`
-# pointed at a tracked directory would shrink that action from "copy files" to
-# "run one config command" AND make the hook bodies reviewable, which is the
-# better architecture. It is not taken here because it collides with
-# `intent claude upgrade`, which installs the critic gate by writing
-# `.git/hooks/pre-commit` directly -- that installer is canon and another node's
-# lane. Flagged for a ruling rather than decided unilaterally.
+# THE REPOSITORY NOW CARRIES THE WIRING, and the paragraph that used to stand
+# here said it could not. It read: `core.hooksPath` pointed at a tracked
+# directory ... is the better architecture. It is not taken here because it
+# collides with `intent claude upgrade` ... Flagged for a ruling rather than
+# decided unilaterally. **hv gave that ruling on 2026-08-20, via vc: take it.**
+#
+# `.githooks/` is tracked and `core.hooksPath` points at it, so the hook bodies
+# ARE the repository's -- reviewable, diffable, and received by every clone.
+#
+# THE COLLISION WAS NARROWER THAN THIS FILE FEARED, and the reason is the rule
+# stated fifty lines below: ask git, never compute. `canon_hooks_dir` in
+# `intent_claude_upgrade` resolves through `rev-parse --git-path hooks`, exactly
+# as this command does, so the canon installer follows the redirect on its own
+# and drops `pre-commit.intent` into the tracked directory. **That file is
+# gitignored**: it is shipped canon, and tracking it would be a second home for
+# canon -- the defect removed from the guard roster the same morning. No
+# installer change was needed, and none was made.
+#
+# WHAT IS STILL IRREDUCIBLE: one config command per clone. Git will not adopt
+# tracked hooks on its own; that is a deliberate security property, not an
+# oversight, and a hook that ran on clone would be remote code execution. So
+# `--install` sets `core.hooksPath`, and the `bin/int` dispatcher SAYS when it
+# is unset. **It says and does not self-heal** (hv, 2026-08-20) -- the clock
+# guard's rule, for the clock guard's reason: something that silently repairs a
+# thing hides the class from the person who needs to learn it.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
@@ -222,8 +238,20 @@ if [ "$DO_INSTALL" -eq 0 ]; then
   report_hook post-commit postcommit
   printf '\n'
   if [ "$rc" -eq 0 ]; then
-    printf 'hooks: this clone is wired. NOTE this is a fact about THIS CLONE only --\n'
-    printf '  .git/hooks is never tracked, so it says nothing about anyone else.\n'
+    printf 'hooks: this clone is wired.\n'
+    # THE CAVEAT IS NOW CONDITIONAL, and it used to be unconditional prose
+    # reading `.git/hooks is never tracked, so it says nothing about anyone
+    # else`. Under a redirect to a tracked directory that is false in both
+    # clauses -- the bodies ARE tracked, so this DOES say something about
+    # everyone. A caveat that survived the change it was written about is the
+    # same rot this command exists to report.
+    if [ -n "$_hp" ]; then
+      printf '  the hook bodies are TRACKED (core.hooksPath = %s), so a clone receives\n' "$_hp"
+      printf '  them -- but each clone must still set core.hooksPath itself.\n'
+    else
+      printf '  NOTE this is a fact about THIS CLONE only -- .git/hooks is never\n'
+      printf '  tracked, so it says nothing about anyone else.\n'
+    fi
   else
     printf 'hooks: this clone is NOT fully wired. Run `int hooks --install`.\n'
     printf '  An unwired guard does not fail; it reports nothing, and reporting\n'
@@ -314,6 +342,25 @@ EOF
   fi
   chmod +x "$path"
 }
+# POINT GIT AT THE TRACKED DIRECTORY FIRST, so the `install_chain` calls below
+# operate on the files that will actually run. They resolve through HOOKS_DIR,
+# which is `rev-parse --git-path hooks` -- computed at the top of this script,
+# BEFORE this config write. So the order here is load-bearing in the other
+# direction: on the run that performs the migration, HOOKS_DIR still names the
+# old location, and appending a runner call there would wire a file git has just
+# stopped reading. Re-resolve rather than reuse.
+TRACKED_HOOKS="$ROOT/.githooks"
+if [ -d "$TRACKED_HOOKS" ]; then
+  if [ -z "$_hp" ]; then
+    git -C "$ROOT" config core.hooksPath .githooks
+    printf 'wired: core.hooksPath -> .githooks (the hook bodies are now tracked)\n'
+  else
+    printf 'ok: core.hooksPath already set to %s -- unchanged\n' "$_hp"
+  fi
+  HOOKS_DIR="$(git -C "$ROOT" rev-parse --git-path hooks)"
+  case "$HOOKS_DIR" in /*) ;; *) HOOKS_DIR="$ROOT/$HOOKS_DIR" ;; esac
+fi
+
 install_chain pre-commit precommit
 install_chain pre-push prepush
 install_chain post-commit postcommit

@@ -149,3 +149,10 @@ target/
 
 # D53: the event log lives in the store; its file form is produced by `intent export`.
 intent/events.jsonl
+
+# The critic gate is SHIPPED CANON, installed by `intent claude upgrade` into
+# whatever `git rev-parse --git-path hooks` resolves to -- which is this tracked
+# directory once core.hooksPath is set. Tracking it would be a SECOND HOME FOR
+# CANON, which is the class this repository spent 2026-08-20 removing from the
+# guard roster. The installer owns this file; git must not.
+.githooks/pre-commit.intent

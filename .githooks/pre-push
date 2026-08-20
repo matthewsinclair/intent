@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Repo-local pre-push gate: clone what is about to be pushed and build it.
+#
+# Push is the moment the repository stops being private to one machine, and the
+# failure this catches -- a half-committed move that leaves a stale tree at HEAD
+# -- costs nothing until it is public and everything afterwards. Every local
+# instrument reads the working tree and is green while the repository is wrong;
+# the only check that can see the difference clones.
+#
+# Path-triggered inside `bin/int prepush`, so a whiteboard-only push (most of
+# them) skips in well under a second and only a native/ or build-manifest change
+# pays the ~16s clone-and-build. A gate that charges everyone gets --no-verify'd,
+# which is cry-wolf arriving through a different door.
+#
+# TRACKED, as of 2026-08-20. This file used to say `Not tracked -- .git/hooks/
+# never is`, which was true of where it lived and is no longer: `core.hooksPath`
+# points git at `.githooks/`, so the calling line travels with the runner it
+# calls (`bin/.devbin/cmd/prepush`) instead of being a property of one machine.
+if [ -x bin/int ]; then
+  bin/int prepush "$@" || exit $?
+fi
