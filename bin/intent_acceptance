@@ -178,11 +178,34 @@ AT_G_PATH='[^`:]*/[^`:]+'
 AT_G_COVERS='AC-[0-9]+\.[0-9]+(, AC-[0-9]+\.[0-9]+)*'
 AT_G_NOTE='( -- .*)?'
 AT_GRAMMAR_TEST="^- ($AT_G_ID) ${BT}($AT_G_PATH)${BT} -- covers ($AT_G_COVERS) -- status: (to-write|red|green)$AT_G_NOTE\$"
+# A `to-write` row with NO citation at all (hv, 2026-08-20). The path is
+# mandatory on `green` and `red` because it is the contract's only link to the
+# tree; on `to-write` it is a COMMITMENT ABOUT WHERE A TEST WILL LIVE, and the
+# grammar was forcing that commitment to be made before the author could know
+# it. **The rule is not "a to-write row has no path" -- ST0201's AT-05.4 and
+# AT-07.2 are to-write, cite real paths (they extend existing decks) and are
+# correct. The rule is that a row must not be FORCED to invent one.**
+#
+# The capture-group layout is IDENTICAL to the test arm on purpose: group 2 is
+# the path and is present-but-empty here, so `at_pathname` (group 2),
+# `at_status` (group 5) and `at_note` (group 6) resolve unchanged and no reader
+# needs to know which arm matched. `AT_G_COVERS` contributes its own group,
+# which is why status is 5 and not 4.
+#
+# L2/L3 never see this arm: both are gated on `green|red`, and a missing file is
+# the correct state for a test not yet written.
+AT_GRAMMAR_TOWRITE="^- ($AT_G_ID) ()-- covers ($AT_G_COVERS) -- status: (to-write)$AT_G_NOTE\$"
 AT_GRAMMAR_NONTEST="^- ($AT_G_ID) \(non-test\) (.*) -- covers ($AT_G_COVERS) -- status: (n/a)$AT_G_NOTE\$"
 
 # Which arm a row conforms to: "test", "nontest", or non-zero for neither.
 at_row_arm() {
   if printf '%s\n' "$1" | grep -qE "$AT_GRAMMAR_TEST"; then
+    echo "test"
+  elif printf '%s\n' "$1" | grep -qE "$AT_GRAMMAR_TOWRITE"; then
+    # Reported as "test", not as a third kind: it IS a test row, one that has
+    # not chosen its file yet. Every downstream reader (L2/L3's green|red gate,
+    # L5's non-test trap, the gate's coverage arithmetic) already treats
+    # to-write correctly, and a new arm name would need each of them to learn it.
     echo "test"
   elif printf '%s\n' "$1" | grep -qE "$AT_GRAMMAR_NONTEST"; then
     echo "nontest"
@@ -197,6 +220,8 @@ at_field() {
   local line="$1" group="$2"
   if printf '%s\n' "$line" | grep -qE "$AT_GRAMMAR_TEST"; then
     extract_field "$line" "$AT_GRAMMAR_TEST" "$group"
+  elif printf '%s\n' "$line" | grep -qE "$AT_GRAMMAR_TOWRITE"; then
+    extract_field "$line" "$AT_GRAMMAR_TOWRITE" "$group"
   elif printf '%s\n' "$line" | grep -qE "$AT_GRAMMAR_NONTEST"; then
     extract_field "$line" "$AT_GRAMMAR_NONTEST" "$group"
   else
@@ -592,6 +617,18 @@ at_row_defect() {
   esac
 
   if ! printf '%s\n' "$ref" | grep -qE "^${BT}[^${BT}]*${BT}\$"; then
+    # A `to-write` row gets a DIFFERENT instruction, because the old one asked
+    # for something the author cannot honestly supply (hv, 2026-08-20). Telling
+    # someone with no test yet that "the reference must be a repo-relative path"
+    # leaves two exits and both are bad: invent a plausible path, which plants a
+    # citation nothing will ever check against, or leave the row red forever.
+    # **A to-write row may cite a path or NOTHING; what it must not do is invent
+    # one.** Citing a real path stays correct and common -- a row extending an
+    # existing deck knows exactly where it lands.
+    if [ "$st" = "to-write" ]; then
+      echo "a 'to-write' row may cite a test FILE or nothing at all, and this cites neither -- currently: $ref. DELETE the reference (leaving '- $(line_id "$line") -- covers ...') if the file is not chosen yet, or cite the path if it is. Do not invent a path to satisfy the grammar: an unwritten test's citation is a commitment about where it will live, and a guessed one is a claim nothing can check. Put the description in the trailing note (' -- ...') if it is worth keeping"
+      return 0
+    fi
     echo "the reference must be ONE backticked repo-relative path and nothing else -- a test NAME does not belong here (name the id inside the test instead) -- currently: $ref"
     return 0
   fi
