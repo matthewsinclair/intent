@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 07:50Z
+heartbeat_at: 2026-08-20 08:09Z
 status: active
-focus: "**THE GATE SEES 268 VIEWS INSTEAD OF 1.** `thread_view_skew_check.sh` at `1e2bc65e`, rostered `manual` awaiting dc -- 130-150ms against the sibling's 2860-2940ms, ten arms driven. Only honest downstream of vc's WP-10. **AC-03.6 THEN FIRED ON ME UNPLANTED**: `1e2bc65e` committed an attachment without syncing canon, `ADDS 1 of 1` at rc=1, permanently divergent; `9e191824` demonstrates the compliant order at `ADDS 0 of 88`. dc says an unplanted control beats a planted one and their admission condition is substantially met. doctor rc=0, workspace green, roster 18/18."
+focus: "**ST0057 IS 38/49 AND WP-01 IS 6 OF 7.** AC-01.2 and AC-01.4 built, driven and green (`7d20b666`, `9e96ac75`); the seventh is AC-01.5, which no edit to the guard, the roster or the template can meet -- with dc. Earlier: the gate went from 1 view to 268 (`1e2bc65e`). **I found the day's own class in my own instrument** -- an expectation that tracked its input and could not fail. doctor rc=0, view skew 268/268, workspace green, nothing of mine uncommitted."
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -22,6 +22,10 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 **Fold 4's narrative is at `.history/20260819/wip.md`. Today reshaped it by 06:47Z.**
 
 **0. THE GATE ARM LANDED -- `1e2bc65e`, rostered `manual` awaiting dc.** `intent/st/ST0056/parity/tools/thread_view_skew_check.sh`. **Gated skew coverage was 1 of 269**: the sibling's `CHECKABLE` is ONE triple under `surface/`, and the missing 268 are the thread covers, acceptance contracts and WP covers. **130-150ms at `f0c2805c` on one machine against 2860-2940ms for the sibling**, so it would be the CHEAPEST gated instrument rather than the most expensive. **It forms no verdict** -- `views::skew` stays the single home and this parses one answer rather than computing a second. **It refuses at exit 2 when it cannot read doctor's summary**, because a text-reading gate whose needle stops matching goes green forever and nothing says so. Ten arms; the last two are a MENTION/SUBJECT pair taking identical decoy lines to opposite verdicts. **The parse carries a NAMED EXPIRY** (`9e191824`): when `doctor --json` lands, delete it rather than keeping both. **Ungateable before vc's `b082b488` -- the blocker was never the wiring.**
+
+**0a. WP-01 IS 6 OF 7 -- AC-01.2 AND AC-01.4 GREEN** (`7d20b666` built, `9e96ac75` moved). `canon_clone_completeness.sh`: 97 of 97 clean, 96 of 97 with one artefact untracked-and-ignored, 97 of 97 restored -- same rig, one rule apart. **Its population is the MODEL, not the canon files: enumerating `.canon/*.json` asks whether TRACKED FILES CLONE, true by construction and green on an estate that had lost half its artefacts.** `canon_concurrent_diff.sh`: 2 edits -> 2 distinct paths, 1 edit -> rc=1. **`at green` is reachable only from `red`, so red-first is structural here rather than remembered.** Both row NOTES are now stale and are vc's. **The seventh row is AC-01.5 and nothing I can edit will meet it.**
+
+**0c. AND THE DAY'S CLASS TURNED UP IN MY OWN INSTRUMENT.** `canon_concurrent_diff.sh` first compared the observed path count against the number of edits MADE, so `--one-edit` reduced both together -- one against one, self-consistent, green, **unable to fail**. **An arm whose expectation tracks its input is not a control.** Third variant of the shape today and the first that was mine; the expectation is pinned at two now.
 
 **0b. AND AC-03.6 FIRED ON ME, UNPLANTED, WHILE DOING IT.** `1e2bc65e` edited `runner_roster_check.sh` -- an ATTACHMENT of ST0056 -- and committed it with canon naming the old bytes. `canon_commit_check.sh`: `ADDS 1 of 1` rc=1 at `1e2bc65e`, clean at `aa4c3ac0`, `ADDS 0 of 88` at `9e191824`. **`1e2bc65e` is permanently divergent in history.** **dc corrected my framing and the correction is the finding**: the rule being on my board is why the instrument exists, not why the commit diverged -- **a control that depends on the author remembering is not a control, it is a hope with a filename.** `manual` costs a divergent commit roughly whenever anyone is busy. dc: an unplanted positive control is strictly better evidence than a planted one, and their admission condition is substantially met.
 
