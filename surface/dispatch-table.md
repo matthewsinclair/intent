@@ -1772,11 +1772,11 @@ Diagnose common Intent configuration issues
     - **disposition:** retire
     - **disposition basis:** vc measured bin/intent_doctor:66 -- v2 really implements --fix, so this is a genuine v2 behaviour v3 is deliberately not carrying. That is the distinction `retire` exists to draw, and AC-06.9 was missing it.
   - `--verbose`, `-v` (bool) -- Show detailed information
-    - **disposition:** pending
-    - **disposition basis:** vc measured `verbose()` at bin/intent_doctor:133 -- implemented in v2, undecided for v3. Part of the verbosity cluster below.
+    - **disposition:** keep
+    - **disposition basis:** hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report.
   - `--quiet`, `-q` (bool) -- Only show errors and warnings
-    - **disposition:** pending
-    - **disposition basis:** vc measured colour suppression under quiet at bin/intent_doctor:91 -- implemented in v2, undecided for v3. Part of the verbosity cluster below.
+    - **disposition:** keep
+    - **disposition basis:** hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
@@ -1811,9 +1811,9 @@ Upgrade an Intent project to the current version
 - **REPLACED, not ported.** D09's two-hop policy: v2's own upgrade ledger is never reimplemented in Rust. A project below the v2.19.0 floor runs v2's `intent upgrade` first, then the v3 migrator takes it from there. The two `intent_migrations_*` BATS files retire by design for the same reason.
 - `bin/intent_migrations` is mode 644 and is NOT a command -- it exists only to be sourced by the orchestrator, and `bin/intent_help`'s auto-list requires `-x`, so it is correctly absent from help. There is no `intent migrations` in the surface.
 
-| command   | args | flags                                      | help                                             | disposition |
-| --------- | ---- | ------------------------------------------ | ------------------------------------------------ | ----------- |
-| `upgrade` | --   | --backup-dir <dir>, --no-backup, --help/-h | Upgrade an Intent project to the current version | keep        |
+| command   | args | flags     | help                                             | disposition |
+| --------- | ---- | --------- | ------------------------------------------------ | ----------- |
+| `upgrade` | --   | --help/-h | Upgrade an Intent project to the current version | keep        |
 
 ### `upgrade`
 
@@ -1821,13 +1821,6 @@ Upgrade an Intent project to the current version
 
 - **v2:** bin/intent_upgrade
 - **Flags:**
-  - `--backup-dir` `<dir>` (string) -- Custom backup directory name
-    - **default:** .backup/backup-TIMESTAMP
-    - **disposition:** pending
-    - **disposition basis:** PENDING, ic 2026-08-16. This flag carried `retire` on the basis "Inherited from the entry: a retired command never reaches clap, so neither can its flags" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open.
-  - `--no-backup` (bool) -- Skip backup creation (dangerous)
-    - **disposition:** pending
-    - **disposition basis:** PENDING, ic 2026-08-16. This flag carried `retire` on the basis "Inherited from the entry: a retired command never reaches clap, so neither can its flags" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.

@@ -34,7 +34,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("at", m)) => at(m),
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
-    Some(("doctor", _)) => doctor(),
+    Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
     Some(("upgrade", _)) => upgrade(),
     Some(("ingest", m)) => ingest(m),
@@ -1708,7 +1708,15 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
-fn doctor() -> Result<(), Failure> {
+fn doctor(a: &ArgMatches) -> Result<(), Failure> {
+  // **QUIET WINS OVER VERBOSE, and that is v2's rule rather than a tie-break
+  // invented here** -- `bin/intent_doctor:134` reads
+  // `if [ "$VERBOSE" = true ] && [ "$QUIET" != true ]`, so the two together
+  // resolve to quiet in v2 and must resolve the same way in v3. A parity flag
+  // whose interaction with its sibling differs from v2's is a flag that has
+  // been re-designed under the name of being carried across.
+  let quiet = a.get_flag("quiet");
+  let verbose = a.get_flag("verbose") && !quiet;
   let (project, ctx) = context()?;
   // **Opened opportunistically, and a failure to open is not reported here.**
   // `doctor` exists to run on a project that cannot be opened, so the store is
@@ -1718,19 +1726,53 @@ fn doctor() -> Result<(), Failure> {
   // could not be read would be a confident wrong answer at the moment a user
   // is least able to check it.
   let opened = Facade::open(project.clone(), ctx.clone()).ok();
+
+  // **WHAT THIS RUN RESOLVED, WHICH IS v2's `--verbose` AND NOT A NEW IDEA.**
+  // v2 emits `INTENT_HOME=...` and `Found at ...` under the flag
+  // (`bin/intent_doctor:204,217`): the value is naming WHERE the answers came
+  // from, on the one command a user reaches for when the others have stopped
+  // working. The v3 equivalents are the paths this run read.
+  //
+  // **THE STORE LINE IS THE ONE THAT EARNS THE FLAG.** The comment above says
+  // the backup question is not asked when the store will not open -- correct,
+  // and until now NOTHING SAID WHICH RUN HAPPENED. Two reports differing by a
+  // whole check looked identical, so a reader could not tell a clean bill of
+  // health from a check that was skipped. That is this estate's own recurring
+  // sentence arriving inside `doctor` itself.
+  if verbose {
+    println!("doctor: root      {}", project.root().display());
+    println!("doctor: intent    {}", project.intent_dir().display());
+    println!("doctor: canon     {}", project.canon_dir().display());
+    println!(
+      "doctor: store     {}",
+      match opened {
+        Some(_) => "opened -- the backup check was asked".to_string(),
+        None =>
+          "NOT opened -- the backup check was NOT asked, and its silence is not a pass".to_string(),
+      }
+    );
+  }
+
   let report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()));
   for finding in &report.findings {
     println!("{finding}");
   }
-  for withheld in withheld_flags() {
-    println!("{withheld}");
+  // **`--quiet` DROPS WHAT IS NOT A FINDING, AND THESE ARE NOT FINDINGS** --
+  // the doc comment on `withheld_flags` says so in those words, and
+  // `Report::unattached` says it again. v2's `--quiet` is "only show errors and
+  // warnings", so the line between kept and dropped is already drawn by the
+  // estate: anything that does not move the exit code goes.
+  if !quiet {
+    for withheld in withheld_flags() {
+      println!("{withheld}");
+    }
   }
   // **Named, every one, and NOT as findings.** These files are outside the
   // carried extensions by design, so they are inventory rather than faults and
   // they do not move the exit code. They are printed because the alternative
   // is silence, and silence is what lets a file vanish when the disk stops
   // being the place things live.
-  if !report.unattached.is_empty() {
+  if !quiet && !report.unattached.is_empty() {
     // **The count LEADS and it is complete.** A summary carrying a whole
     // denominator is not a truncation; a `head -20` with an ellipsis is (vc).
     // The shape is what a reader needs first -- on this project 196 of these
@@ -1764,6 +1806,16 @@ fn doctor() -> Result<(), Failure> {
     }
   }
   println!(
+    // **THE SUMMARY SURVIVES `--quiet`, DELIBERATELY, AND IT IS THE ONE
+    // INFORMATIONAL LINE THAT DOES.** Dropping it would make a clean run under
+    // `--quiet` print NOTHING AT ALL at rc=0 -- and silence on success is
+    // indistinguishable from the command never having run, which is the exact
+    // defect this estate spent 2026-08-20 finding in its own commit gate. The
+    // counts are also the coverage denominator: "no problems found" over an
+    // estate the checker never read is the same sentence as "no problems
+    // found" over one it read completely, and `Report`'s own doc comment says
+    // the counts exist to tell those apart. `--quiet` is for less noise, not
+    // for a verdict you cannot check.
     "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s)",
     report.findings.len(),
     report.threads_checked,

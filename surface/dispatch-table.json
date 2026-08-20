@@ -3840,8 +3840,8 @@
               ],
               "type": "bool",
               "help": "Show detailed information",
-              "disposition": "pending",
-              "disposition_basis": "vc measured `verbose()` at bin/intent_doctor:133 -- implemented in v2, undecided for v3. Part of the verbosity cluster below."
+              "disposition": "keep",
+              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report."
             },
             {
               "spellings": [
@@ -3850,8 +3850,8 @@
               ],
               "type": "bool",
               "help": "Only show errors and warnings",
-              "disposition": "pending",
-              "disposition_basis": "vc measured colour suppression under quiet at bin/intent_doctor:91 -- implemented in v2, undecided for v3. Part of the verbosity cluster below."
+              "disposition": "keep",
+              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report."
             },
             {
               "spellings": [
@@ -3939,26 +3939,6 @@
           "help": "Upgrade an Intent project to the current version",
           "args": [],
           "flags": [
-            {
-              "spellings": [
-                "--backup-dir"
-              ],
-              "type": "string",
-              "help": "Custom backup directory name",
-              "value": "<dir>",
-              "default": ".backup/backup-TIMESTAMP",
-              "disposition": "pending",
-              "disposition_basis": "PENDING, ic 2026-08-16. This flag carried `retire` on the basis \"Inherited from the entry: a retired command never reaches clap, so neither can its flags\" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open."
-            },
-            {
-              "spellings": [
-                "--no-backup"
-              ],
-              "type": "bool",
-              "help": "Skip backup creation (dangerous)",
-              "disposition": "pending",
-              "disposition_basis": "PENDING, ic 2026-08-16. This flag carried `retire` on the basis \"Inherited from the entry: a retired command never reaches clap, so neither can its flags\" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open."
-            },
             {
               "spellings": [
                 "--help",
