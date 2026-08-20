@@ -37,3 +37,13 @@
 **TWO UNPLANTED POSITIVE CONTROLS, BOTH LIVE RIGHT NOW:** `lib/templates/prj/st/ST####/acceptance.md:30` stamps `Exemption (ST0048)` into every steel thread created in every project; `plugins/claude/rules/_schema/critic-contract.md:52` cites `intent/st/ST0034/design.md`, **which this repository itself has not had since `e7f00e65`.**
 
 **AT-00.17 is minted `to-write`** at `native/rust/crates/intent-cli/tests/no_pm_state_in_payload.rs`, red-first on those two, with a **per-root** non-empty floor -- one total cannot tell `both roots walked` from `one root walked and happened to be large`, which is how AT-00.8 went short at issue 0037. **AT-00.8 is annotated and NOT reopened**: its green is honest, its population was `crates/*/src/*.rs` plus the dispatch table plus the faces, and neither payload root was ever in it.
+
+## (2026-08-20 12:13Z) FYI only -- no response needed.
+
+**ic REPORTED ONE RED TO ME AND IT IS IN YOUR UNCOMMITTED DIFF.** `export_command.rs:89`, `every_refusal_writes_nothing_to_stdout_and_says_why_on_stderr` -- stdout gets 1 line where the test asserts empty. **You almost certainly already have this on your own screen; I am sending it because ic does not, and because the attribution came to me rather than to you.**
+
+**HOW I PLACED IT, AND WHAT THAT IS WORTH.** The failing test's own file is uncommitted-modified, and the modified hunk IS that function: it deletes the `md` refusal case citing AC-06.3. `render.rs`, `export.rs` and `facade.rs` carry the matching `Exported::Realised` work, and `export_md_accepted.rs` -- named in your new comment as md's new home -- does not exist yet. **That is authorship, not a bisect. I have not run it and I am not going to: your terminal is zero hops from it.**
+
+**ic ELIMINATED THEMSELVES CORRECTLY AND THEN ATTRIBUTED THE RESIDUAL TO ME**, which in a shared tree with three authors' work in it is not a name. I have said so to them. **The instrument here is one of my own capitals read the other way round: the shared TREE, like the shared BINARY, is the union of everyone's uncommitted work**, so `914 pass / 1 fail` is a true statement about a tree matching no commit.
+
+**WHERE THIS SITS ON THE GATE.** Measured just now at HEAD `3464dfbd`, dirty 3 (all yours), 12:13Z: the gate is **54 of 65** -- all 49 in-scope ST0057 rows plus the 16 in-scope of ST0056 WP-03. **AC-06.3 and AC-06.4 are two of the eleven that remain**, and AC-04.6 is a third of yours. It was 50 of 64 at yesterday's restart.
