@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 15:41Z
+heartbeat_at: 2026-08-20 15:58Z
 status: active
-focus: "**AC-04.7 LANDED -- `3661f288` (code, 13 files) + `67a84577` (contract). `intent init` then `intent organize`, the first two commands anybody types, was rc=1 for every new v3 project and is now rc=0 with 0 removed and 0 pruned, driven end to end.** Red-first in a detached worktree at `c73404c7`: all four arms failed against the unfixed code. **THE GATE IS 58 OF 66 LIVE ROWS, not the 50 of 64 this board carried** -- both terms had moved. **AC-04.6 is my last ST0057 row and it is with vc: its red-first fixture was consumed by `organize --apply` at `e7f00e65`, and the note says that was the only moment it could be captured.**"
+focus: "**FIVE LANDED. AC-04.7 (`3661f288`/`67a84577`), AC-04.6 (`8db6b67c`), `int hooks` reports the four shipped guards it was silent about (`c4aba380`), and fmt+clippy now run over the prepush CLONE (`1005fc2a`) -- the one workspace in the estate with a single writer, which is why the workspace-wide obstacle does not apply there.** **ST0057/WP-04 IS 7/7 AND WP-06 IS CLOSED, so neither of my ST0057 WPs has an outstanding row. GATE 59 OF 66; NONE OF THE SEVEN OUTSTANDING ARE MINE.** **NEXT: admit `thread_view_skew_check.sh` (1 gated triple -> 268 views) CONDITIONAL on it gaining `surface_check.sh`'s staleness refusal -- it reads a release binary at line 84 with no mtime guard, so its green is about whatever was built last, not HEAD.**
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 ---
 
@@ -32,18 +32,24 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 
 ## TODO
 
-### 1. Recorded, NOT built -- and the top one has now been measured twice
+### 1. Recorded, NOT built -- two of the four landed today
 
-- **`int check format` AND CLIPPY BOTH EXIST AND NOTHING LOCAL DISPATCHES EITHER.** `config.yaml:133` is `cargo fmt --all --check`, non-mutating, with no trigger; clippy has none either. **Between them they cost two CI reds on 2026-08-20** -- 19 fmt divergences accumulated over four days because nobody pushed, and a needless borrow reached HEAD because no local gate runs clippy. **Recorded-not-built is now a measurement rather than an argument**, which is the standard I said I would hold it to before building it. The obstacle is real: both are workspace-wide, so with four writers live they would refuse on somebody else's file.
-- **`int hooks` UNDER-REPORTS THE SHIPPED GUARDS BY FOUR.** It prints the repo-local roster (11) and is silent on the four shipped guards dispatched through `pre-commit.intent`. **The tool people consult to find out what the gate enforces is the thing that is wrong.** One more `--list-guards`-shaped call, not a new mechanism. (The GATE line I added covers presence, not roster.)
-- **`intent claude upgrade --apply` IS ALL-OR-NOTHING.** On this tree three of four actions are unwanted, including **regenerating AGENTS.md from 3.0.0 DOWN to 2.19.0** on a self-hosted v3 tree. The new `GATE STALE` message points operators straight at that button, so it is a fleet question.
-- **`bin/int SAYS` IS UNBUILDABLE WHERE hv PUT IT, AND IT IS BACK WITH HIM.** `bin/int` is stock vendored devbin; its own header records a consumer who edited it having _forked the dispatcher_, and `self_provenance_check.sh` gates that tree. `project.referent` is taken by `cmd/measured`; `SessionStart` runs shipped canon. **And structurally: if `core.hooksPath` is unset no hook runs, so no hook can report it.** Two options put to hv: a pre-dispatch hook in devbin upstream, or `int hooks` as a documented clone step.
+- **`int check format` AND CLIPPY: DONE (`1005fc2a`).** They now run over the **prepush clone**, and the obstacle I had recorded was real but scoped to the wrong tree: workspace-wide refuses on a peer's half-finished file **in the SHARED checkout**, and the clone is a `git clone --local` of the pushed revision with one writer and no uncommitted work. **The gate that catches a fault which can only escape on a push is a PUSH gate.** Driven both ways -- planted divergence REFUSED, same tree clean PASSES. Cost, with its conditions: fmt 0.42s and no compile, clippy 15.4s on a build just finished, whole run 34.7s.
+- **`int hooks` UNDER-REPORTED BY FOUR: DONE (`c4aba380`).** `--list-guards` on the shipped runner, `intent info` to resolve the install, three states driven (present / not-applicable / MISSING, with MISSING winning) and three absences kept apart. **`guards: 4 ran` on the very next commit was the positive control that adding the arm did not break the dispatch.**
+- **`intent claude upgrade --apply` IS STILL ALL-OR-NOTHING.** On this tree three of four actions are unwanted, including **regenerating AGENTS.md from 3.0.0 DOWN to 2.19.0** on a self-hosted v3 tree. `c4aba380` makes `int hooks` point at that button more precisely, so it is now a fleet question with a sharper edge.
+- **`bin/int SAYS` IS BACK WITH hv** and unbuildable where he put it without forking vendored devbin.
 
-### 1a. AC-04.6 -- MY LAST ST0057 ROW, AND ITS FIXTURE IS GONE
+### 1b. THE SKEW ADMISSION -- RULED TODAY, ONE CONDITION OUTSTANDING
 
-**AC-04.7 is DONE** (`3661f288`, `67a84577`); AC-04.6 is what remains of WP-04. **Routed to vc 14:58Z and not started, because its AT note prescribes a red-first procedure whose fixture no longer exists.** The note: _run it against the tree AS IT STANDS TODAY -- 57 ST directories against a manifest that does not yet exist -- and it must go red on the largest possible margin. That red is free, it is available now, and **it is the only moment** the full-realisation baseline can be captured honestly._
+**cc asked whose the `doctor` view-skew wiring is. IT IS MINE**, and it was an owed decision of mine wearing their label: the tool exists, and its own MODULES row ends _awaiting dc's admission_. **cc's denominator came back zero because they checked the SHIPPED roster (`lib/templates/hooks/`, 4 guards, live from `INTENT_HOME`) and this belongs to the REPO-LOCAL one (`cmd/precommit`, 11).** Two rosters, two populations.
 
-**DRIVEN at `c73404c7`: `ls -d intent/st/ST*` returns 3, and `intent/.intentfiles` EXISTS** (2010 bytes, 08-19). `organize --apply` at `e7f00e65` consumed the baseline the row was written to capture, so a tool built to that note goes **green on first run** -- the exact failure the note guards against. Asked vc for a synthetic red (plant one undeclared file -> red, remove -> green) plus the live population reported at 3. **I have not touched the file and it does not exist.**
+**DRIVEN rather than ruled from the header: `268 generated view(s) match the model`, rc=0, 0.33s.** And the drive found what reading would not: **`BIN=` at line 84 with NO staleness guard** -- no `mtime`, no `newer`. The binary it read was built at 15:01 against a HEAD several commits back. **A gated green about whatever was built last is the class this estate has pulled out of four files today.** Admit it, conditional on the staleness refusal `surface_check.sh` already carries. Mine, next.
+
+### 1a. ST0057 IS OUT OF MY HANDS
+
+**WP-04 is 7/7 and WP-06 is CLOSED.** AC-04.6 was built to vc's REWRITTEN clause, and the rewrite was load-bearing: the live estate comes back **EQUAL at 3 on disk and 3 declared on the first run**, so a tool built to the original clause would have reported a green that meant nothing. Synthetic red, live population printed, five self-test arms -- including _remove the planted file and go green again_, which arms 1 and 2 alone cannot tell from a tool that always reds. **WP-04 close verification is with vc.**
+
+**AT-11.6 I HAVE NOT MOVED, AND WILL NOT UNTIL vc RULES.** They re-cited it from an unbuilt shell tool onto `prepush`, correctly refusing a second guard for a property one already enforces. But **AC-11.6 rules for the REFUSAL mitigation in those words** -- _refusing a dirty cross-owner rebuild prevents it AND TELLS SOMEONE WHY_ -- and `prepush` implements the PREVENTION one: clone HEAD, build clean, refuse nobody, name no paths. **I cannot drive the red-first arm against it, so I cannot green it honestly.** The `stale_at_check` arm cc relayed is telling the truth.
 
 ### 2. Mine and small
 
@@ -67,7 +73,8 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 
 ## Watch-outs
 
-**Today's instances are verbatim in `.history/20260820/wip.md`; 08-19's in `.history/20260819/watch-outs-full.md`. These are the CLASSES.**
+- **A CROSS-CHECK RECONCILES WHEN BOTH SIDES SHARE AN ERROR (ic, on my number, and it is the sharpest thing said to me today).** I reported HEAD at 139/978; **HEAD alone is 139/971** and the extra 7 were ic's uncommitted files in the shared tree. My check was _974 + 4 = 978, 138 + 1 = 139_ -- **both true, and it felt like verification precisely because the same contaminated term sat on both sides.** The number was right and the SUBJECT was wrong. **And it self-heals**: it became true the moment ic committed, so nothing afterwards could show it had been false. Corrected FORWARD in `8db6b67c` rather than force-pushed -- a pointer from the wrong figure to the record contradicting it is what breaks the healing; a rewritten message erases the evidence the class exists. **Measure in a detached worktree with an isolated `CARGO_TARGET_DIR` before a count goes into a message.**
+- **A COUNT MIXES _NOT BUILT_, _BUILT AND UNVERIFIED_, AND _VERIFIED AND UNMOVED_, AND ONLY THE FIRST IS WORK** (ic). Of the seven rows I reported outstanding, `AC-05.3` is a row nobody moved: its only cover is `n-a` with `file: null`, so no test can ever move it.
 
 - **`assert_eq!(after, before)` PRINTS `after` AS `left`, AND I READ A FAILURE BACKWARDS BECAUSE OF IT** -- calling four ADDED files a silent removal, and saying out loud that the report was lying when it was telling the truth. **The polarity now lives in the assertion's SHAPE (a subset check over a named `removed` list) rather than in whoever reads the output**, which is the only version that cannot be misread. A suite that contains `organize_preview_polarity.rs` is one that already knew.
 - **DELETE THE BINDING, DO NOT SHIM IT.** Changing `plan` to take `&Realised` surfaced a SECOND declared-set lookup I had not found by reading. It was loud only because the old binding was gone; a compatibility shim would have kept the old semantics at the one site nothing reports. **The compiler is a population oracle and a shim blinds it.**
