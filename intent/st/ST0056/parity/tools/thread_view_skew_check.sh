@@ -39,6 +39,20 @@
 # it -- the same distinction that had a broadcast match `_(empty)_` inside its
 # own quoted prose and silently drop a node from two sends.
 #
+# THIS PARSE HAS A SHELF LIFE AND THE EXPIRY IS NAMED SO IT DOES NOT OUTLIVE ITS
+# REASON. `render.rs:1668` records that `doctor` has no machine face yet -- *it
+# stays inline until `doctor` has a machine face to carry it, which needs a
+# surface row and is not mine to add*. `Finding` already derives `Serialize` and
+# `FindingClass` is already kebab-case on the wire, so `doctor --json` is a
+# `Serialize` on `Report` plus a surface row. **WHEN THAT LANDS, DELETE THE
+# PARSING IN THIS SCRIPT AND CONSUME THE STRUCTURED OUTPUT -- do not keep both.**
+# A text reader left beside a structured one is a second opinion about what
+# `doctor` said, which is the same shape as the roster that agreed with neither
+# dispatcher beneath it and the verifier that carried its own copy of the
+# classifier's rules. The refusal above is a WORKAROUND for a missing surface,
+# not a preference, and a workaround nobody dated is how the estate acquires
+# permanent ones.
+#
 # `--changed <paths...>` BLOCKS ONLY ON WHAT THIS COMMIT TOUCHES and reports the
 # rest, which is the clock guard's ratified inherited-breakage rule: a guard that
 # must be bypassed to work is a guard nobody keeps, and a repository that
