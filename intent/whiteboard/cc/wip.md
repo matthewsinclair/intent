@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 13:33Z
+heartbeat_at: 2026-08-20 14:11Z
 status: active
-focus: "**AT-06.8's INSTRUMENT IS BUILT AND THE CRITERION IS NOT MET** (`850b6014`) -- scanner self-check and a synthetic discrimination arm gate; the POPULATION arm is `#[ignore]`d with a named expiry, because dc is landing `init`/`bootstrap` and the violation set moved 18 -> 8 -> 9 in one afternoon. **The instrument was wrong twice and that is the value**: ic caught my scanner missing the MAJORITY idiom (ten of eighteen were false positives, including the headline), and my own control was drawn from the same enumeration as the instrument so it could not have failed. **D55 closed at zero, AC-01.5 driven and red, D54 partitions B exactly.** Next: un-park AT-06.8 on dc's word, then Route A with dc."
+focus: "**AT-06.8 UN-PARKED (`7c584381`) AND `doctor` NOW REPORTS A STATUS THAT DISAGREES WITH ITS GATE (`483e65e4`)** -- hv ratified that arm 2026-08-15 and only the `wp done` half ever shipped. **BOTH INSTRUMENTS HALVED THEIR OWN POPULATIONS AND NEITHER REDUCTION WAS THE ESTATE IMPROVING**: flags 18 -> 8 -> 9 -> 5, doctor 96 -> 8 -> 6, every delta an aperture correction found by DRIVING rather than reading. **False negatives are NAMED in the file** rather than left implied by a clean count. Also: found HEAD broken by the `--only` class (ic fixed at `a6e336a7`), and ST0057/WP-03 read Not Started at 5 of 6. **Next: WP-03's last deliverable -- opaque attachments as FILES under `intent/.canon/st/<ID>/`, which is what makes opaque dehydration legal under D57-3. Zero such directories exist."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -37,6 +37,17 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **Folded 21:41Z. Superseded ones are in `.history/20260819/`; these still bite.**
 
+**AN INSTRUMENT KEYED ON A CODING IDIOM DEPENDS ON NOBODY IMPROVING THE CODE, AND THAT IS THE NAME dc WAS LOOKING FOR.** Their `init` loop was written to avoid duplicating a string -- ordinarily the right instinct -- and it passed the id through a VARIABLE, making it invisible to a scanner keyed on literals at call sites. **Good hygiene in one file defeating an instrument in another.** My board already carries ST0039's _a substring standing in for a syntactic fact_; this is one level further down: **the syntactic fact was itself an accident of style, so the instrument's subject was never the property it claimed to measure.** The remedy is not a better regex -- it is knowing which of the two you have, and saying so in the file.
+
+**MY AT-06.8 POPULATION WENT 18 -> 8 -> 9 -> 5 AND NOT ONE REDUCTION WAS THE ESTATE IMPROVING.** Four measurements of the same estate in one afternoon, every delta an instrument correction: ic's `flag(` helper, `init` wiring, then dc's tuple-driven read. **A count nobody can audit is what those four numbers were** -- which is the argument for what came next, NAMING the false negatives in the file (`ac descope --by`, `critic --rules`, neither verified) rather than letting a clean number imply a clean estate. Same shape at `doctor`'s status arm the same hour: 96 -> 8 -> 6, three false-positive classes, one rule.
+
+**A FIX THAT CHANGES A TYPE LEAVES EVERY USE OF THAT VALUE UNVERIFIED, AND THE ONES THAT STILL COMPILE ARE EXACTLY THE ONES NOTHING REPORTS** (dc, 2026-08-20). `author` became `&str` when the `$USER` read came out for AC-11.3, and the `&author` that was right for `String` survived. **The compiler accepts both, so only clippy sees it.** Second silent survivor of that ONE edit, after `.ok()` swallowing clap's `UnknownArgument` -- both found by other people's instruments.
+
+**`.ok()` ON A LOOKUP THAT CAN FAIL TWO WAYS COLLAPSES _ABSENT_ AND _WRONG_, AND ONLY ONE IS A USER'S CHOICE** (dc's diagnosis, better than my typo finding). Their `--with-st0000` guard read a misspelled id, `.ok()` turned clap's `UnknownArgument` -- which is only ever a BUG -- into `None`, indistinguishable from a flag nobody passed. **A one-character fix would have left the mechanism live for the next id.**
+
+**THE WORKTREE AT A NAMED REVISION IS THE ONLY ONE OF THE THREE REMEDIES THAT CATCHES THE `--only` CLASS MECHANICALLY** (ic, and I agree). _Build the whole workspace_ cannot: in the shared tree everything compiles, because the missing half is sitting there uncommitted. `git diff --cached` needs a human to recognise a stranger's hunk. **I found the broken HEAD that way and ic verified the fix that way, two data points in one afternoon** -- and it is now also how I mutate a shared source, since `cp`-restore is a second writer with a window. **`--only` IS PATH-SCOPED, NOT HUNK-SCOPED** (dc's wording, better than my _separates files, not authors_: theirs names the mechanism, mine only the effect).
+
+**`rustfmt --edition 2021` WAS WRONG ALL SESSION AND WAS RIGHT BY LUCK.** The workspace is **edition 2024**. The wrong edition ERRORS loudly on a file using let-chains and passes silently on one without -- so every check I ran before `doctor.rs` was correct for a reason that had nothing to do with my choosing it. Re-swept every file committed today: all clean. **Read the edition from the workspace, never from habit.**
 **THE PROVENANCE-OF-EVIDENCE RULE, THREE LIMBS, vc's (2026-08-20) FROM MY TWO INSTANCES: NEITHER THE INSTANCE, NOR THE CONTROL, NOR THE PREDICATE MAY BE DRAWN FROM THE THING UNDER TEST.**
 
     INSTANCE   a red-first borrowing a LIVE defect makes the defect a fixture
