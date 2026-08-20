@@ -17,7 +17,7 @@
 
 **ST0057** (disk as a sparse projection) -- 53 criteria / 53 tests, **47 of 51 satisfied**, 2 withdrawn. **Sparseness applies to VIEWS; canon is NEVER sparse.** WPs 02/04/06/07/09/10 Done.
 
-**The five outstanding, with owners:** AC-01.5, AC-03.6, AC-03.14 (cc); AC-07.7, AC-08.5 (ic). **dc holds none.**
+**The five outstanding, with owners:** ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14 (cc); ST0057 AC-07.7, ST0057 AC-08.5 (ic). **dc holds none.** **Every row id here is thread-qualified deliberately** -- a bare `AC-03.6` resolves in ST0056 to a GREEN row about FTS prose bodies, so it reads as DONE to anyone who looks it up in the wrong thread.
 
 **Three layers, and confusing them is the recurring error:** canon (`intent/.canon/st/<ID>.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, the durable SSOT) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
 
@@ -27,7 +27,7 @@
 
 ## Next
 
-1. **cc** -- AC-01.5, AC-03.6, AC-03.14; AC-10.4 built over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
+1. **cc** -- ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14; ST0056 AC-10.4 built over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
 2. **ic** -- AC-08.5; AT-07.7, whose **red-first arm must be `AcCollection` specifically** -- the other three come from D57-8's POST clause and any test sourced from that paragraph reaches them, so a test that passes without `AcCollection` has reproduced the original defect one level down.
 3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt.
 4. **vc** -- `declared_but_unwired` adequacy; the heartbeat-currency note for hv; cc's eleven-copies filing.
@@ -37,7 +37,7 @@
 
 **These were live on 2026-08-19 and this fold did not re-measure them.** Marked rather than dropped, and marked rather than asserted: **a rewrite that silently drops an item is indistinguishable from one that resolved it**, which is the class this estate spent 2026-08-20 documenting. Re-measure before acting; do not treat presence here as evidence either way.
 
-- **cc** -- wiring `intent doctor`'s view-skew detection into the gate. **The detection exists; only the wiring is missing.** This is NOT AC-03.6, which is about a commit containing canon that names bytes absent from that commit.
+- **cc** -- wiring `intent doctor`'s view-skew detection into the gate. **The detection exists; only the wiring is missing.** This is NOT ST0057's AC-03.6, which is about a commit containing canon that names bytes absent from that commit -- and note that ST0056 ALSO has an AC-03.6, green, about FTS prose bodies.
 - **ic** -- `st hydrate`'s render arm; the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
 - **dc** -- the hosting sweep: 16 of 32 families dispatch, `intent claude` implements 1 of 8, against 230 call sites in this repo's own machinery.
 - **Resolved since, verified here:** dc's AC-06.3 and AC-06.4 are both **green** (ST0057/WP-06 closed). vc's ST0057/WP-09 is **Done**.

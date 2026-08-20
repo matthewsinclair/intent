@@ -54,7 +54,7 @@ All of ST0057's live rows (47/51) plus all of ST0056 WP-03's (15/16). **Outstand
 
 ## Next
 
-1. **cc** -- AC-01.5, AC-03.6, AC-03.14; AC-10.4 built over `migrate::plan`'s write set with a non-empty control; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 still held on the unexplained trim asymmetry.
+1. **cc** -- ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14; ST0056 AC-10.4 built over `migrate::plan`'s write set with a non-empty control; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 still held on the unexplained trim asymmetry.
 2. **ic** -- AC-08.5; AT-07.7, whose red-first arm **must be `AcCollection` specifically**, because the other three come from the POST clause and any test sourced from that paragraph reaches them.
 3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt.
 4. **vc** -- `declared_but_unwired` adequacy; the heartbeat-currency note for hv; the eleven-copies filing (one v2-estate builder now in `common/mod.rs`, nine pre-existing named and left).
