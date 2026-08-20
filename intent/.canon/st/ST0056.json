@@ -1976,7 +1976,7 @@
       "covers": [
         "AC-10.4"
       ],
-      "status": "to-write"
+      "status": "green"
     },
     {
       "id": "AT-10.5",
@@ -2500,6 +2500,16 @@
       ],
       "status": "green",
       "note": "**RED-FIRST AND THE FIXTURE IS THE WHOLE DIFFICULTY: the estate under test must hold a thread that has CANON AND NO DIRECTORY at the moment the migrator runs.** That is the population the defect is invisible to, so a fixture where every thread is realised passes against the broken migrator and proves nothing.\n\n**REACH THE DEHYDRATED STATE THROUGH `organize`, NOT BY DELETING A DIRECTORY** -- `write_path_canon_always.rs` already establishes this shape and its reasoning transfers verbatim: a fixture that side-steps the gate measures the side-step. The pre-existing `common::gate_open` + terminal-status recipe is the honest route.\n\n**THE ASSERTION IS AN EQUALITY OF TWO POPULATIONS, NOT A ROW COUNT:** the ids named in the regenerated `steel_threads.md` equal the ids `Project::thread_ids()` returns. **A count-based assertion passes on a migrator that names 57 of the wrong threads**, and the two sets are independently derived, which is what makes the equality worth asserting -- the same shape AC-04.6 takes over the whole estate.\n\n**MUTATION REQUIRED: the test must FAIL against `legacy::scan` as it stands at `183f7342`**, or it is asserting a property of the fixture rather than of the migrator.\n\n**THE ASSERTION IS TWO-SIDED BECAUSE THE DAMAGE IS: the regenerated index AND the rebuilt store must both name every canon thread.** A test asserting only the views passes on a fix that repairs the rendering and still rebuilds the SSOT from three threads -- **and that half is the one no `git status` would ever show.**"
+    },
+    {
+      "id": "AT-10.15",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/ingest_command.rs",
+      "covers": [
+        "AC-10.2"
+      ],
+      "status": "green",
+      "note": "**AC-10.2's SECOND COVERING ROW, AND IT IS A ROW RATHER THAN A SECOND PATH ON AT-10.2 BECAUSE THE SCHEMA GIVES ONE `file` PER ROW (vc 2026-08-20).** cc asked whether to add a second citation or widen AT-10.2, and the ruling was second citation: **two rows keep two assertions separately falsifiable, where one wider row makes a green mean less.** Structurally that IS a second row -- the estate already does one-AC-two-ATs at AC-00.7, AC-00.9, AC-00.11 and AC-03.7.\n\n**THE TWO ROWS ASSERT DIFFERENT THINGS AND THEIR KILLS ARE DISTINCT, WHICH IS THE ONLY REASON THE SPLIT EARNS ITS KEEP.** AT-10.2 covers the residue report's CLASS as `Finding::Display` renders it, in `intentsvcs`, where the format lives. **This row covers the class SURVIVING out of the library, through the renderer, to the operator's terminal** -- a different crate and a different failure. cc drove the discriminator rather than assuming it: mutating `render.rs:1966` to format the residue line locally without the class **kills this row and leaves `migrate_refusal.rs` alive**, and `carried_line` already proves the CLI picks its own rendering when it wants one, so that mutation is a shape this estate has done once rather than a hypothetical.\n\n**THE FILE CARRIED NO CONTRACT ID FOR THREE DAYS AND THAT IS WHY THIS ROW EXISTS AT ALL.** `ingest_command.rs` covered two of AC-10.2's four limbs end to end through the shipped verb from 2026-08-17, while AT-10.2 read `to-write` over it. **Zero `AC-` or `AT-` ids anywhere in the file**, so nothing mechanical could ever have linked them: the gate's stale arm catches *file exists, row says to-write*, L2 catches *row says green, file absent*, and neither can see *the criterion is satisfied by a test nobody linked to it*. cc found it by grepping the criterion's SUBJECT before writing, which is the practice that came out of it -- **and its amendment, because a subject grep is still a name grep: drive the verb when the grep comes back empty.**"
     }
   ],
   "attachments": [

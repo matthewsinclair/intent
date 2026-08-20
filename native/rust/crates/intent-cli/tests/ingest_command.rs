@@ -13,7 +13,7 @@
 //! estate and writes nothing, it distinguishes residue that blocks from legacy
 //! that carries, and it never reports an absent field as a wrong one.
 //!
-//! # This file is **AT-10.2**'s second citation, and it carried no contract id
+//! # This file is **AT-10.15**, AC-10.2's second covering row, and it carried no contract id
 //! for three days
 //!
 //! Two of AC-10.2's four limbs -- BLOCKED, and a non-zero exit -- have been
