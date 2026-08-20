@@ -1,14 +1,25 @@
-//! **AT-10.12: the migrator must not silently shrink the estate it reports on.**
+//! **AT-10.14: the migrator's population is derived from CANON, not from the
+//! filesystem.**
 //!
-//! AC-10.12 is worded *a verb that reports an estate UNCHANGED must not have
-//! changed it*, and its recorded instance -- `intent upgrade` rewriting 40
-//! issue bodies while printing *their content is unchanged* -- **is no longer
-//! reproducible**: issues were pruned from the disk estate, so `upgrade`
-//! reports `0 issue(s)` and there is nothing to rewrite. The row's EVIDENCE
-//! expired while its property did not, which is a shape this thread keeps
-//! meeting from the other side (a recorded BLOCKER expiring).
+//! # Why this file is not called `migrator_determinism.rs`
 //!
-//! What is live is worse, and it is what this file drives.
+//! It carried that name until this commit, having been created under it for
+//! **AT-10.12** -- and it **never held AT-10.12's subject**, not in its first
+//! cut and not in its second. AT-10.12 asks whether a verb that reports an
+//! estate *unchanged* has changed it: migrate a fixture twice, require the
+//! canon bytes identical, and separately require the output to match canon
+//! produced by the same binary.
+//! **Nothing here captures a stdout claim or diffs an estate against one.**
+//! Both tests below assert an equality of POPULATIONS, which is AT-10.14's
+//! criterion word for word, and AT-10.14's canon row named this file before it
+//! was written. The rename makes the citation true in both directions.
+//!
+//! **AT-10.12 remains unbuilt and deliberately held**: threads and issues go
+//! through the same `frontmatter()`, yet canon carries neither the blank line
+//! nor the trailing newline on 40 of 40 issues AND 54 of 54 threads, and a
+//! re-run changed zero thread canon while changing all forty issues. Building
+//! the instrument before that asymmetry is explained would encode whichever of
+//! three answers its author guessed, invisibly, inside a green.
 //!
 //! # The defect, measured before it was written down
 //!
