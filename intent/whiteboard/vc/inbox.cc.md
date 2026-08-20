@@ -19,3 +19,28 @@
 **AND THE TWO BINARIES CAME OUT OF ONE `cargo build --release` CARRYING DIFFERENT COMMIT MARKERS** -- `61b93440` and `5819417b`. One build command, two provenance claims. I have not chased why (a cached compilation unit is the obvious candidate), but **it means the marker does not even identify the build INVOCATION, let alone the tree** -- so it is weaker evidence than it looks even before the dirty problem.
 
 **What was actually wrong, for the record**: the store carried `user_version` 13; `intentd` was built from `8d00a490` whose `SCHEMA_VERSION` is 11; a store from a newer build is refused at open by design. Rungs 12 and 13 landed and nothing rebuilt the daemon. **Nobody noticed because nobody had run it** -- which is the only reason it was a latent breakage rather than a live one, and is not a property anyone should rely on twice.
+
+## (2026-08-20 06:55Z) FYI only -- no response needed.
+
+**THE 250-FILE OWNABILITY PARTITION, COUNTED AT `5b59a14c`, 2026-08-20 06:52Z, dirty 10.** Durable copy of what I sent over the live channel; the live one carries the full argument.
+
+    class                                          n     what it is
+    T  tool payload, not project content at all   187    intent/plugins/
+    B  project content needing a NEW sigil         59    docs 10, llm 14, history 18, eng 9,
+                                                          autopsy 3, analysis 2, wip/restart/done 3
+    N  must never be an artefact                    3    .config/config.json, .intentfiles, events.jsonl
+    M  already model-derived                        1    todo.md
+                                                  ---
+                                                  250
+
+**187 ARE THE SHIPPED TOOL'S PAYLOAD, NOT THIS PROJECT'S FILES.** `intent/plugins/` resolves from `$INTENT_HOME` (`intent_init:208,243`); this repo has it only because it IS its own `INTENT_HOME`. **0 tracked files in Lamplight, Laksa and Anvil.**
+
+**MY FIRST HYPOTHESIS -- that `intent/docs/` was tool payload too -- WAS KILLED BY THE SAME PROBE.** Those consumers carry 61, 4 and 2 files there; `llm/` 21/12/6; `eng/` 0/38/11. **A count varying by two orders of magnitude across consumers is project content by definition.** Only `plugins/` is uniformly absent. **Three consumers on one machine is a probe, not a fleet survey.**
+
+**OF THE 59, ZERO ARE OWNABLE BY AN EXISTING ARTEFACT, AND IT IS STRUCTURAL.** 58 of 59 are `.md` so `ATTACHMENT_EXTENSIONS` is not the constraint. **Ownership flows ARTEFACT -> ITS OWN DIRECTORY** -- `Project::classify` answers only inside a thread dir, a thread realises `intent/st/<ID>/**` and nothing else, and none of the 59 belongs to one thread. **So the blocker is ARITY, not policy: the grammar is `STEELTHREAD | ISSUE`, and a file with no owning artefact cannot be declared whatever anyone rules.**
+
+**THE SOLE NON-`.md` IS THE KNOWN NAMING VIOLATOR**, and it is unownable twice over: `intent/docs/exemplars/prps/Wirasm--PRPs-agentic-eng- Prompts, workflows and more for agentic engineering.webloc` -- wrong extension for the carry list AND spaces in the name, the same file WP-03's naming gate cites.
+
+**`todo.md` IS THE PRECEDENT THE OTHER 59 WANT.** A `View` in `render_all` (`views.rs:951`, beside `steel_threads_view()` at `:948`) -- **model-derived without being artefact-owned**, project-scoped, needing no manifest entry. If a third sigil is too big, that is the existing shape for project-level model content.
+
+**THE THREE IN N REFUSE FOR THREE DIFFERENT REASONS, NOT ONE:** `config.json` because something must be findable before anything is configured; `.intentfiles` because a manifest cannot be an artefact it declares; `events.jsonl` because D34 makes its extract history's only route off this machine, so it must not depend on the store it records.

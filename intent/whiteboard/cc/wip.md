@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 0bf64b47-09ab-4c8e-8e10-be9f54d29df7
-heartbeat_at: 2026-08-19 21:41Z
-status: paused
-focus: "**FOLDED HARD (fold 4) FOR hv'S GLOBALFOLD. AC-00.4 SHIPPED BOTH HALVES AND THE DEHYDRATION WENT LIVE THE SAME EVENING** -- `e7f00e65` removed 423 files, `intent/st` holds three threads, and all three ROOT_FILES survived, which is precisely what the not-a-view call was for. Gate 50 of 64; precondition block 14, 0 unmet. **AC-03.6 is still owed as ordinary work and no longer gates anything.** Nothing of mine is uncommitted. **Tomorrow: 250 files under `intent/` are not in the store at all, and hv wants some of them in.**"
+session_id: 32dc8880-9739-45ef-a496-70118b1d259b
+heartbeat_at: 2026-08-20 07:35Z
+status: active
+focus: "**THE GATE HAS THREE DISPATCHERS AND THEY DISAGREE. Two of four rostered guards run, and NEITHER runs through the roster** -- clock via `pre-commit.intent`, header via `bin/.devbin/cmd/precommit`, `canon-ignore-guard.sh` and `append-only-guard.sh` NOWHERE ON GIT'S PATH. vc and I converged on identical tables from opposite errors: I read too narrow, vc read too new, neither read the chain. **AC-01.5 is unmeetable by any edit to the guard, the roster or the template** -- with dc to rule. #144 fixed and mutation-proven, UNCOMMITTED. Next: the 250-file ownability partition."
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -19,17 +19,52 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 ## NEXT -- mine
 
-**FOLDED 2026-08-19 21:41Z (fold 4). Today's settled narrative -- AC-00.4, WP-03, the parity-form question, the bidi gate -- is at `.history/20260819/wip.md`.**
+**Fold 4's narrative is at `.history/20260819/wip.md`. Today reshaped it by 06:47Z.**
 
-**1. THE ESTATE IS `intent/` ITSELF, AND IT IS NOT IN THE STORE.** hv, tonight: 250 files under `intent/` are in no artefact at all -- `docs/`, `llm/`, `history/`, `eng/`, `plugins/`, `done.md`, `wip.md`. _Not all of that should be in the db, but certainly some of it should._ **Start by asking which of the 250 an artefact could even OWN**, because the manifest names ARTEFACTS and never FILES, and a file with no owning artefact cannot be declared no matter what anybody decides about it.
+**0. OPEN FOR matts, AND IT IS A POLICY QUESTION RATHER THAN A TASK.** vc called it as steward in matts's absence: COMMIT, scoped, `--only`, because four nodes holding a day of work in one checkout is the bigger risk. ic had already committed; vc committed `5b59a14c`. **I am HOLDING, and the reason is specific rather than pious: the rule names matts, and the hazard vc's call is built on does not reach my two files** -- `cc/wip.md` is single-writer mine and `claude_md_template.bats` has no other node in it. **Three nodes ran three readings of one rule for an hour and none knew.** matts's word settles it; my work lands in seconds either way.
 
-**2. AC-03.6 -- OWED AS ORDINARY WORK, NO LONGER GATING.** `canon_commit_check.sh --staged` at `19268867`, byte-proven at five episode commits, dc approved. dc has taken the ruling and will drive the planted-divergence control themselves before admitting it to the roster. **Nothing is owed from me until they do.**
+**1. THE GATE HAS THREE DISPATCHERS AND THEY AGREE WITH EACH OTHER NOWHERE.** Measured at `483fbcfe`, 06:45Z, and vc converged on the identical table independently:
 
-**3. `intent doctor` SEES VIEW SKEW AND IS NOT WIRED TO THE GATE.** It named both stale acceptance views tonight when nothing else did. `view_skew_check.sh` never covered `intent/st/**` in any mode -- its `CHECKABLE` is ONE triple in `surface/`. **The instrument exists and the wiring does not, which is the cheaper half of a fix nobody has scheduled.**
+    guard                     pre-commit.intent   cmd/precommit   template roster   RUNS?
+    whiteboard-clock-guard            1                 0                1           YES
+    whiteboard-header-guard           0                 2                1           YES
+    canon-ignore-guard                0                 0                2           NO
+    append-only-guard                 0                 0                1           NO
+
+**Two of four run and neither runs through the roster** -- each reaches its guard by a hard-coded path in a different file. **The roster is a THIRD OPINION about what runs, agreeing with neither dispatcher**, and it is the only artefact naming all four. `GUARDS_APPLY` occurs in exactly one file in the tree and in nothing under `.git/hooks/`. **The roster and the dispatcher it describes are ONE file in the repo and TWO on disk, so every check comparing them passes.** With dc; three shapes offered, none picked by me.
+
+**2. AC-01.5 IS UNMEETABLE BY ANY EDIT TO THE GUARD, THE ROSTER, OR THE TEMPLATE.** `canon-ignore-guard.sh` is built, mutation-proven, rostered, and has zero call sites on git's path here. AT-01.5's `red` is correct; both recorded reasons are wrong -- not _not yet wired_, not _wired into a stale file_, but **wired into the roster in a repo whose commit path does not read the roster.** vc holds the canon reword. **A consumer on a fresh install is probably fine and I have NOT measured that** -- do not repeat it as though I had.
+
+**3. #144 FIXED, MUTATION-PROVEN, UNCOMMITTED.** `claude_md_template.bats` asserted four placeholders; `b277013a` removed `[[DATE]]` deliberately. Split into a positive test over the three and **a negative assertion carrying the refusal.** The mutation is the finding: **planting `[[DATE]]` back leaves the three-placeholder test GREEN and moves only the negative one.** A trim records a removal; only a negative assertion defends it.
+
+**4. THE 250-FILE OWNABILITY PARTITION -- DELIVERED 06:55Z, counted at `5b59a14c`, dirty 10. Durable copy in vc's inbox.**
+
+    T  tool payload, not project content    187    intent/plugins/
+    B  project content, needs a NEW sigil    59    docs 10, llm 14, history 18, eng 9, autopsy 3, analysis 2, wip/restart/done 3
+    N  must never be an artefact               3    .config/config.json, .intentfiles, events.jsonl
+    M  already model-derived                   1    todo.md
+                                             ---
+                                             250
+
+**hv's 250 IS REALLY 59.** `intent/plugins/` resolves from `$INTENT_HOME` and this repo has it only because it IS its own -- **0 tracked in Lamplight, Laksa and Anvil.** **My first hypothesis died in the same probe: I expected `intent/docs/` to be tool payload too, and those consumers carry 61, 4 and 2 there** (`llm/` 21/12/6, `eng/` 0/38/11). A count varying by two orders of magnitude across consumers is project content by definition; only `plugins/` is uniformly absent. Three consumers, one machine -- a probe, not a fleet survey.
+
+**OF THE 59, ZERO ARE OWNABLE BY AN EXISTING ARTEFACT, AND IT IS STRUCTURAL RATHER THAN A JUDGEMENT.** 58 of 59 are `.md`, so `ATTACHMENT_EXTENSIONS` is not the constraint. **Ownership flows ARTEFACT -> ITS OWN DIRECTORY**: `classify` answers only inside a thread dir, a thread realises `intent/st/<ID>/**` and nothing else, and none of the 59 belongs to ONE thread. **THE BLOCKER IS ARITY, NOT POLICY** -- two sigils, and a file with no owning artefact cannot be declared whatever anyone rules.
+
+**`todo.md` IS THE PRECEDENT THE OTHER 59 WANT**: a `View` in `render_all` (`views.rs:951`) -- model-derived WITHOUT being artefact-owned, project-scoped, no manifest entry. **The sole non-`.md` is the known naming violator**, the `.webloc` in `docs/exemplars`, unownable twice over.
+
+**5. AC-03.6 UNCHANGED.** `--staged` landed at `19268867`; nothing owed from me until dc drives the planted-divergence control. **AT-03.6's row text is stale** -- it still says `--staged` is what it needs. vc has it.
+
+**NOT MINE ANY MORE: WP-10 and WP-09 are vc's** (vc moved WP-09 ahead -- `append-only-guard.sh` is one of the two that never fires and `events.jsonl` is the one artefact no rebuild can reconstruct). ST0011's missing completion date is vc's.
 
 ## Watch-outs -- the live set
 
 **Folded 21:41Z. Superseded ones are in `.history/20260819/`; these still bite.**
+
+**I DIAGNOSED A MECHANISM I NEVER RAN, AND THEN REPORTED IT CLOSED.** I told dc and vc that `intentd` was refused at open on a schema mismatch -- store `user_version` 13 against a binary built at `SCHEMA_VERSION` 11. **`intentd/Cargo.toml` has NO `[dependencies]` at all, `strings` finds 0 `schema_version` in the artefact, and the binary prints _not yet implemented_ at rc=0.** I read a constant out of a crate I had never checked the daemon links, and got a number that was arithmetically fine and about nothing. **One run of the binary would have killed it.** The rebuild I then performed "verified" the fix by making the same non-observation twice, and calling it CLOSED is what made the invention durable. **The SKEW was real; the CAUSE was invented -- and a real finding is the best possible cover for a false mechanism attached to it.** dc's replacement is permanent where mine was stale: `intentd` depends on nothing, so it NEVER relinks and no rung will ever move it.
+
+**`grep -c` EXITS 1 ON A TRUE ZERO, SO A `|| echo 0` FALLBACK FIRES ON THE ANSWER BEING ZERO -- AND IT BIT TWO NODES IN ONE HOUR.** My first dispatch table printed every zero TWICE and I read past it; vc fired the identical trap in the same hour with it already on their own watch-out list. **0 and 0-twice read the same, which is why it survives -- it would have corrupted any non-zero count.** `a=$(grep -c X f); a=${a:-0}`.
+
+**I READ TOO NARROW AND vc READ TOO NEW, AND NEITHER OF US READ THE CHAIN.** I measured `pre-commit.intent` and said three guards never fire; vc traced `pre-commit.sh` under `bash -x` and said all four are invoked. **Both measurements were correct about the file measured and both conclusions were wrong**, in a check whose entire subject is dispatchers disagreeing. **`bash -x` tells you which file RAN, not what runs at commit time.** Follow the chain from `.git/hooks/<hook>` every time; the installed copy and the template are different files with the same name in different trees.
 
 **`git commit --only` SEPARATES FILES, NOT AUTHORS -- AND IT BIT BOTH WAYS IN ONE DAY.** `924d556b` carried ic's WP-02 under dc's message; `b277013a` carried dc's live MUTATION under mine, so HEAD shipped a deliberate defect for thirteen minutes looking like a fix. **Neither of us misused the tool; the tool assumes one writer.** The guard is not "build your work" -- it is **build the WHOLE WORKSPACE before you commit, because what you are checking is the tree you are about to publish, not the edit you made.** Checking my own crate is what let it through.
 
