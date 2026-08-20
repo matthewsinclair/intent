@@ -1363,8 +1363,14 @@ mod tests {
     assert!(Severity::parse("crticial").is_none());
   }
 
+  /// Truncation counts CHARACTERS, never bytes.
+  ///
+  /// The emphasis was in the function NAME and clippy's `non_snake_case` is
+  /// denied in CI, so it read green locally and red on both platforms. A test
+  /// name is not a place for shouting; a doc comment is, and it is the one a
+  /// reader sees in the failure output anyway.
   #[test]
-  fn content_is_truncated_by_CHARACTER_not_by_byte() {
+  fn content_is_truncated_by_character_not_by_byte() {
     // A byte slice would panic on a split codepoint rather than merely differ,
     // which turns a cosmetic bug into a gate outage.
     let line = "é".repeat(300);

@@ -844,7 +844,7 @@ fn every_shipped_mutator_is_accounted_for() {
     tally(&elsewhere),
     tally(&out_of_estate),
     tally(&unwired),
-    tally(&UNPROVEN.to_vec()),
+    tally(UNPROVEN),
   );
   let unbucketed: Vec<&str> = shipped
     .iter()

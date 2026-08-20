@@ -94,8 +94,8 @@ fn run(verb: &str, id: &str) -> (Option<i32>, String) {
     .current_dir(root)
     .output()
     .unwrap_or_else(|e| panic!("could not run `intent {verb}`: {e}"));
-  let said = String::from_utf8_lossy(&out.stderr).into_owned()
-    + &String::from_utf8_lossy(&out.stdout).into_owned();
+  let said =
+    String::from_utf8_lossy(&out.stderr).into_owned() + &String::from_utf8_lossy(&out.stdout);
   (out.status.code(), said)
 }
 

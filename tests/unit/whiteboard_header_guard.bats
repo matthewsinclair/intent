@@ -215,34 +215,9 @@ assert_staged() { # $1 path
 
 # --- the wiring -------------------------------------------------------------
 
-@test "every shipped whiteboard guard is invoked by the shipped hook" {
-  # THE LOAD-BEARING TEST, and the reason it exists is `devbin_rust_gates.bats`
-  # one directory over: the same three checks lived in two homes, one home
-  # followed a tree move and the other did not, and CI was green throughout.
-  #
-  # Here the two homes are the guard FILES and the hook's WB_GUARDS roster that
-  # calls them. A guard that ships and is never invoked is worse than an absent
-  # one: it is in MODULES.md, it has tests, and it enforces nothing. Neither the
-  # guard's own tests nor the hook's would notice.
-  local g name missing=""
-  for g in "${INTENT_PROJECT_ROOT}"/lib/templates/hooks/whiteboard-*-guard.sh; do
-    [ -f "$g" ] || continue
-    name="$(basename "$g")"
-    grep -qF "'${name}|" "$HOOK" || missing="${missing} ${name}"
-  done
-  if [ -n "$missing" ]; then
-    echo "shipped but never invoked by lib/templates/hooks/pre-commit.sh:${missing}"
-    return 1
-  fi
-  # A roster that matched nothing would pass the loop above vacuously.
-  grep -qF 'whiteboard-header-guard.sh|' "$HOOK"
-  grep -qF 'whiteboard-clock-guard.sh|' "$HOOK"
-}
-
-@test "the hook runs every whiteboard guard before deciding" {
-  # Stopping at the first refusal costs a node one commit attempt per defect,
-  # and a board with a bad stamp AND an escaped value is one editing session.
-  # The aggregate is what makes the roster above safe to grow.
-  grep -qF 'WB_BLOCKED=1' "$HOOK"
-  grep -qF '[ "$WB_BLOCKED" -eq 0 ] || exit 1' "$HOOK"
-}
+# THE TWO GUARD-DISPATCH TESTS THAT USED TO END THIS FILE HAVE MOVED to
+# `tests/unit/guard_dispatch.bats`, 2026-08-20. They asserted something about
+# EVERY guard from inside a file named for ONE, and their population was the
+# glob `whiteboard-*-guard.sh` -- which matched 2 while the roster carried 4,
+# blind to precisely the two guards that had never run in this repository.
+# Widened, repointed at `pre-commit-guards.sh`, and named for the property.

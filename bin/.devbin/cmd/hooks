@@ -236,6 +236,43 @@ if [ "$DO_INSTALL" -eq 0 ]; then
   report_hook pre-commit precommit
   report_hook pre-push prepush
   report_hook post-commit postcommit
+
+  # **THE CHAINED GATE, AND THIS COMMAND USED TO ANSWER A DIFFERENT QUESTION
+  # FROM THE ONE IT IS READ AS ANSWERING** (cc, measured 2026-08-20 in two real
+  # clones). The three checks above ask *is the repo-local RUNNER wired*. People
+  # read the verdict as *are the guards wired*, and arm C proved those come
+  # apart: a fresh clone where `int hooks --install` had just printed **"this
+  # clone is wired"** then landed a commit adding `intent/.*/` to `.gitignore`
+  # at rc=0, with zero guards run and no critic gate. The hazard AC-01.5 exists
+  # to refuse is in that clone's history.
+  #
+  # TWO INDEPENDENT CONDITIONS AND THE DOC NAMED ONE. A clone does not inherit
+  # `core.hooksPath` -- which `--install` fixes -- AND `pre-commit.intent` is
+  # gitignored, so it is in no clone at all. The chain block skips a missing
+  # gate with a bare `if [ -x ]` and no else, so the whole guard chain is a
+  # silent no-op. Satisfying only the first produces a green report over an
+  # inert gate.
+  #
+  # The ignore rule is right and stays: that file is written by
+  # `intent claude upgrade`, and tracking it would be a second home for canon.
+  # What was missing is that its absence had no reporter. One `[ -f ]` on a
+  # path already resolved above.
+  #
+  # It contributes to `rc` rather than warning beside it, because a warning
+  # under a line reading "this clone is wired" is the same defect one font
+  # weight down.
+  GATE_ABSENT=0
+  if [ -f "$HOOKS_DIR/pre-commit.intent" ]; then
+    printf '  gate         WIRED     -> pre-commit.intent (critic + the shipped guard roster)\n'
+  else
+    rc=1
+    GATE_ABSENT=1
+    printf '  gate         ABSENT    -> pre-commit.intent is not in %s\n' "$HOOKS_DIR"
+    printf '                 the chain block skips a missing gate SILENTLY, so the critic and\n'
+    printf '                 every shipped guard are a no-op in this clone.\n'
+    printf '                 it is gitignored on purpose (it is canon, written by the installer),\n'
+    printf '                 so a clone never carries it. Run: intent claude upgrade --apply\n'
+  fi
   printf '\n'
   if [ "$rc" -eq 0 ]; then
     printf 'hooks: this clone is wired.\n'
@@ -253,7 +290,21 @@ if [ "$DO_INSTALL" -eq 0 ]; then
       printf '  tracked, so it says nothing about anyone else.\n'
     fi
   else
-    printf 'hooks: this clone is NOT fully wired. Run `int hooks --install`.\n'
+    # **THE REMEDY IS NAMED PER CONDITION, because there are two of them and
+    # only one is `--install`'s.** A missing gate is fixed by
+    # `intent claude upgrade --apply` and NOTHING ELSE -- `--install` sets
+    # `core.hooksPath` and never writes `pre-commit.intent`. Printing one
+    # remedy for both conditions is the remedy-that-cannot-be-acted-on defect,
+    # and it would send someone to run the command they had just run.
+    printf 'hooks: this clone is NOT fully wired.\n'
+    if [ "$GATE_ABSENT" -eq 1 ]; then
+      printf '  the GATE is missing: run `intent claude upgrade --apply`.\n'
+    fi
+    if [ "$rc" -ne 0 ] && [ "$GATE_ABSENT" -eq 0 ]; then
+      printf '  the RUNNERS are unwired: run `int hooks --install`.\n'
+    elif [ "$GATE_ABSENT" -eq 1 ]; then
+      printf '  and if any runner above is not WIRED, `int hooks --install` as well.\n'
+    fi
     printf '  An unwired guard does not fail; it reports nothing, and reporting\n'
     printf '  nothing is indistinguishable from passing.\n'
   fi

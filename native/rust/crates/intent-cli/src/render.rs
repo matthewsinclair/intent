@@ -2798,13 +2798,17 @@ fn rules_list(m: &ArgMatches) -> Result<(), Failure> {
     .filter(|r| lang.as_ref().is_none_or(|l| &r.language == l))
     .collect();
 
+  // The trailing column is written into the format string rather than passed
+  // as an argument: clippy denies `{}` fed a literal, and CI runs it with
+  // `-D warnings`. The other five stay arguments because they carry width
+  // specifiers, which is what the format string is for.
   println!(
-    "{:<22} {:<14} {:<10} {:<14} {:<14} {}",
-    "id", "severity", "language", "category", "prov", "title"
+    "{:<22} {:<14} {:<10} {:<14} {:<14} title",
+    "id", "severity", "language", "category", "prov"
   );
   println!(
-    "{:<22} {:<14} {:<10} {:<14} {:<14} {}",
-    "--", "--------", "--------", "--------", "----", "-----"
+    "{:<22} {:<14} {:<10} {:<14} {:<14} -----",
+    "--", "--------", "--------", "--------", "----"
   );
   for r in &shown {
     println!(

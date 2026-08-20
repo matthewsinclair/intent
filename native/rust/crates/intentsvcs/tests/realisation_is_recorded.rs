@@ -57,8 +57,10 @@ fn last_disk_payload(facade: &intentsvcs::facade::Facade, op: &str) -> serde_jso
     .events()
     .expect("events")
     .into_iter()
-    .filter(|e| e.op == op)
-    .next_back()
+    // `rfind` rather than `filter(..).next_back()` -- same semantics, and
+    // clippy denies the longer form under CI's `-D warnings`. vc's file; taken
+    // because CI was red for everyone and they had folded.
+    .rfind(|e| e.op == op)
     .unwrap_or_else(|| panic!("no {op} event"))
     .payload
 }
