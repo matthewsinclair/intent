@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 14:39Z
+heartbeat_at: 2026-08-20 15:41Z
 status: active
-focus: "**FOLDED 2026-08-20. Five landed: the guard roster delegated, `core.hooksPath` (hooks tracked), the rust formatter stanza, AC-06.3 (`md` sayable), AC-06.4 + AC-07.1 (`init` from the binary alone).** Tree clean, main builds, clippy clean, 964 pass. **NEXT IS THE RECORDED-NOT-BUILT LIST AND ITS TOP HAS CHANGED: `int check format` and clippy both exist with nothing local dispatching them, and between them they cost two CI reds today** -- measured twice now rather than argued about."
+focus: "**AC-04.7 LANDED -- `3661f288` (code, 13 files) + `67a84577` (contract). `intent init` then `intent organize`, the first two commands anybody types, was rc=1 for every new v3 project and is now rc=0 with 0 removed and 0 pruned, driven end to end.** Red-first in a detached worktree at `c73404c7`: all four arms failed against the unfixed code. **THE GATE IS 58 OF 66 LIVE ROWS, not the 50 of 64 this board carried** -- both terms had moved. **AC-04.6 is my last ST0057 row and it is with vc: its red-first fixture was consumed by `organize --apply` at `e7f00e65`, and the note says that was the only moment it could be captured.**"
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 ---
 
@@ -39,21 +39,11 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 - **`intent claude upgrade --apply` IS ALL-OR-NOTHING.** On this tree three of four actions are unwanted, including **regenerating AGENTS.md from 3.0.0 DOWN to 2.19.0** on a self-hosted v3 tree. The new `GATE STALE` message points operators straight at that button, so it is a fleet question.
 - **`bin/int SAYS` IS UNBUILDABLE WHERE hv PUT IT, AND IT IS BACK WITH HIM.** `bin/int` is stock vendored devbin; its own header records a consumer who edited it having _forked the dispatcher_, and `self_provenance_check.sh` gates that tree. `project.referent` is taken by `cmd/measured`; `SessionStart` runs shipped canon. **And structurally: if `core.hooksPath` is unset no hook runs, so no hook can report it.** Two options put to hv: a pre-dispatch hook in devbin upstream, or `int hooks` as a documented clone step.
 
-### 1a. AC-04.7 / AT-04.7 -- ROUTED TO ME BY vc, WP-04, NOT STARTED
+### 1a. AC-04.6 -- MY LAST ST0057 ROW, AND ITS FIXTURE IS GONE
 
-**The property: the manifest's ABSENT state is honoured by the verbs that ACT on it, not only by the one that REPORTS it.** `intentfiles::realised()` returns `NothingSaid` for an absent file and `declares` fails open -- a complete model of hv's rule. **`Facade::organize` (`facade.rs:1639`) and `Facade::hydrate` (`:1754`) each open it with a bare `read_to_string` mapped to `ManifestUnreadable` and consult the model not at all.**
+**AC-04.7 is DONE** (`3661f288`, `67a84577`); AC-04.6 is what remains of WP-04. **Routed to vc 14:58Z and not started, because its AT note prescribes a red-first procedure whose fixture no longer exists.** The note: _run it against the tree AS IT STANDS TODAY -- 57 ST directories against a manifest that does not yet exist -- and it must go red on the largest possible margin. That red is free, it is available now, and **it is the only moment** the full-realisation baseline can be captured honestly._
 
-**DRIVEN BY ME AT `105faa01` ON A GENUINELY FRESH PROJECT, AND IT IS WORSE THAN THE ROUTING SAID.** `init` writes no manifest (0 hits for `intentfiles` in the module), so **absence is the shipped initial condition of every new v3 project** -- which makes this MY defect from today as much as anyone's. `intent init` then `intent organize`, the first two commands anyone types, gives rc=1 and:
-
-    error: could not read .../intent/.intentfiles
-      remedy: ... an absent manifest declares nothing, so `organize` would read
-              the whole estate as UNDECLARED.
-
-**THE REMEDY STATES hv's RULE BACKWARDS.** The model's own words are _ABSENT IS NOT EMPTY -- `NothingSaid` and `Unreadable` answer true for everything; a missing manifest KEEPS the whole estate on disk._ The message says absent means undeclared, which is the pre-reversal reading hv overturned. **So it is not only that the verb ignores the model -- the refusal TEACHES the reversed rule, in the first message a new v3 user ever sees.** A message that survived the ruling that reversed it, which is today's shape again.
-
-**AT-04.7's two arms fail in opposite directions and vc has the shapes right.** Absent: `organize` returns Ok and removes **ZERO** files -- **the removal count is the assertion and the exit code is not**, since "does not error" passes on an `organize` that runs and deletes the estate. Unreadable: still refuses, still names the path -- without which the fix is satisfied by deleting the refusal. **Adding one: the unreadable arm should assert the message does NOT state the rule backwards**, or the fix leaves the teaching defect in place.
-
-**It does not decide `hydrate`** -- hv already ruled the lifecycle verbs leave an absent manifest absent. The row constrains only that absence is not reported as unreadable; `hydrate`'s shape is mine and cc's to design.
+**DRIVEN at `c73404c7`: `ls -d intent/st/ST*` returns 3, and `intent/.intentfiles` EXISTS** (2010 bytes, 08-19). `organize --apply` at `e7f00e65` consumed the baseline the row was written to capture, so a tool built to that note goes **green on first run** -- the exact failure the note guards against. Asked vc for a synthetic red (plant one undeclared file -> red, remove -> green) plus the live population reported at 3. **I have not touched the file and it does not exist.**
 
 ### 2. Mine and small
 
@@ -79,6 +69,11 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 
 **Today's instances are verbatim in `.history/20260820/wip.md`; 08-19's in `.history/20260819/watch-outs-full.md`. These are the CLASSES.**
 
+- **`assert_eq!(after, before)` PRINTS `after` AS `left`, AND I READ A FAILURE BACKWARDS BECAUSE OF IT** -- calling four ADDED files a silent removal, and saying out loud that the report was lying when it was telling the truth. **The polarity now lives in the assertion's SHAPE (a subset check over a named `removed` list) rather than in whoever reads the output**, which is the only version that cannot be misread. A suite that contains `organize_preview_polarity.rs` is one that already knew.
+- **DELETE THE BINDING, DO NOT SHIM IT.** Changing `plan` to take `&Realised` surfaced a SECOND declared-set lookup I had not found by reading. It was loud only because the old binding was gone; a compatibility shim would have kept the old semantics at the one site nothing reports. **The compiler is a population oracle and a shim blinds it.**
+- **THE PROBE PATTERN EXCLUDES THE ANSWER AND NEVER SAYS SO -- twice today, same shape.** `grep 'organize::plan('` found 3 call sites; the compiler found 7, because tests import the symbol unqualified. And ic's: `cargo test | tail -200 > log` then counting `test result:` lines counts **what survived the tail**, not what ran -- 18 targets / 94 tests reported for a run of 138 / 974. **Write the whole log, count after.**
+- **`str.replace` HAS NO COUNT ARGUMENT.** `ic/inbox.dc.md` carried TWO committed `_(empty)_` sentinels from my own fold, so one announce filled both. **The defect was mine in two layers -- the doubled sentinel and the unbounded replace -- and ic found it at zero hops in their own file.**
+
 - **MARK PROVENANCE PER CLAIM, NOT PER MESSAGE -- driven, read, or inferred.** cc sent four claims in one voice; three were driven in code and one read off a directory listing, and nothing said which, so I spent a careful check on the wrong one. **The cost lands on the READER, which is why the writer never feels it.** True of most of my messages today -- _the guard is perfect and has nowhere to run_ went to hv in the same register as things I had driven. **Reasoning wearing a measurement's clothes.**
 - **VERIFY THE RETRACTION, NOT JUST THE CLAIM.** A self-correction is still a report, from the one person already wrong about that subject, and it arrives with the momentum of having just been careful.
 - **`git commit --only <paths>` IS PATH-SCOPED, NOT HUNK-SCOPED.** It defends against a peer's STAGED index and does nothing about their UNSTAGED edits in a file you also touched. It put ic's caller at HEAD without its callee and **`main` did not compile**. **THE THREE REMEDIES ARE NOT INTERCHANGEABLE:** building the workspace first FAILS BY CONSTRUCTION (the shared tree compiles either way); `git diff --cached -U0` catches it and needs a human to recognise a stranger's hunk; **a detached worktree at the named revision catches it MECHANICALLY and is the only one that does.**
@@ -94,6 +89,9 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 - **STANDING CONSTRAINTS.** Push `local` only unless hv says otherwise; `upstream` runs the only CI and its freeze is a **CI/CD BUDGET** freeze, so pushing spends the thing it protects. NEVER `git pull --rebase`; a peer `.git/index.lock` means WAIT. Timestamps READ FROM `date -u`; `git log` prints LOCAL time. The markdown formatter is a second writer.
 
 ## Decisions
+
+- (2026-08-20) **A REPORTER FAILS OPEN; AN ACTOR REFUSES -- TWO DOORS ON ONE MODEL, AND `intentfiles.rs` HAD ALREADY SAID SO BEFORE EITHER EXISTED.** Its own words: _the grammar's real refusal belongs on the verbs that read the manifest deliberately._ `realised_from` answers `Unreadable` for a manifest that will not parse, which realises everything -- correct for `doctor`, catastrophic for a verb about to remove files. `realised_for_action` returns the parse error instead. **The filter they share is extracted, so the sigil space cannot change in one door and not the other.**
+- (2026-08-20) **ABSENT IS DECIDED AT THE FILESYSTEM, ONCE, BY THE CALLER THAT TOUCHES IT.** `realised_for_action` takes TEXT and has no opinion about absence -- inferring it from an empty string would collapse it with a manifest declaring NONE, which is a real and opposite state.
 
 - (2026-08-20) **THE COPIED FILE NAMES NO GUARD AND HOLDS NO ROSTER.** The bodies resolved live and the array naming them did not, so canon gained guards and consumers did not. Roster lives in `pre-commit-guards.sh`, read live, never copied. **Adding a guard is one line and reaches every consumer with no reinstall.**
 - (2026-08-20) **HOOKS ARE TRACKED VIA `core.hooksPath`, NOT VIA AN INSTALLER THAT COPIES** (hv). The copy mechanism is the disease just cured. `.githooks/` is tracked; `pre-commit.intent` is **gitignored inside it** because it is canon the installer writes, and tracking it would be a second home for canon.
