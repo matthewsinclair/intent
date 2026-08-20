@@ -36,7 +36,7 @@ declare -a file_check_states
 
 # Function to display usage
 usage() {
-    echo "Usage: $(basename $0) [OPTIONS] [STARTDIR] [FILESPEC]"
+    echo "Usage: $(basename "$0") [OPTIONS] [STARTDIR] [FILESPEC]"
     echo ""
     echo "Create and manage file indexes with checkbox states."
     echo ""
@@ -70,16 +70,16 @@ usage() {
     echo ""
     echo "EXAMPLES:"
     echo "  # List all Elixir files recursively"
-    echo "  $(basename $0) -r"
+    echo "  $(basename "$0") -r"
     echo ""
     echo "  # Create an index file for tracking"
-    echo "  $(basename $0) -r -i myproject.index"
+    echo "  $(basename "$0") -r -i myproject.index"
     echo ""
     echo "  # Search Python files in src/"
-    echo "  $(basename $0) src '*.py'"
+    echo "  $(basename "$0") src '*.py'"
     echo ""
     echo "  # Toggle file state in index"
-    echo "  $(basename $0) -i project.index -X lib/app.ex"
+    echo "  $(basename "$0") -i project.index -X lib/app.ex"
     exit 1
 }
 
