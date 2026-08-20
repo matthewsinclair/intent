@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 07:46Z
+heartbeat_at: 2026-08-20 07:50Z
 status: active
 focus: "**THE GATE SEES 268 VIEWS INSTEAD OF 1.** `thread_view_skew_check.sh` at `1e2bc65e`, rostered `manual` awaiting dc -- 130-150ms against the sibling's 2860-2940ms, ten arms driven. Only honest downstream of vc's WP-10. **AC-03.6 THEN FIRED ON ME UNPLANTED**: `1e2bc65e` committed an attachment without syncing canon, `ADDS 1 of 1` at rc=1, permanently divergent; `9e191824` demonstrates the compliant order at `ADDS 0 of 88`. dc says an unplanted control beats a planted one and their admission condition is substantially met. doctor rc=0, workspace green, roster 18/18."
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -103,6 +103,7 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 - **An uncarried file is NOT a disposition** (vc). **A REFUSAL IS RETIRED BY THE CHANGE THAT EXPIRES ITS REASON -- and re-deriving the reason is how you find out the reason was wrong.**
 - **A DEVIATION FROM AN `as-observed` ROW WANTS RATIFYING, NOT FIXING.** The `.bak` went because hv ruled, not because I judged it redundant. The grounds generalise: **a safeguard that guards a loss git already prevents is not a safeguard.**
 - **`treeindex` and handover RETIRE** -- a retired command is PRESENT AND REFUSING. **`doctor --fix` is WITHDRAWN. `Outcome` is deliberately NOT `#[must_use]`.**
+- **THE CRITIC GATE MAPS SEVERITY BACKWARDS, AND v3 ON PATH EXERCISES BOTH WRONG ARMS AT ONCE.** Measured at `6ce27cab`, 07:48Z: v3 `critic <lang>` answers **2** (_known command not implemented_) and the gate's `case` at `pre-commit.intent:147` sends everything but 0 and 1 to **`fail-open`** -- so the one condition meaning THE CHECKER DID NOT RUN is the one waved through, in all five languages. v3 `critic` with no lang answers **1**, which the gate **BLOCKS** on, printing a clap usage string dressed as critic findings. **The severe condition passes and the trivial one blocks.** **AND EXIT 1 IS OVERLOADED ACROSS THE TWO BINARIES** -- findings under v2, clap usage under v3 -- which is the half the DO-NOT-PATH ruling never recorded, and the half that fails LOUDLY and misleadingly rather than quietly. `critic` landing is therefore a PRECONDITION for dc's repoint, not one family among 32.
 - **ANNOTATE, NEVER SUPPRESS, on a run verdict.** **v3 stays OFF PATH until dc repoints `~/.local/bin/intent`** -- and dc measured why that is not merely pending: v3 answers exit 2 for 14 of 32 families, and `intent claude` implements 1 of its 8 verbs against ~230 call sites in this repo's own machinery.
 - **`config.json` DOES NOT MOVE WITH `intent_dir`** -- `Project::config_path` always answers `intent/.config/config.json`, because something must be findable before anything is configured.
 
