@@ -3,46 +3,23 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 13:35Z
+heartbeat_at: 2026-08-20 14:14Z
 status: active
-focus: "**PICKUP AFTER COMPACT.** WP-09 CLOSED and verified (3 rows clear, lint conforms at 51). **THE GATE IS 55 OF 65** -- 49 live ST0057 rows + 16 live ST0056 WP-03 rows -- and **NONE of the 10 that remain is mine**. Corrected ic: the `export_command.rs` red is in dc's UNCOMMITTED diff, placed by authorship not bisect. **My extract carried dc's AT-06.3 green into canon under my commit** -- AC-08.5's third burning case, named in the message rather than hidden. **hv'S INBOX HOLDS 80 ENTRIES AND hv'S BOARD SAYS NOT YET STARTED** -- surfacing it is mine and I have not done it."
+focus: "**FOLD 3 (2026-08-20 14:14Z). THE hv CHANNEL IS READ, CLEARED, AND HAS A LOOP.** 80 entries, 63 wanting a reply, never read -- 15 of 18 open asks were already answered IN THE CODE. **hv ruled the three that survived: D54 (third sigil for docs/llm/eng), D55 (verbosity ships, --no-backup withdrawn), D57-9 (marker grammar goes).** **AUDITED ALL 26 WPs AGAINST THEIR GATES: four disagreed** -- ST0056/04 reopened at 5/6, ST0057/02 + /07 closed, /06 started. **The doctor arm hv ratified for exactly this was never built.** Gate 55 of 65; ST0057 42/49. **Two canon errors of mine caught by cc, both carrying a rigour claim attached to the wrong subject.**"
 claims: [ST0056, ST0057]
 ---
 
 # Validation Claude (vc)
 
-## THE SSOT BOUNDARY IS WITH hv AND 250 IS REALLY 59
+## TODAY'S RULINGS, AND WHAT EACH IS WAITING ON
 
-    T  tool payload (intent/plugins/)        187   never in a project store; 0 tracked in 3 consumers
-    B  project content, needs a NEW sigil     59   ZERO ownable by any existing artefact
-    N  must never be an artefact               3   config.json, .intentfiles, ST0057/parity/tools/.gitkeep
-    M  already model-derived                   1   todo.md -- and it is the precedent
+**hv RULED THREE AND FIFTEEN DIED ON VALIDATION.** D54 -- Route A for `docs/`+`llm/`+`eng/` (33 files), Route B for the state files, records out; **cost deliberately unsized and it needs cc for the mechanism and dc for the surface.** D55 -- built and closed by cc. D57-9 -- `.intentfiles` becomes one flat list; ic's to strip.
 
-**CORRECTED FROM 250 BY cc AT `b574361a`, AND THE CORRECTION IS ITSELF THE CLASS.** The three store-backed exclusions were taken at DIRECTORY level, and three files inside them are in no store: `issues/CLOSED/.gitkeep`, `issues/OPEN/.gitkeep`, `st/ST0057/parity/tools/.gitkeep`. No extension, so not attachments; `Unattached`. **A COUNT OF CONTAINERS REPORTED AS A COUNT OF CONTENTS, committed under the warning already written above it.** Scaffolding for an otherwise-empty directory is the cleanest never-an-artefact case there is. **hv holds the durable copy at 250 and I have appended the correction rather than rewriting the entry.**
+**THE WP AUDIT IS THE ONE TO REPEAT: four of 26 disagreed with their own gates**, and the arm hv ratified on 2026-08-15 (_`doctor` reports any unit whose status disagrees with its gate_) **does not exist in `doctor.rs`**. Routed to dc. **Second ratified-and-never-wired ruling of the day; ic found `ABSENT IS NOT EMPTY` in the same position.**
 
-**THE 59 IS NOW MEASURED, NOT CARRIED** (cc, at `b574361a`): 18 `history/` + 14 `llm/` + 10 `docs/` + 9 `eng/` + 3 `autopsy/` + 2 `analysis/` + `wip.md` + `restart.md` + `done.md`. **Taken BEFORE ic's `ISSUE:` prune lands, deliberately -- a 250 measured only afterwards confirms nothing, because nobody would ever have established it was 250 beforehand.**
+**OWED TO ic AND NOT YET DONE: MINT THE ROW FOR _THE REALISATION PATH DOES NOT CONSULT THE MANIFEST_.** ic is right that `Realised` (modelled correctly, read only by two reporters) and `Facade::apply` (a THIRD writer that projects every changed thread and reads no manifest) are **ONE finding with two faces, wanting one home rather than two.** **Home ruled: a new criterion under ST0057/WP-04, which owns realisation** -- not AC-02.x, whose subject is the manifest's grammar, and not an issue, because hv has already ruled it must be fixed. **Minting it is a hand-edit of canon plus a scoped sync and it is the first act on the bounce**, deliberately not started before a compact.
 
-**THE BLOCKER IS ARITY, NOT POLICY, AND IT IS HARDER THAN IT WAS.** Grammar is now `STEELTHREAD` alone; `Project::classify` answers only inside a thread directory; `doc_sections.owner_type` is exactly thread/work-package/issue. **Policy chooses among ownable files and today the ownable set is empty.**
-
-**THE MECHANISM IS NOT WEAK, IT STOPS AT THE DIRECTORY BOUNDARY** -- all 45 parity-tool scripts are carried as attachments today, 45 of 45. **`todo.md` is model-derived without being artefact-owned, and that is the shape the 59 want.**
-
-**250, NOT 253, AND NOT MY ARITHMETIC (cc, measured at five NAMED commits).** `events.jsonl` left the estate at `f42987c7` and ic's prune removed 42 files plus two `.gitkeep`s at `95ffb84b`. **I had applied MY delta to cc's baseline and skipped ic's, in a window where both landed** -- the exact reconciliation ic had warned cc not to do, done by me to cc's number. **T 187 and B 59 have not moved once all day, and B is the only class hv's decision turns on.** The instrument is now carried in canon at `parity/tools/partition.sh` (`ea9a303c`), so it no longer dies with a session.
-
-## D37's LINE IS "OUTPUT" AND INTENT WRITES FILES INTO OTHER PEOPLE'S REPOSITORIES
-
-**hv RESTATED THE RULING DIRECTLY TODAY. THE BINARIES ARE CLEAN AND THAT IS MEASURED:** every command's help and usage text swept, zero hits that are not the `ST0000` placeholder. The `ST0056 WP-08` strings in `render.rs:433`, `graphql.rs:149` and `intentd/main.rs:40` are doc comments RECORDING the removals -- scar tissue, and they stay.
-
-**THE GAP IS IN AC-00.9's OWN WORDING. Its title says user-facing SURFACE; its body said OUTPUT, and the body was the narrower of the two.** A template copied by `st new`, a hook installed into `.git/hooks/`, a skill installed into `.claude/`, the rule library served to a consumer's agent: none is binary output and none is a comment a consumer never sees. **They are the opposite -- artefacts whose whole purpose is to be read inside another project -- and they fell through the difference.**
-
-    lib/templates/        installed into repos      30 refs    9 files
-    plugins: skills       -> their .claude/         17 refs    6 files
-    plugins: lib + bin    shell source              23 refs    5 files
-    plugins: subagents                               7 refs    2 files
-    plugins: rules        claude rules show          3 refs    3 files
-
-**THE DISCRIMINATOR IS CITATION VERSUS FORMAT EXAMPLE, AND IT IS MECHANICAL** -- 80 down to roughly fifteen with no per-site judgement. `intent st show ST0042` teaches syntax and the id is a placeholder that happens to be four digits. **A CITATION points into a tracker the reader cannot open**, and the purest case is `rules/_schema/critic-contract.md:52` citing `intent/st/ST0034/design.md`, **a path that exists in no consumer's project and none in this one either since `e7f00e65`. A citation gone dangling inside its own repository is the clearest possible statement that the reference was never for the reader.** The instance every user meets: `lib/templates/prj/st/ST####/acceptance.md:30` stamps `Exemption (ST0048)` into every steel thread created anywhere.
-
-**CONTRACT HALF LANDED `26656274`, 133 rows conform. THE SWEEP IS dc's.** AT-00.17 minted `to-write`, red-first on two unplanted controls. **AT-00.8 is ANNOTATED, NOT REOPENED: 8/8 green is honest and its claim simply never reached as far as the criterion does** -- it walks `crates/*/src/*.rs`, the dispatch table and the faces; `lib/templates/` and `intent/plugins/` were never in its population.
+**ic's REACHABLE CONSEQUENCE IS THE PART THAT MATTERS: any mutating command on a dehydrated thread RE-REALISES it.** `intent ac satisfy ST0012 AC-01.1` on one of the 52 completed threads this repo does not list writes the directory back to disk. **That is the estate re-growing the 423 files that left it, one command at a time, and nothing reports it.** ic declined to drive it on the live estate and was right to.
 
 ## WATCH-OUTS -- STANDING, AND MOST OF TODAY'S ARE MINE
 
@@ -93,10 +70,10 @@ claims: [ST0056, ST0057]
 **FROM ic's SEVEN ARBITRATION ITEMS -- five are still mine:**
 
 - **The verification-recipe rule** written up properly: isolate the target dir, keep it INSIDE the repo. Answered as a finding, not yet as a rule.
-- **`intentfiles_is_the_list`'s lost mutation coverage** -- with arity one there is no second sigil to restore, so the mutation is unreachable from any fixture. **A comment is not a mechanism**; it wants a row. Re-arms when cc's second sigil lands.
+- **[CLOSED by the provenance rule] `intentfiles_is_the_list`'s lost mutation coverage** -- with arity one there is no second sigil to restore, so the mutation is unreachable from any fixture. **A comment is not a mechanism**; it wants a row. Re-arms when cc's second sigil lands.
 - **`declared_but_unwired` at ONE member** -- is one still adequate cover for the bucket? ic's vacuity guard handles zero; adequacy is mine.
 - **AC-08.4 / AC-08.5** -- still red, still unplaced.
-- **`ratified_in_check.sh`'s issue arm has ZERO live population** (ic, against their own green): `0 cite a record that no longer resolves` reports the same 0 against an empty directory. **The refusal is load-bearing; the count is not.** Wants a row.
+- **[CLOSED by the provenance rule -- synthetic fixture] `ratified_in_check.sh`'s issue arm has ZERO live population** (ic, against their own green): `0 cite a record that no longer resolves` reports the same 0 against an empty directory. **The refusal is load-bearing; the count is not.** Wants a row.
 
 **FROM dc -- three:**
 

@@ -118,3 +118,38 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 **AND A FALSE CLAUSE IN MY OWN ELABORATION, WHICH WAS THE SAFETY ARGUMENT.** AC-07.4 said _a project with no `.intent_critic.yml` has armed nothing_. **That file carries `severity_min`, `disabled:` and an advisory flag and NO arming key**; arming is declared by the RULE. A scratch project with no yml, tool absent, still exits 3 under v2. Corrected in canon `26656274`+ -- **the opt-out is `disabled:`, never the file's absence.**
 
 **TWO RESIDUES STILL OPEN WITH dc:** `critic shell --no-such-flag` is 2 under v2 and 1 under v3, so the gate goes from fail-open to BLOCKING on a typo; and `critic author|content` emits 0 bytes under v3 where v2 emits 136 saying why there is nothing to do.
+
+<!-- fold 3, 2026-08-20 -->
+
+## THE SSOT BOUNDARY IS WITH hv AND 250 IS REALLY 59
+
+    T  tool payload (intent/plugins/)        187   never in a project store; 0 tracked in 3 consumers
+    B  project content, needs a NEW sigil     59   ZERO ownable by any existing artefact
+    N  must never be an artefact               3   config.json, .intentfiles, ST0057/parity/tools/.gitkeep
+    M  already model-derived                   1   todo.md -- and it is the precedent
+
+**CORRECTED FROM 250 BY cc AT `b574361a`, AND THE CORRECTION IS ITSELF THE CLASS.** The three store-backed exclusions were taken at DIRECTORY level, and three files inside them are in no store: `issues/CLOSED/.gitkeep`, `issues/OPEN/.gitkeep`, `st/ST0057/parity/tools/.gitkeep`. No extension, so not attachments; `Unattached`. **A COUNT OF CONTAINERS REPORTED AS A COUNT OF CONTENTS, committed under the warning already written above it.** Scaffolding for an otherwise-empty directory is the cleanest never-an-artefact case there is. **hv holds the durable copy at 250 and I have appended the correction rather than rewriting the entry.**
+
+**THE 59 IS NOW MEASURED, NOT CARRIED** (cc, at `b574361a`): 18 `history/` + 14 `llm/` + 10 `docs/` + 9 `eng/` + 3 `autopsy/` + 2 `analysis/` + `wip.md` + `restart.md` + `done.md`. **Taken BEFORE ic's `ISSUE:` prune lands, deliberately -- a 250 measured only afterwards confirms nothing, because nobody would ever have established it was 250 beforehand.**
+
+**THE BLOCKER IS ARITY, NOT POLICY, AND IT IS HARDER THAN IT WAS.** Grammar is now `STEELTHREAD` alone; `Project::classify` answers only inside a thread directory; `doc_sections.owner_type` is exactly thread/work-package/issue. **Policy chooses among ownable files and today the ownable set is empty.**
+
+**THE MECHANISM IS NOT WEAK, IT STOPS AT THE DIRECTORY BOUNDARY** -- all 45 parity-tool scripts are carried as attachments today, 45 of 45. **`todo.md` is model-derived without being artefact-owned, and that is the shape the 59 want.**
+
+**250, NOT 253, AND NOT MY ARITHMETIC (cc, measured at five NAMED commits).** `events.jsonl` left the estate at `f42987c7` and ic's prune removed 42 files plus two `.gitkeep`s at `95ffb84b`. **I had applied MY delta to cc's baseline and skipped ic's, in a window where both landed** -- the exact reconciliation ic had warned cc not to do, done by me to cc's number. **T 187 and B 59 have not moved once all day, and B is the only class hv's decision turns on.** The instrument is now carried in canon at `parity/tools/partition.sh` (`ea9a303c`), so it no longer dies with a session.
+
+## D37's LINE IS "OUTPUT" AND INTENT WRITES FILES INTO OTHER PEOPLE'S REPOSITORIES
+
+**hv RESTATED THE RULING DIRECTLY TODAY. THE BINARIES ARE CLEAN AND THAT IS MEASURED:** every command's help and usage text swept, zero hits that are not the `ST0000` placeholder. The `ST0056 WP-08` strings in `render.rs:433`, `graphql.rs:149` and `intentd/main.rs:40` are doc comments RECORDING the removals -- scar tissue, and they stay.
+
+**THE GAP IS IN AC-00.9's OWN WORDING. Its title says user-facing SURFACE; its body said OUTPUT, and the body was the narrower of the two.** A template copied by `st new`, a hook installed into `.git/hooks/`, a skill installed into `.claude/`, the rule library served to a consumer's agent: none is binary output and none is a comment a consumer never sees. **They are the opposite -- artefacts whose whole purpose is to be read inside another project -- and they fell through the difference.**
+
+    lib/templates/        installed into repos      30 refs    9 files
+    plugins: skills       -> their .claude/         17 refs    6 files
+    plugins: lib + bin    shell source              23 refs    5 files
+    plugins: subagents                               7 refs    2 files
+    plugins: rules        claude rules show          3 refs    3 files
+
+**THE DISCRIMINATOR IS CITATION VERSUS FORMAT EXAMPLE, AND IT IS MECHANICAL** -- 80 down to roughly fifteen with no per-site judgement. `intent st show ST0042` teaches syntax and the id is a placeholder that happens to be four digits. **A CITATION points into a tracker the reader cannot open**, and the purest case is `rules/_schema/critic-contract.md:52` citing `intent/st/ST0034/design.md`, **a path that exists in no consumer's project and none in this one either since `e7f00e65`. A citation gone dangling inside its own repository is the clearest possible statement that the reference was never for the reader.** The instance every user meets: `lib/templates/prj/st/ST####/acceptance.md:30` stamps `Exemption (ST0048)` into every steel thread created anywhere.
+
+**CONTRACT HALF LANDED `26656274`, 133 rows conform. THE SWEEP IS dc's.** AT-00.17 minted `to-write`, red-first on two unplanted controls. **AT-00.8 is ANNOTATED, NOT REOPENED: 8/8 green is honest and its claim simply never reached as far as the criterion does** -- it walks `crates/*/src/*.rs`, the dispatch table and the faces; `lib/templates/` and `intent/plugins/` were never in its population.
