@@ -396,6 +396,48 @@ pub struct Flag {
 }
 
 impl Flag {
+  /// The SHORT spelling as clap wants it: the character, not the `-x`.
+  pub fn short(&self) -> Option<char> {
+    self
+      .spellings
+      .iter()
+      .find(|s| s.len() == 2 && s.starts_with('-') && !s.starts_with("--"))
+      .and_then(|s| s.chars().nth(1))
+  }
+
+  /// The LONG spelling with its dashes stripped, as clap wants it.
+  pub fn long(&self) -> Option<String> {
+    self
+      .spellings
+      .iter()
+      .find(|s| s.starts_with("--"))
+      .map(|s| s.trim_start_matches('-').to_string())
+  }
+
+  /// **The id a renderer must use to read this flag out of `ArgMatches`.**
+  ///
+  /// Long spelling if there is one, otherwise the short character -- and a
+  /// short-only flag IS built rather than dropped, which is the rule
+  /// `spine.rs` had to learn after three `keep` flags shipped in no surface.
+  ///
+  /// **This lives here rather than inline in the spine because it is now read
+  /// twice.** `flag_reachability.rs` asks the same question -- what id would a
+  /// renderer have to spell to read this? -- and a second copy of the rule
+  /// there could drift from the one clap is actually built with, which would
+  /// make the reachability check quietly examine ids nothing uses.
+  ///
+  /// `None` means the flag declares no usable spelling at all. The spine
+  /// PANICS on that rather than skipping, because continuing is what hid the
+  /// three invisible flags; a reader that only wants to enumerate ids can
+  /// treat it as "not buildable" instead.
+  pub fn arg_id(&self) -> Option<String> {
+    match (self.long(), self.short()) {
+      (Some(long), _) => Some(long),
+      (None, Some(short)) => Some(short.to_string()),
+      (None, None) => None,
+    }
+  }
+
   /// Whether this flag belongs in the shipped surface.
   ///
   /// **The disposition was honoured at the command level and ignored one level

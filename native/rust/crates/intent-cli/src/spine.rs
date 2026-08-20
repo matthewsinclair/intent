@@ -496,29 +496,20 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
     if !flag.ships() {
       continue;
     }
-    let short = flag
-      .spellings
-      .iter()
-      .find(|s| s.len() == 2 && s.starts_with('-') && !s.starts_with("--"))
-      .and_then(|s| s.chars().nth(1));
+    let short = flag.short();
     // **A SHORT-ONLY FLAG IS BUILT, NOT DROPPED.** This was `let Some(long) =
     // ... else { continue }`, so a flag with no long spelling vanished with no
     // diagnostic -- three `keep` flags declared in the table and present in no
     // surface (`claude subagents -v`, `claude skills -v`, `fileindex -r`).
     // IN-AG-NO-SILENT-001, three times, and invisible from either end: the
     // table said it shipped and the binary said no such flag.
-    let long = flag
-      .spellings
-      .iter()
-      .find(|s| s.starts_with("--"))
-      .map(|s| s.trim_start_matches('-').to_string());
+    let long = flag.long();
     // A flag with neither spelling cannot be built at all, and the table and
     // the spine disagree about what exists. Refusing is the only honest move:
     // continuing here is what hid the three above.
-    let id = match (&long, short) {
-      (Some(long), _) => long.clone(),
-      (None, Some(short)) => short.to_string(),
-      (None, None) => panic!(
+    let id = match flag.arg_id() {
+      Some(id) => id,
+      None => panic!(
         "dispatch table: a flag on `{}` declares no usable spelling ({:?}); the table claims a \
          flag the spine cannot build",
         entry.path, flag.spellings
