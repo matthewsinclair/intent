@@ -36,7 +36,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-04 | intentsvcs facade: core command families                                    | XL   | Done        |
 | WP-05 | CLI in-process mode and BATS conformance harness                            | L    | WIP         |
 | WP-06 | CLI parity long tail                                                        | XL   | WIP         |
-| WP-07 | Canon and claude subsystem                                                  | L    | Not Started |
+| WP-07 | Canon and claude subsystem                                                  | L    | WIP         |
 | WP-08 | intentd daemon                                                              | XL   | Not Started |
 | WP-09 | MCP server and agent guide                                                  | L    | Not Started |
 | WP-10 | Migration and fleet ingest harness                                          | XL   | WIP         |

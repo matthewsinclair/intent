@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: Canon and claude subsystem
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-07: Canon and claude subsystem
@@ -13,7 +13,7 @@ Embed the canon (templates, skills, rules, agents) in the binary and port the `i
 
 ## Deliverables
 
-- Embedded canon via rust-embed: lib/templates, canon skills, the rule library, subagent definitions; INTENT_HOME demoted to a dev override
+- Canon is served from THE INSTALL rather than from the environment: lib/templates, canon skills, the rule library, subagent definitions. **THE ROW NAMED A MECHANISM THE IMPLEMENTATION DECLINED, AND THE PROPERTY IT EXISTED TO SERVE IS ALREADY MET ANOTHER WAY (dc, measured 2026-08-20).** It read *embedded canon via rust-embed, INTENT_HOME demoted to a dev override*; there is no `rust-embed` in any `Cargo.toml` and no `RustEmbed` derive anywhere in the tree. `rules.rs:17-21` states the design that replaced it -- *ROOTS COME FROM THE INSTALL, NEVER THE ENVIRONMENT ... the executable's own location always knows which version is running* -- and AC-11.3 is green by that route. **So this deliverable is not started because it should not be done in that form**, and a builder implementing it literally would embed a second copy of canon behind a binary that already resolves it correctly. The mechanism is dropped and the property is what stands: canon travels with the binary, and a tool running outside its own install tree still knows which version it is.
 - `intent claude` family: skills install/sync/uninstall (SHA256 manifests), rules list/show, subagents, `hook <name>` byte-compatible from day one (0016 -- consumer settings.json must not notice the swap)
 - The critic headless runner (`intent critic <lang>`) reading the embedded rule library, strict-proxy contract preserved (ST0039)
 - `intent agents sync` generating AGENTS.md from project state

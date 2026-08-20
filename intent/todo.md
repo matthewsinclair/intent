@@ -11,7 +11,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 04: intentsvcs facade: core command families
   - [-] 05: CLI in-process mode and BATS conformance harness
   - [-] 06: CLI parity long tail
-  - [ ] 07: Canon and claude subsystem
+  - [-] 07: Canon and claude subsystem
   - [ ] 08: intentd daemon
   - [ ] 09: MCP server and agent guide
   - [-] 10: Migration and fleet ingest harness
