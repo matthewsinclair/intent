@@ -129,6 +129,61 @@ _hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
 # matching the moment the path stops being the shape, and then passes in silence.
 # `--list-guards` makes the runner the authority, which is the only arrangement
 # where the roster genuinely cannot rot.
+# shipped_guards -- the guards the GATE dispatches, as opposed to the ones the
+# repo-local runners do.
+#
+# **THIS COMMAND UNDER-REPORTED THE GATE BY FOUR AND SAID NOTHING** (dc, driven
+# 2026-08-20). It listed the eleven repo-local guards in full and rendered the
+# whole shipped roster as one parenthetical -- `(critic + the shipped guard
+# roster)` -- which reports PRESENCE and not MEMBERSHIP. **A check that
+# under-reports what a gate enforces is worse than no check** is this file's own
+# sentence, written about the previous version of this same defect.
+#
+# THE SAME DOCTRINE AS `guards_of`, APPLIED ONE LAYER OUT: capability-detect
+# from the source, then ASK THE RUNNER. What differs is which runner and where
+# it lives -- the repo-local ones are under `bin/.devbin/cmd/`, and this one is
+# under the resolved install, because the gate reads its guards live out of
+# `INTENT_HOME` rather than from a copy. That is the whole reason a guard added
+# to canon reaches every consumer with no reinstall, and it is why this cannot
+# be answered from anything in this repository.
+#
+# `intent info` IS THE RESOLVER AND IS NOT SECOND-GUESSED. `.githooks/pre-commit`
+# resolves the install exactly this way; a second spelling here could pair this
+# roster with a different install than the one the gate will actually run.
+#
+# THREE ABSENCES, KEPT APART, because collapsing them is how this family of
+# defects starts: the resolver did not answer, the runner is not in the install
+# it named, or the runner is there and declares no roster. Only the first two
+# are faults and the third is a legitimate state.
+shipped_guards() {
+  local home runner name path when state
+  home="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
+  if [ -z "$home" ] || [ ! -d "$home" ]; then
+    printf '                 (INTENT_HOME did not resolve -- the shipped roster is UNREPORTED, not empty)\n'
+    return
+  fi
+  runner="$home/lib/templates/hooks/pre-commit-guards.sh"
+  if [ ! -f "$runner" ]; then
+    printf '                 (no %s -- the gate names a runner this install does not carry)\n' "$runner"
+    return
+  fi
+  # Anchored on the HANDLER ARM and never on a mention, for the reason recorded
+  # against `prepush` below: prose and mechanism share a spelling, and a grep
+  # for the capability counts the sentences describing it.
+  if ! grep -q '"\${1:-}" = "--list-guards"' "$runner" 2>/dev/null; then
+    printf '                 (the shipped runner declares no guard roster)\n'
+    return
+  fi
+  while IFS="$(printf '\t')" read -r name path when state; do
+    [ -n "$name" ] || continue
+    case "$state" in
+      present) printf '                 shipped: %s  (applies when %s exists)\n' "$name" "$when" ;;
+      not-applicable) printf '                 shipped: %s  -- NOT APPLICABLE here (%s is absent), so nothing goes unchecked\n' "$name" "$when" ;;
+      *) printf '                 shipped: %s  <- MISSING from the install at %s\n' "$name" "$path" ;;
+    esac
+  done < <(bash "$runner" --list-guards 2>/dev/null)
+}
+
 guards_of() {
   local runner="$ROOT/bin/.devbin/cmd/$1" name script
   [ -f "$runner" ] || {
@@ -264,6 +319,7 @@ if [ "$DO_INSTALL" -eq 0 ]; then
   GATE_ABSENT=0
   if [ -f "$HOOKS_DIR/pre-commit.intent" ]; then
     printf '  gate         WIRED     -> pre-commit.intent (critic + the shipped guard roster)\n'
+    shipped_guards
   else
     rc=1
     GATE_ABSENT=1

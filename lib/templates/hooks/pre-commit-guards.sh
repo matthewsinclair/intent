@@ -99,6 +99,57 @@ GUARDS=(
 # are in.
 GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# --list-guards -- ANSWER WHAT IS ENFORCED, WITHOUT ENFORCING ANYTHING.
+#
+# **`int hooks` REPORTED THIS GATE AS ONE LINE AND NAMED NONE OF ITS GUARDS**,
+# so the tool an operator consults to find out what the gate enforces
+# under-reported it by the whole of this roster. It printed the eleven
+# repo-local guards and, for the shipped ones, `pre-commit.intent (critic + the
+# shipped guard roster)` -- which is presence, not membership. **A check that
+# under-reports what a gate enforces is worse than no check** is that command's
+# own sentence, in its own header, about the defect it was written to close.
+#
+# THIS ARM IS FIRST AND RETURNS BEFORE ANY DISPATCH, WHICH IS THE WHOLE
+# CONTRACT. `int hooks` is a read-only report, and it has already been burned
+# once by a probe with a side effect: it grepped `cmd/prepush` for the string
+# `--list-guards`, matched a COMMENT, invoked it, and prepush -- which ignores
+# unknown flags and falls through -- cloned the repository and cold-built it,
+# every time anyone asked what the hooks were wired to. **Never ask a question
+# by running the thing.**
+#
+# THE RUNNER IS THE AUTHORITY ON ITS OWN ROSTER, and that is why this is a flag
+# rather than something `int hooks` derives. The previous arrangement grepped a
+# runner's source for a path shape and under-reported a three-guard gate as two
+# WITHIN THE DAY, because a guard had been implemented inline and matched no
+# path. A roster restated anywhere but here goes stale the moment a guard is
+# added -- and this file exists because exactly that happened to the copied
+# hook it replaced.
+#
+# IT REPORTS PRESENCE ITSELF RATHER THAN LETTING THE CALLER STAT THE PATH.
+# These guards live beside THIS file, under the resolved install, and a caller
+# in a consumer repository has no reason to be able to resolve that -- it would
+# stat `<repo>/<name>`, find nothing, and report every shipped guard MISSING.
+# The one process that knows `GUARD_HOME` is the one that computed it.
+if [ "${1:-}" = "--list-guards" ]; then
+  for g_entry in "${GUARDS[@]}"; do
+    g_when="${g_entry%%|*}"
+    g_rest="${g_entry#*|}"
+    g_name="${g_rest%%|*}"
+    if [ ! -f "$GUARD_HOME/$g_name" ]; then
+      g_state="MISSING"
+    elif [ ! -e "$g_when" ]; then
+      # NOT APPLICABLE IS NOT A FAULT, and it is reported as its own word for
+      # the same reason the dispatch loop keeps them apart: a project with a
+      # board and no canon has no hole where the canon guard would be.
+      g_state="not-applicable"
+    else
+      g_state="present"
+    fi
+    printf '%s\t%s\t%s\t%s\n' "$g_name" "$GUARD_HOME/$g_name" "$g_when" "$g_state"
+  done
+  exit 0
+fi
+
 BLOCKED=0
 RAN=0
 SKIPPED=0
