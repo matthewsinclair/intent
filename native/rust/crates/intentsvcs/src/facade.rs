@@ -158,6 +158,43 @@ fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
     "intent_version".to_string(),
     serde_json::Value::String(crate::faces::INTENT_VER.to_string()),
   );
+
+  // **`project_id`, MINTED ONCE AND NEVER RE-MINTED** (design.md D15 and the
+  // four cloud seams; vc ruled the value a UUID 2026-08-20). The natural keys
+  // stay human-legible and the UUID namespaces them, so `(project_id,
+  // natural_id)` is the global identity.
+  //
+  // **THIS IS WHERE THE STAMP GOES AND IT IS NOT WHERE THE COMMENT SAID IT
+  // WAS.** `migrate.rs` read *"the facade mints and stamps it, last"* -- above
+  // the `Bundle::new(&ctx.project_id, ..)` whose id is empty on a pre-migration
+  // project -- and the facade did no such thing. **The comment promised the fix
+  // immediately above the call that depended on it**, so a reader tracing the
+  // empty id was told the next step handled it and stopped. Three sites knew
+  // about `project_id`: one assumed it (`project.rs`, ruling it out as the
+  // migration marker BY REASONING THAT MIGRATED PROJECTS HAVE ONE), one
+  // commented on it being empty, one mandated it. **None wrote it**, and
+  // Intent's own self-hosted config carried no such field.
+  //
+  // **MINT-IF-ABSENT IS LOAD-BEARING, NOT DEFENSIVE.** `upgrade` is re-runnable
+  // by the fix-forward ruling, and `running_it_twice_leaves_the_tree_byte_
+  // identical` asserts a second run changes nothing. A fresh UUID per run would
+  // red that test -- correctly, because it would mean a project's identity was
+  // whatever the last migration happened to generate.
+  //
+  // An EMPTY string counts as absent. `Config::project_id` is `Option<String>`
+  // and every read site does `.unwrap_or_default()`, so `""` is the value an
+  // unstamped project already presents; treating it as present would stamp the
+  // field and leave the identity empty forever.
+  let unstamped = !map
+    .get("project_id")
+    .and_then(serde_json::Value::as_str)
+    .is_some_and(|id| !id.is_empty());
+  if unstamped {
+    map.insert(
+      "project_id".to_string(),
+      serde_json::Value::String(uuid::Uuid::new_v4().to_string()),
+    );
+  }
   let mut out = serde_json::to_string_pretty(&value).map_err(std::io::Error::other)?;
   out.push('\n');
   std::fs::write(&path, out)

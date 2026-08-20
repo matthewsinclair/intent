@@ -417,7 +417,21 @@ fn assemble(
   let expected = threads.len() + issues.len() + 1;
 
   // `project_id` is empty on a pre-migration project and `Bundle` records that
-  // honestly rather than inventing one; the facade mints and stamps it, last.
+  // honestly rather than inventing one.
+  //
+  // **THIS COMMENT USED TO END `the facade mints and stamps it, last`, AND
+  // THAT WAS NEVER TRUE** -- not stale, never true. `stamp_version` inserted
+  // `intent_version` and nothing else, so the sentence promised a fix, in the
+  // one place a reader tracing the empty id would arrive, and sent them away
+  // satisfied. It is true as of this commit; it is written here as history
+  // because the failure was the PROMISE, and a corrected promise reads exactly
+  // like the one that was wrong.
+  //
+  // **The empty id is inert HERE regardless, which is the part worth knowing
+  // and is why the stamp belongs at the facade rather than earlier**:
+  // `canon_parts` reads `bundle.threads`, `bundle.issues` and `bundle.events`,
+  // and never `bundle.project_id`. Migration passes `Vec::new()` for events, so
+  // nothing this bundle emits carries the id at all.
   let bundle = Bundle::new(&ctx.project_id, threads, issues, Vec::new());
   let parts = export::canon_parts(&bundle).map_err(|source| Blocked::Canon { source })?;
   if parts.len() != expected {

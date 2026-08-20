@@ -55,6 +55,19 @@ async-graphql = "7"
 # crate is a build-time architecture violation, not a style nit.
 rusqlite = { version = "0.32", features = ["bundled"] }
 ulid = "1"
+# `project_id` (design.md D15 / the four cloud seams): a UUID stamped into
+# `config.json` at migration, namespacing human-legible natural keys so that
+# `(project_id, natural_id)` is the global identity.
+#
+# WHY A NEW DEPENDENCY WHEN `ulid` IS ALREADY HERE, which was the first thing
+# checked. A ULID is also 128 bits and is already in the graph -- but it is not
+# a UUID, and design.md says UUID twice while `ulid` is used in exactly one
+# place (`event.rs`, envelope ids). Substituting one for the other silently
+# would be a design change wearing a dependency decision's clothes.
+#
+# The randomness stack is NOT new: `getrandom` and `rand` are already in the
+# lock via `ulid` and `rusqlite`, so what this adds is the uuid crate itself.
+uuid = { version = "1", features = ["v4"] }
 time = { version = "0.3", features = ["formatting", "macros"] }
 # Content hashing for the sync engine's file index. AC-03.3 requires detecting
 # a same-size same-mtime rewrite, which stat cannot see by construction, so the
