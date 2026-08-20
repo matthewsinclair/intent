@@ -142,6 +142,73 @@ impl Manifest {
   }
 }
 
+/// WHAT IS REALISED TO DISK, as the manifest answers it.
+///
+/// **Three states, because the two absent-ish ones must not be collapsed.**
+/// Both `NothingSaid` and `Unreadable` realise everything, so a caller that
+/// only decides what to write can treat them alike -- but a caller that
+/// REPORTS has to tell them apart, and re-deriving the distinction from the
+/// filesystem afterwards is how it gets lost.
+///
+/// Lifted out of `Facade` (where it was private) when `doctor` became the
+/// second reader. **One answer to "what is realised", consulted by the write
+/// path and the diagnostic path alike** -- two copies of this would let
+/// `projection` and `doctor` disagree about whether a view should exist, which
+/// is precisely the divergence `.intentfiles` exists to settle.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Realised {
+  /// There is no manifest. Nobody has said, so everything is realised -- the
+  /// state of every project that has never run `organize`.
+  NothingSaid,
+  /// A manifest was read. **An EMPTY set is somebody saying NONE and is
+  /// honoured**, which is what makes this different from [`Realised::NothingSaid`].
+  Declared(std::collections::BTreeSet<String>),
+  /// A manifest exists and does not parse. Realises everything, like
+  /// [`Realised::NothingSaid`], and kept distinct so a reporter can tell them
+  /// apart without going back to the filesystem.
+  Unreadable,
+}
+
+impl Realised {
+  /// Does the manifest declare this thread realised?
+  ///
+  /// **ABSENT IS NOT EMPTY.** `NothingSaid` and `Unreadable` answer `true` for
+  /// everything -- a missing or broken manifest keeps the whole estate on disk,
+  /// which is the fail-open direction and the only one that cannot delete
+  /// anybody's files. Only a manifest that PARSED gets to say no.
+  pub fn declares(&self, thread_id: &str) -> bool {
+    match self {
+      Realised::NothingSaid | Realised::Unreadable => true,
+      Realised::Declared(set) => set.contains(thread_id),
+    }
+  }
+}
+
+/// Read the manifest at `path` and say what it declares realised.
+///
+/// **FAIL-OPEN, AND THE DIRECTION IS CHOSEN RATHER THAN INHERITED.** A broken
+/// manifest realises everything and can never dehydrate, so the failure cannot
+/// delete anybody's files. Refusing instead would make one malformed line break
+/// every write in the project, and the grammar's real refusal belongs on the
+/// verbs that read the manifest deliberately, where the operator is asking
+/// about it and can act on the answer.
+pub fn realised(path: &std::path::Path) -> Realised {
+  let Ok(raw) = std::fs::read_to_string(path) else {
+    return Realised::NothingSaid;
+  };
+  match parse(&raw) {
+    Ok(manifest) => Realised::Declared(
+      manifest
+        .entries
+        .iter()
+        .filter(|e| e.sigil == Sigil::SteelThread)
+        .map(|e| e.id.clone())
+        .collect(),
+    ),
+    Err(_) => Realised::Unreadable,
+  }
+}
+
 /// Why a manifest could not be read.
 ///
 /// **Every variant carries the 1-indexed line number**, because AC-02.1 asks

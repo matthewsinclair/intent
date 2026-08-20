@@ -924,6 +924,25 @@ fn write_row(out: &mut String, row: &TodoItem, depth: usize) {
 // Rendering the whole estate, and the skew check
 // ---------------------------------------------------------------------------
 
+/// Which thread owns a view path, if any.
+///
+/// **The single answer, consulted by the write path and the diagnostic path
+/// alike.** `Facade::projection` uses it to decide what to WRITE and
+/// [`skew`] uses it to decide what a missing file MEANS; two copies would let
+/// those two disagree about whether a view should exist, which is exactly the
+/// divergence `.intentfiles` exists to settle.
+///
+/// `None` is a real answer and not a failure: `steel_threads.md` and `todo.md`
+/// are project-level, belong to no artefact, and so are never subject to the
+/// manifest.
+pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<String> {
+  canon
+    .threads
+    .iter()
+    .find(|t| path.starts_with(project.thread_dir(&t.id)))
+    .map(|t| t.id.clone())
+}
+
 /// Every view the model implies, in a stable order.
 pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<View> {
   let mut views = Vec::new();
@@ -1002,7 +1021,12 @@ pub fn write_all(
 /// matters: `write_all` would overwrite the edit without a word, and the
 /// person who made it would have no way to know their change was discarded.
 /// `doctor` runs this; the migrator runs it before it converges.
-pub fn skew(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<Finding> {
+pub fn skew(
+  project: &Project,
+  canon: &Canon,
+  ctx: &RenderContext<'_>,
+  realised: &crate::intentfiles::Realised,
+) -> Vec<Finding> {
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
@@ -1017,11 +1041,37 @@ pub fn skew(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<Fi
           view.content.len()
         ),
       )),
-      Err(_) => findings.push(Finding::new(
-        &rel,
-        FindingClass::ViewSkew,
-        "generated view is missing; regenerate it",
-      )),
+      // **ABSENT IS SILENCE ONLY WHERE THE MANIFEST SAYS THE ARTEFACT IS NOT
+      // REALISED, and that silence is bounded rather than blanket.** Under
+      // `.intentfiles` a dehydrated thread's views are legitimately gone -- that
+      // is the feature -- so reporting their absence made `doctor` unhealthy for
+      // every dehydrated thread in the estate: 234 findings at rc=1 on a healthy
+      // tree, every one instructing the operator to regenerate a file the design
+      // says should not exist, and the remedy it printed would have been answered
+      // by `organize` re-hydrating nothing.
+      //
+      // **A view absent for a DECLARED artefact is still a real finding.** That
+      // is a genuine loss, and a blanket `Err(_) => {}` would have traded 234
+      // false findings for one silent real one -- which is the trade this arm
+      // exists to refuse. `Realised::declares` is fail-open, so a missing or
+      // unreadable manifest keeps every view in scope and this check keeps its
+      // old behaviour exactly.
+      //
+      // The argument was already written down one file over, at
+      // `doctor::attachment_drift`, and applied to attachments and not to views
+      // -- a prediction of this exact defect by the author of the sibling path.
+      // The two paths now answer the same question the same way.
+      Err(_) => {
+        let dehydrated = owning_thread(project, &view.path, canon)
+          .is_some_and(|owner| !realised.declares(&owner));
+        if !dehydrated {
+          findings.push(Finding::new(
+            &rel,
+            FindingClass::ViewSkew,
+            "generated view is missing; regenerate it",
+          ));
+        }
+      }
     }
   }
   findings

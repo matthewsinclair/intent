@@ -51,6 +51,7 @@ use crate::contract::{self, Scope, Verdict};
 use crate::event::{self, Envelope, Subject};
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
+use crate::intentfiles::Realised;
 use crate::model::{
   AcKind, AcState, AcceptanceTest, AtStatus, Criterion, Issue, IssueStatus, TShirt, Thread,
   ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
@@ -700,24 +701,6 @@ impl crate::remedy::Remedy for FacadeError {
 // rendering in the workspace, and leaving it as an inherent method would mean
 // the one type that already had it kept a private copy while every other error
 // used the shared one -- which is how two renderings become normal.
-
-/// What `.intentfiles` says about which threads are realised.
-///
-/// **Three states rather than two, because absence and unreadability are
-/// different facts and only one of them is somebody's decision.**
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum Realised {
-  /// There is no manifest. Nobody has said, so everything is realised -- the
-  /// state of every project that has never run `organize`.
-  NothingSaid,
-  /// A manifest was read. **An EMPTY set is somebody saying NONE and is
-  /// honoured**, which is what makes this different from [`Realised::NothingSaid`].
-  Declared(std::collections::BTreeSet<String>),
-  /// A manifest exists and does not parse. Treated as [`Realised::NothingSaid`]
-  /// by every current caller, and kept distinct so a reporter can tell them
-  /// apart without going back to the filesystem.
-  Unreadable,
-}
 
 /// One row of `intent ac list`: the criterion, its computed state, and the
 /// tests that cover it.
@@ -1981,48 +1964,16 @@ impl Facade {
   /// which needs to tell them apart does not have to re-derive the distinction
   /// from the filesystem.
   fn realised_threads(&self) -> Realised {
-    let path = self.project.intentfiles_path();
-    let Ok(raw) = std::fs::read_to_string(&path) else {
-      return Realised::NothingSaid;
-    };
-    match intentfiles::parse(&raw) {
-      Ok(manifest) => Realised::Declared(
-        manifest
-          .entries
-          .iter()
-          .filter(|e| e.sigil == intentfiles::Sigil::SteelThread)
-          .map(|e| e.id.clone())
-          .collect(),
-      ),
-      // **FAIL-OPEN, AND THE DIRECTION IS CHOSEN RATHER THAN INHERITED.** A
-      // broken manifest realises everything and can never dehydrate, so the
-      // failure cannot delete anybody's files. Refusing instead would make one
-      // malformed line break every write in the project, and the grammar's real
-      // refusal belongs on the verbs that read the manifest deliberately, where
-      // the operator is asking about it and can act on the answer.
-      //
-      // **WHAT IS STILL MISSING IS A READER, AND IT IS NAMED RATHER THAN
-      // LEFT.** Nothing reports this state, so an operator whose manifest is
-      // broken has their declared dehydration silently stop being honoured.
-      // The value exists here so that `doctor` can ask; that it does not yet
-      // ask is a gap, not a design.
-      Err(_) => Realised::Unreadable,
-    }
+    crate::intentfiles::realised(&self.project.intentfiles_path())
   }
 
   /// Which thread's directory a view lives under, if any.
   ///
-  /// Estate-wide views -- the thread index, the todo view -- belong to no
-  /// thread and answer `None`, so they are always written. **They are a
-  /// function of the whole model rather than of any artefact**, and narrowing
-  /// them with a manifest would make the index disagree with the estate it
-  /// indexes.
+  /// Delegates to [`views::owning_thread`], which `doctor` also consults. **One
+  /// answer to which artefact owns a view**: two would let the write path and
+  /// the diagnostic path disagree about whether a file should exist.
   fn owning_thread(&self, path: &std::path::Path, canon: &Canon) -> Option<String> {
-    canon
-      .threads
-      .iter()
-      .find(|t| path.starts_with(self.project.thread_dir(&t.id)))
-      .map(|t| t.id.clone())
+    views::owning_thread(&self.project, path, canon)
   }
 
   /// Every file the model projects onto disk, as one batch.

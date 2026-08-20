@@ -750,7 +750,17 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
 // ---------------------------------------------------------------------------
 
 fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report: &mut Report) {
-  let skew = views::skew(project, canon, ctx);
+  // **`doctor` ASKS THE MANIFEST, and until now it did not.** The three-state
+  // answer already existed for exactly this reader -- `realised_threads`'s own
+  // doc said *"the value exists here so that `doctor` can ask; that it does not
+  // yet ask is a gap, not a design"* -- and the gap cost 234 false findings the
+  // evening the estate dehydrated.
+  //
+  // Fail-open by construction: an absent OR unreadable manifest declares
+  // everything, so a project that has never run `organize` is checked exactly as
+  // it was before this landed.
+  let realised = crate::intentfiles::realised(&project.intentfiles_path());
+  let skew = views::skew(project, canon, ctx, &realised);
   report.views_checked = views::render_all(project, canon, ctx).len();
   report.findings.extend(skew);
 
