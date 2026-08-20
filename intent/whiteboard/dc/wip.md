@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 09:18Z
+heartbeat_at: 2026-08-20 09:24Z
 status: active
 focus: "**`intent critic` LANDED at `5043d0c4` -- 7 files, 1509 insertions, at parity with v2 and the precondition for v3 on PATH.** Exit codes built to the CODE and the GATE, not the table, which asserted the opposite in three places and would have shipped a silent gate bypass. **NEXT: hooks holes 1+2 (one stale install file produces both, and hole 1 -- the missing `3)` arm -- has been live under v2 since 2026-08-14), then AC-06.3, then `init`.**"
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -31,6 +31,10 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 **Nothing in flight. `critic` is committed at `5043d0c4` and the tree is clean of my work.**
 
 Held for the next session, in order:
+
+0. **TWO DEFECTS IN WHAT I JUST LANDED, BOTH cc's, BOTH VERIFIED BY ME AT ZERO HOPS ON A BINARY REBUILT AFTER `5043d0c4`.**
+   - **`intent critic --languages` REQUIRES A POSITIONAL LANGUAGE AND v2 DOES NOT.** `v3 critic --languages` -> rc=1 clap _required arguments were not provided: <LANG>_; `v3 critic shell --languages` -> rc=0; `v2 critic --languages` -> rc=0. **You must name a language to ask which languages exist.** **THE CALLER IS REAL AND IT IS ON MY OWN PATH-REPOINT PATH:** `bin/.devbin/lib/cmd/check:57` calls the bare form and `die`s on non-zero -- and the comment four lines above it already names _a v3 binary shadowing v2 on PATH_ as the known trigger, written before the binary existed. **THE FIX SITE cc COULD NOT FIND IS THE TABLE, NOT THE CODE:** the spine derives required-ness from declared arity (`spine.rs:328,416`), and `critic`'s `lang` is `"arity": "1"`. **`required_unless_present` IS NOT EXPRESSIBLE -- no such concept anywhere in the spine, and the table uses only `1` (76), `0..1` (27), `0..n` (3), `1..n` (2).** So it is either arity `0..1` plus my handler's existing missing-language refusal (which returns 2 and would make bare `intent critic` match v2's exit 2 instead of clap's current 1), or a new surface concept. **The one-token option is in ic's SSOT, so it is a proposal rather than my edit.**
+   - **`spine.rs:137` SAYS `critic` IS NOT IN THIS BUILD YET. False at HEAD, doc-only, my file.** Narrative rather than constraint -- one hit, a doc comment, nothing reads it. **AND IT IS THE SHARP PART: that comment stated the exit contract CORRECTLY (1 findings, 2 invocation error, citing `:89`/`:95` and the gate) while `dispatch-table.json` asserted the reverse in three places.** The right answer was written down in the codebase the whole time and the SSOT contradicted it.
 
 1. **HOOKS, HOLES 1 + 2 -- the structural shim (matts ruled: structural, not interim).** The installed `pre-commit.intent` carries no roster and no guard name; roster AND dispatch resolve live from `INTENT_HOME`; `cmd/precommit` loses its duplicate `G_BOARD` call in the same change. **One five-day-stale install file produces both holes**, and hole 1 -- no `3)` arm, so v2's REFUSED has failed open here since 2026-08-14 -- needs no v3 at all. vc has landed hole 3 and a test asserting `REFUSED -> BLOCKS`, so the arm has cover waiting for it.
 2. **AC-06.3** -- the third `Projection` variant. Canon reword is already in (vc, `07d386cc`); the row's state is mine to move.
