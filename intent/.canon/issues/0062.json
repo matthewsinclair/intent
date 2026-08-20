@@ -1,0 +1,12 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 62,
+  "slug": "the-file-enum-on-edit-and-st-edit-is-declared-an",
+  "title": "The file enum on `edit` and `st edit` is declared and nothing enforces it",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-08-20",
+  "closed": "2026-08-20",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

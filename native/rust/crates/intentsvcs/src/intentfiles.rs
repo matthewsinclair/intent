@@ -433,8 +433,9 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
 // against.
 //
 // **They were deleted rather than left because two test files were still
-// driving them GREEN.** `edit_writes_pinned_region.rs` at least sat behind a
-// RED row (AT-05.2) naming it; `intentfiles_pin_survives_close.rs` was named by
+// driving them GREEN.** `edit_writes_pinned_region.rs` -- since renamed
+// `pin_writes_to_the_list.rs` -- at least sat behind a RED row (AT-05.2)
+// naming it; `intentfiles_pin_survives_close.rs` was named by
 // no AT row at all after AT-02.3 was re-pointed onto
 // `intentfiles_is_the_list.rs`, so it was nine passing assertions over a design
 // that no longer exists. **A red row says work is owed; an unnamed green file

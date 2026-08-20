@@ -1,42 +1,17 @@
-//! AT-05.2 / AC-05.2 -- **AND THIS FILE DOES NOT YET TEST AC-05.2's CRITERION.
-//! THE ROW STAYS RED. SAYING SO IS THE POINT OF THIS HEADER.**
+//! **`intentfiles::pin`, THE PRIMITIVE -- NOT AC-05.2's CRITERION.**
 //!
-//! What it holds today is the subset of the old file that survives hv's
-//! 2026-08-19 ruling: the properties of `intentfiles::pin` itself, which are
-//! still true and still worth pinning down. What it no longer holds is anything
-//! about a GENERATED REGION being rewritten from status.
+//! This file was `edit_writes_pinned_region.rs` and carried AT-05.2 with it.
+//! **Both halves of that name were wrong by 2026-08-20**: hv's ruling deleted
+//! the two-region design, so there is no "pinned region" to write to as
+//! against a generated one, and the criterion moved to
+//! `lifecycle_verbs_edit_the_list.rs`, which drives the VERBS. What is left
+//! here is what was always true -- the properties of `pin` as a function --
+//! and it is a better file for holding only that.
 //!
-//! # What was deleted and why
-//!
-//! The old file's headline case was *a hand realisation writes to the PINNED
-//! region and survives the next `organize`*, driven through
-//! `intentfiles::render` with `Generated` entries standing for "what status
-//! offers". **hv replaced that design**: `.intentfiles` is durable state,
-//! commands CHANGE it, and NOTHING recomputes it from status. With no
-//! regeneration there is no reversion to survive, so the case had no subject --
-//! and `render` and `Generated` are deleted from the module entirely.
-//!
-//! Two tests went with them: `a_hand_pin_survives_an_organize_that_drops_it_
-//! from_status` and its control `an_unpinned_thread_in_the_same_run_does_not_
-//! survive`. A third, `pinning_an_artefact_already_in_the_generated_region_
-//! still_pins_it`, is kept in its surviving half -- the early-return trap it
-//! guards is a fact about `pin`, not about the rewrite it used to check through.
-//!
-//! # What AC-05.2 now requires, and what will replace this file
-//!
-//! That the LIFECYCLE VERBS edit the list: `st new` adds the entry and
-//! `--dehydrate` does not, `st done` and `st cancel` remove it and `--keep` does
-//! not, `st reopen` and `st reinstate` add it back -- **and that the closing
-//! verbs WARN, naming the paths, when the artefact holds on-disk bytes the store
-//! has never seen.** A warning and never a refusal: `organize.rs:695` is the
-//! only line in the tool that removes an estate file, and a second authority
-//! over a destructive act it does not perform would refuse work the real
-//! authority allows.
-//!
-//! **None of that is built** -- no lifecycle verb touches `.intentfiles` today,
-//! and `--dehydrate` and `--keep` are declared, documented, and read by nothing.
-//! So this file cannot yet assert it, AT-05.2 is correctly red, and **a green
-//! here before those verbs exist would be the failure the whole row is about.**
+//! Its inverse lives in `unpin_removes_from_the_list.rs`. **The two are
+//! deliberately not merged**: `unpin` clears both regions while `pin` writes
+//! to one, and a single file asserting both invites a reader to take the
+//! asymmetry for an inconsistency instead of the correctness condition it is.
 //!
 //! # The thing that was left to break, broke -- and that was the point
 //!

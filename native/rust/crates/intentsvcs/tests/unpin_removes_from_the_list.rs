@@ -20,7 +20,7 @@
 //!
 //! The lifecycle wiring. `st new` / `st done` / `st cancel` / `st reopen` /
 //! `st reinstate` calling this, and `--dehydrate` / `--keep` suppressing it,
-//! are AC-05.2's actual criterion and live in `edit_writes_pinned_region.rs`.
+//! are AC-05.2's actual criterion and live in `lifecycle_verbs_edit_the_list.rs`.
 //! **A green here is a green about a function, not about the row.**
 
 use intentsvcs::intentfiles::{Region, Sigil, parse, pin, realised_from, unpin};

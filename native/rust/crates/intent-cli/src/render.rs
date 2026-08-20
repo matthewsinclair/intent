@@ -51,6 +51,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("issues", m)) => issues(m),
     Some(("agents", m)) => agents(m),
     Some(("critic", m)) => critic(m),
+    Some(("edit", m)) => edited(m),
     Some(("events", m)) => events(m),
     Some((family, _)) => unwired(family, ""),
     None => {
@@ -516,6 +517,52 @@ fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
 /// not-found: `AddressError::NotAddressable` exists for exactly that, so an
 /// operator who typed `ST57` is not sent into the estate hunting a thread that
 /// was never addressed.
+/// `intent edit <address> [file]` and `intent st edit <id> [file]`, which are
+/// one function because AC-05.3 says path-printing has one home.
+///
+/// **IT PRINTS THE PATH AND NOTHING ELSE ON STDOUT**, carried from v2
+/// (`bin/intent_st:1101-1144`) because the invocation that matters is
+/// `$EDITOR "$(intent edit ST0001 design)"` and anything else on that stream
+/// ends up as a filename. **The name is a historical misnomer** -- it never
+/// launches an editor -- and v2's own docs already work around it.
+///
+/// The realisation it does first is reported on STDERR for the same reason: it
+/// is news the operator wants and a substitution does not.
+fn edited(m: &ArgMatches) -> Result<(), Failure> {
+  // `address` on the top-level verb, `id` on `st edit` -- the same value under
+  // the name each table row gives it.
+  let argument = arg(m, "address").or_else(|_| arg(m, "id"))?;
+  let file = opt(m, "file").unwrap_or_else(|| "info".to_string());
+
+  // **THE DECLARED VOCABULARY IS ENFORCED HERE, FROM THE TABLE, AND THE LAYER
+  // IS THE POINT.** `surface/dispatch-table.json` declares
+  // `info | design | impl | tasks | acceptance` for this argument and the spine
+  // reads `arg.default` without ever reading `arg.values` -- so until now the
+  // set was declared and nothing honoured it, which is the
+  // declaration-versus-implementation gap AC-04.6 exists to find.
+  //
+  // **NOT A CLAP `value_parser`, AND THAT IS NOT A STYLE CHOICE**: clap rejects
+  // at exit 2, and 2 is INV-04's USAGE code that the pre-commit gate FAILS OPEN
+  // on. A bad enum value is a refusal the operator must see, not a gate bypass.
+  // Refusing here keeps it at 1 and lets the message name the set.
+  //
+  // Read from the table rather than written out, so the vocabulary has one home
+  // and this cannot drift from the row it enforces.
+  let permitted = dispatch::arg_values(&dispatch::table(), "edit", "file");
+  if !permitted.is_empty() && !permitted.iter().any(|v| v == &file) {
+    return Err(Failure::Error(format!(
+      "error: `{file}` is not a file this verb can open\n  remedy: name one of {}",
+      permitted.join(", ")
+    )));
+  }
+
+  let address = address::promote(&argument).map_err(|e| Failure::Error(e.render()))?;
+  let mut facade = open()?;
+  let path = facade.edit(&address, &file).map_err(fail)?;
+  println!("{}", path.display());
+  Ok(())
+}
+
 fn hydrated(argument: &str) -> Result<(), Failure> {
   let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
@@ -763,6 +810,11 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("hydrate", a)) => hydrated(&arg(a, "id")?),
+    // **AC-05.3: PATH-PRINTING HAS ONE HOME.** `st edit` is the same call with
+    // an `st-id` argument instead of an address -- and since `address::promote`
+    // takes a bare id, there is nothing left for this arm to do but pass it on.
+    // A second implementation here is what the criterion exists to forbid.
+    Some(("edit", a)) => edited(a),
     Some((verb, _)) => unwired("st", verb),
     None => Err("error: a steel thread command is required".into()),
   }

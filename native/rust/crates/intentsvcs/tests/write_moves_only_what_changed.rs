@@ -332,6 +332,10 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
     "organize_idempotent_mtime.rs -- ST0057 AC-04.4 IS this file's property for this verb, measured as MTIMES MOVED rather than as a content diff, and it carries the positive control that a zero-movement result needs. Driving it here as well would be a second expression of one claim, and the two would answer to different fixtures.",
   ),
   (
+    "edit",
+    "edit_prints_a_path_that_exists.rs -- the writes are `Facade::hydrate`'s and nothing else's, and that is the criterion rather than a shortcut: AC-05.3 says path-printing has ONE home, so `edit` realising anything itself WOULD BE the defect. `an_absent_artefact_is_realised_and_the_printed_path_exists` and `editing_pins_the_artefact_so_the_next_organize_keeps_it` drive both halves of what it writes -- the files and the manifest entry -- from a fixture that starts DEHYDRATED, so neither can pass against a verb that wrote nothing. NOT covered by `facade_hydrate.rs`: that proves hydrate's writes, and what is owed here is that `edit` performs them before it answers.",
+  ),
+  (
     "st hydrate",
     "facade_hydrate.rs -- `the_call_is_idempotent_in_what_it_returns`, `the_pin_is_idempotent` and `hydrating_something_already_on_disk_still_pins_it` are this criterion for this verb, driven at the primitive the CLI arm is two lines over. NOT organize_idempotent_mtime.rs, which measures the ESTATE-WIDE verb: hydrate runs a plan FILTERED to one artefact, so the whole-estate file covers the mechanism and not the scoping, and citing it would name a file that cannot fail when this verb regresses.",
   ),

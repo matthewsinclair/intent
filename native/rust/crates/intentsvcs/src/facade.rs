@@ -398,6 +398,30 @@ pub enum FacadeError {
   /// that handles all eleven.
   #[error("`{form}` is not something that can be realised to disk: {why}")]
   NotHydratable { form: &'static str, why: String },
+  /// `intent edit` was pointed at a file the model writes (AC-05.1, hv
+  /// 2026-08-19).
+  ///
+  /// **THE REFUSAL IS THE FEATURE AND THE DESTINATION IS WHY.** Handing over a
+  /// generated view's path lets an operator author into a file the next render
+  /// overwrites, and the skew check catches that AFTER the work is gone --
+  /// **detection is not prevention.** A refusal that only refuses is barely
+  /// better, because the operator still has a real edit to make, so
+  /// `author_with` travels with it.
+  #[error("`{path}` is generated from the model, so an edit here is lost at the next render")]
+  NotEditable {
+    path: String,
+    author_with: &'static str,
+  },
+  /// The artefact does not carry that file.
+  ///
+  /// **v2's `st edit` PRINTED THE PATH ANYWAY** (`bin/intent_st:1101-1144`,
+  /// _the thread DIRECTORY must exist; the file need not_). AC-05.1 asks for a
+  /// path that EXISTS after the call, so this is a deliberate deviation: a path
+  /// to nothing sends an editor to create an untracked file beside the
+  /// artefact, which is the `Unclaimed` population `organize` already reports
+  /// and nobody wants more of.
+  #[error("`{path}` is not a file this artefact carries")]
+  NoSuchEditable { path: String, present: Vec<String> },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -603,6 +627,10 @@ impl crate::remedy::Remedy for FacadeError {
       // getting this sentence. `StoreError::remedy` distinguishes them, and
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
+      Self::NotEditable { author_with, .. } => format!("author it with {author_with}"),
+      Self::NoSuchEditable { present, .. } => {
+        format!("this artefact carries: {}", present.join(", "))
+      }
       Self::NotHydratable { form, .. } => format!(
         "address an ARTEFACT instead -- a thread or an issue. A `{form}` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread."
       ),
@@ -769,6 +797,30 @@ pub struct AcRow {
 /// the no-op line is not a new home for a status vocabulary. That is issue 0047's
 /// lesson applied before it can recur: seventeen hard-coded state words in
 /// `render.rs` would be seventeen spellings a rename could not reach.
+/// Something a transition has to say beyond the fact that it happened.
+///
+/// **A NOTE IS NOT A REFUSAL AND MUST NOT GROW INTO ONE** (AC-05.2, and vc's
+/// 2026-08-19 correction of its own wording). The closing verbs delete nothing:
+/// `organize` holds the only line in the tool that removes an estate file, and
+/// a second gate over a destructive act this verb does not perform would refuse
+/// work the real authority allows -- **and it would disagree with that
+/// authority BY CONSTRUCTION rather than by drift, because the two answer
+/// different questions.**
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Note {
+  /// The artefact holds on-disk bytes no commit contains, and closing it puts
+  /// its files in line for the next `organize` to remove. The strings are the
+  /// paths, ready to print.
+  UnsyncedAttachments(Vec<String>),
+  /// **THE QUESTION COULD NOT BE ASKED** -- no repository, or git did not run.
+  ///
+  /// Carried as its own variant rather than as an empty list, because "nothing
+  /// is uncommitted" and "I could not look" are the two answers an operator
+  /// most needs to tell apart, and collapsing them prints a clean bill of
+  /// health nobody earned.
+  UnsyncedUnknown,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Outcome {
   /// The field moved, and the movement is recorded.
@@ -777,6 +829,15 @@ pub enum Outcome {
   ///
   /// `state` is that state, spelled as the surface spells it.
   AlreadyThere { state: String },
+  /// The field moved, and there is something to say about it.
+  ///
+  /// **THE NOTES TRAVEL WITH THE ACT RATHER THAN BEING FETCHED BESIDE IT**, and
+  /// that is the whole reason this variant exists instead of the renderer
+  /// asking `sync_uncommitted` itself before calling the verb. A renderer-side
+  /// warning is one every OTHER caller of the facade skips in silence -- the
+  /// library API, and whatever MCP surface arrives next -- so the operator's
+  /// protection would be a property of the door they came through.
+  MovedWith { notes: Vec<Note> },
 }
 
 impl Outcome {
@@ -788,9 +849,84 @@ impl Outcome {
   /// dropped payload.
   pub fn already(&self) -> Option<&str> {
     match self {
-      Self::Moved => None,
+      Self::Moved | Self::MovedWith { .. } => None,
       Self::AlreadyThere { state } => Some(state),
     }
+  }
+
+  /// What this transition has to say, if anything.
+  ///
+  /// **PRINTED FROM THE ONE REPORTER, WHICH IS WHAT MAKES A NOTE UNDROPPABLE.**
+  /// Adding a variant would NOT have forced nineteen renderer arms to handle it
+  /// -- they all go through [`Outcome::already`], which is a method and absorbs
+  /// a new variant silently. What actually prevents a dropped note is that
+  /// every one of those arms reports through a single function, so the note is
+  /// printed once, there, for all of them.
+  /// Did the field move?
+  ///
+  /// **THE COMPLEMENT OF [`Outcome::already`], AND IT EXISTS BECAUSE A THIRD
+  /// VARIANT MADE `== Outcome::Moved` A LIE.** An equality against one variant
+  /// asks *which outcome is this* when the caller means *did anything happen*,
+  /// and the compiler cannot tell those apart -- adding `MovedWith` broke a
+  /// walk over every declared edge that had been correct for months, silently
+  /// in the sense that nothing about the assertion looked wrong.
+  pub fn moved(&self) -> bool {
+    self.already().is_none()
+  }
+
+  pub fn notes(&self) -> &[Note] {
+    match self {
+      Self::Moved | Self::AlreadyThere { .. } => &[],
+      Self::MovedWith { notes } => notes,
+    }
+  }
+}
+
+/// Whether a lifecycle transition makes its declared edit to `.intentfiles`,
+/// or the operator has suppressed it (AC-05.2).
+///
+/// **ONE TYPE FOR TWO FLAGS, BECAUSE THEY ARE ONE INSTRUCTION.** `st new
+/// --dehydrate` and `st done --keep` read as opposites -- one withholds an
+/// entry, the other retains one -- and both say exactly *do not make this op's
+/// declared change to the list*. A `bool` per verb would have been two
+/// spellings of one concept, and the third verb to grow a flag would have
+/// invented a third.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ListEdit {
+  /// Do what the op declares. Every call but the two flagged ones.
+  AsDeclared,
+  /// The operator said not to. Reached only from `--dehydrate` and `--keep`.
+  Suppressed,
+}
+
+/// The edit a lifecycle op declares against `.intentfiles`, if any.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ListAction {
+  Add,
+  Remove,
+}
+
+/// What a lifecycle op declares about `.intentfiles`.
+///
+/// **KEYED ON THE OP AND NEVER ON THE STATUS, AND HERE THAT IS ARITHMETIC
+/// RATHER THAN PRINCIPLE.** hv ruled that nothing derives this file from
+/// status; in this function the target status could not carry the answer even
+/// if it were allowed to. `st.triage` and `st.reinstate` both land on
+/// `NotStarted`, and `st.start`, `st.resume` and `st.reopen` all land on
+/// `Wip` -- so a match on the destination would make `st triage` start adding
+/// entries and `st start` re-add one a human had deliberately removed. **Two
+/// collisions in a vocabulary of eight ops**, which is why the op string is
+/// the key and the five members are listed by name.
+///
+/// **AND `None` IS A DECISION RATHER THAN A FALLTHROUGH.** `st.triage`,
+/// `st.start`, `st.hold` and `st.resume` change what a thread IS and say
+/// nothing about whether it is on disk. **A held thread stays realised** --
+/// that is the whole content of "no function of status".
+fn declared_list_edit(op: &str) -> Option<ListAction> {
+  match op {
+    "st.new" | "st.reopen" | "st.reinstate" => Some(ListAction::Add),
+    "st.done" | "st.cancel" => Some(ListAction::Remove),
+    _ => None,
   }
 }
 
@@ -1591,8 +1727,10 @@ impl Facade {
   /// artefact is realised because it is currently `wip`, its id sits in the
   /// GENERATED region, and it is not pinned. **Presence is true and pinned-ness
   /// is false, and they disagree on the common path rather than in a corner.**
-  /// `edit_writes_pinned_region.rs` already reds that, so the estate had the
-  /// test before it had this caller.
+  /// `pin_writes_to_the_list.rs` already reds that, so the estate had the test
+  /// before it had this caller. (It was `edit_writes_pinned_region.rs` until
+  /// 2026-08-20; the file kept the assertion and lost a name that described a
+  /// design hv had deleted.)
   ///
   /// **Pinning is what makes the decision outlive STATUS.** The generated region
   /// is a function of today's board; a pin is a durable statement that this
@@ -2384,6 +2522,76 @@ impl Facade {
     )
   }
 
+  /// AC-05.1: **the path to open for an addressed artefact, realised first so
+  /// that the path EXISTS when it is printed.**
+  ///
+  /// **IT DELEGATES TO [`Facade::hydrate`] RATHER THAN REALISING ANYTHING
+  /// ITSELF**, which is AC-05.3 in one line: path-printing has ONE home, and
+  /// this is `st edit`'s behaviour learning to hydrate first rather than a
+  /// second implementation of it. Every refusal `hydrate` makes -- a foreign
+  /// authority, a non-artefact entity -- is inherited whole and none is
+  /// restated here.
+  ///
+  /// **THE EXISTENCE CHECK IS MEMBERSHIP IN WHAT `hydrate` RETURNED, NOT A
+  /// `Path::exists`.** `hydrate` documents its return as the paths that NOW
+  /// EXIST, so asking the filesystem again would be a second answer to a
+  /// question already answered -- and a worse one, because it could not say
+  /// what IS there when the answer is no.
+  ///
+  /// **A GENERATED VIEW IS REFUSED AND THE REFUSAL CARRIES THE DESTINATION**
+  /// (hv, 2026-08-19). The disposition comes from [`Project::edit_disposition`]
+  /// so there is no second answer to what a file is.
+  pub fn edit(&mut self, address: &Address, file: &str) -> Result<std::path::PathBuf, FacadeError> {
+    let realised = self.hydrate(address)?;
+    // `hydrate` refuses every non-artefact form before this point, so the
+    // address is known to name one.
+    let (_, id) = address
+      .entity
+      .artefact()
+      .expect("hydrate refuses any address without an artefact");
+
+    let rel = std::path::PathBuf::from(format!("{file}.md"));
+    if let crate::project::EditDisposition::Refuse { author_with } = Project::edit_disposition(&rel)
+    {
+      return Err(FacadeError::NotEditable {
+        path: self
+          .project
+          .relative(&self.project.thread_dir(id).join(&rel)),
+        author_with,
+      });
+    }
+
+    let wanted = self.project.thread_dir(id).join(&rel);
+    if !realised.contains(&wanted) {
+      return Err(FacadeError::NoSuchEditable {
+        path: self.project.relative(&wanted),
+        // **WHAT IS THERE, NOT MERELY THAT THIS IS NOT.** The operator asked
+        // for a file this artefact does not carry, and the set that answers
+        // the follow-up question is the one already in hand.
+        //
+        // **THREAD-RELATIVE AND DEDUPED, BECAUSE THE BASENAME IS NOT THE
+        // ANSWER.** Taking `file_name()` printed `info.md` ten times on a
+        // thread with nine work packages -- every `WP/<NN>/info.md` collapsing
+        // onto the cover's name. A remedy that repeats one word ten times is
+        // read as a rendering fault and stops being read at all, and it also
+        // told the operator that `info` was available when `info` is the one
+        // thing this verb refuses.
+        present: {
+          let dir = self.project.thread_dir(id);
+          let mut names: Vec<String> = realised
+            .iter()
+            .filter_map(|p| p.strip_prefix(&dir).ok())
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect();
+          names.sort();
+          names.dedup();
+          names
+        },
+      });
+    }
+    Ok(wanted)
+  }
+
   /// Run the close gate. A read: it changes nothing and refuses nothing.
   pub fn gate(&self, st: &str, scope: Scope) -> Result<Verdict, FacadeError> {
     Ok(contract::gate(
@@ -2403,6 +2611,24 @@ impl Facade {
   /// thread is now triaged rather than assumed wanted, and `st triage` is the
   /// verb that accepts it into the backlog.
   pub fn st_new(&mut self, title: &str) -> Result<String, FacadeError> {
+    self.st_new_listing(title, ListEdit::AsDeclared)
+  }
+
+  /// Create a thread, saying whether it is also listed in `.intentfiles`.
+  ///
+  /// `st new --dehydrate` passes [`ListEdit::Suppressed`]; everything else
+  /// reaches this through [`Facade::st_new`]. **A wrapper for the same reason
+  /// [`Facade::st_done_listing`] is one** -- seventeen call sites across nine
+  /// shared test files, and nothing to say in any of them.
+  ///
+  /// **WHAT `--dehydrate` DOES NOT DO, AND ITS HELP TEXT CLAIMS IT DOES:**
+  /// suppress the FILES. [`Facade::apply`] projects every changed thread
+  /// unconditionally and consults no manifest, so the views are written either
+  /// way and the next `organize` is what removes them. The flag's real and only
+  /// effect is on the list. Reported rather than worked around: filtering
+  /// `apply` by the manifest is a change to the core write path, not to this
+  /// verb.
+  pub fn st_new_listing(&mut self, title: &str, list: ListEdit) -> Result<String, FacadeError> {
     let id = self.next_thread_id();
     if self.canon.threads.iter().any(|t| t.id == id) {
       return Err(FacadeError::ThreadExists { id });
@@ -2448,16 +2674,29 @@ impl Facade {
       json!({"title": title}),
       next,
     )?;
+    self.edit_list("st.new", &id, list)?;
     Ok(id)
   }
 
   /// Accept a thread out of triage and into the backlog.
   pub fn st_triage(&mut self, id: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::NotStarted, "st.triage", None)
+    self.set_thread_status(
+      id,
+      ThreadStatus::NotStarted,
+      "st.triage",
+      None,
+      ListEdit::AsDeclared,
+    )
   }
 
   pub fn st_start(&mut self, id: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Wip, "st.start", None)
+    self.set_thread_status(
+      id,
+      ThreadStatus::Wip,
+      "st.start",
+      None,
+      ListEdit::AsDeclared,
+    )
   }
 
   /// Pause a thread, recording why.
@@ -2467,7 +2706,13 @@ impl Facade {
   /// hand-editing frontmatter, which is the defect class hv ruled on, sitting
   /// in the tool's own status enum.
   pub fn st_hold(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Hold, "st.hold", Some(reason))
+    self.set_thread_status(
+      id,
+      ThreadStatus::Hold,
+      "st.hold",
+      Some(reason),
+      ListEdit::AsDeclared,
+    )
   }
 
   /// Resume a held thread. **The hold reason is cleared**, because it described
@@ -2475,7 +2720,13 @@ impl Facade {
   ///
   /// [`Thread::status_reason`]: crate::model::Thread::status_reason
   pub fn st_resume(&mut self, id: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Wip, "st.resume", None)
+    self.set_thread_status(
+      id,
+      ThreadStatus::Wip,
+      "st.resume",
+      None,
+      ListEdit::AsDeclared,
+    )
   }
 
   /// Close a thread. Consults the close gate first -- the single authority, so
@@ -2483,7 +2734,21 @@ impl Facade {
   /// Close a thread. The gate is a DECLARED guard and is run by the shared
   /// setter, after the self-loop test -- see [`Facade::check_gate`].
   pub fn st_done(&mut self, id: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Completed, "st.done", None)
+    self.st_done_listing(id, ListEdit::AsDeclared)
+  }
+
+  /// `st done --keep`: close the thread and LEAVE its `.intentfiles` entry, so
+  /// its files stay on disk (AC-05.2).
+  ///
+  /// **A WRAPPER RATHER THAN A PARAMETER ON [`Facade::st_done`], AND THE
+  /// REASON IS THE SHARED CHECKOUT RATHER THAN TASTE.** Threading the argument
+  /// through would have rewritten thirteen call sites across seven test files
+  /// that four sessions edit concurrently -- a mechanical diff whose only
+  /// content is `ListEdit::AsDeclared`, in exactly the files a peer is most
+  /// likely to be holding. **The delegation is one line and there is one
+  /// implementation**, so this is a second door and never a second answer.
+  pub fn st_done_listing(&mut self, id: &str, list: ListEdit) -> Result<Outcome, FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Completed, "st.done", None, list)
   }
 
   /// Reopen a completed thread.
@@ -2494,7 +2759,13 @@ impl Facade {
   /// to own -- and the gate then kept saying PASS against a contract that had
   /// moved underneath it.
   pub fn st_reopen(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Wip, "st.reopen", Some(reason))
+    self.set_thread_status(
+      id,
+      ThreadStatus::Wip,
+      "st.reopen",
+      Some(reason),
+      ListEdit::AsDeclared,
+    )
   }
 
   /// Bring a cancelled thread back, to the backlog rather than to where it was.
@@ -2503,19 +2774,50 @@ impl Facade {
   /// flight has had its work overtaken, and resuming it as `wip` would assert
   /// a continuity nobody checked.
   pub fn st_reinstate(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::NotStarted, "st.reinstate", Some(reason))
+    self.set_thread_status(
+      id,
+      ThreadStatus::NotStarted,
+      "st.reinstate",
+      Some(reason),
+      ListEdit::AsDeclared,
+    )
   }
 
   pub fn st_cancel(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Cancelled, "st.cancel", Some(reason))
+    self.st_cancel_listing(id, reason, ListEdit::AsDeclared)
   }
 
+  /// `st cancel --keep`: cancel the thread and LEAVE its `.intentfiles` entry,
+  /// so its files stay on disk.
+  ///
+  /// **THE SYMMETRY IS hv's RULING, 2026-08-20, AND IT REVERSES A GUESS OF
+  /// MINE.** AC-05.2 named `st done --keep` and said nothing about `st cancel`,
+  /// so the surface shipped with the opt-out on one of two identical acts. I
+  /// read the silence as deliberate -- cancelling is the stronger statement, so
+  /// you are less likely to want the files -- and hv ruled the other way.
+  ///
+  /// **The guess was plausible and wrong for a reason worth keeping: `--keep`
+  /// is not about how sure you are that the work is over, it is about whether
+  /// you still need to READ the files** -- and a cancelled thread is at least
+  /// as likely to be one you are still mining for what it decided. Both verbs
+  /// remove the entry, so both take the same override under the same word.
+  pub fn st_cancel_listing(
+    &mut self,
+    id: &str,
+    reason: &str,
+    list: ListEdit,
+  ) -> Result<Outcome, FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Cancelled, "st.cancel", Some(reason), list)
+  }
+
+  /// `list` is [`ListEdit::AsDeclared`] for every caller but `st done --keep`.
   fn set_thread_status(
     &mut self,
     id: &str,
     status: ThreadStatus,
     op: &'static str,
     reason: Option<&str>,
+    list: ListEdit,
   ) -> Result<Outcome, FacadeError> {
     let from = self.st_show(id)?.status;
 
@@ -2536,6 +2838,8 @@ impl Facade {
     Self::check_transition("Thread", "status", op, &crate::model::enum_str(&from), id)?;
     self.check_gate(("Thread", "status", op), id, id, Scope::Thread)?;
     let reason = Self::check_reason("Thread", "status", op, reason)?;
+    // Read BEFORE anything is written -- see [`Facade::closing_notes`].
+    let notes = self.closing_notes(op, id, list)?;
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
@@ -2547,21 +2851,27 @@ impl Facade {
       ThreadStatus::Completed | ThreadStatus::Cancelled => Some(String::new()),
       _ => None,
     };
-    self
-      .apply(
-        op,
-        Subject {
-          kind: "thread".to_string(),
-          id: id.to_string(),
-        },
-        json!({
-          "from": crate::model::enum_str(&from),
-          "to": crate::model::enum_str(&status),
-          "reason": reason,
-        }),
-        next,
-      )
-      .map(|()| Outcome::Moved)
+    self.apply(
+      op,
+      Subject {
+        kind: "thread".to_string(),
+        id: id.to_string(),
+      },
+      json!({
+        "from": crate::model::enum_str(&from),
+        "to": crate::model::enum_str(&status),
+        "reason": reason,
+      }),
+      next,
+    )?;
+    // **AFTER `apply`, DELIBERATELY** -- see [`Facade::edit_list`] for why the
+    // interrupted-between state has to be the one that degrades into `--keep`.
+    self.edit_list(op, id, list)?;
+    Ok(if notes.is_empty() {
+      Outcome::Moved
+    } else {
+      Outcome::MovedWith { notes }
+    })
   }
 
   /// Enforce a declared [`transitions::Guard::GatePass`], and only where it is
@@ -3894,6 +4204,106 @@ impl Facade {
     let projected = set.commit().map(Applied::keep);
     self.canon = next;
     projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })
+  }
+
+  /// What a CLOSING transition has to say before it happens (AC-05.2).
+  ///
+  /// **COMPUTED BEFORE THE WRITE, WHICH IS THE HALF THE OBVIOUS ORDERING GETS
+  /// WRONG.** `sync --to-store` states what it will overwrite rather than what
+  /// it overwrote, on AC-03.9's ground that a summary afterwards is a receipt
+  /// for a loss the operator needed one moment earlier. The same argument
+  /// reaches here one step removed: the close itself destroys nothing, but it
+  /// puts the artefact's files in line for the next `organize`, and the moment
+  /// to say so is while the operator is still holding the decision.
+  ///
+  /// **TIED TO THE REMOVAL AND NOT TO THE VERB.** `st done --keep` closes the
+  /// thread and leaves it listed, so no dehydration is coming and there is
+  /// nothing to warn about. Keying on the verb would have warned anyway --
+  /// correct-looking, and a warning about a consequence that is not coming is
+  /// how an operator learns to skim the ones that are.
+  ///
+  /// **AN ATTACHMENT-LESS THREAD ASKS NOTHING AND SO CANNOT BE UNCERTAIN.**
+  /// The uncertainty this reports is git's, and with no paths to ask about
+  /// there is no question for git to fail to answer -- zero attachments hold
+  /// zero uncommitted bytes by arithmetic, in a repository or out of one. That
+  /// is not a clean bill of health taken on credit; it is the one case where
+  /// the answer does not depend on the check.
+  fn closing_notes(&self, op: &str, id: &str, list: ListEdit) -> Result<Vec<Note>, FacadeError> {
+    if list == ListEdit::Suppressed || declared_list_edit(op) != Some(ListAction::Remove) {
+      return Ok(Vec::new());
+    }
+    if self.st_show(id)?.attachments.is_empty() {
+      return Ok(Vec::new());
+    }
+    let scope = SyncScope::Threads(vec![id.to_string()]);
+    Ok(match self.sync_uncommitted(&scope)? {
+      // **NOT FOLDED INTO SILENCE.** A close that says nothing is read as "no
+      // uncommitted bytes" by anyone who knows it warns, so silence here IS the
+      // clean bill of health `sync_uncommitted` refuses to let a caller print.
+      None => vec![Note::UnsyncedUnknown],
+      Some(found) if found.is_empty() => Vec::new(),
+      Some(found) => vec![Note::UnsyncedAttachments(found)],
+    })
+  }
+
+  /// Make a lifecycle op's declared edit to `.intentfiles` (AC-05.2).
+  ///
+  /// **IT RUNS AFTER `apply`, AND THE ORDER IS CHOSEN FOR ITS FAILURE MODE.**
+  /// Both orders can be interrupted between the two writes, so the question is
+  /// only which half-done state is survivable. Manifest first, store second,
+  /// leaves the list saying NOT REALISED while the thread is still open -- and
+  /// the next `organize` removes a live thread's files on the strength of it.
+  /// Store first leaves a closed thread still listed, which is precisely what
+  /// `--keep` asks for on purpose. **One order degrades into a supported
+  /// outcome and the other into a deletion nobody asked for.**
+  ///
+  /// **THIS IS THE OPPOSITE ORDER FROM [`Facade::hydrate`], WHICH PINS FIRST,
+  /// AND THE TWO ARE NOT IN TENSION.** Hydrate's ordering answers a different
+  /// question -- that the pin must not be skipped when the files already exist
+  /// -- and it has no second write to be interrupted between.
+  fn edit_list(&self, op: &str, id: &str, list: ListEdit) -> Result<(), FacadeError> {
+    if list == ListEdit::Suppressed {
+      return Ok(());
+    }
+    let Some(action) = declared_list_edit(op) else {
+      return Ok(());
+    };
+    let path = self.project.intentfiles_path();
+    let before = match std::fs::read_to_string(&path) {
+      Ok(text) => text,
+      // **ABSENT IS NOT EMPTY, SO AN ABSENT MANIFEST IS LEFT ABSENT** -- and
+      // this is the arm where that rule earns its keep. A missing file means
+      // nobody has said, and everything is realised. Creating one here to hold
+      // this single entry would declare that this id is **the whole of what is
+      // realised**, and the next `organize` would remove every other thread's
+      // files on the strength of one `st new`. The no-op is the rule applying,
+      // not a case being skipped.
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+      // **AND ANY OTHER IO ERROR IS RAISED RATHER THAN FOLDED INTO THE ABOVE.**
+      // A manifest that exists and cannot be read is not a manifest that does
+      // not exist: treating them alike would let a permissions fault silently
+      // stop `st done` maintaining the list, which is the No Silent Errors case
+      // exactly -- an unreadable file answering as "nobody has said".
+      Err(source) => {
+        return Err(FacadeError::ManifestUnreadable {
+          path: path.display().to_string(),
+          source,
+        });
+      }
+    };
+    let after = match action {
+      ListAction::Add => intentfiles::pin(&before, intentfiles::Sigil::SteelThread, id, None),
+      ListAction::Remove => intentfiles::unpin(&before, intentfiles::Sigil::SteelThread, id),
+    }
+    .map_err(FacadeError::Intentfiles)?;
+    // Both primitives are idempotent, so an unchanged file is the ordinary
+    // outcome of closing an already-unlisted thread rather than a miss.
+    if after != before {
+      let mut set = WriteSet::new();
+      set.add(path, after);
+      set.commit()?.keep();
+    }
+    Ok(())
   }
 
   fn next_thread_id(&self) -> String {

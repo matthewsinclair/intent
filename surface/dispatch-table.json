@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 10 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 11 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -501,6 +501,15 @@
               "value": "<text>",
               "help": "Why it is being cancelled -- required by the machine's guard",
               "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--keep"
+              ],
+              "type": "bool",
+              "help": "Cancel the thread but leave its entry in .intentfiles, so its files stay on disk",
+              "disposition": "keep",
+              "disposition_basis": "**hv RULED THE ASYMMETRY OUT, 2026-08-20, ON ic's QUESTION.** AC-05.2 named `st done --keep` and said nothing about `st cancel`, so the surface shipped with the opt-out on one closing verb and not the other. ic asked whether that was deliberate and guessed it was -- reasoning that cancelling is the stronger statement and an operator is less likely to want the files. **hv ruled the opposite: the asymmetry is not wanted.** The guess was worth recording because it was plausible and wrong: **`--keep` is not about how sure you are that the work is over, it is about whether you still need to READ the files** -- and a cancelled thread is at least as likely to be one you are still mining for what it decided. `st done` and `st cancel` both REMOVE the entry, so both need the same override, and a flag on one of two identical acts is a surface that has to be memorised rather than understood. **Same flag, same word, same meaning: suppress this op's declared edit to the list, and never the close itself.**"
             }
           ],
           "v2": "bin/intent_st:536-598",
@@ -6986,6 +6995,45 @@
       "hidden_aliases_basis": "**hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there."
     },
     {
+      "path": "edit",
+      "help": "Print the path to open for an artefact, realising it first so the path exists",
+      "args": [
+        {
+          "name": "address",
+          "type": "address-or-id",
+          "arity": "1",
+          "note": "A bare artefact id is promoted; a full `intent://` URL is parsed as written. `address::promote` is the one door, so a typo is a USAGE error naming both forms and never a not-found."
+        },
+        {
+          "name": "file",
+          "type": "enum",
+          "arity": "0..1",
+          "default": "info",
+          "values": [
+            "info",
+            "design",
+            "impl",
+            "tasks",
+            "acceptance"
+          ],
+          "note": "NO `all` -- there is no single path for it. Carried unchanged from `st edit`, which this verb absorbs."
+        }
+      ],
+      "flags": [],
+      "v2": "new-surface",
+      "basis": "AC-05.1 / AC-05.3. **`st edit` printed a path and left the operator to find out whether it was there** -- v2's own note says the thread DIRECTORY must exist and the file need not. Under the disk model an artefact may legitimately have no realised form at all, so the same command on a dehydrated thread names a path to nothing. **This verb hydrates first, so the path it prints EXISTS**, and `st edit` becomes a delegate rather than a second implementation: AC-05.3 is explicit that path-printing has ONE home.",
+      "owner_wp": "WP-05",
+      "side_effect_ruled": "hv, 2026-08-19. A generated view is REFUSED and the refusal NAMES THE AUTHORING SURFACE -- `acceptance.md` -> `intent ac` / `intent at`; `info.md` and WP covers -> `intent st` / `intent wp`. **Detection is not prevention**: AC-03.4 catches a hand-edited view AFTER it is written and the work is already gone. An ATTACHMENT is handed over without hesitation, because the file on disk IS the authoring surface. Derived from `Project::edit_disposition`, itself derived from `classify()`, so there is no second answer to what a file is.",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "recoverability": "idempotent",
+      "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING RECOVERABLE, AND THE GROUND IS THE RETURN VALUE RATHER THAN THE RISK.** The withhold list is derived from `recoverability` because MCP should not expose a mutation the surface cannot undo -- and this one it can: `edit` delegates to `Facade::hydrate`, idempotent in both of its steps, and adds only a read on top. **It is withheld anyway because what it RETURNS is an absolute filesystem path on this machine**, which is not merely unhelpful to a remote caller but actively misleading: a path that exists here and nowhere else, handed to something with no way to open it. The rule the list encodes is about safety and this exclusion is about meaning, so the number is left disagreeing and the reason recorded rather than the label adjusted to make it come out."
+    },
+    {
       "path": "events",
       "help": "Show the history this store holds",
       "flags": [
@@ -7160,7 +7208,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 24,
+      "n": 25,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7457,6 +7505,7 @@
       "daemon",
       "mcp",
       "organize",
+      "edit",
       "events"
     ],
     "shipped": [
@@ -7571,6 +7620,7 @@
       "daemon",
       "mcp",
       "organize",
+      "edit",
       "events"
     ],
     "retired": [
@@ -7690,6 +7740,7 @@
       "ingest",
       "backup",
       "organize",
+      "edit",
       "events"
     ],
     "self_loop": [

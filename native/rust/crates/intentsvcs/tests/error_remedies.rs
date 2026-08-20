@@ -392,6 +392,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Intentfiles(_) => "Intentfiles",
     FacadeError::ManifestUnreadable { .. } => "ManifestUnreadable",
     FacadeError::NotHydratable { .. } => "NotHydratable",
+    FacadeError::NotEditable { .. } => "NotEditable",
+    FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
   }
 }
 
@@ -403,6 +405,8 @@ fn variant(err: &FacadeError) -> &'static str {
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
   "NotHydratable",
+  "NotEditable",
+  "NoSuchEditable",
   "Organize",
   "Intentfiles",
   "ManifestUnreadable",
@@ -487,6 +491,21 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // the control -- a refusal arm alone passes against a migrator that refuses
   // everything, which is the mirror of the defect this variant closes.
   "BelowMigrationFloor",
+  // **BOTH ARE `intent edit`'s, AND BOTH ARE ASSERTED IN
+  // `edit_prints_a_path_that_exists.rs` RATHER THAN MERELY REACHED THERE.**
+  // `NotEditable` is matched for its `author_with`, and the two generated views
+  // are required to name DIFFERENT surfaces -- so a generic refusal reddens it.
+  // `NoSuchEditable` is matched for a non-empty `present`, so a refusal that
+  // named only what is missing reddens it too. **A citation that cannot go red
+  // is not a cover**, which is why what each one asserts is written here and
+  // not just the filename.
+  //
+  // They are cited rather than provoked because both need a REALISED artefact
+  // to refuse about -- `edit` hydrates before it decides -- and this file's
+  // `provoked_errors` builds errors from calls that fail, not from calls that
+  // succeed at their first step and refuse at their second.
+  "NotEditable",
+  "NoSuchEditable",
 ];
 
 #[test]

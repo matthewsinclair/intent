@@ -92,11 +92,40 @@ const DECLARED: &[Slot] = &[
     // summary at exit 0 -- a `keep` row answering a different question.
     disposition: Disposition::Unenforced("0055"),
   },
+  // **BOTH `edit` ROWS MOVED FROM `Unwired` TO `Unenforced` ON 2026-08-20**
+  // (ic, ruling 3). `st edit` was unbuilt and owed the arm when it was wired;
+  // it is now wired and delegates to the top-level `intent edit`, so the debt
+  // came due and this is it being paid honestly rather than upgraded.
+  //
+  // **WHAT THE VERB DOES DO** is refuse at exit 1 naming the files the artefact
+  // CARRIES -- which is close to the requirement and is not it. The declared
+  // set is `info | design | impl | tasks | acceptance`; the message names
+  // neither that set nor a subset of it, since a thread carries attachments
+  // outside the enum and need not carry the members inside it.
+  //
+  // **AND CLAP IS THE WRONG LAYER, WHICH IS WHY THIS IS NOT A ONE-LINE
+  // `value_parser`.** The spine reads `arg.default` for enum args and never
+  // `arg.values`, so adding the parser is mechanically easy -- and a clap
+  // rejection exits **2**, which is INV-04's USAGE code and the one the
+  // pre-commit gate FAILS OPEN on. Satisfying the word there would have broken
+  // the contract, and done the same to `wp rescope --size` and `critic <lang>`.
+  //
+  // **SO THE RENDERER ENFORCES IT, READING THE SET FROM THE TABLE**
+  // (`dispatch::arg_values`) rather than restating the five spellings, which
+  // would have been a second declaration of the same vocabulary. Exit 1, and
+  // the message names the set. Issue 0062 recorded the gap and is closed by
+  // this rather than carried.
   Slot {
     path: "st edit",
     arg: "file",
     lead: &["ST0001"],
-    disposition: Disposition::Unwired,
+    disposition: Disposition::Enforced,
+  },
+  Slot {
+    path: "edit",
+    arg: "file",
+    lead: &["ST0001"],
+    disposition: Disposition::Enforced,
   },
   Slot {
     path: "wp rescope",

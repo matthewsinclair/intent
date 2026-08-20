@@ -6,8 +6,8 @@
 # more -- a write here is a CHANGE TO STATE, never a REGENERATION of it.
 #
 # Many writers, one meaning. `st new` adds the id, `st done` and `st cancel`
-# remove it, `st hydrate` / `st dehydrate` and the ISSUE equivalents do it
-# directly, and a human may edit it by hand. All of those are ordinary writers;
+# remove it, `st hydrate` / `st dehydrate` do it directly, and a human may edit
+# it by hand. All of those are ordinary writers;
 # none is privileged.
 #
 # THE DATABASE ALWAYS HOLDS EVERY ARTEFACT IN FULL. This file decides only what
@@ -18,7 +18,7 @@
 # stays; a file present and declaring nothing means keep nothing. This file
 # exists, so what it declares is the whole of what is realised.
 #
-# Grammar: `<SIGIL>:<ID>`, sigil in STEELTHREAD | ISSUE, optional trailing
+# Grammar: `<SIGIL>:<ID>`, sigil STEELTHREAD -- the only one -- optional trailing
 # `# comment`. Nothing else. A line the parser cannot read ABORTS the run with
 # its line number -- a skipped line drops an artefact from realisation and
 # leaves an estate indistinguishable from one that never listed it.
@@ -30,7 +30,9 @@
 # The live estate, 2026-08-19: every thread that is not completed or cancelled.
 # 52 completed and 2 cancelled threads are deliberately absent -- they live in
 # the store in full, and `intent st hydrate <ID>` brings any of them back.
-# All 40 issues are closed, so none is declared.
+# Issues are not named here at all: hv ruled them canon-and-store only on
+# 2026-08-20 and `ISSUE:` left the grammar, so an issue has no realised form
+# for this file to declare.
 STEELTHREAD:ST0046
 STEELTHREAD:ST0056
 STEELTHREAD:ST0057

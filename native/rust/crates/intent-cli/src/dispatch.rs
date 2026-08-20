@@ -798,6 +798,30 @@ fn prefix(path: &str) -> &str {
 }
 
 /// Every shipped entry, ported and added alike, in table order.
+/// The permitted values a table row declares for one of its arguments.
+///
+/// **THE TABLE IS THE ONE HOME FOR A DECLARED VOCABULARY**, and this is the
+/// door that lets a renderer honour one instead of restating it. `spine.rs`
+/// reads `Arg::default` and never `Arg::values`, so every enum argument's set
+/// was declared and enforced by nothing -- and a renderer that hard-coded the
+/// five spellings would be a second declaration, which is the drift this
+/// avoids rather than the tidiness.
+///
+/// Empty when the row or the argument is absent: a caller enforcing against an
+/// empty set must permit everything, because refusing everything on a lookup
+/// miss would turn a table typo into a dead command.
+pub fn arg_values(table: &Table, path: &str, arg: &str) -> Vec<String> {
+  table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .find(|e| e.path == path)
+    .and_then(|e| e.args.iter().find(|a| a.name == arg))
+    .map(|a| a.values.clone())
+    .unwrap_or_default()
+}
+
 pub fn shipped_entries(table: &Table) -> Vec<&Entry> {
   table
     .families

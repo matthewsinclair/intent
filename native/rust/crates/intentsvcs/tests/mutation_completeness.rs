@@ -921,10 +921,15 @@ const REASON: &str = "the contract grew after the close";
 /// two facts that never met, and it is cheaper to refuse it here than to notice
 /// it later.
 fn assert_movement(entity: &str, field: &str, edge: &Edge, from: &str, outcome: Outcome) {
-  assert_eq!(
-    outcome,
-    Outcome::Moved,
-    "{entity}.{field}: `{}` from `{from}` reported a NO-OP, so this walk drove no transition and would still read `{}` back from a fixture that began there",
+  // **`outcome.moved()` AND NOT `== Outcome::Moved`, SINCE 2026-08-20.** This
+  // asks whether anything HAPPENED, and an equality against one variant asks
+  // which outcome it was -- the same question only while `Moved` is the sole
+  // moving variant. `Outcome::MovedWith` (AC-05.2's closing note) is a
+  // movement, and under the old form `st.done` and `st.cancel` reddened this
+  // walk for carrying a warning, which is not a no-op by any reading.
+  assert!(
+    outcome.moved(),
+    "{entity}.{field}: `{}` from `{from}` reported a NO-OP ({outcome:?}), so this walk drove no transition and would still read `{}` back from a fixture that began there",
     edge.verb,
     edge.to
   );

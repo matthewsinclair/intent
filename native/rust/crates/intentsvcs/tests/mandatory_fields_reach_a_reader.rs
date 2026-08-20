@@ -100,6 +100,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // entity form has no file to make exist, not because a value was left out
     // -- there is no authored prose behind it for a reader to lose.
     | FacadeError::NotHydratable { .. }
+    // `intent edit`'s two refusals. Both are about WHERE a file may be
+    // authored, not about a value the caller left out of one -- the argument
+    // was complete and the answer is still no.
+    | FacadeError::NotEditable { .. }
+    | FacadeError::NoSuchEditable { .. }
     // A wrapped realisation failure. It reports that making files exist did not
     // work, not that a value was left out -- no authored prose behind it.
     | FacadeError::Realise(_) => None,
