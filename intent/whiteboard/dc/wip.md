@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 09:24Z
+heartbeat_at: 2026-08-20 09:29Z
 status: active
 focus: "**`intent critic` LANDED at `5043d0c4` -- 7 files, 1509 insertions, at parity with v2 and the precondition for v3 on PATH.** Exit codes built to the CODE and the GATE, not the table, which asserted the opposite in three places and would have shipped a silent gate bypass. **NEXT: hooks holes 1+2 (one stale install file produces both, and hole 1 -- the missing `3)` arm -- has been live under v2 since 2026-08-14), then AC-06.3, then `init`.**"
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -32,15 +32,28 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 
 Held for the next session, in order:
 
-0. **TWO DEFECTS IN WHAT I JUST LANDED, BOTH cc's, BOTH VERIFIED BY ME AT ZERO HOPS ON A BINARY REBUILT AFTER `5043d0c4`.**
+0. **`critic` IS AT PARITY ON THE FINDINGS PATH AND DIVERGES ON EVERY NON-FINDINGS PATH (vc, 09:28Z, zero hops). ONE OF THE THREE POINTS THE WRONG WAY.**
+
+   | input                            | v2              | v3             | consumer effect                   |
+   | -------------------------------- | --------------- | -------------- | --------------------------------- |
+   | `<lang> --staged --severity-min` | 0               | 0              | the parity claim holds exactly    |
+   | `shell --no-such-flag`           | **2 fail-open** | **1 FINDINGS** | **the gate BLOCKS the commit**    |
+   | `author` / `content`             | 136 bytes       | 0 bytes        | silence cannot say NOT APPLICABLE |
+   | `--languages`                    | 0 + five langs  | 1 + `<LANG>`   | `cmd/check:57` dies (correctly)   |
+
+   **THE BAD-FLAG ROW IS THE DANGEROUS ONE AND IT IS NOT A ONE-TOKEN FIX.** A clap usage error reaches the spine's error mapping, which INV-02 puts at 1 surface-wide -- but ic ruled `critic`'s usage error is genuinely 2, precisely so the gate fails open on the tool's own breakage. **v3 currently blocks a commit because the hook's command line had a typo: issue 0043 rebuilt on the git side, which my own arm's comment names as the thing a gate must never do.** Low likelihood, wrong direction -- and that combination is what survives. **Fix is the spine's clap-error path plus INV-02's `critic` exception, so it is mine and ic's together, not a token.**
+
+   **`author`/`content` PRINTING NOTHING IS MINE AND SMALLER:** my clean no-op returns `Ok(())` before any output, so a prose language is indistinguishable from a language that ran and found nothing. v2 says so in 136 bytes. **Silence and a clean bill of health are indistinguishable to a reader** -- `unattached`'s own words, and the same reason vc's B is reported rather than judged.
+
+1. **TWO DEFECTS IN WHAT I JUST LANDED, BOTH cc's, BOTH VERIFIED BY ME AT ZERO HOPS ON A BINARY REBUILT AFTER `5043d0c4`.**
    - **`intent critic --languages` REQUIRES A POSITIONAL LANGUAGE AND v2 DOES NOT.** `v3 critic --languages` -> rc=1 clap _required arguments were not provided: <LANG>_; `v3 critic shell --languages` -> rc=0; `v2 critic --languages` -> rc=0. **You must name a language to ask which languages exist.** **THE CALLER IS REAL AND IT IS ON MY OWN PATH-REPOINT PATH:** `bin/.devbin/lib/cmd/check:57` calls the bare form and `die`s on non-zero -- and the comment four lines above it already names _a v3 binary shadowing v2 on PATH_ as the known trigger, written before the binary existed. **THE FIX SITE cc COULD NOT FIND IS THE TABLE, NOT THE CODE:** the spine derives required-ness from declared arity (`spine.rs:328,416`), and `critic`'s `lang` is `"arity": "1"`. **`required_unless_present` IS NOT EXPRESSIBLE -- no such concept anywhere in the spine, and the table uses only `1` (76), `0..1` (27), `0..n` (3), `1..n` (2).** So it is either arity `0..1` plus my handler's existing missing-language refusal (which returns 2 and would make bare `intent critic` match v2's exit 2 instead of clap's current 1), or a new surface concept. **The one-token option is in ic's SSOT, so it is a proposal rather than my edit.**
    - **`spine.rs:137` SAYS `critic` IS NOT IN THIS BUILD YET. False at HEAD, doc-only, my file.** Narrative rather than constraint -- one hit, a doc comment, nothing reads it. **AND IT IS THE SHARP PART: that comment stated the exit contract CORRECTLY (1 findings, 2 invocation error, citing `:89`/`:95` and the gate) while `dispatch-table.json` asserted the reverse in three places.** The right answer was written down in the codebase the whole time and the SSOT contradicted it.
 
 1. **HOOKS, HOLES 1 + 2 -- the structural shim (matts ruled: structural, not interim).** The installed `pre-commit.intent` carries no roster and no guard name; roster AND dispatch resolve live from `INTENT_HOME`; `cmd/precommit` loses its duplicate `G_BOARD` call in the same change. **One five-day-stale install file produces both holes**, and hole 1 -- no `3)` arm, so v2's REFUSED has failed open here since 2026-08-14 -- needs no v3 at all. vc has landed hole 3 and a test asserting `REFUSED -> BLOCKS`, so the arm has cover waiting for it.
-2. **AC-06.3** -- the third `Projection` variant. Canon reword is already in (vc, `07d386cc`); the row's state is mine to move.
-3. **AC-06.4 / `intent init`** -- 23 call sites, `AT-06.4` to-write.
-4. **CLI-level tests for `critic`** -- the module has 18; the command surface has none.
-5. **vc's three-line `render.rs` change** for `doctor`'s `unsynced_events` -- option (1), land it next time I am in that file.
+1. **AC-06.3** -- the third `Projection` variant. Canon reword is already in (vc, `07d386cc`); the row's state is mine to move.
+1. **AC-06.4 / `intent init`** -- 23 call sites, `AT-06.4` to-write.
+1. **CLI-level tests for `critic`** -- the module has 18; the command surface has none.
+1. **vc's three-line `render.rs` change** for `doctor`'s `unsynced_events` -- option (1), land it next time I am in that file.
 
 ## TODO
 
@@ -70,6 +83,9 @@ Held for the next session, in order:
 - **ENVIRONMENT.** My shell is **zsh** -- an unquoted `$var` does NOT word-split, and a probe loop ignoring that records a plausible wrong answer for every row. `bin/**` is live on PATH through a symlink. The markdown formatter is a second writer.
 
 ## Decisions
+
+- (2026-08-20) **THE STANDING no-v3-on-PATH RULE HAS LOST ITS STATED REASON, AND THAT IS hv's TO RE-WEIGH RATHER THAN MINE TO ACT ON** (vc, reporting rather than proposing). The restart context justifies it in one clause -- _`intent critic` answers 2 in all five languages, which is the code the gate fails open on_ -- **now false in every language as of `5043d0c4`.** The rule should almost certainly STAND, because the unimplemented-family surface is a far bigger reason than `critic` ever was: **44 of 104 rows still answer 2.** But a rule whose written reason is spent is a rule nobody can re-derive, which is the class this estate keeps meeting.
+- (2026-08-20) **AN IDENTICAL NUMBER IN BOTH WORLDS IS NOT EVIDENCE, AND vc RETRACTED THEIR OWN URGENCY ON IT.** They drove a BARE `intent critic <lang>` loop and read rc=2 five times -- but v2 answers 2 to that same call today with the gate healthy, because it means _no files specified_. **It could not have come back the other way.** What actually established the blocker was ic's `exit_codes.rs:151`, which drove `critic shell --staged`. **`critic` was genuinely needed first; the urgency under it was borrowed.** Worth keeping because the conclusion survived and the evidence for it did not.
 
 - (2026-08-20) **THE INSTALLED HOOK MUST CARRY NO ROSTER AND NO GUARD NAME -- SHAPE 3, SURVIVOR IS THE TEMPLATE DISPATCHER MADE LIVE** (my ruling on cc's escalation, verified at zero hops). Four guards exist; **`canon-ignore-guard.sh` and `append-only-guard.sh` have no call site on the path git takes.** `GUARDS_APPLY` is in exactly ONE file in the tree and in nothing under `.git/hooks/`. **The defect is that the roster is baked in AT INSTALL while the guard BODIES resolve live from `INTENT_HOME`** -- so reinstalling fixes this repo and re-opens the hole on the next template change, and giving the roster to `cmd/precommit` cannot be canonical because no consumer has a devbin. **`/in-whiteboard` already DOCUMENTS the live-roster property as true and it is false**, which is why nobody had reason to look. Interim to unblock cc's AC-01.5: reinstall from template AND drop `cmd/precommit`'s `G_BOARD` in the same change, or the header guard runs twice.
 - (2026-08-20) **A FRESH INSTALL IS FINE AT t=0 AND ACQUIRES THE DEFECT OVER TIME** -- the harder version to notice than a broken install, and the reason cc's "probably fine" needs a real measurement rather than an argument.
