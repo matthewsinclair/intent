@@ -1403,18 +1403,29 @@ impl Facade {
     Ok(())
   }
 
-  /// The paths a [`WriteSet`] is about to write, relative to the project root.
+  /// The paths an act really changed, with the event log removed.
   ///
-  /// Read from the set itself rather than rebuilt from the inputs: a second
-  /// list would be a second opinion about what a sync writes, and the one that
-  /// goes stale is the one nobody is looking at.
-  fn written_paths(&self, set: &WriteSet) -> Vec<String> {
-    let mut out: Vec<String> = set
-      .writes()
-      .map(|(path, _)| self.project.relative(path))
-      .collect();
-    out.sort();
-    out
+  /// **THE LOG IS NOT PART OF THE ESTATE THE LOG DESCRIBES**, and without that
+  /// line the recording does not terminate. `sync_to_disk` projects the event
+  /// log inside its own write set, so a run that records itself leaves the file
+  /// one event behind -- which gives the NEXT sync a real write to do, which
+  /// records itself, which stales it again. **Each sync creates the work for
+  /// the next one, and the log grows by one event per sync with nobody touching
+  /// the estate.** Driven in `realisation_is_recorded.rs`, three consecutive
+  /// syncs, because a regress needing two calls to appear is invisible to any
+  /// arm that makes one.
+  ///
+  /// A run that wrote only the log has not acted on anything: it is the record
+  /// catching up with itself. **The alternative -- a second write nothing
+  /// records -- buys a clean number by MOVING the unrecorded act rather than
+  /// removing it**, which is the whole defect AC-09.1 exists for.
+  fn estate_paths(&self, applied: &crate::write_set::Applied) -> Vec<String> {
+    let log = self.project.events_jsonl();
+    applied
+      .written()
+      .filter(|path| *path != log)
+      .map(|path| self.project.relative(path))
+      .collect()
   }
 
   pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {
@@ -1542,7 +1553,7 @@ impl Facade {
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
-        why: "only an artefact -- a thread or an issue -- is named by `.intentfiles`, so it is the smallest thing realisation can address".to_string(),
+        why: "only an artefact -- a steel thread -- is named by `.intentfiles`, so it is the smallest thing realisation can address. An ISSUE lives only in canon and the store and has no realised form, so there is nothing to realise it INTO".to_string(),
       });
     };
     let id = id.to_string();
@@ -1585,9 +1596,17 @@ impl Facade {
     // must make one artefact's files exist. The plan is whole-estate because
     // classification needs the whole estate as its denominator, and the ACT is
     // narrow.
+    // **ONE ARM, AND IT IS ONE ARM BECAUSE THE OTHER ONE ADDRESSED THE WRONG
+    // LAYER.** This matched `Sigil::Issue` to `issues_dir()`, which is
+    // `intent/.canon/issues/` -- so a realisation verb's home resolved into
+    // CANON for one of its two inputs. It was inert only because
+    // `organize::plan` emits no step under `intent/.canon/`, which is a
+    // property of the plan and not a bound this code stated. hv retired
+    // `ISSUE:` from the grammar on 2026-08-20, and `Address::artefact` now
+    // answers `None` for an issue, so the case is refused above rather than
+    // handled wrongly here.
     let home = match sigil {
       intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
-      intentfiles::Sigil::Issue => self.project.issues_dir(),
     };
     let mine: Vec<_> = whole
       .steps
@@ -1715,7 +1734,36 @@ impl Facade {
     // asymmetry runs the safe way -- writing it more often than strictly
     // needed costs a file write, and not writing it loses the data outright.
     self.add_event_log(&mut set)?;
-    set.commit()?.keep();
+    let applied = set.commit()?;
+    // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** `commit` skips a path whose
+    // bytes already match, so a sync over an estate that already agrees writes
+    // nothing -- and recording the SET would put an act that did not happen
+    // into the one table that cannot be re-derived. `WriteSet::writes` answers
+    // the right question before a commit and the wrong one after it.
+    let wrote = self.estate_paths(&applied);
+    applied.keep();
+    // **THIS EVENT IS NEVER IN THE FILE IT DESCRIBES, AND THAT IS A FIXED
+    // POINT RATHER THAN A GAP.** `add_event_log` put the store's log into the
+    // set four lines up, so the projection was computed before this act
+    // finished. Recording earlier would record a PLAN and call it an act --
+    // the trade `record_disk_act` already names and refuses. So `sync
+    // --to-disk` leaves the store exactly one event ahead of the file, every
+    // time, and `doctor`'s unsynced count has a floor of ONE rather than zero.
+    //
+    // **A log that projects itself cannot contain the record of its own
+    // writing.** The alternative is a second write that nothing records, which
+    // buys a clean number by MOVING the unrecorded act rather than removing
+    // it -- and an unrecorded write is the whole defect AC-09.1 exists for.
+    if !wrote.is_empty() {
+      self.record_disk_act(
+        "disk.sync_to_disk",
+        serde_json::json!({
+          "scope": scope.named(),
+          "threads": count,
+          "wrote": wrote,
+        }),
+      )?;
+    }
     self.canon = canon;
     Ok(count)
   }
@@ -1815,7 +1863,31 @@ impl Facade {
     };
     let count = all_threads.len();
     let set = self.projection(&canon, &all_threads, &all_issues)?;
-    set.commit()?.keep();
+    let applied = set.commit()?;
+    let wrote = self.estate_paths(&applied);
+    applied.keep();
+    // **THE DISK ACT OF A RESTORE IS THE RE-PROJECTION, AND IT IS THE HALF
+    // NOTHING ELSE RECORDS.** The store side is already covered by
+    // `ingest::recording` above (AC-03.13); this is the other side, and it is
+    // the one AC-09.1 names -- the restore direction rewrites the views of what
+    // it read, so files move under a verb whose name says nothing about
+    // writing any.
+    //
+    // **RECORDED AFTER `restore_event_log` HAS ALREADY REPLACED THE STORE'S LOG
+    // FROM THE FILE**, so an event the file did not carry is gone before this
+    // one is appended. That is the declared destructive direction behaving as
+    // declared, and it is stated here because it is the one place where the
+    // table that cannot be re-derived from disk IS re-derived from disk.
+    if !wrote.is_empty() {
+      self.record_disk_act(
+        "disk.sync_from_disk",
+        serde_json::json!({
+          "scope": scope.named(),
+          "threads": count,
+          "wrote": wrote,
+        }),
+      )?;
+    }
     self.canon = canon;
     Ok(count)
   }

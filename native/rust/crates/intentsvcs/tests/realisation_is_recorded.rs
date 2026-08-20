@@ -193,3 +193,94 @@ fn dehydrating_is_recorded_and_names_every_file_it_removed() {
     "and they are named rather than counted: {payload}"
   );
 }
+
+/// **THE TWO SYNC VERBS ARE THE OTHER HALF OF AC-09.1, AND THE FIRST THING
+/// THEY NEEDED WAS A DEFINITION OF "ACT" THAT TERMINATES.**
+///
+/// `sync_to_disk` projects the event log as part of its own write set. So a
+/// naive reading -- *this run wrote a file, therefore it acted* -- makes the
+/// verb record itself, which leaves the file one event behind, which gives the
+/// NEXT sync a real write to do, which records itself. **Each sync creates the
+/// work for the next one and the log grows by one event per sync with nobody
+/// touching the estate.** Reasoned first and then driven, because a regress
+/// that needs two calls to appear is invisible to any arm that makes one.
+///
+/// The line that terminates it: **the event log is not part of the estate the
+/// log describes.** A run that wrote only the log has not acted on anything --
+/// it is the record catching up with itself.
+#[test]
+fn consecutive_syncs_over_an_unchanged_estate_converge() {
+  let fx = fixture();
+  let mut facade = fx.facade_on_disk();
+
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("first sync");
+  let after_first = disk_ops(&facade).len();
+
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("second sync");
+  let after_second = disk_ops(&facade).len();
+
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("third sync");
+  let after_third = disk_ops(&facade).len();
+
+  assert_eq!(
+    after_second, after_first,
+    "the second sync over an unchanged estate wrote only the event log and must be silent; \
+     recording it stales the file again and the third sync inherits the work"
+  );
+  assert_eq!(
+    after_third, after_second,
+    "and it must STAY silent -- a regress that only shows on the third call is the one a \
+     two-call test misses"
+  );
+}
+
+/// **A SYNC THAT WRITES REAL FILES IS RECORDED AND NAMES THEM.**
+///
+/// The positive control for the arm above: without it, "silent on an unchanged
+/// estate" is satisfied by a verb that is silent always, which is the state
+/// this work package exists to end.
+#[test]
+fn syncing_to_disk_records_the_files_it_actually_wrote() {
+  // **DECLARED, or the assertion below is checking the wrong thing.** Under the
+  // disk model an undeclared thread has no realised form, so a sync over the
+  // default fixture correctly writes `steel_threads.md`, `todo.md` and the log
+  // and nothing of ST0001 at all. The first version of this arm asserted the
+  // thread was named and failed -- **on the code being right**, which is the
+  // only kind of red worth having early.
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  fx.write_file(
+    "intent/.intentfiles",
+    "# .intentfiles\n\n# BEGIN INTENT\nSTEELTHREAD:ST0001\n# END INTENT\n",
+  );
+  let mut facade = fx.facade_on_disk();
+
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("sync");
+
+  let ops = disk_ops(&facade);
+  assert!(
+    ops.contains(&"disk.sync_to_disk".to_string()),
+    "a sync that wrote the estate's views for the first time is an act; ops were {ops:?}"
+  );
+
+  let payload = last_disk_payload(&facade, "disk.sync_to_disk");
+  let wrote = payload["wrote"].as_array().expect("wrote");
+  assert!(
+    !wrote.is_empty(),
+    "the act names the PATHS it wrote, not a count of them"
+  );
+  assert!(
+    wrote
+      .iter()
+      .any(|p| p.as_str().is_some_and(|s| s.contains("ST0001"))),
+    "the thread whose views were written is named in the record; got {wrote:?}"
+  );
+}

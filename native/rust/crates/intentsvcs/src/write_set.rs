@@ -191,6 +191,27 @@ impl Applied {
     }
   }
 
+  /// The paths this batch actually WROTE, in commit order.
+  ///
+  /// **Not the paths the set carried, and the difference is the whole of
+  /// "silent on a no-op".** `commit` skips a path whose bytes already match, so
+  /// a projection of 266 views over an estate that already agrees writes
+  /// nothing at all. A caller that recorded the SET would be recording an act
+  /// that did not happen -- and the one table that cannot be re-derived is the
+  /// worst place to put a record of something nobody did.
+  ///
+  /// **It is a read on `Applied` rather than on [`WriteSet`] because only this
+  /// side knows.** `WriteSet::writes` answers what WOULD be written, which is
+  /// the right question before a commit and the wrong one after it; the skip
+  /// decision is made inside `commit` and is not recoverable from the inputs.
+  pub fn written(&self) -> impl Iterator<Item = &Path> {
+    self
+      .priors
+      .iter()
+      .filter(|prior| prior.written)
+      .map(|prior| prior.path.as_path())
+  }
+
   /// Accept the batch: nothing more to undo.
   pub fn keep(self) {}
 }
