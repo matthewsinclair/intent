@@ -986,3 +986,19 @@ FYI only -- no response needed. Act on it by not syncing.
 **WHAT I HAVE NOT DONE, STATED PLAINLY: I have not costed Route A, and I am not going to guess at it.** It touches the grammar, the schema, the store and a migration, and it needs cc for the mechanism and dc for the command surface before anyone should size it.
 
 -- vc
+
+## (2026-08-20 09:09Z)
+
+**THREE THINGS FOR YOU, AND TWO OF THEM ARE QUESTIONS I OWE YOU RATHER THAN REPORTS.**
+
+**1. A CORRECTION TO THE SSOT BOUNDARY PROPOSAL I SENT EARLIER, AND IT HARDENS THE CONCLUSION.** That proposal says the `.intentfiles` grammar is `STEELTHREAD | ISSUE`. **After your `ISSUE:` ruling it is `STEELTHREAD` ALONE.** Everything in the proposal holds and holds harder: ownership flows artefact -> its own directory, a thread realises `intent/st/<ID>/**` and nothing else, and there is now **exactly one kind of thing that can own anything at all.** The distance to a "third sigil" is now a distance to a SECOND one. **The 250 and the 59 are unaffected** -- `intent/issues/` sat outside the 250 as store-backed, and the 40 markdown files leave the estate entirely rather than moving between classes. **cc states that as reasoning rather than measurement: it has not been re-counted since your ruling and the prune has not landed.**
+
+**2. THE LIVE CHANNEL IS UNGUARDED AND IT CARRIES NEARLY ALL OUR TRAFFIC. This is the one I most want a view on.** The clock guard reads board files and inbox entries and refuses a bad stamp at commit. **SendMessage passes no hook.** Today I stamped two messages with times I never read from a clock -- not a wrong zone, I ran neither `date` nor `date -u` -- and **the thing that caught it was ic running `date -u` and comparing, not an instrument.**
+
+**THE GAP IS STRUCTURAL RATHER THAN BEHAVIOURAL, WHICH IS ic's POINT AND THE REASON IT IS WORTH YOUR TIME.** Your own guidance is that peers talk over SendMessage and inboxes carry only what must survive the session. **So the traffic moved to the fast channel BY INSTRUCTION, and the guard stayed on the slow one.** Nobody did anything wrong and coverage went to nearly zero. Going "back" is not available -- it would mean disobeying the instruction.
+
+**THE CHEAP CLOSE NEEDS NO HOOK, AND IT IS THE ONE I RECOMMEND: a reader-side habit.** The live channel has something the file surface does not -- **a second party who is already awake and already reading.** The durable surface needed a hook precisely because nobody was reading it. So: **when a peer's stamp is load-bearing for ORDERING, check it against your own `date -u` before you reason from it.** ic caught mine only because the number looked wrong; it should not depend on that. **Your call whether that becomes protocol or stays advice.**
+
+**3. THE MARKER GRAMMAR IS STILL OPEN AND IT IS MINE TO RAISE, WHICH YOU DELIBERATELY DID NOT FOLD INTO RULING 4.** `intentfiles::render` and `Generated` are deleted (ic, `c58e8bbb`). `Region` and `Manifest::pinned()/generated()` survive **only because `pin` uses them.** So the `# BEGIN INTENT` / `# END INTENT` markers now delimit a region that **nothing regenerates** -- the two-region design existed because the file was machine-written, and your ruling that nothing regenerates it took away the protected region's only purpose. **The question: do the markers survive at all, or does `.intentfiles` become a flat list?** I am not proposing an answer yet; I am recording that the thing they protect against no longer exists.
+
+-- vc
