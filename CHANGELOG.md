@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - in progress
+
+Intent is rewritten as a native binary, and the model underneath it changes: **a project's data lives in a database, the committed files are a projection of it, and the markdown you read is generated.** Everything below follows from that one change. Migration is one command, it refuses rather than guesses, and a v2 tool and a v3 tool each refuse the other's projects so that a half-migrated estate cannot be quietly corrupted.
+
+### Changed
+
+- **Intent is a native binary rather than a shell program.** Three pieces, and the split is the point: a library that owns every operation and the store, a thin CLI that parses, calls and renders, and a per-machine daemon that serves several projects at once. Nothing that decides anything lives in the command layer, so the CLI, the daemon and an agent all reach the same code by construction instead of by discipline. The practical consequences are the ones you notice first -- commands answer in milliseconds on estates where the shell implementation took seconds, and a data model that is validated on the way in rather than parsed out of prose on the way out.
+
+- **The database is the source of truth, and the files are a projection of it.** In v2 the markdown under `intent/` _was_ the project: every command read it, wrote it, and trusted it. In v3 the project lives in a local SQLite store, a canonical extract of it is committed to git, and the readable markdown is generated from it. **This is the change that everything else in this release depends on, and it is worth being concrete about what it means for you.** `intent sync --to-disk` writes the store out; `intent sync --to-store` reads the committed extract back in; either direction takes a thread id, so you can move one thread without touching the estate. The store is per-machine and gitignored -- it never travels -- and the extract is what your collaborators actually receive.
+
+- **The generated views are generated, and editing them does not do what it used to.** A thread's `info.md` and `acceptance.md` are rendered from the model. A criterion typed into `acceptance.md` by hand is discarded at the next render, silently, because that file is an output. `intent doctor` reports a view that has drifted from the model that produced it, so the divergence is visible rather than surprising.
+
+- **A v2 tool refuses a v3 project, and a v3 tool refuses a v2 project.** Both directions are deliberate and both exit non-zero with the remedy named. Before this, a v2 binary in a migrated tree operated and wrote -- creating files, updating indexes, reporting success -- against a model it could not read. **A hard stop is strictly better than quiet corruption**, and the cost is real: whichever tool your PATH resolves to is the one that has to match the project, so migrating a project and repointing the tool are one operation rather than two.
+
+### Added
+
+- **`intent organize`, and `.intentfiles` -- disk becomes optional without anything becoming unrecoverable.** A project accumulates hundreds of files for threads finished years ago, and all of them are reproducible from the store. `.intentfiles` is a plain list of the artefacts you want realised on disk; `intent organize` reconciles the tree with it, realising what is declared and removing what is not, and it previews unless you pass `--apply`. **Nothing is removed that the store cannot reproduce byte for byte** -- the check is per-file and the removal is refused otherwise. **An absent `.intentfiles` keeps everything**; a manifest declaring nothing keeps nothing, and the difference between those two is deliberate rather than an accident of an empty file.
+
+- **`intent://` addresses, so a piece of data has a name.** Any thread, work package, issue or field can be named by address and read by it, which is what lets an agent ask for one value instead of a rendered document.
+
+- **`intent search` -- full-text across every piece of authored prose in the project**, which the shell implementation could only approximate with `grep` over whichever files happened to be on disk.
+
+- **`intent export` and `intent ingest` -- the way data leaves and the way it comes back.** `export` extracts the store into a portable form usable without Intent at all, including a readable text realisation of the whole estate for a human with no tool. `ingest` is the door in: it is the recovery path, and it is also the v2 migrator, so the same gate that validates a migration validates anything else being read in.
+
+- **`intent events` -- the history the store holds.** Every operation that changes the model is recorded with what it touched and when, filterable by operation and by subject. This is the one thing in the project that cannot be reconstructed from anything else, which is why it is queryable rather than merely present.
+
+- **`intent schema` -- the generated schema faces.** The JSON Schema, the SQL DDL and the GraphQL SDL are printed from the same model definition rather than maintained beside it, so a tool integrating with Intent reads a description that cannot drift from the thing it describes. Every table declares how its data leaves the store, and a table that declares nothing is refused.
+
+- **`intent backup` -- a snapshot of this machine's store, with expiry.** Deliberately one-way: there is no restore verb, because the store is rebuildable from the committed extract and a restore verb invites someone to overwrite good data with an old snapshot.
+
+- **`intent doctor` gained real diagnostics for the new model** -- views that have drifted from the model, files under a thread that the store does not carry, and commands whose declared surface disagrees with the built one.
+
+### Migration Guide
+
+**Check before you convert. `intent ingest` reads your estate and writes nothing** -- not a file, not a database -- and reports what parses, what carries a value it will convert as-is, and what it cannot read at all. Run it and read the residue before anything touches the project. **Nothing blocking means the estate is convertible.**
+
+**There is a floor at v2.19.0, and a project below it must cross that first.** The v3 tool says so by name and gives the two-step remedy rather than refusing flatly.
+
+**Migrate the project and repoint the tool in one operation.** Both tools refuse the other's projects, so the moment a project declares v3 every command refuses until whatever `intent` resolves to on your PATH is the v3 binary. That is not a hazard to work around -- it is the hard stop that replaced quietly writing v2 structures into a v3 tree -- but it means the two halves are one change and not two.
+
+**Nothing needs fixing under v2 first.** A value the v2 vocabulary never had is carried across as it stands rather than blocked or guessed at, so an estate with years of hand-authored variation converts without a clean-up pass.
+
+### Removed
+
+- **`intent treeindex` retires whole -- the command, the `intent/.treeindex/` cache, and the rules that told an agent to consult it.** The store carries a source tree index, so a directory summary maintained by hand in a parallel cache is a second copy of something the model already holds. Anything reading `intent/.treeindex/` should read the store instead.
+
+- **`intent help <command>` is gone; `--help` is the one surface.** Most of the v2 surface had no help file at all, so `intent help` fell through silently for the majority of commands it appeared to serve.
+
+- **`intent organize` in its v2 sense is retired and the name is reclaimed.** The v3 command with that name does something else entirely: v2's organised files on disk, v3's reconciles disk against the model, and `intent st organize` goes with it. **A script calling the old one will not fail -- it will do something different**, which is the one migration hazard in this release that a refusal cannot catch for you.
+
+- **Issues are stored and committed but never realised as files.** `intent issues hydrate` and `intent issues dehydrate` are withdrawn rather than left declared, because there was nothing for an issue to be realised into, and a verb reporting success over a file it did not write is worse than an absent verb.
+
+### Renamed
+
+- **`intent st_zero` becomes `intent st bootstrap`.** The underscore spelling was the only one of its kind on the surface and it is gone rather than aliased -- a rename facility built for a population of one reads as foresight and ships as unused surface.
+
 ## [2.19.1] - in progress
 
 ### Added

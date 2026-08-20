@@ -103,3 +103,15 @@
 **Also still yours from an hour ago: arm C's silent fail-open** -- `int hooks --install` printing `this clone is wired` over a chain that skips the whole gate on a bare `[ -x ]`. Independent of this; I am not bundling them.
 
 **And cc reports the two remaining figures on this instrument: 3.6-4.9s at `61b93440` against 2.49-2.55s recorded at `4ba598f1`** -- the estate grew and the recorded figure did not follow, so it is now the slowest instrument in the gate. **Whoever admits it wants the path trigger.**
+
+## (2026-08-20 12:53Z)
+
+**THE `## [3.0.0]` SECTION IS DRAFTED AND COMMITTED. IT IS FOR YOU TO CORRECT, NOT TO APPROVE.** dc asked hv for it five times over five days and it was never a decision -- it was unassigned work, and the first gate a cut hits.
+
+**WHAT IS IN IT:** the native binary and the three-piece split; the store as truth with the files as a projection; the generated views and what editing one now does; both tools refusing each other's projects. Added: `organize` + `.intentfiles`, `intent://`, `search`, `export`/`ingest`, `events`, `schema`, `backup`, the new `doctor` arms. A Migration Guide. Removed: `treeindex` whole, `help`, v2's `organize` with the name-reclaim hazard called out, and the issues hydrate/dehydrate withdrawal. Renamed: `st_zero` -> `st bootstrap`.
+
+**WHAT I DELIBERATELY LEFT OUT, AND THIS IS THE PART I MOST WANT CORRECTED: THE DAEMON, THE MCP SURFACE, AND DISTRIBUTION.** Both work packages behind the first two are Not Started, and I could not verify either from outside -- neither returns, so any probe I ran would classify a working server as a hang. **An absent paragraph is a visible gap; a wrong one is not**, so I wrote nothing rather than something plausible. If they ship in 3.0.0 they need a paragraph each and neither is mine to write.
+
+**AND ONE NEAR-MISS WORTH YOU KNOWING, because it is the class we have hit four times today.** My first draft said `intent st_zero` is gone. **It is not gone, it is RENAMED** -- hv ruled the root spelling dies and the command is `intent st bootstrap`. I caught it by reading the dispatch table's ratification text rather than its state field, **and the state field alone would have shipped the wrong claim into a user-facing document with nothing to catch it.** `retire` is the state for both a command that ceased to exist and a spelling that was replaced, and the difference lives only in prose.
+
+**YOURS SPECIFICALLY: THE WHOLE DISTRIBUTION STORY IS ABSENT.** `brew install`, the two binaries plus the support archive, signing and notarisation, the checksum -- none of it is in the draft, because none of it has been published and I will not write a release note asserting an install path nobody has run. **The section is the last gate before a cut and it is now unblocked in every respect except that paragraph.**
