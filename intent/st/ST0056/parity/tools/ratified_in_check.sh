@@ -81,6 +81,28 @@
 # tree rather than a policy about a word, and it self-maintains: prune CLOSED/
 # tomorrow and the rows citing it turn amber on the next run with no edit here.
 #
+# **CLOSED/ WAS PRUNED ON 2026-08-20 AND THAT LAST SENTENCE WAS WRONG.** Nothing
+# turned amber. The `-d "$ISSUES_DIR"` guard fires BEFORE any resolution, so the
+# whole check died at exit 2 and the repo-local gate -- which treats 2 as
+# blocking -- closed the repository to all four nodes until the tool was
+# taught where issues had moved. **A prediction about graceful degradation,
+# written in the same commit as the guard that makes it impossible.** The two
+# were correct separately and were never read against each other.
+#
+# The self-maintaining property is real and survives: it just needs a store to
+# measure, and hv's ruling moved the store rather than removing it. All 40
+# records resolve out of `intent/.canon/issues/` and every citation that
+# resolved before resolves now.
+#
+# **AND THE ARM HAS NO LIVE POPULATION TODAY, WHICH IS WORTH KNOWING BEFORE
+# TRUSTING ITS GREEN.** Six rows cite an issue; five also carry a commit sha,
+# which satisfies the record requirement on its own, and the sixth (`ac gate`,
+# citing issue 0032) is PROVISIONAL and excluded from the arithmetic entirely.
+# So `0 cite a record that no longer resolves` is TRUE and says nothing --
+# measured by pointing `ISSUES_CANON` at an empty directory, where it reports
+# the same 0. What IS load-bearing is the refusal above: both locations absent
+# still exits 2, verified the same way.
+#
 # Dangling refs are counted APART from recordless ones because the remedies are
 # different jobs. A recordless row needs someone to find out what was decided; a
 # dangling one has a record that is fully recoverable from git, and the report
@@ -202,6 +224,13 @@ TABLE="${TABLE:-$REPO_ROOT/surface/dispatch-table.json}"
 # Overridable for the mutation proofs above; the check must be able to be told a
 # different tree, or "it reads the tree" is an unrun claim.
 ISSUES_DIR="${ISSUES_DIR:-$REPO_ROOT/intent/issues}"
+# **WHERE AN ISSUE LIVES CHANGED ON 2026-08-20 AND THIS READS BOTH PLACES.**
+# hv ruled issues canon-and-store only; the v2 estate under `intent/issues/`
+# was pruned as migration residue and the 40 records now live flat, as
+# `intent/.canon/issues/NNNN.json`. Both layouts are read and unioned: a
+# corpus member that has not been migrated still has the nested tree, and the
+# mutation proofs above point `ISSUES_DIR` at one they build.
+ISSUES_CANON="${ISSUES_CANON:-$REPO_ROOT/intent/.canon/issues}"
 
 die() { echo "error: $1" >&2; exit 2; }
 
@@ -271,9 +300,14 @@ PROVISIONAL='provisional'
 # that NEEDS the tree rather than about the tree's mere absence -- a project with
 # no issues and no issue citations has nothing to refuse over.
 RESOLVABLE=""
-if [ -d "$ISSUES_DIR" ]; then
-  RESOLVABLE="$(find "$ISSUES_DIR" -mindepth 2 -maxdepth 2 -type d 2>/dev/null |
+if [ -d "$ISSUES_CANON" ]; then
+  RESOLVABLE="$(find "$ISSUES_CANON" -maxdepth 1 -type f -name '*.json' 2>/dev/null |
     sed 's|.*/||' | grep -Eo '^[0-9]{3,4}' | sort -u)"
+fi
+if [ -d "$ISSUES_DIR" ]; then
+  RESOLVABLE="$(printf '%s\n%s\n' "$RESOLVABLE" \
+    "$(find "$ISSUES_DIR" -mindepth 2 -maxdepth 2 -type d 2>/dev/null |
+      sed 's|.*/||' | grep -Eo '^[0-9]{3,4}')" | grep -v '^$' | sort -u)"
 fi
 
 # The issue numbers a value names, and the two answers the tree gives about them.
@@ -372,7 +406,7 @@ while IFS=$'\t' read -r id value; do
   # row that leads somewhere leads somewhere.
   issue_res=""; issue_dang=""
   if echo "$value" | grep -Eq "$RECORD_ISSUE"; then
-    [ -d "$ISSUES_DIR" ] || die "\`$id\` cites an issue as its external record and there is no issue tree at $ISSUES_DIR to resolve it against. Refusing: absent and unresolvable are different answers and this cannot tell them apart"
+    { [ -d "$ISSUES_CANON" ] || [ -d "$ISSUES_DIR" ]; } || die "\`$id\` cites an issue as its external record and there is no issue store to resolve it against -- neither $ISSUES_CANON nor $ISSUES_DIR exists. Refusing: absent and unresolvable are different answers and this cannot tell them apart"
     issue_res="$(issue_resolving "$value")"
     issue_dang="$(issue_dangling "$value")"
   fi
