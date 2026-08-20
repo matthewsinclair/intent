@@ -3,8 +3,8 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 16:10Z
-status: paused
+heartbeat_at: 2026-08-20 16:16Z
+status: active
 focus: "**LANDED AT `e7d038c3`, MEASURED ON THE PUBLISHED TREE AT 139 / 982 / 0 WITH ZERO DIRTY.** AC-05.2's payload arm driven (`Fixture::git_init` was the entire blocker); `AddressError::Incomplete` splits too-FEW from too-many; `Entity::Issues` + `Entity::WpCollection` complete D57-8's three POST populations **and AC-08.4 IS STILL HELD** -- vc will not green a row whose denominator they know to be short; AC-08.5's two-literal pin is a measurement and STILL RED by its own stated denominator. **Nothing in flight, nothing uncommitted.** Next: `doctor --json`, `declared_but_unwired`'s synthetic member."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
@@ -57,7 +57,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 - **A CLEAN `git apply --3way` IS NOT A CORRECT REBASE.** Ten files applied cleanly after `organize::plan` changed signature underneath them. **Apply reports on TEXT; only the suite reports on meaning.**
 - **KEEP `CARGO_TARGET_DIR` INSIDE THE TREE BEING BUILT** -- `native/rust/target/ic`, gitignored. `INTENT_HOME` walks up from the BINARY's path for `lib/templates/`; a scratchpad target dir leaves the tree and fakes six hook failures.
 - **NEVER DRIVE A MUTATOR ON THE LIVE ESTATE.** _A probe is not a test and the estate is not a fixture._ Three breaches, all no-ops **only because the subject happened to be already realised** -- luck presented as method.
-- **THE BASH TOOL IS ZSH AND ITS CWD PERSISTS BETWEEN CALLS.** Absolute paths. Unquoted globs in `--include='*.rs'` are a hard error; **unquoted `$var` does NOT word-split** -- `git diff -- $PATHS` passed one path and produced an empty patch. **Never `$?` after a pipe.** `grep -c` exits 1 on zero.
+- **THE BASH TOOL IS ZSH AND ITS CWD PERSISTS BETWEEN CALLS.** Absolute paths. Unquoted globs in `--include='*.rs'` are a hard error; **unquoted `$var` does NOT word-split** -- `git diff -- $PATHS` passed one path and produced an empty patch. **Never `$?` after a pipe.** `grep -c` exits 1 on zero. **AND THE TWO COMPOUND: THE PIPE TRAP HIDES THE CWD TRAP.** `find <relpath> ... 2>/dev/null | head; echo rc=$?` run from a drifted cwd printed nothing at `rc=0` -- the redirect swallowed _No such file or directory_ and the `rc` was `head`'s. It read as _searched and found nothing_ and I nearly reported my own fold archive as lost; it is on disk, all ten files. **An instrument that cannot say WHERE it looked cannot report an absence.**
 - **THE MARKDOWN FORMATTER IS A SECOND WRITER** -- write `_..._` in table prose; `gen_dispatch_table.sh` refuses a render that would not be a fixed point.
 
 ### Estate facts worth not re-deriving
