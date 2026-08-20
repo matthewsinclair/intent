@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 09:33Z
+heartbeat_at: 2026-08-20 09:39Z
 status: active
 focus: "**`intent critic` LANDED at `5043d0c4` -- 7 files, 1509 insertions, at parity with v2 and the precondition for v3 on PATH.** Exit codes built to the CODE and the GATE, not the table, which asserted the opposite in three places and would have shipped a silent gate bypass. **NEXT: hooks holes 1+2 (one stale install file produces both, and hole 1 -- the missing `3)` arm -- has been live under v2 since 2026-08-14), then AC-06.3, then `init`.**"
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -62,7 +62,11 @@ Held for the next session, in order:
 3. **THE ROSTER IS MINE AND IT HAS TWO OPEN ITEMS.** cc's `thread_view_skew_check.sh` awaits my admission (gated skew is 1 of 269; it would take it to 269). And `runner_roster_check.sh` joins on `$HERE/*_check.sh` with `$HERE` bound to ST0056's dir only, while claiming _every parity instrument_ -- **a universal claim with a single-directory reach.** cc's unplanted `canon_commit_check.sh` control (`1e2bc65e` ADDS 1 at rc=1, `aa4c3ac0` clean at rc=0) substantially meets my standing admission condition.
 4. **TWO RULINGS STILL HELD FOR hv:** ext rule packs (the shipped surface reads exactly one environment variable; the seam is a parameter) and whether `claude rules validate|index` retire with the on-disk rules root.
 5. **`issues dehydrate is in 0 buckets` UNDERSTATES BY FOUR** -- ic owns the roster; left as found.
-6. **Standing, unstarted:** `output-contracts.md`; `doctor` v3 mirror (XS).
+6. **D37 REACHES THE PAYLOAD, AND AT-00.17 IS MINE TO WRITE (hv-originated, vc's contract half landed `26656274`).** **THE BINARIES ARE CLEAN AND THAT IS MEASURED** -- vc swept every command's help and usage, zero hits bar the `ST0000` placeholder; the `ST0056 WP-08` strings at `render.rs:433`, `graphql.rs:149` and `intentd/main.rs:40` are doc comments RECORDING the removals and stay. **The gap is that D37 says OUTPUT NOT SOURCE, and Intent writes files into other people's repositories, which are neither**: `lib/templates/` 30 refs, skills 17, plugin lib+bin 23, subagents 7, rules 3. **The discriminator is CITATION versus FORMAT EXAMPLE and it is mechanical** -- `intent st show ST0042` teaches syntax and the id is a placeholder that happens to be four digits; a CITATION points into a tracker the reader cannot open. That cuts ~80 to ~15 with no per-site judgement. **Test is `native/rust/crates/intent-cli/tests/no_pm_state_in_payload.rs`, minted `to-write`.**
+   **BOTH POSITIVE CONTROLS VERIFIED BY ME AT ZERO HOPS:** `lib/templates/prj/st/ST####/acceptance.md:30` carries _Exemption (ST0048)_, so **every steel thread created in every project is stamped with an Intent thread number**; and `plugins/claude/rules/_schema/critic-contract.md:52` cites `intent/st/ST0034/design.md`, **which is absent from this repo**. **THE SECOND IS STRONGER THAN IT LOOKS AND THE DEHYDRATION DID NOT CAUSE IT: no consumer EVER had `intent/st/ST0034/`, so that citation has always dangled for every reader it was written for.** `e7f00e65` only made it dangle in the one repo that could see it -- the defect was constant and the observability was not, which is today's shape a fourth time.
+   **AT-00.8 IS ANNOTATED RATHER THAN REOPENED and vc is right not to reopen it:** its 8/8 is honest over `crates/*/src/*.rs` + the dispatch table + the faces, and `lib/templates/` and `intent/plugins/` were never in that population. **A green whose population excluded the question is not a false green, it is a green about something else.**
+
+7. **Standing, unstarted:** `output-contracts.md`; `doctor` v3 mirror (XS).
 
 ## Watch-outs
 
