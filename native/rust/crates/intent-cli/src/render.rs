@@ -12,7 +12,7 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::address;
 use intentsvcs::contract::Scope;
-use intentsvcs::facade::{EventFilter, Facade, FacadeContext, FacadeError, Outcome};
+use intentsvcs::facade::{EventFilter, Exported, Facade, FacadeContext, FacadeError, Outcome};
 use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
@@ -2019,13 +2019,58 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// different remedies, and the layer that knows which one happened is the one
 /// that says so.
 fn export(a: &ArgMatches) -> Result<(), Failure> {
-  let f = open()?;
+  // `mut` because `md` REALISES rather than emits (AC-06.3): its artefact is a
+  // directory tree, and writing one mints a database stamp. The binding says
+  // out loud that `export` stopped being a pure read for every format.
+  let mut f = open()?;
   // `None` when the flag is absent, which the facade reads as the roster's
   // declared default. Not defaulted here: the default is a fact about the
   // format roster, and a copy of it in the renderer is a second place for it
   // to be wrong.
-  let text = f.export(opt(a, "format").as_deref()).map_err(fail)?;
-  print!("{text}");
+  match f.export(opt(a, "format").as_deref()).map_err(fail)? {
+    Exported::Document(text) => print!("{text}"),
+    // **THE DENOMINATOR IS PRINTED, NOT THE COUNT (AC-06.1).** A partial
+    // realisation that reads as complete is worse than no realisation, and a
+    // bare "wrote 41 files" cannot be wrong out loud. Both numbers come from
+    // genuinely different places -- one accumulated while writing, one derived
+    // from canon -- so they can disagree, which is the whole point.
+    Exported::Realised(r) => {
+      let (c, t) = (&r.counts, &r.totals);
+      println!(
+        "realised: {} file(s) under {}",
+        r.written.len(),
+        r.root.display()
+      );
+      println!(
+        "  threads {}/{}  wps {}/{}  issues {}/{}  attachments {}/{}  views {}/{}",
+        c.threads,
+        t.threads,
+        c.wps,
+        t.wps,
+        c.issues,
+        t.issues,
+        c.attachments,
+        t.attachments,
+        c.views,
+        t.views
+      );
+      // SAID OUT LOUD IN BOTH DIRECTIONS. A silent success and a silent
+      // shortfall are indistinguishable to a reader, which is the failure this
+      // estate spent 2026-08-20 removing from four separate instruments.
+      if r.complete() {
+        println!("  complete: every artefact canon holds reached the realisation");
+      } else {
+        println!("  INCOMPLETE: canon holds artefacts this realisation did not write");
+      }
+      // NOT AN ARTEFACT ON STDOUT, and the operator is told why rather than
+      // left to notice. `intent export` means "the artefact on stdout" for
+      // every format but this one; a tree cannot be one, and saying so here
+      // costs a line and answers the question the absence would raise.
+      println!(
+        "  markdown is the generated VIEW and is never read back -- for data a program will read, use `--format json`"
+      );
+    }
+  }
   Ok(())
 }
 

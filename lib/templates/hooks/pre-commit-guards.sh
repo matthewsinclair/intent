@@ -100,6 +100,9 @@ GUARDS=(
 GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 BLOCKED=0
+RAN=0
+SKIPPED=0
+MISSING=0
 
 for g_entry in "${GUARDS[@]}"; do
   g_when="${g_entry%%|*}"
@@ -110,12 +113,17 @@ for g_entry in "${GUARDS[@]}"; do
   # NOT APPLICABLE IS SILENT, AND ABSENT IS LOUD. A project with a board and no
   # canon must not be told a canon guard did not run -- it has nothing to guard,
   # so there is no hole. The two are different facts and only one is a finding.
-  [ -e "$g_when" ] || continue
+  if [ ! -e "$g_when" ]; then
+    SKIPPED=$((SKIPPED + 1))
+    continue
+  fi
 
   g_path="${GUARD_HOME}/${g_name}"
   if [ -f "$g_path" ]; then
+    RAN=$((RAN + 1))
     bash "$g_path" || BLOCKED=1
   else
+    MISSING=$((MISSING + 1))
     # Reached only with the runner located, so this really is one hole and the
     # other guards really did run. Named, not silent: a subject present with no
     # guard behind it is exactly the invisible non-enforcement this whole
@@ -124,5 +132,28 @@ for g_entry in "${GUARDS[@]}"; do
     echo "  ${g_unchecked} this commit. (looked in: ${g_path})" >&2
   fi
 done
+
+# **ONE LINE ON STDOUT, AND IT EXISTS BECAUSE SILENCE ON SUCCESS IS
+# INDISTINGUISHABLE FROM NOT RUNNING** (cc, 2026-08-20, measured on the first
+# commit after the `core.hooksPath` redirect). Every other message in this file
+# goes to stderr and only on a problem, so a passing run printed NOTHING -- and
+# a runner that was never dispatched prints nothing too. That is the sentence
+# this whole mechanism was built to delete, arriving on the success path.
+#
+# A COUNT, NOT A LIST, and the distinction is the one refused a hundred lines
+# up. Listing which guards were skipped means reciting a roster the reader
+# cannot check; saying HOW MANY ran answers the only question silence leaves
+# open -- did anything happen. `skipped` is the not-applicable population and is
+# a normal, healthy number: a project with no canon skips the canon guard and
+# owes nothing.
+#
+# `missing` is reported separately and never folded into `skipped`, because
+# they are opposite facts: skipped means there was nothing to guard, missing
+# means there was and no guard was there. The per-guard report above already
+# names each one; this is the total, so a reader who saw no detail lines can
+# still tell the difference between three and zero.
+printf 'guards: %d ran, %d skipped (not applicable)' "$RAN" "$SKIPPED"
+[ "$MISSING" -gt 0 ] && printf ', %d MISSING' "$MISSING"
+printf '\n'
 
 exit "$BLOCKED"

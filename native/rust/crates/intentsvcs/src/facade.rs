@@ -163,6 +163,26 @@ fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
   std::fs::write(&path, out)
 }
 
+/// What `Facade::export` produced -- **a document, or a realised tree**.
+///
+/// Two shapes because the artefacts have two shapes, and `intent export`
+/// therefore stops meaning "the artefact on stdout" in every case. hv took that
+/// knowingly on 2026-08-20 rather than keep the signature uniform, because the
+/// only way to keep it uniform was a SECOND markdown producer -- and the one
+/// that drifts is always the one nobody is looking at.
+///
+/// **A verb returning a destination for tree-shaped output and a document for
+/// document-shaped output is describing reality, not compromising** (vc).
+#[derive(Debug, Clone)]
+pub enum Exported {
+  /// The artefact, verified to re-derive the canon byte for byte.
+  Document(String),
+  /// The realisation happened; this says what and where. There is nothing to
+  /// print as an artefact, so the destination and the denominator ARE the
+  /// answer to the operator's question.
+  Realised(realise::Realisation),
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum FacadeError {
   /// A write the address scheme can express and this surface will not perform.
@@ -2154,40 +2174,56 @@ impl Facade {
     realise::realise(&self.project, &self.canon, &ctx, &root).map_err(FacadeError::Realise)
   }
 
-  pub fn export(&self, format: Option<&str>) -> Result<String, FacadeError> {
+  /// **`&mut self` SINCE 2026-08-20, AND THE FORMAT ROSTER IS WHY** (AC-06.3).
+  /// `md` is [`Projection::Realises`](export::Projection::Realises), whose
+  /// artefact is a directory tree rather than a document, and realising one
+  /// mints a database stamp. So `export` can no longer promise to be a pure
+  /// read for every format it accepts. Taken knowingly rather than worked
+  /// around: the alternative was a second markdown producer, and nothing
+  /// would have kept the two in agreement.
+  pub fn export(&mut self, format: Option<&str>) -> Result<Exported, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let events = self.store.events().map_err(FacadeError::Store)?;
     let bundle = export::Bundle::new(&self.ctx.project_id, threads, issues, events);
-    export::project(&bundle, format.unwrap_or(export::DEFAULT_FORMAT)).map_err(|refusal| {
-      // Mapped one-to-one and exhaustively rather than wrapped in a single
-      // variant: these three want three different remedies, and one variant
-      // for all of them is the same-text-for-different-causes collapse
-      // AC-04.4 forbids.
-      match refusal {
-        ExportRefusal::Unknown {
-          name,
-          emits,
-          refused,
-        } => FacadeError::NoSuchFormat {
-          format: name,
-          emits,
-          refused,
-        },
-        ExportRefusal::Lossy {
-          name,
-          because,
-          instead,
-        } => FacadeError::LossyFormat {
-          format: name,
-          because,
-          instead,
-        },
-        ExportRefusal::RoundTripFailed { name, detail } => FacadeError::ExportRoundTripFailed {
-          format: name,
-          detail,
-        },
-      }
-    })
+    let projected =
+      export::project(&bundle, format.unwrap_or(export::DEFAULT_FORMAT)).map_err(|refusal| {
+        // Mapped one-to-one and exhaustively rather than wrapped in a single
+        // variant: these three want three different remedies, and one variant
+        // for all of them is the same-text-for-different-causes collapse
+        // AC-04.4 forbids.
+        match refusal {
+          ExportRefusal::Unknown {
+            name,
+            emits,
+            refused,
+          } => FacadeError::NoSuchFormat {
+            format: name,
+            emits,
+            refused,
+          },
+          ExportRefusal::Lossy {
+            name,
+            because,
+            instead,
+          } => FacadeError::LossyFormat {
+            format: name,
+            because,
+            instead,
+          },
+          ExportRefusal::RoundTripFailed { name, detail } => FacadeError::ExportRoundTripFailed {
+            format: name,
+            detail,
+          },
+        }
+      })?;
+    // **THE ROSTER DECLARED AND THIS PERFORMS**, which is the split that keeps
+    // `export::project` pure. It returns an instruction for a tree-shaped
+    // format because it has neither the store nor a clock, and both are
+    // required: `realise` mints its directory name from the database (D42).
+    match projected {
+      export::Projected::Document(text) => Ok(Exported::Document(text)),
+      export::Projected::Realise => self.realise().map(Exported::Realised),
+    }
   }
 
   /// What `.intentfiles` says about which threads are realised.

@@ -105,11 +105,25 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .export(Some("xml"))
       .expect_err("there is no xml projection"),
   ));
+  // **FOURTH TIME, AND THE RULE FOR AVOIDING IT IS WRITTEN TWELVE LINES BELOW.**
+  // This provoked `LossyFormat` with `md`, and on 2026-08-20 `md` stopped
+  // refusing: AC-06.3 made it `Projection::Realises`, so the provoker stopped
+  // provoking and `expect_err` panicked -- the same shape as the three cases
+  // this file already records.
+  //
+  // **`yaml` IS CHOSEN FROM THE DURABLE GROUND RATHER THAN FROM WHAT REFUSES
+  // TODAY**, which is the property the earlier swaps found by accident and
+  // this one applies on purpose. `md` was refused on a CLASSIFICATION -- it
+  // was being judged by the interchange rule -- and a classification is
+  // exactly what a ruling can change, which is what happened. `yaml` is
+  // refused on a MEASUREMENT: PyYAML 6.0.3 resolves 6 of 24 hazardous scalars
+  // to the wrong types, including every ISO date in the canon. Reversing that
+  // needs a new measurement of the world, not a decision about scope.
   out.push((
     "refused export format",
     facade
-      .export(Some("md"))
-      .expect_err("md cannot be read back"),
+      .export(Some("yaml"))
+      .expect_err("yaml is read back as the wrong types by common consumers"),
   ));
   // **THE THIRD TIME THIS FILE HAS BEEN CAUGHT BY THE SAME MECHANISM, and the
   // first two are commented seventy lines below** (issue 0053). This provoked

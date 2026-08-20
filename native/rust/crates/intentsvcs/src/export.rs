@@ -151,6 +151,39 @@ pub enum Projection {
     /// What to reach for instead. A refusal with no route is a dead end.
     instead: &'static str,
   },
+  /// Written for a READER, never read back, and that is not a defect in it.
+  ///
+  /// **THE PREMISE THAT EXPIRED IS THE POPULATION, NOT THE FACT** (AC-06.3,
+  /// hv 2026-08-20). `md` used to be [`Lossy`](Projection::Lossy), and the
+  /// premise of that refusal is *not* that markdown cannot be read back --
+  /// that stays true and must. It is that markdown was being judged by the
+  /// INTERCHANGE rule. [`RoundTrips`](Projection::RoundTrips) governs canon
+  /// into another MACHINE format, which is D03's mechanism and the reason v3
+  /// can refuse YAML canon without refusing YAML users. The text realisation
+  /// is not one: `.backup/text/<UTC>/`, no import path, `classify` never sees
+  /// it, never authoritative. It is a human fallback and was never in that
+  /// population.
+  ///
+  /// **`RoundTrips`'s rule is NOT relaxed for interchange formats and must not
+  /// be.** This variant is exempt because it is not offered as interchange,
+  /// not because the rule went soft.
+  ///
+  /// **IT CARRIES NO FUNCTION POINTER, AND THE ASYMMETRY IS IN THE WORLD
+  /// RATHER THAN IN THIS DESIGN.** Both other variants assume a single-String
+  /// artefact; this one's artefact is a DIRECTORY TREE. You cannot put a tree
+  /// on stdout, and flattening one to preserve a uniform signature would
+  /// destroy the file boundaries that ARE its structure. The roster stays
+  /// pure -- realisation needs the store and a database-minted stamp (D42),
+  /// neither of which a projection has -- so the roster declares and the
+  /// caller performs.
+  Realises {
+    /// Where the tree lands. Named because there is no returned artefact for
+    /// an operator to look at, so the destination IS the answer.
+    destination: &'static str,
+    /// Why there is no read route. Stated rather than merely observed:
+    /// AC-06.2 FORBIDS one, so its absence is a guarantee and not a gap.
+    no_read_because: &'static str,
+  },
 }
 
 pub struct Format {
@@ -230,11 +263,17 @@ pub const FORMATS: &[Format] = &[
     // the one that would have been shipped: emitting markdown is easy, the
     // renderer already exists, and the result looks entirely correct until
     // someone tries to re-read it.
+    //
+    // **ACCEPTED SINCE 2026-08-20 (AC-06.3, hv's ruling). The paragraphs above
+    // are kept because every sentence in them is still true** -- markdown IS
+    // the generated view, and a view still cannot be read back. What changed
+    // is which rule md is judged by, and the refusal is retired in the same
+    // change that expires its reason rather than before it.
     name: "md",
-    help: "REFUSED -- markdown is the generated view, and a view cannot be read back",
-    projection: Projection::Lossy {
-      because: "markdown is the generated VIEW of the canon: it renders what a reader needs and drops what only a machine needs, so no reader can turn it back into the model it came from",
-      instead: "The views are already in the tree -- `intent sync --to-disk` rewrites them; for data a program will read, use `--format json`",
+    help: "the whole estate as readable files under .backup/text/ -- for a human, never read back",
+    projection: Projection::Realises {
+      destination: "intent/.backup/text/<UTC>/",
+      no_read_because: "markdown is the generated VIEW of the canon: it renders what a reader needs and drops what only a machine needs, so no reader can turn it back into the model it came from -- and the absence of a way back is guaranteed rather than incidental: there is deliberately no import path, and nothing under the destination is ever read as canon",
     },
   },
 ];
@@ -300,7 +339,19 @@ pub fn names() -> Vec<&'static str> {
 pub fn emitting_names() -> Vec<&'static str> {
   FORMATS
     .iter()
-    .filter(|f| matches!(f.projection, Projection::RoundTrips { .. }))
+    // **BOTH ARTEFACT-PRODUCING VARIANTS, and forgetting the second is the
+    // silent half of adding one.** `matches!` is not exhaustive, so a new
+    // variant compiles fine here and simply falls out of BOTH partitions --
+    // `md` would then appear in neither the emitting list nor the refused
+    // list, and the `Unknown` refusal's remedy would stop mentioning a format
+    // that works. A partition that stops covering its population, which is
+    // the class this estate met four times on 2026-08-20.
+    .filter(|f| {
+      matches!(
+        f.projection,
+        Projection::RoundTrips { .. } | Projection::Realises { .. }
+      )
+    })
     .map(|f| f.name)
     .collect()
 }
@@ -321,7 +372,7 @@ pub fn refused_names() -> Vec<&'static str> {
 /// runs on the bundle actually being exported rather than on a fixture, so the
 /// guarantee attaches to the artefact in the operator's hand: what this returns
 /// has been read back and shown to re-derive the canon byte for byte.
-pub fn project(bundle: &Bundle, name: &str) -> Result<String, ExportRefusal> {
+pub fn project(bundle: &Bundle, name: &str) -> Result<Projected, ExportRefusal> {
   let Some(format) = find(name) else {
     return Err(ExportRefusal::Unknown {
       name: name.to_string(),
@@ -342,7 +393,7 @@ pub fn project(bundle: &Bundle, name: &str) -> Result<String, ExportRefusal> {
 ///
 /// Splitting it also separates two genuinely different jobs -- deciding WHICH
 /// format, and applying one -- so neither is reachable only through the other.
-pub fn project_with(bundle: &Bundle, format: &Format) -> Result<String, ExportRefusal> {
+pub fn project_with(bundle: &Bundle, format: &Format) -> Result<Projected, ExportRefusal> {
   match &format.projection {
     Projection::Lossy { because, instead } => Err(ExportRefusal::Lossy {
       name: format.name.to_string(),
@@ -354,9 +405,35 @@ pub fn project_with(bundle: &Bundle, format: &Format) -> Result<String, ExportRe
         name: format.name.to_string(),
         detail: format!("writing it failed: {detail}"),
       })?;
-      verify(bundle, &text, format.name, *read).map(|()| text)
+      verify(bundle, &text, format.name, *read).map(|()| Projected::Document(text))
     }
+    // NOT AN ERROR AND NOT A DOCUMENT. The roster cannot perform this one and
+    // says so by returning an instruction rather than an artefact: a
+    // projection is pure, and realisation writes files under a
+    // database-minted stamp. Making this arm unreachable by branching in the
+    // caller first would leave a variant here that nothing accounts for,
+    // which is how a match stops describing its own type.
+    Projection::Realises { .. } => Ok(Projected::Realise),
   }
+}
+
+/// What a projection produced -- **an artefact, or an instruction to make one**.
+///
+/// Two shapes because the artefacts have two shapes. Returning `String` for
+/// both would have required flattening a directory tree into one document,
+/// which destroys the file boundaries that are its structure; returning a path
+/// for both would deny the document formats the thing they exist to give.
+///
+/// **This is the type telling the truth about `intent export`, which stops
+/// meaning "the artefact on stdout" in every case** (hv, 2026-08-20, knowingly).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Projected {
+  /// The artefact itself, verified to re-derive the canon.
+  Document(String),
+  /// This format's artefact is a tree; the caller must realise it. Carries no
+  /// payload deliberately -- everything needed to perform it lives with the
+  /// store, and duplicating any of it here would be a second answer.
+  Realise,
 }
 
 /// Read the emitted text back and require it to re-derive the canon exactly.

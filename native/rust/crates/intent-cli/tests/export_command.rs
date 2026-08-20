@@ -84,22 +84,15 @@ fn the_bare_command_writes_the_whole_estate_to_stdout_as_json() {
 fn every_refusal_writes_nothing_to_stdout_and_says_why_on_stderr() {
   let dir = project();
 
-  // A format that cannot be read back at all -- the view.
-  let (out, err, code) = run(&["export", "--format", "md"], dir.path());
-  assert_eq!(code, 1);
-  assert!(
-    out.is_empty(),
-    "a refusal wrote {} bytes to stdout",
-    out.len()
-  );
-  assert!(
-    err.contains("`md`") && err.contains("generated VIEW"),
-    "it names the format and says why: {err}"
-  );
-  assert!(
-    err.contains("--format json"),
-    "and where to go instead: {err}"
-  );
+  // **`md` USED TO BE THE FIRST CASE HERE AND IS NO LONGER A REFUSAL AT ALL**
+  // (AC-06.3, hv 2026-08-20). It realises to `.backup/text/<UTC>/`. Its
+  // acceptance is asserted in `export_md_accepted.rs` rather than weakened
+  // here, because this test's subject is what a REFUSAL costs an operator and
+  // a format that succeeds has nothing to say about that.
+  //
+  // Deliberately not replaced with a second refusing format to keep the count
+  // at three: the cases below are the two that remain, and padding a test to
+  // preserve a shape is how a population stops matching its name.
 
   // A format that reads back perfectly for us and not for anyone else.
   let (out, err, code) = run(&["export", "--format", "yaml"], dir.path());
@@ -137,19 +130,32 @@ fn every_refusal_writes_nothing_to_stdout_and_says_why_on_stderr() {
     .unwrap_or_else(|| panic!("no offer line: {err}"));
   let offer = &offer[offer.find("one of:").expect("checked above")..];
   let offer = offer.split('.').next().expect("first sentence");
-  assert!(
-    offer.contains("json"),
-    "the offer names what works: {offer}"
-  );
-  for refused in ["yaml", "md"] {
+  // **`md` MOVED FROM ONE LIST TO THE OTHER ON 2026-08-20 (AC-06.3)** and this
+  // assertion is where that shows. It realises rather than refuses, so it is
+  // now a legitimate remedy for someone who typed a name that does not exist.
+  for offered in ["json", "md"] {
     assert!(
-      !offer.contains(refused),
-      "`{refused}` refuses and is offered as the remedy for a refusal: {offer}"
+      offer.contains(offered),
+      "the offer names what works, and `{offered}` works: {offer}"
     );
   }
   assert!(
-    err.contains("yaml") && err.contains("md") && err.contains("refused"),
-    "and the declined names are still reported, so the next guess is not one of them: {err}"
+    !offer.contains("yaml"),
+    "`yaml` refuses and is offered as the remedy for a refusal: {offer}"
+  );
+  assert!(
+    err.contains("yaml") && err.contains("refused"),
+    "and the declined name is still reported, so the next guess is not it: {err}"
+  );
+  // THE PARTITION IS ASSERTED, NOT ASSUMED. `emitting_names` and
+  // `refused_names` are two `matches!` filters over one roster, and neither is
+  // exhaustive -- a third variant fell into NEITHER until it was added to the
+  // first. A format in both lists, or in neither, is the failure that silence
+  // would otherwise cover.
+  let declined = &err[err.find("refused").unwrap_or(0)..];
+  assert!(
+    !declined.contains("`md`"),
+    "`md` is reported as both offered and declined: {err}"
   );
 }
 
