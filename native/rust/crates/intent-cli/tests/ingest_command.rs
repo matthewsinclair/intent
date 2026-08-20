@@ -12,6 +12,25 @@
 //! What Phase A promises is narrow and worth pinning exactly: it READS an
 //! estate and writes nothing, it distinguishes residue that blocks from legacy
 //! that carries, and it never reports an absent field as a wrong one.
+//!
+//! # This file is **AT-10.2**'s second citation, and it carried no contract id
+//! for three days
+//!
+//! Two of AC-10.2's four limbs -- BLOCKED, and a non-zero exit -- have been
+//! driven here end to end through the shipped verb since 2026-08-17, while the
+//! row read `to-write` and a second test was written in `intentsvcs` for the
+//! same criterion. **Nothing linked the two**: this file named no `AC-` or
+//! `AT-` id anywhere, so no instrument this estate owns could see that the
+//! criterion was already half covered. `at lint`'s L2 catches a row citing an
+//! absent file and L3 catches a cited file missing the row's id; **neither can
+//! see a covering test that names nothing.**
+//!
+//! **The split is deliberate and is not one row widened** (vc, 2026-08-20).
+//! `intentsvcs`' `migrate_refusal.rs` cites the FORMAT, because `Finding`'s
+//! `Display` is where the format lives. This file cites the TERMINAL: that the
+//! class survives out of the library, through the renderer, to the operator's
+//! stdout. Two citations keep two assertions separately falsifiable; one wider
+//! row makes a green mean less.
 
 use std::process::Command;
 
@@ -117,6 +136,18 @@ fn live_residue_blocks_and_closed_residue_carries() {
   assert!(
     out.contains("Banana"),
     "and the value it could not read: {out}"
+  );
+  // **THE CLASS, AND THIS IS THE LIMB ONLY THIS CRATE CAN ASSERT.** That
+  // `Finding::Display` renders the class is `migrate_refusal.rs`'s subject.
+  // Whether it survives to a TERMINAL is a claim about the renderer, and a CLI
+  // that reformatted findings for display -- dropping the class, keeping the
+  // file and the detail -- would pass every assertion above and every test in
+  // `intentsvcs`. The delimiters are in the pattern for the reason they are
+  // there: `contains("unknown-status")` also passes on a build that prints the
+  // class in the detail field, or twice, or before the file.
+  assert!(
+    out.contains(" -- unknown-status -- "),
+    "the classed line must reach the operator, not just `Finding::Display`: {out}"
   );
   assert!(
     err.contains("blocking"),
