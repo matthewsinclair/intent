@@ -88,10 +88,17 @@ fn the_accepted_set_is_exactly_the_id_set() {
       "STEELTHREAD:{c} -- the manifest and `is_thread_id` must agree exactly;\n       \
        a divergence here means the grammar has grown a second id rule"
     );
-    assert_eq!(
-      accepted(&format!("ISSUE:{c}")),
-      model::is_issue_id(c),
-      "ISSUE:{c} -- the manifest and `is_issue_id` must agree exactly"
+    // **`ISSUE:` IS NOW REFUSED FOR EVERY ID, INCLUDING THE VALID ONES**, and
+    // that is the assertion rather than a deletion. hv retired the sigil on
+    // 2026-08-20; `model::is_issue_id` is untouched and still has callers,
+    // because an issue keeps its identity in canon and the store. **What ended
+    // is the manifest's claim on it** -- so the interesting case is precisely
+    // `is_issue_id(c) == true` being refused anyway, which a dropped assertion
+    // would stop covering.
+    assert!(
+      !accepted(&format!("ISSUE:{c}")),
+      "ISSUE:{c} must be refused -- the sigil is retired, and a well-formed issue id does not \
+       make it legal again"
     );
   }
 }
@@ -128,6 +135,8 @@ fn line_whitespace_is_settled_before_the_id_is_read() {
   // But whitespace INSIDE the id is not whitespace around a line, and the id
   // predicate does see it.
   assert!(!accepted("STEELTHREAD:ST 0056"));
+  // Refused for the SIGIL now, not the interior space -- kept so that
+  // restoring `ISSUE` would have to face this line.
   assert!(!accepted("ISSUE:00 42"));
 }
 

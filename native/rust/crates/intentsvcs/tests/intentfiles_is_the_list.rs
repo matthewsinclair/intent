@@ -238,19 +238,31 @@ fn the_realised_set_equals_the_listed_set() {
   // The list declares an odd, non-contiguous minority -- so a rule keyed on
   // "the first two" or "the low ids" is a different set from this one.
   //
-  // **THE `ISSUE:` LINE IS LOAD-BEARING AND WAS ADDED BECAUSE A MUTATION ARM
-  // SURVIVED WITHOUT IT.** Deleting the sigil filter from the derivation below
-  // left this test green while the fixture held steel threads only -- the
-  // filter had nothing to exclude, so an untested branch sat inside the very
-  // derivation whose independence is the point. A manifest carries both
-  // sigils; this one now does too.
+  // **THE `ISSUE:` LINE WAS LOAD-BEARING AND THE GRAMMAR TOOK ITS SUBJECT
+  // AWAY. THIS IS A REAL LOSS OF COVERAGE AND IT IS STATED, NOT ABSORBED.**
+  //
+  // It was added because a mutation arm SURVIVED without it: deleting the
+  // sigil filter from the derivation below left this test green while the
+  // fixture held steel threads only, because the filter had nothing to
+  // exclude. An untested branch sat inside the very derivation whose
+  // independence is the point.
+  //
+  // hv retired `ISSUE:` on 2026-08-20, so the grammar has ONE sigil and there
+  // is no second one to put here. **A line with an unknown sigil cannot
+  // substitute** -- `parse` refuses it before the derivation ever sees it, so
+  // it exercises the parser rather than the filter. The mutation this comment
+  // was written about is therefore UNREACHABLE from any fixture today, and
+  // deleting the sigil filter would once again go unnoticed.
+  //
+  // **The coverage returns the day a second sigil lands** -- which is queued,
+  // not hypothetical: cc's 59 project-content files want one. Whoever adds it
+  // must put it in this fixture, and this comment is the reason why.
   fx.write_file(
     "intent/.intentfiles",
     "\
 # hand-authored
 STEELTHREAD:ST0002
 STEELTHREAD:ST0003
-ISSUE:0042
 STEELTHREAD:ST0005
 STEELTHREAD:ST0007
 STEELTHREAD:ST0057

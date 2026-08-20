@@ -310,7 +310,18 @@ fn every_address_form_is_hydratable_or_refused_by_name() {
   );
   assert_eq!(
     refused,
-    vec!["threads", "node", "node-inbox", "event"],
+    // **`issue` MOVED FROM HYDRATABLE TO REFUSED ON 2026-08-20, AND THIS LINE
+    // IS WHY ANYONE SAW IT.** hv ruled issues canon-and-store only, so
+    // `Address::artefact` answers `None` for one and `hydrate` refuses at the
+    // door. The declared list is the whole point of the assertion -- a set
+    // computed from the code would have absorbed the move in silence.
+    //
+    // It was never HYDRATABLE in any useful sense: its realisation home
+    // resolved through `issues_dir()` to `intent/.canon/issues/`, CANON, and
+    // it returned `Ok` over zero files while pinning `ISSUE:` into the live
+    // manifest. So this is a form arriving in the bucket it always belonged
+    // in, not a capability being withdrawn.
+    vec!["threads", "issue", "node", "node-inbox", "event"],
     "the refused set is declared, so a form moving between buckets is visible"
   );
 }

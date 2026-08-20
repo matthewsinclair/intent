@@ -18,7 +18,7 @@
 //! It equally must not say "an address begins intent://" -- that answers a
 //! question a caller who typed a bare id did not ask.
 
-use intentsvcs::address::{AddressError, promote};
+use intentsvcs::address::{AddressError, Entity, promote};
 use intentsvcs::remedy::Remedy;
 
 /// **A THREAD ID.**
@@ -42,14 +42,37 @@ fn a_bare_thread_id_becomes_this_project_s_thread() {
 /// **AN ISSUE ID**, which is the case that makes `<address>` necessary at all:
 /// `st` cannot carry issues, so the verb is top-level and the argument must
 /// span both forms.
+///
+/// # An issue is still ADDRESSABLE and is no longer an ARTEFACT
+///
+/// This asserted `artefact()` returned `Some(("ISSUE", "0042"))`. hv ruled on
+/// 2026-08-20 that issues are canon-and-store only, so it now answers `None`
+/// -- **and the two halves of that are separate claims that this test used to
+/// conflate.**
+///
+/// Promotion is about NAMING: a bare `0042` still resolves to this project's
+/// issue, `intent://issue/0042` still means something, and `intent issues
+/// show 0042` still answers. What ended is the claim that an issue has a
+/// realised form on disk for `.intentfiles` to name. **Addressable and
+/// realisable were one assertion here and they were never the same
+/// property** -- an event and a whiteboard node have always been the first
+/// without the second.
 #[test]
 fn a_bare_issue_id_becomes_this_project_s_issue() {
   let a = promote("0042").expect("an issue id is addressable");
   assert_eq!(
-    a.entity
-      .artefact()
-      .map(|(s, id)| (s.as_str().to_string(), id.to_string())),
-    Some(("ISSUE".to_string(), "0042".to_string()))
+    a.entity,
+    Entity::Issue {
+      id: "0042".to_string()
+    },
+    "promotion still names this project's issue -- the ruling took away its realised form, not \
+     its identity"
+  );
+  assert_eq!(
+    a.entity.artefact(),
+    None,
+    "an issue lives only in canon and the store, so it is not an artefact `.intentfiles` can \
+     name and `hydrate` refuses it by name"
   );
 }
 
