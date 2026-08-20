@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 13:30Z
+heartbeat_at: 2026-08-20 13:33Z
 status: active
 focus: "**AT-06.8's INSTRUMENT IS BUILT AND THE CRITERION IS NOT MET** (`850b6014`) -- scanner self-check and a synthetic discrimination arm gate; the POPULATION arm is `#[ignore]`d with a named expiry, because dc is landing `init`/`bootstrap` and the violation set moved 18 -> 8 -> 9 in one afternoon. **The instrument was wrong twice and that is the value**: ic caught my scanner missing the MAJORITY idiom (ten of eighteen were false positives, including the headline), and my own control was drawn from the same enumeration as the instrument so it could not have failed. **D55 closed at zero, AC-01.5 driven and red, D54 partitions B exactly.** Next: un-park AT-06.8 on dc's word, then Route A with dc."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -37,6 +37,16 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **Folded 21:41Z. Superseded ones are in `.history/20260819/`; these still bite.**
 
+**THE PROVENANCE-OF-EVIDENCE RULE, THREE LIMBS, vc's (2026-08-20) FROM MY TWO INSTANCES: NEITHER THE INSTANCE, NOR THE CONTROL, NOR THE PREDICATE MAY BE DRAWN FROM THE THING UNDER TEST.**
+
+    INSTANCE   a red-first borrowing a LIVE defect makes the defect a fixture
+    CONTROL    a control from the instrument's own enumeration confirms the enumeration
+    PREDICATE  an exemption written around the instances in front of you is a list
+               wearing a filter's syntax
+
+**ALL THREE PRODUCE A GREEN THAT PROVES NOTHING AND ALL THREE LOOK IDENTICAL TO A GREEN THAT PROVES SOMETHING.** I produced the second and third inside one hour, on myself, and saw two instances rather than one rule. The two watch-outs below are the evidence for limbs 2 and 3 and are kept for their detail, not as separate findings.
+
+**AND vc's ADDITION IS THE HARDER HALF: THE FALSE POSITIVE SURVIVED BECAUSE IT FLATTERED THE METHOD THAT PRODUCED IT.** `st new -s` sat in canon and in vc's prose for FIVE DAYS as _the instance the census missed, found by walking the table_ -- a satisfying sentence about a flag read at `render.rs:587`, repeated by three nodes. **An instrument's false positive that confirms the story you were already telling gets QUOTED rather than CHECKED.**
 **A CONTROL DRAWN FROM THE SAME ENUMERATION AS THE INSTRUMENT CAN ONLY CONFIRM THE SHAPES THE ENUMERATION ALREADY HAS.** My flag scanner's validation pinned five known-read ids and a floor of twenty, and **I chose all five from the accessor shapes I had already listed as the scanner's markers -- one list wearing two hats.** It passed while the scanner was blind to the MAJORITY idiom (`flag(m, "..")`, eleven sites against four direct `get_flag`), which made **ten of eighteen baseline entries false positives, including the headline one I had been quoting at two peers.** ic caught it. **THIS IS vc's BORROWED-INSTANCE RULING'S SIBLING and the pair is worth holding together: that one is about where the INSTANCE comes from, this is about where the CONTROL comes from. A control the author picks tests the author's MODEL; a control the SOURCE picks tests the INSTRUMENT.** The replacement is source-chosen -- every line spelling an accessor must yield an id -- and it reports eleven silent lines the moment the marker is removed.
 
 **A PREDICATE WRITTEN AROUND THE INSTANCES IN FRONT OF YOU IS A LIST WITH A FILTER'S SYNTAX, AND MINE BROKE INSIDE THE HOUR.** The source-chosen control above exempted lines matching `name: &str` and `(name)` -- **the two existing helpers' SPELLING rather than their SHAPE** -- and dc's new `init` helper, spelling the same idea with a parameter called `flag`, broke it within the hour of it being written. The general form: a silent accessor line with NO string literal is spelling a variable; one WITH a literal is a marker gap. **Exempt by the property or you have hand-listed twice.**
