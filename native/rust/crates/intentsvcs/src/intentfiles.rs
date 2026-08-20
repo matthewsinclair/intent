@@ -228,7 +228,26 @@ pub fn realised(path: &std::path::Path) -> Realised {
   let Ok(raw) = std::fs::read_to_string(path) else {
     return Realised::NothingSaid;
   };
-  match parse(&raw) {
+  realised_from(&raw)
+}
+
+/// What a manifest's TEXT declares realised -- [`realised`] without the file.
+///
+/// **Split out on 2026-08-20 so the derivation has one home and a door that
+/// does not need the filesystem.** It was inline in [`realised`], which meant
+/// the only way to ask "what does this text declare" was to write it to a temp
+/// file first -- so anything testing `unpin` against the consumer's real
+/// question had to either do that or RE-DERIVE the answer from `parse`, and
+/// the second is a second reader of the same rule. `realised` now delegates,
+/// so the two can never disagree.
+///
+/// **THE SIGIL FILTER BELOW IS A NO-OP TODAY AND IS NOT DEAD.** hv retired
+/// `ISSUE:` on 2026-08-20, so every entry is a `SteelThread` and the filter
+/// excludes nothing. It stays because the sigil space is queued to grow, and
+/// deleting it would put the bug back the day it does. `intentfiles_is_the_
+/// list.rs` records that no fixture can currently catch its removal.
+pub fn realised_from(text: &str) -> Realised {
+  match parse(text) {
     Ok(manifest) => Realised::Declared(
       manifest
         .entries
@@ -485,5 +504,73 @@ pub fn pin(
 
   let mut text = out.join("\n");
   text.push('\n');
+  Ok(text)
+}
+
+/// Remove an artefact from the manifest -- the inverse of [`pin`], and the
+/// primitive the CLOSING lifecycle verbs need (AC-05.2).
+///
+/// **IT REMOVES FROM BOTH REGIONS, AND THAT IS THE WHOLE POINT RATHER THAN A
+/// CONVENIENCE.** [`realised`] answers from `manifest.entries` -- every entry,
+/// pinned or generated -- so an `unpin` that only cleared the pinned region
+/// would leave `st done` reporting success while the artefact stayed realised
+/// and `organize` went on writing its files. The asymmetry with `pin` (which
+/// only ever WRITES to the pinned region) is deliberate: **where a line goes
+/// is a decision, and whether a line is there at all is a fact.**
+///
+/// # Refusing a malformed id, when nothing could have matched it anyway
+///
+/// `unpin(m, SteelThread, "ST56")` matches nothing, so returning the manifest
+/// unchanged would be defensible and is wrong. **A caller passing an
+/// unwritable id has a bug, and the no-op answer is indistinguishable from
+/// "that thread was not listed"** -- which is the ordinary, expected outcome
+/// this function reports on every second call. One of those two states needs
+/// fixing and the other does not, so they must not share an answer. Refusing
+/// at the write is what [`pin`] does for the same reason, and the symmetry is
+/// worth more here than a permissive removal.
+///
+/// # Idempotent, because a closing verb must be re-runnable
+///
+/// Removing an id the manifest does not name returns the original unchanged.
+/// `st done` on an already-closed thread, a re-run after a partial failure,
+/// and a thread created with `--dehydrate` and then closed all arrive here
+/// with nothing to remove, and none of them is an error.
+///
+/// Everything else in the file survives byte for byte: comments, blank lines,
+/// the markers, and the order of the entries that stay. The lines to drop come
+/// from [`parse`], which owns the grammar -- **re-deciding here which lines are
+/// entries would be a second reader of the same syntax, and the two would
+/// disagree on the first line either got wrong.**
+pub fn unpin(original: &str, sigil: Sigil, id: &str) -> Result<String, IntentfilesError> {
+  let existing = parse(original)?;
+  if !sigil.accepts(id) {
+    return Err(IntentfilesError::MalformedId {
+      line: 0,
+      sigil: sigil.as_str(),
+      id: id.to_string(),
+    });
+  }
+
+  let doomed: std::collections::BTreeSet<usize> = existing
+    .entries
+    .iter()
+    .filter(|e| e.sigil == sigil && e.id == id)
+    .map(|e| e.line)
+    .collect();
+  if doomed.is_empty() {
+    return Ok(original.to_string());
+  }
+
+  let kept: Vec<&str> = original
+    .lines()
+    .enumerate()
+    .filter(|(i, _)| !doomed.contains(&(i + 1)))
+    .map(|(_, l)| l)
+    .collect();
+
+  let mut text = kept.join("\n");
+  if !text.is_empty() {
+    text.push('\n');
+  }
   Ok(text)
 }
