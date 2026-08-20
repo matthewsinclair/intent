@@ -26,18 +26,18 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 
 ## Work Packages
 
-| WP    | Title                                                        | Size | Status      |
-| ----- | ------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Canon relocation to intent/.canon/                           | M    | WIP         |
-| WP-02 | .intentfiles: the manifest and its refusing grammar          | S    | WIP         |
-| WP-03 | Attachment canon: opaque as file, and the naming gate        | M    | WIP         |
-| WP-04 | intent organize: four answers, one refusal, one gate         | L    | WIP         |
-| WP-05 | intent edit <ID>                                             | S    | WIP         |
-| WP-06 | The full text realisation, and the refusal that expires      | M    | Not Started |
-| WP-07 | intent:// addressing and read resolution                     | L    | WIP         |
-| WP-08 | The mutation surface: write-by-address and the missing verbs | L    | WIP         |
-| WP-09 | The event log records the model and not the disk             | S    | Done        |
-| WP-10 | doctor reports a dehydrated view as missing                  | S    | Done        |
+| WP    | Title                                                        | Size | Status |
+| ----- | ------------------------------------------------------------ | ---- | ------ |
+| WP-01 | Canon relocation to intent/.canon/                           | M    | WIP    |
+| WP-02 | .intentfiles: the manifest and its refusing grammar          | S    | Done   |
+| WP-03 | Attachment canon: opaque as file, and the naming gate        | M    | WIP    |
+| WP-04 | intent organize: four answers, one refusal, one gate         | L    | WIP    |
+| WP-05 | intent edit <ID>                                             | S    | WIP    |
+| WP-06 | The full text realisation, and the refusal that expires      | M    | WIP    |
+| WP-07 | intent:// addressing and read resolution                     | L    | Done   |
+| WP-08 | The mutation surface: write-by-address and the missing verbs | L    | WIP    |
+| WP-09 | The event log records the model and not the disk             | S    | Done   |
+| WP-10 | doctor reports a dehydrated view as missing                  | S    | Done   |
 
 ## Acceptance
 

@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: .intentfiles: the manifest and its refusing grammar
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: .intentfiles: the manifest and its refusing grammar

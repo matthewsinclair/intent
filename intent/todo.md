@@ -8,7 +8,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Design canon: architecture, data model, migration and parity specs
   - [x] 02: Workspace and reified model: intentsvcs types, schema faces, store
   - [-] 03: Ingest, views and sync engine
-  - [x] 04: intentsvcs facade: core command families
+  - [-] 04: intentsvcs facade: core command families
   - [-] 05: CLI in-process mode and BATS conformance harness
   - [-] 06: CLI parity long tail
   - [-] 07: Canon and claude subsystem
@@ -23,12 +23,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 16: Contract drift: a shipped field with no model row is refused
 - [-] ST0057: Disk as a sparse projection of the store
   - [-] 01: Canon relocation to intent/.canon/
-  - [-] 02: .intentfiles: the manifest and its refusing grammar
+  - [x] 02: .intentfiles: the manifest and its refusing grammar
   - [-] 03: Attachment canon: opaque as file, and the naming gate
   - [-] 04: intent organize: four answers, one refusal, one gate
   - [-] 05: intent edit <ID>
-  - [ ] 06: The full text realisation, and the refusal that expires
-  - [-] 07: intent:// addressing and read resolution
+  - [-] 06: The full text realisation, and the refusal that expires
+  - [x] 07: intent:// addressing and read resolution
   - [-] 08: The mutation surface: write-by-address and the missing verbs
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing

@@ -2,7 +2,8 @@
 wp_id: WP-04
 title: intentsvcs facade: core command families
 scope: XL
-status: Done
+status: WIP
+status_reason: Closed legitimately and its contract grew afterwards. AC-04.6 -- mutation completeness, D32, hv-ruled 2026-08-15 -- is unsatisfied with AT-04.6 red, so the Done was true when set and is false now. This is the exact hazard hv ratified a doctor status-vs-gate arm for on 2026-08-15; that arm was never built, so nothing reported the drift. Found by a vc audit of every WP against its own gate, prompted by cc finding ST0057 WP-03 reading Not Started at 5 of 6.
 ---
 
 # WP-04: intentsvcs facade: core command families

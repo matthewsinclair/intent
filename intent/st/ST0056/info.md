@@ -33,7 +33,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-01 | Design canon: architecture, data model, migration and parity specs          | L    | Done        |
 | WP-02 | Workspace and reified model: intentsvcs types, schema faces, store          | L    | Done        |
 | WP-03 | Ingest, views and sync engine                                               | L    | WIP         |
-| WP-04 | intentsvcs facade: core command families                                    | XL   | Done        |
+| WP-04 | intentsvcs facade: core command families                                    | XL   | WIP         |
 | WP-05 | CLI in-process mode and BATS conformance harness                            | L    | WIP         |
 | WP-06 | CLI parity long tail                                                        | XL   | WIP         |
 | WP-07 | Canon and claude subsystem                                                  | L    | WIP         |

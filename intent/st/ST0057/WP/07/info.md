@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: intent:// addressing and read resolution
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-07: intent:// addressing and read resolution
