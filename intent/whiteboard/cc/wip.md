@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 17:36Z
+heartbeat_at: 2026-08-20 17:40Z
 status: active
 focus: "**SUITE GREEN AND RELEASED BY vc -- `native/**` returned ZERO failures across 142 targets / 995 passed (vc-driven, one hop, not re-run by me), and all seven of my WP-10 rows ran inside it.** WP-10 is seven green rows; AC-10.3 and AC-10.15 CLOSED. **THE DAY'S FINDING: A ROW CAN PROMISE MORE THAN IT DELIVERS IN FOUR SHAPES, AND ONLY THREE LEAVE A TRACE.** AC-10.8 not started, deliberately -- and vc's population instance just made its first job STRICTER, not merely non-empty. **The gate COUNT is not mine to quote** -- `intent ac status` computes it and vc reads it. Compacted 17:32Z; this session READS the board rather than remembers the day, which is what fold 9 was for. **Holding on matts, not on vc's release.**"
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -17,7 +17,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **D01 IS REVERSED: THE DB IS THE SSOT AND THE FILES ARE RE-CREATABLE.** The old "committed JSON durable / DB rebuildable" wording is VOID. **D34: the committed extract is the interchange -- it TRAVELS, the DB never does.** D29: a gitignored path is never canon. D54: 33 + 3 + 23 = 59.
 
-**D42 -- TIME.** `date -u +'%Y-%m-%d %H:%MZ'`, own step, trailing `Z`. I fabricated four stamps in one day while carrying this in bold. **The mechanism, since care is not one: the stamp enters the message from the same shell command that reads it.**
+**D42 -- TIME.** `date -u +'%Y-%m-%d %H:%MZ'`, own step, trailing `Z`. I fabricated four stamps in one day while carrying this in bold. **The mechanism, since care is not one: the stamp enters the message from the same shell command that reads it.** **AND THE GENERATOR IS ARITHMETIC, NOT MEMORY** -- vc's disclosure, 2026-08-20: _`17:36Z`, `17:39Z`, `17:44Z`, `17:46Z`: the first was read and the rest were arithmetic._ **A drifted stamp does not start from nothing; it starts from a TRUE reading and is advanced by feel, so it wears the authority of the real one.** **This is the sequence that defeats check C**, the two-sided test that needs no clock: increments-by-feel are monotonic BY CONSTRUCTION, so every stamp in a drifting run passes the one check designed to work when the clock is unavailable. **A second clock read is the only thing that catches it, which is why the read is per-stamp and never per-session.**
 
 ## Mine
 
