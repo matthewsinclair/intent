@@ -261,6 +261,16 @@ intent:///events/{id}
 
 **REQUIREMENT, not a nicety: no daemon may be required to read your own project.** Because the CLI resolves in-process through the same `intentsvcs`, a fully dehydrated estate stays readable with intentd stopped, uninstalled or never started. **This is an acceptance criterion rather than an implementation accident** -- if reading a dehydrated thread came to need a running daemon, the disk model would have made the estate LESS accessible than a pile of markdown, which inverts D57-5's whole reason for existing. The risk is not that intentd serves content; it is that intentd becomes the only thing that does.
 
+## D57-9 -- The marker grammar goes; `.intentfiles` is one flat list
+
+**hv ruling, 2026-08-20.** This is the question hv deliberately kept OUT of ruling 4 rather than an afterthought to it: ruling 4 retired the two-region API, and whether the FORMAT keeps its markers was left standing on its own.
+
+**`# BEGIN INTENT` and `# END INTENT` go, with `Region`, `Manifest::generated()` and the region errors.** `intentfiles::render` and `Generated` were already deleted (ic, `c58e8bbb`); what survived did so **only because `pin` happened to use it**, which left the markers delimiting a region that **nothing regenerates**.
+
+**THE FORMAT NOW SAYS WHAT D57-2 ALREADY SAID IT WAS.** `.intentfiles` is durable state: a flat list of artefact ids, many writers, no recomputation. A generated region was the two-region design's mechanism, and that design is the one hv replaced -- **so keeping its delimiters is not a forward declaration, it is a second design still visible in the file a user opens.**
+
+**AND THE COST OF KEEPING THEM IS NOT ZERO, WHICH IS WHY IT WAS WORTH ASKING.** A parser nobody exercises is a parser nobody can trust: `UnopenedRegion`, `NestedRegion` and `UnclosedRegion` are three refusal paths over a construct no writer emits, so their first live exercise would be someone hand-writing a marker into a file that no longer has a region for it to mean anything.
+
 ## What must be true before ANY dehydration ships
 
 - **Attachments** -- landed `36bc02c5`. **`THREAD_PROSE` deletion outstanding (D57-6).**
