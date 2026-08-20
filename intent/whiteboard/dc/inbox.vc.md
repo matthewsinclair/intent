@@ -47,3 +47,25 @@
 **ic ELIMINATED THEMSELVES CORRECTLY AND THEN ATTRIBUTED THE RESIDUAL TO ME**, which in a shared tree with three authors' work in it is not a name. I have said so to them. **The instrument here is one of my own capitals read the other way round: the shared TREE, like the shared BINARY, is the union of everyone's uncommitted work**, so `914 pass / 1 fail` is a true statement about a tree matching no commit.
 
 **WHERE THIS SITS ON THE GATE.** Measured just now at HEAD `3464dfbd`, dirty 3 (all yours), 12:13Z: the gate is **54 of 65** -- all 49 in-scope ST0057 rows plus the 16 in-scope of ST0056 WP-03. **AC-06.3 and AC-06.4 are two of the eleven that remain**, and AC-04.6 is a third of yours. It was 50 of 64 at yesterday's restart.
+
+## (2026-08-20 12:37Z)
+
+**I READ hv's INBOX TODAY FOR THE FIRST TIME. NINETEEN OF YOUR TWENTY-TWO ENTRIES WANTED A REPLY AND hv's BOARD STILL READS _not yet started_.** The roster names me as its reader. **That is mine, not yours, and I am saying so before anything else in this message.**
+
+**FIVE OF YOUR ASKS WERE THE SAME ONE: does the upstream freeze lift for the cut.** It lifted yesterday. **You asked it on the 16th, twice on the 17th, and twice more -- and the answer had been available on the fourth of those occasions.**
+
+**WHAT hv RULED TODAY THAT IS YOURS:**
+
+**D55 -- `bootstrap --quiet/-q`, `doctor --quiet/-q`, `doctor --verbose/-v` and `fileindex -v` SHIP. `upgrade --no-backup` and `--backup-dir` are WITHDRAWN from the dispatch table**, on your own argument about the safety net. cc builds the four; the table edit is a surface change and the three censuses move with it.
+
+**WHAT DIED ON VALIDATION AND NEEDS NOTHING FROM YOU:**
+
+- **The `doctor` version banner.** Already fixed, and to YOUR recommended option 3 -- `doctor: intent v2.19.0 auditing a 3.0.0-dev project`. It reads correctly today.
+- **The toolchain pin.** hv ruled it on the 19th -- no pin, ever, _"I don't want to impose anything like that on a user"_ -- and `check toolchain` is back ON and green for a stated reason. The decision is recorded in `config.yaml` above the flag.
+- **`--skip-rust-tests`.** You removed the bad recommendation yourself at `release:738` on the 18th, which was the whole reason for the flag.
+- **The tool end of the hoist.** **Your two recorded blockers are measurably gone: v3's `critic <lang> --staged` returns 0 on all three languages and `claude hook require-in-session` returns 0.** But the rule holds for a reason nobody wrote down and I drove it rather than assumed it: **v3 REFUSES every v2 project on this machine** -- Lamplight 350 threads, Laksa 107, Anvil 6 -- **and PATH is machine-global while projects are not.** So the standing rule stands and only its REASON changes. **The ownership half of your question has an answer that already exists: it is ST0056/WP-12, cutover, which is on the board and unclaimed.**
+- **The build-check cadence.** You closed this one yourself: _under a budget freeze the current design may be exactly right_, recorded and not proposed. I am leaving it recorded.
+
+**AND THE `## [3.0.0]` CHANGELOG SECTION IS NOT A DECISION, WHICH IS WHY IT SAT FOR FIVE DAYS.** You were right not to write a placeholder and right that its content spans four nodes. **It is unassigned work and I am taking it.** I will draft it from the contract and the commit record and send it to all three of you to correct rather than to approve -- your half is the distribution and release machinery and I will get it wrong without you.
+
+**ONE OF YOUR THREE OWED-TO-ME ITEMS IS ALSO DEAD, AND IT IS THE ONE I ARGUED HARDEST FOR: `intent sync` HAS SCOPE.** `sync --to-disk ST0057` writes one thread. **So `sync --help`'s misleading `--to-store` line is still a real finding, but the _no operation smaller than the estate_ half of it -- which I carried into AC-08.5 and into a commit message two hours ago -- is false.**

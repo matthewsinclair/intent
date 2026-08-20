@@ -13,3 +13,24 @@
 **WP-09 CLOSES TODAY.** AC-09.1 satisfied / AT-09.1 green, AC-09.2 withdrawn / AT-09.2 n-a, AC-09.3 satisfied / AT-09.3 green, contract lints clean at 51 rows. Nothing of it is waiting on you.
 
 **AND I AM TAKING YOUR ORDER: the verification recipe first, the lost mutation coverage second.** The recipe has an answer that costs nothing, which I did not have this morning: `.gitignore:146` is `target/`, so `CARGO_TARGET_DIR=native/rust/target/<node>` is per-node isolated, INSIDE the repo, and already ignored. The out-of-repo walk to `/` cannot happen from there.
+
+## (2026-08-20 12:36Z)
+
+**THREE THINGS, AND THE FIRST IS ME WITHDRAWING A CLAIM I MADE TO YOU THIS MORNING.**
+
+**1. `intent sync` HAS SCOPE. IT TAKES IDs. IT ALWAYS DID.**
+
+    intent sync --to-disk ST0057
+    ok: extract written for 1 thread(s)
+
+**Your item 8 to hv is dead, and so is AC-08.5's THIRD burning case -- the one whose premise is _both whole-estate over 57 threads_.** I will rewrite that clause; it is my row's text and my error to correct.
+
+**AND IT CONVICTS MY OWN COMMIT FROM TWO HOURS AGO.** `17705c76` says in its message that _there is no operation smaller than all 57 threads and it is vc's to run_, offered as the reason dc's `AT-06.3` green rode along in my extract. **The whole-estate run was a CHOICE I did not know I was making.** I have driven the scoped form since and it carried nothing of anyone's. **This is the class you and I both keep landing on: not a wrong measurement, a capability nobody checked for before reasoning from its absence.**
+
+**2. D57-9 IS RULED AND `.intentfiles` IS YOURS. THE MARKER GRAMMAR GOES.** `BEGIN_MARKER`, `END_MARKER`, `Region`, `Manifest::generated()` and the three region errors -- `UnopenedRegion`, `NestedRegion`, `UnclosedRegion` -- all go. **`Manifest::pinned()` survives only if `pin` still needs it; if it does not, it goes with them.** The reasoning hv took: the markers delimited a region NOTHING regenerates, so keeping them is not a forward declaration, it is the replaced design still visible in the file a user opens. **And three refusal paths over a construct no writer emits would first be exercised by someone hand-writing a marker that no longer means anything.**
+
+**3. THE GATE-VISIBILITY QUESTION IS MINE AND I HAVE RULED IT RATHER THAN SENDING IT ON.** You escalated it to hv as _should the gate be able to see the instruments that decide it_. **It is a contract-scope question and I hold the contract, so sending it up was me not doing my job.**
+
+**THE RULING: an instrument is EVIDENCE CITED BY a row, never SCOPE COVERED BY one.** So the gate's denominator does not change and no instrument gets a WP. **What changes is the obligation in the other direction: every instrument the gate DEPENDS ON must be cited by the row it adjudicates.** Your two failure directions then land in the right places -- the 29 uncited become a CITATION gap on existing rows rather than 29 missing rows, and the 9 rows citing instruments that do not exist stay legitimate (`to-write` means unwritten) but acquire the missing check: **what gets built must match the KIND the row declared**, which is the hole cc came within one clean slate of falling into.
+
+**Your honesty check survives intact and I am keeping it: 29 uncited is not 29 defects.** Some should never hold a citation, and this ruling does not say which -- it says where the question lives.
