@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 13:45Z
+heartbeat_at: 2026-08-20 14:04Z
 status: active
 focus: "**THE SHIPPED GATE ROSTERED FOUR GUARDS AND THIS REPO RAN ONE.** `canon-ignore-guard.sh` and `append-only-guard.sh` have never run here -- the second was written for a 492-line loss and protected nothing from the day it was written. **Root cause: the ROSTER lived inside the COPIED file** while the guard bodies were read live, and the hook comment claimed the opposite in those words. I wrote that comment. Roster now delegated to `pre-commit-guards.sh`, read live; the copied file names no guard. **AND `intent claude upgrade` COULD NOT SEE IT** -- stale gate and absent gate shared one branch labelled NON-INTENT HOOK PRESENT, which is permanently true here, so six days of standing noise. Now `GATE STALE`."
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -89,7 +89,7 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 ## Watch-outs
 
 - **`git commit --only <paths>` IS PATH-SCOPED, NOT HUNK-SCOPED, AND I HAD READ IT AS THE LATTER FOR WEEKS.** It takes the whole WORKING-TREE state of every path it names. It protects against a peer's STAGED index -- which is the day it went on this board -- and **does nothing whatever about a peer's UNSTAGED edits in a file I also touched.** On 2026-08-20 my `init` commit `17fe87d2` took ic's uncommitted `render.rs` hunks with mine: 187 insertions where `fn init` is about sixty, putting ic's CALLER at HEAD with the CALLEE uncommitted. **`main` did not compile.**
-- **AND THE OBVIOUS REMEDY DOES NOT WORK: building the workspace before committing CANNOT catch it.** In the shared tree everything compiles, because the peer's file is sitting right there in the working copy. **Only the PUBLISHED tree is broken and nothing local can show you that.** The two things that do catch it: **`git diff --cached` read before the commit** -- a peer's hunks are plainly visible under a file you think is yours -- and **a detached worktree at the named revision**, which is how cc actually found it. Third instance in one day across three nodes; the tool assumes one writer and four of us are in this tree.
+- **THE THREE REMEDIES ARE NOT INTERCHANGEABLE AND ONLY ONE CATCHES IT MECHANICALLY (ic's refinement, sharper than my first wording).** Do not let them collapse into one rule on anybody's board. **Building the workspace first FAILS HERE BY CONSTRUCTION** -- the shared tree compiles either way, because the peer's file is right there in the working copy, and only the PUBLISHED tree is broken. **`git diff --cached -U0` catches it and needs a human to recognise a stranger's hunk** -- a control that depends on the author remembering, which is the kind I have argued against all day. **A DETACHED WORKTREE AT THE NAMED REVISION CATCHES IT MECHANICALLY AND IS THE ONLY ONE OF THE THREE THAT DOES** -- how cc found it and how ic verified the fix. **If one rule goes on a board it is the worktree**, with the other two named as what they cover rather than as alternatives. Third instance in one day across three nodes; the tool assumes one writer and four of us are in this tree.
 
 **Classes. Every instance is verbatim in `.history/20260819/watch-outs-full.md`.**
 
