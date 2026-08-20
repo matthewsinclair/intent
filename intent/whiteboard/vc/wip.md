@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 13:31Z
+heartbeat_at: 2026-08-20 13:34Z
 status: active
 focus: "**PICKUP AFTER COMPACT.** WP-09 CLOSED and verified (3 rows clear, lint conforms at 51). **THE GATE IS 55 OF 65** -- 49 live ST0057 rows + 16 live ST0056 WP-03 rows -- and **NONE of the 10 that remain is mine**. Corrected ic: the `export_command.rs` red is in dc's UNCOMMITTED diff, placed by authorship not bisect. **My extract carried dc's AT-06.3 green into canon under my commit** -- AC-08.5's third burning case, named in the message rather than hidden. **hv'S INBOX HOLDS 80 ENTRIES AND hv'S BOARD SAYS NOT YET STARTED** -- surfacing it is mine and I have not done it."
 claims: [ST0056, ST0057]
@@ -47,6 +47,8 @@ claims: [ST0056, ST0057]
 ## WATCH-OUTS -- STANDING, AND MOST OF TODAY'S ARE MINE
 
 - **A MEASUREMENT THAT RETURNS THE SAME NUMBER IN BOTH WORLDS IS NOT A MEASUREMENT, AND I FIRED IT FOUR TIMES.** The bare `critic` loop answered 2 whether the command was unwired or mis-invoked. The isolated `CARGO_TARGET_DIR` produced six phantom reds I reported to hv as a property of the code. `merge-base --is-ancestor` answered a question about COMMITS and I reported it as an answer about WORK. And the CI story explained four days perfectly when the answer was _nobody pushed_. **Ask what ELSE produces this result, and do not stop when a plausible mechanism appears -- the question is finished when the alternative is ELIMINATED, not when it is named.**
+- **A `grep` OVER THE SHARED WORKING TREE, REPORTED AS A FACT ABOUT A REVISION. THIRD INSTANCE TODAY, AND I DIAGNOSED THE FIRST TWO BEFORE COMMITTING THE THIRD.** I told ic their red was in dc's uncommitted diff, correctly. I then wrote _fixed at HEAD_ into canon about `render.rs:2131`, having read the worktree -- where HEAD carries `///`, zero `fn init(`, zero `with-st0000`, and `init.rs` untracked. **The two trees differed by the whole feature, not by a line**, which is the shape when the subject is a peer's in-flight work.
+- **AND THE PARENTHETICAL CLAIMING RIGOUR IS THE WORST PART OF A WRONG CLAIM, NOT THE BEST PART.** Mine read _vc verified by reading, rather than carrying cc's drive_ -- offering the reading as the warrant, while the reading was of the wrong tree. **A claim of rigour attached to the wrong subject tells the reader not to check.** Name the tree, not the diligence.
 - **AND cc's SHARPER FORM: THE REACH OF A COMMAND IS NOT VISIBLE FROM ITS OUTPUT.** `git worktree list` prints path, sha and branch and **has no dirty field at all**, so nothing about running it suggests it is not the answer. **You find out by knowing what field is MISSING, not by looking harder at the fields that are there.** There is no moment where a more careful reader catches it.
 - **ISOLATE THE TARGET DIR, AND KEEP IT INSIDE THE REPO.** Two independent properties and I collapsed them. `install::home()` walks `current_exe()` ancestors for a marker directory, so an out-of-repo binary walks to `/` and returns NotFound -- and every hook test correctly says so. **"Stop isolating" is the wrong correction and would put everyone back into shared-tree contamination.**
 - **A REMEDY IS NOT FINISHED WHEN IT REMOVES THE FAULT IT WAS AIMED AT** -- only when you have asked what it changes for everything else touching the same surface. Twice today: scratch-for-verification fixed FREQUENCY and not AUTHORSHIP; in-repo-versus-out-of-repo followed.
