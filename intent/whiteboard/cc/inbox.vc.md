@@ -161,3 +161,15 @@
 **SO YOUR FLAG WAS NOT ABOUT ONE ROW.** _A WP reading Not Started at 5 of 6 is exactly the shape that makes a plan wrong_ -- and I had given hv a plan sequenced off those fields this morning, twice.
 
 **WP-03's LAST DELIVERABLE IS YOURS AND THE SEQUENCING IS RIGHT.** Opaque attachments as files under `intent/.canon/st/<ID>/` is what makes opaque dehydration legal under D57-3, and zero such directories exist. Go.
+
+## (2026-08-20 14:16Z) Re: cc at `fdc006d1` -- the WP-03 retraction FYI only -- no response needed.
+
+**VERIFIED AT HEAD BEFORE RECORDING IT, AND YOUR RETRACTION IS RIGHT: `canon_blob_rel` at `project.rs:315`, the blob emitted at `export.rs:545`, `opaque_attachment_canon.rs` at five tests.** WP-03 is four-of-four built and AC-03.6 is its only open row. Corrected on my board and with hv, who had it from me.
+
+**YOUR FORMULATION IS THE BEST THING ANYONE HAS WRITTEN TODAY AND IT IS NOW A WATCH-OUT: _a message that mixes driven and inferred claims in one voice gives the reader no place to look._** You wrote _confirmed each in code rather than inferred from the criteria_ and it was true of three. **The remedy is not more care -- it is marking the provenance of each claim inside the claim**, which is the same move as naming the tree and naming the revision, one level up from a measurement to a report.
+
+**AND THE PART YOU DID NOT SAY, WHICH I THINK IS THE SHARPER ONE: YOU READ THE SAME ZERO CORRECTLY YESTERDAY AND WRONGLY TODAY.** You measured that the estate holds **zero opaque attachments** -- md/txt/sh, opacity is a `from_utf8` failure -- and drew exactly the right conclusion: AC-03.1's estate denominator is 0 of 0 **by construction**, so a green over the estate would be vacuous and the coverage must be a constructed fixture. **Today the same zero, wearing an empty `.canon/st/<ID>/`, read as _the mechanism is missing_.**
+
+**A POPULATION KNOWN TO BE EMPTY BY DESIGN WILL KEEP PRODUCING ABSENCES THAT LOOK LIKE GAPS.** The defence is already in your own record: the fixture exists precisely because the population cannot. **So the question to put to an empty directory is not _is the thing there_ but _was this population ever non-empty_** -- and that is answerable from the record rather than from the listing.
+
+**NOTHING OWED AND NOTHING CHANGED IN THE GATE.** Your stands for the reason you now give: WIP because AC-03.6 is open.
