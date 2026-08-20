@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 09:39Z
+heartbeat_at: 2026-08-20 10:28Z
 status: active
-focus: "**dc's CRITIC LANDED WHILE I WAS FOLDED AND REDDENED FOUR OF MY TESTS -- ALL CLEARED AT `3b991a2b`.** Each was measuring the critic's ABSENCE; three are stronger for the repair. **The migrated-commit test was ALSO red BEFORE the critic, from vc's `b2609e26` hook reword, and the second cause hid the first.** ONE RED STANDS AND IT IS dc's: AC-11.3, `critic.rs:680` reads `$PATH`. **NEXT: ruling 1, and `render.rs` is now FREE.**"
+focus: "**RULING 1 IS DONE END TO END: `d855ea1f` (grammar) + `95ffb84b` (prune + resolver).** `ISSUE:` is out of `.intentfiles`, `Sigil` is arity one and still an enum, both issues rows RETIRED, and the 42-file v2 issue estate is gone with all 40 bodies proven byte-identical to canon first. **I ALSO UNBROKE HEAD** -- my `facade.rs` narrowing was swept into a peer's commit without the enum change it needs, so main had not compiled for anyone with a clean tree. **NEXT: ruling 2, AC-05.2.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,26 +13,24 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. `3b991a2b` IS IN AND THE WORKSPACE IS GREEN BAR ONE RED THAT IS NOT MINE.**
+**NOTHING IN FLIGHT. FIVE COMMITS TODAY AND RULING 1 IS CLOSED.**
 
-`exit_codes.rs` + `guide.rs`: four tests re-pointed off the critic's absence, one test split into the two properties it was carrying, one `Failure::Refused` arm added that `5043d0c4` left non-exhaustive (`-p intent-cli --lib` did not COMPILE). Both new assertions mutation-proven.
+`3b991a2b` exit-code tests off the critic's absence -- `2e020634` board -- `d855ea1f` the grammar -- `5dbac6fb` two guards whose detection stopped matching their subject -- `95ffb84b` the prune plus its resolver.
 
-**THE STANDING RED IS dc's AND IT IS TELLING THE TRUTH: AC-11.3, `critic.rs:680` reads `$PATH`** via a hand-rolled `which`. Needs an hv ruling or an `ALLOWED` row. **Do not "fix" it to get a green.** Same function, separate defect also handed to dc: `is_file()` skips the executable bit, so a non-executable file on `PATH` reports a tool AVAILABLE -- a false clean.
+**ONE RED STANDS AND IT IS vc's, BISECTED SO THEY DO NOT HAVE TO:** `cli_end_to_end.rs:280` wants `intent/events.jsonl`, which D53 removed. **Passes at `07d386cc`, fails at HEAD**; my commit in that window touches no sync or event path. vc has it.
+
+**OWED BY dc, NOT ME:** INV-04's title names a `3` the guide does not explain. I cannot drive one -- dc's refusal arm has no live population, covered by a fixture inside `critic`'s own suite -- and adding prose I cannot execute is the thing `the_guides_exit_code_claims_are_what_the_binary_does` exists to stop.
 
 ## ON RESUME -- read this first
 
-1. **FOUR hv RULINGS ARE IN HAND. THEY ARE IN `ic/.history/20260820/` AND IN EVERY PEER INBOX; DO NOT RE-ASK THEM.**
-   - **(1) Issues are canon-and-store only.** `ISSUE:` leaves the `.intentfiles` grammar, both `issues hydrate|dehydrate` rows are WITHDRAWN from the dispatch table, and the 40 legacy markdown files under `intent/issues/{OPEN,CLOSED}/` are pruned as MIGRATION RESIDUE (vc's classification, precedent `1af21f4e`).
-   - **(2) AC-05.2 is the next unit** -- lifecycle verbs edit the list, plus the WARNING over unsynced bytes. Never a gate.
-   - **(3) Top-level `intent edit <ID>` is the ONE home; `st edit` becomes a thin delegate.**
-   - **(4) DONE at `c58e8bbb`** -- `render`/`Generated` deleted, orphan test deleted, `edit_writes_pinned_region.rs` rewritten.
-2. **RULING 1 IS NOW WHOLLY UNBLOCKED -- `render.rs` WAS FREED BY `5043d0c4`.** Do all three halves: `intentfiles.rs` (drop `Sigil::Issue`), the dispatch table (withdraw the two `issues` rows), and `render.rs` (the comment block, plus `Facade::hydrate`'s Issue arm -- the one resolving into CANON). Removing `Sigil::Issue` breaks `edit_writes_pinned_region.rs`'s accumulation test on purpose; that was left to break rather than pre-empted.
-3. **EXPECT THE ROSTER TO GO RED AND DO NOT "FIX" IT BY RE-ADDING ROWS.** Withdrawing the two `issues` rows drops them from `shipped_mutators()`, so `DECLARED_BUT_UNWIRED` holds two stale members and the stale-entry check fires with `bucketed but not a shipped mutator`. **That is the self-invalidating bucket working.** Move them out; do not widen the bucket.
-4. **DO NOT REBUILD TODAY'S WORK.** `st hydrate` (`21c0ccf2`), the roster report + assertion + `DECLARED_BUT_UNWIRED` + `declared_but_unwired.rs`, the fmt sweep (`0a9a7341`), INV-04 (`dc8ee802`) and the two-region deletion (`c58e8bbb`) are landed and mutation-proven.
+1. **RULING 1 IS DONE. DO NOT REOPEN IT.** Grammar, dispatch table, `Facade::hydrate`, `Address::artefact`, the tests and the 42-file prune all landed. `Sigil` is **arity one AND STILL AN ENUM** -- cc's 59 project-content files and vc's arity finding both land as a NEW VARIANT beside `SteelThread`, so collapsing it to a bare string would mean re-creating it.
+2. **NEXT IS RULING 2, AC-05.2** -- lifecycle verbs edit the list. `st new` adds / `--dehydrate` skips; `st done`/`st cancel` remove / `--keep` skips; `st reopen`/`st reinstate` add back; WARNING (never a gate) via `Facade::sync_uncommitted`. **Needs an `unpin` beside `pin`.** Then rewrite `edit_writes_pinned_region.rs` for real and green AT-05.2.
+3. **THEN RULING 3: top-level `intent edit <ID>`**, `st edit` a thin delegate (AC-05.1 / AT-05.1, `to-write`).
+4. **`render.rs` IS FREE** -- dc's critic landed at `5043d0c4`.
 
 ## TODO -- LIVE ONLY
 
-1. **Ruling 1: drop `ISSUE:`.** Free halves first (see ON RESUME 2), `render.rs` half last. Also removes `Facade::hydrate`'s Issue arm -- the one resolving into CANON.
+1. **DONE (`d855ea1f`, `95ffb84b`).** Ruling 1 closed end to end, including `Facade::hydrate`'s Issue arm -- the one that resolved into CANON.
 2. **Ruling 2: AC-05.2.** `st new` adds / `--dehydrate` skips; `st done`/`st cancel` remove / `--keep` skips; `st reopen`/`st reinstate` add back; WARNING via `Facade::sync_uncommitted`. **Needs an `unpin` beside `pin`.** Then rewrite `edit_writes_pinned_region.rs` for real and green AT-05.2.
 3. **Ruling 3: `intent edit <ID>`** -- AC-05.1 / AT-05.1 (`to-write`), `st edit` delegates.
 4. **PAID AT `3b991a2b`.** Both sites plus two more I had not predicted. `st dehydrate` is now the borrowed unwired exemplar and the roster of record is `declared_but_unwired.rs` -- **when `st dehydrate` is built, pick another member; when the roster EMPTIES, retire those assertions rather than repairing them.** Still open and dc's: INV-04 names a `3` that the guide does not explain, because I cannot drive one -- dc's refusal arm has no live population.
@@ -41,6 +39,14 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 7. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
 
 ## Watch-outs
+
+- **A SWEEP IS INVISIBLE FROM THE AUTHOR'S SIDE, AND THAT IS WHY THE RULE ONLY WORKS ON THE COMMITTER.** My in-progress `facade.rs` and `render.rs` were swept into `01b2101c` and **main stopped compiling for anyone with a clean tree** -- the consumer landed without the enum change it depends on. Nothing happens in the swept author's session; `git status` simply gets shorter. **`--only <paths>` + read `git diff --cached` is still the rule, and only the committer can run it.**
+- **A SHARED CHECKOUT HIDES THAT THE COMMITTED TREE IS BROKEN** (dc). Four nodes built green all day over a main that could not build, because the one build nobody does is the clean-tree one. **Verify with `git worktree add --detach` + its own `CARGO_TARGET_DIR`.** Any commit landing a consumer while its dependency sits uncommitted in someone's tree produces the same silence.
+- **A GUARD'S DETECTION CAN STOP MATCHING ITS SUBJECT WHILE ITS ASSUMPTION STAYS TRUE.** Three today: `!code.contains("/*")` firing on glob literals; `reads_no_model` unable to admit `critic`, which reads the project and is exempt for a downstream reason; `ratified_in_check.sh` resolving issues at a path the ruling moved. **A substring standing in for a syntactic fact is ST0039's greppable proxy one level up.**
+- **A LIST WHOSE NAME DEFINES ADMISSION LOSES THE MEMBER THAT DOES NOT FIT THE NAME.** `SURFACE_NONRETURNING` lost `claude upgrade`; `reads_no_model` would have lost `critic`. **Name the DECISION, and make every entry state its own ground.**
+- **A PREDICTION AND THE GUARD THAT FALSIFIES IT CAN BE AUTHORED IN ONE COMMIT AND NEVER READ AGAINST EACH OTHER.** `ratified_in_check.sh` said _prune CLOSED/ and the rows turn amber_; the `-d` guard three hundred lines away made that impossible, and the real outcome was exit 2 closing the repo to four nodes.
+- **A COUNT CAN BE TRUE AND UNINFORMATIVE.** `0 cite a record that no longer resolves` reports 0 against an EMPTY issue store too -- five of the six citing rows also carry a sha and the sixth is provisional. **Ask what the instrument would say if the thing it measures were gone.**
+- **ONE COMMIT PRODUCED THREE REDS AND THEY SURFACED ONE AT A TIME**, because a failing target ends the workspace run. A partial run and a clean run print the same kind of output -- **read which targets executed.**
 
 - **A COMPILE ERROR IN ONE TARGET MASKS EVERY RED AFTER IT.** `cargo test --workspace` stopped at `intent-cli`'s lib tests and never ran `no_intent_home`, so `5043d0c4` had TWO reds and only one was visible. **A partial run and a clean run print the same kind of output** -- read which targets executed, not just the last line.
 - **A TEST ASSERTING ON A PEER'S PROSE MAKES THAT PROSE AN API WITHOUT TELLING THEM.** `exit_codes.rs` pinned an assertion to the literal `fail-open` printed by a shell script in another tree; vc reworded that arm for good reasons at `b2609e26` and could not have known. Anchor on the artefact's OWN load-bearing token, and make the failure message tell a future editor that the string is the likely stale half.
