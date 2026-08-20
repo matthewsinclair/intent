@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 11:15Z
+heartbeat_at: 2026-08-20 12:04Z
 status: active
-focus: "**MY CI FINDING IS RETRACTED IN FULL AND IT WAS THE ONE I ESCALATED HARDEST.** `bin/.devbin/cmd/prepush` has clone-and-cold-built since 2026-08-16; I measured ONE hook and concluded about the estate, and my remedy would have spent the budget hv's freeze exists to protect. Retracted to dc, vc and matts. **`partition.sh` landed at `431af7e9`, canon `873a819f`; partition 250 = T 187 / B 59 / N 3 / M 1.** Workspace 910 pass 0 fail. **Watching the first GitHub run in four days for a Linux-only leg."
+focus: "**FOLD 6, 12:05Z. AC-01.5 IS UNBLOCKED AND IS MY NEXT WORK** -- dc landed Shape 3 plus `core.hooksPath=.githooks`, the roster is now READ LIVE from `INTENT_HOME`, and `canon-ignore-guard.sh` is on it at `pre-commit-guards.sh:70`. **The three-dispatcher table I carried all day is stale.** Still owed: DRIVE it -- a roster row proves dispatch is declared, not that it happens, and it needs a commit touching `intent/.canon` plus a planted rule to prove the arm can go red. Partition answered: **250 = T 187 / B 59 / N 3 / M 1**, instrument landed at `431af7e9`. CI red on `cargo fmt` with dc; nothing of mine dirty, red or stranded."
 claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -19,40 +19,21 @@ claims: [ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 ## NEXT -- mine
 
-**Fold 5 at 2026-08-20 09:08Z. Today's settled narrative is at `.history/20260820/wip.md`; this is only what is still owed.**
+**Fold 6 at 2026-08-20 12:05Z. Today's narrative is at `.history/20260820/wip.md` (morning) and `wip-2.md` (afternoon); this is only what is still owed.**
 
-**STATE: ST0057 38/49, 1 withdrawn. WP-01 is 6 of 7. doctor rc=0, view skew 268/268, workspace green, nothing of mine uncommitted.**
+**STATE: ST0057 38/49, 1 withdrawn. WP-01 6 of 7. Partition MEASURED 250 = T 187 / B 59 / N 3 / M 1 (`partition.sh`, landed `431af7e9`, canon `873a819f`). Workspace 910 pass 0 fail locally. Nothing of mine dirty, red or stranded.**
 
-**1. AC-01.5 -- BLOCKED ON dc AND NOT ON ME, AND THE REASON IS THE FINDING.** `canon-ignore-guard.sh` is built, mutation-proven and rostered, **in a roster this repo's commit path never reads.** The gate has THREE dispatchers and they agree nowhere:
+**1. AC-01.5 IS UNBLOCKED AND IT IS MY NEXT WORK. THE THREE-DISPATCHER TABLE ON THIS BOARD ALL DAY IS NOW STALE.** dc landed Shape 3 and set `core.hooksPath=.githooks` (12:38 local). The installed gate no longer carries a roster: `.githooks/pre-commit.intent:61` says the roster is **READ LIVE out of `INTENT_HOME`**, `:145` resolves `GUARD_RUNNER=${INTENT_HOME_RESOLVED}/lib/templates/hooks/pre-commit-guards.sh`, `:199` runs it. **And the live roster at `pre-commit-guards.sh:70` carries `intent/.canon|canon-ignore-guard.sh`** -- the guard my board recorded as running NOWHERE. `append-only-guard.sh` is at `:88` on path `intent`.
 
-    guard                     pre-commit.intent   cmd/precommit   template roster   RUNS?
-    whiteboard-clock-guard            1                 0                1           YES
-    whiteboard-header-guard           0                 2                1           YES
-    canon-ignore-guard                0                 0                2           NO
-    append-only-guard                 0                 0                1           NO
+**BUT A ROSTER ROW PROVES DISPATCH IS DECLARED, NOT THAT IT HAPPENS** -- my own watch-out, and the reason AC-01.5 is not closed by reading this. **What is still owed: drive it.** `canon-ignore-guard.sh` is path-triggered on `intent/.canon`, so a whiteboard-only commit cannot exercise it; **it needs a commit touching `intent/.canon`, and a planted ignore rule to prove the arm can go red.** Until then the guard is rostered and undriven, which is the exact state `pre-commit.sh:98` describes.
 
-**Two of four run and neither runs through the roster.** `pre-commit.intent` is a COPY taken at install time -- guard BODIES resolve live from `INTENT_HOME`, the ROSTER does not. **dc ruled Shape 3**: the installed hook carries no roster and no guard name, resolving both live. Queued behind `critic` and the hooks work, on matts's ordering. **AC-01.5 is unmeetable by any edit to the guard, the roster or the template**, so do not go at those files.
+**2. `thread_view_skew_check.sh` -- RE-ASK dc NOW THAT THE ROSTER IS LIVE.** It was `manual` awaiting admission into a roster nobody read. The roster is now read live from one home, so the admission question has changed shape and is worth putting again. Gated skew coverage is still 1 of 269 until it is admitted. **The parse in it keeps its NAMED EXPIRY**: when `doctor --json` lands, DELETE the parse rather than keeping both.
 
-**2. AC-03.6 -- NOTHING OWED FROM ME.** `--staged` landed at `19268867`. dc's admission condition was a planted-divergence control; **I produced an UNPLANTED one instead** -- `1e2bc65e` ADDS 1 of 1 rc=1, `aa4c3ac0` clean, `9e191824` ADDS 0 of 88. dc says that substantially meets it. vc put it in the AT row at `6ce27cab`.
+**3. CI IS RED ON `cargo fmt --check` AND IT IS NOT MINE TO FIX.** 19 divergences at 11:44Z -- `critic.rs` 13, `render.rs` 3, `openness.rs` 2, `lib.rs` 1. **No local gate checks formatting**: `pre-commit.intent` 0, `pre-push` 0, `prepush` 0, `precommit` 0, against `rust.yml` 1 as control. With dc. **NEVER run a bare `cargo fmt` here** -- three nodes live in this tree and it is a second writer over their uncommitted work.
 
-**3. `thread_view_skew_check.sh` IS ROSTERED `manual` AWAITING dc.** Gated skew coverage is 1 of 269 until they admit it. **The parse in it has a NAMED EXPIRY**: when `doctor --json` lands (ic's surface row), DELETE the parse rather than keeping both.
+**4. THE PARTITION IS ANSWERED AND THE POLICY QUESTION IS NOT.** 250, decomposed, each delta attributed by name across five commits. **Zero of the 59 are ownable by an existing artefact; the blocker is the ARITY of the sigil space (`STEELTHREAD` alone).** vc owns the boundary ruling and has it; **vc deliberately did NOT mint an AT row, because there is no criterion yet and minting one would presuppose hv's answer.**
 
-**4. THE PARTITION IS MEASURED AT LAST, AND ITS DENOMINATOR WAS WRONG: 253, NEVER 250.** hv ruled `ISSUE:` LEAVES the `.intentfiles` grammar -- `Sigil::Issue` goes, both issue verbs withdrawn, 40 legacy markdown files pruned as residue -- so the grammar is **`STEELTHREAD` ALONE**. ic is landing it now and **pre-registered a prediction: my 250 and 59 will not move.** So I took the baseline BEFORE they land: **a 250 measured only afterwards confirms nothing, because I would never have established it was 250 beforehand.**
-
-**MEASURED AT `b574361a`, 09:46Z.** `git ls-files intent/` = 886, minus `st/` 328, `.canon/` 97, `issues/` 42, `whiteboard/` 169 = 250, decomposing exactly as recorded. **AND THEN THE METHOD FAILED THE TEST IT HAD JUST PASSED.** The three store-backed exclusions were DIRECTORY-level, and three files inside them are not in the store: `intent/issues/{CLOSED,OPEN}/.gitkeep` and `intent/st/ST0057/parity/tools/.gitkeep` -- no extension, so not attachments, no store row, `Unattached`. **A COUNT OF CONTAINERS REPORTED AS A COUNT OF CONTENTS, committed by me, in the artefact I handed vc, with that warning already in capitals two sections below it.** Excluding a directory because MOST of it is store-backed is the same move as `1 refused` standing for 423 files.
-
-**CORRECTED: 253 = 187 tool payload / 59 project content / 6 never an artefact / 1 model-derived.** The three `.gitkeep`s join `events.jsonl`, `.intentfiles` and `.config/config.json`; scaffolding for an otherwise-empty directory is the cleanest never-an-artefact case there is. **THE 59 IS NOW MEASURED AND NOT CARRIED:** 18 `history/` + 14 `llm/` + 10 `docs/` + 9 `eng/` + 3 `autopsy/` + 2 `analysis/` + `wip.md` + `restart.md` + `done.md`. **Zero ownable by an existing artefact; the blocker is ARITY, now ONE sigil rather than two.** Conclusion untouched -- the correction is to the denominator's honesty, not to the argument. vc and ic both have it.
-
-**ic's prediction survives at the corrected level:** `issues/` is 42 = 40 md + 2 `.gitkeep`, and **OPEN holds no markdown at all**; the two `.gitkeep`s stay, so 253 stays 253 across the prune. **MEASURED AT NAMED COMMITS, EACH DELTA ATTRIBUTED BY NAME** (`scratchpad/partition.sh <rev>`, reads `git ls-tree` and never the working tree, because two nodes changed the inventory in one window and a working tree can attribute nothing):
-
-    b574361a  886 tracked | 253 = T 187 + B 59 + N 6 + M 1
-    d855ea1f  886 tracked | 253            <- ic's grammar change: code, no inventory
-    95ffb84b  844 tracked | 251 = N 4     <- ic's prune, -42 tracked, -2 members
-    f42987c7  843 tracked | 250 = N 3     <- D53, `events.jsonl` dropped
-
-**Deltas verified by NAME, not arithmetic:** `d855ea1f -> 95ffb84b` is exactly -42 under `intent/`; `95ffb84b -> f42987c7` removed exactly `intent/events.jsonl`. **Surviving N listed rather than counted: `.config/config.json`, `.intentfiles`, `st/ST0057/parity/tools/.gitkeep`.** **T 187 and B 59 UNTOUCHED across every commit in the series -- B is the only class hv's boundary turns on and it has not moved once.** ic's corrected prediction (-2, not zero) is confirmed; my `.gitkeep` finding is what made them look, and they removed the two arms as residue of residue.
-
-**NOT MINE: WP-09 and WP-10 are vc's. `Sigil`, the issue verbs and the dispatch table are ic's, sequenced behind dc's `critic`. The roster and the hook are dc's.**
+**NOT MINE: the fmt red and the hooks work are dc's. `Sigil` and the issue verbs are ic's. WP-09/10 and the contract are vc's.**
 
 ## Watch-outs -- the live set
 
