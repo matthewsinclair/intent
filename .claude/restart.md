@@ -9,52 +9,57 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
 
-## State (as at `5716b43a`, 2026-08-19)
+## State (as at `69a5db5e`, 2026-08-20)
 
-**THE DISK MODEL SHIPPED TONIGHT. `intent organize --apply` removed 423 files at `e7f00e65`** and `intent/st/` now holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`. Fifty-two completed and two cancelled threads live only in the database. **This is not a bug and not a loss** -- ST0001 put back on the list returned five files byte-identical to git, a fence-heavy pair returned fifteen byte-identical, and all 282 attachments verify against their own `sha256`.
+**THE GATE IS 62 OF 67 AND IT IS COMPUTED, NOT TYPED.** Run `intent ac status ST0057` and `intent ac status ST0056` -- the verb prints `N/M satisfied, K withdrawn`. **Two hand-tallied figures in a row were wrong**, the second because its two halves counted "live" by different rules. **Never re-derive this by hand.**
 
-**THE ARCHITECTURE hv RULED, replacing the two-region manifest design:**
+**ST0056** (v3.0.0 rewrite) -- 132 criteria / 134 tests, **56 of 131 satisfied**, 1 withdrawn. **The intentdb is the DURABLE SSOT; nothing on disk is truth.** D01 was REVERSED by hv 2026-08-15; **do not reason from it.**
 
-> **`.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.**
-> **Realisation is driven from `.intentfiles`; commands change `.intentfiles`; `organize` realises it.**
+**ST0057** (disk as a sparse projection) -- 53 criteria / 53 tests, **47 of 51 satisfied**, 2 withdrawn. **Sparseness applies to VIEWS; canon is NEVER sparse.** WPs 02/04/06/07/09/10 Done.
 
-**Many writers, no recomputation.** `st new` adds an id, `st done` removes it, a human may edit it. **Nothing derives it from status.** **ABSENT IS NOT EMPTY** -- a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
-
-**Intent is SELF-HOSTED on v3.** `bin/intent` (v2, 2.19.0) and `native/rust` (v3, 3.0.0-dev) coexist; a v2 binary REFUSES a v3-declared tree at exit 2.
-
-**ST0056 (v3.0.0 rewrite)** -- **the intentdb is the DURABLE SSOT; nothing on disk is truth.** D01 was REVERSED by hv 2026-08-15; the old wording is false in every clause, **do not reason from it**. Contract 131/132, 55 satisfied. WPs 01/02/04 Done, 03/05/06/10/11 WIP.
-
-**ST0057 (disk as a sparse projection)** -- **sparseness applies to VIEWS; canon is NEVER sparse.** Contract 45 (1 withdrawn) / 46, 33 satisfied. WPs 01/02/04/05/07/08 WIP, 03/06/09 Not Started.
-
-**THE GATE: 50 OF 64** -- all of ST0057's rows plus all 18 of ST0056 WP-03. It was 33 this morning.
+**The five outstanding, with owners:** AC-01.5, AC-03.6, AC-03.14 (cc); AC-07.7, AC-08.5 (ic). **dc holds none.**
 
 **Three layers, and confusing them is the recurring error:** canon (`intent/.canon/st/<ID>.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, the durable SSOT) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
 
-**THE PRECONDITION BLOCK IS 14 AND READS 0 UNMET, AND THAT IS NOT A SCOREBOARD.** hv cleared four on one word and AC-00.3 on the git ruling. **Only AC-00.3 is withdrawn; AC-03.6, AC-06.3, AC-06.4 and AC-07.5 are still owed.** dc's distinction: the question was never whether the work is wanted, it is whether a gate should hold on it.
+**`.intentfiles` is DURABLE STATE.** Many writers, no recomputation -- `st new` adds an id, `st done` removes it, a human may edit it, **nothing derives it from status**. **ABSENT IS NOT EMPTY**: a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
 
-**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057).
+**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057). **localfold = your own board; globalfold = project-wide docs, and it is vc's.**
 
 ## Next
 
-1. **Everyone, hv's own question: 250 files under `intent/` are not in the store at all** -- `docs/`, `llm/`, `history/`, `eng/`, `plugins/`, and the project-level `done.md` / `wip.md` / `restart.md` / `todo.md`. The store holds threads, WPs and issues, nothing else. hv: _not all of that should be in the db, but certainly some of it should._ **cc's angle: which of the 250 could an artefact even OWN**, since the manifest names artefacts and never files.
-2. **dc**: AC-06.3, AC-06.4, and the hosting sweep -- 16 of 32 families dispatch, `intent claude` implements 1 of 8, against 230 call sites in this repo's own machinery.
-3. **ic**: `st hydrate`'s render arm (two lines now `address::promote` landed); the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
-4. **cc**: AC-03.6, and wiring `intent doctor`'s view-skew detection into the gate -- the detection exists, only the wiring is missing.
-5. **vc**: ST0057/WP-09 -- the event log records the MODEL and not the DISK. 423 files left this estate and the log recorded nothing.
+1. **cc** -- AC-01.5, AC-03.6, AC-03.14; AC-10.4 built over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
+2. **ic** -- AC-08.5; AT-07.7, whose **red-first arm must be `AcCollection` specifically** -- the other three come from D57-8's POST clause and any test sourced from that paragraph reaches them, so a test that passes without `AcCollection` has reproduced the original defect one level down.
+3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt.
+4. **vc** -- `declared_but_unwired` adequacy; the heartbeat-currency note for hv; cc's eleven-copies filing.
+5. **hv's standing question:** 250 files under `intent/` are not in the store at all.
 
-## Traps that cost real time (this cycle)
+## Carried from the previous fold -- NOT RE-VERIFIED at `69a5db5e`
 
-- **THE REVISION IS PART OF THE FINDING, NOT CONTEXT FOR IT.** In a four-node checkout a measurement can be true of a tree one rebuild or one mid-write file out of date. Name revision, clock and dirty count on every measurement.
-- **A PEER'S REPORT OF A PEER'S FILE IS ONE HOP TOO MANY -- and your own terminal output is zero hops.** vc carried "`Report.pruned` is not rendered" onto a board in the same hour its own `organize --apply` had printed `1 pruned`, a number already read and quoted.
-- **COULD THIS MEASUREMENT HAVE COME BACK THE OTHER WAY?** "ST0056's rows agree so the generator is fine" said nothing about bytes; `doctor` showed the file stale by 1813.
-- **A COUNT OF CONTAINERS REPORTED AS A COUNT OF CONTENTS.** `1 refused` stood for 423 files; `is in 0 buckets` understated by four. Twice in one night, two instruments.
-- **`sync --to-store` REWRITES THE GENERATED VIEWS.** A canon edit is a two-file commit and the second file is one you never edited.
-- **`at lint` and the read verbs read the STORE, not canon.** Edit canon, `--to-store`, THEN lint.
-- **`intent st list` defaults to in-progress only and returns 2; `--all` is NOT a flag.** Use `st list --status all`.
+**These were live on 2026-08-19 and this fold did not re-measure them.** Marked rather than dropped, and marked rather than asserted: **a rewrite that silently drops an item is indistinguishable from one that resolved it**, which is the class this estate spent 2026-08-20 documenting. Re-measure before acting; do not treat presence here as evidence either way.
+
+- **cc** -- wiring `intent doctor`'s view-skew detection into the gate. **The detection exists; only the wiring is missing.** This is NOT AC-03.6, which is about a commit containing canon that names bytes absent from that commit.
+- **ic** -- `st hydrate`'s render arm; the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
+- **dc** -- the hosting sweep: 16 of 32 families dispatch, `intent claude` implements 1 of 8, against 230 call sites in this repo's own machinery.
+- **Resolved since, verified here:** dc's AC-06.3 and AC-06.4 are both **green** (ST0057/WP-06 closed). vc's ST0057/WP-09 is **Done**.
+
+## Traps that cost real time
+
+- **THE GATE, AND ANY N-OF-M, IS COMPUTED BY A VERB. `intent ac status`.** Hand-tallying it produced two wrong numbers in two days, and the second was wrong because its halves used different definitions of "live".
+- **NO INSTRUMENT HERE CATCHES AN EXPIRED CITATION -- ONLY A BUILDER TRYING TO SATISFY THE ROW DOES.** `at lint` exempts `to-write` from L2/L3, **correctly**, so a citation cannot be validated until it is used. **The cheap split: does the cited file carry the row's own literal id?** 2 hits means ready to green; **0 hits means the citation is wrong.**
+- **A DOCUMENT CAN GO STALE AGAINST ITSELF, AND DOING THE SOURCING CORRECTLY IS WHAT DELIVERS THE WRONG ANSWER.** `at lint` checks rows against files; `doctor` checks views against canon; **a design document's clauses are checked by a reader noticing.**
+- **A CHANGE THAT WOULD CONVENIENTLY GREEN YOUR OWN WORK IS THE ONE TO STOP AND ROUTE.** The tell, not the virtue.
+- **THE REVISION IS PART OF THE FINDING.** Name revision, clock and dirty count on every measurement. **A suite started at T over a tree edited at T+n describes no revision.**
+- **A TRUE MEASUREMENT OF A DIFFERENT PROPERTY, OFFERED AS PROOF.** The evidence being real and driven is exactly what makes it persuasive. **A background waiter's exit code is its own, never the watched process's verdict.**
+- **`cargo test | tail -N` THEN COUNTING IN THE TAIL** reports the tail as the total -- 7 targets of 140. **And `$?` after a pipe is the LAST stage's rc, never cargo's.** Redirect to a file; read the rc directly.
+- **ZERO FAILURES ACROSS A WORKSPACE DOES NOT PROVE A BINARY RAN.** Confirm each subject appears in the `Running` list before moving a row.
+- **ISOLATE THE TARGET DIR, KEEP IT INSIDE THE CHECKOUT, AND USE AN ABSOLUTE PATH.** `install::home()` walks `current_exe()` ancestors for a marker, so an out-of-repo binary returns NotFound. A relative path under a drifted cwd built **1.2G** where gitignore hid it.
+- **THE SHELL cwd PERSISTS BETWEEN CALLS**, and `&&` on a probe makes a failed probe indistinguishable from a clean estate.
+- **`sync --to-store` IS DISK-AUTHORITATIVE FOR ATTACHMENTS** -- a canon-only edit to a realised attachment is discarded in silence at rc=0. Edit the FILE first. **For a typed field canon wins.**
+- **`at lint` and the read verbs read the STORE, not canon.** Edit canon, `--to-store`, THEN lint. **Check the sync's rc, not its tail.**
+- **`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag.** Use `st list --status all`.
+- **Never `$?` after a pipe. `grep` is ugrep here and BSD grep in a `#!/bin/bash` script -- `-E` throughout. `grep -c` exits 1 on zero. The Bash tool's shell is zsh.** `cargo test` stops at the first failing target -- **`--no-fail-fast`, always.**
 - **Read the clock, then PASTE -- never read, then type.**
-- **Never `$?` after a pipe.** `grep` here is ugrep. **The Bash tool's shell is zsh**, so an unquoted glob in `--include=*.rs` is a hard error, and PATH can collapse inside a `while read` loop -- that one reported three fake sha256 mismatches with `jq: command not found` in the same output.
-- **`grep -c` exits 1 on zero**, so a `||` fallback fires on a true zero.
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **DO NOT PUT v3 ON PATH** -- the pre-commit gate works because it runs v2, whose version guard is scoped to writes; on PATH, `intent critic` answers 2 in all five languages, which is the code the gate fails open on. **DO NOT PUSH TO `upstream`** -- public and frozen. Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **DO NOT PUT v3 ON PATH.** **`upstream` was frozen and `prepush` now records the freeze LIFTED by hv 2026-08-20 with an empty `FROZEN_REMOTES` -- confirm with hv before any push there.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.

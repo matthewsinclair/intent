@@ -1,70 +1,69 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (as at `5716b43a`, 2026-08-19)
+## Current state (as at `69a5db5e`, 2026-08-20)
 
-**This heading names a COMMIT, not just a date, and that is deliberate.** A restart file is read as CURRENT STATE and written as a snapshot of when its author typed; nothing used to mark which, and a cold session treated a four-day-old line as the next action. Anything below is true of `5716b43a` and of nothing else -- **re-stamp it when you fold, and if you cannot say what it is current as at, that is the finding.**
+**This heading names a COMMIT, not just a date, and that is deliberate.** A restart file is read as CURRENT STATE and written as a snapshot of when its author typed; nothing used to mark which, and a cold session treated a four-day-old line as the next action. **Re-stamp it when you fold, and if you cannot say what it is current as at, that is the finding.**
 
-## A FRESH CLONE RUNS NO HOOKS UNTIL SOMEBODY SAYS SO
+## First actions after `/compact` or new session
 
-**The hooks are TRACKED now** -- `.githooks/pre-commit`, `pre-push`, `post-commit`, reached by `core.hooksPath` rather than copied in by an installer, because the copy is what let the shipped gate's roster go stale for six days. `pre-commit.intent` stays gitignored: it is canon the installer writes, and tracking it would give canon a second home.
+0. **IN A FRESH CLONE ONLY, RUN `int hooks` FIRST.** This repo's hooks are TRACKED, at `.githooks/`, reached by `core.hooksPath` -- but **`core.hooksPath` is repo-local config and a clone does not inherit it.** So a fresh clone has the hook bodies and runs none of them: the critic gate, the clock guard, the header guard, the canon-ignore guard, the append-only guard and all three formatters are silently inert. `int hooks` reports the state and names the fix; **`int hooks --install` is the only thing that writes.**
 
-**BUT `core.hooksPath` IS REPO-LOCAL CONFIG AND A CLONE DOES NOT INHERIT IT.** A fresh clone therefore has every hook body and runs none of them -- critic gate, clock guard, header guard, canon-ignore guard, append-only guard, and the markdown, Elixir and Rust formatters, all silently inert. **Run `int hooks` (reports) and `int hooks --install` (writes).**
+   **NOTHING TRIGGERS THIS AUTOMATICALLY AND NOTHING CAN.** Git runs nothing on clone, deliberately -- a clone-time hook would be remote code execution -- and a hook cannot report that hooks are off, because it would not run either. **This step is a habit, and today proved three times over that habits decay invisibly** (the guard roster, `prepush`, `check format`). What limits the damage is that CI catches the CONSEQUENCE even when nothing catches the CAUSE: unwired hooks mean unformatted code, and `cargo fmt --check` runs on every push.
 
-**NOTHING PROMPTS THIS AND THE REASON IS STRUCTURAL, NOT AN OVERSIGHT.** Git runs nothing on clone by design; a hook cannot report that hooks are off; and `bin/int` is stock vendored devbin gated by `self_provenance_check.sh`, so editing it to carry the notice would commit the exact error that file exists to warn about. **The correct home is a pre-dispatch project hook in devbin upstream, which is a different repository.** Until then this is a documented step rather than a mechanism, and it was chosen knowing that: hv ruled SAY over SELF-HEAL on the ground that the person should learn, which is the same reason the clock guard prints the right stamp instead of writing it.
+1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
+2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
 
-## The one thing that changed everything tonight
+## State (as at `69a5db5e`, 2026-08-20)
 
-**THE DISK MODEL IS RUNNING. `intent organize --apply` removed 423 files at `e7f00e65`.** `intent/st/` holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`, and nothing else. Fifty-two completed and two cancelled threads live only in the database.
+**THE GATE IS 62 OF 67 AND IT IS COMPUTED, NOT TYPED.** Run `intent ac status ST0057` and `intent ac status ST0056` -- the verb prints `N/M satisfied, K withdrawn`. **Two hand-tallied figures in a row were wrong**, the second because its two halves counted "live" by different rules. **Never re-derive this by hand.**
 
-**It is proven reversible by measurement.** ST0001 back on the list returned five files, all byte-identical to git. A fence-heavy pair returned fifteen, all byte-identical. All 282 attachments verify against their own `sha256`. **Dehydration is not a loss** -- the database regenerates the exact bytes.
+**ST0056** (v3.0.0 rewrite) -- 132 criteria / 134 tests, **56 of 131 satisfied**, 1 withdrawn. **The intentdb is the DURABLE SSOT; nothing on disk is truth.** D01 was REVERSED by hv 2026-08-15; **do not reason from it.**
 
-**hv replaced the manifest design mid-session and it is now canon:**
+**ST0057** (disk as a sparse projection) -- 53 criteria / 53 tests, **47 of 51 satisfied**, 2 withdrawn. **Sparseness applies to VIEWS; canon is NEVER sparse.** WPs 02/04/06/07/09/10 Done.
 
-> **`.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.**
-> **Realisation is driven from `.intentfiles`; commands change `.intentfiles`; `organize` realises it.**
-
-**Many writers, no recomputation.** Nothing derives the list from status. That is the whole difference from the two-region design, and it is why the protected region became unnecessary and why `intentfiles::render` had no caller. **ABSENT IS NOT EMPTY:** a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
-
-## The two threads
-
-**ST0056 -- Intent v3.0.0.** Architecture ratified in `intent/st/ST0056/design.md` (D01-D36); read it before touching anything v3. Schema-as-truth (the intentsvcs Rust type layer generates JSON Schema + SQL DDL + GraphQL SDL faces, committed and drift-checked); **the intentdb as the DURABLE SSOT with everything on disk a secondary artefact** -- **D01 was REVERSED by hv 2026-08-15 and the old wording ("committed JSON as durable truth, rebuildable SQLite, `rm intent.db` always safe, no DB migrations ever") is FALSE IN EVERY CLAUSE; do not reason from it**; the committed extract as the INTERCHANGE that travels while the DB never leaves the machine (D34); migrations NORMAL; `rm intent.db` ruled out of existence (D36); `intentsvcs` as sole owner of DB and file canon; CLI dual-mode; MCP as the primary agent write surface; migration floored at v2.19.0.
-
-**ST0057 -- disk as a sparse projection of the store.** D57-1..D57-8 ruled. **Sparseness applies to VIEWS; canon is NEVER sparse** -- if the manifest governed canon, an unrealised artefact would exist only inside a gitignored database. **D29, a gitignored path is never canon, is what makes a clone complete.**
+**The five outstanding, with owners:** AC-01.5, AC-03.6, AC-03.14 (cc); AC-07.7, AC-08.5 (ic). **dc holds none.**
 
 **Three layers, and confusing them is the recurring error:** canon (`intent/.canon/st/<ID>.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, the durable SSOT) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
 
-**Contract, measured at this commit.** ST0056: **131 criteria, 132 tests** -- 55/131 satisfied, green 46, n-a 19, red 8, to-write 59. ST0057: **45 criteria (1 withdrawn), 46 tests** -- 33/45 satisfied, green 33, n-a 2, red 5, to-write 6. **ST0056 WPs** 01/02/04 Done, 03/05/06/10/11 WIP, rest Not Started. **ST0057 WPs** 01/02/04/05/07/08 WIP, 03/06/09 Not Started.
+**`.intentfiles` is DURABLE STATE.** Many writers, no recomputation -- `st new` adds an id, `st done` removes it, a human may edit it, **nothing derives it from status**. **ABSENT IS NOT EMPTY**: a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
 
-**THE GATE: 50 OF 64** -- all of ST0057's 46 rows plus all 18 of ST0056 WP-03. It was 33 this morning.
+**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057). **localfold = your own board; globalfold = project-wide docs, and it is vc's.**
 
-## The precondition block is 14 and reads 0 unmet, and that is NOT a scoreboard
+## Next
 
-hv cleared four preconditions out of AC-00.1's declared block on one word, and AC-00.3 earlier on the git ruling: _if we need safety, we've got all the historical STs etc in git. We can always get stuff back._
+1. **cc** -- AC-01.5, AC-03.6, AC-03.14; AC-10.4 built over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
+2. **ic** -- AC-08.5; AT-07.7, whose **red-first arm must be `AcCollection` specifically** -- the other three come from D57-8's POST clause and any test sourced from that paragraph reaches them, so a test that passes without `AcCollection` has reproduced the original defect one level down.
+3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt.
+4. **vc** -- `declared_but_unwired` adequacy; the heartbeat-currency note for hv; cc's eleven-copies filing.
+5. **hv's standing question:** 250 files under `intent/` are not in the store at all.
 
-**ONLY AC-00.3 IS WITHDRAWN. AC-03.6, AC-06.3, AC-06.4 AND AC-07.5 REMAIN LIVE CRITERIA AND ARE STILL OWED.** dc's distinction: **the question was never whether the work is wanted, it is whether a GATE should hold on it.** A board recording "they came off the gate" reads as done to whoever opens it next.
+## Carried from the previous fold -- NOT RE-VERIFIED at `69a5db5e`
 
-**The test for withdrawing a precondition, ic's half being the better half:** hv's git grounds retire a precondition **only where git can SUBSTITUTE for the proof**. _Restoring the estate from git RE-HYDRATES it, which destroys the precondition under test_ -- so an accessibility claim is never withdrawable on those grounds and a safety claim usually is.
+**These were live on 2026-08-19 and this fold did not re-measure them.** Marked rather than dropped, and marked rather than asserted: **a rewrite that silently drops an item is indistinguishable from one that resolved it**, which is the class this estate spent 2026-08-20 documenting. Re-measure before acting; do not treat presence here as evidence either way.
 
-## Tomorrow's question, hv's own
+- **cc** -- wiring `intent doctor`'s view-skew detection into the gate. **The detection exists; only the wiring is missing.** This is NOT AC-03.6, which is about a commit containing canon that names bytes absent from that commit.
+- **ic** -- `st hydrate`'s render arm; the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
+- **dc** -- the hosting sweep: 16 of 32 families dispatch, `intent claude` implements 1 of 8, against 230 call sites in this repo's own machinery.
+- **Resolved since, verified here:** dc's AC-06.3 and AC-06.4 are both **green** (ST0057/WP-06 closed). vc's ST0057/WP-09 is **Done**.
 
-**250 files under `intent/` are not in the store at all.** `docs/` (12), `llm/` (14), `history/` (18), `eng/` (10), `plugins/` (191), `autopsy/`, `analysis/`, and the project-level `done.md`, `wip.md`, `restart.md`, `todo.md`. The store holds **threads, work packages and issues, and nothing else** -- `doc_sections.owner_type` is exactly those three.
+## Traps that cost real time
 
-**hv: _not all of that should be in the db, but certainly some of it should. A job for tomorrow._**
+- **THE GATE, AND ANY N-OF-M, IS COMPUTED BY A VERB. `intent ac status`.** Hand-tallying it produced two wrong numbers in two days, and the second was wrong because its halves used different definitions of "live".
+- **NO INSTRUMENT HERE CATCHES AN EXPIRED CITATION -- ONLY A BUILDER TRYING TO SATISFY THE ROW DOES.** `at lint` exempts `to-write` from L2/L3, **correctly**, so a citation cannot be validated until it is used. **The cheap split: does the cited file carry the row's own literal id?** 2 hits means ready to green; **0 hits means the citation is wrong.**
+- **A DOCUMENT CAN GO STALE AGAINST ITSELF, AND DOING THE SOURCING CORRECTLY IS WHAT DELIVERS THE WRONG ANSWER.** `at lint` checks rows against files; `doctor` checks views against canon; **a design document's clauses are checked by a reader noticing.**
+- **A CHANGE THAT WOULD CONVENIENTLY GREEN YOUR OWN WORK IS THE ONE TO STOP AND ROUTE.** The tell, not the virtue.
+- **THE REVISION IS PART OF THE FINDING.** Name revision, clock and dirty count on every measurement. **A suite started at T over a tree edited at T+n describes no revision.**
+- **A TRUE MEASUREMENT OF A DIFFERENT PROPERTY, OFFERED AS PROOF.** The evidence being real and driven is exactly what makes it persuasive. **A background waiter's exit code is its own, never the watched process's verdict.**
+- **`cargo test | tail -N` THEN COUNTING IN THE TAIL** reports the tail as the total -- 7 targets of 140. **And `$?` after a pipe is the LAST stage's rc, never cargo's.** Redirect to a file; read the rc directly.
+- **ZERO FAILURES ACROSS A WORKSPACE DOES NOT PROVE A BINARY RAN.** Confirm each subject appears in the `Running` list before moving a row.
+- **ISOLATE THE TARGET DIR, KEEP IT INSIDE THE CHECKOUT, AND USE AN ABSOLUTE PATH.** `install::home()` walks `current_exe()` ancestors for a marker, so an out-of-repo binary returns NotFound. A relative path under a drifted cwd built **1.2G** where gitignore hid it.
+- **THE SHELL cwd PERSISTS BETWEEN CALLS**, and `&&` on a probe makes a failed probe indistinguishable from a clean estate.
+- **`sync --to-store` IS DISK-AUTHORITATIVE FOR ATTACHMENTS** -- a canon-only edit to a realised attachment is discarded in silence at rc=0. Edit the FILE first. **For a typed field canon wins.**
+- **`at lint` and the read verbs read the STORE, not canon.** Edit canon, `--to-store`, THEN lint. **Check the sync's rc, not its tail.**
+- **`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag.** Use `st list --status all`.
+- **Never `$?` after a pipe. `grep` is ugrep here and BSD grep in a `#!/bin/bash` script -- `-E` throughout. `grep -c` exits 1 on zero. The Bash tool's shell is zsh.** `cargo test` stops at the first failing target -- **`--no-fail-fast`, always.**
+- **Read the clock, then PASTE -- never read, then type.**
 
-**cc's angle: ask which of the 250 an artefact could even OWN**, because the manifest names artefacts and never files, so a file with no owning artefact cannot be declared however the content question is settled.
+## Conventions
 
-**THE TRAP IN MEASURING IT: there IS a `done.md` in the store -- ten of them -- and every one is `intent/st/ST0019/done.md` or a sibling, a per-thread attachment.** A grep returns hits and the project-level file is not among them.
-
-**The same gap from the command side, dc's measurement:** 16 of 32 top-level families dispatch, 14 answer exit 2, **`intent claude` implements 1 of its 8 verbs** against 230 `intent claude <verb>` call sites in this repo's own machinery. **Everything that manages STEEL THREADS is done; everything that manages INTENT ITSELF is not.** Two faces of one gap, found from opposite ends on the same evening.
-
-## Standing hazards
-
-**DO NOT PUT v3 ON PATH.** The pre-commit gate works _because_ it runs v2, whose version guard is scoped to writes, so `intent critic` runs clean while `intent st list` refuses at 2. The day v3 goes on PATH, `intent critic` answers 2 in all five declared languages -- the gate's fail-open code -- here and in the other 15 Intent projects on this machine.
-
-**EACH SYNC DIRECTION DESTROYS WHATEVER EXISTS ONLY ON THE OTHER SIDE.** `--to-disk` destroys unsynced DISK edits; `--to-store` destroys unprojected STORE state, and it is `sync_from_disk` the code itself calls _the DESTRUCTIVE direction_. **`intent sync --to-store <ID>` before any verb.**
-
-**`at green` MOVES A STATUS AND NO VERB MOVES A NOTE.** Twice tonight a row read green above prose saying the test does not exist. Canon prose routes through vc.
-
-**THE REVISION IS PART OF THE FINDING, NOT CONTEXT FOR IT.** In a four-node checkout, a measurement can be true of a tree one rebuild or one mid-write file out of date. Name revision, clock and dirty count on every measurement.
-
-**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057).
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **DO NOT PUT v3 ON PATH.** **`upstream` was frozen and `prepush` now records the freeze LIFTED by hv 2026-08-20 with an empty `FROZEN_REMOTES` -- confirm with hv before any push there.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.
