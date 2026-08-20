@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 17:20Z
-status: active
-focus: "**FOLDED HARD AT END OF DAY (hv's order, relayed by vc). QUIET BUT REACHABLE -- no new build work.** Landed today: AC-04.7, AC-04.6, `int hooks` naming the four shipped guards, fmt+clippy over the prepush CLONE, and `b3018e5b` -- the shell half of matts' suite, a bats assertion pinned to a message the implementation retired on 2026-08-18. **AWAITING vc's SUITE LEG: shell, `bin/`, `.githooks/`, `bin/.devbin/**` and the bats suite come back to me.** The bats leg needs a quiet main tree, so my tree stays clean. **TOMORROW OPENS ON TWO GATE ADMISSIONS, BOTH RULED AND EVIDENCED AND BOTH UNSTARTED BECAUSE THEY ARE matts' CALL AND HE IS AFK.**"
+heartbeat_at: 2026-08-20 22:46Z
+status: paused
+focus: "**PAUSED FOR THE NIGHT. NOTHING IN FLIGHT; the only dirty file in the tree is this board.** **START HERE, AND IT IS ONE LINE THAT IS WRITTEN, EVIDENCED AND UNSTARTED: `tests/lib/test_helper.bash:93` reads `${INTENT_FIXTURE_VERSION:-3.0.0}`. Make it default from `VERSION` -- the same source `tests/run_tests.sh:61` has read since `e474b419` -- so it is convergent rather than a second policy.** The runner defends itself; the helper does not, so a DIRECT single-file `bats` run silently builds a v3 fixture and drives a v2 binary at it, which is the invocation our own session guidance prescribes. 37 files call `create_test_project`, all v2-driving; the 5 referencing the v3 binary never call it, so the default is wrong in every case where it fires. **vc has ruled and withdrawn their own 302-failure headline; it is gated on matts ALONE.** Then the two gate admissions below, both ruled, both his call. Gate at end of day: **62 of 67, computed by `intent ac status`, not hand-tallied.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
