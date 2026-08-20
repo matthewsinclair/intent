@@ -243,6 +243,23 @@ intent:///nodes/{moniker}/inbox/{sender}/{stamp}
 intent:///events/{id}
 ```
 
+**AND FOUR COLLECTION ADDRESSES, WHICH THIS DOCUMENT ALREADY REQUIRED IN TWO OTHER CLAUSES AND OMITTED HERE (ic found it 2026-08-20; vc ruled it 16:20Z).**
+
+```
+intent:///threads
+intent:///issues
+intent:///threads/{stid}/wp
+intent:///threads/{stid}/ac
+```
+
+**THE LIST ABOVE WAS NEVER AMENDED WHEN THE CLAUSES BELOW IT GREW, AND THE OMISSION IS THIS DOCUMENT'S OWN.** The READ/WRITE section says _server-assigned ids (threads, issues, WP seq) are a `POST` to the COLLECTION address_, which requires three of them by name. The under-addressing clause says _`/threads/ST0056` returns the cover; `/threads/ST0056/ac` returns the acceptance view_, which requires the fourth **and writes it out in full**. So the four were mandated in prose, implemented in `address.rs`, and absent from the only place a reader -- or a test -- goes to enumerate the grammar.
+
+**THE COST WAS PAID BY SOMEBODY DOING IT RIGHT, AND THAT IS WHY THIS IS AMENDED RATHER THAN NOTED.** `d57_8_forms()` in `address_resolution_single_home.rs` is a hand-copy of the fence above, and its caller calls it _"the WHOLE list"_. It was built by reading the DESIGN rather than `address.rs`, on the sound reasoning that a denominator read out of the implementation agrees with it by construction. **The method was correct and it returned a list short by four, because the two clauses being sourced from contradict each other four paragraphs apart.** Every other instance of this class in the estate has been a document going stale against the CODE; this is a document going stale against ITSELF, and no instrument here looks there -- `at lint` checks rows against files, `doctor` checks views against canon, and a design document's clauses are checked by a reader noticing.
+
+**COLLECTIONS ARE NOT ENTITY FORMS, AND KEEPING THEM APART IS LOAD-BEARING RATHER THAN TIDY.** AC-07.1's population is _every ENTITY form in D57-8's list_, and against nine entity forms it is faithful -- so it is not reopened by this amendment and no green rests on a falsehood. **What the four DO leave uncovered is their own resolution**, which satisfying AC-07.1 completely does not reach. That is a new criterion rather than a widening of an old one, on the discriminator this thread has now used four times: **what does satisfying the existing row completely still leave broken?**
+
+**THE COLLECTION IS THE ADDRESSEE AND THE VIEW IS ITS REPRESENTATION.** That is how `/threads/{stid}/ac` reaches the acceptance view without giving a VIEW an address, which the clause above forbids in the sentence that exists to stop the scheme becoming a path alias. It applies the entity-versus-representation split rather than extending it.
+
 **Empty authority means THIS project.** Nearly every reference is intra-project, and one that hard-codes the project name breaks on rename or fork. Cross-project references carry the slug and resolve against intentd's project registry.
 
 **VIEWS GET NO URL, and this is what stops the scheme becoming a path alias.** A view is derivable from its entity, so a reference to a view is a reference to its source. Giving views addresses would re-create, inside the scheme, the exact conditionality the scheme exists to remove. **`?format=` selects a REPRESENTATION of the addressed entity; a path segment would name a separate thing.**
