@@ -2,6 +2,10 @@
 
 ## First actions after `/compact` or new session
 
+0. **IN A FRESH CLONE ONLY, RUN `int hooks` FIRST.** This repo's hooks are TRACKED, at `.githooks/`, reached by `core.hooksPath` -- but **`core.hooksPath` is repo-local config and a clone does not inherit it.** So a fresh clone has the hook bodies and runs none of them: the critic gate, the clock guard, the header guard, the canon-ignore guard, the append-only guard and all three formatters are silently inert. `int hooks` reports the state and names the fix; **`int hooks --install` is the only thing that writes.**
+
+   **NOTHING TRIGGERS THIS AUTOMATICALLY AND NOTHING CAN.** Git runs nothing on clone, deliberately -- a clone-time hook would be remote code execution -- and a hook cannot report that hooks are off, because it would not run either. **This step is a habit, and today proved three times over that habits decay invisibly** (the guard roster, `prepush`, `check format`). What limits the damage is that CI catches the CONSEQUENCE even when nothing catches the CAUSE: unwired hooks mean unformatted code, and `cargo fmt --check` runs on every push.
+
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
 

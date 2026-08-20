@@ -4,6 +4,14 @@
 
 **This heading names a COMMIT, not just a date, and that is deliberate.** A restart file is read as CURRENT STATE and written as a snapshot of when its author typed; nothing used to mark which, and a cold session treated a four-day-old line as the next action. Anything below is true of `5716b43a` and of nothing else -- **re-stamp it when you fold, and if you cannot say what it is current as at, that is the finding.**
 
+## A FRESH CLONE RUNS NO HOOKS UNTIL SOMEBODY SAYS SO
+
+**The hooks are TRACKED now** -- `.githooks/pre-commit`, `pre-push`, `post-commit`, reached by `core.hooksPath` rather than copied in by an installer, because the copy is what let the shipped gate's roster go stale for six days. `pre-commit.intent` stays gitignored: it is canon the installer writes, and tracking it would give canon a second home.
+
+**BUT `core.hooksPath` IS REPO-LOCAL CONFIG AND A CLONE DOES NOT INHERIT IT.** A fresh clone therefore has every hook body and runs none of them -- critic gate, clock guard, header guard, canon-ignore guard, append-only guard, and the markdown, Elixir and Rust formatters, all silently inert. **Run `int hooks` (reports) and `int hooks --install` (writes).**
+
+**NOTHING PROMPTS THIS AND THE REASON IS STRUCTURAL, NOT AN OVERSIGHT.** Git runs nothing on clone by design; a hook cannot report that hooks are off; and `bin/int` is stock vendored devbin gated by `self_provenance_check.sh`, so editing it to carry the notice would commit the exact error that file exists to warn about. **The correct home is a pre-dispatch project hook in devbin upstream, which is a different repository.** Until then this is a documented step rather than a mechanism, and it was chosen knowing that: hv ruled SAY over SELF-HEAL on the ground that the person should learn, which is the same reason the clock guard prints the right stamp instead of writing it.
+
 ## The one thing that changed everything tonight
 
 **THE DISK MODEL IS RUNNING. `intent organize --apply` removed 423 files at `e7f00e65`.** `intent/st/` holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`, and nothing else. Fifty-two completed and two cancelled threads live only in the database.
