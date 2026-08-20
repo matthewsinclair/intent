@@ -2458,34 +2458,21 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
-    // **`issues hydrate` IS DELIBERATELY NOT WIRED, AND `unwired`'s rc=2 IS THE
-    // HONEST ANSWER UNTIL AN ISSUE HAS A REALISED FORM AT ALL** (ic,
-    // 2026-08-20, measured before wiring it and backed out after).
+    // **`issues hydrate` AND `issues dehydrate` ARE GONE FROM THE SURFACE, AND
+    // THE ANSWER WAS NOT "WIRE THEM LATER"** (hv, 2026-08-20).
     //
-    // Driving it once proved the shape: `intent issues hydrate 0001` returned
-    // rc=0, printed `ok: ... hydrated -- 0 file(s) on disk`, and wrote
-    // `ISSUE:0001` into the live `.intentfiles`. **A success message over a
-    // zero, plus a durable claim that a file exists which cannot.**
+    // They were declared and unwired here while the question went up: does an
+    // issue have a realised form at all? It does not. **Issues are
+    // canon-and-store only**, so both rows are retired in the dispatch table,
+    // `ISSUE:` is out of the `.intentfiles` grammar, and `Address::artefact`
+    // answers `None` for an issue -- which is what turns the case into a
+    // refusal at `Facade::hydrate`'s door instead of a walk into the wrong
+    // layer. The full record is on the two retired rows.
     //
-    // The cause is a LAYER confusion in the primitive, not a gap here.
-    // `Facade::hydrate` picks the artefact's realisation home as
-    // `thread_dir(id)` for a thread -- `intent/st/<ID>/`, the ESTATE -- and
-    // `issues_dir()` for an issue, which is `canon_dir().join("issues")`, ie
-    // `intent/.canon/issues/`, **CANON**. The two arms of one match address two
-    // different layers. It resolves that way because canon is the only issue
-    // path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and
-    // `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders
-    // no issue view. So an issue has no realised form to hydrate INTO.
-    //
-    // It is inert today only because `organize::plan` happens to emit no step
-    // under `intent/.canon/`, and a bound that is never reached is not a bound
-    // this code states -- a realisation verb whose home resolves into canon is
-    // a hole with nothing but a neighbouring function's behaviour over it.
-    //
-    // Wiring it would ship the table-leads-the-reader ordering the `st hydrate`
-    // row's own note argues against, in the direction that note calls wrong.
-    // Escalated to hv (does an issue have a realised form?) and to vc, who is
-    // live in `facade.rs`. Fail closed: absence is not permission.
+    // **The arm below stays and is not vestigial.** It is the family's
+    // catch-all for a verb the table declares and this file has not wired, and
+    // `declared_but_unwired.rs` drives whatever is in that state. What changed
+    // is that no `issues` verb is in it today.
     Some((verb, _)) => unwired("issues", verb),
   }
 }
@@ -3040,9 +3027,10 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   // **REFUSAL OUTRANKS FINDINGS, AND BOTH BLOCK.** See `Report::exit_code`.
   match report.exit_code() {
     3 => Err(Failure::Refused(format!(
-      "critic: {} -- REFUSED: {} rule(s) armed by this project could not be enforced here.\n  remedy: install the missing tool, or disarm that rule in .intent_critic.yml",
+      "critic: {} -- REFUSED: {} rule(s) armed by this project could not be enforced here: {}.\n  remedy: install the missing tool, or disarm that rule in .intent_critic.yml",
       report.lang,
-      report.refused.len()
+      report.unenforced().len(),
+      report.unenforced().join(" ")
     ))),
     1 => Err(Failure::Verdict),
     _ => Ok(()),

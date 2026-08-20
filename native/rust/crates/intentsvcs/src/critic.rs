@@ -34,7 +34,7 @@
 //! | 0    | clean -- everything ASKED came back empty                  | passes  |
 //! | 1    | findings present                                           | BLOCKS  |
 //! | 2    | usage / invocation error -- the gate itself is broken      | fails open |
-//! | 3    | refused -- a rule was armed and could not be enforced here | BLOCKS  |
+//! | 3    | refused -- an ARMED rule's TOOL IS ABSENT on this machine  | BLOCKS  |
 //!
 //! The gate's own comment states the principle the table inverts: *a gate should
 //! fail open on its own breakage and closed on yours.* 2 means our breakage.
@@ -221,7 +221,22 @@ pub struct Report {
   pub lang: String,
   pub findings: Vec<Finding>,
   pub census: Vec<CensusRow>,
-  /// Rules whose proxy the contract refused. Drives exit 3.
+  /// Rules whose PROXY the ST0039 contract refused -- reported in the census
+  /// and, deliberately, NOT an exit-3 condition.
+  ///
+  /// **THIS FIELD ONCE DROVE EXIT 3 AND THAT WAS WRONG IN BOTH DIRECTIONS
+  /// (vc, 2026-08-20).** The header table above said 3 meant *a rule was armed
+  /// and could not be enforced*, `exit_code` keyed it on this set, and the two
+  /// are different populations five lines apart in one file -- INV-04's shape
+  /// one file over, with the header asserting one meaning and the code
+  /// implementing another. v2 sets `CRITIC_REFUSED` in exactly one place,
+  /// `bin/intent_critic:319`, inside the `c_absent` block: **an unrunnable
+  /// proxy is REPORTED and never refuses; an absent TOOL refuses.**
+  ///
+  /// **THE DIRECTION IS WHAT MADE IT SERIOUS**: a project that armed a
+  /// shellcheck rule on a machine without shellcheck was silently PASSED, which
+  /// is the sentence AC-07.4 exists to forbid. CI images and new laptops are
+  /// routinely that machine.
   pub refused: Vec<String>,
 }
 
@@ -242,16 +257,35 @@ impl Report {
     self.census.len()
   }
 
+  /// Rules armed on a tool this machine does not have. **This is what exit 3
+  /// means**, and it is the only condition v2 refuses on.
+  pub fn unenforced(&self) -> Vec<&str> {
+    // Sorted, for the reason every other id list here is: walk order is
+    // undiffable and means nothing to a reader.
+    let mut out: Vec<&str> = self
+      .census
+      .iter()
+      .filter(|r| matches!(r.disposition, Disposition::ToolAbsent(_)))
+      .map(|r| r.rule_id.as_str())
+      .collect();
+    out.sort_unstable();
+    out
+  }
+
   /// The exit code the gate will read. **See the module note: 1 is findings,
-  /// 3 is refused, and neither is 2.**
+  /// 3 is an armed rule whose tool is absent, and neither is 2.**
   ///
   /// **REFUSAL OUTRANKS FINDINGS.** Both block, so the order only decides which
   /// remedy the operator is handed -- and "a rule you armed could not be
   /// enforced" is actionable in a way "fix these findings" is not when the run
   /// was also incomplete. Reporting findings while silently dropping a refusal
   /// would tell someone their code is the problem when our coverage is.
+  ///
+  /// **AN UNRUNNABLE PROXY IS NOT A REFUSAL**, however much the word invites it:
+  /// nobody can act on it, it is our defect rather than the project's, and v2
+  /// reports it in the census at exit 0. See [`Report::refused`].
   pub fn exit_code(&self) -> i32 {
-    if !self.refused.is_empty() {
+    if !self.unenforced().is_empty() {
       3
     } else if !self.findings.is_empty() {
       1
@@ -1143,6 +1177,62 @@ mod tests {
   // ---- the exit contract --------------------------------------------------
 
   #[test]
+  fn an_absent_tool_refuses_and_an_unrunnable_proxy_does_not() {
+    // **THE DEFECT THIS GUARDS WAS LIVE AND FAILED OPEN (vc, 2026-08-20).**
+    // `exit_code` keyed on the unrunnable-PROXY set while the header table said
+    // 3 meant an armed rule that could not be enforced -- two populations, five
+    // lines apart, one file. v2 sets `CRITIC_REFUSED` in exactly one place
+    // (`bin/intent_critic:319`, the `c_absent` block), so a machine missing
+    // shellcheck refused there and PASSED here.
+    let base = Report {
+      lang: "shell".into(),
+      findings: Vec::new(),
+      census: Vec::new(),
+      refused: Vec::new(),
+    };
+
+    let absent = Report {
+      census: vec![CensusRow {
+        rule_id: "IN-SH-CODE-001".into(),
+        arming: Arming::Armed,
+        disposition: Disposition::ToolAbsent("shellcheck".into()),
+        by: "shellcheck".into(),
+      }],
+      ..base.clone()
+    };
+    assert_eq!(absent.exit_code(), 3, "an armed rule whose tool is absent must BLOCK");
+    assert_eq!(absent.unenforced(), ["IN-SH-CODE-001"]);
+
+    // An unrunnable proxy is reported and never refuses -- our defect, not the
+    // project's, and nobody can act on it.
+    let unrunnable = Report {
+      refused: vec!["IN-SH-CODE-009".into()],
+      census: vec![CensusRow {
+        rule_id: "IN-SH-CODE-009".into(),
+        arming: Arming::Unrunnable,
+        disposition: Disposition::NotApplicable,
+        by: "-".into(),
+      }],
+      ..base.clone()
+    };
+    assert_eq!(unrunnable.exit_code(), 0, "an unrunnable proxy must not block");
+
+    // **OUT-OF-CONTEXT MUST NOT REFUSE EITHER, and this arm is load-bearing:**
+    // all three clippy rules are `workspace`, so refusing here would block
+    // every rust commit in the estate.
+    let ooc = Report {
+      census: vec![CensusRow {
+        rule_id: "IN-RS-CODE-001".into(),
+        arming: Arming::Armed,
+        disposition: Disposition::OutOfContext("clippy".into()),
+        by: "clippy".into(),
+      }],
+      ..base
+    };
+    assert_eq!(ooc.exit_code(), 0, "a workspace analyser out of context must not block");
+  }
+
+  #[test]
   fn refusal_outranks_findings_and_neither_is_two() {
     // **THE WHOLE POINT OF THIS FILE.** `pre-commit.sh` blocks on 1 and 3 and
     // FAILS OPEN on 2, so a critic that returned 2 for findings would silently
@@ -1169,7 +1259,12 @@ mod tests {
     assert_eq!(with_findings.exit_code(), 1);
 
     let with_refusal = Report {
-      refused: vec!["IN-SH-CODE-009".into()],
+      census: vec![CensusRow {
+        rule_id: "IN-SH-CODE-001".into(),
+        arming: Arming::Armed,
+        disposition: Disposition::ToolAbsent("shellcheck".into()),
+        by: "shellcheck".into(),
+      }],
       ..base.clone()
     };
     assert_eq!(with_refusal.exit_code(), 3);
@@ -1178,7 +1273,12 @@ mod tests {
     // ALSO refused must report the refusal: the operator's remedy differs.
     let both = Report {
       findings: vec![finding],
-      refused: vec!["IN-SH-CODE-009".into()],
+      census: vec![CensusRow {
+        rule_id: "IN-SH-CODE-001".into(),
+        arming: Arming::Armed,
+        disposition: Disposition::ToolAbsent("shellcheck".into()),
+        by: "shellcheck".into(),
+      }],
       ..base
     };
     assert_eq!(both.exit_code(), 3);
