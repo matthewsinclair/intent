@@ -47,10 +47,7 @@
 
 mod common;
 
-use std::collections::BTreeMap;
-use std::path::Path;
-
-use common::{Fixture, facade_ctx, v2_estate, v2_thread};
+use common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::finding::Finding;
 use intentsvcs::legacy;
@@ -76,38 +73,6 @@ fn v2_wp_with_conflict(fx: &Fixture, id: &str) -> u32 {
     .position(|l| l.starts_with("<<<<<<< "))
     .expect("the fixture must contain a conflict marker");
   (at + 1) as u32
-}
-
-/// Every file under `root`, keyed by its path relative to `root`, with its
-/// bytes.
-///
-/// **Bytes and not an mtime or a count.** A count is unchanged by a rewrite; an
-/// mtime is unchanged by a write of identical content and changed by a read on
-/// some filesystems. This is also why the map is keyed rather than summed:
-/// a total that reconciles tells nobody WHICH file moved, and the assertion
-/// below wants to name it.
-fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
-  fn walk(dir: &Path, root: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-      return;
-    };
-    for entry in entries.flatten() {
-      let path = entry.path();
-      if path.is_dir() {
-        walk(&path, root, out);
-      } else if let Ok(bytes) = std::fs::read(&path) {
-        let rel = path
-          .strip_prefix(root)
-          .expect("under root")
-          .to_string_lossy()
-          .into_owned();
-        out.insert(rel, bytes);
-      }
-    }
-  }
-  let mut out = BTreeMap::new();
-  walk(root, root, &mut out);
-  out
 }
 
 /// The rendered `residue:` line for the first finding of `class`, or `None`.
@@ -197,18 +162,11 @@ fn upgrade_refuses_live_residue_and_writes_nothing_at_all() {
     "live residue must block the migration, not be migrated around"
   );
 
-  let after = tree(fx.root());
-  let moved: Vec<&String> = after
-    .iter()
-    .filter(|(path, bytes)| before.get(*path) != Some(*bytes))
-    .map(|(path, _)| path)
-    .chain(after.keys().filter(|p| !before.contains_key(*p)))
-    .collect();
-  let gone: Vec<&String> = before.keys().filter(|p| !after.contains_key(*p)).collect();
+  let moved = changed(&before, &tree(fx.root()));
 
   assert!(
-    moved.is_empty() && gone.is_empty(),
-    "a refused migration wrote to the estate -- changed/added {moved:?}, removed {gone:?}"
+    moved.is_empty(),
+    "a refused migration wrote to the estate -- {moved:?}"
   );
 }
 

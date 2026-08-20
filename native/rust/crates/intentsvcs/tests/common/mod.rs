@@ -8,6 +8,7 @@
 
 #![allow(dead_code)]
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use intentsvcs::model::{
@@ -580,4 +581,59 @@ pub fn v2_thread(fx: &Fixture, id: &str, status: &str) {
       "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
     ),
   );
+}
+
+/// Every file under `root`, keyed by its path relative to `root`, with its
+/// bytes.
+///
+/// **Bytes and not an mtime or a count.** A count is unchanged by a rewrite; an
+/// mtime is unchanged by a write of identical content and changed by a read on
+/// some filesystems. This is also why the map is keyed rather than summed: a
+/// total that reconciles tells nobody WHICH file moved, and the assertions that
+/// use it want to name it.
+///
+/// **It walks the filesystem and does not care what git tracks**, which is the
+/// whole point in an estate whose SSOT is gitignored: a diff-based check of
+/// *nothing was written* is structurally blind to exactly the artefact D01
+/// -reversed calls authoritative.
+pub fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
+  fn walk(dir: &Path, root: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+      return;
+    };
+    for entry in entries.flatten() {
+      let path = entry.path();
+      if path.is_dir() {
+        walk(&path, root, out);
+      } else if let Ok(bytes) = std::fs::read(&path) {
+        let rel = path
+          .strip_prefix(root)
+          .expect("under root")
+          .to_string_lossy()
+          .into_owned();
+        out.insert(rel, bytes);
+      }
+    }
+  }
+  let mut out = BTreeMap::new();
+  walk(root, root, &mut out);
+  out
+}
+
+/// Every path that differs between two [`tree`] snapshots -- changed, added, or
+/// removed -- sorted, so a failure message names files rather than printing two
+/// byte maps.
+pub fn changed(
+  before: &BTreeMap<String, Vec<u8>>,
+  after: &BTreeMap<String, Vec<u8>>,
+) -> Vec<String> {
+  let mut out: Vec<String> = before
+    .iter()
+    .filter(|(path, bytes)| after.get(*path) != Some(*bytes))
+    .map(|(path, _)| path.clone())
+    .chain(after.keys().filter(|p| !before.contains_key(*p)).cloned())
+    .collect();
+  out.sort();
+  out.dedup();
+  out
 }
