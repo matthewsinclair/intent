@@ -992,6 +992,7 @@ dependencies = [
  "ignore",
  "jsonschema",
  "proptest",
+ "regex",
  "rusqlite",
  "schemars",
  "serde",

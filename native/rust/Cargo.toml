@@ -28,6 +28,13 @@ clap = { version = "4", features = ["string"] }
 # no repository there are no ignore rules, so the corpus degrades to
 # everything-in-scope rather than to nothing.
 ignore = "0.4"
+# The headless critic executes a rule's admitted `Greppable proxy` pattern.
+# **ALREADY IN THE GRAPH VIA `ignore`, so this direct dependency adds no new
+# third-party code and no binary size** -- it makes an existing transitive
+# compile unit reachable rather than pulling one in. v2 runs every proxy
+# through `grep -nE` regardless of the line's own flags, so ERE is the target
+# semantics rather than a convenient approximation of it.
+regex = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"

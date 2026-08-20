@@ -156,6 +156,23 @@ pub const EXIT_ERROR: i32 = 1;
 /// this is the file someone reads when they add the third exit code.
 pub const EXIT_UNAVAILABLE: i32 = 2;
 
+/// A rule the project ARMED could not be enforced here.
+///
+/// **THE THIRD EXIT CODE THE NOTE ABOVE ANTICIPATED, AND IT BLOCKS WHERE 2
+/// FAILS OPEN.** `bin/intent_critic` uses it at `:334` and `:347`, and the
+/// gate template gives it a dedicated arm that sets `AGGREGATE`. The
+/// distinction is whose problem it is: 2 says the checker is broken, which is
+/// ours and must not stop anyone committing; 3 says the checker works and this
+/// project asked for a rule it cannot enforce, which has two ordinary remedies
+/// the developer owns -- install the tool, or disarm the rule.
+///
+/// **`surface/dispatch-table.json` did not mention this code at all until
+/// 2026-08-20** -- INV-04 named 0, 1 and 2 and titled itself accordingly while
+/// the shipped surface had used 3 for the whole of v2. Corrected by ic at
+/// `dc8ee802` on the measurement; recorded here because this is the file
+/// someone reads when they add the FOURTH.
+pub const EXIT_REFUSED: i32 = 3;
+
 /// How a command failed, and therefore which code reports it.
 ///
 /// The error channel was a bare `String`, which answers "what do I print" and
@@ -178,6 +195,14 @@ pub enum Failure {
   /// unavailable tool, which consumers written against v2 treat as fail-open
   /// rather than as a negative verdict about their own work.
   Unavailable(String),
+  /// The command ran, and a rule this project armed could not be enforced.
+  /// Exit 3 -- the gate BLOCKS on this, unlike 2. See [`EXIT_REFUSED`].
+  ///
+  /// **NOT A KIND OF `Error`, THOUGH BOTH BLOCK.** `Error` says the answer is
+  /// no; this says there was no answer for part of what was asked. Collapsing
+  /// them would hand the operator "fix your code" when the honest message is
+  /// "we could not check some of it".
+  Refused(String),
 }
 
 impl Failure {
@@ -185,6 +210,7 @@ impl Failure {
     match self {
       Failure::Error(_) | Failure::Verdict => EXIT_ERROR,
       Failure::Unavailable(_) => EXIT_UNAVAILABLE,
+      Failure::Refused(_) => EXIT_REFUSED,
     }
   }
 
@@ -192,7 +218,7 @@ impl Failure {
   /// it is the verdict case, which has already written to stdout.
   pub fn message(&self) -> Option<&str> {
     match self {
-      Failure::Error(m) | Failure::Unavailable(m) => Some(m),
+      Failure::Error(m) | Failure::Unavailable(m) | Failure::Refused(m) => Some(m),
       Failure::Verdict => None,
     }
   }

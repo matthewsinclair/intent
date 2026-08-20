@@ -47,6 +47,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
     Some(("agents", m)) => agents(m),
+    Some(("critic", m)) => critic(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -2942,4 +2943,319 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
     Some((verb, _)) => unwired("agents", verb),
     None => unwired("agents", ""),
   }
+}
+
+/// `intent critic <lang>` -- the headless rule critic, and the pre-commit gate.
+///
+/// **THE EXIT CODES ARE THE CONTRACT AND THEY ARE NOT clap's.** 0 clean, 1
+/// findings, 2 usage, 3 refused. `Failure::Error` would give findings the right
+/// code by accident; it is used deliberately here so the mapping is stated once
+/// in `spine.rs` and read once here.
+///
+/// **A USAGE ERROR IN THIS COMMAND EXITS 2, NOT 1, AND IT IS THE ONE PLACE IN
+/// THE SURFACE THAT DOES.** INV-02 puts usage errors at 1 everywhere else. ic
+/// ruled the exception real (2026-08-20): a critic that cannot parse its own
+/// invocation IS the gate's own breakage, and `pre-commit.sh` fails open on 2
+/// precisely so a broken checker cannot stop anyone committing. Giving a usage
+/// error the blocking code would make a typo in the hook's own command line
+/// block every commit in the repository.
+fn critic(m: &ArgMatches) -> Result<(), Failure> {
+  // `--languages` is a pure read of the roster and answers before anything else,
+  // including before a language is required.
+  if m.get_flag("languages") {
+    for l in ["elixir", "rust", "swift", "lua", "shell"] {
+      println!("{l}");
+    }
+    return Ok(());
+  }
+
+  let lang = m
+    .get_one::<String>("lang")
+    .ok_or_else(|| Failure::Unavailable("error: a language is required".into()))?;
+
+  // **`author` AND `content` ARE A CLEAN NO-OP, NOT AN ERROR.** Prose critique
+  // is on-demand via the `critic-prose` subagent; the gate dispatches every
+  // declared language and must not print a spurious refusal for the two that
+  // legitimately have no headless runner (issue 0003 -- the gate carries no
+  // language knowledge of its own and cannot drift from this registry).
+  if lang == "author" || lang == "content" {
+    return Ok(());
+  }
+
+  // **AN UNKNOWN LANGUAGE IS A USAGE ERROR, NOT AN EMPTY RUN, AND THIS WAS A
+  // REAL DEFECT CAUGHT BY DRIVING IT RATHER THAN READING IT.** Without this
+  // check the run proceeds, finds no rules whose `language` matches, and
+  // reports a clean census at exit 0. **In the gate that means a typo in a
+  // project's declared language list silently disables checking for it** --
+  // the failure reads as a pass, which is the one shape this command exists to
+  // prevent. v2 refuses with exit 2 and the same roster.
+  const KNOWN: [&str; 5] = ["elixir", "rust", "swift", "lua", "shell"];
+  if !KNOWN.contains(&lang.as_str()) {
+    return Err(Failure::Unavailable(format!(
+      "error: first argument must be a language ({}) or a prose discipline (author content)",
+      KNOWN.join(" ")
+    )));
+  }
+
+  let severity_min = m
+    .get_one::<String>("severity-min")
+    .map(|s| s.as_str())
+    .unwrap_or("warning");
+  let severity_min = intentsvcs::critic::Severity::parse(severity_min).ok_or_else(|| {
+    Failure::Unavailable(format!(
+      "error: `{severity_min}` is not a severity\n  remedy: one of critical, warning, recommendation, style"
+    ))
+  })?;
+
+  let mut files: Vec<std::path::PathBuf> = m
+    .get_many::<String>("files")
+    .map(|v| v.map(std::path::PathBuf::from).collect())
+    .unwrap_or_default();
+
+  if m.get_flag("staged") {
+    files.extend(staged_files()?);
+  }
+
+  // **THE PROJECT IS OPTIONAL AND THAT IS DELIBERATE.** v2 runs this command
+  // outside a project (`PROJECT_ROOT` may be empty) and only consults
+  // `.intent_critic.yml` when there is one. Requiring a project would make the
+  // critic unusable in exactly the place a fresh checkout needs it.
+  let disabled = std::env::current_dir()
+    .ok()
+    .and_then(|cwd| intentsvcs::project::Project::discover(&cwd).ok())
+    .and_then(|p| std::fs::read_to_string(p.root().join(".intent_critic.yml")).ok())
+    .map(|t| intentsvcs::critic::parse_disabled(&t))
+    .unwrap_or_default();
+
+  let lib = library()?;
+  let report = intentsvcs::critic::run(&lib, lang, &files, severity_min, &disabled)
+    .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
+
+  let json = m.get_one::<String>("format").map(|f| f == "json").unwrap_or(false);
+  if json {
+    render_critic_json(&report);
+  } else {
+    render_critic_text(&report, files.len(), severity_min.as_str());
+  }
+
+  // **REFUSAL OUTRANKS FINDINGS, AND BOTH BLOCK.** See `Report::exit_code`.
+  match report.exit_code() {
+    3 => Err(Failure::Refused(format!(
+      "critic: {} -- REFUSED: {} rule(s) armed by this project could not be enforced here.\n  remedy: install the missing tool, or disarm that rule in .intent_critic.yml",
+      report.lang,
+      report.refused.len()
+    ))),
+    1 => Err(Failure::Verdict),
+    _ => Ok(()),
+  }
+}
+
+/// The staged set, as the gate sees it.
+///
+/// `--diff-filter=ACM` deliberately: a DELETED file cannot be critiqued and a
+/// runner that tried would report "cannot read" for an ordinary, correct commit.
+fn staged_files() -> Result<Vec<std::path::PathBuf>, Failure> {
+  let out = std::process::Command::new("git")
+    .args(["diff", "--cached", "--name-only", "--diff-filter=ACM"])
+    .output()
+    .map_err(|e| Failure::Unavailable(format!("error: cannot run git: {e}")))?;
+  if !out.status.success() {
+    return Err(Failure::Unavailable(
+      "error: `git diff --cached` failed\n  remedy: run this inside a git repository".into(),
+    ));
+  }
+  Ok(
+    String::from_utf8_lossy(&out.stdout)
+      .lines()
+      .filter(|l| !l.trim().is_empty())
+      .map(std::path::PathBuf::from)
+      .collect(),
+  )
+}
+
+/// The human face: findings first, then the census.
+///
+/// **THE CENSUS IS PRINTED ON EVERY RUN INCLUDING A CLEAN ONE, AND THAT IS THE
+/// WHOLE POINT OF IT.** A runner that prints nothing when it finds nothing
+/// reports a green over questions it never put -- which is this command's
+/// founding defect. The headline leads with what was ASKED rather than what was
+/// ARMED, because arming says something COULD answer and only asking says this
+/// invocation DID.
+fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severity_min: &str) {
+  use intentsvcs::critic::{Arming, Disposition, Severity};
+
+  // **THE CENSUS COMES FIRST AND THE FINDINGS FOLLOW IT.** That is v2's order
+  // and it is the right way round: what could be asked frames what was found,
+  // and a reader who sees findings first has already formed a verdict before
+  // learning the run only covered two rules of six.
+  println!(
+    "critic: {} -- {} of {} rule(s) ASKED of this run; {} armed in total. A clean result covers what was ASKED and says nothing about the rest.",
+    report.lang,
+    report.ran(),
+    report.total(),
+    report.armed()
+  );
+
+  let declared = report.census.iter().filter(|r| r.arming == Arming::Declared).count();
+  // **THE ID LISTS ARE SORTED, AND THIS IS A DELIBERATE DEVIATION FROM v2
+  // RATHER THAN AN ACCIDENT OF PORTING.** v2 emits them in filesystem-walk
+  // order. Measured 2026-08-20: both binaries are stable run-to-run and the
+  // SETS are identical, so nothing is lost -- but walk order is meaningless to
+  // a reader, undiffable between two runs on different machines, and it makes
+  // "did this list change" a question nobody can answer by eye. Sorted, the
+  // line is a set the reader can scan and a diff can compare.
+  let mut undeclared: Vec<&str> = report
+    .census
+    .iter()
+    .filter(|r| r.arming == Arming::Undeclared)
+    .map(|r| r.rule_id.as_str())
+    .collect();
+  undeclared.sort_unstable();
+  let mut unrunnable: Vec<&str> = report
+    .census
+    .iter()
+    .filter(|r| r.arming == Arming::Unrunnable)
+    .map(|r| r.rule_id.as_str())
+    .collect();
+  unrunnable.sort_unstable();
+  let quiet = declared + undeclared.len() + unrunnable.len();
+
+  if quiet > 0 {
+    println!(
+      "critic: {} -- {} rule(s) could not be armed at all: {} declared unanswerable, {} undeclared, {} with a proxy this runner must refuse.",
+      report.lang,
+      quiet,
+      declared,
+      undeclared.len(),
+      unrunnable.len()
+    );
+  }
+  if !undeclared.is_empty() {
+    println!(
+      "critic: {} -- UNDECLARED, nobody has recorded whether these are mechanically checkable: {}",
+      report.lang,
+      undeclared.join(" ")
+    );
+  }
+  if !unrunnable.is_empty() {
+    println!(
+      "critic: {} -- UNRUNNABLE proxy, present but outside the runner contract: {}",
+      report.lang,
+      unrunnable.join(" ")
+    );
+  }
+
+  let mut ooc: Vec<String> = report
+    .census
+    .iter()
+    .filter_map(|r| match &r.disposition {
+      Disposition::OutOfContext(tool) => Some(format!("{}({})", r.rule_id, tool)),
+      _ => None,
+    })
+    .collect();
+  ooc.sort_unstable();
+  if !ooc.is_empty() {
+    println!(
+      "critic: {} -- ARMED but NOT RUN HERE, the tool does not belong in this context (a whole-workspace analyser is not a per-file gate): {}",
+      report.lang,
+      ooc.join(" ")
+    );
+  }
+
+  let mut absent: Vec<String> = report
+    .census
+    .iter()
+    .filter_map(|r| match &r.disposition {
+      Disposition::ToolAbsent(tool) => Some(format!("{}({})", r.rule_id, tool)),
+      _ => None,
+    })
+    .collect();
+  absent.sort_unstable();
+  if !absent.is_empty() {
+    println!(
+      "critic: {} -- ARMED but NOT RUN HERE, the tool is not on this machine: {}",
+      report.lang,
+      absent.join(" ")
+    );
+  }
+
+  // **A CLEAN RUN SAYS WHAT IT COVERED, INCLUDING THE FILE COUNT.** `ok: no
+  // findings` on its own is the sentence the census exists to deny -- it reads
+  // as "your code is fine" when it may mean "nothing was examined".
+  if report.findings.is_empty() {
+    println!(
+      "ok: no {} findings at severity >= {} across {} file(s)",
+      report.lang, severity_min, files
+    );
+    return;
+  }
+
+  for sev in [
+    Severity::Critical,
+    Severity::Warning,
+    Severity::Recommendation,
+    Severity::Style,
+  ] {
+    let group: Vec<_> = report
+      .findings
+      .iter()
+      .filter(|f| f.severity == sev)
+      .collect();
+    if group.is_empty() {
+      continue;
+    }
+    let upper = sev.as_str().to_uppercase();
+    println!();
+    println!("== {} ({}) ==", upper, group.len());
+    for f in group {
+      println!("[{}] {} at {}:{}", upper, f.rule_id, f.path.display(), f.line_no);
+      println!("  > {}", f.line);
+    }
+  }
+}
+
+/// The machine face.
+///
+/// **STDOUT STAYS ONE PARSEABLE DOCUMENT AND THE CENSUS GOES WITH IT, NOT TO
+/// STDERR.** v2 pushes the census to stderr under `--format json` to keep
+/// stdout clean; that made the honesty half unreadable to exactly the consumer
+/// most likely to act on it automatically. Carrying `census` as a field costs
+/// the document nothing and keeps "what was asked" attached to "what was found"
+/// -- which is the invariant the text face already holds.
+fn render_critic_json(report: &intentsvcs::critic::Report) {
+  let findings: Vec<serde_json::Value> = report
+    .findings
+    .iter()
+    .map(|f| {
+      serde_json::json!({
+        "rule": f.rule_id,
+        "severity": f.severity.as_str(),
+        "file": f.path.display().to_string(),
+        "line": f.line_no,
+        "text": f.line,
+      })
+    })
+    .collect();
+  let census: Vec<serde_json::Value> = report
+    .census
+    .iter()
+    .map(|r| {
+      serde_json::json!({
+        "rule": r.rule_id,
+        "arming": r.arming.as_str(),
+        "disposition": r.disposition.as_str(),
+        "by": r.by,
+      })
+    })
+    .collect();
+  let doc = serde_json::json!({
+    "language": report.lang,
+    "asked": report.ran(),
+    "armed": report.armed(),
+    "total": report.total(),
+    "findings": findings,
+    "census": census,
+    "refused": report.refused,
+  });
+  println!("{}", serde_json::to_string_pretty(&doc).unwrap_or_default());
 }
