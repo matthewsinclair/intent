@@ -2,11 +2,11 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: f396ca31-ec6f-459e-9b7c-40e87aa93efb
-heartbeat_at: 2026-08-19 21:41Z
-status: paused
-focus: "**THE ARMING BLOCK IS GONE -- the estate dehydrated at `e7f00e65`, 423 files out, block reads 0 unmet. TOMORROW IS THE HOSTING GAP, ruled by hv.** Measured on the built binary: **32 top-level families, 16 dispatch, 14 answer 2**, and `intent claude` implements 2 of 8. Against that, this repo's own machinery makes **230 `intent claude <verb>` calls of which 9 are `hook`** -- 125 were `claude rules`, which landed tonight. **Everything that manages steel threads is done; everything that manages Intent itself is not.**"
-claims: [ST0056/11, ST0057/04, ST0057/06]
+session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
+heartbeat_at: 2026-08-20 09:18Z
+status: active
+focus: "**`intent critic` LANDED at `5043d0c4` -- 7 files, 1509 insertions, at parity with v2 and the precondition for v3 on PATH.** Exit codes built to the CODE and the GATE, not the table, which asserted the opposite in three places and would have shipped a silent gate bypass. **NEXT: hooks holes 1+2 (one stale install file produces both, and hole 1 -- the missing `3)` arm -- has been live under v2 since 2026-08-14), then AC-06.3, then `init`.**"
+claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 ---
 
 # DevX Claude (dc)
@@ -28,18 +28,24 @@ claims: [ST0056/11, ST0057/04, ST0057/06]
 
 ## DOING
 
-Nothing in flight. Everything of mine is committed; `render.rs` is clear for ic.
+**Nothing in flight. `critic` is committed at `5043d0c4` and the tree is clean of my work.**
+
+Held for the next session, in order:
+
+1. **HOOKS, HOLES 1 + 2 -- the structural shim (matts ruled: structural, not interim).** The installed `pre-commit.intent` carries no roster and no guard name; roster AND dispatch resolve live from `INTENT_HOME`; `cmd/precommit` loses its duplicate `G_BOARD` call in the same change. **One five-day-stale install file produces both holes**, and hole 1 -- no `3)` arm, so v2's REFUSED has failed open here since 2026-08-14 -- needs no v3 at all. vc has landed hole 3 and a test asserting `REFUSED -> BLOCKS`, so the arm has cover waiting for it.
+2. **AC-06.3** -- the third `Projection` variant. Canon reword is already in (vc, `07d386cc`); the row's state is mine to move.
+3. **AC-06.4 / `intent init`** -- 23 call sites, `AT-06.4` to-write.
+4. **CLI-level tests for `critic`** -- the module has 18; the command surface has none.
+5. **vc's three-line `render.rs` change** for `doctor`'s `unsynced_events` -- option (1), land it next time I am in that file.
 
 ## TODO
 
-1. **THE HOSTING GAP IS TOMORROW'S JOB (hv).** Fourteen families answer 2: `version` `config` `init` `bootstrap` `agents` `critic` `lang` `learn` `modules` `plugin` `ext` `fileindex` `daemon` `mcp`. **`intent claude` implements `hook` and `rules`; `skills` (27 calls), `subagents` (29), `upgrade` (19), `ws` (12), `start` (5), `prime` (4) do not.** Highest leverage after `rules`: **`critic` (36 calls, and it IS the pre-commit gate)**, then `agents` (40).
-2. **THE GATE WORKS TODAY ONLY BECAUSE IT RUNS v2, AND THIS IS THE TRAP IN THE WHOLE HOSTING PLAN.** v2's version guard is scoped to WRITES, so `intent critic shell --files ...` runs clean at rc=0 on this v3 tree while `intent st list` refuses at 2. **The day v3 goes on PATH, `intent critic` answers 2 -- the gate own fail-open code -- in all five declared languages, here and in the other 15 projects reached through one symlink. Build `critic` BEFORE anything touches PATH.**
-3. **TWO RULINGS HELD FOR hv, both deliberately not taken:**
-   - **Ext rule packs.** v2 serves `~/.intent/ext`; v3 does not. I wrote the resolver, `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable` refused it (`ALLOWED` is `["COLUMNS"]`; mine read three), and **I deleted the module rather than allowlist myself through** -- that test says in its own failure message that a further read needs an hv ruling and not a quiet addition, because every machine here has the variable set so nothing else would fail. The seam is a parameter: ext support is one argument.
-   - **`claude rules validate` / `index`** stay at 2. The row is `pending-hv` on whether `index` retires with the on-disk rules root. `list`/`show` carry no part of that question, which is exactly why they shipped.
-4. **AC-06.3 AND AC-06.4 ARE STILL OWED AS CAPABILITY, NO LONGER GATING.** AC-06.3 is the third `Projection` variant -- `md` stops being REFUSED and stays non-authoritative, **the `because` clause survives verbatim and only `instead` goes.** AC-06.4 is `intent init`, which is item 1 work under a different name.
-5. **`issues dehydrate is in 0 buckets` UNDERSTATES BY FOUR, AND THE ROWS ARE MINE.** `st hydrate`, `st dehydrate` and `issues hydrate` are unbucketed too; the assert stops at the first. Adding all four trips the UNPROVEN ratchet at 36 against a cap of 32 -- **the roster correctly declining to absorb four rows that are ahead of their mechanism.** Left as found; ic owns the roster and is landing `st hydrate`.
-6. **Standing, unstarted:** `canon_commit_check.sh --staged` admission (built, approved, waits on my roster ruling -- cc condition is that I drive the planted-divergence control myself first); `output-contracts.md`; `doctor` v3 mirror (XS).
+1. **THE HOSTING SWEEP CONTINUES: WP-07 IS MINE AND WIP.** After `critic`: `agents` (42 call sites, 4 rows), `lang` (44, 6 rows), then `claude skills` (23) / `subagents` (25) / `ws` (13) / `prime` (10). `upgrade` (29) and `start` (6) are **unmeasured**, excluded by name from my sweep because they write outside the sandbox -- not measured-green.
+2. **AT-11.6 and AT-11.7 are still `to-write` and both now have unplanted positive controls from today.** 11.7's is the fossil marker; 11.6's is that this tree took my uncommitted work into a peer's commit at `0a9a7341`.
+3. **THE ROSTER IS MINE AND IT HAS TWO OPEN ITEMS.** cc's `thread_view_skew_check.sh` awaits my admission (gated skew is 1 of 269; it would take it to 269). And `runner_roster_check.sh` joins on `$HERE/*_check.sh` with `$HERE` bound to ST0056's dir only, while claiming _every parity instrument_ -- **a universal claim with a single-directory reach.** cc's unplanted `canon_commit_check.sh` control (`1e2bc65e` ADDS 1 at rc=1, `aa4c3ac0` clean at rc=0) substantially meets my standing admission condition.
+4. **TWO RULINGS STILL HELD FOR hv:** ext rule packs (the shipped surface reads exactly one environment variable; the seam is a parameter) and whether `claude rules validate|index` retire with the on-disk rules root.
+5. **`issues dehydrate is in 0 buckets` UNDERSTATES BY FOUR** -- ic owns the roster; left as found.
+6. **Standing, unstarted:** `output-contracts.md`; `doctor` v3 mirror (XS).
 
 ## Watch-outs
 
@@ -55,17 +61,15 @@ Nothing in flight. Everything of mine is committed; `render.rs` is clear for ic.
 - **THIS TREE HAS FOUR WRITERS AND THE TOOLS ASSUME ONE.** `--only` separates FILES, not authors -- it failed in BOTH directions today: `924d556b` took ic work under my message, `b277013a` took my live MUTANT under cc message. **Never leave a mutation in a shared tree across anything slower than a moment; announce before, never explain after.**
 - **BUILD THE WHOLE WORKSPACE BEFORE EVERY COMMIT**, because what you check is the TREE you publish and not the EDIT you made. The `b277013a` break lived in the composition of two people paths and neither crate showed it alone.
 - **PRESENCE IDENTIFIES A FILE AND NEVER ITS AUTHOR.**
+- **`--only` IS NOT ENOUGH AND TODAY PROVED IT A THIRD TIME.** `0a9a7341` -- _"style: cargo fmt ... Mechanical only, no hand edits, no semantics"_ -- carries 21 files, twenty Rust and **the twenty-first my 42-line hand-written bats fix**, which `cargo fmt` cannot touch. Fifteen minutes between my edit and its capture. **A commit message that DENIES containing semantics is the worst carrier**, because it is the one nobody re-reads. `924d556b`, `b277013a`, now this.
 - **STANDING CONSTRAINTS.** Push `local` ONLY -- `upstream` frozen at `5765c5da` (hv). NEVER `git pull --rebase`; a peer `.git/index.lock` means WAIT. Never mutate a file in place while anything runs it. Timestamps READ FROM `date -u`; `git log` prints LOCAL time.
 - **ENVIRONMENT.** My shell is **zsh** -- an unquoted `$var` does NOT word-split, and a probe loop ignoring that records a plausible wrong answer for every row. `bin/**` is live on PATH through a symlink. The markdown formatter is a second writer.
 
 ## Decisions
 
-**Archived to `.history/20260819/decisions.md`. Kept: the ones that govern tomorrow.**
-
-- (2026-08-19) **EVERYTHING THAT MANAGES STEEL THREADS IS DONE; EVERYTHING THAT MANAGES INTENT ITSELF IS NOT.** That is the hosting gap in one line, and the split is WP boundaries rather than accident.
-- (2026-08-19) **A REPO-LOCAL HOIST AND A FLEET HOIST ARE DIFFERENT OPERATIONS** (ic). One symlink serves 16 projects, every one declaring v2. Repointing it is not hoisting this repo, it is starting a 16-project migration -- and only the first is a tonight-sized thing.
-- (2026-08-19) **WITHDRAW AS A PRECONDITION, BUILD AS CAPABILITY; THE WARRANT DECIDES, NOT THE CODE.** AC-06.4 is one build under two justifications and only one of them gates. **The question was never whether the work is wanted, it is whether a gate should hold on it.**
-- (2026-08-19) **A GATE MUST NOT BE A SECOND AUTHORITY OVER A DESTRUCTIVE ACT** (vc, sharper than my Highlander framing). `sync_uncommitted` asks _are there bytes nobody has synced_; the realiser gate asks _can the store reproduce these bytes_. **They disagree BY CONSTRUCTION rather than by drift**, so a second gate refuses work the real authority would allow. The warning earns its place on timing; safety stays where the deletion is.
-- (2026-08-19) **`intent organize` PREVIEWS BY DEFAULT AND `--apply` PERFORMS, ONE BODY TAKING A `Mode`** (ic, AC-05.1). **vc previewed every step before firing the 423-file dehydration and says the polarity is what made it safe to fire.**
-- (2026-08-19) **AN INFERENCE FROM SHAPE THAT READS A SPELLING IS FORBIDDEN; ONE THAT CALLS THE MODULE OWNING THE FACT IS NOT** (ic, on `address::promote`). The distinction generalises past that row, and it is the test to apply to any "we can just detect it" proposal.
-- (2026-08-19) **A ROW DECLARING A VERB THE MODEL CANNOT EXPRESS IS A ROW THAT LIES.** Proven against me tonight -- four hydrate rows the roster cannot bucket because their mechanism does not exist. **Table-leads-reader is right when the behaviour exists and only the surface lags; reversed, it ships a promise.**
+- (2026-08-20) **THE INSTALLED HOOK MUST CARRY NO ROSTER AND NO GUARD NAME -- SHAPE 3, SURVIVOR IS THE TEMPLATE DISPATCHER MADE LIVE** (my ruling on cc's escalation, verified at zero hops). Four guards exist; **`canon-ignore-guard.sh` and `append-only-guard.sh` have no call site on the path git takes.** `GUARDS_APPLY` is in exactly ONE file in the tree and in nothing under `.git/hooks/`. **The defect is that the roster is baked in AT INSTALL while the guard BODIES resolve live from `INTENT_HOME`** -- so reinstalling fixes this repo and re-opens the hole on the next template change, and giving the roster to `cmd/precommit` cannot be canonical because no consumer has a devbin. **`/in-whiteboard` already DOCUMENTS the live-roster property as true and it is false**, which is why nobody had reason to look. Interim to unblock cc's AC-01.5: reinstall from template AND drop `cmd/precommit`'s `G_BOARD` in the same change, or the header guard runs twice.
+- (2026-08-20) **A FRESH INSTALL IS FINE AT t=0 AND ACQUIRES THE DEFECT OVER TIME** -- the harder version to notice than a broken install, and the reason cc's "probably fine" needs a real measurement rather than an argument.
+- (2026-08-20) **`dirty-<sha>` IS UNINTERPRETABLE IN BOTH DIRECTIONS AND I ONLY ARGUED ONE. MINE, CAUGHT ON MYSELF.** I read `dirty-5b59a14c` against HEAD `07d386cc`, concluded the binary PREDATED vc's doctor fix, and said so. Wrong: `cargo build --release` then had nothing to do and `doctor` answered 0 -- someone had built from a dirty tree whose uncommitted content BECAME those three commits, so the artefact contained strictly MORE than the commit it named. **The marker overstates age as readily as it understates it, and nothing in it says which.** **THE CONSEQUENCE FOR AT-11.7: AN INSTRUMENT THAT READS THE MARKER AND STOPS IS NOT A CHECK.** It has to be behavioural, because the marker is ambiguous by construction on any dirty build -- and in a four-writer tree every build is a dirty build. cc's 06:00Z lesson, _the thing that would have killed it was running the binary once_, arriving on me ninety minutes later.
+- (2026-08-20) **THE PROVENANCE MARKER IDENTIFIES THE LAST TIME THE PACKAGE CHANGED -- NOT THE TREE THE ARTEFACT DESCRIBES, NOT THE MOMENT IT WAS PRODUCED.** `intentd/build.rs` declares no `rerun-if-changed` (deliberately), so cargo re-runs it only on a PACKAGE change, and that package has not changed since `a1a949cf`. Read out of the artefacts: `intent` names `483fbcfe`, `intentd` names `dirty-5819417b` from the previous evening. **cc's "one build, two markers" was one marker and one FOSSIL** -- same single property as never-relinks, two symptoms. **The bytes are stale AND the label that would say so is stale by the same amount, so the fossil is SELF-CONSISTENT and reads as a correct record of a tree that stopped existing yesterday.** That is AC-11.7's currency failure in its most convincing form, and it is the positive control for AT-11.7.
+- (2026-08-20) **`intentd` DEPENDS ON NOTHING, SO IT NEVER RELINKS -- EVER.** No `[dependencies]` section; only `a1a949cf` ever touched that manifest; 0 hits for `schema_version` in the artefact. **cc's skew finding is real and PERMANENT; the schema-refusal diagnosis under it describes a mechanism not in the binary.** Not a missed rebuild -- no rung will ever move it. Fresh unplanted positive control for AC-11.7, which is `to-write` and mine.
+- (2026-08-20) **A REFUSAL WHOSE REASON EXPIRED IS A LIVE DEFECT, NOT AN OWED CAPABILITY**, and the criterion that says _remove it in the same change that makes the premise false_ puts us on the wrong side of a window that closed at `e7f00e65`. The md remedy names a location that does not hold **54 of 57** threads. **AC-06.3 also cites `export.rs:192, :208` and both now land in the YAML entry** -- a criterion citing the wrong refusal, which is the name-your-revision class one level down, in a contract rather than a measurement.
