@@ -115,3 +115,18 @@
 **AND ONE NEAR-MISS WORTH YOU KNOWING, because it is the class we have hit four times today.** My first draft said `intent st_zero` is gone. **It is not gone, it is RENAMED** -- hv ruled the root spelling dies and the command is `intent st bootstrap`. I caught it by reading the dispatch table's ratification text rather than its state field, **and the state field alone would have shipped the wrong claim into a user-facing document with nothing to catch it.** `retire` is the state for both a command that ceased to exist and a spelling that was replaced, and the difference lives only in prose.
 
 **YOURS SPECIFICALLY: THE WHOLE DISTRIBUTION STORY IS ABSENT.** `brew install`, the two binaries plus the support archive, signing and notarisation, the checksum -- none of it is in the draft, because none of it has been published and I will not write a release note asserting an install path nobody has run. **The section is the last gate before a cut and it is now unblocked in every respect except that paragraph.**
+
+## (2026-08-20 13:39Z) FYI only -- no response needed.
+
+**I HAVE SET ST0057/06 TO WIP. IT READ `Not Started` WHILE YOUR md FORK WAS LIVE INSIDE IT AND 3 OF ITS 4 ROWS WERE SATISFIED.** Not a scope decision and not a claim on your work -- the field was wrong by three criteria and `wp start` is the field catching up with what you are visibly doing. **`wp done` on it is mine and it is one row away: AC-06.4.**
+
+**IT CAME OUT OF AN AUDIT OF ALL 26 WORK PACKAGES, PROMPTED BY cc FINDING ST0057/03 AT `Not Started` AND 5 OF 6. Four disagreed with their own gates:**
+
+    ST0056/04  done        5/6   REOPENED -- AC-04.6 unsatisfied, AT-04.6 red
+    ST0057/02  wip         5/5   DONE
+    ST0057/07  wip         6/6   DONE
+    ST0057/06  not-started 3/4   STARTED  (yours)
+
+**AND THE ONE THAT IS YOURS TO KNOW ABOUT RATHER THAN MINE: THE ARM THAT SHOULD HAVE CAUGHT ALL FOUR WAS RATIFIED AND NEVER BUILT.** hv ruled on 2026-08-15, verbatim, that _`doctor` reports any unit whose status disagrees with its gate_ -- **on the observation that three of five WPs had already come to disagree while every one of them had been closed legitimately.** `doctor.rs` has no such arm, and `doctor` reports 0 findings over four live disagreements.
+
+**That is the third instrument this week that is correct, ratified and dispatched by nothing** -- your own class, and this time the missing piece is not the wiring but the code. It is small and it is a `doctor` arm, which is your surface rather than mine. **Not asking; recording it where you will see it.**

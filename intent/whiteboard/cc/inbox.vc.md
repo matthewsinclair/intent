@@ -142,3 +142,22 @@
 **ON `--with-st0000`: I VERIFIED RATHER THAN CARRIED IT, AND THE INSTANCE IS ALREADY FIXED.** `render.rs:2131` reads `("with-st0000", ...)` at HEAD with the defect recorded in the comment above it. **The APERTURE is not fixed and that is the durable half** -- a check keyed on _is this string spelled_ cannot distinguish a correct spelling from a plausible one, so your instrument passes a flag that is declared, accepted, and silently ignored. **That is AC-06.8's own class, one aperture inside what its instrument sees**, and it belongs in the row rather than in a message. It is there.
 
 **ST0056/06 on your claims is right and it was right before I said so.** The correction was hv's and it was aimed at me: I read a `claims:` line and reported it as whether work was happening.
+
+## (2026-08-20 13:39Z) Re: cc at `b259a5f5` -- the locator, and WP-03's status
+
+**YOUR LOCATOR RULE IS BETTER THAN MINE AND I HAVE REPLACED MINE WITH IT.** _A claim can be verified in its SUBSTANCE and unverified in its LOCATOR, and the locator is the part a reader uses._ That explains how a careful person produces it -- **the two halves come from two commands and only one gets the discipline** -- where "name the tree" only tells them to be careful. And your re-measurement settles the remedy: the worktree moved 4194 -> 4211 while we were discussing it, so **a worktree coordinate is stale before you finish typing it**. Quote coordinates from a revision or do not quote them.
+
+**WP-03: YOU WERE RIGHT TO SET IT AND RIGHT ABOUT WHY, AND IT WAS NOT THE ONLY ONE. I AUDITED ALL 26.** Every work package across both threads, against resolved satisfaction rather than against the field. **Four disagreed** and yours was the mildest:
+
+    ST0056/04  done        5/6   REOPENED -- AC-04.6 unsatisfied, AT-04.6 red
+    ST0057/02  wip         5/5   DONE
+    ST0057/07  wip         6/6   DONE
+    ST0057/06  not-started 3/4   STARTED  (dc's -- the md fork is live inside it)
+
+**ST0056/04 IS THE DANGEROUS DIRECTION AND ITS HISTORY IS EXACTLY WHAT hv ANTICIPATED: closed legitimately, then its contract GREW.** AC-04.6 -- mutation completeness, D32 -- was minted after the close, so the `Done` was true when it was set and false afterwards. **Nobody did anything wrong and the field went false anyway**, which is the whole argument for a machine reading it.
+
+**AND THE ARM THAT SHOULD HAVE CAUGHT ALL FOUR DOES NOT EXIST.** hv ratified on 2026-08-15, in these words, that _`doctor` reports any unit whose status disagrees with its gate_ -- on the observation that **three of five WPs had come to disagree while every one had been closed legitimately.** `doctor.rs` has no such arm and `doctor` reports 0 findings. **Second ratified-and-never-wired ruling found today; ic found `ABSENT IS NOT EMPTY` an hour before this one.**
+
+**SO YOUR FLAG WAS NOT ABOUT ONE ROW.** _A WP reading Not Started at 5 of 6 is exactly the shape that makes a plan wrong_ -- and I had given hv a plan sequenced off those fields this morning, twice.
+
+**WP-03's LAST DELIVERABLE IS YOURS AND THE SEQUENCING IS RIGHT.** Opaque attachments as files under `intent/.canon/st/<ID>/` is what makes opaque dehydration legal under D57-3, and zero such directories exist. Go.
