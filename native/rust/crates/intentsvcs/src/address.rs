@@ -175,7 +175,14 @@ impl Entity {
   /// `None` is the honest answer for the rest, and each is `None` for its own
   /// reason: a COLLECTION is not a thing with files; a whiteboard node and its
   /// inbox are authored by hand and outside the manifest's vocabulary; an event
-  /// has no file form at all.
+  /// has no file form at all; and **an ISSUE lives only in canon and the store,
+  /// so it has no realised form for the manifest to name** (hv, 2026-08-20).
+  ///
+  /// **The issue arm used to answer `Some`, and that was the bug.** It handed
+  /// `Facade::hydrate` a sigil, which resolved the realisation home through
+  /// `issues_dir()` -- `intent/.canon/issues/`, CANON -- while the thread arm
+  /// resolved into the estate. `None` here is what makes the hydrate arm a
+  /// refusal at the door rather than a walk into the wrong layer.
   pub fn artefact(&self) -> Option<(crate::intentfiles::Sigil, &str)> {
     use crate::intentfiles::Sigil;
     match self {
@@ -185,8 +192,11 @@ impl Entity {
       | Self::Ac { thread, .. }
       | Self::At { thread, .. }
       | Self::Attachment { thread, .. } => Some((Sigil::SteelThread, thread)),
-      Self::Issue { id } => Some((Sigil::Issue, id)),
-      Self::Threads | Self::Node { .. } | Self::NodeInbox { .. } | Self::Event { .. } => None,
+      Self::Issue { .. }
+      | Self::Threads
+      | Self::Node { .. }
+      | Self::NodeInbox { .. }
+      | Self::Event { .. } => None,
     }
   }
 }

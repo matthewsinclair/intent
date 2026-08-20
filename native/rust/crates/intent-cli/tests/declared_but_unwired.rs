@@ -1,7 +1,8 @@
 //! **THE VERBS THIS BUILD DECLARES AND DOES NOT IMPLEMENT, DRIVEN.**
 //!
-//! `write_moves_only_what_changed.rs` files three verbs under
-//! `DECLARED_BUT_UNWIRED` -- a bucket that says their writes are not *unproven*
+//! `write_moves_only_what_changed.rs` files one verb under
+//! `DECLARED_BUT_UNWIRED` (it was three until hv retired the two `issues`
+//! rows on 2026-08-20) -- a bucket that says their writes are not *unproven*
 //! but provably **empty**, because the binary refuses them. That claim needs
 //! something behind it, and this is it.
 //!
@@ -41,7 +42,27 @@ const PHRASE: &str = "is a known command that is not implemented yet";
 /// **Kept in the same order and spelling as the roster's list**, because the
 /// two are one claim in two crates and a reader comparing them should not have
 /// to sort.
-const UNWIRED: &[&str] = &["st dehydrate", "issues hydrate", "issues dehydrate"];
+///
+/// **It was three until 2026-08-20 and it is one, because the other two left
+/// the SURFACE rather than getting built.** hv ruled issues canon-and-store
+/// only, so `issues hydrate` and `issues dehydrate` are retired rows: no longer
+/// declared, so no longer declared-but-unwired. They now exit 1 as unrecognised
+/// subcommands, which is what reddened this file and forced the removal.
+///
+/// **At one member, `every_declared_but_unwired_verb_refuses_at_two`'s "seeing
+/// that it is all three rather than one" reasoning no longer applies** -- with
+/// a single member there is nothing to distinguish a shared-path regression
+/// from a single implementation. That is a real loss of resolution and it is
+/// stated rather than left for a reader to discover. The other half of the
+/// property survives intact: the day `st dehydrate` is built, this reds.
+///
+/// **AN EMPTY ROSTER IS REFUSED BELOW RATHER THAN NOTED HERE.** Zero members
+/// would make `every_declared_but_unwired_verb_refuses_at_two` pass vacuously
+/// -- zero failures out of zero verbs -- which is exactly the shape
+/// `exit_codes.rs`'s header records shipping as issue 0038. Going from three
+/// members to one is what made that reachable, so the guard goes in at the same
+/// commit rather than as a comment asking a future reader to remember.
+const UNWIRED: &[&str] = &["st dehydrate"];
 
 fn bin() -> &'static Path {
   Path::new(env!("CARGO_BIN_EXE_intent"))
@@ -80,19 +101,42 @@ fn run(verb: &str, id: &str) -> (Option<i32>, String) {
 
 /// **THE CRITERION: each one refuses, at 2, by name.**
 ///
-/// Every failure is collected before asserting. Three verbs share one refusal
-/// path, so if it breaks they all break -- and seeing that it is all three
-/// rather than one is the difference between "this verb got implemented" and
-/// "the unwired arm regressed".
+/// Every failure is collected rather than asserted in the loop. **The reason
+/// given for that was "three verbs share one refusal path, so seeing it is all
+/// three rather than one distinguishes a verb getting implemented from the
+/// unwired arm regressing" -- and at one member that reason is gone**, said
+/// plainly rather than left standing as a claim the roster no longer supports.
+///
+/// Collecting is kept anyway, on the weaker ground that it costs nothing and
+/// restores the distinction the moment a second verb joins. **A rationale that
+/// has expired is not the same as a practice that has**, and quietly leaving
+/// the old sentence in place is how a file comes to argue for itself from a
+/// fact that stopped being true.
 #[test]
 fn every_declared_but_unwired_verb_refuses_at_two() {
+  // **THE VACUITY GUARD, AND IT IS THE FIRST LINE FOR A REASON.** Everything
+  // below is "for each member, assert it refuses"; with no members that is a
+  // green over nothing, and the roster shrank from three to one on 2026-08-20.
+  // When it reaches zero the answer is to DELETE this file -- there would be no
+  // declared-but-unimplemented verb for it to be about -- and this says so
+  // rather than passing quietly.
+  assert!(
+    !UNWIRED.is_empty(),
+    "the roster is empty, so every assertion below iterates nothing and passes. If the surface \
+     genuinely has no declared-but-unwired verb left, DELETE this file and the \
+     DECLARED_BUT_UNWIRED bucket in write_moves_only_what_changed.rs -- do not leave a green \
+     standing over an empty list"
+  );
+
   let mut failures: Vec<String> = Vec::new();
 
   for verb in UNWIRED {
     // An id of the right SHAPE for the family, so nothing can pass because the
-    // argument was malformed: `st` takes a thread id, `issues` an issue id. A
-    // usage error is exit 1, and it would mask exactly the transition this file
-    // exists to catch.
+    // argument was malformed. A usage error is exit 1, and it would mask
+    // exactly the transition this file exists to catch. **The `issues` branch
+    // is kept though the roster no longer has an `issues` member**: the shape
+    // rule is per-family and outlives any one member, and deleting it would
+    // make adding one back a silent exit-1.
     let id = if verb.starts_with("st ") {
       "ST0056"
     } else {

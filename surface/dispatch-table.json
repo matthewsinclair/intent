@@ -2964,10 +2964,12 @@
           "basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.",
           "owner_wp": "ST0057 WP-02",
           "target": {
-            "state": "new-surface"
+            "state": "retire",
+            "ratification": "hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files -- a success message over a zero, plus a durable claim that a file exists which cannot.",
+            "note": "THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Two arms of one match addressed two different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it."
           },
-          "disposition": "new-surface",
-          "exposed_on_mcp": true,
+          "disposition": "retire",
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "recoverability": "idempotent",
           "note": "**PAIRED WITH `dehydrate` AND SHIPPING AHEAD OF IT, DELIBERATELY (ic + dc, 2026-08-19).** `hydrate` is wired to a mechanism that exists -- `Facade::hydrate` takes an `Address` and `Entity::artefact()` already refuses the forms that have no file. Declaring both together would put a verb into `--help`, the agent guide and the MCP tool list ahead of the code that honours it, which is the table-leads-the-reader ordering used in the wrong direction: for `--apply` the behaviour existed and only the surface lagged."
@@ -2987,10 +2989,12 @@
           "basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.",
           "owner_wp": "ST0057 WP-02",
           "target": {
-            "state": "new-surface"
+            "state": "retire",
+            "ratification": "hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files -- a success message over a zero, plus a durable claim that a file exists which cannot.",
+            "note": "THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Two arms of one match addressed two different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it."
           },
-          "disposition": "new-surface",
-          "exposed_on_mcp": true,
+          "disposition": "retire",
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
           "note": "**THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one."
@@ -7128,7 +7132,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 25,
+      "n": 23,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7146,7 +7150,7 @@
     {
       "disposition": "retire",
       "target_state": "retire",
-      "n": 5,
+      "n": 7,
       "gloss": "The command does not ship. The second pair where the fields MUST agree, and the one with teeth: `Entry::is_shipped()` reads both and fails OPEN, so a single hand-edit to either field alone would ship a retired command."
     },
     {
@@ -7476,8 +7480,6 @@
       "issues show",
       "issues close",
       "issues open",
-      "issues hydrate",
-      "issues dehydrate",
       "todo",
       "todo list",
       "todo update",
@@ -7543,6 +7545,8 @@
     ],
     "retired": [
       "st organize",
+      "issues hydrate",
+      "issues dehydrate",
       "organize",
       "treeindex",
       "help",
@@ -7598,8 +7602,6 @@
       "issues show",
       "issues close",
       "issues open",
-      "issues hydrate",
-      "issues dehydrate",
       "todo",
       "todo list",
       "todo update",

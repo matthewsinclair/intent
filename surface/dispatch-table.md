@@ -1197,8 +1197,8 @@ Track issues without the ceremony of a steel thread
 | `issues show`                     | <id>      | --json                              | Show one issue (optionally as JSON)                    | keep        |
 | `issues close`                    | <id>      | --                                  | Mark an issue done: OPEN -> CLOSED                     | keep        |
 | `issues open`                     | <id>      | --                                  | Reopen an issue: CLOSED -> OPEN                        | keep        |
-| `issues hydrate`                  | <id>      | --                                  | Add an issue to .intentfiles and write its files       | new-surface |
-| `issues dehydrate`                | <id>      | --                                  | Remove an issue from .intentfiles and delete its files | new-surface |
+| `issues hydrate`                  | <id>      | --                                  | Add an issue to .intentfiles and write its files       | retire      |
+| `issues dehydrate`                | <id>      | --                                  | Remove an issue from .intentfiles and delete its files | retire      |
 
 ### `issues`
 
@@ -1332,8 +1332,9 @@ Add an issue to .intentfiles and write its files
 - **Arguments:**
   - `id` (issue-id, arity `1`)
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
-- **Target:** `new-surface`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **Target:** `retire` -- ratified: hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files -- a success message over a zero, plus a durable claim that a file exists which cannot.
+- **Note:** THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Two arms of one match addressed two different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it.
+- **MCP:** not exposed -- **mutates**
 - **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
 - **owner wp:** ST0057 WP-02
 - **recoverability:** idempotent
@@ -1347,8 +1348,9 @@ Remove an issue from .intentfiles and delete its files
 - **Arguments:**
   - `id` (issue-id, arity `1`)
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
-- **Target:** `new-surface`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **Target:** `retire` -- ratified: hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files -- a success message over a zero, plus a durable claim that a file exists which cannot.
+- **Note:** THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Two arms of one match addressed two different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it.
+- **MCP:** not exposed -- **mutates**
 - **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
 - **owner wp:** ST0057 WP-02
 - **recoverability:** reversible

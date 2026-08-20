@@ -359,14 +359,17 @@ const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
     "st dehydrate",
     "declared_but_unwired.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built",
   ),
-  (
-    "issues hydrate",
-    "declared_but_unwired.rs -- `Facade::hydrate` would take it, and the arm is deliberately NOT wired: an issue has no realised form (no view renderer, and every `Project` issue accessor is CANON-side), so hydrating one pinned `ISSUE:0001` into `.intentfiles` and reported `ok` over 0 files. Escalated to hv.",
-  ),
-  (
-    "issues dehydrate",
-    "declared_but_unwired.rs -- neither the primitive nor a realised form for an issue to be dehydrated FROM",
-  ),
+  // **`issues hydrate` AND `issues dehydrate` LEFT THIS BUCKET BY LEAVING THE
+  // SURFACE** (hv, 2026-08-20): issues are canon-and-store only, both rows are
+  // retired in the dispatch table, so they are no longer shipped mutators and
+  // there is nothing here to excuse.
+  //
+  // **This is the bucket working, and it is worth saying which half worked.**
+  // The membership check fired on its own -- `bucketed but not a shipped
+  // mutator: ["issues hydrate", "issues dehydrate"]` -- so the stale rows
+  // announced themselves rather than sitting here as two excuses for commands
+  // that no longer exist. An authored list with no derived denominator has no
+  // way to notice that.
 ];
 
 /// Writes files OUTSIDE the thread estate, **with the path it writes named**.

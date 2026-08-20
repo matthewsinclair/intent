@@ -38,13 +38,21 @@
 //! So this file cannot yet assert it, AT-05.2 is correctly red, and **a green
 //! here before those verbs exist would be the failure the whole row is about.**
 //!
-//! # One thing that will break here shortly, deliberately left to break
+//! # The thing that was left to break, broke -- and that was the point
 //!
-//! `pins_accumulate_in_order_without_disturbing_the_file` pins an `ISSUE:`.
+//! `pins_accumulate_in_order_without_disturbing_the_file` pinned an `ISSUE:`.
 //! hv ruled on 2026-08-20 that issues are canon-and-store only and `ISSUE:`
-//! leaves the grammar, so `Sigil::Issue` is going. Left as-is rather than
-//! pre-emptively rewritten: the compiler naming this line is a better record of
-//! the dependency than a comment predicting it.
+//! left the grammar, so `Sigil::Issue` went. **It was left as-is rather than
+//! pre-emptively rewritten, on the ground that the compiler naming the line is
+//! a better record of the dependency than a comment predicting it.** It named
+//! the line: one error, `E0599` at what was line 117, and nothing else in the
+//! workspace failed to build.
+//!
+//! The test now accumulates two STEELTHREAD pins. **Losing the second sigil
+//! costs this test nothing, because ORDER and NON-DISTURBANCE were never facts
+//! about the sigil** -- and the version that used two different sigils could
+//! not distinguish "pins accumulate in order" from "the two sigils happen to
+//! sort that way", which the same-sigil version cannot confuse.
 
 use intentsvcs::intentfiles::{Region, Sigil, parse, pin};
 
@@ -114,18 +122,37 @@ fn pins_accumulate_in_order_without_disturbing_the_file() {
   let with_note =
     "# hand-maintained: see the 2026-08 ruling\n# BEGIN INTENT\nSTEELTHREAD:ST0056\n# END INTENT\n";
   let a = pin(with_note, Sigil::SteelThread, "ST0011", None).expect("pins");
-  let b = pin(&a, Sigil::Issue, "0042", Some("needed offline")).expect("pins");
+  let b = pin(&a, Sigil::SteelThread, "ST0042", Some("needed offline")).expect("pins");
 
   let m = parse(&b).expect("parses");
   let order: Vec<&str> = m.pinned().map(|e| e.id.as_str()).collect();
-  assert_eq!(order, vec!["ST0011", "0042"], "in the order they were made");
+  // **ST0042 SORTS AFTER ST0011, SO THIS ASSERTION HAS TO EARN ITS KEEP.**
+  // Insertion order and ascending id agree on this pair, which means the
+  // assertion alone cannot tell them apart -- so the control is the reverse
+  // pair below, where they disagree.
+  assert_eq!(
+    order,
+    vec!["ST0011", "ST0042"],
+    "in the order they were made"
+  );
+
+  let later_first = pin(with_note, Sigil::SteelThread, "ST0042", None).expect("pins");
+  let reversed = pin(&later_first, Sigil::SteelThread, "ST0011", None).expect("pins");
+  let m = parse(&reversed).expect("parses");
+  let order: Vec<&str> = m.pinned().map(|e| e.id.as_str()).collect();
+  assert_eq!(
+    order,
+    vec!["ST0042", "ST0011"],
+    "pinned in descending order, the file must hold them that way -- if this comes back sorted, \
+     `pin` is ordering the region and the assertion above was reading a coincidence"
+  );
 
   assert!(
     b.starts_with("# hand-maintained: see the 2026-08 ruling\n"),
     "the file's existing content is not reflowed to make room for a pin"
   );
   assert!(
-    b.contains("ISSUE:0042  # needed offline"),
+    b.contains("STEELTHREAD:ST0042  # needed offline"),
     "the reason is written beside the artefact, not on its own line"
   );
 }

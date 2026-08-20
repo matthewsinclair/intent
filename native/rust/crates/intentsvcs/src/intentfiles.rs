@@ -55,13 +55,39 @@ pub const END_MARKER: &str = "# END INTENT";
 
 /// What kind of artefact a manifest line names.
 ///
-/// Exactly two, closed. A third sigil is a model change and must be one --
-/// an open sigil space is the second enumeration AC-02.5 forbids, arriving
-/// through the vocabulary instead of through the grammar.
+/// **Exactly ONE as of 2026-08-20, closed, and still an enum.** A second sigil
+/// is a model change and must be one -- an open sigil space is the second
+/// enumeration AC-02.5 forbids, arriving through the vocabulary instead of
+/// through the grammar.
+///
+/// # `ISSUE` was here and hv retired it
+///
+/// **Issues are CANON-AND-STORE ONLY: an issue has no realised form in the
+/// estate, so a manifest line naming one could never be about a file.** Every
+/// issue path in `project.rs` is canon-side (`canon_issue_rel`, `issues_dir`,
+/// `issue_json`) and `views.rs` renders no issue view, so `Facade::hydrate`'s
+/// issue arm resolved into `intent/.canon/issues/` while its thread arm
+/// resolved into the estate -- **two arms of one match addressing two different
+/// layers.** Driven once before it was wired, `intent issues hydrate 0001`
+/// wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files.
+///
+/// # Why this stays an enum at arity one, which is the part worth stating
+///
+/// A single-variant enum reads as ceremony, and deleting it in favour of a bare
+/// `&str` or an implicit STEELTHREAD would be the obvious tidy. **It would also
+/// be wrong, because the sigil space is about to GROW rather than disappear.**
+/// cc's partition of the 250-odd files under `intent/` that no store row owns
+/// finds 59 that are project content wanting an owner, and vc's reading of the
+/// same set is that *the blocker is ARITY, not policy* -- the ownable set is
+/// empty because nothing but a thread can be named here. That work lands as a
+/// new variant beside this one.
+///
+/// So the enum is the extension point, and collapsing it now would mean
+/// re-creating it. **Arity one is a fact about today's grammar, not evidence
+/// that the type has stopped earning its place.**
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Sigil {
   SteelThread,
-  Issue,
 }
 
 impl Sigil {
@@ -69,16 +95,19 @@ impl Sigil {
   pub fn as_str(&self) -> &'static str {
     match self {
       Sigil::SteelThread => "STEELTHREAD",
-      Sigil::Issue => "ISSUE",
     }
   }
 
   /// Parse a sigil, or `None`. Case-sensitive: a manifest is committed and
   /// diffed, so one spelling keeps the diff about the change.
+  ///
+  /// **`ISSUE` is not special-cased into a friendlier error.** A manifest
+  /// written against the old grammar hits `UnknownSigil` like any other typo,
+  /// and that is the right answer: the line does not name something this tool
+  /// can realise, so there is nothing to migrate it TO.
   pub fn parse(s: &str) -> Option<Self> {
     match s {
       "STEELTHREAD" => Some(Sigil::SteelThread),
-      "ISSUE" => Some(Sigil::Issue),
       _ => None,
     }
   }
@@ -87,10 +116,13 @@ impl Sigil {
   ///
   /// Delegated to `model`, which owns identity. A shape asserted here as well
   /// would be a second declaration of one fact.
+  ///
+  /// `model::is_issue_id` is untouched by the retirement and still has callers:
+  /// issues keep their identity in canon and the store. **What ended is the
+  /// manifest's claim on them, not the id.**
   pub fn accepts(&self, id: &str) -> bool {
     match self {
       Sigil::SteelThread => model::is_thread_id(id),
-      Sigil::Issue => model::is_issue_id(id),
     }
   }
 }
@@ -216,7 +248,7 @@ pub fn realised(path: &std::path::Path) -> Realised {
 /// operator to search a file for a line the parser already knew.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum IntentfilesError {
-  #[error("line {line}: `{found}` is not a known sigil -- expected STEELTHREAD or ISSUE")]
+  #[error("line {line}: `{found}` is not a known sigil -- expected STEELTHREAD")]
   UnknownSigil { line: usize, found: String },
   #[error("line {line}: `{line_text}` is not `<SIGIL>:<ID>`")]
   NotAnEntry { line: usize, line_text: String },
@@ -255,14 +287,22 @@ impl Remedy for IntentfilesError {
   fn remedy(&self) -> String {
     match self {
       IntentfilesError::UnknownSigil { .. } => {
-        "write STEELTHREAD:<ID> or ISSUE:<ID>; the manifest names artefacts, never files".into()
+        "write STEELTHREAD:<ID>; the manifest names artefacts, never files".into()
       }
       IntentfilesError::NotAnEntry { .. } => {
         "each line is blank, a comment, a BEGIN/END marker, or `<SIGIL>:<ID>` with an optional trailing `# comment`".into()
       }
       IntentfilesError::MalformedId { sigil, .. } => match *sigil {
         "STEELTHREAD" => "a steel-thread id is ST followed by four digits, eg ST0000".into(),
-        _ => "an issue id is four digits, eg 0042".into(),
+        // **UNREACHABLE WHILE THE GRAMMAR HAS ONE SIGIL, AND IT MUST NOT GUESS.**
+        // This arm read "an issue id is four digits" -- correct while ISSUE was
+        // the only other sigil, and silently wrong for whatever sigil is added
+        // next. A remedy that confidently names the wrong shape is worse than
+        // one that admits it has none, so it names the sigil and asks for its
+        // remedy to be written beside STEELTHREAD's.
+        other => format!(
+          "`{other}` is a sigil this remedy has no id shape for -- add one beside STEELTHREAD's"
+        ),
       },
       IntentfilesError::UnopenedRegion { .. } => {
         format!("remove this line, or add `{BEGIN_MARKER}` above the generated block")
