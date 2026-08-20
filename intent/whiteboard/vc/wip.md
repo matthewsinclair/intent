@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 17:36Z
-status: active
+heartbeat_at: 2026-08-20 17:39Z
+status: paused
 focus: "**FOLD 6 -- RULES ONLY; every instance is in `.history/20260820/`.** Suite driven to green on hv's one-off authority: rust fmt/clippy/test all 0 (142 targets, 995 passed), bats **1440 passed / 0 failed** through `tests/run_tests.sh`'s contract, critics clean, credo N/A verified. **Gate: ST0057 47/51, ST0056 59/132, both COMPUTED by `intent ac status`.** Nine rows moved, four criteria minted, four closed. **My headline finding of the sweep was an invocation error and a peer caught it.**"
 claims: [ST0056, ST0057]
 ---
