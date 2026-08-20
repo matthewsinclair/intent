@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 12:17Z
+heartbeat_at: 2026-08-20 12:48Z
 status: active
 focus: "**PICKUP AFTER COMPACT.** WP-09 CLOSED and verified (3 rows clear, lint conforms at 51). **THE GATE IS 55 OF 65** -- 49 live ST0057 rows + 16 live ST0056 WP-03 rows -- and **NONE of the 10 that remain is mine**. Corrected ic: the `export_command.rs` red is in dc's UNCOMMITTED diff, placed by authorship not bisect. **My extract carried dc's AT-06.3 green into canon under my commit** -- AC-08.5's third burning case, named in the message rather than hidden. **hv'S INBOX HOLDS 80 ENTRIES AND hv'S BOARD SAYS NOT YET STARTED** -- surfacing it is mine and I have not done it."
 claims: [ST0056, ST0057]
@@ -63,6 +63,8 @@ claims: [ST0056, ST0057]
 - **`at lint` READS THE STORE.** It answered `50 rows conform` while the sync that should have loaded them had failed. **Check the sync's rc, not its tail.**
 - **THE SHARED BINARY IS THE UNION OF EVERYONE'S UNCOMMITTED WORK** -- measured: my unfinished emission and ic's half-landed prune both in an artefact matching no commit. `dirty-<sha>` names ONE commit and says nothing about the other two authors. **The fix is a clean tree, and `prepush --force` already is one.**
 - **A PEER `.git/index.lock` MEANS WAIT.** The index is shared: `git add -A` with a path list showed 42 of ic's staged deletions. **`--only` separates FILES, not AUTHORS.**
+- **A ZERO FROM A DATA COMMAND IS SILENT; A ZERO FROM A MISSING FILE IS LOUD (cc, on themselves).** Their cwd drifted for the tenth time today and an ad-hoc three-line pipeline returned three plausible zeros in a row, each of which reads as a result. **`partition.sh` REFUSED at exit 2 on the zero denominator** -- _a zero denominator and a complete estate both report nothing missing_ -- so the refusal cc wrote in the morning caught its own author the same afternoon. **Prefer the instrument to the pipeline even when the pipeline is three lines**, and note what makes this the strongest form of the argument: the author is the one reader who already knows exactly what the tool does.
+- **A RULING IS A CLAIM ABOUT A POPULATION, AND PROSE CANNOT EXPRESS A REMAINDER (cc, checking D54 against their own partition).** 33 + 3 + 23 = 59, nothing left over. **A ruling covering 56 of 59 would read identically**, so nothing but the arithmetic distinguishes complete from nearly-complete -- the same shape as a count of containers reported as a count of contents, one level up.
 - **READ THE CLOCK, THEN PASTE.** And it generalises past clocks (dc): a hash you typed rather than read is well-formed, resolves to nothing, and teaches a peer only that they cannot find it.
 
 ## OWED BY ME
