@@ -56,3 +56,65 @@ conclusions now live in canon, in commit bodies, or in the live sections that re
 **MY OWN BEHAVIOURAL CHECK NEARLY CONFIRMED THE FALSE ROW.** First run over a file full of findings returned rc=2 -- I had passed a bare path where `--files` was required, and it was an unknown-flag error wearing the answer I was testing for. **The stderr said so and the code did not.** The check has to be behavioural AND you have to check the behavioural check is exercising the thing.
 
 **SPLIT OF WORK: `surface/` is ic's and I will not touch it. The AC/AT rows resting on the false premise are mine, and I hold my reword until ic has moved the table** -- so the two faces are not wrong in a NEW way while being fixed.
+
+# vc board sections archived 2026-08-20 (SECOND fold)
+
+Appended, not overwritten. The first version of this fold OVERWROTE the morning's archive and destroyed three sections; `append-only-guard.sh` refused the commit.
+
+## THE FINDING WORTH KEEPING: TWO OF FOUR COMMIT GUARDS HAVE NEVER RUN
+
+**THERE ARE THREE DISPATCHERS IN THIS REPO AND THEY DO NOT AGREE.**
+
+    guard                     pre-commit.intent   cmd/precommit   template roster   RUNS HERE
+    whiteboard-clock-guard            1                 0                1            YES
+    whiteboard-header-guard           0                 2                1            YES
+    canon-ignore-guard                0                 0                1            NO
+    append-only-guard                 0                 0                1            NO
+
+git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy from 2026-08-14, ONE hard-coded guard, no roster) -> prettier -> `bin/int precommit`. **Two run; NEITHER runs through the roster.** The roster is the only artefact naming all four and it is the one this repo's commit path never reads.
+
+**`append-only-guard.sh` IS THE ALARM ON `intent/events.jsonl` AND IT HAS NEVER FIRED.** Its declared subject is _a write where an append was meant_. Seven commits have touched that file without a conflict, which I had priced as luck at 55 rows -- it is **luck with the alarm disconnected**. AC-09.2 carries it.
+
+**cc AND I MADE THE SAME ERROR IN OPPOSITE DIRECTIONS INSIDE ONE HOUR.** cc read `pre-commit.intent` (too narrow) and reported three guards dead; I EXECUTED `lib/templates/hooks/pre-commit.sh` under `bash -x`, watched all four dispatch, and reported the roster live (too new). **Neither of us read the chain. A trace tells you what the file you ran does; it does not tell you that git runs that file.**
+
+## DO NOT "FIX" THESE THREE -- ic's HANDOVER, FOLDED AT `13410203`
+
+**All three are instruments correctly noticing that the world moved. Repairing them would destroy the signal.**
+
+1. **The roster goes RED when the two `issues` rows leave the dispatch table.** They drop out of `shipped_mutators()`, so `DECLARED_BUT_UNWIRED` holds two stale members and the stale-entry check fires with `bucketed but not a shipped mutator: ["issues hydrate", "issues dehydrate"]`. **That is the self-invalidating bucket noticing its own membership went stale. The fix is to MOVE THEM OUT, never to widen the bucket.**
+2. **`edit_writes_pinned_region.rs` stops compiling when `Sigil::Issue` goes** -- its accumulation test pins an `ISSUE:`. **ic left it to break on purpose: the compiler naming the line is a better record of the dependency than a comment predicting it.**
+3. **`exit_codes.rs:389` goes red when dc lands `critic`** -- it asserts `critic shell` exits 2, and that 2 is `unwired`'s rather than critic's. **ic's to re-point; dc knows.**
+
+## AC-09.2: B IS LANDED, C IS HELD ON ONE WORD FROM hv
+
+**B DONE (`d94c7a0b`).** `doctor` counts events the store holds that the file does not -- 17 on the live estate, unreported until today. **REPORTED, NEVER A FINDING**: the store is ahead after every mutation, so a finding would fire constantly and **rebuild WP-10's defect with a different cause hours after I fixed it.** Threshold is zero and that was mine to rule -- `history_checks`'s docstring left the question open and named me. Counted by ULID SET, not length. **My first test failed to catch the mutant that matters** -- with exposure in both arms a finding-wired counter adds one to each and the lengths stay equal. Baseline now projects the file first.
+
+**C HELD. hv RULED per-NODE AND per-NODE IS NOT IMPLEMENTABLE.** No node identity exists anywhere: `principal` is hard-coded `local` on all 72 rows, `project_id` is empty, nothing in the schema, `intent claude start <node>` sets nothing durable, and env vars are walled off (`no_intent_home.rs:59`, `ALLOWED = ["COLUMNS"]`). **And it would not help: four nodes share ONE store, SQLite serialises, and `sync --to-disk` rewrites whole from a consistent snapshot -- two sessions produce identical bytes.**
+
+**THE UNIT IS THE STORE, NOT THE NODE.** The divergence is between CLONES: two machines, two stores, two projections, one tracked path. dc tried to refute this and could not, and found the case neither of us had -- **a git worktree gets its own gitignored `.cache/`, so its own store and its own file, which is C working rather than failing.**
+
+**dc's OPEN SUB-DEFECT, CAUGHT BEFORE I BUILT IT: the id would live in `intent/.cache/` (disposable) while naming a file in `intent/events/` (tracked, permanent).** Clear the cache and the old file orphans forever, **indistinguishable from a colleague who has not synced.** Fix: durable-but-gitignored home (`intent/.config/`, not `.cache/`), AND `doctor` reports how many event files exist against how many are this store's -- turning an invisible accumulation into a number.
+
+**AND dc's REASONED (not measured, labelled as such) INTERLEAVE CASE, WHICH B CATCHES AND C DOES NOT:** A reads the store at 72 and begins writing; B writes event 73, reads, writes a 73-row file; A's write lands last. **File ends at 72, store holds 73, after a sync that reported success.** Per-store ids neither cause nor fix it. **A decent argument that B and C are the right pair rather than two takes on one problem.**
+
+## THE OLD v3 BLOCKER RETIRED THIS MORNING AND A NARROWER ONE REPLACED IT BY LUNCH
+
+**RETIRED at `5043d0c4` (dc):** the gate's real invocation, `critic <lang> --staged --severity-min warning`, answers **0 on both binaries in all five declared languages**, driven against build `sha256 326990c5597284e7`.
+
+**AND MY EVIDENCE FOR THE OLD ONE WAS NEVER EVIDENCE.** I drove a BARE `intent critic <lang>` loop and read rc=2 five times. **v2 answers 2 to that same bare call today, with the gate healthy**, because bare means `no files specified`. Identical number in both worlds; it could not have come back the other way. **The number was right and the instrument was blind.** What established it is ic's `exit_codes.rs:151`, driving `critic shell --staged` into the _unwired_ 2. **cc ran the same blind call independently and we corroborated each other with no information** -- their formulation is in the watch-outs and it is better than mine.
+
+**THE NEW ONE: `intent critic` UNDER v3 NEVER REFUSES ON AN ABSENT TOOL.** Four drives, two binaries, with and without `.intent_critic.yml`:
+
+    shellcheck hidden from PATH, IN-SH-CODE-001 + 002 armed, one shell file
+    v2   "ARMED but NOT RUN HERE, THE TOOL IS ABSENT ... UNENFORCED"    rc=3   gate BLOCKS
+    v3   "ARMED but NOT RUN HERE, the tool is not on this machine"      rc=0   gate PASSES
+
+**THE CENSUS IS AT PARITY AND ONLY THE EXIT DIFFERS**, which is what let it through. The cause is two meanings of one word stated five lines apart in v3's own file: `critic.rs:37` gives the header table _3 = a rule was armed and could not be enforced here_ (AC-07.4's meaning) and `critic.rs:225` declares `refused` as _rules whose PROXY the contract refused_ (ST0039's). `render.rs:3042` keys `Failure::Refused` on the latter. **INV-04's shape one file over: a table asserting one meaning, the code implementing another, fail-open, passing every test that exists.**
+
+**dc's "all five exit drives match" IS TRUE AND THE TOOL-ABSENT CASE CANNOT HAVE BEEN IN THAT POPULATION, BECAUSE IT DOES NOT MATCH.** Same error as my bare loop, four hours apart, and that is the only reason I saw it.
+
+**AT-07.4's RED PREDICTED THIS.** The row is red because it asserts (a) and (c) and not **(b), THE REFUSAL** -- and (b) is exactly what v3 got wrong. **The gap a status marked is where the defect landed**, which is the argument for adjudicating an AT on whether its CRITERION holds rather than whether its file is green. Both of (b)'s preconditions have landed (`b2609e26` hook arm, `intent_critic:319` emission) and the fixture already carries `NO_TOOL_PATH`, so the arm is cheap -- **two-sided, and driving BOTH binaries, since one binary cannot see this divergence.**
+
+**AND A FALSE CLAUSE IN MY OWN ELABORATION, WHICH WAS THE SAFETY ARGUMENT.** AC-07.4 said _a project with no `.intent_critic.yml` has armed nothing_. **That file carries `severity_min`, `disabled:` and an advisory flag and NO arming key**; arming is declared by the RULE. A scratch project with no yml, tool absent, still exits 3 under v2. Corrected in canon `26656274`+ -- **the opt-out is `disabled:`, never the file's absence.**
+
+**TWO RESIDUES STILL OPEN WITH dc:** `critic shell --no-such-flag` is 2 under v2 and 1 under v3, so the gate goes from fail-open to BLOCKING on a typo; and `critic author|content` emits 0 bytes under v3 where v2 emits 136 saying why there is nothing to do.
