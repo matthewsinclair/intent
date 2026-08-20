@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 14:30Z
+heartbeat_at: 2026-08-20 14:39Z
 status: active
 focus: "**FOLDED 2026-08-20. Five landed: the guard roster delegated, `core.hooksPath` (hooks tracked), the rust formatter stanza, AC-06.3 (`md` sayable), AC-06.4 + AC-07.1 (`init` from the binary alone).** Tree clean, main builds, clippy clean, 964 pass. **NEXT IS THE RECORDED-NOT-BUILT LIST AND ITS TOP HAS CHANGED: `int check format` and clippy both exist with nothing local dispatching them, and between them they cost two CI reds today** -- measured twice now rather than argued about."
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -38,6 +38,22 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 - **`int hooks` UNDER-REPORTS THE SHIPPED GUARDS BY FOUR.** It prints the repo-local roster (11) and is silent on the four shipped guards dispatched through `pre-commit.intent`. **The tool people consult to find out what the gate enforces is the thing that is wrong.** One more `--list-guards`-shaped call, not a new mechanism. (The GATE line I added covers presence, not roster.)
 - **`intent claude upgrade --apply` IS ALL-OR-NOTHING.** On this tree three of four actions are unwanted, including **regenerating AGENTS.md from 3.0.0 DOWN to 2.19.0** on a self-hosted v3 tree. The new `GATE STALE` message points operators straight at that button, so it is a fleet question.
 - **`bin/int SAYS` IS UNBUILDABLE WHERE hv PUT IT, AND IT IS BACK WITH HIM.** `bin/int` is stock vendored devbin; its own header records a consumer who edited it having _forked the dispatcher_, and `self_provenance_check.sh` gates that tree. `project.referent` is taken by `cmd/measured`; `SessionStart` runs shipped canon. **And structurally: if `core.hooksPath` is unset no hook runs, so no hook can report it.** Two options put to hv: a pre-dispatch hook in devbin upstream, or `int hooks` as a documented clone step.
+
+### 1a. AC-04.7 / AT-04.7 -- ROUTED TO ME BY vc, WP-04, NOT STARTED
+
+**The property: the manifest's ABSENT state is honoured by the verbs that ACT on it, not only by the one that REPORTS it.** `intentfiles::realised()` returns `NothingSaid` for an absent file and `declares` fails open -- a complete model of hv's rule. **`Facade::organize` (`facade.rs:1639`) and `Facade::hydrate` (`:1754`) each open it with a bare `read_to_string` mapped to `ManifestUnreadable` and consult the model not at all.**
+
+**DRIVEN BY ME AT `105faa01` ON A GENUINELY FRESH PROJECT, AND IT IS WORSE THAN THE ROUTING SAID.** `init` writes no manifest (0 hits for `intentfiles` in the module), so **absence is the shipped initial condition of every new v3 project** -- which makes this MY defect from today as much as anyone's. `intent init` then `intent organize`, the first two commands anyone types, gives rc=1 and:
+
+    error: could not read .../intent/.intentfiles
+      remedy: ... an absent manifest declares nothing, so `organize` would read
+              the whole estate as UNDECLARED.
+
+**THE REMEDY STATES hv's RULE BACKWARDS.** The model's own words are _ABSENT IS NOT EMPTY -- `NothingSaid` and `Unreadable` answer true for everything; a missing manifest KEEPS the whole estate on disk._ The message says absent means undeclared, which is the pre-reversal reading hv overturned. **So it is not only that the verb ignores the model -- the refusal TEACHES the reversed rule, in the first message a new v3 user ever sees.** A message that survived the ruling that reversed it, which is today's shape again.
+
+**AT-04.7's two arms fail in opposite directions and vc has the shapes right.** Absent: `organize` returns Ok and removes **ZERO** files -- **the removal count is the assertion and the exit code is not**, since "does not error" passes on an `organize` that runs and deletes the estate. Unreadable: still refuses, still names the path -- without which the fix is satisfied by deleting the refusal. **Adding one: the unreadable arm should assert the message does NOT state the rule backwards**, or the fix leaves the teaching defect in place.
+
+**It does not decide `hydrate`** -- hv already ruled the lifecycle verbs leave an absent manifest absent. The row constrains only that absence is not reported as unreadable; `hydrate`'s shape is mine and cc's to design.
 
 ### 2. Mine and small
 
