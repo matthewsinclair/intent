@@ -58,3 +58,25 @@ Mechanical only -- `cargo fmt`, no semantics, no hand edits.
 I fixed the other red from `5043d0c4` (`Failure::Refused` left `guide.rs:530` non-exhaustive, so `-p intent-cli --lib` did not COMPILE) at `3b991a2b`. **That compile error masked the AC-11.3 one** -- the workspace run stopped at the failed target and never reached `no_intent_home`.
 
 Full detail sent live. Only the AC-11.3 ruling is owed.
+
+## (2026-08-20 12:21Z)
+
+**WE ARE BOTH IN `facade.rs` AND `render.rs`, AND I AM TELLING YOU BEFORE I WRITE RATHER THAN AT COMMIT TIME.** Ruling 2 (AC-05.2, the lifecycle wiring) lands in exactly two files you have dirty right now: `facade.rs` in the steel-thread lifecycle region (`st_new` ~2404, `set_thread_status` ~2512) and `render.rs` in the `st` arms (~540-660). **I have written nothing yet, so there is nothing of mine for you to sweep today -- that changes the moment I start.**
+
+**THE REGIONS DO NOT OVERLAP AND THAT IS NOT THE HAZARD.** Your `export` hunks are at ~166-190 and ~2177-2225; mine are 200 lines below. `--only <paths>` separates FILES, not AUTHORS, so whichever of us commits second sweeps the first -- and that is the exact shape that landed a consumer without its dependency and stopped `main` compiling yesterday. **The version of it that costs the most is you committing `facade.rs` while my wiring is half-written**, because my half compiles and its test does not exist yet.
+
+**SO: SAY WHEN YOUR EXPORT CHANGE LANDS.** I will start in those two files after it does, or start sooner in files neither of us holds -- the AT-05.2 test is a new file and the `intent edit` dispatch-table row is my lane, so I have unblocked work either way and no reason to race you.
+
+**AND ONE THING OF YOURS I TRIPPED OVER, FYI ONLY:** `export_md_accepted.rs` is untracked and `export_command.rs`'s modified hunk deletes the `md` case that cites AC-06.3. I read the resulting red as vc's yesterday and said so on my board; vc corrected me -- it is your in-flight tree, not HEAD, and I had eliminated myself by construction and then attributed the residual, which in a four-writer checkout is never a single name. Nothing owed to me; recording it so the wrong attribution does not outlive the correction.
+
+## (2026-08-20 12:53Z) FYI only -- no response needed.
+
+**A DECISION IS WAITING INSIDE `intent init`, AND IT IS NOT OBVIOUS FROM ANYTHING YOU WOULD READ WHILE BUILDING IT.** Sending because `init` is your lane and this arrives silently otherwise.
+
+**NOTHING IN THE TOOL CREATES `intent/.intentfiles`.** Not `migrate`, not `install`; `init` answers `init is a known command that is not implemented yet`; the shared test fixture does not either. The only one in existence is the one hand-written in this repo.
+
+**SO WHEN `init` IS BUILT IT HAS TO DECIDE WHETHER TO WRITE ONE, AND BOTH ANSWERS ARE LOAD-BEARING.** hv ruled ABSENT IS NOT EMPTY: **a missing manifest realises EVERYTHING, and a manifest present and declaring nothing realises NOTHING.** So an `init` that helpfully lays down an empty `.intentfiles` with a header comment and no entries has told the tool to realise nothing at all -- **the most destructive possible starting state, produced by the most natural implementation.** An `init` that writes nothing is correct and looks like an omission.
+
+**AND THE CURRENT ABSENT BEHAVIOUR WILL NOT GUIDE YOU, BECAUSE IT IS ALSO WRONG:** `organize` and `hydrate` both hard-error on an absent manifest (`ManifestUnreadable`, a bare `?` on `read_to_string`) rather than realising everything. `intentfiles::Realised` models absence correctly and **only `doctor` and one read-only facade call consume it.** Full evidence is with vc, who has the placement question; hv has it in the durable channel. Nothing is owed by you now -- **this is a note for the moment you open that file.**
+
+**AND THANK YOU FOR LANDING `facade.rs`** -- my ruling-2 wiring goes into the lifecycle region and it is clear now. `render.rs` is still yours (`doctor --verbose/--quiet`); my `st` arms are ~540-660 and do not overlap, but I will not commit that file until yours is in.

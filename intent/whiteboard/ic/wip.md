@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 12:08Z
+heartbeat_at: 2026-08-20 14:04Z
 status: paused
-focus: "**FOLDED 12:08Z. RULING 1 COMPLETE; RULING 2 UNDER WAY -- `unpin` LANDED AT `3464dfbd` WITH `realised_from` SPLIT OUT BESIDE IT.** hv asked for rulings 2 and 3 via vc; AC-05.2 scope confirmed against canon and its ISSUE clause cleared as void (`2b775f7a`). **AT-05.2 IS STILL RED AND SHOULD BE -- the lifecycle wiring is the criterion and it is NOT built.** Workspace 914 pass / 1 fail, and the 1 is vc's `export_command`."
+focus: "**FOLDED 2026-08-20 14:04Z. RULINGS 2 AND 3 BOTH LANDED AT `a6e336a7` -- AC-05.2, AC-05.1 and AC-05.3, 17 files, 964 pass / 0 fail / 137 targets verified in a DETACHED WORKTREE at the commit rather than in the shared tree.** `main` had been broken by a `--only` sweep of my caller and is fixed forward. **THREE FINDINGS, ALL IN INSTRUMENTS: `Realised` models ABSENT IS NOT EMPTY and the realisation path never consults it; `apply` re-realises what it projects (hv wants it fixed, with vc); `flag_reachability`s marker list missed 10 of its own 18.** Nothing of mine red, nothing uncommitted."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,32 +13,33 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. NOTHING UNCOMMITTED.** Workspace **914 pass / 1 fail** with an IN-REPO target dir; the 1 is `export_command.rs:89`, vc's, flagged in their inbox as not-mine BY CONSTRUCTION and explicitly NOT bisected.
-
-**`unpin` IS BUILT AND MUTATION-PROVEN (`3464dfbd`). THE WIRING IS NOT.** AT-05.2 stays red on purpose and the file says so -- a green about a function is not a green about the row.
+**NOTHING IN FLIGHT. NOTHING UNCOMMITTED.** Landed at `a6e336a7`; the published tree builds and passes **964 / 0 over 137 targets**, measured in a detached worktree at that commit.
 
 ## ON RESUME -- read this first
 
-1. **hv HAS ASKED FOR RULINGS 2 AND 3 (via vc). RULING 2 IS HALF DONE.**
-   - **BUILT:** `intentfiles::unpin` -- clears BOTH regions (the correctness condition; `realised` reads every entry regardless of region), refuses a malformed id though nothing could match it, idempotent otherwise. Plus `realised_from(&str)` split out of `realised(&Path)`.
-   - **NOT BUILT, AND IT IS THE ACTUAL CRITERION:** the lifecycle wiring. `st new` adds / `--dehydrate` skips; `st done` + `st cancel` remove / `--keep` skips; `st reopen` + `st reinstate` add back. **`set_thread_status` is the single funnel for all four closers/openers** (`facade.rs:2478`) -- key the manifest edit on the `op` string there, not on the status, and list exactly the five. `st_new` is separate at `:2369`.
-   - **THEN** rewrite `edit_writes_pinned_region.rs` for real and green AT-05.2.
-2. **THE DESIGN CONSEQUENCE TO BUILD TO, AND IT FOLLOWS FROM A RULING RATHER THAN A CHOICE: ABSENT IS NOT EMPTY, SO THE LIFECYCLE VERBS MUST NOT CREATE `.intentfiles`.** A project with no manifest realises EVERYTHING; `st new` creating one with a single entry would make **every other thread unrealised** and `organize` would remove their files. Manifest absent -> leave it absent. In vc's inbox so it is not inferred from a diff.
-3. **THE SELF-LOOP EARLY RETURN IS A FEATURE HERE.** `set_thread_status` returns `AlreadyThere` before touching anything, so a closing verb cannot undo a human's deliberate re-listing of a closed thread. `.intentfiles` is durable state a human may edit; say so when wiring.
-4. **THEN RULING 3: top-level `intent edit <ID>`**, `st edit` a thin delegate (AC-05.1 / AT-05.1, `to-write`).
-5. **SEVEN ITEMS ARE WITH vc**, confirmed on their board and surviving their compact: verification-recipe rule, the lost mutation coverage, one-member roster adequacy, AC-08.4/08.5 placement, the marker grammar (hv's), `sync --help` authorship, `ratified_in_check` zero-population. **Rank 1 and 2 first when vc returns.**
+1. **RULINGS 2 AND 3 ARE DONE. FOUR THINGS ARE WITH vc AND NONE IS MINE TO CLOSE** (written to their inbox at 14:04Z): AC-05.2's text still names only `st done --keep` though hv ruled the asymmetry out; AC-05.1's v2 deviation -- a file the artefact does not carry is now REFUSED where v2 printed the path anyway -- should be RECORDED rather than discovered; the `apply` finding; and **AT-05.1 / AT-05.2 both have green files and I have NOT moved either row, because that is a WP-close verification and it is vc's.**
+2. **THE `apply` FINDING IS THE ONE THAT MATTERS AND hv WANTS IT FIXED.** `Facade::apply` projects every changed thread and consults NO manifest, so **any mutating command on a dehydrated thread re-realises it** -- reachable today against the 52 completed threads this repo deliberately does not list. It is also why `st new --dehydrate`'s help text is false about files, which the code says in place rather than working around. **Not mine to fix: the filter goes inside the single funnel every mutation passes through.**
+3. **AND IT IS ONE FINDING WITH TWO FACES, NOT TWO.** `intentfiles::Realised` models hv's rule completely -- `NothingSaid` / `Declared` / `Unreadable`, fail-open -- and **its only consumers are `doctor` and one read-only facade call.** `organize` and `hydrate` use `Manifest`, which cannot express absence, and both hard-error on a missing file. **One rule, one correct model, three writers, one reader.**
+4. **NEXT WORK, UNCLAIMED AND UNSTARTED:** AC-08.4 / AC-08.5 (WP-08), still red and untouched; and `doctor --json` (cc's ask) -- `Finding` already derives `Serialize`, so `Report` needing it is the whole model change, and cc's gate arm parses text as a workaround which **must be deleted when the face lands, not kept beside**.
+5. **A DECLARED-BUT-UNWIRED ROSTER OF MY OWN NOW OWES cc's RULING.** `declared_but_unwired.rs` borrows `st dehydrate` as its exemplar and my note calls picking another member a maintenance chore. **cc's ruling names that as the defect: an instrument that borrows a live instance has made the defect a fixture, and the estate is then not free to fix it.** Synthesise the member instead, as `dispatch_ssot.rs` now does.
 
 ## TODO -- LIVE ONLY
 
-1. **DONE (`d855ea1f`, `95ffb84b`).** Ruling 1 closed end to end, including `Facade::hydrate`'s Issue arm -- the one that resolved into CANON.
-2. **Ruling 2: AC-05.2.** `st new` adds / `--dehydrate` skips; `st done`/`st cancel` remove / `--keep` skips; `st reopen`/`st reinstate` add back; WARNING via `Facade::sync_uncommitted`. **Needs an `unpin` beside `pin`.** Then rewrite `edit_writes_pinned_region.rs` for real and green AT-05.2.
-3. **Ruling 3: `intent edit <ID>`** -- AC-05.1 / AT-05.1 (`to-write`), `st edit` delegates.
-4. **PAID AT `3b991a2b`.** Both sites plus two more I had not predicted. `st dehydrate` is now the borrowed unwired exemplar and the roster of record is `declared_but_unwired.rs` -- **when `st dehydrate` is built, pick another member; when the roster EMPTIES, retire those assertions rather than repairing them.** Still open and dc's: INV-04 names a `3` that the guide does not explain, because I cannot drive one -- dc's refusal arm has no live population.
-5. **`doctor --json` surface row** (cc's ask). cc's gate arm parses text and refuses at 2 as a workaround; **delete that parse when the face lands, do not keep it beside.** `Finding` already derives `Serialize`/`JsonSchema` and `FindingClass` is kebab-case, so `Report` needing `Serialize` is the whole model change. Trap: declare `--json` at BOTH family and verb level.
-6. **AC-08.4 / AC-08.5** (WP-08) still red, untouched.
-7. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
+1. **AC-08.4 / AC-08.5** (WP-08) -- red, untouched, mine.
+2. **`doctor --json` surface row** (cc's ask). Trap: declare `--json` at BOTH family and verb level.
+3. **`declared_but_unwired.rs` gets a synthetic member** per cc's ruling, and the borrowed `st dehydrate` stops being load-bearing.
+4. **STILL OPEN, NOT MINE TO RULE:** whether the `BEGIN/END INTENT` marker grammar survives at all. hv deliberately did not fold it into ruling 4; vc raises it.
 
 ## Watch-outs
+
+- **`git commit --only` IS PATH-SCOPED, NOT HUNK-SCOPED, AND MY BOARD HAS READ IT AS A GUARANTEE FOR WEEKS** (dc, correcting their own rule). It protects against a peer's STAGED work and does **nothing** about a peer's UNSTAGED work in a file you also touched. dc's `--only ... render.rs` took my uncommitted hunks and **`main` stopped compiling: my caller at HEAD, my callee in a working tree.**
+- **AND THE THREE REMEDIES ARE NOT INTERCHANGEABLE.** _Build the workspace before committing_ CANNOT catch it -- in the shared tree everything compiles, because the missing half is sitting right there; **only the published tree is broken and nothing local shows it.** `git diff --cached` catches it and needs a human to recognise a stranger's hunk. **A detached worktree at the named revision catches it mechanically and is the only one of the three that does** -- cc found it that way and I verified the fix that way.
+- **NEVER `cp` A SHARED SOURCE ASIDE TO MUTATE IT.** cc did it three times on `render.rs` while I had uncommitted work there; **a restore silently reverts a write made inside the window, with no error and nothing in `git status`.** I had done the same to `facade.rs` four times the same afternoon and it held only because nobody was in that file -- **luck presented as method.** Mutate in a worktree: `git worktree add --detach`, `git diff` of only your own files applied on top, discard after.
+- **AN INSTRUMENT THAT BORROWS A LIVE INSTANCE HAS MADE THE DEFECT A FIXTURE, AND THE ESTATE IS THEN NOT FREE TO FIX IT** (cc + vc's ruling, and it generalises further than the case). `dispatch_ssot` required a live `pending` flag to prove it could discriminate, and **failed on good news** the day the last one shipped. **Discrimination is a property of the INSTRUMENT, never of the estate's current defect count -- where a red-first arm needs an instance, SYNTHESISE it.** My own `declared_but_unwired.rs` has this and my note calls it a maintenance chore.
+- **A FIELD NAME CAN SPAN THREE SUBJECTS, AND A COUNT OF IT IS NOT A COUNT OF ANYTHING UNTIL YOU SAY WHICH.** `disposition` appears on entries, on flags and in the populations census; dc grepped the name and reported the sum, inside a message correcting someone else's measurement. **No arity error catches this** -- read the instrument's own predicate, not the field.
+- **A PRE-WRITTEN VERDICT ATTACHED TO A COMMAND WHOSE OUTPUT YOU HAVE NOT SEEN IS A CONCLUSION YOU HAVE ALREADY REACHED.** I ran `git diff | grep '^+.*USER'` with an echo saying _no output above = not mine_; it DID output, and only reading the lines stopped a false claim.
+- **I DROVE MUTATORS ON THE LIVE ESTATE TWICE TODAY TO SEE WHAT THEY DID** -- `st hydrate ST0046`, then `intent edit ST0057`, after writing `ISSUE:0001` into the live `.intentfiles` this morning. All three were no-ops and I verified the estate each time, **but all three were safe because the subject happened to be already listed and already realised.** _A probe is not a test and the estate is not a fixture_ is on this board in my own words. Build a fixture.
+- **A GENERATOR WITH FIVE GUARDS IS WORTH MORE THAN THE VIEW IT RENDERS.** Adding one row to `dispatch-table.json` was refused five times in a row -- a status sentence miscounting itself, a missing `recoverability`, two unclassified keys, a stale `legal_pairs` census, and a `populations` block out of step. **Every one was a real inconsistency I would have shipped**, and the fifth caught a set-difference on names that lost `organize`, which is TWO rows under one path.
 
 - **`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET. ALWAYS PASS `--no-fail-fast`.** I reported "workspace green" TWICE today on runs that had stopped early, and seven reds from my own prune ran unseen for an hour. **A partial run and a clean run print the same kind of output**, and the summary line is per-target, not per-suite. Count with `awk '{p+=$4; f+=$6}'` over every `test result:` line.
 - **AN ISOLATED `CARGO_TARGET_DIR` BREAKS `intent info` AND FAKES SIX HOOK FAILURES.** `INTENT_HOME` resolves by walking up from the BINARY's own path for `lib/templates/`; a scratchpad target dir leaves the tree, so `intent info` exits 1 and every gate test that resolves guards through it fails. **The clean-worktree discipline and target-dir isolation are in TENSION** -- keep the target dir INSIDE the worktree. With vc for a ruling; do not fold it in as folklore.
