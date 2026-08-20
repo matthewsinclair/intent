@@ -76,7 +76,15 @@ title: Disk as a sparse projection of the store
 
 **AND THE CITATION IS STALE, WHICH WOULD SEND A BUILDER TO THE WRONG LINES:** `export.rs:192` and `:208` are named above as the md refusal, and both now land inside the YAML entry (`yaml` at `:213`, `md` at `:233`). **The line numbers moved and the row did not.** Cited positions are re-checked when this is picked up rather than trusted -- that is the second time in this thread a row has named a position that drifted.
 
-**The property is unchanged and was never wrong**: `md` becomes sayable rather than refused, as the third `Projection` variant, in the change that makes the refusal false. Only the row's account of the world caught up. -- satisfied: no (computed)
+**The property is unchanged and was never wrong**: `md` becomes sayable rather than refused, as the third `Projection` variant, in the change that makes the refusal false. Only the row's account of the world caught up.
+
+**hv RULED THE FORK 2026-08-20: `export --format md` DELEGATES TO `Facade::realise()`.** It writes `.backup/text/<UTC>/` and prints the destination and the denominator, instead of an artefact on stdout. **THE ALTERNATIVE WAS A SECOND MARKDOWN PRODUCER AND IT WAS REFUSED ON THAT GROUND** -- nothing would have kept two in agreement, and the one that drifts is always the one nobody is looking at.
+
+**THE ASYMMETRY IS IN THE WORLD, NOT THE DESIGN, AND THE CODE SHOULD SAY SO.** md's artefact IS a directory tree; you cannot put a tree on stdout, and flattening one to preserve a uniform signature destroys the file boundaries that ARE its structure. **A verb returning a destination for tree-shaped output and a document for document-shaped output is describing reality rather than compromising.** **THE COST IS ACCEPTED AND NAMED: `intent export` stops meaning _the artefact on stdout_ in every case.** hv took that knowingly, against an offered alternative of keeping `export` uniform and merely repointing the refusal's stale `instead` clause.
+
+**AND THE PREMISE IS dc's SENTENCE, WHICH IS BETTER THAN THE SCOPE NOTE'S AND IS WHAT THE VARIANT'S DOC COMMENT SHOULD CARRY:** _the premise is NOT that markdown cannot be read back -- that stays true and must be. It is that markdown was being judged by the INTERCHANGE rule. What expires is the POPULATION, not the fact._
+
+**AC-06.1 AND AC-06.2 ARE ALREADY `satisfied: yes (computed)`, WHICH IS THE THIRD REASON AND THE QUIETEST ONE:** this ships a verb pointing at work already certified complete, denominated and proven to have no read-back route. The alternative would have shipped new uncertified code doing the same job. -- satisfied: no (computed)
 - AC-06.4 **`intent init` creates a working project from an empty directory, and the text realisation is exercised end-to-end from one.** `init` is currently unimplemented, and this is a PRECONDITION of the assurance rather than a neighbouring gap: you cannot demonstrate a fallback from a clean directory if you cannot create a clean directory. -- satisfied: no (computed)
 
 ### WP-07 -- intent:// addressing and read resolution (status: WIP)
