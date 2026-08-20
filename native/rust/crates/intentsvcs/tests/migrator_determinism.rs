@@ -53,115 +53,133 @@
 
 mod common;
 
-use common::{Fixture, ctx, facade_ctx, sample_thread};
+use std::collections::BTreeSet;
 
-/// **Dehydrate by removing the DIRECTORY and keeping canon**, which is exactly
-/// the state `intent organize --apply` leaves a thread in and exactly the state
-/// 54 of this repo's 57 threads are in. Nothing here edits `.intentfiles`: the
-/// migrator never reads it, so declaring the absence would test a path this
-/// defect does not travel.
-fn dehydrate(project: &intentsvcs::project::Project, id: &str) {
-  let dir = project.thread_dir(id);
-  std::fs::remove_dir_all(&dir).unwrap_or_else(|e| panic!("could not dehydrate {id}: {e}"));
-  assert!(
-    !dir.exists(),
-    "the fixture must actually remove {id}'s directory or the arm below proves nothing"
-  );
-  assert!(
-    project.thread_json(id).exists(),
-    "dehydration keeps CANON -- a fixture that removed both would be testing deletion, not sparseness"
-  );
-}
+use common::{Fixture, facade_ctx, gate_open, sample_thread};
+use intentsvcs::model::ThreadStatus;
+use intentsvcs::organize::Mode;
+use intentsvcs::project::Project;
+use intentsvcs::sync::Scope;
 
-fn index(project: &intentsvcs::project::Project) -> String {
-  let path = project.steel_threads_view();
-  std::fs::read_to_string(&path)
-    .unwrap_or_else(|e| panic!("could not read {}: {e}", path.display()))
-}
-
-/// **PARKED, LOUDLY, AND THE PARK IS THE POINT: THIS ARM IS RED AND THE DEFECT
-/// IS REAL.** `#[ignore]` rather than a relaxed assertion, on vc's ruling that
-/// relaxing a gate when it stops covering anything converts a refusal into a
-/// silent pass -- so this says NOT RUN, in every test run, where a reader sees
-/// it.
+/// **THE ESTATE IS DEHYDRATED THROUGH `organize`, NOT BY REMOVING DIRECTORIES**
+/// (vc, 2026-08-20, and the recipe is `write_path_canon_always.rs`'s). My first
+/// cut called `remove_dir_all` -- which reaches the same on-disk shape and
+/// **side-steps the gate that is supposed to produce it**, so it would have
+/// passed against a build where `organize` refused to dehydrate anything at
+/// all. A fixture that side-steps the gate measures the side-step.
 ///
-/// **IT IS NOT PARKED BECAUSE ANYONE DOUBTS IT.** It is parked because the fix
-/// is SCOPE rather than wiring: it touches the migrator's enumeration and the
-/// SSOT rebuild, and landing a red test into a four-node workspace makes every
-/// peer's `cargo test` red on a decision that is not theirs.
-///
-/// **EXPIRY, NAMED: remove `#[ignore]` in the commit that fixes it.** Two shapes
-/// were put to vc, and the second is narrow because the blast radius is
-/// measured rather than assumed -- `legacy::scan` has exactly TWO callers,
-/// `Facade::upgrade` and `Facade::ingest_from_md`, and the second writes
-/// nothing. `sync --to-disk` builds from `store.load_canon()`. **So one entry
-/// point is destructive and the fix can be scoped to it.**
-#[test]
-#[ignore = "RED and the defect is real: upgrade rebuilds store and views from a disk-only scan. Parked because the fix is scope, not wiring -- see the doc comment; remove in the commit that fixes it"]
-fn upgrade_does_not_shrink_the_index_to_the_threads_that_happen_to_be_realised() {
-  let fx = Fixture::new();
-  let ids = ["ST0001", "ST0002", "ST0003"];
-  for id in ids {
-    fx.write_thread(&sample_thread(id));
+/// Returns every id canon holds, which is the population both assertions below
+/// compare against.
+fn dehydrated_estate(fx: &Fixture) -> Vec<String> {
+  fx.write_thread(&gate_open());
+  for id in ["ST0001", "ST0002"] {
+    let mut closed = sample_thread(id);
+    closed.status = ThreadStatus::Completed;
+    fx.write_thread(&closed);
   }
-  let project = fx.project();
-  let canon = intentsvcs::ingest::read(&project).expect("fixture canon reads");
-  intentsvcs::views::write_all(&project, &canon, &ctx()).expect("write views");
 
-  // **THE CONTROL COMES FIRST AND IT IS NOT CEREMONY.** If the index never
-  // named all three, the assertion below would pass on an empty file and this
-  // whole test would be a green over nothing.
-  let before = index(&project);
-  for id in ids {
+  let mut f = fx.facade_on_disk();
+  f.sync_to_disk(&Scope::All)
+    .expect("realise everything first");
+  for id in ["ST0001", "ST0002"] {
     assert!(
-      before.contains(id),
-      "the index must name {id} BEFORE the migration, or nothing after it means anything:\n{before}"
+      fx.project().info_view(id).exists(),
+      "precondition: {id} is on disk before organize is asked to remove it"
     );
   }
 
-  dehydrate(&project, "ST0002");
-  dehydrate(&project, "ST0003");
+  // Declaring nothing keeps nothing -- ABSENT IS NOT EMPTY, so the file must
+  // exist and be empty rather than be missing.
+  fx.write_file("intent/.intentfiles", "# BEGIN INTENT\n# END INTENT\n");
+  let mut f = fx.facade_on_disk();
+  f.organize(Mode::Apply)
+    .expect("the gate is open, so the removals happen");
+  for id in ["ST0001", "ST0002"] {
+    assert!(
+      !fx.project().info_view(id).exists(),
+      "precondition: {id} is DEHYDRATED -- if it is still here the gate refused and \
+       every assertion below would pass for the wrong reason"
+    );
+  }
+
+  fx.project().thread_ids().expect("canon ids")
+}
+
+/// The thread ids the committed index NAMES, read back out of the rendered
+/// table rather than counted.
+fn index_ids(project: &Project) -> BTreeSet<String> {
+  let text = std::fs::read_to_string(project.steel_threads_view()).expect("index reads");
+  text
+    .lines()
+    .filter_map(|l| l.strip_prefix("| ST"))
+    .filter_map(|rest| rest.split('|').next())
+    .map(|id| format!("ST{}", id.trim()))
+    .collect()
+}
+
+/// The thread ids the STORE holds.
+fn store_ids(project: &Project) -> BTreeSet<String> {
+  let store = intentsvcs::store::Store::open(&project.db_path()).expect("store opens");
+  let (threads, _issues) = store.load_canon().expect("store loads");
+  threads.into_iter().map(|t| t.id).collect()
+}
+
+/// **EQUALITY OF TWO POPULATIONS, NOT A ROW COUNT** (vc's specification, and
+/// both halves of it earn their place).
+///
+/// A COUNT-based assertion passes on a migrator that names 57 of the WRONG
+/// threads. A VIEWS-only assertion passes on a fix that repairs the rendering
+/// and still rebuilds the SSOT from three -- **and that half is the one no
+/// `git status` would ever show**, because the store is gitignored.
+#[test]
+fn upgrade_covers_every_thread_canon_holds_in_both_the_index_and_the_store() {
+  let fx = Fixture::new();
+  let canon_ids: BTreeSet<String> = dehydrated_estate(&fx).into_iter().collect();
+  let project = fx.project();
+
+  assert!(
+    canon_ids.len() > 1,
+    "the fixture must leave more than one thread in canon or the equalities below are trivial"
+  );
 
   intentsvcs::facade::Facade::upgrade(&project, &facade_ctx()).expect("upgrade runs");
 
-  let after = index(&project);
-  let lost: Vec<&str> = ids
-    .iter()
-    .copied()
-    .filter(|id| !after.contains(id))
+  assert_eq!(
+    index_ids(&project),
+    canon_ids,
+    "the committed index and canon name different populations after `upgrade`"
+  );
+  assert_eq!(
+    store_ids(&project),
+    canon_ids,
+    "the STORE and canon hold different populations after `upgrade` -- and the store is \
+     gitignored, so nothing in a diff would have shown this"
+  );
+}
+
+/// **THE THIRD ARM, WHICH vc's SPECIFICATION DID NOT ASK FOR AND MY FIRST FIX
+/// NEEDED.** Covering the model is only half: the first cut of the union fed
+/// the SAME full population to the per-thread view writer and HYDRATED 54
+/// threads onto a disk whose manifest declared 3 -- 326 files written against
+/// 38, and 54 untracked directories under an `ok:`.
+///
+/// **The two defects are opposite and a test for either passes on the other.**
+#[test]
+fn upgrade_realises_only_what_the_manifest_declares() {
+  let fx = Fixture::new();
+  dehydrated_estate(&fx);
+  let project = fx.project();
+
+  intentsvcs::facade::Facade::upgrade(&project, &facade_ctx()).expect("upgrade runs");
+
+  let realised: Vec<String> = project
+    .thread_ids()
+    .expect("canon ids")
+    .into_iter()
+    .filter(|id| project.info_view(id).exists())
     .collect();
   assert!(
-    lost.is_empty(),
-    "`upgrade` removed {} thread(s) from the committed index -- {lost:?} -- and reported success. \
-     Their canon is intact, so nothing is lost; the INDEX of the estate now names a subset and \
-     nothing said so.\n{after}",
-    lost.len()
+    realised.is_empty(),
+    "the manifest declares nothing realised and `upgrade` put {realised:?} back on disk"
   );
-}
-
-/// **PAIRED, so the arm above cannot pass by the migrator writing nothing.**
-/// A fully realised estate must survive `upgrade` with its index intact -- if
-/// this went red too, the finding would be "upgrade destroys the index" rather
-/// than "upgrade cannot see a dehydrated thread", and the remedy would differ.
-#[test]
-fn upgrade_leaves_a_fully_realised_index_intact() {
-  let fx = Fixture::new();
-  let ids = ["ST0001", "ST0002"];
-  for id in ids {
-    fx.write_thread(&sample_thread(id));
-  }
-  let project = fx.project();
-  let canon = intentsvcs::ingest::read(&project).expect("fixture canon reads");
-  intentsvcs::views::write_all(&project, &canon, &ctx()).expect("write views");
-
-  intentsvcs::facade::Facade::upgrade(&project, &facade_ctx()).expect("upgrade runs");
-
-  let after = index(&project);
-  for id in ids {
-    assert!(
-      after.contains(id),
-      "a fully realised estate lost {id} from its index, so the sparse arm above is measuring \
-       something else:\n{after}"
-    );
-  }
 }

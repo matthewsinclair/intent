@@ -53,7 +53,7 @@ use std::path::PathBuf;
 
 use crate::export::{self, Bundle};
 use crate::facade::FacadeContext;
-use crate::finding::{Finding, Refusal};
+use crate::finding::{Finding, FindingClass, Refusal};
 use crate::ingest::Canon;
 use crate::legacy::Scan;
 use crate::model::{Issue, Thread};
@@ -228,6 +228,77 @@ impl crate::remedy::Remedy for Blocked {
 /// repaired it is gone. Recorded rather than worked around, because flattening
 /// means MOVING authored prose and [`WriteSet`] has no remove -- so the
 /// mechanism is a decision, not an oversight to patch here.
+/// **Every thread with committed canon that the disk walk never reached.**
+///
+/// `legacy::scan` derives its population from `thread_dirs` -- the directories
+/// under `intent/st/`. Under ST0057 the disk is a SPARSE PROJECTION: a
+/// dehydrated thread has canon and no directory, so it never enters that loop.
+/// Measured 2026-08-20 on a fresh clone: 57 threads in canon, 3 realised, and
+/// `upgrade` rebuilt the store and the project-level views from the 3 --
+/// **deleting 239 lines from two committed views and cutting the durable SSOT
+/// from 57 rows to 3, at rc=0, under an `ok:`.**
+///
+/// # Why here and not in `legacy::scan` (vc ruled, 2026-08-20)
+///
+/// **Highlander forbids two answers to ONE question; it does not require one
+/// answer to TWO.** `legacy::scan` answers *what must be converted from v2*;
+/// `Project::thread_ids` answers *what threads exist*. Both are correct. The
+/// defect was that `upgrade` asked the first when it needed the second, so the
+/// union belongs at the join and not inside either.
+///
+/// **And the scan's other caller is the proof.** `Facade::ingest_from_md` reads
+/// a markdown estate, and **a canon-only thread has no markdown to read** --
+/// widening the scan would make a correct function wrong at its other call
+/// site, and every residue class in `Scan`, all of which describe something a
+/// v2 AUTHOR left behind, would acquire a population it must specially ignore.
+///
+/// # An unreadable canon REFUSES rather than being skipped
+///
+/// A skipped file is the defect again one level down: the union would be
+/// silently incomplete and the rebuild would run off it. A v2 estate has no
+/// canon at all, so `thread_ids` answers empty and this adds nothing -- the
+/// refusal is reachable only where canon exists and cannot be read, which is
+/// exactly when rebuilding the SSOT from it must not proceed.
+fn dehydrated(
+  project: &Project,
+  seen: &BTreeSet<String>,
+) -> Result<(Vec<Thread>, Vec<String>), Blocked> {
+  let Ok(ids) = project.thread_ids() else {
+    return Ok((Vec::new(), Vec::new()));
+  };
+  let mut threads = Vec::new();
+  let mut added = Vec::new();
+  let mut residue = Vec::new();
+  for id in ids {
+    if seen.contains(&id) {
+      continue;
+    }
+    let path = project.thread_json(&id);
+    let rel = project.relative(&path);
+    match std::fs::read_to_string(&path) {
+      Ok(text) => match crate::ingest::read_thread(project, &id, &text) {
+        Ok(thread) => {
+          added.push(thread.id.clone());
+          threads.push(thread);
+        }
+        Err(mut found) => residue.append(&mut found),
+      },
+      Err(source) => residue.push(Finding::new(
+        &rel,
+        FindingClass::BrokenReference,
+        format!(
+          "canon names {id} and the file is not readable: {source} -- the migration would rebuild \
+           the store and the views without it"
+        ),
+      )),
+    }
+  }
+  if !residue.is_empty() {
+    return Err(Blocked::Residue(Refusal::new(residue)));
+  }
+  Ok((threads, added))
+}
+
 pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, Blocked> {
   // **Exhaustive on purpose: a field added to `Scan` must not compile.** `..`
   // here would make a new Phase A output something the join silently drops,
@@ -252,7 +323,24 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
     return Err(Blocked::Residue(Refusal::new(residue)));
   }
 
+  // **THE UNION, AND IT IS WHY THIS VERB STOPPED SHRINKING THE ESTATE.**
+  // Everything past this point -- `store.rebuild`, `views::render_all`, the
+  // canon export -- runs off `threads`, so a thread absent HERE is absent from
+  // the SSOT and from the index the migration leaves behind.
+  let seen: BTreeSet<String> = threads.iter().map(|t| t.id.clone()).collect();
+  let (extra, extra_ids) = dehydrated(project, &seen)?;
+  let mut threads = threads;
+  threads.extend(extra);
+
   let mut plan = assemble(project, ctx, threads, issues, carried)?;
+  // **They ARE already migrated, so the report says so rather than counting
+  // them as conversions.** A dehydrated thread reached this plan from its own
+  // committed canon, which is the same warrant the disk-walk arm uses for the
+  // threads it re-emits.
+  let mut already_migrated = already_migrated;
+  already_migrated.extend(extra_ids);
+  already_migrated.sort();
+  already_migrated.dedup();
   plan.already_migrated = already_migrated;
   plan.dispositions = dispositions;
   Ok(plan)
@@ -290,7 +378,34 @@ fn assemble(
     issues,
     sections: Vec::new(),
   };
-  let views = views::render_all(project, &canon, &ctx_render);
+  // **TWO POPULATIONS, AND CONFLATING THEM IS HOW THE FIRST CUT OF THE UNION
+  // TRADED ONE DEFECT FOR ANOTHER.** The STORE and the project-level index must
+  // cover every thread canon holds; the per-thread files on disk must cover
+  // only what `.intentfiles` declares. `render_all` renders both kinds, so the
+  // union above -- which is right for the model -- hydrated all 57 threads onto
+  // a disk whose manifest declares 3. Measured: 326 files written against 38,
+  // and 54 untracked directories appearing under an `ok:`.
+  //
+  // **NOTHING WAS CONSULTING `.intentfiles` HERE BEFORE, AND IT LOOKED
+  // CORRECT.** The scan's disk-walk population happened to EQUAL the declared
+  // population -- both were "the threads with directories" -- so the migrator
+  // respected the manifest by coincidence. Breaking the coincidence is what
+  // showed there was no mechanism.
+  //
+  // **`Realised::declares` answers TRUE for an absent or unreadable manifest**
+  // (ABSENT IS NOT EMPTY, hv), so a v2 estate -- which has no manifest at all
+  // -- realises everything exactly as before.
+  let realised = crate::intentfiles::realised(&project.intentfiles_path());
+  let unrealised: Vec<PathBuf> = canon
+    .threads
+    .iter()
+    .filter(|t| !realised.declares(&t.id))
+    .map(|t| project.thread_dir(&t.id))
+    .collect();
+  let views: Vec<views::View> = views::render_all(project, &canon, &ctx_render)
+    .into_iter()
+    .filter(|v| !unrealised.iter().any(|dir| v.path.starts_with(dir)))
+    .collect();
   let Canon {
     threads,
     issues,
