@@ -179,6 +179,8 @@ fn a_status_change_skews_the_index() {
 // WP-10: a dehydrated view is absent BY DESIGN and is not skew
 // ---------------------------------------------------------------------------
 
+/// AT-10.1 / AC-10.1 -- WP-10.
+///
 /// **The pair, driven together, because either half alone passes on the bug.**
 ///
 /// The evening the estate dehydrated, `doctor` reported 234 findings at rc=1 on
@@ -234,6 +236,8 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
   );
 }
 
+/// AT-10.2 / AC-10.2 -- WP-10.
+///
 /// **ABSENT IS NOT EMPTY, and the two absent-ish manifests must behave alike.**
 ///
 /// A missing manifest and an unreadable one both realise EVERYTHING -- the

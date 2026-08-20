@@ -2,7 +2,7 @@
 wp_id: WP-10
 title: doctor reports a dehydrated view as missing
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-10: doctor reports a dehydrated view as missing

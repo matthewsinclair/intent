@@ -37,7 +37,7 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 | WP-07 | intent:// addressing and read resolution                     | L    | WIP         |
 | WP-08 | The mutation surface: write-by-address and the missing verbs | L    | WIP         |
 | WP-09 | The event log records the model and not the disk             | S    | Not Started |
-| WP-10 | doctor reports a dehydrated view as missing                  | S    | Not Started |
+| WP-10 | doctor reports a dehydrated view as missing                  | S    | Done        |
 
 ## Acceptance
 

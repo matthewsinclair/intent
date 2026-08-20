@@ -31,7 +31,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 07: intent:// addressing and read resolution
   - [-] 08: The mutation surface: write-by-address and the missing verbs
   - [ ] 09: The event log records the model and not the disk
-  - [ ] 10: doctor reports a dehydrated view as missing
+  - [x] 10: doctor reports a dehydrated view as missing
 
 ## TODO
 

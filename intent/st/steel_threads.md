@@ -50,7 +50,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0014 |                                                     | Completed   | 2025-03-20 | 2025-07-09           |
 | ST0013 |                                                     | Completed   | 2025-03-11 | 2025-07-27           |
 | ST0012 |                                                     | Completed   | 2025-03-07 | 2025-03-07           |
-| ST0011 |                                                     | Completed   | 2025-06-03 |                      |
+| ST0011 |                                                     | Completed   | 2025-06-03 | 2025-06-03           |
 | ST0010 |                                                     | Cancelled   | 2025-06-03 | 2026-04-24           |
 | ST0009 |                                                     | Completed   | 2025-03-06 | 2025-06-03           |
 | ST0008 |                                                     | Completed   | 2025-03-06 | 2025-06-03           |
