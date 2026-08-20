@@ -33,9 +33,33 @@ use std::process::Command;
 
 use intent_cli::dispatch;
 
-/// Commands that legitimately never open a project. Each is exempt for a
-/// stated reason -- an allow-list without reasons is a place to hide a bug.
-fn reads_no_model(path: &str) -> Option<&'static str> {
+/// Commands exempt from the unmigrated refusal. Each is exempt for a stated
+/// reason -- an allow-list without reasons is a place to hide a bug.
+///
+/// # It was called `reads_no_model` and the name lost a member
+///
+/// **Every entry below except one is exempt because it never opens a project,
+/// and `critic` is exempt for a different reason entirely: it DOES read the
+/// project, and must still not refuse.** Under the old name there was no
+/// honest way to add it -- it would have been either a false claim about
+/// `critic` or an exemption invented somewhere else, and the second is worse
+/// because the reason would then live nowhere.
+///
+/// **This estate has the precedent written down already.**
+/// `gen_dispatch_table.sh` records `SURFACE_NONRETURNING` losing `claude
+/// upgrade`, which returns perfectly well and writes into the operator's real
+/// `~/.claude` -- two reasons, one name, and the member that did not fit the
+/// name fell out. A `why` per member was the remedy there and it is the remedy
+/// here; the name now describes the DECISION and each reason states its own
+/// ground.
+///
+/// So there are two grounds, and a new entry must say which:
+///
+/// 1. **it never reads a project** -- the original list, unchanged.
+/// 2. **it reads the project and must not refuse on this state** -- because
+///    its consumer fails CLOSED on the refusal, so refusing does more damage
+///    than answering. `critic` alone, and see its entry for why.
+fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
   match path {
     // Prints the generated schema faces, which are compiled in via
     // `include_str!` and are the same bytes in every project.
@@ -79,6 +103,28 @@ fn reads_no_model(path: &str) -> Option<&'static str> {
     // not inherit this exemption, which is why the entry is the full path and
     // not the family.
     "claude rules" => Some("serves install assets; it never reads a project"),
+    // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --
+    // `languages` out of `intent/.config/config.json`, the threshold out of
+    // `.intent_critic.yml` -- so it fails every test the entries above pass.
+    // It is exempt because of what happens DOWNSTREAM of a refusal.
+    //
+    // `Facade::open` calls `readable()` before anything else, so a `critic`
+    // built the obvious way returns `Unmigrated -> Failure::Error -> 1` in
+    // every unmigrated project. **The shipped pre-commit gate reads 1 as
+    // FINDINGS and BLOCKS**, printing a remedy about findings that do not
+    // exist while the true remedy -- run `intent upgrade` -- sits on screen
+    // above it, overridden. That is issue 0038 rebuilt on the git side, and
+    // every project is unmigrated until WP-10 runs on it.
+    //
+    // **So this is not a claim that `critic` sees the estate correctly here.**
+    // It answers over a project whose model it has not migrated, and the
+    // grounds are that the alternative is worse, not that the answer is
+    // authoritative. `exit_codes.rs`'s `an_unmigrated_project_can_still_commit`
+    // is the other end of this and drives the shipped hook rather than the
+    // number; issue 0045 (vc) is the record.
+    "critic" => Some(
+      "its consumer FAILS CLOSED on a refusal -- the gate reads 1 as findings and blocks every        commit in every unmigrated project (issue 0038 / 0045)",
+    ),
     _ => None,
   }
 }
@@ -166,7 +212,9 @@ fn no_shipped_command_answers_from_an_unmigrated_project() {
 
   for entry in dispatch::shipped_entries(&table) {
     let family = entry.path.split(' ').next().unwrap_or_default();
-    if reads_no_model(&entry.path).is_some() || reads_no_model(family).is_some() {
+    if exempt_from_the_migration_refusal(&entry.path).is_some()
+      || exempt_from_the_migration_refusal(family).is_some()
+    {
       exempt += 1;
       // THE SKIP MUST STAY AHEAD OF `run()`, and it is load-bearing rather than
       // an efficiency. Every entry in this loop shares ONE `legacy_project()`

@@ -437,11 +437,27 @@ fn collect_rs(dir: &Path, out: &mut Vec<PathBuf>) {
 /// Block comments are still asserted absent, because there are none and
 /// handling nesting is real work for a construct this codebase does not use.
 fn string_literals(code: &str) -> Vec<String> {
-  assert!(
-    !code.contains("/*"),
-    "a block comment appeared in shipped source; this scanner only skips `//` line comments, so \
-     it would read the comment's body as code"
-  );
+  // **THE BLOCK-COMMENT ASSERTION MOVED INTO THE WALK ON 2026-08-20, AND THE
+  // REASON IS THAT ITS DETECTION HAD STOPPED MATCHING ITS SUBJECT.**
+  //
+  // It stood here as `!code.contains("/*")` over the whole file text, which is
+  // the one place in this function that does not know whether it is inside a
+  // literal. `critic.rs` landed glob patterns -- `"test/**/*_test.exs"`,
+  // `"lib/**/*.ex"`, `"lib/*.ex"` -- and every one of them contains `/*` inside
+  // a STRING. Two of eight tests failed reporting a block comment in a file
+  // that has none.
+  //
+  // **The assumption the doc states is still true and was never the problem.**
+  // There are no block comments in shipped source, and the scanner still
+  // refuses rather than mis-scanning if one appears. What was wrong was a
+  // substring test standing in for a syntactic fact -- the same shape as
+  // ST0039's greppable proxies, where a regex that cannot see structure is
+  // asked a question only structure can answer.
+  //
+  // So the check now fires from inside the walk, at a point where `i` is known
+  // to be outside every literal, comment and raw string. It is strictly more
+  // precise: a real block comment is still caught, and correct code that merely
+  // spells `/*` is not.
 
   // The trailing `#[cfg(test)] mod tests` is Intent's own test fixtures, which
   // AC-00.9 exempts: they are never compiled into a shipped binary, so nothing
@@ -469,6 +485,17 @@ fn string_literals(code: &str) -> Vec<String> {
       }
       continue;
     }
+    // A block comment, outside any literal -- the assertion the pre-check
+    // above used to make on raw text. Reaching here means `i` is not inside a
+    // string, a raw string, a char literal or a line comment, so this is a real
+    // `/*` and not a glob.
+    assert!(
+      !(b[i] == b'/' && i + 1 < b.len() && b[i + 1] == b'*'),
+      "a block comment appeared in shipped source at byte {i}; this scanner only skips `//` line \
+       comments, so it would read the comment's body as code. **Check it is a real block comment \
+       and not a `/*` inside a string** -- glob patterns like `lib/**/*.ex` are correct code and \
+       reach this line only if the walk above has a hole"
+    );
     // A char literal, which may CONTAIN a quote (`'"'`) and would otherwise be
     // read as opening a string. A lifetime (`'static`) has no closing quote in
     // that position and falls through to the plain advance below.
