@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "Intent v3 services: the reified model, schema faces, SQLite store, sync and facade"
+build = "build.rs"
 
 [dependencies]
 serde.workspace = true

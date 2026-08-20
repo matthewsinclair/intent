@@ -33,6 +33,7 @@ pub mod faces;
 pub mod finding;
 pub mod graphql;
 pub mod ingest;
+pub mod init;
 pub mod install;
 pub mod intentfiles;
 pub mod legacy;

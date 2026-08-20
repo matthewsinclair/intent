@@ -12,7 +12,9 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::address;
 use intentsvcs::contract::Scope;
-use intentsvcs::facade::{EventFilter, Exported, Facade, FacadeContext, FacadeError, Outcome};
+use intentsvcs::facade::{
+  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
+};
 use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
@@ -37,6 +39,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
     Some(("upgrade", _)) => upgrade(),
+    Some(("init", m)) => init(m),
     Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
     Some(("todo", m)) => todo(m),
@@ -546,7 +549,18 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     Some(("new", a)) => {
       let title = arg(a, "title")?;
       let mut f = open()?;
-      let id = f.st_new(&title).map_err(fail)?;
+      // **`--dehydrate` SUPPRESSES THE LIST ENTRY AND NOT THE FILES**, which is
+      // narrower than its help text says. `Facade::apply` projects every
+      // changed thread and consults no manifest, so the views are written
+      // either way and the next `organize` is what removes them. Read through
+      // `flag` rather than assumed present: the flag is a dispatch-table row,
+      // and an absent one must not crash the renderer.
+      let list = if flag(a, "dehydrate") {
+        ListEdit::Suppressed
+      } else {
+        ListEdit::AsDeclared
+      };
+      let id = f.st_new_listing(&title, list).map_err(fail)?;
       // **`-s|--start` COMPOSES two declared transitions and never constructs
       // the end state** (vc, ruled 2026-08-15). The flag is v2 parity and it
       // never changed; the machine grew a state underneath it. v2's `st new`
@@ -588,7 +602,19 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("done", a)) => {
       let id = arg(a, "id")?;
-      reported(&open()?.st_done(&id).map_err(fail)?, &id, "done");
+      // `--keep` closes the thread and LEAVES its `.intentfiles` entry, so its
+      // files stay. It also suppresses the closing note, because the note is
+      // about an impending dehydration that `--keep` has just cancelled.
+      let list = if flag(a, "keep") {
+        ListEdit::Suppressed
+      } else {
+        ListEdit::AsDeclared
+      };
+      reported(
+        &open()?.st_done_listing(&id, list).map_err(fail)?,
+        &id,
+        "done",
+      );
       Ok(())
     }
     Some(("cancel", a)) => {
@@ -600,8 +626,19 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // absent the facade's `ReasonRequired` says exactly what is missing,
       // instead of cancelling a thread with no record of why.
       let reason = opt(a, "reason").unwrap_or_default();
+      // **`--keep` IS ON BOTH CLOSING VERBS SINCE hv's 2026-08-20 RULING.** It
+      // was on `st done` alone because AC-05.2 named only that one; two
+      // identical acts with the override on one of them is a surface that has
+      // to be memorised rather than understood.
+      let list = if flag(a, "keep") {
+        ListEdit::Suppressed
+      } else {
+        ListEdit::AsDeclared
+      };
       reported(
-        &open()?.st_cancel(&id, &reason).map_err(fail)?,
+        &open()?
+          .st_cancel_listing(&id, &reason, list)
+          .map_err(fail)?,
         &id,
         "cancelled",
       );
@@ -2070,6 +2107,121 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// exporter failing its own round-trip are three different answers with three
 /// different remedies, and the layer that knows which one happened is the one
 /// that says so.
+/// `intent init` -- the ONE command that must work with no project present.
+///
+/// **It never calls [`open`], and that is structural rather than an
+/// optimisation.** Every other verb resolves a project first; this one exists
+/// because there is not one yet, so reaching for the facade would refuse the
+/// command on the exact condition it is meant to remove.
+///
+/// **`--with-st0000` AND `--lang` ARE DECLARED `keep` IN THE TABLE AND ARE
+/// REFUSED HERE BY NAME.** Their subsystems answer 2 in this build -- measured
+/// 2026-08-20, `intent lang init rust` returns `not implemented yet` -- so
+/// accepting either would report a project set up in a way it is not. **A flag
+/// that is silently ignored is worse than one that refuses**: the operator gets
+/// what they asked for in the exit code and not in the tree, and nothing
+/// downstream ever says so. Refusing names the flag, the reason and the state.
+fn init(a: &ArgMatches) -> Result<(), Failure> {
+  // **THE ID IS THE LONG SPELLING WITH `--` STRIPPED AND THE HYPHENS KEPT.**
+  // `DispatchFlag::arg_id` returns `self.long()`, so the table's
+  // `--with-st0000` is the id `with-st0000`. The first version of this loop
+  // spelled it `with_st0000`, snake-cased out of habit, and **the refusal
+  // never fired** -- `init --with-st0000` created the project and ignored the
+  // flag. cc drove it and found it inside the hour.
+  //
+  // **THE ONE-CHARACTER TYPO IS NOT THE DEFECT. `.ok()` WAS.** The original
+  // read `try_get_one::<bool>(flag).ok().flatten()`, which turns clap's
+  // `UnknownArgument` -- an id that does not exist, which is only ever a bug --
+  // into `None`, indistinguishable from a flag the operator did not pass. So
+  // the guard written to stop a flag being silently ignored was itself
+  // silently ignored, three lines under a comment saying why that is the worse
+  // failure. An unknown id now panics: it cannot happen in a shipped build,
+  // and if it does, the renderer and the table have drifted and nothing else
+  // would say so.
+  for (flag, needs) in [
+    ("with-st0000", "the ST0000 bootstrap"),
+    ("lang", "`intent lang init`"),
+  ] {
+    let asked = match a.try_get_one::<bool>(flag) {
+      Ok(v) => v.copied().unwrap_or(false),
+      // Not a bool: the table declares this one as a string with a value.
+      Err(clap::parser::MatchesError::Downcast { .. }) => a
+        .try_get_one::<String>(flag)
+        .unwrap_or_else(|e| {
+          panic!("`init` reads a flag id the surface does not build: {flag} ({e})")
+        })
+        .is_some(),
+      Err(e) => panic!("`init` reads a flag id the surface does not build: {flag} ({e})"),
+    };
+    if asked {
+      return Err(Failure::Unavailable(format!(
+        "error: `--{}` cannot be honoured in this build -- {needs} is not implemented yet\n  \
+         remedy: run `intent init` without it; the project is created either way, and nothing \
+         about it forecloses running that step once the command lands",
+        flag.replace('_', "-")
+      )));
+    }
+  }
+
+  let cwd = std::env::current_dir().map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
+  // The directory name is the table's declared default for `project_name`, and
+  // it is read here rather than defaulted in the surface so the fallback and
+  // the declaration cannot disagree.
+  let name = opt(a, "project_name").unwrap_or_else(|| {
+    cwd
+      .file_name()
+      .map(|n| n.to_string_lossy().into_owned())
+      .unwrap_or_else(|| "project".into())
+  });
+  // **NO ENVIRONMENT READ HERE, AND IT WAS `std::env::var("USER")` UNTIL
+  // AC-11.3 CAUGHT IT.** The shipped surface reads exactly one environment
+  // variable, and the guard is protecting precisely this command: AC-07.1's
+  // case is *a brew-installed binary meeting a machine with no clone and no
+  // developer environment*, so reaching for a developer's `$USER` inside the
+  // one verb that must work there is the wrong read in the wrong place.
+  // Nothing would ever have failed here -- every machine in this estate has
+  // `USER` set, which is what makes the guard worth more than the test run.
+  //
+  // **THE ENV READ BELONGS IN `bootstrap`, AND v2 ALREADY PUTS IT THERE.**
+  // `bin/intent_bootstrap:126` writes `"author": "${USER}"` into the GLOBAL
+  // config -- once, at developer-environment setup, which is what bootstrap
+  // is. `init` should read that file. In this build `bootstrap` answers 2, so
+  // there is no global config to read, and inventing one here would be a
+  // second home for an identity that already has a declared one.
+  //
+  // So the project is created with the author unset and the operator is told,
+  // which is a true statement they can act on in one edit.
+  let author = "unknown";
+
+  let made = intentsvcs::init::init(&cwd, &name, &author, env!("CARGO_PKG_VERSION"))
+    .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
+
+  println!("created: {} at {}", made.project_name, made.root.display());
+  println!(
+    "  author is unset -- `bootstrap` owns that identity and is not implemented yet; set it in {}",
+    made
+      .config
+      .strip_prefix(&made.root)
+      .unwrap_or(&made.config)
+      .display()
+  );
+  println!("  {}", made.config.display());
+  for p in &made.written {
+    println!("  {}", p.strip_prefix(&made.root).unwrap_or(p).display());
+  }
+  // **THE SKIPPED SET IS PRINTED, because a short file list is otherwise
+  // indistinguishable from a truncated one.** Each line is a decision with a
+  // reason, which is the difference between "init wrote four files" and "init
+  // wrote four of fourteen and you cannot tell which ten are missing".
+  if !made.skipped.is_empty() {
+    println!(
+      "  ({} embedded template(s) deliberately not written -- run with --help for the family notes)",
+      made.skipped.len()
+    );
+  }
+  Ok(())
+}
+
 fn export(a: &ArgMatches) -> Result<(), Failure> {
   // `mut` because `md` REALISES rather than emits (AC-06.3): its artefact is a
   // directory tree, and writing one mints a database stamp. The binding says
@@ -2711,6 +2863,37 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
 /// into v2's two lines exactly: `ok: issue 0021 -> CLOSED` and `ok: issue 0021
 /// already CLOSED`.
 fn reported(outcome: &Outcome, subject: &str, moved: &str) {
+  // **THE NOTES ARE PRINTED HERE, AND THAT PLACEMENT IS WHAT MAKES THEM
+  // UNDROPPABLE.** Adding an `Outcome` variant would not have forced the
+  // nineteen arms to handle it -- they all ask `Outcome::already`, a method,
+  // which absorbs a new variant in silence. What actually prevents a dropped
+  // note is that every arm reports through this one function, so a verb that
+  // grows something to say gets it printed without its arm being touched.
+  //
+  // **STDERR, AND THE SHAPE IS THE ONE `sync` ALREADY USES** -- `warning:` with
+  // the paths indented for a real finding, `note:` for a question that could not
+  // be asked. Two prefixes rather than one because "nothing is uncommitted" and
+  // "I could not look" are what an operator most needs to tell apart, and INV-01
+  // governs the `ok:`/`error:` result line on stdout rather than this.
+  for note in outcome.notes() {
+    match note {
+      Note::UnsyncedAttachments(paths) => {
+        eprintln!(
+          "warning: {} attachment(s) carry bytes no commit contains, and closing this leaves them for the next `organize` to remove:",
+          paths.len()
+        );
+        for path in paths {
+          eprintln!("  {path}");
+        }
+        eprintln!(
+          "  remedy: `intent sync --to-store {subject}` takes the disk copy into the store -- an attachment is authored ON DISK, so a divergence means the store is stale"
+        );
+      }
+      Note::UnsyncedUnknown => eprintln!(
+        "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
+      ),
+    }
+  }
   match outcome.already() {
     None => println!("ok: {subject} {moved}"),
     Some(state) => println!("ok: {subject} already {state}"),
