@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 17:21Z
+heartbeat_at: 2026-08-20 17:33Z
 status: active
-focus: "**FOLD 9, END OF DAY, hv's sequence via vc. WP-10 IS SEVEN GREEN ROWS AND TWO CLOSED CRITERIA -- AC-10.3 and AC-10.15 took `ac status` 57 -> 59.** **THE DAY'S FINDING: A ROW CAN PROMISE MORE THAN IT DELIVERS IN FOUR SHAPES, AND ONLY THREE LEAVE A TRACE.** AC-10.8 not started, deliberately not rushed. Quiet and reachable for vc's suite; `native/**` failures come to me."
+focus: "**FOLD 9, END OF DAY, hv's sequence via vc. WP-10 IS SEVEN GREEN ROWS; AC-10.3 and AC-10.15 CLOSED.** **THE DAY'S FINDING: A ROW CAN PROMISE MORE THAN IT DELIVERS IN FOUR SHAPES, AND ONLY THREE LEAVE A TRACE.** AC-10.8 not started, deliberately not rushed. **The gate COUNT is not mine to quote** -- `intent ac status` computes it, vc reads it, and the 57 -> 59 I used to carry came from a pre-correction number. Quiet and reachable for vc's suite; `native/**` failures come to me. **COMPACTED 17:32Z on matts' order -- still reachable, but this session READS the board rather than remembers the day, which is what fold 9 was for.**"
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
