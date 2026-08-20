@@ -50,37 +50,10 @@ mod common;
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use common::{Fixture, facade_ctx};
+use common::{Fixture, facade_ctx, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::finding::Finding;
 use intentsvcs::legacy;
-
-/// A v2.19.0 estate: the config v2 wrote, and threads in the shape v2 left on
-/// disk (`info.md`, no `thread.json`).
-///
-/// **The config overwrite is `close_gate_parity.rs`'s recipe, not a new one.**
-/// `Fixture::new` declares 3.0.0 because almost every other test wants a v3
-/// project; the migrator is the transition itself, so the declared version has
-/// to be a v2 one or the most important assertion here passes without the code
-/// doing anything.
-fn v2_estate() -> Fixture {
-  let fx = Fixture::new();
-  fx.write_file(
-    "intent/.config/config.json",
-    "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
-  );
-  fx
-}
-
-/// A v2 steel thread, written the way v2.19 writes one.
-fn v2_thread(fx: &Fixture, id: &str, status: &str) {
-  fx.write_file(
-    &format!("intent/st/{id}/info.md"),
-    &format!(
-      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
-    ),
-  );
-}
 
 /// A v2 work package carrying git conflict markers. Returns the 1-based line
 /// the first marker is on.

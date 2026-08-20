@@ -545,3 +545,39 @@ pub fn gate_open() -> Thread {
     },
   )])
 }
+
+/// Turn this fixture into a **v2.19.0 estate**: the config v2 wrote, over the
+/// directory layout v2 left behind.
+///
+/// **`Fixture::new` declares 3.0.0 because almost every test wants a v3
+/// project. The migrator is the transition itself**, so its fixtures must
+/// declare a v2 version or the most important assertion in a migration test
+/// passes without the code doing anything.
+///
+/// **Lifted here rather than copied a tenth time.** A sweep on 2026-08-20 found
+/// this estate hand-writing the same v2 `config.json` literal in at least six
+/// places and standing up a v2 thread in at least nine, across both crates:
+/// `close_gate_parity`, `legacy_document_conservation`, `legacy_scope_carry`,
+/// `retired_st_prefix`, `unmigrated_project`, `issue_estate` here, and
+/// `upgrade_command`, `ingest_command`, `unmigrated_surface`, `info_exit_code`,
+/// `retired_commands` in `intent-cli`. **Consolidating those is not this
+/// commit's job and they are left alone**; what this closes is the next copy.
+pub fn v2_estate() -> Fixture {
+  let fx = Fixture::new();
+  fx.write_file(
+    "intent/.config/config.json",
+    "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
+  );
+  fx
+}
+
+/// A v2 steel thread, written the way v2.19 writes one: `info.md` with
+/// frontmatter and no `thread.json`.
+pub fn v2_thread(fx: &Fixture, id: &str, status: &str) {
+  fx.write_file(
+    &format!("intent/st/{id}/info.md"),
+    &format!(
+      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
+    ),
+  );
+}
