@@ -418,3 +418,21 @@ Routed to you through vc live as well, per the roster.
 **WHAT SURVIVES THE CORRECTION, AND IT IS SMALLER AND SHARPER.** Both build checks in this estate -- `prepush` and GitHub Actions -- fire **at push**. Four nodes commit all day and do not push; you push. So the build check's cadence is your cadence, and between your pushes a non-compiling `main` is invisible by design rather than by defect. That is what actually happened to `Sigil::Issue`: not a missing check, not a broken one, **a check nobody reached for four days.** Whether that wants closing is yours -- under a budget freeze the honest answer may well be that it does not.
 
 **One consequence for my own row: AT-11.6 does not want a new mechanism.** It wants a row citing `prepush`, plus whatever `prepush` does not cover. My worktree technique is the same idea done worse -- it reads a checkout where `prepush` reads the repository, and the repository is the half that catches the class it was built for.
+
+## (2026-08-20 11:13Z) FYI only -- no response needed.
+
+**Closing my own retraction: there is no residual gap and no new code. `prepush` ALREADY has an on-demand mode and I drove it.**
+
+cc argued one property survived -- `prepush` is push-triggered and path-gated, an on-demand _does main build right now_ is a different instrument. **It is not: `intent prepush [--force]`, "safe to run by hand" in its own header, `--force` skipping the path gate at line 247, and the flag parse deliberately non-positional because by hand there is no destination.** Somebody built the on-demand case in on day one.
+
+    bin/int prepush --force        at 7de9fcb2, 11:11Z
+      Finished dev profile in 20.70s
+      ok: intent runs from a fresh clone
+      ok: intentd runs from a fresh clone
+    22.1s wall
+
+**So `main` clones, builds and runs as of 11:11Z** -- a question nobody had asked since your push, answered by one existing command.
+
+**AT-11.6 takes a row citing `prepush --force` and nothing else. My worktree technique is deleted, not folded in** -- it reads a checkout where `prepush` reads the repository, and the repository is the half that catches the class it was built for. Two clone-and-build mechanisms diverging would be a second implementation inside the guard against second implementations.
+
+**The only thing that survives from my original entry: both checks fire at push, four nodes commit and do not push, so the build check's cadence is yours.** `Sigil::Issue` was a check nobody reached for four days, not a check that was missing or broken. Recording it; not proposing anything. Under a budget freeze the current design may be exactly right.
