@@ -412,9 +412,11 @@
     {
       "id": "AC-03.11",
       "text": "**A COLD START RESTORES THE EVENT LOG, and a log that is missing or unreadable is REPORTED rather than read as \"this project has no history\".** (vc 2026-08-16, on cc's defect at `a7aa0b9e`, which is fixed -- this criterion exists because nothing in the contract asked for the property.) **`ingest::resync` rebuilt seven tables from the extract and skipped the eighth.** Every other table is derived, so omitting one is recoverable; **`event_log` is derived from nothing (D34), so omitting it loses the data outright** -- the fact AC-03.9's ruling already names and no criterion required. **The reach was the whole cold-store path**: `load_fresh` warms an empty store through `resync`, and **an empty store is the normal state of every fresh clone**, because `intent/.cache/` is gitignored. So a clone answered every question correctly and had no history at all until somebody happened to run the explicit `intent sync --to-store`. **The second half is not a nicety and it is why this is one criterion rather than two: a missing log is INDISTINGUISHABLE from a project that has never recorded anything**, so the silent-success path is the default one and `IN-AG-NO-SILENT-001` is not satisfied by the restore alone. **Severity is set by hv's migration goal rather than by the bug**: every fleet member arrives at v3 as a fresh clone, so the cold path is the FIRST path a migrated project takes, not an edge case. **Contract-coverage finding worth recording beside the criterion, because it is the second one today: this defect and dc's 0038 both lived in territory no AC covered** -- the cold-store restore here, `.git/hooks` there -- and both were found by a node measuring something else. **The tests that mention `event_log` (AT-02.8, AT-04.5) were green before the defect and green after it**, so they were never wrong and never sensitive; the guard that caught it was a NEW test written for unrelated work.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "hv ruling D53, 2026-08-20: `intent/events.jsonl` is deleted and the event log lives in the store alone, so this criterion's subject is gone in both halves. There is no cold-start RESTORE because there is nothing on disk to restore from, and no MISSING-log report because a store with no history is now the ordinary state of a fresh clone rather than a defect. **THE COST THIS CRITERION EXISTED TO PREVENT IS NOW THE ACCEPTED COST**, stated in D53 and asserted in `openness.rs`: a clone arrives with no history, and that is the price hv took for deleting the tracked extract. WITHDRAWN RATHER THAN SATISFIED -- the restore path was real and worked, and it was removed rather than proved. Its replacement surface is AC-09.3, `intent events`, which reads the one home the log has.",
+        "by": "hv (matts), 2026-08-20"
       }
     },
     {
@@ -1506,13 +1508,13 @@
     },
     {
       "id": "AT-03.12",
-      "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/cold_start_history.rs",
+      "kind": "non-test",
+      "prose": "the criterion is withdrawn under D53; `cold_start_history.rs` is deleted because all three of its legs -- the projection writing the file, the file, and the restore refusing a damaged line -- no longer exist",
       "covers": [
         "AC-03.11"
       ],
-      "status": "green",
-      "note": "**the discriminating case is a test that populates a store, calls `resync`, and checks the log survived -- which passes on the defect, because the defect is in the path that warms an EMPTY store.** Start from no store at all: delete `intent/.cache/`, let `load_fresh` warm it through `resync` from the committed extract alone, and assert the event log is non-empty and matches the extract. **`todo_watermark.rs` caught this defect as a side effect of unrelated work; a test that only reproduces that route would re-verify the fix rather than the property.** Second arm, and it is the half the restore alone does not give: **assert that a MISSING or unreadable log is REPORTED.** Remove `events.jsonl` from an otherwise-valid extract and require a named failure -- **the silent path is the default one here, because an absent log and a project with no history produce byte-identical output**, which is why the criterion carries both halves. **Third arm: assert on the FRESH-CLONE shape specifically, not a hand-emptied store** -- `intent/.cache/` is gitignored, so the real precondition is a `git clone` with no cache directory, and a test that creates an empty store by other means is testing its own fixture. **Deliberately NOT satisfied by AT-02.8 or AT-04.5**: both mention `event_log`, both were green before this defect and after it, and neither is sensitive to it -- naming them as coverage is the OR-not-AND trap issue 0032 already records. **THE TWO HALVES ARE SEPARATELY UNSATISFYING AND THE ROW NEEDS BOTH: (i) render the field, cc's and small; (ii) the event log is WRITE-ONLY from the CLI, which is a verb and a design question and may want hv.**"
+      "status": "n-a",
+      "note": "**REMOVED WITH ITS SUBJECT 2026-08-20, NOT ABANDONED.** The file proved a real defect and proved it well: `resync` rebuilt seven tables and skipped the eighth, so every fresh clone answered correctly and had no history at all. **Its fixture discipline is the part worth carrying forward** -- the obvious version of that test passes on the defect, because a store that already holds its events survives a `resync` whether or not the cold path restores anything, so the fixture had to be a project that never had a database rather than one whose database was removed. That distinction outlives this row and should be reached for the next time a cold-start claim is tested."
     },
     {
       "id": "AT-03.13",
