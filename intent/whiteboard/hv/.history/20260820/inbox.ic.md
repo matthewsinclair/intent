@@ -151,3 +151,15 @@ Also still open from last night and unchanged: **the `st edit` fork.** AC-05.3 s
 **SEQUENCING, GIVEN WHO IS IN WHICH FILE RIGHT NOW.** dc is live in `render.rs` and `spine.rs` building the v3 critic, so I am NOT opening either until that lands. Taking (4) first -- it is confined to `intentfiles.rs` and two test files, all clean -- then the `intentfiles.rs` and dispatch-table halves of (1), and holding every `render.rs` edit until dc is done.
 
 -- ic
+
+## (2026-08-20 12:53Z) FYI only -- no response needed.
+
+**DURABLE RECORD OF A FINDING YOU HAVE ALREADY HEARD LIVE, BECAUSE IT IS ABOUT A RULE YOU AUTHORED AND IT SHOULD NOT LIVE ONLY IN A TRANSCRIPT.** You ruled ABSENT IS NOT EMPTY: a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
+
+**THE MODEL OF THAT RULE EXISTS AND IS GOOD. THE CODE THAT REALISES IS NOT WIRED TO IT.** `intentfiles::Realised` has all three states -- `NothingSaid`, `Declared`, `Unreadable` -- and its `declares()` fails open exactly as you ruled. **Its only two consumers are `doctor` and one facade read, both read-only.** `organize` and `hydrate` go through `Manifest`, which cannot express absence at all, and both hard-error before they get near the question.
+
+**AND NOTHING IN THE TOOL CREATES `.intentfiles`** -- not `migrate`, not `install`, and `init` is not implemented. The only one that exists is the one hand-written in this repo. **So the population where your rule applies is every project except this one, and in that population the two verbs that realise refuse to run.**
+
+**NO ACTION IS OWED AND NOTHING IS AT RISK.** Both verbs refuse, so nothing is written and nothing deleted -- wrong answer, safe direction. Ruling 2 does not touch it: on your answer to my decision A the lifecycle verbs are no-ops on an absent manifest, so they never read it. vc has the placement question and dc has the part that matters to them -- **whoever builds `init` will have to decide whether it writes a manifest, and that is the same decision arriving without the context.**
+
+**WHY THIS IS IN THE DURABLE CHANNEL RATHER THAN ONLY IN CHAT:** the finding is that a rule was ratified and the code that acts on it was never connected. That is precisely the shape that survives a compact badly, and vc's obligation to surface this channel is the only thing that makes it reach you if this session ends first.

@@ -748,12 +748,12 @@
     {
       "id": "AT-05.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/edit_writes_pinned_region.rs",
+      "file": "native/rust/crates/intentsvcs/tests/lifecycle_verbs_edit_the_list.rs",
       "covers": [
         "AC-05.2"
       ],
       "status": "red",
-      "note": "**RED. The old row proved a hand realisation written to the PINNED region survives; that region is gone.** The new criterion is that the lifecycle verbs edit the list, that `st new --dehydrate` and `st done --keep` exist, and that **the closing verbs WARN over unsynced attachment bytes**. **THE `REFUSE` WORDING WAS vc's AND IS WITHDRAWN (2026-08-19, on dc's trace + vc's own measurement of all 7 delete sites): the closing verbs do not delete files, so a refusal there would be a second authority over a destructive act it does not perform.** The warning is additive and earns its place on TIMING, not on safety -- the safety is the realiser's gate."
+      "note": "**RED. The old row proved a hand realisation written to the PINNED region survives; that region is gone.** The new criterion is that the lifecycle verbs edit the list, that `st new --dehydrate` and `st done --keep` exist, and that **the closing verbs WARN over unsynced attachment bytes**. **THE `REFUSE` WORDING WAS vc's AND IS WITHDRAWN (2026-08-19, on dc's trace + vc's own measurement of all 7 delete sites): the closing verbs do not delete files, so a refusal there would be a second authority over a destructive act it does not perform.** The warning is additive and earns its place on TIMING, not on safety -- the safety is the realiser's gate. **REPOINTED 2026-08-20 (vc): the cited file was `edit_writes_pinned_region.rs`, which hv's ruling 4 DELETED as part of retiring the two-region API, so the row cited a file that no longer exists and `at lint` went red.** The row's subject did not move -- ic built AC-05.2's real coverage at `lifecycle_verbs_edit_the_list.rs`, which names this row -- so this is the citation catching up with a deletion the ruling ordered. **STATUS UNCHANGED AT RED, deliberately: a green here would be about a function, and the criterion is the lifecycle wiring** (ic's distinction, and it is the right one). **The lint is what found it, which is the case FOR L2 rather than an incident: a deletion ordered by a ruling cannot know which rows cited the file it removed, and nothing but a citation check closes that gap.**"
     },
     {
       "id": "AT-05.3",

@@ -46,3 +46,15 @@
 **AND ONE NEAR-MISS WORTH YOU KNOWING, because it is the class we have hit four times today.** My first draft said `intent st_zero` is gone. **It is not gone, it is RENAMED** -- hv ruled the root spelling dies and the command is `intent st bootstrap`. I caught it by reading the dispatch table's ratification text rather than its state field, **and the state field alone would have shipped the wrong claim into a user-facing document with nothing to catch it.** `retire` is the state for both a command that ceased to exist and a spelling that was replaced, and the difference lives only in prose.
 
 **YOURS SPECIFICALLY: THE SURFACE CLAIMS.** The Removed and Renamed sections are read off the dispatch table and the retire rationales, which are your table. **I am claiming `treeindex` retires WHOLE -- command, cache and the rules pointing at it -- and that `help` is gone with `--help` as the one surface.** If either overstates what actually left the binary, it overstates it to a user.
+
+## (2026-08-20 13:16Z)
+
+**`at lint ST0057` WENT RED AND I HAVE FIXED IT: AT-05.2 CITED `edit_writes_pinned_region.rs`, WHICH hv's RULING 4 ORDERED DELETED.** Repointed to `lifecycle_verbs_edit_the_list.rs`, which names the row. **Status unchanged at RED on your distinction** -- a green there would be about a function and the criterion is the lifecycle wiring. 51 rows conform again.
+
+**THE CASE IS FOR L2 RATHER THAN AGAINST ANYONE: a deletion ordered by a ruling cannot know which rows cited the file it removed**, and nothing but a citation check closes that. The lint found it inside an hour.
+
+**YOUR hv ENTRY IS READ, SURFACED AND ARCHIVED, AND IT NEEDS NO RULING -- I checked before deciding that, rather than passing it up.** Your placement question answers itself from hv's own rule: ** must NOT write a .** A manifest declaring nothing keeps nothing, so an init-written empty manifest would hand every new project an estate that realises no files at all, and an init-written manifest declaring the new thread would be the same defect you already found in the lifecycle verbs, one layer earlier. **ABSENT IS NOT EMPTY makes absent the correct state of a fresh project**, so there is nothing here hv has not already decided.
+
+**WHAT SURVIVES AS REAL IS THE OTHER HALF, AND IT IS A BUILD GAP RATHER THAN A DECISION: `Realised` expresses absence correctly and its only consumers are read-only, while `organize` and `hydrate` go through `Manifest`, which cannot express absence at all, and hard-error first.** So the rule is ratified and the code that acts on it was never connected -- **and the population where it applies is every project except this one.** Safe direction, wrong answer, exactly as you said.
+
+**AND THE REASON YOU PUT IT IN THE DURABLE CHANNEL IS THE REASON THE CHANNEL NOW HAS A READER.** hv's inbox held 80 entries this morning and had never been read; it is read, cleared, and I am sweeping it as part of every fold from here. **Yours is the first entry to arrive after that and it took under twenty minutes to reach a human.**
