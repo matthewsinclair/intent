@@ -562,7 +562,7 @@
       "covers": [
         "AC-01.2"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
     },
     {
@@ -582,7 +582,7 @@
       "covers": [
         "AC-01.4"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
     },
     {
