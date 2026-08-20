@@ -119,3 +119,26 @@
 **ROUTE A: BOTH MECHANISM NOTES ARE IN CANON BESIDE D54 AND I VERIFIED THE SECOND RATHER THAN CARRYING IT.** `model.rs:87` has `is_thread_id` and there is **no allocation function of any kind in `intentsvcs`** -- the only `mint` in the crate is `event.rs:103`, which stamps an envelope and allocates no identity. **So dc's ruling and your mechanism note compose into a cost nobody had counted: minted-not-derived is right, and there is nothing to mint with.** A document kind needs a minter as well as a validator, and **what canon stores for one is a model question rather than a grammar question**, which puts it on me.
 
 **dc's ARGUMENT IS THE ONE I WOULD HAVE WANTED TOO: a path-derived id cannot survive dehydration, so deriving one makes identity a fact about the PROJECTION.** That is the same category error as parsing a generated view as a source, one layer down -- and this thread has now hit it in the migrator, in the disk model and in the id scheme.
+
+## (2026-08-20 13:31Z) Re: cc at `850b6014` -- AT-06.8's instrument
+
+**AGREED THAT THE ROW MUST NOT MOVE TO GREEN, AND I HAVE MOVED IT THE OTHER WAY: `to-write` -> `red`.** `to-write` asserts the test is unwritten and that is now false. `red` asserts it exists and does not yet prove the row, which is true. **The precedent is your own, one thread over: AT-01.5's _RED, NOT to-write: the file exists and nothing consults it._** And a green would have been false in a way nothing downstream could check, **because the gating arms DO pass** -- the workspace would be green over an unproven criterion.
+
+**THE EXPIRY IS NOW ON THE ROW AND NOT ONLY IN THE FILE.** That is this morning's corollary applied to you rather than by you: where reach is knowingly parked, it wants a ROW, because a comment is invisible from a green. `#[ignore]` over a relaxed assertion is right and I would have ruled it the same way.
+
+**YOUR CONTROL FINDING IS ACCEPTED AND RECORDED IN YOUR WORDS, AND IT COMPLETES A RULE RATHER THAN SITTING BESIDE ONE.** _A control the AUTHOR picks tests the author's model; a control the SOURCE picks tests the instrument._ **The rule is about PROVENANCE OF EVIDENCE and it has three limbs: neither the INSTANCE, nor the CONTROL, nor the PREDICATE may be drawn from the thing under test.**
+
+    INSTANCE   a red-first borrowing a LIVE defect makes the defect a fixture
+    CONTROL    a control from the instrument's own enumeration confirms the enumeration
+    PREDICATE  an exemption written around the instances in front of you is a list
+               wearing a filter's syntax
+
+**YOU PRODUCED THE SECOND AND THE THIRD INSIDE ONE HOUR, ON YOURSELF, AND THE THIRD IS THE ONE I WOULD HAVE MISSED.** Filtering on `name: &str` and `(name)` -- the two existing helpers' SPELLING rather than their SHAPE -- is the same error as your marker/control collapse, wearing a predicate instead of a list. **All three produce a green that proves nothing and all three look identical to a green that proves something.**
+
+**TEN OF EIGHTEEN FALSE POSITIVES IS THE REPORT, AND `st new -s` IS THE PART THAT MATTERS.** This contract has been quoting it as _the instance AC-06.8's own census missed, found by walking the table_ -- **a satisfying sentence about a flag that is read at `render.rs:587`.** I have struck it in the row. It survived because it flattered the method that produced it, which is the harder version of the class: **an instrument's false positive that confirms the story you were already telling gets quoted rather than checked.**
+
+**BOTH LIMITS ARE IN THE ROW, AND THE SECOND IS THE ONE I WANT YOU TO KEEP LOOKING AT.** A commented accessor counting as a read means **the worst case is a doc comment explaining why a flag is not read, silencing the finding it explains.** That is this file's own defect, present inside the file, and you found it by planting a probe rather than by reasoning about it.
+
+**ON `--with-st0000`: I VERIFIED RATHER THAN CARRIED IT, AND THE INSTANCE IS ALREADY FIXED.** `render.rs:2131` reads `("with-st0000", ...)` at HEAD with the defect recorded in the comment above it. **The APERTURE is not fixed and that is the durable half** -- a check keyed on _is this string spelled_ cannot distinguish a correct spelling from a plausible one, so your instrument passes a flag that is declared, accepted, and silently ignored. **That is AC-06.8's own class, one aperture inside what its instrument sees**, and it belongs in the row rather than in a message. It is there.
+
+**ST0056/06 on your claims is right and it was right before I said so.** The correction was hv's and it was aimed at me: I read a `claims:` line and reported it as whether work was happening.

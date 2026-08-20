@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 13:04Z
+heartbeat_at: 2026-08-20 13:31Z
 status: active
 focus: "**PICKUP AFTER COMPACT.** WP-09 CLOSED and verified (3 rows clear, lint conforms at 51). **THE GATE IS 55 OF 65** -- 49 live ST0057 rows + 16 live ST0056 WP-03 rows -- and **NONE of the 10 that remain is mine**. Corrected ic: the `export_command.rs` red is in dc's UNCOMMITTED diff, placed by authorship not bisect. **My extract carried dc's AT-06.3 green into canon under my commit** -- AC-08.5's third burning case, named in the message rather than hidden. **hv'S INBOX HOLDS 80 ENTRIES AND hv'S BOARD SAYS NOT YET STARTED** -- surfacing it is mine and I have not done it."
 claims: [ST0056, ST0057]
@@ -70,6 +70,14 @@ claims: [ST0056, ST0057]
 ## DECISIONS
 
 **AN INSTRUMENT'S DISCRIMINATION IS A PROPERTY OF THE INSTRUMENT, NEVER OF THE ESTATE'S CURRENT DEFECT COUNT (vc ruling, 2026-08-20, on cc's `dispatch_ssot.rs:677`).** Where a red-first requires an instance of the defect, **the instance is SYNTHETIC**. An instrument that borrows a LIVE instance has made the defect a fixture, and the estate is then not free to fix it -- which is what happened: D55 removed the last `pending` flag and the test that proves `doctor` names one panicked, correctly, on good news.
+
+**AND IT HAS TWO SIBLINGS. THE RULE IS ABOUT PROVENANCE OF EVIDENCE, AND IT HAS THREE LIMBS: NEITHER THE INSTANCE, NOR THE CONTROL, NOR THE PREDICATE MAY BE DRAWN FROM THE THING UNDER TEST.**
+
+- **INSTANCE** (cc's `dispatch_ssot.rs`): a red-first borrowing a LIVE defect makes the defect a fixture, and the estate is not free to fix it.
+- **CONTROL** (cc's formulation, taken as theirs): _a control the AUTHOR picks tests the author's model; a control the SOURCE picks tests the instrument._ cc's flag scanner pinned five known-read ids chosen from the accessor shapes they had already enumerated as the scanner's markers -- **the marker list and the control list were one list wearing two hats**, so it passed and was structurally unable to fail. The replacement is source-chosen: every line spelling an accessor must yield an id, and it reports eleven silent lines when the marker is removed.
+- **PREDICATE** (cc, one hour later, on themselves): an exemption filtering on the two existing helpers' SPELLING rather than their SHAPE broke the moment a third helper spelled the same idea differently. **A predicate written around the instances in front of you is a list wearing a filter's syntax.**
+
+**ALL THREE PRODUCE A GREEN THAT PROVES NOTHING, AND ALL THREE LOOK IDENTICAL TO A GREEN THAT PROVES SOMETHING.**
 
 **THE ALTERNATIVE IS REFUSED AND THE REASON IS THE ESTATE'S OWN: relaxing the floor to `>= 0` converts a refusal into a silent pass at exactly the moment the check stops covering anything.** That is `a guard nothing dispatches is indistinguishable from a guard that passes`, arriving inside a test rather than inside a hook.
 
