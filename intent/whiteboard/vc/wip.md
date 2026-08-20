@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 12:03Z
+heartbeat_at: 2026-08-20 12:17Z
 status: active
-focus: "**FOLDED FOR COMPACT (2nd today). Status stays ACTIVE.** D53 SHIPPED END TO END -- the event log left the working tree, `intent events` replaced it, and the contract behind it moved with it (AC-09.2 withdrawn, AC-09.3 minted green, AC-03.11 withdrawn, AC-02.6 gained an ON DEMAND form). WP-09 closed at 4 of 4. Also: AC-00.9 extended for the payload surfaces, AC-07.4's false clause corrected, AC-05.2's dead ISSUE clause cleared, and hv's md fork ruled. **910 pass 0 fail, rustfmt clean, hooks tracked at `.githooks`, worktrees 9 -> 1, both remotes current.** Next: ic's five arbitration items and dc's three."
+focus: "**PICKUP AFTER COMPACT.** WP-09 CLOSED and verified (3 rows clear, lint conforms at 51). **THE GATE IS 55 OF 65** -- 49 live ST0057 rows + 16 live ST0056 WP-03 rows -- and **NONE of the 10 that remain is mine**. Corrected ic: the `export_command.rs` red is in dc's UNCOMMITTED diff, placed by authorship not bisect. **My extract carried dc's AT-06.3 green into canon under my commit** -- AC-08.5's third burning case, named in the message rather than hidden. **hv'S INBOX HOLDS 80 ENTRIES AND hv'S BOARD SAYS NOT YET STARTED** -- surfacing it is mine and I have not done it."
 claims: [ST0056, ST0057]
 ---
 
