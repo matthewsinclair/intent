@@ -69,29 +69,24 @@ done
 # ---------------------------------------------------------------------------
 # FROZEN REMOTES -- refuse a push to a remote the hypervisor has closed.
 #
-# hv, 2026-08-16: "no more pushes to upstream. The CI/CD budget has been hit.
-# Local pushes are fine." Every push to `upstream` (GitHub) triggers the rust
-# and test workflows, so the habit this estate has drilled into all four nodes
-# -- push both remotes, always -- now spends money on every commit.
+# LIFTED 2026-08-20 by hv, and the list is empty. The freeze existed from
+# 2026-08-16 because every push to `upstream` triggers the GitHub workflows and
+# the CI/CD budget had been hit. hv, lifting it: "All I wanted was to not push
+# to upstream so as not to trigger a CI/CD run given the GitHub budget was
+# exhausted. It doesn't matter now, as the runs just failed immediately."
 #
-# WHY THIS IS A GATE AND NOT A NOTE ON FOUR BOARDS. It is already a note on four
-# boards, it is in `/in-finish`, and I announced it to three peers myself. **A
-# withdrawn instruction that reads exactly like the one you have been obeying is
-# the kind that keeps getting obeyed** -- the recall has to be louder than the
-# muscle memory, and only a refusal is. My own board: a control refuses,
-# documentation reminds, and only one of those is load-bearing.
+# The mechanism stays because `int build release` consumes `--list-frozen` and
+# an empty list is the correct answer to "what is frozen". Add a remote name
+# here to close one again; that is the whole interface.
 #
-# TO LIFT IT: delete the remote from FROZEN_REMOTES and commit. That is
-# deliberately a tracked one-line change rather than a config toggle, because
-# "hv lifted the freeze" is a fact that belongs in the history where the freeze
-# itself is.
-#
-# TO PUSH ONCE WITHOUT LIFTING IT: INTENT_ALLOW_FROZEN_PUSH=1 git push upstream main
-#
-# Matched by NAME and by URL, because `git push <url>` and `git push` (resolving
-# a tracking remote) both reach the same place by a different spelling, and a
-# guard that only knows one of them is a guard with a documented way around it.
-FROZEN_REMOTES="upstream"
+# ONE NOTE FROM hv WORTH KEEPING, because it is about this file rather than
+# about the freeze: "I don't know why we have this formal/technical freeze like
+# that. All I wanted was to not push to upstream." The intent was one sentence
+# and it acquired a gate, a URL matcher, an escape hatch, a second consumer and
+# forty lines of reasoning. Matching by URL as well as by name was load-bearing;
+# the rest was a simple instruction growing a mechanism around itself. Worth
+# reading before the next control gets built here.
+FROZEN_REMOTES=""
 
 # DECLARED ONCE, CONSUMED TWICE -- the same arrangement `precommit --list-guards`
 # uses, and for the same reason. `int build release` pushes to every remote and
