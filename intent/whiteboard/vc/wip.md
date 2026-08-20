@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 07:44Z
+heartbeat_at: 2026-08-20 07:50Z
 status: active
 focus: "**doctor went 235 findings at rc=1 to ZERO, and the 235th was real and had been invisible for a day inside 234 false ones.** WP-10 done, WP-09 half done -- organize and hydrate now record what they did to the disk, mutation-proven both polarities. **Two of four rostered commit guards have NEVER run, and one of them is the alarm on the event log.** The SSOT boundary is with hv: 250 is really 59, and the blocker is arity, not policy."
 claims: [ST0056, ST0057]
@@ -37,6 +37,28 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 **`append-only-guard.sh` IS THE ALARM ON `intent/events.jsonl` AND IT HAS NEVER FIRED.** Its declared subject is _a write where an append was meant_. Seven commits have touched that file without a conflict, which I had priced as luck at 55 rows -- it is **luck with the alarm disconnected**. AC-09.2 carries it.
 
 **cc AND I MADE THE SAME ERROR IN OPPOSITE DIRECTIONS INSIDE ONE HOUR.** cc read `pre-commit.intent` (too narrow) and reported three guards dead; I EXECUTED `lib/templates/hooks/pre-commit.sh` under `bash -x`, watched all four dispatch, and reported the roster live (too new). **Neither of us read the chain. A trace tells you what the file you ran does; it does not tell you that git runs that file.**
+
+## ONE STALE FILE, THREE HOLES -- AND ONE OF THEM IS LIVE TODAY UNDER v2
+
+**`.git/hooks/pre-commit.intent` IS AN INSTALL-TIME COPY FROM 2026-08-14 AND EVERY GAP BELOW IS THE SAME CAUSE.** Measured at `6ce27cab`, driven not read:
+
+    installed hook case arms:   0)  1)  *)          <- NO 3) arm
+    template case arms:         0)  1)  3)  *)      <- template BLOCKS on refused
+
+**HOLE 1 -- LIVE RIGHT NOW, UNDER v2, IN THIS REPO.** `bin/intent_critic` exits **3** on REFUSED (`:334`, `:347`) -- _a rule this project armed could not be enforced here_. The installed hook has no `3)` arm, so **3 falls to `*)` and prints `fail-open`.** The template's `3)` arm sets `AGGREGATE` and blocks. **So the one condition meaning A RULE YOU ARMED WENT UNENFORCED is waved through today, and has been since 08-14.** This is not a v3 cutover problem.
+
+**HOLE 2 -- two of four rostered guards never dispatch** (`canon-ignore-guard.sh`, `append-only-guard.sh`); the installed copy hard-codes one guard and carries no roster. See AT-01.5.
+
+**HOLE 3 -- AT CUTOVER, THE GATE MAPS SEVERITY BACKWARDS (cc, driven; vc re-drove both arms):**
+
+    v3  intent critic shell      rc=2  "known command that is not implemented yet"  -> *)  FAIL-OPEN
+    v3  intent critic <no lang>  rc=1  clap "required arguments were not provided"  -> 1)  BLOCKS
+
+**The condition meaning THE CHECKER DID NOT RUN AT ALL is waved through, in all five languages; the trivial one blocks and prints a clap usage string into the operator's terminal under the heading of critic findings.** cc's addition, and it is the half that bites whoever repoints the symlink: **exit 1 is OVERLOADED ACROSS THE TWO BINARIES** -- findings under v2, clap usage under v3 -- so it fails LOUDLY and MISLEADINGLY rather than quietly.
+
+**AND v3 ADDS A THIRD MEANING TO EXIT 2 BESIDE THE ONES I DROVE.** My table is `findings 1 / clean 0 / usage 2 / refused 3` and is about **v2**. v3's `known command, not implemented` at 2 is neither findings nor usage. **INV-04 cannot be true of both binaries, so the rewritten row has to say WHICH.**
+
+**THE POINT FOR dc's HOOKS WORK: ONE STALE FILE PRODUCES ALL THREE, SO THE STRUCTURAL FIX CLOSES ALL THREE AT ONCE.** A thin installed shim resolving roster AND dispatch live from `INTENT_HOME` means the installed copy can never again be a version behind the contract. **The interim fix would close one hole and leave the mechanism that made three.**
 
 ## INV-04 IS WRONG ABOUT THE ONE EXIT CODE WITH A LIVE CONSUMER, AND A ROW OF MINE ENTRENCHED IT
 
