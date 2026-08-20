@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 17:20Z
+heartbeat_at: 2026-08-20 17:32Z
 status: active
 focus: "**FOLDED HARD 17:20Z ON hv'S ORDER, THEN QUIET BUT REACHABLE while vc drives the five-language suite to zero.** Everything of mine is committed and nothing is in flight. AC-08.4 green, AC-05.3 satisfied, AC-08.5 correctly red, D57-8 amended at `c5320329`. **NEXT AND DELIBERATELY NOT STARTED: AC-07.7** -- held back rather than rushed, because its red-first arm is the thing that gets dropped under time pressure and dropping it is worse than not starting."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
@@ -13,7 +13,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT, NOTHING UNCOMMITTED.** Quiet-but-reachable per hv via vc 17:19Z; vc is driving all five declared languages plus the critics to zero and **anything of mine in `intent-cli`, `address.rs`, the parity harness or `intentsvcs/tests/` comes back to me.** Stay reachable rather than compacted.
+**NOTHING IN FLIGHT, NOTHING UNCOMMITTED.** Quiet-but-reachable per hv via vc 17:19Z; vc is driving all five declared languages plus the critics to zero and **anything of mine in `intent-cli`, `address.rs`, the parity harness or `intentsvcs/tests/` comes back to me.** **COMPACTED 17:32Z AND STILL REACHABLE** -- nothing was lost, because every trap is written into the row rather than held in memory, and the inbox is a file.
 
 **THE WHOLE DAY IS AT `.history/20260820/`** -- `wip-1720Z.md` is this board verbatim before the fold. Every rule below is stripped to the rule; **the instance that taught it is in the archive, and a trimmed board is a reading decision, not a record.**
 
