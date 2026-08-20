@@ -117,8 +117,35 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
        subject is what git DOES with an ignore rule and `intent` has no opinion on that. The only \
        appearance is its own `intent gate:` message prefix on the inherited-breakage report, matching \
        the pre-commit gate it runs under. Its OWN exit codes are 0 clean/not-applicable/inherited-only \
-       and 1 this commit adds a rule reaching `intent/.canon/`; nothing downstream reads them yet, \
-       because nothing consults this guard (ST0057 AC-01.5, unwired pending the roster generalisation).",
+       and 1 this commit adds a rule reaching `intent/.canon/`. **WIRED 2026-08-20** -- it is dispatched \
+       from the delegated roster in `pre-commit-guards.sh`, and its 1 blocks the commit. The clause here \
+       used to read `nothing consults this guard, unwired pending the roster generalisation`, which was \
+       true for the day it was written and silently false afterwards.",
+    ),
+  ),
+  (
+    "hooks/pre-commit-guards.sh",
+    "gate",
+    Policy::Names(
+      "THE ROSTER, and it invokes no `intent` at all -- by construction, because it is reached only \
+       AFTER `pre-commit.sh` has resolved `INTENT_HOME`, and resolving twice would let the two answers \
+       differ. It locates guards as its own siblings and `bash`es them. The only appearance is the \
+       `intent gate:` prefix on its one-guard-missing report. Exit codes are its own: 0 clean or \
+       nothing applicable, 1 at least one guard refused, which `pre-commit.sh` turns into a blocked \
+       commit. **It is READ LIVE out of `INTENT_HOME` and never copied into a project**, which is the \
+       whole reason it is a separate file -- a roster a consumer holds a frozen copy of cannot be \
+       updated by shipping canon, and for six days it was not.",
+    ),
+  ),
+  (
+    "hooks/pre-commit.sh",
+    "claude",
+    Policy::Names(
+      "one `echo` in the no-guard-runner branch telling the operator to update their install and re-run \
+       `intent claude upgrade --apply`. It NEVER invokes it -- a gate that ran the installer would be \
+       rewriting the tree it is gating. Declared because the remedy it names is all-or-nothing: on a \
+       self-hosted v3 tree that same command also regenerates AGENTS.md from 3.0.0 DOWN to 2.19.0, so \
+       the advice is correct for a consumer and is not correct here.",
     ),
   ),
 ];

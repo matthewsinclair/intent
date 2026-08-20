@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 10:36Z
+heartbeat_at: 2026-08-20 10:53Z
 status: active
 focus: "**THE SHIPPED GATE ROSTERED FOUR GUARDS AND THIS REPO RAN ONE.** `canon-ignore-guard.sh` and `append-only-guard.sh` have never run here -- the second was written for a 492-line loss and protected nothing from the day it was written. **Root cause: the ROSTER lived inside the COPIED file** while the guard bodies were read live, and the hook comment claimed the opposite in those words. I wrote that comment. Roster now delegated to `pre-commit-guards.sh`, read live; the copied file names no guard. **AND `intent claude upgrade` COULD NOT SEE IT** -- stale gate and absent gate shared one branch labelled NON-INTENT HOOK PRESENT, which is permanently true here, so six days of standing noise. Now `GATE STALE`."
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -28,35 +28,29 @@ claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 
 ## DOING
 
-**Nothing in flight. `critic` is committed at `5043d0c4` and the tree is clean of my work.**
+**Nothing in flight. Tree clean of my work at `101c0a4d`, 10:48Z.**
 
-Held for the next session, in order:
+### Closed this session
 
-0. **`critic` IS AT PARITY ON THE FINDINGS PATH AND DIVERGES ON EVERY NON-FINDINGS PATH (vc, 09:28Z, zero hops). ONE OF THE THREE POINTS THE WRONG WAY.**
+- **HOOKS 1 + 2 + 3, at `042985c8`, with the positive control at `42148331`.** Canon rostered four guards; this repo ran one. `canon-ignore-guard.sh` and `append-only-guard.sh` had **no dispatch site here at all** -- the second written for a 492-line `.history/` loss on 08-17, protecting nothing since the day it was written, and in neither MODULES.md nor any runner. **Root cause: the guard BODIES were read live from `INTENT_HOME` and the `GUARDS=()` array naming them was not**, and it lived in the file that gets COPIED into `.git/hooks/`. The hook's own comment claimed the opposite in those words; I wrote it, and it was true of the half I was looking at. Roster now lives in `lib/templates/hooks/pre-commit-guards.sh`, read live; the copied file names no guard and holds no roster, checkable with one `grep`.
+- **HOLE 3, FOUND MID-CHANGE AND THE REASON THE OTHER TWO LASTED SIX DAYS.** `intent claude upgrade` put a STALE installed gate and an ABSENT one in one compound `&&`, labelled `NON-INTENT HOOK PRESENT` -- **permanently true of this repo**, so standing noise, and the one run where it also meant "three guards behind" was byte-identical to the rest. The remedy was never missing (`CHAIN_PRE_COMMIT` reinstalls from canon), so one `--apply` would have fixed it any day. **Nothing ever said there was anything to fix.** Now a distinct `GATE STALE`. **Precondition, not scope grab:** the day the shipped hook changes, every consumer is stale by definition and without this branch none of them is told.
+- **THE CONTROL, BECAUSE SILENCE PROVES NOTHING HERE.** Guards that pass print nothing, so a green commit after the change is indistinguishable from the six silent days before it. Removed one line from `dc/.history/20260820/wip.md`, staged, committed: `append-only-guard.sh` **refused**, HEAD did not move, file restored.
+- **TWO PRE-EXISTING REDS FIXED AND NEITHER WAS MINE.** `pre_commit_hook.bats` 16/17 assert `NO whiteboard guard ran`; the hook has **never printed it**, having lost the word "whiteboard" when the roster went per-guard on 08-19. Proven against `git show HEAD:` via `INTENT_HOOK_TEMPLATE` -- 2 red before, 3 after, only the third mine. Two more tests `refute` the same never-emitted string, so those controls were vacuous. 25/25 green. **Third instance in two days of a needle that stopped matching its subject** (`5dbac6fb` was the second).
+- **`bin/int precommit` LOSES ITS HEADER-GUARD CALL**, the precondition that file wrote for its own removal. It was **compensation, not redundancy**: a local workaround for a shipped hole, in the one repository where the hole would otherwise have been noticed.
+- **AC-11.3 CLOSED (ic's red).** `tool_available` no longer reads `$PATH`; it spawns, which also kills the second defect ic found in the same function -- `is_file()` ignores the executable bit, so a non-executable `shellcheck` reported AVAILABLE, a rule counted ASKED that could never be asked. `no_intent_home` 2/2 green at `101c0a4d`.
 
-   | input                            | v2              | v3             | consumer effect                   |
-   | -------------------------------- | --------------- | -------------- | --------------------------------- |
-   | `<lang> --staged --severity-min` | 0               | 0              | the parity claim holds exactly    |
-   | `shell --no-such-flag`           | **2 fail-open** | **1 FINDINGS** | **the gate BLOCKS the commit**    |
-   | `author` / `content`             | 136 bytes       | 0 bytes        | silence cannot say NOT APPLICABLE |
-   | `--languages`                    | 0 + five langs  | 1 + `<LANG>`   | `cmd/check:57` dies (correctly)   |
+### CORRECTION TO MY OWN BOARD, ISSUED TO vc AND ACCEPTED
 
-   **THE BAD-FLAG ROW IS THE DANGEROUS ONE AND IT IS NOT A ONE-TOKEN FIX.** A clap usage error reaches the spine's error mapping, which INV-02 puts at 1 surface-wide -- but ic ruled `critic`'s usage error is genuinely 2, precisely so the gate fails open on the tool's own breakage. **v3 currently blocks a commit because the hook's command line had a typo: issue 0043 rebuilt on the git side, which my own arm's comment names as the thing a gate must never do.** Low likelihood, wrong direction -- and that combination is what survives. **Fix is the spine's clap-error path plus INV-02's `critic` exception, so it is mine and ic's together, not a token.**
+**I wrote that `append-only-guard.sh` "loses its subject" to hv ruling 1. It lost ONE of two.** The guard header names two measured members: `intent/whiteboard/*/.history/**` (492 lines, 08-17) and `intent/events.jsonl` (19 events, 08-19). D53 retires only the second. **`.history/**` is alive, five nodes fold into it daily, and it is the member with the corpse behind it** -- and it is the member the control above proved. vc has taken the contract question.
 
-   **`author`/`content` PRINTING NOTHING IS MINE AND SMALLER:** my clean no-op returns `Ok(())` before any output, so a prose language is indistinguishable from a language that ran and found nothing. v2 says so in 136 bytes. **Silence and a clean bill of health are indistinguishable to a reader** -- `unattached`'s own words, and the same reason vc's B is reported rather than judged.
+### Held, in order
 
-1. **TWO DEFECTS IN WHAT I JUST LANDED, BOTH cc's, BOTH VERIFIED BY ME AT ZERO HOPS ON A BINARY REBUILT AFTER `5043d0c4`.**
-   - **`intent critic --languages` REQUIRES A POSITIONAL LANGUAGE AND v2 DOES NOT.** `v3 critic --languages` -> rc=1 clap _required arguments were not provided: <LANG>_; `v3 critic shell --languages` -> rc=0; `v2 critic --languages` -> rc=0. **You must name a language to ask which languages exist.** **THE CALLER IS REAL AND IT IS ON MY OWN PATH-REPOINT PATH:** `bin/.devbin/lib/cmd/check:57` calls the bare form and `die`s on non-zero -- and the comment four lines above it already names _a v3 binary shadowing v2 on PATH_ as the known trigger, written before the binary existed. **THE FIX SITE cc COULD NOT FIND IS THE TABLE, NOT THE CODE:** the spine derives required-ness from declared arity (`spine.rs:328,416`), and `critic`'s `lang` is `"arity": "1"`. **`required_unless_present` IS NOT EXPRESSIBLE -- no such concept anywhere in the spine, and the table uses only `1` (76), `0..1` (27), `0..n` (3), `1..n` (2).** So it is either arity `0..1` plus my handler's existing missing-language refusal (which returns 2 and would make bare `intent critic` match v2's exit 2 instead of clap's current 1), or a new surface concept. **The one-token option is in ic's SSOT, so it is a proposal rather than my edit.**
-   - **`critic --no-such-flag` EXITS 1 WHERE v2 EXITS 2 -- LATENT, NOT LIVE, AND IT MOVES INTO HOLES 1+2 RATHER THAN AFTER THEM (ic's framing).** The installed hook and the template pass the same four flags today, so nothing reaches that arm; **it becomes reachable on hook/binary flag skew, and this repo is carrying a five-day-stale installed hook right now.** Skew is the normal state here, so the latency is a fact about today rather than a property.
-   - **`spine.rs:137` SAYS `critic` IS NOT IN THIS BUILD YET. False at HEAD, doc-only, my file.** Narrative rather than constraint -- one hit, a doc comment, nothing reads it. **AND IT IS THE SHARP PART: that comment stated the exit contract CORRECTLY (1 findings, 2 invocation error, citing `:89`/`:95` and the gate) while `dispatch-table.json` asserted the reverse in three places.** The right answer was written down in the codebase the whole time and the SSOT contradicted it.
-
-1. **HOLE 2 IS NOW ONE GUARD, NOT TWO -- `append-only-guard.sh` LOSES ITS SUBJECT ON hv's RULING AND IS REMOVED RATHER THAN WIRED.** Confirmed myself before shrinking my own scope: every path token in that file is `intent/events.jsonl` and nothing else, roster line `pre-commit.sh:122`. **BUT ITS HEADER NAMES TWO MEASURED MEMBERS OF THE CLASS AND ONLY ONE IS THE EVENT LOG** -- `intent/whiteboard/<node>/.history/**`, _492 lines destroyed 2026-08-17 by a fold that overwrote the day's archive instead of appending_. **That hazard survives its guard's retirement.** Not proposing to keep the guard (a guard kept for a member it does not name is worse than none); flagged to vc as a contract question so it is decided rather than met at the next fold.
-
-1. **HOOKS, HOLES 1 + 2 -- the structural shim (matts ruled: structural, not interim).** The installed `pre-commit.intent` carries no roster and no guard name; roster AND dispatch resolve live from `INTENT_HOME`; `cmd/precommit` loses its duplicate `G_BOARD` call in the same change. **One five-day-stale install file produces both holes**, and hole 1 -- no `3)` arm, so v2's REFUSED has failed open here since 2026-08-14 -- needs no v3 at all. vc has landed hole 3 and a test asserting `REFUSED -> BLOCKS`, so the arm has cover waiting for it.
-1. **AC-06.3** -- the third `Projection` variant. Canon reword is already in (vc, `07d386cc`); the row's state is mine to move.
-1. **AC-06.4 / `intent init`** -- 23 call sites, `AT-06.4` to-write.
-1. **CLI-level tests for `critic`** -- the module has 18; the command surface has none.
-1. **vc's three-line `render.rs` change** for `doctor`'s `unsynced_events` -- option (1), land it next time I am in that file.
+1. **AC-06.3** -- the third `Projection` variant. Canon reword landed (vc, `07d386cc`); the row's state is mine to move.
+2. **AC-06.4 / `intent init`** -- 23 call sites, `AT-06.4` to-write.
+3. **CLI-level tests for `critic`** -- the module has 18; the command surface has none.
+4. **`author`/`content` PRINT NOTHING WHERE v2 PRINTS 136 BYTES (vc, 09:28Z).** My clean no-op returns `Ok(())` before any output, so a prose language is indistinguishable from one that ran and found nothing. Mine and small.
+5. **`critic --no-such-flag` EXITS 1 WHERE v2 EXITS 2 -- the gate BLOCKS on a typo.** Issue 0043 on the git side. **Not a one-token fix:** the spine's clap-error path plus INV-02's `critic` exception, so mine and ic's together. Latent while hook and binary pass the same flags -- **and this repo carried a six-day-stale hook until today**, so latency was a fact about the day, not a property.
+6. **`--languages` ARITY IS A PROPOSAL TO ic, NOT MY EDIT.** `critic --languages` needs a positional `<LANG>` to ask which languages exist; `bin/.devbin/lib/cmd/check:57` calls the bare form and dies. Fix site is the TABLE (`"arity": "1"` -> `"0..1"`), which is ic's SSOT. `required_unless_present` is not expressible anywhere in the spine.
 
 ## TODO
 
