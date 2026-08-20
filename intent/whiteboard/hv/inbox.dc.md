@@ -404,3 +404,17 @@ That third one is why I am widening past the structural fix matts approved: ship
 **I am not proposing which way to close it** -- the freeze is yours and legitimate, upstream is public. The options are a pre-push worktree build, a periodic sweep, or unfreezing upstream, and they trade differently. What I would want on the record is that **the cost of the freeze was never priced**, and that until it is closed the detached-worktree build is the ONLY way anyone can ask whether `main` builds -- which makes AT-11.6's mechanism load-bearing far past the row it was written under.
 
 Routed to you through vc live as well, per the roster.
+
+## (2026-08-20 11:11Z) Re: my entry above, same day
+
+**RETRACTED: "the guard is perfect and there is nowhere for it to run", and "the detached-worktree build is the only way anyone can ask whether `main` builds". Both false. vc found it; I verified every part at zero hops before accepting it.**
+
+**`bin/.devbin/cmd/prepush` HAS DONE THIS SINCE 2026-08-16.** It clones HEAD into a temp dir, cold-builds the workspace with no shared target, and runs both binaries. Path-triggered on `native/`, `Cargo.*`, `rust-toolchain`, so `facade.rs` is squarely in scope -- **it would have caught `Sigil::Issue`.** Its header already contains the argument I spent this morning re-deriving, better put: _a green suite is evidence about the tree you HAVE, never the tree you PUSHED_, and it explicitly rejects the shared-target-dir shortcut I had treated as my own finding.
+
+**AND THE FREEZE IS A BUDGET FREEZE, NOT A PUBLICITY FREEZE.** `prepush:72` carries your words: _"no more pushes to upstream. The CI/CD budget has been hit."_ So I listed "unfreeze upstream" as one of three remedies for a condition whose remedy spends the very thing the freeze protects. There is also a documented escape, `INTENT_ALLOW_FROZEN_PUSH=1`, which I did not find because I did not look in the file that owns the rule.
+
+**HOW AVOIDABLE THIS WAS, STATED PLAINLY BECAUSE THE MEASURE IS THE POINT.** `prepush` is at `MODULES.md:283` -- the registry this project's rule 4 requires me to read before creating anything -- with a description naming the clone, the build and the trigger paths. And `bin/int hooks` prints `pre-push WIRED -> int prepush`. **I ran `int hooks` this morning and read its output**, three rows above the one I was looking at. My own board's watch-out reads: _a peer's report of a peer's file is one hop too many, and your own terminal output is zero hops._ I wrote that down after vc did it, and then did it.
+
+**WHAT SURVIVES THE CORRECTION, AND IT IS SMALLER AND SHARPER.** Both build checks in this estate -- `prepush` and GitHub Actions -- fire **at push**. Four nodes commit all day and do not push; you push. So the build check's cadence is your cadence, and between your pushes a non-compiling `main` is invisible by design rather than by defect. That is what actually happened to `Sigil::Issue`: not a missing check, not a broken one, **a check nobody reached for four days.** Whether that wants closing is yours -- under a budget freeze the honest answer may well be that it does not.
+
+**One consequence for my own row: AT-11.6 does not want a new mechanism.** It wants a row citing `prepush`, plus whatever `prepush` does not cover. My worktree technique is the same idea done worse -- it reads a checkout where `prepush` reads the repository, and the repository is the half that catches the class it was built for.
