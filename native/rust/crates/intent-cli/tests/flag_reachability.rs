@@ -276,22 +276,20 @@ fn the_scanner_finds_ids_that_are_demonstrably_read() {
 /// the same order. Thirty-six sites yielding twenty-odd ids should have been
 /// the question, and the floor of twenty was set low enough to pass it.
 const INHERITED_UNREAD: &[&str] = &[
-  // **EIGHTEEN BECAME EIGHT ON 2026-08-20, AND SEVENTEEN OF THE TEN REMOVED
-  // WERE NEVER UNREAD** (ic). Adding `flag(` to the markers above revealed
-  // `start`, `markdown`, `write` (x2), `json` (x3) and `apply` as read all
-  // along, and `dehydrate` / `keep` as read since AC-05.2 wired them. **Ten of
-  // eighteen: more than half of this "debt" was an artefact of the instrument.**
+  // **MEASURED AT `a6e336a7`, THE FIRST REVISION IN HOURS THAT BUILDS**, with
+  // `render.rs` and the dispatch table both clean in the working tree so the
+  // measurement equals HEAD. Eighteen at the first cut, eight after ic
+  // corrected the scanner's blind spot, nine as `init` wired, and FIVE once a
+  // violation required both conditions.
   //
-  // The eight below are believed genuinely unread and each is a SCOPE decision
-  // rather than a wiring job, exactly as the header says.
+  // **THE POPULATION HALVED THREE TIMES AND NOT ONE REDUCTION WAS THE ESTATE
+  // GETTING BETTER.** Every one was this instrument getting less wrong, and
+  // each was found by driving it against a real tree rather than by reading it.
   "`st bootstrap` --audit-only (id `audit-only`)",
   "`st bootstrap` --dry-run (id `dry-run`)",
   "`st bootstrap` --deliverable (id `deliverable`)",
-  "`ac descope` --by (id `by`)",
-  "`ac withdraw` --by (id `by`)",
   "`claude subagents` -v (id `v`)",
   "`claude skills` -v (id `v`)",
-  "`critic` --rules (id `rules`)",
 ];
 
 /// **THE CRITERION.** Every `keep` flag on a WIRED family is read by name.
@@ -318,10 +316,10 @@ const INHERITED_UNREAD: &[&str] = &[
 /// be moved on the strength of it. The instrument exists and is proven; the
 /// criterion is unmet until this arm runs.
 #[test]
-#[ignore = "baseline waits on dc's init/bootstrap landing -- see the doc comment; remove with the baseline set from a settled tree"]
 fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   let table = dispatch::table();
-  let read = ids_the_renderer_reads(&renderer_source());
+  let src = renderer_source();
+  let read = ids_the_renderer_reads(&src);
   let unwired = unwired_families();
 
   let mut violations = Vec::new();
@@ -352,7 +350,26 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           deferred.push(line);
         } else {
           checked += 1;
-          if !read.contains(&id) {
+          // **TWO CONDITIONS, AND THE SECOND IS THE THIRD APERTURE THIS CHECK
+          // HAS HAD TO GROW.** The accessor scan is the precise signal and it
+          // cannot see an id spelled anywhere but a call site -- dc's `init`
+          // loops over `[("with-st0000", ..), ("lang", ..)]` and passes each
+          // through a variable, so the id is spelled at `render.rs:2194` and
+          // read, and the scan called it unread.
+          //
+          // A whole-file literal scan alone would be the OPPOSITE mistake: it
+          // is what would have called `st new -s` read because `start` is all
+          // over the renderer as a verb, which is the census failure AC-06.8
+          // was raised from.
+          //
+          // **So a violation requires BOTH: no accessor site AND no mention at
+          // all.** That is strictly conservative -- neither idiom can produce a
+          // false positive -- and it pays for it in false NEGATIVES, which are
+          // named here rather than discovered: a flag whose id happens to
+          // appear as an unrelated string passes. The precise signal is still
+          // computed and still reported; only the GATE takes both.
+          let mentioned = src.contains(&format!("\"{id}\""));
+          if !read.contains(&id) && !mentioned {
             violations.push(line);
           }
         }
