@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 09:44Z
+heartbeat_at: 2026-08-20 09:54Z
 status: active
-focus: "**`intent critic` LANDED at `5043d0c4` -- 7 files, 1509 insertions, at parity with v2 and the precondition for v3 on PATH.** Exit codes built to the CODE and the GATE, not the table, which asserted the opposite in three places and would have shipped a silent gate bypass. **NEXT: hooks holes 1+2 (one stale install file produces both, and hole 1 -- the missing `3)` arm -- has been live under v2 since 2026-08-14), then AC-06.3, then `init`.**"
+focus: "**`critic` LANDED AND THEN TOOK SEVEN DEFECT REPORTS FROM THREE PEERS, EVERY ONE FOUND BY DRIVING IT.** Fixed: the roster Highlander (`ce16b01b`), `$PATH` read breaking AC-11.3 plus the executable-bit false clean (`b574361a`), and **exit 3 keyed on the wrong population -- absent TOOL passed where v2 blocks, unrunnable PROXY blocked where v2 passes, backwards in both directions (`b802e040`)**. Recorded, not started: `--languages` arity (ic's table), the bad-flag exit (mine + ic, folded into holes 1+2), `author`/`content` silence. **NEXT: hooks 1+2, then AC-06.3, then init.**"
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
 ---
 
@@ -73,6 +73,8 @@ Held for the next session, in order:
 
 **Classes. Every instance is verbatim in `.history/20260819/watch-outs-full.md`.**
 
+- **A HEADER TABLE AND THE CODE FIVE LINES BELOW IT CAN NAME DIFFERENT POPULATIONS, AND MINE DID (vc, 2026-08-20).** `critic.rs:37` said exit 3 meant _a rule was armed and could not be enforced_; `exit_code` keyed on the unrunnable-PROXY set. **v2 sets `CRITIC_REFUSED` in exactly ONE place -- `bin/intent_critic:319`, the `c_absent` block -- so an absent TOOL refuses and an unrunnable proxy is merely reported.** v3 did the reverse: **fail-OPEN on a machine missing shellcheck, fail-CLOSED on our own unrunnable proxy.** INV-04's shape one file over, in my own file, written by me, passing every test that existed. **AND THE POPULATION THAT WOULD HAVE CAUGHT IT WAS THE ONE I EXCLUDED: "all five exit drives match" was true, and tool-absent could not have been among them BECAUSE IT DID NOT MATCH.** Fourth instance today, second one mine.
+- **A RED ROW NAMING AN UNCOVERED ARM IS A MAP OF WHERE THE DEFECT WILL LAND.** AT-07.4 was red on _the row asserts less than the criterion_ -- it asserts (a) and (c) and not (b), the refusal -- and **(b) is exactly what I got wrong.** I read it as someone else's open item rather than as the specification of my own blind spot. **Read the red rows that touch what you are about to build, before you build it.**
 - **A GREEN-LOOKING PARTIAL RUN AND A BROKEN BUILD ARE THE SAME OUTPUT UNTIL YOU READ WHICH TARGETS EXECUTED (ic, 2026-08-20, on me).** A compile error in one target stopped `cargo test` before `no_intent_home` ran, so **both reds dated from my commit and only one was visible** -- and I reported _75 tests green_ while a target that never ran was failing. **The probe-population rule applied to a test summary, which is where I never thought to apply it**, on the same day I told three peers to ask what their probe could not have seen. **Read the target list, not the last `test result:` line.**
 - **THE PROBE POPULATION CAN EXCLUDE THE ANSWER, AND IT NEVER SAYS SO.** `cargo test` stops at the first failing binary; a `head -20` on a failure list hides the twenty-first. **Always ask what the probe could not have seen.**
 - **THE EXIT CODE IS NOT WHERE YOU THINK.** A pipe eats it; `grep -c` exits 1 on zero. **`$pipestatus`, or redirect and read.** It happened again tonight, on a board that already said so.
