@@ -173,11 +173,27 @@ fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
   );
 
   // The stamp. Written LAST, so its presence means every earlier step landed.
-  assert_ne!(
-    declared_version(dir.path()),
-    "2.19.0",
-    "the project still declares v2 after a successful migration, so the stamp \
-     never landed -- and v2 tooling would go on treating this estate as its own"
+  //
+  // **THIS WAS `assert_ne!(.., "2.19.0")` AND THAT ASSERTED THE WRONG THING.**
+  // It said the version CHANGED, not that it is right -- passing on a stamp of
+  // `banana`, of `2.19.1`, of anything at all -- in the only test that drives
+  // the stamp end to end through the binary. Required by vc 2026-08-20, and it
+  // is the five-limbs argument arriving INSIDE a limb: one "it converted"
+  // passing over a wrong value.
+  //
+  // Equality against the binary's own `INTENT_VER` is the identity claim; the
+  // major-3 check is the CRITERION's claim and is independent of that constant,
+  // so it still fails if `INTENT_VER` is itself ever wrong.
+  let stamped = declared_version(dir.path());
+  assert_eq!(
+    stamped,
+    intentsvcs::faces::INTENT_VER,
+    "the migrated project does not declare the version of the binary that migrated it, \
+     so v2 tooling would go on treating this estate as its own"
+  );
+  assert!(
+    stamped.starts_with("3."),
+    "the criterion says 3.0.0: {stamped:?}"
   );
 
   // Canon, which is what the estate is FOR.
