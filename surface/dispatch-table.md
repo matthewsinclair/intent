@@ -43,7 +43,7 @@ Rules that hold across the whole command surface. They are stated once here rath
 | INV-01 | Voice: lowercase `ok:` / `error:` prefixes, no banners           | as-observed |
 | INV-02 | Usage errors exit 1, NOT clap's default 2                        | as-observed |
 | INV-03 | The project-context gate                                         | corrected   |
-| INV-04 | Exit codes observed in the shipped surface are 0, 1 and 2 only   | as-observed |
+| INV-04 | Exit codes observed in the shipped surface are 0, 1, 2 and 3     | as-observed |
 | INV-05 | `error ...; usage` -- the second call is unreachable, everywhere | pending-hv  |
 | INV-06 | About a fifth of v2 failure paths write to the wrong stream      | corrected   |
 | INV-07 | `--help` reports failure on 10 of 27 commands                    | corrected   |
@@ -64,7 +64,7 @@ A missing required argument, an unknown option, or an unknown subcommand exits 1
 - **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `native/rust/crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.
   - Pinned by: WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)
 - **Target:** `as-observed` -- ratified: D17
-- **Implementation constraint:** clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception: `intent critic` genuinely uses 2 (see INV-04).
+- **Implementation constraint:** clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception, and the wording matters because the old form was read as saying critic uses 2 for FINDINGS: `intent critic` exits **2 for a USAGE error** rather than 1 -- not for findings, which are exit 1. It is the one command in the shipped surface that does, deliberately, because it is invoked BY A GATE that reads 2 as `the gate is broken, fail open` -- and a critic that cannot parse its own invocation is exactly that. Kept in v3 rather than corrected to 1. See INV-04's `why_2_is_correct_for_critic`.
 
 ### INV-03 -- The project-context gate
 
@@ -80,11 +80,11 @@ Commands that need a project refuse outside one with exactly `error: not in an I
   - `agents` runs outside a project for the same plugin-bypass reason, despite not being in GLOBAL_COMMANDS
   - `upgrade` supplies its own message
 
-### INV-04 -- Exit codes observed in the shipped surface are 0, 1 and 2 only
+### INV-04 -- Exit codes observed in the shipped surface are 0, 1, 2 and 3
 
-0 success; 1 every failure; 2 only from `intent critic` (findings-present) and from `intent claude hook`, which propagates the hook's own code by design.
+0 success; 1 findings-or-failure; 2 usage/invocation error -- the caller got the invocation wrong, so the run never happened; 3 REFUSED -- a rule the project armed could not be enforced here. `intent claude hook` propagates the hook's own code by design. In the shipped surface only `intent critic` emits 2 or 3.
 
-- **v2:** bin/intent_critic:89,95; measured across 108 probes
+- **v2:** bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.
 - **Target:** `as-observed`
 
 ### INV-05 -- `error ...; usage` -- the second call is unreachable, everywhere
@@ -2231,7 +2231,7 @@ Run Intent rule-library critics against source files without invoking an LLM
 - **Owning work package:** WP-07
 - **BATS coverage:** 19 burning test(s) across 2 file(s) -- **covered**
 
-- **The only command in the shipped surface that legitimately uses exit code 2** (bin/intent_critic:89,95) -- findings-present, distinct from failure. INV-04's named exception, and INV-02 must not flatten it.
+- **The only command in the shipped surface that legitimately uses exit code 2, AND IT IS FOR A USAGE ERROR, NOT FOR FINDINGS** -- `bin/intent_critic:89` (error_out) and `:95` (no args) exit 2; **findings-present is `exit 1` at `:348`**; `CRITIC_REFUSED` is `exit 3` at `:334` and `:347`. This note previously read `findings-present, distinct from failure` over those same two line numbers, which is backwards -- see INV-04's `corrected_2026_08_20` for why building to it would have failed the pre-commit gate OPEN on every finding. INV-04's named exception, and INV-02 must not flatten it.
 - Strict-proxy contract since ST0039: the headless runner enforces ONLY rules publishing a simple `Greppable proxy`, and REFUSES non-simple proxies with a once-per-rule stderr note rather than approximating them. A critic that silently approximates a rule reports findings the rule does not actually make.
 - `author` and `content` are accepted as a clean no-op: prose critique is on-demand via the critic-prose subagent, not this runner.
 
@@ -2277,11 +2277,11 @@ Run Intent rule-library critics against source files
 - **stdout:** the findings report, grouped by severity
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
-  - **Exit 2 means FOUR different things** -- findings-present (the meaningful one), a bare invocation, an unknown flag, and a bad positional. Independently measured by vc; my first pass reported three and undercounted. The pre-commit gate reads this exit code, so a caller genuinely cannot distinguish 'findings' from 'you typed it wrong'.
+  - **WITHDRAWN 2026-08-20: THE DEFECT DOES NOT EXIST, AND THE READING THAT PRODUCED IT WOULD HAVE CAUSED A REAL ONE.** This row read _Exit 2 means FOUR different things -- findings-present (the meaningful one), a bare invocation, an unknown flag, and a bad positional_, and closed _a caller genuinely cannot distinguish 'findings' from 'you typed it wrong'_. **Findings-present is `exit 1` at `bin/intent_critic:348`. It was never in the set.** The other three are all spellings of ONE thing -- a usage error, via `error_out` (`:89`) or the no-args help (`:95`) -- so exit 2 is unambiguous and a caller CAN distinguish the two cases perfectly. **The four-way ambiguity was three usage variants plus an item belonging to a different exit code.** Found by dc reading the branches before building the v3 critic; ic verified at zero hops. **THE MEASUREMENT WAS SOUND AND THE LABEL WAS NOT: vc's independent count of exit-2 OCCURRENCES was right, and one occurrence was named for the wrong cause** -- which is exactly why two nodes agreeing on the count added no safety. A count of occurrences can never establish what they MEAN; only the branch producing them can.
   - The unknown-flag path leaks `grep: unrecognized option` as the command's own voice -- a raw tool error surfacing as Intent's.
   - INV-06 at the bare-invocation usage block goes to STDOUT on a failing (exit 2) invocation
 - **Target:** `pending-hv`
-- **Open question for hv:** **Highest priority of the 19 pending rows, and a different risk class from the other 18: this one has a LIVE CONSUMER.** Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02. That is a `corrected` change the pre-commit gate reads today.
+- **Open question for hv:** **WITHDRAWN 2026-08-20, AND THIS ROW IS THE SHARPEST ARTEFACT OF THE INVERSION: IT PROPOSED TO RATIFY THE BUG.** It read _Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02_. **Had hv granted it, usage errors would have moved to exit 1 and findings would have been pinned to exit 2 -- and `lib/templates/hooks/pre-commit.sh:350-369` fails OPEN on 2 and BLOCKS on 1.** Every finding would have sailed through the gate and every typo would have blocked the commit: the gate inverted, in this repo and in every consumer through one symlink, with a ratification behind it. **The row correctly identified that it had a LIVE CONSUMER and correctly called it the highest priority of the 19 -- and both of those were reasons its wrongness would have propagated fastest.** Nothing is owed here now: v2's behaviour is already coherent (0 clean, 1 findings, 2 usage, 3 refused) and v3 reproduces it, so the `corrected` change this row asked for is not merely unnecessary but harmful. See INV-04's `corrected_2026_08_20`.
 - **Note:** Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle.
 - **wp07 owes:** MEASURED DIVERGENCE, RECORDED NOT RULED (cc measured it building 0038; ic recorded it 2026-08-16). **`intent critic` with NO language exits 2 in v2 and 1 in v3.** v2's 2 comes from `critic`'s OWN argument parsing -- it is already in `observed.exit` above as `bare invocation -- 1588B usage printed to STDOUT`. v3's 1 comes from clap under INV-02, which is correct for a usage error everywhere else in the surface. **So this is not a defect in either binary: it is the one place v2 used 2 for a usage error, and WP-07 has to decide whether to reproduce it.** Recorded here because the decision is invisible at the moment it gets made -- whoever wires `critic`'s language validation will be looking at clap's behaviour, which is already right by the general rule, and nothing on the path will mention that this command is the exception. `target.state` stays `pending-hv`: a divergence that needs a ruling is not settled by writing it down. **The wider point 0038 established, and the reason this matters more than one exit code: an exit code is a property of the CALLER's contract, not of the tool.** `critic`'s 2 has a live consumer -- the pre-commit gate reads it today as findings-present -- which is why it is the only unit in this register whose exit code is load-bearing before v3 ships.
 - **MCP:** exposed as an agent tool -- read-only
