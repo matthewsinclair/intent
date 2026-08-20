@@ -12,7 +12,7 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::address;
 use intentsvcs::contract::Scope;
-use intentsvcs::facade::{Facade, FacadeContext, FacadeError, Outcome};
+use intentsvcs::facade::{EventFilter, Facade, FacadeContext, FacadeError, Outcome};
 use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
@@ -48,6 +48,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("issues", m)) => issues(m),
     Some(("agents", m)) => agents(m),
     Some(("critic", m)) => critic(m),
+    Some(("events", m)) => events(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -1615,6 +1616,96 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     return Ok(());
   }
   Err(Failure::Verdict)
+}
+
+/// Read the history out of the one place it lives.
+///
+/// **The other half of the ruling that deleted the tracked extract.** Removing
+/// the projection without this would have traded an unread file for an
+/// unreadable table -- no `events` verb existed in either binary, so the file
+/// was the only reader-facing surface the log had.
+fn events(m: &ArgMatches) -> Result<(), Failure> {
+  let (project, ctx) = context()?;
+  let facade = Facade::open(project, ctx).map_err(fail)?;
+  let filter = EventFilter {
+    op: m.get_one::<String>("op").cloned(),
+    subject: m.get_one::<String>("subject").cloned(),
+    limit: m
+      .get_one::<String>("limit")
+      .map(|n| {
+        n.parse::<usize>().map_err(|_| {
+          Failure::Unavailable(format!(
+            "error: `{n}` is not a count\n  remedy: --limit takes a whole number, eg --limit 20"
+          ))
+        })
+      })
+      .transpose()?,
+  };
+  let page = facade.events(&filter).map_err(fail)?;
+
+  if m.get_one::<String>("format").is_some_and(|f| f == "json") {
+    let rows: Vec<serde_json::Value> = page
+      .rows
+      .iter()
+      .map(|e| {
+        serde_json::json!({
+          "id": e.id, "ts": e.ts, "op": e.op,
+          "subject": { "kind": e.subject.kind, "id": e.subject.id },
+          "payload": e.payload,
+        })
+      })
+      .collect();
+    println!(
+      "{}",
+      serde_json::to_string_pretty(&serde_json::json!({
+        "shown": page.rows.len(), "matched": page.matched, "total": page.total, "events": rows,
+      }))
+      .unwrap_or_default()
+    );
+    return Ok(());
+  }
+
+  // **AN EMPTY STORE SAYS SO, AND IT IS NOT A CLEAN BILL OF HEALTH.** A fresh
+  // clone has no history at all -- that is the accepted cost of the log living
+  // only in the store -- and silence at exit 0 cannot tell "nothing happened
+  // here" from "everything is fine", which is the distinction the prose critics
+  // lost by emitting nothing.
+  if page.total == 0 {
+    println!("events: no history in this store -- nothing has been recorded here yet.");
+    return Ok(());
+  }
+  if page.matched == 0 {
+    println!(
+      "events: no event matches this filter, of {} in this store.",
+      page.total
+    );
+    return Ok(());
+  }
+
+  for e in &page.rows {
+    // The disk verbs name a PATH SET rather than an artefact, so their subject
+    // id is empty by design; printing an empty column for them would read as a
+    // missing value rather than an inapplicable one.
+    match e.subject.id.as_str() {
+      "" => println!("{}  {}  {}", e.ts, e.id, e.op),
+      id => println!("{}  {}  {}  {}", e.ts, e.id, e.op, id),
+    }
+  }
+  // **THE DENOMINATOR IS ROWS, NEVER VERBS, AND ALL THREE NUMBERS ARE SAID
+  // WHEN THEY DIFFER.** A count of what was printed reported as a count of
+  // what exists is this estate's most-repeated defect; a limit and a filter
+  // move different numbers, so the line names which moved.
+  if page.rows.len() == page.total {
+    println!("events: {} event(s).", page.total);
+  } else {
+    println!(
+      "events: showing {} of {} matched, {} in this store.",
+      page.rows.len(),
+      page.matched,
+      page.total
+    );
+  }
+  Ok(())
 }
 
 fn doctor() -> Result<(), Failure> {

@@ -782,6 +782,35 @@ pub struct Facade {
   ctx: FacadeContext,
 }
 
+/// A narrowing of the history. Every field NARROWS; none widens.
+///
+/// **Filters are the point rather than a convenience.** `event_log` is
+/// append-only and monotone, so an unfiltered dump is the one output
+/// guaranteed to become unusable with time -- and a reader who has to pipe it
+/// through `grep` has been handed the file back with extra steps, which is the
+/// artefact the ruling removed.
+#[derive(Debug, Default, Clone)]
+pub struct EventFilter {
+  pub op: Option<String>,
+  pub subject: Option<String>,
+  pub limit: Option<usize>,
+}
+
+/// A page of history WITH ITS DENOMINATOR.
+///
+/// **`matched` and `total` are carried separately and neither is the length of
+/// `rows`.** A count of what was printed reported as a count of what exists is
+/// this estate's most-repeated defect; here the three numbers can differ
+/// legitimately -- a limit truncates `rows`, a filter narrows `matched`, and
+/// `total` is what the store holds -- so a caller that prints one of them can
+/// say which.
+#[derive(Debug)]
+pub struct EventPage {
+  pub rows: Vec<Envelope>,
+  pub matched: usize,
+  pub total: usize,
+}
+
 impl Facade {
   /// Refuse a project whose canon this binary cannot read (AC-10.7).
   ///
@@ -1421,6 +1450,34 @@ impl Facade {
       .written()
       .map(|path| self.project.relative(path))
       .collect()
+  }
+
+  /// Read the history. **The store is the only home it has**, so this touches
+  /// no disk at all -- the tracked extract was deleted and the file form is
+  /// produced by `export` rather than kept projected.
+  ///
+  /// **Newest LAST and the limit takes from the END.** The rows are ULID-
+  /// ordered, so a limit that took the first N would answer with the oldest
+  /// history in the store, which is the opposite of what anyone asking for
+  /// "the last 20" means -- and it would look perfectly plausible.
+  pub fn events(&self, filter: &EventFilter) -> Result<EventPage, FacadeError> {
+    let all = self.store.events().map_err(FacadeError::Store)?;
+    let total = all.len();
+    let matched: Vec<Envelope> = all
+      .into_iter()
+      .filter(|e| filter.op.as_ref().is_none_or(|op| &e.op == op))
+      .filter(|e| filter.subject.as_ref().is_none_or(|id| &e.subject.id == id))
+      .collect();
+    let count = matched.len();
+    let rows = match filter.limit {
+      Some(n) if n < count => matched[count - n..].to_vec(),
+      _ => matched,
+    };
+    Ok(EventPage {
+      rows,
+      matched: count,
+      total,
+    })
   }
 
   pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {

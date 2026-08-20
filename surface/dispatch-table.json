@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 9 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 10 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -7004,6 +7004,54 @@
         "organise"
       ],
       "hidden_aliases_basis": "**hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there."
+    },
+    {
+      "path": "events",
+      "help": "Show the history this store holds",
+      "flags": [
+        {
+          "spellings": [
+            "--op"
+          ],
+          "type": "string",
+          "value": "<op>",
+          "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--subject"
+          ],
+          "type": "string",
+          "value": "<id>",
+          "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--limit"
+          ],
+          "type": "string",
+          "value": "<n>",
+          "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--format"
+          ],
+          "type": "string",
+          "value": "<fmt>",
+          "disposition": "keep"
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "The store is the event log's only home, so it is also the only route a person has to read it. Dropping the tracked extract without this verb would trade an unread projection for an unreadable table.",
+      "owner_wp": "WP-09",
+      "not_export": "SEE `export`, which is the INTERCHANGE: a whole lossless bundle for another machine or another tool. This is a READ -- filtered, ordered, for a person answering `what happened here`. The two overlap on content and not on purpose, and a person choosing between them is not reading them side by side.",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": true,
+      "read_or_mutate": "read"
     }
   ],
   "provenance": {
@@ -7132,7 +7180,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 23,
+      "n": 24,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7428,7 +7476,8 @@
       "backup",
       "daemon",
       "mcp",
-      "organize"
+      "organize",
+      "events"
     ],
     "shipped": [
       "st",
@@ -7541,7 +7590,8 @@
       "backup",
       "daemon",
       "mcp",
-      "organize"
+      "organize",
+      "events"
     ],
     "retired": [
       "st organize",
@@ -7659,7 +7709,8 @@
       "export",
       "ingest",
       "backup",
-      "organize"
+      "organize",
+      "events"
     ],
     "self_loop": [
       "ac descope",
