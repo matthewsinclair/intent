@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 09:17Z
+heartbeat_at: 2026-08-20 09:24Z
 status: active
-focus: "**LOCALFOLDED FOR COMPACT. Status stays ACTIVE -- a compact does not end a session.** WP-10 done and doctor went 235 findings at rc=1 to ZERO; WP-09 half done (organize + hydrate record what they did to the disk) plus B (doctor counts history held only by this store). **C IS HELD ON ONE WORD FROM hv: per-node is not implementable and the unit is the STORE.** Two of four commit guards still never run."
+focus: "**RESUMED AFTER COMPACT at `f7707913`. MY HEADLINE BLOCKER IS RETIRED AND MY EVIDENCE FOR IT WAS NEVER EVIDENCE** -- dc's `critic` (`5043d0c4`) makes the gate's real invocation answer 0 on BOTH binaries in all five languages, and my bare loop's rc=2 is what v2 answers today with the gate healthy. **Two live residues measured: v2/v3 disagree on the unknown-flag code in the BLOCKING direction, and `critic author|content` went silent where v2 explains itself.** Next: WP-09's sync half. C still held on one word -- the unit is the STORE."
 claims: [ST0056, ST0057]
 ---
 
@@ -60,6 +60,7 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 
 ## WATCH-OUTS -- FOUR OF TODAY'S ARE MINE
 
+- **A MEASUREMENT THAT RETURNS THE SAME NUMBER IN BOTH WORLDS IS NOT A MEASUREMENT, AND I FIRED IT ON MY OWN HEADLINE.** My bare `critic` loop answered 2 whether the command was unwired or merely mis-invoked -- and v2 answers 2 to it TODAY with the gate healthy. **Ask what ELSE returns this value before crediting it**; if nothing distinguishes the two causes, the reading is not evidence for either.
 - **`grep -c` EXITS 1 ON ZERO, so a `|| echo 0` fallback fires on a true zero and every zero prints twice.** On this board already; used it anyway. cc fired the same trap in the same hour.
 - **NEVER `$?` AFTER A PIPE.** Reported `intent critic` as rc=0 five times through a `head`; the real answer is **rc=2 in all five languages**, which is the code `pre-commit.sh:367` **fails open** on.
 - **A FILE LABELLED "log tail" IS NOT THE FAILURE SET.** Reported `cargo fmt` as 3 hunks in 1 file; ic measured **45 hunks in 20 files**. The instrument said so in its own first line.
@@ -78,6 +79,13 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 - ~~WP-07's status~~ **DONE** -- matts ruled; dc claimed it and set it WIP. **Order ruled: `critic` first, then AC-06.3, then `init`**, on the precondition argument.
 - **The hv inbox has 43 entries and has never been cleared.** I am the named obliged reader.
 
-## THE BLOCKER FOR "INTENT FULLY WORKING ON v3"
+## THE v3 BLOCKER IS RETIRED, AND MY EVIDENCE FOR IT WAS NEVER EVIDENCE
 
-**`intent critic` answers rc=2 in all five declared languages, and `pre-commit.sh:367` FAILS OPEN on that code.** So v3 on PATH silently disables the critic gate here and in fifteen other projects through one symlink. **That is why the standing no-v3-on-PATH rule exists, and it makes `critic` a PRECONDITION of full self-hosting rather than merely its biggest row.** dc found it; I verified it end to end. It lives in ST0056/WP-07.
+**RETIRED at `5043d0c4` (dc).** Driven at zero hops on a build with nothing to do at `f7707913`: the gate's real invocation, `critic <lang> --staged --severity-min warning`, answers **0 on both binaries in all five declared languages**. `critic` is no longer a precondition of v3 on PATH.
+
+**IT WAS A REAL BLOCKER AND I NEVER MEASURED IT.** My evidence was a BARE `intent critic <lang>` loop answering 2 five times. **v2 -- on PATH, today, with the gate perfectly healthy -- answers 2 to that same bare call**, because bare means `error: no files specified`. So the loop returned the identical number in the world where the blocker existed and the world where it did not; it could not have come back the other way. **The number was right and the instrument was blind.** What actually established it is ic's `exit_codes.rs:151`, recording `critic shell --staged` hitting the _unwired_ 2 -- an invocation the gate does make.
+
+**TWO LIVE RESIDUES, BOTH dc's FILE, BOTH MEASURED HERE AT `f7707913`:**
+
+1. **v2 AND v3 DISAGREE ON THE UNKNOWN-FLAG CODE, IN THE DIRECTION THAT BLOCKS.** `critic shell --no-such-flag` is **2 under v2** (gate fails open) and **1 under v3** (gate reads FINDINGS and BLOCKS). A mistyped flag in the gate then refuses every commit with a remedy nobody can follow -- which the gate's own comment names as issue 0043 rebuilt on the git side. ic flagged the divergence as internal to `critic`; the v2 half is the measurement that makes it a v2/v3 parity break.
+2. **`critic author|content` EMITS ZERO BYTES UNDER v3 WHERE v2 EMITS 136.** v2 says _prose discipline; on-demand via critic-prose, not the headless runner -- nothing to do._ v3 says nothing at all. Both exit 0, so the gate is unaffected, and dc's parity claim never covered these two -- an unclaimed gap, not a false claim. **But silence at rc=0 cannot distinguish NOT APPLICABLE from CHECKED AND CLEAN, and v2's line can.** The instrument that declines to claim, running backwards.
