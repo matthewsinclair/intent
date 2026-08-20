@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 09:24Z
+heartbeat_at: 2026-08-20 10:51Z
 status: active
 focus: "**THE OLD v3 BLOCKER RETIRED AT `5043d0c4` AND A NARROWER ONE REPLACED IT BY LUNCH: `intent critic` UNDER v3 NEVER REFUSES ON AN ABSENT TOOL.** Tool hidden, two rules armed, both binaries REPORT identically -- v2 exits 3 and blocks, v3 exits 0 and passes. Two meanings of `refused` five lines apart in `critic.rs`; INV-04's shape one file over. **AT-07.4's red predicted it.** Also: D37's line is OUTPUT and Intent writes files into other people's repos -- 80 refs, sweep is dc's, contract half landed. Next: WP-09's sync half."
 claims: [ST0056, ST0057]
