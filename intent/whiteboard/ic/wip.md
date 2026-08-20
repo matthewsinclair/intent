@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0ccc7c30-24c1-48ce-b698-ab212286083e
-heartbeat_at: 2026-08-20 17:32Z
+heartbeat_at: 2026-08-20 17:36Z
 status: active
-focus: "**FOLDED HARD 17:20Z ON hv'S ORDER, THEN QUIET BUT REACHABLE while vc drives the five-language suite to zero.** Everything of mine is committed and nothing is in flight. AC-08.4 green, AC-05.3 satisfied, AC-08.5 correctly red, D57-8 amended at `c5320329`. **NEXT AND DELIBERATELY NOT STARTED: AC-07.7** -- held back rather than rushed, because its red-first arm is the thing that gets dropped under time pressure and dropping it is worse than not starting."
+focus: "**SUITE GREEN 17:46Z AND NOTHING CAME BACK TO ME** -- rust 142 targets / 995 passed / 0 failed, shell bats 1440 / 0, critics clean. My `AddressError::Incomplete` split, the two new collection variants and AT-05.2's five tests all ran inside that 995 and passed, so vc released me. **HOLDING FOR matts, not for work.** **AC-07.7 STILL MINE AND STILL UNSTARTED, WHICH IS CORRECT** -- nothing tonight rushed it, and the `AcCollection` red-first arm survives into tomorrow with its reasoning in the row rather than in anyone's memory."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT, NOTHING UNCOMMITTED.** Quiet-but-reachable per hv via vc 17:19Z; vc is driving all five declared languages plus the critics to zero and **anything of mine in `intent-cli`, `address.rs`, the parity harness or `intentsvcs/tests/` comes back to me.** **COMPACTED 17:32Z AND STILL REACHABLE** -- nothing was lost, because every trap is written into the row rather than held in memory, and the inbox is a file.
+**NOTHING IN FLIGHT, NOTHING UNCOMMITTED, NOTHING OWED.** vc's five-language run finished green at 17:46Z and **nothing of mine came back** -- `intent-cli`, `address.rs`, the parity harness and my `intentsvcs/tests/` all ran inside it and passed. **COMPACTED 17:32Z AND STILL REACHABLE** -- nothing was lost, because every trap is written into the row rather than held in memory, and the inbox is a file.
 
 **THE WHOLE DAY IS AT `.history/20260820/`** -- `wip-1720Z.md` is this board verbatim before the fold. Every rule below is stripped to the rule; **the instance that taught it is in the archive, and a trimmed board is a reading decision, not a record.**
 
@@ -57,7 +57,8 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 - **Two hand-written literals compared to each other observe nothing**, and **an empty gap over an unstated denominator is a vacuous green** -- state the population IN the assertion.
 - **A declared list stops covering the day a variant is added.** Rust cannot enumerate variants, so **make an exhaustive match the witness** -- a new variant then fails to COMPILE where a case must be added.
 - **An instrument that borrows a live instance has made the defect a fixture.** Synthesise it.
-- **An absence is only evidence within the scope you actually read, and a call boundary is not a scope boundary.** **A claim carried forward from memory is not a measurement.**
+- **An absence is only evidence within the scope you actually read, and NEITHER A CALL BOUNDARY NOR A FILE-NAME PATTERN is a scope boundary** -- a population defined by how files are NAMED excludes the file that answers the question, and reports a true sentence while doing it.
+- **REPORT THE CHECK THAT CAME BACK CLEAN.** Nobody is rewarded for it, and it is what turns a later wall of failures into one explanation ruled out in one command instead of a hunt. **A claim carried forward from memory is not a measurement.**
 - **A substring standing in for a syntactic fact is ST0039's greppable proxy one level up.**
 - **A gate count mixes three kinds and only one is work**: not built, built and unverified, verified and unmoved.
 
