@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: baf3a3a8-2d05-4e9a-8170-c1bdf1f0753c
-heartbeat_at: 2026-08-20 10:34Z
+heartbeat_at: 2026-08-20 10:36Z
 status: active
 focus: "**THE SHIPPED GATE ROSTERED FOUR GUARDS AND THIS REPO RAN ONE.** `canon-ignore-guard.sh` and `append-only-guard.sh` have never run here -- the second was written for a 492-line loss and protected nothing from the day it was written. **Root cause: the ROSTER lived inside the COPIED file** while the guard bodies were read live, and the hook comment claimed the opposite in those words. I wrote that comment. Roster now delegated to `pre-commit-guards.sh`, read live; the copied file names no guard. **AND `intent claude upgrade` COULD NOT SEE IT** -- stale gate and absent gate shared one branch labelled NON-INTENT HOOK PRESENT, which is permanently true here, so six days of standing noise. Now `GATE STALE`."
 claims: [ST0056/07, ST0056/11, ST0057/04, ST0057/06]
@@ -59,6 +59,13 @@ Held for the next session, in order:
 1. **vc's three-line `render.rs` change** for `doctor`'s `unsynced_events` -- option (1), land it next time I am in that file.
 
 ## TODO
+
+### Recorded, NOT built (hv: stop overengineering checks) -- 2026-08-20
+
+- **`int hooks` UNDER-REPORTS BY FOUR.** It prints the repo-local runner's roster (11 guards) and is silent on the four SHIPPED guards now dispatched through `pre-commit.intent`. **The tool people consult to find out what the gate enforces is the thing that is wrong** -- which is verbatim the class `cmd/precommit`'s own comment records about an earlier version of itself. Fix is to ask the shipped runner the way it already asks the local one; it is one more `--list-guards`-shaped call, not a new mechanism.
+- **`intent claude upgrade --apply` IS ALL-OR-NOTHING, AND THAT IS A SECOND INDEPENDENT REASON THE GATE STAYED STALE.** On this repo today it proposes four actions and three are unwanted: **REGENERATE AGENTS.md (currently 3.0.0, target 2.19.0)** -- v2 actively DOWNGRADING a self-hosted v3 tree -- plus a CLAUDE.md refresh and a `.gitignore` normalise that would collide with vc's uncommitted D53 edit. So I installed the one file by hand, exactly as `canon_install_script` would. **Telling an operator their gate is stale is half a fix if the button that fixes it also does three other things**, and the new `GATE STALE` state points straight at that button. Matters for the fleet, not just here.
+
+### Queue
 
 1. **THE HOSTING SWEEP CONTINUES: WP-07 IS MINE AND WIP.** After `critic`: `agents` (42 call sites, 4 rows), `lang` (44, 6 rows), then `claude skills` (23) / `subagents` (25) / `ws` (13) / `prime` (10). `upgrade` (29) and `start` (6) are **unmeasured**, excluded by name from my sweep because they write outside the sandbox -- not measured-green.
 2. **AT-11.6 and AT-11.7 are still `to-write` and both now have unplanted positive controls from today.** 11.7's is the fossil marker; 11.6's is that this tree took my uncommitted work into a peer's commit at `0a9a7341`.
