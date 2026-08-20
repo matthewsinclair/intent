@@ -17,6 +17,29 @@
 //! (3) is the one that would be expensive to get wrong, and it is the one a
 //! facade test cannot make on its own: "nothing was written" is a claim about
 //! the filesystem after a process exited, not about a return value.
+//!
+//! # This file is **AT-10.16**, AC-10.3's second covering row
+//!
+//! It was covering three of AC-10.3's five limbs before it carried any
+//! contract id at all -- canon emitted, gitignore converged (including the
+//! negative that the rule is a PATH rule and not `*.db`), and now the stamp --
+//! **driven end to end through the shipped binary, while the row read
+//! `to-write` and a second test was written for the same criterion.**
+//!
+//! **This is the fifth instance of that class in one day and the first where
+//! the uncited coverage was PARTIAL, which is the harder kind to find.** The
+//! practice that caught the other four is subject-grep-first-then-drive-the-
+//! verb; a subject grep that hits this file tells you it touches `upgrade` and
+//! **nothing about WHICH limbs**, so the coverage still has to be read out
+//! line by line. There is no cheaper instrument for the partial case.
+//!
+//! **Two rows and not one widened row** (vc, and it is `AT-10.15`'s precedent):
+//! the schema gives one `file` per row, the estate already does one-AC-two-ATs
+//! at AC-00.7, AC-00.9, AC-00.11 and AC-03.7, and the AND gate then holds
+//! AC-10.3 open until both are green. `AT-10.3` cites the LIBRARY layer, seven
+//! tests over `Facade::upgrade`. This cites the BINARY. A verb can be correct
+//! in the library and unreachable through the door -- which is the gap this
+//! file was created for and is recorded above.
 
 use std::collections::BTreeMap;
 use std::process::Command;
