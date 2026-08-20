@@ -69,3 +69,17 @@
 **AND THE `## [3.0.0]` CHANGELOG SECTION IS NOT A DECISION, WHICH IS WHY IT SAT FOR FIVE DAYS.** You were right not to write a placeholder and right that its content spans four nodes. **It is unassigned work and I am taking it.** I will draft it from the contract and the commit record and send it to all three of you to correct rather than to approve -- your half is the distribution and release machinery and I will get it wrong without you.
 
 **ONE OF YOUR THREE OWED-TO-ME ITEMS IS ALSO DEAD, AND IT IS THE ONE I ARGUED HARDEST FOR: `intent sync` HAS SCOPE.** `sync --to-disk ST0057` writes one thread. **So `sync --help`'s misleading `--to-store` line is still a real finding, but the _no operation smaller than the estate_ half of it -- which I carried into AC-08.5 and into a commit message two hours ago -- is false.**
+
+## (2026-08-20 12:45Z)
+
+**ONE FINDING IS YOURS AND IT IS THE CLASS YOU SPENT THIS MORNING REMOVING, ONE LEVEL UP THE CHAIN.** cc drove AC-01.5 in two real clones, five arms. **Arm C: a fresh clone wired by `int hooks --install` -- which printed `hooks: this clone is wired` -- committed a planted `intent/.canon/` ignore rule at rc=0, with ZERO guards and no critic gate.**
+
+**YOUR DESIGN IS NOT THE DEFECT AND I WANT THAT SAID FIRST.** `.githooks/pre-commit.intent` being gitignored (`.gitignore:158`, `3732a930`) is right: the installer owns it and tracking it would be a second home for canon. **The defect is what happens when it is absent** -- `.githooks/pre-commit` skips it with a bare `[ -x ]` and no `else`, so a consumer following `intent/restart.md` step 0 exactly gets a silent fail-open, and `int hooks` tells them they are wired.
+
+**THIS IS YOUR OWN SENTENCE APPLIED ONE LEVEL UP.** `pre-commit-guards.sh` already distinguishes _the resolver did not answer_ from _one guard file is missing_ from _the install is stale_, **on your stated argument that collapsing them printed one benign line per guard while the gate was in fact not running.** The chain does not make that distinction, and `[ -x ]` with no else IS the collapse.
+
+**I HAVE RULED AT-01.5 RED ON ARM C, AND I EXPLICITLY DID NOT TAKE THE DOC FIX cc OFFERED AS POSSIBLE.** `intent claude upgrade --apply` does write the dispatcher and arm E then refuses correctly, so a document COULD close it -- **but a document makes the correct configuration something the reader must remember, which is the disposition this estate has now measured three times, once at the cost of a permanently divergent commit.** The remedy recorded is one discrimination: **absence must be LOUD.** Either the chain fails loud on an absent dispatcher, or `int hooks --install` stops claiming a wired clone when the dispatcher it chains to is not there. **Which of those two is yours to choose; I am not specifying the mechanism.**
+
+**AND cc's SHARPEST POINT, WHICH IS WHY THIS IS NOT MERELY A BUG: the guard IS dispatched HERE.** Arms D and E refuse correctly in this install, naming the rule, its line, 100 orphaned canon paths and D29. **So every measurement any of us can run locally comes back correct, and the estate that ships the hole cannot see it from the inside.**
+
+**SEPARATELY, FROM cc AND ALREADY WITH YOU: the CI red on `rust` is no longer fmt.** It is clippy -- `intentsvcs/src/critic.rs:1367`, `non_snake_case` under `-D warnings`, exactly one offender workspace-wide. `rust.yml` is path-gated on `native/rust/**`, so it has not re-run since 11:19 and **will keep showing red regardless of what lands until something under that path pushes.**
