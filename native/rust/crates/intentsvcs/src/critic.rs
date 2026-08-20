@@ -242,7 +242,11 @@ pub struct Report {
 
 impl Report {
   pub fn armed(&self) -> usize {
-    self.census.iter().filter(|r| r.arming == Arming::Armed).count()
+    self
+      .census
+      .iter()
+      .filter(|r| r.arming == Arming::Armed)
+      .count()
   }
 
   pub fn ran(&self) -> usize {
@@ -428,7 +432,10 @@ pub fn extract_greppable_block(body: &str) -> String {
     if in_detection && line.starts_with("## ") {
       break;
     }
-    if in_detection && !after_marker && (line.contains("Greppable proxy") || line.contains("greppable proxy")) {
+    if in_detection
+      && !after_marker
+      && (line.contains("Greppable proxy") || line.contains("greppable proxy"))
+    {
       after_marker = true;
       continue;
     }
@@ -691,7 +698,11 @@ fn shellcheck_findings(
       continue;
     }
     // `--format=gcc` is `file:line:col: severity: message [SCxxxx]`.
-    let Some(line_no) = line.split(':').nth(1).and_then(|n| n.trim().parse::<usize>().ok()) else {
+    let Some(line_no) = line
+      .split(':')
+      .nth(1)
+      .and_then(|n| n.trim().parse::<usize>().ok())
+    else {
       continue;
     };
     if !seen.insert(line_no) {
@@ -776,13 +787,31 @@ fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>) {
     if !patterns.is_empty() {
       return (Arming::Armed, Disposition::Ran, "grep".into(), patterns);
     }
-    return (Arming::Unrunnable, Disposition::NotApplicable, "-".into(), Vec::new());
+    return (
+      Arming::Unrunnable,
+      Disposition::NotApplicable,
+      "-".into(),
+      Vec::new(),
+    );
   }
 
-  if body.to_lowercase().contains("no greppable proxy is authoritative") {
-    (Arming::Declared, Disposition::NotApplicable, "-".into(), Vec::new())
+  if body
+    .to_lowercase()
+    .contains("no greppable proxy is authoritative")
+  {
+    (
+      Arming::Declared,
+      Disposition::NotApplicable,
+      "-".into(),
+      Vec::new(),
+    )
   } else {
-    (Arming::Undeclared, Disposition::NotApplicable, "-".into(), Vec::new())
+    (
+      Arming::Undeclared,
+      Disposition::NotApplicable,
+      "-".into(),
+      Vec::new(),
+    )
   }
 }
 
@@ -825,7 +854,7 @@ pub fn run(
         return Err(CriticError::Read {
           path: f.clone(),
           source,
-        })
+        });
       }
     }
   }
@@ -871,7 +900,8 @@ pub fn run(
     // parity check on the REPORT passed while the ACT diverged** -- two rules
     // counted as ASKED that were never put. That is this command's founding
     // defect arriving through the one path that looks like success.
-    if active && disposition == Disposition::Ran && patterns.is_empty() && by != "grep" && by != "-" {
+    if active && disposition == Disposition::Ran && patterns.is_empty() && by != "grep" && by != "-"
+    {
       // **AN EMPTY SEVERITY DEFAULTS TO `warning`; A NON-EMPTY ONE THAT DOES
       // NOT PARSE IS AN ERROR.** v2 defaults the empty case the same way. The
       // two are not the same state: nothing declared is an omission with an
@@ -1074,7 +1104,10 @@ mod tests {
     // reported one finding where this reported two.
     let globs = vec!["test/**/*_test.exs".to_string()];
     assert!(!applies_to_file(&globs, Path::new("/tmp/x/lib/fixture.ex")));
-    assert!(applies_to_file(&globs, Path::new("/tmp/x/test/demo_test.exs")));
+    assert!(applies_to_file(
+      &globs,
+      Path::new("/tmp/x/test/demo_test.exs")
+    ));
   }
 
   #[test]
@@ -1083,7 +1116,10 @@ mod tests {
     // why the regex is suffix-anchored rather than rooted.
     let globs = vec!["lib/**/*.ex".to_string()];
     assert!(applies_to_file(&globs, Path::new("lib/foo.ex")));
-    assert!(applies_to_file(&globs, Path::new("apps/control/lib/foo.ex")));
+    assert!(applies_to_file(
+      &globs,
+      Path::new("apps/control/lib/foo.ex")
+    ));
     assert!(applies_to_file(&globs, Path::new("lib/deep/nested/foo.ex")));
     assert!(!applies_to_file(&globs, Path::new("test/foo.ex")));
     // A single `*` is one path component, so it must not cross a slash.
@@ -1109,7 +1145,10 @@ mod tests {
   #[test]
   fn both_list_forms_are_read() {
     let inline = "---\ncritic_tool_codes: [SC2086, SC2046]\n---\nbody";
-    assert_eq!(frontmatter_list(inline, "critic_tool_codes"), ["SC2086", "SC2046"]);
+    assert_eq!(
+      frontmatter_list(inline, "critic_tool_codes"),
+      ["SC2086", "SC2046"]
+    );
     let block = "---\napplies_to:\n  - \"test/**/*_test.exs\"\n  - \"lib/**/*.ex\"\nstatus: active\n---\nbody";
     assert_eq!(
       frontmatter_list(block, "applies_to"),
@@ -1127,7 +1166,10 @@ mod tests {
     // The documented convention is a trailing `# reason: ...` on each entry.
     let block = "disabled:\n  - IN-EX-CODE-001 # reason: legacy module\n  - IN-SH-CODE-002\n";
     let got = parse_disabled(block);
-    assert!(got.contains("IN-EX-CODE-001"), "a trailing reason must not become part of the id");
+    assert!(
+      got.contains("IN-EX-CODE-001"),
+      "a trailing reason must not become part of the id"
+    );
     assert!(got.contains("IN-SH-CODE-002"));
     assert_eq!(got.len(), 2);
     // An empty list disables nothing -- and must not disable everything.
@@ -1200,7 +1242,11 @@ mod tests {
       }],
       ..base.clone()
     };
-    assert_eq!(absent.exit_code(), 3, "an armed rule whose tool is absent must BLOCK");
+    assert_eq!(
+      absent.exit_code(),
+      3,
+      "an armed rule whose tool is absent must BLOCK"
+    );
     assert_eq!(absent.unenforced(), ["IN-SH-CODE-001"]);
 
     // An unrunnable proxy is reported and never refuses -- our defect, not the
@@ -1215,7 +1261,11 @@ mod tests {
       }],
       ..base.clone()
     };
-    assert_eq!(unrunnable.exit_code(), 0, "an unrunnable proxy must not block");
+    assert_eq!(
+      unrunnable.exit_code(),
+      0,
+      "an unrunnable proxy must not block"
+    );
 
     // **OUT-OF-CONTEXT MUST NOT REFUSE EITHER, and this arm is load-bearing:**
     // all three clippy rules are `workspace`, so refusing here would block
@@ -1229,7 +1279,11 @@ mod tests {
       }],
       ..base
     };
-    assert_eq!(ooc.exit_code(), 0, "a workspace analyser out of context must not block");
+    assert_eq!(
+      ooc.exit_code(),
+      0,
+      "a workspace analyser out of context must not block"
+    );
   }
 
   #[test]

@@ -23,8 +23,8 @@
 
 pub mod address;
 pub mod backup;
-pub mod critic;
 pub mod contract;
+pub mod critic;
 pub mod doctor;
 pub mod event;
 pub mod export;

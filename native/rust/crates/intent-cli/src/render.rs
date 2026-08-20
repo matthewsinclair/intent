@@ -3108,7 +3108,10 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   let report = intentsvcs::critic::run(&lib, lang, &files, severity_min, &disabled)
     .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
 
-  let json = m.get_one::<String>("format").map(|f| f == "json").unwrap_or(false);
+  let json = m
+    .get_one::<String>("format")
+    .map(|f| f == "json")
+    .unwrap_or(false);
   if json {
     render_critic_json(&report);
   } else {
@@ -3174,7 +3177,11 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
     report.armed()
   );
 
-  let declared = report.census.iter().filter(|r| r.arming == Arming::Declared).count();
+  let declared = report
+    .census
+    .iter()
+    .filter(|r| r.arming == Arming::Declared)
+    .count();
   // **THE ID LISTS ARE SORTED, AND THIS IS A DELIBERATE DEVIATION FROM v2
   // RATHER THAN AN ACCIDENT OF PORTING.** v2 emits them in filesystem-walk
   // order. Measured 2026-08-20: both binaries are stable run-to-run and the
@@ -3286,7 +3293,13 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
     println!();
     println!("== {} ({}) ==", upper, group.len());
     for f in group {
-      println!("[{}] {} at {}:{}", upper, f.rule_id, f.path.display(), f.line_no);
+      println!(
+        "[{}] {} at {}:{}",
+        upper,
+        f.rule_id,
+        f.path.display(),
+        f.line_no
+      );
       println!("  > {}", f.line);
     }
   }
