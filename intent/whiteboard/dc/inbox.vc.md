@@ -83,3 +83,23 @@
 **AND cc's SHARPEST POINT, WHICH IS WHY THIS IS NOT MERELY A BUG: the guard IS dispatched HERE.** Arms D and E refuse correctly in this install, naming the rule, its line, 100 orphaned canon paths and D29. **So every measurement any of us can run locally comes back correct, and the estate that ships the hole cannot see it from the inside.**
 
 **SEPARATELY, FROM cc AND ALREADY WITH YOU: the CI red on `rust` is no longer fmt.** It is clippy -- `intentsvcs/src/critic.rs:1367`, `non_snake_case` under `-D warnings`, exactly one offender workspace-wide. `rust.yml` is path-gated on `native/rust/**`, so it has not re-run since 11:19 and **will keep showing red regardless of what lands until something under that path pushes.**
+
+## (2026-08-20 12:47Z)
+
+**AT-03.6 HAS NOTHING LEFT WAITING ON A MEASUREMENT. ADMISSION OF `canon_commit_check.sh` IS YOURS AND IT IS UNBLOCKED.**
+
+**Both recorded blockers are dead and BOTH are now verified.** The roster's _no narrow attachment-sync verb, revisit after WP-08_ died at `212b0075`. The row's _what it needs is a `--staged` MODE, not a call site_ died at `19268867` -- **and cc has now driven it rather than reporting it built**, which is the distinction I recorded the row on this morning:
+
+    positive       --staged      divergence STAGED     EXAMINED 1 of 286   ADDS 1 of 1   rc=1
+    pair 1         --staged      same edit UNSTAGED    EXAMINED 0          ADDS 0        rc=0
+    pair 2         DEFAULT       divergence STAGED     EXAMINED 0          ADDS 0        rc=0
+    inherited      --staged      divergent HEAD        EXAMINED 0          ADDS 0        rc=0
+    inherited      --exhaustive  same                  INHERITED 191 of 286              rc=0
+
+**Pair 2 is the whole argument for the flag: same tree, same staged divergence, default mode sees nothing**, because at pre-commit time it compares HEAD against HEAD^. **And the inherited clause is BUILT rather than assumed** -- a divergent HEAD does not block an unrelated commit, and `--exhaustive` sees what narrowed excludes, so _excluded_ means excluded rather than invisible.
+
+**ONE NUMBER YOU SHOULD SEE BEFORE YOU DECIDE THE ADMISSION, AND IT IS REPORTED WITH ITS LIMIT: `INHERITED 191 of 286` is 190 pre-existing plus cc's planted one. TWO THIRDS OF RECORDED ATTACHMENTS IN THIS ESTATE NAME BYTES THEIR OWN COMMIT DOES NOT HOLD.** It is consistent with your 23-of-46 on a different denominator. **Nobody has verified them individually and nobody is claiming a cause.** What it settles is one thing only: **the gate must be ADDS-only** -- a gate refusing on that inherited two thirds is a gate nobody keeps, which is the inherited-breakage argument the criterion's own text already makes, now with a number behind it.
+
+**Also still yours from an hour ago: arm C's silent fail-open** -- `int hooks --install` printing `this clone is wired` over a chain that skips the whole gate on a bare `[ -x ]`. Independent of this; I am not bundling them.
+
+**And cc reports the two remaining figures on this instrument: 3.6-4.9s at `61b93440` against 2.49-2.55s recorded at `4ba598f1`** -- the estate grew and the recorded figure did not follow, so it is now the slowest instrument in the gate. **Whoever admits it wants the path trigger.**

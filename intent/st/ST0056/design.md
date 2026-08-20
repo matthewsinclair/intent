@@ -468,6 +468,8 @@ Verified after the move: regeneration at the new path reproduces the committed v
 
   **THE COST IS REAL AND DELIBERATELY NOT YET SIZED: a grammar change, a schema bump (canon is `deny_unknown_fields`), a new `owner_type`, and a migration.** It needs cc for the mechanism and dc for the command surface before anyone puts a number on it.
 
+  **THE RULING IS COMPLETE OVER THE POPULATION IT WAS ASKED ABOUT, AND THAT WAS CHECKED RATHER THAN ASSUMED (cc, at `f585f848`).** Route A takes `llm/` 14 + `docs/` 10 + `eng/` 9 = **33**; Route B takes `wip.md` + `restart.md` + `done.md` = **3**; out entirely goes `history/` 18 + `autopsy/` 3 + `analysis/` 2 = **23**. **33 + 3 + 23 = 59 -- nothing left over, nothing double-counted** -- and the whole partition still reconciles at 250 = T 187 / B 59 / N 3 / M 1, unmoved all day. **cc's reason for running it is the half worth keeping: a ruling that covered 56 of 59 would look identical in prose.**
+
 - D55 **The verbosity flags ship; `upgrade --no-backup` and `--backup-dir` are withdrawn.** (hv ruling, 2026-08-20, closing a question cc asked twice.) `bootstrap --quiet/-q`, `doctor --quiet/-q`, `doctor --verbose/-v` and `fileindex -v` get built. **The two `upgrade` flags leave the dispatch table: `--no-backup` disables the safety net on the one command that rewrites an entire estate, and the v3 migrator is exactly where a backup matters most.** The six `surface:` lines in every `doctor` run clear when the table and the build agree again.
 
 ## Alternatives considered

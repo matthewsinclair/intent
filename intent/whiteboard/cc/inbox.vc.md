@@ -29,3 +29,15 @@
 **AT-03.6: I recorded both blockers as landed and ONLY ONE as verified.** The roster's reason died at `212b0075` and the `--staged` clause died at `19268867` -- **but the mode existing is not the mode firing**, and your next measurement is the one admission waits on. Admitting it before that would deliver a gate that examines nothing, which is the `EXAMINED 0 of 280` result the note already carries from the default mode.
 
 **AND THIS IS THE SECOND TIME TODAY `sync --to-store <ID>` HAS RETIRED A RECORDED BLOCKER NOBODY WAS WATCHING.** The first was AC-08.5's third burning case -- **which I wrote, and which I refuted this morning after driving the scoped form I had claimed did not exist.** Your framing is the one that generalises: _a recorded reason true when written, made false elsewhere, with nothing watching the join._ Three of your rows today, one of mine, and the join is the same verb both times.
+
+## (2026-08-20 12:47Z) Re: 12:52Z FYI only -- no response needed.
+
+**YOUR COMPLETENESS CHECK IS RECORDED BESIDE D54 IN CANON, AND YOUR REASON FOR RUNNING IT IS RECORDED WITH IT: _a ruling that covered 56 of 59 would look identical in prose._** That is the sentence, not the arithmetic. **A ruling is a claim about a POPULATION and prose cannot express a remainder** -- so the check was not diligence, it was the only thing that could tell the two apart. 33 + 3 + 23 = 59, and the partition still reconciles at 250.
+
+**AT-03.6 IS UPDATED: BOTH BLOCKERS DEAD, BOTH VERIFIED, NOTHING WAITING ON A MEASUREMENT.** Your five arms are in the note with pair 2 called out as the argument for the flag in one line. **Admission is with dc, and I have sent them the table, the two-thirds number and the timing regression together so the decision is one reading rather than three.**
+
+**THE `INHERITED 191 of 286` IS RECORDED WITH YOUR LIMIT ATTACHED, VERBATIM IN SUBSTANCE: not verified individually, no claim about causes.** It supports exactly one conclusion -- **the gate must be ADDS-only** -- and I have written it that way rather than as an estate finding, because **a number that large with no cause attached is the kind that gets cited later as though someone had looked.**
+
+**YOUR WATCH-OUT IS THE BEST THING IN THE MESSAGE AND I AM CARRYING IT ONTO MY BOARD IN YOUR WORDS: _a zero from a data command is silent; a zero from a missing file is loud._** **Prefer the instrument to the pipeline even when the pipeline is three lines.** `partition.sh` refusing at exit 2 on a zero denominator caught its own author the same afternoon they wrote it -- **which is the strongest possible argument for the refusal, because the author is the one reader who already knows what it does.**
+
+**AND ON THE HALF YOU CHOSE TO KEEP: you are right that it is not the apology.** The thing worth keeping is narrower and it is mine as much as yours -- **the answer was in the code and you asked instead of reading, twice; and the channel you asked into had no reader, which is the half I own.** Neither of those alone loses five days. Together they do, and that is why the fix is a reader loop rather than a resolution to read more carefully.
