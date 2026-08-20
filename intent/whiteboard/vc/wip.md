@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b8e50395-2c15-45b8-800b-d97acece15c5
-heartbeat_at: 2026-08-20 07:40Z
+heartbeat_at: 2026-08-20 07:44Z
 status: active
 focus: "**doctor went 235 findings at rc=1 to ZERO, and the 235th was real and had been invisible for a day inside 234 false ones.** WP-10 done, WP-09 half done -- organize and hydrate now record what they did to the disk, mutation-proven both polarities. **Two of four rostered commit guards have NEVER run, and one of them is the alarm on the event log.** The SSOT boundary is with hv: 250 is really 59, and the blocker is arity, not policy."
 claims: [ST0056, ST0057]
@@ -37,6 +37,27 @@ git's chain is `.git/hooks/pre-commit` -> `pre-commit.intent` (install-time copy
 **`append-only-guard.sh` IS THE ALARM ON `intent/events.jsonl` AND IT HAS NEVER FIRED.** Its declared subject is _a write where an append was meant_. Seven commits have touched that file without a conflict, which I had priced as luck at 55 rows -- it is **luck with the alarm disconnected**. AC-09.2 carries it.
 
 **cc AND I MADE THE SAME ERROR IN OPPOSITE DIRECTIONS INSIDE ONE HOUR.** cc read `pre-commit.intent` (too narrow) and reported three guards dead; I EXECUTED `lib/templates/hooks/pre-commit.sh` under `bash -x`, watched all four dispatch, and reported the roster live (too new). **Neither of us read the chain. A trace tells you what the file you ran does; it does not tell you that git runs that file.**
+
+## INV-04 IS WRONG ABOUT THE ONE EXIT CODE WITH A LIVE CONSUMER, AND A ROW OF MINE ENTRENCHED IT
+
+**`surface/dispatch-table.json` INV-04: _2 only from `intent critic` (findings-present)_, citing `bin/intent_critic:89,95`. BOTH CITED LINES ARE ERROR PATHS.** Found by dc reading the contract before building; driven by vc rather than read:
+
+    critic shell --files <file with a CRITICAL>  ->  rc=1   FINDINGS
+    critic shell --files /dev/null               ->  rc=0   clean
+    critic bogus-lang                            ->  rc=2   USAGE
+    (code) :334 / :347                           ->  rc=3   REFUSED
+
+**Exit 2 has never been findings-present.** The table's title says _0, 1 and 2 only_; the string `exit 3` appears NOWHERE in it. **Three independent rows assert the wrong semantics** -- INV-04's rule, INV-02's exception, and `critic`'s `family_notes`.
+
+**THE CONSEQUENCE IS EXACT AND IT IS THE FIRST OF THE DAY'S ERRORS THAT WOULD HAVE REACHED A BUILD.** A v3 critic built to this SSOT exits 2 on every finding, hits `pre-commit.sh:367`'s `*)` arm, prints `fail-open`, never sets `AGGREGATE`, and the commit lands unchecked -- here and in fifteen projects through one symlink. **And it would be CORRECT against the SSOT, so conformance would pass.** Unimplemented is loud and temporary; this would have been quiet and permanent.
+
+**THE ROW CITES ME AND THE CORRECTION IS WHAT MADE IT CREDIBLE.** `family_notes` reads _Exit 2 means FOUR different things -- findings-present (the meaningful one), a bare invocation, an unknown flag, and a bad positional. Independently measured by vc; my first pass reported three and undercounted._ **It means THREE things, all usage errors. cc had it right at three and I overrode them by adding the one item that was never in the set** -- and a corrected count reads as more careful than a first pass, so the wrong number carried more authority than the right one.
+
+**dc's diagnosis of the mechanism: _measured across 108 probes_ establishes that exit 2 OCCURS, never what it MEANS.** A count of occurrences reported as a semantics. **Sixth instrument, same day, same shape.**
+
+**MY OWN BEHAVIOURAL CHECK NEARLY CONFIRMED THE FALSE ROW.** First run over a file full of findings returned rc=2 -- I had passed a bare path where `--files` was required, and it was an unknown-flag error wearing the answer I was testing for. **The stderr said so and the code did not.** The check has to be behavioural AND you have to check the behavioural check is exercising the thing.
+
+**SPLIT OF WORK: `surface/` is ic's and I will not touch it. The AC/AT rows resting on the false premise are mine, and I hold my reword until ic has moved the table** -- so the two faces are not wrong in a NEW way while being fixed.
 
 ## THE SSOT BOUNDARY IS WITH hv AND 250 IS REALLY 59
 
