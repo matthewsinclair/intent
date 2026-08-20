@@ -122,6 +122,17 @@ fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
     let path = intent_dir.join(&rel);
     std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
     std::fs::write(&path, text).expect("write canon");
+    // **THE EVENT LOG IS A BUNDLE MEMBER WITH NO WORKING-TREE HOME (D53).**
+    // `intent/events.jsonl` is deleted and untracked; the log lives in the
+    // store, and its file form -- the one AC-02.6's 1-1 mapping requires -- is
+    // produced on demand by `export` rather than kept projected in the tree.
+    // So the exporter naming it here is correct and no reader resolves it,
+    // which is exactly the asymmetry this crossing check would otherwise flag.
+    // **Its round trip is covered in `export_round_trip.rs`**, where both sides
+    // are bundles, which is the only place the comparison is meaningful now.
+    if rel == intentsvcs::event::JSONL {
+      continue;
+    }
     written.insert(path);
   }
 
@@ -134,7 +145,6 @@ fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
   for i in &issues {
     resolved.insert(project.issue_json(i.number));
   }
-  resolved.insert(project.events_jsonl());
 
   assert_eq!(
     written, resolved,

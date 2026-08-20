@@ -595,7 +595,6 @@ mod tests {
       project.info_view("ST0001"),
       project.acceptance_view("ST0001"),
       project.issue_json(1),
-      project.events_jsonl(),
       project.steel_threads_view(),
       project.todo_view(),
     ] {

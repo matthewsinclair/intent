@@ -48,7 +48,7 @@ use crate::contract::{self, Scope, Verdict};
 // was being written, and the compiler caught it only because the two have no
 // methods in common. Two types one word apart deserve the alias at the seam
 // rather than a reader inferring which is meant.
-use crate::event::{self, Envelope, Subject};
+use crate::event::{Envelope, Subject};
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::intentfiles::Realised;
@@ -1403,27 +1403,22 @@ impl Facade {
     Ok(())
   }
 
-  /// The paths an act really changed, with the event log removed.
+  /// The paths an act really changed.
   ///
-  /// **THE LOG IS NOT PART OF THE ESTATE THE LOG DESCRIBES**, and without that
-  /// line the recording does not terminate. `sync_to_disk` projects the event
-  /// log inside its own write set, so a run that records itself leaves the file
-  /// one event behind -- which gives the NEXT sync a real write to do, which
-  /// records itself, which stales it again. **Each sync creates the work for
-  /// the next one, and the log grows by one event per sync with nobody touching
-  /// the estate.** Driven in `realisation_is_recorded.rs`, three consecutive
-  /// syncs, because a regress needing two calls to appear is invisible to any
-  /// arm that makes one.
+  /// **What LANDED, not what was asked for.** `commit` skips a path whose bytes
+  /// already match, so the [`WriteSet`] is a second opinion about what a sync
+  /// writes -- it answers what WOULD be written, which is the right question
+  /// before a commit and the wrong one after it.
   ///
-  /// A run that wrote only the log has not acted on anything: it is the record
-  /// catching up with itself. **The alternative -- a second write nothing
-  /// records -- buys a clean number by MOVING the unrecorded act rather than
-  /// removing it**, which is the whole defect AC-09.1 exists for.
+  /// **It carried an event-log exclusion until D53 and no longer needs one.**
+  /// `sync_to_disk` used to project the log inside its own write set, so a run
+  /// recording its own act staled the file and handed the next sync real work
+  /// -- each sync manufacturing the next one's, forever. The filter terminated
+  /// that regress; deleting the tracked file removed its cause, which is the
+  /// better repair and is why the filter is gone rather than kept as defence.
   fn estate_paths(&self, applied: &crate::write_set::Applied) -> Vec<String> {
-    let log = self.project.events_jsonl();
     applied
       .written()
-      .filter(|path| *path != log)
       .map(|path| self.project.relative(path))
       .collect()
   }
@@ -1722,18 +1717,8 @@ impl Facade {
       Some(_) => Vec::new(),
     };
     let count = all_threads.len();
-    let mut set = self.projection(&canon, &all_threads, &all_issues)?;
+    let set = self.projection(&canon, &all_threads, &all_issues)?;
     self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
-    // History travels only if something writes it out. Every other entity in
-    // this set can be re-derived from a file that is already there; this one
-    // cannot be re-derived from anything.
-    //
-    // **It travels under a SCOPE too, and that is deliberate rather than an
-    // oversight.** The log is not any thread's artefact, so no scope excludes
-    // it; and it is the one table whose omission is unrecoverable, so the
-    // asymmetry runs the safe way -- writing it more often than strictly
-    // needed costs a file write, and not writing it loses the data outright.
-    self.add_event_log(&mut set)?;
     let applied = set.commit()?;
     // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** `commit` skips a path whose
     // bytes already match, so a sync over an estate that already agrees writes
@@ -1844,7 +1829,6 @@ impl Facade {
         store.replace_doc_sections(&canon.sections)?;
       }
 
-      ingest::restore_event_log(project, store)?;
       Ok(canon)
     })?;
     // **The projection narrows with the scope too, and forgetting that is the
@@ -2232,27 +2216,6 @@ impl Facade {
 
   /// Add the event log's file form to a write set (D34, AC-02.6).
   ///
-  /// **Separate from [`Facade::projection`] because it is a different kind of
-  /// artefact, and conflating them would be a real error rather than an
-  /// untidiness.** A projection re-derives files from the canon it is handed,
-  /// so it is correct to run it over a SUBSET -- a single mutated thread -- and
-  /// the mutation path does exactly that. The event log has no subset: it is
-  /// the whole log or a truncated one, and rendering it during a per-thread
-  /// write would rewrite the file down to whatever that call happened to know
-  /// about.
-  ///
-  /// It therefore joins only the whole-estate direction, and it goes through
-  /// the same [`WriteSet`] so the extract lands atomically or not at all
-  /// (AC-04.1) -- a partial history is worse than a stale one.
-  fn add_event_log(&self, set: &mut WriteSet) -> Result<(), FacadeError> {
-    let events = self.store.events().map_err(FacadeError::Store)?;
-    set.add(
-      self.project.events_jsonl(),
-      event::to_jsonl(&events).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
-    );
-    Ok(())
-  }
-
   /// Run every health check (AC-06.2). A read: it reports, and repairs
   /// nothing.
   ///

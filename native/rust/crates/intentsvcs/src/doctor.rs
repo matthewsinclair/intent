@@ -71,34 +71,6 @@ pub struct Report {
   /// Silence and a clean bill of health are indistinguishable to a reader; a
   /// list is neither.
   pub unattached: Vec<String>,
-  /// Events this store holds that the projected file does not carry.
-  ///
-  /// **REPORTED, NEVER A FINDING, and that is the whole of the design.** The
-  /// store is ahead of the file after EVERY mutation -- that is the normal
-  /// working state of a project somebody is using, not a defect. A finding here
-  /// would fire on nearly every run, and `history_checks`'s own docstring names
-  /// what that costs: *a finding that fires routinely is the
-  /// trained-to-be-ignored failure*. It would also put `doctor` back to a
-  /// permanent rc=1 on a healthy tree, which is WP-10's defect rebuilt with a
-  /// different cause.
-  ///
-  /// **It is reported anyway, for `unattached`'s reason: silence and a clean
-  /// bill of health are indistinguishable to a reader, and a number is
-  /// neither.** Under D34 the projected file is history's only route off this
-  /// machine, so every event counted here is one that would not survive the
-  /// loss of `intent/.cache/` -- gitignored and per-machine by design.
-  ///
-  /// **The threshold is ZERO and that is a ruling, not a default** (vc, hv
-  /// 2026-08-20, answering the question `history_checks` explicitly left open:
-  /// *how current must the committed extract be*). One unsynced event is one
-  /// event that dies with the machine, so there is no tolerance to set. What
-  /// stops it being noise is that it REPORTS rather than judges.
-  ///
-  /// **Expected to fall to ~zero on its own once `intentd` backgrounds the
-  /// sync** (hv): the lag then becomes the daemon's wakeup time rather than a
-  /// human remembering to run a verb. This is a transitional instrument and
-  /// says so.
-  pub unsynced_events: usize,
 }
 
 impl Report {
@@ -205,83 +177,9 @@ pub fn diagnose(
 
   db_checks(&canon, project, &mut report.findings);
   file_checks(project, &canon, ctx, &mut report);
-  report.unsynced_events = history_checks(project, &canon, store, &mut report.findings);
 
   report
 }
-
-/// **Does the repository carry the history this machine has?** (AC-03.11.)
-///
-/// `event_log` is the one table derived from nothing (D34), so it is the one
-/// whose absence nothing else reveals: every other question the estate answers
-/// is answerable without it, which is why a clone with no history at all read
-/// as perfectly healthy for as long as it did.
-///
-/// **The condition is two artefacts disagreeing, not one artefact missing**,
-/// and the difference is what makes this reportable at all. "Entities and no
-/// log" was the first version and it is too broad to be useful: the per-thread
-/// mutation path deliberately does not rewrite the log extract, so a project
-/// mutated normally sits in that state routinely, and a finding that fires
-/// routinely is the trained-to-be-ignored failure. Worse, a hand-authored or
-/// freshly migrated estate is permanently in it -- so the check would have been
-/// loudest exactly where AC-03.11 needs it trusted.
-///
-/// What IS provable is this store holding envelopes the repository does not.
-/// That is not a guess about intent; it is history that exists on one machine
-/// and would not survive a clone, reported to the person who still has it. The
-/// case it does not cover -- a clone that arrived with no log, where the data is
-/// already gone and nothing local can prove it ever existed -- is with vc,
-/// because answering it means ruling on how current the committed extract must
-/// be, which is a D34 question rather than a diagnostic one.
-fn history_checks(
-  project: &Project,
-  canon: &crate::ingest::Canon,
-  store: Option<&crate::store::Store>,
-  findings: &mut Vec<Finding>,
-) -> usize {
-  if canon.threads.is_empty() && canon.issues.is_empty() {
-    return 0;
-  }
-  let Some(store) = store else {
-    return 0;
-  };
-  let Ok(events) = store.events() else {
-    return 0;
-  };
-  let recorded = events.len();
-  if recorded == 0 {
-    return 0;
-  }
-  let path = project.events_jsonl();
-  // Asked by SIZE rather than by existence, so a truncated log -- which a
-  // failed write or a bad merge leaves behind, and which `exists()` calls
-  // healthy -- answers the same as an absent one.
-  let committed = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
-  if committed == 0 {
-    findings.push(Finding::new(
-      project.relative(&path),
-      FindingClass::EventLogAbsent,
-      format!(
-        "this store holds {recorded} event(s) and the repository carries none of them -- a clone of this project would arrive with no history"
-      ),
-    ));
-  }
-
-  // **COUNTED BY ULID SET, NEVER BY LENGTH.** A length comparison answers
-  // wrongly the moment the file carries an envelope this store does not -- a
-  // clone that arrived with another machine's history, which is exactly the
-  // state the per-store projection is designed to produce. Set membership
-  // cannot go negative and cannot report a false zero when both sides have
-  // moved.
-  let carried: std::collections::BTreeSet<String> = std::fs::read_to_string(&path)
-    .unwrap_or_default()
-    .lines()
-    .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
-    .filter_map(|v| v.get("id").and_then(|i| i.as_str().map(str::to_string)))
-    .collect();
-  events.iter().filter(|e| !carried.contains(&e.id)).count()
-}
-
 /// Unwrap an ingest failure into findings. A refusal already carries them; any
 /// other failure (an unreadable file, a bad directory) becomes one finding, so
 /// the report shape does not change with the reason.

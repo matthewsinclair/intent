@@ -146,3 +146,6 @@ intent/.backup/
 target/
 # The DDL face is a COMMITTED artefact (the global gitignore excludes *.sql).
 !schema/ddl.sql
+
+# D53: the event log lives in the store; its file form is produced by `intent export`.
+intent/events.jsonl

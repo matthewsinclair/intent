@@ -528,20 +528,6 @@ fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<C
   if scope.named().is_none() {
     store.replace_file_index(&entries)?;
   }
-  // **HISTORY IS RESTORED HERE TOO, and its absence was a silent defect.**
-  // This function rebuilt seven tables from the extract and skipped the ONE
-  // the extract exists to carry. Every other table is derived, so a resync
-  // that omitted it would have been recoverable; `event_log` is derived from
-  // nothing (D34), so omitting it lost the data outright.
-  //
-  // The reach was the whole of the cold-store path: `load_fresh` warms an
-  // empty store through here, and an empty store is the normal state of every
-  // fresh clone (D21 gitignores `intent/.cache/`). So a clone answered every
-  // question correctly and had no history at all until somebody happened to
-  // run the explicit `intent sync --to-store` -- and nothing reported it,
-  // because a missing log looks exactly like a project that has never
-  // recorded anything.
-  restore_event_log(project, store)?;
 
   // **The restore SUCCEEDING is not the same as the history being there**, and
   // the gap is reported rather than refused. `restore_event_log` returns
@@ -558,48 +544,6 @@ fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<C
   // protect. The check lives in `doctor` as `EventLogAbsent` instead, which is
   // what the criterion's own word REPORTED asks for.
   Ok(canon)
-}
-
-/// Take into the store whatever the committed event-log extract carries and the
-/// store does not.
-///
-/// **The one restore, shared by the cold-store path and the explicit
-/// `sync --to-store`.** It lived on the facade and had a single caller, which
-/// is how `resync` came to rebuild everything except this.
-///
-/// Merging on the ULID makes it idempotent and makes two machines' logs a union
-/// rather than a conflict, so restoring an older extract over a newer log adds
-/// nothing and loses nothing.
-///
-/// An absent file is not an error: a project that has never synced out has no
-/// extract of its history yet, and refusing here would make the first sync of
-/// an old project impossible.
-pub fn restore_event_log(project: &Project, store: &mut Store) -> Result<usize, IngestError> {
-  let path = project.events_jsonl();
-  let text = match std::fs::read_to_string(&path) {
-    Ok(text) => text,
-    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
-    Err(source) => {
-      return Err(IngestError::Io {
-        path: project.relative(&path),
-        source,
-      });
-    }
-  };
-  let incoming = crate::event::from_jsonl(&text).map_err(|e| IngestError::EventLogUnreadable {
-    path: project.relative(&path),
-    cause: e.to_string(),
-  })?;
-  let have = store.events()?;
-  let missing = crate::event::merge(&have, &incoming);
-  for envelope in &missing {
-    // **`restore_event`, never `append_event`** (D42). These already happened;
-    // the extract carries when. Recording them as happening now would rewrite
-    // the whole of an older clone's history to the moment someone restored it
-    // -- and every stamp would look perfectly valid.
-    store.restore_event(envelope)?;
-  }
-  Ok(missing.len())
 }
 
 /// Refresh the file index, and refuse if any file in scope is unparsed.

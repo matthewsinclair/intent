@@ -134,6 +134,23 @@ fn declaration_gaps(ddl: &str) -> Vec<String> {
           "{table} claims DERIVED without saying what recomputes it: {decl:?}"
         ));
       }
+    } else if let Some(rest) = decl.strip_prefix("ON DEMAND") {
+      // **THE THIRD FORM (D53), AND IT IS NOT A SOFTER `DERIVED`.** `DERIVED`
+      // says the data is reconstructible from something else already on disk;
+      // `event_log` is the one table reconstructible from nothing, so it could
+      // never take that exemption however convenient it looked. ON DEMAND says
+      // the file form is real, lossless and standard, and simply is not kept
+      // projected in the working tree -- so it owes a NAME for the form and a
+      // reason it is not projected, and both are checked here.
+      let rest = rest.trim_start_matches(['-', ' ']).trim();
+      let (name, why) = rest.split_once(char::is_whitespace).unwrap_or((rest, ""));
+      if name.is_empty() {
+        gaps.push(format!("{table} claims ON DEMAND without naming the file form: {decl:?}"));
+      } else if why.trim_start_matches(['-', ' ']).trim().len() < 20 {
+        gaps.push(format!(
+          "{table} claims ON DEMAND without saying why it is not projected: {decl:?}"
+        ));
+      }
     } else if !decl.starts_with("carried by ") {
       gaps.push(format!("{table} declares something unreadable: {decl:?}"));
     }
@@ -309,6 +326,26 @@ fn resolves_under(root: &Path, declared: &str) -> Option<PathBuf> {
 /// the whole remainder as the path yields a referent that cannot resolve **for
 /// a reason that has nothing to do with where canon lives**: red before the
 /// relocation, red after it, and reading exactly like a failed move.
+/// The file forms a table declares as PRODUCED rather than projected (D53).
+///
+/// Deliberately a sibling of [`carried_paths`] rather than folded into it: the
+/// two forms owe DIFFERENT evidence, and one function returning both would let
+/// a caller check the cheaper proof and believe it had checked the other.
+fn on_demand_forms(ddl: &str) -> Vec<(String, String)> {
+  declarations_in(ddl)
+    .into_iter()
+    .filter_map(|(table, decl)| {
+      let name = decl?
+        .strip_prefix("ON DEMAND")?
+        .trim_start_matches(['-', ' '])
+        .split_whitespace()
+        .next()?
+        .to_string();
+      Some((table, name))
+    })
+    .collect()
+}
+
 fn carried_paths(ddl: &str) -> Vec<(String, String)> {
   declarations_in(ddl)
     .into_iter()
@@ -372,12 +409,15 @@ fn every_carried_by_declaration_resolves_to_something_on_disk() {
     .filter(|(_, d)| d.as_deref().is_some_and(|d| d.starts_with("DERIVED")))
     .count();
 
+  let on_demand = on_demand_forms(&ddl);
   assert_eq!(
-    carried.len() + derived,
+    carried.len() + derived + on_demand.len(),
     declarations.len(),
-    "the partition does not close: {} carried by + {derived} DERIVED over {} declarations -- \
-     something declares in a third form and this test is silently not looking at it",
+    "the partition does not close: {} carried by + {derived} DERIVED + {} ON DEMAND over {} \
+     declarations -- something declares in a FOURTH form and this test is silently not \
+     looking at it",
     carried.len(),
+    on_demand.len(),
     declarations.len()
   );
 
@@ -508,6 +548,12 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
     descoped.state
   );
 
+  // **THE EVENT LOG'S ROUND TRIP MOVED WITH D53; IT DID NOT DISAPPEAR, AND
+  // THIS ARM PINS BOTH HALVES.** `intent/events.jsonl` is no longer projected
+  // into the working tree, so the disk trip above cannot carry history --
+  // asserting that it does would be asserting the design hv replaced. The
+  // accepted COST is asserted here rather than left implicit, because a cost
+  // nobody wrote down is one the next reader repairs by accident.
   let back: Vec<String> = restored
     .store()
     .events()
@@ -517,9 +563,32 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
     .collect();
   for id in &minted {
     assert!(
-      back.contains(id),
-      "an event did not survive the extract -- nothing recomputes history, so this is the \
-       one loss that cannot be repaired: {id}"
+      !back.contains(id),
+      "the disk round trip carried an event ({id}) -- under D53 the log is not projected, so \
+       something has re-added a working-tree extract and the deletion is being undone by \
+       accident rather than by a ruling"
+    );
+  }
+
+  // **AND THE GUARANTEE THAT REMAINS IS DRIVEN, NOT ASSUMED.** `event_log`
+  // declares its file form ON DEMAND, so AC-02.6's losslessness for this table
+  // is proved through the exporter. **Deleting the assertion along with the
+  // mechanism it outlived would leave hv's standing requirement held by
+  // nobody** -- which is the failure mode the requirement exists to prevent,
+  // reached by tidying rather than by neglect.
+  let events = restored.store().events().expect("events for the bundle");
+  let bundle = intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), events.clone());
+  let parts = intentsvcs::export::canon_parts(&bundle).expect("canon parts");
+  let (_, jsonl) = parts
+    .iter()
+    .find(|(rel, _)| rel == intentsvcs::event::JSONL)
+    .expect("the exporter emits the ON DEMAND file form for event_log");
+  for envelope in &events {
+    assert!(
+      jsonl.contains(&envelope.id),
+      "an event did not survive the EXPORT -- nothing recomputes history, so this is the \
+       one loss that cannot be repaired: {}",
+      envelope.id
     );
   }
 }
@@ -541,7 +610,10 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
   let paths = [
     "intent/.canon/st/ST0056.json",
     "intent/.canon/issues/0021.json",
-    "intent/events.jsonl",
+    // **NOT `intent/events.jsonl` (D53).** It is no longer projected, so a
+    // second machine writes no bytes for it and there is nothing here for the
+    // two repositories to fight over -- which was this arm's whole subject for
+    // that path.
   ];
   let first: Vec<String> = paths.iter().map(|p| fx.read(p)).collect();
 
@@ -592,7 +664,20 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
   assert_eq!(issue["number"], 21);
 
   // JSONL: one self-describing object per line, no framing to reimplement.
-  let events = fx.read("intent/events.jsonl");
+  // **Read from the EXPORT rather than the tree (D53)**: the form is unchanged
+  // and still standard, and this arm's claim is about the FORM, so it follows
+  // the form to wherever it is produced rather than lapsing with the projection.
+  let events = {
+    let held = fx.facade_on_disk().store().events().expect("events");
+    let bundle =
+      intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), held);
+    intentsvcs::export::canon_parts(&bundle)
+      .expect("canon parts")
+      .into_iter()
+      .find(|(rel, _)| rel == intentsvcs::event::JSONL)
+      .expect("the exporter emits the history form")
+      .1
+  };
   let lines: Vec<&str> = events.lines().filter(|l| !l.trim().is_empty()).collect();
   assert!(
     lines.len() >= 3,
@@ -606,94 +691,4 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
       "and says what it is: {envelope}"
     );
   }
-}
-
-/// **The extract is not merely tolerated by the file scan -- it is understood
-/// by it, and the difference was a live trap.**
-///
-/// `events.jsonl` does not end with `.json`, so the scan's whole-document parse
-/// skipped it through path shape rather than through any decision. That is the
-/// same passing-by-luck the DB file had before D29 named it: a later
-/// `contains(".json")`, or an extension normaliser, would start calling the one
-/// file that carries all history malformed -- and a corrupt-looking history file
-/// blocks every ingest of the project.
-///
-/// Asserted from BOTH sides, because "no finding" alone is what the accident
-/// also produced: a valid extract is clean, and a damaged one is reported at
-/// the right LINE rather than as a broken document.
-#[test]
-fn the_history_extract_is_scanned_as_jsonl_not_skipped_for_its_suffix() {
-  let (fx, _) = populated();
-  fx.facade_on_disk()
-    .sync_to_disk(&intentsvcs::sync::Scope::All)
-    .expect("emit");
-  let root = fx.root();
-
-  let clean = intentsvcs::sync::scan(root, &[]).expect("scan");
-  let history = clean
-    .iter()
-    .find(|e| e.path.ends_with("events.jsonl"))
-    .expect("the scan sees the history extract at all");
-  assert!(
-    history.findings.is_empty(),
-    "a valid extract is clean: {:?}",
-    history.findings
-  );
-
-  // Damage line 2 and rescan. A whole-document JSON parse would report line 1
-  // (the first line is not the whole file), and skipping the file entirely
-  // would report nothing.
-  let good = fx.read("intent/events.jsonl");
-  let mut lines: Vec<String> = good.lines().map(ToString::to_string).collect();
-  lines[1] = "{not json at all".to_string();
-  fx.write_file("intent/events.jsonl", &format!("{}\n", lines.join("\n")));
-
-  let damaged = intentsvcs::sync::scan(root, &[]).expect("scan");
-  let history = damaged
-    .iter()
-    .find(|e| e.path.ends_with("events.jsonl"))
-    .expect("still seen");
-  assert_eq!(
-    history.findings.len(),
-    1,
-    "one damaged line, one finding: {:?}",
-    history.findings
-  );
-  assert_eq!(
-    history.findings[0].line,
-    Some(2),
-    "located at the damaged LINE, which is the whole reason JSONL is read as lines"
-  );
-}
-
-/// A damaged history file is refused BY LINE, never skipped.
-///
-/// The strictness that applies to every other read of the extract (D05), and it
-/// matters more here than anywhere: skipping a bad line loses the one record
-/// nothing can recompute, and leaves a log that looks complete.
-#[test]
-fn a_damaged_event_line_is_refused_by_number() {
-  let (fx, _) = populated();
-  fx.facade_on_disk()
-    .sync_to_disk(&intentsvcs::sync::Scope::All)
-    .expect("emit");
-
-  let good = fx.read("intent/events.jsonl");
-  let mut lines: Vec<String> = good.lines().map(ToString::to_string).collect();
-  lines[1] = "{\"id\": \"not an envelope\"}".to_string();
-  fx.write_file("intent/events.jsonl", &format!("{}\n", lines.join("\n")));
-
-  let err = fx
-    .facade_on_disk()
-    .sync_from_disk(&intentsvcs::sync::Scope::All)
-    .expect_err("a damaged history file must refuse");
-  let rendered = err.render();
-  assert!(
-    rendered.contains("line 2"),
-    "the refusal locates the damage: {rendered}"
-  );
-  assert!(
-    rendered.contains("do NOT delete"),
-    "and does not send the operator to delete the only copy of history: {rendered}"
-  );
 }

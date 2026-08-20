@@ -277,12 +277,19 @@ fn st_new_start_composes_the_two_transitions_rather_than_constructing_the_end_st
   );
 
   ok(root, &["sync", "--to-disk"]);
-  let log = std::fs::read_to_string(root.join("intent/events.jsonl")).expect("the event log");
-  let ops: Vec<String> = log
-    .lines()
-    .filter(|l| !l.trim().is_empty())
-    .map(|l| {
-      serde_json::from_str::<serde_json::Value>(l).expect("each line is one envelope")["op"]
+  // **THE LOG IS NO LONGER PROJECTED INTO THE TREE (D53), so the operator's
+  // route to it is the exporter.** Read through the SHIPPED VERB rather than
+  // through the store directly: this file's whole job is to drive what a person
+  // can actually type, and a test that reached past the CLI would go green on a
+  // history no command could show anybody.
+  let bundle: serde_json::Value =
+    serde_json::from_str(&ok(root, &["export"])).expect("the export bundle is JSON");
+  let ops: Vec<String> = bundle["events"]
+    .as_array()
+    .expect("the bundle carries the history")
+    .iter()
+    .map(|e| {
+      e["op"]
         .as_str()
         .expect("every envelope names its op")
         .to_string()

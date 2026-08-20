@@ -8,9 +8,22 @@
 --
 -- EVERY TABLE DECLARES HOW ITS DATA LEAVES. `-- openness: carried by <path>`
 -- names the file form that holds it losslessly; `-- openness: DERIVED` states
--- why it needs none, and always says why. Absence of a declaration is never
--- the answer -- a table with no line is a table nobody has said how to get
--- data out of, and tests/openness.rs refuses one.
+-- why it needs none, and always says why; `-- openness: ON DEMAND <path>` names
+-- a file form that is PRODUCED rather than projected, and says why it is not
+-- kept in the tree. Absence of a declaration is never the answer -- a table
+-- with no line is a table nobody has said how to get data out of, and
+-- tests/openness.rs refuses one.
+--
+-- THE THIRD FORM IS NOT A LOOPHOLE FOR THE SECOND. DERIVED
+-- means the data is reconstructible from something else that IS on disk, which
+-- `event_log` is not -- it is the one table derived from nothing, so it can
+-- never take that exemption however convenient it looks. ON DEMAND says the
+-- opposite: the file form is real, lossless and standard, and the estate simply
+-- does not keep a copy of it lying in the working tree. **Its evidence is
+-- STRONGER than the second form's, not weaker**: `carried by` is proved by a
+-- path existing, while ON DEMAND is proved by driving the exporter and watching
+-- the bytes come out, which is the property hv's requirement actually asks for
+-- -- that the data can LEAVE, not that a file is sitting there.
 --
 -- TWO KINDS OF TIME LIVE HERE AND THEY ARE NOT INTERCHANGEABLE. Every table
 -- carries a record timestamp, written by the database as part of the write and
@@ -298,7 +311,10 @@ CREATE TABLE IF NOT EXISTS ingests (
   started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
--- openness: carried by intent/events.jsonl
+-- openness: ON DEMAND events.jsonl -- produced by `intent export`, not projected
+-- into the working tree. The tracked extract was deleted: it was the sole carrier of
+-- history across a clone, and git already is that carrier for everything the canon
+-- describes. The file form itself is unchanged and still lossless.
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
   ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),

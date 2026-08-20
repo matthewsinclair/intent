@@ -792,17 +792,6 @@ impl Project {
   }
 
   /// The event log's committed file form (D34, AC-02.6).
-  ///
-  /// **Beside the canon it describes, not under `.cache/`**, because it is the
-  /// opposite kind of thing from the DB: `event_log` is the one table that is
-  /// durable truth AND not reconstructible from any other file, so its extract
-  /// is the only route history has off this machine. A gitignored path would
-  /// mean the log travels nowhere, which is the whole failure the artefact
-  /// exists to prevent.
-  pub fn events_jsonl(&self) -> PathBuf {
-    self.intent_dir().join(crate::event::JSONL)
-  }
-
   /// The thread index view. Beside the threads it indexes, at v2's path (vc
   /// ruling, 2026-08-14): a rewrite that already moves plenty does not need to
   /// move this too.
