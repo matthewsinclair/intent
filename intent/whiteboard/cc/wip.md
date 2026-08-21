@@ -2,88 +2,137 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 32dc8880-9739-45ef-a496-70118b1d259b
-heartbeat_at: 2026-08-20 22:46Z
+session_id: ef9e17d5-a705-4547-b749-807a30ba16b5
+heartbeat_at: 2026-08-21 12:58Z
 status: paused
-focus: "**PAUSED. DAY CLOSED GREEN -- vc's suite returned zero failures under `native/**` and all seven WP-10 rows ran inside it (vc-driven, one hop, not re-run by me).** WP-10 is seven green rows; AC-10.3 and AC-10.15 CLOSED. **THE DAY'S FINDING: A ROW CAN PROMISE MORE THAN IT DELIVERS IN FOUR SHAPES, AND ONLY THREE LEAVE A TRACE.** **NEXT SESSION OPENS ON AC-10.8, AND ITS FIRST JOB IS NOT A TEST** -- non-empty, THEN interrogate `data-model.md`'s enumerating clause, because a population can be non-empty, exhaustive and still exclude the answer. Nothing in flight, nothing owed, every inbox at sentinel. **Three things stay open on hv's word and none of them is mine.**"
+focus: "**PAUSED AND HOLDING on hv instruction, relayed by vc and attributed rather than asserted. LOCALFOLD DONE 2026-08-21.** I BUILT NOTHING TODAY -- pickup, measurement, a plan tabled to matts, and the hold landed before step 1. **THE ONE THING A COLD SESSION MUST NOT MISREAD: AC-03.14 test file is GREEN and the row is CORRECTLY RED**, because the green is a `UNPROVEN.len() <= 32` ratchet and not a closure; the production fix it prescribes is already in at `write_set.rs:154-166`. **Gate 62 of 67 computed in THREE calls -- `ac status ST0056/03` is a WP-scoped form nothing had written down -- and it is ST0057 CLOSURE, not the 3.0.0 release.** Three hv rulings landed in my inbox today and are TODO 1-3. **My session INTENT_HOME went stale under me; yours will not be.**"
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
 # Control Claude (cc)
 
-**All of 2026-08-20 is in `.history/20260820/`. This is only what a cold session needs.**
+**2026-08-20 is in `.history/20260820/`. Today's pre-fold board and the six vc inbox entries are in `.history/20260821/`. This file is the cold-session minimum.**
 
 ## The model -- canon, hv ratified
 
-**D01 IS REVERSED: THE DB IS THE SSOT AND THE FILES ARE RE-CREATABLE.** The old "committed JSON durable / DB rebuildable" wording is VOID. **D34: the committed extract is the interchange -- it TRAVELS, the DB never does.** D29: a gitignored path is never canon. D54: 33 + 3 + 23 = 59.
+**D01 IS REVERSED: THE DB IS THE SSOT AND THE FILES ARE RE-CREATABLE.** **`intentdb` IS RETIRED -- IT NAMES NO COMPONENT** (hv, 2026-08-21, corpus-wide at `513642e7`). `intent-cli` and `intentd` are BOTH clients of `intentsvcs`, which solely owns the SQLite db; the word implied a daemon-owned store. Diagram at `design.md:12-17`. **The SUBSTANCE of D01 is unchanged -- only the term was wrong**, and it was adopted from hv's own phrasing inside two quoted 2026-08-15 rulings, which is why nobody challenged it for six days. **D34: the committed extract is the interchange -- it TRAVELS, the db never does.** D29: a gitignored path is never canon.
 
-**D42 -- TIME.** `date -u +'%Y-%m-%d %H:%MZ'`, own step, trailing `Z`. I fabricated four stamps in one day while carrying this in bold. **The mechanism, since care is not one: the stamp enters the message from the same shell command that reads it.** **AND THE GENERATOR IS ARITHMETIC, NOT MEMORY** -- vc's disclosure, 2026-08-20: _`17:36Z`, `17:39Z`, `17:44Z`, `17:46Z`: the first was read and the rest were arithmetic._ **A drifted stamp does not start from nothing; it starts from a TRUE reading and is advanced by feel, so it wears the authority of the real one.** **This is the sequence that defeats check C**, the two-sided test that needs no clock: increments-by-feel are monotonic BY CONSTRUCTION, so every stamp in a drifting run passes the one check designed to work when the clock is unavailable. **A second clock read is the only thing that catches it, which is why the read is per-stamp and never per-session.**
+**D42 -- TIME.** `date -u +'%Y-%m-%d %H:%MZ'`, own step, trailing `Z`. **The mechanism, since care is not one: the stamp enters the file from the same shell command that reads it.** **THE GENERATOR IS ARITHMETIC, NOT MEMORY** -- a drifted stamp starts from a TRUE reading and is advanced by feel, so it wears the authority of the real one, **and increments-by-feel are monotonic BY CONSTRUCTION, which is why they defeat check C.** A second clock read is the only thing that catches it: **the read is per-stamp, never per-session.**
 
-## Mine
+## Mine -- state at the hold
 
-**STATE `f31aa924`. WP-10 green and mutation-proved:** AT-10.14 `2244926a`, AT-10.2 `28b3610b`, AT-10.4 `4126b2f7`, AT-10.15 `bc522897`, AT-10.3 `98ef78f2`+`783c2e79`, AT-10.16 `f9b318a4`, AT-10.17 `f31aa924`. **Moves are vc's; I have written no canon.**
+**I BUILT NOTHING TODAY.** Pickup, measurement, a plan tabled to matts; hv's hold landed before step 1. **No canon written, no test touched, no production code touched.** Everything below is measurement.
 
-**NEXT IS `egest_estate.rs` (AC-10.8) AND ITS FIRST JOB IS NOT A TEST:** read `data-model.md`'s enumeration, prove the out-of-model population NON-EMPTY, **and then read the enumerating clause itself as a hypothesis** -- non-empty is necessary and is not sufficient, because a population can be non-empty, exhaustively measured, and still exclude the answer by its own definition (vc, below). Not started under a deadline on purpose -- that control limb is the first thing time pressure removes.
+**PROVENANCE OF THE NUMBERS: driven at `706db8ee`, clean tree. HEAD IS NOW `5fb091cb` AND NOTHING BELOW IS RE-VERIFIED THERE** -- six peer commits landed while I planned.
 
-**AC-10.5 wants matts' call** on Lamplight/Utilz/Baize revisions. **AC-10.6 is `n-a` and wants DOING -- it is the verb that zeroed the event log. AT-10.12 stays HELD** on an unexplained trim asymmetry (detail in canon and with vc since 2026-08-19): building before it is explained encodes a guess inside a green.
+### The gate is 62 of 67, and the verb form that yields it was undocumented
 
-**NOT MINE:** hooks, roster, `int hooks`, `canon_commit_check.sh`'s admission, view-skew wiring = **dc**. `Sigil`, issue verbs = **ic**. Contract, WP-close = **vc**.
+**Three calls, no arithmetic:** `ac status ST0057` -> 47/51, `ac status ST0056/03` -> **15/16**, and 47+15 = 62 of 51+16 = 67. **`ac status <STID>/<WP>` IS ACCEPTED BY THE VERB AND NOTHING IN THIS ESTATE HAD WRITTEN IT DOWN** (vc, 10:26Z; driven here at rc=0). **I reached 62 before reading that, by grepping `ac list ST0056` and counting the group-03 rows -- the right answer by exactly the hand-tally the instruction forbids.** The instruction named `ac status ST0056`, which answers 59/132 for the WHOLE THREAD and has no path to 67, **so the guard against hand-tallying was the vector for it.**
 
-## The day's finding -- four shapes of one thing
+**AND THE SCOPE IS NOT WHAT I REPORTED TO matts.** 62 of 67 is **ST0057's CLOSURE gate**, not the 3.0.0 release. The release is **ST0056 WP-12**, dependent on all prior WPs; ST0056 is **59/132 with seven WPs Not Started** (08, 09, 12, 13, 14, 15, 16). **Read as release progress it says 93% where ST0056 is at 45%.** I told matts "five rows from v3.0.0" in this morning's plan and that was wrong.
 
-**A ROW CAN PROMISE MORE THAN IT DELIVERS.**
+### AC-03.14 -- THE PRODUCTION FIX IS IN AND THE ROW IS CORRECTLY RED
 
-1. **UNCITED COVERAGE** -- already satisfied by a test nothing links to it; five instances across three nodes in one day. No AC id appears in a covering test, so nothing greps it. **PARTIAL uncited coverage is worse: a subject grep that hits the file says nothing about WHICH limbs.**
-2. **EXPIRED CITATION** -- the row names a file that cannot cover it. `to-write` is exempt from L2/L3, correctly, so a citation is unvalidated until someone tries to satisfy it.
-3. **VACUOUS GREEN** -- true by construction, so the test cannot fail. **The falsifiable arm is over the DECISION, never the OUTCOME: the outcome is quiet precisely because nothing acts; the PLAN is where an act is declared.**
-4. **TITLE BROADER THAN BODY** (vc) -- **and this one leaves no trace at all.** AC-10.4 is titled _Hooks continuity_; its body enumerates only `.claude/**`, so `.githooks/**`, the entire commit gate, was asserted by nothing. **The row is internally consistent: lint passes, the citation is right, the test is green, and it reads as covered to anyone who does not open it.**
+**READ THIS BEFORE TOUCHING THE ROW.** `write_set.rs:154-166` already carries the skip -- `record()` has read the file, so the comparison costs no extra I/O, and `written: false` is the existing nothing-to-undo semantics. **The fix the row's own text prescribes is BUILT.**
 
-**PRACTICE:** subject-grep FIRST because it is cheap, **then DRIVE THE VERB when it comes back empty** -- the coverage announces itself and you never guess a filename. A subject grep is still a name grep: vc swept four `fn` spellings for an allocator, got zero, wrote _there is no allocation function of any kind_ into canon; it was `fn next_thread_id`, **a private method invisible to a free-function sweep at ANY name.**
+**And the test file is GREEN while the row is RED, and both are correct.** Driven at `706db8ee`, `CARGO_TARGET_DIR=/Users/matts/Devel/prj/Intent/native/rust/target/cc`, target present in the `Running` list, `test result: ok. 3 passed; 0 failed`, recorded `rc=0` read from the file and not from a pipe. **The green is the `UNPROVEN.len() <= 32` RATCHET -- it stops the debt growing and says nothing about closure.** A cold session reading "test green" and moving this row would be wrong.
 
-**AND vc's DISCRIMINATOR -- _what does satisfying this row COMPLETELY still leave broken?_ -- IS ASKED AGAINST THE BODY, NEVER THE TITLE.** Against a title it returns _nothing_ every time, for exactly the rows where it matters most, **and that answer looks identical to a correct one.**
+**What is actually left is the SECOND INSTRUMENT**: a CLI-level driver that runs the binary and snapshots the estate `(path -> bytes, mtime)` around each verb, for the ten thread-estate verbs still in `UNPROVEN`. 31 of the 32 have no facade method, so this file cannot reach them. **Constraints already ruled, do not re-litigate:** `ingest` is cleared by vc's clean-room run; `at lint`'s mutate lives in `--fix` and the bare form proves nothing; `todo list` is a table defect, not a discharged verb; **store materialisation cannot be the observable, because read verbs create `.cache/intent.db` too**; and per ic, `cargo test` returns 101 for a build failure and a test failure alike, so **zero `test result:` lines must read UNMEASURED, never green.**
+
+### AC-10.8 -- step 1 is half driven, and the remaining half decides whether a test gets written at all
+
+**DRIVEN:** `grep -i 'out-of-model' data-model.md` returns ZERO. The enumerating clause is **`## What is deliberately not modelled` at `data-model.md:464`**, and it names three things: prose (FTS-indexed, so IN the store), shipped rules/skills/templates (embedded in the binary), and `wip.md`/`restart.md`.
+
+**DRIVEN:** 876 tracked files under `intent/`; **240 of them under `intent/st/ST0056/parity/`** as `.tap`, `.sh` and `.exs`. ST0056 canon records 88 attachments and every one is `.md`.
+
+**INFERRED, NOT DRIVEN -- THIS IS THE STEP THAT IS LEFT:** that those 240 are absent from the store. **The hypothesis is that the clause UNDER-DESCRIBES the out-of-model set** -- a `.tap` output is not prose, not shipped content, and not `wip.md` -- which lands on hv's standing question about 250 files under `intent/` not being in the store at all. **Next move is a store-side query, not a test.** If the hypothesis holds, **the deliverable is a canon amendment routed to vc and there is no test today**, because a test written around a clause known to be wrong is a vacuous green over a bad population.
+
+### THE DEAD END, recorded so the next session does not re-walk it
+
+**My first grep for `out-of-model` returned zero and I was one step from filing an EXPIRED CITATION against AC-10.8.** The clause exists, under different words. **A name search returns a fact about the search** -- dc's class, fresh instance, in the EXCLUDE direction. The cheap habit that saved it: when a subject grep comes back empty on a document that ought to contain the subject, **read the headings before concluding the subject is absent.**
+
+### AC-01.5's remedy is ruled dc's and sits on NOBODY's board -- AND I DID NOT ROUTE IT
+
+`AT-01.5`'s note reads **"THE REMEDY IS dc's, IT IS SMALL"** -- the bare `[ -x ]` with no else in `.githooks/pre-commit`, or `int hooks --install` refusing to report a wired clone whose dispatcher is absent. **Driven: `grep -cE 'canon-ignore|pre-commit\.intent|AC-01\.5' intent/whiteboard/dc/wip.md` -> 0.** It was step 1 of this morning's plan and the hold arrived first, **so it is still unrouted and that is mine to carry, not dc's to have missed.** A ruling with no owner's TODO row is this estate's own class: the write succeeded and the delivery never happened.
+
+### Two restart-assigned items of mine were already green
+
+ST0056 **AC-10.4** and **AC-10.2** both read `satisfied: yes`. `intent/restart.md` carried them as work. WP-10 is 11/15; the four outstanding are AC-10.5 (matts' call), AC-10.6 (`n-a`, wants a ruling not a build), AC-10.8, AC-10.12 (**held on the unexplained trim asymmetry -- building before it is explained encodes a guess inside a green**).
+
+## TODO -- three hv rulings landed today, in queue order
+
+**All three arrived via vc's inbox, attributed to hv's live channel and written as standing directives on `hv/wip.md`. READ THEM THERE, not from vc, and not from this board.** vc verifies on close. **None of them displaces AC-01.5, AC-03.6 or AC-03.14 unless hv resequences.**
+
+1. **ROUTE AC-01.5 TO dc.** Carried over from this morning, unstarted. XS, and it blocks a gate row.
+2. **DECLARE THE GATE'S ROW SET IN CANON AND HAVE A VERB READ IT** (hv ~11:35Z). **Not a new mechanism -- ST0057 AC-00.1 already carries `<<PRECONDITIONS AC-00.2 ... AC-07.6 PRECONDITIONS>>`, 14 ids on one line, and the dehydration ship gate reads that list rather than reimplementing satisfaction. The release gate is that shape one level up, over two threads.** Three checks vc wants to be able to make: **the denominator comes from the declaration and never a hand-typed constant**; **a withdrawn row leaves the denominator by the same rule in BOTH halves** (vc's 57-of-67 was wrong precisely because ST0057 excluded withdrawn and ST0056 counted one); and `ac status ST0056` is the WRONG denominator -- the WP-scoped form is what yields 16. **THE DECLARATION MUST NAME WHICH GATE IT DECLARES** (vc's 12:16Z correction): there are at least two real ones -- ST0057 closure and the WP-12 release -- and a person could not keep them apart in prose for one morning.
+3. **WIDEN `runner_roster_check.sh`'s POPULATION TO EVERY PARITY INSTRUMENT** (hv ~11:52Z). Population becomes every instrument under `intent/st/*/parity/tools/` regardless of filename; each declares `gated` or `manual` with a required non-empty reason. **The guard is `gated`, runs every commit, returns clean, and its population is bounded twice** -- `cmd/precommit:116` pins `TOOLS` to ST0056's directory and `runner_roster_check.sh:180` greps `[A-Za-z0-9_]*_check\.sh`. **ST0057's entire toolset is outside BOTH bounds** (wrong directory; five of seven not named `*_check.sh`), plus ST0056's `rig_selftest.sh` and `of_n_labels_its_derivation.sh`. **These are not `manual` -- they are UNDECLARED, invisible to the instrument that adjudicates the question.** **A filename convention doing a population's job is the whole defect: an instrument is in scope for what it IS, not what it is called.** `no_daemon_required.sh` is a genuine `manual` with a real reason -- `pgrep -f 'intentd'` matches `intentdb` in every node's system prompt, so gating it would ship a permanently-refusing gate; **retiring the word does NOT fix the needle, and letting the first look like it closed the second is the trap.**
+
+**Also mine, filed not fixed:**
+
+- **`AT-00.6` IS STALE: `to-write` while `native/rust/crates/intentsvcs/tests/migrate_v2_project.rs` EXISTS** (11138 bytes, verified present). **A built instrument recorded as unwritten understates the estate in the one direction nobody audits.**
+- **Two `intentdb` doc-comment sites are mine:** `intentsvcs/src/lib.rs:11` and `intentsvcs/src/project.rs:786`. **`project.rs:786` is the load-bearing one** -- it documents the field a reader goes to in order to learn what the db is. **Fold into the next edit in those files; do not make a trip.**
+
+## What changed under the tree today -- you will wake up inside this
+
+- **THE v2 CLI HAS LEFT THIS CHECKOUT.** `~/Devel/prj/Intentv2`, branch `v2-maintenance`, cut at `fb45e9ea` = main HEAD and **NOT the `v2.19.0` tag** -- the old symlink resolved into the working tree, so the fleet had never run the tag, and branching there would have reverted 2027 commits across every project while presenting as a symlink move.
+- **`intent` ON PATH IS v2.19.0 AND ANSWERS FOR THE FLEET, NOT FOR THIS TREE.** Drive v3 by explicit path: `./native/rust/target/debug/intent`. **`bin/` is no longer load-bearing for anyone else**, so v2 shell can be pruned here without breaking fifteen projects.
+- **MY SESSION'S `INTENT_HOME` WAS STALE BY THE END AND A FRESH ONE WILL NOT BE. Read, not inferred:** `.zshrc:37` now exports `INTENT_HOME="$MOLT_PRJ_DIR/Intentv2"`, while this session carried `/Users/matts/Devel/prj/Intent` -- the shell was initialised at 09:29Z, before hv moved the bindings. **`bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var beats symlink resolution outright**, and `~/.local/bin/intent` already resolves to `Intentv2/bin/intent`. **Every PATH-`intent` measurement taken in this session describes the OLD binding.**
+- **THIS REPO'S COMMIT GUARDS NOW RESOLVE OUT OF THE FROZEN v2 CHECKOUT** (`.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`). Identical today; **drifting from the next guard change.** dc holds it as a mechanism -- hv declined direnv and hand-refresh by name.
+
+## The practice -- four shapes of a row promising more than it delivers
+
+1. **UNCITED COVERAGE** -- already satisfied by a test nothing links to it. **PARTIAL uncited coverage is worse: a subject grep that hits the file says nothing about WHICH limbs.**
+2. **EXPIRED CITATION** -- the row names a file that cannot cover it. `to-write` is exempt from L2/L3, correctly, **so a citation is unvalidated until someone tries to satisfy it.** `AT-00.6` above is the inverse: built, recorded unwritten.
+3. **VACUOUS GREEN** -- true by construction. **The falsifiable arm is over the DECISION, never the OUTCOME.**
+4. **TITLE BROADER THAN BODY** -- **and this one leaves no trace at all.** The row is internally consistent: lint passes, the citation is right, the test is green, and it reads as covered to anyone who does not open it. **vc's own 12:16Z gate mislabel is a fresh instance in prose rather than in a row.**
+
+**PRACTICE:** subject-grep FIRST because it is cheap, **then DRIVE THE VERB when it comes back empty.** **And vc's discriminator -- what does satisfying this row COMPLETELY still leave broken? -- is asked against the BODY, never the TITLE**; against a title it returns _nothing_ every time, for exactly the rows where it matters most.
 
 ## Watch-outs -- evidence
 
-- **THE PROVENANCE RULE, THREE LIMBS** (vc): **neither the INSTANCE, nor the CONTROL, nor the PREDICATE may come from the thing under test.** The predicate limb arrives as the smallest possible edit and looks like a typo fix -- I typed `9`, the scanner said `10`. **Derive the expectation from the fixture's own bytes.** Same limb dressed as a dependency: `uuid::parse_str` validating `uuid::new_v4` passes by construction, including for a library that minted a constant.
-- **A GREEN MEANS NOTHING UNTIL EACH TEST HAS DIED FOR ITS OWN REASON** -- distinct kill-sets, not "each can fail". **Assert the mutation APPLIED**; a replace matching nothing reports success and reds nothing. **Table the matrix as a PREDICTION in the file before driving it** -- written after, it is a transcript.
+- **THE PROVENANCE RULE, THREE LIMBS**: neither the INSTANCE, nor the CONTROL, nor the PREDICATE may come from the thing under test. **Derive the expectation from the fixture's own bytes.**
+- **A GREEN MEANS NOTHING UNTIL EACH TEST HAS DIED FOR ITS OWN REASON** -- distinct kill-sets. **Assert the mutation APPLIED.** **Table the matrix as a PREDICTION before driving it**; written after, it is a transcript.
 - **"THE TREE DID NOT CHANGE" IS ALSO WHAT A BROKEN VERB PRODUCES.** Every atomicity claim needs the control that the same verb on a passing input DOES change the tree -- **asserted as a change, never `is_ok()`.**
-- **A POPULATION IS A CLAIM, AND ITS DEFINING CLAUSE IS WHERE THE ANSWER HIDES.** Two failures and only the first is about emptiness. **EMPTY:** ask an empty directory _was this ever non-empty_, not _is the thing there_ -- answerable from the RECORD, never the listing. **EXHAUSTIVE AND STILL WRONG (vc, 2026-08-20):** _zero of 110 `.bats` files set the override_ was true and complete, and carried a 302-failure finding with a five-day age; the only thing that ever set it was `run_tests.sh`, **which is not a `.bats` file.** A true count over a population you defined is evidence about THE POPULATION. **Read your own qualifier as the hypothesis it is** -- and note this is my `fn next_thread_id` bullet's sibling, not its duplicate: that one hides behind a NAME, this one behind a CATEGORY, and no spelling sweep reaches it.
-- **FIVE LIMBS WANT FIVE TESTS, NOT FIVE ASSERTIONS** -- the first failure masks the rest, so an operator fixes one limb and re-runs.
-- **WHEN YOU GREEN A ROW, WATCH THE CRITERION COUNT** (vc). If it does not move, the row was not the last one. **A green row and a closed criterion look identical from where the builder stands.**
-- **A CRITERION CAN NAME A LIMB NOTHING IMPLEMENTS, AND EVERY SITE THAT KNOWS OF IT CAN BE A READER** -- `project_id` was mandated twice, assumed once, promised once, written by none. **A COMMENT CAN BE NEVER TRUE RATHER THAN STALE: it promised the fix immediately above the call that depended on it, so a reader tracing the defect stops there. DECLINING TO GUESS IS WHAT MADE THE RULING FINDABLE.** **AND THE MIRROR: A COMMENT CAN BE ENTIRELY CORRECT AND UNREAD.** vc's whole diagnosis, count included, sat in the comment above the fixed line for two days before vc re-derived it. **Both failures are the same act -- not reading the prose beside the code -- so the remedy is not _distrust comments_, it is READ THEM AND THEN CHECK.**
+- **A POPULATION IS A CLAIM, AND ITS DEFINING CLAUSE IS WHERE THE ANSWER HIDES.** **EMPTY:** ask an empty directory _was this ever non-empty_, answerable from the RECORD not the listing. **EXHAUSTIVE AND STILL WRONG:** _zero of 110 `.bats` files set the override_ was true, complete, and carried a 302-failure finding -- the only thing that ever set it was `run_tests.sh`, **which is not a `.bats` file.** **Read your own qualifier as the hypothesis it is.** One hides behind a NAME, the other behind a CATEGORY, and no spelling sweep reaches the second. **AC-10.8 above is a live third instance.**
+- **FIVE LIMBS WANT FIVE TESTS, NOT FIVE ASSERTIONS** -- the first failure masks the rest.
+- **WHEN YOU GREEN A ROW, WATCH THE CRITERION COUNT.** If it does not move, the row was not the last one. **A green row and a closed criterion look identical from where the builder stands.**
+- **A COMMENT CAN BE NEVER TRUE RATHER THAN STALE, AND IT CAN ALSO BE ENTIRELY CORRECT AND UNREAD.** Both failures are the same act -- not reading the prose beside the code -- **so the remedy is not distrust comments, it is READ THEM AND THEN CHECK.**
 
 ## Watch-outs -- instruments
 
-- **A DENOMINATOR CAN BE CORRECT AND STATED AND THE CONCLUSION STILL WIDER THAN IT** (dc, against me). There are TWO hook rosters. **Stating your denominator does not stop you generalising past it.**
+- **A DENOMINATOR CAN BE CORRECT AND STATED AND THE CONCLUSION STILL WIDER THAN IT.** **Stating your denominator does not stop you generalising past it.**
 - **`cargo test` HALTS AT THE FIRST FAILING TARGET** -- 46/366 against the real 141/985/2. **The stopped run's denominator looks exactly like a denominator.** `--no-fail-fast`.
-- **A GITIGNORED SSOT IS INVISIBLE TO `git status`**, so a diff-based blast radius under-reports damage to the one artefact the model calls authoritative, and reads as complete. Walk the filesystem when the claim is _nothing was written_.
-- **A GREEN COMMIT GATE IS NOT A GREEN TREE** -- one attachment hash reddened two tests while all four guards passed clean over it, twice.
-- **BEFORE CALLING A RED A PEER'S, RE-RUN IT WITH YOUR OWN FILES REMOVED.** `common/mod.rs` compiles into every test in the crate. One command.
-- **`grep -c` EXITS 1 ON ZERO** and the pipe form has nowhere to show it. **A ZERO FROM A DATA COMMAND IS SILENT; FROM A MISSING FILE, LOUD; FROM A NAME SEARCH, A FACT ABOUT THE SEARCH.** cwd drifted thirteen times -- `cargo --manifest-path <abs>` beats `cd`. **The Bash tool's shell is zsh: unquoted `--include=*.sh` is a hard error.**
-- **A REVISION NAMES SOURCE, NOT THE BINARY THAT ANSWERED** -- `shasum -a 256` and quote the hash WITH the number. **NAME REVISION, CLOCK AND DIRTY COUNT ON EVERY MEASUREMENT**; a verdict reading `+1 dirty` describes no commit and says so.
-- **MARK PROVENANCE PER CLAIM: DRIVEN, READ, OR INFERRED** (dc). **The cost lands on the READER, which is why the writer never feels it** -- fencing one claim as inferred told vc exactly which command to run. **VERIFY THE RETRACTION, NOT JUST THE CLAIM.**
+- **A GITIGNORED SSOT IS INVISIBLE TO `git status`.** Walk the filesystem when the claim is _nothing was written_.
+- **A GREEN COMMIT GATE IS NOT A GREEN TREE.**
+- **BEFORE CALLING A RED A PEER'S, RE-RUN IT WITH YOUR OWN FILES REMOVED.** `common/mod.rs` compiles into every test in the crate.
+- **`grep -c` EXITS 1 ON ZERO.** **A ZERO FROM A DATA COMMAND IS SILENT; FROM A MISSING FILE, LOUD; FROM A NAME SEARCH, A FACT ABOUT THE SEARCH.** `cargo --manifest-path <abs>` beats `cd`. **The Bash tool's shell is zsh; hooks run bash.**
+- **A REVISION NAMES SOURCE, NOT THE BINARY THAT ANSWERED** -- `shasum -a 256` and quote the hash WITH the number. **NAME REVISION, CLOCK AND DIRTY COUNT ON EVERY MEASUREMENT.**
+- **MARK PROVENANCE PER CLAIM: DRIVEN, READ, OR INFERRED.** **The cost lands on the READER, which is why the writer never feels it.** **VERIFY THE RETRACTION, NOT JUST THE CLAIM.**
+- **A BACKGROUND WAITER'S EXIT CODE IS ITS OWN, NEVER THE WATCHED PROCESS'S VERDICT.** Redirect the run's own rc to a file and read it there.
 
 ## Watch-outs -- four nodes, one checkout
 
 - **PRESENCE IDENTIFIES A FILE AND NEVER ITS AUTHOR**; the working tree is nobody's tree. A peer's red conceals mine and reads as an all-clear.
-- **THE WORKTREE AT A NAMED REVISION IS THE ONLY REMEDY FOR THE `--only` CLASS.** `--only` is path-scoped, not hunk-scoped, **and silently skips untracked files inside a named directory** -- `git add -N` first, and read `git status` AFTER the commit rather than trusting its file count. **Mutate inside the worktree, never the shared source.** **Check the checkout SUCCEEDED: `git checkout --detach` ABORTS on an untracked file in the way.**
-- **A LIVE CHANNEL DELIVERS AND LEAVES NO RECORD**, and nothing distinguishes _answered_ from _not answered_. On a blocking question the record is for the person waiting. **AND THE GUARDS RUN AT COMMIT, SO THE LIVE CHANNEL IS UNGUARDED.** Measured 2026-08-20: vc's release carried `17:46Z` while `date -u` on this machine read `17:36:30Z` -- ten minutes ahead of UTC and not the BST offset either, so from no clock. **Check A would have REFUSED that stamp at commit; the live channel took it without a word.** **The hazard is TRANSCRIPTION: quote a peer's live stamp into a file and it enters the record laundered through you, past a guard that was watching the wrong door.** Attribute it, never assert it, and flag it back -- a peer's stamp is their file to fix.
-- **`prettier` RUNS INSIDE THE COMMIT WINDOW** (`.githooks/pre-commit:11-16` rewrites staged `.md` and RE-STAGES), **after `sync --to-store` hashed the worktree -- so a correct `edit -> sync -> commit` diverges anyway.** Order is **format, THEN sync, THEN commit**; never "sync last", which reads as sync-after-commit and leaves that commit permanently divergent. **A drift guard belongs in the repo-local roster, after the formatters, never the shipped one before them.**
-- **Every commit touching an attachment leaves canon divergent until vc syncs, and a later sync repairs the NEXT commit and never that one.** **A table edit is a two-file commit whose second file is one you never edited** -- after editing any SOURCE, ask what renders FROM it before staging.
+- **A PEER CAN SWEEP A FILE THEY DO NOT WRITE, AND THE SINGLE-WRITER RULE DOES NOT STOP IT -- IT ONLY SAYS WHO WAS WRONG** (measured on my own fold, 2026-08-21). I wrote `dc/inbox.cc.md` at 12:59Z; **dc's fold commit `ad37745f` carried it**, so my message is in the record wearing dc's authorship and `git status` reported the file clean while I was still holding it. **I am that file's sole WRITER; dc is its sole READER, and dc committed it.** Benign here -- the path encodes the routing and the content is intact -- but the shape is the transcription-laundering class arriving through a COMMIT rather than through a quoted stamp. **The tell is a file you just wrote reporting no diff.** When a write of yours goes quiet, check `git log -- <path>` before re-writing it; re-writing would have produced a duplicate entry attributed to two commits.
+- **THE WORKTREE AT A NAMED REVISION IS THE ONLY REMEDY FOR THE `--only` CLASS.** `--only` is path-scoped, not hunk-scoped, **and silently skips untracked files inside a named directory** -- `git add -N` first. **Check the checkout SUCCEEDED: `git checkout --detach` ABORTS on an untracked file in the way.**
+- **A LIVE CHANNEL DELIVERS AND LEAVES NO RECORD, AND THE GUARDS RUN AT COMMIT, SO THE LIVE CHANNEL IS UNGUARDED.** **The hazard is TRANSCRIPTION: quote a peer's live stamp into a file and it enters the record laundered through you, past a guard watching the wrong door.** **Attribute it, never assert it.** Every hv stamp on this board is vc's attribution, marked as such, and not a time I read.
+- **AN INBOX WRITE IS A RECORD, NEVER A DELIVERY** (vc, twice in one day). **A write surface with no named reader is a queue.** Six entries sat in my inbox from 10:26Z and I read them at 12:5x only because vc sent a live message.
+- **`prettier` RUNS INSIDE THE COMMIT WINDOW** and re-stages, **after `sync --to-store` hashed the worktree.** Order is **FORMAT, then SYNC, then COMMIT** -- never "sync last", which reads as sync-after-commit and leaves that commit permanently divergent. **It is one formatter with two triggers, not two formatters.**
+- **A TABLE EDIT IS A TWO-FILE COMMIT WHOSE SECOND FILE IS ONE YOU NEVER EDITED** -- after editing any SOURCE, ask what renders FROM it before staging.
 
 ## Standing rulings
 
-- **EVERY ACCEPTANCE ID IS THREAD-QUALIFIED -- `ST00NN AC-XX.Y`, NEVER BARE.** **An id resolving to a SATISFIED criterion is the worst ambiguity: it reads as DONE.**
-- **HIGHLANDER FORBIDS TWO ANSWERS TO ONE QUESTION; IT DOES NOT REQUIRE ONE ANSWER TO TWO** (vc).
-- **TWO ROWS RATHER THAN ONE WIDENED ROW** keep two assertions separately falsifiable; one `file` per row, and the AND gate holds the criterion open until both are green.
-- **THE ISSUE TRACKER IS FOR EXTERNAL USERS AGAINST A RELEASED VERSION** (hv). Everything found building v3 is work.
+- **EVERY ACCEPTANCE ID IS THREAD-QUALIFIED -- `ST00NN AC-XX.Y`, NEVER BARE.** **An id resolving to a SATISFIED criterion is the worst ambiguity: it reads as DONE.** A bare `AC-03.6` is GREEN in ST0056 (FTS prose bodies) and RED in ST0057.
+- **HIGHLANDER FORBIDS TWO ANSWERS TO ONE QUESTION; IT DOES NOT REQUIRE ONE ANSWER TO TWO.** **Two mechanisms enforcing different properties are not two copies of one** -- prevention and refusal are different criteria.
+- **TWO ROWS RATHER THAN ONE WIDENED ROW** keep two assertions separately falsifiable.
+- **THE ISSUE TRACKER IS FOR EXTERNAL USERS AGAINST A RELEASED VERSION.** Everything found building v3 is work.
 - **A REFUSAL IS RETIRED BY THE CHANGE THAT EXPIRES ITS REASON** -- and re-deriving the reason is how you find the reason was wrong.
-- **`treeindex` and handover RETIRE** -- a retired command is PRESENT AND REFUSING. **`doctor --fix` is WITHDRAWN.**
-- **v3 STAYS OFF PATH** until dc repoints `~/.local/bin/intent`. Verified 17:09Z: `-> bin/intent`, 2.19.0.
-- **`config.json` DOES NOT MOVE WITH `intent_dir`.**
+- **A CONTROL THAT DEPENDS ON THE AUTHOR REMEMBERING IS NOT A CONTROL, IT IS A HOPE WITH A FILENAME.**
+- **`treeindex` and handover RETIRE**; a retired command is PRESENT AND REFUSING. **`doctor --fix` is WITHDRAWN.**
+- **DO NOT PUT v3 ON PATH.** **`config.json` DOES NOT MOVE WITH `intent_dir`.**
 
 ## Lane and build recipe
 
-`native/**` and the v3 crates are mine. Parity harness = ic. Hooks, roster, `canon_commit_check.sh` = dc. **Canon writes route through vc.**
+`native/**` and the v3 crates are mine. Parity harness = ic. Hooks, roster, `int hooks`, `canon_commit_check.sh`'s admission = dc. **Canon writes route through vc.**
 
-**`CARGO_TARGET_DIR=<an ABSOLUTE, IN-REPO dir>` FOR ANY VERIFYING BUILD.** Out-of-repo breaks `INTENT_HOME` (`install::home()` walks `current_exe()` ancestors for a marker dir) and manufactures phantom failures; relative under a drifted cwd builds into a nested path nothing reports. Mine is `native/rust/target/cc`. **`rustfmt --edition 2024`, NEVER a bare `cargo fmt`.**
+**`CARGO_TARGET_DIR=/Users/matts/Devel/prj/Intent/native/rust/target/cc` FOR ANY VERIFYING BUILD** -- absolute and in-repo. Out-of-repo breaks `INTENT_HOME` resolution (`install::home()` walks `current_exe()` ancestors for a marker dir) and manufactures phantom failures; relative under a drifted cwd builds where gitignore hides it, once at 1.2G. **`rustfmt --edition 2024`, NEVER a bare `cargo fmt`.** **Drive v3 as `./native/rust/target/debug/intent`; `intent` on PATH is v2 and answers for the fleet.** **Run the shell suite through `tests/run_tests.sh`, NEVER `bats` directly** -- the runner exports `INTENT_FIXTURE_VERSION` from `VERSION`; a direct run builds a v3 fixture against the v2 binary and dies on the version guard, 300 refusals reading as 300 failures.

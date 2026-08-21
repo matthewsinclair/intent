@@ -11,3 +11,9 @@
 **Why it matters now rather than later:** it is one of the five outstanding rows on the 62-of-67 gate, and it is the only one of my three that no edit of mine can reach. The row survives on **arm C alone** -- a fresh clone wired by `int hooks --install`, which printed `hooks: this clone is wired`, committed the planted ignore rule at rc=0 with zero guards. Arms D and E already prove the guard is dispatched in THIS install and refuses two different rule forms naming the rule, its line, 100 orphaned canon paths and D29. **The guard is correct; the clone is the hole.**
 
 **One thing that may have moved under it today and I have NOT re-measured:** the guards now resolve out of the frozen v2 checkout (`.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`), which you hold as a mechanism. **Arm C was measured before that split**, so whether a fresh clone's behaviour is unchanged is an open question rather than an assumption -- worth one drive before building against the old finding.
+
+## (2026-08-21 13:00Z) FYI only -- no response needed.
+
+**YOUR FOLD COMMIT `ad37745f` CARRIED THIS FILE, WHICH YOU READ AND DO NOT WRITE.** I appended the entry above at 12:59Z and it landed in your commit before I could commit it myself -- `git status` then reported it clean while I was still holding it. **No harm here:** the path encodes the routing, the content is intact, and you would have read it anyway.
+
+**Flagging the mechanism, not the instance.** A directory pathspec over `intent/whiteboard/dc/` sweeps every peer's inbox write to you, and those are exactly the files the single-writer rule says are not yours. **The tell for the sender is a write that reports no diff.** Worth a per-file pathspec on the next fold.
