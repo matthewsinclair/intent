@@ -291,6 +291,15 @@ sparse_tree_equals_manifest.sh manual            ST0057; runs organize and compa
 #    collisions measured at 510d4b10; that is a fact about today, so it is
 #    asserted rather than assumed.
 PRESENT="$(git -C "$ROOT" ls-files -- 'intent/st/*/parity/tools/*.sh' | sed 's|.*/||' | sort)"
+
+# The INDEX mode of each parity file, keyed by basename: `<basename> <mode>`.
+#
+# **Read from git, not from `stat`, because the mode git RECORDS is what a
+# clone gets.** A file can be 755 on this disk and 644 in the index -- that is
+# exactly the state a `mv` over an already-staged file leaves behind, and the
+# operator sees a working copy that runs.
+MODES="$(git -C "$ROOT" ls-files -s -- 'intent/st/*/parity/tools/*.sh' \
+  | sed 's|^\([0-9]*\) [^\t]*\t.*/|\1 |' | awk '{ print $2, $1 }' | sort)"
 [ -n "$PRESENT" ] || die "this commit holds no parity .sh under any intent/st/*/parity/tools -- an empty population and a clean roster compare equal, so this is a refusal and not a pass"
 
 COLLIDE="$(printf '%s\n' "$PRESENT" | uniq -d)"
@@ -410,6 +419,62 @@ while read -r name disp reason; do
   esac
 done <<EOF
 $ROSTER
+EOF
+
+# ---------------------------------------------------------------------------
+# D. An INSTRUMENT ships executable.
+#
+# **THIS FILE HELD THE CONVENTION IN PROSE AND DID NOT CHECK IT.** Four rows
+# below read *sourced, not executed; ships 644 and defines functions only* --
+# so 644 versus 755 is how this roster tells a library from an instrument, in
+# its own words, with nothing watching the join. That is the class this whole
+# file exists to close, sitting inside it.
+#
+# **MEASURED BEFORE IT WAS ASSERTED: 35 of 35. Every `gated` (11) and every
+# `manual` (24) is 100755 in the index, no exceptions.**
+#
+# **`not-an-instrument` IS DELIBERATELY NOT CHECKED, and the measurement is why:
+# 4 are 644 and 13 are 755.** Sourced libraries ship 644; generators and
+# extractors are run directly and ship 755. There is no invariant there, and
+# inventing one to make the check symmetrical would be an unearned claim in a
+# file whose subject is unearned claims.
+#
+# # It cost two commits in one day, by two authors, and the gate stayed green
+#
+# `runner_roster_check.sh` itself went 755 -> 644 at `d8dd6dc6` (cc) and again
+# at `19d77f61` (dc), **with a repair commit sitting between them that restored
+# the state and left the mechanism** -- a fix indistinguishable from one that
+# worked until the next occurrence. Nothing failed either time: the runner
+# invokes it as `bash "$TOOLS/..."`, so a 644 instrument runs and the gate
+# prints green forever. **What regressed was MEANING -- at 644 the roster
+# classifies itself, by its own convention, as a library.**
+#
+# **THE MECHANISM IS ESTABLISHED ONCE AND INFERRED ONCE, AND THIS CHECK DOES
+# NOT DEPEND ON IT.** dc drove six idioms (2026-08-21): the mode survives when
+# the INODE survives. `write_text`, `open(w)` and `fileinput` truncate in place
+# and PRESERVE it; `sed > tmp && mv`, `open(tmp) + os.replace` and `mkstemp +
+# os.replace` create a new file at the umask and rename it over the old, so the
+# original mode is never consulted -- 644, or 600 from `mkstemp`. dc's drop is
+# `sed > tmp && mv`, tested. **cc's is NOT established**: cc's own record blamed
+# `write_text`, and driving it refuted that, so the cause of `d8dd6dc6` is
+# unknown. Two occurrences, one mechanism -- which is why this checks the
+# SYMPTOM in the committed state and says nothing about how a file got there.
+# ---------------------------------------------------------------------------
+# `read` splits the two fields itself, so nothing here relies on an unquoted
+# expansion -- the shell critic refuses `set -- $row` (IN-SH-CODE-001) and is
+# right to: three sites in this repo carry deliberate word-splitting and each
+# one is a place a future reader has to be told not to quote. One fewer.
+while IFS=' ' read -r name disp _rest; do
+  [ -n "$name" ] || continue
+  case "$disp" in
+    gated | manual) ;;
+    *) continue ;;
+  esac
+  mode="$(printf '%s\n' "$MODES" | awk -v n="$name" '$1 == n { print $2 }')"
+  [ -n "$mode" ] || continue
+  [ "$mode" = "100755" ] || add "$name is rostered $disp and the INDEX records it $mode -- an instrument ships executable, and at 644 this roster classifies it as a library by its own convention. Nothing else catches this: the runner invokes tools with \`bash\`, so a 644 instrument runs and the gate stays green"
+done <<EOF
+$(printf '%s\n' "$ROSTER" | awk 'NF && $1 !~ /^#/ { print $1, $2 }')
 EOF
 
 # ---------------------------------------------------------------------------
