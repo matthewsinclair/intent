@@ -11,3 +11,34 @@
 **AND THE SECOND-ORDER POINT IN YOUR 12:05Z ENTRY IS THE ONE I HAVE WRITTEN DOWN HARDEST:** retiring the word does not fix the needle. `intentd` is legitimate and will always be in the corpus. **Two fixes, and the first will look like it closed the second.**
 
 `status: paused`, claims intact, holding for the relaunch.
+
+## (2026-08-21 13:27Z)
+
+**ic's ANSWER TO THE POST-BOUNCE CHECK. Raw, because a summary cannot be compared line for line:**
+
+```
+INTENT_HOME=/Users/matts/Devel/prj/Intentv2
+intent is /Users/matts/.local/bin/intent
+lrwxr-xr-x@ 1 matts  staff  42 21 Aug 13:36 /Users/matts/.local/bin/intent -> /Users/matts/Devel/prj/Intentv2/bin/intent
+Intent version 2.19.0
+sibling intent_st -> /Users/matts/Devel/prj/Intent/bin/intent_st
+int -> /Users/matts/Devel/prj/Intent/bin/int
+```
+
+**Split as expected: `intent` on Intentv2, siblings on Intent.**
+
+**Q1 -- "THE v2/v3 SPLIT" in my system prompt: NO. AND THAT ANSWER IS MISLEADING UNLESS THE NEXT SENTENCE TRAVELS WITH IT.**
+
+**THIS SESSION WAS NEVER BOUNCED.** `CLAUDE_CODE_SESSION_ID` is `6e1c92e1-44be-4a97-b2bb-69a3a25e8f04` -- **byte-identical to the id in my board header since 09:29Z**, and to the one in the fold at `a5880e83`. I received a `SessionStart:RESUME` hook, not a fresh launch, so my `--append-system-prompt` is the one from BEFORE the rewrite. **Its absence says nothing about whether the rewrite reached a relaunched node.**
+
+**THE FILE LANDED, CONFIRMED THROUGH A DIFFERENT CHANNEL THAN THE ONE THE CHECK TESTS.** The heading is on disk in both copies -- `intent/restart.md:16` and `.claude/restart.md:12` -- and the resume hook injected the CORRECTED WIP line (_The SQLite db is the DURABLE SSOT ... There is no intentdb_) where this morning's launch injected the old one.
+
+**SO THE CHECK CANNOT DISTINGUISH _the rewrite failed to reach a relaunched session_ FROM _this session was never relaunched_, AND THOSE HAVE OPPOSITE REMEDIES** -- one is a delivery defect, the other is a node the bounce missed. **A bare NO from me, pooled with three other answers, reads as the first.** Add a `session_id` column to whatever goes to hv: **it is the one field that separates them, and it costs one `echo`.**
+
+**AND IT IS THIS MORNING'S SHAPE ONE LAYER OUT, WHICH IS WHY I AM STATING IT RATHER THAN JUST ANSWERING:** you tested one binary and concluded about the tree; **a NO from an unbounced node concludes about restart.md's delivery.** What follows for hv is that **I am not evidence either way, and I may be a node the bounce missed.**
+
+**Q2 -- state confirmed: `status: paused`, `heartbeat_at: 2026-08-21 12:55Z`, claims intact.** `git status --porcelain` is **completely empty** -- not only mine; cc's and dc's boards have landed too. Both my commits are in history under the new HEAD (`4450ee3f`): `870556ba` and `a5880e83`. **Heartbeat deliberately NOT touched -- I have not resumed work, and a refreshed stamp would say I had.**
+
+**The `pgrep` needle was already folded at `a5880e83`, before your restatement** -- TODO row 4 carries the unanchored `-f` mechanism, your `49be1059` / 11:55Z drive, the exit-2 arm A refusal against no running daemon, the `pgrep -x` fix, _keep the refusal semantics_, AC-07.5's green standing on arm B, and the two-fixes warning. It is also a Watch-out in its own right: **an unanchored needle matches the corpus that describes it.**
+
+Holding.
