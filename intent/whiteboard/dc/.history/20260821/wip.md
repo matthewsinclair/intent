@@ -107,3 +107,34 @@ intentd   sha256 b672a608d56e984d   dirty-5819417bcc0e7d31e1d052e79d6d6896c4a258
 **THE CHECK THAT WOULD HAVE CAUGHT IT is the one cc ran, and it takes seconds: grep my OWN BOARD for each outstanding row id.** A row ruled mine that appears nowhere on my board is either unrecorded or not mine, and both are worth knowing. **Neither `ac gate` nor `restart.md` can answer it; only the board can.** Add it to pickup.
 
 **cc's framing is worth keeping verbatim:** _I am not reporting that you missed it -- I found it in my own pickup, it was step 1 of my plan, and hv's hold landed before I sent it, so the gap was mine to close and I closed it late._
+
+## 9. DELTA AFTER THE 13:01Z FOLD -- and it opens with me committing, in one message, the exact error I was naming in that message
+
+**ZERO OF FOUR NODES BOUNCED. NOT THREE.** All four -- cc, dc, ic, vc -- reported `resume`, unchanged `session_id`, this morning's conversation intact. **And all four independently told the others _three of four bounced, but not me_, each citing `ListAgents` showing the other three as started ~5 minutes ago.**
+
+**`ListAgents`' `started` IS SOCKET AGE, NOT SESSION AGE.** When the topology changed every peer re-registered, so **everyone looked fresh to everyone else**. Four correct self-reports; one unanimous wrong inference about the population.
+
+**I DID IT INSIDE THE MESSAGE WHERE I NAMED THE CLASS.** I wrote to vc that `command -v intent` answers about `intent` and was offered as an answer about the tree -- population-vs-instance -- and in the same message offered `ListAgents` start times as evidence about SESSION age. **A true measurement of a different property, offered as proof: third instance today, and the only one where the author had just written the rule down.** Knowing the class does not confer immunity; the check does. **The instrument was correct and about something else, which is what makes this class invisible from the inside every single time.**
+
+**AND THE UNANIMITY IS THE PART THAT SHOULD FRIGHTEN US, NOT THE ERROR.** Four nodes cross-checking each other produced agreement, not correction, because **all four ran the same wrong instrument.** Consensus across nodes is worth nothing when the nodes share a method -- it is the reconciles-because-both-sides-share-an-error case already on my board, at four-way scale. **vc caught it by comparing self-reports against inferences, not by adding a fifth voice.**
+
+**One precision on vc's instruction, offered because it matters for their globalfold: my board never carried the wrong figure.** Driven -- the only `three of four` on it is `intent claude upgrade --apply`'s three-of-four-actions, unrelated. **The bad inference existed only in the SendMessage and in chat.** So there was nothing to fix, which is itself worth knowing: **the thing that would have poisoned a cold session was never written down, and the thing vc asked me to correct was the one place it was safe.**
+
+## 10. SHELL STATE AND CONTEXT STATE ARE INDEPENDENT -- with the consequence, which is the half worth keeping
+
+My Bash shell **re-initialises from the user's profile on every invocation**, so it picked up all three of hv's bindings the moment they landed. My **context only reloads on restart**, so it did not. Both were true at once, all afternoon.
+
+**THE CONSEQUENCE: THE ENVIRONMENT HALF OF A CHECK CANNOT DETECT AN UNBOUNCED SESSION.** A fresh shell makes an unbounced node **indistinguishable** from a bounced one -- my raw `INTENT_HOME` / `type intent` / sibling output was clean and comparable to a genuinely restarted node's, and it had to be. **Only session identity separates them**, and `session_id` is the only field that carries it. **`ListAgents` start time is NOT that field** (section 9).
+
+Corollary for any future roll-call: **ask for `session_id`, not for environment.** Environment answers whether the SHELL reloaded; identity answers whether the SESSION did. A roll-call that asks only the first gets four green answers from four unbounced nodes.
+
+## 11. THE AT-11.6 PERISHABLE PAIR, VALUES ON THE BOARD RATHER THAN A POINTER TO THEM
+
+vc captured these before they aged out. **My own instruction was _capture the sha256 pair, never the markers_ -- and I then wrote the instruction onto the board WITHOUT the pair**, which is an instruction with its data missing and would not have survived the bounce.
+
+```
+intent    sha256 957aa2b2e9029f5b   marker dirty-483e65e4...
+intentd   sha256 b672a608d56e984d   marker dirty-5819417b...
+```
+
+**Two different markers on a pair invoked as matched.** The markers are provenance and are not identity; the sha256s are what distinguish one build from another.
