@@ -34,6 +34,29 @@
 # self-retirement arguments are why it beat `~/.local/bin` rather than merely
 # matching it.)
 #
+# THIS MUST STAY A WRAPPER THAT `exec`s INTO THE CHECKOUT. NEVER SHIP A COPY OF
+# THE BINARY ONTO PATH, AND THE REASON IS NOT STYLE (ic, 2026-08-21, driven).
+# v3's `claude hook` resolves its scripts through `install::home()`, which
+# canonicalises `current_exe()` and walks its ANCESTORS for a directory holding
+# `lib/templates/` (`install.rs:51,102-118`). An `exec` from here leaves
+# `current_exe()` pointing at the real binary INSIDE the checkout, so the walk
+# finds the marker. A bare `cp` onto PATH has no marker at or above it and every
+# hook refuses.
+#
+# AND THE REFUSAL FAILS OPEN, WHICH IS WHY THIS PARAGRAPH EXISTS. `.claude/
+# settings.json` fires `claude hook require-in-session` on EVERY prompt in EVERY
+# project, and Claude Code blocks only on exit 2. **That refusal is exit 1, so it
+# does not block: the prompt proceeds and the strict /in-session gate silently
+# stops enforcing, everywhere, at once.** SessionStart goes the same way -- no
+# project context, no reminder. Nothing reports it and everything looks fine.
+#
+# MEASURED, BOTH ARMS, FROM OUTSIDE THE CHECKOUT:
+#   this wrapper                   session-context/require-in-session/advisory  rc=0
+#   a symlink to the release bin   rc=0 -- `resolve()` canonicalises before walking
+#   a bare `cp` of the binary      rc=1 -- "cannot locate the Intent install ..."
+# So a LINK is safe and a COPY is not. Homebrew's Cellar layout is safe for the
+# same reason and is named in `resolve()`'s own comment.
+#
 # NO COHERENCE CHECK RUNS HERE, DELIBERATELY. The release pair can be built
 # from two different trees -- `cargo build --release` returns 0 over exactly
 # that -- but checking it on EVERY invocation would put a multi-second gate on

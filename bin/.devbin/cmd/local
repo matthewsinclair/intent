@@ -223,9 +223,14 @@ cmd_install() {
   printf '    other project on this machine in one move, and INTENT_HOME cannot stop it.\n'
   printf '    A distinct name makes the way back "do nothing" rather than "one command".\n'
   printf '\n'
-  printf '    SYMLINKS, NOT COPIES, so they track this checkout -- which is what makes\n'
-  printf '    them useful while v3 is moving, and also means `cargo clean` breaks them.\n'
-  printf '    That is a visible, loud failure rather than a silently stale binary.\n'
+  printf '    SYMLINKS, NOT COPIES, and that is CORRECTNESS rather than convenience.\n'
+  printf '    `claude hook` finds its scripts by walking current_exe() ancestors for\n'
+  printf '    lib/templates/. A symlink is canonicalised first, so the walk still lands\n'
+  printf '    inside the checkout; a COPY has no marker above it and every hook refuses\n'
+  printf '    at EXIT 1 -- which Claude Code does not block on, so the strict in-session\n'
+  printf '    gate would silently stop enforcing in every project at once. Driven both\n'
+  printf '    ways 2026-08-21 (ic found it; dc measured the link and copy arms).\n'
+  printf '    They also track this checkout, so `cargo clean` breaks them loudly.\n'
 
   verify_pair
 
