@@ -37,11 +37,55 @@
 # days old and saying nothing about it. Accurate, well-formed, and silent about
 # the property the reader needed. This tool asks what a field ANSWERS, never how
 # many there are.
+#
+# AND EVERYTHING ABOVE IS ABOUT ONE RECORD, WHICH IS WHY IT MISSED A PROPERTY OF
+# THE SET (cc, 2026-08-21, on real bytes, while I was calling this tool sound).
+# A per-record check asks whether a FIELD exists and is labelled. Two
+# individually impeccable records -- or one record and two artefacts -- can each
+# be well-formed and still describe NO SINGLE STATE of this repo. Nothing
+# per-record will ever fire on that, because nothing per-record is malformed.
+#
+# MEASURED ON DISK THE DAY THIS ARM WAS WRITTEN:
+#
+#   dist-provenance.txt        commit: 26fe1aea...     subject: the CHECKOUT
+#   target/release/intent      dirty-483e65e4...       subject: itself
+#   target/release/intentd     dirty-5819417b...       subject: itself
+#
+# THREE disagreements: neither artefact came from the recorded commit, and the
+# two came from different trees as each other.
+#
+# THE RECORD WAS NOT LYING, AND THAT IS THE INTERESTING PART. It said
+# `checkout_clean: no` and warned that `target/release may hold bytes that match
+# no commit`. It flags the RISK and structurally cannot name WHICH bytes, because
+# it holds ONE `commit:` for a SET while each artefact answers only for itself.
+# An honest, correct record that cannot carry the property. So the remedy is not
+# a better record -- it is a check whose subject is the RELATIONSHIP.
+#
+# THIS IS NOT `int macos publish`'s CHECK AND MUST NOT BECOME A COPY OF IT.
+# `artefact_commit_blockers` (bin/.devbin/cmd/macos) tests each artefact against
+# the TAG at release time, so the set property falls out transitively from a
+# common pivot -- and it is SOUND: two `dirty-` markers fail its dirty arm twice
+# over, independently. This asks a different question against a different pivot
+# at a different time: DOES THIS RECORD DESCRIBE THE BYTES BESIDE IT. A
+# release-time check cannot answer that before a release, and most of a binary's
+# life is before one.
+#
+# THE MARKER FORMAT IS A CONTRACT WITH TWO READERS: `marker_of` below, and
+# `artefact_source_commit()` in `bin/.devbin/cmd/macos`. Change the spelling and
+# BOTH must move. That is two readers of a documented format rather than two
+# implementations of a decision, which is why it is tolerated -- and it is named
+# here so a format change can find them both.
 
 set -uo pipefail
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 RECORD="${RECORD_OVERRIDE:-$ROOT/native/rust/target/dist-provenance.txt}"
+ARTEFACT_DIR="${ARTEFACT_DIR_OVERRIDE:-$ROOT/native/rust/target/release}"
+# The set this record is supposed to be about. Kept beside $BINARIES in
+# `bin/.devbin/cmd/macos` rather than derived from it: a parity instrument that
+# imported the CLI's list would go silent the moment the CLI could not be
+# sourced, and a silent instrument is the failure this file exists to refuse.
+ARTEFACTS="intent intentd"
 SELFTEST=0
 
 die() { printf 'provenance-fields: %s\n' "$1" >&2; exit 2; }
@@ -109,6 +153,75 @@ check_record() {
   return "$bad"
 }
 
+# marker_of <file> -- the source commit the BYTES name, read off the bytes.
+# One of the two readers of the marker contract; the other is
+# `artefact_source_commit()` in bin/.devbin/cmd/macos.
+#
+# `|| true` guards `pipefail`: `grep -o` exits 1 on no match and would otherwise
+# make the assignment itself non-zero, so the absent-marker case would be
+# indistinguishable from a broken `strings`.
+marker_of() {
+  local f="$1" m
+  m="$(strings "$f" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)" || true
+  [ -n "$m" ] || return 1
+  m="${m#\[intent-source-commit:}"
+  printf '%s' "${m%\]}"
+}
+
+# check_artefact_set <record> <dir> -- does this record describe the bytes
+# beside it, and do those bytes agree with EACH OTHER?
+#
+# TWO PIVOTS, NOT ONE, because they fail independently. An artefact can disagree
+# with the RECORD while the set agrees internally (a stale record beside a
+# coherent build), and the set can disagree internally while every member
+# matches nothing (two dirty trees). Reporting one would hide the other.
+check_artefact_set() {
+  local rec="$1" dir="$2" bad=0 present=0 first="" first_name="" name f m rec_commit warned=""
+  rec_commit="$(sed -n -e 's/^commit: //p' -e 's/^source_commit: //p' "$rec" 2>/dev/null | head -1)" || true
+  grep -qE '^checkout_clean: *no' "$rec" 2>/dev/null && warned="yes"
+
+  for name in $ARTEFACTS; do
+    f="$dir/$name"
+    [ -f "$f" ] || continue
+    present=$((present + 1))
+    if ! m="$(marker_of "$f")"; then
+      printf '  %s carries NO source-commit marker -- its bytes name no commit, so no record can be shown to be about them.\n' "$name"
+      bad=1
+      continue
+    fi
+    if [ -z "$first" ]; then
+      first="$m"
+      first_name="$name"
+    elif [ "$m" != "$first" ]; then
+      printf '  SET DISAGREES -- %s names %s; %s names %s.\n' "$first_name" "$first" "$name" "$m"
+      printf '    They were built from DIFFERENT trees, so the set on disk corresponds to no single\n'
+      printf '    state of this repo. Every record beside them can be well-formed and this stays true.\n'
+      bad=1
+    fi
+    if [ -n "$rec_commit" ] && [ "$m" != "$rec_commit" ]; then
+      printf '  %s names %s, but the record names %s -- the record is not about these bytes.\n' "$name" "$m" "$rec_commit"
+      bad=1
+    fi
+  done
+
+  # AN ARM THAT EXAMINED NOTHING READS EXACTLY LIKE ONE THAT FOUND NOTHING
+  # WRONG, and this estate spent 2026-08-21 on that class. Absence is reported
+  # as absence and never folded into the pass.
+  if [ "$present" -eq 0 ]; then
+    printf '  SET NOT EXAMINED -- no artefacts in %s.\n' "$dir"
+    printf '    That is not a pass. Build them, or point ARTEFACT_DIR_OVERRIDE at them.\n'
+    return 0
+  fi
+
+  if [ "$bad" -ne 0 ] && [ -n "$warned" ]; then
+    printf '    NOTE: the record already says `checkout_clean: no`, so it FLAGGED this risk honestly.\n'
+    printf '    What it cannot say is WHICH bytes, or that they disagree with one another -- it holds\n'
+    printf '    ONE commit for a SET. The record is correct and structurally silent, which is the\n'
+    printf '    whole reason this arm exists. Do not "fix" it by editing the record.\n'
+  fi
+  return "$bad"
+}
+
 # --- self-test ---------------------------------------------------------------
 # Drives one synthetic record per primary field, each missing exactly that field.
 # REFUSES to pass unless BOTH go non-zero, because an instrument that catches one
@@ -166,24 +279,109 @@ EOF
     ok=0
   fi
 
+  # --- the SET arm's controls -------------------------------------------------
+  # SAME DISCIPLINE AS ABOVE, AND THE TWO PIVOTS ARE ISOLATED FROM EACH OTHER.
+  # A set whose members disagree ALSO disagrees with any record naming one of
+  # them, so a naive control would fire both arms and prove neither. Control 5
+  # therefore uses a record with NO commit field, which switches the record arm
+  # off and leaves only the set pivot able to speak.
+  mkdir -p "$tmp/art"
+  printf 'commit: aaaaaaaaaaaa\n' > "$tmp/rec_set.txt"
+  printf 'checkout_clean: yes\n' > "$tmp/rec_nocommit.txt"
+
+  mkset() {
+    printf 'pad\n[intent-source-commit:%s]\npad\n' "$1" > "$tmp/art/intent"
+    printf 'pad\n[intent-source-commit:%s]\npad\n' "$2" > "$tmp/art/intentd"
+  }
+
+  # Control 4 -- a coherent set matching its record must PASS, or the three
+  # refusals below prove only that this arm refuses everything.
+  mkset aaaaaaaaaaaa aaaaaaaaaaaa
+  if check_artefact_set "$tmp/rec_set.txt" "$tmp/art" >/dev/null 2>&1; then
+    printf 'provenance-fields: control 4 (set green) -- a coherent set matching its record is ACCEPTED.\n'
+  else
+    printf 'provenance-fields: SELF-TEST FAILED -- a coherent set matching its record was REFUSED.\n' >&2
+    ok=0
+  fi
+
+  # Control 5 -- THE SET PIVOT, isolated: two artefacts from different trees,
+  # against a record that names no commit at all.
+  mkset aaaaaaaaaaaa bbbbbbbbbbbb
+  if check_artefact_set "$tmp/rec_nocommit.txt" "$tmp/art" >/dev/null 2>&1; then
+    printf 'provenance-fields: SELF-TEST FAILED -- a set whose members DISAGREE passed.\n' >&2
+    printf '  This is the dirty-483e65e4 / dirty-5819417b case: one record, two trees, both well-formed.\n' >&2
+    ok=0
+  else
+    printf 'provenance-fields: control 5 (set pivot) -- members built from DIFFERENT trees are REFUSED.\n'
+  fi
+
+  # Control 6 -- THE RECORD PIVOT, isolated: an internally coherent set that the
+  # record is simply not about.
+  mkset cccccccccccc cccccccccccc
+  if check_artefact_set "$tmp/rec_set.txt" "$tmp/art" >/dev/null 2>&1; then
+    printf 'provenance-fields: SELF-TEST FAILED -- a coherent set the record is NOT about passed.\n' >&2
+    ok=0
+  else
+    printf 'provenance-fields: control 6 (record pivot) -- a coherent set the record is not about is REFUSED.\n'
+  fi
+
+  # Control 7 -- ABSENCE MUST ANNOUNCE ITSELF. An arm that examined nothing
+  # reads exactly like one that found nothing wrong, so the empty case is
+  # required to SAY it examined nothing rather than to pass quietly.
+  rm -f "$tmp/art/intent" "$tmp/art/intentd"
+  if check_artefact_set "$tmp/rec_set.txt" "$tmp/art" 2>/dev/null | grep -q 'SET NOT EXAMINED'; then
+    printf 'provenance-fields: control 7 (absence) -- an empty set reports NOT EXAMINED rather than passing silently.\n'
+  else
+    printf 'provenance-fields: SELF-TEST FAILED -- an empty artefact set did not announce itself.\n' >&2
+    ok=0
+  fi
+
   [ "$ok" -eq 1 ] || exit 1
-  printf 'provenance-fields: self-test PASSED -- both primary fields are independently enforced.\n'
+  printf 'provenance-fields: self-test PASSED -- both primary fields independently enforced,\n'
+  printf '  and the SET arm shown able to fire on each pivot separately and to stay quiet when coherent.\n'
   exit 0
 fi
 
 # --- the real subject --------------------------------------------------------
 printf 'provenance-fields: subject %s\n' "${RECORD#"$ROOT"/}"
+printf 'provenance-fields: set     %s\n' "${ARTEFACT_DIR#"$ROOT"/}"
+
 out="$(check_record "$RECORD")"
-rc=$?
-if [ "$rc" -eq 0 ]; then
-  printf 'provenance-fields: both primary fields present and labelled; drift HELD with a release condition.\n'
-  printf 'provenance-fields: REACH -- this checks that the fields EXIST and are LABELLED.\n'
-  printf '    It cannot check that a source commit is HONEST about the bytes. That is the\n'
-  printf '    drift field, and drift is HELD.\n'
-  exit 0
+rc_fields=$?
+set_out="$(check_artefact_set "$RECORD" "$ARTEFACT_DIR")"
+rc_set=$?
+
+# BOTH ARMS ALWAYS RUN AND ARE ALWAYS REPORTED SEPARATELY, because they have
+# DIFFERENT SUBJECTS: the record's own shape, and the record's relationship to
+# the bytes beside it. Folding them into one verdict would let a reader credit
+# one with the other's coverage -- which is the compound-artefact mistake this
+# row exists to refuse, and it is how a per-record check came to be read as
+# covering a set for as long as it did.
+if [ "$rc_fields" -eq 0 ]; then
+  printf 'provenance-fields: FIELDS ok -- both primary fields present and labelled; drift HELD with a release condition.\n'
+else
+  printf 'provenance-fields: FIELDS -- the record does not carry the partition AC-11.7 requires:\n'
+  printf '%s\n' "$out"
+  printf '    Written by `int macos stage` -- see bin/.devbin/cmd/macos.\n'
 fi
 
-printf '%s\n' "$out"
-printf 'provenance-fields: the record does not carry the partition AC-11.7 requires.\n'
-printf '    Written by `int macos stage` -- see bin/.devbin/cmd/macos.\n'
-exit 1
+if [ -z "$set_out" ]; then
+  printf 'provenance-fields: SET ok -- every staged artefact names the same commit, and it is the one the record names.\n'
+elif [ "$rc_set" -eq 0 ]; then
+  printf 'provenance-fields: SET -- NOT ESTABLISHED (this is not a pass):\n'
+  printf '%s\n' "$set_out"
+else
+  printf 'provenance-fields: SET -- this record does not describe the bytes beside it:\n'
+  printf '%s\n' "$set_out"
+fi
+
+printf 'provenance-fields: REACH -- FIELDS asks whether fields EXIST and are LABELLED. SET asks whether\n'
+printf '    the record and the artefacts name ONE commit between them. NEITHER can check that an\n'
+printf '    embedded marker is HONEST about the bytes carrying it -- that is the drift field, and\n'
+printf '    drift is HELD. Release-time enforcement is `artefact_commit_blockers` in\n'
+printf '    bin/.devbin/cmd/macos, which pivots on the TAG rather than on this record.\n'
+
+if [ "$rc_fields" -ne 0 ] || [ "$rc_set" -ne 0 ]; then
+  exit 1
+fi
+exit 0
