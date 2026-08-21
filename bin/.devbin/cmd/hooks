@@ -198,16 +198,84 @@ fi
 # defects starts: the resolver did not answer, the runner is not in the install
 # it named, or the runner is there and declares no roster. Only the first two
 # are faults and the third is a legitimate state.
+# resolve_guard_home -- WHERE THE GATE WILL READ FROM, RESOLVED ONCE FOR THIS
+# FILE. Sets GUARD_HOME and GUARD_HOME_FROM.
+#
+# SAME PREDICATE AS THE GATE (`lib/templates/hooks/pre-commit.sh`): the runner
+# itself plus `VERSION`. Deliberately not `bin/intent` -- the v2 shell is slated
+# for pruning here, and a marker a planned change deletes fails silently later.
+#
+# ONE SPELLING IN THIS FILE, AND THAT IS THE POINT. The predicate already exists
+# twice by necessity -- here and in the gate -- because they are separate
+# programs and the reporter has to answer about the gate the gate will actually
+# run. That duplication has a reason. A THIRD copy inside this one file would
+# have none, and this file's own history is what it costs: a roster restated in
+# a second place went stale the moment a guard was added, and `fff59a09` is the
+# same defect arriving because two spellings drifted apart.
+GUARD_HOME=""
+GUARD_HOME_FROM=""
+resolve_guard_home() {
+  if [ -f "$ROOT/lib/templates/hooks/pre-commit-guards.sh" ] && [ -f "$ROOT/VERSION" ]; then
+    GUARD_HOME="$ROOT"
+    GUARD_HOME_FROM="this repository"
+  else
+    GUARD_HOME="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
+    GUARD_HOME_FROM="INTENT_HOME"
+  fi
+}
+
+# gate_currency -- IS THE DISPATCHER THAT RUNS THE ONE THIS TREE DECLARES?
+#
+# THE GUARDS ARE READ LIVE; THE FILE THAT DECIDES WHICH TREE THEY COME FROM IS
+# NOT. `pre-commit.intent` is a gitignored COPY the installer writes from
+# `lib/templates/hooks/pre-commit.sh`. As of `6b60367c` that copy is what
+# chooses between this repo's guards and INTENT_HOME's -- so the staleness this
+# estate spent the day removing did not leave, it CONCENTRATED into the one file
+# whose job is now to pick the tree. Found by ic, who named it while I was still
+# calling the mechanism closed.
+#
+# WHY THIS IS WORTH A CHECK WHEN THE RESOLUTION CHANGE ITSELF IS NOT OBSERVABLE
+# (vc, measured on the live tree): both candidate guard runners are currently
+# byte-identical, so reading one or the other produces identical output and the
+# resolution change is a no-op in observable behaviour until they diverge. THIS
+# check is the opposite -- it compares two files that CAN differ today, the
+# moment anyone edits the template without reinstalling. It is the observable
+# half of an otherwise prospective mechanism.
+#
+# IT CONTRIBUTES TO `rc` RATHER THAN WARNING BESIDE IT, for the reason already
+# recorded against the gate-absent arm: a warning under a line reading `WIRED`
+# is the same defect one font weight down.
+#
+# AN ABSENT TEMPLATE IS NOT A STALE GATE. A consumer resolving through
+# INTENT_HOME to an install predating this file has nothing to compare, and
+# reporting a missing comparison as a divergence is an absence dressed as a
+# fault -- the collapse the three absence branches exist to prevent.
+gate_currency() {
+  local tmpl
+  resolve_guard_home
+  [ -n "$GUARD_HOME" ] || return 0
+  tmpl="$GUARD_HOME/lib/templates/hooks/pre-commit.sh"
+  if [ ! -f "$tmpl" ]; then
+    printf '                 (no %s -- dispatcher currency UNCHECKED, which is not the same as current)\n' "$tmpl"
+    return 0
+  fi
+  if cmp -s "$HOOKS_DIR/pre-commit.intent" "$tmpl"; then
+    printf '                 dispatcher CURRENT with %s\n' "$tmpl"
+    return 0
+  fi
+  rc=1
+  printf '                 dispatcher STALE -- the installed copy differs from the template it came from.\n'
+  printf '                   installed: %s\n' "$HOOKS_DIR/pre-commit.intent"
+  printf '                   template:  %s\n' "$tmpl"
+  printf '                 the guards are read live, but THIS file is the copy that decides WHICH TREE\n'
+  printf '                 they are read from -- so a stale one can point the gate at the wrong tree and\n'
+  printf '                 still print a full, confident roster. Run: intent claude upgrade --apply\n'
+}
+
 shipped_guards() {
   local home runner name path when state from
-  # SAME PREDICATE AS THE GATE (lib/templates/hooks/pre-commit.sh): the runner
-  # itself plus VERSION. Deliberately not `bin/intent` -- the v2 shell is slated
-  # for pruning here, and a marker a planned change deletes fails silently later.
-  if [ -f "$ROOT/lib/templates/hooks/pre-commit-guards.sh" ] && [ -f "$ROOT/VERSION" ]; then
-    home="$ROOT"; from="this repository"
-  else
-    home="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"; from="INTENT_HOME"
-  fi
+  resolve_guard_home
+  home="$GUARD_HOME"; from="$GUARD_HOME_FROM"
   if [ -z "$home" ] || [ ! -d "$home" ]; then
     printf '                 (INTENT_HOME did not resolve -- the shipped roster is UNREPORTED, not empty)\n'
     return
@@ -393,6 +461,7 @@ if [ "$DO_INSTALL" -eq 0 ]; then
   if [ -f "$HOOKS_DIR/pre-commit.intent" ]; then
     printf '  gate         WIRED     -> pre-commit.intent (critic + the shipped guard roster)\n'
     shipped_guards
+    gate_currency
   else
     rc=1
     GATE_ABSENT=1
