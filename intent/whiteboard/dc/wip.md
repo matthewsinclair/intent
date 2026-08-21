@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 16:27Z
+heartbeat_at: 2026-08-21 16:34Z
 status: active
 focus: "**BOTH OF MY OPEN ITEMS ARE BUILT AND LANDED, AND BOTH ARE vc's TO VERIFY -- I CERTIFY NEITHER.** **AC-01.5 form 1 at `5c7bb80f`**: the chain block refuses a gate it cannot find; red/green in one clone, old block rc=0 and the commit LANDED, new block rc=1 refused, and **the 82-vs-9 line count is the finding** -- the red arm's 82 lines were the parity roster printing `ok:` while four shipped guards were not present at all. **AC-01.5 STAYS RED on arm 1** (fresh clone, hooksPath unset, forbidden commit lands at rc=0) and that is correct. **GUARD RESOLUTION at `6b60367c` + `12ebd47e` + `fff59a09`**: a self-hosted Intent checkout reads its guards from ITSELF; consumers unchanged, proven by control; **vc verified independently with a mutation witness rather than my marker.** **MY OWN DATED ZERO NOW INVERTS AND vc CAUGHT IT** -- `lib/templates/hooks/` is 1-of-7 different ON PURPOSE. **ic CAUGHT THAT MY FIX ARMED `int hooks` TO UNDER-REPORT THE GATE, and the comment justifying the old spelling stated the premise I had just invalidated.**"
 claims: [ST0056/07, ST0056/11]
@@ -58,7 +58,16 @@ claims: [ST0056/07, ST0056/11]
 
 **AND THE COMMENT WAS THE FINDING: I HAD WRITTEN THE RULE THAT CATCHES MY OWN CHANGE, AND IT INVERTED BECAUSE ITS PREMISE IS WHAT I ALTERED.** _"a second spelling here could pair this roster with a different install than the one the gate will actually run"_ -- true when written, and after `6b60367c` keeping the single spelling became the thing it warned against. The rule is kept, restated as **match the gate** rather than **use `intent info`**.
 
-**STILL OPEN, ic's THIRD AND RECORDED AS OPEN RATHER THAN ABSORBED:** the dispatcher body is an installer-made gitignored COPY. The guards are read live; **the file that DECIDES which tree they come from is not.** The staleness did not leave -- it concentrated in the one file whose job is now to pick the tree.
+**ic's THIRD IS NOW CLOSED AT `46ded86b` -- the dispatcher is a COPY and nothing checked it was the current one.** `int hooks` tested only PRESENCE, so an edited-but-not-reinstalled template read as `WIRED`. Three states driven: **GREEN `dispatcher CURRENT` rc=0 / RED (template edited, not reinstalled) `dispatcher STALE` rc=1 / CONTROL (template absent) `currency UNCHECKED` rc=0.** The control is ic's absence-collapse rule: **a missing comparison reported as a divergence is an absence dressed as a fault, and UNCHECKED is not CURRENT.**
+
+**AND vc's NO-OP FINDING IS WHY THIS EARNED BUILDING RATHER THAN RECORDING.** They measured on the live tree that **both candidate guard runners are byte-identical, so the resolution change of `6b60367c` is a no-op in OBSERVABLE behaviour until they diverge** -- its whole value is prospective, and nobody can regression-test it on the live tree until the thing it protects against starts happening. **This check is the opposite: it compares two files that CAN differ today.** It is the observable half of an otherwise prospective mechanism. **A future reader driving the live gate will see no difference from `6b60367c` and must not conclude it did nothing.**
+
+**ONE PREDICATE, ONE SPELLING PER FILE.** `resolve_guard_home()` extracted, used by `shipped_guards()` and `gate_currency()`. It still exists twice ACROSS the estate -- gate and reporter are separate programs and the reporter must answer about the gate the gate will run -- and **that duplication has a reason; a third copy inside one file would not.** `fff59a09` is what two spellings drifting apart cost this afternoon.
+
+### 3. NEW AND MINE, BOTH UNSTARTED (cc, 2026-08-21)
+
+- **THE RELEASE PAIR CORRESPONDS TO NO SINGLE STATE OF THIS REPO.** `intent` carries `dirty-483e65e4`, `intentd` carries `dirty-5819417b` -- **two different trees**, so shipping them together ships a combination never built or tested as a unit. The self-provenance arm is diagnostic by design, so nothing is broken; **the open question is whether `int macos publish` refuses a MISMATCHED PAIR or only an individually-unnameable artefact. I do not know, and I am not answering it from a code comment.**
+- **AND IT IS A REACH LIMIT IN MY OWN `provenance_fields_check.sh` (AT-11.7).** That tool asks each record whether it answers IDENTITY and CURRENCY **per artefact**. cc's finding is a property of the **SET** -- two individually well-formed records that cannot both be true of one tree. **A per-record check cannot see it, and mine says nothing about it.** I wrote that tool and called it sound.
 
 **A self-hosted Intent checkout now resolves its guards from ITSELF.** hv chose this over refuse-on-divergence and report-only; direnv and hand-refresh were already declined by name. The live-roster rule is **unchanged for every project that USES Intent** -- the exception is a project that IS Intent. Marker: the runner itself plus `VERSION`, **deliberately not `bin/intent`, which is slated for pruning here.**
 
