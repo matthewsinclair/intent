@@ -19,10 +19,71 @@ set -euo pipefail
 #
 #   - A language declared in intent/.config/config.json with no headless critic
 #     is DROPPED from the run rather than failing it, but the whole set being
-#     empty is fatal: a critic gate that examines nothing and exits 0 is a false
-#     green, which is the failure the sealed gates exist to prevent.
+#     empty is fatal: a critic gate with no critic behind it exits 0 having
+#     examined nothing, which is a false green.
 #   - With no arguments it defaults to --staged, and SAYS SO when nothing is
-#     staged. Silently examining zero files would pass for the same reason.
+#     staged.
+#
+# ON THE EMPTY RUN. This comment used to say that examining zero files is always
+# a false green, and the code was made to match it -- correctly, because until
+# then this gate declared a grammar with no counter and could not fail that way
+# at all. But the corpus here is a SELECTION, not a suite, and the promotion
+# counts and does nothing else, so it made the ORDINARY case red. A gate that is
+# red in the ordinary case is how a gate teaches people to ignore it.
+#
+# The split, declared by `builtin_check_critic_gateflags` below:
+#
+#   the default --staged corpus -> NOT APPLICABLE if it scans nothing. Declared
+#                                  with --allow-empty, ANNOUNCED by run_gate as
+#                                  "no tests ran", and green.
+#   an explicit --files corpus  -> FAILED on zero, unchanged. The caller named
+#                                  files; examining none of them is never what
+#                                  was intended.
+#
+# WHAT THIS DELIBERATELY DOES NOT CLAIM, because the first version of it claimed
+# exactly this and was wrong in the field within the hour. It does not
+# distinguish "nothing was staged" from "things were staged but none of them
+# were code". The obvious-looking predicate -- allow empty only when `git diff
+# --cached` is empty -- FIRES ON MARKDOWN: stage a doc, and a gate about source
+# code goes red for a reason that has nothing to do with source code. Measured
+# on Laksa with five .md files staged.
+#
+# Getting that right needs a language-to-extension map, and devbin has none. The
+# critic owns which files belong to which language, and a second copy of that
+# here would be a second source of truth about the one thing this gate does not
+# own. So the residual hole is stated rather than papered over: a staged file
+# that SHOULD have reached a critic and did not is invisible from outside the
+# critic, and this gate cannot see it.
+#
+# What it does buy is the half that was actually complained about three separate
+# times: the leg no longer reports a silent `ok` having examined nothing. It
+# says so. That is the rule this estate already states in append-only-guard.sh
+# -- NOT APPLICABLE IS SILENT, AND ABSENT IS LOUD -- with the announcement doing
+# the work the exit code cannot.
+# builtin_check_critic_gateflags -- declare, BEFORE the gate starts, whether an
+# empty run is legitimate for THIS invocation. Prints gate flags, one per line;
+# printing nothing leaves run_gate's default promotion in force.
+#
+# Called by run_builtin_gate (lib/gatecmd) with the same argv the builtin will
+# receive. Argv is the whole test, and that is the point: it separates a corpus
+# the caller CHOSE from one that defaulted to --staged, which is the only part
+# of this question devbin can answer without owning a language map it does not
+# own.
+#
+# Deliberately silent about WHY it is empty. The announcement is run_gate's
+# ("no tests ran (--allow-empty)") and the builtin's own warn; a third voice
+# saying the same thing in a different place is how the reason and the verdict
+# drift apart.
+builtin_check_critic_gateflags() {
+  # An explicit corpus is never legitimately empty -- the caller named files and
+  # expects them examined -- so say nothing and let the promotion stand.
+  [ $# -eq 0 ] || return 0
+  # The default corpus may legitimately hold nothing a critic reads. Whether it
+  # does is the critic's knowledge, not this gate's; see the header.
+  printf '%s\n' '--allow-empty'
+  return 0
+}
+
 builtin_check_critic() {
   require_tool intent "Install Intent: see intent/docs at the Intent install"
   require_tool jq "brew install jq"
@@ -71,7 +132,7 @@ $lang
   if [ $# -eq 0 ]; then
     set -- --staged
     if [ -z "$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null)" ]; then
-      warn "nothing staged -- the critic will examine NO files (stage changes, or pass --files <path>...)"
+      warn "nothing staged -- the critic will examine NO files, which is not a failure here (stage changes, or pass --files <path>...)"
     fi
   fi
 

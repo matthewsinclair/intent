@@ -3,10 +3,10 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.0
 # source: /Users/matts/Devel/prj/Devbin
-# source_commit: ca53b76ce6486c415bcf267585e9bf2e67374b2a
+# source_commit: bd2bc4d1c513cc6655299002ce86dea488f37bc4
 1626989870f551ef80fef171ea584f8bb3980a35822c9d75bad9dda335d84dfd  bin/devbin
 db8d3af533778c1e9632203347e1e82f2fb3bd55e978b23fe1a01ae6d42dd385  bin/.devbin/lib/builtins
-2d99b15d5e88f3a5fa6c9a2ace31ed0ad578ff33db906ca8e56d2f8d5c9351f3  bin/.devbin/lib/cmd/check
+e8301437705d16f82cd401da1ddf315828826d69b0f75f7ddf86492e5ff81a8d  bin/.devbin/lib/cmd/check
 5c3aa3fbdf34d087c88dfd4b1e1df869bae2e008788a4b7497f8ac85f2cfee34  bin/.devbin/lib/cmd/cli
 170a977dbcfe479fd81ae1b51b0bdff53cbfb8543d14e5040de2ca70e3597cae  bin/.devbin/lib/cmd/db
 bd1a0e00d534a30f698a3ebf6ceabb6b8efbdbb6ef257e49ef86865c37a8021a  bin/.devbin/lib/cmd/devbin
@@ -22,7 +22,7 @@ b81f9f2bd800d2f96ab2fae8d0c73d5b031ec002944f2b94f330555d431fff11  bin/.devbin/li
 28dc4fb6ae82e87174db4f11c2c406a1746e08abadd165794adca7bed356aa19  bin/.devbin/lib/cmd/version
 61211d3b4f1b24db32294825946031b0ec4c705cd506465dae5f2dbfb9900c39  bin/.devbin/lib/config
 2ed1a6e9a528307acd1829ff836414e98ee9331aea7df88a65d5b8ec5c352924  bin/.devbin/lib/config.reference.yaml
-5934c9d25cdc1ea9176bd0dbed0d6c1dd63a50abaefb7ae18f391469447a9f1e  bin/.devbin/lib/gatecmd
+057a3512bc750b8e69232e987518c4f50c6f99d6e55b590f4055024f50308069  bin/.devbin/lib/gatecmd
 c6119fb4b93e3af854d03f2ce8360961e252a033af1d911f390abdf1d2124431  bin/.devbin/lib/help
 12beba2ff8404be680b39bfc11ba881bc4019748b025aad9d05002c4b71bb3fa  bin/.devbin/lib/helpers
 b73f562939bb6339b118d577bbf0d2db0b24b1b5085be8afef8a1bb07a1a551b  bin/.devbin/lib/install
