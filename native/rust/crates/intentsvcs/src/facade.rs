@@ -3918,6 +3918,38 @@ impl Facade {
     Ok(title.to_string())
   }
 
+  /// # `put` IS A LOW-LEVEL UPSERT AND DOES NOT CONSULT THE TRANSITION MACHINES
+  ///
+  /// **hv ruled this on 2026-08-21 (relayed by vc, on ST0057 AC-08.5): the
+  /// VERBS own the machines and `put` stays what it is.** `st done` and
+  /// `todo done` are the enforcement point -- a body carrying
+  /// `"status": "done"` lands here whether or not that transition is legal,
+  /// and `todo done` refused exactly that transition on a `triage` thread the
+  /// same afternoon.
+  ///
+  /// The alternative -- every write path honouring the machine -- was put to hv
+  /// and declined, on the ground that **what needed fixing was that nothing on
+  /// the record said so.** This paragraph is that fix, and it is the only place
+  /// it can live: the dispatch table describes VERBS, and `put` is not one.
+  ///
+  /// **THE ARGUMENT THAT CARRIED IT WAS CONSISTENCY, NOT SAFETY.** `at.put`
+  /// already writes an AT row's `status` this way and the estate has accepted
+  /// it -- ic's AC-08.5 measurement drives exactly that -- so guarding the
+  /// thread door alone would make one entity's `put` mean something different
+  /// from another's.
+  ///
+  /// # The exposure is zero because nothing calls it, NOT because the write is checked
+  ///
+  /// **Read that sentence before concluding this is safe.** The machine is
+  /// enforced one layer ABOVE the SSOT, so anything reaching the store directly
+  /// goes around it. Driven 2026-08-21 (vc): `intent put` is not a subcommand
+  /// at all, and of **17 `.put(` call sites across `native/rust`, every one is
+  /// a test** -- there is no caller in any `src/` outside this definition.
+  ///
+  /// **So a future reader who finds a production caller has found a LIVE GAP,
+  /// not a curiosity.** The absence of callers is the whole of the containment;
+  /// the day one appears, this contract needs re-deciding rather than
+  /// re-reading.
   pub fn put(&mut self, address: &Address, body: &str) -> Result<Outcome, FacadeError> {
     if !address.is_local() {
       return Err(FacadeError::WriteNotAddressable {
@@ -4018,14 +4050,116 @@ impl Facade {
           )
           .map(|()| outcome)
       }
+      // **CREATE AND UPDATE ARE DIFFERENT OPERATIONS AND THIS ARM USED TO
+      // DECLINE BOTH WITH A CREATE-SHAPED REASON** (hv ruling, 2026-08-21,
+      // ST0057 AC-08.5).
+      //
+      // `this id is server-assigned -- POST to the collection address` is a
+      // true statement about CREATING a thread with a chosen id, and it was
+      // being returned for UPDATING one that already exists -- where the id is
+      // not being assigned by anybody, it is being addressed. The consequence
+      // was concrete: ST0011's `completed` is the estate's one genuinely wrong
+      // row and had **no write path at all**, because no field-setter verb
+      // reaches it and the one addressable door refused on grounds that did not
+      // apply.
+      //
+      // So the arm splits on EXISTENCE. Create-by-id stays refused, with the
+      // same words, which are correct for it.
+      AddrEntity::Thread { id } => {
+        let refuse = |why: String| FacadeError::WriteNotAddressable {
+          url: address.to_url(),
+          why,
+        };
+        let value = Self::posted_json(address, body)?;
+
+        // **CHILD COLLECTIONS ARE REFUSED BY NAME, NEVER SILENTLY DROPPED AND
+        // NEVER SILENTLY APPLIED.** `Thread` carries `wps`, `criteria`,
+        // `tests` and `attachments`, and every one of them is `#[serde(default)]`
+        // -- so the obvious implementation, parse-and-replace, turns a body
+        // that simply did not mention `tests` into a thread with none.
+        //
+        // **That is the defect AC-08.5 exists to name, arriving inside the
+        // change meant to satisfy it**: the criterion's second limb is that no
+        // verb silently clears a field it was not asked to change, and the
+        // rows it would hit hardest are the ones carrying the most evidence.
+        //
+        // Ignoring the keys instead would be the same failure pointed the
+        // other way -- a caller who sent `tests` and got a success back would
+        // have been told their write landed. **Each child has its own address
+        // and that is where it is written**, so the refusal can say where to
+        // go. `related` is deliberately NOT in this list: it has no address of
+        // its own, so the thread door is the only door it has.
+        // **THE FIELD NAME IS NOT THE ADDRESS SEGMENT, AND INTERPOLATING ONE
+        // AS THE OTHER PRINTS A REMEDY THAT DOES NOT PARSE.** The model calls
+        // them `wps`/`criteria`/`tests`; the grammar spells them `wp`/`ac`/`at`
+        // (`address.rs:445-467`). The first draft of this refusal named
+        // `threads/<id>/tests/<AT>` -- correct-looking, and an operator
+        // following it gets a parse error from the tool that just told them to
+        // go there. Mapped explicitly, and each pair is driven.
+        for (field, segment) in [
+          ("wps", "wp"),
+          ("criteria", "ac"),
+          ("tests", "at"),
+          ("attachments", "attachments"),
+        ] {
+          if value.get(field).is_some() {
+            return Err(refuse(format!(
+              "`{field}` is not written through the thread address -- PUT each one at its own address (`{}/{segment}/<id>`), because a thread PUT that accepted this would have to either apply it or drop it, and both are silent about the other",
+              address.to_url()
+            )));
+          }
+        }
+
+        let Some(existing) = self.canon.threads.iter().find(|t| &t.id == id).cloned() else {
+          return Err(refuse(
+            "this id is server-assigned -- POST to the collection address".to_string(),
+          ));
+        };
+
+        let mut row: Thread = serde_json::from_value(value)
+          .map_err(|e| refuse(format!("the body is not a thread: {e}")))?;
+        if &row.id != id {
+          return Err(refuse(format!(
+            "the body names `{}` and the address names `{id}`",
+            row.id
+          )));
+        }
+
+        // The children the body was refused permission to carry are the
+        // children the thread keeps. Grafted from the CLONE taken above, so
+        // the row written is the authored scalars over the stored children and
+        // never a partially-defaulted document.
+        row.wps = existing.wps.clone();
+        row.criteria = existing.criteria.clone();
+        row.tests = existing.tests.clone();
+        row.attachments = existing.attachments.clone();
+
+        if row == existing {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        }
+
+        let mut next = self.canon.clone();
+        *find_thread_mut(&mut next, id)? = row;
+        self
+          .apply(
+            "thread.put",
+            Subject {
+              kind: "thread".to_string(),
+              id: id.to_string(),
+            },
+            json!({ "via": "address" }),
+            next,
+          )
+          .map(|()| Outcome::Moved)
+      }
       // Server-assigned ids. Named individually rather than falling into a
       // catch-all, so the refusal can say WHICH rule sent them away.
-      AddrEntity::Threads | AddrEntity::Thread { .. } | AddrEntity::Issue { .. } => {
-        Err(FacadeError::WriteNotAddressable {
-          url: address.to_url(),
-          why: "this id is server-assigned -- POST to the collection address".to_string(),
-        })
-      }
+      AddrEntity::Threads | AddrEntity::Issue { .. } => Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: "this id is server-assigned -- POST to the collection address".to_string(),
+      }),
       other => Err(FacadeError::WriteNotAddressable {
         url: address.to_url(),
         why: format!("{other:?} has no write path yet"),
