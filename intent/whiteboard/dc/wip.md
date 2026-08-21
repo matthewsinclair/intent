@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 16:02Z
+heartbeat_at: 2026-08-21 16:27Z
 status: active
-focus: "**AC-01.5 FORM 1 IS BUILT AND LANDED AT `5c7bb80f` -- one of the three rows left on the closure gate.** The chain block was `if [ -x ]` with no else; it now refuses on absent and on present-but-not-executable, each naming its remedy. **Driven RED and GREEN in one throwaway clone at `6edbd24f`, same staged violation, one file swapped: old block rc=0 and the commit LANDED; new block rc=1, refused, HEAD unmoved.** **THE 82-VS-9 LINE COUNT IS THE FINDING** -- the red arm's 82 lines were the parity roster printing `ok:` while four shipped guards were not present at all. **hv accepted the wedge (`refuse is correct`) and authorised the commit DIRECTLY in my session; vc's relay explicitly did not.** **AC-01.5 IS vc's TO VERIFY -- I will not certify my own wiring.** **STILL MINE AND OPEN: the guard-resolution mechanism, which the `.envrc` did NOT close.**"
+focus: "**BOTH OF MY OPEN ITEMS ARE BUILT AND LANDED, AND BOTH ARE vc's TO VERIFY -- I CERTIFY NEITHER.** **AC-01.5 form 1 at `5c7bb80f`**: the chain block refuses a gate it cannot find; red/green in one clone, old block rc=0 and the commit LANDED, new block rc=1 refused, and **the 82-vs-9 line count is the finding** -- the red arm's 82 lines were the parity roster printing `ok:` while four shipped guards were not present at all. **AC-01.5 STAYS RED on arm 1** (fresh clone, hooksPath unset, forbidden commit lands at rc=0) and that is correct. **GUARD RESOLUTION at `6b60367c` + `12ebd47e` + `fff59a09`**: a self-hosted Intent checkout reads its guards from ITSELF; consumers unchanged, proven by control; **vc verified independently with a mutation witness rather than my marker.** **MY OWN DATED ZERO NOW INVERTS AND vc CAUGHT IT** -- `lib/templates/hooks/` is 1-of-7 different ON PURPOSE. **ic CAUGHT THAT MY FIX ARMED `int hooks` TO UNDER-REPORT THE GATE, and the comment justifying the old spelling stated the premise I had just invalidated.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -50,11 +50,33 @@ claims: [ST0056/07, ST0056/11]
 
 **BLAST RADIUS CLOSED TWO WAYS.** Structurally, from the planner (`intent_claude_upgrade:909-920`): **the block is never inserted while the dispatcher is absent** -- `CHAIN_PRE_COMMIT_BLOCK` is planned only where `pre-commit.intent` is already present AND matches canon; the other three sites install it immediately above. Empirically (vc): **`Intentv2`, the copy the FLEET resolves to, still carries the bare block**, so no consumer sees this until v3 ships. **The structural argument would have been true and useless had the fleet already picked it up.**
 
-### 2. THE GUARD-RESOLUTION MECHANISM -- STILL OPEN, AND THE `.envrc` DID NOT CLOSE IT
+### 2. THE GUARD-RESOLUTION MECHANISM -- CLOSED AT `6b60367c` + `12ebd47e` + `fff59a09`. vc HAS VERIFIED.
 
-Recorded on hv's board as mine and OPEN. **Driven: in a non-interactive shell `INTENT_HOME` is still `Intentv2`, so this repo's guards resolve out of the frozen v2 tree.** All six guard files are byte-identical today; drift starts at the next guard change.
+**vc VERIFIED INDEPENDENTLY WITH A DIFFERENT INSTRUMENT -- a mutation witness in their own clone, not my marker -- and both arms hold.** They also burned the SAME TWO harnesses I did, in the same order, **after reading my warning about both**: marker past an `exit`, and marker in the wrong artefact. **The second is mine to own: I wrote that `pre-commit.sh` "gains a branch", which is true of where the CHANGE LIVES; the file that EXECUTES is `pre-commit-guards.sh`.** In this repo a file's source home and its execution home are routinely different artefacts and our prose does not mark which it means.
 
-**MY PROPOSED FIX, NOT YET PUT TO hv: a self-hosted Intent checkout resolves guards from its OWN tracked `lib/templates/hooks/`, never from `$INTENT_HOME`.** No environment dependency, works in hooks and tests and tool calls, can name the tree it resolved from, and leaves consumer projects on the `$INTENT_HOME` path unchanged. **hv declined direnv and hand-refresh BY NAME; a wrong answer must be LOUD.**
+**ic CAUGHT THAT THIS FIX ARMED A SECOND DEFECT, AND `fff59a09` CLOSES IT.** `int hooks`'s `shipped_guards()` still read its roster from frozen `Intentv2` after the gate moved, so **a guard added here would be RUN by the gate and not LISTED by the reporter** -- my own 2026-08-20 defect (`cmd/hooks:158`, _"THIS COMMAND UNDER-REPORTED THE GATE BY FOUR AND SAID NOTHING"_), same command, same direction, same silence, **through a different door.** Armed rather than firing, only because the other six files still matched by coincidence.
+
+**AND THE COMMENT WAS THE FINDING: I HAD WRITTEN THE RULE THAT CATCHES MY OWN CHANGE, AND IT INVERTED BECAUSE ITS PREMISE IS WHAT I ALTERED.** _"a second spelling here could pair this roster with a different install than the one the gate will actually run"_ -- true when written, and after `6b60367c` keeping the single spelling became the thing it warned against. The rule is kept, restated as **match the gate** rather than **use `intent info`**.
+
+**STILL OPEN, ic's THIRD AND RECORDED AS OPEN RATHER THAN ABSORBED:** the dispatcher body is an installer-made gitignored COPY. The guards are read live; **the file that DECIDES which tree they come from is not.** The staleness did not leave -- it concentrated in the one file whose job is now to pick the tree.
+
+**A self-hosted Intent checkout now resolves its guards from ITSELF.** hv chose this over refuse-on-divergence and report-only; direnv and hand-refresh were already declined by name. The live-roster rule is **unchanged for every project that USES Intent** -- the exception is a project that IS Intent. Marker: the runner itself plus `VERSION`, **deliberately not `bin/intent`, which is slated for pruning here.**
+
+**READ THIS BEFORE READING THE DELTA BELOW, BECAUSE MY OWN BASELINE NOW INVERTS (vc caught it).** I recorded "all 7 byte-identical vs `Intentv2`" at `c8555d4e` **precisely so a non-zero delta would date the drift.** Then I edited a file in that directory. **A reader meeting the delta cold concludes DRIFT -- which is the exact diagnosis this change makes impossible.**
+
+```
+lib/templates/hooks/  vs frozen Intentv2, at 12ebd47e:   1 of 7 differ
+  pre-commit.sh    25609 here / 20899 there    <- CHANGED ON PURPOSE at 6b60367c + 12ebd47e
+  other six                                     identical
+```
+
+**THE DELTA IS INTENDED. It became non-zero because Intent STOPPED READING Intentv2's copies, not because they diverged unnoticed.** A true measurement whose meaning inverts under a change nobody recorded -- my own class, arriving inside my own fix.
+
+**AND THE BASELINE IS NARROWED RATHER THAN RETIRED (vc).** It watched ONE exposure -- this repo executing frozen guard bodies -- and that exposure is now closed, so **the zero has nothing left to measure here.** The live question is the CONSUMER path: the control arm proves the branch does not fire without `lib/templates/hooks` + `VERSION`, so the fleet still reads `INTENT_HOME`; what is worth watching is whether the repo-own and shipped copies stay **behaviourally equivalent for consumers.** Different question, different instrument, not yet built.
+
+**THE PREDICATE IS "IS AN INTENT SOURCE TREE", NOT "IS THIS ONE REPO" (cc).** Measured with both checkouts: the marker fires in **BOTH**, which is correct -- each reads its own guards -- and it changes nothing in `Intentv2`, where `INTENT_HOME` already names that tree. **Do not narrow it to one checkout; that would be wrong in the next clone of either.**
+
+**EVIDENCE, and the third harness is the only one worth anything:** same clone, marker planted INSIDE the clone's own runner body, one file swapped -- **RED old dispatcher: repo-own body did NOT run; GREEN new: it DID.** Both arms `guards: 4 ran, 0 skipped`, so the source moved and enforcement did not. Consumer control: branch did not fire, guards ran, rc=0.
 
 ### 3. ROUTED OUT, NOT MINE TO BUILD
 
@@ -72,6 +94,10 @@ Recorded on hv's board as mine and OPEN. **Driven: in a non-interactive shell `I
 
 **Today's instances are verbatim in `.history/20260821/wip.md`. These are the CLASSES.**
 
+- **A TOOL'S CLAIM ABOUT WHAT IT RESOLVED IS NOT EVIDENCE ABOUT WHAT IT EXECUTED.** My first guard-swap harness put the marker past `exit "$BLOCKED"`, so it never ran -- **and in that run the hook printed `guards read from THIS repository` while the body had NOT run.** A true statement about RESOLUTION offered as proof of EXECUTION. **Only a marker inside the runner body separates them.** vc places it with cc's `pgrep -x` behaviour-vs-file-contents and vc's own `.envrc` prompt-time-vs-automation: **three nodes, three instruments, one shape.**
+- **A RECORDED ZERO INVERTS WHEN YOU CHANGE THE THING IT WATCHES** (vc caught it in my own fix). I logged "7 of 7 identical vs `Intentv2`" so a non-zero delta would DATE the drift, then edited a file in that directory. **A cold reader now sees the delta and concludes drift -- the diagnosis the change exists to prevent.** A baseline needs the reason it moved recorded beside it, or it accuses the fix.
+- **AN INSTRUMENT THAT CANNOT FAIL IS NOT AN INSTRUMENT, AND THE TELL IS A RED THAT ARRIVES TOO EASILY.** Two harnesses proved nothing before the third: a marker past an `exit`, and `awk 'NR==FNR'` against an EMPTY first file, which made every line hit `next` and **silently emptied the guard runner** -- then my probe commits committed the empty file, so `git checkout --` restored the emptiness. Both produced plausible output.
+- **I ACCEPTED A PEER'S ACCOUNT OF MY OWN HISTORY WITHOUT CHECKING MY OWN SENT RECORD.** ic said a file was unannounced, vc repeated it, and I answered _"I have no defence"_ -- while a 14:30Z announce of that exact file sat in four inboxes. **ic's own rule, failed by me in the one direction that costs nothing: a confession closes an inquiry, which is what it is for.** Audit a self-accusation as hard as a self-serving one. **The substantive half stood -- the two highest-stakes files WERE unannounced.**
 - **A RULE APPLIED TO THE LANE IT NAMES INSTEAD OF TO THE PROPERTY THAT MAKES IT MATTER.** My own standing decision reads _announce to cc before touching `bin/`_. **`.githooks/` is not `bin/`, so I did not announce -- and the reason for the rule is STRONGER there, not weaker.** A lane is a proxy for a property; when the two come apart, the property governs. ic caught it by naming two files they did not recognise rather than sweeping them.
 - **`.githooks/pre-commit` IS THE ONE FILE WHERE AN UNCOMMITTED EDIT EXECUTES FOR EVERY PEER IMMEDIATELY** (ic, 2026-08-21). `core.hooksPath` points at the **WORKTREE**. For `surface/dispatch-table.json` -- where the announce rule was minted -- a peer's dirty copy affects nobody until they read it. **Here, every node's next commit runs yours, with nobody opting in.** ic's `6edbd24f` and two of cc's went through my uncommitted edit before anyone knew it existed. Not "someone might read a stale file" but **"everyone executes yours"**.
 - **A FILE LIST HAS A TIMESTAMP AND DECAYS** (ic's correction, in my favour). Their "neither mine nor cc's" sweep named two files at ~15:53Z; my third was modified at 15:54Z. **"The list was short by one" and "the tree grew a file under the list" have different remedies, and only the second was true.** In a four-writer checkout a `git status` is stale the moment it prints -- which is why the sender announces FILES rather than the reader sweeping for them.
