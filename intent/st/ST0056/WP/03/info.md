@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: Ingest, views and sync engine
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-03: Ingest, views and sync engine

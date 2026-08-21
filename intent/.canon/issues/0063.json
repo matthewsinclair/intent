@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 63,
+  "slug": "wpstatus-has-no-cancelled-variant-so-a-descoped-",
+  "title": "WpStatus has no Cancelled variant, so a descoped work package can never be closed: wp done gates on ac gate, contract.rs:441 blocks when active==0, and the only exemption is thread-scoped",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-21",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

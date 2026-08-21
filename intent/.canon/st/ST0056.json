@@ -32,7 +32,7 @@
       "seq": 3,
       "title": "Ingest, views and sync engine",
       "scope": "L",
-      "status": "wip",
+      "status": "done",
       "objective": "Build the bidirectional flow around the authored-once principle: strict ingest (validate-or-refuse-by-name) from committed canon to DB, deterministic view generation from DB to markdown, and change detection that keeps them honest.",
       "body": "## Deliverables\n\n- Strict ingest: structured JSON parse + JSON Schema validation; invalid input refused with the finding named; prose ingested verbatim (FTS-indexed)\n- View renderer: info.md, acceptance.md, steel_threads.md, todo.md -- deterministic and idempotent (same data, same bytes)\n- Change detection: git-index-style stat scan (mtime/size, SHA-256 rehash on change) scoped to `intent/**` + named root files\n- The skew check (doctor primitive): regenerate views, require empty diff -- a hand-edited view is caught, never outvoted silently\n- Unparsed-state handling: a file that stops parsing (eg merge-conflict markers) is named by doctor and refused by commands that need it\n- `intent ingest --from-md` scaffolding (shared with the WP-10 migrator)\n\n## Dependencies\n\n- WP-02.",
       "preamble": ""

@@ -7,7 +7,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
   - [x] 01: Design canon: architecture, data model, migration and parity specs
   - [x] 02: Workspace and reified model: intentsvcs types, schema faces, store
-  - [-] 03: Ingest, views and sync engine
+  - [x] 03: Ingest, views and sync engine
   - [-] 04: intentsvcs facade: core command families
   - [-] 05: CLI in-process mode and BATS conformance harness
   - [-] 06: CLI parity long tail
@@ -24,7 +24,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0057: Disk as a sparse projection of the store
   - [-] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar
-  - [-] 03: Attachment canon: opaque as file, and the naming gate
+  - [x] 03: Attachment canon: opaque as file, and the naming gate
   - [x] 04: intent organize: four answers, one refusal, one gate
   - [-] 05: intent edit <ID>
   - [x] 06: The full text realisation, and the refusal that expires

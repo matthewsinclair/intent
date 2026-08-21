@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: Attachment canon: opaque as file, and the naming gate
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-03: Attachment canon: opaque as file, and the naming gate
