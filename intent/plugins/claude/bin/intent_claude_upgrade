@@ -433,12 +433,55 @@ canon_chain_block_present() {
 
 # Emit the chain block (with markers) to stdout. Used by canon_insert_chain_block
 # both for first insertion and for the empty-file fallback.
+#
+# THE BLOCK REFUSES A GATE IT CANNOT RUN (ST0057 AC-01.5). It was `if [ -x ]`
+# with no else, and the silence WAS the defect: a fresh clone wired by
+# `int hooks --install` gets `core.hooksPath` but NOT `pre-commit.intent`, which
+# is gitignored on purpose because it is canon the installer writes. Two
+# independent conditions, and satisfying only the first is what produced the
+# measured failure -- the gate skipped, the rest of the hook printed ~60
+# confident lines from a DIFFERENT roster, and a commit adding `intent/.*/` to
+# `.gitignore` landed at rc=0 with the shipped guards never having run.
+# THE HAZARD IS NOT SILENCE; IT IS REASSURING NOISE FROM ANOTHER ROSTER, which
+# is why the absent arm names what is about to print below it.
+#
+# ABSENCE CAN BE FATAL HERE BECAUSE THIS BLOCK'S OWN PRESENCE IS THE DECLARATION
+# THAT A DISPATCHER IS EXPECTED. The same installer writes both, so a hook
+# carrying these markers and no `pre-commit.intent` is a BROKEN INSTALL and
+# never a valid configuration. A project that never opted in has no block, so
+# nothing that did not ask for a gate can be wedged by one.
+#
+# THREE STATES, KEPT APART, because their remedies differ -- the discipline
+# `pre-commit-guards.sh` applies one level down, where "the resolver did not
+# answer" and "one guard file is missing" are deliberately not folded together.
+# A refusal that names its own remedy is not a wedge; a refusal that does not
+# is the reason people reach for `--no-verify` and never come back.
+#
+# NO BYPASS FLAG. `git commit --no-verify` already owns that decision and a
+# second spelling here would be a second home for it.
 canon_emit_chain_block() {
   cat <<CHAIN
 $CANON_CHAIN_START
 _intent_chain="\$(git rev-parse --git-path hooks 2>/dev/null)/pre-commit.intent"
 if [ -x "\$_intent_chain" ]; then
   "\$_intent_chain" "\$@" || exit \$?
+elif [ -e "\$_intent_chain" ]; then
+  echo "pre-commit: GATE NOT EXECUTABLE -- the gate did NOT run." >&2
+  echo "pre-commit:   present, but carries no execute bit:" >&2
+  echo "pre-commit:     \$_intent_chain" >&2
+  echo "pre-commit:   fix:  chmod +x on that path, or: intent claude upgrade --apply" >&2
+  exit 1
+else
+  echo "pre-commit: GATE ABSENT -- the critic and every shipped guard did NOT run." >&2
+  echo "pre-commit:   this hook declares a gate it cannot find:" >&2
+  echo "pre-commit:     \$_intent_chain" >&2
+  echo "pre-commit:   so the clock, whiteboard-header, canon-ignore and append-only" >&2
+  echo "pre-commit:   guards were all a no-op. ANYTHING PRINTED BELOW THIS LINE COMES" >&2
+  echo "pre-commit:   FROM A DIFFERENT ROSTER AND SAYS NOTHING ABOUT THEM." >&2
+  echo "pre-commit:   fix:  intent claude upgrade --apply" >&2
+  echo "pre-commit:   why:  pre-commit.intent is canon written by the installer, and it" >&2
+  echo "pre-commit:         is gitignored on purpose, so no clone ever receives it." >&2
+  exit 1
 fi
 $CANON_CHAIN_END
 CHAIN

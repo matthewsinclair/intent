@@ -331,10 +331,22 @@ if [ "$DO_INSTALL" -eq 0 ]; then
   #
   # TWO INDEPENDENT CONDITIONS AND THE DOC NAMED ONE. A clone does not inherit
   # `core.hooksPath` -- which `--install` fixes -- AND `pre-commit.intent` is
-  # gitignored, so it is in no clone at all. The chain block skips a missing
-  # gate with a bare `if [ -x ]` and no else, so the whole guard chain is a
-  # silent no-op. Satisfying only the first produces a green report over an
-  # inert gate.
+  # gitignored, so it is in no clone at all. Satisfying only the first produced
+  # a green report over an inert gate.
+  #
+  # THE SILENT-SKIP HALF IS NOW CLOSED, AND THIS REPORT MUST NOT OUTLIVE IT.
+  # The chain block was a bare `if [ -x ]` with no else; it now discriminates
+  # three states and REFUSES on two of them (ST0057 AC-01.5, form 1). So the
+  # whole-guard-chain-as-a-silent-no-op above is HISTORY, not current
+  # behaviour, and it is kept only as the reason this reporter exists. A dead
+  # reason left beside a live disposition is how the next reader concludes the
+  # disposition is wrong.
+  #
+  # THIS REPORTER IS NOT MADE REDUNDANT BY THAT REFUSAL, and the distinction is
+  # the point of having both forms: the chain block can only speak when the
+  # hook RUNS, which needs `core.hooksPath` already set. This command answers
+  # before any commit is attempted, in exactly the state -- hooksPath unset --
+  # where the block is never reached and therefore cannot report anything.
   #
   # The ignore rule is right and stays: that file is written by
   # `intent claude upgrade`, and tracking it would be a second home for canon.
@@ -352,8 +364,10 @@ if [ "$DO_INSTALL" -eq 0 ]; then
     rc=1
     GATE_ABSENT=1
     printf '  gate         ABSENT    -> pre-commit.intent is not in %s\n' "$HOOKS_DIR"
-    printf '                 the chain block skips a missing gate SILENTLY, so the critic and\n'
-    printf '                 every shipped guard are a no-op in this clone.\n'
+    printf '                 the chain block REFUSES a gate it cannot find (ST0057 AC-01.5), so\n'
+    printf '                 wherever the hook runs at all, every commit is blocked until this is\n'
+    printf '                 installed. It no longer passes in silence -- but if core.hooksPath is\n'
+    printf '                 unset above, the hook never runs and nothing refuses anything.\n'
     printf '                 it is gitignored on purpose (it is canon, written by the installer),\n'
     printf '                 so a clone never carries it. Run: intent claude upgrade --apply\n'
   fi

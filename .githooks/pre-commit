@@ -5,6 +5,23 @@ set -euo pipefail
 _intent_chain="$(git rev-parse --git-path hooks 2>/dev/null)/pre-commit.intent"
 if [ -x "$_intent_chain" ]; then
   "$_intent_chain" "$@" || exit $?
+elif [ -e "$_intent_chain" ]; then
+  echo "pre-commit: GATE NOT EXECUTABLE -- the gate did NOT run." >&2
+  echo "pre-commit:   present, but carries no execute bit:" >&2
+  echo "pre-commit:     $_intent_chain" >&2
+  echo "pre-commit:   fix:  chmod +x on that path, or: intent claude upgrade --apply" >&2
+  exit 1
+else
+  echo "pre-commit: GATE ABSENT -- the critic and every shipped guard did NOT run." >&2
+  echo "pre-commit:   this hook declares a gate it cannot find:" >&2
+  echo "pre-commit:     $_intent_chain" >&2
+  echo "pre-commit:   so the clock, whiteboard-header, canon-ignore and append-only" >&2
+  echo "pre-commit:   guards were all a no-op. ANYTHING PRINTED BELOW THIS LINE COMES" >&2
+  echo "pre-commit:   FROM A DIFFERENT ROSTER AND SAYS NOTHING ABOUT THEM." >&2
+  echo "pre-commit:   fix:  intent claude upgrade --apply" >&2
+  echo "pre-commit:   why:  pre-commit.intent is canon written by the installer, and it" >&2
+  echo "pre-commit:         is gitignored on purpose, so no clone ever receives it." >&2
+  exit 1
 fi
 # intent-chain-block:end
 
