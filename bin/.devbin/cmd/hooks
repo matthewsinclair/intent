@@ -171,21 +171,54 @@ fi
 # to canon reaches every consumer with no reinstall, and it is why this cannot
 # be answered from anything in this repository.
 #
-# `intent info` IS THE RESOLVER AND IS NOT SECOND-GUESSED. `.githooks/pre-commit`
-# resolves the install exactly this way; a second spelling here could pair this
-# roster with a different install than the one the gate will actually run.
+# THE RESOLVER IS NOT SECOND-GUESSED, AND THE RULE IS "MATCH THE GATE" RATHER
+# THAN "USE `intent info`". Those were the same sentence until 6b60367c and they
+# are not any more.
+#
+# THIS COMMENT USED TO READ: *`intent info` IS THE RESOLVER AND IS NOT
+# SECOND-GUESSED. `.githooks/pre-commit` resolves the install exactly this way;
+# a second spelling here could pair this roster with a different install than
+# the one the gate will actually run.* **That was true when it was written and
+# 6b60367c is what made it false** -- the gate now prefers a self-hosted
+# checkout's own `lib/templates/hooks/`, so keeping the single `intent info`
+# spelling became the thing that pairs this roster with a DIFFERENT install
+# from the one the gate runs. The rule's conclusion inverted because its
+# premise is what changed. Found by ic, against my own commit.
+#
+# ARMED, NOT YET MISREPORTING, WHICH IS THE ONLY REASON THERE WAS TIME TO FIX
+# IT. The six other guard files still match across both trees, so the roster
+# printed was accurate BY COINCIDENCE and nothing maintained the coincidence.
+# The trigger is exactly the case 6b60367c exists to make safe: add or improve
+# a guard in this repo's `lib/templates/hooks/`, and the gate RUNS it while
+# this command does not LIST it. That is the 2026-08-20 defect recorded at
+# `:158` -- *THIS COMMAND UNDER-REPORTED THE GATE BY FOUR AND SAID NOTHING* --
+# same command, same direction, same silence, through a different door.
 #
 # THREE ABSENCES, KEPT APART, because collapsing them is how this family of
 # defects starts: the resolver did not answer, the runner is not in the install
 # it named, or the runner is there and declares no roster. Only the first two
 # are faults and the third is a legitimate state.
 shipped_guards() {
-  local home runner name path when state
-  home="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
+  local home runner name path when state from
+  # SAME PREDICATE AS THE GATE (lib/templates/hooks/pre-commit.sh): the runner
+  # itself plus VERSION. Deliberately not `bin/intent` -- the v2 shell is slated
+  # for pruning here, and a marker a planned change deletes fails silently later.
+  if [ -f "$ROOT/lib/templates/hooks/pre-commit-guards.sh" ] && [ -f "$ROOT/VERSION" ]; then
+    home="$ROOT"; from="this repository"
+  else
+    home="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"; from="INTENT_HOME"
+  fi
   if [ -z "$home" ] || [ ! -d "$home" ]; then
     printf '                 (INTENT_HOME did not resolve -- the shipped roster is UNREPORTED, not empty)\n'
     return
   fi
+  # WHICH TREE THIS ROSTER CAME FROM, SAID ON THE LINE ABOVE IT (ic's second
+  # finding). The `gate WIRED` verdict is a PRESENCE test on the installed
+  # copy while this roster is read from a source tree. Under the old resolution
+  # those were one tree and the composition was sound; they can now be two, and
+  # a report that silently composes two trees is how a reader credits one with
+  # the other's contents.
+  printf '                 roster read from %s: %s\n' "$from" "$home/lib/templates/hooks"
   runner="$home/lib/templates/hooks/pre-commit-guards.sh"
   if [ ! -f "$runner" ]; then
     printf '                 (no %s -- the gate names a runner this install does not carry)\n' "$runner"
