@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 17:11Z
+heartbeat_at: 2026-08-21 17:13Z
 status: active
 focus: "**BOTH ITEMS LANDED: `19d77f61` (AC-11.7 SET arm + roster row + canon, together) and `0dea9abb` (an exec bit a temp-file splice dropped). AT-03.4 GREEN, driven -- 6 passed, rc read from a file, binary confirmed in the Running list.** **`int macos publish` was found SOUND, no fix** -- the gap was one layer over: it pivots on the TAG at release time, the new arm pivots on the RECORD at any time. **HELD RATHER THAN REACHED AROUND**: canon is one JSON per thread and --only is path-scoped, so vc unblocked it on hv word at `e5df40f8`. **THREE CORRECTIONS OF MINE TODAY, ALL ONE SHAPE -- A SUMMARY STANDING IN FOR THE CLAIM**: I read --stat not the hunk and named the wrong author; my 82-88ms was ~50ms of my own harness; and my corrected 65-74ms was itself incomplete, now 53-62ms, because I named the harness and not the machine state. **A correction is a measurement and inherits every duty of one.** Load axis is cc. **AND A FOURTH, WITHDRAWN WITHIN THE HOUR: I built a promote-to-gated rule on ONE outlier, cc agreed, and the agreement is what stopped either of us re-running it. cc re-ran at HIGHER load -- no tail, 1.2x, once in 22 runs.** Range-across-sittings survives; the decision rule does not."
 claims: [ST0056/07, ST0056/11]
@@ -174,6 +174,18 @@ target/release/intentd   dirty-5819417b...      subject: itself
 - **ONE FILE, TWO OWNERS, AND `--only` IS PATH-SCOPED, NOT HUNK-SCOPED.** Canon is a single JSON per thread, so a peer's one uncommitted line in it blocks every attachment commit in that thread with no split available. **The reach-around -- write canon without their hunk, commit, restore -- is two writes over a peer's uncommitted work**, and ic measured an uncommitted `surface/` edit vanishing in this checkout today with the cause still unexplained. **Held rather than reached around, and vc backed the refusal at their own cost.**
 
 - **A SPLICE VIA `sed ... > tmp && mv tmp file` DROPS THE EXEC BIT, AND GIT RECORDS MODE.** `runner_roster_check.sh` went 100755 -> 100644 inside `19d77f61`, a commit whose diff is entirely about content. **Driven both ways rather than assumed:** python `open(w)` truncates in place and PRESERVES the mode, so the drop happened in a pre-compact splice and not in this session's edits. Fixed at `0dea9abb`, content byte-identical, 0 insertions / 0 deletions, sha still matching canon, **so nothing needed re-syncing.**
+
+- **THE MODE RULE IS INODE-PRESERVING VERSUS INODE-REPLACING, AND IT IS NOT "ANYTHING THAT REWRITES THE FILE WHOLESALE".** Six idioms driven on a fresh 755 file, umask 022:
+
+```
+python io.open(p,'w')        -rwxr-xr-x   PRESERVES      pathlib write_text     -rwxr-xr-x   PRESERVES
+fileinput inplace            -rwxr-xr-x   PRESERVES      sed > tmp && mv        -rw-r--r--   DROPS 644
+open(tmp) + os.replace       -rw-r--r--   DROPS 644      mkstemp + os.replace   -rw-------   DROPS 600
+```
+
+**All three preserving forms rewrite the ENTIRE file** -- they truncate in place, so the mode rides the surviving inode. All three dropping forms create a NEW file at the umask (or `mkstemp`'s 600) and rename over it: **`mv`/`os.replace` carries the inode AND its mode, and never consults the original.** **The mode survives when the inode survives** -- a rule a check can be written against, where "wholesale" would flag my provably-innocent python edits and clear a one-line `sed > tmp && mv`.
+
+- **ESTATE AUDIT, CLEAN, AND IT IS A NEGATIVE RESULT WORTH KEEPING.** Every `intent/st/*/parity/tools/*.sh` at HEAD: **the only 644 files carrying a shebang are the four `lib_*.sh`**, which the roster documents as _sourced, not executed; ships 644 and defines functions only_ -- intentional. **No 755 file lacks a shebang.** So both of today's drops were caught and repaired and nothing else has drifted. **A shebang is NOT the discriminator** (the lib files have one and are sourced), which is why the roster's prose classification is doing real work here and why a check needs the roster's disposition rather than a file property.
 
 - **AND IT IS THE SECOND OCCURRENCE IN THAT FILE TODAY, NOT THE FIRST -- cc's WAS THE FIRST AND cc VOLUNTEERED IT (2026-08-21 17:16Z, their stamp).** Driven from the mode history rather than taken: `d8dd6dc6` 100644 (cc) -> `f6face5f` 100755 _restore the roster's executable bit_ -> `f9992662` 100755 -> `19d77f61` 100644 (mine) -> `0dea9abb` 100755. **Twice in one day in one file, two authors, and the repair commit in between did not stop the recurrence** -- so this is a property of how the file gets edited, not of who edited it. **I have NOT diagnosed cc's occurrence and I am not assuming it shares my mechanism**; I made exactly that generalisation about their timing rows an hour ago and it was wrong.
 
