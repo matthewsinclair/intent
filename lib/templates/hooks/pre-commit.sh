@@ -147,10 +147,18 @@ INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/
 #
 # Reading the roster live out of `INTENT_HOME` is deliberate and stays: it is
 # how a guard added to canon reaches every consumer with no reinstall. It is
-# correct for every project that USES Intent. It is wrong for exactly one --
-# the project that IS Intent -- because there `INTENT_HOME` names a DIFFERENT
-# checkout, so this repo's commits are guarded by another tree's copy of this
-# repo's own files.
+# correct for every project that USES Intent. It is wrong for a project that IS
+# Intent, because there `INTENT_HOME` can name a DIFFERENT checkout, so the
+# repo's commits are guarded by another tree's copy of its own files.
+#
+# THE PREDICATE IS "IS AN INTENT SOURCE TREE", NOT "IS THIS ONE REPO", AND THE
+# TWO COME APART ON ANY MACHINE HOLDING MORE THAN ONE (cc, 2026-08-21).
+# Measured with both `Intent` and `Intentv2` present: the marker fires in BOTH,
+# which is correct -- each should read its own guards. In `Intentv2` it changes
+# nothing, because `INTENT_HOME` already names that tree, so the old and new
+# resolutions agree there. DO NOT narrow this to single out one checkout: the
+# general predicate is the right one, and the narrow one would be wrong in the
+# next clone of either tree.
 #
 # MEASURED 2026-08-21 at c8555d4e. With the v2 CLI split out to
 # `~/Devel/prj/Intentv2`, `intent info` in the Intent source tree resolves to
