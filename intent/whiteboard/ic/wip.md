@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: d5a0bd62-6c46-4b53-8af9-fca9edf87c0e
-heartbeat_at: 2026-08-21 17:24Z
+heartbeat_at: 2026-08-21 21:54Z
 status: active
-focus: "**FOLDED 17:24Z FOR A COMPACT AND THEN A BOUNCE. `status: active` IS DELIBERATE -- a compact is not a session end (invariant 6), and the bounce is PROSPECTIVE rather than done.** **READ THE NEXT LINE BEFORE TRUSTING THIS BOARD: if your `$CLAUDE_CODE_SESSION_ID` differs from `session_id:` above, the bounce TOOK and this board is the PREVIOUS session's -- re-verify anything time-sensitive.** If it matches, you are the same session resumed or compacted. That is the whole test and it is one `echo`. **HOLDING NOTHING UNCOMMITTED; five commits today, listed in DOING.** **AC-08.5 IS COVERED AND STAYS RED BY ITS OWN VERDICT: 8 of 13 entity forms have no write path through `put`, driven, and burning case 3 refused a REAL commit of cc's within the hour.** Gate 65 of 67 (cc, clean-room at `f580c823`); the only movable row left is `AC-01.5`, which is vc's verdict on dc's arm. **NOT MINE AND NOT FIXED: the workspace is transiently red on ~9 surface/faces/SDL tests while a nine-file WpStatus/`wp cancel` feature is written LIVE by a node none of us has identified -- cc says not theirs, I say not mine, dc folded clean. DO NOT read that red as yours, and DO NOT name its owner by elimination: that inference has now failed twice in one hour.**"
+focus: "**U2/U3 UNDER vc's REDIRECT, RATIFIED BY hv 21:45Z: usability first, THROWAWAY COPIES ONLY (no probe reaches the 16 real trees), and hv HAS authorised commits-to-main for today -- so vc's withdrawn ruling is back, granted by the only node who could grant it.** **THE FINDING: `intent edit` REFUSES AT rc=1 AND WRITES TO TWO DURABLE FILES, ONE OF THEM TRACKED.** Driven on a throwaway with the boundary widened past the project: `intent/.cache/intent.db` AND `intent/.intentfiles`, which gains `STEELTHREAD:ST0001` having been empty. **NOTHING IS CREATED -- 79 manifest rows before, 79 after -- so vc's create-two-files shape is the ALREADY-UNREALISED case and this is the already-realised one: same defect, mutate-in-place, and a file-count check calls it clean.** **A refused command silently edited the REALISATION POLICY and put it in the operator's next commit.** **AND THE U1/U3 SEAM, DRIVEN BOTH WAYS: v3's `claude hook` resolves its script through `install::home()`, which walks `current_exe()` ancestors for `lib/templates/`.** Binary inside the checkout: all three hooks rc=0, manifest unchanged. **Binary copied outside it -- dc's U1 shape -- all three rc=1, `cannot locate the Intent install this binary belongs to`.** **So the strict prompt gate FAILS OPEN in every project the moment v3 is installed as a bare copy on PATH**; Homebrew survives because `resolve()` canonicalises symlinks first. **U2 was scoped to v3-in-a-v2-project; the estate has exactly ONE v3 project and nobody has swept it.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,22 +13,32 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. I HOLD NOTHING UNCOMMITTED.** Today's detail is archived at `.history/20260821/wip-fold-1600Z.md` and `.history/20260821/wip-fold-1721Z.md`; what stays here is only what a cold session cannot reconstruct.
+**U2 / U3 under vc's redirect. Nothing uncommitted.**
 
-| commit     | what                                                                                                                                 |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `6edbd24f` | **AT-07.7 green at HEAD** -- `address_collections_resolve.rs`, denominator read from canon; the `pgrep -x` needle fix; ST0057 canon. |
-| `f099fe22` | `view_path_of`'s wildcard becomes named arms; `intentdb` leaves `surface/dispatch-table` (JSON is SSOT, face regenerated).           |
-| `11c2037d` | **`doctor --format=json`** -- vocabulary READ FROM THE TABLE, unknown value refused at exit 1 in the renderer, never by clap at 2.   |
-| `b4918a35` | **`declared_but_unwired.rs` retired**, 243 deletions, ten doc-comment citations repointed.                                           |
-| `c191fb08` | **AC-08.5's cover** -- the unsettable set driven across every entity form, mutation-proven, exhaustive on `Entity`.                  |
+**1. `intent edit` WRITES ON ITS REFUSAL PATH, AND THE INSTRUMENT THAT FINDS IT MATTERS MORE THAN THE FINDING.** Driven on a throwaway at `85a0ed23`:
 
-**THE FOUR THINGS FROM TODAY WORTH MORE THAN THE COMMITS:**
+|                           | before             | after                |
+| ------------------------- | ------------------ | -------------------- |
+| `intent/.cache/intent.db` | `70921a9a`         | `31d2ce5b`           |
+| `intent/.intentfiles`     | empty (`e3b0c442`) | `STEELTHREAD:ST0001` |
+| manifest rows             | 79                 | **79**               |
 
-1. **A COMPACT DOES NOT ROTATE `$CLAUDE_CODE_SESSION_ID`, MEASURED ON ME.** vc was the first control and I am the second. **So the bounce test is HALF a test: CHANGED proves a fresh session; UNCHANGED means resumed OR compacted** -- and the ambiguous branch is the common case, because hv triggers compacts deliberately. vc globalfolded it to `restart.md:22`. **A discriminator that fails only in the direction you expected to read is worse than one that fails both ways, because nobody re-checks the reading they expected.**
-2. **I CITED A FILE IN ONE COMMIT AND DELETED IT IN THE NEXT.** `render.rs:3719` named `declared_but_unwired.rs:59` at `11c2037d`; `b4918a35` removed the file. **I had spent the whole afternoon reporting exactly that class in cc's files and dc's.** Nothing in this tree checks a citation in a doc comment -- `at lint` reads AT rows and sees none of it. **CITE THE PROPERTY, NOT THE FILE THAT HOLDS IT.**
-3. **MY OWN BOARD TOLD ME TO DELETE THE ONLY THING GATING 268 OF 269 VIEWS.** It said `thread_view_skew_check.sh` was a rival to `doctor --format=json`. Its header says it computes nothing -- it PARSES doctor's single verdict rather than forming a second one. **Checking the premise is what caught it, and the premise was mine.**
-4. **THE ESTATE'S MOST-QUOTED NUMBER WAS WRONG THREE TIMES AND ONLY THE FIRST TWO WERE ARITHMETIC.** vc and I each published **63 at HEAD**, subtracting DIFFERENT greens, **arithmetically correct and oppositely wrong** -- and the agreement read as corroboration. **A wrong sum is catchable by re-adding; a correct sum over an unnamed population is catchable by nothing.** I then declined to publish 64 from my own tree and was right to: cc's clean-room drove it.
+**rc=1, an error telling the operator the file is generated and not to edit it, and two durable files moved.** `.intentfiles` is TRACKED, so it lands in the operator's next commit as a diff they never made -- and it is the realisation policy, which nothing recomputes.
+
+**vc found this as CREATES TWO FILES (count 1 -> 3); I found it as MUTATES TWO AND CREATES NOTHING.** Both are real and they are the same defect under opposite preconditions -- unrealised vs already-realised. **A file-count check catches vc's and calls mine clean; `git status` catches the `.intentfiles` half and never sees the store.** No single instrument covers both, which is the argument for the hash and for hashing BEFORE choosing what to look at.
+
+**2. THE U1/U3 SEAM: MAKING v3 REACHABLE FROM ANY cwd IS WHAT BREAKS THE HOOKS.** `render.rs:3275` resolves the hook script through `install::home()` -> `resolve()`, which walks `current_exe()` ancestors for `MARKER = lib/templates`. Driven both arms, manifest unchanged in both:
+
+| binary location     | `claude hook session-context` / `require-in-session` / `post-tool-advisory`                    |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| inside the checkout | **rc=0**, `Intent project: noop-fixture`                                                       |
+| copied outside it   | **rc=1** x3, `cannot locate the Intent install this binary belongs to (no lib/templates/ ...)` |
+
+**`require-in-session` at rc=1 does NOT block -- Claude Code blocks on 2 -- so the strict gate FAILS OPEN silently in every project.** That is issue 0043 inverted: 0043 blocked every prompt, this enforces none. **Homebrew survives** because `resolve()` canonicalises symlinks before walking, and a Cellar path still sits under an install root; **a bare `cp` onto PATH does not.** dc owns U1 and this is a constraint on its deliverable, not a defect in it.
+
+**3. U3's POPULATION IS DERIVED, NOT GUESSED, AND ONE CALL DOMINATES.** `.claude/settings.json` fires `intent claude hook session-context` at SessionStart and `intent claude hook require-in-session` on EVERY prompt, in every project. That is the daily surface's load-bearing call and finding 2 is about exactly it. Full call-site census in the fold below.
+
+**4. U2's SCOPE IS WRONG BY ONE POPULATION AND I AM SAYING SO RATHER THAN FILLING IT.** U2 asks "is v3 safe in a v2 project?" -- vc closed that synthetically, no real tree touched, and I agree it is closed. **The estate has exactly one v3 project: this one. Nobody has swept v3 verbs against a real v3 project, and finding 1 is what that sweep returns on its first verb.**
 
 ## TODO
 
@@ -50,6 +60,8 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ## Watch-outs
 
 ### Mechanical
+
+- **`git log --format=%an` CANNOT NAME A NODE, AND I PUBLISHED AN OWNER FROM IT ANYWAY (2026-08-21 19:12Z).** All five nodes share one checkout and one git identity, so the author field has exactly ONE value estate-wide -- **my own `c191fb08` is indistinguishable from `85a0ed23` by it.** A field with one value carries zero bits. **This is the THIRD instance of one shape in a day and the only one that was mine and shipped:** `ListAgents` `started` is socket age not session age (one value for everyone after a topology change); cc's roster drew its population and its needle from the same set; and this. **The tell is uniform across all three: an instrument whose output does not VARY with the thing you are asking about.** Before naming a node from a field, check what that field says about a case you already know the answer to -- **one command, and it is the control I did not run.** **A commit body's `hv, <date>` is a RATIFICATION attribution, not an authorship one.** Ask the node.
 
 - **AN INBOX IS NOT READ-ONCE-AT-PICKUP, AND MINE SAT UNREAD FOR NINETY MINUTES.** I read all four inboxes at the 13:50Z pickup (all empty) and never re-read them. **dc wrote `ic/inbox.dc.md` at 14:30Z announcing they were touching `bin/.devbin/cmd/`, and I found it at the 16:08Z fold** -- after telling dc their work was unannounced. It was announced; I had not looked. **Everything that actually reached me today came over the LIVE channel, and the durable one was written correctly and never delivered.**
 
