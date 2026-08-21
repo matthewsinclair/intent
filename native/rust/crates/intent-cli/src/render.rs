@@ -3700,3 +3700,78 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
   });
   println!("{}", serde_json::to_string_pretty(&doc).unwrap_or_default());
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  /// **What `declared_but_unwired.rs`'s roster loop cannot say any more, said
+  /// here instead.**
+  ///
+  /// That file drives the refusal through the real binary for the verbs the
+  /// `DECLARED_BUT_UNWIRED` bucket names, and its own header records the loss:
+  /// at ONE member there is nothing left to distinguish a shared-path
+  /// regression from a single implementation. **The roster question -- WHICH
+  /// verbs are unwired -- and the mechanism question -- what `unwired` PRODUCES
+  /// -- were answered by one loop, and only the first of them needs a real
+  /// process.** This module takes the second, at the function, where it can be
+  /// driven for families that do not exist at all.
+  ///
+  /// **A same-module test reaches a private fn, so nothing here widens
+  /// visibility.** Making `unwired` `pub(crate)` to test it would have changed
+  /// the thing under test to test it.
+  ///
+  /// # The two arms are a PAIR and neither can pass on the other's text
+  ///
+  /// `unwired` branches its remedy on whether the family has any shipped verb,
+  /// and **both branches end in the same `Unavailable` with the same phrase**,
+  /// so an arm asserting only the code and the phrase passes against either.
+  /// Each arm therefore asserts its own branch AND the ABSENCE of the other's.
+  /// Without that, the branch is untested and the test reads as if it were not.
+  #[test]
+  fn a_family_that_does_not_exist_refuses_at_two_and_names_the_path() {
+    let failure = unwired("not-a-family", "").expect_err("unwired always fails");
+
+    // **The literal 2, deliberately, not `EXIT_UNAVAILABLE`.** The contract is
+    // with consumers written against v2, which know the NUMBER; asserting the
+    // constant would keep passing if the constant were changed, which is the
+    // one regression this pins. Issue 0038 shipped because this path exited 1
+    // and every v2-era gate read that as a negative verdict about the user's
+    // own work.
+    assert_eq!(failure.code(), 2, "an unwired verb must exit 2, never 1");
+
+    let message = failure.message().expect("Unavailable carries a message");
+    assert!(
+      message.contains("`not-a-family`"),
+      "the message must name the path asked for: {message}"
+    );
+    assert!(
+      message.contains("nothing in this build provides it"),
+      "a family with no shipped verbs gets the nothing-provides-it remedy: {message}"
+    );
+    assert!(
+      !message.contains("for the verbs that are"),
+      "and must NOT get the other branch's remedy, which would send an operator to a --help that does not exist: {message}"
+    );
+  }
+
+  #[test]
+  fn an_unwired_verb_in_a_wired_family_is_sent_to_that_family() {
+    let failure = unwired("st", "dehydrate").expect_err("unwired always fails");
+    assert_eq!(failure.code(), 2, "an unwired verb must exit 2, never 1");
+
+    let message = failure.message().expect("Unavailable carries a message");
+    assert!(
+      message.contains("`st dehydrate`"),
+      "family and verb are joined with a space when both are present: {message}"
+    );
+    assert!(
+      message.contains("run `intent st --help` for the verbs that are"),
+      "a family that DOES ship verbs sends the operator to its help: {message}"
+    );
+    assert!(
+      !message.contains("nothing in this build provides it"),
+      "and must NOT claim the family is absent when it is not: {message}"
+    );
+  }
+}
