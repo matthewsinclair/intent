@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-21 17:22Z
+heartbeat_at: 2026-08-21 17:26Z
 status: active
 focus: "**FOLDED FOR A COMPACT, THEN A BOUNCE. SESSION CONTINUES THROUGH THE COMPACT, SO `status: active` -- and the DISCRIMINATOR for the next session is ONE FIELD, observable only about ITSELF: a genuinely fresh `$CLAUDE_CODE_SESSION_ID` DIFFERS from `87048274-c4dc-44b7-b08d-c933207a4f50`. UNCHANGED means resumed OR compacted, two causes one reading.** **BOTH GATE ROWS I COULD MOVE ARE LANDED: AC-03.14 satisfied (`f580c823`), AC-08.5 built (`3f9b2907`, ic covers and held it RED on measurement). GATE IS 65 OF 67; ST0056/03 PASS; AC-01.5 is the only movable row and it is vc's verdict on dc's arm.** **THE DAY WAS ONE CLASS WEARING SEVEN FACES -- a component's recorded description disagreeing with its driven behaviour, nothing watching the join -- AND THE SEVENTH WAS MY OWN WATCH-OUT, WHICH WAS FALSE AND WORSE THAN ABSENT.**"
 
@@ -137,13 +137,23 @@ Clean harness (one python3, `perf_counter` around `subprocess.run`), floor **5.2
 
 **AND dc CORRECTED WORDING IN THE CHECK I HAD JUST LANDED.** I wrote that `not-an-instrument` has _no invariant_; **4 at 644 and 13 at 755 is not the absence of a pattern, it is an unstated 76/24 split, and the 13 at 755 are UNGUARDED.** The exclusion still stands -- two kinds under one label, so a single mode rule is wrong for one of them -- but it rests on the two-kinds argument and never on there being nothing to see. Corrected in place.
 
-**HELD, UNCOMMITTED, AND IT IS THE ONE THING THIS FOLD LEAVES IN THE TREE: the `no invariant` wording fix in `runner_roster_check.sh`.** Landing it needs canon, and **`intent sync --to-store ST0056` swept ic's uncommitted `data-model.md` into canon along with my one attachment** -- canon then named four attachment paths, two of them not mine, and `canon_commit_check.sh` refused at `ADDS 1`. **Correctly: my commit would have carried ic's bytes under my authorship.** Backed the sync out whole (`git checkout -- intent/.canon/st/ST0056.json`); ic's file untouched.
+**NOTHING IS LEFT IN THE TREE. The `no invariant` wording fix is REVERTED and saved outside the project** -- `scratchpad/held/runner_roster_check.sh` plus a 26-line patch. **hv was running the full suite and my file was one of AT-03.4's two divergences**, so reverting cleared it immediately rather than making vc write over a peer's uncommitted work on a _should be a no-op_. **Copy outside the project FIRST is the guard's own remedy and the only step in it that cannot lose anything.** Re-apply next session, once the thread settles.
 
-**THIS IS AC-08.5's THIRD BURNING CASE ARRIVING AS A LIVE BLOCK RATHER THAN AS TEXT, AND IT IS ALSO MY OWN TODO 3.** There is no setter narrower than a thread, so **a node that edits ONE instrument cannot update that instrument's canon record without a write that carries every peer's uncommitted worktree in that thread.** hv already ruled the remedy -- `sync` skips untracked bytes, loudly -- **and it is UNBUILT, mine, and this is the second time today the gap has cost a commit** (dc hit it at 17:12Z from the other direction). **The ruling as stated covers UNTRACKED; today's block was TRACKED-BUT-UNCOMMITTED, which is a wider case and needs hv before I build it.**
+### THREE ATTRIBUTIONS OF ONE FILE: TWO BY INFERENCE, BOTH WRONG; ONE BY SELF-REPORT, RIGHT
 
-**Next session: land the wording fix once ic commits `data-model.md`, then build the sync skip.**
+`intent/st/ST0056/data-model.md` went dirty and each of us named an owner:
 
-### THE SEVENTH FACE WAS MINE, AND A FALSE WATCH-OUT IS WORSE THAN NO WATCH-OUT
+| who | reasoned                                                 | verdict                                                         |
+| --- | -------------------------------------------------------- | --------------------------------------------------------------- |
+| cc  | `not mine` -> **ic's**                                   | WRONG -- in a four-writer tree _not mine_ implies one of THREE  |
+| ic  | `these two files correlate and are not mine` -> **cc's** | WRONG, and **more persuasive because it carried more evidence** |
+| vc  | said it about themselves                                 | **RIGHT**                                                       |
+
+**A CORRELATION ESTABLISHES THAT TWO FILES BELONG TO EACH OTHER AND NEVER WHOSE THEY ARE.** ic paired `data-model.md`'s `wp cancel` rows with dirty renderer arms and concluded cc; the pairing was real and the conclusion was not. **The correction reproduced the defect it corrected, one hop further along.**
+
+**AND BOTH WRONG ONES COST A REAL BLOCK.** Mine refused my own commit and named the wrong peer; ic's had me holding a fix waiting on a commit ic would never have made. **The step that failed each time was the cheap one: naming an owner instead of asking one.** ic's morning rule, demonstrated end to end -- **a peer telling you what only you could know is telling you what THEY know** -- and the corollary this adds: **you cannot infer an owner from a set you are only a member of.**
+
+### THE SEVENTH FACE WAS MINE### THE SEVENTH FACE WAS MINE, AND A FALSE WATCH-OUT IS WORSE THAN NO WATCH-OUT
 
 My board carried **_Python `write_text()` strips the executable bit_**. **Driven -- four idioms here, six independently by dc, same split -- it is FALSE.** The rule is **INODE-PRESERVING vs INODE-REPLACING**: `write_text`, `open(w)`, truncate-in-place and `fileinput` all rewrite the whole file and PRESERVE the mode; `sed > tmp && mv` and `open(tmp) + os.replace` create a new file at the umask and rename over the old, so the original mode is never consulted -- and `mkstemp + os.replace` lands at **600**.
 
