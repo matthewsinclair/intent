@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 17:01Z
+heartbeat_at: 2026-08-21 17:09Z
 status: active
-focus: "**BLOCKED AT THE COMMIT BY ONE FILE WITH TWO OWNERS, AND HOLDING RATHER THAN REACHING AROUND IT.** The AC-11.7 SET arm is built and verified -- seven controls with each pivot isolated, live rc=1 naming three real disagreements (record 26fe1aea, intent dirty-483e65e4, intentd dirty-5819417b). **`int macos publish` was found SOUND, no fix** -- artefact_commit_blockers tests each binary against tag_commit, so the gap was one layer over: publish pivots on the TAG at release time, this pivots on the RECORD at any time. **canon_commit_check.sh refuses my commit correctly**, but ST0056 canon also carries vc's uncommitted wp done and --only is path-scoped, not hunk-scoped. vc is held on hv and I back that -- **an unblock request from the blocked party is pressure, never authority.** **MY OWN 82-88ms ROSTER FIGURE WAS ~50ms OF MY OWN TIMING HARNESS**; clean figure 65-74ms, and the row now names the method and withdraws the old number rather than replacing it. **I READ THE SUMMARY, NOT THE HUNK, AND NAMED THE WRONG AUTHOR** -- cc corrected me, I re-derived it myself."
+focus: "**BOTH ITEMS LANDED: `19d77f61` (AC-11.7 SET arm + roster row + canon, together) and `0dea9abb` (an exec bit a temp-file splice dropped). AT-03.4 GREEN, driven -- 6 passed, rc read from a file, binary confirmed in the Running list.** **`int macos publish` was found SOUND, no fix** -- the gap was one layer over: it pivots on the TAG at release time, the new arm pivots on the RECORD at any time. **HELD RATHER THAN REACHED AROUND**: canon is one JSON per thread and --only is path-scoped, so vc unblocked it on hv word at `e5df40f8`. **THREE CORRECTIONS OF MINE TODAY, ALL ONE SHAPE -- A SUMMARY STANDING IN FOR THE CLAIM**: I read --stat not the hunk and named the wrong author; my 82-88ms was ~50ms of my own harness; and my corrected 65-74ms was itself incomplete, now 53-62ms, because I named the harness and not the machine state. **A correction is a measurement and inherits every duty of one.** Load axis is cc; the bimodal reading says a gate pays the tail, never the median."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -32,11 +32,15 @@ claims: [ST0056/07, ST0056/11]
 
 ## DOING
 
-**IN FLIGHT AND BLOCKED ON A PEER, WHICH IS THE FINDING RATHER THAN THE STATUS.** Two files built and verified, refused by my own gate: `provenance_fields_check.sh` (the SET arm) and `runner_roster_check.sh` (its row). No `target/dc` exists, so prune-at-fold is vacuous for me a third day.
+**LANDED. `19d77f61` (the SET arm + its roster row + canon, together) and `0dea9abb` (an exec bit a splice dropped).** Nothing in flight. No `target/dc` exists, so prune-at-fold is vacuous for me a third day.
 
-**THE BLOCK IS ONE FILE WITH TWO OWNERS AND NO PATH-SCOPED SPLIT.** `canon_commit_check.sh` -- the guard I admitted at `5d2b1f0d` -- refuses correctly: HEAD canon names my files' OLD bytes, so the index would name bytes it does not contain, which is AC-03.6's subject. Its remedy is sync-canon-then-commit-together. But `intent/.canon/st/ST0056.json` also carries vc's uncommitted `wp done ST0056/03`, and **`--only` takes the WORKTREE content of a named path**, so the sync-and-commit puts vc's semantic claim inside a dc commit about parity tooling, wearing my authorship. **Canon is one JSON file; `--only` is path-scoped, not hunk-scoped, so there is no split.** Asked vc at 16:57Z; holding rather than reaching around it.
+**THE BLOCK WAS ONE FILE WITH TWO OWNERS, AND HOLDING WAS RIGHT.** `canon_commit_check.sh` -- the guard I admitted at `5d2b1f0d` -- refused correctly: HEAD canon named my files' OLD bytes, so the index would have named bytes it does not contain, which is AC-03.6's subject. Its remedy is sync-canon-then-commit-together, and `intent/.canon/st/ST0056.json` also carried vc's uncommitted `wp done`. **`--only` is path-scoped, not hunk-scoped, and canon is one JSON per thread, so no split existed.** vc landed at `e5df40f8` on hv's direct word -- _"I really don't care how. I just want this fixed."_ -- **not on my ask and not on cc's.**
 
-**THE REACH-AROUND IS AVAILABLE AND I AM NOT TAKING IT, AND THE REASON IS MEASURED HERE TODAY.** It is: write my canon over the worktree without vc's hunk, commit, put theirs back -- two writes over a peer's uncommitted work. **ic's 14:43Z entry records an uncommitted `surface/` edit vanishing in this checkout between ~14:37Z and 14:43Z**, with a `reset: moving to HEAD` in the reflog and four other files surviving. That hazard is on this estate's record, not in the abstract.
+**THE REACH-AROUND WAS AVAILABLE THE WHOLE TIME AND COST ME REAL DELAY TO DECLINE.** Write my canon over the worktree without vc's hunk, commit, restore theirs: two writes over a peer's uncommitted work, and **ic measured an uncommitted `surface/` edit vanishing in this checkout today, cause still unexplained.** vc backed the refusal at their own cost and said it should not have cost me the time. **Recording that it did, because a refusal that turns out to be free teaches nothing about the next one.**
+
+**I VERIFIED THE CANON DIFF STRUCTURALLY AND NOT BY EYE.** Flattened both sides to leaf paths and diffed the sets: **exactly 6 changed leaves, all mine** -- `attachments[74]` and `attachments[88]`, `bytes`/`sha256`/`text` each. A 6-line `git diff` would have looked identical and proved less; **line-count agreement is not field identity**, which is precisely the mistake I had made an hour earlier reading a `--stat`.
+
+**AT-03.4 GREEN, DRIVEN AND NOT INFERRED FROM THE COMMIT LANDING.** `cargo test -p intentsvcs --test attachment_drift_detected --no-fail-fast`, rc=0 read from a redirected file and never through a pipe, 6 passed / 0 failed, binary confirmed in the `Running` list. **First attempt named `-p intent-cli` and cargo refused at rc=101** -- worth holding, because a `--no-fail-fast` run that finds no such target reads a lot like one that found nothing wrong.
 
 **NOT PUBLISHING A GATE FIGURE.** cc's clean-room ingest at HEAD is the number all four of us are holding for. Both `63`s published today were arithmetic in opposite directions from the same figure, and my own `64` was a store read over four dirty worktrees.
 
@@ -96,16 +100,16 @@ lib/templates/hooks/  vs frozen Intentv2, at 12ebd47e:   1 of 7 differ
 - **`sync` skips untracked bytes, LOUDLY (hv ruled, I put four options).** Handed to cc 15:33Z -- **`sync` is Rust and Rust is cc's lane.** Warning must stop saying _the commit gate will_ refuse, and must not fire on the syncing node's OWN new file (staged-but-untracked and untracked-and-unstaged are different states).
 - **AC-03.6 is cc's row to green.** Blocker cleared by `5d2b1f0d`; evidence handed over 15:26Z. **I will not certify my own wiring.**
 
-### 3b. AC-11.7's SET ARM -- BUILT, VERIFIED, HELD AT THE COMMIT
+### 3b. AC-11.7's SET ARM -- LANDED AT `19d77f61`. vc's TO VERIFY.
 
 **THE PUBLISH GATE WAS FOUND SOUND AND THAT IS THE ANSWER, NOT A DEFERRAL.** cc routed a mismatched-pair question about `int macos publish`. Read rather than assumed: `artefact_commit_blockers` in `bin/.devbin/cmd/macos` loops `$BINARIES` and tests EACH against `$want` = `tag_commit`, with a dedicated arm for a `dirty-` marker. **The pair is refused twice over, independently, and the set property falls out transitively from the common pivot.** No fix. **No change is a result, and a session that only records changes loses it.**
 
 **SO THE GAP WAS ONE LAYER OVER, AND FINDING IT REQUIRED BELIEVING THE SOUND ANSWER.** Publish pivots on the TAG **at release time**, and most of a binary's life is before a release. The new arm pivots on the **RECORD**, at any time. Live at `b4918a35`, rc=1, three real disagreements:
 
 ```
-dist-provenance.txt      commit: 26fe1aea…    subject: the CHECKOUT
-target/release/intent    dirty-483e65e4…      subject: itself
-target/release/intentd   dirty-5819417b…      subject: itself
+dist-provenance.txt      commit: 26fe1aea...    subject: the CHECKOUT
+target/release/intent    dirty-483e65e4...      subject: itself
+target/release/intentd   dirty-5819417b...      subject: itself
 ```
 
 **THE RECORD IS NOT LYING AND THE TOOL SAYS SO IN ITS OWN OUTPUT.** It carries `checkout_clean: no` -- it flagged the risk honestly. What it **structurally cannot** say is WHICH bytes, or that they disagree with one another, because it holds ONE `commit:` for a SET. **So the remedy was never a better record; it is a check whose subject is the RELATIONSHIP.** The tool prints `Do not "fix" it by editing the record` for the next reader who reaches for the obvious repair.
@@ -168,6 +172,20 @@ target/release/intentd   dirty-5819417b…      subject: itself
 - **AN UNBLOCK REQUEST FROM THE BLOCKED PARTY IS PRESSURE, NEVER AUTHORITY (vc held this line against me, 2026-08-21 17:00Z, their stamp; ic drew it on vc at ~15:5xZ).** cc and I both asked vc to land, both with real cost behind us. vc refused pending hv and was right: **a rule that yields when somebody needs it broken only ever holds when nobody does.** Recording it as a line held against ME, not as one I observed.
 
 - **ONE FILE, TWO OWNERS, AND `--only` IS PATH-SCOPED, NOT HUNK-SCOPED.** Canon is a single JSON per thread, so a peer's one uncommitted line in it blocks every attachment commit in that thread with no split available. **The reach-around -- write canon without their hunk, commit, restore -- is two writes over a peer's uncommitted work**, and ic measured an uncommitted `surface/` edit vanishing in this checkout today with the cause still unexplained. **Held rather than reached around, and vc backed the refusal at their own cost.**
+
+- **A SPLICE VIA `sed ... > tmp && mv tmp file` DROPS THE EXEC BIT, AND GIT RECORDS MODE.** `runner_roster_check.sh` went 100755 -> 100644 inside `19d77f61`, a commit whose diff is entirely about content. **Driven both ways rather than assumed:** python `open(w)` truncates in place and PRESERVES the mode; the temp-file route makes a new file at the umask mode. Fixed at `0dea9abb`, content byte-identical, 0 insertions / 0 deletions, sha still matching canon, **so nothing needed re-syncing.**
+
+- **AND NOTHING BROKE, WHICH IS THE REASON IT IS WORTH A COMMIT RATHER THAN A SHRUG.** The runner invokes it as `bash "$TOOLS/runner_roster_check.sh"` at `cmd/precommit:289`, so the gate ran green at 644 and would have stayed green indefinitely. **What regressed was MEANING: four rows in that very file read _"sourced, not executed; ships 644 and defines functions only"_, so at 644 the roster classified ITSELF, by its own convention, as a library.** A file whose own vocabulary treats a mode as evidence can be wrong about itself without any instrument objecting.
+
+- **THE TELL WAS ONE LINE UNDER SEVERAL SCREENS OF THE GATE'S OWN GREEN OUTPUT.** `mode change 100755 => 100644`, last line of the commit summary. **Reading the full output rather than the verdict is what caught it** -- the same discipline as confirming a target appears in cargo's `Running` list, and the opposite of the `--stat`/hunk error I made an hour earlier.
+
+- **MY OWN CORRECTED FIGURE WAS INCOMPLETE IN THE SAME WAY AS THE FIGURE IT CORRECTED.** I withdrew 82-88ms as harness noise and published **65-74ms**; twenty minutes later the same tool measured **53-62ms**, nothing about it changed. I had named the harness and not the MACHINE STATE. **The row now states a range across sittings, because a point was never available** -- load average 28 over 16 cores, 21 claude processes, 6 rustc live, harness floor 4.9ms. **A correction is a measurement and inherits every duty of one.**
+
+- **THE LOAD AXIS IS cc's AND MY HYPOTHESIS ABOUT THEIR ROWS WAS WRONG (cc, 2026-08-21 17:03Z, their stamp and their measurement).** I put it to them that their two figures might carry my 50ms artefact. **They RAN it rather than accepting it**, and their harness floor is 5ms, not 50 -- with both figures returning HIGHER than recorded. **An inflation artefact makes a clean re-measurement LOWER, so the direction alone excludes it.** One sign, no audit. **True of my row only.** My contribution was going and measuring the condition after cc named it; my floor came in at 4.9 against their 5.2, and **two independently-built harnesses agreeing on a floor is the one agreement in today's timing work worth anything, because the floor is a property of the machine rather than of either tool.**
+
+- **A MEDIAN IS THE WRONG SUMMARY UNDER CONTENTION, AND THIS CHANGES DECISIONS RATHER THAN DESCRIPTIONS.** cc's `thread_view_skew_check.sh` reads `160 163 165 167 170 188 513` -- a tight mode plus one 3x tail that no median will ever show. **A gate runs ONCE; it does not run seven times and take the middle.** Once in seven, that once is the 513. **So a promote-to-gated decision made on a median is made on the number the gate never experiences.** cc is rewriting both rows as mode-plus-tail.
+
+- **CHEAP CONTEXT IS WHAT SEPARATES A SUMMARY FROM A CLAIM (cc, 2026-08-21 17:03Z, their phrasing).** `--stat` said one line in a thread canon and I let _one line_ stand for _which line_; the same shape as reading a `test result:` count out of a `tail`. **The discriminator is two characters of context away in both.**
 
 ## Decisions
 
