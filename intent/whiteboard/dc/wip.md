@@ -5,7 +5,7 @@ role: worker
 session_id: 80fa1787-174a-49f0-8ef1-c2c7b48d3fb8
 heartbeat_at: 2026-08-21 12:56Z
 status: paused
-focus: "**FOLDED AND HOLDING on hv's instruction (relayed by vc, live channel ~12:40Z). NOTHING IN FLIGHT; no code written today and no row moved.** **THE SESSION'S ONE REAL FINDING IS A CONTRACT CONFLICT AND IT IS IN `.history/20260821/wip.md` SECTION 1: AC-11.6's green arm contradicts cc's 2026-08-20 authorship ruling, which is WHY the red-first arm was never reachable -- the discriminator it asks for cannot exist, because Protocol 3.0 invariant 3 forbids path claims outright AND cc showed a shared-tree build carries the union whoever invokes it.** Do not build AT-11.6 to the row as written; route the conflict to vc. **THREE NEW ASSIGNMENTS ARRIVED FROM hv TODAY AND ALL THREE ARE MINE** -- the INTENT_HOME guard-resolution mechanism, prune-at-fold for `target/<node>`, and the one-word `precommit:141` edit. **The three previously-held items are UNCHANGED and still held on hv's word.** Gate: **62 of 67**, and it is ST0057's CLOSURE gate, NOT the 3.0.0 release -- ST0056 is 59/132 with seven WPs Not Started."
+focus: "**FOLDED AND HOLDING on hv's instruction (relayed by vc, live channel ~12:40Z). NOTHING IN FLIGHT; no code written today and no row moved.** **THE SESSION'S ONE REAL FINDING IS A CONTRACT CONFLICT AND IT IS IN `.history/20260821/wip.md` SECTION 1: AC-11.6's green arm contradicts cc's 2026-08-20 authorship ruling, which is WHY the red-first arm was never reachable -- the discriminator it asks for cannot exist, because Protocol 3.0 invariant 3 forbids path claims outright AND cc showed a shared-tree build carries the union whoever invokes it.** Do not build AT-11.6 to the row as written; route the conflict to vc. **FOUR ASSIGNMENTS ARRIVED TODAY AND ALL FOUR ARE MINE** -- ST0057 **AC-01.5's REMEDY** (cc, 12:59Z), the INTENT_HOME guard-resolution mechanism, prune-at-fold for `target/<node>`, and the one-word `precommit:141` edit. **CORRECTION TO WHAT I REPORTED AT PICKUP: dc does NOT hold none of the gate.** AC-01.5 is one of the five outstanding rows and its remedy is ruled dc's; I read the owner off `restart.md`, which names cc, and the remedy was never on anyone's board. **The three previously-held items are UNCHANGED and still held on hv's word.** Gate: **62 of 67**, and it is ST0057's CLOSURE gate, NOT the 3.0.0 release -- ST0056 is 59/132 with seven WPs Not Started."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -38,19 +38,31 @@ claims: [ST0056/07, ST0056/11]
 
 ## TODO
 
-### 1. THREE ASSIGNMENTS hv ROUTED TO ME TODAY -- all new, all mine, detail live in `inbox.vc.md`
+### 1. ST0057 AC-01.5's REMEDY IS MINE, IT IS ON THE 62-OF-67 GATE, AND IT WAS ON NOBODY'S BOARD (cc, 12:59Z)
+
+**I TOLD matts AT PICKUP THAT dc HOLDS NONE OF THE GATE. THAT IS WRONG AND THIS IS THE CORRECTION.** I took the owner from `restart.md`, which assigns AC-01.5 to cc -- true of the ROW, false of the REMEDY. **cc drove it: `grep -cE 'canon-ignore|pre-commit\.intent|AC-01\.5' dc/wip.md` -> 0.** No edit of cc's can reach this row.
+
+**The ruling** (vc, in `AT-01.5`'s note, 2026-08-20): _THE REMEDY IS dc's, IT IS SMALL, AND IT IS NOT THE DOC FIX cc OFFERED AS POSSIBLE._ **Two forms named: either the chain FAILS LOUD on an absent dispatcher, or `int hooks --install` stops reporting a wired clone when the dispatcher it chains to is not there.** vc's warrant is my own sentence turned back on me -- _a control which depends on the author remembering is not a control, it is a hope with a filename_.
+
+**THE SHAPE IS ALREADY BUILT ONE LEVEL DOWN.** `pre-commit-guards.sh` discriminates three absences -- _the resolver did not answer_, _one guard file is missing_, _the install is stale_. **That same discrimination is owed one level UP, in the chain, where `[ -x ]` with no `else` is exactly the collapse.**
+
+**The row survives on ARM C alone: a fresh clone wired by `int hooks --install` printed `hooks: this clone is wired`, then committed a planted ignore rule at rc=0 with ZERO guards running.** Arms D and E already prove the guard is correct and dispatched in THIS install. **The guard is not the hole; the clone is.**
+
+**DRIVE ARM C AGAIN BEFORE BUILDING AGAINST IT (cc's flag, and it is a good one).** Arm C was measured BEFORE today's `INTENT_HOME` split, and the guards now resolve out of the frozen v2 checkout -- **which is the mechanism assignment below.** Whether a fresh clone still behaves that way is an OPEN QUESTION, not an assumption. **The two assignments are the same subject from two ends; sequence them together.**
+
+### 2. THREE ASSIGNMENTS hv ROUTED TO ME TODAY -- all new, all mine, detail live in `inbox.vc.md`
 
 - **THE GUARD-RESOLUTION MECHANISM (12:35Z) -- the real one, and hv picked me over two cheaper answers on purpose.** With `INTENT_HOME` now pointing at `Intentv2`, **this repo's own commit guards resolve out of the frozen v2 checkout**: `.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`. Byte-identical today; **drifting from the next guard change.** This is the frozen-roster failure already on our record -- `cmd/precommit:94-99` describes it in our own words. **hv DECLINED direnv (git hooks do not reliably inherit it, so it is green where you look and absent where it matters) and DECLINED hand-refresh (an advisory that requires remembering is not a control).** Two constraints: **a wrong answer must be LOUD**, and **`bin/` is the one genuine cc/dc collision -- get hv's word before landing there.**
 - **PRUNE-AT-FOLD (11:40Z).** **Every node prunes its own `target/<node>` at fold**; shared `target/debug` survives. Disposal joins creation in the same ritual. **Measured at `706db8ee`: `native/rust/target` is 66G across 1,336,417 files** against 1,481 tracked -- `debug` 33G, `cc` 18G, `ic` 15G, `release` 927M. **CORRECT COMPLIANCE PRODUCED THE DUPLICATION** -- our own rule says isolate the target dir inside the checkout, and says nothing about removing it. Two hazards: **a gitignored artefact is invisible to every instrument we own**, and **never delete a live node's dir** (board headers carry the live session ids; an orphan's owner appears on no live board). **There is no `target/dc` -- my own compliance is vacuous today.** `target/tmp/` and `target/dist/` match no moniker, so **the per-node rule does not reach them and nothing else does either.**
 - **`bin/.devbin/cmd/precommit:141` -- one word.** `the intentdb is per-machine durable truth` -> `the SQLite db is per-machine durable truth`. **The claim is exactly right and only the noun is wrong.** vc deliberately did not do it: `bin/` is open for hv, not assumed by either node.
 
-### 2. The three HELD items -- ruled, evidenced, ready, and still matts' call. Unchanged.
+### 3. The three HELD items -- ruled, evidenced, ready, and still matts' call. Unchanged.
 
 - **`tests/lib/test_helper.bash:93`** reads `${INTENT_FIXTURE_VERSION:-3.0.0}`; make it default from `VERSION`, the same source `tests/run_tests.sh:61` has read since `e474b419`. **The runner defends itself; the helper does not**, so a direct single-file `bats` run -- the invocation our own guidance prefers -- silently builds a v3 fixture and drives a v2 binary at it. **37 files call `create_test_project`, all v2-driving; the 5 touching the v3 binary never call it, so the default is wrong in every case where it fires.**
 - **ADMIT `canon_commit_check.sh` TO `bin/.devbin/cmd/precommit` (ST0057 AC-03.6).** Exists, 464 lines, **carries the literal `AC-03.6` 3x -- ready, not a wrong citation.** **TWO DELIVERABLES, NEVER BUNDLED: the remedy edit makes the instruction TRUE; only `--staged` makes it UNNECESSARY.** Dispatch **unconditional** -- a path trigger would be a second copy of the tool's own narrowing.
 - **ADMIT `thread_view_skew_check.sh`** (149 lines; cc built it, dc rosters), **CONDITIONAL on a staleness refusal, and the condition was LIVE at `706db8ee`** -- release binary 2h56m older than `intentsvcs/src/{migrate,facade}.rs` (measurement in the archive; **destroyed by the next release build**). **Build `lib_binstale.sh` as an EXTRACTION of `surface_check.sh`'s refusal, never a copy** -- that reach list has already been wrong once. **It is ungated, and building it is what converts this held item from _conditional_ to _awaiting only hv's word_ without taking his decision.**
 
-### 3. AT-11.6 is BLOCKED ON A CONTRACT CONFLICT -- do not build it to the row as written
+### 4. AT-11.6 is BLOCKED ON A CONTRACT CONFLICT -- do not build it to the row as written
 
 **`shared_artefact_build_guard.sh` is ABSENT (driven).** Full argument in `.history/20260821/wip.md` section 1. In one line: **AC-11.6's green arm mandates the very arm that produces an unattributable union binary**, so the criterion's green arm reintroduces the defect it exists to prevent -- and that is why the red-first arm was never reachable. **Route to vc as contract steward; hv if vc bounces it. The amendment would conveniently unblock my own row, which is the reason to route it, not the reason to make it.**
 
@@ -58,7 +70,7 @@ claims: [ST0056/07, ST0056/11]
 
 **AT-11.7 `provenance_fields_check.sh` is ABSENT and is buildable NOW** -- its spec is sound and its positive controls are on record (the currency failure `f2e4d1f9005d0334`, and the `intentd` fossil marker). Reuses `self_provenance_check.sh`'s artefact reading; **not a Highlander violation -- vc has ruled that two mechanisms enforcing different properties are not two copies of one.**
 
-### 4. Recorded, not built
+### 5. Recorded, not built
 
 - **The WP-07 hosting sweep needs a DRIVEN re-measure and the disposition route is a DEAD END** -- see archive section 4. `disposition` is about v2->v3 porting, not implemented-vs-stub, and the denominators (27 table families / 32 carried / 34 declared) do not reconcile. **Drive it through `render.rs:495`'s unbuilt-verb reporter, not off the table.**
 - **`intent claude upgrade --apply` IS ALL-OR-NOTHING** -- three of four actions unwanted here, including regenerating AGENTS.md from 3.0.0 DOWN to 2.19.0 on a self-hosted v3 tree.

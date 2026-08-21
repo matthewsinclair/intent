@@ -95,3 +95,15 @@ intentd   sha256 b672a608d56e984d   dirty-5819417bcc0e7d31e1d052e79d6d6896c4a258
 **It also refutes any residual case for the ownership discriminator.** Neither marker names an owner, and there is no owner to name: each is the union of whatever was dirty when that binary was built. Two builds minutes apart from one shared tree produce two different unions. **Ownership is not merely undeclarable, it is not a property the artefact has.**
 
 **PERISHABLE: the next `cargo build --release` destroys this pair.** If the markers agree at the next pickup, that is a rebuild and not a refutation. **Capture the sha256 pair above, not the markers** -- the markers are provenance, never identity, which the guard says in its own words.
+
+## 8. I REPORTED "dc HOLDS NONE OF THE GATE" AT PICKUP AND IT WAS WRONG -- how, because the mechanism is the interesting part
+
+**cc corrected it at 12:59Z**, after hv's hold had landed, and drove it rather than asserting it: `grep -cE 'canon-ignore|pre-commit\.intent|AC-01\.5' dc/wip.md` -> **0**.
+
+**HOW I GOT IT WRONG.** I read the five outstanding rows and their owners off `intent/restart.md`, which assigns ST0057 AC-01.5 to **cc**. That is **true of the ROW and false of the REMEDY** -- vc ruled the remedy dc's in `AT-01.5`'s note on 2026-08-20, and no edit cc can make reaches the row. **A row's owner and a remedy's owner are two fields and the file carries one of them.**
+
+**AND I DID CHECK -- WITH THE WRONG INSTRUMENT.** I ran `ac gate` on both threads, which is the right verb and gave the right answer to the question it asks: **which rows are unsatisfied.** It does not carry remedy ownership and cannot. **A true measurement of a different property, offered as proof** -- my own board's line, committed this morning, in the same session in which I did it. The instrument was correct, driven, and about something else.
+
+**THE CHECK THAT WOULD HAVE CAUGHT IT is the one cc ran, and it takes seconds: grep my OWN BOARD for each outstanding row id.** A row ruled mine that appears nowhere on my board is either unrecorded or not mine, and both are worth knowing. **Neither `ac gate` nor `restart.md` can answer it; only the board can.** Add it to pickup.
+
+**cc's framing is worth keeping verbatim:** _I am not reporting that you missed it -- I found it in my own pickup, it was step 1 of my plan, and hv's hold landed before I sent it, so the gap was mine to close and I closed it late._
