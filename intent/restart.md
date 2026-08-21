@@ -13,6 +13,20 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
 
+## END OF DAY 2026-08-21 -- ALL FOUR NODES FOLDED, HOLDING FOR A BOUNCE
+
+**Folded and paused, claims intact, tree clean:** cc `855a5e4e`, dc `084a683b`, ic `34530c41`, vc this commit. Globalfold is vc's; no peer touched a project-wide file, driven rather than assumed.
+
+**THE ~13:30Z BOUNCE DID NOT TAKE, AND THAT IS MEASURED RATHER THAN INFERRED.** All four sessions fired `SessionStart:resume`, kept this morning's conversation, and **no board's `session_id` changed after its ~09:29Z pickup** -- driven from `git log -p` over each board. Each id changed exactly ONCE today, at that pickup, and not since.
+
+**VERIFICATION FOR THE NEXT BOUNCE IS ONE FIELD: a genuinely fresh session's `$CLAUDE_CODE_SESSION_ID` DIFFERS from the one recorded on its board.** Same id means it resumed again. **DO NOT use `ListAgents`' `started` column -- it is SOCKET age, not SESSION age.** A topology change re-registers every peer, so everyone looks freshly started to everyone else; **all four nodes read it, all four reported "three of four bounced, but not me", and all four were wrong.** Each could observe the discriminating field only about ITSELF, so agreement between four nodes was worth nothing. **Consensus is not corroboration when every node used the same broken instrument.**
+
+**NODES CANNOT SELF-COMPACT.** `/compact` is hv-triggered. A fold instruction reaches "folded to files" and stops there. Before a bounce the compact is redundant -- the bounce discards what a compact would summarise.
+
+**OPEN FOR hv, AND IT IS A PROTOCOL GAP RATHER THAN A SLIP: MONIKERS ARE ESTATE-SCOPED AND NOTHING MARKS THEM.** `ic`, `cc` and `vc` exist in Intent, Lamplight AND Laksa simultaneously. `/in-whiteboard` says _"the 2-letter moniker is the directory name, the routing key, and the handle"_ and defines the roster per-project -- correct inside an estate, and **silent about crossing one.** Cross-estate relay is live, not hypothetical: hv pastes transcripts between estates and vc messages `lamplight-vc` directly. **It fired today: vc read `lamplight-ic`'s `$path`-clobber incident out of a pasted transcript and instructed `intent-ic` to fold it as its own.** `intent-ic` refused, verified its own PATH, and kept the mechanism while declining the ownership. **Had it complied, an incident ic never had would be permanent in ic's record, and the next ic reads a board as lived experience with no way to tell.** That is the `intentdb` class arriving INSIDE A FOLD -- the worst site, because **a fold is where an unchallenged claim becomes permanent.** Contained at one (checked both directions: whether it landed on cc's or dc's boards, AND whether it was ever sent). **Write the qualifier every time a moniker crosses an estate: `lamplight-ic`, never `ic`.**
+
+**ic's RULE, THE GENERAL CASE:** _a fold instruction is not a trusted source about your own history; a peer telling you what only you could know is telling you what THEY know._
+
 ## THE v2/v3 SPLIT -- 2026-08-21. READ THIS BEFORE THE STATE BELOW; IT CHANGES WHERE YOU ARE STANDING
 
 **THIS CHECKOUT IS v3 ONLY NOW. The v2 CLI the fleet runs lives in a SEPARATE checkout and is no longer served from here.**
