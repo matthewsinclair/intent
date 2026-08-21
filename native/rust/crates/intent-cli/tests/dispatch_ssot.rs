@@ -689,10 +689,20 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
   // never of the estate's current defect count -- so where a red-first arm
   // needs an instance, the instance is SYNTHETIC.
   //
-  // `declared_but_unwired.rs` is the mirror worth reading beside this: it is
-  // self-invalidating BY DESIGN and worries in its own header about going from
-  // three members to one. This one was self-invalidating BY ACCIDENT and
-  // reached zero. **The difference is whether anyone chose it.**
+  // `cli_write_moves_only_what_changed.rs`'s unwired cases are the mirror worth
+  // reading beside this: they are self-invalidating BY DESIGN -- the day one of
+  // those verbs is built, its case reds and forces the re-bucket. This one was
+  // self-invalidating BY ACCIDENT and reached zero. **The difference is whether
+  // anyone chose it.**
+  //
+  // **THE MIRROR USED TO BE `declared_but_unwired.rs`, WHICH RETIRED
+  // 2026-08-21, AND ITS ENDING IS PART OF THE LESSON.** That file worried in its
+  // own header about going from three members to one, and named the right
+  // remedy for reaching zero -- delete rather than repair. It never reached
+  // zero: it was retired while still holding a member, because a second driver
+  // took the claim. **Self-invalidating by design does not mean the file gets
+  // to choose how it ends**, and planning only for the ending you predicted is
+  // how a file's own guidance comes to describe a case that did not happen.
   assert!(
     shipped > 0,
     "no shipped flag on any shipped entry -- that is a finding about the table, not about this test"

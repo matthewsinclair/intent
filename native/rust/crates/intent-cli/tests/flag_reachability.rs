@@ -42,10 +42,12 @@
 //!
 //! Whether a family has an arm is decided BEHAVIOURALLY, by running it, not by
 //! searching the source, because **a capability arriving under an unlisted name
-//! is invisible to a name check.** Established in `declared_but_unwired.rs` and
-//! now driven in `cli_write_moves_only_what_changed.rs` as well -- the reason
-//! stands on its own and is cited here to files that hold it, so it does not
-//! dangle when one of them retires.
+//! is invisible to a name check.** Driven in `cli_write_moves_only_what_changed.rs`.
+//! **It was established in `declared_but_unwired.rs`, which retired on
+//! 2026-08-21 once that file drove the same claim** -- and the citation is to
+//! the file that HOLDS the reason today rather than to the one that first
+//! made it, because a citation to an origin dangles the moment the origin goes
+//! and a citation to a holder does not.
 
 use std::collections::BTreeSet;
 use std::process::Command;
@@ -67,9 +69,23 @@ use intent_cli::dispatch;
 /// exists to prevent. **A deletion that looks like it only touches a loop
 /// would have destroyed a load-bearing property, and nothing we own tracks a
 /// dependency recorded in a doc comment**: `at lint` sees AT-row citations and
-/// sees nothing here. Live copies today are `declared_but_unwired.rs` and
-/// `cli_write_moves_only_what_changed.rs` (AT-03.19); **the invariant is that
-/// at least two survive any retirement**, not that any particular file does.
+/// sees nothing here. **The invariant is that at least two survive any
+/// retirement**, not that any particular file does.
+///
+/// **THE COUNT WAS NEVER TWO, AND NAMING TWO IS WHAT MADE THE INVARIANT LOOK
+/// FRAGILE** (ic, measured 2026-08-21, after `declared_but_unwired.rs`
+/// retired). Ten literal copies survive it, across seven files:
+/// `dispatch_ssot.rs`, `exit_codes.rs`, `session_hook_lockout.rs`,
+/// `guide.rs`, this file, `cli_write_moves_only_what_changed.rs` (x2) and
+/// `write_moves_only_what_changed.rs` (x2) -- some asserting, some quoting the
+/// phrase inside a stated reason.
+///
+/// **AND ONE OF THEM IS NOT A PEER: `render.rs` EMITS IT.** That copy is the
+/// product, so it is authoritative in the only sense that matters -- change it
+/// and the behaviour changes, and every copy here SHOULD then red. The
+/// no-authoritative-copy rule governs the ASSERTING copies among themselves; it
+/// was never a claim about the emitter, and reading it as one would argue for
+/// leaving a renderer change unasserted.
 const UNWIRED: &str = "is a known command that is not implemented yet";
 
 /// The renderer's source, read rather than compiled in.

@@ -2912,8 +2912,8 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     //
     // **The arm below stays and is not vestigial.** It is the family's
     // catch-all for a verb the table declares and this file has not wired, and
-    // `declared_but_unwired.rs` drives whatever is in that state. What changed
-    // is that no `issues` verb is in it today.
+    // `cli_write_moves_only_what_changed.rs` drives whatever is in that state.
+    // What changed is that no `issues` verb is in it today.
     Some((verb, _)) => unwired("issues", verb),
   }
 }
@@ -3715,8 +3715,17 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
 /// table declares no values, this build cannot check what was asked, which is
 /// exactly `Unavailable`'s meaning -- the checker is broken and that is ours,
 /// not the caller's. Falling through to "accept it then" would turn a missing
-/// declaration into a permanently permissive flag, which is the empty-roster
-/// hazard `declared_but_unwired.rs:59` refuses for the same reason.
+/// declaration into a permanently permissive flag -- the empty-roster hazard,
+/// where a check whose population went to zero reports a green over nothing.
+///
+/// **THAT CITATION NAMED `declared_but_unwired.rs:59` FOR ONE HOUR AND I WROTE
+/// IT** (ic, 2026-08-21). I cited that file at `11c2037d` and retired it in the
+/// next commit, having already spent the afternoon reporting exactly this class
+/// in two peers' files. **A doc comment is the one kind of citation nothing
+/// here checks** -- `at lint` reads AT rows and sees none of this -- so the
+/// dangling reference would have survived every gate in the tree. The rule the
+/// instance earns: **cite the PROPERTY, not the file that happens to hold it**,
+/// because the property outlives the file and the reader needs the property.
 fn enum_flag(a: &ArgMatches, path: &str, spelling: &str) -> Result<String, Failure> {
   let id = spelling.trim_start_matches('-');
   let table = dispatch::table();
@@ -3833,17 +3842,23 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
 mod tests {
   use super::*;
 
-  /// **What `declared_but_unwired.rs`'s roster loop cannot say any more, said
-  /// here instead.**
+  /// **The MECHANISM half of the unwired claim, split from the ROSTER half.**
   ///
-  /// That file drives the refusal through the real binary for the verbs the
-  /// `DECLARED_BUT_UNWIRED` bucket names, and its own header records the loss:
-  /// at ONE member there is nothing left to distinguish a shared-path
-  /// regression from a single implementation. **The roster question -- WHICH
-  /// verbs are unwired -- and the mechanism question -- what `unwired` PRODUCES
-  /// -- were answered by one loop, and only the first of them needs a real
-  /// process.** This module takes the second, at the function, where it can be
-  /// driven for families that do not exist at all.
+  /// `cli_write_moves_only_what_changed.rs` drives the refusal through the real
+  /// binary for the verbs the `DECLARED_BUT_UNWIRED` bucket names. **The roster
+  /// question -- WHICH verbs are unwired -- and the mechanism question -- what
+  /// `unwired` PRODUCES -- were once answered by a single loop, and only the
+  /// first of them needs a real process.** This module takes the second, at the
+  /// function, where it can be driven for families that do not exist at all.
+  ///
+  /// **THE SPLIT IS WHAT LET `declared_but_unwired.rs` RETIRE (2026-08-21).**
+  /// Its own header had recorded the loss it could no longer avoid: at ONE
+  /// roster member there was nothing left to distinguish a shared-path
+  /// regression from a single implementation. Neither half needed the loop --
+  /// the roster half moved to explicit named cases, which cannot pass
+  /// vacuously the way an iteration over an empty roster can, and the mechanism
+  /// half came here, where a synthetic family removes the need to borrow a live
+  /// defect as a fixture.
   ///
   /// **A same-module test reaches a private fn, so nothing here widens
   /// visibility.** Making `unwired` `pub(crate)` to test it would have changed

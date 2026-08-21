@@ -218,10 +218,21 @@ fn the_unavailable_exception_is_not_flattened_by_the_override() {
 ///
 /// `st dehydrate` stands in for "a known command this build has not wired",
 /// replacing `critic shell`, which stopped being one when `critic` landed at
-/// `5043d0c4`. **The roster of record is `declared_but_unwired.rs`, not this
-/// file** -- that one drives every member and goes red when any is built, which
-/// is the mechanism; this borrows a single member and says so rather than
-/// keeping a second list that could drift from it silently.
+/// `5043d0c4`. **The roster of record is `DECLARED_BUT_UNWIRED` in
+/// `intentsvcs/tests/write_moves_only_what_changed.rs`, driven by
+/// `intent-cli/tests/cli_write_moves_only_what_changed.rs`, not this file** --
+/// those drive every member and go red when any is built, which is the
+/// mechanism; this borrows a single member and says so rather than keeping a
+/// second list that could drift from it silently.
+///
+/// **THE RECORD MOVED ON 2026-08-21 AND THE MOVE IS THE INTERESTING PART.** It
+/// used to be `declared_but_unwired.rs`, which looped over a roster -- and a
+/// loop over a roster passes VACUOUSLY when the roster empties, which is why
+/// that file carried an explicit non-empty guard. The driver that replaced it
+/// names each verb as its own case, so there is no iterate-zero shape left to
+/// guard: **the vacuity was designed out rather than relocated.** A citation
+/// pointing at the retired file would still have resolved through git and told
+/// a reader the mechanism is a loop it no longer is.
 ///
 /// So this WILL red again the day `st dehydrate` is implemented, and that is
 /// the design working: pick another member from the roster. On the day the
@@ -540,8 +551,8 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
 
   // The claim about `2`, FIRST cause, driven: a declared-but-unimplemented
   // command, carrying the stderr line the guide tells an agent to recognise it
-  // by. Exemplar borrowed from `declared_but_unwired.rs`; see the note on
-  // `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation`.
+  // by. Exemplar borrowed from the `DECLARED_BUT_UNWIRED` roster; see the note
+  // on `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation`.
   let unbuilt = run(&["st", "dehydrate", "ST0056"]);
   assert_eq!(
     unbuilt.status.code(),

@@ -369,7 +369,7 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
 const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
   (
     "st dehydrate",
-    "declared_but_unwired.rs AND intent-cli/tests/cli_write_moves_only_what_changed.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built. **Two drivers on purpose, agreed with ic 2026-08-21: the second landed BEFORE the first is retired, never after.** A gap in which nothing drives the claim is silent and every suite in it is green; an overlap is visible, self-healing, and fails loud if either driver is wrong.",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built. **This row had TWO drivers for one window on 2026-08-21, on purpose: `declared_but_unwired.rs` held the claim, cc's driver landed BESIDE it, and only then did ic retire the original.** A gap in which nothing drives the claim is silent and every suite in it is green; an overlap is visible, self-healing, and fails loud if either driver is wrong. The overlap is spent and the row is single-driver again -- **recorded because the sequence is the reusable part, not this row's history: the adopter lands first, the retiree second, always.**",
   ),
   (
     "st bootstrap",

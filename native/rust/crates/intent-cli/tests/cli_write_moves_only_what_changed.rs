@@ -431,7 +431,7 @@ fn cases() -> Vec<Case> {
       prep: NOOP,
       expect: Expect::WritesNothing(2),
       must_say: Some(UNWIRED_PHRASE),
-      why: "no `Facade::dehydrate` exists at all -- only `hydrate` is built. **Driven WITH an ID on purpose**: bare, clap refuses for a missing argument at the same rc=2, so the case would pass on the parser's refusal while claiming the verb's. Overlaps `declared_but_unwired.rs` deliberately and by agreement with ic (2026-08-21): overlap is free and self-healing, a gap is silent, so this arm lands BEFORE that file's roster is retired and never after",
+      why: "no `Facade::dehydrate` exists at all -- only `hydrate` is built. **Driven WITH an ID on purpose**: bare, clap refuses for a missing argument at the same rc=2, so the case would pass on the parser's refusal while claiming the verb's. **This arm was the ADOPTER in a planned hand-off (cc + ic, 2026-08-21): it landed while `declared_but_unwired.rs` still held the claim, and that file retired only afterwards** -- overlap is free and self-healing, a gap is silent, so the adopter lands first and the retiree second, never the other way",
     },
     Case {
       verb: "st repair",
