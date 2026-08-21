@@ -265,8 +265,11 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // a field deliberately kept out of the published contracts.
   let pinned: &[(&str, u32, u64)] = &[
     ("SCHEMA_DDL_VER", 10, 0x6966_d5f9_6ad7_8928),
-    ("SCHEMA_SDL_VER", 8, 0x7712_a811_9724_49a8),
-    ("SCHEMA_JSON_VER", 10, 0xb996_589d_af2f_d02b),
+    // WpStatus gained CANCELLED (hv, 2026-08-21): the wire contract now says a
+    // work package can be cancelled. 8 -> 9.
+    ("SCHEMA_SDL_VER", 9, 0x5cbe_ac39_294e_da8d),
+    // Same change on the JSON face. 10 -> 11.
+    ("SCHEMA_JSON_VER", 11, 0xb59f_57d8_9f6c_fbd6),
   ];
 
   let mut moved = Vec::new();

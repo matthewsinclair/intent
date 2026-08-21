@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0-dev
-# SCHEMA_SDL_VER: 8
+# SCHEMA_SDL_VER: 9
 
 enum AcKind {
   TEST
@@ -450,6 +450,7 @@ enum WpStatus {
   NOT_STARTED
   WIP
   DONE
+  CANCELLED
 }
 
 """

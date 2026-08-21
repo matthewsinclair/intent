@@ -448,7 +448,8 @@
       "enum": [
         "not-started",
         "wip",
-        "done"
+        "done",
+        "cancelled"
       ],
       "type": "string"
     }
@@ -567,5 +568,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 10
+  "x-schema-json-ver": 11
 }

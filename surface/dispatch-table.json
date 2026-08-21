@@ -1425,6 +1425,72 @@
           "recoverability": "reversible"
         },
         {
+          "path": "wp cancel",
+          "help": "Mark a work package as cancelled, with a reason",
+          "args": [
+            {
+              "name": "specifier",
+              "type": "st-id/NN",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why -- required by the machine's guard",
+              "disposition": "keep"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-21 -- Machine 2 (WpStatus) gains `Cancelled`, reachable from every live state, guard `reason recorded`.",
+            "note": "THE STATE THE MODEL COULD NOT EXPRESS, AND THE GAP WAS RULED RATHER THAN OVERLOOKED. Machine 2 proposed no Cancelled at WP level -- a WP that stops mattering is a scope change on the thread, not a state on the package -- and flagged it Open for hv if that is wrong. Nothing tracked the question, so the default shipped by silence. A live consumer proved it wrong: scope removed, every AC withdrawn, and wp done refused forever because the gate correctly declines to infer an exemption from an emptied contract (ST0048). The only announced exemption was THREAD-scoped, so closing one unit meant discarding the standing of all 37 of its ACs. DELIBERATELY NOT GATED: every other close consults the contract; this verb is the announcement that there is no contract to consult, so gating it rebuilds the deadlock it exists to break.",
+            "no_op": "`ok: <ID>/NN already cancelled`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
+        },
+        {
+          "path": "wp reinstate",
+          "help": "Reinstate a cancelled work package into NotStarted, with a reason",
+          "args": [
+            {
+              "name": "specifier",
+              "type": "st-id/NN",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why -- required by the machine's guard",
+              "disposition": "keep"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-21 -- Machine 2: the Cancelled -> NotStarted edge, guard reason recorded.",
+            "note": "Mirrors st reinstate and lands on NotStarted rather than restoring the pre-cancellation status: that value is recorded nowhere, so restoring it would be a guess wearing the authority of a verb.",
+            "no_op": "`ok: <ID>/NN already Not Started`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
+        },
+        {
           "path": "wp unstart",
           "help": "Return a started work package to NotStarted",
           "args": [
@@ -7219,7 +7285,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 25,
+      "n": 27,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7422,6 +7488,8 @@
       "wp start",
       "wp done",
       "wp reopen",
+      "wp cancel",
+      "wp reinstate",
       "wp unstart",
       "wp rescope",
       "wp list",
@@ -7543,6 +7611,8 @@
       "wp start",
       "wp done",
       "wp reopen",
+      "wp cancel",
+      "wp reinstate",
       "wp unstart",
       "wp rescope",
       "wp list",
@@ -7667,6 +7737,8 @@
       "wp start",
       "wp done",
       "wp reopen",
+      "wp cancel",
+      "wp reinstate",
       "wp unstart",
       "wp rescope",
       "wp list",
@@ -7779,6 +7851,8 @@
       "todo toggle",
       "wp done",
       "wp reopen",
+      "wp cancel",
+      "wp reinstate",
       "wp rescope",
       "wp start",
       "wp unstart"

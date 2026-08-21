@@ -589,17 +589,19 @@ Manage work packages within steel threads
 - Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
 - No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
 
-| command      | args               | flags           | help                                                    | disposition |
-| ------------ | ------------------ | --------------- | ------------------------------------------------------- | ----------- |
-| `wp`         | <command>          | help/--help/-h  | Manage work packages within steel threads               | keep        |
-| `wp new`     | <stid> <title>     | --              | Create a new work package                               | keep        |
-| `wp start`   | <specifier>        | --              | Mark a work package as WIP                              | keep        |
-| `wp done`    | <specifier>        | --              | Mark a work package as Done                             | keep        |
-| `wp reopen`  | <specifier>        | --reason <text> | Reopen a done work package back into Wip, with a reason | new-surface |
-| `wp unstart` | <specifier>        | --              | Return a started work package to NotStarted             | new-surface |
-| `wp rescope` | <specifier> <size> | --              | Change a work package's T-shirt size                    | new-surface |
-| `wp list`    | <stid>             | --              | List work packages for a steel thread                   | keep        |
-| `wp show`    | <specifier>        | --              | Show work package info.md                               | keep        |
+| command        | args               | flags           | help                                                              | disposition |
+| -------------- | ------------------ | --------------- | ----------------------------------------------------------------- | ----------- |
+| `wp`           | <command>          | help/--help/-h  | Manage work packages within steel threads                         | keep        |
+| `wp new`       | <stid> <title>     | --              | Create a new work package                                         | keep        |
+| `wp start`     | <specifier>        | --              | Mark a work package as WIP                                        | keep        |
+| `wp done`      | <specifier>        | --              | Mark a work package as Done                                       | keep        |
+| `wp reopen`    | <specifier>        | --reason <text> | Reopen a done work package back into Wip, with a reason           | new-surface |
+| `wp cancel`    | <specifier>        | --reason <text> | Mark a work package as cancelled, with a reason                   | new-surface |
+| `wp reinstate` | <specifier>        | --reason <text> | Reinstate a cancelled work package into NotStarted, with a reason | new-surface |
+| `wp unstart`   | <specifier>        | --              | Return a started work package to NotStarted                       | new-surface |
+| `wp rescope`   | <specifier> <size> | --              | Change a work package's T-shirt size                              | new-surface |
+| `wp list`      | <stid>             | --              | List work packages for a steel thread                             | keep        |
+| `wp show`      | <specifier>        | --              | Show work package info.md                                         | keep        |
 
 ### `wp`
 
@@ -708,6 +710,40 @@ Reopen a done work package back into Wip, with a reason
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.
 - **Note:** THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it.
 - **no op:** `ok: <ID>/NN already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
+- **MCP:** exposed as an agent tool -- **mutates**
+- **recoverability:** reversible
+
+### `wp cancel`
+
+Mark a work package as cancelled, with a reason
+
+- **v2:** new-surface
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why -- required by the machine's guard
+    - **disposition:** keep
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-21 -- Machine 2 (WpStatus) gains `Cancelled`, reachable from every live state, guard `reason recorded`.
+- **Note:** THE STATE THE MODEL COULD NOT EXPRESS, AND THE GAP WAS RULED RATHER THAN OVERLOOKED. Machine 2 proposed no Cancelled at WP level -- a WP that stops mattering is a scope change on the thread, not a state on the package -- and flagged it Open for hv if that is wrong. Nothing tracked the question, so the default shipped by silence. A live consumer proved it wrong: scope removed, every AC withdrawn, and wp done refused forever because the gate correctly declines to infer an exemption from an emptied contract (ST0048). The only announced exemption was THREAD-scoped, so closing one unit meant discarding the standing of all 37 of its ACs. DELIBERATELY NOT GATED: every other close consults the contract; this verb is the announcement that there is no contract to consult, so gating it rebuilds the deadlock it exists to break.
+- **no op:** `ok: <ID>/NN already cancelled`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **recoverability:** reversible
+
+### `wp reinstate`
+
+Reinstate a cancelled work package into NotStarted, with a reason
+
+- **v2:** new-surface
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why -- required by the machine's guard
+    - **disposition:** keep
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-21 -- Machine 2: the Cancelled -> NotStarted edge, guard reason recorded.
+- **Note:** Mirrors st reinstate and lands on NotStarted rather than restoring the pre-cancellation status: that value is recorded nowhere, so restoring it would be a guess wearing the authority of a verb.
+- **no op:** `ok: <ID>/NN already Not Started`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 

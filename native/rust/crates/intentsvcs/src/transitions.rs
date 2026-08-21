@@ -375,9 +375,22 @@ pub const FIELDS: &[Field] = &[
     field: "status",
     disposition: Disposition::State {
       initial: &["not-started"],
-      // The ratified machine, transcribed (data-model.md "Machine 2"). No
-      // `Hold` or `Cancelled` at WP level: a work package that stops mattering
-      // is a scope change on the thread, not a state on the package.
+      // The ratified machine, transcribed (data-model.md "Machine 2").
+      //
+      // **`Cancelled` IS AT WP LEVEL AS OF 2026-08-21, AND THE PREVIOUS RULING
+      // IS PRESERVED HERE BECAUSE IT WAS REASONED RATHER THAN OVERLOOKED.**
+      // Machine 2 proposed no `Hold` or `Cancelled` -- _"a work package that
+      // stops mattering is a scope change on the thread, not a state on the
+      // package"_ -- and flagged it _"Open for hv if that is wrong"_. Nothing
+      // tracked that question, so the default shipped by silence for four
+      // months. It was wrong, and a live consumer proved it: scope removed,
+      // every AC withdrawn, and `wp done` refused forever because the gate
+      // correctly declines to infer an exemption from an emptied contract
+      // (ST0048). The only announced exemption was THREAD-scoped, so closing
+      // one unit meant discarding the standing of all 37 of its ACs.
+      //
+      // `Hold` is still not proposed: a paused package is `wip` that nobody is
+      // touching, and no consumer has hit the absence.
       //
       // **`wp.reopen` is the verb whose absence was causing live damage.**
       // Adding an AC to a closed WP reopens it in the contract, nothing undid
@@ -389,6 +402,24 @@ pub const FIELDS: &[Field] = &[
         Edge::direct("wp.unstart", &["wip"], "not-started"),
         Edge::guarded("wp.done", &["wip"], "done", &[Guard::GatePass]),
         Edge::guarded("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
+        // Mirrors `st.cancel`: reachable from every live state, reason required.
+        // NOT `Guard::GatePass` -- this verb is the announcement that there is
+        // no contract left to gate on, so gating it rebuilds the deadlock.
+        Edge::guarded(
+          "wp.cancel",
+          &["not-started", "wip", "done"],
+          "cancelled",
+          &[Guard::ReasonRecorded],
+        ),
+        // Mirrors `st.reinstate`: lands on `not-started`, never on the status
+        // held before cancellation -- that value is recorded nowhere, so
+        // restoring it would be a guess wearing the authority of a verb.
+        Edge::guarded(
+          "wp.reinstate",
+          &["cancelled"],
+          "not-started",
+          &[Guard::ReasonRecorded],
+        ),
       ],
       orphans: &[],
     },

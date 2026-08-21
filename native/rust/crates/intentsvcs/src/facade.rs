@@ -3244,6 +3244,38 @@ impl Facade {
     self.set_wp_status(st, seq, WpStatus::Wip, "wp.reopen", Some(reason))
   }
 
+  /// Cancel a work package whose scope was removed, recording why.
+  ///
+  /// **The state the model could not express, and the gap was ruled rather
+  /// than overlooked.** `data-model.md`'s Machine 2 proposed no `Cancelled` at
+  /// WP level -- _"a WP that stops mattering is a scope change on the thread,
+  /// not a state on the package"_ -- and flagged it _"Open for hv if that is
+  /// wrong"_. It was wrong, and hv ruled so on 2026-08-21 after a live consumer
+  /// hit it: scope removed, every AC withdrawn, and `wp done` refused forever
+  /// because [`crate::contract::gate`] correctly declines to infer an exemption
+  /// from an emptied contract. The only announced exemption was thread-scoped,
+  /// so closing one unit would have discarded the standing of all 37 ACs.
+  ///
+  /// **A reason is REQUIRED, mirroring `st cancel`.** A cancelled unit is the
+  /// one status a reader cannot interpret without knowing why -- `Done` says
+  /// delivered, `Cancelled` says nothing at all on its own.
+  ///
+  /// **Deliberately NOT gated.** Every other close consults the contract; this
+  /// one is the announcement that there is no contract to consult, so gating it
+  /// would reproduce the deadlock it exists to break.
+  pub fn wp_cancel(&mut self, st: &str, seq: u32, reason: &str) -> Result<Outcome, FacadeError> {
+    self.set_wp_status(st, seq, WpStatus::Cancelled, "wp.cancel", Some(reason))
+  }
+
+  /// Reinstate a cancelled work package, recording why.
+  ///
+  /// Lands on `NotStarted` rather than restoring the pre-cancellation status,
+  /// mirroring `st reinstate`: the previous status is not recorded anywhere, so
+  /// restoring it would be a guess wearing the authority of a verb.
+  pub fn wp_reinstate(&mut self, st: &str, seq: u32, reason: &str) -> Result<Outcome, FacadeError> {
+    self.set_wp_status(st, seq, WpStatus::NotStarted, "wp.reinstate", Some(reason))
+  }
+
   /// Re-size a work package.
   ///
   /// **`wp new` lets the caller choose a size and nothing could ever change

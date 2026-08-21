@@ -575,17 +575,33 @@ States: `Triage` (proposed rename of `Tbc`) | `NotStarted` | `Wip` | `Hold` | `C
 
 ### Machine 2 -- Work package (`WpStatus`)
 
-States: `NotStarted` | `Wip` | `Done`. **Entry: `NotStarted`.**
+States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 
-| From         | To           | Verb         | Guard              |
-| ------------ | ------------ | ------------ | ------------------ |
-| _(none)_     | `NotStarted` | `wp new`     | --                 |
-| `NotStarted` | `Wip`        | `wp start`   | --                 |
-| `Wip`        | `Done`       | `wp done`    | **`ac gate` PASS** |
-| `Done`       | `Wip`        | `wp reopen`  | reason recorded    |
-| `Wip`        | `NotStarted` | `wp unstart` | --                 |
+| From         | To           | Verb           | Guard              |
+| ------------ | ------------ | -------------- | ------------------ |
+| _(none)_     | `NotStarted` | `wp new`       | --                 |
+| `NotStarted` | `Wip`        | `wp start`     | --                 |
+| `NotStarted` | `Cancelled`  | `wp cancel`    | reason recorded    |
+| `Wip`        | `Done`       | `wp done`      | **`ac gate` PASS** |
+| `Wip`        | `NotStarted` | `wp unstart`   | --                 |
+| `Wip`        | `Cancelled`  | `wp cancel`    | reason recorded    |
+| `Done`       | `Wip`        | `wp reopen`    | reason recorded    |
+| `Done`       | `Cancelled`  | `wp cancel`    | reason recorded    |
+| `Cancelled`  | `NotStarted` | `wp reinstate` | reason recorded    |
 
-**New verbs required: `wp reopen` (the one whose absence is causing the live inconsistency above), `wp unstart`.** No `Hold` or `Cancelled` at WP level is proposed -- a WP that stops mattering is a scope change on the thread, not a state on the package. Open for hv if that is wrong.
+**New verbs required: `wp reopen` (the one whose absence is causing the live inconsistency above), `wp unstart`, `wp cancel`, `wp reinstate`.**
+
+**`Cancelled` WAS PROPOSED AGAINST HERE AND hv RULED THE OTHER WAY ON 2026-08-21. The original text is kept because it was REASONED, not overlooked, and the way it failed is the lesson:**
+
+> ~~No `Hold` or `Cancelled` at WP level is proposed -- a WP that stops mattering is a scope change on the thread, not a state on the package. Open for hv if that is wrong.~~
+
+**It was wrong, and nothing tracked that the question had been asked.** A question addressed to a human, in prose, in a design document, with no counter reading it -- so the default shipped by silence and the omission survived a deliberate redesign of this very machine (`wp reopen`, `wp unstart` and `wp rescope` were all added without it registering).
+
+**A live consumer proved it:** scope removed, every AC withdrawn, and `wp done` refused **forever** -- because [`contract::gate`] correctly declines to infer an exemption from an emptied contract, which is ST0048's rule that an exemption is ANNOUNCED and never inferred from emptiness. The only announced exemption was `acceptance: exempt`, which is **thread-scoped**: closing one unit with it would have discarded the standing of all 37 of that thread's ACs. The interim convention -- mark it `Done` and write a note -- put the distinction in prose **because there was no field for it**, which is the same defect one layer along: a `Done` work package that delivered nothing is indistinguishable, by query, from one that delivered.
+
+**`wp cancel` is that announcement as DATA, in a field the gate reads. It satisfies ST0048 rather than bypassing it.** It is deliberately **not** `ac gate`-guarded: every other close consults the contract, and this verb is the statement that there is no contract to consult, so gating it would rebuild the deadlock it exists to break.
+
+**`Hold` is still not proposed** -- a paused package is `Wip` that nobody is touching, and no consumer has hit the absence.
 
 **Open for hv, and it is the sharper question**: should `wp done` be **refused** while the gate is BLOCKED, or should a status that disagrees with its gate be **reported** as the defect it is? Today it is neither -- `wp done` consults the gate, but nothing re-checks afterwards, so a WP that was legitimately `Done` silently becomes a false green the moment its contract grows. **Recommendation: both.** Refuse on the way in, and have `doctor` report any unit whose status disagrees with its gate, because the contract can change under a status that was true when it was set.
 

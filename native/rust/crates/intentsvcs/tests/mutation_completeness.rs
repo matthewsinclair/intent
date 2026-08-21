@@ -992,6 +992,8 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
         "wp.unstart" => facade.wp_unstart(ST, seq).expect("wp unstart"),
         "wp.done" => facade.wp_done(ST, seq).expect("wp done"),
         "wp.reopen" => facade.wp_reopen(ST, seq, REASON).expect("wp reopen"),
+        "wp.cancel" => facade.wp_cancel(ST, seq, REASON).expect("wp cancel"),
+        "wp.reinstate" => facade.wp_reinstate(ST, seq, REASON).expect("wp reinstate"),
         other => panic!("no arm drives {other} on WorkPackage.status"),
       };
       assert_movement(entity, field, edge, from, outcome);
@@ -1359,6 +1361,21 @@ const RATIFIED_WP: &[RatifiedEdge] = &[
   ("wp.unstart", &["wip"], "not-started", &[]),
   ("wp.done", &["wip"], "done", &[Guard::GatePass]),
   ("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
+  // hv, 2026-08-21: `Cancelled` at WP level, after a live consumer hit the
+  // deadlock the original ruling created. NOT `GatePass` -- this verb is the
+  // announcement that there is no contract to gate on.
+  (
+    "wp.cancel",
+    &["not-started", "wip", "done"],
+    "cancelled",
+    &[Guard::ReasonRecorded],
+  ),
+  (
+    "wp.reinstate",
+    &["cancelled"],
+    "not-started",
+    &[Guard::ReasonRecorded],
+  ),
 ];
 
 /// The ratified issue machine -- **Machine 4** (hv, 2026-08-17).
@@ -1688,6 +1705,18 @@ const UNMET: &[(&str, Guard, Unmet, &str)] = &[
     "driven from `cancelled`, its only declared from-state",
   ),
   (
+    "wp.cancel",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `wip`, a declared from-state, so the transition check cannot be what refuses",
+  ),
+  (
+    "wp.reinstate",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `cancelled`, its only declared from-state",
+  ),
+  (
     "wp.reopen",
     Guard::ReasonRecorded,
     Unmet::BlankJustification,
@@ -1924,6 +1953,8 @@ fn attempt(
     "wp.unstart" => facade.wp_unstart(ST, seq),
     "wp.done" => facade.wp_done(ST, seq),
     "wp.reopen" => facade.wp_reopen(ST, seq, justification),
+    "wp.cancel" => facade.wp_cancel(ST, seq, justification),
+    "wp.reinstate" => facade.wp_reinstate(ST, seq, justification),
     other => panic!("no arm drives {other}"),
   }
 }

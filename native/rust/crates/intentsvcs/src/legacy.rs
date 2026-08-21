@@ -832,6 +832,8 @@ fn wp_status(raw: &str) -> Option<WpStatus> {
     "wip" | "inprogress" => Some(WpStatus::Wip),
     "notstarted" | "tbc" | "tobecommenced" => Some(WpStatus::NotStarted),
     "done" | "complete" | "completed" => Some(WpStatus::Done),
+    // Both spellings: v2 estates were hand-authored and the corpus carries each.
+    "cancelled" | "canceled" => Some(WpStatus::Cancelled),
     _ => None,
   }
 }

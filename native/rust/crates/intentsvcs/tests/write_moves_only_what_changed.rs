@@ -324,6 +324,19 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "wp cancel",
+    "mutation_completeness.rs -- both the success walk and the UNMET guard walk drive it: \
+     `wp.cancel` from every declared from-state, and its ReasonRecorded guard refused with a \
+     blank justification. The write set is the same `set_wp_status` path `wp done` and \
+     `wp reopen` already prove here, so a fourth copy would test the setter a third time \
+     rather than test this verb",
+  ),
+  (
+    "wp reinstate",
+    "mutation_completeness.rs -- same pair of walks, from `cancelled`, its only declared \
+     from-state",
+  ),
+  (
     "upgrade",
     "unmigrated_project.rs -- it needs a pre-migration v2 project, not a v3 fixture",
   ),

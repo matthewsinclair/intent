@@ -882,6 +882,33 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
+    // **The state the model could not express until 2026-08-21.** `wp done`
+    // consults the gate; a work package whose scope was removed has an emptied
+    // contract, and the gate correctly refuses to infer an exemption from
+    // emptiness (ST0048). With no `Cancelled` at WP level the only announced
+    // exemption was thread-scoped, so closing one unit meant discarding the
+    // standing of every AC in the thread. This verb is that announcement, as
+    // data in a field the gate reads.
+    Some(("cancel", a)) => {
+      let (st, seq) = wp_target(a)?;
+      let reason = opt(a, "reason").unwrap_or_default();
+      reported(
+        &open()?.wp_cancel(&st, seq, &reason).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        "cancelled",
+      );
+      Ok(())
+    }
+    Some(("reinstate", a)) => {
+      let (st, seq) = wp_target(a)?;
+      let reason = opt(a, "reason").unwrap_or_default();
+      reported(
+        &open()?.wp_reinstate(&st, seq, &reason).map_err(fail)?,
+        &format!("{st}/{seq:02}"),
+        "reinstated",
+      );
+      Ok(())
+    }
     Some(("unstart", a)) => {
       let (st, seq) = wp_target(a)?;
       reported(

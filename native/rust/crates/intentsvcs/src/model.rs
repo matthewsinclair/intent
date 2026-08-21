@@ -699,6 +699,7 @@ pub enum WpStatus {
   NotStarted,
   Wip,
   Done,
+  Cancelled,
 }
 
 impl WorkPackage {
@@ -732,6 +733,7 @@ impl WpStatus {
       Self::NotStarted => "Not Started",
       Self::Wip => "WIP",
       Self::Done => "Done",
+      Self::Cancelled => "Cancelled",
     }
   }
 
@@ -745,6 +747,7 @@ impl WpStatus {
       Self::NotStarted => ' ',
       Self::Wip => '-',
       Self::Done => 'x',
+      Self::Cancelled => '~',
     }
   }
 }

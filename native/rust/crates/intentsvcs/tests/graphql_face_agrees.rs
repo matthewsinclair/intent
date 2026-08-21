@@ -211,7 +211,10 @@ fn every_enum_reaches_the_sdl_with_all_its_variants() {
   // `AtStatus::Na` as `n-a` and GraphQL as `NA`, one vocabulary in two wire
   // conventions.
   assert_eq!(count("ThreadStatus"), 6, "ThreadStatus variants");
-  assert_eq!(count("WpStatus"), 3, "WpStatus variants");
+  // 3 -> 4 on 2026-08-21: `Cancelled`. The wire contract now says a work
+  // package can be CANCELLED, which is the thing this tripwire exists to make
+  // someone look at -- checked in `schema/schema.graphql`, not assumed.
+  assert_eq!(count("WpStatus"), 4, "WpStatus variants");
   assert_eq!(count("AtStatus"), 4, "AtStatus variants");
   assert_eq!(count("AcKind"), 2, "AcKind variants");
   assert_eq!(count("AtKind"), 2, "AtKind variants");

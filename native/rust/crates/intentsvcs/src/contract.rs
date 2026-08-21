@@ -363,6 +363,30 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     ));
   }
 
+  // **A CANCELLED WORK PACKAGE IS AN ANNOUNCED EXEMPTION, WHICH IS WHY IT IS
+  // NOT THE `active == 0` PATH BELOW.** ST0048's rule is that an exemption is
+  // announced and never inferred from emptiness, and before `WpStatus::Cancelled`
+  // existed there was nowhere at WP scope to announce it -- so a unit whose scope
+  // was removed emptied its contract one descope at a time, hit that arm, and
+  // could never be closed at all. The only escape named was `acceptance: exempt`,
+  // which is THREAD-scoped: closing one unit with it discarded the standing of
+  // every AC in the thread (measured on a live consumer: 37 of them).
+  //
+  // The status field is that announcement, as DATA rather than as prose a
+  // counter cannot read. This arm satisfies ST0048 rather than bypassing it.
+  if let Scope::WorkPackage(seq) = scope
+    && thread
+      .wps
+      .iter()
+      .any(|w| w.seq == seq && w.status == crate::model::WpStatus::Cancelled)
+  {
+    return Verdict::Exempt {
+      detail: Detail::Diagnosis(format!(
+        "WP-{seq:02} is cancelled: its scope was removed, so it has no live contract to verify"
+      )),
+    };
+  }
+
   let thread_total = thread.criteria.len();
   if thread_total == 0 {
     return Verdict::blocked(

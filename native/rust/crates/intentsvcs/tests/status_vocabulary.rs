@@ -64,6 +64,7 @@ const WP_SPELLINGS: &[(&str, &str)] = &[
   ("not-started", "Not Started"),
   ("wip", "WIP"),
   ("done", "Done"),
+  ("cancelled", "Cancelled"),
 ];
 
 /// The enum values one definition of the thread face declares.
@@ -195,15 +196,24 @@ fn every_thread_spelling_reaches_a_view_and_excludes_the_others() {
 }
 
 /// The work-package half, on a thread whose own spelling cannot collide with any
-/// of the three being discriminated.
+/// of the FOUR being discriminated.
+///
+/// **This fixture used `ThreadStatus::Cancelled` for exactly this isolation, and
+/// it stopped being isolating on 2026-08-21 when `WpStatus` gained `Cancelled`.**
+/// The two vocabularies were disjoint by accident of the WP enum being smaller,
+/// and `status_lines` gathers EVERY status-bearing line in the rendered views --
+/// the thread's included -- so the exclusion arm cannot tell a WP's spelling
+/// from its thread's. It red the moment the vocabularies overlapped, which is
+/// the tripwire working; `Triage` is chosen now because it is a thread-only
+/// spelling and cannot be reached by any work package.
 #[test]
 fn every_work_package_spelling_reaches_a_view_and_excludes_the_others() {
   for (value, spelling) in WP_SPELLINGS {
     let status: WpStatus = serde_json::from_value(json!(value)).expect("a declared status value");
     let fx = Fixture::new();
     let mut thread = sample_thread("ST0001");
-    thread.status = ThreadStatus::Cancelled;
-    thread.status_reason = Some("so the thread's own spelling is none of the three".to_string());
+    thread.status = ThreadStatus::Triage;
+    thread.status_reason = Some("so the thread's own spelling is none of the four".to_string());
     thread.wps = vec![WorkPackage {
       preamble: String::new(),
       seq: 1,
