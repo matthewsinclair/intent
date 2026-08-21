@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 15:32Z
-status: paused
-focus: "**LOCALFOLDED AND HOLDING FOR A BOUNCE, 2026-08-21 PM. Four commits landed and the gate moved 62 -> 63 of 67.** Mine: `ecea0eeb` fixture default, `1005ab88` int hooks foreign-tree warning, `5d2b1f0d` canon_commit_check ADMITTED AND DISPATCHED, plus `provenance_fields_check.sh` (AT-11.7) carried in cc's `d8dd6dc6`. **AC-03.6's blocker is CLEARED and the row is cc's to green -- I will not certify my own wiring.** **THREE FALSE FINDINGS WITHDRAWN, ALL FROM ONE METHOD ERROR: `int hooks` resolves from the BINARY's location, and I grepped away the line that said so.** **STILL OPEN AND MINE: AC-01.5 form 1, and the guard-resolution mechanism, which the `.envrc` did NOT close.**"
+heartbeat_at: 2026-08-21 16:02Z
+status: active
+focus: "**AC-01.5 FORM 1 IS BUILT AND LANDED AT `5c7bb80f` -- one of the three rows left on the closure gate.** The chain block was `if [ -x ]` with no else; it now refuses on absent and on present-but-not-executable, each naming its remedy. **Driven RED and GREEN in one throwaway clone at `6edbd24f`, same staged violation, one file swapped: old block rc=0 and the commit LANDED; new block rc=1, refused, HEAD unmoved.** **THE 82-VS-9 LINE COUNT IS THE FINDING** -- the red arm's 82 lines were the parity roster printing `ok:` while four shipped guards were not present at all. **hv accepted the wedge (`refuse is correct`) and authorised the commit DIRECTLY in my session; vc's relay explicitly did not.** **AC-01.5 IS vc's TO VERIFY -- I will not certify my own wiring.** **STILL MINE AND OPEN: the guard-resolution mechanism, which the `.envrc` did NOT close.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -32,17 +32,23 @@ claims: [ST0056/07, ST0056/11]
 
 ## DOING
 
-**Nothing in flight. Working tree carries only peers' work. No `target/dc` exists, so prune-at-fold is vacuous for me a second day running.**
+**Nothing in flight. AC-01.5 form 1 landed at `5c7bb80f`; the row is vc's to verify.** Working tree carries only peers' work. No `target/dc` exists, so prune-at-fold is vacuous for me a third day.
+
+**NOT PUBLISHING A GATE FIGURE.** cc's clean-room ingest at HEAD is the number all four of us are holding for. Both `63`s published today were arithmetic in opposite directions from the same figure, and my own `64` was a store read over four dirty worktrees.
 
 ## TODO
 
-### 1. ST0057 AC-01.5's REMEDY -- MINE, ON THE GATE, AND STILL UNBUILT
+### 1. ST0057 AC-01.5 -- BUILT AND LANDED AT `5c7bb80f`. vc's TO VERIFY.
 
-**The hole is the CLONE, not the guard.** `.githooks/pre-commit.intent` is **gitignored at `.gitignore:158`**, so no clone can ever receive it, and `.githooks/pre-commit:6` is `[ -x ]` with **no `else`**.
+**THREE FILES, NOT TWO, AND THE THIRD IS THE ONE EVERY LIST MISSED:** `.githooks/pre-commit` (instance), `intent_claude_upgrade`'s `canon_emit_chain_block` (**the SOURCE -- generator first, or the next `claude upgrade` overwrites it**; verified byte-identical, 1271 bytes both sides, independently by vc), and `bin/.devbin/cmd/hooks`, whose prose said the block _"skips a missing gate SILENTLY"_ -- **which form 1 made false. Dead prose beside a live disposition is part of the change, not a follow-up.**
 
-**DRIVEN END TO END THIS SESSION** in a throwaway clone at `510d4b10`: wired properly, a stamp with **no trailing Z** -- clock-guard check B, syntactic, no tolerance -- **committed at rc=0**, while ten parity guards printed ~60 lines of confident output. **THE HAZARD IS NOT SILENCE; IT IS REASSURING NOISE FROM A DIFFERENT ROSTER.** Two gate routes exist in that file: the chain block (shipped guards + critic) and `bin/int precommit` at `:95` (parity roster). Only the first is silent.
+**RED/GREEN IN ONE CLONE AT `6edbd24f`, same staged violation, one file swapped:** old block **rc=0, commit LANDED `e5111788`, 82 lines**; new block **rc=1, REFUSED, HEAD unmoved, 9 lines**. Four arms driven in isolation first, **including the positive control** (present+executable -> runs, hook continues). `5c7bb80f` then passed through its own new block on its first real commit.
 
-**FORM 2 IS ALREADY BUILT -- `int hooks` reports `gate ABSENT` correctly. AC-01.5 IS FORM 1 ONLY: make the chain fail loud.** Sites, both clear of the `bin/` collision: the generator `intent/plugins/claude/bin/intent_claude_upgrade` (`canon_emit_chain_block`, ~line 436) and the tracked `.githooks/pre-commit`. **Generator FIRST -- single template source -- or the next `claude upgrade` overwrites the instance.** Discriminate three states as `pre-commit-guards.sh` does one level down: absent / present-but-not-executable / runs.
+**FORM 2 IS NOT REDUNDANT AND I NEARLY WROTE THAT IT WAS.** The block only speaks when the hook RUNS, which needs `core.hooksPath` already set; `int hooks` answers in exactly the state -- hooksPath unset -- where the block is unreachable. **I caught it only because writing the sentence out forced the precondition explicit. That is an argument for writing justifications down, not for my judgement.**
+
+**hv ACCEPTED THE WEDGE ("refuse is correct") AND AUTHORISED THE COMMIT DIRECTLY IN MY SESSION.** vc relayed the acceptance and **explicitly refused to relay a landing authority** -- record it that way. **Warn-and-continue was defeated by my own 82-line measurement:** the `ok:` lines still print below a warning, so it reproduces the defect with more text.
+
+**BLAST RADIUS CLOSED TWO WAYS.** Structurally, from the planner (`intent_claude_upgrade:909-920`): **the block is never inserted while the dispatcher is absent** -- `CHAIN_PRE_COMMIT_BLOCK` is planned only where `pre-commit.intent` is already present AND matches canon; the other three sites install it immediately above. Empirically (vc): **`Intentv2`, the copy the FLEET resolves to, still carries the bare block**, so no consumer sees this until v3 ships. **The structural argument would have been true and useless had the fleet already picked it up.**
 
 ### 2. THE GUARD-RESOLUTION MECHANISM -- STILL OPEN, AND THE `.envrc` DID NOT CLOSE IT
 
@@ -66,6 +72,9 @@ Recorded on hv's board as mine and OPEN. **Driven: in a non-interactive shell `I
 
 **Today's instances are verbatim in `.history/20260821/wip.md`. These are the CLASSES.**
 
+- **A RULE APPLIED TO THE LANE IT NAMES INSTEAD OF TO THE PROPERTY THAT MAKES IT MATTER.** My own standing decision reads _announce to cc before touching `bin/`_. **`.githooks/` is not `bin/`, so I did not announce -- and the reason for the rule is STRONGER there, not weaker.** A lane is a proxy for a property; when the two come apart, the property governs. ic caught it by naming two files they did not recognise rather than sweeping them.
+- **`.githooks/pre-commit` IS THE ONE FILE WHERE AN UNCOMMITTED EDIT EXECUTES FOR EVERY PEER IMMEDIATELY** (ic, 2026-08-21). `core.hooksPath` points at the **WORKTREE**. For `surface/dispatch-table.json` -- where the announce rule was minted -- a peer's dirty copy affects nobody until they read it. **Here, every node's next commit runs yours, with nobody opting in.** ic's `6edbd24f` and two of cc's went through my uncommitted edit before anyone knew it existed. Not "someone might read a stale file" but **"everyone executes yours"**.
+- **A FILE LIST HAS A TIMESTAMP AND DECAYS** (ic's correction, in my favour). Their "neither mine nor cc's" sweep named two files at ~15:53Z; my third was modified at 15:54Z. **"The list was short by one" and "the tree grew a file under the list" have different remedies, and only the second was true.** In a four-writer checkout a `git status` is stale the moment it prints -- which is why the sender announces FILES rather than the reader sweeping for them.
 - **A FILTER THAT DROPS THE SUBJECT LINE TURNS A CORRECT REPORT INTO A CONFIDENT WRONG ONE.** `int hooks` names its tree on line 1; I grepped for `gate|WIRED` and **produced three false findings from one true report.** Before believing any tool, check it is answering about the thing you are standing in.
 - **A FALSE CONFESSION IS CAUGHT BY NOTHING WE OWN** (vc's, and I was the real cause). Every rule we have guards claims that FAVOUR the claimant. **A claim that inconveniently blames you passes every check, because owning a fault reads as rigour and gets no audit.** Check a self-accusation as hard as a self-serving one.
 - **A BARE `git reset` IS A SHARED-INDEX OPERATION** -- no pathspec means every peer's stage. Our rule names `--only` and says nothing about this. **`--only` DOES preserve a peer stage, both directions, driven by vc.**
@@ -84,6 +93,8 @@ Recorded on hv's board as mine and OPEN. **Driven: in a non-interactive shell `I
 
 ## Decisions
 
+- (2026-08-21) **hv ACCEPTED AC-01.5's WEDGE -- "refuse is correct" -- AND AUTHORISED THE COMMIT DIRECTLY IN MY SESSION.** vc put three options (accept / warn-and-continue / hold to cutover) and hv took accept. **vc relayed the acceptance and REFUSED to relay a landing authority, correctly.** A peer relaying that hv accepted a DESIGN is not hv telling you to LAND it -- ic drew that line on vc earlier the same afternoon, so it has now held twice in opposite directions.
+- (2026-08-21) **A PEER'S INDEPENDENT CHECK COUNTS ONLY WHEN THE METHOD DIFFERS.** vc confirmed generator-vs-instance by extracting and byte-comparing (1271 bytes) where I had diffed. **Same subject, different instrument, same answer** -- the opposite of four nodes reading one broken instrument this morning and agreeing.
 - (2026-08-21) **`bin/` IS dc's LANE** (hv, live channel, this session). Announce to cc before touching it. `bin/.devbin/cmd/**` is Intent's own; **`bin/devbin` and `bin/.devbin/lib/**` are VENDORED from `~/Devel/prj/Devbin`** and are not this repo's to edit -- the vendor-down is hv's to time.
 - (2026-08-21) **THE GATE COST STANDS AT ~7.3s.** hv chose unconditional dispatch over a path trigger, with cc's 3.6-4.9s figure put explicitly. **Re-time before moving any row on cost grounds and name the revision.**
 - (2026-08-21) **hv RELEASED ALL THREE HELD ITEMS; I ACTED ON TWO AND DECLINED ONE ON THE MERITS.** `test_helper.bash:93` landed after re-deriving what the hold asked for; `canon_commit_check.sh` admitted; **`thread_view_skew_check.sh` held, because its condition is still live.**
