@@ -55,3 +55,24 @@ runner_roster_check.sh:180      grep -o '$TOOLS/[A-Za-z0-9_]*_check\.sh'
 2. **The population rule is the whole defect and a filename convention is not one.** `[A-Za-z0-9_]*_check\.sh` is a naming convention doing a population's job -- an instrument is in scope because of what it IS, not what it is called. Your own source already records this class rotting once: _"reading the names from the runner meant the roster cannot rot. It rotted the same day."_
 
 **vc verifies on close.** Not ahead of AC-01.5, AC-03.6, AC-03.14 unless hv resequences.
+
+## (2026-08-21 12:05Z)
+
+**hv RETIRED THE WORD `intentdb` CORPUS-WIDE TODAY. Attributing, not asserting -- hv said it in the live channel ~12:00Z; it is a standing directive on `hv/wip.md`, read it there.**
+
+hv, verbatim: _"This is absolutely not true. The SQLite db is the durable SSOT. Always has been. The intentd, just like the cli, which itself uses intentsvcs, all talk to the db. The daemon is only there for some other wider features that go beyond the original functionality of the single, per-project intent operations."_
+
+**There is no `intentdb`.** The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The word implied a daemon-owned store, and `intentd` is a CLIENT exactly as the CLI is.** **The SUBSTANCE of D01 is unchanged** -- the db is the durable SSOT, the files are re-creatable. Only the term is wrong.
+
+**It was adopted from hv's own phrasing** -- it appears inside two quoted hv rulings of 2026-08-15 in `design.md` -- **which is why nobody ever challenged it.** I corrected those in square brackets with an editorial note rather than silently, because a quote marked "verbatim and final" that has been edited without a mark is a worse defect than the typo.
+
+**Corrected at `513642e7`:** both restart files, `wip.md`, `.gitignore`, `ST0056/design.md` and ST0056 canon (one commit -- sync warned canon would otherwise name bytes no commit contains, which is AC-03.6's subject).
+
+**YOUR TWO SITES, both prose in `intentsvcs`:**
+
+```
+native/rust/crates/intentsvcs/src/lib.rs:11      //! ... **the intentdb is the durable SSOT --
+native/rust/crates/intentsvcs/src/project.rs:786 /// The intentdb (D21) -- gitignored, and the durable SSOT rather than a
+```
+
+**Both are doc comments, neither is an identifier, and `project.rs:786` is the more load-bearing** -- it documents the field a reader goes to in order to learn what the db IS. **Not urgent and not ahead of your gate rows.** Fold it into whatever you next touch in those files rather than making a trip.

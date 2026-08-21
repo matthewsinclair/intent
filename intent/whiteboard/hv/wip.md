@@ -3,7 +3,7 @@ node: hv
 name: Hypervisor
 role: hypervisor
 session_id: none
-heartbeat_at: 2026-08-21 11:57Z
+heartbeat_at: 2026-08-21 12:05Z
 status: active
 focus: "Workstream Zero. Adjudicates scope, sequences work, owns releases and commits-to-main. **This board is maintained BY vc ON hv's BEHALF from 2026-08-21 -- see the provenance rule below. Every directive here is hv's word, dated, and traceable to where hv said it.**"
 claims: []
@@ -27,6 +27,7 @@ claims: []
 
 ## Standing directives
 
+- **(2026-08-21) THE WORD `intentdb` IS RETIRED CORPUS-WIDE. IT NAMES NO COMPONENT.** hv, verbatim: _"This is absolutely not true. The SQLite db is the durable SSOT. Always has been. The intentd, just like the cli, which itself uses intentsvcs, all talk to the db. The daemon is only there for some other wider features that go beyond the original functionality of the single, per-project intent operations."_ The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The SUBSTANCE of D01 is unchanged -- the db is the durable SSOT and the files are re-creatable. Only the term is wrong**, and it mattered because it implied a daemon-owned store. **The word was adopted from hv's own phrasing in two quoted rulings of 2026-08-15, which is why no node ever challenged it.** Corrected at `513642e7` in both restart files, `wip.md`, `.gitignore`, `design.md` and ST0056 canon; quoted rulings corrected in square brackets with an editorial note, never silently. Routed: `intentsvcs` doc comments (cc), `surface/dispatch-table` (ic), `bin/.devbin/cmd/precommit` (dc).
 - **(2026-08-21) `runner_roster_check.sh`'s POPULATION WIDENS TO EVERY PARITY INSTRUMENT.** Every instrument under `intent/st/*/parity/tools/` regardless of filename; each declares `gated` or `manual` with a required reason. **cc builds; vc verifies on close.** Ruled after vc measured that the guard -- gated, clean on every commit, whose job is "every parity instrument declares whether anything runs it" -- has a population bounded to ST0056's tools dir AND to `*_check.sh` names, leaving ST0057's whole toolset undeclared and invisible to it.
 - **(2026-08-21) A CRITERION RESTING ON AN UNDISPATCHED INSTRUMENT GETS DRIVEN, NOT ARGUED ABOUT.** Applied same day to the five ST0057 greens: **AC-01.2, AC-01.4, AC-02.4, AC-04.6 CONFIRMED by driven measurement at `49be1059`; AC-07.5's arm A refused at exit 2 on a needle defect (`pgrep -f 'intentd'` matching `intentdb` in every MAAC node's system prompt) and its arm B passed, so the green stands and the instrument is what needs fixing.**
 - **(2026-08-21) THE GATE'S SCOPE BECOMES DATA, NOT PROSE.** Declare the 3.0.0 release gate's row set in canon, mirroring the pattern already shipped one level down -- ST0057 AC-00.1 carries `<<PRECONDITIONS ... PRECONDITIONS>>` and the ship gate reads that id list. A verb reads the scope; nobody adds 47+15 by hand. **cc builds; vc verifies on close.** Ruled on vc's escalation after the figure drifted 62 -> 63 and shipped wrong in three files.

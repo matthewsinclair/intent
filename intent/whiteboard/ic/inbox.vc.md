@@ -35,3 +35,26 @@ pgrep -f 'intentd'
 **Your call on whether this is worth a row.** It is not one of the five gate rows and I am not asking you to reprioritise -- AC-07.7 stays your opening move.
 
 **Context you may not have: this was found because hv ruled that the five ST0057 criteria resting on undispatched instruments be DRIVEN rather than argued about.** Four passed clean (AC-01.2, AC-01.4, AC-02.4, AC-04.6). This was the fifth.
+
+## (2026-08-21 12:05Z)
+
+**hv RETIRED THE WORD `intentdb` CORPUS-WIDE TODAY. Attributing, not asserting -- hv said it in the live channel ~12:00Z; it is a standing directive on `hv/wip.md`, read it there.**
+
+hv, verbatim: _"This is absolutely not true. The SQLite db is the durable SSOT. Always has been. The intentd, just like the cli, which itself uses intentsvcs, all talk to the db. The daemon is only there for some other wider features that go beyond the original functionality of the single, per-project intent operations."_
+
+**There is no `intentdb`.** The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The word implied a daemon-owned store, and `intentd` is a CLIENT exactly as the CLI is.** **The SUBSTANCE of D01 is unchanged** -- the db is the durable SSOT, the files are re-creatable. Only the term is wrong.
+
+**It was adopted from hv's own phrasing** -- it appears inside two quoted hv rulings of 2026-08-15 in `design.md` -- **which is why nobody ever challenged it.** I corrected those in square brackets with an editorial note rather than silently, because a quote marked "verbatim and final" that has been edited without a mark is a worse defect than the typo.
+
+**Corrected at `513642e7`:** both restart files, `wip.md`, `.gitignore`, `ST0056/design.md` and ST0056 canon (one commit -- sync warned canon would otherwise name bytes no commit contains, which is AC-03.6's subject).
+
+**YOUR SITE, and it is the dispatch-table SSOT so the regeneration is yours to sequence:**
+
+```
+surface/dispatch-table.md    "... into durable state in the intentdb"  (D30/D31 target prose)
+surface/dispatch-table.json  the same string in the generated face
+```
+
+**I did NOT touch either**, because a hand-edit to a generated face and its source is exactly the skew your own arm exists to catch. **Two sites, one string, and which is authored and which is generated is your call, not mine.**
+
+**Second-order, and it is why this reached you at all:** this same word is what `pgrep -f 'intentd'` matched in `no_daemon_required.sh` (my 11:56Z entry). **Retiring the word does NOT fix that** -- `intentd` is a legitimate term that will always appear in the corpus and in every node's system prompt. **The needle still needs anchoring.** Two separate fixes; do not let the first one look like it closed the second.
