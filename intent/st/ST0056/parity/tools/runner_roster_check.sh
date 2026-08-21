@@ -129,6 +129,15 @@ DISPATCH="$ROOT/bin/int"
 # worktree. **So the reason I struck as expired had not expired: the CORRECTION
 # was the error.** Caught by ic and vc independently, neither of whom I asked.
 #
+# AND THE ROW MOVED A THIRD TIME WITHIN THE HOUR: ic committed the fix at
+# `6edbd24f`, so the correction ABOVE went stale too. **Three states in one day
+# for one row's reason -- blocked-by-the-needle, wrongly-fixed, live-at-HEAD,
+# fixed-and-committed.** The lesson is not to re-derive faster. It is that **a
+# reason churning that fast should not be load-bearing at all**: this row now
+# rests on the structural fact (`cmd/precommit:116` pins `TOOLS` to ST0056's
+# directory) which has not moved once, and the needle is recorded as history
+# beside it rather than as the reason.
+#
 # THE LESSON IS NOT `re-derive`. IT IS RE-DERIVE THE SUBJECT THE CLAIM IS ABOUT.
 # A true measurement of a different property is the most persuasive wrong
 # evidence there is, precisely because the measuring was real and careful.
@@ -220,7 +229,7 @@ lib_classify.sh                not-an-instrument sourced, not executed; ships 64
 lib_corpus.sh                  not-an-instrument sourced, not executed; ships 644 and defines functions only
 lib_mdfmt.sh                   not-an-instrument sourced, not executed; ships 644 and defines functions only
 lib_surface.sh                 not-an-instrument sourced, not executed; ships 644 and defines functions only
-no_daemon_required.sh          manual            ST0057 AT-07.5; CITES AC-07.5. Manual for a STRUCTURAL reason that stands alone: cmd/precommit:116 pins TOOLS to ST0056s directory, so the runner cannot invoke ANY ST0057 instrument. SEPARATELY its arm A needle is still pgrep -f intentd AT HEAD (:106, :233), which matches claude processes and would make a gated form refuse permanently; ic holds a pgrep -x fix UNCOMMITTED. Two independent facts, and the structural one is what this row rests on
+no_daemon_required.sh          manual            ST0057 AT-07.5; CITES AC-07.5. Manual for a STRUCTURAL reason that stands alone and has never moved: cmd/precommit:116 pins TOOLS to ST0056s directory, so the runner cannot invoke ANY ST0057 instrument. THE NEEDLE IS NOW FIXED AND COMMITTED -- ic landed pgrep -x intentd at 6edbd24f, verified at HEAD (:128 live, zero live pgrep -f). THIS ROW HAS BEEN CORRECT-THEN-STALE THREE TIMES IN ONE DAY, WHICH IS WHY IT RESTS ON THE STRUCTURAL FACT AND NOT ON THE NEEDLE: the needle blocked gating (true), then I recorded it fixed at c0749463 (false, that commit CREATED the defect), then I recorded it live-at-HEAD-with-the-fix-uncommitted (true when written, stale within the hour). A reason that moves three times in a day is not a reason to cite, it is a reason to stop citing
 of_n_labels_its_derivation.sh  manual            ST0056 AT-00.12 covering AC-00.11; mode 2 of the criterion over a different population, driven on demand rather than per commit
 of_n_population.sh             manual            ST0056; CITES AC-00.11 through AT-00.11 and AT-00.12 -- enumerates the population those two rows drive, run when that population changes rather than per commit
 partition.sh                   manual            ST0057; answers which tracked files under intent/ have no store row, which is hv standing question -- a measurement, not a per-commit gate
