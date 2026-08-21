@@ -82,15 +82,31 @@ teardown_fake_home() {
 # who measured it rather than inferring it from my claim that the fixtures
 # were fine; they were fine in Rust and not here.
 #
-# An env var rather than a hardcoded 3.0.0 because the same files run against
+# An env var rather than a hardcoded version because the same files run against
 # both binaries -- that is what parity means -- and a v2 baseline is entitled
-# to a fixture declaring a v2 version. The default follows v3 because that is
-# the binary under active development; INTENT_FIXTURE_VERSION=2.19.0 restores
-# a v2-shaped estate for one variable.
+# to a fixture declaring a v2 version.
+#
+# THE DEFAULT READS `VERSION`, THE SAME FILE `tests/run_tests.sh:61` READS, SO
+# THE TWO AGREE BY CONSTRUCTION RATHER THAN BY BEING REMEMBERED AT A RELEASE.
+# It used to be a literal `3.0.0`, and the runner defended itself while this
+# did not: `run_tests.sh` has exported this from VERSION since `e474b419`, so
+# only a DIRECT single-file `bats` run reached the literal -- the invocation
+# our own guidance prefers. That built a v3 fixture, drove the v2 binary at it,
+# and every test died on the version guard, which reads as "family not wired
+# yet" on files already expected to be red.
+#
+# Re-derived 2026-08-21 before changing it: 41 files call create_test_project
+# and NONE of them drive the v3 binary; the 6 files that touch it never call
+# this. Nothing anywhere reads INTENT_FIXTURE_VERSION except the runner that
+# sets it. So the literal was wrong in 41 of the 41 cases where it could fire.
+#
+# NOT `get_intent_version()` below, deliberately: that answers a different
+# question (the INSTALLATION's version, INTENT_HOME first) and falls back to a
+# hardcoded 2.2.1, which is a silent wrong answer -- the class this removes.
 create_test_project() {
   local project_name="${1:-Test Project}"
   local dir="${2:-$TEST_TEMP_DIR/test-project}"
-  local version="${INTENT_FIXTURE_VERSION:-3.0.0}"
+  local version="${INTENT_FIXTURE_VERSION:-$(cat "${INTENT_PROJECT_ROOT}/VERSION")}"
 
   mkdir -p "$dir/intent/.config"
   cat > "$dir/intent/.config/config.json" << EOF
