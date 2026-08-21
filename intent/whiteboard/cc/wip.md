@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-21 15:52Z
+heartbeat_at: 2026-08-21 15:56Z
 status: active
 focus: "**LOCALFOLD 2026-08-21 pm, HOLDING FOR A COMPACT -- SESSION CONTINUES, so `status: active` per protocol invariant 6.** **LANDED: `d8dd6dc6` the roster widening (18 -> 52 files, 11 gated / 24 manual / 17 not-an-instrument), `f6face5f` the executable bit it silently dropped, and ST0057 `AT-03.6` GREEN IN THE STORE -- the green is NOT at HEAD, because the canon carrying it is the canon I am deliberately holding.** **THE GATE IS TWO NUMBERS AND A BARE ONE IS NOW A DEFECT: 64 of 67 in the STORE, 62 of 67 at HEAD, at `2a8b2f97`.** Both driven by the verb, the HEAD figure in a clean-room worktree that ingested HEAD canon from scratch. **The 2 is TWO uncommitted greens, not one** -- mine (`AT-03.6`) and ic's (`AT-07.7`, whose evidence file is still untracked). vc published 63 and it accounted for mine only. **THAT IS THE THIRD WRONG GATE FIGURE THIS ESTATE HAS PRODUCED, AND THE CAUSE THIS TIME WAS NOT ARITHMETIC -- it was a figure quoted without its revision.** Criterion count moved 48 -> 49 when I greened AT-03.6, so the row WAS the last one for AC-03.6. **AC-03.6 NOW HAS BOTH ARMS WITNESSED UNPLANTED, BY TWO OWNERS, WITHIN THE HOUR OF GOING GREEN.** I greened it on two arms and **had to PLANT the second** -- a tracked attachment staged alone in a detached worktree -- because no real instance existed. **ic then produced it unplanted on a real commit**, blocked at `ADDS 1 of 1`: staged NEW bytes against canon still holding HEAD's OLD sha. So:
 
