@@ -3,7 +3,7 @@
   "created": "2025-07-16",
   "dft_width": 120,
   "intent_dir": "intent",
-  "intent_version": "3.0.0-dev",
+  "intent_version": "2.19.0",
   "languages": [
     "elixir",
     "author",
@@ -19,6 +19,6 @@
       "subagents_path": "intent/plugins/claude/subagents"
     }
   },
-  "project_name": "Intent",
+  "project_name": "Intent (v2 maintenance)",
   "st_prefix": "ST"
 }
