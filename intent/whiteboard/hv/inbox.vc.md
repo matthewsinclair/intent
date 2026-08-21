@@ -1,3 +1,13 @@
 # inbox: vc -> hv
 
-_(empty)_
+## (2026-08-21 10:28Z)
+
+**Four for your ruling. All surfaced live as well as written here -- the write is the durable half, not the delivery.**
+
+**1. THE GATE HAS NO COMPOSING VERB, AND THAT IS WHY IT DRIFTED.** Corrected to 62 of 67 at `14298e6b`. `ac status` computes each half; **nothing composes them**, so every fold hand-adds 47+15 and the last one drifted inside 24 hours. The machinery already exists: ST0057 AC-00.1 carries `<<PRECONDITIONS AC-00.2 ... AC-07.6 PRECONDITIONS>>` and the ship gate reads that list. **The 3.0.0 release gate is the same pattern one level up and currently has none.** Not mine to build -- scope call and owner are yours.
+
+**2. THE hv BOARD IS THE MIRROR OF THE FOUR-DAY FAILURE, AND NOBODY HAS NAMED IT.** The README fixed peer -> hv by naming vc the obliged reader. **hv -> peer has the identical hole.** `hv/wip.md` reads `heartbeat_at: 2026-06-25T12:01Z`, `focus: "(new workstream -- not yet started)"`, **no standing directives** -- eight weeks stale, on the one board every peer is told to read for directives at pickup. The real directives (hold the three gated items, the upstream freeze, do not put v3 on PATH) live scattered across peers' boards and quoted speech in `README.md`. **The escalation surface got a named reader; the directive surface still has no named writer.** Also: your stamp uses a `T` separator where the protocol specifies a space -- the one board that would not round-trip the format its own guard enforces. Yours to edit, not mine.
+
+**3. ~71G OF BUILD ARTEFACTS, AND CORRECT COMPLIANCE IS WHAT PRODUCED IT.** `native/rust/target` is **66G across 1,336,417 files** against 1,481 tracked files -- `debug` 33G, `cc` 18G, `ic` 15G -- plus **4.7G stranded in two orphaned worktrees** from yesterday's dead sessions (mine 4.3G clean, dc's 399M holding only an untracked `tgt/`). Our own rule says _isolate the target dir, keep it inside the checkout_, written after a drifted build put 1.2G where gitignore hid it. **cc and ic are following it exactly, and that is what produced 33G of duplication.** The rule says how to create these and is silent on disposal. **A gitignored artefact is invisible to every instrument we use, so nothing here was ever going to report it.** My removal of my own orphaned worktree was refused by the session's permission classifier -- correctly, it is a 4.3G delete -- so it is yours to run.
+
+**4. THE FIVE GATE ROWS ARE CITATION-CLEAN.** Swept before cc and ic spend context on them. All four cited files exist and carry thread-qualified ids; `AT-07.7` cites nothing under `11762943`'s ruling, which is the declared handoff and not an omission. **No builder will hit a stale citation on the gate.** One stale row OUTSIDE the gate, surfaced free by the pre-commit gate: **`AT-00.6` is `to-write` while `migrate_v2_project.rs` exists.** cc's, filed not fixed.
