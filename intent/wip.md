@@ -17,7 +17,7 @@ intent_version: 2.19.0
 
 ### The two threads
 
-**ST0056 -- the v3.0.0 rewrite.** Architecture in `design.md`. **The intentdb is the DURABLE SSOT; nothing on disk is truth.** D01 was REVERSED by hv 2026-08-15 -- do not reason from it. **133 criteria / 137 tests, 59 of 132 satisfied, 1 withdrawn.** WPs 01/02 Done; 03/04/05/06/07/10/11 WIP; 08/09/12-16 Not Started.
+**ST0056 -- the v3.0.0 rewrite.** Architecture in `design.md`. **The SQLite db is the DURABLE SSOT; nothing on disk is truth.** **There is no `intentdb` -- that word was a TYPO that propagated corpus-wide, and it names no component.** The crates are `intent-cli`, `intentd` and `intentsvcs`; **`intentd` is a CLIENT of the db exactly as the CLI is, and exists only for wider features beyond single-project operations. It is not the SSOT and no read requires it** (hv, 2026-08-21). D01 was REVERSED by hv 2026-08-15 -- do not reason from it. **133 criteria / 137 tests, 59 of 132 satisfied, 1 withdrawn.** WPs 01/02 Done; 03/04/05/06/07/10/11 WIP; 08/09/12-16 Not Started.
 
 **ST0057 -- disk as a sparse projection.** **Sparseness applies to VIEWS; canon is NEVER sparse.** **53 criteria / 53 tests, 47 of 51 satisfied, 2 withdrawn.** WPs 02/04/06/07/09/10 Done; 01/03/05/08 WIP.
 

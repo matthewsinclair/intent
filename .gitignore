@@ -83,8 +83,8 @@ npm-debug.log
 
 # Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>').
 intent/.treeindex/
-# The v3 intentdb. NOT disposable, NOT derived, and NOT "never truth" -- hv
-# reversed D01 on 2026-08-15: the intentdb is the DURABLE SSOT and everything on
+# The v3 SQLite db. NOT disposable, NOT derived, and NOT "never truth" -- hv
+# reversed D01 on 2026-08-15: the SQLite db is the DURABLE SSOT and everything on
 # disk is a secondary artefact. The three claims this comment used to make are
 # all false and are deleted rather than reworded.
 #
