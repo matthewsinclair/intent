@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 575f9585-0b9a-47fe-9d3b-24b2a561827c
-heartbeat_at: 2026-08-21 10:29Z
+heartbeat_at: 2026-08-21 11:41Z
 status: active
-focus: "**GATE CORRECTED TO 62 OF 67 AT `14298e6b` AND BROADCAST -- three files said 63 and three peers woke on it.** The wrong digit was not the finding: all three said do-not-hand-tally while naming two calls that cannot reach 67. **The third call, `ac status ST0056/03`, is a WP-scoped STID nothing in this estate ever wrote down.** Suite green at `706db8ee`, attributable, subject untouched -- **and structurally unable to go red for the undispatched-instrument class that holds three gate rows.** Five gate rows swept CITATION-CLEAN before cc and ic spend context on them. **My one HIGH finding today was wrong and my own grep population is what made it wrong.** 71G of build artefacts found; disposal is hv's."
+focus: "**FOUR hv RULINGS LANDED, AND I NOW HOLD THE PEN ON `hv/wip.md`.** Gate scope becomes canon data (cc); every node prunes its own `target/<node>` at fold (dc); upstream pushable; both commits pushed. **hv's board was a stub for eight weeks while every peer was told to read it for directives -- the mirror of the four-day inbox failure, and nobody had named it.** It now carries seven attributed standing directives behind a provenance rule. **THE LESSON THAT COST ME THIS MORNING: FILING TO AN INBOX IS NOT A DECISION REQUEST.** hv needs context, a question and OPTIONS in the live channel; a durable write with no decision shape gets read and not answered. Gate 62 of 67, unmoved."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-**P0 DONE AND COMMITTED (`14298e6b`), BROADCAST TO cc/ic/dc.** Gate 62 of 67, procedure repaired to the three calls that actually compose it. **P2 DONE:** five gate rows citation-clean; `AT-07.7` cites nothing correctly under `11762943`. Four escalations filed to hv and surfaced live. **BLOCKED, NOT DROPPED: removing my orphaned 4.3G worktree was refused by the session permission classifier -- correctly. hv runs it.**
+**hv's BOARD IS NOW MINE TO WRITE (hv, 2026-08-21) and the constraint is stated at the top of it: every entry is hv's word, dated, traceable. I hold the pen hv handed over, NOT hv's authority. A ruling I cannot attribute goes back to hv as a question rather than into the board.** Four rulings transcribed there and routed: gate-scope-as-canon-data to cc, `target/<node>` prune-at-fold to dc. Gate correction `14298e6b` and board `c9892046` pushed to both remotes on hv's word. **P0 and P2 done. Nothing of mine in flight.**
 
 ## TODO
 
@@ -24,6 +24,7 @@ claims: [ST0056, ST0057]
 
 ## WATCH-OUTS -- RULES ONLY
 
+- **FILING TO AN INBOX IS NOT A DECISION REQUEST, AND THE WRITE SUCCEEDING IS WHAT HIDES IT.** hv, 2026-08-21: _writing stuff to that inbox like that DOESN'T WORK. It's ok for durability, but to get a response, I need to see the context, a question, with some options._ **A durable write with no decision shape gets read and not answered, and nothing distinguishes that from not being read at all.** I am the named reader of hv's inbox and I still made this error in the other direction on the same day. **Context, question, OPTIONS, in the live channel. The inbox is the record, never the ask.**
 - **RUN A SUITE THROUGH ITS RUNNER, NEVER AROUND IT.** An entry point carries fixes and defences a lower-level invocation silently loses.
 - **A POPULATION THAT EXCLUDES THE ANSWER RETURNS A CONFIDENT ZERO.** _N of N files lack X_ is worthless if the file that has X is not an N. **Ask what would hold X before counting what does not.**
 - **AND THE EXCLUSION FILTER IS WHERE THE PREMISE HIDES.** 2026-08-21: I greped for guard dispatch across `.githooks`, `bin/.devbin` and `lib` while EXCLUDING `lib/templates`, reasoning that templates ship to consumers rather than run here -- and the delegated-roster design exists precisely because **this repo consumes its own template.** Confident zero, HIGH finding, said out loud to hv before the self-refute killed it. **A population is a claim about what could hold the answer, and `--exclude` is that claim in its least visible form.**
@@ -51,6 +52,7 @@ claims: [ST0056, ST0057]
 
 ## DECISIONS
 
+- **2026-08-21** -- hv ruled four: gate scope declared in canon (cc builds, vc verifies); every node prunes its own `target/<node>` at fold (dc); `upstream` freeze lift is standing; **vc maintains `hv/wip.md` on hv's behalf under a stated provenance rule.**
 - **2026-08-20 17:36Z** -- suite green under hv's one-off authority; **credo N/A verified (no `mix.exs`, no `.credo.exs`), not assumed.**
 - **2026-08-20** -- D57-8 amended to carry four collection addresses; **AC-07.1 NOT reopened**; AC-07.7 minted.
 - **2026-08-20** -- AT-11.6's re-citation onto `prepush` **withdrawn**; deliverable restored to dc.
