@@ -138,3 +138,68 @@ intentd   sha256 b672a608d56e984d   marker dirty-5819417b...
 ```
 
 **Two different markers on a pair invoked as matched.** The markers are provenance and are not identity; the sha256s are what distinguish one build from another.
+
+---
+
+# AFTERNOON SESSION -- post-bounce, fresh session `d2fad1a7` (fold at 2026-08-21 15:31Z)
+
+**THE BOUNCE TOOK AND IT WAS DRIVEN.** My board carried `80fa1787`; this session is `d2fad1a7`. Later, all four: cc `ef9e17d5`->`87048274`, ic `6e1c92e1`->`d5a0bd62`, vc `575f9585`->`3049725b`. **Read off each node's OWN board -- four independent self-reports, not one shared instrument.** That is the difference from yesterday, when all four read `ListAgents` socket age and all four were wrong.
+
+## 1. THREE FALSE FINDINGS I NEARLY ESCALATED, ALL FROM ONE METHOD ERROR
+
+**`int hooks` resolves its target from the BINARY's location, not the cwd** -- `bin/devbin:29-30` derives `PROJECT_ROOT` from the launcher's own path, and `cmd/hooks:75` uses it. The PATH `int` is `Intent/bin/int`, so standing anywhere else it answers **about Intent**.
+
+Withdrawn, all three mine: that it reports a wired clone with `core.hooksPath` unset; that `--install` fails to install; that it asserts a wired gate over a missing dispatcher. **All three were Intent's true state read through a mis-aimed instrument.** `Intentv2/bin/int hooks` reports `gate ABSENT` correctly.
+
+**AND THE TELL WAS IN THE OUTPUT THE WHOLE TIME.** Line 1 is `hooks in /path/...`. **I grepped for `gate|WIRED` and cut off the line naming the subject.** The instrument was not silent; my filter made it silent. **A filter that drops the subject line converts a correct report into a confident wrong one.**
+
+## 2. `sync --to-disk <ID>` IS A WHOLE-FILE SECOND WRITER (the session's biggest hazard)
+
+It rewrites **every attachment file of that thread** from the store. cc was live in `runner_roster_check.sh`; my sync pulled ~130 lines of their unreviewed work into my index. **HEAD 266 / my staged copy 397 / worktree 411 -- a line-count check was the only thing that stopped me committing a peer's work under my name.**
+
+`--to-store` first is disk-authoritative so it round-trips, but that only holds for files on disk at that instant. **Same class as the markdown formatter, far more reach: four nodes, one checkout.**
+
+## 3. A BARE `git reset` IS A SHARED-INDEX OPERATION AND NOTHING NAMED IT
+
+I ran `git reset --quiet` twice (14:42:57Z, 14:44:51Z) with **no pathspec** -- it resets the WHOLE index, unstaging every peer's staged work. Content survives (mixed); staging does not.
+
+**vc FALSELY CONFESSED TO IT** in commit `af91be8b` -- _"--only protects the commit, not the index -- I cleared a peer stage proving it"_. vc then drove `--only` in a throwaway repo both directions and **it preserves a peer stage in both**. Corrected at `7d28d882`.
+
+**vc's CLASS, AND IT IS THE SHARPEST THING TODAY: A FALSE CONFESSION IS CAUGHT BY NOTHING WE OWN.** Every rule we have is tuned for claims that FAVOUR the claimant -- _a change that would conveniently green your own work is the one to stop and route_. **A claim that inconveniently blames you passes every check precisely because it costs the claimant. Owning a fault reads as rigour, so nobody audits it.** The only control is a peer who checks a self-accusation as hard as a self-serving one.
+
+## 4. TRAPS THAT COST TIME TODAY
+
+- **THE ROSTER TABLE IS A SINGLE-QUOTED SHELL STRING. ONE APOSTROPHE BREAKS THE PARSE.** I broke it twice -- **the second time inside the sentence warning about apostrophes.** Verify the count is 0 BEFORE writing.
+- **`direnv status` prints `Found RC allowed 1` and `1` MEANS NOT-ALLOWED.** I read the word `allowed` and reported the file as approved. **A status field whose name is the opposite of its value.**
+- **`zsh -i -c` DOES NOT FIRE direnv** -- the hook is on `precmd`, which `-c` never runs. My "it does not work interactively" was a false negative. `direnv exec .` is the honest test.
+- **AN EXISTENCE TEST BEFORE A PATH TEST:** `canon_commit_check.sh` is under **ST0056**'s tools dir, not ST0057's, though it covers an ST0057 row. My board had the wrong path.
+
+## 5. CROSS-OWNER ATOMICITY IS IMPOSSIBLE WITH `--only`, AND IT BIT
+
+Tracking a new parity tool **requires a roster row**; the row lives in a file a peer owns; `--only` is path-scoped, so **whoever commits that file commits both parties' work.** No split exists.
+
+Result: between `d8dd6dc6` (cc) and `5d2b1f0d` (me) **HEAD was internally inconsistent** -- committed roster said `gated`, committed runner did not dispatch. It read GREEN because the roster check reads the runner from the **WORKTREE**. **A fresh clone got DISAGREE and nothing local could see it.**
+
+**cc BELIEVED THEIR WIDENING HAD LANDED WHEN IT WAS UNCOMMITTED** ("the widening landed as: 51 files rostered"). Driven: `git show HEAD:... | grep -c not-an-instrument` -> 0 while the worktree had 30. **`fixed is not a state`, in a peer's mouth, six messages after they agreed with the class.**
+
+## 6. AC-03.6 -- WHY cc's REVERT WAS RIGHT AND WHAT ACTUALLY CLEARED IT
+
+cc wired this in full on 2026-08-19 and **reverted it**: `REV="HEAD"` at pre-commit time is the **PARENT**, so a planted index divergence printed `EXAMINED 0 of 280` at exit 0. Their prescription: _a `--staged` MODE, NOT A CALL SITE -- a real change to a 425-line instrument._
+
+**That mode landed; the file is 464 lines. I wired `--staged`, never the default.** Two-sided control on a REAL index, unplanted: `ADDS 1 of 88` rc=1 (my own commit), `ADDS 0` rc=0 after sync-then-commit-together. cc hit it independently at `ADDS 1 of 89`.
+
+**The row's closing line -- _whoever admits it wants the path trigger_ -- IS SUPERSEDED. hv declined the path trigger explicitly**, with cc's 3.6-4.9s figure in front of them, choosing unconditional at ~4.6s -> ~7.3s gate total.
+
+**THREE COST FIGURES, NONE COMPARABLE:** cc 3.6-4.9s at `61b93440`; mine 2710-2760ms narrowed at `ecea0eeb`; recorded 2.49-2.55s at `4ba598f1`. Different revisions, machines, days.
+
+## 7. THE `.envrc` -- INERT, AND THE CLAIM ON IT WAS THE REAL DEFECT
+
+vc landed `.envrc` (`9b883bd1`) putting v3 first inside this checkout. **It is BLOCKED and does nothing for anyone** -- `direnv exec .` -> _.envrc is blocked. Run `direnv allow`_. **Needs hv to run `direnv allow`; nobody else should.**
+
+Its claimed side effect -- _that is the drift exposure closed for Intent_ -- **is false in the hook path.** Driven non-interactive: PATH has no v3, `INTENT_HOME` = `Intentv2`, `intent` -> 2.19.0, guards still resolve from the frozen v2 tree. **Exactly hv's stated grounds for declining direnv: green where you look, absent where it matters.** Worse for us: **all four nodes commit through non-interactive tool calls, so it is inert for every commit we make.**
+
+**vc's MECHANISM FOR HOW IT GOT PAST THE RULING, AND IT GENERALISES: they framed the benefit as a SIDE EFFECT.** hv's decline was filed under "the mechanism", so **disclaiming it as incidental moved the same claim outside the ruling's scope. A benefit reclassified as incidental escapes the ruling that governs it.**
+
+## 8. THE ORDERING GAP (vc's, and it is unclosed)
+
+cc and I reported hv's hold-lift ruling **differently**, both stamped 14:30Z, both correctly carrying **no time hv could be quoted on**. **Date-only granularity cannot sequence two same-day rulings in opposite directions on one item.** The transcription rule solves ATTRIBUTION and is silent on ORDERING. Resolved this once by directness -- my question named all three items with a single-item option that hv declined -- but the gap stands.
