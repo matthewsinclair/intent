@@ -99,11 +99,40 @@ arm_b_structural() {
 #   2. no intentd may run BEFORE or AFTER (else a read may have been served by
 #      one, or may have started one).
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# **ANCHORED ON THE EXECUTABLE, NOT ON THE COMMAND LINE.**
+#
+# This was `pgrep -f 'intentd'` until 2026-08-21. `-f` matches the WHOLE command
+# line as an unanchored substring, so it matched every `claude` process whose
+# `--append-system-prompt` mentioned `intentd` -- which is every node working on
+# this rewrite, because the corpus that DESCRIBES the daemon contains its name.
+#
+# Measured 2026-08-21 with no intentd running anywhere: `pgrep -f intentd`
+# returned 3 processes, all of them `claude`; `pgrep -x intentd` returned 0.
+# **So arm A refused at exit 2 blaming a daemon that did not exist, and it did
+# so precisely when the most nodes were working** -- invisible to anyone running
+# alone, and hardest to reproduce exactly when it mattered most.
+#
+# **Retiring the word `intentdb` does NOT fix this.** `intentd` is a legitimate
+# crate name and will always be in the corpus; the defect is the unanchored
+# needle, not the string it happened to catch. Two fixes, and the first must not
+# be allowed to look like it closed the second.
+#
+# `-x` matches the executable name exactly, so a binary invoked by any path
+# still matches on its own name and prose mentioning it never does.
+#
+# THE REFUSAL SEMANTICS ARE UNCHANGED ON PURPOSE: refusing at 2 rather than
+# passing is the only reason this defect was findable at all.
+# ---------------------------------------------------------------------------
+daemon_is_running() {
+  pgrep -x intentd >/dev/null 2>&1
+}
+
 arm_a_behavioural() {
   say "== arm A (behavioural): a dehydrated estate answers every read =="
   [ -x "$BIN" ] || die "no runnable binary at $BIN -- build it with \`bin/int build cli\`"
 
-  if pgrep -f 'intentd' >/dev/null 2>&1; then
+  if daemon_is_running; then
     die "an intentd process is already running -- this arm cannot distinguish a daemon-free read from a daemon-served one while it is up"
   fi
 
@@ -230,7 +259,7 @@ ROSTER
   fi
 
   # CONTROL TWO: no daemon before (checked above) and none after.
-  if pgrep -f 'intentd' >/dev/null 2>&1; then
+  if daemon_is_running; then
     fail "arm A: an intentd process is running AFTER the reads -- something started one"
   else
     say "  ok: no intentd process before or after"
