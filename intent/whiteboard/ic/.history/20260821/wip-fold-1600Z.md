@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: d5a0bd62-6c46-4b53-8af9-fca9edf87c0e
-heartbeat_at: 2026-08-21 16:08Z
+heartbeat_at: 2026-08-21 15:58Z
 status: active
-focus: "**LOCALFOLDED 16:08Z, STILL ACTIVE -- a compact is not a session end (invariant 6), and we resume after it.** Everything built today is COMMITTED: `6edbd24f` (AT-07.7 green at HEAD + the pgrep needle + canon, carrying cc's AT-03.6 green by explicit consent) and `f099fe22` (view_path_of's wildcard + intentdb out of the dispatch table). Suite 760/0, fmt and clippy clean, view-skew clean. **NOT PUBLISHING A GATE FIGURE: cc's clean-room ingest is the instrument, not my tree.** Live work is in TODO 1-5; today's detail is archived at `.history/20260821/wip-fold-1600Z.md`."
+focus: "**LANDED AT `6edbd24f` -- AC-07.7 IS GREEN AT HEAD, NOT JUST IN A WORKTREE.** Built `address_collections_resolve.rs` with the denominator read from CANON (sha256 cross-checked against disk, equal at abc9a205), not hand-copied and not read from address.rs; `d57_8_forms()` untouched, so AC-07.1s population has not moved. **Red-first driven as a PAIR: the mutation reds AT-07.7 while a POST-clause-only control stays GREEN**, so the under-addressing form is load-bearing. Also: `view_path_of`s wildcard replaced with named arms (proved by a 14th-variant probe -- it is now one of four compile errors where it used to compile in silence); `no_daemon_required.sh`s unanchored needle fixed and the instrument DRIVEN GREEN end-to-end under MAAC for the first time; `intentdb` retired from the dispatch table. **AC-08.5 is ROUTED not built -- it needs field setters in facade.rs, service layer, and hv has the ownership question.** Suite **760/0**, driven here not taken. **THE COMMIT WAS REFUSED FIRST BY cc's OWN AC-03.6 GUARD AND THAT REFUSAL IS THE BEST EVIDENCE THAT CRITERION HAS** -- unplanted, real commit, the arm cc had to fabricate an hour earlier. **NOT PUBLISHING 64-AT-HEAD: it is an inference from a correct premise, which is exactly how vc and I each shipped 63.** Open: the --json vs --format spelling, measured 3-3 and deliberately not ruled by me."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,20 +13,43 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. EVERYTHING BUILT TODAY IS COMMITTED.** Full detail archived at `.history/20260821/wip-fold-1600Z.md` -- what stays here is the part a cold session cannot reconstruct.
+**NOTHING IN FLIGHT.** Four items landed this session, all verified before being written down. Uncommitted working set: `intentsvcs/tests/address_collections_resolve.rs` (new), `intentsvcs/src/address.rs`, `intent/st/ST0057/parity/tools/no_daemon_required.sh`, `intent/.canon/st/ST0057.json`, `surface/dispatch-table.{json,md}`.
 
-| commit     | what                                                                                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `6edbd24f` | **AT-07.7 green AT HEAD.** `address_collections_resolve.rs` + the `pgrep -x` needle fix + ST0057 canon. Carries cc's `AT-03.6` green by explicit consent, named by path. |
-| `f099fe22` | `view_path_of`'s wildcard replaced with named arms; `intentdb` out of `surface/dispatch-table` (JSON is SSOT, face regenerated).                                         |
+### 1. AC-07.7 GREEN -- the gate moved 62 -> 63 of 67
 
-**Verified at HEAD rather than in the store:** both greens present, `address_collections_resolve.rs` tracked, the needle present, `intent/.canon` clean. Suite **760/0**, fmt clean, clippy clean at `-D warnings`, `view_skew_check` rc=0.
+`native/rust/crates/intentsvcs/tests/address_collections_resolve.rs`, 2 tests. **The denominator is read from CANON** -- `ST0057.json`'s `design.md` attachment, bounded at `## D57-8`, asserted to carry EXACTLY TWO fences, second fence taken. Canon's `sha256` cross-checked against disk (equal, `abc9a205...`, 33538 both sides) and an ABSENT disk file is explicitly not a divergence, so the row survives dehydration. **`d57_8_forms()` was not touched**, so AC-07.1's population has not moved -- and it has THREE consumers, not two: coverage, round-trip, and the prefix-diagnostics row at `:307-320`.
 
-**THE THREE THINGS FROM TODAY WORTH MORE THAN THE COMMITS:**
+**RED-FIRST WAS A PAIR.** Mutation = `AcCollection`'s parse arm deleted at `address.rs:449`. AT-07.7 **RED**; throwaway POST-clause-only control **GREEN**; AT-07.1's `every_d57_8_form_resolves` **GREEN**. The control staying green is the half that matters -- a test written from D57-8's POST clause alone passes while `AcCollection` is broken.
 
-1. **AC-03.6 now has both arms and a negative control on REAL commits, and only one was ever planted.** cc had to fabricate the file-ahead-of-canon arm in a detached worktree because no genuine instance existed; **my first commit attempt produced one unplanted** (`ADDS 1 of 1`), in the opposite direction from the one that blocked cc. **And the tool teaches the ordering rather than merely refusing** -- its printed remedy was correct AND non-obvious, since commit-first-then-resync leaves THAT commit permanently divergent.
-2. **The estate's most-quoted number was wrong three times today and only the first two were arithmetic.** vc and I each published **63 at HEAD** -- I subtracted my own green from 64, vc subtracted cc's. **Arithmetically correct, oppositely wrong, independently derived, and the agreement read as corroboration.** The keeper: **a wrong sum is catchable by re-adding; a correct sum over an unnamed population is catchable by nothing.**
-3. **I declined to publish 64-at-HEAD after my own commit made every premise point at it.** True premises plus an inference is not a measurement, and it is exactly what produced both 63s.
+**THE UNFORESEEN FOURTH RESULT IS THE MOST USEFUL THING I FOUND ALL DAY.** AT-07.1's prefix row also reddened, because `intent:///threads/{id}/ac` is a proper prefix of the `Ac` form and so is already in its population -- **but its arm for that case is literally `Ok(_) => {}`, an EMPTY arm.** Its doc comment names the address as a collection and then asserts only that it does not refuse-as-trailing. **A URL resolving to the WRONG entity passes it unread.** AT-07.1 touches this address and asserts nothing about it.
+
+### 2. `view_path_of`'s wildcard is gone (AT-07.3, hardening -- no row moved)
+
+`address.rs:606` ended `_ => None` thirty lines under an `Entity::form()` that is exhaustive on purpose. Every variant is now named with its own reason. **Proved rather than asserted: a temporary 14th variant produces FOUR non-exhaustive errors and `view_path_of` is one of them**, where before it compiled in silence. My own test's `is_collection` was confirmed to bite too, at `:207`. `intentsvcs` 105 targets / 760 passed / 0 failed; clippy `-D warnings` clean; fmt clean.
+
+### 3. `no_daemon_required.sh` -- needle anchored, and the instrument now COMPLETES
+
+`pgrep -f 'intentd'` -> `pgrep -x intentd`, both sites, behind a documented `daemon_is_running` helper. **Measured live: `-f` matched 3 `claude` processes with ZERO daemons running; `-x` matched 0.** Driven end-to-end: **rc=0, AC-07.5 HOLDS**, both arms, and `--selftest` rc=0 with all three controls firing. **This is the first completed run of this instrument under MAAC.** No row taken -- AC-07.5's green was never in doubt, only the instrument.
+
+### 4. `intentdb` retired from the dispatch table
+
+**The JSON is the SSOT and the MD is GENERATED** -- `dispatch.rs:7` says so outright, which settles the question my board left as my call. Edited the JSON, regenerated via `gen_dispatch_table.sh`, diffed to confirm the generator is a fixed point on everything else (exactly one line differs). `view_skew_check` rc=0, `dispatch-table.md matches dispatch-table.json`. Corrected in BRACKETS per vc's convention, since the site is a quoted hv ruling.
+
+### 5. LANDED -- `6edbd24f`, and the refusal on the way in was worth more than the commit
+
+**hv authorised directly in-session; cc gave explicit consent, naming both canon paths, for their `AT-03.6` green to ride.** Four paths, 388 insertions / 13 deletions: `ST0057.json`, `acceptance.md`, `no_daemon_required.sh`, `address_collections_resolve.rs`.
+
+**MY FIRST ATTEMPT WAS REFUSED BY `canon_commit_check.sh` AT `ADDS 1 of 1`, AND IT WAS RIGHT.** I staged the file's NEW bytes while the index's canon still carried HEAD's OLD sha, so canon named bytes the commit did not contain. **That is AC-03.6's file-ahead-of-canon arm -- the one cc had to PLANT an hour earlier in a detached worktree because no genuine instance existed.** I produced one by accident, on a real commit, in the opposite direction from the one that blocked cc.
+
+```
+canon ahead of commit   cc blocked   ADDS 1 of 89   dc's untracked file, via cc's sync
+file ahead of canon     ic blocked   ADDS 1 of 1    my staged bytes vs HEAD's canon sha
+negative control        both         ADDS 0 rc=0    after sync-then-commit-together
+```
+
+**Both arms and the control, on REAL commits, by two owners, within two hours of the criterion going green.** **AND THE TOOL TEACHES THE ORDERING RATHER THAN JUST REFUSING** (cc's point, kept): the remedy it printed was correct AND non-obvious -- commit-first-then-resync leaves THAT commit permanently divergent, and it is exactly what I would have reached for unaided.
+
+**VERIFIED AT HEAD, NOT IN THE STORE:** `AT-07.7` green with its file cited twice, `AT-03.6` green, `address_collections_resolve.rs` tracked (`git ls-files --error-unmatch` matches), the `pgrep -x` needle present, `intent/.canon` clean. **A clone can now obtain the bytes the row rests on.**
 
 ## TODO
 
@@ -39,10 +62,6 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ## Watch-outs
 
 ### Mechanical
-
-- **AN INBOX IS NOT READ-ONCE-AT-PICKUP, AND MINE SAT UNREAD FOR NINETY MINUTES.** I read all four inboxes at the 13:50Z pickup (all empty) and never re-read them. **dc wrote `ic/inbox.dc.md` at 14:30Z announcing they were touching `bin/.devbin/cmd/`, and I found it at the 16:08Z fold** -- after telling dc their work was unannounced. It was announced; I had not looked. **Everything that actually reached me today came over the LIVE channel, and the durable one was written correctly and never delivered.**
-
-  **That is this protocol's own stated failure applied to me:** _a write surface with no named reader is a queue, not a channel_, and _a node reporting is not finished when the write returns -- it is finished when a named reader has it._ The protocol says that about `hv/inbox.*` and it is just as true of mine. **Re-read the inboxes before any fold, and before contradicting a peer about what they told you.**
 
 - **AN UNCOMMITTED EDIT IN A SHARED CHECKOUT WAS ERASED TODAY AND THE MECHANISM IS STILL UNKNOWN -- DO NOT LET THE TIDY ANSWER CLOSE IT.** I made the dispatch-table correction ~14:37Z, verified it two ways, and by 14:43Z the bytes were gone. vc drove `git reflog --date=iso` and found two `reset: moving to HEAD` at 14:42:57Z and 14:44:51Z from two FAILED `git commit --only` runs of theirs, and then **refused to call it solved, correctly: `commit --only` builds a temporary index and rolls THAT back, and never touches the worktree.**
 
@@ -72,8 +91,6 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ### Estate
 
-- **`int hooks` RESOLVES ITS TARGET REPO FROM THE BINARY'S LOCATION, NOT THE cwd** (dc, driven both ways). The PATH `int` is `Intent/bin/int`, so **standing in any other checkout it silently answers about Intent** -- it produced three false findings for dc before they caught it. **This is a live trap for restart step 0**, which tells a fresh clone to run `int hooks` first: in `Intentv2` you must run `./bin/int hooks`, or you get Intent's answer about a different tree.
-- **ST0057 AC-01.5 IS FORM 1 ONLY** (dc). `int hooks` already reports `gate ABSENT`, names the missing file and says the chain skips silently -- **so vc's remedy form 2 is already built.** The remaining form is the chain block's `[ -x ]` having no `else`, which dc has now built and committed.
 - **`.githooks/pre-commit` IS THE ONE SHARED FILE WHERE A PEER'S UNCOMMITTED EDIT EXECUTES IN YOUR PROCESS, WITH NO OPT-IN.** `core.hooksPath` is `.githooks` and git runs the WORKTREE copy, so **`6edbd24f` was gated by dc's dirty, unannounced hook change.** Outcome was correct -- dc had driven ARM 3 (`pre-commit.intent` present, mode 711, `-x` TRUE) and the gate ran; my commit was properly refused once and properly passed once.
 
   **THE POINT IS THE ASYMMETRY, NOT THE INCIDENT.** For `surface/dispatch-table.json` -- the file I minted the announce-the-FILES rule over -- a peer's dirty copy affects nobody until somebody reads it. **For the pre-commit dispatcher, a peer's dirty copy is in the path of every other node's next commit.** Different force, not merely more force: not _someone might read a stale file_ but **_everyone executes yours_**. **Announce before touching the gate, always, even for a fix that is obviously right.**
