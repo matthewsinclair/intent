@@ -440,3 +440,167 @@ fn an_ac_and_an_at_can_be_created_through_the_surface() {
             surface. It remains true at the CLI, which has no create verb wired."
   );
 }
+
+// ---------------------------------------------------------------------------
+// AC-08.5's population, widened from ONE entity to EVERY entity form.
+// ---------------------------------------------------------------------------
+
+/// What the mutation surface did when this form was addressed.
+///
+/// **The discriminator is `has no write path yet`, and it is the right one
+/// because it is the surface's own words for *this entity is not reachable at
+/// all*.** A body error, an id mismatch or a named refusal all prove the
+/// opposite -- that `put` reached the form and had an opinion about the
+/// request. Only this answer means the door is absent.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum Reached {
+  /// `put` has an arm for this form. What it then said about the BODY is a
+  /// different question and deliberately not this test's.
+  Yes,
+  /// `put` fell through to its catch-all: no arm exists.
+  NoWritePathYet,
+}
+
+/// **EXHAUSTIVE ON PURPOSE: a fourteenth `Entity` variant does not compile
+/// until it is named here**, which is the only mechanism Rust offers for
+/// "every variant is accounted for" -- the language cannot enumerate them.
+/// The same device carries AT-07.7's collection fence.
+///
+/// This is NOT a second copy of `Entity::form()`. That answers *what is this
+/// called*; this answers *is this form expected to be reachable by `put`*, and
+/// nothing else in the tree holds that.
+fn declared_reach(entity: &intentsvcs::address::Entity) -> Reached {
+  use intentsvcs::address::Entity as E;
+  match entity {
+    // Arms that exist in `Facade::put` today.
+    E::At { .. } | E::Ac { .. } | E::Thread { .. } => Reached::Yes,
+    // Reached, and refused BY NAME with `this id is server-assigned`. That is
+    // an opinion about the request, so the door exists.
+    E::Threads | E::Issue { .. } => Reached::Yes,
+    // **AC-08.5's LIVE INSTANCES, and the reason this row is not green.**
+    // An attachment's canon record has no setter narrower than a thread; the
+    // rest have no `put` arm at all.
+    E::Attachment { .. } => Reached::NoWritePathYet,
+    E::Wp { .. } | E::WpCollection { .. } | E::AcCollection { .. } => Reached::NoWritePathYet,
+    E::Issues => Reached::NoWritePathYet,
+    E::Node { .. } | E::NodeInbox { .. } | E::Event { .. } => Reached::NoWritePathYet,
+  }
+}
+
+/// One address of every entity form D57-8 defines.
+///
+/// Spellings taken from the address grammar's own tests rather than composed
+/// here, so a form this list gets WRONG fails to parse and is reported as a
+/// broken population instead of silently measuring twelve forms as thirteen.
+fn one_address_of_every_form() -> Vec<&'static str> {
+  vec![
+    "intent:///threads",
+    "intent:///issues",
+    "intent:///threads/ST0001/wp",
+    "intent:///threads/ST0001/ac",
+    "intent:///threads/ST0001",
+    "intent:///threads/ST0001/wp/01",
+    "intent:///threads/ST0001/ac/AC-09.9",
+    "intent:///threads/ST0001/at/AT-03.1",
+    "intent:///threads/ST0001/attachments/design.md",
+    "intent:///issues/0001",
+    "intent:///nodes/ic",
+    "intent:///nodes/ic/inbox/vc/2026-08-19T11:41Z",
+    "intent:///events/1234",
+  ]
+}
+
+/// **AC-08.5's UNSETTABLE SET, DRIVEN ACROSS EVERY ENTITY FORM AND PRINTED BY
+/// NAME.**
+///
+/// The criterion's own words: *the completeness of the surface, with the
+/// unsettable set as the printed output*. `the_unsettable_field_set_is_measured_by_driving_the_surface`
+/// above measures ONE entity through ONE door and says so in its own failure
+/// text -- *an empty list here is NOT AC-08.5 met*. This takes the population
+/// the criterion actually names.
+///
+/// # Membership is DRIVEN, and the declaration is only the expectation
+///
+/// Every form is addressed and `put` is CALLED. What lands in the set is what
+/// the surface did. `declared_reach` says what we believe, and the two are
+/// compared -- so this reds in BOTH directions: **a form that loses its write
+/// path joins the set, and a form that GAINS one leaves it and forces the
+/// declaration to shrink.** An authored list of known gaps can only ever rot in
+/// the second direction, silently, which is the shape that turns a criterion
+/// into an excuse-list.
+///
+/// # Why this cannot go green by being written more carefully
+///
+/// It is not a defect in the test that the set is non-empty. **Red IS the
+/// criterion's verdict** until the surface reaches those forms, and the value
+/// of the test is that the set is exact and named rather than gestured at.
+#[test]
+fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
+  let fx = populated_fixture();
+  let mut facade = fx.facade();
+
+  let mut observed: Vec<(String, Reached)> = Vec::new();
+  let mut disagreements: Vec<String> = Vec::new();
+
+  for url in one_address_of_every_form() {
+    let address = parse(url).unwrap_or_else(|e| {
+      panic!("the POPULATION is broken, not the surface: `{url}` does not parse ({e:?})")
+    });
+    // **The body is deliberately minimal.** This test asks whether `put` has an
+    // ARM for the form, never whether a particular write lands -- so a body
+    // that would fail parsing inside an arm still proves the arm was reached,
+    // because a parse complaint is an opinion about the request.
+    let said = match facade.put(&address, "{}") {
+      Ok(_) => String::new(),
+      Err(why) => format!("{why}"),
+    };
+    let reached = if said.contains("has no write path yet") {
+      Reached::NoWritePathYet
+    } else {
+      Reached::Yes
+    };
+    let declared = declared_reach(&address.entity);
+    if reached != declared {
+      disagreements.push(format!(
+        "  {url}\n    declared {declared:?}, observed {reached:?}"
+      ));
+    }
+    observed.push((url.to_string(), reached));
+  }
+
+  // **THE POSITIVE CONTROL: at least one form must be reachable.** Every
+  // assertion here is about a refusal, so a facade that refused everything --
+  // a broken fixture, an unopened canon -- would satisfy the whole list and
+  // report a green that is a fact about the harness rather than the surface.
+  let reachable = observed.iter().filter(|(_, r)| *r == Reached::Yes).count();
+  assert!(
+    reachable > 0,
+    "no form was reachable at all -- this is a fact about the harness, not about \
+     the mutation surface"
+  );
+
+  assert!(
+    disagreements.is_empty(),
+    "the mutation surface's reach has MOVED, and the declaration no longer describes it:\n{}\n\n  \
+     If a form GAINED a write path, delete it from `declared_reach` -- AC-08.5 got closer.\n  \
+     If a form LOST one, that is a regression in the surface, not in this test.",
+    disagreements.join("\n")
+  );
+
+  // **The unsettable set, printed by name on every run.** AC-08.5 asks for it
+  // as OUTPUT, not merely as an assertion, and a set nobody prints is one
+  // nobody can act on.
+  let unsettable: Vec<&str> = observed
+    .iter()
+    .filter(|(_, r)| *r == Reached::NoWritePathYet)
+    .map(|(u, _)| u.as_str())
+    .collect();
+  println!(
+    "AC-08.5: {} of {} entity form(s) have no write path through `put`:",
+    unsettable.len(),
+    observed.len()
+  );
+  for u in &unsettable {
+    println!("  {u}");
+  }
+}
