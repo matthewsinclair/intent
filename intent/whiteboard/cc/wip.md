@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-21 17:16Z
+heartbeat_at: 2026-08-21 17:22Z
 status: active
-focus: "**BOTH ROWS I COULD MOVE ARE BUILT AND LANDED. AC-03.14 SATISFIED (`f580c823`), AC-08.5 BUILT (`3f9b2907`, ic covers), `render.rs` UNIT TESTS (`1d550ac1`) WHICH UNBLOCKED ic's RETIREMENT.** Gate was **65 of 67 at `f580c823`, clean-room, dirty 0**; ST0056/03 PASS. **THE DAY'S SHAPE, AND IT IS ONE CLASS WEARING SIX FACES: A COMPONENT'S RECORDED DESCRIPTION AND ITS DRIVEN BEHAVIOUR DISAGREEING, WITH NOTHING WATCHING THE JOIN.** `todo`/`todo list` promise a write in their own `--help` and do not perform it; `at lint --fix` earns a `mutate` classification from a flag that does not exist in v3; `int hooks` resolved from the binary rather than the cwd; a doc comment named an origin that a deletion would have promoted to authoritative; dc's roster row measured its own harness; my own remedy string named an address that does not parse. **Six instruments, three nodes, two languages and one doc comment, all correct at writing time.**"
+focus: "**FOLDED FOR A COMPACT, THEN A BOUNCE. SESSION CONTINUES THROUGH THE COMPACT, SO `status: active` -- and the DISCRIMINATOR for the next session is ONE FIELD, observable only about ITSELF: a genuinely fresh `$CLAUDE_CODE_SESSION_ID` DIFFERS from `87048274-c4dc-44b7-b08d-c933207a4f50`. UNCHANGED means resumed OR compacted, two causes one reading.** **BOTH GATE ROWS I COULD MOVE ARE LANDED: AC-03.14 satisfied (`f580c823`), AC-08.5 built (`3f9b2907`, ic covers and held it RED on measurement). GATE IS 65 OF 67; ST0056/03 PASS; AC-01.5 is the only movable row and it is vc's verdict on dc's arm.** **THE DAY WAS ONE CLASS WEARING SEVEN FACES -- a component's recorded description disagreeing with its driven behaviour, nothing watching the join -- AND THE SEVENTH WAS MY OWN WATCH-OUT, WHICH WAS FALSE AND WORSE THAN ABSENT.**"
 
 | arm | instance | verdict |
 | --- | --- | --- |
@@ -114,6 +114,52 @@ Clean harness (one python3, `perf_counter` around `subprocess.run`), floor **5.2
 **A 50ms harness artefact would have made a clean re-measurement LOWER. Both came back slower.** So the figures were not harness-inflated -- **but they are stale on a different axis: this machine runs four Claude sessions and cargo builds, and a 25% spread is the signature of CONTENTION rather than of the tool.** Neither figure is wrong; they answer different questions. **The ratio the roster exists to support survives: ~23x against the recorded ~20x.**
 
 **THE GENERAL DEFECT: every timing row here carries a revision and a machine and NO LOAD CONDITION** -- which is uncomparable on a machine shared by four sessions all day. Not fixable by re-timing. **Two rows to edit, and dc goes first: they are already blocked behind vc's canon line and I will not be a second writer into `runner_roster_check.sh`.**
+
+### CHECK D -- AN INSTRUMENT SHIPS EXECUTABLE (`4c9d9d3e`)
+
+**The file held the convention in PROSE and never checked it.** Four rows read _sourced, not executed; ships 644 and defines functions only_ -- so 644 vs 755 is how this roster tells a library from an instrument, in its own words, **with nothing watching the join.** That is the class the whole file exists to close, sitting inside it.
+
+| arm                                               | result                                                         |
+| ------------------------------------------------- | -------------------------------------------------------------- |
+| every `gated` + `manual` is `100755` in the INDEX | measured **35 of 35** before asserting                         |
+| `not-an-instrument` NOT checked                   | measured **4 at 644, 13 at 755** -- no invariant exists        |
+| control                                           | green                                                          |
+| a gated tool -> 644 in the index                  | fires by name, rc=1                                            |
+| a not-an-instrument lib -> 755                    | **correctly SILENT** -- the arm proving it is scoped, not loud |
+
+**Read from git, never `stat`: the mode git RECORDS is what a clone gets**, and a file can be 755 on this disk and 644 in the index -- exactly what a rename over an already-staged file leaves. **Mutation-proven in a DETACHED WORKTREE, never the shared index**, because `git update-index` writes `.git/index` and peers commit from it.
+
+**AND THE PROOF WAS RE-DRIVEN AFTER THE SHELL CRITIC FORCED A REWRITE.** It blocked `set -- $row` (IN-SH-CODE-001) and was right; `read` now splits the fields. **A proof taken before an edit describes a revision that is not the one shipping** -- and the first proof was already in hand, which is exactly when it is tempting not to re-run it.
+
+**dc SWEPT THE ESTATE AND THERE IS NO LIVE INSTANCE: 284 parity files from the INDEX, 4 shebang-at-644 (the documented libs), 0 executable-without-shebang, and 0 index-vs-disk disagreements. Repo-wide, all 134 tracked shebang files at 644 are legitimately sourced or interpreter-invoked, both ambiguous cases driven rather than assumed.**
+
+**SO CHECK D GUARDS A CLEAN ESTATE, WHICH IS THE BEST TIME TO INSTALL A CHECK AND THE WORST TIME TO BE BELIEVED** (dc's framing, and it is the keeper). Both of today's drops were caught by hand within hours, so **the check has no live catch to point at, and the temptation is to read that as it not being needed.** The 22-run tail is the same error mirrored: **absence of a second observation is not absence of the thing.**
+
+**AND dc CORRECTED WORDING IN THE CHECK I HAD JUST LANDED.** I wrote that `not-an-instrument` has _no invariant_; **4 at 644 and 13 at 755 is not the absence of a pattern, it is an unstated 76/24 split, and the 13 at 755 are UNGUARDED.** The exclusion still stands -- two kinds under one label, so a single mode rule is wrong for one of them -- but it rests on the two-kinds argument and never on there being nothing to see. Corrected in place.
+
+**HELD, UNCOMMITTED, AND IT IS THE ONE THING THIS FOLD LEAVES IN THE TREE: the `no invariant` wording fix in `runner_roster_check.sh`.** Landing it needs canon, and **`intent sync --to-store ST0056` swept ic's uncommitted `data-model.md` into canon along with my one attachment** -- canon then named four attachment paths, two of them not mine, and `canon_commit_check.sh` refused at `ADDS 1`. **Correctly: my commit would have carried ic's bytes under my authorship.** Backed the sync out whole (`git checkout -- intent/.canon/st/ST0056.json`); ic's file untouched.
+
+**THIS IS AC-08.5's THIRD BURNING CASE ARRIVING AS A LIVE BLOCK RATHER THAN AS TEXT, AND IT IS ALSO MY OWN TODO 3.** There is no setter narrower than a thread, so **a node that edits ONE instrument cannot update that instrument's canon record without a write that carries every peer's uncommitted worktree in that thread.** hv already ruled the remedy -- `sync` skips untracked bytes, loudly -- **and it is UNBUILT, mine, and this is the second time today the gap has cost a commit** (dc hit it at 17:12Z from the other direction). **The ruling as stated covers UNTRACKED; today's block was TRACKED-BUT-UNCOMMITTED, which is a wider case and needs hv before I build it.**
+
+**Next session: land the wording fix once ic commits `data-model.md`, then build the sync skip.**
+
+### THE SEVENTH FACE WAS MINE, AND A FALSE WATCH-OUT IS WORSE THAN NO WATCH-OUT
+
+My board carried **_Python `write_text()` strips the executable bit_**. **Driven -- four idioms here, six independently by dc, same split -- it is FALSE.** The rule is **INODE-PRESERVING vs INODE-REPLACING**: `write_text`, `open(w)`, truncate-in-place and `fileinput` all rewrite the whole file and PRESERVE the mode; `sed > tmp && mv` and `open(tmp) + os.replace` create a new file at the umask and rename over the old, so the original mode is never consulted -- and `mkstemp + os.replace` lands at **600**.
+
+**So the cause of my own `d8dd6dc6` drop is UNKNOWN.** dc's at `19d77f61` is `sed > tmp && mv`, tested. **Two occurrences, ONE mechanism established.**
+
+**WHILE IT STOOD THE WATCH-OUT POINTED AT AN INNOCENT IDIOM AND IMPLICITLY CLEARED THE GUILTY ONE** -- a reader avoiding `write_text` reaches for a temp-and-rename. **My framing (_wholesale vs surgical_) would have built a check that flagged dc's two innocent python edits and cleared a one-line `sed > tmp && mv`.** dc's correction is what made the check buildable.
+
+**AND `f6face5f` IS THE SHAPE: a fix that restored the STATE and left the MECHANISM, indistinguishable from one that worked -- until the next occurrence, eight hours later, by a different author, in the same file.**
+
+### A CONCLUSION TWO NODES AGREED ON, RETRACTED BEFORE IT REACHED A DECISION
+
+One 7-run sitting read `160 163 165 167 170 188 513`. dc and I both read the 3x outlier as bimodality under contention and built a rule on it -- **a gate pays the tail, not the median, so a mode-plus-tail row DECIDES DIFFERENTLY about promotion.** I called it better than my framing and handed it back twice; dc committed it.
+
+**Fifteen runs at HIGHER load: 142-175, max/mode 1.2x. Once in 22 runs. It does not reproduce.** dc withdrew it at `f567c9f8`; the row records the tail as **observed once in 22 runs**, an observation rather than a property.
+
+**THE MECHANISM IS THE KEEPER: THE AGREEMENT IS WHAT STOPPED EITHER OF US RE-RUNNING IT.** Each handback felt like corroboration when it was **the same single sample travelling between two nodes who both liked the reasoning.** Four-nodes-one-instrument with the population reduced to two and the instrument reduced to one datapoint. **Mutual agreement did not add evidence; it removed the impulse to go and get some** -- worse than no agreement, which would have left someone uneasy enough to run it.
 
 ## TODO
 
