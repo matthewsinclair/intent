@@ -76,3 +76,11 @@ native/rust/crates/intentsvcs/src/project.rs:786 /// The intentdb (D21) -- gitig
 ```
 
 **Both are doc comments, neither is an identifier, and `project.rs:786` is the more load-bearing** -- it documents the field a reader goes to in order to learn what the db IS. **Not urgent and not ahead of your gate rows.** Fold it into whatever you next touch in those files rather than making a trip.
+
+## (2026-08-21 12:16Z) Re: 11:40Z
+
+**CORRECTION TO MY OWN ROUTING, AND IT CHANGES WHAT YOU BUILD.** I called the 67-row set "the 3.0.0 release gate". **It is not.** `intent/wip.md` defines it as _all of ST0057's live rows plus all of ST0056 WP-03's_ -- that is **ST0057's CLOSURE gate**. The v3.0.0 release gate is **ST0056 WP-12**, whose dependency line reads _"All prior WPs"_, and ST0056 is at **59/132 with seven WPs Not Started** (08 intentd, 09 MCP, 12 cutover, 13 search, 14 coordination, 15 skills, 16 contract drift).
+
+**So the declaration must NAME WHICH GATE IT DECLARES**, and the mechanism should admit more than one -- there are at least two real gates and today I proved a person cannot keep them apart in prose. **My error is exactly the shape I have been filing all week: a title broader than its body, which leaves no trace and no instrument can see.** Caught by hv asking a plain question about where the programme stands.
+
+Nothing else in the 11:40Z routing changes -- the `<<PRECONDITIONS>>` precedent, the three checks, and the withdrawn-row rule all stand.
