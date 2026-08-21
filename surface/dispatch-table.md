@@ -1761,9 +1761,9 @@ Diagnose common Intent configuration issues
 - Runs outside a project (measured: exit 0, 397B), so it is a global command.
 - v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
 
-| command  | args | flags                                         | help                                        | disposition |
-| -------- | ---- | --------------------------------------------- | ------------------------------------------- | ----------- |
-| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --help/-h | Diagnose common Intent configuration issues | keep        |
+| command  | args | flags                                                             | help                                        | disposition |
+| -------- | ---- | ----------------------------------------------------------------- | ------------------------------------------- | ----------- |
+| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --format text/json, --help/-h | Diagnose common Intent configuration issues | keep        |
 
 ### `doctor`
 
@@ -1780,6 +1780,10 @@ Diagnose common Intent configuration issues
   - `--quiet`, `-q` (bool) -- Only show errors and warnings
     - **disposition:** keep
     - **disposition basis:** hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report.
+  - `--format` `text|json` (enum) -- Output format
+    - **default:** text
+    - **disposition:** keep
+    - **disposition basis:** NEW IN v3, NO v2 ANTECEDENT, and the request is recorded in the code by the node that hit the need rather than inferred here: `render.rs` says the unattached list stays inline until `doctor` has a machine face to carry it, `which needs a surface row and is not mine to add`. This is that row. SPELLING RULED BY hv 2026-08-21 on a criterion that is not a headcount: `--format` where the verb has formats OTHER than json, `--json` where it does not. The declared surface was 3-3 (`--json` on `issues show`/`todo`/`todo list`; `--format` on `critic`/`export`/`events`), so counting instances could not decide it -- the two spellings encode different ARITIES, which is why the tie was a mis-cut population rather than a close question. CLAP IS DELIBERATELY NOT THE ENFORCER: an unknown value is refused in the renderer at exit 1, never by a `value_parser` at exit 2, because 2 is INV-04 USAGE and the pre-commit gate fails OPEN on it.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.

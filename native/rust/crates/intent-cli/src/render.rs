@@ -1808,6 +1808,18 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // been re-designed under the name of being carried across.
   let quiet = a.get_flag("quiet");
   let verbose = a.get_flag("verbose") && !quiet;
+  // **REFUSED BEFORE THE WORK, AND BY THE RENDERER RATHER THAN BY CLAP.**
+  // A `value_parser` would reject at exit 2, which is INV-04's USAGE code and
+  // the one the pre-commit gate FAILS OPEN on -- so a typo in `--format` would
+  // read to every v2-era consumer as *the checker is broken, carry on* instead
+  // of as a refusal. Exit 1 is the honest answer: the command ran and the
+  // answer is no. This is the same ruling already recorded against `critic`'s
+  // vocabulary, applied to the flag rather than to the command.
+  //
+  // It runs BEFORE `context()` because refusing costs nothing and diagnosing a
+  // whole estate to then reject the request is work done for an answer we have
+  // already decided not to give.
+  let format = enum_flag(a, "doctor", "--format")?;
   let (project, ctx) = context()?;
   // **Opened opportunistically, and a failure to open is not reported here.**
   // `doctor` exists to run on a project that cannot be opened, so the store is
@@ -1845,6 +1857,29 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   }
 
   let report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()));
+  // **THE MACHINE FACE THIS FILE ASKED FOR IN WORDS.** The `unattached` block
+  // below carries the note *it stays inline until `doctor` has a machine face
+  // to carry it, which needs a surface row and is not mine to add*. This is
+  // that face, and the row is now declared on `doctor` in the table.
+  //
+  // **IT CARRIES THE WHOLE REPORT, INCLUDING THE COUNTS.** `Report`'s own doc
+  // comment says the counts exist so a clean result can say what it covered --
+  // *no problems found* over an estate the checker never read is the same
+  // sentence as *no problems found* over one it read completely. A JSON face
+  // that emitted only `findings` would drop exactly the half that tells those
+  // apart, and a machine reader has no summary line to fall back on.
+  //
+  // `--quiet` and `--verbose` are not consulted here, deliberately: both shape
+  // a HUMAN reading, and a machine face that changed its keys under a verbosity
+  // flag would make every consumer's parse conditional on how it was invoked.
+  if format == "json" {
+    render_doctor_json(&report);
+    return if report.is_healthy() {
+      Ok(())
+    } else {
+      Err(Failure::Verdict)
+    };
+  }
   for finding in &report.findings {
     println!("{finding}");
   }
@@ -3663,6 +3698,99 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
 /// most likely to act on it automatically. Carrying `census` as a field costs
 /// the document nothing and keeps "what was asked" attached to "what was found"
 /// -- which is the invariant the text face already holds.
+/// The value of an enum-typed flag, checked against the vocabulary THE TABLE
+/// declares for it.
+///
+/// **THE ROSTER IS READ, NEVER COPIED, AND THAT IS THE WHOLE POINT OF THE
+/// HELPER.** A hand-written `&["text", "json"]` beside a table that declares
+/// `text|json` is two literals compared to nothing -- they can drift, and the
+/// drift is silent in the direction that matters: the table gains a format,
+/// the renderer keeps refusing it, and `--help` advertises a value the command
+/// rejects. `export` already takes this shape one layer down by handing the
+/// string to the facade rather than defaulting it in the renderer, and its
+/// comment gives the reason -- *the default is a fact about the format roster,
+/// and a copy of it in the renderer is a second place for it to be wrong*.
+///
+/// **AN EMPTY ROSTER REFUSES AT 2 RATHER THAN ACCEPTING ANYTHING.** If the
+/// table declares no values, this build cannot check what was asked, which is
+/// exactly `Unavailable`'s meaning -- the checker is broken and that is ours,
+/// not the caller's. Falling through to "accept it then" would turn a missing
+/// declaration into a permanently permissive flag, which is the empty-roster
+/// hazard `declared_but_unwired.rs:59` refuses for the same reason.
+fn enum_flag(a: &ArgMatches, path: &str, spelling: &str) -> Result<String, Failure> {
+  let id = spelling.trim_start_matches('-');
+  let table = dispatch::table();
+  // **BOTH POPULATIONS, CHAINED.** `families` carries the v2-ported commands
+  // and `new_surface` the v3-only ones; a lookup over either alone answers
+  // confidently about half the surface. Reading only `families` is what made a
+  // census of mine report `export` and `events` as undeclared when both are
+  // declared -- an absence measured inside the wrong scope.
+  let declared: Vec<String> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .find(|e| e.path == path)
+    .and_then(|e| {
+      e.flags
+        .iter()
+        .find(|fl| fl.spellings.iter().any(|s| s == spelling))
+    })
+    .and_then(|fl| fl.value.as_ref())
+    .map(|v| v.split('|').map(|s| s.trim().to_string()).collect())
+    .unwrap_or_default();
+  if declared.is_empty() {
+    return Err(Failure::Unavailable(format!(
+      "error: the dispatch table declares no values for `{spelling}` on `{path}`, so this build cannot check the one you asked for"
+    )));
+  }
+  // The table's `default` reaches clap, so the flag is normally present. The
+  // fallback is the roster's FIRST value rather than a literal, for the same
+  // no-second-copy reason as everything above.
+  let chosen = a
+    .get_one::<String>(id)
+    .cloned()
+    .unwrap_or_else(|| declared[0].clone());
+  if declared.contains(&chosen) {
+    Ok(chosen)
+  } else {
+    Err(Failure::Error(format!(
+      "error: `{spelling}={chosen}` is not a value `{path}` declares -- it takes {}",
+      declared.join(" or ")
+    )))
+  }
+}
+
+/// `doctor`'s machine face.
+///
+/// **`findings` is serialised through [`intentsvcs::finding::Finding`]'s own
+/// `Serialize`, not hand-mapped here.** `render_critic_json` below hand-maps
+/// because `critic::Finding` carries no derive; this one does, so building a
+/// second wire shape beside it would be a second home for the same fact and
+/// they would drift the first time a field is added.
+fn render_doctor_json(report: &intentsvcs::doctor::Report) {
+  let doc = serde_json::json!({
+    "healthy": report.is_healthy(),
+    "findings": report.findings,
+    // **THE COVERAGE DENOMINATOR TRAVELS WITH THE VERDICT.** A machine reader
+    // has no summary line to fall back on, so dropping these would leave
+    // `"findings": []` meaning both *nothing is wrong* and *nothing was read*.
+    "checked": {
+      "threads": report.threads_checked,
+      "issues": report.issues_checked,
+      "views": report.views_checked,
+      "files": report.files_checked,
+    },
+    // Inventory rather than faults -- they do not move the exit code. Carried
+    // in full and never truncated, which is the rule the text face states in
+    // those words: appearing inside a counted group is fine, vanishing is not.
+    "unattached": report.unattached,
+  });
+  // `{:#}` is `Value`'s own pretty Display, so there is no `Result` to unwrap
+  // and no branch that could print nothing on a serialisation error.
+  println!("{doc:#}");
+}
+
 fn render_critic_json(report: &intentsvcs::critic::Report) {
   let findings: Vec<serde_json::Value> = report
     .findings

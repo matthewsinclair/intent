@@ -3864,6 +3864,17 @@
             },
             {
               "spellings": [
+                "--format"
+              ],
+              "type": "enum",
+              "help": "Output format",
+              "value": "text|json",
+              "default": "text",
+              "disposition": "keep",
+              "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT, and the request is recorded in the code by the node that hit the need rather than inferred here: `render.rs` says the unattached list stays inline until `doctor` has a machine face to carry it, `which needs a surface row and is not mine to add`. This is that row. SPELLING RULED BY hv 2026-08-21 on a criterion that is not a headcount: `--format` where the verb has formats OTHER than json, `--json` where it does not. The declared surface was 3-3 (`--json` on `issues show`/`todo`/`todo list`; `--format` on `critic`/`export`/`events`), so counting instances could not decide it -- the two spellings encode different ARITIES, which is why the tie was a mis-cut population rather than a close question. CLAP IS DELIBERATELY NOT THE ENFORCER: an unknown value is refused in the renderer at exit 1, never by a `value_parser` at exit 2, because 2 is INV-04 USAGE and the pre-commit gate fails OPEN on it."
+            },
+            {
+              "spellings": [
                 "--help",
                 "-h"
               ],
