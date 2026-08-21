@@ -15,7 +15,7 @@
 
 ## State (as at `69a5db5e`, 2026-08-20)
 
-**THE GATE IS 63 OF 67** Run `intent ac status ST0057` and `intent ac status ST0056` -- the verb prints `N/M satisfied, K withdrawn`. **Two hand-tallied figures in a row were wrong**, the second because its two halves counted "live" by different rules. **Never re-derive this by hand.**
+**THE GATE IS 62 OF 67, AND IT TAKES THREE VERB CALLS.** `intent ac status ST0057` (47/51) **plus `intent ac status ST0056/03` (15/16)** -- the scope is all of ST0057's live rows plus all of ST0056 WP-03's -- and `intent ac gate ST0057` names the outstanding ids. **`ac status ST0056` answers 59/132 and is NOT this number's denominator.** The `ST0056/03` call is a WP-scoped STID; the verb accepts it and no instruction here ever said so. **Three figures have been wrong now, and the third was wrong because this line said do not hand-tally while naming calls that could not reach the figure** -- so obeying it meant copying the banner. **Run all three.**
 
 **ST0056** (v3.0.0 rewrite) -- 133 criteria / 137 tests, **59 of 132 satisfied**, 1 withdrawn. **The intentdb is the DURABLE SSOT; nothing on disk is truth.** D01 was REVERSED by hv 2026-08-15; **do not reason from it.**
 

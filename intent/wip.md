@@ -1,5 +1,5 @@
 ---
-verblock: "20 Aug 2026:v1.12: vc - globalfold; gate 62/67 computed not typed, D57-8 stopped contradicting itself"
+verblock: "21 Aug 2026:v1.13: vc - gate corrected to 62/67; the procedure named two calls where three are needed"
 intent_version: 2.19.0
 ---
 
@@ -9,7 +9,7 @@ intent_version: 2.19.0
 
 **This heading names a COMMIT, not a date.** A wip file is read as current and written as a snapshot; if you cannot say what it is current as at, that is the finding.
 
-**THE GATE IS 63 OF 67** `intent ac status <STID>` prints `N/M satisfied, K withdrawn` and is the authority. **The previous two figures in this file were hand-tallied and both were wrong** -- 50-of-64 was stale by a day, and a later 57-of-67 counted "live" by two different rules in its two halves (ST0057's denominator excluded withdrawn rows, ST0056's counted one). **Do not re-derive this number by hand. Run the verb.**
+**THE GATE IS 62 OF 67, AND IT TAKES THREE VERB CALLS RATHER THAN THE TWO THIS LINE USED TO NAME.** The scope is _all of ST0057's live rows plus all of ST0056 WP-03's_: `intent ac status ST0057` (47/51), `intent ac status ST0056/03` (15/16), and `intent ac gate ST0057` for the outstanding ids. **`intent ac status ST0056` answers 59/132 and is NOT this number's denominator** -- that is the whole thread, not the gate. **The third call is the one nobody wrote down:** `ST0056/03` is a WP-scoped STID and the verb accepts it. **Three figures in this file have now been wrong, and the third was wrong for a NEW reason** -- not stale, not double-counted, but because the line forbade hand-tallying while naming an instrument that could not reach the number, so the only way left to obey it was to copy the banner. **Run the three calls. Do not add them up from memory.**
 
 **THE DISK MODEL IS RUNNING, NOT DESIGNED.** `intent organize --apply` removed 423 files at `e7f00e65`; `intent/st/` holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`. Fifty-two completed and two cancelled threads live only in the database. **Proven reversible by measurement**: ST0001 rehydrated to five files byte-identical to git, a fence-heavy pair to fifteen, and all 282 attachments verify against their own `sha256`.
 
