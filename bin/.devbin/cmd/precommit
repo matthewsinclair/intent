@@ -81,6 +81,7 @@ G_RATIFIED="ratification provenance: a ratified row names authority, date and re
 G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
 G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
 G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`int macos publish\`)"
+G_CANONCOMMIT="canon currency: a commit carrying canon does not name bytes absent from that commit (ST0057 AC-03.6)"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -110,6 +111,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_RESIDUE" "intent/st/ST0056/parity/tools/residue_class_check.sh"
   printf '%s\t%s\n' "$G_STALEAT" "intent/st/ST0056/parity/tools/stale_at_check.sh"
   printf '%s\t%s\n' "$G_SELFPROV" "intent/st/ST0056/parity/tools/self_provenance_check.sh"
+  printf '%s\t%s\n' "$G_CANONCOMMIT" "intent/st/ST0056/parity/tools/canon_commit_check.sh"
   exit 0
 fi
 
@@ -138,7 +140,7 @@ failed=""
 
 # 0. NO SQLITE DATABASE ENTERS HISTORY.
 #
-# D34 (hv, 2026-08-15): the intentdb is per-machine durable truth and is NEVER
+# D34 (hv, 2026-08-15): the SQLite db is per-machine durable truth and is NEVER
 # committed -- truth travels as the lossless .json/.md extract and a clone
 # reconstitutes through the ingest gate. So a DB in a commit is always wrong.
 #
@@ -354,6 +356,41 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! bash "$TOOLS/self_provenance_check.sh"; then
     rc=1
     failed="${failed}  self_provenance_check.sh -- the commit's vendored tree disagrees with the manifest committed beside it
+"
+  fi
+
+  # 12. Canon currency (ST0057 AC-03.6). A commit that carries canon must not name
+  #     bytes no commit contains -- canon is committed and never sparse, so a canon
+  #     edit referencing an attachment that is not in the same commit publishes a
+  #     record pointing at nothing.
+  #
+  #     ADMITTED 2026-08-21 (dc) ON hv's RELEASE, and the roster's own reason for
+  #     holding it had TWO parts, both re-derived here rather than taken on report:
+  #       - "there is no narrow attachment-sync verb": DEAD. `sync --to-store [ID]...`
+  #         takes positional ids, landed at `212b0075`, so the order a gate permits
+  #         (sync the one thread, then commit file and canon together) is open.
+  #       - "--staged is not supported": DEAD. `:254` parses the flag and `:364`
+  #         reads `git diff-index --cached HEAD`, so it judges the INDEX.
+  #
+  #     ALWAYS `--staged`, NEVER PATH-TRIGGERED, and that is a ruling rather than an
+  #     oversight. The tool already narrows internally; a path trigger here would be
+  #     a SECOND copy of that narrowing, which is the drift the roster exists to stop.
+  #     It is the whole point that this differs from the skew check above -- skew asks
+  #     a question only a path change can alter, this asks whether the index is
+  #     internally consistent, which staging one half of a pair makes false.
+  #
+  #     COST, RE-MEASURED AT `ecea0eeb` ON THIS MACHINE BECAUSE THE ROSTER SAYS TO:
+  #     2710-2760ms narrowed, against 2.49-2.55s recorded -- ~8% slower, so the
+  #     affordability case is REFRESHED rather than overturned. It is now the most
+  #     expensive guard here, and the gate total moves ~4.6s -> ~7.3s on every commit.
+  #     `runner_roster_check.sh:102` warned in its own words that the original
+  #     affordability argument was conducted against stale numbers; this is that
+  #     re-measurement, and the figure carries its revision because a bare one
+  #     cannot be compared against anything.
+  step "$G_CANONCOMMIT"
+  if ! bash "$TOOLS/canon_commit_check.sh" --staged; then
+    rc=1
+    failed="${failed}  canon_commit_check.sh -- this commit's canon names bytes the commit does not carry
 "
   fi
 fi
