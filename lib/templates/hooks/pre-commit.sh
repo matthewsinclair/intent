@@ -142,8 +142,55 @@ INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/
 # unreachable branch under-enforces once; a gate keyed to a moving code
 # under-enforces everywhere. So: if the runner can be located, it RUNS, and a
 # failing resolver is said out loud instead of being acted on.
-GUARD_RUNNER="${INTENT_HOME_RESOLVED}/lib/templates/hooks/pre-commit-guards.sh"
-if [ ! -d "$INTENT_HOME_RESOLVED" ]; then
+# A SELF-HOSTED INTENT CHECKOUT RESOLVES ITS GUARDS FROM ITSELF. THIS IS THE
+# ONE EXCEPTION TO THE LIVE-ROSTER RULE ABOVE, AND THE RULE ITSELF IS UNCHANGED.
+#
+# Reading the roster live out of `INTENT_HOME` is deliberate and stays: it is
+# how a guard added to canon reaches every consumer with no reinstall. It is
+# correct for every project that USES Intent. It is wrong for exactly one --
+# the project that IS Intent -- because there `INTENT_HOME` names a DIFFERENT
+# checkout, so this repo's commits are guarded by another tree's copy of this
+# repo's own files.
+#
+# MEASURED 2026-08-21 at c8555d4e. With the v2 CLI split out to
+# `~/Devel/prj/Intentv2`, `intent info` in the Intent source tree resolves to
+# that frozen checkout. All seven guard files were byte-identical that day, so
+# nothing was broken -- and that is exactly the shape of the frozen-roster
+# failure already on this estate's record, where an installed hook ran one
+# guard of four and nothing said so. The drift arms on the first change to
+# `lib/templates/hooks/`; `pre-commit-guards.sh` IS the roster file, so a
+# roster admission is the likeliest trigger.
+#
+# TWO CHEAPER ANSWERS WERE DECLINED BY NAME (hv, 2026-08-21). A `.envrc`,
+# because git hooks do not reliably inherit direnv -- green where you look and
+# absent where it matters. And refreshing the frozen copy by hand, because an
+# advisory that requires remembering is not a control.
+#
+# THE MARKER IS THE RUNNER ITSELF PLUS `VERSION`. A repository carrying
+# `lib/templates/hooks/pre-commit-guards.sh` in Intent's own source layout IS
+# an Intent source tree, and `VERSION` beside it makes an accidental collision
+# negligible. Deliberately NOT `bin/intent`: the v2 shell is slated for pruning
+# here, and a marker that a planned change deletes is one that fails silently
+# later, which is the class this whole block exists to remove.
+_repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+GUARD_HOME="$INTENT_HOME_RESOLVED"
+GUARD_HOME_IS_SELF=""
+if [ -n "$_repo_root" ] \
+  && [ -f "$_repo_root/lib/templates/hooks/pre-commit-guards.sh" ] \
+  && [ -f "$_repo_root/VERSION" ]; then
+  GUARD_HOME="$_repo_root"
+  GUARD_HOME_IS_SELF="yes"
+fi
+GUARD_RUNNER="${GUARD_HOME}/lib/templates/hooks/pre-commit-guards.sh"
+
+# THE THREE ABSENCE BRANCHES BELOW NOW TEST `GUARD_HOME`, NOT
+# `INTENT_HOME_RESOLVED`, AND THAT IS LOAD-BEARING RATHER THAN TIDY. Absence 1
+# blames the resolver by name. If the self-hosted branch won, the resolver is
+# irrelevant to this commit, so keying the test to `INTENT_HOME_RESOLVED` would
+# send an operator at `intent info` over a gate that never consulted it -- a
+# true statement about the wrong component, which is the failure this file
+# spends absences 1 and 2 keeping apart.
+if [ ! -d "$GUARD_HOME" ]; then
   # ABSENCE 1. TOTAL non-enforcement, reported once and as itself. Nothing is
   # wrong with the guards and there is nothing to install -- the tool that
   # locates them did not answer, so fixing any one guard would change nothing.
@@ -174,8 +221,17 @@ elif [ ! -f "$GUARD_RUNNER" ]; then
   # and check `intent info` would send them at the one component that is fine.
   echo "intent gate: NO guard ran for this commit -- this install has no guard runner." >&2
   echo "  looked in: ${GUARD_RUNNER}" >&2
-  echo "  INTENT_HOME resolved cleanly to '${INTENT_HOME_RESOLVED}', so the resolver is not the problem;" >&2
-  echo "  that install predates the delegated roster. Update it, then re-run \`intent claude upgrade --apply\`." >&2
+  if [ -n "$GUARD_HOME_IS_SELF" ]; then
+    # The self-hosted branch cannot reach here by the marker test -- it REQUIRES
+    # the runner to exist. So this is a race (the file removed between the test
+    # and now) and must not be worded as a stale install, which is the one
+    # remedy that would be wrong.
+    echo "  this repository IS an Intent source tree, so the guards were taken from it and not from INTENT_HOME." >&2
+    echo "  the runner was present when resolved and is gone now -- check for a concurrent write, not a stale install." >&2
+  else
+    echo "  INTENT_HOME resolved cleanly to '${INTENT_HOME_RESOLVED}', so the resolver is not the problem;" >&2
+    echo "  that install predates the delegated roster. Update it, then re-run \`intent claude upgrade --apply\`." >&2
+  fi
   # Fail-open, for absence 1's reason. An operator mid-upgrade must not be
   # unable to commit the upgrade.
 else
@@ -195,6 +251,20 @@ else
   # the guards ran and that nothing is owed.
   if [ "$wb_info_rc" -ne 0 ]; then
     echo "intent gate: \`intent info\` exited ${wb_info_rc}, but the guard runner WAS located and is running -- nothing to do here." >&2
+  fi
+  # WHICH TREE THE GUARDS CAME FROM, SAID OUT LOUD, AND ONLY WHEN IT IS NOT THE
+  # DEFAULT. hv's constraint on this mechanism was that a wrong answer must be
+  # LOUD, and the wrong answer here is a repo running another checkout's copy of
+  # its own guards. One line names the tree, so the answer is checkable at the
+  # point of use instead of reconstructible afterwards.
+  #
+  # SILENT IN THE ORDINARY CASE, DELIBERATELY. For every project that USES
+  # Intent this branch never fires, and a line on every commit in every project
+  # restating the expected outcome is how a gate's output stops being read --
+  # measured on this estate the same day this was written, where 82 lines of
+  # entirely correct `ok:` masked four guards that were not present at all.
+  if [ -n "$GUARD_HOME_IS_SELF" ]; then
+    echo "intent gate: guards read from THIS repository (${GUARD_HOME}/lib/templates/hooks), not from INTENT_HOME." >&2
   fi
   bash "$GUARD_RUNNER" || exit 1
 fi
