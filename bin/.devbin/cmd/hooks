@@ -107,6 +107,30 @@ _hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
 [ -n "$_hp" ] && REDIRECTED="  (core.hooksPath = $_hp)"
 [ -f "$ROOT/.git" ] && REDIRECTED="${REDIRECTED}  (linked worktree -- hooks live in the main repository)"
 
+# YOU ARE STANDING IN A DIFFERENT REPOSITORY FROM THE ONE THIS ANSWERS ABOUT.
+#
+# `$ROOT` is `PROJECT_ROOT`, which `bin/devbin:29-30` derives from the LAUNCHER's
+# own location -- so `int hooks` always reports on the tree the `int` script lives
+# in, never on the one you are standing in. That is correct for a repo-local dev
+# launcher and it is NOT changed here; `bin/devbin` is vendored from Devbin and
+# is not this repository's to edit.
+#
+# The report already names its subject on its first line, so this is not a silent
+# wrong answer. It is a MISREADABLE one, and the misreading has a documented
+# route: `restart.md` step 0 says to run `int hooks` FIRST IN A FRESH CLONE, and
+# a fresh clone is exactly where this repository's `int` is on PATH while the
+# clone is somewhere else. Driven 2026-08-21 (dc): standing in `Intentv2`, the
+# PATH `int` answered `hooks in .../Intent/.githooks` -- correctly, about the
+# wrong tree -- and produced THREE false findings before the header line was
+# read. `Intentv2/bin/int` then reported `gate ABSENT` about its own tree.
+#
+# So: say it, do not fix it. A warning belongs where the misreading happens.
+CWD_REPO="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+FOREIGN=""
+if [ -n "$CWD_REPO" ] && [ "$CWD_REPO" != "$ROOT" ]; then
+  FOREIGN="yes"
+fi
+
 # guards_of <runner-name> -- ASK THE RUNNER what it enforces, then report whether
 # each guard that names a script has one that is present and executable.
 #
@@ -287,6 +311,10 @@ report_hook() {
 }
 
 if [ "$DO_INSTALL" -eq 0 ]; then
+  if [ -n "$FOREIGN" ]; then
+    printf 'WARNING: this answers about %s, NOT about the repository you are standing in (%s).\n' "$ROOT" "$CWD_REPO" >&2
+    printf '         `int` reports on the tree it lives in. To ask about THIS clone, run its own:  %s/bin/int hooks\n\n' "$CWD_REPO" >&2
+  fi
   printf 'hooks in %s%s\n\n' "$HOOKS_DIR" "$REDIRECTED"
   report_hook pre-commit precommit
   report_hook pre-push prepush
