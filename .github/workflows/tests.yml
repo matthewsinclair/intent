@@ -157,6 +157,14 @@ jobs:
       run: |
         # Install jq
         brew install jq
+        # shellcheck IS AN ARMED TOOL FOR THIS PROJECT, not an optional extra.
+        # `.intent_critic.yml` arms IN-SH-CODE-001 and IN-SH-CODE-002 on it, and
+        # the critic REFUSES rather than passing quietly when an armed rule
+        # cannot be enforced -- correctly. `ubuntu-latest` ships shellcheck
+        # preinstalled and `macos-latest` does not, which is the whole of the
+        # macOS/Linux split in this suite: four census arms need the tool
+        # present, and the shipped pre-commit gate fails closed without it.
+        brew install shellcheck
     
     - name: Set up test environment
       run: |

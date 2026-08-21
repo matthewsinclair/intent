@@ -378,7 +378,7 @@ fn a_migrated_project_can_still_commit() {
   assert_eq!(
     code,
     Some(0),
-    "the shipped gate blocked a commit in a migrated project.\n{stderr}"
+    "the shipped gate blocked a commit in a migrated project. **Check the environment before the code**: this project arms IN-SH-CODE-001 and IN-SH-CODE-002 on `shellcheck`, and the critic refuses rather than passing quietly when an armed rule cannot be enforced -- so a machine without the tool fails this test with the gate behaving exactly as designed. `UNENFORCED` in the stderr below is the tell.\n{stderr}"
   );
   assert!(
     !stderr.contains("commit blocked by findings"),
@@ -510,7 +510,7 @@ fn an_unmigrated_project_can_still_commit() {
     Some(0),
     "the shipped gate blocked a commit in an unmigrated project. **A command the gate invokes is answering in the code it reads as findings** -- almost \
      certainly `critic` built on `Facade::open`, whose `readable()` refuses before anything else runs. `doctor` and the migrator are already exempt because \
-     their job IS this state; `critic` needs exempting on a different ground -- its consumer fails CLOSED on the refusal code.\n{stderr}"
+     their job IS this state; `critic` needs exempting on a different ground -- its consumer fails CLOSED on the refusal code.\n\nTWO CAUSES REACH THIS ASSERTION AND THEY LIVE IN DIFFERENT SUBSYSTEMS. The second is ENVIRONMENTAL and is what CI hit on `macos-latest`: this project ARMS IN-SH-CODE-001 and IN-SH-CODE-002 on `shellcheck`, and the critic REFUSES -- correctly -- when an armed rule cannot be enforced, so a machine without the tool blocks the commit for a reason that has nothing to do with migration state. **The discriminator is in the stderr below**: `UNENFORCED` plus a rule id names the missing tool, and `not been migrated` names the facade. Install shellcheck before hunting in the code.\n{stderr}"
   );
   assert!(
     !stderr.contains("commit blocked by findings"),

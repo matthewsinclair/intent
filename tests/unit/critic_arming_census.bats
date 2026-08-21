@@ -43,10 +43,73 @@ load "../lib/test_helper.bash"
 # `intent_bin_retarget_guard.bats` caught it rather than any care of mine.
 CRITIC="$INTENT_BIN"
 
-# A PATH with no shellcheck on it. `/opt/homebrew/bin` is where both shellcheck
-# and jq live on this machine, so this is a genuine absence rather than a stub
-# that `command -v` would still resolve. Verified: the critic still runs.
-NO_TOOL_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+# **A PATH THAT GENUINELY LACKS shellcheck ON ANY PLATFORM -- CONSTRUCTED, AND
+# THEN VERIFIED.**
+#
+# THE PREVIOUS FORM WAS A HARDCODED LIST, AND ITS OWN COMMENT NAMED THE
+# ASSUMPTION IT RESTED ON: `/opt/homebrew/bin` is where shellcheck lives *on
+# this machine*. That is a macOS-with-Homebrew fact, and the list it left
+# behind -- `/usr/bin:/bin:/usr/sbin:/sbin` -- is precisely where shellcheck
+# lives on Linux. So on a GitHub `ubuntu-latest` runner, which ships shellcheck
+# preinstalled in `/usr/bin`, the three absent-tool arms below ran with the
+# tool PRESENT and asserted an absence that never happened.
+#
+# **IT WAS GREEN ON EXACTLY ONE MACHINE: the one the constant was written for.**
+# The Linux leg has been red since it existed and the primary dev machine could
+# not reproduce it, because on that machine the assumption is TRUE.
+#
+# DROPPING WHICHEVER DIRECTORY SHELLCHECK LIVES IN DOES NOT GENERALISE EITHER:
+# on Linux `/bin` is a symlink to `/usr/bin`, so removing one leaves the other
+# resolving the same binary, and removing both takes `sed`, `grep` and `awk`
+# with it. **A critic that cannot run proves nothing about arming**, so an
+# absence built that way trades a false green for a meaningless red.
+#
+# So the absence is BUILT -- a directory of symlinks to everything on PATH
+# except shellcheck -- and then CHECKED BOTH WAYS before any test uses it.
+# **The old constant asserted an absence and never once asked `command -v`**,
+# which is exactly how it stayed wrong through every local run.
+build_no_tool_path() {
+  local farm="$1" dir entry base saved_ifs
+  mkdir -p "$farm"
+  saved_ifs="$IFS"
+  IFS=:
+  set -- $PATH
+  IFS="$saved_ifs"
+  for dir in "$@"; do
+    [ -d "$dir" ] || continue
+    for entry in "$dir"/*; do
+      [ -f "$entry" ] && [ -x "$entry" ] || continue
+      base="${entry##*/}"
+      [ "$base" = "shellcheck" ] && continue
+      [ -e "$farm/$base" ] && continue
+      ln -s "$entry" "$farm/$base" 2>/dev/null || true
+    done
+  done
+}
+
+setup_file() {
+  NO_TOOL_PATH="${BATS_FILE_TMPDIR}/no-shellcheck-bin"
+  build_no_tool_path "$NO_TOOL_PATH"
+  export NO_TOOL_PATH
+
+  # **BOTH DIRECTIONS, BECAUSE EACH FAILS SILENTLY ON ITS OWN.** A farm that
+  # still resolves shellcheck turns the absent-tool arms into a second copy of
+  # the present-tool arms -- three tests asserting nothing, reporting green.
+  # A farm that lost the coreutils makes the critic fail for a reason that has
+  # nothing to do with arming. The first is the bug this replaces; the second
+  # is the bug the obvious fix would have introduced.
+  if ( PATH="$NO_TOOL_PATH"; command -v shellcheck >/dev/null 2>&1 ); then
+    printf 'the constructed PATH still resolves shellcheck: %s\n' "$NO_TOOL_PATH" >&2
+    return 1
+  fi
+  local tool
+  for tool in sed grep awk git; do
+    if ! ( PATH="$NO_TOOL_PATH"; command -v "$tool" >/dev/null 2>&1 ); then
+      printf 'the constructed PATH lost `%s` -- the critic cannot run under it\n' "$tool" >&2
+      return 1
+    fi
+  done
+}
 
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-census-XXXXXX)"

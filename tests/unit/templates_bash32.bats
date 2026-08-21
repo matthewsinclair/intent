@@ -54,6 +54,32 @@ template_shell_files() {
   find "$TEMPLATES" -type f \( -name '*.sh' -o -name '*.bash' \) | sort
 }
 
+# **THE TWO CONTROLS BELOW ARE CLAIMS ABOUT `/bin/bash` 3.2 SPECIFICALLY**, not
+# about whatever bash the host happens to ship, and on a host with a newer one
+# they do not merely weaken -- one of them asserts something FALSE.
+#
+# Measured on a GitHub `ubuntu-latest` runner 2026-08-21, where `/bin/bash` is
+# 5.x: the silent-failure control writes a script using `mapfile`, expects the
+# array to come back EMPTY, and gets the real builtin reading `/etc/hosts`, so
+# `${#a[@]}` is the line count and the assertion fails. **That is the whole of
+# `Intent Tests` test 1286**, red on every push since the Linux leg existed.
+#
+# The `bash -n` control fails the other way and is quieter for it: on bash 5
+# `${v^^}` is VALID syntax and `mapfile` is a real builtin, so `-n` returns 0
+# for reasons that have nothing to do with the blindness being asserted. It
+# passes without measuring its own claim.
+#
+# **So the guard SKIPS rather than letting either outcome stand.** A skip names
+# the environment it could not be driven in; a pass would report a measurement
+# nobody took, which is the shape this whole file exists to refuse.
+require_bin_bash_3() {
+  local major
+  major="$(/bin/bash -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null)"
+  if [ "$major" != "3" ]; then
+    skip "/bin/bash is ${major:-unreadable}.x -- these controls describe 3.2 behaviour and cannot be driven here"
+  fi
+}
+
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-bash32-XXXXXX)"
 }
@@ -137,6 +163,7 @@ ${file#"${INTENT_PROJECT_ROOT}/"}: $label"
   # This asserts the WEAKNESS of the parse arm, deliberately. If a future bash
   # on this machine starts rejecting these at parse time, this control goes red
   # and the reasoning above needs revisiting -- which is the point.
+  require_bin_bash_3
   printf '#!/bin/bash\nv=abc\necho "${v^^}"\n' > "${TEST_TEMP_DIR}/syn.sh"
   printf '#!/bin/bash\nmapfile -t a < /etc/hosts\n' > "${TEST_TEMP_DIR}/blt.sh"
   /bin/bash -n "${TEST_TEMP_DIR}/syn.sh" 2>/dev/null
@@ -149,6 +176,7 @@ ${file#"${INTENT_PROJECT_ROOT}/"}: $label"
   # The reason the builtin class outranks the syntax class. Recorded as a
   # driven fact rather than an assertion about bash, because it is the whole
   # argument for why this file exists.
+  require_bin_bash_3
   printf '#!/bin/bash\nmapfile -t a < /etc/hosts\necho "${#a[@]}"\n' > "${TEST_TEMP_DIR}/silent.sh"
   /bin/bash "${TEST_TEMP_DIR}/silent.sh" > "${TEST_TEMP_DIR}/out" 2>/dev/null
   [ "$?" -eq 0 ]

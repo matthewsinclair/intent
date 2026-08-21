@@ -53,6 +53,16 @@ jobs:
         run: |
           rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
           cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: shellcheck (an armed tool, not an optional extra)
+        # `exit_codes.rs` drives the SHIPPED pre-commit gate, which invokes
+        # `intent critic shell`. This project arms IN-SH-CODE-001 and
+        # IN-SH-CODE-002 on shellcheck, and the critic refuses -- fails CLOSED,
+        # by design -- when an armed rule cannot be enforced. `ubuntu-latest`
+        # ships shellcheck; `macos-latest` does not, which is why this job has
+        # been green on Linux and red on macOS with identical code.
+        if: runner.os == 'macOS'
+        run: brew install shellcheck
+
       - name: fmt
         run: cargo fmt --check
       - name: clippy
