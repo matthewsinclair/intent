@@ -54,6 +54,8 @@ claims: [ST0056/07, ST0056/11]
 
 **`shared_artefact_build_guard.sh` is ABSENT (driven).** Full argument in `.history/20260821/wip.md` section 1. In one line: **AC-11.6's green arm mandates the very arm that produces an unattributable union binary**, so the criterion's green arm reintroduces the defect it exists to prevent -- and that is why the red-first arm was never reachable. **Route to vc as contract steward; hv if vc bounces it. The amendment would conveniently unblock my own row, which is the reason to route it, not the reason to make it.**
 
+**AND THE ESCALATION NOW CARRIES A LIVE, UNPLANTED INSTANCE, surfaced by the gate on my own fold commit `5f8d5b7d` and confirmed independently (archive section 7): `target/release/intent` and `intentd` carry DIFFERENT `dirty-` markers -- two binaries in one shared path from two different trees, invoked as a matched pair.** It is a sharper statement of the criterion than the criterion's own founding episode, and **it refutes the ownership discriminator outright: neither marker names an owner because there is none to name.** **Perishable -- the next release build destroys it; capture the sha256 pair, never the markers.**
+
 **AT-11.7 `provenance_fields_check.sh` is ABSENT and is buildable NOW** -- its spec is sound and its positive controls are on record (the currency failure `f2e4d1f9005d0334`, and the `intentd` fossil marker). Reuses `self_provenance_check.sh`'s artefact reading; **not a Highlander violation -- vc has ruled that two mechanisms enforcing different properties are not two copies of one.**
 
 ### 4. Recorded, not built

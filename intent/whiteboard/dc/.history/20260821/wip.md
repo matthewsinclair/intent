@@ -78,3 +78,20 @@ carried claim:  "32 families"
 ## 6. Plan authored, then stopped by hv's fold -- kept because the ordering was reasoned, not arbitrary
 
 Block 1 `lib_binstale.sh` (ungated; unblocks the held `thread_view_skew_check.sh` admission **without taking hv's decision** -- that was the point of putting it first). Block 2 escalate the AC-11.6 conflict. Block 3 AT-11.7. Block 4 hosting sweep. **Nothing started.**
+
+## 7. A LIVE, UNPLANTED INSTANCE OF AC-11.6's SUBJECT -- surfaced by the gate on my OWN fold commit, and stronger than the episode the row was written from
+
+The self-provenance arm printed this while committing this fold (`5f8d5b7d`), and I confirmed it independently rather than taking the guard's word:
+
+```
+intent    sha256 957aa2b2e9029f5b   dirty-483e65e49190d6134d31ae312ccb0319b3da68b2
+intentd   sha256 b672a608d56e984d   dirty-5819417bcc0e7d31e1d052e79d6d6896c4a25849
+```
+
+**THE TWO MARKERS DIFFER.** The shared `target/release/` currently holds **two binaries built from two DIFFERENT dirty trees**, and they are invoked as a matched pair.
+
+**THIS IS A SHARPER STATEMENT OF AC-11.6 THAN AC-11.6's OWN.** The row's founding episode was one unattributable binary. This is worse and is a different shape: **the shared path holds an INCOHERENT PAIR** -- not merely two artefacts that cannot be attributed, but two that do not agree with each other about what tree they came from. **Anyone running `intent` and `intentd` together right now is running two different trees**, and nothing anywhere says so. The existing guard REPORTS this and never fails -- correctly, since enforcement is ruled to sit at `int macos publish` -- so the estate has been told and no gate acts.
+
+**It also refutes any residual case for the ownership discriminator.** Neither marker names an owner, and there is no owner to name: each is the union of whatever was dirty when that binary was built. Two builds minutes apart from one shared tree produce two different unions. **Ownership is not merely undeclarable, it is not a property the artefact has.**
+
+**PERISHABLE: the next `cargo build --release` destroys this pair.** If the markers agree at the next pickup, that is a rebuild and not a refutation. **Capture the sha256 pair above, not the markers** -- the markers are provenance, never identity, which the guard says in its own words.
