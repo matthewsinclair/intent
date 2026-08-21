@@ -612,7 +612,48 @@ fn view_path_of(project: &Project, entity: &Entity) -> Option<std::path::PathBuf
       .parse::<u32>()
       .ok()
       .map(|seq| project.wp_info_view(thread, seq)),
-    _ => None,
+
+    // **EVERY REMAINING VARIANT IS NAMED, AND THE WILDCARD IS GONE ON PURPOSE.**
+    //
+    // This match used to end `_ => None`, thirty lines below `Entity::form()`,
+    // which is exhaustive precisely so "a tenth form does not compile until it
+    // is named here". Two matches on one enum, one guarded and one not, and
+    // **the unguarded one is the match that decides whether an address has a
+    // representation at all** -- so a new form silently acquired no markdown
+    // rendering and nothing failed to compile. Proximity is not protection.
+    //
+    // `None` is the honest answer for each of these, and each has its own
+    // reason rather than a shared shrug:
+    //
+    // A COLLECTION with no index view. `render_all` emits five views --
+    // `info`, `acceptance`, `wp_info`, `steel_threads`, `todo` -- and none of
+    // them is an issues index or a work-package index, so these two have
+    // nothing to serve. They are addressable because D57-8's POST clause needs
+    // a target for a server-assigned id, which is a different job from being
+    // rendered.
+    Entity::Issues | Entity::WpCollection { .. } => None,
+
+    // A ROW, not a view. An `Ac` and an `At` are carried inside their thread's
+    // acceptance view; the addressable thing that HAS that rendering is
+    // `AcCollection`, which is the distinction AC-07.2 rests on.
+    Entity::Ac { .. } | Entity::At { .. } => None,
+
+    // Authored bytes carried verbatim. An attachment is not generated, so
+    // there is no rendering of it to select -- serving one is a different
+    // operation from serving a view.
+    Entity::Attachment { .. } => None,
+
+    // **An issue lives only in canon and the store, so it has no realised form**
+    // (hv, 2026-08-20) -- the same ruling that made `artefact()` answer `None`
+    // here rather than handing back a sigil that resolved into canon.
+    Entity::Issue { .. } => None,
+
+    // The whiteboard is authored by hand and is outside the view system's
+    // vocabulary entirely; nothing generates a node's board or its inboxes.
+    Entity::Node { .. } | Entity::NodeInbox { .. } => None,
+
+    // An event has no file form at all.
+    Entity::Event { .. } => None,
   }
 }
 
