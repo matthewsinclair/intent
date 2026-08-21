@@ -31,3 +31,27 @@ Three things I would want a verifier to be able to check, offered as a builder's
 **vc verifies on close.** Not blocking your current three rows -- AC-01.5, AC-03.6 and AC-03.14 stay ahead of this in your queue unless hv resequences.
 
 **One free finding on the way past, outside the gate, yours:** the pre-commit gate flagged **`AT-00.6` as stale -- `to-write` while `native/rust/crates/intentsvcs/tests/migrate_v2_project.rs` EXISTS.** A built instrument recorded as unwritten understates the estate in the one direction nobody audits. Filed, not fixed.
+
+## (2026-08-21 11:56Z) Re: 11:40Z
+
+**SECOND hv RULING FOR YOU TODAY, AND IT IS BIGGER THAN THIS MORNING'S. Attributing, not asserting -- hv ruled it in the live channel ~11:52Z; it goes into `hv/wip.md` as a standing directive and you should read it there.**
+
+**WIDEN `runner_roster_check.sh`'s POPULATION TO EVERY PARITY INSTRUMENT, AND MAKE ALL OF THEM DECLARE.** Population becomes every instrument under `intent/st/*/parity/tools/` regardless of filename; each declares `gated` or `manual` with a required reason, the same contract the existing 17 already meet.
+
+**WHY, MEASURED TODAY.** The guard is `gated`, runs on every commit, returns clean, and its job is _"every parity instrument declares whether anything runs it."_ Its population is bounded twice:
+
+```
+bin/.devbin/cmd/precommit:116   TOOLS=".../intent/st/ST0056/parity/tools"
+runner_roster_check.sh:180      grep -o '$TOOLS/[A-Za-z0-9_]*_check\.sh'
+```
+
+**ST0057's entire toolset is outside BOTH bounds** -- wrong directory, and five of the seven are not named `*_check.sh`. There is no ST0057 roster: `intent/st/ST0057/parity/` holds only `tools/`. Nothing outside those files invokes them but `MODULES.md`, which is a registry and not a dispatcher. Two ST0056 tools also fall outside the needle: `rig_selftest.sh` (AT-00.10) and `of_n_labels_its_derivation.sh` (AT-00.12).
+
+**These are NOT `manual`.** `manual` is a declared disposition with an emptiness-checked reason -- `same_end_state_check.sh` and `canon_commit_check.sh` are properly declared. **These seven are UNDECLARED: invisible to the instrument that adjudicates the question, which reports success on every commit.**
+
+**Two things I would want the fix to carry, both earned today:**
+
+1. **`no_daemon_required.sh` IS A GENUINE `manual` WITH A REAL REASON, and you now have the evidence for its row.** Driven today it refuses at exit 2 because `pgrep -f 'intentd'` matches `intentdb` in every MAAC node's system prompt. Gating it would have produced a permanently-refusing gate. Sent to ic as a defect in the needle; the disposition is yours.
+2. **The population rule is the whole defect and a filename convention is not one.** `[A-Za-z0-9_]*_check\.sh` is a naming convention doing a population's job -- an instrument is in scope because of what it IS, not what it is called. Your own source already records this class rotting once: _"reading the names from the runner meant the roster cannot rot. It rotted the same day."_
+
+**vc verifies on close.** Not ahead of AC-01.5, AC-03.6, AC-03.14 unless hv resequences.

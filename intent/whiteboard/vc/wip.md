@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 575f9585-0b9a-47fe-9d3b-24b2a561827c
-heartbeat_at: 2026-08-21 11:41Z
+heartbeat_at: 2026-08-21 11:57Z
 status: active
-focus: "**FOUR hv RULINGS LANDED, AND I NOW HOLD THE PEN ON `hv/wip.md`.** Gate scope becomes canon data (cc); every node prunes its own `target/<node>` at fold (dc); upstream pushable; both commits pushed. **hv's board was a stub for eight weeks while every peer was told to read it for directives -- the mirror of the four-day inbox failure, and nobody had named it.** It now carries seven attributed standing directives behind a provenance rule. **THE LESSON THAT COST ME THIS MORNING: FILING TO AN INBOX IS NOT A DECISION REQUEST.** hv needs context, a question and OPTIONS in the live channel; a durable write with no decision shape gets read and not answered. Gate 62 of 67, unmoved."
+focus: "**THE SAME DEFECT THREE TIMES IN ONE DAY, AND ONLY THE FIRST ONE WAS MINE.** A needle that does not match its subject: my `lib/templates` exclusion (false negative, self-refuted); **`runner_roster_check.sh`'s population bounded to ST0056 AND to `*_check.sh`, leaving ST0057's whole toolset undeclared while the guard reports clean on every commit** (false negative, gated, shipped); **`pgrep -f 'intentd'` matching `intentdb` in every MAAC node's system prompt** (false POSITIVE -- the estate's own docs refusing its own instrument). Swept all **190** AT rows: **zero expired citations**, one anomaly (AT-00.6). Five undispatched greens DRIVEN on hv's ruling -- **four confirmed, one refused on the needle defect and its green stands.** `declared_but_unwired` closed: the vacuity guard was already shipped and my TODO had gone stale toward done."
 claims: [ST0056, ST0057]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-**hv's BOARD IS NOW MINE TO WRITE (hv, 2026-08-21) and the constraint is stated at the top of it: every entry is hv's word, dated, traceable. I hold the pen hv handed over, NOT hv's authority. A ruling I cannot attribute goes back to hv as a question rather than into the board.** Four rulings transcribed there and routed: gate-scope-as-canon-data to cc, `target/<node>` prune-at-fold to dc. Gate correction `14298e6b` and board `c9892046` pushed to both remotes on hv's word. **P0 and P2 done. Nothing of mine in flight.**
+**Systematic run-through on hv's word. DONE: the 190-row citation sweep; `declared_but_unwired` adequacy (closed -- guard already shipped); the five undispatched greens driven at `49be1059`.** Two hv rulings landed and routed: roster population widens (cc), criteria-on-undispatched-instruments get driven (applied same day). **BLOCKED: the 250-files question -- `sqlite3` cannot open the store in this session and the binary reads it fine, so it is my access. Deeper: THE QUESTION HAS NO VERB, which is the same hand-composition that produced the gate drift.** Nothing of mine in flight.
 
 ## TODO
 
@@ -24,6 +24,7 @@ claims: [ST0056, ST0057]
 
 ## WATCH-OUTS -- RULES ONLY
 
+- **A NEEDLE THAT DOES NOT MATCH ITS SUBJECT -- THREE TIMES ON 2026-08-21, TWO DIRECTIONS, ONE ROOT.** `grep --exclude lib/templates` (false negative, mine, caught by self-refute); **`$TOOLS` + `*_check.sh` in a GATED guard, clean on every commit while a whole thread's instruments are undeclared** (false negative, shipped, nothing to refute it); **`pgrep -f 'intentd'` matching `intentdb`** (false POSITIVE -- an unanchored substring over a COMMAND LINE, tripped by the estate's own restart context inside every MAAC node's `--append-system-prompt`). **A filename convention doing a population's job is the tell: an instrument is in scope for what it IS, never for what it is called.** And the third one only exists BECAUSE we run MAAC -- **the documentation broke the instrument by being carried.**
 - **FILING TO AN INBOX IS NOT A DECISION REQUEST, AND THE WRITE SUCCEEDING IS WHAT HIDES IT.** hv, 2026-08-21: _writing stuff to that inbox like that DOESN'T WORK. It's ok for durability, but to get a response, I need to see the context, a question, with some options._ **A durable write with no decision shape gets read and not answered, and nothing distinguishes that from not being read at all.** I am the named reader of hv's inbox and I still made this error in the other direction on the same day. **Context, question, OPTIONS, in the live channel. The inbox is the record, never the ask.**
 - **RUN A SUITE THROUGH ITS RUNNER, NEVER AROUND IT.** An entry point carries fixes and defences a lower-level invocation silently loses.
 - **A POPULATION THAT EXCLUDES THE ANSWER RETURNS A CONFIDENT ZERO.** _N of N files lack X_ is worthless if the file that has X is not an N. **Ask what would hold X before counting what does not.**
