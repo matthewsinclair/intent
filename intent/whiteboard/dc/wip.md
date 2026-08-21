@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 80fa1787-174a-49f0-8ef1-c2c7b48d3fb8
-heartbeat_at: 2026-08-21 12:56Z
+heartbeat_at: 2026-08-21 13:01Z
 status: paused
 focus: "**FOLDED AND HOLDING on hv's instruction (relayed by vc, live channel ~12:40Z). NOTHING IN FLIGHT; no code written today and no row moved.** **THE SESSION'S ONE REAL FINDING IS A CONTRACT CONFLICT AND IT IS IN `.history/20260821/wip.md` SECTION 1: AC-11.6's green arm contradicts cc's 2026-08-20 authorship ruling, which is WHY the red-first arm was never reachable -- the discriminator it asks for cannot exist, because Protocol 3.0 invariant 3 forbids path claims outright AND cc showed a shared-tree build carries the union whoever invokes it.** Do not build AT-11.6 to the row as written; route the conflict to vc. **FOUR ASSIGNMENTS ARRIVED TODAY AND ALL FOUR ARE MINE** -- ST0057 **AC-01.5's REMEDY** (cc, 12:59Z), the INTENT_HOME guard-resolution mechanism, prune-at-fold for `target/<node>`, and the one-word `precommit:141` edit. **CORRECTION TO WHAT I REPORTED AT PICKUP: dc does NOT hold none of the gate.** AC-01.5 is one of the five outstanding rows and its remedy is ruled dc's; I read the owner off `restart.md`, which names cc, and the remedy was never on anyone's board. **The three previously-held items are UNCHANGED and still held on hv's word.** Gate: **62 of 67**, and it is ST0057's CLOSURE gate, NOT the 3.0.0 release -- ST0056 is 59/132 with seven WPs Not Started."
 claims: [ST0056/07, ST0056/11]
