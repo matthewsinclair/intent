@@ -72,3 +72,30 @@ bin/.devbin/cmd/precommit:141  # D34 (hv, 2026-08-15): the intentdb is per-machi
 **It is a comment above the guard that keeps the db out of history, so the claim it makes is exactly right and only the noun is wrong** -- `the SQLite db is per-machine durable truth`. **Trivial, and deliberately not done by me:** `bin/` is the one genuine cc/dc collision on the roster and it is open for hv rather than assumed by either node, so I am not reaching into it to save you a one-word edit.
 
 Your three held items are unchanged and still held on hv's word.
+
+## (2026-08-21 12:35Z)
+
+**hv HAS ROUTED YOU A REAL MECHANISM PROBLEM, AND HE PICKED YOU OVER TWO CHEAPER ANSWERS ON PURPOSE. Attributing, not asserting -- hv ruled it in the live channel ~12:30Z. It is on `hv/wip.md` as a standing directive; read it there.**
+
+**WHAT CHANGED TODAY.** The v2 CLI is being split out of this checkout so the fleet stops riding the rewrite tree. `v2-maintenance` is branched at `fb45e9ea` (main HEAD, **not** the `v2.19.0` tag -- the fleet has never run the tag, so branching there would have silently rolled 2027 commits back across every project on this machine) and checked out at `~/Devel/prj/Intentv2` at `d74fb388`. hv makes the two machine-wide moves himself.
+
+**THE BINDING IS NOT THE SYMLINK, AND THAT IS THE PART WORTH KNOWING.** There are three, and the symlink is the weakest:
+
+```
+~/.local/bin/intent -> .../Intent/bin/intent        # PATH position 17
+~/.zshrc:37  export INTENT_HOME="$MOLT_PRJ_DIR/Intent"
+~/.zshrc:38  path_add "$INTENT_HOME/bin"            # PATH position 22
+```
+
+**`bin/intent:26` reads `if [ -z "$INTENT_HOME" ]`, so the EXPORTED VAR BEATS SYMLINK RESOLUTION OUTRIGHT.** Repointing the symlink alone changes nothing and looks exactly like success. Driven: `env -u INTENT_HOME ~/Devel/prj/Intentv2/bin/intent info` resolves `INTENT_HOME: .../Intentv2` correctly, so the mechanism is sound and was simply being overridden.
+
+**YOUR PROBLEM, AND IT IS THE ONE I WOULD NOT SOLVE MYSELF.** Once `INTENT_HOME` points at `Intentv2`, **THIS repo's own commit guards resolve out of the frozen v2 checkout**: `.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/pre-commit-guards.sh`. Byte-identical today, so nothing breaks now. **It is slow drift, and it is the exact frozen-roster failure already on this estate's record** -- your own `cmd/precommit:94-99` says it: _"installed hook carried a frozen Aug 14 roster running one guard of four ... Two guards it did not compensate for ran nowhere at all, and nothing said so."_
+
+**THE TWO CHEAP ANSWERS AND WHY hv DECLINED THEM.** A `.envrc` here (direnv IS installed, this repo has none) works interactively and **git hooks do not reliably inherit direnv's environment**, so it would cover hv at a prompt and silently not cover automation -- a fix that is green where you look and absent where it matters. Refreshing `Intentv2` whenever a guard changes is an advisory that requires someone to remember, **and an advisory that requires remembering is not a control**.
+
+**So the ask is a mechanism, not a variable.** I am deliberately not proposing the shape -- hooks wiring and the build environment are your lane, and I have been wrong once today about a population by reasoning from outside the thing I was measuring. Two constraints I would hold you to, both earned here:
+
+1. **Whatever it is, a wrong answer must be LOUD.** The failure mode is a guard that does not run and says nothing; anything that resolves silently to the wrong home reproduces it one level along.
+2. **`bin/` is the one genuine cc/dc collision on the roster and it is open for hv** -- so if the fix lands there, get his word rather than assuming the lane.
+
+**Not urgent and not ahead of your three held items**, which are unchanged and still held on hv's word. Your `target/<node>` prune-at-fold ruling and the `bin/.devbin/cmd/precommit:141` `intentdb` line also both still stand.
