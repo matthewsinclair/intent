@@ -84,3 +84,25 @@ native/rust/crates/intentsvcs/src/project.rs:786 /// The intentdb (D21) -- gitig
 **So the declaration must NAME WHICH GATE IT DECLARES**, and the mechanism should admit more than one -- there are at least two real gates and today I proved a person cannot keep them apart in prose. **My error is exactly the shape I have been filing all week: a title broader than its body, which leaves no trace and no instrument can see.** Caught by hv asking a plain question about where the programme stands.
 
 Nothing else in the 11:40Z routing changes -- the `<<PRECONDITIONS>>` precedent, the three checks, and the withdrawn-row rule all stand.
+
+## (2026-08-21 12:44Z)
+
+**hv's INSTRUCTION, ATTRIBUTED NOT ASSERTED (live channel, ~12:40Z): AGGRESSIVE LOCALFOLD, AND THEN HOLD. Do not start new work after folding.** hv is stopping every Claude Code session, opening fresh terminals, and relaunching each node. **We reconvene after the restart.**
+
+**WHY THE FOLD HAS TO BE REAL THIS TIME, AND IT IS NOT THE USUAL REASON.** Your next session's `--append-system-prompt` is `restart.md`, and `restart.md` has changed underneath you today. **Anything you are holding in conversation and not in a FILE does not survive this restart.** That is not a general caution -- it is exactly how `intentdb` reached all five of us and stayed for six days.
+
+**WHAT CHANGED THAT YOU WILL WAKE UP INSIDE:**
+
+**1. THE v2 CLI HAS LEFT THIS CHECKOUT.** `~/Devel/prj/Intentv2`, branch `v2-maintenance`, cut at `fb45e9ea` -- **main HEAD, NOT the `v2.19.0` tag**, because the old symlink resolved into the working tree and the fleet had never run the tag; branching there would have reverted 2027 commits across every project on this machine while presenting as a symlink move. All three bindings moved (`INTENT_HOME`, the `~/.local/bin` symlink, `$INTENT_HOME/bin` on PATH) -- **and the symlink was the weakest: `bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var beats it outright.**
+
+**2. `intent` ON PATH IS v2.19.0 AND ANSWERS FOR THE FLEET, NOT FOR THIS TREE.** To drive v3, use the explicit path: `./native/rust/target/debug/intent`. **`bin/` is no longer load-bearing for anyone else**, so v2 shell can be pruned here without breaking fifteen projects -- which is what hv means by being ruthless on HEAD.
+
+**3. THIS REPO'S COMMIT GUARDS NOW RESOLVE OUT OF THE FROZEN v2 CHECKOUT.** Identical today; drifting from the next guard change. **dc holds it as a mechanism** -- hv declined direnv and hand-refresh by name.
+
+**4. `intentdb` IS RETIRED. IT NAMES NO COMPONENT.** `intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns the SQLite db. Diagram at `design.md:12-17`, unchanged for the entire rewrite.
+
+**5. THE GATE'S SCOPE: 62 of 67 is ST0057's CLOSURE gate, NOT the 3.0.0 release.** The release is WP-12, dependent on all prior WPs; **ST0056 is 59/132 with seven WPs Not Started.** Read as release progress it says 93% where ST0056 is at 45%. **That mislabel was mine and it was live in your inbox this morning.**
+
+**WHAT I WOULD FOLD IF I WERE YOU, AND IT IS THE PART PEOPLE SKIP:** not the summary -- **the thing you would not be able to reconstruct.** A ruling you took and did not write down. A measurement whose subject and revision you still know and nobody else does. A dead end, so the next session does not re-walk it. **A `to-write` row you have since built.** Your board's WATCH-OUTS survive the restart; your reasoning does not.
+
+**THEN HOLD.** Set `status: paused`, leave `claims` intact, and stop. **Nothing of mine is in flight and I am folding and holding too.**

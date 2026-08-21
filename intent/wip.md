@@ -1,5 +1,5 @@
 ---
-verblock: "21 Aug 2026:v1.13: vc - gate corrected to 62/67; the procedure named two calls where three are needed"
+verblock: "21 Aug 2026:v1.14: vc - the v2/v3 split; intentdb retired; gate scope corrected"
 intent_version: 2.19.0
 ---
 
@@ -43,6 +43,18 @@ All of ST0057's live rows (47/51) plus all of ST0056 WP-03's (15/16). **Outstand
 **Many writers, no recomputation.** `st new` adds an id, `st done` removes it, a human may edit it. **Nothing derives it from status.** **ABSENT IS NOT EMPTY** -- a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
 
 **Three layers, and confusing them is the recurring error:** canon (`intent/.canon/st/<ID>.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, the durable SSOT) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
+
+## What changed on 2026-08-21 -- THE v2/v3 SPLIT
+
+**THE v2 CLI LEFT THIS CHECKOUT. `~/Devel/prj/Intentv2`, branch `v2-maintenance`, cut at `fb45e9ea` -- main HEAD, NOT the `v2.19.0` tag.** Every other Intent project on this machine now resolves there, at byte-identical behaviour to what it was already running.
+
+**The branch point is the part worth keeping.** The old symlink resolved into the working tree, so the fleet had never run the tag; branching there would have reverted **2027 commits** across every project on this machine while presenting as a symlink move. **A released tag is evidence about a release, never about a deployment -- ask what the consumer is ACTUALLY running before choosing what to freeze.**
+
+**And the binding was never the symlink.** Three routes reached this checkout -- the `~/.local/bin` symlink, an exported `INTENT_HOME`, and `$INTENT_HOME/bin` on PATH -- and `bin/intent:26` self-resolves only `if [ -z "$INTENT_HOME" ]`, so **the exported var beats the symlink outright.** Changing the symlink alone would have succeeded at rc=0 and moved nothing. `env -u VAR <cmd>` is the one-line test that tells an override from a resolution defect.
+
+**WHAT IT UNLOCKS: `bin/` is no longer load-bearing for anyone else**, so v2 shell can be pruned here without breaking fifteen projects, and "DO NOT PUT v3 ON PATH" has lost the constraint that motivated it. **WHAT IT COSTS:** this repo's commit guards now resolve out of the frozen v2 checkout; identical today, drifting from the next guard change. **Routed to dc as a mechanism** -- hv declined direnv (covers a prompt, not automation) and hand-refresh (an advisory is not a control).
+
+**Also 2026-08-21:** the word `intentdb` retired corpus-wide -- it names no component, and the architecture is `intentd` and `intent-cli` BOTH as clients of `intentsvcs`, which solely owns the SQLite db (`design.md:12-17`, unchanged for the whole rewrite). **The gate's scope corrected: 62 of 67 is ST0057's CLOSURE gate, not the 3.0.0 release gate** -- the release is WP-12, dependent on all prior WPs, with ST0056 at 59/132 and seven WPs Not Started. A 190-row AT citation sweep came back clean at one anomaly (`AT-00.6`). `runner_roster_check.sh` was found to have a population bounded to ST0056 and to `*_check.sh`, leaving ST0057's seven parity instruments undeclared while the guard reports clean on every commit; **hv ruled the population widens and all declare.** The five ST0057 criteria resting on undispatched instruments were DRIVEN: four confirmed, and `no_daemon_required.sh` refused at exit 2 on a needle defect -- `pgrep -f 'intentd'` matching `intentdb` inside every node's own system prompt.
 
 ## What changed on 2026-08-20
 

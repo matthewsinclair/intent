@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 575f9585-0b9a-47fe-9d3b-24b2a561827c
-heartbeat_at: 2026-08-21 12:45Z
-status: paused
-focus: "**LOCALFOLD AND HOLD ON hv's WORD, 2026-08-21 12:45Z. The v2 CLI has LEFT this checkout (`~/Devel/prj/Intentv2`, `v2-maintenance` at `fb45e9ea` = main HEAD, NOT the tag) and HEAD here is now free to be ruthless about v3.** **THE DAY'S ONE ROOT, FOUR TIMES: a needle or population that does not match its subject** -- my `lib/templates` exclusion, `runner_roster_check.sh` bounded to ST0056 and to `*_check.sh` while GATED and clean every commit, `pgrep -f intentd` matching our own docs, and the symlink that was never the binding. **Three of the four returned a confident answer at rc=0.** Gate 62 of 67 and that is ST0057 CLOSURE, not the release -- ST0056 is 59/132 with seven WPs Not Started. **Nothing in flight, all four inboxes at sentinel, everything committed and pushed."
+heartbeat_at: 2026-08-21 12:35Z
+status: active
+focus: "**THE v2 CLI IS SPLIT OUT: `v2-maintenance` at `fb45e9ea`, `~/Devel/prj/Intentv2` at `d74fb388`, verified standing up on its own (`doctor` ok, `--version` 2.19.0).** **BRANCHED FROM MAIN, NOT THE TAG -- the fleet has NEVER run `v2.19.0`, so the obvious branch point was a silent 2027-commit rollback across every project on this machine.** **AND THE BINDING WAS NEVER THE SYMLINK:** `bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so `.zshrc:37`'s export beats it and `.zshrc:38` puts a second route on PATH -- **repointing the symlink alone would have changed nothing and looked exactly like success.** hv makes both machine-wide moves. Guard resolution after the split routed to dc as a MECHANISM; hv declined direnv (covers the prompt, not automation) and hand-refresh (an advisory is not a control). **Gate 62 of 67 -- ST0057's CLOSURE gate, NOT the release; ST0056 is 59/132 with seven WPs Not Started.**"
 claims: [ST0056, ST0057]
 ---
 
@@ -13,15 +13,14 @@ claims: [ST0056, ST0057]
 
 ## DOING
 
-**PAUSED. Folded at 2026-08-21 12:45Z on hv's instruction, ahead of a full session restart.** Nothing in flight, nothing owed, all four of my inboxes and all four of hv's at sentinel. Tree clean but for peers' own boards; everything of mine committed and pushed to both remotes.
+**Systematic run-through on hv's word. DONE: the 190-row citation sweep; `declared_but_unwired` adequacy (closed -- guard already shipped); the five undispatched greens driven at `49be1059`.** Two hv rulings landed and routed: roster population widens (cc), criteria-on-undispatched-instruments get driven (applied same day). **BLOCKED: the 250-files question -- `sqlite3` cannot open the store in this session and the binary reads it fine, so it is my access. Deeper: THE QUESTION HAS NO VERB, which is the same hand-composition that produced the gate drift.** Nothing of mine in flight.
 
 ## TODO
 
-1. **VERIFY ON CLOSE, none mine to build:** ST0057 AC-01.5, AC-03.6 (cc), AC-07.7, AC-08.5 (ic); ST0056 AC-03.14 (cc). **The five are CITATION-CLEAN as of today** -- swept, all cited files exist and carry thread-qualified ids, and `AT-07.7` cites nothing correctly under `11762943`. No builder will strand on them.
-2. **ROUTED TODAY AND MINE TO VERIFY:** roster population widens so every parity instrument declares (cc); `pgrep -f intentd` needle anchoring in `no_daemon_required.sh` (ic); `target/<node>` prune-at-fold (dc); **guard resolution after the v2 split, as a MECHANISM** (dc); the three `intentdb` sites (cc, ic, dc).
-3. **STILL GATED ON hv, RULED AND EVIDENCED, DO NOT START:** dc's two roster admissions and `test_helper.bash:93`'s `3.0.0` default.
-4. **BLOCKED AND THE BLOCKER IS THE FINDING: hv's 250-files question has NO VERB.** `sqlite3` cannot open the store from my session while the binary reads it at rc=0, so that half is my access -- but establishing which files under `intent/` are absent from the store means hand-joining a filesystem walk against the db, **which is the same hand-composition that produced the gate drift.** 876 tracked under `intent/`; 198 whiteboard + 187 plugins are plausibly outside the store's remit by design, which would account for most of 250 with nothing wrong. **Do not answer it by hand.**
-5. `AT-00.6` is stale (`to-write`, file exists) -- routed to cc, filed not fixed. cc's eleven-copies filing, low.
+1. **ST0057 AC-01.5, AC-03.6 (cc), AC-07.7, AC-08.5 (ic); ST0056 AC-03.14 (cc).** None mine to build; all mine to verify on close.
+2. **GATED ON hv, RULED AND EVIDENCED, DO NOT START:** dc's two roster admissions (`canon_commit_check.sh`, `thread_view_skew_check.sh`), and `test_helper.bash:93`'s `3.0.0` default. **hv instructed dc directly to hold; that outranks my "land it" and I was wrong to issue one.**
+3. `declared_but_unwired` adequacy. The heartbeat-currency note for hv. cc's eleven-copies filing.
+4. **RESOLVED, NOT DROPPED: the 49 commits went to both remotes 2026-08-20 23:51 local; `local` and `upstream` are each 0/0 against `main`.** The `upstream` freeze question is moot for that push and stays live for the next one -- confirm with hv.
 
 ## WATCH-OUTS -- RULES ONLY
 
@@ -57,10 +56,6 @@ claims: [ST0056, ST0057]
 
 ## DECISIONS
 
-- **2026-08-21** -- **THE v2 CLI SPLIT OUT OF THIS CHECKOUT** (`v2-maintenance` at `fb45e9ea`, `~/Devel/prj/Intentv2`), branched from MAIN not the tag because the fleet had never run the tag. hv moved all three bindings. **`bin/` is no longer load-bearing for anyone else.**
-- **2026-08-21** -- `intentdb` **RETIRED corpus-wide**; it names no component. Quoted rulings corrected in BRACKETS with an editorial note, never silently.
-- **2026-08-21** -- **the 62-of-67 gate is ST0057's CLOSURE gate, NOT the 3.0.0 release gate.** My own mislabel, live in three inboxes before it was caught.
-- **2026-08-21** -- hv ruled: roster population widens and all parity instruments declare; criteria on undispatched instruments get DRIVEN not argued; **vc maintains `hv/wip.md`** under a stated provenance rule.
 - **2026-08-21** -- hv ruled four: gate scope declared in canon (cc builds, vc verifies); every node prunes its own `target/<node>` at fold (dc); `upstream` freeze lift is standing; **vc maintains `hv/wip.md` on hv's behalf under a stated provenance rule.**
 - **2026-08-20 17:36Z** -- suite green under hv's one-off authority; **credo N/A verified (no `mix.exs`, no `.credo.exs`), not assumed.**
 - **2026-08-20** -- D57-8 amended to carry four collection addresses; **AC-07.1 NOT reopened**; AC-07.7 minted.

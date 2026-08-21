@@ -3,7 +3,7 @@ node: hv
 name: Hypervisor
 role: hypervisor
 session_id: none
-heartbeat_at: 2026-08-21 12:35Z
+heartbeat_at: 2026-08-21 12:44Z
 status: active
 focus: "Workstream Zero. Adjudicates scope, sequences work, owns releases and commits-to-main. **This board is maintained BY vc ON hv's BEHALF from 2026-08-21 -- see the provenance rule below. Every directive here is hv's word, dated, and traceable to where hv said it.**"
 claims: []
@@ -26,6 +26,8 @@ claims: []
 - (hv sets)
 
 ## Standing directives
+
+- **(2026-08-21) ALL FOUR WORKSTREAMS: AGGRESSIVE LOCALFOLD, THEN HOLD.** hv stops every Claude Code session, opens fresh terminals, relaunches each node, and the estate reconvenes after. **The fold has to be real because `restart.md` CHANGED today and it is what every node's `--append-system-prompt` carries** -- anything held in conversation rather than in a file does not survive the restart, which is precisely how `intentdb` reached all five of us and stayed six days. **Fold the thing you could not reconstruct, not the summary.** Announced to cc, ic and dc with the new state attached; vc folds and holds too.
 
 - **(2026-08-21) THE v2 CLI SPLITS OUT OF THIS CHECKOUT.** `v2-maintenance` branched at `fb45e9ea` (**main HEAD, NOT the `v2.19.0` tag** -- the fleet has never run the tag, so branching there would have silently rolled 2027 commits back across every project on this machine and presented as a symlink move); checked out at `~/Devel/prj/Intentv2` at `d74fb388`, config declared `2.19.0` so it does not refuse itself. **hv makes the two machine-wide moves** (`~/.zshrc:37-38` and the `~/.local/bin/intent` symlink). **The binding was never just the symlink: `bin/intent:26` reads `if [ -z "$INTENT_HOME" ]`, so the exported var beats symlink resolution outright, and `$INTENT_HOME/bin` is a second PATH route.** Once done, **HEAD here is free to be ruthless about v3.**
 - **(2026-08-21) THIS REPO'S GUARD RESOLUTION AFTER THE SPLIT IS dc's, AS A MECHANISM.** With `INTENT_HOME` pointing at `Intentv2`, this repo's commit guards resolve out of the frozen v2 checkout -- byte-identical today, slow drift after, and the exact frozen-roster failure already on record. **hv declined both cheap answers**: a `.envrc` covers an interactive prompt and not automation, because git hooks do not reliably inherit direnv; and refreshing the v2 copy by hand is an advisory that requires remembering, which is not a control. **A mechanism, not a variable**, and a wrong answer must be loud.

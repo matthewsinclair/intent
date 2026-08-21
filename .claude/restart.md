@@ -9,6 +9,24 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
 
+## THE v2/v3 SPLIT -- 2026-08-21. READ THIS BEFORE THE STATE BELOW; IT CHANGES WHERE YOU ARE STANDING
+
+**THIS CHECKOUT IS v3 ONLY NOW. The v2 CLI the fleet runs lives in a SEPARATE checkout and is no longer served from here.**
+
+- **`~/Devel/prj/Intentv2`**, branch `v2-maintenance`, cut at `fb45e9ea` -- **main HEAD, NOT the `v2.19.0` tag.** Every other Intent project on this machine now runs that.
+- **All THREE bindings moved**, and the symlink was the weakest of them: `INTENT_HOME=/Users/matts/Devel/prj/Intentv2`, `~/.local/bin/intent -> Intentv2/bin/intent`, and `$INTENT_HOME/bin` on PATH. **`bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var BEATS symlink resolution** -- repointing the symlink alone would have returned 0 and moved nothing.
+- **The branch point was main and not the tag on purpose.** The old symlink resolved into the working tree, so the fleet had NEVER run `v2.19.0`. Branching at the tag would have rolled **2027 commits** back across every project on this machine -- `intent_critic -94`, `intent_acceptance -144` -- **while presenting as a symlink move.** A released tag is evidence about a release, never about a deployment.
+
+**WHAT IT UNLOCKS, AND IT IS THE POINT: `bin/` IS NO LONGER LOAD-BEARING FOR ANYONE ELSE.** "DO NOT PUT v3 ON PATH" existed because ONE checkout served the fleet and the rewrite at once. **That constraint is gone.** Pruning v2 shell here breaks nobody. Whether v3 goes on PATH is now hv's call on its merits rather than a hazard to fifteen other projects. **`intent` on PATH is v2.19.0 and answers for the FLEET -- to drive v3, use the explicit path (`./native/rust/target/debug/intent`).**
+
+**WHAT IT COSTS -- LIVE, UNSOLVED, AND ROUTED TO dc AS A MECHANISM RATHER THAN A VARIABLE.** This repo's commit guards now resolve out of the FROZEN v2 checkout: `.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`. **All five guard files are identical today; drift starts the moment anyone improves a guard here**, and that is the frozen-roster failure already on this estate's record. **hv declined both cheap answers**: direnv covers an interactive prompt and not automation, because git hooks do not reliably inherit it; and refreshing the frozen copy by hand is an advisory, and an advisory that requires remembering is not a control.
+
+**STEP 0 NOW APPLIES TO TWO CHECKOUTS.** `Intentv2` was a fresh clone, inherited no `core.hooksPath`, and has been wired. Clone either again and `int hooks` is the first thing you run.
+
+**THE WORD `intentdb` IS RETIRED AND NAMES NO COMPONENT** (hv, 2026-08-21). The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The architecture, inviolable and unchanged for the whole rewrite** -- `intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns `intent/.cache/intent.db`. `intentd` is not the SSOT and no read requires it. Diagram: `intent/st/ST0056/design.md:12-17`.
+
+**AND THE GATE'S SCOPE: 62 of 67 is ST0057's CLOSURE gate -- all ST0057 live rows plus all ST0056 WP-03 rows. IT IS NOT THE 3.0.0 RELEASE GATE.** The release is ST0056 WP-12, whose dependency line reads _"All prior WPs"_, and **ST0056 stands at 59/132 with SEVEN WPs Not Started** (08 intentd XL, 09 MCP, 12 cutover, 13 search XL, 14 coordination, 15 skills, 16 contract drift). Read as release progress, 62/67 says 93% where ST0056 is at 45%.
+
 ## State (as at `69a5db5e`, 2026-08-20)
 
 **THE GATE IS 62 OF 67, AND IT TAKES THREE VERB CALLS.** `intent ac status ST0057` (47/51) **plus `intent ac status ST0056/03` (15/16)** -- the scope is all of ST0057's live rows plus all of ST0056 WP-03's -- and `intent ac gate ST0057` names the outstanding ids. **`ac status ST0056` answers 59/132 and is NOT this number's denominator.** The `ST0056/03` call is a WP-scoped STID; the verb accepts it and no instruction here ever said so. **Three figures have been wrong now, and the third was wrong because this line said do not hand-tally while naming calls that could not reach the figure** -- so obeying it meant copying the banner. **Run all three.**
