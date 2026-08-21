@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef9e17d5-a705-4547-b749-807a30ba16b5
-heartbeat_at: 2026-08-21 12:58Z
+heartbeat_at: 2026-08-21 13:39Z
 status: paused
-focus: "**PAUSED AND HOLDING on hv instruction, relayed by vc and attributed rather than asserted. LOCALFOLD DONE 2026-08-21.** I BUILT NOTHING TODAY -- pickup, measurement, a plan tabled to matts, and the hold landed before step 1. **THE ONE THING A COLD SESSION MUST NOT MISREAD: AC-03.14 test file is GREEN and the row is CORRECTLY RED**, because the green is a `UNPROVEN.len() <= 32` ratchet and not a closure; the production fix it prescribes is already in at `write_set.rs:154-166`. **Gate 62 of 67 computed in THREE calls -- `ac status ST0056/03` is a WP-scoped form nothing had written down -- and it is ST0057 CLOSURE, not the 3.0.0 release.** Three hv rulings landed in my inbox today and are TODO 1-3. **My session INTENT_HOME went stale under me; yours will not be.**"
+focus: "**FOLDED AND HELD, EOD 2026-08-21. Built nothing today** -- pickup, measurement, a plan tabled to matts, then hv held everyone. **THE ONE THING A COLD SESSION MUST NOT MISREAD: AC-03.14 test file is GREEN and the row is CORRECTLY RED**, because the green is a `UNPROVEN.len() <= 32` ratchet and not a closure; the fix it prescribes is already in at `write_set.rs:154-166`. **Gate 62 of 67 in THREE calls -- `ac status ST0056/03` is a WP-scoped form nothing had written down -- and it is ST0057 CLOSURE, not the 3.0.0 release.** **TWO CLAIMS OF MINE EXPIRED WITHIN THE DAY AND BOTH ARE CORRECTED BELOW: my INTENT_HOME staleness (this session is FINE) and three-of-four-bounced (ZERO bounced -- ListAgents started is SOCKET age).** Three hv rulings are TODO 1-3, unstarted."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -76,7 +76,8 @@ ST0056 **AC-10.4** and **AC-10.2** both read `satisfied: yes`. `intent/restart.m
 
 - **THE v2 CLI HAS LEFT THIS CHECKOUT.** `~/Devel/prj/Intentv2`, branch `v2-maintenance`, cut at `fb45e9ea` = main HEAD and **NOT the `v2.19.0` tag** -- the old symlink resolved into the working tree, so the fleet had never run the tag, and branching there would have reverted 2027 commits across every project while presenting as a symlink move.
 - **`intent` ON PATH IS v2.19.0 AND ANSWERS FOR THE FLEET, NOT FOR THIS TREE.** Drive v3 by explicit path: `./native/rust/target/debug/intent`. **`bin/` is no longer load-bearing for anyone else**, so v2 shell can be pruned here without breaking fifteen projects.
-- **MY SESSION'S `INTENT_HOME` WAS STALE BY THE END AND A FRESH ONE WILL NOT BE. Read, not inferred:** `.zshrc:37` now exports `INTENT_HOME="$MOLT_PRJ_DIR/Intentv2"`, while this session carried `/Users/matts/Devel/prj/Intent` -- the shell was initialised at 09:29Z, before hv moved the bindings. **`bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var beats symlink resolution outright**, and `~/.local/bin/intent` already resolves to `Intentv2/bin/intent`. **Every PATH-`intent` measurement taken in this session describes the OLD binding.**
+- **THE `INTENT_HOME` STALENESS I RECORDED AT 12:57Z EXPIRED AT 13:36 AND THE CORRECTED STATE IS: THIS SESSION IS FINE.** Driven at 13:2xZ on vc's restart probe, same session: `INTENT_HOME=/Users/matts/Devel/prj/Intentv2`, `intent` -> `Intentv2/bin/intent` (v2.19.0), siblings `intent_st` and `int` -> `Intent/bin` (v3). **That is the correct split and no measurement in this session is suspect.** What I wrote at 12:57Z -- that the shell carried the old value and every PATH-`intent` reading described the old binding -- **was true when written and false within forty minutes**: hv's symlink is stamped 13:36, AFTER my 12:58Z fold, so the binding change completed while I was already paused. **THE LESSON IS NOT ABOUT THIS VARIABLE. A CLAIM WHOSE SUBJECT IS STILL BEING CHANGED BY SOMEONE ELSE HAS A SHELF LIFE, AND A FOLD IS EXACTLY WHERE ONE GETS FROZEN AND READ LATER AS CURRENT.** Stamp the reading, name who else can move the subject, and re-drive before relying on it.
+- **BOTH TREES ARE ON PATH AND v3 IS FIRST; THE SYMLINK ONLY EVER PICKED THE ENTRYPOINT** (vc, measured before the switch). `~/.local/bin` at 17 gives v2 for `intent` ALONE; `Intent/bin` at 22 beats `Intentv2/bin` at 23, so **`intent_st`, `intent_critic`, `int` and `devbin` all resolve to the v3 tree.** Harmless today only because the 26 executables are byte-identical and `bin/intent:26` sources every handler out of `INTENT_HOME` regardless -- **the env var picks the CODE, the symlink picks the ENTRYPOINT.** It arms itself the moment v3's `main` diverges. Fix is WP-12's _bin/ (shell) pruned at the cut_, mine, later. **vc tested one binary and concluded about the tree; Lamplight's ic caught it.**
 - **THIS REPO'S COMMIT GUARDS NOW RESOLVE OUT OF THE FROZEN v2 CHECKOUT** (`.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`). Identical today; **drifting from the next guard change.** dc holds it as a mechanism -- hv declined direnv and hand-refresh by name.
 
 ## The practice -- four shapes of a row promising more than it delivers
@@ -87,6 +88,21 @@ ST0056 **AC-10.4** and **AC-10.2** both read `satisfied: yes`. `intent/restart.m
 4. **TITLE BROADER THAN BODY** -- **and this one leaves no trace at all.** The row is internally consistent: lint passes, the citation is right, the test is green, and it reads as covered to anyone who does not open it. **vc's own 12:16Z gate mislabel is a fresh instance in prose rather than in a row.**
 
 **PRACTICE:** subject-grep FIRST because it is cheap, **then DRIVE THE VERB when it comes back empty.** **And vc's discriminator -- what does satisfying this row COMPLETELY still leave broken? -- is asked against the BODY, never the TITLE**; against a title it returns _nothing_ every time, for exactly the rows where it matters most.
+
+## The class -- A RECORDED REASON RETIRED BY AN UNRELATED CHANGE, WITH NOTHING WATCHING THE JOIN
+
+**SIX INSTANCES IN ONE WEEK, WHICH IS WHAT MAKES IT A CLASS RATHER THAN AN ANECDOTE.** A reason is written down, it is true, it is cited; then a change ELSEWHERE makes it false. **The practice it justified usually stays correct, so nothing looks wrong** -- and the reason keeps being read as current.
+
+1. **AT-03.6's roster reason** -- _no narrow attachment-sync verb ... revisit after ST0057 WP-08_ -- **died at `212b0075`** when `sync --to-store <ID>` landed. Nothing pointed at that row when the verb shipped and nothing could have.
+2. **AT-03.6's second blocker** -- _what it needs is a `--staged` MODE, not a call site_ -- **died at `19268867`.** Same row, same week, second expiry.
+3. **AT-01.5's two recorded reasons** -- _unmeetable by any edit to the guard, to the roster, or to the template_, and _`pre-commit.intent` here is an install-time COPY_ -- **struck in every clause** by dc's Shape 3 plus `core.hooksPath=.githooks`. **A reader taking them at face value goes at exactly the three places that are now right.**
+4. **MINE, 2026-08-21** -- the `INTENT_HOME` staleness above: true at 12:57Z, false by 13:36, frozen into a fold in between.
+5. **vc's, same week** -- a rationale that expired while the practice it justified stayed correct, so the correctness of the practice concealed the deadness of the reason.
+6. **vc's, and THE WORST SHAPE: `intentdb`.** The term was wrong, it sat inside two quoted hv rulings of 2026-08-15 in `design.md`, and it propagated to all five nodes for six days. **ATTRIBUTION IS WHAT STOPPED ANYONE CHECKING** -- a verbatim quote reads as settled, so the one thing that would have caught it is the one thing nobody does to a quotation.
+
+**THE FINDING IS THE JOIN, NOT ANY INSTANCE: NOTHING IN THIS ESTATE WATCHES IT.** `at lint` exempting `to-write` is CORRECT, so it cannot see this; a citation is unvalidated until someone tries to satisfy it. **Every one of the six surfaced the same way -- a builder picked the reason up in order to USE it.** That is not an instrument, it is a coincidence of scheduling, and it means the undiscovered ones are exactly those nobody has needed yet.
+
+**PRACTICE UNTIL SOMETHING WATCHES IT: RE-DERIVE A RECORDED REASON BEFORE YOU RELY ON IT, AND RE-DERIVE AN ATTRIBUTED ONE HARDEST.** Re-deriving is also how you find the reason was wrong when written rather than merely expired. **A reason carries a DATE and a SUBJECT-OWNER; if someone else can move the subject, the reason has a shelf life and the citation must say so.**
 
 ## Watch-outs -- evidence
 
@@ -109,6 +125,7 @@ ST0056 **AC-10.4** and **AC-10.2** both read `satisfied: yes`. `intent/restart.m
 - **A REVISION NAMES SOURCE, NOT THE BINARY THAT ANSWERED** -- `shasum -a 256` and quote the hash WITH the number. **NAME REVISION, CLOCK AND DIRTY COUNT ON EVERY MEASUREMENT.**
 - **MARK PROVENANCE PER CLAIM: DRIVEN, READ, OR INFERRED.** **The cost lands on the READER, which is why the writer never feels it.** **VERIFY THE RETRACTION, NOT JUST THE CLAIM.**
 - **A BACKGROUND WAITER'S EXIT CODE IS ITS OWN, NEVER THE WATCHED PROCESS'S VERDICT.** Redirect the run's own rc to a file and read it there.
+- **`ListAgents` "started" IS SOCKET AGE, NOT SESSION AGE, AND FOUR NODES GOT THE SAME WRONG ANSWER FROM IT ON 2026-08-21.** I read three peers as _started ~5 minutes ago_ and concluded **three of four bounced**. **Zero bounced.** When the topology changed every peer re-registered, so **every node saw the other three as fresh and itself as resumed** -- four correct self-reports and one unanimous wrong inference about the population. **UNANIMITY ACROSS INDEPENDENT NODES IS NOT CORROBORATION WHEN ALL FOUR READ THE SAME INSTRUMENT**; it is one reading counted four times, and it feels like the strongest evidence available. **A self-report is first-hand; a peer's state read off an instrument is not, and the two must never be summed.** I put the wrong figure in vc's inbox at `461ef8e6` before vc corrected it.
 
 ## Watch-outs -- four nodes, one checkout
 
