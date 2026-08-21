@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# intent3 / intentd3 -- Intent v3 (native), reachable from any project here.
+#
+# ONE FILE, TWO NAMES. `intentd3` is a SYMLINK to this file and the binary is
+# chosen from `$0`. Two wrappers differing by one word in eight lines of logic
+# and sharing thirty of comment is how a fix lands in one and not the other --
+# and `bin/int` next door is already a symlink to the devbin dispatcher, so the
+# idiom is this repo's own rather than an import.
+#
+# WHY THIS FILE EXISTS AND WHY IT IS NOT NAMED `intent`. v3 installed as
+# `intent` shadows v2 for all sixteen other Intent projects on this machine in
+# one move, and `INTENT_HOME` CANNOT STOP IT: driven 2026-08-21 three ways --
+# exported, unset, and forced to a junk path -- the v3 binary answers the same
+# every time. That variable binds v2 only. So the name is one of the two locks;
+# the other is v3's own refusal of any project whose config declares a 2.x
+# version, driven across five distinct 2.x strings with a 3.0.0-dev positive
+# control (vc, same day).
+#
+# WHY IT LIVES IN THIS REPO'S `bin/` RATHER THAN `~/.local/bin`. This directory
+# is already on the login PATH at position 22 -- verified in a fresh `zsh -lc`,
+# not inherited from a session -- so a file here is reachable everywhere with NO
+# machine-wide change and NO new binding registered anywhere. That matters: this
+# estate's own record listed THREE `intent` bindings on 2026-08-21 when there
+# were FOUR, and the unrecorded one was a second symlink at PATH 19. A mechanism
+# that adds a fifth would be repeating the defect it exists to avoid.
+#
+# AND THE REVERSAL IS THE POINT. Living in the checkout means the way back is
+# the same operation that reverts everything else -- `git checkout`, a branch
+# without it, or deleting the clone. A file in `~/.local/bin` outlives all
+# three. It also SELF-RETIRES: `bin/` is the v2 shell tree WP-12 prunes at the
+# cut, so this disappears exactly when `intent` itself becomes v3 and a
+# separate name stops being wanted. (vc proposed the home; the reversal and
+# self-retirement arguments are why it beat `~/.local/bin` rather than merely
+# matching it.)
+#
+# NO COHERENCE CHECK RUNS HERE, DELIBERATELY. The release pair can be built
+# from two different trees -- `cargo build --release` returns 0 over exactly
+# that -- but checking it on EVERY invocation would put a multi-second gate on
+# every command, which is how a gate becomes one people work around. The check
+# belongs at build time: `int local build`. This wrapper's only job is to fail
+# loud when the binary is absent rather than falling back to something else.
+#
+set -euo pipefail
+
+self="$(basename "$0")"
+case "$self" in
+  intentd3) want=intentd ;;
+  intent3) want=intent ;;
+  # A third name would silently get the CLI. Refuse instead: an unknown name
+  # means someone linked this to something nobody designed it to answer for.
+  *) printf 'error: %s is not a name this wrapper answers to (intent3, intentd3)\n' "$self" >&2; exit 2 ;;
+esac
+
+# `BASH_SOURCE` and not `$0`: through a symlink `$0` is the LINK, which is what
+# we want for the name above and exactly wrong for locating the checkout.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bin="$here/../native/rust/target/release/$want"
+
+if [ ! -x "$bin" ]; then
+  printf 'error: no v3 %s binary at %s\n' "$want" "$bin" >&2
+  printf "  remedy: run 'int local build' -- it forces a COHERENT pair and verifies it.\n" >&2
+  printf '  Do NOT use a bare `cargo build --release`: it returns 0 over a pair built\n' >&2
+  printf '  from two different trees, because `intentd` declares no dependencies and\n' >&2
+  printf '  its build script therefore never re-runs.\n' >&2
+  exit 1
+fi
+
+exec "$bin" "$@"

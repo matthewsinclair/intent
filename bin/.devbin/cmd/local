@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = The v3 install on THIS machine -- bindings, build, install, reversal
+#
+# int local <status|build|install|uninstall>
+#
+#   status      every `intent` binding on this machine, ranked by PATH precedence
+#   build       force a COHERENT release pair, then VERIFY it
+#   install     put v3 on PATH as `intent3` -- explicitly, and never as `intent`
+#   uninstall   remove it again; the way back
+#
+# WHY `status` EXISTS, AND IT IS THE REASON FOR THE WHOLE COMMAND. On 2026-08-21
+# this estate's own record said there were THREE `intent` bindings. There were
+# FOUR: `~/.local/bin/intent` at PATH 17 and `~/bin/intent` at PATH 19, both
+# symlinks to the same v2 tree, made in the same minute, and only one of them
+# written down anywhere. A design that repoints "the symlink" moves one of two,
+# and deleting the recorded one hands resolution to the unrecorded one, which
+# still answers v2 -- silently, at exit 0. NOTHING ON THIS MACHINE COULD LIST
+# THEM, so the list was maintained by memory and memory was wrong. This is that
+# instrument, and it is read-only so there is never a reason not to run it.
+#
+# AND THE FACT IT EXISTS TO PRINT: `INTENT_HOME` HAS NO AUTHORITY OVER v3.
+# Driven three ways -- exported, unset, and forced to a junk path -- the v3
+# binary answers the same every time. The var is the strongest of v2's bindings
+# and it is INERT for v3, so anyone reading it as the rail that keeps v3 away
+# from the other projects on this machine is reading a rail that is not there.
+# v3's actual gate is the version declared in the project's own config, which
+# refuses every 2.x string measured. Two locks, and this prints the one people
+# wrongly believe in so the belief cannot survive looking.
+#
+# WHY `build` IS NOT `cargo build --release`. That command returns 0 over a pair
+# built from TWO DIFFERENT TREES. Measured here: `cargo build --release` and
+# then `int build all` both reported `Finished` while `intent` named the current
+# HEAD and `intentd` named a `dirty-` sha from two days earlier. The cause is
+# exact -- `intentd` declares NO dependencies, so nothing ever invalidates its
+# fingerprint and its `build.rs` never re-runs, permanently. `intent-cli` escapes
+# only incidentally, by depending on `intentsvcs`, which changes.
+#
+# THE ABSENT `cargo:rerun-if-changed` IS DELIBERATE AND MUST NOT BE "FIXED" --
+# see `native/rust/build-support/source_commit.rs`, which measured it: emitting
+# ANY `rerun-if-changed` REPLACES cargo's default of re-running on package
+# change, so naming `.git/HEAD` would swap a trigger that follows the code for
+# one that does not follow it at all, and the embed would go stale on CODE
+# changes instead -- worse, and in the direction nothing reports. The remedy
+# belongs HERE, outside cargo, at the moment someone wants artefacts to install.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+# The marker reader, project-owned. See the file for why it is not in lib/helpers.
+. "$(dirname "${BASH_SOURCE[0]}")/shared/artefact.lib"
+
+BINDIR="${INTENT_LOCAL_BINDIR:-$HOME/.local/bin}"
+RELEASE_DIR="$PROJECT_ROOT/native/rust/target/release"
+# The names v3 takes locally. NEVER `intent` -- see cmd_install.
+PAIR="intent:intent3 intentd:intentd3"
+
+# path_hits <name> -- every executable of <name> on PATH, as "<position>\t<path>".
+#
+# Walks PATH itself rather than asking `which -a`, because the POSITION is the
+# whole answer: which binding wins is decided by order, and a bare list of paths
+# cannot say. Ties are impossible; earlier always wins.
+path_hits() {
+  local name="$1" i=0 d
+  local OLDIFS="$IFS"
+  IFS=:
+  for d in $PATH; do
+    i=$((i + 1))
+    [ -n "$d" ] || continue
+    if [ -x "$d/$name" ] && [ ! -d "$d/$name" ]; then
+      printf '%s\t%s\n' "$i" "$d/$name"
+    fi
+  done
+  IFS="$OLDIFS"
+}
+
+# describe_binding <path> -- one line: where it really goes, and which line it is.
+describe_binding() {
+  local f="$1" target="$f" kind="file"
+  if [ -L "$f" ]; then
+    kind="symlink"
+    target="$(readlink "$f")"
+    case "$target" in
+      /*) ;;
+      *) target="$(cd "$(dirname "$f")" && cd "$(dirname "$target")" && pwd)/$(basename "$target")" ;;
+    esac
+  fi
+  # THE COLUMN ASKS WHICH INTENT YOU GET, NOT WHAT THE FILE IS. Those differ for
+  # a wrapper: `bin/intent3` IS a bash script and gets you v3, so classifying by
+  # `file` alone prints a true fact under a label that means something else --
+  # the same shape this command exists to expose one level up.
+  local line="v2 (bash)"
+  case "$(file -b "$target" 2>/dev/null)" in
+    *Mach-O*) line="v3 (native)" ;;
+    *)
+      if grep -q 'native/rust/target/release' "$target" 2>/dev/null; then
+        line="v3 (wrapper)"
+      fi
+      ;;
+  esac
+  printf '%s\t%s\t%s' "$kind" "$target" "$line"
+}
+
+cmd_status() {
+  local name n=0 pos f kind target line first_shown
+
+  step "intent bindings on this machine, in PATH order (first one wins)"
+  for name in intent intent3 intentd intentd3; do
+    first_shown=""
+    while IFS="$(printf '\t')" read -r pos f; do
+      [ -n "$pos" ] || continue
+      n=$((n + 1))
+      IFS="$(printf '\t')" read -r kind target line <<EOF
+$(describe_binding "$f")
+EOF
+      if [ -z "$first_shown" ]; then
+        first_shown=yes
+        printf '    %-10s PATH %-3s %-42s WINS   -> %s  [%s]\n' "$name" "$pos" "$f" "$target" "$line"
+      else
+        printf '    %-10s PATH %-3s %-42s shadow -> %s  [%s]\n' "$name" "$pos" "$f" "$target" "$line"
+      fi
+    done <<EOF
+$(path_hits "$name")
+EOF
+    [ -n "$first_shown" ] || printf '    %-10s not on PATH\n' "$name"
+  done
+  [ "$n" -gt 0 ] || warn "no intent binding of any name is on PATH"
+
+  step "INTENT_HOME"
+  printf '    exported: %s\n' "${INTENT_HOME:-<unset>}"
+  printf '    INERT FOR v3. Driven exported, unset and forced to a junk path: the v3\n'
+  printf '    binary answers the same every time. It binds v2 only. v3 is gated by the\n'
+  printf "    version declared in each project's own config, which refuses every 2.x.\n"
+
+  step "the tool tree -- a fact about this machine, not about where you are standing"
+  # WHAT THIS REPLACES, AND WHY THE OBVIOUS VERSION WAS UNSHIPPABLE. I first wrote
+  # this as "is THIS tree the tool?", comparing PROJECT_ROOT to INTENT_HOME. **It
+  # could never fire.** `PROJECT_ROOT` in a devbin command is derived from the
+  # COMMAND's own location, not from cwd -- the same trap already recorded here
+  # about `int hooks` answering about the wrong repo -- so it compared a constant
+  # to a constant and printed `consumer` from inside the tool tree itself. Driven
+  # from both checkouts, which is the only reason it was caught.
+  #
+  # THE HAZARD IS REAL EVEN THOUGH THAT CHECK WAS NOT. `Intentv2` carries
+  # `intent/.config/config.json`, so every census keyed on config presence finds
+  # it -- and it sits at the migration floor, clean, with 3 threads, which makes
+  # it look like the ideal canary and makes it the worst possible target: it is
+  # the CLI fifteen other projects RUN (vc's census, 2026-08-21, which could not
+  # tell a consumer from the tool -- no config-presence census can).
+  #
+  # `bin/intent` + `lib/templates/` is NOT the discriminator: this v3 checkout has
+  # both and is a legitimate consumer, self-hosted. The discriminator is whether a
+  # tree is the one INTENT_HOME NAMES, because that is exactly what makes
+  # migrating it break everyone else. Stated here as a machine fact so a
+  # census-writer meets it; the per-project test belongs in the census.
+  local home_real
+  home_real="$(cd "${INTENT_HOME:-/nonexistent}" 2>/dev/null && pwd -P || echo '<unresolved>')"
+  printf '    INTENT_HOME names %s\n' "$home_real"
+  printf '    THAT TREE IS THE TOOL OTHER PROJECTS RUN. NEVER MIGRATE IT.\n'
+  printf '    It carries a project config, so every census finds it as a project.\n'
+  printf '    It is not one. Migrating it takes the CLI away from everything else.\n'
+
+  step "this checkout's release pair"
+  local b
+  for b in intent intentd; do
+    if [ -f "$RELEASE_DIR/$b" ]; then
+      printf '    %-8s %s\n' "$b" "$(artefact_source_commit "$RELEASE_DIR/$b" || echo '<no marker>')"
+    else
+      printf '    %-8s not built\n' "$b"
+    fi
+  done
+  printf '    HEAD     %s\n' "$(git -C "$PROJECT_ROOT" rev-parse HEAD 2>/dev/null || echo '<no git>')"
+}
+
+# verify_pair -- refuse a set that describes no single state of this repo.
+#
+# This is the check `cargo` cannot make and `int build all` does not: cargo
+# reasons per package, and coherence is a property of the SET.
+verify_pair() {
+  local head b sc first="" bad=0
+  head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || die "cannot read HEAD"
+  for b in intent intentd; do
+    [ -f "$RELEASE_DIR/$b" ] || { warn "$b was not built"; bad=1; continue; }
+    if ! sc="$(artefact_source_commit "$RELEASE_DIR/$b")"; then
+      warn "$b carries NO source-commit marker -- it cannot say what it is"
+      bad=1
+      continue
+    fi
+    printf '    %-8s %s\n' "$b" "$sc"
+    case "$sc" in
+      dirty-*) warn "$b was built from an uncommitted native/rust tree"; bad=1 ;;
+    esac
+    [ "$sc" = "$head" ] || { warn "$b does not name HEAD ($head)"; bad=1; }
+    if [ -z "$first" ]; then first="$sc"
+    elif [ "$sc" != "$first" ]; then
+      warn "the pair disagrees: $first vs $sc -- built from DIFFERENT trees"
+      bad=1
+    fi
+  done
+  [ "$bad" -eq 0 ] || die "the release pair does not describe one state of this repo -- refusing to call this installable"
+  ok
+}
+
+cmd_build() {
+  cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
+  step "forcing the provenance embeds (cargo will not do this for you -- see the header)"
+  cargo clean -p intent-cli -p intentd --release
+  step "building every binary in the workspace"
+  cargo build --workspace --bins --release || die "the release build failed"
+  step "verifying the SET, which is the check cargo cannot make"
+  verify_pair
+}
+
+cmd_install() {
+  local yes="" pair src dst
+  [ "${1:-}" = "--yes" ] && yes=1
+
+  step "what this will do"
+  printf '    %s\n' "$BINDIR/intent3   -> $RELEASE_DIR/intent"
+  printf '    %s\n' "$BINDIR/intentd3  -> $RELEASE_DIR/intentd"
+  printf '\n'
+  printf '    NEVER AS `intent`. Installing v3 under that name shadows v2 for every\n'
+  printf '    other project on this machine in one move, and INTENT_HOME cannot stop it.\n'
+  printf '    A distinct name makes the way back "do nothing" rather than "one command".\n'
+  printf '\n'
+  printf '    SYMLINKS, NOT COPIES, so they track this checkout -- which is what makes\n'
+  printf '    them useful while v3 is moving, and also means `cargo clean` breaks them.\n'
+  printf '    That is a visible, loud failure rather than a silently stale binary.\n'
+
+  verify_pair
+
+  if [ -z "$yes" ]; then
+    die "machine-wide change outside this checkout -- re-run with --yes if that is what you want"
+  fi
+
+  mkdir -p "$BINDIR" || die "cannot create $BINDIR"
+  for pair in $PAIR; do
+    src="$RELEASE_DIR/${pair%%:*}"
+    dst="$BINDIR/${pair##*:}"
+    [ -f "$src" ] || die "missing $src -- run 'int local build' first"
+    [ ! -e "$dst" ] || [ -L "$dst" ] ||
+      die "$dst exists and is not a symlink -- refusing to replace a real file"
+    ln -sfn "$src" "$dst" || die "could not link $dst"
+    printf '    linked %s\n' "$dst"
+  done
+  step "done -- the way back is 'int local uninstall'"
+  cmd_status
+}
+
+cmd_uninstall() {
+  local pair dst removed=0
+  step "removing the v3 bindings this command made"
+  for pair in $PAIR; do
+    dst="$BINDIR/${pair##*:}"
+    if [ -L "$dst" ]; then
+      rm -f "$dst" || die "could not remove $dst"
+      printf '    removed %s\n' "$dst"
+      removed=$((removed + 1))
+    elif [ -e "$dst" ]; then
+      warn "$dst is not a symlink -- left alone, this command did not make it"
+    fi
+  done
+  [ "$removed" -gt 0 ] || printf '    nothing to remove\n'
+  printf '\n'
+  printf '    THIS REVERSES THE INSTALL AND NOT A PROJECT. A project switched with\n'
+  printf '    `intent upgrade` is reversed separately, and the way back is git:\n'
+  printf '        git checkout . && git clean -fd && rm -rf intent/.cache\n'
+  printf '    A PROJECT WITH UNCOMMITTED WORK HAS NO WAY BACK. Commit before switching.\n'
+  cmd_status
+}
+
+case "${1:-}" in
+  ""|-h|--help)
+    sed -n '5,10p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    exit 0
+    ;;
+  status) cmd_status ;;
+  build) cmd_build ;;
+  install) shift; cmd_install "${1:-}" ;;
+  uninstall) cmd_uninstall ;;
+  *) die "unknown local target: $1 (try: status, build, install, uninstall)" ;;
+esac

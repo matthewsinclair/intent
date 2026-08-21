@@ -1,0 +1,37 @@
+# shellcheck shell=bash
+#
+# shared/artefact.lib -- reading an Intent artefact's own provenance. SOURCED, never run:
+# it is 0644 precisely so `is_handler` (-f AND -x) cannot mistake it for a command.
+#
+# WHY IT IS HERE AND NOT IN `lib/helpers`, WHICH IS WHERE I PUT IT FIRST AND WAS
+# WRONG. `lib/helpers` is DEVBIN-OWNED -- vendored from ~/Devel/prj/Devbin and
+# checksummed in `manifest.sha256`. Putting an Intent-specific parser there made
+# `devbin doctor` report `edited:` (driven, rc=1) and would have let a `devbin
+# upgrade` overwrite the file and DELETE this function, breaking three call sites
+# in `cmd/macos` with nothing saying why. The manifest states the rule in its own
+# header -- "Files not listed here -- config.yaml, cmd/, help/ -- belong to the
+# project" -- so `cmd/` is the project territory and `lib/` is not.
+#
+# artefact_source_commit <mach-o> -- what the ARTEFACT says it was built from.
+#
+# THE ONE EXTRACTION SITE, because the marker's shape is a contract and a second
+# copy of a parser is how two readers come to disagree about one string. Embedded
+# by `build.rs` (AC-11.5) and read back out of the binary; `strings` and nothing
+# else, so this asks the bytes rather than any record shipped beside them.
+#
+# The marker is SELF-DELIMITING and that is load-bearing here rather than
+# cosmetic: rodata packs string literals with no separator, so an unterminated
+# marker runs into whatever the linker laid down next -- measured during this
+# row's canary as `intent-source-commit:<sha>unsafe`, with `unsafe` belonging to
+# an unrelated literal. The `[^]]*` stops at the bracket the artefact provides.
+#
+# Returns 1 and prints nothing when there is no marker, so "cannot say" is a
+# distinct answer from any value. A binary built before the embed landed has no
+# marker at all, and that is exactly the state this must not read as a pass.
+artefact_source_commit() {
+  local bin="$1" marker
+  marker="$(strings "$bin" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
+  [ -n "$marker" ] || return 1
+  marker="${marker#\[intent-source-commit:}"
+  printf '%s' "${marker%\]}"
+}

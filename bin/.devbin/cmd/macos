@@ -211,7 +211,7 @@ require_binaries() {
   for b in $BINARIES; do
     [ -f "$RELEASE_DIR/$b" ] || missing="$missing $b"
   done
-  [ -z "$missing" ] || die "missing release binaries:$missing -- run 'int build all --release' first"
+  [ -z "$missing" ] || die "missing release binaries:$missing -- run 'int build all' first (it already defaults to --release; passing it again is refused by cargo)"
 }
 
 # require_staged -- every subcommand after `stage` acts on the staged copies, so
@@ -337,29 +337,12 @@ provenance_blockers() {
     printf 'the working tree is dirty, so target/release may hold bytes that match no commit\n'
 }
 
-# artefact_source_commit <mach-o> -- what the ARTEFACT says it was built from.
-#
-# THE ONE EXTRACTION SITE, because the marker's shape is a contract and a second
-# copy of a parser is how two readers come to disagree about one string. Embedded
-# by `build.rs` (AC-11.5) and read back out of the binary; `strings` and nothing
-# else, so this asks the bytes rather than any record shipped beside them.
-#
-# The marker is SELF-DELIMITING and that is load-bearing here rather than
-# cosmetic: rodata packs string literals with no separator, so an unterminated
-# marker runs into whatever the linker laid down next -- measured during this
-# row's canary as `intent-source-commit:<sha>unsafe`, with `unsafe` belonging to
-# an unrelated literal. The `[^]]*` stops at the bracket the artefact provides.
-#
-# Returns 1 and prints nothing when there is no marker, so "cannot say" is a
-# distinct answer from any value. A binary built before the embed landed has no
-# marker at all, and that is exactly the state this must not read as a pass.
-artefact_source_commit() {
-  local bin="$1" marker
-  marker="$(strings "$bin" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
-  [ -n "$marker" ] || return 1
-  marker="${marker#\[intent-source-commit:}"
-  printf '%s' "${marker%\]}"
-}
+# artefact_source_commit MOVED to `cmd/artefact.lib` 2026-08-21 (dc), sourced just
+# below. Its three call sites here are unchanged; the move is what keeps them the
+# only copy now that `cmd/local` needs the same reader. It went to `lib/helpers`
+# first and that was WRONG -- that file is devbin-owned and checksummed, so the
+# next `devbin upgrade` would have deleted the function out from under these three.
+. "$(dirname "${BASH_SOURCE[0]}")/shared/artefact.lib"
 
 # artefact_commit_blockers <stage-dir> <triple> <want-commit> -- reasons the
 # STAGED BYTES cannot be shown to have come from <want-commit>.
