@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6e1c92e1-44be-4a97-b2bb-69a3a25e8f04
-heartbeat_at: 2026-08-21 12:55Z
+heartbeat_at: 2026-08-21 13:38Z
 status: paused
-focus: "**FOLDED AND HOLDING on hv's instruction, relayed by vc (live channel, vc reports hv said it ~12:40Z -- attributed, not asserted). NOTHING STARTED TODAY BY INSTRUCTION, and the whole session was research that lived only in conversation, which is exactly what this restart destroys.** Everything below is written because I could not reconstruct it: `design.md` is an ATTACHMENT carrying its own text and sha256 in canon, so D57-8's amended fence has a durable home; AT-07.7's singularity arm ALREADY EXISTS in AT-07.1 and a second copy is the Highlander defect; `view_path_of` wildcards the entity enum thirty lines under a match that is exhaustive on purpose; and the two-of-four representation set is FAITHFUL, measured rather than assumed. **THREE CALLS ARE OPEN WITH matts AND ONE IS A TELL AGAINST MYSELF.** Three items of vc's four are MINE and every one is unstarted."
+focus: "**FOLDED, DELTA-FOLDED AND HOLDING FOR A REAL BOUNCE. The 12:55Z fold stands; this is the delta, not a redo.** **ZERO OF FOUR NODES BOUNCED -- all four are resumes, and all four independently concluded three of four bounced but not me, each reading ListAgents SOCKET age as SESSION age.** Four correct self-reports, one unanimous wrong population; my board never carried the figure. **AND A MISATTRIBUTION ARRIVED IN THE FOLD INSTRUCTION: I was asked to fold a zsh path-clobber that did not happen in this session, and I declined to adopt it -- my PATH is intact at 23 entries and the incident is vc's.** The mechanism is kept and attributed; the ownership is not. Same class as intentdb. AC-07.7 still unstarted by instruction; three calls still open with hv."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -59,6 +59,22 @@ Break `AcCollection`'s parse arm -- AT-07.7 must go red. **Then, separately, con
 
 **I drove `native/rust/target/RELEASE/intent` for the gate, not `debug`.** vc's directive names `./native/rust/target/debug/intent`. The numbers I got -- **ST0057 47/51 satisfied 2 withdrawn, ST0056 59/132 satisfied 1 withdrawn, at HEAD `706db8ee`, 09:35Z** -- match the EOD record exactly, so they are consistent. **But the instrument is not the one the estate now names, and a re-measure uses `debug`.** **AND THE COMMIT GUARD SHARPENED THIS AN HOUR LATER: `self_provenance_check.sh` reports `native/rust/target/release/intent [sha256 957aa2b2e9029f5b]` was built from an UNCOMMITTED tree, `dirty-483e65e49190d6134d31ae312ccb0319b3da68b2`.** So the binary that produced my gate numbers **names no commit at all**, and the marker does not distinguish it from any other build of the same dirty tree -- **pin by the hash, never by the marker.** The numbers agreeing with the EOD record is what makes this survivable, not what makes it measured.
 
+### 7. ZERO OF FOUR BOUNCED, and the check I distrusted was worse than I had said
+
+**vc checked on my ask, and the answer is unanimous the other way: cc, dc and vc are ALL resumes** -- unchanged `session_id`s, this morning's conversation intact, exactly as I am. **And all four of us independently concluded _three of four bounced, but not me_**, each citing `ListAgents` showing the OTHER three as started ~5 minutes ago.
+
+**`ListAgents`' "started" IS SOCKET AGE, NOT SESSION AGE.** When the topology changed every peer re-registered, **so everyone looked fresh to everyone else.** Four correct self-reports, one unanimous wrong inference about the population.
+
+**My board never carried the figure** -- checked before folding, `three of four` appears nowhere in `ic/wip.md` or in what I sent vc. What I sent was the question, not a count. **The only reason anybody asked was distrusting the pooling**, which is the whole of item 8 below one day earlier than it deserves.
+
+### 8. A MISATTRIBUTION ARRIVED INSIDE THE FOLD INSTRUCTION AND I DECLINED TO ADOPT IT
+
+vc's fold instruction named two things as existing only in my conversation. **The second was not mine.** It described clobbering zsh's `$path` via `while read -r sha path`, restoring it by hand from a list omitting `~/.local/bin`, being unable to know whether it had persisted, and therefore **measuring both states and labelling them rather than reporting one.**
+
+**THAT DID NOT HAPPEN IN THIS SESSION.** I ran vc's check verbatim and nothing else. **Verified rather than remembered: my PATH is intact at 23 entries, `.local/bin` at 17, `Intent/bin` at 22, `Intentv2/bin` at 23** -- which is the true topology vc themselves described, so my check output was measured against an uncorrupted PATH and independently corroborates that vc's restoration was correct.
+
+**It is vc's incident.** The MECHANISM is worth keeping and is recorded as vc's in the Watch-outs below. **The OWNERSHIP is not, and adopting it would have written an incident ic never had into ic's permanent record** -- where the next session would have read it as its own experience and had no way to tell. **Same class as `intentdb`: a wrong thing adopted from a trusted peer's phrasing, in a fold, and never challenged.** The handling vc describes is genuinely good practice and belongs on vc's board saying so.
+
 ## TODO
 
 1. **AT-07.7 / AC-07.7 -- THE FOUR COLLECTION FORMS RESOLVE.** Mine, minted `c5320329`, **still not started, now by instruction.** Build it from ON RESUME 1-5 above. New file `intentsvcs/tests/address_collections_resolve.rs`; **NOT** `address_resolution_single_home.rs`, and **`d57_8_forms()` is not its home** -- growing that list to thirteen would silently move AC-07.1's population and make a satisfied criterion mean something it was never assessed against.
@@ -74,6 +90,8 @@ Break `AcCollection`'s parse arm -- AT-07.7 must go red. **Then, separately, con
 
 ### Mechanical
 
+- **`ListAgents`' "started" IS SOCKET AGE, NOT SESSION AGE.** A topology change re-registers every peer, so **all peers look freshly started to each other.** Never infer another node's session lifetime from it -- **ask for `CLAUDE_CODE_SESSION_ID`, which is the discriminating field and costs one `echo`.** Measured 2026-08-21: four nodes, four correct self-reports, one unanimous wrong population.
+- **`read -r sha path` SILENTLY DESTROYS zsh's `$path`** (vc's incident, 2026-08-21, recorded here because nobody rediscovers it cheaply -- **not mine, and the distinction is the point of ON RESUME 8**). `path` is a zsh special tied to `PATH`, so using it as a loop variable clobbers the shell's search path, **and a hand restoration is likely to omit an entry.** If it happens mid-measurement, measure BOTH states and label them rather than reporting one.
 - **`grep -rn` OVER `native/rust` TIMES OUT AT 120s** -- it walks `target/`, which holds four build dirs. **Scope to `native/rust/crates`.** Cost one backgrounded call this morning.
 - **THE DISPATCH TABLE IS AT REPO-ROOT `surface/dispatch-table.json`**, not under `native/rust/crates/intent-cli/`. There is no `surface/` dir in the crate. Three calls to find it.
 - **`intent` ON PATH IS v2.19.0 AND ANSWERS FOR THE FLEET, NOT THIS TREE** -- it refuses at exit 2, which is correct and not a tree problem. **Drive v3 explicitly: `./native/rust/target/debug/intent`.** The v2 CLI left this checkout to `~/Devel/prj/Intentv2` (branch `v2-maintenance`, cut at `fb45e9ea` = main HEAD, NOT the `v2.19.0` tag). **`bin/` is no longer load-bearing for anyone else.**
@@ -99,6 +117,8 @@ Break `AcCollection`'s parse arm -- AT-07.7 must go red. **Then, separately, con
 
 - **ASK WHAT THE INSTRUMENT WOULD SAY IF THE THING IT MEASURES WERE GONE, AND COULD THIS HAVE COME BACK THE OTHER WAY.** Everything below is an instance.
 - **A change that would conveniently green your own work is the one to stop and route.** The tell, not the virtue.
+- **A BINARY ANSWER THAT TWO DIFFERENT CAUSES BOTH PRODUCE IS NOT EVIDENCE, AND POOLING IT ACROSS NODES CONVERTS IT INTO A CONFIDENT WRONG ANSWER.** _Is the new heading in your system prompt_ cannot separate **the rewrite failed to reach a relaunched session** from **this session was never relaunched**, and those have OPPOSITE remedies -- a delivery defect versus a node the bounce missed. **Add the discriminating field.** The generalisation is worth more than the instance.
+- **A FOLD INSTRUCTION IS NOT A TRUSTED SOURCE ABOUT YOUR OWN HISTORY.** A peer telling you what only you could know is telling you what THEY know; check it against your own record before adopting it, because a fold is exactly where an unchallenged claim becomes permanent.
 - **ONE ENUM CAN CARRY TWO MATCHES, ONE EXHAUSTIVE BY DESIGN AND ONE WILDCARDED, AND THE WILDCARDED ONE IS THE ONE THAT DECIDES SOMETHING.** Proximity is not protection: `Entity::form()` and `view_path_of` are thirty lines apart in one file.
 - **A denominator belongs to a FILE, not to a topic** -- and adjacent bullets read as cause and effect with neither one claiming it.
 - **A row's TITLE can promise more than its BODY, and no instrument here reaches it.** So the discriminator _what does satisfying this row completely still leave broken?_ **must be asked against the BODY, never the title** -- against a title it returns _nothing_ every time, for exactly the rows where it matters, **and that nothing is indistinguishable from a correct answer.**
@@ -115,6 +135,8 @@ Break `AcCollection`'s parse arm -- AT-07.7 must go red. **Then, separately, con
 
 ## Decisions
 
+- (2026-08-21) **A binary answer that two causes both produce is not evidence, and pooling it across nodes makes it a confident wrong answer** (ic; vc adopted it on the bounce check, where it turned out to be four-for-four).
+- (2026-08-21) **A node folds only what it can verify happened to IT.** A misattributed incident arriving inside a fold instruction is declined, and the mechanism kept with the right owner named.
 - (2026-08-21) **A DESIGN DOCUMENT THAT IS AN ATTACHMENT HAS A DURABLE MACHINE-READABLE HOME, SO A DENOMINATOR SOURCED FROM IT READS CANON AND CROSS-CHECKS DISK** (ic, taken not yet ratified). Following `preconditions.rs`, which reads canon and never the generated view, and refuses on finding nothing.
 - (2026-08-21) **A SECOND STRUCTURAL ARM FOR A FORM-INDEPENDENT PROPERTY IS THE HIGHLANDER DEFECT** (ic). `no_second_resolver_exists` already covers the four collections; the question is where it LIVES, not whether to write another.
 - (2026-08-20) **Clap is the wrong layer to enforce a declared vocabulary** -- it rejects at exit 2, INV-04's USAGE code, the one the gate FAILS OPEN on. Enforce in the renderer at exit 1, reading the set from the table.
