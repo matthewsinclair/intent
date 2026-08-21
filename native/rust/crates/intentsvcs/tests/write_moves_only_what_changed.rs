@@ -336,6 +336,14 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
     "edit_prints_a_path_that_exists.rs -- the writes are `Facade::hydrate`'s and nothing else's, and that is the criterion rather than a shortcut: AC-05.3 says path-printing has ONE home, so `edit` realising anything itself WOULD BE the defect. `an_absent_artefact_is_realised_and_the_printed_path_exists` and `editing_pins_the_artefact_so_the_next_organize_keeps_it` drive both halves of what it writes -- the files and the manifest entry -- from a fixture that starts DEHYDRATED, so neither can pass against a verb that wrote nothing. NOT covered by `facade_hydrate.rs`: that proves hydrate's writes, and what is owed here is that `edit` performs them before it answers.",
   ),
   (
+    "st sync",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- it has no facade method at all, so no case in THIS file can reach it. Driven at the CLI over a scribbled index, the only state in which it writes: moved == changed == {steel_threads.md}. NOT driven in the bare form, which is a dry run -- the mutate is behind --write, and a driver running the bare form proves nothing about the writer, which is the trap `at lint --fix` was already recorded as.",
+  ),
+  (
+    "todo done",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- resolves only into intent-cli's render.rs/spine.rs. Driven on an acceptance-exempt thread, because on a fresh one `st.done` is not a legal transition from `triage` and the verb refuses: the case FAILED that way on its first run and both guards fired, which is the evidence that a snapshot-only driver would have reported it as a clean pass.",
+  ),
+  (
     "st hydrate",
     "facade_hydrate.rs -- `the_call_is_idempotent_in_what_it_returns`, `the_pin_is_idempotent` and `hydrating_something_already_on_disk_still_pins_it` are this criterion for this verb, driven at the primitive the CLI arm is two lines over. NOT organize_idempotent_mtime.rs, which measures the ESTATE-WIDE verb: hydrate runs a plan FILTERED to one artefact, so the whole-estate file covers the mechanism and not the scoping, and citing it would name a file that cannot fail when this verb regresses.",
   ),
@@ -361,7 +369,15 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
 const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
   (
     "st dehydrate",
-    "declared_but_unwired.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built",
+    "declared_but_unwired.rs AND intent-cli/tests/cli_write_moves_only_what_changed.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built. **Two drivers on purpose, agreed with ic 2026-08-21: the second landed BEFORE the first is retired, never after.** A gap in which nothing drives the claim is silent and every suite in it is green; an overlap is visible, self-healing, and fails loud if either driver is wrong.",
+  ),
+  (
+    "st bootstrap",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, and the projected estate byte-identical. Driven at the CLI because it reaches no `intentsvcs` path to drive.",
+  ),
+  (
+    "st repair",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- same refusal, same measurement, same reason it cannot be driven here.",
   ),
   // **`issues hydrate` AND `issues dehydrate` LEFT THIS BUCKET BY LEAVING THE
   // SURFACE** (hv, 2026-08-20): issues are canon-and-store only, both rows are
@@ -393,6 +409,54 @@ const OUT_OF_ESTATE: &[(&str, &str)] = &[
   ),
 ];
 
+/// **SHIPPED, WIRED, CLASSIFIED `mutate` ON THE SURFACE -- AND DRIVEN, THEY
+/// WRITE NOTHING.**
+///
+/// Its own key by the same ruling that split the others: *a key named for one
+/// reason cannot hold members admitted for another.* These are not covered
+/// elsewhere (nothing proves their writes, because there are none), not
+/// declared-but-unwired (they run, and several exit 0), and emphatically not
+/// UNPROVEN -- **the measurement exists and it is negative.** Filing a measured
+/// zero as a debt would inflate the debt and hide the finding.
+///
+/// **THE FINDING IS A POPULATION DEFECT IN THE DISPATCH TABLE, NOT A DEBT IN
+/// THIS FILE.** Six of the 64 entries the derived roster calls shipped mutators
+/// write nothing at all, and two of them are documented in their own `--help`
+/// as performing a write that driving them shows does not happen. That is the
+/// AC-03.14 class -- *a verb writing a file nobody had written down* -- arriving
+/// from the other direction: **a file written down that no verb writes.**
+///
+/// **MEMBERSHIP IS DRIVEN, NEVER ASSERTED HERE.** The named file runs each of
+/// these against the real binary and requires both the exit code AND the
+/// unchanged estate. The day one starts writing, that file goes RED and forces
+/// the re-bucket, rather than leaving an excuse sitting here.
+const MUTATE_BUT_WRITES_NOTHING: &[(&str, &str)] = &[
+  (
+    "at lint",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- BOTH arms driven. Bare: rc=0, estate byte-identical. `--fix`, the flag that earns the `mutate` classification: `rc=1`, `at lint --fix is not implemented in v3`. The classification rests on a flag that does not exist.",
+  ),
+  (
+    "ingest",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- Phase A reads and writes nothing INCLUDING no store, driven from a storeless start rather than inherited. Its paired control is `todo list` in the same run and the same condition, which DOES materialise one -- so the store observation is not stuck-false.",
+  ),
+  (
+    "todo",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `--help` says `Show intent/todo.md (generates it if absent)`; driven with the file ABSENT it prints the view at rc=0 and does not create it. The verb that generates it is `todo update`, which IS driven in this file.",
+  ),
+  (
+    "todo list",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- same documented write, same absence of it. It does materialise intent/.cache/intent.db, which is a write neither obvious observable can see: `did any file appear` trips on pure reads that do the same thing, and the tracked tree is blind to it because .cache is gitignored (D29). Observed and reported there, deliberately not pinned.",
+  ),
+  (
+    "todo notdone",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- rc=1 in EVERY state driven: a triage thread, a wip thread, a not-started WP, and a genuinely Completed thread. A reopen must record why it happened and this verb cannot carry a reason, so it routes to `st reopen` and never writes. Unreachable including in the one state it nominally serves -- which is why the refusal is not a fixture problem.",
+  ),
+  (
+    "todo toggle",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- the same unconditional refusal, driven on a NOT-STARTED WP as well, where `reopens finished work` cannot be true. State-independent by construction.",
+  ),
+];
+
 /// **THE DEBT, CARRIED BY NAME. Every one of these is a shipped mutator whose
 /// writes are NOT ESTABLISHED IN EITHER DIRECTION.**
 ///
@@ -407,7 +471,6 @@ const OUT_OF_ESTATE: &[(&str, &str)] = &[
 const UNPROVEN: &[&str] = &[
   "agents generate",
   "agents init",
-  "at lint",
   "backup",
   "bootstrap",
   "claude hook",
@@ -422,21 +485,12 @@ const UNPROVEN: &[&str] = &[
   "daemon",
   "ext new",
   "fileindex",
-  "ingest",
   "init",
   "lang remove",
   "lang sync",
   "learn",
   "llm usage_rules",
   "mcp",
-  "st bootstrap",
-  "st repair",
-  "st sync",
-  "todo",
-  "todo done",
-  "todo list",
-  "todo notdone",
-  "todo toggle",
 ];
 
 /// A driven case's label maps to the table path it exercises. `sync` is one
@@ -820,6 +874,7 @@ fn every_shipped_mutator_is_accounted_for() {
   let elsewhere: Vec<&str> = COVERED_ELSEWHERE.iter().map(|(v, _)| *v).collect();
   let out_of_estate: Vec<&str> = OUT_OF_ESTATE.iter().map(|(v, _)| *v).collect();
   let unwired: Vec<&str> = DECLARED_BUT_UNWIRED.iter().map(|(v, _)| *v).collect();
+  let writes_nothing: Vec<&str> = MUTATE_BUT_WRITES_NOTHING.iter().map(|(v, _)| *v).collect();
 
   // **EVERY FIGURE IS AN INTERSECTION WITH `shipped`, AND THE LINE STATES ITS
   // OWN ARITHMETIC** (vc, 2026-08-20, who caught the old form contradicting the
@@ -843,11 +898,12 @@ fn every_shipped_mutator_is_accounted_for() {
       .filter(|v| bucket.contains(&v.as_str()))
       .count()
   };
-  let (d, e, o, u, n) = (
+  let (d, e, o, u, w, n) = (
     tally(&driven),
     tally(&elsewhere),
     tally(&out_of_estate),
     tally(&unwired),
+    tally(&writes_nothing),
     tally(UNPROVEN),
   );
   let unbucketed: Vec<&str> = shipped
@@ -858,6 +914,7 @@ fn every_shipped_mutator_is_accounted_for() {
         &elsewhere,
         &out_of_estate,
         &unwired,
+        &writes_nothing,
         &UNPROVEN.to_vec(),
       ]
       .iter()
@@ -869,9 +926,9 @@ fn every_shipped_mutator_is_accounted_for() {
   println!(
     "verb coverage, derived from surface/dispatch-table.json:\n  \
      {} shipped mutator(s) = {d} driven here + {e} covered elsewhere + {o} out of estate \
-     + {u} declared-but-unwired + {n} UNPROVEN = {}{}",
+     + {u} declared-but-unwired + {w} classified-mutate-but-writes-nothing + {n} UNPROVEN = {}{}",
     shipped.len(),
-    d + e + o + u + n,
+    d + e + o + u + w + n,
     if unbucketed.is_empty() {
       String::new()
     } else {
@@ -884,7 +941,13 @@ fn every_shipped_mutator_is_accounted_for() {
 
   // Nothing may claim a bucket it has no business in: a stale entry here is
   // the same rot as a missing one, pointing the other way.
-  for list in [&driven, &elsewhere, &out_of_estate, &unwired] {
+  for list in [
+    &driven,
+    &elsewhere,
+    &out_of_estate,
+    &unwired,
+    &writes_nothing,
+  ] {
     let stale: Vec<&&str> = list
       .iter()
       .filter(|v| !shipped.contains(&v.to_string()))
@@ -921,6 +984,10 @@ fn every_shipped_mutator_is_accounted_for() {
         ("covered elsewhere", elsewhere.contains(&verb.as_str())),
         ("out of estate", out_of_estate.contains(&verb.as_str())),
         ("declared-but-unwired", unwired.contains(&verb.as_str())),
+        (
+          "classified-mutate-but-writes-nothing",
+          writes_nothing.contains(&verb.as_str()),
+        ),
         ("UNPROVEN", UNPROVEN.contains(&verb.as_str())),
       ]
       .iter()
@@ -938,10 +1005,22 @@ fn every_shipped_mutator_is_accounted_for() {
     misfiled.join("\n")
   );
 
-  // **The debt may shrink and must not grow.** A new shipped mutator silently
-  // appended to UNPROVEN would be the authored roster all over again.
+  // **The debt may shrink and must not grow -- AND THE BOUND MOVES DOWN WITH
+  // IT, or the shrink undoes itself in silence.**
+  //
+  // It was 32, and 32 stopped being a bound the moment ten verbs left: a
+  // ratchet left at its old value permits the exact regrowth it was installed
+  // to prevent, while still reading as a ratchet. **Tightening is part of
+  // discharging, not a separate tidy-up.**
+  //
+  // The ten that left were the whole of AT-03.15's stated hold -- the
+  // thread-estate verbs by family -- and they left DRIVEN, at the CLI, in
+  // `intent-cli/tests/cli_write_moves_only_what_changed.rs`. The 22 that remain
+  // are the ones that note already ruled out of this criterion's subject:
+  // they write `~/.claude`, `~/.intent/ext/`, config, a fresh project, or they
+  // serve. **That is a table-completeness debt, and it is not this row.**
   assert!(
-    UNPROVEN.len() <= 32,
+    UNPROVEN.len() <= 22,
     "UNPROVEN grew to {} -- a new shipped mutator needs a case, a named path, or a stated reason, not a longer debt list",
     UNPROVEN.len()
   );

@@ -41,18 +41,35 @@
 //! cap reads as complete when it is not.
 //!
 //! Whether a family has an arm is decided BEHAVIOURALLY, by running it, not by
-//! searching the source. `declared_but_unwired.rs` established why: a capability
-//! arriving under an unlisted name is invisible to a name check.
+//! searching the source, because **a capability arriving under an unlisted name
+//! is invisible to a name check.** Established in `declared_but_unwired.rs` and
+//! now driven in `cli_write_moves_only_what_changed.rs` as well -- the reason
+//! stands on its own and is cited here to files that hold it, so it does not
+//! dangle when one of them retires.
 
 use std::collections::BTreeSet;
 use std::process::Command;
 
 use intent_cli::dispatch;
 
-/// The phrase `render::unwired` emits. Duplicated as a literal from
-/// `declared_but_unwired.rs` deliberately -- if the wording changes, both files
-/// must notice, and a shared constant in one of them would make the other's
-/// copy look authoritative.
+/// The phrase `render::unwired` emits.
+///
+/// **Duplicated as a literal, deliberately, and the duplication is the point:
+/// if the wording changes, every file asserting it must notice, and a shared
+/// constant in one of them would make every other copy look derived.** No copy
+/// is authoritative and none may be promoted to it.
+///
+/// **THE SIBLING COPIES ARE NAMED RATHER THAN THE ORIGIN, AND THAT IS A
+/// CORRECTION** (cc, 2026-08-21, on ic's catch). This comment used to read
+/// *"duplicated from `declared_but_unwired.rs`"*, which made that file the
+/// origin -- so retiring it would not have removed a copy, it would have
+/// PROMOTED the survivor to authoritative, the exact outcome the reasoning
+/// exists to prevent. **A deletion that looks like it only touches a loop
+/// would have destroyed a load-bearing property, and nothing we own tracks a
+/// dependency recorded in a doc comment**: `at lint` sees AT-row citations and
+/// sees nothing here. Live copies today are `declared_but_unwired.rs` and
+/// `cli_write_moves_only_what_changed.rs` (AT-03.19); **the invariant is that
+/// at least two survive any retirement**, not that any particular file does.
 const UNWIRED: &str = "is a known command that is not implemented yet";
 
 /// The renderer's source, read rather than compiled in.
