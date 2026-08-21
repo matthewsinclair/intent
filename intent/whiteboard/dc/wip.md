@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 17:20Z
-status: active
-focus: "**BOTH ITEMS LANDED: `19d77f61` (AC-11.7 SET arm + roster row + canon, together) and `0dea9abb` (an exec bit a temp-file splice dropped). AT-03.4 GREEN, driven -- 6 passed, rc read from a file, binary confirmed in the Running list.** **`int macos publish` was found SOUND, no fix** -- the gap was one layer over: it pivots on the TAG at release time, the new arm pivots on the RECORD at any time. **HELD RATHER THAN REACHED AROUND**: canon is one JSON per thread and --only is path-scoped, so vc unblocked it on hv word at `e5df40f8`. **THREE CORRECTIONS OF MINE TODAY, ALL ONE SHAPE -- A SUMMARY STANDING IN FOR THE CLAIM**: I read --stat not the hunk and named the wrong author; my 82-88ms was ~50ms of my own harness; and my corrected 65-74ms was itself incomplete, now 53-62ms, because I named the harness and not the machine state. **A correction is a measurement and inherits every duty of one.** Load axis is cc. **AND A FOURTH, WITHDRAWN WITHIN THE HOUR: I built a promote-to-gated rule on ONE outlier, cc agreed, and the agreement is what stopped either of us re-running it. cc re-ran at HIGHER load -- no tail, 1.2x, once in 22 runs.** Range-across-sittings survives; the decision rule does not."
+heartbeat_at: 2026-08-21 17:22Z
+status: paused
+focus: "**FOLDED AND PAUSED. Both of my items LANDED and both are vc to verify: AC-01.5 form 1 at `5c7bb80f`, the AC-11.7 SET arm at `19d77f61`. AT-03.4 green, driven.** **`int macos publish` was found SOUND, no fix** -- the gap was one layer over, it pivots on the TAG at release time and the new arm pivots on the RECORD at any time. **FIVE CORRECTIONS OF MINE TODAY AND EVERY ONE IS A SUMMARY STANDING IN FOR THE CLAIM IT SUMMARISES**: --stat not the hunk (wrong author); 82-88ms was my own harness; the corrected 65-74ms was itself incomplete (machine state, not just harness); one outlier read as a distribution, withdrawn 15 minutes after I committed it; and **a clean exec-bit audit that examined 46 files, said 284, and printed its own vacuous denominator as `0` right underneath the green.** **A right answer from a broken instrument prompts no re-check -- cc asking is what re-ran it.** Repo-wide sweep: no live instance, so check D is a check and not a cleanup. **UNOWNED AND LIVE: the 13 not-an-instrument files at 755 are unguarded.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -72,10 +72,28 @@ claims: [ST0056/07, ST0056/11]
 
 **ONE PREDICATE, ONE SPELLING PER FILE.** `resolve_guard_home()` extracted, used by `shipped_guards()` and `gate_currency()`. It still exists twice ACROSS the estate -- gate and reporter are separate programs and the reporter must answer about the gate the gate will run -- and **that duplication has a reason; a third copy inside one file would not.** `fff59a09` is what two spellings drifting apart cost this afternoon.
 
-### 3. NEW AND MINE, BOTH UNSTARTED (cc, 2026-08-21)
+### 3. AC-11.7's SET ARM -- LANDED AT `19d77f61`. vc's TO VERIFY.
+
+**THE PUBLISH GATE WAS FOUND SOUND AND THAT IS THE ANSWER, NOT A DEFERRAL.** cc routed a mismatched-pair question about `int macos publish`. Read rather than assumed: `artefact_commit_blockers` in `bin/.devbin/cmd/macos` loops `$BINARIES` and tests EACH against `$want` = `tag_commit`, with a dedicated arm for a `dirty-` marker. **The pair is refused twice over, independently, and the set property falls out transitively from the common pivot.** No fix. **No change is a result, and a session that only records changes loses it.**
+
+**SO THE GAP WAS ONE LAYER OVER, AND FINDING IT REQUIRED BELIEVING THE SOUND ANSWER.** Publish pivots on the TAG **at release time**, and most of a binary's life is before a release. The new arm pivots on the **RECORD**, at any time. Live at `b4918a35`, rc=1, three real disagreements:
+
+```
+dist-provenance.txt      commit: 26fe1aea...    subject: the CHECKOUT
+target/release/intent    dirty-483e65e4...      subject: itself
+target/release/intentd   dirty-5819417b...      subject: itself
+```
+
+**THE RECORD IS NOT LYING AND THE TOOL SAYS SO IN ITS OWN OUTPUT.** It carries `checkout_clean: no` -- it flagged the risk honestly. What it **structurally cannot** say is WHICH bytes, or that they disagree with one another, because it holds ONE `commit:` for a SET. **So the remedy was never a better record; it is a check whose subject is the RELATIONSHIP.** The tool prints `Do not "fix" it by editing the record` for the next reader who reaches for the obvious repair.
+
+**SEVEN CONTROLS, AND THE ISOLATION IS THE WORK.** A set whose members disagree ALSO disagrees with any record naming one member -- so a naive positive control fires **both** arms and proves neither. Control 5 uses a record naming NO commit so only the set pivot can speak; control 6 uses a coherent set the record is not about so only the record pivot can speak; control 7 requires `SET NOT EXAMINED` on an empty set rather than a silent pass. **An instrument that catches one thing has been shown to work on one thing.**
+
+**AT-03.4 IS THE SAME FACT WEARING A SECOND FACE (cc, 2026-08-21 16:56Z, their stamp).** cc's workspace run -- fmt 0, clippy 0 under `-D warnings`, 140 targets, 997 passed -- has ONE failure: `every_realised_attachment_in_the_estate_still_matches_canon`, 2 of 100 divergent, **exactly my two files and exactly my two hash pairs.** My gate sees it at commit time; the suite sees it as estate drift. **cc's sharp half: the suite is therefore NOT an independent second opinion on my ordering problem** -- two instruments agreeing over one measurement, which is this morning's consensus-is-not-corroboration shape. Both go green in the one commit.
+
+### 4. THE GUARD-HOME BASELINE AND THE RELEASE PAIR (cc, 2026-08-21)
 
 - **THE RELEASE PAIR CORRESPONDS TO NO SINGLE STATE OF THIS REPO.** `intent` carries `dirty-483e65e4`, `intentd` carries `dirty-5819417b` -- **two different trees**, so shipping them together ships a combination never built or tested as a unit. The self-provenance arm is diagnostic by design, so nothing is broken; **the open question is whether `int macos publish` refuses a MISMATCHED PAIR or only an individually-unnameable artefact. I do not know, and I am not answering it from a code comment.**
-- **AND IT IS A REACH LIMIT IN MY OWN `provenance_fields_check.sh` (AT-11.7).** That tool asks each record whether it answers IDENTITY and CURRENCY **per artefact**. cc's finding is a property of the **SET** -- two individually well-formed records that cannot both be true of one tree. **A per-record check cannot see it, and mine says nothing about it.** I wrote that tool and called it sound.
+- **THE REACH LIMIT IS CLOSED -- see section 3, landed `19d77f61`.** Kept here because the WRITER half is not: `cmd/macos` still emits one `commit:` for a set. Original wording: **AND IT IS A REACH LIMIT IN MY OWN `provenance_fields_check.sh` (AT-11.7).** That tool asks each record whether it answers IDENTITY and CURRENCY **per artefact**. cc's finding is a property of the **SET** -- two individually well-formed records that cannot both be true of one tree. **A per-record check cannot see it, and mine says nothing about it.** I wrote that tool and called it sound.
 
 **A self-hosted Intent checkout now resolves its guards from ITSELF.** hv chose this over refuse-on-divergence and report-only; direnv and hand-refresh were already declined by name. The live-roster rule is **unchanged for every project that USES Intent** -- the exception is a project that IS Intent. Marker: the runner itself plus `VERSION`, **deliberately not `bin/intent`, which is slated for pruning here.**
 
@@ -95,30 +113,28 @@ lib/templates/hooks/  vs frozen Intentv2, at 12ebd47e:   1 of 7 differ
 
 **EVIDENCE, and the third harness is the only one worth anything:** same clone, marker planted INSIDE the clone's own runner body, one file swapped -- **RED old dispatcher: repo-own body did NOT run; GREEN new: it DID.** Both arms `guards: 4 ran, 0 skipped`, so the source moved and enforcement did not. Consumer control: branch did not fire, guards ran, rc=0.
 
-### 3. ROUTED OUT, NOT MINE TO BUILD
+### 5. ROUTED OUT, NOT MINE TO BUILD
 
 - **`sync` skips untracked bytes, LOUDLY (hv ruled, I put four options).** Handed to cc 15:33Z -- **`sync` is Rust and Rust is cc's lane.** Warning must stop saying _the commit gate will_ refuse, and must not fire on the syncing node's OWN new file (staged-but-untracked and untracked-and-unstaged are different states).
 - **AC-03.6 is cc's row to green.** Blocker cleared by `5d2b1f0d`; evidence handed over 15:26Z. **I will not certify my own wiring.**
 
-### 3b. AC-11.7's SET ARM -- LANDED AT `19d77f61`. vc's TO VERIFY.
+### 6. THE EXEC BIT -- cc's CHECK D LANDED `4c9d9d3e`. NOT MINE, AND THE SWEEP IS DONE.
 
-**THE PUBLISH GATE WAS FOUND SOUND AND THAT IS THE ANSWER, NOT A DEFERRAL.** cc routed a mismatched-pair question about `int macos publish`. Read rather than assumed: `artefact_commit_blockers` in `bin/.devbin/cmd/macos` loops `$BINARIES` and tests EACH against `$want` = `tag_commit`, with a dedicated arm for a `dirty-` marker. **The pair is refused twice over, independently, and the set property falls out transitively from the common pivot.** No fix. **No change is a result, and a session that only records changes loses it.**
-
-**SO THE GAP WAS ONE LAYER OVER, AND FINDING IT REQUIRED BELIEVING THE SOUND ANSWER.** Publish pivots on the TAG **at release time**, and most of a binary's life is before a release. The new arm pivots on the **RECORD**, at any time. Live at `b4918a35`, rc=1, three real disagreements:
+**cc BUILT THE CHECK; I SUPPLIED THE RULE AND THE SWEEP.** It asserts the SYMPTOM in the committed state and says nothing about how a file got there -- **which is why it was safe to build while the mechanism was still unestablished.** Reads the mode git RECORDS, not `stat`: a file can be 755 on disk and 644 in the index, and **that gap is exactly what a rename over an already-staged file leaves.**
 
 ```
-dist-provenance.txt      commit: 26fe1aea...    subject: the CHECKOUT
-target/release/intent    dirty-483e65e4...      subject: itself
-target/release/intentd   dirty-5819417b...      subject: itself
+D. every gated and manual row is 100755 IN THE INDEX     35 of 35, no exceptions
+   not-an-instrument NOT checked                         4 at 644, 13 at 755
+   control green | gated -> 644 fires by name rc=1 | lib -> 755 correctly SILENT rc=0
 ```
 
-**THE RECORD IS NOT LYING AND THE TOOL SAYS SO IN ITS OWN OUTPUT.** It carries `checkout_clean: no` -- it flagged the risk honestly. What it **structurally cannot** say is WHICH bytes, or that they disagree with one another, because it holds ONE `commit:` for a SET. **So the remedy was never a better record; it is a check whose subject is the RELATIONSHIP.** The tool prints `Do not "fix" it by editing the record` for the next reader who reaches for the obvious repair.
+**MY SWEEP SAYS THERE IS NO LIVE INSTANCE, SO IT IS A CHECK AND NOT A CLEANUP.** 284 parity files from the index: 4 shebang-at-644 (the documented libs), 0 at 755 without a shebang, **0 index-vs-disk disagreements.** Repo-wide, 272 tracked shebang files, 134 at 644, every one verified sourced or interpreter-invoked.
 
-**SEVEN CONTROLS, AND THE ISOLATION IS THE WORK.** A set whose members disagree ALSO disagrees with any record naming one member -- so a naive positive control fires **both** arms and proves neither. Control 5 uses a record naming NO commit so only the set pivot can speak; control 6 uses a coherent set the record is not about so only the record pivot can speak; control 7 requires `SET NOT EXAMINED` on an empty set rather than a silent pass. **An instrument that catches one thing has been shown to work on one thing.**
+**THE OBSERVATION I ROUTED AND cc TOOK: `not-an-instrument` was excluded as having _no invariant_, and 4/13 is not that** -- it is an unstated 76/24 split, **and the 13 at 755 are consequently UNGUARDED.** cc corrected their own comment in the same file (uncommitted as I fold): _two kinds under one label, so a single mode rule would be wrong for one of them._ **The exclusion is right; the stated reason was not, and now rests on the measurement.**
 
-**AT-03.4 IS THE SAME FACT WEARING A SECOND FACE (cc, 2026-08-21 16:56Z, their stamp).** cc's workspace run -- fmt 0, clippy 0 under `-D warnings`, 140 targets, 997 passed -- has ONE failure: `every_realised_attachment_in_the_estate_still_matches_canon`, 2 of 100 divergent, **exactly my two files and exactly my two hash pairs.** My gate sees it at commit time; the suite sees it as estate drift. **cc's sharp half: the suite is therefore NOT an independent second opinion on my ordering problem** -- two instruments agreeing over one measurement, which is this morning's consensus-is-not-corroboration shape. Both go green in the one commit.
+**LIVE AND UNOWNED: if one of those 13 drops, nothing catches it.** Not mine to close and I am not claiming it -- **recording it so the next reader does not mistake check D's 35-of-35 for coverage of the 48.**
 
-### 4. MINE AND UNSTARTED
+### 7. MINE AND UNSTARTED
 
 - **`cmd/macos` provenance writer** so `provenance_fields_check.sh` has a green to reach. **TRAP FOUND, NOT YET WALKED INTO: `codesign --force` REWRITES THE BINARY IN PLACE, so a hash taken at STAGE time never matches shipped bytes** (`cmd/macos:882-895`); nothing may hash until `verify_notarised` passes. **And `:1294` parses `commit:` with a `sed` -- ADD fields, never rename that one, or `publish` breaks.**
 - **`thread_view_skew_check.sh` admission -- STILL HELD, AND I DECLINED hv's RELEASE ON THE MERITS.** Re-derived: release binary `2026-08-20 15:01` vs `migrate.rs`/`facade.rs` `2026-08-20 17:57`, **2h56m stale and unchanged.** The staleness refusal it is conditional on does not exist. Build `lib_binstale.sh` as an EXTRACTION of `surface_check.sh`, never a copy.
