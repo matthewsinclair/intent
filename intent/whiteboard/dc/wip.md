@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 09:09Z
+heartbeat_at: 2026-08-22 09:19Z
 status: paused
-focus: "**`int suite` IS BUILT AND LANDED AT `5173a220` -- vc's instruction, done.** A HEAD figure now NAMES ITS REVISION BY CONSTRUCTION: `int suite` clones HEAD into the single-writer clone `prepush` already makes and runs `tests/run_tests.sh` there. **`tests/run_tests.sh` IS UNTOUCHED, and that was FORCED rather than chosen** -- matts was running it, and bash re-reads a running script incrementally. **THE CLONE IS EXTRACTED TO `cmd/shared/clone.lib` and `prepush` CALLS IT -- one implementation in the repo, and `prepush --force` before/after is IDENTICAL.** **THE PROOF ARRIVED BY ACCIDENT: I edited `cmd/suite` at 09:01:19Z, INSIDE the ~08:59-09:07:03 window of a run that returned 1444 ok -- the exact second-writer event that killed vc's figure last night, and this one is unaffected.** It also earned itself on first use, reporting `DESCRIBES=61d81576` where I would have quoted `946a8c6f` from memory. **Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` (U1, U4, ic's hook constraint, the fold).** **HOLDING FOR vc.** NOT PUSHED and I will not -- that is matts' word to give, and vc is waiting on it too."
+focus: "**LANE COMPLETE FOR THE USABILITY AIM (vc's words); HOLDING.** `5173a220` `int suite` -- a HEAD figure that NAMES ITS REVISION BY CONSTRUCTION, clone extracted to `cmd/shared/clone.lib` with `prepush` calling it and proven byte-identical before/after. **Suite green at `5173a220`, 1444 ok / 0 not ok -- and that revision INCLUDES `int suite` itself, so the figure covers the thing producing it.** `68296b8e` **AT-11.7 to RED with the reason, after DRIVING it: rc=1, both arms.** The obvious clearance -- promote it -- was wrong; **`to-write` is exempt from L2/L3, so a failing test parked there stops nagging while covering nothing.** **All four failures are properties of the WRITER (`int macos stage`, one `commit:` for a SET and no hash), not the check** -- so the row is now a visible red pointing at real work instead of an invisible unwritten one. **Standing tax off every commit: `stale_at_check` rc=0, zero AT-11.7 mentions.** **NOT TAKING `int macos stage` NEXT AND vc IS RIGHT: it is WP-11 DISTRIBUTION, which is RELEASE scope, and hv asked for local usability explicitly NOT public release. Widening the pen because a red row appeared in my lane is the quiet scope-widening the check exists to stop.** Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` / `137378df`. **NOT PUSHED and will not be.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -127,6 +127,20 @@ pre-commit-guards.sh in that project        rc=0 -- 2 ran, 2 skipped (not applic
 ```
 
 **THE REASON IS WORTH MORE THAN THE RESULT: `info` is READ-ONLY, so v2's version refusal never fires on it** -- the refusal is scoped to verbs that WRITE. **So the gate's resolution step is load-bearing on a verb that happens to be exempt from the guard that would otherwise break it.** Nobody designed that. **A future narrowing of what `info` answers would take the commit gate out with it, silently, in every switched project.**
+
+### AT-11.7 IS RED WITH ITS REASON, AND DRIVING IT BEFORE MOVING IT CHANGED THE ANSWER (`68296b8e`)
+
+The gate reported `AT-11.7 cites .../provenance_fields_check.sh -- the file EXISTS while the row says to-write` **on every commit anyone made.** A standing tax, and **the obvious clearance -- promote it -- was the wrong one.** Driven first: **rc=1, both arms firing.**
+
+**RED RATHER THAN `to-write`, AND THE CHECK'S OWN OUTPUT CARRIES THE GROUND: `to-write` IS EXEMPT FROM L2 AND L3.** A failing test parked there is invisible to `at lint`, so the row would have **stopped nagging while covering nothing** -- worse than the tax it removes. I read that line rather than only obeying vc's instruction, and they say the same thing independently.
+
+**NEITHER ARM IS A DEFECT IN THE INSTRUMENT, WHICH IS WHAT MAKES THE RED USEFUL RATHER THAN MERELY HONEST.** FIELDS: no `artefact_sha256`, an UNLABELLED source commit, no `drift`. SET: both binaries name `ee4a7cac` against a record naming `26fe1aea`. **All four are properties of the WRITER -- `int macos stage`, which emits ONE `commit:` for a SET and no hash at all.** The check has a green to reach. **An invisible unwritten row became a visible red pointing at real work.**
+
+**VERIFIED AFTER RATHER THAN ASSUMED, ON FOUR ARMS:** `stale_at_check` rc=0 with **zero** AT-11.7 mentions; `at lint` clean at 138 rows, so the row passes the levels `to-write` exempted it from; gate figures **UNCHANGED** at 60/132 and 49/51, correct because a red AT satisfies nothing; and **canon diffed STRUCTURALLY by flattening both sides to leaf paths -- exactly 2 changed, `/tests/131/{note,status}`, no peer content.** vc: _that last one is the check nobody runs, and it is the one that would have caught a `sync --to-disk` carrying a peer's work._
+
+**AND I AM NOT TAKING `int macos stage` NEXT EVEN THOUGH THE RED IS NOW MINE AND VISIBLE.** It is ST0056 **WP-11, Distribution -- RELEASE scope**, and hv asked for local usability and explicitly not public release. **Widening the pen because a red row surfaced in my lane is exactly the quiet scope-widening vc is the check against.** The red stays visible until someone with the right mandate takes it, **which is a better state than it being done today under a pen issued for a different job.**
+
+**MY OWN MECHANISMS ARE FINDABLE FROM THE TOOL, WHICH IS THE COUNTER TO MY OWN GENERALISATION.** `int` lists both `local` and `suite` with summaries, and both self-describe via `--help`; `int local status` names `intent3`. **The genuinely unfindable piece is `intent/restart.md`, which mentions `intent3`, `int local` and the migration floor ZERO times** -- vc's globalfold, and their framing is mine arriving at the top of the estate: **a mechanism is only as findable as the place it lives, and ours lives in one thread's design doc.**
 
 ### `int suite` -- THE ADVISORY RETIRED, LANDED AT `5173a220` (vc's instruction)
 
