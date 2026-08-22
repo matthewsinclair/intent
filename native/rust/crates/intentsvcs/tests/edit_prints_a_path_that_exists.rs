@@ -177,19 +177,75 @@ fn a_generated_view_is_refused_and_names_a_different_surface_for_each() {
 /// realised the view anyway would leave the operator with a file they were just
 /// told not to edit.
 #[test]
-fn a_refused_view_is_still_realised_because_the_refusal_is_about_authoring() {
+fn a_refusal_does_not_roll_back_a_hydrate_that_already_happened() {
   // **THIS IS NOT THE OBVIOUS ANSWER AND IT IS THE RIGHT ONE.** `edit` refuses
   // to hand over the PATH; it does not refuse to realise the artefact, and the
-  // realisation already happened -- `hydrate` runs first and the whole thread
-  // comes back. Asserting the file is ABSENT here would be asserting that a
-  // refusal rolls back an unrelated act.
+  // realisation already happened. Asserting the file is ABSENT here would be
+  // asserting that a refusal rolls back an unrelated act.
+  //
+  // **AMENDED 2026-08-22 (vc), MOVED FROM THE `info` ARM AND NOT WEAKENED.**
+  // It used to drive `edit(.., "info")`, whose refusal is a pure function of
+  // the FILENAME and now decides BEFORE `hydrate` runs -- so on that arm there
+  // is no completed act for a rollback to reach, and the proposition became
+  // untestable rather than false. **A ruling about rollback cannot reach an
+  // act that was never performed.**
+  //
+  // `impl` is an AUTHORED name, so it passes the disposition gate, hydrate
+  // runs, and only then does the artefact turn out not to carry it. That is a
+  // real refusal after a real write, which is exactly the shape this test was
+  // written to govern. The argument survives; only its arm moved.
   let fx = fixture();
   let mut facade = fx.facade();
-  facade.edit(&thread(), "info").expect_err("refused");
+  facade.edit(&thread(), "impl").expect_err("refused");
   assert!(
     fx.path("intent/st/ST0001/info.md").exists(),
-    "the thread was realised before the disposition was consulted, and the \
-     refusal is about where to AUTHOR rather than about what may exist"
+    "the thread was realised before the file turned out to be absent, and the \
+     refusal is about what this artefact CARRIES rather than about what may exist"
+  );
+}
+
+/// **THE REFUSAL THAT NEEDS NOTHING FROM DISK DECIDES BEFORE ANYTHING IS
+/// WRITTEN** -- ic's finding, and the one affected project is this one.
+///
+/// Driven at `21ea0e8f` before the fix: `intent st edit ST0001` -- where `file`
+/// defaults to `info`, the one name this verb refuses -- created two files and
+/// appended `STEELTHREAD:ST0001` to the TRACKED `.intentfiles`, then exited 1.
+///
+/// **THE DEFECT IS NOT THAT `edit` WRITES. IT IS THAT THE EXIT CODE AND THE
+/// EFFECT DISAGREE**, which is the arm IN-AG-NO-SILENT-001 never names: the
+/// error is surfaced correctly and the EFFECT is hidden. A caller told the
+/// operation did not happen has a dirty tracked file and no reason to look.
+///
+/// **BOTH LIMBS, BECAUSE EITHER ALONE PASSES FOR THE WRONG REASON.** A verb
+/// that refused everything would leave the estate untouched and satisfy the
+/// second limb; one that never refused would satisfy neither. The manifest is
+/// asserted separately from the views because they are written by different
+/// steps and a fix could plausibly reach one and not the other.
+#[test]
+fn the_filename_refusal_writes_nothing_at_all() {
+  let fx = fixture();
+  let mut facade = fx.facade();
+
+  // A clean starting point: no realised views, an empty-but-present manifest.
+  let dir = fx.path("intent/st/ST0001");
+  std::fs::remove_dir_all(&dir).ok();
+  std::fs::write(fx.path("intent/.intentfiles"), MANIFEST).unwrap();
+
+  facade
+    .edit(&thread(), "info")
+    .expect_err("`info` is refused");
+
+  assert!(
+    !dir.exists(),
+    "the refusal realised the thread: {:?}",
+    std::fs::read_dir(&dir)
+      .map(|d| d.flatten().map(|e| e.file_name()).collect::<Vec<_>>())
+      .unwrap_or_default()
+  );
+  let manifest = fx.read("intent/.intentfiles");
+  assert!(
+    !intentsvcs::intentfiles::realised_from(&manifest).declares("ST0001"),
+    "the refusal pinned the artefact in a TRACKED file while reporting rc=1:\n{manifest}"
   );
 }
 

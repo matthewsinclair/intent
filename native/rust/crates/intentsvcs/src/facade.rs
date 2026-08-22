@@ -2683,16 +2683,37 @@ impl Facade {
   /// (hv, 2026-08-19). The disposition comes from [`Project::edit_disposition`]
   /// so there is no second answer to what a file is.
   pub fn edit(&mut self, address: &Address, file: &str) -> Result<std::path::PathBuf, FacadeError> {
-    let realised = self.hydrate(address)?;
-    // `hydrate` refuses every non-artefact form before this point, so the
-    // address is known to name one.
-    let (_, id) = address
-      .entity
-      .artefact()
-      .expect("hydrate refuses any address without an artefact");
-
     let rel = std::path::PathBuf::from(format!("{file}.md"));
-    if let crate::project::EditDisposition::Refuse { author_with } = Project::edit_disposition(&rel)
+
+    // **THIS REFUSAL IS DECIDED BEFORE ANYTHING IS WRITTEN, AND THE ORDER IS
+    // THE POINT.** It used to sit BELOW `hydrate`, so the default invocation --
+    // `intent st edit ST0001`, where `file` defaults to `info`, the one file
+    // this verb refuses -- realised the thread's views and appended
+    // `STEELTHREAD:<id>` to the TRACKED `.intentfiles`, and THEN exited 1.
+    // Driven at `21ea0e8f` in a disposable project: two files created, one line
+    // appended, rc=1. Reported by ic; the one affected project is this one.
+    //
+    // **THE EXIT CODE AND THE EFFECT DISAGREED, WHICH IS THE ARM
+    // IN-AG-NO-SILENT-001 NEVER NAMES.** The rule is written against a
+    // swallowed error; here the error is surfaced correctly and the EFFECT is
+    // hidden. A verb that hydrates and says so is fine; a verb that reports it
+    // did nothing and appends to a tracked file is not.
+    //
+    // **THIS SCOPES THE NO-ROLLBACK RULING RATHER THAN OVERTURNING IT** (vc,
+    // 2026-08-22). `a_refused_view_is_still_realised_because_the_refusal_is_
+    // about_authoring` argues that a refusal must not roll back a completed
+    // act, and it is right; **a ruling about rollback cannot reach an act that
+    // was never performed.** That test is AMENDED onto the `NoSuchEditable`
+    // arm below -- a real refusal after a real hydrate -- where its argument
+    // still bites. It was moved, never deleted.
+    //
+    // `Project::edit_disposition` is a pure function of the FILENAME: it
+    // consults no disk and no store, so nothing was ever gained by deciding it
+    // late. A non-artefact address falls through deliberately -- `hydrate`
+    // owns that refusal and makes it before its own first write.
+    if let Some((_, id)) = address.entity.artefact()
+      && let crate::project::EditDisposition::Refuse { author_with } =
+        Project::edit_disposition(&rel)
     {
       return Err(FacadeError::NotEditable {
         path: self
@@ -2701,6 +2722,14 @@ impl Facade {
         author_with,
       });
     }
+
+    let realised = self.hydrate(address)?;
+    // `hydrate` refuses every non-artefact form before this point, so the
+    // address is known to name one.
+    let (_, id) = address
+      .entity
+      .artefact()
+      .expect("hydrate refuses any address without an artefact");
 
     let wanted = self.project.thread_dir(id).join(&rel);
     if !realised.contains(&wanted) {

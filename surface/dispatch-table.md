@@ -153,7 +153,7 @@ Manage steel threads for the project
 | `st dehydrate`                      | <id>        | --                                          | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
 | `st list`                           | --          | --status <status>, --width <n>, --markdown  | List steel threads (default: in progress only)                                                                                     | keep        |
 | `st show`                           | <id> [file] | --                                          | Show details of a specific steel thread                                                                                            | keep        |
-| `st edit`                           | <id> [file] | --                                          | Print the absolute path to a steel thread file                                                                                     | keep        |
+| `st edit`                           | <id> [file] | --                                          | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
 | `st sync`                           | --          | --write, --width <n>                        | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
 | `st repair`                         | [id]        | --write                                     | Repair malformed steel thread metadata                                                                                             | keep        |
 | `st organize` (alias `st organise`) | --          | --write                                     | Organize ST files in directories by status                                                                                         | retire      |
@@ -459,7 +459,7 @@ Show details of a specific steel thread
 
 ### `st edit`
 
-Print the absolute path to a steel thread file
+Print the path to a steel thread file, realising the thread if it is not on disk
 
 - **v2:** bin/intent_st:1101-1144
 - **Arguments:**
@@ -473,10 +473,11 @@ Print the absolute path to a steel thread file
 - **stderr:** `error: ...`
 - **Observed notes:** Pure emit-path: it never launches an editor and never creates the file. The name is a historical misnomer the docs already work around (`$EDITOR "$(intent st edit ST0001 acceptance)"`). The thread DIRECTORY must exist; the file need not.
 - **Target:** `as-observed`
-- **Note:** RULED (hv, 2026-08-19), and this deferral is CLOSED. `intent edit` REFUSES on a generated view and NAMES THE AUTHORING SURFACE instead. The earlier defence -- emitting the path unchanged if the skew check (AC-03.4) catches the edit -- does not hold: AC-03.4 is green and does catch a hand-edited view, but it catches it AFTER it is written and the user's work is already gone. DETECTION IS NOT PREVENTION, and this estate has lost work to exactly this twice (a row authored into `acceptance.md` dies at the next `--to-disk`; AC-03.16 exists because a generated view was inviting authoring in itself). The refusal names where to go: `acceptance.md` -> `intent ac` / `intent at`; `info.md` and WP covers -> `intent st` / `intent wp`; an ATTACHMENT is opened without hesitation, because the file on disk IS the authoring surface. Measured so the refusal is not read as broader than it is: ST0056's thread directory holds 13 files at depth 1 and only TWO are generated views. Implemented as `Project::edit_disposition`, derived from `classify()` rather than from a list of filenames, so there is no second answer to what a file is.
-- **MCP:** exposed as an agent tool -- read-only
+- **Note:** **CORRECTED 2026-08-22 (vc, under hv's pen; reported by ic).** Declared `read` while `Facade::edit` calls `hydrate` -- so it realised the thread's views and appended `STEELTHREAD:<id>` to the TRACKED `.intentfiles`. The help said `Print the absolute path to a steel thread file`, which no operator reads as `and realise the thread`. **A true declaration with false help is half a fix**: the declaration is what the MCP surface and the readers trust, the help is what the human trusts. Both changed, with the ordering fix that stops the FILENAME-only refusal writing before it refuses.
+- **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** `edit` is the most obviously-mutating verb name in the table and the command writes nothing -- it is a path resolver, and the entry beside this one already said so in `observed.notes` ("never launches an editor and never creates the file", called a historical misnomer). I still had to read bin/intent_st:1125-1141 to stop classifying it as a mutation, which is the argument for declaring the field: the correct fact was ALREADY WRITTEN DOWN one bullet away and the verb name still won. It also inverts the exposure reading -- an $EDITOR launch could not be an MCP tool at all, since it would block on stdio, while a path resolver is one of the safest things here.
 - **MCP classification grounded in:** bin/intent_st:1125-1141 -- 'Pure emit-path ... No touch, no editor'; it prints the absolute path and returns
+- **recoverability:** idempotent
 
 ### `st sync`
 

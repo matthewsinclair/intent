@@ -324,6 +324,19 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "st edit",
+    "edit_prints_a_path_that_exists.rs -- and it ARRIVED in this census by being reclassified \
+     rather than by being written. It was declared `read_or_mutate: read` while `Facade::edit` \
+     calls `hydrate`, so it realised a thread's views and appended `STEELTHREAD:<id>` to the \
+     TRACKED `.intentfiles` -- and on its rc=1 refusal path it did that while reporting that \
+     nothing had happened. (ic reported it; vc corrected the row 2026-08-22.) That file drives \
+     both halves the reclassification implies: `editing_pins_the_artefact_so_the_next_organize_\
+     keeps_it` proves the write on the ALLOWED path, and `the_filename_refusal_writes_nothing_at_\
+     all` proves its absence on the refused one. **A census keyed on a DECLARED field cannot see \
+     a verb whose declaration is wrong**, which is why this row was invisible here for as long as \
+     the field said `read` -- the bucket that was missing was not a bucket, it was the entry",
+  ),
+  (
     "wp cancel",
     "mutation_completeness.rs -- both the success walk and the UNMET guard walk drive it: \
      `wp.cancel` from every declared from-state, and its ReasonRecorded guard refused with a \
