@@ -3,10 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-22 09:57Z
+heartbeat_at: 2026-08-22 10:41Z
 status: active
-focus: "**CI IS GREEN, VERIFIED ON REAL RUNNERS, NOT BY CONSTRUCTION. `ee4a7cac` pushed as `510d4b10..ee4a7cac` on matts' authorisation -- 58 commits, four nodes, the whole day.** Both workflows success, every job, zero failed steps; **and I checked the green was not vacuous, because `0 failed steps` is also what a suite that never ran looks like**: bats plan `1..1440`, **1440 ok / 0 not ok on BOTH platforms**, rust macOS 143 `test result: ok` / 0 FAILED with `exit_codes.rs` actually running, and `Pouring shellcheck--0.11.0` on the macOS leg. **FOUR ROOT CAUSES, NOT ONE A CODE DEFECT -- EVERY ONE A CLAIM ABOUT A MACHINE THAT WAS TRUE ON THE MACHINE THAT WROTE IT**, and THIS box is the single environment where all four hold, which is why a red CI was unreproducible locally for days. **TEST 1286 IS THE PROOF THE FIX IS NOT A FUDGE: it SKIPS on Ubuntu (`/bin/bash is 5.x`) and RUNS AND PASSES on macOS, where 3.2 is the subject.** A blanket skip would have gone green on both and deleted the control. **vc COMMITTED ST0058 THEMSELVES AT `4d6bb257` IN THE WINDOW BETWEEN MY STABILITY CHECK AND MY COMMIT -- matts answered us both and we both moved.** My commit was a no-op. **Only timing prevented a peer's work landing under a commit its author did not make.** **NEXT IS vc's: HOLDING FOR INSTRUCTIONS.** U3 queue as vc ruled it: five builds, ZERO canon edits, `claude skills sync` in Rust first. "
-
+focus: "**AC-07.3 IS BUILT, WIRED AND DRIVEN. `intent claude skills` answers -- it had returned `2` since the rewrite began.** `fe133748` module, `12bca50a` a correction of my own commit, `21ea0e8f` the CLI arm. **hv GRANTED `$HOME` DIRECTLY (AC-11.3's second env var) AND I MADE THE GRANT NARROWER THAN THE ROW: `CONFINED` beside `ALLOWED`, `$HOME` legal in exactly ONE file (`userstate.rs`), a second reader failing like an unapproved variable.** The ask was may per-user state be reached, not may any file read the environment. **TWO v2 DEFECTS DRIVEN BEFORE A LINE WAS WRITTEN:** `sync --force` misses a scripts-only change and exits 0 saying `up to date` (checksum covers SKILL.md alone; positive control -- touch SKILL.md and the same change propagates); and sync NEVER PRUNES, so a retired script stays live in every consumer forever while sync reports success. **SIX MUTATIONS, SIX REFUSALS, DISTINCT KILL-SETS -- AND ONE SURVIVED TWICE.** The prune-boundary test passed 21 of 21, passed again after strengthening, and was green **because the sync correctly REFUSED before the prune ever ran**: a test asserting a boundary it had never executed, under the name `a_file_the_operator_added_is_never_pruned`, inside the change built to catch that class. **I WAS ALSO WRONG IN PROSE TWICE AND NEITHER WAS FINDABLE BY ANY TEST I WROTE:** a module header stating v2's manifest filename as fact 77 lines above the constant contradicting it (ic caught it), and a structural claim about v2's `elif` that vc had independently in the same wrong shape (`12bca50a` corrects both). **NEXT: hold for vc.** Full workspace 1024 passed / 0 failed / 144 binaries."
 | arm | instance | verdict |
 | --- | --- | --- |
 | canon ahead of the commit | cc's commit, dc's untracked file ingested by my sync | `ADDS 1 of 89` rc=1 |
@@ -170,6 +169,47 @@ One 7-run sitting read `160 163 165 167 170 188 513`. dc and I both read the 3x 
 **Fifteen runs at HIGHER load: 142-175, max/mode 1.2x. Once in 22 runs. It does not reproduce.** dc withdrew it at `f567c9f8`; the row records the tail as **observed once in 22 runs**, an observation rather than a property.
 
 **THE MECHANISM IS THE KEEPER: THE AGREEMENT IS WHAT STOPPED EITHER OF US RE-RUNNING IT.** Each handback felt like corroboration when it was **the same single sample travelling between two nodes who both liked the reasoning.** Four-nodes-one-instrument with the population reduced to two and the instrument reduced to one datapoint. **Mutual agreement did not add evidence; it removed the impulse to go and get some** -- worse than no agreement, which would have left someone uneasy enough to run it.
+
+## 2026-08-22 -- AC-07.3, and what the instruments could not see
+
+**THREE COMMITS: `fe133748` (module + 21 arms), `12bca50a` (correcting my own prose), `21ea0e8f` (CLI arm + the confined `$HOME` grant).** dc ruled AC-07.3 mine and declined the row -- _I will not carry a row I did not drive_ -- after I asked rather than assumed on their `ST0056/07` claim, which turned out to cover one TODO line and never all six ACs.
+
+**THE `$HOME` GRANT AND WHY I MADE IT SMALLER THAN I WAS GIVEN.** AC-11.3 held the shipped surface to one environment variable. I drove it both ways before asking -- green at HEAD, and a planted `std::env::var("HOME")` **refused by name** with _needs an hv ruling and a row in ALLOWED, not a quiet addition_. hv granted it. **A row in `ALLOWED` alone answers a question nobody asked**: whether ANY file may read the environment. So `CONFINED` sits beside it and pins `$HOME` to `userstate.rs`. One file wide is the whole audit surface, and it is what makes vc's class ruling -- every v3 per-user store gets its own path, never reads or writes v2's -- checkable by reading one file instead of re-argued at seven call sites.
+
+**I REFUSED THE GRANT ON A RELAY FIRST.** vc reported hv had granted it; I would not act until matts said it to me. **A guard that can be cleared by someone saying the ruling happened is not a guard**, and this is the first structural invariant here that refuses BY NAME, so the manner of the first clearing sets its price forever. vc had refused me the same way an hour earlier when refusing cost them a blocked push; ic committed the same position independently (`020722ef`). Three nodes, one line, no coordination.
+
+### The four things that were wrong, and what found each
+
+| what                                  | found by                                  | could my tests have?            |
+| ------------------------------------- | ----------------------------------------- | ------------------------------- |
+| checksum covers SKILL.md alone        | driving v2 in an isolated HOME            | yes -- and the mutation kills 3 |
+| sync never prunes                     | reading `cp -r source/*`, then driving it | yes -- kills 2                  |
+| header states v2's filename as fact   | **ic reading it**                         | **no**                          |
+| the `elif` claim, mine and vc's alike | **a third reader with line numbers**      | **no**                          |
+
+**THE HALF MY INSTRUMENTS COVER IS THE HALF THAT WAS ALREADY EASY.** Both prose defects shipped green through 21 arms and six mutations built specifically to catch things that ship green. **Prose is the one surface here with no instrument on it, and it now has four instances with a perfect record of being caught by a human reading.** vc holds it as a class; I am not proposing a doc-comment guard, which would be minted to close a shape we have only just learned.
+
+### The mutation that survived twice is the keeper
+
+`a_file_the_operator_added_is_never_pruned` passed 21 of 21 under a mutation that recorded every file PRESENT as ours. Strengthened it; **passed again.** Second look: with both sides moved the sync **correctly refuses**, so the prune never ran. **Green because nothing executed, under a name promising it had.** It needed `force` to put the copy on the asserted path, and two rounds because a mis-record is invisible until the run after it. **Run the instrument where the answer should differ, or you have not tested it at all** -- arriving inside a mutation suite built to check for exactly that.
+
+### Driven against real data, not only fixtures
+
+`claude skills list -v` resolves every source to the LIVE tree from the binary's own location -- dc's frozen-tree defect closed by construction, no `env -u` to remember. A copy of the real installed estate in an isolated HOME: **26 of 26 adopted as up to date**. Divert one script first and the same sync **refuses** it, exits 1, writes nothing. Adopt the baseline then divert: `modified here since it was installed -- HELD`. Ruling 4's two halves on the operator's own skills.
+
+### Two invariants refused the wiring and both were right
+
+`unmigrated_surface` caught `claude skills list` answering over a project it cannot see -- exempted on the verified ground `claude rules` uses, never by family. `flag_reachability` caught `-v` becoming read; **`claude subagents` -v left the inherited set too and that one is not honest** -- subagents is unwired, and it left because the scan matches an id across the whole renderer rather than per entry. Shrinking is what the failure instructs and leaving it wedges the suite. Recorded in place, routed to ic.
+
+### A remedy naming something unreachable -- mine, caught by driving it
+
+Three messages told the operator to re-run with `--force`. **The table gives `claude skills` exactly one flag.** Driven: `error: unexpected argument '--force' found`. I added it to the table and then **reverted** -- it also touched `claude subagents`, not my lane, and the table has a generated `.md` face that is ic's. `force` is wired `false` and said out loud. **A held skill therefore has no CLI remedy, which is a real gap, routed rather than hidden.**
+
+### Owed
+
+- **AT-07.3: repoint AND status, together, with vc's `acceptance.md` elaboration.** Cites `intent-cli/tests/skills_sync.rs`; the subject is `intentsvcs/tests/skills_sync.rs`. **Not green** -- `--force` is unreachable, so v2's install/sync surface is not reproduced. **Red with the reason, never `to-write`**, which is exempt from L2/L3 and hides.
+- `--force` on `claude skills` (and the `.md` face) -- ic's.
+- `flag_reachability`'s per-entry id resolution -- ic's.
 
 ## TODO
 
