@@ -16,8 +16,11 @@
 //! can point this binary at another tree's skills.
 //!
 //! **EVERY AMBIENT PATH IS A PARAMETER, AND THAT IS A BLOCKED SEAM RATHER THAN
-//! A STYLE.** The manifest lives at `~/.intent/skills/installed-skills.json`
-//! and the target at `~/.claude/skills/`, so this command needs `$HOME` --
+//! A STYLE.** The manifest lives under `~/.intent/skills/` and the target under
+//! `~/.claude/skills/`, so this command needs `$HOME` -- the FILENAME is
+//! [`MANIFEST_RELATIVE`]'s to state and is deliberately not repeated here,
+//! because a paragraph about why `$HOME` is needed has no business pinning a
+//! version-specific name, and the first draft of this one pinned v2's --
 //! and AC-11.3's invariant permits the shipped surface exactly ONE environment
 //! variable, `COLUMNS`, enforced structurally over every `src/**/*.rs` by
 //! `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`.
@@ -429,7 +432,6 @@ impl Skills {
   /// filesystem iteration order produces a different answer on every machine,
   /// which is the class `corpus_machine_independence` exists to catch.
   pub fn available(&self) -> Result<Vec<Origin>, SkillsError> {
-    let mut seen = BTreeSet::new();
     let mut names = BTreeSet::new();
     for (_, root) in self.roots()? {
       if !root.is_dir() {
@@ -448,9 +450,7 @@ impl Skills {
     let mut out = Vec::new();
     for name in names {
       if let Some(origin) = self.resolve(&name)? {
-        if seen.insert(origin.name.clone()) {
-          out.push(origin);
-        }
+        out.push(origin);
       }
     }
     Ok(out)
@@ -674,7 +674,10 @@ impl Skills {
               source_path: origin.dir.display().to_string(),
               installed_at,
               checksum: source_sum.clone(),
-              files: relative_files(&installed)?.iter().map(|p| display(p)).collect(),
+              files: relative_files(&installed)?
+                .iter()
+                .map(|p| display(p))
+                .collect(),
             });
             Outcome::UpToDate
           } else {
@@ -855,10 +858,10 @@ fn relative_files(dir: &Path) -> Result<Vec<PathBuf>, SkillsError> {
       }
       if meta.is_dir() {
         walk(root, &path, out)?;
-      } else if meta.is_file() {
-        if let Ok(rel) = path.strip_prefix(root) {
-          out.push(rel.to_path_buf());
-        }
+      } else if meta.is_file()
+        && let Ok(rel) = path.strip_prefix(root)
+      {
+        out.push(rel.to_path_buf());
       }
     }
     Ok(())
@@ -969,5 +972,9 @@ fn prune_empty_dirs(root: &Path) -> Result<(), SkillsError> {
     }
     Ok(())
   }
-  if root.is_dir() { walk(root, root) } else { Ok(()) }
+  if root.is_dir() {
+    walk(root, root)
+  } else {
+    Ok(())
+  }
 }

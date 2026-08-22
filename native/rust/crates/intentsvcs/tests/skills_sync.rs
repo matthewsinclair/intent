@@ -120,7 +120,10 @@ fn a_change_confined_to_a_script_propagates() {
   );
   let s = f.skills();
   s.install(&one("in-probe"), false).unwrap();
-  assert_eq!(read(&f.target.join("in-probe/scripts/run.sh")), "ORIGINAL\n");
+  assert_eq!(
+    read(&f.target.join("in-probe/scripts/run.sh")),
+    "ORIGINAL\n"
+  );
 
   // Only the script moves. SKILL.md is byte-identical.
   fs::write(f.canon().join("in-probe/scripts/run.sh"), "CHANGED\n").unwrap();
@@ -226,15 +229,41 @@ fn a_file_the_operator_added_is_never_pruned() {
 
   // The operator drops their own note inside the installed skill.
   fs::write(f.target.join("in-probe/MY-NOTES.md"), "mine\n").unwrap();
-  // ...and upstream moves, so the copy definitely runs.
-  fs::write(f.canon().join("in-probe/SKILL.md"), "# probe v2\n").unwrap();
 
-  s.sync(false).unwrap();
-  assert_eq!(
-    read(&f.target.join("in-probe/MY-NOTES.md")),
-    "mine\n",
-    "a sync removed a file it never installed"
-  );
+  // **`force`, AND IT IS LOAD-BEARING RATHER THAN CONVENIENT.** Adding a file
+  // moves the installed tree, so with upstream also moving this is
+  // `Conflicted` and an unforced sync REFUSES -- correctly. Two earlier
+  // versions of this test therefore never reached the prune at all: they were
+  // green because nothing ran, under a name promising the prune had been
+  // measured. Forcing is what puts the copy on the path being asserted about.
+  //
+  // **TWO ROUNDS, AND THE SECOND IS THE ONE THAT BITES.** A mutation recording
+  // every file PRESENT in the target -- rather than only the ones this tool
+  // wrote -- is invisible on the first pass, because the prune reads the PRIOR
+  // entry and the operator's file is not in it yet. It only removes the file on
+  // the run AFTER the one that mis-recorded it. A boundary that holds once and
+  // fails on the next pass is not a boundary.
+  for body in ["# probe v2\n", "# probe v3\n"] {
+    fs::write(f.canon().join("in-probe/SKILL.md"), body).unwrap();
+    let report = s.sync(true).unwrap();
+    assert!(
+      matches!(outcome(&report.steps, "in-probe"), Outcome::Updated { .. }),
+      "the copy must actually have run, or this test measures nothing: {:?}",
+      report.steps
+    );
+    assert_eq!(
+      read(&f.target.join("in-probe/MY-NOTES.md")),
+      "mine\n",
+      "a sync removed a file it never installed"
+    );
+    let m = s.manifest().unwrap();
+    let entry = m.installed.iter().find(|e| e.name == "in-probe").unwrap();
+    assert!(
+      !entry.files.contains(&"MY-NOTES.md".to_string()),
+      "the manifest claimed a file this tool never wrote: {:?}",
+      entry.files
+    );
+  }
 }
 
 /// The same rule in the sibling verb. v2 does `rm -rf` on uninstall, which
@@ -283,7 +312,10 @@ fn an_installed_skill_with_no_baseline_is_refused_not_guessed() {
   let f = Fixture::new();
   f.source(
     "in-probe",
-    &[("SKILL.md", "# upstream\n"), ("scripts/run.sh", "UPSTREAM\n")],
+    &[
+      ("SKILL.md", "# upstream\n"),
+      ("scripts/run.sh", "UPSTREAM\n"),
+    ],
   );
   // Installed by something that is not this build: no manifest entry at all.
   write_tree(
@@ -472,7 +504,10 @@ fn an_extension_shadows_canon_and_says_so() {
   let f = Fixture::new();
   f.source("in-probe", &[("SKILL.md", "# canon\n")]);
   let ext = f.install.parent().unwrap().join("ext");
-  write_tree(&ext.join("mine/skills/in-probe"), &[("SKILL.md", "# ext\n")]);
+  write_tree(
+    &ext.join("mine/skills/in-probe"),
+    &[("SKILL.md", "# ext\n")],
+  );
 
   let s = f.with_ext(&ext);
   let report = s.install(&one("in-probe"), false).unwrap();
@@ -549,13 +584,19 @@ fn installing_over_an_existing_skill_needs_force() {
   fs::write(f.canon().join("in-probe/SKILL.md"), "# newer\n").unwrap();
 
   assert_eq!(
-    outcome(&s.install(&one("in-probe"), false).unwrap().steps, "in-probe"),
+    outcome(
+      &s.install(&one("in-probe"), false).unwrap().steps,
+      "in-probe"
+    ),
     Outcome::AlreadyInstalled
   );
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# probe\n");
 
   assert!(matches!(
-    outcome(&s.install(&one("in-probe"), true).unwrap().steps, "in-probe"),
+    outcome(
+      &s.install(&one("in-probe"), true).unwrap().steps,
+      "in-probe"
+    ),
     Outcome::Updated { .. }
   ));
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# newer\n");
