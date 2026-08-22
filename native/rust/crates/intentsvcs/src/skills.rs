@@ -275,13 +275,26 @@ pub enum Outcome {
   AlreadyInstalled,
   /// The installed tree changed and the source did not.
   ModifiedLocally,
-  /// **BOTH SIDES MOVED, AND v2 NEVER SEES THIS CASE** (vc, 2026-08-22, ruling
-  /// 2, verified in `claude_plugin_helpers.sh:407-427`). v2's local-modification
-  /// prompt is guarded by `source == old`, so the one state where a real
-  /// conflict exists -- upstream changed AND the operator edited it -- falls
-  /// past the prompt to the unguarded `elif` and is overwritten in silence.
-  /// `--force` is read only inside the branch that never runs. **The prompt the
-  /// whole design is built around fires only when there is nothing to install.**
+  /// **BOTH SIDES MOVED, AND v2 REPORTS IT AS AN ORDINARY UPDATE.**
+  ///
+  /// **v2's WRITE IS UNCONDITIONAL AND SITS DOWNSTREAM OF EVERY BRANCH**
+  /// (`claude_plugin_helpers.sh:430`, re-read at source after a first reading
+  /// of mine and a first reading of vc's both got the structure wrong). The
+  /// `if`/`elif` above it chooses only what is PRINTED and whether it prompts;
+  /// the only escapes from the comparison are `up to date` and a declined
+  /// prompt, both of which `continue`. Everything else reaches the copy.
+  ///
+  /// So upstream changed AND the operator edited it misses the
+  /// local-modification prompt -- that arm is guarded by `source == old` --
+  /// takes the `elif`, prints **`update available`**, and overwrites. The
+  /// operator sees the same two lines they would see for a routine upstream
+  /// bump, with nothing distinguishing the run that destroyed their edit from
+  /// the run that did not. `--force` is read only inside the arm that cannot
+  /// run here, so it changes nothing either way.
+  ///
+  /// **THERE IS NO `add a condition to the elif` REPAIR, AND THAT IS WHY THE
+  /// STRUCTURE MATTERS RATHER THAN JUST THE OUTCOME.** The comparison never
+  /// guarded the write at all; it annotated it. A fix has to move the write.
   Conflicted,
   /// A skill is installed, its tree differs from source, and this build has no
   /// baseline for it -- no manifest entry, or a manifest whose checksum scope

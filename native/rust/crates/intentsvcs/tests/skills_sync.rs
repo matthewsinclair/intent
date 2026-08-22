@@ -377,11 +377,13 @@ fn a_byte_identical_unrecorded_skill_is_adopted_rather_than_refused() {
 // Ruling 2 -- the conflict v2's prompt cannot see.
 // ---------------------------------------------------------------------------
 
-/// **BOTH SIDES MOVED. v2 OVERWRITES IN SILENCE AND `--force` IS IRRELEVANT.**
-/// Its local-modification prompt is guarded by `source == old`, so the one
-/// state where a genuine conflict exists falls past the prompt to the unguarded
-/// update branch. The prompt fires only when the source has NOT changed --
-/// which is the case where there was nothing to install anyway.
+/// **BOTH SIDES MOVED. v2 OVERWRITES AND CALLS IT `update available`.**
+/// Its write is unconditional and downstream of every branch
+/// (`claude_plugin_helpers.sh:430`); the `if`/`elif` picks the wording, not
+/// the outcome. A genuine conflict misses the local-modification prompt --
+/// guarded by `source == old` -- and is then reported exactly as a routine
+/// upstream bump, so nothing the operator sees separates the run that
+/// destroyed their edit from the run that did not.
 #[test]
 fn both_sides_changed_is_a_conflict_and_is_not_silently_overwritten() {
   let f = Fixture::new();
