@@ -11,3 +11,23 @@
 **3. ~71G OF BUILD ARTEFACTS, AND CORRECT COMPLIANCE IS WHAT PRODUCED IT.** `native/rust/target` is **66G across 1,336,417 files** against 1,481 tracked files -- `debug` 33G, `cc` 18G, `ic` 15G -- plus **4.7G stranded in two orphaned worktrees** from yesterday's dead sessions (mine 4.3G clean, dc's 399M holding only an untracked `tgt/`). Our own rule says _isolate the target dir, keep it inside the checkout_, written after a drifted build put 1.2G where gitignore hid it. **cc and ic are following it exactly, and that is what produced 33G of duplication.** The rule says how to create these and is silent on disposal. **A gitignored artefact is invisible to every instrument we use, so nothing here was ever going to report it.** My removal of my own orphaned worktree was refused by the session's permission classifier -- correctly, it is a 4.3G delete -- so it is yours to run.
 
 **4. THE FIVE GATE ROWS ARE CITATION-CLEAN.** Swept before cc and ic spend context on them. All four cited files exist and carry thread-qualified ids; `AT-07.7` cites nothing under `11762943`'s ruling, which is the declared handoff and not an omission. **No builder will hit a stale citation on the gate.** One stale row OUTSIDE the gate, surfaced free by the pre-commit gate: **`AT-00.6` is `to-write` while `migrate_v2_project.rs` exists.** cc's, filed not fixed.
+
+## (2026-08-22 10:11Z)
+
+**ONE RULING OWED, AND IT BLOCKS A WHOLE COMMAND: may the shipped v3 surface read `$HOME`?**
+
+AC-11.3 permits the shipped surface exactly ONE environment variable, `COLUMNS`, enforced structurally over every `src/**/*.rs` by `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`. **`intent claude skills` needs `$HOME` twice** -- the manifest at `~/.intent/skills/installed-skills.json` and the target at `~/.claude/skills/`. Without a ruling the command cannot exist.
+
+**cc drove the invariant in BOTH directions rather than reading it**: green at HEAD (surface reads exactly `{COLUMNS}`), and a planted `std::env::var("HOME")` was refused BY NAME with a message saying it needs an hv ruling and a row in `ALLOWED`, not a quiet addition. Probe removed, tree clean. cc is shipping the module with every ambient path as a PARAMETER and leaving the CLI arm unwired, so `intent claude skills` answers `2` and says why -- rather than smuggling a second variable in behind a feature. That posture is right and I have ratified it.
+
+**MY RECOMMENDATION: GRANT IT, BUT ONLY AFTER THE MANIFEST PATH SPLITS -- and the sequencing is the whole recommendation, not a caveat on it.**
+
+cc's argument for granting is that `$HOME` is unlike `$INTENT_HOME` because there is no versioned v2/v3 asset skew -- it is the user's own home. **That is true only once the paths separate, and today it is false.** I verified against the live file: v2 writes `$HOME/.intent/skills/installed-skills.json`, and cc's proposed v3 manifest was the **same path, same `version: "1.0.0"`, same four fields** (`checksum`, `installed_at`, `name`, `source_path`) -- identical to the 26-entry file on this machine. After my AC-07.3 ruling, `checksum` denotes a different function. **v2 is shipped and cannot be taught to read a scope field**, so each binary would read the other's manifest, find a mismatch it must treat as an update, and overwrite -- **forever, with both printing `updated` and neither having anything to report.**
+
+**And the condition that makes it live is the local cutover I drove this morning: both binaries on PATH together.** `intent` at 19, `intent3` alongside. That is not a future risk; it is the state every project on this machine is in right now.
+
+I have ruled the repair (v3 owns a separate manifest path, never reads or writes v2's). **With that in place `$HOME` really is just the user's own home and I would argue for granting it. Before it, the shared mutable per-user store IS the skew AC-11.3 exists to prevent, and I would not ask you to wave it through.**
+
+**Nothing is blocked on you this minute** -- cc is building the module, which is pure and fully driven against tempdirs. Only the CLI edge waits.
+
+**Also still open and separately yours: PUSH.** `upstream/main` at `ee4a7cac`, local **23 ahead**. Your "commit away" answered a question that bundled commit and push; only the commit half was ever settled.
