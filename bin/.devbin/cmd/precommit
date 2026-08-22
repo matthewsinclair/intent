@@ -82,6 +82,7 @@ G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
 G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
 G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`int macos publish\`)"
 G_CANONCOMMIT="canon currency: a commit carrying canon does not name bytes absent from that commit (ST0057 AC-03.6)"
+G_GUARDHOME='guard home: a self-hosted tree runs ITS OWN guards, not the ones $INTENT_HOME points at'
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -112,6 +113,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_STALEAT" "intent/st/ST0056/parity/tools/stale_at_check.sh"
   printf '%s\t%s\n' "$G_SELFPROV" "intent/st/ST0056/parity/tools/self_provenance_check.sh"
   printf '%s\t%s\n' "$G_CANONCOMMIT" "intent/st/ST0056/parity/tools/canon_commit_check.sh"
+  printf '%s\t%s\n' "$G_GUARDHOME" "intent/st/ST0056/parity/tools/guard_home_check.sh"
   exit 0
 fi
 
@@ -393,6 +395,32 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
     failed="${failed}  canon_commit_check.sh -- this commit's canon names bytes the commit does not carry
 "
   fi
+fi
+
+# GUARD HOME. UNCONDITIONAL AND NOT PATH-TRIGGERED, because the failure it
+# catches is a DELETION and a path trigger keyed to the template would not fire
+# on a commit that removes the branch from somewhere else -- or, worse, would
+# fire only on the commit that breaks it and never again. 17-22ms of two greps
+# over one committed file is not worth a trigger to avoid.
+step "$G_GUARDHOME"
+# THE ABSENT CASE IS NAMED SEPARATELY, AND cc FOUND THIS ON REAL BYTES BEFORE IT
+# COULD SHIP. The summary line used to assert ONE cause -- "the template lost the
+# override" -- for EVERY non-zero exit, including exit 127 when the tool itself is
+# missing. cc's commit hit exactly that while the file was momentarily off the
+# tree, and the gate told them their template was broken. It was not.
+#
+# A summary that names a cause it did not establish is worse than one that names
+# none: it sends the reader at a file that is fine, with the gate's authority
+# behind it. Same class as `unwired`s leaf remedy pointing at an empty help block.
+if [ ! -f "$TOOLS/guard_home_check.sh" ]; then
+  rc=1
+  failed="${failed}  guard_home_check.sh -- THE INSTRUMENT IS MISSING, so nothing was checked. This says
+    NOTHING about the hook template; the tool that reads it is not on disk.
+"
+elif ! bash "$TOOLS/guard_home_check.sh"; then
+  rc=1
+  failed="${failed}  guard_home_check.sh -- the shipped hook template lost the self-hosted GUARD_HOME override
+"
 fi
 
 if [ "$rc" -ne 0 ]; then
