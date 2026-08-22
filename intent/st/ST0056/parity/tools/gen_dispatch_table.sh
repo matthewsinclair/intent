@@ -63,7 +63,11 @@ ST_DIR="$(cd "$HERE/../.." && pwd)"
 # (bin/intent_st:392) into `intent/st/COMPLETED/`, so anything that compiles
 # the table in -- the CLI's include_str! -- would stop resolving the moment
 # ST0056 is marked Completed. That happens in WP-12, which IS the release.
-REPO_ROOT="$(cd "$ST_DIR/../../.." && pwd)"
+# OVERRIDABLE, for the same reason IN and OUT are: a generator whose anchors can
+# only be derived from its own location cannot be driven against a planted table,
+# and a rendering change proved only against the live tree is proved against the
+# one input guaranteed to already agree with it.
+REPO_ROOT="${REPO_ROOT:-$(cd "$ST_DIR/../../.." && pwd)}"
 
 IN="${IN:-$REPO_ROOT/surface/dispatch-table.json}"
 OUT="${OUT:-$REPO_ROOT/surface/dispatch-table.md}"
@@ -139,7 +143,19 @@ JQ_LIB='
         elif (.value | type) == "array" and ((.value | map(type) | unique) == ["string"])
           then "- **" + $label + ":**\n" + (.value | map("  - " + .) | join("\n"))
         else "- **" + $label + ":**\n"
-          + ([ .value | paths(scalars) as $p |
+          # NULLS RENDER, AND NO BACKTICKS IN THIS COMMENT: it sits inside a
+          # shell-interpolated jq program, so a backtick here is command
+          # substitution and the generator dies with "command not found".
+          #
+          # paths(scalars) LOOKS like it covers nulls and does not -- jq excludes
+          # null from scalars -- so a declared null vanished from the view while
+          # its siblings rendered.  That is the exact failure the comment above
+          # warns about, one branch below it, unnoticed because no structured
+          # extra had carried a null until the rulings array did.  The one
+          # ratification that is unverifiable BY CONSTRUCTION (a null record,
+          # legal only for hv) was the first, so the single row a reader most
+          # needs to see marked was the single row that rendered unmarked.
+          + ([ .value | paths(type|IN("string","boolean","number","null")) as $p |
                "  - `" + ($p | map(tostring) | join(".")) + "`: " + (getpath($p) | tostring)
              ] | join("\n")) end
       ) | join("\n") end;

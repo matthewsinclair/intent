@@ -128,14 +128,22 @@ NOT_CITED="$(comm -23 <(printf '%s\n' "$CLAIMED") <(printf '%s\n' "$CITED"))"
 # was already decided by the machine-read citation; this was the last inference
 # left in the file.
 UNDECLARED="$(jq -r '
-  [ (.invariants[] | select(.target.state == "corrected") | select(.target.ratified_in == null) | .id),
-    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(.target.ratified_in == null) | .path) ]
+  [ (.invariants[] | select(.target.state == "corrected") | select(.target.rulings == null) | .id),
+    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(.target.rulings == null) | .path) ]
   | join(" ")' "$TABLE")"
-[ -z "$UNDECLARED" ] || die "\`corrected\` unit(s) do not declare \`target.ratified_in\`, so this check cannot tell an uncited claim from one ratified elsewhere -- and guessing it from the ratification prose is the defect this field replaced: $UNDECLARED"
+[ -z "$UNDECLARED" ] || die "\`corrected\` unit(s) do not declare \`target.rulings\`, so this check cannot tell an uncited claim from one ratified elsewhere -- and guessing it from the ratification prose is the defect this field replaced: $UNDECLARED"
 
+# SCOPE IS COMPUTED FROM THE RECORD, NOT READ FROM A SECOND DECLARED FIELD.
+# Before 2026-08-22 a unit ratified by parity.md's `Corrected` class carried the
+# exact string `parity.md` in `target.ratified_in`, and this check matched it by
+# EQUALITY.  That string was never a state: it is the RECORD of hv's 2026-08-14
+# class ruling, and it now lives as `record` inside `target.rulings`.  Matching
+# on the record keeps ONE record of the class -- a separate declared scope field
+# would be a second copy of what parity.md already says, and those two drifted to
+# 8-of-11 once already, which is the divergence this file exists to catch.
 POINTS_HERE="$(jq -r '
-  [ (.invariants[] | select(.target.state == "corrected") | select(.target.ratified_in == "parity.md") | .id),
-    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(.target.ratified_in == "parity.md") | .path) ]
+  [ (.invariants[] | select(.target.state == "corrected") | select(any(.target.rulings[]?; .record == "parity.md")) | .id),
+    ([.families[].entries[], .new_surface[]][] | select(.target.state == "corrected") | select(any(.target.rulings[]?; .record == "parity.md")) | .path) ]
   | .[]' "$TABLE" | sort -u)"
 
 UNCITED="$(comm -12 <(printf '%s\n' "$NOT_CITED") <(printf '%s\n' "$POINTS_HERE"))"
