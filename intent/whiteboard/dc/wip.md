@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-21 21:51Z
-status: active
-focus: "**U1 AND U4 ARE MINE, ROUTED BY vc UNDER A PEN hv HANDED THEM: drive v3 to LOCALLY USABLE across the estate. U4 IS ANSWERED AND MOSTLY ALREADY BUILT -- v3 REFUSES any project whose config declares 2.x, read verbs and write verbs alike, rc=1, touching nothing; `intent upgrade` is purely ADDITIVE on disk; and the way back is `git checkout . && git clean -fd && rm -rf intent/.cache`, driven twice to a BYTE-IDENTICAL file set. THE SINGLE PRECONDITION IS THE WHOLE RISK: a project with uncommitted work has NO WAY BACK.** **U1 BUILT: `bin/intent3` (+ `intentd3` symlink, basename dispatch) and `int local status|build|install|uninstall`. `int local build` rc=0 end to end and produced the FIRST COHERENT RELEASE PAIR TODAY.** **THE FINDING THAT INVERTS THE SAFETY MODEL: `INTENT_HOME` HAS ZERO AUTHORITY OVER v3** -- driven exported, unset, and forced to a junk path. It binds v2 only, so it never protected the 17 projects from v3 at all. **AND THERE ARE FOUR `intent` BINDINGS, NOT THREE** -- `~/bin/intent` at PATH 19 is on no list anywhere. **I PUT A SHARED FUNCTION IN A VENDORED FILE AND THE TOOLING CAUGHT ME TWICE; MY REASONING FOR THE SECOND HOME WAS SOUND AND STILL WRONG.** **LANDED AT `c7012833` ON matts' OWN WORD.** Held all evening: vc withdrew their commit ruling and ic was right that a pen cannot reach a standing instruction from matts. The gate passed on the way in and its self-provenance arm confirmed my coherent pair independently -- both binaries naming `ee4a7cac`."
+heartbeat_at: 2026-08-22 08:53Z
+status: paused
+focus: "**FOLDED AND PAUSED, HOLDING FOR vc.** Three commits landed on matts' direct word: `c7012833` (U1 -- `bin/intent3` + `intentd3` symlink + `int local status|build|install|uninstall` + `cmd/shared/artefact.lib`, plus the `cmd/macos:214` remedy string that told the operator to run a command that fails), `7e290d39` (board), `99168a8f` (ic's hook constraint). **All three with `--only`, verified afterwards: nothing of a peer's in any of them.** **U4 IS ANSWERED AND MOSTLY WAS ALREADY BUILT: v3 refuses any project declaring 2.x, `intent upgrade` is purely additive, and the way back is driven twice to a byte-identical file set. THE ONE PRECONDITION IS THE WHOLE RISK -- the way back is `git`, so a project with uncommitted work has none.** **`INTENT_HOME` HAS ZERO AUTHORITY OVER v3** (driven three ways), so it never protected the other 16 projects; and there are FOUR `intent` bindings, not three. **`intent3` MUST STAY A WRAPPER THAT `exec`s -- a bare copy fails every hook at EXIT 1, which Claude Code does not block on, so the strict in-session gate would silently stop enforcing estate-wide.** Nothing of mine uncommitted; nothing in my inboxes newer than 14:43Z. **Next instruction comes from vc.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -127,6 +127,29 @@ pre-commit-guards.sh in that project        rc=0 -- 2 ran, 2 skipped (not applic
 ```
 
 **THE REASON IS WORTH MORE THAN THE RESULT: `info` is READ-ONLY, so v2's version refusal never fires on it** -- the refusal is scoped to verbs that WRITE. **So the gate's resolution step is load-bearing on a verb that happens to be exempt from the guard that would otherwise break it.** Nobody designed that. **A future narrowing of what `info` answers would take the commit gate out with it, silently, in every switched project.**
+
+### LANDED, AND ic's CONSTRAINT ARRIVED BEFORE PACKAGING RATHER THAN AFTER
+
+```
+c7012833  feat(0058)  U1 mechanism + the cmd/macos:214 remedy-string fix + the bats pin
+7e290d39  wb(dc)      the fold
+99168a8f  fix(0058)   intent3 must exec, never be copied -- a copy fails the hooks OPEN
+```
+
+**ic FOUND THE U1 x HOOKS JOIN AND IT IS THE SECOND TIME THAT SHAPE BIT TONIGHT.** v3's `claude hook` resolves its scripts by canonicalising `current_exe()` and walking ancestors for `lib/templates/` (`install.rs:51,102-118`). **A bare `cp` onto PATH has no marker above it and every hook refuses -- at EXIT 1, which Claude Code does not block on**, so the prompt proceeds and the strict `/in-session` gate silently stops enforcing in every project at once. **0043 inverted: that one blocked every prompt and was loud; this one enforces nothing and looks healthy.**
+
+**MY WRAPPER SURVIVES, AND THE COPY ARM IS THE CONTROL THAT MAKES IT A TEST** -- I reproduced ic's failure in the same run rather than trusting my probe could fail:
+
+```
+this wrapper (execs into the checkout)   all three hooks from /tmp   rc=0
+symlink -> the release binary            rc=0  -- resolve() canonicalises first
+bare `cp` of the binary                  rc=1  -- ic's exact error
+v2 `int hooks` against this v3 tree      rc=0, WIRED, full roster
+```
+
+**Correct by the SHAPE of a wrapper rather than because anyone chose it, and nothing in the file said so** -- so the obvious simplification would have disabled the gate estate-wide with no symptom. Both of ic's explicitly-open checks closed by driving them.
+
+**AND I NEARLY REPORTED MY OWN COMMITS AS LOST, FROM A TRUNCATED LOG.** On resume, `git log --oneline -5` showed five ic commits and none of mine, and the tree matched this session's opening state exactly. **`git merge-base --is-ancestor` says all three are on main.** A five-line window is a SUMMARY; ancestry is the CLAIM. **Same defect as reading `--stat` for the hunk this morning, at the end of the same day, about my own work.**
 
 ### U1 -- BUILT, EVERY ARM DRIVEN, HELD COMMIT-READY
 
