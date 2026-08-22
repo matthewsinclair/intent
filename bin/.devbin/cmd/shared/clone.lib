@@ -1,0 +1,62 @@
+# shellcheck shell=bash
+#
+# shared/clone.lib -- the single-writer clone. SOURCED, never run: 0644 so the
+# dispatcher's `is_handler` (-f AND -x) cannot mistake it for a command.
+#
+# WHY THIS IS SHARED RATHER THAN COPIED. `prepush` has made this clone since
+# 2026-08-15 and states the property in its own words: **the one workspace in
+# the estate with a single writer** -- a `git clone --local` of the pushed
+# revision, with nobody's uncommitted work in it. That is a GENERAL answer to
+# "which revision does this figure describe", and for a year it had exactly one
+# consumer, `cargo build`, because it lived inside a command about pushing and
+# nobody arrives there thinking about test suites.
+#
+# **A GENERAL MECHANISM INSIDE A SPECIFIC COMMAND IS A PRIVATE METHOD WITH A
+# PUBLIC CLAIM** (dc, 2026-08-21). Its discoverability is bounded by the name of
+# the file it happens to sit in, which nobody chose and nobody checks. Two other
+# instances that week: `int hooks` resolving its target repo from the binary's
+# location, and `lib/helpers` claiming to be THE ONE EXTRACTION SITE while
+# sitting inside `cmd/macos` -- where the false claim CAUSED a defect rather than
+# merely coexisting with one.
+#
+# THE PROPERTY IT BUYS IS AN ADVISORY RETIRED. A figure measured here names a
+# revision BY CONSTRUCTION: no writer anywhere can perturb it, so nobody has to
+# be asked to hold still. On 2026-08-21 a green 1444-test run was killed and
+# rerun because the live tree moved under it, and the `yes` on the rerun was
+# bought by three of four nodes being quiet -- one by request and two because
+# they were stopped. **A control that survives a node behaving correctly is the
+# only kind worth having.**
+
+# single_writer_clone <src-repo> <dest> -- clone <src-repo> at HEAD into <dest>.
+#
+# `--depth 1` because every consumer asks about the tip and nothing here reads
+# history; `file://` rather than a path so git uses the transport and copies the
+# repository rather than hardlinking into it -- a hardlinked clone shares object
+# files with the live repo, which is exactly the single-writer property this
+# exists to provide.
+single_writer_clone() {
+  local src="$1" dest="$2"
+  [ -n "$src" ] && [ -n "$dest" ] || die "single_writer_clone needs <src> and <dest>"
+  git clone --quiet --depth 1 "file://$src" "$dest" ||
+    die "the repository does not clone -- that is the finding, and it is about the REPOSITORY rather than your working tree"
+}
+
+# clone_workspace <clone-dir> -- the one cargo workspace manifest's directory.
+#
+# Structural, and checked BEFORE any build because it is instant and it names
+# the specific failure that actually happened rather than leaving it to be
+# inferred from a compiler error: a half-committed move leaves a second
+# workspace at the root pointing at the stale copy, and a fresh clone then
+# builds an implementation nobody knew existed.
+clone_workspace() {
+  local clone="$1" manifests count
+  manifests="$(find "$clone" -name Cargo.toml -not -path '*/crates/*' | sort)"
+  count="$(printf '%s\n' "$manifests" | grep -c . || true)"
+  if [ "$count" -ne 1 ]; then
+    printf '\n' >&2
+    printf 'clone: expected exactly ONE cargo workspace manifest outside crates/, found %s:\n' "$count" >&2
+    printf '%s\n' "$manifests" >&2
+    die "a duplicated or stray workspace is the half-committed-move signature"
+  fi
+  dirname "$manifests"
+}

@@ -42,6 +42,11 @@
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+# The single-writer clone, shared with `int suite`. Extracted from HERE 2026-08-22
+# (dc): it was the general answer to "which revision does this figure describe"
+# and had one consumer for a year, because it lived inside a command about
+# pushing. See the file for why that is its own defect class.
+. "$(dirname "${BASH_SOURCE[0]}")/shared/clone.lib"
 
 ROOT="${PROJECT_ROOT:?}"
 
@@ -263,22 +268,13 @@ TMP="$(mktemp -d)" || die "cannot create a temp dir"
 trap "rm -rf '$TMP'" EXIT
 
 step "prepush: cloning HEAD -- reading the repository, not the working tree"
-git clone --quiet --depth 1 "file://$ROOT" "$TMP/clone" \
-  || die "the repository does not clone -- that is the finding; do not push"
-
-# Structural check first: it is instant, and it names the specific failure that
-# actually happened rather than leaving it to be inferred from a build error.
-manifests="$(find "$TMP/clone" -name Cargo.toml -not -path '*/crates/*' | sort)"
-count="$(printf '%s\n' "$manifests" | grep -c . || true)"
-if [ "$count" -ne 1 ]; then
-  printf '\n' >&2
-  printf 'prepush: expected exactly ONE cargo workspace manifest outside crates/, found %s:\n' "$count" >&2
-  printf '%s\n' "$manifests" >&2
-  die "a duplicated or stray workspace is the half-committed-move signature -- do not push"
-fi
+single_writer_clone "$ROOT" "$TMP/clone"
 
 step "prepush: building the clone (cold, no shared target dir)"
-workspace="$(dirname "$manifests")"
+# The structural check runs inside clone_workspace, before any build, for the
+# reason it always did: it is instant and it names the half-committed-move
+# signature directly rather than leaving it to be inferred from a compiler error.
+workspace="$(clone_workspace "$TMP/clone")"
 ( cd "$workspace" && cargo build --workspace --bins ) \
   || die "the pushed repository does not build -- your working tree does, which is the whole point of this check"
 

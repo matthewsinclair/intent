@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Run the test suite against HEAD in a single-writer clone
+#
+# int suite [--with-build] [test-path] -- clone HEAD into a temp dir and run
+# `tests/run_tests.sh` there, so the figure NAMES A REVISION BY CONSTRUCTION.
+#
+# WHY THIS EXISTS, AND IT IS AN ADVISORY RETIRED RATHER THAN A CONVENIENCE.
+# A suite run over the live tree measures whatever the tree happened to be
+# during the run, and in a five-node checkout that is not one thing. Measured
+# 2026-08-21: a green 1444-test run had to be KILLED and rerun because two
+# nodes wrote to the tree mid-run -- one of them the author of the run, twice,
+# recording findings ABOUT the run while it was going. The rerun came back
+# clean only because three of the four writers were quiet: one by request, and
+# two because they were STOPPED. **A `yes` bought by circumstance is not a
+# control**, and asking four sessions to hold still is the advisory this
+# estate has repeatedly ruled is not one either.
+#
+# Here nobody can perturb the tree under measurement, because it is a clone with
+# a single writer. The question changes from "was anyone else writing?" to
+# "which revision?", and the answer is printed.
+#
+# WHAT IT DOES NOT DO, STATED SO A GREEN IS NOT READ AS MORE THAN IT IS:
+#
+#   - IT MEASURES HEAD, NOT YOUR WORKING TREE. Uncommitted work is invisible
+#     here by design -- that is the property, not a gap. If you want to know
+#     whether what you are HOLDING is green, run `tests/run_tests.sh` directly
+#     and accept that the figure names no revision.
+#   - WITHOUT `--with-build` THE CLONE HAS NO `native/rust/target/`, because it
+#     is gitignored. Exactly one file under `tests/` reaches for the v3 binary
+#     (`tests/conformance/run_v2_suite.bash`, a harness rather than a `.bats`),
+#     so the bats suite runs regardless -- but that harness is NOT covered and
+#     this says so at the end rather than leaving a green to imply it was.
+#
+# THE FIXTURE-VERSION TRAP CANNOT FIRE HERE, AND THAT IS WORTH KNOWING BECAUSE
+# THE OBVIOUS WORRY IS THE OPPOSITE. `run_tests.sh` exports
+# `INTENT_FIXTURE_VERSION` from `VERSION`, and `tests/lib/test_helper.bash`
+# defaults it from `${INTENT_PROJECT_ROOT}/VERSION`. In a clone those two come
+# from ONE REVISION BY CONSTRUCTION, so the pair cannot disagree -- the trap
+# required exactly that they could. A property previously kept by remembering
+# becomes one that cannot be violated.
+#
+# THE CLONE IS `shared/clone.lib`, THE SAME ONE `prepush` USES. A second
+# implementation of "make a single-writer clone" is the Highlander failure this
+# whole file is downstream of.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+. "$(dirname "${BASH_SOURCE[0]}")/shared/clone.lib"
+
+ROOT="${PROJECT_ROOT:?}"
+WITH_BUILD=0
+TEST_PATH=""
+for a in "$@"; do
+  case "$a" in
+    --with-build) WITH_BUILD=1 ;;
+    -h | --help)
+      sed -n '5,10p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+      exit 0
+      ;;
+    *) TEST_PATH="$a" ;;
+  esac
+done
+
+head_sha="$(git -C "$ROOT" rev-parse HEAD)" || die "cannot read HEAD"
+
+TMP="$(mktemp -d)" || die "cannot create a temp dir"
+# shellcheck disable=SC2064
+trap "rm -rf '$TMP'" EXIT
+
+step "suite: cloning HEAD -- reading the repository, not the working tree"
+single_writer_clone "$ROOT" "$TMP/clone"
+clone_sha="$(git -C "$TMP/clone" rev-parse HEAD)"
+[ "$clone_sha" = "$head_sha" ] ||
+  die "the clone is at $clone_sha and HEAD is $head_sha -- refusing to report a figure about a revision I cannot name"
+printf '    clone at %s\n' "$clone_sha"
+
+if [ "$WITH_BUILD" -eq 1 ]; then
+  command -v cargo >/dev/null 2>&1 || die "cargo not on PATH and --with-build was asked for"
+  step "suite: cold-building the clone so the conformance harness can run"
+  workspace="$(clone_workspace "$TMP/clone")"
+  ( cd "$workspace" && cargo build --workspace --bins ) ||
+    die "the pushed repository does not build -- run 'int prepush --force' for the full diagnosis"
+fi
+
+step "suite: running tests/run_tests.sh inside the clone"
+# rc READ FROM A FILE, never through a pipe: `cmd | tail` reports the exit code
+# of `tail`, and this estate has lost twenty minutes to being told 0 twice.
+out="$TMP/suite.out"
+( cd "$TMP/clone" && ./tests/run_tests.sh ${TEST_PATH:+"$TEST_PATH"} ) >"$out" 2>&1 && rc=0 || rc=$?
+
+plan="$(grep -oE '^1\.\.[0-9]+' "$out" | tail -1 || true)"
+ok="$(grep -cE '^ok ' "$out" || true)"
+notok="$(grep -cE '^not ok ' "$out" || true)"
+
+printf '\n'
+printf 'suite: DESCRIBES=%s\n' "$clone_sha"
+printf 'suite: BATS_RC=%s  plan=%s  ok=%s  notok=%s\n' "$rc" "${plan:-<none>}" "$ok" "$notok"
+printf 'suite: this figure names a revision BY CONSTRUCTION -- the tree it measured had one\n'
+printf '       writer and no other session could reach it. No freeze was asked of anyone.\n'
+if [ "$WITH_BUILD" -eq 0 ]; then
+  printf 'suite: NOT COVERED -- tests/conformance/run_v2_suite.bash needs a built v3 binary\n'
+  printf '       and this run did not build one. Pass --with-build to include it.\n'
+fi
+
+# A MISSING PLAN IS NOT A FAILING TEST, AND CONFLATING THEM IS ABSENCE DRESSED
+# AS A RESULT. `BATS_RC=1  plan=<none>  notok=0` is what a runner that never
+# STARTED looks like -- a bad test path, a missing helper, a clone that has no
+# suite -- and it is indistinguishable from a red run unless this says so. Found
+# by driving the red arm rather than reasoning about it: the first version
+# printed exactly that triple and left the reader to guess.
+if [ -z "$plan" ]; then
+  printf '\n'
+  printf 'suite: NO TEST PLAN WAS EMITTED. The runner did not get as far as running\n'
+  printf '       tests, so this is NOT "the suite is red" -- nothing was measured.\n'
+  tail -5 "$out" | sed 's/^/       /'
+  die "no plan at $clone_sha -- the runner failed to start, which is a different fault from a red suite"
+fi
+
+if [ "$rc" -ne 0 ]; then
+  printf '\n'
+  grep -E '^not ok ' "$out" | head -20
+  die "the suite is RED at $clone_sha -- full output was at $out (removed on exit; rerun to keep it)"
+fi
