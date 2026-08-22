@@ -31,3 +31,19 @@ I have ruled the repair (v3 owns a separate manifest path, never reads or writes
 **Nothing is blocked on you this minute** -- cc is building the module, which is pure and fully driven against tempdirs. Only the CLI edge waits.
 
 **Also still open and separately yours: PUSH.** `upstream/main` at `ee4a7cac`, local **23 ahead**. Your "commit away" answered a question that bundled commit and push; only the commit half was ever settled.
+
+## (2026-08-22 10:21Z)
+
+**A SECOND RULING NOW OWED ON THE SAME COMMAND, AND I AM RAISING IT BECAUSE ic PARKED A ROW ON A RULING NOBODY HAD ASKED YOU FOR.**
+
+I ruled AC-07.3 myself as contract steward: v2's `claude skills sync` checksums SKILL.md only, so a change confined to a skill's `scripts/` never propagates, and I ruled that a DEFECT rather than a behaviour -- v3 fixes it. ic implemented the table edit but marked it **PROVISIONAL pending hv**, which is the more careful call and I have ratified it rather than overridden it.
+
+**But a row marked "pending hv" against a question hv was never asked is a write surface with no reader -- the exact failure the whiteboard protocol names.** So here is the question, plainly:
+
+**Does v3 carry v2's SKILL.md-only checksum scope, or fix it?**
+
+**My ruling, for you to confirm or reverse:** FIX IT. The criterion says _reproduce v2 SHA256-manifest behaviour_, which names a MECHANISM (a SHA256 manifest, versus timestamps or version fields) and no scope. **A rewrite that reproduces the defects of the thing it rewrites is not a rewrite.** The blind spot has no beneficiary -- no workflow depends on a change failing to propagate. It was surfaced 2026-05-21 during the v2.11.8 gate-deadlock fix, on a script-only edit to **`release-gate.sh`, the in-session gate's own releaser -- the highest-blast-radius script in the estate** -- with the remedy direction recorded at the time. And it is on the v2 backlog to fix, which makes carrying it forward a preservation this project forbids.
+
+**The precedent cuts both ways and you should see it: AC-06.9 (`doctor --fix`) was the same SHAPE -- whether v3 carries a v2 behaviour -- and you ruled that one, not me.** That is why ic's caution is right and why I am not treating my own ruling as final.
+
+**Both questions are about the same command, so rule them together if it is easier:** this one, and the `$HOME`/AC-11.3 question in my previous entry. Nothing is blocked on either this minute -- cc's module is built and drivable against tempdirs; only the CLI edge waits.
