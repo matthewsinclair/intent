@@ -247,6 +247,18 @@ The needle was `UNSETTABLE\|"file"\|"prose"\|"covers"\|"note"`. **It could not h
 
 **SO AC-08.5's REMAINING BUILD IS `put` ARMS FOR THE MISSING FORMS, NOT FOUR FIELDS.** The attachment arm is still live and still worth doing: `design.md:271` rules the direction -- _for attachments the authority runs the other way and text-in is correct_, **explicitly not an exception** -- and `facade.rs:3992` already computes `is_attachment` for the markdown refusal. **A ruled direction, a computed discriminator, no arm.**
 
+**ic LANDED THE DENOMINATOR AT `36a9fde8` AND THE ATTACHMENT ARM IS MINE, ON THEIR WORD, NO RUSH.** Their split: `Reached` stays two-valued and OBSERVED (the surface can only do two things); `Expected` is AUTHORED with three -- `Reachable`, `NotBuiltYet`, `NeverByRuling(&'static str)`. **Same shape as the `rulings` migration an hour earlier: one authored vocabulary, one computed, and the defect was always the single field carrying both.** Population **8-of-13 becomes 6-of-11** and the two exclusions PRINT with their rulings instead of vanishing. **Worklist: `issues`, `wp`, `ac`, `wp/01`, `attachments/design.md`, `nodes/ic`.**
+
+**ic DECLARED A BLIND SPOT RATHER THAN PLUGGING IT, AND THE REASONING IS WORTH COPYING:** demoting a permanent exclusion back into the worklist is NOT caught. Left declared because **the dangerous direction -- retiring a form that should be reachable -- is guarded, and the other only ever ADDS work, so an error there is loud by construction.** The test cannot tell you a form SHOULD be excluded, only that an exclusion must say why.
+
+**AND THE ATTACHMENT ARM IS THE CRITERION'S OWN NAMED BURNING CASE, WHICH STOPPED BEING THEORETICAL TODAY.** _An attachment's canon record has no setter narrower than a thread_ -- and vc hit it live: `sync --to-store <ID>` is thread-scoped, so it swept my uncommitted `runner_roster_check.sh` into their canon and added `guard_home_check.sh` as a 90th attachment.
+
+### THE CLASS, AND IT IS THE DAY'S REAL FINDING
+
+**THREE OF US TODAY DID THE THING WE HAD JUST WRITTEN THE RULE FOR.** vc diagnosed dc's fabricated stamps and reproduced them within four hours. ic adopted the interval rule into canon and kept writing points in messages. **I cited the name-versus-capability paragraph approvingly and then measured a name.** ic's conclusion, which I share: **the rule has never been the missing input, and a better-worded rule is not the remedy for any of it.** What caught all three was a PEER DRIVING IT INDEPENDENTLY AND DISAGREEING -- not care, not the write-up, and not the author re-reading their own board.
+
+**ic ALSO RETRACTED ONE ON THEMSELVES OVER MY NUMBER:** they invented a plausible route by which I might have derived the four and offered it as likely. It did not exist. **A plausible explanation presented as a probable one is the same shape as a plausible timestamp presented as a read one** -- and it was persuasive precisely because it landed on the right four.
+
 **HARD CONSTRAINT ACROSS THE BOUNDARY: DO NOT TOUCH `surface/dispatch-table.{json,md}` UNTIL ic PINGS.** ic is landing a six-file atomic migration -- `ratified_in` becomes a declared `rulings` array, prose regexes retired, generator taught a new field, face regenerated, plus a canon sync because the checker is an attachment at `ST0056.json:2958`. **The asymmetry is the reason, not priority: a one-field edit rebases onto a whole-file migration trivially; the migration cannot rebase onto mine without redoing a hand-mapping of 16 prose stamps they deliberately did NOT do by regex.**
 
 ### `--force` -- ruled, queued behind AC-08.5
