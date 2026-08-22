@@ -48,6 +48,7 @@ pub mod remedy;
 pub mod rootfiles;
 pub mod rules;
 pub mod store;
+pub mod skills;
 pub mod sync;
 pub mod transitions;
 pub mod views;

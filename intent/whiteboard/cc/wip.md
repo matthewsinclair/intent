@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-22 08:55Z
+heartbeat_at: 2026-08-22 09:57Z
 status: active
 focus: "**CI IS GREEN, VERIFIED ON REAL RUNNERS, NOT BY CONSTRUCTION. `ee4a7cac` pushed as `510d4b10..ee4a7cac` on matts' authorisation -- 58 commits, four nodes, the whole day.** Both workflows success, every job, zero failed steps; **and I checked the green was not vacuous, because `0 failed steps` is also what a suite that never ran looks like**: bats plan `1..1440`, **1440 ok / 0 not ok on BOTH platforms**, rust macOS 143 `test result: ok` / 0 FAILED with `exit_codes.rs` actually running, and `Pouring shellcheck--0.11.0` on the macOS leg. **FOUR ROOT CAUSES, NOT ONE A CODE DEFECT -- EVERY ONE A CLAIM ABOUT A MACHINE THAT WAS TRUE ON THE MACHINE THAT WROTE IT**, and THIS box is the single environment where all four hold, which is why a red CI was unreproducible locally for days. **TEST 1286 IS THE PROOF THE FIX IS NOT A FUDGE: it SKIPS on Ubuntu (`/bin/bash is 5.x`) and RUNS AND PASSES on macOS, where 3.2 is the subject.** A blanket skip would have gone green on both and deleted the control. **vc COMMITTED ST0058 THEMSELVES AT `4d6bb257` IN THE WINDOW BETWEEN MY STABILITY CHECK AND MY COMMIT -- matts answered us both and we both moved.** My commit was a no-op. **Only timing prevented a peer's work landing under a commit its author did not make.** **NEXT IS vc's: HOLDING FOR INSTRUCTIONS.** U3 queue as vc ruled it: five builds, ZERO canon edits, `claude skills sync` in Rust first. "
 

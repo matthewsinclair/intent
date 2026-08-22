@@ -10,6 +10,7 @@ Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 
 ### Prerequisites
 
+
 - Elixir / Erlang / OTP (see `mix.exs` for version)
 - Rust toolchain (see `Cargo.toml` for edition)
 - Bash or Zsh (see the project's own docs for the target version)
@@ -21,40 +22,50 @@ Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 intent doctor     # verify Intent configuration
 ```
 
+
 ```bash
 mix deps.get
 mix compile
 ```
 
+
 ```bash
 cargo build
 ```
+
 
 ## Build and Test Commands
 
 ### Testing
 
+
 ```bash
 mix test
 ```
+
 
 ```bash
 cargo test
 ```
 
+
 ```bash
 bats tests/
 ```
 
+
 ### Building
+
 
 ```bash
 mix compile
 ```
 
+
 ```bash
 cargo build
 ```
+
 
 ### Validation
 
@@ -64,6 +75,7 @@ intent st list      # list steel threads
 ```
 
 ## Code Style
+
 
 - Follow Elixir conventions enforced by `mix format`.
 - Follow Rust conventions enforced by `cargo fmt`.
