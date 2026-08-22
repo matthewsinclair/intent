@@ -227,7 +227,23 @@ ic reported it; vc ruled it under hv's pen. **`intent st edit ST0001` -- the DEF
 - **TWO BEHAVIOURALLY DIFFERENT BINARIES CAN CARRY THE SAME CLEAN PROVENANCE MARKER** (dc, caused by my `580c1038`). A change in `intentsvcs` -- a DEPENDENCY -- relinks `intent-cli` while its own `build.rs` never re-runs, so the marker stays at whatever commit it last stamped: `cd6afbaf`, bytes `59ba4e6d` then `b1e81136`, **clean tree both times.** **Worse than the recorded `dirty-18197aaf` collision, because a dirty marker self-announces and a bare sha does not.** Rebuild in the same act as any measurement, and **pin by the HASH, never the marker.**
 - **A SUMMARY THAT NAMES A CAUSE IT DID NOT ESTABLISH IS WORSE THAN ONE THAT NAMES NONE** (dc, fixing it). Their gate told me `guard_home_check.sh -- the shipped hook template lost the self-hosted GUARD_HOME override`, with the gate's authority behind it. **The template was fine**; the tool was momentarily off-tree, `bash` returned 127, and the dispatch asserted ONE cause for EVERY non-zero exit. **The reader spends their next move on a file that is not broken.** Same shape as a leaf remedy pointing at an empty help block.
 
-### Holding -- and the sequencing is vc's, not mine
+### NEXT WHEN I COME BACK -- AC-08.5, and the sequencing is vc's
+
+**AC-08.5 IS MY NEXT BUILD, PROMOTED OVER `--force` (vc, under hv's pen). ST0057's gate is `50/51, 2 withdrawn; unsatisfied: AC-08.5` -- it is the LAST ROW on that gate.** hv split the owners deliberately: **cc BUILDS the facade change, ic COVERS it.**
+
+**DO NOT REBUILD THE CREATE/UPDATE SPLIT. IT IS AT HEAD, `3f9b2907`, `facade.rs:4113-4129`, carrying hv's 2026-08-21 ruling verbatim.** I was briefed to build it and checked first; **`hv/wip.md` entries HAVE NO TENSE, so a ruled-and-built directive reads identically to a ruled-and-outstanding one, forever.** Same vocabulary defect as `ratified_in` unable to say `provisional`. **Generalised: any record whose entries cannot express `done` reads as a worklist forever, and the cost is a peer rebuilding a landed arm.** Standing rule, vc's, recorded against themselves: **drive whether it is built before briefing anyone off a directive.**
+
+**THE REAL SCOPE, MEASURED NOT INFERRED: `mutation_every_writable_field.rs` is 5 of 5 GREEN and AT-08.5 is RED because red is the criterion's own OUTPUT -- the unsettable set is not empty.** Driven at `580c1038`, it is exactly:
+
+```
+file, prose, covers, note
+```
+
+**`file` + `prose` look like ONE piece of work and it is a ruling with the discriminator built and the branch missing.** `design.md:271` rules the direction -- _for attachments the authority runs the other way and text-in is correct_, **explicitly not an exception** -- and `facade.rs:3992` already computes `is_attachment` to guard the markdown refusal. **Drive it before claiming it.** `covers` and `note` are UNSCOPED and I did not guess at them.
+
+**HARD CONSTRAINT ACROSS THE BOUNDARY: DO NOT TOUCH `surface/dispatch-table.{json,md}` UNTIL ic PINGS.** ic is landing a six-file atomic migration -- `ratified_in` becomes a declared `rulings` array, prose regexes retired, generator taught a new field, face regenerated, plus a canon sync because the checker is an attachment at `ST0056.json:2958`. **The asymmetry is the reason, not priority: a one-field edit rebases onto a whole-file migration trivially; the migration cannot rebase onto mine without redoing a hand-mapping of 16 prose stamps they deliberately did NOT do by regex.**
+
+### `--force` -- ruled, queued behind AC-08.5
 
 **`--force` for `claude skills` is RULED and HELD.** vc's ruling: force **adopts the upstream copy and REPORTS the checksum of what it discarded** -- the discarded checksum is the whole remedy, because it is the only artefact that lets an operator find their edit in a reflog afterwards. **Landing order: dc's guard pair, vc's canon repair, ic's `dispatch-table.json` migration, THEN me.** Reason is asymmetry rather than priority: **a one-field edit rebases onto a whole-file migration trivially; the migration cannot rebase onto my edit without redoing a hand-mapping of 16 prose stamps that was deliberately not done by regex.** vc pings when ic lands.
 
