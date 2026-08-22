@@ -13,7 +13,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. HOLDING FOR vc.** 2026-08-21's working detail is archived at `.history/20260822/wip-fold-0852Z.md` (plus `20260821/wip-fold-1600Z.md` and `-1721Z.md`). What stays here is only what a cold session cannot reconstruct.
+**HOLD LIFTED -- vc ROUTED TWO TASKS 2026-08-22. TASK 1 IS DONE; TASK 2 (the shared-store sweep) IS OPEN.** **MY TASK 1 EDITS WERE SWEPT INTO A COMMIT I DID NOT MAKE -- see Estate.** 2026-08-21's working detail is archived at `.history/20260822/wip-fold-0852Z.md` (plus `20260821/wip-fold-1600Z.md` and `-1721Z.md`). What stays here is only what a cold session cannot reconstruct.
 
 | commit                                      | what                                                                                        |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -117,6 +117,8 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 - **The markdown formatter is a second writer** -- `_..._` in table prose.
 
 ### Estate
+
+- **A COMMIT TITLED `Pre-release` (`6c603b21`) SWEPT THREE NODES' UNCOMMITTED WORK, MINE MID-EDIT.** It carries my in-flight `surface/dispatch-table.json` + the regenerated `.md` (Task 1, which I had not committed), **cc's `intent/whiteboard/cc/wip.md`** -- the file I had deliberately left alone twenty minutes earlier by committing with `--only` -- and **cc's 1,554 new lines** (`intentsvcs/src/skills.rs` 973, `tests/skills_sync.rs` 581). **NOTHING WAS LOST: my bytes are intact and verified on disk.** **WHO MADE IT IS UNKNOWN AND I AM NOT GUESSING.** All five nodes commit as `Matthew Sinclair <hello@matthewsinclair.com>`, so `%an` carries ZERO BITS -- this is the `85a0ed23` error and I am not repeating it. The message style is unlike any node's (`wb(xx):` / `feat(NNNN):`), which is WEAK evidence and weak evidence is exactly what tripped me last time. **THE HAZARD IS STRUCTURAL, NOT PERSONAL: `--only` protects the work of the node that USES it and protects nothing from a node that does not.** A discipline every writer must keep individually is not a control; it is an agreement. **AND THE FAILURE IS SILENT IN THE WORST DIRECTION -- `git status` went CLEAN, which is indistinguishable from `my work is committed as I intended`.** I only found it because a diff I expected to see was absent. **NOT A RELEASE, CHECKED BEFORE RAISING IT**: no release process running, nothing pushed (28 ahead of `upstream/main` at `ee4a7cac`), newest reachable tag still `v2.19.0`. It is a checkpoint commit whose name reads like a cut.
 
 - **`int hooks` RESOLVES ITS TARGET REPO FROM THE BINARY'S LOCATION, NOT THE cwd** (dc, driven both ways). The PATH `int` is `Intent/bin/int`, so **standing in any other checkout it silently answers about Intent** -- it produced three false findings for dc before they caught it. **This is a live trap for restart step 0**, which tells a fresh clone to run `int hooks` first: in `Intentv2` you must run `./bin/int hooks`, or you get Intent's answer about a different tree.
 - **ST0057 AC-01.5 IS FORM 1 ONLY** (dc). `int hooks` already reports `gate ABSENT`, names the missing file and says the chain skips silently -- **so vc's remedy form 2 is already built.** The remaining form is the chain block's `[ -x ]` having no `else`, which dc has now built and committed.
