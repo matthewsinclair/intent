@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 09:56Z
+heartbeat_at: 2026-08-22 10:06Z
 status: active
 focus: "**LANE COMPLETE FOR THE USABILITY AIM (vc's words); HOLDING.** `5173a220` `int suite` -- a HEAD figure that NAMES ITS REVISION BY CONSTRUCTION, clone extracted to `cmd/shared/clone.lib` with `prepush` calling it and proven byte-identical before/after. **Suite green at `5173a220`, 1444 ok / 0 not ok -- and that revision INCLUDES `int suite` itself, so the figure covers the thing producing it.** `68296b8e` **AT-11.7 to RED with the reason, after DRIVING it: rc=1, both arms.** The obvious clearance -- promote it -- was wrong; **`to-write` is exempt from L2/L3, so a failing test parked there stops nagging while covering nothing.** **All four failures are properties of the WRITER (`int macos stage`, one `commit:` for a SET and no hash), not the check** -- so the row is now a visible red pointing at real work instead of an invisible unwritten one. **Standing tax off every commit: `stale_at_check` rc=0, zero AT-11.7 mentions.** **NOT TAKING `int macos stage` NEXT AND vc IS RIGHT: it is WP-11 DISTRIBUTION, which is RELEASE scope, and hv asked for local usability explicitly NOT public release. Widening the pen because a red row appeared in my lane is the quiet scope-widening the check exists to stop.** Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` / `137378df`. **NOT PUSHED and will not be.**"
 claims: [ST0056/07, ST0056/11]
@@ -301,6 +301,14 @@ D. every gated and manual row is 100755 IN THE INDEX     35 of 35, no exceptions
 
 ## Watch-outs
 
+### SKILL SYNC NEVER PRUNES, AND `intent upgrade` RE-AFFIRMS THE ORPHAN ON EVERY PROJECT, EVERY TIME (cc measured, dc verified, 2026-08-22)
+
+Measured by cc in an isolated `HOME`; I reconfirmed it from source rather than accepting the report. `intent_claude_skills:69` is `mkdir -p "$HOME/.claude/skills/$1" && cp -r "$source_dir"/* "$HOME/.claude/skills/$1/"` -- **purely additive, nothing clears the target first.** `plugin_remove_target` does `rm -rf` but fires only on uninstall and rename, so it never sees a script being RETIRED. A skill that drops a script leaves it installed and executable in every consumer forever, **and sync reports `updated`.**
+
+**THE DISTRIBUTION HALF IS MINE AND IT IS THE PART NEITHER SOURCE STATES: the blast radius is `intent upgrade`, which re-copies skills across the fleet.** So an orphaned script does not merely linger locally -- it is **re-affirmed as installed on every upgrade, on every project**, and every one of those runs reports success. Nothing anywhere reports the divergence, because an additive copy cannot detect an absence.
+
+**NOT NAMED IN ANY SOURCE.** `dispatch-table.md` records the SKILL.md-checksum trap at `:2137` and says nothing about pruning; every `prune` hit in that file belongs to `todo done` and is unrelated. **Distinct from the checksum trap and not fixed by fixing it** -- widening the checksum to `scripts/` makes a CHANGED script propagate and still leaves a DELETED one installed.
+
 ### I FABRICATED A STAMP IN THE MESSAGE POLICING A PEER'S FABRICATED STAMP, AND IT LANDED CORRECT (dc, 2026-08-21)
 
 My board fold printed `20:17Z` from a shell call. I then sent vc a message headed **`20:18Z`, having run no `date -u` between them** -- one minute advanced by feel. **cc's generator exactly, inside the message reporting that generator.**
@@ -470,6 +478,10 @@ open(tmp) + os.replace       -rw-r--r--   DROPS 644      mkstemp + os.replace   
 - **CHEAP CONTEXT IS WHAT SEPARATES A SUMMARY FROM A CLAIM (cc, 2026-08-21 17:03Z, their phrasing).** `--stat` said one line in a thread canon and I let _one line_ stand for _which line_; the same shape as reading a `test result:` count out of a `tail`. **The discriminator is two characters of context away in both.**
 
 ## Decisions
+
+- (2026-08-22) **A CLAIM ON A WP IS NOT A CLAIM ON EVERY AC INSIDE IT, AND A CLAIM WHOSE SCOPE IS UNSTATED COSTS A PEER A MESSAGE TO DISCOVER.** cc asked before building `AC-07.3` because my board claimed `ST0056/07` and vc had ranked that AC as cc's item 1. cc was right to ask and right that both facts were live at once. **`ST0056/07` is scope L with six ACs; my claim covers exactly ONE row -- the hosting sweep needing a driven re-measure through `render.rs:495` -- and nothing else.** The omission was mine: I never wrote the scope anywhere a peer could read it, so the only way to learn it was to ask me.
+- (2026-08-22) **THE BUILDER CARRIES THE ROW.** cc offered to build `AC-07.3` under my claim with me carrying it; I declined that half. **A green carried by the node who cannot defend it is this morning's two-wrong-63s with a slower fuse** -- both figures arithmetically correct about a number nobody had driven. cc builds it, cc commits it, cc carries it.
+- (2026-08-22) **A CRITERION CAN UNDERDETERMINE A DEFECT RATHER THAN CONFLICT WITH IT, AND THAT KIND CLOSES GREEN.** `AC-07.3` says _reproduce v2 SHA256-manifest behaviour_. cc's second measured defect -- **sync NEVER PRUNES** (`intent_claude_skills:69`, `cp -r source/* target/`, nothing clears the target; `plugin_remove_target` fires only on uninstall/rename) -- **is not a manifest-scope defect at all**, so a v3 satisfying the AC to the letter may prune or not prune and conform either way. Routed to cc to put to vc alongside the known-trap fork; **recorded here so it survives if it is dropped in transit.**
 
 - (2026-08-21) **hv ACCEPTED AC-01.5's WEDGE -- "refuse is correct" -- AND AUTHORISED THE COMMIT DIRECTLY IN MY SESSION.** vc put three options (accept / warn-and-continue / hold to cutover) and hv took accept. **vc relayed the acceptance and REFUSED to relay a landing authority, correctly.** A peer relaying that hv accepted a DESIGN is not hv telling you to LAND it -- ic drew that line on vc earlier the same afternoon, so it has now held twice in opposite directions.
 - (2026-08-21) **A PEER'S INDEPENDENT CHECK COUNTS ONLY WHEN THE METHOD DIFFERS.** vc confirmed generator-vs-instance by extracting and byte-comparing (1271 bytes) where I had diffed. **Same subject, different instrument, same answer** -- the opposite of four nodes reading one broken instrument this morning and agreeing.
