@@ -154,7 +154,38 @@ fn git(args: &[&str]) -> Option<String> {
   Some(String::from_utf8_lossy(&out.stdout).trim().to_string())
 }
 
-/// Emits `INTENT_SOURCE_COMMIT` for the crate being built.
+/// Emits `INTENT_SOURCE_COMMIT` and `INTENT_SOURCE_COMMIT_MARKER` for the crate
+/// being built.
+///
+/// **THE MARKER'S FORMAT LIVES HERE, AND UNTIL 2026-08-22 IT LIVED IN TWO
+/// CRATES.** `intent-cli/src/lib.rs` and `intentd/src/main.rs` each carried a
+/// byte-identical `concat!("[intent-source-commit:", env!(..), "]")`. That is
+/// the EMIT side of the same defect just closed on the PARSE side, where four
+/// shell implementations were reduced to one -- **and it is the more dangerous
+/// half, because one parser against two formats fails per-binary and quietly**:
+/// `self_provenance_check.sh` reports each artefact separately, so a forked
+/// literal prints a clean line for one binary and `carries NO marker` for the
+/// other, on a DIAGNOSTIC arm that never fails. One grep hardened, one format
+/// forked, nothing refusing (vc found it).
+///
+/// **THE OBVIOUS FIX WAS THE WRONG ONE AND THE PREMISE UNDER IT WAS FALSE.** A
+/// shared `macro_rules!` in `intentsvcs` was proposed on the grounds that both
+/// crates already depend on it. **`intentd` has no `[dependencies]` section at
+/// all** -- it depends on nothing -- so that shape means ADDING a dependency to
+/// host a format literal, which is precisely what this file already refused as
+/// *reshaping the crate for the sake of where a marker lives*. (The macro shape
+/// itself is sound and was driven: an exported `macro_rules!` containing `env!`
+/// expands in the CONSUMING crate and reads that crate's build env, with the
+/// defining crate never knowing the value. Sound, and not needed.)
+///
+/// Emitting the whole marker costs no dependency and no macro, and puts the
+/// format in the file that was ALREADY the one home for the emit side. Each
+/// crate's static becomes `env!("INTENT_SOURCE_COMMIT_MARKER")` -- still a
+/// `&'static str` literal in rodata, so `#[used]` behaves exactly as before.
+///
+/// `INTENT_SOURCE_COMMIT` stays: `intent-cli/src/lib.rs:26` exposes the bare
+/// value as `pub const SOURCE_COMMIT`, which is a real consumer and not a
+/// duplicate of this one.
 fn emit_source_commit() {
   let value = match git(&["rev-parse", "HEAD"]) {
     None => "unknown".to_string(),
@@ -168,4 +199,11 @@ fn emit_source_commit() {
   };
 
   println!("cargo:rustc-env=INTENT_SOURCE_COMMIT={value}");
+  // SELF-DELIMITING, and the brackets are load-bearing rather than decorative:
+  // rodata packs string literals with no separator, so an unterminated marker
+  // runs into whatever the linker laid down next -- measured during this row's
+  // canary as `intent-source-commit:<sha>unsafe`, with `unsafe` belonging to an
+  // unrelated literal. `artefact_source_commit`'s `[^]]*` stops at the bracket
+  // this line provides, so these two lines are one contract with one home each.
+  println!("cargo:rustc-env=INTENT_SOURCE_COMMIT_MARKER=[intent-source-commit:{value}]");
 }

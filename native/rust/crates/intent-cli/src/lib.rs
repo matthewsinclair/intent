@@ -42,5 +42,4 @@ pub const SOURCE_COMMIT: &str = env!("INTENT_SOURCE_COMMIT");
 /// is a provenance marker that vanishes under `--release`, which is the one
 /// build where it matters.
 #[used]
-static SOURCE_COMMIT_MARKER: &str =
-  concat!("[intent-source-commit:", env!("INTENT_SOURCE_COMMIT"), "]");
+static SOURCE_COMMIT_MARKER: &str = env!("INTENT_SOURCE_COMMIT_MARKER");

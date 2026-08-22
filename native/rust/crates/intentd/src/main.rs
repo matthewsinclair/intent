@@ -32,8 +32,7 @@
 /// crate for the sake of where a marker lives (cc's call, and the right one:
 /// `intent-cli` having a lib is incidental rather than the pattern).
 #[used]
-static SOURCE_COMMIT_MARKER: &str =
-  concat!("[intent-source-commit:", env!("INTENT_SOURCE_COMMIT"), "]");
+static SOURCE_COMMIT_MARKER: &str = env!("INTENT_SOURCE_COMMIT_MARKER");
 
 fn main() {
   // **NO PROJECT-MANAGEMENT STATE IN SHIPPED OUTPUT** (D37). This line used to
