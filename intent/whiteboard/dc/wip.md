@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 10:06Z
+heartbeat_at: 2026-08-22 10:10Z
 status: active
 focus: "**LANE COMPLETE FOR THE USABILITY AIM (vc's words); HOLDING.** `5173a220` `int suite` -- a HEAD figure that NAMES ITS REVISION BY CONSTRUCTION, clone extracted to `cmd/shared/clone.lib` with `prepush` calling it and proven byte-identical before/after. **Suite green at `5173a220`, 1444 ok / 0 not ok -- and that revision INCLUDES `int suite` itself, so the figure covers the thing producing it.** `68296b8e` **AT-11.7 to RED with the reason, after DRIVING it: rc=1, both arms.** The obvious clearance -- promote it -- was wrong; **`to-write` is exempt from L2/L3, so a failing test parked there stops nagging while covering nothing.** **All four failures are properties of the WRITER (`int macos stage`, one `commit:` for a SET and no hash), not the check** -- so the row is now a visible red pointing at real work instead of an invisible unwritten one. **Standing tax off every commit: `stale_at_check` rc=0, zero AT-11.7 mentions.** **NOT TAKING `int macos stage` NEXT AND vc IS RIGHT: it is WP-11 DISTRIBUTION, which is RELEASE scope, and hv asked for local usability explicitly NOT public release. Widening the pen because a red row appeared in my lane is the quiet scope-widening the check exists to stop.** Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` / `137378df`. **NOT PUSHED and will not be.**"
 claims: [ST0056/07, ST0056/11]
@@ -297,7 +297,31 @@ D. every gated and manual row is 100755 IN THE INDEX     35 of 35, no exceptions
 - **`cmd/macos` provenance writer** so `provenance_fields_check.sh` has a green to reach. **TRAP FOUND, NOT YET WALKED INTO: `codesign --force` REWRITES THE BINARY IN PLACE, so a hash taken at STAGE time never matches shipped bytes** (`cmd/macos:882-895`); nothing may hash until `verify_notarised` passes. **And `:1294` parses `commit:` with a `sed` -- ADD fields, never rename that one, or `publish` breaks.**
 - **`thread_view_skew_check.sh` admission -- STILL HELD, AND I DECLINED hv's RELEASE ON THE MERITS.** Re-derived: release binary `2026-08-20 15:01` vs `migrate.rs`/`facade.rs` `2026-08-20 17:57`, **2h56m stale and unchanged.** The staleness refusal it is conditional on does not exist. Build `lib_binstale.sh` as an EXTRACTION of `surface_check.sh`, never a copy.
 - **AT-11.6 BLOCKED** on the contract conflict routed to vc. The live unattributable pair is still in the gate output every commit.
-- **WP-07 hosting sweep** needs a driven re-measure through `render.rs:495`; the disposition route is a DEAD END.
+
+### WP-07 HOSTING SWEEP -- WHY THE DISPOSITION ROUTE IS A DEAD END (dc, driven 2026-08-22, at `cf156ba4`)
+
+Written up at cc's request before they go near `render.rs`. **My board had carried this as a one-line `DEAD END` with the reasoning gone, so I re-derived it by driving rather than by recalling** -- and the driven version is sharper than the note it replaces.
+
+**THE QUESTION THE SWEEP ANSWERS:** which of WP-07's commands are actually HOSTED in v3, and which still answer from `render.rs:495` (`Failure::Unavailable`, exit **2**, _known command that is not implemented yet_).
+
+**THE DEAD END: `Target:` IN `surface/dispatch-table.md` DOES NOT PREDICT BUILD STATE, IN EITHER DIRECTION.** Driven, four verbs, one command each:
+
+| verb            | `Target:` (disposition)                 | driven | actual state                         |
+| --------------- | --------------------------------------- | ------ | ------------------------------------ |
+| `claude skills` | `as-observed`                           | rc=2   | unbuilt                              |
+| `fileindex`     | `corrected` -- **ratified AND applied** | rc=2   | **unbuilt**                          |
+| `treeindex`     | `retire` -- ratified                    | rc=2   | retired, message names the successor |
+| `agents`        | **`pending-hv`** -- undecided           | rc=0   | **HOSTED AND WORKING RIGHT NOW**     |
+
+**BOTH DIAGONALS ARE OCCUPIED, WHICH IS WHAT MAKES IT A DEAD END RATHER THAN A ROUGH PROXY.** `fileindex` carries a fully ratified disposition, applied by vc, with two independent routes recorded -- and is unimplemented. `agents` carries `pending-hv`, nothing decided -- and works. **Disposition records what v3 SHOULD do; it says nothing about what the binary DOES, and the two axes are orthogonal.**
+
+**THE SHARPEST INSTANCE, BECAUSE IT READS AS DONE:** `fileindex`'s `Target:` ends _"The v3 binary already does this."_ That sentence is TRUE -- and it is about `--help` exiting 0 under INV-07. Driven: **`fileindex --help` rc=0, `fileindex bin` rc=2.** A note that is accurate about a flag reads, at a glance, as a note about a command. **Anyone sweeping by disposition marks `fileindex` hosted and moves on.**
+
+**SO THE ONLY INSTRUMENT IS THE BINARY.** Drive the verb and read the exit code; `rc=2` from `render.rs:495` is the unbuilt signal and it is deliberate (issue 0038 -- the gate fail-opens on `2+` and reads `1` as a negative verdict about your work).
+
+**AND THE PROBE ITSELF HAS TWO TRAPS I WALKED INTO TODAY, BOTH SILENT:** this shell is **zsh**, so an unquoted `$v` holding `"claude skills list"` is passed as ONE argument and every verb answers _unrecognized subcommand_ -- a plausible, uniform, entirely wrong sweep. And `rc=$?` after a pipe reads the LAST stage, so `| head -1` returns 0 for everything. **My first sweep today reported rc=0 across the board and was wrong on both counts at once.** Capture `rc` off the bare call, and pass argv as `"$@"`.
+
+**CHECKED AND CLEARED, SO THE NEXT READER DOES NOT RE-RAISE IT: `claude hook pre-commit` answers rc=1, and that is CORRECT.** `install::HOOKS` is `session-context, require-in-session, post-tool-advisory` -- Claude Code lifecycle hooks. `pre-commit` is a GIT hook and reaches the tree by an entirely different route. I nearly filed it as an AC-07.2 red.
 
 ## Watch-outs
 
