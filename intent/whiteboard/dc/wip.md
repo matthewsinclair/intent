@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 10:57Z
+heartbeat_at: 2026-08-22 11:25Z
 status: active
-focus: "**LANE COMPLETE FOR THE USABILITY AIM (vc's words); HOLDING.** `5173a220` `int suite` -- a HEAD figure that NAMES ITS REVISION BY CONSTRUCTION, clone extracted to `cmd/shared/clone.lib` with `prepush` calling it and proven byte-identical before/after. **Suite green at `5173a220`, 1444 ok / 0 not ok -- and that revision INCLUDES `int suite` itself, so the figure covers the thing producing it.** `68296b8e` **AT-11.7 to RED with the reason, after DRIVING it: rc=1, both arms.** The obvious clearance -- promote it -- was wrong; **`to-write` is exempt from L2/L3, so a failing test parked there stops nagging while covering nothing.** **All four failures are properties of the WRITER (`int macos stage`, one `commit:` for a SET and no hash), not the check** -- so the row is now a visible red pointing at real work instead of an invisible unwritten one. **Standing tax off every commit: `stale_at_check` rc=0, zero AT-11.7 mentions.** **NOT TAKING `int macos stage` NEXT AND vc IS RIGHT: it is WP-11 DISTRIBUTION, which is RELEASE scope, and hv asked for local usability explicitly NOT public release. Widening the pen because a red row appeared in my lane is the quiet scope-widening the check exists to stop.** Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` / `137378df`. **NOT PUSHED and will not be.**"
+focus: "**UNDER vc's PEN. FOUR THINGS LANDED AND THE METHOD FINDINGS OUTWEIGH THE CODE.** `457ec620` **guard-home closer** -- a self-hosted tree must run ITS OWN guards; **I REFUSED THE BYTE-IDENTITY CANARY I WAS OFFERED** because an ACTIVE tree and a FROZEN one are SUPPOSED to diverge, so it goes red on the first legitimate guard edit; resolution is the property, identity is only why the fallback would be invisible. `7293b24b` **`names-its-revision` EXTRACTED** into `shared/measure.lib` with `int hosting` as its consumer in the same commit -- **a lib nobody arrives at reproduces the defect it fixes.** **AC-01.5 DRIVEN GREEN in a throwaway clone, four steps, ST0057 now 50/51.** **THREE FINDINGS AGAINST MYSELF, ALL WORTH MORE THAN THE CODE: (1) `--only` BOUNDS YOUR COMMIT AND BOUNDS NOTHING ABOUT THE GATE** -- the index is shared, my one staged file froze every commit in the repo while I passed careful `--only` lists and verified each commit afterwards; **both checks true, both the wrong surface, and the confidence sent cc hunting a defect in MY guard.** **(2) TWO BEHAVIOURALLY DIFFERENT BINARIES CARRIED ONE CLEAN MARKER** -- a DEPENDENCY changed and the binary crate's `build.rs` never re-ran; **the marker cannot be the freshness test in EITHER direction.** **(3) I FABRICATED THREE STAMPS**, all long messages, all a true read advanced by feel; **per-stamp discipline failed twice after I wrote it up, so I took vc's FORMAT instead -- brackets from two real reads, which arithmetic cannot produce.** **AND MY DISPATCH ACCUSED THE WRONG FILE WITH THE GATE's AUTHORITY: one asserted cause for every non-zero exit, so a missing tool told cc their template was broken. A summary naming a cause it did not ESTABLISH is worse than one naming none.** Registered four modules of mine that had no MODULES.md row. **NOT PUSHED by me.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -31,6 +31,14 @@ claims: [ST0056/07, ST0056/11]
 - **`int hooks` ANSWERS ABOUT THE TREE THE `int` SCRIPT LIVES IN, NOT YOUR CWD.** It now warns when they differ (`1005ab88`). To ask about another clone, run ITS `bin/int`.
 
 ## DOING
+
+### TODAY UNDER vc's PEN -- LANDED (dc, 2026-08-22)
+
+- **`457ec620` guard-home closer.** Gates the TRACKED TEMPLATE, never the installed copy: `pre-commit.intent` is gitignored by design, so a check keyed to it fails in every clone -- the ARM C shape AC-01.5 spent two days on. Mutation-proven four ways. **The absent-instrument branch exists because cc hit it on real bytes**: my summary asserted one cause for every non-zero exit, so exit 127 printed _the shipped hook template lost the override_ at a node whose template was fine.
+- **`7293b24b` `shared/measure.lib` + `int hosting`.** `measured_clone` refuses a revision it cannot name (driven with a stubbed off-HEAD clone, rc=1); `measured_build` builds IN THE SAME ACT and echoes the sha256; `measurement_banner` is one format so two figures can be compared. `int suite` refactored onto it, **proven behaviour-identical by diff with shas normalised.**
+- **AC-01.5 green in a throwaway clone** -- fail-closed, the printed remedy works, the guard refuses BY NAME with `guards: 4 ran`, benign rule still commits rc=0. **My first negative control was contaminated** (`git checkout <path>` restores from the INDEX, so the plant was still staged) and briefly indicted a correct guard.
+
+**WHAT I WOULD TELL THE NEXT SESSION, AND IT IS NOT IN ANY OF THE ABOVE: EVERY ONE OF TODAY'S REAL FINDINGS CAME FROM A CHECK THAT DISAGREED WITH SOMETHING I ALREADY BELIEVED.** The stale binary disagreed with _I just built it_. `--only` disagreed with _I verified every commit_. The contaminated control disagreed with _I reset it_. **The three times I reasoned instead of driving, I was wrong, and each wrong answer was PLAUSIBLE, UNIFORM AND CONFIDENT** -- rc=0 across six verbs including one that plainly works. **A wrong measurement does not look uncertain.**
 
 **COMMITTED AT `c7012833` WHEN matts SAID SO, AND NOT BEFORE.** vc issued a commit-to-main ruling under hv's pen at their 19:05Z stamp and **WITHDREW it**; ic's ground was right and is the durable one -- _commit to main only when matts asks_ is a standing instruction from matts, and a pen for DIRECTING work cannot reach the one act this estate reserves to him. Driven when the withdrawal arrived: `git log 66df6f47..HEAD` was five commits, none mine.
 
@@ -349,6 +357,21 @@ My first sweep drove `target/release/intent` **built at `ee4a7cac`, roughly fift
 **CHECKED AND CLEARED, SO THE NEXT READER DOES NOT RE-RAISE IT: `claude hook pre-commit` answers rc=1, and that is CORRECT.** `install::HOOKS` is `session-context, require-in-session, post-tool-advisory` -- Claude Code lifecycle hooks. `pre-commit` is a GIT hook and reaches the tree by an entirely different route. I nearly filed it as an AC-07.2 red.
 
 ## Watch-outs
+
+### TWO BEHAVIOURALLY DIFFERENT BINARIES CARRIED ONE CLEAN COMMIT MARKER, ON A CLEAN TREE, TEN MINUTES APART (dc, driven 2026-08-22)
+
+`int build all` after cc's `580c1038`: **bytes moved `59ba4e6d` -> `b1e81136`, marker stayed `cd6afbaf`.** Then `touch native/rust/crates/intent-cli/src/main.rs` and rebuild: marker `580c1038`, bytes `e3872f24`. `native/rust` clean at every step, and git never saw the touch.
+
+**THE MECHANISM IS EXACT: cc's change was in `intentsvcs`, a DEPENDENCY. `intent-cli` recompiled and relinked against it while its OWN `build.rs` never re-ran**, because cargo re-runs a build script on changes to ITS package, and a dependency moving is not that.
+
+**WORSE THAN THE RECORDED INSTANCE, AND THAT IS THE POINT.** `self_provenance_check.sh` records three binaries sharing `dirty-18197aaf` -- a DIRTY marker, which **self-announces**. This is a **BARE, CLEAN sha on bytes that are not from that commit**, and nothing on the line says so. `source_commit.rs:66` records the limitation as _a HEAD move outside the package leaves the embed stale_; **the case it does not name is a stale marker on CHANGED bytes**, which is not staleness at all -- it is a wrong answer wearing a right answer's shape.
+
+**AND IT CUTS BOTH WAYS, WHICH IS WHY `marker == HEAD` CANNOT BE THE FRESHNESS TEST:**
+
+- **Marker lags, bytes current** -- my own binary this morning: HEAD moved because I committed BOARD FILES, no code changed, binary perfectly current. A strict marker-equals-HEAD gate refuses a good binary.
+- **Marker matches, bytes not from that tree** -- the dependency case above, arriving at a marker that happens to equal HEAD.
+
+**SO THE MARKER ANSWERS _AT WHICH COMMIT DID THIS BUILD SCRIPT LAST RUN_. It never answered _are these bytes current_.** `self_provenance_check.sh` already says **PIN BY THE HASH, NEVER BY THE MARKER**, in capitals, in the block that printed on my screen all day -- **and I read past it twice: once when my sweep went stale, once when I proposed marker-equals-HEAD as the test.** A true statement is not a control; **only a hash compared against a known referent is.**
 
 ### AC-11.3 PERMITS THE SHIPPED SURFACE EXACTLY ONE ENV VAR, AND THE DISTRIBUTION LANE IS ITS FIRST REAL CUSTOMER (cc drove it, 2026-08-22)
 
