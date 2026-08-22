@@ -1,0 +1,102 @@
+# shellcheck shell=bash
+#
+# shared/measure.lib -- which revision, and which BYTES, is this figure about.
+# SOURCED, never run: 0644 so the dispatcher's `is_handler` (-f AND -x) cannot
+# mistake it for a command.
+#
+# WHY THIS IS SHARED RATHER THAN LEFT WHERE IT WAS. `int suite` has produced a
+# revision-named figure since 2026-08-21 and states the property in its own
+# output -- `this figure names a revision BY CONSTRUCTION`. That is a GENERAL
+# answer to "what is this number about", and it had exactly one consumer,
+# because nobody arrives at a file called `suite` while writing a command-surface
+# sweep.
+#
+# **A GENERAL MECHANISM INSIDE A SPECIFIC COMMAND IS A PRIVATE METHOD WITH A
+# PUBLIC CLAIM.** This is the second extraction under that rule after
+# `clone.lib`, and the first one where the AUTHOR of the rule was the one it
+# caught: on 2026-08-22 dc published a command-surface sweep from a binary
+# fifteen commits behind HEAD, three hours after building the remedy into
+# `int suite` and writing that sentence into `clone.lib`. The remedy existed,
+# was correct, and did not reach the next measurement anyone took.
+#
+# THE AMENDED SHAPE, AND IT IS STRICTLY STRONGER THAN NAMING A COMMIT
+# (vc's ruling, 2026-08-22, on dc's measurement): a figure must be produced by
+# an artefact BUILT IN THE SAME ACT AS THE MEASUREMENT, and it must name that
+# artefact's HASH.
+#
+# **THE MARKER CANNOT BE THE TEST, AND THIS WAS DRIVEN RATHER THAN ARGUED.**
+# `[intent-source-commit:<sha>]` answers *at which commit did this build script
+# last run*. It does not answer *are these bytes current*, and it fails in BOTH
+# directions:
+#
+#   - MARKER LAGS, BYTES CURRENT. HEAD moves on a commit that touches no code --
+#     a board fold, a doc -- and the binary is perfectly current with a stale
+#     marker. A strict `marker == HEAD` gate REFUSES A GOOD BUILD.
+#   - MARKER CLEAN, BYTES FROM ELSEWHERE. Measured 2026-08-22: a change landed in
+#     `intentsvcs`, a DEPENDENCY, so `intent-cli` recompiled and relinked while
+#     its own `build.rs` never re-ran. Bytes moved `59ba4e6d` -> `b1e81136`;
+#     the marker stayed `cd6afbaf`. Clean tree throughout. **Worse than the
+#     recorded `dirty-18197aaf` collision, because a dirty marker SELF-ANNOUNCES
+#     and a bare sha announces nothing.**
+#
+# So `artefact.lib`'s marker read is for PROVENANCE and this is for IDENTITY.
+# `self_provenance_check.sh` has said PIN BY THE HASH, NEVER BY THE MARKER, in
+# capitals, in output printed on every commit, since 2026-08-18 -- and it was
+# read past twice in one day by someone who then proposed the marker as the test.
+# A true signal that nothing acts on is read as furniture.
+#
+# WHAT THIS DOES NOT DO. It does not make a figure CORRECT -- a sweep with a bad
+# needle is just as wrong at a named revision. It answers what the figure is
+# ABOUT, which is the question that survives the figure.
+
+# measured_clone <root> <dest> -- clone HEAD and REFUSE if the result cannot be
+# named. Echoes the revision on success.
+#
+# The refusal is the point and it is why this is not just `single_writer_clone`.
+# A clone that lands somewhere other than HEAD is not a smaller answer, it is an
+# answer to a question nobody asked -- so it dies rather than reporting.
+measured_clone() {
+  local root="$1" dest="$2" head_sha clone_sha
+  head_sha="$(git -C "$root" rev-parse HEAD)" || die "cannot read HEAD in $root"
+  single_writer_clone "$root" "$dest"
+  clone_sha="$(git -C "$dest" rev-parse HEAD)" || die "cannot read HEAD in the clone"
+  [ "$clone_sha" = "$head_sha" ] ||
+    die "the clone is at $clone_sha and HEAD is $head_sha -- refusing to report a figure about a revision I cannot name"
+  printf '%s' "$clone_sha"
+}
+
+# measured_build <clone-dir> <bin-rel-path> -- build inside the clone and echo
+# the artefact's sha256. THE BUILD AND THE MEASUREMENT ARE ONE ACT; that is the
+# whole contract, and it is what removes the marker from the trust path.
+#
+# Refuses rather than falling back to a pre-existing binary. A build that fails
+# and silently measures yesterday's artefact is the exact failure this file
+# exists to end.
+measured_build() {
+  local clone="$1" rel="$2" ws
+  command -v cargo >/dev/null 2>&1 || die "cargo not on PATH -- cannot build in the same act as the measurement"
+  ws="$(clone_workspace "$clone")"
+  ( cd "$ws" && cargo build --workspace --bins --release >&2 ) ||
+    die "the measured revision does not build -- there is no artefact to name, and reporting one from an earlier build is the defect this refuses"
+  local bin="$clone/$rel"
+  [ -f "$bin" ] || die "built, but no artefact at $rel -- nothing to hash"
+  shasum -a 256 "$bin" | cut -d' ' -f1
+}
+
+# measurement_banner <revision> [artefact-hash] -- the standard provenance block.
+#
+# ONE FORMAT SO TWO FIGURES CAN BE COMPARED. Every consumer printing its own
+# wording is how an estate ends up with figures that cannot be set beside each
+# other, which is the complaint every timing row in `runner_roster_check.sh`
+# carries about its own siblings.
+measurement_banner() {
+  local rev="$1" hash="${2:-}"
+  printf 'measured: DESCRIBES=%s\n' "$rev"
+  if [ -n "$hash" ]; then
+    printf 'measured: ARTEFACT=%s (built in this act; the hash is the identity, the marker is not)\n' "${hash:0:16}"
+  else
+    printf 'measured: ARTEFACT=<none built> -- this figure is about the REVISION only. Any claim\n'
+    printf '          about binary behaviour here would name bytes this run did not produce.\n'
+  fi
+  printf 'measured: names its revision BY CONSTRUCTION -- one writer, no other session could reach it.\n'
+}

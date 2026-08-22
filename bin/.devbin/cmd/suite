@@ -48,6 +48,7 @@ set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
 . "$(dirname "${BASH_SOURCE[0]}")/shared/clone.lib"
+. "$(dirname "${BASH_SOURCE[0]}")/shared/measure.lib"
 
 ROOT="${PROJECT_ROOT:?}"
 WITH_BUILD=0
@@ -63,17 +64,17 @@ for a in "$@"; do
   esac
 done
 
-head_sha="$(git -C "$ROOT" rev-parse HEAD)" || die "cannot read HEAD"
-
 TMP="$(mktemp -d)" || die "cannot create a temp dir"
 # shellcheck disable=SC2064
 trap "rm -rf '$TMP'" EXIT
 
 step "suite: cloning HEAD -- reading the repository, not the working tree"
-single_writer_clone "$ROOT" "$TMP/clone"
-clone_sha="$(git -C "$TMP/clone" rev-parse HEAD)"
-[ "$clone_sha" = "$head_sha" ] ||
-  die "the clone is at $clone_sha and HEAD is $head_sha -- refusing to report a figure about a revision I cannot name"
+# THE CLONE-AND-REFUSE IS `shared/measure.lib` AS OF 2026-08-22. It used to be
+# eleven lines here, and being here is precisely why the next measurement anyone
+# took -- a command-surface sweep, by this file's own author, three hours later
+# -- was driven against a binary fifteen commits behind HEAD. The mechanism was
+# correct and unreachable from where the next question was asked.
+clone_sha="$(measured_clone "$ROOT" "$TMP/clone")"
 printf '    clone at %s\n' "$clone_sha"
 
 if [ "$WITH_BUILD" -eq 1 ]; then
