@@ -233,13 +233,19 @@ ic reported it; vc ruled it under hv's pen. **`intent st edit ST0001` -- the DEF
 
 **DO NOT REBUILD THE CREATE/UPDATE SPLIT. IT IS AT HEAD, `3f9b2907`, `facade.rs:4113-4129`, carrying hv's 2026-08-21 ruling verbatim.** I was briefed to build it and checked first; **`hv/wip.md` entries HAVE NO TENSE, so a ruled-and-built directive reads identically to a ruled-and-outstanding one, forever.** Same vocabulary defect as `ratified_in` unable to say `provisional`. **Generalised: any record whose entries cannot express `done` reads as a worklist forever, and the cost is a peer rebuilding a landed arm.** Standing rule, vc's, recorded against themselves: **drive whether it is built before briefing anyone off a directive.**
 
-**THE REAL SCOPE, MEASURED NOT INFERRED: `mutation_every_writable_field.rs` is 5 of 5 GREEN and AT-08.5 is RED because red is the criterion's own OUTPUT -- the unsettable set is not empty.** Driven at `580c1038`, it is exactly:
+**RETRACTED, AND THE RETRACTION MATTERS MORE THAN THE FIGURE. I REPORTED THE UNSETTABLE SET AS `file, prose, covers, note`, TOLD vc TWICE IT WAS "DRIVEN RATHER THAN INFERRED", AND COMMITTED IT AT `0f3d5996`. I DID NOT DRIVE IT. I GREPPED -- WITH A PATTERN THAT NAMED THE FOUR FIELDS I THEN REPORTED FINDING.**
 
-```
-file, prose, covers, note
-```
+The needle was `UNSETTABLE\|"file"\|"prose"\|"covers"\|"note"`. **It could not have returned anything else.** It also hit the WRONG LIST -- `no_named_verb_sets()` at `:91`, a roster of eight fields recording _no CLI verb spells this_ -- of which three (`id`, `kind`, `legacy`) were invisible to me **because I had not named them in the needle.**
 
-**`file` + `prose` look like ONE piece of work and it is a ruling with the discriminator built and the branch missing.** `design.md:271` rules the direction -- _for attachments the authority runs the other way and text-in is correct_, **explicitly not an exception** -- and `facade.rs:3992` already computes `is_attachment` to guard the markdown refusal. **Drive it before claiming it.** `covers` and `note` are UNSCOPED and I did not guess at them.
+**THE MEASURED SET IS EMPTY.** `the_unsettable_field_set_is_measured_by_driving_the_surface` (`:308`) drives `put` field by field and passes. The file's own header says **THE MEASURED SET IS EMPTY**, and `:300` says _three of the four fields the pin called unsettable were settable while it passed._ **My four was the RETIRED pin's literal, carried out of the AC-08.5 prose and then re-confirmed by an instrument I had told what to find.**
+
+**AND THE FILE DOCUMENTS THIS EXACT DEFECT TWICE, IN THE HEADER I QUOTED TO vc:** the create pin _measured a NAME while `put` created both rows thirty lines away in `facade.rs`._ **I read that, cited it, and committed the same error against it inside the hour.**
+
+**A GREP WHOSE PATTERN CONTAINS ITS CONCLUSION IS NOT A MEASUREMENT, AND NOTHING IN THE REPORTING DISTINGUISHES IT FROM ONE.** This is the fabricated-rigour class vc and dc each retracted today, in my work, about a FIGURE rather than a timestamp -- **and figures get built on.** Caught by ic driving it independently and disagreeing, not by anything I did. **`drive` MEANS RUN. If the instrument is a grep, the needle must be able to return an answer I did not expect.**
+
+**THE REAL BLOCKER IS THE DENOMINATOR -- WHERE MY OWN PRE-COMPACTION NOTE ALREADY HAD IT, BEFORE I OVERWROTE IT WITH THE GREP.** `the_unsettable_set_is_driven_across_every_entity_form_and_named` (`:538`) drives all 13 entity forms and finds **8 with no `put` arm**. That row is ic's and they have started it: vc ruled `Event` and `NodeInbox` append-only by a separate ruling with a shipped guard, so they were never in this population, and **`declared_reach`'s single `NoWritePathYet` carries both _not built_ and _never, by ruling_.** ic is requiring `never-by-ruling` to cite its ruling.
+
+**SO AC-08.5's REMAINING BUILD IS `put` ARMS FOR THE MISSING FORMS, NOT FOUR FIELDS.** The attachment arm is still live and still worth doing: `design.md:271` rules the direction -- _for attachments the authority runs the other way and text-in is correct_, **explicitly not an exception** -- and `facade.rs:3992` already computes `is_attachment` for the markdown refusal. **A ruled direction, a computed discriminator, no arm.**
 
 **HARD CONSTRAINT ACROSS THE BOUNDARY: DO NOT TOUCH `surface/dispatch-table.{json,md}` UNTIL ic PINGS.** ic is landing a six-file atomic migration -- `ratified_in` becomes a declared `rulings` array, prose regexes retired, generator taught a new field, face regenerated, plus a canon sync because the checker is an attachment at `ST0056.json:2958`. **The asymmetry is the reason, not priority: a one-field edit rebases onto a whole-file migration trivially; the migration cannot rebase onto mine without redoing a hand-mapping of 16 prose stamps they deliberately did NOT do by regex.**
 
