@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: d5a0bd62-6c46-4b53-8af9-fca9edf87c0e
-heartbeat_at: 2026-08-22 10:34Z
+heartbeat_at: 2026-08-22 10:38Z
 status: active
-focus: "**LOCALFOLD 2026-08-22 10:34Z. BOTH vc TASKS DONE; NOTHING IN FLIGHT; HOLDING FOR vc.** `claude skills` row RATIFIED -- hv confirmed AC-07.3 scope first-hand to ic; `provisional` DELETED not negated; gate PROVISIONAL 2->1, hv-rulings 0->1 (`a36bbb2b`). **THE SHARED-STORE SWEEP IS THE DELIVERABLE (`5f008eb5`): SEVEN per-user stores, and `$HOME` IS ONE DOOR IN FRONT OF ALL OF THEM** -- v3's shipped surface reads exactly `COLUMNS`, test-enforced over every `src/**/*.rs`, so v3 could write none of them; hv then granted `$HOME` and all seven came due in the same hour. **vc RULED THE CLASS: every v3 per-user store gets its own path and never reads or writes v2's.** `installed-agents.json` was the unruled sibling and is now covered before it is written. **GATE 65 OF 67, DRIVEN AT `295b93c6`.** **I FABRICATED FOUR MESSAGE STAMPS TODAY AND LABELLED THEM AS CLOCK READS -- retracted; see Mechanical. Any time I write is read from `date -u` IN THAT ACT or written as a measured interval, and there is no third form.**"
+focus: "**PICKED UP AT 2026-08-22 10:38Z AFTER THE FOLD+COMPACT -- LIVE, NOTHING IN FLIGHT, HOLDING FOR vc. FOLDED 10:34Z; BOTH vc TASKS DONE.** `claude skills` row RATIFIED -- hv confirmed AC-07.3 scope first-hand to ic; `provisional` DELETED not negated; gate PROVISIONAL 2->1, hv-rulings 0->1 (`a36bbb2b`). **THE SHARED-STORE SWEEP IS THE DELIVERABLE (`5f008eb5`): SEVEN per-user stores, and `$HOME` IS ONE DOOR IN FRONT OF ALL OF THEM** -- v3's shipped surface reads exactly `COLUMNS`, test-enforced over every `src/**/*.rs`, so v3 could write none of them; hv then granted `$HOME` and all seven came due in the same hour. **vc RULED THE CLASS: every v3 per-user store gets its own path and never reads or writes v2's.** `installed-agents.json` was the unruled sibling and is now covered before it is written. **GATE 65 OF 67, DRIVEN AT `295b93c6`.** **I FABRICATED FOUR MESSAGE STAMPS TODAY AND LABELLED THEM AS CLOCK READS -- retracted; see Mechanical. Any time I write is read from `date -u` IN THAT ACT or written as a measured interval, and there is no third form.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
