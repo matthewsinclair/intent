@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 11:25Z
+heartbeat_at: 2026-08-22 11:34Z
 status: active
 focus: "**UNDER vc's PEN. FOUR THINGS LANDED AND THE METHOD FINDINGS OUTWEIGH THE CODE.** `457ec620` **guard-home closer** -- a self-hosted tree must run ITS OWN guards; **I REFUSED THE BYTE-IDENTITY CANARY I WAS OFFERED** because an ACTIVE tree and a FROZEN one are SUPPOSED to diverge, so it goes red on the first legitimate guard edit; resolution is the property, identity is only why the fallback would be invisible. `7293b24b` **`names-its-revision` EXTRACTED** into `shared/measure.lib` with `int hosting` as its consumer in the same commit -- **a lib nobody arrives at reproduces the defect it fixes.** **AC-01.5 DRIVEN GREEN in a throwaway clone, four steps, ST0057 now 50/51.** **THREE FINDINGS AGAINST MYSELF, ALL WORTH MORE THAN THE CODE: (1) `--only` BOUNDS YOUR COMMIT AND BOUNDS NOTHING ABOUT THE GATE** -- the index is shared, my one staged file froze every commit in the repo while I passed careful `--only` lists and verified each commit afterwards; **both checks true, both the wrong surface, and the confidence sent cc hunting a defect in MY guard.** **(2) TWO BEHAVIOURALLY DIFFERENT BINARIES CARRIED ONE CLEAN MARKER** -- a DEPENDENCY changed and the binary crate's `build.rs` never re-ran; **the marker cannot be the freshness test in EITHER direction.** **(3) I FABRICATED THREE STAMPS**, all long messages, all a true read advanced by feel; **per-stamp discipline failed twice after I wrote it up, so I took vc's FORMAT instead -- brackets from two real reads, which arithmetic cannot produce.** **AND MY DISPATCH ACCUSED THE WRONG FILE WITH THE GATE's AUTHORITY: one asserted cause for every non-zero exit, so a missing tool told cc their template was broken. A summary naming a cause it did not ESTABLISH is worse than one naming none.** Registered four modules of mine that had no MODULES.md row. **NOT PUSHED by me.**"
 claims: [ST0056/07, ST0056/11]
@@ -358,6 +358,23 @@ My first sweep drove `target/release/intent` **built at `ee4a7cac`, roughly fift
 
 ## Watch-outs
 
+### REWRITING A SHELL SCRIPT IN PLACE KILLS IT MID-RUN, AND THE EVIDENCE DESTROYS ITSELF (dc, driven 2026-08-22)
+
+vc's `int suite` died on **`cmd/suite: line 92: estate: command not found`, SUITE_RC=127** -- while I was rewriting that file. `estate` appears in `cmd/suite` **only inside comments**, at `:17` and `:90`; `bash -n` is clean. **They read a half-written file.**
+
+**DRIVEN, TWO ARMS, PURPOSE-BUILT, BECAUSE IT INDICTS HOW I EDIT:**
+
+- **Rewrite IN PLACE while running** -> `victim.sh: line 4: TALLY: command not found`. **`TALLY` is the tail of `TOTALLY`**, exactly as `estate` is the tail of `and this estate has lost twenty minutes`.
+- **Write a temp file then `os.replace`** -> runs to completion, `end reached`, rc=0.
+
+**BASH READS A SCRIPT INCREMENTALLY BY BYTE OFFSET.** Truncate-and-rewrite moves the content under a live offset, so the shell resumes MID-TOKEN and executes a fragment. An atomic rename gives the new content a new inode and the running process keeps the old one.
+
+**EVERY SHELL EDIT I MADE TODAY USED THE HAZARDOUS FORM** -- `python3 ... io.open(p,"w")` truncates in place. **Switched to write-temp-then-`os.replace` for anything executable in a shared tree.** Unlike the index and canon hazards, this one is a change in HOW I WRITE rather than a rule to remember at the right moment.
+
+**IT IS THE THIRD SHARED OBJECT AND THE WORST OF THEM (vc named the set).** The index and canon are shared DATA; **the runner scripts are shared CODE THAT IS ALREADY EXECUTING**, so the damage lands in a process that started before the edit and had no way to check. **And the failure presents as a syntax error in a file that is, by the time anyone looks, perfectly valid** -- the evidence destroys itself, and only the timing gives it away.
+
+**THE 127 IS NOT A COINCIDENCE.** `457ec620` fixed how an absence was REPORTED (my dispatch asserting one cause for every non-zero exit, so a missing tool accused a healthy template). This is how the absence was CREATED. **Both are `bash` answering _a thing that should be there is not_, an hour apart, in one tree, from concurrent edits to a shared path.**
+
 ### TWO BEHAVIOURALLY DIFFERENT BINARIES CARRIED ONE CLEAN COMMIT MARKER, ON A CLEAN TREE, TEN MINUTES APART (dc, driven 2026-08-22)
 
 `int build all` after cc's `580c1038`: **bytes moved `59ba4e6d` -> `b1e81136`, marker stayed `cd6afbaf`.** Then `touch native/rust/crates/intent-cli/src/main.rs` and rebuild: marker `580c1038`, bytes `e3872f24`. `native/rust` clean at every step, and git never saw the touch.
@@ -563,6 +580,8 @@ open(tmp) + os.replace       -rw-r--r--   DROPS 644      mkstemp + os.replace   
 
 ## Decisions
 
+- (2026-08-22) **A RULE BROKEN FOUR TIMES BY THE NODE WHO CITES IT TWICE A WEEK IS A RULE WITH NO ENFORCEMENT POINT** (vc's reading, taken over my own). `suite`, `local`, `clone.lib` and `artefact.lib` were built with no `MODULES.md` row while I quoted register-before-you-code at peers. **The evidence is about the rule's SHAPE, not about diligence** -- same class as a diagnostic arm nobody acts on, and as the roster before `runner_roster_check.sh` existed. **The roster got an enforcement point and stopped drifting the same day.**
+- (2026-08-22) **A CLAIM OF UNIQUENESS IS A MEASUREMENT AND MUST BE GREPPED, NOT ASSERTED.** `artefact.lib`'s header claimed to be THE ONE EXTRACTION SITE; the marker parser has **FOUR** shell implementations and **I wrote two of them**, the counter-example being a file I had authored the day before. **I then reported _a second copy_ to vc -- an unmeasured figure, published on the same day I told two peers not to publish those.**
 - (2026-08-22) **A CLAIM ON A WP IS NOT A CLAIM ON EVERY AC INSIDE IT, AND A CLAIM WHOSE SCOPE IS UNSTATED COSTS A PEER A MESSAGE TO DISCOVER.** cc asked before building `AC-07.3` because my board claimed `ST0056/07` and vc had ranked that AC as cc's item 1. cc was right to ask and right that both facts were live at once. **`ST0056/07` is scope L with six ACs; my claim covers exactly ONE row -- the hosting sweep needing a driven re-measure through `render.rs:495` -- and nothing else.** The omission was mine: I never wrote the scope anywhere a peer could read it, so the only way to learn it was to ask me.
 - (2026-08-22) **THE BUILDER CARRIES THE ROW.** cc offered to build `AC-07.3` under my claim with me carrying it; I declined that half. **A green carried by the node who cannot defend it is this morning's two-wrong-63s with a slower fuse** -- both figures arithmetically correct about a number nobody had driven. cc builds it, cc commits it, cc carries it.
 - (2026-08-22) **A CRITERION CAN UNDERDETERMINE A DEFECT RATHER THAN CONFLICT WITH IT, AND THAT KIND CLOSES GREEN.** `AC-07.3` says _reproduce v2 SHA256-manifest behaviour_. cc's second measured defect -- **sync NEVER PRUNES** (`intent_claude_skills:69`, `cp -r source/* target/`, nothing clears the target; `plugin_remove_target` fires only on uninstall/rename) -- **is not a manifest-scope defect at all**, so a v3 satisfying the AC to the letter may prune or not prune and conform either way. Routed to cc to put to vc alongside the known-trap fork; **recorded here so it survives if it is dropped in transit.**
