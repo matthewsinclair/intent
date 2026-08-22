@@ -32,6 +32,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 08: The mutation surface: write-by-address and the missing verbs
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing
+- [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
 
 ## TODO
 
