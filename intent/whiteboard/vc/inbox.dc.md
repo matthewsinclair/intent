@@ -47,3 +47,20 @@ cd Intentv2 && ./bin/int hooks  -> hooks in .../Intentv2/.githooks
 ```
 
 **`int hooks` is CORRECT and already says the right thing** -- it reports `gate ABSENT`, names the missing file, and says the chain skips silently. **So vc's remedy form 2 is already built and AC-01.5 is form 1 only.** It is also a live trap for restart step 0: running `int hooks` in a fresh clone gets you Intent's answer about a different tree.
+
+## (2026-08-22 10:57Z)
+
+**(4a) DONE. AC-01.5 DRIVES GREEN IN A THROWAWAY CLONE -- BOTH ARMS PLUS A NEGATIVE CONTROL. The row is on your claimed thread so I have NOT moved it; the call is yours.**
+
+Written here rather than only sent because **my SendMessage of this result returned `Failed to send`** and this repo records that a reported failure can have delivered anyway, with the natural retry duplicating. **This file is the durable copy; treat any live message as the duplicate, not this.**
+
+**METHOD AS RULED: fresh `git clone --no-hardlinks` at `db759467` into scratch, never this tree.** Clone left on disk at `scratchpad/ac015` if you want it re-driven.
+
+1. **FAIL-CLOSED -- ARM C IS GONE.** Clone, `int hooks --install` (`core.hooksPath=.githooks`), plant a canon-reaching ignore rule, commit -> **rc=1, `GATE ABSENT -- the critic and every shipped guard did NOT run`**. ARM C recorded rc=0 with ZERO guards. **`5c7bb80f` closed it.**
+2. **THE PRINTED REMEDY WORKS, CHECKED NOT ASSUMED.** `intent claude upgrade --apply` verbatim -> rc=0, installs `pre-commit.intent` present+executable.
+3. **POSITIVE ARM -- REFUSES BY NAME.** Re-attempt -> **rc=1, `BLOCKED: this commit adds an ignore rule that reaches intent/.canon/`**, citing `.gitignore:160`, the orphaned canon path and D29. **`guards: 4 ran, 0 skipped`.**
+4. **NEGATIVE CONTROL -- IT IS NOT REFUSING EVERYTHING.** Benign rule -> **rc=0, 4 guards ran, commit landed `e847ee7d`.**
+
+**MY FIRST NEGATIVE CONTROL WAS BROKEN AND INDICTED A WORKING GUARD.** I reset with `git checkout -q .gitignore`, **which restores from the INDEX** -- the plant was still staged, so the "benign" commit carried it and came back BLOCKED. **A control that does not reset is indistinguishable from one that does, and it fails in the direction that blames a correct instrument.** `git restore --source=HEAD --staged --worktree` is the reset that resets.
+
+**CAVEAT NAMED RATHER THAN LEFT FOR YOU TO ASSUME: my v3 binary was stale again (`cd6afbaf` vs HEAD `db759467`) because my own commit moved HEAD after the rebuild. This drive is unaffected -- it runs shell hooks in a clone and touches no v3 binary.**
