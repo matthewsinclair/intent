@@ -1,6 +1,6 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (as at `69a5db5e`, 2026-08-20)
+## Current state (as at `68296b8e`, 2026-08-22)
 
 **This heading names a COMMIT, not just a date, and that is deliberate.** A restart file is read as CURRENT STATE and written as a snapshot of when its author typed; nothing used to mark which, and a cold session treated a four-day-old line as the next action. **Re-stamp it when you fold, and if you cannot say what it is current as at, that is the finding.**
 
@@ -32,18 +32,67 @@
 **THIS CHECKOUT IS v3 ONLY NOW. The v2 CLI the fleet runs lives in a SEPARATE checkout and is no longer served from here.**
 
 - **`~/Devel/prj/Intentv2`**, branch `v2-maintenance`, cut at `fb45e9ea` -- **main HEAD, NOT the `v2.19.0` tag.** Every other Intent project on this machine now runs that.
-- **All THREE bindings moved**, and the symlink was the weakest of them: `INTENT_HOME=/Users/matts/Devel/prj/Intentv2`, `~/.local/bin/intent -> Intentv2/bin/intent`, and `$INTENT_HOME/bin` on PATH. **`bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var BEATS symlink resolution** -- repointing the symlink alone would have returned 0 and moved nothing.
+- **~~All THREE bindings moved~~ THERE ARE FOUR AND THE FOURTH IS ON NO LIST ANYWHERE (dc, 2026-08-21, driven): `~/bin/intent` at PATH 19, a SECOND symlink to the same target, made in the same minute. Deleting `~/.local/bin/intent` as "the" binding hands resolution to it, and it still answers v2.** The three that were known, and the symlink was the weakest of them: `INTENT_HOME=/Users/matts/Devel/prj/Intentv2`, `~/.local/bin/intent -> Intentv2/bin/intent`, and `$INTENT_HOME/bin` on PATH. **`bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var BEATS symlink resolution** -- repointing the symlink alone would have returned 0 and moved nothing.
 - **The branch point was main and not the tag on purpose.** The old symlink resolved into the working tree, so the fleet had NEVER run `v2.19.0`. Branching at the tag would have rolled **2027 commits** back across every project on this machine -- `intent_critic -94`, `intent_acceptance -144` -- **while presenting as a symlink move.** A released tag is evidence about a release, never about a deployment.
 
-**WHAT IT UNLOCKS, AND IT IS THE POINT: `bin/` IS NO LONGER LOAD-BEARING FOR ANYONE ELSE.** "DO NOT PUT v3 ON PATH" existed because ONE checkout served the fleet and the rewrite at once. **That constraint is gone.** Pruning v2 shell here breaks nobody. Whether v3 goes on PATH is now hv's call on its merits rather than a hazard to fifteen other projects. **`intent` on PATH is v2.19.0 and answers for the FLEET -- to drive v3, use the explicit path (`./native/rust/target/debug/intent`).**
+**WHAT IT UNLOCKS, AND IT IS THE POINT: `bin/` IS NO LONGER LOAD-BEARING FOR ANYONE ELSE.** "DO NOT PUT v3 ON PATH" existed because ONE checkout served the fleet and the rewrite at once. **That constraint is gone.** Pruning v2 shell here breaks nobody. Whether v3 goes on PATH is now hv's call on its merits rather than a hazard to fifteen other projects. **~~`intent` on PATH is v2.19.0 and answers for the FLEET -- to drive v3, use the explicit path.~~ HALF STILL TRUE, 2026-08-22: `intent` IS still v2 and still answers for the fleet -- and v3 is now on PATH as `intent3`, a wrapper in this repo's own `bin/` (dc, ST0058/U1). The explicit path is no longer the only route and is no longer the recommended one.**
 
-**WHAT IT COSTS -- LIVE, UNSOLVED, AND ROUTED TO dc AS A MECHANISM RATHER THAN A VARIABLE.** This repo's commit guards now resolve out of the FROZEN v2 checkout: `.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`. **All five guard files are identical today; drift starts the moment anyone improves a guard here**, and that is the frozen-roster failure already on this estate's record. **hv declined both cheap answers**: direnv covers an interactive prompt and not automation, because git hooks do not reliably inherit it; and refreshing the frozen copy by hand is an advisory, and an advisory that requires remembering is not a control.
+**~~WHAT IT COSTS -- LIVE, UNSOLVED~~ CLOSED BY dc AND VERIFIED IN THE GATE'S OWN OUTPUT, 2026-08-22: every commit now prints `intent gate: guards read from THIS repository (/Users/matts/Devel/prj/Intent/lib/templates/hooks), not from INTENT_HOME`.** The account below is the HISTORY of the defect, not its present state -- and it is left standing because the SIBLING is still open (see the local cutover section). This repo's commit guards USED TO resolve out of the FROZEN v2 checkout: `.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`. **All five guard files are identical today; drift starts the moment anyone improves a guard here**, and that is the frozen-roster failure already on this estate's record. **hv declined both cheap answers**: direnv covers an interactive prompt and not automation, because git hooks do not reliably inherit it; and refreshing the frozen copy by hand is an advisory, and an advisory that requires remembering is not a control.
 
 **STEP 0 NOW APPLIES TO TWO CHECKOUTS.** `Intentv2` was a fresh clone, inherited no `core.hooksPath`, and has been wired. Clone either again and `int hooks` is the first thing you run.
 
 **THE WORD `intentdb` IS RETIRED AND NAMES NO COMPONENT** (hv, 2026-08-21). The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The architecture, inviolable and unchanged for the whole rewrite** -- `intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns `intent/.cache/intent.db`. `intentd` is not the SSOT and no read requires it. Diagram: `intent/st/ST0056/design.md:12-17`.
 
 **AND THE GATE'S SCOPE: 62 of 67 is ST0057's CLOSURE gate -- all ST0057 live rows plus all ST0056 WP-03 rows. IT IS NOT THE 3.0.0 RELEASE GATE.** The release is ST0056 WP-12, whose dependency line reads _"All prior WPs"_, and **ST0056 stands at 59/132 with SEVEN WPs Not Started** (08 intentd XL, 09 MCP, 12 cutover, 13 search XL, 14 coordination, 15 skills, 16 contract drift). Read as release progress, 62/67 says 93% where ST0056 is at 45%.
+
+## THE LOCAL CUTOVER -- v3 IS USABLE ACROSS THE ESTATE NOW (ST0058, 2026-08-22)
+
+**hv's AIM, VERBATIM: _"Not necessarily releasable to the public, but useable by me across the wider estate here locally."_ That is a DIFFERENT BAR from the 3.0.0 release gate and it is met.** ST0056 WP-12 is the public release -- tag, brew, shell pruned -- and its dependency line reads _"All prior WPs"_ with seven Not Started. **Full detail, 685 lines with every measurement attributed: `intent/st/ST0058/design.md`.**
+
+### What you type
+
+    int local build                     # coherent binary pair, VERIFIED -- never bare `cargo build --release`
+    int local status                    # which `intent` wins on PATH, before changing anything (read-only)
+    cd <project> && intent3 upgrade     # the switch: explicit, per project, one at a time
+    git checkout . && git clean -fd && rm -rf intent/.cache      # the way back
+
+**THE ONE PRECONDITION IS THE WHOLE RISK: THE WAY BACK IS `git`, SO A PROJECT WITH UNCOMMITTED WORK HAS NO WAY BACK.** Commit or stash first.
+
+**`intent3` IS A WRAPPER IN THIS REPO'S `bin/` AND MUST `exec`, NEVER BE COPIED** (dc, `99168a8f`). A bare copy has no `lib/templates/` marker above it, so `install::home()` fails, every hook refuses at **exit 1**, and **Claude Code blocks on 2 and NOT on 1 -- so the strict `/in-session` prompt gate would silently stop enforcing in every project at once.** ic found it; it was closed before packaging rather than after.
+
+**`cargo build --release` DOES NOT RELIABLY PRODUCE A COHERENT PAIR and that is deliberate** -- `build-support/source_commit.rs` omits `rerun-if-changed` on purpose, because emitting any would REPLACE cargo's default of re-running on package change and make the embed stale on CODE changes, silently, in the worse direction. **Nobody "fixes" it. `int local build` forces both crates and verifies the set.**
+
+### The migration floor -- 11 of 16 projects cannot convert directly
+
+**THE FLOOR IS EXACTLY 2.19.0**, driven on copies of real projects: Anvil 2.13.0 and Riffle 2.18.0 both REFUSED, Baize 2.19.0 migrated. v3 refuses below it cleanly and names the remedy. **The two-step is VERIFIED rather than asserted: v2 `intent upgrade` reaches the floor in ONE hop, then `intent3 upgrade` migrates** (Riffle 5 threads/34 files, Anvil 6 threads/21 files, all statuses and dates intact).
+
+    AT THE FLOOR (5)      Baize | Conflab | Lamplight | Laksa | Intentv2
+    BELOW IT (11)         Cdsync Devbin Riffle Utilz 2.18.0 | Courses 2.14.0
+                          Anvil MicroGPTEx Molt Prolix 2.13.0 | Molt-flynn Molt-matts 2.11.5
+
+**THE CANARY ORDER INVERTS FROM THE OBVIOUS ONE.** Everything small and dormant is BELOW the floor, so the first switchable projects are the LARGE ACTIVE ones. **Baize first** -- smallest that can migrate directly, clean, exercises the session-hook path, no live session. Then Conflab, then Lamplight. **Laksa only after its dirty paths are committed.**
+
+**`Intentv2` MUST NEVER BE MIGRATED.** It carries `intent/.config/config.json`, so **every census finds it and it looks like the ideal canary -- 3 threads, clean, at the floor.** It is the v2 CLI fifteen projects RUN. A census that finds projects by config presence cannot tell a consumer from the tool.
+
+### Why it is safe to try -- driven in BOTH directions
+
+**v3 refuses any project whose `config.json` does not declare a v3 version**, on read verbs and write verbs alike, rc=1, nothing written. Driven across every version string in the estate plus 2.9.0, 1.0.0 and absent -- **with `3.0.0-dev` as the POSITIVE CONTROL at rc=0 creating a store, without which eight refusals prove nothing.** Zero-thread projects refuse; v3 canon under a v2 declaration refuses.
+
+**And the mirror: v2 INSIDE a v3 project permits READS and refuses WRITES**, naming both versions. So `intent` staying on PATH in a switched project is safe. **`intent claude skills sync` must be run with v2 and that is CORRECT** -- skills live in `~/.claude/`, not project state, so the project-version gate never consults it.
+
+**The session machinery survives the switch:** `claude hook session-context` and `require-in-session` both rc=0 under BOTH binaries, tree unchanged. **6 of 17 projects fire those on every session** -- Baize, Conflab, Intent, Intentv2, Laksa, Lamplight.
+
+### LIVE AND UNFIXED -- read before driving this repo
+
+- **`intent edit` AND `intent st edit` WRITE ON THEIR rc=1 REFUSAL PATH.** `st edit` is declared `read_or_mutate: read` and its help promises a path print. They mutate the store and append to **TRACKED** `intent/.intentfiles`, putting a realisation-policy diff into your next commit that you never made. **THE PRECONDITION IS THE FINDING: unrealised CLEAN, realised-without-manifest CLEAN, manifest-present WRITES** -- and two nodes independently swept the two conditions that hide it and both published clean. **A VERB IS NOT READ-ONLY; IT IS READ-ONLY IN A CONDITION.** Affected population is exactly one project **and it is this one** (4 STEELTHREAD rows). A migrated project never acquires a manifest through ordinary use. cc's build, not a cover.
+- **EVERY ROUTE TO `claude skills sync` SOURCES SKILLS FROM THE FROZEN Intentv2 CHECKOUT** -- including running the dispatcher that lives in THIS tree, because the exported `INTENT_HOME` beats self-resolution at `bin/intent:26`. Three hops: `INTENT_HOME` picks the dispatcher, the dispatcher's location fixes `INTENT_ROOT`, `INTENT_ROOT` fixes `SKILLS_SOURCE_DIR`. **NOT YET ARMED -- 0 skill commits since the split, 0 files differing -- and the first skill edit reverts silently while the sync reports success.** Route B works today (`env -u INTENT_HOME /Users/matts/Devel/prj/Intent/bin/intent claude skills sync`) and **is an advisory with an expiry: it runs the v2 shell dispatcher that WP-12 prunes.** The real fix is v3 implementing `claude skills sync`.
+- **U3 IS A CONTRACT GAP AND IT IS NARROWER THAN IT LOOKS.** Five verbs are mandated in canon and unimplemented in v3 -- `claude skills`, `lang`, `plugin`, `ext`, `version` -- **all dispositioned `keep`, so all are UNBUILT rather than retired**, from `surface/dispatch-table.json`'s own `disposition` field. **`treeindex` is the only RETIREMENT of ours and the canon still mandates it in 3 files.** **DO NOT EDIT THE CANON: every one of those verbs WORKS in v2, so the mandates are correct for 16 of 17 projects. The canon is not defective, it is not VERSION-AWARE.** The treeindex edit belongs at the cutover, when it becomes false everywhere.
+
+### Measuring anything here
+
+**`int suite` RUNS THE SUITE IN `prepush`'s SINGLE-WRITER CLONE AND IS ATTRIBUTABLE BY CONSTRUCTION** (dc, `5173a220`). It prints `DESCRIBES=<sha>` and cannot be perturbed by any node editing the tree mid-run -- **demonstrated by accident: dc edited `cmd/suite` INSIDE its own run window and the figure was unaffected.** It measures HEAD, not the working tree, and without `--with-build` it does not cover `tests/conformance/run_v2_suite.bash`; the output says so every run.
+
+**WHILE ANYTHING IS UNCOMMITTED, NO SUITE FIGURE CAN NAME A REVISION BY CONSTRUCTION** -- the clone cannot contain what HEAD does not. matts' own harness printed `THIS VERDICT DESCRIBES NO COMMIT` over uncommitted vc paths on 2026-08-22. **Commit first, then measure.**
 
 ## State (as at `69a5db5e`, 2026-08-20)
 

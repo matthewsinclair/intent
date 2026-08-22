@@ -1,19 +1,27 @@
 ---
-verblock: "21 Aug 2026:v1.14: vc - the v2/v3 split; intentdb retired; gate scope corrected"
+verblock: "22 Aug 2026:v1.15: vc - the local cutover; v3 on PATH as intent3; gate 65 of 67"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-## Current State (as at `69a5db5e`, 2026-08-20)
+## Current State (as at `47d2e4c7`, 2026-08-22)
 
 **This heading names a COMMIT, not a date.** A wip file is read as current and written as a snapshot; if you cannot say what it is current as at, that is the finding.
 
-**THE GATE IS 62 OF 67, AND IT TAKES THREE VERB CALLS RATHER THAN THE TWO THIS LINE USED TO NAME.** The scope is _all of ST0057's live rows plus all of ST0056 WP-03's_: `intent ac status ST0057` (47/51), `intent ac status ST0056/03` (15/16), and `intent ac gate ST0057` for the outstanding ids. **`intent ac status ST0056` answers 59/132 and is NOT this number's denominator** -- that is the whole thread, not the gate. **The third call is the one nobody wrote down:** `ST0056/03` is a WP-scoped STID and the verb accepts it. **Three figures in this file have now been wrong, and the third was wrong for a NEW reason** -- not stale, not double-counted, but because the line forbade hand-tallying while naming an instrument that could not reach the number, so the only way left to obey it was to copy the banner. **Run the three calls. Do not add them up from memory.**
+**THE GATE IS 65 OF 67, AND IT TAKES THREE VERB CALLS RATHER THAN THE TWO THIS LINE USED TO NAME.** The scope is _all of ST0057's live rows plus all of ST0056 WP-03's_: `intent ac status ST0057` (**49/51**), `intent ac status ST0056/03` (**16/16, PASS**), and `intent ac gate ST0057` for the outstanding ids -- **which are `AC-08.5` and `AC-01.5`, both driven and both correctly red.** **`intent ac status ST0056` answers 60/132 and is NOT this number's denominator** -- that is the whole thread, not the gate. **The third call is the one nobody wrote down:** `ST0056/03` is a WP-scoped STID and the verb accepts it. **Three figures in this file have now been wrong, and the third was wrong for a NEW reason** -- not stale, not double-counted, but because the line forbade hand-tallying while naming an instrument that could not reach the number, so the only way left to obey it was to copy the banner. **Run the three calls. Do not add them up from memory.**
 
 **THE DISK MODEL IS RUNNING, NOT DESIGNED.** `intent organize --apply` removed 423 files at `e7f00e65`; `intent/st/` holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`. Fifty-two completed and two cancelled threads live only in the database. **Proven reversible by measurement**: ST0001 rehydrated to five files byte-identical to git, a fence-heavy pair to fifteen, and all 282 attachments verify against their own `sha256`.
 
-**Intent is SELF-HOSTED on v3.** `bin/intent` (v2, 2.19.0) and `native/rust` (v3, 3.0.0-dev) coexist; a v2 binary REFUSES a v3-declared tree at exit 2. **DO NOT PUT v3 ON PATH** -- the pre-commit gate works _because_ it runs v2, whose version guard is scoped to writes. On PATH, `intent critic` answers 2 in all five declared languages, which is the code the gate fails open on, here and in the other 15 Intent projects on this machine.
+**Intent is SELF-HOSTED on v3.** `bin/intent` (v2, 2.19.0) and `native/rust` (v3, 3.0.0-dev) coexist; a v2 binary REFUSES a v3-declared tree at exit 2. **~~DO NOT PUT v3 ON PATH~~ RETIRED 2026-08-22 ON BOTH OF ITS OWN GROUNDS, DRIVEN (ST0058).** **(1)** v3 is on PATH as **`intent3`**, a DISTINCT NAME, so `intent` is still v2 and the gate is untouched by construction rather than by care -- **this paragraph is the strongest argument for the distinct name and nobody cited it while choosing.** **(2)** The stated hazard no longer exists anyway: **`intent critic` under v3 answers rc=0 in all five declared languages** (elixir 9-of-19 rules asked, rust 1-of-7, shell 2-of-6, author and content clean), not 2. **The pre-commit gate still runs v2 and still works, and the sentence survives only as the reason the name had to be different.**
+
+### THE LOCAL CUTOVER IS DONE AND v3 IS USABLE ACROSS THE ESTATE (ST0058, 2026-08-22)
+
+**hv asked for _"useable by me across the wider estate here locally"_ -- a DIFFERENT BAR from the 3.0.0 release gate, and it is met.** Four gates: **U2 HARMLESS closed both directions, U4 REVERSIBLE driven, U1 INSTALLABLE built** (`intent3` + `int local`), **U3 DAILY-COMPLETE open** as five Rust builds. **Full procedure, migration floor, canary order and live findings: `intent/restart.md` and `intent/st/ST0058/design.md`.**
+
+**Four commands:** `int local build`, `int local status`, `cd <project> && intent3 upgrade`, and back via `git checkout . && git clean -fd && rm -rf intent/.cache`. **The way back is `git`, so a project with uncommitted work has no way back.**
+
+**THE MIGRATION FLOOR IS 2.19.0 AND 11 OF 16 PROJECTS ARE BELOW IT** -- they need a v2 `intent upgrade` first, verified on copies. **The canary order INVERTS: everything small and dormant is below the floor, so the first switchable projects are the large active ones. Baize first. `Intentv2` NEVER** -- every census finds it and it is the tool fifteen projects run.
 
 ### The two threads
 
