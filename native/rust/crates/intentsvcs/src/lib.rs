@@ -8,7 +8,7 @@
 //! `tests/dep_graph_guard.rs` asserts it.
 //!
 //! Truth model (design.md D01, REVERSED by hv 2026-08-15): the schema is the
-//! source of truth for structure, and **the intentdb is the durable SSOT --
+//! source of truth for structure, and **the SQLite db is the durable SSOT --
 //! everything on disk is a secondary artefact.** `thread.json`, the generated
 //! `.md` views and the event log's file form are extracts of the same kind;
 //! none of them is truth. Re-creating the DB from an extract is a CAPABILITY,

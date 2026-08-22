@@ -783,7 +783,7 @@ impl Project {
     self.intent_dir().join(canon_issue_rel(number))
   }
 
-  /// The intentdb (D21) -- gitignored, and the durable SSOT rather than a
+  /// The SQLite db (D21) -- gitignored, and the durable SSOT rather than a
   /// cache. Gitignored is about TRANSPORT, not authority: the committed
   /// extract is how the estate travels, and the store is re-created from it on
   /// a fresh clone.
