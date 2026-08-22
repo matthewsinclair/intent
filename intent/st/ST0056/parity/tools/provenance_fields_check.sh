@@ -160,13 +160,23 @@ check_record() {
 # `|| true` guards `pipefail`: `grep -o` exits 1 on no match and would otherwise
 # make the assignment itself non-zero, so the absent-marker case would be
 # indistinguishable from a broken `strings`.
-marker_of() {
-  local f="$1" m
-  m="$(strings "$f" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)" || true
-  [ -n "$m" ] || return 1
-  m="${m#\[intent-source-commit:}"
-  printf '%s' "${m%\]}"
+# marker_of -- DELEGATES to the one extraction site as of 2026-08-22.
+#
+# THIS BODY WAS BYTE-FOR-BYTE `artefact_source_commit`, UNDER A DIFFERENT NAME,
+# WRITTEN BY THE SAME NODE ON THE DAY BEFORE THAT NODE WROTE `artefact.lib`'s
+# header claiming to be THE ONE EXTRACTION SITE. Four implementations of one
+# contract existed; this was the starkest, because it was not even an inline
+# fragment -- it was the whole function, renamed.
+#
+# NO FALLBACK (vc's ruling). An absent lib is a hard stop, not a quiet local copy.
+_ART_LIB="$ROOT/bin/.devbin/cmd/shared/artefact.lib"
+[ -f "$_ART_LIB" ] || {
+  echo "${0##*/}: cannot read $_ART_LIB -- the source-commit marker parser has ONE home and this is not it." >&2
+  exit 2
 }
+# shellcheck source=/dev/null
+. "$_ART_LIB"
+marker_of() { artefact_source_commit "$1"; }
 
 # check_artefact_set <record> <dir> -- does this record describe the bytes
 # beside it, and do those bytes agree with EACH OTHER?

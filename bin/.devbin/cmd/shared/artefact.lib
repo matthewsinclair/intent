@@ -14,10 +14,34 @@
 #
 # artefact_source_commit <mach-o> -- what the ARTEFACT says it was built from.
 #
-# THE ONE EXTRACTION SITE, because the marker's shape is a contract and a second
-# copy of a parser is how two readers come to disagree about one string. Embedded
-# by `build.rs` (AC-11.5) and read back out of the binary; `strings` and nothing
-# else, so this asks the bytes rather than any record shipped beside them.
+# THE ONE EXTRACTION SITE -- TRUE AS OF 2026-08-22, AND IT WAS FALSE ON THE DAY
+# THIS LINE WAS WRITTEN. The sentence used to stand alone, and it was a claim
+# nobody had measured. `grep -rn 'intent-source-commit'` over every `.sh`, `.rs`
+# and `.bats` found FOUR shell implementations of one contract: this one, and
+# inline copies in `self_provenance_check.sh`, `interrupt_rig.sh` and
+# `provenance_fields_check.sh` -- the last being `marker_of()`, BYTE-FOR-BYTE
+# this function under a different name, written by the author of this file ON
+# THE DAY BEFORE they wrote this header.
+#
+# **A HIGHLANDER CLAIM IS A MEASUREMENT, NOT A PROMISE.** One that was false when
+# written is worse than none at all, because the header is where a reader stops
+# looking: the next person to change the marker's shape reads THE ONE EXTRACTION
+# SITE, edits one file, and ships two parsers that disagree about one string --
+# which is the exact failure the sentence was written to prevent.
+#
+# CONSUMERS, NAMED SO THE CLAIM IS CHECKABLE RATHER THAN ASSERTED (if you add
+# one, add it here; if this list and `grep` ever disagree, `grep` is right):
+#   - `bin/.devbin/cmd/macos`                                 (3 call sites)
+#   - `intent/st/ST0056/parity/tools/self_provenance_check.sh`
+#   - `intent/st/ST0056/parity/tools/interrupt_rig.sh`
+#   - `intent/st/ST0056/parity/tools/provenance_fields_check.sh`
+#
+# Each parity tool HARD STOPS at exit 2 if it cannot read this file. There is no
+# `source || define-my-own` fallback (vc's ruling, 2026-08-22): a fallback
+# restores the duplicate at exactly the moment nobody is watching.
+#
+# Embedded by `build.rs` (AC-11.5) and read back out of the binary; `strings` and
+# nothing else, so this asks the bytes rather than any record shipped beside them.
 #
 # The marker is SELF-DELIMITING and that is load-bearing here rather than
 # cosmetic: rodata packs string literals with no separator, so an unterminated

@@ -115,6 +115,26 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../../../../.." && pwd)"
 
+# THE MARKER PARSER HAS ONE HOME AS OF 2026-08-22, AND THIS FILE USED TO BE ONE
+# OF FOUR. `grep -rn 'intent-source-commit'` found the parse in `artefact.lib`,
+# here, in `interrupt_rig.sh` and in `provenance_fields_check.sh` -- where it was
+# `marker_of()`, BYTE-FOR-BYTE the same body under a different name. Two of the
+# four were written by the node who then wrote `artefact.lib`'s header claiming
+# to be THE ONE EXTRACTION SITE. **That claim was FALSE WHEN WRITTEN, not a
+# promise that drifted**, and the header is where a reader stops looking.
+#
+# NO `source || define-my-own` FALLBACK, DELIBERATELY (vc's ruling). A fallback
+# restores the duplicate at the exact moment nobody is watching, which is the
+# whole defect. An absent lib is a HARD STOP at exit 2 naming the path -- loud,
+# checkable, one line from diagnosis.
+_ART_LIB="$ROOT/bin/.devbin/cmd/shared/artefact.lib"
+[ -f "$_ART_LIB" ] || {
+  echo "${0##*/}: cannot read $_ART_LIB -- the source-commit marker parser has ONE home and this is not it." >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$_ART_LIB"
+
 die() { echo "interrupt-rig: $*" >&2; exit 2; }
 say() { echo "interrupt-rig: $*"; }
 
@@ -456,9 +476,10 @@ $(tail -5 "$WORKDIR/build.log" 2>/dev/null | sed 's/^/    /')"
   # produce that today, which is precisely why it is worth naming -- if it ever
   # appears, the failure is upstream of every check either of us owns, and the
   # wrong instinct will be to debug the checker.
-  EMBEDDED="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
-  EMBEDDED="${EMBEDDED#\[intent-source-commit:}"
-  EMBEDDED="${EMBEDDED%\]}"
+  # `|| true` because the empty case is a REAL arm below ("NO MARKER"), not an
+  # error: the lib reports absence by rc=1 and no output, and `set -e` must not
+  # turn that answer into a death.
+  EMBEDDED="$(artefact_source_commit "$BIN" || true)"
   case "$EMBEDDED" in
     "$REV_SHA") say "  binary provenance: bare sha matching --rev ($REV_SHORT) -- clean-tree build confirmed" ;;
     "")         say "  binary provenance: NO MARKER -- this binary cannot name the commit it was built from" ;;

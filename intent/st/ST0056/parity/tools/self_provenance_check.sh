@@ -48,6 +48,26 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
+
+# THE MARKER PARSER HAS ONE HOME AS OF 2026-08-22, AND THIS FILE USED TO BE ONE
+# OF FOUR. `grep -rn 'intent-source-commit'` found the parse in `artefact.lib`,
+# here, in `interrupt_rig.sh` and in `provenance_fields_check.sh` -- where it was
+# `marker_of()`, BYTE-FOR-BYTE the same body under a different name. Two of the
+# four were written by the node who then wrote `artefact.lib`'s header claiming
+# to be THE ONE EXTRACTION SITE. **That claim was FALSE WHEN WRITTEN, not a
+# promise that drifted**, and the header is where a reader stops looking.
+#
+# NO `source || define-my-own` FALLBACK, DELIBERATELY (vc's ruling). A fallback
+# restores the duplicate at the exact moment nobody is watching, which is the
+# whole defect. An absent lib is a HARD STOP at exit 2 naming the path -- loud,
+# checkable, one line from diagnosis.
+_ART_LIB="$ROOT/bin/.devbin/cmd/shared/artefact.lib"
+[ -f "$_ART_LIB" ] || {
+  echo "${0##*/}: cannot read $_ART_LIB -- the source-commit marker parser has ONE home and this is not it." >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$_ART_LIB"
 MANIFEST="bin/.devbin/manifest.sha256"
 
 die() {
@@ -280,9 +300,11 @@ else
     # comparison that failed: vc recorded two binaries as the same artefact
     # because their markers matched byte for byte.
     binsha="$(shasum -a 256 "$BIN" 2>/dev/null | cut -c1-16)"
-    marker="$(strings "$BIN" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
-    embedded="${marker#\[intent-source-commit:}"
-    embedded="${embedded%\]}"
+    # `marker` survives as a PRESENCE FLAG rather than the raw string: every
+    # branch below tests emptiness, never the brackets. The lib returns 1 and
+    # prints nothing when there is no marker, so "cannot say" stays distinct
+    # from any value -- which is the property this branch depends on.
+    if embedded="$(artefact_source_commit "$BIN")"; then marker="present"; else marker=""; fi
 
     if [ -z "$marker" ]; then
       echo "self-provenance: $BIN [sha256 $binsha] carries NO source-commit marker -- it cannot name the commit it was built from."
