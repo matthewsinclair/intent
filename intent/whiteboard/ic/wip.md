@@ -13,6 +13,30 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
+### TASK 2 -- THE SHARED-STORE SWEEP (ic, 2026-08-22, from SOURCE, nothing driven on the estate)
+
+**THE STRUCTURAL GATE, AND IT GOVERNS EVERY ROW BELOW: v3's SHIPPED SURFACE READS EXACTLY ONE ENVIRONMENT VARIABLE, `COLUMNS`.** Enforced by `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`, which WALKS every `.rs` under every crate's `src/` -- `const ALLOWED: &[&str] = &["COLUMNS"]`. **So v3 cannot resolve `$HOME` today and therefore cannot write ANY per-user store.** v3's only door outside a project is `install::home()`, which walks `current_exe()` ancestors for `lib/templates/` -- **install-relative, not home-relative, and it READS.**
+
+**THIS IS ONE RULING, NOT EIGHT RISKS ARRIVING ONE AT A TIME.** hv's pending AC-11.3 `$HOME` ruling is the single door, and **the day it opens, every row below becomes live in the same instant.** Sequencing that treats these as per-command work will meet them all at once.
+
+| store                                        | v2 writes it                                                             | v3 today                    | protection                         |
+| -------------------------------------------- | ------------------------------------------------------------------------ | --------------------------- | ---------------------------------- |
+| `~/.intent/skills/installed-skills.json`     | `intent_claude_skills:28`                                                | separate path, `...v3.json` | **CLOSED BY DESIGN** + unreachable |
+| `~/.intent/agents/installed-agents.json`     | `intent_claude_subagents:34,182` -- `{"version":"1.0.0","installed":[]}` | not built, **NOT RULED**    | **UNREACHABLE ONLY (2026-08-22)**  |
+| `~/.claude/skills/<name>/`                   | copy in; `rm -rf` at `intent_claude_skills:73`                           | not built                   | **UNREACHABLE ONLY (2026-08-22)**  |
+| `~/.claude/agents/<name>.md`                 | copy in; `rm -f` at `intent_claude_subagents:79`                         | not built                   | **UNREACHABLE ONLY (2026-08-22)**  |
+| `~/.config/intent/config.json`               | `intent_bootstrap:107,110`; `intent_config:43,124`                       | not built                   | **UNREACHABLE ONLY (2026-08-22)**  |
+| `~/.claude/projects/<hash>/memory/MEMORY.md` | `intent_st_zero:155`; `intent_claude_prime:52`                           | not built                   | **UNREACHABLE ONLY (2026-08-22)**  |
+| `~/.intent/ext/<name>/`                      | `intent_ext` scaffolds                                                   | held, same AC-11.3 seam     | **UNREACHABLE ONLY (2026-08-22)**  |
+
+**`installed-agents.json` IS THE ANSWER TO vc'S ACTUAL QUESTION -- `claude skills` IS NOT THE ONLY PLACE THIS SHAPE EXISTS.** It is the exact sibling: same `~/.intent` parent, same hardcoded filename, **the same `version: "1.0.0"`**, the same seed-if-absent write, and the same shared `claude_plugin_helpers.sh` update path. **The skills instance was ruled because cc happened to build skills first.** Nothing about the finding was specific to skills, and the sibling is unruled because nobody has built it yet -- **which means the ruling and the build are racing, and today the build is behind by exactly one command.**
+
+**(a) THE COLLISION IS DETECTABLE BY THE NEW SIDE ONLY, AND SILENT ON THE SIDE THAT DOES THE DAMAGE.** v3 CAN tell a v2 manifest: `checksum_scope` is `Option`, `serde(default)`, and `None` means v2 -- that is ruling 3 working. **v2 CANNOT tell a v3 one. v2 is shipped; it has no such branch and cannot be given one.** **A VERSION FIELD ONLY THE NEWER PARTY READS IS A COURTESY, NOT A DISCRIMINATOR** -- and `version: "1.0.0"` is a SCHEMA version, which answers _what shape is this_ and never _who wrote it_. For the four CONTENT stores there is no field at all, so there is nothing to discriminate with even in principle.
+
+**(b) YES -- BOTH BINARIES PRINT SUCCESS WHILE UNDOING EACH OTHER, AND THE MECHANISM IS STRUCTURALLY WORSE THAN `an unguarded elif`.** In `claude_plugin_helpers.sh` the three-way comparison's ONLY escape is `source == old && target == old` -> `up to date` + `continue` (:405-409). **Every other path falls through to an UNCONDITIONAL `plugin_copy_to_target` + `plugin_update_manifest`, printing `updated` (:430-432).** The `if`/`elif` at :413/:426 chooses **only what is PRINTED** and whether it prompts. **So the copy was never guarded by the comparison at all** -- vc's account names the right line and understates the structure: it is not that one branch lacks a guard, it is that the write sits downstream of all of them. On a checksum-semantics mismatch v2 prints `update available` then `updated`, having overwritten; v3 then writes back and reports its own success. **Neither has anything to report and both report it.**
+
+**WHY `UNREACHABLE ONLY` IS RECORDED AS RED WITH A DATE (vc's ruling, and it is right): the two protections are not the same thing.** `installed-skills.json` is closed BY DESIGN -- a decision that survives the `$HOME` ruling. Every other row is closed by v3 NOT BEING BUILT YET, which **evaporates the moment hv rules**, and a green row would then be wrong without anything editing it. **A protection with an expiry date is a red row that has not come due.**
+
 **HOLD LIFTED -- vc ROUTED TWO TASKS 2026-08-22. TASK 1 IS DONE; TASK 2 (the shared-store sweep) IS OPEN.** **MY TASK 1 EDITS WERE SWEPT INTO A COMMIT I DID NOT MAKE -- see Estate.** 2026-08-21's working detail is archived at `.history/20260822/wip-fold-0852Z.md` (plus `20260821/wip-fold-1600Z.md` and `-1721Z.md`). What stays here is only what a cold session cannot reconstruct.
 
 | commit                                      | what                                                                                        |
