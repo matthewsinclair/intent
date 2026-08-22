@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: d5a0bd62-6c46-4b53-8af9-fca9edf87c0e
-heartbeat_at: 2026-08-22 10:43Z
+heartbeat_at: 2026-08-22 11:21Z
 status: active
 focus: "**vc HOLDS hv's PEN FROM 2026-08-22 (ic DID NOT CLOCK THE GRANT ITSELF -- it was already given when ic read 10:42Z, so the date is solid and the time is a bound, not a point) -- hv SAID IT TO ic DIRECTLY, SO IT IS NOT A RELAY AND NEEDS NO CONFIRMING. ic TAKES vc's WORD AS AUTHORITATIVE THIS WINDOW AND STOPS ROUTING TO hv; THE SUITE AND THE PUSH ARE vc's ON hv's AUTHORITY.** **RAISED WITH IT, AND IT IS MINE BECAUSE I OWN THE GRAMMAR: A RULING MADE *UNDER* THE PEN IS A vc RULING, NEVER AN hv ONE. `ratified_in`'s HV BUCKET IS A FALLTHROUGH -- an `hv, <date>` row written under delegation drops into it and reads as hv's first-hand word, unverifiable BY CONSTRUCTION, which would make yesterday's hold-on-a-relay theatre.** **LIVE, NOTHING IN FLIGHT, HOLDING FOR vc's DISPATCH.** FOLDED 10:34Z; BOTH vc TASKS DONE. `claude skills` row RATIFIED -- hv confirmed AC-07.3 scope first-hand to ic; `provisional` DELETED not negated; gate PROVISIONAL 2->1, hv-rulings 0->1 (`a36bbb2b`). **THE SHARED-STORE SWEEP IS THE DELIVERABLE (`5f008eb5`): SEVEN per-user stores, and `$HOME` IS ONE DOOR IN FRONT OF ALL OF THEM** -- v3's shipped surface reads exactly `COLUMNS`, test-enforced over every `src/**/*.rs`, so v3 could write none of them; hv then granted `$HOME` and all seven came due in the same hour. **vc RULED THE CLASS: every v3 per-user store gets its own path and never reads or writes v2's.** `installed-agents.json` was the unruled sibling and is now covered before it is written. **GATE 65 OF 67, DRIVEN AT `295b93c6`.** **I FABRICATED FOUR MESSAGE STAMPS TODAY AND LABELLED THEM AS CLOCK READS -- retracted; see Mechanical. Any time I write is read from `date -u` IN THAT ACT or written as a measured interval, and there is no third form.**"
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
@@ -12,6 +12,34 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 # Interface Claude (ic)
 
 ## DOING
+
+### THE `ratified_in` -> `rulings` MIGRATION (ic, 2026-08-22, vc's item 1 under hv's pen) -- **LANDED AT `1e0a4722`, 6 FILES, +646/-602, EVERY GATE GREEN**
+
+**LANDED. Driven at `1e0a4722` AFTER the commit: 28 rulings, 26 conform, 1 hv-without-record, 1 provisional, 0 dangling, 0 non-conforming, rc=0; `corrected_check` agrees exactly; canon/surface/tools all clean.**
+
+**THE CONTROL ON THE CANON SYNC RAN AND IS THE REUSABLE PART.** vc's finding: `sync --to-store <ID>` is THREAD-scoped, so it ingests whatever is dirty under the thread at that instant, WARNS, and does not refuse -- it had already swept dc's uncommitted `runner_roster_check.sh` into vc's canon twice in ten minutes. **So after syncing and before committing I diffed canon attachment-by-attachment and required every changed path to be one of mine: 90/90 attachments, exactly 3 changed, none added, none removed.** A fourth would have meant strip-and-re-sync rather than commit-and-correct-forward. **AND THE WINDOW IS REAL, NOT THEORETICAL: HEAD moved from `457ec620` to `06dcc4b8` between vc's "the tree is still" and my first write** -- cc's board only, no collision, but the measurement vc gave me had already expired when I acted on it. **A peer's clean-tree report is evidence about their clock, never about mine.**
+
+**AND I RE-RAN THE MIGRATION AGAINST THE LIVE TABLE RATHER THAN LANDING MY COPY.** The table had moved under me at `580c1038` (cc's `st edit` fix), so the artefact I had proven was stale by one commit. Same 27 carriers, same result -- but landing the scratch copy would have silently reverted cc's row. **The build's own `UNMAPPED carrier` refusal is what made re-running safe: had cc added a stamp, it exits rather than guessing.**
+
+(Scratch artefacts, now superseded by the landing: `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/d5a0bd62-6c46-4b53-8af9-fca9edf87c0e/scratchpad/prov`.** Recorded here because it is the thing that could not be reconstructed from the tree -- the tree still holds the PRE-migration state.
+
+**THE DEFECT, RESTATED SO THE REBUILD DOES NOT HAVE TO REDERIVE IT.** `target.ratified_in` carried ONE authored declaration while `ratified_in_check.sh` DERIVED FOUR MORE VERDICTS by regexing English -- conform, hv-unverifiable, dangling, non-conforming. **Not a field doing two jobs: a field doing one job while a parser invented four**, free to disagree, with nothing able to say which was right. vc ruled the wide fix; the argument that decided it is that the NARROW fix (add a state enum, keep the prose) is not a smaller change but **a new instance of the same defect wearing the remedy's clothes**.
+
+**THE SHAPE, AND THE PART THAT IS A CORRECTION TO vc's RULING RATHER THAN AN APPLICATION OF IT:** two vocabularies. The AUTHORED enum is what the corpus holds -- `ratified`, `provisional`, two members. The VERDICT vocabulary is the checker's OUTPUT and carries six, including `dangling` and `non-conforming`, **which are empty today and must still be expressible**. They stay OUT of the authored enum because an author must never be able to declare `ratified` while the checker computes `dangling` -- two answers to one question, the defect the migration removes. vc took the correction.
+
+**THREE FACTS THE CORPUS FORCED, NONE OF THEM CHOSEN:**
+
+- **`rulings` IS AN ARRAY, because one unit has TWO rulings** -- `families.13.entries.5`, ic ruled the CLASS and hv ruled the REMEDY on one commit. An object loses one of them. The old field could only hold one, which is why the migrated corpus conforms 26 against the old 25: **the +1 is a fact the old field had no room for.**
+- **THE FIELD IS `rulings`, NOT `provenance`.** `provenance` is ALREADY TAKEN twice in this schema -- a top-level object and a per-state sentence on all seven `target_states`. A third meaning is the collision this change exists to remove, and I would have silently merged into the second.
+- **`parity.md` WAS NEVER A SENTINEL OR A SCOPE MARKER. IT IS A RECORD** -- hv ratified the `Corrected` class wholesale at the 2026-08-14 bounce and parity.md is where that ruling is written. So it migrates to `{ratified, hv, 2026-08-14, "parity.md"}` with no special case, and `corrected_check.sh`'s scope becomes COMPUTED. A separate scope field would be a SECOND record of what parity.md already says, **and those two drifted to 8-of-11 once already.** OPEN WITH vc: this satisfies the ruling's intent, not its letter.
+
+**ALL SIXTEEN PROSE STAMPS WERE MAPPED BY HAND FROM THE FULL TEXT, NOT BY REGEX**, because this migration is the last act that ever reads that prose and a mis-parse would have nothing left to check it against. **Two would have been fluffed by any regex**: the two-authority row, and `families.0.entries.2`, whose stamp cites four commits of which only one is the ruling.
+
+**PROVEN, NOT ASSERTED.** Control rc=0. Eight planted cases: dangling, null-record-under-non-hv, bad state, bad authority, junk record, bad date, one-arm-provisional, delegated-hv. **`bad_state` means vc's ruling that `withdrawn` stays out is ENFORCED rather than agreed. `junk_record` kills the old grammar's real bug -- an unmatched pattern fell through to _conforms_, which is how a dead `issue 0046` certified itself for days. `delegated_hv` is the pen boundary: a ruling carrying `authority: vc` cannot enter the hv bucket, because the bucket is now `authority == hv && record == null` over declared fields instead of a fallthrough from a failed regex.**
+
+**A DEFECT FOUND ON THE WAY, AND IT IS THE UGLIEST OF THE DAY.** `gen_dispatch_table.sh`'s `extras` renders with `paths(scalars)`, and **jq's `scalars` EXCLUDES null** -- so a declared null vanishes while every sibling renders. That is exactly what the comment one branch above it warns about. It had never fired because no structured extra had carried a null; **`rulings` is the first, and the first null in the corpus is `record: null` on `claude skills` -- the one ratification that is unverifiable BY CONSTRUCTION.** The single row a reader most needs to see marked was the single row that would have rendered unmarked, on the day we introduced the field whose purpose is making that state legible.
+
+**LANDING NEEDS SIX FILES AS ONE COMMIT** (table, .md, both checkers, the generator, and a canon sync -- the checker is an attachment at `ST0056.json:2958`, so `canon_commit_check.sh` gates it). **Waiting on vc for a still tree; the tree was dirty with a peer's work when I checked.**
 
 ### TASK 2 -- THE SHARED-STORE SWEEP (ic, 2026-08-22, from SOURCE, nothing driven on the estate)
 
