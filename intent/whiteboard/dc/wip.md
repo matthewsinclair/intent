@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 08:53Z
+heartbeat_at: 2026-08-22 09:09Z
 status: paused
-focus: "**FOLDED AND PAUSED, HOLDING FOR vc.** Three commits landed on matts' direct word: `c7012833` (U1 -- `bin/intent3` + `intentd3` symlink + `int local status|build|install|uninstall` + `cmd/shared/artefact.lib`, plus the `cmd/macos:214` remedy string that told the operator to run a command that fails), `7e290d39` (board), `99168a8f` (ic's hook constraint). **All three with `--only`, verified afterwards: nothing of a peer's in any of them.** **U4 IS ANSWERED AND MOSTLY WAS ALREADY BUILT: v3 refuses any project declaring 2.x, `intent upgrade` is purely additive, and the way back is driven twice to a byte-identical file set. THE ONE PRECONDITION IS THE WHOLE RISK -- the way back is `git`, so a project with uncommitted work has none.** **`INTENT_HOME` HAS ZERO AUTHORITY OVER v3** (driven three ways), so it never protected the other 16 projects; and there are FOUR `intent` bindings, not three. **`intent3` MUST STAY A WRAPPER THAT `exec`s -- a bare copy fails every hook at EXIT 1, which Claude Code does not block on, so the strict in-session gate would silently stop enforcing estate-wide.** Nothing of mine uncommitted; nothing in my inboxes newer than 14:43Z. **Next instruction comes from vc.**"
+focus: "**`int suite` IS BUILT AND LANDED AT `5173a220` -- vc's instruction, done.** A HEAD figure now NAMES ITS REVISION BY CONSTRUCTION: `int suite` clones HEAD into the single-writer clone `prepush` already makes and runs `tests/run_tests.sh` there. **`tests/run_tests.sh` IS UNTOUCHED, and that was FORCED rather than chosen** -- matts was running it, and bash re-reads a running script incrementally. **THE CLONE IS EXTRACTED TO `cmd/shared/clone.lib` and `prepush` CALLS IT -- one implementation in the repo, and `prepush --force` before/after is IDENTICAL.** **THE PROOF ARRIVED BY ACCIDENT: I edited `cmd/suite` at 09:01:19Z, INSIDE the ~08:59-09:07:03 window of a run that returned 1444 ok -- the exact second-writer event that killed vc's figure last night, and this one is unaffected.** It also earned itself on first use, reporting `DESCRIBES=61d81576` where I would have quoted `946a8c6f` from memory. **Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` (U1, U4, ic's hook constraint, the fold).** **HOLDING FOR vc.** NOT PUSHED and I will not -- that is matts' word to give, and vc is waiting on it too."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -127,6 +127,22 @@ pre-commit-guards.sh in that project        rc=0 -- 2 ran, 2 skipped (not applic
 ```
 
 **THE REASON IS WORTH MORE THAN THE RESULT: `info` is READ-ONLY, so v2's version refusal never fires on it** -- the refusal is scoped to verbs that WRITE. **So the gate's resolution step is load-bearing on a verb that happens to be exempt from the guard that would otherwise break it.** Nobody designed that. **A future narrowing of what `info` answers would take the commit gate out with it, silently, in every switched project.**
+
+### `int suite` -- THE ADVISORY RETIRED, LANDED AT `5173a220` (vc's instruction)
+
+**A HEAD FIGURE NOW NAMES ITS REVISION BY CONSTRUCTION.** `int suite` clones HEAD into the single-writer clone `prepush` has made since 2026-08-15 and runs `tests/run_tests.sh` inside it. **Nobody has to be asked to hold still**, which is the only kind of win this estate has agreed is real.
+
+**`tests/run_tests.sh` IS NOT TOUCHED, AND THAT WAS FORCED RATHER THAN CHOSEN.** matts was running the suite when I started -- **bash re-reads a running script incrementally**, so editing it was unsafe rather than merely discouraged. Invoking it inside the clone satisfies vc's _do not repoint the default_ absolutely instead of by care. **The constraint made the design better than the one I would have picked.**
+
+**HIGHLANDER: THE CLONE IS EXTRACTED TO `cmd/shared/clone.lib` AND `prepush` CALLS IT.** `grep -rl 'git clone --quiet --depth 1' bin/` returns exactly ONE file. **Proven rather than assumed: `int prepush --force` before and after produces IDENTICAL steps and ok lines at rc=0**, and the structural check still fires -- a doctored clone carrying a second workspace manifest is refused at rc=1, naming the half-committed-move signature.
+
+**THE PROOF ARRIVED BY ACCIDENT AND IT IS BETTER THAN THE ONE I PLANNED.** The full run clones at `61d81576`, `BATS_RC=0`, plan `1..1444`, `ok=1444`, `notok=0` -- **and I edited `cmd/suite` at 09:01:19Z, INSIDE its ~08:59-09:07:03 window.** That is precisely the second-writer event that invalidated vc's figure last night, **and this one is unaffected because the clone cannot see it.**
+
+**AND IT EARNED ITSELF ON FIRST USE:** it reported `DESCRIBES=61d81576` when I would have quoted `946a8c6f` from memory. Three commits had landed while I was building.
+
+**THE NO-PLAN ARM CAME OUT OF DRIVING THE RED PATH RATHER THAN REASONING ABOUT IT.** My first version printed `BATS_RC=1 plan=<none> notok=0`, **which cannot distinguish _tests failed_ from _the runner never started_** -- absence dressed as a result, in the output of a tool whose whole subject is figures that describe nothing. A missing plan now refuses separately and names it a different fault from a red suite.
+
+**AND A COMMIT OF MINE WAS REFUSED, WHICH WAS NOT THE GATE.** `git commit --only` on an UNTRACKED path is `error: pathspec did not match any file(s) known to git` -- untracked files must be staged first. I did that correctly on my first commit and skipped it here. **Reading the output rather than retrying is what identified it as mine rather than the gate's.**
 
 ### LANDED, AND ic's CONSTRAINT ARRIVED BEFORE PACKAGING RATHER THAN AFTER
 
