@@ -461,6 +461,87 @@ enum Reached {
   NoWritePathYet,
 }
 
+/// What we DECLARE about a form, which is a different question from what the
+/// surface DID and is therefore a different type.
+///
+/// **`Reached` is OBSERVED and has two values because the surface can only do
+/// two things. `Expected` is AUTHORED and has three, because `no write path`
+/// was carrying two meanings that nothing could tell apart** -- *not built
+/// yet*, and *never, by a ruling made elsewhere*. Both rendered as
+/// `NoWritePathYet`, so the criterion's denominator silently included forms
+/// the estate has separately ruled must NEVER be writable.
+///
+/// # Why that mattered rather than being untidy
+///
+/// `Event` and `NodeInbox` are append-only by ruling, with a SHIPPED GUARD
+/// behind it: `append-only-guard.sh` declares exactly two subjects,
+/// `intent/whiteboard/*/.history/**` and the event log, and exists to refuse a
+/// truncating write where an append was meant -- written after 492 lines of
+/// `.history/` were destroyed on 2026-08-17 and 19 events on 2026-08-19.
+///
+/// **So while both meanings shared one value, AC-08.5's only routes were to
+/// build write paths a shipped guard exists to refuse, or to stay red
+/// forever.** That is a population defect and not a criterion defect: those
+/// forms are not writable entities, so they were never in this criterion's
+/// population. Naming a permanent exclusion WITH ITS REASON is a stronger
+/// record than an absent row.
+///
+/// # THIS SPLIT IS GUARDED IN ONE DIRECTION ONLY, AND SAYING SO IS THE POINT
+///
+/// **Mutation-verified 2026-08-22, three planted cases.** Declaring a form
+/// reachable when it has no arm fails (`declared Reachable, which requires
+/// Yes, but observed NoWritePathYet`). Declaring a permanent exclusion with an
+/// empty citation fails. **But DEMOTING a permanent exclusion back into the
+/// worklist PASSES SILENTLY** -- population 11 -> 12, exclusions 2 -> 1, green.
+///
+/// That asymmetry is correct and is not a hole to be plugged. The dangerous
+/// direction is retiring a form that SHOULD be reachable, because it shrinks
+/// the criterion's denominator and reads as a decision somebody made -- and
+/// that direction is guarded by the citation clause. The other direction only
+/// ever ADDS work to AC-08.5, so an error there is loud by construction: the
+/// worklist grows and somebody has to build an arm nobody wanted.
+///
+/// **What this test therefore does NOT do: it cannot tell you a form SHOULD be
+/// excluded.** It can only refuse an exclusion that does not say why. Whether
+/// `Event` and `NodeInbox` genuinely belong outside the population is a
+/// RULING, and the citations below are where a reader goes to challenge it.
+/// An instrument that declares its own blind spot is the argument for the
+/// discipline around it; one that implies it has none is the vacuous green.
+///
+/// # The citation is mandatory, and that clause is inherited rather than minted
+///
+/// hv ruled exactly this shape for the runner roster's `not-an-instrument`, on
+/// cc's grounds: **a bare exclusion costs nothing to write, so a genuine member
+/// can be declared out of scope by whoever finds the check inconvenient -- and
+/// the check goes blind again WITH A SIGNATURE ON IT, which is worse than a
+/// gap, because a declaration reads as a decision someone made.** Same shape,
+/// same clause. An empty citation fails below.
+#[derive(Debug, PartialEq, Eq)]
+enum Expected {
+  /// `put` has an arm today.
+  Reachable,
+  /// No arm yet, and there SHOULD be one. **This is AC-08.5's worklist.**
+  NotBuiltYet,
+  /// No arm, and there must never be one. Carries the ruling that says so.
+  NeverByRuling(&'static str),
+}
+
+impl Expected {
+  /// What the surface must do for this declaration to hold.
+  fn requires(&self) -> Reached {
+    match self {
+      Expected::Reachable => Reached::Yes,
+      Expected::NotBuiltYet | Expected::NeverByRuling(_) => Reached::NoWritePathYet,
+    }
+  }
+
+  /// **Is this form in AC-08.5's denominator?** Permanent exclusions are not:
+  /// the criterion is about the forms that SHOULD be reachable.
+  fn in_population(&self) -> bool {
+    !matches!(self, Expected::NeverByRuling(_))
+  }
+}
+
 /// **EXHAUSTIVE ON PURPOSE: a fourteenth `Entity` variant does not compile
 /// until it is named here**, which is the only mechanism Rust offers for
 /// "every variant is accounted for" -- the language cannot enumerate them.
@@ -469,21 +550,41 @@ enum Reached {
 /// This is NOT a second copy of `Entity::form()`. That answers *what is this
 /// called*; this answers *is this form expected to be reachable by `put`*, and
 /// nothing else in the tree holds that.
-fn declared_reach(entity: &intentsvcs::address::Entity) -> Reached {
+fn declared_reach(entity: &intentsvcs::address::Entity) -> Expected {
   use intentsvcs::address::Entity as E;
   match entity {
     // Arms that exist in `Facade::put` today.
-    E::At { .. } | E::Ac { .. } | E::Thread { .. } => Reached::Yes,
+    E::At { .. } | E::Ac { .. } | E::Thread { .. } => Expected::Reachable,
     // Reached, and refused BY NAME with `this id is server-assigned`. That is
     // an opinion about the request, so the door exists.
-    E::Threads | E::Issue { .. } => Reached::Yes,
-    // **AC-08.5's LIVE INSTANCES, and the reason this row is not green.**
+    E::Threads | E::Issue { .. } => Expected::Reachable,
+
+    // **AC-08.5's LIVE WORKLIST, and the reason this row is not green.**
     // An attachment's canon record has no setter narrower than a thread; the
-    // rest have no `put` arm at all.
-    E::Attachment { .. } => Reached::NoWritePathYet,
-    E::Wp { .. } | E::WpCollection { .. } | E::AcCollection { .. } => Reached::NoWritePathYet,
-    E::Issues => Reached::NoWritePathYet,
-    E::Node { .. } | E::NodeInbox { .. } | E::Event { .. } => Reached::NoWritePathYet,
+    // rest have no `put` arm at all. Every one of these SHOULD have one.
+    E::Attachment { .. } => Expected::NotBuiltYet,
+    E::Wp { .. } | E::WpCollection { .. } | E::AcCollection { .. } => Expected::NotBuiltYet,
+    E::Issues => Expected::NotBuiltYet,
+    E::Node { .. } => Expected::NotBuiltYet,
+
+    // **PERMANENT EXCLUSIONS, EACH CITING THE RULING THAT EXCLUDES IT.**
+    // These are not writable entities, so they were never in this criterion's
+    // population. Before the split they sat in the worklist, which made
+    // AC-08.5 satisfiable only by building what a shipped guard refuses.
+    E::NodeInbox { .. } => Expected::NeverByRuling(
+      "append-only by the whiteboard protocol's single-writer inbox rule, guarded by \
+       `append-only-guard.sh`, whose declared subject `intent/whiteboard/*/.history/**` \
+       exists because 492 lines of one node's history were destroyed 2026-08-17. A `put` \
+       arm here is a truncating write over an append-only surface: the exact act the \
+       guard was written to refuse.",
+    ),
+    E::Event { .. } => Expected::NeverByRuling(
+      "the event log is append-only -- history is not edited. hv ruling D53, 2026-08-20 \
+       retired the tracked `intent/events.jsonl` and moved the log into the store, and \
+       `append-only-guard.sh` names the log as its second declared subject after 19 \
+       events were destroyed 2026-08-19. AC-09.3 covers reading it; nothing covers \
+       rewriting it, because nothing should.",
+    ),
   }
 }
 
@@ -539,7 +640,7 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
   let fx = populated_fixture();
   let mut facade = fx.facade();
 
-  let mut observed: Vec<(String, Reached)> = Vec::new();
+  let mut observed: Vec<(String, Reached, Expected)> = Vec::new();
   let mut disagreements: Vec<String> = Vec::new();
 
   for url in one_address_of_every_form() {
@@ -560,19 +661,44 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
       Reached::Yes
     };
     let declared = declared_reach(&address.entity);
-    if reached != declared {
+
+    // **THE CITATION CLAUSE, ENFORCED RATHER THAN TRUSTED.** A permanent
+    // exclusion carrying no usable reason is precisely cc's roster finding: it
+    // costs nothing to write, so a form that SHOULD be reachable can be
+    // declared out of the population by whoever finds this test inconvenient,
+    // and the criterion goes blind with a signature on it. The length floor is
+    // crude on purpose -- it cannot judge a reason, only refuse an absent one,
+    // and a check that cannot be satisfied by a shrug is worth more here than
+    // one that pretends to grade prose.
+    if let Expected::NeverByRuling(why) = &declared {
+      assert!(
+        why.trim().len() > 40,
+        "{url} is declared NeverByRuling with no usable citation.\n  \
+         A permanent exclusion MUST name the ruling that excludes it. A bare one costs \
+         nothing to write, so it can retire a form that should be reachable and leave a \
+         DECLARATION where a gap used to be -- which reads as a decision somebody made \
+         and is worse than the gap. hv ruled this clause for the runner roster's \
+         `not-an-instrument`; it is inherited here, not minted."
+      );
+    }
+
+    if reached != declared.requires() {
       disagreements.push(format!(
-        "  {url}\n    declared {declared:?}, observed {reached:?}"
+        "  {url}\n    declared {declared:?}, which requires {:?}, but observed {reached:?}",
+        declared.requires()
       ));
     }
-    observed.push((url.to_string(), reached));
+    observed.push((url.to_string(), reached, declared));
   }
 
   // **THE POSITIVE CONTROL: at least one form must be reachable.** Every
   // assertion here is about a refusal, so a facade that refused everything --
   // a broken fixture, an unopened canon -- would satisfy the whole list and
   // report a green that is a fact about the harness rather than the surface.
-  let reachable = observed.iter().filter(|(_, r)| *r == Reached::Yes).count();
+  let reachable = observed
+    .iter()
+    .filter(|(_, r, _)| *r == Reached::Yes)
+    .count();
   assert!(
     reachable > 0,
     "no form was reachable at all -- this is a fact about the harness, not about \
@@ -590,17 +716,41 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
   // **The unsettable set, printed by name on every run.** AC-08.5 asks for it
   // as OUTPUT, not merely as an assertion, and a set nobody prints is one
   // nobody can act on.
-  let unsettable: Vec<&str> = observed
+  // **THE DENOMINATOR IS THE FORMS THAT SHOULD BE REACHABLE**, and the
+  // permanent exclusions are printed separately WITH their rulings rather than
+  // omitted. An exclusion nobody prints is one nobody can challenge, and this
+  // list is exactly where a wrong exclusion would hide.
+  let population: Vec<&(String, Reached, Expected)> = observed
     .iter()
-    .filter(|(_, r)| *r == Reached::NoWritePathYet)
-    .map(|(u, _)| u.as_str())
+    .filter(|(_, _, e)| e.in_population())
+    .collect();
+  let worklist: Vec<&str> = population
+    .iter()
+    .filter(|(_, r, _)| *r == Reached::NoWritePathYet)
+    .map(|(u, _, _)| u.as_str())
+    .collect();
+
+  println!(
+    "AC-08.5: {} of {} entity form(s) IN THE POPULATION have no write path through `put`:",
+    worklist.len(),
+    population.len()
+  );
+  for u in &worklist {
+    println!("  {u}");
+  }
+
+  let excluded: Vec<(&str, &str)> = observed
+    .iter()
+    .filter_map(|(u, _, e)| match e {
+      Expected::NeverByRuling(why) => Some((u.as_str(), *why)),
+      _ => None,
+    })
     .collect();
   println!(
-    "AC-08.5: {} of {} entity form(s) have no write path through `put`:",
-    unsettable.len(),
-    observed.len()
+    "AC-08.5: {} form(s) are EXCLUDED FROM THE POPULATION BY RULING, not pending:",
+    excluded.len()
   );
-  for u in &unsettable {
-    println!("  {u}");
+  for (u, why) in &excluded {
+    println!("  {u}\n    {why}");
   }
 }
