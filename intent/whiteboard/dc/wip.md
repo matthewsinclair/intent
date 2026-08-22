@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-22 10:11Z
+heartbeat_at: 2026-08-22 10:47Z
 status: active
 focus: "**LANE COMPLETE FOR THE USABILITY AIM (vc's words); HOLDING.** `5173a220` `int suite` -- a HEAD figure that NAMES ITS REVISION BY CONSTRUCTION, clone extracted to `cmd/shared/clone.lib` with `prepush` calling it and proven byte-identical before/after. **Suite green at `5173a220`, 1444 ok / 0 not ok -- and that revision INCLUDES `int suite` itself, so the figure covers the thing producing it.** `68296b8e` **AT-11.7 to RED with the reason, after DRIVING it: rc=1, both arms.** The obvious clearance -- promote it -- was wrong; **`to-write` is exempt from L2/L3, so a failing test parked there stops nagging while covering nothing.** **All four failures are properties of the WRITER (`int macos stage`, one `commit:` for a SET and no hash), not the check** -- so the row is now a visible red pointing at real work instead of an invisible unwritten one. **Standing tax off every commit: `stale_at_check` rc=0, zero AT-11.7 mentions.** **NOT TAKING `int macos stage` NEXT AND vc IS RIGHT: it is WP-11 DISTRIBUTION, which is RELEASE scope, and hv asked for local usability explicitly NOT public release. Widening the pen because a red row appeared in my lane is the quiet scope-widening the check exists to stop.** Earlier: `c7012833` / `7e290d39` / `99168a8f` / `946a8c6f` / `137378df`. **NOT PUSHED and will not be.**"
 claims: [ST0056/07, ST0056/11]
@@ -318,6 +318,31 @@ Written up at cc's request before they go near `render.rs`. **My board had carri
 **THE SHARPEST INSTANCE, BECAUSE IT READS AS DONE:** `fileindex`'s `Target:` ends _"The v3 binary already does this."_ That sentence is TRUE -- and it is about `--help` exiting 0 under INV-07. Driven: **`fileindex --help` rc=0, `fileindex bin` rc=2.** A note that is accurate about a flag reads, at a glance, as a note about a command. **Anyone sweeping by disposition marks `fileindex` hosted and moves on.**
 
 **SO THE ONLY INSTRUMENT IS THE BINARY.** Drive the verb and read the exit code; `rc=2` from `render.rs:495` is the unbuilt signal and it is deliberate (issue 0038 -- the gate fail-opens on `2+` and reads `1` as a negative verdict about your work).
+
+**AND THAT IS NECESSARY BUT NOT SUFFICIENT, WHICH I LEARNED BY GETTING IT WRONG WITHIN THE HOUR OF WRITING THE ABOVE. A BINARY NAMES A REVISION, AND A SWEEP THAT DOES NOT NAME IT IS THE SAME UNREVISIONED FIGURE THE ESTATE KEEPS PRODUCING.**
+
+My first sweep drove `target/release/intent` **built at `ee4a7cac`, roughly fifteen commits behind HEAD**, and reported `claude subagents / skills / ws` UNBUILT. **cc landed `21ea0e8f` -- _`intent claude skills` is reachable_ -- WHILE I WAS SWEEPING**, so one of my three results was false before I published it, and I had already sent it to cc as context. **Nothing in the drive said the binary was stale.** The `rc=2` is identical whether the command was never built or was built ten minutes ago into a binary you are not running.
+
+**THE AGGRAVATION, AND IT IS THE PART WORTH KEEPING: THE STALENESS WAS ON MY SCREEN HOURS EARLIER AND I READ PAST IT.** The pre-commit gate's own self-provenance arm printed `names ee4a7cac...; the checkout is at 295b93c6... -- the binary is from an earlier tree` on every commit I made today. **It is DIAGNOSTIC and never fails, which is exactly why it scrolled by.** A true warning that cannot block is a warning that gets read as furniture.
+
+**AND I BUILT THE MECHANISM THAT SOLVES THIS AND DID NOT APPLY IT TO MYSELF.** `int suite` exists to produce a figure that NAMES ITS REVISION BY CONSTRUCTION, because a test count that cannot name its commit is worthless. **A hosting sweep is the same kind of figure and I hand-drove it against whatever binary happened to be on disk.**
+
+**SWEEP AT `cd6afbaf`, REBUILT FIRST, `native/rust` CLEAN -- and HEAD moved again DURING the 2m16s build, which is the ambient condition rather than an anomaly:**
+
+| verb               | driven at `cd6afbaf`                      |
+| ------------------ | ----------------------------------------- |
+| `claude rules`     | HOSTED                                    |
+| `claude skills`    | **HOSTED** (`21ea0e8f`, cc, landed today) |
+| `claude hook`      | HOSTED                                    |
+| `agents sync`      | HOSTED                                    |
+| `claude subagents` | UNBUILT                                   |
+| `claude ws`        | UNBUILT                                   |
+| `fileindex`        | UNBUILT                                   |
+| `version`          | UNBUILT                                   |
+
+**`claude ws` BEING UNBUILT IS THE ESTATE-FACING ONE: it is the whiteboard PROVISIONER** (`ws new / list / archive / hygiene`, plus `claude start`). Five nodes are running this protocol by hand right now because the tool that scaffolds it does not exist in v3.
+
+**NOT DRIVEN, DELIBERATELY: `claude upgrade`, `claude start`, `claude prime`.** They mutate or spawn. **A hosting sweep cannot be completed by driving alone**, and "declared read-only" is not a substitute -- ic's `st edit` finding today is a verb declared `read` that WRITES the store and appends to a tracked file on its refusal path. For those, read the dispatch match: `render.rs:3073` handles `hook`, `rules`, `skills` and falls everything else to `unwired`.
 
 **AND THE PROBE ITSELF HAS TWO TRAPS I WALKED INTO TODAY, BOTH SILENT:** this shell is **zsh**, so an unquoted `$v` holding `"claude skills list"` is passed as ONE argument and every verb answers _unrecognized subcommand_ -- a plausible, uniform, entirely wrong sweep. And `rc=$?` after a pipe reads the LAST stage, so `| head -1` returns 0 for everything. **My first sweep today reported rc=0 across the board and was wrong on both counts at once.** Capture `rc` off the bare call, and pass argv as `"$@"`.
 
