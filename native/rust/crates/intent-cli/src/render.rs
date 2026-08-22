@@ -3074,9 +3074,256 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("hook", a)) => hook(a),
     Some(("rules", a)) => rules(a),
+    Some(("skills", a)) => skills(a),
     Some((verb, _)) => unwired("claude", verb),
     None => unwired("claude", ""),
   }
+}
+
+/// `intent claude skills` -- AC-07.3.
+///
+/// **THE SURFACE WAS ALREADY PARSED AND ONLY THE RENDERER WAS MISSING.** The
+/// spine builds all five verbs and the `-v` flag from the dispatch table, so
+/// `claude skills --help` has been listing commands that answered `2` -- which
+/// is the table-says-it-ships / binary-says-no shape the spine's own comment
+/// records for three short-only flags.
+fn skills(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("list", a)) => skills_list(a),
+    Some(("install", a)) => skills_change(a, SkillVerb::Install),
+    Some(("sync", a)) => skills_change(a, SkillVerb::Sync),
+    Some(("uninstall", a)) => skills_change(a, SkillVerb::Uninstall),
+    Some(("show", a)) => skills_show(a),
+    Some((verb, _)) => unwired("claude", &format!("skills {verb}")),
+    None => unwired("claude", "skills"),
+  }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SkillVerb {
+  Install,
+  Sync,
+  Uninstall,
+}
+
+/// The skill library this binary serves, rooted at its own install.
+///
+/// **NO PROJECT IS OPENED.** Skills belong to the INSTALL and land in the
+/// OPERATOR's home; neither is a property of the directory you happen to be
+/// standing in, and requiring a project would make the command unusable in the
+/// one place people first reach for it -- a fresh machine.
+///
+/// `$HOME` is reached through [`intentsvcs::userstate`], which is the single
+/// file permitted to read it (hv, 2026-08-22). Extensions stay `None` on the
+/// held ruling; see that module for the named consequence.
+fn skills_lib() -> Result<intentsvcs::skills::Skills, Failure> {
+  use intentsvcs::userstate;
+  let install = intentsvcs::install::home()
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
+  let target = userstate::skills_target()
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
+  let manifest = userstate::skills_manifest()
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
+  Ok(intentsvcs::skills::Skills::new(
+    &install,
+    userstate::ext_base(),
+    target,
+    manifest,
+  ))
+}
+
+fn skill_names(a: &ArgMatches) -> Vec<String> {
+  a.get_many::<String>("name")
+    .map(|v| v.cloned().collect())
+    .unwrap_or_default()
+}
+
+fn skills_fail(e: intentsvcs::skills::SkillsError) -> Failure {
+  Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
+}
+
+/// install / sync / uninstall -- one renderer, because they report the same
+/// thing about the same objects (IN-AG-HIGHLANDER-001). Three copies of the
+/// tally would agree the day they were written.
+fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
+  use intentsvcs::skills::Outcome;
+  let lib = skills_lib()?;
+  let names = skill_names(a);
+  // **`--force` IS DECLARED NOWHERE ON THIS SURFACE, SO IT IS WIRED AS `false`
+  // AND SAID OUT LOUD RATHER THAN READ HOPEFULLY.** `surface/dispatch-table.json`
+  // gives `claude skills` exactly one flag, `-v`; v2 takes `--force`/`-f` on
+  // install and sync. Driven: `claude skills sync --force` -> `error:
+  // unexpected argument '--force' found`.
+  //
+  // **THIS IS NOT COSMETIC -- IT LEAVES A HELD SKILL WITH NO CLI REMEDY**, so
+  // the messages below name what an operator can actually DO instead of a flag
+  // they cannot reach. A remedy naming an unreachable thing is the defect this
+  // estate keeps finding, and the first draft of this renderer shipped three of
+  // them. The table is ic's SSOT with a generated `.md` face beside it, so the
+  // flag is routed rather than added here mid-flight.
+  let force = false;
+
+  if names.is_empty() && verb != SkillVerb::Sync {
+    return Err(Failure::Error(format!(
+      "error: name at least one skill to {}\n  remedy: `intent claude skills list` prints what this install carries",
+      if verb == SkillVerb::Install {
+        "install"
+      } else {
+        "uninstall"
+      }
+    )));
+  }
+
+  let report = match verb {
+    SkillVerb::Install => lib.install(&names, force),
+    SkillVerb::Sync => lib.sync(force),
+    SkillVerb::Uninstall => lib.uninstall(&names),
+  }
+  .map_err(skills_fail)?;
+
+  if report.steps.is_empty() {
+    println!("ok: nothing installed by this build yet");
+    return Ok(());
+  }
+
+  // **A STEP THAT NEEDS A DECISION IS COUNTED SEPARATELY FROM ONE THAT FAILED,
+  // AND BOTH ARE COUNTED SEPARATELY FROM ONE THAT WORKED.** v2 collapses held
+  // and succeeded into one exit 0, so an operator whose skill was held back
+  // learns it only by reading the scrollback.
+  let mut moved = 0;
+  let mut settled = 0;
+  let mut needs_decision = 0;
+
+  for step in &report.steps {
+    let line = match &step.outcome {
+      Outcome::Installed { files } => {
+        moved += 1;
+        format!("installed ({files} file(s))")
+      }
+      Outcome::Updated { written, removed } if removed.is_empty() => {
+        moved += 1;
+        format!("updated ({written} file(s))")
+      }
+      Outcome::Updated { written, removed } => {
+        moved += 1;
+        format!(
+          "updated ({written} file(s), {} retired: {})",
+          removed.len(),
+          removed.join(", ")
+        )
+      }
+      Outcome::Removed { removed, left } if left.is_empty() => {
+        moved += 1;
+        format!("removed ({} file(s))", removed.len())
+      }
+      Outcome::Removed { removed, left } => {
+        moved += 1;
+        format!(
+          "removed ({} file(s)); left {} this build did not install: {}",
+          removed.len(),
+          left.len(),
+          left.join(", ")
+        )
+      }
+      Outcome::UpToDate => {
+        settled += 1;
+        "up to date".to_string()
+      }
+      Outcome::NotInstalled => {
+        settled += 1;
+        "not installed".to_string()
+      }
+      Outcome::AlreadyInstalled => {
+        needs_decision += 1;
+        "already installed -- remove it from your skills directory first, then install again (`--force` is declared in the surface table but not built)".to_string()
+      }
+      Outcome::ModifiedLocally => {
+        needs_decision += 1;
+        "modified here since it was installed -- HELD, and this build cannot take the source copy for you: no `--force` reaches this command yet. Copy your edits out and remove the installed directory to accept the source".to_string()
+      }
+      Outcome::Conflicted => {
+        needs_decision += 1;
+        "changed upstream AND here -- HELD. Copy your edits out and remove the installed directory to accept the source; this build has no flag that will do it for you".to_string()
+      }
+      Outcome::Undecidable => {
+        needs_decision += 1;
+        "installed here, but this build has no record of writing it, so it cannot tell an upstream change from your own edit. Copy anything you want to keep, then remove the installed directory and install again".to_string()
+      }
+      Outcome::SourceMissing => {
+        needs_decision += 1;
+        "no source for this name in this install".to_string()
+      }
+    };
+    println!("  {:<28} {line}", step.name);
+    if let Some(prov) = &step.shadowed {
+      eprintln!("warning: `{}` is shadowed by {prov}", step.name);
+    }
+  }
+
+  println!("ok: {moved} changed, {settled} already settled, {needs_decision} need a decision");
+
+  // **EXIT 1 WHEN SOMETHING NEEDS A DECISION, AND THIS IS A CHOICE RATHER THAN
+  // AN INHERITANCE.** v2 exits 0 unless EVERYTHING failed, so a held skill is
+  // reported in a line nobody reads and the command says it succeeded. A
+  // decision the operator has not made is not a success, and `Verdict` is the
+  // right shape: the detail is already on stdout where it can be read or
+  // parsed, so a second copy on stderr would be noise.
+  if needs_decision > 0 {
+    return Err(Failure::Verdict);
+  }
+  Ok(())
+}
+
+fn skills_list(a: &ArgMatches) -> Result<(), Failure> {
+  let lib = skills_lib()?;
+  let available = lib.available().map_err(skills_fail)?;
+  let verbose = a.try_get_one::<bool>("v").ok().flatten().copied() == Some(true);
+
+  if available.is_empty() {
+    println!("no skills in this install");
+    return Ok(());
+  }
+  for origin in &available {
+    let state = if lib.is_installed(&origin.name) {
+      "installed"
+    } else {
+      "-"
+    };
+    if verbose {
+      println!(
+        "{:<28} {:<10} {:<8} {}",
+        origin.name,
+        state,
+        origin.provenance,
+        origin.dir.display()
+      );
+    } else {
+      println!("{:<28} {:<10} {}", origin.name, state, origin.provenance);
+    }
+  }
+  Ok(())
+}
+
+fn skills_show(a: &ArgMatches) -> Result<(), Failure> {
+  let lib = skills_lib()?;
+  let Some(name) = skill_names(a).into_iter().next() else {
+    return Err(Failure::Error(
+      "error: name a skill to show\n  remedy: `intent claude skills list` prints what this install carries".to_string(),
+    ));
+  };
+  let Some(origin) = lib.resolve(&name).map_err(skills_fail)? else {
+    return Err(Failure::Error(format!(
+      "error: no skill named `{name}` in this install\n  remedy: `intent claude skills list` prints what there is"
+    )));
+  };
+  let body = std::fs::read_to_string(origin.dir.join("SKILL.md")).map_err(|e| {
+    Failure::Error(format!(
+      "error: cannot read {}: {e}\n  remedy: the skill resolved but its SKILL.md could not be read -- check the install tree",
+      origin.dir.display()
+    ))
+  })?;
+  print!("{body}");
+  Ok(())
 }
 
 /// `intent claude rules` -- the highest-traffic verb in the tool.

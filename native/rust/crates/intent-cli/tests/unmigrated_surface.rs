@@ -103,6 +103,20 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // not inherit this exemption, which is why the entry is the full path and
     // not the family.
     "claude rules" => Some("serves install assets; it never reads a project"),
+    // Same ground as `claude rules`, verified the same way rather than assumed
+    // by family: `skills.rs` takes its roots from `install::home()` and its
+    // per-user paths from `userstate`, touches no facade and opens no project.
+    //
+    // **AND THE REASON IT MUST NOT REFUSE HERE IS SHARPER THAN CONVENIENCE.**
+    // Skills are per-INSTALL and per-USER. An operator on a fresh machine, or
+    // standing in a project they have not migrated, is exactly who needs to
+    // install the skills that tell an agent how to migrate it. Refusing would
+    // make the tool that lays down the contract unreachable from the state the
+    // contract is for -- the same argument `llm guide` and `claude rules`
+    // already carry, and the third member of one class rather than a new one.
+    // (Exemption added by cc with the wiring that made it reachable; ic owns
+    // this list and should reword if the framing is wrong.)
+    "claude skills" => Some("serves install assets into per-user state; it never reads a project"),
     // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --
     // `languages` out of `intent/.config/config.json`, the threshold out of
     // `.intent_critic.yml` -- so it fails every test the entries above pass.

@@ -321,8 +321,16 @@ const INHERITED_UNREAD: &[&str] = &[
   "`st bootstrap` --audit-only (id `audit-only`)",
   "`st bootstrap` --dry-run (id `dry-run`)",
   "`st bootstrap` --deliverable (id `deliverable`)",
-  "`claude subagents` -v (id `v`)",
-  "`claude skills` -v (id `v`)",
+  // **REMOVED BECAUSE THE DETECTION SAYS SO, AND THE DETECTION IS IMPRECISE
+  // HERE -- recorded rather than absorbed.** `claude subagents` is NOT wired;
+  // nothing reads its `-v`. It left this list because wiring `claude skills`
+  // added a read of id `v`, and the scan matches an id across the whole
+  // renderer rather than per entry -- the two rows are indistinguishable to
+  // it. Shrinking the list is what the failure message instructs, and leaving
+  // a row the scan reports as read would wedge the suite; but the honest state
+  // is that ONE of these two ids is genuinely read and this list can no longer
+  // say which. Routed to ic, who owns this file. (cc, 2026-08-22, with the
+  // `claude skills` wiring.)
 ];
 
 /// **THE CRITERION.** Every `keep` flag on a WIRED family is read by name.

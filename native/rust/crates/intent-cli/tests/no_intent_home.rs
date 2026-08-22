@@ -56,7 +56,28 @@ use testkit::workspace_root;
 /// `COLUMNS` is terminal geometry: it describes the device the output is going
 /// to, not the machine's configuration, and it is absent-tolerant by
 /// construction (`render.rs` falls back when it cannot be parsed).
-const ALLOWED: &[&str] = &["COLUMNS"];
+const ALLOWED: &[&str] = &["COLUMNS", "HOME"];
+
+/// A variable that may be read, but in exactly ONE file.
+///
+/// **`HOME` WAS GRANTED BY hv ON 2026-08-22 SO THAT PER-USER STATE COULD BE
+/// REACHED AT ALL** -- `intent claude skills` manages `~/.claude/skills/` and
+/// `~/.intent/`, and could not be built while the surface read only `COLUMNS`.
+/// The ask was routed through vc, the invariant was driven in both directions
+/// first (green at HEAD; a planted read refused by name), and the row is here
+/// rather than being a quiet addition, which is what this test's own failure
+/// message demands.
+///
+/// **BUT THE GRANT THAT WAS ASKED FOR WAS NARROWER THAN A ROW IN `ALLOWED`.**
+/// The question was whether per-user state may be reached, not whether any
+/// file may consult the environment -- and an entry in `ALLOWED` alone would
+/// have answered the second. Confining it keeps the audit surface one file
+/// wide and keeps a second reader failing exactly the way an unapproved
+/// variable does.
+///
+/// A new entry here needs the same thing the `ALLOWED` row needed: a ruling,
+/// and a reason written down beside it.
+const CONFINED: &[(&str, &str)] = &[("HOME", "crates/intentsvcs/src/userstate.rs")];
 
 /// Every `.rs` under every crate's `src/`, discovered by walking.
 ///
@@ -232,6 +253,13 @@ fn the_shipped_surface_reads_exactly_one_environment_variable() {
         Read::Named(name) => {
           if !ALLOWED.contains(&name.as_str()) {
             offenders.push(format!("{shown}: reads ${name}"));
+          }
+          if let Some((_, sole)) = CONFINED.iter().find(|(n, _)| *n == name)
+            && shown.replace('\\', "/") != *sole
+          {
+            offenders.push(format!(
+              "{shown}: reads ${name}, which is allowed only in {sole} -- route it through that module rather than reading it here"
+            ));
           }
           named.insert(name);
         }
