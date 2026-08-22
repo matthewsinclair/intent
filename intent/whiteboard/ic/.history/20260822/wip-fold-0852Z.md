@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: d5a0bd62-6c46-4b53-8af9-fca9edf87c0e
-heartbeat_at: 2026-08-22 08:52Z
+heartbeat_at: 2026-08-21 22:17Z
 status: active
-focus: "**READ THIS FIRST: EVERY MEASUREMENT BELOW IS FROM 2026-08-21 AND IT IS NOW THE 22nd.** Session resumed overnight, `$CLAUDE_CODE_SESSION_ID` UNCHANGED at `d5a0bd62-6c46-4b53-8af9-fca9edf87c0e` -- same session, so this board is mine rather than a predecessor's, **but a same-session board is not a same-DAY board and the gate figure is ten hours old.** **HOLDING FOR vc ON hv'S INSTRUCTION. Nothing in flight, nothing uncommitted, seven commits yesterday.** **THE LIVE FINDING IS `st edit`: declared `read_or_mutate: read`, help _Print the absolute path to a steel thread file_, and it WRITES the store and appends `STEELTHREAD:<ID>` to TRACKED `intent/.intentfiles` on its rc=1 REFUSAL path.** Exactly one affected project and it is THIS one; cc's build to fix, not my cover. **GATE 65 OF 67 as of 2026-08-21 22:00Z** -- ST0057 49/51, ST0056/03 16/16; AC-08.5 and AC-01.5 outstanding, neither movable by me. **RE-DRIVE IT BEFORE QUOTING IT.**"
+focus: "**U2 SWEPT IN THE DIRECTION NOBODY HAD: v3 VERBS AGAINST A v3 PROJECT. ONE DECLARATION VIOLATION, DRIVEN: `st edit`.** Declared `read_or_mutate: read`, help _Print the absolute path to a steel thread file_, and it REFUSES AT rc=1 WHILE WRITING `intent/.cache/intent.db` AND APPENDING `STEELTHREAD:ST0001` TO TRACKED `intent/.intentfiles`. 79 manifest rows before, 79 after -- nothing created. **Top-level `edit` is declared `mutate` and is therefore NOT a violation (vc's correction, and they were right before I ran it) -- its defect is that help and error text present a path-printer while the declaration correctly says mutator.** **THE PRECONDITION IS THE FINDING, NOT THE VERB.** `st edit` came back CLEAN in my realised-no-manifest fixture and clean in vc's fresh-init one; it only writes with a MANIFEST PRESENT declaring nothing. **Three preconditions, and both of us had independently swept the two that hide it.** **20 of 46 declared-read verbs are declared-but-UNIMPLEMENTED at rc=2 -- CORRECTED FROM A HAND-TALLIED 19** (`config` `agents` `lang` `llm` `modules` `plugin` `ext` `version`); zero of the 46 write in any other condition. **U3, DERIVED FROM WHAT INVOKES `intent` UNATTENDED: `claude rules` WORKS (the 23-hit skill call), `claude hook` works -- but `claude ws`, `claude prime`, `claude upgrade`, `lang init` and `version` are rc=2 NOT IMPLEMENTED and `treeindex` is RETIRED.** `intent claude ws` is the whiteboard PROVISIONER."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 ---
 
@@ -13,47 +13,88 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0056/03]
 
 ## DOING
 
-**NOTHING IN FLIGHT. HOLDING FOR vc.** 2026-08-21's working detail is archived at `.history/20260822/wip-fold-0852Z.md` (plus `20260821/wip-fold-1600Z.md` and `-1721Z.md`). What stays here is only what a cold session cannot reconstruct.
+**U2 / U3 under vc's redirect. Nothing uncommitted.**
 
-| commit                                      | what                                                                                        |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `6edbd24f` `f099fe22`                       | AT-07.7 green at HEAD; `view_path_of`'s wildcard to named arms                              |
-| `11c2037d`                                  | `doctor --format=json` -- vocabulary READ FROM THE TABLE, refused at exit 1 in the renderer |
-| `b4918a35`                                  | `declared_but_unwired.rs` retired, 243 deletions, ten citations repointed                   |
-| `c191fb08`                                  | AC-08.5's cover -- unsettable set driven across every entity form                           |
-| `d12164a7`                                  | **`intent edit` writes on its refusal path**; the U1/U3 hook seam                           |
-| `0da0075b`                                  | **`st edit` violates its own `read_or_mutate: read` declaration**                           |
-| `d4aad931` `8ee1644d` `62ab0731` `6df547bf` | four corrections, all of my own published claims                                            |
+**1. `intent edit` WRITES ON ITS REFUSAL PATH, AND THE INSTRUMENT THAT FINDS IT MATTERS MORE THAN THE FINDING.** Driven on a throwaway at `85a0ed23`:
 
-**THE LIVE FINDING.** `st edit ST0001`, rc=1, manifest-present fixture: `intent/.cache/intent.db` moves, `intent/.intentfiles` goes empty -> `STEELTHREAD:ST0001`, **79 manifest rows before and after so NOTHING IS CREATED.** Declared `read`. **A refused command edits the realisation policy in a TRACKED file** -- it reaches the operator's next commit as a diff they never made, and nothing recomputes it. Top-level `edit` is declared `mutate` and is therefore correct; the two verbs share behaviour and disagree in their declarations.
+|                           | before             | after                |
+| ------------------------- | ------------------ | -------------------- |
+| `intent/.cache/intent.db` | `70921a9a`         | `31d2ce5b`           |
+| `intent/.intentfiles`     | empty (`e3b0c442`) | `STEELTHREAD:ST0001` |
+| manifest rows             | 79                 | **79**               |
 
-**THE PRECONDITION IS THE FINDING, NOT THE VERB.** Fresh `init` no manifest (vc drove): clean. Realised, no manifest (ic drove): clean. **Manifest present declaring nothing: WRITES.** Two nodes independently swept the two conditions that hide it. **A verb is not read-only; it is read-only IN A CONDITION.** Blast radius is exactly one project -- vc drove that a migrated project never acquires a manifest through ordinary use -- **and the one project is this one, which matts drives daily.**
+**rc=1, an error telling the operator the file is generated and not to edit it, and two durable files moved.** `.intentfiles` is TRACKED, so it lands in the operator's next commit as a diff they never made -- and it is the realisation policy, which nothing recomputes.
 
-**U1/U3 SEAM, WITH dc AND CLOSED BY THEM AT `99168a8f`.** `claude hook` resolves its script through `install::home()`, walking `current_exe()` ancestors for `lib/templates/`. Inside the checkout all three hooks rc=0; **a bare copy on PATH gives rc=1 x3**, and Claude Code blocks on 2, **so the strict prompt gate FAILS OPEN in every project at once.** Homebrew and symlinks survive -- `resolve()` canonicalises first. dc wrote the constraint into `bin/intent3` and `int local install`.
+**vc found this as CREATES TWO FILES (count 1 -> 3); I found it as MUTATES TWO AND CREATES NOTHING.** Both are real and they are the same defect under opposite preconditions -- unrealised vs already-realised. **A file-count check catches vc's and calls mine clean; `git status` catches the `.intentfiles` half and never sees the store.** No single instrument covers both, which is the argument for the hash and for hashing BEFORE choosing what to look at.
 
-**U2 / U3 FIGURES, COMPUTED (2026-08-21).** 46 declared-read verbs driven, three preconditions: **24 answered / 20 rc=2 UNWIRED / 1 correctly RETIRED (`help`) / 1 undriven on my args.** One violation in 46. Daily surface: `claude rules list/show` WORKS (23 call sites in the shipped skills, the most-invoked `intent` call there is); `claude ws` / `claude prime` / `claude upgrade` / `lang init` / `version` are rc=2; `treeindex` is RETIRED and still instructed by `/in-essentials`.
+**2. THE U1/U3 SEAM: MAKING v3 REACHABLE FROM ANY cwd IS WHAT BREAKS THE HOOKS.** `render.rs:3275` resolves the hook script through `install::home()` -> `resolve()`, which walks `current_exe()` ancestors for `MARKER = lib/templates`. Driven both arms, manifest unchanged in both:
 
-**THE DAY'S RULE, AND SIX RECORDS WENT UNCHECKED AND ALL SIX WERE MINE: A RECORD I AUTHORED IS THE ONE I AM LEAST LIKELY TO READ.** Authorship feels like knowledge and substitutes for consultation, **and the signature makes the row look MORE covered to everyone else at the moment it stops covering anything.** vc's second arm is harder and I accept it: **reading is not routing, and having read it feels like having used it** -- they printed `populations.why` in full and re-derived by hand hours later. The block now defeats all three of its own candidate fixes: not vigilance, not a library, not comprehension.
+| binary location     | `claude hook session-context` / `require-in-session` / `post-tool-advisory`                    |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| inside the checkout | **rc=0**, `Intent project: noop-fixture`                                                       |
+| copied outside it   | **rc=1** x3, `cannot locate the Intent install this binary belongs to (no lib/templates/ ...)` |
 
-**THE ONLY ACTIONABLE PART, AND IT ASKS NOTHING OF A READER'S MEMORY: THE CLAIMS THAT WOULD COST SOMEONE ELSE WORK ARE THE ONES TO DRIVE.** That is a property of the CLAIM, not of the reader. Five of my six went unchecked into commits and a briefing; the sixth -- a test I asked hv to build -- was caught before it became work, **not through care but because it had a cheap check and I ran it.**
+**`require-in-session` at rc=1 does NOT block -- Claude Code blocks on 2 -- so the strict gate FAILS OPEN silently in every project.** That is issue 0043 inverted: 0043 blocked every prompt, this enforces none. **Homebrew survives** because `resolve()` canonicalises symlinks before walking, and a Cellar path still sits under an install root; **a bare `cp` onto PATH does not.** dc owns U1 and this is a constraint on its deliverable, not a defect in it.
+
+**3. U3's POPULATION IS DERIVED, NOT GUESSED, AND ONE CALL DOMINATES.** `.claude/settings.json` fires `intent claude hook session-context` at SessionStart and `intent claude hook require-in-session` on EVERY prompt, in every project. That is the daily surface's load-bearing call and finding 2 is about exactly it. Full call-site census in the fold below.
+
+**4. U2's SCOPE IS WRONG BY ONE POPULATION AND I AM SAYING SO RATHER THAN FILLING IT.** U2 asks "is v3 safe in a v2 project?" -- vc closed that synthetically, no real tree touched, and I agree it is closed. **The estate has exactly one v3 project: this one. Nobody has swept v3 verbs against a real v3 project, and finding 1 is what that sweep returns on its first verb.**
+
+## U2 / U3 -- driven 2026-08-21 at `d12164a7`+
+
+**THE INSTRUMENT IS THE TABLE'S OWN `read_or_mutate` FIELD, WHICH NOTHING TESTS.** Same shape as the `no_op` gap: a field the SSOT asserts in prose with no arm holding the binary to it. **vc's point stands -- that is a pattern in this table rather than two omissions, and the third will be found the same way.**
+
+**THE VIOLATION.** `st edit ST0001`, rc=1, manifest-present fixture:
+
+| path                      | before     | after                |
+| ------------------------- | ---------- | -------------------- |
+| `intent/.cache/intent.db` | `27d5ce52` | `1f8ae00f`           |
+| `intent/.intentfiles`     | empty      | `STEELTHREAD:ST0001` |
+| manifest rows             | 79         | **79**               |
+
+**Declared `read`. Help says _Print the absolute path_. It edits the realisation policy, in a TRACKED file, on a refusal path.** Byte-identical signature to top-level `edit` -- which is declared `mutate` and is therefore correct, so **the two verbs share behaviour and disagree in their declarations.**
+
+**THE PRECONDITION IS THE REAL FINDING.** Three conditions exist and each hides something:
+
+| precondition                            | who drove it    | `st edit`  |
+| --------------------------------------- | --------------- | ---------- |
+| fresh `init`, no manifest               | vc              | clean      |
+| realised, no manifest                   | ic              | clean      |
+| **manifest present, declaring nothing** | ic, second pass | **WRITES** |
+
+**Two nodes independently swept the two conditions that hide it.** A verb is not read-only; it is read-only IN A CONDITION, and absent-is-not-empty means the estate's real projects sit in the third.
+
+**COUNT RESOLVED WITH vc: 46 read / 76 mutate, not 42 / 69.** vc read `.families[]` only; the table carries `families` AND `new_surface`. **I made this exact error myself this morning** and it is on this board -- reading only `families` and concluding `export`/`events` were shipped-but-undeclared. **The same trap caught two nodes in one day, so it is the table's shape rather than either node's carelessness.**
+
+**FIGURE CORRECTED, COMPUTED RATHER THAN COUNTED: 24 answered / 20 UNWIRED / 1 correctly RETIRED (`help`) / 1 undriven on MY args (`llm guide`).** I published **19 of 46** by counting rows in a terminal, and it was wrong three ways at once: the count was short by one, `help` is dispositioned `retire` and answers **was retired in Intent v3** which is CORRECT rather than missing, and `llm guide`'s rc=1 was my argument error attributed to the binary. **MY OWN BOARD CARRIES THE RULE: any N-of-M IS COMPUTED BY A VERB, minted after hand-tallying produced two wrong numbers in two days.** I hand-tallied an N-of-M and published it to hv and to vc, **within the hour of writing that a record I authored is the one I am least likely to read.** Fourth instance, and the shortest gap between minting a rule and breaking it.
+
+**U3's DAILY SURFACE, DERIVED FROM WHAT INVOKES `intent` UNATTENDED** (`.claude/settings.json`, the shipped skills, `.githooks/`, devbin) **AND THEN DRIVEN:**
+
+| call                                                     | v3                                                             |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| `claude hook session-context` / `require-in-session`     | works -- **unless the binary is a bare copy on PATH**          |
+| `claude rules list` / `show`                             | works (23 call sites in the skills -- the most-invoked)        |
+| `info`, `todo`, `critic <lang>`, `agents sync`           | work                                                           |
+| `claude ws`                                              | **rc=2 NOT IMPLEMENTED -- this is the whiteboard PROVISIONER** |
+| `claude prime`, `claude upgrade`, `lang init`, `version` | **rc=2 NOT IMPLEMENTED**                                       |
+| `treeindex`                                              | **retired in v3** -- still instructed by `/in-essentials`      |
 
 ## TODO
 
-**HOLDING FOR vc.** Nothing below is started; none of it outranks whatever vc sends.
+1. **AC-08.5 IS COVERED AND STAYS RED, AND THE RED IS THE CRITERION'S OWN VERDICT** (`c191fb08`, over cc's build at `3f9b2907`). **8 of 13 entity forms have no write path through `put`** -- `Attachment`, `Wp`, `WpCollection`, `AcCollection`, `Issues`, `Node`, `NodeInbox`, `Event`. cc closed instance 1 (ST0011's `completed`); instance 2 was already refuted; **instances 3 and 4 are open.** Membership is DRIVEN and reds in BOTH directions, so a form that GAINS a path forces the declaration to shrink.
 
-1. **AC-08.5 IS COVERED AND STAYS RED, AND vc DROVE A REAL DEFECT IN MY COVER** (`c191fb08`): it asserts the unsettable set is ENUMERATED, never that it is EMPTY, **so it cannot red on the criterion's subject -- the row is honest only because I held it red by hand, and a hand-held red dies with the hand.** Fix shape agreed: assert EMPTY, or against an allowlist that must be driven down, so it greens by BUILD rather than by VERDICT. **vc ranked this SECOND to usability; do not start it unless the U2/U3 lane is blocked.**
+   - **A FIFTH INSTANCE THE ROW DOES NOT NAME: `Wp`.** Checked before claiming it -- the criterion's text says `attachment` 5 times, `completed` twice, **work packages ZERO.** A first-class model entity with writable fields, no door at all, no burning case. **That is what widening a population is for.**
+   - **BURNING CASE 3 STOPPED A REAL COMMIT WITHIN THE HOUR** (cc, 2026-08-21 17:21Z). Their `sync --to-store ST0056` swept a tracked-but-uncommitted attachment into canon; `canon_commit_check.sh` refused at `ADDS 1`; they backed canon out whole. **So `8 of 13` is not an inventory -- one member has a live consequence with a date on it.**
+   - **OPEN FOR hv, NOT MINE TO RULE:** are `Node`, `NodeInbox` and `Event` in scope for _every entity_? Scoped out, the figure is **5 of 10** and the row's shape is unchanged. The test records them as a MEASUREMENT, never as a judgement that they should be writable.
+   - **ALSO hv's, ROUTED BY cc AND I AGREE:** hv ruled _`sync` skips untracked bytes, loudly_. **Today's two blocks were TRACKED-but-UNCOMMITTED, which that wording does not reach.** Two nodes, one afternoon, opposite directions.
 
-   - 8 of 13 entity forms have no write path through `put`. **A fifth instance the row does not name: `Wp`** -- the criterion's text says `attachment` 5 times, `completed` twice, work packages ZERO.
-   - **OPEN FOR hv:** are `Node`, `NodeInbox`, `Event` in scope for _every entity_? Scoped out the figure is 5 of 10.
-   - **ALSO hv's, routed by cc:** hv ruled _`sync` skips untracked bytes, loudly_. The 2026-08-21 blocks were TRACKED-but-UNCOMMITTED, which that wording does not reach.
+2. **OPEN AND UNFILED -- TWO VERBS ACCEPT A FORMAT THEY DO NOT DECLARE, SILENTLY, AT rc=0.** `critic --format=__bogus__` falls back to text (`render.rs:3462`) and `events --format=__bogus__` ignores it (`:1737`). `export` refuses correctly and `doctor` now does. **Two of four enforce their own declared vocabulary.** `IN-AG-NO-SILENT-001` on the surface an operator reads; `enum_flag()` in `render.rs` is the fix, already written and already table-driven -- **two lines each.** Not filed without hv: both sites are cc's crate and neither is on the gate.
 
-2. **OPEN AND UNFILED -- TWO VERBS ACCEPT A FORMAT THEY DO NOT DECLARE, SILENTLY, AT rc=0.** `critic --format=__bogus__` falls back to text (`render.rs:3462`); `events --format=__bogus__` ignores it (`:1737`). `export` refuses correctly and `doctor` now does. `enum_flag()` is the fix, written and table-driven, **two lines each.** cc's crate, not on the gate, needs hv.
+3. **ST0057/WP-05 is recorded WIP with its gate 3/3 PASS and I am deliberately NOT closing it.** My board carries `st edit`'s fork as unruled, and **a gate that passes while a design question is open is a gate that does not reach the question.** Routed to vc.
 
-3. **`at green`'s no-op voice is declared with MY measurement clause and NO instrument.** `self_loop_voice.rs` drives 17 of 29 declared `no_op` contracts; `at green` is driven nowhere. vc took `wp cancel` and `wp reinstate`; **this one stays mine.** Second priority behind usability.
+4. **NOT MINE TO RULE:** the `BEGIN/END INTENT` marker grammar.
 
-4. **ST0057/WP-05 recorded WIP, gate 3/3 PASS, deliberately NOT closed** -- a gate that passes while a design question is open does not reach the question. With vc.
-
-5. **NOT MINE TO RULE:** the `BEGIN/END INTENT` marker grammar.
+**DONE TODAY, detail in `.history/20260821/wip-fold-1721Z.md`:** `doctor --format=json` (`11c2037d`) and the `declared_but_unwired.rs` retirement (`b4918a35`). Both are summarised in DOING above; the working notes are archived.
 
 ## Watch-outs
 
