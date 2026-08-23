@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-23 12:56Z
+heartbeat_at: 2026-08-23 13:01Z
 status: active
 focus: "**LOCALFOLD 2, 2026-08-23 12:56Z -- STILL HOLDING, NOTHING IN FLIGHT.** The day's findings are in WATCH-OUTS and D42 now, not in this line -- **read those, not this.** **I TOLD matts "everything of mine is published" in the very turn in which I had made the commit that made it false; vc caught it, and vc's push then made it true, so it never surfaced as a defect at any point.** A measurement taken before your own write is STALE BY CONSTRUCTION -- re-read AFTER your last write, never before. I also called a peer's live file "possibly orphaned" off ONE `git status`; it was mid-edit, and vc would have been within their rights to clean it. **Two samples separated in time, or say nothing about whose a dirty file is.** Refs level at `e0e7d2ff`; cc is the only node in flight."
 claims: [ST0056/07, ST0056/11]
@@ -26,6 +26,7 @@ claims: [ST0056/07, ST0056/11]
 
 ## The environment
 
+- **A `scratchpad/...` PATH CITED ANYWHERE DURABLE IS BOTH PERISHABLE AND AMBIGUOUS, AND THE AMBIGUITY IS THE WORSE HALF** (vc raised the reaping, 2026-08-23 13:01Z; the set comparison and the second finding are mine, driven here). Compared by UUID rather than counted: **18 transcripts under `~/.claude/projects/` have NO surviving tmp dir** -- vc said "10+", so confirmed and understated. **But 21 tmp dirs have NO transcript, so "tmp is reaped, projects is durable" is not the model**; the two stores are independently reaped and I have not established what removes the transcripts. **And my one LIVE instance did not fail the way the rule predicts:** `vc/inbox.dc.md:57` cites a clone at a bare `scratchpad/ac015`, and TWO now exist under different session UUIDs. **A dead pointer errors loudly; an ambiguous one silently resolves to the wrong thing.** Cite a committed path or nothing.
 - **v2 LIVES IN `~/Devel/prj/Intentv2`** (`v2-maintenance` at `fb45e9ea`). **Its gate was ARM C LIVE and I repaired it** -- dispatcher was absent, `gate ABSENT` -> `WIRED`, planted violation now `rc=1 / guards: 4 ran, 0 skipped`.
 - **`intent` ON PATH IS v2.19.0. Drive v3 explicitly: `./native/rust/target/debug/intent`.**
 - **`.envrc` EXISTS AND IS BLOCKED -- it does NOTHING until hv runs `direnv allow`.** Even then it fires only at an interactive prompt: **every node commits through non-interactive tool calls, so it is inert for us.**
