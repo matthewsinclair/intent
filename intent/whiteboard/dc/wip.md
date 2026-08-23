@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-23 12:45Z
+heartbeat_at: 2026-08-23 12:56Z
 status: active
-focus: "**RESUMED AFTER THE FOLD 2026-08-23 12:45Z. NOTHING IN FLIGHT, NOTHING CLAIMED IN FLIGHT, HOLDING ON hv's STANDING no-new-work-after-folding.** All four nodes are back; cc was still mid-pickup when I read the boards. **Everything of mine is PUBLISHED -- vc pushed both remotes to `61d1f8aa` while I was reading the refs, which is why `git rev-parse HEAD upstream/main local/main` answered `fatal: Needed a single revision` for one read: a ref being rewritten under a concurrent reader, not a broken repo. Worth knowing before anyone diagnoses that message as corruption.** **MY INBOXES ARE EMPTY OF ANYTHING NEW AND I MEASURED IT RATHER THAN RECALLING IT** -- newest durable entries are cc 2026-08-21 14:26Z, ic 14:43Z, vc 12:44Z, all handled; ic's finding this morning is the reason I checked (a stale belief about a channel is indistinguishable from a correct one until you measure). **`session_id` d2fad1a7 SURVIVED A COMPACT UNCHANGED** -- a third datapoint for the column ic and vc are tracking, and a different lifecycle event from ic's cross-day resume. **WHAT THE NEXT SESSION SHOULD READ FIRST IS STILL THE WATCH-OUTS, NOT THIS LINE.** Every remedy that worked was a MECHANISM and every one that failed was a RESOLUTION: `measured_clone` refuses rather than annotating, the parity tools hard-stop rather than falling back, atomic rename removes the hazard instead of reminding me, stamps are a PLACEHOLDER substituted from a live read. **RE-DRIVE ANY FIGURE BEFORE QUOTING IT -- the gate count, the ST0057 tally and every timing row here name a revision that has moved -- AND MY BINARY IS ALMOST CERTAINLY STALE:** only `int hosting` and `int suite --with-build` build in the same act."
+focus: "**LOCALFOLD 2, 2026-08-23 12:56Z -- STILL HOLDING, NOTHING IN FLIGHT.** The day's findings are in WATCH-OUTS and D42 now, not in this line -- **read those, not this.** **I TOLD matts "everything of mine is published" in the very turn in which I had made the commit that made it false; vc caught it, and vc's push then made it true, so it never surfaced as a defect at any point.** A measurement taken before your own write is STALE BY CONSTRUCTION -- re-read AFTER your last write, never before. I also called a peer's live file "possibly orphaned" off ONE `git status`; it was mid-edit, and vc would have been within their rights to clean it. **Two samples separated in time, or say nothing about whose a dirty file is.** Refs level at `e0e7d2ff`; cc is the only node in flight."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -18,6 +18,7 @@ claims: [ST0056/07, ST0056/11]
 - **You never ask what time it is** -- not the OS, not `date`, not the filesystem, **and not the database either.** The stamp is applied BY the write.
 - **THE RULE IS ABOUT SIGNATURES, NOT VALUES. NO cli or intentsvcs function TAKES a time; they may RETURN times.**
 - **A board stamp is a label, not data** -- read it from `date -u` and PASTE, **per stamp, never per session.** The ordering that cannot be fabricated is the **commit**.
+- **A CONVERTED stamp is one you COMPUTED; a RE-READ stamp is one you MEASURED** (vc's formulation of my rule, `e0e7d2ff`). I derived `local = UTC+1` from one reading of each clock and APPLIED it -- arithmetic on a measurement. `TZ=UTC stat` re-reads the same fact with the clock forced. Both landed on the same figure; only one of them _could not_ have been wrong. **Never leave the clock you measured on unless the question forces you to; if it does, RE-READ rather than convert.** `ls -lT` emits no marker and so cannot fabricate a `Z`; `stat -t` will wear whichever one you hand it.
 
 ## The truth model -- canon, held not restated
 
@@ -358,6 +359,22 @@ My first sweep drove `target/release/intent` **built at `ee4a7cac`, roughly fift
 **CHECKED AND CLEARED, SO THE NEXT READER DOES NOT RE-RAISE IT: `claude hook pre-commit` answers rc=1, and that is CORRECT.** `install::HOOKS` is `session-context, require-in-session, post-tool-advisory` -- Claude Code lifecycle hooks. `pre-commit` is a GIT hook and reaches the tree by an entirely different route. I nearly filed it as an AC-07.2 red.
 
 ## Watch-outs
+
+### A MEASUREMENT TAKEN BEFORE YOUR OWN WRITE IS STALE BY CONSTRUCTION (dc, 2026-08-23 12:56Z -- vc caught it in my own report)
+
+I told matts _"everything of mine is published"_ in the same turn in which I had just created `1297dec7`. The sentence was true when I measured it and false when I wrote it. **The usual staleness is the world moving under a true statement; this was MY OWN WRITE invalidating my own measurement -- so there is no moment that feels like a change of state to notice.**
+
+**THE REMEDY IS ORDERING, NOT CARE: re-read the state AFTER your last write, never before it.** Any figure gathered before you act is stale by construction, and the more you did between the measurement and the report, the more certain that is.
+
+**AND THE SELF-REPAIR IS THE WORST PROPERTY, NOT A MITIGATION** -- vc pushed the commit, so the statement became true without anyone ever noticing it had been false. **The person who made it true was not the person who could have seen it was false.** Same shape as the header-block finding: a defect whose lifetime is shorter than the interval between observations leaves no corpse, so the counted rate is always under the real one.
+
+### IN A SHARED CHECKOUT, `dirty-and-abandoned` AND `dirty-and-in-flight` ARE ONE OBSERVATION APART -- AND THE REMEDIES ARE OPPOSITE (dc, 2026-08-23 12:56Z; sharpened by vc)
+
+I read `git status` once, saw `mutation_every_writable_field.rs` dirty, called it **possibly orphaned by the restart**, and routed that to vc. It was live: a compact later the dirty set had GROWN by `facade.rs` +113 lines, mtimes minutes old, and a third untracked probe followed. **Had vc cleaned on my say-so, a peer's live work was gone** -- which is precisely the event ic recorded in my inbox on 2026-08-21, from the receiving end.
+
+**vc's sharpening is the keeper: this is not a small error bar, it is a COIN FLIP ON SOMEONE'S WORK, because the two readings have OPPOSITE remedies -- leave it alone, or clean it up. An ambiguity with no safe default cannot be handled by care.**
+
+**TWO SAMPLES SEPARATED IN TIME, OR SAY NOTHING ABOUT WHOSE IT IS.** I got my second read free from a compact and it reversed the conclusion. vc reached the same place SEMANTICALLY -- reading which AC the one-line diff claimed -- and that is the stronger instrument: mine says _something is moving_, theirs says _which criterion, and who is about to claim it_.
 
 ### AN UNCHECKED ASSERTION HIDES IN A PARENTHESIS, FROM THE READER AND FROM ITS OWN AUTHOR (vc, 2026-08-22 -- their finding, recorded because it indicts my writing too)
 
