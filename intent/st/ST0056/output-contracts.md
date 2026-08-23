@@ -99,7 +99,7 @@ The producer rule -- _a figure must travel with the subject and revision it is a
 
 **Nine overstated, one understated by 49%, and one was near-exact.** So **no single correction factor explains them and no reader could have adjusted.** Had they all been high, "taken on a slower machine" would have covered it and the figures would have stayed.
 
-**The one that understates is the dangerous one, and it is dangerous for a structural reason.** `ratified_in_check.sh` is a _static read of the dispatch table_, and the dispatch table has grown. **A cost that grows silently is exactly what a stale figure hides**, and it is the only direction where the recorded number reassures you about something getting worse.
+**The one that understates is the dangerous one, and it is dangerous for a structural reason.** `rulings_check.sh` is a _static read of the dispatch table_, and the dispatch table has grown. **A cost that grows silently is exactly what a stale figure hides**, and it is the only direction where the recorded number reassures you about something getting worse.
 
 **And it lands on the argument the figures were being used for.** Total gate cost measures **~4.6s against ~5.4s recorded**. The whole affordability discussion about admitting a new instrument -- _"acceptable rather than comfortable"_, a 62% margin that became 25% -- **was conducted against stale numbers on both sides.** Both parties were careful about the new figure and neither questioned the baseline it was compared to. **That is measured-against-recorded one level up from where it was caught.**
 

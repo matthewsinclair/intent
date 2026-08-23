@@ -108,7 +108,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_ROSTER" "intent/st/ST0056/parity/tools/runner_roster_check.sh"
   printf '%s\t%s\n' "$G_CORRECTED" "intent/st/ST0056/parity/tools/corrected_check.sh"
   printf '%s\t%s\n' "$G_VOCAB" "intent/st/ST0056/parity/tools/class_vocab_check.sh"
-  printf '%s\t%s\n' "$G_RATIFIED" "intent/st/ST0056/parity/tools/ratified_in_check.sh"
+  printf '%s\t%s\n' "$G_RATIFIED" "intent/st/ST0056/parity/tools/rulings_check.sh"
   printf '%s\t%s\n' "$G_RESIDUE" "intent/st/ST0056/parity/tools/residue_class_check.sh"
   printf '%s\t%s\n' "$G_STALEAT" "intent/st/ST0056/parity/tools/stale_at_check.sh"
   printf '%s\t%s\n' "$G_SELFPROV" "intent/st/ST0056/parity/tools/self_provenance_check.sh"
@@ -324,9 +324,9 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   fi
 
   step "$G_RATIFIED"
-  if ! bash "$TOOLS/ratified_in_check.sh"; then
+  if ! bash "$TOOLS/rulings_check.sh"; then
     rc=1
-    failed="${failed}  ratified_in_check.sh -- could not measure ratification provenance (exit 2; its findings never gate)
+    failed="${failed}  rulings_check.sh -- could not measure ratification provenance (exit 2; its findings never gate)
 "
   fi
 

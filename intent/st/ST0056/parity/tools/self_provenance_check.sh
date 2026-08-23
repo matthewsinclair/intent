@@ -184,7 +184,7 @@ fi
 # uncommitted work are perfectly self-consistent.
 #
 # IT REPORTS AND DOES NOT GATE, DELIBERATELY, AND THE PRECEDENT IS IN THIS
-# TOOLCHAIN. `ratified_in_check.sh` reports until its table is clean and then
+# TOOLCHAIN. `rulings_check.sh` reports until its table is clean and then
 # graduates to refusing. The same reasoning is stronger here: this script is
 # GATED IN `int precommit`, so an arm that failed on a binary lacking the marker
 # would block every commit in a five-session clone until every stale artefact in

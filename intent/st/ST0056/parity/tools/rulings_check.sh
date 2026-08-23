@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
-# ratified_in_check.sh -- can a ratification be TRACED? (AC-05.5, the provenance axis.)
+# rulings_check.sh -- can a ratification be TRACED? (AC-05.5, the provenance axis.)
+#
+# **RENAMED FROM `ratified_in_check.sh` ON 2026-08-23, AND THE OLD NAME IS WHY.**
+# The field it checks became `target.rulings` on 2026-08-22; the file went on
+# naming `ratified_in`, a field that no longer exists anywhere in the tree.
+# **A filename is a recorded reason like any other, and this is the one place
+# nobody thinks to check for one that has outlived its subject** -- it is not
+# in a document anyone re-reads, it is in the path every caller types.
+#
+# **PROSE THAT NAMES THE OLD FILE IS NOT ALL THE SAME AND WAS NOT SWEPT.** A
+# sentence describing what this file DID under its old name was true when
+# written and stays; a sentence describing what it DOES was updated. The
+# distinction is the estate's own: a live claim is corrected, a record is
+# preserved and marked. Historical mentions carry `(now `rulings_check.sh`)` on
+# first occurrence rather than being rewritten, which is the same treatment the
+# `intentdb` retirement used -- corrected in brackets, never silently.
 #
 # CONTRACT, FROM 2026-08-22: every unit that claims a ratification declares it in
 # `target.rulings`, an ARRAY of `{state, authority, date, record}`.  This file READS

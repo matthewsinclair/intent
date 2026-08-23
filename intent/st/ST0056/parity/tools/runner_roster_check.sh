@@ -19,7 +19,8 @@
 # THE POPULATION HAD ALREADY MOVED BEFORE THE FIX WAS WRITTEN, WHICH IS THE
 # ARGUMENT FOR THE REFUSAL BELOW. 0059 measured eleven instruments at 0f87fc2c
 # and its table lists eleven. By the time the remedy was built there were TWELVE
-# -- `ratified_in_check.sh` landed hours after the census, unwired, and no
+# -- `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23) landed
+#    hours after the census, unwired, and no
 # artefact in the repository noticed. A correct measurement of a population that
 # has silently acquired a member is the failure this check has to survive, so it
 # does not compare against a remembered count: it enumerates the directory every
@@ -193,8 +194,8 @@ class_vocab_check.sh       gated   30-40ms, two committed files, one-line verdic
 corrected_check.sh         gated   50-60ms, static, reports and never gates
 generator_inputs_check.sh  gated   140-180ms, index-only, whole-set by design
 provenance_check.sh        gated   290-310ms, three greps over the stamped artefacts
-ratified_in_check.sh       gated   240-290ms, static read of the dispatch table
 residue_class_check.sh     gated   40-50ms and a single line, the cheapest here
+rulings_check.sh           gated   240-290ms, static read of the dispatch table
 runner_roster_check.sh     gated   470-490ms total (re-measured); the original row attributed 263ms of a then-782ms total to asking the runner through the dispatcher -- THAT COMPONENT IS NOT RE-MEASURED AND 263 OF 480 IS NOT THE SAME CLAIM AS 263 OF 782, so treat the breakdown as unverified, which is the price of not re-grepping its source; it is a *_check.sh and rosters itself
 self_provenance_check.sh   gated   530-540ms re-measured at c51f10d5 on one machine, up from 470-510ms: each binary line now carries a sha256, which costs two hashes of ~9MB and buys the only token on the line that distinguishes one build from another -- THE MARKER DOES NOT, and three distinct binaries carrying dirty-18197aaf in one day is what proved it. 27 blobs read from the INDEX; whole-set because the failure is staging one of two facts, so a path trigger would have to fire on the path that is not there
 stale_at_check.sh          gated   50ms and a single line, reports presence only
