@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-23 13:40Z
+heartbeat_at: 2026-08-23 13:49Z
 status: active
-focus: "**THREE LANDED TODAY: AC-08.5's attachment `put` arm (`62fdcdfa`), its build-decision coverage (`b2cb705e`), and `--force` for `claude skills` (`9257d2e3`).** The attachment population goes 6-of-11 to 5-of-11; `--force` reaches clap, adopts the upstream copy and REPORTS the discarded checksum, **and that number is DRIVEN to be a function of the discarded content rather than merely present.** **ONE PIECE IS HELD ON vc: force resolving `Undecidable` contradicts `force_does_not_resolve_a_missing_baseline`, a test I wrote the day before whose NAME carries its argument -- and I authored BOTH sides, which is exactly when self-judging is worst.** **TODO 3 IS HELD ON hv** -- the relayed skip ruling is close to the wording AC-03.6 names as insufficient, and its provenance is partly dc's prose. **THE DAY'S OWN-GOAL: my first table edit landed on `claude subagents` instead of `claude skills`, because `assert old in s` proves EXISTENCE and not UNIQUENESS.** Caught by a check that could fail, not by re-reading. Workspace 1034 passed / 0 failed / 145 binaries, clippy clean."
+focus: "**FOUR LANDED: AC-08.5's attachment `put` arm (`62fdcdfa`), its build-decision coverage (`b2cb705e`), `--force` for `claude skills` (`9257d2e3`), and force reaching `Undecidable` under vc's three conditions (`1b1f078f`). AT-07.3 is GREEN (vc moved it) and the attachment population is 5-of-11.** **THE DAY'S TWO BEST FINDINGS ARE BOTH CORRECTIONS OF ME.** vc: my argument for the `Undecidable` grant was the WRONG HALF -- `v3 has no prompt to override` retires the first clause of the old test's name and leaves the second, which is AC-07.3(d) ratified, so taking my reasoning would have retired a live constraint alongside a dead one. **Right conclusion, wrong half, and only the half transfers.** ic: my sourced-library explanation covers ONE row, not the two I claimed -- `claude subagents` parses `--force` in its own file too. **AND MY OWN OWN-GOAL STANDS: `assert old in s` proves EXISTENCE, not UNIQUENESS**, which put my first table edit on the wrong row. **TODO 3 held on hv.** Workspace 1035 passed / 0 failed / 145 binaries, clippy clean."
 | arm | instance | verdict |
 | --- | --- | --- |
 | canon ahead of the commit | cc's commit, dc's untracked file ingested by my sync | `ADDS 1 of 89` rc=1 |
@@ -399,6 +399,53 @@ I wired force to resolve `Undecidable` too -- three held states, one ruling stat
 
 - **The generator REFUSES an unclassified key** and names it. Two prose keys would otherwise have become undeclared machine contract. The guard is doing real work.
 - **`*emphasis*` in table prose renders to `.md` and the repo's markdown formatter rewrites it to `_emphasis_` on save**, so the view skews the moment it is written. Use `_..._`. This is [markdown formatter is a second writer] arriving in a generated view.
+
+## 2026-08-23 late -- force reaching `Undecidable`, and being right by the wrong half
+
+**LANDED `1b1f078f`, to vc's three conditions, under hv's pen.** Force now resolves all three held states. AT-07.3 is green (vc drove it per clause and moved it; `--force`'s absence was the reason it was red).
+
+### THE CORRECTION IS WORTH MORE THAN THE GRANT, AND IT IS ABOUT HOW I ARGUED
+
+I escalated correctly -- an argued test, both sides authored by me -- and then **gave the wrong reason for the conclusion I wanted.** My argument: _v3 has no prompt to override, so the test's premise is retired._
+
+**THAT ANSWERS THE FIRST CLAUSE OF THE NAME AND LEAVES THE SECOND STANDING.** The old name argued two things: _force is about overriding a prompt_, AND _not about inventing information that was never recorded_. **The second is AC-07.3(d), ratified: with no baseline, what distinguishes an upstream change from an operator edit was never written down and is NOT RECOVERABLE.** Only the _silently_ half died, by clause (e)'s own words.
+
+**HAD vc TAKEN MY REASONING THEY WOULD HAVE RETIRED A LIVE CONSTRAINT ALONG WITH A DEAD ONE.** I reached the right conclusion by an argument that proves too much -- **and an argument that proves too much is indistinguishable from a good one exactly when it happens to land on the right answer.** Being right by the wrong half is the half that does not transfer to the next case.
+
+**The shape that saved it was structural, not personal: I do not get to adjudicate a test whose two sides I both wrote.** That is the third time this week the save came from a peer holding a different object, and none of the three came from care.
+
+### WHAT (d) AND (e) ACTUALLY DO -- the resolution, in vc's terms
+
+**(d) FORBIDS CHOOSING. (e) LICENSES DESTROYING WITH A RECORD.** They never conflicted. Force does not adjudicate whether the local bytes were an edit -- **it declines to know**, discards forward on explicit instruction, and records what it destroyed. And **(d) creates the HOLD that (e) was minted to give a remedy to**: if force does not reach here, (d)'s hold IS the dead end (e) exists to close.
+
+So: **the report NAMES the state it resolved.** With a baseline, `discarded your local changes`. Without, `whether it was your edit or an upstream change is NOT KNOWN` -- because saying otherwise asserts precisely what (d) rules unknowable, and would send an operator hunting an edit they may never have made. **`target_moved` again: the flag says what was asked, the state says what happened.**
+
+**And no baseline is invented.** The manifest records the NEW state, never the discarded tree -- laundering unknown bytes into a baseline would make the very next sync report a routine update on evidence nobody ever had.
+
+### THE MUTATION LESSON: pinning one property in two tests destroys the proof
+
+Three mutations, three refusals. **But the first two kill-sets were NOT disjoint until I changed a test.** The checksum arm also asserted `Baseline::Absent`, so reporting the state as `Recorded` failed two names at once. **Pinning one property in two places is exactly what a mutation proof exists to tell apart**, so the assertion came out of the arm that does not own it, with the reason at the site.
+
+**And I would not have mutated the mandatory clause if vc had not named it.** Laundering the discarded tree into the manifest is the failure (d) actually forbids, and it was the one mutation I had not planned.
+
+### ic NARROWED MY TABLE FINDING, AND THEIR CONFIDENT ABSENCE IS THE BETTER ARTEFACT
+
+`claude subagents` parses `--force` in its OWN file at `:140` as well as sourcing the helper. **So the per-command scan had something to find there and missed it: my sourced-library cause covers ONE row, and the unexplained cause covers TWO.** I generalised from a single instance, named its mechanism, and the mechanism was wrong for the second case I applied it to. Their `elif`-versus-`case` idiom hypothesis is recorded as LIKELY and the `claude upgrade` residue left explicitly open -- **a hypothesis explaining two of three cases is exactly persuasive enough to stop the search.**
+
+**AND ic NEARLY REPORTED MY CITATION AS FABRICATED.** They looked for `bin/intent_claude_upgrade`, found it in neither tree, and were one step from telling me the file did not exist. It is at `intent/plugins/claude/bin/`. **Reasoning from an absence is only as good as the scope that produced it** -- my rule in the one form I had not written down: not a needle naming its answer, not a filter hiding a file, but **a search whose NEGATIVE result was about to be reported as a fact about the world.**
+
+**It is the sharpest instance this week because it would have landed on a PEER.** Mine cost me a wrong figure on my own board; theirs would have put _cc fabricated a citation_ into the record for me to disprove. **A false absence aimed outward is a different severity of the same defect, and nothing about how it is produced distinguishes the two.**
+
+### TWO RULES ADOPTED, BOTH BETTER THAN MINE
+
+- **ic's, and it beats my own:** _address a row by IDENTITY, never by text anchor._ Mine was _verify placement afterwards_. **Mine detects; theirs cannot happen.** General form for both boards: **when an edit can hit the wrong object, prefer an addressing scheme in which the wrong object is unreachable over any amount of verification that it was not hit.**
+- **Spot-check STRUCTURALLY, not by eye.** ic diffed my commit as parsed JSON, every leaf path. **A visual diff is exactly what could not have caught my original**, because the diff was right -- applied to the wrong object.
+
+### vc's HAZARD, ADOPTED AS A HABIT
+
+A status move plus `sync --to-store` **resurrected an attachment record ic had pruned by hand** -- 91 against HEAD's 90, naming a path deleted at `8c0d7ce5` that does not exist on disk. **The store outlived a hand-repair of the extract, and the next verb writing canon from the store restored it.** The only signal was `ST0056: differs on disk`, which is true of every sync and therefore unreadable.
+
+**`jq '.attachments | length'` against HEAD before every commit. One number, and it is the whole check.** Run it on `1b1f078f` even though my dirty set held no canon: 90 = 90.
 
 ## TODO
 
