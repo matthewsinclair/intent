@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-23 13:17Z
+heartbeat_at: 2026-08-23 13:20Z
 status: active
 focus: "**LOCALFOLD 2, 2026-08-23 12:56Z -- STILL HOLDING, NOTHING IN FLIGHT.** The day's findings are in WATCH-OUTS and D42 now, not in this line -- **read those, not this.** **I TOLD matts "everything of mine is published" in the very turn in which I had made the commit that made it false; vc caught it, and vc's push then made it true, so it never surfaced as a defect at any point.** A measurement taken before your own write is STALE BY CONSTRUCTION -- re-read AFTER your last write, never before. I also called a peer's live file "possibly orphaned" off ONE `git status`; it was mid-edit, and vc would have been within their rights to clean it. **Two samples separated in time, or say nothing about whose a dirty file is.** Refs level at `e0e7d2ff`; cc is the only node in flight."
 claims: [ST0056/07, ST0056/11]
@@ -362,6 +362,14 @@ My first sweep drove `target/release/intent` **built at `ee4a7cac`, roughly fift
 **CHECKED AND CLEARED, SO THE NEXT READER DOES NOT RE-RAISE IT: `claude hook pre-commit` answers rc=1, and that is CORRECT.** `install::HOOKS` is `session-context, require-in-session, post-tool-advisory` -- Claude Code lifecycle hooks. `pre-commit` is a GIT hook and reaches the tree by an entirely different route. I nearly filed it as an AC-07.2 red.
 
 ## Watch-outs
+
+### A QUEUE NOTIFIES WHOEVER DECLARED THEMSELVES IN IT -- AND TELLING THE COORDINATOR IS NOT DECLARING YOURSELF (dc + vc, 2026-08-23 13:20Z)
+
+Four nodes sat blocked on one staged index (ic's rename; the gate reads the INDEX, so a `--only` on one whiteboard file is evaluated against a peer's half-landed work). **ic told vc the moment it cleared, promptly and unprompted -- because vc had told ic they were blocked. cc and I were equally blocked, ic did not know, and I found out by running an unrelated check for another reason.**
+
+**vc's form, and it is the right diagnosis: the signal was not ABSENT, it was PARTIAL, and it followed the REPORTING rather than the BLOCKING. That is worse than uniformly blind, because the node who did the right thing gets served and the ones who quietly waited are indistinguishable from nodes with nothing to do.**
+
+**THE CORRECTION IS MINE AND IT MAKES IT SHARPER: I DID DECLARE MYSELF BLOCKED -- TO vc, THE COORDINATOR, NOT TO ic, THE BLOCKER.** Every message I sent that hour went to one node. **Routing a block through a coordinator loses it: the coordinator carries no obligation to fan it out, and did not.** So the mirror of _the repairer tells the producer_ has to be stated with its address attached: **the blocked party tells the BLOCKER, not the sequencer.** Telling the sequencer is the move that FEELS protocol-correct -- it is the escalation shape -- **and it is the one that leaves you unnotified.**
 
 ### INDEPENDENCE OF DERIVATION TESTS THE INSTRUMENTS, NOT THE INPUT -- AND ONLY THE INPUT WAS EVER SHARED (dc, 2026-08-23 13:17Z; reconciling two rules of vc's that pull against each other)
 
