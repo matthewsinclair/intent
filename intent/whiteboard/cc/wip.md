@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-23 13:18Z
+heartbeat_at: 2026-08-23 13:40Z
 status: active
-focus: "**AC-08.5's ATTACHMENT `put` ARM IS IN, DRIVEN AND GREEN (`62fdcdfa`). The population goes 6-of-11 to 5-of-11 and the criterion's own named burning case is closed.** A ruled direction (`design.md:271`, hv 2026-08-18) and a computed discriminator (`is_attachment`) had sat there since the rewrite began with no arm behind them -- attachments fell into `other => has no write path yet`. **I DROVE IT BEFORE BUILDING IT, in the one way that could have embarrassed me:** flipping ic's `E::Attachment` declaration to `Reachable` FIRST, so the surface said `observed NoWritePathYet` rather than me reading a match arm and reporting it. **THREE OF THE REFUSALS ARE MINE AND WERE NOT RULED** -- `?format=json` (the round-trip habit every other address teaches would write the record into the file as its content), an unattached extension, and an opaque attachment (`text: None` is the only marker the content is bytes, and this door cannot express bytes). **TWO FINDINGS CAME OUT OF DRIVING IT AND NEITHER WAS VISIBLE BY READING:** views do not parse as attachment addresses at all, so half my classify guard is unreachable and says so; and `EditDisposition::author_with` had two values of DIFFERENT GRAMMAR, both consumers interpolating into `author it with {}`, with each door reaching exactly the one value that happened to compose. **Full workspace 1025 passed / 0 failed / 144 binaries, clippy clean under `-D warnings`.**"
+focus: "**THREE LANDED TODAY: AC-08.5's attachment `put` arm (`62fdcdfa`), its build-decision coverage (`b2cb705e`), and `--force` for `claude skills` (`9257d2e3`).** The attachment population goes 6-of-11 to 5-of-11; `--force` reaches clap, adopts the upstream copy and REPORTS the discarded checksum, **and that number is DRIVEN to be a function of the discarded content rather than merely present.** **ONE PIECE IS HELD ON vc: force resolving `Undecidable` contradicts `force_does_not_resolve_a_missing_baseline`, a test I wrote the day before whose NAME carries its argument -- and I authored BOTH sides, which is exactly when self-judging is worst.** **TODO 3 IS HELD ON hv** -- the relayed skip ruling is close to the wording AC-03.6 names as insufficient, and its provenance is partly dc's prose. **THE DAY'S OWN-GOAL: my first table edit landed on `claude subagents` instead of `claude skills`, because `assert old in s` proves EXISTENCE and not UNIQUENESS.** Caught by a check that could fail, not by re-reading. Workspace 1034 passed / 0 failed / 145 binaries, clippy clean."
 | arm | instance | verdict |
 | --- | --- | --- |
 | canon ahead of the commit | cc's commit, dc's untracked file ingested by my sync | `ADDS 1 of 89` rc=1 |
@@ -360,6 +360,45 @@ ic had predicted the exact red in a message that crossed my build, and said it m
 **ic answered directly: cover them MYSELF, as build decisions, NOT under AC-08.5.** `?format=json`, the unattached extension and the opaque attachment are mine -- I decided them, I drove them, none is ruled. **Putting them under AC-08.5's coverage would smuggle three unruled build decisions into a criterion hv ruled**, which is the same population defect ic spent this morning splitting out of `declared_reach`. Their row covers the criterion -- _is every entity form in the population reachable, and is every exclusion cited_ -- and that is all it should ever cover.
 
 **AND ic NAMED THE TRAP IN MY OWN FINDING 1 BEFORE WRITING THEIR ARM.** A coverage arm asserting _a generated view cannot be written as an attachment_ **passes on `address::parse` refusing `ViewAddressed` and never reaches my classify guard** -- green, measuring the wrong layer, **and indistinguishable from a green that measured the right one.** Their arm will assert the refusal AND which layer produced it, or not be written. **My guard's unreachable limb is a fact a test must state, not one it may quietly rely on.**
+
+## 2026-08-23 afternoon -- `--force`, and an instrument of mine that could not tell two rows apart
+
+**LANDED `9257d2e3`.** `--force` is declared on the `claude skills` row, reaches clap, and does what vc ruled: adopts the upstream copy and REPORTS the checksum of what it discarded. `Outcome::Forced` is a SEPARATE outcome from `Updated` on purpose -- v2 prints `update available` whether or not it destroyed an edit, so the run that cost you work reads exactly like the routine one.
+
+**THE NUMBER IS DRIVEN TO BE A FUNCTION OF THE CONTENT, NOT MERELY PRESENT.** Same discarded content, same checksum; different content, different checksum -- as a committed arm, not a probe. **A number that is only PRESENT satisfies the shape of the ruling and none of its purpose**, and nothing about a present-but-constant checksum looks wrong.
+
+**And it is raised only when something was ACTUALLY discarded, keyed on `target_moved` rather than on the flag.** The flag says what the operator ASKED FOR; the state says what HAPPENED. A false discard line on a run that destroyed nothing teaches people to skim the line on the runs that matter.
+
+### THE OWN-GOAL, AND IT IS THE ONE TO KEEP
+
+**MY FIRST TABLE EDIT LANDED ON `claude subagents` INSTEAD OF `claude skills`.** The anchor text I matched was byte-identical in both entries, and subagents comes first in the file. **`assert old in s` PROVES EXISTENCE, NOT UNIQUENESS.**
+
+**I have been writing about needles that cannot return an unexpected answer all day, and used an anchor that could not tell two rows apart.** It is the same defect one level up from ic's `--include` filter: **not the needle, the SCOPE** -- and my own rule, widened this morning off ic's case, is the rule I then broke.
+
+**IT WAS CAUGHT BY A CHECK THAT COULD FAIL**, not by re-reading. After writing I asserted WHICH entry carried the flag and that two named siblings were untouched. **Re-reading the edit would never have caught it: the diff looked exactly right, because it WAS exactly right, applied to the wrong object.** Two correct readings of two different objects for the third time today, and this time both were mine.
+
+**AND THE REPAIR WAS WORSE THAN THE FAULT.** I lifted the flag back out with a saved text slice that had spanned into a neighbouring entry; the second attempt silently moved flags between three rows -- **and the file still parsed as valid JSON**, so nothing complained. **A structural check that passes is not a placement check.** Restored from HEAD and redone rather than patching a patch. **The general form: when a surgical edit goes wrong, the next edit is the most dangerous one on the board, because it is authored against a state you have already mis-modelled.**
+
+### THE FLAG WAS ALWAYS v2's, AND THE TABLE MISSED IT FOR A REASON WORTH KEEPING
+
+v2 parses `--force|-f` in `plugin_install`, `plugin_sync` and `plugin_uninstall` of `claude_plugin_helpers.sh`, and `intent_claude_skills` **SOURCES** that helper. **So `grep -- --force intent_claude_skills` returns nothing -- a true answer to the wrong question.** Every row that DOES declare `--force` parses it in its own file. **A flag reached through a sourced library is invisible to a per-command scan, and the scan cannot report what it could not look at.**
+
+**Two rows carry the same gap and NEITHER IS MINE** -- reported to ic, edited by nobody: `claude subagents` (same sourced helper), and `claude upgrade`, which parses `--force` in its OWN file and documents it in its own `--help`. **The second is the more worrying: a per-command scan WOULD have found it, so the obvious explanation does not cover it.**
+
+**And the row already named the flag in prose while not declaring it.** `observed.notes` says a script-only change _needs `install --force`_; my renderer then told operators `--force` was _declared in the surface table but not built_. **False when written, and taken from that prose.** A row can name a flag in a sentence and omit it from the array that IS the declaration, with nothing reading the two against each other.
+
+### HELD ON vc: force and `Undecidable`
+
+I wired force to resolve `Undecidable` too -- three held states, one ruling stated over the act -- then found **`force_does_not_resolve_a_missing_baseline`**, mine, written the day before, arguing: _force is about overriding a prompt, not about inventing information that was never recorded._
+
+**I think that premise has been retired: v3 has no prompt to override, and vc's ruling's whole point is that the act REPORTS rather than being silent.** But **I authored the test AND the change**, and the ruling did not name that state. **Reverted, hold recorded at the arm, routed to vc.** Same shape as the `st edit` episode and the same answer: do not ship over an argued test alone.
+
+**Three other arms were AMENDED and none written over**, each having asserted `Updated { .. }` where a forced overwrite of a moved tree now yields `Forced`. **Asserting the narrower outcome is STRONGER: `Updated { .. }` would pass for exactly the reporting that is the defect.**
+
+### Two mechanics worth not rediscovering
+
+- **The generator REFUSES an unclassified key** and names it. Two prose keys would otherwise have become undeclared machine contract. The guard is doing real work.
+- **`*emphasis*` in table prose renders to `.md` and the repo's markdown formatter rewrites it to `_emphasis_` on save**, so the view skews the moment it is written. Use `_..._`. This is [markdown formatter is a second writer] arriving in a generated view.
 
 ## TODO
 
