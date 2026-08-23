@@ -1126,8 +1126,20 @@ impl Project {
           },
         }
       }
+      // **EVERY VALUE OF THIS FIELD MUST COMPLETE THE SENTENCE `author it with
+      // ...`, AND THIS ONE DID NOT.** Both consumers interpolate it that way --
+      // `FacadeError::NotEditable`'s remedy (`facade.rs:686`) and the
+      // attachment `put` arm -- so a value that is a CLAUSE rather than a
+      // phrase prints "author it with canon is written by the verbs".
+      //
+      // **NOTHING CAUGHT IT BECAUSE EACH DOOR REACHES ONLY ONE VALUE.** `st
+      // edit` appends `.md` to its argument, so it can never classify a file as
+      // `Canon` and only ever prints the view arm, which composes; the
+      // attachment address only ever reaches this arm, because `address::parse`
+      // refuses a view name one layer lower. Two values, two consumers, and
+      // each pairing exercised the half that happened to read correctly.
       ThreadFile::Canon => EditDisposition::Refuse {
-        author_with: "canon is written by the verbs; `intent st`, `intent wp`, `intent ac`, `intent at`",
+        author_with: "the verbs that write canon; `intent st`, `intent wp`, `intent ac`, `intent at`",
       },
       // An attachment is AUTHORED on disk -- authority runs the other way, and
       // `--to-store` ingests what you wrote. Unattached files are not ours to

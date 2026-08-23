@@ -562,7 +562,7 @@ fn declared_reach(entity: &intentsvcs::address::Entity) -> Expected {
     // **AC-08.5's LIVE WORKLIST, and the reason this row is not green.**
     // An attachment's canon record has no setter narrower than a thread; the
     // rest have no `put` arm at all. Every one of these SHOULD have one.
-    E::Attachment { .. } => Expected::NotBuiltYet,
+    E::Attachment { .. } => Expected::Reachable,
     E::Wp { .. } | E::WpCollection { .. } | E::AcCollection { .. } => Expected::NotBuiltYet,
     E::Issues => Expected::NotBuiltYet,
     E::Node { .. } => Expected::NotBuiltYet,

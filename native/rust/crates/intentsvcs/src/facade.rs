@@ -53,10 +53,10 @@ use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::intentfiles::Realised;
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtStatus, Criterion, Issue, IssueStatus, TShirt, Thread,
-  ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
+  AcKind, AcState, AcceptanceTest, AtStatus, Attachment, Criterion, Issue, IssueStatus, TShirt,
+  Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
-use crate::project::{Migration, Pending, Project};
+use crate::project::{EditDisposition, Migration, Pending, Project, ThreadFile};
 use crate::realise;
 use crate::store::{Store, StoreError};
 use crate::sync::Scope as SyncScope;
@@ -4214,6 +4214,124 @@ impl Facade {
             next,
           )
           .map(|()| Outcome::Moved)
+      }
+      // **AN ATTACHMENT IS THE ONE ADDRESS WHERE TEXT-IN IS CORRECT, AND THAT
+      // IS A RULING RATHER THAN A CONVENIENCE** (`design.md:271`, hv
+      // 2026-08-18): _an ATTACHMENT is authored on disk, so for attachments the
+      // authority runs the other way and text-in is correct._ Every other
+      // entity refuses a markdown body because writing a rendering into canon
+      // promotes a stale view; an attachment HAS no rendering, so the body is
+      // the content and there is nothing for it to be stale about.
+      //
+      // **THE SAME RULING NAMES `Project::classify` AS THE SINGLE ANSWER TO
+      // WHAT A FILE IS, AND THIS ARM ASKS IT RATHER THAN RE-DECIDING.** A
+      // filename check here would be the second-opinion defect AC-02.5 names,
+      // and it would drift the day somebody adds a view.
+      AddrEntity::Attachment { thread, path } => {
+        let refuse = |why: String| FacadeError::WriteNotAddressable {
+          url: address.to_url(),
+          why,
+        };
+
+        // **`?format=json` IS REFUSED, AND IT IS THE ROUND-TRIP THAT MAKES IT
+        // DANGEROUS RATHER THAN MERELY REDUNDANT.** The mutation format is the
+        // interchange format -- `GET ?format=json`, modify, `PUT` the same
+        // shape back -- so a caller who has learnt that habit on every other
+        // address would, at this one, write the attachment's own RECORD (path,
+        // bytes, sha256) into the file as its CONTENT. Every guard below would
+        // pass while it happened, and the sha256 would correctly describe the
+        // wrong thing.
+        if address.format == Some(AddrFormat::Json) {
+          return Err(refuse(
+            "an attachment's body is its content, so this address takes text -- `?format=json` would write the record into the file".to_string(),
+          ));
+        }
+
+        // **THE NAMING GATE, AND IT IS THE ONE INGEST ALREADY USES.** A path
+        // that escapes the thread, or that normalises onto another
+        // attachment's canon sidecar and destroys it, is refused before
+        // anything is written. Sharing `attachment_name` rather than checking
+        // locally is what keeps `put` and `--to-store` accepting the same set:
+        // two answers to "is this name storable" agree exactly until one moves.
+        crate::project::attachment_name(thread, path).map_err(|bad| refuse(bad.to_string()))?;
+
+        let rel = std::path::PathBuf::from(path);
+        // A generated view, or a stray canon file, wearing an attachment's
+        // address. **Asked through `edit_disposition` because a refusal here
+        // owes the caller a DESTINATION** -- the operator has a real edit to
+        // make and this address is not where it goes -- and because the remedy
+        // strings then have one author, exactly as the classification does.
+        // **ONLY THE `Canon` LIMB IS REACHABLE HERE, AND THE OTHER ONE BEING
+        // DEAD IS A DEFENCE RATHER THAN A GAP.** `address::parse` refuses a
+        // view's name a layer lower -- `acceptance.md` and `info.md` come back
+        // `ViewAddressed` and never arrive -- so what this catches in practice
+        // is a stray `thread.json` from a v2 tree wearing an attachment's
+        // address. Asked through `edit_disposition` anyway, because hand-rolling
+        // a canon-only check would be a second answer to what a file is, and
+        // because a refusal here owes the caller a DESTINATION.
+        if let EditDisposition::Refuse { author_with } = Project::edit_disposition(&rel) {
+          return Err(refuse(format!(
+            "`{path}` is generated from the model rather than authored on disk -- author it with {author_with}"
+          )));
+        }
+        // **`edit_disposition` HANDS OVER `Unattached` TOO, AND `put` MUST
+        // NOT.** They are the same answer to different questions: `edit` may
+        // open any file in the directory, because the estate holds files Intent
+        // does not model and never claimed to. Canon CARRIES only the
+        // attachment extensions -- so writing an unattached path here would put
+        // a row into canon that `--to-store` would never have produced, and
+        // that the next carry would not sustain.
+        if Project::classify(&rel) != ThreadFile::Attachment {
+          return Err(refuse(format!(
+            "canon carries {} and leaves everything else on disk, so `{path}` has no attachment record to write",
+            crate::project::ATTACHMENT_EXTENSIONS.join(", ")
+          )));
+        }
+
+        let row = Attachment::new(path.clone(), body);
+        let mut next = self.canon.clone();
+        let holder = find_thread_mut(&mut next, thread)?;
+        let outcome = match holder.attachments.iter_mut().find(|a| &a.path == path) {
+          Some(existing) => {
+            // **AN OPAQUE ATTACHMENT IS NOT OVERWRITTEN THROUGH A TEXT DOOR.**
+            // `text: None` is the ONLY marker that the content is bytes, and
+            // this door cannot express bytes: the write would replace a sidecar
+            // nobody can read with a string, report success, and stamp a
+            // sha256 that correctly describes the replacement. **The carry
+            // names the exact file this protects** -- a `.sh` carrying one
+            // non-UTF-8 byte in a comment, "precisely the file that would be
+            // silently mangled" (`project.rs:886`). Refusing is the same
+            // argument one layer up.
+            if existing.is_opaque() {
+              return Err(refuse(format!(
+                "`{path}` is carried as bytes and this address takes text -- rewriting it here would destroy content that nothing in this door can represent"
+              )));
+            }
+            if *existing == row {
+              return Ok(Outcome::AlreadyThere {
+                state: "unchanged".to_string(),
+              });
+            }
+            *existing = row;
+            Outcome::Moved
+          }
+          None => {
+            holder.attachments.push(row);
+            holder.attachments.sort_by(|a, b| a.path.cmp(&b.path));
+            Outcome::Moved
+          }
+        };
+        self
+          .apply(
+            "attachment.put",
+            Subject {
+              kind: "attachment".to_string(),
+              id: format!("{thread}/{path}"),
+            },
+            json!({ "via": "address" }),
+            next,
+          )
+          .map(|()| outcome)
       }
       // Server-assigned ids. Named individually rather than falling into a
       // catch-all, so the refusal can say WHICH rule sent them away.
