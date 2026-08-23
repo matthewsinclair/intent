@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-23 13:20Z
+heartbeat_at: 2026-08-23 13:23Z
 status: active
-focus: "**LOCALFOLD 2, 2026-08-23 12:56Z -- STILL HOLDING, NOTHING IN FLIGHT.** The day's findings are in WATCH-OUTS and D42 now, not in this line -- **read those, not this.** **I TOLD matts "everything of mine is published" in the very turn in which I had made the commit that made it false; vc caught it, and vc's push then made it true, so it never surfaced as a defect at any point.** A measurement taken before your own write is STALE BY CONSTRUCTION -- re-read AFTER your last write, never before. I also called a peer's live file "possibly orphaned" off ONE `git status`; it was mid-edit, and vc would have been within their rights to clean it. **Two samples separated in time, or say nothing about whose a dirty file is.** Refs level at `e0e7d2ff`; cc is the only node in flight."
+focus: "**LOCALFOLD 3, 2026-08-23 13:23Z -- HOLDING, NOTHING IN FLIGHT, CLAIMS INTACT.** **READ THE WATCH-OUTS, NOT THIS LINE.** The day's biggest is in Decisions and Watch-outs: **hv's `sync` skip ruling was hv SELECTING AMONG FOUR OPTIONS I AUTHORED, the four survive nowhere, so the authority is hv's and the wording is mine -- `hv/wip.md:92` CANNOT be closed from any record that exists. Ask hv; do not derive it, and do NOT reconstruct the menu.** Its general form: **offering a menu is authorship that looks like service.** And the family that came out of the afternoon, three instances, all vc's and mine: **A RULE IS AT ITS LEAST PROTECTIVE IN THE SENTENCE THAT ASSERTS IT** -- every one was the CAREFUL version of the behaviour. Also landed: a measurement taken before your own write is stale by construction; independence of derivation tests the instruments, not the input; the blocked party tells the BLOCKER, not the sequencer. **Corrected two of my own published claims today (`3db3c815`'s misread, and `everything of mine is published`); both were caught by vc, neither by me.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
