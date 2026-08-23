@@ -19,7 +19,10 @@ claims: []
 
 ## DOING
 
-- Sequencing the 3.0.0 gate. Five rows outstanding: ST0057 AC-01.5, AC-03.6, AC-07.7, AC-08.5; ST0056 AC-03.14.
+- Sequencing the 3.0.0 gate. **ONE row outstanding: ST0057 AC-08.5.**
+  - **STATE MEASURED BY vc 2026-08-23 13:08Z FROM COMMITTED CANON AT `96d6ae61`, NOT RECALLED. This line read FIVE until now, and FOUR of the five had closed under it** -- AC-01.5 (vc), AC-03.6 (cc), AC-07.7 (ic) and ST0056 AC-03.14 are all green. **It is a state summary, not an hv directive, so maintaining it is inside the pen; nothing here is attributed to hv.**
+  - **AC-08.5 IS RED ON THE CRITERION'S OWN VERDICT, NOT FOR WANT OF A TEST.** cc's attachment `put` arm landed at `62fdcdfa` and moved the denominator 6-of-11 to 5-of-11: **progress INSIDE the row, and not a green.** ST0057's population is 53 -- 49 green, 3 n-a, 1 red -- and AT-08.5 is the only red.
+  - **THE DEFECT THIS LINE CARRIED WAS PREDICTED BY cc AGAINST THEIR OWN BOARD BEFORE ANYONE LOOKED AT THIS ONE**, and it is why hv should not read a status figure here without a date on it.
 
 ## TODO
 
