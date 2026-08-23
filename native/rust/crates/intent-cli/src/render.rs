@@ -3220,6 +3220,7 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
         written,
         removed,
         discarded,
+        baseline,
       } => {
         moved += 1;
         let retired = if removed.is_empty() {
@@ -3227,8 +3228,20 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
         } else {
           format!(", {} retired: {}", removed.len(), removed.join(", "))
         };
+        // **THE LINE NAMES WHICH STATE WAS RESOLVED, BECAUSE THE DISCARD MEANS
+        // DIFFERENT THINGS IN EACH** (vc's condition 2). An ordinary discard
+        // line says *this was your edit*. **With no baseline nobody can know
+        // that** -- AC-07.3(d) says so explicitly -- so saying it would assert
+        // exactly what (d) rules unknowable, and an operator would go looking
+        // for an edit they may never have made.
+        let provenance = match baseline {
+          intentsvcs::skills::Baseline::Recorded => "your local changes",
+          intentsvcs::skills::Baseline::Absent => {
+            "content this build had no record of writing, so whether it was your edit or an upstream change is NOT KNOWN"
+          }
+        };
         format!(
-          "OVERWRITTEN by --force; discarded tree checksum {discarded} ({written} file(s) written{retired})"
+          "OVERWRITTEN by --force; discarded {provenance}; discarded tree checksum {discarded} ({written} file(s) written{retired})"
         )
       }
       Outcome::Removed { removed, left } if left.is_empty() => {

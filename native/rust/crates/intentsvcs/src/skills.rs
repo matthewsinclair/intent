@@ -259,6 +259,22 @@ pub struct Origin {
 }
 
 /// What happened to one skill.
+/// Whether this build had a record of what it previously installed.
+///
+/// **THE WHOLE OF AC-07.3(d) TURNS ON THIS AND NOTHING ELSE.** With a record,
+/// three-way comparison answers who moved what. Without one, an installed tree
+/// that differs from source is EITHER an upstream change OR the operator's own
+/// edit and **the information that would tell them apart was never written
+/// down**, so no amount of looking recovers it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Baseline {
+  /// The manifest recorded what this build wrote.
+  Recorded,
+  /// No usable record. **Force may still discard forward; it may not pretend
+  /// to know what it discarded was.**
+  Absent,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Outcome {
   Installed {
@@ -293,6 +309,18 @@ pub enum Outcome {
     written: usize,
     removed: Vec<String>,
     discarded: String,
+    /// **WHICH STATE THE FORCE RESOLVED, BECAUSE THE DISCARD MEANS DIFFERENT
+    /// THINGS IN EACH** (vc, 2026-08-23, condition 2 of the grant).
+    ///
+    /// With a baseline recorded, the discarded bytes ARE the operator's edit and
+    /// the report may say so. **With none, nobody can know that** -- AC-07.3(d)
+    /// says the information distinguishing an upstream change from an edit was
+    /// never recorded and is not recoverable -- so a report implying it was an
+    /// edit would assert exactly the thing (d) says cannot be known.
+    ///
+    /// This is `target_moved` again: the flag says what was ASKED FOR, the state
+    /// says what HAPPENED.
+    baseline: Baseline,
   },
   /// Present, and no `--force` given. **The caller decides**, because prompting
   /// is a property of the terminal skin and not of the operation
@@ -622,6 +650,7 @@ impl Skills {
             written: files,
             removed,
             discarded,
+            baseline: Baseline::Recorded,
           },
           (None, true) => Outcome::Updated {
             written: files,
@@ -717,6 +746,7 @@ impl Skills {
                   written,
                   removed,
                   discarded,
+                  baseline: Baseline::Recorded,
                 },
                 None => Outcome::Updated { written, removed },
               }
@@ -749,27 +779,47 @@ impl Skills {
                 .collect(),
             });
             Outcome::UpToDate
+          } else if force {
+            // **FORCE REACHES THIS STATE TOO (vc, 2026-08-23, under hv's pen),
+            // AND THE GRANT TURNS ON TWO CLAUSES OF AC-07.3 THAT DO NOT
+            // CONFLICT.** (d) says that with `old` absent v3 REPORTS AND REFUSES
+            // TO CHOOSE, because what distinguishes an upstream change from an
+            // operator edit was never recorded and is not recoverable. (e) says
+            // `--force` must exist and must report the discarded checksum,
+            // because **without it a held skill has no CLI remedy at all and
+            // the honest refusal is a dead end.**
+            //
+            // **(d) FORBIDS CHOOSING; (e) LICENSES DESTROYING WITH A RECORD.**
+            // Force does not adjudicate whether the local bytes were an edit --
+            // it DECLINES TO KNOW, discards forward at the operator's explicit
+            // instruction, and records what it destroyed. And (d) creates the
+            // HOLD that (e) was minted to give a remedy to: if force does not
+            // reach here, (d)'s hold IS the dead end (e) exists to close.
+            //
+            // **MY OWN ARGUMENT FOR THIS WAS THE WRONG HALF, AND THE
+            // CORRECTION IS WORTH MORE THAN THE GRANT.** I argued that v3 has
+            // no prompt to override -- which answers the FIRST clause of the
+            // old test's name and leaves the second standing. *Not about
+            // inventing information that was never recorded* is not retired by
+            // anything; it is (d), ratified. **Taking my reasoning would have
+            // retired a live constraint along with a dead one.**
+            //
+            // **SO: NO BASELINE IS INVENTED HERE.** `materialise` writes the
+            // source, and the manifest entry records THE NEW STATE -- never the
+            // discarded tree, which would launder unknown bytes into a
+            // baseline and make the next sync report an update where nobody
+            // knows one happened.
+            let prior = manifest.find(&name).cloned();
+            let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
+            let written = entry.files.len();
+            manifest.upsert(entry);
+            Outcome::Forced {
+              written,
+              removed,
+              discarded: target.clone(),
+              baseline: Baseline::Absent,
+            }
           } else {
-            // **`--force` IS DELIBERATELY NOT WIRED HERE, AND IT IS A HOLD
-            // RATHER THAN AN OVERSIGHT (cc, 2026-08-23, escalated to vc).**
-            //
-            // I built it, then found `force_does_not_resolve_a_missing_baseline`
-            // -- a test I had written the day before, whose NAME carries its
-            // argument: _force is about overriding a prompt, not about inventing
-            // information that was never recorded. A force that silently picked
-            // "take the source" here would be v2's defect wearing a flag._
-            //
-            // **I THINK THAT ARGUMENT'S PREMISE HAS SINCE BEEN RETIRED.** v3 has
-            // no prompt to override, and vc's ruling defines force as _adopts
-            // the upstream copy and REPORTS the checksum of what it discarded_,
-            // which is the opposite of silent. **But I authored the test AND the
-            // change, so I am the worst available judge of whether the later
-            // ruling reaches the earlier argument** -- and the ruling did not
-            // name this state. Routed to vc rather than settled by the one
-            // person who benefits from settling it.
-            //
-            // The other two held states are unaffected: `--force` resolves
-            // `ModifiedLocally` and `Conflicted` today.
             Outcome::Undecidable
           }
         }

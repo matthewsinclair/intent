@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use intentsvcs::skills::{MANIFEST_RELATIVE, Outcome, Scope, Skills};
+use intentsvcs::skills::{Baseline, MANIFEST_RELATIVE, Outcome, Scope, Skills};
 
 /// A disposable estate: an install tree, a Claude target, a manifest path.
 struct Fixture {
@@ -61,6 +61,23 @@ impl Fixture {
 
   fn canon(&self) -> PathBuf {
     self.install.join("intent/plugins/claude/skills")
+  }
+
+  /// The checksum the manifest RECORDS for a skill.
+  ///
+  /// **Read through the library rather than off the JSON**, so a test asserting
+  /// what was recorded cannot pass by agreeing with a second parser.
+  fn manifest_checksum(&self, name: &str) -> String {
+    self
+      .skills()
+      .manifest()
+      .expect("the manifest reads back")
+      .installed
+      .iter()
+      .find(|e| e.name == name)
+      .unwrap_or_else(|| panic!("{name} is recorded"))
+      .checksum
+      .clone()
   }
 
   /// Write a source skill with a `SKILL.md` and whatever else is named.
@@ -337,18 +354,76 @@ fn an_installed_skill_with_no_baseline_is_refused_not_guessed() {
   );
 }
 
-/// **AND `--force` DOES NOT RESOLVE IT.** Force is about overriding a prompt,
-/// not about inventing information that was never recorded. A force that
-/// silently picked "take the source" here would be v2's defect wearing a flag.
+/// **`--force` RESOLVES IT BY DISCARDING FORWARD, AND NEVER BY INVENTING A
+/// BASELINE.**
+///
+/// **THIS TEST WAS AMENDED RATHER THAN DELETED, AND RENAMED OFF A PREMISE THAT
+/// IS HALF DEAD** (vc, 2026-08-23, condition 1 of the grant). It read
+/// `force_does_not_resolve_a_missing_baseline` and argued: *force is about
+/// overriding a prompt, not about inventing information that was never
+/// recorded.*
+///
+/// **THE FIRST CLAUSE DIED AND THE SECOND DID NOT, AND I HAD THE SPLIT WRONG.**
+/// I argued the whole name was retired because v3 has no prompt to override.
+/// That answers the first clause only. *Not inventing information that was
+/// never recorded* is AC-07.3(d), ratified: with `old` absent, what
+/// distinguishes an upstream change from an operator edit was never written
+/// down and is not recoverable. **Taking my reasoning would have retired a live
+/// constraint along with a dead one** -- which is why an argued test goes to
+/// someone who did not author both sides.
+///
+/// **SO THE SURVIVING CLAUSE IS WHAT THIS NOW PINS.** (d) forbids CHOOSING;
+/// AC-07.3(e) licenses DESTROYING WITH A RECORD. Force declines to know,
+/// discards forward on the operator's instruction, and **the manifest records
+/// THE NEW STATE -- never the discarded tree.** Laundering unknown bytes into a
+/// baseline would make the very next sync report an ordinary update, on
+/// evidence nobody ever had.
 #[test]
-fn force_does_not_resolve_a_missing_baseline() {
+fn force_never_invents_a_baseline_it_discards_forward_and_records_the_new_state() {
   let f = Fixture::new();
   f.source("in-probe", &[("SKILL.md", "# upstream\n")]);
   write_tree(&f.target.join("in-probe"), &[("SKILL.md", "# theirs\n")]);
+  let s = f.skills();
 
-  let report = f.skills().sync(true).unwrap();
-  assert_eq!(outcome(&report.steps, "in-probe"), Outcome::Undecidable);
+  // Held without force -- (d)'s refusal, unchanged.
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::Undecidable
+  );
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# theirs\n");
+
+  // Forced: adopts the source, and SAYS the baseline was absent.
+  let discarded = match outcome(&s.sync(true).unwrap().steps, "in-probe") {
+    Outcome::Forced {
+      discarded,
+      baseline,
+      ..
+    } => {
+      assert_eq!(
+        baseline,
+        Baseline::Absent,
+        "a discard with no baseline must not be reported as the operator's edit: (d) says that is not knowable"
+      );
+      discarded
+    }
+    other => panic!("force must resolve a missing baseline: {other:?}"),
+  };
+  assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# upstream\n");
+
+  // **THE CLAUSE THAT SURVIVED: the recorded baseline is the NEW state.** If
+  // the discarded tree were recorded instead, the next sync would see
+  // `source != old` and report a routine update -- inventing, one command
+  // later, exactly the history (d) says was never available.
+  let recorded = f.manifest_checksum("in-probe");
+  assert_ne!(
+    recorded, discarded,
+    "the discarded tree was laundered into the baseline"
+  );
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::UpToDate,
+    "after a forced adopt the tree IS the source, so the next sync has nothing to do"
+  );
 }
 
 /// The other half of ruling 4, and the reason it is not simply "refuse when
@@ -720,5 +795,42 @@ fn force_resolves_a_conflict_and_names_what_it_discarded() {
     read(&f.target.join("in-probe/SKILL.md")),
     "# upstream v2\n",
     "force adopts the upstream copy"
+  );
+}
+
+/// **THE DISCARDED CHECKSUM IS A FUNCTION OF THE DISCARDED CONTENT IN THE
+/// MISSING-BASELINE STATE TOO** (vc, 2026-08-23, condition 3 of the grant).
+///
+/// `the_discarded_checksum_is_a_function_of_what_was_discarded` proves this
+/// where a baseline exists, and **it would stay green if this state reported a
+/// constant** -- different arm, different construction site. The remedy is
+/// worth MORE here than there, not less: with a baseline the operator at least
+/// knows the bytes were theirs, and here the checksum is the only handle on
+/// content nobody can otherwise characterise.
+#[test]
+fn the_discarded_checksum_moves_with_the_content_when_no_baseline_exists() {
+  let discard = |theirs: &str| {
+    let f = Fixture::new();
+    f.source("in-probe", &[("SKILL.md", "# upstream\n")]);
+    // Installed by something that is not this build: no manifest entry at all.
+    write_tree(&f.target.join("in-probe"), &[("SKILL.md", theirs)]);
+    match outcome(&f.skills().sync(true).unwrap().steps, "in-probe") {
+      // **THE BASELINE IS DELIBERATELY NOT ASSERTED HERE.** It is the other
+      // test's property, and pinning it in both makes one mutation fail two
+      // names -- which is exactly what a mutation proof exists to tell apart.
+      Outcome::Forced { discarded, .. } => discarded,
+      other => panic!("force must resolve a missing baseline: {other:?}"),
+    }
+  };
+
+  assert_eq!(
+    discard("# theirs\n"),
+    discard("# theirs\n"),
+    "the same discarded content must yield the same checksum, or it identifies nothing"
+  );
+  assert_ne!(
+    discard("# theirs\n"),
+    discard("# something else entirely\n"),
+    "a checksum that does not move with the content is a constant wearing a remedy's name"
   );
 }
