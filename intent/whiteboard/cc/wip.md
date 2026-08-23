@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-23 13:01Z
+heartbeat_at: 2026-08-23 13:18Z
 status: active
 focus: "**AC-08.5's ATTACHMENT `put` ARM IS IN, DRIVEN AND GREEN (`62fdcdfa`). The population goes 6-of-11 to 5-of-11 and the criterion's own named burning case is closed.** A ruled direction (`design.md:271`, hv 2026-08-18) and a computed discriminator (`is_attachment`) had sat there since the rewrite began with no arm behind them -- attachments fell into `other => has no write path yet`. **I DROVE IT BEFORE BUILDING IT, in the one way that could have embarrassed me:** flipping ic's `E::Attachment` declaration to `Reachable` FIRST, so the surface said `observed NoWritePathYet` rather than me reading a match arm and reporting it. **THREE OF THE REFUSALS ARE MINE AND WERE NOT RULED** -- `?format=json` (the round-trip habit every other address teaches would write the record into the file as its content), an unattached extension, and an opaque attachment (`text: None` is the only marker the content is bytes, and this door cannot express bytes). **TWO FINDINGS CAME OUT OF DRIVING IT AND NEITHER WAS VISIBLE BY READING:** views do not parse as attachment addresses at all, so half my classify guard is unreachable and says so; and `EditDisposition::author_with` had two values of DIFFERENT GRAMMAR, both consumers interpolating into `author it with {}`, with each door reaching exactly the one value that happened to compose. **Full workspace 1025 passed / 0 failed / 144 binaries, clippy clean under `-D warnings`.**"
 | arm | instance | verdict |
@@ -315,6 +315,52 @@ ic had predicted the exact red in a message that crossed my build, and said it m
 
 **What saved 113 lines was dc getting a second observation for free and correcting themselves before anyone acted on the first.**
 
+### I FOUND A CONTRADICTION AND FILED IT AS A CHORE -- TODO 3 now holds on hv
+
+**`render.rs:391` prints `this run does not refuse, and the commit gate will`. My board said: kill that clause, because under the relayed ruling it goes false.** vc's correction, and it is the better read by a distance: **its going false is not staleness. It is the ARCHITECTURE, stated** -- ST0056 AC-11.1, put the control where the harm is -- **so a sentence that stops being true under a proposed change is EVIDENCE ABOUT THE CHANGE, not a line item inside it.**
+
+**I HAD THE CONTRADICTION IN FRONT OF ME FOR A DAY AND RECORDED IT AS TIDYING.** The measurement was telling me the relayed ruling RELOCATES a control that AC-03.6 ratified, and I wrote down `kill the clause`.
+
+**AC-03.6 IS RATIFIED (dc, 2026-08-18) AND THE RELAY I HOLD IS CLOSE TO THE EXACT WORDING IT NAMES AS INSUFFICIENT.** Three passages, which vc read out of canon rather than answering from their model of it:
+
+- **_And the harm is not at sync. Canon holding uncommitted bytes in a working tree is a dirty tree: normal, reversible, nobody's problem. It becomes permanent and inspectable-but-wrong at the COMMIT._**
+- **_So the compliant order is sync canon FIRST -- because sync reads the worktree -- then commit the file and canon together._** The prescribed workflow DEPENDS on sync reading worktree bytes. **A sync that skips them does not make that order safer; it makes it impossible.**
+- **_A criterion worded as `a sync must not ingest uncommitted bytes` describes only the first and misses the second entirely. The second half is the one that was live._** Both directions violate the invariant: canon-ahead (`c4f9bcbe`), and **file-ahead-canon-behind (`3f10b1ee`) -- an attachment edited and committed with no re-sync, canon naming bytes in neither the commit nor on disk, with a CLEAN WORKTREE. A skip at sync cannot see that one at all.**
+
+**MY UNTRACKED-vs-`Modified` QUESTION DISSOLVES RATHER THAN RESOLVING, AND MY LEAN WAS RIGHT FOR A WEAKER REASON THAN THE REAL ONE.** I argued severity -- stale-and-confident is worse than incomplete. **The real reason is that skipping either member breaks the compliant order and blinds the direction that was actually live.** Being right for the weaker reason is not the same as being right, and it is the half that does not transfer to the next case.
+
+**vc REFUSED TO RULE IT WHILE HOLDING THE PEN, AND THAT IS THE BOUNDARY WORKING AT ITS ONE HARD MOMENT.** Ruling would have let a relayed second-hand ruling override ratified canon on a vc signature. **Either hv's ruling is narrower than the relay reached me as, or it knowingly supersedes AC-03.6's reasoning -- and only hv can say which.** It is on `hv/wip.md` as a question rather than a directive. **TODO 3 holds on hv, not on vc, and not on ic.**
+
+### THE READ-ONLY FINDING THAT SURVIVES WHICHEVER WAY hv RULES
+
+**`sync::uncommitted` compares against the INDEX, not against HEAD**, with the reasoning at the site: _a comparison against HEAD would report every staged file as uncommitted, which is the normal state of a commit being assembled, and a check that fires on ordinary work is one people learn to skip._
+
+**So dc's caution on TODO 3 was already satisfied by construction, and had been the whole time.** A staged new attachment appears in neither `diff-files` nor `ls-files --others`, so it is never reported and is carried: **the two-step workflow is preserved by the MEASUREMENT layer, not by anything a skip would need to do.** `NotInIndex` already carries both states with distinct descriptions. My board had this recorded as the sharp risk of a build that had not started; it was closed before I got there.
+
+### `sync_reports_uncommitted_attachment` IS A NAME THAT CARRIES ITS ARGUMENT
+
+**Second instance this week of the rule firing, and the first one I caught before writing rather than after reverting.** It asserts REPORTS -- which is precisely the behaviour under dispute -- so amending it to assert a skip would make the test agree with the change by construction and destroy the only record of what the surface used to promise. **Do not write over it. `lifecycle_verbs_edit_the_list.rs` is the other file pinning current behaviour; amend, never delete.**
+
+### THE INDEX/WORKTREE SPLIT, FROM BOTH SIDES IN ONE HOUR -- and ic hit the mirror image
+
+**I held a one-file board commit rather than run my guards over ic's staged rename**, on the ground that `--only` scopes what LANDS and not what the guards READ. **ic's half-rename existed ONLY in the index and never in the worktree**, so my commit's roster check would have refused -- against MY commit, on THEIR file. **I would have been diagnosing their breach as mine**, which is precisely how I messaged dc with confident, driven, wrong evidence yesterday.
+
+**AND ic HIT THE MIRROR IMAGE OF IT AN HOUR LATER.** Their first attempt staged the NEW path without the DELETION of the old; the roster guard refused; **driving that same guard directly showed GREEN, because the worktree was whole.** **Two correct readings of two different objects** -- and neither reading is wrong, which is exactly why the disagreement is unreadable without knowing which object each one asked.
+
+**GENERALISED, AND THIS IS THE KEEPER: `git diff --cached` IS NOT A PRE-COMMIT FORMALITY, IT IS THE ONLY THING THAT SAYS WHICH OBJECT THE GUARDS ARE ABOUT TO JUDGE.** In a five-node checkout the index is shared state even when the commit is not, and **nothing announces who is parked behind whose staged work.**
+
+### ic's THIRD TAUTOLOGICAL INSTRUMENT THIS WEEK, AND IT WIDENS MY OWN RULE
+
+**My rule was written about greps: `drive` means RUN, and where the instrument must be a grep, the needle must be able to return an answer I did not expect.** ic's case is the same defect with no needle in it: their scoping grep was `--include`-filtered, and **`bin/.devbin/cmd/precommit` HAS NO FILE EXTENSION**, so the one site that mattered could not have appeared. **Found by the roster guard, not by them** -- and built hours after they had copied my rule onto their board.
+
+**SO THE RULE IS NOT ABOUT GREPS. It is about any instrument whose SCOPING cannot return the other answer** -- a filter, a glob, a population, a denominator. **The needle is the famous half; the scope is the half that gets written without being noticed**, because choosing what to look at never feels like asserting anything. Third instance this week and the first that was not a pattern at all.
+
+### THE THREE REFUSALS ARE MINE TO COVER -- ic RULED THE BOUNDARY AND THE REASON IS THE GOOD PART
+
+**ic answered directly: cover them MYSELF, as build decisions, NOT under AC-08.5.** `?format=json`, the unattached extension and the opaque attachment are mine -- I decided them, I drove them, none is ruled. **Putting them under AC-08.5's coverage would smuggle three unruled build decisions into a criterion hv ruled**, which is the same population defect ic spent this morning splitting out of `declared_reach`. Their row covers the criterion -- _is every entity form in the population reachable, and is every exclusion cited_ -- and that is all it should ever cover.
+
+**AND ic NAMED THE TRAP IN MY OWN FINDING 1 BEFORE WRITING THEIR ARM.** A coverage arm asserting _a generated view cannot be written as an attachment_ **passes on `address::parse` refusing `ViewAddressed` and never reaches my classify guard** -- green, measuring the wrong layer, **and indistinguishable from a green that measured the right one.** Their arm will assert the refusal AND which layer produced it, or not be written. **My guard's unreachable limb is a fact a test must state, not one it may quietly rely on.**
+
 ## TODO
 
 0. ~~**CI GREEN-BY-CONSTRUCTION AND UNVERIFIED.**~~ **VERIFIED GREEN ON REAL RUNNERS, `ee4a7cac`, pushed 2026-08-21 21:49Z.** Both workflows success on both platforms. **`upstream/main` had been sitting at `510d4b10` -- the EXACT revision of the last CI run I diagnosed -- so the whole day's work from four nodes had never been seen by a runner.** `prepush` cloned the pushed revision, built it, ran both binaries and passed clippy under `-D warnings` before letting it through, so what is on GitHub is verified independently of anyone's local tree.
@@ -328,7 +374,7 @@ ic had predicted the exact red in a message that crossed my build, and said it m
 1. ~~**AC-03.14's second instrument.**~~ **DONE this session -- AT-03.19 green, AC-03.14 satisfied, ST0056/03 16/16 PASS.**
 2. ~~**AC-08.5's FACADE CHANGE~~ **BUILT AND LANDED `3f9b2907`; ic covers. Original brief below.** **AC-08.5's FACADE CHANGE -- hv RULED THE SPLIT AND THE OWNERSHIP: cc BUILDS, ic COVERS** (via ic, this session). `facade.rs:4023` refuses `Threads | Thread{..} | Issue{..}` with _this id is server-assigned -- POST to the collection_. **That is a CREATE-shaped justification declining an UPDATE, and the arm does not distinguish the two operations** -- for an AT row `put` is an upsert replacing every field; for a thread it refuses outright, which is why ST0011's `completed` has no write path at all. **The split: `Thread{id}` where the thread EXISTS upserts; create-by-id stays refused; `Threads` and `Issue{..}` unchanged.** Builder and verifier stay separate deliberately because AC-08.5 is ic's gate row -- **do not also write its coverage.** ic corrected their own earlier report against themselves: the unsettable set is EMPTY, not `["file","prose","covers","note"]`, which came from reading `no_named_verb_sets()` at `:92-96` -- a roster of NAMED VERBS, not a settability measurement.
 
-3. **`sync` SKIPS UNTRACKED BYTES, LOUDLY (hv ruled, via dc; `sync` is Rust so the build is mine).** **`loudly` is half the ruling** -- a silent skip makes canon quietly incomplete. Kill the `this run does not refuse, and the commit gate will` clause: under the ruling there is nothing for the gate to catch. **dc's caution is the sharp part: the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED, or it turns a legitimate two-step workflow into a silent no-op.** Comment for the fix site: **ingestion promotes an INHERITED divergence into an ADDED one -- the divergence changes CATEGORY by being written down.**
+3. **HELD ON hv -- DO NOT BUILD. The relay below is close to the wording AC-03.6 names as insufficient; see the section above.** ~~**`sync` SKIPS UNTRACKED BYTES, LOUDLY (hv ruled, via dc; `sync` is Rust so the build is mine).**~~ **`loudly` is half the ruling** -- a silent skip makes canon quietly incomplete. Kill the `this run does not refuse, and the commit gate will` clause: under the ruling there is nothing for the gate to catch. **dc's caution is the sharp part: the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED, or it turns a legitimate two-step workflow into a silent no-op.** Comment for the fix site: **ingestion promotes an INHERITED divergence into an ADDED one -- the divergence changes CATEGORY by being written down.**
 4. ~~**`render.rs` `#[cfg(test)] mod tests`**~~ **LANDED `1d550ac1`; ic retired `declared_but_unwired` at `b4918a35`. Original brief below.** **`render.rs` `#[cfg(test)] mod tests` driving `unwired("not-a-family", "")`** -- assert exit 2 AND the named path, since exit 2 is reachable from many arms there. **No visibility change needed: a same-module test reaches a private fn.** Then ping ic, who retires `declared_but_unwired`'s loop in one move -- **its `UNWIRED` const cannot simply go empty, that file refuses an empty roster on purpose.**
 5. **`AT-00.6` stale `to-write`** while `migrate_v2_project.rs` exists -- the gate reports it every commit. Canon correction, route to vc.
 6. **Two `intentdb` doc comments:** `intentsvcs/src/lib.rs:11`, `project.rs:786`. Fold into the next edit in those files.
