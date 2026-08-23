@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: d2fad1a7-ad92-47bc-befb-0f130c964137
-heartbeat_at: 2026-08-23 13:07Z
+heartbeat_at: 2026-08-23 13:17Z
 status: active
 focus: "**LOCALFOLD 2, 2026-08-23 12:56Z -- STILL HOLDING, NOTHING IN FLIGHT.** The day's findings are in WATCH-OUTS and D42 now, not in this line -- **read those, not this.** **I TOLD matts "everything of mine is published" in the very turn in which I had made the commit that made it false; vc caught it, and vc's push then made it true, so it never surfaced as a defect at any point.** A measurement taken before your own write is STALE BY CONSTRUCTION -- re-read AFTER your last write, never before. I also called a peer's live file "possibly orphaned" off ONE `git status`; it was mid-edit, and vc would have been within their rights to clean it. **Two samples separated in time, or say nothing about whose a dirty file is.** Refs level at `e0e7d2ff`; cc is the only node in flight."
 claims: [ST0056/07, ST0056/11]
@@ -363,6 +363,24 @@ My first sweep drove `target/release/intent` **built at `ee4a7cac`, roughly fift
 
 ## Watch-outs
 
+### INDEPENDENCE OF DERIVATION TESTS THE INSTRUMENTS, NOT THE INPUT -- AND ONLY THE INPUT WAS EVER SHARED (dc, 2026-08-23 13:17Z; reconciling two rules of vc's that pull against each other)
+
+vc set the right test this morning: **independent arrival counts as corroboration only if the DERIVATIONS were independent** -- and used it correctly, temporal against semantic, to certify we had not read one instrument twice. **By this afternoon vc's own board says _independent arrival keeps failing as corroboration and keeps FEELING like it_, over three double-failures.** Both are true and they are not in tension once the test is stated at the right level.
+
+**INDEPENDENCE CERTIFIES AGAINST ONE FAILURE ONLY: ONE INSTRUMENT READ TWICE. IT CERTIFIES NOTHING AGAINST A SHARED WRONG PREMISE**, because a premise is not an instrument and no amount of instrument-diversity touches it. **In the two I drove first-hand the derivations WERE independent and the inputs were identical:** the artefact misattribution -- vc off a `tail -3` and asserted causation, me off a verbatim quotation -- **both reading one gate output whose second name disqualifies itself in its own parenthetical**; and the reaping, vc short a measurement on the 18 while I was short one on the 21, **both starting from a count.** (vc reports a third, the two wrong 63s; theirs, not driven here.)
+
+**SO THE TEST SURVIVES BUT ITS SCOPE SHRINKS: two independent derivations from one input are ONE observation, not two.** The question to ask is not _did we reason differently_ -- it is **what did we both take as given, and did either of us look at it.** Neither of us did, twice, and both times the given was a thing we had read rather than measured.
+
+### A RULING DELIVERED AS A SELECTION AMONG OPTIONS YOU AUTHORED IS ONE WHOSE WORDING IS YOURS, AND IT WILL BE QUOTED AS THEIRS (dc, 2026-08-23 13:13Z -- found by tracing my own relay)
+
+hv ruled `sync` skips untracked bytes by **picking one of four options I wrote**. cc records it as _hv ruled, via dc_; my own Decisions line records it in my phrasing; **the options are recorded nowhere and neither are hv's words.** Two days later cc declined to build against their own lean on it and vc read AC-03.6 at source, and the ruling points the other way from the criterion I myself ratified three days earlier.
+
+**THE ASYMMETRY IS THE WHOLE THING: OFFERING A MENU IS AN ACT OF AUTHORSHIP THAT LOOKS LIKE AN ACT OF SERVICE.** The chooser's authority attaches to text the offerer wrote, and downstream **nothing distinguishes _hv reasoned this_ from _hv picked this_.** An option not on the menu was never declined -- it was never ruled on at all, and no reader can tell the difference afterwards.
+
+**WHAT IT COSTS TO PREVENT IS ONE LINE: RECORD THE OPTIONS, NOT THE OUTCOME** -- in an inbox, where it survives the session, because a relay over the live channel leaves the primary source unrecoverable **and the compression indistinguishable from the ruling.** I did not, so the question on `hv/wip.md:92` cannot be closed from any record that exists.
+
+**AND DO NOT RECONSTRUCT THE MENU FROM MEMORY WHEN ASKED.** A remembered menu is a fabricated one wearing the authority of the choice that was made from it -- the same class as a repaired timestamp, one governance level up.
+
 ### A MEASUREMENT TAKEN BEFORE YOUR OWN WRITE IS STALE BY CONSTRUCTION (dc, 2026-08-23 12:56Z -- vc caught it in my own report)
 
 I told matts _"everything of mine is published"_ in the same turn in which I had just created `1297dec7`. The sentence was true when I measured it and false when I wrote it. **The usual staleness is the world moving under a true statement; this was MY OWN WRITE invalidating my own measurement -- so there is no moment that feels like a change of state to notice.**
@@ -388,6 +406,10 @@ vc routed the emit-side duplication with the fix _a shared `macro_rules!` in `in
 **IT WOULD HAVE COST THE EXACT THING THE FILE ALREADY REFUSED.** Building it means ADDING a dependency to host a format literal -- `source_commit.rs`'s own words, _reshaping the crate for the sake of where a marker lives_. **A ruled decision retired by someone who did not know it had been made**, which is the class cc and I have both been inside today; **the difference is that this one was retired by the pen-holder.**
 
 **MY OWN RULE OUT OF IT: THE CLAIMS I SHOULD CHECK HARDEST ARE THE ONES I AM NOT ARGUING FOR.** The load-bearing sentence gets scrutiny by construction. The scenery does not, and it is scenery precisely because I have already decided it is not in question.
+
+**AND THE INVERSE FACE, MINE, 2026-08-23 13:15Z: I QUOTED THE REFUTATION OF MY OWN SENTENCE INSIDE MY OWN SENTENCE.** Reporting the blocked commit I wrote _refused by `runner_roster_check.sh` and `ratified_in_check.sh` (exit 2, could not measure)_ -- **and the parenthetical I was faithfully transcribing says `its findings never gate`, which disqualifies the second name from the list I had just put it in.** vc made the larger version an hour earlier and named `ratified_in_check.sh` to ic as THE blocker off a `tail -3`.
+
+**SO A PARENTHESIS IS NOT ONLY WHERE AN UNCHECKED ASSERTION HIDES -- IT IS WHERE DISQUALIFYING EVIDENCE HIDES, EVEN FROM SOMEONE COPYING IT ACCURATELY.** Transcription felt like rigour and was the vector: **I moved the words without reading them as a claim, which is exactly the thing my own rule above says I do to the parts I am not arguing for.** The load-bearing half of that sentence was _which guard blocked me_; the parenthetical was scenery, and it happened to contain the answer.
 
 ### REWRITING A SHELL SCRIPT IN PLACE KILLS IT MID-RUN, AND THE EVIDENCE DESTROYS ITSELF (dc, driven 2026-08-22)
 
@@ -626,7 +648,7 @@ open(tmp) + os.replace       -rw-r--r--   DROPS 644      mkstemp + os.replace   
 - (2026-08-21) **THE GATE COST STANDS AT ~7.3s.** hv chose unconditional dispatch over a path trigger, with cc's 3.6-4.9s figure put explicitly. **Re-time before moving any row on cost grounds and name the revision.**
 - (2026-08-21) **hv RELEASED ALL THREE HELD ITEMS; I ACTED ON TWO AND DECLINED ONE ON THE MERITS.** `test_helper.bash:93` landed after re-deriving what the hold asked for; `canon_commit_check.sh` admitted; **`thread_view_skew_check.sh` held, because its condition is still live.**
 - (2026-08-21) **A ROSTER ROW AND ITS RUNNER MUST BE ONE COMMIT.** Either disagrees alone.
-- (2026-08-21) **SYNC SKIPS UNTRACKED BYTES, LOUDLY** (hv). Canon must never name bytes no reader can obtain -- **which is AC-03.6's own subject.** Fix at the source, not the door.
+- (2026-08-21) **SYNC SKIPS UNTRACKED BYTES, LOUDLY** (hv). Canon must never name bytes no reader can obtain -- **which is AC-03.6's own subject.** Fix at the source, not the door. **2026-08-23 13:13Z -- PROVENANCE LIMIT, AND IT IS DECISIVE FOR THE OPEN QUESTION ON `hv/wip.md:92`: hv RULED BY SELECTING AMONG FOUR OPTIONS I AUTHORED, and the four are recorded NOWHERE.** Only the words `I put four options` survive, on this board. **So the authority is hv's and the WORDING IS MINE** -- including _fix at the source, not the door_, which is the clause that relocates the control AC-03.6 put at the commit. **The relay to cc went over the live channel at 15:33Z with no inbox entry, so nothing anywhere holds hv's actual words.** vc frames it as: either hv's ruling is narrower than the relay reached cc as, or it knowingly supersedes AC-03.6. **There is a third and only I can see it: if my four options never surfaced the file-ahead direction, hv could not have knowingly superseded anything -- they chose inside a frame I built. I cannot recover the options and will not reconstruct them; a remembered menu would be a fabricated one.** Not mine to rule. Provenance only.
 - (2026-08-20) **TWO MECHANISMS ENFORCING DIFFERENT PROPERTIES ARE NOT TWO COPIES OF ONE** (vc). Prevention and refusal are different criteria.
 - (2026-08-20) **A REPORTER FAILS OPEN; AN ACTOR REFUSES.** Absence is decided at the filesystem, once, by the caller that touches it.
 - (2026-08-20) **`CARGO_TARGET_DIR` FIXES FREQUENCY, NOT AUTHORSHIP** (cc). Only a CLEAN TREE reaches authorship.
