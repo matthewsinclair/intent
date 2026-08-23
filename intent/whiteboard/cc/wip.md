@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 87048274-c4dc-44b7-b08d-c933207a4f50
-heartbeat_at: 2026-08-22 11:11Z
+heartbeat_at: 2026-08-23 13:01Z
 status: active
-focus: "**AC-07.3 IS BUILT, WIRED AND DRIVEN. `intent claude skills` answers -- it had returned `2` since the rewrite began.** `fe133748` module, `12bca50a` a correction of my own commit, `21ea0e8f` the CLI arm. **hv GRANTED `$HOME` DIRECTLY (AC-11.3's second env var) AND I MADE THE GRANT NARROWER THAN THE ROW: `CONFINED` beside `ALLOWED`, `$HOME` legal in exactly ONE file (`userstate.rs`), a second reader failing like an unapproved variable.** The ask was may per-user state be reached, not may any file read the environment. **TWO v2 DEFECTS DRIVEN BEFORE A LINE WAS WRITTEN:** `sync --force` misses a scripts-only change and exits 0 saying `up to date` (checksum covers SKILL.md alone; positive control -- touch SKILL.md and the same change propagates); and sync NEVER PRUNES, so a retired script stays live in every consumer forever while sync reports success. **SIX MUTATIONS, SIX REFUSALS, DISTINCT KILL-SETS -- AND ONE SURVIVED TWICE.** The prune-boundary test passed 21 of 21, passed again after strengthening, and was green **because the sync correctly REFUSED before the prune ever ran**: a test asserting a boundary it had never executed, under the name `a_file_the_operator_added_is_never_pruned`, inside the change built to catch that class. **I WAS ALSO WRONG IN PROSE TWICE AND NEITHER WAS FINDABLE BY ANY TEST I WROTE:** a module header stating v2's manifest filename as fact 77 lines above the constant contradicting it (ic caught it), and a structural claim about v2's `elif` that vc had independently in the same wrong shape (`12bca50a` corrects both). **NEXT: hold for vc.** Full workspace 1024 passed / 0 failed / 144 binaries."
+focus: "**AC-08.5's ATTACHMENT `put` ARM IS IN, DRIVEN AND GREEN (`62fdcdfa`). The population goes 6-of-11 to 5-of-11 and the criterion's own named burning case is closed.** A ruled direction (`design.md:271`, hv 2026-08-18) and a computed discriminator (`is_attachment`) had sat there since the rewrite began with no arm behind them -- attachments fell into `other => has no write path yet`. **I DROVE IT BEFORE BUILDING IT, in the one way that could have embarrassed me:** flipping ic's `E::Attachment` declaration to `Reachable` FIRST, so the surface said `observed NoWritePathYet` rather than me reading a match arm and reporting it. **THREE OF THE REFUSALS ARE MINE AND WERE NOT RULED** -- `?format=json` (the round-trip habit every other address teaches would write the record into the file as its content), an unattached extension, and an opaque attachment (`text: None` is the only marker the content is bytes, and this door cannot express bytes). **TWO FINDINGS CAME OUT OF DRIVING IT AND NEITHER WAS VISIBLE BY READING:** views do not parse as attachment addresses at all, so half my classify guard is unreachable and says so; and `EditDisposition::author_with` had two values of DIFFERENT GRAMMAR, both consumers interpolating into `author it with {}`, with each door reaching exactly the one value that happened to compose. **Full workspace 1025 passed / 0 failed / 144 binaries, clippy clean under `-D warnings`.**"
 | arm | instance | verdict |
 | --- | --- | --- |
 | canon ahead of the commit | cc's commit, dc's untracked file ingested by my sync | `ADDS 1 of 89` rc=1 |
@@ -227,7 +227,9 @@ ic reported it; vc ruled it under hv's pen. **`intent st edit ST0001` -- the DEF
 - **TWO BEHAVIOURALLY DIFFERENT BINARIES CAN CARRY THE SAME CLEAN PROVENANCE MARKER** (dc, caused by my `580c1038`). A change in `intentsvcs` -- a DEPENDENCY -- relinks `intent-cli` while its own `build.rs` never re-runs, so the marker stays at whatever commit it last stamped: `cd6afbaf`, bytes `59ba4e6d` then `b1e81136`, **clean tree both times.** **Worse than the recorded `dirty-18197aaf` collision, because a dirty marker self-announces and a bare sha does not.** Rebuild in the same act as any measurement, and **pin by the HASH, never the marker.**
 - **A SUMMARY THAT NAMES A CAUSE IT DID NOT ESTABLISH IS WORSE THAN ONE THAT NAMES NONE** (dc, fixing it). Their gate told me `guard_home_check.sh -- the shipped hook template lost the self-hosted GUARD_HOME override`, with the gate's authority behind it. **The template was fine**; the tool was momentarily off-tree, `bash` returned 127, and the dispatch asserted ONE cause for EVERY non-zero exit. **The reader spends their next move on a file that is not broken.** Same shape as a leaf remedy pointing at an empty help block.
 
-### NEXT WHEN I COME BACK -- AC-08.5, and the sequencing is vc's
+### ~~NEXT WHEN I COME BACK~~ -- **DONE 2026-08-23 AT `62fdcdfa`. The brief below is kept for its reasoning, and is NOT a worklist.**
+
+**Struck through the moment it landed, because an entry that cannot say `done` reads as a worklist forever** -- which is the `hv/wip.md` defect this very section was written to complain about, and I was one fold away from leaving it pointed at myself.
 
 **AC-08.5 IS MY NEXT BUILD, PROMOTED OVER `--force` (vc, under hv's pen). ST0057's gate is `50/51, 2 withdrawn; unsatisfied: AC-08.5` -- it is the LAST ROW on that gate.** hv split the owners deliberately: **cc BUILDS the facade change, ic COVERS it.**
 
@@ -275,6 +277,44 @@ The needle was `UNSETTABLE\|"file"\|"prose"\|"covers"\|"note"`. **It could not h
 - `--force` on `claude skills` (and the `.md` face) -- ic's.
 - `flag_reachability`'s per-entry id resolution -- ic's.
 
+## 2026-08-23 -- AC-08.5's attachment arm, and two defects that only driving could show
+
+**LANDED `62fdcdfa`: `put` reaches attachments.** `design.md:271` ruled the direction on 2026-08-18 -- _an ATTACHMENT is authored on disk, so for attachments the authority runs the other way and text-in is correct_, explicitly not an exception -- and `facade.rs` had computed `is_attachment` for the markdown refusal the whole time. **A ruled direction, a computed discriminator, and no arm behind either: attachments fell into `other => has no write path yet`.** ic's denominator now reads 5-of-11 and `attachments/design.md` has left the worklist.
+
+### I DROVE IT BEFORE BUILDING IT, AND THE ORDER IS THE POINT
+
+Yesterday I reported a grep as a measurement, with a needle that named its own answer. So the first thing I did here was flip ic's `E::Attachment` declaration from `NotBuiltYet` to `Reachable` **while the arm did not exist**, and let the surface answer: `declared Reachable, which requires Yes, but observed NoWritePathYet`. **That is the instrument disagreeing with me on purpose, before I had anything invested in it being right.** Reading the match arm would have told me the same thing and told it to me the same way a tautology does.
+
+ic had predicted the exact red in a message that crossed my build, and said it means _the arm is not in yet_ rather than _the declaration is wrong_. It cleared the moment the arm landed, with nothing edited in their test.
+
+### THREE REFUSALS ARE MINE AND WERE NOT RULED -- flagged as MINE, not as ruled
+
+- **`?format=json`.** The mutation format is the interchange format, so every other address teaches: GET json, modify, PUT it back. At this one address that habit writes the attachment's own RECORD into the file as its CONTENT -- and every other guard passes while it happens, with the sha256 correctly describing the wrong thing.
+- **An unattached extension.** Canon carries `md, txt, sh` and leaves the rest on disk, so writing one here puts a row in canon that `--to-store` would never have produced and the next carry would not sustain.
+- **An opaque attachment.** `text: None` is the ONLY marker that the content is bytes, and this door cannot express bytes. The carry names the exact file it protects: a `.sh` with one non-UTF-8 byte in a comment, _precisely the file that would be silently mangled_. Refusing is that same argument one layer up.
+
+**Route these to vc as build decisions inside a ruled direction, not as rulings.** Each is reversible; the silent-conversion alternative is not, which is why I took the refusing side of all three without waiting.
+
+### FINDING 1 -- half my guard is unreachable, and that is a defence rather than a gap
+
+`acceptance.md` and `info.md` **do not parse as attachment addresses at all**: `address::parse` refuses them as `ViewAddressed` a layer below `put`. So the `GeneratedView` limb of the `edit_disposition` guard can never fire, and what actually reaches it is a stray v2 `thread.json`. **I only found this because the probe passed URLs to the real parser instead of asserting what I expected it to accept.** Kept the one call rather than hand-rolling a canon-only check -- that would be a second answer to what a file is -- and the comment now says which limb is live instead of implying both are.
+
+### FINDING 2 -- two values of one field, different grammar, and each door reached only the one that fitted
+
+**`EditDisposition::author_with`'s contract is a phrase completing `author it with ...`.** Both consumers interpolate it exactly that way -- `FacadeError::NotEditable`'s remedy at `facade.rs:686`, and now this arm. **The `Canon` value was a CLAUSE**, so the only message my new guard could ever print was _author it with canon is written by the verbs; `intent st`, ..._
+
+**Nothing caught it because each consumer reaches exactly one of the two values.** `st edit` appends `.md` to its argument, so it can never classify a file as `Canon` and only ever prints the view arm, which composes. An attachment address can never carry a view's name, so this arm only ever prints the canon arm, which does not. **Two values, two consumers, and each pairing exercised the half that happened to read correctly.** Fixed at the source, because a prefix special-cased at my call site would be a second opinion about grammar living next to the one about classification.
+
+**This is the week's shape again and it is now four for four: a component's recorded description disagreeing with its driven behaviour, with nothing watching the join.** The join here was one field's grammar against its interpolation site, and it took a THIRD consumer arriving to expose it.
+
+### vc AND ic BOTH WROTE MID-BUILD, AND THE TREE WAS THE ONLY INSTRUMENT THAT ANSWERED
+
+**My heartbeat read `2026-08-22 11:11Z, status: active` while I was editing the crate**, and dc read the dirty test on one observation and classified it _possibly orphaned by the restart_. **The remedy for orphaned is cleanup.** dc corrected it unprompted on a second read across a compact -- the dirty set had GROWN -- and vc never acted on the first.
+
+**The protocol did not flag anything, and it was right not to.** The active-peer test is `status: active` AND heartbeat within **7 days** AND a different `session_id`, and I passed all three. So the board said `cc active` for a day, truthfully, **carrying no information in either direction**: at 7-day resolution it cannot distinguish me-mid-build from me-gone. vc's phrasing, worth keeping -- **a signal that never fails is read as decoration, because never-failing is exactly what proves it could not have refused.**
+
+**What saved 113 lines was dc getting a second observation for free and correcting themselves before anyone acted on the first.**
+
 ## TODO
 
 0. ~~**CI GREEN-BY-CONSTRUCTION AND UNVERIFIED.**~~ **VERIFIED GREEN ON REAL RUNNERS, `ee4a7cac`, pushed 2026-08-21 21:49Z.** Both workflows success on both platforms. **`upstream/main` had been sitting at `510d4b10` -- the EXACT revision of the last CI run I diagnosed -- so the whole day's work from four nodes had never been seen by a runner.** `prepush` cloned the pushed revision, built it, ran both binaries and passed clippy under `-D warnings` before letting it through, so what is on GitHub is verified independently of anyone's local tree.
@@ -297,7 +337,7 @@ The needle was `UNSETTABLE\|"file"\|"prose"\|"covers"\|"note"`. **It could not h
 
 **NOTHING OF MINE IS BLOCKED.** The ST0057 canon block cleared when ic committed both files at `6edbd24f` -- their AT-07.7 green and `address_collections_resolve.rs`, which had been untracked while canon cited it.
 
-**ic IS BLOCKED ON ME**, and has been explicit that they will not move first: they retire `declared_but_unwired`'s loop only after my `render.rs` `#[cfg(test)] mod` lands AND my `st dehydrate` arm is green. **The second half is done as of this session.** The `render.rs` test is TODO 4 and unstarted.
+**AND NOTHING IS BLOCKED ON ME EITHER, WHICH THIS SECTION CLAIMED FOR A DAY AFTER IT STOPPED BEING TRUE.** It read _ic IS BLOCKED ON ME ... the `render.rs` test is TODO 4 and unstarted_ -- while TODO 4 was already struck through as landed at `1d550ac1` and ic had retired `declared_but_unwired` at `b4918a35`, both recorded twelve lines above. **A board can hold its own contradiction and read fine, because nobody reads two sections against each other.** Same shape as `hv/wip.md` having no tense, one file closer to home: the entry that goes stale is never the one being edited.
 
 ## What changed under the tree today -- you will wake up inside this
 
