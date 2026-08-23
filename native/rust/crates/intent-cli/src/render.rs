@@ -3149,19 +3149,17 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   use intentsvcs::skills::Outcome;
   let lib = skills_lib()?;
   let names = skill_names(a);
-  // **`--force` IS DECLARED NOWHERE ON THIS SURFACE, SO IT IS WIRED AS `false`
-  // AND SAID OUT LOUD RATHER THAN READ HOPEFULLY.** `surface/dispatch-table.json`
-  // gives `claude skills` exactly one flag, `-v`; v2 takes `--force`/`-f` on
-  // install and sync. Driven: `claude skills sync --force` -> `error:
-  // unexpected argument '--force' found`.
+  // **`--force` NOW REACHES THIS SURFACE**, declared on the `claude skills` row
+  // and read here. It was wired as a hard `false` until 2026-08-23, which left
+  // every held skill with no CLI remedy at all -- so the messages below could
+  // only name what an operator could do by hand.
   //
-  // **THIS IS NOT COSMETIC -- IT LEAVES A HELD SKILL WITH NO CLI REMEDY**, so
-  // the messages below name what an operator can actually DO instead of a flag
-  // they cannot reach. A remedy naming an unreachable thing is the defect this
-  // estate keeps finding, and the first draft of this renderer shipped three of
-  // them. The table is ic's SSOT with a generated `.md` face beside it, so the
-  // flag is routed rather than added here mid-flight.
-  let force = false;
+  // **`try_get_one` RATHER THAN `get_one`, BECAUSE THE VERB DECIDES WHETHER THE
+  // FLAG EXISTS.** `uninstall` does not take it: v2's `--force` there skips an
+  // interactive confirmation and v3 does not prompt at all, so there is no
+  // prompt to skip. Asking clap for an argument a subcommand never declared
+  // PANICS, and a panic here would turn a correct absence into a crash.
+  let force = a.try_get_one::<bool>("force").ok().flatten().copied() == Some(true);
 
   if names.is_empty() && verb != SkillVerb::Sync {
     return Err(Failure::Error(format!(
@@ -3212,6 +3210,27 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
           removed.join(", ")
         )
       }
+      // **THE DISCARDED CHECKSUM IS THE WHOLE REMEDY AND IS PRINTED FIRST**
+      // (vc's ruling). Once the copy has run it is the only artefact that can
+      // identify what was there, so it leads the line rather than trailing it.
+      // **`--force` is named as the cause** so a run that destroyed work cannot
+      // be mistaken, in a scrollback, for the routine update above it -- which
+      // is v2's defect exactly: it prints `update available` either way.
+      Outcome::Forced {
+        written,
+        removed,
+        discarded,
+      } => {
+        moved += 1;
+        let retired = if removed.is_empty() {
+          String::new()
+        } else {
+          format!(", {} retired: {}", removed.len(), removed.join(", "))
+        };
+        format!(
+          "OVERWRITTEN by --force; discarded tree checksum {discarded} ({written} file(s) written{retired})"
+        )
+      }
       Outcome::Removed { removed, left } if left.is_empty() => {
         moved += 1;
         format!("removed ({} file(s))", removed.len())
@@ -3235,19 +3254,20 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
       }
       Outcome::AlreadyInstalled => {
         needs_decision += 1;
-        "already installed -- remove it from your skills directory first, then install again (`--force` is declared in the surface table but not built)".to_string()
+        "already installed -- `--force` overwrites it and reports the checksum of what it discarded"
+          .to_string()
       }
       Outcome::ModifiedLocally => {
         needs_decision += 1;
-        "modified here since it was installed -- HELD, and this build cannot take the source copy for you: no `--force` reaches this command yet. Copy your edits out and remove the installed directory to accept the source".to_string()
+        "modified here since it was installed -- HELD. `--force` takes the source copy and reports the checksum of what it discarded; copy your edits out first if you want them".to_string()
       }
       Outcome::Conflicted => {
         needs_decision += 1;
-        "changed upstream AND here -- HELD. Copy your edits out and remove the installed directory to accept the source; this build has no flag that will do it for you".to_string()
+        "changed upstream AND here -- HELD. `--force` takes the source copy and reports the checksum of what it discarded; copy your edits out first if you want them".to_string()
       }
       Outcome::Undecidable => {
         needs_decision += 1;
-        "installed here, but this build has no record of writing it, so it cannot tell an upstream change from your own edit. Copy anything you want to keep, then remove the installed directory and install again".to_string()
+        "installed here, but this build has no record of writing it, so it cannot tell an upstream change from your own edit -- and no further evidence exists to settle it. `--force` decides it in the source's favour and reports the checksum of what it discarded".to_string()
       }
       Outcome::SourceMissing => {
         needs_decision += 1;

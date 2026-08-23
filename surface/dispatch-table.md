@@ -2162,17 +2162,17 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 - **`intent claude rules` bare does not print usage -- it LISTS rules**, defaulting to the `list` verb. Measured.
 - `claude hook <name>` must stay byte-compatible on day one (parity.md): issue 0016's runtime-resolved hooks plus byte-identical settings.json is what makes the v2-to-v3 binary swap invisible at the consumer hook layer. It propagates the hook's own exit code, including 2, by design (INV-04).
 
-| command            | args             | flags         | help                                            | disposition |
-| ------------------ | ---------------- | ------------- | ----------------------------------------------- | ----------- |
-| `claude`           | <subcommand>     | --            | Claude Code integration                         | keep        |
-| `claude subagents` | <verb> [name]... | -v            | Manage Claude Code subagents                    | keep        |
-| `claude skills`    | <verb> [name]... | -v            | Manage Claude Code skills                       | keep        |
-| `claude rules`     | [verb] [id]      | --lang <lang> | List and show rule-library rules                | keep        |
-| `claude hook`      | <name>           | --            | Run a named Intent hook                         | keep        |
-| `claude upgrade`   | --               | --apply       | Apply Claude canon to the project               | keep        |
-| `claude prime`     | --               | --            | Generate MEMORY.md content for a Claude session | keep        |
-| `claude ws`        | <verb> [wsid]    | --            | Manage whiteboard workstreams                   | keep        |
-| `claude start`     | <ws>             | --            | Launch a Claude session bound to a workstream   | keep        |
+| command            | args             | flags          | help                                            | disposition |
+| ------------------ | ---------------- | -------------- | ----------------------------------------------- | ----------- |
+| `claude`           | <subcommand>     | --             | Claude Code integration                         | keep        |
+| `claude subagents` | <verb> [name]... | -v             | Manage Claude Code subagents                    | keep        |
+| `claude skills`    | <verb> [name]... | -v, --force/-f | Manage Claude Code skills                       | keep        |
+| `claude rules`     | [verb] [id]      | --lang <lang>  | List and show rule-library rules                | keep        |
+| `claude hook`      | <name>           | --             | Run a named Intent hook                         | keep        |
+| `claude upgrade`   | --               | --apply        | Apply Claude canon to the project               | keep        |
+| `claude prime`     | --               | --             | Generate MEMORY.md content for a Claude session | keep        |
+| `claude ws`        | <verb> [wsid]    | --             | Manage whiteboard workstreams                   | keep        |
+| `claude start`     | <ws>             | --             | Launch a Claude session bound to a workstream   | keep        |
 
 ### `claude`
 
@@ -2225,6 +2225,10 @@ Manage Claude Code skills
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
     - **disposition:** keep
+  - `--force`, `-f` (bool) -- Overwrite a skill that was changed here, and report the checksum of what was discarded
+    - **disposition:** keep
+    - **measured late and the reason is the finding:** **ADDED BY cc 2026-08-23, AND IT WAS ALWAYS A v2 FLAG RATHER THAN A v3 ADDITION.** v2 parses `--force|-f` in `plugin_install` (`claude_plugin_helpers.sh:273`), `plugin_sync` (`:356`) and `plugin_uninstall` (`:471`), and `intent_claude_skills` SOURCES that helper. **IT WAS MISSED BECAUSE IT IS NOT IN THE COMMAND'S OWN FILE** -- `grep -- --force intent_claude_skills` returns nothing, which is a true answer to the wrong question. Every row that DOES declare `--force` (`bootstrap`, `doctor`, `treeindex`) parses it in its own file. **A flag reached through a sourced library is invisible to a per-command scan, and the scan cannot report what it could not look at.** **THE SAME GAP IS OPEN ON TWO ROWS THAT ARE NOT MINE, reported to ic rather than edited here:** `claude subagents` sources the identical helper and declares only `-v`; `claude upgrade` parses `--force` in its OWN file (`intent_claude_upgrade:116`) and declares only `--apply`, so that one is a second cause with the same symptom. **AND THIS ROW ALREADY NAMED THE FLAG IN PROSE WHILE NOT DECLARING IT.** `observed.notes` says a script-only change _needs `install --force`_. cc's renderer then told operators `--force` was _declared in the surface table but not built_ -- false, and taken from that prose. **A row can name a flag in a sentence and omit it from the array that is the declaration, and nothing reads the two against each other.**
+    - **not wired to uninstall and that is a DECISION:** **v2's `plugin_uninstall --force` skips an interactive confirmation prompt (`:493`) and nothing else.** v3 does not prompt at all -- prompting is a property of the terminal skin rather than of the operation (IN-AG-THIN-COORD-001, recorded on `Outcome::AlreadyInstalled`) -- so there is no prompt for a flag to skip. **Named here rather than left as an omission**, because a flag silently absent from one verb of three reads as an oversight forever.
 - **Exit codes:**
   - `0` -- listed / installed / synced
   - `1` -- unknown verb

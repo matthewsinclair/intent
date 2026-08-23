@@ -4774,6 +4774,17 @@
               "type": "bool",
               "help": "Show full descriptions in `list`",
               "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--force",
+                "-f"
+              ],
+              "type": "bool",
+              "help": "Overwrite a skill that was changed here, and report the checksum of what was discarded",
+              "disposition": "keep",
+              "measured_late_and_the_reason_is_the_finding": "**ADDED BY cc 2026-08-23, AND IT WAS ALWAYS A v2 FLAG RATHER THAN A v3 ADDITION.** v2 parses `--force|-f` in `plugin_install` (`claude_plugin_helpers.sh:273`), `plugin_sync` (`:356`) and `plugin_uninstall` (`:471`), and `intent_claude_skills` SOURCES that helper. **IT WAS MISSED BECAUSE IT IS NOT IN THE COMMAND'S OWN FILE** -- `grep -- --force intent_claude_skills` returns nothing, which is a true answer to the wrong question. Every row that DOES declare `--force` (`bootstrap`, `doctor`, `treeindex`) parses it in its own file. **A flag reached through a sourced library is invisible to a per-command scan, and the scan cannot report what it could not look at.** **THE SAME GAP IS OPEN ON TWO ROWS THAT ARE NOT MINE, reported to ic rather than edited here:** `claude subagents` sources the identical helper and declares only `-v`; `claude upgrade` parses `--force` in its OWN file (`intent_claude_upgrade:116`) and declares only `--apply`, so that one is a second cause with the same symptom. **AND THIS ROW ALREADY NAMED THE FLAG IN PROSE WHILE NOT DECLARING IT.** `observed.notes` says a script-only change _needs `install --force`_. cc's renderer then told operators `--force` was _declared in the surface table but not built_ -- false, and taken from that prose. **A row can name a flag in a sentence and omit it from the array that is the declaration, and nothing reads the two against each other.**",
+              "not_wired_to_uninstall_and_that_is_a_DECISION": "**v2's `plugin_uninstall --force` skips an interactive confirmation prompt (`:493`) and nothing else.** v3 does not prompt at all -- prompting is a property of the terminal skin rather than of the operation (IN-AG-THIN-COORD-001, recorded on `Outcome::AlreadyInstalled`) -- so there is no prompt for a flag to skip. **Named here rather than left as an omission**, because a flag silently absent from one verb of three reads as an oversight forever."
             }
           ],
           "v2": "bin/intent claude arm -> plugin",
@@ -7586,6 +7597,8 @@
         "counter_argument_recorded_unsupported",
         "disposition_basis",
         "measured_before_the_ruling",
+        "measured_late_and_the_reason_is_the_finding",
+        "not_wired_to_uninstall_and_that_is_a_DECISION",
         "note",
         "ordering_note",
         "spelling_note",

@@ -269,6 +269,31 @@ pub enum Outcome {
     removed: Vec<String>,
   },
   UpToDate,
+  /// **`--force` OVERRODE A TREE THAT HAD MOVED, AND `discarded` IS THE WHOLE
+  /// REMEDY RATHER THAN A DIAGNOSTIC** (vc's ruling, 2026-08-22).
+  ///
+  /// An ordinary [`Outcome::Updated`] replaces a tree nobody had touched, so
+  /// there is nothing to name. This one replaces the OPERATOR'S OWN WORK --
+  /// `ModifiedLocally` or `Conflicted` with the hold overridden -- and once the
+  /// copy has run, **the checksum is the only artefact that can identify what
+  /// was there.** Printing `updated` for both would make the destructive run
+  /// indistinguishable from the routine one, which is precisely v2's defect
+  /// this module was built to end: v2 prints `update available` and overwrites,
+  /// so the run that destroyed an edit reads exactly like the run that did not.
+  ///
+  /// **IT IS RAISED ONLY WHEN SOMETHING WAS ACTUALLY DISCARDED.** Forcing over
+  /// a tree that matches its source destroys nothing, and reporting a discard
+  /// there would teach an operator to ignore the line that matters.
+  ///
+  /// **WHAT THIS DOES NOT CLAIM: the checksum is not the content, and it cannot
+  /// recover it.** It identifies; it does not restore. Said out loud because a
+  /// remedy that reads as stronger than it is leaves an operator believing
+  /// their edit is retrievable when it is gone.
+  Forced {
+    written: usize,
+    removed: Vec<String>,
+    discarded: String,
+  },
   /// Present, and no `--force` given. **The caller decides**, because prompting
   /// is a property of the terminal skin and not of the operation
   /// (IN-AG-THIN-COORD-001).
@@ -565,7 +590,8 @@ impl Skills {
         });
         continue;
       };
-      if self.is_installed(name) && !force {
+      let already = self.is_installed(name);
+      if already && !force {
         steps.push(Step {
           name: name.clone(),
           outcome: Outcome::AlreadyInstalled,
@@ -573,19 +599,35 @@ impl Skills {
         });
         continue;
       }
+      // **MEASURED BEFORE THE COPY, BECAUSE AFTER IT THERE IS NOTHING LEFT TO
+      // MEASURE.** `install --force` over an existing tree is the other door
+      // to the destruction `sync --force` reaches, and it had no report at all.
+      let discarded = if already {
+        let installed = self.target.join(name);
+        let sum = tree_checksum(&installed)?;
+        // Identical to source: the copy destroys nothing, so naming a discard
+        // would teach the operator to ignore the line that matters.
+        (sum != tree_checksum(&origin.dir)?).then_some(sum)
+      } else {
+        None
+      };
       let prior = manifest.find(name).cloned();
       let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
       let files = entry.files.len();
       manifest.upsert(entry);
       steps.push(Step {
         name: name.clone(),
-        outcome: if prior.is_some() {
-          Outcome::Updated {
+        outcome: match (discarded, prior.is_some()) {
+          (Some(discarded), _) => Outcome::Forced {
             written: files,
             removed,
-          }
-        } else {
-          Outcome::Installed { files }
+            discarded,
+          },
+          (None, true) => Outcome::Updated {
+            written: files,
+            removed,
+          },
+          (None, false) => Outcome::Installed { files },
         },
         shadowed,
       });
@@ -659,11 +701,25 @@ impl Skills {
             (false, true) if !force => Outcome::ModifiedLocally,
             (true, true) if !force => Outcome::Conflicted,
             _ => {
+              // **`target_moved` IS THE DISCRIMINATOR, NOT `force`.** A forced
+              // run over a tree that nobody touched is an ordinary update and
+              // says so; only a tree that had MOVED has something to lose.
+              // Keyed on the state rather than on the flag because the flag
+              // says what the operator ASKED FOR and the state says what
+              // actually happened, and only the second is worth reporting.
+              let discarded = target_moved.then(|| target.clone());
               let prior = manifest.find(&name).cloned();
               let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
               let written = entry.files.len();
               manifest.upsert(entry);
-              Outcome::Updated { written, removed }
+              match discarded {
+                Some(discarded) => Outcome::Forced {
+                  written,
+                  removed,
+                  discarded,
+                },
+                None => Outcome::Updated { written, removed },
+              }
             }
           }
         }
@@ -694,6 +750,26 @@ impl Skills {
             });
             Outcome::UpToDate
           } else {
+            // **`--force` IS DELIBERATELY NOT WIRED HERE, AND IT IS A HOLD
+            // RATHER THAN AN OVERSIGHT (cc, 2026-08-23, escalated to vc).**
+            //
+            // I built it, then found `force_does_not_resolve_a_missing_baseline`
+            // -- a test I had written the day before, whose NAME carries its
+            // argument: _force is about overriding a prompt, not about inventing
+            // information that was never recorded. A force that silently picked
+            // "take the source" here would be v2's defect wearing a flag._
+            //
+            // **I THINK THAT ARGUMENT'S PREMISE HAS SINCE BEEN RETIRED.** v3 has
+            // no prompt to override, and vc's ruling defines force as _adopts
+            // the upstream copy and REPORTS the checksum of what it discarded_,
+            // which is the opposite of silent. **But I authored the test AND the
+            // change, so I am the worst available judge of whether the later
+            // ruling reaches the earlier argument** -- and the ruling did not
+            // name this state. Routed to vc rather than settled by the one
+            // person who benefits from settling it.
+            //
+            // The other two held states are unaffected: `--force` resolves
+            // `ModifiedLocally` and `Conflicted` today.
             Outcome::Undecidable
           }
         }

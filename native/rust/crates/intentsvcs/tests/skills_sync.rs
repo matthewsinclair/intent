@@ -246,8 +246,11 @@ fn a_file_the_operator_added_is_never_pruned() {
   for body in ["# probe v2\n", "# probe v3\n"] {
     fs::write(f.canon().join("in-probe/SKILL.md"), body).unwrap();
     let report = s.sync(true).unwrap();
+    // `Forced`, because the operator's added file MOVED the installed tree and
+    // this run is forced over it. The assertion's job is unchanged -- prove the
+    // copy ran, or the prune below measures nothing.
     assert!(
-      matches!(outcome(&report.steps, "in-probe"), Outcome::Updated { .. }),
+      matches!(outcome(&report.steps, "in-probe"), Outcome::Forced { .. }),
       "the copy must actually have run, or this test measures nothing: {:?}",
       report.steps
     );
@@ -420,9 +423,15 @@ fn a_local_edit_alone_is_reported_and_held() {
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# mine\n");
 
   // ...and force is what overrides it, which is v2's contract for this case.
+  //
+  // **`Forced` RATHER THAN `Updated`, AND THE NARROWING IS THE POINT.** The
+  // operator's tree had MOVED, so this run destroys their work -- and the whole
+  // of vc's ruling is that such a run must not be reportable as the routine
+  // update it otherwise resembles. Asserting `Updated { .. }` here would pass
+  // for exactly the reporting v2 gives, which is the defect.
   assert!(matches!(
     outcome(&s.sync(true).unwrap().steps, "in-probe"),
-    Outcome::Updated { .. }
+    Outcome::Forced { .. }
   ));
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# base\n");
 }
@@ -599,7 +608,7 @@ fn installing_over_an_existing_skill_needs_force() {
       &s.install(&one("in-probe"), true).unwrap().steps,
       "in-probe"
     ),
-    Outcome::Updated { .. }
+    Outcome::Forced { .. }
   ));
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# newer\n");
 }
@@ -620,5 +629,96 @@ fn a_symlink_in_a_source_skill_is_not_followed() {
   assert!(
     !f.target.join("in-probe/leak.txt").exists(),
     "a symlink was followed out of the source root"
+  );
+}
+
+/// **THE DISCARDED CHECKSUM DESCRIBES WHAT WAS DISCARDED, AND THAT IS DRIVEN
+/// RATHER THAN ASSUMED.**
+///
+/// vc's ruling makes this number the whole remedy: once the copy has run it is
+/// the only artefact that can identify the operator's tree. **A number that is
+/// merely PRESENT satisfies the shape of the ruling and none of its purpose**,
+/// so this asserts the property that makes it useful -- same content, same
+/// checksum; different content, different checksum.
+#[test]
+fn the_discarded_checksum_is_a_function_of_what_was_discarded() {
+  let discard = |edit: &str| {
+    let f = Fixture::new();
+    f.source("in-probe", &[("SKILL.md", "# upstream\n")]);
+    let s = f.skills();
+    s.install(&one("in-probe"), false).unwrap();
+    fs::write(f.target.join("in-probe/SKILL.md"), edit).unwrap();
+    match outcome(&s.sync(true).unwrap().steps, "in-probe") {
+      Outcome::Forced { discarded, .. } => discarded,
+      other => panic!("a forced run over a moved tree must report a discard: {other:?}"),
+    }
+  };
+
+  assert_eq!(
+    discard("# mine\n"),
+    discard("# mine\n"),
+    "the same discarded content must yield the same checksum, or it identifies nothing"
+  );
+  assert_ne!(
+    discard("# mine\n"),
+    discard("# something else entirely\n"),
+    "a checksum that does not move with the content is a constant wearing a remedy's name"
+  );
+}
+
+/// **FORCING OVER A TREE NOBODY TOUCHED IS AN ORDINARY UPDATE AND SAYS SO.**
+///
+/// The discriminator is `target_moved`, not the flag: the flag says what the
+/// operator ASKED FOR and the state says what actually HAPPENED. **Reporting a
+/// discard here would be false** -- nothing was lost -- and it would teach an
+/// operator to skim past the line on the runs where something was.
+#[test]
+fn forcing_over_an_unmoved_tree_claims_no_discard() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# v1\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  // Upstream moves; the installed tree does not.
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# v2\n").unwrap();
+
+  assert!(
+    matches!(
+      outcome(&s.sync(true).unwrap().steps, "in-probe"),
+      Outcome::Updated { .. }
+    ),
+    "a forced run that destroyed nothing must not report a discard"
+  );
+}
+
+/// **`--force` RESOLVES A CONFLICT, WHICH IS THE OTHER STATE IT REACHES.**
+///
+/// Held without it (`both_sides_changed_is_a_conflict_and_is_not_silently_overwritten`
+/// above pins that); adopted with it, and the operator's tree is named on the
+/// way out. The third held state, `Undecidable`, is deliberately NOT resolved --
+/// see the hold recorded at its arm in `skills.rs`.
+#[test]
+fn force_resolves_a_conflict_and_names_what_it_discarded() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# v1\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  // Both sides move.
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# upstream v2\n").unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# mine\n").unwrap();
+
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::Conflicted
+  );
+  assert!(matches!(
+    outcome(&s.sync(true).unwrap().steps, "in-probe"),
+    Outcome::Forced { .. }
+  ));
+  assert_eq!(
+    read(&f.target.join("in-probe/SKILL.md")),
+    "# upstream v2\n",
+    "force adopts the upstream copy"
   );
 }
