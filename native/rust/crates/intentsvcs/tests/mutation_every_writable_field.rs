@@ -1000,3 +1000,400 @@ fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
      If it GREW, a field lost its protection, which is a regression in the surface."
   );
 }
+
+// ---------------------------------------------------------------------------
+// THE NARROW FIELD-SETTER -- LIMB 1 AND LIMB 2 THROUGH ONE DOOR
+//
+// **DC-1 (vc, 2026-08-24) RULED THE STANDARD, AND IT IS NOT "SOME PATH CHANGES
+// THE BYTES".** Limb 1 asks whether a FIELD is settable, so it has no door
+// denominator and one working field-setter satisfies it -- but a whole-document
+// parse-plus-graft is not a setter and a whole-document authored replace is not
+// a setter, which is why `Facade::put` closes limb 1 for nothing.
+//
+// **FOUR KNOWN GAPS, TWO ENTITIES, AND THEY ARE ONE SHAPE.** `Thread::completed`
+// (ST0011's row, the criterion's first burning case) plus `WorkPackage`'s
+// `objective`, `body` and `preamble`. Every one is load-bearing prose or a
+// load-bearing date reachable only by replacing the whole document around it.
+//
+// **AND THE WP THREE ARE STRICTLY WORSE OFF THAN `completed`, WHICH IS WHY A
+// GENERIC SETTER WAS THE CHEAPER BUILD THAN FOUR BESPOKE VERBS.** `completed`
+// at least has a door. `put`'s `Wp` arm does not exist -- the address falls to
+// the catch-all -- and the thread door refuses `wps` BY NAME and sends the
+// caller to that very address. **The two doors point at each other and neither
+// opens**, so before this setter there was no route to a work package's prose
+// except a hand-edit of markdown followed by a whole-estate `sync --to-store`.
+//
+// # Why one generic setter rather than four named verbs
+//
+// A bespoke `wp objective` verb closes exactly one gap and leaves the identical
+// hole one field over. **This closes them by construction and keeps closing
+// them**: a field added to any of these models is settable the day it lands,
+// with no verb to write and no roster to remember. That is the same property
+// `declared_reach` buys for entity forms, one level down.
+//
+// # Limb 2 is an INVARIANT of the verb here, not a property tested from outside
+//
+// [`Facade::set`] re-serialises what it wrote and refuses if any key other than
+// the addressed one moved. So the collateral check below is a SECOND observer
+// rather than the only one -- and a future field whose serde attributes cause
+// collateral movement makes the verb refuse rather than making this test the
+// sole thing standing between that field and a silent clear.
+// ---------------------------------------------------------------------------
+
+/// The whole entity, read back through the facade after a write.
+///
+/// **Read from the FACADE and not from the fixture handle**, because the point
+/// of every assertion below is what LANDED, and a fixture re-read would answer
+/// from the same value the test just constructed.
+fn entity_json(facade: &intentsvcs::facade::Facade, url: &str) -> Value {
+  let thread = facade
+    .st_show("ST0001")
+    .expect("the fixture thread is there");
+  let address = parse(url).expect("resolves");
+  match &address.entity {
+    intentsvcs::address::Entity::Thread { .. } => {
+      serde_json::to_value(thread).expect("a thread serialises")
+    }
+    intentsvcs::address::Entity::Wp { wp, .. } => {
+      let seq: u32 = wp.parse().expect("the fixture addresses a numeric wp");
+      let row = thread
+        .wps
+        .iter()
+        .find(|w| w.seq == seq)
+        .unwrap_or_else(|| panic!("wp {seq} is in the fixture"));
+      serde_json::to_value(row).expect("a work package serialises")
+    }
+    other => panic!(
+      "this helper covers thread and wp addresses, not {}",
+      other.form()
+    ),
+  }
+}
+
+/// Every key whose value differs between two serialised entities, PRESENCE
+/// INCLUDED.
+///
+/// **A field cleared to absence and a field cleared to `""` are both movement**,
+/// and comparing only the keys present in `before` sees neither. The union is
+/// the denominator for the same reason `both_lists_cover_every_field_the_model_serialises`
+/// exists: `skip_serializing_if` makes "the keys it has" a moving target.
+fn moved_keys(before: &Value, after: &Value) -> Vec<String> {
+  let keys: BTreeSet<&String> = before
+    .as_object()
+    .expect("object")
+    .keys()
+    .chain(after.as_object().expect("object").keys())
+    .collect();
+  keys
+    .into_iter()
+    .filter(|k| before.get(*k) != after.get(*k))
+    .cloned()
+    .collect()
+}
+
+/// A different, LEGAL value for every field of a THREAD the setter declares
+/// settable.
+///
+/// Hand-written per field for the reason [`a_different_legal_value`] gives one
+/// entity up: "a different value" is type-specific, and a generic nudge reports
+/// a field UNSETTABLE when the probe was what was wrong.
+fn a_different_legal_thread_value() -> Vec<(&'static str, Value)> {
+  vec![
+    ("title", json!("Intent v3.0.0 -- the rewrite")),
+    ("slug", json!("intent-v3-rewrite")),
+    ("status_reason", json!("held: waiting on the fleet")),
+    ("created", json!("2026-08-01")),
+    // **THE CRITERION'S FIRST BURNING CASE.** ST0011's row is NULL and wrong,
+    // and until this verb existed nothing could write it that was not a
+    // whole-document replace.
+    ("completed", json!("2026-08-24")),
+    // **`AcceptanceMode` HAS EXACTLY ONE VARIANT**, so the only movement this
+    // field can make is to absence. That is not a thinner case than the others:
+    // clearing is the half of a setter nobody notices missing, and this is the
+    // only field whose type forces the sweep to exercise it.
+    ("acceptance", Value::Null),
+    ("objective", json!("Ship the store as the durable SSOT.")),
+    ("context", json!("Why this thread exists, re-authored.")),
+    ("body", json!("A load-bearing paragraph, edited in place.")),
+    ("preamble", json!("Front matter prose, edited in place.")),
+    (
+      "related",
+      json!([{ "id": "ST0057", "note": "disk as a sparse projection" }]),
+    ),
+  ]
+}
+
+/// A different, LEGAL value for every field of a WORK PACKAGE the setter
+/// declares settable. The last three are three of AC-08.5's four known gaps.
+fn a_different_legal_wp_value() -> Vec<(&'static str, Value)> {
+  vec![
+    ("title", json!("Ingest, views and sync -- re-titled")),
+    ("scope", json!("XL")),
+    ("scope_legacy", json!({ "raw": "3 days" })),
+    ("status_reason", json!("held: blocked on the ingest ruling")),
+    (
+      "objective",
+      json!("Land strict ingest and the sync engine."),
+    ),
+    ("body", json!("## The seams\n\nRe-authored, verbatim.")),
+    ("preamble", json!("A numbat note, edited in place.")),
+  ]
+}
+
+/// **THE DENOMINATOR, AND THE TWO SIDES ARE DERIVED DIFFERENTLY ON PURPOSE.**
+///
+/// `Facade::settable_fields` reflects over the model's own schema; the maps
+/// above are hand-authored. **Two literals compared to each other observe
+/// nothing** -- this file has that written at the top of it, about a pin that
+/// passed for weeks doing exactly that -- so the guard is only worth having
+/// because a field added to `Thread` or `WorkPackage` appears on one side and
+/// not the other.
+#[test]
+fn the_setter_value_maps_cover_exactly_what_the_setter_declares_settable() {
+  for (url, mapped) in [
+    ("intent:///threads/ST0001", a_different_legal_thread_value()),
+    (
+      "intent:///threads/ST0001/wp/03",
+      a_different_legal_wp_value(),
+    ),
+  ] {
+    let entity = parse(url).expect("resolves").entity;
+    let declared: BTreeSet<String> = intentsvcs::facade::Facade::settable_fields(&entity)
+      .unwrap_or_else(|e| panic!("`{url}` declares a settable set: {e:?}"))
+      .into_iter()
+      .collect();
+    let authored: BTreeSet<String> = mapped.iter().map(|(f, _)| (*f).to_string()).collect();
+    assert_eq!(
+      declared, authored,
+      "`{url}`: the settable set and the value map disagree. A field on one side\n       \
+       and not the other is a field this sweep would silently skip -- add the case\n       \
+       or state why the field is refused."
+    );
+  }
+}
+
+/// **LIMB 1 AND LIMB 2 AT THE THREAD DOOR, FIELD BY FIELD.**
+#[test]
+fn every_settable_thread_field_moves_and_takes_nothing_with_it() {
+  for (field, new_value) in a_different_legal_thread_value() {
+    let fx = Fixture::new();
+    fx.write_thread(&fully_populated_thread("ST0001"));
+    let mut facade = fx.facade();
+    let address = parse("intent:///threads/ST0001").expect("resolves");
+
+    let before = entity_json(&facade, "intent:///threads/ST0001");
+    // **`None` AND `Some(Null)` ARE THE SAME REQUEST AND DIFFERENT VALUES.**
+    // Comparing `before.get(field)` directly passes a case that writes `null`
+    // over an ABSENT field, and the read-back then compares `Null` to `Null`
+    // and proves nothing -- the second vacuity `mutation_roundtrip_complete`
+    // records having been bitten by.
+    assert_ne!(
+      before.get(field).cloned().unwrap_or(Value::Null),
+      new_value,
+      "the fixture already holds `{field}` at the value this case writes, so the case\n       \
+       cannot tell a working setter from a no-op. Pick another value."
+    );
+
+    facade
+      .set(&address, field, new_value.clone())
+      .unwrap_or_else(|e| panic!("`{field}` must be settable through the surface: {e:?}"));
+
+    let after = entity_json(&facade, "intent:///threads/ST0001");
+    assert_eq!(
+      after.get(field).cloned().unwrap_or(Value::Null),
+      new_value,
+      "`{field}` did not land -- under AC-08.5 that makes it a field that CANNOT BE SET"
+    );
+    assert_eq!(
+      moved_keys(&before, &after),
+      vec![field.to_string()],
+      "setting `{field}` moved something else -- limb 2: no verb silently clears a\n       \
+       field it was not asked to change"
+    );
+  }
+}
+
+/// **THE THREE GAPS THAT HAD NO DOOR AT ALL.**
+#[test]
+fn every_settable_work_package_field_moves_and_takes_nothing_with_it() {
+  for (field, new_value) in a_different_legal_wp_value() {
+    let fx = Fixture::new();
+    fx.write_thread(&fully_populated_thread("ST0001"));
+    let mut facade = fx.facade();
+    let address = parse("intent:///threads/ST0001/wp/03").expect("resolves");
+
+    let before = entity_json(&facade, "intent:///threads/ST0001/wp/03");
+    assert_ne!(
+      before.get(field).cloned().unwrap_or(Value::Null),
+      new_value,
+      "vacuous case on `{field}`"
+    );
+
+    facade
+      .set(&address, field, new_value.clone())
+      .unwrap_or_else(|e| panic!("`{field}` must be settable through the surface: {e:?}"));
+
+    let after = entity_json(&facade, "intent:///threads/ST0001/wp/03");
+    assert_eq!(
+      after.get(field).cloned().unwrap_or(Value::Null),
+      new_value,
+      "`{field}` did not land"
+    );
+    assert_eq!(
+      moved_keys(&before, &after),
+      vec![field.to_string()],
+      "setting `{field}` moved something else"
+    );
+  }
+}
+
+/// **A SIBLING WORK PACKAGE IS NOT COLLATERAL EITHER**, and the whole-entity
+/// diff above cannot see it: it reads ONE work package, so a setter that
+/// rewrote the whole `wps` vector would pass every assertion in the sweep.
+#[test]
+fn setting_one_work_package_leaves_its_siblings_and_its_thread_alone() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+
+  let before = serde_json::to_value(facade.st_show("ST0001").expect("there")).expect("serialises");
+  let address = parse("intent:///threads/ST0001/wp/03").expect("resolves");
+  facade
+    .set(&address, "objective", json!("Re-authored."))
+    .expect("a work package objective is settable");
+  let after = serde_json::to_value(facade.st_show("ST0001").expect("there")).expect("serialises");
+
+  assert_eq!(
+    moved_keys(&before, &after),
+    vec!["wps".to_string()],
+    "setting a work-package field moved a THREAD field"
+  );
+  let seq_2 = |v: &Value| v["wps"].as_array().expect("array")[0].clone();
+  assert_eq!(
+    seq_2(&before),
+    seq_2(&after),
+    "setting wp 03 moved wp 02 -- a sibling is not collateral the caller asked for"
+  );
+}
+
+/// **LIMB 1's SECOND HALF: a field that cannot be written is reported BY NAME.**
+///
+/// Three kinds of refusal, and each one names the field AND the door that DOES
+/// open. **"You cannot" is not what the criterion asks for** -- an unsettable
+/// field whose remedy is unnamed sends the operator to a hand-edit of canon,
+/// which is the route this criterion exists to retire.
+#[test]
+fn every_refusal_names_the_field_and_the_door_that_opens() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+  let thread = parse("intent:///threads/ST0001").expect("resolves");
+  let wp = parse("intent:///threads/ST0001/wp/03").expect("resolves");
+
+  for (address, field, must_mention) in [
+    // Identity: the id IS the address.
+    (&thread, "id", "address"),
+    (&thread, "schema", "address"),
+    (&wp, "seq", "address"),
+    // Machine-guarded: a raw write would bypass a ratified state machine.
+    (&thread, "status", "st "),
+    (&wp, "status", "wp "),
+    // Child collections: each has an address of its own.
+    (&thread, "tests", "/at/"),
+    (&thread, "criteria", "/ac/"),
+    (&thread, "wps", "/wp/"),
+    (&thread, "attachments", "/attachments/"),
+    // Not a field of this entity at all.
+    (&thread, "objectve", "objective"),
+  ] {
+    let err = facade
+      .set(address, field, json!("anything"))
+      .expect_err("this field is refused");
+    let text = format!("{err}");
+    assert!(
+      text.contains(field),
+      "the refusal for `{field}` does not NAME it: {text}"
+    );
+    assert!(
+      text.contains(must_mention),
+      "the refusal for `{field}` does not say where to go (wanted `{must_mention}`): {text}"
+    );
+  }
+}
+
+/// **A REFUSAL MUST NOT HAVE WRITTEN ANYTHING**, which no assertion about the
+/// message can see. A verb that refuses loudly and mutates anyway is the same
+/// silent-clear class wearing an error's clothes.
+#[test]
+fn a_refused_set_leaves_the_entity_byte_identical() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+  let address = parse("intent:///threads/ST0001").expect("resolves");
+
+  let before = entity_json(&facade, "intent:///threads/ST0001");
+  for (field, value) in [
+    ("status", json!("done")),
+    ("tests", json!([])),
+    ("id", json!("ST9999")),
+    ("nonesuch", json!("x")),
+    // Right name, wrong TYPE -- refused by the typed re-parse rather than by
+    // the name check, so it exercises the other refusal path.
+    ("completed", json!({ "not": "a date string" })),
+  ] {
+    facade.set(&address, field, value).expect_err("refused");
+    assert_eq!(
+      entity_json(&facade, "intent:///threads/ST0001"),
+      before,
+      "a refused set of `{field}` still changed the entity"
+    );
+  }
+}
+
+/// **SETTING A FIELD TO WHAT IT ALREADY HOLDS IS NOT A WRITE**, and it must not
+/// mint an event. The estate's history is queryable and a no-op that appears in
+/// it makes the log describe intent rather than change.
+#[test]
+fn setting_a_field_to_its_current_value_is_already_there() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+  let address = parse("intent:///threads/ST0001").expect("resolves");
+
+  let current = entity_json(&facade, "intent:///threads/ST0001")["objective"].clone();
+  let outcome = facade
+    .set(&address, "objective", current)
+    .expect("re-setting the current value is accepted");
+  assert!(
+    matches!(outcome, intentsvcs::facade::Outcome::AlreadyThere { .. }),
+    "re-setting the current value reported {outcome:?} rather than AlreadyThere"
+  );
+}
+
+/// **CLEARING IS A SET, NOT A GAP.** An optional field's null is how a caller
+/// says *remove this*, and without it `status_reason` could be written but never
+/// unwritten -- half a setter, and the half nobody notices missing.
+#[test]
+fn null_clears_an_optional_field_and_is_refused_on_a_required_one() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+  let address = parse("intent:///threads/ST0001").expect("resolves");
+
+  facade
+    .set(&address, "status_reason", Value::Null)
+    .expect("an optional field clears");
+  assert_eq!(
+    entity_json(&facade, "intent:///threads/ST0001").get("status_reason"),
+    None,
+    "`status_reason` did not clear"
+  );
+
+  let err = facade
+    .set(&address, "title", Value::Null)
+    .expect_err("a required field does not clear");
+  assert!(
+    format!("{err}").contains("title"),
+    "clearing a required field must be refused BY NAME"
+  );
+}

@@ -110,6 +110,17 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // was complete and the answer is still no.
     | FacadeError::NotEditable { .. }
     | FacadeError::NoSuchEditable { .. }
+    // The narrow setter's refusal. It is about WHICH DOOR writes a field, not
+    // about a value left out of the call -- the caller supplied both the field
+    // and the value, and every cause names the door that does open.
+    //
+    // **THE ONE CAUSE THAT LOOKS LIKE A DEMAND IS THE ONE TO STATE, RATHER
+    // THAN THE ONES THAT PLAINLY ARE NOT.** Clearing a REQUIRED field with a
+    // null renders as `missing field ...`, which reads like a demand -- but the
+    // field it names is one the caller had and chose to remove, and it reaches a
+    // read face already or the entity could not be rendered at all. Nothing
+    // authored is lost behind it.
+    | FacadeError::FieldNotWritable { .. }
     // A wrapped realisation failure. It reports that making files exist did not
     // work, not that a value was left out -- no authored prose behind it.
     | FacadeError::Realise(_) => None,

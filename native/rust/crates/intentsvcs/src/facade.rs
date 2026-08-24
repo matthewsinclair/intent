@@ -36,7 +36,7 @@
 //! time. The event log is the one place a real timestamp is minted, because an
 //! event log that did not record when things happened would not be one.
 
-use serde_json::json;
+use serde_json::{Value, json};
 
 use crate::address::{Address, Entity as AddrEntity, Format as AddrFormat};
 use crate::contract::{self, Scope, Verdict};
@@ -235,6 +235,20 @@ pub enum FacadeError {
   /// not a taxonomy of refusals.
   #[error("`{url}` cannot be written: {why}")]
   WriteNotAddressable { url: String, why: String },
+  /// A field the narrow setter will not write, and the door that does.
+  ///
+  /// **SEPARATE FROM `WriteNotAddressable` BECAUSE THE SUBJECT IS DIFFERENT.**
+  /// That one is about an ADDRESS this surface declines to write; this is about
+  /// a FIELD of an entity it writes happily. AC-08.5's own words are that an
+  /// unwritable field is *reported BY NAME* -- and a variant carrying only a
+  /// url cannot do that, because the name would live inside prose where no
+  /// caller can read it back out.
+  #[error("`{field}` cannot be set on `{url}`: {why}")]
+  FieldNotWritable {
+    url: String,
+    field: String,
+    why: String,
+  },
   #[error("no steel thread {id} in this project")]
   NoSuchThread { id: String },
   #[error("steel thread {id} already exists")]
@@ -556,6 +570,11 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WriteNotAddressable { .. } => {
         "`PUT` json to a caller-assigned id (an AC or an AT); everything else is a \
          `POST` to the collection address"
+          .to_string()
+      }
+      Self::FieldNotWritable { .. } => {
+        "go to the door the refusal names: a lifecycle verb for a field a state machine owns, \
+         and the member's own address for a collection"
           .to_string()
       }
       Self::NoSuchThread { .. } => {
@@ -4164,12 +4183,7 @@ impl Facade {
         // `threads/<id>/tests/<AT>` -- correct-looking, and an operator
         // following it gets a parse error from the tool that just told them to
         // go there. Mapped explicitly, and each pair is driven.
-        for (field, segment) in [
-          ("wps", "wp"),
-          ("criteria", "ac"),
-          ("tests", "at"),
-          ("attachments", "attachments"),
-        ] {
+        for (field, segment) in CHILD_COLLECTIONS {
           if value.get(field).is_some() {
             return Err(refuse(format!(
               "`{field}` is not written through the thread address -- PUT each one at its own address (`{}/{segment}/<id>`), because a thread PUT that accepted this would have to either apply it or drop it, and both are silent about the other",
@@ -4346,11 +4360,304 @@ impl Facade {
         url: address.to_url(),
         why: "this id is server-assigned -- POST to the collection address".to_string(),
       }),
+      // **REPORTED BY THE NAME THE GRAMMAR USES, NOT BY `{:?}`.** The Debug
+      // repr leaks Rust struct syntax into an operator-facing message --
+      // `Wp { thread: "ST0057", seq: 3 }` -- and AC-08.5 asks for the
+      // unwritable thing to be reported BY NAME. `form()` is the name, and the
+      // POST arm forty lines up was already using it.
       other => Err(FacadeError::WriteNotAddressable {
         url: address.to_url(),
-        why: format!("{other:?} has no write path yet"),
+        // **THE WORDING IS LOAD-BEARING AND NOT MINE TO IMPROVE.** AT-08.5's
+        // entity sweep discriminates on the literal `has no write path yet`
+        // and says so at its own line 451. Rewording it -- which this arm did
+        // for one build -- silently reclassified SIX forms as reachable,
+        // including two the estate refuses BY RULING. The Debug leak was the
+        // defect; the sentence around it is an interface.
+        why: format!("{} has no write path yet", other.form()),
       }),
     }
+  }
+
+  /// The fields of an addressed entity that [`Facade::set`] will write.
+  ///
+  /// **PUBLIC BECAUSE LIMB 1 ASKS FOR IT.** AC-08.5 wants *the completeness of
+  /// the surface, with the unsettable set as the printed output* -- so a caller
+  /// has to be able to ASK, rather than discover the boundary one refusal at a
+  /// time. Derived from the model's own schema, so the answer cannot drift from
+  /// what [`Facade::set`] will actually do.
+  pub fn settable_fields(entity: &AddrEntity) -> Result<Vec<String>, FacadeError> {
+    let declared = match entity {
+      AddrEntity::Thread { .. } => schema_properties::<Thread>(),
+      AddrEntity::Wp { .. } => schema_properties::<WorkPackage>(),
+      AddrEntity::Ac { .. } => schema_properties::<Criterion>(),
+      AddrEntity::At { .. } => schema_properties::<AcceptanceTest>(),
+      other => {
+        return Err(FacadeError::WriteNotAddressable {
+          url: format!("a {} address", other.form()),
+          why: "the narrow setter reaches a thread, a work package, a criterion and an \
+                acceptance test -- an attachment's body is its content, and the rest are \
+                collections or append-only logs"
+            .to_string(),
+        });
+      }
+    };
+    Ok(
+      declared
+        .into_iter()
+        .filter(|field| unsettable(entity, field).is_none())
+        .collect(),
+    )
+  }
+
+  /// **THE NARROW FIELD-SETTER: one named field, on one addressed entity, and
+  /// demonstrably nothing else** (AC-08.5).
+  ///
+  /// # Why this exists when `put` already writes
+  ///
+  /// **DC-1 (hv via vc, 2026-08-24) ruled that the standard is a FIELD-SETTER,
+  /// not any path that changes the bytes.** A whole-document parse-plus-graft is
+  /// not a setter and a whole-document authored replace is not a setter, so
+  /// [`Facade::put`] closes limb 1 for nothing at all -- it is the door for
+  /// *here is the document*, and this is the door for *set this field*.
+  ///
+  /// The four gaps it was built for were one shape: `Thread::completed` -- NULL
+  /// on ST0011, the estate's one genuinely wrong row -- plus `WorkPackage`'s
+  /// `objective`, `body` and `preamble`. **The work-package three were worse off
+  /// than `completed` and that decided the design.** `put` has no `Wp` arm, and
+  /// the thread door refuses `wps` BY NAME and sends the caller to that very
+  /// address: two doors pointing at each other, neither opening. The only route
+  /// to a work package's prose was a hand-edit of markdown and a whole-estate
+  /// `sync --to-store`.
+  ///
+  /// **So this is generic rather than four bespoke verbs.** A named
+  /// `wp objective` verb closes one gap and leaves the identical hole one field
+  /// over; this closes them by construction and keeps closing them, because a
+  /// field added to any of these models is settable the day it lands.
+  ///
+  /// # Limb 2 is an INVARIANT here, not a property some test asserts elsewhere
+  ///
+  /// The write is re-serialised and diffed against what was read, and **the verb
+  /// REFUSES if any key other than the addressed one moved.** A serde attribute
+  /// that caused collateral movement would make this fail loudly rather than
+  /// leaving a test as the only thing between that field and a silent clear --
+  /// which is the shape the criterion's second limb names.
+  ///
+  /// # `Value::Null` clears; it is not a gap
+  ///
+  /// An optional field's null is how a caller says *remove this*. Without it
+  /// `status_reason` could be written and never unwritten -- half a setter, and
+  /// the half nobody notices missing. On a REQUIRED field the typed re-parse
+  /// refuses it by name, which is the same answer `put` gives.
+  pub fn set(
+    &mut self,
+    address: &Address,
+    field: &str,
+    value: Value,
+  ) -> Result<Outcome, FacadeError> {
+    if !address.is_local() {
+      return Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: "a cross-project write resolves against intentd's project registry".to_string(),
+      });
+    }
+
+    let url = address.to_url();
+    let refuse = |field: &str, why: String| FacadeError::FieldNotWritable {
+      url: url.clone(),
+      field: field.to_string(),
+      why,
+    };
+
+    // **THE NAME IS CHECKED BEFORE THE VALUE**, so a caller who misspells a
+    // field is told they misspelled it rather than being handed a type error
+    // about a field they never meant.
+    let settable = Self::settable_fields(&address.entity)?;
+    if !schema_properties_of(&address.entity).contains(field) {
+      return Err(refuse(
+        field,
+        format!(
+          "not a field of this entity -- the ones it will set are {}",
+          settable.join(", ")
+        ),
+      ));
+    }
+    if let Some(why) = unsettable(&address.entity, field) {
+      return Err(refuse(field, why.explain(&url)));
+    }
+
+    let mut next = self.canon.clone();
+    let (op, subject) = match &address.entity {
+      AddrEntity::Thread { id } => {
+        let existing = find_thread_mut(&mut next, id)?;
+        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        };
+        *existing = row;
+        (
+          "thread.set",
+          Subject {
+            kind: "thread".to_string(),
+            id: id.to_string(),
+          },
+        )
+      }
+      AddrEntity::Wp { thread, wp } => {
+        let seq = Self::wp_seq(address, wp)?;
+        let existing = find_wp_mut(&mut next, thread, seq)?;
+        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        };
+        *existing = row;
+        (
+          "wp.set",
+          Subject {
+            kind: "wp".to_string(),
+            id: format!("{thread}/{seq:02}"),
+          },
+        )
+      }
+      AddrEntity::Ac { thread, ac } => {
+        let existing = find_criterion_mut(&mut next, thread, ac)?;
+        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        };
+        *existing = row;
+        (
+          "ac.set",
+          Subject {
+            kind: "ac".to_string(),
+            id: format!("{thread}/{ac}"),
+          },
+        )
+      }
+      AddrEntity::At { thread, at } => {
+        let existing = find_test_mut(&mut next, thread, at)?;
+        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        };
+        *existing = row;
+        (
+          "at.set",
+          Subject {
+            kind: "at".to_string(),
+            id: format!("{thread}/{at}"),
+          },
+        )
+      }
+      // Unreachable in practice -- `settable_fields` above refuses every other
+      // form first. Named rather than `unreachable!()` so a fifteenth entity
+      // form that someone teaches `settable_fields` cannot reach a panic here.
+      other => {
+        return Err(FacadeError::WriteNotAddressable {
+          url: address.to_url(),
+          why: format!("`{}` has no narrow setter", other.form()),
+        });
+      }
+    };
+
+    self
+      .apply(
+        op,
+        subject,
+        json!({ "via": "address", "field": field }),
+        next,
+      )
+      .map(|()| Outcome::Moved)
+  }
+
+  /// The seq a `wp` address segment names.
+  ///
+  /// **Refused by name rather than defaulted.** `address.rs` mints the segment
+  /// as `{seq:02}` but the grammar accepts what a caller types, so a
+  /// non-numeric segment reaches here -- and silently choosing a work package
+  /// for somebody is worse than telling them the address is wrong.
+  fn wp_seq(address: &Address, wp: &str) -> Result<u32, FacadeError> {
+    wp.parse::<u32>()
+      .map_err(|_| FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: format!("`{wp}` is not a work-package sequence number"),
+      })
+  }
+
+  /// Replace ONE key of a serialised entity and return the row that results, or
+  /// `None` when the value asked for is the value it already holds.
+  ///
+  /// **THE COLLATERAL CHECK IS THE REASON THIS GOES THROUGH JSON** rather than
+  /// matching on field names and assigning to struct members. A hand-written
+  /// match sets exactly what it names, which sounds like the safer construction
+  /// and is the one that cannot be AUDITED: nothing about it can observe that a
+  /// second field moved. Going out to `Value` and back means the before and
+  /// after are directly comparable, so limb 2 is checked on every single call
+  /// rather than asserted about the code by a reader.
+  fn splice_one_field<T>(
+    current: &T,
+    field: &str,
+    value: Value,
+    refuse: &dyn Fn(&str, String) -> FacadeError,
+  ) -> Result<Option<T>, FacadeError>
+  where
+    T: serde::Serialize + serde::de::DeserializeOwned + PartialEq,
+  {
+    let before = serde_json::to_value(current)
+      .map_err(|e| refuse(field, format!("this entity does not serialise: {e}")))?;
+    let mut spliced = before.clone();
+    let object = spliced
+      .as_object_mut()
+      .ok_or_else(|| refuse(field, "this entity is not a JSON object".to_string()))?;
+    if value.is_null() {
+      object.remove(field);
+    } else {
+      object.insert(field.to_string(), value);
+    }
+
+    // **A REQUIRED FIELD CLEARED, A WRONG TYPE, AND AN ENUM SPELLED WRONGLY ALL
+    // LAND HERE**, which is why the typed re-parse is the validator rather than
+    // a hand-written check per field. `deny_unknown_fields` and the model's own
+    // enums do the work, and they cannot fall behind the model.
+    let next: T = serde_json::from_value(spliced)
+      .map_err(|e| refuse(field, format!("`{field}` will not take that value: {e}")))?;
+
+    if next == *current {
+      return Ok(None);
+    }
+
+    let after = serde_json::to_value(&next)
+      .map_err(|e| refuse(field, format!("the result does not serialise: {e}")))?;
+    let moved: Vec<&String> = before
+      .as_object()
+      .into_iter()
+      .flat_map(|o| o.keys())
+      .chain(after.as_object().into_iter().flat_map(|o| o.keys()))
+      .collect::<std::collections::BTreeSet<_>>()
+      .into_iter()
+      .filter(|key| before.get(*key) != after.get(*key))
+      .collect();
+    if moved != vec![&field.to_string()] {
+      return Err(refuse(
+        field,
+        format!(
+          "setting it would also have moved {} -- refused rather than written. A write that \
+           changes a field you did not name would clear it without saying so; set each field \
+           in its own call",
+          moved
+            .iter()
+            .filter(|key| **key != field)
+            .map(|key| format!("`{key}`"))
+            .collect::<Vec<_>>()
+            .join(", ")
+        ),
+      ));
+    }
+
+    Ok(Some(next))
   }
 
   pub fn at_list(&self, st: &str) -> Result<&[AcceptanceTest], FacadeError> {
@@ -4846,6 +5153,152 @@ fn state_name(state: &AcState) -> &'static str {
     AcState::Descoped { .. } => "descoped",
     AcState::Withdrawn { .. } => "withdrawn",
   }
+}
+
+/// The child collections that are never written through their parent's
+/// address, paired with the address SEGMENT that reaches each one.
+///
+/// **ONE TABLE, TWO READERS, AND THAT IS THE WHOLE POINT.** [`Facade::put`]
+/// refuses a thread body carrying any of these; [`Facade::set`] refuses the
+/// same names as fields. Two copies would agree exactly until a fifth child was
+/// added to one of them, and the reader who noticed would be an operator
+/// holding a remedy that does not parse.
+///
+/// **THE FIELD NAME IS NOT THE ADDRESS SEGMENT.** The model calls them
+/// `wps`/`criteria`/`tests`; the grammar spells them `wp`/`ac`/`at`
+/// (`address.rs:445-467`). Interpolating one as the other prints a remedy that
+/// sends an operator to a parse error from the tool that just told them to go
+/// there.
+const CHILD_COLLECTIONS: [(&str, &str); 4] = [
+  ("wps", "wp"),
+  ("criteria", "ac"),
+  ("tests", "at"),
+  ("attachments", "attachments"),
+];
+
+/// Every property name a model declares, ABSENT OPTIONALS INCLUDED.
+///
+/// **DERIVED FROM THE TYPE AND NEVER FROM AN INSTANCE, AND THE BURNING CASE IS
+/// EXACTLY WHY.** `Thread::completed` is `skip_serializing_if =
+/// "Option::is_none"`, so on ST0011 -- the estate's one genuinely wrong row,
+/// and the row this criterion was written for -- it serialises to nothing at
+/// all. A field set read off an instance would answer *not a field of this
+/// entity* for `completed` on precisely the row that needs it, and the refusal
+/// would look perfectly correct on its way past.
+fn schema_properties<T: schemars::JsonSchema>() -> std::collections::BTreeSet<String> {
+  let schema = serde_json::to_value(schemars::schema_for!(T))
+    .expect("a schemars schema serialises to JSON by construction");
+  schema
+    .get("properties")
+    .and_then(Value::as_object)
+    .map(|properties| properties.keys().cloned().collect())
+    .unwrap_or_default()
+}
+
+/// [`schema_properties`] for whichever model an address names.
+fn schema_properties_of(entity: &AddrEntity) -> std::collections::BTreeSet<String> {
+  match entity {
+    AddrEntity::Thread { .. } => schema_properties::<Thread>(),
+    AddrEntity::Wp { .. } => schema_properties::<WorkPackage>(),
+    AddrEntity::Ac { .. } => schema_properties::<Criterion>(),
+    AddrEntity::At { .. } => schema_properties::<AcceptanceTest>(),
+    _ => std::collections::BTreeSet::new(),
+  }
+}
+
+/// Why a field is not settable through the narrow setter.
+///
+/// **EVERY VARIANT CARRIES THE DOOR THAT IS OPEN.** AC-08.5 asks for an
+/// unwritable field to be *reported BY NAME*, and a name with no remedy sends
+/// the operator to a hand-edit of canon -- which is the route this criterion
+/// exists to retire. "You cannot" is not what the criterion asked for.
+enum Unsettable {
+  /// The value IS the entity's address. Changing it through a write to the old
+  /// address is a rename wearing an update's clothes, and D57-8 gives renames
+  /// no verb.
+  Identity,
+  /// A ratified state machine owns the field. A raw write would land the value
+  /// without the transition check, the gate, or the recorded reason -- three
+  /// guarantees the lifecycle verb exists to provide, lost in silence.
+  Machine(&'static str),
+  /// The field has an address of its own; the segment that reaches it.
+  Child(&'static str),
+}
+
+impl Unsettable {
+  fn explain(&self, url: &str) -> String {
+    match self {
+      Self::Identity => {
+        "the id is the ADDRESS of this entity rather than a field of the document at it -- \
+         POST to the collection address to create a new one. There is no rename"
+          .to_string()
+      }
+      Self::Machine(verbs) => format!(
+        "a ratified state machine owns this field -- move it with `{verbs}`, which checks the \
+         transition, runs the gate and records the reason. A raw write would land the value \
+         and none of the three"
+      ),
+      Self::Child(segment) => format!(
+        "this collection has an address of its own -- set each member at `{url}/{segment}/<id>`, \
+         because a write here would have to either apply the whole collection or drop it, and \
+         both are silent about the other"
+      ),
+    }
+  }
+}
+
+/// Which of the three refusals, if any, covers this field.
+fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
+  if let Some((_, segment)) = CHILD_COLLECTIONS.iter().find(|(name, _)| *name == field) {
+    return Some(Unsettable::Child(segment));
+  }
+  // **THE VERB SPELLINGS ARE DRIVEN FROM THE SHIPPED CLI, not recalled.** A
+  // remedy naming a verb that does not exist is worse than no remedy: it costs
+  // the operator a round trip and reads as authoritative while it does.
+  match entity {
+    AddrEntity::Thread { .. } => match field {
+      "schema" | "id" => Some(Unsettable::Identity),
+      "status" => Some(Unsettable::Machine(
+        "intent st start|done|hold|resume|cancel|reopen|reinstate",
+      )),
+      _ => None,
+    },
+    AddrEntity::Wp { .. } => match field {
+      "seq" => Some(Unsettable::Identity),
+      "status" => Some(Unsettable::Machine(
+        "intent wp start|done|unstart|reopen|cancel|reinstate",
+      )),
+      _ => None,
+    },
+    AddrEntity::Ac { .. } => match field {
+      "id" => Some(Unsettable::Identity),
+      "state" => Some(Unsettable::Machine(
+        "intent ac satisfy|unsatisfy|withdraw|reinstate",
+      )),
+      _ => None,
+    },
+    AddrEntity::At { .. } => match field {
+      "id" => Some(Unsettable::Identity),
+      "status" => Some(Unsettable::Machine("intent at green|red|na")),
+      _ => None,
+    },
+    _ => None,
+  }
+}
+
+fn find_wp_mut<'a>(
+  canon: &'a mut Canon,
+  st: &str,
+  seq: u32,
+) -> Result<&'a mut WorkPackage, FacadeError> {
+  find_thread_mut(canon, st)?
+    .wps
+    .iter_mut()
+    .find(|w| w.seq == seq)
+    .ok_or_else(|| FacadeError::NoSuchWorkPackage {
+      st: st.to_string(),
+      seq,
+    })
 }
 
 fn find_thread_mut<'a>(canon: &'a mut Canon, id: &str) -> Result<&'a mut Thread, FacadeError> {

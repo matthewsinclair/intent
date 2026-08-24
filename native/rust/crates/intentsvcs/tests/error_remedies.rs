@@ -76,6 +76,27 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       })
       .expect_err("an event has no file form"),
   ));
+  // **PROVOKED RATHER THAN EXEMPTED, FOR THE REASON THE EVENT CASE ABOVE
+  // GIVES: it needs no broken world, only an ordinary call.** A thread's
+  // `status` is owned by a ratified state machine, so the narrow setter sends
+  // the caller to the lifecycle verb instead of landing the value without the
+  // transition check, the gate and the recorded reason.
+  out.push((
+    "a field a state machine owns",
+    facade
+      .set(
+        &intentsvcs::address::Address {
+          authority: None,
+          entity: intentsvcs::address::Entity::Thread {
+            id: "ST0056".to_string(),
+          },
+          format: None,
+        },
+        "status",
+        serde_json::json!("done"),
+      )
+      .expect_err("a state machine's field is not set through the narrow setter"),
+  ));
   out.push((
     "malformed realisation manifest",
     facade
@@ -426,6 +447,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NotHydratable { .. } => "NotHydratable",
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
+    FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
   }
 }
 
