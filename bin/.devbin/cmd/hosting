@@ -5,48 +5,43 @@
 # int hosting [--include-mutating] [verb...] -- drive each command against a
 # binary BUILT IN THE SAME ACT, inside a single-writer clone of HEAD.
 #
-# THE DEFECT THIS ANSWERS, AND IT IS THE AUTHOR'S OWN (dc, 2026-08-22).
-# `surface/dispatch-table.md` carries a `Target:` per command, and READING IT
-# ANSWERS A DIFFERENT QUESTION THAN THE ONE A SWEEP ASKS. Driven that day, both
-# diagonals occupied: `fileindex` carries a RATIFIED AND APPLIED `corrected`
-# disposition and exits 2 unbuilt; `agents` carries `pending-hv`, undecided, and
-# is hosted and working. Disposition records what v3 SHOULD do. Only the binary
-# knows what it DOES.
+# READING A `Target:` DISPOSITION ANSWERS A DIFFERENT QUESTION THAN A SWEEP
+# ASKS, and both diagonals are occupied: `fileindex` carries a RATIFIED AND
+# APPLIED `corrected` disposition and exits 2 unbuilt; `agents` carries
+# `pending-hv`, undecided, and is hosted and working. Disposition records what
+# v3 SHOULD do. Only the binary knows what it DOES.
 #
-# AND *DRIVE THE BINARY* IS NECESSARY AND NOT SUFFICIENT, WHICH IS WHY THIS IS A
-# COMMAND RATHER THAN A SHELL LOOP. The first sweep drove a binary built fifteen
-# commits behind HEAD and reported `claude skills` UNBUILT; the fix had landed
-# WHILE THE SWEEP RAN, so the result was false before it was published, and it
-# had already been sent to the node who wrote the fix. **`rc=2` is byte-identical
-# whether a command was never built or was built ten minutes ago into a binary
-# you are not running.** Nothing in the drive says which.
+# AND DRIVING THE BINARY IS NECESSARY, NOT SUFFICIENT. The first sweep drove a
+# binary fifteen commits behind HEAD and reported `claude skills` UNBUILT; the
+# fix had landed WHILE THE SWEEP RAN, so the result was false before it was
+# published and had already been sent to the node who wrote the fix. **`rc=2` is
+# byte-identical whether a command was never built or was built ten minutes ago
+# into a binary you are not running.** Nothing in the drive says which.
 #
-# SO THE BUILD AND THE MEASUREMENT ARE ONE ACT -- `shared/measure.lib` -- and the
-# figure names the artefact's HASH. **Not its marker**: measured the same day,
-# two behaviourally different binaries carried one clean `[intent-source-commit:]`
-# because a DEPENDENCY changed and the binary crate's `build.rs` never re-ran.
+# SO THE BUILD AND THE MEASUREMENT ARE ONE ACT (`shared/measure.lib`), AND THE
+# FIGURE NAMES THE ARTEFACT'S HASH -- **not its marker**: two behaviourally
+# different binaries carried one clean `[intent-source-commit:]` because a
+# DEPENDENCY changed and the binary crate's `build.rs` never re-ran.
 #
-# `--help` IS NOT A PROBE AND THIS IS THE TRAP THAT CATCHES EVERYONE INCLUDING
-# THE PERSON WHO WROTE IT UP AN HOUR EARLIER. Under INV-07 `--help` exits 0 to
-# stdout whether or not the command is built: all eight `claude` subcommands
-# answered rc=0 and the family was nearly filed as fully hosted. Every verb here
-# is a REAL invocation.
+# `--help` IS NOT A PROBE, AND IT CATCHES EVERYONE INCLUDING WHOEVER JUST WROTE
+# IT UP. Under INV-07 it exits 0 to stdout whether or not the command is built:
+# all eight `claude` subcommands answered rc=0 and the family was nearly filed
+# as fully hosted. Every verb here is a REAL invocation.
 #
 # WHY A CLONE MAKES THE UNDRIVABLE DRIVABLE. A sweep over the live tree can only
-# touch read-only verbs, and *declared read-only* is not a substitute for driving
-# -- `st edit` declares `read`, and WRITES the store and appends to a tracked file
+# touch read-only verbs, and *declared read-only* is no substitute for driving:
+# `st edit` declares `read` and WRITES the store and appends to a tracked file
 # on its refusal path. In a throwaway clone a mutator harms nothing, so
 # `--include-mutating` drives them too. `claude start` is still excluded: it
 # SPAWNS, which a clone does not contain.
 #
-# **THAT PARAGRAPH WAS FALSE FOR TWO DAYS AND IS KEPT ABOVE RATHER THAN REWRITTEN,
-# BECAUSE THE CLASS IS THE POINT.** The clone was real, the build was real, the
-# revision was named by construction -- and the verbs were invoked from the LIVE
-# tree's cwd, so every mutator resolved the live project. **Containment was
-# asserted here and driven nowhere.** It is the same shape as the `multi-second`
-# figure this author replaced in `bin/intent3` an hour earlier: a confident
-# unmeasured claim, sitting in a SAFETY ARGUMENT, where it reads as a considered
-# trade-off and gets honoured rather than checked (cc drew the parallel). The fix
+# **THAT PARAGRAPH WAS FALSE FOR TWO DAYS AND IS KEPT ABOVE RATHER THAN
+# REWRITTEN, BECAUSE THE CLASS IS THE POINT.** The clone was real, the build was
+# real, the revision was named by construction -- and the verbs were invoked
+# from the LIVE tree's cwd, so every mutator resolved the live project. It
+# emptied the durable store. **CONTAINMENT WAS ASSERTED HERE AND DRIVEN
+# NOWHERE**: a confident unmeasured claim sitting in a SAFETY ARGUMENT, where it
+# reads as a considered trade-off and gets honoured rather than checked. The fix
 # and the incident are at the drive loop.
 #
 set -euo pipefail

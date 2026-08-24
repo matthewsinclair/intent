@@ -3,52 +3,45 @@
 # intent3 / intentd3 -- Intent v3 (native), reachable from any project here.
 #
 # ONE FILE, TWO NAMES. `intentd3` is a SYMLINK to this file and the binary is
-# chosen from `$0`. Two wrappers differing by one word in eight lines of logic
-# and sharing thirty of comment is how a fix lands in one and not the other --
-# and `bin/int` next door is already a symlink to the devbin dispatcher, so the
-# idiom is this repo's own rather than an import.
+# chosen from `$0`. Two wrappers differing by one word and sharing thirty lines
+# of comment is how a fix lands in one and not the other; `bin/int` next door is
+# already a symlink to the devbin dispatcher, so the idiom is this repo's own.
 #
-# WHY THIS FILE EXISTS AND WHY IT IS NOT NAMED `intent`. v3 installed as
-# `intent` shadows v2 for all sixteen other Intent projects on this machine in
-# one move, and `INTENT_HOME` CANNOT STOP IT: driven 2026-08-21 three ways --
-# exported, unset, and forced to a junk path -- the v3 binary answers the same
-# every time. That variable binds v2 only. So the name is one of the two locks;
-# the other is v3's own refusal of any project whose config declares a 2.x
-# version, driven across five distinct 2.x strings with a 3.0.0-dev positive
-# control (vc, same day).
+# WHY IT IS NOT NAMED `intent`. v3 installed as `intent` shadows v2 for every
+# other Intent project on this machine in one move, and `INTENT_HOME` CANNOT
+# STOP IT -- driven three ways (exported, unset, forced to a junk path), the v3
+# binary answers the same every time, because that variable binds v2 only. The
+# name is one of two locks; the other is v3's refusal of any project whose
+# config declares a 2.x version, driven across five 2.x strings with a 3.0.0-dev
+# positive control (vc).
 #
-# WHY IT LIVES IN THIS REPO'S `bin/` RATHER THAN `~/.local/bin`. This directory
-# is already on the login PATH at position 22 -- verified in a fresh `zsh -lc`,
-# not inherited from a session -- so a file here is reachable everywhere with NO
-# machine-wide change and NO new binding registered anywhere. That matters: this
-# estate's own record listed THREE `intent` bindings on 2026-08-21 when there
-# were FOUR, and the unrecorded one was a second symlink at PATH 19. A mechanism
-# that adds a fifth would be repeating the defect it exists to avoid.
+# WHY THIS REPO'S `bin/` AND NOT `~/.local/bin`. This directory is already on
+# the login PATH at position 22 -- verified in a fresh `zsh -lc`, not inherited
+# from a session -- so a file here is reachable everywhere with NO machine-wide
+# change and NO new binding registered anywhere. This estate's own record listed
+# THREE `intent` bindings when there were FOUR, so a mechanism adding a fifth
+# repeats the defect it exists to avoid.
 #
-# AND THE REVERSAL IS THE POINT. Living in the checkout means the way back is
-# the same operation that reverts everything else -- `git checkout`, a branch
-# without it, or deleting the clone. A file in `~/.local/bin` outlives all
-# three. It also SELF-RETIRES: `bin/` is the v2 shell tree WP-12 prunes at the
-# cut, so this disappears exactly when `intent` itself becomes v3 and a
-# separate name stops being wanted. (vc proposed the home; the reversal and
-# self-retirement arguments are why it beat `~/.local/bin` rather than merely
-# matching it.)
+# AND IT REVERSES AND SELF-RETIRES. Living in the checkout means the way back is
+# the operation that reverts everything else -- `git checkout`, a branch without
+# it, deleting the clone -- and a file in `~/.local/bin` outlives all three.
+# `bin/` is the v2 shell tree WP-12 prunes at the cut, so this disappears
+# exactly when `intent` itself becomes v3 and a separate name stops being wanted.
 #
 # THIS MUST STAY A WRAPPER THAT `exec`s INTO THE CHECKOUT. NEVER SHIP A COPY OF
-# THE BINARY ONTO PATH, AND THE REASON IS NOT STYLE (ic, 2026-08-21, driven).
-# v3's `claude hook` resolves its scripts through `install::home()`, which
-# canonicalises `current_exe()` and walks its ANCESTORS for a directory holding
-# `lib/templates/` (`install.rs:51,102-118`). An `exec` from here leaves
-# `current_exe()` pointing at the real binary INSIDE the checkout, so the walk
-# finds the marker. A bare `cp` onto PATH has no marker at or above it and every
-# hook refuses.
+# THE BINARY ONTO PATH, AND THE REASON IS NOT STYLE (ic, driven). v3's `claude
+# hook` resolves its scripts through `install::home()`, which canonicalises
+# `current_exe()` and walks its ANCESTORS for a directory holding
+# `lib/templates/` (`install.rs:51,102-118`). An `exec` leaves `current_exe()`
+# inside the checkout so the walk finds the marker; a bare `cp` onto PATH has no
+# marker at or above it and every hook refuses.
 #
-# AND THE REFUSAL FAILS OPEN, WHICH IS WHY THIS PARAGRAPH EXISTS. `.claude/
-# settings.json` fires `claude hook require-in-session` on EVERY prompt in EVERY
-# project, and Claude Code blocks only on exit 2. **That refusal is exit 1, so it
-# does not block: the prompt proceeds and the strict /in-session gate silently
-# stops enforcing, everywhere, at once.** SessionStart goes the same way -- no
-# project context, no reminder. Nothing reports it and everything looks fine.
+# AND THAT REFUSAL FAILS OPEN, WHICH IS WHY THIS PARAGRAPH EXISTS.
+# `.claude/settings.json` fires `claude hook require-in-session` on EVERY prompt
+# in EVERY project, and Claude Code blocks only on exit 2. **That refusal is
+# exit 1, so it does not block: the prompt proceeds and the strict /in-session
+# gate silently stops enforcing, everywhere, at once.** SessionStart goes the
+# same way. Nothing reports it and everything looks fine.
 #
 # MEASURED, BOTH ARMS, FROM OUTSIDE THE CHECKOUT:
 #   this wrapper                   session-context/require-in-session/advisory  rc=0
@@ -58,28 +51,17 @@
 # same reason and is named in `resolve()`'s own comment.
 #
 # THIS WRAPPER REFUSES AN ARTEFACT THAT CANNOT BE SHOWN TO DESCRIBE THIS TREE
-# (hv ruled 2026-08-24; the options vc authored are on their board, and the
-# branch not taken was `keep it a reporter, warn but exec`). A reporter fails
-# open and an actor refuses, and this is an ACTOR: it is on PATH, so what it
-# execs is what the estate runs.
+# (hv ruled 2026-08-24; the branch not taken was "keep it a reporter, warn but
+# exec"). A REPORTER FAILS OPEN AND AN ACTOR REFUSES, and this is an ACTOR: it
+# is on PATH, so what it execs is what the estate runs.
 #
-# WHAT THIS PARAGRAPH USED TO SAY, AND WHY THE CORRECTION IS THE POINT. It read:
-# "checking it on EVERY invocation would put a MULTI-SECOND gate on every
-# command, which is how a gate becomes one people work around." That figure was
-# ASSERTED AND NEVER DRIVEN, and it is wrong by roughly two orders of magnitude
-# -- measured 2026-08-24: 40ms + 36ms for the two `strings` passes and 33ms for
-# the git range, ~110ms total, against a 31ms floor for reading a `stat` and a
-# `rev-parse` at all. A confident unmeasured number held this design shut for
-# three days and was the whole stated reason for not doing it.
+# THE MATRIX, THE COST MEASUREMENT AND THE REASONING LIVE IN
+# `shared/currency.lib`, ONE HOME -- including the correction of the asserted
+# "multi-second" figure this file used to carry as the reason not to check. Do
+# not restate them here; a second copy is how the two stop agreeing.
 #
-# THE MATRIX AND ITS REASONING LIVE IN `shared/currency.lib`, ONE HOME, and the
-# short version is that it keys on DECIDABILITY rather than on dirt: a `dirty-`
-# marker can never refuse (it would reject a binary that is provably current)
-# and can never be cleared (the uncommitted delta at build time is unrecoverable),
-# so it only ever downgrades a refusal to a permanent warning.
-#
-# THE LIBS ARE A HARD DEPENDENCY WITH NO FALLBACK, DELIBERATELY (vc, 2026-08-22).
-# A `source || define-my-own` restores the duplicate at exactly the moment nobody
+# THE LIBS ARE A HARD DEPENDENCY WITH NO FALLBACK, DELIBERATELY (vc). A
+# `source || define-my-own` restores the duplicate at exactly the moment nobody
 # is watching, and the marker parser has already been four-homes-to-one once.
 #
 set -euo pipefail

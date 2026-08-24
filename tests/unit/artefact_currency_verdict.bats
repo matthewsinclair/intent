@@ -2,32 +2,27 @@
 #
 # artefact_currency_verdict -- every arm of `shared/currency.lib`'s matrix.
 #
-# WHY THIS FILE EXISTS, AND IT IS NOT "the new lib should have tests" (ic,
-# 2026-08-24). Both refusal messages were driven ONLY by an ad-hoc scratchpad rig
-# that lives nowhere. `grep -rlE 'currency\.lib' tests/` returned 0, positive-
-# controlled against `create_test_project` at 41 files, so the query works.
+# WHY IT EXISTS, and it is not "the new lib should have tests" (ic). Both
+# refusal messages were driven ONLY by an ad-hoc scratchpad rig that lives
+# nowhere. AND THE CLEAN-BASE ARM WAS DOUBLY UNREACHABLE: no test drove it, and
+# the live release pair carries a `dirty-` marker so every real invocation takes
+# the FLOOR branch. That wording could be observed by neither USE nor TEST --
+# correct by inspection only, until the day somebody builds from a clean tree
+# and the refusal changes to a form nobody has read in anger.
 #
-# AND THE CLEAN-BASE ARM WAS DOUBLY UNREACHABLE, WHICH IS THE SHARP HALF. No test
-# drove it, AND the live release pair carries a `dirty-` marker, so every real
-# invocation in this estate takes the FLOOR branch. The clean-base wording could
-# not be observed by USE or by TEST -- correct by inspection only, and the day
-# somebody builds from a clean tree the refusal changes to a form nobody has ever
-# read in anger.
-#
-# THAT IS THE SHAPE OF THE DEFECT THE FIX WAS FOR, ONE LEVEL UP: the overclaim sat
-# in the error message of the file written to refuse overclaims, and the fix that
-# removed it added a second arm nothing drove. A fix that adds an arm adds a thing
-# to drive, and this estate's record is that the undriven arm is the one that is
-# wrong when it finally fires.
+# A FIX THAT ADDS AN ARM ADDS A THING TO DRIVE, and this estate's record is that
+# the undriven arm is the one that is wrong when it finally fires. The overclaim
+# sat in the error message of the file written to refuse overclaims, and the fix
+# for it added a second arm nothing drove.
 #
 # SELF-CONTAINED BY CONSTRUCTION. Every arm builds its own git repo and its own
-# planted artefacts. Nothing here reads the live checkout, whose HEAD moves under
-# a four-node board and whose release pair is dirty today and may not be tomorrow
-# -- a fixture that tracked either would stop testing the subject without saying so.
+# planted artefacts. Nothing reads the live checkout, whose HEAD moves under a
+# four-node board and whose release pair is dirty today and may not be tomorrow
+# -- a fixture tracking either would stop testing the subject without saying so.
 #
-# THE ARTEFACTS ARE TEXT FILES. `artefact_source_commit` is `strings` and nothing
-# else, so a text file carrying `[intent-source-commit:<sha>]` is a faithful
-# subject and needs no Rust toolchain.
+# THE ARTEFACTS ARE TEXT FILES. `artefact_source_commit` is `strings` and
+# nothing else, so a text file carrying `[intent-source-commit:<sha>]` is a
+# faithful subject and needs no Rust toolchain.
 
 load "../lib/test_helper"
 

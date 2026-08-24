@@ -1,50 +1,33 @@
 #!/bin/bash
 # runner_roster_check.sh -- every parity instrument declares whether anything runs it.
 #
-# Issue 0059: eleven instruments lived in this directory, three had an execution
-# site, and eight had none. Each of those eight had been written, reasoned about
-# at length in its own header, registered in MODULES.md, mutation-tested, and in
-# three cases CITED BY A GREEN ACCEPTANCE ROW -- with every individual record
-# correct, because an instrument's existence and an instrument's execution are
-# recorded in different places and NOTHING JOINED THEM. This is that join.
+# THE JOIN. MODULES.md records what a tool IS and what posture its own header
+# claims; `precommit` records what the GATE runs. Both can be perfectly accurate
+# while "does anything run this?" is recorded nowhere. Issue 0059: eight of
+# eleven instruments had no execution site, every individual record correct.
+# This file adds the missing fact -- a DISPOSITION -- and measures it against
+# the runner instead of trusting it.
 #
-# WHY THE JOIN IS A THIRD AXIS AND NOT A COLUMN ON AN EXISTING ONE. MODULES.md
-# records what a tool IS, and in prose what its POSTURE is ("REPORTS, never
-# gates") -- that is the script's own internal contract, and it is true whether
-# or not anything ever calls the script. `precommit` records what the GATE runs.
-# Those two can each be perfectly accurate while the answer to "does anything
-# run this?" is nowhere. So this file adds the missing fact -- a DISPOSITION --
-# and then measures it against the runner instead of trusting it.
+# IT ENUMERATES THE DIRECTORY EVERY RUN AND REFUSES ON ANY FILE IT HAS NO ROW
+# FOR. Never a remembered count: a population silently acquiring a member is the
+# failure this check has to survive, and it did acquire one between 0059's
+# census and this remedy. The roster fails on the day a tool is added, which is
+# the only day anybody can classify it.
 #
-# THE POPULATION HAD ALREADY MOVED BEFORE THE FIX WAS WRITTEN, WHICH IS THE
-# ARGUMENT FOR THE REFUSAL BELOW. 0059 measured eleven instruments at 0f87fc2c
-# and its table lists eleven. By the time the remedy was built there were TWELVE
-# -- `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23) landed
-#    hours after the census, unwired, and no
-# artefact in the repository noticed. A correct measurement of a population that
-# has silently acquired a member is the failure this check has to survive, so it
-# does not compare against a remembered count: it enumerates the directory every
-# run and REFUSES on any file it has no row for. The roster fails on the day a
-# tool is added, which is the only day anybody is in a position to classify it.
+# IT ASKS THE RUNNER RATHER THAN REIMPLEMENTING ITS RULE. Deriving a guard
+# roster by grepping the runner's source anchored on a path shape under-reported
+# a three-guard gate as two. `--list-guards` exists so a reader can ask.
 #
-# WHY IT ASKS THE RUNNER RATHER THAN REIMPLEMENTING ITS RULE. `precommit`'s own
-# header states the doctrine, and states it because it was learned the hard way:
-# `int hooks` derived the guard roster by grepping the runner's source, anchored
-# on a PATH SHAPE, and under-reported a three-guard gate as two the same day.
-# `--list-guards` exists so a reader can ask. This asks.
+# DECLARED AND INVOKED ARE MEASURED SEPARATELY, because their disagreement IS
+# the rot: a guard named in `--list-guards` and implemented nowhere, or invoked
+# in the body and named in no roster. Both have happened here; one measurement
+# sees neither.
 #
-# DECLARED AND INVOKED ARE MEASURED SEPARATELY, BECAUSE THE GUARD-0 ROT IS
-# EXACTLY THEIR DISAGREEMENT. A guard can be named in `--list-guards` and
-# implemented nowhere, or invoked in the body and named in no roster; both are
-# real and both have happened in this file. One measurement cannot see either.
-#
-# Exit codes follow the family: 0 clean, 1 a finding, 2 cannot measure. This one
-# GATES on its findings, unlike its report-only siblings, and the difference is
-# principled rather than a mood. A report-only check is report-only because most
-# of its hits are a legitimate mid-ladder state -- a command not wired yet, a
-# row not ratified yet. There is no legitimate state in which a tool exists and
-# its disposition is undeclared: the fix is one line in the roster below, and
-# the whole point is to force it at the moment the tool arrives.
+# Exit codes: 0 clean, 1 a finding, 2 cannot measure. THIS ONE GATES, unlike its
+# report-only siblings, and the difference is principled. Report-only checks are
+# report-only because most hits are a legitimate mid-ladder state. There is no
+# legitimate state in which a tool exists and its disposition is undeclared --
+# the fix is one line below, and the point is to force it when the tool arrives.
 
 set -uo pipefail
 
@@ -69,126 +52,69 @@ DISPATCH="$ROOT/bin/int"
 [ -x "$DISPATCH" ] || die "no devbin dispatcher at $DISPATCH -- the runner only answers through it"
 
 # THE ROSTER. One row per `.sh` in EITHER thread's tools directory:
+# THE ROSTER. One row per `.sh` in EITHER thread's tools directory:
 # <name> <gated|manual|not-an-instrument> <reason>.
 #
 # `gated`  -- the repo-local pre-commit gate runs it, bare, on every commit.
 # `manual` -- it is an instrument and the gate does not run it; the reason says why.
-# `not-an-instrument` -- it is not a checker at all: a sourced library, a
-#             generator, an extractor, a capture driver, a stub that exists to be
-#             driven, or a transformer that rewrites a tree.
+# `not-an-instrument` -- not a checker: a sourced library, generator, extractor,
+#             capture driver, stub-to-be-driven, or a transformer of a tree.
 #
 # A REASON IS REQUIRED ON EVERY KIND, INCLUDING `not-an-instrument` (hv, ruled
-# 2026-08-21). This EXTENDS the emptiness rule that already governed `manual`
-# rather than adding new machinery -- the check below is one more arm, not a new
-# mechanism. The reason it now reaches the third kind: a bare
-# `not-an-instrument` costs nothing to write, so a genuine instrument can be
-# declared out of the population by anyone who finds this guard inconvenient,
-# and the guard goes blind again WITH A SIGNATURE ON IT -- which is worse than
-# an undeclared file, because a declaration reads as a decision somebody made
-# rather than as a gap. Requiring the reason makes the mislabel expensive to
+# 2026-08-21). A bare label costs nothing to write, so a genuine instrument can
+# be declared out of the population by anyone who finds this guard inconvenient
+# -- and the guard goes blind WITH A SIGNATURE ON IT, which reads as a decision
+# somebody made rather than as a gap. The reason makes the mislabel expensive to
 # write and visible in the diff that adds it.
 #
-# WHAT COUNTS AS AN INSTRUMENT, because hv's ruling widened the population and
-# left the word undefined, and a builder inventing that boundary at build time
-# is a builder choosing what this guard is allowed to see. An instrument
-# ANSWERS A QUESTION ABOUT THE ESTATE AND RETURNS A VERDICT.
+# WHAT COUNTS AS AN INSTRUMENT: it ANSWERS A QUESTION ABOUT THE ESTATE AND
+# RETURNS A VERDICT. THE MECHANICAL DISCRIMINATOR IS vc's: **does the file's own
+# header cite an AT or AC row it covers?** If it does it is definitionally an
+# instrument -- its verdict gates a criterion -- and the classification is
+# asserted by the author at the site rather than guessed here. Driven over the
+# 33 files hv's widening admitted: 12 cite, 21 do not.
 #
-# THE MECHANICAL DISCRIMINATOR IS vc's AND IT BEAT MINE (vc, 2026-08-21):
-# **does the file's own header cite an AT or AC row it covers?** If it does it is
-# definitionally an instrument -- its verdict gates a criterion -- and the
-# classification is asserted by the author at the site rather than guessed here.
-# Driven over the 33 files this widening admitted: 12 cite, 21 do not.
+# EXIT-1 PRESENCE MISFIRES AS A DISCRIMINATOR AND THE NEXT PERSON WILL REACH FOR
+# IT. `gen_dispatch_table.sh` and `gen_pertest.sh` both carry `exit 1` and are
+# generators -- a refusal to EMIT on bad input, never a finding about the estate.
+# The citation test corrected three of my own classifications, all of which
+# would have been silently removed from the population.
 #
-# I TRIED exit-1 PRESENCE FIRST AND IT MISFIRES, which is recorded because the
-# next person will reach for it too: `gen_dispatch_table.sh` and `gen_pertest.sh`
-# both carry `exit 1` and are generators -- that exit is a refusal to EMIT on bad
-# input, never a finding about the estate. **The citation test corrected three of
-# my own classifications** -- `estate_census.sh`, `estate_corpus.sh` and
-# `of_n_population.sh` all cite criteria and I had written them off as producers.
-# All three would have been silently removed from the population.
+# EVERY ST0057 ROW IS STRUCTURALLY `manual` AND NONE OF THEM IS A JUDGEMENT
+# ABOUT THAT TOOL. `cmd/precommit:116` pins `TOOLS` to ST0056's directory, so
+# the runner cannot invoke an ST0057 instrument at all and a `gated` row would
+# correctly fail check B. Making one gateable needs a second tools path in
+# `cmd/precommit`, which is dc's. Seven `manual` rows are one structural fact,
+# not seven rulings.
 #
-# EVERY ST0057 ROW IS STRUCTURALLY `manual` TODAY, AND NOT ONE OF THEM IS A
-# JUDGEMENT ABOUT THAT TOOL. The runner pins `TOOLS` to ST0056's directory at
-# `bin/.devbin/cmd/precommit:116`, so it cannot invoke an ST0057 instrument at
-# all -- a `gated` row for one would fail check B immediately, correctly,
-# reporting that nothing in the runner's body invokes it. **This widening admits
-# ST0057's seven tools to the ROSTER; it does not make them GATEABLE.** Making
-# one gateable needs the runner to grow a second tools path, which is a change
-# to `cmd/precommit` and therefore dc's. Filed rather than assumed, so the next
-# reader does not take seven `manual` rows as seven separate rulings.
+# UNDER UNCERTAINTY THE ROW GOES `manual`, NEVER `not-an-instrument` (vc). A
+# wrong `manual` costs a reason, stays visible, and anyone can correct it; a
+# wrong `not-an-instrument` removes the file from the population, so it
+# generates no signal ever again and nothing surfaces the mistake. Fail loud.
 #
-# AND THE CLASS ARRIVED INSIDE THE EDIT THAT DOCUMENTS IT -- TWICE, THE SECOND
-# TIME AS MY OWN CORRECTION, WHICH IS THE INSTRUCTIVE HALF.
+# A REASON THAT CHURNS SHOULD NOT BE LOAD-BEARING. One row's reason moved three
+# times in a day; it now rests on the structural fact (`cmd/precommit:116`),
+# which has never moved, with the volatile detail recorded beside it as history.
 #
-# I first wrote `no_daemon_required.sh`'s row citing the `pgrep -f` needle defect
-# as the reason it cannot be gated. ic told me the needle was fixed. **I did
-# re-derive -- and I re-derived the WRONG SUBJECT.** I measured that `pgrep -x`
-# is the correct needle (true, reproducible, and I drove both directions) and
-# offered that as proof THE FILE CONTAINS IT. Different subject entirely.
-# `c0749463` CREATED that file WITH the defect -- 302 insertions, `pgrep -f` at
-# `:106` and `:233` -- HEAD still carries it, and the fix is UNCOMMITTED in ic's
-# worktree. **So the reason I struck as expired had not expired: the CORRECTION
-# was the error.** Caught by ic and vc independently, neither of whom I asked.
+# AND RE-DERIVE THE SUBJECT THE CLAIM IS ABOUT, not merely re-derive. A true
+# measurement of a different property is the most persuasive wrong evidence
+# there is, precisely because the measuring was real and careful.
 #
-# AND THE ROW MOVED A THIRD TIME WITHIN THE HOUR: ic committed the fix at
-# `6edbd24f`, so the correction ABOVE went stale too. **Three states in one day
-# for one row's reason -- blocked-by-the-needle, wrongly-fixed, live-at-HEAD,
-# fixed-and-committed.** The lesson is not to re-derive faster. It is that **a
-# reason churning that fast should not be load-bearing at all**: this row now
-# rests on the structural fact (`cmd/precommit:116` pins `TOOLS` to ST0056's
-# directory) which has not moved once, and the needle is recorded as history
-# beside it rather than as the reason.
+# `FIXED` IS NOT A STATE (vc). Worktree, index, HEAD and pushed are four. Every
+# node here holds dirty files and commits only on hv's word, so a peer saying "I
+# fixed it" reports the FIRST while the reader hears the THIRD -- the default
+# condition, not an edge case. A commit citation pointing the wrong way does not
+# fail the next checker, it CONFIRMS to them that the fix is in.
 #
-# THE LESSON IS NOT `re-derive`. IT IS RE-DERIVE THE SUBJECT THE CLAIM IS ABOUT.
-# A true measurement of a different property is the most persuasive wrong
-# evidence there is, precisely because the measuring was real and careful.
-#
-# AND `FIXED` IS NOT A STATE (vc, 2026-08-21). Worktree, index, HEAD and pushed
-# are four states. Every node on this estate holds dirty files and commits only
-# on hv's word, so a peer saying "I fixed it" is reporting the FIRST while the
-# reader hears the THIRD -- that gap is this estate's default condition, not an
-# edge case. **A commit citation pointing the wrong way does not fail the next
-# checker; it CONFIRMS to them that the fix is in**, which is worse than a
-# citation that cannot be resolved at all, and the cheap does-the-file-carry-the-id
-# split does not reach it.
-#
-# UNDER UNCERTAINTY THE ROW GOES `manual`, NEVER `not-an-instrument`, and the
-# asymmetry is the point (vc's framing): a wrong `manual` costs a reason, stays
-# visible, and anyone can correct it; a wrong `not-an-instrument` removes the
-# file from the population, so it generates no signal ever again and nothing will
-# surface the mistake. Fail toward the loud error.
-#
-# Every cost below was MEASURED on 2026-08-17 at 55e540df, not estimated, per
-# the runner's own rule that coverage is reported as measured and never as
-# designed. Re-time before moving a row on cost grounds.
-# EVERY TIMING BELOW IS MEASURED AND NAMES WHAT IT IS A MEASUREMENT OF (ic,
-# 2026-08-18). They were previously bare -- eleven figures, not one naming a
-# machine, a revision or a tree size -- which dc counted after making the error
-# those figures invite: comparing a fresh measurement against 3077ms read out of
-# this string, taken on another machine at another time over a smaller tree.
-# MEASURED-AGAINST-RECORDED IS NOT A COMPARISON AT ALL, and a bare figure here is
-# an invitation to it. dc corrected their own row and correctly declined to
-# restate the other ten, since re-stating a figure you did not take repeats the
-# error; these are re-MEASURED, not re-stated.
-#
-# METHOD: /usr/bin/time -p wall clock (NOT the shell builtin over a subshell,
-# which under-reported dc's by roughly half), 5 runs each, min-max, darwin/arm64,
-# over 8f652d1b..08bed4b2 -- HEAD moved four whiteboard/canon commits during the
-# sweep and the figures were stable across it, which is stated rather than
-# resolved by pinning one sha the numbers were not all taken at.
-#
-# THE RE-MEASUREMENT WAS WORTH DOING BECAUSE THE OLD FIGURES WERE WRONG IN BOTH
-# DIRECTIONS, so no single correction factor explains them and no reader could
-# have adjusted for them: nine overstated by up to 39%, and ratified_in_check.sh
-# UNDERSTATED by 49% -- it reads the dispatch table, which has grown. Costs that
-# grow silently are the ones a stale figure hides, and the total gate cost is
-# ~4.6s measured against ~5.4s recorded. THE AFFORDABILITY ARGUMENT FOR ADMITTING
-# canon_commit_check.sh WAS CONDUCTED AGAINST THE STALE NUMBERS.
-#
-# Re-time before moving a row on cost grounds, and record the span you measured
-# over. One sub-figure is NOT mine and is left attributed: the 263ms dispatcher
-# component of runner_roster_check.sh is the original author's and I did not
-# reproduce the breakdown, only the total.
+# EVERY TIMING BELOW IS MEASURED AND NAMES WHAT IT MEASURES. RE-TIME BEFORE
+# MOVING A ROW ON COST GROUNDS, and record the span. Bare figures invite
+# comparing a fresh measurement against a recorded one taken on another machine
+# over a smaller tree, which is not a comparison at all. Stale figures were
+# wrong in BOTH directions, so no correction factor recovers them.
+# METHOD: /usr/bin/time -p wall clock (not the shell builtin over a subshell,
+# which under-reported by roughly half), 5 runs each, min-max, darwin/arm64,
+# over 8f652d1b..08bed4b2. One sub-figure is left attributed to its original
+# author: the 263ms dispatcher component of runner_roster_check.sh.
 ROSTER='
 class_vocab_check.sh       gated   30-40ms, two committed files, one-line verdict
 corrected_check.sh         gated   50-60ms, static, reports and never gates
@@ -200,11 +126,11 @@ runner_roster_check.sh     gated   470-490ms total (re-measured); the original r
 self_provenance_check.sh   gated   530-540ms re-measured at c51f10d5 on one machine, up from 470-510ms: each binary line now carries a sha256, which costs two hashes of ~9MB and buys the only token on the line that distinguishes one build from another -- THE MARKER DOES NOT, and three distinct binaries carrying dirty-18197aaf in one day is what proved it. 27 blobs read from the INDEX; whole-set because the failure is staging one of two facts, so a path trigger would have to fire on the path that is not there
 stale_at_check.sh          gated   50ms and a single line, reports presence only
 view_skew_check.sh         gated   the slowest gated one, path-triggered. RE-MEASURED 2026-08-21 (cc): 3336-4100ms, n=7, mode ~3407, max/mode 1.2x, at 0dea9abb ON ONE MACHINE at loadavg 32.4 over 16 cores, timed inside ONE python3 process with perf_counter around subprocess.run, harness floor 5.7ms. THE SUPERSEDED 2860-2940ms IS NOT WITHDRAWN AND IS NOT WRONG: it was a different sitting, and the two together are the finding. EVERY TIMING ROW IN THIS TABLE CARRIED A REVISION AND A MACHINE AND NO LOAD STATE, WHICH IS UNCOMPARABLE ON A MACHINE FOUR SESSIONS SHARE ALL DAY (cc named the axis, dc measured it: 21 claude processes and 6 rustc live at the time). dc published 65-74ms for provenance_fields_check.sh while correcting a bad figure and it read 53-62ms twenty minutes later with nothing about the tool changed -- so a POINT was never available and re-timing cannot fix that, only naming the condition can. STATE A RANGE ACROSS SITTINGS, and if you need a cost argument, run it in the condition the gate will run in
-canon_commit_check.sh      gated   ADMITTED 2026-08-21 by dc on the hv release. THE TWO HOLDING REASONS ARE BOTH DEAD AND WERE RE-DERIVED HERE RATHER THAN TAKEN ON REPORT: (1) no narrow attachment-sync verb -- `sync --to-store [ID]...` takes positional ids and landed at 212b0075, so the only order a gate permits (sync the one thread, then commit file and canon together) is open; (2) --staged unsupported -- :254 parses the flag and :364 reads `git diff-index --cached HEAD`, so it judges the INDEX. Dispatched ALWAYS --staged and NEVER path-triggered: the tool narrows internally and a path trigger would be a second copy of that narrowing. RE-TIMED 2710-2760ms narrowed at ecea0eeb ON ONE MACHINE against 2.49-2.55s recorded -- ~8% slower, which REFRESHES the affordability case rather than overturning it, but it is now the most expensive guard here and the gate total moves ~4.6s -> ~7.3s on every commit; the comment at :102 warned that the original affordability argument was conducted against stale numbers, and this is that re-measurement. NO APOSTROPHES IN THIS TABLE: ROSTER is a single-quoted shell string, so one of that character terminates it and breaks the parse -- this row did exactly that when first written, twice, the second time inside the sentence warning about it. Reads git only: no worktree, no binary, no clock. LAYOUT-AGNOSTIC as of 2026-08-18: it detects the canon layout per revision (nested intent/st/<ID>/thread.json or flat intent/.canon/st/<ID>.json), REFUSES a half-migrated tree rather than counting one half, and reads the thread id from canon CONTENT rather than from the path -- because a path strip whose pattern is absent returns the string UNCHANGED at rc=0, which emitted ST0056.json as a steel-thread id and looked entirely plausible. 2.49-2.55s narrowed / 11.3-11.5s --exhaustive, measured at 4ba598f1 ON ONE MACHINE (the superseded figures, 2.1-2.3s and 9.5-9.7s at f2a2675f, were two-machine; that difference is part of the figure). ~1.8x SLOWER ON PURPOSE: scoped used to count narrowing FILTER KEYS rather than attachments examined, which overstated on the nested layout and printed EXAMINED 2 of 1 with the other -1 on the flat one; correcting it costs one extra pass over every canon. STATED WITH SUBJECT AND REVISION BECAUSE THE BARE FIGURES IN THE ROWS ABOVE CANNOT BE COMPARED AGAINST ANYTHING: measuring your own tool and comparing it to one of them is measured-against-recorded across unknown machines, trees and dates, which is how the first timing claim for THIS row went wrong by half. Driven five ways on a purpose-built rig spanning both layouts (nested clean 0, flat clean 0, flat diverged 1, canon with no id 2, both layouts present 2) plus nine real commits verdict-identical to the superseded version, and it caught an unplanted divergence on its first whole-tree run
-provenance_fields_check.sh manual  new 2026-08-21 (dc), covering AC-11.7 via AT-11.7. MANUAL AND NOT GATED, WITH A NAMED RELEASE CONDITION, BECAUSE ITS SUBJECT FAILS TODAY: dist-provenance.txt carries a bare commit and no artefact hash, so gating it now delivers a PERMANENTLY-RED gate -- the same reason thread_view_skew_check.sh was new rather than late. RELEASE CONDITION: promote to gated once int macos stage emits the labelled partition (artefact_sha256 + answers IDENTITY, source commit + answers CURRENCY, drift HELD + release condition); the writer fix is bin/.devbin/cmd/macos and is dc lane, unstarted. TWO ARMS, DIFFERENT SUBJECTS, REPORTED SEPARATELY. FIELDS asks whether the record is well-formed. SET asks whether the record describes the BYTES beside it and whether those bytes agree with EACH OTHER -- added 2026-08-21 after cc found, on real bytes, that a per-record check cannot see a property of the SET: intent named dirty-483e65e4 and intentd named dirty-5819417b beside a record naming 26fe1aea, three disagreements, every file individually well-formed. NOT A COPY OF artefact_commit_blockers in bin/.devbin/cmd/macos: that pivots on the TAG at release time and only at release time, this pivots on the RECORD at any time. COST MOVED AND THIS ROW HAS NOW CARRIED THREE FIGURES, WHICH IS WHY THE HARNESS IS NAMED AND NOT JUST THE NUMBER: it runs strings over target/release/intent at 9478896 bytes and intentd at 373136, measured 53-74ms across two sittings at b4918a35/bb3dce99 -- median 67 over 7 runs, then median 56 over 7 runs twenty minutes later -- timed inside ONE python3 process with perf_counter around subprocess.run, harness floor (bash -c true) median 4.9ms, ON A MACHINE AT LOAD AVERAGE 28 OVER 16 CORES with 21 claude processes and 6 rustc live. Still no git, no worktree, no clock. THE EARLIER 20ms IS SUPERSEDED BY THE SET ARM AND THE 82-88ms IS WITHDRAWN AS AN ARTEFACT OF ITS OWN HARNESS: that run spawned two python3 processes PER ITERATION to read the clock, at 23-35ms each, so roughly 50ms of the figure was the instrument measuring itself -- a TRUE measurement of script-plus-harness offered as the size of the script. THE LOAD CONDITION IS cc AND IT CORRECTS ME TWICE OVER (cc, 2026-08-21 17:03Z, their stamp and their measurement). I put it to them that their two rows might carry the same 50ms artefact; they RAN IT rather than accepting it, and their harness floor is 5ms rather than 50, with both figures coming back HIGHER than recorded -- and an inflation artefact would have made a clean re-measurement LOWER. The hypothesis was mine, the measurement did not exist, and it was true only of my own row. What DOES generalise is theirs: a figure carrying a revision and a machine but no LOAD STATE is still uncomparable when four sessions share the machine all day, which is how this estate works. It is a defect in every timing row in this table, mine included, and re-timing cannot fix it -- only naming the condition can. THAT IS WHY THIS ROW NOW STATES A RANGE ACROSS SITTINGS RATHER THAN A POINT: the point figure moved 15% in twenty minutes with nothing about the tool changing. SELF-TEST IS THE POINT: --self-test drives SEVEN controls, each shown able to fire alone -- a record with no source commit (the f2e4d1f9005d0334 currency failure, correct hash and 158 commits behind), a record with no artefact hash (the dirty-18197aaf identity failure, one marker over intent at 9008848 bytes and intentd at 373136), a compliant record that must PASS, a coherent set matching its record that must PASS, a set whose members disagree checked against a record naming NO commit so only the set pivot can speak, a coherent set the record is not about so only the record pivot can speak, and an empty set that must report NOT EXAMINED rather than passing silently. REACH: FIELDS checks fields EXIST and are LABELLED; SET checks the record and the artefacts name ONE commit between them; NEITHER can check that an embedded marker is HONEST about the bytes carrying it, which is the drift field and drift is held.
-guard_home_check.sh        gated   new 2026-08-22 (dc), closing the exposure under hv guard-resolution directive whose PREMISE ic falsified: the guards do NOT resolve out of the frozen v2 checkout, because pre-commit.sh overrides GUARD_HOME to the repo root when the repo is itself an Intent install. hv asked for a mechanism rather than a variable and the mechanism ALREADY EXISTED with nothing watching it. GATES THE TRACKED TEMPLATE, NEVER THE INSTALLED COPY: pre-commit.intent is gitignored by design so a fresh clone has none, and a check keyed to it would fail in every clone, which is the ARM C shape AC-01.5 spent two days on. BYTE-IDENTITY WAS THE CANARY OFFERED AND IT IS THE WRONG ONE: an ACTIVE tree and a FROZEN one are supposed to diverge, so that check goes red on the first legitimate guard edit and is cry-wolf by construction; identity is not the property to protect, it is the reason the fallback is currently INVISIBLE. Two arms asserted separately because they fail differently -- a missing condition means the override can never fire, a missing assignment means it fires and does nothing -- and one combined grep would send the reader at the wrong half. Mutation-proven four ways: green, condition removed (rc=1), assignment removed (rc=1), and a tree that is not a tool tree (NOT APPLICABLE, rc=0). 17-22ms n=9 median 19, timed inside ONE python3 process with perf_counter around subprocess.run, harness floor median 5ms, ON ONE MACHINE at loadavg 47.7 over 16 cores -- the cheapest gated instrument here. Reads two greps over one committed file: no git, no binary, no clock. REACH: it checks the override EXISTS and assigns the repo root; it does not run the hook, does not compare guard bodies across trees, and cannot tell whether the branch CONDITION is correct for any particular install
+canon_commit_check.sh          gated             ADMITTED 2026-08-21 by dc on the hv release, both holding reasons RE-DERIVED rather than taken on report: sync --to-store takes positional ids, so the only order a gate permits (sync the one thread, then commit file and canon together) is open, and --staged is supported and judges the INDEX. Dispatched ALWAYS --staged and NEVER path-triggered -- the tool narrows internally and a path trigger would be a second copy of that narrowing. NO APOSTROPHES IN THIS TABLE: ROSTER is a single-quoted shell string, so one of that character terminates it and breaks the parse. This row did exactly that when first written, twice, the second time inside the sentence warning about it. LAYOUT-AGNOSTIC: it detects the canon layout per revision, REFUSES a half-migrated tree rather than counting one half, and READS THE THREAD ID FROM CANON CONTENT RATHER THAN FROM THE PATH -- because a path strip whose pattern is absent returns the string UNCHANGED at rc=0 and looks entirely plausible. ~1.8x SLOWER ON PURPOSE: scoped used to count narrowing FILTER KEYS rather than attachments EXAMINED, which printed EXAMINED 2 of 1 with the other -1. COST 2710-2760ms narrowed and 11.3-11.5s --exhaustive ON ONE MACHINE -- the most expensive guard here, moving the gate total from ~4.6s to ~7.3s on every commit. Reads git only: no worktree, no binary, no clock. Driven five ways across both layouts plus nine real commits, and it caught an unplanted divergence on its first whole-tree run
+provenance_fields_check.sh     manual            new 2026-08-21 (dc), covering AC-11.7 via AT-11.7. MANUAL WITH A NAMED RELEASE CONDITION BECAUSE ITS SUBJECT FAILS TODAY: dist-provenance.txt carries a bare commit and no artefact hash, so gating now delivers a PERMANENTLY-RED gate. RELEASE CONDITION: promote to gated once int macos stage emits the labelled partition (artefact_sha256 answering IDENTITY, source commit answering CURRENCY, drift HELD with its release condition); the writer fix is bin/.devbin/cmd/macos, dc lane, unstarted. TWO ARMS, DIFFERENT SUBJECTS, REPORTED SEPARATELY: FIELDS asks whether the record is well-formed, SET asks whether the record describes the BYTES beside it and whether those bytes agree with EACH OTHER. A PER-RECORD CHECK CANNOT SEE A PROPERTY OF THE SET -- found on real bytes, two binaries naming two different commits beside a record naming a third, every file individually well-formed. NOT A COPY of artefact_commit_blockers in cmd/macos: that pivots on the TAG at release time only, this pivots on the RECORD at any time. COST 53-74ms across two sittings, strings over a 9.5MB and a 373KB binary, timed in ONE python3 process with perf_counter around subprocess.run, harness floor 4.9ms, at loadavg 28 over 16 cores. A RANGE ACROSS SITTINGS RATHER THAN A POINT, because the point moved 15 percent in twenty minutes with nothing about the tool changing. AN EARLIER 82-88ms IS WITHDRAWN AS AN ARTEFACT OF ITS OWN HARNESS: it spawned two clock processes per iteration, so roughly 50ms was the instrument measuring itself. AND A FIGURE NAMING A REVISION AND A MACHINE BUT NO LOAD STATE IS STILL UNCOMPARABLE WHEN FOUR SESSIONS SHARE THE MACHINE ALL DAY (cc) -- a defect in every timing row here, and only naming the condition fixes it. SELF-TEST drives SEVEN controls, each shown able to fire alone, including an empty set that must report NOT EXAMINED rather than pass silently. REACH: FIELDS checks fields EXIST and are LABELLED, SET checks that record and artefacts name ONE commit between them, and NEITHER can check that an embedded marker is HONEST about the bytes carrying it -- that is the drift field and drift is held
+guard_home_check.sh            gated             new 2026-08-22 (dc), closing the exposure under an hv guard-resolution directive WHOSE PREMISE ic FALSIFIED: the guards do NOT resolve out of the frozen v2 checkout, because pre-commit.sh overrides GUARD_HOME to the repo root when the repo is itself an Intent install. hv asked for a mechanism rather than a variable and THE MECHANISM ALREADY EXISTED WITH NOTHING WATCHING IT. GATES THE TRACKED TEMPLATE, NEVER THE INSTALLED COPY: pre-commit.intent is gitignored by design so a fresh clone has none, and a check keyed to it would fail in every clone. BYTE-IDENTITY WAS THE CANARY OFFERED AND IT IS THE WRONG ONE -- an ACTIVE tree and a FROZEN one are SUPPOSED to diverge, so that check reddens on the first legitimate guard edit and is cry-wolf by construction. Two arms asserted separately because they fail differently: a missing condition means the override can never fire, a missing assignment means it fires and does nothing, and one combined grep would send the reader at the wrong half. Mutation-proven four ways. COST 17-22ms, n=9, median 19, harness floor 5ms, at loadavg 47.7 over 16 cores -- the cheapest gated instrument here. Two greps over one committed file: no git, no binary, no clock. REACH: it checks the override EXISTS and assigns the repo root; it does not run the hook, does not compare guard bodies across trees, and cannot tell whether the branch CONDITION is correct for any particular install
 conservation_check.sh      manual  takes a MIGRATED tree as an argument and no such tree exists until WP-10 lands, so there is no bare invocation for a gate to make; it refuses with exit 2 rather than passing when handed an unmigrated one, which is the behaviour a gate would have to bypass on every commit
-thread_view_skew_check.sh  manual  new 2026-08-20, awaiting admission by dc -- cc built it, dc rosters. COST, RE-MEASURED 2026-08-21 (cc): 142-175ms, n=15, mode ~151, max/mode 1.2x, at 0dea9abb ON ONE MACHINE at loadavg 32.4 over 16 cores, one python3 process with perf_counter around subprocess.run, harness floor 5.7ms, over 268 views. Consistent with the 130-150ms recorded at f0c2805c; both stand, as two sittings rather than a correction. It would still be the CHEAPEST gated instrument here and ~22x faster than view_skew_check.sh, and the RATIO is what this figure is for -- a bare number cannot be compared against anything, which is why the harness and the load are named beside it. A 3x TAIL WAS OBSERVED ONCE IN 22 RUNS AND HAS NOT RECURRED, AND IT IS RECORDED AS AN OBSERVATION RATHER THAN AS A PROPERTY. One 7-run sitting read 160 163 165 167 170 188 513; dc and cc both reasoned from it that the distribution is bimodal under contention and that a gate pays the tail rather than the median -- a rule that would DECIDE DIFFERENTLY about promotion. Fifteen runs at HIGHER load produced no second mode and no tail. THE 513 IS REAL AND THE GENERALISATION WAS NOT TESTED: two nodes agreed because both liked the reasoning, and the agreement is what stopped either of them re-running it. IF THE TAIL IS REAL IT WILL RECUR AND THIS ROW CAN SAY SO THEN; a promote-to-gated argument does not get to rest on a number nobody can reproduce. IT COVERS THE POPULATION THE SIBLING NEVER DID: the CHECKABLE in view_skew_check.sh is ONE triple under surface/, so gated skew coverage is 1 of 269 and the missing 268 are the thread covers, acceptance contracts and WP covers. It forms no verdict -- views::skew is the single home for the question and this parses one answer rather than computing a second. UNGATEABLE BEFORE b082b488, which is why it is new rather than late: doctor reported every dehydrated view as MISSING, 235 findings at rc=1 on a healthy tree, so wiring it then would have delivered a permanently-red gate. Driven ten arms on a purpose-built rig: clean, planted skew with and without --changed, inherited-only, absent binary, changed output shape, doctor exiting 2, a 0-view denominator, and a MENTION/SUBJECT pair carrying identical decoy lines to opposite verdicts. Refuses at exit 2 rather than passing when it cannot read the summary line, because a text-reading gate whose needle stops matching goes green forever and nothing says so. Needs the v3 binary at native/rust/target/release/intent (v3 is off PATH by ruling); absent, it names what goes unchecked and exits 0
+thread_view_skew_check.sh      manual            new 2026-08-20, awaiting admission by dc -- cc built it, dc rosters. COVERS THE POPULATION THE SIBLING NEVER DID: the CHECKABLE in view_skew_check.sh is ONE triple under surface/, so gated skew coverage is 1 of 269 and the missing 268 are thread covers, acceptance contracts and WP covers. Forms no verdict -- views::skew is the single home for the question and this parses one answer rather than computing a second. UNGATEABLE BEFORE b082b488, which is why it is new rather than late: doctor reported every dehydrated view as MISSING, 235 findings at rc=1 on a healthy tree. COST 142-175ms, n=15, mode ~151, harness floor 5.7ms, at loadavg 32.4 over 16 cores, over 268 views -- it would be the cheapest gated instrument here and ~22x faster than view_skew_check.sh. A 3x TAIL WAS OBSERVED ONCE IN 22 RUNS, HAS NOT RECURRED, AND IS RECORDED AS AN OBSERVATION RATHER THAN AS A PROPERTY: one sitting read 160 163 165 167 170 188 513, two nodes reasoned from it that the distribution is bimodal under contention and that a gate pays the tail rather than the median -- a rule that would DECIDE DIFFERENTLY about promotion -- and fifteen runs at HIGHER load produced no second mode. THE AGREEMENT IS WHAT STOPPED EITHER OF THEM RE-RUNNING IT. A promote-to-gated argument does not get to rest on a number nobody can reproduce. Refuses at exit 2 rather than passing when it cannot read the summary line, because a text-reading gate whose needle stops matching goes green forever and nothing says so. Driven ten arms, including a MENTION/SUBJECT pair carrying identical decoy lines to opposite verdicts. Needs the v3 binary at native/rust/target/release/intent; absent, it names what goes unchecked and exits 0
 drift_check.sh             manual  compares a STAMPED inventory against live canon, so gating it would block a dispatch-table edit until somebody re-runs a 27-family measurement sweep -- a measurement, not a fix
 guide_refs_check.sh        manual  takes required prose-file arguments, so there is no bare invocation for a gate to make
 same_end_state_check.sh    manual  takes three tree arguments, so there is no bare invocation for a gate to make; it refuses an absent, EMPTY or UNCHANGED subject rather than comparing nothing, refuses two subjects that are one directory rather than comparing a tree with itself, and reports a differing SQLite store (or its -wal/-shm sidecar) as NOT JUDGED BY THIS TOOL, naming the path and the reason, because comparing the content of a container needs the sqlite3 shell and that would make the verdict depend on the machine
@@ -243,8 +169,8 @@ retarget.sh                    not-an-instrument rewrites a sacrificial worktree
 rig_selftest.sh                manual            drives interrupt_rig.sh against stubs whose behaviour is known and scores each arm against a prediction written before the run; a proof OF the rig, run when the rig changes
 rig_stub_migrator.sh           not-an-instrument a migrator whose behaviour is CHOSEN, existing to be driven BY interrupt_rig.sh; a stub subject rather than a checker
 sparse_tree_equals_manifest.sh manual            ST0057; runs organize and compares the tree against .intentfiles, so it mutates a tree and has no bare gate-safe invocation
-sync_issue_loss.sh             manual            ST0056; the REPRO for intent#0069 attribution -- asks whether a thread-scoped sync --to-store destroys ISSUES. It does NOT (issues 3 to 3, both v3 binaries), which is what exonerated the sync as the cause of the 2026-08-24 loss. MANUAL because it stands up a throwaway project and runs a mutating verb in it, so there is no gate-safe bare invocation. Kept rather than deleted after the answer came back negative: a NO-CHANGE result is a result, and the next reader who suspects sync should re-run this rather than re-derive it
-upgrade_issue_loss.sh          manual            ST0056; the REPRO for intent#0070 -- intent upgrade destroys every issue in an ALREADY-MIGRATED v3 project. TWO ARMS, BOTH v3 BINARIES, against a synthetic project made by the v3 init verb: issues 5 to 0, threads intact. Fix landed at 3f367cf8 and this script was the red arm. CORRECTED 2026-08-24: THIS ROW PREVIOUSLY SAID the script now forces the real path, ABOUT A v2 ARM THE COMMITTED SCRIPT HAS NEVER CONTAINED -- one commit, two arm lines, zero v2 tokens, probe positive-controlled. The v2 finding itself was real and driven -- a REAL 2.10.0 to 2.19.0 migration is CLEAN, which is what bounds the defect to v3 -- and the first v2 arm WAS a false clean because v2 short-circuits at target. But that arm lived in a scratchpad and died with a compact, so the row described the INVESTIGATION while claiming to describe the RUNNER. cc landed the missing population separately as v2_estate_issue_carry.sh. THE CLASS, stated rather than silently repaired: a row carrying ONE TRUE SENTENCE AND ONE FALSE ONE is harder to catch than a wholly wrong row, because the true half is what a reader checks first and it holds (cc). AND THIS CHECKER IS BLIND TO IT -- it verifies row-to-file EXISTENCE in both directions and nothing verifies that a row DESCRIPTION matches what its runner does. ASSERTS ON COUNTS READ FROM THE STORE, NEVER ON sync REPORTING AGREE -- a regression test asserting via the agreement report inherits intent#0069, and the reporting defect then hides this one. MANUAL because it mutates a throwaway project
+sync_issue_loss.sh             manual            ST0056; the REPRO for the intent#0069 attribution -- asks whether a thread-scoped sync --to-store destroys ISSUES. It does NOT (3 to 3, both v3 binaries), which is what exonerated sync as the cause of the 2026-08-24 loss. MANUAL because it stands up a throwaway project and runs a mutating verb in it, so there is no gate-safe bare invocation. KEPT RATHER THAN DELETED AFTER A NEGATIVE RESULT: a no-change result is a result, and the next reader who suspects sync should re-run this rather than re-derive it
+upgrade_issue_loss.sh          manual            ST0056; the REPRO for intent#0070 -- intent upgrade destroys every issue in an ALREADY-MIGRATED v3 project. TWO ARMS, BOTH v3 BINARIES, against a synthetic project made by the v3 init verb: issues 5 to 0, threads intact. Fix landed at 3f367cf8 with this script as the red arm, and intent#0070 is closed. CORRECTED 2026-08-24: THIS ROW ONCE SAID the script now forces the real path, ABOUT A v2 ARM THE COMMITTED SCRIPT HAS NEVER CONTAINED -- one commit, two arm lines, zero v2 tokens, probe positive-controlled. The v2 finding was real and driven and it is what bounds the defect to v3, but the arm lived in a scratchpad and died with a compact, so THE ROW DESCRIBED THE INVESTIGATION WHILE CLAIMING TO DESCRIBE THE RUNNER. cc landed the missing population separately as v2_estate_issue_carry.sh. A ROW CARRYING ONE TRUE SENTENCE AND ONE FALSE ONE IS HARDER TO CATCH THAN A WHOLLY WRONG ROW, BECAUSE THE TRUE HALF IS WHAT A READER CHECKS FIRST AND IT HOLDS (cc) -- and THIS CHECKER IS BLIND TO IT, verifying row-to-file EXISTENCE both ways and nothing about whether a row DESCRIPTION matches its runner. ASSERTS ON COUNTS READ FROM THE STORE, NEVER ON sync REPORTING AGREE, or it inherits intent#0069 and the reporting defect hides this one. MANUAL because it mutates a throwaway project
 v2_estate_issue_carry.sh       manual            ST0056; the NEGATIVE CONTROL for the intent#0070 fix and the arm that must never go red. upgrade_issue_loss.sh drives the positive arm -- an ALREADY-MIGRATED v3 project, where issues were destroyed and must now survive. This drives the other population: a REAL 2.19.0-built v2 estate migrated by v3, where issues were ALWAYS carried and must stay that way. The fix adds a union in migrate::plan that tops issues up from committed canon, and a FIRST migration has no canon to top up from, so the union must add NOTHING here -- a fix that made the already-migrated path work by changing what a first migration carries would pass the positive arm and be wrong. Only this arm can see that, which is why it is not a duplicate: the two populations do not overlap. IF IT EVER REPORTS ANYTHING BUT carried all N, the counts name which defect it is -- MORE than the estate held means the union is contributing where there is no canon, FEWER means legacy::scan has stopped reaching the v2 issue estate. Driven at both v3 binaries, pre-fix and post-fix, 5 of 5 both times with byte-identical output. ASSERTS ON COUNTS READ FROM THE STORE, never on sync reporting AGREE, for the same reason the positive arm does. MANUAL because it needs a v2 binary to BUILD the estate and then mutates a throwaway project, so there is no gate-safe bare invocation
 '
 

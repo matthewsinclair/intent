@@ -1,81 +1,67 @@
 # shellcheck shell=bash
 #
 # shared/currency.lib -- does a BUILT artefact still describe this tree?
+#
 # SOURCED, never run: 0644 so `is_handler` (-f AND -x) cannot mistake it for a
-# command. Requires `artefact.lib` to be sourced first; it does not source it
-# itself, because THE marker extraction site is that file and a `source ||
-# define-my-own` fallback restores the duplicate at exactly the moment nobody is
-# watching (vc's ruling, 2026-08-22, after the marker parser went four-homes-to-one).
+# command. Requires `artefact.lib` sourced first and does NOT source it itself:
+# the marker extraction site is that file, and a `source || define-my-own`
+# fallback restores the duplicate at exactly the moment nobody is watching (vc).
 #
-# WHY THIS IS NOT `cmd/local`'s `verify_pair`, AND THE DISTINCTION IS THE WHOLE
-# DESIGN. `verify_pair` is a BUILD-time check: it demands `sc == HEAD` exactly
-# and treats any `dirty-` as bad. That is right immediately after `int local
-# build` and WRONG at exec time, where it would refuse after any commit at all --
-# a README edit, a whiteboard fold -- which is how a gate becomes one people work
-# around. Two mechanisms enforcing different properties are not two copies of one
-# (vc, 2026-08-20). The shared primitive is the pair read, below.
-#
-# THE CONVERGENCE OF `verify_pair` ONTO `artefact_pair_marker` IS RECORDED AND
-# DELIBERATELY NOT DONE. hv ruled that `intent3` may refuse; refactoring a
-# build-time check was not asked for, and widening a pen because the code is
-# adjacent is the quiet scope-creep this lane is supposed to be the check
-# against. Recorded so this header and `grep` still agree.
+# NOT `cmd/local`'s `verify_pair`, AND THE DISTINCTION IS THE WHOLE DESIGN.
+# `verify_pair` is BUILD-time: it demands `sc == HEAD` exactly and treats any
+# `dirty-` as bad. Right after `int local build`, WRONG at exec time, where it
+# would refuse after any commit at all -- a README edit, a whiteboard fold --
+# which is how a gate becomes something people work around. TWO MECHANISMS
+# ENFORCING DIFFERENT PROPERTIES ARE NOT TWO COPIES OF ONE (vc). The shared
+# primitive is the pair read below; converging `verify_pair` onto it is RECORDED
+# AND DELIBERATELY NOT DONE, so this header and `grep` still agree.
 #
 # ---------------------------------------------------------------------------
-# THE MATRIX KEYS ON DECIDABILITY, NEVER ON DIRT, AND IT READS BACKWARDS UNTIL
-# YOU SEE THAT (cc named the case that misleads, 2026-08-24).
+# THE MATRIX KEYS ON DECIDABILITY, NEVER ON DIRT.
 #
 #   no marker at all                        REFUSE  "cannot say" is not a pass
 #   the pair disagrees                      REFUSE  two trees, one install
 #   base not reachable / not an ancestor    REFUSE  it describes a tree you are not on
 #   clean  + range touches rust source      REFUSE  provably behind
 #   dirty  + range touches rust source      REFUSE  same, and the dirt adds nothing
-#   dirty  + range is source-clean          WARN    permanent; see below
+#   dirty  + range is source-clean          WARN    permanent, see below
 #   clean  + range is source-clean          OK      silent
 #
-# THE CASE THAT LOOKS WRONG IS `clean + touches source` REFUSING WHILE `dirty +
-# source-clean` ONLY WARNS. A clean marker is the good outcome everywhere else,
-# so refusing on it reads as backwards -- until you notice the matrix is not
-# asking "is this binary tidy", it is asking "can I DECIDE whether it is behind".
+# THE CASE THAT LOOKS BACKWARDS is `clean + touches source` REFUSING while
+# `dirty + source-clean` only WARNS. The matrix is not asking "is this binary
+# tidy", it is asking "can I DECIDE whether it is behind".
 #
-# WHY A DIRTY MARKER CAN NEVER REFUSE AND CAN NEVER BE CLEARED. `dirty-<base>`
-# means: built from a tree at <base> PLUS uncommitted modifications. The COMMITTED
-# delta is decidable -- that is the range test. The UNCOMMITTED delta at build
-# time is not recoverable from the artefact by anyone, ever. So:
-#   - it cannot refuse: a dirty binary whose range is source-clean may be
-#     perfectly current, and refusing it rejects a binary that is provably fine
-#     (cc drove exactly this case: `ad0ba20d..HEAD` touched one file, a test);
-#   - it cannot be discharged: no evidence available at exec time can establish
-#     what the dirt was.
-# A permanent uncleartable warning is an unsatisfying object. It is also the only
-# honest one: the alternative is a warning that LOOKS clearable and quietly is not.
+# A DIRTY MARKER CAN NEVER REFUSE AND CAN NEVER BE CLEARED. `dirty-<base>` means
+# built at <base> PLUS uncommitted modifications. The COMMITTED delta is
+# decidable -- that is the range test. The UNCOMMITTED delta is not recoverable
+# from the artefact by anyone, ever. So it cannot refuse (a dirty binary with a
+# source-clean range may be perfectly current) and it cannot be discharged (no
+# exec-time evidence establishes what the dirt was). A permanent uncleartable
+# warning is unsatisfying and it is the only honest one: the alternative LOOKS
+# clearable and quietly is not.
 #
-# WHY THE BOUNDARY IS `native/rust/` AND NOT `native/rust/crates/`. A `Cargo.lock`
-# or workspace `Cargo.toml` change is a different dependency set and therefore a
-# different binary, and neither lives under `crates/`. Widening here makes the
-# guard refuse MORE, which is the correct direction for a check whose false
-# negative ships a stale binary and whose false positive costs one rebuild.
+# THE BOUNDARY IS `native/rust/`, NOT `native/rust/crates/`. A `Cargo.lock` or
+# workspace `Cargo.toml` change is a different dependency set and therefore a
+# different binary, and neither lives under `crates/`. Widening makes the guard
+# refuse MORE, the correct direction when a false negative ships a stale binary
+# and a false positive costs one rebuild.
 #
-# THE KNOWN FALSE REFUSAL, STATED RATHER THAN DISCOVERED LATER. Rust puts unit
-# tests INLINE under `#[cfg(test)]` in `src/*.rs`. A commit touching only such a
-# block is a source-file change by path and this will refuse on it. Path is the
-# only signal available without parsing Rust, and refusing-when-unsure is the
-# direction chosen above. It costs a rebuild, not a wrong answer.
+# KNOWN FALSE REFUSAL, STATED RATHER THAN DISCOVERED LATER: Rust puts unit tests
+# INLINE under `#[cfg(test)]` in `src/*.rs`, so a commit touching only such a
+# block is a source change by path and this refuses on it. Path is the only
+# signal available without parsing Rust. Costs a rebuild, not a wrong answer.
 #
-# WHY THE TWO "CANNOT SAY" CASES GO OPPOSITE WAYS. An artefact that cannot say
-# what it is REFUSES -- that is `artefact.lib`'s own rule and the state a binary
-# built before the embed landed is in. A TREE that cannot answer (no `git`) only
-# WARNS, because that is a fact about the environment rather than about the
-# artefact, and a wrapper that dies when `git` is absent has invented a new
-# dependency for every consumer.
+# THE TWO "CANNOT SAY" CASES GO OPPOSITE WAYS. An ARTEFACT that cannot say what
+# it is REFUSES. A TREE that cannot answer (no `git`) only WARNS -- that is a
+# fact about the environment, not the artefact, and a wrapper that dies without
+# `git` has invented a new dependency for every consumer.
 #
-# COST, DRIVEN 2026-08-24 AT `60782024` RATHER THAN ASSERTED, BECAUSE THE FIGURE
-# THIS REPLACES WAS ASSERTED AND WRONG BY TWO ORDERS OF MAGNITUDE. `bin/intent3`
-# carried "a MULTI-SECOND gate on every command" as the reason not to do this.
-# Measured: 40ms + 36ms for the two `strings` passes over a 9.6M and a 373K
-# binary, 33ms for the git range. ~110ms total, and the floor for any check at
-# all (one `stat` + one `rev-parse`) is already 31ms. A confident unmeasured
-# figure held this design shut for three days.
+# COST, DRIVEN AT `60782024` RATHER THAN ASSERTED: 40ms + 36ms for the two
+# `strings` passes, 33ms for the git range, ~110ms total, against a 31ms floor
+# for any check at all. It is stated because THE FIGURE IT REPLACES WAS ASSERTED
+# AND WRONG BY TWO ORDERS OF MAGNITUDE -- `bin/intent3` carried "a MULTI-SECOND
+# gate on every command" as the reason not to build this, and it held the design
+# shut for three days.
 
 # artefact_pair_marker <release_dir>
 #
