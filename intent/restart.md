@@ -1,224 +1,95 @@
-# Claude Code Session Restart -- narrative state
+# Intent -- narrative state, traps and conventions
 
-## Current state (as at `50417c83`, 2026-08-24)
+**Current as at `0411ea2b`, 2026-08-24.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`. **This file carries where-you-are-standing, the traps, and the conventions -- and nothing that belongs in the other two.**
 
-**This heading names a COMMIT, not just a date, and that is deliberate.** A restart file is read as CURRENT STATE and written as a snapshot of when its author typed; nothing used to mark which, and a cold session treated a four-day-old line as the next action. **Re-stamp it when you fold, and if you cannot say what it is current as at, that is the finding.**
+## Where you are standing
 
-## 2026-08-24 -- THE GATE IS 66 OF 67, ONE ROW LEFT. EVERYTHING DATED 2026-08-21 BELOW IS SUPERSEDED WHERE IT DISAGREES
+**THIS CHECKOUT IS v3 ONLY. The v2 CLI the fleet runs lives in a SEPARATE checkout at `~/Devel/prj/Intentv2`, branch `v2-maintenance`.**
 
-**Read this before the 08-21 section. It was written three days later and it corrects four figures that section states as current.** Driven at `50417c83`, 0 dirty, 2026-08-24 -- not hand-tallied, all three verb calls:
+**THE HAZARD THAT OUTRANKS EVERYTHING ELSE HERE: the fleet resolves `intent` through `$INTENT_HOME` to that FROZEN checkout, so a shipped-surface fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day on 2026-08-24. `tests/unit/shipped_surface_drift.bats` reddens on it now, unattended, and **its first catch was its own author.**
 
-```
-intent ac status ST0057      50/51 satisfied, 2 withdrawn -- BLOCKED
-intent ac status ST0056/03   16/16 satisfied, 1 withdrawn -- PASS
-intent ac gate ST0057        unsatisfied: AC-08.5
-```
+**hv's ruling, and it is SCOPED: Intentv2 is FROZEN FOR FEATURES and LIVE FOR SHIPPED-SURFACE DEFECTS.** That gives the guard its property -- not _these two trees agree_ but **_a shipped-surface change is either in both or declared_** -- which decides which of its two exception kinds a new entry gets.
 
-**ONE ROW OUTSTANDING ACROSS BOTH SCOPES: ST0057 AC-08.5.** The other four this file names as outstanding -- ST0057 AC-01.5, ST0057 AC-03.6, ST0057 AC-07.7 and ST0056 AC-03.14 -- are all **satisfied**, landed by cc and ic on 2026-08-22/23. **The denominators and the withdrawn counts did not move** (51 and 16; 2 and 1), so this is four rows greening rather than a scope change -- checked, because a rising fraction over a shrinking denominator is the cheap way to fake one.
+**The branch point is the lesson worth keeping.** `v2-maintenance` was cut at main HEAD, **not at the `v2.19.0` tag**: the old symlink resolved into the working tree, so the fleet had NEVER run the tag, and branching there would have reverted **2027 commits** across every project on this machine while presenting as a symlink move. **A released tag is evidence about a release, never about a deployment.** And the binding was never the symlink -- three routes reached this checkout, and `bin/intent:26` self-resolves only `if [ -z "$INTENT_HOME" ]`, so **the exported var beats the symlink outright.** `env -u VAR <cmd>` tells an override from a resolution defect.
 
-**THE FINDING IS NOT THE ARITHMETIC, IT IS THAT THREE DOCUMENTS CARRIED THREE DIFFERENT NUMBERS.** `intent/restart.md` said 62, `intent/wip.md` said 65, `.claude/restart.md` said 62 and had not been touched since 2026-08-21. **A figure with three homes drifts in all three, and nothing in this repo compares them** -- the Highlander rule applies to numbers in prose exactly as it applies to code, and the gate figure is the most-copied number in the estate. All three are corrected in this fold. **The durable fix is to stop transcribing it: the three verb calls above are cheap, and any figure written here is stale from the moment it is typed.**
+**THE ARCHITECTURE, INVIOLABLE AND UNCHANGED FOR THE WHOLE REWRITE.** The crates are `intent-cli`, `intentd` and `intentsvcs`. **`intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns `intent/.cache/intent.db`.** `intentd` is not the SSOT and no read requires it. Diagram: `intent/st/ST0056/design.md:12-17`. **The word `intentdb` is retired and names no component** (hv, 2026-08-21) -- it was a typo that propagated corpus-wide. **D01 was REVERSED by hv 2026-08-15; do not reason from it.**
 
-**ST0056 whole thread: 61/132** (was 59), 1 withdrawn. **It is NOT the gate's denominator.** Seven WPs Not Started, unchanged: 08 intentd, 09 MCP, 12 cutover, 13 search, 14 coordination, 15 skills, 16 contract drift. Read as release progress, 66/67 says 99% where ST0056 is at 46%.
+**THREE LAYERS, AND CONFUSING THEM IS THE RECURRING ERROR:** canon (`intent/.canon/st/<ID>.json`, committed, **never sparse**) / store (`intent/.cache/intent.db`, gitignored, **the durable SSOT**) / views (`info.md`, `acceptance.md`, committed, **generated**). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
 
-**ST0057 WPs Done: 02, 03, 04, 06, 07, 09, 10** -- WP-03 closed since the 08-21 line, which names six. 01, 05 and 08 are WIP.
+**`.intentfiles` IS DURABLE STATE**, the record of which database artefacts also have a realised form on disk. **Many writers, no recomputation** -- `st new` adds an id, `st done` removes it, a human may edit it, **nothing derives it from status**. **ABSENT IS NOT EMPTY:** a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
 
-**AC-08.5 WILL NOT GREEN ON ITS CURRENT PIN, AND THE ROW SAYS SO IN ITS OWN TEXT.** The pin measures _one entity through one door_ -- seven fields set through `put` and read back, unsettable set empty, mutation-proved. Three of the criterion's burning cases survive that and are what actually block it: **`ST0011.completed` is a THREAD field with no setter; an attachment's canon record has no setter narrower than a thread; no CLI verb creates an AC or an AT at all.** Each is a claim that a capability is ABSENT, and this row's own history is four such claims refuted or narrowed by someone finally checking -- **so re-drive them before building against them.**
+**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057). **localfold = your own board; globalfold = project-wide docs, and it is vc's.**
 
-### 2026-08-24 also: a five-estate Claude Code config sweep, with Intent as UPSTREAM
+## The local cutover -- v3 is usable across the estate (ST0058, 2026-08-22)
 
-Coordinated by `lamplight-vc` across Intent, Lamplight, Laksa, Baize and Conflab plus `devbin-vc`. Most findings were template- or tool-borne, so they were one fix here rather than five downstream patches. **hv's ruling governs the whole round: prune the dross NOW, v3 only, do not gate on WP-13 -- Intentv2 is FROZEN.**
-
-- **`MODULES.md` is retired from v3 seeding** (`init.rs` `NotByInit`), the ten per-language `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` files are gone, and the agnostic pair is restored REWRITTEN -- both ship empty on purpose. Intent's own 354KB `MODULES.md` still exists and awaits its own ruling; not-seeding is a different act from deleting.
-- **`intent claude upgrade` had a downgrade hole**: its probe tested `local == target`, and **equality has no direction**, so an older canon target silently overwrote a newer project. Guarded in BOTH checkouts.
-- **The elixir template stopped asserting project facts it cannot know** -- five false claims, one of them a `NEVER` that would have made an agent rewrite 40 correct call sites at Conflab and 98 at Lamplight.
-- **Open with numbers:** `0065` doctor acknowledgement, `0066` `st` does not resolve `_inbox/`, `0067` `modules find` v3 parity gap, `0068` do NOT rebuild the per-language fan-out (HIGH).
-
-**THE HAZARD BEHIND MOST OF THE ROUND, AND IT OUTRANKS EVERY FIX IN IT: the fleet resolves `intent` through `$INTENT_HOME` to the FROZEN `~/Devel/prj/Intentv2`, so a fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day. `tests/unit/shipped_surface_drift.bats` now reddens on it, and **its first catch was its own author.** Shipped-surface changes land in both checkouts or they have not landed.
-
-### A `/compact` does NOT rotate `session_id`, so the bounce test below cannot see one
-
-Measured here 2026-08-24: a board's `session_id`, written before a compact, is byte-identical to `$CLAUDE_CODE_SESSION_ID` read live after it. **The verification rule further down -- _same id means it resumed again_ -- therefore reads a compacted session as a resumed one and cannot tell the two apart.** Third agreeing datapoint on this machine and build. Still one machine, one build; **hv's bounce question is OPEN, not answered.**
-
-## First actions after `/compact` or new session
-
-0. **IN A FRESH CLONE ONLY, RUN `int hooks` FIRST.** This repo's hooks are TRACKED, at `.githooks/`, reached by `core.hooksPath` -- but **`core.hooksPath` is repo-local config and a clone does not inherit it.** So a fresh clone has the hook bodies and runs none of them: the critic gate, the clock guard, the header guard, the canon-ignore guard, the append-only guard and all three formatters are silently inert. `int hooks` reports the state and names the fix; **`int hooks --install` is the only thing that writes.**
-
-   **NOTHING TRIGGERS THIS AUTOMATICALLY AND NOTHING CAN.** Git runs nothing on clone, deliberately -- a clone-time hook would be remote code execution -- and a hook cannot report that hooks are off, because it would not run either. **This step is a habit, and today proved three times over that habits decay invisibly** (the guard roster, `prepush`, `check format`). What limits the damage is that CI catches the CONSEQUENCE even when nothing catches the CAUSE: unwired hooks mean unformatted code, and `cargo fmt --check` runs on every push.
-
-1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, and chains `/in-whiteboard pickup` (the board exists: `hv`, `cc`, `dc`, `ic`, `vc`). Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
-2. **Read this file + `intent/wip.md` + `intent/restart.md`.**
-
-## END OF DAY 2026-08-21 -- ALL FOUR NODES FOLDED, HOLDING FOR A BOUNCE
-
-**Folded and paused, claims intact, tree clean:** cc `855a5e4e`, dc `084a683b`, ic `34530c41`, vc this commit. Globalfold is vc's; no peer touched a project-wide file, driven rather than assumed.
-
-**THE ~13:30Z BOUNCE DID NOT TAKE, AND THAT IS MEASURED RATHER THAN INFERRED.** All four sessions fired `SessionStart:resume`, kept this morning's conversation, and **no board's `session_id` changed after its ~09:29Z pickup** -- driven from `git log -p` over each board. Each id changed exactly ONCE today, at that pickup, and not since.
-
-**VERIFICATION FOR THE NEXT BOUNCE IS ONE FIELD: a genuinely fresh session's `$CLAUDE_CODE_SESSION_ID` DIFFERS from the one recorded on its board.** **THAT IS HALF A TEST AND THE HALF THAT FAILS IS THE ONE YOU WILL READ (vc + ic, both measured across their own compacts 2026-08-21): `/compact` DOES NOT ROTATE THE ID.** So **CHANGED proves a fresh session** -- sound, a compact cannot manufacture it -- while **UNCHANGED means resumed OR compacted**, two causes with opposite remedies and one reading. **hv triggers compacts deliberately and every node here has now done at least one**, so the ambiguous branch is the common case rather than the exotic one. **A discriminator that fails only in the direction you expected to read is worse than one that fails both ways, because nobody re-checks the reading they expected.** Ask the node, or read its hook mode; the id alone cannot separate them. **DO NOT use `ListAgents`' `started` column -- it is SOCKET age, not SESSION age.** A topology change re-registers every peer, so everyone looks freshly started to everyone else; **all four nodes read it, all four reported "three of four bounced, but not me", and all four were wrong.** Each could observe the discriminating field only about ITSELF, so agreement between four nodes was worth nothing. **Consensus is not corroboration when every node used the same broken instrument.**
-
-**NODES CANNOT SELF-COMPACT.** `/compact` is hv-triggered. A fold instruction reaches "folded to files" and stops there. Before a bounce the compact is redundant -- the bounce discards what a compact would summarise.
-
-**OPEN FOR hv, AND IT IS A PROTOCOL GAP RATHER THAN A SLIP: MONIKERS ARE ESTATE-SCOPED AND NOTHING MARKS THEM.** `ic`, `cc` and `vc` exist in Intent, Lamplight AND Laksa simultaneously. `/in-whiteboard` says _"the 2-letter moniker is the directory name, the routing key, and the handle"_ and defines the roster per-project -- correct inside an estate, and **silent about crossing one.** Cross-estate relay is live, not hypothetical: hv pastes transcripts between estates and vc messages `lamplight-vc` directly. **It fired today: vc read `lamplight-ic`'s `$path`-clobber incident out of a pasted transcript and instructed `intent-ic` to fold it as its own.** `intent-ic` refused, verified its own PATH, and kept the mechanism while declining the ownership. **Had it complied, an incident ic never had would be permanent in ic's record, and the next ic reads a board as lived experience with no way to tell.** That is the `intentdb` class arriving INSIDE A FOLD -- the worst site, because **a fold is where an unchallenged claim becomes permanent.** Contained at one (checked both directions: whether it landed on cc's or dc's boards, AND whether it was ever sent). **Write the qualifier every time a moniker crosses an estate: `lamplight-ic`, never `ic`.**
-
-**ic's RULE, THE GENERAL CASE:** _a fold instruction is not a trusted source about your own history; a peer telling you what only you could know is telling you what THEY know._
-
-## THE v2/v3 SPLIT -- 2026-08-21. READ THIS BEFORE THE STATE BELOW; IT CHANGES WHERE YOU ARE STANDING
-
-**THIS CHECKOUT IS v3 ONLY NOW. The v2 CLI the fleet runs lives in a SEPARATE checkout and is no longer served from here.**
-
-- **`~/Devel/prj/Intentv2`**, branch `v2-maintenance`, cut at `fb45e9ea` -- **main HEAD, NOT the `v2.19.0` tag.** Every other Intent project on this machine now runs that.
-- **~~All THREE bindings moved~~ THERE ARE FOUR AND THE FOURTH IS ON NO LIST ANYWHERE (dc, 2026-08-21, driven): `~/bin/intent` at PATH 19, a SECOND symlink to the same target, made in the same minute. Deleting `~/.local/bin/intent` as "the" binding hands resolution to it, and it still answers v2.** The three that were known, and the symlink was the weakest of them: `INTENT_HOME=/Users/matts/Devel/prj/Intentv2`, `~/.local/bin/intent -> Intentv2/bin/intent`, and `$INTENT_HOME/bin` on PATH. **`bin/intent:26` is `if [ -z "$INTENT_HOME" ]`, so the exported var BEATS symlink resolution** -- repointing the symlink alone would have returned 0 and moved nothing.
-- **The branch point was main and not the tag on purpose.** The old symlink resolved into the working tree, so the fleet had NEVER run `v2.19.0`. Branching at the tag would have rolled **2027 commits** back across every project on this machine -- `intent_critic -94`, `intent_acceptance -144` -- **while presenting as a symlink move.** A released tag is evidence about a release, never about a deployment.
-
-**WHAT IT UNLOCKS, AND IT IS THE POINT: `bin/` IS NO LONGER LOAD-BEARING FOR ANYONE ELSE.** "DO NOT PUT v3 ON PATH" existed because ONE checkout served the fleet and the rewrite at once. **That constraint is gone.** Pruning v2 shell here breaks nobody. Whether v3 goes on PATH is now hv's call on its merits rather than a hazard to fifteen other projects. **~~`intent` on PATH is v2.19.0 and answers for the FLEET -- to drive v3, use the explicit path.~~ HALF STILL TRUE, 2026-08-22: `intent` IS still v2 and still answers for the fleet -- and v3 is now on PATH as `intent3`, a wrapper in this repo's own `bin/` (dc, ST0058/U1). The explicit path is no longer the only route and is no longer the recommended one.**
-
-**~~WHAT IT COSTS -- LIVE, UNSOLVED~~ CLOSED BY dc AND VERIFIED IN THE GATE'S OWN OUTPUT, 2026-08-22: every commit now prints `intent gate: guards read from THIS repository (/Users/matts/Devel/prj/Intent/lib/templates/hooks), not from INTENT_HOME`.** The account below is the HISTORY of the defect, not its present state -- and it is left standing because the SIBLING is still open (see the local cutover section). This repo's commit guards USED TO resolve out of the FROZEN v2 checkout: `.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`. **All five guard files are identical today; drift starts the moment anyone improves a guard here**, and that is the frozen-roster failure already on this estate's record. **hv declined both cheap answers**: direnv covers an interactive prompt and not automation, because git hooks do not reliably inherit it; and refreshing the frozen copy by hand is an advisory, and an advisory that requires remembering is not a control.
-
-**STEP 0 NOW APPLIES TO TWO CHECKOUTS.** `Intentv2` was a fresh clone, inherited no `core.hooksPath`, and has been wired. Clone either again and `int hooks` is the first thing you run.
-
-**THE WORD `intentdb` IS RETIRED AND NAMES NO COMPONENT** (hv, 2026-08-21). The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The architecture, inviolable and unchanged for the whole rewrite** -- `intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns `intent/.cache/intent.db`. `intentd` is not the SSOT and no read requires it. Diagram: `intent/st/ST0056/design.md:12-17`.
-
-**AND THE GATE'S SCOPE: 66 of 67 (was 62 when this line was written) is ST0057's CLOSURE gate -- all ST0057 live rows plus all ST0056 WP-03 rows. IT IS NOT THE 3.0.0 RELEASE GATE.** The release is ST0056 WP-12, whose dependency line reads _"All prior WPs"_, and **ST0056 stands at 61/132 with SEVEN WPs Not Started** (08 intentd XL, 09 MCP, 12 cutover, 13 search XL, 14 coordination, 15 skills, 16 contract drift). Read as release progress, 66/67 says 99% where ST0056 is at 46%.
-
-## THE LOCAL CUTOVER -- v3 IS USABLE ACROSS THE ESTATE NOW (ST0058, 2026-08-22)
-
-**hv's AIM, VERBATIM: _"Not necessarily releasable to the public, but useable by me across the wider estate here locally."_ That is a DIFFERENT BAR from the 3.0.0 release gate and it is met.** ST0056 WP-12 is the public release -- tag, brew, shell pruned -- and its dependency line reads _"All prior WPs"_ with seven Not Started. **Full detail, 685 lines with every measurement attributed: `intent/st/ST0058/design.md`.**
-
-### What you type
+**hv's aim, verbatim: _"Not necessarily releasable to the public, but useable by me across the wider estate here locally."_ A DIFFERENT BAR from the 3.0.0 release gate, and it is met.** Full detail: `intent/st/ST0058/design.md`.
 
     int local build                     # coherent binary pair, VERIFIED -- never bare `cargo build --release`
-    int local status                    # which `intent` wins on PATH, before changing anything (read-only)
+    int local status                    # which `intent` wins on PATH, read-only
     cd <project> && intent3 upgrade     # the switch: explicit, per project, one at a time
     git checkout . && git clean -fd && rm -rf intent/.cache      # the way back
 
 **THE ONE PRECONDITION IS THE WHOLE RISK: THE WAY BACK IS `git`, SO A PROJECT WITH UNCOMMITTED WORK HAS NO WAY BACK.** Commit or stash first.
 
-**`intent3` IS A WRAPPER IN THIS REPO'S `bin/` AND MUST `exec`, NEVER BE COPIED** (dc, `99168a8f`). A bare copy has no `lib/templates/` marker above it, so `install::home()` fails, every hook refuses at **exit 1**, and **Claude Code blocks on 2 and NOT on 1 -- so the strict `/in-session` prompt gate would silently stop enforcing in every project at once.** ic found it; it was closed before packaging rather than after.
+**`intent3` IS A WRAPPER AND MUST `exec`, NEVER BE COPIED.** A bare copy has no `lib/templates/` marker above it, so `install::home()` fails, every hook refuses at **exit 1**, and **Claude Code blocks on 2 and NOT on 1** -- the strict `/in-session` gate would silently stop enforcing in every project at once.
 
-**`cargo build --release` DOES NOT RELIABLY PRODUCE A COHERENT PAIR and that is deliberate** -- `build-support/source_commit.rs` omits `rerun-if-changed` on purpose, because emitting any would REPLACE cargo's default of re-running on package change and make the embed stale on CODE changes, silently, in the worse direction. **Nobody "fixes" it. `int local build` forces both crates and verifies the set.**
+**`cargo build --release` DOES NOT RELIABLY PRODUCE A COHERENT PAIR, DELIBERATELY.** `build-support/source_commit.rs` omits `rerun-if-changed` on purpose, because emitting any would REPLACE cargo's default of re-running on package change and make the embed stale on CODE changes, silently, in the worse direction. **Nobody "fixes" it. `int local build` forces both crates and verifies the set.**
 
-### The migration floor -- 11 of 16 projects cannot convert directly
+**THE MIGRATION FLOOR IS EXACTLY 2.19.0 AND 11 OF 16 PROJECTS ARE BELOW IT**, so they need a v2 `intent upgrade` first. **The canary order INVERTS from the obvious one: everything small and dormant is below the floor, so the first switchable projects are the LARGE ACTIVE ones.** Baize first, then Conflab, then Lamplight; Laksa only after its dirty paths are committed. **`Intentv2` MUST NEVER BE MIGRATED** -- it carries a config so every census finds it and it looks like the ideal canary, and it is the v2 CLI fifteen projects RUN. **A census that finds projects by config presence cannot tell a consumer from the tool.**
 
-**THE FLOOR IS EXACTLY 2.19.0**, driven on copies of real projects: Anvil 2.13.0 and Riffle 2.18.0 both REFUSED, Baize 2.19.0 migrated. v3 refuses below it cleanly and names the remedy. **The two-step is VERIFIED rather than asserted: v2 `intent upgrade` reaches the floor in ONE hop, then `intent3 upgrade` migrates** (Riffle 5 threads/34 files, Anvil 6 threads/21 files, all statuses and dates intact).
+## Live and unfixed -- read before driving this repo
 
-    AT THE FLOOR (5)      Baize | Conflab | Lamplight | Laksa | Intentv2
-    BELOW IT (11)         Cdsync Devbin Riffle Utilz 2.18.0 | Courses 2.14.0
-                          Anvil MicroGPTEx Molt Prolix 2.13.0 | Molt-flynn Molt-matts 2.11.5
+- **`intent edit` AND `intent st edit` WRITE ON THEIR rc=1 REFUSAL PATH.** They mutate the store and append to **TRACKED** `intent/.intentfiles`, putting a realisation-policy diff into your next commit that you never made. **THE PRECONDITION IS THE FINDING: unrealised CLEAN, realised-without-manifest CLEAN, manifest-present WRITES** -- two nodes independently swept the two conditions that hide it and both published clean. **A VERB IS NOT READ-ONLY; IT IS READ-ONLY IN A CONDITION.** Affected population is exactly one project and **it is this one**.
+- **EVERY ROUTE TO `claude skills sync` SOURCES SKILLS FROM THE FROZEN Intentv2 CHECKOUT** -- including running the dispatcher in THIS tree, because the exported `INTENT_HOME` beats self-resolution. **NOT YET ARMED** (0 skill commits since the split, 0 files differing) **and the first skill edit reverts silently while the sync reports success.** Route B works today (`env -u INTENT_HOME <this repo>/bin/intent claude skills sync`) and **is an advisory with an expiry** -- it runs the v2 shell dispatcher that WP-12 prunes.
+- **U3 IS A CONTRACT GAP, NARROWER THAN IT LOOKS.** Five verbs are mandated in canon and unimplemented in v3 -- `claude skills`, `lang`, `plugin`, `ext`, `version` -- **all dispositioned `keep`, so all are UNBUILT rather than retired.** `treeindex` is the only RETIREMENT and the canon still mandates it in 3 files. **DO NOT EDIT THE CANON: every one of those verbs WORKS in v2, so the mandates are correct for 16 of 17 projects. The canon is not defective, it is not VERSION-AWARE.**
+- **`intent/.backup/db/` IS EMPTY**, so there is no pre-incident snapshot of the store. `intent#0072`.
 
-**THE CANARY ORDER INVERTS FROM THE OBVIOUS ONE.** Everything small and dormant is BELOW the floor, so the first switchable projects are the LARGE ACTIVE ones. **Baize first** -- smallest that can migrate directly, clean, exercises the session-hook path, no live session. Then Conflab, then Lamplight. **Laksa only after its dirty paths are committed.**
+## Measuring anything here
 
-**`Intentv2` MUST NEVER BE MIGRATED.** It carries `intent/.config/config.json`, so **every census finds it and it looks like the ideal canary -- 3 threads, clean, at the floor.** It is the v2 CLI fifteen projects RUN. A census that finds projects by config presence cannot tell a consumer from the tool.
+**`int suite` RUNS THE SUITE IN `prepush`'s SINGLE-WRITER CLONE AND IS ATTRIBUTABLE BY CONSTRUCTION.** It prints `DESCRIBES=<sha>` and cannot be perturbed by a node editing the tree mid-run. It measures HEAD, not the working tree.
 
-### Why it is safe to try -- driven in BOTH directions
+**WHILE ANYTHING IS UNCOMMITTED, NO SUITE FIGURE CAN NAME A REVISION BY CONSTRUCTION** -- the clone cannot contain what HEAD does not. **Commit first, then measure.**
 
-**v3 refuses any project whose `config.json` does not declare a v3 version**, on read verbs and write verbs alike, rc=1, nothing written. Driven across every version string in the estate plus 2.9.0, 1.0.0 and absent -- **with `3.0.0-dev` as the POSITIVE CONTROL at rc=0 creating a store, without which eight refusals prove nothing.** Zero-thread projects refuse; v3 canon under a v2 declaration refuses.
-
-**And the mirror: v2 INSIDE a v3 project permits READS and refuses WRITES**, naming both versions. So `intent` staying on PATH in a switched project is safe. **`intent claude skills sync` must be run with v2 and that is CORRECT** -- skills live in `~/.claude/`, not project state, so the project-version gate never consults it.
-
-**The session machinery survives the switch:** `claude hook session-context` and `require-in-session` both rc=0 under BOTH binaries, tree unchanged. **6 of 17 projects fire those on every session** -- Baize, Conflab, Intent, Intentv2, Laksa, Lamplight.
-
-### LIVE AND UNFIXED -- read before driving this repo
-
-- **`intent edit` AND `intent st edit` WRITE ON THEIR rc=1 REFUSAL PATH.** `st edit` is declared `read_or_mutate: read` and its help promises a path print. They mutate the store and append to **TRACKED** `intent/.intentfiles`, putting a realisation-policy diff into your next commit that you never made. **THE PRECONDITION IS THE FINDING: unrealised CLEAN, realised-without-manifest CLEAN, manifest-present WRITES** -- and two nodes independently swept the two conditions that hide it and both published clean. **A VERB IS NOT READ-ONLY; IT IS READ-ONLY IN A CONDITION.** Affected population is exactly one project **and it is this one** (4 STEELTHREAD rows). A migrated project never acquires a manifest through ordinary use. cc's build, not a cover.
-- **EVERY ROUTE TO `claude skills sync` SOURCES SKILLS FROM THE FROZEN Intentv2 CHECKOUT** -- including running the dispatcher that lives in THIS tree, because the exported `INTENT_HOME` beats self-resolution at `bin/intent:26`. Three hops: `INTENT_HOME` picks the dispatcher, the dispatcher's location fixes `INTENT_ROOT`, `INTENT_ROOT` fixes `SKILLS_SOURCE_DIR`. **NOT YET ARMED -- 0 skill commits since the split, 0 files differing -- and the first skill edit reverts silently while the sync reports success.** Route B works today (`env -u INTENT_HOME /Users/matts/Devel/prj/Intent/bin/intent claude skills sync`) and **is an advisory with an expiry: it runs the v2 shell dispatcher that WP-12 prunes.** The real fix is v3 implementing `claude skills sync`.
-- **U3 IS A CONTRACT GAP AND IT IS NARROWER THAN IT LOOKS.** Five verbs are mandated in canon and unimplemented in v3 -- `claude skills`, `lang`, `plugin`, `ext`, `version` -- **all dispositioned `keep`, so all are UNBUILT rather than retired**, from `surface/dispatch-table.json`'s own `disposition` field. **`treeindex` is the only RETIREMENT of ours and the canon still mandates it in 3 files.** **DO NOT EDIT THE CANON: every one of those verbs WORKS in v2, so the mandates are correct for 16 of 17 projects. The canon is not defective, it is not VERSION-AWARE.** The treeindex edit belongs at the cutover, when it becomes false everywhere.
-
-### Measuring anything here
-
-**`int suite` RUNS THE SUITE IN `prepush`'s SINGLE-WRITER CLONE AND IS ATTRIBUTABLE BY CONSTRUCTION** (dc, `5173a220`). It prints `DESCRIBES=<sha>` and cannot be perturbed by any node editing the tree mid-run -- **demonstrated by accident: dc edited `cmd/suite` INSIDE its own run window and the figure was unaffected.** It measures HEAD, not the working tree, and without `--with-build` it does not cover `tests/conformance/run_v2_suite.bash`; the output says so every run.
-
-**WHILE ANYTHING IS UNCOMMITTED, NO SUITE FIGURE CAN NAME A REVISION BY CONSTRUCTION** -- the clone cannot contain what HEAD does not. matts' own harness printed `THIS VERDICT DESCRIBES NO COMMIT` over uncommitted vc paths on 2026-08-22. **Commit first, then measure.**
-
-## State (as at `69a5db5e`, 2026-08-20)
-
-**THE GATE IS 66 OF 67, AND IT TAKES THREE VERB CALLS.** `intent ac status ST0057` (50/51) **plus `intent ac status ST0056/03` (16/16)** -- the scope is all of ST0057's live rows plus all of ST0056 WP-03's -- and `intent ac gate ST0057` names the outstanding ids. **`ac status ST0056` answers 61/132 and is NOT this number's denominator.** The `ST0056/03` call is a WP-scoped STID; the verb accepts it and no instruction here ever said so. **Three figures have been wrong now, and the third was wrong because this line said do not hand-tally while naming calls that could not reach the figure** -- so obeying it meant copying the banner. **Run all three.**
-
-**ST0056** (v3.0.0 rewrite) -- 133 criteria / 137 tests, **61 of 132 satisfied**, 1 withdrawn. **The SQLite db is the DURABLE SSOT; nothing on disk is truth.** **There is no `intentdb` -- that word was a TYPO that propagated corpus-wide, and it names no component.** The crates are `intent-cli`, `intentd` and `intentsvcs`; **`intentd` is a CLIENT of the db exactly as the CLI is, and exists only for wider features beyond single-project operations. It is not the SSOT and no read requires it** (hv, 2026-08-21). D01 was REVERSED by hv 2026-08-15; **do not reason from it.**
-
-**ST0057** (disk as a sparse projection) -- 53 criteria / 53 tests, **50 of 51 satisfied**, 2 withdrawn. **Sparseness applies to VIEWS; canon is NEVER sparse.** WPs 02/03/04/06/07/09/10 Done; 01, 05 and 08 are WIP.
-
-**THE ONE OUTSTANDING, AS AT `50417c83` 2026-08-24: ST0057 AC-08.5.** cc's three (ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14) and ic's AC-07.7 are all satisfied; **dc held none of the gate and still holds none.** **Every row id here is thread-qualified deliberately** -- a bare `AC-03.6` resolves in ST0056 to a GREEN row about FTS prose bodies, so it reads as DONE to anyone who looks it up in the wrong thread, and that hazard survives the row closing in both threads.
-
-**Three layers, and confusing them is the recurring error:** canon (`intent/.canon/st/<ID>.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, the durable SSOT) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
-
-**`.intentfiles` is DURABLE STATE.** Many writers, no recomputation -- `st new` adds an id, `st done` removes it, a human may edit it, **nothing derives it from status**. **ABSENT IS NOT EMPTY**: a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
-
-**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057). **localfold = your own board; globalfold = project-wide docs, and it is vc's.**
-
-## Next
-
-**REWRITTEN 2026-08-24. The three rows this list gave cc, and ic's AT-07.7, are DONE -- do not start them.**
-
-1. **cc** -- **ST0057 AC-08.5's remaining arms**, the last row in the gate. Build against burning cases 1, 3 and 4 (thread-field setter, attachment-narrow canon setter, AC/AT creation at the CLI) **after** re-driving them; the pin as it stands measures one entity through one door and the row will not green on it. Then ST0056 AC-10.4 over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
-2. **ic** -- covers AC-08.5 per hv's deliberate builder/verifier split; ic does not build what ic verifies. `st hydrate`'s render arm; the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
-3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt. The marker's per-crate staleness is **not** closed: both binaries agree today only because `1940fa93` touched both packages, and `INTENT_SOURCE_COMMIT` comes from each crate's own `build.rs`.
-4. **vc** -- AC-08.5 stewardship: re-drive the three surviving burning cases before anyone builds against them. Then `ratified_in_check.sh`, named after a field that no longer exists; `--force` for `claude skills` (ruled, queued); the four sweep issues 0065-0068.
-5. **hv's standing question:** 250 files under `intent/` are not in the store at all.
-6. **hv's open question, on hv's own board and constraining hv's own hands:** may a catch-all commit sweep a live five-node checkout? `6c603b21 "Pre-release"` swept four nodes' in-flight work. **`--only` bounds the COMMIT and not the GATE, because the guards read the INDEX.**
-
-## Carried from the previous fold -- NOT RE-VERIFIED at `69a5db5e`
-
-**These were live on 2026-08-19 and this fold did not re-measure them.** Marked rather than dropped, and marked rather than asserted: **a rewrite that silently drops an item is indistinguishable from one that resolved it**, which is the class this estate spent 2026-08-20 documenting. Re-measure before acting; do not treat presence here as evidence either way.
-
-- **cc** -- wiring `intent doctor`'s view-skew detection into the gate. **The detection exists; only the wiring is missing.** This is NOT ST0057's AC-03.6, which is about a commit containing canon that names bytes absent from that commit -- and note that ST0056 ALSO has an AC-03.6, green, about FTS prose bodies.
-- **ic** -- `st hydrate`'s render arm; the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
-- **dc** -- the hosting sweep: 16 of 32 families dispatch, `intent claude` implements 1 of 8, against 230 call sites in this repo's own machinery.
-- **Resolved since, verified here:** dc's AC-06.3 and AC-06.4 are both **green** (ST0057/WP-06 closed). vc's ST0057/WP-09 is **Done**.
+**RUN THE BATS SUITE THROUGH `tests/run_tests.sh`, NEVER `bats` DIRECTLY.** The runner exports `INTENT_FIXTURE_VERSION` from `VERSION`; a direct invocation builds a **v3** fixture against the **v2** binary and every test dies on the version guard -- 302 failures once, 300 of them that one refusal and none of them real. **`tests/lib/test_helper.bash:93` still defaults fixtures to `3.0.0`**, so a direct single-file run hits it; dc's one-line convergent fix is written and held on hv.
 
 ## Traps that cost real time
 
-- **THE GATE, AND ANY N-OF-M, IS COMPUTED BY A VERB. `intent ac status`.** Hand-tallying it produced two wrong numbers in two days, and the second was wrong because its halves used different definitions of "live".
-- **NO INSTRUMENT HERE CATCHES AN EXPIRED CITATION -- ONLY A BUILDER TRYING TO SATISFY THE ROW DOES.** `at lint` exempts `to-write` from L2/L3, **correctly**, so a citation cannot be validated until it is used. **The cheap split: does the cited file carry the row's own literal id?** 2 hits means ready to green; **0 hits means the citation is wrong.**
-- **A DOCUMENT CAN GO STALE AGAINST ITSELF, AND DOING THE SOURCING CORRECTLY IS WHAT DELIVERS THE WRONG ANSWER.** `at lint` checks rows against files; `doctor` checks views against canon; **a design document's clauses are checked by a reader noticing.**
+- **THE GATE, AND ANY N-OF-M, IS COMPUTED BY A VERB.** Hand-tallying produced three wrong numbers in three days. **A number with more than one home drifts in every home and nothing compares them** -- Highlander applies to a figure in prose exactly as it applies to code.
+- **THE POPULATION IS THE CLAIM.** A fix, a figure, a roster and a revert list each name a SET, and the set is the part nobody checks. **A fix that reached one site of three, a three-file incident list that was one, a roster that outlived its instrument, a precision figure over a corpus that could not exhibit the failure.** One grep for the discriminator settles it, **and the discriminator is rarely the obvious token.** **It reaches RULES too: a remedy asserting completeness is a population claim about the failure modes it covers, and a remedy that names a failure mode without covering it is a population claim of ZERO dressed as a finding.**
+- **A ZERO FROM YOUR OWN INSTRUMENT IS A CLAIM ABOUT THE INSTRUMENT.** Three failure sites, and knowing which you are in is the diagnosis: **it cannot reach the subject** (wrong flag, wrong path, an upstream that CONTAINS what consumers only reference); **it matches real strings that are not the thing** (branch order; ANSI escapes between `Running` and a path; a `"text"` key that `criteria` and `attachments` SHARE, separable only by PATH); **or its input is not what you think** (`gh run view --log` on an in-flight run returns one line saying the log is not ready). **Ask it to find something you KNOW is there before believing it when it finds nothing.**
+- **A TRUE MEASUREMENT OF A DIFFERENT PROPERTY, OFFERED AS PROOF, IS THE HARDEST TO SEE -- the evidence being real is what makes it persuasive.** Correctness and currency are independent and only one is ever checked. **A precondition that holds today is not a property.** A branch point is a fact about history and never an answer about now. **And it is most dangerous wearing rigour: in a clean security sweep, or in the act of correcting a peer's arithmetic** -- the slots we have agreed not to re-examine are exactly where a wrong answer survives.
+- **SILENCE AND SUCCESS ARE IDENTICAL UNLESS SOMETHING DISTINGUISHES THEM.** A path-filtered workflow that never sampled the change; an escalation written to an inbox with no named reader; **a guard printing `All tests passed!` while skipping every test** -- the last is an ACTIVE false positive rather than a merely absent signal. **Count the runs, not the colour.**
+- **A CI RUN'S SUBJECT IS THE PUSH, NEVER YOUR COMMIT.** In a five-node checkout the push carries whatever peers landed since your last one, and the head sha names the PUSHER. Twice on 2026-08-24 this produced a wrong attribution, once nearly blaming a peer's fix for a failure it had nothing to do with. **Read `git log <lastpush>..HEAD` before attributing a run to anybody.**
+- **NO INSTRUMENT HERE CATCHES AN EXPIRED CITATION -- only a builder trying to satisfy the row does.** `at lint` exempts `to-write` from L2/L3, correctly. **The cheap split: does the cited file carry the row's own literal id?** 0 hits means the citation is wrong; **1 hit is neither answer and usually means a shared header.**
 - **A CHANGE THAT WOULD CONVENIENTLY GREEN YOUR OWN WORK IS THE ONE TO STOP AND ROUTE.** The tell, not the virtue.
-- **THE REVISION IS PART OF THE FINDING.** Name revision, clock and dirty count on every measurement. **A suite started at T over a tree edited at T+n describes no revision.**
-- **A TRUE MEASUREMENT OF A DIFFERENT PROPERTY, OFFERED AS PROOF.** The evidence being real and driven is exactly what makes it persuasive. **A background waiter's exit code is its own, never the watched process's verdict.**
-- **`cargo test | tail -N` THEN COUNTING IN THE TAIL** reports the tail as the total -- 7 targets of 140. **And `$?` after a pipe is the LAST stage's rc, never cargo's.** Redirect to a file; read the rc directly.
-- **ZERO FAILURES ACROSS A WORKSPACE DOES NOT PROVE A BINARY RAN.** Confirm each subject appears in the `Running` list before moving a row.
-- **ISOLATE THE TARGET DIR, KEEP IT INSIDE THE CHECKOUT, AND USE AN ABSOLUTE PATH.** `install::home()` walks `current_exe()` ancestors for a marker, so an out-of-repo binary returns NotFound. A relative path under a drifted cwd built **1.2G** where gitignore hid it.
-- **THE SHELL cwd PERSISTS BETWEEN CALLS**, and `&&` on a probe makes a failed probe indistinguishable from a clean estate.
-- **`sync --to-store` IS DISK-AUTHORITATIVE FOR ATTACHMENTS** -- a canon-only edit to a realised attachment is discarded in silence at rc=0. Edit the FILE first. **For a typed field canon wins.**
-- **`at lint` and the read verbs read the STORE, not canon.** Edit canon, `--to-store`, THEN lint. **Check the sync's rc, not its tail.**
-- **`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag.** Use `st list --status all` -- **but `intent issues list` uses `--kind all`, NOT `--status`, and the two verbs MIS-TEACH EACH OTHER.** `all` is legal in both vocabularies and each refuses the other's flag BY NAME rather than by concept, so the refusal never points at the sibling. **This very sentence taught a node the wrong flag one verb over** (2026-08-24): `issues list --status all` exits 1 with EMPTY STDOUT, which read as a true zero and nearly turned a successful store restore into a reported failure.
-- **Never `$?` after a pipe. `grep` is ugrep here and BSD grep in a `#!/bin/bash` script -- `-E` throughout. `grep -c` exits 1 on zero. The Bash tool's shell is zsh.** `cargo test` stops at the first failing target -- **`--no-fail-fast`, always.**
-- **Read the clock, then PASTE -- never read, then type.**
+- **THE REVISION IS PART OF THE FINDING.** Name revision, clock and dirty count on every measurement. **ZERO FAILURES ACROSS A WORKSPACE DOES NOT PROVE A BINARY RAN** -- confirm each subject appears in the `Running` list.
+- **THE SHARED OBJECTS ARE THE INDEX, CANON, AND THE GUARD SCRIPTS THEMSELVES.** `git commit --only <paths>` bounds what is COMMITTED and bounds NOTHING about the GATE, **and it cannot reach an untracked file at all** -- so the honest rule is an ORDERING: stage the narrowest pathspec and commit in the same breath, never leaving the index dirty across a pause. **Staging a guard's own body is a PROJECT-WIDE ACT and nothing about `git add` says so.**
+- **`sync --to-store` IS DISK-AUTHORITATIVE FOR ATTACHMENTS** -- a canon-only edit to a realised attachment is discarded in silence at rc=0. **For a typed field CANON wins.** The read verbs and `at lint` read the STORE: edit canon, `--to-store`, THEN lint, and **check the sync's rc, not its tail.** **v3 `issues` has NO body setter** (`list/add/show/close/open`) -- canon plus a sync is the only route, verified by fingerprint.
+- **`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag** -- use `st list --status all`. **But `intent issues list` uses `--kind all`, and the two verbs MIS-TEACH EACH OTHER**: `all` is legal in both vocabularies and each refuses the other's flag BY NAME rather than by concept, so the refusal never points at the sibling. **This very sentence taught a node the wrong flag one verb over** -- `issues list --status all` exits 1 with EMPTY STDOUT, which reads as a true zero.
+- **A ` M` IN `git status` IS A CLAIM ABOUT THE INDEX, NOT ABOUT CONTENT** (dc). A file can present as modified for a day through a stale stat entry with **zero changed bytes**, and an incident list assembled from `git status` inherits that silently. **mtime does not rescue it -- that is a different true property of the same unchecked set.** `git diff --stat` separates them.
+- **MECHANICAL.** `--no-fail-fast` always. **Never `$?` after a pipe** -- `||` binds to the last stage, so a confirmation arm can be dead code. **`grep` is ugrep here** (`-E` throughout; `grep -c` exits 1 on zero). **zsh does NOT word-split unquoted `$var`** -- a path list in a variable reaches `git commit` as ONE argument. **`bash -n` cannot parse a `.bats` file.** **Isolate the target dir, keep it inside the checkout, use an absolute path** -- `install::home()` walks `current_exe()` ancestors for a marker. **The shell cwd persists between calls.**
+- **FOUR SHELL CRITIC FINDINGS ARE DELIBERATELY NOT FIXED AND MUST NOT BE.** `bin/intent_st:1187`/`:1208` (`$LIST_ARGS`) and `bin/intent_treeindex:220` (`$prune_expr`) are **intentional word-splitting**; `bin/intent_st:1353` is a fragment of a multi-line `sed` script the line-based proxy cannot parse. **A sweep driven to zero without reading each site breaks three live paths.**
+
+## The clock, and it has THREE generators with three different remedies
+
+**Every stamp is READ FROM A CLOCK: `date -u +'%Y-%m-%d %H:%MZ'`.** A stamp you did not read is fabricated data, not an approximation. `git log` and `stat` both print LOCAL -- reading one and appending a `Z` produces a stamp wrong by exactly the local offset and looking perfect.
+
+The commit guard's three checks catch a **future** stamp, a **missing `Z`**, and an **inbox going backwards**. They do not close the class, and the three generators are not the same defect:
+
+1. **ARITHMETIC** -- read the clock ONCE, then advance by feel. **Monotonic BY CONSTRUCTION, so it satisfies check C perfectly.** Remedy: **read per stamp, never per session.** A second read does defeat it.
+2. **FABRICATION WITH THE CORRECT VALUE PRESENT** -- typing a plausible number while a correct one sits four lines above. **No read defeats it, because the read already happened.** Remedy: **never type the value -- substitute it from `date -u` into the edit so the hand is out of the path.**
+3. **A STALE REFERENCE, WHICH ONLY EVER ACCUSES THE OTHER PARTY** (ic). Judging a peer's stamp against your own last read makes their correct stamp indistinguishable from a fabricated one. **A stale reference never accuses itself.** Remedy: **judging a stamp IS a stamp-sized act and owes its own read.**
+
+**THE LIVE CHANNEL HAS NO DOOR AT ALL** -- all three checks run at commit. **The hazard is transcription: a peer quoting a live stamp into their board launders it into the committed record, past a guard at the wrong door, wearing their authorship. Attribute a peer's live stamp; never assert it.**
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **~~DO NOT PUT v3 ON PATH~~ -- RETIRED 2026-08-22 (ST0058), and this line asserted it for two more days.** v3 IS on PATH, as `intent3`, a DISTINCT NAME: `intent` still resolves to v2 at `~/.local/bin/intent`, so the fleet's gate is untouched BY CONSTRUCTION rather than by anyone remembering. Verified 2026-08-24: `intent3` -> `Intent/bin/intent3` -> `native/rust/target/release/intent`. **Note which binary that is** -- the release build is older than the debug one and the gate reports it as built from an uncommitted tree, so pin by hash, never by the marker. **`upstream` was frozen and `prepush` now records the freeze LIFTED by hv 2026-08-20 with an empty `FROZEN_REMOTES` -- confirm with hv before any push there.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.
+T-shirt sizing only. **ALWAYS use the intent CLI for ST/WP.** NEVER manually wrap markdown. **NO Claude attribution in commits**; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. **Commit to `main` only when matts asks; always `git commit --only <paths>`.** matts runs the full suite externally and is the acceptance verifier. **NEVER `--no-confirm` on the release.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time -- **and a defect introduced and fixed inside one unreleased cycle gets NO entry, because there is no reader for it.**
 
-## End of day -- 2026-08-20 17:38Z
+**v3 IS on PATH as `intent3`, a DISTINCT NAME**, so `intent` still resolves to v2 and the fleet's gate is untouched BY CONSTRUCTION rather than by anyone remembering. `intent3` -> `bin/intent3` -> `native/rust/target/release/intent`. **Note which binary that is** -- the release build can lag the debug one, and the gate reports it as built from an uncommitted tree, so **pin by hash, never by the marker.** **`upstream`'s push freeze was LIFTED by hv 2026-08-20** with an empty `FROZEN_REMOTES`.
 
-**THE SUITE IS GREEN, DRIVEN ON hv's ONE-OFF AUTHORITY, AND EVERY NUMBER HERE IS FROM A COMPLETED FILE RATHER THAN A RUN IN FLIGHT.**
+## Why this file is short now
 
-```
-rust    fmt 0 | clippy 0 (-D warnings) | test 0    142 targets, 995 passed, 0 failed
-shell   bats rc=0                                  1440 passed, 0 failed  (plan line: 1..1440)
-critic  rust clean over 178 files; shell clean after `3882ffa5`
-credo   N/A -- no mix.exs, no .credo.exs. Verified, not assumed.
-```
+**It was 224 lines, `.claude/restart.md` was 147 and `intent/wip.md` was 133 -- three copies of one narrative, each opening with a banner saying it superseded everything below it.** That banner is the tell: **nobody was deleting, only prepending.** `END OF DAY 2026-08-21`, `End of day 2026-08-20`, the v2/v3 split and one 30-line clock note appeared in **all three, verbatim**.
 
-**RUN THE SUITE THROUGH `tests/run_tests.sh`, NEVER `bats` DIRECTLY.** The runner exports `INTENT_FIXTURE_VERSION` from `VERSION` (`e474b419`, 2026-08-18); a direct `bats` invocation builds a **v3** fixture against the **v2** binary and every test dies on the version guard. **A direct run today produced 302 failures, 300 of them that one refusal, and none of them real.**
-
-**STILL LIVE AND GATED ON hv -- RULED, EVIDENCED, DELIBERATELY UNSTARTED:**
-
-- **`tests/lib/test_helper.bash:93` defaults fixtures to `3.0.0`.** The runner defends itself; the helper does not, so **every direct single-file `bats` run -- the invocation our own guidance prefers -- silently hits the trap.** dc's one-line convergent fix (default from `VERSION`) is written and justified by count: 37 files call `create_test_project`, all v2-driving; the 5 files touching the v3 binary never call it. **The default is wrong in every case where it takes effect.**
-- **dc's two roster admissions**: `canon_commit_check.sh` (ST0057 AC-03.6, drives correctly, in neither roster) and `thread_view_skew_check.sh` (conditional on a staleness guard).
-
-**FOUR SHELL CRITIC FINDINGS ARE DELIBERATELY NOT FIXED AND MUST NOT BE.** `bin/intent_st:1187`/`:1208` (`$LIST_ARGS`) and `bin/intent_treeindex:220` (`$prune_expr`) are **intentional word-splitting**; quoting them sends one argument where several are meant. `bin/intent_st:1353` is a fragment of a multi-line `sed` script the line-based proxy cannot parse. **A sweep driven to zero without reading each site breaks three live paths.**
-
-**THE WHITEBOARD'S LIVE CHANNEL IS UNGUARDED AND THE HAZARD IS TRANSCRIPTION (cc, 2026-08-20 17:38Z).** The clock guard's three checks run at **commit**. A stamp sent over the live channel passes nothing -- vc sent one eight minutes ahead of UTC and nothing objected. **The danger is not the message: it is a peer quoting a live stamp into their board, where it enters the committed record laundered through them, past a guard posted at the wrong door, wearing their authorship.** The rule: **attribute a peer's live stamp, never assert it.** And: file stamps generated by `date -u` were all correct while typed message stamps drifted -- **read the clock, then PASTE.**
-
-### The clock guard's residual risk is its ORDINARY case, not its exotic one (cc, 2026-08-20 17:41Z)
-
-The shipped guard documents that **a stamp carrying a `Z`, landing in the past, and increasing monotonically passes all three checks** -- and files it as a smaller target rather than an empty one. **cc has named the generator that produces exactly that stamp, and it is not memory and not carelessness.**
-
-**It is: read the clock ONCE, then advance by feel.** vc's run today went `17:36Z` (read) then `17:39Z`, `17:44Z`, `17:46Z` (arithmetic), finishing eight minutes ahead of UTC while `date -u`-generated file stamps in the same session were all correct.
-
-**THAT SEQUENCE DOES NOT SLIP PAST CHECK C -- IT SATISFIES IT PERFECTLY.** Check C is the good one: two-sided, needs no clock, resting on the only thing that cannot be wrong -- time does not run backwards. **Increments-by-feel are monotonic BY CONSTRUCTION**, so a drifting run passes check C at every stamp, **more reliably than a careless but correct process would.**
-
-**So the read is PER-STAMP and never per-session, and the reason is the failure mode above.** A second clock read is the only thing that catches it -- **and a second read is exactly what a session economises on once it believes it knows what time it is.** cc's own catch was a collision between two habits, not vigilance: the next read happened to land beside the line just written.
-
-**And the live channel is unguarded entirely** -- all three checks run at COMMIT. **The hazard is transcription:** a peer quoting a live stamp into their board launders it into the committed record, past a guard at the wrong door, wearing their authorship. **Attribute a peer's live stamp; never assert it.**
-
-**A fabricated stamp is never repaired.** You cannot recover a time you never read, and **a repaired stamp is indistinguishable from a read one -- which is the defect itself, applied a second time as a remedy.**
+**It is the gate-figure defect at document scale** -- the same three homes carrying three values, found on 2026-08-24 when the number turned out to be 62 here, 62 there and 65 in the third, one of them disagreeing with itself inside one document. **Each file now has ONE job. If you find yourself writing a supersedes banner, delete what it supersedes instead.**
