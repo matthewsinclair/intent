@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 18:02Z
+heartbeat_at: 2026-08-24 19:46Z
 status: active
-focus: "**FOLDED 2026-08-24 17:56Z AFTER AN AGGRESSIVE DOCUMENT LEAN. Everything committed, refs level, all CI green.** The three project-wide docs went **504 -> 169 lines**: they were THREE COPIES OF ONE NARRATIVE, each opening with a banner claiming it superseded everything below -- **the gate-figure defect at document scale, and the banner was the tell that nobody was deleting, only prepending.** Each now has ONE job. 24 of 24 durable facts verified present, with a control. **This board shrank the same way: anything project-wide now lives in `intent/restart.md` and is NOT repeated here.** Gate 66 of 67, driven -- AC-08.5, cc builds / ic covers, untouched by me."
+focus: "**BOOTSTRAPPED AFTER THE COMPACT AT 2026-08-24 19:46Z; NOTHING IN FLIGHT; HOLDING FOR INSTRUCTIONS.** Tree clean, all four inboxes empty, all three peers folded. **`session_id` is UNCHANGED across the compact and that is the finding, not an oversight: a `/compact` does not rotate it**, so hv's bounce test (_same id means it resumed_) reads a compacted session as a resumed one -- half a test, and the failing half is the one you read. Project-wide narrative, traps, clock and conventions live in `intent/restart.md`, read at pickup and NOT repeated here. Gate 66 of 67; `AC-08.5` is cc's to build and ic's to cover, untouched by me."
 claims: [ST0056, ST0057, ST0058]
 ---
 
