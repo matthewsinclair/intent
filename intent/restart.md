@@ -179,7 +179,7 @@ Measured here 2026-08-24: a board's `session_id`, written before a compact, is b
 - **THE SHELL cwd PERSISTS BETWEEN CALLS**, and `&&` on a probe makes a failed probe indistinguishable from a clean estate.
 - **`sync --to-store` IS DISK-AUTHORITATIVE FOR ATTACHMENTS** -- a canon-only edit to a realised attachment is discarded in silence at rc=0. Edit the FILE first. **For a typed field canon wins.**
 - **`at lint` and the read verbs read the STORE, not canon.** Edit canon, `--to-store`, THEN lint. **Check the sync's rc, not its tail.**
-- **`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag.** Use `st list --status all`.
+- **`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag.** Use `st list --status all` -- **but `intent issues list` uses `--kind all`, NOT `--status`, and the two verbs MIS-TEACH EACH OTHER.** `all` is legal in both vocabularies and each refuses the other's flag BY NAME rather than by concept, so the refusal never points at the sibling. **This very sentence taught a node the wrong flag one verb over** (2026-08-24): `issues list --status all` exits 1 with EMPTY STDOUT, which read as a true zero and nearly turned a successful store restore into a reported failure.
 - **Never `$?` after a pipe. `grep` is ugrep here and BSD grep in a `#!/bin/bash` script -- `-E` throughout. `grep -c` exits 1 on zero. The Bash tool's shell is zsh.** `cargo test` stops at the first failing target -- **`--no-fail-fast`, always.**
 - **Read the clock, then PASTE -- never read, then type.**
 
