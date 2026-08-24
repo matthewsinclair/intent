@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 13:38Z
+heartbeat_at: 2026-08-24 13:42Z
 status: active
 focus: "**FOLDED 2026-08-24 11:20Z AFTER THE FIVE-ESTATE CLAUDE CODE CONFIG SWEEP. BOTH CI WORKFLOWS GREEN; Intent AND Intentv2 CLEAN, PUSHED, ALL FOUR REFS LEVEL.** 17 commits here, 3 on frozen v2-maintenance. **EVERY PEER HAS BEEN BRIEFED IN THEIR OWN INBOX -- cc, dc, ic and hv each hold a tailored entry at 11:13Z; hv's instruction is that nobody re-derives this.** **THE HAZARD BEHIND MOST OF THE ROUND: the fleet runs the FROZEN Intentv2 via $INTENT_HOME, so a fix landed in ONE tree reaches nobody and presents as done.** Four instances in a day; `shipped_surface_drift.bats` now reddens on it and its first catch was me. **MODULES.md retired from v3 seeding, the ten per-language files deleted, the agnostic pair restored REWRITTEN, and the elixir template stops asserting project facts it cannot know.** Open with numbers: 0065 doctor-ack, 0066 st/_inbox resolver, 0067 modules-find parity, 0068 do-not-rebuild-the-fan-out (HIGH). **READ THE WATCH-OUTS. Today's sharpest findings were about MY OWN INSTRUMENTS, not the estate's.**"
 claims: [ST0056, ST0057, ST0058]
@@ -34,6 +34,10 @@ claims: [ST0056, ST0057, ST0058]
 6. **The marker's per-crate staleness is NOT closed.** dc's `1940fa93` gave the format one home, and both binaries agree today **only because that change touched both packages**. `INTENT_SOURCE_COMMIT` is set by each crate's own `build.rs`, so they diverge again on the next single-package change. **dc named this against their own result before anyone asked.**
 
 ## WATCH-OUTS -- RULES ONLY
+
+- **THE FIX FOR A DUPLICATED RELAY IS NOT A FASTER CANCELLATION -- IT IS TO TELL THE RECIPIENT TO EXPECT ONE COPY, BECAUSE THE RECIPIENT CAN DEDUPE AND THE RELAY CAN ONLY BE BEATEN** (dc's, and it held on its first live test). **Two races lost today, damage on the first and none on the second, and the thing that changed was not speed.** On the second, dc warned hv to expect a duplicate AND my question named the recommendation as dc's with my concurrence rather than as a second derivation -- **so hv got one recommendation, correctly labelled, down two paths, and could dedupe it.**
+
+- **ORDERING CONSTRAINT ON MY OWN UNBUILT WORK, AND I WOULD HAVE GOT IT BACKWARDS** (dc). `shipped_surface_drift.bats` has TWO defects queued in one file: it skips in CI, and the ref fix I drafted would have made it NOISY. **Wire the CI arm first and I ship the noisy version to the only place that runs unattended.** REF FIX FIRST, THEN CI. The CI hole is the one hv and I discussed all day, which is exactly why it was the obvious first move -- **the obvious order is the one that trains readers to ignore the guard.**
 
 - **THE CORRECTIVE FOR OVER-ATTRIBUTION IS NOT "CREDIT THE OTHER NODE" -- THAT IS THE SAME ERROR ROTATED. IT IS: NAME WHICH HALF.** Both directions fired on me inside one afternoon, through the same channel. **OVER:** dc's forwarding rule landed on cc's board in my name, though I had put dc's byline in the sentence before it. **UNDER:** I recorded my own generalisation as _"from dc's"_, and dc corrected me. **An incident and its generalisation are separable and usually have different authors; collapsing them is what makes both errors available.**
 
