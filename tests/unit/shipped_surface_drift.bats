@@ -22,6 +22,18 @@
 # costs one `cmp` per file.
 #
 # SCOPE IS THE SHIPPED SURFACE ONLY -- what a consumer project receives.
+#
+# `intent/plugins/agents/` WAS MISSING FROM THIS WALK FOR TWO HOURS AFTER THIS
+# FILE WAS WRITTEN, and the omission is worth recording because it is the same
+# class the fence exists to catch. The surface was enumerated from the paths
+# that had come up in the round -- `lib/templates` and `intent/plugins/claude`
+# -- rather than from what `init` and `lang init` actually read. 20 files that
+# seed every consumer project sat outside the guard. conflab-vc's finding that
+# a false auth prohibition ships from `templates/elixir/RULES.md` is what
+# surfaced the path, not the guard.
+#
+# A ROSTER ASSEMBLED FROM WHAT WAS RECENTLY DISCUSSED IS NOT A ROSTER OF THE
+# SUBJECT.
 # `bin/` is deliberately EXCLUDED: it carries v3-only shims (`intent3`,
 # `intentd3`) and is where the two trees legitimately part.
 
@@ -35,22 +47,44 @@ _v2_root() {
   echo "$v2"
 }
 
-# DECLARED EXCEPTIONS: files allowed to differ, each with its reason.
+# DECLARED EXCEPTIONS, IN TWO KINDS THAT MUST NOT BE CONFLATED.
 #
-# An exception is a BACKPORT QUESTION, not a permanent fork. Both entries here
-# are v3 work by cc that has not been carried back to v2-maintenance, and cc's
-# own comment on the first says the mechanism is correct in BOTH trees -- which
-# argues it belongs in v2 too. Empty this list rather than growing it.
-_is_exception() {
+# PENDING: v3 work not yet carried back. These are BACKPORT QUESTIONS, they
+# should shrink to zero, and a PENDING entry that has converged is stale and
+# must be retired so the guard covers the file again.
+_is_pending_backport() {
   case "$1" in
     # cc 2026-08-21: a self-hosted Intent checkout resolves its guards from
-    # itself rather than from $INTENT_HOME. Not yet in v2-maintenance.
+    # itself rather than from $INTENT_HOME. cc's own comment says the mechanism
+    # is correct in BOTH trees, which argues it belongs in v2.
     lib/templates/hooks/pre-commit.sh) return 0 ;;
     # cc ST0057 AC-01.5: the pre-commit block refuses a gate it cannot run.
-    # Not yet in v2-maintenance.
     intent/plugins/claude/bin/intent_claude_upgrade) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+# V3-ONLY BY RULING: deliberately never carried back. These are NOT backport
+# questions and must not be measured as though convergence were the goal --
+# hv froze Intentv2, so convergence here would be a defect, not progress.
+#
+# THIS CATEGORY EXISTS BECAUSE THE GUARD CAUGHT ITS OWN AUTHOR. Commit
+# 5eb2a857 restored the agnostic RULES/ARCHITECTURE templates to v3 under hv's
+# v3-only ruling, and this test failed on the next run naming both files. That
+# is the guard working: a single-tree landing became visible immediately
+# instead of silently reaching nobody. The fix was to declare the intent, not
+# to widen the walk.
+_is_v3_only_by_ruling() {
+  case "$1" in
+    # hv 2026-08-24: v3 restores the agnostic pair, rewritten. Intentv2 frozen.
+    lib/templates/llm/_RULES.md) return 0 ;;
+    lib/templates/llm/_ARCHITECTURE.md) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+_is_exception() {
+  _is_pending_backport "$1" || _is_v3_only_by_ruling "$1"
 }
 
 @test "transitional: the shipped surface has not diverged between v3 canon and v2-maintenance" {
@@ -67,7 +101,7 @@ _is_exception() {
       drifted="$drifted
   DIFFERS: $f"
     fi
-  done < <(find lib/templates intent/plugins/claude -type f ! -name '.DS_Store' 2>/dev/null | sort)
+  done < <(find lib/templates intent/plugins/claude intent/plugins/agents -type f ! -name '.DS_Store' 2>/dev/null | sort)
 
   [ -z "$drifted$missing" ] || fail "shipped surface has drifted between the two checkouts:$drifted$missing
 
@@ -86,7 +120,7 @@ treat that as a backport question rather than a permanent fork."
   cd "$INTENT_PROJECT_ROOT" || exit 1
 
   local n
-  n="$(find lib/templates intent/plugins/claude -type f ! -name '.DS_Store' 2>/dev/null | wc -l | tr -d '[:space:]')"
+  n="$(find lib/templates intent/plugins/claude intent/plugins/agents -type f ! -name '.DS_Store' 2>/dev/null | wc -l | tr -d '[:space:]')"
   [ "${n:-0}" -gt 100 ] || fail "shipped surface walk found only ${n:-0} files; the comparison above is not covering anything"
 }
 
@@ -96,18 +130,21 @@ treat that as a backport question rather than a permanent fork."
   local v2; v2="$(_v2_root)" || skip "v2-maintenance checkout not present"
   cd "$INTENT_PROJECT_ROOT" || exit 1
 
-  local declared="lib/templates/hooks/pre-commit.sh intent/plugins/claude/bin/intent_claude_upgrade"
+  local pending="lib/templates/hooks/pre-commit.sh intent/plugins/claude/bin/intent_claude_upgrade"
+  local ruled="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md"
   local count=0 f
-  for f in $declared; do
+  for f in $pending $ruled; do
     count=$((count + 1))
-    [ -f "$f" ] || fail "declared exception no longer exists: $f -- remove it from _is_exception"
+    [ -f "$f" ] || fail "declared exception no longer exists: $f -- remove it from its list"
   done
-  [ "$count" -le 4 ] || fail "exception list has grown to $count; the guard is being routed around rather than satisfied"
+  [ "$count" -le 6 ] || fail "exception list has grown to $count; the guard is being routed around rather than satisfied"
 
-  # An exception that has CONVERGED should be retired, not left standing.
-  for f in $declared; do
+  # ONLY THE PENDING LIST IS CHASED FOR CONVERGENCE. A v3-only-by-ruling entry
+  # converging would mean somebody carried it into the frozen tree, which is
+  # the opposite of progress -- so it is not measured here at all.
+  for f in $pending; do
     if [ -e "$v2/$f" ] && cmp -s "$f" "$v2/$f"; then
-      fail "$f no longer differs -- it converged. Remove it from _is_exception so the guard covers it again."
+      fail "$f no longer differs -- it converged. Remove it from _is_pending_backport so the guard covers it again."
     fi
   done
 }
