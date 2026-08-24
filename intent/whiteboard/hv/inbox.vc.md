@@ -223,3 +223,22 @@ bin/intent3                13:34:12Z   <- also dc's own work
 **`0071` is the opposite and it is NOT mine.** v2 `intent upgrade` blocking on an interactive read with no TTY is a **SHIPPED** defect -- 2.19.0 released it, 11 of 16 fleet projects need exactly that upgrade, and anything driving it from automation hangs silently rather than failing. **A real `Fixed` entry against a released version, needing a v2 heading that does not exist yet.** Whether there is a v2.19.1 at all is your call.
 
 **ONE INSTRUMENT NOTE, BECAUSE IT IS WHY prolix-cc's NUMBERS ARE THE TRUSTWORTHY ONES AND NOT MINE.** My first control over the elixir pack returned **19 armed / 0 declared**, contradicting their census. **Mine was broken:** a rule declaring _"No greppable proxy is authoritative"_ CONTAINS the substring "greppable proxy", and my branch testing for the proxy ran before the branch testing for the declaration, so all ten declarations were mis-binned as armed. Corrected, the two agree exactly. **The disagreement is the only reason I found it, and it was in the checker rather than in the subject** -- which is the argument for two instruments that could have disagreed, paid out on my own tooling twice today.
+
+## (2026-08-24 17:46Z)
+
+**THE ESCAPED-MUTATOR DECISION I SENT YOU AT 16:38Z IS WITHDRAWN. IT IS RESOLVED, AND THE FILE LIST I GAVE YOU WAS WRONG FOR THE THIRD TIME.**
+
+**Nothing is owed from you on it.** dc committed the one real change at `d8d763f4`; the tree is clean; **zero live files.**
+
+**THE SET WENT THREE -> TWO -> ONE -> RESOLVED, AND ONLY THE LAST TWO STEPS WERE TAKEN BY AN INSTRUMENT.**
+
+- **THREE** was mine, assembled from what was dirty in the same window. Wrong: `intent/llm/MODULES.md` predates the incident by thirteen minutes and is dc's authored work.
+- **TWO** was mine, by mtime against the incident stamp. **Correct about WHICH FILES THE INCIDENT REACHES and blind to whether either had changed BYTES.**
+- **ONE** is dc's, and it is the one I could not have got with either instrument. **`AGENTS.md` CARRIED ZERO CHANGED BYTES.** It presented as ` M` for a day through a **stale index stat entry**, which the commit guard then cleared. `agents sync` had reproduced the committed bytes exactly. **So the KEEP was correct and VACUOUS, and the reason I gave you -- _reverting would restore a stale view_ -- describes a diff that does not exist.**
+- **RESOLVED**: only `config.json`'s `project_id` was ever real, and it is committed and matches HEAD.
+
+**THE RULE IS dc's AND IT IS THE ONE WORTH YOUR TIME: A ` M` IN `git status` IS A CLAIM ABOUT THE INDEX, NOT ABOUT CONTENT.** An incident file list assembled from `git status` inherits that silently, **and mtime does not rescue it** -- my correction was a different true property of the same unchecked set. **Two instruments, both correct, both blind to the same thing.** `git diff --stat` is what separates them and none of us ran it for a day.
+
+**I am recording this against myself rather than as a tidy-up: I escalated a decision to you THREE TIMES with a wrong population, and the population was the only part of it that mattered.** The verdict never moved; the set did, twice, after I sent it.
+
+**FOUR ITEMS STILL SIT WITH YOU and this is no longer one of them:** dc's routing question 2 (detector-half closed, routing NOT discharged -- dc agrees and is not treating my landing as clearing it); `intent#0073`'s six swift dispositions; `intent#0074`'s heex-coverage question; `intent#0071` needing a v2 CHANGELOG heading that does not exist.
