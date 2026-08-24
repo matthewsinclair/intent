@@ -193,10 +193,46 @@ open_run_log() {
     # The convenience pointers must never sink a run: a failed ln warns, the
     # datestamped pair stays the record. tr keeps this bash-3.2 safe.
     latest="$dir/LATEST_$(printf '%s' "$suffix" | tr '[:lower:]' '[:upper:]')"
-    ln -sfn "$(basename "$log")" "$latest.out" ||
-      warn "could not refresh $latest.out -- the run log is unaffected"
-    ln -sfn "$(basename "$errors")" "$latest.errors" ||
-      warn "could not refresh $latest.errors -- the run log is unaffected"
+
+    # RUNLOG_WITNESS_RUN=1 -- WRITE THE RECORD, DO NOT CLAIM THE POINTER.
+    #
+    # `LATEST_<SUFFIX>` means "the newest DELIBERATE full run of this gate", and
+    # until now nothing enforced the word deliberate. Any invocation re-pointed
+    # it, including one made BY A TEST to prove that a gate can fail.
+    #
+    # THE MEASURED INSTANCE, and it is a standing one rather than a one-off. A
+    # consumer's suite drives its own crate gate twice from inside itself --
+    # once clean, once with the `#[ignore]`d failure witness -- so a GREEN run
+    # of that project seals both an empty RUST verdict and a deliberate red one,
+    # and repoints LATEST_RUST at whichever finished last. The mix suite is
+    # async, so it RACES the real crate run: measured over five consecutive
+    # evening gates, which one won alternated. `LATEST_RUST.errors` was a coin
+    # flip between the real verdict and a red that means "the witness worked".
+    #
+    # The witness is permanent by design -- a transient break on a shared tree
+    # is a misattribution waiting to happen -- so this is not an artefact to
+    # wait out. Every gate run produces one.
+    #
+    # WHAT IS AND IS NOT WITHHELD. The datestamped pair is written exactly as
+    # ever and `print_run_verdict` still names it, so the witness run remains
+    # fully quotable BY NAME -- which is the only way a seal should ever be
+    # quoted. What it does not do is answer the question "what is the state of
+    # this gate now", because it was never a run that asked it.
+    #
+    # A CONSEQUENCE WORTH STATING: an unpointed pair is not in
+    # `latest_pointer_keepset`, so a purge may reclaim it. That is correct.
+    # Retention protects the newest RUNLOG_KEEP_RUNS runs on its own terms; the
+    # pointer is not a retention mechanism and using it as one is what made the
+    # surviving seal definitionally the coin-flip target.
+    if [ "${RUNLOG_WITNESS_RUN:-}" = 1 ]; then
+      printf '%switness run: %s not re-pointed -- this run is not the gate'"'"'s current verdict%s\n' \
+        "${dim:-}" "$(basename "$latest").{out,errors}" "${reset:-}"
+    else
+      ln -sfn "$(basename "$log")" "$latest.out" ||
+        warn "could not refresh $latest.out -- the run log is unaffected"
+      ln -sfn "$(basename "$errors")" "$latest.errors" ||
+        warn "could not refresh $latest.errors -- the run log is unaffected"
+    fi
   else
     log="$(mktemp "${TMPDIR:-/tmp}/devbin-$suffix.XXXXXX")"
     errors=""
@@ -465,7 +501,10 @@ grammar_for() {
     xcodebuild | swift) printf '%s' "$_DEVBIN_GRAMMAR_XCODEBUILD" ;;
     lua) printf '%s' "$_DEVBIN_GRAMMAR_LUA" ;;
     shell | bats) printf '%s' "$_DEVBIN_GRAMMAR_SHELL" ;;
-    generic | "") printf '%s' "$_DEVBIN_GRAMMAR_GENERIC" ;;
+    # `critic` differs from `generic` ONLY in having a counter. Its findings are
+    # already rendered as blocks the generic extractor reads, so a second
+    # extraction grammar would be two implementations of one thing.
+    critic | generic | "") printf '%s' "$_DEVBIN_GRAMMAR_GENERIC" ;;
     *)
       warn "unknown grammar '$1' -- sealing with the generic grammar"
       printf '%s' "$_DEVBIN_GRAMMAR_GENERIC"
@@ -522,6 +561,47 @@ _DEVBIN_COUNT_MIX='
     s = substr($0, RSTART, RLENGTH); sub(/.*\//, "", s); sub(/ .*/, "", s); total += s + 0
   } else if (match($0, /[0-9]+ passed/)) {
     s = substr($0, RSTART, RLENGTH); sub(/ .*/, "", s); total += s + 0
+  }
+  next
+}
+END { if (seen) print total + 0 }
+'
+
+# `intent critic` reports what it EXAMINED, and both of its green forms are
+# countable -- which is the only reason this gate can be held to the same bar as
+# a test run.
+#
+# THE DEFECT THIS CLOSES. `check.critic` declared `grammar: generic`, generic has
+# no counter, and so the one promotion in this file that refuses a zero-exit run
+# which examined nothing could never apply to it. With no arguments the critic
+# defaults to --staged, and a CLEAN TREE is the normal state in which somebody
+# runs `check all` -- so the leg printed `ok`, scanned zero files, and was
+# structurally incapable of failing. Observed three separate times on a consumer
+# project before anyone wrote it down; the last observer had to say "passed
+# vacuously" by hand, because the gate would not say it.
+#
+# TWO FORMS, BOTH `exit 0`, both read off the critic's own source rather than off
+# one observed run: it prints `ok: no staged <lang> files to scan` (examined
+# nothing) and `ok: no <lang> findings at severity >= <sev> across <n> file(s)`.
+# A run WITH findings exits non-zero, so it never reaches the promotion, which is
+# guarded on rc==0.
+#
+# SUMMED ACROSS ARMS, because the critic gate runs one pass per declared language
+# into one log. A project declaring shell+elixir+rust with only elixir files
+# staged must NOT promote -- it examined something. Zero across every arm is the
+# empty run.
+#
+# `seen` is set by EITHER form, so a critic that printed neither -- a different
+# version, an error path, a tool that did not answer -- returns empty and is
+# never promoted. That is the safe direction this file already commits to: a
+# grammar with no counter is not evidence that nothing ran.
+# shellcheck disable=SC2016
+_DEVBIN_COUNT_CRITIC='
+/^ok: no staged .* files to scan$/ { seen = 1; next }
+/^ok: no .* findings at severity >= .* across [0-9]+ file\(s\)$/ {
+  seen = 1
+  if (match($0, /across [0-9]+ file/)) {
+    s = substr($0, RSTART + 7, RLENGTH - 12); total += s + 0
   }
   next
 }
@@ -611,13 +691,14 @@ count_for() {
     xcodebuild | swift) printf '%s' "$_DEVBIN_COUNT_XCODEBUILD" ;;
     credo) printf '%s' "$_DEVBIN_COUNT_CREDO" ;;
     shell | bats) printf '%s' "$_DEVBIN_COUNT_SHELL" ;;
+    critic) printf '%s' "$_DEVBIN_COUNT_CRITIC" ;;
     *) printf '' ;;
   esac
 }
 
 # grammar_names -- every grammar devbin ships, for help and doctor.
 grammar_names() {
-  printf '%s\n' mix credo cargo xcodebuild lua shell generic
+  printf '%s\n' mix credo cargo xcodebuild lua shell critic generic
 }
 
 # ============================================================================
@@ -663,6 +744,66 @@ KEEPSET
   return 1
 }
 
+# ============================================================================
+# RETENTION
+# ============================================================================
+
+# `--purge` meant "keep this run's pair and nothing else", so exactly one prior
+# run of each gate family survived on disk. That is the wrong default for the
+# one question these files exist to answer: AN INTERMITTENT FAILURE IS DIAGNOSED
+# BY DIFFING A RED RUN AGAINST THE GREEN ONE BEFORE IT, and purging the previous
+# run destroys the differential at the moment it becomes interesting. Bitten
+# three times in one project before it was boarded (2026-08-20).
+#
+# So purge keeps the newest RUNLOG_KEEP_RUNS run-pairs of the family rather than
+# one. RUNLOG_KEEP_RUNS=1 restores the old behaviour; 0 is REFUSED rather than
+# silently read as "keep everything", because a zero meaning "unlimited" is the
+# reading nobody expects from a variable named KEEP.
+#
+# Ordering is by MTIME, never by name -- same-minute collision files carry a -SS
+# suffix that sorts lexically BEFORE the plain stamp while being newer. That is
+# the same trap purge_only_run_logs documents, and the reason -nt is used here.
+
+# runlog_assert_keep_runs -- validate RUNLOG_KEEP_RUNS in the CALLER'S shell.
+#
+# SEPARATE FROM THE READ, AND THAT SPLIT IS THE WHOLE POINT. `die` inside a
+# `$(...)` kills only the subshell, so a validating reader used as
+# `want="$(runlog_keep_runs)"` prints its refusal, leaves `want` EMPTY, and the
+# purge then runs with NO retention at all -- deleting MORE on a bad setting
+# than on a good one. Measured on exactly that shape before it was split
+# (2026-08-20): RUNLOG_KEEP_RUNS=0 refused loudly and purged 16 of 18 files
+# anyway. Call the assert first, unsubstituted, then read the variable.
+runlog_assert_keep_runs() {
+  local n="${RUNLOG_KEEP_RUNS:-5}"
+  case "$n" in
+    '' | *[!0-9]*) die "RUNLOG_KEEP_RUNS must be a whole number, got '$n'" ;;
+    0) die "RUNLOG_KEEP_RUNS=0 would purge the run being kept; use 1 for keep-current-only" ;;
+  esac
+}
+
+# newest_run_stems <dir> <suffix> <n> -- print the stems of the newest <n> kept
+# runs of this family, one per line. Selection-sort by mtime rather than a sort
+# pipeline, because bash 3.2 has no mapfile and the candidate set is tiny.
+newest_run_stems() {
+  local dir="$1" suffix="$2" want="$3" f newest picked="" round=0
+  while [ "$round" -lt "$want" ]; do
+    newest=""
+    for f in "$dir"/*."$suffix".out; do
+      [ -L "$f" ] && continue
+      [ -f "$f" ] || continue
+      in_keepset "${f%.out}" "$picked" && continue
+      if [ -z "$newest" ] || [ "$f" -nt "$newest" ]; then
+        newest="$f"
+      fi
+    done
+    [ -n "$newest" ] || break
+    picked="$picked
+${newest%.out}"
+    round=$((round + 1))
+  done
+  printf '%s\n' "$picked" | grep -v '^$' || true
+}
+
 # purge_run_logs <dir> <suffix> <current_log> -- delete the PRIOR kept runs of
 # this gate family: every <stamp>.<suffix>.{out,errors} except the current run's
 # pair. Regular files only -- the LATEST_* symlinks never match the stamp
@@ -677,9 +818,12 @@ KEEPSET
 # -- so a run that FAILED reports success. Nothing downstream can detect it
 # after the fact, so the damage is un-caused here rather than caught later.
 purge_run_logs() {
-  local dir="$1" suffix="$2" current="$3" f purged=0 retained=0 keep
+  local dir="$1" suffix="$2" current="$3" f purged=0 retained=0 kept_recent=0 keep want recent
   local -a candidates=("$dir"/*."$suffix".out "$dir"/*."$suffix".errors)
   keep="$(latest_pointer_keepset "$dir" "$suffix")"
+  runlog_assert_keep_runs
+  want="${RUNLOG_KEEP_RUNS:-5}"
+  recent="$(newest_run_stems "$dir" "$suffix" "$want")"
   for f in "${candidates[@]}"; do
     [ -L "$f" ] && continue                       # never a LATEST_* pointer
     [ -f "$f" ] || continue                       # unmatched glob literal / vanished file
@@ -688,13 +832,24 @@ purge_run_logs() {
       retained=$((retained + 1))
       continue
     fi
+    # BOTH members of a retained run are kept: keeping an .out whose .errors was
+    # purged recreates the dangling-verdict hole this file exists to close.
+    if in_keepset "${f%.*}" "$recent"; then
+      kept_recent=$((kept_recent + 1))
+      continue
+    fi
     if rm -f "$f"; then
       purged=$((purged + 1))
     else
       warn "could not purge $f"
     fi
   done
-  printf '%spurged %s old run file(s) from %s%s\n' "${dim:-}" "$purged" "$dir" "${reset:-}"
+  printf '%spurged %s old run file(s) from %s (keeping the newest %s run(s))%s\n' \
+    "${dim:-}" "$purged" "$dir" "$want" "${reset:-}"
+  if [ "$kept_recent" -gt 0 ]; then
+    printf '%skept %s file(s) inside the RUNLOG_KEEP_RUNS=%s retention window%s\n' \
+      "${dim:-}" "$kept_recent" "$want" "${reset:-}"
+  fi
   if [ "$retained" -gt 0 ]; then
     printf '%sretained %s file(s) a LATEST_%s pointer still resolves to%s\n' \
       "${dim:-}" "$retained" "$(printf '%s' "$suffix" | tr '[:lower:]' '[:upper:]')" "${reset:-}"

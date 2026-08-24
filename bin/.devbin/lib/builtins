@@ -90,7 +90,7 @@ check.format     any     generic     FORMAT     -         @builtin | Formatting 
 check.deps       elixir  generic     DEPS       -         mix deps.unlock --check-unused | No unused dependencies
 check.clippy     rust    cargo       CLIPPY     -         cargo clippy --all-targets -- -D warnings | Clippy lints as errors
 check.toolchain  any     generic     TOOLCHAIN  -         @builtin | The .tool-versions pin matches what is running and what the deploy image builds
-check.critic     any     generic     CRITIC     -         @builtin | Rules of the road, per declared language
+check.critic     any     critic      CRITIC     -         @builtin | Rules of the road, per declared language
 test.mix         elixir  mix         MIX        -         mix test | ExUnit
 test.credo       elixir  credo       CREDO      -         mix credo --strict | Static analysis
 test.rust        rust    cargo       RUST       -         cargo test | Cargo suites

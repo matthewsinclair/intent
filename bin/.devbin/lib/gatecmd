@@ -102,9 +102,35 @@ run_builtin_gate() {
     # unknown option and sending the reader to look at their config.
     command -v "$fn" >/dev/null 2>&1 ||
       die "devbin packaging error: $cmd $opt is marked @builtin but $fn is not defined"
+    # A builtin MAY declare gate flags for THIS invocation, via an optional
+    # `<fn>_gateflags` that prints one flag per line.
+    #
+    # It exists for one question the generic dispatcher cannot answer: whether
+    # an empty run is legitimate. `run_gate` promotes a zero-exit run that
+    # executed nothing to FAILED, which is right for a suite and wrong for a
+    # gate whose corpus is a SELECTION -- `check critic` reads staged files, and
+    # a clean tree stages nothing. Only the builtin knows its own corpus, and
+    # the flags are read out of run_gate's argv, so the one place that knows has
+    # to speak BEFORE the gate starts. Afterwards is too late by construction.
+    #
+    # `--allow-empty` typed on the command line still arrives via
+    # DEVBIN_GATE_FLAGS and is unaffected; a builtin without the hook is
+    # unchanged, which is every builtin but one.
+    local -a own=()
+    if command -v "${fn}_gateflags" >/dev/null 2>&1; then
+      # Never let the hook fail the dispatch: it is an optimisation of the
+      # verdict, not a gate of its own. `|| true` is deliberate here and is not
+      # the swallowed-error pattern -- a hook that cannot decide declares
+      # nothing, and nothing is the safe answer, because it leaves the default
+      # promotion in force rather than suppressing it.
+      while IFS= read -r gf; do
+        [ -n "$gf" ] && own+=("$gf")
+      done < <("${fn}_gateflags" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"} || true)
+    fi
     run_gate --label "$cmd $opt" --suffix "$suffix" --grammar "$grammar" \
       --out-dir "$(gate_out_dir "$cmd")" \
       ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
+      ${own[@]+"${own[@]}"} \
       -- "$fn" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
     return $?
   fi
