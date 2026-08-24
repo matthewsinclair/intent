@@ -32,14 +32,23 @@ FLOOR_VERSION="2.9.0"
 
 usage() {
   cat << EOF
-Usage: intent upgrade [--backup-dir DIR] [--no-backup]
+Usage: intent upgrade [--dry-run] [--backup-dir DIR] [--no-backup]
 
 Upgrade an Intent project (v$FLOOR_VERSION+) to Intent v$TARGET_VERSION.
 
 Options:
+  --dry-run           Report what would change and exit WITHOUT mutating anything.
   --backup-dir DIR    Custom backup directory name (default: .backup/backup-TIMESTAMP)
   --no-backup         Skip backup creation (dangerous!)
   -h, --help          Show this help message
+
+THIS VERB APPLIES BY DEFAULT. Its sibling \`intent claude upgrade\` is the
+opposite -- that one is dry-run by default and takes --apply. Two commands
+sharing the word "upgrade" with opposite defaults is a trap that has been
+walked into, so --dry-run exists here to make the safe move reachable by the
+habit the sibling teaches. A flag rather than a prompt, deliberately: this
+verb runs from automation, and a prompt automation cannot answer turns a
+mutation into a hang.
 
 The upgrade is convergent: it probes on-disk state, runs only the structural
 steps that are still needed, applies canon via 'intent claude upgrade --apply',
@@ -52,8 +61,10 @@ EOF
 # --- arg parse ------------------------------------------------------------
 BACKUP_DIR=""
 NO_BACKUP=false
+DRY_RUN=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --dry-run)    DRY_RUN=true; shift ;;
     --backup-dir) BACKUP_DIR="$2"; shift 2 ;;
     --no-backup)  NO_BACKUP=true; shift ;;
     -h|--help)    usage ;;
@@ -104,7 +115,14 @@ fi
 echo "upgrading: $VERSION -> $TARGET_VERSION"
 
 # --- 2. verified backup (first point any mutation could occur) ------------
-if [ "$NO_BACKUP" != true ]; then
+#
+# SKIPPED ENTIRELY UNDER --dry-run, and this is the whole point of the flag:
+# the backup IS a mutation -- it creates .backup/<name>/ and copies the estate
+# into it -- so a "dry" run that took one would leave a directory behind and
+# dirty the tree it promised not to touch. Measured: the first cut of --dry-run
+# gated the ledger, the canon apply and the stamp but not this block, and the
+# fixture went from 0 to 1 dirty paths with .backup/ untracked.
+if [ "$NO_BACKUP" != true ] && [ "$DRY_RUN" = false ]; then
   if [ -z "$BACKUP_DIR" ]; then
     BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
   else
@@ -126,6 +144,8 @@ if [ "$NO_BACKUP" != true ]; then
     fi
   done
   echo "Backup created successfully"
+elif [ "$DRY_RUN" = true ]; then
+  echo "Backup: skipped (--dry-run modifies nothing, so there is nothing to back up)"
 fi
 
 echo ""
@@ -134,9 +154,16 @@ echo "Walking the upgrade ledger..."
 # --- 3. walk the ordered ledger of state-probed steps ---------------------
 for step in $LEDGER; do
   if "step_${step}_needs" .; then
-    echo "step: $step"
-    "step_${step}_run" . || error "upgrade step '$step' failed; nothing stamped (re-run to resume the remaining work)"
-    "step_${step}_verify" . || error "upgrade step '$step' postcondition not met; nothing stamped (re-run to resume)"
+    if [ "$DRY_RUN" = true ]; then
+      # `_needs` is the probe and is read-only; `_run` and `_verify` are not
+      # called at all. A dry run that executed the step and reported it would
+      # be the defect this flag exists to prevent.
+      echo "step: $step (WOULD RUN)"
+    else
+      echo "step: $step"
+      "step_${step}_run" . || error "upgrade step '$step' failed; nothing stamped (re-run to resume the remaining work)"
+      "step_${step}_verify" . || error "upgrade step '$step' postcondition not met; nothing stamped (re-run to resume)"
+    fi
   else
     echo "step: $step (already satisfied)"
   fi
@@ -144,9 +171,26 @@ done
 
 # --- 4. single delegation: canon convergence (the sole canon engine) ------
 echo ""
-echo "Applying canon (intent claude upgrade --apply)..."
-"$INTENT_BIN/intent" claude upgrade --project-dir . --apply >&2 \
-  || error "canon apply failed; nothing stamped (re-run to resume)"
+if [ "$DRY_RUN" = true ]; then
+  # No --apply: the canon engine is dry-run by default and prints its own plan.
+  echo "Canon plan (intent claude upgrade, dry-run)..."
+  "$INTENT_BIN/intent" claude upgrade --project-dir . >&2 || true
+else
+  echo "Applying canon (intent claude upgrade --apply)..."
+  "$INTENT_BIN/intent" claude upgrade --project-dir . --apply >&2 \
+    || error "canon apply failed; nothing stamped (re-run to resume)"
+fi
+
+# Everything past this point mutates: the ~/.claude skill and subagent mirrors,
+# the generated AGENTS.md, and the version stamp. A dry run stops here rather
+# than gating each one, so a step added later is excluded by default instead of
+# needing to remember this flag.
+if [ "$DRY_RUN" = true ]; then
+  echo ""
+  echo "dry run: nothing was modified."
+  echo "  re-run without --dry-run to apply."
+  exit 0
+fi
 
 # Propagate skill + subagent updates to any already-installed ~/.claude mirror.
 # Failure-tolerant (a missing mirror or a user 'N' at a prompt must not break the

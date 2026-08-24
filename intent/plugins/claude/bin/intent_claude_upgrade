@@ -157,6 +157,37 @@ PROJECT_DIR="$(cd "$PROJECT_DIR" 2>/dev/null && pwd)" || {
   exit 1
 }
 
+# --- refuse a DOWNGRADE, before anything is probed or planned -------------
+#
+# THE ENGINE MUST CARRY ITS OWN GUARD BECAUSE IT IS REACHABLE WITHOUT THE
+# ORCHESTRATOR. `intent upgrade` refuses a downgrade at intent_upgrade's semver
+# sanity check, but `intent claude upgrade` is a documented verb an operator
+# runs directly, and it had no version check of any kind: the AGENTS.md probe
+# tests `[ "$local_version" = "$TARGET_VERSION" ]`, and EQUALITY HAS NO
+# DIRECTION, so a project AHEAD of the installed tool was regenerated BACKWARDS
+# and reported as a routine canon refresh.
+#
+# This is live rather than theoretical. Every project on this machine resolves
+# `intent` out of a FROZEN v2 checkout via $INTENT_HOME, so any project whose
+# canon has moved ahead of that frozen version is exposed. Measured on Intent
+# itself: `intent claude upgrade` planned
+# "REGENERATE AGENTS.md (currently 3.0.0, target 2.19.0)" while the top-level
+# verb, on the same tree at the same moment, refused with
+# "refusing downgrade: project is at v3.0.0-dev, target is v2.19.0".
+#
+# A refusal, not a skip: a downgrade the operator did not ask for is not a
+# state to converge quietly past, and the remedy differs from every other
+# action this engine plans -- upgrade the TOOL, not the project.
+_canon_project_version="$(detect_project_version "$PROJECT_DIR" 2>/dev/null || echo "")"
+if [ -n "$_canon_project_version" ] && version_gt "$_canon_project_version" "$TARGET_VERSION"; then
+  echo "error: refusing downgrade: project is at v$_canon_project_version, canon target is v$TARGET_VERSION" >&2
+  echo "       this Intent install is OLDER than the project's canon, so applying it would" >&2
+  echo "       rewrite AGENTS.md and friends BACKWARDS." >&2
+  echo "       resolved install: ${INTENT_HOME:-$INTENT_ROOT}" >&2
+  echo "       fix: upgrade the Intent install (or point INTENT_HOME at a newer one)." >&2
+  exit 1
+fi
+
 # Prefer the canonical project_name from intent/.config/config.json (user-set
 # at `intent init` time and stable across directory renames). Fall back to
 # basename of the absolute path when config.json is unavailable.
@@ -264,6 +295,24 @@ canon_install_file() {
 }
 
 # Copy $src -> $dst, then chmod +x. Placeholder-substituted.
+# Does .claude/settings.json dispatch hooks through the CLI door rather than
+# naming a script path directly? This is what decides whether the project's
+# .claude/scripts/*.sh are INERT (safe to prune) or LIVE (must be kept).
+#
+# Pre-issue-0016 the template substituted an absolute
+# `[[INTENT_HOME]]/lib/templates/.claude/scripts/<name>.sh` into settings.json
+# at install time. A project still on that form EXECUTES its local copies, so
+# deleting them there breaks its session hooks.
+#
+# Absent or unreadable settings.json returns 1 -- not confirmed -- because the
+# safe answer when we cannot tell is to delete nothing.
+canon_settings_on_cli_form() {
+  local settings="$1"
+  [ -f "$settings" ] || return 1
+  grep -q 'intent claude hook' "$settings" 2>/dev/null || return 1
+  ! grep -q '\.claude/scripts/' "$settings" 2>/dev/null
+}
+
 canon_install_script() {
   local src="$1"
   local dst="$2"
@@ -804,20 +853,28 @@ else
     add_action "INSTALL_SETTINGS"
   fi
 
-  for _script in session-context.sh require-in-session.sh post-tool-advisory.sh; do
-    _src="$CANON_SCRIPTS_SRC/$_script"
-    _dst="$PROJECT_DIR/.claude/scripts/$_script"
-    _label=".claude/scripts/$_script"
-    if [ -f "$_dst" ] && canon_template_matches_installed "$_src" "$_dst"; then
-      canon_print "$_label" "${GREEN}UP TO DATE${NC}"
-    elif [ -f "$_dst" ]; then
-      canon_print "$_label" "${YELLOW}DIVERGED${NC}"
-      add_action "INSTALL_HOOK_SCRIPT:$_script"
-    else
-      canon_print "$_label" "${RED}MISSING${NC}"
-      add_action "INSTALL_HOOK_SCRIPT:$_script"
-    fi
-  done
+  # .claude/scripts/*.sh are PRUNED, not installed. `intent claude hook <name>`
+  # execs the body from $INTENT_HOME (intent_claude_hook: HOOKS_DIR), never from
+  # the project, so a per-project copy is read by nothing. The copies are
+  # residue: issue 0016 moved dispatch to the CLI and the install step was never
+  # removed, leaving three files in every project that LOOK authoritative.
+  # Editing one changes nothing and nothing reports that.
+  #
+  # ONLY THE THREE CANON NAMES ARE TOUCHED, deliberately. A project may keep its
+  # own hooks in this directory (Lamplight carries an unwired fmt-md-on-write.sh),
+  # and a blanket sweep of .claude/scripts/ would take them too.
+  if canon_settings_on_cli_form "$PROJECT_DIR/.claude/settings.json"; then
+    for _script in session-context.sh require-in-session.sh post-tool-advisory.sh; do
+      _dst="$PROJECT_DIR/.claude/scripts/$_script"
+      _label=".claude/scripts/$_script"
+      if [ -f "$_dst" ]; then
+        canon_print "$_label" "${YELLOW}INERT -- prune${NC}"
+        add_action "PRUNE_HOOK_SCRIPT:$_script"
+      fi
+    done
+  else
+    canon_print ".claude/scripts/*.sh" "${BLUE}kept (settings.json names them directly; pre-0016 form)${NC}"
+  fi
 fi
 
 # .git/hooks/pre-commit -- critic gate. Chain if a pre-existing non-Intent
@@ -1021,9 +1078,9 @@ if [ ${#ACTIONS[@]} -gt 0 ]; then
       INSTALL_SETTINGS)
         echo "  $idx. Install .claude/settings.json (SessionStart / UserPromptSubmit / Stop hooks)"
         ;;
-      INSTALL_HOOK_SCRIPT:*)
-        sh_name="${action#INSTALL_HOOK_SCRIPT:}"
-        echo "  $idx. Install .claude/scripts/$sh_name (+x)"
+      PRUNE_HOOK_SCRIPT:*)
+        sh_name="${action#PRUNE_HOOK_SCRIPT:}"
+        echo "  $idx. Remove inert .claude/scripts/$sh_name (the body runs from the Intent install)"
         ;;
       INSTALL_PRE_COMMIT)
         echo "  $idx. Install .git/hooks/pre-commit (intent critic gate, +x)"
@@ -1205,11 +1262,11 @@ for action in "${ACTIONS[@]}"; do
       echo -e "    ${GREEN}ok${NC}"
       ;;
 
-    INSTALL_HOOK_SCRIPT:*)
-      sh_name="${action#INSTALL_HOOK_SCRIPT:}"
-      echo "  Installing .claude/scripts/$sh_name..."
-      canon_install_script "$CANON_SCRIPTS_SRC/$sh_name" "$PROJECT_DIR/.claude/scripts/$sh_name"
-      echo -e "    ${GREEN}ok${NC} (+x)"
+    PRUNE_HOOK_SCRIPT:*)
+      sh_name="${action#PRUNE_HOOK_SCRIPT:}"
+      echo "  Removing inert .claude/scripts/$sh_name..."
+      rm -f "$PROJECT_DIR/.claude/scripts/$sh_name"
+      echo -e "    ${GREEN}ok${NC} (body served from the Intent install)"
       ;;
 
     INSTALL_PRE_COMMIT)
