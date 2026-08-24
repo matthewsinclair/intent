@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+#
+# The built-in `vendor` -- how do these bytes compare to the devbin they came
+# from, and what would `upgrade` do about it? (issue 0017)
+#
+# THE QUESTION NEITHER doctor NOR upgrade COULD ANSWER. `doctor` compares the
+# vendored tree against the checksums recorded AT INSTALL TIME, which is an
+# internal check: a re-vendor rewrites the files and that manifest together, so
+# it cannot separate a local patch from a fresh copy -- a consumer reported its
+# tree "stock, 27 of 27" over an uncommitted re-vendor eleven minutes old, and
+# every check involved was correct. `upgrade` does know, and only says so by
+# DOING it. This command asks the outside question and writes nothing.
+#
+# IT IS DELIBERATELY NOT A `check` GATE. Carrying local patches is a SUPPORTED
+# state per the manifest's own header, so a gate going red on one would assert a
+# verdict this project does not hold -- the same argument that keeps `fmt md`
+# out of `check format`.
+#
+# The exit status is the half a script can use: 0 when the tree is LEVEL with
+# its source, non-zero when it is not. Non-zero is an ANSWER, not a fault, and
+# that split is what lets `upgrade` keep exit 0 for "I completed" while the
+# convergence question gets a command whose status means only that (issue 0021).
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_NAME vendor [--from <dir>] [--all]
+
+  --from <dir>   the devbin to compare against (default: the source recorded at install)
+  --all          list every file, including the ones that are level
+
+Reports how the vendored runtime differs from the devbin it came from, and what
+\`upgrade\` would do about each file. Writes nothing.
+
+Exits 0 when the tree is level with its source and non-zero when it is not.
+Non-zero is an answer, not a fault.
+EOF
+}
+
+# _explain <state> -- what upgrade would do about a file in this state.
+#
+# Beside the state rather than in a legend at the bottom, because the reader's
+# actual question is "so do I run upgrade or not" and a legend makes them hold
+# seven words in their head to find out.
+_explain() {
+  case "$1" in
+    level) printf 'matches the source\n' ;;
+    behind) printf 'upgrade would replace this\n' ;;
+    patched) printf 'edited here -- upgrade would refuse it (--force replaces)\n' ;;
+    converged) printf 'edited here, and the edit is now upstream -- upgrade heals the record\n' ;;
+    absent) printf 'upgrade would add this\n' ;;
+    orphaned) printf 'no longer shipped -- upgrade would remove it\n' ;;
+    released) printf 'no longer shipped and edited here -- upgrade would leave it with you\n' ;;
+    unlisted) printf 'devbin neither tracks nor replaces this\n' ;;
+    *) printf '\n' ;;
+  esac
+}
+
+main() {
+  local from="" all="" dstroot srcroot states line state rel
+  local tracked=0 divergent=0 unlisted=0 direction recorded
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        usage
+        return 0
+        ;;
+      --from)
+        from="${2:-}"
+        shift 2 || die "--from needs a directory"
+        ;;
+      --all)
+        all=yes
+        shift
+        ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_NAME vendor --help)" ;;
+      *) die "unexpected argument '$1'" ;;
+    esac
+  done
+
+  dstroot="${PROJECT_ROOT:?}"
+
+  is_devbin_installed "$dstroot" || {
+    # The same two shapes upgrade distinguishes, and for the same reason: the
+    # D12 checkout runs its own lib/ in place, so there is no vendored copy to
+    # compare and pointing it at `install --into` would name the command install
+    # refuses.
+    if is_devbin_source "$dstroot"; then
+      warn "devbin is not installed here -- this is the devbin source checkout, which runs lib/ in place (D12)"
+      warn "  there is nothing vendored to compare; a project installed FROM it can ask its own $DEVBIN_NAME vendor"
+    else
+      warn "devbin is not installed here -- there is no vendored runtime at $dstroot/bin/.devbin/lib"
+      warn "  to install it:  <path-to-devbin>/bin/devbin install --into $dstroot"
+    fi
+    return 1
+  }
+
+  if [ -n "$from" ]; then
+    srcroot="$(cd "$from" 2>/dev/null && pwd)" || die "no such directory: $from"
+  else
+    srcroot="$(manifest_source "$dstroot" 2>/dev/null || true)"
+    [ -n "$srcroot" ] ||
+      die "no source recorded in $DEVBIN_MANIFEST_REL -- name one with --from <dir>"
+  fi
+
+  is_devbin_source "$srcroot" || {
+    warn "not a devbin source: $srcroot"
+    warn "  (looked for bin/devbin and a lib/ beside it)"
+    warn "  name a different one with:  $DEVBIN_NAME vendor --from <dir>"
+    return 1
+  }
+
+  init_colors auto
+  printf 'devbin vendor -- %s\n\n' "$dstroot"
+
+  # WHAT THIS REPORT IS ABOUT, printed every time and before any verdict. An
+  # instrument green over an unnamed baseline certifies nothing, and the two
+  # baselines available here differ: the source's WORKING TREE is what upgrade
+  # would copy, while the recorded commit is what these bytes came from. The
+  # comparison below is against the working tree; both are named so a reader can
+  # tell a stale --from from a live one.
+  recorded="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+  direction="$(source_direction "$dstroot" "$srcroot")"
+  printf '  compared against  %s\n' "$srcroot"
+  printf '  vendored from     %s\n' "${recorded:-(not recorded -- this manifest predates the field)}"
+  # source_commit_of RATHER THAN A BARE `rev-parse HEAD`, because the comparison
+  # below reads the source's WORKING TREE and a bare sha would quietly claim it
+  # read that commit. On a dirty source those are different bytes, and the pair
+  # -- a clean-looking sha beside a `level` verdict -- is a confident false
+  # statement of exactly the kind the source_commit field was added to stop.
+  printf '  source now at     %s\n' "$(source_commit_of "$srcroot")"
+  printf '  direction         %s\n\n' "$(_direction_words "$direction")"
+
+  states="$(vendor_states "$dstroot" "$srcroot")"
+
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    state="${line%%	*}"
+    rel="${line#*	}"
+    case "$state" in
+      level)
+        tracked=$((tracked + 1))
+        [ -n "$all" ] && printf '  %-10s %s\n' "$state" "$rel"
+        ;;
+      unlisted)
+        unlisted=$((unlisted + 1))
+        printf '  %-10s %s   %s%s%s\n' "$state" "$rel" "${dim:-}" "$(_explain "$state")" "${reset:-}"
+        ;;
+      *)
+        tracked=$((tracked + 1))
+        divergent=$((divergent + 1))
+        printf '  %-10s %s   %s%s%s\n' "$state" "$rel" "${dim:-}" "$(_explain "$state")" "${reset:-}"
+        ;;
+    esac
+  done <<EOF
+$states
+EOF
+
+  printf '\n%d tracked, %d divergent, %d unlisted\n' "$tracked" "$divergent" "$unlisted"
+
+  # THE FALSE-GREEN GUARD, and the same one doctor carries. Every branch above
+  # counts rather than decides, so an enumeration bug that returned nothing at
+  # all would otherwise print a clean summary and exit 0 -- a comparison that
+  # examined no files pronouncing two trees identical. It is not reachable from
+  # a valid source (is_devbin_source has already insisted on bin/devbin and a
+  # lib/helpers, so the list is never empty), which is exactly the condition
+  # under which a guard is cheap and its absence is expensive.
+  if [ "$tracked" -eq 0 ]; then
+    warn "compared NO files -- that is a broken comparison, not two matching trees"
+    return 1
+  fi
+
+  if [ "$divergent" -eq 0 ]; then
+    printf 'Level with %s.\n' "$srcroot"
+    return 0
+  fi
+  printf '\nto act on this: %s upgrade\n' "$DEVBIN_NAME"
+  return 1
+}
+
+# _direction_words <direction> -- the bare word plus what it means for upgrade.
+#
+# `unknown` gets a sentence rather than being left bare, because it is the one
+# whose danger is that it reads like a minor detail. It means the downgrade
+# check could not run at all.
+_direction_words() {
+  case "$1" in
+    same) printf 'same -- the source is exactly the commit that was vendored\n' ;;
+    forward) printf 'forward -- the source is ahead of what was vendored\n' ;;
+    backward) printf 'backward -- the source is BEHIND this install; upgrading would revert it\n' ;;
+    unrelated) printf 'unrelated -- the source shares no history with what was vendored\n' ;;
+    *) printf 'unknown -- no recorded commit to compare, so a downgrade cannot be detected\n' ;;
+  esac
+}
+
+main "$@"

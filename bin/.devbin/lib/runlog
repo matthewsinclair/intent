@@ -489,7 +489,8 @@ _DEVBIN_GRAMMAR_GENERIC='
 
 # grammar_for <name> -- the named-grammar reader.
 #
-# A case rather than an associative array: bash 3.2 is a hard target (D9) and
+# A case rather than an associative array: bash 3.2 was a hard target (D9,
+# since reversed by issue 0022; the case costs nothing and stays) and
 # has no `declare -A`. An unknown name falls back to `generic` with a warning
 # rather than sealing with an empty extraction, because an empty grammar makes
 # every red run seal its log tail and look identical.

@@ -50,7 +50,8 @@ EOF
 #
 # THE REASON THIS IS NOT `${text//pat/val}`. Bash 5.2 made `&` in the
 # REPLACEMENT of a pattern substitution mean "the text that matched", as sed
-# does; bash 3.2, which design D9 targets, treats it literally. So the obvious
+# does; bash 5.0 and 5.1 -- inside the >= 5 floor (issue 0022) -- treat it
+# literally, as did the 3.2 design D9 once targeted. So the obvious
 # one-liner quietly does different things on the two bashes devbin ships to:
 # `new greet --summary "a/b & report"` scaffolded `a/b {{SUMMARY}} report` on
 # this Mac and would have been correct on an older one. Escaping the `&` fixes

@@ -14,6 +14,19 @@
 #
 set -euo pipefail
 
+# THE FLOOR (issue 0022, reversing design D9). devbin requires bash >= 5 and
+# REFUSES older: macOS ships /bin/bash 3.2.57 permanently (GPLv3), the fleet
+# runs a Homebrew bash 5.x everywhere, and the guarantee now points at what
+# actually runs. This block must stay parseable by bash 3.2 -- the refusal
+# cannot be allowed to arrive as a syntax error that explains nothing.
+if [ "${BASH_VERSINFO[0]:-0}" -lt 5 ]; then
+  printf 'devbin: bash >= 5 is required; this is bash %s (%s)\n' \
+    "${BASH_VERSION:-unknown}" "${BASH:-unknown}" >&2
+  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash\n' >&2
+  printf '  (issue 0022, reversing design D9, 2026-08-24)\n' >&2
+  exit 1
+fi
+
 # Resolve this script's real location (symlink-safe) into BIN_DIR and the
 # project root, so the launcher works from any CWD and through a symlink on
 # PATH. Both `bin/<prj> -> devbin` and `bin/<alias> -> devbin` land here.
@@ -113,8 +126,20 @@ _devbin_referent_cmd="$(cfg_get project.referent "")"
 if [ -n "$_devbin_referent_cmd" ]; then
   DEVBIN_RUN_REFERENT="$(cd "$PROJECT_ROOT" && eval "$_devbin_referent_cmd" 2>/dev/null)" ||
     DEVBIN_RUN_REFERENT=""
+  # SC2089/SC2090 fire on the single quotes inside the message below, on the
+  # theory that a variable holding quotes is about to be run as a command. This
+  # one is a DIAGNOSTIC STRING -- printed by print_run_referent and never
+  # expanded, never eval'd -- so the quotes are exactly as literal as shellcheck
+  # warns they are, which is the intent. Suppressed rather than reworded because
+  # the quotes name a config key and `config.reference.yaml` documents this
+  # message verbatim; dropping them to satisfy the linter would silence it by
+  # making the docs wrong.
+  # Two directives rather than one list: a directive covers the NEXT command
+  # only, and the assignment and the export are two of them.
+  # shellcheck disable=SC2089
   [ -n "$DEVBIN_RUN_REFERENT" ] ||
     DEVBIN_RUN_REFERENT="REFERENT UNAVAILABLE -- 'project.referent' is declared and did not answer"
+  # shellcheck disable=SC2090
   export DEVBIN_RUN_REFERENT
 fi
 unset _devbin_referent_cmd
@@ -265,8 +290,9 @@ esac
 # exports reach them anyway and none of them needs to parse again; what a
 # handler receives on its command line is only what devbin did not recognise.
 parse_common_opts "$command" "$@"
-# Guarded expansion: an empty array under `set -u` aborts on bash 3.2, the
-# /bin/bash on every Mac (design D9). See parse_common_opts in lib/resolve.
+# Guarded expansion: a bash 3.2 idiom (an empty array under `set -u` aborted
+# there; design D9, since reversed by issue 0022). Harmless under the >= 5
+# floor and kept. See parse_common_opts in lib/resolve.
 set -- "${DEVBIN_ARGS[@]+"${DEVBIN_ARGS[@]}"}"
 
 command_active "$command" || {

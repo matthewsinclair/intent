@@ -82,6 +82,7 @@ macos            opt-in  -           -          Ship      - | macOS bundle and p
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
 install          any     -           -          Devbin    @builtin | Vendor this devbin into a project
 upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime from where it came from
+vendor           any     -           -          Devbin    @builtin | Compare the vendored runtime against the devbin it came from
 doctor           any     -           -          Devbin    @builtin | Check this install and report what is wrong with it
 new              any     -           -          Devbin    @builtin | Scaffold a new project command, ready to run
 devbin           any     -           -          Devbin    @builtin | About devbin itself: the framework's help, not this project's

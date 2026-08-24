@@ -1082,7 +1082,7 @@ _assert_option_reaches_command() {
 #
 # THE BASH 3.2 TRAP. DEVBIN_ARGS is an array so arguments keep their boundaries
 # (`--only "a b"` stays one argument). Under `set -u`, bash 3.2 -- the /bin/bash
-# on every Mac, and design D9's hard target -- treats "${DEVBIN_ARGS[@]}" on an
+# on every Mac, and design D9's then-hard target (reversed by issue 0022) -- treats "${DEVBIN_ARGS[@]}" on an
 # EMPTY array as an unbound variable and aborts. Bash 4.4 fixed it; we cannot
 # rely on that. Callers must therefore expand it guarded:
 #
