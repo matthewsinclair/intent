@@ -754,3 +754,168 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
     println!("  {u}\n    {why}");
   }
 }
+
+/// A `Thread` with every field that is neither REQUIRED nor GRAFTED carrying a
+/// distinctive non-default value.
+///
+/// **This is [`fully_populated_row`]'s argument carried one entity up, and the
+/// gap it closes is that nobody had carried it.** That helper exists because
+/// `skip_serializing_if` drops `None` fields from the JSON entirely, so a
+/// measurement taken against a partially-populated row is blind to exactly the
+/// fields nobody has ever set. `sample_thread` says the same thing in its own
+/// words -- *a new field the fixture leaves `None` round-trips vacuously* --
+/// and then leaves `completed`, `acceptance`, `body` and `preamble` at their
+/// defaults, which are four of the eight fields this test is about.
+fn fully_populated_thread(id: &str) -> Thread {
+  let mut thread = sample_thread(id);
+  thread.slug = Some("intent-v3".to_string());
+  thread.status_reason = Some("reopened: AC-02.6 was added after the close".to_string());
+  thread.completed = Some("2026-08-20".to_string());
+  thread.acceptance = Some(intentsvcs::model::AcceptanceMode::Exempt);
+  thread.objective = "Ship v3.0.0 with the store as the durable SSOT.".to_string();
+  thread.context = "Why this thread exists, in markdown, carried verbatim.".to_string();
+  thread.body = "A load-bearing paragraph nothing else records.".to_string();
+  thread.preamble = "Front matter prose.".to_string();
+  thread.related = vec![intentsvcs::model::Related {
+    id: "ST0056".to_string(),
+    note: Some("the rewrite this thread gates".to_string()),
+  }];
+  thread
+}
+
+/// **AC-08.5's SECOND LIMB, DRIVEN AT THE THREAD DOOR: does `put` clear a field
+/// it was not asked to change?**
+///
+/// # Why this had to be written, and why the existing pair could not see it
+///
+/// AC-08.5 has TWO AXES and the file covered them asymmetrically.
+/// `the_unsettable_set_is_driven_across_every_entity_form_and_named` drives all
+/// thirteen FORMS and asks only *does an arm exist*;
+/// `the_unsettable_field_set_is_measured_by_driving_the_surface` drives FIELDS
+/// for exactly one entity, the AT row. **`E::Thread => Reachable` proves the
+/// form has an arm and says nothing about which of the thread's own fields that
+/// arm writes** -- so a refutation of *`ST0011.completed` has no write path*
+/// can be entirely correct and leave this criterion unmet.
+///
+/// # The population is stated, because a collateral set over an unstated
+/// denominator is the vacuous green this row keeps paying for
+///
+/// `Thread` has eighteen fields. FIVE are required by the schema, so a legal
+/// body always carries them. FOUR are children the arm grafts off the stored
+/// row on purpose, with a comment naming this very limb. **The remaining NINE
+/// are neither, and this test asks for exactly one of them -- `completed`, the
+/// criterion's own first burning case -- so the collateral population is the
+/// other EIGHT.**
+///
+/// # The subject is the SURFACE, never the estate's data
+///
+/// The fixture is SYNTHESISED. ST0011's real `completed` was repaired by hand
+/// at `608e9721` on 2026-08-20, the day BEFORE the ruling that created this
+/// write path, so reading the live estate answers a question about a hand-edit
+/// and reports it as a fact about the surface. **When a measurement is correct
+/// and its SUBJECT is wrong, nothing inside the measurement can report it.**
+#[test]
+fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
+  let fx = Fixture::new();
+  let before = fully_populated_thread("ST0001");
+  fx.write_thread(&before);
+  let mut facade = fx.facade();
+
+  // **THE MINIMAL LEGAL BODY.** The five schema-required fields, plus the one
+  // field we are asking to move. The four children are omitted because the arm
+  // refuses them BY NAME -- naming them here would measure that refusal
+  // instead, which is a different and already-covered question.
+  let body = json!({
+    "schema": before.schema,
+    "id": before.id,
+    "title": before.title,
+    "status": before.status,
+    "created": before.created,
+    "completed": "2026-08-24",
+  });
+  let address = parse("intent:///threads/ST0001").expect("the address parses");
+  let outcome = facade
+    .put(&address, &body.to_string())
+    .expect("the thread arm accepts a legal body for an existing thread");
+
+  let after = facade
+    .canon()
+    .threads
+    .iter()
+    .find(|t| t.id == "ST0001")
+    .cloned()
+    .expect("the thread survives the write");
+
+  // **POSITIVE CONTROL: the field we ASKED for must have moved.** Without it a
+  // facade that refused the write outright would leave every other field
+  // untouched and satisfy every assertion below -- a green that is a fact about
+  // the harness rather than about the surface.
+  assert_eq!(
+    after.completed.as_deref(),
+    Some("2026-08-24"),
+    "the field this test asked to move did not move -- the measurement below is \
+     about a write that never happened ({outcome:?})"
+  );
+
+  // The eight fields nobody asked about, each compared to what it was.
+  let collateral: Vec<&str> = [
+    ("slug", before.slug != after.slug),
+    ("status_reason", before.status_reason != after.status_reason),
+    ("acceptance", before.acceptance != after.acceptance),
+    ("objective", before.objective != after.objective),
+    ("context", before.context != after.context),
+    ("body", before.body != after.body),
+    ("preamble", before.preamble != after.preamble),
+    ("related", before.related != after.related),
+  ]
+  .into_iter()
+  .filter_map(|(name, moved)| moved.then_some(name))
+  .collect();
+
+  // **GRAFTED CHILDREN ARE THE CONTROL THAT SAYS THE ARM CAN PROTECT A FIELD.**
+  // If these moved too, the finding would be "the arm replaces the document",
+  // which is a weaker and less interesting claim. They do not move, which is
+  // what makes the eight above a CHOICE about which fields get grafted rather
+  // than an inevitability of parse-and-replace.
+  assert_eq!(
+    (
+      before.wps.len(),
+      before.criteria.len(),
+      before.tests.len(),
+      before.attachments.len()
+    ),
+    (
+      after.wps.len(),
+      after.criteria.len(),
+      after.tests.len(),
+      after.attachments.len()
+    ),
+    "the grafted children moved -- the arm is not protecting what it says it protects"
+  );
+
+  println!(
+    "AC-08.5 limb 2 at the thread door: {} of 8 unasked field(s) were cleared by a minimal legal `put`:",
+    collateral.len()
+  );
+  for name in &collateral {
+    println!("  {name}");
+  }
+
+  assert_eq!(
+    collateral,
+    [
+      "slug",
+      "status_reason",
+      "acceptance",
+      "objective",
+      "context",
+      "body",
+      "preamble",
+      "related"
+    ],
+    "the thread arm's collateral set has MOVED.\n  \
+     If it SHRANK, a graft was added and AC-08.5's second limb got closer -- move this \
+     literal and say so on the row.\n  \
+     If it GREW, a field lost its protection, which is a regression in the surface."
+  );
+}
