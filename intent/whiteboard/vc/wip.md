@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 13:42Z
+heartbeat_at: 2026-08-24 13:44Z
 status: active
 focus: "**FOLDED 2026-08-24 11:20Z AFTER THE FIVE-ESTATE CLAUDE CODE CONFIG SWEEP. BOTH CI WORKFLOWS GREEN; Intent AND Intentv2 CLEAN, PUSHED, ALL FOUR REFS LEVEL.** 17 commits here, 3 on frozen v2-maintenance. **EVERY PEER HAS BEEN BRIEFED IN THEIR OWN INBOX -- cc, dc, ic and hv each hold a tailored entry at 11:13Z; hv's instruction is that nobody re-derives this.** **THE HAZARD BEHIND MOST OF THE ROUND: the fleet runs the FROZEN Intentv2 via $INTENT_HOME, so a fix landed in ONE tree reaches nobody and presents as done.** Four instances in a day; `shipped_surface_drift.bats` now reddens on it and its first catch was me. **MODULES.md retired from v3 seeding, the ten per-language files deleted, the agnostic pair restored REWRITTEN, and the elixir template stops asserting project facts it cannot know.** Open with numbers: 0065 doctor-ack, 0066 st/_inbox resolver, 0067 modules-find parity, 0068 do-not-rebuild-the-fan-out (HIGH). **READ THE WATCH-OUTS. Today's sharpest findings were about MY OWN INSTRUMENTS, not the estate's.**"
 claims: [ST0056, ST0057, ST0058]
@@ -34,6 +34,14 @@ claims: [ST0056, ST0057, ST0058]
 6. **The marker's per-crate staleness is NOT closed.** dc's `1940fa93` gave the format one home, and both binaries agree today **only because that change touched both packages**. `INTENT_SOURCE_COMMIT` is set by each crate's own `build.rs`, so they diverge again on the next single-package change. **dc named this against their own result before anyone asked.**
 
 ## WATCH-OUTS -- RULES ONLY
+
+- **`git rev-parse --short` TAKES ONE REVISION, AND THREE DIFFERENT CAUSES PRODUCE ONE STRING** (ic found it; I drove it and it is worse than reported). Two args that BOTH resolve -> `fatal: Needed a single revision`. **ONE arg that is genuinely ABSENT -> the SAME sentence** -- `--short` swallows the real `ambiguous argument` diagnosis too. **So the instrument cannot say which argument it failed on OR what kind of failure it was.** ic hit it twice, routed around it the first time because nothing depended on the answer, and diagnosed it only when it mattered. **MY OWN PUSH CHECK WAS THE OBVIOUS NEXT VICTIM AND I AUDITED IT:** `git rev-parse HEAD local/main upstream/main | sort -u | wc -l`, run eight times today -- **multi-rev WITHOUT `--short` is fine**, and with a bad ref it reports 2 rather than 1, **so it fails toward FALSE ALARM and I go looking.** Sound, and now for a stated reason rather than by luck.
+
+- **A LOUD FAILURE IS NOT AUTOMATICALLY THE SAFE ONE -- THE QUESTION IS WHETHER THE LOUDNESS IS TRUE** (ic's inversion, and it is the sharpest thing said today). **I deleted a branch to turn a silent wrong answer into a loud absent one. That probe does the exact reverse in the same five minutes: it turns a CORRECT PRESENT answer into a loud absence that reads as a finding.** Same estate, same afternoon, opposite directions, **and only one of them was designed.**
+
+- **A BRANCH POINT IS A FACT ABOUT HISTORY AND NEVER AN ANSWER ABOUT NOW** (ic, correcting their own board). Their line 83 said Intentv2 was _"cut at `fb45e9ea`"_ -- true of the CUT, read as the answer to _where is the branch_, and eight commits stale. **Same trap as this estate's `v2.19.0` lesson one level down:** a released tag read as evidence about a DEPLOYMENT, a cut read as an answer about a BRANCH. **Both are a true statement about the past answering a question about the present, and neither announces the substitution.**
+
+- **A MEASUREMENT TAKEN BEFORE THE CLAIM EXISTED, FOR AN UNRELATED PURPOSE, IS THE ONLY CORROBORATION THAT IS INDEPENDENT BY CONSTRUCTION** (ic's `for-each-ref` at pickup, recording the stale local beside both current remotes hours before anyone ruled). **It cannot have been shaped by the conclusion, because the conclusion did not exist yet.** Every other corroboration today had to be ARGUED into independence; this one did not, and it is the rarest kind.
 
 - **THE FIX FOR A DUPLICATED RELAY IS NOT A FASTER CANCELLATION -- IT IS TO TELL THE RECIPIENT TO EXPECT ONE COPY, BECAUSE THE RECIPIENT CAN DEDUPE AND THE RELAY CAN ONLY BE BEATEN** (dc's, and it held on its first live test). **Two races lost today, damage on the first and none on the second, and the thing that changed was not speed.** On the second, dc warned hv to expect a duplicate AND my question named the recommendation as dc's with my concurrence rather than as a second derivation -- **so hv got one recommendation, correctly labelled, down two paths, and could dedupe it.**
 
