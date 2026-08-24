@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 20:32Z
+heartbeat_at: 2026-08-24 20:36Z
 status: active
-focus: "**AT-00.6 FIXED; `intent#0075` AND `#0076` FILED, BOTH PEER-VERIFIED AND AMENDED THREE AND ONE TIMES. Gate unmoved at 66 of 67.** dc found `view_skew_check.sh` cannot run through its own shebang -- one apostrophe at `:90`, worst possible position, dead before it reads a view. prolix-vc measured 6 of 9 Elixir rules firing from a COMMENT. **THE EVENING'S RULE, FOUR INSTANCES IN FOUR SUBSYSTEMS: A RULE IS HONOURED BY WHOEVER LEARNED IT AND DOES NOT PROPAGATE BY HAVING BEEN LEARNED.** Both fixes are hv's ruling; dc holds; I have touched neither file."
+focus: "**AC-08.5 KICKED OFF BY hv AT 2026-08-24 20:36Z -- cc BUILDS, ic COVERS, BOTH BRIEFED. The last open gate row; 66 of 67.** Build starts from ic's fifth instance at `ea84d0ae`: a minimal legal `put` at a THREAD's address cleared **8 of 8 collateral scalars**, and **the graft control is the whole argument** -- the four children are provably unmoved four lines away, so the eight are a CHOICE and not a property of parse-and-replace. **`related` has no other door than the one that empties it.** Exposure is ZERO because no production path exists, not because the write is checked -- a correctness fix, not an incident. **Both nodes warned off the two refuted claims** (the AT `note` destruction was v2's and is fixed; thread-scoped `sync` works, and that error was mine). Also live and hv's: `intent#0075`, `#0076`."
 claims: [ST0056, ST0057, ST0058]
 ---
 
@@ -23,7 +23,7 @@ claims: [ST0056, ST0057, ST0058]
 
 1. **PUSH DISCIPLINE IS A STANDING PROPERTY, NOT A TASK -- LEAVE THE REFS LEVEL.** Authority granted and standing.
 2. **AC-00.8's COVERAGE RE-CUT IS NOW WITH hv TOO** -- adding `AC-00.8` to `AT-10.2`/`AT-10.4`'s `covers` would satisfy two of its five clauses and GREEN a criterion, which is the tell for routing rather than taking. **`intent#0075` is routed to dc, not hv.** **FOUR THINGS SIT WITH hv AND NONE IS MINE TO CLEAR** -- listed in `intent/wip.md` under "Sitting with hv": dc's routing question 2, `intent#0073`'s six swift dispositions, `intent#0074`'s heex-coverage question, `intent#0071`'s v2 CHANGELOG heading. **The escaped-mutator decision was WITHDRAWN: dc committed the one real change and the tree is clean.**
-3. **AC-08.5 is ST0057's last gate row.** cc builds, ic covers, untouched by me.
+3. **AC-08.5 IS IN FLIGHT FROM 2026-08-24 20:36Z.** cc builds (thread-door graft set, then `completed`'s setter, the CLI creator gap, the attachment-narrow setter); ic covers (state the ENTITY SET before measuring coverage over it; go beyond one door; rule on whether the declared-literal limit closes here or stays routed). **Untouched by me and it stays that way** -- I hold the contract, not the build. **The design call on the graft set is cc's to route to me if they want it ruled; I have not pre-ruled it.**
 4. **`--force` for `claude skills`** (ruled, queued); **`rulings_check.sh` is named after a field that no longer exists**; **the marker's per-crate staleness is NOT closed** -- both binaries agree today only because one change touched both packages.
 5. **The ETXTBSY flake is closed ON THE POPULATION DERIVATION, not on greens** -- `rust.yml` is path-filtered, so the run count is ONE and stays one until someone touches Rust. **Do not read an accumulating green board as accumulating evidence.**
 
