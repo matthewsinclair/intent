@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 16:50Z
+heartbeat_at: 2026-08-24 17:36Z
 status: active
-focus: "**LOCALFOLDED 2026-08-24 FOR A COMPACT; STATUS STAYS ACTIVE BECAUSE `/compact` IS TRANSPARENT (invariant 6) -- the `release` in localfold is for `/in-finish`, not for a bounce.** **NEXT WORK, AUTHORISED BY matts: intent#0070 -- `intent upgrade` DESTROYS EVERY ISSUE IN AN ALREADY-MIGRATED v3 PROJECT.** **The defect is an ASYMMETRY, not the re-run: `migrate.rs:329-333` tops `threads` up from committed canon via `dehydrated()` and `issues` passes straight into `assemble` with no union**, so on an already-migrated project `legacy::scan` finds no v2 estate, threads refill, issues do not, and the commit replaces the store. **dc drove the falsifiable split -- unmigrated 5->5 SURVIVED, already-migrated 5->0 DIED -- so the mechanism could have been falsified and was not.** **`0 issue(s)` means CARRIED none and the number is HONEST, so this CANNOT be fixed by changing the message.** **Red-first needs BOTH arms and must read counts from the STORE, never `sync` saying AGREE, or it inherits 0069.** **AC-08.5 is the only gate row left (66 of 67) and is amended at `7b49adc9` with the population stated: Thread has 18 fields, 5 required, 4 grafted, 9 neither, collateral denominator 8 and numerator 8.** **Three burning cases live; only the attachment-setter clause is refuted.** **THE DAY'S PATTERN ABOUT ME, and it is the thing to carry: THE MEASUREMENT IS NOT THE CLAIM -- three times my figure was right and my claim about what it measured was too strong (`admissible` vs `provably current`, a comment's wording vs the row's, distance vs floor).** Nothing in flight."
+focus: "**LOCALFOLDED AND COMMITTED 2026-08-24 17:36Z; NOTHING IN FLIGHT; HOLDING FOR vc's INSTRUCTIONS ON THE BOUNCE (matts).** **STATUS STAYS ACTIVE: `/compact` is transparent (invariant 6) and the `release` in localfold is for `/in-finish`, not a bounce.** **intent#0070 IS FIXED AND LANDED AT `3f367cf8`** -- `migrate::plan` now unions `issues` against committed canon as it already unioned `threads`; driven red-first at HEAD with the pre-fix binary still failing beside the fixed one, both arms, suite 142/1038/0, clippy clean. **AC-08.5 IS THE ONLY OPEN GATE ROW AND IS MINE TO BUILD.** **THE DAY'S PATTERN ABOUT ME, AND IT FIRED FOUR TIMES: THE MEASUREMENT IS NOT THE CLAIM** -- each time the figure was right and the sentence describing how I had got it was stronger than the instrument behind it. **The fourth reached CI**: a correct ETXTBSY fix, correctly reasoned, applied to a population of ONE when the population was THREE, and it was the fix BEING CORRECT that kept it alive -- a right helper with a right doc comment reads as finished work, so nobody asks how many places it belongs. vc widened it into `testkit` at `6bbe287b`; I declined to take it back and gave them an independent population derivation instead, which is the one thing this class actually needs."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -87,79 +87,19 @@ ic drove it: a minimal legal `put` at the thread door **clears 8 of 8** -- slug,
 
 **The first is the same family as the claims we were auditing, and it happened ONE STEP AFTER I told vc I would guard against it.** I greped `native/rust/intent-cli/src` -- **which does not exist**, the path is `native/rust/crates/intent-cli/src` -- and got a clean zero that read exactly like _nothing touched the CLI_. **A zero from a wrong path and a zero from a true absence are the same characters on screen, and the only thing that separates them is asking the instrument to find something you know is there.** Also read an rc after a pipe (`head`'s, not the command's) and used a wrong marker regex. **vc hit the identical wrong-path shape on their own `mcp` claim the same hour and re-drove it with two doors.**
 
-## intent#0070 -- `upgrade` DESTROYS EVERY ISSUE IN AN ALREADY-MIGRATED v3 PROJECT. **FIXED 2026-08-24 16:33Z, BOTH ARMS DRIVEN, RED-FIRST ON THE TEST ITSELF.**
+## intent#0070 -- FIXED AND LANDED `3f367cf8`. Full record archived; this is the cold-session minimum.
 
-### THE FIX AS BUILT, AND EVERY NUMBER BELOW IS FROM A COMPLETED RUN
+`upgrade` destroyed every issue in an already-migrated v3 project because `migrate::plan` unioned `threads` against committed canon and passed `issues` straight through. **`orphaned_issues()` now sits beside `dehydrated()`;** the strict reader was extracted as `ingest::read_issue` rather than copied. Driven red-first at HEAD, both arms, with the pre-fix binary still failing beside the fixed one; regression in `migrator_population_is_canon.rs` driven red by disabling the union. Suite 142 targets / 1038 passed / 0 failed, clippy `-D warnings` clean.
 
-**`migrate::plan` now unions `issues` against committed canon exactly as it unions `threads`.** New `orphaned_issues()` sits beside `dehydrated()` and carries the same three rulings verbatim, because they transfer without amendment: the union belongs at the JOIN and not inside `legacy::scan`; `issue_numbers()` answers empty for a missing directory, so a genuine v2 estate adds nothing and the first-run path is untouched; and an unreadable or invalid canon REFUSES rather than being skipped.
+**NOT MINE, AND BOTH ARE WAITING ON matts:** dc closes the `0070` row and corrects their roster row in one pass. **vc RULED NO CHANGELOG ENTRY** -- a defect introduced and fixed inside the same unreleased cycle has no reader, and the `[3.0.0]` block has no `Fixed` section to put it in while 35 release headings below it do. **`intent#0071` is the counter-example -- a SHIPPED v2 defect -- and is hv's.**
 
-**THE STRICT READER WAS EXTRACTED RATHER THAN COPIED -- `ingest::read_issue`, mirroring `read_thread`.** Inlining a second `parse::<Issue>` at my call site is how this defect's own class arrives a second time: one reader enforcing the schema and the other not. `read_thread`'s doc comment already says it is public precisely so a second strict reader cannot grow; the issue side had no such reader, which is why the copy was the tempting move.
-
-**ONE CHECK IS NEW AND IT IS LOAD-BEARING ONLY AT THE NEW CALL SITE.** `read_issue` refuses a file whose declared `number` disagrees with its stem, because the union asks _which numbers has the scan not produced_ and then trusts the file under each remaining one -- a `0003.json` declaring `"number": 7` would smuggle issue 7 past a `seen` set tested against 3. **Measured before adding it rather than assumed safe: 51 issue canon files here, 0 mismatches.**
-
-| arm                                      | binary                   | before | after | verdict                   |
-| ---------------------------------------- | ------------------------ | ------ | ----- | ------------------------- |
-| already-migrated, PRE-fix (dc's script)  | release `dirty-69f672d3` | 5      | 0     | REPRODUCED -- still red   |
-| already-migrated, POST-fix (dc's script) | debug `dirty-eabdd639`   | 5      | 5     | FIXED                     |
-| real v2 estate -> v3, PRE-fix            | release `dirty-69f672d3` | 5      | 5     | carried all 5             |
-| real v2 estate -> v3, POST-fix           | debug `dirty-eabdd639`   | 5      | 5     | UNCHANGED, byte-identical |
-
-**THE POSITIVE CONTROL WAS FREE BECAUSE dc WROTE TWO BINARIES INTO ONE SCRIPT.** The pre-fix release build is still red **in the same run** that shows the debug build green, so the green is a property of the fix rather than of the instrument going blind. A single-arm script would have given me a green I could not distinguish from a script that had stopped looking.
-
-### RED-FIRST ON THE TEST, WHICH IS THE STEP A GREEN TEST CANNOT SUBSTITUTE FOR
-
-Regression added to `migrator_population_is_canon.rs` -- **that file and not a new one**, because a second home for _the migrator's population is canon_ is precisely how the two populations drifted apart. Then the union was disabled and the test re-run: **`left: {}` vs `right: {21, 22, 23}`.** The precondition assertion passed FIRST, so the store was genuinely populated and then emptied rather than never filled. Source restored and diffed byte-identical.
-
-### THE REPORT WAS FIXED TOO, BECAUSE THE FIX WOULD OTHERWISE HAVE MADE IT LIE
-
-The union makes `migrated: N issue(s)` count a population read back from committed canon, so on a re-run it would claim as CONVERTED what was merely re-emitted -- the exact disclosure threads already get one line down. **Fixing the loss and leaving the report asymmetric would rebuild this defect's shape in the layer 0070's own body calls the worst part.** `Plan` and `Upgraded` now carry `already_migrated_issues`, and the run prints a second line for it. **Separate line rather than a second clause**, because a v2 estate mid-conversion has already-migrated threads and no issue canon at all, and one sentence would make a zero on either side read as a statement about both.
-
-### THE LOSS SURFACE IS CLOSED AND THAT IS MEASURED, NOT ASSUMED
-
-`store.rebuild` deletes seven tables -- `tests`, `criteria`, `related`, `attachments`, `wps`, `threads`, `issues`. **Five of the seven are sub-populations of `Thread` and return with the threads; `issues` was the only top-level population without a union.** The five tables it does NOT delete (`event_log`, `file_index`, `ingests`, `snapshots`, `doc_sections`) cannot be lost by a rebuild. **So there is no third instance of this asymmetry waiting** -- checked by enumerating the delete list against the schema rather than by reasoning from the two I already knew about.
-
-### A READING I NEARLY PUBLISHED AND CORRECTED FIRST -- THE FLATTERING VERSION WAS WRONG
-
-I had it that `migrate_v2_project.rs`'s LIMB 4 was **one binding away** from catching this: it does `let (threads, _issues)` and its own doc says _"the population is the claim"_. **That is false, and the true version is worse.** `converted()`'s v2 estate holds no issues at all, so binding the name would have compared `[]` against `[]` and passed on every build ever made. **A true instrument, correctly aimed, at a population that cannot exhibit the failure** -- vc's dominant class from the same day, and the discarded binding is the symptom rather than the cause. Added LIMB 4b, which brings its own issue-bearing estate and covers the FIRST-RUN path specifically, since that is the path the fix could break.
-
-**dc REPORTED AND DROVE IT; I LOCATED THE MECHANISM; dc THEN DROVE THE PREDICTION MY MECHANISM MAKES.** Neither the diagnosis nor the test shares an author with the other, which was the point of asking.
-
-**THE MECHANISM -- `migrate.rs:329-333`, and the defect is an ASYMMETRY rather than the re-run.**
-
-```
-let seen: BTreeSet<String> = threads.iter().map(|t| t.id.clone()).collect();
-let (extra, extra_ids) = dehydrated(project, &seen)?;
-let mut threads = threads;
-threads.extend(extra);                                 // threads topped up from COMMITTED CANON
-let mut plan = assemble(project, ctx, threads, issues, carried)?;  // issues straight through
-```
-
-**THREADS GET A UNION AGAINST THEIR OWN COMMITTED CANON. ISSUES GET NOTHING.** On an already-migrated project `legacy::scan` finds no v2 estate, both come back empty, the union refills threads, nothing refills issues, `assemble` plans zero, and the commit replaces the store. **v2 short-circuits at target; v3 does not, so the re-run is the TRIGGER and the missing union is the DEFECT.**
-
-**AND THE UNION'S OWN COMMENT STATES THE PRINCIPLE FOR BOTH POPULATIONS IN THE SAME BREATH:** _"THE UNION, AND IT IS WHY THIS VERB STOPPED SHRINKING THE ESTATE... a thread absent HERE is absent from the SSOT and from the index the migration leaves behind."_ **Substitute `issue` and every word stays true. The fix that stopped the verb shrinking the estate was applied to HALF the estate** -- and the half it missed is the half with no canon re-emit arm to make the loss visible.
-
-**dc's DRIVEN SPLIT, WHICH COULD HAVE FALSIFIED THE MECHANISM AND DID NOT:**
-
-| arm                                          | report                                | issues | verdict  |
-| -------------------------------------------- | ------------------------------------- | ------ | -------- |
-| v3 upgrade on a genuine UNMIGRATED v2 estate | `1 thread(s), 5 issue(s), 11 file(s)` | 5 -> 5 | SURVIVED |
-| v3 upgrade on an ALREADY-MIGRATED project    | `1 thread(s), 0 issue(s), 6 file(s)`  | 5 -> 0 | DIED     |
-
-**dc's SELF-CORRECTION IS THE PART THAT CHANGES THE FIX.** They first told vc and me that `0 issue(s)` means LEFT none rather than FOUND none. Too strong: **it means CARRIED none, and the number is HONEST -- it says 5 when it carries 5.** So **the output is a FAITHFUL REPORT OF A DESTRUCTIVE PLAN, which is worse than a wrong number: YOU CANNOT FIX THIS BY CHANGING THE MESSAGE.**
-
-**RED-FIRST ARM, SPECIFIED BY THE SPLIT AND NOT BY EITHER OF US: BOTH ARMS REQUIRED.** With the issues union in place the ALREADY-MIGRATED case must report `5 issue(s)` and survive, **AND the unmigrated case must be UNCHANGED at 5** -- because a fix that makes the already-migrated path work by breaking the scan path passes a single-arm test. **And dc's constraint on the assertion: a regression test for 0070 that asserts via `sync`'s agreement report INHERITS 0069 -- read counts from the STORE directly, never `sync` saying AGREE.**
-
-**0069 AND 0070 ARE TWO ROWS WITH A DEPENDENCY, NOT ONE** (dc's ruling, and it corrects my merge question): 0069 is a REPORTING defect in `sync`, 0070 a DESTROYER in `upgrade`. **0069's guard actually WORKED in the live case** -- `sync --to-disk` refused at rc=1 naming _the store holds no issues and the estate has 47_, **which is how any of this surfaced at all.**
-
-**THE TELL PAIRING, dc's AND MINE, AND BOTH REST ON A REAL NUMBER WHICH IS WHY NEITHER GETS CHALLENGED:** **mine goes wrong at the WRITING** -- I drive the measurement and publish a stronger claim about what it measured; **dc's at the READING** -- they read the measurement as the claim it invites. dc did theirs twice in one hour on this same defect, one message after naming it.
+**Verbatim record, both driven arms and the three corrections I made along the way:** `.history/20260824/wip-fold-1735Z.md`.
 
 ## TODO
 
-**1. ~~intent#0070 -- THE ISSUES UNION IN `migrate::plan`.~~ BUILT AND DRIVEN 2026-08-24 16:33Z; see the section above. WHAT REMAINS IS NOT MINE:**
+**1. NOTHING OF MINE IS IN FLIGHT. HOLDING FOR vc's INSTRUCTIONS (matts, 2026-08-24 17:36Z).** intent#0070 is landed at `3f367cf8`; the row-close is dc's and the changelog question is ruled. **The v2-estate arm did NOT die with the session** -- it landed as `intent/st/ST0056/parity/tools/v2_estate_issue_carry.sh`, rostered `manual`, and `migrate_v2_project.rs` LIMB 4b covers the same property in Rust.
 
-- **The issue row's status is dc's to close, not mine** -- they reported it, filed it and own the canon. `0070.json` is in dc's staged index; I have not touched it.
-- **A CHANGELOG line is GLOBALFOLD and therefore vc's.** Flagged rather than written.
-- **`v2_estate_arm.sh` -- the first-run arm -- is a SCRATCHPAD script and dies with this session.** LIMB 4b in `migrate_v2_project.rs` now covers the same property durably in Rust, so nothing is lost; if the shell form is wanted under `parity/tools` it should be dc's to place, for the same authorship reason they honoured for me.
+2. **`AC-08.5` IS THE ONLY OPEN GATE ROW AND IT IS MINE TO BUILD (ic covers).** The three absence claims, the door split and the one retraction are in the section above -- **read that, not this line.**
 
 0a. **NEW AIM FROM vc UNDER hv's PEN, REPLACING THE GATE AS TODAY'S PRIORITY: drive v3 to LOCALLY USABLE across the 17 projects on this machine.** Four gates; **cc owns U3's BUILD queue** (ic measures the daily-use population, cc builds). Started on the half depending on nobody: the family-and-subcommand delta driven FROM THE TWO BINARIES, not from `dispatch-table.json` -- `shipped: 115` is a claim about what is IN the binary, never about what WORKS. **`treeindex` to be confirmed absent BY POPULATION, not by one grep** -- vc checked with one and said so.
 
@@ -172,14 +112,6 @@ let mut plan = assemble(project, ctx, threads, issues, carried)?;  // issues str
 **NOTHING OF MINE IS BLOCKED.** The ST0057 canon block cleared when ic committed both files at `6edbd24f` -- their AT-07.7 green and `address_collections_resolve.rs`, which had been untracked while canon cited it.
 
 **AND NOTHING IS BLOCKED ON ME EITHER, WHICH THIS SECTION CLAIMED FOR A DAY AFTER IT STOPPED BEING TRUE.** It read _ic IS BLOCKED ON ME ... the `render.rs` test is TODO 4 and unstarted_ -- while TODO 4 was already struck through as landed at `1d550ac1` and ic had retired `declared_but_unwired` at `b4918a35`, both recorded twelve lines above. **A board can hold its own contradiction and read fine, because nobody reads two sections against each other.** Same shape as `hv/wip.md` having no tense, one file closer to home: the entry that goes stale is never the one being edited.
-
-## What changed under the tree on 2026-08-21 -- NOT today; read the dates
-
-- **THE v2 CLI HAS LEFT THIS CHECKOUT.** `~/Devel/prj/Intentv2`, branch `v2-maintenance`, cut at `fb45e9ea` = main HEAD and **NOT the `v2.19.0` tag** -- the old symlink resolved into the working tree, so the fleet had never run the tag, and branching there would have reverted 2027 commits across every project while presenting as a symlink move.
-- **CORRECTED 2026-08-24 -- `DO NOT PUT v3 ON PATH` WAS RETIRED BY ST0058 ON 2026-08-22 AND THIS LINE ASSERTED IT FOR TWO MORE DAYS.** **v3 IS on PATH as `intent3`** -- a DISTINCT name, so the fleet's `intent` gate is untouched by construction. `intent3` -> `bin/intent3` -> `target/release/intent`. **And dc's currency guard now REFUSES that release binary**, correctly: it is dirty AND its committed range touches crate source. Remedy is `int local build`. **`intent` on PATH is still v2.19.0 and answers for the FLEET, not for this tree.** Original line, now false in its second half: **`bin/` is no longer load-bearing for anyone else**, so v2 shell can be pruned here without breaking fifteen projects.
-- **THE `INTENT_HOME` STALENESS I RECORDED AT 12:57Z EXPIRED AT 13:36 AND THE CORRECTED STATE IS: THIS SESSION IS FINE.** Driven at 13:2xZ on vc's restart probe, same session: `INTENT_HOME=/Users/matts/Devel/prj/Intentv2`, `intent` -> `Intentv2/bin/intent` (v2.19.0), siblings `intent_st` and `int` -> `Intent/bin` (v3). **That is the correct split and no measurement in this session is suspect.** What I wrote at 12:57Z -- that the shell carried the old value and every PATH-`intent` reading described the old binding -- **was true when written and false within forty minutes**: hv's symlink is stamped 13:36, AFTER my 12:58Z fold, so the binding change completed while I was already paused. **THE LESSON IS NOT ABOUT THIS VARIABLE. A CLAIM WHOSE SUBJECT IS STILL BEING CHANGED BY SOMEONE ELSE HAS A SHELF LIFE, AND A FOLD IS EXACTLY WHERE ONE GETS FROZEN AND READ LATER AS CURRENT.** Stamp the reading, name who else can move the subject, and re-drive before relying on it.
-- **BOTH TREES ARE ON PATH AND v3 IS FIRST; THE SYMLINK ONLY EVER PICKED THE ENTRYPOINT** (vc, measured before the switch). `~/.local/bin` at 17 gives v2 for `intent` ALONE; `Intent/bin` at 22 beats `Intentv2/bin` at 23, so **`intent_st`, `intent_critic`, `int` and `devbin` all resolve to the v3 tree.** Harmless today only because the 26 executables are byte-identical and `bin/intent:26` sources every handler out of `INTENT_HOME` regardless -- **the env var picks the CODE, the symlink picks the ENTRYPOINT.** It arms itself the moment v3's `main` diverges. Fix is WP-12's _bin/ (shell) pruned at the cut_, mine, later. **vc tested one binary and concluded about the tree; Lamplight's ic caught it.**
-- **THIS REPO'S COMMIT GUARDS NOW RESOLVE OUT OF THE FROZEN v2 CHECKOUT** (`.githooks/pre-commit` -> `pre-commit.intent` -> `intent info` -> `$INTENT_HOME/lib/templates/hooks/`). Identical today; **drifting from the next guard change.** dc holds it as a mechanism -- hv declined direnv and hand-refresh by name.
 
 ## The practice -- four shapes of a row promising more than it delivers
 
@@ -232,6 +164,24 @@ I planted six scalars in probe canon with `related` as bare strings. **`sync --t
 
 ## Watch-outs -- instruments
 
+### MY OWN, AND IT REACHED CI: A CORRECT FIX, CORRECTLY REASONED, APPLIED TO A POPULATION OF ONE WHEN THE POPULATION WAS THREE (vc found it 2026-08-24 17:05Z -- their stamp, attributed)
+
+`eb4fe67c`'s message is the evidence against me: **_"retry the ONE exec-of-a-just-copied-binary, which Linux calls busy"_.** `ONE` is a claim about the CORPUS and **I never ran the grep that would have said three.** The diagnosis was right -- fork between another thread's open and close, the child holds the write fd between `fork` and `execve`, Linux enforces it and macOS does not -- the helper was right, and matching on `raw_os_error() == 26` rather than the unstable variant was right. **Only the population was assumed.**
+
+**COST: 4 of the last 12 `rust` CI runs red, all the same cause**, two of the three sites having already lost the race and the third merely not having lost it yet. **Linux only; macOS green throughout, so no local run could ever have shown it.**
+
+**DERIVED WORKSPACE-WIDE WHEN vc REPORTED IT, because the finding is precisely about a set drawn from what was in hand:** 29 files reference `CARGO_BIN_EXE_intent`, **3** `fs::copy` it and then exec the copy, **1** has the retry. **The discriminator is `fs::copy` and NOT `CARGO_BIN_EXE_intent`** -- 26 of 29 exec in place and are not exposed at all. Positive-controlled before trusting the zero elsewhere, and all three verified to copy AND exec rather than merely copy.
+
+**THE FIX BEING CORRECT IS WHAT KEPT IT ALIVE, AND THAT IS THE GENERAL FORM.** A wrong helper gets rewritten by the next reader. **A right helper carrying a doc comment that diagnoses the OS behaviour correctly reads as FINISHED WORK, so nobody asks how many places it belongs.** Same shape as dc's roster row: the true half is what a reader checks first, and it holds.
+
+**vc is landing it into `testkit` and I declined to take it back.** They held the diagnosis and CI was red; the fix is mechanical widening, not an authored change, so there was no reason it needed my hands. **What I could add that they could not was an INDEPENDENT population derivation, which is the one thing this class actually needs.**
+
+### CANON GIVES ATTACHMENT BODIES AND CRITERION PROSE THE SAME KEY NAME, SO A GREP FOR `"text"` CANNOT TELL THEM APART (vc caught it on themselves; mechanism confirmed here)
+
+vc nearly checked whether my commit moved authored fields by grepping the diff for `"text"` -- **106KB of diff, and it would have reported criteria moving when only script bytes had.** Their framing was that canon stores attachment bodies under `text`. **The mechanism is worse than that and it is why no better grep helps: `criteria` uses THE SAME KEY.** Driven on ST0056.json -- exactly two paths carry a `text` scalar, `attachments.N.text` and `criteria.N.text`, and 93 attachments have one. **The two populations are indistinguishable BY KEY and separable only BY PATH**, so the structural comparison is not the careful option, it is the only honest one.
+
+**Same shape as the `_v` truncation an hour earlier: a pattern that matches real strings which are not the thing being counted.**
+
 - **A DENOMINATOR CAN BE CORRECT AND STATED AND THE CONCLUSION STILL WIDER THAN IT.** **Stating your denominator does not stop you generalising past it.**
 - **`cargo test` HALTS AT THE FIRST FAILING TARGET** -- 46/366 against the real 141/985/2. **The stopped run's denominator looks exactly like a denominator.** `--no-fail-fast`.
 - **A GITIGNORED SSOT IS INVISIBLE TO `git status`.** Walk the filesystem when the claim is _nothing was written_.
@@ -272,6 +222,18 @@ I planted six scalars in probe canon with `related` as bare strings. **`sync --t
 - **A TABLE EDIT IS A TWO-FILE COMMIT WHOSE SECOND FILE IS ONE YOU NEVER EDITED** -- after editing any SOURCE, ask what renders FROM it before staging.
 
 ## Standing rulings
+
+### vc's LINE ON ST0056 CANON IS DERIVED vs AUTHORED, NOT MECHANICAL vs INTERESTING (vc, live channel, 2026-08-24 16:57Z -- their stamp, attributed)
+
+I offered to route ST0056 canon edits through vc even when mechanical. **They declined, and the line they drew instead is better than the one I offered.** An attachment hash is DERIVED from a file I committed, and `canon_commit_check` already gates the property that matters -- it gated `3f367cf8`. **A checkpoint with no failure mode it can catch is a queue.** What DOES route through vc is AUTHORED: criterion text, `state`, `status`, notes, `covers`. Those are the contract, and a green arriving under their claim that they cannot defend is the two-wrong-63s shape.
+
+**They verified my commit STRUCTURALLY rather than reading my summary** -- loaded ST0056.json either side of `3f367cf8`, stripped attachments, compared: authored content byte-identical, criteria 133 -> 133, tests 138 -> 138, wps 16 -> 16.
+
+### NO CHANGELOG ENTRY FOR intent#0070, AND THE STRUCTURE IS THE ARGUMENT (vc's ruling, verified here)
+
+**A defect introduced and fixed inside the SAME UNRELEASED CYCLE has no changelog reader.** v3.0.0 has not shipped, so no user has ever held an already-migrated v3 project. **Driven rather than taken:** the `## [3.0.0] - in progress` block carries `Changed / Added / Migration Guide / Removed / Renamed` and **no `Fixed` section**, while **35 release headings below it do have one**. vc would have had to CREATE the section to hold the line, which is the tell.
+
+**This is NOT a general no-changelog-for-issues rule, and vc flagged the counter-example themselves: `intent#0071` is a SHIPPED defect** -- v2 `intent upgrade` blocking on an interactive read with no TTY, released in 2.19.0, and 11 of 16 fleet projects need exactly that upgrade. That one needs a v2 heading that does not exist, so it is release policy and **routed to hv**.
 
 - **EVERY ACCEPTANCE ID IS THREAD-QUALIFIED -- `ST00NN AC-XX.Y`, NEVER BARE.** **An id resolving to a SATISFIED criterion is the worst ambiguity: it reads as DONE.** A bare `AC-03.6` is GREEN in ST0056 (FTS prose bodies) and RED in ST0057.
 - **HIGHLANDER FORBIDS TWO ANSWERS TO ONE QUESTION; IT DOES NOT REQUIRE ONE ANSWER TO TWO.** **Two mechanisms enforcing different properties are not two copies of one** -- prevention and refusal are different criteria.
