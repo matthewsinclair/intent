@@ -39,6 +39,16 @@
 # `--include-mutating` drives them too. `claude start` is still excluded: it
 # SPAWNS, which a clone does not contain.
 #
+# **THAT PARAGRAPH WAS FALSE FOR TWO DAYS AND IS KEPT ABOVE RATHER THAN REWRITTEN,
+# BECAUSE THE CLASS IS THE POINT.** The clone was real, the build was real, the
+# revision was named by construction -- and the verbs were invoked from the LIVE
+# tree's cwd, so every mutator resolved the live project. **Containment was
+# asserted here and driven nowhere.** It is the same shape as the `multi-second`
+# figure this author replaced in `bin/intent3` an hour earlier: a confident
+# unmeasured claim, sitting in a SAFETY ARGUMENT, where it reads as a considered
+# trade-off and gets honoured rather than checked (cc drew the parallel). The fix
+# and the incident are at the drive loop.
+#
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
@@ -102,7 +112,31 @@ for v in "${VERBS[@]}"; do
   # rc OFF THE BARE CALL. `cmd | head` reports head's status, which returned 0
   # for everything in that same first pass -- two faults, one command, one
   # clean-looking wrong answer.
-  out="$( "$BIN" "${argv[@]}" 2>&1 )" && rc=0 || rc=$?
+  # AND `cd` INTO THE CLONE -- THE TRAP THAT ACTUALLY CAUSED HARM, AND THE ONLY
+  # ONE THIS LOOP DID NOT DOCUMENT. The two comments above are about getting the
+  # MEASUREMENT right. Nothing guarded the CONTAINMENT the header promises.
+  #
+  # CLONING CHANGES WHICH BINARY RUNS. IT DOES NOT CHANGE WHICH TREE THAT BINARY
+  # IS STANDING IN. Without this `cd`, the clone's binary inherits PROJECT_ROOT as
+  # its cwd, walks up, and finds the LIVE project. Measured in this repository
+  # 2026-08-24 at 13:44:15Z (`stat` reports it as 14:44:15 LOCAL/BST -- converted
+  # here at the source, because a reader appending a `Z` to the local value lands
+  # an hour out and the clock guard cannot see it once the commit lags past the
+  # offset): `agents sync` rewrote AGENTS.md (+12), `upgrade`
+  # stamped `project_id` into intent/.config/config.json and WROTE
+  # intent/.cache/intent.db -- the durable SSOT -- plus events.jsonl. Canon was
+  # untouched (0 of 105 dirty), which bounds it and does not excuse it.
+  #
+  # THE TELL WAS IN THIS TOOL'S OWN OUTPUT AND WAS READ PAST: `init` answered
+  # "already an Intent project: /Users/..." while the clone sat under /private/var.
+  #
+  # It is the `int hooks` finding one lane over -- a devbin command resolves its
+  # project from something other than your cwd -- recorded on the author's own
+  # board BEFORE this file was written.
+  #
+  # `$BIN` is absolute so the `cd` cannot reach it, and the subshell means the cd
+  # dies with the command substitution rather than leaking into a later step.
+  out="$( cd "$TMP/clone" && "$BIN" "${argv[@]}" 2>&1 )" && rc=0 || rc=$?
   case "$rc" in
     0) state="HOSTED"; hosted=$((hosted+1)) ;;
     2)
