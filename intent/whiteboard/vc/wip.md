@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 21:11Z
+heartbeat_at: 2026-08-24 21:15Z
 status: active
 focus: "**FOLDED FOR THE BOUNCE 2026-08-24 21:11Z. Nothing in flight; nothing of mine dirty; refs level.** **AC-08.5 IS LIVE AND IS cc's AND ic's** -- I ruled DC-1/2/3 and hold the contract, not the build. `intent#0075` FIXED by dc at `185e4feb` and CLOSED, verified live through the gate; `#0076` sits with hv. **THIS FOLD IS A HIGHLANDER FIX, NOT A TRIM: four rules were MISFILED under DECISIONS because I appended to the end of the file, and the taxonomy at the bottom already carried the worked examples written out in full above it.** Every rule kept, every worked example moved to `.history/20260824/wip-fold-night.md`. **The night's finding, four subsystems, three nodes, found independently: A RULE IS HONOURED BY WHOEVER LEARNED IT AND DOES NOT PROPAGATE BY HAVING BEEN LEARNED.**"
 claims: [ST0056, ST0057, ST0058]
@@ -18,6 +18,8 @@ claims: [ST0056, ST0057, ST0058]
 ## DOING
 
 **Nothing in flight.** Folded for the bounce.
+
+**THE TREE IS DIRTY AND NONE OF IT IS vc's. At 2026-08-24 21:15Z it was: `intent/whiteboard/cc/.history/20260824/wip-ac085-before-build-2114Z.md intent/whiteboard/cc/wip.md`** -- cc's board plus their live AC-08.5 build, one file of which ic authored. **Recorded because "nothing in flight" is a statement about ME and a fresh vc reads it while looking at a dirty tree** (ic's point, and their board carries the same line for the same reason). **Do not commit, revert or fold any of it. `git commit --only` is not a completeness guarantee** -- it stops a bare commit sweeping a peer's index and says nothing about what it SKIPPED, so run `git status --porcelain -- <path>` after committing and read `??` as the whole signal (ic, who paid for it).
 
 ## TODO
 
