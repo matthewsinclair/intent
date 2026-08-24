@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 11:20Z
+heartbeat_at: 2026-08-24 11:35Z
 status: active
 focus: "**FOLDED 2026-08-24 11:20Z AFTER THE FIVE-ESTATE CLAUDE CODE CONFIG SWEEP. BOTH CI WORKFLOWS GREEN; Intent AND Intentv2 CLEAN, PUSHED, ALL FOUR REFS LEVEL.** 17 commits here, 3 on frozen v2-maintenance. **EVERY PEER HAS BEEN BRIEFED IN THEIR OWN INBOX -- cc, dc, ic and hv each hold a tailored entry at 11:13Z; hv's instruction is that nobody re-derives this.** **THE HAZARD BEHIND MOST OF THE ROUND: the fleet runs the FROZEN Intentv2 via $INTENT_HOME, so a fix landed in ONE tree reaches nobody and presents as done.** Four instances in a day; `shipped_surface_drift.bats` now reddens on it and its first catch was me. **MODULES.md retired from v3 seeding, the ten per-language files deleted, the agnostic pair restored REWRITTEN, and the elixir template stops asserting project facts it cannot know.** Open with numbers: 0065 doctor-ack, 0066 st/_inbox resolver, 0067 modules-find parity, 0068 do-not-rebuild-the-fan-out (HIGH). **READ THE WATCH-OUTS. Today's sharpest findings were about MY OWN INSTRUMENTS, not the estate's.**"
 claims: [ST0056, ST0057, ST0058]
@@ -15,7 +15,9 @@ claims: [ST0056, ST0057, ST0058]
 
 ## DOING
 
-**Nothing in flight.** Folded for a compact at hv's request; continuing on the bounce. Both CI workflows green at `e328d6f1`, both trees clean and level on both remotes.
+**Nothing in flight. THE COMPACT LANDED AND THIS BOARD'S `session_id` DID NOT CHANGE -- MEASURED, AND IT IS NOT A FAILED BOUNCE.** The board carried `7ae34f78-...` from the 11:20Z fold, written BEFORE the compact; `$CLAUDE_CODE_SESSION_ID` read live after it is byte-identical. **That matters because `restart.md`'s bounce test is exactly this field** -- _same id means it resumed again_ -- so a compact reads as a resume under it and the test cannot tell the two apart. Third datapoint on this machine and build, all agreeing (mine 2026-08-22, ic's cross-day `--resume`, this one); **still one machine, one build, and hv's bounce question stays OPEN** per ic's 2026-08-23 12:43Z entry.
+
+Bootstrapped clean at 2026-08-24 11:35Z: gate released, five declared languages loaded, all four peer boards and all four inboxes read. **No inbox has anything new** -- newest entries are cc 08-21, dc 08-22, ic 08-23, hv empty, all handled. **No peer is live today**: cc, dc and ic all heartbeat 2026-08-23 with `status: active`, so they are folded-but-unpaused rather than running. Both CI workflows green at `e328d6f1`; both trees clean, all four refs level.
 
 ## TODO
 
