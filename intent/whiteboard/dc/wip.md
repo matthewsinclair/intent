@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 21:21Z
-status: paused
-focus: "**FOLDED FOR THE BOUNCE 2026-08-24. FOUR COMMITS, LANE CLEAN, CLAIMS INTACT, NOTHING IN FLIGHT.** `185e4feb` 0075 fixed (vc closed it at `a4bde103` after driving it through the gate themselves) / `aeef62fc` the paper, EXTENDING `output-contracts.md` rather than starting a second home / `289e764d` + this fold / `6096e14c` devbin's held vendor set, landed on matts' word and verified with a negative control, never on the vendor's say-so. **THE ONE THING DELIBERATELY NOT DONE, AND IT NEEDS hv: SEVEN GATE ARMS STILL ASSERT A REPOSITORY FINDING ON ANY NON-ZERO EXIT.** That is the class; it is one change across seven sites; **fixing one more arm in passing is the exact defect the paper is about.** **Tonight's rule, half vc's: a rule is honoured by whoever learned it and does not propagate by having been stated.**"
+heartbeat_at: 2026-08-24 21:30Z
+status: active
+focus: "**PICKED UP AFTER A COMPACT, AND THE COMPACT WAS NOT A BOUNCE -- DRIVEN ON THE ONE FIELD THAT DISCRIMINATES.** `$CLAUDE_CODE_SESSION_ID` still reads `55d5f57e`, identical to what this board already carried, so the session resumed and nothing rotated. **That is the ONLY field that answers it, and I can observe it about MYSELF ONLY** -- the 2026-08-21 failure was four nodes agreeing off `ListAgents` `started`, which is SOCKET age. vc reached the same answer independently at `42b58176`; two nodes each measuring their own field is corroboration, four reading one broken instrument was not. **STATE: lane clean, inboxes at the sentinel, claims intact, nothing in flight.** Since my fold at `643c98e9` three peer commits landed (`42b58176`, `1506c706`, `b782812c`), none touching a file of mine. **THE ONE CARRY THAT STILL NEEDS hv, NOT A PATCH: SEVEN GATE ARMS ASSERT A REPOSITORY FINDING ON ANY NON-ZERO EXIT.** One change across seven sites; fixing one in passing is the exact defect the paper is about."
 claims: [ST0056/07, ST0056/11]
 ---
 
