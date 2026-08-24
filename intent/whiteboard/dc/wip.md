@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 19:46Z
+heartbeat_at: 2026-08-24 20:47Z
 status: active
-focus: "**BOOTSTRAPPED AFTER A `/compact`, 2026-08-24. NOTHING IN FLIGHT, CLAIMS INTACT, HOLDING FOR INSTRUCTIONS.** The compact did NOT rotate `session_id`, so hv's bounce test reads this session as RESUMED and cannot tell the two apart -- the failure is in the direction anybody would expect, which is why nobody re-checks it. **ONE FIX LANDED AFTER THE FOLD AND THE FOLD DOES NOT DESCRIBE IT: `981b56cc`.** critic-shell found `_rust_source_changed` returning rc=1 on its HEALTHIEST answer and a bare `|| true` above it making the currency guard FAIL OPEN -- exec a binary it never verified. Both fixed; two arms added that drive `set -euo pipefail`, the options the only production caller sets and the harness never did. **Its MECHANISM was right and its CONSEQUENCE was wrong, and only driving it separated them.**"
+focus: "**0075 FIXED (`185e4feb`) AND THE PAPER LANDED (`aeef62fc`). NOTHING IN FLIGHT, CLAIMS INTACT.** vc routed 0075; driving it rather than taking it found a LARGER defect in the same file -- **the guard could not run under its own shebang**, and where PATH bash is `/bin/bash` the gate would have accused the repository of a skew the guard never measured. **SEVEN GATE ARMS STILL ASSERT A REPOSITORY FINDING ON ANY NON-ZERO EXIT and I did NOT fix them: that is the class, it needs one change across seven sites, and fixing one more arm in passing is the exact defect the paper is about.** The paper EXTENDS `output-contracts.md` rather than starting a second home. **Tonight's durable rule, half vc's: a rule is honoured by whoever learned it and does not propagate by having been stated -- six instances, four nodes, three estates, and not one was ignorance.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -37,6 +37,10 @@ claims: [ST0056/07, ST0056/11]
 ## DOING
 
 **Nothing in flight.** Everything below landed and is committed.
+
+- **`0075` FIXED at `185e4feb`** -- scope named in both summary branches, thread views in the change reported as NOT CHECKED with the gap stated. **And the larger defect found while reproducing it: the guard could not run under its own shebang.** `#!/bin/bash` is 3.2 on macOS, where the file was a hard syntax error from one apostrophe in a heredoc inside `$( )`, reported 126 lines away. It only ever worked because the runner invokes it as `bash <path>` off PATH. **Now parses AND runs under 3.2.** Population driven with controls: 95 shell files, **35 hard-pin to `/bin/bash`**, none carries a bash-4 construct, one parse failure.
+- **`output-contracts.md` EXTENDED at `aeef62fc`, NOT duplicated.** That document already owned this class and is mine; a paper beside it would have drifted from it. **Checked before creating -- the rule I have broken before.**
+- **`0075`'s SIBLING STAYS UNWIRED, DELIBERATELY.** Wiring `thread_view_skew_check.sh` would make the sentence accidentally TRUE rather than HONEST and leave the defect standing for whatever the gate does not cover next.
 
 - **`intent#0070` CLOSED at 17:37Z.** cc fixed it at `3f367cf8`; I filed, reproduced, bounded and closed it, so **the finder and the fixer stay separate on the record.** Resolution note is in the issue body.
 - **MY OWN CURRENCY GUARD REFUSED ME TODAY AND I TOOK ITS NAMED REMEDY.** cc's 11 files landed, `intent3` refused every verb, `int local build` cleared it, pair coherent at HEAD. **The FLOOR wording ic caught fired correctly in anger** -- the first time either refusal arm has been read outside its own test.
@@ -76,6 +80,13 @@ claims: [ST0056/07, ST0056/11]
 - **THE ` M` RULE LIVES AT `intent/restart.md:69`, ONE HOME, in my name.** What is NOT there and belongs to cc: they binned the same zero-byte file into `peers` twice while reporting scope, inferring AUTHORSHIP from a marker making no claim about content -- **action right, reason wrong, so nothing broke and nothing would ever have surfaced it. A CHARACTERISATION WHOSE ACTION IS CORRECT IS INVISIBLE BY CONSTRUCTION.**
 - **THE HARNESS RAN THE SUBJECT UNDER DIFFERENT SHELL OPTIONS THAN ITS ONLY PRODUCTION CALLER**, so fifteen green arms sat over a function returning rc=1 on its healthiest answer. bats sets neither `errexit` nor `pipefail`; `bin/intent3` sets both. **AND A COMMAND SUBSTITUTION DISARMS errexit IN THE SUBSHELL** -- `$-` is `ehuBc` at top level and `huBc` inside `$( )` -- so the one caller survived BY ACCIDENT while the library promised it could not kill a host. **Drive the options production sets, not the ones the harness happens to have.**
 - **NEVER `$?` AFTER A PIPE. `cargo test` needs `--no-fail-fast`. `grep -c` exits 1 on zero. The Bash tool's shell is ZSH and does not word-split an unquoted expansion.**
+- **`bash -n` IS WRONG IN BOTH DIRECTIONS AND NEITHER IS VISIBLE FROM ITS OUTPUT** (half vc's). It **OVERSTATES BY POSITION** -- bash parses incrementally, so an error the run never reaches is never raised; `-n` reads the whole file, a run reads as far as it gets. It **UNDERSTATES BY CONSTRUCT** -- blind to every version defect that is valid syntax, which is where bash 3.2's gaps all live. **Which way it cuts must be DRIVEN: I built a control at the wrong end of a file, no arm fired, and I briefly held a refutation of a true finding.**
+- **A VERSION DEFECT CAN RETURN THE CORRECT ANSWER, EXIT 0, AND PUT THE ERROR ONLY ON STDERR.** Under 3.2 `declare -A` degenerates the subscript to index 0 -- which is what the assignment set -- so the value is right, the mechanism is wrong and rc is 0. **NO RESULT-CHECKING FINDS THAT.** Only stderr or `set -e` separates it, and **9 of the 12 rostered guards do not execute `set -e`**, so it is invisible inside three quarters of the commit gate.
+- **A NULL POPULATION WEARS THE SHAPE OF A FINISHED MEASUREMENT.** `for g in $GUARDS` under zsh does not word-split; the loop ran once, matched nothing, and printed `0 / 0`, which reads as _no guard executes `set -e`_ -- **bigger and more alarming than the truth. Caught ONLY because the wrong answer pointed the same way as the right one.** A correct loop over a wrong population prints the identical `0/0` and reads as ALL CLEAR. **Legibility was luck.** Its loud twin (vc): 101 failures of 295, caught in one second, same defect, opposite legibility.
+- **RUN THE NEGATIVE CONTROL, NOT ONLY THE POSITIVE ONE.** My bash-4 detector was checked against `declare -a` as well as `-A`. A pattern flagging both would report hits across the tree and **read exactly like a finding**, in a sweep whose whole job is telling those apart.
+- **A CONTROL IS ONLY A CONTROL IF ITS GROUND TRUTH IS KNOWN RATHER THAN RECALLED** (vc, theirs whole). **A remembered ground truth is a second guess wearing a control's costume**, and nothing tells them apart by looking.
+- **DECLARE THE EXPECTED DENOMINATOR BEFORE MEASURING, THEN CHECK THE ACTUAL AGAINST IT** (vc). _12 expected_ refuses a `0` on sight. **It reaches four of six failure kinds and NOT the other two: not precision (comment matches inflating a count), not a wrong axis.** A control that names what it cannot reach.
+- **A GREP CANNOT TELL A STATEMENT FROM A SENTENCE ABOUT A STATEMENT** (vc's `0076`). It landed inside my own verification: I probed the fixed file for the apostrophe, got a hit, and nearly re-opened a closed defect -- **the hit was in an ordinary comment, outside both heredocs. THE PARSE IS THE CONTRACT, NOT THE GREP.**
 
 ### FAMILY 2 -- THE CLAIM EXCEEDS THE MEASUREMENT, AND THE TRUE HALF IS WHAT CARRIES THE FALSE ONE
 
@@ -90,6 +101,9 @@ claims: [ST0056/07, ST0056/11]
 - **`checked against the schema` VERSUS `checked against a grep of the source` IS THE WHOLE DISTANCE, AND NEITHER OF US COULD SEE IT IN OUR OWN SENTENCE AT THE TIME OF WRITING.**
 - **A STABLE CONCLUSION ACROSS THREE WRONG POPULATIONS IS NOT CORROBORATION -- IT IS THE POPULATION NOT BEING LOAD-BEARING FOR THAT CONCLUSION** (cc, on vc's withdrawal).
 - **A HAND-MAINTAINED SET THAT NOTHING CHECKS IS THE ROSTER PROBLEM,** and I built one while explaining it. **Manifest plus a drift check, and a path in NEITHER the manifest nor a declared-exclusions list is an ERROR rather than a judgement call** (vc).
+- **UNCHECKED IS NOT EMPTY, AND ONLY THE OUTPUT CAN CARRY THAT DISTINCTION.** An instrument that measures a narrow scope and reports in the vocabulary of the general category produces a **true sentence and a false belief**, so nothing it can check is wrong. Four instruments, one shape: `0069`, `0074`, `0075`, `0076`. **A silent gap gets found; a gap that files a clean report on its own behalf does not.**
+- **A RULE IS HONOURED BY WHOEVER LEARNED IT AND DOES NOT PROPAGATE BY HAVING BEEN STATED.** `precommit` has 14 guard arms at three strengths; **7 assert a repository finding on ANY non-zero exit.** The arm BURNED by this class guards the tool being MISSING and is **still exposed to the tool being BROKEN** -- driven, not read. **Fixing one more arm in passing would be the same error a fourth time; the class needs one change across seven sites.**
+- **A WRONG LINE NUMBER IS ONLY A TRAP IF FOLLOWING IT CAN REACH A GREEN.** vc warned the 3.2 error at `:216` would lead a fixer to gut the exemplar. Built it: the error MARCHES to `:225` and stays there. **Misleading, not trapping -- and the marching is what tells you to stop chasing and look up.**
 
 ### FAMILY 3 -- ROUTING, RELAY AND ATTRIBUTION
 
@@ -108,6 +122,9 @@ claims: [ST0056/07, ST0056/11]
 - **AN UNCOMMITTED EDIT WAS ERASED HERE WITH NO REFLOG TRACE AND hv RULED IT ACCEPTED RATHER THAN INVESTIGATED.** Live and undiagnosed BY DECISION. **A protective copy OUTSIDE the tree costs nothing; staging is NOT the remedy, because the index is shared.**
 - **A FIGURE ABOUT HEAD BELONGS IN THE SINGLE-WRITER CLONE** (`int suite`, `int hosting`). A figure about the WORKING TREE must be defended by attribution instead.
 - **`bin/` IS dc's LANE** (hv). `bin/.devbin/cmd/**` is Intent's own; **`bin/devbin` and `bin/.devbin/lib/**` are VENDORED and not this repo's to edit.**
+- **A MONIKER NAMES WHERE A SESSION LIVES, NEVER WHERE ITS BYTES LAND.** `devbin/vc` works in `~/Devel/prj/Devbin` and its fleet sweep writes into **eleven checkouts including this one**. Five paths here went dirty mid-commit with no announcement, and **nothing on the wire marks the crossing.** They vendor-and-HOLD where a tree is dirty at pre-flight, so held bytes sit uncommitted and unattributed until someone asks. **ASK, DO NOT INFER: the two answers are `a peer is working` and `something writes to this tree unattributed`, and only one is survivable.**
+- **`--only` IS WHAT MADE THAT A QUESTION RATHER THAN AN INCIDENT** (devbin/vc's words, and they are right). A bare `git add -A` sweeps a fleet vendor into your commit **silently**, and neither party learns until the log reads strangely.
+- **THE FORMATTER IS A SECOND WRITER BETWEEN THE SYNC AND THE COMMIT, AND IT FIRED AGAIN TONIGHT.** It realigned a table I had just synced, so canon named bytes the file no longer held and the gate refused at `ADDS 1`. **Order: write, LET THE FORMATTER SETTLE, sync, commit.** Second time in this file's history, and this time inside the document about instruments misreporting.
 
 ## Decisions
 
