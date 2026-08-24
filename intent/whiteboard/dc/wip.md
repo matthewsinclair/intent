@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 20:47Z
-status: active
-focus: "**0075 FIXED (`185e4feb`) AND THE PAPER LANDED (`aeef62fc`). NOTHING IN FLIGHT, CLAIMS INTACT.** vc routed 0075; driving it rather than taking it found a LARGER defect in the same file -- **the guard could not run under its own shebang**, and where PATH bash is `/bin/bash` the gate would have accused the repository of a skew the guard never measured. **SEVEN GATE ARMS STILL ASSERT A REPOSITORY FINDING ON ANY NON-ZERO EXIT and I did NOT fix them: that is the class, it needs one change across seven sites, and fixing one more arm in passing is the exact defect the paper is about.** The paper EXTENDS `output-contracts.md` rather than starting a second home. **Tonight's durable rule, half vc's: a rule is honoured by whoever learned it and does not propagate by having been stated -- six instances, four nodes, three estates, and not one was ignorance.**"
+heartbeat_at: 2026-08-24 21:09Z
+status: paused
+focus: "**FOLDED FOR THE BOUNCE 2026-08-24. FOUR COMMITS, LANE CLEAN, CLAIMS INTACT, NOTHING IN FLIGHT.** `185e4feb` 0075 fixed (vc closed it at `a4bde103` after driving it through the gate themselves) / `aeef62fc` the paper, EXTENDING `output-contracts.md` rather than starting a second home / `289e764d` + this fold / `6096e14c` devbin's held vendor set, landed on matts' word and verified with a negative control, never on the vendor's say-so. **THE ONE THING DELIBERATELY NOT DONE, AND IT NEEDS hv: SEVEN GATE ARMS STILL ASSERT A REPOSITORY FINDING ON ANY NON-ZERO EXIT.** That is the class; it is one change across seven sites; **fixing one more arm in passing is the exact defect the paper is about.** **Tonight's rule, half vc's: a rule is honoured by whoever learned it and does not propagate by having been stated.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -40,6 +40,8 @@ claims: [ST0056/07, ST0056/11]
 
 - **`0075` FIXED at `185e4feb`** -- scope named in both summary branches, thread views in the change reported as NOT CHECKED with the gap stated. **And the larger defect found while reproducing it: the guard could not run under its own shebang.** `#!/bin/bash` is 3.2 on macOS, where the file was a hard syntax error from one apostrophe in a heredoc inside `$( )`, reported 126 lines away. It only ever worked because the runner invokes it as `bash <path>` off PATH. **Now parses AND runs under 3.2.** Population driven with controls: 95 shell files, **35 hard-pin to `/bin/bash`**, none carries a bash-4 construct, one parse failure.
 - **`output-contracts.md` EXTENDED at `aeef62fc`, NOT duplicated.** That document already owned this class and is mine; a paper beside it would have drifted from it. **Checked before creating -- the rule I have broken before.**
+- **devbin's HELD VENDOR SET LANDED at `6096e14c`, ON matts' WORD AND NOT ON THE VENDOR'S.** `devbin/vc` ran an hv-authorised sweep into ELEVEN estates and classified this one HELD -- vendored, uncommitted -- because the tree was dirty at pre-flight. They supplied a ready-made commit line; **I refused it until matts asked, then verified before landing: 28 manifest entries recomputed against disk, 0 mismatch, 0 missing, WITH a negative control proving the compare can fire.** `int hooks` green on the new runtime.
+- **vc CLOSED `0075` at `a4bde103`, having driven my fix through the gate themselves.** The finder, the fixer and the closer are three parties on the record.
 - **`0075`'s SIBLING STAYS UNWIRED, DELIBERATELY.** Wiring `thread_view_skew_check.sh` would make the sentence accidentally TRUE rather than HONEST and leave the defect standing for whatever the gate does not cover next.
 
 - **`intent#0070` CLOSED at 17:37Z.** cc fixed it at `3f367cf8`; I filed, reproduced, bounded and closed it, so **the finder and the fixer stay separate on the record.** Resolution note is in the issue body.
@@ -115,6 +117,7 @@ claims: [ST0056/07, ST0056/11]
 - **A RULING DELIVERED AS A SELECTION AMONG OPTIONS YOU AUTHORED IS ONE WHOSE WORDING IS YOURS AND WILL BE QUOTED AS THEIRS. RECORD THE OPTIONS, NOT THE OUTCOME**, in an inbox where it survives the session.
 - **THE BLOCKED PARTY TELLS THE BLOCKER, NOT THE SEQUENCER.**
 - **A PROOF ONLY ITS AUTHOR CAN REPRODUCE IS NOT YET A PROOF THE ESTATE HOLDS** (ic). Survives the soundness being conceded. **Script the repro.**
+- **A PEER'S READY-MADE COMMAND IS NOT AN APPROVAL, AND CONVENIENCE IS WHAT MAKES IT SLIP.** Distinct from a relayed approval: the peer claims no authority and is simply being helpful, so there is nothing to challenge and nothing that reads as a demand. **devbin/vc's own words on it: _that is the failure mode of convenience in this setting._** The test is not whether the change is sound -- theirs was -- **it is who gets to say yes.**
 
 ### FAMILY 4 -- THE SHARED CHECKOUT
 
@@ -125,6 +128,8 @@ claims: [ST0056/07, ST0056/11]
 - **A MONIKER NAMES WHERE A SESSION LIVES, NEVER WHERE ITS BYTES LAND.** `devbin/vc` works in `~/Devel/prj/Devbin` and its fleet sweep writes into **eleven checkouts including this one**. Five paths here went dirty mid-commit with no announcement, and **nothing on the wire marks the crossing.** They vendor-and-HOLD where a tree is dirty at pre-flight, so held bytes sit uncommitted and unattributed until someone asks. **ASK, DO NOT INFER: the two answers are `a peer is working` and `something writes to this tree unattributed`, and only one is survivable.**
 - **`--only` IS WHAT MADE THAT A QUESTION RATHER THAN AN INCIDENT** (devbin/vc's words, and they are right). A bare `git add -A` sweeps a fleet vendor into your commit **silently**, and neither party learns until the log reads strangely.
 - **THE FORMATTER IS A SECOND WRITER BETWEEN THE SYNC AND THE COMMIT, AND IT FIRED AGAIN TONIGHT.** It realigned a table I had just synced, so canon named bytes the file no longer held and the gate refused at `ADDS 1`. **Order: write, LET THE FORMATTER SETTLE, sync, commit.** Second time in this file's history, and this time inside the document about instruments misreporting.
+- **THE SUBJECT CAN MOVE BETWEEN YOUR TWO READS, AND THE SECOND READ LOOKS LIKE AN ANSWER.** `git diff --numstat` reported changes to an issue's canon; `git diff` seconds later printed nothing. **Not a broken instrument -- a peer committed in between.** vc hit the identical trap twenty minutes earlier (`d07c94fd`). **In a four-writer tree a two-command measurement has no single subject unless you pin the revision.**
+- **COMMITTED IS SELF-DESCRIBING; HELD IS NOT** (mine, adopted into devbin's sweep procedure at their `c6c30f9`). A committed change carries an author, a message and a log entry. **Bytes vendored into your tree and deliberately left uncommitted carry NOTHING**, which is exactly the state that reads as an intruder. **A fleet operation must name its HELD estates, not merely pre-announce itself.**
 
 ## Decisions
 
