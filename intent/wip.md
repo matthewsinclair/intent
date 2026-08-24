@@ -1,15 +1,19 @@
 ---
-verblock: "22 Aug 2026:v1.15: vc - the local cutover; v3 on PATH as intent3; gate 65 of 67"
+verblock: "24 Aug 2026:v1.16: vc - gate 66 of 67, one row left; the five-estate config sweep; Intentv2 frozen"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-## Current State (as at `47d2e4c7`, 2026-08-22)
+## Current State (as at `50417c83`, 2026-08-24)
 
 **This heading names a COMMIT, not a date.** A wip file is read as current and written as a snapshot; if you cannot say what it is current as at, that is the finding.
 
-**THE GATE IS 65 OF 67, AND IT TAKES THREE VERB CALLS RATHER THAN THE TWO THIS LINE USED TO NAME.** The scope is _all of ST0057's live rows plus all of ST0056 WP-03's_: `intent ac status ST0057` (**49/51**), `intent ac status ST0056/03` (**16/16, PASS**), and `intent ac gate ST0057` for the outstanding ids -- **which are `AC-08.5` and `AC-01.5`, both driven and both correctly red.** **`intent ac status ST0056` answers 60/132 and is NOT this number's denominator** -- that is the whole thread, not the gate. **The third call is the one nobody wrote down:** `ST0056/03` is a WP-scoped STID and the verb accepts it. **Three figures in this file have now been wrong, and the third was wrong for a NEW reason** -- not stale, not double-counted, but because the line forbade hand-tallying while naming an instrument that could not reach the number, so the only way left to obey it was to copy the banner. **Run the three calls. Do not add them up from memory.**
+**THE GATE IS 66 OF 67 AND ONE ROW IS LEFT: ST0057 `AC-08.5`.** Driven at `50417c83`, 0 dirty, 2026-08-24, all three calls -- `intent ac status ST0057` (**50/51**, 2 withdrawn), `intent ac status ST0056/03` (**16/16, PASS**), `intent ac gate ST0057` for the ids. **`intent ac status ST0056` answers 61/132 and is NOT this number's denominator** -- that is the whole thread, not the gate. **The third call is the one nobody wrote down:** `ST0056/03` is a WP-scoped STID and the verb accepts it.
+
+**THIS FILE HELD THE FIGURE TWICE AND THE TWO COPIES DISAGREED WITH EACH OTHER -- 65 here and 62 further down, in one document, both stale.** That is the finding, and it is not arithmetic: **a number with more than one home drifts in every home, and nothing here compares them.** Across the estate it had three homes and three values -- this file 65, `intent/restart.md` 62, `.claude/restart.md` 62 and untouched since 08-21. **Highlander applies to a number in prose exactly as it applies to code.** The gate figure now has ONE home in this file and the three verb calls above are how you get a current one; **anything typed here is stale from the moment it is typed.**
+
+**CONTROLLED, BECAUSE THE CHEAP WAY TO FAKE A RISING FRACTION IS A SHRINKING DENOMINATOR:** 51 and 16 both held, and the withdrawn counts (2 and 1) both held. Four rows greened. **Cross-checked across two binaries** -- `intent3` (release) and the debug build return identical figures -- **which certifies the READ PATH is not divergent between builds and certifies nothing about whether the store agrees with canon.** Two readings of one store are one reading counted twice.
 
 **THE DISK MODEL IS RUNNING, NOT DESIGNED.** `intent organize --apply` removed 423 files at `e7f00e65`; `intent/st/` holds `ST0046`, `ST0056`, `ST0057` and `steel_threads.md`. Fifty-two completed and two cancelled threads live only in the database. **Proven reversible by measurement**: ST0001 rehydrated to five files byte-identical to git, a fence-heavy pair to fifteen, and all 282 attachments verify against their own `sha256`.
 
@@ -27,21 +31,19 @@ intent_version: 2.19.0
 
 **ST0056 -- the v3.0.0 rewrite.** Architecture in `design.md`. **The SQLite db is the DURABLE SSOT; nothing on disk is truth.** **There is no `intentdb` -- that word was a TYPO that propagated corpus-wide, and it names no component.** The crates are `intent-cli`, `intentd` and `intentsvcs`; **`intentd` is a CLIENT of the db exactly as the CLI is, and exists only for wider features beyond single-project operations. It is not the SSOT and no read requires it** (hv, 2026-08-21). D01 was REVERSED by hv 2026-08-15 -- do not reason from it. **133 criteria / 137 tests, 59 of 132 satisfied, 1 withdrawn.** WPs 01/02 Done; 03/04/05/06/07/10/11 WIP; 08/09/12-16 Not Started.
 
-**ST0057 -- disk as a sparse projection.** **Sparseness applies to VIEWS; canon is NEVER sparse.** **53 criteria / 53 tests, 47 of 51 satisfied, 2 withdrawn.** WPs 02/04/06/07/09/10 Done; 01/03/05/08 WIP.
+**ST0057 -- disk as a sparse projection.** **Sparseness applies to VIEWS; canon is NEVER sparse.** **53 criteria / 53 tests, 50 of 51 satisfied, 2 withdrawn.** WPs 02/03/04/06/07/09/10 Done; 01/05/08 WIP.
 
-### THE GATE: 62 OF 67, AND THE FIVE THAT ARE LEFT
+### THE GATE: 66 OF 67, AND THE ONE THAT IS LEFT
 
-All of ST0057's live rows (47/51) plus all of ST0056 WP-03's (15/16). **Outstanding, with owners:**
+All of ST0057's live rows (50/51) plus all of ST0056 WP-03's (16/16). **Outstanding:**
 
-| row      | thread       | owner | why it is not green                                           |
-| -------- | ------------ | ----- | ------------------------------------------------------------- |
-| AC-01.5  | ST0057       | cc    | red                                                           |
-| AC-03.6  | ST0057       | cc    | red                                                           |
-| AC-03.14 | ST0056 WP-03 | cc    | AT-03.15 red                                                  |
-| AC-07.7  | ST0057       | ic    | **newly minted 2026-08-20, unbuilt**                          |
-| AC-08.5  | ST0057       | ic    | red -- the pin is a measurement and its measured set is empty |
+| row     | thread | owner     | why it is not green                                                                                                      |
+| ------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| AC-08.5 | ST0057 | cc builds | the pin measures ONE entity through ONE door; the row says it will not green on an empty set over an unstated population |
 
-**dc holds none of the five.**
+**Closed since this table last named five:** ST0057 `AC-01.5`, ST0057 `AC-03.6`, ST0056 `AC-03.14` (cc) and ST0057 `AC-07.7` (ic), all satisfied 2026-08-22/23. **dc held none of the five and holds none of the one.**
+
+**WHAT ACTUALLY BLOCKS AC-08.5 IS NOT THE PIN, IT IS THREE SURVIVING BURNING CASES**, and every one of them is a claim that a CAPABILITY IS ABSENT: `ST0011.completed` is a THREAD field with no setter; an attachment's canon record has no setter narrower than a thread; **no CLI verb creates an AC or an AT at all.** **The row's own history is four such claims refuted or narrowed the moment somebody finally checked** -- `at green` was said to destroy notes and does not in v3; `sync` was said to have no operation smaller than 57 threads and takes IDs; a pin asserted no creator existed while `put` created both thirty lines away in the same file. **Re-drive all three before building against them.** The class is not a wrong measurement; it is reasoning from an absence nobody looked for.
 
 ### THE ARCHITECTURE hv RULED, replacing the two-region manifest design
 
@@ -76,7 +78,7 @@ All of ST0057's live rows (47/51) plus all of ST0056 WP-03's (15/16). **Outstand
 
 **WHAT IT UNLOCKS: `bin/` is no longer load-bearing for anyone else**, so v2 shell can be pruned here without breaking fifteen projects, and "DO NOT PUT v3 ON PATH" has lost the constraint that motivated it. **WHAT IT COSTS:** this repo's commit guards now resolve out of the frozen v2 checkout; identical today, drifting from the next guard change. **Routed to dc as a mechanism** -- hv declined direnv (covers a prompt, not automation) and hand-refresh (an advisory is not a control).
 
-**Also 2026-08-21:** the word `intentdb` retired corpus-wide -- it names no component, and the architecture is `intentd` and `intent-cli` BOTH as clients of `intentsvcs`, which solely owns the SQLite db (`design.md:12-17`, unchanged for the whole rewrite). **The gate's scope corrected: 62 of 67 is ST0057's CLOSURE gate, not the 3.0.0 release gate** -- the release is WP-12, dependent on all prior WPs, with ST0056 at 59/132 and seven WPs Not Started. A 190-row AT citation sweep came back clean at one anomaly (`AT-00.6`). `runner_roster_check.sh` was found to have a population bounded to ST0056 and to `*_check.sh`, leaving ST0057's seven parity instruments undeclared while the guard reports clean on every commit; **hv ruled the population widens and all declare.** The five ST0057 criteria resting on undispatched instruments were DRIVEN: four confirmed, and `no_daemon_required.sh` refused at exit 2 on a needle defect -- `pgrep -f 'intentd'` matching `intentdb` inside every node's own system prompt.
+**Also 2026-08-21:** the word `intentdb` retired corpus-wide -- it names no component, and the architecture is `intentd` and `intent-cli` BOTH as clients of `intentsvcs`, which solely owns the SQLite db (`design.md:12-17`, unchanged for the whole rewrite). **The gate's scope corrected: the figure is ST0057's CLOSURE gate, not the 3.0.0 release gate** -- the release is WP-12, dependent on all prior WPs, with seven WPs Not Started. **The SCOPE ruling is what this entry records and it still stands; the figures it carried (62 of 67, ST0056 at 59/132) were true ON 2026-08-21 and are not current** -- see the Current State section above, or run the three verb calls. A 190-row AT citation sweep came back clean at one anomaly (`AT-00.6`). `runner_roster_check.sh` was found to have a population bounded to ST0056 and to `*_check.sh`, leaving ST0057's seven parity instruments undeclared while the guard reports clean on every commit; **hv ruled the population widens and all declare.** The five ST0057 criteria resting on undispatched instruments were DRIVEN: four confirmed, and `no_daemon_required.sh` refused at exit 2 on a needle defect -- `pgrep -f 'intentd'` matching `intentdb` inside every node's own system prompt.
 
 ## What changed on 2026-08-20
 

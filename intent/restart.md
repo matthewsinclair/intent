@@ -1,8 +1,43 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (as at `68296b8e`, 2026-08-22)
+## Current state (as at `50417c83`, 2026-08-24)
 
 **This heading names a COMMIT, not just a date, and that is deliberate.** A restart file is read as CURRENT STATE and written as a snapshot of when its author typed; nothing used to mark which, and a cold session treated a four-day-old line as the next action. **Re-stamp it when you fold, and if you cannot say what it is current as at, that is the finding.**
+
+## 2026-08-24 -- THE GATE IS 66 OF 67, ONE ROW LEFT. EVERYTHING DATED 2026-08-21 BELOW IS SUPERSEDED WHERE IT DISAGREES
+
+**Read this before the 08-21 section. It was written three days later and it corrects four figures that section states as current.** Driven at `50417c83`, 0 dirty, 2026-08-24 -- not hand-tallied, all three verb calls:
+
+```
+intent ac status ST0057      50/51 satisfied, 2 withdrawn -- BLOCKED
+intent ac status ST0056/03   16/16 satisfied, 1 withdrawn -- PASS
+intent ac gate ST0057        unsatisfied: AC-08.5
+```
+
+**ONE ROW OUTSTANDING ACROSS BOTH SCOPES: ST0057 AC-08.5.** The other four this file names as outstanding -- ST0057 AC-01.5, ST0057 AC-03.6, ST0057 AC-07.7 and ST0056 AC-03.14 -- are all **satisfied**, landed by cc and ic on 2026-08-22/23. **The denominators and the withdrawn counts did not move** (51 and 16; 2 and 1), so this is four rows greening rather than a scope change -- checked, because a rising fraction over a shrinking denominator is the cheap way to fake one.
+
+**THE FINDING IS NOT THE ARITHMETIC, IT IS THAT THREE DOCUMENTS CARRIED THREE DIFFERENT NUMBERS.** `intent/restart.md` said 62, `intent/wip.md` said 65, `.claude/restart.md` said 62 and had not been touched since 2026-08-21. **A figure with three homes drifts in all three, and nothing in this repo compares them** -- the Highlander rule applies to numbers in prose exactly as it applies to code, and the gate figure is the most-copied number in the estate. All three are corrected in this fold. **The durable fix is to stop transcribing it: the three verb calls above are cheap, and any figure written here is stale from the moment it is typed.**
+
+**ST0056 whole thread: 61/132** (was 59), 1 withdrawn. **It is NOT the gate's denominator.** Seven WPs Not Started, unchanged: 08 intentd, 09 MCP, 12 cutover, 13 search, 14 coordination, 15 skills, 16 contract drift. Read as release progress, 66/67 says 99% where ST0056 is at 46%.
+
+**ST0057 WPs Done: 02, 03, 04, 06, 07, 09, 10** -- WP-03 closed since the 08-21 line, which names six. 01, 05 and 08 are WIP.
+
+**AC-08.5 WILL NOT GREEN ON ITS CURRENT PIN, AND THE ROW SAYS SO IN ITS OWN TEXT.** The pin measures _one entity through one door_ -- seven fields set through `put` and read back, unsettable set empty, mutation-proved. Three of the criterion's burning cases survive that and are what actually block it: **`ST0011.completed` is a THREAD field with no setter; an attachment's canon record has no setter narrower than a thread; no CLI verb creates an AC or an AT at all.** Each is a claim that a capability is ABSENT, and this row's own history is four such claims refuted or narrowed by someone finally checking -- **so re-drive them before building against them.**
+
+### 2026-08-24 also: a five-estate Claude Code config sweep, with Intent as UPSTREAM
+
+Coordinated by `lamplight-vc` across Intent, Lamplight, Laksa, Baize and Conflab plus `devbin-vc`. Most findings were template- or tool-borne, so they were one fix here rather than five downstream patches. **hv's ruling governs the whole round: prune the dross NOW, v3 only, do not gate on WP-13 -- Intentv2 is FROZEN.**
+
+- **`MODULES.md` is retired from v3 seeding** (`init.rs` `NotByInit`), the ten per-language `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` files are gone, and the agnostic pair is restored REWRITTEN -- both ship empty on purpose. Intent's own 354KB `MODULES.md` still exists and awaits its own ruling; not-seeding is a different act from deleting.
+- **`intent claude upgrade` had a downgrade hole**: its probe tested `local == target`, and **equality has no direction**, so an older canon target silently overwrote a newer project. Guarded in BOTH checkouts.
+- **The elixir template stopped asserting project facts it cannot know** -- five false claims, one of them a `NEVER` that would have made an agent rewrite 40 correct call sites at Conflab and 98 at Lamplight.
+- **Open with numbers:** `0065` doctor acknowledgement, `0066` `st` does not resolve `_inbox/`, `0067` `modules find` v3 parity gap, `0068` do NOT rebuild the per-language fan-out (HIGH).
+
+**THE HAZARD BEHIND MOST OF THE ROUND, AND IT OUTRANKS EVERY FIX IN IT: the fleet resolves `intent` through `$INTENT_HOME` to the FROZEN `~/Devel/prj/Intentv2`, so a fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day. `tests/unit/shipped_surface_drift.bats` now reddens on it, and **its first catch was its own author.** Shipped-surface changes land in both checkouts or they have not landed.
+
+### A `/compact` does NOT rotate `session_id`, so the bounce test below cannot see one
+
+Measured here 2026-08-24: a board's `session_id`, written before a compact, is byte-identical to `$CLAUDE_CODE_SESSION_ID` read live after it. **The verification rule further down -- _same id means it resumed again_ -- therefore reads a compacted session as a resumed one and cannot tell the two apart.** Third agreeing datapoint on this machine and build. Still one machine, one build; **hv's bounce question is OPEN, not answered.**
 
 ## First actions after `/compact` or new session
 
@@ -43,7 +78,7 @@
 
 **THE WORD `intentdb` IS RETIRED AND NAMES NO COMPONENT** (hv, 2026-08-21). The crates are `intent-cli`, `intentd`, `intentsvcs`; the db is a SQLite file all three talk to. **The architecture, inviolable and unchanged for the whole rewrite** -- `intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns `intent/.cache/intent.db`. `intentd` is not the SSOT and no read requires it. Diagram: `intent/st/ST0056/design.md:12-17`.
 
-**AND THE GATE'S SCOPE: 62 of 67 is ST0057's CLOSURE gate -- all ST0057 live rows plus all ST0056 WP-03 rows. IT IS NOT THE 3.0.0 RELEASE GATE.** The release is ST0056 WP-12, whose dependency line reads _"All prior WPs"_, and **ST0056 stands at 59/132 with SEVEN WPs Not Started** (08 intentd XL, 09 MCP, 12 cutover, 13 search XL, 14 coordination, 15 skills, 16 contract drift). Read as release progress, 62/67 says 93% where ST0056 is at 45%.
+**AND THE GATE'S SCOPE: 66 of 67 (was 62 when this line was written) is ST0057's CLOSURE gate -- all ST0057 live rows plus all ST0056 WP-03 rows. IT IS NOT THE 3.0.0 RELEASE GATE.** The release is ST0056 WP-12, whose dependency line reads _"All prior WPs"_, and **ST0056 stands at 61/132 with SEVEN WPs Not Started** (08 intentd XL, 09 MCP, 12 cutover, 13 search XL, 14 coordination, 15 skills, 16 contract drift). Read as release progress, 66/67 says 99% where ST0056 is at 46%.
 
 ## THE LOCAL CUTOVER -- v3 IS USABLE ACROSS THE ESTATE NOW (ST0058, 2026-08-22)
 
@@ -96,13 +131,13 @@
 
 ## State (as at `69a5db5e`, 2026-08-20)
 
-**THE GATE IS 62 OF 67, AND IT TAKES THREE VERB CALLS.** `intent ac status ST0057` (47/51) **plus `intent ac status ST0056/03` (15/16)** -- the scope is all of ST0057's live rows plus all of ST0056 WP-03's -- and `intent ac gate ST0057` names the outstanding ids. **`ac status ST0056` answers 59/132 and is NOT this number's denominator.** The `ST0056/03` call is a WP-scoped STID; the verb accepts it and no instruction here ever said so. **Three figures have been wrong now, and the third was wrong because this line said do not hand-tally while naming calls that could not reach the figure** -- so obeying it meant copying the banner. **Run all three.**
+**THE GATE IS 66 OF 67, AND IT TAKES THREE VERB CALLS.** `intent ac status ST0057` (50/51) **plus `intent ac status ST0056/03` (16/16)** -- the scope is all of ST0057's live rows plus all of ST0056 WP-03's -- and `intent ac gate ST0057` names the outstanding ids. **`ac status ST0056` answers 61/132 and is NOT this number's denominator.** The `ST0056/03` call is a WP-scoped STID; the verb accepts it and no instruction here ever said so. **Three figures have been wrong now, and the third was wrong because this line said do not hand-tally while naming calls that could not reach the figure** -- so obeying it meant copying the banner. **Run all three.**
 
-**ST0056** (v3.0.0 rewrite) -- 133 criteria / 137 tests, **59 of 132 satisfied**, 1 withdrawn. **The SQLite db is the DURABLE SSOT; nothing on disk is truth.** **There is no `intentdb` -- that word was a TYPO that propagated corpus-wide, and it names no component.** The crates are `intent-cli`, `intentd` and `intentsvcs`; **`intentd` is a CLIENT of the db exactly as the CLI is, and exists only for wider features beyond single-project operations. It is not the SSOT and no read requires it** (hv, 2026-08-21). D01 was REVERSED by hv 2026-08-15; **do not reason from it.**
+**ST0056** (v3.0.0 rewrite) -- 133 criteria / 137 tests, **61 of 132 satisfied**, 1 withdrawn. **The SQLite db is the DURABLE SSOT; nothing on disk is truth.** **There is no `intentdb` -- that word was a TYPO that propagated corpus-wide, and it names no component.** The crates are `intent-cli`, `intentd` and `intentsvcs`; **`intentd` is a CLIENT of the db exactly as the CLI is, and exists only for wider features beyond single-project operations. It is not the SSOT and no read requires it** (hv, 2026-08-21). D01 was REVERSED by hv 2026-08-15; **do not reason from it.**
 
-**ST0057** (disk as a sparse projection) -- 53 criteria / 53 tests, **47 of 51 satisfied**, 2 withdrawn. **Sparseness applies to VIEWS; canon is NEVER sparse.** WPs 02/04/06/07/09/10 Done.
+**ST0057** (disk as a sparse projection) -- 53 criteria / 53 tests, **50 of 51 satisfied**, 2 withdrawn. **Sparseness applies to VIEWS; canon is NEVER sparse.** WPs 02/03/04/06/07/09/10 Done; 01, 05 and 08 are WIP.
 
-**The five outstanding, with owners:** ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14 (cc); ST0057 AC-07.7, ST0057 AC-08.5 (ic). **dc holds none.** **Every row id here is thread-qualified deliberately** -- a bare `AC-03.6` resolves in ST0056 to a GREEN row about FTS prose bodies, so it reads as DONE to anyone who looks it up in the wrong thread.
+**THE ONE OUTSTANDING, AS AT `50417c83` 2026-08-24: ST0057 AC-08.5.** cc's three (ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14) and ic's AC-07.7 are all satisfied; **dc held none of the gate and still holds none.** **Every row id here is thread-qualified deliberately** -- a bare `AC-03.6` resolves in ST0056 to a GREEN row about FTS prose bodies, so it reads as DONE to anyone who looks it up in the wrong thread, and that hazard survives the row closing in both threads.
 
 **Three layers, and confusing them is the recurring error:** canon (`intent/.canon/st/<ID>.json`, committed, never sparse) / store (`intent/.cache/intent.db`, gitignored, the durable SSOT) / views (`info.md`, `acceptance.md`, committed, generated). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
 
@@ -112,11 +147,14 @@
 
 ## Next
 
-1. **cc** -- ST0057 AC-01.5, ST0057 AC-03.6, ST0056 AC-03.14; ST0056 AC-10.4 built over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
-2. **ic** -- AC-08.5; AT-07.7, whose **red-first arm must be `AcCollection` specifically** -- the other three come from D57-8's POST clause and any test sourced from that paragraph reaches them, so a test that passes without `AcCollection` has reproduced the original defect one level down.
-3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt.
-4. **vc** -- `declared_but_unwired` adequacy; the heartbeat-currency note for hv; cc's eleven-copies filing.
+**REWRITTEN 2026-08-24. The three rows this list gave cc, and ic's AT-07.7, are DONE -- do not start them.**
+
+1. **cc** -- **ST0057 AC-08.5's remaining arms**, the last row in the gate. Build against burning cases 1, 3 and 4 (thread-field setter, attachment-narrow canon setter, AC/AT creation at the CLI) **after** re-driving them; the pin as it stands measures one entity through one door and the row will not green on it. Then ST0056 AC-10.4 over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
+2. **ic** -- covers AC-08.5 per hv's deliberate builder/verifier split; ic does not build what ic verifies. `st hydrate`'s render arm; the `st edit` fork, unruled; the `issues dehydrate` bucket ruling that understates by four.
+3. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and stays unbuilt. The marker's per-crate staleness is **not** closed: both binaries agree today only because `1940fa93` touched both packages, and `INTENT_SOURCE_COMMIT` comes from each crate's own `build.rs`.
+4. **vc** -- AC-08.5 stewardship: re-drive the three surviving burning cases before anyone builds against them. Then `ratified_in_check.sh`, named after a field that no longer exists; `--force` for `claude skills` (ruled, queued); the four sweep issues 0065-0068.
 5. **hv's standing question:** 250 files under `intent/` are not in the store at all.
+6. **hv's open question, on hv's own board and constraining hv's own hands:** may a catch-all commit sweep a live five-node checkout? `6c603b21 "Pre-release"` swept four nodes' in-flight work. **`--only` bounds the COMMIT and not the GATE, because the guards read the INDEX.**
 
 ## Carried from the previous fold -- NOT RE-VERIFIED at `69a5db5e`
 
@@ -147,7 +185,7 @@
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **DO NOT PUT v3 ON PATH.** **`upstream` was frozen and `prepush` now records the freeze LIFTED by hv 2026-08-20 with an empty `FROZEN_REMOTES` -- confirm with hv before any push there.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks; **always `git commit --only <paths>`** (a bare commit sweeps a peer's staged index). Whiteboard stamps carry a trailing `Z` read from `date -u`. matts runs the full suite externally and is the acceptance verifier. NEVER `--no-confirm` on the release. **~~DO NOT PUT v3 ON PATH~~ -- RETIRED 2026-08-22 (ST0058), and this line asserted it for two more days.** v3 IS on PATH, as `intent3`, a DISTINCT NAME: `intent` still resolves to v2 at `~/.local/bin/intent`, so the fleet's gate is untouched BY CONSTRUCTION rather than by anyone remembering. Verified 2026-08-24: `intent3` -> `Intent/bin/intent3` -> `native/rust/target/release/intent`. **Note which binary that is** -- the release build is older than the debug one and the gate reports it as built from an uncommitted tree, so pin by hash, never by the marker. **`upstream` was frozen and `prepush` now records the freeze LIFTED by hv 2026-08-20 with an empty `FROZEN_REMOTES` -- confirm with hv before any push there.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them at cut time.
 
 ## End of day -- 2026-08-20 17:38Z
 
