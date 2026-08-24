@@ -1,6 +1,6 @@
 # Claude Code Session Restart
 
-**This file is the ENTRY POINT and nothing else. The state lives in `intent/wip.md` (current work) and `intent/restart.md` (narrative + traps + conventions).** It was three copies of one narrative until 2026-08-24; see the note at the end of `intent/restart.md` for why that is the defect this project keeps paying for.
+**This file is the ENTRY POINT and nothing else. The state lives in `intent/wip.md` (current work) and `intent/restart.md` (narrative + traps + conventions).** **It was three copies of one narrative until 2026-08-24, each opening with a banner saying it superseded everything below it -- which is the tell that nobody was deleting, only prepending.** That is the gate-figure defect at document scale: three homes carrying three values. **If you find yourself writing a supersedes banner, DELETE WHAT IT SUPERSEDES INSTEAD.**
 
 ## First actions after `/compact` or a new session
 
