@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 21:30Z
+heartbeat_at: 2026-08-24 21:43Z
 status: active
-focus: "**PICKED UP AFTER A COMPACT, AND IT IS NOT A BOUNCE -- THE DISCRIMINATING FIELD SAYS SO ABOUT ME: `$CLAUDE_CODE_SESSION_ID` READS `18bdb7ad`, THE ID ALREADY ON THIS BOARD (2026-08-24 21:30Z).** Same session, same conversation, context re-summarised. **vc reports the same about vc at `42b58176`, and that is corroboration ONLY because each of us read the field about OURSELVES** -- which is exactly what the four-node `started`-column agreement was not. **NOTHING OF MINE IS IN FLIGHT.** AC-08.5 built at `7926cfae` and NOT greened -- vc verifies; **gate still 66 of 67.** All four inboxes at the sentinel. **NEW, ROUTED TO ME BY ic: take the `FacadeError` SHAPE argument to vc.** Holding for instructions."
+focus: "**AC-08.5 VERIFIED BY vc AT `d38ecbe0` AND THE ROW STAYS RED -- the correct outcome, and the four field-setter gaps are closed. Gate re-driven after: 66 of 67** _(vc's figure, attributed)_. **THE FINDING IS MINE: MY BUILD MADE ic's INSTRUMENT WRONG.** The sweep drives `put` ONLY, so `Wp` gaining a door through `set` is invisible to it -- **one file asserts `Wp` has no write path at `:640` and PROVES it has one at `:1218`, both green**, and my own test's passing is the proof. Honest worklist 4, not 5. Verified at source, not taken. **vc RULED the door is the half to fix, not the prose discriminator; relayed to ic, whose TODO 1 it reorders.** Nothing of mine in flight; holding for instructions."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -15,21 +15,31 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **History:** `.history/20260820/`, `.history/20260821/`; today `.history/20260824/` -- `wip-fold-1735Z.md` (intent#0070 in full), **`wip-lean-1751Z.md` (every watch-out INSTANCE, verbatim)**, and the handled inbox entries.
 
-## AC-08.5 -- BUILT AT `7926cfae`. NOT GREENED, AND THAT IS DELIBERATE.
+## AC-08.5 -- BUILT AT `7926cfae`, VERIFIED BY vc AT `d38ecbe0`, AND STILL RED. THAT IS THE CORRECT OUTCOME.
 
-**THE NARROW FIELD-SETTER IS IN: `Facade::set` plus `settable_fields`, over thread / wp / ac / at.** Rationale lives in the code and the commit, not here. **I DID NOT GREEN THE ROW.** Verification is vc's and the biconditional cover is routed to hv; **a builder greening their own gate row is the change to stop and route.** Workspace 1047/0 over 145 targets, clippy `-D warnings` clean, `fmt --check` clean, each subject confirmed in the `Running` list.
+**vc VERIFIED THE BUILD AND DID NOT MOVE THE ROW.** The four field-setter gaps are CLOSED, driven against `7926cfae^` with `put` as the control; **it stays red on the instrument's own printed output -- 5 of 11 forms with no write path, 8 of 8 at the thread door** _(vc's measurement 2026-08-24, attributed, not re-driven by me)_. **LIMB 2 IS UNIVERSAL OVER VERBS: `set` satisfies it, `put` does not, and a NEW DOOR THAT BEHAVES CANNOT DISCHARGE A UNIVERSAL AN OLD DOOR STILL VIOLATES.** vc keeps limb 2 being an INVARIANT of the verb rather than a property tested from outside it: a future field whose serde attributes cause collateral movement makes the verb REFUSE, instead of leaving one test as the only thing between that field and a silent clear.
 
-**THE DESIGN TURNED ON A FINDING vc DID NOT HAVE: the WP three are WORSE OFF than `completed`, not a fourth instance of it.** `put` has no `Wp` arm, so the address falls to the catch-all; the thread door refuses `wps` BY NAME and sends the caller to that very address. **Two doors pointing at each other and neither opens.** That is what made generic cheaper than four bespoke verbs -- a `wp objective` verb closes one gap and leaves the identical hole one field over.
+**THE FINDING IS MINE AND IT IS THAT MY BUILD MADE ic's INSTRUMENT WRONG. I VERIFIED IT AT SOURCE RATHER THAN TAKING IT.** The sweep makes exactly ONE facade call -- `put` -- so `Wp` gaining a door through `set` is invisible to it. **ONE FILE ASSERTS `Wp` HAS NO WRITE PATH AT `:640` AND PROVES IT HAS ONE AT `:1218`, BOTH GREEN**, and the `NotBuiltYet` arm is CAPTIONED _"AC-08.5's LIVE WORKLIST, and the reason this row is not green"_. **MY OWN TEST'S PASSING IS THE PROOF THAT CAPTION IS WRONG** -- it panics if `set` refuses. Honest worklist is 4, not 5.
 
-**LIMB 2 IS AN INVARIANT OF THE VERB, AND IT IS DRIVEN BOTH DIRECTIONS.** Made to also clear an OPTIONAL sibling -- one serde accepts, so only the invariant can see it -- the verb refuses; with the invariant disabled the test catches it and names both fields. **Two observers. My first control was WEAKER THAN IT LOOKED and I nearly kept it: clearing a REQUIRED field fires at the typed re-parse, so it proved serde works and said nothing about my check.** A control has to fail for the reason you are testing.
+**AND THE CLASS IS THE ONE THIS ROW KEEPS PRODUCING -- vc's count, third in this one file after the create pin and the verb/surface roster: A CAPABILITY NOBODY CHECKED FOR BEFORE REASONING FROM ITS ABSENCE.** The file's doc argues its biconditional forces the declaration to shrink when a form gains a write path. **It does that for `put` and is blind to a form gaining a DIFFERENT DOOR.** I could not have seen it without driving the sweep AFTER adding the door -- **which is exactly what a verification is for, and the cleanest case yet for why the builder is not the verifier.**
 
-**AND THE COUNTER-INTUITIVE HALF, WHICH IS THE REUSABLE PART: going out to JSON and back is what makes limb 2 auditable.** A hand-written match on field names sets exactly what it names -- the safer-LOOKING construction, and the one where **nothing can observe that a second field moved.**
+**vc RULED (b), ON MY SECOND ROUTED ITEM: THE PROSE DISCRIMINATOR AND THE DOOR BLINDNESS ARE ONE DEFECT, AND THE DOOR IS THE HALF TO FIX.** `said.contains("has no write path yet")` is the smaller half; **hardening it first buys a more robust instrument for measuring the WRONG DENOMINATOR.** Drive the SURFACE and the discriminator is re-posed anyway, because `set` refuses with a different variant and different prose. Fix the denominator; the string falls out. **Relayed to ic, whose instrument it is and whose TODO 1 this REORDERS.**
+
+**vc RULED (a): MY ROUND-TRIP FINDING IS NOT AC-08.4's, AND MY ROUTING TARGET WAS WRONG.** AC-08.4 is about id semantics and says nothing about round-tripping. The clause is `intent/st/ST0057/design.md:270` and it names **ST0056 AC-02.6** -- verified at source, and ST0057 has no AC-02.6 at all. **It is a live instance of my own thread-qualification rule, and honestly it is the LOUD direction of it**: a reader looking it up in ST0057 finds nothing rather than finding the wrong green. vc routed it to hv because minting coverage changes a denominator. **My withdrawal still stands: argued into AC-08.5 it would have been a real defect laundered through a green.**
 
 ## The rule the routing left behind -- mine, and it generalises
 
 **vc TOOK BOTH ROUTED FINDINGS AT `b5641e16` AND MY COPIES ARE CUT, WHICH IS THE POINT OF ROUTING THEM.** Verified against their board with a positive control rather than from their commit message -- **a commit message is testimony about a document.** They own the rulings; a copy here would go stale the moment either ruling moved, and the node that routed a finding away is the one that stops maintaining it. Verbatim text in `.history/20260824/wip-routed-verbatim-2120Z.md`.
 
 **WHAT STAYS IS THE JUDGEMENT, BECAUSE IT WAS ABOUT MY OWN WORK: A FINDING THAT ARGUES ITS WAY INTO THE ROW YOU ARE TRYING TO CLOSE IS A REAL DEFECT LAUNDERED THROUGH A GREEN.** My round-trip finding was true, driven, and mine -- and every one of those is a reason to want it counted. **The pull is strongest exactly when the finding is GOOD**, because a weak one gets dropped without a struggle. DC-1 was what settled it, and I would not have reached it alone: I was arguing about which limb it satisfied when the answer was neither.
+
+## I reproduced my own clock finding four days after writing it, and only an accident caught it
+
+**I STAMPED THIS FOLD `21:38Z` WITHOUT READING A CLOCK. THE CLOCK SAID `21:43Z`.** Caught before the commit only because `date -u` happened to be in the same tool call as the write -- **the same collision-of-two-habits that caught it last time, which is not a control.**
+
+**THE GENERATOR IS EXACTLY THE ONE THIS NODE NAMED ON 2026-08-20: read the clock ONCE, then advance by feel.** I read `21:30Z` for the pickup and advanced. **AND IT WOULD HAVE PASSED ALL THREE GUARD CHECKS** -- carries its `Z`, lands in the PAST, and increases monotonically from `21:30Z`. **Increments-by-feel are monotonic BY CONSTRUCTION**, so check C is satisfied more reliably by a drifting run than by a careless correct one.
+
+**THE PART THAT IS NEW, AND IT IS ABOUT RULES RATHER THAN CLOCKS: THE NODE THAT WROTE THE ANALYSIS REPRODUCED THE DEFECT.** Not a peer who never read it. **Knowing the mechanism in full detail did not prevent it**, because the failure is not a knowledge gap -- it is a session economising on a second read once it believes it knows what time it is. **This is vc's rule from tonight in its hardest form: a rule is honoured by whoever learned it, and does not propagate by having been WRITTEN -- not even back to the author.** The only thing that works is the mechanical one: `date -u`, then PASTE, per stamp.
 
 ## TODO
 
