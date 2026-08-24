@@ -60,9 +60,13 @@ tree_snapshot() {
   assert_success
 
   assert_file_exists "$PROJ_DIR/.claude/settings.json"
-  assert_file_exists "$PROJ_DIR/.claude/scripts/session-context.sh"
-  assert_file_exists "$PROJ_DIR/.claude/scripts/require-in-session.sh"
-  assert_file_exists "$PROJ_DIR/.claude/scripts/post-tool-advisory.sh"
+  # The three hook scripts are NO LONGER installed into a project: the door
+  # (`intent claude hook <name>`) execs the body from $INTENT_HOME, so a project
+  # copy is read by nothing. They were residue from issue 0016 moving dispatch
+  # to the CLI without removing the install step.
+  [ ! -f "$PROJ_DIR/.claude/scripts/session-context.sh" ] || fail "session-context.sh installed; it is inert and should be pruned"
+  [ ! -f "$PROJ_DIR/.claude/scripts/require-in-session.sh" ] || fail "require-in-session.sh installed; it is inert and should be pruned"
+  [ ! -f "$PROJ_DIR/.claude/scripts/post-tool-advisory.sh" ] || fail "post-tool-advisory.sh installed; it is inert and should be pruned"
   assert_file_exists "$PROJ_DIR/.git/hooks/pre-commit"
   assert_file_exists "$PROJ_DIR/.intent_critic.yml"
   assert_file_exists "$PROJ_DIR/CLAUDE.md"
@@ -70,7 +74,6 @@ tree_snapshot() {
   assert_file_exists "$PROJ_DIR/intent/llm/MODULES.md"
   assert_file_exists "$PROJ_DIR/intent/llm/DECISION_TREE.md"
 
-  [ -x "$PROJ_DIR/.claude/scripts/session-context.sh" ] || fail "session-context.sh not executable"
   [ -x "$PROJ_DIR/.git/hooks/pre-commit" ] || fail "pre-commit hook not executable"
 
   # Chained architecture: canon body lives at pre-commit.intent; pre-commit
@@ -452,4 +455,126 @@ PCH
   if grep -nE "sed -i ''" "$canon"; then
     fail "BSD-only 'sed -i \\'\\'' is non-portable; use a portable in-place edit"
   fi
+}
+
+# --- FENCES (2026-08-24 config sweep) -------------------------------------
+
+# The canon engine had NO version check of any kind while its orchestrator did.
+# The AGENTS.md probe tested `[ "$local" = "$TARGET" ]`, and EQUALITY HAS NO
+# DIRECTION, so a project AHEAD of the installed tool was regenerated BACKWARDS
+# and reported as a routine refresh. `version_gt` was already exported from
+# intent_helpers and this file already sourced it -- the helper existed and this
+# path simply never called it, which is why "extract a shared helper" would have
+# prevented nothing. The fence has to be a CALL-SITE test.
+@test "canon engine REFUSES a project whose canon is ahead of this tool" {
+  init_scratch guard
+  local ahead; ahead="99.0.0"
+  jq --arg v "$ahead" '.intent_version = $v' intent/.config/config.json > c.tmp && mv c.tmp intent/.config/config.json
+
+  run run_intent claude upgrade --project-dir .
+  [ "$status" -ne 0 ] || fail "engine planned work against a newer project instead of refusing"
+  [[ "$output" == *"refusing downgrade"* ]] || fail "refusal did not name the reason: $output"
+  [[ "$output" == *"$ahead"* ]] || fail "refusal did not name the project version: $output"
+}
+
+# The refusal must name WHICH install is stale. Every project on this machine
+# resolves `intent` through $INTENT_HOME, so "upgrade the tool" is useless
+# advice unless the operator can see which tool answered.
+@test "the downgrade refusal names the resolved install so the operator can act" {
+  init_scratch guard
+  jq '.intent_version = "99.0.0"' intent/.config/config.json > c.tmp && mv c.tmp intent/.config/config.json
+
+  run run_intent claude upgrade --project-dir .
+  [[ "$output" == *"resolved install:"* ]] || fail "refusal did not name the install: $output"
+}
+
+# POSITIVE CONTROL: the guard must not refuse everything. A project at or below
+# the tool's version still upgrades, or the fence above passes trivially.
+@test "positive control: a project at the tool version is NOT refused" {
+  init_scratch guard
+  local target; target="$(cat "${INTENT_PROJECT_ROOT}/VERSION")"
+  jq --arg v "$target" '.intent_version = $v' intent/.config/config.json > c.tmp && mv c.tmp intent/.config/config.json
+
+  run run_intent claude upgrade --project-dir .
+  assert_success
+  [[ "$output" != *"refusing downgrade"* ]] || fail "guard refused a same-version project: $output"
+}
+
+# Skills are SKILL.md PLUS scripts/ and data/, and the scripts are where the
+# behaviour lives. Checksumming SKILL.md alone reported UP TO DATE while an
+# installed script differed from canon; the only way out was --force or touching
+# SKILL.md. Measured 2026-08-24 when in-autopsy's script fix hit exactly that.
+@test "skill drift is detected from a SCRIPT-only change, not just SKILL.md" {
+  init_scratch guard
+  local installed="$HOME/.claude/skills/in-autopsy"
+  local canon="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy"
+  [ -d "$canon" ] || skip "in-autopsy canon not present"
+
+  mkdir -p "$installed/scripts"
+  cp "$canon/SKILL.md" "$installed/SKILL.md"
+  cp -R "$canon/scripts/." "$installed/scripts/" 2>/dev/null || true
+
+  run run_intent claude upgrade --project-dir .
+  [[ "$output" != *"in-autopsy:"*"OUTDATED"* ]] || fail "reported drift on an identical copy: $output"
+
+  # Perturb a SCRIPT ONLY. SKILL.md stays byte-identical.
+  echo "# drift introduced by a script-only edit" >> "$installed/scripts/autopsy.exs"
+  cmp -s "$canon/SKILL.md" "$installed/SKILL.md" || fail "test bug: SKILL.md must stay identical"
+
+  run run_intent claude upgrade --project-dir .
+  [[ "$output" == *"in-autopsy"* ]] || fail "in-autopsy absent from the probe: $output"
+  [[ "$output" == *"OUTDATED"* ]] || fail "script-only drift not detected -- checksum is SKILL.md-only again: $output"
+}
+
+# Every action the canon engine can enqueue must carry a DECLARED DISPOSITION.
+#
+# The orphaned-scripts class ran for four months in silence: issue 0016 moved
+# hook dispatch to the CLI, the install step stayed, and nothing anywhere said
+# whether a written artefact was meant to persist or to be cleaned up. The rule
+# is NOT "every write needs a prune" -- most canon artefacts should persist.
+# The rule is that the ANSWER must be written down, so the next artefact whose
+# reason for existing disappears reddens here instead of lingering.
+#
+# Adding an action without classifying it fails this test. That is the point:
+# the roster is deliberately manual, because "should this persist?" is a
+# judgement no grep can make.
+@test "every canon action has a declared disposition (persist or prune)" {
+  local engine="${INTENT_PROJECT_ROOT}/intent/plugins/claude/bin/intent_claude_upgrade"
+
+  # PERSIST: the artefact is canon the project is meant to keep.
+  local persist="CHAIN_PRE_COMMIT CHAIN_PRE_COMMIT_BLOCK CREATE INSTALL_CLAUDE_MD \
+INSTALL_CRITIC_CONFIG INSTALL_PRE_COMMIT INSTALL_SETTINGS INSTALL_TREEINDEXIGNORE \
+INSTALL_USAGE_RULES MERGE MIGRATE_LEGACY_PRE_COMMIT NORMALIZE_GITIGNORE \
+PLANT_DECISION_TREE PLANT_MODULES REFRESH_CLAUDE_MD REGENERATE RENAME_SKILL \
+UPDATE_SKILL UPDATE_SUBAGENT"
+
+  # REMOVES: the action's whole job is taking something away.
+  local removes="DELETE DELETE_LEGACY_AGENTS PRUNE_HOOK_SCRIPT"
+
+  local declared=" $persist $removes "
+  local undeclared=""
+  local a
+  for a in $(grep -ohE 'add_action "[A-Z_]+' "$engine" | sed 's/add_action "//' | sort -u); do
+    case "$declared" in
+      *" $a "*) ;;
+      *) undeclared="$undeclared $a" ;;
+    esac
+  done
+
+  [ -z "$undeclared" ] || fail "canon actions with no declared disposition:$undeclared
+Add each to the persist or removes roster in this test. If an artefact is
+written but nothing will ever remove it, say so explicitly -- that is the
+declaration. Silence is how the orphaned hook scripts survived four months."
+}
+
+# The pruner must name its targets explicitly, never sweep a directory.
+# A project may keep its own hooks in .claude/scripts/ (Lamplight carries an
+# unwired fmt-md-on-write.sh), and a blanket sweep would take them too.
+@test "the hook-script pruner names its three targets and does not sweep" {
+  local engine="${INTENT_PROJECT_ROOT}/intent/plugins/claude/bin/intent_claude_upgrade"
+  grep -q 'for _script in session-context.sh require-in-session.sh post-tool-advisory.sh' "$engine" \
+    || fail "pruner no longer enumerates its three targets explicitly"
+  grep -qE 'rm -rf .*\.claude/scripts' "$engine" \
+    && fail "pruner sweeps the directory; a project's own scripts would be destroyed"
+  return 0
 }

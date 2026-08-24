@@ -246,3 +246,94 @@ skip_if_no_elixir() {
     skip "Elixir not installed"
   fi
 }
+
+# --- FENCES (2026-08-24 config sweep) -------------------------------------
+#
+# The detector measured roughly 5% signal and printed the raw total as its
+# headline: 283 raw -> 29 assistant-authored -> 14 unquoted on Intent's own
+# corpus, reproduced independently by three other estates. These hold the fix.
+
+_autopsy_fixture() {
+  local dir="$HOME/.claude/projects/-fixture-Proj"
+  mkdir -p "$dir"
+  # Four turns, each isolating one behaviour. Written as real transcript lines
+  # so the parser is exercised rather than stubbed.
+  {
+    # assistant, authored, the SAME banned word TWICE -> per-occurrence = 2
+    printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Certainly this works. Certainly it does."}]}}'
+    # assistant, authored, contains a bare "not" near the word: must NOT be
+    # scored as negated -- ordinary English is not a negation cue.
+    printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"This is not the same thing. Absolutely a distinct case."}]}}'
+    # a PEER message passing through this session -> turn_kind peer_message
+    printf '%s\n' '{"type":"user","message":{"content":[{"type":"text","text":"<cross-session-message from-name=\"other-vc\">Certainly the peer wrote this.</cross-session-message>"}]}}'
+    # a genuine negation: the rule being discussed, not broken
+    printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Never use Certainly at the start of a reply."}]}}'
+  } > "$dir/fixture-session.jsonl"
+  echo "$dir"
+}
+
+@test "autopsy emits one record per OCCURRENCE, not one per (text, pattern)" {
+  local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
+  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  _autopsy_fixture >/dev/null
+  local out="$TEST_TEMP_DIR/f.json"
+
+  run elixir "$script" --days 3650 --project fixture -o "$out"
+  assert_success
+
+  # "Certainly" appears TWICE in one assistant turn. First-occurrence-judges-all
+  # would emit 1; per-occurrence emits 2.
+  local n
+  n="$(jq '[.banned_pattern_violations[] | select(.word=="Certainly" and .turn_kind=="authored" and .role=="assistant")] | length' "$out")"
+  [ "$n" -ge 3 ] || fail "expected >=3 authored Certainly records (2 in one turn + 1 negated), got $n"
+}
+
+@test "autopsy tags turn_kind so a record can be classified from itself" {
+  local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
+  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  _autopsy_fixture >/dev/null
+  local out="$TEST_TEMP_DIR/f.json"
+
+  run elixir "$script" --days 3650 --project fixture -o "$out"
+  assert_success
+
+  local peer
+  peer="$(jq '[.banned_pattern_violations[] | select(.turn_kind=="peer_message")] | length' "$out")"
+  [ "$peer" -ge 1 ] || fail "peer message not classified; context window cannot reach the marker, so scan-time tagging is the only way"
+
+  jq -e '.banned_pattern_violations[0] | has("word")' "$out" >/dev/null || fail "no 'word' field -- the --banned-words input implies it"
+  jq -e '.banned_pattern_violations[0] | has("turn_kind")' "$out" >/dev/null || fail "no 'turn_kind' field"
+}
+
+@test "autopsy does not treat a bare 'not' as a negation cue" {
+  local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
+  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  _autopsy_fixture >/dev/null
+  local out="$TEST_TEMP_DIR/f.json"
+
+  run elixir "$script" --days 3650 --project fixture -o "$out"
+  assert_success
+
+  # "This is not the same thing. Absolutely a distinct case."
+  # 71 of 103 suppressions rode on bare not/no before this was fixed.
+  local suppressed
+  suppressed="$(jq '[.banned_pattern_violations[] | select(.word=="Absolutely" and .is_negated==true)] | length' "$out")"
+  [ "$suppressed" -eq 0 ] || fail "bare 'not' suppressed a real match again"
+
+  # POSITIVE CONTROL: a GENUINE cue must still suppress, or the test above
+  # passes on a negation check that never fires at all.
+  local genuine
+  genuine="$(jq '[.banned_pattern_violations[] | select(.is_negated==true)] | length' "$out")"
+  [ "$genuine" -ge 1 ] || fail "no negation detected anywhere -- 'Never use Certainly' should have been suppressed"
+}
+
+@test "autopsy summary prints the funnel, not the raw total alone" {
+  local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
+  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  _autopsy_fixture >/dev/null
+
+  run elixir "$script" --days 3650 --project fixture -o "$TEST_TEMP_DIR/f.json"
+  assert_success
+  [[ "$output" == *"authored here"* ]] || fail "summary lost the authored line: $output"
+  [[ "$output" == *"ACTIONABLE"* ]] || fail "summary lost the actionable line: $output"
+}

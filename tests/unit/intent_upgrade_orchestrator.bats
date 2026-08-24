@@ -196,3 +196,63 @@ EOF
   fi
   grep -q 'if stamp_project_version' "$UPGRADE" || fail "the stamp must be called in a condition so set -e cannot abort it"
 }
+
+# --- FENCES (2026-08-24 config sweep) -------------------------------------
+#
+# These exist because the fix they guard was WRONG ON THE FIRST CUT and only a
+# whole-tree fingerprint caught it. `--dry-run` gated the ledger, the canon call
+# and the stamp but NOT the backup, so the "dry" run wrote .backup/ and took a
+# clean fixture to 1 dirty path -- while printing "dry run: nothing was
+# modified". Reading the output would have passed it. Only comparing the tree
+# to itself failed it.
+
+@test "dry-run mutates NOTHING: whole-tree fingerprint is identical before and after" {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-dryrun-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
+  setup_fake_home
+  _scaffold "intent/.config/config.json" "2.9.0" ',"languages":[]'
+
+  local before after
+  before="$(find . -path ./.git -prune -o -type f -print | LC_ALL=C sort | xargs shasum 2>/dev/null | shasum | cut -d' ' -f1)"
+  run "$INTENT_BIN" upgrade --dry-run
+  assert_success
+  after="$(find . -path ./.git -prune -o -type f -print | LC_ALL=C sort | xargs shasum 2>/dev/null | shasum | cut -d' ' -f1)"
+
+  [ "$before" = "$after" ] || fail "dry-run changed the tree: $before -> $after"
+}
+
+@test "dry-run takes NO backup: the backup is itself a mutation" {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-dryrun-bk-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
+  setup_fake_home
+  _scaffold "intent/.config/config.json" "2.9.0" ',"languages":[]'
+
+  run "$INTENT_BIN" upgrade --dry-run
+  assert_success
+  [ ! -d .backup ] || fail "dry-run created .backup/ -- the exact defect this flag exists to prevent"
+}
+
+@test "dry-run leaves the version stamp untouched" {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-dryrun-stamp-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
+  setup_fake_home
+  _scaffold "intent/.config/config.json" "2.9.0" ',"languages":[]'
+
+  run "$INTENT_BIN" upgrade --dry-run
+  assert_success
+  local stamp; stamp="$(jq -r '.intent_version' intent/.config/config.json)"
+  [ "$stamp" = "2.9.0" ] || fail "dry-run stamped the project: expected 2.9.0, got $stamp"
+}
+
+# POSITIVE CONTROL. Without this the three tests above pass on a --dry-run that
+# does nothing at all, including when the flag silently stops the upgrade from
+# working. A fence that cannot fail is not a fence.
+@test "positive control: the SAME fixture without --dry-run does mutate and stamp" {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-dryrun-pc-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
+  setup_fake_home
+  _scaffold "intent/.config/config.json" "2.9.0" ',"languages":[]'
+
+  run "$INTENT_BIN" upgrade --no-backup
+  assert_success
+  local target stamp
+  target="$(cat "${INTENT_PROJECT_ROOT}/VERSION")"
+  stamp="$(jq -r '.intent_version' intent/.config/config.json)"
+  [ "$stamp" = "$target" ] || fail "apply path did not stamp: expected $target, got $stamp"
+}

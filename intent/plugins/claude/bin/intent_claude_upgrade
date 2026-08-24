@@ -858,8 +858,9 @@ for skill_dir in "$HOME/.claude/skills"/in-*/; do
   [ -d "$skill_dir" ] || continue
   skill_name="$(basename "$skill_dir")"
   if [ -d "$SKILLS_SOURCE/$skill_name" ]; then
-    local_checksum=$(calculate_checksum "$skill_dir/SKILL.md" 2>/dev/null)
-    source_checksum=$(calculate_checksum "$SKILLS_SOURCE/$skill_name/SKILL.md" 2>/dev/null)
+    # WHOLE DIRECTORY, not SKILL.md: see calculate_dir_checksum in intent_helpers.
+    local_checksum=$(calculate_dir_checksum "$skill_dir" 2>/dev/null)
+    source_checksum=$(calculate_dir_checksum "$SKILLS_SOURCE/$skill_name" 2>/dev/null)
     if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ] && [ "$local_checksum" != "unknown" ]; then
       echo -e "  $skill_name:$(printf '%*s' $((25 - ${#skill_name})) '')${GREEN}UP TO DATE${NC}"
     else
@@ -1149,12 +1150,36 @@ if [ ${#ACTIONS[@]} -gt 0 ]; then
         if [ "$DRY_RUN" = true ] && [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
           _diff_preview="$(mktemp)"
           canon_compute_refresh_preview "$CANON_CLAUDE_MD_SRC" "$PROJECT_DIR/CLAUDE.md" "$_diff_preview"
-          _diff_lines="$(diff -u "$PROJECT_DIR/CLAUDE.md" "$_diff_preview" 2>/dev/null | wc -l | tr -d '[:space:]')"
+          _diff_full="$(mktemp)"
+          diff -u "$PROJECT_DIR/CLAUDE.md" "$_diff_preview" > "$_diff_full" 2>/dev/null
+          _diff_lines="$(wc -l < "$_diff_full" | tr -d '[:space:]')"
           if [ "${_diff_lines:-0}" -gt 0 ]; then
-            echo "       diff (current vs after refresh, first 60 lines):"
-            diff -u "$PROJECT_DIR/CLAUDE.md" "$_diff_preview" 2>/dev/null \
-              | head -60 \
-              | sed 's/^/         /'
+            # THE PREVIEW IS THE WHOLE SAFETY MECHANISM, so it must not be
+            # silently partial. It used to print `head -60` under a heading that
+            # said "first 60 lines" and stop -- which is honest about the cut and
+            # silent about the SIZE of what was cut, so an operator reviewing a
+            # large hand-authored block could not tell a 2-line refresh from a
+            # 900-line rewrite. Raising the limit only moves the cliff.
+            #
+            # Three things instead: how many lines are REMOVED (the destructive
+            # half, and the only number that matters when content sits outside
+            # the markers), how much of the diff is being shown, and where the
+            # complete diff is on disk.
+            # `|| true`, never `|| echo 0`: grep -c PRINTS "0" and EXITS 1 when
+            # there are no matches, so the `echo` appends a second line and the
+            # arithmetic test below dies on "0\n0".
+            _removed="$(grep -cE '^-[^-]' "$_diff_full" 2>/dev/null || true)"
+            _removed="${_removed:-0}"
+            echo "       refresh would REMOVE $_removed line(s) and the full diff is $_diff_lines lines."
+            if [ "$_removed" -gt 0 ]; then
+              echo "       lines outside <!-- user:start -->/<!-- user:end --> are NOT preserved."
+            fi
+            if [ "${_diff_lines:-0}" -gt 60 ]; then
+              echo "       showing the first 60 of $_diff_lines; FULL DIFF: $_diff_full"
+            fi
+            head -60 "$_diff_full" | sed 's/^/         /'
+          else
+            rm -f "$_diff_full"
           fi
           rm -f "$_diff_preview"
         fi
