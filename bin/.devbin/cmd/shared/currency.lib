@@ -1,0 +1,174 @@
+# shellcheck shell=bash
+#
+# shared/currency.lib -- does a BUILT artefact still describe this tree?
+# SOURCED, never run: 0644 so `is_handler` (-f AND -x) cannot mistake it for a
+# command. Requires `artefact.lib` to be sourced first; it does not source it
+# itself, because THE marker extraction site is that file and a `source ||
+# define-my-own` fallback restores the duplicate at exactly the moment nobody is
+# watching (vc's ruling, 2026-08-22, after the marker parser went four-homes-to-one).
+#
+# WHY THIS IS NOT `cmd/local`'s `verify_pair`, AND THE DISTINCTION IS THE WHOLE
+# DESIGN. `verify_pair` is a BUILD-time check: it demands `sc == HEAD` exactly
+# and treats any `dirty-` as bad. That is right immediately after `int local
+# build` and WRONG at exec time, where it would refuse after any commit at all --
+# a README edit, a whiteboard fold -- which is how a gate becomes one people work
+# around. Two mechanisms enforcing different properties are not two copies of one
+# (vc, 2026-08-20). The shared primitive is the pair read, below.
+#
+# THE CONVERGENCE OF `verify_pair` ONTO `artefact_pair_marker` IS RECORDED AND
+# DELIBERATELY NOT DONE. hv ruled that `intent3` may refuse; refactoring a
+# build-time check was not asked for, and widening a pen because the code is
+# adjacent is the quiet scope-creep this lane is supposed to be the check
+# against. Recorded so this header and `grep` still agree.
+#
+# ---------------------------------------------------------------------------
+# THE MATRIX KEYS ON DECIDABILITY, NEVER ON DIRT, AND IT READS BACKWARDS UNTIL
+# YOU SEE THAT (cc named the case that misleads, 2026-08-24).
+#
+#   no marker at all                        REFUSE  "cannot say" is not a pass
+#   the pair disagrees                      REFUSE  two trees, one install
+#   base not reachable / not an ancestor    REFUSE  it describes a tree you are not on
+#   clean  + range touches rust source      REFUSE  provably behind
+#   dirty  + range touches rust source      REFUSE  same, and the dirt adds nothing
+#   dirty  + range is source-clean          WARN    permanent; see below
+#   clean  + range is source-clean          OK      silent
+#
+# THE CASE THAT LOOKS WRONG IS `clean + touches source` REFUSING WHILE `dirty +
+# source-clean` ONLY WARNS. A clean marker is the good outcome everywhere else,
+# so refusing on it reads as backwards -- until you notice the matrix is not
+# asking "is this binary tidy", it is asking "can I DECIDE whether it is behind".
+#
+# WHY A DIRTY MARKER CAN NEVER REFUSE AND CAN NEVER BE CLEARED. `dirty-<base>`
+# means: built from a tree at <base> PLUS uncommitted modifications. The COMMITTED
+# delta is decidable -- that is the range test. The UNCOMMITTED delta at build
+# time is not recoverable from the artefact by anyone, ever. So:
+#   - it cannot refuse: a dirty binary whose range is source-clean may be
+#     perfectly current, and refusing it rejects a binary that is provably fine
+#     (cc drove exactly this case: `ad0ba20d..HEAD` touched one file, a test);
+#   - it cannot be discharged: no evidence available at exec time can establish
+#     what the dirt was.
+# A permanent uncleartable warning is an unsatisfying object. It is also the only
+# honest one: the alternative is a warning that LOOKS clearable and quietly is not.
+#
+# WHY THE BOUNDARY IS `native/rust/` AND NOT `native/rust/crates/`. A `Cargo.lock`
+# or workspace `Cargo.toml` change is a different dependency set and therefore a
+# different binary, and neither lives under `crates/`. Widening here makes the
+# guard refuse MORE, which is the correct direction for a check whose false
+# negative ships a stale binary and whose false positive costs one rebuild.
+#
+# THE KNOWN FALSE REFUSAL, STATED RATHER THAN DISCOVERED LATER. Rust puts unit
+# tests INLINE under `#[cfg(test)]` in `src/*.rs`. A commit touching only such a
+# block is a source-file change by path and this will refuse on it. Path is the
+# only signal available without parsing Rust, and refusing-when-unsure is the
+# direction chosen above. It costs a rebuild, not a wrong answer.
+#
+# WHY THE TWO "CANNOT SAY" CASES GO OPPOSITE WAYS. An artefact that cannot say
+# what it is REFUSES -- that is `artefact.lib`'s own rule and the state a binary
+# built before the embed landed is in. A TREE that cannot answer (no `git`) only
+# WARNS, because that is a fact about the environment rather than about the
+# artefact, and a wrapper that dies when `git` is absent has invented a new
+# dependency for every consumer.
+#
+# COST, DRIVEN 2026-08-24 AT `60782024` RATHER THAN ASSERTED, BECAUSE THE FIGURE
+# THIS REPLACES WAS ASSERTED AND WRONG BY TWO ORDERS OF MAGNITUDE. `bin/intent3`
+# carried "a MULTI-SECOND gate on every command" as the reason not to do this.
+# Measured: 40ms + 36ms for the two `strings` passes over a 9.6M and a 373K
+# binary, 33ms for the git range. ~110ms total, and the floor for any check at
+# all (one `stat` + one `rev-parse`) is already 31ms. A confident unmeasured
+# figure held this design shut for three days.
+
+# artefact_pair_marker <release_dir>
+#
+# Prints the ONE marker both binaries carry and returns 0, or prints a reason on
+# stderr and returns 1. This is the primitive `verify_pair` also needs; it is
+# here rather than there so the next spelling of "do the two agree" has a home to
+# be added to instead of a place to be copied from.
+artefact_pair_marker() {
+  local dir="$1" b sc first="" first_bin=""
+  for b in intent intentd; do
+    if [ ! -f "$dir/$b" ]; then
+      printf 'no %s binary at %s\n' "$b" "$dir/$b" >&2
+      return 1
+    fi
+    if ! sc="$(artefact_source_commit "$dir/$b")"; then
+      printf '%s carries NO source-commit marker -- it cannot say what it is\n' "$b" >&2
+      return 1
+    fi
+    if [ -z "$first" ]; then
+      first="$sc"
+      first_bin="$b"
+    elif [ "$sc" != "$first" ]; then
+      printf 'the pair disagrees: %s says %s, %s says %s -- built from DIFFERENT trees\n' \
+        "$first_bin" "$first" "$b" "$sc" >&2
+      return 1
+    fi
+  done
+  printf '%s' "$first"
+}
+
+# _rust_source_changed <repo> <base>
+#
+# Prints the count of non-test files under `native/rust/` that the COMMITTED
+# range <base>..HEAD touches. Prints `unknown` when git cannot answer.
+_rust_source_changed() {
+  local repo="$1" base="$2" changed
+  git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown'; return 0; }
+  git -C "$repo" cat-file -e "${base}^{commit}" 2>/dev/null || { printf 'unreachable'; return 0; }
+  git -C "$repo" merge-base --is-ancestor "$base" HEAD 2>/dev/null || { printf 'notancestor'; return 0; }
+  changed="$(git -C "$repo" diff --name-only "$base..HEAD" -- native/rust 2>/dev/null || true)"
+  printf '%s\n' "$changed" | grep -vE '(^|/)(tests|benches)/' 2>/dev/null | awk 'NF' | wc -l | tr -d ' '
+}
+
+# artefact_currency_verdict <release_dir> <repo>
+#
+# Prints exactly one of `ok`, `warn:<reason>`, `refuse:<reason>` and returns 0.
+# The CALLER decides what a verdict costs -- this function never exits, because a
+# library that kills its host cannot be used by a reporter and an actor both.
+artefact_currency_verdict() {
+  local dir="$1" repo="$2" marker base dirty=0 n
+  if ! marker="$(artefact_pair_marker "$dir" 2>&1)"; then
+    printf 'refuse:%s' "$marker"
+    return 0
+  fi
+  base="$marker"
+  case "$marker" in
+    dirty-*) dirty=1; base="${marker#dirty-}" ;;
+  esac
+
+  n="$(_rust_source_changed "$repo" "$base")"
+  case "$n" in
+    unknown)
+      printf 'warn:cannot reach git, so currency is undecidable here -- the artefact is not at fault'
+      return 0 ;;
+    unreachable)
+      printf 'refuse:the binaries name %s, which is not a commit in this repository' "${base:0:12}"
+      return 0 ;;
+    notancestor)
+      printf 'refuse:the binaries name %s, which is not an ancestor of HEAD -- they describe a tree you are not standing on' "${base:0:12}"
+      return 0 ;;
+  esac
+
+  # A COUNT OVER A `dirty-` BASE IS A FLOOR, NOT A DISTANCE (ic, 2026-08-24). The
+  # committed range is enough to conclude STALE -- one changed source file does
+  # that, and it needs none of the dirty argument. It is NOT enough to say HOW FAR
+  # behind: whatever was uncommitted at build time lies outside the range, in
+  # either direction. Saying "8 files changed since" over a dirty base invites the
+  # number to be quoted as the size of the gap, which is the overclaim this file
+  # exists to refuse -- arriving in the file's own error message.
+  if [ "$n" -gt 0 ]; then
+    if [ "$dirty" -eq 1 ]; then
+      printf 'refuse:at least %s non-test file(s) under native/rust changed since %s, and the marker is dirty- so that count is a FLOOR rather than the gap -- whatever was uncommitted at build time is outside this range. Behind HEAD either way' \
+        "$n" "${base:0:12}"
+    else
+      printf 'refuse:%s non-test file(s) under native/rust changed since %s -- this binary is behind HEAD' \
+        "$n" "${base:0:12}"
+    fi
+    return 0
+  fi
+  if [ "$dirty" -eq 1 ]; then
+    printf 'warn:built from an UNCOMMITTED tree at %s; the committed range is source-clean, but what was uncommitted at build time is unrecoverable and this warning can never be cleared' \
+      "${base:0:12}"
+    return 0
+  fi
+  printf 'ok'
+}

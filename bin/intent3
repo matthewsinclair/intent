@@ -57,12 +57,30 @@
 # So a LINK is safe and a COPY is not. Homebrew's Cellar layout is safe for the
 # same reason and is named in `resolve()`'s own comment.
 #
-# NO COHERENCE CHECK RUNS HERE, DELIBERATELY. The release pair can be built
-# from two different trees -- `cargo build --release` returns 0 over exactly
-# that -- but checking it on EVERY invocation would put a multi-second gate on
-# every command, which is how a gate becomes one people work around. The check
-# belongs at build time: `int local build`. This wrapper's only job is to fail
-# loud when the binary is absent rather than falling back to something else.
+# THIS WRAPPER REFUSES AN ARTEFACT THAT CANNOT BE SHOWN TO DESCRIBE THIS TREE
+# (hv ruled 2026-08-24; the options vc authored are on their board, and the
+# branch not taken was `keep it a reporter, warn but exec`). A reporter fails
+# open and an actor refuses, and this is an ACTOR: it is on PATH, so what it
+# execs is what the estate runs.
+#
+# WHAT THIS PARAGRAPH USED TO SAY, AND WHY THE CORRECTION IS THE POINT. It read:
+# "checking it on EVERY invocation would put a MULTI-SECOND gate on every
+# command, which is how a gate becomes one people work around." That figure was
+# ASSERTED AND NEVER DRIVEN, and it is wrong by roughly two orders of magnitude
+# -- measured 2026-08-24: 40ms + 36ms for the two `strings` passes and 33ms for
+# the git range, ~110ms total, against a 31ms floor for reading a `stat` and a
+# `rev-parse` at all. A confident unmeasured number held this design shut for
+# three days and was the whole stated reason for not doing it.
+#
+# THE MATRIX AND ITS REASONING LIVE IN `shared/currency.lib`, ONE HOME, and the
+# short version is that it keys on DECIDABILITY rather than on dirt: a `dirty-`
+# marker can never refuse (it would reject a binary that is provably current)
+# and can never be cleared (the uncommitted delta at build time is unrecoverable),
+# so it only ever downgrades a refusal to a permanent warning.
+#
+# THE LIBS ARE A HARD DEPENDENCY WITH NO FALLBACK, DELIBERATELY (vc, 2026-08-22).
+# A `source || define-my-own` restores the duplicate at exactly the moment nobody
+# is watching, and the marker parser has already been four-homes-to-one once.
 #
 set -euo pipefail
 
@@ -88,5 +106,38 @@ if [ ! -x "$bin" ]; then
   printf '  its build script therefore never re-runs.\n' >&2
   exit 1
 fi
+
+# The verdict is read BEFORE the exec, because after it this process is gone.
+for lib in artefact currency; do
+  libpath="$here/.devbin/cmd/shared/$lib.lib"
+  if [ ! -r "$libpath" ]; then
+    printf 'error: cannot read %s -- refusing to exec without the currency check\n' "$libpath" >&2
+    printf '  This is a HARD dependency on purpose. A wrapper that silently drops\n' >&2
+    printf '  its own guard when a file goes missing is worse than one with no guard.\n' >&2
+    exit 1
+  fi
+  # shellcheck source=/dev/null
+  . "$libpath"
+done
+
+verdict="$(artefact_currency_verdict "$here/../native/rust/target/release" "$here/..")"
+case "$verdict" in
+  ok) ;;
+  warn:*)
+    printf 'warning: %s\n' "${verdict#warn:}" >&2
+    ;;
+  refuse:*)
+    printf 'error: %s\n' "${verdict#refuse:}" >&2
+    printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2
+    printf '  This refusal is the guard working. The binary really does not describe\n' >&2
+    printf '  this tree, and a v3 answer from it would be about a tree you are not on.\n' >&2
+    exit 1
+    ;;
+  *)
+    printf 'error: currency.lib returned an unrecognised verdict: %s\n' "$verdict" >&2
+    printf '  Refusing rather than guessing: an unknown verdict is not a pass.\n' >&2
+    exit 1
+    ;;
+esac
 
 exec "$bin" "$@"
