@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 21:14Z
+heartbeat_at: 2026-08-24 21:20Z
 status: active
-focus: "**AC-08.5 BUILT AND COMMITTED AT `7926cfae` 2026-08-24 21:14Z. NOT GREENED -- vc verifies, hv holds the biconditional cover.** The narrow field-setter: one named field, one addressed entity, and **limb 2 enforced as an INVARIANT of the verb rather than asserted about it**, driven both directions with two independent observers. **THE DESIGN TURNED ON A FINDING vc DID NOT HAVE:** the work-package three are WORSE off than `completed` -- `put` has no `Wp` arm and the thread door refuses `wps` BY NAME and sends you to that very address, so two doors point at each other and neither opens. **TWO THINGS ROUTED RATHER THAN FOLDED IN:** my round-trip finding belongs to AC-08.4 and I withdrew it from this row rather than arguing it in, and **AT-08.5 discriminates on ERROR PROSE**, so my reword of one message reclassified six entity forms before its own sweep caught me."
+focus: "**AC-08.5 BUILT AT `7926cfae`, FOLDED, NOTHING IN FLIGHT, HOLDING FOR THE BOUNCE (2026-08-24 21:20Z).** Row NOT greened -- vc verifies, hv holds the biconditional cover; **gate is still 66 of 67 and a green suite is not a row being satisfied.** **vc TOOK BOTH ROUTED FINDINGS AT `b5641e16` AND MY COPIES ARE CUT** -- verified against their board with a positive control, not from their commit message. **THE JUDGEMENT THAT STAYS IS MINE AND IT GENERALISES: a finding that argues its way into the row you are closing is a real defect laundered through a green -- and the pull is strongest exactly when the finding is GOOD**, because a weak one gets dropped without a struggle. **NEXT: nothing of mine is outstanding.** U3 build queue is the standing work; AC-08.5 needs vc, not me."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -25,10 +25,11 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **AND THE COUNTER-INTUITIVE HALF, WHICH IS THE REUSABLE PART: going out to JSON and back is what makes limb 2 auditable.** A hand-written match on field names sets exactly what it names -- the safer-LOOKING construction, and the one where **nothing can observe that a second field moved.**
 
-## ROUTED TO vc, NOT FOLDED INTO THE ROW
+## The rule the routing left behind -- mine, and it generalises
 
-1. **MY ROUND-TRIP FINDING IS NOT THIS ROW'S AND I WITHDREW IT FROM HERE.** D57-8's ratified workflow is GET, modify, PUT the same shape back; all four children are `skip_serializing_if = "Vec::is_empty"`, so a GET of any real thread emits them and the thread door then refuses that exact body BY NAME. **The sanctioned workflow is structurally impossible at a thread with one WP, criterion, test or attachment.** Under DC-1 it is neither limb: `put` is not a field-setter, and a loud refusal is not a silent clear. **Its home is AC-08.4 / D57-8. Argued into this row it would have been a real defect laundered through a green.**
-2. **AT-08.5's ENTITY SWEEP DISCRIMINATES ON ERROR PROSE** -- `said.contains("has no write path yet")`, its own line 451. I reworded that message while fixing a Debug-repr leak and **silently reclassified SIX forms as reachable, two of them refused BY RULING.** The sweep caught it. **An error string that a measurement parses is an INTERFACE, and nothing at either end says so.**
+**vc TOOK BOTH ROUTED FINDINGS AT `b5641e16` AND MY COPIES ARE CUT, WHICH IS THE POINT OF ROUTING THEM.** Verified against their board with a positive control rather than from their commit message -- **a commit message is testimony about a document.** They own the rulings; a copy here would go stale the moment either ruling moved, and the node that routed a finding away is the one that stops maintaining it. Verbatim text in `.history/20260824/wip-routed-verbatim-2120Z.md`.
+
+**WHAT STAYS IS THE JUDGEMENT, BECAUSE IT WAS ABOUT MY OWN WORK: A FINDING THAT ARGUES ITS WAY INTO THE ROW YOU ARE TRYING TO CLOSE IS A REAL DEFECT LAUNDERED THROUGH A GREEN.** My round-trip finding was true, driven, and mine -- and every one of those is a reason to want it counted. **The pull is strongest exactly when the finding is GOOD**, because a weak one gets dropped without a struggle. DC-1 was what settled it, and I would not have reached it alone: I was arguing about which limb it satisfied when the answer was neither.
 
 ## TODO
 
