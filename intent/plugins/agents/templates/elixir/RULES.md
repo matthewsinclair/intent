@@ -62,7 +62,7 @@ Every `with` clause must have a matching `else` clause or all called functions m
 ### Phoenix
 
 - Verified routes (`~p"..."`) only, never string-based routes
-- `phx.gen.auth` scope pattern: use `@scope.user`, never `@current_user`
+- Auth assign: `phx.gen.auth` generates EITHER the scope-based pattern (`@scope.user`) or the earlier `@current_user` one, depending on the Phoenix version that generated it. Use whichever THIS project actually generated -- check before changing call sites; they are not interchangeable.
 - Auth at the router level with plugs and `live_session` scopes
 - Never duplicate `live_session` names
 
@@ -93,7 +93,6 @@ Every `with` clause must have a matching `else` clause or all called functions m
 - NEVER use anonymous functions for Ash changes/validations/preparations
 - NEVER commit `dbg()` or `IO.inspect/2`
 - NEVER put `require` inside a function body -- module level only
-- NEVER use `@current_user` -- use scope-based assign pattern
 
 <!-- Add project-specific rules below this line -->
 
