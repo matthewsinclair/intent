@@ -347,7 +347,8 @@ is_bare_version() {
 # with a warning rather than failing: losing history is an inconvenience,
 # refusing to start a REPL is an outage.
 #
-# `opts` is a plain indexed array, which bash 3.2 has (design D9 rules out only
+# `opts` is a plain indexed array, which bash 3.2 has (design D9 -- since
+# reversed by issue 0022 -- ruled out only
 # the ASSOCIATIVE arrays of bash 4). It is never empty at expansion, so it needs
 # none of the `${a[@]+...}` guarding parse_common_opts does.
 rlwrap_exec() {

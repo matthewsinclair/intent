@@ -314,14 +314,19 @@ check_symlinks() {
   return 0
 }
 
-# check_bash -- noted, not gated.
+# check_bash -- the floor, asserted where a human reads it.
 #
-# Design D9 targets bash 3.2, so a 3.2 is correct rather than a problem and
-# failing on it would be backwards. What is worth printing is WHICH bash, since
-# a defect reported from a Mac and a defect reported from CI are usually the
-# same defect seen at two versions.
+# Issue 0022 (2026-08-24) reversed design D9: devbin REQUIRES bash >= 5, and
+# the dispatcher refuses older before doctor can run -- so a doctor reaching
+# this line is already on a compliant bash. The row still earns its place: it
+# names WHICH bash, and it is the check that goes red if the dispatcher guard
+# is ever removed while this one survives it.
 check_bash() {
-  _note "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (devbin targets 3.2, design D9)"
+  if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
+    _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5, issue 0022)"
+  else
+    _fail "bash: ${BASH_VERSION:-unknown} is below the >= 5 floor (issue 0022) -- brew install bash"
+  fi
   return 0
 }
 

@@ -314,7 +314,8 @@ _sha256_of_set() {
   done <<EOF
 $rels
 EOF
-  # Guarded expansion: bash 3.2 aborts on an empty array under `set -u` (D9).
+  # Guarded expansion: bash 3.2 aborted on an empty array under `set -u` (D9,
+  # since reversed by issue 0022 -- idiom kept as harmless).
   [ "${#args[@]}" -gt 0 ] || return 0
   (cd "$root" && sha256_files "${args[@]+"${args[@]}"}")
   return 0

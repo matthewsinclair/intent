@@ -14,6 +14,19 @@
 #
 set -euo pipefail
 
+# THE FLOOR (issue 0022, reversing design D9). devbin requires bash >= 5 and
+# REFUSES older: macOS ships /bin/bash 3.2.57 permanently (GPLv3), the fleet
+# runs a Homebrew bash 5.x everywhere, and the guarantee now points at what
+# actually runs. This block must stay parseable by bash 3.2 -- the refusal
+# cannot be allowed to arrive as a syntax error that explains nothing.
+if [ "${BASH_VERSINFO[0]:-0}" -lt 5 ]; then
+  printf 'devbin: bash >= 5 is required; this is bash %s (%s)\n' \
+    "${BASH_VERSION:-unknown}" "${BASH:-unknown}" >&2
+  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash\n' >&2
+  printf '  (issue 0022, reversing design D9, 2026-08-24)\n' >&2
+  exit 1
+fi
+
 # Resolve this script's real location (symlink-safe) into BIN_DIR and the
 # project root, so the launcher works from any CWD and through a symlink on
 # PATH. Both `bin/<prj> -> devbin` and `bin/<alias> -> devbin` land here.
@@ -265,8 +278,9 @@ esac
 # exports reach them anyway and none of them needs to parse again; what a
 # handler receives on its command line is only what devbin did not recognise.
 parse_common_opts "$command" "$@"
-# Guarded expansion: an empty array under `set -u` aborts on bash 3.2, the
-# /bin/bash on every Mac (design D9). See parse_common_opts in lib/resolve.
+# Guarded expansion: a bash 3.2 idiom (an empty array under `set -u` aborted
+# there; design D9, since reversed by issue 0022). Harmless under the >= 5
+# floor and kept. See parse_common_opts in lib/resolve.
 set -- "${DEVBIN_ARGS[@]+"${DEVBIN_ARGS[@]}"}"
 
 command_active "$command" || {

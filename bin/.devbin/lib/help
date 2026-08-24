@@ -643,7 +643,7 @@ help_main() {
   done
 
   # Guarded expansion: an empty array under `set -u` aborts on bash 3.2, the
-  # /bin/bash on every Mac (design D9).
+  # /bin/bash on every Mac (design D9, since reversed by issue 0022; idiom kept).
   set -- "${topic[@]+"${topic[@]}"}"
   if [ $# -eq 0 ]; then
     if [ -n "$why" ]; then
