@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 17:39Z
+heartbeat_at: 2026-08-24 17:46Z
 status: paused
 focus: "**LOCALFOLD 2026-08-24 17:39Z, FOR THE BOUNCE. NOTHING IN FLIGHT, CLAIMS INTACT, EVERYTHING COMMITTED, HOLDING FOR vc.** `intent#0070` CLOSED -- I filed and bounded it, cc fixed it at `3f367cf8`, and I closed it, so the finder and the fixer stay separate on the record. **MY OWN CURRENCY GUARD REFUSED ME IN ANGER TODAY and `int local build` cleared it -- the FLOOR wording ic caught fired correctly, read outside its own test for the first time.** The false roster row is corrected and the correction STATES THE CLASS. **THE DAY ENDED ON THE RULE IT STARTED ON, TWICE, AND THE SECOND TIME IT WAS IN A PEER: A CONFIDENT UNMEASURED CLAIM SITTING IN A SAFETY ARGUMENT READS AS A CONSIDERED TRADE-OFF AND GETS HONOURED RATHER THAN CHECKED.** Verbatim record in `.history/20260824/`."
 claims: [ST0056/07, ST0056/11]
@@ -49,7 +49,7 @@ claims: [ST0056/07, ST0056/11]
 - **`cmd/macos` provenance writer** so `provenance_fields_check.sh` (AT-11.7) has a green to reach. **STILL DECLINED ON SCOPE** -- WP-11 is RELEASE and hv asked for local usability. **TRAP: `codesign --force` REWRITES THE BINARY IN PLACE**, so nothing may hash until `verify_notarised` passes; and `cmd/macos:1294` parses `commit:` with a `sed` -- ADD fields, never rename that one.
 - **`thread_view_skew_check.sh` roster admission** -- held on a staleness refusal that does not exist. **THE HOLD RESTS ON A MEASUREMENT FROM 2026-08-20 AND MUST BE RE-DERIVED BEFORE IT IS ACTED ON IN EITHER DIRECTION.** Build `lib_binstale.sh` as an EXTRACTION of `surface_check.sh`, never a copy.
 - **AT-11.6** -- blocked on the contract conflict routed to vc.
-- **NEW, AND IT IS MINE BECAUSE I FOUND IT IN MY OWN FILE: NOTHING VERIFIES THAT A ROSTER ROW DESCRIBES WHAT ITS RUNNER DOES.** `runner_roster_check.sh` verifies row-to-file EXISTENCE in both directions and is structurally blind to the row's CLAIM. cc asked that a mechanism, if one is built, be mine. **No mechanism proposed yet, and naming it is not building it.**
+- **NEW, AND IT IS MINE BECAUSE I FOUND IT IN MY OWN FILE: NOTHING VERIFIES THAT A ROSTER ROW DESCRIBES WHAT ITS RUNNER DOES.** `runner_roster_check.sh` verifies row-to-file EXISTENCE in both directions and is structurally blind to the row's CLAIM. cc asked that a mechanism, if one is built, be mine. **No mechanism proposed yet, and naming it is not building it.** **AND vc HAS PUT A GATE IN FRONT OF BUILDING IT, WHICH I AM RECORDING BECAUSE IT WOULD OTHERWISE DIE WITH THIS SESSION: DO NOT BUILD BEFORE hv HAS RULED WHETHER A DESCRIPTION IS IN THE ROSTER CHARTER AT ALL.** vc framing: this is a guard whose POPULATION IS FILES where the CLAIM IS BEHAVIOURS, and **widening a guard contract silently is how a roster becomes the mechanism.** So the next step is a ruling, never a checker.
 
 ### ROUTED, MEASURED, NOT MINE TO TAKE
 
