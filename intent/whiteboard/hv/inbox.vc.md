@@ -47,3 +47,39 @@ I ruled AC-07.3 myself as contract steward: v2's `claude skills sync` checksums 
 **The precedent cuts both ways and you should see it: AC-06.9 (`doctor --fix`) was the same SHAPE -- whether v3 carries a v2 behaviour -- and you ruled that one, not me.** That is why ic's caution is right and why I am not treating my own ruling as final.
 
 **Both questions are about the same command, so rule them together if it is easier:** this one, and the `$HOME`/AC-11.3 question in my previous entry. Nothing is blocked on either this minute -- cc's module is built and drivable against tempdirs; only the CLI edge waits.
+
+## (2026-08-24 11:13Z) FYI only -- no response needed.
+
+**DO NOT RE-DERIVE ANY OF THIS. It is hv's instruction that you take it from this entry and start fresh.**
+
+**WHAT HAPPENED: a five-estate Claude Code config sweep**, coordinated by `lamplight/vc` across Intent, Lamplight, Laksa, Baize and Conflab, plus `devbin/vc`. Intent's role was UPSTREAM -- most findings were template- or tool-borne, so they were one fix here rather than five downstream patches. Intent's row on that program ledger is CLOSED.
+
+**LANDED IN INTENT (main, pushed, `rust` CI green):**
+
+| sha                   | what                                                                             |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `55fc4a50`            | hook-script prune + downgrade guard + `--dry-run` + Stop routing + autopsy D1-D5 |
+| `c3b95502`            | Intent's own `.claude/` layer: 3 inert scripts and a shadow agent removed        |
+| `3d838eca`            | 14 fence tests, the honest dry-run preview, whole-directory skill checksum       |
+| `cc7352de`+`b046a5c9` | the v2/v3 shipped-surface drift guard                                            |
+| `dc04df56`            | **MODULES.md stops being seeded in v3**                                          |
+| `ebb94e92`            | Intent's ten verbatim per-language canon files deleted                           |
+| `5eb2a857`            | the agnostic RULES/ARCHITECTURE pair restored to v3, REWRITTEN                   |
+| `243d126c`+`607306dd` | the elixir template stops asserting project facts it cannot know                 |
+| `628b74ad`+`eb4fe67c` | the two CI failures                                                              |
+
+**THE ONE HAZARD BEHIND MOST OF IT:** the fleet runs the FROZEN `Intentv2` via `$INTENT_HOME`, so **a fix landed in one tree reaches nobody and presents as done.** Four instances in a day: the Claude Code hook door, the commit guards, the `upgrade` verb, and v3 having silently DROPPED the agnostic templates. **Land shipped-surface changes in BOTH checkouts.** `tests/unit/shipped_surface_drift.bats` now reddens if you forget -- its first catch was me.
+
+**OPEN, WITH NUMBERS:** `intent#0065` doctor acknowledgement, `intent#0066` `st` does not resolve `_inbox/`, `intent#0067` `modules find` v3 parity gap, `intent#0068` do NOT rebuild the per-language doc fan-out (HIGH).
+
+**NEW CONVENTION, in `usage-rules.md` (`7eb0efe6`):** cross-estate references are qualified -- `devbin#0017`, `lamplight/ic`. Unqualified is legal same-repo only.
+
+**STATUS AT THIS STAMP.**
+
+**Intent and Intentv2 are both clean and pushed, all four refs level.** `rust` CI is GREEN on the fix push; `Intent Tests` was still running when this was written -- **check it rather than assume it.**
+
+**Both CI failures are understood and different in kind.** The `rust` one was a genuine Linux flake, confirmed by re-running the identical commit unchanged and watching it pass; fixed anyway, because a test that reddens intermittently is a defect. The `Intent Tests` one was MINE and the test was right to fail -- it encoded the contract `55fc4a50` deliberately changed, and its replacement asserts more than the original did.
+
+**DECISIONS YOU TOOK TODAY THAT ARE NOW STRUCTURAL, recorded so they are not re-litigated:** prune the dross now rather than gating on WP-13; v3 only, Intentv2 frozen except for content that ships a measured falsehood; the agnostic pair is restored while the ten per-language files are not; and the elixir template stops asserting project facts.
+
+**ONE JUDGEMENT I MADE THAT WAS NOT IN THE INSTRUCTION,** flagged because it should be yours to overturn: restoring the agnostic templates literally would have re-seeded v2's bodies, and those ARE the spec-shaped scaffolding this review was called to remove -- four `<!-- Replace with ... -->` prompts, a placeholder tree, and a paragraph advertising the fan-out `0068` retires. I rewrote them instead. Both now say what belongs in the file and that they ship EMPTY ON PURPOSE.

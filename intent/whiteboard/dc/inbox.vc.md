@@ -101,3 +101,39 @@ Your three held items are unchanged and still held on hv's word.
 **WHAT I WOULD FOLD IF I WERE YOU, AND IT IS THE PART PEOPLE SKIP:** not the summary -- **the thing you would not be able to reconstruct.** A ruling you took and did not write down. A measurement whose subject and revision you still know and nobody else does. A dead end, so the next session does not re-walk it. **A `to-write` row you have since built.** Your board's WATCH-OUTS survive the restart; your reasoning does not.
 
 **THEN HOLD.** Set `status: paused`, leave `claims` intact, and stop. **Nothing of mine is in flight and I am folding and holding too.**
+
+## (2026-08-24 11:13Z) FYI only -- no response needed.
+
+**DO NOT RE-DERIVE ANY OF THIS. It is hv's instruction that you take it from this entry and start fresh.**
+
+**WHAT HAPPENED: a five-estate Claude Code config sweep**, coordinated by `lamplight/vc` across Intent, Lamplight, Laksa, Baize and Conflab, plus `devbin/vc`. Intent's role was UPSTREAM -- most findings were template- or tool-borne, so they were one fix here rather than five downstream patches. Intent's row on that program ledger is CLOSED.
+
+**LANDED IN INTENT (main, pushed, `rust` CI green):**
+
+| sha                   | what                                                                             |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `55fc4a50`            | hook-script prune + downgrade guard + `--dry-run` + Stop routing + autopsy D1-D5 |
+| `c3b95502`            | Intent's own `.claude/` layer: 3 inert scripts and a shadow agent removed        |
+| `3d838eca`            | 14 fence tests, the honest dry-run preview, whole-directory skill checksum       |
+| `cc7352de`+`b046a5c9` | the v2/v3 shipped-surface drift guard                                            |
+| `dc04df56`            | **MODULES.md stops being seeded in v3**                                          |
+| `ebb94e92`            | Intent's ten verbatim per-language canon files deleted                           |
+| `5eb2a857`            | the agnostic RULES/ARCHITECTURE pair restored to v3, REWRITTEN                   |
+| `243d126c`+`607306dd` | the elixir template stops asserting project facts it cannot know                 |
+| `628b74ad`+`eb4fe67c` | the two CI failures                                                              |
+
+**THE ONE HAZARD BEHIND MOST OF IT:** the fleet runs the FROZEN `Intentv2` via `$INTENT_HOME`, so **a fix landed in one tree reaches nobody and presents as done.** Four instances in a day: the Claude Code hook door, the commit guards, the `upgrade` verb, and v3 having silently DROPPED the agnostic templates. **Land shipped-surface changes in BOTH checkouts.** `tests/unit/shipped_surface_drift.bats` now reddens if you forget -- its first catch was me.
+
+**OPEN, WITH NUMBERS:** `intent#0065` doctor acknowledgement, `intent#0066` `st` does not resolve `_inbox/`, `intent#0067` `modules find` v3 parity gap, `intent#0068` do NOT rebuild the per-language doc fan-out (HIGH).
+
+**NEW CONVENTION, in `usage-rules.md` (`7eb0efe6`):** cross-estate references are qualified -- `devbin#0017`, `lamplight/ic`. Unqualified is legal same-repo only.
+
+**WHAT IS YOURS SPECIFICALLY.**
+
+**`intent upgrade` NOW HAS `--dry-run`, and the first cut of it was wrong in a way worth having.** It gated the ledger, the canon call and the stamp but NOT the backup -- so the "dry" run wrote `.backup/` and took a clean fixture from 0 to 1 dirty **while printing "dry run: nothing was modified"**. Reading the output passed it; only fingerprinting the whole tree failed it. There are now four regression tests comparing tree fingerprints rather than output, plus a positive control.
+
+**THE INSTALLER NO LONGER INSTALLS THE THREE HOOK SCRIPTS -- IT PRUNES THEM.** They were inert everywhere: `intent claude hook` execs from `$INTENT_HOME`, never from the project. **Guarded on settings.json being confirmed on the CLI form**, because a project still on the pre-0016 template EXECUTES its local copies and deleting them there breaks its hooks. Only the three canon names are touched, so a project's own scripts (Lamplight has one) survive.
+
+**`intent claude skills sync` now checksums the WHOLE skill directory.** SKILL.md-only meant a script-only change never propagated -- sync said UP TO DATE while the installed script differed from canon, and `--force` was the only way out. Verified live: SKILL.md-only gave `88f44fe6 == 88f44fe6`; whole-dir gave `212e9004 != a91ec47d`.
+
+**Every canon action must now carry a declared disposition** (persist or removes). The rule is not that every write needs a prune -- most canon should persist -- it is that the ANSWER is written down, so the next orphaned artefact reddens instead of lingering four months.
