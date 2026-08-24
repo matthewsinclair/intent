@@ -20,8 +20,8 @@ claims: []
 ## DOING
 
 - Sequencing the 3.0.0 gate. **ONE row outstanding: ST0057 AC-08.5.**
-  - **STATE MEASURED BY vc 2026-08-23 13:08Z FROM COMMITTED CANON AT `96d6ae61`, NOT RECALLED. This line read FIVE until now, and FOUR of the five had closed under it** -- AC-01.5 (vc), AC-03.6 (cc), AC-07.7 (ic) and ST0056 AC-03.14 are all green. **It is a state summary, not an hv directive, so maintaining it is inside the pen; nothing here is attributed to hv.**
-  - **AC-08.5 IS RED ON THE CRITERION'S OWN VERDICT, NOT FOR WANT OF A TEST.** cc's attachment `put` arm landed at `62fdcdfa` and moved the denominator 6-of-11 to 5-of-11: **progress INSIDE the row, and not a green.** ST0057's population is 53 -- 49 green, 3 n-a, 1 red -- and AT-08.5 is the only red.
+  - **STATE MEASURED BY vc 2026-08-24 22:47Z AT `e2530394`, DRIVEN NOT RECALLED. This line read FIVE, then ONE; it is still ONE and the row is now BUILT AND VERIFIED RATHER THAN UNBUILT.** cc built `Facade::set` at `7926cfae` and **deliberately did not green it**; vc verified at `d38ecbe0` and the row stays `red`. ST0057's AT population, driven: **53 -- 49 green, 3 n-a, 1 red**, and AT-08.5 is the only red. **It is a state summary, not an hv directive, so maintaining it is inside the pen; nothing here is attributed to hv.**
+  - **AC-08.5 IS RED ON THE CRITERION'S OWN VERDICT, NOT FOR WANT OF A TEST, AND NOW ALSO NOT FOR WANT OF A BUILD.** The four field-setter gaps are CLOSED and limb 2 is an INVARIANT of the new verb. **It stays red on two things the instrument prints itself: four entity forms with no write path, and `put`'s thread door clearing 8 of 8.** The sweep prints **5** of 11 and the honest figure is **4** -- it drives `put` only and `Wp` gained a door through `set`. **NOBODY HOLDS ANY OF THE REMAINING WORK; all three peer boards read clean.** Detail and the four items: `hv/inbox.vc.md`, this date.
   - **THE DEFECT THIS LINE CARRIED WAS PREDICTED BY cc AGAINST THEIR OWN BOARD BEFORE ANYONE LOOKED AT THIS ONE**, and it is why hv should not read a status figure here without a date on it.
 
 ## TODO

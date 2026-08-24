@@ -242,3 +242,28 @@ bin/intent3                13:34:12Z   <- also dc's own work
 **I am recording this against myself rather than as a tidy-up: I escalated a decision to you THREE TIMES with a wrong population, and the population was the only part of it that mattered.** The verdict never moved; the set did, twice, after I sent it.
 
 **FOUR ITEMS STILL SIT WITH YOU and this is no longer one of them:** dc's routing question 2 (detector-half closed, routing NOT discharged -- dc agrees and is not treating my landing as clearing it); `intent#0073`'s six swift dispositions; `intent#0074`'s heex-coverage question; `intent#0071` needing a v2 CHANGELOG heading that does not exist.
+
+## (2026-08-24 22:47Z)
+
+**AC-08.5 IS VERIFIED AND STAYS `red`. GATE UNCHANGED AT 66 OF 67.** cc built `Facade::set` at `7926cfae` and deliberately did not green it; I verified at `d38ecbe0`. **The four field-setter gaps are genuinely closed** and limb 2 is now an **invariant of the verb** rather than a property tested from outside it.
+
+**WHAT IS LEFT, AND THE POINT IS THAT NOBODY HOLDS ANY OF IT.** All three peer boards read clean. **A clean board is a statement about ASSIGNMENT, not about completion; when every lane is clean at once the remaining work has no OWNER, which looks identical to having no existence.**
+
+1. **Limb 1 -- four entity forms with no write path:** `intent:///issues`, `.../wp`, `.../ac`, `intent:///nodes/ic`. A build. Unclaimed. **`Node` sits in the population BY DEFAULT rather than by ruling** -- `NodeInbox` and `Event` were excluded with cited rulings the instrument enforces, `Node` was never argued in. **That is 4 -> 3 for the price of a citation, and it is yours.**
+2. **Limb 2 -- `put`'s thread door clears 8 of 8. THIS IS A DESIGN CALL, NOT A BUILD, AND NOBODY HAS ASKED IT.** `put` already grafts four children while replacing nine scalars, **so it is already a hybrid.** Grafting the nine turns PUT into PATCH against D57-8's _PUT the same shape back_; refusing a partial body is the other answer. **Exposure is zero** -- no CLI `put`, 16 call sites, all tests -- which is exactly what makes refusing viable.
+3. **The sweep's door set** -- ic's file, ruled by me to be over the **UNION** of doors on DC-1 grounds. Corrects the worklist 5 -> 4 and **greens nothing.**
+4. **The biconditional cover** -- still yours, still unbuilt. ic must not build the instrument deciding whether their own gate row is green.
+
+**AC-02.6's SECOND JOB IS UNCOVERED, AND IT IS THE ONE ITEM HERE THAT CHANGES A DENOMINATOR.** `intent/st/ST0057/design.md:270` assigns the GET/PUT round trip to **AC-02.6, which lives in ST0056 and is referenced BARE across a thread boundary.** I reproduced both halves rather than relaying cc: all four children carry `skip_serializing_if = "Vec::is_empty"`, and `facade.rs:4186-4193` refuses each BY NAME -- **so GET a real thread, PUT it back, refused.** **It unsatisfies nothing, and that is the defect: a criterion carrying two jobs, green on one, untested on the other, and the green reads as covering both.** Minting coverage is yours.
+
+**AND A GAP WITH NO OWNER AND NO INSTRUMENT: WHAT RE-READS A CRITERION'S INSTRUMENTS WHEN A FACADE GROWS AN ARM?** Nothing does. **The suite ran green over 808 tests while an instrument silently understated the criterion it serves** -- the sweep's driver and its declaration are both scoped to `put` and internally CONSISTENT, so re-running confirms exactly that consistency. **What moved was the CRITERION's subject, and nothing watches that.** The enlarging commit was clean and correct, so **the class survives every review anyone actually runs.**
+
+**`intent#0076`** -- the Elixir critic's comment-blind proxies. 6 of 9 rules fire from a comment, all blocking; the 3 immune are shielded by an anchor carried for another purpose, **so the fix belongs in the RUNNER.**
+
+**THREE BURNING CASES RE-DRIVEN TONIGHT AND TWO ARE DEAD**, which changes what a builder would do rather than what the gate says. `ST0011.completed` is dead both halves; an attachment's canon record is dead for text attachments (`facade.rs:4251` replaces exactly that one row) with a bytes-carried remainder; **only _no CLI verb creates an AC or an AT_ still stands.** **That is six absence claims on this one row refuted the moment somebody checked.**
+
+**GLOBALFOLD LANDED at `98961891`.** `intent/wip.md` lost its "Landed" section -- a changelog living in a work file, its one standing ruling already homed in `restart.md`, checked before deleting. `intent/restart.md` lost the section narrating its own fold; the operative rule moved to Conventions. **That cut broke a pointer in `.claude/restart.md`, which now states the rule instead of pointing at it.**
+
+**ST0058 HAS ZERO ACCEPTANCE CRITERIA** -- `ac status ST0058` refuses with _empty contract_. Define them or declare `acceptance: exempt`. It is a thread I hold and I am not minting a contract for it without you.
+
+**FYI only on the last two; the first five are yours.**
