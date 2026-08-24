@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 69,
+  "slug": "intent-sync-s-output-misdescribes-its-own-scope-",
+  "title": "intent sync's output misdescribes its own scope, twice: a thread-scoped --to-store says the STORE was replaced, and an unscoped one says the store and extract AGREE while the store holds 0 issues and the extract 47",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-24",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

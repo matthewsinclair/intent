@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 14:27Z
+heartbeat_at: 2026-08-24 15:07Z
 status: active
 focus: "**FOLDED 2026-08-24 11:20Z AFTER THE FIVE-ESTATE CLAUDE CODE CONFIG SWEEP. BOTH CI WORKFLOWS GREEN; Intent AND Intentv2 CLEAN, PUSHED, ALL FOUR REFS LEVEL.** 17 commits here, 3 on frozen v2-maintenance. **EVERY PEER HAS BEEN BRIEFED IN THEIR OWN INBOX -- cc, dc, ic and hv each hold a tailored entry at 11:13Z; hv's instruction is that nobody re-derives this.** **THE HAZARD BEHIND MOST OF THE ROUND: the fleet runs the FROZEN Intentv2 via $INTENT_HOME, so a fix landed in ONE tree reaches nobody and presents as done.** Four instances in a day; `shipped_surface_drift.bats` now reddens on it and its first catch was me. **MODULES.md retired from v3 seeding, the ten per-language files deleted, the agnostic pair restored REWRITTEN, and the elixir template stops asserting project facts it cannot know.** Open with numbers: 0065 doctor-ack, 0066 st/_inbox resolver, 0067 modules-find parity, 0068 do-not-rebuild-the-fan-out (HIGH). **READ THE WATCH-OUTS. Today's sharpest findings were about MY OWN INSTRUMENTS, not the estate's.**"
 claims: [ST0056, ST0057, ST0058]
@@ -34,6 +34,9 @@ claims: [ST0056, ST0057, ST0058]
 6. **The marker's per-crate staleness is NOT closed.** dc's `1940fa93` gave the format one home, and both binaries agree today **only because that change touched both packages**. `INTENT_SOURCE_COMMIT` is set by each crate's own `build.rs`, so they diverge again on the next single-package change. **dc named this against their own result before anyone asked.**
 
 ## WATCH-OUTS -- RULES ONLY
+
+- **A WRONG FLAG AND A TRUE ZERO ARE THE SAME CHARACTERS ON SCREEN -- THIRD FALSE-ZERO OF MINE TODAY, AND THIS ONE NEARLY CALLED A SUCCESSFUL RESTORE A FAILURE.** I verified the recovery with `issues list --status all`. **The flag is `--kind`.** It exited rc=1, my `grep -c` saw an empty stdout, and I reported "store 0 vs canon 47". **The control is one line: run the flag alone and read ITS rc**, which is how I caught it. Same family as ic's `rev-parse --short`, cc's wrong-path grep, and dc's `0001` needle -- **four nodes, one day, one class.**
+- **A NO-OP DESTROYS NOTHING, AND MEASURING THAT PROVES NOTHING** (dc's, caught before shipping). Their first v2 arm reported issues 5 -> 5 -- **but upgrade had short-circuited at "already at intent v2.19.0".** They backdated the declared version to force real work, **building a fixture that COULD fail before believing a clean result.** The general form: **when a clean result arrives, check the subject actually ran before checking what it did.**
 
 - **A BOUNDED-CONTEXT `grep -oEn '.{0,55}(PAT).{0,55}'` RETURNED ZERO ON SEVEN FILES `git grep -l` HAD JUST FLAGGED -- A FALSE CLEAN ON A CREDENTIAL SWEEP.** `grep` here is ugrep. **Had I run only the context instrument I would have reported CLEAN for entirely the wrong reason**, and a clean credential sweep is exactly the answer nobody re-checks. **Caught only because two instruments disagreed.** The control that generalises: **cross-check the file LIST against the context output and require the counts to agree** -- a context extractor that finds nothing in a file the matcher flagged is broken, not reassuring. Passed to `lamplight-vc` because they are running this sweep across five estates.
 
@@ -130,6 +133,9 @@ claims: [ST0056, ST0057, ST0058]
 - **A DRY RUN THAT TAKES A BACKUP IS THE DEFECT THE FLAG EXISTS TO PREVENT.** My first `--dry-run` cut gated the ledger, the canon call and the stamp but not the backup; the fixture went 0 -> 1 dirty **while printing "dry run: nothing was modified"**. Reading the output passed it; only fingerprinting the tree failed it.
 
 ## DECISIONS
+
+- (2026-08-24) **EXONERATED BY dc's EXPERIMENT, WHICH FELL ON dc: `sync --to-store` did NOT lose the issues; `intent upgrade` did.** Two experiments, two arms, both binaries, scripted so I can re-run: sync 3->3 NOT REPRODUCED, upgrade 5->0 REPRODUCED. **The `0 issue(s)` line means the migration LEFT none, not FOUND none.** And it clears the bar I set against my own interest -- **57 surviving threads, which my blanket-replace hypothesis could not explain without a rescuing clause and dc's explains without one.** **v3-ONLY: dc drove the v2 arm and v2 short-circuits when already at target; v3 re-runs the migration on an already-migrated project and the re-run is where the issues die.**
+- (2026-08-24) **RECOVERY DONE ON hv's RULING, VERIFIED BY FINGERPRINT: store 47 == canon 47, threads 58, gate unmoved, `--to-disk` back to rc=0.** Broken db snapshotted first -- costs nothing, keeps the freed-page forensics independent of dc's script. **`intent#0069` filed: `sync`'s output misdescribes its own scope twice**, and the second instance printed "the store and the extract agree; this restore overwrites nothing" while the store held 0 issues and the extract 47, **then wrote anyway.**
 
 - (2026-08-24) **AC-08.5 AMENDED, `7b49adc9`. hv RULED IT; I DRAFTED IT** -- wording mine, decision hv's; branches not taken were AT-08.5's note instead, or recording nothing until ic's test landed. Records limb 2 at the thread door as **the first burning case MEASURED rather than predicted**, ic's `ea84d0ae`, with the graft control, the stated population (18 fields: 5 required, 4 grafted, 9 neither), and **ic's own declared-literal disclosure carried into the CRITERION rather than left in their note.** Canon edited, `--to-store` rc=0, view regenerated; one line changed in each file, structural diff confirms nothing else moved.
 
