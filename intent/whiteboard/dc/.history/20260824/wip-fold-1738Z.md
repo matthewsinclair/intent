@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 17:39Z
-status: paused
-focus: "**LOCALFOLD 2026-08-24 17:39Z, FOR THE BOUNCE. NOTHING IN FLIGHT, CLAIMS INTACT, EVERYTHING COMMITTED, HOLDING FOR vc.** `intent#0070` CLOSED -- I filed and bounded it, cc fixed it at `3f367cf8`, and I closed it, so the finder and the fixer stay separate on the record. **MY OWN CURRENCY GUARD REFUSED ME IN ANGER TODAY and `int local build` cleared it -- the FLOOR wording ic caught fired correctly, read outside its own test for the first time.** The false roster row is corrected and the correction STATES THE CLASS. **THE DAY ENDED ON THE RULE IT STARTED ON, TWICE, AND THE SECOND TIME IT WAS IN A PEER: A CONFIDENT UNMEASURED CLAIM SITTING IN A SAFETY ARGUMENT READS AS A CONSIDERED TRADE-OFF AND GETS HONOURED RATHER THAN CHECKED.** Verbatim record in `.history/20260824/`."
+heartbeat_at: 2026-08-24 16:25Z
+status: active
+focus: "**POST-COMPACT 2026-08-24 16:25Z. THE COMPACT WAS TRANSPARENT AND THAT IS MEASURED RATHER THAN ASSUMED: the live `$CLAUDE_CODE_SESSION_ID` STILL EQUALS THE ID ON THIS BOARD, which is the ONLY discriminating field -- `ListAgents`' `started` column is SOCKET age and all four nodes read it wrong on 2026-08-21.** Nothing in flight, claims intact, holding for instructions. **Today is committed through `eabdd639`; the verbatim record is `.history/20260824/wip.md`.** **THE ONE RULE: EVERY DEFECT I SHIPPED TODAY WAS A CONFIDENT UNMEASURED CLAIM SITTING IN A SAFETY ARGUMENT, WHERE IT READS AS A CONSIDERED TRADE-OFF AND GETS HONOURED RATHER THAN CHECKED.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -38,24 +38,23 @@ claims: [ST0056/07, ST0056/11]
 
 **Nothing in flight.** Everything below landed and is committed.
 
-- **`intent#0070` CLOSED at 17:37Z.** cc fixed it at `3f367cf8`; I filed, reproduced, bounded and closed it, so **the finder and the fixer stay separate on the record.** Resolution note is in the issue body.
-- **MY OWN CURRENCY GUARD REFUSED ME TODAY AND I TOOK ITS NAMED REMEDY.** cc's 11 files landed, `intent3` refused every verb, `int local build` cleared it, pair coherent at HEAD. **The FLOOR wording ic caught fired correctly in anger** -- the first time either refusal arm has been read outside its own test.
-- **The false roster row CORRECTED**, and the correction states the class rather than quietly repairing it.
+- **`intent3` currency refusal** -- `currency.lib` (new, one home), `bin/intent3` wired, `tests/unit/artefact_currency_verdict.bats` 13 arms MUTATION-PROVEN RED, `MODULES.md` row added BEFORE the file existed (first time in this lane).
+- **`int hosting` containment defect** -- found by its own escape, fixed with a `cd` into the clone, **proven by tree fingerprint plus a positive control**, and the clone-consumer population swept: `suite` and `prepush` were always correct.
+- **`intent#0070` / `0071` / `0072` filed with bodies and repros.**
 
 ## TODO
 
 ### LIVE, MINE, UNSTARTED
 
 - **`cmd/macos` provenance writer** so `provenance_fields_check.sh` (AT-11.7) has a green to reach. **STILL DECLINED ON SCOPE** -- WP-11 is RELEASE and hv asked for local usability. **TRAP: `codesign --force` REWRITES THE BINARY IN PLACE**, so nothing may hash until `verify_notarised` passes; and `cmd/macos:1294` parses `commit:` with a `sed` -- ADD fields, never rename that one.
-- **`thread_view_skew_check.sh` roster admission** -- held on a staleness refusal that does not exist. **THE HOLD RESTS ON A MEASUREMENT FROM 2026-08-20 AND MUST BE RE-DERIVED BEFORE IT IS ACTED ON IN EITHER DIRECTION.** Build `lib_binstale.sh` as an EXTRACTION of `surface_check.sh`, never a copy.
+- **`thread_view_skew_check.sh` roster admission** -- held on a staleness refusal that does not exist. **THE HOLD NOW RESTS ON A MEASUREMENT FROM 2026-08-20 AND MUST BE RE-DERIVED BEFORE IT IS ACTED ON IN EITHER DIRECTION.** Build `lib_binstale.sh` as an EXTRACTION of `surface_check.sh`, never a copy.
 - **AT-11.6** -- blocked on the contract conflict routed to vc.
-- **NEW, AND IT IS MINE BECAUSE I FOUND IT IN MY OWN FILE: NOTHING VERIFIES THAT A ROSTER ROW DESCRIBES WHAT ITS RUNNER DOES.** `runner_roster_check.sh` verifies row-to-file EXISTENCE in both directions and is structurally blind to the row's CLAIM. cc asked that a mechanism, if one is built, be mine. **No mechanism proposed yet, and naming it is not building it.**
 
-### ROUTED, MEASURED, NOT MINE TO TAKE
+### ROUTED TO hv, MEASURED, NOT TAKEN
 
-- **THE FROZEN-`$INTENT_HOME` MECHANISM: THE DETECTOR HALF IS CLOSED, THE ROUTING IS NOT.** vc landed the ref fix and the CI arm (`a38e884b`, `18ccfbbc`), measured in CI's own log rather than in simulation. **vc states plainly that their reason for `not discharged` expired but the ROUTING did not, and a guard cleared by a peer saying the ruling happened is not a guard.** It sits with hv. **What the guard should ASSERT under the freeze scope is still the unsettled half.**
-- **THE SUITE POPULATION CHECK.** `git ls-files` 112 vs `find` 113, gap named, two commands produce it and nothing runs them. **Needs an edit to `tests/run_tests.sh`, which matts runs externally -- scope, not doubt.**
-- **THE ESCAPED-MUTATOR REVERT IS SETTLED: KEEP BOTH, and both are committed here.** `AGENTS.md` is a GENERATED view and the escape ran `agents sync` early, so reverting restores a STALE one; `config.json`s `project_id` is LIVE in the store, driven with `.dump` plus both controls. **`MODULES.md` WAS NEVER AN INCIDENT FILE** -- 13:30:54Z, thirteen minutes BEFORE the escape.
+- **THE FROZEN-`$INTENT_HOME` MECHANISM IS NOT DISCHARGED.** hv declined direnv (does not reach automation) and hand-refresh (an advisory that must be remembered is not a control). **vc's `shipped_surface_drift.bats` fails the SAME test by a third route: `_v2_root()` returns 1 when the v2 checkout is absent and all THREE tests SKIP, and CI has ZERO references to any v2 checkout.** `INTENT_V2_CHECKOUT` is already honoured and `v2-maintenance` is a branch of THIS repository, so the wiring is cheap -- **but what the guard should ASSERT under the freeze is the unsettled half, and wiring it first buys a green about the wrong property.**
+- **THE SUITE POPULATION CHECK.** `git ls-files` 112 vs `find` 113, gap named. **The point is that two commands produce it and nothing runs them.** It would print `THIS RUN'S POPULATION IS 113 AND THE COMMIT'S IS 112` to whoever is reading a green. **Needs an edit to `tests/run_tests.sh`, which matts runs externally -- scope, not doubt.**
+- **THE ESCAPED-MUTATOR REVERT.** `AGENTS.md` **KEEP** (a GENERATED view; the escape ran `agents sync` early, so reverting restores a STALE view). `config.json` **KEEP** (`project_id` is LIVE in the store, driven with `.dump` plus both controls; reverting diverges disk from store). **`MODULES.md` IS NOT AN INCIDENT FILE** -- 13:30:54Z, thirteen minutes BEFORE the escape; a revert of "the three" as vc grouped them would destroy my registration row.
 
 ## Watch-outs
 
@@ -72,7 +71,6 @@ claims: [ST0056/07, ST0056/11]
 - **A RANGE WITH NO PIN NAMES A DISTANCE FROM A MOVING POINT; A PIN WITH NO RANGE NAMES BYTES WITH NO CONSEQUENCE** (ic, theirs whole). Both are required; neither supports a claim alone.
 - **A GUARD WHOSE PREDICATE DEPENDS ON WHEN IT RUNS RATHER THAN ON WHAT IT READS HAS A CATCHABLE WINDOW THAT CLOSES SILENTLY** (vc). Check C exists precisely because it does not.
 - **A MEASUREMENT TAKEN BEFORE YOUR OWN WRITE IS STALE BY CONSTRUCTION.** It cost the attribution on today's incident: neither vc nor I had measured issues before writing.
-- **TWO READINGS OF ONE SOURCE IS ONE INSTRUMENT COUNTED TWICE** (cc, and it is the sharpest sentence anyone said today). cc derived a table count by grepping `CREATE TABLE` out of `store.rs`; I could not reproduce it, and my own probe returned `if` as a table name. **I declined to CONTRADICT a figure I could not reproduce -- a probe with a proven false positive in its output has no standing to adjudicate the rest of that output** -- and that refusal is what sent cc to `sqlite_master` rather than to a better regex. **A better regex would have agreed with them and taught us nothing.** The live store settled it: 17 tables, 5 FTS5 shadows of `doc_sections`, 12 logical, 12 minus 7 is 5. **The `_vN` names we had both caught are create-copy-drop-rename scaffolding no database ever holds.**
 - **NEVER `$?` AFTER A PIPE. `cargo test` needs `--no-fail-fast`. `grep -c` exits 1 on zero. The Bash tool's shell is ZSH and does not word-split an unquoted expansion.**
 
 ### FAMILY 2 -- THE CLAIM EXCEEDS THE MEASUREMENT, AND THE TRUE HALF IS WHAT CARRIES THE FALSE ONE
@@ -84,8 +82,6 @@ claims: [ST0056/07, ST0056/11]
 - **`currency.lib` PRINTED A FLOOR AS A DISTANCE** -- the overclaim sat in the error message of the file written to refuse overclaims, **and the fix for it then added an arm nothing drove** (ic). **A fix that adds an arm adds a thing to drive.**
 - **A WARNING IS NOT DISCHARGED BY BEING TRUE -- IT IS DISCHARGED WHEN THE REMEDY IT INVITES IS ALSO CHECKED** (ic, against themselves). Generalises to design: my cost comment was TRUE about intent and FALSE about the remedy it invited.
 - **MY TELL vs cc's, AND THEY ARE MIRRORS:** I publish the claim the measurement INVITES (goes wrong at the READING); cc drives the measurement and publishes a stronger claim about what it measured (goes wrong at the WRITING). **Both rest on a real number, which is why neither gets challenged.** I did mine TWICE in one hour on the same defect -- `0 issue(s)` means CARRIED none, not LEFT none.
-- **A ROW CARRYING ONE TRUE SENTENCE AND ONE FALSE ONE IS HARDER TO CATCH THAN A WHOLLY WRONG ROW, BECAUSE THE TRUE HALF IS WHAT A READER CHECKS FIRST AND IT HOLDS** (cc, wholly theirs, about my roster row). Mine said `the script now forces the real path` of a v2 arm the committed script has never contained, while `Two arms, both v3 binaries` in the same row is exact. **The v2 measurement WAS real; the arm died in a scratchpad and the row went on describing the investigation.**
-- **`checked against the schema` VERSUS `checked against a grep of the source` IS THE WHOLE DISTANCE, AND NEITHER OF US COULD SEE IT IN OUR OWN SENTENCE AT THE TIME OF WRITING.** cc's `no third instance is waiting` was sound in its conclusion and stronger than the instrument behind it. **My class, firing in someone else's work, inside a safety argument.** Neither of us has a mechanism for it.
 - **A HAND-MAINTAINED SET THAT NOTHING CHECKS IS THE ROSTER PROBLEM.** I built one while explaining the roster problem. **Manifest plus a drift check, and a path in NEITHER the manifest nor a declared-exclusions list is an ERROR rather than a judgement call** (vc's declared-disposition rule).
 
 ### FAMILY 3 -- ROUTING, RELAY AND ATTRIBUTION
@@ -108,8 +104,6 @@ claims: [ST0056/07, ST0056/11]
 
 ## Decisions
 
-- (2026-08-24) **A PEER RELAYING AN APPROVAL IS NOT THE APPROVAL.** cc reported that matts had ruled 0070 mine to close; I declined to act on it as relayed and **cc withdrew the framing themselves** -- it answered a question asked in THEIR session and was never an instruction to me. The commit needed matts directly, and it came directly.
-- (2026-08-24) **THE BUILDER CARRIES THE ROW, REAFFIRMED AGAINST THE OTHER DIRECTION.** cc offered me their v2-estate arm to PLACE because it landed in my lane, reading my wall warning as territorial when it was PROCEDURAL. **A row does not transfer because it landed in someone's lane.** Landed as `v2_estate_issue_carry.sh` under cc's authorship with cc's own row.
 - (2026-08-24) **hv RULED: `intent3` MAY REFUSE.** The branch not taken was _keep it a reporter, warn but exec_ -- **vc preserved the menu this time, which is the remedy for the `sync`-skip provenance gap.**
 - (2026-08-24) **hv RULED: the local `v2-maintenance` branch DELETED.** A silent wrong answer became a loud absent one. **Fast-forwarding was the option that LOOKS equivalent and re-arms the moment upstream moves.**
 - (2026-08-24) **hv's FREEZE SCOPE: frozen for features, live for shipped-surface defects.** `0070` is v3-only; `0071` is shipped-surface and lands in both.
