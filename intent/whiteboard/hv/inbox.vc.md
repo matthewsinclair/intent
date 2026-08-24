@@ -198,3 +198,28 @@ bin/intent3                13:34:12Z   <- also dc's own work
 **WHAT I AM NOT DOING: deciding it.** Both files are tracked, both are yours, and I would rather you rule on a live reason than inherit a verdict whose argument expired.
 
 **THE ROOT CAUSE IS ALREADY FILED AND IS NOT THIS DECISION:** `intent#0070`, dc's, HIGH -- `intent upgrade` re-runs the migration on an already-migrated v3 project and destroys every issue while printing `0 issue(s)`. v3-only; v2 short-circuits.
+
+## (2026-08-24 16:58Z)
+
+**THREE THINGS NEEDING YOU, ALL FILED WITH NUMBERS SO NONE OF THEM LIVES ONLY IN THIS INBOX.** Two are new findings from a CONSUMER estate; one is a release-policy question I will not answer.
+
+**`intent#0073` (high) -- THE SWIFT CRITIC ARM SEALS GREEN WHILE ARMING NOTHING.** A Swift-only changeset passes `intent critic swift` with `0 of 6 rules ASKED, 0 armed, 6 UNDECLARED` and then prints `ok: no swift findings`. **The `ok:` line alone is indistinguishable from real coverage.** Measured here with the elixir pack as the control: elixir is 9 armed / 10 declared / 0 undeclared of 19 -- **Elixir has ruled on all nineteen, Swift on none of six.** The runner cannot tell an unanswerable rule from an unconsidered one.
+
+**FOUND BY `prolix-cc`, AND THE POSITION IS THE POINT: Intent CONTAINS the rule library, so every check on it here passes trivially.** It takes an estate that actually stages Swift files to make the vacuum visible. This is the consumer-estate measurement that my own precision rule prescribes, arriving from the right place without anyone asking for it.
+
+**WHAT I NEED FROM YOU: the six dispositions.** prolix-cc proposes arming four (`IN-SW-TEST-001`, `-CODE-002`, `-CODE-003`, `-CODE-005`) and declaring two unanswerable (`-CODE-001` needs nesting DEPTH and a ratio; `-CODE-004` needs whole-program reachability). Full proxies are in the row. **I have NOT applied any of it, because `intent/plugins/claude/rules/` is SHIPPED SURFACE** -- under your scoped-freeze ruling it lands in both checkouts or is declared v3-only, and the drift guard now reddens on that unattended. Two departures I would make, both agreed with the author: drop `return -1$` from `-CODE-002` (a comparator returning -1 is correct code, and **a rule that fires on correct code teaches people to ignore the runner**), and check whether `critic_tool: swiftlint` is the better route for `-CODE-004` rather than assuming it.
+
+**`intent#0074` (medium) -- AND MY DIAGNOSIS CONTRADICTS THE OBVIOUS FIX, WHICH IS WHY IT IS WORTH YOUR TIME.** `intent critic elixir --staged` prints _"no staged elixir files to scan"_ while `.heex` files are staged; prolix-cc lost three heex-only rule fixes to it in one session. The visible half is `bin/intent_critic:199` reading `elixir:*.ex|elixir:*.exs)`. **But NOT ONE elixir rule declares a glob that reaches `.heex`** -- five distinct globs in the pack, every one excluding it. **Adding the extension would feed heex to rules that reject it: a silent gap converted into a silent no-op, which is strictly worse, because the message stops appearing while the coverage still does not exist.**
+
+**So heex coverage was NEVER BUILT rather than built and broken, and the two decisions must not be bundled:**
+
+1. **The MESSAGE is a defect in any case and needs no ruling from you** -- it says files are absent when COVERAGE is absent. Same family as `intent#0069`, one door over.
+2. **Whether the elixir pack should cover `.heex` at all is yours, and it is WORK rather than a fix.**
+
+**Blast radius, measured rather than argued: 30 `.heex` in Lamplight, 21 in Anvil, 9 in Conflab -- 60 files across three flagship Elixir estates, invisible to the gate, all reporting as nothing to scan.**
+
+**`intent#0071` -- A RELEASE-POLICY QUESTION I AM ROUTING RATHER THAN DECIDING.** I ruled NO CHANGELOG line for `0070` (cc asked): it is a defect introduced and fixed inside the same unreleased cycle, so there is no reader for it, **and the document agrees -- the `3.0.0` block has no `Fixed` section while 35 release headings below it do, so I would have to CREATE the section to hold the line.** That is the tell.
+
+**`0071` is the opposite and it is NOT mine.** v2 `intent upgrade` blocking on an interactive read with no TTY is a **SHIPPED** defect -- 2.19.0 released it, 11 of 16 fleet projects need exactly that upgrade, and anything driving it from automation hangs silently rather than failing. **A real `Fixed` entry against a released version, needing a v2 heading that does not exist yet.** Whether there is a v2.19.1 at all is your call.
+
+**ONE INSTRUMENT NOTE, BECAUSE IT IS WHY prolix-cc's NUMBERS ARE THE TRUSTWORTHY ONES AND NOT MINE.** My first control over the elixir pack returned **19 armed / 0 declared**, contradicting their census. **Mine was broken:** a rule declaring _"No greppable proxy is authoritative"_ CONTAINS the substring "greppable proxy", and my branch testing for the proxy ran before the branch testing for the declaration, so all ten declarations were mis-binned as armed. Corrected, the two agree exactly. **The disagreement is the only reason I found it, and it was in the checker rather than in the subject** -- which is the argument for two instruments that could have disagreed, paid out on my own tooling twice today.
