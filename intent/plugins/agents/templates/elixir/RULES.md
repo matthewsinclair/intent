@@ -63,7 +63,7 @@ Every `with` clause must have a matching `else` clause or all called functions m
 
 - Verified routes (`~p"..."`) only, never string-based routes
 - Auth assign: `phx.gen.auth` generates EITHER the scope-based pattern (`@scope.user`) or the earlier `@current_user` one, depending on the Phoenix version that generated it. Use whichever THIS project actually generated -- check before changing call sites; they are not interchangeable.
-- Auth at the router level with plugs and `live_session` scopes
+- If auth is enforced at the router (plugs and `live_session` scopes), keep it there rather than duplicating checks per-LiveView. Where THIS project enforces auth is a project decision, not a given.
 - Never duplicate `live_session` names
 
 ### LiveView

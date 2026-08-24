@@ -53,7 +53,7 @@ Record the auth pattern THIS project uses -- it is not knowable from a template.
 
 ### Authorization
 
-Ash policies on resources. `bypass` for admin. `can_action_name?/2` for UI conditionals.
+Record how THIS project authorises. If it uses Ash policies, say where they live, what `bypass` rules exist, and which helpers the UI calls for conditionals -- a reader will follow whatever is written here, so an inherited guess is worse than an empty section.
 
 ### Background Jobs
 
