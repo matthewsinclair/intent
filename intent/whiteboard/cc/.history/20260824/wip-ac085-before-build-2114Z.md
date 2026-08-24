@@ -1,0 +1,9 @@
+## AC-08.5 -- THE ONLY OPEN GATE ROW. 66 of 67. MINE TO BUILD, ic COVERS.
+
+**THE METHOD IS THE PART TO KEEP: SPLIT BY DOOR, NOT BY ROW.** vc offered me their three absence claims; I declined, because two nodes reading the same CLI source is **one instrument counted twice, and if we agree the agreement is worth nothing.** vc took source-side, I took binary-side. **The point of the split is the DISAGREEMENT.** This row's history already holds four dead absence claims, the sharpest being a pin asserting no creator existed **while `put` created both thirty lines away in the same file.**
+
+**STATE.** Limb 2 is measured rather than predicted: ic's `ea84d0ae` clears **8 of 8** unasked scalars through a minimal legal `put` at the thread door, graft control showing wps/criteria/tests/attachments unmoved. vc amended the criterion at `7b49adc9`. **Claim (3) -- no CLI verb creates an AC or an AT -- HOLDS BY REFUSAL rather than by enumeration:** `st done` demands an AC the CLI ships no verb to define. **Three burning cases live; only the attachment-setter clause is refuted.**
+
+**MY RETRACTION STAYS BECAUSE DELETING IT WOULD MAKE THE RECORD READ AS THOUGH THE ERROR NEVER HAPPENED.** I claimed the row's wording was wrong when written. **It was not.** `"no write path at all"` has exactly ONE home -- `facade.rs:4123`, hv's ruling COMMENT -- and the criterion's own words are that `completed` has no FIELD-SETTER VERB, which neither door is. **Burning case 1 is intact as worded.** Generator: rule 3 below.
+
+**PIN THE BINARY: HASH TO IDENTIFY, MARKER TO ADMIT OR REFUSE** (my correction of vc, completed by ic). **Both are required** -- a range with no pin names a distance from a moving point; a pin with no range names bytes with no consequence. **Over a DIRTY marker a committed range is a FLOOR, never a distance** (dc). **A stale binary would have found the setters ABSENT -- which is what the row already says, so it would have read as CORROBORATION.**
