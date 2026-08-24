@@ -244,6 +244,88 @@ _command_runnable() {
   return 1
 }
 
+# check_shadowing -- project names standing where devbin ships its own (0024).
+#
+# OVERRIDING IS LEGAL AND LOAD-BEARING, and this check does not argue with it.
+# D2 and D5 exist so a project can put its own thing at any name devbin ships,
+# and the framework would be worse without that. What was missing is anyone
+# SAYING SO -- the substitution is invisible from the command line, and both
+# things answer to the same word.
+#
+# TWO MEASURED INSTANCES IN ONE DAY, IN OPPOSITE DIRECTIONS, which is what makes
+# this a class rather than an anecdote:
+#
+#   0018  A project handler stood at a BUILT-IN name. Devbin's own cmd/check
+#         displaced the built-in option set for eighteen days, so `check critic`
+#         swept a corpus in one tree and scanned staged files in the other ten.
+#         Both were honest; the seals were the only thing that knew.
+#   0024  A BUILT-IN arrived at a name a project already had. `devbin vendor`
+#         shipped into two installs carrying their own `vendor`, whose handler
+#         answers tree-vs-MANIFEST where the built-in answers tree-vs-SOURCE --
+#         and a sweep nearly banked the wrong one as a convergence check.
+#
+# Neither direction is detectable by running the command: the output looks
+# plausible either way. It is detectable HERE, by comparing two lists devbin
+# already keeps.
+#
+# A NOTE, NEVER A FAILURE. A doctor that went red on a documented feature would
+# be red on every project using it, and a check nobody can satisfy is a check
+# nobody reads.
+#
+# It reports its count even at ZERO, because a row that appears only on a hit is
+# indistinguishable from a row that never ran -- which is the defect class this
+# whole command is built around.
+check_shadowing() {
+  local hits n h
+  hits="$(_shadow_hits)"
+  n="$(printf '%s\n' "$hits" | grep -c . || true)"
+  if [ "$n" -eq 0 ]; then
+    _pass "shadowing: no project name stands where devbin ships its own"
+    return 0
+  fi
+  _pass "shadowing: $n project name(s) stand where devbin ships its own"
+  _note "SUPPORTED overrides (D2/D5) -- devbin's own is NOT reached for these"
+  while IFS= read -r h; do
+    [ -n "$h" ] || continue
+    _detail "$h shadows the built-in"
+  done <<EOF
+$hits
+EOF
+  return 0
+}
+
+# _shadow_hits -- each shadowed name, spelled the way a reader would type it:
+# `<command>` for a whole command, `<command> <option>` for one option of one.
+#
+# Both levels, because 0018 was both at once -- a handler at `check` AND config
+# `run:` lines on three of its options -- and reporting only the command would
+# have named the smaller half of it.
+_shadow_hits() {
+  local cmd opt run
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    if has_project_handler "$cmd" || cfg_has "commands.$cmd.run"; then
+      printf '%s\n' "$cmd"
+    fi
+    # Only options devbin actually IMPLEMENTS can be shadowed. A catalogue row
+    # carrying a command line is a DEFAULT that config is invited to replace --
+    # that is tier 2 working as designed and is not a substitution of anything.
+    while IFS= read -r opt; do
+      [ -n "$opt" ] || continue
+      run="$(builtin_option_run "$cmd" "$opt" 2>/dev/null || true)"
+      [ "$run" = "@builtin" ] || continue
+      if cfg_has "commands.$cmd.options.$opt.run"; then
+        printf '%s %s\n' "$cmd" "$opt"
+      fi
+    done <<OPTS
+$(builtin_options_for "$cmd")
+OPTS
+  done <<CMDS
+$(builtin_commands)
+CMDS
+  return 0
+}
+
 # check_handlers -- files in cmd/ that will never be reached.
 #
 # Two orphan shapes, both silent. A handler without its executable bit is
@@ -359,6 +441,7 @@ main() {
   check_manifest
   check_commands
   check_handlers
+  check_shadowing
   check_symlinks
   check_bash
 
