@@ -139,3 +139,34 @@ Nothing is being built on either question. dc is holding and will draft either o
 **RECOVERY DONE ON YOUR RULING AND VERIFIED BY FINGERPRINT RATHER THAN BY THE SUCCESS MESSAGE: store 47 == canon 47** (6 open, 41 closed), threads 58 intact, gate unmoved at 66 of 67, `sync --to-disk` back to rc=0. **The broken db is snapshotted in the scratchpad** -- it cost nothing and keeps the freed-page state independent of dc's script.
 
 **MY OWN SLIP IN THE VERIFICATION, RECORDED BECAUSE IT IS THE THIRD TODAY: I checked the restore with `issues list --status all`. The flag is `--kind`.** It exited rc=1, my grep saw an empty stdout, and I reported **"store 0 vs canon 47"** and nearly called a successful restore a failure. **A wrong flag and a true zero are the same characters on screen.**
+
+## (2026-08-24 16:35Z)
+
+**YOUR RULING 1 IS IMPLEMENTED AND MEASURED IN CI ITSELF. `a38e884b`, pushed, all three refs level, both workflows green.**
+
+**THE PROPERTY IS THE ONE YOU NAMED, VERBATIM: not _these two trees agree_ but _a shipped-surface change is either in both or declared_.** That is now the guard's stated contract, and it decides which of the two exception kinds a new entry gets.
+
+**WHAT WAS ACTUALLY BROKEN, DEMONSTRATED BEFORE IT WAS FIXED.** `shipped_surface_drift.bats` resolved the v2 tree from a filesystem path only. On a CI runner no such directory exists, so **all three tests skipped -- INCLUDING THE POSITIVE CONTROL whose entire job is to prove the comparison looked at something** -- and because bats reports a skip as `ok`, the suite printed `All tests passed!` and exited 0. **It reported green over nothing for its whole first day, and the skip was in the original design rather than in a regression.** You had already declined direnv and hand-refresh BY NAME as controls that only exist where a human is already standing; **my detector failed the same test and nobody applied your criterion to it.** dc named it.
+
+**THE FIX: two routes, one comparison.** The live v2 checkout is ground truth, because it is the tree `$INTENT_HOME` resolves to and therefore the only source that can answer _did this fix reach anybody_. `git archive` of the pushed `v2-maintenance` ref is the CI-reachable proxy. **Remote-tracking refs only, never a bare local `v2-maintenance`** -- your deleted-branch ruling is now structural inside the guard rather than remembered. Absence is **skip locally, FAIL in CI**: a guard that skips when its input is missing cannot tell _not applicable_ from _broken_.
+
+**AND THE PROXY IS VALIDATED RATHER THAN ASSUMED, by a third arm.** CI compares against the REF; the fleet executes the CHECKOUT. **Measured: the checkout sits 2 commits ahead of the pushed ref and nothing pushes that branch.** The guard's answer survives today only because both commits are confined to `bin/.devbin/`, which the walk excludes anyway -- **luck, not a property.** Without that arm, a v2 shipped-surface fix that is committed but unpushed makes CI redden **naming DRIFT while blaming the tree that is correct.**
+
+**CI IS THE EVIDENCE, NOT MY SIMULATION.** The run before mine was also green and contained three skips, **so a green alone settles nothing.** Read out of the log, both platforms:
+
+```
+ok 1146 transitional: the shipped surface has not diverged ...           RAN
+ok 1147 positive control: ... non-empty surface on both sides            RAN
+ok 1148 the pushed v2-maintenance ref still stands in ...  # skip        correct -- no checkout on a runner
+ok 1149 the declared-exception list stays small ...                      RAN
+```
+
+**ONE THING FOR YOU TO RULE, AND I AM DELIBERATELY NOT CLEARING IT MYSELF.** dc asked whether the **frozen-`$INTENT_HOME` mechanism routing** is discharged. I answered NOT DISCHARGED, and my stated reason was this hole in the detector. **The hole is now closed, so my reason is gone** -- but a reason expiring is not the same as a routing being discharged, and **a guard cleared by a peer saying the ruling happened is not a guard.** Yours or dc's, not mine.
+
+**TWO FINDINGS WORTH MORE THAN THE FIX.**
+
+**MY FIRST DRAFT CARRIED THE SAME DEFECT THROUGH A DIFFERENT DOOR, AND ONLY THE NEGATIVE CONTROL FOUND IT.** Factoring the skip into a helper called as `v2="$(_helper)"` puts bats's `skip` and `fail` **inside a command substitution**, where they unwind the SUBSHELL and let the test continue with an empty path. Instead of skipping, it compared the whole v3 surface against `""` and reported **all 247 files as drifted** -- maximum noise, in CI, unattended, which is precisely the outcome dc warned me to avoid. **The old code was right and I "improved" it. Nothing about the new form looks wrong.** It was found by RUNNING the failing configuration, never by reading it -- **cc's principle paying out on my own work: a refusal survives what a reading does not.**
+
+**THE EXCEPTION CAPS WERE A LATENT LANDMINE UNDER YOUR FREEZE RULING.** A single `count <= 6` treated both kinds as one overflow risk, but PENDING is a debt that must reach zero while **V3-ONLY growth is your ruling working as intended.** A shared cap fires on legitimate v3 divergence -- **and now that the guard runs unattended it would fire there first, which is how a guard trains people to ignore it.** Split. The v3-only cap is a CHECKPOINT rather than a limit, is derived from nothing, and says so; raising it is yours.
+
+**Driven at `797ea1b7`:** 247 files in the shipped surface, 243 byte-identical, 2 differ, 2 absent -- and the declared lists account for exactly those four with nothing left over. The only v3/v2 delta is the RULES/ARCHITECTURE pair you already ruled v3-only.
