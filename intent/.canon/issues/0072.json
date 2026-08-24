@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 72,
+  "slug": "intent-backup-db-is-empty-no-pre-incident-store-",
+  "title": "intent/.backup/db is empty -- no pre-incident store snapshot exists",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-24",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent/.backup/db/` is an empty directory. `intent doctor` has been reporting\n\"residue: intent/.backup/db -- backup-stale\" and the residue was a real absence.\n\nTHE EVIDENCE IS TODAY: when intent#0070 emptied this project's 47 issues, the\nfirst thing anyone reached for was a pre-incident snapshot of the store to\ndiscriminate between two candidate writers. There was none. The attribution had\nto be settled by building a repro in a throwaway project instead -- which worked,\nand only because the mechanism happened to be reproducible.\n\nA backup directory that exists, is advertised by doctor, and holds nothing is\nworse than an absent one: it reads as coverage."
+}

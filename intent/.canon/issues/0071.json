@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 71,
+  "slug": "v2-intent-upgrade-blocks-on-an-interactive-read-",
+  "title": "v2 intent upgrade blocks on an interactive read with no TTY",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-24",
+  "reporter": "Matthew Sinclair",
+  "body": "v2 `intent upgrade` blocks on an interactive read. A real 2.10.0 -> 2.19.0\nmigration HUNG and was killed at 2 minutes; the identical run with stdin CLOSED\ncompleted in seconds at rc=0. There is no --yes flag.\n\nWHY THIS IS HIGH RATHER THAN A NUISANCE: 11 of 16 fleet projects are BELOW the\n2.19.0 floor and need exactly this upgrade. Anything driving it without a TTY --\na git hook, a script, a scheduled sweep, an agent session -- HANGS SILENTLY\nrather than failing. A hang is worse than an error here because nothing reports\nit and the caller cannot distinguish it from slow work.\n\nSHIPPED-SURFACE, so under hv's freeze scope this one lands in BOTH trees, unlike\nintent#0070 which is v3-only."
+}
