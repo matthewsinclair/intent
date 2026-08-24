@@ -58,7 +58,31 @@ use Destination::{At, NotByInit};
 const DESTINATIONS: &[(&str, Destination)] = &[
   ("prj/_wip.md", At("intent/wip.md")),
   ("llm/_CLAUDE.md", At("CLAUDE.md")),
-  ("llm/_MODULES.md", At("intent/llm/MODULES.md")),
+  // **NOT SEEDED. A HAND-MAINTAINED INDEX OF THE SOURCE TREE IS THE ONE THING
+  // THIS PROJECT'S OWN HIGHLANDER RULE FORBIDS.**
+  //
+  // MODULES.md exists to answer "does something already do this?" That job is
+  // real. The artefact is not: it is a manually-kept index of a tree the store
+  // already indexes, so the registry that exists to enforce Highlander is
+  // itself the duplicate. Retiring it now rather than after the search work
+  // lands is deliberate (hv, 2026-08-24) -- prune first, then build only what
+  // is needed, rather than carrying dross across the rewrite.
+  //
+  // Measured 2026-08-24 across the estate: Intent's own copy had grown to
+  // ~354KB over ~367 rows while CLAUDE.md instructed the reader to check it
+  // before creating any module -- an instruction nobody can follow, and the
+  // verb that should answer it (`intent modules find`) is unimplemented here.
+  // Lamplight had already retired its copy to a 790-byte placeholder by hv
+  // ruling in June, for drift. Two estates reached the same verdict
+  // independently, from opposite ends: too big to read, and too stale to trust.
+  //
+  // The template stays EMBEDDED rather than deleted: a project that wants a
+  // registry can still be given one. What ends is `init` deciding that every
+  // project has one before anybody has written a module.
+  (
+    "llm/_MODULES.md",
+    NotByInit("a hand-maintained index of a tree the store already indexes"),
+  ),
   ("llm/_DECISION_TREE.md", At("intent/llm/DECISION_TREE.md")),
   // **`AGENTS.md` IS GENERATED, NOT SEEDED.** `intent agents sync` derives it
   // from project state, and `in-essentials` rule 2 forbids editing it by hand.

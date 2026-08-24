@@ -102,7 +102,10 @@ fn the_templates_come_out_of_the_binary() {
   let (_, err, code) = run_isolated(&bin, &["init", "offline"], proj.path());
   assert_eq!(code, 0, "init failed: {err}");
 
-  for template in ["CLAUDE.md", "intent/wip.md", "intent/llm/MODULES.md"] {
+  // DECISION_TREE.md rather than MODULES.md: the latter is deliberately
+  // NotByInit as of 2026-08-24, so it is no longer evidence that the embed
+  // reached the operator. Three exemplars kept -- one root, one prj, one llm.
+  for template in ["CLAUDE.md", "intent/wip.md", "intent/llm/DECISION_TREE.md"] {
     let path = proj.path().join(template);
     assert!(
       path.is_file(),
