@@ -103,3 +103,23 @@ I ruled AC-07.3 myself as contract steward: v2's `claude skills sync` checksums 
 **I have not proposed a mechanism, deliberately.** The cheap one -- a guard grepping for `\d+ of 67` -- hard-codes the denominator it is meant to protect, and would have passed every day this week. **The honest fix is that the figure should not be in prose at all**, and that is a call about how these documents are written rather than a check to add. Routed to you rather than decided by me.
 
 **STATE:** one row left in the gate (ST0057 `AC-08.5`, cc builds / ic covers), three peers up and picking up, both trees clean, all refs level, both CI workflows green. Four sweep issues open with numbers: `0065`, `0066`, `0067`, `0068` (HIGH).
+
+## (2026-08-24 12:16Z)
+
+**TWO RULINGS NEEDED AND ONE ADMISSION. Neither ruling is mine or dc's to take, and the admission is that I was one command from taking the first one badly.**
+
+**RULING 1 -- WHAT SHOULD `shipped_surface_drift.bats` ASSERT NOW THAT YOU HAVE FROZEN Intentv2? This is the question, and the cheap fix would bury it.**
+
+The guard I built yesterday compares the shipped surface across the two checkouts and fails on divergence. **It cannot fire in CI**: it resolves the v2 tree from a filesystem path, `.github/workflows/` contains zero references to `Intentv2`, `INTENT_V2_CHECKOUT` or `v2-maintenance` (driven, positive-controlled by dc -- the same grep finds `cargo` and `Intent`), so **all THREE of its tests skip, INCLUDING ITS OWN POSITIVE CONTROL.** CI cannot even establish the comparison had anything to look at. A skip renders as `ok N # skip` inside a green suite.
+
+**THE FIX IS CHEAP AND THAT IS THE TRAP.** `v2-maintenance` is a branch of THIS repository -- `upstream/v2-maintenance == local/v2-maintenance == e5a8f158`, and the Intentv2 working tree sits exactly there, 0 dirty -- so comparing against the REF instead of a checkout works in CI, needs no second repository, and removes the dependency on someone's working copy being clean. **I had resolved the refs and was writing that change when dc's message arrived.**
+
+**dc STOPPED IT ON THE RIGHT GROUND: THE PROPERTY IS UNSETTLED, AND A GUARD WIRED BEFORE ITS ASSERTION IS SETTLED BUYS A GREEN ABOUT THE WRONG THING.** The file ALREADY knows convergence would be a defect -- `_is_v3_only_by_ruling` exists precisely because you ruled the agnostic pair v3-only -- so the property is not _these two trees agree_. It is something closer to _a shipped-surface change is either in both or declared_, **and I do not know whether that is mechanically checkable or a judgement wearing a test's clothes.**
+
+**WHAT ACTUALLY NEEDS YOUR WORD IS THE SCOPE OF THE FREEZE, because the assertion follows from it and nothing else does.** Your ruling on the MODULES.md round was _if we fix, and what gets fixed, is all to be Intentv3 only; Intentv2 is frozen_. **But on the same day I landed the `intent claude upgrade` downgrade guard, the hook door and `session-finish.sh` in BOTH trees, and that was right** -- the fleet EXECUTES v2, so a defect in what consumers run has nowhere else to go. So the operative rule looks like **frozen for features, live for defects in the shipped surface** -- which nobody has stated, which I have been acting on all day, and which the guard would have to encode.
+
+**RULING 2 -- dc's, routed as they asked: may `intent3` REFUSE an incoherent binary?** Their framing is the right one: a reporter fails open, an actor refuses, and `intent3` is now an ACTOR on PATH. Live instance from this morning's gate: both release binaries report `dirty-69f672d3` and their bytes match no commit; cc measured `intent3` as **73 commits behind HEAD, 8 of them under `native/rust/crates`** including `facade.rs`. dc will not make something on PATH start refusing on their own read, and **I declined to clear it for them** -- a guard cleared by a peer saying the ruling happened is not a guard, and the manner of a first clearing sets what clearing it costs afterwards.
+
+**THE ADMISSION, AND IT IS THE PART I WOULD KEEP IF YOU KEEP ONE THING.** You had already declined two controls for this exact problem, BY NAME: direnv, because it does not reach automation; and hand-refresh, because an advisory that requires remembering is not a control. **My detector fails the same test -- it is a control that only exists where a human is already standing** -- and neither dc nor I applied your stated criterion to the third candidate. dc's own words: _I certified the detector by its EXISTENCE and never asked WHERE IT RUNS._ **You supplied the discriminator; we both stopped using it one item later.**
+
+Nothing is being built on either question. dc is holding and will draft either once ruled.

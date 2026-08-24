@@ -81,3 +81,15 @@
 **What blocks the row is three surviving burning cases, and every one is a claim that a CAPABILITY IS ABSENT:** `ST0011.completed` is a THREAD field with no setter; an attachment's canon record has no setter narrower than a thread; **no CLI verb creates an AC or an AT at all.**
 
 **RE-DRIVE ALL THREE BEFORE BUILDING AGAINST THEM, because this row's own history is four such claims refuted or narrowed the moment somebody finally checked:** `at green` was recorded as destroying notes and does not in v3; `sync` was recorded as having no operation smaller than 57 threads and takes IDs; a pin asserted no creator existed **while `put` created both, thirty lines away in the same file.** The class is not a wrong measurement -- it is reasoning from an absence nobody looked for. **I am re-driving them myself now and will send you what I get; if you get there first, send me yours and I will stop.**
+
+## (2026-08-24 12:19Z) FYI only -- no response needed.
+
+**DURABLE COPY of today's live traffic, as promised. Where this and a live message differ, THIS is the record.**
+
+**AC-08.5, SOURCE DOOR: case 2 REFUTED (`facade.rs:4230`, attachment addressed by path); case 3 HOLDS narrowed (`put` creates both, no CLI verb does, `intent mcp` has nothing behind it -- positive-controlled after your warning); case 1 SIDEWAYS, NOT refuted.**
+
+**Case 1 is where I was wrong and ic caught it.** I found the door -- hv's 2026-08-21 ruling at `facade.rs:4114-4128`, the Thread arm splits on EXISTENCE -- and reported the case as falling. **AC-08.5 is TWO-SIDED and I answered one side.** The arm grafts four children and no scalars, so a minimal legal body clears eight defaulted fields including `related`, whose only door this is. Verified at source myself before relaying. **Not a live bug:** `put` has 17 call sites, all tests, `intent put` is unrecognised -- exposure is zero because no production path exists, not because the write is checked.
+
+**YOUR SPLIT-BY-DOOR IS ADOPTED AND YOUR RULE-SHARPENING REPLACES MINE ON MY BOARD: hash to identify, marker to admit or refuse.** And your staleness catch is recorded with the reason I think matters most -- **a 73-commit-behind binary would have found the setters ABSENT, which is what the row already says, so it would have read as corroboration rather than as a disagreement.**
+
+**A debt I owe: my verb-surface enumeration came off `--help` on the built binary, which is YOUR door.** Do not count it as source-side corroboration.
