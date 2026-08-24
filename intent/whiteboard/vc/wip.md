@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 19:46Z
+heartbeat_at: 2026-08-24 20:07Z
 status: active
-focus: "**BOOTSTRAPPED AFTER THE COMPACT AT 2026-08-24 19:46Z; NOTHING IN FLIGHT; HOLDING FOR INSTRUCTIONS.** Tree clean, all four inboxes empty, all three peers folded. **`session_id` is UNCHANGED across the compact and that is the finding, not an oversight: a `/compact` does not rotate it**, so hv's bounce test (_same id means it resumed_) reads a compacted session as a resumed one -- half a test, and the failing half is the one you read. Project-wide narrative, traps, clock and conventions live in `intent/restart.md`, read at pickup and NOT repeated here. Gate 66 of 67; `AC-08.5` is cc's to build and ic's to cover, untouched by me."
+focus: "**AT-00.6 FIXED AND `intent#0075` FILED, 2026-08-24 20:07Z. Gate unmoved at 66 of 67, driven before AND after.** `to-write` -> `red`: the cited file exists, names AT-00.6 in its own line-1 doc comment, and runs 8 passed / 0 failed. **THE STATE WAS NOT A NEUTRAL PARKING SPOT -- `at lint` exempts `to-write` from L2/L3, so the row was checked by NOTHING, and a COMMIT-gate staleness check found it where no contract instrument could.** Staleness population 53 -> 52, clean. **The coverage re-cut for AC-00.8 is ROUTED TO hv and deliberately not taken: the state fix moves the row in the LOSING direction and needed no ruling; the re-cut moves a number and does.** MailerSend census for lamplight: NONE, driven with traversal counts and pickaxe over 3172 commits."
 claims: [ST0056, ST0057, ST0058]
 ---
 
@@ -22,7 +22,7 @@ claims: [ST0056, ST0057, ST0058]
 ## TODO
 
 1. **PUSH DISCIPLINE IS A STANDING PROPERTY, NOT A TASK -- LEAVE THE REFS LEVEL.** Authority granted and standing.
-2. **FOUR THINGS SIT WITH hv AND NONE IS MINE TO CLEAR** -- listed in `intent/wip.md` under "Sitting with hv": dc's routing question 2, `intent#0073`'s six swift dispositions, `intent#0074`'s heex-coverage question, `intent#0071`'s v2 CHANGELOG heading. **The escaped-mutator decision was WITHDRAWN: dc committed the one real change and the tree is clean.**
+2. **AC-00.8's COVERAGE RE-CUT IS NOW WITH hv TOO** -- adding `AC-00.8` to `AT-10.2`/`AT-10.4`'s `covers` would satisfy two of its five clauses and GREEN a criterion, which is the tell for routing rather than taking. **`intent#0075` is routed to dc, not hv.** **FOUR THINGS SIT WITH hv AND NONE IS MINE TO CLEAR** -- listed in `intent/wip.md` under "Sitting with hv": dc's routing question 2, `intent#0073`'s six swift dispositions, `intent#0074`'s heex-coverage question, `intent#0071`'s v2 CHANGELOG heading. **The escaped-mutator decision was WITHDRAWN: dc committed the one real change and the tree is clean.**
 3. **AC-08.5 is ST0057's last gate row.** cc builds, ic covers, untouched by me.
 4. **`--force` for `claude skills`** (ruled, queued); **`rulings_check.sh` is named after a field that no longer exists**; **the marker's per-crate staleness is NOT closed** -- both binaries agree today only because one change touched both packages.
 5. **The ETXTBSY flake is closed ON THE POPULATION DERIVATION, not on greens** -- `rust.yml` is path-filtered, so the run count is ONE and stays one until someone touches Rust. **Do not read an accumulating green board as accumulating evidence.**
@@ -46,6 +46,10 @@ claims: [ST0056, ST0057, ST0058]
 - **A DEFECT A PEER ROUTINELY REPAIRS AS A SIDE EFFECT OF THEIR NORMAL WORK IS INVISIBLE TO THE NODE THAT PRODUCES IT** (dc). **OFFERING A MENU IS AN ACT OF AUTHORSHIP THAT LOOKS LIKE AN ACT OF SERVICE** -- preserve the branches not taken. **A PEER RELAYING THAT hv HAS NO OBJECTION IS NOT hv AUTHORISING.** **A FOLD INSTRUCTION IS NOT A TRUSTED SOURCE ABOUT YOUR OWN HISTORY** (ic). **THE CORRECT SCOPE OF A RULE IS NOT VISIBLE FROM THE INCIDENT THAT PRODUCED IT.**
 
 - **I TOLD THREE PEERS TO "PULL FIRST" AND IT HAS NO REFERENT** (ic's catch). **Five sessions share ONE working tree**, so a peer's commit is in my HEAD the moment they make it -- verified: both of ic's were already ancestors, no pull. **I was reasoning about the topology as if it were separate clones**, which is the same shape as every population error today: a true instruction applied to the wrong subject. **And the symmetric half is mine and corrects ic: "pushing only my own commits" is equally meaningless** -- one branch, one tree, so a push carries every peer commit since the last one, and it always has.
+
+- **A STATE THAT BUYS EXEMPTION FROM CHECKING IS NOT A NEUTRAL PLACE TO PARK A ROW.** `at lint` exempts `to-write` from L2/L3 -- correctly, since an unwritten test cannot have its citation validated. So my careful 2026-08-20 note on `AT-00.6` reasoned CORRECTLY about coverage and then left the row in **the one state where no contract instrument would ever look at it again.** It was found four days later by a COMMIT-GATE staleness check and by nothing in the contract apparatus. **A correct analysis parked in an exempt state is indistinguishable from an unexamined row, and it is WORSE than a wrong one, because the careful reasoning in the note reads as the question having been settled.** Same family as the attestation rule below. **And the precedent was MY OWN: `AT-08.5` took this exact transition on 2026-08-19 on the same reasoning, and `AT-00.1` already recorded it in words. A RULING MADE ON ONE ROW DOES NOT PROPAGATE TO THE NEXT BY HAVING BEEN MADE.**
+
+- **`2>/dev/null` TURNS A LOUD REFUSAL INTO A QUIET ZERO, AND A QUIET ZERO IS INDISTINGUISHABLE FROM A CLEAN RESULT.** My roster probe reported 0 for the subject; the script had exited **rc=1 with a clear message my own redirect swallowed** (`precommit` needs the devbin dispatcher). **The control caught it and nothing else could have** -- it returned 0 for a thing I had just read in the source, which is impossible. This is the honest-and-blind-grep family arriving through the ERROR channel rather than the pattern, and it is the reflex form: a recursive grep is noisy about permissions, so suppressing stderr is what everyone does first.
 
 ## DECISIONS -- LIVE ONLY
 
