@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 17:53Z
+heartbeat_at: 2026-08-24 17:55Z
 status: active
 focus: "**LEANED HARD AND COMMITTED 2026-08-24 17:53Z. NOTHING IN FLIGHT.** **STATUS STAYS ACTIVE: `/compact` is transparent (invariant 6); the `release` in localfold is for `/in-finish`.** **THE LEAN IS THE POINT: ~60 watch-out bullets collapsed into EIGHT RULES, because today proved they were never sixty things.** Every instance is verbatim in `.history/20260824/wip-lean-1751Z.md` -- read it when a rule looks arbitrary; the instance is what makes it not arbitrary. **NEXT WORK: `AC-08.5`, the only open gate row (66 of 67), mine to build, ic covering.** **intent#0070 is FIXED at `3f367cf8` and closed by dc.** **THE DAY'S RULE, AND IT COST SIX INSTANCES OF MINE TO LEARN: THE MEASUREMENT IS NOT THE CLAIM.**"
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
