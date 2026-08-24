@@ -62,7 +62,7 @@ swift build
 
 ## Build and Test Commands
 
-### Testing
+### Test commands
 
 [[#lang elixir]]
 
@@ -180,6 +180,17 @@ Task(subagent_type="critic-<lang>", prompt="review <targets>")
 ```
 
 The installed Intent tool's headless runner (`intent critic <lang>`, Greppable-proxy rules only; no LLM required) powers the pre-commit gate. Contract: `intent/docs/critics.md` at the Intent install. Exit codes: `0` clean, `1` findings, `2` error.
+
+## Rules of the Road
+
+Four cross-language principles govern all Intent projects. Every language pack concretises them; the critics enforce them.
+
+- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure-Functional-Idiomatic-Coordination; pattern match, pipe, tag, compose.
+- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
+- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
+
+Read any of them with `intent claude rules show <id>`. The terse DO / NEVER contract for this project lives in `usage-rules.md`.
 
 ## Rule Library
 

@@ -202,8 +202,11 @@ defmodule Autopsy.Census do
 
     date_range =
       case {List.first(timestamps), List.last(timestamps)} do
-        {nil, _} -> %{"from" => nil, "to" => nil}
-        {first, last} -> %{"from" => String.slice(first, 0, 10), "to" => String.slice(last, 0, 10)}
+        {nil, _} ->
+          %{"from" => nil, "to" => nil}
+
+        {first, last} ->
+          %{"from" => String.slice(first, 0, 10), "to" => String.slice(last, 0, 10)}
       end
 
     %{
@@ -276,7 +279,8 @@ defmodule Autopsy.Corrections do
               "session_id" => session.session_id,
               "line_number" => line,
               "user_message" => String.slice(Autopsy.Parser.message_text(user_msg), 0, 500),
-              "assistant_acknowledgment" => String.slice(Autopsy.Parser.message_text(msg), 0, 500),
+              "assistant_acknowledgment" =>
+                String.slice(Autopsy.Parser.message_text(msg), 0, 500),
               "is_post_compaction" => Autopsy.Parser.post_compaction?(line, compactions),
               "compaction_index" => Autopsy.Parser.compaction_index(line, compactions)
             }
@@ -372,13 +376,17 @@ defmodule Autopsy.Corrections do
     content = get_in(msg, ["message", "content"])
 
     case content do
-      text when is_binary(text) -> String.trim(text) != ""
+      text when is_binary(text) ->
+        String.trim(text) != ""
+
       items when is_list(items) ->
         Enum.any?(items, fn
           %{"type" => "text", "text" => text} -> String.trim(text) != ""
           _ -> false
         end)
-      _ -> false
+
+      _ ->
+        false
     end
   end
 end
@@ -521,55 +529,106 @@ defmodule Autopsy.Rules do
     end)
   end
 
-  defp scan_text(text, banned_words, session_id, line, role, source) do
+  # Classify the TURN a match sits in, AT SCAN TIME.
+  #
+  # The emitted record must be classifiable from ITSELF. Context keeps only a
+  # few dozen characters each side, so wrapper markers fall outside the window
+  # and every consumer has to go back to the raw transcript to tell authored
+  # prose from quoted prose. Measured 2026-08-24: testing `context` for
+  # "cross-session-message" returned 0 on a corpus full of them -- not because
+  # they were absent, but because the window could not reach them.
+  #
+  # `authored` is the only kind a house-style rule can govern. The rest is text
+  # that PASSED THROUGH this session rather than being written by it.
+  @peer_markers ~r/<cross-session-message|from-name=/
+  @reminder_markers ~r/<system-reminder>/
+  @compaction_markers ~r/This session is being continued|<compacted-conversation/i
+  @skill_markers ~r/Base directory for this skill|<command-name>|<command-message>/
+
+  defp classify_turn(text) do
+    cond do
+      Regex.match?(@peer_markers, text) -> "peer_message"
+      Regex.match?(@compaction_markers, text) -> "compaction"
+      Regex.match?(@skill_markers, text) -> "skill_content"
+      Regex.match?(@reminder_markers, text) -> "system_reminder"
+      true -> "authored"
+    end
+  end
+
+  # One record per OCCURRENCE, not per (text, pattern). The old form emitted a
+  # single record however many times the word appeared, and judged all of them
+  # by the first one's surroundings.
+  defp scan_text(text, banned_words, session_id, line, role, source)
+       when is_binary(text) do
+    turn_kind = classify_turn(text)
+
     banned_words
     |> Enum.flat_map(fn word ->
-      if Regex.match?(word.regex, text) do
-        is_negated = check_negation(text, word.pattern)
-
-        [
-          %{
-            "session_id" => session_id,
-            "line_number" => line,
-            "pattern" => word.pattern,
-            "label" => word.label,
-            "source" => source,
-            "role" => role,
-            "is_negated" => is_negated,
-            "context" => extract_context(text, word.regex)
-          }
-        ]
-      else
-        []
-      end
+      word.regex
+      |> Regex.scan(text, return: :index)
+      |> Enum.map(fn [{start, len} | _] ->
+        %{
+          "session_id" => session_id,
+          "line_number" => line,
+          # `word` is the field name the --banned-words input implies. `pattern`
+          # is kept so existing consumers do not break on the rename.
+          "word" => word.pattern,
+          "pattern" => word.pattern,
+          "label" => word.label,
+          "source" => source,
+          "role" => role,
+          "turn_kind" => turn_kind,
+          "is_negated" => negated_at?(text, start, len),
+          "is_quoted" => quoted_at?(text, start, len),
+          "context" => safe_slice(text, start - 60, len + 120)
+        }
+      end)
     end)
   end
 
-  defp check_negation(text, pattern) do
-    negation_words = ~r/(avoid|never use|don'?t use|not |no |without |stop using)/i
+  defp scan_text(_, _, _, _, _, _), do: []
 
-    # Find the pattern position
-    case Regex.run(~r/#{Regex.escape(pattern)}/i, text, return: :index) do
-      [{start, _len}] ->
-        window_start = max(0, start - @negation_window)
-        window = String.slice(text, window_start, @negation_window)
-        Regex.match?(negation_words, window)
+  # Negation, judged on BOTH SIDES of THIS occurrence.
+  #
+  # The old cue list carried bare `not ` and `no `, which are ordinary English:
+  # measured 2026-08-24, 71 of 103 suppressions rode on that pair alone, and
+  # three genuine assistant violations were suppressed by an unrelated "not"
+  # sitting within 60 characters. A cue that fires on ordinary prose is not a
+  # cue.
+  @negation_cues ~r/(avoid|never use|do not use|don'?t use|without|stop using|banned|forbidden|instead of)/i
 
-      _ ->
-        false
-    end
+  defp negated_at?(text, start, len) do
+    before_text = safe_slice(text, start - @negation_window, @negation_window)
+    after_text = safe_slice(text, start + len, @negation_window)
+    Regex.match?(@negation_cues, before_text) or Regex.match?(@negation_cues, after_text)
   end
 
-  defp extract_context(text, regex) do
-    case Regex.run(regex, text, return: :index) do
-      [{start, len}] ->
-        ctx_start = max(0, start - 40)
-        ctx_end = min(String.length(text), start + len + 40)
-        String.slice(text, ctx_start, ctx_end - ctx_start)
+  # A match wrapped in backticks or quotation marks is the rule being DISCUSSED,
+  # not broken -- the dominant false-positive mode in a corpus whose subject is
+  # its own house style.
+  defp quoted_at?(text, start, len) do
+    # String.contains?/2 with a list rather than a regex: the curly quotes are
+    # outside Latin-1, and an unanchored ~r// without the `u` modifier refuses
+    # \x{201C} as out of range. No regex is needed to look for four literals.
+    window = safe_slice(text, start - 40, len + 80)
+    String.contains?(window, ["`", "\"", "\u201C", "\u201D"])
+  end
 
-      _ ->
-        ""
-    end
+  # Regex `return: :index` yields BYTE offsets while String.slice/3 counts
+  # GRAPHEMES, so the two must not be mixed -- the old code did, and on any
+  # multi-byte text the context was cut at the wrong place. Slice by bytes, then
+  # drop any partial character the cut created so the result is valid UTF-8 and
+  # survives JSON encoding.
+  defp safe_slice(text, start, len) do
+    size = byte_size(text)
+    s = max(0, min(start, size))
+    l = max(0, min(len, size - s))
+
+    text
+    |> :binary.part(s, l)
+    |> String.chunk(:valid)
+    |> Enum.filter(&String.valid?/1)
+    |> Enum.join()
   end
 
   defp flatten_input(nil), do: ""
@@ -800,7 +859,24 @@ defmodule Autopsy.CLI do
     IO.puts(:stderr, "Frustration signals: #{length(frustration_signals)}")
     IO.puts(:stderr, "User flags: #{length(user_flags)}")
     IO.puts(:stderr, "Deferrals: #{length(deferrals)}")
-    IO.puts(:stderr, "Banned violations: #{length(banned_violations)}")
+    # THE FUNNEL, NOT THE RAW TOTAL.
+    #
+    # The raw count is the number a reader absorbs first and it overstates by
+    # roughly an order of magnitude: measured 2026-08-24 on Intent, 283 raw ->
+    # 29 assistant-authored -> 14 unquoted, and Lamplight, Conflab and Laksa
+    # reached the same ratio independently on their own corpora. SKILL.md does
+    # ask for the split, but it asks downstream of a headline the reader has
+    # already believed.
+    authored =
+      Enum.filter(banned_violations, fn v ->
+        v["turn_kind"] == "authored" and v["role"] != "user"
+      end)
+
+    actionable = Enum.reject(authored, &(&1["is_negated"] or &1["is_quoted"]))
+
+    IO.puts(:stderr, "Banned matches (raw): #{length(banned_violations)}")
+    IO.puts(:stderr, "  authored here     : #{length(authored)}")
+    IO.puts(:stderr, "  ACTIONABLE        : #{length(actionable)}  <- the number to act on")
   end
 
   defp parse_args(args) do

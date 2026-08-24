@@ -37,3 +37,12 @@ I'm just an AI|identity_break
 in summary|filler
 to summarize|filler
 in conclusion|filler
+
+# Correction openers (IN-PR house style; ~/.claude/CLAUDE.md "Tone and Style").
+# Measured 2026-08-24: 17 genuine assistant openers in a 10-day window on Intent
+# while the instrument scored this rule ZERO, because it had no pattern for it.
+# `overall` is deliberately NOT here: two autopsies four months apart measured
+# every use as legitimate analytical prose, and hv dropped it from the rule
+# rather than adding it to the instrument.
+You're absolutely right|ai_ism
+You're right|ai_ism

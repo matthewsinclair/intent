@@ -39,6 +39,7 @@ usage() {
   echo "  session-context       SessionStart: emit project context as a system-reminder"
   echo "  require-in-session    UserPromptSubmit: block the first prompt until /in-session"
   echo "  post-tool-advisory    PostToolUse: advisory notes (wire by hand; off by default)"
+  echo "  session-finish        Stop: fold reminder, conditional on a dirty tree"
   exit 1
 }
 
@@ -46,7 +47,7 @@ NAME="${1:-}"
 [ -n "$NAME" ] || usage
 
 case "$NAME" in
-  session-context|require-in-session|post-tool-advisory)
+  session-context|require-in-session|post-tool-advisory|session-finish)
     script="$HOOKS_DIR/$NAME.sh"
     # A missing script is named rather than left to the shell. Claude Code
     # surfaces a hook's stderr, so this is the difference between "Intent's
@@ -59,6 +60,6 @@ case "$NAME" in
     usage
     ;;
   *)
-    error "unknown hook: $NAME (try: session-context, require-in-session, post-tool-advisory)"
+    error "unknown hook: $NAME (try: session-context, require-in-session, post-tool-advisory, session-finish)"
     ;;
 esac
