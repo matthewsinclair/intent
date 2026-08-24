@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 22:45Z
-status: active
-focus: "**AC-08.5 VERIFIED 2026-08-24 21:39Z AND THE ROW STAYS `red` -- gate unchanged at 66 of 67.** cc's build at `7926cfae` closes the FOUR field-setter gaps for real (`set`/`settable_fields`/`unsettable`/`splice_one_field` all NEW, driven against the parent with `put` as control) and makes limb 2 an INVARIANT of the verb. **It stays red on the instrument's OWN printed output: 5 of 11 entity forms have no write path, and the thread door still clears 8 of 8.** **AND ONE OF THE FIVE IS NOW WRONG -- the sweep drives `put` ONLY, so the same file asserts `Wp` has no write path at `:640` and PROVES it has one at `:1218`, both green.** Recorded at `d38ecbe0`."
+heartbeat_at: 2026-08-24 22:55Z
+status: paused
+focus: "**EOD 2026-08-24 22:55Z at `f7c0eb98`. RELEASED, PAUSED, TREE CLEAN, REFS LEVEL, ALL FOUR INBOXES AT THE SENTINEL.** **AC-08.5 VERIFIED AND STAYS `red`; gate 66 of 67** -- cc built the setter and routed the green, four field-setter gaps closed, limb 2 now an INVARIANT of the verb. **It stays red on four entity forms and on `put`s thread door clearing 8 of 8, AND NOBODY HOLDS ANY OF IT** -- three clean boards over four unclaimed items. **GLOBALFOLD LANDED at `98961891`**, and the three burning cases were re-driven with TWO DEAD. **The night`s rule: A CHECK CAN SAY YES ABOUT SOMETHING THAT GOT WORSE** -- paid for three ways in one hour, twice by my own instruments."
 claims: [ST0056, ST0057, ST0058]
 ---
 
@@ -17,21 +17,13 @@ claims: [ST0056, ST0057, ST0058]
 
 ## DOING
 
-**AC-08.5 VERIFIED AND THE ROW STAYS `red`. `d38ecbe0`.** Gate re-driven through all three verb calls afterwards: **66 of 67**, `AC-08.5` still named. **The verdict is the same as before cc built, and that is not the same as cc having built nothing** -- see below.
+**NOTHING IN FLIGHT -- AND THAT IS A STATEMENT ABOUT ME, NOT ABOUT THE TREE** (ic). Tree clean and refs level as at `f7c0eb98`; a fresh vc reads this line while looking at whatever the tree has become since.
 
-**DRIVEN, NOT READ OFF cc's CLAIM.** `cargo test -p intentsvcs --no-fail-fast` rc=0 read directly rather than through a pipe; **808 passed / 0 failed over 106 targets**; **the target confirmed present in the `Running` list** rather than inferred from an absence of failures. Then the covering target alone with `--nocapture`, because **AC-08.5 asks for the unsettable set as printed OUTPUT and a set nobody prints is one nobody can act on.**
+**AC-08.5 IS VERIFIED AND STAYS `red`. `d38ecbe0`; board record `526f6963`; amendment `8f6bdd0a`.** The verdict did not move and **cc`s build was not nothing** -- four field-setter gaps closed, limb 2 an invariant of the verb. **What blocks it is four entity forms and `put`s thread door at 8 of 8, and NOBODY HOLDS ANY OF IT.**
 
-**WHAT MOVED IS REAL: the four field-setter gaps are CLOSED.** `Facade::set`, `settable_fields`, `unsettable` and `splice_one_field` are **all NEW at `7926cfae`** -- driven against the parent commit with **`put` as the control**, which existed before and still does. Thread's `completed` and WorkPackage's `objective`/`body`/`preamble` each set and read back with exactly one key moved. **And limb 2 is an INVARIANT of the verb rather than a property tested from outside it**: `splice_one_field` re-serialises and REFUSES if any key but the addressed one moved, so a future field whose serde attributes cause collateral movement makes the VERB refuse instead of making a test the only thing standing between that field and a silent clear.
+**GLOBALFOLD LANDED at `98961891`, pre-fold sha `1e8e3666` for recovery.** `wip.md` lost a changelog, `restart.md` lost the section narrating its own fold, `.claude/restart.md` lost a pointer to it and states the rule instead. **Every cut checked for a surviving home BEFORE deleting.** **Two of the three burning cases re-driven and DEAD.**
 
-**WHY IT STAYS RED, AND BOTH REASONS ARE THE INSTRUMENT'S OWN OUTPUT.** `AC-08.5: 5 of 11 entity form(s) IN THE POPULATION have no write path through `put`` and `AC-08.5 limb 2 at the thread door: 8 of 8 unasked field(s) were cleared by a minimal legal `put``. **Limb 2 is universal over verbs: `set` satisfies it and `put` does not.** A new door that behaves cannot discharge a universal an old door still violates.
-
-**THE FINDING: THE SWEEP DRIVES `put` ONLY, AND cc's OWN BUILD MADE IT WRONG.** `Wp` gained a door through `set`, which the sweep cannot see -- **so one file asserts `Wp` has no write path at `:640` and PROVES it has one at `:1218`, and BOTH ARE GREEN** (the proving test `panic!`s if `set` refuses, so passing IS the proof). The file's own doc argues the biconditional forces the declaration to shrink when a form GAINS a write path; **it does that for `put` and is blind to a form gaining a DIFFERENT DOOR.** Honest worklist is **4, not 5**. **Third appearance of this row's most-repeated class in this one file** -- a capability nobody checked for before reasoning from its absence.
-
-**AND THE FIRST BURNING CASE WAS REPAIRED FOUR DAYS AGO AND THE CONTRACT DID NOT KNOW.** ST0011's `completed` is `2025-06-03`, set at **`608e9721`** (2026-08-20, hv) as a **one-line canon insert in an 8-file commit**. The clause _which is NULL on the estate's one genuinely wrong row_ is FALSE as current fact. **Recorded as stale rather than rewritten: a burning case is evidence about WHEN IT WAS WRITTEN, and rewriting it destroys the dating that makes it evidence.** **The repair was a hand-edit, which ILLUSTRATES the criterion rather than refuting it.**
-
-**AND THE VERIFICATION DEMONSTRATED ITS OWN SUBJECT: recording it required a hand-edit of canon plus `sync --to-store`, because an AT row's `note` has no CLI door.** No `set` subcommand exists either -- driven, with `gate` at `render.rs:1023` as the positive control.
-
-**TWO SIDE-FINDINGS FROM `doctor`, NEITHER MINE TO FIX:** **ST0057/WP-01 and WP-05 are recorded WIP while their gates PASS** -- that is WP-close verification, which is my role, and it is the next thing I pick up. And **hv's standing question has MOVED: 199 files under a thread are not carried by the store, not 250.**
+**FIVE ITEMS ESCALATED DURABLY TO `hv/inbox.vc.md`** rather than only surfaced live -- the four AC-08.5 items plus AC-02.6`s uncovered second job. **An escalation is finished when a named reader has it, and a live channel does not survive the session.**
 
 ## TODO
 
