@@ -66,7 +66,7 @@ mod common;
 
 use std::collections::BTreeSet;
 
-use common::{Fixture, facade_ctx, gate_open, sample_thread};
+use common::{Fixture, facade_ctx, gate_open, sample_issue, sample_thread};
 use intentsvcs::model::ThreadStatus;
 use intentsvcs::organize::Mode;
 use intentsvcs::project::Project;
@@ -135,6 +135,17 @@ fn store_ids(project: &Project) -> BTreeSet<String> {
   threads.into_iter().map(|t| t.id).collect()
 }
 
+/// The issue numbers the STORE holds -- `store_ids`' counterpart over the other
+/// population, and there is no `index_ids` twin because **issues have no index
+/// view**. That absence is why intent#0070 ran silent: the write set for a
+/// store that has lost its issues is byte-identical to one that has not, so no
+/// diff, no `git status` and no view could have shown it.
+fn store_issue_numbers(project: &Project) -> BTreeSet<u32> {
+  let store = intentsvcs::store::Store::open(&project.db_path()).expect("store opens");
+  let (_threads, issues) = store.load_canon().expect("store loads");
+  issues.into_iter().map(|i| i.number).collect()
+}
+
 /// **EQUALITY OF TWO POPULATIONS, NOT A ROW COUNT** (vc's specification, and
 /// both halves of it earn their place).
 ///
@@ -192,5 +203,52 @@ fn upgrade_realises_only_what_the_manifest_declares() {
   assert!(
     realised.is_empty(),
     "the manifest declares nothing realised and `upgrade` put {realised:?} back on disk"
+  );
+}
+
+/// **THE SAME PRINCIPLE OVER THE OTHER POPULATION -- intent#0070's regression.**
+///
+/// This file's subject is that the migrator's population comes from CANON and
+/// not from the filesystem, and for four days that was true of threads only.
+/// `plan` topped `threads` up from committed canon and passed `issues` straight
+/// through from `legacy::scan`, which derives them from a v2 estate -- so on an
+/// already-migrated project the scan found none, `store.rebuild` ran off the
+/// empty vector, and **every issue in the project was destroyed at rc=0 under
+/// an `ok:`.** dc measured it on a probe (5 held, `0 issue(s)` reported, 0 left)
+/// and it took 47 off the live repo.
+///
+/// **It belongs in THIS file rather than beside AT-10.14 as a separate one**,
+/// because a second home for "the migrator's population is canon" is how the
+/// two populations drifted apart in the first place. The row above and this one
+/// now fail together if the principle is broken at the join.
+///
+/// **The store is loaded BEFORE the upgrade deliberately.** Asserting only
+/// afterwards would pass on a migrator that never populated issues at all,
+/// which is a different defect wearing the same green -- the point is that a
+/// POPULATED store is emptied, so the population has to be there to lose.
+#[test]
+fn upgrade_covers_every_issue_canon_holds_in_the_store() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let canon_numbers: BTreeSet<u32> = [21, 22, 23].into_iter().collect();
+  for number in &canon_numbers {
+    fx.write_issue(&sample_issue(*number));
+  }
+
+  let project = fx.project();
+  drop(fx.facade_on_disk());
+  assert_eq!(
+    store_issue_numbers(&project),
+    canon_numbers,
+    "precondition: the store must HOLD these issues before `upgrade` is asked not to lose them"
+  );
+
+  intentsvcs::facade::Facade::upgrade(&project, &facade_ctx()).expect("upgrade runs");
+
+  assert_eq!(
+    store_issue_numbers(&project),
+    canon_numbers,
+    "`upgrade` rebuilt the store from a model that did not include every issue canon holds -- \
+     the store is gitignored and issues have no index view, so nothing in a diff would show it"
   );
 }

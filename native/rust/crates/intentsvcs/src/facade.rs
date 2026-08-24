@@ -97,6 +97,11 @@ pub struct Upgraded {
   pub carried: Vec<crate::finding::Finding>,
   /// Thread ids read from committed canon rather than converted from markdown.
   pub already_migrated: Vec<String>,
+  /// Issue numbers read from committed canon rather than converted from a v2
+  /// estate. **Zero on a first run, and on a re-run it is every issue in the
+  /// project** -- because a re-run's v2 estate is empty and the whole issue
+  /// population comes back through the union (intent#0070).
+  pub already_migrated_issues: Vec<u32>,
   /// Sections dropped as template scaffolding, one record each, so a declared
   /// drop can be reconciled against the estate's census rather than inferred
   /// from a total that happens to be short.
@@ -1191,6 +1196,7 @@ impl Facade {
       issues,
       carried,
       already_migrated,
+      already_migrated_issues,
       dispositions,
     } = plan;
 
@@ -1221,6 +1227,7 @@ impl Facade {
           files,
           carried,
           already_migrated,
+          already_migrated_issues,
           dispositions,
         })
       }

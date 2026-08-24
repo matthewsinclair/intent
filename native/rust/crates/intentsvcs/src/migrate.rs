@@ -94,6 +94,15 @@ pub struct Plan {
   /// a silent skip is how an artefact disappears from a migration whose whole
   /// promise is that nothing does).
   pub already_migrated: Vec<String>,
+  /// Issue numbers read back from committed canon rather than converted from a
+  /// v2 estate -- [`already_migrated`](Plan::already_migrated)'s counterpart
+  /// over the population intent#0070 dropped.
+  ///
+  /// **For the REPORT, and there is no control-flow twin to resist here**: the
+  /// thread field carries that warning because a reader might be tempted to
+  /// skip re-emitting; nobody can skip these, because re-emitting them IS the
+  /// fix.
+  pub already_migrated_issues: Vec<u32>,
   /// Sections Phase A dropped as template scaffolding, passed through
   /// untouched. **The third summary bucket beside modelled and carried**: a
   /// drop with no record cannot be told from a section that was never there.
@@ -299,6 +308,72 @@ fn dehydrated(
   Ok((threads, added))
 }
 
+/// **Every issue with committed canon that the v2 scan never reached.**
+///
+/// The exact counterpart of [`dehydrated`], and its absence WAS intent#0070.
+/// `legacy::scan` derives issues from the v2 estate, so on an already-migrated
+/// project it finds none; `plan` passed that empty vector straight through, and
+/// `store.rebuild` -- which runs off this model -- replaced a populated issue
+/// table with nothing. **Threads survived the identical re-run because they had
+/// the union above and issues did not: one population topped up from canon, the
+/// other not, in adjacent lines.**
+///
+/// **Measured: a probe holding 5 issues reported `0 issue(s)` and left 0, at
+/// rc=0, under an `ok:`** -- and on the live repo it took 47.
+///
+/// **The report was HONEST, which is what made it invisible.** `0 issue(s)`
+/// meant it carried none, and it had carried none. Nothing in the output was
+/// false, so there was nothing for an operator to notice -- the reason this
+/// could not have been fixed by rewording the line.
+///
+/// Same three rulings as [`dehydrated`], and they transfer without amendment.
+/// The union belongs at the JOIN and not inside `legacy::scan`, whose other
+/// caller reads a markdown estate that a canon-only issue has no entry in.
+/// `issue_numbers` answers empty for a missing directory, so a genuine v2
+/// estate -- no `.canon/` at all -- adds nothing here and the first-run path is
+/// untouched. And an unreadable or invalid canon REFUSES rather than being
+/// skipped, because a silently incomplete union is this same defect one level
+/// down, and the rebuild would run off it.
+fn orphaned_issues(
+  project: &Project,
+  seen: &BTreeSet<u32>,
+) -> Result<(Vec<Issue>, Vec<u32>), Blocked> {
+  let Ok(numbers) = project.issue_numbers() else {
+    return Ok((Vec::new(), Vec::new()));
+  };
+  let mut issues = Vec::new();
+  let mut added = Vec::new();
+  let mut residue = Vec::new();
+  for number in numbers {
+    if seen.contains(&number) {
+      continue;
+    }
+    let path = project.issue_json(number);
+    let rel = project.relative(&path);
+    match std::fs::read_to_string(&path) {
+      Ok(text) => match crate::ingest::read_issue(project, number, &text) {
+        Ok(issue) => {
+          added.push(issue.number);
+          issues.push(issue);
+        }
+        Err(mut found) => residue.append(&mut found),
+      },
+      Err(source) => residue.push(Finding::new(
+        &rel,
+        FindingClass::BrokenReference,
+        format!(
+          "canon names issue {number} and the file is not readable: {source} -- the migration \
+           would rebuild the store and the views without it"
+        ),
+      )),
+    }
+  }
+  if !residue.is_empty() {
+    return Err(Blocked::Residue(Refusal::new(residue)));
+  }
+  Ok((issues, added))
+}
+
 pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, Blocked> {
   // **Exhaustive on purpose: a field added to `Scan` must not compile.** `..`
   // here would make a new Phase A output something the join silently drops,
@@ -332,6 +407,15 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   let mut threads = threads;
   threads.extend(extra);
 
+  // **THE SAME UNION, FOR THE SAME REASON, OVER THE OTHER POPULATION.**
+  // `store.rebuild(&threads, &issues)` takes both, so an issue absent here is
+  // absent from the SSOT exactly as a thread would be -- and for four days it
+  // was, because only one of the two lines existed (intent#0070).
+  let seen_issues: BTreeSet<u32> = issues.iter().map(|i| i.number).collect();
+  let (extra_issues, extra_numbers) = orphaned_issues(project, &seen_issues)?;
+  let mut issues = issues;
+  issues.extend(extra_issues);
+
   let mut plan = assemble(project, ctx, threads, issues, carried)?;
   // **They ARE already migrated, so the report says so rather than counting
   // them as conversions.** A dehydrated thread reached this plan from its own
@@ -342,6 +426,12 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   already_migrated.sort();
   already_migrated.dedup();
   plan.already_migrated = already_migrated;
+  // **The union above would otherwise make `migrated: N issue(s)` over-claim on
+  // a re-run**, reporting as converted a population that was read back from its
+  // own committed canon -- the disclosure threads already get one line down.
+  // Fixing the loss and leaving the report asymmetric would rebuild 0070's
+  // shape in the layer 0070 called the worst part.
+  plan.already_migrated_issues = extra_numbers;
   plan.dispositions = dispositions;
   Ok(plan)
 }
@@ -479,6 +569,7 @@ fn assemble(
     // parameter, because a fifth argument carrying a value this function
     // never reads would be a seam pretending to be a dependency.
     already_migrated: Vec::new(),
+    already_migrated_issues: Vec::new(),
     // Same reason as above: `assemble` never sees a scan, so it cannot know
     // what Phase A dropped.
     dispositions: Vec::new(),

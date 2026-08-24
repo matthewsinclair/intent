@@ -1480,6 +1480,17 @@ fn upgrade() -> Result<(), Failure> {
       done.already_migrated.len()
     );
   }
+  // **A SEPARATE LINE RATHER THAN A SECOND CLAUSE ON THE ONE ABOVE**, because
+  // the two populations reach it by different routes and can differ: a v2
+  // estate mid-conversion has already-migrated threads and no canon issues at
+  // all. Folding them into one sentence would make a zero on either side read
+  // as a statement about both.
+  if !done.already_migrated_issues.is_empty() {
+    eprintln!(
+      "already migrated: {} issue(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged",
+      done.already_migrated_issues.len()
+    );
+  }
   eprintln!(
     "ok: this project is now Intent v{} -- commit the canon and the generated views",
     intentsvcs::faces::INTENT_VER

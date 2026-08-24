@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 16:11Z
+heartbeat_at: 2026-08-24 16:50Z
 status: active
 focus: "**LOCALFOLDED 2026-08-24 FOR A COMPACT; STATUS STAYS ACTIVE BECAUSE `/compact` IS TRANSPARENT (invariant 6) -- the `release` in localfold is for `/in-finish`, not for a bounce.** **NEXT WORK, AUTHORISED BY matts: intent#0070 -- `intent upgrade` DESTROYS EVERY ISSUE IN AN ALREADY-MIGRATED v3 PROJECT.** **The defect is an ASYMMETRY, not the re-run: `migrate.rs:329-333` tops `threads` up from committed canon via `dehydrated()` and `issues` passes straight into `assemble` with no union**, so on an already-migrated project `legacy::scan` finds no v2 estate, threads refill, issues do not, and the commit replaces the store. **dc drove the falsifiable split -- unmigrated 5->5 SURVIVED, already-migrated 5->0 DIED -- so the mechanism could have been falsified and was not.** **`0 issue(s)` means CARRIED none and the number is HONEST, so this CANNOT be fixed by changing the message.** **Red-first needs BOTH arms and must read counts from the STORE, never `sync` saying AGREE, or it inherits 0069.** **AC-08.5 is the only gate row left (66 of 67) and is amended at `7b49adc9` with the population stated: Thread has 18 fields, 5 required, 4 grafted, 9 neither, collateral denominator 8 and numerator 8.** **Three burning cases live; only the attachment-setter clause is refuted.** **THE DAY'S PATTERN ABOUT ME, and it is the thing to carry: THE MEASUREMENT IS NOT THE CLAIM -- three times my figure was right and my claim about what it measured was too strong (`admissible` vs `provably current`, a comment's wording vs the row's, distance vs floor).** Nothing in flight."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -87,7 +87,40 @@ ic drove it: a minimal legal `put` at the thread door **clears 8 of 8** -- slug,
 
 **The first is the same family as the claims we were auditing, and it happened ONE STEP AFTER I told vc I would guard against it.** I greped `native/rust/intent-cli/src` -- **which does not exist**, the path is `native/rust/crates/intent-cli/src` -- and got a clean zero that read exactly like _nothing touched the CLI_. **A zero from a wrong path and a zero from a true absence are the same characters on screen, and the only thing that separates them is asking the instrument to find something you know is there.** Also read an rc after a pipe (`head`'s, not the command's) and used a wrong marker regex. **vc hit the identical wrong-path shape on their own `mcp` claim the same hour and re-drove it with two doors.**
 
-## intent#0070 -- `upgrade` DESTROYS EVERY ISSUE IN AN ALREADY-MIGRATED v3 PROJECT. MINE TO FIX; NOT STARTED, HELD ON matts.
+## intent#0070 -- `upgrade` DESTROYS EVERY ISSUE IN AN ALREADY-MIGRATED v3 PROJECT. **FIXED 2026-08-24 16:33Z, BOTH ARMS DRIVEN, RED-FIRST ON THE TEST ITSELF.**
+
+### THE FIX AS BUILT, AND EVERY NUMBER BELOW IS FROM A COMPLETED RUN
+
+**`migrate::plan` now unions `issues` against committed canon exactly as it unions `threads`.** New `orphaned_issues()` sits beside `dehydrated()` and carries the same three rulings verbatim, because they transfer without amendment: the union belongs at the JOIN and not inside `legacy::scan`; `issue_numbers()` answers empty for a missing directory, so a genuine v2 estate adds nothing and the first-run path is untouched; and an unreadable or invalid canon REFUSES rather than being skipped.
+
+**THE STRICT READER WAS EXTRACTED RATHER THAN COPIED -- `ingest::read_issue`, mirroring `read_thread`.** Inlining a second `parse::<Issue>` at my call site is how this defect's own class arrives a second time: one reader enforcing the schema and the other not. `read_thread`'s doc comment already says it is public precisely so a second strict reader cannot grow; the issue side had no such reader, which is why the copy was the tempting move.
+
+**ONE CHECK IS NEW AND IT IS LOAD-BEARING ONLY AT THE NEW CALL SITE.** `read_issue` refuses a file whose declared `number` disagrees with its stem, because the union asks _which numbers has the scan not produced_ and then trusts the file under each remaining one -- a `0003.json` declaring `"number": 7` would smuggle issue 7 past a `seen` set tested against 3. **Measured before adding it rather than assumed safe: 51 issue canon files here, 0 mismatches.**
+
+| arm                                      | binary                   | before | after | verdict                   |
+| ---------------------------------------- | ------------------------ | ------ | ----- | ------------------------- |
+| already-migrated, PRE-fix (dc's script)  | release `dirty-69f672d3` | 5      | 0     | REPRODUCED -- still red   |
+| already-migrated, POST-fix (dc's script) | debug `dirty-eabdd639`   | 5      | 5     | FIXED                     |
+| real v2 estate -> v3, PRE-fix            | release `dirty-69f672d3` | 5      | 5     | carried all 5             |
+| real v2 estate -> v3, POST-fix           | debug `dirty-eabdd639`   | 5      | 5     | UNCHANGED, byte-identical |
+
+**THE POSITIVE CONTROL WAS FREE BECAUSE dc WROTE TWO BINARIES INTO ONE SCRIPT.** The pre-fix release build is still red **in the same run** that shows the debug build green, so the green is a property of the fix rather than of the instrument going blind. A single-arm script would have given me a green I could not distinguish from a script that had stopped looking.
+
+### RED-FIRST ON THE TEST, WHICH IS THE STEP A GREEN TEST CANNOT SUBSTITUTE FOR
+
+Regression added to `migrator_population_is_canon.rs` -- **that file and not a new one**, because a second home for _the migrator's population is canon_ is precisely how the two populations drifted apart. Then the union was disabled and the test re-run: **`left: {}` vs `right: {21, 22, 23}`.** The precondition assertion passed FIRST, so the store was genuinely populated and then emptied rather than never filled. Source restored and diffed byte-identical.
+
+### THE REPORT WAS FIXED TOO, BECAUSE THE FIX WOULD OTHERWISE HAVE MADE IT LIE
+
+The union makes `migrated: N issue(s)` count a population read back from committed canon, so on a re-run it would claim as CONVERTED what was merely re-emitted -- the exact disclosure threads already get one line down. **Fixing the loss and leaving the report asymmetric would rebuild this defect's shape in the layer 0070's own body calls the worst part.** `Plan` and `Upgraded` now carry `already_migrated_issues`, and the run prints a second line for it. **Separate line rather than a second clause**, because a v2 estate mid-conversion has already-migrated threads and no issue canon at all, and one sentence would make a zero on either side read as a statement about both.
+
+### THE LOSS SURFACE IS CLOSED AND THAT IS MEASURED, NOT ASSUMED
+
+`store.rebuild` deletes seven tables -- `tests`, `criteria`, `related`, `attachments`, `wps`, `threads`, `issues`. **Five of the seven are sub-populations of `Thread` and return with the threads; `issues` was the only top-level population without a union.** The five tables it does NOT delete (`event_log`, `file_index`, `ingests`, `snapshots`, `doc_sections`) cannot be lost by a rebuild. **So there is no third instance of this asymmetry waiting** -- checked by enumerating the delete list against the schema rather than by reasoning from the two I already knew about.
+
+### A READING I NEARLY PUBLISHED AND CORRECTED FIRST -- THE FLATTERING VERSION WAS WRONG
+
+I had it that `migrate_v2_project.rs`'s LIMB 4 was **one binding away** from catching this: it does `let (threads, _issues)` and its own doc says _"the population is the claim"_. **That is false, and the true version is worse.** `converted()`'s v2 estate holds no issues at all, so binding the name would have compared `[]` against `[]` and passed on every build ever made. **A true instrument, correctly aimed, at a population that cannot exhibit the failure** -- vc's dominant class from the same day, and the discarded binding is the symptom rather than the cause. Added LIMB 4b, which brings its own issue-bearing estate and covers the FIRST-RUN path specifically, since that is the path the fix could break.
 
 **dc REPORTED AND DROVE IT; I LOCATED THE MECHANISM; dc THEN DROVE THE PREDICTION MY MECHANISM MAKES.** Neither the diagnosis nor the test shares an author with the other, which was the point of asking.
 
@@ -122,10 +155,11 @@ let mut plan = assemble(project, ctx, threads, issues, carried)?;  // issues str
 
 ## TODO
 
-**1. intent#0070 -- THE ISSUES UNION IN `migrate::plan`. THIS IS THE NEXT WORK, AUTHORISED BY matts 2026-08-24, TO START ON THE BOUNCE.**
-Mechanism, both driven arms, the two-arm red-first spec and dc's assert-on-the-store constraint are in the `intent#0070` section above -- **read that, not this line.**
-**Do NOT start from anyone's summary, including this board's:** dc holds `upgrade_issue_loss.sh` plus the v2-estate arm, and the red arm should be THEIRS so the test and the diagnosis do not share an author.
-**The fix is a hypothesis until it is red-first.** A union for `issues` mirroring `dehydrated()` is what the mechanism implies; that is not the same as measured.
+**1. ~~intent#0070 -- THE ISSUES UNION IN `migrate::plan`.~~ BUILT AND DRIVEN 2026-08-24 16:33Z; see the section above. WHAT REMAINS IS NOT MINE:**
+
+- **The issue row's status is dc's to close, not mine** -- they reported it, filed it and own the canon. `0070.json` is in dc's staged index; I have not touched it.
+- **A CHANGELOG line is GLOBALFOLD and therefore vc's.** Flagged rather than written.
+- **`v2_estate_arm.sh` -- the first-run arm -- is a SCRATCHPAD script and dies with this session.** LIMB 4b in `migrate_v2_project.rs` now covers the same property durably in Rust, so nothing is lost; if the shell form is wanted under `parity/tools` it should be dc's to place, for the same authorship reason they honoured for me.
 
 0a. **NEW AIM FROM vc UNDER hv's PEN, REPLACING THE GATE AS TODAY'S PRIORITY: drive v3 to LOCALLY USABLE across the 17 projects on this machine.** Four gates; **cc owns U3's BUILD queue** (ic measures the daily-use population, cc builds). Started on the half depending on nobody: the family-and-subcommand delta driven FROM THE TWO BINARIES, not from `dispatch-table.json` -- `shipped: 115` is a claim about what is IN the binary, never about what WORKS. **`treeindex` to be confirmed absent BY POPULATION, not by one grep** -- vc checked with one and said so.
 

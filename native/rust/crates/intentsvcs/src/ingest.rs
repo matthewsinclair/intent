@@ -131,6 +131,48 @@ pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Ve
   Ok(thread)
 }
 
+/// Validate ONE issue's committed canon: parse, then the two checks that only
+/// make sense against the number the file was found under.
+///
+/// **Public and shared for exactly the reason [`read_thread`] is: two readers
+/// agreeing on what valid canon is, by being one reader.** `migrate.rs` needs
+/// this answer to top a migration up from committed canon, and the version of
+/// that fix which inlined its own `parse::<Issue>` is how intent#0070's class
+/// arrives a second time -- one reader enforcing the schema and the other not.
+///
+/// **The number check has no counterpart in the loop this was extracted from,
+/// and it is load-bearing at the new call site.** The migration union asks
+/// which numbers the v2 scan did not already produce and then trusts the file
+/// found under each remaining one; a `0003.json` declaring `"number": 7` would
+/// smuggle issue 7 past a `seen` set that was tested against 3. **Measured
+/// before adding it rather than assumed safe: 51 issue canon files in this
+/// repo, 0 stem/number mismatches** -- it refuses nothing that exists here.
+pub fn read_issue(project: &Project, number: u32, text: &str) -> Result<Issue, Vec<Finding>> {
+  let rel = project.relative(&project.issue_json(number));
+  let issue = parse::<Issue>(&rel, text)?;
+  if issue.schema != ISSUE_SCHEMA {
+    return Err(vec![Finding::new(
+      &rel,
+      FindingClass::SchemaInvalid,
+      format!(
+        "schema is {:?}; this binary reads {ISSUE_SCHEMA:?}",
+        issue.schema
+      ),
+    )]);
+  }
+  if issue.number != number {
+    return Err(vec![Finding::new(
+      &rel,
+      FindingClass::DuplicateId,
+      format!(
+        "issue number {} does not match its file {rel:?}",
+        issue.number
+      ),
+    )]);
+  }
+  Ok(issue)
+}
+
 /// Fill in every OPAQUE attachment's bytes from its sidecar in canon (ST0057
 /// AC-03.1).
 ///
@@ -195,19 +237,8 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   for number in project.issue_numbers()? {
     let path = project.issue_json(number);
     let rel = project.relative(&path);
-    match parse::<Issue>(&rel, &read_to_string(&path)?) {
+    match read_issue(project, number, &read_to_string(&path)?) {
       Ok(issue) => {
-        if issue.schema != ISSUE_SCHEMA {
-          findings.push(Finding::new(
-            &rel,
-            FindingClass::SchemaInvalid,
-            format!(
-              "schema is {:?}; this binary reads {ISSUE_SCHEMA:?}",
-              issue.schema
-            ),
-          ));
-          continue;
-        }
         // **FROM THE FIELD, NOT FROM A SIBLING FILE, and the swap is the point
         // of the field.** This read `issues/<nnnn>.md` if one existed. None
         // ever did -- nothing wrote one -- so the branch indexed nothing here

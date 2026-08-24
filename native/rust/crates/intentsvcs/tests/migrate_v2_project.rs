@@ -247,6 +247,51 @@ fn a_clean_estate_builds_a_store_that_holds_it() {
   );
 }
 
+/// **LIMB 4b: the store holds the ISSUE estate too -- the FIRST-RUN half of
+/// intent#0070.**
+///
+/// LIMB 4 above says "the population is the claim" and then checks one of the
+/// two populations: `let (threads, _issues)`. **It would be flattering to call
+/// that an assertion one binding away from catching intent#0070, and it is not
+/// true.** `converted()`'s v2 estate holds no issues at all, so binding the
+/// name would have compared `[]` against `[]` and passed on every build ever
+/// made -- a true instrument, correctly aimed, at a population that cannot
+/// exhibit the failure. The discarded binding is the symptom; the empty estate
+/// is the reason.
+///
+/// So this arm brings an estate that HAS issues, and it covers the FIRST-RUN
+/// path on purpose, because that is the path the fix could break. The union in
+/// `migrate::plan` tops issues up from committed canon; a first migration has
+/// no canon to top up from, so it must add nothing and carry exactly what the
+/// v2 estate held. **Driven before it was written: pre-fix and post-fix
+/// binaries both carried 5 of 5 from a real v2 estate, byte-identical output.**
+#[test]
+fn a_clean_estate_carries_its_issues_into_the_store() {
+  let fx = v2_estate();
+  v2_thread(&fx, "ST0001", "WIP");
+  for (bucket, num, status) in [("OPEN", "0001", "OPEN"), ("CLOSED", "0002", "CLOSED")] {
+    fx.write_file(
+      &format!("intent/issues/{bucket}/{num}/{num}-a-slug.md"),
+      &format!(
+        "---\nid: \"{num}\"\ntitle: a title\ndate: 2026-08-05\nreporter: matts\nstatus: \
+         {status}\nseverity: medium\n---\n\n# {num}: a title\n\nBody.\n"
+      ),
+    );
+  }
+
+  Facade::upgrade(&fx.project(), &facade_ctx()).expect("a v2 estate with issues converts");
+
+  let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("the store opens");
+  let (_threads, issues) = store.load_canon().expect("the store loads");
+  let mut numbers: Vec<u32> = issues.into_iter().map(|i| i.number).collect();
+  numbers.sort_unstable();
+  assert_eq!(
+    numbers,
+    vec![1, 2],
+    "a first migration did not carry the v2 issue estate into the store"
+  );
+}
+
 /// **LIMB 5: the gitignore is converged.**
 ///
 /// The negative is half the limb and is the half that regresses: `*.db` would
