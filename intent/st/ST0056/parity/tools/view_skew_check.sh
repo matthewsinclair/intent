@@ -1,6 +1,14 @@
-#!/bin/bash
-# view_skew_check.sh -- a committed generated view must still match what its
+#!/usr/bin/env bash
+# view_skew_check.sh -- a committed APPARATUS view must still match what its
 # generator produces from committed canon.
+#
+# THE NOUN IS THE CONTRACT. This tool covers the parity apparatus views under
+# intent/st/ST0056/parity/ and NOTHING ELSE. It does not cover the thread views
+# -- the covers and acceptance contracts the thread model renders -- which are
+# `thread_view_skew_check.sh`'s subject and which no gate runs. Saying
+# "generated view" claims both, and a reader who knows the coverage figure
+# still reads a general noun as the general category. UNCHECKED IS NOT EMPTY,
+# and the output is the only place that distinction can travel.
 #
 # THE INCIDENT. `surface/dispatch-table.md` was stale against its own JSON canon
 # from f0d6e64 until someone happened to regenerate it. The cost was twenty
@@ -90,7 +98,7 @@ CHECKABLE="surface/dispatch-table.md|gen_dispatch_table.sh|surface/dispatch-tabl
 UNCHECKABLE="$(cat <<'EOF'
 intent/st/ST0056/parity/register.md|WT ONLY -- a detached worktree at the measured revision, which is not a file and cannot be committed. CORRECTED 2026-08-16: this line used to say the generator "needs SP (raw burn.tsv, untracked and absent)". The burn input is committed at tools/burn-baseline.tsv and gen_register.sh now DEFAULTS to it, so SP is an override rather than a precondition. Verified today: byte-identical to the committed artefact with no SP and no BURN.
 intent/st/ST0056/parity/pertest.md|WT ONLY, same as register.md. CORRECTED 2026-08-16: this line used to say the generator needs "the ephemeral TAP ... which is not committed". The TAP corpus IS committed at tools/tap-baseline/ (196 files) and TAP_DIR defaults to it; BURN now defaults to the committed twin too. Verified today: byte-identical with no SP, no BURN and no TAP_DIR.
-intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). NOT un-re-derivable any more, only un-CHEAPLY-checkable: the probe TSV is committed at parity/probes/toplevel.tsv and the generator is a formatter fixed point, so a fresh render reproduces the committed files exactly. What it still needs is $WT, a detached worktree at the measured revision, because the verb and flag extractors read the v2 SOURCE rather than the probe data -- seconds of setup per run, and a slow gate is one that gets --no-verify'd. To check on demand: git worktree add --detach <dir> 69d42a7, then SP=<scratch> WT=<dir> OUTDIR=<out> gen_inventory.sh, then diff against parity/.
+intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). NOT un-re-derivable any more, only un-CHEAPLY-checkable: the probe TSV is committed at parity/probes/toplevel.tsv and the generator is a formatter fixed point, so a fresh render reproduces the committed files exactly. What it still needs is $WT, a detached worktree at the measured revision, because the verb and flag extractors read the v2 SOURCE rather than the probe data -- seconds of setup per run, and a slow gate is one that gets bypassed with --no-verify. To check on demand: git worktree add --detach <dir> 69d42a7, then SP=<scratch> WT=<dir> OUTDIR=<out> gen_inventory.sh, then diff against parity/.
 intent/st/ST0056/parity/cmd-*.md|same as README.md. 27 files, verified 27/27 BYTE-IDENTICAL to a fresh render on 2026-08-15 -- so these have a real content check now, just not one a pre-commit hook can afford. THIS ENTRY USED TO CLAIM committing the TSV would promote all 27 to CHECKABLE in one move. That was wrong twice over: the TSV was necessary and not sufficient (the worktree remains), and the generator ALSO emitted unaligned tables and a trailing blank line, so its output could never equal the committed file no matter what the input was. Both found by committing the TSV and actually running it. Recorded rather than quietly corrected, because a guard that names its own highest-leverage fix and is mistaken about it sends the next person the same way.
 EOF
 )"
@@ -218,11 +226,32 @@ if [ -n "$unregistered" ]; then
   rc=1
 fi
 
+# THREAD VIEWS IN THE CHANGE ARE NAMED AS UNCHECKED, NEVER PASSED OVER IN
+# SILENCE. Reporting "nothing to check" on a commit that carries one tells the
+# reader the category was EMPTY when it was UNCOVERED -- different claims, one
+# of them true, and the false one arrives at the moment an operator is looking
+# for reassurance. This does not check them; it refuses to imply it did.
+thread_views=""
+if [ "$TRIGGERED" -eq 1 ]; then
+  for p in $CHANGED; do
+    case "$p" in
+      intent/st/ST*/info.md|intent/st/ST*/acceptance.md|intent/st/ST*/WP/*/info.md)
+        thread_views="$thread_views  $p"$'\n' ;;
+    esac
+  done
+fi
+
 if [ "$rc" -eq 0 ]; then
   if [ "$TRIGGERED" -eq 1 ] && [ "$checked" -eq 0 ]; then
-    echo "skew: no generated view was touched by this change -- nothing to check."
+    echo "skew: no apparatus view was touched by this change -- nothing for THIS check to do."
   else
-    echo "skew: $checked generated view(s) match their canon; $(printf '%s' "$UNCHECKABLE" | grep -c .) declared un-re-derivable; $(printf '%s' "$AUTHORED" | grep -c .) authored (nothing to check)."
+    echo "skew: $checked apparatus view(s) match their canon; $(printf '%s' "$UNCHECKABLE" | grep -c .) declared un-re-derivable; $(printf '%s' "$AUTHORED" | grep -c .) authored (nothing to check)."
+  fi
+  if [ -n "$thread_views" ]; then
+    echo "skew: NOT CHECKED -- this change carries thread view(s), which this tool does not cover:"
+    printf '%s' "$thread_views"
+    echo "      Their check is thread_view_skew_check.sh and no gate runs it. This is a"
+    echo "      GAP, not a clean result: nothing here has looked at those files."
   fi
 fi
 

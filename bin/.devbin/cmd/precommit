@@ -72,7 +72,7 @@ set -euo pipefail
 # to occupy it today is how the basename version got written in the first place.
 G_NODB="no database enters history (D34: the DB is per-machine truth, never committed)"
 G_PROV="provenance: artefacts from one measurement name one revision"
-G_SKEW="skew: committed generated views still match their canon"
+G_SKEW="skew: committed apparatus views still match their canon"
 G_GENIN="generator inputs: git holds everything a committed artefact is made from"
 G_ROSTER="roster: every parity instrument declares whether this gate runs it"
 G_CORRECTED="corrected class: the ratified units and the claimed units are one set"
