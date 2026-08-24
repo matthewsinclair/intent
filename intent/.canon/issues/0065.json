@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 65,
+  "slug": "intent-doctor-has-no-acknowledgement-mechanism-s",
+  "title": "intent doctor has no acknowledgement mechanism, so a deliberately-kept state warns forever and trains operators to ignore the instrument",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-24",
+  "reporter": "Matthew Sinclair",
+  "body": "## Summary\n\n`intent doctor` has no way to record that a warned-about state is deliberate, so a project that has decided to keep something warns about it on every run, forever.\n\n**Reported by baize-vc** (their `credo_checks` case) during the five-estate Claude Code config sweep, 2026-08-24, and relayed via lamplight-vc. **Lamplight fires the identical warning today**, so it is at least two estates rather than one project's quirk.\n\n## Why this is the same class as a false positive\n\nA permanent alarm about a decision already taken carries no information, and an instrument that is always red trains its operator to stop reading it. This sweep measured the same shape in `/in-autopsy`: it printed a raw banned-word total of 283 where the actionable figure was closer to 14, and every estate had learned to discount the number rather than act on it.\n\n**The cost is not the noise. It is that a real finding arriving on that channel is indistinguishable from the standing one.**\n\n## Close condition\n\n`intent doctor` can be told a specific check is acknowledged for this project, the acknowledgement is recorded where a reader can see it and audit it, and an acknowledged check stops warning without being silently dropped from the roster -- a check that disappears is worse than one that shouts.\n\nDeliberately NOT proposed here: whether the acknowledgement lives in config, in canon, or beside the check. That is a design call for hv.\n"
+}

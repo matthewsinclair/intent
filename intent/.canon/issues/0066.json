@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 66,
+  "slug": "intent-st-resolves-four-of-five-status-directori",
+  "title": "intent st resolves four of five status directories: _inbox/ is invisible to st show/list, ac gate, at lint and todo, so a resolver-blind spot reads as thread-absent",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-24",
+  "reporter": "Matthew Sinclair",
+  "body": "## Summary\n\n`intent st` resolves four of the five status directories. `_inbox/` is invisible to `st show`, `st list`, the `ac` gate, `at lint` and `todo`, so a thread that exists on disk answers as not-found.\n\n**Long-standing on Lamplight's record**; surfaced to this tracker by lamplight-vc during the five-estate config sweep, 2026-08-24. Filed here rather than there because `intent st` is Intent's CLI.\n\n## Why it matters more than a missing directory\n\n**A resolver blind spot and an absent thread produce the same output.** The operator reads \"not found\" and concludes the thread does not exist, when what actually happened is that the resolver never looked. There is nothing in the output to tell the two apart, which is what makes this worth an issue rather than a one-line fix.\n\n`resolve_st_dir` in `bin/intent_helpers` enumerates its locations explicitly:\n\n    for location in \"$base_dir/$st_id\" \"$base_dir/COMPLETED/$st_id\" \"$base_dir/NOT-STARTED/$st_id\" \"$base_dir/CANCELLED/$st_id\"\n\n`_inbox/` is not among them.\n\n## Close condition\n\nEither `_inbox/` resolves everywhere the other four do, or it is documented as deliberately outside the resolver AND the not-found message says so. **Both are acceptable; silence is not.**\n"
+}

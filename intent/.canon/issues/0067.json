@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 67,
+  "slug": "intent-modules-find-is-a-v3-parity-gap-it-works-",
+  "title": "intent modules find is a v3 parity gap: it works under v2 and is unimplemented in v3, so a v3-self-hosted project has no working way to query MODULES.md",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-08-24",
+  "reporter": "Matthew Sinclair",
+  "body": "## Summary\n\n`intent modules find` works under v2 and is unimplemented in v3. Intent is v3-self-hosted and the v2 binary correctly refuses a v3 project, so **this project currently has no working way to query its own module registry.**\n\nFound by intent-vc while fixing CLAUDE.md's Highlander rule during the five-estate config sweep, 2026-08-24.\n\n## Measured\n\n    # v2 binary, on a v2 fixture\n    intent modules find helpers        -> \"no matches for 'helpers'\", rc=0\n\n    # v2 binary, on this v3 project\n    intent modules                     -> error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0\n\n    # v3 binary, on this v3 project\n    intent modules find helpers        -> error: `modules` is a known command that is not implemented yet\n\nSo the capability exists, and both routes to it are closed here.\n\n## Why it was noticed\n\nCLAUDE.md's rules 1 and 4 told the reader to check `intent/llm/MODULES.md` before creating any module. That file is ~354KB across ~367 rows, so \"read it first\" is not an instruction anyone can follow, and the verb that should answer instead does not answer. The rule now says to grep the registry, which works today. **That is a workaround at the instruction layer, not a fix.**\n\n## Routing\n\nST0056 rewrite work, cc's lane. Filed for tracking, not as a request to this sweep.\n"
+}
