@@ -471,3 +471,187 @@ rlwrap_exec() {
   warn "rlwrap not found -- no history or tab completion (try: brew install rlwrap)"
   exec "$@"
 }
+
+# ============================================================================
+# GENERATED DOCUMENTATION, AND THE FIVE REFUSALS THAT MAKE IT SAFE
+# ============================================================================
+#
+# generated_doc_write --target FILE --begin MARKER --end MARKER \
+#   [--deny-env VAR]... [--expect-lines N] [--expect-contains STR]... \
+#   -- <producer> [args...]
+#
+# Replace the region between two markers in FILE with what <producer> writes to
+# stdout, or refuse and leave FILE untouched.
+#
+# WHY THIS IS HERE AND NOT IN A COMMAND. Four estates independently needed to
+# generate the factual half of a database runbook from live probes. The obvious
+# read is that the PROVIDER CODE is the shared thing, which would put a fly.io
+# opinion inside devbin and break the rule at lib/cmd/db:16. That read is wrong.
+# The fly verbs are ninety lines, cheap to write and trivial to verify because
+# you can just run them; what actually cost a measured incident is the
+# DISCIPLINE of writing a generated file safely. So devbin owns the discipline
+# and every project keeps its own producer. A Neon estate writes a Neon producer
+# and none of this changes (issue 0028; conflab/vc, relayed by lamplight/vc).
+#
+# It is a HELPER rather than a command, which is what keeps the surface honest:
+# no catalogue row, no opt-in cell, no `@builtin`, and no config schema key --
+# so it costs devbin no new mechanism at all. The layering rule decides the
+# home: needs config, belongs in resolve; needs nothing, belongs here (D15).
+#
+# WHAT DEVBIN MUST NOT LEARN, and does not: what a cluster is, what a connection
+# pooler is, that `--json` exists on anything, or that the output is Markdown.
+# The markers are opaque delimiters and are REQUIRED rather than defaulted --
+# any default would encode a comment syntax, and a framework that ships
+# `<!-- ... -->` has quietly decided its consumers write HTML.
+#
+# It WARNS and RETURNS rather than dying, because a caller generating several
+# documents must not lose the rest of them to the first refusal.
+generated_doc_write() {
+  local target="" begin="" end="" expect_lines=0
+  local block tmp nb ne bl el v s n
+  local -a deny=() expect_contains=()
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --target) shift; target="${1:-}" ;;
+      --target=*) target="${1#*=}" ;;
+      --begin) shift; begin="${1:-}" ;;
+      --begin=*) begin="${1#*=}" ;;
+      --end) shift; end="${1:-}" ;;
+      --end=*) end="${1#*=}" ;;
+      --deny-env) shift; deny+=("${1:-}") ;;
+      --deny-env=*) deny+=("${1#*=}") ;;
+      --expect-lines) shift; expect_lines="${1:-0}" ;;
+      --expect-lines=*) expect_lines="${1#*=}" ;;
+      --expect-contains) shift; expect_contains+=("${1:-}") ;;
+      --expect-contains=*) expect_contains+=("${1#*=}") ;;
+      --) shift; break ;;
+      *) die "generated_doc_write: unknown option '$1' (the producer goes after --)" ;;
+    esac
+    shift
+  done
+
+  # Usage errors DIE: they are the caller's bug and no run of this is correct.
+  # The five refusals below WARN, because they are facts about the world.
+  [ -n "$target" ] || die "generated_doc_write: --target is required"
+  [ -n "$begin" ] || die "generated_doc_write: --begin marker is required"
+  [ -n "$end" ] || die "generated_doc_write: --end marker is required"
+  [ $# -gt 0 ] || die "generated_doc_write: no producer given (put it after --)"
+
+  if [ ! -f "$target" ]; then
+    warn "generated_doc_write: $target does not exist -- this regenerates a region of a hand-authored file, it does not create one"
+    return 1
+  fi
+
+  # R4 -- THE HAND-AUTHORED HALF SURVIVES. Everything outside the markers is
+  # copied through untouched, including both marker lines. Regeneration must
+  # never eat judgement: a probe can report a pooler's port and cannot report
+  # that changing it needs the owner's say-so.
+  #
+  # Exactly one of each marker, in order, or refuse. Two begins is ambiguous
+  # about which region is generated, and guessing is how a generator eats the
+  # wrong half of a file.
+  nb="$(grep -c -F -- "$begin" "$target" 2>/dev/null || true)"
+  ne="$(grep -c -F -- "$end" "$target" 2>/dev/null || true)"
+  if [ "${nb:-0}" -ne 1 ] || [ "${ne:-0}" -ne 1 ]; then
+    warn "generated_doc_write: $target must contain each marker exactly once (found begin=${nb:-0} end=${ne:-0}) -- untouched"
+    return 1
+  fi
+  bl="$(awk -v m="$begin" 'index($0, m) { print NR; exit }' "$target")"
+  el="$(awk -v m="$end" 'index($0, m) { print NR; exit }' "$target")"
+  if [ "$bl" -ge "$el" ]; then
+    warn "generated_doc_write: $target has its end marker at line $el, before or at the begin marker at line $bl -- untouched"
+    return 1
+  fi
+
+  # R2 -- NEVER WRITE FROM A FAILED MEASUREMENT. A producer that could not
+  # measure exits non-zero and the target is left alone. This is the
+  # determinate-zero doctrine in prose: a document assembled from failed probes
+  # is worse than a stale one, because it looks freshly generated. Measured --
+  # an estate captured psql ERROR TEXT into a runbook and then reported counts
+  # off it, which is a refuted inference wearing the format of a measurement.
+  if ! block="$("$@")"; then
+    warn "generated_doc_write: the producer exited non-zero -- $target left untouched"
+    return 1
+  fi
+  if [ -z "$block" ]; then
+    warn "generated_doc_write: the producer wrote nothing -- $target left untouched"
+    return 1
+  fi
+
+  # R1 -- NEVER INLINE A SECRET, ENFORCED MECHANICALLY rather than by review.
+  # Exact value matching, no entropy heuristics. Measured twice: a hand-edit
+  # replaced a username in six places and left the old password beside it, which
+  # authenticates as a rotation failure and reads like a platform problem; and a
+  # cleanup step was about to fold a live credential into a runbook.
+  for v in ${deny[@]+"${deny[@]}"}; do
+    # UNSET OR EMPTY IS ITSELF A REFUSAL, and the message must say so. An unset
+    # variable makes the check below compare against the empty string, which
+    # every block contains -- so the naive version refuses, correctly, and
+    # reports a leak. There was none. That is a wrong recorded reason, which is
+    # worse than no reason: it sends the reader hunting a credential leak in a
+    # file that is fine, and the real fault (a guard pointed at a variable that
+    # is not there) goes unread. Driven red before this branch existed.
+    if [ -z "${!v:-}" ]; then
+      warn "generated_doc_write: --deny-env $v is unset or empty, so there is no value to search for -- $target left untouched. A secret guard that cannot see its secret must not pass, and has not."
+      return 1
+    fi
+    case "$block" in
+      *"${!v}"*)
+        warn "generated_doc_write: \$$v's value appears in the generated block -- $target left untouched. Use env indirection in the producer's output (postgresql://user:\$$v@host) rather than the value."
+        return 1
+        ;;
+    esac
+  done
+
+  # R5 -- VALIDATE THE ARTEFACT, NOT THE EXIT PATH. A producer exiting 0 says it
+  # ran; it does not say it produced the document. The expectation is the
+  # producer's own declaration of what sufficient output looks like, which is
+  # why there is no built-in threshold here to guess wrong.
+  if [ "$expect_lines" -gt 0 ]; then
+    n="$(printf '%s\n' "$block" | wc -l | tr -d ' ')"
+    if [ "$n" -lt "$expect_lines" ]; then
+      warn "generated_doc_write: the block is $n line(s), fewer than the $expect_lines declared -- $target left untouched"
+      return 1
+    fi
+  fi
+  for s in ${expect_contains[@]+"${expect_contains[@]}"}; do
+    case "$block" in
+      *"$s"*) ;;
+      *)
+        warn "generated_doc_write: the block does not contain the declared '$s' -- $target left untouched"
+        return 1
+        ;;
+    esac
+  done
+
+  # R3 -- ATOMIC REPLACE. The temp is created BESIDE THE TARGET, not in TMPDIR:
+  # rename is atomic only within a filesystem, so a temp under /tmp renaming
+  # onto a project path can fail cross-device. sed_inplace above already learned
+  # this; the pattern is shared deliberately.
+  #
+  # What this gives and does NOT give: the reader sees the old file or the new
+  # one and never a half-written one. It is not a durability guarantee -- shell
+  # has no portable fsync, so a machine losing power at the wrong moment may
+  # have neither. Atomicity is the property that matters here, and claiming the
+  # other one would be the wrong kind of confident.
+  if ! tmp="$(mktemp "${target}.XXXXXX")"; then
+    warn "generated_doc_write: could not create a temporary file beside $target -- untouched"
+    return 1
+  fi
+  {
+    awk -v n="$bl" 'NR <= n' "$target"
+    printf '%s\n' "$block"
+    awk -v n="$el" 'NR >= n' "$target"
+  } >"$tmp" || {
+    rm -f "$tmp"
+    warn "generated_doc_write: could not assemble the new $target -- untouched"
+    return 1
+  }
+  if ! mv "$tmp" "$target"; then
+    rm -f "$tmp"
+    warn "generated_doc_write: could not replace $target -- untouched"
+    return 1
+  fi
+  return 0
+}
