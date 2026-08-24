@@ -30,28 +30,9 @@ help/ -- those are yours.
 EOF
 }
 
-# _state_of <states> <rel> -- the manifest verdict for one path, or `new`.
-#
-# `new` rather than an error: a file the source ships and the manifest has never
-# heard of is what a devbin that GREW a file looks like from the target's side.
-_state_of() {
-  local line
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    if [ "${line#*	}" = "$2" ]; then
-      printf '%s\n' "${line%%	*}"
-      return 0
-    fi
-  done <<EOF
-$1
-EOF
-  printf 'new\n'
-  return 0
-}
-
 main() {
   local from="" force="" dstroot srcroot version states paths rel src state
-  local added=0 updated=0 unchanged=0 skipped=0 removed=0 sum_src sum_dst
+  local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
   # Every path this run REFUSED to replace. Passed to manifest_write so each
   # keeps its install-time checksum: re-checksumming a file we declined to
   # overwrite would record the edit as canonical and the next `doctor` would
@@ -114,6 +95,30 @@ main() {
     return 1
   }
 
+  # WHICH WAY THIS IS ABOUT TO MOVE, said BEFORE anything is written. Upgrade
+  # syncs from the source unconditionally, so pointing `--from` at an older
+  # checkout silently REVERTS the runtime while printing `updated` per file and
+  # leaving doctor green afterwards -- measured at 11 files (issue 0021). The
+  # manifest's `source_commit` is the only thing that ever knew the difference.
+  #
+  # A WARNING RATHER THAN A REFUSAL. Rolling back deliberately is a real thing
+  # to do -- pinning a consumer while a regression is investigated is the
+  # obvious case -- and a tool that refused it would just be run with a flag
+  # nobody reads. What was missing was never permission; it was being told.
+  case "$(source_direction "$dstroot" "$srcroot")" in
+    backward)
+      warn "this source is BEHIND what is vendored here -- upgrading will REVERT the runtime"
+      warn "  vendored from: $(manifest_source_commit "$dstroot" 2>/dev/null || printf 'unrecorded')"
+      warn "  upgrading to:  $(git -C "$srcroot" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+      warn "  run '$DEVBIN_NAME vendor' first if that is not what you meant"
+      ;;
+    unrelated)
+      warn "this source shares NO history with what is vendored here"
+      warn "  vendored from: $(manifest_source_commit "$dstroot" 2>/dev/null || printf 'unrecorded')"
+      warn "  upgrading to:  $(git -C "$srcroot" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+      ;;
+  esac
+
   version="$(devbin_version_of "$srcroot")"
   states="$(manifest_check "$dstroot")"
   paths="$(vendored_paths "$srcroot")"
@@ -123,7 +128,38 @@ main() {
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
     src="$(vendor_source_path "$srcroot" "$rel")" || continue
-    state="$(_state_of "$states" "$rel")"
+    state="$(manifest_state_of "$states" "$rel")"
+
+    if [ ! -f "$dstroot/$rel" ]; then
+      copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
+      printf '  added      %s\n' "$rel"
+      added=$((added + 1))
+      continue
+    fi
+
+    # EQUALITY IS ASKED BEFORE THE REFUSAL, AND THE ORDER IS THE FIX (issue
+    # 0021). A file edited here whose edit has since been UPSTREAMED matches the
+    # canonical bytes exactly -- which is what the carry doctrine produces every
+    # time it works. Asking `modified` first skipped it as "edited in place",
+    # preserved its install-time checksum, and left doctor red forever with
+    # nothing upgrade could ever change: the one state the tool could see and
+    # could not heal. Convergence is not divergence.
+    #
+    # Nothing is written on this path either way, so reordering cannot cost a
+    # file: the two branches differ only in what the MANIFEST ends up recording.
+    sum_src="$(sha256_of "$src")"
+    sum_dst="$(sha256_of "$dstroot/$rel")"
+    if [ "$sum_src" = "$sum_dst" ]; then
+      # DELIBERATELY NOT added to `preserved`: the checksum computed from disk
+      # is now the canonical one, and recording it IS the heal. Preserving here
+      # would carry the stale entry forward and re-create the defect.
+      if [ "$state" = modified ]; then
+        printf '  converged  %s (your edit is now upstream -- tracking it again)\n' "$rel"
+        converged=$((converged + 1))
+      fi
+      unchanged=$((unchanged + 1))
+      continue
+    fi
 
     if [ "$state" = modified ] && [ -z "$force" ]; then
       printf '  skipped    %s (edited in place -- upgrade with --force to replace it)\n' "$rel"
@@ -133,19 +169,6 @@ main() {
       continue
     fi
 
-    if [ ! -f "$dstroot/$rel" ]; then
-      copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
-      printf '  added      %s\n' "$rel"
-      added=$((added + 1))
-      continue
-    fi
-
-    sum_src="$(sha256_of "$src")"
-    sum_dst="$(sha256_of "$dstroot/$rel")"
-    if [ "$sum_src" = "$sum_dst" ]; then
-      unchanged=$((unchanged + 1))
-      continue
-    fi
     copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
     printf '  updated    %s\n' "$rel"
     updated=$((updated + 1))
@@ -195,12 +218,25 @@ EOF
   # all-unchanged case has to say so explicitly.
   printf '\n%d added, %d updated, %d unchanged, %d removed, %d skipped\n' \
     "$added" "$updated" "$unchanged" "$removed" "$skipped"
-  if [ "$((added + updated + removed))" -eq 0 ] && [ "$skipped" -eq 0 ]; then
+  if [ "$((added + updated + removed + converged))" -eq 0 ] && [ "$skipped" -eq 0 ]; then
     printf 'Already up to date.\n'
+  fi
+  if [ "$converged" -gt 0 ]; then
+    printf '\n%d file(s) you had edited now match the source and are tracked again.\n' "$converged"
   fi
   if [ "$skipped" -gt 0 ]; then
     printf '\n%d file(s) left alone because they differ from what was installed.\n' "$skipped"
     printf 'Re-run with --force to replace them, or diff them against %s first.\n' "$srcroot"
+  fi
+  # THE EXIT STATUS IS A RULING, NOT A DEFAULT (issue 0021). It stays 0 when
+  # files were refused, because this command's status answers "did I complete",
+  # and a run that reported every refusal and wrote a correct manifest DID. The
+  # other question -- is this tree level with its source -- is a different one,
+  # and giving it its own command means neither has to be read out of the other's
+  # exit code. A scripted sweep asserts convergence with `vendor`, whose status
+  # means only that.
+  if [ "$skipped" -gt 0 ]; then
+    printf 'still divergent: %s vendor    (its exit status is that question)\n' "$DEVBIN_NAME"
   fi
   return 0
 }

@@ -84,6 +84,25 @@ vendored_paths() {
   return 0
 }
 
+# vendored_dir_files <root> -- every file actually sitting under <root>'s
+# VENDORED lib, as project-relative paths, sorted.
+#
+# The target-side twin of vendored_paths, and deliberately a separate function
+# rather than a parameter on that one: vendored_paths asks a SOURCE what it
+# ships, where the runtime is at `lib/` or `bin/.devbin/lib/` depending on D12;
+# this asks an INSTALL what is on disk, where the answer is always
+# `bin/.devbin/lib/`. One is a statement of intent and the other an inventory --
+# comparing them is the entire point, so collapsing them would erase the
+# difference being measured.
+vendored_dir_files() {
+  local lib="$1/bin/.devbin/lib" f
+  [ -d "$lib" ] || return 0
+  find "$lib" -type f 2>/dev/null | LC_ALL=C sort | while IFS= read -r f; do
+    printf 'bin/.devbin/lib/%s\n' "${f#"$lib"/}"
+  done
+  return 0
+}
+
 # vendor_source_path <srcroot> <relpath> -- where <relpath> lives in the SOURCE.
 #
 # The inverse of the mapping vendored_paths applies. It is not the identity: a
@@ -196,7 +215,12 @@ manifest_version() { manifest_field "$1" devbin_version; }
 manifest_source() { manifest_field "$1" source; }
 manifest_source_commit() { manifest_field "$1" source_commit; }
 
-# _source_commit <srcroot> -- WHICH devbin these bytes came from, as a line.
+# source_commit_of <srcroot> -- WHICH devbin these bytes came from, as a line.
+#
+# PUBLIC, and named that way because a second file depends on it. `manifest_write`
+# stamps it and `lib/cmd/vendor` prints it, and an underscore on a function
+# reaching across a file boundary is a false signal about its contract -- the
+# same reason the three tab-lookups above became one named pair.
 #
 # `devbin_version` is a semver that moves once a release, so it cannot separate
 # two installs from the same release, and a consumer comparing its vendored tree
@@ -211,7 +235,7 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 # describes bytes no commit has, and the bare sha would be a confident false
 # statement. Not a checkout at all says so in words: an ABSENT field is what an
 # older devbin wrote, and absent must never be readable as clean.
-_source_commit() {
+source_commit_of() {
   local root="$1" sha
   git -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
     { printf 'not a git checkout -- these bytes name no commit\n'; return 0; }
@@ -275,7 +299,7 @@ manifest_write() {
     printf '# Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.\n'
     printf '# devbin_version: %s\n' "$version"
     printf '# source: %s\n' "$srcroot"
-    printf '# source_commit: %s\n' "$(_source_commit "$srcroot")"
+    printf '# source_commit: %s\n' "$(source_commit_of "$srcroot")"
     # Retabbed through the same filter manifest_check uses, so this file has ONE
     # parser for its own line format rather than a second one written inline --
     # and a path containing a space survives both.
@@ -336,8 +360,16 @@ EOF
   return 1
 }
 
-# _manifest_sum_in <entries> <rel> -- the recorded checksum, or empty.
-_manifest_sum_in() {
+# _tab_lookup <lines> <key> -- field one of the `<field1><TAB><key>` line, or
+# return 1 having printed nothing.
+#
+# ONE loop for what was three. A recorded checksum, a manifest state and
+# upgrade's per-path verdict are the same question asked of the same line shape,
+# and they were three spellings of it in two files -- the exact drift the header
+# of this file warns about, in miniature. The two named questions below are
+# wrappers, because `_tab_lookup "$states" "$rel"` at a call site reads as a
+# mistake even when it is right.
+_tab_lookup() {
   local line
   while IFS= read -r line; do
     [ -n "$line" ] || continue
@@ -348,8 +380,17 @@ _manifest_sum_in() {
   done <<EOF
 $1
 EOF
-  return 0
+  return 1
 }
+
+# _manifest_sum_in <entries> <rel> -- the recorded checksum, or empty.
+_manifest_sum_in() { _tab_lookup "$1" "$2" || true; }
+
+# manifest_state_of <states> <rel> -- the manifest verdict for one path, or `new`.
+#
+# `new` rather than an error: a file the source ships and the manifest has never
+# heard of is what a devbin that GREW a file looks like from the target's side.
+manifest_state_of() { _tab_lookup "$1" "$2" || printf 'new\n'; }
 
 # manifest_check <root> -- one `<state><TAB><relpath>` line per manifest entry.
 #
@@ -383,6 +424,171 @@ manifest_check() {
     fi
   done <<EOF
 $entries
+EOF
+  return 0
+}
+
+# source_direction <dstroot> <srcroot> -- which way the source has moved since
+# these bytes were vendored:
+#
+#   same       the source is exactly the commit that was vendored
+#   forward    the recorded commit is an ancestor of the source's HEAD
+#   backward   the source's HEAD is an ancestor of the recorded commit
+#   unrelated  neither contains the other -- a different history
+#   unknown    the question cannot be answered from what is on disk
+#
+# UNKNOWN IS A REAL ANSWER AND MUST NEVER BE READ AS `forward`. There are four
+# ways to reach it and none of them is exotic: the field is ABSENT on a manifest
+# written before b433988, it is PROSE when the source was not a checkout, it
+# carries `+dirty` when the bytes matched no commit, and a fresh clone may
+# simply not HAVE the recorded commit. Collapsing any of those into "fine" is
+# the direction that costs something -- upgrade syncs from source
+# unconditionally, so a downgrade prints `updated` per file and leaves doctor
+# green (issue 0021, measured at 11 files).
+#
+# Reads git in the SOURCE only. The target may not be a checkout at all, and
+# whether it is has no bearing on which devbin it received.
+source_direction() {
+  local dstroot="$1" srcroot="$2" rec head
+  rec="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+  # The recorded value is a LINE, not a field: `<sha>`, `<sha> +dirty -- ...`,
+  # or a whole sentence. Taking the first word reduces all three to something
+  # that either is a sha or visibly is not -- `a checkout with no HEAD` reduces
+  # to `a`, which is valid hex and exactly why the length test below is not
+  # redundant with the charset one.
+  rec="${rec%% *}"
+  case "$rec" in '' | *[!0-9a-f]*) printf 'unknown\n'; return 0 ;; esac
+  [ "${#rec}" -ge 7 ] || { printf 'unknown\n'; return 0; }
+
+  git -C "$srcroot" rev-parse --git-dir >/dev/null 2>&1 ||
+    { printf 'unknown\n'; return 0; }
+  head="$(git -C "$srcroot" rev-parse HEAD 2>/dev/null)" || head=""
+  [ -n "$head" ] || { printf 'unknown\n'; return 0; }
+  # ASKED BEFORE THE ANCESTRY TESTS, because `merge-base --is-ancestor` returns
+  # 1 both for "not an ancestor" and for a commit this repository has never
+  # heard of, and those are `unrelated` and `unknown` respectively.
+  git -C "$srcroot" cat-file -e "$rec^{commit}" 2>/dev/null ||
+    { printf 'unknown\n'; return 0; }
+
+  case "$head" in "$rec"*) printf 'same\n'; return 0 ;; esac
+  if git -C "$srcroot" merge-base --is-ancestor "$rec" "$head" 2>/dev/null; then
+    printf 'forward\n'
+  elif git -C "$srcroot" merge-base --is-ancestor "$head" "$rec" 2>/dev/null; then
+    printf 'backward\n'
+  else
+    printf 'unrelated\n'
+  fi
+  return 0
+}
+
+# vendor_states <dstroot> <srcroot> -- one `<state><TAB><relpath>` line per file
+# on either side of the comparison.
+#
+# THE CROSS PRODUCT OF THE TWO COMPARISONS DEVBIN ALREADY MADE SEPARATELY, and
+# that is the whole contribution. `manifest_check` asks tree-vs-INSTALL-TIME; a
+# checksum against the source asks tree-vs-SOURCE. Neither alone can tell a file
+# somebody edited here from one the source has simply moved past, because each
+# is blind to the axis the other measures:
+#
+#                 source equal    source differs    source absent
+#   ok            level           behind            orphaned
+#   modified      CONVERGED       patched           released
+#   missing       absent          absent            --
+#
+# The cell in capitals is why this is worth a function rather than two greps. A
+# file edited here whose edit has since been UPSTREAMED matches the canonical
+# bytes exactly while the manifest still records the pre-patch checksum -- so
+# doctor calls it edited forever and upgrade has nothing left to replace. That
+# is the carry doctrine working as designed, and it looked like damage.
+#
+# Reports and never writes. The manifest is the evidence for half of what is
+# being reported, so restamping it here would destroy the finding in the act of
+# printing it -- the same defect the refusing upgrade once had.
+vendor_states() {
+  local dstroot="$1" srcroot="$2" paths states dst_sums src_sums
+  local rel abs src_rel state sum_src sum_dst line
+  paths="$(vendored_paths "$srcroot")" || return 1
+  states="$(manifest_check "$dstroot")"
+
+  # ONE checksum process per side, then pure-bash lookups -- the shape
+  # manifest_check uses, and for its reason: the per-file form cost a fork each
+  # and made the manifest half the wall clock of a suite that installs a fixture
+  # per test.
+  dst_sums="$(_sha256_of_set "$dstroot" "$paths" | _two_space_to_tab)"
+  src_sums="$(_sha256_of_set "$srcroot" "$(_source_rels "$srcroot" "$paths")" | _two_space_to_tab)"
+
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    abs="$(vendor_source_path "$srcroot" "$rel")" || continue
+    if [ ! -f "$dstroot/$rel" ]; then
+      printf 'absent\t%s\n' "$rel"
+      continue
+    fi
+    src_rel="${abs#"$srcroot"/}"
+    sum_src="$(_manifest_sum_in "$src_sums" "$src_rel")"
+    sum_dst="$(_manifest_sum_in "$dst_sums" "$rel")"
+    state="$(manifest_state_of "$states" "$rel")"
+    if [ "$sum_src" = "$sum_dst" ]; then
+      case "$state" in
+        modified) printf 'converged\t%s\n' "$rel" ;;
+        *) printf 'level\t%s\n' "$rel" ;;
+      esac
+    else
+      case "$state" in
+        modified) printf 'patched\t%s\n' "$rel" ;;
+        *) printf 'behind\t%s\n' "$rel" ;;
+      esac
+    fi
+  done <<EOF
+$paths
+EOF
+
+  # A path the manifest records that the source no longer ships. Upgrade's own
+  # two answers, named the same way it names them: it REMOVES an intact orphan
+  # and RELEASES an edited one, and a reader deciding whether to run it needs to
+  # know which of those is waiting.
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    state="${line%%	*}"
+    rel="${line#*	}"
+    list_contains "$paths" "$rel" && continue
+    case "$state" in
+      missing) continue ;;
+      modified) printf 'released\t%s\n' "$rel" ;;
+      *) printf 'orphaned\t%s\n' "$rel" ;;
+    esac
+  done <<EOF
+$states
+EOF
+
+  # On devbin's side of the seam and owned by nobody: not shipped by the source,
+  # not recorded by the manifest. Upgrade never removes it -- it is not in the
+  # source list -- so without a line here the report's file list would not add
+  # up to what is actually on disk.
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    list_contains "$paths" "$rel" && continue
+    [ "$(manifest_state_of "$states" "$rel")" = new ] || continue
+    printf 'unlisted\t%s\n' "$rel"
+  done <<EOF
+$(vendored_dir_files "$dstroot")
+EOF
+  return 0
+}
+
+# _source_rels <srcroot> <paths> -- the same file list, spelled the way it is
+# spelled INSIDE the source, so one batch checksum can be taken from that root.
+#
+# Not the identity: a source checkout keeps its runtime at `lib/` and an
+# installed project at `bin/.devbin/lib/`, and both are legal sources.
+_source_rels() {
+  local srcroot="$1" paths="$2" rel abs
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    abs="$(vendor_source_path "$srcroot" "$rel")" || continue
+    printf '%s\n' "${abs#"$srcroot"/}"
+  done <<EOF
+$paths
 EOF
   return 0
 }

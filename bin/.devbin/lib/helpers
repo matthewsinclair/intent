@@ -249,6 +249,111 @@ sha256_of() {
   sha256_files "$1" | awk '{print $1}'
 }
 
+# --- the build's git identity (issue 0014) -------------------------------------
+#
+# Devbin owns the version-number axis completely -- `version_from`, the sidecars,
+# `version sync` -- and owned nothing of the git one, so every project resolved
+# "what commit is this build" for itself. hv ruled option B: devbin owns the half
+# that is genuinely SHARED and gets independently wrong, and declares nothing
+# about how a build system consumes it.
+#
+# THE READ IS THE HALF NOBODY GETS WRONG. All six Lamplight sites agreed on
+# `git rev-parse --short HEAD` with `unknown` on failure. The INVALIDATION is
+# where four of four went wrong, each by naming git's internals literally:
+#
+#     ../../.git/HEAD          ../../.git/refs/heads/
+#
+# In a linked worktree neither exists -- `.git` is a FILE reading `gitdir: ...`.
+# The same unresolved path produced OPPOSITE symptoms, decided entirely by
+# whether the toolchain fails open or closed on a path it cannot find: Elixir's
+# `@external_resource` over an empty list registered no dependency and served a
+# frozen sha for a working day; cargo could not stat its `rerun-if-changed` and
+# treated the target as permanently dirty, rebuilding forever. The version that
+# silently freezes and the version that silently rebuilds are the same bug, and
+# only one of them ever gets reported -- which is why it is worth one home.
+#
+# These emit FACTS -- a string and a list of file paths -- and declare nothing.
+# Each build system states its own dependency in its own vocabulary: cargo's
+# `rerun-if-changed`, Elixir's `@external_resource`, a make prerequisite, a
+# Dockerfile COPY. That is what makes one function serve four toolchains.
+
+# git_head_sha [root] -- the short commit sha, or `unknown`.
+#
+# `unknown` rather than empty or a failure, because every caller in the corpus
+# already handles that string and a build stamped with an empty version is worse
+# than one stamped honestly as unresolved.
+git_head_sha() {
+  local root="${1:-${PROJECT_ROOT:-.}}" sha
+  sha="$(git -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha=""
+  [ -n "$sha" ] || sha=unknown
+  printf '%s\n' "$sha"
+  return 0
+}
+
+# _git_path <root> <name> -- `git rev-parse --git-path <name>`, made ABSOLUTE,
+# printed only when it names a file that exists. Returns 1 otherwise.
+#
+# THE ABSOLUTISING IS NOT TIDINESS, AND A TEST FOUND IT. `--git-path` answers
+# RELATIVE in a normal checkout (`.git/HEAD`) and ABSOLUTE in a linked worktree,
+# where the gitdir is somewhere else entirely. So a caller doing `[ -f "$p" ]`
+# from any other directory -- which a build script always is -- resolves
+# everything in the worktree case and NOTHING in the ordinary one. That is the
+# exact inverse of the bug this whole function exists to fix, and it would have
+# shipped looking right: every hard test passed and the easy one failed.
+_git_path() {
+  local root="$1" p
+  p="$(git -C "$root" rev-parse --git-path "$2" 2>/dev/null)" || return 1
+  [ -n "$p" ] || return 1
+  case "$p" in
+    /*) ;;
+    *) p="$root/$p" ;;
+  esac
+  [ -f "$p" ] || return 1
+  printf '%s\n' "$p"
+  return 0
+}
+
+# git_head_watch_paths [root] -- every EXISTING file whose mtime tracks HEAD,
+# one absolute path per line. Returns 1, loudly, when it resolves none.
+#
+# `git rev-parse --git-path` is the whole trick: git already knows about worktree
+# indirection, the common directory and the loose/packed question, and answers
+# with a real path. Three separate layout rules that a hand-rolled implementation
+# has to get right independently, and did not.
+#
+# THREE PATHS, EACH FOR A DIFFERENT EVENT:
+#
+#   HEAD          changes on checkout, and on every commit when detached
+#   the branch    what actually moves on a commit -- and it lives in the COMMON
+#                 directory, not the worktree's gitdir, because a worktree's own
+#                 HEAD holds `ref: refs/heads/<x>` and that string never changes
+#   packed-refs   `git pack-refs` DELETES the loose ref file, so a branch living
+#                 only here drops out of any watch set built from loose paths
+#
+# THE EMPTY LIST IS THE FAILURE THAT MATTERS, AND IT IS CREATED BY THIS FIX.
+# Before it, a broken watch meant "always rebuild" -- a cost, not a visible
+# defect. Restoring a working watch restores CACHING, so an enumeration that
+# quietly returned nothing would turn a slow-but-correct build into a fast and
+# possibly wrong one. Same rule as a gate that examines nothing: empty-and-
+# successful is the one answer that must not be available.
+git_head_watch_paths() {
+  local root="${1:-${PROJECT_ROOT:-.}}" ref n=0
+  if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
+    _git_path "$root" HEAD && n=$((n + 1))
+    ref="$(git -C "$root" symbolic-ref -q HEAD 2>/dev/null)" || ref=""
+    if [ -n "$ref" ]; then
+      _git_path "$root" "$ref" && n=$((n + 1))
+    fi
+    _git_path "$root" packed-refs && n=$((n + 1))
+  fi
+  if [ "$n" -eq 0 ]; then
+    warn "git_head_watch_paths: resolved NO files to watch under $root"
+    warn "  a build baking the sha would never refresh it -- do not cache on an empty watch set"
+    return 1
+  fi
+  return 0
+}
+
 # assert_identifier <value> <what> -- refuse a value that cannot be a shell
 # variable name, or that would clobber one the shell needs.
 #
