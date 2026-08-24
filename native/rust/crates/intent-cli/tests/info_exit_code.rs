@@ -94,12 +94,14 @@ fn migrated_project(at: &Path) -> PathBuf {
 
 /// Run `intent info` and return (code, stdout, stderr).
 fn info(exe: &Path, cwd: &Path) -> (Option<i32>, String, String) {
-  let out = Command::new(exe)
-    .arg("info")
-    .current_dir(cwd)
-    .stdin(Stdio::null())
-    .output()
-    .unwrap_or_else(|e| panic!("run {} info in {}: {e}", exe.display(), cwd.display()));
+  let out = testkit::output_retrying_busy(
+    || {
+      let mut c = Command::new(exe);
+      c.arg("info").current_dir(cwd).stdin(Stdio::null());
+      c
+    },
+    &format!("run {} info in {}", exe.display(), cwd.display()),
+  );
   (
     out.status.code(),
     String::from_utf8_lossy(&out.stdout).to_string(),

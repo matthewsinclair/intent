@@ -60,12 +60,14 @@ fn isolated_binary() -> (tempfile::TempDir, PathBuf) {
 /// path to a full install and re-create exactly the condition the copy exists
 /// to remove.
 fn run_isolated(bin: &Path, args: &[&str], cwd: &Path) -> (String, String, i32) {
-  let out = Command::new(bin)
-    .args(args)
-    .current_dir(cwd)
-    .env_remove("INTENT_HOME")
-    .output()
-    .expect("run the isolated binary");
+  let out = testkit::output_retrying_busy(
+    || {
+      let mut c = Command::new(bin);
+      c.args(args).current_dir(cwd).env_remove("INTENT_HOME");
+      c
+    },
+    "run the isolated binary",
+  );
   (
     String::from_utf8_lossy(&out.stdout).into_owned(),
     String::from_utf8_lossy(&out.stderr).into_owned(),

@@ -46,6 +46,7 @@
 //! a plausible wrong directory.**
 
 use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
 
 /// The REPOSITORY root: the directory carrying `schema/` and `surface/`.
 ///
@@ -110,6 +111,59 @@ fn ancestor_where(pred: impl Fn(&Path) -> bool) -> Option<PathBuf> {
 /// passed. **An unapplied mutation reports "nothing failed", which is
 /// indistinguishable from a test that does not check.** The map above was taken
 /// only after printing the mutated function body and seeing it change.
+/// Run a JUST-COPIED binary, retrying while Linux reports it busy.
+///
+/// **ETXTBSY IS A PROPERTY OF THIS HARNESS, NOT OF THE THING UNDER TEST.**
+/// `fs::copy` closes its own destination handle, but a test binary is
+/// multi-threaded and several of its tests fork (`Command::output`). A child
+/// forked between another thread's open and close inherits that write fd, and
+/// between `fork` and `execve` it still holds it -- Linux refuses to `execve`
+/// a file any process has open for writing. macOS does not enforce that, which
+/// is exactly why the macOS leg stays green while ubuntu reddens on
+/// `Os { code: 26, kind: ExecutableFileBusy }`.
+///
+/// Bounded retry rather than a mutex: the window is microseconds, it belongs to
+/// the harness, and serialising these tests would slow them to buy determinism
+/// these assertions do not need. A retry that never succeeds still fails, and
+/// says why.
+///
+/// Matched on `raw_os_error() == 26` rather than `ErrorKind::ExecutableFileBusy`
+/// so this does not depend on that variant's stabilisation.
+///
+/// # Why it lives HERE rather than beside one of its callers
+///
+/// **It was written correctly, reasoned correctly, and applied to a population
+/// of one when the population was three.** `eb4fe67c` fixed the site that had
+/// just reddened CI, and its commit message says "the ONE
+/// exec-of-a-just-copied-binary". Three integration tests copy
+/// `CARGO_BIN_EXE_intent` out and exec the copy -- `embedded_init`,
+/// `info_exit_code` and `migrated_guards_still_refuse` -- and over the twelve
+/// `rust` runs to 2026-08-24 **four failed, all on this error, across two of
+/// those three files**. The third has the identical exposure and had simply not
+/// lost the race yet.
+///
+/// **The set came from what was in hand rather than from what the property
+/// reaches**, and one grep for the copy call settles it. That is the same class
+/// this crate's own header describes: a duplication found by grepping one name,
+/// which could not see the copies wearing the other.
+pub fn output_retrying_busy(mut build: impl FnMut() -> Command, what: &str) -> Output {
+  const ETXTBSY: i32 = 26;
+  let mut last = String::new();
+  for _ in 0..100 {
+    match build().output() {
+      Ok(out) => return out,
+      Err(e) if e.raw_os_error() == Some(ETXTBSY) => {
+        last = e.to_string();
+        std::thread::sleep(std::time::Duration::from_millis(20));
+      }
+      Err(e) => panic!("{what}: {e}"),
+    }
+  }
+  panic!(
+    "{what}: still busy after 100 attempts over ~2s ({last}) -- that is no longer a fork race"
+  );
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
