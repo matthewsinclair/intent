@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 18:02Z
-status: paused
-focus: "**LEANED AND FOLDED 2026-08-24 18:02Z, FOR THE BOUNCE. NOTHING IN FLIGHT, CLAIMS INTACT, HOLDING FOR vc.** Tool prose leaned across five files I authored (-15% of 85KB, every rule kept, every narrative cut) and this board folded against `intent/restart.md`, which vc rebuilt while I worked. **TWO HIGHLANDERS CAME OUT OF THE LEAN ITSELF: the cost measurement sat in BOTH `intent3` and `currency.lib`, and THE BUILDER CARRIES THE ROW was on this board TWICE.** **COMMENT RATIO IS A BAD PROXY FOR BLOAT -- 64 percent comment in the roster was not 64 percent narrative, and the honest cut was far smaller than the ratio advertised.** `intent#0070` closed; the false roster row corrected. Verbatim record in `.history/20260824/`."
+heartbeat_at: 2026-08-24 19:46Z
+status: active
+focus: "**BOOTSTRAPPED AFTER A `/compact`, 2026-08-24. NOTHING IN FLIGHT, CLAIMS INTACT, HOLDING FOR INSTRUCTIONS.** The compact did NOT rotate `session_id`, so hv's bounce test reads this session as RESUMED and cannot tell the two apart -- the failure is in the direction anybody would expect, which is why nobody re-checks it. **ONE FIX LANDED AFTER THE FOLD AND THE FOLD DOES NOT DESCRIBE IT: `981b56cc`.** critic-shell found `_rust_source_changed` returning rc=1 on its HEALTHIEST answer and a bare `|| true` above it making the currency guard FAIL OPEN -- exec a binary it never verified. Both fixed; two arms added that drive `set -euo pipefail`, the options the only production caller sets and the harness never did. **Its MECHANISM was right and its CONSEQUENCE was wrong, and only driving it separated them.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -74,6 +74,7 @@ claims: [ST0056/07, ST0056/11]
 - **A MEASUREMENT TAKEN BEFORE YOUR OWN WRITE IS STALE BY CONSTRUCTION.** It cost the attribution on the 2026-08-24 incident.
 - **TWO READINGS OF ONE SOURCE IS ONE INSTRUMENT COUNTED TWICE** (cc). I could not reproduce cc's table count and declined to CONTRADICT it, because my own probe had returned `if` as a table name. **That refusal is what sent them to `sqlite_master` rather than to a better regex, and a better regex would have agreed with them and taught us nothing.**
 - **THE ` M` RULE LIVES AT `intent/restart.md:69`, ONE HOME, in my name.** What is NOT there and belongs to cc: they binned the same zero-byte file into `peers` twice while reporting scope, inferring AUTHORSHIP from a marker making no claim about content -- **action right, reason wrong, so nothing broke and nothing would ever have surfaced it. A CHARACTERISATION WHOSE ACTION IS CORRECT IS INVISIBLE BY CONSTRUCTION.**
+- **THE HARNESS RAN THE SUBJECT UNDER DIFFERENT SHELL OPTIONS THAN ITS ONLY PRODUCTION CALLER**, so fifteen green arms sat over a function returning rc=1 on its healthiest answer. bats sets neither `errexit` nor `pipefail`; `bin/intent3` sets both. **AND A COMMAND SUBSTITUTION DISARMS errexit IN THE SUBSHELL** -- `$-` is `ehuBc` at top level and `huBc` inside `$( )` -- so the one caller survived BY ACCIDENT while the library promised it could not kill a host. **Drive the options production sets, not the ones the harness happens to have.**
 - **NEVER `$?` AFTER A PIPE. `cargo test` needs `--no-fail-fast`. `grep -c` exits 1 on zero. The Bash tool's shell is ZSH and does not word-split an unquoted expansion.**
 
 ### FAMILY 2 -- THE CLAIM EXCEEDS THE MEASUREMENT, AND THE TRUE HALF IS WHAT CARRIES THE FALSE ONE
