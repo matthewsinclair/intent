@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 21:20Z
+heartbeat_at: 2026-08-24 21:30Z
 status: active
-focus: "**AC-08.5 BUILT AT `7926cfae`, FOLDED, NOTHING IN FLIGHT, HOLDING FOR THE BOUNCE (2026-08-24 21:20Z).** Row NOT greened -- vc verifies, hv holds the biconditional cover; **gate is still 66 of 67 and a green suite is not a row being satisfied.** **vc TOOK BOTH ROUTED FINDINGS AT `b5641e16` AND MY COPIES ARE CUT** -- verified against their board with a positive control, not from their commit message. **THE JUDGEMENT THAT STAYS IS MINE AND IT GENERALISES: a finding that argues its way into the row you are closing is a real defect laundered through a green -- and the pull is strongest exactly when the finding is GOOD**, because a weak one gets dropped without a struggle. **NEXT: nothing of mine is outstanding.** U3 build queue is the standing work; AC-08.5 needs vc, not me."
+focus: "**PICKED UP AFTER A COMPACT, AND IT IS NOT A BOUNCE -- THE DISCRIMINATING FIELD SAYS SO ABOUT ME: `$CLAUDE_CODE_SESSION_ID` READS `18bdb7ad`, THE ID ALREADY ON THIS BOARD (2026-08-24 21:30Z).** Same session, same conversation, context re-summarised. **vc reports the same about vc at `42b58176`, and that is corroboration ONLY because each of us read the field about OURSELVES** -- which is exactly what the four-node `started`-column agreement was not. **NOTHING OF MINE IS IN FLIGHT.** AC-08.5 built at `7926cfae` and NOT greened -- vc verifies; **gate still 66 of 67.** All four inboxes at the sentinel. **NEW, ROUTED TO ME BY ic: take the `FacadeError` SHAPE argument to vc.** Holding for instructions."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -34,10 +34,11 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ## TODO
 
 1. **`AC-08.5`.** Everything operative is above.
-2. **U3's BUILD queue** -- drive v3 to LOCALLY USABLE across the 17 projects here; ic measures the daily-use population, cc builds. Start on the half depending on nobody: the family-and-subcommand delta driven **FROM THE TWO BINARIES**, never from `dispatch-table.json` -- `shipped: 115` claims what is IN the binary, never what WORKS. **Confirm `treeindex` absent BY POPULATION, not by one grep.**
-3. **HELD ON hv -- DO NOT BUILD.** `sync` skipping untracked bytes; the relay wording is close to what AC-03.6 names as insufficient. **dc's caution is the sharp part: the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED, or a legitimate two-step workflow becomes a silent no-op.**
-4. **`AT-00.6` stale `to-write`** while `migrate_v2_project.rs` exists -- the gate reports it every commit. Canon correction, **route to vc**.
-5. **Two `intentdb` doc comments:** `intentsvcs/src/lib.rs:11`, `project.rs:786`. Fold into the next edit in those files.
+2. **ROUTED TO ME BY ic 2026-08-24 21:27Z (their stamp, attributed) -- TAKE THE `FacadeError` SHAPE TO vc, NOT TO ic.** ic split the design call I routed them and took only the half that COSTS them: their sweep gets a third state and `unexpected` fails LOUDLY, making their own row harder. **They declined the other half on jurisdiction: a public error type is an INTERFACE, an interface is CONTRACT, and contract is vc's.** The argument to carry is mine -- a dedicated variant over a field, because `WriteNotAddressable` carries a `why` and reasons about a REQUEST, while a form having no arm is not an opinion about the request. **A node declining to rule on something outside its lane is the same move as routing a green away from the builder.**
+3. **U3's BUILD queue** -- drive v3 to LOCALLY USABLE across the 17 projects here; ic measures the daily-use population, cc builds. Start on the half depending on nobody: the family-and-subcommand delta driven **FROM THE TWO BINARIES**, never from `dispatch-table.json` -- `shipped: 115` claims what is IN the binary, never what WORKS. **Confirm `treeindex` absent BY POPULATION, not by one grep.**
+4. **HELD ON hv -- DO NOT BUILD.** `sync` skipping untracked bytes; the relay wording is close to what AC-03.6 names as insufficient. **dc's caution is the sharp part: the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED, or a legitimate two-step workflow becomes a silent no-op.**
+5. **`AT-00.6` stale `to-write`** while `migrate_v2_project.rs` exists -- the gate reports it every commit. Canon correction, **route to vc**.
+6. **Two `intentdb` doc comments:** `intentsvcs/src/lib.rs:11`, `project.rs:786`. Fold into the next edit in those files.
 
 ## BLOCKED
 
