@@ -71,6 +71,7 @@ use common::{Fixture, sample_thread};
 use intentsvcs::address::parse;
 use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, Legacy, Thread};
 use serde_json::{Value, json};
+use std::collections::BTreeSet;
 
 /// Every field of an AT row, and the NAMED VERB that sets it -- `None` where no
 /// named verb does.
@@ -781,6 +782,86 @@ fn fully_populated_thread(id: &str) -> Thread {
     note: Some("the rewrite this thread gates".to_string()),
   }];
   thread
+}
+
+/// **THE THREAD FIXTURE'S COMPLETENESS, ASSERTED RATHER THAN NAMED.**
+///
+/// [`thread_put_clears_the_fields_it_was_not_asked_to_change`] derives its whole
+/// population from a PROSE COMMENT -- *eighteen fields: five required, four
+/// children, nine remaining* -- and asserts none of it. **A nineteenth `Thread`
+/// field leaves that comment stale and the collateral list silently measuring
+/// eight of ten.** That is the identical `skip_serializing_if` blindness
+/// [`both_lists_cover_every_field_the_model_serialises`] documents and guards
+/// for the AT row, thirty lines above, and `fully_populated_thread` is fully
+/// populated only BY ITS NAME.
+///
+/// **This is the third time this file has had to record _the fix was applied to
+/// one of the two_** -- after the create pin, and after the unsettable roster.
+///
+/// # It asserts a PARTITION, not a count, because a count cannot name what moved
+///
+/// The three roles the thread test plays -- schema-required, grafted child,
+/// collateral -- must cover exactly what the fixture SERIALISES, in both
+/// directions. A new field is unclassified until someone places it, and the
+/// failure prints its name; a field that stops serialising is caught by the
+/// second half even though the count would be equally wrong. **`len() == 18`
+/// reds on the same changes and says only that a number moved.**
+#[test]
+fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() {
+  let json = serde_json::to_value(fully_populated_thread("ST0001")).expect("a thread serialises");
+  let serialised: BTreeSet<&str> = json
+    .as_object()
+    .expect("an object")
+    .keys()
+    .map(|s| s.as_str())
+    .collect();
+
+  // The three roles, spelled exactly as the thread test uses them. `completed`
+  // is the field that test ASKS to move, so it is neither required nor
+  // collateral -- it is its own role, and naming it here is what stops it being
+  // quietly counted as one of the eight.
+  const REQUIRED: [&str; 5] = ["schema", "id", "title", "status", "created"];
+  const GRAFTED_CHILDREN: [&str; 4] = ["wps", "criteria", "tests", "attachments"];
+  const ASKED_FOR: [&str; 1] = ["completed"];
+  const COLLATERAL: [&str; 8] = [
+    "slug",
+    "status_reason",
+    "acceptance",
+    "objective",
+    "context",
+    "body",
+    "preamble",
+    "related",
+  ];
+
+  let classified: BTreeSet<&str> = REQUIRED
+    .iter()
+    .chain(GRAFTED_CHILDREN.iter())
+    .chain(ASKED_FOR.iter())
+    .chain(COLLATERAL.iter())
+    .copied()
+    .collect();
+
+  let unclassified: Vec<&&str> = serialised
+    .iter()
+    .filter(|f| !classified.contains(*f))
+    .collect();
+  assert!(
+    unclassified.is_empty(),
+    "these `Thread` fields serialise and no role in the thread test accounts for \n       \
+     them, so a `put` could clear them and nothing would report it: {unclassified:?}"
+  );
+
+  let unserialised: Vec<&&str> = classified
+    .iter()
+    .filter(|f| !serialised.contains(*f))
+    .collect();
+  assert!(
+    unserialised.is_empty(),
+    "the fixture is called `fully_populated_thread` and these fields do NOT \n       \
+     serialise, so every assertion about them compares a default to a default: \n       \
+     {unserialised:?}"
+  );
 }
 
 /// **AC-08.5's SECOND LIMB, DRIVEN AT THE THREAD DOOR: does `put` clear a field
