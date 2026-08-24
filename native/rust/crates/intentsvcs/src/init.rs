@@ -84,6 +84,29 @@ const DESTINATIONS: &[(&str, Destination)] = &[
     NotByInit("a hand-maintained index of a tree the store already indexes"),
   ),
   ("llm/_DECISION_TREE.md", At("intent/llm/DECISION_TREE.md")),
+  // **SEEDED, AND THE OPPOSITE CALL TO THE TEN PER-LANGUAGE FILES ABOVE.**
+  //
+  // Measured 2026-08-24 across four estates: every one had AUTHORED its
+  // agnostic pair -- Intent, Lamplight, Baize (52 added lines of real
+  // architecture), Laksa. Not one left them verbatim, while 10 of 10
+  // per-language files were untouched in the repo that wrote the templates.
+  // Same directory, adjacent names, opposite evidence. The seed works here
+  // precisely because these are the files somebody has a reason to fill.
+  //
+  // v3 had DROPPED both, and nobody noticed because the v2 path still seeded
+  // them -- the frozen-checkout hazard again, this time hiding a regression
+  // rather than a fix. Restoring them is the repair.
+  //
+  // The template bodies were REWRITTEN rather than carried over. The v2
+  // `_default` pair is the "incomplete template that reads like a spec" that
+  // prompted this whole review: four `<!-- Replace with ... -->` prompts and a
+  // placeholder directory tree in ARCHITECTURE.md, and a RULES.md paragraph
+  // advertising the per-language fan-out that issue 0068 retires. Seeding
+  // those verbatim would have shipped the defect the ruling exists to remove.
+  // Both now say what belongs in them, say that they are empty ON PURPOSE, and
+  // stop.
+  ("llm/_RULES.md", At("intent/llm/RULES.md")),
+  ("llm/_ARCHITECTURE.md", At("intent/llm/ARCHITECTURE.md")),
   // **`AGENTS.md` IS GENERATED, NOT SEEDED.** `intent agents sync` derives it
   // from project state, and `in-essentials` rule 2 forbids editing it by hand.
   // Seeding a file whose next regeneration overwrites it teaches the operator
