@@ -137,3 +137,21 @@ Your three held items are unchanged and still held on hv's word.
 **`intent claude skills sync` now checksums the WHOLE skill directory.** SKILL.md-only meant a script-only change never propagated -- sync said UP TO DATE while the installed script differed from canon, and `--force` was the only way out. Verified live: SKILL.md-only gave `88f44fe6 == 88f44fe6`; whole-dir gave `212e9004 != a91ec47d`.
 
 **Every canon action must now carry a declared disposition** (persist or removes). The rule is not that every write needs a prune -- most canon should persist -- it is that the ANSWER is written down, so the next orphaned artefact reddens instead of lingering four months.
+
+## (2026-08-24 12:07Z) FYI only -- no response needed.
+
+**YOU HOLD NONE OF THE GATE AND THAT HAS NOT CHANGED -- but three of the four rows that closed since your last pickup were being handed back out by stale documents, so read this before you plan.**
+
+**THE GATE IS 66 OF 67 AND `restart.md` SAID 62 UNTIL TWENTY MINUTES AGO. I have just corrected it, committed `50f74cfd`, pushed both remotes -- so `git pull` before you trust anything you read at pickup.** Driven at `50417c83`, 0 dirty, all three calls: `ac status ST0057` 50/51 (2 withdrawn), `ac status ST0056/03` 16/16 PASS, `ac gate ST0057` -> `AC-08.5`.
+
+**Controlled rather than assumed:** denominators (51, 16) and withdrawn counts (2, 1) both held, so this is four rows GREENING and not a scope shrinking -- a rising fraction over a shrinking denominator is the cheap way to fake one. Cross-checked across `intent3` and the debug build: identical. **That certifies the READ PATH is not divergent between builds and certifies NOTHING about whether the store agrees with canon** -- two readings of one store are one reading counted twice.
+
+**THE FINDING IS NOT THE ARITHMETIC. The number had THREE HOMES CARRYING THREE VALUES** -- `intent/restart.md` 62, `.claude/restart.md` 62 and untouched since 08-21, `intent/wip.md` 65 -- **and `wip.md` held it twice, disagreeing with ITSELF inside one document.** Highlander applies to a figure in prose exactly as it applies to code. **Do not transcribe it again; run the three calls.**
+
+**Also corrected: "DO NOT PUT v3 ON PATH" was retired 2026-08-22 by ST0058 and both restart files asserted it for two more days.** v3 IS on PATH as `intent3` -- a distinct name, so the fleet's gate is untouched by construction. `intent3` -> `bin/intent3` -> `target/release/intent`, **which the gate reports as built from an UNCOMMITTED tree.** Pin by hash, never by the marker.
+
+**AND THE HAZARD THAT OUTRANKS EVERYTHING IN MY SWEEP: the fleet resolves `intent` through `$INTENT_HOME` to the FROZEN `~/Devel/prj/Intentv2`, so a shipped-surface fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day. `tests/unit/shipped_surface_drift.bats` reddens on it now and **its first catch was its own author.** hv's ruling: **Intentv2 is FROZEN; fixes are v3-only unless the shipped surface demands both.**
+
+**WHAT IS YOURS AND IS NOT CLOSED:** AT-11.6's deliverable, still unbuilt. And **the marker's per-crate staleness, which you named against your own result before anyone asked** -- `1940fa93` gave the format one home, and both binaries agree today ONLY because that change touched both packages. `INTENT_SOURCE_COMMIT` comes from each crate's own `build.rs`, so they diverge again on the next single-package change. **The gate output above is a live instance: the release binaries both report `dirty-69f672d3...` and their bytes match no commit.**
+
+**AND ONE THING FROM MY SWEEP LANDS SQUARELY IN YOUR LANE.** `intent claude upgrade` had a downgrade hole: its probe tested `local == target`, and **equality has no direction**, so an older canon target silently overwrote a newer project. Guarded in BOTH checkouts. `intent upgrade` also has `--dry-run` now -- **and my first cut of it gated the ledger, the canon call and the stamp but NOT the backup, so the fixture went 0 -> 1 dirty while printing "dry run: nothing was modified".** Reading the output passed it; only fingerprinting the tree failed it. Worth knowing before you touch distribution.

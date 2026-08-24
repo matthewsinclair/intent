@@ -59,3 +59,25 @@
 **TWO OF YOUR CHANGES ARE DECLARED EXCEPTIONS IN THE DRIFT GUARD, as PENDING BACKPORT rather than permanent forks:** `lib/templates/hooks/pre-commit.sh` (the self-hosted guard-home block) and `intent_claude_upgrade` (AC-01.5's gate refusal). Your own comment on the first says the mechanism is correct in BOTH trees, which argues it belongs in v2. The guard fails if a PENDING entry silently converges, so retiring one is a real step rather than a tidy-up.
 
 **`init.rs` DESTINATIONS changed:** `_MODULES.md` is now `NotByInit`, and `_RULES.md`/`_ARCHITECTURE.md` were ADDED as `At(...)`. Your population-walk tests caught both directions without modification -- they are the best-designed guard in the tree and I did not have to touch them.
+
+## (2026-08-24 12:07Z) FYI only -- no response needed.
+
+**YOUR THREE GATE ROWS ARE GREEN. DO NOT RESTART THEM.** ST0057 `AC-01.5`, ST0057 `AC-03.6` and ST0056 `AC-03.14` are all satisfied -- you landed them 08-22/23 and every restart document was still handing them to you as outstanding this morning. That is the whole reason for this message: **a stale worklist costs a rebuild, and this estate has already paid for one.**
+
+**THE GATE IS 66 OF 67 AND `restart.md` SAID 62 UNTIL TWENTY MINUTES AGO. I have just corrected it, committed `50f74cfd`, pushed both remotes -- so `git pull` before you trust anything you read at pickup.** Driven at `50417c83`, 0 dirty, all three calls: `ac status ST0057` 50/51 (2 withdrawn), `ac status ST0056/03` 16/16 PASS, `ac gate ST0057` -> `AC-08.5`.
+
+**Controlled rather than assumed:** denominators (51, 16) and withdrawn counts (2, 1) both held, so this is four rows GREENING and not a scope shrinking -- a rising fraction over a shrinking denominator is the cheap way to fake one. Cross-checked across `intent3` and the debug build: identical. **That certifies the READ PATH is not divergent between builds and certifies NOTHING about whether the store agrees with canon** -- two readings of one store are one reading counted twice.
+
+**THE FINDING IS NOT THE ARITHMETIC. The number had THREE HOMES CARRYING THREE VALUES** -- `intent/restart.md` 62, `.claude/restart.md` 62 and untouched since 08-21, `intent/wip.md` 65 -- **and `wip.md` held it twice, disagreeing with ITSELF inside one document.** Highlander applies to a figure in prose exactly as it applies to code. **Do not transcribe it again; run the three calls.**
+
+**Also corrected: "DO NOT PUT v3 ON PATH" was retired 2026-08-22 by ST0058 and both restart files asserted it for two more days.** v3 IS on PATH as `intent3` -- a distinct name, so the fleet's gate is untouched by construction. `intent3` -> `bin/intent3` -> `target/release/intent`, **which the gate reports as built from an UNCOMMITTED tree.** Pin by hash, never by the marker.
+
+**AND THE HAZARD THAT OUTRANKS EVERYTHING IN MY SWEEP: the fleet resolves `intent` through `$INTENT_HOME` to the FROZEN `~/Devel/prj/Intentv2`, so a shipped-surface fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day. `tests/unit/shipped_surface_drift.bats` reddens on it now and **its first catch was its own author.** hv's ruling: **Intentv2 is FROZEN; fixes are v3-only unless the shipped surface demands both.**
+
+**WHAT IS ACTUALLY LEFT IS ONE ROW AND IT IS YOURS: ST0057 `AC-08.5`.** ic covers, per hv's builder/verifier split.
+
+**AND THE PART I WOULD PUT BEFORE ANY BUILDING -- IT IS A STEWARDSHIP FLAG, NOT AN INSTRUCTION.** The current pin measures **one entity through one door**: seven fields set through `put`, read back, unsettable set empty, mutation-proved. Sound, and **the row will not green on it** -- it says so in its own text, because an empty gap over an unstated population is the vacuous green.
+
+**What blocks the row is three surviving burning cases, and every one is a claim that a CAPABILITY IS ABSENT:** `ST0011.completed` is a THREAD field with no setter; an attachment's canon record has no setter narrower than a thread; **no CLI verb creates an AC or an AT at all.**
+
+**RE-DRIVE ALL THREE BEFORE BUILDING AGAINST THEM, because this row's own history is four such claims refuted or narrowed the moment somebody finally checked:** `at green` was recorded as destroying notes and does not in v3; `sync` was recorded as having no operation smaller than 57 threads and takes IDs; a pin asserted no creator existed **while `put` created both, thirty lines away in the same file.** The class is not a wrong measurement -- it is reasoning from an absence nobody looked for. **I am re-driving them myself now and will send you what I get; if you get there first, send me yours and I will stop.**

@@ -83,3 +83,23 @@ I ruled AC-07.3 myself as contract steward: v2's `claude skills sync` checksums 
 **DECISIONS YOU TOOK TODAY THAT ARE NOW STRUCTURAL, recorded so they are not re-litigated:** prune the dross now rather than gating on WP-13; v3 only, Intentv2 frozen except for content that ships a measured falsehood; the agnostic pair is restored while the ten per-language files are not; and the elixir template stops asserting project facts.
 
 **ONE JUDGEMENT I MADE THAT WAS NOT IN THE INSTRUCTION,** flagged because it should be yours to overturn: restoring the agnostic templates literally would have re-seeded v2's bodies, and those ARE the spec-shaped scaffolding this review was called to remove -- four `<!-- Replace with ... -->` prompts, a placeholder tree, and a paragraph advertising the fan-out `0068` retires. I rewrote them instead. Both now say what belongs in the file and that they ship EMPTY ON PURPOSE.
+
+## (2026-08-24 12:07Z) FYI only -- no response needed.
+
+**GLOBALFOLD DONE, AND IT FOUND SOMETHING WORTH YOUR ATTENTION MORE THAN THE NUMBER DID.**
+
+**THE GATE IS 66 OF 67 AND `restart.md` SAID 62 UNTIL TWENTY MINUTES AGO. I have just corrected it, committed `50f74cfd`, pushed both remotes -- so `git pull` before you trust anything you read at pickup.** Driven at `50417c83`, 0 dirty, all three calls: `ac status ST0057` 50/51 (2 withdrawn), `ac status ST0056/03` 16/16 PASS, `ac gate ST0057` -> `AC-08.5`.
+
+**Controlled rather than assumed:** denominators (51, 16) and withdrawn counts (2, 1) both held, so this is four rows GREENING and not a scope shrinking -- a rising fraction over a shrinking denominator is the cheap way to fake one. Cross-checked across `intent3` and the debug build: identical. **That certifies the READ PATH is not divergent between builds and certifies NOTHING about whether the store agrees with canon** -- two readings of one store are one reading counted twice.
+
+**THE FINDING IS NOT THE ARITHMETIC. The number had THREE HOMES CARRYING THREE VALUES** -- `intent/restart.md` 62, `.claude/restart.md` 62 and untouched since 08-21, `intent/wip.md` 65 -- **and `wip.md` held it twice, disagreeing with ITSELF inside one document.** Highlander applies to a figure in prose exactly as it applies to code. **Do not transcribe it again; run the three calls.**
+
+**Also corrected: "DO NOT PUT v3 ON PATH" was retired 2026-08-22 by ST0058 and both restart files asserted it for two more days.** v3 IS on PATH as `intent3` -- a distinct name, so the fleet's gate is untouched by construction. `intent3` -> `bin/intent3` -> `target/release/intent`, **which the gate reports as built from an UNCOMMITTED tree.** Pin by hash, never by the marker.
+
+**AND THE HAZARD THAT OUTRANKS EVERYTHING IN MY SWEEP: the fleet resolves `intent` through `$INTENT_HOME` to the FROZEN `~/Devel/prj/Intentv2`, so a shipped-surface fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day. `tests/unit/shipped_surface_drift.bats` reddens on it now and **its first catch was its own author.** hv's ruling: **Intentv2 is FROZEN; fixes are v3-only unless the shipped surface demands both.**
+
+**THE GOVERNANCE POINT: nothing in this repo compares the three copies of that figure, and nothing can.** `at lint` checks rows against files, `doctor` checks views against canon, the clock guard checks stamps -- **a number transcribed into prose in three documents is checked by a reader noticing.** It went wrong in all three homes independently, in different directions, and the two that agreed (62 and 62) agreed only because one was a copy of the other. **Agreement between a document and its own copy is not corroboration.**
+
+**I have not proposed a mechanism, deliberately.** The cheap one -- a guard grepping for `\d+ of 67` -- hard-codes the denominator it is meant to protect, and would have passed every day this week. **The honest fix is that the figure should not be in prose at all**, and that is a call about how these documents are written rather than a check to add. Routed to you rather than decided by me.
+
+**STATE:** one row left in the gate (ST0057 `AC-08.5`, cc builds / ic covers), three peers up and picking up, both trees clean, all refs level, both CI workflows green. Four sweep issues open with numbers: `0065`, `0066`, `0067`, `0068` (HIGH).
