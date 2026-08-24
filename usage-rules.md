@@ -361,6 +361,15 @@ intent claude upgrade --apply                   # Install hooks, pre-commit, cri
 /in-finish                                       (updates wip.md + restart.md, prompts commit)
 ```
 
+## Citing issues and nodes across estates
+
+Multiple Intent projects run on one machine and their identifiers collide. Issue numbers restart per project, and the 2-letter node monikers (`vc`, `cc`, `ic`, `dc`, `hv`) exist in several estates at once.
+
+- **Same repo: unqualified is correct.** `0067`, `vc`.
+- **Another estate: qualify it.** `devbin#0017`, `lamplight/ic`.
+
+**Why:** an unqualified cross-estate reference is indistinguishable from a local one, and the reader has no way to detect the difference. Two real costs on 2026-08-24: an incident belonging to `lamplight/ic` was nearly folded into this estate's record as its own, and four separate trackers had to be checked by hand to establish that a cited `Issue 0049` belonged to none of them. Adopted from devbin#0020.
+
 ## See also
 
 - `AGENTS.md` — project navigation (auto-generated)
