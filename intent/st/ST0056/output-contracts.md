@@ -189,6 +189,65 @@ The shape is one measurement, one proposition next door, and no step between the
 
 That is the argument for the narrow verb at ST0057 WP-08, and it is why the checker's row stays `manual`: gated, this would have blocked the commit of the document explaining why it should be gated.
 
+## The second form: the defect is in the message, not in the measurement
+
+Six days later, four instruments were found carrying the same shape, and it is not the shape above. Every one of them **measured correctly and reported in the vocabulary of a category it does not cover**:
+
+| issue  | instrument           | true of                       | said                                                |
+| ------ | -------------------- | ----------------------------- | --------------------------------------------------- |
+| `0069` | `intent sync`        | one thread                    | "the STORE was replaced"                            |
+| `0074` | `intent critic`      | no coverage for your files    | "no staged elixir files to scan"                    |
+| `0075` | `view_skew_check.sh` | no APPARATUS view was touched | "no generated view was touched -- nothing to check" |
+| `0076` | `IN-EX-TEST-001`     | the anti-pattern in a COMMENT | the anti-pattern                                    |
+
+**The distinguishing property is that a true sentence produces a false belief, so nothing an instrument can check is wrong.** `0075` is the sharpest because it was driven end to end: the gate printed _nothing to check_ on a commit carrying `acceptance.md`, a file whose own first line declares it a generated view. **A reader who already knows the coverage figure is 1 of 269 still reads that sentence as the category being EMPTY rather than UNCHECKED.** Those are different claims and only one is true. **A silent gap gets found. A gap that files a clean report on its own behalf does not.**
+
+The remedy is a noun, not a mechanism: name the narrow scope in the output, and where the uncovered case is present, say it was **not checked**. Wiring the uncovered check instead would make the sentence accidentally true rather than honest, and leave the defect standing for whatever the gate does not cover next.
+
+## The gradient is the finding, and it is worse than any of the four
+
+`precommit` carries fourteen guard arms. Driven, they fall into three strengths: **seven assert a repository finding on ANY non-zero exit**; four lead with instrument failure in the text (_could not measure ... exit 2; its findings never gate_); one is structurally guarded, and that one is the arm that was burned.
+
+`precommit:406` records the burn in a comment: the summary line once asserted one cause for every non-zero exit, **including exit 127 when the tool itself was missing**, and a node hit exactly that while the file was momentarily off the tree -- _"and the gate told them their template was broken. It was not."_
+
+**The fix went onto that arm and nowhere else, and it fixed the INSTANCE rather than the CLASS.** It guards the tool being MISSING. It does not guard the tool being BROKEN: a `guard_home_check.sh` that exists and cannot parse falls through to `:422` and accuses the hook template, which was never opened. **Driven, not read** -- a deliberately unparseable copy fires that arm. So the arm burned by this class is still exposed to it.
+
+> **A rule is honoured by whoever learned it, and does not propagate by having been stated.**
+
+## `bash -n` is wrong in both directions and neither is visible from its output
+
+The `0075` guard declared `#!/bin/bash`, which on macOS is 3.2.57, and **was a hard syntax error there** -- an apostrophe inside a heredoc within a command substitution, which 3.2 scans for quotes even with a quoted delimiter. It had only ever worked because the runner invokes it as `bash <path>` off PATH, taking bash 5. Verifying that produced two facts about the verifying instrument itself:
+
+- **`-n` OVERSTATES, by position.** Bash parses incrementally, so an error a run never reaches is never raised. `-n` reads the whole file; a run reads as far as it gets. Which way that cuts must be driven rather than assumed: here the construct sits at a top-of-file assignment, so the real run died before reading a single view -- **the worst position, and that is luck rather than design.**
+- **`-n` UNDERSTATES, by construct.** It is blind to every version defect that is syntactically valid, which is where bash 3.2's notorious gaps all live. `declare -A` passes `-n` at rc=0.
+
+**And a third mode, which is the worst of the three and is invisible to any result-checking.** Without `set -e`, `declare -A` under 3.2 emits its error to stderr, **prints the CORRECT answer, and exits 0** -- the subscript degenerates to index 0, and index 0 is what was set. **A version defect that returns the right answer on the case in front of you cannot be found by checking results.** Only stderr or `set -e` separates it.
+
+That matters here because **nine of the twelve rostered guard scripts do not execute `set -e`** -- driven, with the anchored/unanchored cross-check that keeps prose _about_ `set -e` out of the count. So mode 3 is invisible inside three quarters of the instruments the commit gate depends on. **Two layers, one shape: the arm cannot tell a broken guard from a clean one, and most guards cannot tell a broken step from a clean one internally.**
+
+## 0 of 0, wearing the shape of a finished measurement
+
+The count above was first taken with `for g in $GUARDS` -- and the tool shell is zsh, which does not word-split an unquoted expansion. The loop ran once against the whole string, matched no file, and printed:
+
+    executing set -e : 0
+    NOT              : 0
+
+**That is neither a false positive nor a false negative. It is a null population wearing the shape of a completed measurement**, and read quickly it says _no guard executes `set -e`_ -- a larger and more alarming version of the true finding. **It was caught only because the wrong answer pointed the same way as the right one.** A correct loop over a wrong population prints the identical `0/0` and reads as **all clear**. Legibility was luck, and the luck ran one way once.
+
+The same error in the loud direction was caught in one second the same evening: a sweep reported 101 failures of 295 because data files had entered a shell population. **Same defect, opposite legibility.** The instrument was perfect both times; the population was wrong. **"Prove the scan hits" must be paired with "prove the population is the subject", and only the second one has no natural alarm.**
+
+## Three controls, each stated with what it cannot reach
+
+- **Declare the expected denominator before measuring, then check the actual against it.** _12 expected_ refuses a `0` on sight. It catches a suppressed refusal, a timeout, a wrong population and an empty loop -- **four of the six failures here. It does not touch precision** (comment matches inflating a count) **and it does not touch a wrong axis** (`-n` measuring parse where runnability was claimed).
+- **Run the negative control, not only the positive one.** A bash-4 detector was verified to fire on `declare -A` and never checked against `declare -a`. A pattern flagging both reports hits across the tree and **reads exactly like a finding**, in a sweep whose entire job is telling those apart.
+- **A control is only a control if its ground truth is KNOWN rather than RECALLED.** A file was named as a known-positive for `set -e` from memory of a line in a different file; it has none. **A remembered ground truth is a second guess wearing a control's costume, and nothing distinguishes the two by looking.**
+
+## The conclusion at the top, re-earned by six instances and four nodes
+
+This document opens by concluding that thinking hard about a class does not protect you from it. That was earned in one afternoon by one node. **Six days later it was re-earned independently: six instances in one evening, across four nodes and three estates, and NOT ONE was ignorance.** Every one was committed by someone who had already written the rule down -- two of them by the authors of the very rule they broke, and one of those inside the verification of the other's report.
+
+With three instances it reads as coincidence. **The recurrence is the finding, and it cannot be reached from any single instance**: each node had a defect, and only reading them together shows the rule holding everywhere except in the hands of whoever had just stated it.
+
 ## What is closed and what is not
 
 - **CLOSED.** The arm announces its contract (`addd4581`). The guard names both arms and says which one gates (`af7f86d7`). Paired identity requires a content hash (AC-10.11). Canon ingesting uncommitted bytes is reported (ST0057 AC-03.5). A verb may not silently clear a field it was not asked to change (ST0057 AC-08.5).
