@@ -40,7 +40,28 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for proper testing
-    
+
+    # tests/unit/shipped_surface_drift.bats compares the v3 shipped surface
+    # against v2-maintenance -- the frozen tree every project on the dev
+    # machine actually executes via $INTENT_HOME. A runner has no v2 CHECKOUT,
+    # so the guard resolves that surface from this REF instead, and when
+    # neither is available it now FAILS rather than skipping.
+    #
+    # THAT ASYMMETRY IS WHY THIS STEP IS EXPLICIT RATHER THAN IMPLIED. The
+    # `fetch-depth: 0` above already brings every branch today, so this looks
+    # redundant and is not: dropping it to `1` for speed is an ordinary,
+    # plausible edit that would silently return the guard to reporting green
+    # over nothing. That was its state for its first day -- all three of its
+    # tests skipped in CI, INCLUDING THE POSITIVE CONTROL whose whole job is to
+    # prove the comparison looked at something, and the suite printed "All
+    # tests passed!". A dependency you can read is one you can keep.
+    - name: Fetch v2-maintenance for the shipped-surface drift guard
+      run: |
+        git fetch --no-tags origin +refs/heads/v2-maintenance:refs/remotes/origin/v2-maintenance
+        # Self-checking: if the fetch above silently brought nothing, say so
+        # here rather than letting the guard report the whole surface missing.
+        git rev-parse --verify origin/v2-maintenance
+
     - name: Install bats-core
       run: |
         # Install bats-core v1.12.0 from GitHub
@@ -143,7 +164,28 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for proper testing
-    
+
+    # tests/unit/shipped_surface_drift.bats compares the v3 shipped surface
+    # against v2-maintenance -- the frozen tree every project on the dev
+    # machine actually executes via $INTENT_HOME. A runner has no v2 CHECKOUT,
+    # so the guard resolves that surface from this REF instead, and when
+    # neither is available it now FAILS rather than skipping.
+    #
+    # THAT ASYMMETRY IS WHY THIS STEP IS EXPLICIT RATHER THAN IMPLIED. The
+    # `fetch-depth: 0` above already brings every branch today, so this looks
+    # redundant and is not: dropping it to `1` for speed is an ordinary,
+    # plausible edit that would silently return the guard to reporting green
+    # over nothing. That was its state for its first day -- all three of its
+    # tests skipped in CI, INCLUDING THE POSITIVE CONTROL whose whole job is to
+    # prove the comparison looked at something, and the suite printed "All
+    # tests passed!". A dependency you can read is one you can keep.
+    - name: Fetch v2-maintenance for the shipped-surface drift guard
+      run: |
+        git fetch --no-tags origin +refs/heads/v2-maintenance:refs/remotes/origin/v2-maintenance
+        # Self-checking: if the fetch above silently brought nothing, say so
+        # here rather than letting the guard report the whole surface missing.
+        git rev-parse --verify origin/v2-maintenance
+
     - name: Install bats-core
       run: |
         # Install bats with Homebrew
