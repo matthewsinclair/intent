@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 55d5f57e-bc10-4cbf-9959-789541b069dc
-heartbeat_at: 2026-08-24 21:09Z
+heartbeat_at: 2026-08-24 21:21Z
 status: paused
 focus: "**FOLDED FOR THE BOUNCE 2026-08-24. FOUR COMMITS, LANE CLEAN, CLAIMS INTACT, NOTHING IN FLIGHT.** `185e4feb` 0075 fixed (vc closed it at `a4bde103` after driving it through the gate themselves) / `aeef62fc` the paper, EXTENDING `output-contracts.md` rather than starting a second home / `289e764d` + this fold / `6096e14c` devbin's held vendor set, landed on matts' word and verified with a negative control, never on the vendor's say-so. **THE ONE THING DELIBERATELY NOT DONE, AND IT NEEDS hv: SEVEN GATE ARMS STILL ASSERT A REPOSITORY FINDING ON ANY NON-ZERO EXIT.** That is the class; it is one change across seven sites; **fixing one more arm in passing is the exact defect the paper is about.** **Tonight's rule, half vc's: a rule is honoured by whoever learned it and does not propagate by having been stated.**"
 claims: [ST0056/07, ST0056/11]
@@ -30,13 +30,13 @@ claims: [ST0056/07, ST0056/11]
 - **`intent3` NOW REFUSES A BINARY THAT CANNOT BE SHOWN TO DESCRIBE THIS TREE** (hv ruled 2026-08-24). Matrix and reasoning: `bin/.devbin/cmd/shared/currency.lib`, one home. **It keys on DECIDABILITY, never on dirt.**
 - **THE GATE FIGURE IS COMPUTED BY THREE VERB CALLS AND IS NEVER TRANSCRIBED** -- `intent ac status ST0057`, `intent ac status ST0056/03`, `intent ac gate ST0057`. It lived in THREE homes at THREE values on 2026-08-24, one document disagreeing with itself twice. **Do not put the number on this board; put the calls.**
 - **hv's FREEZE SCOPE (2026-08-24): Intentv2 is FROZEN FOR FEATURES and LIVE FOR SHIPPED-SURFACE DEFECTS.** A v3-only defect is a v3-only fix; a shipped-surface one lands in BOTH trees.
-- **THE INDEX IS SHARED IN THIS CHECKOUT.** `git add` puts your file where a peer's bare `git commit` sweeps it. Always `git commit --only <paths>`; untracked paths must be staged first or `--only` refuses them.
+- **THE INDEX IS SHARED IN THIS CHECKOUT.** `git add` puts your file where a peer's bare `git commit` sweeps it. Always `git commit --only <paths>` -- **but the refusal is a property of naming a FILE, not of `--only`, and I had it as unconditional.** Driven both arms: `--only <untracked FILE>` exits 1 with `pathspec did not match any file(s) known to git`; **`--only <DIRECTORY>` exits 0, commits the tracked edits and leaves the untracked file behind in silence** (ic). **The success output enumerates what it TOOK, so the omitted file has no line to be missing from** -- this board's own absence rule, arriving at a commit instead of a grep. **`git status --porcelain -- <paths>` after every commit; `??` is the entire signal.** My own `6096e14c` used the directory form and was clean, which was luck rather than care.
 - **`int hooks` ANSWERS ABOUT THE TREE THE `int` SCRIPT LIVES IN, NOT YOUR CWD.** To ask about another clone, run ITS `bin/int`.
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
 
-**Nothing in flight.** Everything below landed and is committed.
+**Nothing in flight -- AND THAT IS A STATEMENT ABOUT ME, NOT ABOUT THE TREE** (vc's framing, taken). **A fresh node reading a dirty file it would have authored reads it as its own unfinished work**, so the dirty set is named here rather than left to inference. **At 21:20Z the dirty paths were cc's: `native/rust/crates/intentsvcs/{src/facade.rs,tests/mutation_every_writable_field.rs}` (their AC-08.5 build) and `intent/whiteboard/cc/wip.md`. None of it is mine and none of it is abandoned.** Everything below landed and is committed.
 
 - **`0075` FIXED at `185e4feb`** -- scope named in both summary branches, thread views in the change reported as NOT CHECKED with the gap stated. **And the larger defect found while reproducing it: the guard could not run under its own shebang.** `#!/bin/bash` is 3.2 on macOS, where the file was a hard syntax error from one apostrophe in a heredoc inside `$( )`, reported 126 lines away. It only ever worked because the runner invokes it as `bash <path>` off PATH. **Now parses AND runs under 3.2.** Population driven with controls: 95 shell files, **35 hard-pin to `/bin/bash`**, none carries a bash-4 construct, one parse failure.
 - **`output-contracts.md` EXTENDED at `aeef62fc`, NOT duplicated.** That document already owned this class and is mine; a paper beside it would have drifted from it. **Checked before creating -- the rule I have broken before.**
