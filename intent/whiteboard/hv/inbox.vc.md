@@ -170,3 +170,31 @@ ok 1149 the declared-exception list stays small ...                      RAN
 **THE EXCEPTION CAPS WERE A LATENT LANDMINE UNDER YOUR FREEZE RULING.** A single `count <= 6` treated both kinds as one overflow risk, but PENDING is a debt that must reach zero while **V3-ONLY growth is your ruling working as intended.** A shared cap fires on legitimate v3 divergence -- **and now that the guard runs unattended it would fire there first, which is how a guard trains people to ignore it.** Split. The v3-only cap is a CHECKPOINT rather than a limit, is derived from nothing, and says so; raising it is yours.
 
 **Driven at `797ea1b7`:** 247 files in the shipped surface, 243 byte-identical, 2 differ, 2 absent -- and the declared lists account for exactly those four with nothing left over. The only v3/v2 delta is the RULES/ARCHITECTURE pair you already ruled v3-only.
+
+## (2026-08-24 16:38Z)
+
+**A DECISION THAT IS YOURS HAS BEEN SITTING ON TWO BOARDS AND REACHED YOUR INBOX FROM NEITHER, AND I AM THE NODE WHOSE JOB THAT IS.** Found by grepping this file for it and getting zero, with a positive control to prove the search worked. **dc's commit message says "the revert is hv's ruling"; my board says "Decision still hv's"; the roster names vc as the node obliged to surface hv-channel content TO you.** Both of us recorded it correctly and neither of us delivered it. **Nothing failed -- every write returned 0 -- which is precisely the shape the protocol warns about: a write surface with no delivery is a queue, and nothing observable distinguishes the two.**
+
+**THE DECISION: `intent upgrade` ESCAPED AND MUTATED TWO TRACKED FILES IN THIS WORKING TREE AT 13:44:15Z. Do we revert them?**
+
+**dc's answer, and mine, is KEEP BOTH -- but the REASON changed under us, which is the part worth your attention.**
+
+- **`AGENTS.md`** is a GENERATED VIEW. The escape ran `agents sync` early, so the output is **correct and current**; reverting would restore a STALE view. A legitimate regeneration that arrived by an illegitimate route.
+- **`intent/.config/config.json`** -- `project_id` is **LIVE IN THE STORE**. dc drove `.dump`, which emits live rows only and never freed pages, with both controls. Reverting diverges disk from store.
+
+**THE ORIGINAL ARGUMENT WAS DIFFERENT AND IS NOW DEAD: _do not revert because `git checkout` cannot reach the db_.** That was an argument from an INCONSISTENT store, and **that premise died when the store was restored (47 == 47).** The verdict did not move while the reasoning underneath it was replaced entirely. **A right answer resting on a dead reason is indistinguishable from a live one until someone re-derives it** -- I asked dc to re-put it rather than carrying the earlier answer forward, and that is the only reason we know the current one stands on its own.
+
+**AND MY EARLIER LIST OF THE AFFECTED FILES WAS WRONG IN A WAY THAT WOULD HAVE COST YOU WORK.** I reported THREE files; the incident touched **TWO**. Driven by mtime against the incident stamp:
+
+```
+AGENTS.md                  13:44:15Z   <- incident
+intent/.config/config.json 13:44:15Z   <- incident
+intent/llm/MODULES.md      13:30:54Z   <- THIRTEEN MINUTES EARLIER. NOT the incident.
+bin/intent3                13:34:12Z   <- also dc's own work
+```
+
+**`MODULES.md`'s entire diff is ONE LINE: dc's `currency.lib` registration row** -- the row they registered before creating the file. **A revert of the list as I gave it destroys dc's work.** ic had the correct partition earlier and it drifted between there and my fold; **I assembled the set from what was DIRTY IN THE SAME WINDOW rather than from what the incident's own timestamp reaches.** One `stat` settles it and nobody ran it until dc did.
+
+**WHAT I AM NOT DOING: deciding it.** Both files are tracked, both are yours, and I would rather you rule on a live reason than inherit a verdict whose argument expired.
+
+**THE ROOT CAUSE IS ALREADY FILED AND IS NOT THIS DECISION:** `intent#0070`, dc's, HIGH -- `intent upgrade` re-runs the migration on an already-migrated v3 project and destroys every issue while printing `0 issue(s)`. v3-only; v2 short-circuits.
