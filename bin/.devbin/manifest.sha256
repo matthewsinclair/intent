@@ -3,7 +3,7 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.0
 # source: /Users/matts/Devel/prj/Devbin
-# source_commit: bf26eb4eda793f9bb713e3873018e30926f83e18
+# source_commit: c92540cd6e0b5b6ca60a3445c4ea28c6baf9dfa8
 fdbf2331ebb084a4677a202f8834edaab0a21bc166bb737a36beecfe7a2166a5  bin/devbin
 14966282dad49d6d07dd996d9bb6732dab5542acef24e2b047dbf31805a5cea8  bin/.devbin/lib/builtins
 e8301437705d16f82cd401da1ddf315828826d69b0f75f7ddf86492e5ff81a8d  bin/.devbin/lib/cmd/check
@@ -11,7 +11,7 @@ e8301437705d16f82cd401da1ddf315828826d69b0f75f7ddf86492e5ff81a8d  bin/.devbin/li
 170a977dbcfe479fd81ae1b51b0bdff53cbfb8543d14e5040de2ca70e3597cae  bin/.devbin/lib/cmd/db
 bd1a0e00d534a30f698a3ebf6ceabb6b8efbdbb6ef257e49ef86865c37a8021a  bin/.devbin/lib/cmd/devbin
 72074e647a6548c63fca6e0219c1f708b24bc5cd9884442896c5b9759f5e84f0  bin/.devbin/lib/cmd/docs
-ee8ff43652c46f0acca2838205cc8e1ad8ad38a15ac83ea44bebe1ecdc8828a3  bin/.devbin/lib/cmd/doctor
+6389e8cd115d204698ae8dcc9d71e4be617a16b2eab2c2cf9b40d7d8701cfa20  bin/.devbin/lib/cmd/doctor
 3cdb7f8d8aea2d5a1021fc10d2756d39f61c8168646a9dd3316563b94fae12e5  bin/.devbin/lib/cmd/fmt
 7665088d7a3ba6a3e8363b2eceda900b2fd3afa58960ee619859fec76300b3a0  bin/.devbin/lib/cmd/install
 bab5433bf88541aec515e8ef44cf18c0b46ed7e0a89b21ae1ff15dcc360f83c2  bin/.devbin/lib/cmd/new
