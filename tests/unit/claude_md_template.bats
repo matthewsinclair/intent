@@ -46,14 +46,32 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "intent/llm/DECISION_TREE.md"
 }
 
-@test "template cross-references rule IDs without duplicating rule text" {
-  assert_file_contains "$TEMPLATE" "IN-AG-HIGHLANDER-001"
-  assert_file_contains "$TEMPLATE" "IN-AG-PFIC-001"
-  assert_file_contains "$TEMPLATE" "IN-AG-THIN-COORD-001"
-  assert_file_contains "$TEMPLATE" "IN-AG-NO-SILENT-001"
-  # Rule bodies are served by the installed Intent tool via the CLI, not a
-  # local rules directory (v2.11.11). See the dedicated CLI-routing test below.
+# THE FOUR RULE IDS MOVED TO _AGENTS.md, AND THIS TEST MOVED WITH THEM.
+#
+# It used to assert the IDs were in _CLAUDE.md. They are not, deliberately:
+# AGENTS.md is declared the primary tool-agnostic contract and carried NONE of
+# the four rules it is said to hold, while the file described as "a Claude
+# Code-specific overlay" carried all four. The layering was inverted, so a
+# non-Claude agent following the stated reading order got none of the rules of
+# the road. Measured 2026-08-24 and ruled by hv.
+#
+# The assertion is now STRONGER than it was, in both directions: the contract
+# must hold the IDs, AND the overlay must not repeat them. A test that only
+# checked presence would have passed on the duplication this change removed.
+@test "the four rule IDs live in the AGENTS contract, not the Claude overlay" {
+  local agents="${INTENT_PROJECT_ROOT}/lib/templates/llm/_AGENTS.md"
+  local id
+  for id in IN-AG-HIGHLANDER-001 IN-AG-PFIC-001 IN-AG-THIN-COORD-001 IN-AG-NO-SILENT-001; do
+    assert_file_contains "$agents" "$id"
+    grep -q "$id" "$TEMPLATE" \
+      && fail "$id is restated in _CLAUDE.md; AGENTS.md is the contract and a second copy is the Highlander violation this move removed"
+  done
+  # The overlay still ROUTES to the rule bodies even though it does not name
+  # the IDs -- a pointer with no way to follow it is worse than no pointer.
   assert_file_contains "$TEMPLATE" "intent claude rules show"
+  # And it must say WHERE they are, or the reader has a prohibition and no
+  # destination.
+  assert_file_contains "$TEMPLATE" "AGENTS.md"
 }
 
 @test "template includes critic dispatch section" {
