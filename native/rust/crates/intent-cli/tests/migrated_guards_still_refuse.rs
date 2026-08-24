@@ -80,6 +80,42 @@ fn fake_install(base: &Path, repo: &Path) -> PathBuf {
   install
 }
 
+/// Run a JUST-COPIED binary, retrying while Linux reports it busy.
+///
+/// **ETXTBSY IS A PROPERTY OF THIS HARNESS, NOT OF THE THING UNDER TEST.**
+/// `fs::copy` closes its own destination handle, but this test binary is
+/// multi-threaded and several of its tests fork (`Command::output`). A child
+/// forked between another thread's open and close inherits that write fd, and
+/// between `fork` and `execve` it still holds it -- Linux refuses to `execve`
+/// a file any process has open for writing. macOS does not enforce that, which
+/// is exactly why the macOS leg stayed green while ubuntu reddened on
+/// `Os { code: 26, kind: ExecutableFileBusy }` (CI run 32718512776).
+///
+/// Bounded retry rather than a mutex: the window is microseconds, it belongs to
+/// the harness, and serialising these tests would slow them to buy determinism
+/// this assertion does not need. A retry that never succeeds still fails, and
+/// says why.
+///
+/// Matched on `raw_os_error() == 26` rather than `ErrorKind::ExecutableFileBusy`
+/// so this does not depend on that variant's stabilisation.
+fn output_retrying_busy(mut build: impl FnMut() -> Command, what: &str) -> Output {
+  const ETXTBSY: i32 = 26;
+  let mut last = String::new();
+  for _ in 0..100 {
+    match build().output() {
+      Ok(out) => return out,
+      Err(e) if e.raw_os_error() == Some(ETXTBSY) => {
+        last = e.to_string();
+        std::thread::sleep(std::time::Duration::from_millis(20));
+      }
+      Err(e) => panic!("{what}: {e}"),
+    }
+  }
+  panic!(
+    "{what}: still busy after 100 attempts over ~2s ({last}) -- that is no longer a fork race"
+  );
+}
+
 fn git(root: &Path, args: &[&str]) -> Output {
   Command::new("git")
     .args(args)
@@ -318,11 +354,14 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
   // INTENT_HOME here would assert on an override the binary does not read.
   let td = tempfile::tempdir().expect("tempdir");
   let install = fake_install(td.path(), &home);
-  let info = Command::new(install.join("bin/intent"))
-    .arg("info")
-    .current_dir(td.path())
-    .output()
-    .expect("run intent info");
+  let info = output_retrying_busy(
+    || {
+      let mut c = Command::new(install.join("bin/intent"));
+      c.arg("info").current_dir(td.path());
+      c
+    },
+    "run intent info",
+  );
 
   let mut sed = Command::new("sed")
     .args(["-n", &expr])
