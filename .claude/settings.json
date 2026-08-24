@@ -30,8 +30,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'Session wrap-up reminder: run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.'",
-            "timeout": 2000
+            "command": "intent claude hook session-finish",
+            "timeout": 3000
           }
         ]
       }

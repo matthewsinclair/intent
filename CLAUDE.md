@@ -12,7 +12,7 @@ Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>
 
 ## Session hooks
 
-`.claude/settings.json` wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Hook scripts live under `.claude/scripts/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
+`.claude/settings.json` wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Each dispatches through `intent claude hook <name>`; the hook BODIES are served from the Intent install (`$INTENT_HOME/lib/templates/.claude/scripts/`), not from this project, so a hook fix reaches every project on the next `intent upgrade` without touching `.git/hooks/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
 
 ## File map
 
@@ -27,14 +27,9 @@ Canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics 
 
 ## Rules of the road
 
-Four cross-language principles govern all Intent projects:
+The four cross-language principles -- Highlander, PFIC, Thin Coordinator, No Silent Errors -- are stated in `AGENTS.md` under "Rules of the Road", with their rule IDs. **They are not restated here**: AGENTS.md is the tool-agnostic contract and this file is the Claude-specific overlay, so a second copy would be a Highlander violation in the document that defines the rule.
 
-- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
-- **PFIC** (`IN-AG-PFIC-001`) -- Pure-Functional-Idiomatic-Coordination; pattern match, pipe, tag, compose.
-- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
-- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
-
-Rule files are served by the installed Intent tool, not vendored into this project -- read them with `intent claude rules show <id>` (`intent claude rules list` to enumerate, `--lang <lang>` to filter). The terse DO / NEVER contract for this project lives in `usage-rules.md`.
+Read any of them with `intent claude rules show <id>` (`intent claude rules list` to enumerate, `--lang <lang>` to filter).
 
 ## Critic dispatch
 
@@ -54,10 +49,10 @@ Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
 
 ### Intent dev rules (extend the four agnostic rules above)
 
-1. **Highlander Rule** -- check `intent/llm/MODULES.md` before creating any new module, helper, or template.
+1. **Highlander Rule** -- search `intent/llm/MODULES.md` before creating any new module, helper, or template: `grep -n '<name>' intent/llm/MODULES.md`. **Search it, do not read it** -- the registry is ~354KB across ~367 rows, so "read it first" is not an instruction anyone can follow. (`intent modules find` is the intended verb and works under v2, but it is not yet implemented in v3 and this project is v3-self-hosted, so grep is the working form today.)
 2. **Thin scripts** (concretises `IN-AG-THIN-COORD-001`) -- business logic lives in dedicated modules under `bin/` or `intent/plugins/`, never inline in command dispatch or heredocs.
 3. **No silent failures** (concretises `IN-AG-NO-SILENT-001`) -- every error path uses `error()` from `bin/intent_helpers`.
-4. **Check before you create** -- before adding a new script or function, check `intent/llm/MODULES.md`.
+4. **Check before you create** -- before adding a new script or function, search the registry as in rule 1.
 5. **Register before you code** -- when you must create a new module, add the row to MODULES.md FIRST, then create the file.
 6. **Single template source** -- all generated content comes from `lib/templates/` via `sed` substitution. No inline heredocs duplicating template content.
 
