@@ -608,6 +608,7 @@ run_option() {
           --suffix "$(gate_log_suffix "$opt" "$log_suffix")" \
           --grammar "$grammar" \
           --out-dir "$(gate_out_dir "$cmd")" \
+          --source "config key commands.$cmd.options.$opt.run, word-split unquoted (never eval'd)" \
           ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
           -- $run ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
       )

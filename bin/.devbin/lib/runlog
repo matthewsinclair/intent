@@ -49,6 +49,27 @@ _create_exclusive() {
   ) 2>/dev/null
 }
 
+# _DEVBIN_INVOKE_TAG -- the prefix on a line DEVBIN wrote into a run log, as
+# opposed to output the tool produced.
+#
+# It exists so `write_errors_file` can exclude devbin's own annotations from the
+# extraction grammars BY CONSTRUCTION, and that is not caution for its own sake.
+# Two of the six grammars print on UNANCHORED patterns -- credo's `\[[A-Z]\] `
+# and xcodebuild's `: error: ` -- while a recorded command line is arbitrary text
+# out of a project's config. Credo's match also sets `inblock`, so one unlucky
+# argument would drag the entire remaining log into `.errors` and seal a verdict
+# assembled from the tool's ordinary output. A wrong seal is the single failure
+# this subsystem cannot detect after the fact (intent/llm/MODULES.md), so the
+# exclusion is structural rather than a matter of picking a prefix and hoping.
+# Driven red once with the filter removed, and the verdict duly filled with
+# devbin's own output -- the evidence is quoted in issue 0025.
+#
+# `note_promotion` needs no such guard and says why in its own comment: it fires
+# only after a GREEN exit, where the extraction is empty by construction. That
+# reasoning does not extend to anything written on every run, which is what this
+# tag is for.
+_DEVBIN_INVOKE_TAG='devbin| '
+
 # inflight_marker -- the single line `open_run_log` seeds a fresh `.errors` with.
 #
 # ONE HOME, because there are now two consumers and they are in different files:
@@ -266,6 +287,47 @@ note_promotion() {
   return 0
 }
 
+# note_invocation <log> <source> [argv...] -- record WHAT is about to run.
+#
+# `run_gate` teed the tool's output and never recorded what produced it, so a
+# gate that died on its own ARGUMENTS sealed the tool's complaint about them and
+# nothing else. Measured at Prolix (issue 0025, reported by prolix/vc): a `run:` was
+# read while another session had the file mid-edit, `variant=Designed for iPad`
+# word-split into three arguments, and the seal read
+#
+#   xcodebuild: error: Unknown build action 'for'
+#
+# which names nothing searchable and gives no hint that config is even involved.
+# The tool was right and the seal was honest; neither could say where `for` came
+# from.
+#
+# ONE ARGUMENT PER LINE, INDEXED, and that is the whole point rather than a
+# formatting preference. The defect IS that `for` is a separate argv entry
+# instead of part of `variant=Designed for iPad`, and a command line reflowed
+# onto one line renders the two cases identically -- which is how it stayed
+# invisible. The indices are what make a word-split legible at a glance.
+#
+# `source` names where the command line came from when the caller knows (a
+# config key); empty when it does not (devbin's own catalogue). It answers the
+# other half of the Prolix complaint, which was not "what ran" but "is my
+# config responsible for this".
+note_invocation() {
+  local log="$1" source="$2" a i=0
+  shift 2
+  {
+    printf '%sinvocation, one argument per line:\n' "$_DEVBIN_INVOKE_TAG"
+    [ -z "$source" ] ||
+      printf '%s  from: %s\n' "$_DEVBIN_INVOKE_TAG" "$source"
+    for a in "$@"; do
+      printf '%s  argv[%d]: %s\n' "$_DEVBIN_INVOKE_TAG" "$i" "$a"
+      i=$((i + 1))
+    done
+    printf '%s\n' "$_DEVBIN_INVOKE_TAG"
+  } >>"$log" ||
+    warn "could not record the invocation in $log -- the .out log will not say what ran"
+  return 0
+}
+
 # write_errors_file <rc> <log> <errors> <extract_awk> -- seal the run's .errors
 # companion. The invariant: EMPTY means exactly "a completed green run". rc==0
 # truncates (the exit code is authoritative); rc!=0 writes the failure blocks
@@ -300,7 +362,17 @@ write_errors_file() {
   fi
   # A failed extraction (unreadable log) falls through to the tail fallback
   # below -- the file must end non-empty on a red run either way.
-  awk "$extract" "$log" 2>/dev/null | strip_ansi >"$errors" || true
+  #
+  # DEVBIN'S OWN ANNOTATIONS ARE STRIPPED BEFORE THE GRAMMAR SEES THEM. The
+  # reason is in _DEVBIN_INVOKE_TAG: two grammars print on unanchored patterns
+  # and the recorded command line is arbitrary config text, so leaving it in the
+  # grammar's view risks a verdict made of the tool's normal output. The pattern
+  # is a POSIX BRE, where the tag's `|` is a literal.
+  #
+  # The tail fallback below deliberately does NOT strip: a red run with nothing
+  # parseable is exactly when the reader most needs to see what was invoked.
+  grep -v "^$_DEVBIN_INVOKE_TAG" "$log" 2>/dev/null |
+    awk "$extract" 2>/dev/null | strip_ansi >"$errors" || true
   if [ ! -s "$errors" ]; then
     {
       printf 'run FAILED (exit %s) with no parseable failure blocks -- log tail:\n\n' "$rc"
@@ -1243,7 +1315,7 @@ gate_log_suffix() {
 # gate wanting either writes a handler and calls these functions directly --
 # which is the D1 boundary again, in a different place.
 run_gate() {
-  local label="" suffix="" grammar=generic out_dir="tmp/gate"
+  local label="" suffix="" grammar=generic out_dir="tmp/gate" source=""
   local keep_log=1 purge=0 purge_only=0 want_color=auto allow_empty=0
   local rc=0 counter="" executed=0
   local -a rcs=()
@@ -1270,6 +1342,13 @@ run_gate() {
         out_dir="${1:-}"
         ;;
       --out-dir=*) out_dir="${1#*=}" ;;
+      # Where this command line came from, for the invocation record. Optional:
+      # devbin's own catalogue lines have no config key to name.
+      --source)
+        shift
+        source="${1:-}"
+        ;;
+      --source=*) source="${1#*=}" ;;
       --no-out) keep_log=0 ;;
       --purge) purge=1 ;;
       --purge-only)
@@ -1313,6 +1392,11 @@ run_gate() {
 
   open_run_log "$keep_log" "$out_dir" "$suffix"
   step "$label"
+  # Written BEFORE the tool runs so it reads first, which is why the tee below
+  # appends rather than truncates. open_run_log has just created the log
+  # exclusively (or as a fresh mktemp), so appending to it starts from empty --
+  # `tee -a` and `tee` differ here only in whether this record survives.
+  note_invocation "$log" "$source" "$@"
 
   # errexit is suspended around the pipeline so a red gate reaches the sealing
   # below instead of dying mid-function with nothing written. The gate's own
@@ -1329,7 +1413,7 @@ run_gate() {
   local errexit_was_on=0
   case "$-" in *e*) errexit_was_on=1 ;; esac
   set +e
-  "$@" 2>&1 | tee "$log"
+  "$@" 2>&1 | tee -a "$log"
   rcs=("${PIPESTATUS[@]}")
   rc="${rcs[0]}"
   [ "$errexit_was_on" = 1 ] && set -e

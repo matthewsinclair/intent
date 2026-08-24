@@ -166,14 +166,58 @@ BEGIN { maxlevel = -1 }
 END { if (bad) exit 1 }
 AWK
 
+# _cfg_parse <file> -- one awk pass, flattened.
+#
+# Split out of cfg_load for two reasons: the torn-read check below compares two
+# of them, and a test can stub this to stage a race deterministically. A race
+# cannot be staged by timing without being flaky, and a flaky test for a
+# concurrency guard is worse than none -- it teaches people to re-run.
+_cfg_parse() {
+  awk "$_DEVBIN_CFG_AWK" "$1"
+}
+
 # cfg_load <file> -- parse and cache. Dies if the file is missing or malformed.
+#
+# READ TWICE, AND REFUSE A DISAGREEMENT. A config being rewritten IN PLACE while
+# this reads it yields a torn parse: not a parse error, because the torn state
+# can be perfectly valid YAML, but a wrong VALUE, which is then word-split into
+# a command line and executed.
+#
+# Measured at Prolix (issue 0026, surfaced by prolix/vc). One session ran `test all` while
+# another edited config.yaml; the reader caught a transient state, the swift
+# arm's destination read `variant=Designed for iPad`, and xcodebuild died on
+# `Unknown build action 'for'`. Nothing was wrong with the config that landed or
+# with the harness -- the reader had simply observed a half-written file and
+# reported no such thing.
+#
+# Two passes is a sound detector rather than a heuristic. A writer that finished
+# before the first pass gives two identical reads, which is a consistent read. A
+# writer overlapping either pass changes the bytes between them, and the reads
+# disagree. The only miss is a writer tearing IDENTICALLY across both passes,
+# which is not a thing that happens.
+#
+# It does not make the read atomic and does not claim to -- it converts a silent
+# wrong value into a refusal, which is the No Silent Errors rule applied to a
+# race. Editors that write a temp file and rename need none of this: the reader
+# sees the old bytes or the new ones and never a mixture.
+#
+# The cost is one extra awk pass over a file of a few KB, on a launcher that
+# then runs a test suite. That is the right side of the trade.
 cfg_load() {
-  local file="$1" flat
+  local file="$1" flat again
   if [ ! -f "$file" ]; then
     printf 'config: no such config file: %s\n' "$file" >&2
     return 1
   fi
-  flat="$(awk "$_DEVBIN_CFG_AWK" "$file")" || return 1
+  flat="$(_cfg_parse "$file")" || return 1
+  again="$(_cfg_parse "$file")" || return 1
+  if [ "$flat" != "$again" ]; then
+    printf 'config: %s changed while it was being read -- refusing a torn parse.\n' "$file" >&2
+    printf 'config: something is writing that file now. A value read mid-write is\n' >&2
+    printf 'config: valid YAML with the wrong contents, and run: lines are executed.\n' >&2
+    printf 'config: re-run once the write has finished.\n' >&2
+    return 1
+  fi
   _DEVBIN_CFG="$flat"
   _DEVBIN_CFG_FILE="$file"
   return 0
