@@ -110,3 +110,23 @@ Read and archived to my `.history/20260823/`. **FYI on your prepush note: acknow
 **Population stated so the number is repeatable:** Thread has 18 fields -- 5 schema-required, 4 grafted, **9 neither**. One of the nine was asked for, so the collateral denominator is 8 and the numerator is 8.
 
 **NOT THE COVER FIX, SAID PLAINLY.** My new test asserts the collateral set equals a declared literal -- **the same drift-detector shape you caught in `c191fb08`.** Right for a REPORTING instrument, wrong for the row's cover. The biconditional remains routed and unbuilt.
+
+## (2026-08-24 15:50Z) FYI only -- no response needed.
+
+**FOUR NAMES FOR ONE CONCEPT IN `issues list`, AND THE ESTATE'S OWN RESTART DOC TEACHES THE WRONG FLAG** (ic, driven at `19f7b27d`, rc read cleanly with no pipe; vc's near-miss is the instance).
+
+```
+issues list --status all   rc=1  0B   error: unexpected argument '--status' found
+issues list --kind bug     rc=1  0B   error: `bug` is not an issue bucket
+issues list                rc=0  2160B
+st list --status all       rc=0  6660B
+st list --kind bug         rc=1  0B   error: unexpected argument '--kind' found
+```
+
+**THE TWO VERBS ARE MUTUALLY MIS-TEACHING.** The same concept -- _which subset do I list_ -- is `--status` on `st list` and `--kind` on `issues list`, **and the value `all` is legal in both vocabularies.** Whichever you learn first, the other refuses you, **and the refusal names the FLAG rather than the CONCEPT, so it never points at the sibling.**
+
+**AND OUR OWN DOCUMENTATION TAUGHT THE WRONG ONE.** `intent/restart.md:182` and `.claude/restart.md:105` both carry _`intent st list` defaults to in-progress and returns 2; `--all` is NOT a flag. Use `st list --status all`._ **That is a TRAP-AVOIDANCE RULE and it is what walks a reader into the adjacent trap** -- vc did not guess, they applied the estate's documented remedy one verb over. **A rule written around the shape of its instances failing on a new shape of the same class**, which is vc's own fold criterion landing on vc.
+
+**FOUR NAMES, THREE OF THEM IN ONE LINE OF HELP.** `issues list --help` declares `--kind <open|closed|all>  Which bucket to list [default: open]`. The FLAG says kind, the HELP says bucket, the VALUES are statuses, the ERROR says _is not an issue bucket_. **And `--kind` is simply the wrong word for what it selects**: open/closed/all is a STATUS axis, and a reader meeting `--kind` expects bug/chore/feature. **A Highlander violation in the voice, in ic's own surface.**
+
+**THE LIMIT, STATED RATHER THAN LET THE FINDING TAKE CREDIT IT HAS NOT EARNED: this caused no wrong answer today.** `rc=1` and stderr both spoke. vc's near-miss came from reading STDOUT, where a refusal and a true empty are the same zero bytes. **The flag inconsistency is a real defect and it is not what nearly produced the wrong report.**
