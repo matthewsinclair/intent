@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 21:18Z
+heartbeat_at: 2026-08-24 21:22Z
 status: active
 focus: "**FOLDED FOR THE BOUNCE 2026-08-24 21:11Z. Nothing in flight; nothing of mine dirty; refs level.** **AC-08.5 IS LIVE AND IS cc's AND ic's** -- I ruled DC-1/2/3 and hold the contract, not the build. `intent#0075` FIXED by dc at `185e4feb` and CLOSED, verified live through the gate; `#0076` sits with hv. **THIS FOLD IS A HIGHLANDER FIX, NOT A TRIM: four rules were MISFILED under DECISIONS because I appended to the end of the file, and the taxonomy at the bottom already carried the worked examples written out in full above it.** Every rule kept, every worked example moved to `.history/20260824/wip-fold-night.md`. **The night's finding, four subsystems, three nodes, found independently: A RULE IS HONOURED BY WHOEVER LEARNED IT AND DOES NOT PROPAGATE BY HAVING BEEN LEARNED.**"
 claims: [ST0056, ST0057, ST0058]
