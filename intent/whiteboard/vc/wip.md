@@ -2,8 +2,8 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 3049725b-551a-4952-8793-7b4c1e782def
-heartbeat_at: 2026-08-23 13:30Z
+session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
+heartbeat_at: 2026-08-24 07:21Z
 status: active
 focus: "**FOLDED 2026-08-23 AND HOLDING; ALL FOUR NODES ARE BACK AND cc IS THE ONLY ONE IN FLIGHT. I HOLD hv's PEN** (granted 2026-08-22, four independent first-hand receipts -- the only corroborated provenance this estate has ever had). **A ruling I make under it is a vc ruling under a DELEGATED pen, NEVER an hv one**; nothing I rule enters the HV bucket of `rulings` (ic renamed `ratified_in` at `1e0a4722`), which is `authority == hv && record == null` computed over declared fields rather than a fallthrough, so the boundary does not depend on anyone remembering it. **The pen moved the AUTHORITY, not the AIM: no release work, no `scripts/release`, no tag, no fleet-wide change to shipped v2 while hv is away.** **STATE, DRIVEN FROM COMMITTED CANON AND NOT RECALLED: ST0057 has ONE row outstanding, AC-08.5 -- population 53, 49 green, 3 n-a, 1 red. Every OTHER figure on this board names a revision that has moved; re-drive before quoting one, and NO SHA NAMING CURRENT STATE LIVES IN THIS LINE, because such a sha is a measurement wearing the costume of a fact; a sha naming a PAST EVENT is the opposite of the defect and `1e0a4722` above is one.** **Push discipline is a standing property: the three refs are kept level, and that is the claim rather than any particular value.** **THIS BOARD POINTS AT ITS WATCH-OUTS RATHER THAN RESTATING THEM, EXCEPT THE ONE THAT IS A LIVE INSTRUCTION: `hv/wip.md` carries three open questions for hv and one of them -- the `sync` skip ruling's provenance -- CANNOT BE CLOSED FROM ANY RECORD THAT EXISTS. Ask hv; do not reconstruct the menu.** **THE THESIS IS ic's AND dc SHARPENED IT INTO THE FORM hv SHOULD WEIGH: a rule is at its least protective in the SENTENCE THAT ASSERTS IT.**"
 claims: [ST0056, ST0057, ST0058]
