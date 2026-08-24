@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7ae34f78-5b66-4872-a0b0-152af8cd6132
-heartbeat_at: 2026-08-24 17:56Z
+heartbeat_at: 2026-08-24 18:02Z
 status: active
 focus: "**FOLDED 2026-08-24 17:56Z AFTER AN AGGRESSIVE DOCUMENT LEAN. Everything committed, refs level, all CI green.** The three project-wide docs went **504 -> 169 lines**: they were THREE COPIES OF ONE NARRATIVE, each opening with a banner claiming it superseded everything below -- **the gate-figure defect at document scale, and the banner was the tell that nobody was deleting, only prepending.** Each now has ONE job. 24 of 24 durable facts verified present, with a control. **This board shrank the same way: anything project-wide now lives in `intent/restart.md` and is NOT repeated here.** Gate 66 of 67, driven -- AC-08.5, cc builds / ic covers, untouched by me."
 claims: [ST0056, ST0057, ST0058]
@@ -44,6 +44,8 @@ claims: [ST0056, ST0057, ST0058]
 - **A GUARD'S FAILURE MODES ARE NOT SYMMETRIC, AND A LOUD FAILURE IS NOT AUTOMATICALLY THE SAFE ONE -- the question is whether the loudness is TRUE.** Noise is what gets dismissed: **the real drift then hides inside the false ones, in an instrument everybody can see working.** **A rule that fires on correct code costs you the rules that ARE sound** (prolix-vc). **DETECTABILITY DECAYS.** **A capability with no consumer is not a gate, and a checkpoint with no failure mode it can catch is a QUEUE** -- which is why mechanical canon edits do NOT route through me and authored ones do: **DERIVED vs AUTHORED**, not mechanical vs interesting.
 
 - **A DEFECT A PEER ROUTINELY REPAIRS AS A SIDE EFFECT OF THEIR NORMAL WORK IS INVISIBLE TO THE NODE THAT PRODUCES IT** (dc). **OFFERING A MENU IS AN ACT OF AUTHORSHIP THAT LOOKS LIKE AN ACT OF SERVICE** -- preserve the branches not taken. **A PEER RELAYING THAT hv HAS NO OBJECTION IS NOT hv AUTHORISING.** **A FOLD INSTRUCTION IS NOT A TRUSTED SOURCE ABOUT YOUR OWN HISTORY** (ic). **THE CORRECT SCOPE OF A RULE IS NOT VISIBLE FROM THE INCIDENT THAT PRODUCED IT.**
+
+- **I TOLD THREE PEERS TO "PULL FIRST" AND IT HAS NO REFERENT** (ic's catch). **Five sessions share ONE working tree**, so a peer's commit is in my HEAD the moment they make it -- verified: both of ic's were already ancestors, no pull. **I was reasoning about the topology as if it were separate clones**, which is the same shape as every population error today: a true instruction applied to the wrong subject. **And the symmetric half is mine and corrects ic: "pushing only my own commits" is equally meaningless** -- one branch, one tree, so a push carries every peer commit since the last one, and it always has.
 
 ## DECISIONS -- LIVE ONLY
 
