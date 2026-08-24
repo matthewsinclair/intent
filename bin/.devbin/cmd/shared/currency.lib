@@ -97,12 +97,31 @@ artefact_pair_marker() {
 # Prints the count of non-test files under `native/rust/` that the COMMITTED
 # range <base>..HEAD touches. Prints `unknown` when git cannot answer.
 _rust_source_changed() {
-  local repo="$1" base="$2" changed
+  local repo="$1" base="$2" changed kept
   git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown'; return 0; }
   git -C "$repo" cat-file -e "${base}^{commit}" 2>/dev/null || { printf 'unreachable'; return 0; }
   git -C "$repo" merge-base --is-ancestor "$base" HEAD 2>/dev/null || { printf 'notancestor'; return 0; }
-  changed="$(git -C "$repo" diff --name-only "$base..HEAD" -- native/rust 2>/dev/null || true)"
-  printf '%s\n' "$changed" | grep -vE '(^|/)(tests|benches)/' 2>/dev/null | awk 'NF' | wc -l | tr -d ' '
+  # NOT `|| true`: its three neighbours above each turn a failure into a NAMED
+  # sentinel, and this line used to break that pattern. A swallowed failure left
+  # `changed` empty, the count 0 and the verdict `ok` -- THE GUARD FAILING OPEN,
+  # which is the one direction an ACTOR on PATH must never fail.
+  if ! changed="$(git -C "$repo" diff --name-only "$base..HEAD" -- native/rust 2>/dev/null)"; then
+    printf 'nodiff'
+    return 0
+  fi
+
+  # COUNT WITHOUT LETTING `grep`'s NO-MATCH BECOME THIS FUNCTION'S EXIT STATUS.
+  # A range touching ONLY `tests/` or `benches/` is the documented `ok` case, and
+  # there `grep -v` selects nothing and exits 1. As the last command of the
+  # function that rc IS the function's rc, so a caller running under `set -e`
+  # WITHOUT wrapping the call in `$( )` dies on the healthiest possible answer.
+  # `bin/intent3` survives only because a command substitution DISARMS errexit in
+  # the subshell (`$-` measured: `ehuBc` outside, `huBc` inside) -- ACCIDENTAL
+  # PROTECTION, not design, and the header two screens up promises that a library
+  # cannot kill its host. Found by critic-shell; the consequence it predicted did
+  # not reproduce, and the mechanism under it was real.
+  kept="$(printf '%s\n' "$changed" | grep -vE '(^|/)(tests|benches)/' || true)"
+  printf '%s\n' "$kept" | awk 'NF' | wc -l | tr -d ' '
 }
 
 # artefact_currency_verdict <release_dir> <repo>
@@ -131,6 +150,9 @@ artefact_currency_verdict() {
       return 0 ;;
     notancestor)
       printf 'refuse:the binaries name %s, which is not an ancestor of HEAD -- they describe a tree you are not standing on' "${base:0:12}"
+      return 0 ;;
+    nodiff)
+      printf 'refuse:git is present and reachable but the range query %s..HEAD failed, so currency cannot be decided -- an actor refuses rather than execing on an undecided answer' "${base:0:12}"
       return 0 ;;
   esac
 

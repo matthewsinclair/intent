@@ -29,6 +29,12 @@
 # legitimate state in which a tool exists and its disposition is undeclared --
 # the fix is one line below, and the point is to force it when the tool arrives.
 
+# `-e` IS DELIBERATELY OFF and that is recorded rather than left to be inferred
+# (critic-shell asked for the rationale, correctly). This is a findings
+# COLLECTOR: it probes, calls `add`, and keeps going so one run reports every
+# disagreement. Under `errexit` the first non-zero probe would abort and the
+# roster would report ONE finding and exit, which reads as a smaller problem
+# than it has.
 set -uo pipefail
 
 die() { echo "error: $1" >&2; exit 2; }

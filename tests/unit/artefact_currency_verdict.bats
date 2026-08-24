@@ -196,3 +196,42 @@ touch_test_only() {
   [ "$status" -eq 0 ]
   [[ "$output" == refuse:* ]]
 }
+
+# ---------------------------------------------------------------------------
+# THE HARNESS RAN UNDER DIFFERENT SHELL OPTIONS THAN THE ONLY PRODUCTION CALLER,
+# WHICH IS WHY EVERY ARM ABOVE PASSED OVER A FUNCTION RETURNING rc=1 ON ITS
+# HEALTHIEST ANSWER. bats sets neither `errexit` nor `pipefail`; `bin/intent3`
+# sets both. These arms drive the production options explicitly.
+
+@test "the verdict survives set -euo pipefail WITHOUT a command substitution to hide behind" {
+  plant "$BASE"
+  touch_test_only
+  # NOT `v=$(...)`: a command substitution DISARMS errexit in the subshell, which
+  # is the accident that kept `bin/intent3` alive. Call it where errexit is live.
+  run bash -c "
+    set -euo pipefail
+    . '${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/artefact.lib'
+    . '${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/currency.lib'
+    artefact_currency_verdict '$REL' '$REPO'
+    printf ' REACHED-THE-END'
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"REACHED-THE-END"* ]]
+}
+
+@test "_rust_source_changed returns rc=0 on a TEST-ONLY range -- grep's no-match is not a verdict" {
+  touch_test_only
+  run bash -c "
+    set -uo pipefail
+    . '${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/currency.lib'
+    _rust_source_changed '$REPO' '$BASE'
+  "
+  [ "$status" -eq 0 ]
+  [ "$output" = "0" ]
+}
+
+# NO ARM FOR THE `nodiff` SENTINEL. Making `git diff` fail while git is present,
+# the base reachable and the ancestry confirmed needs a corrupted object store,
+# and every cheap way I tried trips an EARLIER guard instead -- so the arm would
+# pass while driving a different refusal. AN ARM THAT CANNOT FAIL IS NOT A TEST,
+# and one that fires on the wrong branch is worse. Recorded as UNDRIVEN.
