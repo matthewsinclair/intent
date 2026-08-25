@@ -211,6 +211,39 @@ threads_at() {
   done <<< "$files"
 }
 
+# Is the thread $2 REALISED at revision $1 -- ie does `.intentfiles` DECLARE it?
+# A thread that is not declared is DEHYDRATED: its files are deliberately absent
+# and its recorded bytes live in canon's own `text`, which IS in the commit.
+#
+# **`intent/.intentfiles` IS NAMED AS A LITERAL FOR THE SAME REASON `att_dir_of`'s
+# PARENT IS.** Deriving it from wherever canon happens to sit is precisely what
+# produced a well-formed path to nowhere and 279 false positives on this tool's
+# first whole-tree run.
+#
+# **ABSENT IS NOT EMPTY, and `.intentfiles` says so itself: a missing file means
+# nobody has said.** So an unreadable or empty declaration counts EVERYTHING as
+# realised, and history before `.intentfiles` existed (2026-08-19) behaves
+# exactly as it did before this arm was written. That is the safe direction: this
+# arm can then only over-report, never under-report.
+realised_at() {
+  local rev="$1" st="$2" decl
+  decl="$(git show "$rev:intent/.intentfiles" 2>/dev/null)" || return 0
+  [ -n "$decl" ] || return 0
+  grep -qE "^STEELTHREAD:${st}([[:space:]]|#|$)" <<< "$decl"
+}
+
+# The sha256 of the bytes CANON ITSELF carries for attachment $3 of canon file $2
+# at revision $1. `jq -j` so nothing is appended: the hash must be over exactly
+# the recorded text and not over the text plus a newline jq added.
+#
+# An attachment with no `text` hashes the empty string, which cannot match a
+# recorded sha, so it reports rather than passing silently.
+canon_text_sha() {
+  git show "$1:$2" 2>/dev/null |
+    jq -j --arg p "$3" '(.attachments // [])[] | select(.path==$p) | .text // empty' 2>/dev/null |
+    shasum -a 256
+}
+
 # Emits "<thread>/<path> DIVERGED|ABSENT" per bad attachment at $1.
 diverged_at() {
   local rev="$1" only="${2:-}" tj st adir atts sha path blob have files
@@ -233,7 +266,32 @@ diverged_at() {
       blob="$adir/$path"
       [ -z "$only" ] || grep -qxF "$blob" "$only" || continue
       if ! git cat-file -e "$rev:$blob" 2>/dev/null; then
-        echo "$st/$path ABSENT"; continue
+        # **A MISSING FILE IS NOT THE SAME QUESTION AS MISSING BYTES, AND THIS
+        # ARM USED TO CONFLATE THEM.** AC-03.6 states the invariant as _every
+        # attachment's recorded bytes are OBTAINABLE from that commit_ and names
+        # both sides -- "the `text` in canon, and `git cat-file blob :$path` for
+        # the file it came from". This tool only ever consulted the second, so a
+        # DEHYDRATED thread -- files deliberately removed, canon retaining the
+        # bytes -- reported ABSENT while fully satisfying the criterion. Measured
+        # 2026-08-25: 54 threads already carry that shape, and they pass only
+        # because narrowed mode never examines a thread the commit did not touch.
+        # The first commit to actually dehydrate one is refused.
+        #
+        # So the absence splits. Declared in `.intentfiles` and the file is gone:
+        # a broken realisation, ABSENT as before -- this is the arm that keeps
+        # `c4f9bcbe` caught, where canon ran ahead of the commit. NOT declared:
+        # dehydrated, and the bytes are obtainable from canon, so verify THAT.
+        #
+        # **Checking canon's text alone would have been the weakening**: canon
+        # ingested `c4f9bcbe`'s uncommitted bytes, so its text hashes correctly
+        # and it would sail through. The `.intentfiles` arm is the whole
+        # difference between fixing this guard and quietly retiring it.
+        if realised_at "$rev" "$st"; then
+          echo "$st/$path ABSENT"; continue
+        fi
+        have="$(canon_text_sha "$rev" "$tj" "$path")"
+        [ "${have%% *}" = "$sha" ] || echo "$st/$path ABSENT"
+        continue
       fi
       have="$(git cat-file blob "$rev:$blob" | shasum -a 256)"
       [ "${have%% *}" = "$sha" ] || echo "$st/$path DIVERGED"
