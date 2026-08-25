@@ -142,10 +142,19 @@ _v2_route() {
 # FIRST VERSION OF THIS COMMENT SAID** (vc, challenging it; driven here before
 # taking it). **HAVING route 1 IS NOT RUNNING IT.** This file is NOT a rostered
 # pre-commit arm -- `bin/.devbin/cmd/precommit` does not mention it -- so
-# nothing runs it on a commit. Its callers are exactly three: CI (which now
-# takes the proxy and REPORTS), `int suite` (MANUAL), and
-# `bin/.devbin/cmd/build.d/release` (automatic, but only at release, on a
-# machine that has route 1).
+# nothing runs it on a commit. Its callers are FOUR, enumerated rather than
+# counted from memory -- the first version of this comment said "exactly three"
+# and was one short, which is this file's own subject arriving in the sentence
+# that corrects it:
+#
+#   .github/workflows/tests.yml          CI -- now takes the proxy and REPORTS
+#   bin/.devbin/cmd/suite                `int suite` -- MANUAL
+#   bin/.devbin/config.yaml:91           `test shell` -- MANUAL
+#   bin/.devbin/cmd/build.d/release:380  automatic, but only AT RELEASE
+#
+# (vc caught the miscount and named `cmd/shared/measure.lib`; the fourth caller
+# is real but that is not where it lives. **A correct finding can carry a wrong
+# citation, and the citation is the half that gets reused.**)
 #
 # So the honest statement is neither "every node has it" nor "nothing runs it
 # automatically": **between commits this property is enforced only when somebody
