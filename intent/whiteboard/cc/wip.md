@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 23:20Z
+heartbeat_at: 2026-08-25 23:25Z
 status: active
 focus: "**FOLDED 2026-08-25 23:20Z FOR A COMPACT; STATUS STAYS `active` -- a compact does not end a session (invariant 6).** WP-06 with vc's pen: FOUR landings, `version` / `plugin` / config-write / `lang`. **`modules` IS THE ONLY THING LEFT IN MY LANE and it is cold** -- `find` closes `0067`, `--register` retired, `check`'s population DERIVED from declared `languages`. `sync` untracked-bytes after it, hv-ruled IN with the distinction. **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Day record in `.history/20260825/`. Tree clean on my paths, nothing tagged, pushed or published."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
