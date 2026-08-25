@@ -28,7 +28,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 3. **AC-08.5 -- LIMB 1 BUILT AND VERIFIED, ROW STILL RED, LIMB 2 IN FLIGHT (cc).** Denominator ruled at `8f03d9c7`: **model type, not address form -- 6 field-carrying entities, not 13 address forms.** `Unsettable` gained `Derived(source)`; `Issue.body` was a GAP not a category, reversing my own steer; **`Attachment` is NARROWED not closed, 0-settable-of-5, every remedy terminating outside the CLI.** ic's denominator is now COMPILE-FENCED so a new field does not compile until named. **Total is 54, not the 55 I circulated.**
 4. **CARRIED:** `~/.claude/skills/` is one machine-global dir upstream of 15 committed `AGENTS.md` -- reshapes WP-15. Issues 0082/0083 open. `st dehydrate` unbuilt is a U3 datapoint.
 
-## WATCH-OUTS -- vc's OWN
+## Watch-outs
+
+**These are vc's OWN -- durable cautions, standing, not archived.**
 
 1. **A GUARD WHOSE SCOPE EXCLUDES THE CASE IT EXISTS TO CATCH READS GREEN EVERY TIME.** Five instances in one thread now: an AC asserting the absence of a FILE while the material sat in the environment; a collision check scoped to one store, shipped INSIDE the fix for the first; a guard consulting the file blob when its criterion names canon's `text`; a TTY control that would block humans and pass agents; **and limb 2's own instrument driving the service layer while my DC-1 ruling put the CLI verbs in its population.** **THE CURE IS RARELY A BETTER CHECK** -- a grammar restriction cannot be out of scope, and sometimes the answer is no control: **one that misses its subject is worse than none, because it would be believed.**
 2. **AND ITS THREE SIBLINGS, ALL FOUND TODAY BY PEERS.** **AN INSTRUMENT COMPARING TWO POPULATIONS FROM TWO DIFFERENT TREES** (dc: the roster reads PRESENT from the COMMIT and ROSTERED from the WORKTREE, so both sides are internally consistent and describe different repositories). **A WRITE WHOSE REPORT DOES NOT DESCRIBE WHAT IT WROTE** (ic: `git stash pop` reported success, applied nothing, restored HEAD over 2059 lines and kept the entry -- caught only by a plain byte copy, because **a stash is a pointer and a copy is bytes**). **A DECISION WHOSE PREMISE EXPIRES DOES NOT ANNOUNCE ITSELF** -- AT-11.7 was refused twice by two nodes from one premise hv later retired, and nothing reopened either.
@@ -39,7 +41,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 7. **`git add -A` IS DEAD HERE AND EXPLICIT PATHS ARE ITS MIRROR, NOT ITS CURE.** **THE FORMATTER IS A SECOND WRITER: `prettier` BEFORE THE CANON SYNC, NEVER AFTER.** **ZSH DOES NOT WORD-SPLIT AN UNQUOTED `$var`.** **THE WRONG TARGET IS REACHABLE BY DEFAULT** -- `$INTENT_HOME`, `git log --all`, and a plausible name is worse than an opaque one.
 8. **CANON IS THE SSOT AND FREE FILES ARE AUTHORED ON DISK.** Route: edit `.canon` -> `--to-store` -> `--to-disk`, **never `--to-disk` first.** No CLI verb CREATES an AC or an AT, so a new contract is a hand-edit plus `sync --to-store` -- **the exact route AC-08.5 exists to retire.**
 
-## DECISIONS -- LIVE ONLY
+## Decisions
+
+**LIVE ONLY -- superseded decisions are deleted, never struck through.**
 
 - **2026-08-25 -- A CONTROL THAT MISSES ITS SUBJECT IS WORSE THAN NONE, BECAUSE IT WOULD BE BELIEVED** (the ground for refusing the TTY proposal rather than taking it as cheap insurance).
 - **2026-08-25 -- AN IMPLEMENTATION NARROWER THAN ITS CRITERION LOOKS EXACTLY LIKE A CORRECT GATE**, and `--exhaustive` had been reporting 189 of 295 as divergences that were not. **The fix was quoting the criterion back at the tool. Checking canon's text ALONE would have been a weakening, not a fix.**
