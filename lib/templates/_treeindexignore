@@ -1,0 +1,42 @@
+# .treeindexignore - patterns to exclude from treeindex generation
+#
+# RETAINED THROUGH THE treeindex RETIREMENT, AS A DEPENDENCY AND NOT AS A
+# FEATURE. hv retired treeindex from v3 on 2026-08-15 and ruled `bin/` decided
+# WHOLE and separately, so `bin/intent_treeindex` stays -- and it reads this
+# file at :443 via $INTENT_HOME. vc deleted it on 2026-08-25 anyway, reasoning
+# that nothing in this tree executes v2. THE TEST SUITE EXECUTES IT: 42 tests
+# in tests/unit/treeindex_commands.bats went red across both CI platforms.
+#
+# Nothing installs it into a consumer any more -- that machinery is gone from
+# intent_claude_upgrade. It exists solely to satisfy the retained script, and
+# it goes when bin/ goes.
+# Lines starting with # are comments
+# Lines ending with / match directory names
+# Other lines match file names (glob patterns)
+
+# Build artifacts
+_build/
+deps/
+node_modules/
+cover/
+
+# IDE and tool directories
+.git/
+.elixir_ls/
+# Intent metadata (intent/.config/cache + backup excluded; config.json itself
+# stays indexed -- it tells the LLM which Intent version + author this project
+# is on).
+intent/.config/cache/
+intent/.config/backup/
+.treeindex/
+
+# Generated assets
+priv/static/assets/
+
+# System files
+.DS_Store
+
+# Compiled files
+*.beam
+*.ez
+erl_crash.dump

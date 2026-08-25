@@ -228,7 +228,7 @@ _is_pending_backport() {
 # is the guard working: a single-tree landing became visible immediately
 # instead of silently reaching nobody. The fix was to declare the intent, not
 # to widen the walk.
-V3_ONLY_BY_RULING="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md intent/plugins/claude/skills/in-essentials/SKILL.md lib/templates/.claude/scripts/require-in-session.sh lib/templates/hooks/canon-ignore-guard.sh lib/templates/prime/operational-knowledge.md"
+V3_ONLY_BY_RULING="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md intent/plugins/claude/skills/in-essentials/SKILL.md lib/templates/.claude/scripts/require-in-session.sh lib/templates/hooks/canon-ignore-guard.sh lib/templates/prime/operational-knowledge.md lib/templates/_treeindexignore"
 _is_v3_only_by_ruling() {
   case "$1" in
     # hv 2026-08-24: v3 restores the agnostic pair, rewritten. Intentv2 frozen.
@@ -244,6 +244,14 @@ _is_v3_only_by_ruling() {
     lib/templates/.claude/scripts/require-in-session.sh) return 0 ;;
     lib/templates/hooks/canon-ignore-guard.sh) return 0 ;;
     lib/templates/prime/operational-knowledge.md) return 0 ;;
+    # THE ONE ENTRY HERE THAT IS A SCAR RATHER THAN A DECISION. The file is
+    # byte-identical to v2's except for a header vc added on 2026-08-25 saying
+    # why it survived the treeindex retirement -- vc DELETED it, breaking 42
+    # tests on both CI platforms, because `bin/intent_treeindex:443` reads it
+    # and hv had ruled `bin/` KEPT. The annotation is v3-only because the
+    # ruling and the dependency are; v2 has no reason to carry either. It goes
+    # when bin/ goes, and this row goes with it.
+    lib/templates/_treeindexignore) return 0 ;;
     *) return 1 ;;
   esac
 }
