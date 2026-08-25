@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 17:17Z
+heartbeat_at: 2026-08-25 17:40Z
 status: active
 focus: "**DRIVING THE FLEET ON hv's IMPRIMATUR WHILE hv IS AFK -- cc, ic AND dc ALL LIVE AND BUILDING.** AC-08.5's field-axis denominator is RULED and landed at `8f03d9c7`, which was cc's stated blocker. cc builds two `settable_fields` arms + the thread-door graft; ic builds the field-axis instrument; dc has AT-11.6 then `hook_compat.rs`. **TWO THINGS ARE WITH hv AND ONE IS A CUT BLOCKER: WP-14 blocks WP-12, and AT-11.7 was refused twice from one premise and never asked.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -23,10 +23,10 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## TODO
 
-1. **WITH hv, NONE MINE TO DECIDE:** A1 the deciding check on the commit trailer; A3 WP-15 timing; A4 `fileindex`; A5 `--force` version mismatch; A6 **ST0058's contract -- now the blocking one, since the thread cannot report at all without it**; A7 **TODO 8 -- rule BEFORE 0077's wiring, or the two-writer shape arrives by construction**; A8 dc's three. **A2 is ruled and waits on hv's word to dc IN dc's OWN SESSION.**
-2. **ST0060: DE-REALISED, NOTHING OWED.** 20 ACs, 16 ATs, `0/20 BLOCKED`, Triage, post-3.0.0. Only open item is **AC-00.16 -- ONE Lamplight read against whatever revision it is scheduled at, and not before.** devbin is told, holding, no thread; **the trigger is stage 0 of ST0060's OWN breakdown**, ours to pull. Hydrate with `intent3 st hydrate ST0060`.
-3. **`~/.claude/skills/` IS ONE MACHINE-GLOBAL DIRECTORY UPSTREAM OF 15 COMMITTED `AGENTS.md` FILES.** Six estates carry the stale description. **`skills sync --force` FROM A v2 ESTATE REGRESSES ALL OF THEM.** This reshapes what WP-15 IS.
-4. **CARRIED:** AC-08.5's denominator in doubt on the FIELD axis. `declared_but_unwired` adequacy. The marker's per-crate staleness. Issues 0082 (`sync --to-disk` skips attachments) and 0083 (`st hydrate` says `exists:` for a file it wrote) are filed and open.
+1. **WITH hv, NONE MINE TO DECIDE:** A1 commit trailer; A3 WP-15 timing; A4 `fileindex`; A5 `--force` version mismatch; A6 **ST0058's contract -- NO LONGER BLOCKING, six criteria landed at `562d48d`, the thread reports `0/6` instead of refusing; what remains with hv is SCOPE, which gates bind the 3.0.0 cut**; A7 TODO 8 ordering; A8 dc's three, now NAMED (A2 attribution guard; the roster-charter ruling; **AT-11.7 scope, which had NEVER been put to hv -- refused twice by two nodes from one premise hv has since retired**). **NEW: A9** the roster check reading two populations from two trees; **A10** two estate-wide commit blocks, half the second mine; **A11** limb 2's denominator. **A2 STAYS HELD -- hv is AFK and I will not relay.**
+2. **THE CUT BLOCKER, AND IT IS THE MOST IMPORTANT THING ON THIS BOARD: WP-14 BLOCKS WP-12 AND THE DEPENDENCY IS STATED NOWHERE.** `AC-12.1` prunes `bin/` at the cut; the `claude ws` family -- the whiteboard PROVISIONER -- is contracted in **WP-14** (`AC-14.10`), Not Started. **At the cut the provisioner does not degrade, it DISAPPEARS.** And the obvious fix is wrong: `AC-14.7` serves every `/in-whiteboard` verb FROM THE STORE, so porting the file-based implementation builds the thing WP-14 exists to replace. **I assigned that port to dc and dc refused it against a contract read.** Both WPs unclaimed.
+3. **AC-08.5 -- LIMB 1 BUILT AND VERIFIED, ROW STILL RED, LIMB 2 IN FLIGHT (cc).** Denominator ruled at `8f03d9c7`: **model type, not address form -- 6 field-carrying entities, not 13 address forms.** `Unsettable` gained `Derived(source)`; `Issue.body` was a GAP not a category, reversing my own steer; **`Attachment` is NARROWED not closed, 0-settable-of-5, every remedy terminating outside the CLI.** ic's denominator is now COMPILE-FENCED so a new field does not compile until named. **Total is 54, not the 55 I circulated.**
+4. **CARRIED:** `~/.claude/skills/` is one machine-global dir upstream of 15 committed `AGENTS.md` -- reshapes WP-15. Issues 0082/0083 open. `st dehydrate` unbuilt is a U3 datapoint.
 
 ## WATCH-OUTS -- vc's OWN
 
