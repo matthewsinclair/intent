@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 10:35Z
+heartbeat_at: 2026-08-25 11:13Z
 status: active
 focus: "**hv ASSIGNED ID NORMALISATION IN CHAT 2026-08-25 -- PLANNED, NOT STARTED, REPORTED TO vc FOR THE PROJECT-WIDE SYNC.** `st edit 59` refuses; hv wants `59`/`ST59`/`ST0059`, extended to `s59` -> thread and `i59` -> issue. **IT IS A v2 PARITY REGRESSION: `intent_helpers:688 normalise_st_id` DOES THIS IN v2, v3 KEPT THE ISSUE HALF AND DROPPED THE THREAD HALF.** **POPULATION IS 21 VERBS ACROSS TWO DOORS, AND NINE OF THEM REPORT A MALFORMED ID AS A NOT-FOUND** -- the one wrong answer `promote`'s own doc names. Two contract questions with vc: the normaliser's home, and refusing a wrong-collection tag BY NAME. **GATE UNCHANGED AT 66 OF 67, DRIVEN NOT TRANSCRIBED.** Nothing in flight, both trees clean."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -90,6 +90,18 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 4. **zsh COST ME FOUR PROBES IN ONE DAY AND EVERY ONE ANSWERED PLAUSIBLY.** Unquoted `$v` (no word-split, `claude skills` arrived as one arg and would have CONFIRMED a stale claim I was refuting); `head -5` read as an absence; unquoted `--include=*.rs` dying on the glob and printing nothing; nested quotes in a probe. **Write the probe to a file instead of fighting the quoting**, and **gate a commit on its check with `&&`** -- ic's remedy, and my board blocks had exactly that defect.
 
 5. **A CLAIM ABOUT A FILE ANOTHER NODE WRITES HAS A SHELF LIFE OF ZERO, AND MY FOLD SHIPPED ONE.** I wrote _all four inboxes at the sentinel_ into the focus line of `40a0d191`. It was true when I cleared them at `cb142147` and false by the time I committed: **dc appended their guards announce 32 seconds earlier at `851ae74a`.** Nothing was wrong with the observation; it was simply about a file whose single writer is somebody else, **so the interval in which it stayed true was bounded by dc's typing and not by anything I control.** The board's own discipline is _verify in the COMMIT, not the file_, and I applied it to the sections I cut and not to the sentence describing my inboxes. **Re-read a peer-written file at the moment you assert its state, not at the moment you last set it.**
+
+## COMMIT TRAILERS -- I REMOVED THE RIGHT LINE AND THE WRONG ONE TOGETHER -- 2026-08-25
+
+**THE RULE (`CLAUDE.md:76`, and hv's global): NO AI ATTRIBUTION IN COMMITS, EVER.** `Claude-Session: https://...` is exactly that. dc found it, hv set `includeCoAuthoredBy: false` globally, **and the setting does NOT reach a running session** -- the environment instruction to append it was injected at session start. Omit by hand until the next session start. **Keep `(C) hello@matthewsinclair.com` -- that is hv's own attribution and stays.**
+
+**MY COUNT IS ONE, AND IT IS THE FIRST COMMIT I MADE:** `99e29957`. Zero across the 21 since; I stopped on my own before anyone raised it. **vc's instrument note is real and I measured it: anchored 81, unanchored 82 over the same 200.** The extra is `6816e1e9`, whose body ANNOUNCES the removal -- **a census of a string catches the commit that says it stopped emitting the string.** Anchor on `^Claude-Session:`.
+
+**AND THE FINDING IS THE OTHER HALF, WHICH THE FLEET MESSAGE ASSUMES IS SAFE: I DROPPED `(C)` TOO, THREE COMMITS AGO, SILENTLY.** 19 of 19 carried it up to `44e3c684`; **0 of 3 from `cea8a49d`, my first commit after the compact.** Nobody told me to remove it and nothing reported that I had.
+
+**IT IS NOT MINE ALONE AND IT DOES NOT RUN THE WAY I FIRST WROTE IT.** Over the last 120 commits: ic 30/30 and dc 7/7 clean, **vc MISSING 9, hv 2 of 3, me 3.** I was about to report _a compact drops it_ -- **vc's nine missing run 08-25 08:30 to 10:08 and END at `86d158be`, their own boot-after-compact commit. A COMPACT RESTORED IT FOR THEM AND DROPPED IT FOR ME.** Same boundary, opposite directions, so the tidy mechanism is false and the true one is weaker and worse: **the line is carried by habit re-derived at every boundary and checked by nothing.** It flips both ways, silently, and the only reason anyone knows is that I counted.
+
+**THE STRUCTURAL CAUSE IS THAT THE FORBIDDEN LINE AND THE REQUIRED LINE SHARE ONE HOME.** The environment instruction emits both as a single block, so removing the forbidden half by hand puts the kept half at risk **on every single commit** -- and the node relaying _keep `(C)`_ to the fleet had dropped it nine times that morning. **Not a gotcha: it is the evidence that intent alone cannot carry this.** Neither of us was careless and both of us drifted. **A guard or a `commit.template` would close it; four guards already run on every commit here.** Hooks are dc's lane -- routed, not built.
 
 ## Lane and build recipe -- cc-specific
 
