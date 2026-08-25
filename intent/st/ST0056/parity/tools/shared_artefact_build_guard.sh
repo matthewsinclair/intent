@@ -69,12 +69,18 @@ fi
 # which reads as a guard failure and is not one.
 scratch_repo() {
   local d="$1"
-  git -C "$d" init -q 2>/dev/null || return 1
+  # SEE `sharedtarget.lib`s isolation note. `git -C` does NOT override GIT_DIR or
+  # GIT_INDEX_FILE, and git exports both into hook environments -- so under the
+  # pre-commit gate these three calls ran against THIS repository`s index and
+  # staged the fixture into it, naming an object the outer repo cannot resolve
+  # (`error: Error building trees`). It blocked every commit in the estate.
+  local G="env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR git"
+  $G -C "$d" init -q 2>/dev/null || return 1
   mkdir -p "$d/native/rust/crates/thing/src"
   printf 'fn main() {}\n' > "$d/native/rust/crates/thing/src/main.rs"
   printf 'placeholder\n' > "$d/README.md"
-  git -C "$d" add -A >/dev/null 2>&1 || return 1
-  git -C "$d" -c user.email=guard@test -c user.name=guard commit -qm base >/dev/null 2>&1 || return 1
+  $G -C "$d" add -A >/dev/null 2>&1 || return 1
+  $G -C "$d" -c user.email=guard@test -c user.name=guard commit -qm base >/dev/null 2>&1 || return 1
   return 0
 }
 
@@ -247,6 +253,58 @@ elif grep -q 'PRIVATE_RELEASE_DIR' "$LOCAL_CMD" && grep -q 'CARGO_TARGET_DIR' "$
   ok "arm 8 -- a refused build is redirected to a private CARGO_TARGET_DIR rather than blocked"
 else
   fail "arm 8 -- no private redirect in $LOCAL_CMD; a guard that stops the build outright is a freeze, and a freeze gets bypassed"
+fi
+
+
+# ------------------------------- ARM 9: THE HOOK ENVIRONMENT DOES NOT LEAK IN
+# **THE ARM THAT DID NOT EXIST WHEN THIS FILE WENT GREEN, AND ITS ABSENCE
+# BLOCKED EVERY COMMIT IN THE ESTATE.** `git -C <dir>` changes the WORKING
+# DIRECTORY and does NOT override `GIT_DIR`, `GIT_INDEX_FILE` or `GIT_WORK_TREE`
+# -- and git EXPORTS ALL THREE INTO HOOK ENVIRONMENTS. Rostered `gated`, this
+# file first ran from inside the pre-commit hook, where its fixtures' `git add`
+# staged into THE OUTER REPOSITORY'S index, naming an object that repository
+# cannot resolve. `error: Error building trees`, on every commit, for every node.
+#
+# **THE HARNESS WAS THE ONE ENVIRONMENT WHERE THE DEFECT COULD NOT APPEAR.** Nine
+# arms, mutation-proven four ways, all run standalone -- where `GIT_DIR` is unset
+# and `git -C` is sufficient. **Mutation testing varies the SUBJECT and holds the
+# ENVIRONMENT fixed, so no number of mutations could have found this.** The
+# estate's own class, arriving one axis over: not an instrument scoped narrower
+# than its criterion, but an instrument whose HARNESS excluded the failure.
+#
+# **AND IT WAS NOT ONLY THE FIXTURES.** The same inheritance made
+# `shared_target_verdict` answer about the HOOK'S repository rather than the one
+# it was handed -- measured, with `GIT_DIR` set and cwd an empty fixture, `status`
+# printing the outer repository's tracked paths as deleted. **A predicate whose
+# whole contract is _about the tree you named_ was silently about a different
+# one.** Arms 1-6 would have passed anyway, reading the outer tree and getting
+# plausible answers from it, which is why this arm asserts the SUBJECT and not
+# just the absence of damage.
+outer="$TMP/outer"; inner="$TMP/inner"
+mkdir -p "$outer" "$inner"
+if ! scratch_repo "$outer" || ! scratch_repo "$inner"; then
+  fail "arm 9 could not build its two fixtures"
+else
+  # `outer` is DIRTY, `inner` is CLEAN. Under a leaking environment the verdict
+  # about `inner` comes back as the dirty answer, which is the whole tell.
+  printf 'fn main() { /* the outer tree is dirty */ }\n' > "$outer/native/rust/crates/thing/src/main.rs"
+  outer_index_before="$(shasum -a 256 "$outer/.git/index" 2>/dev/null | awk '{print $1}')"
+  verdict="$(GIT_DIR="$outer/.git" GIT_INDEX_FILE="$outer/.git/index" shared_target_verdict "$inner")"
+  outer_index_after="$(shasum -a 256 "$outer/.git/index" 2>/dev/null | awk '{print $1}')"
+  case "$verdict" in
+    ok) ok "arm 9 -- with GIT_DIR set, the verdict is still about the tree it was HANDED" ;;
+    *)  fail "arm 9 -- with GIT_DIR set, a CLEAN subject returned '$verdict'; the predicate answered about the hook's repository rather than the one it was given" ;;
+  esac
+  # The second half: a fixture must never write to the ambient index. This is the
+  # arm that would have caught the estate-wide block directly.
+  scratch_repo "$TMP/leak" >/dev/null 2>&1 || true
+  GIT_DIR="$outer/.git" GIT_INDEX_FILE="$outer/.git/index" scratch_repo "$TMP/leak2" >/dev/null 2>&1 || true
+  outer_index_final="$(shasum -a 256 "$outer/.git/index" 2>/dev/null | awk '{print $1}')"
+  if [ "$outer_index_after" = "$outer_index_final" ] && [ -n "$outer_index_after" ]; then
+    ok "arm 9 -- building a fixture under a set GIT_INDEX_FILE does not touch the ambient index"
+  else
+    fail "arm 9 -- building a fixture MUTATED the ambient index ($outer_index_after -> $outer_index_final). This is the estate-wide commit block: the fixture stages into the outer repository, naming an object it cannot resolve."
+  fi
 fi
 
 printf 'shared-artefact-guard: %d arm(s) passed\n' "$pass"

@@ -72,6 +72,20 @@
 # what a verdict costs, because a library that kills its host cannot be used by a
 # reporter and an actor both.
 
+# GIT ENVIRONMENT ISOLATION, AND IT IS NOT DEFENSIVE PROGRAMMING -- IT IS A
+# CORRECTNESS BUG THIS LIBRARY HAD FOR ITS FIRST DAY. `git -C <dir>` changes the
+# WORKING DIRECTORY and does NOT override `GIT_DIR`, `GIT_INDEX_FILE` or
+# `GIT_WORK_TREE` -- and git EXPORTS ALL THREE INTO HOOK ENVIRONMENTS. So called
+# from inside a pre-commit hook, `git -C "$repo" status` answered about the
+# repository the HOOK belongs to rather than the one it was handed, whatever
+# `$repo` said. Measured: with `GIT_DIR` set and cwd an empty fixture, `status`
+# printed the OUTER repository`s tracked paths as deleted.
+#
+# THE PREDICATE`S WHOLE CONTRACT IS *ABOUT THE TREE YOU NAMED*, so a caller that
+# cannot choose the tree is not a caller of this function at all. The unset list
+# is the isolation; `git -C` alone never was.
+GIT_ISOLATED="env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR git"
+
 # The pathspec the marker uses, verbatim. See the scope paragraph above.
 SHARED_TARGET_DIRT_SCOPE=':(top)native/rust'
 
@@ -83,12 +97,12 @@ SHARED_TARGET_DIRT_SCOPE=':(top)native/rust'
 # be read as it.
 shared_target_dirt() {
   local repo="$1" out
-  git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown\n'; return 0; }
+  $GIT_ISOLATED -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown\n'; return 0; }
   # A NAMED SENTINEL RATHER THAN `|| true`, for the reason its neighbour in
   # `currency.lib` records: a swallowed failure leaves the output empty, empty
   # reads as CLEAN, and the guard fails OPEN -- the one direction a guard on the
   # build path must never fail.
-  if ! out="$(git -C "$repo" status --porcelain -- "$SHARED_TARGET_DIRT_SCOPE" 2>/dev/null)"; then
+  if ! out="$($GIT_ISOLATED -C "$repo" status --porcelain -- "$SHARED_TARGET_DIRT_SCOPE" 2>/dev/null)"; then
     printf 'unknown\n'
     return 0
   fi
