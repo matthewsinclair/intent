@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 90,
+  "slug": "issues-add-creates-a-body-that-no-verb-can-write",
+  "title": "issues add creates a body that no verb can write, and the refusal that makes it unreachable names the form instead of the field",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-25",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}
