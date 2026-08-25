@@ -4386,21 +4386,10 @@ impl Facade {
   /// time. Derived from the model's own schema, so the answer cannot drift from
   /// what [`Facade::set`] will actually do.
   pub fn settable_fields(entity: &AddrEntity) -> Result<Vec<String>, FacadeError> {
-    let declared = match entity {
-      AddrEntity::Thread { .. } => schema_properties::<Thread>(),
-      AddrEntity::Wp { .. } => schema_properties::<WorkPackage>(),
-      AddrEntity::Ac { .. } => schema_properties::<Criterion>(),
-      AddrEntity::At { .. } => schema_properties::<AcceptanceTest>(),
-      other => {
-        return Err(FacadeError::WriteNotAddressable {
-          url: format!("a {} address", other.form()),
-          why: "the narrow setter reaches a thread, a work package, a criterion and an \
-                acceptance test -- an attachment's body is its content, and the rest are \
-                collections or append-only logs"
-            .to_string(),
-        });
-      }
-    };
+    let declared = fields_of(entity).map_err(|fieldless| FacadeError::WriteNotAddressable {
+      url: format!("{} {} address", article_for(entity.form()), entity.form()),
+      why: fieldless.why(),
+    })?;
     Ok(
       declared
         .into_iter()
@@ -4549,6 +4538,27 @@ impl Facade {
           Subject {
             kind: "at".to_string(),
             id: format!("{thread}/{at}"),
+          },
+        )
+      }
+      AddrEntity::Issue { id } => {
+        let n =
+          crate::model::normalise_issue_id(id).map_err(|_| FacadeError::WriteNotAddressable {
+            url: address.to_url(),
+            why: format!("`{id}` is not an issue id"),
+          })?;
+        let existing = find_issue_mut(&mut next, n)?;
+        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        };
+        *existing = row;
+        (
+          "issue.set",
+          Subject {
+            kind: "issue".to_string(),
+            id: format!("{n:04}"),
           },
         )
       }
@@ -5185,6 +5195,17 @@ const CHILD_COLLECTIONS: [(&str, &str); 4] = [
 /// all. A field set read off an instance would answer *not a field of this
 /// entity* for `completed` on precisely the row that needs it, and the refusal
 /// would look perfectly correct on its way past.
+/// `a` or `an`, so a refusal cannot say *a issue*.
+///
+/// Issue 0081: seven of `Entity::form()`'s fourteen values are vowel-initial and
+/// two shipped messages glued a bare `a` in front of them.
+fn article_for(form: &str) -> &'static str {
+  match form.chars().next() {
+    Some('a' | 'e' | 'i' | 'o' | 'u') => "an",
+    _ => "a",
+  }
+}
+
 fn schema_properties<T: schemars::JsonSchema>() -> std::collections::BTreeSet<String> {
   let schema = serde_json::to_value(schemars::schema_for!(T))
     .expect("a schemars schema serialises to JSON by construction");
@@ -5195,15 +5216,96 @@ fn schema_properties<T: schemars::JsonSchema>() -> std::collections::BTreeSet<St
     .unwrap_or_default()
 }
 
+/// Why an address form contributes NO fields to AC-08.5's surface.
+///
+/// **A FORM WITH NO FIELDS IS NOT A GAP, BUT IT OWES A REASON.** The criterion
+/// asks for an unwritable field to be reported BY NAME; a form with no fields at
+/// all has nothing to name, so what it owes instead is why -- and the reason has
+/// to be TRUE of the form it is given for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Fieldless {
+  /// Membership, not fields. Writing one would mean applying or dropping the
+  /// whole collection, and both are silent about the other.
+  Collection,
+  /// Rows are appended whole (D53), so there is no field to set.
+  AppendOnly,
+  /// The address form was minted in the grammar ahead of its model, so there is
+  /// no type to derive fields FROM. **Not a decision that it should have none.**
+  NoModelYet(&'static str),
+}
+
+impl Fieldless {
+  /// The reason, TRUE of the form it is given for.
+  ///
+  /// **THIS REPLACES A SENTENCE THAT WAS FALSE FOR TWO OF THE FORMS IT
+  /// EXPLAINED.** `settable_fields` refused everything outside its four arms
+  /// with *an attachment's body is its content, and the rest are collections or
+  /// append-only logs* -- and `Issue` is neither a collection nor a log, nor is
+  /// `Node`. So an operator refused on `intent:///issues/0081` was told they had
+  /// addressed a collection. **A wrong reason is worse than no reason: it reads
+  /// as a considered explanation and sends the reader somewhere real.** Derived
+  /// per form now, so it cannot describe a set it was not given.
+  pub fn why(&self) -> String {
+    match self {
+      Self::Collection => "a collection has membership rather than fields -- address a member \
+         and set the field there"
+        .to_string(),
+      Self::AppendOnly => "this is an append-only log (D53): rows are added whole and never \
+         edited, so there is no field to set"
+        .to_string(),
+      // **THE OWNER IS A CODE COMMENT, NOT A SHIPPED STRING.** The first draft
+      // interpolated `ST0056/WP-14` into the operator's refusal, and
+      // `no_pm_state_in_output` refused it: a consumer reading this learns
+      // nothing they can act on from OUR work-package id, and Intent's own
+      // project-management state has no business in Intent's output. Same rule
+      // that moved a worked example off a real thread id an hour ago.
+      Self::NoModelYet(what) => format!(
+        "{what} has no model type yet, so there are no fields to set here -- the address form \
+         exists in the grammar ahead of the type behind it, and until that lands there is \
+         nothing to derive a field list from"
+      ),
+    }
+  }
+}
+
+/// **THE mapping from an address form to the model behind it, and the ONLY one.**
+///
+/// It was written twice -- here and inside `settable_fields` -- which is the
+/// two-homes defect sitting inside the criterion about surface completeness.
+///
+/// # The match is exhaustive ON PURPOSE, and that is the announcement mechanism
+///
+/// vc's ruling (2026-08-25): **the population is DERIVED from the model, never
+/// enumerated in prose**, so a type arriving later joins without anybody
+/// remembering. A `_` arm here would swallow a fourteenth `Entity` variant into
+/// whichever bucket it happened to fall in; naming every variant means adding
+/// one **fails to compile** until someone says which side it is on. A guard whose
+/// scope silently excludes the case it will later need is the class this
+/// criterion keeps producing, and the fix for it must not commit it.
+fn fields_of(entity: &AddrEntity) -> Result<std::collections::BTreeSet<String>, Fieldless> {
+  match entity {
+    AddrEntity::Thread { .. } => Ok(schema_properties::<Thread>()),
+    AddrEntity::Wp { .. } => Ok(schema_properties::<WorkPackage>()),
+    AddrEntity::Ac { .. } => Ok(schema_properties::<Criterion>()),
+    AddrEntity::At { .. } => Ok(schema_properties::<AcceptanceTest>()),
+    AddrEntity::Attachment { .. } => Ok(schema_properties::<crate::model::Attachment>()),
+    AddrEntity::Issue { .. } => Ok(schema_properties::<crate::model::Issue>()),
+    AddrEntity::Threads
+    | AddrEntity::Issues
+    | AddrEntity::WpCollection { .. }
+    | AddrEntity::AcCollection { .. } => Err(Fieldless::Collection),
+    AddrEntity::Event { .. } | AddrEntity::NodeInbox { .. } => Err(Fieldless::AppendOnly),
+    // **HELD WITH hv, NOT SETTLED HERE.** Whether the model should carry a
+    // `Node` type at all is ST0056/WP-14's scope. What is measurable today, and
+    // needs nobody's ruling, is that `schema_properties::<Node>()` cannot be
+    // written because no such type exists in any crate.
+    AddrEntity::Node { .. } => Err(Fieldless::NoModelYet("a whiteboard node")),
+  }
+}
+
 /// [`schema_properties`] for whichever model an address names.
 fn schema_properties_of(entity: &AddrEntity) -> std::collections::BTreeSet<String> {
-  match entity {
-    AddrEntity::Thread { .. } => schema_properties::<Thread>(),
-    AddrEntity::Wp { .. } => schema_properties::<WorkPackage>(),
-    AddrEntity::Ac { .. } => schema_properties::<Criterion>(),
-    AddrEntity::At { .. } => schema_properties::<AcceptanceTest>(),
-    _ => std::collections::BTreeSet::new(),
-  }
+  fields_of(entity).unwrap_or_default()
 }
 
 /// Why a field is not settable through the narrow setter.
@@ -5223,6 +5325,26 @@ enum Unsettable {
   Machine(&'static str),
   /// The field has an address of its own; the segment that reaches it.
   Child(&'static str),
+  /// **COMPUTED FROM ANOTHER FIELD, so writing it independently is how a record
+  /// comes to describe something it does not.** An attachment's `sha256` set by
+  /// hand would correctly describe the wrong bytes -- the exact hazard `put`
+  /// already refuses `?format=json` for, one field at a time instead of all at
+  /// once. Carries the field it follows.
+  Derived(&'static str),
+  /// **THIS ADDRESS TAKES THE DOCUMENT ITSELF, NOT ITS FIELDS.** An attachment's
+  /// content is its body: `put` at the attachment address writes the file, and
+  /// the record's other fields are computed from what lands.
+  ///
+  /// **THE ROUTE IS REAL AT THE SERVICE LAYER AND ABSENT AT THE CLI, AND THE
+  /// EXPLANATION SAYS SO RATHER THAN IMPLYING A VERB.** Driven: `intent put`
+  /// answers *unrecognized subcommand*, and no dispatch-table row writes an
+  /// attachment's content. The first draft of this remedy read *PUT the text to
+  /// `{url}`*, which names an operation an operator cannot perform -- the same
+  /// class as the `why` string this change exists to correct, committed inside
+  /// the correction. **This is the AC/AT-creation instance's shape, not a new
+  /// one: a service-layer route with no CLI surface**, so it NARROWS the gap
+  /// rather than closing it, and the wording must not pretend otherwise.
+  WholeBody,
 }
 
 impl Unsettable {
@@ -5242,6 +5364,17 @@ impl Unsettable {
         "this collection has an address of its own -- set each member at `{url}/{segment}/<id>`, \
          because a write here would have to either apply the whole collection or drop it, and \
          both are silent about the other"
+      ),
+      Self::Derived(from) => format!(
+        "this field is COMPUTED from `{from}` -- write `{from}` at `{url}` and this follows. \
+         Setting it by hand would leave the record correctly describing the wrong content, \
+         which is exactly what nothing downstream can detect"
+      ),
+      Self::WholeBody => format!(
+        "an attachment's body IS its content, so it is written whole at `{url}` rather than \
+         field by field, and the record's other fields are computed from what lands. \
+         THERE IS NO CLI VERB FOR THIS TODAY -- the route is `Facade::put`, and `intent put` is \
+         not a command"
       ),
     }
   }
@@ -5282,6 +5415,39 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       "status" => Some(Unsettable::Machine("intent at green|red|na")),
       _ => None,
     },
+    // **EVERY ISSUE FIELD WAS UNSETTABLE AND UNREPORTED UNTIL NOW.** `Issue`
+    // fell to `settable_fields`'s `other` arm and was refused BY FORM, so the
+    // ten fields below were invisible: not one of them could be written and not
+    // one of them was named. `body` is the burning case -- declared in the
+    // model, carried through canon, and `issues add` takes `<TITLE>` and
+    // `--severity` only, so the whole of an issue's prose had no door at all.
+    AddrEntity::Issue { .. } => match field {
+      "schema" | "number" => Some(Unsettable::Identity),
+      "status" | "closed" => Some(Unsettable::Machine("intent issues close|open")),
+      // D42: the create verb stamps this, and the stamp is applied BY the write
+      // rather than passed to it -- the same reasoning as `Thread::created`.
+      "created" => Some(Unsettable::Machine("intent issues add")),
+      // **`body` IS DELIBERATELY SETTABLE AND THE FIRST DRAFT OF THIS ARM HAD IT
+      // REFUSED.** The plan was `Machine` naming a route -- and there is no
+      // route: `issues` is list|add|show|close|open, `add` takes `<TITLE>` and
+      // `--severity`, and nothing writes `body` at all. **A remedy naming a verb
+      // that does not set the field is the `collections or append-only logs`
+      // defect authored deliberately instead of arriving by drift, and it is
+      // worse, because an operator ACTS on a remedy.** vc withdrew the
+      // suggestion; this row's own doc settles it -- a field with no remedy is a
+      // GAP, not a category.
+      _ => None,
+    },
+    // **ALL FIVE ARE UNSETTABLE AND EACH FOR ITS OWN REASON**, which is what
+    // the criterion asks for -- a refusal per field, not a refusal per form.
+    // `settable_fields` therefore returns an EMPTY set here, and that is a
+    // complete answer rather than a missing one.
+    AddrEntity::Attachment { .. } => match field {
+      "path" => Some(Unsettable::Identity),
+      "text" | "blob" => Some(Unsettable::WholeBody),
+      "sha256" | "bytes" => Some(Unsettable::Derived("the attachment's content")),
+      _ => None,
+    },
     _ => None,
   }
 }
@@ -5299,6 +5465,14 @@ fn find_wp_mut<'a>(
       st: st.to_string(),
       seq,
     })
+}
+
+fn find_issue_mut(canon: &mut Canon, number: u32) -> Result<&mut crate::model::Issue, FacadeError> {
+  canon
+    .issues
+    .iter_mut()
+    .find(|i| i.number == number)
+    .ok_or(FacadeError::NoSuchIssue { number })
 }
 
 fn find_thread_mut<'a>(canon: &'a mut Canon, id: &str) -> Result<&'a mut Thread, FacadeError> {
