@@ -199,8 +199,8 @@ fn the_resolver_answers_the_written_down_location() {
 /// **`intent/.canon/` is the ONE deliberate exception to a convention the tree
 /// otherwise keeps**, so the exception is asserted rather than remembered.
 ///
-/// Every other `intent/.<x>/` is gitignored and local -- `.treeindex/`,
-/// `.cache/`, `.backup/`. A future tidy-up adding `intent/.*/` to
+/// Every other `intent/.<x>/` is gitignored and local -- `.cache/`,
+/// `.backup/`. A future tidy-up adding `intent/.*/` to
 /// `.gitignore` would be natural, tidy-looking, and would silently un-commit
 /// the entire estate. AC-01.5's commit guard is the enforcement; this is the
 /// statement of what it enforces, beside the location it applies to.

@@ -9,7 +9,6 @@ hello-world/
 ├── .intent/
 │   └── config.json      # JSON configuration (new in v2.0.0)
 ├── intent/              # Flattened structure (was stp/)
-│   ├── .treeindex/      # Shadow directory for LLM-oriented summaries
 │   ├── st/              # Steel threads (was stp/prj/st/)
 │   │   ├── ST0001/
 │   │   └── ST0002/
@@ -27,10 +26,9 @@ hello-world/
 2. **Flattened Paths**: `intent/st/` instead of `stp/prj/st/`
 3. **Tool Separation**: Executables in `bin/`, templates in `lib/`
 4. **Plugin Architecture**: Subagents live in `intent/plugins/claude/subagents/`
-5. **Treeindex**: LLM-oriented directory summaries in `intent/.treeindex/`
-6. **AGENTS.md**: Universal AI agent instructions in `intent/llm/AGENTS.md`
-7. **Skills**: Always-on Claude Code enforcement in `.claude/skills/`
-8. **Three-file system**: AGENTS.md + RULES.md + ARCHITECTURE.md in `intent/llm/`
+5. **AGENTS.md**: Universal AI agent instructions in `intent/llm/AGENTS.md`
+6. **Skills**: Always-on Claude Code enforcement in `.claude/skills/`
+7. **Three-file system**: AGENTS.md + RULES.md + ARCHITECTURE.md in `intent/llm/`
 
 ## Configuration
 
@@ -64,9 +62,6 @@ intent st new "My Feature"
 
 # Install Claude Code skills (Elixir projects)
 intent claude skills install --all
-
-# Generate directory summaries for LLM orientation
-intent treeindex lib
 
 # Check status
 intent status

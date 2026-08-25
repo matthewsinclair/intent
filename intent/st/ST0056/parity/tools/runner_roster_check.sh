@@ -288,7 +288,21 @@ findings=""
 add() { findings="${findings}  $1
 "; }
 
-has() { printf '%s\n' "$2" | grep -qx -- "$1"; }
+# LATENT rather than live, and fixed anyway. `printf | grep -q` under
+# `set -uo pipefail` is the idiom dc found in the two whiteboard guards: grep -q
+# exits on the first match, printf takes SIGPIPE (141), and pipefail promotes it
+# to the pipeline's status -- so a MATCH reads as FALSE. It cannot fire here,
+# because SIGPIPE needs the write to outrun the 64KB pipe buffer and the largest
+# `$2` in this file is ~927 bytes; printf always completes. The fix is taken on
+# the same grounds dc took it in canon-ignore-guard.sh: a herestring is not a
+# pipeline, so pipefail has nothing to promote, and the immunity is definitional
+# rather than measured. NO TEST, deliberately -- an arm that fires only against
+# a fabricated 64KB roster asserts about a population that does not exist.
+#
+# `-F` IS A SECOND FIX AND IS NAMED RATHER THAN SLIPPED IN. The old form let
+# `$1` be a regex, so a `.` in a tool name matched any character; every call
+# site means a literal filename comparison.
+has() { grep -qxF -- "$1" <<<"$2"; }
 
 # ---------------------------------------------------------------------------
 # A. Every tool on disk is rostered, and every rostered tool is on disk.

@@ -2,7 +2,7 @@
 # Tests for the require-in-session.sh strict UserPromptSubmit gate.
 #
 # v2.11.5: covers the INTENT_SKIP_IN_SESSION_GATE env-var bypass added so
-# non-interactive automation (eg `intent treeindex`) can spawn `claude -p`
+# non-interactive automation can spawn `claude -p`
 # against an Intent project without being silently blocked. The bypass
 # branch is the new code path; the slash-command and sentinel branches
 # are smokes that the prepended bypass block does not regress them.

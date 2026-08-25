@@ -10,7 +10,6 @@
 - `intent claude skills list` / `install` / `sync` / `show` -- skill management
 - `intent claude subagents list` / `install` / `sync` -- subagent management
 - `intent claude prime [--refresh] [--dry-run]` -- refresh this memory file
-- `intent treeindex <dir>` -- generate directory summaries for orientation
 - `intent plugin list` -- discover available plugins
 - `intent doctor` -- check dependencies and configuration
 

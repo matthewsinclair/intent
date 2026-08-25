@@ -16,10 +16,9 @@ The whole system is bash. There is no compile step, no language runtime to insta
 | `bin/intent_helpers`     | Shared bash library: `error()`, `info()`, version detection, project-root resolution, layout-aware migrations.                                      |
 | `intent/plugins/claude/` | Claude Code plugin: subagents, skills, rule library (`rules/agnostic/`, `rules/<lang>/`), canon installer (`bin/intent_claude_upgrade`), templates. |
 | `intent/plugins/agents/` | AGENTS.md generator + per-language `_default` and language-specific templates (`templates/_default/`, `templates/elixir/`, ...).                    |
-| `lib/templates/`         | Single source for all generated content -- AGENTS / CLAUDE / usage-rules templates, hook scripts, settings.json, .treeindexignore.                  |
+| `lib/templates/`         | Single source for all generated content -- AGENTS / CLAUDE / usage-rules templates, hook scripts, settings.json.                                    |
 | `intent/st/`             | Steel threads. Active under `intent/st/STxxxx/`; closed threads move to `intent/st/COMPLETED/STxxxx/` via `intent st done`.                         |
 | `intent/.config/`        | Project configuration. `config.json` carries `intent_version`, `project_name`, `author`. `cache/` and `backup/` are tooling-local.                  |
-| `intent/.treeindex/`     | Tree summaries for fast LLM exploration. Generated per-subdirectory by `intent treeindex <dir>`. `.treeindexignore` excludes cache/backup.          |
 | `intent/llm/`            | LLM-facing project documents: `MODULES.md`, `DECISION_TREE.md`, `RULES.md`, `ARCHITECTURE.md`. Read by every LLM session.                           |
 | `tests/`                 | BATS test suite. `tests/lib/test_helper.bash` provides shared fixtures; `tests/run_tests.sh` is the runner.                                         |
 
@@ -37,7 +36,7 @@ Each plugin (`claude`, `agents`) lives under `intent/plugins/<name>/` with a sta
 
 ### Single template source
 
-All generated content -- AGENTS.md, CLAUDE.md, settings.json, hook scripts, `_treeindexignore`, ext seeds -- comes from `lib/templates/` via `sed` substitution. There are no parallel inline heredocs duplicating template content. This is `IN-AG-HIGHLANDER-001` (Highlander) concretised: one source, many use sites.
+All generated content -- AGENTS.md, CLAUDE.md, settings.json, hook scripts, ext seeds -- comes from `lib/templates/` via `sed` substitution. There are no parallel inline heredocs duplicating template content. This is `IN-AG-HIGHLANDER-001` (Highlander) concretised: one source, many use sites.
 
 ### Layout-keyed idempotence
 

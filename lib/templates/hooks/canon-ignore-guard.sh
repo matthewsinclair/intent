@@ -6,7 +6,7 @@
 # EDIT, and the gap between those two moments is where the class lives.**
 #
 # WHY THE HAZARD IS STRUCTURAL AND NOT HYPOTHETICAL. Every other `intent/.<x>/`
-# in a v3 tree is gitignored -- `.treeindex/`, `.cache/`, `.backup/` -- so the
+# in a v3 tree is gitignored -- `.cache/`, `.backup/` -- so the
 # convention reads *a dot directory under `intent/` is local and never travels*.
 # `.canon/` is the single deliberate exception, and it holds the entire steel
 # thread and issue estate. A future tidy-up adding `intent/.*/` to `.gitignore`
@@ -164,7 +164,7 @@ printf '%s' "$blocking_rules" | sort -u | while IFS= read -r rule; do
 done
 echo "" >&2
 echo "  ${CANON_DIR}/ is the ONE dot directory under intent/ that must be committed." >&2
-echo "  Its siblings -- .treeindex/, .cache/, .backup/ -- are all local, so a rule" >&2
+echo "  Its siblings -- .cache/, .backup/ -- are all local, so a rule" >&2
 echo "  like 'intent/.*/' looks tidy and correct and would silently un-commit the" >&2
 echo "  entire steel thread and issue estate (D29: a gitignored path is never canon)." >&2
 echo "" >&2

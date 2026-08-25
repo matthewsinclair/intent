@@ -1,5 +1,5 @@
 ---
-description: "Core Intent workflow rules for steel threads, agents, treeindex, and session management"
+description: "Core Intent workflow rules for steel threads, work packages, agents, skills, and session management"
 ---
 
 # Intent Essentials
@@ -36,36 +36,7 @@ echo "New section" >> AGENTS.md
 intent agents sync
 ```
 
-### 3. Use `intent treeindex` on subdirectories only
-
-NEVER run `intent treeindex` on the project root. Always target specific subdirectories. Run multiple in parallel for speed.
-
-```bash
-# BAD — project root
-intent treeindex .
-
-# GOOD — target subdirectories
-intent treeindex bin
-intent treeindex lib
-intent treeindex docs
-
-# GOOD — parallel execution
-intent treeindex bin & intent treeindex lib & intent treeindex docs & wait
-```
-
-### 4. Check `.treeindex` before exploring unfamiliar directories
-
-Before deep-diving into an unfamiliar directory with Glob/Grep/Read, check if a pre-computed summary exists. This saves context and avoids redundant exploration.
-
-```bash
-# GOOD — check the summary first
-cat intent/.treeindex/lib/.treeindex
-cat intent/.treeindex/bin/.treeindex
-```
-
-Read `intent/.treeindex/<dir>/.treeindex` before scanning the directory contents.
-
-### 5. Use `intent claude skills` for skill management
+### 3. Use `intent claude skills` for skill management
 
 NEVER manually create or edit files in `.claude/skills/`. Use the CLI for install, sync, and removal. Skills use SHA256 manifests for tracking.
 
@@ -79,7 +50,7 @@ intent claude skills sync
 intent claude skills uninstall in-elixir-essentials
 ```
 
-### 6. Steel thread document conventions
+### 4. Steel thread document conventions
 
 Each steel thread lives in `intent/st/<ID>/`. The minimum required file is `info.md` with frontmatter metadata. Optional companion files provide design and tracking.
 
@@ -91,7 +62,7 @@ Each steel thread lives in `intent/st/<ID>/`. The minimum required file is `info
 
 Frontmatter uses `verblock:` format: `"DD Mon YYYY:vX.Y: Author - Description"`
 
-### 7. Session wrap-up workflow
+### 5. Session wrap-up workflow
 
 Before ending a session, update tracking files to preserve context for the next session:
 
@@ -100,7 +71,7 @@ Before ending a session, update tracking files to preserve context for the next 
 3. Update `.claude/restart.md` with WIP/TODO focus
 4. Commit changes before ending session
 
-### 8. Use `intent wp` commands for work package management
+### 6. Use `intent wp` commands for work package management
 
 NEVER manually create directories under `intent/st/STXXXX/WP/`. Use the CLI.
 
@@ -116,7 +87,7 @@ intent wp start ST0005/01
 intent wp done ST0005/01
 ```
 
-### 9. Use `intent todo` for the flat work view
+### 7. Use `intent todo` for the flat work view
 
 `intent todo` projects a flat DOING / TODO / DONE view across all steel threads and work packages from their real status (into `intent/todo.md`). Reach for it to see where things stand and to drive next steps. It is GENERATED from ST/WP status -- do not hand-maintain a separate list that would drift from the threads.
 
@@ -128,9 +99,8 @@ intent todo --json       # machine-readable view
 
 ## Red Flags
 
-| Rationalization                           | Reality                                                |
-| ----------------------------------------- | ------------------------------------------------------ |
-| "I'll use the CLI later"                  | Manual creation causes drift. Use the CLI now.         |
-| "This is too small for a steel thread"    | Every piece of work gets tracked. No exceptions.       |
-| "I know where things are, skip treeindex" | You lose context on compaction. Check treeindex first. |
-| "I'll update docs at the end"             | Sessions get interrupted. Update docs as you go.       |
+| Rationalization                        | Reality                                          |
+| -------------------------------------- | ------------------------------------------------ |
+| "I'll use the CLI later"               | Manual creation causes drift. Use the CLI now.   |
+| "This is too small for a steel thread" | Every piece of work gets tracked. No exceptions. |
+| "I'll update docs at the end"          | Sessions get interrupted. Update docs as you go. |

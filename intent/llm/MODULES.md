@@ -96,7 +96,6 @@
 | Session context hook      | `lib/templates/.claude/scripts/session-context.sh`    | SessionStart: project/git/WIP context                                               |
 | In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh` | UserPromptSubmit strict gate (ST0035)                                               |
 | Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh` | Opt-in PostToolUse critic (off default)                                             |
-| Treeindex ignore template | `lib/templates/_treeindexignore`                      | `.treeindexignore` install default (ST0036/WP06)                                    |
 
 ## Help Files
 
@@ -134,9 +133,8 @@
 
 ## Skills: Handoff
 
-| Concern         | THE Module                                 | Notes                      |
-| --------------- | ------------------------------------------ | -------------------------- |
-| Session handoff | `intent/plugins/claude/skills/in-handoff/` | SKILL.md + handoff-prep.sh |
+| Concern | THE Module | Notes |
+| ------- | ---------- | ----- |
 
 ## Skills: Detrope
 

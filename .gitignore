@@ -81,8 +81,6 @@ npm-debug.log
 # ElixirLS no no no
 .elixir_ls/
 
-# Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>').
-intent/.treeindex/
 # The v3 SQLite db. NOT disposable, NOT derived, and NOT "never truth" -- hv
 # reversed D01 on 2026-08-15: the SQLite db is the DURABLE SSOT and everything on
 # disk is a secondary artefact. The three claims this comment used to make are

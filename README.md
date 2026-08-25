@@ -267,17 +267,6 @@ intent wp show <STID/NN>       # Show work package details
 
 Specifiers accept bare numbers: `intent wp new 5 "Title"` is equivalent to `intent wp new ST0005 "Title"`. WP numbers auto-assign (01-99) and titles can contain special characters (`/`, `&`, `\`) safely.
 
-### Treeindex (Directory Summaries)
-
-```bash
-intent treeindex <dir>               # Generate .treeindex directory summaries
-intent treeindex --depth 3 <dir>     # Control traversal depth (default: 2)
-intent treeindex --check <dir>       # Check staleness without regenerating
-intent treeindex --prune <dir>       # Remove orphaned shadow entries
-intent treeindex --force <dir>       # Regenerate regardless of staleness
-intent treeindex --dry-run <dir>     # Preview without writing
-```
-
 ### AGENTS.md Management
 
 ```bash
@@ -373,7 +362,6 @@ intent plugin show claude            # Show details for a plugin
 ├── docs/             # Documentation and blog posts
 ├── intent/           # Project artifacts (when using Intent)
 │   ├── .config/      # Per-project config + metadata (config.json, version)
-│   ├── .treeindex/   # Shadow directory for LLM-oriented summaries
 │   ├── st/           # Steel threads
 │   ├── eng/          # Engineering documentation
 │   │   └── tpd/      # Technical Product Design
@@ -445,7 +433,7 @@ $ intent st new "Project inception: E-commerce platform"
 
 ### Do I need to use all features?
 
-No! Start with just steel threads to capture intentions. Add treeindex for LLM context, Claude subagents for AI integration, and skills for specialized workflows. Intent grows with your needs.
+No! Start with just steel threads to capture intentions. Add Claude subagents for AI integration, and skills for specialized workflows. Intent grows with your needs.
 
 ### How does this help with AI coding?
 

@@ -228,12 +228,22 @@ _is_pending_backport() {
 # is the guard working: a single-tree landing became visible immediately
 # instead of silently reaching nobody. The fix was to declare the intent, not
 # to widen the walk.
-V3_ONLY_BY_RULING="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md"
+V3_ONLY_BY_RULING="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md intent/plugins/claude/skills/in-essentials/SKILL.md lib/templates/.claude/scripts/require-in-session.sh lib/templates/hooks/canon-ignore-guard.sh lib/templates/prime/operational-knowledge.md"
 _is_v3_only_by_ruling() {
   case "$1" in
     # hv 2026-08-24: v3 restores the agnostic pair, rewritten. Intentv2 frozen.
     lib/templates/llm/_RULES.md) return 0 ;;
     lib/templates/llm/_ARCHITECTURE.md) return 0 ;;
+    # hv 2026-08-15, ratified in surface/dispatch-table.md: treeindex retires
+    # WHOLE -- command, cache, `/in-essentials` rules 3 and 4, every canon
+    # reference -- together with the `in-handoff` skill. Executed 2026-08-25
+    # under hv's direction. **v2 KEEPS ITS COPY BY THE SAME RULING** ("it is in
+    # v2 and we don't need to touch it there"), so these four are v3-only by
+    # construction and convergence here would be the defect.
+    intent/plugins/claude/skills/in-essentials/SKILL.md) return 0 ;;
+    lib/templates/.claude/scripts/require-in-session.sh) return 0 ;;
+    lib/templates/hooks/canon-ignore-guard.sh) return 0 ;;
+    lib/templates/prime/operational-knowledge.md) return 0 ;;
     *) return 1 ;;
   esac
 }

@@ -40,6 +40,12 @@ pub const ROOT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "usage-rules.md"];
 /// `.cache/` holds the DB, which under D01 as reversed is TRUTH rather than an
 /// index of these files -- scanning it would ingest the store as though it were
 /// a source document. `.treeindex/` is an untracked derived cache (issue 0018).
+///
+/// **`.treeindex` STAYS HERE THROUGH THE RETIREMENT, DELIBERATELY.** hv retired
+/// treeindex on 2026-08-15 and v3 never generates the cache -- but a consumer
+/// migrating off v2 carries the directory on disk for as long as they keep it,
+/// and indexing it would publish one machine's stale prose into the canon.
+/// Retiring a producer is not a reason to stop recognising its residue.
 /// `.backup/` matters for the same reason once D35's rolling snapshots land
 /// there: a copy of truth must never re-enter through the ingest gate.
 pub const SKIPPED_DIRS: &[&str] = &[".cache", ".treeindex", ".backup"];

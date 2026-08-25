@@ -10,10 +10,11 @@
 # config -- what Intent ships to consumers, and this project's own live
 # .claude/ stack.
 #
-# The original carve-out here named two exclusions. One of them is gone: `intent
-# treeindex` still writes absolute paths into intent/.treeindex/** by design,
-# but that tree is no longer TRACKED (issue 0018), so it is not published and
-# the guard no longer has to look away from it. What remains is historical
+# The original carve-out here named two exclusions. One of them is gone twice
+# over: `intent treeindex` wrote absolute paths into intent/.treeindex/** by
+# design, that tree stopped being TRACKED (issue 0018), and hv then retired the
+# command outright (2026-08-15, executed 2026-08-25) so nothing writes there at
+# all. The guard has nothing to look away from. What remains is historical
 # prose -- completed steel threads and CHANGELOG entries quoting paths as
 # record -- which is deliberately not rewritten, because it is the account of
 # what was true at the time.
@@ -89,59 +90,6 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-yes '$INTENT_BIN' claude hook require-in-session"
   rm -f /tmp/intent/in-session-bats-yes.sentinel
   [ "$status" -eq 0 ]
-}
-
-@test "the treeindex cache is not tracked, and the ignore rule keeps it that way" {
-  # Issue 0018. The cache is derived (every file carries a fingerprint stamp and
-  # the tool regenerates it), machine-flavoured (the summaries embed the
-  # generating machine's absolute paths), and it went stale silently -- the
-  # committed bin/.treeindex still described a command retired in v2.11.12. So
-  # the "project memory" it appeared to be was wrong, which is worse than absent.
-  run bash -c "cd '$INTENT_HOME' && git ls-files -- 'intent/.treeindex' | wc -l | tr -d ' '"
-  assert_output "0"
-  # Ignored, so a regeneration cannot quietly re-add it.
-  run bash -c "cd '$INTENT_HOME' && git check-ignore -q intent/.treeindex/bin/.treeindex && echo ignored"
-  assert_output "ignored"
-}
-
-@test "the canon gitignore seam carries the treeindex rule to a consumer" {
-  project_dir=$(create_test_project "Treeindex Ignore")
-  cd "$project_dir"
-  git init -q . && git config user.email t@t && git config user.name t
-  printf '# pre-existing\n*.log\n' > .gitignore
-
-  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
-  run bash -c "grep -cE '^/?intent/\.treeindex/?\$' .gitignore"
-  assert_output "1"
-  # Idempotent: a second apply must not append a duplicate.
-  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
-  run bash -c "grep -cE '^/?intent/\.treeindex/?\$' .gitignore"
-  assert_output "1"
-  # The pre-existing content survives.
-  run grep -c '^\*.log$' .gitignore
-  assert_output "1"
-}
-
-@test "an already-tracked consumer cache is REPORTED, never untracked for them" {
-  # Ignoring a path does not untrack what is already tracked, so the rule alone
-  # would be a fix that silently does nothing. The tool says so and prints the
-  # command -- but running `git rm` across someone else's tree, during an
-  # upgrade they invoked for other reasons, is not its call to make.
-  project_dir=$(create_test_project "Treeindex Tracked")
-  cd "$project_dir"
-  git init -q . && git config user.email t@t && git config user.name t
-  printf '# pre-existing\n' > .gitignore
-  mkdir -p intent/.treeindex/bin
-  printf 'cached\n' > intent/.treeindex/bin/.treeindex
-  git add -A && git commit -qm "cache tracked, as a consumer would have it"
-
-  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply 2>&1"
-  assert_output_contains "tracked file(s) under intent/.treeindex/"
-  assert_output_contains "git rm -r --cached intent/.treeindex/"
-  # It reported; it did NOT act.
-  run bash -c "git ls-files -- 'intent/.treeindex' | wc -l | tr -d ' '"
-  assert_output "1"
-  [ -f intent/.treeindex/bin/.treeindex ]
 }
 
 @test "an unknown hook name is refused by name, not left to the shell" {

@@ -697,7 +697,7 @@ impl Project {
   /// `intent/.canon/` -- every artefact's committed structured canon (D57-1).
   ///
   /// **A DOT DIRECTORY THAT MUST BE COMMITTED, AND IT IS THE ONLY ONE.** The
-  /// three siblings beside it -- `.treeindex/`, `.cache/`, `.backup/` -- are
+  /// siblings beside it -- `.cache/`, `.backup/` -- are
   /// every one of them gitignored, so `intent/.<x>/` currently reads as "local,
   /// never travels". This breaks that pattern deliberately: hv's requirement is
   /// that `intent/st` stop holding a bajillion files, and D29 requires canon to
