@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 81,
+  "slug": "seven-of-fourteen-entity-form-values-are-vowel-i",
+  "title": "seven of fourteen Entity::form() values are vowel-initial, and two shipped messages glue a bare 'a' in front of them -- facade.rs:715 says \"A `issue` has no files of its own\" and facade.rs:4396 builds \"a issue address\"; the article belongs with the noun, as IdKind::with_article now does",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-08-25",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}
