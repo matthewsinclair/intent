@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 20:53Z
+heartbeat_at: 2026-08-25 21:25Z
 status: active
-focus: "**FOLDED 2026-08-25 20:53Z FOR A COMPACT. THE 3.0.0 CLOSURE GATE IS CLOSED -- `ac gate ST0057` PASS 51/51, 67 of 67 with ST0056/03, AC-08.5 green.** THE GATE IS NOT THE RELEASE: nothing tagged, pushed or published, ~54 commits ahead of upstream until hv rules. **The cut is NOT close: ST0056 63/133, and WP-14 BLOCKS WP-12 unruled since 17:17Z with both WPs unclaimed.** Day record in `.history/20260825/wip-fold-1910Z.md`."
+focus: "**BOOTED AFTER COMPACT 2026-08-25 21:09Z. A REPORTED SHELL REGRESSION WAS THE INSTRUMENT, NOT THE CODE: the full shell suite is 1480/1480 at a clean HEAD, and the two red tests were the only two of 1480 that read a bare `intent` off the OPERATOR'S PATH -- a different tree. Fixed and committed at `058c0400` with a mutation control.** The gate stays CLOSED at 67 of 67 and CLOSED IS NOT RELEASED. **WP-14 BLOCKS WP-12, unruled since 17:17Z, still the top blocker.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,7 +15,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**NOTHING IN FLIGHT. TREE CLEAN, ALL FOUR INBOXES AT THE SENTINEL, GATE CLOSED.**
+**A REPORTED TEST REGRESSION WAS A BROKEN INSTRUMENT AND IS FIXED (`058c0400`).** The red verdict carried its own warning -- `measured: 78a44edf +1 dirty -- THIS VERDICT DESCRIBES NO COMMIT` -- and it was right: **the full shell suite is 1480/1480 on a clean HEAD, runner exit 0.** The two failures were the ONLY two call sites in 1480 tests invoking a bare `intent` off PATH, which on this machine symlinks into the FROZEN Intentv2 tree, while the other eight in the same file drive `$INTENT_BIN`. **`0` is a value neither a duplicate (2) nor a correct dedup (1) can produce -- so the one reading impossible for a live subject was reported as the subject's answer, and the failure ACCUSED THE FEATURE IT GUARDS.** Reproduced byte-identically by removing `intent` from PATH; fixed file green with it present AND absent; mutation control red at `Actual 1`.
+
+**NOTHING ELSE IN FLIGHT. GATE CLOSED, ALL FOUR INBOXES AT THE SENTINEL.**
 
 **THE 3.0.0 CLOSURE GATE IS DONE AND IT IS THE SMALLER HALF OF THE RELEASE.** `ST0057` PASS 51/51; with `ST0056/03` at 16/16 that is 67 of 67. **`ST0056` IS 63/133 AND WP-12 IS NOT STARTED** -- the rewrite is the work that remains, not the gate.
 
@@ -33,7 +35,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 **These are vc's OWN -- durable cautions, standing, not archived.**
 
 1. **AGREEMENT AND DISAGREEMENT ARE BOTH UNINFORMATIVE UNTIL YOU KNOW WHETHER THE TWO INSTRUMENTS ASKED THE SAME QUESTION** (ic). Same figure by the same method read as corroboration -- **one measurement run twice.** Different figures by different methods read as contradiction -- **two questions.** **MATCHING NUMBERS ARE NOT EVIDENCE AND DIFFERING NUMBERS ARE NOT A DEFECT; the only thing that carries information is the QUESTION, and a number does not carry its question with it.**
-2. **A GUARD WHOSE SCOPE EXCLUDES THE CASE IT EXISTS TO CATCH READS GREEN EVERY TIME.** Five in one thread. **Siblings:** an instrument comparing **two populations from two different trees** (dc); a **write whose report does not describe what it wrote** (`git stash pop`, ic -- a stash is a pointer, a copy is bytes); an **empty population returning `0 with, 0 without`**. **THE CURE IS RARELY A BETTER CHECK -- and the only DURABLE fix found in eight tries was a SHAPE: the wrong sentence made unsayable by the type** (cc).
+2. **A GUARD WHOSE SCOPE EXCLUDES THE CASE IT EXISTS TO CATCH READS GREEN EVERY TIME.** Five in one thread. **Siblings:** an instrument comparing **two populations from two different trees** (dc); a **write whose report does not describe what it wrote** (`git stash pop`, ic -- a stash is a pointer, a copy is bytes); an **empty population returning `0 with, 0 without`**. **THE CURE IS RARELY A BETTER CHECK -- and the only DURABLE fix found in eight tries was a SHAPE: the wrong sentence made unsayable by the type** (cc). **NEW SIBLING, AND IT IS A CHEAP TEST TO RUN ON ANY RED: ASK WHETHER THE REPORTED VALUE IS ONE A LIVE SUBJECT COULD PRODUCE AT ALL.** st_enumeration reported `0` where a duplicate gives 2 and a correct dedup gives 1 -- **the single value that RULES OUT the hypothesis the test is about**, so the failure accused the feature it guarded. **A NUMBER OUTSIDE THE SUBJECT'S RANGE IS NEVER THE SUBJECT'S ANSWER**, and `2>/dev/null | grep -c` is the shape that manufactures one.
 3. **A CLAIM OUTLIVES ITS BASIS AND NOTHING ANNOUNCES IT.** A workaround outlives its bug because **a defect announces itself and a defect's disappearance does not** (dc). **A remedy that was never true is caught by review; one that EXPIRES is caught by nobody** -- two of eight today. **A restatement inherits the trust earned by admitting the error** (ic) -- my closing condition was corrected twice and neither correction was more driven than the sentence it replaced. **A driven wrong answer outranks an undriven right one** (ic).
 4. **DRIVE WHAT YOU RELAY, AND I AM THE FASTEST PATH.** dc measured _one staged file_, truly; **staged was never the predicate.** I relayed the framing inside a minute and routed the wrong node. **A CORRECT MEASUREMENT DESCRIBED IN THE WRONG TERMS TRAVELS AS THE WRONG RULE** (dc).
 5. **A FALSE-POSITIVE GUARD IS WORSE THAN A NARROW ONE: the first fails closed against a reader who checks, the SECOND CORRUPTS THE READER** (cc). **`pgrep -f` IS STRUCTURALLY UNUSABLE IN AN AGENT FLEET.** **AND A GUARD'S VALUE IS IN THE PART IT PRINTS BEFORE THE RESULT** -- I `tail`ed one and read the private pair's hash as the shared one. **CAPTURE THE `rc`, NOT THE PIPELINE'S.**
