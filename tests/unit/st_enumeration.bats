@@ -36,7 +36,18 @@ set_status() {
   # and had no effect: the tree simply grew a second thread with the same id.
   run run_intent st list
   assert_success
-  run bash -c "cd '$project_dir' && intent st list 2>/dev/null | grep -c ST0001"
+  # $INTENT_BIN, never a bare `intent`: the bare form resolves off the OPERATOR'S
+  # PATH -- a different tree entirely on this machine -- so these two assertions
+  # were a function of the developer's environment rather than of the code. And
+  # the misreport is the worse half: with stderr discarded, a binary that never
+  # answered prints `0` through `grep -c`, and `0` is a value NEITHER a duplicate
+  # (2) NOR a correct dedup (1) can produce. The one reading that is impossible
+  # if the subject is alive was being reported as the subject's answer, so the
+  # failure accused the enumeration guard for something outside the repo.
+  # Reproduced 2026-08-25 by removing intent from PATH: byte-identical failure.
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list"
+  assert_success
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list | grep -c ST0001"
   assert_output "1"
 }
 
@@ -57,7 +68,10 @@ set_status() {
   # NOT-STARTED / CANCELLED threads are found -- so the fix must not lose them.
   run run_intent st show ST0002
   assert_success
-  run bash -c "cd '$project_dir' && intent st list --status all 2>/dev/null | grep -c 'ST000[12]'"
+  # $INTENT_BIN and no 2>/dev/null, for the reason given on the first test above.
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all"
+  assert_success
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all | grep -c 'ST000[12]'"
   assert_output "2"
 }
 
