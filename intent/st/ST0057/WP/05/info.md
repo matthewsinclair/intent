@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: intent edit <ID>
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-05: intent edit <ID>

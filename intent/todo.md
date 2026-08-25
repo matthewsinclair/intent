@@ -22,11 +22,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
   - [ ] 16: Contract drift: a shipped field with no model row is refused
 - [-] ST0057: Disk as a sparse projection of the store
-  - [-] 01: Canon relocation to intent/.canon/
+  - [x] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar
   - [x] 03: Attachment canon: opaque as file, and the naming gate
   - [x] 04: intent organize: four answers, one refusal, one gate
-  - [-] 05: intent edit <ID>
+  - [x] 05: intent edit <ID>
   - [x] 06: The full text realisation, and the refusal that expires
   - [x] 07: intent:// addressing and read resolution
   - [-] 08: The mutation surface: write-by-address and the missing verbs

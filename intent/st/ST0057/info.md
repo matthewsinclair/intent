@@ -28,11 +28,11 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 
 | WP    | Title                                                        | Size | Status |
 | ----- | ------------------------------------------------------------ | ---- | ------ |
-| WP-01 | Canon relocation to intent/.canon/                           | M    | WIP    |
+| WP-01 | Canon relocation to intent/.canon/                           | M    | Done   |
 | WP-02 | .intentfiles: the manifest and its refusing grammar          | S    | Done   |
 | WP-03 | Attachment canon: opaque as file, and the naming gate        | M    | Done   |
 | WP-04 | intent organize: four answers, one refusal, one gate         | L    | Done   |
-| WP-05 | intent edit <ID>                                             | S    | WIP    |
+| WP-05 | intent edit <ID>                                             | S    | Done   |
 | WP-06 | The full text realisation, and the refusal that expires      | M    | Done   |
 | WP-07 | intent:// addressing and read resolution                     | L    | Done   |
 | WP-08 | The mutation surface: write-by-address and the missing verbs | L    | WIP    |
