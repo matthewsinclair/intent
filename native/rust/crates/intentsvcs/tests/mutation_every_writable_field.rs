@@ -864,8 +864,25 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
   );
 }
 
-/// **AC-08.5's SECOND LIMB, DRIVEN AT THE THREAD DOOR: does `put` clear a field
-/// it was not asked to change?**
+/// **AC-08.5's SECOND LIMB AT THE THREAD DOOR: `put` REFUSES a body that would
+/// clear a field it was not asked to change, and names every one it would have
+/// cleared.**
+///
+/// # This test asserted the DEFECT until 2026-08-25, and that is worth keeping
+///
+/// It was written as *does `put` clear a field it was not asked to change*, and
+/// its assertion pinned the answer: the collateral set must equal those eight
+/// names. **So when cc fixed the door, this test went red -- a correct fix was
+/// indistinguishable from a regression, because the suite did not merely fail to
+/// observe the data loss, it REQUIRED it.** (dc found the identical shape in the
+/// bats suite the same afternoon; two nodes, two files, one class.)
+///
+/// **The property survived and only its DIRECTION reversed**, which is the tell
+/// that the original was measuring the right thing. What is asserted now: the
+/// write is refused, the entity is byte-identical INCLUDING the field that was
+/// asked for, and the refusal names all eight. **The refusal's prose is
+/// deliberately not pinned** -- pinning a sentence makes a comma a test failure
+/// and hands this file a veto over another node's wording.
 ///
 /// # Why this had to be written, and why the existing pair could not see it
 ///
@@ -888,6 +905,10 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
 /// criterion's own first burning case -- so the collateral population is the
 /// other EIGHT.**
 ///
+/// That denominator is why the eight are named INDIVIDUALLY in the refusal
+/// assertion rather than counted: a count reds on the same change and says only
+/// that a number moved, and AC-08.5's second clause asks for the field BY NAME.
+///
 /// # The subject is the SURFACE, never the estate's data
 ///
 /// The fixture is SYNTHESISED. ST0011's real `completed` was repaired by hand
@@ -896,7 +917,7 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
 /// and reports it as a fact about the surface. **When a measurement is correct
 /// and its SUBJECT is wrong, nothing inside the measurement can report it.**
 #[test]
-fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
+fn thread_put_refuses_to_clear_the_fields_it_was_not_asked_to_change() {
   let fx = Fixture::new();
   let before = fully_populated_thread("ST0001");
   fx.write_thread(&before);
@@ -915,9 +936,9 @@ fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
     "completed": "2026-08-24",
   });
   let address = parse("intent:///threads/ST0001").expect("the address parses");
-  let outcome = facade
+  let err = facade
     .put(&address, &body.to_string())
-    .expect("the thread arm accepts a legal body for an existing thread");
+    .expect_err("a body omitting eight populated fields must not be accepted whole");
 
   let after = facade
     .canon()
@@ -925,21 +946,13 @@ fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
     .iter()
     .find(|t| t.id == "ST0001")
     .cloned()
-    .expect("the thread survives the write");
+    .expect("the thread survives a refused write");
 
-  // **POSITIVE CONTROL: the field we ASKED for must have moved.** Without it a
-  // facade that refused the write outright would leave every other field
-  // untouched and satisfy every assertion below -- a green that is a fact about
-  // the harness rather than about the surface.
-  assert_eq!(
-    after.completed.as_deref(),
-    Some("2026-08-24"),
-    "the field this test asked to move did not move -- the measurement below is \
-     about a write that never happened ({outcome:?})"
-  );
-
-  // The eight fields nobody asked about, each compared to what it was.
-  let collateral: Vec<&str> = [
+  // **NOTHING MOVED -- INCLUDING THE FIELD WE ASKED FOR.** The refusal is whole:
+  // a partial write that landed `completed` and refused the rest would be the
+  // worst of both, and it is the reading this assertion exists to exclude.
+  let moved: Vec<&str> = [
+    ("completed", before.completed != after.completed),
     ("slug", before.slug != after.slug),
     ("status_reason", before.status_reason != after.status_reason),
     ("acceptance", before.acceptance != after.acceptance),
@@ -952,12 +965,13 @@ fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
   .into_iter()
   .filter_map(|(name, moved)| moved.then_some(name))
   .collect();
+  assert!(
+    moved.is_empty(),
+    "the write was refused and these fields moved anyway: {moved:?}\n  \
+     A refusal that writes is worse than a write, because nothing downstream reads \
+     an error as a mutation."
+  );
 
-  // **GRAFTED CHILDREN ARE THE CONTROL THAT SAYS THE ARM CAN PROTECT A FIELD.**
-  // If these moved too, the finding would be "the arm replaces the document",
-  // which is a weaker and less interesting claim. They do not move, which is
-  // what makes the eight above a CHOICE about which fields get grafted rather
-  // than an inevitability of parse-and-replace.
   assert_eq!(
     (
       before.wps.len(),
@@ -971,33 +985,37 @@ fn thread_put_clears_the_fields_it_was_not_asked_to_change() {
       after.tests.len(),
       after.attachments.len()
     ),
-    "the grafted children moved -- the arm is not protecting what it says it protects"
+    "the grafted children moved under a refused write"
   );
 
-  println!(
-    "AC-08.5 limb 2 at the thread door: {} of 8 unasked field(s) were cleared by a minimal legal `put`:",
-    collateral.len()
-  );
-  for name in &collateral {
-    println!("  {name}");
-  }
-
-  assert_eq!(
-    collateral,
-    [
-      "slug",
-      "status_reason",
-      "acceptance",
-      "objective",
-      "context",
-      "body",
-      "preamble",
-      "related"
-    ],
-    "the thread arm's collateral set has MOVED.\n  \
-     If it SHRANK, a graft was added and AC-08.5's second limb got closer -- move this \
-     literal and say so on the row.\n  \
-     If it GREW, a field lost its protection, which is a regression in the surface."
+  // **THE REPORT IS PART OF THE PROPERTY, NOT DECORATION.** AC-08.5's second
+  // clause is *reported BY NAME*, and a refusal that says only `some fields
+  // would change` sends the operator back to diffing canon by hand -- the route
+  // this criterion exists to retire. The fixture populates all eight, so all
+  // eight would have been cleared and all eight must be named.
+  //
+  // **THE PROSE IS DELIBERATELY NOT PINNED.** Pinning the sentence would make a
+  // comma a test failure and hand this file veto over another node's wording.
+  let text = format!("{err:?}");
+  let unnamed: Vec<&str> = [
+    "slug",
+    "status_reason",
+    "acceptance",
+    "objective",
+    "context",
+    "body",
+    "preamble",
+    "related",
+  ]
+  .into_iter()
+  .filter(|field| !text.contains(field))
+  .collect();
+  assert!(
+    unnamed.is_empty(),
+    "the refusal does not name these fields it would have cleared: {unnamed:?}\n  \
+     Refusal text: {text}\n  \
+     If the arm names only a subset ON PURPOSE, that is a narrower contract than \
+     AC-08.5's second clause and belongs on the row rather than in this literal."
   );
 }
 
@@ -1472,6 +1490,19 @@ const FIELD_CARRYING_MODELS: [&str; 6] = [
   "WorkPackage",
 ];
 
+/// **THE FIELDS A MODEL DECLARES AND SERDE DROPS, PINNED SO A SECOND ONE CANNOT
+/// ARRIVE QUIETLY.**
+///
+/// `#[serde(skip)]` removes a field from the JSON entirely, so it is invisible to
+/// any serialisation-derived measurement -- **including the one this file used to
+/// take.** `Attachment::blob` is the only one today and it is not an incidental
+/// case: it is the OPAQUE half of an attachment, and *bytes-carried attachments*
+/// is one of AC-08.5's three burning cases.
+///
+/// Checked in both directions below: a field named here that DOES serialise is as
+/// much a defect as a field that vanishes without being named.
+const SERDE_SKIPPED: [(&str, &str); 1] = [("Attachment", "blob")];
+
 fn field_axis(entity: &intentsvcs::address::Entity) -> FieldAxis {
   use intentsvcs::address::Entity as E;
   match entity {
@@ -1572,6 +1603,150 @@ fn declared_fields(model: &str) -> BTreeSet<String> {
     .keys()
     .cloned()
     .collect()
+}
+
+/// **THE MODEL'S TRUE FIELD SET, FENCED BY THE COMPILER RATHER THAN BY SERDE.**
+///
+/// # Why this exists, and it is not a refinement of [`declared_fields`]
+///
+/// A serialisation-derived field set **cannot see a `#[serde(skip)]` field**, and
+/// `Attachment::blob` is exactly that -- **which is AC-08.5's own bytes-carried
+/// burning case.** The instrument covering this criterion could not see the field
+/// the criterion was written about, and the partition held over a denominator of
+/// four where the model has five. Disclosing that on the fixture was not enough:
+/// **a disclosed hole is still a hole, and this one is load-bearing** (vc,
+/// 2026-08-25, ruling on ic's own report of it).
+///
+/// # The fence is an exhaustive destructure, for the reason the `match` is exhaustive
+///
+/// Every field is named, none is bound with `..`, and **a new field on any of
+/// these models does not compile until it is added here** -- serialised or
+/// skipped, since a destructure is blind to serde entirely. That is the same
+/// device `declared_reach` and [`field_axis`] use, and the only mechanism Rust
+/// offers for *every member is accounted for*. A count would red on the same
+/// change and say only that a number moved.
+fn true_fields(model: &str) -> Vec<&'static str> {
+  match model {
+    "Thread" => {
+      let intentsvcs::model::Thread {
+        schema: _,
+        id: _,
+        title: _,
+        slug: _,
+        status: _,
+        status_reason: _,
+        created: _,
+        completed: _,
+        acceptance: _,
+        objective: _,
+        context: _,
+        body: _,
+        preamble: _,
+        related: _,
+        wps: _,
+        criteria: _,
+        tests: _,
+        attachments: _,
+      } = fully_populated_thread("ST0001");
+      vec![
+        "schema",
+        "id",
+        "title",
+        "slug",
+        "status",
+        "status_reason",
+        "created",
+        "completed",
+        "acceptance",
+        "objective",
+        "context",
+        "body",
+        "preamble",
+        "related",
+        "wps",
+        "criteria",
+        "tests",
+        "attachments",
+      ]
+    }
+    "WorkPackage" => {
+      let intentsvcs::model::WorkPackage {
+        seq: _,
+        title: _,
+        scope: _,
+        scope_legacy: _,
+        status: _,
+        status_reason: _,
+        objective: _,
+        body: _,
+        preamble: _,
+      } = fully_populated_work_package();
+      vec![
+        "seq",
+        "title",
+        "scope",
+        "scope_legacy",
+        "status",
+        "status_reason",
+        "objective",
+        "body",
+        "preamble",
+      ]
+    }
+    "Criterion" => {
+      let intentsvcs::model::Criterion {
+        id: _,
+        text: _,
+        kind: _,
+        state: _,
+      } = fully_populated_criterion();
+      vec!["id", "text", "kind", "state"]
+    }
+    "AcceptanceTest" => {
+      let intentsvcs::model::AcceptanceTest {
+        id: _,
+        kind: _,
+        file: _,
+        prose: _,
+        covers: _,
+        status: _,
+        note: _,
+        legacy: _,
+      } = fully_populated_row();
+      vec![
+        "id", "kind", "file", "prose", "covers", "status", "note", "legacy",
+      ]
+    }
+    "Attachment" => {
+      let intentsvcs::model::Attachment {
+        path: _,
+        text: _,
+        bytes: _,
+        sha256: _,
+        blob: _,
+      } = fully_populated_attachment();
+      vec!["path", "text", "bytes", "sha256", "blob"]
+    }
+    "Issue" => {
+      let intentsvcs::model::Issue {
+        schema: _,
+        number: _,
+        slug: _,
+        title: _,
+        status: _,
+        severity: _,
+        created: _,
+        closed: _,
+        reporter: _,
+        body: _,
+      } = common::sample_issue(21);
+      vec![
+        "schema", "number", "slug", "title", "status", "severity", "created", "closed", "reporter",
+        "body",
+      ]
+    }
+    other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no compile-fenced field list"),
+  }
 }
 
 /// One address of each field-carrying model, in `FIELD_CARRYING_MODELS` order.
@@ -1738,7 +1913,32 @@ fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
   for model in FIELD_CARRYING_MODELS {
     let url = address_of_model(model);
     let address = parse(url).unwrap_or_else(|e| panic!("`{url}` is a legal address: {e:?}"));
-    let declared = declared_fields(model);
+    // **THE DENOMINATOR IS THE COMPILE-FENCED SET, NOT THE SERIALISED ONE.** The
+    // difference is exactly the `#[serde(skip)]` fields, and it is checked rather
+    // than assumed -- in both directions, so a skip that is removed is caught as
+    // well as one that is added.
+    let declared: BTreeSet<String> = true_fields(model).into_iter().map(String::from).collect();
+    let serialised = declared_fields(model);
+    let missing: Vec<&String> = serialised.difference(&declared).collect();
+    assert!(
+      missing.is_empty(),
+      "`{model}` SERIALISES fields its compile-fenced list does not name: {missing:?}\n       \
+       `true_fields` is the denominator every verdict below is computed over, so a field\n       \
+       it omits is measured by nothing at all."
+    );
+    let skipped: BTreeSet<String> = declared.difference(&serialised).cloned().collect();
+    let pinned: BTreeSet<String> = SERDE_SKIPPED
+      .iter()
+      .filter(|(m, _)| *m == model)
+      .map(|(_, f)| (*f).to_string())
+      .collect();
+    assert_eq!(
+      skipped, pinned,
+      "`{model}`'s serde-skipped set moved. A field that stops serialising becomes invisible\n       \
+       to every measurement derived from JSON, which is how `Attachment::blob` -- this row's\n       \
+       own bytes-carried burning case -- sat outside the denominator of the instrument\n       \
+       covering the row. Name it in SERDE_SKIPPED with the reason, or restore its serialisation."
+    );
 
     assert!(
       !declared.is_empty(),
@@ -1768,11 +1968,9 @@ fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
           "{model}.{field}: absent from `settable_fields` and yet the surface WROTE it \
            ({outcome:?}) -- the declaration and the door disagree"
         )),
-        Err(intentsvcs::facade::FacadeError::FieldNotWritable {
-          field: named_field,
-          why,
-          ..
-        }) if why.contains(SCHEMA_MISMATCH) => {
+        Err(intentsvcs::facade::FacadeError::FieldNotWritable { why, .. })
+          if why.contains(SCHEMA_MISMATCH) =>
+        {
           // The MODEL declares this field and the SURFACE does not know it.
           // Refused by name, so it reads as compliant, and it is drift.
           schema_mismatch.push(format!(
