@@ -159,6 +159,22 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // (Exemptions added by cc with the wiring that made them reachable; ic owns
     // this list and should reword if the framing is wrong.)
     "lang" => Some("prints its own usage; it reads neither the install nor a project"),
+    // **`modules` IS THE FAMILY HEAD ALONE, AND THAT IS THE POINT OF CONTRAST.**
+    // `plugin` is exempt as a family (all three verbs read the install); `lang`
+    // takes three of four (two verbs read a compile-time registry); `modules`
+    // takes ONE OF THREE. Both of its verbs read `intent/llm/MODULES.md`, which
+    // is a PROJECT file, so neither ground applies to them and neither is
+    // listed. Only the bare head is exempt, and only because it prints usage.
+    //
+    // **The fallback is written down, which is what makes refusing safe here.**
+    // `CLAUDE.md` tells an agent to drive `intent modules find` and to fall back
+    // to a grep of `MODULES.md` if it does not answer -- so a refusal in an
+    // unmigrated project costs a reader one documented step, where `llm guide`
+    // and `claude rules` would have withheld the instructions for the very state
+    // the reader is stuck in.
+    // (Exemption added by cc with the wiring that made it reachable; ic owns
+    // this list and should reword if the framing is wrong.)
+    "modules" => Some("prints its own usage; it reads neither the install nor a project"),
     "lang list" => Some("lists a compile-time language registry; it never reads a project"),
     "lang show" => Some("describes a compile-time language registry; it never reads a project"),
     // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --

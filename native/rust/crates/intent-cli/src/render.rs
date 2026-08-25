@@ -50,6 +50,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("version", _)) => version(),
     Some(("plugin", m)) => plugin(m),
     Some(("lang", m)) => lang(m),
+    Some(("modules", m)) => modules(m),
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
@@ -2844,7 +2845,19 @@ fn lang_show(m: &ArgMatches) -> Result<(), Failure> {
 /// It refuses through `FacadeError::Unmigrated` rather than composing a message,
 /// so the operator meets the same wording and the same remedy here as from every
 /// other refusal -- one home for what "this project has not been migrated" says.
-fn lang_project() -> Result<Project, Failure> {
+/// A project, refused unless it has been migrated.
+///
+/// **`context()` DISCOVERS A PROJECT AND STOPS; THE MIGRATION GATE LIVES IN
+/// `Facade::open`, WHICH A COMMAND THAT NEEDS NO STORE NEVER CALLS.** Wired
+/// without this, `intent lang init rust` in an unmigrated v2 project exited 0
+/// and rewrote its `config.json` into v3 shape with `intent_version: 2.19.0`
+/// left in place. `unmigrated_surface.rs` caught it.
+///
+/// **RENAMED FROM `lang_project` WHEN `modules` BECAME THE SECOND CALLER.** The
+/// two have nothing to do with each other except this, and a helper named for
+/// its first caller is how the second one gets a copy instead
+/// (IN-AG-HIGHLANDER-001).
+fn migrated_project() -> Result<Project, Failure> {
   let (project, _) = context()?;
   match project.migration() {
     intentsvcs::project::Migration::Done => Ok(project),
@@ -2861,7 +2874,7 @@ fn lang_project() -> Result<Project, Failure> {
 /// `init` reads as project initialisation.
 fn lang_declare(m: &ArgMatches) -> Result<(), Failure> {
   let langs = lang_many(m)?;
-  let project = lang_project()?;
+  let project = migrated_project()?;
   let mut config = project.config().clone();
 
   let mut failed = 0usize;
@@ -2903,7 +2916,7 @@ fn lang_declare(m: &ArgMatches) -> Result<(), Failure> {
 /// up after a rename.
 fn lang_undeclare(m: &ArgMatches) -> Result<(), Failure> {
   let langs = lang_many(m)?;
-  let project = lang_project()?;
+  let project = migrated_project()?;
   let mut config = project.config().clone();
 
   for lang in &langs {
@@ -2952,6 +2965,123 @@ fn lang_many(m: &ArgMatches) -> Result<Vec<String>, Failure> {
     ));
   }
   Ok(langs)
+}
+
+/// `intent modules` -- the module-registry family.
+fn modules(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    None => modules_usage(),
+    Some(("find", sm)) => modules_find(sm),
+    Some(("check", _)) => modules_check(),
+    Some((verb, _)) => unwired("modules", verb),
+  }
+}
+
+/// Bare `intent modules` prints usage and exits 0, as v2 does.
+///
+/// `build()` before `find_subcommand_mut` for the reason `lang_usage` records:
+/// an unbuilt subcommand renders `Usage: modules` and advertises a `help` verb
+/// the root disabled. One capability, two spellings, disagreeing bytes.
+fn modules_usage() -> Result<(), Failure> {
+  let mut root = crate::spine::build(&dispatch::table());
+  root.build();
+  match root.find_subcommand_mut("modules") {
+    Some(cmd) => {
+      print!("{}", cmd.render_help());
+      Ok(())
+    }
+    None => Err(Failure::Error(
+      "error: `modules` is missing from the dispatch table".to_string(),
+    )),
+  }
+}
+
+/// `intent modules find <term>` -- search the registry.
+///
+/// **NO MATCH EXITS 1, AND THE TABLE SAID 0.** Driven against the frozen v2
+/// install on a fixture: a matching term is rc=0, a non-matching term prints
+/// `no matches for '<term>'` on stdout at **rc=1**. `bin/intent_modules`'
+/// `cmd_find` returns 1 on the empty branch and always has. The table's
+/// `observed` block carried "found, or no match -> 0" with an evidence class of
+/// `read` -- taken from the source without executing that arm, and read wrong.
+/// Issue 0067 records the same rc=0 as measured. **Two documents agreed with
+/// each other and neither agreed with the program**, which is why this is
+/// as-observed rather than a correction: grep's convention is what v2 already
+/// had.
+///
+/// The message goes to STDOUT and the failure is silent, so the rc carries the
+/// verdict without a second line on stderr contradicting the first on stdout.
+fn modules_find(m: &ArgMatches) -> Result<(), Failure> {
+  let term = m.get_one::<String>("term").cloned().unwrap_or_default();
+  let project = migrated_project()?;
+  let text =
+    intentsvcs::modules::read_registry(project.root()).map_err(|e| Failure::Error(e.render()))?;
+  let rows = intentsvcs::modules::find_rows(&text, &term);
+  if rows.is_empty() {
+    println!("no matches for '{term}'");
+    return Err(Failure::Verdict);
+  }
+  for row in rows {
+    println!("{row}");
+  }
+  Ok(())
+}
+
+/// `intent modules check` -- compare the registry against the filesystem.
+///
+/// **THE POPULATION IS DERIVED FROM THE DECLARED `languages`, WHICH IS THE ONE
+/// DELIBERATE DEVIATION.** See [`intentsvcs::modules`] for why v2's
+/// `bin/intent_*` scan was never general.
+///
+/// **AND THE SCANNED LINE IS PRINTED BEFORE THE VERDICT, NOT AFTER IT.** `ok:
+/// registry matches filesystem` over an empty population is the estate's
+/// recurring defect in one line -- a check that could not fire, reading exactly
+/// like one that passed. A reader needs the denominator before the count, so it
+/// leads.
+fn modules_check() -> Result<(), Failure> {
+  let project = migrated_project()?;
+  let languages = project.config().languages.clone();
+  let report = intentsvcs::modules::check(project.root(), &languages)
+    .map_err(|e| Failure::Error(e.render()))?;
+
+  if report.scanned_anything() {
+    let parts: Vec<String> = report
+      .scanned
+      .iter()
+      .filter(|(_, n)| *n > 0)
+      .map(|(lang, n)| format!("{lang} ({n})"))
+      .collect();
+    println!("note: scanned {}", parts.join(", "));
+  } else {
+    println!(
+      "warning: no declared language contributes a source population, so nothing was compared against the registry"
+    );
+    println!("  remedy: declare what this project is written in with `intent lang init <lang>`");
+  }
+  println!();
+
+  if !report.unregistered.is_empty() {
+    println!("warning: unregistered files");
+    for f in &report.unregistered {
+      println!("  + {f}");
+    }
+    println!();
+  }
+  if !report.stale.is_empty() {
+    println!("warning: stale registry entries");
+    for f in &report.stale {
+      println!("  - {f}");
+    }
+    println!();
+  }
+
+  if report.clean() {
+    println!("ok: registry matches filesystem");
+    return Ok(());
+  }
+  let issues = report.unregistered.len() + report.stale.len();
+  println!("error: {issues} issue(s) found");
+  Err(Failure::Verdict)
 }
 
 /// `intent version` -- the subcommand twin of `--version`.

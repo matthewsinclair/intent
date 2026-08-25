@@ -43,6 +43,7 @@ fn proofs() {
   implements::<intentsvcs::output::OutputError>();
   implements::<intentsvcs::plugins::PluginError>();
   implements::<intentsvcs::project::ConfigWriteError>();
+  implements::<intentsvcs::modules::ModulesError>();
   implements::<intentsvcs::project::ProjectError>();
   implements::<intentsvcs::project::UnhonourableWindow>();
   implements::<intentsvcs::finding::Refusal>();

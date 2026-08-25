@@ -646,7 +646,11 @@ fn glob_to_regex(glob: &str) -> String {
 /// **NO `applies_to` MEANS UNIVERSAL, WHICH IS WHY GETTING THE PARSE WRONG IS
 /// DANGEROUS IN THE FIRING DIRECTION.** An absent declaration is a rule that
 /// applies everywhere; a declaration nobody could read looks identical to one.
-fn applies_to_file(globs: &[String], file: &Path) -> bool {
+/// **`pub` FOR A SECOND CONSUMER: [`crate::modules`] matches a project's
+/// source population with the same predicate.** One answer in this estate to
+/// "does this path match this glob" -- two would agree on every case anyone
+/// tested and diverge on the umbrella layout ST0038 exists for.
+pub fn applies_to_file(globs: &[String], file: &Path) -> bool {
   if globs.is_empty() {
     return true;
   }

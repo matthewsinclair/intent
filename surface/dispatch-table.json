@@ -6089,8 +6089,8 @@
               ],
               "type": "bool",
               "help": "Interactively register unregistered modules",
-              "note": "INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use",
-              "disposition": "keep"
+              "note": "**RETIRED, AND THE GROUND IS THAT IT DOES NOTHING -- not that it is interactive.** Driven against the frozen v2.19.0 install on a fixture holding one unregistered file, with stdin CLOSED: `intent modules check --register` RETURNED (it does not block), left `intent/llm/MODULES.md` BYTE-IDENTICAL, and added exactly one line of output -- `hint: add these to intent/llm/MODULES.md in the appropriate section`. `cmd_check`'s register arm is an `echo` and there is no write primitive in the file. **So its own help string -- `Interactively register unregistered modules` -- is false in both words, and THIS NOTE INHERITED THE FALSEHOOD**: it read `INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use`, which was reasoned from the help text rather than measured, and made the surface's only claimed interactive path a thing that never was one. **The retirement was queued on issue 0071's ground (v2 `upgrade` blocking on an interactive read with no TTY, and a headless fleet), and that ground was wrong about THIS flag** -- 0071 is about `upgrade`, which really does block. The conclusion survived its reason, which is the direction that leaves no corpse. v3 ships no flag; `check`'s own output already names every unregistered file, which is the whole of what `--register` added.",
+              "disposition": "retire"
             }
           ],
           "v2": "bin/intent_modules check arm",
@@ -6117,8 +6117,17 @@
             }
           },
           "target": {
-            "state": "as-observed",
-            "note": "The interactive `--register` needs an explicit non-tty behaviour in v3; v2 has none stated."
+            "state": "corrected",
+            "note": "Two corrections, one surface change. **(1) THE POPULATION IS DERIVED FROM THE PROJECT'S DECLARED `languages`.** v2 scans `bin/intent_*`, `lib/**/*.{ex,sh}` and `intent/plugins/**/bin/*` for every project it is pointed at -- Intent's own layout, with this product's name used as a file prefix. Shipped to a project written in anything else, v2 scans for shell scripts prefixed `intent_`, finds none, and reports a clean registry: **the check could not fire, and a check that cannot fire reads exactly like a check that passed.** **(2) `check` STATES WHAT IT SCANNED BEFORE IT STATES A VERDICT**, and says so loudly when no declared language contributes a population, for the same reason. **(3) `--register` does not ship** -- see the flag note. Ported unchanged: the report format, both exit codes, the directory-row subtree rule and the `file::function` rule (v2.11.12).",
+            "ratification": "hv answered `Yes` to building `modules` on 2026-08-25 and vc released it to cc on 2026-08-25 once `lang` had landed. The population derivation is the deviation those approvals cover; it was carried on cc's board as settled before the build began. **The `--register` ground was CORRECTED BY MEASUREMENT during the build** and the flag note carries the correction: the queued reason was issue 0071's headless-fleet argument, and the measured reason is that the flag is a no-op.",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "vc",
+                "date": "2026-08-25",
+                "record": "intent/whiteboard/cc/inbox.vc.md"
+              }
+            ]
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -6143,11 +6152,15 @@
             "exit": [
               {
                 "code": 0,
-                "when": "found, or no match"
+                "when": "one or more registry rows match the term"
               },
               {
                 "code": 1,
-                "when": "no term given"
+                "when": "**no match -- `no matches for '<term>'` on STDOUT, and rc=1.** Previously recorded here as `0`, and issue 0067 records rc=0 as measured. Both are wrong: `cmd_find` returns 1 on the empty branch. Driven 2026-08-25 against the frozen v2.19.0 install on a purpose-built fixture, reading the rc directly rather than through a pipe."
+              },
+              {
+                "code": 1,
+                "when": "no term given -- `error: Missing search term. Usage: intent modules find <term>`"
               },
               {
                 "code": 1,
@@ -6157,12 +6170,13 @@
             "stdout": "matching rows",
             "stderr": "`error: ...` on stderr (INV-01)",
             "evidence_class": {
-              "class": "read",
-              "why": "taken from the v2 source at the stamped revision without executing that specific arm"
+              "class": "measured",
+              "why": "**UPGRADED FROM `read` BECAUSE `read` GOT IT WRONG.** The previous class was `read` -- taken from the v2 source at the stamped revision without executing that specific arm -- and the no-match exit code it recorded was 0 against a program that returns 1. Now driven: fixture project at v2.19.0, `find` with a matching term, a non-matching term, and no term, each rc read directly. The v2 file that answered was confirmed by md5 to be the one `INTENT_HOME` resolves, so the reading is about the program that ran."
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "note": "as-observed and now actually so. v3 reproduces grep's convention because v2 already had it: match rc=0, no match prints on stdout at rc=1 with stderr silent. **The two documents that said 0 agreed with each other and neither agreed with the program**, which is why this row's evidence class moved rather than its target state."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -7719,7 +7733,7 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 53,
+      "n": 52,
       "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin."
     },
     {
@@ -7731,7 +7745,7 @@
     {
       "disposition": "keep",
       "target_state": "corrected",
-      "n": 26,
+      "n": 27,
       "gloss": "The command survives with a defect fixed. `keep` is right precisely because a corrected command still SURVIVES; the correction is what `target.state` records."
     },
     {

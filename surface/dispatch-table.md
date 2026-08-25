@@ -2801,16 +2801,21 @@ Compare MODULES.md registry against filesystem
 - **v2:** bin/intent_modules check arm
 - **Flags:**
   - `--register` (bool) -- Interactively register unregistered modules
-    - INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use
-    - **disposition:** keep
+    - **RETIRED, AND THE GROUND IS THAT IT DOES NOTHING -- not that it is interactive.** Driven against the frozen v2.19.0 install on a fixture holding one unregistered file, with stdin CLOSED: `intent modules check --register` RETURNED (it does not block), left `intent/llm/MODULES.md` BYTE-IDENTICAL, and added exactly one line of output -- `hint: add these to intent/llm/MODULES.md in the appropriate section`. `cmd_check`'s register arm is an `echo` and there is no write primitive in the file. **So its own help string -- `Interactively register unregistered modules` -- is false in both words, and THIS NOTE INHERITED THE FALSEHOOD**: it read `INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use`, which was reasoned from the help text rather than measured, and made the surface's only claimed interactive path a thing that never was one. **The retirement was queued on issue 0071's ground (v2 `upgrade` blocking on an interactive read with no TTY, and a headless fleet), and that ground was wrong about THIS flag** -- 0071 is about `upgrade`, which really does block. The conclusion survived its reason, which is the direction that leaves no corpse. v3 ships no flag; `check`'s own output already names every unregistered file, which is the whole of what `--register` added.
+    - **disposition:** retire
 - **Exit codes:**
   - `0` -- registry clean
   - `1` -- issues found -- unregistered or stale entries
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** the findings
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `as-observed`
-- **Note:** The interactive `--register` needs an explicit non-tty behaviour in v3; v2 has none stated.
+- **Target:** `corrected` -- ratified: hv answered `Yes` to building `modules` on 2026-08-25 and vc released it to cc on 2026-08-25 once `lang` had landed. The population derivation is the deviation those approvals cover; it was carried on cc's board as settled before the build began. **The `--register` ground was CORRECTED BY MEASUREMENT during the build** and the flag note carries the correction: the queued reason was issue 0071's headless-fleet argument, and the measured reason is that the flag is a no-op.
+- **Note:** Two corrections, one surface change. **(1) THE POPULATION IS DERIVED FROM THE PROJECT'S DECLARED `languages`.** v2 scans `bin/intent_*`, `lib/**/*.{ex,sh}` and `intent/plugins/**/bin/*` for every project it is pointed at -- Intent's own layout, with this product's name used as a file prefix. Shipped to a project written in anything else, v2 scans for shell scripts prefixed `intent_`, finds none, and reports a clean registry: **the check could not fire, and a check that cannot fire reads exactly like a check that passed.** **(2) `check` STATES WHAT IT SCANNED BEFORE IT STATES A VERDICT**, and says so loudly when no declared language contributes a population, for the same reason. **(3) `--register` does not ship** -- see the flag note. Ported unchanged: the report format, both exit codes, the directory-row subtree rule and the `file::function` rule (v2.11.12).
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-08-25
+  - `0.record`: intent/whiteboard/cc/inbox.vc.md
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
@@ -2822,12 +2827,14 @@ Search MODULES.md for a term
 - **Arguments:**
   - `term` (string, arity `1`)
 - **Exit codes:**
-  - `0` -- found, or no match
-  - `1` -- no term given
+  - `0` -- one or more registry rows match the term
+  - `1` -- **no match -- `no matches for '<term>'` on STDOUT, and rc=1.** Previously recorded here as `0`, and issue 0067 records rc=0 as measured. Both are wrong: `cmd_find` returns 1 on the empty branch. Driven 2026-08-25 against the frozen v2.19.0 install on a purpose-built fixture, reading the rc directly rather than through a pipe.
+  - `1` -- no term given -- `error: Missing search term. Usage: intent modules find <term>`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** matching rows
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **Note:** as-observed and now actually so. v3 reproduces grep's convention because v2 already had it: match rc=0, no match prints on stdout at rc=1 with stderr silent. **The two documents that said 0 agreed with each other and neither agreed with the program**, which is why this row's evidence class moved rather than its target state.
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
