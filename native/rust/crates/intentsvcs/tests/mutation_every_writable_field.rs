@@ -68,7 +68,8 @@
 mod common;
 
 use common::{Fixture, sample_thread};
-use intentsvcs::address::parse;
+use intentsvcs::address::{Address, parse};
+use intentsvcs::facade::Facade;
 use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, Legacy, Thread};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
@@ -443,23 +444,255 @@ fn an_ac_and_an_at_can_be_created_through_the_surface() {
 }
 
 // ---------------------------------------------------------------------------
-// AC-08.5's population, widened from ONE entity to EVERY entity form.
+// AC-08.5's population, widened from ONE entity to EVERY entity form -- and
+// from ONE door to the UNION OF DOORS, which is the half that arrived late.
 // ---------------------------------------------------------------------------
 
 /// What the mutation surface did when this form was addressed.
 ///
-/// **The discriminator is `has no write path yet`, and it is the right one
-/// because it is the surface's own words for *this entity is not reachable at
-/// all*.** A body error, an id mismatch or a named refusal all prove the
-/// opposite -- that `put` reached the form and had an opinion about the
-/// request. Only this answer means the door is absent.
+/// **THE SUBJECT IS THE UNION OF DOORS. IT USED TO BE `put` ALONE, AND THAT
+/// NARROWING WAS THIS INSTRUMENT'S DEFECT RATHER THAN THE SURFACE'S.** AC-08.5
+/// asks whether a form is reachable through THE MUTATION SURFACE; the surface
+/// has four address-addressed doors (see [`Door`]), and measuring one of them
+/// and publishing the answer as the criterion's is a true measurement of a
+/// narrower thing than the row asks about. **That is the same mistake the field
+/// axis found one layer down with `Attachment::blob`, committed one layer up by
+/// the instrument that found it.**
+///
+/// It was not a small narrowing. Under `put` alone the worklist held five forms;
+/// three of them -- `wp`, `.../wp` and `issues` -- had arms the whole time, at
+/// `set` and at `post`. **The instrument was reporting built work as unbuilt**,
+/// which is the direction its own doc block calls the dangerous one.
+///
+/// **Each door's discriminator is that door's own words for *I have no arm for
+/// this shape*.** A body error, an id mismatch or a named refusal all prove the
+/// opposite -- the door reached the form and had an opinion about the request.
+/// Every needle is positive-controlled on every run, in both directions, by
+/// [`the_door_needles_still_match_what_the_surface_says`]: a needle that has
+/// stopped matching reclassifies forms as REACHABLE in silence, which is the
+/// failure that hides a regression rather than inventing one.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Reached {
-  /// `put` has an arm for this form. What it then said about the BODY is a
-  /// different question and deliberately not this test's.
+  /// At least one door has an arm for this form. **WHICH door is recorded and
+  /// printed** -- a reachable form whose route nobody can name is one nobody can
+  /// use. What that door then said about the request is a different question and
+  /// deliberately not this test's.
   Yes,
-  /// `put` fell through to its catch-all: no arm exists.
+  /// **Every door fell through to its catch-all.** No arm exists anywhere on the
+  /// mutation surface, which is the only answer that means the form is unwritable.
   NoWritePathYet,
+}
+
+/// **THE MUTATION SURFACE'S DOORS, ENUMERATED -- the widening this instrument
+/// was missing, and the half of ic's TODO 1 that outlived the half that landed.**
+///
+/// # The door set was derived by PARSING signatures, not by grepping lines
+///
+/// `set` and `put_attachment` both declare their parameters across several
+/// lines, so `grep 'pub fn .*address: &Address'` finds FOUR of the six and reads
+/// as a complete answer -- **and two of the two it misses are doors.** The same
+/// fixed-window trap once reported that `Criterion` derives no `JsonSchema`
+/// because a 17-line attribute sat between the derive and the type. A signature
+/// is not a line, so it is not greppable by the line.
+///
+/// # Six functions take `(&mut self, address: &Address)`; two are not doors
+///
+/// Excluded WITH the reason, under the same citation clause [`Expected`] carries:
+/// `hydrate` materialises canon onto disk and `edit` returns a path for an
+/// editor to open. **Neither changes canon at the addressed entity**, so neither
+/// can make a field settable. A bare exclusion here would shrink the surface
+/// this criterion is about, with a signature on it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Door {
+  /// Replace an entity from a body.
+  Put,
+  /// Set one named field, and demonstrably nothing else.
+  Set,
+  /// Create a member where the id does not exist yet.
+  Post,
+  /// Write an attachment's content, bytes-carried included.
+  PutAttachment,
+}
+
+impl Door {
+  /// **EXHAUSTIVE BY CONSTRUCTION: a fifth door added to `Facade` is not caught
+  /// by this array, and nothing in Rust can make it be.** So the array is not
+  /// the guard -- [`the_door_set_is_the_facades_own_and_announces_a_fifth`] is,
+  /// by re-deriving the door set from the facade's source on every run.
+  const ALL: [Door; 4] = [Door::Put, Door::Set, Door::Post, Door::PutAttachment];
+
+  fn name(self) -> &'static str {
+    match self {
+      Door::Put => "put",
+      Door::Set => "set",
+      Door::Post => "post",
+      Door::PutAttachment => "put_attachment",
+    }
+  }
+
+  /// This door's own words for *I have no arm for this shape* -- or `None` when
+  /// the door has no such sentence.
+  ///
+  /// **THESE ARE INTERFACES, NOT PROSE.** `facade.rs` already says so of `put`'s
+  /// -- rewording that one sentence, once, silently reclassified six forms as
+  /// reachable, two of them forms the estate refuses BY RULING.
+  ///
+  /// # `set` HAS NO NEEDLE, AND THE CONTROL IS WHAT ESTABLISHED THAT
+  ///
+  /// The first draft of this enum gave `set` the needle `has no narrow setter`,
+  /// which reads exactly like the other three and is **a sentence the surface
+  /// cannot emit.** `fields_of` returns `Ok` for six forms; `set` dispatches on
+  /// five of them; the sixth is `Attachment`, whose every field is unsettable --
+  /// so `settable_fields` hands back an empty list and the field-name check
+  /// refuses before the dispatch is ever reached. `facade.rs` says as much at
+  /// the arm itself (*unreachable in practice*), and this instrument coupled to
+  /// it anyway.
+  ///
+  /// **Nothing would have reported that.** The main sweep passed with the dead
+  /// needle in it, because no form in the population produces the sentence and
+  /// a needle that never matches only widens the union. It failed the moment the
+  /// control asked the needle to fire -- **which is the whole argument for
+  /// controlling a discriminator instead of reading it.**
+  fn no_arm_needle(self) -> Option<&'static str> {
+    match self {
+      Door::Put => Some("has no write path yet"),
+      // Structural: `settable_fields` refuses before any sentence exists.
+      Door::Set => None,
+      Door::Post => Some("is not a collection whose ids this tool assigns"),
+      Door::PutAttachment => Some("is not an attachment address"),
+    }
+  }
+
+  /// Forms this door MUST refuse, and one it must NOT.
+  ///
+  /// **A DISCRIMINATOR CHECKED IN ONE DIRECTION ONLY IS THE DEFECT THIS FILE HAS
+  /// ALREADY PAID FOR**: the field-axis partition computed a verdict it could
+  /// not fail, and passed with a planted defect in it. A needle that matches
+  /// nothing makes its door open for everything and empties the worklist in
+  /// silence; a needle that matches everything makes its door reach nothing,
+  /// which at least shows up as a disagreement. Only the first is quiet, and it
+  /// is the one that reports unbuilt work as built.
+  ///
+  /// **`set` NAMES TWO REFUSING FORMS BECAUSE IT HAS TWO STRUCTURAL PATHS** --
+  /// a fieldless form and a form whose every field is unsettable. One control
+  /// would leave the other path unexercised, which is the same gap one door
+  /// left in the population.
+  fn control_forms(self) -> (&'static [&'static str], &'static str) {
+    match self {
+      // `nodes/ic` has no arm at any door; a thread is `put`'s first arm.
+      Door::Put => (&["intent:///nodes/ic"], "intent:///threads/ST0001"),
+      Door::Set => (
+        &[
+          // A collection: `fields_of` refuses it outright.
+          "intent:///threads",
+          // Fields, none of them settable: nothing to probe the dispatch with.
+          "intent:///threads/ST0001/attachments/design.md",
+        ],
+        "intent:///threads/ST0001",
+      ),
+      // An entity address is not a collection POST assigns ids in; `issues` is.
+      Door::Post => (&["intent:///threads/ST0001"], "intent:///issues"),
+      Door::PutAttachment => (
+        &["intent:///threads/ST0001"],
+        "intent:///threads/ST0001/attachments/design.md",
+      ),
+    }
+  }
+
+  /// Drive this door at this address and report what it did with the shape.
+  ///
+  /// **EVERY CALLER HANDS THIS A FRESH FACADE, WHICH IS WHY THE PROBES CAN BE
+  /// WRITES.** `put_attachment` on a legal attachment address SUCCEEDS -- there
+  /// is no request it refuses after dispatch -- so a probe that must not mutate
+  /// could not tell that door's arm from its catch-all at all. Isolation is the
+  /// control here rather than restraint, and it costs one in-memory store per
+  /// probe.
+  ///
+  /// **THE THREE ANSWERS ARE DISTINCT BECAUSE THE CONTROL NEEDS THEM TO BE.** A
+  /// bool cannot tell *the needle matched* from *there was nothing to probe
+  /// with*, and a control that cannot tell those apart passes whenever the
+  /// needle has gone blind -- which is the exact failure it exists to catch, and
+  /// the one it did catch.
+  fn probe(self, facade: &mut Facade, address: &Address) -> DoorAnswer {
+    let said = match self {
+      // A minimal legal body: this asks whether the door has an ARM, never
+      // whether a particular write lands, so a parse complaint from inside an
+      // arm still proves the arm was reached.
+      Door::Put => match facade.put(address, "{}") {
+        Ok(_) => String::new(),
+        Err(why) => format!("{why}"),
+      },
+      Door::Set => {
+        // **A FIELDLESS FORM HAS NO ARM AND SAYS SO STRUCTURALLY**, before any
+        // dispatch: `settable_fields` refuses a collection, an append-only log,
+        // and a form whose model has not landed. That is an `Err` rather than a
+        // sentence, so it is read as one -- a needle would be the weaker test.
+        let Ok(fields) = Facade::settable_fields(&address.entity) else {
+          return DoorAnswer::NoArmStructural("settable_fields refuses this form outright");
+        };
+        // A form whose every field is unsettable leaves nothing to probe the
+        // dispatch WITH. That is not the same as having no arm, and calling it
+        // one would be this instrument guessing -- so it is its own answer.
+        let Some(field) = fields.first() else {
+          return DoorAnswer::NoArmStructural("this form has no settable field to probe with");
+        };
+        let said = match facade.set(address, field, json!("a value this probe supplies")) {
+          Ok(_) => String::new(),
+          Err(why) => format!("{why}"),
+        };
+        // **A TRIPWIRE, NOT DEAD DEFENSIVE CODE.** `set`'s catch-all is
+        // documented unreachable and the reasoning above is why. If it ever
+        // fires, the surface has changed shape and the structural discriminator
+        // this door depends on has stopped being the whole answer -- which must
+        // be loud, because the quiet version of it is a form silently counted
+        // reachable.
+        assert!(
+          !said.contains("has no narrow setter"),
+          "`set` answered `{}` with its documented-unreachable catch-all. Either a form gained \
+           settable fields without gaining a dispatch arm, or `settable_fields` stopped refusing \
+           what it used to -- and either way `Door::Set`'s structural discriminator is no longer \
+           the whole answer: {said}",
+          address.to_url()
+        );
+        said
+      }
+      Door::Post => match facade.post(address, "{}") {
+        Ok(_) => String::new(),
+        Err(why) => format!("{why}"),
+      },
+      Door::PutAttachment => match facade.put_attachment(address, b"probe") {
+        Ok(_) => String::new(),
+        Err(why) => format!("{why}"),
+      },
+    };
+    match self.no_arm_needle() {
+      Some(needle) if said.contains(needle) => DoorAnswer::NoArm(said),
+      _ => DoorAnswer::Arm,
+    }
+  }
+
+  /// Whether this door dispatched to an arm for this form.
+  fn reaches(self, facade: &mut Facade, address: &Address) -> bool {
+    matches!(self.probe(facade, address), DoorAnswer::Arm)
+  }
+}
+
+/// What one door did with one address shape.
+///
+/// **`NoArm` AND `NoArmStructural` ARE THE SAME VERDICT AND DIFFERENT
+/// EVIDENCE**, which is why they are not one value. The first is the door's own
+/// sentence and is what the needle control tests; the second is a refusal that
+/// happened before any sentence existed. Collapsing them would let a blind
+/// needle borrow the structural refusal's correctness.
+#[derive(Debug)]
+enum DoorAnswer {
+  /// The door dispatched to an arm. What it then said about the request is a
+  /// different question.
+  Arm,
+  /// The door said, in its own words, that it has no arm for this shape.
+  NoArm(String),
+  /// The door refused before dispatch, with no sentence to match on.
+  NoArmStructural(&'static str),
 }
 
 /// What we DECLARE about a form, which is a different question from what the
@@ -521,7 +754,10 @@ enum Reached {
 enum Expected {
   /// `put` has an arm today.
   Reachable,
-  /// No arm yet, and there SHOULD be one. **This is AC-08.5's worklist.**
+  /// **No arm at ANY door, and there SHOULD be one.** This is AC-08.5's
+  /// worklist -- and it is a claim about the union, which is the only scope at
+  /// which the word "worklist" is true. While this was `put`-scoped it named
+  /// three forms that already had arms elsewhere.
   NotBuiltYet,
   /// No arm, and there must never be one. Carries the ruling that says so.
   NeverByRuling(&'static str),
@@ -560,12 +796,25 @@ fn declared_reach(entity: &intentsvcs::address::Entity) -> Expected {
     // an opinion about the request, so the door exists.
     E::Threads | E::Issue { .. } => Expected::Reachable,
 
-    // **AC-08.5's LIVE WORKLIST, and the reason this row is not green.**
-    // An attachment's canon record has no setter narrower than a thread; the
-    // rest have no `put` arm at all. Every one of these SHOULD have one.
+    // **NOT A WORKLIST ANY MORE, AND THE WIDENING IS WHY.** `Wp` is reached by
+    // `set`; `.../wp` and `issues` are reached by `post`. All three sat here as
+    // unbuilt work for as long as the instrument drove `put` alone -- so this
+    // block's own caption, `the reason this row is not green`, was describing
+    // work that was already done. **Nothing edited those three sentences into
+    // being wrong: the surface moved underneath them, and a claim with no
+    // expiry outlives the thing it was true of.**
     E::Attachment { .. } => Expected::Reachable,
-    E::Wp { .. } | E::WpCollection { .. } | E::AcCollection { .. } => Expected::NotBuiltYet,
-    E::Issues => Expected::NotBuiltYet,
+    E::Wp { .. } => Expected::Reachable,
+    E::WpCollection { .. } | E::Issues => Expected::Reachable,
+
+    // **AC-08.5's LIVE WORKLIST, DRIVEN AGAINST EVERY DOOR AND STILL EMPTY-HANDED.**
+    // `AcCollection` is refused by `post` (`ids this tool assigns`) and by `set`
+    // (a collection has membership, not fields), and both send the caller to an
+    // address that cannot be created -- **which is the standing burning case
+    // *no verb creates an AC or an AT*, seen from the service side.** `Node` has
+    // no model behind its address form at all. Every one of these SHOULD have a
+    // door, and none has one at any door.
+    E::AcCollection { .. } => Expected::NotBuiltYet,
     E::Node { .. } => Expected::NotBuiltYet,
 
     // **PERMANENT EXCLUSIONS, EACH CITING THE RULING THAT EXCLUDES IT.**
@@ -639,24 +888,40 @@ fn one_address_of_every_form() -> Vec<&'static str> {
 #[test]
 fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
   let fx = populated_fixture();
-  let mut facade = fx.facade();
 
-  let mut observed: Vec<(String, Reached, Expected)> = Vec::new();
+  // **`Reached::Yes` CARRIES ITS ROUTE NOW.** A form reported reachable whose
+  // door nobody can name is a claim a reader cannot act on -- and while this
+  // instrument drove one door, *reachable* and *reachable by `put`* were the
+  // same sentence, so the distinction had nowhere to live.
+  /// One form, what the surface did with it, what we declared, the doors that
+  /// opened, and **what every closed door actually said**.
+  ///
+  /// The last field is why `DoorAnswer` carries its reasons rather than
+  /// collapsing to a bool: AC-08.5 asks for the unwritable set to be reported BY
+  /// NAME, and a worklist that names forms without naming the refusals sends the
+  /// reader back to the surface to ask it again.
+  type Form = (String, Reached, Expected, Vec<&'static str>, Vec<String>);
+
+  let mut observed: Vec<Form> = Vec::new();
   let mut disagreements: Vec<String> = Vec::new();
 
   for url in one_address_of_every_form() {
     let address = parse(url).unwrap_or_else(|e| {
       panic!("the POPULATION is broken, not the surface: `{url}` does not parse ({e:?})")
     });
-    // **The body is deliberately minimal.** This test asks whether `put` has an
-    // ARM for the form, never whether a particular write lands -- so a body
-    // that would fail parsing inside an arm still proves the arm was reached,
-    // because a parse complaint is an opinion about the request.
-    let said = match facade.put(&address, "{}") {
-      Ok(_) => String::new(),
-      Err(why) => format!("{why}"),
-    };
-    let reached = if said.contains("has no write path yet") {
+    // **EVERY DOOR IS DRIVEN, ON A FRESH FACADE EACH TIME.** The question is
+    // whether ANY door has an arm for this form, never whether a particular
+    // write lands -- so a refusal from inside an arm still counts as reached.
+    let mut opens: Vec<&'static str> = Vec::new();
+    let mut closed: Vec<String> = Vec::new();
+    for door in Door::ALL {
+      match door.probe(&mut fx.facade(), &address) {
+        DoorAnswer::Arm => opens.push(door.name()),
+        DoorAnswer::NoArm(said) => closed.push(format!("{}: {said}", door.name())),
+        DoorAnswer::NoArmStructural(why) => closed.push(format!("{}: {why}", door.name())),
+      }
+    }
+    let reached = if opens.is_empty() {
       Reached::NoWritePathYet
     } else {
       Reached::Yes
@@ -685,11 +950,17 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
 
     if reached != declared.requires() {
       disagreements.push(format!(
-        "  {url}\n    declared {declared:?}, which requires {:?}, but observed {reached:?}",
-        declared.requires()
+        "  {url}\n    declared {declared:?}, which requires {:?}, but observed {reached:?}\n    \
+         doors that opened: {}",
+        declared.requires(),
+        if opens.is_empty() {
+          "none".to_string()
+        } else {
+          opens.join(", ")
+        }
       ));
     }
-    observed.push((url.to_string(), reached, declared));
+    observed.push((url.to_string(), reached, declared, opens, closed));
   }
 
   // **THE POSITIVE CONTROL: at least one form must be reachable.** Every
@@ -698,7 +969,7 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
   // report a green that is a fact about the harness rather than the surface.
   let reachable = observed
     .iter()
-    .filter(|(_, r, _)| *r == Reached::Yes)
+    .filter(|(_, r, _, _, _)| *r == Reached::Yes)
     .count();
   assert!(
     reachable > 0,
@@ -706,11 +977,36 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
      the mutation surface"
   );
 
+  // **THE SECOND POSITIVE CONTROL, AND IT IS ABOUT THE WIDENING.** A door whose
+  // needle has drifted answers `reaches` for everything, so the union would
+  // report every form reachable through it and the worklist would empty in
+  // silence. **A door that opens for all thirteen forms is a broken
+  // discriminator, not a generous door** -- no door on this surface has an arm
+  // for a collection, an append-only log and an entity alike.
+  for door in Door::ALL {
+    let opened = observed
+      .iter()
+      .filter(|(_, _, _, opens, _)| opens.contains(&door.name()))
+      .count();
+    assert!(
+      opened < observed.len(),
+      "`{}` reported an arm for ALL {} forms, including the append-only ones. That is its \
+       discriminator ({}) failing to refuse anything, not a door that reaches everything: every \
+       form would read as reachable and the worklist would empty with nothing built.",
+      door.name(),
+      observed.len(),
+      door
+        .no_arm_needle()
+        .map_or_else(|| "structural".to_string(), |n| format!("`{n}`"))
+    );
+  }
+
   assert!(
     disagreements.is_empty(),
     "the mutation surface's reach has MOVED, and the declaration no longer describes it:\n{}\n\n  \
-     If a form GAINED a write path, delete it from `declared_reach` -- AC-08.5 got closer.\n  \
-     If a form LOST one, that is a regression in the surface, not in this test.",
+     If a form GAINED a write path at ANY door, re-declare it Reachable -- AC-08.5 got closer.\n  \
+     If a form LOST one at every door, that is a regression in the surface, not in this test.\n  \
+     If you are here because you added a DOOR, that is the good case: the union widened.",
     disagreements.join("\n")
   );
 
@@ -721,28 +1017,53 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
   // permanent exclusions are printed separately WITH their rulings rather than
   // omitted. An exclusion nobody prints is one nobody can challenge, and this
   // list is exactly where a wrong exclusion would hide.
-  let population: Vec<&(String, Reached, Expected)> = observed
+  let population: Vec<&Form> = observed
     .iter()
-    .filter(|(_, _, e)| e.in_population())
+    .filter(|(_, _, e, _, _)| e.in_population())
     .collect();
-  let worklist: Vec<&str> = population
+  let worklist: Vec<(&str, &Vec<String>)> = population
     .iter()
-    .filter(|(_, r, _)| *r == Reached::NoWritePathYet)
-    .map(|(u, _, _)| u.as_str())
+    .filter(|(_, r, _, _, _)| *r == Reached::NoWritePathYet)
+    .map(|(u, _, _, _, closed)| (u.as_str(), closed))
     .collect();
 
   println!(
-    "AC-08.5: {} of {} entity form(s) IN THE POPULATION have no write path through `put`:",
+    "AC-08.5: {} of {} entity form(s) IN THE POPULATION have no write path at ANY of the {} doors ({}):",
     worklist.len(),
-    population.len()
+    population.len(),
+    Door::ALL.len(),
+    Door::ALL
+      .iter()
+      .map(|d| d.name())
+      .collect::<Vec<_>>()
+      .join(", ")
   );
-  for u in &worklist {
+  // **EVERY CLOSED DOOR IS QUOTED, NOT COUNTED.** The criterion asks for the
+  // unwritable set reported BY NAME, and a worklist that names forms without
+  // naming the refusals sends its reader back to the surface to ask again --
+  // which is what four separate messages did on this row before the buckets
+  // landed one axis down.
+  for (u, closed) in &worklist {
     println!("  {u}");
+    for said in closed.iter() {
+      println!("    {said}");
+    }
+  }
+
+  // **THE ROUTE IS PRINTED, NOT JUST THE VERDICT.** A reader who is told a form
+  // is reachable and not told through WHAT cannot use the answer, and cannot
+  // check it either. This half of the report did not exist while the instrument
+  // drove one door, because there was nothing to say.
+  println!("AC-08.5: the doors that reach each form in the population:");
+  for (u, r, _, opens, _) in &population {
+    if *r == Reached::Yes {
+      println!("  {u}\n    via {}", opens.join(", "));
+    }
   }
 
   let excluded: Vec<(&str, &str)> = observed
     .iter()
-    .filter_map(|(u, _, e)| match e {
+    .filter_map(|(u, _, e, _, _)| match e {
       Expected::NeverByRuling(why) => Some((u.as_str(), *why)),
       _ => None,
     })
@@ -754,6 +1075,162 @@ fn the_unsettable_set_is_driven_across_every_entity_form_and_named() {
   for (u, why) in &excluded {
     println!("  {u}\n    {why}");
   }
+}
+
+/// **THE NEEDLES ARE POSITIVE-CONTROLLED IN BOTH DIRECTIONS, ON EVERY RUN.**
+///
+/// Four doors are now discriminated by four sentences the facade owns. Each one
+/// is an interface the way `put`'s already was -- `facade.rs` records that
+/// rewording that one sentence, once, silently reclassified six forms as
+/// reachable, two of them forms the estate refuses BY RULING.
+///
+/// # A needle can go blind in two directions and one of them is silent
+///
+/// **A needle that stops matching makes its door open for everything**: the
+/// union reports every form reachable, `declared_reach` is dragged along behind
+/// it, and the worklist empties with nothing built. That failure looks exactly
+/// like success. A needle that matches too much makes its door reach nothing,
+/// which at least shows up as a disagreement.
+///
+/// So each door names a form it MUST answer with its needle and a form it must
+/// NOT. **This is the control the field-axis partition went without for a
+/// morning** -- it computed a verdict that could not go red, and it passed with
+/// a planted defect sitting in it.
+#[test]
+fn the_door_needles_still_match_what_the_surface_says() {
+  let fx = populated_fixture();
+
+  for door in Door::ALL {
+    let (must_refuse, must_not) = door.control_forms();
+
+    for url in must_refuse {
+      let address = parse(url).unwrap_or_else(|e| panic!("`{url}`: {e:?}"));
+      let answer = door.probe(&mut fx.facade(), &address);
+      match (door.no_arm_needle(), answer) {
+        // A door with a sentence must produce THAT sentence.
+        (Some(needle), DoorAnswer::NoArm(said)) => assert!(
+          said.contains(needle),
+          "`{}` answered `{url}` without its own needle `{needle}`: {said}",
+          door.name()
+        ),
+        // A door that refuses structurally must refuse structurally.
+        (None, DoorAnswer::NoArmStructural(_)) => {}
+        // **EVERY OTHER PAIRING IS AN UNEXERCISED DISCRIMINATOR, NOT A PASS.**
+        // A control satisfiable without touching its subject is the shape this
+        // file has already been burned by: the verdict can be right while the
+        // thing under test was never run.
+        (needle, other) => panic!(
+          "`{}`'s discriminator was never exercised on `{url}`: it answers {other:?} where {} was \
+           required. The verdict may still be right, and the discriminator is unguarded -- a \
+           reword of it would empty the worklist in silence.",
+          door.name(),
+          needle.map_or_else(
+            || "a structural refusal".to_string(),
+            |n| format!("the sentence `{n}`")
+          )
+        ),
+      }
+    }
+
+    let address = parse(must_not).unwrap_or_else(|e| panic!("`{must_not}`: {e:?}"));
+    assert!(
+      door.reaches(&mut fx.facade(), &address),
+      "`{}` reported NO arm for `{must_not}`, which it does reach. Either the door lost an arm \
+       -- a regression in the surface -- or its discriminator now refuses an answer that is an \
+       opinion about the request rather than about the shape.",
+      door.name()
+    );
+  }
+}
+
+/// **THE DOOR SET IS RE-DERIVED FROM THE FACADE'S OWN SOURCE, SO A FIFTH DOOR
+/// ANNOUNCES ITSELF.**
+///
+/// `Door::ALL` is an authored array, and Rust offers nothing that makes adding a
+/// method to `Facade` fail to compile here -- the exhaustive-match device that
+/// fences `Entity` and the field axis has no purchase on a set of functions. So
+/// the announcement mechanism has to be a measurement, and this is it.
+///
+/// # It parses signatures rather than grepping lines, and that is the finding
+///
+/// `set` and `put_attachment` declare their parameters across several lines, so
+/// a one-line `grep 'pub fn .*address: &Address'` returns FOUR of six and reads
+/// as a complete answer. **Both of the two it misses are doors** -- which is
+/// precisely how this instrument came to measure one door and report the number
+/// as the criterion's. The same fixed-window trap once had a 6-line lookback
+/// report that `Criterion` derives no `JsonSchema`, because a 17-line attribute
+/// sat between the derive and the type.
+///
+/// # The two exclusions are named, not silent
+///
+/// `hydrate` and `edit` take the same `(&mut self, address: &Address)` and are
+/// not doors: neither changes canon at the addressed entity. They are listed
+/// here so that removing one from the exclusion list is a visible act rather
+/// than a shrug -- the same citation clause [`Expected`] carries.
+#[test]
+fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
+  const NOT_DOORS: [&str; 2] = ["hydrate", "edit"];
+
+  let source =
+    std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/facade.rs"))
+      .expect("the facade's source is readable from its own crate");
+
+  // Accumulate a signature across lines until its opening brace, which is the
+  // only way to see a parameter list that a line break runs through.
+  let mut found: Vec<String> = Vec::new();
+  let mut signature = String::new();
+  for line in source.lines() {
+    if line.starts_with("  pub fn ") {
+      signature = line.to_string();
+    } else if !signature.is_empty() {
+      signature.push(' ');
+      signature.push_str(line.trim());
+    }
+    if signature.is_empty() || !line.trim_end().ends_with('{') {
+      continue;
+    }
+    if signature.contains("&mut self") && signature.contains("address: &Address") {
+      let name = signature
+        .trim_start()
+        .trim_start_matches("pub fn ")
+        .split(['(', '<'])
+        .next()
+        .expect("a signature has a name")
+        .trim()
+        .to_string();
+      found.push(name);
+    }
+    signature.clear();
+  }
+
+  // The parser must find something, or this test is measuring its own regex.
+  assert!(
+    found.len() >= Door::ALL.len(),
+    "the signature parser found {} address-addressed mutators, fewer than the {} doors this \
+     file drives -- the parser is broken, not the facade: {found:?}",
+    found.len(),
+    Door::ALL.len()
+  );
+
+  let declared: BTreeSet<&str> = Door::ALL
+    .iter()
+    .map(|d| d.name())
+    .chain(NOT_DOORS)
+    .collect();
+  let unaccounted: Vec<&String> = found
+    .iter()
+    .filter(|f| !declared.contains(f.as_str()))
+    .collect();
+
+  assert!(
+    unaccounted.is_empty(),
+    "`Facade` has address-addressed mutators this file has never heard of: {unaccounted:?}\n  \
+     AC-08.5 is about THE MUTATION SURFACE, so a door nobody drives makes the worklist too \
+     long and reports built work as unbuilt -- which is what drove three forms into the \
+     worklist for as long as this instrument knew only `put`.\n  \
+     Add it to `Door` if it changes canon at the addressed entity, or to `NOT_DOORS` WITH the \
+     reason it does not."
+  );
 }
 
 /// A `Thread` with every field that is neither REQUIRED nor GRAFTED carrying a
