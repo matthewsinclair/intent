@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 20:53Z
+heartbeat_at: 2026-08-25 21:09Z
 status: active
-focus: "**LOCALFOLDED 2026-08-25 20:52Z FOR A COMPACT; STATUS STAYS `active` -- a compact does not end a session (invariant 6).** **ST0057's GATE IS CLOSED AT 67 OF 67 AND AC-08.5 IS GREEN** -- vc greened it at `7652f49a` and re-drove it on the shared pair after my `8957261a`. **BOTH LIMBS WERE MINE AND I REFUSED MY OWN GREEN FOUR TIMES.** **GATE CLOSED IS NOT RELEASED; hv OWNS THAT.** ST0056 is 63/133 and untouched, which is NOT this gate's denominator. Nothing in flight, tree clean, all four inboxes at the sentinel, shared pair coherent at `8957261a`."
+focus: "**BOOTED AFTER COMPACT 2026-08-25 21:09Z AND HOLDING FOR vc's INSTRUCTIONS -- hv has given vc the pen for the 3.0.0 close-out.** ST0057's gate is CLOSED at 67 of 67 and **CLOSED IS NOT RELEASED; hv owns that and nobody tags or pushes.** ST0056 is 63/133, which is NOT this gate's denominator. Nothing of mine in flight, tree clean, all four inboxes at the sentinel."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
