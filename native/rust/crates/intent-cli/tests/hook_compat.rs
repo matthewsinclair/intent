@@ -1,4 +1,5 @@
-//! **AC-07.2 -- `intent claude hook <name>` is byte-compatible with v2 for
+//! **AT-07.2, covering ST0056 AC-07.2 -- `intent claude hook <name>` is
+//! byte-compatible with v2 for
 //! every shipped hook, and the consumer's `settings.json` is untouched.**
 //!
 //! **THE POPULATION IS READ FROM THE SHIPPED CANON AND NEVER LISTED HERE, AND

@@ -49,7 +49,7 @@ Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
 
 ### Intent dev rules (extend the four agnostic rules above)
 
-1. **Highlander Rule** -- search `intent/llm/MODULES.md` before creating any new module, helper, or template: `grep -n '<name>' intent/llm/MODULES.md`. **Search it, do not read it** -- the registry is ~354KB across ~367 rows, so "read it first" is not an instruction anyone can follow. (`intent modules find` is the intended verb and works under v2, but it is not yet implemented in v3 and this project is v3-self-hosted, so grep is the working form today.)
+1. **Highlander Rule** -- search `intent/llm/MODULES.md` before creating any new module, helper, or template: `grep -n '<name>' intent/llm/MODULES.md`. **Search it, do not read it** -- the registry is ~354KB across ~367 rows, so "read it first" is not an instruction anyone can follow. (`intent modules find` is the intended verb: **drive it, and fall back to the grep above if it does not answer.** Which spelling works is a property of the tool version you are standing on, and pinning that answer here would make this a second home for a fact the tool already reports about itself.)
 2. **Thin scripts** (concretises `IN-AG-THIN-COORD-001`) -- business logic lives in dedicated modules under `bin/` or `intent/plugins/`, never inline in command dispatch or heredocs.
 3. **No silent failures** (concretises `IN-AG-NO-SILENT-001`) -- every error path uses `error()` from `bin/intent_helpers`.
 4. **Check before you create** -- before adding a new script or function, search the registry as in rule 1.

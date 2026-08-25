@@ -1803,8 +1803,8 @@
       "covers": [
         "AC-07.2"
       ],
-      "status": "to-write",
-      "note": "byte-compares every shipped hook"
+      "status": "green",
+      "note": "byte-compares every shipped hook, 6 arms, driven green by vc 2026-08-25 at e63813a2 on a clean tree. CORRECTS THE FIGURE IN a40cf763's COMMIT BODY, WHICH SAYS settings.json WIRES FOUR: it SHIPS four, WIRES three, UNION four -- post-tool-advisory is unwired on purpose (ST0035 decision #4, stated in the script's own header) and git log -S confirms it was never in that stanza. dc will not rewrite shared history for it and is right not to, so this row is where the correction lands: A ROW INHERITS ITS DESCRIPTION FROM THE COMMIT THAT PRODUCED IT, so left alone the wrong figure would be the durable one. The defect the test caught was real and consumer-facing -- install::HOOKS carried three names, so v3 answered the session-finish Stop hook with exit 1 on every consumer session end."
     },
     {
       "id": "AT-07.3",
