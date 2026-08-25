@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b4196a86-ca7b-4638-9e04-fa749b53e343
-heartbeat_at: 2026-08-25 21:09Z
+heartbeat_at: 2026-08-25 21:58Z
 status: active
-focus: "BOOTED 2026-08-25 21:09Z after a compact; hv's instruction is boot then HOLD FOR vc. STATUS STAYS active -- a compact does not end a session (invariant 6). GATE RE-DRIVEN AT BOOT, NOT TRANSCRIBED: ST0057 51/51 PASS, ST0056/03 16/16 PASS, gate ST0057 PASS = 67 of 67; counterweight ST0056 63/133 BLOCKED with WP-12 Not Started. Open issues are TWENTY, driven by tallying the STATUS COLUMN -- my first read said 21 off a truncated tail, which is the same class. intent/wip.md names twelve and stops; 0077-0084 are absent from it, and that file is vc's. All four inboxes at the sentinel, tree clean, 60 ahead of both remotes and that is hv's alone. TODO 1 remains HALF done: the field-axis arm is green, the door-denominator widening is not, and three stale claims still stand in mutation_every_writable_field.rs. I do not tag, push or publish."
+focus: "TODO 1 CLOSED, BOTH HALVES, at 44ebe465. The door denominator is the UNION of four doors, not put alone -- worklist 5 -> 2, because wp/.../wp/issues had arms at set and post the whole time. Four controls driven including the decisive one: restoring the old put-only declaration reds three times and names the door each time. THE NEEDLE CONTROL CAUGHT A REAL DEFECT IN MY OWN CHANGE -- I gave set a needle the surface cannot emit, and the sweep passed with it in. NEXT, vc's: AC-00.5 (retired vs unbuilt share exit code 2), then AC-00.6 as VERIFIER not builder (detached worktree at 540d92bb -- native/rust is dirty with peer paths), then AC-06.3 and coverage_map. I do not tag, push or publish."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
@@ -13,37 +13,38 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 
 ## DOING
 
-**NOTHING IN FLIGHT. AC-08.5 CLOSED 2026-08-25 AND THE GATE WITH IT.** Driven by me, three calls, not transcribed: `ac status ST0057` **51/51 satisfied, 2 withdrawn PASS**; `ac status ST0056/03` **16/16 PASS**; `ac gate ST0057` **PASS**. **67 of 67.** Day record: `.history/20260825/wip-fold-2053Z.md`.
+**TODO 1 IS CLOSED, BOTH HALVES. `44ebe465`.** The field-axis arm landed last night; **the door-denominator widening landed tonight** and it was not a re-labelling: `declared_reach` measured `put` alone and published the answer as AC-08.5's. **The surface has FOUR address-addressed doors -- `put`, `set`, `post`, `put_attachment` -- and driving the union takes the worklist from FIVE forms to TWO.** `wp` was reached by `set` all along; `.../wp` and `issues` by `post`. **Three forms sat in the worklist as unbuilt work that was built**, which is the direction the file's own doc block calls the dangerous one, and nothing edited those declarations into being wrong -- the surface moved underneath them.
 
-**AND THE NUMBER IT WILL BE MISTAKEN FOR, DRIVEN IN THE SAME BREATH: `ac status ST0056` is 63/133 BLOCKED with WP-12 `Cutover and v3.0.0 release` NOT STARTED**, alongside 08/09/13/14/15/16. **THIS IS ST0057's CLOSURE GATE, NOT THE RELEASE GATE.** Hand both numbers over together or the good one travels alone.
+**THE DOOR SET WAS DERIVED BY PARSING SIGNATURES, NOT BY GREPPING LINES**, and that is the finding rather than the method: `set` and `put_attachment` declare their parameters across several lines, so `grep 'pub fn .*address: &Address'` returns FOUR of six and reads as a complete answer -- **and both of the two it misses are doors.** Same fixed-window trap as the 6-line lookback that once said `Criterion` derives no `JsonSchema`. `the_door_set_is_the_facades_own_and_announces_a_fifth` now re-derives the set from `facade.rs` on every run.
 
-**MY DELIVERABLE, LANDED: the field-axis instrument** in `mutation_every_writable_field.rs` -- partition derived, population pinned by exhaustive `match`, denominator **compile-fenced** so serde cannot hide a field, three-bucket reader-axis report printing on every run. `54 = 30 settable + 24 refused`, `14 elsewhere + 10 never + 0 not-yet`.
+**THE NEEDLE CONTROL CAUGHT A REAL ONE BEFORE THIS LANDED, AND IT IS THE BEST THING IN THE CHANGE.** I gave `set` the needle `has no narrow setter` -- a sentence **the surface cannot emit**: `fields_of` returns Ok for six forms, `set` dispatches on five, and the sixth is `Attachment` whose every field is unsettable, so the field-name check refuses before dispatch. `facade.rs` says _unreachable in practice_ at the arm itself and I coupled to it anyway. **The sweep passed with the dead needle in it** -- a needle that never matches only widens the union, so nothing could have reported it. It failed the instant the control asked the needle to FIRE. `set` now discriminates structurally, `no_arm_needle` is an `Option`, and the unreachable catch-all is a loud tripwire instead of dead defensive code.
 
-**U3 IS STILL OPEN AND ITS TABLE HAS EXPIRED IN ONE ROW -- FOUND AT THIS FOLD, WHICH IS THE ONLY WAY IT COULD HAVE BEEN FOUND.** Re-driven now: `claude ws list` **rc=2 unwired** (still the whiteboard provisioner gap), `claude prime` **rc=2 unwired**, **but `lang init` is rc=1 on a missing argument -- it has been IMPLEMENTED since I derived the table.** The table went to vc on 2026-08-22 and one of its rows quietly stopped being true. **That is today's expiring-claim class inside my own delivered artefact, and nothing but re-driving it would have shown me.** Full table in `.history/20260822/wip-fold-0852Z.md`; **do not cite it without re-driving.**
+**FOUR CONTROLS DRIVEN, NOT ASSERTED:** declaring an unreachable form `Reachable` reds; **restoring the OLD put-only declaration reds three times, naming the door each time (`post`, `post`, `set`)** -- which is what proves the widening is a measurement; dropping `edit` from `NOT_DOORS` reds; and the needle control red for real. 29 tests green. The worklist now QUOTES every closed door rather than counting them.
 
 ## TODO
 
-**IN ORDER. Item 1 is HALF DONE and the half that remains got MORE wrong tonight, not less.**
+**IN ORDER. 1-3 ARE vc's ASSIGNMENT TONIGHT.**
 
-1. **THE DOOR-DENOMINATOR WIDENING -- NOT DONE, AND NOW CARRYING A CLAIM THAT EXPIRED WHEN THE ROW WENT GREEN.** vc ruled this as two ordered pieces: field-axis arm first, then widen `declared_reach`'s door set to the UNION of doors. **The arm is BUILT AND GREEN. The widening was never done**, and I nearly folded this item out as complete -- driven instead, and three of its four stale claims still stand in `mutation_every_writable_field.rs`:
-
-   - `E::Wp { .. } | E::WpCollection | E::AcCollection => Expected::NotBuiltYet` -- `Wp` gained a door through `set`.
-   - the caption **`AC-08.5's LIVE WORKLIST, and the reason this row is not green`** -- **the row IS green as of tonight, so this sentence is now false in a second way.**
-   - `This is AC-08.5's worklist` on `Expected::NotBuiltYet`'s doc -- a `put`-scoped FACT stated as the criterion's SUBJECT.
-   - `Every one of these SHOULD have one` -- a `put`-scoped NORM stated as the criterion's REQUIREMENT.
-
-   **`the rest have no put arm at all` is GONE (driven: 0 hits), so one of the four was fixed by someone and three were not.** **DO NOT NARROW THESE TO MATCH THE INSTRUMENT** -- widen the door set and the first becomes true on its own. **And this is the expiring-remedy class in my own file on the day I catalogued it: nothing touched those sentences; the row moved underneath them.**
-
-2. **THE `issues` SURFACE -- ONE PAPER TO hv, WITH OPTIONS AND NEVER A PREFERENCE.** `--kind` vs `--status`, four words for one concept, and the absence behind it. One paper, not two.
-3. **`at green`'s no-op voice has no instrument.** Re-driven at this fold: `self_loop_voice.rs` still has **zero** `at green` references while covering `at red` and `at na`. **Still open, still nobody's.**
-4. **AC-08.5's biconditional cover -- ROUTED, UNBUILT, hv's.** ic must not build the instrument deciding whether their own gate row is green. **The row is green without it, which makes this LESS urgent and no less true.**
-5. **Two verbs accept an undeclared format at rc=0.** `critic rust --format=__bogus__` falls back to text; `events --format=__bogus__` ignores the flag.
-6. **ST0057/WP-05** recorded WIP with gate 3/3 PASS, deliberately not closed -- a gate that passes while a design question is open does not reach the question.
-7. **Recognise `intent#0066`/`#0067`** in the surface record. Mine to recognise, cc's to build.
-8. **AC-03.17 classifies by WRITER, `.prettierignore` by LOCATION**, so three generated root views sit in the formatter's reach. Wants a ruling.
-9. **THE THREE-BUCKET REPORT IS DONE AND ITS NEXT QUESTION IS NOT MINE:** a field can be `elsewhere` while the ENTITY carrying it fails to sync (issue 0082). **My buckets answer _can I change this FIELD_; they cannot say _yes, and the thing it lives in then breaks_.** I left the report SILENT on it rather than growing a bucket that half-says it. vc holds whether that needs an axis.
+1. **`AC-00.5` -- A RETIRED REFUSAL AND AN UNBUILT ONE SHARE ONE EXIT CODE.** Driven by me tonight: `treeindex bin` rc=2 _was retired in Intent v3_; `lang list` rc=2 _is a known command that is not implemented yet_. **Two meanings, one code, only the prose separating them**, so nothing downstream can branch. vc's steer, which I share: this may be a whole-surface exit-code question rather than two commands -- cc has measured **37** unwired entries, so the _not implemented yet_ population is large and every one shares its code with every retirement. **Measure the population BEFORE proposing a code.**
+2. **`AC-00.6` -- VERIFY, DO NOT BUILD.** cc built `version` at `540d92bb` and refused to green a non-test row certifying their own work; vc authored the criterion. **Three hands.** The row: `intent3 --version` and `intent3 version` are ONE capability. **CHECK THE BYTES, NOT THE SOURCE** -- a shared `render_version()` with a `print!` in one arm keeps the source and breaks the output. **VERIFY AGAINST A TREE THAT IS A COMMIT: detached worktree at `540d92bb`.** `native/rust` is dirty with peer paths right now, so a build here describes no commit. **Never `cp` the shared source aside to mutate it.**
+3. **`AC-06.3` -- A GENERATED FILE IS NOT A HOME.** cc found `register.md`'s `deviation` column reads `none` on essentially every row and is **unpopulated by construction, not empty by finding**: the header says regenerated by `tools/gen_register.sh`. So the row cannot be closed by adding rows -- a deviation written there is erased by the next regeneration **with nothing reporting the loss**. Needs the GENERATOR to carry a deviation and a place for a lander to write one at land time. My harness. Shaped, not tonight.
+4. **`coverage_map.sh` IS REFUSING AT rc=2 AND IT IS MY HARNESS.** Its burn TSV does not cover 15 on-disk `.bats` files. It refuses to publish a figure over the wrong corpus, which is right. **The consequence lands on AC-06.1**, whose no-family-at-zero-burning-coverage clause is not merely red but UNMEASURABLE until `burn.sh` is re-run. Its own remedy says re-run rather than hand-patch: a baseline stitched from several revisions is the drift it exists to catch.
+5. **THE `issues` SURFACE -- ONE PAPER TO hv, WITH OPTIONS AND NEVER A PREFERENCE.** `--kind` vs `--status`, four words for one concept, and the absence behind it.
+6. **`at green`'s no-op voice has no instrument.** `self_loop_voice.rs` covers `at red` and `at na` and has zero `at green` references. Still nobody's.
+7. **AC-08.5's biconditional cover -- ROUTED, UNBUILT, hv's.** ic must not build the instrument deciding whether their own gate row is green.
+8. **Two verbs accept an undeclared format at rc=0.** `critic rust --format=__bogus__` falls back to text; `events --format=__bogus__` ignores the flag.
+9. **ST0057/WP-05** recorded WIP with gate 3/3 PASS, deliberately not closed.
+10. **Recognise `intent#0066`/`#0067`** in the surface record. Mine to recognise, cc's to build.
+11. **AC-03.17 classifies by WRITER, `.prettierignore` by LOCATION.** Wants a ruling.
+12. **The three-bucket report's next question is vc's:** a field can be `elsewhere` while the ENTITY carrying it fails to sync (issue 0082).
 
 ## Watch-outs
+
+**I RETIRED A TRUE ROW BELIEVING IT HAD EXPIRED, AND THAT IS STRICTLY HARDER TO SEE THAN AN EXPIRING CLAIM (cc, 2026-08-25).** At the 2053Z fold I re-drove `lang init`, read **rc=1**, and concluded the verb had been implemented since my U3 table -- so I recorded the row as expired and reported it to hv as my own catch. **cc drove `lang init rust` with explicit argv and got rc=2 _is a known command that is not implemented yet_. The whole six-entry `lang` family is unwired.** I re-drove it myself before conceding: rc=2, three for three. **A row that disappears leaves nothing to re-read**, which is why this direction is worse than the one I was congratulating myself for catching.
+
+**THE MECHANISM IS ONE I HAVE A STANDING NOTE ABOUT AND WALKED INTO TWICE IN ONE EVENING.** The Bash tool's shell is **zsh**, where an unquoted `$var` does **NOT** word-split -- so `for c in "lang init rust"; do bin/intent3 $c; done` passes the whole string as ONE subcommand name, and **clap refuses it at rc=1 before any renderer arm runs.** I read clap's exit code as the renderer's answer. **A mechanism upstream of the subject, answering in the subject's voice** (cc's formulation, adopted by vc; three instances tonight in three languages -- vc's `grep -c`, cc's clap, dc's `--to-disk`). I hit it AGAIN an hour later while checking cc's correction, and only `eval` fixed the probe. **Use `eval`, an array, or explicit argv; never an unquoted multi-word `$var`.**
+
+**AND THE SAME SHAPE REFUSED ME AT THE GATE TONIGHT, CORRECTLY.** `bin/intent3 ac gate ST0057` answers _this binary is behind HEAD_ at **rc=1** -- the staleness marker, not the gate. vc nearly recorded a green off two byte-identical copies of that same refusal an hour earlier. **Do not rebuild to clear it while `native/rust` is dirty with peer paths: use a detached worktree at a commit.**
 
 ### The blind instrument -- ONE RULE, AND EVERY MISS I MADE IS AN INSTANCE OF IT
 
