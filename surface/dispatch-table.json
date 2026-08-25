@@ -2879,7 +2879,29 @@
               "default": "list"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--width"
+              ],
+              "type": "integer",
+              "value": "<n>",
+              "help": "Render at a fixed column width; 0 or absent means terminal width",
+              "disposition": "keep",
+              "disposition_basis": "Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path."
+            },
+            {
+              "spellings": [
+                "--format"
+              ],
+              "type": "enum",
+              "value": "terminal|md|json",
+              "default": "terminal",
+              "help": "Output format",
+              "disposition": "keep",
+              "disposition_basis": "Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path."
+            }
+          ],
           "v2": "bin/intent_issues:308-316",
           "observed": {
             "exit": [

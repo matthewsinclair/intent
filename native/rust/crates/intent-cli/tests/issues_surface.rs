@@ -78,6 +78,39 @@ fn declared_severity_default() -> Option<String> {
     .and_then(|fl| fl.default.clone())
 }
 
+/// **THE BARE FORM TAKES THE SAME OUTPUT FLAGS AS THE VERB IT DEFAULTS TO.**
+///
+/// It did not, and the gap reached an operator before it reached a test. The
+/// unified output flags landed on `issues list`, and `intent issues --width 80`
+/// -- the shorter, documented form, and the one anybody reaches for first --
+/// answered `unexpected argument`. **A default verb whose flags the default
+/// route cannot accept is the same inconsistency the unified surface exists to
+/// remove, one level up**, and it is the more visible half because the bare form
+/// is what gets typed.
+///
+/// Pinned on the FAMILY row rather than by asserting the flag list, so it fails
+/// on the behaviour an operator meets rather than on a declaration.
+#[test]
+fn the_bare_form_accepts_the_output_flags_of_the_verb_it_defaults_to() {
+  let dir = project();
+  let width_of = |args: &[&str]| -> usize {
+    let out = run(dir.path(), args);
+    assert_eq!(out.status.code(), Some(0), "{}", stdout(&out));
+    stdout(&out)
+      .lines()
+      .map(|l| l.chars().count())
+      .max()
+      .unwrap_or(0)
+  };
+  assert_eq!(width_of(&["issues", "--width", "80"]), 80);
+  assert_eq!(width_of(&["issues", "list", "--width", "80"]), 80);
+  assert_eq!(
+    width_of(&["issues", "--width", "120"]),
+    120,
+    "and it is the flag being read, not a coincidence at one value"
+  );
+}
+
 /// **The default bucket is OPEN, and the bare command is `list`.**
 ///
 /// Both halves are v2's, and the second is the table's declared default verb

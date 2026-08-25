@@ -1323,7 +1323,7 @@ Track issues without the ceremony of a steel thread
 
 | command                           | args      | flags                                                          | help                                                   | disposition |
 | --------------------------------- | --------- | -------------------------------------------------------------- | ------------------------------------------------------ | ----------- |
-| `issues`                          | [command] | --                                                             | Track issues without the ceremony of a steel thread    | keep        |
+| `issues`                          | [command] | --width <n>, --format terminal/md/json                         | Track issues without the ceremony of a steel thread    | keep        |
 | `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md/json | List issues (default: open)                            | keep        |
 | `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low                            | Add a new issue, print its ID:TITLE                    | keep        |
 | `issues show`                     | <id>      | --json, --format terminal/md/json                              | Show one issue (optionally as JSON)                    | keep        |
@@ -1339,6 +1339,14 @@ Track issues without the ceremony of a steel thread
 - **v2:** bin/intent_issues:308-316
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
+- **Flags:**
+  - `--width` `<n>` (integer) -- Render at a fixed column width; 0 or absent means terminal width
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path.
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path.
 - **Exit codes:**
   - `0` -- bare -- defaults to `list`, prints `no open issues` and exits 0
   - `0` -- `--help` -- 577B usage to STDOUT, exit 0
