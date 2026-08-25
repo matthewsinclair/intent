@@ -162,10 +162,18 @@ impl Output {
       claim(Format::Markdown, "--markdown")?;
     }
 
+    // **`0` MEANS THE DEFAULT, AND THAT IS THE DECLARED CONTRACT RATHER THAN A
+    // CONVENIENCE.** `st list --width`'s surface row has said *0 or absent means
+    // terminal width* since it shipped, and the code it replaced fell through to
+    // the terminal on a zero. Refusing it here would have made the one row that
+    // documents this flag disagree with the only implementation of it -- which is
+    // the declaration-versus-implementation gap AC-04.6 exists to find, committed
+    // by the change that unified the flag.
     let width = match width {
       Some(raw) => match raw.trim().parse::<usize>() {
-        Ok(n) if n > 0 => n,
-        _ => {
+        Ok(0) => default_width,
+        Ok(n) => n,
+        Err(_) => {
           return Err(OutputError::BadWidth {
             found: raw.to_string(),
           });

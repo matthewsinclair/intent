@@ -153,27 +153,27 @@ Manage steel threads for the project
 - `intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.
 - The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such.
 
-| command                             | args        | flags                                       | help                                                                                                                               | disposition |
-| ----------------------------------- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `st`                                | <command>   | help/--help/-h                              | Manage steel threads for the project                                                                                               | keep        |
-| `st new`                            | <title>     | -s/--start, --dehydrate                     | Create a new steel thread                                                                                                          | keep        |
-| `st start`                          | <id>        | --                                          | Mark a steel thread as in progress                                                                                                 | keep        |
-| `st done`                           | <id>        | --keep                                      | Mark a steel thread as complete                                                                                                    | keep        |
-| `st cancel`                         | <id>        | --reason <text>, --keep                     | Mark a steel thread as cancelled, with a reason                                                                                    | keep        |
-| `st triage`                         | <id>        | --                                          | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
-| `st hold`                           | <id>        | --reason <text>                             | Put a thread on hold, with a reason                                                                                                | new-surface |
-| `st resume`                         | <id>        | --                                          | Take a thread off hold and back into Wip                                                                                           | new-surface |
-| `st reopen`                         | <id>        | --reason <text>                             | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
-| `st reinstate`                      | <id>        | --reason <text>                             | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
-| `st hydrate`                        | <id>        | --                                          | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
-| `st dehydrate`                      | <id>        | --                                          | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
-| `st list`                           | --          | --status <status>, --width <n>, --markdown  | List steel threads (default: in progress only)                                                                                     | keep        |
-| `st show`                           | <id> [file] | --                                          | Show details of a specific steel thread                                                                                            | keep        |
-| `st edit`                           | <id> [file] | --                                          | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
-| `st sync`                           | --          | --write, --width <n>                        | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
-| `st repair`                         | [id]        | --write                                     | Repair malformed steel thread metadata                                                                                             | keep        |
-| `st organize` (alias `st organise`) | --          | --write                                     | Organize ST files in directories by status                                                                                         | retire      |
-| `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | keep        |
+| command                             | args        | flags                                                                 | help                                                                                                                               | disposition |
+| ----------------------------------- | ----------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `st`                                | <command>   | help/--help/-h                                                        | Manage steel threads for the project                                                                                               | keep        |
+| `st new`                            | <title>     | -s/--start, --dehydrate                                               | Create a new steel thread                                                                                                          | keep        |
+| `st start`                          | <id>        | --                                                                    | Mark a steel thread as in progress                                                                                                 | keep        |
+| `st done`                           | <id>        | --keep                                                                | Mark a steel thread as complete                                                                                                    | keep        |
+| `st cancel`                         | <id>        | --reason <text>, --keep                                               | Mark a steel thread as cancelled, with a reason                                                                                    | keep        |
+| `st triage`                         | <id>        | --                                                                    | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
+| `st hold`                           | <id>        | --reason <text>                                                       | Put a thread on hold, with a reason                                                                                                | new-surface |
+| `st resume`                         | <id>        | --                                                                    | Take a thread off hold and back into Wip                                                                                           | new-surface |
+| `st reopen`                         | <id>        | --reason <text>                                                       | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
+| `st reinstate`                      | <id>        | --reason <text>                                                       | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
+| `st hydrate`                        | <id>        | --                                                                    | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
+| `st dehydrate`                      | <id>        | --                                                                    | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
+| `st list`                           | --          | --status <status>, --width <n>, --markdown, --format terminal/md/json | List steel threads (default: in progress only)                                                                                     | keep        |
+| `st show`                           | <id> [file] | --                                                                    | Show details of a specific steel thread                                                                                            | keep        |
+| `st edit`                           | <id> [file] | --                                                                    | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
+| `st sync`                           | --          | --write, --width <n>, --format terminal/md/json                       | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
+| `st repair`                         | [id]        | --write                                                               | Repair malformed steel thread metadata                                                                                             | keep        |
+| `st organize` (alias `st organise`) | --          | --write                                                               | Organize ST files in directories by status                                                                                         | retire      |
+| `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id>                           | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | keep        |
 
 ### `st`
 
@@ -457,6 +457,10 @@ List steel threads (default: in progress only)
   - `--markdown` (bool) -- Emit canonical GFM instead of terminal rendering
     - UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table.
     - **disposition:** keep
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- listed (including an empty list)
   - `1` -- unknown option -- `error: Unknown option: <opt>`
@@ -525,6 +529,10 @@ Synchronize steel_threads.md with individual ST files
     - **disposition:** keep
   - `--width` `<n>` (integer) -- Render at a fixed column width
     - **disposition:** keep
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- synced or dry-run reported
   - `1` -- unknown option / `error: Steel threads directory not found` / `error: Steel threads index file not found`
@@ -630,19 +638,19 @@ Manage work packages within steel threads
 - Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
 - No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
 
-| command        | args               | flags           | help                                                              | disposition |
-| -------------- | ------------------ | --------------- | ----------------------------------------------------------------- | ----------- |
-| `wp`           | <command>          | help/--help/-h  | Manage work packages within steel threads                         | keep        |
-| `wp new`       | <stid> <title>     | --              | Create a new work package                                         | keep        |
-| `wp start`     | <specifier>        | --              | Mark a work package as WIP                                        | keep        |
-| `wp done`      | <specifier>        | --              | Mark a work package as Done                                       | keep        |
-| `wp reopen`    | <specifier>        | --reason <text> | Reopen a done work package back into Wip, with a reason           | new-surface |
-| `wp cancel`    | <specifier>        | --reason <text> | Mark a work package as cancelled, with a reason                   | new-surface |
-| `wp reinstate` | <specifier>        | --reason <text> | Reinstate a cancelled work package into NotStarted, with a reason | new-surface |
-| `wp unstart`   | <specifier>        | --              | Return a started work package to NotStarted                       | new-surface |
-| `wp rescope`   | <specifier> <size> | --              | Change a work package's T-shirt size                              | new-surface |
-| `wp list`      | <stid>             | --              | List work packages for a steel thread                             | keep        |
-| `wp show`      | <specifier>        | --              | Show work package info.md                                         | keep        |
+| command        | args               | flags                                  | help                                                              | disposition |
+| -------------- | ------------------ | -------------------------------------- | ----------------------------------------------------------------- | ----------- |
+| `wp`           | <command>          | help/--help/-h                         | Manage work packages within steel threads                         | keep        |
+| `wp new`       | <stid> <title>     | --                                     | Create a new work package                                         | keep        |
+| `wp start`     | <specifier>        | --                                     | Mark a work package as WIP                                        | keep        |
+| `wp done`      | <specifier>        | --                                     | Mark a work package as Done                                       | keep        |
+| `wp reopen`    | <specifier>        | --reason <text>                        | Reopen a done work package back into Wip, with a reason           | new-surface |
+| `wp cancel`    | <specifier>        | --reason <text>                        | Mark a work package as cancelled, with a reason                   | new-surface |
+| `wp reinstate` | <specifier>        | --reason <text>                        | Reinstate a cancelled work package into NotStarted, with a reason | new-surface |
+| `wp unstart`   | <specifier>        | --                                     | Return a started work package to NotStarted                       | new-surface |
+| `wp rescope`   | <specifier> <size> | --                                     | Change a work package's T-shirt size                              | new-surface |
+| `wp list`      | <stid>             | --width <n>, --format terminal/md/json | List work packages for a steel thread                             | keep        |
+| `wp show`      | <specifier>        | --                                     | Show work package info.md                                         | keep        |
 
 ### `wp`
 
@@ -836,6 +844,14 @@ List work packages for a steel thread
 - **v2:** bin/intent_wp:218
 - **Arguments:**
   - `stid` (st-id, arity `1`)
+- **Flags:**
+  - `--width` `<n>` (integer) -- Render at a fixed column width; 0 or absent means terminal width
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). `--width` shipped on `st list` and `st sync` only, so `issues list` and `wp list` read the terminal width and could not be told a different one. One concern, one spelling, on every table verb. `0` means the default, which is `st list --width`'s own declared contract and not a new convenience.
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- listed, including the empty case -- prints `no work packages for <ID>` and exits 0
   - `1` -- no STID -- `error: Usage: intent wp list <STID>`
@@ -1305,16 +1321,16 @@ Track issues without the ceremony of a steel thread
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
-| command                           | args      | flags                               | help                                                   | disposition |
-| --------------------------------- | --------- | ----------------------------------- | ------------------------------------------------------ | ----------- |
-| `issues`                          | [command] | --                                  | Track issues without the ceremony of a steel thread    | keep        |
-| `issues list`                     | --        | --kind open/closed/all              | List issues (default: open)                            | keep        |
-| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low | Add a new issue, print its ID:TITLE                    | keep        |
-| `issues show`                     | <id>      | --json                              | Show one issue (optionally as JSON)                    | keep        |
-| `issues close`                    | <id>      | --                                  | Mark an issue done: OPEN -> CLOSED                     | keep        |
-| `issues open`                     | <id>      | --                                  | Reopen an issue: CLOSED -> OPEN                        | keep        |
-| `issues hydrate`                  | <id>      | --                                  | Add an issue to .intentfiles and write its files       | retire      |
-| `issues dehydrate`                | <id>      | --                                  | Remove an issue from .intentfiles and delete its files | retire      |
+| command                           | args      | flags                                                          | help                                                   | disposition |
+| --------------------------------- | --------- | -------------------------------------------------------------- | ------------------------------------------------------ | ----------- |
+| `issues`                          | [command] | --                                                             | Track issues without the ceremony of a steel thread    | keep        |
+| `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md/json | List issues (default: open)                            | keep        |
+| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low                            | Add a new issue, print its ID:TITLE                    | keep        |
+| `issues show`                     | <id>      | --json, --format terminal/md/json                              | Show one issue (optionally as JSON)                    | keep        |
+| `issues close`                    | <id>      | --                                                             | Mark an issue done: OPEN -> CLOSED                     | keep        |
+| `issues open`                     | <id>      | --                                                             | Reopen an issue: CLOSED -> OPEN                        | keep        |
+| `issues hydrate`                  | <id>      | --                                                             | Add an issue to .intentfiles and write its files       | retire      |
+| `issues dehydrate`                | <id>      | --                                                             | Remove an issue from .intentfiles and delete its files | retire      |
 
 ### `issues`
 
@@ -1343,6 +1359,13 @@ List issues (default: open)
   - `--kind` `open|closed|all` (enum) -- Which bucket to list
     - **default:** open
     - **disposition:** keep
+  - `--width` `<n>` (integer) -- Render at a fixed column width; 0 or absent means terminal width
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). `--width` shipped on `st list` and `st sync` only, so `issues list` and `wp list` read the terminal width and could not be told a different one. One concern, one spelling, on every table verb. `0` means the default, which is `st list --width`'s own declared contract and not a new convenience.
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- listed
   - `1` -- unknown --kind value
@@ -1390,6 +1413,10 @@ Show one issue (optionally as JSON)
 - **Flags:**
   - `--json` (bool) -- Emit as JSON instead of prose
     - **disposition:** keep
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- printed
   - `1` -- issue not found -- `error: Issue not found: <ID>` (bin/intent_issues:255). **No bucket named here**, unlike `issues close` / `issues open`; see this row's `target.question`.
@@ -1489,14 +1516,14 @@ A flat DOING / TODO / DONE view of steel threads and work packages
 - The DONE bucket is watermarked: `done --flush` advances a `## DONE:<T>` marker so completed threads fall out of the view without being deleted. That watermark is authored state with no home in the reified model yet -- flagged, since it is neither thread data nor a pure view.
 - **`todo list` was missing from this table until `drift_check.sh` found it.** The arms in `bin/intent_todo` sit at ZERO indent (`list)` at :384, not `  "list")`), which is the inconsistent-dispatch-formatting trap already recorded in the parity README -- one indentation-anchored regex scored the 1621-line `intent_st` at zero subcommands. The measured inventory had it; the authored table did not. That is the drift check earning its place on its first real run, in the direction that matters: the measurement was right and the judgement had a hole.
 
-| command        | args        | flags            | help                                                           | disposition |
-| -------------- | ----------- | ---------------- | -------------------------------------------------------------- | ----------- |
-| `todo`         | [command]   | --json           | Show intent/todo.md (generates it if absent)                   | keep        |
-| `todo list`    | --          | --json           | Show intent/todo.md (generates it if absent)                   | keep        |
-| `todo update`  | --          | --               | Regenerate intent/todo.md from current status                  | keep        |
-| `todo done`    | [specifier] | --flush, --prune | Mark a thread/WP done (via intent st/wp done), then regenerate | keep        |
-| `todo notdone` | <specifier> | --               | Reopen a thread/WP to WIP, then regenerate                     | keep        |
-| `todo toggle`  | <specifier> | --               | Flip done/not-done, then regenerate                            | keep        |
+| command        | args        | flags                             | help                                                           | disposition |
+| -------------- | ----------- | --------------------------------- | -------------------------------------------------------------- | ----------- |
+| `todo`         | [command]   | --json, --format terminal/md/json | Show intent/todo.md (generates it if absent)                   | keep        |
+| `todo list`    | --          | --json, --format terminal/md/json | Show intent/todo.md (generates it if absent)                   | keep        |
+| `todo update`  | --          | --                                | Regenerate intent/todo.md from current status                  | keep        |
+| `todo done`    | [specifier] | --flush, --prune                  | Mark a thread/WP done (via intent st/wp done), then regenerate | keep        |
+| `todo notdone` | <specifier> | --                                | Reopen a thread/WP to WIP, then regenerate                     | keep        |
+| `todo toggle`  | <specifier> | --                                | Flip done/not-done, then regenerate                            | keep        |
 
 ### `todo`
 
@@ -1508,6 +1535,10 @@ Show intent/todo.md (generates it if absent)
 - **Flags:**
   - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
     - **disposition:** keep
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- bare -- prints the view, generating the file if absent
   - `1` -- `--help` prints 1077B usage to STDOUT and exits 1
@@ -1537,6 +1568,10 @@ Show intent/todo.md (generates it if absent)
 - **Flags:**
   - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
     - **disposition:** keep
+  - `--format` `terminal|md|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
 - **Exit codes:**
   - `0` -- printed, generating the file first if absent
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)

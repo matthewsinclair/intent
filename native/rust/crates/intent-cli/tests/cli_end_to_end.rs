@@ -676,14 +676,30 @@ fn st_list_prints_the_table_header_even_with_no_threads() {
   );
 }
 
-/// The table fills the terminal, and content-fit is the FLOOR rather than a
-/// target -- a narrow terminal stops padding, it never truncates.
+/// The table tracks the terminal width in BOTH directions: it pads up to the
+/// width and clips down to it.
 ///
-/// Measured byte-identical against the v2 binary over the same estate at
-/// COLUMNS 250/130/100/60 before this was written; this pins the relationships
-/// that survive without v2 present to compare against.
+/// **THIS TEST'S PROPERTY WAS RE-CUT ON 2026-08-25 AND THE OLD ONE IS NOT
+/// MERELY RELAXED, IT IS REVERSED.** It read *content-fit is the FLOOR -- a
+/// narrow terminal stops padding, it never truncates*, which was a faithful pin
+/// of v2 (`render_table`: *content-fit is the floor, so nothing is ever
+/// truncated*). **What neither implementation's comment said is the
+/// consequence: one oversized cell sets the width of EVERY row.** Measured, an
+/// `issues list` rendered 312 columns into an 80-column terminal because a
+/// single title ran to 287 characters. hv ruled truncate-with-ellipsis, so the
+/// deviation is declared and this pins the new contract.
+///
+/// **THE NEW ASSERTIONS ARE STRICTLY STRONGER THAN THE ONES THEY REPLACE.** The
+/// old test asserted `wide > narrow` -- a relationship that holds for a table
+/// that merely stops padding. This asserts EXACT equality with the requested
+/// width at both ends, which the old behaviour could not satisfy.
+///
+/// Measured byte-identical against the v2 binary at COLUMNS 250/130/100/60
+/// before the ruling; that measurement is what the deviation is declared
+/// AGAINST, and it is kept here rather than deleted because a deviation whose
+/// baseline is gone cannot be checked.
 #[test]
-fn the_table_tracks_the_terminal_width_and_never_truncates() {
+fn the_table_tracks_the_terminal_width_in_both_directions() {
   let dir = project();
   let root = dir.path();
   ok(
@@ -704,25 +720,46 @@ fn the_table_tracks_the_terminal_width_and_never_truncates() {
       .expect("run");
     let text = String::from_utf8_lossy(&out.stdout).to_string();
     assert!(
-      text.contains("a-deliberately-long"),
-      "the slug is never truncated to fit: {text:?}"
+      !text.is_empty(),
+      "the command produced output at COLUMNS={cols}: {text:?}"
     );
     text.lines().map(|l| l.chars().count()).max().unwrap_or(0)
   };
 
-  let wide = width_at("250");
-  let narrow = width_at("60");
-  assert!(wide >= 200, "fills a wide terminal: {wide}");
+  // **EXACT, NOT A RANGE, AT BOTH ENDS.** Padding up to 250 and clipping down
+  // to 60 are the same property measured in two directions, and only the second
+  // one distinguishes this contract from the one it replaced.
+  assert_eq!(width_at("250"), 250, "pads up to a wide terminal");
+  assert_eq!(width_at("60"), 60, "and clips down to a narrow one");
+
+  // The clip is visible rather than silent: a reader must be able to tell a
+  // shortened value from a short one.
+  let narrow_text = {
+    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(["st", "list", "--status", "all"])
+      .current_dir(root)
+      .env("COLUMNS", "60")
+      .output()
+      .expect("run");
+    String::from_utf8_lossy(&out.stdout).to_string()
+  };
   assert!(
-    wide > narrow,
-    "width tracks the terminal: 250 -> {wide}, 60 -> {narrow}"
+    narrow_text.contains('\u{2026}'),
+    "a clipped cell says so: {narrow_text:?}"
+  );
+  assert!(
+    narrow_text.contains("Slug") && narrow_text.contains("Completed"),
+    "and every header survives, or the columns stop being identifiable: {narrow_text:?}"
   );
 
-  // Content-fit is the floor: at 60 columns the table is WIDER than 60,
-  // because the slug alone does not fit and nothing is ever cut.
+  // **THE REVERSED ARM, KEPT RATHER THAN DELETED.** This read *at 60 columns the
+  // table is WIDER than 60, because the slug alone does not fit and nothing is
+  // ever cut* -- the exact behaviour hv ruled against. It is re-cut instead of
+  // removed because it is the one assertion that FAILS under the old renderer,
+  // so it is what makes this test a check rather than a description.
   assert!(
-    narrow > 60,
-    "a narrow terminal stops padding rather than truncating: {narrow}"
+    !narrow_text.lines().any(|l| l.chars().count() > 60),
+    "no line escapes the width, including the one with the long slug: {narrow_text:?}"
   );
 }
 

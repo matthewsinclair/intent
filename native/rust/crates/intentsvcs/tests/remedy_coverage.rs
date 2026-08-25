@@ -40,6 +40,7 @@ fn proofs() {
   implements::<intentsvcs::ingest::IngestError>();
   implements::<intentsvcs::install::InstallError>();
   implements::<intentsvcs::event::JsonlError>();
+  implements::<intentsvcs::output::OutputError>();
   implements::<intentsvcs::project::ProjectError>();
   implements::<intentsvcs::project::UnhonourableWindow>();
   implements::<intentsvcs::finding::Refusal>();

@@ -16,6 +16,7 @@ use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
 };
 use intentsvcs::model::{self, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
+use intentsvcs::output::{Format, Output};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
@@ -223,16 +224,7 @@ fn st_rows(
   a: &ArgMatches,
   wanted: Option<Vec<ThreadStatus>>,
 ) -> Result<String, Failure> {
-  let markdown = flag(a, "markdown");
-  let width = match opt(a, "width").map(|w| w.parse::<usize>()) {
-    Some(Ok(n)) if n > 0 => n,
-    Some(Err(_)) => {
-      return Err(Failure::Error(
-        "error: --width takes a number of columns".to_string(),
-      ));
-    }
-    _ => terminal_width(),
-  };
+  let out = output_of(a)?;
 
   let rows: Vec<Vec<String>> = f
     .st_list()
@@ -249,12 +241,7 @@ fn st_rows(
     })
     .collect();
 
-  let mode = if markdown {
-    views::TableMode::Markdown
-  } else {
-    views::TableMode::Terminal { fill: width }
-  };
-  Ok(views::table(ST_COLUMNS, &rows, mode))
+  table_out(&out, ST_COLUMNS, &rows)
 }
 
 /// Reconcile the runtime store with the committed canon on disk.
@@ -988,16 +975,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       // The SAME renderer `st list` uses, which is what the v2 row asks for in
       // as many words: "so `wp list` and `st list` column layout cannot drift
       // apart".
-      print!(
-        "{}",
-        views::table(
-          WP_COLUMNS,
-          &rows,
-          views::TableMode::Terminal {
-            fill: terminal_width()
-          }
-        )
-      );
+      print!("{}", table_out(&output_of(a)?, WP_COLUMNS, &rows)?);
       Ok(())
     }
     Some(("show", a)) => {
@@ -2120,7 +2098,13 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
       // `--json` is declared on BOTH the family and the `list` verb, so it is
       // read from whichever level carried it -- `intent todo --json` and
       // `intent todo list --json` are the same request.
-      let json = flag(m, "json") || m.subcommand().is_some_and(|(_, a)| flag(a, "json"));
+      // The flag may sit on the family or the subcommand, so both are asked and
+      // either answering json is json.
+      let json = output_of(m)?.format() == Format::Json
+        || match m.subcommand() {
+          Some((_, a)) => output_of(a)?.format() == Format::Json,
+          None => false,
+        };
       if json {
         let buckets = f.todo_buckets().map_err(fail)?;
         println!(
@@ -2840,23 +2824,14 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         println!("no {kind} issues");
         return Ok(());
       }
-      print!(
-        "{}",
-        views::table(
-          ISSUE_COLUMNS,
-          &rows,
-          views::TableMode::Terminal {
-            fill: terminal_width()
-          }
-        )
-      );
+      print!("{}", table_out(&output_of(a)?, ISSUE_COLUMNS, &rows)?);
       Ok(())
     }
     Some(("show", a)) => {
       let number = issue_arg(a, "id")?;
       let f = open()?;
       let issue = f.issue_show(number).map_err(fail)?;
-      if flag(a, "json") {
+      if output_of(a)?.format() == Format::Json {
         println!(
           "{}",
           serde_json::to_string_pretty(issue)
@@ -3672,6 +3647,71 @@ fn example(kind: model::IdKind) -> &'static str {
     model::IdKind::Thread => "0` or `ST0000",
     model::IdKind::Issue => "21` or `0021",
   }
+}
+
+/// **THE ONE PLACE A COMMAND'S OUTPUT SHAPE IS DECIDED.**
+///
+/// Reads every spelling and hands back a resolved [`Output`]. It is safe on a
+/// verb declaring none of them, because [`opt`] and [`flag`] are absent-not-fatal
+/// for an undeclared name -- so a verb opts in by declaring the flag in the
+/// dispatch table and needs no arm here.
+///
+/// **THE TERMINAL WIDTH IS DISCOVERED HERE AND NOWHERE DEEPER.** AC-11.3 permits
+/// the shipped surface exactly one environment variable, `COLUMNS`; a services
+/// module reaching for it would put that permission somewhere nothing checks.
+fn output_of(m: &ArgMatches) -> Result<Output, Failure> {
+  Output::resolve(
+    opt_explicit(m, "format").as_deref(),
+    opt(m, "width").as_deref(),
+    flag(m, "json"),
+    flag(m, "markdown"),
+    terminal_width(),
+  )
+  .map_err(|e| Failure::Error(e.render()))
+}
+
+/// A value the CALLER actually typed, distinguished from one clap supplied.
+///
+/// **A DEFAULT IS NOT A CHOICE, AND CONFLATING THEM BREAKS EVERY ALIAS.** The
+/// `--format` rows declare `default: terminal`, which is right -- it documents
+/// the vocabulary and drives `--help`. But [`opt`] cannot tell a default from a
+/// typed value, so `st list --markdown` read as *`--format terminal` AND
+/// `--markdown`*, two formats, and refused a command nobody had made ambiguous.
+/// **The refusal was correct about its inputs and wrong about the world.**
+///
+/// Measured: it fired on every alias use the moment the default was declared,
+/// which is also why the earlier hand-driven pass came back clean -- that binary
+/// predated the default. `ValueSource` is the only thing that can separate the
+/// two, so the question is asked of clap rather than inferred from the value.
+fn opt_explicit(m: &ArgMatches, name: &str) -> Option<String> {
+  // **`value_source` PANICS ON AN UNDECLARED ID, WHERE `try_get_one` RETURNS
+  // `Err`.** That asymmetry is the whole reason [`opt`] and [`flag`] exist -- a
+  // verb that does not declare a flag must not crash the renderer -- and
+  // reaching for a sibling API that does not share the property put a panic on
+  // every verb without `--format`. Measured: `intent issues` exited 101 with
+  // *`"format"` is not an id of an argument or a group*.
+  //
+  // Asking [`opt`] first makes the second call safe by construction rather than
+  // by a list of which verbs declare what: a `Some` here means the id exists.
+  let value = opt(m, name)?;
+  match m.value_source(name) {
+    Some(clap::parser::ValueSource::CommandLine) => Some(value),
+    _ => None,
+  }
+}
+
+/// Render a table through the resolved output, or refuse JSON by name.
+///
+/// **A VERB THAT CANNOT EMIT JSON SAYS SO INSTEAD OF EMITTING SOMETHING ELSE.**
+/// `Output::table` returns `None` for JSON because a list-of-lists is not the
+/// object anyone means; a verb with a real JSON projection branches before this.
+fn table_out(out: &Output, headers: &[&str], rows: &[Vec<String>]) -> Result<String, Failure> {
+  out.table(headers, rows).ok_or_else(|| {
+    Failure::Error(
+      "error: this verb has no json projection\n  remedy: use `--format terminal` or `--format md`"
+        .to_string(),
+    )
+  })
 }
 
 /// An optional value, ABSENT rather than fatal when this subcommand does not
