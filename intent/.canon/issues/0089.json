@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 89,
+  "slug": "the-clock-guard-declares-no-coverage-is-lost-whi",
+  "title": "the clock guard declares no coverage is lost while the protocol names a third timed surface it never scans",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-25",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}
