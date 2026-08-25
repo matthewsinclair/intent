@@ -47,7 +47,7 @@ CANON_TREEINDEXIGNORE_SRC="$INTENT_ROOT/lib/templates/_treeindexignore"
 # Canon user-section preservation markers (keep in sync with _CLAUDE.md).
 CANON_USER_MARK_START="<!-- user:start -->"
 CANON_USER_MARK_END="<!-- user:end -->"
-CANON_INTENT_FOOTER_MARK="Generated from \`lib/templates/llm/_CLAUDE.md\`"
+CANON_INTENT_FOOTER_MARK="lib/templates/llm/_CLAUDE.md"
 
 # Read target version from VERSION file (single source of truth)
 TARGET_VERSION="$(cat "$INTENT_ROOT/VERSION" 2>/dev/null | tr -d '[:space:]')"
