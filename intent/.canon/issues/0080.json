@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 80,
+  "slug": "migrate-never-computes-thread-slug-so-every-migr",
+  "title": "migrate never computes Thread.slug, so every migrated thread carries slug=None and st list renders a blank Slug column for the whole hoisted estate; st new computes one, so the two creation doors disagree on the same field",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-25",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

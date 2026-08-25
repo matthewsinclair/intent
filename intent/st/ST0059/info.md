@@ -1,7 +1,7 @@
 ---
 st_id: ST0059
 title: Rebuild all Intent docs for v3
-status: Triage
+status: WIP
 created: 2026-08-25
 completed:
 ---
