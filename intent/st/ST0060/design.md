@@ -64,11 +64,11 @@ Making the hardened posture opt-in rather than mandatory is what lets hv's keych
 
 **A reference resolves in two steps, and the first one never touches the vault at all.**
 
-**Step 0 -- the per-reference MATERIAL override.** A reference resolves from a deterministic environment variable when one is set, and returns immediately. `vault:lamplight/prod/api-key` reads `INTENT_VAULT_LAMPLIGHT__PROD__API_KEY` -- the derivation is under **The reference format**, and it has to be injective for reasons that cost a finding. **No identity, no passphrase, no ladder, no store touched.**
+**Step 0 -- the per-reference MATERIAL override.** A reference resolves from a deterministic environment variable when one is set, and returns immediately. `intent://lamplight/profiles/prod/secrets/api-key` reads `INTENT_VAULT_LAMPLIGHT__PROD__API_KEY` -- the derivation is under **The reference format**, and it has to be injective for reasons that cost a finding. **No identity, no passphrase, no ladder, no store touched.**
 
 **This is what answers R7, and an earlier draft got it wrong in a way worth recording** -- it answered R7 with an environment rung carrying `INTENT_VAULT_IDENTITY` / `INTENT_VAULT_PASSPHRASE`, which is a way for CI to UNLOCK the vault. R7's own words are _a vault that CI must unlock is a vault whose key is in CI_. The draft put the key in CI and called that the exemption. Found by Lamplight's verification, 2026-08-25.
 
-The collision was mechanical rather than philosophical: once a committed config carries a `vault:` reference, everything that reads that config must resolve it, CI included -- so CI must hold something. **The whole question is whether that something is a KEY or the MATERIAL.** With step 0 it is the material, supplied by the provider's secret store exactly as CI does today, and CI never holds a vault key. The reference stays in config, one code path reads it, and the vault is genuinely optional in CI rather than nominally so.
+The collision was mechanical rather than philosophical: once a committed config carries an `intent://` reference, everything that reads that config must resolve it, CI included -- so CI must hold something. **The whole question is whether that something is a KEY or the MATERIAL.** With step 0 it is the material, supplied by the provider's secret store exactly as CI does today, and CI never holds a vault key. The reference stays in config, one code path reads it, and the vault is genuinely optional in CI rather than nominally so.
 
 Step 0 is the only path that returns material without an identity, which is what makes R7 mechanically checkable -- AC-00.7 asserts `vault get` succeeds with **no identity reachable by any rung**, not merely with no identity file.
 
@@ -114,38 +114,89 @@ So the vault follows the routing rule **WP-08 has already ratified for everythin
 
 This is not a special case invented for the vault; it is one more capability under a rule the thread already carries. The vault ships standalone on the CLI spine, and the daemon path lands in WP-08 adding rows to the dual-path conformance suite WP-08 already lists as a deliverable.
 
+### devbin's `--ivault` -- because the estate does not wrap its launchers
+
+The estate starts servers as `bin/lamplight server --iex`, not by wrapping that in something else. **A vault whose safe path needs a prefix nobody types is a vault nobody uses**, so the execution model inverts: the launcher opts in.
+
+```
+  bin/lamplight server --iex --ivault
+  bin/lamplight wrighter --iex --ivault
+```
+
+`--ivault` means: **before exec, resolve any `intent://` value in the environment to material; pass everything else through untouched.** No list and no declaration -- **the references are already in the files.** That is R1's own sentence with `--ivault` naming the point of need, and it is a PROTOCOL rather than a PARAMETER. A `--vault <points-at-something>` form was considered and rejected for needing a declaration site, which is the same bootstrap dependency R4 refused for the declared override and for the shelled `age` binary. **Three refusals of one trade.**
+
+**The seam is a small number of sites, and one of them takes a different form.** An earlier version of this section said "one line at one site" -- corrected by devbin-vc on 2026-08-25 and verified against `devbin/lib/resolve` here. `run_command` has **three terminal paths, not one**, plus the option-level twin:
+
+| site              | form                        | wrappable                                    |
+| ----------------- | --------------------------- | -------------------------------------------- |
+| `lib/resolve:173` | `exec "$handler" "$@"`      | yes -- project and `lib/cmd/*` handlers      |
+| `lib/resolve:732` | `exec $run "$@"`            | yes -- a catalogue `run:` row with no `log:` |
+| `lib/resolve:722` | `run_gate ... -- $run "$@"` | **NO -- see below**                          |
+| `lib/resolve:607` | `run_option` -> `run_gate`  | **NO -- the option-level twin of the above** |
+
+**The sealed-gate path cannot be exec-wrapped, structurally rather than incidentally.** The code says so in its own comment: it runs in a subshell and **has to RETURN so the seal gets written**, so it is the one path that does not exec. `exec intent3 vault run -- ...` there would replace the process and the seal would never be written -- **turning a sealed gate into a silent one, which in that project is the cardinal defect rather than a regression.** For those two paths the vault invocation becomes part of the command line handed TO `run_gate`, not a wrapper around it.
+
+**What the wrong sizing would have cost is not effort, it is a silent partial.** A `--ivault` at `:173` alone honours the flag on handlers and **silently ignores it on every catalogue-row command** -- `test`, `fmt`, `check` and the `docs`/`publish` rows across the fleet. Those are `mix` invocations, and **mix tasks reading secrets out of the environment is the case a vault exists for.** A flag honoured on some paths and quietly ignored on others is worse than no flag at all, because the operator believes material was injected. So AC-00.19 requires it on **every** terminal path or refused outright; there is no partial.
+
+The core argument survives: a small number of sites, and a flag per `lib/cmd/*` remains the wrong answer. **And the sizing carries one more fact that is not visible from Intent: devbin's runtime is vendored into ELEVEN estates, so a dispatch change is a fleet sweep rather than a commit.**
+
+**THE ONE CONSTRAINT THAT OUTRANKS THE REST: devbin must NEVER parse an `intent://` reference.** `address.rs` already carries this warning about intentd -- _two resolvers agreeing exactly until one moves, with nothing watching_ -- and devbin would be the third consumer and **the first in a different language**, which is the worst place for a second parser to grow. So devbin does a **literal prefix test only**, which is not a parser and **can only over-trigger, never under-trigger**; the authoritative parse stays in `intent3`, and `vault run` passes non-references through, so an over-trigger costs one process. If that constraint ever feels inconvenient during the build, that is the moment to push back rather than widen the test.
+
+**Detection is always on; resolution is opt-in.** Without the flag, a forgotten `--ivault` hands the app the literal reference as its API key and the provider answers 401 -- loud, and naming nothing. So devbin warns whenever references are present and the flag is absent. That costs a fixed-prefix grep, converts a mysterious auth failure into a named remedy, **and is the measurement needed to decide whether `--ivault` should eventually be the default** -- which is probably where it ends up, since an unresolved reference is never useful and a flag is asking someone to opt into the only thing that works. Explicit first, measured, then flip. Not decided here.
+
+**Scope: two threads, one contract.** Intent ships the resolver, the grammar and `vault run`. devbin ships `--ivault` as a thin call into it, in its own repo and its own thread, and **the contract between them is exactly two things: the `intent://` prefix, and `vault run`'s exec semantics.**
+
+**devbin DOES NOT START UNTIL THIS THREAD DOES** -- hv's sequencing, so devbin is not building against a moving grammar. **The obligation to open devbin's thread belongs to WHOEVER STARTS ST0060**, stated in the build breakdown below and carried by AC-00.19. devbin-vc was told on 2026-08-25 that this is coming and told explicitly not to start, so the knowledge is on their board and the trigger is on ours.
+
 ## The reference format
 
-```
-  vault:<project>/<profile>/<name>          full form
-  vault:<project>/<name>                    profile defaults to `default`
-```
-
-**The project is IN the ref, so resolution never depends on the working directory** -- which is what makes R4 mechanically true rather than aspirational. The profile axis is R9: Lamplight carries three today (`default`, `prod`, `worldwright1`) and the profile, not just the project, selects the entry.
-
-Fence regex, anchored and lowercase so it cannot false-positive on ordinary config or prose (**R8**). **Segments carry no `_`, and that restriction is load-bearing rather than tidy** -- see the derivation below:
+**It is an `intent://` address, not a scheme of its own.** Intent already addresses its data this way (`address.rs`, D57-8, WP-07), the project is already the AUTHORITY, and sub-entities already nest -- `intent:///threads/ST0056/ac/AC-02.1` is collection / id / subcollection / id. **A `vault:` scheme would have invented a second way to encode the project when one exists**, which is a Highlander violation in the addressing layer rather than a matter of taste.
 
 ```
-  vault:<seg>(/<seg>){1,2}      where  <seg> = [a-z0-9]([a-z0-9-]*[a-z0-9])?
+  intent://<project>/profiles/<profile>/secrets/<name>
+
+  intent://lamplight/profiles/prod/secrets/api-key
+  intent://lamplight/profiles/worldwright1/secrets/api-key
+  intent://conflab/profiles/default/secrets/matts-api-key
 ```
 
-### The step-0 variable name is DERIVED, and the derivation must be injective
+**The profile becomes addressable on its own, and that is a gain rather than decoration.** `intent://lamplight/profiles/prod` resolves to the profile, whose representation is **its secret NAMES and never material** -- which is R8's enumeration requirement expressed as an address instead of as a verb, so `vault list --profile prod` is the CLI face of that address rather than a second implementation of it. `address.rs` is explicit that resolution has ONE home; this keeps the vault inside it.
+
+### Two narrowings the vault imposes on the general scheme
+
+**1. THE EMPTY AUTHORITY IS REFUSED.** `intent:///profiles/prod/secrets/api-key` is a legal address meaning "this project", resolved from the working directory. **For a credential that reintroduces exactly the cwd dependence R4 rules out and AC-00.4 asserts against.** A credential reference that means different things in different directories is the class of footgun this thread exists to remove. Always an explicit authority, no exceptions.
+
+**2. `?format=` IS REFUSED.** The general scheme's query asks for a REPRESENTATION of the addressed entity. **A representation of a secret is precisely what S2 exists to prevent** -- `?format=json` would be a sanctioned route for material into a serialised structure, through the one part of the scheme designed to hand you a rendering. A secret has exactly one representation and it is not requestable.
+
+Neither narrowing is findable from "make it a URL". They come from the scheme already having semantics.
+
+### The fence, and why segments carry no `_`
+
+Anchored and lowercase so it cannot false-positive on ordinary config or prose (**R8**):
 
 ```
-  segment separator  /  ->  __
+  intent://<seg>/profiles/<seg>/secrets/<seg>    where  <seg> = [a-z0-9]([a-z0-9-]*[a-z0-9])?
+```
+
+### The step-0 variable name is DERIVED from the VARYING segments, and the derivation must be injective
+
+The collection words are fixed, so they contribute nothing and are dropped -- otherwise every variable would carry `__PROFILES__` and `__SECRETS__` for no information.
+
+```
+  varying segments   authority, profile, name
+  joined by          __
   inside a segment   -  ->  _
-  vault:lamplight/prod/api-key  ->  INTENT_VAULT_LAMPLIGHT__PROD__API_KEY
+
+  intent://lamplight/profiles/prod/secrets/api-key  ->  INTENT_VAULT_LAMPLIGHT__PROD__API_KEY
 ```
 
-**A two-segment reference normalises to three before derivation**, so `vault:a/b` and `vault:a/default/b` are one reference with one variable rather than two names for one entry.
+**An earlier draft permitted `_` inside segments and mapped `-`, `_` and `/` all onto `_`. Three characters collapsing to one is not injective, so collisions existed BY CONSTRUCTION** rather than as an edge case -- three distinct references all derived `INTENT_VAULT_MY_APP_KEY`. Found by Lamplight's verification of the R7 fix, 2026-08-25, and confirmed mechanically before acting on it.
 
-**An earlier draft permitted `_` inside segments and mapped `-`, `_` and `/` all onto `_`. Three characters collapsing to one is not injective, so collisions existed BY CONSTRUCTION** rather than as an edge case -- `vault:my-app/key`, `vault:my_app/key` and `vault:my/app/key` all derived `INTENT_VAULT_MY_APP_KEY`. Found by Lamplight's verification of the R7 fix, 2026-08-25, and confirmed mechanically before acting on it.
+**The draft's answer was a collision check in `vault set`, and that check was structurally blind.** Stores are per-project, so those three references live in three different stores; a check scoped to one store has no jurisdiction over the collision, which happens exactly at the project boundary. **That is AC-00.7's own failure shape one layer down -- a guard whose scope excludes the case it exists to catch, reading green because it never had jurisdiction.** And it could not have been repaired: a correct cross-store scan must open every store, which needs the identity, which fails under `Locked` and breaks R10.
 
-**The draft's answer was a collision check in `vault set`, and that check was structurally blind.** Stores are per-project, so those three references live in three different stores; a check scoped to one store has no jurisdiction over the collision, which happens exactly at the project boundary. **That is AC-00.7's own failure shape one layer down -- a guard whose scope excludes the case it exists to catch, reading green because it never had jurisdiction.** And the check could not have been repaired: a correct cross-store scan must open every store, which needs the identity, which fails under `Locked` and breaks R10.
+**So the check is deleted rather than fixed, and the grammar carries it.** With `_` forbidden inside segments, a single `_` in the derived name can only have come from a `-` between two alphanumerics, and `__` can only have come from a separator. The map is injective, cross-store collisions cannot exist, and nothing needs to check at runtime. **A grammar restriction that makes a check unnecessary beats a check, because a grammar cannot be out of scope.**
 
-**So the check is deleted rather than fixed. The grammar carries it instead.** With `_` forbidden inside segments, a single `_` in the derived name can only have come from a `-` between two alphanumerics, and `__` can only have come from a separator. The map is injective, cross-store collisions cannot exist, and nothing needs to check at runtime. **A grammar restriction that makes a check unnecessary beats a check, because a grammar cannot be out of scope.**
-
-**Why DERIVED rather than DECLARED, and a correction to an earlier version of this paragraph.** A declared mapping -- config names the variable for each reference -- has no derivation and therefore no name-collision surface at all. It is rejected because **a declaration site is a project-config dependency inside the one capability that must work before project config exists** (R4). That is the same trade the R5 crate deviation already refused: a bootstrap dependency in the thing whose job is to solve bootstrapping.
+**Why DERIVED rather than DECLARED, and a correction to an earlier version of this paragraph.** A declared mapping -- config names the variable for each reference -- has no derivation and therefore no name-collision surface at all. It is rejected because **a declaration site is a project-config dependency inside the one capability that must work before project config exists** (R4). That is the same trade the R5 crate deviation already refused, and the same trade `--ivault` refuses again below: a bootstrap dependency in the thing whose job is to solve bootstrapping.
 
 **An earlier version of this paragraph said the collision surface came from choosing derivation, and credited the declared alternative to Lamplight as a considered position. Both halves were wrong.** Lamplight's word was loose rather than a design position, and they said so. **And the collision came from the MAPPING being non-injective, not from the mechanism being derivation** -- an injective derivation has no collision surface either, which is exactly what the grammar above now delivers. **I built a departure narrative on a peer's stray adjective and then used it to explain a defect it did not cause.** Kept because a wrong causal story about your own bug is worse than the bug: the bug got fixed either way, and the story would have taught the next reader to avoid the wrong thing.
 
@@ -227,7 +278,9 @@ R5 is "**pluggable backend**, `age` as the default", and the table answered the 
 4. **Never delete the original.** Report the mode of the source, and warn when it is group- or world-readable.
 5. Report plainly if any pre-image backup still holds material.
 
-**And `import` must RENAME, because the grammar forbids what the measured config uses.** Lamplight's `api_key`, `user_id` and `active_profile` all carry `_` inside what would be a segment. `import` maps each to a legal entry name, writes the reference under the new name, and **reports every rename it made** -- a silent rename is a config that no longer resolves and a reader who cannot see why.
+**And `import` must RENAME -- ENTRY NAMES, never the consuming app's config schema.** Lamplight's `api_key`, `user_id` and `active_profile` carry `_`, which is illegal inside a segment, so each becomes a legal entry name (`api-key`) while **the TOML field stays `api_key`**: the grammar constrains what the vault calls a secret, not what an app calls a field. `import` writes the reference under the new entry name and **reports every rename it made** -- a silent rename is a config that no longer resolves and a reader who cannot see why.
+
+**`import` MUST NOT VACUUM A FILE.** Measured on Lamplight's `config/.env`: 20 assignments, and roughly six are configuration rather than credentials -- `MAILERSEND_FROM_EMAIL`, `MAILERSEND_FROM_NAME`, `MAILERSEND_INUSE`, `LAMPLIGHT_DATA`, `VIX_LOG_ERROR`, and arguably `OPENAI_ORG_ID`, which is an identifier rather than a secret. **Sweeping those in makes the vault a hard dependency for values that never needed one**, which is the opposite of R7's direction. Selection is explicit (`--field`) or a confirmed shortlist; the default is never everything. The same file also carries `OPENAI_API_KEY` and `OPENAI_KEY` -- either two secrets or one under two names, and the migration forces that question, which is a side benefit worth naming.
 
 `intent vault audit` is the standing fence afterwards: it reads config files and reports material-shaped values that should be refs, **without reading any material itself** (**R8**), so an audit can prove "no material in config" without becoming a disclosure.
 
@@ -237,7 +290,7 @@ R5 is "**pluggable backend**, `age` as the default", and the table answered the 
 
 | req     | requirement                              | answered by                                                                   | AC       |
 | ------- | ---------------------------------------- | ----------------------------------------------------------------------------- | -------- |
-| **R1**  | reference, never material                | the ref format; resolver turns `vault:...` into material at point of need     | AC-00.1  |
+| **R1**  | reference, never material                | `intent://` addresses; the resolver turns one into material at point of need  | AC-00.1  |
 | **R2**  | one behaviour on macOS and Linux         | platform-free store + identity; **bounded exception in the hardened posture** | AC-00.2  |
 | **R3**  | no daemon, headless-safe                 | in-process ladder is the default path; daemon is an accelerator               | AC-00.3  |
 | **R4**  | available before a project's toolchain   | per-machine identity; project is in the ref, so no cwd dependency             | AC-00.4  |
@@ -283,4 +336,4 @@ Carried from Lamplight's non-requirements, all standing:
 
 - **ONE DECISION IS hv's AND IT REOPENS A RULED QUESTION.** Lamplight asks that `vault get` **REFUSE to write material to a TTY** unless explicitly forced -- piped or redirected is fine, interactive terminal refuses with a remedy line pointing at `run`. Their argument is the incident: `cat config.toml` printed two keys, and `vault get` prints one into the same transcript, so R6 currently makes the whole store hard and leaves the one-secret print exactly as available as it was. **hv ruled B3 on 2026-08-25 -- no TTY warn -- and this is a materially different proposal (refuse, not warn) rather than a re-litigation of that ruling, which is why it is put up rather than either adopted or dropped.** Not adopted pending hv.
 - **AC-00.16 stays open until the two step-0 items are dispositioned.** Lamplight's own disposition: R7 closed, two items new, _that is a verification and not a pass_. **A verification is of a revision, not of a thread**, and this design has changed after both of theirs. Leaving it open with the verdict recorded is the honest state for a post-3.0.0 thread with nothing built.
-- **RESOLVED, and the premise it was weighed on was wrong.** This design forbids `_` in segments, maps `-` to `_` and the separator to `__`, so `api-key` is legal and the variable reads `INTENT_VAULT_LAMPLIGHT__PROD__API_KEY`. An earlier version argued for it as avoiding a break to Lamplight's existing names. **It does not: Lamplight's config uses `api_key`, `user_id` and `active_profile`, and `_` inside a segment is illegal under BOTH options, so three of its five field names must be renamed either way.** Measured directly from the file, names only, values structurally unreachable by the pattern used. **With the rename forced, the choice is only which surface humans read most -- and it is the REFERENCE, not the variable**: `vault:lamplight/prod/api-key` appears in every config, doc and typed command, while the variable appears once per secret in CI, written by someone looking at the reference as they write it. The typo-resistance argument for short variables is already dissolved by the provenance line: a mistyped variable now resolves visibly from the store instead of silently returning the wrong thing. `__` as a nesting separator has precedent in .NET configuration.
+- **RESOLVED, and the premise it was weighed on was wrong.** This design forbids `_` in segments, maps `-` to `_` and the separator to `__`, so `api-key` is legal and the variable reads `INTENT_VAULT_LAMPLIGHT__PROD__API_KEY`. An earlier version argued for it as avoiding a break to Lamplight's existing names. **It does not: Lamplight's config uses `api_key`, `user_id` and `active_profile`, and `_` inside a segment is illegal under BOTH options, so three of its five field names must be renamed either way.** Measured directly from the file, names only, values structurally unreachable by the pattern used. **With the rename forced, the choice is only which surface humans read most -- and it is the REFERENCE, not the variable**: `intent://lamplight/profiles/prod/secrets/api-key` appears in every config, doc and typed command, while the variable appears once per secret in CI, written by someone looking at the reference as they write it. The typo-resistance argument for short variables is already dissolved by the provenance line: a mistyped variable now resolves visibly from the store instead of silently returning the wrong thing. `__` as a nesting separator has precedent in .NET configuration.
