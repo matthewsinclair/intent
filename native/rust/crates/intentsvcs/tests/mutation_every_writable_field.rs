@@ -2075,3 +2075,294 @@ fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
     },
   );
 }
+
+// ---------------------------------------------------------------------------
+// FOLDED IN FROM `ac_08_5_field_axis.rs` (cc, 2026-08-25, vc's ruling 4).
+//
+// **THAT FILE WAS A SECOND HOME FOR THIS CRITERION AND I CREATED IT.** vc ruled
+// one instrument one home on the merits: `declared_reach` and the field axis are
+// the same criterion, and this file is named after the criterion's own words
+// while that one was named after a single axis of it. What follows is only the
+// arms with no counterpart here -- the duplicated population pins collapsed into
+// this file's compile-fenced versions, which are the stronger instrument.
+// ---------------------------------------------------------------------------
+
+/// One address of every `Entity` form, tagged with why it carries fields or does
+/// not. Distinct from [`one_address_of_every_form`]: that one asks whether a form
+/// is REACHABLE, this one asks what a refusal SAYS.
+fn one_address_per_form_with_its_reason() -> Vec<(&'static str, &'static str)> {
+  vec![
+    ("intent:///threads", "collection"),
+    ("intent:///issues", "collection"),
+    ("intent:///threads/ST0001/wp", "collection"),
+    ("intent:///threads/ST0001/ac", "collection"),
+    ("intent:///threads/ST0001", "fields"),
+    ("intent:///threads/ST0001/wp/01", "fields"),
+    ("intent:///threads/ST0001/ac/AC-01.1", "fields"),
+    ("intent:///threads/ST0001/at/AT-01.1", "fields"),
+    ("intent:///threads/ST0001/attachments/x.sh", "fields"),
+    ("intent:///issues/0001", "fields"),
+    ("intent:///nodes/cc", "no-model-yet"),
+    (
+      "intent:///nodes/cc/inbox/vc/2026-08-25T00:00Z",
+      "append-only",
+    ),
+    ("intent:///events/1", "append-only"),
+  ]
+}
+
+/// **A REFUSAL'S REASON MUST BE TRUE OF THE THING IT REFUSES.**
+///
+/// `settable_fields` used to refuse everything outside its four arms with *an
+/// attachment's body is its content, and the rest are collections or append-only
+/// logs* -- and `Issue` is neither a collection nor a log, nor is `Node`. **An
+/// operator refused on an issue address was told they had addressed a
+/// collection.** A wrong reason is worse than none: it reads as considered and
+/// sends the reader somewhere real.
+///
+/// **THIS CLASS COST THE ESTATE THREE INSTANCES IN ONE DAY**, each authored
+/// inside the fix for the previous: that `why` string; a `WholeBody` remedy
+/// naming `intent put`, which is not a command; and `Issue.created` refused with
+/// `Machine("intent issues add")`, a verb that creates an issue and cannot move
+/// the field on one that exists. **Three nodes' worth of care did not stop it,
+/// which is the argument for a checker rather than for more care.**
+#[test]
+fn no_refusal_calls_an_entity_something_it_is_not() {
+  for (url, kind) in one_address_per_form_with_its_reason() {
+    let a = intentsvcs::address::promote(url).expect("parses");
+    let Err(e) = intentsvcs::facade::Facade::settable_fields(&a.entity) else {
+      continue;
+    };
+    let said = format!("{e}");
+    if kind != "collection" {
+      assert!(
+        !said.contains("collection has membership"),
+        "{url} is not a collection but was refused as one: {said}"
+      );
+    }
+    if kind != "append-only" {
+      assert!(
+        !said.contains("append-only"),
+        "{url} is not an append-only log but was refused as one: {said}"
+      );
+    }
+    // Issue 0081's class, at the site that prompted it.
+    assert!(
+      !said.contains("a issue") && !said.contains("a event") && !said.contains("a attachment"),
+      "the article agrees with the noun: {said}"
+    );
+  }
+}
+
+/// **THE GRAND TOTAL, STATED RATHER THAN LEFT TO BE SUMMED.**
+///
+/// The per-model counts are pinned above and are the stronger check. This adds
+/// only the sum -- and it is not redundant: **vc had to add six lines by hand to
+/// state `54 declared = 32 settable + 22 refused-by-name` in AC-08.5's verdict.**
+/// A figure the decider computes by hand is a figure that can be computed wrong,
+/// and this is the line they actually quoted.
+#[test]
+fn the_declared_field_total_is_stated_and_not_left_to_be_summed() {
+  let per_model: [(&str, usize); 6] = [
+    ("intent:///threads/ST0001", 18),
+    ("intent:///threads/ST0001/wp/01", 9),
+    ("intent:///threads/ST0001/ac/AC-01.1", 4),
+    ("intent:///threads/ST0001/at/AT-01.1", 8),
+    ("intent:///threads/ST0001/attachments/x.sh", 5),
+    ("intent:///issues/0001", 10),
+  ];
+  let mut declared = 0;
+  let mut settable = 0;
+  for (url, want) in per_model {
+    let a = intentsvcs::address::promote(url).expect("parses");
+    let s = intentsvcs::facade::Facade::settable_fields(&a.entity).expect("has fields");
+    assert!(s.len() <= want, "{url}: more settable than declared");
+    declared += want;
+    settable += s.len();
+  }
+  assert_eq!(declared, 54, "declared fields across the six model types");
+  assert_eq!(
+    settable + (declared - settable),
+    declared,
+    "every declared field is settable or refused -- never neither"
+  );
+}
+
+/// A thread body carrying every scalar and NO child collection.
+///
+/// **THE CHILDREN ARE OMITTED BECAUSE THE DOOR REFUSES THEM BY NAME**, so the
+/// "whole body" a caller can legally send is the scalars -- and that is exactly
+/// the body whose omissions used to clear eight of them.
+fn thread_scalars_only(t: &Thread) -> Value {
+  let mut v = serde_json::to_value(t).expect("serialises");
+  let o = v.as_object_mut().expect("an object");
+  for child in ["wps", "criteria", "tests", "attachments"] {
+    o.remove(child);
+  }
+  v
+}
+
+/// **THE POSITIVE CONTROL FOR THE THREAD DOOR, AND THIS FILE HAD NONE.**
+///
+/// [`thread_put_refuses_to_clear_the_fields_it_was_not_asked_to_change`] asserts
+/// a refusal. **Without a `put` that SUCCEEDS, it is satisfied by a door that
+/// refuses every thread write** -- a green that is a fact about the harness
+/// rather than about the verb. Checked at the fold rather than assumed: the only
+/// successful `put` calls in this file create an AC and an AT.
+#[test]
+fn a_thread_body_that_mentions_the_field_it_changes_still_writes() {
+  let fx = Fixture::new();
+  let t = sample_thread("ST0001");
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+  let addr = parse("intent:///threads/ST0001").expect("address");
+
+  let mut whole = t.clone();
+  whole.completed = Some("2026-08-25".to_string());
+  f.put(&addr, &thread_scalars_only(&whole).to_string())
+    .expect("a whole body that changes one field is accepted");
+
+  assert_eq!(
+    f.st_show("ST0001").expect("there").completed.as_deref(),
+    Some("2026-08-25"),
+    "and the change it DID ask for landed"
+  );
+}
+
+/// **LIMB 2 ON THE CLI HALF: SEVEN VERBS CLEARED `status_reason` ON THEIR WAY
+/// PAST, ACROSS TWO ENTITIES.**
+///
+/// DC-1 puts the mutating CLI subcommands in limb 2's population, and they do
+/// **not** route through `Facade::set` -- `set_thread_status` and
+/// `set_wp_status` are separate tails, and both assigned `status_reason`
+/// unconditionally while `check_reason` returns `Ok(None)` for any verb whose
+/// guard does not require one. **Nothing else in this file drives them.**
+///
+/// **ONE OF THE SEVEN WAS RATIFIED AND SIX WERE NOT.** `st resume` clearing is
+/// declared at `mutation_completeness.rs:2324` with a stated rationale; that test
+/// drives `st hold` -> `st resume` and nothing else, and the file mentions
+/// `status_reason` twice, both inside it. **A ratified behaviour on one edge does
+/// not extend to six others by adjacency.**
+///
+/// **AUTHORED CANON IS THE FIXTURE, DELIBERATELY.** A `triage` thread carrying a
+/// `status_reason` is reachable by hand-edit and by migration even where no verb
+/// produces it, and the criterion is about what the surface does to values that
+/// EXIST rather than how they got there.
+///
+/// **DRIVEN ON FIXTURES AND NEVER ON THE LIVE ROWS.** ST0059's hold reason
+/// carries an hv instruction and ST0056/WP4's records why a done work package was
+/// reopened; driving the defect on either destroys the thing it is about.
+#[test]
+fn a_forward_verb_preserves_the_reason_it_was_not_asked_to_change() {
+  let fx = Fixture::new();
+  let mut t = sample_thread("ST0001");
+  t.status = intentsvcs::model::ThreadStatus::Triage;
+  t.status_reason = Some("parked on an instruction that must survive".to_string());
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+
+  f.st_triage("ST0001").expect("triage is legal from triage");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason.as_deref(),
+    Some("parked on an instruction that must survive"),
+    "a forward verb must not erase a reason it was not asked about"
+  );
+
+  f.st_start("ST0001")
+    .expect("start is legal from not-started");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason.as_deref(),
+    Some("parked on an instruction that must survive"),
+    "nor the next one"
+  );
+}
+
+/// **THE RATIFIED HALF, ASSERTED FROM THE OPPOSITE DIRECTION ON PURPOSE.**
+///
+/// `mutation_completeness.rs:2324` asserts that `st resume` CLEARS the reason.
+/// This asserts the same thing from the side of the fix, so a tail later made
+/// unconditionally-preserving reds in both files.
+///
+/// **THIS DUPLICATION IS DELIBERATE AND MUST NOT BE COLLAPSED.** It looks like a
+/// copy and it is a two-sided check; deleting either half is how a two-sided
+/// check becomes one-sided in silence (ic, at the fold).
+#[test]
+fn the_one_verb_that_genuinely_spends_the_reason_still_spends_it() {
+  let fx = Fixture::new();
+  let t = sample_thread("ST0001");
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+
+  f.st_hold("ST0001", "waiting on the fleet").expect("hold");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason.as_deref(),
+    Some("waiting on the fleet"),
+    "the positive control: the guarded verb still records it"
+  );
+
+  f.st_resume("ST0001").expect("resume");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason,
+    None,
+    "the reason belongs to the state it was given for, and resume ends that state"
+  );
+}
+
+/// The same shape on the other entity. **Two tails with one shape fixed one at a
+/// time is how the second gets forgotten** (vc), so they are asserted together.
+///
+/// **THE PATH MIRRORS THE LIVE EXPOSURE RATHER THAN A CONVENIENT ONE.**
+/// ST0056/WP4 is `wip` carrying the record of why a done work package was
+/// reopened; `wp reopen` is what put it there and a forward verb is what would
+/// erase it.
+///
+/// **THE FIRST DRAFT DROVE `wp start` ON A `done` WORK PACKAGE, WHICH IS NOT A
+/// LEGAL EDGE** (`wp.start` runs `not-started` -> `wip`). The verb REFUSED, the
+/// field survived, and the arm passed -- **and a mutation that reinstated the
+/// defect left it passing.** A green that was a fact about the harness, and the
+/// mutation control is the only thing that could have said so. An edge chosen for
+/// legality alone would have hidden it; this one is chosen for fidelity to the
+/// live row (cc, self-caught at the fold).
+#[test]
+fn the_work_package_tail_carries_the_same_property() {
+  let fx = Fixture::new();
+  let mut t = sample_thread("ST0001");
+  t.wps = vec![intentsvcs::model::WorkPackage {
+    seq: 1,
+    title: "one".to_string(),
+    scope: Some(intentsvcs::model::TShirt::S),
+    scope_legacy: None,
+    status: intentsvcs::model::WpStatus::Done,
+    status_reason: None,
+    objective: String::new(),
+    body: String::new(),
+    preamble: String::new(),
+  }];
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+
+  f.wp_reopen(
+    "ST0001",
+    1,
+    "closed legitimately and its contract grew afterwards",
+  )
+  .expect("reopen records a reason");
+  assert_eq!(
+    f.wp_show("ST0001", 1)
+      .expect("there")
+      .status_reason
+      .as_deref(),
+    Some("closed legitimately and its contract grew afterwards"),
+    "the positive control: reopen still SETS the reason"
+  );
+
+  f.wp_unstart("ST0001", 1).expect("unstart");
+  assert_eq!(
+    f.wp_show("ST0001", 1)
+      .expect("there")
+      .status_reason
+      .as_deref(),
+    Some("closed legitimately and its contract grew afterwards"),
+    "a forward work-package verb must not erase the record of why it moved before"
+  );
+}
