@@ -338,3 +338,142 @@ fn a_body_that_mentions_the_field_it_changes_still_writes() {
     "and the change it DID ask for landed"
   );
 }
+
+/// **LIMB 2 ON THE CLI HALF: SEVEN VERBS CLEARED `status_reason` ON THEIR WAY
+/// PAST, ACROSS TWO ENTITIES.**
+///
+/// DC-1 puts the mutating CLI subcommands in limb 2's population, and they do
+/// not route through `Facade::set` -- `set_thread_status` and `set_wp_status`
+/// are separate tails, and both assigned `status_reason = reason.clone()`
+/// unconditionally while `check_reason` returns `Ok(None)` for any verb whose
+/// guard does not require one.
+///
+/// # One of the seven was ratified and six were not
+///
+/// **`st resume` CLEARING IS A DECLARED BEHAVIOUR WITH A STATED REASON** --
+/// `mutation_completeness.rs:2324`: *a resumed thread must not still be
+/// explaining why it was paused.* **That test covers exactly that one edge.**
+/// So `st_resume` now passes `Some("")` and spends the reason as an ACT; the
+/// behaviour is unchanged and the silence is gone, which is what limb 2 asks
+/// for. The other six were undefended by any test.
+///
+/// **AUTHORED CANON IS THE FIXTURE, DELIBERATELY.** A `triage` thread carrying a
+/// `status_reason` is reachable by hand-edit and by migration even where no verb
+/// produces it, and the criterion is about what the surface does to values that
+/// EXIST rather than about how they got there.
+///
+/// **DRIVEN ON FIXTURES AND NEVER ON THE LIVE ROWS.** Two real records are
+/// exposed -- ST0059's hold reason, which carries an hv instruction, and
+/// ST0056/WP4's, which records why a done work package was reopened. Driving the
+/// defect on either destroys the thing it is about.
+#[test]
+fn a_forward_verb_preserves_the_reason_it_was_not_asked_to_change() {
+  let fx = common::Fixture::new();
+  let mut t = common::sample_thread("ST0001");
+  t.status = intentsvcs::model::ThreadStatus::Triage;
+  t.status_reason = Some("parked on an instruction that must survive".to_string());
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+
+  // `st triage` is `triage` -> `not-started`: a forward verb passing `None`,
+  // covered by no test, and one of the two vc's own sweep did not name.
+  f.st_triage("ST0001").expect("triage is legal from triage");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason.as_deref(),
+    Some("parked on an instruction that must survive"),
+    "a forward verb must not erase a reason it was not asked about"
+  );
+
+  // And again through `st start`, `not-started` -> `wip`.
+  f.st_start("ST0001")
+    .expect("start is legal from not-started");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason.as_deref(),
+    Some("parked on an instruction that must survive"),
+    "nor the next one"
+  );
+}
+
+/// **THE RATIFIED HALF, ASSERTED HERE TOO SO THE TWO CANNOT DRIFT APART.**
+///
+/// `st resume` SPENDS the reason, and that is `mutation_completeness.rs`'s
+/// declared behaviour rather than the default it used to ride on. If someone
+/// later makes the tail preserve unconditionally, that test reds and so does
+/// this one -- from opposite directions, which is the point.
+#[test]
+fn the_one_verb_that_genuinely_spends_the_reason_still_spends_it() {
+  let fx = common::Fixture::new();
+  let t = common::sample_thread("ST0001");
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+
+  f.st_hold("ST0001", "waiting on the fleet").expect("hold");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason.as_deref(),
+    Some("waiting on the fleet"),
+    "the positive control: the guarded verb still records it"
+  );
+
+  f.st_resume("ST0001").expect("resume");
+  assert_eq!(
+    f.st_show("ST0001").expect("there").status_reason,
+    None,
+    "the reason belongs to the state it was given for, and resume ends that state"
+  );
+}
+
+/// The same shape on the other entity. **Two tails with one shape fixed one at a
+/// time is how the second gets forgotten** (vc), so they are asserted together.
+///
+/// **THE PATH MIRRORS THE LIVE EXPOSURE RATHER THAN A CONVENIENT ONE.**
+/// ST0056/WP4 is `wip` carrying the record of why a done work package was
+/// reopened; `wp reopen` is what put it there and a forward verb is what would
+/// erase it. **The first draft of this test called `wp start` on a `done` work
+/// package, which is not a legal edge** (`wp.start` runs `not-started` -> `wip`),
+/// so the verb REFUSED and the field survived for the wrong reason. It passed,
+/// and a mutation that reinstated the defect left it passing -- a green that was
+/// a fact about the harness. Caught by mutating the tail rather than by reading.
+#[test]
+fn the_work_package_tail_carries_the_same_property() {
+  let fx = common::Fixture::new();
+  let mut t = common::sample_thread("ST0001");
+  t.wps = vec![intentsvcs::model::WorkPackage {
+    seq: 1,
+    title: "one".to_string(),
+    scope: Some(intentsvcs::model::TShirt::S),
+    scope_legacy: None,
+    status: intentsvcs::model::WpStatus::Done,
+    status_reason: None,
+    objective: String::new(),
+    body: String::new(),
+    preamble: String::new(),
+  }];
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+
+  f.wp_reopen(
+    "ST0001",
+    1,
+    "closed legitimately and its contract grew afterwards",
+  )
+  .expect("reopen records a reason");
+  assert_eq!(
+    f.wp_show("ST0001", 1)
+      .expect("there")
+      .status_reason
+      .as_deref(),
+    Some("closed legitimately and its contract grew afterwards"),
+    "the positive control: reopen still SETS the reason"
+  );
+
+  // A forward verb from `wip`, passing `None`. It used to clear.
+  f.wp_unstart("ST0001", 1).expect("unstart");
+  assert_eq!(
+    f.wp_show("ST0001", 1)
+      .expect("there")
+      .status_reason
+      .as_deref(),
+    Some("closed legitimately and its contract grew afterwards"),
+    "a forward work-package verb must not erase the record of why it moved before"
+  );
+}

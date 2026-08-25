@@ -2920,7 +2920,20 @@ impl Facade {
       id,
       ThreadStatus::Wip,
       "st.resume",
-      None,
+      // **`st resume` SPENDS THE REASON, AND THIS IS A RATIFIED BEHAVIOUR RATHER
+      // THAN THE DEFAULT IT USED TO RIDE ON.** `mutation_completeness.rs:2324`
+      // asserts it and states why: *a resumed thread must not still be
+      // explaining why it was paused -- the reason belongs to the state it was
+      // given for.* **THAT TEST COVERS EXACTLY THIS ONE EDGE**, `st hold` ->
+      // `st resume`, and says nothing about the other six verbs that were
+      // clearing the field on their way past.
+      //
+      // So the ruled shape does not reverse it, it makes it VISIBLE: `Some("")`
+      // is this call site declaring that the reason is spent, where `None` was
+      // the shared tail deciding it for seven verbs at once. **The behaviour is
+      // unchanged and the silence is gone**, which is the whole of what limb 2
+      // asks for.
+      Some(""),
       ListEdit::AsDeclared,
     )
   }
@@ -3033,13 +3046,43 @@ impl Facade {
 
     Self::check_transition("Thread", "status", op, &crate::model::enum_str(&from), id)?;
     self.check_gate(("Thread", "status", op), id, id, Scope::Thread)?;
-    let reason = Self::check_reason("Thread", "status", op, reason)?;
+    // The guard still refuses a verb that REQUIRES a reason and was given
+    // none; its return value is no longer the thing that writes the field.
+    Self::check_reason("Thread", "status", op, reason)?;
     // Read BEFORE anything is written -- see [`Facade::closing_notes`].
     let notes = self.closing_notes(op, id, list)?;
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
-    thread.status_reason = reason.clone();
+    // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
+    // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
+    // `thread.status_reason = reason.clone()` unconditionally, and `check_reason`
+    // returns `Ok(None)` for any verb whose guard does not require one -- so
+    // SEVEN verbs across two entities cleared the field on their way past:
+    // `st triage|start|resume|done` and `wp start|unstart|done`.
+    //
+    // **THE SPLIT IS ONE DESIGN DECISION MADE TWICE, NOT A COINCIDENCE: the
+    // verbs that CLEAR are the ones that move work FORWARD, and the ones that
+    // pass a reason are the ones that stop or reverse it.** A reason is
+    // something you supply when you interrupt, and nobody asked what happens to
+    // the reason already there when you resume.
+    //
+    // **AND THE WORST INSTANCE IS THE CLOSING VERB, ON BOTH ENTITIES** -- this
+    // row's own words: *the verb that records the outcome erases the
+    // reasoning*, and *the rows nobody can afford to lose are the ones the
+    // closing verb hits hardest*. Two live records were exposed, each the
+    // account of a decision rather than incidental text.
+    //
+    // **THIS DOES NOT DECIDE THE SEMANTICS AND MUST NOT.** Whether a resumed
+    // thread's hold reason is spent stays open; under this shape each call site
+    // declares its own answer and can be argued one at a time. A verb that
+    // genuinely spends the reason passes `Some("")` explicitly. **A fix that
+    // answered the semantics on the way past would become the ruling by
+    // default**, which is the failure mode this criterion produced twice today.
+    if let Some(given) = reason {
+      let given = given.trim();
+      thread.status_reason = (!given.is_empty()).then(|| given.to_string());
+    }
     // `Some("")` is "completed, and the database says when" -- the third state
     // the CREATE door recognises. `None` stays null; a date already recorded is
     // carried. The facade never holds a time in any of the three.
@@ -3448,7 +3491,9 @@ impl Facade {
       &label,
       Scope::WorkPackage(seq),
     )?;
-    let reason = Self::check_reason("WorkPackage", "status", op, reason)?;
+    // The guard still refuses a verb that REQUIRES a reason and was given
+    // none; its return value is no longer the thing that writes the field.
+    Self::check_reason("WorkPackage", "status", op, reason)?;
     let mut next = self.canon.clone();
     let wp = find_thread_mut(&mut next, st)?
       .wps
@@ -3459,7 +3504,35 @@ impl Facade {
         seq,
       })?;
     wp.status = status;
-    wp.status_reason = reason.clone();
+    // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
+    // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
+    // `wp.status_reason = reason.clone()` unconditionally, and `check_reason`
+    // returns `Ok(None)` for any verb whose guard does not require one -- so
+    // SEVEN verbs across two entities cleared the field on their way past:
+    // `st triage|start|resume|done` and `wp start|unstart|done`.
+    //
+    // **THE SPLIT IS ONE DESIGN DECISION MADE TWICE, NOT A COINCIDENCE: the
+    // verbs that CLEAR are the ones that move work FORWARD, and the ones that
+    // pass a reason are the ones that stop or reverse it.** A reason is
+    // something you supply when you interrupt, and nobody asked what happens to
+    // the reason already there when you resume.
+    //
+    // **AND THE WORST INSTANCE IS THE CLOSING VERB, ON BOTH ENTITIES** -- this
+    // row's own words: *the verb that records the outcome erases the
+    // reasoning*, and *the rows nobody can afford to lose are the ones the
+    // closing verb hits hardest*. Two live records were exposed, each the
+    // account of a decision rather than incidental text.
+    //
+    // **THIS DOES NOT DECIDE THE SEMANTICS AND MUST NOT.** Whether a resumed
+    // thread's hold reason is spent stays open; under this shape each call site
+    // declares its own answer and can be argued one at a time. A verb that
+    // genuinely spends the reason passes `Some("")` explicitly. **A fix that
+    // answered the semantics on the way past would become the ruling by
+    // default**, which is the failure mode this criterion produced twice today.
+    if let Some(given) = reason {
+      let given = given.trim();
+      wp.status_reason = (!given.is_empty()).then(|| given.to_string());
+    }
     self
       .apply(
         op,
