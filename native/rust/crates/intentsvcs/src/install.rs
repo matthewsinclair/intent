@@ -142,6 +142,7 @@ pub const HOOKS: &[&str] = &[
   "session-context",
   "require-in-session",
   "post-tool-advisory",
+  "session-finish",
 ];
 
 /// Where a shipped hook script lives, given the install root.
@@ -237,10 +238,21 @@ mod tests {
     assert!(err.to_string().contains("bin/intent"), "{err}");
   }
 
-  /// **The roster and the filesystem agree.** The three names are a closed list
-  /// in Rust and the scripts are files in the install; nothing but this test
-  /// compares them, and a hook added to one side only is exactly the drift the
-  /// single-array comment is about.
+  /// **The roster and the filesystem agree -- in the DECLARED -> SHIPPED
+  /// direction only, which is the half this walk can see.**
+  ///
+  /// The declared names are a closed list in Rust and the scripts are files in
+  /// the install. Walking `HOOKS` catches a name with no script; it is
+  /// structurally blind to a script with no name, and that is the direction the
+  /// drift actually went -- `session-finish` shipped as a script and was wired
+  /// in `settings.json` while the roster carried three names, so the door
+  /// refused a hook a consumer's Claude Code invokes on every Stop event. This
+  /// test was green throughout.
+  ///
+  /// The other direction is held from the SURFACE by
+  /// `intent-cli/tests/hook_compat.rs`, which reads its population from the
+  /// shipped scripts and settings.json and never from this array -- reading it
+  /// here would be asking the suspect to describe itself.
   #[test]
   fn every_declared_hook_ships_as_a_script() {
     let home = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
