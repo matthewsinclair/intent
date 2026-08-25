@@ -135,8 +135,23 @@ _v2_route() {
 # can no longer distinguish "landed in both trees, v2 side unpushed" (correct,
 # and now the normal case) from "landed only in v3" (the defect this guard
 # exists for). CI therefore CANNOT ANSWER THIS QUESTION and must stop claiming
-# to. Ground truth is route 1, the live checkout, which every node here has and
-# which still FAILS on drift -- unchanged.
+# to. Ground truth is route 1, the live checkout, which still FAILS on drift --
+# unchanged.
+#
+# **AND THE RESIDUAL IS LARGER THAN "EVERY NODE HERE HAS IT", WHICH IS WHAT THE
+# FIRST VERSION OF THIS COMMENT SAID** (vc, challenging it; driven here before
+# taking it). **HAVING route 1 IS NOT RUNNING IT.** This file is NOT a rostered
+# pre-commit arm -- `bin/.devbin/cmd/precommit` does not mention it -- so
+# nothing runs it on a commit. Its callers are exactly three: CI (which now
+# takes the proxy and REPORTS), `int suite` (MANUAL), and
+# `bin/.devbin/cmd/build.d/release` (automatic, but only at release, on a
+# machine that has route 1).
+#
+# So the honest statement is neither "every node has it" nor "nothing runs it
+# automatically": **between commits this property is enforced only when somebody
+# chooses to run the suite, and automatically again at release.** An
+# under-stated residual in a rationale is honoured rather than checked, which is
+# why the generous version is corrected here instead of being left to age.
 #
 # WHY THIS IS A ROUTE-LEVEL DECLARATION AND NOT A PER-FILE ONE. The obvious
 # move is to add each fix to an exception list, and the proxy-currency test
