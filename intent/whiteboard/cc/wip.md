@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 18bdb7ad-9dee-4a90-9994-4f7b63ebc463
-heartbeat_at: 2026-08-24 21:52Z
+session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
+heartbeat_at: 2026-08-25 08:31Z
 status: active
-focus: "**AC-08.5 VERIFIED BY vc AT `d38ecbe0`; THE ROW STAYS RED, WHICH IS THE CORRECT OUTCOME. Four field-setter gaps closed; gate 66 of 67** _(vc's figure)_. **MY BUILD LEFT ONE FILE SAYING TWO THINGS -- and the CORRECTION is worth more than the finding: THE PRINT NEVER LIED.** `put` genuinely has no `Wp` arm and the sweep reports it truly; **the false thing is the TYPE** -- `Expected::NotBuiltYet`'s doc at `:524` equates a `put`-scoped fact with AC-08.5's subject, `:563` echoes it. **Output true, type false** _(vc's framing, attributed)_. Honest worklist 4, not 5, enumerated forward rather than subtracted. **TWO WRONG ROUTING TARGETS TONIGHT: the union question is CONTRACT and was vc's, and ic had drawn that lane for me one message earlier.** Nothing of mine in flight; holding for instructions."
+focus: "**LANDED `_CLAUDE.md` VERSION-IN-PROSE IN BOTH TREES -- Intent `7b723dfa`, Intentv2 `3e7feee3`, SAME BLOB `fc34f449`, so byte-identity is one OBJECT rather than two files that agree.** hv-ruled via vc; ic and devbin-cc converged on the same shape independently. **`:3` DROPS the token (ic's argument: it was never provenance about the FILE, it is a current-state claim about the PROJECT); `:54` aligns to `_AGENTS.md`'s agentive footer.** **THE NEAR-MISS IS THE FINDING: MY FIRST RENDER RETURNED THE OLD PROSE.** Templates are compiled in via `embed_templates.rs`'s per-file `include_str!`, and the binary was four hours older than my edit -- `strings` carried the old sentence and ZERO of the new. **A code read alone would have shipped a fix the running binary did not carry.** **TWO BOARD TODOs DIED WHILE I CHECKED THEM (5 and 6), AND I HIT MY OWN INSTRUMENT TWICE: a zsh no-word-split probe and a `head -5` I read as an absence.** AC-08.5 untouched; the gate is 66 of 67 and only ONE of its four items is a cc build."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -47,14 +47,23 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **THE PART THAT IS NEW, AND IT IS ABOUT RULES RATHER THAN CLOCKS: THE NODE THAT WROTE THE ANALYSIS REPRODUCED THE DEFECT.** Not a peer who never read it. **Knowing the mechanism in full detail did not prevent it**, because the failure is not a knowledge gap -- it is a session economising on a second read once it believes it knows what time it is. **This is vc's rule from tonight in its hardest form: a rule is honoured by whoever learned it, and does not propagate by having been WRITTEN -- not even back to the author.** The only thing that works is the mechanical one: `date -u`, then PASTE, per stamp.
 
+## `_CLAUDE.md` landed in both trees, and the near-miss is worth more than the fix
+
+**Intent `7b723dfa`, Intentv2 `3e7feee3`, both carrying blob `fc34f449` -- ONE OBJECT, not two files that agree.** Verified in the COMMITS, never in the worktrees. hv ruled it live in vc's session; ic supplied the argument that decided `:3`; devbin-cc withdrew their footer alternative in favour of the alignment I had already built, which is why nothing here was settled by who spoke first.
+
+**MY FIRST RENDER DRIVE RETURNED THE OLD PROSE, AND EVERY READING I HAD DONE SAID IT SHOULD NOT HAVE.** `substitute` is `resolve_blocks` + `expand_tokens` with no coverage check; vc's positive control reproduced; the edit was in the one template. **The template is ALSO compiled in** -- `build-support/embed_templates.rs` emits a per-file `include_str!` -- and `target/debug/intent` was built four hours before my edit. `strings` on it: the old sentence present, the new one at ZERO. **One source, two consumers, and the code read can only ever see the one that reads from disk.** Rebuilt into `target/cc`, re-drove, and only then did it move. **A correct code read plus a correct positive control still described a binary that did not exist.**
+
+**THE CONSEQUENCE FOR ANY TEMPLATE WORK: `WHICH BINARY` IS A DIFFERENT QUESTION FROM `WHICH VERSION`, and only the first one answers whether a template edit is live.** Relayed to ic before their regenerate, because `intent3` points at the RELEASE build and the gate's own self-provenance line says that binary names `9b466807` -- an earlier tree.
+
+**AND I HIT MY OWN INSTRUMENTS TWICE IN ONE MORNING, BOTH IN FIVE-LINE PIPELINES I WOULD NOT HAVE CALLED INSTRUMENTS.** A probe loop passed `claude skills` through an unquoted `$v` -- **zsh does not word-split** -- so it reached the binary as ONE argument and answered `unrecognized subcommand`, which would have CONFIRMED a stale claim in `restart.md` that I was in the middle of refuting. And I read `git status --short | head -5`, saw no guard files, and **took the truncation for an absence** -- then reasoned from it to a false contradiction about dc's in-flight work. `git diff --stat` settled it. **Both were tidiness, not haste, and in both the wrong answer was the plausible one.**
+
 ## TODO
 
 1. **`AC-08.5`.** Everything operative is above.
 2. **ROUTED TO ME BY ic 2026-08-24 21:27Z (their stamp, attributed) -- TAKE THE `FacadeError` SHAPE TO vc, NOT TO ic.** ic split the design call I routed them and took only the half that COSTS them: their sweep gets a third state and `unexpected` fails LOUDLY, making their own row harder. **They declined the other half on jurisdiction: a public error type is an INTERFACE, an interface is CONTRACT, and contract is vc's.** The argument to carry is mine -- a dedicated variant over a field, because `WriteNotAddressable` carries a `why` and reasons about a REQUEST, while a form having no arm is not an opinion about the request. **A node declining to rule on something outside its lane is the same move as routing a green away from the builder.**
 3. **U3's BUILD queue** -- drive v3 to LOCALLY USABLE across the 17 projects here; ic measures the daily-use population, cc builds. Start on the half depending on nobody: the family-and-subcommand delta driven **FROM THE TWO BINARIES**, never from `dispatch-table.json` -- `shipped: 115` claims what is IN the binary, never what WORKS. **Confirm `treeindex` absent BY POPULATION, not by one grep.**
 4. **HELD ON hv -- DO NOT BUILD.** `sync` skipping untracked bytes; the relay wording is close to what AC-03.6 names as insufficient. **dc's caution is the sharp part: the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED, or a legitimate two-step workflow becomes a silent no-op.**
-5. **`AT-00.6` stale `to-write`** while `migrate_v2_project.rs` exists -- the gate reports it every commit. Canon correction, **route to vc**.
-6. **Two `intentdb` doc comments:** `intentsvcs/src/lib.rs:11`, `project.rs:786`. Fold into the next edit in those files.
+5. ~~`AT-00.6` stale `to-write`~~ and ~~two `intentdb` doc comments~~ -- **BOTH DEAD, DRIVEN 2026-08-25, AND NEITHER DIED BY BEING FIXED BY ME.** AT-00.6 reads `red`, not `to-write`, and `stale_at_check.sh` returns rc=0 over 52 to-write rows with a citation: _none names a file that exists_. `intentdb` returns zero across `native/rust/crates/`, **with a positive control** -- `intent` hits 3 and 65 in those same two files, so the grep can reach its subject. **This is the recorded-reason-retired-by-an-unrelated-change class again, and it surfaced the only way it ever does: a builder picked the reason up in order to USE it.** Nothing watches that join.
 
 ## BLOCKED
 
