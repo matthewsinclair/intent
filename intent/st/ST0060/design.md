@@ -163,24 +163,25 @@ The deviation is from R5's letter and serves R5's stated reason. **R5's reasonin
 
 **This table is the ratification instrument.** Every row names where the requirement is answered and which AC makes it checkable.
 
-| req     | requirement                                | answered by                                                                  | AC       |
-| ------- | ------------------------------------------ | ---------------------------------------------------------------------------- | -------- |
-| **R1**  | reference, never material                  | the ref format; resolver turns `vault:...` into material at point of need    | AC-00.1  |
-| **R2**  | one behaviour on macOS and Linux           | store + identity layers are platform-free; only the passphrase cache adapts  | AC-00.2  |
-| **R3**  | no daemon, headless-safe                   | in-process ladder is the default path; daemon is an accelerator              | AC-00.3  |
-| **R4**  | available before a project's toolchain     | per-machine identity; project is in the ref, so no cwd dependency            | AC-00.4  |
-| **R5**  | pluggable backend, `age` default           | age format; **crate not binary -- deviation flagged above**                  | AC-00.5  |
-| **R6**  | one secret easy, whole store hard          | verb roster carries no dump/export/cat/show-all; `run` is the ergonomic path | AC-00.6  |
-| **R7**  | CI must never require the vault            | env is rung 1 of the ladder and needs no identity file                       | AC-00.7  |
-| **R8**  | mechanically detectable                    | anchored fence regex; `list` and `audit` read no material                    | AC-00.8  |
-| **R9**  | multiple profiles per project              | profile is an axis of the ref                                                | AC-00.9  |
-| **R10** | non-interactive by default                 | read verbs never reach the prompt rung; `Locked` instead of blocking         | AC-00.10 |
-| **R11** | typed failure, never an empty string       | `VaultError` variants with distinct exit codes                               | AC-00.11 |
-| **R12** | assert the file-mode posture               | **strengthened S1**: refuse on identity, warn on store                       | AC-00.12 |
-| **S2**  | (added) material must not reach a print    | `SecretString`, no `Debug` over material, zeroize on drop                    | AC-00.13 |
-| **--**  | (added) daemon and in-process must agree   | dual-path conformance, WP-08 seam                                            | AC-00.14 |
-| **--**  | (added) the consumer actually migrates     | Lamplight's three profiles imported and `ll cli` reads through the vault     | AC-00.15 |
-| **--**  | (added) Lamplight has ratified this design | the R5 deviation plus strengthenings S1 and S2, ruled on by the provider     | AC-00.16 |
+| req     | requirement                              | answered by                                                                  | AC       |
+| ------- | ---------------------------------------- | ---------------------------------------------------------------------------- | -------- |
+| **R1**  | reference, never material                | the ref format; resolver turns `vault:...` into material at point of need    | AC-00.1  |
+| **R2**  | one behaviour on macOS and Linux         | store + identity layers are platform-free; only the passphrase cache adapts  | AC-00.2  |
+| **R3**  | no daemon, headless-safe                 | in-process ladder is the default path; daemon is an accelerator              | AC-00.3  |
+| **R4**  | available before a project's toolchain   | per-machine identity; project is in the ref, so no cwd dependency            | AC-00.4  |
+| **R5**  | pluggable backend, `age` default         | age format; **crate not binary -- deviation flagged above**                  | AC-00.5  |
+| **R6**  | one secret easy, whole store hard        | verb roster carries no dump/export/cat/show-all; `run` is the ergonomic path | AC-00.6  |
+| **R7**  | CI must never require the vault          | env is rung 1 of the ladder and needs no identity file                       | AC-00.7  |
+| **R8**  | mechanically detectable                  | anchored fence regex; `list` and `audit` read no material                    | AC-00.8  |
+| **R9**  | multiple profiles per project            | profile is an axis of the ref                                                | AC-00.9  |
+| **R10** | non-interactive by default               | read verbs never reach the prompt rung; `Locked` instead of blocking         | AC-00.10 |
+| **R11** | typed failure, never an empty string     | `VaultError` variants with distinct exit codes                               | AC-00.11 |
+| **R12** | assert the file-mode posture             | **strengthened S1**: refuse on identity, warn on store                       | AC-00.12 |
+| **S2**  | (added) material must not reach a print  | `SecretString`, no `Debug` over material, zeroize on drop                    | AC-00.13 |
+| **--**  | (added) daemon and in-process must agree | dual-path conformance, WP-08 seam                                            | AC-00.14 |
+| **--**  | (added) the consumer actually migrates   | Lamplight's three profiles imported and `ll cli` reads through the vault     | AC-00.15 |
+| **--**  | (added) lamplight-vc has VERIFIED it     | advisory read against R1-R12: satisfied where, and unsatisfied where         | AC-00.16 |
+| **--**  | (added) hv has RATIFIED it               | the deviation and both strengthenings -- a DIFFERENT act from verification   | AC-00.17 |
 
 ## Proposed build breakdown
 
@@ -206,5 +207,5 @@ Carried from Lamplight's non-requirements, all standing:
 
 ## Open
 
-- **Ratification by the requirements provider (Lamplight) is outstanding**, specifically on the R5 deviation and on strengthenings S1 and S2.
+- **Verification and ratification are two acts and this design needs both.** Lamplight's `vc` is **advisory** -- it verifies against R1-R12 and reports; **hv adjudicates**, and hv is the same human on both boards. An earlier draft carried one criterion reading _the requirements provider has ratified this design_, which named an authority the node it pointed at cannot exercise: **unsatisfiable by construction, and well-formed enough that nothing would have said so.** Split into AC-00.16 (verification) and AC-00.17 (ratification).
 - The Linux keychain adapter needs a decision on what "present" means: probing `secret-tool` on PATH is not the same as a keyring daemon actually answering, and **a probe that tests the wrong one reports a cache that then fails at use**.
