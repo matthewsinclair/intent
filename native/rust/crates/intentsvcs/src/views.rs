@@ -63,8 +63,18 @@ pub struct View {
 /// that on the day they were written and not afterwards.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TableMode {
-  /// On-screen: pipeless (`a | b`, `---|---`), expanded to fill `fill`
-  /// columns. `0` means content-fit only.
+  /// On-screen: pipeless (`a | b`, `---|---`), rendered to `fill` columns
+  /// exactly. `0` means content-fit only.
+  ///
+  /// **`fill` USED TO BE A FLOOR AND IS NOW A TARGET, AND THAT IS A DECLARED
+  /// DEVIATION FROM v2.** Both implementations carried the same rule in the
+  /// same words -- v2's `render_table` says *content-fit is the floor, so
+  /// nothing is ever truncated* and this said *a narrow terminal never
+  /// truncates, it just stops padding*. The consequence neither comment states
+  /// is that ONE oversized cell sets the width of EVERY row: measured
+  /// 2026-08-25, `issues list` rendered 312 columns into an 80-column terminal
+  /// because a single title ran to 287 characters. **A width that only ever
+  /// grows is not a width.** hv ruled truncation with an ellipsis.
   Terminal { fill: usize },
   /// A persisted file: canonical GFM, always content-fit.
   ///
@@ -118,6 +128,32 @@ pub fn table(headers: &[&str], rows: &[Vec<String>], mode: TableMode) -> String 
     TableMode::Terminal { fill } => {
       let separators = widths.len().saturating_sub(1) * 3;
       let content: usize = widths.iter().sum();
+      // **THE SHRINK PASS, AND IT IS THE HALF THAT WAS MISSING.** Take the
+      // overflow off the WIDEST column each time round, so a table blown out by
+      // one runaway cell loses width where the width actually is rather than
+      // spreading the loss over columns that were already the right size.
+      //
+      // Every column floors at its HEADER width: a header is the one part of a
+      // table that must stay readable, since a clipped header makes the column
+      // unidentifiable and the row below it unreadable rather than merely
+      // shortened. If the headers alone cannot fit, the table overflows -- an
+      // honest overflow, because there is no narrower correct answer.
+      if fill > 0 && content + separators > fill {
+        let floors: Vec<usize> = headers.iter().map(|h| h.chars().count().max(1)).collect();
+        let mut total = content + separators;
+        while total > fill {
+          let Some((i, _)) = widths
+            .iter()
+            .enumerate()
+            .filter(|(i, w)| **w > floors[*i])
+            .max_by_key(|(_, w)| **w)
+          else {
+            break;
+          };
+          widths[i] -= 1;
+          total -= 1;
+        }
+      }
       if fill > content + separators && content > 0 {
         let slack = fill - content - separators;
         let mut distributed = 0;
@@ -163,6 +199,17 @@ fn row_line(cells: &[String], widths: &[usize], mode: TableMode) -> String {
     .enumerate()
     .map(|(i, width)| {
       let cell = cells.get(i).map(String::as_str).unwrap_or("");
+      // Clipped by CHARACTERS, never by bytes -- a byte slice through a
+      // multi-byte character produces broken output, and `views` already
+      // measures every width with `chars().count()` for the same reason.
+      // The ellipsis is one character and three bytes, which is exactly the
+      // trap a byte-based `truncate` would fall into here.
+      let len = cell.chars().count();
+      if len > *width {
+        let keep = width.saturating_sub(1);
+        let clipped: String = cell.chars().take(keep).collect();
+        return format!("{clipped}\u{2026}");
+      }
       format!("{cell:<width$}")
     })
     .collect();
