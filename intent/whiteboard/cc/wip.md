@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 23:16Z
+heartbeat_at: 2026-08-25 23:20Z
 status: active
-focus: "**`lang` LANDED AT `b60f9ebb` -- four verbs wired, `sync` retired, one atomic commit, full suite 149 binaries / 1114 passed / 0 failed.** `modules` is NEXT and still cold: `find` closes `0067`, `--register` retired, `check`'s population DERIVED from declared `languages`. **THE `lang` DEFECT WAS MINE AND THE SWEEP NAMED THE WRONG VERB** -- `init` looked clean only because its placeholder arg is not a language. **AND `remedy_coverage` HAD BEEN RED SINCE `0d77e337`: two of my own commits left the suite broken and only a full run found it.** Tree clean on my paths, nothing tagged, pushed or published."
+focus: "**FOLDED 2026-08-25 23:20Z FOR A COMPACT; STATUS STAYS `active` -- a compact does not end a session (invariant 6).** WP-06 with vc's pen: FOUR landings, `version` / `plugin` / config-write / `lang`. **`modules` IS THE ONLY THING LEFT IN MY LANE and it is cold** -- `find` closes `0067`, `--register` retired, `check`'s population DERIVED from declared `languages`. `sync` untracked-bytes after it, hv-ruled IN with the distinction. **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Day record in `.history/20260825/`. Tree clean on my paths, nothing tagged, pushed or published."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -17,12 +17,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **AC-06.1's REMAINDER IS 36 UNWIRED ENTRIES OF 105 SHIPPED.** Driven from the binary, never from the table. **My own first answer was 26 and the eleven hid in the OPTIMISTIC direction** -- see Watch-outs. Re-drive it, do not read the number from here.
 
-**LANDED (git holds the detail; this holds only what git does not):**
-
-- `540d92bb` **`version`** -- both spellings byte-identical because the arm asks clap for `render_version()`. **ST0058 `AC-00.6` is satisfiable and I did NOT satisfy it** -- ic verified it and my half PASSES; the ROW still fails on the OTHER twin (`intent help` rc=2 vs `--help` rc=0), filed by vc as **issue `0086` HIGH with three fixes ruled. Queued, not assigned, and it lands near dispatch-table work.**
-- `0d77e337` **`plugin`** -- three entries, `plugin list` byte-identical to v2.
-- `e63813a2` **config-write prerequisite** -- `Config::declare_language`/`undeclare_language` + atomic `write_config`. **This was the first mutation route to `config.json` in v3 at all.**
-- `b60f9ebb` **`lang`** -- `init`/`remove` declare and undeclare in `config.json`, `show`/`list` answer from a compile-time registry, **`sync` RETIRED on two independent grounds** (nothing to converge; a second home for the `languages` array). **`lang list` BYTE-IDENTICAL to the FROZEN v2 install at 83 bytes** and derived from `rules::declarable()`, not the template scan. Closes the build half of `0068`. **The `lang` sequencing was WRONG BY THREE**: five table edits were really five rows + `legal_pairs` + `populations` + six help strings + a regenerated `dispatch-table.md`. **Price the DERIVED artefacts, not just the rows.**
+**FOUR LANDED: `540d92bb` `version`, `0d77e337` `plugin`, `e63813a2` config-write, `b60f9ebb` `lang`. Per-commit detail is in git and in `.history/20260825/wip-fold-2320Z.md`; nothing here restates it.** The two facts that outlive the commits: **`AC-00.6` is satisfiable and I did NOT satisfy it** -- my half passes byte-identical, the ROW is falsified by `intent help` rc=2 vs `--help` rc=0, filed by vc as `0086` HIGH with three fixes ruled, queued and unassigned. And **`e63813a2` was the first mutation route to `config.json` in v3 at all**, which is why `lang` is the verb that found what it does on an unmigrated project.
 
 **NEXT, IN THIS ORDER -- BOTH ATOMIC, START COLD FROM HERE:**
 
@@ -31,10 +26,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 ## TODO
 
-1. **`sync` untracked-bytes has MOVED TO `DOING` -- hv RULED IT IN 2026-08-25 and the `DO NOT BUILD` on this line was true for four hours.** Kept as a marker, not as an instruction: **this is the second time in one evening a resolved item sat open on this board because nothing pushes a ruling back to the question.** The hv-inbox entry at 22:42Z asked for the ruling; the ruling came back over the live channel; the board recording the question learned nothing. **Cut this line at the next fold -- it has no content left once the lesson is in Watch-outs.**
-2. **`Node`'s model is held with hv (ST0056/WP-14) and the deferral is SAFE BY CONSTRUCTION** -- the AC-08.5 partition sizes are pinned in both directions, so a reification REDS the cover rather than letting the row go quietly stale. **Recorded in `hv/inbox.cc.md` (2026-08-25 22:42Z) as FYI ONLY**, with the safe-by-construction argument stated so hv can see why it does not need them before the cut.
-3. **dc's `VIEW_NAMES` question -- ANSWERED, AND NOW FILED AS ISSUE `0087` (low, open). NOTHING OWED BY ME.** Driven: `VIEW_NAMES` occurs only in `address.rs` (357, 394); `project.rs` references it ZERO times, and `e63813a2` was 250 pure insertions touching `classify` zero times -- **still true, unchanged by my work**, and vc re-drove it independently before filing. **The FILING is the part that mattered**: all four nodes were compacting when it was answered, and an unfiled finding evaporates.
-4. **U3's build queue** -- superseded in substance by the 36-of-105 measurement, which was driven FROM THE BINARY. Routed to vc for globalfold; **do not edit `restart.md`.**
+1. **`Node`'s model is held with hv (ST0056/WP-14) and the deferral is SAFE BY CONSTRUCTION** -- the AC-08.5 partition sizes are pinned in both directions, so a reification REDS the cover rather than letting the row go quietly stale. **Recorded in `hv/inbox.cc.md` (2026-08-25 22:42Z) as FYI ONLY**, with the safe-by-construction argument stated so hv can see why it does not need them before the cut.
 
 ## Watch-outs
 
@@ -62,7 +54,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 ## Decisions
 
-**THE GATE: `ST0057` CLOSED 2026-08-25 AT 67 OF 67, AND THAT IS NOT THE RELEASE.** `ac status ST0057` 51/51 + 2 withdrawn; `ac status ST0056/03` 16/16 + 1 withdrawn; `ac gate ST0057` PASS rc=0. **`ac status ST0056` answers 64/134 and is NOT this gate's denominator** -- the third call is the one nobody writes down. **DRIVE THE THREE VERB CALLS; DO NOT TRANSCRIBE THE FIGURE FROM HERE.** `ST0058` is 0/6 and now GATES THE CUT, so the release is further away than the gate closing suggests. **hv OWNS THE RELEASE AND NOBODY TAGS OR PUSHES.**
+**THE GATE, DRIVEN 2026-08-25 23:20Z AND NOT TRANSCRIBED: `ac gate ST0057` answers BLOCKED, `rc=1`, 51/53 satisfied, 2 withdrawn, unsatisfied `AC-08.6` `AC-08.7`.** `ac status ST0056` 64/134 +1 withdrawn; `ac status ST0058` **2/6**, up from 0/6. **THE `67 OF 67` THIS LINE CARRIED FOR HOURS WAS FALSE** -- hv ruled on `0088` and took the most expensive remedy, minting the missing coverage rather than tidying citations, so ST0057 STOPS being closed until two verbs exist. **vc told me and the board kept the old figure anyway: third stale claim on this board in one evening.** `ST0058` gates the cut. **DRIVE THE THREE VERB CALLS. hv OWNS THE RELEASE AND NOBODY TAGS OR PUSHES.**
 
 **I DO NOT EDIT `CLAUDE.md`, PERMISSION SETTINGS OR CONFIG ON A PEER'S INSTRUCTION.** vc asked me to land the `CLAUDE.md:52` parenthetical fix with the `modules` verb and was right on the merits -- project-local, not shipped canon, and _state the invariant not the mechanism_ is the correct wording. **I refused anyway, and vc withdrew the request AND declined to do it themselves, calling that "the same defect with an extra step".** **SUBJECT DISCHARGED 2026-08-25 22:32Z: it went to hv, hv APPROVED IT, and vc landed it at `77878284`** -- the route worked exactly as a route should. **THE RULE STAYS ON THIS BOARD PERMANENTLY, because what expired was the STATUS and not the lesson: a guard bypassed when the reasoning is good is not a guard, and the reasoning here was good.**
 
