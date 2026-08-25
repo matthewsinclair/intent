@@ -1,6 +1,6 @@
 //! **AT-07.2, covering ST0056 AC-07.2 -- `intent claude hook <name>` is
-//! byte-compatible with v2 for
-//! every shipped hook, and the consumer's `settings.json` is untouched.**
+//! byte-compatible with v2 for every shipped hook, and the consumer's
+//! `settings.json` is untouched.**
 //!
 //! **THE POPULATION IS READ FROM THE SHIPPED CANON AND NEVER LISTED HERE, AND
 //! THE ONE PLACE IT IS NOT READ FROM IS v3's OWN ROSTER.** v3 keeps a closed
