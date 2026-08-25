@@ -124,6 +124,31 @@ vendor_source_path() {
   return 1
 }
 
+# vendored_scope <srcroot> -- devbin's half as git PATHSPECS into the source,
+# one per line. The scope, not the roll-call.
+#
+# The third member of the vendored_paths / vendored_dir_files family, and a
+# separate function for the same reason those two are separate: it answers a
+# different question. `vendored_paths` asks WHICH FILES ship, `vendored_dir_files`
+# asks what is ON DISK, and this asks WHERE devbin's half lives -- which is the
+# only shape a git pathspec can take.
+#
+# IT IS DELIBERATELY NOT BUILT ON vendored_paths, and that is the whole point.
+# That function enumerates with `find`, so a vendored file DELETED but not yet
+# committed simply stops being listed, and a `git status` limited to the names
+# that survive reports nothing at all. Measured on a fixture with `lib/beta`
+# removed: the file-list pathspec answers CLEAN while a vendored file is
+# missing; the directory pathspec answers ` D lib/beta`. Under-reporting clean
+# is the one direction this subsystem must never go, and a directory is read
+# against HEAD where a name list is read against disk.
+vendored_scope() {
+  local srcroot="$1" lib
+  lib="$(devbin_lib_dir "$srcroot")" || return 1
+  printf '%s\n' "$srcroot/bin/devbin"
+  printf '%s\n' "$lib"
+  return 0
+}
+
 # copy_vendored <src> <dst> -- copy one file, creating its directory, and carry
 # the executable bit across.
 #
@@ -235,18 +260,44 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 # describes bytes no commit has, and the bare sha would be a confident false
 # statement. Not a checkout at all says so in words: an ABSENT field is what an
 # older devbin wrote, and absent must never be readable as clean.
+#
+# DIRTY IS ASKED OF DEVBIN'S HALF, NOT OF THE TREE (issue 0033). The question
+# this field answers is what the VENDORED bytes correspond to, and a file
+# outside the seam cannot change that answer. A tree-wide `git status` made the
+# stamp true about the tree and false about the bytes: one open whiteboard board
+# in the source stamped eleven consuming estates THESE BYTES MATCH NO COMMIT
+# over a surface that matched HEAD exactly. It erred safe, which is why it
+# survived -- but in a project with a live whiteboard some node is always
+# mid-edit, so the accurate stamp was close to unreachable and a warning that
+# never clears stops being read. Narrowed, it still errs safe: `vendored_scope`
+# is a DIRECTORY pathspec precisely so a deleted vendored file is still seen.
+#
+# WHEN THE HALF CANNOT BE LOCATED the tree-wide question is asked instead,
+# rather than a narrower one being invented. A root with no `lib/` and no
+# `bin/.devbin/lib/` is not a devbin source this can clear, and absent must
+# never be readable as clean.
 source_commit_of() {
-  local root="$1" sha
+  local root="$1" sha p dirty
+  local -a scope=()
   git -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
     { printf 'not a git checkout -- these bytes name no commit\n'; return 0; }
   sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)" || sha=""
   [ -n "$sha" ] ||
     { printf 'a checkout with no HEAD -- these bytes name no commit\n'; return 0; }
-  if [ -n "$(git -C "$root" status --porcelain 2>/dev/null)" ]; then
+  while IFS= read -r p; do
+    [ -n "$p" ] && scope+=("$p")
+  done < <(vendored_scope "$root")
+  if [ "${#scope[@]}" -gt 0 ]; then
+    dirty="$(git -C "$root" status --porcelain -- "${scope[@]}" 2>/dev/null)"
+  else
+    dirty="$(git -C "$root" status --porcelain 2>/dev/null)"
+  fi
+  if [ -n "$dirty" ]; then
     printf '%s +dirty -- THESE BYTES MATCH NO COMMIT\n' "$sha"
   else
     printf '%s\n' "$sha"
   fi
+  return 0
 }
 
 # manifest_entries <root> -- the `<sha><TAB><relpath>` body, comments stripped.
