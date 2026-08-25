@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 21:09Z
+heartbeat_at: 2026-08-25 22:03Z
 status: active
-focus: "**BOOTED AFTER COMPACT 2026-08-25 21:09Z AND HOLDING FOR vc's INSTRUCTIONS -- hv has given vc the pen for the 3.0.0 close-out.** ST0057's gate is CLOSED at 67 of 67 and **CLOSED IS NOT RELEASED; hv owns that and nobody tags or pushes.** ST0056 is 63/133, which is NOT this gate's denominator. Nothing of mine in flight, tree clean, all four inboxes at the sentinel."
+focus: "**WP-06 WITH vc's PEN. TWO LANDINGS: `540d92bb` `version` (both spellings byte-identical, one capability), `0d77e337` `plugin` (byte-identical to v2, and the line I did NOT port is the finding -- as-observed fidelity would have shipped a remedy naming a RETIRED verb).** **AC-06.1's remainder is 36 of 105, and my own first answer was 26** -- 11 hid in the optimistic direction behind a CLAP arity trap. **BOTH REMAINING PATHS ARE BLOCKED ON RULINGS AND NEITHER IS BLOCKED ON ME**: `lang` held by vc, `modules` awaiting two answers, and `CLAUDE.md:52` surfaced to hv because I do not edit that file on a peer's instruction. Tree carries none of my work uncommitted."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -29,6 +29,16 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **A THIRD WAY A GREEN IS ABOUT THE WRONG SUBJECT, AND IT LEAVES NO EVIDENCE.** The familiar two: **an instrument that cannot reach its subject** (a `.dat` probe against `ATTACHMENT_EXTENSIONS`; a wait condition matching `Finished` on a COMPILE line and reading 591 of 1080; `pgrep -f` matching peer argv, which caught vc and me hours apart), and **a binary carrying a stale copy of one** (vc's build baking in my uncommitted table; my own `recoverability` fix read as failed against a stale artefact). **THE THIRD IS: CORRECT INSTRUMENT, CORRECT BINARY, CORRECT ANSWER -- MEASURED BY THE PARTY WHOSE WORK IT CERTIFIES.** Nothing mechanical distinguishes it from a peer's run; only who ran it, and the other two leave evidence while this one leaves none. **Re-driving after your own change is a duty to REPORT that the tree moved, never a licence to re-certify it.** vc's sentence: _a green is a claim about a tree, and the tree moved._
 
+### The three from the WP-06 evening
+
+**A MECHANISM UPSTREAM OF THE SUBJECT ANSWERING IN THE SUBJECT'S VOICE -- AND THE SHARP FORM IS WHEN IT ANSWERS CORRECTLY.** Four instances in one evening across four tools: vc's `2>/dev/null | grep -c` reporting `0` for a binary that never ran; my CLAP arity error read as the renderer answering LIVE (11 entries, optimistic direction); dc's `--to-disk` `ok`s over a store that did not hold what the disk held; and ic's zsh-unsplit `$c` sending `lang init rust` as ONE subcommand name. **Then the sharpest: vc's staleness marker refused, printed its refusal twice, and their probe reported `BYTES IDENTICAL: yes` -- which was TRUE, of two copies of the refusal.** Not a wrong value. A correct value about the wrong subject, carrying no signal that it was. **THE REMEDY IS THAT AN INSTRUMENT MUST ASSERT THE ARTEFACT IS THE ONE UNDER TEST, NOT MERELY THAT TWO OF ITS OUTPUTS AGREE** -- my own `version` probes have that hole and would have agreed with themselves perfectly against a stale binary.
+
+**AND THE NOTE DID NOT PREVENT IT.** The zsh trap is written down in the estate's memory, verbatim, and ic hit it twice in one evening and I hit it seven times. **Every save tonight came from a control that made the wrong answer impossible, not from having read the warning** -- my mutation harness aborting on pattern-absent, ic's needle control, dc's population floor, vc's mutation test. **Write the control, not the note.**
+
+**A DETECTOR WHOSE GRANULARITY IS THE FAMILY FORCES THE LANDING GRANULARITY TO BE THE FAMILY.** `flag_reachability` decides wired-ness by driving `intent <family>` BARE, so the first verb that answers flips the whole family to WIRED and moves every `keep` flag out of the not-gated bucket into the gated one. **Wiring half a family therefore MANUFACTURES declared-and-unread violations.** Hit on `lang` and again on `modules`, which makes it a property rather than a quirk -- and it is why the long tail cannot be sliced the way a porting queue could. **The check refusing to let me half-ship is the guard working, not an obstacle.**
+
+**AS-OBSERVED FIDELITY CAN SHIP A DEFECT, AND THAT IS THE DIRECTION NOBODY WATCHES.** v2's `plugin show` closes with `Run 'intent help <name>'`; `intent help` is retired in v3. **A faithful port ships a remedy pointing at a refusal** -- AC-06.11's own class, arriving through care rather than through carelessness. The pin is to assert the PREMISE alongside the absence: the test drives `intent help` and requires it to refuse, so if that changes the test fails loudly instead of the decision outliving its reason.
+
 ### The ones from earlier that still bind
 
 1. **A PROSE EDIT TO A GENERATED ARTEFACT HAS READERS. ENUMERATE WHAT READS THE _VALUE_, NOT WHAT NAMES THE IDENTIFIER.** I reworded `_CLAUDE.md`'s footer and split `CANON_INTENT_FOOTER_MARK`, a contiguous substring of that prose -- every project upgrading afterwards would have been permanently declassified as user-authored. **A grep for the two IDENTIFIERS found nothing because the live reader asserts the string's VALUE.**
@@ -46,17 +56,29 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **WHAT STAYS IS THE JUDGEMENT, BECAUSE IT WAS ABOUT MY OWN WORK: A FINDING THAT ARGUES ITS WAY INTO THE ROW YOU ARE TRYING TO CLOSE IS A REAL DEFECT LAUNDERED THROUGH A GREEN.** My round-trip finding was true, driven, and mine -- and every one of those is a reason to want it counted. **The pull is strongest exactly when the finding is GOOD**, because a weak one gets dropped without a struggle. DC-1 was what settled it, and I would not have reached it alone: I was arguing about which limb it satisfied when the answer was neither.
 
+## WP-06 -- WHAT LANDED TONIGHT, AND THE NUMBER THAT REPLACED MINE
+
+**vc GAVE ME WP-06 WITH THE PEN AT 21:20Z. TWO LANDINGS, BOTH `--only`, BOTH MUTATION-PROVED.**
+
+- **`540d92bb` -- `version`.** `--version` and `version` now print BYTE-IDENTICAL stdout, both rc=0, because the arm asks clap for `render_version()` rather than composing a line. **Wiring the subcommand alone would have closed the rc gap and left the harder defect: two spellings that both answer, differently, with nothing saying so.** Version string gains the baked commit per the `corrected` ratification. `version --zzz` exits 1 (INV-02) where v2 took it at 0 (INV-08). **ST0058 AC-00.6 is satisfiable and I did NOT satisfy it** -- ic verifies, vc authored, I built; three hands.
+- **`0d77e337` -- `plugin`.** Three entries, `plugin list` byte-identical to v2, bare == list. **The finding is the line I did NOT port**: v2's `plugin show` ends `Run 'intent help <name>'` and **`intent help` is RETIRED in v3, refusing at rc=2**. As-observed fidelity would have shipped a remedy pointing at a refusal -- AC-06.11's class arriving through FAITHFULNESS, which is the direction nobody watches. The test pins BOTH halves, so if `help` is ever un-retired it fails and sends someone back to the decision instead of outliving its premise.
+
+**AC-06.1's REMAINDER IS 36 UNWIRED ENTRIES OF 105 SHIPPED, AND MY FIRST ANSWER WAS 26.** Driven from the binary, not the table. **The 11 hid in the OPTIMISTIC direction**: my probe drove every entry with NO ARGUMENTS, so any verb with a required positional died inside CLAP before a renderer arm ran, and I read clap's error as the renderer answering LIVE. `modules find`, `lang init`, `lang show`, `lang remove`, `config get`, `config set`, `ext new`, `ext show`, `plugin show`, `claude start`, `st dehydrate`. **I found it because I went to check whether a CLAUDE.md claim had expired and it had NOT.**
+
+**THE COST TABLE IS THE USEFUL ARTEFACT AND IT IS IN vc's HANDS**: per family, unwired entries x `keep` flags x blocking rows. **`plugin` was the ONLY unwired family with no design question attached.** That is the finding vc took to hv: **the long tail is not a porting queue, it is a queue of RULINGS with porting attached** -- so the bottleneck is vc and hv, not me.
+
 ## TODO
 
-1. **U3's BUILD queue** -- the family-and-subcommand delta driven **FROM THE TWO BINARIES**, never from `dispatch-table.json`. **`restart.md`'s U3 paragraph is STALE ON PRESENCE and I drove it**: `claude skills`, `lang`, `plugin`, `ext` and `version` ALL answer `--help` in v3. Presence is not parity -- `intent init --lang` refuses with _`intent lang init` is not implemented yet_, which is the real shape of the gap. **Routed to vc (globalfold); do not edit `restart.md`.** **Confirm `treeindex` absent BY POPULATION, not by one grep.**
-2. **HELD ON hv -- DO NOT BUILD.** `sync` skipping untracked bytes; the relay wording is close to what AC-03.6 names as insufficient. **dc's caution is the sharp part: the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED, or a legitimate two-step workflow becomes a silent no-op.**
-3. **`Node`'s MODEL IS HELD WITH hv AND THE DEFERRAL IS SAFE BY CONSTRUCTION.** Whether the model should carry a `Node` type at all is ST0056/WP-14's scope. **The AC-08.5 partition sizes are pinned in both directions, so if WP-14 ever reifies it the cover REDS and announces itself** rather than the row going quietly stale.
-
-**CLOSED TODAY, NOT CARRIED:** AC-08.5 both limbs and the gate; id normalisation (`58979836`, row minted by vc at `028c3697`); the unified output handler (`3c2f50d6`, `5473a5cc`); `st attach` text and bytes (`41acbe38`, `c4709d3f`); the `created` stamp refusal (`3b3f5bd3`); the Highlander fold of my own second instrument home (`12cced26`). **ic's routed `FacadeError` question was ANSWERED BY A FINDING RATHER THAN A RULING** -- the refuse-by-name shape already shipped on the issue door.
+1. **`lang` -- HELD BY vc 22:0xZ, DO NOT BUILD.** Ruled (init declares in `config.json` and installs nothing; `list` keeps v2's available-packs semantics; `sync` + `sync --check` RETIRED; three rows to `corrected`), then held pending whether a retirement landed on disk anywhere -- **a table row saying RETIRED when the truth is UNBUILT is exactly what AC-00.5 exists to make impossible, and I would build against it within the hour.** Nothing of it is on disk; the table is clean. **When it lifts: land the config-write prerequisite FIRST as its own commit.**
+2. **`modules` -- TWO QUESTIONS OUT WITH vc.** `find` is clean and closes issue 0067. `check` is not: **its scan population is `bin/intent_*` and `AC-12.1` PRUNES `bin/` at the cut**, so a faithful port builds a scanner for files v3 deletes; and `--register` is a `keep` flag declared _interactive_, so AC-06.8 forces either an interactive prompt or a retirement. **`find` cannot ship without `check`** (see the family-granularity finding below).
+3. **`CLAUDE.md:52`'s `modules find` PARENTHETICAL IS SURFACED TO hv, NOT EDITED.** It goes false the moment the verb is wired. vc asked me to land the edit with the verb and is right on the merits; **I do not edit `CLAUDE.md` on a peer's instruction** -- that file is named in my operating instructions alongside permission settings, and a guard bypassed when the reasoning is good is not a guard. hv's call.
+4. **U3's BUILD queue** -- superseded in substance by the 36-entry measurement above, which was driven FROM THE BINARY. **Routed to vc for globalfold; do not edit `restart.md`.**
+5. **`sync` skipping untracked bytes -- STILL HELD ON hv, DO NOT BUILD.**
+6. **`Node`'s model is held with hv (WP-14) and the deferral is safe by construction** -- the AC-08.5 partition sizes are pinned in both directions, so a reification REDS the cover rather than going quietly stale.
 
 ## BLOCKED
 
-**NOTHING OF MINE IS BLOCKED, AND NOTHING IS BLOCKED ON ME.** This section claimed otherwise for a full day after it stopped being true, while the contradiction sat twelve lines above it. **A board can hold its own contradiction and read fine, because nobody reads two sections against each other** -- and the entry that goes stale is never the one being edited.
+**BOTH BUILD PATHS ARE BLOCKED ON RULINGS, AND NEITHER IS BLOCKED ON ME.** `lang` held by vc; `modules` awaiting two answers; the `CLAUDE.md` line awaiting hv. **Nothing of mine is in flight and the tree carries none of my work uncommitted.** This section claimed the opposite for a full day in August while the contradiction sat twelve lines above it -- **a board can hold its own contradiction and read fine, because nobody reads two sections against each other.**
 
 ## Mine -- what `intent/restart.md` does not carry
 
