@@ -1,19 +1,23 @@
 ---
-verblock: "25 Aug 2026:v1.20: vc - globalfold; hv ruled twice and both rulings moved the cut away"
+verblock: "25 Aug 2026:v1.21: vc - the gate that passed now blocks, by ruling rather than by regression"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-**Current as at `7dbbd608`, 2026-08-25. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
+**Current as at `8ddacfc0`, 2026-08-25. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
 
-## The gate: CLOSED, 67 of 67
+## The gate: OPEN AGAIN. BLOCKED at 51/53, by RULING and not by regression
 
-**RUN THESE. DO NOT TRANSCRIBE THE NUMBER.** It has had three homes carrying three values, and one document held it twice disagreeing with itself.
+**RUN THESE. DO NOT TRANSCRIBE THE NUMBER.** It has had three homes carrying three values, one document held it twice disagreeing with itself, and **on 2026-08-25 it stopped being 67 of 67 -- so anything you are reading that still says CLOSED is stale.**
 
-    intent ac status ST0057      -> 51/51 satisfied, 2 withdrawn -- PASS
+    intent ac status ST0057      -> 51/53 satisfied, 2 withdrawn -- BLOCKED
     intent ac status ST0056/03   -> 16/16 satisfied, 1 withdrawn -- PASS
-    intent ac gate ST0057        -> PASS
+    intent ac gate ST0057        -> BLOCKED, unsatisfied: AC-08.6 AC-08.7
+
+**NOTHING BROKE AND NOTHING REGRESSED.** hv ruled on issue `0088` and took the most expensive of four remedies: **mint the missing coverage rather than tidy the citations.** `AC-08.6` and `AC-08.7` are the two gaps `WP-08`'s own table has always named as missing -- `Criterion create` and `AcceptanceTest create` -- which no criterion covered, because `AC-08.5` covers every writable FIELD and **creation is not a field**. The thread was reporting PASS over a stated deliverable. **It now stops being closed until the verbs exist, deliberately.**
+
+**THE INSTRUMENT COULD NEVER HAVE CAUGHT THIS AND STILL CANNOT.** `ac gate` reads canon ROWS; the gap lived in a WP body's prose table and in six citations to criterion ids that are not local to ST0057. **An id in prose is not a row.** Worse than dangling: `WP-08` nominates `AC-10.11` for the create contract, ST0057 has no such row, and **ST0056's `AC-10.11` is an interrupted migration reaching the same end state** -- so a reader chasing it finds a real green row and reads it as coverage.
 
 **The scope is all of ST0057's live rows plus all of ST0056 WP-03's.** `ac status ST0056` answers 64/134 and is **NOT** this number's denominator. `ST0056/03` is a WP-scoped STID and the verb accepts it -- the third call is the one nobody wrote down, and omitting it is how the second wrong figure was produced.
 
@@ -30,9 +34,9 @@ intent_version: 2.19.0
 
 **ST0056 -- the v3.0.0 rewrite. 64 of 134 satisfied**, 1 withdrawn. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started. **The denominator moved 133 -> 134 tonight** because `AC-14.12` was added, and the numerator moved 63 -> 64 when `AT-07.2` landed green; **a figure that moved twice in one evening is why this file drives them instead of holding them.**
 
-**ST0057 -- disk as a sparse projection. 51 of 51 satisfied**, 2 withdrawn, gate PASS. WPs 02/03/04/06/07/09/10 Done; **01/05/08 still WIP while the gate PASSes** -- that is WP-close verification, and it is vc's. **Sparseness applies to VIEWS; canon is NEVER sparse.**
+**ST0057 -- disk as a sparse projection. 51 of 53 satisfied**, 2 withdrawn, **gate BLOCKED**. WPs 01/02/03/04/05/06/07/09/10 Done; **08 alone is WIP and it is blocked on `0088`, not unflipped.** WP-01 and WP-05 closed 2026-08-25: both were finished and unmarked, and WP-05's body still claimed its `.intentfiles` pin choice was open when hv had ruled it on 2026-08-19 as `AC-05.2`. **WP-08 looked identical from outside -- WIP at 5/5 PASS -- and was the one real gap.** **Sparseness applies to VIEWS; canon is NEVER sparse.**
 
-**ST0058 -- local cutover. 0 of 6, and it now gates the cut.** It had ZERO criteria until `562d48d`; the contract exists now, so `ac status` reports instead of refusing.
+**ST0058 -- local cutover. 2 of 6, and it gates the cut.** **It moved 0 -> 2 on 2026-08-25 WITH NO CODE WRITTEN:** `U2 HARMLESS` and `U4 REVERSIBLE` were finished and unflipped, found by re-driving each row's OWN STATED FALSIFIER rather than reading its evidence prose. **THAT METHOD IS THE TRANSFERABLE PART AND IT IS FREE: a row that names its falsifier can be re-driven by anyone; a row that recites only its evidence can be believed and cannot be checked.** Worth turning on ST0056's remaining 70. Two rows also had text the drive falsified: `AC-00.3` listed five open verbs and **three of them answer rc=0** (`lang` and `ext` remain), and `AC-00.5` said two meanings ride rc=2 -- **it is three**, because a v2 binary inside a v3 tree exits 2 as well, which after `AC-12.1` prunes `bin/` is what every fleet probe hits. It had ZERO criteria until `562d48d`; the contract exists now, so `ac status` reports instead of refusing.
 
 ## The absence class: still live, and demonstrated again tonight
 
@@ -58,4 +62,4 @@ intent_version: 2.19.0
 
 ## Open issues
 
-**TWENTY-TWO.** `0077`-`0084` were absent from this file until tonight and `0075` was listed after closing; **`0085` and `0086` were filed tonight.** **EIGHT are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082` `0086`** **DRIVEN AT FOLD, NOT TRANSCRIBED -- this file said _six_ earlier tonight because vc carried the number from a summary instead of counting the column.** Re-drive: `intent issues list`. **`0085`** a wired advisory hook prints on every Write/Edit because its no-findings guard can never fire; **`0086` HIGH** `intent help` is retired while `--help` answers, and a passing TEST requires the false remedy.
+**TWENTY-FOUR.** `0077`-`0084` were absent from this file until tonight and `0075` was listed after closing; **`0085`, `0086`, `0087` and `0088` were filed on 2026-08-25.** **NINE are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082` `0086` `0088`** **DRIVEN AT FOLD, NOT TRANSCRIBED -- this file said _six_ earlier tonight because vc carried the number from a summary instead of counting the column.** Re-drive: `intent issues list`. **`0085`** a wired advisory hook prints on every Write/Edit because its no-findings guard can never fire; **`0086` HIGH** `intent help` is retired while `--help` answers, and a passing TEST requires the false remedy.
