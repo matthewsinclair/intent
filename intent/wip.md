@@ -1,74 +1,61 @@
 ---
-verblock: "24 Aug 2026:v1.18: vc - globalfold; two of three burning cases re-driven and dead"
+verblock: "25 Aug 2026:v1.19: vc - globalfold; the gate closed, the cut moved further away, and the issue list was eight short"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-**Current as at `1e8e3666`, 2026-08-24. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
+**Current as at `97cc09ca`, 2026-08-25. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
 
-## The gate: 66 of 67
+## The gate: CLOSED, 67 of 67
 
 **RUN THESE. DO NOT TRANSCRIBE THE NUMBER.** It has had three homes carrying three values, and one document held it twice disagreeing with itself.
 
-    intent ac status ST0057      -> 50/51 satisfied, 2 withdrawn -- BLOCKED
+    intent ac status ST0057      -> 51/51 satisfied, 2 withdrawn -- PASS
     intent ac status ST0056/03   -> 16/16 satisfied, 1 withdrawn -- PASS
-    intent ac gate ST0057        -> unsatisfied: AC-08.5
+    intent ac gate ST0057        -> PASS
 
-**The scope is all of ST0057's live rows plus all of ST0056 WP-03's.** `ac status ST0056` answers 61/132 and is **NOT** this number's denominator. `ST0056/03` is a WP-scoped STID and the verb accepts it -- the third call is the one nobody wrote down, and omitting it is how the second wrong figure was produced.
+**The scope is all of ST0057's live rows plus all of ST0056 WP-03's.** `ac status ST0056` answers 63/134 and is **NOT** this number's denominator. `ST0056/03` is a WP-scoped STID and the verb accepts it -- the third call is the one nobody wrote down, and omitting it is how the second wrong figure was produced.
 
-**IT IS ST0057's CLOSURE GATE, NOT THE 3.0.0 RELEASE GATE.** The release is ST0056 WP-12, whose dependency line reads _"All prior WPs"_ against **seven Not Started**. Read as release progress it says nearly done, where ST0056 stands at 61 of 132.
+**CLOSED IS NOT RELEASED, AND THE GATE WAS THE SMALLER HALF.** ST0057's closure gate is not the 3.0.0 release gate. Nothing is tagged, pushed or published; the tree is 62 commits ahead of `upstream/main` and that is hv's hand alone. All four nodes hold this independently.
 
-## The one row left: ST0057 AC-08.5 -- built, verified, still red, and UNOWNED
+## The cut is further away tonight than it was this morning
 
-**cc built `Facade::set` at `7926cfae` and deliberately did not green it. vc verified at `d38ecbe0`: the row stays red.** The four field-setter gaps are closed and limb 2 is now an **invariant of the verb** -- `splice_one_field` re-serialises and refuses if any key but the addressed one moved.
+**Two rulings from hv on 2026-08-25, first-hand in vc's session. Both menus are recorded in full on `intent/whiteboard/hv/wip.md`, not just the choices** -- that board carries an entry about a ruling whose options survive nowhere, where an option never on the menu cannot be told apart from one declined.
 
-**WHAT ACTUALLY BLOCKS IT, from the instrument's own printed output rather than from this file:**
+1. **THE CUT BLOCKER IS RULED: the `claude ws` family SURVIVES the cut, with an expiry the gate enforces.** `AC-12.1` prunes `bin/` at the cut while the whiteboard PROVISIONER is contracted in WP-14, Not Started -- so at the cut it did not degrade, it **disappeared**. The obvious fix is wrong: `AC-14.7` serves every `/in-whiteboard` verb FROM THE STORE, so porting the file-based implementation builds what WP-14 exists to replace. **`AC-14.12` is new and is a CLOSING CONDITION of WP-14**, so the exception is retired by the gate rather than by memory -- a workaround outlives its bug because a defect announces itself and a defect's DISAPPEARANCE does not. **The exception has TWO discharge routes and they retire different things:** WP-07 (WIP, dc) porting `intent/plugins/claude/bin/intent_claude_cwi` off its single `bin/` dependency at `:31`, or WP-14 replacing the four `cmd_ws_*` verbs from the store. Neither substitutes for the other.
+2. **ST0058's SIX CRITERIA ALL BIND THE 3.0.0 CUT** -- the strongest of three options. `ST0058` reports `0/6` and **now gates the release**. The broad one is U3 DAILY-COMPLETE; `st dehydrate` is unbuilt and is itself a U3 datapoint.
 
-- **Limb 1 -- four entity forms have no write path through any door:** `intent:///issues`, `.../wp`, `.../ac`, `intent:///nodes/ic`. (The sweep prints **5**; it drives `put` only, and `Wp` gained a door through `set`. Confirmed by three independent routes.)
-- **Limb 2 -- `put`'s thread door still clears 8 of 8** unasked fields on a minimal legal body. **This is a DESIGN call, not a build:** `put` already grafts four children while replacing nine scalars, so it is already a hybrid and nobody has asked which it is meant to be. **Exposure is zero** -- no CLI `put`, 16 call sites, all tests -- which is what makes refusing a partial body viable.
-- **The sweep's door set** -- ic's file, ruled to be over the **UNION** of doors. Corrects the worklist 5 -> 4 and **greens nothing.**
-- **The biconditional cover** -- hv's, unbuilt. ic must not build the instrument deciding whether their own gate row is green.
+## The two threads plus the third, driven 2026-08-25
 
-**NOBODY HOLDS ANY OF IT.** All three peer boards read clean. **A clean board is a statement about ASSIGNMENT, not about completion, and when every lane is clean at once the remaining work has no owner -- which looks identical to having no existence.**
+**ST0056 -- the v3.0.0 rewrite. 63 of 134 satisfied**, 1 withdrawn. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started. **The denominator moved 133 -> 134 tonight** because `AC-14.12` was added; a moving denominator is why this file drives figures instead of holding them.
 
-## The three burning cases: RE-DRIVEN 2026-08-24, and TWO ARE DEAD
+**ST0057 -- disk as a sparse projection. 51 of 51 satisfied**, 2 withdrawn, gate PASS. WPs 02/03/04/06/07/09/10 Done; **01/05/08 still WIP while the gate PASSes** -- that is WP-close verification, and it is vc's. **Sparseness applies to VIEWS; canon is NEVER sparse.**
 
-The previous revision of this file said three survived and told the next node to re-drive them. Driven:
+**ST0058 -- local cutover. 0 of 6, and it now gates the cut.** It had ZERO criteria until `562d48d`; the contract exists now, so `ac status` reports instead of refusing.
 
-1. **`ST0011.completed` -- DEAD, both halves.** The value is `2025-06-03`, repaired at `608e9721` (2026-08-20). And it is settable: Thread's unsettable set is `schema`/`id`/`status` only.
-2. **An attachment's canon record -- DEAD for text attachments.** `put`'s attachment arm (`facade.rs:4251`) builds the row from the content and **replaces exactly that one attachment's canon row**, which is narrower than a thread. **Remainder: bytes-carried attachments are refused BY NAME, and there is no CLI verb either way.**
-3. **No CLI verb creates an AC or an AT -- STANDS.** The only create arms in the CLI are `st new`, `wp new` and `issues add` -- established by finding which command OWNS each arm, because counting names is the exact trap this row's own history records.
+## The absence class: still live, and demonstrated again tonight
 
-**That is six absence claims on this row refuted the moment somebody checked.** The class is not a wrong measurement: **it is reasoning from an absence nobody looked for.** Re-drive before building against any of them.
+**No CLI verb CREATES an AC or an AT.** The only create arms are `st new`, `wp new` and `issues add` -- established by finding which command OWNS each arm, because counting names is the exact trap this row's history records. **Demonstrated again tonight: `AC-14.12` reached canon by a hand-edit plus `sync --to-store`, which is precisely the route `AC-08.5` existed to retire.**
 
-## The two threads, driven 2026-08-24
-
-**ST0056 -- the v3.0.0 rewrite.** 133 criteria / 138 tests, **61 of 132 satisfied**, 1 withdrawn. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started.
-
-**ST0057 -- disk as a sparse projection.** 53 criteria / 53 tests, **50 of 51 satisfied**, 2 withdrawn. WPs 02/03/04/06/07/09/10 Done; 01/05/08 WIP. **Sparseness applies to VIEWS; canon is NEVER sparse.**
-
-**ST0058 has ZERO acceptance criteria** -- `ac status ST0058` refuses with _empty contract_. Define them or declare `acceptance: exempt`.
+**The lesson outlived the cases that taught it.** Six absence claims on the AC-08.5 row were refuted the moment somebody checked. The class is not a wrong measurement: **it is reasoning from an absence nobody looked for.** Re-drive before building against any absence.
 
 ## Next, per node
 
-1. **Nobody, and that is the finding.** The four AC-08.5 items above are unassigned. Two are builds, one is ic's file, one is hv's.
-2. **cc** -- ST0056 AC-10.4 over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
-3. **ic** -- the `issues`-surface paper for hv: `--kind` vs `--status`, four words for one concept, **and the absence behind it -- v3 `issues` has no body setter at all.** One paper, not two.
-4. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and unbuilt. **Not closed by `0075`:** 9 of 12 rostered guards do not run under `set -e`, and **SEVEN** arms still assert a repository finding on any non-zero exit -- **this file said six and was one short** (dc drove it 2026-08-25: 12 rostered arms split 7 asserting a repository finding / 5 naming the could-not-measure case). **The `9 of 12` holds, re-driven with the denominator declared BEFORE measuring, which is the control the wrong figure lacked.**
-5. **vc** -- `ST0057/WP-01` and `WP-05` are recorded **WIP while their gates PASS**; that is WP-close verification. Then `declared_but_unwired` adequacy and the marker's per-crate staleness.
-6. **hv's standing question:** **199** files under a thread are not carried by the store -- _"not all of that should be in the db, but certainly some of it should."_ It was ~250; the number moves, so drive it.
+1. **cc** -- WP-06, the CLI parity long tail: the largest single lever on 63/134. WP-04 is XL, WIP and unclaimed if WP-06 blocks.
+2. **dc** -- `hook_compat.rs` (AC-07.2), shape settled before a line is written. Then WP-07's port of `intent_claude_cwi` off `bin/intent_helpers`, which is now a named discharge route for `AC-12.1`'s exception.
+3. **ic** -- TODO 1's second half: the door-denominator widening, and three stale claims in `mutation_every_writable_field.rs`. Then ST0058's two surface rows: **`AC-00.5`** (a RETIRED refusal must be distinguishable from an UNBUILT one BY EXIT CODE -- `treeindex bin` and `lang list` both exit 2 with different meanings) and **`AC-00.6`** (`intent3 --version` answers, `intent3 version` refuses -- one capability, present by one spelling and absent by the other).
+4. **vc** -- ST0057 WP-01/05/08 close-verification; the instrument-defect sweep opened tonight; ST0058's remaining four.
+5. **hv's standing question:** **199** files under a thread are not carried by the store -- _"not all of that should be in the db, but certainly some of it should."_ It was ~250; the number moves, so drive it.
 
 ## Sitting with hv
 
+- **Twelve queued, none vc's to decide:** the commit trailer; WP-15 timing; `fileindex`; `--force` version mismatch; TODO 8 ordering; dc's three including **AT-11.7, which had never actually been put to hv**; the roster check reading two populations from two trees; two estate-wide commit blocks; limb 2's denominator; the marker's `DIRT_SCOPE`. **Plus** the `st attach` **SPELLING** (vc authorised the build, not the name) and ic's **`## Holds`** protocol change, which edits the shipped skill and carries fleet blast radius.
+- **A2 needs no ruling, only a route.** It is already ruled and waits on hv's word to dc **first-hand in dc's own session**; vc will not carry a ruling second-hand.
 - **AC-02.6's SECOND JOB is uncovered.** `intent/st/ST0057/design.md:270` assigns the GET/PUT round trip to AC-02.6, which lives in **ST0056** and is green on its FIRST job only. **It unsatisfies nothing, and that is the defect.** Minting coverage changes a denominator.
-- **What re-reads a criterion's instruments when a facade grows an arm?** Nothing does. The suite ran green over 808 tests while an instrument silently understated the criterion it serves. **Re-running proves nothing when an instrument and its expectation drift together, in step, away from the thing they are about.**
-- **`intent#0076`** -- the Elixir critic's comment-blind proxies; the fix belongs in the RUNNER.
-- **`intent#0073`** -- six swift rule dispositions. Shipped surface, so it needs hv before it needs an editor.
-- **`intent#0074`** -- whether the elixir pack should cover `.heex` at all. That is WORK, not a fix; the misleading MESSAGE is a defect regardless.
-- **`intent#0071`** -- needs a CHANGELOG entry and a v2 heading that does not exist. Release policy.
-- **dc's routing question 2** -- the frozen-`$INTENT_HOME` mechanism. Detector half CLOSED; **routing NOT discharged, and a reason expiring is not a routing being discharged.**
+- **What re-reads a criterion's instruments when a facade grows an arm?** Nothing does. **Re-running proves nothing when an instrument and its expectation drift together, in step, away from the thing they are about.**
+- **`0073`** six swift rule dispositions and **`0071`** a CHANGELOG entry against a v2 heading that does not exist: both shipped surface or release policy, so both need hv before an editor.
 
 ## Open issues
 
-**Twelve:** `0063` `0064` `0065` `0066` `0067` `0068` `0069` `0071` `0072` `0073` `0074` `0076`. **Driven, not transcribed:** `intent issues list`.
+**TWENTY, and this file said twelve until tonight** -- `0077` through `0084` were absent and `0075` was listed after closing. **SEVEN are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082`** -- and vc wrote _six_ here first, having carried the figure from a summary rather than counting the column, which is this section's own rule failing in the sentence that states it. **Driven, not transcribed:** `intent issues list`.
