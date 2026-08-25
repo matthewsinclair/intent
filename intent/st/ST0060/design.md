@@ -45,6 +45,26 @@ hv's direction was: put the vault in `intentd`, keep a master password in an OS-
 
 **Per-machine identity, per-project store** (B1). The identity is per-machine because R4 requires the vault to be reachable before a project's toolchain exists -- bootstrapping a new project needs credentials before there is a project to hold them. The stores are per-project for three reasons that a single namespaced file cannot give: blast radius is bounded to one project, rotation is per-project, and `list` is scoped by construction rather than by a filter someone can omit.
 
+### An entry is a TUPLE, not a value
+
+```
+  <entry-name>  ->  { key_id: "ANTHROPIC_API_KEY", value: <material> }
+```
+
+**`key_id` is the name the CONSUMER knows the secret by; the entry name is what the VAULT calls it. They are two different facts and neither derives from the other.** The measured data proves it rather than the argument: `CONFLAB_MATTS_API_KEY` is the id, and the entry is `intent://conflab/profiles/default/secrets/matts-api-key` -- the id carries a `CONFLAB_` prefix the entry name does not, **because the project is already the authority.** Deriving one from the other would be the non-injective-mapping problem one layer up.
+
+**This is what removes the LAST declaration site from the design.** An earlier verb surface carried `vault run --ref K=<ref>` -- an explicit variable-to-reference mapping typed on the command line, which is a declaration site, and R4 has refused declaration sites three times already in this design (the declared step-0 override, `--vault <points-at-something>`, and the shelled `age` binary). **It was a fourth and it went unnoticed until hv asked for the tuple.** With the id on the entry, `run` needs no mapping: each secret injects under its own id, and `--ref` survives only as a one-off override.
+
+**`key_id` is REQUIRED.** Optional would give `run` a skip path for entries that have none, and **a silent skip is this thread's recurring defect.** A secret that is never injected still carries an id and is simply never injected; that costs nothing.
+
+**A duplicate `key_id` within a profile is REFUSED**, because two entries injecting one variable is a silent overwrite. **Note this check IS correctly scoped, unlike the derivation-collision check deleted above** -- the collision happens within one profile and the check has jurisdiction over exactly that. One check deleted for having no jurisdiction and one added because it has it, in the same design, is worth keeping side by side.
+
+**`key_id` is NOT the step-0 override variable, and collapsing them would be wrong.** `ANTHROPIC_API_KEY` is what the app reads; `INTENT_VAULT_LAMPLIGHT__DEFAULT__ANTHROPIC_API_KEY` is Intent's override channel. **Two projects can both use `API_KEY`, so an override keyed on the id would hit both** -- the override must be namespaced to the reference, while the id is whatever the app happens to read and is not Intent's to namespace.
+
+**Why it is worth the field: the local name and the deployed name become one fact with one home.** Today they can drift -- `ANTHROPIC_API_KEY` in `fly secrets` and something else locally -- and nothing notices until a 500 in production. **The vault does NOT grow a fly adapter for this.** `vault list --profile prod` emits names and ids and never material; `fly secrets list` prints names and digests and never values; the parity check is a two-line diff someone runs. Give it the enumeration and stay out of the deployment tool's business.
+
+**Injection is REFERENCE-driven by default, not profile-driven.** `--ivault` resolves the `intent://` values a process's environment and config actually carry, so a process receives the secrets it declares and no others. Profile-wide injection (`run --profile prod`, every entry by id) is available and is **not** the default, because it hands a process material it never asked for -- a least-privilege regression that would arrive looking like a convenience.
+
 ### Entry names live INSIDE the ciphertext, and that decides two other things
 
 **A store is one opaque blob: names, profiles and material are all inside the encryption.** There is no cleartext name header. Raised by Lamplight's verification as an R8/S1 interaction neither side had resolved, and it has to be decided here because AC-00.8 and AC-00.12 both depend on the answer.
@@ -207,11 +227,11 @@ The read interface is the requirement that comes straight from the incident, so 
 | verb                                           | what it does                                          |
 | ---------------------------------------------- | ----------------------------------------------------- |
 | `intent vault init`                            | create the identity, choose the posture, set the mode |
-| `intent vault set <ref>`                       | write one entry; value from stdin or prompt           |
+| `intent vault set <ref> --id <KEY_ID>`         | write one entry: id plus value, from stdin or prompt  |
 | `intent vault get <ref>`                       | read ONE secret to stdout                             |
 | `intent vault rm <ref>`                        | remove one entry                                      |
-| `intent vault list [<project>]`                | **names and refs ONLY, never material**               |
-| `intent vault run [--ref K=<ref>]... -- <cmd>` | inject refs into a child's environment                |
+| `intent vault list [<project>]`                | **names, refs and KEY_IDs ONLY, never material**      |
+| `intent vault run [--ref K=<ref>]... -- <cmd>` | inject by each entry's KEY_ID; `--ref` is a one-off   |
 | `intent vault unlock [--ttl <dur>]`            | cache the passphrase; the one legal prompt            |
 | `intent vault lock`                            | drop the cache                                        |
 | `intent vault import <file> --project <p>`     | migrate a plaintext store and rewrite it to refs      |
@@ -248,7 +268,9 @@ Both come from the same observation: **R11 is about the return type, but the inc
 
 **S1 -- R12 names the wrong file.** R12 asks the tool to refuse or warn when a store it owns is group- or world-readable, motivated by `~/.lamplight/config.toml` at mode 644. But in this design the store is ciphertext, so 644 on it is untidy rather than disclosing. **The identity file at 644 is the actual disclosure, and R12 does not mention it.** So the posture splits: **refuse on the identity** (B4), warn on the store, warn on the directory.
 
-**S2 -- material must not reach a rendering.** The way material reached a transcript was printing, and `#[derive(Debug)]` over a struct holding a raw `String` is that same accident one layer down. So the secret type is `secrecy::SecretString`, carries no `Debug` over raw material, and zeroizes on drop. R11 is satisfied by the return type; S2 is what stops the value escaping through a channel R11 never considered.
+**S2 -- material must not reach a rendering.** The way material reached a transcript was printing, and `#[derive(Debug)]` over a struct holding a raw `String` is that same accident one layer down. So the value is `secrecy::SecretString` and zeroizes on drop. R11 is satisfied by the return type; S2 is what stops the value escaping through a channel R11 never considered.
+
+**The tuple makes this HARDER, and that is the interesting part.** When an entry was a bare value, "no `Debug` over material" was satisfied by OMISSION -- derive nothing and there is nothing to leak. **An entry carrying `key_id` makes `Debug` genuinely desirable**, because printing the id is exactly what you want when diagnosing an injection. So the entry needs a **hand-written `Debug` that prints the id and redacts the value**, and the redaction becomes **load-bearing rather than achieved by leaving something out.** A derived `Debug` on that struct is now a leak that arrives looking like a convenience.
 
 ## One deviation from a requirement's letter
 
@@ -278,6 +300,8 @@ R5 is "**pluggable backend**, `age` as the default", and the table answered the 
 4. **Never delete the original.** Report the mode of the source, and warn when it is group- or world-readable.
 5. Report plainly if any pre-image backup still holds material.
 
+**`import` captures the KEY_ID for free, which is the tuple's best property.** A dotenv line IS the mapping: `ANTHROPIC_API_KEY=<material>` becomes entry `anthropic-api-key` with `key_id: ANTHROPIC_API_KEY`, and the rewritten line reads `ANTHROPIC_API_KEY=intent://lamplight/profiles/default/secrets/anthropic-api-key` -- **the variable on the left and the id in the store are the same string by construction, so they cannot drift at the moment of migration.** For TOML, where the field name is not a variable name, the id is supplied explicitly.
+
 **And `import` must RENAME -- ENTRY NAMES, never the consuming app's config schema.** Lamplight's `api_key`, `user_id` and `active_profile` carry `_`, which is illegal inside a segment, so each becomes a legal entry name (`api-key`) while **the TOML field stays `api_key`**: the grammar constrains what the vault calls a secret, not what an app calls a field. `import` writes the reference under the new entry name and **reports every rename it made** -- a silent rename is a config that no longer resolves and a reader who cannot see why.
 
 **`import` MUST NOT VACUUM A FILE.** Measured on Lamplight's `config/.env`: 20 assignments, and roughly six are configuration rather than credentials -- `MAILERSEND_FROM_EMAIL`, `MAILERSEND_FROM_NAME`, `MAILERSEND_INUSE`, `LAMPLIGHT_DATA`, `VIX_LOG_ERROR`, and arguably `OPENAI_ORG_ID`, which is an identifier rather than a secret. **Sweeping those in makes the vault a hard dependency for values that never needed one**, which is the opposite of R7's direction. Selection is explicit (`--field`) or a confirmed shortlist; the default is never everything. The same file also carries `OPENAI_API_KEY` and `OPENAI_KEY` -- either two secrets or one under two names, and the migration forces that question, which is a side benefit worth naming.
@@ -288,25 +312,28 @@ R5 is "**pluggable backend**, `age` as the default", and the table answered the 
 
 **This table is the ratification instrument.** Every row names where the requirement is answered and which AC makes it checkable.
 
-| req     | requirement                              | answered by                                                                   | AC       |
-| ------- | ---------------------------------------- | ----------------------------------------------------------------------------- | -------- |
-| **R1**  | reference, never material                | `intent://` addresses; the resolver turns one into material at point of need  | AC-00.1  |
-| **R2**  | one behaviour on macOS and Linux         | platform-free store + identity; **bounded exception in the hardened posture** | AC-00.2  |
-| **R3**  | no daemon, headless-safe                 | in-process ladder is the default path; daemon is an accelerator               | AC-00.3  |
-| **R4**  | available before a project's toolchain   | per-machine identity; project is in the ref, so no cwd dependency             | AC-00.4  |
-| **R5**  | pluggable backend, `age` default         | age format; crate not binary (accepted); **pluggability is R1, not a seam**   | AC-00.5  |
-| **R6**  | one secret easy, whole store hard        | verb roster carries no dump/export/cat/show-all; `run` is the ergonomic path  | AC-00.6  |
-| **R7**  | CI must never require the vault          | **step 0: per-ref MATERIAL override, no identity, vault never touched**       | AC-00.7  |
-| **R8**  | mechanically detectable                  | anchored fence regex; names inside ciphertext, so `list` needs an identity    | AC-00.8  |
-| **R9**  | multiple profiles per project            | profile is an axis of the ref                                                 | AC-00.9  |
-| **R10** | non-interactive by default               | read verbs never reach the prompt rung; `Locked` instead of blocking          | AC-00.10 |
-| **R11** | typed failure, never an empty string     | `VaultError` variants with distinct exit codes                                | AC-00.11 |
-| **R12** | assert the file-mode posture             | **S1 accepted**: refuse on identity, warn on store (which discloses nothing)  | AC-00.12 |
-| **S2**  | (added) material must not reach a print  | `SecretString`, no `Debug` over material, zeroize on drop                     | AC-00.13 |
-| **--**  | (added) daemon and in-process must agree | dual-path conformance, WP-08 seam                                             | AC-00.14 |
-| **--**  | (added) the consumer actually migrates   | Lamplight's three profiles imported and `ll cli` reads through the vault      | AC-00.15 |
-| **--**  | (added) lamplight-vc has VERIFIED it     | advisory read against R1-R12: satisfied where, and unsatisfied where          | AC-00.16 |
-| **--**  | (added) hv has RATIFIED it               | the deviation and both strengthenings -- a DIFFERENT act from verification    | AC-00.17 |
+| req     | requirement                               | answered by                                                                   | AC       |
+| ------- | ----------------------------------------- | ----------------------------------------------------------------------------- | -------- |
+| **R1**  | reference, never material                 | `intent://` addresses; the resolver turns one into material at point of need  | AC-00.1  |
+| **R2**  | one behaviour on macOS and Linux          | platform-free store + identity; **bounded exception in the hardened posture** | AC-00.2  |
+| **R3**  | no daemon, headless-safe                  | in-process ladder is the default path; daemon is an accelerator               | AC-00.3  |
+| **R4**  | available before a project's toolchain    | per-machine identity; project is in the ref, so no cwd dependency             | AC-00.4  |
+| **R5**  | pluggable backend, `age` default          | age format; crate not binary (accepted); **pluggability is R1, not a seam**   | AC-00.5  |
+| **R6**  | one secret easy, whole store hard         | verb roster carries no dump/export/cat/show-all; `run` is the ergonomic path  | AC-00.6  |
+| **R7**  | CI must never require the vault           | **step 0: per-ref MATERIAL override, no identity, vault never touched**       | AC-00.7  |
+| **R8**  | mechanically detectable                   | anchored fence regex; names inside ciphertext, so `list` needs an identity    | AC-00.8  |
+| **R9**  | multiple profiles per project             | profile is an axis of the ref                                                 | AC-00.9  |
+| **R10** | non-interactive by default                | read verbs never reach the prompt rung; `Locked` instead of blocking          | AC-00.10 |
+| **R11** | typed failure, never an empty string      | `VaultError` variants with distinct exit codes                                | AC-00.11 |
+| **R12** | assert the file-mode posture              | **S1 accepted**: refuse on identity, warn on store (which discloses nothing)  | AC-00.12 |
+| **S2**  | (added) material must not reach a print   | `SecretString`, no `Debug` over material, zeroize on drop                     | AC-00.13 |
+| **--**  | (added) daemon and in-process must agree  | dual-path conformance, WP-08 seam                                             | AC-00.14 |
+| **--**  | (added) the consumer actually migrates    | Lamplight's three profiles imported and `ll cli` reads through the vault      | AC-00.15 |
+| **--**  | (added) lamplight-vc has VERIFIED it      | advisory read against R1-R12: satisfied where, and unsatisfied where          | AC-00.16 |
+| **--**  | (added) hv has RATIFIED it                | the deviation and both strengthenings -- a DIFFERENT act from verification    | AC-00.17 |
+| **--**  | (added) resolution names its SOURCE       | step 0 short-circuits, so provenance to stderr; `doctor` lists overrides      | AC-00.18 |
+| **--**  | (added) the normal entry point can use it | devbin `--ivault` on EVERY terminal path, over Intent's resolver              | AC-00.19 |
+| **--**  | (added) local and deployed names are ONE  | entry is `{key_id, value}`; `list` emits ids so the fly diff is two lines     | AC-00.20 |
 
 ## Proposed build breakdown
 
