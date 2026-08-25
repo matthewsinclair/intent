@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 17:47Z
+heartbeat_at: 2026-08-25 18:02Z
 status: active
 focus: "**DRIVING THE FLEET ON hv's IMPRIMATUR WHILE hv IS AFK -- cc, ic AND dc ALL LIVE AND BUILDING.** AC-08.5's field-axis denominator is RULED and landed at `8f03d9c7`, which was cc's stated blocker. cc builds two `settable_fields` arms + the thread-door graft; ic builds the field-axis instrument; dc has AT-11.6 then `hook_compat.rs`. **TWO THINGS ARE WITH hv AND ONE IS A CUT BLOCKER: WP-14 blocks WP-12, and AT-11.7 was refused twice from one premise and never asked.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -15,11 +15,11 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**DRIVING THE FLEET. hv IS AFK AND GAVE THE PEN AND THE IMPRIMATUR FOR AN AGGRESSIVE PLAN TO GET THE 3.0.0 RELEASE DONE** -- first-hand to me (_"land the rest of this intent3 work"_, _"press on aggressively"_) and to ic the same hour (_"VC has the pen, and my impramatur"_). **THE AIM IS NOW THE RELEASE; THE ACT OF RELEASING IS STILL hv's HAND.** _Get the release done_ is not _release it_ -- nobody tags, pushes or publishes under any plan of mine. **ic drew that line before I did and would have refused it by default**, which is the right instinct and is now the standing reading.
+**AC-08.5 IS DECIDED AND IT STAYS RED -- `d7438b4a`. THE ROW IS RED ON TWO FIELDS OF ONE ENTITY AND ON THE INSTRUMENT'S OWN PRINTED WORDS.** Driven with `--nocapture`, not read off a commit message: **54 declared = 32 settable + 22 refused-by-name across six models, twenty of the twenty-two correct and closed.** The two are `Attachment.text` and `Attachment.blob` -- _THERE IS NO CLI VERB FOR THIS TODAY; the route is `Facade::put`, and `intent put` is not a command._ **Clause 2 is genuinely finished. Clause 1 is not: both fields are writable, `put` writes them, and neither has a route on the mutation surface.**
 
-**AC-08.5 IS THE ONLY UNSATISFIED ROW ON THE 3.0.0 GATE AND ITS DENOMINATOR IS RULED -- `8f03d9c7`.** Limb 1's population is indexed by MODEL TYPE, not address form: 6 field-carrying entities, not 13 address forms, `settable_fields` covering 4 of 6. **That was cc's stated blocker -- they escalated rather than building, which was right.** In flight now: **cc** two arms (`Attachment`, `Issue`) + the thread door's 8-of-8 graft; **ic** the field-axis instrument, asserting through trait bounds rather than scanning source; **dc** AT-11.6 then `hook_compat.rs` + `AC-07.4(b)`.
+**CLOSING CONDITION, IN CANON SO NOBODY GUESSES: ONE CLI VERB THAT WRITES AN ATTACHMENT'S CONTENT.** Nothing else on the field axis is outstanding. **This is the third burning case narrowing for the THIRD time** -- _no narrow setter_ -> _nothing smaller than a THREAD_ -> _no CLI verb for the CONTENT_ -- each narrowing a real measurement, and the remainder smaller than any previous statement of it.
 
-**THE PEN IS NOT hv's AUTHORITY AND `imprimatur` DID NOT MOVE THAT BOUNDARY** (ic's reading, endorsed). Every ruling today is recorded as vc's. **A2 STAYS HELD -- I will not relay hv's authorisation to dc and dc should refuse it if I do.**
+**cc ROUTED THE ROW TO ME FOUR TIMES TODAY AND TOOK NO GREEN.** Both limbs landed (`14a9be65`, `7a819279`); ic's denominator is compile-fenced so a new field cannot slip past serde into silence; dc's AT-11.6 landed and `ST0056` moved 62 -> 63/133. **OPEN WITH dc, NOT RULED BY ME: `Thread.created` and `Issue.created` are SETTABLE, so `set(addr, "created", <a time>)` is reachable, and D42 says no function TAKES a time.**
 
 ## TODO
 
