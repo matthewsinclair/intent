@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 79,
+  "slug": "st-new-reports-created-at-rc-0-and-lists-the-thr",
+  "title": "st new reports 'created' at rc=0 and lists the thread in .intentfiles exactly like a materialised one, but writes no files; only sync --to-disk materialises it, and --dehydrate's own help implies the default writes them",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-25",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}
