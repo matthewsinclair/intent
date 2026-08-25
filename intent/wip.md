@@ -1,11 +1,11 @@
 ---
-verblock: "25 Aug 2026:v1.19: vc - globalfold; the gate closed, the cut moved further away, and the issue list was eight short"
+verblock: "25 Aug 2026:v1.20: vc - globalfold; hv ruled twice and both rulings moved the cut away"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-**Current as at `97cc09ca`, 2026-08-25. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
+**Current as at `7dbbd608`, 2026-08-25. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
 
 ## The gate: CLOSED, 67 of 67
 
@@ -15,7 +15,7 @@ intent_version: 2.19.0
     intent ac status ST0056/03   -> 16/16 satisfied, 1 withdrawn -- PASS
     intent ac gate ST0057        -> PASS
 
-**The scope is all of ST0057's live rows plus all of ST0056 WP-03's.** `ac status ST0056` answers 63/134 and is **NOT** this number's denominator. `ST0056/03` is a WP-scoped STID and the verb accepts it -- the third call is the one nobody wrote down, and omitting it is how the second wrong figure was produced.
+**The scope is all of ST0057's live rows plus all of ST0056 WP-03's.** `ac status ST0056` answers 64/134 and is **NOT** this number's denominator. `ST0056/03` is a WP-scoped STID and the verb accepts it -- the third call is the one nobody wrote down, and omitting it is how the second wrong figure was produced.
 
 **CLOSED IS NOT RELEASED, AND THE GATE WAS THE SMALLER HALF.** ST0057's closure gate is not the 3.0.0 release gate. Nothing is tagged, pushed or published; the tree is 62 commits ahead of `upstream/main` and that is hv's hand alone. All four nodes hold this independently.
 
@@ -28,7 +28,7 @@ intent_version: 2.19.0
 
 ## The two threads plus the third, driven 2026-08-25
 
-**ST0056 -- the v3.0.0 rewrite. 63 of 134 satisfied**, 1 withdrawn. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started. **The denominator moved 133 -> 134 tonight** because `AC-14.12` was added; a moving denominator is why this file drives figures instead of holding them.
+**ST0056 -- the v3.0.0 rewrite. 64 of 134 satisfied**, 1 withdrawn. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started. **The denominator moved 133 -> 134 tonight** because `AC-14.12` was added, and the numerator moved 63 -> 64 when `AT-07.2` landed green; **a figure that moved twice in one evening is why this file drives them instead of holding them.**
 
 **ST0057 -- disk as a sparse projection. 51 of 51 satisfied**, 2 withdrawn, gate PASS. WPs 02/03/04/06/07/09/10 Done; **01/05/08 still WIP while the gate PASSes** -- that is WP-close verification, and it is vc's. **Sparseness applies to VIEWS; canon is NEVER sparse.**
 
@@ -58,4 +58,4 @@ intent_version: 2.19.0
 
 ## Open issues
 
-**TWENTY, and this file said twelve until tonight** -- `0077` through `0084` were absent and `0075` was listed after closing. **SEVEN are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082`** -- and vc wrote _six_ here first, having carried the figure from a summary rather than counting the column, which is this section's own rule failing in the sentence that states it. **Driven, not transcribed:** `intent issues list`.
+**TWENTY-TWO.** `0077`-`0084` were absent from this file until tonight and `0075` was listed after closing; **`0085` and `0086` were filed tonight.** **EIGHT are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082` `0086`** **DRIVEN AT FOLD, NOT TRANSCRIBED -- this file said _six_ earlier tonight because vc carried the number from a summary instead of counting the column.** Re-drive: `intent issues list`. **`0085`** a wired advisory hook prints on every Write/Edit because its no-findings guard can never fire; **`0086` HIGH** `intent help` is retired while `--help` answers, and a passing TEST requires the false remedy.
