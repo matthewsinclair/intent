@@ -5548,6 +5548,20 @@ enum Unsettable {
   /// one: a service-layer route with no CLI surface**, so it NARROWS the gap
   /// rather than closing it, and the wording must not pretend otherwise.
   WholeBody,
+  /// **A FIELD WITH NO ROUTE AT ALL, SAID PLAINLY.**
+  ///
+  /// This row's own doc argues that a name with no remedy sends the operator to
+  /// a hand-edit, so *you cannot* is not what the criterion asked for. **It is
+  /// still the only honest answer when there is genuinely nothing to name**, and
+  /// the alternative is worse: three false remedies were authored in one day,
+  /// each inside the fix for the previous, and a fourth was drafted for THIS
+  /// field claiming `sync --to-store` picks up a dropped file. It does not --
+  /// `ingest` fills bytes from a sidecar canon ALREADY records.
+  ///
+  /// **So this variant exists to stop the pressure to invent one.** Naming the
+  /// gap is a report; naming a route that does not reach the outcome is a defect
+  /// the operator acts on.
+  NoRouteYet(&'static str),
 }
 
 impl Unsettable {
@@ -5579,10 +5593,15 @@ impl Unsettable {
          later from a resync having re-stamped the row"
         .to_string(),
       Self::WholeBody => format!(
-        "an attachment's body IS its content, so it is written whole at `{url}` rather than \
-         field by field, and the record's other fields are computed from what lands. \
-         THERE IS NO CLI VERB FOR THIS TODAY -- the route is `Facade::put`, and `intent put` is \
-         not a command"
+        "an attachment's body IS its content, so it is written whole rather than field by \
+         field, and the record's other fields are computed from what lands -- write it with \
+         `intent st attach <thread> <path> --from <file>`, or PUT the text to `{url}`"
+      ),
+      Self::NoRouteYet(what) => format!(
+        "{what}, and there is no route on this surface today. Canon must already record the \
+         attachment as opaque with its sidecar beside it -- `intent st attach` writes TEXT, and \
+         `ingest` fills an opaque attachment's bytes from a sidecar canon already names rather \
+         than from a file you drop in"
       ),
     }
   }
@@ -5661,7 +5680,14 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     // complete answer rather than a missing one.
     AddrEntity::Attachment { .. } => match field {
       "path" => Some(Unsettable::Identity),
-      "text" | "blob" => Some(Unsettable::WholeBody),
+      // **THESE TWO DIVERGED THE MOMENT `st attach` SHIPPED, AND BEFORE THAT THEY
+      // SHARED A REFUSAL SAYING NEITHER HAD A ROUTE.** `text` now has one;
+      // `blob` still does not, and collapsing them again would make one of the
+      // two remedies false whichever way it collapsed.
+      "text" => Some(Unsettable::WholeBody),
+      "blob" => Some(Unsettable::NoRouteYet(
+        "an opaque attachment's bytes are carried in a sidecar rather than in canon",
+      )),
       "sha256" | "bytes" => Some(Unsettable::Derived("the attachment's content")),
       _ => None,
     },

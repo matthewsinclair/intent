@@ -170,6 +170,7 @@ Manage steel threads for the project
 | `st list`                           | --          | --status <status>, --width <n>, --markdown, --format terminal/md/json | List steel threads (default: in progress only)                                                                                     | keep        |
 | `st show`                           | <id> [file] | --                                                                    | Show details of a specific steel thread                                                                                            | keep        |
 | `st edit`                           | <id> [file] | --                                                                    | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
+| `st attach`                         | <id> <path> | --from <file>                                                         | Write an attachment's content from a local file                                                                                    | new-surface |
 | `st sync`                           | --          | --write, --width <n>, --format terminal/md/json                       | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
 | `st repair`                         | [id]        | --write                                                               | Repair malformed steel thread metadata                                                                                             | keep        |
 | `st organize` (alias `st organise`) | --          | --write                                                               | Organize ST files in directories by status                                                                                         | retire      |
@@ -518,6 +519,27 @@ Print the path to a steel thread file, realising the thread if it is not on disk
 - **Wants review -- the classification disagrees with the verb name:** `edit` is the most obviously-mutating verb name in the table and the command writes nothing -- it is a path resolver, and the entry beside this one already said so in `observed.notes` ("never launches an editor and never creates the file", called a historical misnomer). I still had to read bin/intent_st:1125-1141 to stop classifying it as a mutation, which is the argument for declaring the field: the correct fact was ALREADY WRITTEN DOWN one bullet away and the verb name still won. It also inverts the exposure reading -- an $EDITOR launch could not be an MCP tool at all, since it would block on stdio, while a path resolver is one of the safest things here.
 - **MCP classification grounded in:** bin/intent_st:1125-1141 -- 'Pure emit-path ... No touch, no editor'; it prints the absolute path and returns
 - **recoverability:** idempotent
+
+### `st attach`
+
+Write an attachment's content from a local file
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (value, arity `1`)
+  - `path` (value, arity `1`)
+- **Flags:**
+  - `--from` `<file>` (value) -- The local file whose contents become the attachment
+    - **disposition:** keep
+    - **disposition basis:** **PROVISIONAL SPELLING, AUTHORISED BY vc AS A CAPABILITY AND ROUTED TO hv AS A NAME (2026-08-25).** AC-08.5 asks whether a field is settable through the mutation surface and has no opinion on what the verb is called, so the row greens on capability and the name is a separate, cheap decision while nothing has shipped. **vc explicitly declined to pick the name under the pen**, because a name chosen inside a fix becomes the ruling by default -- the failure this criterion produced twice today, on `Node` and on `status_reason`. hv has ruled smaller naming questions than this one and this is new user-facing surface on the MUTATION side.
+- **Exit codes:**
+  - `0` -- the attachment is written
+  - `1` -- the thread does not exist, the file does not exist, or the file is not UTF-8 text
+- **stdout:** `ok: <path> written to <STID>`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **recoverability:** one-way
 
 ### `st sync`
 

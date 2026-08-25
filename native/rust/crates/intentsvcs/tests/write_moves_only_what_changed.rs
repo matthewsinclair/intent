@@ -324,6 +324,18 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "st attach",
+    "cli_end_to_end.rs `st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry` \
+     -- the verb that closed AC-08.5's last field-axis gap. `Attachment.text` was writable through \
+     `Facade::put` with no route on the mutation surface, so the criterion's first clause failed on \
+     a field whose own refusal correctly said *there is no CLI verb for this today*. It is driven \
+     at the CLI rather than here because what it writes is an attachment's CONTENT rather than a \
+     field of a document, so the whole-row diff this file is built around does not describe it. \
+     **Its spelling is PROVISIONAL and routed to hv** (vc authorised the capability and declined \
+     the name): the criterion asks whether the field is settable through the mutation surface and \
+     has no opinion on what the verb is called, so a rename does not move this row",
+  ),
+  (
     "st edit",
     "edit_prints_a_path_that_exists.rs -- and it ARRIVED in this census by being reclassified \
      rather than by being written. It was declared `read_or_mutate: read` while `Facade::edit` \

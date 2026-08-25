@@ -2433,3 +2433,66 @@ fn the_stamp_refusal_does_not_invent_a_verb_to_send_the_operator_to() {
     "and it names no verb, because none moves it: {said}"
   );
 }
+
+/// **THE CLOSING CONDITION: `text` HAS A CLI ROUTE AND `blob` DOES NOT, AND THE
+/// TWO REFUSALS MUST SAY DIFFERENT THINGS.**
+///
+/// They shared one refusal until `intent st attach` shipped, and it said neither
+/// had a route. **Collapsing them again makes one remedy false whichever way it
+/// collapses** -- which is the class this criterion produced four times in a day,
+/// every instance authored inside the fix for the previous.
+///
+/// **A FIFTH WAS DRAFTED FOR `blob` AND CAUGHT BEFORE IT SHIPPED:** the first
+/// wording claimed an opaque attachment reaches canon through
+/// `sync --to-store` after the file is on disk. **It does not.** `ingest` fills
+/// an opaque attachment's bytes from a sidecar canon ALREADY records, so a
+/// dropped file reaches nothing. The remedy now says there is no route, which is
+/// the only honest answer when there is genuinely nothing to name.
+#[test]
+fn the_attachment_refusals_name_the_route_that_exists_and_no_route_that_does_not() {
+  let fx = Fixture::new();
+  let mut t = sample_thread("ST0001");
+  t.attachments = vec![intentsvcs::model::Attachment::new(
+    "design.md",
+    "# original\n",
+  )];
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+  let addr = parse("intent:///threads/ST0001/attachments/design.md").expect("address");
+
+  let text_said = format!(
+    "{}",
+    f.set(&addr, "text", json!("x"))
+      .expect_err("text is not field-settable")
+  );
+  assert!(
+    text_said.contains("intent st attach"),
+    "`text` HAS a route now and the refusal must name it: {text_said}"
+  );
+
+  let blob_said = format!(
+    "{}",
+    f.set(&addr, "blob", json!("x"))
+      .expect_err("blob is not settable")
+  );
+  assert!(
+    blob_said.contains("no route"),
+    "`blob` has NO route and the refusal must say so rather than invent one: {blob_said}"
+  );
+  assert!(
+    !blob_said.contains("sync --to-store"),
+    "and it must not name sync, which does not reach a dropped file: {blob_said}"
+  );
+  // **THE ASSERTION THAT WAS HERE WAS WRONG AND THE REMEDY WAS RIGHT.** It
+  // forbade any mention of `intent st attach` in `blob`'s refusal -- but the
+  // refusal names it CONTRASTIVELY, to say that verb writes TEXT and will not
+  // help here. **A test that forbids a useful contrast pushes the remedy toward
+  // saying less**, and the hazard was never the word appearing; it was the word
+  // being offered as the route. What is asserted instead is the property that
+  // matters: it says there is no route, and it does not send the reader to one.
+  assert!(
+    blob_said.contains("writes TEXT"),
+    "and where it names the text verb it says what that verb does instead, rather than \
+     offering it: {blob_said}"
+  );
+}

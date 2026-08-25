@@ -995,6 +995,56 @@
           "recoverability": "idempotent"
         },
         {
+          "path": "st attach",
+          "help": "Write an attachment's content from a local file",
+          "args": [
+            {
+              "name": "id",
+              "type": "value",
+              "arity": "1"
+            },
+            {
+              "name": "path",
+              "type": "value",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--from"
+              ],
+              "type": "value",
+              "value": "<file>",
+              "help": "The local file whose contents become the attachment",
+              "disposition": "keep",
+              "disposition_basis": "**PROVISIONAL SPELLING, AUTHORISED BY vc AS A CAPABILITY AND ROUTED TO hv AS A NAME (2026-08-25).** AC-08.5 asks whether a field is settable through the mutation surface and has no opinion on what the verb is called, so the row greens on capability and the name is a separate, cheap decision while nothing has shipped. **vc explicitly declined to pick the name under the pen**, because a name chosen inside a fix becomes the ruling by default -- the failure this criterion produced twice today, on `Node` and on `status_reason`. hv has ruled smaller naming questions than this one and this is new user-facing surface on the MUTATION side."
+            }
+          ],
+          "v2": "new-surface",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the attachment is written"
+              },
+              {
+                "code": 1,
+                "when": "the thread does not exist, the file does not exist, or the file is not UTF-8 text"
+              }
+            ],
+            "stdout": "`ok: <path> written to <STID>`",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way"
+        },
+        {
           "path": "st sync",
           "help": "Synchronize steel_threads.md with individual ST files",
           "args": [],
@@ -7645,7 +7695,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 27,
+      "n": 28,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7841,6 +7891,7 @@
       "st list",
       "st show",
       "st edit",
+      "st attach",
       "st sync",
       "st repair",
       "st organize",
@@ -7965,6 +8016,7 @@
       "st list",
       "st show",
       "st edit",
+      "st attach",
       "st sync",
       "st repair",
       "st bootstrap",
@@ -8091,6 +8143,7 @@
       "st list",
       "st show",
       "st edit",
+      "st attach",
       "st sync",
       "st repair",
       "st bootstrap",

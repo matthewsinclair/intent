@@ -1097,3 +1097,96 @@ fn a_sync_scope_naming_no_such_thread_refuses_and_says_which() {
      of their arguments was wrong: {said:?}"
   );
 }
+
+/// **THE VERB THAT CLOSED AC-08.5's LAST FIELD-AXIS GAP.**
+///
+/// `Attachment.text` was writable through `Facade::put` with no route on the
+/// mutation surface, so the criterion's first clause failed on a field whose own
+/// refusal correctly said *there is no CLI verb for this today*. This is that
+/// verb, driven at the CLI because what it writes is an attachment's CONTENT
+/// rather than a field of a document.
+///
+/// **THE SPELLING IS PROVISIONAL AND ROUTED TO hv** (vc authorised the
+/// capability and declined the name, 2026-08-25). The criterion asks whether the
+/// field is settable through the mutation surface and has no opinion on what the
+/// verb is called, **so a rename does not move the row** -- and vc refused to
+/// pick the name under the pen because a name chosen inside a fix becomes the
+/// ruling by default, which this criterion produced twice in a day.
+///
+/// **TEXT ONLY, AND THE REFUSAL SAYS SO RATHER THAN MANGLING.** `put`'s
+/// attachment arm is `Attachment::new(path, body)`, which takes a string, so a
+/// non-UTF-8 file has no route through here. Claiming to carry bytes this path
+/// cannot carry would be the false-remedy class that cost this criterion four
+/// instances in one day.
+#[test]
+fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "attachment probe"]);
+
+  let src = root.join("design.md");
+  std::fs::write(&src, "# design\n\nthe original\n").expect("write source");
+  let from = src.to_str().expect("utf-8 path");
+
+  // **THE ID IS NORMALISED ON THE WAY IN**, so the verb inherits the five v2
+  // spellings rather than declaring its own.
+  let said = ok(root, &["st", "attach", "1", "design.md", "--from", from]);
+  assert!(
+    said.contains("ST0001"),
+    "the reply names the canonical id: {said}"
+  );
+
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  assert!(
+    canon.contains("the original"),
+    "the content reached canon: {canon}"
+  );
+
+  // **OVERWRITING IS THE DECLARED BEHAVIOUR AND IT IS WHY THE ROW IS
+  // `one-way`.** Nothing keeps the previous bytes, which is also why the verb is
+  // withheld from MCP: an agent must not irreversibly replace an attachment.
+  std::fs::write(&src, "# design\n\nrewritten\n").expect("rewrite source");
+  ok(root, &["st", "attach", "s1", "design.md", "--from", from]);
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  assert!(canon.contains("rewritten"), "the second write landed");
+  assert!(
+    !canon.contains("the original"),
+    "and replaced rather than appended: {canon}"
+  );
+
+  // Refusals, each naming what is wrong rather than what is missing generally.
+  let binary = root.join("opaque.dat");
+  std::fs::write(&binary, [0x62, 0x80, 0xff]).expect("write bytes");
+  let out = run(
+    root,
+    &[
+      "st",
+      "attach",
+      "1",
+      "opaque.dat",
+      "--from",
+      binary.to_str().expect("path"),
+    ],
+  );
+  assert_eq!(out.status.code(), Some(1), "a non-UTF-8 file is refused");
+  let said = String::from_utf8_lossy(&out.stderr).to_string();
+  assert!(
+    said.contains("not UTF-8"),
+    "and says which half is missing: {said}"
+  );
+  assert!(
+    !said.contains("sync --to-store"),
+    "**AND NAMES NO ROUTE THAT DOES NOT REACH THE OUTCOME.** The first draft of this remedy \
+     claimed an opaque attachment reaches canon through `sync --to-store` after the file is on \
+     disk; `ingest` fills those bytes from a sidecar canon ALREADY records, so a dropped file \
+     reaches nothing. That would have been the fifth false remedy of the day, drafted inside \
+     the fix for the fourth: {said}"
+  );
+
+  let out = run(root, &["st", "attach", "99", "x.md", "--from", from]);
+  assert_eq!(out.status.code(), Some(1), "an absent thread is refused");
+  assert!(
+    String::from_utf8_lossy(&out.stderr).contains("ST0099"),
+    "and the refusal names the NORMALISED id rather than the spelling typed"
+  );
+}
