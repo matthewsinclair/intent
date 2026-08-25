@@ -9,9 +9,9 @@ status: Not Started
 
 ## Objective
 
-Reach a recorded KEEP / UPDATE / RETIRE decision for **every one of the 26 skills** in `intent/plugins/claude/skills/`, and carry each decision out. hv's framing (2026-08-17): _"There are a lot of skills that I can see that don't make sense anymore, and it's been forever since the skills catalog (for Claude) had anyone look at it."_
+Reach a recorded KEEP / UPDATE / RETIRE decision for **every one of the 25 skills** in `intent/plugins/claude/skills/`, and carry each decision out. hv's framing (2026-08-17): _"There are a lot of skills that I can see that don't make sense anymore, and it's been forever since the skills catalog (for Claude) had anyone look at it."_
 
-**The denominator is 26 and it is stated here on purpose.** A triage that reports "the obviously dead ones were removed" has an unmeasured arm, and the unmeasured arm is the skills nobody looked at -- which is the condition this WP exists to end. The deliverable is 26 decisions, not a shorter catalogue.
+**The denominator is 25 and it is stated here on purpose.** It was 26 until 2026-08-25, when `in-handoff` retired under hv's 2026-08-15 treeindex ruling -- **so the one number this WP insists on stating had already gone stale, in the WP whose whole discipline is that the number is stated.** Corrected by vc, who caused the change and did not notice it until hv asked for the review three days later. A triage that reports "the obviously dead ones were removed" has an unmeasured arm, and the unmeasured arm is the skills nobody looked at -- which is the condition this WP exists to end. The deliverable is 26 decisions, not a shorter catalogue.
 
 ## Why now, and why this is the rollout's job rather than a tidy-up
 
@@ -23,7 +23,7 @@ v3 changes what the tool does and how it does it, so a skill written against v2 
 
 ## Deliverables
 
-- A triage table: one row per skill, its verdict (KEEP / UPDATE / RETIRE), and the reason. **All 26 rows present**, including the ones whose verdict is KEEP with no change -- an absent row and an unexamined skill are the same absence.
+- A triage table: one row per skill, its verdict (KEEP / UPDATE / RETIRE), and the reason. **All 25 rows present**, including the ones whose verdict is KEEP with no change -- an absent row and an unexamined skill are the same absence.
 - UPDATE skills brought current against v3's actual surface, verified against the dispatch table rather than against memory of it.
 - RETIRE skills removed through `intent claude skills` rather than by hand, with the removal reaching consumers (the sync blind spot in [feedback_skill_sync_script_blind_spot] applies: `intent claude skills sync` checksums `SKILL.md` only).
 - A check that the catalogue's cross-references still resolve -- `chains_to:` frontmatter, the `/in-*` names skills cite in each other's prose, and the rule IDs they name.
