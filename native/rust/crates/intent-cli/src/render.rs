@@ -768,37 +768,30 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     // becomes the ruling by default**, which is the failure this criterion
     // produced twice today.
     //
-    // **TEXT ONLY, AND THAT IS A LIMIT RATHER THAN AN OVERSIGHT.** `put`'s
-    // attachment arm is `Attachment::new(path, body)`, which takes a string;
-    // `Attachment::opaque` exists and `put` does not use it. So a non-UTF-8 file
-    // is refused BY NAME here rather than mangled into a string -- **claiming to
-    // carry bytes this route cannot carry would be the false-remedy class in a
-    // new place**, and the refusal says which half is missing.
+    // **FORM FOLLOWS CONTENT, AND THE DECISION IS NOT MADE HERE.**
+    // `Facade::put_attachment` decides it by DECODING -- valid UTF-8 inline,
+    // anything else as bytes -- which is `project.rs`'s rule (ST0057 AC-03.2)
+    // reached rather than restated. **This verb refused non-UTF-8 for one build**
+    // and the refusal was honest at the time: `put` takes a string, so there was
+    // genuinely no route. **The route now exists and the refusal is gone rather
+    // than reworded**, because a remedy that describes a limit the code no
+    // longer has is the false-remedy class arriving through disuse.
     Some(("attach", a)) => {
       let id = thread_arg(a, "id")?;
       let path = arg(a, "path")?;
       let from = arg(a, "from")?;
 
-      let raw = std::fs::read(&from).map_err(|e| {
+      let bytes = std::fs::read(&from).map_err(|e| {
         Failure::Error(format!(
           "error: cannot read `{from}`: {e}\n  remedy: name a file that exists and is readable"
-        ))
-      })?;
-      let text = String::from_utf8(raw).map_err(|_| {
-        Failure::Error(format!(
-          "error: `{from}` is not UTF-8 text, and this verb writes an attachment's TEXT\n  \
-           remedy: there is no CLI route for an opaque attachment's bytes. `ingest` fills them \
-           from a sidecar canon ALREADY records, not from a file dropped beside the thread"
         ))
       })?;
 
       // **THE ADDRESS IS CONSTRUCTED, NOT SPELLED.** The first draft built
       // `format!("intent:///threads/{id}/attachments/{path}")` and
       // `address_resolution_single_home` refused it by name: *resolution has ONE
-      // home and these spell the scheme themselves.* It was right -- a second
-      // place that knows what an `intent://` URL looks like agrees with the first
-      // exactly until one moves. Building the `Entity` says the same thing in the
-      // type system and cannot drift.
+      // home and these spell the scheme themselves.* Building the `Entity` says
+      // the same thing in the type system and cannot drift.
       let address = intentsvcs::address::Address {
         authority: None,
         entity: intentsvcs::address::Entity::Attachment {
@@ -808,7 +801,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
         format: None,
       };
       let mut facade = open()?;
-      facade.put(&address, &text).map_err(fail)?;
+      facade.put_attachment(&address, &bytes).map_err(fail)?;
       println!("ok: {path} written to {id}");
       Ok(())
     }

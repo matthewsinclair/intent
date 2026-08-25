@@ -4451,49 +4451,31 @@ impl Facade {
         }
 
         let row = Attachment::new(path.clone(), body);
-        let mut next = self.canon.clone();
-        let holder = find_thread_mut(&mut next, thread)?;
-        let outcome = match holder.attachments.iter_mut().find(|a| &a.path == path) {
-          Some(existing) => {
-            // **AN OPAQUE ATTACHMENT IS NOT OVERWRITTEN THROUGH A TEXT DOOR.**
-            // `text: None` is the ONLY marker that the content is bytes, and
-            // this door cannot express bytes: the write would replace a sidecar
-            // nobody can read with a string, report success, and stamp a
-            // sha256 that correctly describes the replacement. **The carry
-            // names the exact file this protects** -- a `.sh` carrying one
-            // non-UTF-8 byte in a comment, "precisely the file that would be
-            // silently mangled" (`project.rs:886`). Refusing is the same
-            // argument one layer up.
-            if existing.is_opaque() {
-              return Err(refuse(format!(
-                "`{path}` is carried as bytes and this address takes text -- rewriting it here would destroy content that nothing in this door can represent"
-              )));
-            }
-            if *existing == row {
-              return Ok(Outcome::AlreadyThere {
-                state: "unchanged".to_string(),
-              });
-            }
-            *existing = row;
-            Outcome::Moved
-          }
-          None => {
-            holder.attachments.push(row);
-            holder.attachments.sort_by(|a, b| a.path.cmp(&b.path));
-            Outcome::Moved
-          }
-        };
-        self
-          .apply(
-            "attachment.put",
-            Subject {
-              kind: "attachment".to_string(),
-              id: format!("{thread}/{path}"),
-            },
-            json!({ "via": "address" }),
-            next,
-          )
-          .map(|()| outcome)
+
+        // **THE TEXT DOOR'S OWN REFUSAL, AND IT STAYS HERE RATHER THAN MOVING
+
+        // DOWN.** It is about what THIS door can represent -- a caller PUTting
+
+        // text over an opaque attachment would destroy bytes the door has no way
+
+        // to carry. A bytes-capable door has no such limit, so pushing this into
+
+        // the shared placement would impose one door's constraint on the other.
+
+        if let Some(existing) = self
+          .canon
+          .threads
+          .iter()
+          .find(|t| &t.id == thread)
+          .and_then(|t| t.attachments.iter().find(|a| &a.path == path))
+          && existing.is_opaque()
+        {
+          return Err(refuse(format!(
+            "`{path}` is carried as bytes and this address takes text -- rewriting it here would destroy content that nothing in this door can represent"
+          )));
+        }
+
+        self.place_attachment(thread, path, row)
       }
       // Server-assigned ids. Named individually rather than falling into a
       // catch-all, so the refusal can say WHICH rule sent them away.
@@ -4537,6 +4519,108 @@ impl Facade {
         .filter(|field| unsettable(entity, field).is_none())
         .collect(),
     )
+  }
+
+  /// **THE ONE PLACE AN ATTACHMENT ROW REACHES CANON.**
+  ///
+  /// Extracted when `st attach` needed to carry bytes: a second door carries a
+  /// different FORM, never a second implementation. vc named that distinction
+  /// when authorising the verb -- *one capability, two doors, one of them
+  /// currently fenced, is the normal shape; a second opaque-carrying
+  /// implementation would be the violation.*
+  fn place_attachment(
+    &mut self,
+    thread: &str,
+    path: &str,
+    row: Attachment,
+  ) -> Result<Outcome, FacadeError> {
+    let mut next = self.canon.clone();
+    let holder = find_thread_mut(&mut next, thread)?;
+    let outcome = match holder.attachments.iter_mut().find(|a| a.path == path) {
+      Some(existing) => {
+        if *existing == row {
+          return Ok(Outcome::AlreadyThere {
+            state: "unchanged".to_string(),
+          });
+        }
+        *existing = row;
+        Outcome::Moved
+      }
+      None => {
+        holder.attachments.push(row);
+        holder.attachments.sort_by(|a, b| a.path.cmp(&b.path));
+        Outcome::Moved
+      }
+    };
+    self
+      .apply(
+        "attachment.put",
+        Subject {
+          kind: "attachment".to_string(),
+          id: format!("{thread}/{path}"),
+        },
+        json!({ "via": "address" }),
+        next,
+      )
+      .map(|()| outcome)
+  }
+
+  /// Write an attachment's content, carrying **the form the bytes decide**.
+  ///
+  /// **THIS CLOSES AC-08.5's LAST FIELD-AXIS GAP AND IT DOES NOT TOUCH THE
+  /// SHADOW.** `Attachment.blob` had no route on the mutation surface, so the
+  /// criterion's first clause failed on a field whose refusal correctly said so.
+  /// A separate defect -- `sync.rs`'s `inspect` still refusing a non-UTF-8 file
+  /// as residue while `project.rs:889` deliberately retired the same refusal --
+  /// keeps the OTHER door to `Attachment::opaque` fenced. **That is a question
+  /// about what `sync` classifies as residue, not about whether a field is
+  /// settable, and it is filed rather than folded in** (vc's ruling): holding a
+  /// row red on a defect its criterion does not describe is the loose-condition
+  /// error pointed the other way.
+  ///
+  /// **FORM FOLLOWS CONTENT, DECIDED BY DECODING, and that rule is not mine** --
+  /// `project.rs` states it as the single place the decision is made (ST0057
+  /// AC-03.2), *decided by DECODING, never by the extension*. This agrees with
+  /// it rather than restating it: valid UTF-8 is carried inline, anything else
+  /// as bytes.
+  pub fn put_attachment(
+    &mut self,
+    address: &Address,
+    bytes: &[u8],
+  ) -> Result<Outcome, FacadeError> {
+    let AddrEntity::Attachment { thread, path } = &address.entity else {
+      return Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: format!(
+          "{} is not an attachment address, and this door writes an attachment's content",
+          address.entity.form()
+        ),
+      });
+    };
+    let refuse = |why: String| FacadeError::WriteNotAddressable {
+      url: address.to_url(),
+      why,
+    };
+
+    let rel = std::path::PathBuf::from(path);
+    if let EditDisposition::Refuse { author_with } = Project::edit_disposition(&rel) {
+      return Err(refuse(format!(
+        "`{path}` is generated from the model rather than authored on disk -- author it with {author_with}"
+      )));
+    }
+    if Project::classify(&rel) != ThreadFile::Attachment {
+      return Err(refuse(format!(
+        "canon carries {} and leaves everything else on disk, so `{path}` has no attachment record to write",
+        crate::project::ATTACHMENT_EXTENSIONS.join(", ")
+      )));
+    }
+
+    let row = match std::str::from_utf8(bytes) {
+      Ok(text) => Attachment::new(path.clone(), text),
+      Err(_) => Attachment::opaque(path.clone(), bytes.to_vec()),
+    };
+    let (thread, path) = (thread.clone(), path.clone());
+    self.place_attachment(&thread, &path, row)
   }
 
   /// **THE NARROW FIELD-SETTER: one named field, on one addressed entity, and
@@ -5561,10 +5645,89 @@ enum Unsettable {
   /// **So this variant exists to stop the pressure to invent one.** Naming the
   /// gap is a report; naming a route that does not reach the outcome is a defect
   /// the operator acts on.
+  #[allow(
+    dead_code,
+    reason = "NotYet must stay representable so a report can print 0 rather \
+                               than drop the line; blob was its only member and st attach \
+                               closed it"
+  )]
   NoRouteYet(&'static str),
 }
 
+/// **THE READER'S QUESTION, NOT THE REFUSAL'S REASON** (vc's ruling,
+/// 2026-08-25).
+///
+/// ic and I proposed `by-design | unbuilt | shadowed` -- a taxonomy of WHY the
+/// refusal exists. vc ruled a different axis: *can I change this, and if so
+/// how*. **Our axis put the majority case with its opposite**: a reader asking
+/// after `Thread.criteria` and after `Thread.id` got one answer for two
+/// situations that are nothing alike -- *yes, over there* and *no, ever*.
+///
+/// **`shadowed` DISSOLVED RATHER THAN SURVIVING AS A FOURTH TOKEN.** A
+/// capability fenced behind something is still NOT YET to whoever is trying to
+/// use it; that it exists is a repair instruction, which belongs in the remedy
+/// text and not in the answer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnsettableKind {
+  /// A route exists and the remedy names it.
+  Elsewhere,
+  /// No route, by design, and there never will be one.
+  Never,
+  /// No route, and that is a gap rather than a decision.
+  NotYet,
+}
+
+impl UnsettableKind {
+  /// **EVERY KIND, INCLUDING ONES WITH NO MEMBERS TODAY.**
+  ///
+  /// A report must be able to print `0 not-yet` rather than drop the line
+  /// (ic's constraint, and the estate already ships it as `ABSENT is not
+  /// EMPTY`). **A vanished category reads as a clean result and is
+  /// indistinguishable from one nobody measured** -- so the kinds are
+  /// enumerable rather than merely returnable per field.
+  ///
+  /// **THIS IS LIVE RATHER THAN HYPOTHETICAL: `NotYet` HAS NO MEMBERS AS OF
+  /// `st attach` CARRYING BYTES.** `blob` was its only one.
+  pub const ALL: [UnsettableKind; 3] = [Self::Elsewhere, Self::Never, Self::NotYet];
+
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      Self::Elsewhere => "elsewhere",
+      Self::Never => "never",
+      Self::NotYet => "not-yet",
+    }
+  }
+}
+
+/// Which of the three answers this refusal gives the reader.
+///
+/// **DERIVED FROM THE VARIANT AND LIVING BESIDE IT**, so it cannot drift from
+/// the refusal it describes -- the same reason `fields_of` is one exhaustive
+/// match. A second literal enumerating fields by kind would be the two-homes
+/// defect inside the criterion about surface completeness, which is the thing
+/// this file already had to have removed from it once today.
+pub fn unsettable_kind(entity: &AddrEntity, field: &str) -> Option<UnsettableKind> {
+  unsettable(entity, field).map(|u| u.kind())
+}
+
 impl Unsettable {
+  fn kind(&self) -> UnsettableKind {
+    match self {
+      // A route exists and `explain` names it.
+      Self::Machine(_) | Self::Child(_) | Self::Derived(_) | Self::WholeBody => {
+        UnsettableKind::Elsewhere
+      }
+      // Constitutive: the value IS the address, or the service owns the stamp.
+      Self::Identity | Self::Stamped => UnsettableKind::Never,
+      // **NO CONSTRUCTOR REACHES THIS TODAY AND THE VARIANT STAYS.** `blob` was
+      // its only member and `st attach` closed it. **Deleting it would make the
+      // next gap unrepresentable and quietly retire the bucket** -- and a bucket
+      // that cannot exist prints nothing rather than zero, which is the
+      // difference this kind exists to preserve.
+      Self::NoRouteYet(_) => UnsettableKind::NotYet,
+    }
+  }
+
   fn explain(&self, url: &str) -> String {
     match self {
       Self::Identity => {
@@ -5685,9 +5848,14 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       // `blob` still does not, and collapsing them again would make one of the
       // two remedies false whichever way it collapsed.
       "text" => Some(Unsettable::WholeBody),
-      "blob" => Some(Unsettable::NoRouteYet(
-        "an opaque attachment's bytes are carried in a sidecar rather than in canon",
-      )),
+      // **`blob` MOVED FROM `NoRouteYet` TO `WholeBody` WHEN `st attach` LEARNED
+      // TO CARRY BYTES, AND LEAVING IT WOULD HAVE BEEN THE SEVENTH FALSE
+      // REMEDY.** It said *there is no route on this surface today* -- true when
+      // written, false one commit later, and **a remedy describing a limit the
+      // code no longer has is the same defect as one describing a route the code
+      // never had.** The `today` in it was the honest word and it is also the
+      // word that dates.
+      "blob" => Some(Unsettable::WholeBody),
       "sha256" | "bytes" => Some(Unsettable::Derived("the attachment's content")),
       _ => None,
     },

@@ -1168,18 +1168,37 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
       binary.to_str().expect("path"),
     ],
   );
-  assert_eq!(out.status.code(), Some(1), "a non-UTF-8 file is refused");
+  // **AN EXTENSION CANON DOES NOT CARRY IS STILL REFUSED, AND THAT IS A
+  // DIFFERENT QUESTION FROM ENCODING.** `ATTACHMENT_EXTENSIONS` is
+  // `["md","txt","sh"]`: the extension decides WHETHER a file is carried,
+  // decoding decides in WHICH FORM. **Conflating them is what made my first
+  // probe of this area useless** -- I drove a `.dat` file, the scanner ignored
+  // it by design, and the empty result read as *no route* for entirely the
+  // wrong reason. A green that meant nothing.
+  //
+  // **THE ASSERTION HERE USED TO READ `a non-UTF-8 file is refused` AND THAT
+  // BEHAVIOUR IS GONE ON PURPOSE.** It was honest for one build -- `put` takes a
+  // string, so there was no route for bytes -- and `put_attachment` gave it one.
+  // The test reddened on the change that fixed it, which is the third time today
+  // a test asserted the state a fix removed.
+  assert_eq!(
+    out.status.code(),
+    Some(1),
+    "an uncarried extension is refused"
+  );
   let said = String::from_utf8_lossy(&out.stderr).to_string();
   assert!(
-    said.contains("not UTF-8"),
-    "and says which half is missing: {said}"
+    said.contains("md") && said.contains("sh"),
+    "and the refusal names what canon DOES carry rather than only what it will not: {said}"
   );
   assert!(
     !said.contains("sync --to-store"),
-    "**AND NAMES NO ROUTE THAT DOES NOT REACH THE OUTCOME.** The first draft of this remedy \
-     claimed an opaque attachment reaches canon through `sync --to-store` after the file is on \
-     disk; `ingest` fills those bytes from a sidecar canon ALREADY records, so a dropped file \
-     reaches nothing. That would have been the fifth false remedy of the day, drafted inside \
+    "**AND NAMES NO ROUTE THAT DOES NOT REACH THE OUTCOME.** An earlier remedy here claimed an \
+     opaque attachment reaches canon through `sync --to-store` after the file is on disk. It \
+     does not, and the reason is worth keeping: `ingest.rs:533` collects every file-index entry \
+     labelled `Unparsed` and RETURNS a refusal built from their findings, so a non-UTF-8 file \
+     fails its whole thread's ingest even though `collect_attachments` carried it successfully \
+     one step earlier. That would have been the fifth false remedy of the day, drafted inside \
      the fix for the fourth: {said}"
   );
 

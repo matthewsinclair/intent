@@ -2434,22 +2434,20 @@ fn the_stamp_refusal_does_not_invent_a_verb_to_send_the_operator_to() {
   );
 }
 
-/// **THE CLOSING CONDITION: `text` HAS A CLI ROUTE AND `blob` DOES NOT, AND THE
-/// TWO REFUSALS MUST SAY DIFFERENT THINGS.**
+/// **BOTH ATTACHMENT CONTENT FIELDS NOW HAVE A ROUTE, AND THIS TEST HAS BEEN
+/// WRONG IN BOTH DIRECTIONS WITHIN ONE EVENING.**
 ///
-/// They shared one refusal until `intent st attach` shipped, and it said neither
-/// had a route. **Collapsing them again makes one remedy false whichever way it
-/// collapses** -- which is the class this criterion produced four times in a day,
-/// every instance authored inside the fix for the previous.
+/// It first asserted `blob` says *there is no route on this surface today*. That
+/// was true when written and false one commit later, because `st attach` learned
+/// to carry bytes. **A remedy describing a limit the code no longer has is the
+/// same defect as one describing a route the code never had** -- and `today` was
+/// both the honest word and the word that dates.
 ///
-/// **A FIFTH WAS DRAFTED FOR `blob` AND CAUGHT BEFORE IT SHIPPED:** the first
-/// wording claimed an opaque attachment reaches canon through
-/// `sync --to-store` after the file is on disk. **It does not.** `ingest` fills
-/// an opaque attachment's bytes from a sidecar canon ALREADY records, so a
-/// dropped file reaches nothing. The remedy now says there is no route, which is
-/// the only honest answer when there is genuinely nothing to name.
+/// **WHAT IS ASSERTED NOW IS THE PROPERTY THAT DOES NOT DATE:** every attachment
+/// field is refused BY NAME, each remedy names a route that exists, and none
+/// names one that does not.
 #[test]
-fn the_attachment_refusals_name_the_route_that_exists_and_no_route_that_does_not() {
+fn every_attachment_refusal_names_a_route_that_exists() {
   let fx = Fixture::new();
   let mut t = sample_thread("ST0001");
   t.attachments = vec![intentsvcs::model::Attachment::new(
@@ -2460,39 +2458,90 @@ fn the_attachment_refusals_name_the_route_that_exists_and_no_route_that_does_not
   let mut f = fx.facade();
   let addr = parse("intent:///threads/ST0001/attachments/design.md").expect("address");
 
-  let text_said = format!(
-    "{}",
-    f.set(&addr, "text", json!("x"))
-      .expect_err("text is not field-settable")
-  );
-  assert!(
-    text_said.contains("intent st attach"),
-    "`text` HAS a route now and the refusal must name it: {text_said}"
+  for field in ["text", "blob"] {
+    let e = f
+      .set(&addr, field, json!("x"))
+      .expect_err("attachment content is not field-settable");
+    let said = format!("{e}");
+    assert!(
+      said.contains("intent st attach"),
+      "`{field}` has a route and the refusal must name it: {said}"
+    );
+    assert!(
+      !said.contains("sync --to-store"),
+      "**AND MUST NOT NAME ONE THAT DOES NOT REACH THE OUTCOME.** An earlier remedy claimed an \
+       opaque attachment reaches canon through `sync --to-store` once the file is on disk. It \
+       does not: `ingest.rs:533` collects every file-index entry labelled `Unparsed` and RETURNS \
+       a refusal built from their findings, so a non-UTF-8 file fails its whole thread's ingest \
+       even though `collect_attachments` carried it one step earlier: {said}"
+    );
+  }
+
+  for field in ["sha256", "bytes"] {
+    let e = f
+      .set(&addr, field, json!("x"))
+      .expect_err("derived from content");
+    assert!(
+      format!("{e}").contains("COMPUTED"),
+      "{field} follows the content"
+    );
+  }
+}
+
+/// **THE READER'S ANSWER IS DERIVED FROM THE REFUSAL, AND `not-yet` IS EMPTY.**
+///
+/// vc ruled the partition on the reader's question -- *can I change this, and if
+/// so how* -- rather than on why the refusal exists. **`NotYet` has NO members as
+/// of `st attach` carrying bytes: `blob` was its only one.**
+///
+/// **AN EMPTY BUCKET IS THE POINT RATHER THAN AN EMBARRASSMENT.** The kinds are
+/// enumerable so a report can print `0 not-yet` instead of dropping the line;
+/// **a vanished category reads as a clean result and is indistinguishable from
+/// one nobody measured.** That is `ABSENT is not EMPTY`, arriving in a type.
+#[test]
+fn every_refusal_carries_a_readers_answer_and_the_empty_bucket_stays_representable() {
+  use intentsvcs::facade::{UnsettableKind, unsettable_kind};
+
+  assert_eq!(
+    UnsettableKind::ALL.len(),
+    3,
+    "all three kinds stay enumerable"
   );
 
-  let blob_said = format!(
-    "{}",
-    f.set(&addr, "blob", json!("x"))
-      .expect_err("blob is not settable")
-  );
-  assert!(
-    blob_said.contains("no route"),
-    "`blob` has NO route and the refusal must say so rather than invent one: {blob_said}"
-  );
-  assert!(
-    !blob_said.contains("sync --to-store"),
-    "and it must not name sync, which does not reach a dropped file: {blob_said}"
-  );
-  // **THE ASSERTION THAT WAS HERE WAS WRONG AND THE REMEDY WAS RIGHT.** It
-  // forbade any mention of `intent st attach` in `blob`'s refusal -- but the
-  // refusal names it CONTRASTIVELY, to say that verb writes TEXT and will not
-  // help here. **A test that forbids a useful contrast pushes the remedy toward
-  // saying less**, and the hazard was never the word appearing; it was the word
-  // being offered as the route. What is asserted instead is the property that
-  // matters: it says there is no route, and it does not send the reader to one.
-  assert!(
-    blob_said.contains("writes TEXT"),
-    "and where it names the text verb it says what that verb does instead, rather than \
-     offering it: {blob_said}"
+  let cases: [(&str, &str, UnsettableKind); 6] = [
+    ("intent:///threads/ST0001", "id", UnsettableKind::Never),
+    ("intent:///threads/ST0001", "created", UnsettableKind::Never),
+    (
+      "intent:///threads/ST0001",
+      "status",
+      UnsettableKind::Elsewhere,
+    ),
+    ("intent:///threads/ST0001", "wps", UnsettableKind::Elsewhere),
+    (
+      "intent:///threads/ST0001/attachments/x.sh",
+      "sha256",
+      UnsettableKind::Elsewhere,
+    ),
+    (
+      "intent:///threads/ST0001/attachments/x.sh",
+      "blob",
+      UnsettableKind::Elsewhere,
+    ),
+  ];
+  for (url, field, want) in cases {
+    let a = intentsvcs::address::promote(url).expect("parses");
+    assert_eq!(
+      unsettable_kind(&a.entity, field),
+      Some(want),
+      "{url} / {field}"
+    );
+  }
+
+  // A settable field has no answer to give, which is not the same as `never`.
+  let a = intentsvcs::address::promote("intent:///threads/ST0001").expect("parses");
+  assert_eq!(
+    unsettable_kind(&a.entity, "title"),
+    None,
+    "a settable field is not a refusal of any kind"
   );
 }
