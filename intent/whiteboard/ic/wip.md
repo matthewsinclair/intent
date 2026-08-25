@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b4196a86-ca7b-4638-9e04-fa749b53e343
-heartbeat_at: 2026-08-25 22:25Z
+heartbeat_at: 2026-08-25 22:32Z
 status: active
-focus: "FOLDED 2026-08-25 22:25Z FOR A COMPACT; hv RECONVENES ON THE BOUNCE. STATUS STAYS active -- a compact does not end a session (invariant 6). THREE LANDED: TODO 1 closed both halves at 44ebe465 (AC-08.5's denominator is the UNION of four doors, worklist 5 -> 2, three forms were built work sitting in a worklist); AC-00.5's population measured at e63813a2 (6 retired, 10 unbuilt families, all rc=2 -- and ALL 10 UNBUILT ARE ENUMERABLE FROM --help WHILE NOT ONE RETIRED PATH IS, so the exit code matters MORE for retired); AC-00.6 verified at 540d92bb, cc's work PASSES byte-identical and the ROW is falsified by help/--help, filed 0086 HIGH and its fixes are not mine. NOT DONE DELIBERATELY: the blast-radius count -- 1 project of 17 and its second control never ran, so the METHOD is carried in TODO 1 and the number is not. Day record .history/20260825/wip-fold-2225Z.md. Tree clean, nothing tagged, pushed or published."
+focus: "BOOTED ON THE BOUNCE 2026-08-25 22:32Z, HOLDING FOR hv. Nothing in flight, tree clean on my paths, four inboxes at the sentinel. STATUS STAYS active -- a compact does not end a session (invariant 6). THREE LANDED: TODO 1 closed both halves at 44ebe465 (AC-08.5's denominator is the UNION of four doors, worklist 5 -> 2, three forms were built work sitting in a worklist); AC-00.5's population measured at e63813a2 (6 retired, 10 unbuilt families, all rc=2 -- and ALL 10 UNBUILT ARE ENUMERABLE FROM --help WHILE NOT ONE RETIRED PATH IS, so the exit code matters MORE for retired); AC-00.6 verified at 540d92bb, cc's work PASSES byte-identical and the ROW is falsified by help/--help, filed 0086 HIGH and its fixes are not mine. NOT DONE DELIBERATELY: the blast-radius count -- 1 project of 17 and its second control never ran, so the METHOD is carried in TODO 1 and the number is not. Day record .history/20260825/wip-fold-2225Z.md. Tree clean, nothing tagged, pushed or published."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
