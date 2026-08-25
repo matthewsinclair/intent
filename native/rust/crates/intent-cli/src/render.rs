@@ -15,7 +15,7 @@ use intentsvcs::contract::Scope;
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
 };
-use intentsvcs::model::{AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
+use intentsvcs::model::{self, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
@@ -311,7 +311,7 @@ fn st_rows(
 ///
 /// **No ids means the whole estate**, so every invocation that worked
 /// yesterday means what it meant.
-fn sync_scope(m: &ArgMatches) -> intentsvcs::sync::Scope {
+fn sync_scope(m: &ArgMatches) -> Result<intentsvcs::sync::Scope, Failure> {
   let ids: Vec<String> = m
     .try_get_many::<String>("id")
     .ok()
@@ -319,14 +319,21 @@ fn sync_scope(m: &ArgMatches) -> intentsvcs::sync::Scope {
     .map(|vals| vals.cloned().collect())
     .unwrap_or_default();
   if ids.is_empty() {
-    intentsvcs::sync::Scope::All
-  } else {
-    intentsvcs::sync::Scope::Threads(ids)
+    return Ok(intentsvcs::sync::Scope::All);
   }
+  // **NORMALISED ONE BY ONE, AND A BAD ONE REFUSES THE WHOLE RUN.** `sync` is
+  // the verb that writes canon or disk wholesale; syncing the three ids that
+  // parsed and silently dropping the fourth would be a partial write reported
+  // as a complete one.
+  ids
+    .iter()
+    .map(|raw| thread_spec(raw))
+    .collect::<Result<Vec<_>, _>>()
+    .map(intentsvcs::sync::Scope::Threads)
 }
 
 fn sync(m: &ArgMatches) -> Result<(), Failure> {
-  let scope = sync_scope(m);
+  let scope = sync_scope(m)?;
   match (flag(m, "to-disk"), flag(m, "to-store")) {
     // Both is not "do both": they are opposite directions over the same two
     // endpoints, so running them in either order makes one of them pointless
@@ -529,9 +536,16 @@ fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
 /// The realisation it does first is reported on STDERR for the same reason: it
 /// is news the operator wants and a substitution does not.
 fn edited(m: &ArgMatches) -> Result<(), Failure> {
-  // `address` on the top-level verb, `id` on `st edit` -- the same value under
-  // the name each table row gives it.
-  let argument = arg(m, "address").or_else(|_| arg(m, "id"))?;
+  // **TWO DOORS, AND THEY WERE READ AS ONE.** `intent edit <address>` may name
+  // either collection and has to go through the collection-agnostic door;
+  // `intent st edit <id>` is thread-scoped and learns its collection from its
+  // own verb. Folding them together gave `st edit 59` the agnostic door's
+  // refusal for an argument that was never ambiguous -- and let `st edit 0042`
+  // accept an ISSUE, which then failed three layers down in the realiser.
+  let argument = match arg(m, "address") {
+    Ok(a) => a,
+    Err(_) => thread_arg(m, "id")?,
+  };
   let file = opt(m, "file").unwrap_or_else(|| "info".to_string());
 
   // **THE DECLARED VOCABULARY IS ENFORCED HERE, FROM THE TABLE, AND THE LAYER
@@ -643,12 +657,12 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("start", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       reported(&open()?.st_start(&id).map_err(fail)?, &id, "started");
       Ok(())
     }
     Some(("done", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       // `--keep` closes the thread and LEAVES its `.intentfiles` entry, so its
       // files stay. It also suppresses the closing note, because the note is
       // about an impending dehydration that `--keep` has just cancelled.
@@ -665,7 +679,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("cancel", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       // The ratified machine guards `st cancel` with "reason recorded", so the
       // facade refuses without one. `--reason` is read through `opt` rather
       // than `arg` on purpose: the flag is a dispatch-table row and the table
@@ -704,7 +718,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     // an operator who has to run `st show` to find out where a verb put their
     // thread has been told less than the verb knew.
     Some(("triage", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       reported(
         &open()?.st_triage(&id).map_err(fail)?,
         &id,
@@ -713,7 +727,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("hold", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       let reason = opt(a, "reason").unwrap_or_default();
       reported(
         &open()?.st_hold(&id, &reason).map_err(fail)?,
@@ -723,12 +737,12 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("resume", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       reported(&open()?.st_resume(&id).map_err(fail)?, &id, "resumed");
       Ok(())
     }
     Some(("reopen", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       let reason = opt(a, "reason").unwrap_or_default();
       reported(
         &open()?.st_reopen(&id, &reason).map_err(fail)?,
@@ -738,7 +752,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("reinstate", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       let reason = opt(a, "reason").unwrap_or_default();
       reported(
         &open()?.st_reinstate(&id, &reason).map_err(fail)?,
@@ -753,7 +767,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("show", a)) => {
-      let id = arg(a, "id")?;
+      let id = thread_arg(a, "id")?;
       let f = open()?;
       let t = f.st_show(&id).map_err(fail)?;
       println!("{}: {}", t.id, t.title);
@@ -809,7 +823,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
-    Some(("hydrate", a)) => hydrated(&arg(a, "id")?),
+    Some(("hydrate", a)) => hydrated(&thread_arg(a, "id")?),
     // **AC-05.3: PATH-PRINTING HAS ONE HOME.** `st edit` is the same call with
     // an `st-id` argument instead of an address -- and since `address::promote`
     // takes a bare id, there is nothing left for this arm to do but pass it on.
@@ -823,7 +837,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
 fn wp(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("new", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let title = arg(a, "title")?;
       let mut f = open()?;
       // S, not M, and it is not a taste call. v2's `wp new` takes no scope
@@ -949,7 +963,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("list", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let f = open()?;
       let wps = f.wp_list(&st).map_err(fail)?;
       // v2's empty case is a SENTENCE, not an empty table -- unlike `st list`,
@@ -1021,7 +1035,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
 fn ac(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("gate", a)) => {
-      let target = arg(a, "stid")?;
+      let target = thread_arg(a, "stid")?;
       let (st, scope) = scope_of(&target);
       let f = open()?;
       let verdict = f.gate(&st, scope).map_err(fail)?;
@@ -1035,7 +1049,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       }
     }
     Some(("satisfy", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       // Read through `opt` and passed through, like the five thread and work
       // package verbs that owe a reason: the facade's `EvidenceRecorded` guard
@@ -1061,7 +1075,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("unsatisfy", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       // The evidence goes with the satisfaction, so the line says so -- a
       // reader who is told only "unsatisfied" has to go and look to find out
@@ -1081,7 +1095,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("list", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let f = open()?;
       // v2's shape verbatim (`bin/intent_acceptance:909`), including the
       // absent space after `covered-by:` -- the ids arrive space-prefixed, so
@@ -1097,7 +1111,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("status", a)) => {
-      let target = arg(a, "stid")?;
+      let target = thread_arg(a, "stid")?;
       let (st, scope) = scope_of(&target);
       let f = open()?;
       let verdict = f.gate(&st, scope).map_err(fail)?;
@@ -1115,7 +1129,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("descope", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       // **`to` passes through like the rest now that the facade can tell an
       // absent target from a missing one.** It stayed on `arg(..)?` for one
@@ -1146,7 +1160,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("withdraw", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       // Same passthrough, and this arm is why the rule is worth stating twice.
       // It USED to re-check requiredness here with `arg(..)?`, which looked
@@ -1187,7 +1201,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
     // the movement line and the no-op line take their state from the same place,
     // so they are structurally unable to disagree.
     Some(("rescope", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       let mut f = open()?;
       let outcome = f.ac_rescope(&st, &id).map_err(fail)?;
@@ -1195,7 +1209,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("reinstate", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       let mut f = open()?;
       let outcome = f.ac_reinstate(&st, &id).map_err(fail)?;
@@ -1229,7 +1243,7 @@ fn back_in_scope(f: &Facade, st: &str, ac: &str) -> Result<String, Failure> {
 fn at(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("list", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let f = open()?;
       for t in f.at_list(&st).map_err(fail)? {
         // `display()`, not `enum_str` -- the wire form spells `Na` as `n-a` and
@@ -1257,7 +1271,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
     // and `issues open` keep it and reproduce v2 exactly, so the AT family was
     // the only place it went missing.
     Some((state @ ("green" | "red" | "na"), a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       let id = arg(a, "atid")?;
       let status = match state {
         "green" => AtStatus::Green,
@@ -1272,7 +1286,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("lint", a)) => {
-      let st = arg(a, "stid")?;
+      let st = thread_arg(a, "stid")?;
       if a.try_get_one::<bool>("fix").ok().flatten() == Some(&true) {
         // The 0017 `--fix` half-migrated rows: it rewrote what it could parse
         // and silently left the rest, which is worse than refusing, because a
@@ -2547,7 +2561,7 @@ fn scope_of(target: &str) -> (String, Scope) {
 }
 
 fn wp_target(a: &ArgMatches) -> Result<(String, u32), Failure> {
-  let target = arg(a, "specifier")?;
+  let target = thread_arg(a, "specifier")?;
   match scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
     _ => Err(Failure::Error(format!(
@@ -2839,8 +2853,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("show", a)) => {
-      let raw = arg(a, "id")?;
-      let number = issue_number(&raw)?;
+      let number = issue_arg(a, "id")?;
       let f = open()?;
       let issue = f.issue_show(number).map_err(fail)?;
       if flag(a, "json") {
@@ -2920,7 +2933,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("close", a)) => {
-      let number = issue_number(&arg(a, "id")?)?;
+      let number = issue_arg(a, "id")?;
       reported(
         &open()?.issue_close(number).map_err(fail)?,
         &format!("issue {number:04}"),
@@ -2929,7 +2942,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("open", a)) => {
-      let number = issue_number(&arg(a, "id")?)?;
+      let number = issue_arg(a, "id")?;
       reported(
         &open()?.issue_open(number).map_err(fail)?,
         &format!("issue {number:04}"),
@@ -3025,27 +3038,6 @@ fn reported(outcome: &Outcome, subject: &str, moved: &str) {
     None => println!("ok: {subject} {moved}"),
     Some(state) => println!("ok: {subject} already {state}"),
   }
-}
-
-/// An operator's spelling of an issue id, as a number.
-///
-/// **`21`, `0021` and `0021.json` are one issue** -- v2 normalises the same way
-/// (`bin/intent_issues:normalize_id`), and an operator who copied a padded id
-/// out of a filename must not be told it does not exist.
-fn issue_number(raw: &str) -> Result<u32, Failure> {
-  let trimmed = raw.trim().trim_end_matches(".json").trim_end_matches(".md");
-  trimmed.trim_start_matches('0').parse::<u32>().or_else(|_| {
-    // All zeros trims to nothing, and `0000` is a legal id shape even if no
-    // project uses it -- answering it with a PARSE error would blame the
-    // operator's spelling for an issue that is merely absent.
-    if !trimmed.is_empty() && trimmed.chars().all(|c| c == '0') {
-      Ok(0)
-    } else {
-      Err(Failure::Error(format!(
-        "error: `{raw}` is not an issue id\n  remedy: name it as a number, eg `21` or `0021`"
-      )))
-    }
-  })
 }
 
 /// v2's placeholder for a config field it could not read. Kept because a blank
@@ -3589,6 +3581,96 @@ fn arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
     Err(e) => Err(Failure::Error(format!(
       "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
     ))),
+  }
+}
+
+/// An operator's spelling of a THREAD id, canonicalised, or a refusal that says
+/// which kind of wrong it is.
+///
+/// **THIS IS THE ONE THREAD DOOR AND THERE USED TO BE NONE.** Every st, ac, at,
+/// wp and sync verb read its id with `arg` and handed the raw bytes to a lookup
+/// that compared them to `t.id`, so `st show 59` answered *no steel thread 59 in
+/// this project* -- **A NOT-FOUND FOR SOMETHING THAT WAS NEVER A NAME.** That is
+/// the one wrong answer `address::promote`'s own doc names, honoured there and
+/// routed around by nine verbs.
+fn thread_arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
+  let raw = arg(m, name)?;
+  thread_spec(&raw)
+}
+
+/// `ST0056`, `56`, `s56` -- and the `<thread>/<NN>` composite the scoped verbs
+/// take, whose thread half is normalised and whose tail is passed through
+/// UNTOUCHED because a work-package number is not this function's to interpret.
+fn thread_spec(raw: &str) -> Result<String, Failure> {
+  let (head, tail) = match raw.split_once('/') {
+    Some((h, t)) => (h, Some(t)),
+    None => (raw, None),
+  };
+  let id =
+    model::normalise_thread_id(head).map_err(|e| id_refusal(head, e, model::IdKind::Thread))?;
+  Ok(match tail {
+    Some(t) => format!("{id}/{t}"),
+    None => id,
+  })
+}
+
+/// An operator's spelling of an ISSUE id, as a number.
+fn issue_arg(m: &ArgMatches, name: &str) -> Result<u32, Failure> {
+  let raw = arg(m, name)?;
+  model::normalise_issue_id(&raw).map_err(|e| id_refusal(&raw, e, model::IdKind::Issue))
+}
+
+/// **THE ONE PLACE A BAD ID IS EXPLAINED, AND THE WANTED COLLECTION IS THE
+/// CALLER'S TO SUPPLY.** `model::IdError` is a fact about a spelling and is
+/// deliberately collection-independent -- `i59` is a well-formed id, and whether
+/// that is an error depends entirely on which verb was asked. Putting the
+/// expectation in the error would make the model hold the CLI's context; putting
+/// the message here keeps the fact in one place and the wording in another.
+fn id_refusal(raw: &str, e: model::IdError, wanted: model::IdKind) -> Failure {
+  let what = wanted.as_str();
+  Failure::Error(match e {
+    model::IdError::NotAnId => format!(
+      "error: `{raw}` is not {} id\n  remedy: name it as a number, eg `{}`",
+      wanted.with_article(),
+      example(wanted)
+    ),
+    model::IdError::OutOfRange => format!(
+      "error: `{raw}` is out of range -- {} id is {} digits\n  remedy: name it as a number, eg `{}`",
+      wanted.with_article(),
+      model::THREAD_DIGITS,
+      example(wanted)
+    ),
+    // **THE REFUSAL THIS CHANGE EXISTS FOR.** Naming the OTHER collection and
+    // offering the tag that would have worked, because a refusal whose remedy is
+    // a spelling the operator can type is a different object from one that says
+    // no. Reporting this as a not-found sends them into the estate looking for
+    // something that was never addressed.
+    model::IdError::WrongCollection { named } => format!(
+      "error: `{raw}` names {}, and this verb takes {}\n  remedy: `{}{}` names the {what}",
+      named.with_article(),
+      wanted.with_article(),
+      wanted.tag(),
+      raw.trim_start_matches(|c: char| !c.is_ascii_digit())
+    ),
+    // Only the collection-agnostic door can raise this: every other caller
+    // learns the collection from its own verb.
+    model::IdError::Ambiguous { seq } => format!(
+      "error: `{raw}` names both a steel thread and an issue\n  remedy: `s{seq}` names the steel thread, `i{seq}` the issue"
+    ),
+  })
+}
+
+/// A worked example in the reader's own vocabulary. `ST0000` is the STZero
+/// retrofit id (D37), so it names something in THEIR project rather than ours.
+fn example(kind: model::IdKind) -> &'static str {
+  match kind {
+    // `0` and `ST0000` are the SAME id in its two spellings, which is the
+    // equivalence the example is teaching -- and `ST0000` is the STZero
+    // retrofit id, so it names something in the READER's project rather than a
+    // thread in ours. `no_pm_state_in_output` enforces exactly that, and caught
+    // this line carrying `ST0046` on its first run.
+    model::IdKind::Thread => "0` or `ST0000",
+    model::IdKind::Issue => "21` or `0021",
   }
 }
 

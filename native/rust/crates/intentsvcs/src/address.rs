@@ -291,6 +291,16 @@ pub enum AddressError {
   /// answers a question they did not ask.
   #[error("`{input}` is neither an address nor an artefact id")]
   NotAddressable { input: String },
+  /// **THE ONLY DOOR WHERE A BARE NUMBER IS GENUINELY AMBIGUOUS.** A verb-scoped
+  /// door reads the collection off its own verb; this one has nothing to read it
+  /// off, and in the estate that first hit it `59` named both `ST0059` and issue
+  /// `0059` with both present.
+  ///
+  /// **IT IS ITS OWN VARIANT BECAUSE THE REMEDY IS DIFFERENT AND ACTIONABLE.**
+  /// `NotAddressable` says the argument named nothing; this says it named two
+  /// things, and can hand back the exact spellings that pick one.
+  #[error("`{input}` names both a steel thread and an issue")]
+  AmbiguousId { input: String, seq: u32 },
 }
 
 impl Remedy for AddressError {
@@ -325,6 +335,9 @@ impl Remedy for AddressError {
       }
       AddressError::ViewAddressed { .. } => {
         "address the ENTITY and select a representation: `/threads/ST0000?format=md`".into()
+      }
+      AddressError::AmbiguousId { seq, .. } => {
+        format!("`s{seq}` names the steel thread, `i{seq}` the issue")
       }
       AddressError::NotAddressable { .. } => {
         format!(
@@ -725,13 +738,20 @@ pub fn promote(input: &str) -> Result<Address, AddressError> {
   if input.starts_with(SCHEME) {
     return parse(input);
   }
-  if model::is_thread_id(input) {
-    return parse(&format!("{SCHEME}/threads/{input}"));
+  match model::normalise_id(input) {
+    Ok((model::IdKind::Thread, seq)) => {
+      parse(&format!("{SCHEME}/threads/{}", model::thread_id(seq)))
+    }
+    Ok((model::IdKind::Issue, seq)) => parse(&format!(
+      "{SCHEME}/issues/{seq:0width$}",
+      width = model::ISSUE_DIGITS
+    )),
+    Err(model::IdError::Ambiguous { seq }) => Err(AddressError::AmbiguousId {
+      input: input.to_string(),
+      seq,
+    }),
+    Err(_) => Err(AddressError::NotAddressable {
+      input: input.to_string(),
+    }),
   }
-  if model::is_issue_id(input) {
-    return parse(&format!("{SCHEME}/issues/{input}"));
-  }
-  Err(AddressError::NotAddressable {
-    input: input.to_string(),
-  })
 }

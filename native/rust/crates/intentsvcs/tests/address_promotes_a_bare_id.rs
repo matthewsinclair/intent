@@ -107,9 +107,18 @@ fn promotion_does_not_weaken_the_grammar() {
 }
 
 /// **THE MALFORMED ARGUMENT, AND BOTH WRONG ANSWERS ARE ASSERTED AGAINST.**
+///
+/// **THE EXEMPLAR MOVED FROM `ST57` TO `ST5x` AND THE PROPERTY DID NOT.** `ST57`
+/// was a typo when this door accepted only the two canonical forms; it now
+/// resolves to `ST0057`, because the accepted set widened to v2's five spellings
+/// plus the explicit tags. **A test whose subject becomes legal is not evidence
+/// that the property lapsed** -- what it pins is that a spelling naming NOTHING
+/// is a usage error rather than a not-found, and that survives the widening
+/// untouched. Picking a new exemplar is the correct repair; deleting the test
+/// because its input started passing would retire the property with it.
 #[test]
 fn a_typo_is_a_usage_error_naming_both_forms() {
-  let e = promote("ST57").expect_err("ST57 is not an id");
+  let e = promote("ST5x").expect_err("ST5x is not an id under any spelling");
 
   assert!(
     matches!(e, AddressError::NotAddressable { .. }),

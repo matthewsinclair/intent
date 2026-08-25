@@ -114,6 +114,203 @@ pub fn thread_seq(name: &str) -> Option<u32> {
     .flatten()
 }
 
+/// Which collection an operator's spelling names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IdKind {
+  Thread,
+  Issue,
+}
+
+impl IdKind {
+  /// The word an error message uses. Prose, not a wire form.
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      IdKind::Thread => "steel thread",
+      IdKind::Issue => "issue",
+    }
+  }
+
+  /// The noun WITH its article. **A message that assembles the article at the
+  /// use site says "a issue" the first time somebody adds a vowel**, which is
+  /// what the first driven run of this change did.
+  pub fn with_article(&self) -> &'static str {
+    match self {
+      IdKind::Thread => "a steel thread",
+      IdKind::Issue => "an issue",
+    }
+  }
+
+  /// The tag an operator can type to name this collection explicitly.
+  pub fn tag(&self) -> char {
+    match self {
+      IdKind::Thread => 's',
+      IdKind::Issue => 'i',
+    }
+  }
+}
+
+/// Why a spelling does not name what the caller asked for.
+///
+/// **`WrongCollection` EXISTS SO A CATEGORY ERROR IS NEVER REPORTED AS A
+/// NOT-FOUND.** `st show i59` names an issue, and answering it with *no steel
+/// thread i59 in this project* sends an operator into the estate looking for
+/// something that was never addressed. That is the same refusal
+/// `AddressError::NotAddressable` already makes for the same reason, and the
+/// issue door already makes it in prose -- `issues show s80` says *`s80` is not
+/// an issue id* rather than reporting a missing issue.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IdError {
+  /// Nothing about the spelling is an id: `foo`, `46abc`, `---`, empty.
+  NotAnId,
+  /// Digits, but more of them than the fixed width admits.
+  OutOfRange,
+  /// A well-formed id for the OTHER collection.
+  WrongCollection { named: IdKind },
+  /// Untagged digits at a door that does not know which collection is meant.
+  Ambiguous { seq: u32 },
+}
+
+/// An operator's spelling, decomposed. `digits` is the count AS TYPED, which is
+/// what distinguishes the canonical four-digit issue id from a short form.
+struct Spelling {
+  tag: Option<IdKind>,
+  seq: u32,
+  digits: usize,
+}
+
+/// Case-insensitive prefix strip. The CLI door is case-insensitive on purpose
+/// and [`crate::intentfiles::Sigil::parse`] is case-SENSITIVE on purpose; the
+/// two do not disagree because they guard different things. A manifest is
+/// committed and diffed, so one spelling keeps the diff about the change. A
+/// hand-typed argument is neither committed nor diffed, and refusing `st0059`
+/// for its case would be a refusal with nothing behind it.
+fn strip_ci<'a>(s: &'a str, prefix: &str) -> Option<&'a str> {
+  (s.len() >= prefix.len() && s[..prefix.len()].eq_ignore_ascii_case(prefix))
+    .then(|| &s[prefix.len()..])
+}
+
+/// Decompose a spelling into the collection it names (if any) and its sequence.
+///
+/// **THE TAG ORDER IS LOAD-BEARING: `ST` IS TRIED BEFORE `s`.** Both name the
+/// thread collection and `ST0059` starts with `S`, so a one-character test
+/// first would take `T0059` as the digits and refuse a canonical id.
+fn spelling(raw: &str) -> Result<Spelling, IdError> {
+  let t = raw.trim();
+  // `0021.json` and `0021.md` are the same issue as `0021` -- an operator who
+  // copied a padded id out of a filename must not be told it does not exist.
+  let t = t
+    .strip_suffix(".json")
+    .or_else(|| t.strip_suffix(".md"))
+    .unwrap_or(t);
+
+  let (tag, digits) = if let Some(d) = strip_ci(t, THREAD_PREFIX) {
+    (Some(IdKind::Thread), d)
+  } else if let Some(d) = strip_ci(t, "s") {
+    (Some(IdKind::Thread), d)
+  } else if let Some(d) = strip_ci(t, "i") {
+    (Some(IdKind::Issue), d)
+  } else {
+    (None, t)
+  };
+
+  if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+    return Err(IdError::NotAnId);
+  }
+
+  // Trimmed BEFORE parsing, and the reason is a real defect in the shell this
+  // is ported from. v2's `normalise_st_id` carries `10#` because `printf %04d`
+  // under /bin/bash 3.2 reads a leading zero as OCTAL -- measured, `0044`
+  // becomes ST0036, A DIFFERENT REAL THREAD. Rust's `parse` is decimal by
+  // construction, so the workaround is not ported; the PROPERTY it protects is,
+  // and it has a test. Trimming here is for the width check below, not for base.
+  let bare = digits.trim_start_matches('0');
+  let bare = if bare.is_empty() { "0" } else { bare };
+  let seq: u32 = bare.parse().map_err(|_| IdError::OutOfRange)?;
+
+  Ok(Spelling {
+    tag,
+    seq,
+    digits: digits.len(),
+  })
+}
+
+/// Whether `seq` fits a fixed-width id.
+///
+/// **`format!("{:0N}")` IS A MINIMUM WIDTH, NOT A MAXIMUM, AND SO IS v2's
+/// `printf "ST%04d"`.** v2 turns `99999` into `ST99999` and then reports a
+/// missing thread; unchecked, this would reproduce it exactly, because
+/// `"99999".parse::<u32>()` is `Ok(99999)`.
+fn fits(seq: u32, width: usize) -> Result<u32, IdError> {
+  (seq.to_string().len() <= width)
+    .then_some(seq)
+    .ok_or(IdError::OutOfRange)
+}
+
+/// An operator's spelling of a THREAD id, canonicalised.
+///
+/// **THE ACCEPTED SET IS v2's, DRIVEN RATHER THAN READ** (`intent_helpers:688`
+/// `normalise_st_id`): `46`, `ST46`, `0046`, `046` and `ST0046` all resolve to
+/// `ST0046` in v2, so the parity contract is five forms. `s46` and `S46` are
+/// additions -- an explicit tag, so the one door that cannot know the
+/// collection from its verb has a short spelling to offer.
+///
+/// **TWO OF v2's BEHAVIOURS ARE DELIBERATELY NOT PORTED, AND BOTH ARE HOLES.**
+/// Its fourth branch echoes anything back with `ST` glued on -- `foo` becomes
+/// `STfoo`, `46abc` becomes `ST46abc` -- after which `st show` reports *File not
+/// found: info.md for steel thread ST46abc*. **So v2's normaliser MANUFACTURES
+/// the not-found-for-a-non-name defect this function exists to prevent**, by
+/// fabricating a plausible id before anything looks it up. The other is the
+/// width hole [`fits`] documents. **The parity contract is the five accepted
+/// forms, never the function.**
+pub fn normalise_thread_id(raw: &str) -> Result<String, IdError> {
+  let s = spelling(raw)?;
+  match s.tag {
+    Some(IdKind::Issue) => Err(IdError::WrongCollection {
+      named: IdKind::Issue,
+    }),
+    _ => Ok(thread_id(fits(s.seq, THREAD_DIGITS)?)),
+  }
+}
+
+/// An operator's spelling of an ISSUE id, as a number.
+///
+/// **`21`, `0021` and `0021.json` are one issue** -- v2 normalises the same way
+/// (`bin/intent_issues:normalize_id`). `i21` is the explicit-tag addition.
+pub fn normalise_issue_id(raw: &str) -> Result<u32, IdError> {
+  let s = spelling(raw)?;
+  match s.tag {
+    Some(IdKind::Thread) => Err(IdError::WrongCollection {
+      named: IdKind::Thread,
+    }),
+    _ => fits(s.seq, ISSUE_DIGITS),
+  }
+}
+
+/// An operator's spelling at a door that does NOT know which collection is
+/// meant -- `intent edit <address>`, where the argument may name either.
+///
+/// **UNTAGGED DIGITS ARE REFUSED HERE AND NOWHERE ELSE, BECAUSE HERE THEY ARE
+/// GENUINELY AMBIGUOUS.** A verb-scoped door reads the collection off its own
+/// verb; this one has nothing to read it off. Measured in this estate: `59`
+/// names both `ST0059` and issue `0059`, and both exist. The refusal is worth
+/// making only because there is now something to recommend instead -- `s59` and
+/// `i59` -- and a refusal whose remedy is a spelling the operator can type is a
+/// different object from one that just says no.
+///
+/// **THE TWO CANONICAL FORMS KEEP RESOLVING, SO THIS DOOR ONLY GAINS.**
+/// `ST0059` is a thread and exactly-`ISSUE_DIGITS` digits is an issue -- that
+/// is what this door does today, and narrowing it would be a regression sold as
+/// a fix.
+pub fn normalise_id(raw: &str) -> Result<(IdKind, u32), IdError> {
+  let s = spelling(raw)?;
+  match s.tag {
+    Some(IdKind::Thread) => Ok((IdKind::Thread, fits(s.seq, THREAD_DIGITS)?)),
+    Some(IdKind::Issue) => Ok((IdKind::Issue, fits(s.seq, ISSUE_DIGITS)?)),
+    None if s.digits == ISSUE_DIGITS => Ok((IdKind::Issue, fits(s.seq, ISSUE_DIGITS)?)),
+    None => Err(IdError::Ambiguous { seq: s.seq }),
+  }
+}
+
 /// Render any model enum as its canonical wire string via serde -- the one
 /// naming authority. Panics only if serialisation itself fails, which for
 /// these unit enums cannot happen.
