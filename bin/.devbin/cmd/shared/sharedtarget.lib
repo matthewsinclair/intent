@@ -43,15 +43,45 @@
 # remedy, and without the redirect this library would refuse the remedy another
 # rostered guard was printing.
 #
-# SCOPE IS `native/rust` AND IT MUST STAY EQUAL TO THE MARKER'S. The embedded
-# provenance marker decides `dirty-` over `DIRT_SCOPE` in
-# `native/rust/build-support/source_commit.rs`, and the two are the same question
-# asked by two parties: if this library allowed a build the marker then stamped
-# `dirty-`, the shared slot would hold an artefact this guard had approved and
-# the artefact itself disowned. The equality is asserted by
-# `parity/tools/shared_artefact_build_guard.sh` rather than enforced by a runtime
-# grep, because a shell library parsing a Rust constant on every invocation is a
-# coupling that fails in the dark; a test that compares them fails in the light.
+# SCOPE IS THE BUILD'S INPUTS, WHICH IS WIDER THAN `native/rust` BY EXACTLY ONE
+# PATH TODAY. `surface/dispatch-table.json` is `include_str!`'d into `intent-cli`
+# at COMPILE time (`dispatch.rs:45`) and lives OUTSIDE the crate tree, so a build
+# from a tree mid-edit in that file bakes the edit into the shared binary while
+# every check the estate owns says the tree is clean.
+#
+# THAT IS NOT HYPOTHETICAL AND IT IS THE FOUNDING INCIDENT'S OWN SHAPE (vc,
+# 2026-08-25, measured on themselves). An announced, peer-cleared, guard-approved
+# build on a clean `native/rust` took the shared path and verified the SET -- a
+# correct build by every control that existed -- while a peer was mid-edit adding
+# an `st attach` row. The incomplete row went into the shared binary and every
+# `intent3 sync` panicked on it. **The peer then reverted the file, so the source
+# that explains the binary no longer exists anywhere.** A dirty-`native/rust`
+# build at least leaves its dirty source behind to be found; this one deletes its
+# own evidence, and it was only caught because the panic happened to name the row.
+# A row that was merely WRONG rather than undeclared would have shipped in silence.
+#
+# THE SCOPE IS DECLARED AND THE DECLARATION IS CHECKED, RATHER THAN DERIVED AT
+# RUNTIME. Deriving it would mean parsing Rust from shell on every invocation --
+# a coupling that fails in the dark. `shared_artefact_build_guard.sh` instead
+# asserts that every `include_str!`/`include_bytes!` target resolving outside
+# `native/rust` is covered here, so the day someone adds a second one the
+# instrument reds in the light. **A declared scope that must be hand-updated when
+# an unrelated file gains an `include_str!` is a guard whose correctness depends
+# on a step nobody is prompted to take** (vc); the assertion is that prompt.
+#
+# AND IT MUST REMAIN A SUPERSET OF THE MARKER'S `DIRT_SCOPE`, NOT EQUAL TO IT.
+# The embedded provenance marker decides `dirty-` over `:(top)native/rust` only
+# (`native/rust/build-support/source_commit.rs`). Being STRICTER than the marker
+# is safe -- this guard refuses builds the marker would have called clean. Being
+# LOOSER is the unsafe direction, because then the shared slot can hold an
+# artefact this guard approved and the artefact itself disowns. The instrument
+# asserts containment, and the earlier equality assertion was wrong: it would have
+# forbidden exactly the widening this incident required.
+#
+# **THE MARKER HAS THE SAME BLIND SPOT AND IT IS NOT FIXED HERE.** A build dirty
+# only in `surface/` is not marked `dirty-`, so the artefact cannot disown it
+# either. That is `source_commit.rs`, outside this file's lane, and it is routed
+# rather than reached into.
 #
 # WHY THE SCOPE IS NOT THE WHOLE WORKTREE. Measured 2026-08-19: EVERY binary in
 # this estate carried `dirty-` when the scope was the worktree, including a
@@ -87,7 +117,7 @@
 GIT_ISOLATED="env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR git"
 
 # The pathspec the marker uses, verbatim. See the scope paragraph above.
-SHARED_TARGET_DIRT_SCOPE=':(top)native/rust'
+SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface')
 
 # shared_target_dirt <repo>
 #
@@ -102,7 +132,7 @@ shared_target_dirt() {
   # `currency.lib` records: a swallowed failure leaves the output empty, empty
   # reads as CLEAN, and the guard fails OPEN -- the one direction a guard on the
   # build path must never fail.
-  if ! out="$($GIT_ISOLATED -C "$repo" status --porcelain -- "$SHARED_TARGET_DIRT_SCOPE" 2>/dev/null)"; then
+  if ! out="$($GIT_ISOLATED -C "$repo" status --porcelain -- "${SHARED_TARGET_DIRT_SCOPES[@]}" 2>/dev/null)"; then
     printf 'unknown\n'
     return 0
   fi
@@ -128,7 +158,7 @@ shared_target_verdict() {
     return 0
   fi
   n="$(printf '%s\n' "$dirt" | awk 'NF' | wc -l | tr -d ' ')"
-  printf 'refuse:%s uncommitted path(s) under native/rust would enter this build, and the shared artefact cannot say whose they are' "$n"
+  printf 'refuse:%s uncommitted path(s) among the inputs this build compiles would enter it, and the shared artefact cannot say whose they are' "$n"
 }
 
 # shared_target_dirt_report <repo>

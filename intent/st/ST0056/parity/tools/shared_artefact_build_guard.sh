@@ -185,17 +185,75 @@ esac
 # clean, stamped `dirty-`. Compared here rather than coupled at runtime: a shell
 # library parsing a Rust constant on every invocation fails in the dark, and a
 # test that compares them fails in the light.
+# THE ASSERTION IS CONTAINMENT, NOT EQUALITY, AND THE EARLIER EQUALITY WAS WRONG
+# IN A WAY THAT WOULD HAVE FORBIDDEN THE FIX IT NEEDED. Being STRICTER than the
+# marker is safe: this guard then refuses builds the marker would have called
+# clean. Being LOOSER is the unsafe direction, because the shared slot can hold
+# an artefact this guard approved and the artefact itself disowns. An equality
+# arm cannot tell those apart -- it reds on both -- and it red on the widening
+# that closed a live incident.
 if [ ! -r "$MARKER_SRC" ]; then
-  fail "arm 6 -- no marker source at $MARKER_SRC, so scope agreement cannot be checked"
+  fail "arm 6 -- no marker source at $MARKER_SRC, so scope containment cannot be checked"
 else
   marker_scope="$(sed -n 's/^const DIRT_SCOPE: &str = "\(.*\)";$/\1/p' "$MARKER_SRC")"
   if [ -z "$marker_scope" ]; then
-    fail "arm 6 -- could not read DIRT_SCOPE from $MARKER_SRC; the constant moved or was renamed, and an unread scope is not an agreeing one"
-  elif [ "$marker_scope" = "$SHARED_TARGET_DIRT_SCOPE" ]; then
-    ok "arm 6 -- guard scope and marker DIRT_SCOPE agree ($marker_scope)"
+    fail "arm 6 -- could not read DIRT_SCOPE from $MARKER_SRC; the constant moved or was renamed, and an unread scope is not a contained one"
   else
-    fail "arm 6 -- SCOPE DISAGREEMENT: guard uses '$SHARED_TARGET_DIRT_SCOPE', marker uses '$marker_scope'. The shared slot could hold an artefact this guard approved and the artefact disowns."
+    covered=0
+    for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
+      [ "$sc" = "$marker_scope" ] && covered=1
+    done
+    if [ "$covered" -eq 1 ]; then
+      ok "arm 6 -- the guard's scope CONTAINS the marker's DIRT_SCOPE ($marker_scope)"
+    else
+      fail "arm 6 -- the guard's scope does not contain the marker's '$marker_scope'. Looser than the marker means the shared slot can hold an artefact this guard approved and the artefact disowns."
+    fi
   fi
+fi
+
+# ------------------------------ ARM 6b: THE SCOPE COVERS WHAT THE BUILD COMPILES
+# **THE DECLARED SCOPE IS CHECKED RATHER THAN DERIVED, AND THIS ARM IS THE
+# PROMPT THAT MAKES DECLARING SAFE.** `intent-cli` embeds
+# `surface/dispatch-table.json` with `include_str!` at COMPILE time, from OUTSIDE
+# the crate tree -- so it is a build input the original `native/rust` scope could
+# not see. **Measured live on 2026-08-25 (vc, on themselves): an announced,
+# peer-cleared, guard-approved build on a clean `native/rust` baked a peer's
+# half-written dispatch row into the shared binary, and every `intent3 sync`
+# then panicked on it.** The peer reverted the file within minutes, **so the
+# source that explained the binary no longer existed anywhere** -- a dirty
+# `native/rust` build at least leaves its cause behind to be found.
+#
+# **A DECLARED SCOPE THAT MUST BE HAND-UPDATED WHEN AN UNRELATED FILE GAINS AN
+# `include_str!` IS A GUARD WHOSE CORRECTNESS DEPENDS ON A STEP NOBODY IS
+# PROMPTED TO TAKE** (vc). Deriving the scope at runtime would mean parsing Rust
+# from shell on every invocation, which is a coupling that fails in the dark.
+# This arm is the third option: declare it, and red in the light the day a second
+# outside-the-tree embed appears.
+embeds="$(grep -rho 'include_str!("[^"]*")\|include_bytes!("[^"]*")' "$ROOT/native/rust/crates" 2>/dev/null \
+          | grep -oE '"\.\./[^"]*"' | tr -d '"' | sort -u)"
+uncovered=""
+while read -r rel; do
+  [ -n "$rel" ] || continue
+  # Only paths that climb OUT of native/rust are this arm's business; anything
+  # resolving inside it is already covered by the marker's own scope.
+  case "$rel" in
+    */surface/*) covered_by=":(top)surface" ;;
+    *) covered_by="" ;;
+  esac
+  hit=0
+  for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
+    [ -n "$covered_by" ] && [ "$sc" = "$covered_by" ] && hit=1
+  done
+  [ "$hit" -eq 1 ] || uncovered="$uncovered $rel"
+done <<EOF
+$embeds
+EOF
+if [ -z "$embeds" ]; then
+  fail "arm 6b -- found NO outside-the-tree embeds at all; dispatch.rs is known to carry one, so the probe is broken rather than the tree being clean"
+elif [ -z "$uncovered" ]; then
+  ok "arm 6b -- every embed reaching outside native/rust is covered by the declared scope"
+else
+  fail "arm 6b -- these compile-time embeds reach outside native/rust and the declared scope does NOT cover them:$uncovered. A build mid-edit in one of them is approved by this guard and baked into the shared binary."
 fi
 
 # ------------------------------------------- ARM 7: THE VERDICT PRECEDES THE BUILD
