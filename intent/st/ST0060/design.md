@@ -64,13 +64,20 @@ Making the hardened posture opt-in rather than mandatory is what lets hv's keych
 
 **A reference resolves in two steps, and the first one never touches the vault at all.**
 
-**Step 0 -- the per-reference MATERIAL override.** A reference resolves from a deterministic environment variable when one is set, and returns immediately. `vault:lamplight/prod/api-key` reads `INTENT_VAULT_LAMPLIGHT_PROD_API_KEY` (uppercased, `-` and `/` to `_`). **No identity, no passphrase, no ladder, no store touched.**
+**Step 0 -- the per-reference MATERIAL override.** A reference resolves from a deterministic environment variable when one is set, and returns immediately. `vault:lamplight/prod/api-key` reads `INTENT_VAULT_LAMPLIGHT__PROD__API_KEY` -- the derivation is under **The reference format**, and it has to be injective for reasons that cost a finding. **No identity, no passphrase, no ladder, no store touched.**
 
 **This is what answers R7, and an earlier draft got it wrong in a way worth recording** -- it answered R7 with an environment rung carrying `INTENT_VAULT_IDENTITY` / `INTENT_VAULT_PASSPHRASE`, which is a way for CI to UNLOCK the vault. R7's own words are _a vault that CI must unlock is a vault whose key is in CI_. The draft put the key in CI and called that the exemption. Found by Lamplight's verification, 2026-08-25.
 
 The collision was mechanical rather than philosophical: once a committed config carries a `vault:` reference, everything that reads that config must resolve it, CI included -- so CI must hold something. **The whole question is whether that something is a KEY or the MATERIAL.** With step 0 it is the material, supplied by the provider's secret store exactly as CI does today, and CI never holds a vault key. The reference stays in config, one code path reads it, and the vault is genuinely optional in CI rather than nominally so.
 
-**Two consequences worth stating.** The derived name must be collision-free: `intent vault set` refuses an entry whose derived variable collides with an existing one, because two references silently sharing an override is a wrong answer rather than an error. And step 0 is the only path that returns material without an identity, which is what makes R7 mechanically checkable -- AC-00.7 asserts `vault get` succeeds with **no identity reachable by any rung**, not merely with no identity file.
+Step 0 is the only path that returns material without an identity, which is what makes R7 mechanically checkable -- AC-00.7 asserts `vault get` succeeds with **no identity reachable by any rung**, not merely with no identity file.
+
+**Step 0 is ALSO the only thing in this design that can return a well-formed wrong answer, so it is observable by construction.** A stale `INTENT_VAULT_LAMPLIGHT__PROD__API_KEY` left exported in a shell silently overrides the store for every later read, and `vault get` returns material either way with nothing distinguishing them: a developer sets a prod override for one command, forgets to unset, and every read after that returns prod material while the store holds staging. **Nothing errors, nothing warns, and the wrong value is well formed.** So:
+
+- **Material to stdout, PROVENANCE TO STDERR** -- one line naming which source resolved. Pipelines are unaffected; a human or an agent reading a terminal cannot fail to see that an override is in play.
+- **`vault doctor` enumerates every active step-0 override in the environment, BY NAME ONLY, never value** -- R8's discipline applied to the resolver rather than to config.
+
+**And a derived variable that is SET BUT EMPTY is a typed error, not an answer.** Returning empty material is precisely the falsy-for-absent R11 forbids, and it is the worst outcome available here because the caller cannot distinguish it from a legitimately empty secret. Falling through to the store is also wrong: a set-but-empty override is an operator error, not an absence. `VaultError::EmptyOverride` names the variable.
 
 **Step 1 -- the passphrase ladder**, reached only when step 0 does not hit AND the identity is passphrase-protected. Read in order, first hit wins, every rung optional:
 
@@ -116,11 +123,29 @@ This is not a special case invented for the vault; it is one more capability und
 
 **The project is IN the ref, so resolution never depends on the working directory** -- which is what makes R4 mechanically true rather than aspirational. The profile axis is R9: Lamplight carries three today (`default`, `prod`, `worldwright1`) and the profile, not just the project, selects the entry.
 
-Fence regex, anchored and lowercase so it cannot false-positive on ordinary config or prose (**R8**):
+Fence regex, anchored and lowercase so it cannot false-positive on ordinary config or prose (**R8**). **Segments carry no `_`, and that restriction is load-bearing rather than tidy** -- see the derivation below:
 
 ```
-  vault:[a-z0-9][a-z0-9_-]*(/[a-z0-9][a-z0-9_-]*){1,2}
+  vault:<seg>(/<seg>){1,2}      where  <seg> = [a-z0-9]([a-z0-9-]*[a-z0-9])?
 ```
+
+### The step-0 variable name is DERIVED, and the derivation must be injective
+
+```
+  segment separator  /  ->  __
+  inside a segment   -  ->  _
+  vault:lamplight/prod/api-key  ->  INTENT_VAULT_LAMPLIGHT__PROD__API_KEY
+```
+
+**A two-segment reference normalises to three before derivation**, so `vault:a/b` and `vault:a/default/b` are one reference with one variable rather than two names for one entry.
+
+**An earlier draft permitted `_` inside segments and mapped `-`, `_` and `/` all onto `_`. Three characters collapsing to one is not injective, so collisions existed BY CONSTRUCTION** rather than as an edge case -- `vault:my-app/key`, `vault:my_app/key` and `vault:my/app/key` all derived `INTENT_VAULT_MY_APP_KEY`. Found by Lamplight's verification of the R7 fix, 2026-08-25, and confirmed mechanically before acting on it.
+
+**The draft's answer was a collision check in `vault set`, and that check was structurally blind.** Stores are per-project, so those three references live in three different stores; a check scoped to one store has no jurisdiction over the collision, which happens exactly at the project boundary. **That is AC-00.7's own failure shape one layer down -- a guard whose scope excludes the case it exists to catch, reading green because it never had jurisdiction.** And the check could not have been repaired: a correct cross-store scan must open every store, which needs the identity, which fails under `Locked` and breaks R10.
+
+**So the check is deleted rather than fixed. The grammar carries it instead.** With `_` forbidden inside segments, a single `_` in the derived name can only have come from a `-` between two alphanumerics, and `__` can only have come from a separator. The map is injective, cross-store collisions cannot exist, and nothing needs to check at runtime. **A grammar restriction that makes a check unnecessary beats a check, because a grammar cannot be out of scope.**
+
+**One departure from the direction as given, and it is where the defect came from.** Lamplight proposed a **declared** environment override; this design uses a **derived** one. Derivation needs no declaration site, which matters because R4 has the resolver running where no project config exists -- but derivation is what created a name-collision surface that a declared mapping does not have. The grammar closes it. Recorded because one changed word produced the whole finding.
 
 ## The verb surface
 
@@ -138,7 +163,7 @@ The read interface is the requirement that comes straight from the incident, so 
 | `intent vault lock`                            | drop the cache                                        |
 | `intent vault import <file> --project <p>`     | migrate a plaintext store and rewrite it to refs      |
 | `intent vault audit [<path>]`                  | find material-shaped values that should be refs       |
-| `intent vault doctor`                          | mode posture, identity reachable, backend present     |
+| `intent vault doctor`                          | mode posture, identity, backend, ACTIVE OVERRIDES     |
 
 **There is deliberately no `dump`, `export`, `cat`, or `show --all`, and there never will be.** R6 states the reason better than a rationale could: _if dumping the store is possible it will eventually be done by something careful._
 
@@ -155,6 +180,7 @@ The read interface is the requirement that comes straight from the incident, so 
     NoSuchProject { project },     // exit 3
     NoSuchEntry { reference },     // exit 3
     MalformedRef { text },         // exit 7
+    EmptyOverride { variable },     // exit 7 -- a step-0 variable set but empty
     BadMode { path, mode },        // exit 6
     StoreUnreadable { path },      // exit 1
     BackendUnavailable,            // exit 1
@@ -249,8 +275,8 @@ Carried from Lamplight's non-requirements, all standing:
 
 ## Open
 
-**Verified by Lamplight 2026-08-25 against 52adfb7e: 10 of 12 satisfied, R5 satisfied with a named divergence, R7 NOT SATISFIED.** All three flagged departures -- the R5 deviation, S1 and S2 -- were accepted. **The not-satisfied one was not among them**, which is the argument for having someone else read it. R7 is fixed above; the fix has not been re-verified.
+**Verified by Lamplight twice on 2026-08-25.** First against 52adfb7e: 10 of 12, R5 satisfied with a named divergence, **R7 NOT SATISFIED** -- and the failing requirement was none of the three departures flagged for them, which is the argument for the provider reading it rather than the specifier. Then against 6dcbd9f5, scoped to R7: **step 0 CLOSES R7**, and it moved two things that are new surface rather than R7 returning. Both are fixed above.
 
 - **ONE DECISION IS hv's AND IT REOPENS A RULED QUESTION.** Lamplight asks that `vault get` **REFUSE to write material to a TTY** unless explicitly forced -- piped or redirected is fine, interactive terminal refuses with a remedy line pointing at `run`. Their argument is the incident: `cat config.toml` printed two keys, and `vault get` prints one into the same transcript, so R6 currently makes the whole store hard and leaves the one-secret print exactly as available as it was. **hv ruled B3 on 2026-08-25 -- no TTY warn -- and this is a materially different proposal (refuse, not warn) rather than a re-litigation of that ruling, which is why it is put up rather than either adopted or dropped.** Not adopted pending hv.
-- **Verification and ratification are two acts and this design needs both.** Lamplight's `vc` is **advisory** -- it verifies against R1-R12 and reports; **hv adjudicates**, and hv is the same human on both boards. An earlier draft carried one criterion reading _the requirements provider has ratified this design_, which named an authority the node it pointed at cannot exercise: **unsatisfiable by construction, and well-formed enough that nothing would have said so.** Split into AC-00.16 (verification) and AC-00.17 (ratification).
-- **AC-00.16 is NOT satisfied by the verification that produced this revision.** That read was of 52adfb7e; R7, R2's exception, R5's pluggability half, the entry-name decision and the `run` residual all changed after it. **A verification is of a revision, not of a thread**, and marking it satisfied on a superseded read is the shape this thread already caught once.
+- **AC-00.16 stays open until the two step-0 items are dispositioned.** Lamplight's own disposition: R7 closed, two items new, _that is a verification and not a pass_. **A verification is of a revision, not of a thread**, and this design has changed after both of theirs. Leaving it open with the verdict recorded is the honest state for a post-3.0.0 thread with nothing built.
+- **Whether the injective derivation should keep `-` at all.** This design forbids `_` in segments and maps `-` to `_`, separator to `__`, so `api-key` survives as a name and the variable reads `..._API_KEY`. The stricter alternative -- segments `[a-z0-9]` only, separator to a single `_` -- gives shorter, more typo-resistant variable names and forbids `api-key`, which is what Lamplight's config uses today. **Both are injective; the choice is whose ugliness it is**, and the provenance line makes a mistyped variable visible either way rather than silent.
