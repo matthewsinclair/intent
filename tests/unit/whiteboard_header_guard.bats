@@ -221,3 +221,42 @@ assert_staged() { # $1 path
 # glob `whiteboard-*-guard.sh` -- which matched 2 while the roster carried 4,
 # blind to precisely the two guards that had never run in this repository.
 # Widened, repointed at `pre-commit-guards.sh`, and named for the property.
+
+# --- THE SIGPIPE RACE IN THE "did THIS COMMIT add it" FILTER ------------------
+#
+# Same defect as the clock guard's check C, same remedy, and the same matched
+# pair. The filter was `printf ... | grep -qxF`, reached ONLY after the `case`
+# had already matched an escape form and computed the repair -- so a lost race
+# threw away a finding the guard had made, and called it inherited breakage.
+#
+# THE HEADER SITS AT THE TOP OF A BOARD, so on any whole-board rewrite the
+# violating line matches within the first few lines of a very long added set:
+# decision at byte 0, which is maximum exposure. That is the shape a fold
+# produces, not a contrivance.
+
+big_body() { # $1 path -- append a realistic whole-board payload
+  seq 1 20000 | awk '{ print "xxxxxxx" }' >> "$1"
+}
+
+@test "a large board does not let an escaped header slip past the added-line filter" {
+  write_board intent/whiteboard/dc/wip.md 'focus: "he said \"yes\" today"'
+  big_body intent/whiteboard/dc/wip.md
+  git add -A
+  assert_staged intent/whiteboard/dc/wip.md
+  assert_guard BLOCK
+  # The repair still has to print, or the node is left to invent one.
+  [[ "$output" == *'should: focus: "he said "yes" today"'* ]]
+}
+
+@test "FP: inherited breakage at the same scale still passes" {
+  # THE MUTE CONTROL, and it is the half a careless fix fails. The escaped
+  # header is already committed; this commit adds a large body and nothing else.
+  write_board intent/whiteboard/dc/wip.md 'focus: "he said \"yes\" today"'
+  git add -A
+  git commit -qm 'pre-existing escaped header'
+
+  big_body intent/whiteboard/dc/wip.md
+  git add -A
+  assert_staged intent/whiteboard/dc/wip.md
+  assert_guard PASS
+}

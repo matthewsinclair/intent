@@ -177,3 +177,71 @@ assert_guard() {
   git add -A
   assert_guard PASS
 }
+
+# --- THE SIGPIPE RACE IN CHECK C's "did THIS COMMIT add it" FILTER ------------
+#
+# That filter was `printf ... | grep -qxF`. `grep -q` exits on the first match,
+# `printf` then takes SIGPIPE, and this file's `set -o pipefail` promotes 141 to
+# the PIPELINE's status -- so the test read FALSE and the finding was discarded
+# as inherited breakage. The filter is only REACHED after a violation has
+# already been detected, so the guard was sound whenever there was nothing to
+# catch and unsound exactly when there was.
+#
+# THESE TWO CASES ARE A MATCHED PAIR AND NEITHER IS SUFFICIENT ALONE. The catch
+# is red on the pipeline form and green on the herestring. The control is green
+# on BOTH, and exists to refuse the careless fix: "the pipeline now always
+# succeeds" also blocks the violation, while wedging every commit that merely
+# inherits breakage. A FIX AND A MUTE ARE INDISTINGUISHABLE FROM THE CATCH CASE.
+#
+# THE PAYLOAD SIZE IS LOAD-BEARING, NOT DECORATION. Below the pipe buffer the
+# write lands whole, printf never sees SIGPIPE, and both forms agree -- so a
+# fixture that small passes on the BROKEN guard and proves nothing. Measured on
+# this guard: ~1.2k added stamps agreed 3/3 on both forms; ~6k lost 3/3 on the
+# pipeline form and 0/3 on the herestring.
+
+emit_stamps() { # $1 count  $2 starting minute offset -- ascending, valid, Z-marked
+  seq 0 "$(( $1 - 1 ))" | awk -v b="$2" '{
+    m = b + $1
+    printf "\n## (2026-07-%02d %02d:%02dZ)\n\nx\n", 1 + int(m / 1440), int(m / 60) % 24, m % 60
+  }'
+}
+
+assert_inbox_staged() { # $1 path -- the fixture must really be staged
+  if ! git diff --cached --name-only | grep -qxF -- "$1"; then
+    echo "fixture $1 is NOT staged -- this case would pass having tested nothing"
+    git status --short
+    return 1
+  fi
+}
+
+@test "clock guard: check C blocks a backwards append the SIGPIPE race used to drop" {
+  emit_stamps 6000 1440 > intent/whiteboard/cc/inbox.vc.md
+  git add -A
+  git commit -qm 'base: a long inbox'
+
+  # One commit appends 6000 more good stamps AND one that goes backwards. The
+  # backwards stamp sorts FIRST in the added set, so grep matches at byte 0 --
+  # the position that maximises the race, and the one a real board always
+  # produces, because a fold rewrites a file from the top.
+  emit_stamps 6000 20000 >> intent/whiteboard/cc/inbox.vc.md
+  emit_stamps 1 0 >> intent/whiteboard/cc/inbox.vc.md
+  git add -A
+  assert_inbox_staged intent/whiteboard/cc/inbox.vc.md
+  assert_guard BLOCK
+  [[ "$output" == *'[C order]'* ]]
+}
+
+@test "clock guard: control -- inherited breakage at the same scale still passes" {
+  # THE MUTE CONTROL. Same file, same payload, same guard; the only difference
+  # is that this commit did not ADD the backwards stamp. A filter rewritten to
+  # always succeed passes the case above and fails this one.
+  emit_stamps 6000 1440 > intent/whiteboard/cc/inbox.vc.md
+  emit_stamps 1 0 >> intent/whiteboard/cc/inbox.vc.md
+  git add -A
+  git commit -qm 'base: breakage already landed'
+
+  emit_stamps 6000 20000 >> intent/whiteboard/cc/inbox.vc.md
+  git add -A
+  assert_inbox_staged intent/whiteboard/cc/inbox.vc.md
+  assert_guard PASS
+}

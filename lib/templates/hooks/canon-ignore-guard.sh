@@ -130,7 +130,11 @@ while IFS= read -r m; do
   src="${rule%%:*}"
   rest="${rule#*:}"
   lineno="${rest%%:*}"
-  if printf '%s' "$added_pairs" | grep -qxF -- "${src}:${lineno}"; then
+  # Herestring, NOT a pipeline. This file sets no `pipefail` today, and that
+  # was the ONLY reason the pipeline form was safe here -- adding `pipefail`
+  # for hygiene would have armed the SIGPIPE race silently, while reading as
+  # a tightening. Removed as a mechanism rather than left as an accident.
+  if grep -qxF -- "${src}:${lineno}" <<<"$added_pairs"; then
     blocking_rules="${blocking_rules}${rule}"$'\n'
     blocking_counts="${blocking_counts}${rule}	${path}"$'\n'
   else

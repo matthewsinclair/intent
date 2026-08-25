@@ -198,7 +198,10 @@ while IFS= read -r f; do
     esac
 
     # Inherited breakage is not this commit's to answer for.
-    printf '%s\n' "$added" | grep -qxF -- "$line" || continue
+    # Herestring, NOT a pipeline -- see the clock guard for the mechanism:
+    # under `pipefail` a SIGPIPE'd `printf` makes this test read FALSE, which
+    # here means a real escape form is waved through as inherited breakage.
+    grep -qxF -- "$line" <<<"$added" || continue
 
     report_header
     printf '  %s\n' "$f" >&2
