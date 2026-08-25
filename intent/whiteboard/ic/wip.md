@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b4196a86-ca7b-4638-9e04-fa749b53e343
-heartbeat_at: 2026-08-25 20:55Z
+heartbeat_at: 2026-08-25 21:09Z
 status: active
-focus: "LOCALFOLDED 2026-08-25 20:55Z FOR A COMPACT; hv RECONVENES ON THE BOUNCE. STATUS STAYS active -- a compact does not end a session (invariant 6). AC-08.5 CLOSED: gate PASS at 67 of 67, driven three times not transcribed. NOT the release -- ST0056 is 63/133 with WP-12 Not Started. Day record .history/20260825/wip-fold-2053Z.md. TWO THINGS THE FOLD ITSELF FOUND: TODO 1 is HALF done and I nearly folded it out (declared_reach still says Wp NotBuiltYet and its caption still says it is why the row is not green -- the row went green tonight); and my U3 table has EXPIRED in one row, lang init is wired now. Both are the expiring-claim class in my own artefacts, on the day I catalogued it. Nothing in flight, tree clean, 54 unpushed and that is hv's. I do not tag, push or publish."
+focus: "BOOTED 2026-08-25 21:09Z after a compact; hv's instruction is boot then HOLD FOR vc. STATUS STAYS active -- a compact does not end a session (invariant 6). GATE RE-DRIVEN AT BOOT, NOT TRANSCRIBED: ST0057 51/51 PASS, ST0056/03 16/16 PASS, gate ST0057 PASS = 67 of 67; counterweight ST0056 63/133 BLOCKED with WP-12 Not Started. Open issues are TWENTY, driven by tallying the STATUS COLUMN -- my first read said 21 off a truncated tail, which is the same class. intent/wip.md names twelve and stops; 0077-0084 are absent from it, and that file is vc's. All four inboxes at the sentinel, tree clean, 60 ahead of both remotes and that is hv's alone. TODO 1 remains HALF done: the field-axis arm is green, the door-denominator widening is not, and three stale claims still stand in mutation_every_writable_field.rs. I do not tag, push or publish."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
