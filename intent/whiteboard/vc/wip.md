@@ -5,7 +5,7 @@ role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
 heartbeat_at: 2026-08-25 07:26Z
 status: active
-focus: "**EOD 2026-08-24 22:55Z at `f7c0eb98`. RELEASED, PAUSED, TREE CLEAN, REFS LEVEL, ALL FOUR INBOXES AT THE SENTINEL.** **AC-08.5 VERIFIED AND STAYS `red`; gate 66 of 67** -- cc built the setter and routed the green, four field-setter gaps closed, limb 2 now an INVARIANT of the verb. **It stays red on four entity forms and on `put`s thread door clearing 8 of 8, AND NOBODY HOLDS ANY OF IT** -- three clean boards over four unclaimed items. **GLOBALFOLD LANDED at `98961891`**, and the three burning cases were re-driven with TWO DEAD. **The night`s rule: A CHECK CAN SAY YES ABOUT SOMETHING THAT GOT WORSE** -- paid for three ways in one hour, twice by my own instruments."
+focus: "**HOLDING ON hv`s INSTRUCTION, 2026-08-25 07:34Z: NO NEW WORK UNTIL devbin-cc`s Intentv2 FIXES ARRIVE.** Channel open to devbin-cc with the landing constraints front-loaded; devbin-vc told what I am doing after I misrouted the first send. **THE DECIDING QUESTION IS WHICH CHECKOUT OWNS EACH DEFECT** -- the fleet EXECUTES v2, so a fix landed only here reaches nobody and looks done. **GATE RE-DERIVED THIS MORNING RATHER THAN CARRIED: 50/51 + 16/16 = 66 of 67, AT-08.5 the only red** -- and dc derived it independently at their own pickup, the first time the two homes have been SHOWN to agree rather than assumed to. **FOUND ON PICKUP: my own 22:47Z escalation said 4 of 4 unowned when ic had taken item 3 an hour earlier.** 3 of 4; correcting forward."
 claims: [ST0056, ST0057, ST0058]
 ---
 
@@ -17,7 +17,13 @@ claims: [ST0056, ST0057, ST0058]
 
 ## DOING
 
-**NOTHING IN FLIGHT -- AND THAT IS A STATEMENT ABOUT ME, NOT ABOUT THE TREE** (ic). Tree clean and refs level as at `f7c0eb98`; a fresh vc reads this line while looking at whatever the tree has become since.
+**HOLDING ON hv's INSTRUCTION, GIVEN LIVE IN THIS SESSION 2026-08-25 07:34Z AND WITNESSED BY IT: NO NEW WORK UNTIL devbin-cc's INCOMING Intentv2 FIXES ARRIVE.** hv's words: _there are some incoming fixes for Intentv2 from devbin-cc Claude that I want you to coordinate on. Please hold on any new work until that arrives._ **The plan below is DRAFTED AND NOT STARTED**; nothing in it is in flight.
+
+**CHANNEL OPEN TO devbin-cc, WITH THE LANDING CONSTRAINTS SENT AHEAD OF THE FIXES RATHER THAN DISCOVERED AFTER THEM.** Six carried: the freeze is SCOPED (features frozen, shipped-surface defects live); `$INTENT_HOME` points at `Intentv2` so **the fleet EXECUTES v2 and a fix landed only in this tree reaches nobody**; `shipped_surface_drift.bats` asserts **either in BOTH trees or DECLARED**, not that the trees agree; this checkout has **no local `v2-maintenance`** by hv's ruling; a self-hosted tree runs **its own** guards; release is hv's. Six fields asked back per fix, **including the exit code** -- I will not relay a finding I have no way to reproduce.
+
+**I MISROUTED THE FIRST SEND TO devbin-vc AND hv CORRECTED IT.** Recorded rather than quietly re-sent: it is the same class this board already carries against cc -- **a wrong routing target chosen while agreeing with the boundary**. devbin-vc has been told what I am doing and asked to name any v2-facing work of their own now, rather than our finding the overlap later.
+
+**TREE STATE: clean at pickup, HEAD `9b466807`, refs LEVEL with both remotes; my heartbeat committed at `5e11700c`.** cc, dc and ic all picked up fresh this morning while I was reading, so their boards are live and moving -- **a fresh vc reads this line while looking at whatever the tree has become since.**
 
 **AC-08.5 IS VERIFIED AND STAYS `red`. `d38ecbe0`; board record `526f6963`; amendment `8f6bdd0a`.** The verdict did not move and **cc`s build was not nothing** -- four field-setter gaps closed, limb 2 an invariant of the verb. **What blocks it is four entity forms and `put`s thread door at 8 of 8, and NOBODY HOLDS ANY OF IT.**
 
