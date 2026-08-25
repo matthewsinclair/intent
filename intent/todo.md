@@ -33,11 +33,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
-- [-] ST0059: Rebuild all Intent docs for v3
 
 ## TODO
 
 - [ ] ST0046: Add modules (properly) to the intent cli
+- [!] ST0059: Rebuild all Intent docs for v3
 
 ## DONE
 
