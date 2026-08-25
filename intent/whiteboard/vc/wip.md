@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 22:40Z
+heartbeat_at: 2026-08-25 23:02Z
 status: active
-focus: "**ST0058 IS 2/6, UP FROM 0/6, AND NOT ONE LINE OF CODE WAS WRITTEN TO DO IT. U2 HARMLESS and U4 REVERSIBLE were unsatisfied because NOBODY FLIPPED THE BIT, not because they failed** -- re-drove their own falsifiers at HEAD instead of reading their evidence prose, on the ground that a criterion's text records a PAST measurement and the tree had moved 94 commits. **TWO OF MY OWN DRIVES WERE DEFECTIVE BEFORE THEY WERE RIGHT AND BOTH WRONG ANSWERS WERE PLAUSIBLE.** hv ruled twice more at 22:50Z. Gate still PASS at 67 of 67 and CLOSED IS STILL NOT RELEASED."
+focus: "**ST0057's GATE IS BLOCKED AT 51/53 AND THAT IS A RULING, NOT A REGRESSION -- hv chose to mint the missing coverage over three cheaper remedies on `0088`, so the thread stops being closed until two create-verbs exist. THE 67-OF-67 FIGURE IS RETIRED; wip.md and all three peer inboxes carry the correction.** ST0058 IS 2/6, UP FROM 0/6, AND NOT ONE LINE OF CODE WAS WRITTEN TO DO IT. U2 HARMLESS and U4 REVERSIBLE were unsatisfied because NOBODY FLIPPED THE BIT, not because they failed** -- re-drove their own falsifiers at HEAD instead of reading their evidence prose, on the ground that a criterion's text records a PAST measurement and the tree had moved 94 commits. **TWO OF MY OWN DRIVES WERE DEFECTIVE BEFORE THEY WERE RIGHT AND BOTH WRONG ANSWERS WERE PLAUSIBLE.** hv ruled twice more at 22:50Z. Gate still PASS at 67 of 67 and CLOSED IS STILL NOT RELEASED."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,7 +15,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**ST0057 WP-01/05/08 CLOSE-VERIFICATION. The gate PASSes at 51/51 while three WPs sit WIP, and closing them is vc's.**
+**NOTHING IN FLIGHT. ST0057 WP-CLOSE VERIFICATION IS DONE: 01 and 05 CLOSED, 08 is BLOCKED ON `0088` and is the only WIP left on that thread.**
+
+**`0088` IS FILED HIGH AND ITS REMEDY IS EXECUTED, WHICH IS WHY THE GATE MOVED.** WP-08 looked exactly like WP-01 and WP-05 from outside -- WIP at 5/5 PASS -- and was the one real gap: its own table names `Criterion create` and `AcceptanceTest create` as missing, `AC-08.5` covers every writable FIELD, and **creation is not a field.** `AC-08.6`/`AC-08.7` minted, `AT-08.6`/`AT-08.7` to-write. **THE ROW SAYING NO VERB CREATES A CRITERION REACHED CANON BY HAND-EDITING CANON -- the route it exists to retire.**
 
 **DRIVE THESE, DO NOT TRANSCRIBE THEM:** `ac gate ST0057`, `ac status ST0056/03`, `ac status ST0057`, `ac status ST0058`. **`ST0058` moved 0/6 -> 2/6 tonight at `e24f89be`.**
 
@@ -57,6 +59,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 - **THE PEN MOVED THE AUTHORITY, NOT THE AIM.** _Get the release done_ is not _release it_. **hv owns tagging, pushing and publishing.**
 - **A RULING THAT DISCHARGES AN ITEM ON ANOTHER NODE'S BOARD GOES IN THEIR INBOX, NOT ONLY OVER SendMessage** (cc, correcting vc). **SendMessage DOES NOT SURVIVE A COMPACT AND THE INBOX DOES** -- that is the protocol's own division: _inbox files carry only what must survive the session_, and a ruling that changes what is owed on a peer's board is the definition of it. **vc told hv the asymmetry was unfixable -- _nothing pushes a ruling back to the board that recorded the question_ -- AND THAT WAS WRONG. Something would have; it was available; it was empty.** Measured at fold: `cc`, `dc` and `ic`'s `inbox.vc.md` were ALL at the sentinel after an evening in which vc issued roughly fifteen rulings over the live channel and wrote NONE to the durable one. **hv then read a discharged item off cc's board because the only record of the discharge was in a message.** **AND IT IS THE SAME LESSON vc APPLIED TWICE TONIGHT TO FINDINGS AND NOT ONCE TO RULINGS:** `0085` and `0087` were filed precisely because an unfiled finding evaporates, and dc found four of five carried items living only in a peer's inbox. **The live send is right; it is not the whole of it.**
 - **A RATIFIED RULING IS NOT AN EXECUTED ONE.**
+- **A REFERENCE THAT RESOLVES TO THE WRONG SUBJECT READS AS COVERAGE; ONE THAT DANGLES ANNOUNCES ITSELF** (`0088`). `WP-08` cites `AC-10.11` for the create contract and it lands on ST0056's interrupted-migration row -- real, green, unrelated. **AND NO INSTRUMENT ANY THREAD OWNS CAN SEE IT: `ac gate` reads canon ROWS, and an id in prose is not a row.**
+- **AN INSTRUMENT MUST NOT BE ABLE TO OBSERVE ITS OWN EARLIER OUTPUT.** cc's rule is that an instrument must assert the artefact is the one under test rather than that two of its outputs agree; **this is the same rule in the TIME dimension**, and it is what caught me reading `.cache` residue from my own positive control as the subject recreating a store. **A fresh tree per arm, always.**
 - **A CRITERION'S TEXT IS A RECORD OF A PAST MEASUREMENT, AND THE TREE MOVES.** Re-drive the FALSIFIER, never re-read the EVIDENCE. Two ST0058 rows were satisfied and unmarked; the cost of finding out was one evening and no code. **AND THE CONVERSE IS THE DESIGN RULE: A ROW MUST NAME WHAT WOULD FALSIFY IT**, because a row reciting only its evidence can be believed and cannot be checked.
 - **A ROW'S STATED FALSIFIER AND ITS STATED COUNTER-EVIDENCE CAN BE DIFFERENT CLAIMS, AND THEN IT CAN NEVER CLOSE.** `AC-00.1`: the falsifier was silent while the cited counter-evidence was true, of a property the row did not claim. **Resolved by hv, not by me -- widening a criterion changes what it means.**
 - **CLEAN-BUT-BEHIND IS A THIRD BINARY STATE AND MY RULE HAD ONLY TWO.** Clean certifies and `dirty-` never certifies are both about the WORKING TREE; this is about the BINARY -- no marker, refuses nothing, warns nobody. **cc's sharp form: `include_str!` bakes `surface/dispatch-table.json` in at build time, so a stale binary answers correctly about a table it never compiled.**
