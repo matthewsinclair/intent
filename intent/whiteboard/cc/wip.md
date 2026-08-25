@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 14:36Z
+heartbeat_at: 2026-08-25 19:06Z
 status: active
-focus: "**LOCALFOLDED 2026-08-25 14:35Z FOR A COMPACT; STATUS STAYS `active` -- a compact does not end a session (invariant 6).** **TWO hv-ASSIGNED PIECES LANDED TODAY AND BOTH WERE MISDIAGNOSED IN THE FILING:** id normalisation (`58979836`) was not a missing feature but nine verbs answering a malformed id with a NOT-FOUND; the output handler (`3c2f50d6`, `5473a5cc`) was not a missing width check but `fill` being a MINIMUM with no maximum, in v2 and v3 alike. **GATE UNCHANGED AT 66 OF 67 -- I MOVED NONE OF IT, AND AC-08.5 STILL WAITS ON THE DENOMINATOR.** **hv RETRACTED THE ATTRIBUTION SWEEP: the `(C)` line was never required, and four nodes measured an unasked question carefully.** Nothing in flight, tree clean, all four inboxes at the sentinel."
+focus: "**AC-08.5 IS GREEN AND ST0057's GATE CLOSES AT 67 OF 67** -- vc drove and greened it at `7652f49a`, re-driven on the shared pair after my `8957261a`. **BOTH LIMBS WERE MINE AND I REFUSED MY OWN GREEN FOUR TIMES.** Landed today: id normalisation, the unified output handler, AC-08.5 limb 1 and limb 2, `st attach` (text and bytes), the `created` stamp refusal, the reader-axis `unsettable_kind`, and the Highlander fold of my own second instrument home. **EIGHT FALSE REMEDIES ACROSS THREE NODES, TWO MINE, AND THE LAST TWO WERE TRUE WHEN WRITTEN** -- a remedy that was never true is caught by review, one that EXPIRES is caught by nobody. **GATE CLOSED IS NOT RELEASED; hv OWNS THAT.** ST0056 is 63/133 and untouched. Nothing in flight, tree clean."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -49,6 +49,32 @@ Shipped: `--format={terminal,md,json}` and `--width` through one resolver, repla
 **AND IT LANDED ON THE WORST POSSIBLE OUTPUT.** The undriven half did not stay on my board -- **it went into a fleet message telling vc their remedy was the one thing that would not work.** The unevidenced half was the half carrying the recommendation.
 
 **hv's SCOPE POINT IS THE OUTER LAYER AND IT LANDS ON ALL FOUR OF US: THE FIRST QUESTION TO ASK OF A MEASUREMENT IS WHO ASKED FOR IT.** Nobody asked for any of this. **Measuring an unasked question carefully is more expensive than measuring it badly**, and my scope error and my control error compound rather than sit side by side: if the question had been asked, my unrun hypothesis would still have been wrong; because it was not, being wrong cost four nodes an afternoon.
+
+## AC-08.5 CLOSED AND THE GATE WITH IT -- 67 OF 67 -- 2026-08-25
+
+**vc GREENED IT AT `7652f49a` AND RE-DROVE IT ON THE SHARED PAIR AFTER MY `8957261a`. I DROVE IT MYSELF BOTH TIMES AND NEITHER RUN DISCHARGED THEIRS.** `ac status ST0057` 51/51 + 2 withdrawn PASS; `ac status ST0056/03` 16/16 + 1 withdrawn PASS. **ST0056 overall is 63/133 and is NOT this gate's denominator.**
+
+**LIMB 1** -- three entities refused every field they had, BY FORM, naming none, while the address-axis instrument read green because it answers a different question. **And the refusal gave a reason that was FALSE for two of the three**: an operator refused on an issue address was told they had addressed a collection. `fields_of` is now one exhaustive match, so a fourteenth `Entity` variant fails to COMPILE rather than defaulting into a bucket. **`Node` contributes zero rows because `schema_properties::<Node>()` cannot be written, and whether the model should carry one is HELD WITH hv** -- the partition sizes are pinned so WP-14 reifying it reds this and announces itself.
+
+**LIMB 2** -- the thread door restored four children and let nine scalars default; seven CLI lifecycle verbs across two entities cleared `status_reason` on their way past. **One of the seven was ratified and six were not**, and vc's ruled shape absorbed that without amendment: `st resume` passes `Some("")` and spends it as an ACT rather than a default.
+
+**`st attach` CLOSED THE LAST FIELD-AXIS GAP AND IT IS A DOOR RATHER THAN A DUPLICATE.** `place_attachment` is the single row-placement tail; `put_attachment` decides form by DECODING and reaches `Attachment::opaque`, which was already built and tested. **The condition said _no route to CREATE an opaque attachment_ for an hour and that was false** -- the capability existed and only the CLI route was missing.
+
+**THREE CAVEATS ARE ON THE ROW RATHER THAN IN A MESSAGE**, which ic and I both asked for: issue 0082 (canon-first attachments the working tree does not hold), the refusing round trip that makes it safe rather than lossy, and 0084 untouched.
+
+## EIGHT FALSE REMEDIES IN ONE DAY, AND THE LAST TWO WERE TRUE WHEN WRITTEN -- 2026-08-25
+
+**EACH WAS AUTHORED INSIDE THE FIX FOR THE PREVIOUS.** `settable_fields` calling an Issue a collection; `WholeBody` naming `intent put`, which is not a command; `Issue.created` naming a verb that creates issues and cannot move the field on one that exists; my `blob` remedy claiming `sync --to-store` picks up a dropped file; `finding.rs:267` telling an operator to move away an artefact Intent was built to keep.
+
+**TWO WERE MINE AND BOTH WERE THE SUBCLASS THAT MATTERS: TRUE WHEN WRITTEN.** `blob`'s _there is no route on this surface today_ was honest and `st attach` falsified it within the hour -- **`today` was the honest word AND the word that dates.** Then `text` and `blob` shared one sentence whose PUT clause fitted one member and named, for the other, **a route that cannot carry the form at all** (`put` takes a `&str`). **Withheld rather than reworded, with the distinction in the type, because rewording leaves the next member to inherit whichever half happens to fit.**
+
+**A REMEDY THAT WAS NEVER TRUE IS CAUGHT BY REVIEW; ONE THAT EXPIRES IS CAUGHT BY NOBODY.** Both of mine were found by driving them again later, and the second was found AFTER the row went green -- **the only moment nobody is looking.** That is an argument for re-driving a green when its subject moves, not for another routing.
+
+## A THIRD WAY A GREEN IS ABOUT THE WRONG SUBJECT, AND IT LEAVES NO EVIDENCE -- 2026-08-25
+
+The first two are familiar: **an instrument that cannot reach its subject** (my `.dat` probe against `ATTACHMENT_EXTENSIONS`, my `Finished`-matching wait condition reading 591 of 1080, `pgrep -f` matching peer argv), and **a binary carrying a stale copy of one** (vc's build baking in my uncommitted table; my own `recoverability` fix read as failed against a stale artefact).
+
+**THE THIRD IS: CORRECT INSTRUMENT, CORRECT BINARY, CORRECT ANSWER -- MEASURED BY THE PARTY WHOSE WORK IT CERTIFIES.** I re-drove the gate after changing code post-verdict. The figures were honest. **Nothing mechanical distinguishes that run from vc's; only who ran it** -- and the other two leave evidence while this one leaves none. **Re-driving after your own change is a duty to REPORT that the tree moved, never a licence to re-certify it.** vc's sentence is the one to keep: _a green is a claim about a tree, and the tree moved._
 
 ## The rule the routing left behind -- mine, and it generalises
 
