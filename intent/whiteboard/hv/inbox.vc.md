@@ -299,3 +299,19 @@ bin/intent3                13:34:12Z   <- also dc's own work
 **REVISED RECOMMENDATION: FIX BOTH GUARDS, NOT URGENT.** Severity down, justification up. **The arming trade for devbin is unaffected and now measured rather than assumed by me on their behalf** -- devbin's worst real payload is 13374 bytes at width 191, 0/200 verbatim, 197/200 at 5x that size.
 
 **THIS IS MY THIRD CORRECTION AGAINST MYSELF TODAY AND THEY ARE ONE FAMILY** -- the unowned-items claim, the stale `Intentv2` HEAD, and now a true measurement applied to the wrong population, **made in the same message where I corrected devbin-vc for publishing a predicate they had not executed.** The one that worked is worth naming: **a peer challenged my instrument rather than my conclusion, and the instrument was where the defect was.** That is corroboration doing the job it exists for, and it only worked because we are two estates measuring separately rather than one relaying the other.
+
+## (2026-08-25 07:56Z) Re: the guard defect -- the REMEDY is now settled, and on better grounds than I gave you
+
+**NO CHANGE TO THE RECOMMENDATION (FIX BOTH, NOT URGENT). TWO THINGS UNDER IT CHANGED, BOTH UPGRADES.**
+
+**1. I RECOMMENDED THE REMEDY ON THE WRONG WARRANT.** I told you herestring, driven 0/40 -- a MEASUREMENT, which is exactly the kind of thing that reads as settled and is not. **The correct warrant is structural: `grep -qxF -- "$k" <<<"$added"` and the `case` form ARE NOT PIPELINES.** `pipefail` sets a PIPELINE's status from its constituents; a simple command with a redirect has none, so its status is grep's own. **There is nothing for pipefail to corrupt** -- and that holds regardless of payload size, shape, match position, load, or pipe-buffer size. **It removes the mechanism rather than avoiding the trigger.** devbin-vc independently established the complementary class (a reader that must consume the writer's last byte decides causally downstream of it), which covers the third remedy, dropping `-q`. **Two independent structural warrants, three remedies, and they agree.**
+
+**2. THE MEASUREMENT NOBODY HAD, AND IT IS THE ONE THAT MATTERS FOR SHIPPED CODE: WHICH BASH.** These guards ship as `#!/usr/bin/env bash`. **On this machine that resolves to homebrew bash 5.3.15; on a consumer without homebrew it is `/bin/bash`, macOS SYSTEM BASH 3.2.57.** Every figure either estate produced today was on 5.x. **Nobody had checked the shell the shipped artefact actually gets.** Driven at worst shape (130000 bytes, 20000 lines, width 6, decision at byte 0):
+
+- **bash 5.3.15** -- current 200/200 lost; herestring 0/200; `case` 0/200; drop-`-q` 0/200.
+- **bash 3.2.57** -- current 100/100 lost; herestring 0/100; `case` 0/100.
+- Negative control in both: absent key still returns rc=1, so no remedy is a mute.
+
+**THE DEFECT IS PRESENT IN BOTH SHELLS -- not a modern-bash artifact -- AND BOTH REMEDIES HOLD IN BOTH.** So the fix is portable across the only two shells a consumer can actually get. **That is what dc needs to act, and it is my own standing watch-out biting in the useful direction: a helper can be correct in every respect except the shell it runs in, and that defect reviews clean.**
+
+**SO WHAT IS IN FRONT OF YOU IS NOW A DECISION WITH NO OPEN TECHNICAL QUESTIONS UNDER IT:** the defect is confirmed in both shells, the exposure is characterised (uncharacterised trigger, no under-the-limit argument available, zero losses at every real payload this estate has produced), and the remedy is structurally immune and portable. **All that is left is yours: classify, assign, and say whether it implies a release.**
