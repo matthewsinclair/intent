@@ -315,3 +315,24 @@ bin/intent3                13:34:12Z   <- also dc's own work
 **THE DEFECT IS PRESENT IN BOTH SHELLS -- not a modern-bash artifact -- AND BOTH REMEDIES HOLD IN BOTH.** So the fix is portable across the only two shells a consumer can actually get. **That is what dc needs to act, and it is my own standing watch-out biting in the useful direction: a helper can be correct in every respect except the shell it runs in, and that defect reviews clean.**
 
 **SO WHAT IS IN FRONT OF YOU IS NOW A DECISION WITH NO OPEN TECHNICAL QUESTIONS UNDER IT:** the defect is confirmed in both shells, the exposure is characterised (uncharacterised trigger, no under-the-limit argument available, zero losses at every real payload this estate has produced), and the remedy is structurally immune and portable. **All that is left is yours: classify, assign, and say whether it implies a release.**
+
+## (2026-08-25 17:17Z)
+
+**TWO THINGS NEED YOUR WORD AND NEITHER HAS EVER BEEN PUT TO YOU. THE FIRST IS A BLOCKER ON THE 3.0.0 CUT ITSELF.**
+
+**1 -- WP-14 BLOCKS WP-12, AND THE DEPENDENCY IS STATED NOWHERE (dc found it; I had assigned the work wrongly and dc refused the assignment against a contract read).** `AC-12.1` prunes `bin/` at the cutover. The `intent claude ws` family -- the whiteboard PROVISIONER, the thing that scaffolds the board the four of us coordinate on -- is contracted in **WP-14** (`AC-14.10`), not WP-07, and **WP-14 is Not Started**. So at the cut the provisioner does not degrade, **it disappears**, and v3 cannot create the board its own developers run on.
+
+**AND THE OBVIOUS FIX IS THE WRONG ONE, WHICH IS WHY THIS IS YOURS AND NOT MINE.** I told dc to port it. `AC-14.7` says every `/in-whiteboard` verb is served by **`intent wb` FROM THE STORE**, in-process and over GraphQL -- so porting v2's file-based `intent_claude_cwi` builds the thing WP-14 exists to replace: **two whiteboard implementations, one file-based and one store-backed, agreeing on the day they are written.** dc caught it and held. **Both WP-14 and WP-12 are unclaimed, which is part of why this stayed invisible.**
+
+**THE QUESTION IS SEQUENCING AND IT IS YOURS: does WP-14 come inside the 3.0.0 cut, or does the cut ship with the whiteboard family unported and `bin/` pruned anyway?** I am not deciding it and I have told all three nodes to build against neither answer until you rule.
+
+**2 -- AT-11.7 IS RE-OPENED, AND THE REASON IS A DEFECT OF MINE.** _Is the notarisation/provenance writer (`cmd/macos`) in scope for the 3.0.0 cut, or does WP-11 ship without AT-11.7 green?_ dc declined it on scope and recorded the decline on their own board; **I declined it on the same reasoning and recorded MINE on your board, where it reads as settled.** Both declines reasoned from _hv asked for local usability, explicitly not public release_ -- **and you have now named the release as the aim, first-hand, so the premise is gone.** The question was refused twice, by two nodes, from one premise, **and never once put to you.** dc's phrase for it, which I am adopting: **a decline recorded on my own board is not a question asked.** `hv/wip.md` is amended: my refusal is withdrawn, the row is live, and I have not re-decided it.
+
+**WHAT I HAVE RULED UNDER THE PEN TODAY, SO YOU CAN AUDIT IT RATHER THAN DISCOVER IT.** All of it is vc's, none is attributed to you, and `imprimatur` did not move that boundary (ic's reading, which I endorse):
+
+- **AC-08.5's field-axis denominator** -- limb 1's population is indexed by MODEL TYPE, not address form. 6 field-carrying entities, not 13 address forms; `settable_fields` covers 4 of 6. Landed at `8f03d9c7`. **This is the ruling that unblocked cc, who had correctly stopped building without it.**
+- **`Unsettable` gains a fourth variant, `Derived(source)`** -- a contract change, routed to me by ic rather than assumed.
+- **`Issue.body` is a GAP, not a category** -- reversing a steer I had already given cc.
+- **`Node` contributes zero rows today** -- a measurement. **Whether the model should carry a `Node` type stays HELD ON YOU as WP-14 scope**; my first pass settled that by inclusion and cc caught it.
+
+**THE STANDING READING I HAVE GIVEN ALL THREE NODES, CORRECT ME IF IT IS WRONG: _get the release done_ IS NOT _release it_.** Nobody tags, pushes or publishes under any plan of mine -- **that is your hand.** ic stated they would refuse it by default before I said so, which is the right instinct and I have endorsed it as the rule.

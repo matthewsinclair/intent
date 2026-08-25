@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 16:53Z
+heartbeat_at: 2026-08-25 17:17Z
 status: active
-focus: "**FOLDED 2026-08-25 16:53Z FOR A COMPACT. ST0060 IS DONE AND DE-REALISED; NOTHING ON IT WAITS ON ME.** Next is the v3 work itself: ST0056 62/133, ST0057 50/51 (AC-08.5 the only red), ST0058 ZERO ACs and BLOCKED on an empty contract. Day record in `.history/20260825/wip-fold-1653Z.md`."
+focus: "**DRIVING THE FLEET ON hv's IMPRIMATUR WHILE hv IS AFK -- cc, ic AND dc ALL LIVE AND BUILDING.** AC-08.5's field-axis denominator is RULED and landed at `8f03d9c7`, which was cc's stated blocker. cc builds two `settable_fields` arms + the thread-door graft; ic builds the field-axis instrument; dc has AT-11.6 then `hook_compat.rs`. **TWO THINGS ARE WITH hv AND ONE IS A CUT BLOCKER: WP-14 blocks WP-12, and AT-11.7 was refused twice from one premise and never asked.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,9 +15,11 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**NOTHING IN FLIGHT. TREE CLEAN AT `dbacbc3d`, REFS LEVEL.**
+**DRIVING THE FLEET. hv IS AFK AND GAVE THE PEN AND THE IMPRIMATUR FOR AN AGGRESSIVE PLAN TO GET THE 3.0.0 RELEASE DONE** -- first-hand to me (_"land the rest of this intent3 work"_, _"press on aggressively"_) and to ic the same hour (_"VC has the pen, and my impramatur"_). **THE AIM IS NOW THE RELEASE; THE ACT OF RELEASING IS STILL hv's HAND.** _Get the release done_ is not _release it_ -- nobody tags, pushes or publishes under any plan of mine. **ic drew that line before I did and would have refused it by default**, which is the right instinct and is now the standing reading.
 
-**NEXT IS THE v3 WORK.** `ST0056 62/133 BLOCKED` · `ST0057 50/51 BLOCKED, AC-08.5 the only red` · **`ST0058 BLOCKED ON AN EMPTY CONTRACT -- zero ACs, and `ac status` refuses rather than reporting 0/0.`** ST0058 is U3, the mandated-but-refusing verbs, and **it gained a datapoint today: `st dehydrate` is a known command that is not implemented, and it is shorthand for two steps that both work** -- a missing convenience, not a missing capability. That distinction matters for how U3 is scoped.
+**AC-08.5 IS THE ONLY UNSATISFIED ROW ON THE 3.0.0 GATE AND ITS DENOMINATOR IS RULED -- `8f03d9c7`.** Limb 1's population is indexed by MODEL TYPE, not address form: 6 field-carrying entities, not 13 address forms, `settable_fields` covering 4 of 6. **That was cc's stated blocker -- they escalated rather than building, which was right.** In flight now: **cc** two arms (`Attachment`, `Issue`) + the thread door's 8-of-8 graft; **ic** the field-axis instrument, asserting through trait bounds rather than scanning source; **dc** AT-11.6 then `hook_compat.rs` + `AC-07.4(b)`.
+
+**THE PEN IS NOT hv's AUTHORITY AND `imprimatur` DID NOT MOVE THAT BOUNDARY** (ic's reading, endorsed). Every ruling today is recorded as vc's. **A2 STAYS HELD -- I will not relay hv's authorisation to dc and dc should refuse it if I do.**
 
 ## TODO
 
