@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 83,
+  "slug": "st-hydrate-reports-exists-for-a-file-it-just-cre",
+  "title": "st hydrate reports 'exists' for a file it just created, so its output cannot distinguish a restore from a no-op",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-08-25",
+  "reporter": "Matthew Sinclair",
+  "body": "**Measured 2026-08-25 while checking whether de-realising a thread loses its attachments.** Deleted `intent/st/ST0060/design.md`, ran `intent3 st hydrate ST0060`. The file was recreated byte-identical -- correct behaviour -- and the report said:\n\n```\nok: intent:///threads/ST0060 hydrated -- listed in intent/.intentfiles, 3 file(s) on disk\n  exists: intent/st/ST0060/acceptance.md\n  exists: intent/st/ST0060/design.md\n  exists: intent/st/ST0060/info.md\n```\n\n**`exists:` for a file it had just written.** The verb does the right thing and cannot say what it did.\n\n**THE COST IS THAT ITS OUTPUT CANNOT BE USED TO VERIFY A RESTORE**, which is the one question anyone runs it to answer. It cost a false negative here: an earlier run reported `exists:` for all three and I read that as \"wrote nothing\", when what had actually happened was that `st dehydrate` had removed nothing (it is unimplemented -- see the U3 class in ST0058). **A report with one word for two states makes a wrong reading indistinguishable from a right one**, and both runs looked identical.\n\n**Remedy:** distinguish the states -- `wrote:` / `exists:` -- or say nothing per file and report a count of each. Either is fine; one word for both is not. Low severity because the behaviour is correct and only the report is blind, but it sits directly on the path someone takes when they are checking whether dehydration is lossy."
+}
