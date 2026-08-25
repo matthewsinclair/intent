@@ -107,6 +107,52 @@ _v2_surface_dir() {
   _v2_checkout || _v2_from_ref
 }
 
+# WHICH ROUTE THE COMPARISON WILL TAKE, ANSWERED WITHOUT SIDE EFFECTS. It is a
+# pure read -- no `skip`, no `fail` -- so calling it in a command substitution
+# is safe, unlike the helpers above (see the unwinding note below).
+_v2_route() {
+  _v2_checkout >/dev/null 2>&1 && { echo checkout; return 0; }
+  _v2_ref >/dev/null 2>&1 && { echo ref; return 0; }
+  return 1
+}
+
+# hv 2026-08-25: THE PROXY ROUTE'S PREMISE IS RETIRED, AND THE PROXY-CURRENCY
+# TEST BELOW WAS BUILT ON IT. That test's remedy reads "Push the v2 checkout's
+# v2-maintenance branch", which was the right instruction while the push was
+# owed. It is not owed any more.
+#
+# hv's words: "The checked out v2 branch is only being used locally here by
+# projects on this machine. We are building v3 here live in the Intent project
+# and failing forward, with haste ... as long as [the other projects here] can
+# work on a stable v2 branch and not have their project management functions
+# screwed up while we build v3, I'm good."
+#
+# SO THE v2 BRANCH IS DELIBERATELY NEVER PUSHED, and the pushed ref is frozen
+# at the point the branch was cut. Every shipped-surface defect fix landed under
+# that ruling is committed in BOTH trees locally and visible in NEITHER to CI.
+#
+# WHAT THAT COSTS, STATED RATHER THAN PAPERED OVER: via the proxy, a DIFFERS
+# can no longer distinguish "landed in both trees, v2 side unpushed" (correct,
+# and now the normal case) from "landed only in v3" (the defect this guard
+# exists for). CI therefore CANNOT ANSWER THIS QUESTION and must stop claiming
+# to. Ground truth is route 1, the live checkout, which every node here has and
+# which still FAILS on drift -- unchanged.
+#
+# WHY THIS IS A ROUTE-LEVEL DECLARATION AND NOT A PER-FILE ONE. The obvious
+# move is to add each fix to an exception list, and the proxy-currency test
+# already forbids it in terms: "Do not silence this by widening the drift
+# exceptions -- the exception lists declare v3-vs-v2 intent and have nothing to
+# say about a ref lagging its own checkout." That is exactly right. A per-file
+# entry would also be FALSE of every file it named: neither PENDING (the v2
+# landing is done, not owed) nor V3-ONLY (v2 received it). The ambiguity is a
+# property of the ROUTE, so the declaration belongs there.
+V2_REF_CANNOT_ANSWER="the pushed v2-maintenance ref is frozen by hv's ruling of
+2026-08-25: the v2 branch serves only the projects on this machine and is
+deliberately never pushed. A difference against the REF is therefore not
+evidence of drift -- the v2 landing is local and the ref cannot show it.
+Ground truth is the live checkout (\$INTENT_V2_CHECKOUT or ~/Devel/prj/Intentv2),
+where this same comparison still fails on real drift."
+
 # SKIP LOCALLY, FAIL IN CI, AND THE ASYMMETRY IS THE WHOLE POINT. A guard that
 # skips when its input is missing cannot tell "not applicable" from "broken",
 # and those two need opposite responses. On a developer machine with neither a
@@ -178,6 +224,7 @@ _is_exception() {
     if [ -n "${CI:-}" ]; then fail "$V2_ABSENT_IN_CI"; else skip "$V2_ABSENT_LOCALLY"; fi
   fi
   cd "$INTENT_PROJECT_ROOT" || exit 1
+  local route; route="$(_v2_route)"
 
   local drifted="" missing="" f
   while IFS= read -r f; do
@@ -190,6 +237,15 @@ _is_exception() {
   DIFFERS: $f"
     fi
   done < <(find $SURFACE_PATHS -type f ! -name '.DS_Store' 2>/dev/null | sort)
+
+  # THE PROXY CANNOT ANSWER THIS, SO IT REPORTS INSTEAD OF FAILING. Loudly:
+  # a silent pass here would be indistinguishable from a clean comparison, and
+  # this whole file exists because that distinction was once invisible.
+  if [ -n "$drifted$missing" ] && [ "$route" = "ref" ]; then
+    printf 'shipped-surface: UNVERIFIABLE via the pushed ref, not a pass:%s\n' "$drifted$missing" >&3
+    printf '%s\n' "$V2_REF_CANNOT_ANSWER" >&3
+    return 0
+  fi
 
   [ -z "$drifted$missing" ] || fail "shipped surface has drifted between the two checkouts:$drifted$missing
 
@@ -236,7 +292,19 @@ the ruling in the comment beside it."
 # shipped-surface defect fix that is committed but not pushed makes CI compare
 # v3 against a ref that lacks it, and CI reddens naming DRIFT -- blaming the
 # tree that is correct. This runs only where both routes exist, which is a
-# developer machine, which is where the push is owed.
+# developer machine.
+#
+# **IT NO LONGER DEMANDS THE PUSH, AND THE SENTENCE ABOVE IS WHY IT USED TO.**
+# hv ruled on 2026-08-25 that the v2 branch serves only this machine and is
+# deliberately never pushed, so the lag this test measures is now the EXPECTED
+# state rather than a finding. Left failing, it would have gone permanently red
+# on every node here while instructing each of them, in its own remedy text, to
+# do the thing hv had just declined -- **a retired premise still issuing
+# orders, which is the shape nobody re-reads.**
+#
+# IT STILL MEASURES. The lag is worth seeing: it is the exact set of files CI
+# is blind to, and printing it is what keeps that blindness legible instead of
+# theoretical. If it ever reached zero that would be news, not silence.
 @test "the pushed v2-maintenance ref still stands in for the live v2 checkout" {
   local co ref_dir
   co="$(_v2_checkout)" || skip "no live v2 checkout; nothing to validate the proxy against"
@@ -254,15 +322,14 @@ the ruling in the comment beside it."
     fi
   done < <(find "$ref_dir" -type f ! -name '.DS_Store' 2>/dev/null | sort)
 
-  [ -z "$stale" ] || fail "the pushed v2-maintenance ref no longer matches the live v2 checkout:$stale
-
-CI compares the v3 surface against the REF; the fleet executes the CHECKOUT.
-While these disagree, a green in CI is a statement about the wrong tree, and a
-red in CI will name DRIFT while blaming the tree that is correct.
-
-Push the v2 checkout's v2-maintenance branch. Do not silence this by widening
-the drift exceptions -- the exception lists declare v3-vs-v2 intent and have
-nothing to say about a ref lagging its own checkout."
+  if [ -n "$stale" ]; then
+    printf 'v2-proxy: the pushed ref lags the live checkout, which is EXPECTED under hv 2026-08-25:%s\n' "$stale" >&3
+    printf 'v2-proxy: this is the exact set CI cannot see. It is reported, never gated -- the\n' >&3
+    printf 'v2-proxy: branch is deliberately unpushed, so closing this gap would mean pushing it.\n' >&3
+    printf 'v2-proxy: the both-trees property is enforced by the drift test above, via the LIVE\n' >&3
+    printf 'v2-proxy: checkout, which is ground truth and still fails on real drift.\n' >&3
+  fi
+  return 0
 }
 
 # The exception list must not quietly become the mechanism.
