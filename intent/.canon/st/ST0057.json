@@ -530,6 +530,22 @@
       "state": {
         "is": "computed"
       }
+    },
+    {
+      "id": "AC-08.6",
+      "text": "**A CRITERION IS CREATABLE THROUGH THE MUTATION SURFACE, NOT ONLY BY HAND-EDITING CANON.** Minted by vc 2026-08-25 on hv's ruling over issue `0088`, which offered three cheaper remedies and took this one. `WP-08`'s own enumerated-gap table names `Criterion create` as **missing** and no criterion covered it: `AC-08.5` covers every writable FIELD, and **creation is not a field**, so the thread's gate PASSed at 51/51 over a stated deliverable. WP-08 nominates `AC-10.11` / `AT-10.11` for the caller-assigned create contract; **ST0057 has no such rows, and ST0056's `AC-10.11` is an interrupted migration reaching the same end state.** Driven rather than grepped, 2026-08-25: `ac --help` lists nine subcommands and `at --help` five, and **not one of the fourteen creates anything** -- every arm is a transition on a row that already exists. The route today is a hand-edit of `.canon/st/<ID>.json` followed by `sync --to-store`, **which is how THIS ROW itself reached canon**, and how `AC-14.12` reached ST0056 the same evening. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent `PUT` to the entity address rather than a `POST` to the collection. **WHAT WOULD FALSIFY THIS: a criterion that can be brought into existence by editing canon but not through the addressed surface, or a create that is not idempotent under repeat.**",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.7",
+      "text": "**AN ACCEPTANCE TEST IS CREATABLE THROUGH THE MUTATION SURFACE, NOT ONLY BY HAND-EDITING CANON.** Minted by vc 2026-08-25 on the same hv ruling. Recorded SEPARATELY from `AC-08.6` rather than folded into it because **the two entities are separately enumerated as missing in WP-08's table and can close on different commits** -- an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not: **a to-write row citing a file that already exists is a defect this repository's own commit gate checks for.** `at`'s five subcommands are `list`, `lint`, `green`, `red`, `na` -- every one a transition. **WHAT WOULD FALSIFY THIS: an AT that can be brought into existence by editing canon but not through the addressed surface, or a created row that bypasses the grammar `at lint` enforces on every other row.**",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "tests": [
@@ -1060,6 +1076,26 @@
       ],
       "status": "green",
       "note": "**GREEN 2026-08-20 at `b082b488`.** `an_absent_or_unreadable_manifest_keeps_every_view_in_scope` asserts `NothingSaid` and `Unreadable` behave identically over the same missing view -- both keep it in scope and both name it. **This is the arm that stops the fix from being a silent estate-wide opt-out** the day somebody's manifest stops parsing. **What it does NOT cover, stated rather than implied: nothing reports the `Unreadable` state to an operator.** AC-10.2 names that as an owed reader; this row proves only that the state is honoured, not that it is surfaced."
+    },
+    {
+      "id": "AT-08.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/mutation_creates_criteria_and_tests.rs",
+      "covers": [
+        "AC-08.6"
+      ],
+      "status": "to-write",
+      "note": "**TO-WRITE, and the verb it tests does not exist yet** -- that is the gap `0088` records rather than a missing instrument. Cited file deliberately does not exist: this repository's commit gate refuses a to-write row whose cited test is already present."
+    },
+    {
+      "id": "AT-08.7",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/mutation_creates_criteria_and_tests.rs",
+      "covers": [
+        "AC-08.7"
+      ],
+      "status": "to-write",
+      "note": "**TO-WRITE, and the verb it tests does not exist yet** -- that is the gap `0088` records rather than a missing instrument. Cited file deliberately does not exist: this repository's commit gate refuses a to-write row whose cited test is already present."
     }
   ],
   "attachments": [
