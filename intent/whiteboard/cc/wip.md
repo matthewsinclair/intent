@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 08:34Z
+heartbeat_at: 2026-08-25 08:48Z
 status: active
 focus: "**LANDED `_CLAUDE.md` VERSION-IN-PROSE IN BOTH TREES -- Intent `7b723dfa`, Intentv2 `3e7feee3`, SAME BLOB `fc34f449`, so byte-identity is one OBJECT rather than two files that agree.** hv-ruled via vc; ic and devbin-cc converged on the same shape independently. **`:3` DROPS the token (ic's argument: it was never provenance about the FILE, it is a current-state claim about the PROJECT); `:54` aligns to `_AGENTS.md`'s agentive footer.** **THE NEAR-MISS IS THE FINDING: MY FIRST RENDER RETURNED THE OLD PROSE.** Templates are compiled in via `embed_templates.rs`'s per-file `include_str!`, and the binary was four hours older than my edit -- `strings` carried the old sentence and ZERO of the new. **A code read alone would have shipped a fix the running binary did not carry.** **TWO BOARD TODOs DIED WHILE I CHECKED THEM (5 and 6), AND I HIT MY OWN INSTRUMENT TWICE: a zsh no-word-split probe and a `head -5` I read as an absence.** AC-08.5 untouched; the gate is 66 of 67 and only ONE of its four items is a cc build."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -60,6 +60,20 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 **WHAT SURVIVES, AND IT IS ic's: a v3 binary is what decides the footer, and for `init` specifically one newer than the template commit.** `[[INTENT_VERSION]]` is **`ctx.version` at `rootfiles.rs:343`, a RenderContext field the CALLER fills** -- not `env!` at the token site, as ic had it. Every caller today passes the compile-time constant, so their conclusion stands; **the property is the caller's choice, and a future caller passing something else is a one-line change with no compile error.**
 
 **AND I HIT MY OWN INSTRUMENTS TWICE IN ONE MORNING, BOTH IN FIVE-LINE PIPELINES I WOULD NOT HAVE CALLED INSTRUMENTS.** A probe loop passed `claude skills` through an unquoted `$v` -- **zsh does not word-split** -- so it reached the binary as ONE argument and answered `unrecognized subcommand`, which would have CONFIRMED a stale claim in `restart.md` that I was in the middle of refuting. And I read `git status --short | head -5`, saw no guard files, and **took the truncation for an absence** -- then reasoned from it to a false contradiction about dc's in-flight work. `git diff --stat` settled it. **Both were tidiness, not haste, and in both the wrong answer was the plausible one.**
+
+## I broke the fleet's tooling with a prose edit, and the catch came from nowhere near the change
+
+**`2fc66d8f` / `4836d667`, both trees, vc GREEN with the mutation driven by them rather than taken from me.** My footer rewording split `CANON_INTENT_FOOTER_MARK`, a CONTIGUOUS substring of the footer's PROSE. Every project upgrading after `7b723dfa` would have had its `CLAUDE.md` permanently declassified as user-authored -- **and the only remedy the tool documents is `--force`, which destroys the `user:start` block, so a consumer following its advice loses their own directives. The repair was worse than the defect it repaired.**
+
+**IT FAILS AS A LEGITIMATE MESSAGE.** _user-authored (left alone)_ is a real, correct, long-standing state quoted approvingly in two v2.10.0 canary reports. **Nothing in the output separates the defect from the design**, which is why devbin-cc found it only by treating their own clean idempotency green as suspicious.
+
+**THE DIAGNOSIS EVERYONE REACHED FIRST WAS THE FLATTERING ONE AND IT WAS FALSE.** devbin-cc wrote that no test anyone had would have caught it; vc backed it, having grepped `tests/` for the two IDENTIFIERS. **`intent_claude_upgrade.bats:86` asserted the literal VALUE `"Generated from"` and went red the moment I reworded the footer.** It had been there all along, in the very file the new test was going into. **vc's grep could not have reached it -- the file contains neither identifier -- so its silence was a fact about the pattern.** I found it by running the file for an unrelated reason.
+
+**SO: A MISSING TEST IS A BACKLOG ITEM; AN UNRUN TEST IS A DISCIPLINE FAILURE, AND ONLY ONE OF THOSE IS FIXED BY WRITING MORE TESTS.** The estate HAD the check. I committed a template change without running the test file that covers that template.
+
+**AND NOT ONE OF THE THREE CATCHES CAME FROM REVIEWING THE CHANGE**, which is the only review anybody runs: devbin ran an upgrade, vc re-verified a green they had already given, I ran a test file for another reason. **Ninety seconds of prose editing, three sessions, three different faces of it.**
+
+**THE POPULATION STEP IS THE ONE I SKIPPED AND IT WAS CHEAP.** Enumerated afterwards: two readers broken, eight untouched (all the AGENTS.md form, unchanged). **`views.rs:222` already shipped the agentive footer**, so the alignment was the estate MAJORITY and `_CLAUDE.md` the lone outlier -- a stronger argument than the two-file one anyone made at the time, sitting in the tree the whole while.
 
 ## TODO
 
