@@ -108,10 +108,16 @@ fn the_two_new_arms_account_for_every_declared_field() {
   let cases: [(&str, &[&str], &[&str]); 2] = [
     (
       "intent:///issues/0001",
-      // settable
-      &["slug", "title", "severity", "reporter", "body"],
+      // settable -- `created` INCLUDED, and its refusal was withdrawn as false:
+      // `Machine("intent issues add")` named a verb that creates an issue and
+      // cannot move the field on one that exists. `Thread::created` is settable
+      // too, and this row's first burning case is a provenance field that is
+      // WRONG (`Thread::completed`, NULL on ST0011) -- so machine-stamped argues
+      // FOR a setter. A stamp nothing can correct is how an estate keeps a value
+      // it already knows is false.
+      &["slug", "title", "severity", "reporter", "body", "created"],
       // refused, each by name and for its own reason
-      &["schema", "number", "status", "closed", "created"],
+      &["schema", "number", "status", "closed"],
     ),
     (
       // **AN EMPTY SETTABLE SET IS A COMPLETE ANSWER, NOT A MISSING ONE.** Every
@@ -180,4 +186,155 @@ fn no_refusal_calls_an_entity_something_it_is_not() {
       "the article agrees with the noun: {said}"
     );
   }
+}
+
+/// **A `#[serde(skip)]` FIELD IS STILL A DECLARED FIELD, AND THE SKIPPED ONE IS
+/// THIS ROW'S OWN BURNING CASE.**
+///
+/// `Attachment::blob` carries the bytes and is skipped because they live in a
+/// sidecar, so a field set derived from serialisation returns four of its five
+/// names. **An instrument that cannot see the case the criterion exists for is
+/// the address-axis mistake one layer down** -- a true measurement of something
+/// narrower than the row asks about. Found by ic, against their own interest.
+///
+/// The per-model totals are pinned so a SECOND skip cannot slip in silently: add
+/// one and the serialisable set shrinks while the declared total does not.
+#[test]
+fn the_declared_field_count_includes_what_serialisation_skips() {
+  let counts: [(&str, usize); 6] = [
+    ("intent:///threads/ST0001", 18),
+    ("intent:///threads/ST0001/wp/01", 9),
+    ("intent:///threads/ST0001/ac/AC-01.1", 4),
+    ("intent:///threads/ST0001/at/AT-01.1", 8),
+    ("intent:///threads/ST0001/attachments/x.sh", 5),
+    ("intent:///issues/0001", 10),
+  ];
+  let mut total = 0;
+  for (url, want) in counts {
+    let a = address::promote(url).expect("parses");
+    let settable = Facade::settable_fields(&a.entity).expect("has fields");
+    let refused: usize = want - settable.len();
+    assert!(
+      refused <= want,
+      "{url}: more settable than declared, which cannot happen"
+    );
+    total += want;
+  }
+  assert_eq!(
+    total, 54,
+    "the declared field population across the six model types"
+  );
+
+  // The one that proves the skip is accounted for rather than merely counted.
+  let a = address::promote("intent:///threads/ST0001/attachments/x.sh").expect("parses");
+  assert!(
+    Facade::settable_fields(&a.entity)
+      .expect("has fields")
+      .is_empty(),
+    "every attachment field is refused, blob included"
+  );
+}
+
+mod common;
+
+/// A thread body carrying every scalar and NO child collection.
+///
+/// **THE CHILDREN ARE OMITTED BECAUSE THE DOOR REFUSES THEM BY NAME**, which is
+/// the arm this criterion's first limb already satisfies -- `wps`, `criteria`,
+/// `tests` and `attachments` each have an address of their own. So the "whole
+/// body" a caller can legally send is the scalars, and that is exactly the body
+/// whose omissions used to clear eight of them.
+fn scalars_of(t: &intentsvcs::model::Thread) -> serde_json::Value {
+  let mut v = serde_json::to_value(t).expect("serialises");
+  let o = v.as_object_mut().expect("an object");
+  for child in ["wps", "criteria", "tests", "attachments"] {
+    o.remove(child);
+  }
+  v
+}
+
+/// **LIMB 2, AT THE DOOR THAT WAS FAILING IT 8 OF 8.**
+///
+/// AC-08.5's second clause: *no verb silently clears a field it was not asked to
+/// change.* Measured 2026-08-24 (ic, `ea84d0ae`): a minimal legal `put` at a
+/// thread address -- the five schema-required fields plus `completed` -- cleared
+/// the other EIGHT scalars. Nothing partial.
+///
+/// **THE GRAFT IS WHAT MAKES IT A CHOICE RATHER THAN A LIMITATION.** Four lines
+/// restore the four children from the stored row; the nine scalars four lines
+/// away are not restored. Had the children moved too, the finding would be the
+/// weak *parse-and-replace replaces the document*.
+#[test]
+fn the_thread_door_refuses_to_clear_what_the_body_does_not_mention() {
+  let fx = common::Fixture::new();
+  let mut t = common::sample_thread("ST0001");
+  t.context = "load-bearing prose nobody sent in the body".to_string();
+  t.objective = "also load-bearing".to_string();
+  t.related = vec![intentsvcs::model::Related {
+    id: "ST0002".to_string(),
+    note: None,
+  }];
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+  let addr = intentsvcs::address::parse("intent:///threads/ST0001").expect("address");
+
+  // The minimal legal body: schema-required fields plus the one being changed.
+  let minimal = serde_json::json!({
+    "schema": t.schema,
+    "id": "ST0001",
+    "title": t.title,
+    "status": intentsvcs::model::enum_str(&t.status),
+    "created": t.created,
+    "completed": "2026-08-25",
+  });
+
+  let e = f
+    .put(&addr, &minimal.to_string())
+    .expect_err("a body that would clear eight fields is refused");
+  let said = format!("{e}");
+
+  // **REFUSED BY NAME, WHICH IS THE CLAUSE.** A refusal saying only "this would
+  // change other fields" fails the criterion for the same reason the by-form
+  // refusal did: the operator cannot act on it.
+  for field in ["context", "objective", "related"] {
+    assert!(
+      said.contains(&format!("`{field}`")),
+      "the refusal names `{field}`: {said}"
+    );
+  }
+
+  // **AND NOTHING MOVED.** A verb that reported the collateral correctly and
+  // wrote anyway would be the worse half of this class.
+  let after = f.st_show("ST0001").expect("still there");
+  assert_eq!(after.context, "load-bearing prose nobody sent in the body");
+  assert_eq!(after.related.len(), 1);
+  assert_eq!(
+    after.completed, None,
+    "the asked-for change did not land either -- the write is refused whole"
+  );
+}
+
+/// The positive control: a body that mentions what it changes still writes.
+///
+/// **WITHOUT THIS, THE REFUSAL ABOVE IS SATISFIED BY A DOOR THAT REFUSES
+/// EVERYTHING** -- a green that is a fact about the harness rather than about
+/// the verb.
+#[test]
+fn a_body_that_mentions_the_field_it_changes_still_writes() {
+  let fx = common::Fixture::new();
+  let t = common::sample_thread("ST0001");
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+  let addr = intentsvcs::address::parse("intent:///threads/ST0001").expect("address");
+
+  let mut whole = t.clone();
+  whole.completed = Some("2026-08-25".to_string());
+  f.put(&addr, &scalars_of(&whole).to_string())
+    .expect("a whole body that changes one field is accepted");
+
+  assert_eq!(
+    f.st_show("ST0001").expect("there").completed.as_deref(),
+    Some("2026-08-25"),
+    "and the change it DID ask for landed"
+  );
 }

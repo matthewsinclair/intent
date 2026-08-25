@@ -4198,6 +4198,15 @@ impl Facade {
           ));
         };
 
+        // **THE KEYS THE CALLER ACTUALLY SENT, CAPTURED BEFORE THE PARSE
+        // CONSUMES THEM.** Everything below turns on the difference between a
+        // field the body OMITTED and a field it set to the same value serde
+        // would have defaulted to, and after `from_value` those are identical.
+        let sent: std::collections::BTreeSet<String> = value
+          .as_object()
+          .map(|o| o.keys().cloned().collect())
+          .unwrap_or_default();
+
         let mut row: Thread = serde_json::from_value(value)
           .map_err(|e| refuse(format!("the body is not a thread: {e}")))?;
         if &row.id != id {
@@ -4215,6 +4224,65 @@ impl Facade {
         row.criteria = existing.criteria.clone();
         row.tests = existing.tests.clone();
         row.attachments = existing.attachments.clone();
+
+        // **LIMB 2 AS AN INVARIANT OF THE VERB, WHICH IS WHERE `set` ALREADY
+        // KEEPS IT.** Every field this model declares is `#[serde(default)]` or
+        // `Option`, so a body that simply does not MENTION `context` parses to a
+        // thread whose `context` is empty -- and the graft above restores the
+        // four CHILDREN and nothing else. Measured 2026-08-24 (ic, `ea84d0ae`):
+        // a minimal legal body carrying the five required fields plus
+        // `completed` silently cleared the other EIGHT -- `slug`,
+        // `status_reason`, `acceptance`, `objective`, `context`, `body`,
+        // `preamble`, `related`. 8 of 8, nothing partial.
+        //
+        // **THE GRAFT IS WHAT MAKES THAT A CHOICE RATHER THAN A LIMITATION**, and
+        // a choice is what a criterion can be failed against: four lines restore
+        // the children, and the nine scalars four lines away are not restored.
+        //
+        // **`related` IS THE SHARPEST AND THE ARM ABOVE SUPPLIES THE REASON** --
+        // it has no address of its own, so the thread door is its ONLY door, and
+        // it was the door that emptied it.
+        //
+        // Refusing BY NAME rather than merging silently: a caller who omitted
+        // `context` may have meant *leave it* or may have meant *clear it*, and
+        // guessing either way is the silence this criterion exists to name. The
+        // remedy is a field the caller can act on.
+        let before = serde_json::to_value(&existing)
+          .map_err(|e| refuse(format!("the stored thread does not serialise: {e}")))?;
+        let after = serde_json::to_value(&row)
+          .map_err(|e| refuse(format!("the posted thread does not serialise: {e}")))?;
+        if let (Some(before), Some(after)) = (before.as_object(), after.as_object()) {
+          // **THE UNION OF BOTH KEY SETS, AND THE FIRST DRAFT USED ONLY
+          // `after`'s.** `Thread::related` is `skip_serializing_if`, so a row
+          // whose `related` has just been cleared to `[]` does not carry the key
+          // at all -- and iterating the written side alone made the CLEARED
+          // fields exactly the ones the check could not see. **It reported
+          // `context` and `objective` and stayed silent about `related`, which
+          // is the sharpest field of the eight**: the arm above records that
+          // `related` has no address of its own, so the thread door is its ONLY
+          // door, and the door was the thing emptying it. Caught by this
+          // change's own test, which is the whole argument for writing the
+          // refusal and the assertion in the same sitting.
+          let keys: std::collections::BTreeSet<&String> =
+            before.keys().chain(after.keys()).collect();
+          let collateral: Vec<&String> = keys
+            .into_iter()
+            .filter(|k| !sent.contains(*k) && before.get(*k) != after.get(*k))
+            .collect();
+          if !collateral.is_empty() {
+            let named = collateral
+              .iter()
+              .map(|k| format!("`{k}`"))
+              .collect::<Vec<_>>()
+              .join(", ");
+            return Err(refuse(format!(
+              "this write would change {named}, which the body does not mention -- send each \
+               field you mean to change, or set one at a time with the narrow setter. A PUT that \
+               applied this would clear fields you did not ask about, and the rows carrying the \
+               most evidence are the ones it would hit hardest"
+            )));
+          }
+        }
 
         if row == existing {
           return Ok(Outcome::AlreadyThere {
@@ -5282,14 +5350,46 @@ impl Fieldless {
 /// one **fails to compile** until someone says which side it is on. A guard whose
 /// scope silently excludes the case it will later need is the class this
 /// criterion keeps producing, and the fix for it must not commit it.
+/// Fields the model DECLARES that serialisation cannot see.
+///
+/// **A `#[serde(skip)]` FIELD IS STILL A FIELD, AND AC-08.5 COUNTS DECLARED
+/// FIELDS RATHER THAN SERIALISABLE ONES.** `Attachment::blob` is skipped because
+/// the bytes live in a sidecar, so `schema_properties::<Attachment>()` returns
+/// FOUR of its five names -- and `blob` is this row's own bytes-carried burning
+/// case. **An instrument derived from serialisation cannot see the case the
+/// criterion exists for**, which is the address-axis mistake one layer down: a
+/// true measurement of a narrower thing than the row asks about.
+///
+/// Declared here rather than derived because schemars honours the same serde
+/// attribute, so there is nothing to derive FROM. The pinned totals in
+/// `ac_08_5_field_axis` are what stop a second skip slipping in silently: add
+/// one and the schema set shrinks while the declared total does not, and the
+/// arithmetic reds.
+///
+/// Found by ic, against their own interest -- it moves the denominator they are
+/// measured on.
+const SERDE_SKIPPED: [(&str, &[&str]); 1] = [("attachment", &["blob"])];
+
+/// The skipped names for an address form, if any.
+fn skipped_fields(entity: &AddrEntity) -> &'static [&'static str] {
+  SERDE_SKIPPED
+    .iter()
+    .find(|(form, _)| *form == entity.form())
+    .map_or(&[], |(_, fields)| *fields)
+}
+
 fn fields_of(entity: &AddrEntity) -> Result<std::collections::BTreeSet<String>, Fieldless> {
+  let declared = |mut set: std::collections::BTreeSet<String>| {
+    set.extend(skipped_fields(entity).iter().map(|f| (*f).to_string()));
+    Ok(set)
+  };
   match entity {
-    AddrEntity::Thread { .. } => Ok(schema_properties::<Thread>()),
-    AddrEntity::Wp { .. } => Ok(schema_properties::<WorkPackage>()),
-    AddrEntity::Ac { .. } => Ok(schema_properties::<Criterion>()),
-    AddrEntity::At { .. } => Ok(schema_properties::<AcceptanceTest>()),
-    AddrEntity::Attachment { .. } => Ok(schema_properties::<crate::model::Attachment>()),
-    AddrEntity::Issue { .. } => Ok(schema_properties::<crate::model::Issue>()),
+    AddrEntity::Thread { .. } => declared(schema_properties::<Thread>()),
+    AddrEntity::Wp { .. } => declared(schema_properties::<WorkPackage>()),
+    AddrEntity::Ac { .. } => declared(schema_properties::<Criterion>()),
+    AddrEntity::At { .. } => declared(schema_properties::<AcceptanceTest>()),
+    AddrEntity::Attachment { .. } => declared(schema_properties::<crate::model::Attachment>()),
+    AddrEntity::Issue { .. } => declared(schema_properties::<crate::model::Issue>()),
     AddrEntity::Threads
     | AddrEntity::Issues
     | AddrEntity::WpCollection { .. }
@@ -5424,9 +5524,15 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     AddrEntity::Issue { .. } => match field {
       "schema" | "number" => Some(Unsettable::Identity),
       "status" | "closed" => Some(Unsettable::Machine("intent issues close|open")),
-      // D42: the create verb stamps this, and the stamp is applied BY the write
-      // rather than passed to it -- the same reasoning as `Thread::created`.
-      "created" => Some(Unsettable::Machine("intent issues add")),
+      // **`created` IS SETTABLE, AND THE ARM THAT REFUSED IT WAS FALSE TWICE
+      // OVER.** It read `Machine("intent issues add")` -- a verb that CREATES an
+      // issue and cannot move `created` on one that already exists, so following
+      // the remedy would not reach the outcome. It was also inconsistent with
+      // its own sibling: `Thread::created` falls through and is settable.
+      // **AND THIS ROW'S FIRST BURNING CASE IS A PROVENANCE FIELD THAT IS
+      // WRONG** -- `Thread::completed`, NULL on ST0011 -- so *machine-stamped*
+      // is an argument for a setter rather than against one. A stamp nothing can
+      // correct is how an estate keeps a value it already knows is false.
       // **`body` IS DELIBERATELY SETTABLE AND THE FIRST DRAFT OF THIS ARM HAD IT
       // REFUSED.** The plan was `Machine` naming a route -- and there is no
       // route: `issues` is list|add|show|close|open, `add` takes `<TITLE>` and
