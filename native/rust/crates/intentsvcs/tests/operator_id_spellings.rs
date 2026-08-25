@@ -1,5 +1,11 @@
-//! An operator's spelling of an id resolves, and a spelling that names nothing
-//! is refused as a spelling rather than as a missing thing.
+//! AT-06.12 / AC-06.12: **an operator's spelling of an id resolves, and a
+//! spelling that names nothing is refused as a spelling rather than as a
+//! missing thing.**
+//!
+//! The id lives here rather than in the row because the row cites the FILE:
+//! a citation by test NAME breaks silently when the name changes, and the
+//! contract check reads for this literal. It was added by vc when landing
+//! the row, which is when the check first had something to fail on.
 //!
 //! **THE ACCEPTED SET IS v2's, AND IT WAS DRIVEN RATHER THAN READ OFF THE
 //! SOURCE.** `bin/intent_helpers:688 normalise_st_id` was run in the v2

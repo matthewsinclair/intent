@@ -1232,6 +1232,14 @@
       "state": {
         "is": "computed"
       }
+    },
+    {
+      "id": "AC-06.12",
+      "text": "**An operator's spelling of an id resolves to the id, and a spelling that names nothing is refused AS A SPELLING rather than reported as a missing artefact.** Two-sided, and the second limb is the one that was failing widest. v2 accepts five spellings via `bin/intent_helpers:688 normalise_st_id` -- `46`, `ST46`, `0046`, `046`, `ST0046`, driven in the v2 checkout with the error echoing the NORMALISED id -- and v3 kept the issue-side equivalent (`render.rs:3035 issue_number`, whose doc cites v2's `normalize_id` BY NAME) while dropping the thread side entirely. **THE REGRESSION WAS NOT THE HALF THAT WAS FILED.** `st edit 59` refused through `address::promote`; the other nine thread verbs hit a raw `t.id == id` and answered `no steel thread 59 in this project` -- **A NOT-FOUND FOR SOMETHING THAT WAS NEVER A NAME**, which is precisely the answer `promote`'s own doc names as the one that matters, honoured in one place and routed around by nine. **AND v2 IS WHERE THAT DEFECT COMES FROM, ONE STEP WORSE:** its fourth branch echoes any input back with `ST` glued on -- `foo` becomes `STfoo` -- so v2 FABRICATES a plausible id and then reports it missing. **The parity contract is the five accepted forms, never the function.** Two v2 behaviours are deliberately not ported and both are holes: that branch, and `printf \"ST%04d\"` being a MINIMUM width, which turns `99999` into `ST99999` -- reproduced exactly by `\"99999\".parse::<u32>()` unless the range is checked, so being immune to v2's octal hazard bought nothing there. The `10#` guard IS ported as a property and not as a mechanism: without it /bin/bash 3.2 reads `0044` as octal and yields ST0036, a different real thread, which Rust cannot express. Adds `s46`/`i46` explicit tags, which exist so the one collection-agnostic door has a spelling to RECOMMEND rather than only a refusal -- measured, `59` names both `ST0059` and issue `0059` in this estate and both exist. **AUTHORED BY cc, LANDED INTO CANON BY vc**, who holds ST0056: the write serialises through one hand to remove the race, and the knowledge is cc's.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "tests": [
@@ -2550,6 +2558,16 @@
       ],
       "status": "green",
       "note": "**CITES NOTHING DELIBERATELY.** `11762943` ruled a `to-write` row may cite a path or nothing, and **a path invented now is a claim nothing will check until it is already wrong** -- three rows carried expired or wrong citations today and every one was caught by a builder rather than an instrument. **The natural home is `migrate_hooks_continuity.rs` beside AC-10.4's arms**, and the builder names it when the assertion is in.\n\n**THE CONTROL IS NOT OPTIONAL AND IS THE SAME ONE AC-10.4 NEEDED:** the write set must be separately asserted NON-EMPTY, or *no planned path is under `.githooks/`* is vacuity one level up. **The red-first arm is a planted write to `.githooks/pre-commit` from outside the plan** -- it must kill this and leave AC-10.4's `.claude` assertion alive, or the two rows are one row wearing two ids.\n\n**BUILT AND CITED AT `f31aa924`, SHARING AT-10.4's FILE, WHICH IS THE HONEST HOME.** The file is literally named `migrate_hooks_continuity` and **AC-10.15 is the half of that name AC-10.4's body never covered** -- so two rows citing one file is the AT-10.3 / AT-10.16 shape, with separate tests keeping them separately falsifiable. It carries the literal `AT-10.17`, so the discriminator answers *ready to green* rather than *wrong citation*.\n\n**cc DROVE THE KILL IN BOTH DIRECTIONS RATHER THAN THE ONE I ASKED FOR, AND THE SECOND IS WHAT MAKES IT AN ARGUMENT.** A planted write to `.githooks/pre-commit` kills githooks and leaves claude alive; a planted write to `.claude/settings.json` kills claude and leaves githooks alive. **One planted write proves the new test fires; the PAIR proves neither row is the other wearing a different id.** The prefix matcher and the non-vacuity control are EXTRACTED rather than copied, so both rows share one definition of what counts as a real migration -- two copies would have been free to drift on exactly the question the assertions turn on."
+    },
+    {
+      "id": "AT-06.12",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/operator_id_spellings.rs",
+      "covers": [
+        "AC-06.12"
+      ],
+      "status": "green",
+      "note": "Landed `58979836`; full Rust suite green, no failures. **MUTATION-PROVEN IN SEVEN DIRECTIONS, AND THE HARNESS ITSELF HAD TO BE FIXED FIRST.** Each of width-check, wrong-collection refusal, the s/i branches, case-insensitivity, the ST-before-s tag order, the agnostic door's refusal and the suffix strip was removed in turn and the matching arm read RED; baseline and restore green. **THE FIRST RUN REPORTED `RESTORED -> RED` OVER A CORRECT TREE**: the harness restored with `mv`, which PRESERVES the backup's mtime, so cargo served a binary built from the mutated source -- a control lying in the safe-looking direction, and the same class as `init` reading the embed while `render` reads disk. Fixed to `cp` + `touch` and re-driven clean. **Two arms pin behaviour v2 HAS and this must not**: `foo` must not become `STfoo`, `99999` must not become `ST99999`. They are tested rather than trusted to the port's judgement because the shape of a port is to reproduce, and reproducing was wrong twice. The five-form arm was driven in the v2 checkout BEFORE being pinned, which is what makes it a measurement rather than a reading of the source."
     }
   ],
   "attachments": [
