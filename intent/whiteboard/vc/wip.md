@@ -5,7 +5,7 @@ role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
 heartbeat_at: 2026-08-25 07:26Z
 status: active
-focus: "**HOLDING ON hv`s INSTRUCTION, 2026-08-25 07:34Z: NO NEW WORK UNTIL devbin-cc`s Intentv2 FIXES ARRIVE.** Channel open to devbin-cc with the landing constraints front-loaded; devbin-vc told what I am doing after I misrouted the first send. **THE DECIDING QUESTION IS WHICH CHECKOUT OWNS EACH DEFECT** -- the fleet EXECUTES v2, so a fix landed only here reaches nobody and looks done. **GATE RE-DERIVED THIS MORNING RATHER THAN CARRIED: 50/51 + 16/16 = 66 of 67, AT-08.5 the only red** -- and dc derived it independently at their own pickup, the first time the two homes have been SHOWN to agree rather than assumed to. **FOUND ON PICKUP: my own 22:47Z escalation said 4 of 4 unowned when ic had taken item 3 an hour earlier.** 3 of 4; correcting forward."
+focus: "**HOLD LIFTED 2026-08-25 08:24Z. hv RULED BOTH DEVBIN-SOURCED DEFECTS INTO BOTH TREES, LOCAL ONLY, AND IS KNOWINGLY WEARING THE PUBLIC DRIFT.** Routed: **cc** the `_CLAUDE.md` template, **dc** the two whiteboard guards plus the latent third, **ic** the regenerated view and the voice call. **I VERIFY ON CLOSE AND DO NOT BUILD.** **CUSTODY HELD: devbin-cc relayed the ruling in good faith and I refused it, asked hv first-hand, and hv confirmed** -- the relay was accurate and refusing it was still right. **THE REACH QUESTION WAS ANSWERED RATHER THAN OVERLOOKED: `v2-maintenance` has no upstream, so a v2 landing reaches this machine and no other, and hv said _yes, I know, that is ok_.** Three self-corrections today, two of them caught by another estate."
 claims: [ST0056, ST0057, ST0058]
 ---
 
@@ -17,19 +17,17 @@ claims: [ST0056, ST0057, ST0058]
 
 ## DOING
 
-**HOLDING ON hv's INSTRUCTION, GIVEN LIVE IN THIS SESSION 2026-08-25 07:34Z AND WITNESSED BY IT: NO NEW WORK UNTIL devbin-cc's INCOMING Intentv2 FIXES ARRIVE.** hv's words: _there are some incoming fixes for Intentv2 from devbin-cc Claude that I want you to coordinate on. Please hold on any new work until that arrives._ **The plan below is DRAFTED AND NOT STARTED**; nothing in it is in flight.
+**HOLD LIFTED. COORDINATING TWO SHIPPED-SURFACE FIXES INTO BOTH TREES ON hv's RULING OF 2026-08-25 08:24Z, AND VERIFYING ON CLOSE.** hv's words and the full provenance are on hv's board; the operative scope is **LOCAL BOTH-TREES, no public v2 push, no v2 release, public-release drift knowingly worn.**
 
-**CHANNEL OPEN TO devbin-cc, WITH THE LANDING CONSTRAINTS SENT AHEAD OF THE FIXES RATHER THAN DISCOVERED AFTER THEM.** Six carried: the freeze is SCOPED (features frozen, shipped-surface defects live); `$INTENT_HOME` points at `Intentv2` so **the fleet EXECUTES v2 and a fix landed only in this tree reaches nobody**; `shipped_surface_drift.bats` asserts **either in BOTH trees or DECLARED**, not that the trees agree; this checkout has **no local `v2-maintenance`** by hv's ruling; a self-hosted tree runs **its own** guards; release is hv's. Six fields asked back per fix, **including the exit code** -- I will not relay a finding I have no way to reproduce.
+**ROUTED, WITH THE OWNER OF A FILE OWNING IT IN BOTH TREES** -- split ownership across trees is exactly how the drift `shipped_surface_drift.bats` exists to catch gets manufactured:
 
-**I MISROUTED THE FIRST SEND TO devbin-vc AND hv CORRECTED IT.** Recorded rather than quietly re-sent: it is the same class this board already carries against cc -- **a wrong routing target chosen while agreeing with the boundary**. devbin-vc has been told what I am doing and asked to name any v2-facing work of their own now, rather than our finding the overlap later.
+- **cc** -- `lib/templates/llm/_CLAUDE.md` interpolates `[[INTENT_VERSION]]` into PROSE at `:3` and `:54`, and `:3` is OUTSIDE the preserved region (template `:47`/`:50`), so a consumer's correction is reverted on every upgrade. **Exhibits here across a MAJOR: our own `CLAUDE.md:3` says v2.19.0 while the project is 3.0.0-dev.** Recommended alignment to `_AGENTS.md`'s existing agentive footer on Highlander grounds rather than devbin-cc's longer variant.
+- **dc** -- `whiteboard-clock-guard.sh:246` and `whiteboard-header-guard.sh:201` fail OPEN under `pipefail`, plus `canon-ignore-guard.sh:133` latent. **FIX BOTH, NOT URGENT**, and the reason is the uncharacterised trigger predicate rather than proximity to an edge.
+- **ic** -- regenerating this repo's own `CLAUDE.md` once the template lands (a generated view, their lane), and an open invitation to overrule my footer wording before cc commits, since consumer-facing voice is theirs.
 
-**TREE STATE: clean at pickup, HEAD `9b466807`, refs LEVEL with both remotes; my heartbeat committed at `5e11700c`.** cc, dc and ic all picked up fresh this morning while I was reading, so their boards are live and moving -- **a fresh vc reads this line while looking at whatever the tree has become since.**
+**WHAT I OWE ON CLOSE: drive both, in both trees, and tell devbin-{vc,cc}.** I have told devbin that _done_ means VERIFIED rather than landed, **because on this exact pair the difference has already mattered twice today.**
 
-**AC-08.5 IS VERIFIED AND STAYS `red`. `d38ecbe0`; board record `526f6963`; amendment `8f6bdd0a`.** The verdict did not move and **cc`s build was not nothing** -- four field-setter gaps closed, limb 2 an invariant of the verb. **What blocks it is four entity forms and `put`s thread door at 8 of 8, and NOBODY HOLDS ANY OF IT.**
-
-**GLOBALFOLD LANDED at `98961891`, pre-fold sha `1e8e3666` for recovery.** `wip.md` lost a changelog, `restart.md` lost the section narrating its own fold, `.claude/restart.md` lost a pointer to it and states the rule instead. **Every cut checked for a surviving home BEFORE deleting.** **Two of the three burning cases re-driven and DEAD.**
-
-**FIVE ITEMS ESCALATED DURABLY TO `hv/inbox.vc.md`** rather than only surfaced live -- the four AC-08.5 items plus AC-02.6`s uncovered second job. **An escalation is finished when a named reader has it, and a live channel does not survive the session.**
+**THE ONE PROCESS RESULT WORTH KEEPING: I REFUSED A PEER'S RELAY OF AN hv RULING, ASKED hv FIRST-HAND, AND THE RELAY TURNED OUT TO BE ACCURATE.** Refusing it was still correct -- **the rule is not about the relayer's reliability, it is about there being one chain of custody on a fleet-wide change to the shipped v2 line** -- and devbin-cc flagged their own custody limit before I had to. **A verification that CONFIRMS is worth reporting as loudly as one that corrects**, or the only visible verifications are the ones that found something.
 
 ## TODO
 
