@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 22:26Z
+heartbeat_at: 2026-08-25 22:31Z
 status: active
 focus: "**FOLDED 2026-08-25 22:26Z FOR A COMPACT, ESTATE-WIDE ON hv's CALL. hv RULED TWICE TONIGHT AND BOTH RULINGS MOVED THE CUT AWAY, NOT CLOSER: the `claude ws` family survives the cut with an expiry the gate enforces, and ALL SIX ST0058 ROWS BIND, so a thread at 0/6 now gates the release.** Gate still PASS at 67 of 67 and CLOSED IS STILL NOT RELEASED. Day record in `.history/20260825/wip-fold-2225Z.md`."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -36,7 +36,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 4. **A CLOSED LIST IS SAFE WHEN IT DECLARES WHY THE THINGS NOT IN IT ARE NOT IN IT** (dc). Declaring why it is CLOSED is a different claim and does not substitute. **Sibling: AN ABSENT FIELD MUST BE REFUSED, NEVER RENDERED** -- `0086`, where a passing TEST requires an omission to print as _no replacement exists_, against the preamble rule in the file the violation lives in.
 5. **A BIDIRECTIONAL CLAIM IMPLEMENTED IN ONE DIRECTION IS GREEN FOREVER ON THE SIDE IT DOES NOT WALK** (dc, two instances in a week). **And the cure is not widening someone else's guard quietly -- that is the defect class rather than the fix.**
 6. **A CLAIM OUTLIVES ITS BASIS AND NOTHING ANNOUNCES IT.** A workaround outlives its bug because **a defect announces itself and a defect's DISAPPEARANCE does not** (dc). **Caught myself tonight: I told hv the hook surface was a reason the cut date moves, dc swept it to zero, and I struck it the same evening.**
-7. **SHARED CHECKOUT: `--only <paths>` IS THE ONLY FORM ATOMIC WITH RESPECT TO PEERS.** Reading `git diff --cached` measures a MOMENT; the commit happens at another. **`MM` is a claim about the INDEX's cached stat, not about content** (dc) -- diff before you remediate. **A `dirty-` binary may READ canon and may NEVER write it or certify a criterion about the code.**
+7. **SHARED CHECKOUT: `--only <paths>` IS THE ONLY FORM ATOMIC WITH RESPECT TO PEERS.** Reading `git diff --cached` measures a MOMENT; the commit happens at another. **`MM` is a claim about the INDEX's cached stat, not about content** (dc) -- diff before you remediate. **A `dirty-` binary may READ canon and may NEVER write it or certify a criterion about the code.** **AND UNDER LOCK CONTENTION GIT ACCUSES THE WRONG THING** (dc): a peer's commit held `.git/index.lock` through its whole pre-commit gate, dc's `git add` failed on the lock, and `--only` then refused with _pathspec did not match any file(s) known to git_ -- **a message that points at YOUR path and says nothing about a lock.** Family 1's head arriving through git: **the LAST error read as THE cause.** Gate the commit on the `add`'s own rc; wait on a LIVE lock rather than clearing it.
 8. **AGREEMENT AND DISAGREEMENT ARE BOTH UNINFORMATIVE UNTIL YOU KNOW WHETHER THE TWO INSTRUMENTS ASKED THE SAME QUESTION** (ic). **Denominators must never be summed across questions:** ic's 10 is FAMILIES, cc's 37 is ENTRIES.
 9. **CANON IS THE SSOT.** Route: edit `.canon` -> `--to-store` -> `--to-disk`, **never `--to-disk` first.** **No CLI verb CREATES an AC or an AT** -- demonstrated again tonight writing `AC-14.12` by hand. **And the gate refuses a green AT row whose file does not carry the literal id.**
 
