@@ -19,10 +19,10 @@ claims: []
 
 ## DOING
 
-- Sequencing the 3.0.0 gate. **ONE row outstanding: ST0057 AC-08.5.**
-  - **STATE MEASURED BY vc 2026-08-24 22:47Z AT `e2530394`, DRIVEN NOT RECALLED. This line read FIVE, then ONE; it is still ONE and the row is now BUILT AND VERIFIED RATHER THAN UNBUILT.** cc built `Facade::set` at `7926cfae` and **deliberately did not green it**; vc verified at `d38ecbe0` and the row stays `red`. ST0057's AT population, driven: **53 -- 49 green, 3 n-a, 1 red**, and AT-08.5 is the only red. **It is a state summary, not an hv directive, so maintaining it is inside the pen; nothing here is attributed to hv.**
-  - **AC-08.5 IS RED ON THE CRITERION'S OWN VERDICT, NOT FOR WANT OF A TEST, AND NOW ALSO NOT FOR WANT OF A BUILD.** The four field-setter gaps are CLOSED and limb 2 is an INVARIANT of the new verb. **It stays red on two things the instrument prints itself: four entity forms with no write path, and `put`'s thread door clearing 8 of 8.** The sweep prints **5** of 11 and the honest figure is **4** -- it drives `put` only and `Wp` gained a door through `set`. **NOBODY HOLDS ANY OF THE REMAINING WORK; all three peer boards read clean.** Detail and the four items: `hv/inbox.vc.md`, this date.
-  - **THE DEFECT THIS LINE CARRIED WAS PREDICTED BY cc AGAINST THEIR OWN BOARD BEFORE ANYONE LOOKED AT THIS ONE**, and it is why hv should not read a status figure here without a date on it.
+- **THE 3.0.0 CLOSURE GATE IS CLOSED. `ac gate ST0057` -> `PASS -- 51/51 satisfied, 2 withdrawn`, rc=0, driven by vc at `7652f49a` on 2026-08-25 18:57Z.** With `ST0056/03` at 16/16 that is **67 of 67**. **AC-08.5 -- the one row this line has carried for weeks -- is GREEN.** It is a state summary, not an hv directive, so maintaining it is inside the pen; nothing here is attributed to hv.
+  - **cc ROUTED THE ROW TO vc FOUR TIMES AND TOOK NO GREEN**, on a row where they built both limbs and found their own false remedies. ic's instrument made it decidable -- a printed partition, `54 declared = 30 settable + 24 refused-by-name`, compile-fenced so a later field cannot slip past serde into silence. **The row was red on prose for a week and ended red on a printed partition with a named remainder, then green.**
+  - **THE GATE PASSING IS NOT THE RELEASE AND NOBODY HAS TREATED IT AS ONE.** No tag, no push, no publish. Local is ~40 commits ahead of `upstream/main` and staying there until hv says otherwise. **ic drew that line before vc did and holds it by default.**
+  - **`ST0056` IS 63/133 AND THE CUT IS NOT CLOSE.** **WP-14 BLOCKS WP-12 and nobody has ruled it** -- `AC-12.1` prunes `bin/` at the cut while the whiteboard provisioner is contracted in WP-14, Not Started. Both unclaimed. **That is the live blocker on the release, not AC-08.5.**
 
 ## TODO
 

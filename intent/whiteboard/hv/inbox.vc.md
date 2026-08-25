@@ -388,3 +388,17 @@ bin/intent3                13:34:12Z   <- also dc's own work
 **THE QUEUE AS IT STANDS FOR YOU: A1 commit trailer; A2 HELD (attribution guard -- I have not relayed and will not); A3 WP-15 timing; A4 `fileindex`; A5 `--force` version mismatch; A6 ST0058 SCOPE (the contract now exists, `0/6`); A7 TODO 8 ordering; A8 dc's three, now named, one of which (AT-11.7) had never been asked; A9 the roster's two trees; A10 two estate-wide blocks; A11 limb 2's denominator; A12 the marker's scope. PLUS: the attachment verb's SPELLING, and a declared `## Holds` section on every board.**
 
 **AND THE ONE THING I HAVE DELIBERATELY NOT DONE: PUSHED.** `upstream/main` is still at `ef8e0d5e` from this morning and local is **~30 commits ahead**. **Pushing publishes to GitHub, you are AFK, and nothing in _press on aggressively_ reads to me as authorising an outward-facing release of the day's work.** Waiting on your word.
+
+## (2026-08-25 18:57Z) THE GATE IS CLOSED -- 51/51 PASS. And it is not the release.
+
+**`intent3 ac gate ST0057` -> `PASS -- 51/51 satisfied, 2 withdrawn`, rc=0.** With `ST0056/03` at 16/16 that is **67 of 67**. **AC-08.5 is GREEN at `7652f49a`** -- the row you have been sequencing 3.0.0 on since before I held this pen.
+
+**EVERYTHING WAS DRIVEN END TO END IN A THROWAWAY BEFORE I READ THE PARTITION, BECAUSE A REMEDY NAMING A VERB WAS FALSE SEVEN TIMES TODAY AND THE SEVENTH WAS ON THIS EXACT FIELD, ONE COMMIT OLD.** Both attachment forms, both directions of form change, and from outside the thread's directory -- the last two being cases cc named as untested in their own build. **All clean.**
+
+**THREE CAVEATS ARE ON THE ROW RATHER THAN IN A MESSAGE**, at cc's and ic's request: **issue 0082 confirmed on a new path and worse than filed** (`st attach` writes canon, `sync --to-disk` reports `ok` and materialises nothing -- a SHIPPED VERB into that state where before there was only a hand-edit); **the round trip REFUSES rather than dropping**, so no data loss and only the `--to-disk` half is silent; and **issue 0084 untouched.**
+
+**THE GATE PASSING IS NOT THE RELEASE AND I HAVE TOLD ALL THREE NODES SO EXPLICITLY.** No tag, no push, no publish. **`upstream/main` is still at `ef8e0d5e` from this morning and local is ~40 commits ahead** -- that is your call and I have not made it. ic holds the same line by default and drew it before I did.
+
+**AND THE LIVE BLOCKER ON THE RELEASE IS NOT AC-08.5, IT IS WP-14 BLOCKING WP-12, WHICH NOBODY HAS RULED.** `ST0056` is **63/133**. `AC-12.1` prunes `bin/` at the cut while the whiteboard provisioner is contracted in WP-14, Not Started, and **both work packages are unclaimed.** That question has been on your queue since 17:17Z and it is the one I would want answered first.
+
+**WHAT THE FOUR OF US DID, SO YOU CAN PRICE THE WINDOW:** cc built both limbs and **routed the row four times without ever taking their own green**; ic built a compile-fenced denominator and named two defects in their own instrument before either could reach a verdict; dc landed AT-11.6, closed two estate-wide blocks they had caused, and amended D42 against themselves. **I ruled the denominators, drove the verdicts, and got the closing condition wrong twice -- both times caught by a peer before it cost a build.**

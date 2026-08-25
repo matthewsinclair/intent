@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 18:26Z
+heartbeat_at: 2026-08-25 18:58Z
 status: active
-focus: "**DRIVING THE FLEET ON hv's IMPRIMATUR WHILE hv IS AFK -- cc, ic AND dc ALL LIVE AND BUILDING.** AC-08.5's field-axis denominator is RULED and landed at `8f03d9c7`, which was cc's stated blocker. cc builds two `settable_fields` arms + the thread-door graft; ic builds the field-axis instrument; dc has AT-11.6 then `hook_compat.rs`. **TWO THINGS ARE WITH hv AND ONE IS A CUT BLOCKER: WP-14 blocks WP-12, and AT-11.7 was refused twice from one premise and never asked.**"
+focus: "**THE 3.0.0 CLOSURE GATE IS CLOSED -- `ac gate ST0057` PASS 51/51, rc=0, driven at `7652f49a`. With ST0056/03 at 16/16 that is 67 of 67 and AC-08.5 is GREEN.** THE GATE PASSING IS NOT THE RELEASE: no tag, no push, no publish, ~40 commits ahead of upstream and staying there until hv rules. **The live blocker is WP-14 blocking WP-12, unruled, both WPs unclaimed. ST0056 is 63/133.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,11 +15,13 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**AC-08.5 IS DECIDED AND IT STAYS RED -- `d7438b4a`. THE ROW IS RED ON TWO FIELDS OF ONE ENTITY AND ON THE INSTRUMENT'S OWN PRINTED WORDS.** Driven with `--nocapture`, not read off a commit message: **54 declared = 32 settable + 22 refused-by-name across six models, twenty of the twenty-two correct and closed.** The two are `Attachment.text` and `Attachment.blob` -- _THERE IS NO CLI VERB FOR THIS TODAY; the route is `Facade::put`, and `intent put` is not a command._ **Clause 2 is genuinely finished. Clause 1 is not: both fields are writable, `put` writes them, and neither has a route on the mutation surface.**
+**THE GATE IS CLOSED. `ac gate ST0057` -> `PASS -- 51/51 satisfied, 2 withdrawn`, rc=0 at `7652f49a`.** 67 of 67 with `ST0056/03`. **AC-08.5 green after a day that took it from _cc is blocked on a denominator_ to a printed partition with a named remainder.**
 
-**CLOSING CONDITION, IN CANON SO NOBODY GUESSES: ONE CLI VERB THAT WRITES AN ATTACHMENT'S CONTENT.** Nothing else on the field axis is outstanding. **This is the third burning case narrowing for the THIRD time** -- _no narrow setter_ -> _nothing smaller than a THREAD_ -> _no CLI verb for the CONTENT_ -- each narrowing a real measurement, and the remainder smaller than any previous statement of it.
+**EVERYTHING WAS DRIVEN IN A THROWAWAY BEFORE I READ THE PARTITION** -- both attachment forms, both directions of form change, from outside the thread dir -- **because a remedy naming a verb was false SEVEN times today and the seventh was on that exact field, one commit old.** Three caveats are ON the row, not in a message: 0082 confirmed and worse than filed; the round trip refuses rather than dropping; 0084 untouched.
 
-**cc ROUTED THE ROW TO ME FOUR TIMES TODAY AND TOOK NO GREEN.** Both limbs landed (`14a9be65`, `7a819279`); ic's denominator is compile-fenced so a new field cannot slip past serde into silence; dc's AT-11.6 landed and `ST0056` moved 62 -> 63/133. **OPEN WITH dc, NOT RULED BY ME: `Thread.created` and `Issue.created` are SETTABLE, so `set(addr, "created", <a time>)` is reachable, and D42 says no function TAKES a time.**
+**THE GATE PASSING IS NOT THE RELEASE AND ALL THREE NODES HAVE BEEN TOLD SO.** ic holds that line by default and drew it before I did. **The live blocker is WP-14 blocking WP-12 -- unruled since 17:17Z, both WPs unclaimed, `ST0056` at 63/133.**
+
+**MY CLOSING CONDITION WAS WRONG TWICE IN ONE HOUR ON ONE ROW.** Too loose, then too broad. **The first cost cc a detour and found the shadow; the second would have had them rebuild a capability that exists.** Both caught by a peer before they cost a build, neither by me.
 
 ## TODO
 
