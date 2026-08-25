@@ -289,34 +289,61 @@ fn no_promise_the_tool_cannot_keep() {
   }
 }
 
-/// **The estate is a zero, and it is printed as one.**
+/// **THE ESTATE STOPPED BEING A ZERO, SO THIS ROW NOW DRIVES IT.**
 ///
-/// Asserted rather than assumed, because if the estate ever DOES carry a
-/// `status_reason` the fixtures above stop being the only evidence and this
-/// row can be strengthened to drive the real thing.
+/// It used to assert the estate carried NO `status_reason`, and its own
+/// failure message said what to do when that stopped being true: *this row can
+/// now be driven against the real estate instead of only constructed fixtures,
+/// and it should be.* **That is a tripwire rather than a prohibition, and it
+/// fired on 2026-08-25** when vc parked ST0059 with `st hold --reason` under
+/// hv's instruction. Ordinary work created the first real instance; the row was
+/// waiting for exactly that and said so in advance.
+///
+/// **THE FIXTURES ABOVE ARE NOT REPLACED.** They cover every demanded field,
+/// including ones the estate does not carry, and they hold the negative
+/// control. This adds the arm the fixtures cannot have: the property proven on
+/// data nobody constructed for it.
 #[test]
-fn the_estate_carries_no_status_reason_and_that_is_why_the_fixtures_exist() {
+fn the_estate_status_reasons_reach_a_read_face() {
   use intentsvcs::project::Project;
   let root = testkit::repo_root();
   let project = Project::open(&root).expect("this repository is a project");
   let canon = intentsvcs::ingest::read(&project).expect("the estate reads");
 
-  let carrying: Vec<&str> = canon
-    .threads
-    .iter()
-    .filter(|t| t.status_reason.is_some())
-    .map(|t| t.id.as_str())
-    .collect();
   assert!(
     !canon.threads.is_empty(),
     "vacuous unless the estate has threads at all"
   );
+
+  let carrying: Vec<&Thread> = canon
+    .threads
+    .iter()
+    .filter(|t| t.status_reason.is_some())
+    .collect();
+
+  // NOT a silent skip when the estate is empty of them. A row that passes both
+  // when the property holds and when there is nothing to check is the shape
+  // this file exists to refuse -- so say which case ran.
   assert!(
-    carrying.is_empty(),
-    "the estate now carries a status_reason on {carrying:?} -- {} of {} threads.\n       \
-     This row can now be driven against the real estate instead of only\n       \
-     constructed fixtures, and it should be.",
-    carrying.len(),
-    canon.threads.len()
+    !carrying.is_empty(),
+    "no thread in the estate carries a status_reason, so this row proved\n       \
+     nothing. It was written when ST0059 acquired one. If the estate has\n       \
+     legitimately returned to zero, restore the assertion that it IS zero --\n       \
+     do not leave a row that reads green over an empty population."
   );
+
+  for thread in &carrying {
+    let reason = thread
+      .status_reason
+      .as_deref()
+      .expect("filtered on is_some");
+    let rendered = views::info(thread, &ctx());
+    assert!(
+      rendered.contains(reason),
+      "{}'s status_reason does not survive to anything a person reads.\n       \
+       The reason is:\n{reason}\n       \
+       The view rendered was:\n{rendered}",
+      thread.id
+    );
+  }
 }
