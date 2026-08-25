@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Slug                                                | Status      | Created    | Completed            |
 | ------ | --------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0060 | add-intent-vault-as-a-way-for-intent-projects-to    | Triage      | 2026-08-25 |                      |
 | ST0059 | rebuild-all-intent-docs-for-v3                      | On Hold     | 2026-08-25 |                      |
 | ST0058 | local-cutover-v3-usable-across-the-estate-before    | WIP         | 2026-08-21 |                      |
 | ST0057 | disk-as-a-sparse-projection-of-the-store            | WIP         | 2026-08-18 |                      |
