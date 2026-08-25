@@ -243,7 +243,11 @@ for f in $changed_inboxes; do
     if [ -n "$running_max" ] && [[ "$s" < "$running_max" ]]; then
       # Only stamps THIS COMMIT adds block; pre-existing breakage is not this
       # commit's to answer for and must never wedge the file.
-      if printf '%s\n' "$f_added" | grep -qxF "$s"; then
+      # Herestring, NOT a pipeline. `grep -q` exits on first match, `printf`
+      # then takes SIGPIPE, and `pipefail` promotes 141 to the PIPELINE status
+      # -- so the pipeline form read FALSE and passed a real violation through
+      # as inherited breakage. A herestring has no pipeline status to corrupt.
+      if grep -qxF -- "$s" <<<"$f_added"; then
         report_header
         printf '  [C order]   %s in %s follows %s -- an append-only inbox cannot go backwards.\n' \
           "$s" "${f#intent/whiteboard/}" "$running_max" >&2
