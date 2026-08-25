@@ -1397,3 +1397,483 @@ fn null_clears_an_optional_field_and_is_refused_on_a_required_one() {
     "clearing a required field must be refused BY NAME"
   );
 }
+
+// ===========================================================================
+// **AC-08.5's FIELD AXIS -- THE TWIN OF `declared_reach`, ONE AXIS OVER.**
+//
+// `declared_reach` answers *is this FORM reachable by a door*. That is a
+// question about ADDRESSES, indexed over the 13 `Entity` variants. AC-08.5's
+// subject is FIELDS: *every writable field settable through the mutation
+// surface, and every unwritable one reported BY NAME*. **The two populations
+// are different sets**, so an instrument scoped to the narrower one is
+// internally consistent, correct in its own printed output, and silent about
+// the criterion it serves. Ruled by vc as AC-08.5's contract-holder,
+// 2026-08-25, on exactly that distinction.
+//
+// **THE TWO HALVES WANT OPPOSITE TREATMENTS, AND THAT IS NOT AN
+// INCONSISTENCY.** The per-entity partition is DERIVED, because a hand-kept
+// field list stops covering on the day someone adds a field. The POPULATION is
+// PINNED against a declared literal, because a derived population silently
+// ABSORBS a new model type -- answering its own question correctly forever
+// while it quietly stops covering the criterion. On the population axis,
+// announcing growth IS the job.
+//
+// **AND IT ASSERTS THROUGH TRAIT BOUNDS AND REAL CALLS, NEVER BY SCANNING
+// SOURCE.** Building this, two regexes over `model.rs` reported `Criterion` as
+// deriving no `JsonSchema` -- a 6-line lookback against a 17-line
+// `#[schemars(extend(...))]` block, then a walk-back that could not read
+// multi-line attribute continuations. Both were wrong and the compiler already
+// knew: `schema_properties<T: schemars::JsonSchema>` is a bound, and its call
+// site type-checks. A scan of a declaration can always rot; a type-checked
+// call cannot.
+// ===========================================================================
+
+/// What an address form contributes to AC-08.5's **field** axis.
+///
+/// **EXHAUSTIVE ON PURPOSE, the same device `declared_reach` uses**: a
+/// fourteenth `Entity` variant does not compile until it is placed here. That
+/// is the only mechanism Rust offers for *every variant is accounted for*.
+enum FieldAxis {
+  /// Carries fields, and names the model type behind the form.
+  Model(&'static str),
+  /// Membership, not fields. **Contributes zero rows to this axis** -- there is
+  /// no field of a collection to set, and `declared_reach` already covers
+  /// whether the collection itself is reachable.
+  Collection,
+  /// Append-only. **Contributes zero rows**, by the same rulings
+  /// `declared_reach` cites: the whiteboard's single-writer inbox rule and
+  /// hv's D53 on the event log.
+  Log,
+  /// **A form D57-8's grammar minted AHEAD of its model.** `Entity::Node`
+  /// exists at `address.rs:145` and there is no `struct Node` in any crate;
+  /// the model is ST0056/WP-14, Not Started.
+  ///
+  /// **THIS VARIANT IS THE POINT OF PINNING THE POPULATION.** Indexing the
+  /// axis by model type makes this form invisible to AC-08.5 *by
+  /// construction*, and it would stay invisible when WP-14 lands unless
+  /// something announces the change. Nothing derived can announce it -- a
+  /// derived population just absorbs the new type. The pin below is what
+  /// turns that silence into a red. (vc, 2026-08-25, correcting the
+  /// population from seven to six and naming this as the reason.)
+  NoModelYet,
+}
+
+/// **THE PIN. Six model types carry fields today.**
+///
+/// Not asserted because six is right, but so that **six becoming seven is
+/// ANNOUNCED.** Sorted, because it is compared as a set and a reader should be
+/// able to diff it by eye.
+const FIELD_CARRYING_MODELS: [&str; 6] = [
+  "AcceptanceTest",
+  "Attachment",
+  "Criterion",
+  "Issue",
+  "Thread",
+  "WorkPackage",
+];
+
+fn field_axis(entity: &intentsvcs::address::Entity) -> FieldAxis {
+  use intentsvcs::address::Entity as E;
+  match entity {
+    E::Thread { .. } => FieldAxis::Model("Thread"),
+    E::Wp { .. } => FieldAxis::Model("WorkPackage"),
+    E::Ac { .. } => FieldAxis::Model("Criterion"),
+    E::At { .. } => FieldAxis::Model("AcceptanceTest"),
+    E::Attachment { .. } => FieldAxis::Model("Attachment"),
+    E::Issue { .. } => FieldAxis::Model("Issue"),
+
+    E::Threads | E::Issues | E::WpCollection { .. } | E::AcCollection { .. } => {
+      FieldAxis::Collection
+    }
+    E::NodeInbox { .. } | E::Event { .. } => FieldAxis::Log,
+
+    E::Node { .. } => FieldAxis::NoModelYet,
+  }
+}
+
+/// A `WorkPackage` with every field carrying a value.
+///
+/// **Fully populated for the reason [`fully_populated_row`] gives**: `scope`,
+/// `scope_legacy` and `status_reason` are `Option` with
+/// `skip_serializing_if`, so a partially-populated instance is blind to
+/// exactly the fields nobody has ever set.
+fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
+  intentsvcs::model::WorkPackage {
+    seq: 1,
+    title: "The field axis".to_string(),
+    scope: Some(intentsvcs::model::TShirt::M),
+    scope_legacy: Some(Legacy {
+      raw: "Medium-Large".to_string(),
+    }),
+    status: intentsvcs::model::WpStatus::Wip,
+    status_reason: Some("reopened by a criterion minted into its scope".to_string()),
+    objective: "Close AC-08.5's field axis.".to_string(),
+    body: "A load-bearing paragraph nothing else records.".to_string(),
+    preamble: "Front matter prose.".to_string(),
+  }
+}
+
+/// A `Criterion` with every field carrying a value. All four are required, so
+/// any instance serialises all four -- the population guard below still checks
+/// it rather than assuming, because that is a property of the model today.
+fn fully_populated_criterion() -> intentsvcs::model::Criterion {
+  intentsvcs::model::Criterion {
+    id: "AC-09.9".to_string(),
+    text: "every writable field is settable through the mutation surface".to_string(),
+    kind: intentsvcs::model::AcKind::Test,
+    state: intentsvcs::model::AcState::Satisfied {
+      evidence: "AT-09.9".to_string(),
+    },
+  }
+}
+
+/// An `Attachment` with every field carrying a value.
+///
+/// **THIS IS DELIBERATELY NOT A LEGAL ATTACHMENT, AND THE ILLEGALITY IS THE
+/// POINT.** `text` is `Some` only for a TEXT attachment and `blob` is `Some`
+/// only for an opaque one -- the model's own doc says that absence is the ONLY
+/// marker of which it is, so **no legal instance carries both, and every legal
+/// instance is therefore blind to one of the two fields.** This is a FIELD
+/// ROSTER rather than a document; it is serialised for its key set and never
+/// written to canon. A measurement that borrowed a legal instance would report
+/// four fields of five and its partition would hold over the wrong denominator.
+fn fully_populated_attachment() -> intentsvcs::model::Attachment {
+  intentsvcs::model::Attachment {
+    path: "design.md".to_string(),
+    text: Some("# Design\n\nCarried byte for byte.\n".to_string()),
+    bytes: 34,
+    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8558".to_string(),
+    blob: Some(vec![0xde, 0xad, 0xbe, 0xef]),
+  }
+}
+
+/// The declared field set of each model, taken from what a fully-populated
+/// instance SERIALISES.
+///
+/// **Not from `schema_properties_of`, and that is not a stylistic choice.**
+/// `facade.rs:5199` returns an EMPTY set for every form but the four it
+/// covers, so a partition built on it is **vacuously satisfied** for
+/// `Attachment` and `Issue` -- *0 settable, 0 unsettable, partition holds* --
+/// and reads green over the two entities the criterion is actually about.
+fn declared_fields(model: &str) -> BTreeSet<String> {
+  let json = match model {
+    "Thread" => serde_json::to_value(fully_populated_thread("ST0001")),
+    "WorkPackage" => serde_json::to_value(fully_populated_work_package()),
+    "Criterion" => serde_json::to_value(fully_populated_criterion()),
+    "AcceptanceTest" => serde_json::to_value(fully_populated_row()),
+    "Attachment" => serde_json::to_value(fully_populated_attachment()),
+    "Issue" => serde_json::to_value(common::sample_issue(21)),
+    other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no fully-populated instance"),
+  }
+  .expect("a model serialises");
+  json
+    .as_object()
+    .expect("a model serialises to an object")
+    .keys()
+    .cloned()
+    .collect()
+}
+
+/// One address of each field-carrying model, in `FIELD_CARRYING_MODELS` order.
+fn address_of_model(model: &str) -> &'static str {
+  match model {
+    "AcceptanceTest" => "intent:///threads/ST0001/at/AT-03.1",
+    "Attachment" => "intent:///threads/ST0001/attachments/design.md",
+    "Criterion" => "intent:///threads/ST0001/ac/AC-09.9",
+    "Issue" => "intent:///issues/0021",
+    "Thread" => "intent:///threads/ST0001",
+    "WorkPackage" => "intent:///threads/ST0001/wp/01",
+    other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no address"),
+  }
+}
+
+/// **THE POPULATION, PINNED AND PARTITIONED, SO ITS OWN GROWTH REDS.**
+///
+/// Two directions, and the failure text names which one fired. A model type
+/// APPEARING is the case this exists for: a derived instrument would absorb it
+/// in silence and go on printing a correct answer to a question that had
+/// stopped being the criterion's.
+#[test]
+fn the_field_axis_population_is_pinned_and_announces_its_own_growth() {
+  let mut models: Vec<&str> = Vec::new();
+  let (mut collections, mut logs, mut no_model) = (0usize, 0usize, 0usize);
+
+  for url in one_address_of_every_form() {
+    let address = parse(url).unwrap_or_else(|e| panic!("`{url}` is a legal address: {e:?}"));
+    match field_axis(&address.entity) {
+      FieldAxis::Model(name) => models.push(name),
+      FieldAxis::Collection => collections += 1,
+      FieldAxis::Log => logs += 1,
+      FieldAxis::NoModelYet => no_model += 1,
+    }
+  }
+
+  assert_eq!(
+    models.len() + collections + logs + no_model,
+    13,
+    "the address grammar's form count moved; `one_address_of_every_form` and `field_axis`\n       \
+     disagree about the population before either axis has been measured"
+  );
+
+  models.sort_unstable();
+  let declared: Vec<&str> = FIELD_CARRYING_MODELS.to_vec();
+  let appeared: Vec<&&str> = models.iter().filter(|m| !declared.contains(m)).collect();
+  let vanished: Vec<&&str> = declared.iter().filter(|m| !models.contains(m)).collect();
+
+  assert!(
+    appeared.is_empty(),
+    "**A MODEL TYPE JOINED THE FIELD AXIS AND THE PIN IS WHAT TOLD YOU**: {appeared:?}\n       \
+     AC-08.5 is measured over FIELD-CARRYING MODELS, so a new one is new criterion scope.\n       \
+     Add it to FIELD_CARRYING_MODELS, give it a fully-populated instance and an address,\n       \
+     and let the partition below say whether its fields are reachable. Do NOT widen the\n       \
+     pin without doing that -- a name in the pin with no instance behind it measures nothing."
+  );
+  assert!(
+    vanished.is_empty(),
+    "these models are pinned into the field axis and no address form maps to them: {vanished:?}\n       \
+     Either a form was removed from `one_address_of_every_form` or `field_axis` stopped\n       \
+     naming the model. Both make the partition below measure a smaller population in silence."
+  );
+  assert_eq!(
+    (collections, logs, no_model),
+    (4, 2, 1),
+    "the zero-row classes moved. Four collections, two append-only logs and one form the\n       \
+     grammar minted ahead of its model (`Entity::Node`, ST0056/WP-14). If WP-14 landed,\n       \
+     `Node` becomes a Model and this line is the announcement that it did."
+  );
+}
+
+/// **THE PARTITION: EVERY DECLARED FIELD OF EVERY MODEL IS SETTABLE, OR
+/// REFUSED BY NAME. A FIELD THAT IS NEITHER REDS.**
+///
+/// # It prints the worklist; it does not decide the row
+///
+/// **The separation is deliberate and it is not mine to collapse.** ic builds
+/// the instrument over ic's own gate row; vc reads what it prints and decides
+/// green. A test that both measured the criterion and returned its verdict
+/// would be the node whose row it is deciding whether that row is done.
+///
+/// # The two ways this could have gone green while lying
+///
+/// **Vacuity.** An entity with an empty declared set satisfies any partition:
+/// *0 settable, 0 unsettable, holds*. The declared set therefore comes from a
+/// fully-populated instance of the MODEL, and a non-empty assertion guards
+/// each one.
+///
+/// **A refusal that names the ENTITY instead of the FIELD.** Clause 2 asks for
+/// an unwritable field *reported BY NAME*. `Facade::settable_fields` refuses
+/// `Attachment` and `Issue` by FORM at `facade.rs:4394`, naming
+/// `other.form()` and never a field -- so those two fail clause 2 **even for
+/// fields that are genuinely unsettable for a good reason**. That is recorded
+/// as its own verdict rather than folded into the unsettable set, because the
+/// two are different defects with different fixes.
+#[test]
+fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  fx.write_issue(&common::sample_issue(21));
+
+  // The probe value is never parsed on the path this test drives. `Facade::set`
+  // checks the field NAME before the VALUE (`facade.rs:4470`, and the comment
+  // there says so), and every field reaching the probe has already been
+  // excluded from `settable_fields`. A field that IS settable is classified
+  // from the surface's own declaration, so no legal-value map is needed and
+  // none is invented -- a wrong probe value would report a settable field as
+  // unsettable, which is the failure mode this file already records twice.
+  let probe = json!("a probe value the surface must refuse before it parses");
+
+  // **THE DISCRIMINATOR IS POSITIVE-CONTROLLED HERE, IN THE TEST, ON EVERY RUN.**
+  // `SCHEMA_MISMATCH` is a literal lifted from another module's error text. If that
+  // sentence is ever reworded, every real drift silently reclassifies as a
+  // legitimate refusal and this test goes green over a defect -- the failure mode
+  // it was just written to close, arriving from the opposite direction. So the
+  // instrument proves its own needle exists before it trusts any verdict built on
+  // it: a field no model declares must be refused, and the refusal must say it.
+  {
+    let mut probe_facade = fx.facade();
+    let known_good = parse("intent:///threads/ST0001").expect("resolves");
+    let err = probe_facade
+      .set(&known_good, "zz_not_a_field_of_any_model", probe.clone())
+      .expect_err("a field no model declares cannot be settable");
+    let text = format!("{err:?}");
+    assert!(
+      text.contains(SCHEMA_MISMATCH),
+      "the discriminator this test classifies on no longer matches what the surface says.\n       \
+       Expected a refusal containing `{SCHEMA_MISMATCH}`; got: {text}\n       \
+       Every schema-drift finding below would have been reclassified as a legitimate\n       \
+       refusal and this test would have gone green over it."
+    );
+  }
+
+  let mut report: Vec<String> = Vec::new();
+  // **THE DISCRIMINATOR IS THE REFUSAL'S OWN SENTENCE, AND THAT IS DELIBERATE
+  // RATHER THAN EXPEDIENT.** `Facade::set` returns `FieldNotWritable` -- which
+  // NAMES A FIELD -- for two completely different things: *this field exists and
+  // is unsettable for a stated reason* (clause 2 satisfied), and *this is not a
+  // field of this entity at all* (`facade.rs:4470`, the schema check). Counting
+  // both as "refused by name" makes the partition UNFALSIFIABLE: every possible
+  // field name is then either written or refused-by-name, so `neither` is empty
+  // by construction and the assertion holds over any estate.
+  //
+  // **MEASURED, NOT REASONED: a control field no door can reach was injected into
+  // the denominator and the first version of this test PASSED.** The green was
+  // structural, not a fact about the surface.
+  //
+  // This file already keys a discriminator on a literal refusal sentence -- the
+  // `has no write path yet` note at line 451 says the wording is an interface and
+  // not the author's to improve. Same contract here, and it is asserted below
+  // rather than assumed: `SCHEMA_MISMATCH` must actually match something the
+  // surface says, or the instrument has gone blind in the other direction.
+  const SCHEMA_MISMATCH: &str = "not a field of this entity";
+
+  let mut schema_mismatch: Vec<String> = Vec::new();
+  let mut by_form: Vec<String> = Vec::new();
+  let mut unclassified: Vec<String> = Vec::new();
+  // **THE PARTITION'S OWN VERDICT, ACCUMULATED RATHER THAN ONLY PRINTED.** The first
+  // draft of this test computed `neither` per model, formatted it into the report
+  // string, and asserted on the other two verdicts only -- so the one assertion vc
+  // actually specified, *a field that is neither reds*, did not exist. It passed.
+  let mut neither_any: Vec<String> = Vec::new();
+
+  for model in FIELD_CARRYING_MODELS {
+    let url = address_of_model(model);
+    let address = parse(url).unwrap_or_else(|e| panic!("`{url}` is a legal address: {e:?}"));
+    let declared = declared_fields(model);
+
+    assert!(
+      !declared.is_empty(),
+      "`{model}` serialises no fields, so its partition below holds vacuously. An empty\n       \
+       population returns 0 with and 0 without, which is the shape that makes an\n       \
+       instrument agree with every possible estate."
+    );
+
+    let settable: BTreeSet<String> =
+      match intentsvcs::facade::Facade::settable_fields(&address.entity) {
+        Ok(fields) => fields.into_iter().collect(),
+        Err(e) => {
+          by_form.push(format!(
+            "{model} ({url}): the surface refuses the WHOLE ENTITY, so not one of its \
+           {} fields can be reported by name -- {e:?}",
+            declared.len()
+          ));
+          BTreeSet::new()
+        }
+      };
+
+    let mut named: Vec<String> = Vec::new();
+    let mut facade = fx.facade();
+    for field in declared.iter().filter(|f| !settable.contains(*f)) {
+      match facade.set(&address, field, probe.clone()) {
+        Ok(outcome) => unclassified.push(format!(
+          "{model}.{field}: absent from `settable_fields` and yet the surface WROTE it \
+           ({outcome:?}) -- the declaration and the door disagree"
+        )),
+        Err(intentsvcs::facade::FacadeError::FieldNotWritable {
+          field: named_field,
+          why,
+          ..
+        }) if why.contains(SCHEMA_MISMATCH) => {
+          // The MODEL declares this field and the SURFACE does not know it.
+          // Refused by name, so it reads as compliant, and it is drift.
+          schema_mismatch.push(format!(
+            "{model}.{field}: the model serialises it and the surface answers \"{SCHEMA_MISMATCH}\""
+          ));
+        }
+        Err(intentsvcs::facade::FacadeError::FieldNotWritable {
+          field: named_field,
+          why,
+          ..
+        }) => {
+          assert_eq!(
+            &named_field, field,
+            "the refusal for `{model}.{field}` names a different field (`{named_field}`)"
+          );
+          assert!(
+            !why.trim().is_empty(),
+            "`{model}.{field}` is refused by name with an EMPTY reason. Clause 2 asks for \n       \
+             the field to be reported by name, and a name with no remedy sends the operator \n       \
+             to a hand-edit of canon -- the route this criterion exists to retire."
+          );
+          named.push(format!("{field} -- {why}"));
+        }
+        Err(other) => unclassified.push(format!(
+          "{model}.{field}: refused, and NOT by naming the field -- {other:?}"
+        )),
+      }
+    }
+
+    let covered: BTreeSet<String> = settable
+      .iter()
+      .cloned()
+      .chain(
+        named
+          .iter()
+          .map(|n| n.split_once(" -- ").expect("formatted above").0.to_string()),
+      )
+      .collect();
+    let neither: Vec<&String> = declared.difference(&covered).collect();
+    neither_any.extend(neither.iter().map(|f| format!("{model}.{f}")));
+
+    let marker = if neither.is_empty() {
+      String::new()
+    } else {
+      format!("  ** {} NEITHER: {:?} **", neither.len(), neither)
+    };
+    let settable_list = settable.iter().cloned().collect::<Vec<String>>().join(", ");
+    let refused_list = if named.is_empty() {
+      "(none)".to_string()
+    } else {
+      named.join("\n                ")
+    };
+    report.push(format!(
+      "  {model:<15} {declared_n} declared = {settable_n} settable + {named_n} refused-by-name{marker}\n             settable: {settable_list}\n      refused:  {refused_list}",
+      declared_n = declared.len(),
+      settable_n = settable.len(),
+      named_n = named.len(),
+    ));
+  }
+
+  let worklist = report.join("\n");
+  // **IT PRINTS WHETHER IT PASSES OR FAILS, BECAUSE THAT IS THE JOB IT WAS GIVEN.**
+  // vc holds this row's verdict and ic holds the instrument; a report emitted only
+  // on failure hands the decider nothing on the run that matters most -- the one
+  // where the row is claimed green. `cargo test -- --nocapture` shows it.
+  eprintln!(
+    "\nAC-08.5 FIELD AXIS -- {} models, driven:\n{worklist}\n",
+    FIELD_CARRYING_MODELS.len()
+  );
+  assert!(
+    by_form.is_empty()
+      && unclassified.is_empty()
+      && neither_any.is_empty()
+      && schema_mismatch.is_empty(),
+    "**AC-08.5's FIELD AXIS IS RED, AND THIS IS THE WORKLIST RATHER THAN A REGRESSION.**\n\n\
+     {worklist}\n\n\
+     REFUSED BY FORM -- fails clause 2 (`reported BY NAME`) for every field at once:\n       {}\n\n\
+     UNCLASSIFIED -- refused, but not by naming the field:\n       {}\n\n\
+     NEITHER settable NOR refused by name -- the partition itself:\n       {}\n\n\
+     DECLARED BY THE MODEL, UNKNOWN TO THE SURFACE -- refused by name, and still drift:\n       {}\n\n\
+     Red IS the criterion's verdict until the surface reaches these. The value of this\n       \
+     test is that the set is exact and named rather than gestured at.",
+    if by_form.is_empty() {
+      "(none)".to_string()
+    } else {
+      by_form.join("\n       ")
+    },
+    if unclassified.is_empty() {
+      "(none)".to_string()
+    } else {
+      unclassified.join("\n       ")
+    },
+    if neither_any.is_empty() {
+      "(none)".to_string()
+    } else {
+      neither_any.join("\n       ")
+    },
+    if schema_mismatch.is_empty() {
+      "(none)".to_string()
+    } else {
+      schema_mismatch.join("\n       ")
+    },
+  );
+}
