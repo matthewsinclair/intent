@@ -1120,7 +1120,12 @@ fn a_different_legal_thread_value() -> Vec<(&'static str, Value)> {
     ("title", json!("Intent v3.0.0 -- the rewrite")),
     ("slug", json!("intent-v3-rewrite")),
     ("status_reason", json!("held: waiting on the fleet")),
-    ("created", json!("2026-08-01")),
+    // **`created` IS DELIBERATELY ABSENT AND ITS NEIGHBOUR IS DELIBERATELY
+    // PRESENT.** A machine stamp has no caller-authored value to offer, so there
+    // is nothing legal to put here; `completed` two lines down is an AUTHORED
+    // date and stays. **The two look alike and are not the same field** -- see
+    // `Unsettable::Stamped`. This map disagreeing with the setter is what caught
+    // the change that refused `created`, which is the map doing its job.
     // **THE CRITERION'S FIRST BURNING CASE.** ST0011's row is NULL and wrong,
     // and until this verb existed nothing could write it that was not a
     // whole-document replace.
@@ -2364,5 +2369,67 @@ fn the_work_package_tail_carries_the_same_property() {
       .as_deref(),
     Some("closed legitimately and its contract grew afterwards"),
     "a forward work-package verb must not erase the record of why it moved before"
+  );
+}
+
+/// **A CALLER MUST NOT AUTHOR A STAMP, AND A GENERIC SETTER ROUTED AROUND THE
+/// RULE THAT SAYS SO.**
+///
+/// D42 stated itself as a test on SIGNATURES -- *no cli or intentsvcs function
+/// takes a time* -- and `Facade::set(&addr, field, Value)` takes no time, **so
+/// the letter of the rule was satisfied while the property it protects was not.**
+/// dc amended it: the rule is that no caller authors a stamp, and the signature
+/// test is one sufficient condition rather than the definition.
+///
+/// **`completed` IS ASSERTED SETTABLE IN THE SAME TEST, ON PURPOSE.** It is an
+/// authored DATE and this criterion's first burning case -- NULL on ST0011, the
+/// estate's one genuinely wrong row. **The failure mode this arm guards against
+/// is not only letting `created` through; it is refusing `completed` because the
+/// two look alike**, which would close the gap the row was opened for.
+#[test]
+fn a_stamp_is_refused_by_name_and_an_authored_date_is_not() {
+  for url in ["intent:///threads/ST0001", "intent:///issues/0001"] {
+    let a = intentsvcs::address::promote(url).expect("parses");
+    let settable = intentsvcs::facade::Facade::settable_fields(&a.entity).expect("has fields");
+    assert!(
+      !settable.contains(&"created".to_string()),
+      "{url}: `created` is a machine stamp and no caller may author it: {settable:?}"
+    );
+  }
+
+  let a = intentsvcs::address::promote("intent:///threads/ST0001").expect("parses");
+  let settable = intentsvcs::facade::Facade::settable_fields(&a.entity).expect("has fields");
+  assert!(
+    settable.contains(&"completed".to_string()),
+    "`completed` is an AUTHORED date and this row's first burning case -- refusing it \
+     alongside `created` would close the gap the criterion was opened for: {settable:?}"
+  );
+}
+
+/// **THE REFUSAL NAMES NO VERB, BECAUSE THERE IS NONE AND THERE SHOULD NOT BE.**
+///
+/// Three false remedies were authored in one day, each inside the fix for the
+/// previous, and every one named a route that did not reach the stated outcome.
+/// A stamp has no verb at all, so `Machine(...)` would have been the fourth.
+#[test]
+fn the_stamp_refusal_does_not_invent_a_verb_to_send_the_operator_to() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut f = fx.facade();
+  let e = f
+    .set(
+      &parse("intent:///threads/ST0001").expect("address"),
+      "created",
+      json!("2020-01-01"),
+    )
+    .expect_err("a caller may not author a stamp");
+  let said = format!("{e}");
+  assert!(
+    said.contains("created"),
+    "reported BY NAME, which is clause 2: {said}"
+  );
+  assert!(
+    !said.contains("intent st ") && !said.contains("intent issues "),
+    "and it names no verb, because none moves it: {said}"
   );
 }

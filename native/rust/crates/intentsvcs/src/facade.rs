@@ -5504,6 +5504,36 @@ enum Unsettable {
   /// already refuses `?format=json` for, one field at a time instead of all at
   /// once. Carries the field it follows.
   Derived(&'static str),
+  /// **THE SERVICE LAYER WRITES IT ONCE, AT THE EVENT, AND NO VERB MOVES IT
+  /// AFTERWARDS -- WHICH IS WHY THE REMEDY IS NOT A VERB.**
+  ///
+  /// D42 as amended (dc, 2026-08-25): **no caller authors a stamp.** The rule
+  /// used to state itself as a test on SIGNATURES -- *no cli or intentsvcs
+  /// function takes a time* -- and `Facade::set(&addr, field, Value)` genuinely
+  /// takes no time, **so the letter of the rule was satisfied while the property
+  /// it exists to protect was not.** A rule stated as a mechanism, evaded by a
+  /// different mechanism; the signature test is one sufficient condition and
+  /// never the definition.
+  ///
+  /// **IT IS NOT TIDINESS.** ST0057 AC-14.11 forbids re-stamping *in either
+  /// direction* because with the DB as truth and sync running both ways, a
+  /// resync that re-inserts rows lets a default re-stamp them -- the
+  /// fabricated-stamp failure reintroduced by its own fix. A settable `created`
+  /// gives you that by hand instead of by accident, **and the two are
+  /// indistinguishable afterwards.**
+  ///
+  /// **`completed` IS NOT THIS AND MUST STAY SETTABLE.** It is a domain DATE the
+  /// operator asserts, carried from v2 and never re-stamped, and it is this
+  /// criterion's FIRST burning case -- NULL on ST0011, the estate's one
+  /// genuinely wrong row. A stamp is written by the service from the clock; a
+  /// date is authored. **Refusing both because they look alike would close the
+  /// gap the row was opened for.**
+  ///
+  /// **AND THIS SAYS NOTHING ABOUT INGEST OR MIGRATION.** A migrator carrying a
+  /// v2 thread's real creation date is a caller CARRYING a stamp, not authoring
+  /// one. dc owns D42 and declined that boundary; it is hv's if it is anyone's,
+  /// and nothing here closes it in either direction.
+  Stamped,
   /// **THIS ADDRESS TAKES THE DOCUMENT ITSELF, NOT ITS FIELDS.** An attachment's
   /// content is its body: `put` at the attachment address writes the file, and
   /// the record's other fields are computed from what lands.
@@ -5543,6 +5573,11 @@ impl Unsettable {
          Setting it by hand would leave the record correctly describing the wrong content, \
          which is exactly what nothing downstream can detect"
       ),
+      Self::Stamped => "this is a machine stamp: the service layer writes it once, from the \
+         clock, at the moment of the event, and nothing moves it afterwards. There is no verb \
+         for this and there should not be -- a caller authoring a stamp is indistinguishable \
+         later from a resync having re-stamped the row"
+        .to_string(),
       Self::WholeBody => format!(
         "an attachment's body IS its content, so it is written whole at `{url}` rather than \
          field by field, and the record's other fields are computed from what lands. \
@@ -5567,6 +5602,8 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       "status" => Some(Unsettable::Machine(
         "intent st start|done|hold|resume|cancel|reopen|reinstate",
       )),
+      // `completed` is deliberately NOT here -- see [`Unsettable::Stamped`].
+      "created" => Some(Unsettable::Stamped),
       _ => None,
     },
     AddrEntity::Wp { .. } => match field {
@@ -5597,15 +5634,16 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     AddrEntity::Issue { .. } => match field {
       "schema" | "number" => Some(Unsettable::Identity),
       "status" | "closed" => Some(Unsettable::Machine("intent issues close|open")),
-      // **`created` IS SETTABLE, AND THE ARM THAT REFUSED IT WAS FALSE TWICE
-      // OVER.** It read `Machine("intent issues add")` -- a verb that CREATES an
-      // issue and cannot move `created` on one that already exists, so following
-      // the remedy would not reach the outcome. It was also inconsistent with
-      // its own sibling: `Thread::created` falls through and is settable.
-      // **AND THIS ROW'S FIRST BURNING CASE IS A PROVENANCE FIELD THAT IS
-      // WRONG** -- `Thread::completed`, NULL on ST0011 -- so *machine-stamped*
-      // is an argument for a setter rather than against one. A stamp nothing can
-      // correct is how an estate keeps a value it already knows is false.
+      "created" => Some(Unsettable::Stamped),
+      // **`created` WAS SETTABLE FOR AN HOUR AND THE ARGUMENT FOR IT WAS WRONG
+      // ABOUT WHICH FIELD IT WAS MAKING.** I withdrew a false remedy --
+      // `Machine("intent issues add")`, a verb that creates an issue and cannot
+      // move the field on one that exists -- and reached for *this row's first
+      // burning case is a provenance field that is wrong*. **That case is
+      // `completed`, which is an authored DATE, and I generalised it onto
+      // `created`, which is a machine STAMP.** dc ruled it under D42; the two
+      // are now distinguished at [`Unsettable::Stamped`], and `completed` stays
+      // settable because the gap this row was opened for is exactly that field.
       // **`body` IS DELIBERATELY SETTABLE AND THE FIRST DRAFT OF THIS ARM HAD IT
       // REFUSED.** The plan was `Machine` naming a route -- and there is no
       // route: `issues` is list|add|show|close|open, `add` takes `<TITLE>` and
