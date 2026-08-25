@@ -21,21 +21,47 @@ set -euo pipefail
 cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
 
 usage() {
-  printf 'usage: %s devbin [templates]\n' "${DEVBIN_NAME:-devbin}"
+  printf 'usage: %s devbin [templates|--version]\n' "${DEVBIN_NAME:-devbin}"
 }
 
-# The vendored runtime's own version: stamped into the manifest at install. In
-# the dogfood checkout there is no manifest (D12 runs lib/ in place) and the
-# project's VERSION file IS devbin's.
+# The vendored runtime's own version: stamped into the manifest at install.
+#
+# THE ABSENCE OF A MANIFEST AND AN INCOMPLETE MANIFEST ARE DIFFERENT FACTS AND
+# THIS USED TO CONFLATE THEM. No manifest at all means the dogfood checkout,
+# where D12 runs lib/ in place and the project's own version file IS devbin's --
+# the fallback is correct there and nowhere else. A manifest that EXISTS but
+# carries no `# devbin_version:` is a broken install, and falling back there
+# printed the CONSUMER's version wearing devbin's label: a consumer estate would
+# have answered `devbin 0.6.2` off its own mix.exs, which is not a near-miss but
+# a confident false statement about a different piece of software.
+#
+# So the fallback is now reachable only from the no-manifest case, and the
+# broken-manifest case refuses. No Silent Errors: devbin does not guess its own
+# version out of a file that belongs to someone else.
 runtime_version() {
   local mf="${DEVBIN_DIR:-}/manifest.sha256" v=""
   if [ -n "${DEVBIN_DIR:-}" ] && [ -f "$mf" ]; then
     v="$(awk -F': ' '/^# devbin_version:/ { print $2; exit }' "$mf")"
+    [ -n "$v" ] ||
+      die "manifest at $mf names no devbin_version -- this project's version file is NOT devbin's; re-run upgrade"
+    printf '%s' "$v"
+    return 0
   fi
-  # The bare call selects the version-file role on purpose.
+  # No manifest: the dogfood checkout (D12). The bare call selects the
+  # version-file role on purpose.
   # shellcheck disable=SC2119
-  [ -n "$v" ] || v="$(read_version)"
-  printf '%s' "$v"
+  read_version
+}
+
+# `<name> devbin --version` answers for the FRAMEWORK. Reported from a consumer
+# estate, where it printed a usage line and exited 1 -- the datum was already
+# here and the dispatcher simply had no arm for it. Asking a tool its version is
+# not a usage error, and the answer is devbin's rather than the project's, which
+# `<name> --version` already covers.
+show_version() {
+  local ver
+  ver="$(runtime_version)" || exit 1
+  printf 'devbin %s\n' "$ver"
 }
 
 show_templates() {
@@ -54,8 +80,12 @@ show_templates() {
 }
 
 show_overview() {
-  local src
-  printf 'devbin %s -- the framework under bin/\n\n' "$(runtime_version)"
+  local src ver
+  # Captured rather than inlined: a refusal inside a command substitution does
+  # not abort the printf that holds it, so an unanswerable version would have
+  # printed as a blank and read as an answer.
+  ver="$(runtime_version)" || exit 1
+  printf 'devbin %s -- the framework under bin/\n\n' "$ver"
   printf 'This launcher is devbin, vendored at bin/.devbin/ and driven by\n'
   printf "bin/.devbin/config.yaml. Identity comes from config: this install\n"
   printf "answers as '%s'.\n\n" "${DEVBIN_NAME:-devbin}"
@@ -81,6 +111,7 @@ case "${1:-}" in
     exit 0
     ;;
   templates) show_templates ;;
+  --version | -v | version) show_version ;;
   *)
     usage >&2
     exit 1

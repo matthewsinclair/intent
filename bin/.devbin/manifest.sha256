@@ -3,13 +3,13 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.0
 # source: /Users/matts/Devel/prj/Devbin
-# source_commit: 0257f7a059ba44304d6235651afab6d68b858365
+# source_commit: 4dc899de522b0bcdbaca47e7726a53f1645c53a5
 35baea11b31eb11bb45710a45dc88a929aa7fc0b05b8d71d63da555739c072bb  bin/devbin
 9df3f140d5e8f8c75c6d83ddd2245797204bf175f240abe051d0c1bb9098738a  bin/.devbin/lib/builtins
 a6cfe990da0bfa862ad0fd34e167d72f81320d8c28ec9bb75f61e63ad26c0bf0  bin/.devbin/lib/cmd/check
 5c3aa3fbdf34d087c88dfd4b1e1df869bae2e008788a4b7497f8ac85f2cfee34  bin/.devbin/lib/cmd/cli
 170a977dbcfe479fd81ae1b51b0bdff53cbfb8543d14e5040de2ca70e3597cae  bin/.devbin/lib/cmd/db
-bd1a0e00d534a30f698a3ebf6ceabb6b8efbdbb6ef257e49ef86865c37a8021a  bin/.devbin/lib/cmd/devbin
+79df8dd5ccaebbba6fc1cc9b727651d89d08287913afb21f5445dc181b8a0a8b  bin/.devbin/lib/cmd/devbin
 44333ff440e0db228e3abee832359896336623d3d6f07b1090b1f576b34e1bbe  bin/.devbin/lib/cmd/docs
 f7c5c384f77ae6ed2c0e1e728c86340befee00bc032a12b93d53f8a8f4f81372  bin/.devbin/lib/cmd/doctor
 3cdb7f8d8aea2d5a1021fc10d2756d39f61c8168646a9dd3316563b94fae12e5  bin/.devbin/lib/cmd/fmt
