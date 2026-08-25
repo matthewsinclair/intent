@@ -5631,7 +5631,22 @@ enum Unsettable {
   /// the correction. **This is the AC/AT-creation instance's shape, not a new
   /// one: a service-layer route with no CLI surface**, so it NARROWS the gap
   /// rather than closing it, and the wording must not pretend otherwise.
-  WholeBody,
+  WholeBody {
+    /// **WHETHER THE SERVICE-LAYER `put` CAN ALSO CARRY THIS FORM.**
+    ///
+    /// `Facade::put` takes a `&str`, so it carries text and CANNOT carry bytes.
+    /// **The two fields shared one sentence and its fallback read *or PUT the
+    /// text to `<url>`* for `blob` — the wrong noun, and worse, a route that
+    /// cannot reach the outcome** (vc found it after the row was already green).
+    ///
+    /// **A SHARED SENTENCE IS HOW A REMEDY BECOMES WRONG FOR ONE OF ITS
+    /// MEMBERS**, which is `finding.rs:267`'s defect at a smaller scale: there a
+    /// remedy attached to a whole finding CLASS went on being emitted for a
+    /// member that had stopped belonging. Here it was two fields in one arm.
+    /// **The distinction is carried in the type so the sentence cannot be right
+    /// for one member and wrong for the other.**
+    put_carries: bool,
+  },
   /// **A FIELD WITH NO ROUTE AT ALL, SAID PLAINLY.**
   ///
   /// This row's own doc argues that a name with no remedy sends the operator to
@@ -5714,7 +5729,7 @@ impl Unsettable {
   fn kind(&self) -> UnsettableKind {
     match self {
       // A route exists and `explain` names it.
-      Self::Machine(_) | Self::Child(_) | Self::Derived(_) | Self::WholeBody => {
+      Self::Machine(_) | Self::Child(_) | Self::Derived(_) | Self::WholeBody { .. } => {
         UnsettableKind::Elsewhere
       }
       // Constitutive: the value IS the address, or the service owns the stamp.
@@ -5755,11 +5770,16 @@ impl Unsettable {
          for this and there should not be -- a caller authoring a stamp is indistinguishable \
          later from a resync having re-stamped the row"
         .to_string(),
-      Self::WholeBody => format!(
-        "an attachment's body IS its content, so it is written whole rather than field by \
-         field, and the record's other fields are computed from what lands -- write it with \
-         `intent st attach <thread> <path> --from <file>`, or PUT the text to `{url}`"
-      ),
+      Self::WholeBody { put_carries } => {
+        let mut said = "an attachment's body IS its content, so it is written whole rather than \
+             field by field, and the record's other fields are computed from what lands -- write \
+             it with `intent st attach <thread> <path> --from <file>`"
+          .to_string();
+        if *put_carries {
+          said.push_str(&format!(", or PUT the text to `{url}`"));
+        }
+        said
+      }
       Self::NoRouteYet(what) => format!(
         "{what}, and there is no route on this surface today. Canon must already record the \
          attachment as opaque with its sidecar beside it -- `intent st attach` writes TEXT, and \
@@ -5847,7 +5867,7 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       // SHARED A REFUSAL SAYING NEITHER HAD A ROUTE.** `text` now has one;
       // `blob` still does not, and collapsing them again would make one of the
       // two remedies false whichever way it collapsed.
-      "text" => Some(Unsettable::WholeBody),
+      "text" => Some(Unsettable::WholeBody { put_carries: true }),
       // **`blob` MOVED FROM `NoRouteYet` TO `WholeBody` WHEN `st attach` LEARNED
       // TO CARRY BYTES, AND LEAVING IT WOULD HAVE BEEN THE SEVENTH FALSE
       // REMEDY.** It said *there is no route on this surface today* -- true when
@@ -5855,7 +5875,9 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       // code no longer has is the same defect as one describing a route the code
       // never had.** The `today` in it was the honest word and it is also the
       // word that dates.
-      "blob" => Some(Unsettable::WholeBody),
+      // `put` takes a `&str` and cannot carry bytes, so the PUT clause is
+      // withheld here rather than reworded.
+      "blob" => Some(Unsettable::WholeBody { put_carries: false }),
       "sha256" | "bytes" => Some(Unsettable::Derived("the attachment's content")),
       _ => None,
     },

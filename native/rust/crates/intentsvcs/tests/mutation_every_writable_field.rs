@@ -2530,6 +2530,33 @@ fn every_attachment_refusal_names_a_route_that_exists() {
     );
   }
 
+  // **AND THE SHARED SENTENCE IS SPLIT, BECAUSE A ROUTE THAT CANNOT CARRY THE
+  // FORM IS A FALSE REMEDY EVEN WHEN THE OTHER HALF OF THE SENTENCE IS TRUE.**
+  // `text` and `blob` shared one arm whose fallback read *or PUT the text to
+  // `<url>`*. `Facade::put` takes a `&str`: right for `text`, and for `blob` it
+  // is both the wrong noun and a route that cannot reach the outcome. **vc found
+  // it after the row was green, which is the only time nobody is looking.**
+  let text_said = format!(
+    "{}",
+    f.set(&addr, "text", json!("x"))
+      .expect_err("not field-settable")
+  );
+  let blob_said = format!(
+    "{}",
+    f.set(&addr, "blob", json!("x"))
+      .expect_err("not field-settable")
+  );
+  assert!(
+    text_said.contains("PUT the text"),
+    "`put` carries text and the remedy may say so: {text_said}"
+  );
+  assert!(
+    !blob_said.contains("PUT"),
+    "**`put` TAKES A `&str` AND CANNOT CARRY BYTES**, so the clause is withheld rather than \
+     reworded -- a shared sentence is how a remedy becomes wrong for one of its members, which \
+     is `finding.rs:267`'s defect at a smaller scale: {blob_said}"
+  );
+
   for field in ["sha256", "bytes"] {
     let e = f
       .set(&addr, field, json!("x"))
