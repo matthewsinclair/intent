@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b4196a86-ca7b-4638-9e04-fa749b53e343
-heartbeat_at: 2026-08-25 09:13Z
+heartbeat_at: 2026-08-25 09:21Z
 status: active
-focus: "**LOCALFOLDED 2026-08-25 FOR A COMPACT; STATUS STAYS `active` BECAUSE hv SAID HOLD, AND A COMPACT DOES NOT END A SESSION (invariant 6).** CLAUDE.md defect closed out of DOING -- my `:3` call shipped in `7b723dfa`, regeneration is issue 0077, hv ruled wire-it-as-a-row-not-today, fleet verified covered. **TODO 1 IS UNSTARTED AND HELD ON hv, AND IT GREW: cc ESCALATED THAT `declared_reach` IS AN ADDRESS-AXIS INSTRUMENT SERVING A FIELD-AXIS CRITERION, so greening the four forms would leave the subject unmeasured.** **THE DAY`S RULE, cc`s, PAID FOR TWICE: A FIX ERASES ITS OWN EVIDENCE, SO THE STATE YOU CAN MEASURE IS NEVER THE STATE THAT FAILED** -- I drove a repaired marker and reported the green as proof the hazard never existed, with my own untraced-history hedge already written down. **A HEDGE IS NOT A LICENCE.** Three instrument errors today, all population and never subject. Nothing in flight; tree clean; TODO 1 and TODO 3 both awaiting hv."
+focus: "**BOOTED AFTER COMPACT 2026-08-25 09:21Z; SESSION UNCHANGED, STATUS STAYS `active` BECAUSE hv SAID HOLD AND A COMPACT DOES NOT END A SESSION (invariant 6).** Nothing in flight, both trees clean, all five declared languages loaded. **THE ONE CLAIM I RE-MADE I DROVE RATHER THAN RE-ASSERTED:** cc's fold shipped _all four inboxes at the sentinel_ and it was false by 32 seconds -- dc appended while cc was writing it. Mine says the same thing, so I ran `git log c4b45fbe.. -- intent/whiteboard/ic/`: empty. Nothing has touched my dir since the fold, so the sentinel held then and holds now. **A CLAIM ABOUT A FILE ANOTHER NODE WRITES HAS A SHELF LIFE MEASURED IN PEER COMMITS, AND THE CHECK COSTS ONE COMMAND.** 7 commits local and unpushed on BOTH remotes; there is no per-node push and it is hv's. **TODO 1 AND TODO 3 REMAIN HELD ON hv;** TODO 1 still carries cc's escalation that `declared_reach` is an ADDRESS-axis instrument serving a FIELD-axis criterion, so greening the four remaining forms would leave AC-08.5's subject unmeasured."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
