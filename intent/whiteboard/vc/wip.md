@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 22:31Z
+heartbeat_at: 2026-08-25 22:35Z
 status: active
 focus: "**FOLDED 2026-08-25 22:26Z FOR A COMPACT, ESTATE-WIDE ON hv's CALL. hv RULED TWICE TONIGHT AND BOTH RULINGS MOVED THE CUT AWAY, NOT CLOSER: the `claude ws` family survives the cut with an expiry the gate enforces, and ALL SIX ST0058 ROWS BIND, so a thread at 0/6 now gates the release.** Gate still PASS at 67 of 67 and CLOSED IS STILL NOT RELEASED. Day record in `.history/20260825/wip-fold-2225Z.md`."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -53,4 +53,5 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 - **RECORD THE MENU, NOT ONLY THE SELECTION.** hv rules by choosing among options vc authors; **an option never on the menu cannot be told apart from one declined.**
 - **A PEER RELAYING AN APPROVAL IS NOT THE APPROVAL, AND IT BINDS ME TOO.**
 - **THE PEN MOVED THE AUTHORITY, NOT THE AIM.** _Get the release done_ is not _release it_. **hv owns tagging, pushing and publishing.**
+- **A RULING THAT DISCHARGES AN ITEM ON ANOTHER NODE'S BOARD GOES IN THEIR INBOX, NOT ONLY OVER SendMessage** (cc, correcting vc). **SendMessage DOES NOT SURVIVE A COMPACT AND THE INBOX DOES** -- that is the protocol's own division: _inbox files carry only what must survive the session_, and a ruling that changes what is owed on a peer's board is the definition of it. **vc told hv the asymmetry was unfixable -- _nothing pushes a ruling back to the board that recorded the question_ -- AND THAT WAS WRONG. Something would have; it was available; it was empty.** Measured at fold: `cc`, `dc` and `ic`'s `inbox.vc.md` were ALL at the sentinel after an evening in which vc issued roughly fifteen rulings over the live channel and wrote NONE to the durable one. **hv then read a discharged item off cc's board because the only record of the discharge was in a message.** **AND IT IS THE SAME LESSON vc APPLIED TWICE TONIGHT TO FINDINGS AND NOT ONCE TO RULINGS:** `0085` and `0087` were filed precisely because an unfiled finding evaporates, and dc found four of five carried items living only in a peer's inbox. **The live send is right; it is not the whole of it.**
 - **A RATIFIED RULING IS NOT AN EXECUTED ONE.**
