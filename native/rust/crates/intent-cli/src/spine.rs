@@ -241,7 +241,26 @@ impl From<&str> for Failure {
 /// Build the whole surface from the table.
 pub fn build(table: &Table) -> Command {
   let mut root = Command::new("intent")
-    .version(env!("CARGO_PKG_VERSION"))
+    // **ONE CAPABILITY, TWO SPELLINGS, PRINTING THE SAME BYTES BY
+    // CONSTRUCTION.** `intent version` asks this Command for
+    // `render_version()` rather than composing a line of its own, so the two
+    // cannot drift. That drift is the defect the row was raised on: the flag
+    // answered rc=0 with a version and the subcommand refused rc=2 as
+    // unimplemented, in one binary, with the failing spelling the one a person
+    // types first.
+    //
+    // THE COMMIT IS BAKED IN PER THE `corrected` RATIFICATION (hv 2026-08-14),
+    // and the reason is that a version alone does not identify a build here:
+    // every binary in this estate reports `3.0.0-dev`, so the version answers
+    // "which line" and only the commit answers "which build". `SOURCE_COMMIT`
+    // carries its dirt INSIDE the value (`dirty-<sha>`, or `unknown` when git
+    // could not answer), so this line cannot report a dirty build as a clean
+    // one by dropping a second field nobody reads.
+    .version(format!(
+      "{} ({})",
+      env!("CARGO_PKG_VERSION"),
+      crate::SOURCE_COMMIT
+    ))
     // FROM THE TABLE, like every other help string on the surface (EXP-08).
     // This was the ONE `.about("...")` literal in the CLI: every family, entry,
     // verb and flag below already reads its help from the table, so the root was

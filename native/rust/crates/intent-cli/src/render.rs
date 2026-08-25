@@ -47,6 +47,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("sync", m)) => sync(m),
     Some(("backup", m)) => backup(m),
     Some(("info", _)) => info(),
+    Some(("version", _)) => version(),
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
@@ -2632,6 +2633,39 @@ fn t_shirt(raw: &str) -> Result<TShirt, Failure> {
       TShirt::spellings()
     ))
   })
+}
+
+/// `intent version` -- the subcommand twin of `--version`.
+///
+/// **IT ASKS CLAP FOR THE STRING RATHER THAN COMPOSING ONE, AND THAT IS THE
+/// WHOLE DESIGN.** The criterion this closes is not "the subcommand exists"
+/// but "one capability does not disagree with itself about whether it
+/// exists": `--version` answered rc=0 with a version while `version` refused
+/// rc=2 as unimplemented, in one binary. Composing a second line here would
+/// close the rc gap and leave a BYTES gap behind it, which is the same defect
+/// one level down and harder to see -- both spellings would answer, and
+/// nothing would say they answered differently.
+///
+/// `render_version()` is the exact string `spine::parse` prints for the
+/// `DisplayVersion` arm, so the two are one value with two call sites rather
+/// than two values that a test hopes are equal. The test is still written,
+/// because a shared SOURCE is not a shared OUTPUT -- a future `print!` that
+/// trimmed or decorated this would pass the type checker.
+///
+/// Rebuilding the Command costs a table parse on a command that prints one
+/// line. That is deliberate: the alternative is threading the built Command
+/// through `run`, which widens a signature every arm shares for the benefit of
+/// one, and the honest cost of asking the authority is smaller than the cost
+/// of keeping a copy near the caller.
+fn version() -> Result<(), Failure> {
+  // `print!`, not `println!`: `render_version()` already ends in a newline, and
+  // the byte-identity property is asserted against `--version`, so an added
+  // newline here would break the criterion rather than tidy the output.
+  print!(
+    "{}",
+    crate::spine::build(&dispatch::table()).render_version()
+  );
+  Ok(())
 }
 
 /// `intent info` -- the installation and project overview.
