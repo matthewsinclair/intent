@@ -303,7 +303,7 @@ fn record(path: &Path) -> Result<Prior, WriteError> {
 /// Write via a sibling temp file and a rename, so a reader never observes a
 /// half-written file. The temp file sits in the destination directory because
 /// a rename across filesystems is not atomic and may not even be a rename.
-fn write_atomically(path: &Path, content: &str) -> Result<(), WriteError> {
+pub(crate) fn write_atomically(path: &Path, content: &str) -> Result<(), WriteError> {
   let dir = path.parent().unwrap_or(Path::new("."));
   let name = path
     .file_name()

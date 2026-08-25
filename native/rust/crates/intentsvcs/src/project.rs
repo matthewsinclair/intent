@@ -100,6 +100,107 @@ pub struct Config {
   pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
+/// **THE FIRST MUTATION ROUTE TO THE PROJECT MARKER, AND IT IS BIGGER THAN THE
+/// ARM THAT ASKED FOR IT.**
+///
+/// Until this existed, `config.json` was written exactly once -- `init.rs`
+/// lays it down and REFUSES if one is already there -- and nothing anywhere
+/// updated it. `intent lang init`/`remove` are the first verbs that need to,
+/// which makes them a new write path to the one file that decides whether a
+/// directory is an Intent project at all, rather than "wire an arm".
+///
+/// **The dangerous half is already closed by [`Config::extra`] and not by
+/// anything here**: a typed round trip through a struct that does not model
+/// every key would silently drop the ones it does not know, and `#[serde(flatten)]`
+/// is what stops that. `st_prefix` is the worked example -- retired from the
+/// type, still in the file. The rewrite below is only safe BECAUSE of that
+/// field, so the two must not be separated.
+///
+/// **What DOES change is key ORDER.** `extra` is a `serde_json::Map`, which is
+/// sorted rather than insertion-ordered in this build, so keys this type does
+/// not model come back alphabetised. That is content-preserving and
+/// diff-noisy, stated here rather than discovered in a review: JSON object
+/// order carries no meaning, and the alternative -- editing the file as text to
+/// preserve a layout nothing reads -- trades a real guarantee for a cosmetic
+/// one.
+impl Config {
+  /// Declare a language. `true` when the array actually changed.
+  ///
+  /// **APPENDS, never sorts, and idempotent** -- v2's `add_project_language`
+  /// does exactly this (`bin/intent_helpers:541`), and the order is the
+  /// author's rather than the tool's. Sorting would rewrite a line nobody
+  /// asked to change on the first declaration after an upgrade.
+  pub fn declare_language(&mut self, lang: &str) -> bool {
+    if self.languages.iter().any(|l| l == lang) {
+      return false;
+    }
+    self.languages.push(lang.to_string());
+    true
+  }
+
+  /// Undeclare a language. `true` when the array actually changed.
+  ///
+  /// Removes EVERY occurrence, matching v2's `.languages - [$lang]`. A
+  /// duplicate should not exist, and if one does, a remove that left the
+  /// second copy behind would report success and change nothing an operator
+  /// can see.
+  pub fn undeclare_language(&mut self, lang: &str) -> bool {
+    let before = self.languages.len();
+    self.languages.retain(|l| l != lang);
+    self.languages.len() != before
+  }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigWriteError {
+  #[error("cannot serialise the project config")]
+  Encode(#[source] serde_json::Error),
+  #[error("cannot write the project config at {path}")]
+  Write {
+    path: String,
+    #[source]
+    source: crate::write_set::WriteError,
+  },
+}
+
+impl crate::remedy::Remedy for ConfigWriteError {
+  fn remedy(&self) -> String {
+    match self {
+      // Not an operator fault and not fixable by them: a Config that will not
+      // encode is a defect in this build, so the remedy says so rather than
+      // sending someone to a verb that cannot help.
+      Self::Encode(_) => {
+        "this is a defect in this build rather than a fault in your project -- report it with the config that provoked it".to_string()
+      }
+      Self::Write { path, .. } => {
+        format!("check that {path} and the directory holding it are writable by the account running intent")
+      }
+    }
+  }
+}
+
+/// Write a [`Config`] back to `<root>/intent/.config/config.json`.
+///
+/// **Atomically, via [`crate::write_set::write_atomically`] rather than a
+/// second copy of that logic.** A half-written `config.json` is not a damaged
+/// file, it is a directory that has stopped being an Intent project -- every
+/// verb discovers a project by finding and parsing this one file -- so the
+/// temp-plus-rename is load-bearing here in a way it is not for a view that can
+/// simply be re-rendered. v2 reached the same conclusion by hand: both
+/// `add_project_language` and `remove_project_language` write through `mktemp`
+/// and `mv`.
+pub fn write_config(root: &Path, config: &Config) -> Result<(), ConfigWriteError> {
+  let path = Project::config_path(root);
+  // Two-space pretty, plus the trailing newline `init.rs` writes, so a config
+  // this rewrites keeps the shape of one it laid down.
+  let mut body = serde_json::to_string_pretty(config).map_err(ConfigWriteError::Encode)?;
+  body.push('\n');
+  crate::write_set::write_atomically(&path, &body).map_err(|source| ConfigWriteError::Write {
+    path: path.display().to_string(),
+    source,
+  })
+}
+
 /// The `todo` block: how much of the DONE bucket a TERMINAL render shows.
 ///
 /// **Configuration, not state, and that is the whole of D44.** v2 kept a
@@ -1265,6 +1366,155 @@ mod tests {
     assert_eq!(
       project.db_path(),
       dir.path().join("intent/.cache/intent.db")
+    );
+  }
+
+  /// Declaring APPENDS and is idempotent -- v2's `add_project_language`.
+  ///
+  /// Order is the author's. A sort here would rewrite a line nobody asked to
+  /// change on the first declaration after an upgrade, which is a diff an
+  /// operator has to read and then decide was harmless.
+  #[test]
+  fn declaring_a_language_appends_once_and_keeps_the_order_it_was_given() {
+    let mut config = Config {
+      intent_version: "3.0.0".to_string(),
+      project_name: "Fixture".to_string(),
+      author: "cc".to_string(),
+      project_id: None,
+      intent_dir: "intent".to_string(),
+      languages: vec!["rust".to_string(), "elixir".to_string()],
+      todo: TodoConfig::default(),
+      extra: serde_json::Map::new(),
+    };
+
+    assert!(
+      config.declare_language("shell"),
+      "a new language changes the array"
+    );
+    assert_eq!(config.languages, vec!["rust", "elixir", "shell"]);
+
+    assert!(
+      !config.declare_language("shell"),
+      "declaring twice must report no change rather than appending a duplicate"
+    );
+    assert_eq!(
+      config.languages,
+      vec!["rust", "elixir", "shell"],
+      "and the array is untouched, in the order it was authored"
+    );
+  }
+
+  /// Undeclaring removes every occurrence, and an absent language is a no-op.
+  #[test]
+  fn undeclaring_removes_every_copy_and_reports_when_nothing_changed() {
+    let mut config = Config {
+      intent_version: "3.0.0".to_string(),
+      project_name: "Fixture".to_string(),
+      author: "cc".to_string(),
+      project_id: None,
+      intent_dir: "intent".to_string(),
+      languages: vec!["rust".to_string(), "shell".to_string(), "rust".to_string()],
+      todo: TodoConfig::default(),
+      extra: serde_json::Map::new(),
+    };
+
+    assert!(config.undeclare_language("rust"));
+    assert_eq!(
+      config.languages,
+      vec!["shell"],
+      "a remove that left a second copy would report success and change nothing visible"
+    );
+    assert!(
+      !config.undeclare_language("rust"),
+      "removing what is not there is a no-op that says so"
+    );
+  }
+
+  /// **THE ONE THIS WHOLE WRITE PATH RESTS ON: A REWRITE DROPS NOTHING.**
+  ///
+  /// `config.json` is the only file that makes a directory an Intent project,
+  /// v2 also writes it, and plugins extend it with blocks this type has never
+  /// heard of. A typed round trip through a struct that modelled only what it
+  /// knew would delete the rest SILENTLY -- the operator's next clue would be a
+  /// tool that stopped working. `st_prefix` is here on purpose: it is retired
+  /// from the type and must still survive the file.
+  #[test]
+  fn a_rewrite_carries_every_block_this_version_does_not_model() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path();
+    let path = Project::config_path(root);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(
+      &path,
+      r#"{
+  "intent_version": "3.0.0",
+  "project_name": "Fixture",
+  "author": "cc",
+  "created": "2026-08-25",
+  "intent_dir": "intent",
+  "st_prefix": "ST",
+  "languages": ["rust"],
+  "plugins": { "claude": { "enabled": true } }
+}
+"#,
+    )
+    .expect("seed config");
+
+    let before: Config =
+      serde_json::from_str(&std::fs::read_to_string(&path).expect("read")).expect("parse");
+    let mut after = before.clone();
+    assert!(after.declare_language("shell"));
+    write_config(root, &after).expect("write the config back");
+
+    let reread: serde_json::Value =
+      serde_json::from_str(&std::fs::read_to_string(&path).expect("reread")).expect("parse json");
+
+    assert_eq!(
+      reread["languages"],
+      serde_json::json!(["rust", "shell"]),
+      "the change we asked for must be there"
+    );
+    for key in ["created", "st_prefix", "plugins"] {
+      assert!(
+        !reread[key].is_null(),
+        "the rewrite dropped {key:?}, which this type does not model -- \
+         that is the silent data loss `Config::extra` exists to prevent:\n{reread:#}"
+      );
+    }
+    assert_eq!(
+      reread["plugins"]["claude"]["enabled"],
+      serde_json::json!(true),
+      "and an unmodelled block survives with its contents, not merely its key"
+    );
+  }
+
+  /// The rewritten file keeps the shape `init.rs` lays down.
+  ///
+  /// Two-space indent and a trailing newline. Not cosmetic: this file is read
+  /// by v2's `jq`-based helpers and by humans in a diff, and a rewrite that
+  /// reflowed it would make every subsequent `lang init` look like a
+  /// whole-file change.
+  #[test]
+  fn a_rewritten_config_keeps_the_shape_init_lays_down() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path();
+    let path = Project::config_path(root);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(&path, r#"{"intent_version":"3.0.0","languages":[]}"#).expect("seed");
+
+    let mut config: Config =
+      serde_json::from_str(&std::fs::read_to_string(&path).expect("read")).expect("parse");
+    config.declare_language("rust");
+    write_config(root, &config).expect("write");
+
+    let body = std::fs::read_to_string(&path).expect("reread");
+    assert!(
+      body.ends_with("}\n"),
+      "a trailing newline, as init writes: {body:?}"
+    );
+    assert!(
+      body.contains("\n  \"intent_version\""),
+      "two-space indent, as init writes: {body}"
     );
   }
 }
