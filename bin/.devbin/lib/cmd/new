@@ -126,9 +126,16 @@ valid_name() {
 # checkout's own `lib/` when not.
 test_dir() {
   local f
+  # `| head -n1` was here, and under pipefail that is unsound: head returns after
+  # one line, sort takes SIGPIPE on the rest, and pipefail promotes the writer's
+  # 141 to the pipeline -- so `set -e` aborted `devbin new` outright rather than
+  # falling through to the `return 1` below. Measured at 4000 .bats files: status
+  # 141, every time. The first line is taken in bash instead, where there is no
+  # reader to exit early. Same defect as lib/cmd/doctor's unowned scan.
   f="$(find "$PROJECT_ROOT" -name '*.bats' \
     -not -path "$DEVBIN_LIB/*" -not -path '*/.git/*' 2>/dev/null |
-    LC_ALL=C sort | head -n1)"
+    LC_ALL=C sort)"
+  f="${f%%$'\n'*}"
   [ -n "$f" ] || return 1
   printf '%s\n' "$(dirname "$f")"
   return 0

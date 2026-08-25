@@ -368,11 +368,6 @@ _cfg_path_known() {
       [ "$n" -eq 3 ] && [ "${p[1]}" = version_sidecars ] && _cfg_is_index "${p[2]}" && return 0
       return 1
       ;;
-    docs)
-      # docs.treeindex_dirs.<N> -- which subdirectories `docs treeindex` walks.
-      [ "$n" -eq 3 ] && [ "${p[1]}" = treeindex_dirs ] && _cfg_is_index "${p[2]}" && return 0
-      return 1
-      ;;
     help)
       if [ "$n" -eq 2 ]; then
         case "${p[1]}" in preamble | tagline) return 0 ;; esac

@@ -188,12 +188,31 @@ EOF
 # A NOTE, not a failure: nothing is broken, and a project that put something
 # there may have meant to. What was wrong was that nothing ever said so.
 _check_unowned() {
-  local states="$1" f rel unowned=0
+  local states="$1" f rel owned unowned=0
   [ -d "$DEVBIN_LIB" ] || return 0
+  # The owned set, extracted ONCE, and then tested WITHOUT a pipe.
+  #
+  # This was `printf '%s\n' "$states" | grep -q "<TAB>$rel$" && continue`, and
+  # under `set -o pipefail` that is unsound: `grep -q` exits the instant it
+  # matches, `printf` takes SIGPIPE on the write it has not finished, and
+  # pipefail promotes the writer's 141 to the status of the whole pipeline. The
+  # `&&` then does not fire, and a file that IS in the manifest gets reported as
+  # unowned. A MATCH is what breaks it -- the miss path, where grep reads to EOF,
+  # is the one that always worked.
+  #
+  # Nothing about it is deterministic: it turns on whether grep exits before
+  # printf's write lands, so it passed on Ubuntu and on most macOS runs and went
+  # red on one (CI run 32787816443, `lib/cmd/install` reported unowned on a clean
+  # install with all 28 files present and intact). A green here never meant the
+  # code was right.
+  #
+  # `cut` is safe in the same position for the reason grep was not: it reads to
+  # EOF, so there is no early exit to race. Same spelling as manifest_check.
+  owned="$(printf '%s\n' "$states" | cut -f2)"
   while IFS= read -r f; do
     [ -n "$f" ] || continue
     rel="bin/.devbin/lib/${f#"$DEVBIN_LIB"/}"
-    printf '%s\n' "$states" | grep -q "	$rel\$" && continue
+    list_contains "$owned" "$rel" && continue
     [ "$unowned" -eq 0 ] && _note "unowned files under bin/.devbin/lib -- devbin neither tracks nor replaces these"
     unowned=$((unowned + 1))
     _detail "$rel"

@@ -248,15 +248,6 @@ DEVBIN_ACTIVE_FMT="$(command_options fmt | tr '\n' ' ')"
 DEVBIN_ACTIVE_TEST="$(command_options test | tr '\n' ' ')"
 export DEVBIN_ACTIVE_CHECK DEVBIN_ACTIVE_DB DEVBIN_ACTIVE_DOCS DEVBIN_ACTIVE_FMT DEVBIN_ACTIVE_TEST
 
-# Which subdirectories `docs treeindex` walks. Config, because the answer is
-# per-project (lib, bin, native, ...) and there is no sensible default.
-DEVBIN_TREEINDEX_DIRS="$(
-  cfg_list docs.treeindex_dirs | while IFS= read -r i; do
-    [ -n "$i" ] && cfg_get "docs.treeindex_dirs.$i"
-  done
-)"
-export DEVBIN_TREEINDEX_DIRS
-
 [ $# -eq 0 ] && {
   help_main
   exit 0

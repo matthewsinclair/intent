@@ -399,7 +399,11 @@ builtin_check_toolchain() {
     # Fall back to the major only if the file is unreadable, and SAY the
     # comparison was coarse rather than silently weakening the gate.
     erl_root="$(erl -noshell -eval 'io:format("~s", [code:root_dir()]), halt().' 2>/dev/null || true)"
-    otp_file="$(find "$erl_root/releases" -name OTP_VERSION -maxdepth 2 2>/dev/null | head -1)"
+    # `| head -1` was here. Under pipefail a reader that exits early strands the
+    # writer with SIGPIPE and 141 becomes the pipeline's status, which `set -e`
+    # turns into an abort of the whole gate. Take the first line in bash instead.
+    otp_file="$(find "$erl_root/releases" -name OTP_VERSION -maxdepth 2 2>/dev/null)"
+    otp_file="${otp_file%%$'\n'*}"
     if [ -n "$otp_file" ] && [ -r "$otp_file" ]; then
       live_erl="$(tr -d '[:space:]' <"$otp_file")"
     else

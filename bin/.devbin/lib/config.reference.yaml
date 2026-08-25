@@ -185,20 +185,6 @@ help:
     - Check
     - Ship
 
-# --- docs ------------------------------------------------------------------
-
-docs:
-  # Which subdirectories `docs treeindex` walks. No default: the answer is
-  # per-project and guessing it wrongly is slow rather than harmless.
-  #
-  # The project ROOT is refused, here and on the command line. It is a
-  # per-subdirectory index; pointed at the root it walks everything, which is
-  # slow enough to look like a hang.
-  treeindex_dirs:
-    - lib
-    - bin
-    - native
-
 # --- shared options --------------------------------------------------------
 #
 # Parsed before the handler runs, in both spellings (`--env test` and

@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
 #
-# The built-in `docs`. Two options ship, and only two.
+# The built-in `docs`. One option ships.
 #
-# `agents` and `treeindex` are identical across the projects that have them --
-# same command, same guard rails, same warning. `completions` (two of four),
-# `index` (one) and `publish` (one) are not: they encode where a project keeps
-# its generated output and what it publishes to. Those are project handlers.
+# `agents` is identical across the projects that have it -- same command, same
+# guard rails, same warning. `completions` (two of four), `index` (one) and
+# `publish` (one) are not: they encode where a project keeps its generated
+# output and what it publishes to. Those are project handlers.
 #
-# Both shipped options drive Intent, which is the methodology these projects
-# share rather than an assumption devbin is making about anyone.
+# It drives Intent, which is the methodology these projects share rather than an
+# assumption devbin is making about anyone.
+#
+# `treeindex` SHIPPED HERE UNTIL 2026-08-25 AND WAS REMOVED, not deprecated.
+# hv retired `intent treeindex` from Intent v3 with no replacement, so the option
+# was a catalogue row that lists cleanly, resolves cleanly and can never succeed
+# the day an estate moves -- which is the exact shape `check_commands` exists to
+# refuse, pointed at devbin itself. Issue 0016 had already measured the v3
+# refusal THROUGH THIS FUNCTION and fixed only the dropped exit status.
 #
 set -euo pipefail
 
@@ -25,64 +32,11 @@ builtin_docs_agents() {
   # Status made explicit rather than left to position. As the function's last
   # command this already propagated -- correctly, and BY ACCIDENT OF WIRING: one
   # appended line (a log, a cleanup, a `return 0`) would have swallowed it
-  # silently, which is the treeindex defect below arriving by the other door.
+  # silently -- issue 0016's defect arriving by the other door.
   local rc=0
   intent agents sync || rc=$?
   [ "$rc" -eq 0 ] ||
     warn "intent agents sync failed (exit $rc) -- AGENTS.md NOT regenerated"
-  return "$rc"
-}
-
-# builtin_docs_treeindex -- rebuild the per-subdirectory index.
-#
-# NEVER THE PROJECT ROOT, and that refusal is the reason this is shipped code.
-# `intent treeindex .` walks everything, which is slow enough to look like a
-# hang and produces an index nobody wants. Both projects that had this command
-# guarded against it independently, which is the definition of a shared rule.
-builtin_docs_treeindex() {
-  require_tool intent "Install Intent: see intent/docs at the Intent install"
-  local dirs="${*:-${DEVBIN_TREEINDEX_DIRS:-}}" d rc=0 ti_rc=0
-
-  [ -n "$dirs" ] ||
-    die "no directories to index -- declare docs.treeindex_dirs in config, or name them (eg: docs treeindex lib bin)"
-
-  for d in $dirs; do
-    case "$d" in
-      . | ./ | "$PROJECT_ROOT" | "$PROJECT_ROOT"/)
-        die "refusing to treeindex the project root -- it is a PER-SUBDIRECTORY index (try: docs treeindex lib)"
-        ;;
-      /*)
-        die "treeindex takes paths relative to the project root, not '$d'"
-        ;;
-    esac
-    if [ ! -d "$d" ]; then
-      # Named but absent is worth saying rather than silently doing nothing --
-      # a typo in the config list would otherwise look like success.
-      warn "no such directory: $d -- skipping"
-      rc=1
-      continue
-    fi
-    printf '    %s\n' "$d"
-    # CHECK THE INDEXER, NOT JUST THE DIRECTORY (issue 0016). `rc` moved only in
-    # the absent-directory branch above, so a failing `intent treeindex` was
-    # discarded entirely: measured under a v3 surface where `treeindex` is
-    # retired, both directories errored on screen and this function still
-    # returned 0 -- with an empty verdict artefact recording that nothing went
-    # wrong. Not silent, and GREEN, which is worse: the errors scroll past and
-    # the run's own record contradicts them.
-    #
-    # The comment six lines up already reasoned this out for the directory check
-    # -- "a typo in the config list would otherwise look like success" -- and it
-    # was not carried one line down to the command that does the work.
-    #
-    # Status captured immediately into a variable: `$?` inside an `if ! cmd`
-    # body is the negation's, not the command's.
-    intent treeindex "$d"; ti_rc=$?
-    if [ "$ti_rc" -ne 0 ]; then
-      warn "intent treeindex failed for $d (exit $ti_rc) -- index NOT refreshed"
-      rc=1
-    fi
-  done
   return "$rc"
 }
 
