@@ -48,6 +48,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("backup", m)) => backup(m),
     Some(("info", _)) => info(),
     Some(("version", _)) => version(),
+    Some(("plugin", m)) => plugin(m),
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
@@ -2633,6 +2634,98 @@ fn t_shirt(raw: &str) -> Result<TShirt, Failure> {
       TShirt::spellings()
     ))
   })
+}
+
+/// `intent plugin` -- what this INSTALL ships, and what each plugin declares.
+///
+/// Bare `plugin` IS `plugin list`, which is v2's observed behaviour rather than
+/// a convenience added here. It answers OUTSIDE a project too, and that is the
+/// contract rather than an oversight: a plugin is a property of the install, so
+/// there is no project for the question to be about.
+fn plugin(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    None | Some(("list", _)) => plugin_list(),
+    Some(("show", sm)) => plugin_show(sm),
+    Some((verb, _)) => unwired("plugin", verb),
+  }
+}
+
+/// The install root every plugin path is resolved against.
+///
+/// Never `$INTENT_HOME`. A v2 value left in the environment would point this
+/// binary at v2's manifests and the output would look completely ordinary --
+/// the same rule `rules.rs` and `skills.rs` are built on (AC-11.3).
+fn plugin_install() -> Result<std::path::PathBuf, Failure> {
+  intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))
+}
+
+fn plugin_error(e: intentsvcs::plugins::PluginError) -> Failure {
+  Failure::Error(e.render())
+}
+
+fn plugin_list() -> Result<(), Failure> {
+  let install = plugin_install()?;
+  let plugins = intentsvcs::plugins::discover(&install).map_err(plugin_error)?;
+
+  println!("Intent Plugins");
+  println!();
+  for p in &plugins {
+    println!("  {}", p.name);
+    println!("    {}", p.description);
+    println!();
+    for c in &p.commands {
+      // `{:<40}` is v2's `printf "    %-40s %s\n"`, read off `bin/intent_plugin`
+      // rather than inferred from its rendered output -- a column measured by
+      // counting spaces in a terminal is a guess that happens to be right.
+      println!("    {:<40} {}", c.syntax, c.description);
+    }
+    println!();
+  }
+  if plugins.is_empty() {
+    println!("  No plugins found.");
+    println!();
+  }
+  println!("Run 'intent plugin show <name>' for detailed plugin information.");
+  Ok(())
+}
+
+fn plugin_show(m: &ArgMatches) -> Result<(), Failure> {
+  let name = match opt(m, "name") {
+    Some(name) => name,
+    None => {
+      return Err(Failure::Error(
+        "error: plugin show: missing plugin name".to_string(),
+      ));
+    }
+  };
+  let install = plugin_install()?;
+  let Some(p) = intentsvcs::plugins::find(&install, &name).map_err(plugin_error)? else {
+    return Err(Failure::Error(format!(
+      "error: unknown plugin '{name}'\n  remedy: run `intent plugin list` to see the plugins this build ships"
+    )));
+  };
+
+  println!("Plugin: {}", p.name);
+  println!("  Version:     {}", p.version);
+  println!("  Description: {}", p.description);
+  println!("  Location:    {}", p.root.display());
+  println!();
+  println!("Commands ({}):", p.commands.len());
+  println!();
+  for c in &p.commands {
+    println!("  {}", c.syntax);
+    println!("    {}", c.description);
+    println!();
+  }
+  // **v2's closing line is NOT ported, and dropping it is the point.** It reads
+  // `Run 'intent help <name>' for full command documentation.` -- and `intent
+  // help` is RETIRED in v3, refusing at exit 2 with "there is no v3
+  // replacement". Porting it faithfully would ship a remedy naming a verb this
+  // binary answers by refusing, which is AC-06.11's class arriving through
+  // `as-observed` fidelity rather than through carelessness. There is no v3
+  // verb that renders a plugin's full documentation, so nothing replaces it and
+  // no line is printed: an absent pointer beats a pointer to a refusal.
+  Ok(())
 }
 
 /// `intent version` -- the subcommand twin of `--version`.

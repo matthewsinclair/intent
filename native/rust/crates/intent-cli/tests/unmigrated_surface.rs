@@ -117,6 +117,26 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // (Exemption added by cc with the wiring that made it reachable; ic owns
     // this list and should reword if the framing is wrong.)
     "claude skills" => Some("serves install assets into per-user state; it never reads a project"),
+    // Plugin manifests belong to the INSTALL -- `<install>/intent/plugins/*/
+    // plugin.json` -- so this is the same class as `schema`, `llm guide`,
+    // `claude rules` and `claude skills`, and it is verified rather than
+    // assumed by family: `plugins.rs` takes its root from the install path the
+    // renderer resolved via `install::home()`, and neither `plugin` arm calls
+    // `open()` or touches a facade.
+    //
+    // **THIS ONE IS DELIBERATELY THE FAMILY AND NOT THE PATH**, against the
+    // rule three entries above, and the difference is checkable rather than a
+    // matter of taste: `claude` was pathed because it HAS project-scoped
+    // siblings to protect against, and `plugin` has three shipped verbs --
+    // bare, `list`, `show` -- of which all three read the install and none
+    // reads a project. A sibling that ever DOES open a project breaks that,
+    // and the entry must be split the moment one is added.
+    //
+    // v2 answers `plugin` outside a project at exit 0, so this is the observed
+    // contract rather than a v3 concession.
+    // (Exemption added by cc with the wiring that made it reachable; ic owns
+    // this list and should reword if the framing is wrong.)
+    "plugin" => Some("reads the install's plugin manifests; it never reads a project"),
     // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --
     // `languages` out of `intent/.config/config.json`, the threshold out of
     // `.intent_critic.yml` -- so it fails every test the entries above pass.
