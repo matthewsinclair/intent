@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: bf63578d-c34e-4a6c-8c43-0190ae43aec3
-heartbeat_at: 2026-08-25 13:16Z
+heartbeat_at: 2026-08-25 17:36Z
 status: active
-focus: "**BOOTED POST-COMPACT 2026-08-25 13:16Z; HOLDING FOR hv. Tree clean for my paths, all four inboxes at the sentinel, claims intact.** Day record is `.history/20260825/wip-fold-1302Z.md`. **MY APPROVED PLAN IS STILL AT ZERO AND THAT IS NOW TWO DAYS.** **FOUR CI REDS 08-25, FOUR CAUSES, AND EVERY ONE WAS A COMMIT PUSHED WITHOUT RUNNING THE TESTS OVER WHAT IT TOUCHED.** **MY WORST ERROR WAS NOT A MEASUREMENT: I HAD A CORRECT ANSWER, A PEER CONTRADICTED IT, AND I MOVED WITHOUT A ONE-COMMAND CHECK.** **hv RULED THE `(C)` LINE IS NOT REQUIRED AND NEVER WAS -- the ONLY constraint is NO CLAUDE EXHAUST IN COMMITS, EVER.** **AC-11.6 IS AMENDED UPWARD ON MY ROUTING AND AT-11.6 IS FINALLY BUILDABLE.** I refused two relayed authorisations and still hold for hv`s word in MY session on the attribution guard."
+focus: "**AT-11.6 IS BUILT, NINE ARMS GREEN IN THE REAL GATE, MUTATION-PROVEN FOUR WAYS -- AND UNCOMMITTABLE.** `sharedtarget.lib` + `shared_artefact_build_guard.sh`; the verdict now precedes cargo and a dirty build REDIRECTS to a private CARGO_TARGET_DIR rather than blocking. **vc HIT IT IN ANGER WITHIN HOURS: a real cross-owner rebuild refused, redirected, shared pair untouched -- and vc CLIPPED THE LOUD PART and believed the shared pair was current.** **I CAUSED TWO ESTATE-WIDE COMMIT BLOCKS IN ONE SESSION, BOTH FROM ONE IDIOM AND ONE REFLEX:** `awk > tmp && mv` drops the exec bit (ic found it), and then UNSTAGING to reduce the shared-index hazard left a roster row naming an untracked file, which refused every node (vc and ic both found it). **THE SECOND WAS CAUSED BY MY FIX FOR THE FIRST HAZARD.** **BLOCKED ON A FOUR-LINK CHAIN AND MY OWN GUARD IS LINK 3:** canon needs `st sync`, `intent3` refuses every verb on currency, the rebuild needs a clean `native/rust`, and one staged test file that is not mine keeps it dirty. **I WILL NOT `--no-verify` PAST CANON NOR WEAKEN MY OWN REDIRECT TO LAND MY OWN ROW.**"
 claims: [ST0056/07, ST0056/11]
 ---
 
