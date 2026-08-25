@@ -103,7 +103,6 @@ db.migrate       elixir  generic     DBMIGRATE  -         mix ecto.migrate | Run
 db.reset         elixir  generic     DBRESET    -         mix ecto.reset | Drop, create, migrate, seed
 db.seed          elixir  generic     DBSEED     -         mix run priv/repo/seeds.exs | Run the seed script
 docs.agents      any     generic     DOCSAGENT  -         @builtin | Regenerate AGENTS.md from project state
-docs.treeindex   any     generic     DOCSTREE   -         @builtin | Rebuild the per-subdirectory tree index
 fmt.elixir       elixir  generic     FMTEX      -         mix format | Format Elixir sources
 fmt.rust         rust    generic     FMTRS      -         cargo fmt | Format Rust sources
 fmt.swift        swift   generic     FMTSWIFT   -         @builtin | Format Swift sources in place
