@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 3bbcbe83-cf34-4903-b94d-cd7306a81aca
-heartbeat_at: 2026-08-25 22:00Z
+heartbeat_at: 2026-08-25 22:02Z
 status: active
 focus: "**BOOTED AFTER COMPACT 2026-08-25 21:09Z. A REPORTED SHELL REGRESSION WAS THE INSTRUMENT, NOT THE CODE: the full shell suite is 1480/1480 at a clean HEAD, and the two red tests were the only two of 1480 that read a bare `intent` off the OPERATOR'S PATH -- a different tree. Fixed and committed at `058c0400` with a mutation control.** The gate stays CLOSED at 67 of 67 and CLOSED IS NOT RELEASED. **WP-14 BLOCKS WP-12, unruled since 17:17Z, still the top blocker.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -27,8 +27,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 1. **THE CUT BLOCKER, AND IT OUTRANKS EVERYTHING ELSE HERE: WP-14 BLOCKS WP-12 AND THE DEPENDENCY IS STATED NOWHERE.** `AC-12.1` prunes `bin/` at the cut; the `claude ws` family -- the whiteboard PROVISIONER -- is contracted in **WP-14** (`AC-14.10`), Not Started. **At the cut it does not degrade, it DISAPPEARS.** The obvious fix is wrong: `AC-14.7` serves every `/in-whiteboard` verb FROM THE STORE, so porting the file-based implementation builds what WP-14 exists to replace. **I assigned that port to dc; dc refused it against a contract read and was right.** Both WPs unclaimed. **Unruled since 17:17Z.**
 2. **TWELVE WITH hv, NONE MINE TO DECIDE.** A1 commit trailer; **A2 attribution guard -- HELD, I have not relayed and will not**; A3 WP-15 timing; A4 `fileindex`; A5 `--force` version mismatch; A6 **ST0058 SCOPE** (contract exists now, reports `0/6`); A7 TODO 8 ordering; A8 dc's three, named, one of which (**AT-11.7**) had never been asked; A9 the roster reading two populations from two trees; A10 two estate-wide blocks; A11 limb 2's denominator; A12 the marker's `DIRT_SCOPE` disagreeing with the guard's. **PLUS:** the `st attach` **SPELLING** (I authorised the build, not the name) and ic's **`## Holds`** protocol change (edits the shipped skill; fleet blast radius).
-3. **ISSUES OPEN: 0082 (HIGH)** -- `sync --to-disk` reports `ok` whenever store and disk disagree about an attachment, **either direction**; five occurrences, two operators, one evening. **0084** -- one retirement left TWO survivors, a refusal in `ingest` and a class remedy at `finding.rs:267` emitted from **7 sites**; **editing the string closes the instance and leaves the class.** **0083** low.
-4. **CARRIED:** `~/.claude/skills/` is one machine-global dir upstream of 15 committed `AGENTS.md` -- reshapes WP-15. `st dehydrate` unbuilt is a U3 datapoint. **ST0060 de-realised; only AC-00.16 open, one Lamplight read when scheduled.**
+3. **`AT-07.2` IS vc's, BLOCKED ON A BUILDABLE TREE, AND IT CARRIES A CORRECTION THAT MUST NOT BE LOST.** dc's `a40cf763` body states `settings.json` wires FOUR; **it wires THREE.** dc will not rewrite shared history for it and is right not to, so **the row text is the only place the correction can land -- a row inherits its description from the commit that produced it, and left alone the wrong figure is the durable one.** **THE SENTENCE, dc's OWN WORDING, TO GO IN THE ROW:** _ships four, wires three, union four; post-tool-advisory unwired by ST0035 decision #4._ Re-drive is `cargo test --test hook_compat` from `native/rust`; satisfied on both limbs. **Blocked because cc's in-flight `intentsvcs` includes `render.rs`, the canon renderer itself.**
+4. **ISSUES OPEN: 0082 (HIGH)** -- `sync --to-disk` reports `ok` whenever store and disk disagree about an attachment, **either direction**; five occurrences, two operators, one evening. **0084** -- one retirement left TWO survivors, a refusal in `ingest` and a class remedy at `finding.rs:267` emitted from **7 sites**; **editing the string closes the instance and leaves the class.** **0083** low.
+5. **CARRIED:** `~/.claude/skills/` is one machine-global dir upstream of 15 committed `AGENTS.md` -- reshapes WP-15. `st dehydrate` unbuilt is a U3 datapoint. **ST0060 de-realised; only AC-00.16 open, one Lamplight read when scheduled.**
 
 ## Watch-outs
 
