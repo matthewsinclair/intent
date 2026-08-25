@@ -83,6 +83,7 @@ G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
 G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`int macos publish\`)"
 G_CANONCOMMIT="canon currency: a commit carrying canon does not name bytes absent from that commit (ST0057 AC-03.6)"
 G_GUARDHOME='guard home: a self-hosted tree runs ITS OWN guards, not the ones $INTENT_HOME points at'
+G_SHAREDBUILD='shared build: a rebuild into the SHARED artefact path is refused when native/rust is dirty'
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -114,6 +115,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_SELFPROV" "intent/st/ST0056/parity/tools/self_provenance_check.sh"
   printf '%s\t%s\n' "$G_CANONCOMMIT" "intent/st/ST0056/parity/tools/canon_commit_check.sh"
   printf '%s\t%s\n' "$G_GUARDHOME" "intent/st/ST0056/parity/tools/guard_home_check.sh"
+  printf '%s\t%s\n' "$G_SHAREDBUILD" "intent/st/ST0056/parity/tools/shared_artefact_build_guard.sh"
   exit 0
 fi
 
@@ -420,6 +422,31 @@ if [ ! -f "$TOOLS/guard_home_check.sh" ]; then
 elif ! bash "$TOOLS/guard_home_check.sh"; then
   rc=1
   failed="${failed}  guard_home_check.sh -- the shipped hook template lost the self-hosted GUARD_HOME override
+"
+fi
+
+# AC-11.6. `native/rust/target/release/` is shared by every node here with no
+# per-node isolation underneath it, and until 2026-08-25 the only control over
+# what entered it was the convention *do not rebuild while I am measuring*. A
+# control that looks like a courtesy is the one that gets dropped the first time
+# somebody is in a hurry, which is roughly what happened at 19:33Z on 2026-08-18:
+# a build from a tree carrying uncommitted WP-01 source produced a
+# working-looking binary that emptied the store for every node until rebuilt.
+#
+# THE TWO CASES ARE NAMED SEPARATELY FOR THE REASON THE GUARD ABOVE RECORDS. An
+# absent instrument and a real finding are different sentences, and a summary
+# that names a cause it did not establish sends the reader at a file that is
+# fine, with the gate's authority behind it.
+step "$G_SHAREDBUILD"
+if [ ! -f "$TOOLS/shared_artefact_build_guard.sh" ]; then
+  rc=1
+  failed="${failed}  shared_artefact_build_guard.sh -- THE INSTRUMENT IS MISSING, so nothing was checked. This
+    says NOTHING about the build path; the tool that checks it is not on disk.
+"
+elif ! bash "$TOOLS/shared_artefact_build_guard.sh"; then
+  rc=1
+  failed="${failed}  shared_artefact_build_guard.sh -- the shared-artefact build guard is not intact: a dirty
+    native/rust tree could reach native/rust/target/release/, which four nodes invoke.
 "
 fi
 

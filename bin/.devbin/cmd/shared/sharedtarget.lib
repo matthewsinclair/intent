@@ -1,0 +1,133 @@
+# sharedtarget.lib -- may this build enter the SHARED artefact path?
+#
+# AC-11.6 / AT-11.6. `native/rust/target/release/` is shared by every node in
+# this checkout and there is no per-node isolation underneath it. The only
+# control that existed over what enters it was the convention *do not rebuild
+# while I am measuring*, and a control that looks like a courtesy is the one that
+# gets dropped the first time somebody is in a hurry.
+#
+# WHAT THIS IS FOR, IN ONE EPISODE. On 2026-08-18 at 19:33Z a build from a live
+# tree carrying uncommitted WP-01 source produced a binary that resolved canon at
+# a path the reverted source no longer used, and it emptied the store for every
+# node until rebuilt. Nobody was careless. The artefact worked, it was invoked by
+# four nodes, and nothing said what it held.
+#
+# THE ORDER IS THE WHOLE POINT AND IT IS WHERE THE GAP WAS. `cmd/local`'s
+# `verify_pair` ALREADY warns on a `dirty-` marker -- but it runs AFTER
+# `cargo build` has overwritten the shared binaries, so by the time it speaks the
+# artefact four nodes invoke has already been replaced. AC-11.6 ruled on exactly
+# this and chose the earlier refusal in its own words: *refusing a dirty
+# cross-owner rebuild prevents it AND TELLS SOMEONE WHY, before the artefact
+# exists, rather than producing a working-looking binary four nodes then invoke.*
+# Failing loudly at the right moment beats failing silently at the cheap one.
+# This library is what makes that order possible; it decides nothing about cost.
+#
+# THE GREEN ARM IS A CLEAN TREE AND NOT AN OWNERSHIP TEST (AC-11.6 as amended
+# 2026-08-25 by vc, on dc's routing). The row was first minted as *dirty with
+# paths the builder does not own*, and that discriminator cannot be built, for
+# two independent reasons either of which is sufficient. (1) Ownership of a path
+# is undeclarable by design: Whiteboard Protocol 3.0 invariant 3 claims by ST ID
+# and never by glob path, so there is no oracle and building one would break the
+# protocol. (2) Even with an oracle it would not discriminate, because a
+# shared-tree build carries the UNION of every node's dirty bytes whoever invokes
+# it -- authorship is not recoverable from the artefact at all. Only requiring a
+# clean tree reaches authorship.
+#
+# SO A DIRTY BUILD IS REDIRECTED, NOT FORBIDDEN, AND THAT IS WHAT KEEPS THIS FROM
+# BEING A FREEZE. A guard that must be bypassed is a guard nobody keeps: five
+# nodes share this clone and somebody is always mid-edit. The dirty path builds
+# into a private `CARGO_TARGET_DIR` and is marked `dirty-<sha>` by the existing
+# build script. Nothing is blocked; only the SHARED slot is protected. This also
+# resolves a guard-versus-guard collision that was live on 2026-08-25: the
+# currency guard in `bin/intent3` hands every node `int local build` as its
+# remedy, and without the redirect this library would refuse the remedy another
+# rostered guard was printing.
+#
+# SCOPE IS `native/rust` AND IT MUST STAY EQUAL TO THE MARKER'S. The embedded
+# provenance marker decides `dirty-` over `DIRT_SCOPE` in
+# `native/rust/build-support/source_commit.rs`, and the two are the same question
+# asked by two parties: if this library allowed a build the marker then stamped
+# `dirty-`, the shared slot would hold an artefact this guard had approved and
+# the artefact itself disowned. The equality is asserted by
+# `parity/tools/shared_artefact_build_guard.sh` rather than enforced by a runtime
+# grep, because a shell library parsing a Rust constant on every invocation is a
+# coupling that fails in the dark; a test that compares them fails in the light.
+#
+# WHY THE SCOPE IS NOT THE WHOLE WORKTREE. Measured 2026-08-19: EVERY binary in
+# this estate carried `dirty-` when the scope was the worktree, including a
+# release build of exactly HEAD, because five nodes share this clone and somebody
+# always holds an uncommitted board. A flag that is always set carries no
+# information, and it is worse than absent because it occupies the slot where a
+# real signal would go and reads as if it had been checked. The claim is about
+# the BINARY, so the evidence has to be the paths that enter the binary.
+#
+# AND `tests/` IS NOT EXCLUDED HERE EVEN THOUGH `_rust_source_changed` EXCLUDES
+# IT NEXT DOOR. That function answers a different question -- how far behind HEAD
+# a COMMITTED range leaves an artefact -- where a test-only delta genuinely costs
+# the binary nothing. This one must agree with the marker, and the marker counts
+# the whole subtree. Two neighbours with different exclusions is a smell worth
+# the paragraph: they are not two copies of one rule, they are two rules.
+#
+# NO FUNCTION HERE EXITS. Same contract as `currency.lib`: the caller decides
+# what a verdict costs, because a library that kills its host cannot be used by a
+# reporter and an actor both.
+
+# The pathspec the marker uses, verbatim. See the scope paragraph above.
+SHARED_TARGET_DIRT_SCOPE=':(top)native/rust'
+
+# shared_target_dirt <repo>
+#
+# Prints the porcelain status lines for uncommitted paths under the dirt scope,
+# one per line; prints nothing when the subtree is clean. Prints the single token
+# `unknown` when git cannot answer, which is NOT the same as clean and must never
+# be read as it.
+shared_target_dirt() {
+  local repo="$1" out
+  git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown\n'; return 0; }
+  # A NAMED SENTINEL RATHER THAN `|| true`, for the reason its neighbour in
+  # `currency.lib` records: a swallowed failure leaves the output empty, empty
+  # reads as CLEAN, and the guard fails OPEN -- the one direction a guard on the
+  # build path must never fail.
+  if ! out="$(git -C "$repo" status --porcelain -- "$SHARED_TARGET_DIRT_SCOPE" 2>/dev/null)"; then
+    printf 'unknown\n'
+    return 0
+  fi
+  printf '%s\n' "$out" | awk 'NF'
+}
+
+# shared_target_verdict <repo>
+#
+# Prints exactly one of `ok` or `refuse:<reason>` and returns 0. There is no
+# `warn` arm and that is deliberate: a warning on this path would be a control
+# that looks like a courtesy, which is the exact failure AC-11.6 was minted
+# against. The caller redirects to a private CARGO_TARGET_DIR on a refusal; it
+# does not proceed into the shared slot anyway.
+shared_target_verdict() {
+  local repo="$1" dirt n
+  dirt="$(shared_target_dirt "$repo")"
+  if [ "$dirt" = "unknown" ]; then
+    printf 'refuse:cannot reach git, so the tree state is undecidable -- an undecided answer is not a pass on the path that overwrites the shared artefact'
+    return 0
+  fi
+  if [ -z "$dirt" ]; then
+    printf 'ok'
+    return 0
+  fi
+  n="$(printf '%s\n' "$dirt" | awk 'NF' | wc -l | tr -d ' ')"
+  printf 'refuse:%s uncommitted path(s) under native/rust would enter this build, and the shared artefact cannot say whose they are' "$n"
+}
+
+# shared_target_dirt_report <repo>
+#
+# The offending paths, formatted for a human, on the caller's chosen stream.
+# AC-11.6 requires the refusal to NAME them: a refusal that does not say what is
+# dirty sends the operator to `git status` to re-derive what the guard already
+# knew, and the first thing anybody does with a guard they cannot act on is
+# bypass it.
+shared_target_dirt_report() {
+  local repo="$1" line
+  while read -r line; do
+    [ -n "$line" ] || continue
+    printf '    %s\n' "$line"
+  done < <(shared_target_dirt "$repo")
+}
