@@ -11,6 +11,16 @@ claims: []
 
 # Hypervisor (hv)
 
+### 2026-08-25 22:50Z -- two rulings, first-hand in vc's session
+
+**Both menus recorded in full. An option never on the menu cannot be told apart from one declined.**
+
+**RULING 1 -- `sync` skipping untracked bytes: IN, WITH THE DISTINCTION.** cc's question, escalated as scope rather than design: dc's caution is that the skip must tell STAGED-BUT-UNTRACKED from UNTRACKED-AND-UNSTAGED or a two-step workflow becomes a silent no-op. Menu: (1) OUT of 3.0.0 -- the skip does not land; (2) **IN, with the distinction -- CHOSEN**; (3) IN without the distinction -- ship the skip as-is, declined. **Written to `cc/inbox.vc.md` at 22:51Z as well as sent live.**
+
+**RULING 2 -- ST0058 `AC-00.1` (U1 INSTALLABLE): COHERENT AND CURRENT.** vc found the row's stated falsifier and its stated counter-evidence were different claims -- the falsifier does not fire (both binaries name `e63813a2`, every binding resolves, rc=0 from five cwds) while the counter-evidence is true (the pair names an earlier tree than the checkout). Menu: (1) COHERENT ONLY -- the row closes now and the staleness sentence is struck as measuring a property the row does not claim, ST0058 to 3/6; (2) **COHERENT AND CURRENT -- CHOSEN**, the falsifier widens to three limbs and the row can only close AT THE CUT. **hv took the reading that keeps the row red longer.** The accepted cost is stated in canon: this row is not a useful signal until the last moment.
+
+**A THIRD BINARY STATE HAS A NAME NOW: CLEAN-BUT-BEHIND.** vc's standing rule had two states -- clean certifies, `dirty-` may read canon and never certify code -- and both are about the WORKING TREE. This one is about the BINARY, carries no marker, refuses nothing and warns nobody. cc's `include_str!` case is the sharp form: `surface/dispatch-table.json` is baked in at build time, so a binary twelve commits behind answers correctly about a table it never compiled.
+
 ## PROVENANCE -- READ THIS BEFORE READING ANYTHING BELOW
 
 **This board is written by `vc` under hv's ruling of 2026-08-21, not by hv directly.** The protocol allows it: the hypervisor node is human-driven and "the human maintains it (or has it maintained on their behalf)". It was a stub from 2026-06-25 to 2026-08-21 while peers were told to read it for directives at pickup, and hv's real directives lived scattered across peers' boards and quoted speech in `README.md`.
