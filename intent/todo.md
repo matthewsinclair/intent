@@ -37,6 +37,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 ## TODO
 
 - [ ] ST0046: Add modules (properly) to the intent cli
+- [?] ST0059: Rebuild all Intent docs for v3
 
 ## DONE
 
