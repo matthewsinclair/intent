@@ -1,0 +1,53 @@
+# cc localfold -- 2026-08-25 22:24Z
+
+Archived VERBATIM from `intent/whiteboard/cc/wip.md` at the WP-06 fold, before a compact. Three lesson subsections were consolidated into one on the live board and the completed routing episode was cut; the per-commit detail below is held by git (`540d92bb`, `0d77e337`, `e63813a2`) and is kept here so the board does not have to carry it.
+
+---
+
+## LESSONS THAT OUTLIVE THE DAY THEY WERE PAID FOR -- 2026-08-25
+
+### The two that are new today
+
+**EIGHT FALSE REMEDIES ACROSS THREE NODES, EACH AUTHORED INSIDE THE FIX FOR THE PREVIOUS.** `settable_fields` calling an Issue a collection; `WholeBody` naming `intent put`, which is not a command; `Issue.created` naming a verb that creates issues and cannot move the field on one that exists; my `blob` remedy claiming `sync --to-store` picks up a dropped file; `finding.rs:267` telling an operator to move away an artefact Intent was built to keep.
+
+**TWO WERE MINE AND BOTH WERE THE SUBCLASS THAT MATTERS: TRUE WHEN WRITTEN.** `blob`'s _there is no route on this surface today_ was honest, and `st attach` falsified it within the hour -- **`today` was the honest word AND the word that dates.** Then `text` and `blob` shared one sentence whose PUT clause fitted one member and named, for the other, **a route that cannot carry the form at all** (`put` takes a `&str`). **Withheld rather than reworded, with the distinction in the type, because rewording leaves the next member to inherit whichever half happens to fit.** **A REMEDY THAT WAS NEVER TRUE IS CAUGHT BY REVIEW; ONE THAT EXPIRES IS CAUGHT BY NOBODY** -- both of mine were found by driving them again later, and the second AFTER the row went green, which is the only moment nobody is looking.
+
+**A THIRD WAY A GREEN IS ABOUT THE WRONG SUBJECT, AND IT LEAVES NO EVIDENCE.** The familiar two: **an instrument that cannot reach its subject** (a `.dat` probe against `ATTACHMENT_EXTENSIONS`; a wait condition matching `Finished` on a COMPILE line and reading 591 of 1080; `pgrep -f` matching peer argv, which caught vc and me hours apart), and **a binary carrying a stale copy of one** (vc's build baking in my uncommitted table; my own `recoverability` fix read as failed against a stale artefact). **THE THIRD IS: CORRECT INSTRUMENT, CORRECT BINARY, CORRECT ANSWER -- MEASURED BY THE PARTY WHOSE WORK IT CERTIFIES.** Nothing mechanical distinguishes it from a peer's run; only who ran it, and the other two leave evidence while this one leaves none. **Re-driving after your own change is a duty to REPORT that the tree moved, never a licence to re-certify it.** vc's sentence: _a green is a claim about a tree, and the tree moved._
+
+### The three from the WP-06 evening
+
+**A MECHANISM UPSTREAM OF THE SUBJECT ANSWERING IN THE SUBJECT'S VOICE -- AND THE SHARP FORM IS WHEN IT ANSWERS CORRECTLY.** Four instances in one evening across four tools: vc's `2>/dev/null | grep -c` reporting `0` for a binary that never ran; my CLAP arity error read as the renderer answering LIVE (11 entries, optimistic direction); dc's `--to-disk` `ok`s over a store that did not hold what the disk held; and ic's zsh-unsplit `$c` sending `lang init rust` as ONE subcommand name. **Then the sharpest: vc's staleness marker refused, printed its refusal twice, and their probe reported `BYTES IDENTICAL: yes` -- which was TRUE, of two copies of the refusal.** Not a wrong value. A correct value about the wrong subject, carrying no signal that it was. **THE REMEDY IS THAT AN INSTRUMENT MUST ASSERT THE ARTEFACT IS THE ONE UNDER TEST, NOT MERELY THAT TWO OF ITS OUTPUTS AGREE** -- my own `version` probes have that hole and would have agreed with themselves perfectly against a stale binary.
+
+**AND THE NOTE DID NOT PREVENT IT.** The zsh trap is written down in the estate's memory, verbatim, and ic hit it twice in one evening and I hit it seven times. **Every save tonight came from a control that made the wrong answer impossible, not from having read the warning** -- my mutation harness aborting on pattern-absent, ic's needle control, dc's population floor, vc's mutation test. **Write the control, not the note.**
+
+**A DETECTOR WHOSE GRANULARITY IS THE FAMILY FORCES THE LANDING GRANULARITY TO BE THE FAMILY.** `flag_reachability` decides wired-ness by driving `intent <family>` BARE, so the first verb that answers flips the whole family to WIRED and moves every `keep` flag out of the not-gated bucket into the gated one. **Wiring half a family therefore MANUFACTURES declared-and-unread violations.** Hit on `lang` and again on `modules`, which makes it a property rather than a quirk -- and it is why the long tail cannot be sliced the way a porting queue could. **The check refusing to let me half-ship is the guard working, not an obstacle.**
+
+**AS-OBSERVED FIDELITY CAN SHIP A DEFECT, AND THAT IS THE DIRECTION NOBODY WATCHES.** v2's `plugin show` closes with `Run 'intent help <name>'`; `intent help` is retired in v3. **A faithful port ships a remedy pointing at a refusal** -- AC-06.11's own class, arriving through care rather than through carelessness. The pin is to assert the PREMISE alongside the absence: the test drives `intent help` and requires it to refuse, so if that changes the test fails loudly instead of the decision outliving its reason.
+
+### The ones from earlier that still bind
+
+1. **A PROSE EDIT TO A GENERATED ARTEFACT HAS READERS. ENUMERATE WHAT READS THE _VALUE_, NOT WHAT NAMES THE IDENTIFIER.** I reworded `_CLAUDE.md`'s footer and split `CANON_INTENT_FOOTER_MARK`, a contiguous substring of that prose -- every project upgrading afterwards would have been permanently declassified as user-authored. **A grep for the two IDENTIFIERS found nothing because the live reader asserts the string's VALUE.**
+2. **A HEDGE IS NOT A LICENCE (ic's).** If you can name the check that would settle it, it is a TODO and not a caveat -- **writing the caveat down converts _I know I have not checked_ into _I am covered_.**
+3. **A MISSING TEST IS A BACKLOG ITEM; AN UNRUN TEST IS A DISCIPLINE FAILURE**, and only one is fixed by writing more tests. **Run the test file that covers what you changed.**
+4. **A MUTATION THAT FAILS TO MUTATE READS AS A PASSING CONTROL.** Assert the pattern is present before replacing it; a no-op `sed` reports the safe-looking answer. Restore with `cp` + `touch`, never `mv` (it preserves the backup's mtime) and **never `git checkout --`, which restores to HEAD and destroys uncommitted work rather than the mutation.**
+5. **zsh DOES NOT WORD-SPLIT AND IT COST ME FIVE PROBES.** Unquoted `$v` arrives as ONE argument; an unquoted path list becomes one pathspec and the commit does not happen at all. **Write the probe to a file rather than fighting the quoting.**
+6. **A CLAIM ABOUT A FILE ANOTHER NODE WRITES HAS A SHELF LIFE OF ZERO.** Re-read a peer-written file at the moment you assert its state, not at the moment you last set it.
+7. **A DECLARED `default` IS NOT A CHOICE**, and `value_source` panics on an undeclared id where `try_get_one` returns `Err` -- which is the whole reason `opt` and `flag` exist.
+8. **DROPPING A TEST BECAUSE A SIMILARLY-NAMED ONE EXISTS IS THE DAY'S CLASS.** ic's file had no positive control for a thread `put` and drove none of the CLI lifecycle tails; **the seven-verb finding would have been folded away with the file that found it.**
+
+## The rule the routing left behind -- mine, and it generalises
+
+**vc TOOK BOTH ROUTED FINDINGS AT `b5641e16` AND MY COPIES ARE CUT, WHICH IS THE POINT OF ROUTING THEM.** Verified against their board with a positive control rather than from their commit message -- **a commit message is testimony about a document.** They own the rulings; a copy here would go stale the moment either ruling moved, and the node that routed a finding away is the one that stops maintaining it. Verbatim text in `.history/20260824/wip-routed-verbatim-2120Z.md`.
+
+**WHAT STAYS IS THE JUDGEMENT, BECAUSE IT WAS ABOUT MY OWN WORK: A FINDING THAT ARGUES ITS WAY INTO THE ROW YOU ARE TRYING TO CLOSE IS A REAL DEFECT LAUNDERED THROUGH A GREEN.** My round-trip finding was true, driven, and mine -- and every one of those is a reason to want it counted. **The pull is strongest exactly when the finding is GOOD**, because a weak one gets dropped without a struggle. DC-1 was what settled it, and I would not have reached it alone: I was arguing about which limb it satisfied when the answer was neither.
+
+## WP-06 -- WHAT LANDED TONIGHT, AND THE NUMBER THAT REPLACED MINE
+
+**vc GAVE ME WP-06 WITH THE PEN AT 21:20Z. TWO LANDINGS, BOTH `--only`, BOTH MUTATION-PROVED.**
+
+- **`540d92bb` -- `version`.** `--version` and `version` now print BYTE-IDENTICAL stdout, both rc=0, because the arm asks clap for `render_version()` rather than composing a line. **Wiring the subcommand alone would have closed the rc gap and left the harder defect: two spellings that both answer, differently, with nothing saying so.** Version string gains the baked commit per the `corrected` ratification. `version --zzz` exits 1 (INV-02) where v2 took it at 0 (INV-08). **ST0058 AC-00.6 is satisfiable and I did NOT satisfy it** -- ic verifies, vc authored, I built; three hands.
+- **`0d77e337` -- `plugin`.** Three entries, `plugin list` byte-identical to v2, bare == list. **The finding is the line I did NOT port**: v2's `plugin show` ends `Run 'intent help <name>'` and **`intent help` is RETIRED in v3, refusing at rc=2**. As-observed fidelity would have shipped a remedy pointing at a refusal -- AC-06.11's class arriving through FAITHFULNESS, which is the direction nobody watches. The test pins BOTH halves, so if `help` is ever un-retired it fails and sends someone back to the decision instead of outliving its premise.
+
+**AC-06.1's REMAINDER IS 36 UNWIRED ENTRIES OF 105 SHIPPED, AND MY FIRST ANSWER WAS 26.** Driven from the binary, not the table. **The 11 hid in the OPTIMISTIC direction**: my probe drove every entry with NO ARGUMENTS, so any verb with a required positional died inside CLAP before a renderer arm ran, and I read clap's error as the renderer answering LIVE. `modules find`, `lang init`, `lang show`, `lang remove`, `config get`, `config set`, `ext new`, `ext show`, `plugin show`, `claude start`, `st dehydrate`. **I found it because I went to check whether a CLAUDE.md claim had expired and it had NOT.**
+
+**THE COST TABLE IS THE USEFUL ARTEFACT AND IT IS IN vc's HANDS**: per family, unwired entries x `keep` flags x blocking rows. **`plugin` was the ONLY unwired family with no design question attached.** That is the finding vc took to hv: **the long tail is not a porting queue, it is a queue of RULINGS with porting attached** -- so the bottleneck is vc and hv, not me.
