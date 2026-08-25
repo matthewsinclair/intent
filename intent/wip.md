@@ -55,7 +55,7 @@ The previous revision of this file said three survived and told the next node to
 1. **Nobody, and that is the finding.** The four AC-08.5 items above are unassigned. Two are builds, one is ic's file, one is hv's.
 2. **cc** -- ST0056 AC-10.4 over `migrate::plan`'s write set with a **non-empty control**; AT-10.2's second citation onto `intent-cli/tests/ingest_command.rs`; AT-10.12 held on the unexplained trim asymmetry.
 3. **ic** -- the `issues`-surface paper for hv: `--kind` vs `--status`, four words for one concept, **and the absence behind it -- v3 `issues` has no body setter at all.** One paper, not two.
-4. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and unbuilt. **Not closed by `0075`:** 9 of 12 rostered guards do not run under `set -e`, and six arms still assert a repository finding on any non-zero exit.
+4. **dc** -- holds none of the gate. AT-11.6's deliverable is theirs and unbuilt. **Not closed by `0075`:** 9 of 12 rostered guards do not run under `set -e`, and **SEVEN** arms still assert a repository finding on any non-zero exit -- **this file said six and was one short** (dc drove it 2026-08-25: 12 rostered arms split 7 asserting a repository finding / 5 naming the could-not-measure case). **The `9 of 12` holds, re-driven with the denominator declared BEFORE measuring, which is the control the wrong figure lacked.**
 5. **vc** -- `ST0057/WP-01` and `WP-05` are recorded **WIP while their gates PASS**; that is WP-close verification. Then `declared_but_unwired` adequacy and the marker's per-crate staleness.
 6. **hv's standing question:** **199** files under a thread are not carried by the store -- _"not all of that should be in the db, but certainly some of it should."_ It was ~250; the number moves, so drive it.
 
