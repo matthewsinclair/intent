@@ -1914,6 +1914,14 @@ fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
   // string, and asserted on the other two verdicts only -- so the one assertion vc
   // actually specified, *a field that is neither reds*, did not exist. It passed.
   let mut neither_any: Vec<String> = Vec::new();
+  // **THE READER'S ANSWER, TALLIED BY KIND (vc's ruling, cc's token).** Two buckets
+  // could not tell a refusal that NAMES A WORKING ROUTE from one that says NO ROUTE
+  // EXISTS -- and that is the distinction a verdict turns on. It cost two messages
+  // explaining what an unchanged count did not say, which is the definition of a
+  // report that is not finished.
+  let mut by_kind: std::collections::BTreeMap<&'static str, Vec<String>> =
+    std::collections::BTreeMap::new();
+  let mut kindless: Vec<String> = Vec::new();
 
   for model in FIELD_CARRYING_MODELS {
     let url = address_of_model(model);
@@ -1997,6 +2005,16 @@ fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
              the field to be reported by name, and a name with no remedy sends the operator \n       \
              to a hand-edit of canon -- the route this criterion exists to retire."
           );
+          match intentsvcs::facade::unsettable_kind(&address.entity, field) {
+            Some(kind) => by_kind
+              .entry(kind.as_str())
+              .or_default()
+              .push(format!("{model}.{field}")),
+            // `set` refused this field BY NAME and `unsettable` does not know it.
+            // The two derive from the same place, so a disagreement is a defect in
+            // one of them rather than a field with no answer.
+            None => kindless.push(format!("{model}.{field}")),
+          }
           named.push(format!("{field} -- {why}"));
         }
         Err(other) => unclassified.push(format!(
@@ -2035,6 +2053,41 @@ fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
       named_n = named.len(),
     ));
   }
+
+  // **EVERY KIND PRINTS, INCLUDING ONES WITH NO MEMBERS.** Iterating
+  // `UnsettableKind::ALL` rather than the map's own keys is the whole point: a
+  // bucket with nothing in it must read `0` and not vanish. **This is live rather
+  // than hypothetical -- `not-yet` is empty as of `st attach` carrying bytes, so
+  // the first run of this line is also its only real test.** A vanished category
+  // reads as a clean result and is indistinguishable from one nobody measured.
+  let kind_line = intentsvcs::facade::UnsettableKind::ALL
+    .iter()
+    .map(|k| {
+      let n = by_kind.get(k.as_str()).map_or(0, |v| v.len());
+      format!("{} {}", n, k.as_str())
+    })
+    .collect::<Vec<String>>()
+    .join(" + ");
+  report.push(format!(
+    "  {:<15} refusals answer the reader: {kind_line}",
+    "ALL MODELS"
+  ));
+  for kind in intentsvcs::facade::UnsettableKind::ALL {
+    if let Some(members) = by_kind.get(kind.as_str()) {
+      report.push(format!(
+        "      {:<10} {}",
+        kind.as_str(),
+        members.join(", ")
+      ));
+    }
+  }
+
+  assert!(
+    kindless.is_empty(),
+    "`set` refuses these fields BY NAME and `unsettable_kind` has no answer for them: {kindless:?}\n       \
+     Both derive from `unsettable()`, so this is the two disagreeing rather than a field\n       \
+     without a kind -- and a reader asking `can I change this` would get no answer at all."
+  );
 
   let worklist = report.join("\n");
   // **IT PRINTS WHETHER IT PASSES OR FAILS, BECAUSE THAT IS THE JOB IT WAS GIVEN.**
