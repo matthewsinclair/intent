@@ -41,6 +41,8 @@ fn proofs() {
   implements::<intentsvcs::install::InstallError>();
   implements::<intentsvcs::event::JsonlError>();
   implements::<intentsvcs::output::OutputError>();
+  implements::<intentsvcs::plugins::PluginError>();
+  implements::<intentsvcs::project::ConfigWriteError>();
   implements::<intentsvcs::project::ProjectError>();
   implements::<intentsvcs::project::UnhonourableWindow>();
   implements::<intentsvcs::finding::Refusal>();

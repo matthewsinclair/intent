@@ -443,7 +443,21 @@ const OUT_OF_ESTATE: &[(&str, &str)] = &[
   ),
   (
     "lang init",
-    "intent/llm/RULES-<lang>.md, ARCHITECTURE-<lang>.md, and config.json's languages array",
+    "intent/.config/config.json's languages array, and NOTHING under intent/llm/ -- \
+CORRECTED 2026-08-25 with the wiring (issue 0068). This string named RULES-<lang>.md and \
+ARCHITECTURE-<lang>.md until v3's `lang init` shipped without the fan-out; it was read off v2's \
+`observed.side_effects`, which is a correct record of v2 and was never a claim about this binary. \
+A written-down file that no verb writes is the AC-03.14 class from the other direction, which this \
+bucket's own doc names -- and it was sitting in the bucket that exists to name paths.",
+  ),
+  (
+    "lang remove",
+    "intent/.config/config.json's languages array only. MOVED FROM `UNPROVEN` 2026-08-25: it was \
+admitted there because v2's remove DELETED intent/llm/RULES-<lang>.md and ARCHITECTURE-<lang>.md, \
+so what it wrote was genuinely unestablished. v3's removes nothing but the array -- there is \
+nothing installed to delete -- so it is now `lang init`'s exact inverse and belongs in `lang \
+init`'s bucket. `UNPROVEN` means we have not established what this writes; leaving it there after \
+establishing it would file a known answer as a debt.",
   ),
 ];
 
@@ -524,8 +538,6 @@ const UNPROVEN: &[&str] = &[
   "ext new",
   "fileindex",
   "init",
-  "lang remove",
-  "lang sync",
   "learn",
   "llm usage_rules",
   "mcp",

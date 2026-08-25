@@ -137,6 +137,30 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // (Exemption added by cc with the wiring that made it reachable; ic owns
     // this list and should reword if the framing is wrong.)
     "plugin" => Some("reads the install's plugin manifests; it never reads a project"),
+    // **`lang` IS THE FAMILY THAT PROVES THE ENTRY ABOVE HAD TO EARN ITS FORM.**
+    // `plugin` is exempt as a FAMILY because all three of its shipped verbs read
+    // the install. `lang` ships four and they SPLIT: `list` and `show` answer
+    // from `rules::declarable()`, a compile-time registry; `init` and `remove`
+    // write `intent/.config/config.json`. A family-level entry here would exempt
+    // precisely the two verbs that mutate.
+    //
+    // **AND IT WOULD HAVE EXEMPTED A LIVE DEFECT.** Wired first without the
+    // migration gate, `intent lang init rust` in an unmigrated v2 project exited
+    // 0 and rewrote its config into v3 shape -- `author`, `intent_dir` and the
+    // `todo` block added, `intent_version: 2.19.0` left in place. This test
+    // caught it. A family-level exemption would have silenced the report and the
+    // half-migration would have shipped.
+    //
+    // `show` is listed even though it currently refuses the placeholder argument
+    // on its own merits: it refuses because `ST0001` is not a language, not
+    // because the project is unmigrated, so it passes this sweep for a reason
+    // unrelated to what the sweep asks. A placeholder that ever became a real
+    // language would turn that accident into a red with no defect behind it.
+    // (Exemptions added by cc with the wiring that made them reachable; ic owns
+    // this list and should reword if the framing is wrong.)
+    "lang" => Some("prints its own usage; it reads neither the install nor a project"),
+    "lang list" => Some("lists a compile-time language registry; it never reads a project"),
+    "lang show" => Some("describes a compile-time language registry; it never reads a project"),
     // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --
     // `languages` out of `intent/.config/config.json`, the threshold out of
     // `.intent_critic.yml` -- so it fails every test the entries above pass.

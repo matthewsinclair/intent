@@ -62,7 +62,7 @@ Content-specific -- craft (judgment):
 - `IN-CO-CRAFT-002` -- one clear primary call to action
 - `IN-CO-CRAFT-003` -- reading level matches the audience
 
-Per-project canon (`intent/llm/RULES-content.md`, `intent/llm/ARCHITECTURE-content.md`) lands via `intent lang init content`.
+Declare the language with `intent lang init content`; its rules are then served by the installed Intent tool -- `intent claude rules list --lang content`, `intent claude rules show <id>`.
 
 ## Red Flags
 

@@ -49,6 +49,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("info", _)) => info(),
     Some(("version", _)) => version(),
     Some(("plugin", m)) => plugin(m),
+    Some(("lang", m)) => lang(m),
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
@@ -2726,6 +2727,231 @@ fn plugin_show(m: &ArgMatches) -> Result<(), Failure> {
   // verb that renders a plugin's full documentation, so nothing replaces it and
   // no line is printed: an absent pointer beats a pointer to a refusal.
   Ok(())
+}
+
+/// `intent lang` -- the declared-languages family.
+///
+/// **THE FAMILY IS MIXED, WHICH IS WHY IT TAKES NO FAMILY-LEVEL EXEMPTION FROM
+/// THE PROJECT GATE THE WAY `plugin` DOES.** `list` and `show` answer from the
+/// tool's own registry and are correct outside a project; `init` and `remove`
+/// write `intent/.config/config.json` and must refuse outside one (INV-03).
+/// The exemption `plugin` legitimately takes is family-wide, and taking it here
+/// would exempt precisely the two verbs that mutate.
+fn lang(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    None => lang_usage(),
+    Some(("list", _)) => lang_list(),
+    Some(("show", sm)) => lang_show(sm),
+    Some(("init", sm)) => lang_declare(sm),
+    Some(("remove", sm)) => lang_undeclare(sm),
+    Some((verb, _)) => unwired("lang", verb),
+  }
+}
+
+/// Bare `intent lang` prints usage and exits 0, as v2 does.
+///
+/// It asks the built `Command` for the text rather than composing a block, for
+/// the reason `version` does: a usage string written here is a second home for
+/// the help the table already owns, and the two would be equal exactly until
+/// somebody added a verb.
+fn lang_usage() -> Result<(), Failure> {
+  let mut root = crate::spine::build(&dispatch::table());
+  // **`build()` FIRST, AND IT IS NOT A TIDY-UP.** An unbuilt subcommand has not
+  // inherited the root's settings or its display name, so rendering it produces
+  // `Usage: lang` and advertises a `help` subcommand the root disabled -- a verb
+  // that exits 1 when a reader takes the advice. Measured: without this call,
+  // bare `intent lang` and `intent lang --help` differ by two lines.
+  //
+  // That is the `version` defect exactly -- one capability, two spellings,
+  // disagreeing bytes -- and it was introduced HERE, in the commit after the one
+  // that fixed it, by rendering from the authority rather than asking it.
+  root.build();
+  match root.find_subcommand_mut("lang") {
+    Some(cmd) => {
+      print!("{}", cmd.render_help());
+      Ok(())
+    }
+    // Unreachable while `lang` ships, and NOT an `unwrap`: the table is data,
+    // and the one thing a renderer must never do with absent data is panic in
+    // front of a user who can fix it.
+    None => Err(Failure::Error(
+      "error: `lang` is missing from the dispatch table".to_string(),
+    )),
+  }
+}
+
+/// `intent lang list` -- the languages a project may declare.
+///
+/// **BYTE-IDENTICAL TO v2 TODAY AND DERIVED FROM A DIFFERENT PLACE.** v2 answers
+/// by listing directories under `intent/plugins/agents/templates/`; v3 answers
+/// from [`intentsvcs::rules::declarable`]. The seven names agree, and they agree
+/// for a reason rather than by luck -- the template set was the declarable set
+/// minus the two packs nobody declares.
+///
+/// The change is that `intent lang init` no longer installs a template, so the
+/// template directory has stopped being the thing the question is about.
+/// Enumerating it would still print the right seven names, which is the failure
+/// this estate has spent a day naming: a correct value about the wrong subject,
+/// carrying nothing that says so.
+///
+/// v2's "no language templates available at <dir>" branch is deliberately not
+/// ported. It fires when the template directory is missing; the derived list is
+/// a compile-time constant and cannot be empty, so porting the branch would ship
+/// a message no input can produce.
+fn lang_list() -> Result<(), Failure> {
+  println!("Available language packs:");
+  for lang in intentsvcs::rules::declarable() {
+    println!("  {lang}");
+  }
+  Ok(())
+}
+
+/// `intent lang show <lang>` -- what declaring a language does.
+///
+/// **`corrected`, and the correction is the whole of it.** v2 prints "Files
+/// installed by 'intent lang init <lang>'" over a list of two paths. v3's `init`
+/// installs nothing, so a faithful port would print a durable claim that two
+/// files will appear, and they will not -- the same shape as `plugin show`
+/// pointing at a retired verb, arriving through fidelity rather than neglect.
+fn lang_show(m: &ArgMatches) -> Result<(), Failure> {
+  let lang = lang_one(m)?;
+  if !intentsvcs::rules::is_declarable(&lang) {
+    return Err(Failure::Error(unknown_language(&lang)));
+  }
+  println!("Language: {lang}");
+  println!();
+  println!("`intent lang init {lang}` declares the language in");
+  println!("intent/.config/config.json and installs nothing into the project.");
+  println!();
+  println!("Its rules are served by the installed Intent tool:");
+  println!("  intent claude rules list --lang {lang}");
+  println!("  intent claude rules show <id>");
+  Ok(())
+}
+
+/// The project a `lang` write may touch -- **discovered AND past the migration
+/// gate**, which are two questions and were answered as one.
+///
+/// **`context()` IS NOT THE GATE, AND THE FIRST VERSION OF THIS FAMILY USED IT.**
+/// It discovers a project and stops; the migration check lives in
+/// `Facade::open`, and `lang init` / `lang remove` do not need a facade, so they
+/// reached for the lighter call and skipped the gate with it. Measured on a
+/// fixture: `intent lang init rust` in an UNMIGRATED v2 project exited 0 and
+/// rewrote its `config.json` into v3 shape -- adding `author`, `intent_dir` and
+/// the `todo` block while leaving `intent_version: 2.19.0` in place. A v3 binary
+/// half-migrating a v2 project, silently, from a command about languages.
+///
+/// It refuses through `FacadeError::Unmigrated` rather than composing a message,
+/// so the operator meets the same wording and the same remedy here as from every
+/// other refusal -- one home for what "this project has not been migrated" says.
+fn lang_project() -> Result<Project, Failure> {
+  let (project, _) = context()?;
+  match project.migration() {
+    intentsvcs::project::Migration::Done => Ok(project),
+    intentsvcs::project::Migration::Pending(pending) => {
+      Err(fail(intentsvcs::facade::FacadeError::Unmigrated(pending)))
+    }
+  }
+}
+
+/// `intent lang init <lang>...` -- declare one or more languages.
+///
+/// Named `lang_declare` rather than `lang_init` because that is what it now
+/// does, and because `init` as a Rust identifier next to the crate's other
+/// `init` reads as project initialisation.
+fn lang_declare(m: &ArgMatches) -> Result<(), Failure> {
+  let langs = lang_many(m)?;
+  let project = lang_project()?;
+  let mut config = project.config().clone();
+
+  let mut failed = 0usize;
+  let mut declared = 0usize;
+  for lang in &langs {
+    if !intentsvcs::rules::is_declarable(lang) {
+      eprintln!("{}", unknown_language(lang));
+      failed += 1;
+      continue;
+    }
+    if config.declare_language(lang) {
+      println!("declared: {lang}");
+    } else {
+      println!("ok: {lang} already declared (no change)");
+    }
+    declared += 1;
+  }
+
+  // **WRITTEN ONCE, AFTER THE LOOP, AND ONLY IF SOMETHING CHANGED.** A write per
+  // language would rewrite the file N times for one command and leave a partial
+  // declaration behind if the third name were rejected mid-loop.
+  intentsvcs::project::write_config(project.root(), &config)
+    .map_err(|e| Failure::Error(e.render()))?;
+
+  println!();
+  println!("Summary: {declared} language(s) declared; {failed} error(s).");
+  if failed > 0 {
+    return Err(Failure::Verdict);
+  }
+  Ok(())
+}
+
+/// `intent lang remove <lang>...` -- undeclare one or more languages.
+///
+/// **IT DOES NOT REFUSE AN UNDECLARABLE NAME, AND `init` DOES.** Removing a name
+/// that could never have been declared is already the no-op it prints, whereas
+/// declaring one would write a value the rest of the tool cannot serve. The
+/// asymmetry is deliberate: a remove that refuses is a remove that cannot clean
+/// up after a rename.
+fn lang_undeclare(m: &ArgMatches) -> Result<(), Failure> {
+  let langs = lang_many(m)?;
+  let project = lang_project()?;
+  let mut config = project.config().clone();
+
+  for lang in &langs {
+    if config.undeclare_language(lang) {
+      println!("removed: '{lang}' from intent/.config/config.json languages");
+    } else {
+      println!("noop: '{lang}' not declared");
+    }
+  }
+
+  intentsvcs::project::write_config(project.root(), &config)
+    .map_err(|e| Failure::Error(e.render()))?;
+
+  println!();
+  println!("Summary: {} language(s) processed.", langs.len());
+  Ok(())
+}
+
+/// The one wording for an unknown language, so `init` and `show` cannot describe
+/// the same rejection two ways.
+fn unknown_language(lang: &str) -> String {
+  format!(
+    "error: '{lang}' is not a language this build can serve\n  remedy: run `intent lang list` for the languages you can declare ({})",
+    intentsvcs::rules::declarable().join(" ")
+  )
+}
+
+/// The single-value positional, by the name the table gives it.
+fn lang_one(m: &ArgMatches) -> Result<String, Failure> {
+  m.get_one::<String>("lang")
+    .cloned()
+    .ok_or_else(|| Failure::Error("error: intent lang show: missing language argument".to_string()))
+}
+
+/// The repeated positional. clap enforces the `1..n` minimum, so an empty list
+/// here means the table and the parser disagree rather than that the user typed
+/// nothing -- which is worth saying differently from a usage error.
+fn lang_many(m: &ArgMatches) -> Result<Vec<String>, Failure> {
+  let langs: Vec<String> = m
+    .get_many::<String>("lang")
+    .map(|v| v.cloned().collect())
+    .unwrap_or_default();
+  if langs.is_empty() {
+    return Err(Failure::Error(
+      "error: intent lang: missing language argument(s)".to_string(),
+    ));
+  }
+  Ok(langs)
 }
 
 /// `intent version` -- the subcommand twin of `--version`.

@@ -5504,18 +5504,19 @@
     },
     {
       "name": "lang",
-      "help": "Per-language canon: install language-specific RULES + ARCHITECTURE templates",
+      "help": "Declared languages: which languages a project has declared",
       "v2_source": "bin/intent_lang",
       "v2_help_file": null,
       "owner_wp": "WP-07",
       "family_notes": [
         "**parity.md's table said `init, remove, list`. Measured: six verbs** -- list, show, init, remove, sync, plus `rm` as an alias of `remove`. Evidence: `intent lang sync` answers `ok: no declared languages; nothing to sync`.",
-        "The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence."
+        "The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence.",
+        "**THE HELP STRINGS MOVED WITH THE BEHAVIOUR, 2026-08-25 (cc).** Every one of them named installing templates -- `intent lang --help` sold `Install per-language canon` over a verb that installs nothing. Recorded because the five row edits this landing was sequenced as did not include them: a row's `target.state` and its `help` are two claims about one verb, and only one of them is what a user reads."
       ],
       "entries": [
         {
           "path": "lang",
-          "help": "Per-language canon management",
+          "help": "Declared-language management",
           "args": [
             {
               "name": "command",
@@ -5560,7 +5561,7 @@
         },
         {
           "path": "lang list",
-          "help": "List languages with available templates",
+          "help": "List the languages a project may declare",
           "args": [],
           "flags": [],
           "v2": "bin/intent_lang list arm",
@@ -5587,7 +5588,7 @@
         },
         {
           "path": "lang show",
-          "help": "Show what `intent lang init <lang>` installs",
+          "help": "Show what declaring a language does",
           "args": [
             {
               "name": "lang",
@@ -5616,7 +5617,17 @@
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "corrected",
+            "ratification": "vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across five estates: 10 of 10 byte-identical to their templates, zero referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: \"If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`.\"",
+            "behaviour_changed": "v2 prints \"Files installed by 'intent lang init <lang>'\" over two paths. v3's `init` installs neither, so a faithful port would print a durable claim that two files will appear when they will not. **THIS IS `plugin show`'s DEFECT ARRIVING THROUGH FIDELITY RATHER THAN NEGLECT** -- the same shape as porting a remedy that points at a retired verb, which is why `as-observed` was the wrong answer for a row whose whole output describes a mechanism that has been retired.",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "vc",
+                "date": "2026-08-25",
+                "record": "issue 0068"
+              }
+            ]
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -5624,7 +5635,7 @@
         },
         {
           "path": "lang init",
-          "help": "Install per-language canon (idempotent; multi-lang)",
+          "help": "Declare one or more languages (idempotent; multi-lang)",
           "args": [
             {
               "name": "lang",
@@ -5661,7 +5672,18 @@
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "corrected",
+            "ratification": "vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across five estates: 10 of 10 byte-identical to their templates, zero referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: \"If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`.\"",
+            "behaviour_changed": "v2 copies two markdown files per language into `intent/llm/` AND adds the language to `config.json`. v3 does only the second. The declaration is the whole of the verb, and the language's rules are served live rather than vendored.",
+            "carve_out": "THE CARVE-OUT, WHICH IS THE PART MOST LIKELY TO BE GOT WRONG: this does NOT touch the agnostic pair `intent/llm/RULES.md` + `intent/llm/ARCHITECTURE.md`. Same directory, adjacent names, OPPOSITE evidence -- 4 of 4 estates AUTHORED theirs. A sweep treating `intent/llm/*` as one family deletes the only files in it with real authors.",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "vc",
+                "date": "2026-08-25",
+                "record": "issue 0068"
+              }
+            ]
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -5670,7 +5692,7 @@
         },
         {
           "path": "lang remove",
-          "help": "Remove per-language canon (idempotent; multi-lang)",
+          "help": "Undeclare one or more languages (idempotent; multi-lang)",
           "args": [
             {
               "name": "lang",
@@ -5702,18 +5724,23 @@
             "lang rm"
           ],
           "target": {
-            "state": "as-observed"
+            "state": "corrected",
+            "ratification": "vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across five estates: 10 of 10 byte-identical to their templates, zero referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: \"If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`.\"",
+            "behaviour_changed": "The exact inverse of `init`, and it changes for the same reason: with nothing installed there is nothing to delete, so `remove` undeclares in `config.json` and touches no file under `intent/llm/`. Its `recoverability` drops from `one-way` to idempotent as a CONSEQUENCE -- the `mcp_review` uncertainty on this row was entirely about deleting authored canon, and v3's remove deletes nothing.",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "vc",
+                "date": "2026-08-25",
+                "record": "issue 0068"
+              }
+            ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": false,
+          "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "mcp_review": {
-            "uncertain": [
-              "exposed_on_mcp"
-            ],
-            "why_uncertain": "Removes per-language canon files. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool."
-          },
-          "recoverability": "one-way"
+          "recoverability": "idempotent",
+          "note": "**WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- \"Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool\" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the two fields are one claim and the generator will not let them disagree in silence."
         },
         {
           "path": "lang sync",
@@ -5726,7 +5753,8 @@
               ],
               "type": "bool",
               "help": "Report without writing; exit 1 if any entry is missing or stale",
-              "disposition": "keep"
+              "disposition": "retire",
+              "note": "Retires WITH its verb. Recorded rather than deleted so the surface still says v2 had it: a flag that vanishes from the register is indistinguishable from one that was never measured."
             }
           ],
           "v2": "bin/intent_lang sync arm",
@@ -5754,10 +5782,12 @@
             }
           },
           "target": {
-            "state": "as-observed"
+            "state": "retire",
+            "ratification": "vc, 2026-08-25, on issue 0068 -- TWO INDEPENDENT REASONS, either sufficient. (1) `sync` converges the `Language Packs` block in `intent/llm/RULES.md` for every declared language; `init` now installs nothing, so there is no divergence for it to converge. (2) Pointing that block at the live rules would put the declared-language set in a SECOND HOME -- `config.json`'s `languages` array is authoritative (ST0037), and a markdown block restating it is a copy that drifts silently.",
+            "note": "v2's upgrade ledger calls `lang sync` and not `lang init` (issue 0005), deliberately: `init` `cp`s over hand-edited files, so it is the wrong thing for an unattended upgrade. **That reasoning retires WITH the verb rather than surviving it** -- v3's `init` overwrites nothing, so the hazard the ledger was routing around no longer exists."
           },
-          "disposition": "keep",
-          "exposed_on_mcp": true,
+          "disposition": "retire",
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "recoverability": "idempotent"
         }
@@ -7689,7 +7719,7 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 57,
+      "n": 53,
       "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin."
     },
     {
@@ -7701,7 +7731,7 @@
     {
       "disposition": "keep",
       "target_state": "corrected",
-      "n": 23,
+      "n": 26,
       "gloss": "The command survives with a defect fixed. `keep` is right precisely because a corrected command still SURVIVES; the correction is what `target.state` records."
     },
     {
@@ -7713,7 +7743,7 @@
     {
       "disposition": "retire",
       "target_state": "retire",
-      "n": 7,
+      "n": 8,
       "gloss": "The command does not ship. The second pair where the fields MUST agree, and the one with teeth: `Entry::is_shipped()` reads both and fails OPEN, so a single hand-edit to either field alone would ship a retired command."
     },
     {
@@ -8088,7 +8118,6 @@
       "lang show",
       "lang init",
       "lang remove",
-      "lang sync",
       "llm",
       "llm usage_rules",
       "llm guide",
@@ -8123,6 +8152,7 @@
       "issues hydrate",
       "issues dehydrate",
       "organize",
+      "lang sync",
       "treeindex",
       "help",
       "st_zero"
@@ -8213,7 +8243,6 @@
       "lang show",
       "lang init",
       "lang remove",
-      "lang sync",
       "llm",
       "llm usage_rules",
       "llm guide",

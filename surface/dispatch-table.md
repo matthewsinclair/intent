@@ -2507,7 +2507,7 @@ Run Intent rule-library critics against source files
 
 ## Family: `lang`
 
-Per-language canon: install language-specific RULES + ARCHITECTURE templates
+Declared languages: which languages a project has declared
 
 - **v2 source:** `bin/intent_lang`
 - **v2 help file:** none
@@ -2516,19 +2516,20 @@ Per-language canon: install language-specific RULES + ARCHITECTURE templates
 
 - **parity.md's table said `init, remove, list`. Measured: six verbs** -- list, show, init, remove, sync, plus `rm` as an alias of `remove`. Evidence: `intent lang sync` answers `ok: no declared languages; nothing to sync`.
 - The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence.
+- **THE HELP STRINGS MOVED WITH THE BEHAVIOUR, 2026-08-25 (cc).** Every one of them named installing templates -- `intent lang --help` sold `Install per-language canon` over a verb that installs nothing. Recorded because the five row edits this landing was sequenced as did not include them: a row's `target.state` and its `help` are two claims about one verb, and only one of them is what a user reads.
 
 | command                         | args      | flags   | help                                                                      | disposition |
 | ------------------------------- | --------- | ------- | ------------------------------------------------------------------------- | ----------- |
-| `lang`                          | [command] | --      | Per-language canon management                                             | keep        |
-| `lang list`                     | --        | --      | List languages with available templates                                   | keep        |
-| `lang show`                     | <lang>    | --      | Show what `intent lang init <lang>` installs                              | keep        |
-| `lang init`                     | <lang>... | --      | Install per-language canon (idempotent; multi-lang)                       | keep        |
-| `lang remove` (alias `lang rm`) | <lang>... | --      | Remove per-language canon (idempotent; multi-lang)                        | keep        |
-| `lang sync`                     | --        | --check | Converge the Language Packs block in RULES.md for every declared language | keep        |
+| `lang`                          | [command] | --      | Declared-language management                                              | keep        |
+| `lang list`                     | --        | --      | List the languages a project may declare                                  | keep        |
+| `lang show`                     | <lang>    | --      | Show what declaring a language does                                       | keep        |
+| `lang init`                     | <lang>... | --      | Declare one or more languages (idempotent; multi-lang)                    | keep        |
+| `lang remove` (alias `lang rm`) | <lang>... | --      | Undeclare one or more languages (idempotent; multi-lang)                  | keep        |
+| `lang sync`                     | --        | --check | Converge the Language Packs block in RULES.md for every declared language | retire      |
 
 ### `lang`
 
-Per-language canon management
+Declared-language management
 
 - **v2:** bin/intent_lang
 - **Arguments:**
@@ -2545,7 +2546,7 @@ Per-language canon management
 
 ### `lang list`
 
-List languages with available templates
+List the languages a project may declare
 
 - **v2:** bin/intent_lang list arm
 - **Exit codes:**
@@ -2557,7 +2558,7 @@ List languages with available templates
 
 ### `lang show`
 
-Show what `intent lang init <lang>` installs
+Show what declaring a language does
 
 - **v2:** bin/intent_lang show arm
 - **Arguments:**
@@ -2567,12 +2568,18 @@ Show what `intent lang init <lang>` installs
   - `1` -- unknown language
 - **stdout:** the file list
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across five estates: 10 of 10 byte-identical to their templates, zero referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: "If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`."
+- **behaviour changed:** v2 prints "Files installed by 'intent lang init <lang>'" over two paths. v3's `init` installs neither, so a faithful port would print a durable claim that two files will appear when they will not. **THIS IS `plugin show`'s DEFECT ARRIVING THROUGH FIDELITY RATHER THAN NEGLECT** -- the same shape as porting a remedy that points at a retired verb, which is why `as-observed` was the wrong answer for a row whose whole output describes a mechanism that has been retired.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-08-25
+  - `0.record`: issue 0068
 - **MCP:** exposed as an agent tool -- read-only
 
 ### `lang init`
 
-Install per-language canon (idempotent; multi-lang)
+Declare one or more languages (idempotent; multi-lang)
 
 - **v2:** bin/intent_lang init arm
 - **Arguments:**
@@ -2586,13 +2593,20 @@ Install per-language canon (idempotent; multi-lang)
 - **Side effects:**
   - Writes intent/llm/RULES-<lang>.md + ARCHITECTURE-<lang>.md
   - Adds the language to config.json's `languages` array
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across five estates: 10 of 10 byte-identical to their templates, zero referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: "If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`."
+- **behaviour changed:** v2 copies two markdown files per language into `intent/llm/` AND adds the language to `config.json`. v3 does only the second. The declaration is the whole of the verb, and the language's rules are served live rather than vendored.
+- **carve out:** THE CARVE-OUT, WHICH IS THE PART MOST LIKELY TO BE GOT WRONG: this does NOT touch the agnostic pair `intent/llm/RULES.md` + `intent/llm/ARCHITECTURE.md`. Same directory, adjacent names, OPPOSITE evidence -- 4 of 4 estates AUTHORED theirs. A sweep treating `intent/llm/*` as one family deletes the only files in it with real authors.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-08-25
+  - `0.record`: issue 0068
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
 
 ### `lang remove`
 
-Remove per-language canon (idempotent; multi-lang)
+Undeclare one or more languages (idempotent; multi-lang)
 
 - **v2:** bin/intent_lang remove arm
 - **Arguments:**
@@ -2602,12 +2616,16 @@ Remove per-language canon (idempotent; multi-lang)
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** confirmation per language
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `as-observed`
-- **MCP:** not exposed -- **mutates**
-- **Wants review:**
-  - uncertain on `exposed_on_mcp`
-  - Removes per-language canon files. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool.
-- **recoverability:** one-way
+- **Target:** `corrected` -- ratified: vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across five estates: 10 of 10 byte-identical to their templates, zero referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: "If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`."
+- **behaviour changed:** The exact inverse of `init`, and it changes for the same reason: with nothing installed there is nothing to delete, so `remove` undeclares in `config.json` and touches no file under `intent/llm/`. Its `recoverability` drops from `one-way` to idempotent as a CONSEQUENCE -- the `mcp_review` uncertainty on this row was entirely about deleting authored canon, and v3's remove deletes nothing.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-08-25
+  - `0.record`: issue 0068
+- **MCP:** exposed as an agent tool -- **mutates**
+- **recoverability:** idempotent
+- **note:** **WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- "Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the two fields are one claim and the generator will not let them disagree in silence.
 
 ### `lang sync`
 
@@ -2616,7 +2634,8 @@ Converge the Language Packs block in RULES.md for every declared language
 - **v2:** bin/intent_lang sync arm
 - **Flags:**
   - `--check` (bool) -- Report without writing; exit 1 if any entry is missing or stale
-    - **disposition:** keep
+    - Retires WITH its verb. Recorded rather than deleted so the surface still says v2 had it: a flag that vanishes from the register is indistinguishable from one that was never measured.
+    - **disposition:** retire
 - **Exit codes:**
   - `0` -- converged, or `ok: no declared languages; nothing to sync`
   - `1` -- --check found a missing or stale entry
@@ -2624,8 +2643,9 @@ Converge the Language Packs block in RULES.md for every declared language
 - **stdout:** the convergence report
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Touches ONLY the Language Packs block -- never the RULES-<lang>.md files, which `init` overwrites.
-- **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **Target:** `retire` -- ratified: vc, 2026-08-25, on issue 0068 -- TWO INDEPENDENT REASONS, either sufficient. (1) `sync` converges the `Language Packs` block in `intent/llm/RULES.md` for every declared language; `init` now installs nothing, so there is no divergence for it to converge. (2) Pointing that block at the live rules would put the declared-language set in a SECOND HOME -- `config.json`'s `languages` array is authoritative (ST0037), and a markdown block restating it is a copy that drifts silently.
+- **Note:** v2's upgrade ledger calls `lang sync` and not `lang init` (issue 0005), deliberately: `init` `cp`s over hand-edited files, so it is the wrong thing for an unattended upgrade. **That reasoning retires WITH the verb rather than surviving it** -- v3's `init` overwrites nothing, so the hazard the ledger was routing around no longer exists.
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
 
 ## Family: `llm`

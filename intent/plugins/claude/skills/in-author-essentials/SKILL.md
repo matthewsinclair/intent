@@ -61,7 +61,7 @@ Author-specific -- craft (judgment):
 - `IN-AU-CRAFT-003` -- full `/in-detrope` diagnosis (on-instruction handoff)
 - `IN-AU-CRAFT-004` -- citation and attribution
 
-Per-project canon (`intent/llm/RULES-author.md`, `intent/llm/ARCHITECTURE-author.md`) lands via `intent lang init author`.
+Declare the language with `intent lang init author`; its rules are then served by the installed Intent tool -- `intent claude rules list --lang author`, `intent claude rules show <id>`.
 
 ## Red Flags
 

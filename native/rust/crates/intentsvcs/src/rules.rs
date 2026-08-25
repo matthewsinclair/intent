@@ -37,6 +37,52 @@ pub const LANGUAGES: [&str; 9] = [
   "agnostic", "elixir", "rust", "swift", "lua", "shell", "prose", "author", "content",
 ];
 
+/// The two members of [`LANGUAGES`] a project never DECLARES, and why each one
+/// is not there.
+///
+/// **A closed list is only safe when it declares why the things NOT in it are
+/// not in it** (dc, 2026-08-25). Both of these are rule packs that exist to be
+/// composed INTO another language's answer, never chosen as a project's own:
+///
+/// - `agnostic` is the cross-language pack every language pack concretises.
+///   Declaring it would declare "this project is written in the rules".
+/// - `prose` is the shared base that `author` and `content` both build on. A
+///   project declares one of those two; `prose` is what they have in common.
+///
+/// Naming them here rather than filtering on a leading underscore is the same
+/// choice [`LANGUAGES`] makes one doc-comment above, for the same reason: a
+/// future pack must not join or leave this set by how somebody spells it.
+pub const NON_DECLARABLE: [&str; 2] = ["agnostic", "prose"];
+
+/// The languages `intent lang init` will accept, derived from [`LANGUAGES`].
+///
+/// **DERIVED, NOT A SECOND LIST.** This estate already carries two deliberately
+/// distinct language sets -- [`LANGUAGES`] and [`crate::critic::HEADLESS_LANGUAGES`],
+/// whose own doc says in as many words that it must not be collapsed into the
+/// first. A third HAND-WRITTEN one is where they start disagreeing, and the
+/// disagreement would be invisible: all three are correct-looking lists of
+/// language names.
+///
+/// **v2 answered this question by listing directories under
+/// `intent/plugins/agents/templates/`** -- which returns the right seven today
+/// and returns them for a reason v3 retired. `intent lang init` no longer
+/// installs a template, so enumerating the template directory would be a
+/// correct value about a subject that is no longer the question.
+pub fn declarable() -> Vec<&'static str> {
+  let mut out: Vec<&'static str> = LANGUAGES
+    .iter()
+    .copied()
+    .filter(|l| !NON_DECLARABLE.contains(l))
+    .collect();
+  out.sort_unstable();
+  out
+}
+
+/// Whether `lang` is a language a project may declare.
+pub fn is_declarable(lang: &str) -> bool {
+  LANGUAGES.contains(&lang) && !NON_DECLARABLE.contains(&lang)
+}
+
 /// Where a rule came from.
 ///
 /// **`canon` AND `ext:<name>` ARE DISTINCT VALUES AND MUST STAY THAT WAY.** A
