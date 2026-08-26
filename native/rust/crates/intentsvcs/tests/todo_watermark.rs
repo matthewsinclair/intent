@@ -188,16 +188,25 @@ fn doctor_does_not_report_a_flushed_view_as_hand_edited() {
   );
 }
 
-/// **A flush cannot clear same-day completions, and the report says so.**
+/// **A flush clears the work finished TODAY, which is the whole complaint that
+/// reopened this.**
 ///
-/// `--flush` promises to clear the DONE view. `Thread.completed` is a date, so
-/// there is no fact distinguishing "finished before the flush" from "finished
-/// after it" on the day it happens. The command therefore does less than its
-/// help says, and the only defensible version of that is one that reports the
-/// shortfall rather than leaving the operator looking at a view that did not
-/// empty.
+/// This test asserted the opposite until 2026-08-26, and it was not wrong about
+/// the code -- it was faithful to a design hv overruled. The watermark was
+/// truncated to a date, so a completion recorded today compared EQUAL to it and
+/// stayed in DONE; `--prune` on a day's work cleared nothing and the command
+/// explained why. **A todo file whose DONE bucket cannot be emptied on the day
+/// you did the work is the file that grew to thousands of lines.**
+///
+/// The instant plus midnight-widening ([`views`]' `completed_instant`) is what
+/// makes it work, and this is where that is proved rather than described:
+/// `ST0002` finishes today, through the real verbs, and the flush takes it.
+///
+/// **The old completion is here as the control.** Without it a build that
+/// cleared everything unconditionally -- or one whose DONE bucket was empty for
+/// some unrelated reason -- would pass the assertion that matters.
 #[test]
-fn a_flush_reports_what_it_could_not_clear_rather_than_looking_like_a_no_op() {
+fn a_flush_clears_work_completed_today() {
   let fx = Fixture::new();
   fx.write_thread(&finished("ST0001", "2020-01-01"));
   let mut facade = fx.facade_on_disk();
@@ -209,13 +218,19 @@ fn a_flush_reports_what_it_could_not_clear_rather_than_looking_like_a_no_op() {
   let flushed = facade.todo_flush().expect("flush");
   assert!(
     flushed.cleared.iter().any(|l| l.contains("ST0001")),
-    "the old completion is cleared: {:?}",
+    "the old completion is cleared -- the control, so that the assertion below cannot pass \
+     because DONE was empty to begin with: {:?}",
     flushed.cleared
   );
   assert!(
-    flushed.remaining.iter().any(|l| l.contains(&today)),
-    "today's completion could not be cleared, and the report has to SAY so rather than leaving \
-     it out: {flushed:?}"
+    flushed.cleared.iter().any(|l| l.contains(&today)),
+    "TODAY's completion is cleared: a date-granular watermark left it sitting in DONE until \
+     tomorrow, and that is the behaviour hv reversed on 2026-08-26: {flushed:?}"
+  );
+  assert!(
+    flushed.remaining.is_empty(),
+    "nothing survives a flush but a completion dated at or after it, and this fixture has \
+     none: {flushed:?}"
   );
   assert!(
     flushed.watermark.is_some(),
@@ -223,12 +238,15 @@ fn a_flush_reports_what_it_could_not_clear_rather_than_looking_like_a_no_op() {
   );
 }
 
-/// The watermark is a DATE, taken from an event the database stamped.
+/// The watermark is an ISO 8601 INSTANT at second resolution, taken from an
+/// event the database stamped -- `2026-08-26T21:40:25Z`, hv's ruling and v2's
+/// `date -u '+%Y-%m-%dT%H:%M:%SZ'`.
 ///
-/// Asserted on shape rather than on value: a test that knew the value would
-/// have to have got it from a clock, which is the thing being avoided.
+/// Asserted on shape and on RELATION to the event, never on a value: a test
+/// that knew the value would have had to read a clock, which is the thing the
+/// database stamp exists to avoid (D42).
 #[test]
-fn the_watermark_is_a_date_derived_from_a_database_stamped_event() {
+fn the_watermark_is_an_instant_derived_from_a_database_stamped_event() {
   let fx = Fixture::new();
   fx.write_thread(&finished("ST0001", "2020-01-01"));
   let mut facade = fx.facade_on_disk();
@@ -247,8 +265,23 @@ fn the_watermark_is_a_date_derived_from_a_database_stamped_event() {
   );
 
   let mark = event::todo_watermark(&events).expect("a watermark");
-  assert_eq!(mark.len(), 10, "the watermark is a date: {mark:?}");
-  assert_eq!(mark, ts[..10], "and it is that event's date");
+  assert_eq!(
+    mark.len(),
+    20,
+    "the watermark is a full instant at second resolution -- `2026-08-26T21:40:25Z` is 20 \
+     characters, and the DATE this used to return was 10: {mark:?}"
+  );
+  assert!(
+    !mark.contains('.'),
+    "the millisecond fraction the database stamps is dropped, because a cutoff is read and \
+     retyped by people and the date it is compared against cannot use it: {mark:?}"
+  );
+  assert_eq!(
+    mark,
+    format!("{}Z", &ts[..19]),
+    "and it is that event's own instant, seconds kept and fraction dropped -- not a value \
+     from anywhere else"
+  );
 
   // Two machines' logs are a UNION under D34, so arrival order is not time
   // order and the watermark must be the MAXIMUM rather than the last appended.
@@ -297,8 +330,13 @@ fn the_structured_buckets_and_the_rendered_view_say_the_same_thing() {
       "a label carries its own title: {item:?}"
     );
   }
+  // **Top-level rows only, and by GLYPH-AGNOSTIC prefix.** This counted
+  // `- [ ] ` -- an unchecked box -- and was written before rows carried a
+  // status glyph, so it now matches nothing at all and reports 0 against a
+  // populated view. It also has to exclude nested work packages, which are
+  // indented and are not members of `all`.
   assert_eq!(
-    view.matches("- [ ] ").count(),
+    view.lines().filter(|l| l.starts_with("- [")).count(),
     all.len(),
     "the view renders exactly the items the buckets carry, and no others"
   );

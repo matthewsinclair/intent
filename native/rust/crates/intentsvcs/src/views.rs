@@ -897,31 +897,54 @@ pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets 
   }
 }
 
+/// A `completed:` date as an instant the watermark can be compared against.
+///
+/// `Thread.completed` is a DATE (see [`crate::model::COMPLETED_RESOLUTION_HOURS`])
+/// and the watermark is an INSTANT, so one of the two has to be widened before
+/// a lexical compare means anything. v2 widens the date, in
+/// `normalize_completed`: a bare `YYYY-MM-DD` becomes that day's `T00:00:00Z`.
+///
+/// **Widening to MIDNIGHT is the whole of the same-day semantics rather than a
+/// detail of how it is spelled.** It places a completion recorded today BELOW a
+/// flush run today, so `intent todo done --prune` clears the work finished this
+/// morning. That is v2's behaviour and hv's ruling (2026-08-26).
+///
+/// **Comparing the raw strings would be very nearly right, and wrong in the one
+/// place it matters.** A bare `2026-08-26` already sorts below
+/// `2026-08-26T21:40:25Z`, because the shorter string loses at the first
+/// position they differ -- so most of the time this function changes nothing.
+/// It also sorts below `2026-08-26T00:00:00Z`, and that is v2's zero-flush
+/// baseline, which would then exclude the very day it names. **An accident that
+/// agrees with the rule almost everywhere is not the rule.**
+fn completed_instant(completed: &str) -> String {
+  // A value that already carries a time is passed through: the model says it
+  // cannot happen, and a widener that silently rewrote one would be deciding
+  // something it was not asked to decide.
+  match completed.contains('T') {
+    true => completed.to_string(),
+    false => format!("{completed}T00:00:00Z"),
+  }
+}
+
 /// Whether a finished thread is still in the DONE bucket.
 ///
-/// **The watermark is compared at DATE granularity, and that is a limit of the
-/// model rather than a shortcut.** `Thread.completed` is a date -- `2026-08-16`
-/// -- while the flush that sets the watermark is an event with a full instant
-/// on it. Comparing the two as strings would put every same-day completion
-/// BELOW the watermark, because a date sorts before any timestamp that starts
-/// with it, so `--flush` would hide work finished later the same day and
-/// nothing would say so. The caller therefore hands in the date part.
+/// **At or after the watermark stays; before it has been flushed.** The
+/// watermark is the instant of the last `todo done --flush`/`--prune`
+/// ([`crate::event::todo_watermark`]); `completed` is widened to an instant by
+/// [`completed_instant`] first, so the two sides of the compare describe the
+/// same kind of thing.
 ///
-/// The visible consequence is that a flush does not clear same-day
-/// completions, which is weaker than `--flush`'s promise to clear the DONE
-/// view. **The data cannot support the stronger promise**: with a date-granular
-/// `completed` there is no fact distinguishing "finished this morning, before
-/// the flush" from "finished this afternoon, after it". So the behaviour is the
-/// honest one and it is stated where a reader meets it -- the DONE heading says
-/// "completed at or after <date>", and `todo done --flush` reports how many
-/// items remain and why.
+/// No watermark means nothing has ever been flushed, and every finished thread
+/// is in DONE. **That is a state v2 could not represent** -- it read the
+/// watermark back out of the generated file, so an absent file had to fall back
+/// to a clock (start of today). v3 keeps the watermark in the log, so "never
+/// flushed" is a fact rather than a gap to paper over, and the view stays a
+/// function of the estate instead of of the day it was rendered.
 fn in_done_bucket(thread: &Thread, watermark: Option<&str>) -> bool {
   match (watermark, thread.completed.as_deref()) {
     (None, _) => true,
     (Some(_), None) => false,
-    // ISO 8601 dates compare correctly as strings, which is most of why the
-    // model stores them that way.
-    (Some(mark), Some(completed)) => completed >= mark,
+    (Some(mark), Some(completed)) => completed_instant(completed).as_str() >= mark,
   }
 }
 
@@ -960,12 +983,17 @@ pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   out.push_str(&bucket("DOING", &buckets.doing));
   out.push_str(&bucket("TODO", &buckets.todo));
   // **THE HEADING CARRIES THE WATERMARK, which is what makes a small DONE
-  // bucket readable as FLUSHED rather than as empty.** v2 spelled it
-  // `## DONE:<T>` because the script grepped the instant back out of its own
-  // output; v3 derives it from the log and never parses this line, so it is
-  // written for a person instead.
+  // bucket readable as FLUSHED rather than as empty.** `## DONE:<T>` verbatim
+  // from v2 (`bin/intent_todo`'s `DONE_HEADING_PREFIX`), on hv's ruling of
+  // 2026-08-26: <T> is the instant the last prune ran, so the line answers
+  // "where is the cutoff" without needing anything else open.
+  //
+  // v3 never PARSES this line -- the watermark comes from the log, which is why
+  // deleting this file does not undo a flush -- so the shape is owed to the
+  // reader rather than to a grep. It is v2's shape because a person who has
+  // read a v2 `todo.md` should not have to learn a second one.
   match ctx.todo_watermark.as_deref() {
-    Some(mark) => out.push_str(&format!("## DONE (completed at or after {mark})\n\n")),
+    Some(mark) => out.push_str(&format!("## DONE:{mark}\n\n")),
     None => out.push_str("## DONE\n\n"),
   }
   out.push_str(&items(&buckets.done));
@@ -1198,6 +1226,89 @@ mod tests {
       version: "3.0.0-test",
       todo_watermark: None,
     }
+  }
+
+  fn ctx_at(mark: &'static str) -> RenderContext<'static> {
+    RenderContext {
+      version: "3.0.0-test",
+      todo_watermark: Some(mark.to_string()),
+    }
+  }
+
+  /// A completed thread carrying a completion date.
+  fn done_on(id: &str, completed: &str) -> Thread {
+    serde_json::from_value(serde_json::json!({
+      "schema": THREAD_SCHEMA,
+      "id": id,
+      "title": format!("{id} title"),
+      "status": "completed",
+      "created": "2026-08-18",
+      "completed": completed,
+    }))
+    .expect("completed-thread fixture")
+  }
+
+  /// **The heading is `## DONE:<T>`, verbatim v2, and hv asked for it by
+  /// shape** (2026-08-26). It is asserted here rather than left to a reader,
+  /// because the previous spelling -- `## DONE (completed at or after <T>)` --
+  /// was also perfectly descriptive and was still the wrong answer.
+  #[test]
+  fn the_done_heading_carries_the_watermark_in_v2s_shape() {
+    let threads = vec![done_on("ST0001", "2026-08-26")];
+
+    let flushed = todo(&threads, &ctx_at("2026-08-26T21:40:25Z"));
+    assert!(
+      flushed.contains("## DONE:2026-08-26T21:40:25Z\n"),
+      "the cutoff instant belongs in the heading, colon-joined and alone on the line:\n{flushed}"
+    );
+
+    // **The control, and it is the arm that says the line is not a constant.**
+    // Never flushed means there is no cutoff, so there is none to print -- and
+    // a build that always appended something would pass the assertion above.
+    let never = todo(&threads, &ctx());
+    assert!(
+      never.contains("## DONE\n"),
+      "with no flush recorded the heading carries no cutoff:\n{never}"
+    );
+  }
+
+  /// **A completion is widened to MIDNIGHT before it meets the watermark, and
+  /// the case that proves it is a watermark AT midnight.**
+  ///
+  /// Every other case comes out right by accident: a bare `2026-08-26` already
+  /// sorts below `2026-08-26T21:40:25Z` because the shorter string loses at the
+  /// first differing position, so dropping the widening changes nothing an
+  /// ordinary flush can see. **At exactly `T00:00:00Z` the accident inverts** --
+  /// the raw compare excludes the very day the watermark names. That is v2's
+  /// zero-flush baseline (`read_done_watermark` defaults to the start of
+  /// today), so it is a real value and not a contrived one.
+  #[test]
+  fn a_completion_on_the_watermarks_own_day_is_widened_to_midnight() {
+    let threads = vec![
+      done_on("ST0001", "2026-08-26"),
+      done_on("ST0002", "2026-08-25"),
+    ];
+
+    let at_midnight = todo(&threads, &ctx_at("2026-08-26T00:00:00Z"));
+    assert!(
+      at_midnight.contains("ST0001"),
+      "a thread completed on the watermark's own day is AT the watermark once widened to \
+       midnight, so it stays in DONE:\n{at_midnight}"
+    );
+    assert!(
+      !at_midnight.contains("ST0002"),
+      "the control: the day before is still below the watermark, so a build that simply kept \
+       everything cannot pass the line above:\n{at_midnight}"
+    );
+
+    // **And the same day, later: a flush run this evening takes this morning's
+    // work.** This is the behaviour hv reversed the day-granular watermark to
+    // get back, expressed at the one place the comparison happens.
+    let after_a_flush = todo(&threads, &ctx_at("2026-08-26T21:40:25Z"));
+    assert!(
+      !after_a_flush.contains("ST0001"),
+      "a flush later the same day clears work completed that day:\n{after_a_flush}"
+    );
   }
 
   /// **THE test, and it drives the real renderer over a fixture carrying both

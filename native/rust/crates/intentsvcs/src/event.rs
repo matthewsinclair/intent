@@ -241,12 +241,26 @@ pub const TODO_FLUSH: &str = "todo.flush";
 /// settings row would have remembered only the last one. **It also needs no new
 /// table, so no schema version moves for it.**
 ///
-/// **The DATE, not the instant, and the truncation is the interesting part.**
-/// `Thread.completed` is date-granular, so a full timestamp compared against it
-/// as a string puts every same-day completion below the watermark -- `--flush`
-/// would hide work finished later the same day and nothing would say so. See
-/// `views::in_done_bucket` for what that costs and why the model cannot do
-/// better.
+/// **THE INSTANT, at second resolution -- `2026-08-26T21:40:25Z`.** hv ruled it
+/// on 2026-08-26: the watermark is *the time the prune was run*, and the
+/// heading it lands in reads `## DONE:<T>`. That is parity with
+/// `bin/intent_todo`, which stamps `date -u '+%Y-%m-%dT%H:%M:%SZ'` at every
+/// flush and compares against it lexically.
+///
+/// **This truncated to a DATE, and the reasoning for it was wrong rather than
+/// merely superseded.** The note said a full timestamp would sort every
+/// same-day completion below the watermark, so `--flush` would hide work
+/// finished later the same day. It does -- and that is v2's behaviour, not a
+/// defect the truncation was defending against: v2's `normalize_completed`
+/// widens a bare `completed:` date to that day's `T00:00:00Z`, which is below
+/// any flush instant later that day. **The day-granular watermark is what made
+/// a flush unable to clear today's work at all**, which is the complaint that
+/// reopened this. See [`crate::views`]'s `completed_instant` for the widening.
+///
+/// The envelope stamp is millisecond-resolution -- SQLite sets it at INSERT, so
+/// no clock is read (D42) -- and the fraction is dropped rather than rounded. A
+/// watermark is a CUTOFF a person reads and may retype, and the millisecond is
+/// precision the thing it gets compared against, a date, cannot use.
 pub fn todo_watermark(events: &[Envelope]) -> Option<String> {
   events
     .iter()
@@ -255,5 +269,12 @@ pub fn todo_watermark(events: &[Envelope]) -> Option<String> {
     // machines' logs under D34, so arrival order is not time order.
     .map(|e| e.ts.as_str())
     .max()
-    .map(|ts| ts.chars().take(10).collect())
+    // `2026-08-26T21:40:25.123Z` -> `2026-08-26T21:40:25Z`. Split on the
+    // fraction rather than take a fixed 19 characters, so a stamp already at
+    // second resolution passes through UNCHANGED instead of being rebuilt from
+    // a slice that might not be there.
+    .map(|ts| match ts.split_once('.') {
+      Some((seconds, _fraction)) => format!("{seconds}Z"),
+      None => ts.to_string(),
+    })
 }

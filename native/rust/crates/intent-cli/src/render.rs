@@ -2528,14 +2528,16 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
         "ok: DONE watermark advanced to {mark}, {} item(s) cleared",
         flushed.cleared.len()
       );
-      // **Stated, because the command promises more than the data can do.** A
-      // flush cannot exclude completions that share its date -- `completed` is
-      // date-granular -- so a DONE view that is still not empty is expected
-      // rather than a failure, and saying nothing is what would make it look
-      // like one.
+      // **A DONE view that did not empty is explained rather than left to look
+      // like a failure.** This used to say today's work was unflushable, and
+      // that stopped being true when the watermark became an instant and
+      // `completed` started being widened to midnight: work finished this
+      // morning now flushes. What can still survive is a completion date at or
+      // after the cutoff, which means a future-dated `completed:` -- a
+      // hand-edited thread, or two machines whose clocks disagree under D34.
       if !flushed.remaining.is_empty() {
         eprintln!(
-          "note: {} item(s) completed on {mark} stay in DONE -- a completion date cannot be compared against a time of day, so today's work is not flushable until tomorrow",
+          "note: {} item(s) carry a completion date at or after {mark} and stay in DONE",
           flushed.remaining.len()
         );
       }
