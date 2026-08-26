@@ -1,4 +1,4 @@
--- INTENT_VER: 3.0.0-dev
+-- INTENT_VER: 3.0.0
 -- SCHEMA_DDL_VER: 10
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
