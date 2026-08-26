@@ -459,9 +459,40 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
     // one drifted in the half nobody had a test for -- ic's own first test for
     // `required()` asserted the wrong answer and PASSED, because it was
     // written by reading the implementation instead of the meaning of `<x>`.
-    let mut a = Arg::new(arg.name.clone())
-      .required(arg.required())
-      .value_name(arg.name.to_uppercase());
+    // **A DECLARED FLAG CAN MAKE A REQUIRED SLOT OPTIONAL, AND UNTIL THIS LINE
+    // THE GRAMMAR HAD NO WAY TO SAY SO** (ic, 2026-08-26). `critic` carries
+    // `--languages`, which `render::critic` answers on its first line before a
+    // language is read -- and clap refused the invocation before that line
+    // could run, so a flag `--help` advertises as answering-and-exiting exited
+    // 1 and printed nothing. `bin/.devbin/lib/cmd/check` is the one consumer
+    // and it fails CLOSED, naming the cause. **The canon pre-commit gate does
+    // NOT use this flag and was never opened by it** -- it reads the languages
+    // array from config with `jq` and dispatches the positional spelling. The
+    // measurement, and the fleet-wide claim it corrects, are in
+    // `flag_reachability.rs` beside the test rather than restated here.
+    //
+    // **THE TWO CALLS ARE EXCLUSIVE, AND THAT IS clap's RULE RATHER THAN A
+    // PREFERENCE HERE.** `.required(true)` beside `required_unless_present` is
+    // a debug assertion -- `Argument lang: required conflicts with
+    // required_unless*`, exit 101 -- so the obvious spelling that adds the
+    // exception to the existing call does not merely lose, it panics. Measured
+    // by running it, which is the only reason the green below means anything.
+    // `required_unless_present` already implies required, so nothing is lost:
+    // the arm it replaces said the same thing without the exception.
+    //
+    // Read from the table rather than special-cased on the row's name, for the
+    // reason `flag_reachability.rs` states about hand-listed populations: a
+    // second instance arriving under another name would be invisible to a check
+    // that knows only this one. The corollary is that the field IMPLIES a
+    // minimum of one -- declared beside a `0..1` arity it would make an
+    // optional slot conditionally required, which is a contradiction the table
+    // has no instance of and which fails loudly rather than quietly if it ever
+    // gains one.
+    let mut a = Arg::new(arg.name.clone()).value_name(arg.name.to_uppercase());
+    a = match &arg.required_unless {
+      Some(flag) => a.required_unless_present(flag.clone()),
+      None => a.required(arg.required()),
+    };
     a = if arg.repeated() {
       a.action(ArgAction::Append).num_args(1..)
     } else {

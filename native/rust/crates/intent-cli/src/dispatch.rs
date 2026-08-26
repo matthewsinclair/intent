@@ -302,6 +302,27 @@ pub struct Arg {
   /// and the only row that is not a literal is the only `string` row.
   #[serde(default)]
   pub default: Option<String>,
+
+  /// The flag whose presence makes this slot optional, if any.
+  ///
+  /// **Requiredness is CONDITIONAL for one row in the shipped surface and
+  /// [`arity`](Self::arity) has no vocabulary for that** (ic, measured
+  /// 2026-08-26). `critic` declares `lang` at `1` and carries `--languages`,
+  /// an early-exit flag that answers before a language is read -- so clap
+  /// refused `intent critic --languages` before the handler that would have
+  /// satisfied it ever ran. It is the table's only instance, and it is not a
+  /// fifth arity spelling: an arity is a fact about how many values the slot
+  /// takes, and this is a fact about when it is owed.
+  ///
+  /// **Deliberately additive rather than a relaxed arity, and the difference
+  /// is a ruling nobody has made.** Declaring `0..1` would have fixed the flag
+  /// and ALSO moved bare `intent critic` from clap's 1 to the handler's 2 --
+  /// the divergence `exit_codes.rs` records as dc's to rule, settled as a side
+  /// effect of a change made for another reason. So [`required`](Self::required)
+  /// is untouched and still answers for the guide's usage line, which is right:
+  /// `intent critic <lang>` IS the ordinary invocation.
+  #[serde(default)]
+  pub required_unless: Option<String>,
 }
 
 impl Arg {
@@ -705,6 +726,34 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
         ));
       }
     }
+    // **A `required_unless` has to name a flag THIS entry declares**, and the
+    // reason it is checked rather than trusted is the shape of the failure.
+    // The field makes a required positional optional when the named flag is
+    // present; clap resolves that name against the args registered on the
+    // command. A name matching none of them is a debug assertion under test --
+    // and in the RELEASE build the fleet actually runs, debug assertions are
+    // compiled out, so the exception simply never fires and the positional
+    // stays unconditionally required. **That is the silent form of the exact
+    // defect the field was added to fix**: a typo would restore the broken
+    // behaviour while every test that does not drive the row stays green.
+    //
+    // Same shape as the alias check below and for the same reason -- a
+    // declared name pointing at nothing works until someone reads it.
+    for arg in &entry.args {
+      let Some(flag) = &arg.required_unless else {
+        continue;
+      };
+      if !entry
+        .flags
+        .iter()
+        .any(|f| f.arg_id().as_deref() == Some(flag.as_str()))
+      {
+        unknown.push(format!(
+          "`{}` argument {:?} is required_unless {:?}, which is not a flag this entry declares",
+          entry.path, arg.name, flag
+        ));
+      }
+    }
     // An alias is written as a FULL path (`at done` beside `at green`), so the
     // spelling clap registers is its last segment and everything before it has
     // to be this entry's own prefix. If they disagree the alias names a
@@ -1016,6 +1065,7 @@ mod tests {
       arity: "0..1".to_string(),
       values: values.iter().map(|v| v.to_string()).collect(),
       default: Some(default.to_string()),
+      required_unless: None,
     };
     let with = |arg: Arg| Entry {
       hidden_aliases: Vec::new(),
@@ -1170,6 +1220,7 @@ mod tests {
       arity: arity.to_string(),
       values: vec![],
       default: None,
+      required_unless: None,
     };
 
     for required in ["1", "1..n"] {

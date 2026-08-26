@@ -646,3 +646,113 @@ fn the_check_separates_a_read_id_from_an_unread_one() {
     "the synthetic INERT flag (`{inert_id}`) was found among the ids the renderer reads, which means the scanner matches things that are not accessor ids"
   );
 }
+
+/// **A FLAG THE PARSER REFUSES IS UNREACHABLE, AND EVERY ARM ABOVE PASSES ON
+/// IT.** The criterion this file gates asks whether the renderer READS a
+/// declared id. That is necessary and it is not sufficient: `--languages` is
+/// read by `render::critic` on the arm's very first line, before a language is
+/// required -- and `intent critic --languages` still exits 1 without printing
+/// anything, because the table declares `lang` at arity `1` and clap refuses
+/// the invocation before any handler runs.
+///
+/// So the scan says the flag is real, `--help` lists it, and the flag does not
+/// work. **That is the same lie the file's opening line is about, told through
+/// the parser instead of through the renderer**, and no source-scanning arm can
+/// reach it -- the defect is in the grammar the table builds, not in the code
+/// the scan reads. This one drives it.
+///
+/// # What this actually broke, measured rather than relayed
+///
+/// **The claim reaching this file was that the canon pre-commit hook lists a
+/// project's languages with this flag, gets the refusal, and so fails OPEN
+/// fleet-wide. It does not, and the correction matters more than the fix.**
+/// `lib/templates/hooks/pre-commit.sh` reads the `languages` array straight out
+/// of `intent/.config/config.json` with `jq` and dispatches
+/// `intent critic <lang> --staged` per language -- the positional spelling,
+/// which works. `--languages` appears NOWHERE in the shipped install
+/// (`grep -rn -- '--languages'` over `libexec/`, positive-controlled against a
+/// string known to be there). The fleet's gates were never opened by this.
+///
+/// The one real consumer is `bin/.devbin/lib/cmd/check`, and it fails CLOSED:
+/// it captures the exit code and dies naming the cause. So the blast radius is
+/// the devbin estates, loudly, and the defect that remains is the plain one --
+/// **`--help` advertises a flag that does not work.** That is worth fixing on
+/// its own and does not need the bigger story to justify it.
+///
+/// # Two rosters, and the nearer one is the wrong one
+///
+/// The `lang` arg's own `values` declares SEVEN, and asserting against it
+/// would be the natural mistake: it is the field three lines from the fix.
+/// `HEADLESS_LANGUAGES` is FIVE. **Both are right, about different questions.**
+/// The arg accepts `author` and `content` because the critic takes them as a
+/// clean no-op (prose critique is the `critic-prose` subagent's, not this
+/// runner's); the flag's own help says *languages with a headless code
+/// critic*, and that is the five. So this asserts against the roster the
+/// handler prints, not the roster the table declares beside it.
+///
+/// # What this deliberately does NOT assert
+///
+/// Nothing here says what bare `intent critic` should exit. It is a clap usage
+/// error at 1 today while `critic klingon` is 2, and `exit_codes.rs` records
+/// that divergence as unruled rather than encoding either answer. **Relaxing
+/// `lang` to an optional arity would have fixed this flag and settled that
+/// ruling as a side effect**, which is why the fix is a declared
+/// `required_unless` instead: it moves exactly the one invocation named here.
+#[test]
+fn an_early_exit_flag_answers_without_the_positional_it_sits_beside() {
+  // **THE POSITIVE CONTROL ON THE EXPECTATION ITSELF.** The assertion below
+  // compares the binary's output to this roster, so a roster that degraded to
+  // zero members would make it pass on empty output -- the vacuous green this
+  // file already refuses once, for `not_probed`.
+  assert!(
+    !intentsvcs::critic::HEADLESS_LANGUAGES.is_empty(),
+    "the headless roster is empty, so the comparison below would be satisfied by a binary that printed nothing"
+  );
+  let expected: String = intentsvcs::critic::HEADLESS_LANGUAGES
+    .iter()
+    .map(|l| format!("{l}\n"))
+    .collect();
+
+  let dir = tempfile::tempdir().expect("tempdir");
+  let bare = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(["critic", "--languages"])
+    .current_dir(dir.path())
+    .output()
+    .expect("could not run `intent critic --languages`");
+
+  assert_eq!(
+    bare.status.code(),
+    Some(0),
+    "`intent critic --languages` did not answer. The flag is declared, `--help` advertises it as answering-and-exiting, and `render::critic` reads it before requiring a language -- so a non-zero here is the parser refusing the invocation before the handler it would have satisfied.\nstderr: {}",
+    String::from_utf8_lossy(&bare.stderr)
+  );
+  assert_eq!(
+    String::from_utf8_lossy(&bare.stdout),
+    expected,
+    "`intent critic --languages` exited 0 without printing the headless roster one per line"
+  );
+
+  // **THE CONTROL, AND IT IS THE HALF THAT COULD REGRESS.** The fix makes a
+  // required positional conditionally optional, so the spelling that supplies
+  // it must keep working and keep answering identically -- the flag answers
+  // before the language is read, so the language cannot change the answer.
+  // Without this arm, dropping `lang` from the grammar entirely would satisfy
+  // everything above.
+  let with_positional = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(["critic", "shell", "--languages"])
+    .current_dir(dir.path())
+    .output()
+    .expect("could not run `intent critic shell --languages`");
+
+  assert_eq!(
+    with_positional.status.code(),
+    Some(0),
+    "`intent critic shell --languages` stopped working, so the fix broke the spelling that was already correct.\nstderr: {}",
+    String::from_utf8_lossy(&with_positional.stderr)
+  );
+  assert_eq!(
+    String::from_utf8_lossy(&with_positional.stdout),
+    expected,
+    "the positional spelling no longer prints the same roster as the bare one"
+  );
+}

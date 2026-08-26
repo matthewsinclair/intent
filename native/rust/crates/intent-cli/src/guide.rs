@@ -558,6 +558,7 @@ mod tests {
       arity: arity.to_string(),
       values: vec![],
       default: None,
+      required_unless: None,
     };
     assert_eq!(delimit("x", &arg("1")), "<x>");
     assert_eq!(delimit("x", &arg("0..1")), "[x]");

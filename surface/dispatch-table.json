@@ -5495,7 +5495,8 @@
                 "shell",
                 "author",
                 "content"
-              ]
+              ],
+              "required_unless": "languages"
             }
           ],
           "flags": [
@@ -7984,6 +7985,7 @@
         "arity",
         "default",
         "name",
+        "required_unless",
         "type",
         "values"
       ],
