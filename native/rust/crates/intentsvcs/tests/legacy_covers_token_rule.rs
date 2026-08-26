@@ -70,6 +70,24 @@ fn a_separator_inside_a_qualifier_does_not_truncate_the_covers_span() {
     vec!["AC-04.2".to_string()],
     "the id is the leading token, and the parenthetical is not part of it"
   );
+  // **THE QUALIFIER IS THE LOAD-BEARING ASSERTION, AND AN EARLIER DRAFT OF THIS
+  // TEST DID NOT MAKE IT.** The truncation does not damage the ID -- `AC-04.2`
+  // survives the old cut perfectly well, because the cut lands AFTER it. What
+  // the old cut eats is the second half of the QUALIFIER, so a test that
+  // checked only `covers` passed with the defect fully present. vc caught it by
+  // mutation: restoring `rest.find(" -- ")` at the covers span left this test
+  // GREEN. **A test that passes for a reason other than the one it names is the
+  // well-formed substitute this file exists to refuse.**
+  let note = scan.threads[0].tests[0].note.as_deref().unwrap_or_default();
+  assert!(
+    note.ends_with("AC-04.2: canon read-only -- the un-gated half"),
+    "the qualifier must survive WHOLE, keyed to its id: {note:?}"
+  );
+  assert!(
+    !note.ends_with("canon read-only"),
+    "and it must not stop at the ` -- ` inside the parenthetical, which is \
+     exactly where the old cut ended it: {note:?}"
+  );
   assert!(
     scan.residue.is_empty() && scan.carried.is_empty(),
     "a row whose covers resolve manufactures no finding: {:?}{:?}",
