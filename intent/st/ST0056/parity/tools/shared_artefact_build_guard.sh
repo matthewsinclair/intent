@@ -373,5 +373,88 @@ else
   fi
 fi
 
+# ARM 10 -- THE ENTRANCE CENSUS, AND IT IS THE ARM THAT CLOSES THE CLASS RATHER
+# THAN THE INSTANCE.
+#
+# Arms 7 and 8 read the ONE guarded build and say nothing about how many other
+# doors exist. That is exactly how this defect lived: `int build all`,
+# `int build cli`, `int build daemon` and `cmd/cli`'s fallback each wrote the
+# shared artefact with a bare `cargo build` while arm 7 truthfully reported that
+# the guarded path consulted the verdict. **The arm was right; its subject was
+# one door of five.** Nothing here would stop a sixth being added tomorrow, so
+# this arm asks the question those arms structurally cannot.
+#
+# THE PREDICATE: a cargo invocation that CAN produce a RELEASE build must carry,
+# in its own file, evidence that it cannot reach the shared tree --
+# `clone_workspace` (it builds inside a clone), `CARGO_TARGET_DIR` (redirected),
+# `refuse_single_package_release` (it refuses first), or `guarded_release_build`
+# (it IS the guarded path). A debug-only invocation needs none of these: that is
+# the stated exception, and it is stated because a debug build exists to run
+# uncommitted code.
+#
+# THE COUNT IS THIS ARM'S ONLY EVIDENCE THAT IT LOOKED AT ANYTHING. Its first
+# draft reported `(1 examined)` against a tree carrying four release-capable
+# invocations, because `grep -n` on a SINGLE file emits `<line>:<text>` with no
+# filename, so `cut -d: -f3-` discarded the statement and kept nothing. It passed.
+# **A census that examines one of four and reports green is the false-green this
+# whole file exists to refuse**, so the number is printed and is the thing to
+# read first.
+#
+# FILE-SCOPED EVIDENCE, DELIBERATELY, AND ITS WEAKNESS IS NAMED RATHER THAN
+# HIDDEN: a file could carry `clone_workspace` for one invocation and build the
+# shared tree in another. That is a weaker check than per-invocation dataflow and
+# a far stronger one than none, which is what exists today. It cannot be fooled
+# by accident -- only by writing the token deliberately -- and this file's own
+# history says the failure mode to design against is a door nobody noticed, not
+# a door someone disguised.
+step_cargo_census() {
+  local f line stmt bad="" total=0
+  while IFS= read -r f; do
+    # A line that can be release: an explicit `--release`, or a `$profile`
+    # variable that expands to it. Comments and prose ABOUT cargo are excluded --
+    # this arm's own ancestor failed a correct file by matching a header
+    # sentence, which is this estate's oldest instrument defect.
+    while IFS= read -r line; do
+      # BACKTICKED SPANS ARE PROSE, NOT STATEMENTS, AND STRIPPING THEM FIRST IS
+      # NOT OPTIONAL. The `#`-comment filter above does not reach text inside a
+      # `cat <<'USAGE'` heredoc: this arm's first working draft failed
+      # `cmd/macos` on its own help text -- "and any \`cargo build --release\`
+      # will overwrite underneath you" -- a sentence WARNING about the very
+      # hazard, read as the hazard. That is the defect arm 7's header already
+      # records as this estate's oldest, met again by the arm written to widen
+      # it. It also silences the two `printf` lines in `cmd/cache` and
+      # `cmd/local` that name `cargo clean` while telling an operator what to do.
+      stmt="$(printf '%s' "$line" | sed 's/`[^`]*`//g')"
+      case "$stmt" in
+        *"cargo build"*|*"cargo clean"*) ;;
+        *) continue ;;
+      esac
+      case "$stmt" in
+        *--release*|*'$profile'*) ;;
+        *) continue ;;
+      esac
+      total=$((total + 1))
+      if grep -q 'clone_workspace\|CARGO_TARGET_DIR\|refuse_single_package_release\|guarded_release_build' "$f"; then
+        continue
+      fi
+      bad="$bad       $f: ${line#"${line%%[![:space:]]*}"}
+"
+    done <<EOF
+$(grep -n 'cargo build\|cargo clean' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*#' | cut -d: -f2-)
+EOF
+  done <<EOF
+$(find "$ROOT/bin/.devbin" -type f 2>/dev/null | sort)
+EOF
+  if [ -n "$bad" ]; then
+    fail "arm 10 -- a cargo invocation that can build RELEASE reaches the shared artefact with no guard:
+$bad       Each must build in a clone, redirect CARGO_TARGET_DIR, refuse first, or BE
+       the guarded path. A bare release build here is a new unguarded entrance,
+       which is what split the pair on 2026-08-26."
+  else
+    ok "arm 10 -- every release-capable cargo invocation under bin/.devbin is guarded, redirected, cloned or refusing ($total examined)"
+  fi
+}
+step_cargo_census
+
 printf 'shared-artefact-guard: %d arm(s) passed\n' "$pass"
 exit "$rc"

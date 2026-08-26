@@ -11,10 +11,14 @@
 #     cmd/cli fallback    NO VERDICT    bare `cargo build -p intent-cli`
 #     local build         TAKES IT      the guarded path
 #
-# The 12-arm shared-artefact guard asserts "the verdict is taken before the
-# first cargo invocation inside cmd_build". That is TRUE, and `cmd_build` is
-# `local`'s -- so the guard protected one entrance of four and the assertion
-# could not tell you.
+# The shared-artefact guard asserted "the verdict is taken before the first
+# cargo invocation inside cmd_build". That was TRUE, and `cmd_build` was
+# `local`'s -- so the guard protected one entrance of five and the assertion
+# could not tell you. **Arm 10 is the answer to that**: it censuses every
+# release-capable cargo invocation under `bin/.devbin` and refuses one that is
+# not cloned, redirected, refusing, or this file. Arms 7 and 8 read the guarded
+# path; arm 10 asks how many doors there are, which is the question they
+# structurally cannot.
 #
 # WHAT IT COST, because the abstract version reads as tidiness. dc rebuilt with
 # `int build all` after a batch landed, `cargo` rebuilt the two crates whose
