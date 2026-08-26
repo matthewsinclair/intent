@@ -423,7 +423,7 @@ verify_hook_door() {
 }
 
 cmd_use() {
-  local want="${1:-}" got yes=""
+  local want="${1:-}" got yes="" back=""
   [ "${2:-}" = "--yes" ] && yes=1
 
   case "$want" in
@@ -504,7 +504,19 @@ cmd_use() {
     verify_pair
   fi
 
-  step "done -- the way back is 'int local use ${want/dev/prod}'"
+  # THE INVERSE, NAMED RATHER THAN SUBSTITUTED. This read
+  # `${want/dev/prod}`, which is a rewrite of `dev` into `prod` and not the
+  # opposite-of: on the dev arm it prints `prod` and is right, and on the prod
+  # arm there is no `dev` to rewrite, so it prints `prod` back at someone who is
+  # already on prod. **The one branch it gets wrong is the one read at 3am off a
+  # bad prod binary**, and it points at the thing being escaped from. Driven
+  # both ways 2026-08-26 at the v3.0.0 cutover, which is the first time `prod`
+  # existed to switch off.
+  case "$want" in
+    dev) back=prod ;;
+    prod) back=dev ;;
+  esac
+  step "done -- the way back is 'int local use $back'"
 }
 
 cmd_uninstall() {
