@@ -115,7 +115,7 @@ fn run_stdout(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
 /// longer any way to type it. That is a real loss of coverage and it is the
 /// unavoidable half of reclaiming a name -- the alternative is asserting a
 /// refusal the surface cannot produce.
-fn retired_spellings() -> Vec<(Vec<String>, String)> {
+fn retired_spellings() -> Vec<(Vec<String>, Option<String>)> {
   let table = dispatch::table();
   let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
     .iter()
@@ -139,6 +139,34 @@ fn retired_spellings() -> Vec<(Vec<String>, String)> {
     .collect()
 }
 
+/// **EVERY RETIRED ROW DECLARES A REPLACEMENT STATE, PRESENT AS A KEY.** This is
+/// the `flags` ruling applied to `target.spelling`: the table's preamble already
+/// holds `flags` present as an array because `flagsig` rendered an absent key and
+/// `[]` identically, so "this command has no flags" and "nobody has said" were one
+/// glyph. `spelling` had the same collapse with a worse consequence -- the rendered
+/// text told a migrating operator to delete the command from their scripts.
+///
+/// **This test is what makes `spine.rs`'s `None` arm unreachable**, and it is the
+/// mechanism rather than the note: the type keeps the two facts apart, and this
+/// keeps the table from re-introducing the ambiguity a row at a time.
+#[test]
+fn retired_rows_declare_a_replacement_state() {
+  let table = dispatch::table();
+  let missing: Vec<String> = table
+    .retired()
+    .iter()
+    .filter(|e| e.target.spelling.is_none())
+    .map(|e| e.path.clone())
+    .collect();
+  assert!(
+    missing.is_empty(),
+    "{} retired row(s) carry no `target.spelling` key: {}. Write `\"spelling\": \"\"` to declare that nothing replaces the command, or name the successor. \
+     Omitting the key asserts nothing, and an omission must never be rendered as an answer.",
+    missing.len(),
+    missing.join(", ")
+  );
+}
+
 /// **The fixture proves itself.** Every assertion below iterates the retired
 /// set; an empty set agrees with all of them, silently, and a table parse that
 /// dropped `disposition` would produce exactly that.
@@ -153,7 +181,7 @@ fn the_table_declares_retirements_for_this_file_to_measure() {
   assert!(
     spellings
       .iter()
-      .any(|(_, replacement)| !replacement.is_empty()),
+      .any(|(_, replacement)| replacement.as_deref().is_some_and(|r| !r.is_empty())),
     "no retired row carries a replacement spelling, so the branch that names one is never exercised -- and that branch is what issue 0044 asks for"
   );
 }
@@ -180,17 +208,27 @@ fn every_retired_spelling_is_refused_by_name() {
       stderr.contains("retired"),
       "`intent {typed}` failed without saying it was retired, which is the whole information a migrating caller needs: {stderr}"
     );
-    if replacement.is_empty() {
-      assert!(
+    // **THREE ARMS, BECAUSE `None` AND `Some("")` ARE DIFFERENT FACTS AND THIS
+    // TEST USED TO CONFLATE THEM.** `replacement.is_empty()` on a bare `String`
+    // was true both when the table DECLARED no replacement and when nobody had
+    // written the key -- so this assertion REQUIRED the confident negative on 7
+    // of 8 retired rows, none of which had said anything. The assertion was the
+    // thing enforcing the defect.
+    match replacement.as_deref() {
+      Some("") => assert!(
         stderr.contains("no v3 replacement"),
-        "`intent {typed}` has no replacement in the table and must say so -- silence there reads as an omission rather than as an answer: {stderr}"
-      );
-    } else {
-      assert!(
-        stderr.contains(&replacement),
+        "`intent {typed}` DECLARES no replacement (`\"spelling\": \"\"`) and must say so -- silence there reads as an omission rather than as an answer: {stderr}"
+      ),
+      Some(replacement) => assert!(
+        stderr.contains(replacement),
         "`intent {typed}` is replaced by `{replacement}` in the table and the refusal did not name it. The register already holds the mapping; not reading it \
          is the whole of 0044's first proposed fix: {stderr}"
-      );
+      ),
+      None => panic!(
+        "`intent {typed}` carries NO `target.spelling` key, and this test must never accept that. An absent field is refused, never rendered: writing `\"spelling\": \"\"` \
+         asserts there is no replacement, while omitting it asserts nothing and used to be rendered as `there is no v3 replacement -- remove it from any script that calls it`. \
+         The table's own preamble already rules this for `flags`: absence-as-meaning is un-greppable and reads as an oversight."
+      ),
     }
   }
 }

@@ -138,8 +138,37 @@ JQ_LIB='
         # line that broke the formatter fixed point. A renderer that drops a
         # value while keeping its label is worse than one that drops both: it
         # looks like the canon holds an empty field.
+        # AN EMPTY STRING GETS A SENTINEL, FOR THE TWO REASONS THE COMMENT
+        # ABOVE ALREADY GIVES AND ONE IT DOES NOT. NO BACKTICKS IN THIS
+        # COMMENT, for the reason the sibling branch below states and which I
+        # walked into anyway on first write: this sits inside a
+        # shell-interpolated jq program, so a backtick is command substitution
+        # and the generator dies with "command not found".
+        #
+        # (1) Formatter: a bare label plus an empty string emits a TRAILING
+        # SPACE, lib_mdfmt.sh strips it, and the view stops being a fixed
+        # point -- which is how this branch was found on 2026-08-26, at the
+        # commit gate, exactly as designed. (2) It renders identically to a
+        # dropped value, which the comment above calls worse than dropping
+        # both.
+        #
+        # **(3) AND IT IS THE SAME DISTINCTION THE DATA NOW CARRIES, SO THE
+        # VIEW MUST CARRY IT TOO.** target.spelling became an Option the same
+        # day precisely because absent ("nobody has said") and empty ("someone
+        # said there is none") were one value, and the empty one was rendered
+        # as the confident negative "there is no v3 replacement -- remove it
+        # from any script that calls it". Rendering an empty string as a blank
+        # here would rebuild that same ambiguity one layer up, in the artefact
+        # a human reads. The sentinel follows the empty-inbox rule the
+        # whiteboard protocol already uses: a declared nothing is never an
+        # ambiguous blank. NO APOSTROPHES EITHER, same reason as the backticks
+        # -- this jq program is inside a single-quoted shell string, so one
+        # apostrophe ends the quote and the next word becomes a command.
         if (.value | type) | IN("string","boolean","number")
-          then "- **" + $label + ":** " + (.value | tostring)
+          then "- **" + $label + ":** "
+            + (if (.value | type) == "string" and (.value == "")
+                 then "_(declared empty)_"
+                 else (.value | tostring) end)
         elif (.value | type) == "array" and ((.value | map(type) | unique) == ["string"])
           then "- **" + $label + ":**\n" + (.value | map("  - " + .) | join("\n"))
         else "- **" + $label + ":**\n"
@@ -1556,15 +1585,31 @@ INV_UNCITED="$(jq -r '
 [ -z "$INV_DANGLING" ] || die "citation(s) to undeclared invariant(s):$INV_DANGLING -- the rule text lives in exactly one place, so a citation pointing nowhere is a divergent copy in the direction nobody checks"
 [ -z "$INV_UNCITED" ] || die "declared but never cited:$INV_UNCITED -- an invariant no row references is an orphan that still reads as governing. Cite it or retire it; leaving it is the stale-canon shape."
 
-# INV-04 asserts the shipped surface exits 0, 1 or 2 ONLY. That is a claim about
+# INV-04 asserts the shipped surface exits 0, 1, 2 or 3. That is a claim about
 # MEASURED data sitting in the same file as the measurements, so it can be
 # checked against them rather than trusted. REPORTS THE DISAGREEMENT AND REFUSES
 # rather than picking a side: a code outside the set means either a genuinely new
 # exit path was measured (INV-04 needs updating) or a row is wrong, and those
 # have opposite remedies. Same posture as drift_check.sh, for the same reason.
+#
+# **THE SET IS DUPLICATED HERE AND IN INV-04, AND THAT COPY HAS ALREADY DRIFTED
+# ONCE -- SO CHANGING ONE MEANS CHANGING BOTH.** INV-04 was corrected on
+# 2026-08-20 to admit `3` (REFUSED): its title, its `rule`, and its `v2` field
+# all name `bin/intent_critic:334` and `:347`. **This check was not corrected
+# with it, and neither was the comment above, which read "0, 1 or 2 ONLY" for
+# six days after the canon it describes stopped saying that.**
+#
+# **NOTHING CAUGHT IT BECAUSE NO ROW CARRIED A 3.** The check agreed with the
+# stale set precisely as long as the data never exercised the difference, so a
+# green here meant "no row has tested this" and read as "the canon conforms".
+# It surfaced 2026-08-26 only when ic added `critic`'s true `code 3` row -- ie
+# the instrument was blind for exactly as long as it was unneeded, and went red
+# on the first correct data it ever saw. **The same shape as the defect that
+# edit fixed: the 2026-08-20 correction landed in one home and not the other,
+# one file apart, and the home nobody re-reads kept the old value.**
 EXIT_ODD="$(jq -r '[.families[].entries[] | (.observed.exit // [])[] | .code]
-  | unique | map(select(. != 0 and . != 1 and . != 2)) | join(" ")' "$IN")"
-[ -z "$EXIT_ODD" ] || die "observed exit code(s) outside INV-04's set of 0/1/2:$EXIT_ODD -- the canon contradicts its own invariant. Either a new exit path was measured and INV-04 must be updated, or a row is wrong. Decide; this refuses rather than choosing."
+  | unique | map(select(. != 0 and . != 1 and . != 2 and . != 3)) | join(" ")' "$IN")"
+[ -z "$EXIT_ODD" ] || die "observed exit code(s) outside INV-04's set of 0/1/2/3:$EXIT_ODD -- the canon contradicts its own invariant. Either a new exit path was measured and INV-04 must be updated, or a row is wrong. Decide; this refuses rather than choosing."
 
 # --- FORMATTER FIXED POINT: the view must survive the repo formatter --------
 #

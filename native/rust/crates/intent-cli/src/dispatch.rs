@@ -477,8 +477,26 @@ pub struct Target {
   #[serde(default)]
   pub state: String,
   /// What the command is spelled as instead, where a retirement has a
-  /// replacement. Authored on `st_zero` (`intent st bootstrap`) and absent
-  /// everywhere else, because most retirements replace nothing.
+  /// replacement. `Some("intent st bootstrap")` on `st_zero`; `Some("")` on a
+  /// retirement that genuinely replaces nothing.
+  ///
+  /// **`Option` RATHER THAN `String`, AND THE DISTINCTION IS THE WHOLE POINT:
+  /// `None` MEANS NOBODY HAS SAID, `Some("")` MEANS SOMEONE SAID THERE IS
+  /// NONE.** Under `#[serde(default)]` on a bare `String` those were the same
+  /// value, so `spine.rs` rendered an absent key as the confident negative
+  /// _there is no v3 replacement -- remove it from any script that calls it_.
+  /// **That told a migrating operator to DELETE a command from their
+  /// automation on the strength of a field no one had written**, on the exact
+  /// surface a migrating estate meets first. Measured 2026-08-26: 7 of the 8
+  /// retired rows carried no `spelling` key at all.
+  ///
+  /// **THIS IS THE `flags` DEFECT ONE FIELD OVER, AND THE TABLE'S OWN PREAMBLE
+  /// ALREADY RULED IT:** _`flags` must be PRESENT as an array, because
+  /// `flagsig` renders an absent key and `[]` identically as `--`, so "this
+  /// command has no flags" and "nobody has said" were the same glyph on four
+  /// rows._ Same shape, same remedy -- and the preamble states the principle
+  /// generally: _absence-as-meaning is un-greppable and reads as an oversight._
+  /// `retired_rows_declare_a_replacement_state` holds the key present.
   ///
   /// **Read for the MESSAGE, never for dispatch, and the distinction is vc's
   /// ruling rather than a nicety.** vc refused to teach the spine to read this
@@ -489,10 +507,10 @@ pub struct Target {
   /// asserts neither: the command is gone, and this names where the capability
   /// went. That is precisely what issue 0044 asks the retired class to say.
   ///
-  /// **It was also declared and undeserialised until now**, which is issue
-  /// 0039's class -- a key authored on a row that serde silently dropped.
+  /// **It was also declared and undeserialised until 2026-08-25**, which is
+  /// issue 0039's class -- a key authored on a row that serde silently dropped.
   #[serde(default)]
-  pub spelling: String,
+  pub spelling: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -711,10 +711,22 @@ fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
       .find(|spelling| given.starts_with(spelling.as_slice()) && !reachable(spelling))
       .map(|spelling| (e, spelling.join(" ")))
   })?;
-  let remedy = if entry.target.spelling.is_empty() {
-    "there is no v3 replacement -- remove it from any script that calls it".to_string()
-  } else {
-    format!("use `{}` instead", entry.target.spelling)
+  // **AN ABSENT FIELD IS REFUSED, NEVER RENDERED, AND THE THREE ARMS ARE THREE
+  // DIFFERENT FACTS.** `Some(s)` names where the capability went. `Some("")` is
+  // a DECLARED "nothing replaces this", and only that earns the instruction to
+  // delete the call. `None` is nobody having written the key -- and rendering
+  // it as the middle arm is what this code did until 2026-08-26, telling a
+  // migrating operator to strip a command out of their automation on the
+  // strength of an omission. **The table's own preamble forbids exactly this:
+  // _absence-as-meaning is un-greppable and reads as an oversight_**, already
+  // applied once to `flags`. The `None` arm should be unreachable -- a test
+  // holds every retired row's key present -- but it says what it knows rather
+  // than asserting the stronger claim, because an unreachable arm that lies is
+  // still the lie that ships if the table drifts.
+  let remedy = match entry.target.spelling.as_deref() {
+    Some("") => "there is no v3 replacement -- remove it from any script that calls it".to_string(),
+    Some(replacement) => format!("use `{replacement}` instead"),
+    None => "no v3 replacement is recorded for this command -- check the release notes before removing it from a script".to_string(),
   };
   Some(format!(
     "error: `intent {typed}` was retired in Intent v3 and is not a command in this build\n  remedy: {remedy}"

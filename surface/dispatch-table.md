@@ -610,6 +610,7 @@ Organize ST files in directories by status
 - **Observed notes:** `organise` is an alias ONLY here, one level down. `intent organise` at top level is `error: Unknown command 'organise'` -- measured both.
 - **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
 - **Note:** Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (117B vs 73B, no shared output).
+- **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 
 ### `st bootstrap`
@@ -1511,6 +1512,7 @@ Add an issue to .intentfiles and write its files
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `retire` -- ratified: hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files -- a success message over a zero, plus a durable claim that a file exists which cannot.
 - **Note:** THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Two arms of one match addressed two different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it.
+- **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 - **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
 - **owner wp:** ST0057 WP-02
@@ -1527,6 +1529,7 @@ Remove an issue from .intentfiles and delete its files
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `retire` -- ratified: hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files -- a success message over a zero, plus a durable claim that a file exists which cannot.
 - **Note:** THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Two arms of one match addressed two different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it.
+- **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 - **basis:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.
 - **owner wp:** ST0057 WP-02
@@ -2076,6 +2079,7 @@ Organize steel threads into status directories based on their metadata
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot or the wrong format, so the disorder this repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
 - **Note:** Retiring both faces dissolves the Highlander violation rather than resolving it -- nobody has to choose which implementation was right.
+- **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 - **Cross-reference:** `st organize` is the other face; see the `st` family.
 
@@ -2487,11 +2491,9 @@ Run Intent rule-library critics against source files
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- clean scan, or `--languages` / `--help`
-  - `1` -- outside a project (INV-03)
-  - `2` -- findings present at or above --severity-min -- THE MEANINGFUL ONE (INV-04)
-  - `2` -- bare invocation -- 1588B usage printed to STDOUT
-  - `2` -- unknown flag -- 657B of grep's own error on stderr
-  - `2` -- bad positional after a valid lang -- `error: unknown flag ...`
+  - `1` -- findings present at or above --severity-min -- THE MEANINGFUL ONE (INV-04). `bin/intent_critic:348`, immediately after the findings are printed.
+  - `2` -- USAGE ERROR, and the three observed spellings are one thing: bare invocation (1588B usage printed to STDOUT, `:95`), unknown flag (657B of grep's own error on stderr), and a bad positional after a valid lang. All reach `error_out` at `:89` or the no-args help at `:95`.
+  - `3` -- REFUSED -- a rule could not be armed. `bin/intent_critic:334` and `:347`. Refusal OUTRANKS findings: both codes block, so precedence changes no gate decision, it changes what the caller is TOLD.
 - **stdout:** the findings report, grouped by severity
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
@@ -2645,6 +2647,7 @@ Converge the Language Packs block in RULES.md for every declared language
 - **Observed notes:** Touches ONLY the Language Packs block -- never the RULES-<lang>.md files, which `init` overwrites.
 - **Target:** `retire` -- ratified: vc, 2026-08-25, on issue 0068 -- TWO INDEPENDENT REASONS, either sufficient. (1) `sync` converges the `Language Packs` block in `intent/llm/RULES.md` for every declared language; `init` now installs nothing, so there is no divergence for it to converge. (2) Pointing that block at the live rules would put the declared-language set in a SECOND HOME -- `config.json`'s `languages` array is authoritative (ST0037), and a markdown block restating it is a copy that drifts silently.
 - **Note:** v2's upgrade ledger calls `lang sync` and not `lang init` (issue 0005), deliberately: `init` `cp`s over hand-edited files, so it is the wrong thing for an unattended upgrade. **That reasoning retires WITH the verb rather than surviving it** -- v3's `init` overwrites nothing, so the hazard the ledger was routing around no longer exists.
+- **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
 
@@ -3077,6 +3080,7 @@ Generate LLM-oriented directory summaries
   - INV-06 at the unknown-flag path writes to BOTH streams -- one of only two such cases in 108 probes
 - **Target:** `retire` -- ratified: hv, 2026-08-15 -- treeindex retires WHOLE (command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, every canon reference), together with the `in-handoff` skill. The source tree index in the DB obviates treeindex, and the DB model obviates handover: state moves out of per-session `.md` files shared between workstreams into durable state in the [SQLite db]. Settles AC-13.1, which had been vc-specced under standing authorisation and contradicted by D21. **EXECUTED 2026-08-25 by vc under hv's direction, ten days after ratification.** It sat unexecuted because it is T0 of WP-13 (XL, Not Started) and was bundled behind the search tiers, while T0 depends on nothing -- so the ruling was made, recorded, and parked. Landed: `/in-essentials` rules 3 and 4 (renumbered 1-7), the `in-handoff` skill, `intent/.treeindex/` and its `.gitignore` rule, `lib/templates/_treeindexignore`, the `.treeindexignore` install + gitignore-normalise machinery in `intent_claude_upgrade`, and the canon references in README, usage-rules, MODULES, ARCHITECTURE, working-with-llms and the example. **TWO THINGS DELIBERATELY KEPT.** `bin/intent_treeindex` and its 53-test bats file stay: hv ruled `bin/` decided whole and separately, and the `--help` entry is DERIVED from the script's existence rather than written anywhere, so it is not separable from the script. And `.treeindex` stays in `sync.rs` `SKIPPED_DIRS`: v3 never generates the cache, but a consumer migrating off v2 carries it on disk, and retiring a producer is not a reason to stop recognising its residue.
 - **Note:** D21's subordinate clause ("the treeindex cache location is unchanged until WP-06 ports the command") assumed a port. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker, and **STRUCK THE SAME DAY by D31** -- `design.md:227` now carries it struck-through with the reason. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) was never affected and AC-01.4 did not reopen. **THIS NOTE READ AS OUTSTANDING FOR TEN DAYS AFTER IT WAS CLOSED**, and vc carried it forward as live work on that reading: a note describing a defect does not learn that the defect was fixed, so the fix has to come back and close the note by hand.
+- **spelling:** _(declared empty)_
 - **consequence:** Removes 762 lines of bash from WP-06's port list, and INV-07 (`--help` exits non-zero here) is moot rather than pending-hv: there is no v3 command to correct.
 - **MCP:** not exposed -- **mutates**
 
@@ -3189,6 +3193,8 @@ Show usage for Intent or one of its commands
   - INV-07 at `intent help --help` fails outright -- asking help for help is an error
   - 17 of 26 commands have no help file, so `intent help <cmd>` silently falls through to a no-help path for most of the surface.
 - **Target:** `retire` -- ratified: AC-05.1 -- the dispatch table is the SSOT and help text is generated from it, asserted by test -- behaviour: The `help` COMMAND survives as a surface; its v2 IMPLEMENTATION (lib/help/ + the hand-maintained list + the skip list) does not.
+- **spelling:** _(declared empty)_
+- **spelling note:** **`""` HERE IS TRANSITIONAL AND DATED, NOT A SETTLED CLAIM (ic, 2026-08-26).** It declares that the RETIRED v2 `help` implementation is replaced by nothing, which is true of the v2 face. **hv ruled the same day that a v3 `help` surface IS IN THE 3.0.0 CUT** -- `<cmd> help` renders man-style `.md` on the WHY/WHAT while `<cmd> --help` keeps the params/HOW -- **so this row is scheduled to follow the `organize` pattern**: the v2 face stays retired and the TOKEN is reclaimed by a new program, declared in `new_surface` with a `name_reclaimed` ratification. **The retirement message stops firing the moment `help` is reachable, because `spine.rs` walks the BUILT surface** -- so this value is correct until that lands and unreachable afterwards. Recorded because a bare `""` would otherwise read as _nothing will ever replace this_, which hv has already contradicted.
 - **MCP:** not exposed -- read-only
 - **Wants review -- the classification disagrees with the verb name:** Classified `false` despite being the single most harmless command in the table. In v3 help RENDERS FROM this file, so an MCP client already holds every string `help` would print; exposing it would be a second copy of the surface description, which is the thing this file exists to prevent.
 
