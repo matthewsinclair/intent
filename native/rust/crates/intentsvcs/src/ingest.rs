@@ -21,7 +21,7 @@ use std::sync::OnceLock;
 use serde::de::DeserializeOwned;
 
 use crate::finding::{Finding, FindingClass, Refusal};
-use crate::model::{ISSUE_SCHEMA, Issue, THREAD_SCHEMA, Thread};
+use crate::model::{ISSUE_SCHEMA, Issue, PROJECT_SCHEMA, ProjectState, THREAD_SCHEMA, Thread};
 use crate::project::Project;
 use crate::prose::{self, DocSection};
 use crate::store::{IngestOutcome, Store, StoreError};
@@ -215,6 +215,46 @@ fn load_blobs(project: &Project, thread: &mut Thread) -> Vec<Finding> {
 
 /// Read and validate the entire committed canon. Refuses with EVERY finding,
 /// never the first -- one fix-and-rerun cycle, not one per defect.
+/// The committed project state, or `None` when the file is not there.
+///
+/// **ABSENT IS NOT AN ERROR AND IT IS NOT EMPTY EITHER -- it is a project that
+/// predates this file.** Every estate created before the `project` table
+/// existed has canon and no `project.json`, and reading that absence as a
+/// refusal would make the first `sync --from-disk` after an upgrade fail on
+/// every one of them. It reads as "no cutoff recorded here", and the store's
+/// own value -- seeded once by the migration rung -- is what stands.
+///
+/// A file that EXISTS and does not parse is a refusal, because that is a
+/// damaged canon file and silently treating it as absent would discard a
+/// recorded cutoff without saying so.
+pub fn read_project_state(project: &Project) -> Result<Option<ProjectState>, Vec<Finding>> {
+  let path = project.project_json();
+  let rel = project.relative(&path);
+  let text = match std::fs::read_to_string(&path) {
+    Ok(text) => text,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+    Err(e) => {
+      return Err(vec![Finding::new(
+        &rel,
+        FindingClass::MalformedJson,
+        format!("project state is present and unreadable: {e}"),
+      )]);
+    }
+  };
+  let state = parse::<ProjectState>(&rel, &text)?;
+  if state.schema != PROJECT_SCHEMA {
+    return Err(vec![Finding::new(
+      &rel,
+      FindingClass::SchemaInvalid,
+      format!(
+        "schema is {:?}; this binary reads {PROJECT_SCHEMA:?}",
+        state.schema
+      ),
+    )]);
+  }
+  Ok(Some(state))
+}
+
 pub fn read(project: &Project) -> Result<Canon, IngestError> {
   let mut canon = Canon::default();
   let mut findings = Vec::new();
@@ -325,8 +365,36 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
     let canon = read(project)?;
     store.rebuild(&canon.threads, &canon.issues)?;
     store.replace_doc_sections(&canon.sections)?;
+    carry_project_state(project, store)?;
     Ok(canon)
   })
+}
+
+/// Take the committed project state into the store, on any disk -> store path.
+///
+/// **THIS IS WHAT MAKES A FLUSH CROSS A CLONE.** The DONE cutoff is state, it
+/// lives in `.canon/project.json`, and a store rebuilt from disk without it
+/// starts with no cutoff -- which puts every completed thread back in DONE and
+/// makes `doctor` call the committed `todo.md` hand-edited.
+///
+/// **AN ABSENT FILE LEAVES THE STORE ALONE; A PRESENT ONE WINS, INCLUDING WHEN
+/// IT SAYS NOTHING.** Absent means the estate predates this file, and clearing
+/// a migration-seeded cutoff because an old tree does not mention it would
+/// destroy the value the migration just recovered. Present-and-empty is a
+/// project that has genuinely never flushed, and disk is this direction's
+/// source -- so it is taken, the same distinction `.intentfiles` draws between
+/// absent and empty.
+///
+/// One function and two callers rather than two copies: [`load`] and
+/// [`resync_inner`] are both disk -> store, and a rule stated twice is a rule
+/// that will disagree with itself.
+fn carry_project_state(project: &Project, store: &mut Store) -> Result<(), IngestError> {
+  if let Some(state) =
+    read_project_state(project).map_err(|f| IngestError::from(Refusal::new(f)))?
+  {
+    store.set_todo_watermark(state.todo_watermark.as_deref())?;
+  }
+  Ok(())
 }
 
 /// Load the model for a command to answer from -- **from the STORE when the
@@ -548,6 +616,7 @@ fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<C
   };
   store.rebuild(&canon.threads, &canon.issues)?;
   store.replace_doc_sections(&canon.sections)?;
+  carry_project_state(project, store)?;
   // **The file index is left alone under a scope, deliberately.** It records
   // what was last INGESTED, and a scoped run ingested only part of what the
   // scan saw -- so writing the whole scan would mark a peer's file as seen
@@ -679,6 +748,13 @@ impl Validated for Thread {
   fn validator() -> &'static jsonschema::Validator {
     static V: OnceLock<jsonschema::Validator> = OnceLock::new();
     V.get_or_init(compile::<Thread>)
+  }
+}
+
+impl Validated for crate::model::ProjectState {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: std::sync::OnceLock<jsonschema::Validator> = std::sync::OnceLock::new();
+    V.get_or_init(compile::<crate::model::ProjectState>)
   }
 }
 

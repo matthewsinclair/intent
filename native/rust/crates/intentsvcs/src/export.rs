@@ -81,6 +81,15 @@ pub struct Bundle {
   pub threads: Vec<Thread>,
   pub issues: Vec<Issue>,
   pub events: Vec<Envelope>,
+  /// The project's recorded state, when the exporter had it.
+  ///
+  /// **Optional so that adding it did not change [`Bundle::new`]'s arity**, and
+  /// therefore did not touch ten call sites to say nothing new at any of them.
+  /// Absent means an exporter that predates project state or a fixture that has
+  /// none; it never means "the cutoff is unset", which is
+  /// `ProjectState::todo_watermark` being `None`.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub project: Option<crate::model::ProjectState>,
 }
 
 impl Bundle {
@@ -97,7 +106,18 @@ impl Bundle {
       threads,
       issues,
       events,
+      project: None,
     }
+  }
+
+  /// The bundle, carrying the project's recorded state.
+  ///
+  /// Separate from [`Bundle::new`] because every existing caller means the same
+  /// thing without it, and widening the constructor would have made ten
+  /// fixtures pass `None` to say so.
+  pub fn with_project_state(mut self, state: crate::model::ProjectState) -> Self {
+    self.project = Some(state);
+    self
   }
 }
 
@@ -508,6 +528,16 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
       // and the next person to want a literal here has only the aesthetics.
       crate::project::canon_issue_rel(issue.number),
       to_canonical_json(issue)?,
+    ));
+  }
+  // **THE CUTOFF LEAVES WITH THE CANON, because it IS canon.** Without this an
+  // export round trip drops the DONE cutoff silently and the restored estate
+  // resurrects every flushed thread -- the same defect a git clone had, through
+  // the one door AC-02.6 is about.
+  if let Some(state) = &bundle.project {
+    out.push((
+      crate::project::canon_project_rel(),
+      to_canonical_json(state)?,
     ));
   }
   out.push((event::JSONL.to_string(), event::to_jsonl(&bundle.events)?));

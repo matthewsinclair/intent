@@ -652,6 +652,15 @@ pub fn attachment_name(thread: &str, path: &str) -> Result<(), BadName> {
 
 /// One issue's canon path, relative to the intent directory. Zero-padded,
 /// which is the half that was wrong before.
+/// The project-state canon file, `.canon/project.json`.
+///
+/// A path function beside the others rather than a literal at the one call
+/// site: the openness declaration on the `project` table names this path, and
+/// `tests/openness.rs` resolves every declared path against the tree.
+pub fn canon_project_rel() -> String {
+  ".canon/project.json".to_string()
+}
+
 pub fn canon_issue_rel(number: u32) -> String {
   format!(".canon/issues/{number:04}.json")
 }
@@ -901,6 +910,11 @@ impl Project {
   /// `.canon/st/` -- thread canon, flat, one file per thread.
   pub fn canon_st_dir(&self) -> PathBuf {
     self.canon_dir().join("st")
+  }
+
+  /// The committed project state, `.canon/project.json`.
+  pub fn project_json(&self) -> PathBuf {
+    self.intent_dir().join(canon_project_rel())
   }
 
   /// `.canon/issues/` -- issue canon.

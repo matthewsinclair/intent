@@ -34,6 +34,8 @@ use serde::{Deserialize, Serialize};
 pub const THREAD_SCHEMA: &str = "intent/thread@3.0";
 /// The `schema` field value for issue canon files.
 pub const ISSUE_SCHEMA: &str = "intent/issue@3.0";
+/// The `schema` field value for the project-state canon file.
+pub const PROJECT_SCHEMA: &str = "intent/project@3.0";
 
 /// **THE steel-thread id form: `ST` and four digits, in one place.**
 ///
@@ -74,6 +76,49 @@ pub const ISSUE_DIGITS: usize = 4;
 /// delete a guard whose reason has expired. A guard that cannot outlive its
 /// reason is the only kind that does not become folklore.
 pub const COMPLETED_RESOLUTION_HOURS: u32 = 24;
+
+/// Project-level recorded state, the committed form of the `project` table.
+///
+/// **STATE, NOT HISTORY, AND THE DISTINCTION IS WHY THIS TYPE EXISTS.** The DONE
+/// cutoff was derived from the maximum `todo.flush` stamp in the event log,
+/// which made it history -- and D53 took history out of the working tree. A
+/// fresh clone therefore had no cutoff at all: every flushed thread came back
+/// into DONE, and `doctor` reported the committed `todo.md` as hand-edited,
+/// permanently, on every project that had ever flushed.
+///
+/// A flush HAPPENING at an instant is an event and stays in the log. The current
+/// cutoff BEING that instant is a fact about the project now, and facts about
+/// the project are what the canon carries and git moves.
+///
+/// **One struct for a single field, deliberately.** The alternative was a key
+/// and a value in `config.json`, and config holds CHOICES a person makes and is
+/// hand-edited -- putting a machine-written value there gives one file two
+/// writers. This is the home for project-level recorded state, and the next
+/// such fact belongs here rather than in a second file.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectState {
+  /// Always [`PROJECT_SCHEMA`].
+  pub schema: String,
+  /// The DONE cutoff: the instant of the last `intent todo done --flush`.
+  ///
+  /// **Absent means never flushed**, which is a state the model can hold and v2
+  /// could not: v2 read the cutoff back out of the generated file, so an absent
+  /// file had to fall back to a clock and the view's content depended on the day
+  /// it was rendered.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub todo_watermark: Option<String>,
+}
+
+impl ProjectState {
+  /// The state a project starts with: schema stamped, nothing flushed.
+  pub fn new(todo_watermark: Option<String>) -> Self {
+    Self {
+      schema: PROJECT_SCHEMA.to_string(),
+      todo_watermark,
+    }
+  }
+}
 
 /// The canonical id for the nth steel thread.
 pub fn thread_id(seq: u32) -> String {
