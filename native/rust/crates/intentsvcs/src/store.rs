@@ -62,6 +62,26 @@ use crate::sync::FileEntry;
 // durable history is wanted the upgrade is delete-missing + upsert-present, and
 // `written_at` does not block it. What is not reversible is shipping a
 // `created_at` on a table that re-stamps it.
+//
+// WHY THE DONE CUTOFF IS A COLUMN AND NOT A QUERY (WP-14, hv 2026-08-26), kept
+// out of the face for the same reason.
+//
+// **Derived from the event log it could not cross a git clone.** D53 took the
+// log out of the working tree, so a cutoff read back out of it was absent on a
+// fresh clone -- every flushed thread reappeared in DONE (52 completed + 2
+// cancelled, measured on this repo) and `doctor` called the committed
+// `todo.md` hand-edited, permanently. Filing the cutoff as history is what put
+// it on the wrong side of D53.
+//
+// **NOTHING READS A CUTOFF OUT OF THE LOG.** The migration rung that creates
+// the table derives the value once and that is the last time it happens.
+// `event::todo_watermark` was DELETED rather than left as a fallback: two homes
+// for one value is the defect this keeps finding, not a safety net, and both
+// answers look plausible at the call site.
+//
+// **NULL means never flushed, which v2 could not represent** -- it read the
+// cutoff back out of the generated file, so an absent file had to fall back to
+// a clock.
 pub const DDL: &str = "\
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
@@ -393,22 +413,13 @@ CREATE TABLE IF NOT EXISTS event_log (
 -- about which one counts.
 --
 -- `todo_watermark` is the DONE cutoff: the instant of the last
--- `intent todo done --flush`/`--prune`. **It is STATE and not history, and the
--- distinction is why it is here rather than derived from `event_log`.** A flush
--- HAPPENING at T is an event and stays in the log; the current cutoff BEING T is
--- a fact about the project now. Derived from the log it could not cross a git
--- clone, because D53 took the log out of the working tree -- so every flushed
--- thread came back on a fresh clone and `doctor` called the committed
--- `todo.md` hand-edited, permanently.
+-- `intent todo done --flush`/`--prune`. It is STATE rather than history, which
+-- is why it is a column here and not a query over `event_log`. A flush
+-- HAPPENING at T is an event and belongs in the log; the current cutoff BEING T
+-- is a fact about the project now, so it is recorded here and travels with the
+-- project's committed files rather than with its history.
 --
--- **NOTHING READS A CUTOFF OUT OF THE LOG.** The rung that creates this table
--- derives the value once, and that is the last time it happens: a fallback
--- would be two homes for one value, which is the defect this project keeps
--- finding rather than a safety net.
---
--- NULL means never flushed, which is a state the model can now hold. v2 could
--- not represent it -- it read the cutoff back out of the generated file, so an
--- absent file had to fall back to a clock.
+-- NULL means never flushed.
 -- openness: carried by intent/.canon/project.json
 CREATE TABLE IF NOT EXISTS project (
   id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -924,12 +935,22 @@ const MIGRATIONS: &[(i32, &str)] = &[(
   // The fraction is dropped to match what the cutoff is compared against: the
   // log stamps milliseconds, `Thread.completed` is a date, and a cutoff is a
   // value people read and retype.
-  "CREATE TABLE project (
+  //
+  // **BOTH STATEMENTS ARE REPLAY-SAFE, AND THAT IS A REQUIREMENT OF THE LADDER
+  // RATHER THAN CAUTION.** A store can carry the CURRENT DDL and still be
+  // stamped at an older version -- that is exactly the fixture
+  // `a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused`
+  // builds -- so this rung meets a `project` table that the DDL already
+  // created. A bare `CREATE TABLE` refused with `table project already exists`
+  // and the whole walk-forward failed on it. `OR IGNORE` guards the row for the
+  // same reason: the singleton may already be there, and a rung that cannot be
+  // replayed is a rung that strands every store that took a partial ladder.
+  "CREATE TABLE IF NOT EXISTS project (
      id INTEGER PRIMARY KEY CHECK (id = 1),
      todo_watermark TEXT,
      updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
    );
-   INSERT INTO project (id, todo_watermark)
+   INSERT OR IGNORE INTO project (id, todo_watermark)
      SELECT 1, substr(MAX(ts), 1, 19) || 'Z' FROM event_log WHERE op = 'todo.flush';",
 )];
 

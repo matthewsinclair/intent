@@ -264,7 +264,12 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // three faces (an optional field on a modelled type), and one face again for
   // a field deliberately kept out of the published contracts.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 10, 0x6966_d5f9_6ad7_8928),
+    // The `project` singleton landed, carrying the DONE cutoff as state
+    // (WP-14, hv 2026-08-26). 10 -> 11. **ONLY THIS FACE MOVES**: it is a
+    // store table with no modelled type behind it, so it reaches neither
+    // published contract -- which is the same one-face result this
+    // instrument gave the last time a table arrived without a type.
+    ("SCHEMA_DDL_VER", 11, 0xab06_00f4_6c0d_8993),
     // WpStatus gained CANCELLED (hv, 2026-08-21): the wire contract now says a
     // work package can be cancelled. 8 -> 9.
     ("SCHEMA_SDL_VER", 9, 0x5cbe_ac39_294e_da8d),
