@@ -234,7 +234,7 @@ pub fn population(root: &Path, languages: &[String]) -> (BTreeSet<String>, Vec<(
 
   let mut files: Vec<PathBuf> = Vec::new();
   if !globs.is_empty() {
-    walk(root, root, &mut files);
+    walk(root, &mut files);
   }
 
   let mut all = BTreeSet::new();
@@ -277,7 +277,7 @@ pub fn population(root: &Path, languages: &[String]) -> (BTreeSet<String>, Vec<(
 /// Symlinks are skipped rather than followed because a link into a sibling
 /// checkout -- which this estate has -- would pull another project's whole tree
 /// into this project's population.
-fn walk(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) {
+fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
   let entries = match std::fs::read_dir(dir) {
     Ok(e) => e,
     // A directory that cannot be read contributes nothing. It is not an error:
@@ -300,7 +300,7 @@ fn walk(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) {
       if NOT_WALKED.contains(&name.as_ref()) {
         continue;
       }
-      walk(root, &path, out);
+      walk(&path, out);
     } else if meta.is_file() {
       out.push(path);
     }

@@ -225,7 +225,7 @@ fn chain_block() -> String {
 /// Everything not the inserted block is passed through byte for byte. See the
 /// module header for why that is a requirement and not a convenience.
 pub fn insert_chain_block(existing: &str) -> Option<String> {
-  if existing.lines().any(|l| opens_chain_block(l)) {
+  if existing.lines().any(opens_chain_block) {
     return None;
   }
 
