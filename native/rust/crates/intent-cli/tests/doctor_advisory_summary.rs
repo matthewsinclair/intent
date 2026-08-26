@@ -62,12 +62,6 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
 
   let (ok, out) = intent(root, &["doctor"]);
   assert!(
-    out.contains(
-      "advisory: intent/.canon/st/ST0001.json -- advisory -- AT-01.1 carries a legacy reference"
-    ),
-    "the row is printed under `advisory:`: {out}"
-  );
-  assert!(
     !out.contains("residue: "),
     "nothing is printed as residue: {out}"
   );
@@ -80,4 +74,55 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
     "the advisories are named on the summary line: {out}"
   );
   assert!(ok, "advisories alone exit 0: {out}");
+
+  // **THE BODY IS NOT IN THE DEFAULT OUTPUT.** Baize carries 66 of these, and
+  // printing each with its remedy buried the report under four-line blocks
+  // that ask for nothing. hv, reading exactly that: "How is this an
+  // improvement?"
+  assert!(
+    !out.contains("carries a legacy reference"),
+    "an advisory body must not be printed by default: {out}"
+  );
+  assert!(
+    out.contains("advisory: 1 note(s) not shown and not counted"),
+    "the default run says how many there are and how to read them: {out}"
+  );
+
+  // `--verbose` is where they live, in full, with the remedy.
+  let (ok, verbose) = intent(root, &["doctor", "--verbose"]);
+  assert!(ok, "still exit 0 under --verbose: {verbose}");
+  assert!(
+    verbose.contains(
+      "advisory: intent/.canon/st/ST0001.json -- advisory -- AT-01.1 carries a legacy reference"
+    ),
+    "--verbose prints the row under `advisory:`: {verbose}"
+  );
+  assert!(
+    verbose.contains("remedy: nothing is owed now"),
+    "--verbose keeps the remedy: {verbose}"
+  );
+  assert!(
+    !verbose.contains("not shown and not counted"),
+    "the pointer is pointless once the bodies are shown: {verbose}"
+  );
+
+  // `--quiet` drops them entirely and keeps the verdict.
+  let (ok, quiet) = intent(root, &["doctor", "--quiet"]);
+  assert!(ok, "still exit 0 under --quiet: {quiet}");
+  assert!(
+    quiet.contains("doctor: 0 finding(s) across"),
+    "the verdict survives --quiet: {quiet}"
+  );
+  // The COUNT stays on the verdict line, which is the one thing `--quiet`
+  // keeps: "0 finding(s)" with 66 notes silently dropped would be a quieter
+  // report and a less honest one. What goes is every line that is not the
+  // verdict -- the bodies and the pointer.
+  assert!(
+    !quiet.contains("carries a legacy reference") && !quiet.contains("not shown and not counted"),
+    "--quiet drops the bodies and the pointer: {quiet}"
+  );
+  assert!(
+    quiet.contains("1 advisory(ies), not counted"),
+    "the count is part of the verdict and survives --quiet: {quiet}"
+  );
 }

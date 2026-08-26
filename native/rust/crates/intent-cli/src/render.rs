@@ -2232,8 +2232,25 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
       Err(Failure::Verdict)
     };
   }
+  // **AN ADVISORY IS COUNTED AND POINTED AT, NOT PRINTED** (hv, 2026-08-26,
+  // reading Baize: "How is this an improvement?"). Reclassifying them fixed the
+  // exit code and left the terminal exactly as buried -- 66 blocks, four lines
+  // each, every one of them saying nothing is owed. A report whose actionable
+  // half is invisible under notes nobody has to act on is the defect the class
+  // was introduced to cure, so the bodies move behind `--verbose`, which is
+  // already the flag for "what this run resolved". `--quiet` drops them
+  // entirely, like every other line that does not move the exit code.
   for finding in &report.findings {
+    if finding.class == intentsvcs::finding::FindingClass::Advisory && !verbose {
+      continue;
+    }
     println!("{finding}");
+  }
+  if !quiet && !verbose && report.advisories() > 0 {
+    println!(
+      "advisory: {} note(s) not shown and not counted -- `intent doctor --verbose` reads them",
+      report.advisories()
+    );
   }
   // **`--quiet` DROPS WHAT IS NOT A FINDING, AND THESE ARE NOT FINDINGS** --
   // the doc comment on `withheld_flags` says so in those words, and
