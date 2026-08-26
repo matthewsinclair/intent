@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# lamplight-run.sh [--inbox-flat] [--commit] -- Lamplight's fresh v3 migration on the current dev pair.
+#   pre: tree on v2 at HEAD + the two duplicate-id demotions; peers frozen (write hold announced); hook batching landed or accepted slow.
+#   --inbox-flat  move intent/st/_inbox/ST* to intent/st/ (hv's ruling: Triage threads under v3); README.md stays.
+#   --commit      commit --only everything except mix.lock and intent/whiteboard (peer-owned); hooks run; may be slow.
+set -u; P=~/Devel/prj/Lamplight; cd "$P" || exit 1; S=/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/699601ed-7e13-4808-bb6c-e6a79d27c56e/scratchpad; L="$S/lamplight-run"
+I=~/Devel/prj/Intent/bin/intent3; AT=~/Devel/prj/Devbin/intent/whiteboard/vc/at-accounting.sh; INBOX=0; COMMIT=0; for a in "$@"; do [ "$a" = --inbox-flat ] && INBOX=1; [ "$a" = --commit ] && COMMIT=1; done
+echo "## Lamplight $(date -u +'%H:%MZ'): HEAD $(git log --oneline -1 | cut -c1-50); config $(jq -r .intent_version intent/.config/config.json); dirty: [$(git status --porcelain | tr '\n' ' ' | cut -c1-120)]"
+[ "$(jq -r .intent_version intent/.config/config.json)" = "2.19.0" ] || { echo "not on v2 2.19.0 -- refusing"; exit 2; }
+[ -d intent/.canon ] && { echo "intent/.canon present -- not a fresh tree, refusing"; exit 2; }
+dups=$(for f in $(find intent/st -name acceptance.md); do grep -oE '^- AT-[0-9]+\.[0-9]+' "$f" | sort | uniq -d; done | wc -l | tr -d ' '); echo "duplicate AT ids in source: $dups"; [ "$dups" -eq 0 ] || exit 3
+if [ $INBOX -eq 1 ]; then for d in intent/st/_inbox/ST[0-9]*; do [ -d "$d" ] && git mv "$d" "intent/st/$(basename "$d")" && echo "moved $(basename "$d") flat"; done; fi
+cp CLAUDE.md "$L.claude.pre"
+echo "pair: $($I --version 2>&1 | head -1)"; $I upgrade > "$L.h2" 2>&1; rc=$?; echo "hop2 rc=$rc :: $(grep -E '^(migrated|ok|error)' "$L.h2" | tr '\n' '|' | cut -c1-160)"; [ $rc -eq 0 ] || { tail -5 "$L.h2" | cut -c1-200; exit 4; }
+$I claude upgrade --apply > "$L.h3" 2>&1; echo "hop3 rc=$? :: $(grep -E '^(ok|held)' "$L.h3" | tr '\n' '|')"; $I claude upgrade --apply > "$L.h3b" 2>&1; echo "hop3 again: $(grep -E '^ok' "$L.h3b")"
+echo "CLAUDE.md non-blank lines removed by hop 3: $(diff "$L.claude.pre" CLAUDE.md | grep '^<' | grep -vc '^< *$') (template lines expected; read them if authored):"; diff "$L.claude.pre" CLAUDE.md | grep '^<' | grep -v '^< *$' | cut -c1-100 | head -12
+git check-ignore -q intent/events.jsonl || printf 'intent/events.jsonl\n' >> .gitignore; git check-ignore -q 'intent/.backup/x' || printf 'intent/.backup/\n' >> .gitignore
+echo "--- accounting (both arms):"; bash "$AT" "$P" > "$L.acct" 2>&1; arc=$?; grep -E 'SHORTFALL|VERDICT|NOT' "$L.acct" | head -12 | cut -c1-140; echo "accounting rc=$arc"
+echo "--- verifier: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/verify-canonical.sh "$P" 2>&1 | grep -E 'check\(s\)')"; echo "--- keg st list rc=$(intent st list >/dev/null 2>&1; echo $?)"
+echo "--- changed: $(git status --porcelain | wc -l | tr -d ' ') paths; peer-owned among them: $(git status --porcelain | grep -cE '^.. (mix.lock|intent/whiteboard/)')"
+if [ $COMMIT -eq 1 ]; then vline=$(grep -E "^\s*VERDICT:" "$L.acct" | head -1); { [ $arc -eq 0 ] && [ -n "$vline" ]; } || { echo "accounting NOT A PASS (rc $arc; verdict: ${vline:-none}) -- NOT committing"; exit 5; }
+  acct=$vline; pairline=$($I --version 2>&1 | head -1)
+  { printf 'intent: migrate to v3.0.0 canonical -- hops 2 and 3 on %s; two duplicate AT ids demoted; _inbox threads %s\n\n' "$pairline" "$([ $INBOX -eq 1 ] && echo 'moved flat (Triage under v3, hv)' || echo 'left in place')"; printf 'Hop 1 not needed at 2.19.0. Two threads carried an AT id twice (ST0198\nAT-16.1: a WP-16 tombstone beside WP-18'"'"'s built row; ST0298 AT-02.3: a WP-03\ncross-reference beside WP-02'"'"'s row); the superseded line in each is demoted\nwith a parenthetical so it no longer starts a row, text otherwise verbatim\n(verified by lamplight/vc: the correct member demoted in each pair; zero\nfurther duplicates across 156 files). intent/events.jsonl and\nintent/.backup/ ignored (per-machine). Accounting (devbin/vc\nat-accounting.sh, both arms, source = store = view): %s.\nverify-canonical.sh: 0 failed. Lamplight'"'"'s own hook wiring is out of this\ncommit'"'"'s reach and is verified by the guards line it prints.\n\n(C) hello@matthewsinclair.com\n' "$acct"; } > "$L.msg"
+  git add -A -- . ':!mix.lock' ':!intent/whiteboard' && git commit -q --only -F "$L.msg" -- . ':!mix.lock' ':!intent/whiteboard' > "$L.commit" 2>&1; crc=$?; echo "commit rc=$crc -> $(git log --oneline -1 | cut -c1-70); guards: [$(grep -E 'guards:' "$L.commit" | head -1)]"; [ $crc -eq 0 ] || grep -nE 'error|fatal|refus|blocked' "$L.commit" | head -5 | cut -c1-200
+fi
