@@ -613,6 +613,14 @@
       "state": {
         "is": "computed"
       }
+    },
+    {
+      "id": "AC-11.6",
+      "text": "`--default --force` answered `y` on a tty is the destructive arm and the only one (hv, 2026-08-26, first-hand: `--default` never removes a file \"unless it is used with --force, which does remove files, after a confirm\"): after regenerating the declaration from status it applies it in the same run -- realises every declared thread; dehydrates each undeclared realised thread ONLY where every declared precondition holds for it (the store holds every realised file of that thread with a matching sha and the extract carries it, so `st hydrate` restores it byte for byte); where any precondition is unmet for a thread removes not one file of that thread and names the thread and the precondition in the refusal; then WP-13's ingest and prune under WP-13's own criteria. `organize` (preview) afterwards reports nothing diverged and nothing to remove. Without a tty it writes nothing, removes nothing and exits non-zero (AC-11.2).",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "tests": [
