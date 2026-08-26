@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 97,
+  "slug": "ingest-from-md-on-an-already-migrated-estate-is-",
+  "title": "ingest --from-md on an already-migrated estate is a parse check that prints ok and writes nothing at rc 0 -- the exit status does not distinguish validated from ingested (devbin/vc, measured on a sandbox copy of Devbin)",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-26",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

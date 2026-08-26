@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Slug                                                | Status      | Created    | Completed            |
 | ------ | --------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0064 | intentd-the-intent-daemon-and-a-menubar-app-that    | Triage      | 2026-08-26 |                      |
 | ST0063 | start                                               | Triage      | 2026-08-26 |                      |
 | ST0062 | help                                                | Triage      | 2026-08-26 |                      |
 | ST0061 | dehydrate                                           | Triage      | 2026-08-26 |                      |
