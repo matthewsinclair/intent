@@ -99,6 +99,66 @@ fn opens_chain_block(line: &str) -> bool {
 /// by either tool reads the same to the other.
 const CLAUDE_MD_MARKER: &str = "lib/templates/llm/_CLAUDE.md";
 
+/// The markers delimiting the project's OWN directives inside a generated
+/// `CLAUDE.md`.
+///
+/// **THE TEMPLATE PROMISES THIS IN ITS OWN TEXT AND NOTHING IMPLEMENTED IT.**
+/// `lib/templates/llm/_CLAUDE.md:48` reads _"Add project-specific Claude
+/// directives below this line. Preserved across regeneration."_ -- a guarantee
+/// written into the artefact, in the file a project's authors read, with no code
+/// behind it. Measured across the estate at the cut: four projects carry content
+/// between these markers (80 lines, 25, 2, 1) and every one of them would have
+/// lost it to an ordinary `--apply`.
+///
+/// **AND `--force` WAS NOT THE GATE.** The consent check above holds back a
+/// `CLAUDE.md` with no generated footer, so the belief was that only `--force`
+/// could reach the block. It is the opposite: a file that DOES carry the footer
+/// is regenerated on the plain path, block and all. `--force` gates
+/// hand-authored files; it never gated this.
+const USER_START: &str = "<!-- user:start -->";
+const USER_END: &str = "<!-- user:end -->";
+
+/// The span strictly between the two markers, as byte offsets.
+///
+/// Offsets rather than lines so the carried text goes back byte for byte,
+/// including its own blank lines and trailing whitespace. `None` when either
+/// marker is absent -- a half-open block is not a block.
+fn user_block_span(text: &str) -> Option<(usize, usize)> {
+  let start = text.find(USER_START)? + USER_START.len();
+  let end = text[start..].find(USER_END)? + start;
+  Some((start, end))
+}
+
+/// Carry the existing file's user block into the regenerated one.
+///
+/// Three cases, and two of them deliberately do nothing:
+///
+/// - the existing file has no block -- **nothing to carry**, and inventing one
+///   would put canon's placeholder into a file whose author never asked for it;
+/// - the regenerated file has no block -- **nowhere to put it**, and appending
+///   the content somewhere plausible is the canon-aware guessing this module
+///   exists to refuse;
+/// - both have one -- the existing content replaces the regenerated placeholder.
+///
+/// Note it runs under `--force` too. `--force` means _overwrite a hand-authored
+/// file_; it has never meant _discard the project's own directives_, and reading
+/// it that way is how a documented flag grows a second, undocumented effect.
+pub fn carry_user_block(existing: &str, regenerated: &str) -> String {
+  let (es, ee) = match user_block_span(existing) {
+    Some(v) => v,
+    None => return regenerated.to_string(),
+  };
+  let (rs, re) = match user_block_span(regenerated) {
+    Some(v) => v,
+    None => return regenerated.to_string(),
+  };
+  let mut out = String::with_capacity(regenerated.len() + (ee - es));
+  out.push_str(&regenerated[..rs]);
+  out.push_str(&existing[es..ee]);
+  out.push_str(&regenerated[re..]);
+  out
+}
+
 /// What one `apply` did, so the caller can report rather than guess.
 #[derive(Debug, Default)]
 pub struct Applied {
@@ -336,8 +396,14 @@ pub fn apply(
         continue;
       }
     }
-    let content = crate::rootfiles::render(home, name, cfg, ctx)
+    let mut content = crate::rootfiles::render(home, name, cfg, ctx)
       .map_err(|e| CanonError::RootFile(format!("{name}: {e:?}")))?;
+    // The project's own directives are carried across, never regenerated. See
+    // `carry_user_block` -- the template promises this in its own text.
+    if name == "CLAUDE.md" && dest.exists() {
+      let current = std::fs::read_to_string(&dest).unwrap_or_default();
+      content = carry_user_block(&current, &content);
+    }
     write_if_changed(&dest, &content, &mut applied)?;
   }
 

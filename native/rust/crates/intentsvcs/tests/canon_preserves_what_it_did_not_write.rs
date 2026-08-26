@@ -26,7 +26,7 @@
 //! arm that separates "preserved because we were careful" from "preserved
 //! because nothing was there to lose".
 
-use intentsvcs::canon::insert_chain_block;
+use intentsvcs::canon::{carry_user_block, insert_chain_block};
 
 /// A consumer hook whose own guards Intent canon has never heard of, with a
 /// header comment between the preamble and the first real command.
@@ -236,4 +236,160 @@ fn the_emitted_block_is_recognised_by_the_next_pass() {
     "the applier does not recognise its OWN output, so every run appends another \
      block:\n{fresh}"
   );
+}
+
+// ---------------------------------------------------------------------------
+// The project's OWN directives, inside a file canon otherwise owns.
+// ---------------------------------------------------------------------------
+
+/// **INTENT'S OWN `CLAUDE.md` USER BLOCK, EXTRACTED FROM DISK, NOT TYPED.**
+///
+/// Copied by the script that added this arm, for the reason the chain-block
+/// defect taught: a fixture an author writes can only encode what the author
+/// already believes. Four projects in the estate carry content here -- 80 lines,
+/// 25, 2, 1 -- and every one would have lost it to an ordinary `--apply`.
+const REAL_USER_BLOCK: &str = r##"
+<!-- Author: matts, created 2026-04-25. Intent dogfoods its own canon -- this CLAUDE.md is the reference example of the WP09 overlay template applied to a real project. Preserved across regeneration. -->
+
+### Intent dev rules (extend the four agnostic rules above)
+
+1. **Highlander Rule** -- search `intent/llm/MODULES.md` before creating any new module, helper, or template: `grep -n '<name>' intent/llm/MODULES.md`. **Search it, do not read it** -- the registry is ~354KB across ~367 rows, so "read it first" is not an instruction anyone can follow. (`intent modules find` is the intended verb: **drive it, and fall back to the grep above if it does not answer.** Which spelling works is a property of the tool version you are standing on, and pinning that answer here would make this a second home for a fact the tool already reports about itself.)
+2. **Thin scripts** (concretises `IN-AG-THIN-COORD-001`) -- business logic lives in dedicated modules under `bin/` or `intent/plugins/`, never inline in command dispatch or heredocs.
+3. **No silent failures** (concretises `IN-AG-NO-SILENT-001`) -- every error path uses `error()` from `bin/intent_helpers`.
+4. **Check before you create** -- before adding a new script or function, search the registry as in rule 1.
+5. **Register before you code** -- when you must create a new module, add the row to MODULES.md FIRST, then create the file.
+6. **Single template source** -- all generated content comes from `lib/templates/` via `sed` substitution. No inline heredocs duplicating template content.
+
+### Intent-specific files
+
+- `intent/wip.md` -- current work in progress (read on session start).
+- `intent/restart.md` -- session restart context (post-compact resume).
+- `bin/` -- Intent CLI source.
+- `lib/templates/` -- generated-content source of truth.
+- `intent/plugins/` -- plugin canon (`claude/`, `agents/`).
+
+### Internal authoring docs
+
+The canon Critic dispatch section above already points at `intent/docs/critics.md`. Two more authoring guides live alongside:
+
+- `intent/docs/rules.md` -- rule-library authoring guide (schema, Detection heuristics, attribution).
+- `intent/docs/writing-extensions.md` -- user-extension authoring guide (subagents, skills, rule packs at `~/.intent/ext/`).
+
+### Commit conventions
+
+- DO NOT ADD CLAUDE TO GIT COMMITS. EVER. No `Co-Authored-By`, no Claude signatures, no AI attribution.
+- T-shirt sizing only (XS / S / M / L / XL / XXL); never clock-time estimates.
+- NEVER manually wrap lines in markdown files.
+
+### Migration history
+
+Intent originated as STP, migrated to Intent v2.0.0 on 2025-07-16, then through v2.1.0 -> v2.2.0 -> v2.3.0 -> v2.8.x -> v2.9.0 -> v2.10.0 -> v2.11.0 (current). v2.10.0 ships the canonical LLM config (this overlay pattern, three-file canon AGENTS.md / CLAUDE.md / usage-rules.md, session hooks, pre-commit critic gate) and relocates `.intent/` to `intent/.config/`. v2.11.0 (ST0037) replaces filesystem-marker language detection with an explicit `languages` config field. See `CHANGELOG.md` for per-version detail.
+
+### Author
+
+matts (hello@matthewsinclair.com)
+
+"##;
+
+fn generated(block: &str) -> String {
+  format!(
+    "# Project\n\n## Project-specific\n\n<!-- user:start -->{block}<!-- user:end -->\n\n---\n\n_Generated from `lib/templates/llm/_CLAUDE.md`._\n"
+  )
+}
+
+/// **THE ARM THE TEMPLATE'S OWN TEXT ALREADY PROMISED.**
+///
+/// `_CLAUDE.md` says "Preserved across regeneration" inside the file every
+/// project's authors read. Nothing implemented it. This is the code behind the
+/// sentence.
+#[test]
+fn a_projects_own_directives_survive_regeneration() {
+  let existing = generated(REAL_USER_BLOCK);
+  let regenerated = generated(
+    "\n<!-- Author: [[AUTHOR]]. Add project-specific Claude directives below this line. Preserved across regeneration. -->\n\n",
+  );
+  let out = carry_user_block(&existing, &regenerated);
+
+  for line in REAL_USER_BLOCK.lines().filter(|l| l.trim().len() > 40) {
+    assert!(
+      out.contains(line),
+      "a project directive was lost to regeneration:\n  {line}\n--- got ---\n{out}"
+    );
+  }
+}
+
+/// The carried block goes back BYTE FOR BYTE, blank lines and all.
+///
+/// Separate from the arm above because "every long line survives" passes on an
+/// implementation that reflows or reorders. Formatting is content in a file of
+/// instructions.
+#[test]
+fn the_block_is_carried_byte_for_byte() {
+  let existing = generated(REAL_USER_BLOCK);
+  let out = carry_user_block(&existing, &generated("\nplaceholder\n"));
+  let s = out.find("<!-- user:start -->").expect("start") + "<!-- user:start -->".len();
+  let e = out.find("<!-- user:end -->").expect("end");
+  assert_eq!(
+    &out[s..e],
+    REAL_USER_BLOCK,
+    "the block was altered in transit"
+  );
+}
+
+/// **THE DISCRIMINATING CONTROL (vc, from devbin-vc's sentinel run).**
+///
+/// The failure is not that the block goes MISSING -- hop 3 substitutes the
+/// template's own default block, well-formed, with an author line. **A check
+/// asking "is there a user block?" is blind to that; only "is it THIS block?"
+/// sees it.** So the fixture here is a MODIFIED block that must come back
+/// modified: an implementation that reconstructs a pristine canonical block
+/// passes every arm above and fails this one.
+#[test]
+fn a_modified_block_comes_back_modified() {
+  let modified = format!("{REAL_USER_BLOCK}\n7. **A rule this project added after the fact.**\n");
+  let out = carry_user_block(&generated(&modified), &generated("\nplaceholder\n"));
+  assert!(
+    out.contains("A rule this project added after the fact."),
+    "the local modification was replaced by a well-formed block that is not the \
+     project's own:\n{out}"
+  );
+}
+
+/// An empty block is carried as it stands -- Baize's case, and the reason that
+/// migration cost nothing.
+#[test]
+fn an_empty_block_is_carried_as_it_stands() {
+  let out = carry_user_block(&generated("\n"), &generated("\nplaceholder\n"));
+  assert!(
+    !out.contains("placeholder"),
+    "the existing empty block did not win:\n{out}"
+  );
+}
+
+/// A file with no block is left entirely alone. **Inventing one would put
+/// canon's placeholder into a file whose author never asked for it.**
+#[test]
+fn a_file_with_no_block_is_left_alone() {
+  let regenerated = generated("\nplaceholder\n");
+  assert_eq!(
+    carry_user_block("# hand-authored, no markers\n", &regenerated),
+    regenerated
+  );
+}
+
+/// A regenerated file with no block does not gain one. **Appending the content
+/// somewhere plausible is the canon-aware guessing this module refuses.**
+#[test]
+fn a_regenerated_file_with_no_block_does_not_gain_one() {
+  let plain = "# Project\n\nno markers here\n".to_string();
+  assert_eq!(carry_user_block(&generated(REAL_USER_BLOCK), &plain), plain);
+}
+
+/// A half-open block is not a block. An unterminated `user:start` must not make
+/// the splice swallow the rest of the file.
+#[test]
+fn a_half_open_block_is_not_a_block() {
+  let regenerated = generated("\nplaceholder\n");
+  let half = "# Project\n<!-- user:start -->\nstranded\n";
+  assert_eq!(carry_user_block(half, &regenerated), regenerated);
 }
