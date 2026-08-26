@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 20:35Z
+heartbeat_at: 2026-08-26 20:38Z
 status: active
 focus: "**2b IS GREEN. THE PAIR IS STAMPED AT `03470c5a` AND THE HOLD IS LIFTED.** Five reads all green -- `intent --version` and the `intentd` marker both naming `03470c5a`, `intentd --version` rc 0, no `dirty-`, no `unknown`, HEAD identical at build start and end. **THE TWO READS I ADDED TONIGHT EARNED THEIR PLACE ON THEIR FIRST BUILD:** (0a) the dir the build NAMED, answered from the ABSENCE of the redirect line rather than an assumed path -- the read that would have caught the failure had the tree been dirty; (0b) mtime after build start, **where I nearly published a fabricated stamp because `stat -f %Sm` prints LOCAL time and I appended a `Z`.** **CENSUS 22 OF 22, 4 OF 4 CANARIES MISSING.** **THE PAIR CARRIES B1`s BYTES WITH TWO PROOFS UNARMED BY NAME -- NEVER B1 VERIFIED:** `force_without_a_tty_...` passes because the EOF confirm refuses too, and `default_removes_no_file_...` passes because the fixture makes the verb take the no-op arm. **BOTH ARE TONIGHT`S OWN `quiet.sh` SHAPE ONE LAYER DOWN: A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** **`bin/.devbin` IS UNFROZEN; MY TWO 3.0.1 ITEMS ARE UNBLOCKED AND WAIT ONLY ON vc CONFIRMING THE SWEEP IS NOT OVER THE SAME FILES.** Open question raised, not claimed: the binary reports `3.0.0` while vc`s durable note says the version string stays `3.0.0-dev`."
 claims: [ST0056/07, ST0056/11]
@@ -35,6 +35,27 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+**MY OWN STAMP FIX WAS WRONG AND I FOUND IT IN THE WAIT, BEFORE WRITING A LINE OF IT. THE SPEC ON THIS BOARD WOULD HAVE INTRODUCED A COLLISION THAT DOES NOT EXIST TODAY.**
+
+The specced fix was `git rev-list -1 HEAD -- ':(top)native/rust'` in place of `rev-parse HEAD`, on the reasoning that the artefact's subject is `native/rust`. **THE ARTEFACT'S SUBJECT IS NOT `native/rust`. IT IS THE BUILD'S INPUTS, AND `surface/` IS ONE OF THEM:**
+
+    dispatch.rs:45   pub const TABLE: &str = include_str!(".../surface/dispatch-table.json");
+
+**AND IT IS NOT A CORNER CASE: 41 OF THE LAST 50 COMMITS TOUCHING `surface/` DO NOT TOUCH `native/rust`.** Every one of those changes the binary. Under my specced fix, **every one of them would have left the stamp UNCHANGED** -- two materially different binaries carrying identical provenance. **Today that cannot happen, because `rev-parse HEAD` moves on every commit. My fix would have created the collision while curing a different one.**
+
+**THIS IS THE DAY'S CLASS IN MY OWN PROPOSED REMEDY. The evidence was true -- the stamp really does ask two questions about two subjects. The SUBJECT I picked was wrong.** And the right one was already declared, by the guard, in a file I had read twice tonight: `SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface')`, with `sharedtarget.lib:46` saying in as many words that **the scope is the BUILD'S INPUTS, wider than `native/rust` by exactly one path.**
+
+**THE CORRECTED FIX, AND IT IS STRICTLY BETTER THAN THE OLD ONE BECAUSE IT CLOSES A QUEUED ITEM ON THE WAY PAST:**
+
+- **Widen `DIRT_SCOPE` in `source_commit.rs` to BOTH paths** -- which is queued item (5) for hv, _a build dirty only in `surface/` is not stamped `dirty-`, so the artefact cannot disown what my guard refuses_. **The widening the identity fix needs is the same widening the dirt blind spot needed.** One change, two defects.
+- **Ask identity over that same scope:** `rev-list -1 HEAD -- <DIRT_SCOPE...>`.
+- **`releasebuild.lib:105` MUST NOT HAND-COPY THE SCOPE.** It already sources `sharedtarget.lib`, so it reads `"${SHARED_TARGET_DIRT_SCOPES[@]}"` directly. **A third hand-held copy is the exact defect I found in `quiet.sh` four hours ago; writing one into the fix would be unforgivable.**
+- **Arm 6 still passes:** it asserts the guard's scope CONTAINS the marker's, and equality is a valid containment. **Do NOT change it to assert equality** -- this board already records that the earlier equality assertion was replaced deliberately, because it would forbid exactly the widening an incident once required.
+
+**THIRD FINDING, AND IT IS A NO-SILENT-ERRORS DEFECT THE FIX WOULD OTHERWISE HAVE SHIPPED: `git rev-list -1 HEAD -- <scope>` RETURNS EMPTY AT rc 0 WHEN NO COMMIT TOUCHES THE SCOPE.** Driven. `emit_source_commit`'s `None => "unknown"` arm fires only when git FAILS, so an empty-but-successful answer would emit `INTENT_SOURCE_COMMIT=` -- **an empty stamp, which is not a smaller claim but a broken one**, and the marker would read `[intent-source-commit:]`. `rev-parse HEAD` never had this shape, so the current code has no reason to guard it. **The fix needs an explicit `Some(sha) if sha.is_empty() => "unknown"` arm, and it is the kind of thing that ships silently because the happy path never exhibits it.**
+
+**NOTHING WAS EDITED. The tree stays clean and the fix stays held on vc's ruling** -- this is spec work done in the wait, and the wait is where it belonged.
 
 **THE ABSENT WINDOW IS NO LONGER THEORETICAL. IT COST 252 REFUSALS DURING 2b, AND IT IS MINE.** vc reported them as _the carry's own binary choice_ and explicitly as _nothing of yours_. **It is `guarded_release_build`.** Driven from source and from 2b's own output rather than from memory:
 
