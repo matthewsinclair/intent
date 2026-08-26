@@ -1265,10 +1265,16 @@ fn criterion(row: &str) -> Option<Criterion> {
 /// most information. Searching for the three known keys leaves everything else
 /// as the note, whatever it contains.
 fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)> {
-  let (id, rest) = row.split_once(' ')?;
+  let space = row.find(' ')?;
+  let id = &row[..space];
   if !id.starts_with("AT-") {
     return None;
   }
+  // An AT that names no subject keeps the space the `covers` marker needs.
+  let rest = match row[space + 1..].starts_with("--") {
+    true => &row[space..],
+    false => &row[space + 1..],
+  };
   let Covers {
     ids: covers,
     qualifiers,

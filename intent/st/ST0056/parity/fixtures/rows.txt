@@ -12,3 +12,5 @@
 - AT-02.5 `tests/unit/modules_commands.bats` -- covers AC-02.5 -- status: to-write -- red-first; modules sync -- deterministic ordering
 - AT-02.1 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.1 -- status: green -- test: in-whiteboard SKILL.md has no live 2.0 references
 - AT-02.2 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.2 -- status: green -- test: chaining skills reference 3.0 subcommands and no shipped doc hard-codes the flat-file model
+- AT-04.3 -- covers AC-04.3 -- status: to-write -- LLM-failure fallback to authored text + telemetry, red-first; RESHAPE candidate under ST0241: selection's likely home is the external aigent; hv rules at the ST0241 settle
+- AT-04.4 -- covers AC-04.4 -- status: to-write -- off-catalog selection rejected typed, red-first; RESHAPE candidate under ST0241, as AT-04.3

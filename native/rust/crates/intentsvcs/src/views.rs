@@ -568,7 +568,16 @@ fn test_line(t: &AcceptanceTest) -> String {
     AtKind::Test => match (&t.file, &t.legacy) {
       (Some(file), _) => line.push_str(&format!("`{file}`")),
       (None, Some(legacy)) => line.push_str(&format!("(legacy) {}", legacy.raw)),
-      (None, None) => line.push_str("(no reference)"),
+      // **AN AT THAT NAMED NOTHING COULD NOT REACH THIS ARM FROM A v2 ROW
+      // UNTIL THE GRAMMAR STOPPED REFUSING IT**, and rendering `(no reference)`
+      // onto one puts words in the author's mouth: the row said nothing here,
+      // so the view must say nothing here. The trailing space from the id
+      // prefix goes with it, or the row gains a second one.
+      (None, None) => {
+        while line.ends_with(' ') {
+          line.pop();
+        }
+      }
     },
   }
   // **`display()`, not `enum_str`, and this one was a live migration hazard**
