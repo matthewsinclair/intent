@@ -23,6 +23,7 @@
 
 pub mod address;
 pub mod backup;
+pub mod canon;
 pub mod contract;
 pub mod critic;
 pub mod doctor;

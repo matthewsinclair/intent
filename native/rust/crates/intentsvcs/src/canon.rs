@@ -1,0 +1,358 @@
+//! Applying v3 canon to an EXISTING project -- `intent claude upgrade`.
+//!
+//! **THIS IS NOT [`crate::init`] AND THE DIFFERENCE IS NOT COSMETIC.** `init`
+//! lays canon down for a project that does not exist yet: it refuses when a
+//! config is already there, mints a project event, and writes a config from
+//! nothing. This module meets a project that already has opinions, most of
+//! which it must not overwrite. The two share TEMPLATES, not a code path.
+//!
+//! # What canon IS
+//!
+//! hv's cutover instruction, 2026-08-26: *"We just go into each project and
+//! REWRITE their Intent usage/config/setup to be INTENTv3 CANONICAL."* The
+//! artefacts that carries are:
+//!
+//! - `.claude/settings.json` -- three hooks, every one dispatching the CLI door
+//! - `CLAUDE.md` / `AGENTS.md` -- generated from `lib/templates/llm/_*`
+//! - `usage-rules.md` -- seeded only when absent; user-owned after that
+//! - `.git/hooks/pre-commit` -- the chain block, REGION-EDITED
+//! - `.intent_critic.yml` -- seeded only when absent
+//!
+//! # Why the chain block is edited rather than regenerated
+//!
+//! **A CONSUMER WIRES GUARDS THIS PROJECT HAS NEVER HEARD OF.** Lamplight runs
+//! four guards through its chain block and two of them -- `whiteboard-inbox-guard`
+//! and `live-doc-budget` -- are not in Intent canon at all. A canon-aware
+//! regenerator writes the guards it knows about and drops the rest, silently,
+//! in a file nobody reads until a guard stops firing.
+//!
+//! So: markers present -> return untouched. Markers absent -> stream the file
+//! line by line, insert after the shebang/`set -*` preamble, and preserve every
+//! other line verbatim including the ones this code cannot interpret. That is
+//! v2's `canon_insert_chain_block` behaviour, matched deliberately rather than
+//! reinvented.
+//!
+//! # Why templates are read rather than embedded
+//!
+//! `build-support/embed_templates.rs` walks `llm/` and `prj/` only, so
+//! `.claude/settings.json` and `hooks/*` have no embedded copy. They are read
+//! from [`crate::install::home`], the same door `intent claude hook` execs out
+//! of and `agents sync` renders from. **Do not grow a second embed for them**:
+//! the shipped shell assets are versioned with the install, and a binary
+//! carrying its own copy would answer differently from the scripts beside it.
+
+use std::path::{Path, PathBuf};
+
+use crate::project::Config;
+use crate::views::RenderContext;
+
+/// The chain block's markers. Whole-line, and the same spelling v2 wrote, so a
+/// project canonised by either tool is idempotent under the other.
+const CHAIN_START: &str = "# >>> intent-chain-block >>>";
+const CHAIN_END: &str = "# <<< intent-chain-block <<<";
+
+/// The footer a GENERATED `CLAUDE.md` carries, naming the template it came from.
+///
+/// **THIS IS A CONSENT CHECK, NOT A VERSION STAMP.** A `CLAUDE.md` without it
+/// was written by a person, and regenerating over it destroys work canon never
+/// authored. v2 draws the same line with the same string, so a project canonised
+/// by either tool reads the same to the other.
+const CLAUDE_MD_MARKER: &str = "lib/templates/llm/_CLAUDE.md";
+
+/// What one `apply` did, so the caller can report rather than guess.
+#[derive(Debug, Default)]
+pub struct Applied {
+  /// Paths whose bytes this run changed.
+  pub written: Vec<PathBuf>,
+  /// Paths already canonical -- reported, never silent. A run that says nothing
+  /// about a file it examined is indistinguishable from one that skipped it.
+  pub unchanged: Vec<PathBuf>,
+  /// Paths left alone because they are the project's, not canon's.
+  pub preserved: Vec<PathBuf>,
+  /// Paths canon COULD generate but refused to overwrite, because they carry no
+  /// generated marker and `--force` was not given. Distinct from `preserved`:
+  /// canon owns the template for these, and held back on consent grounds.
+  pub held: Vec<PathBuf>,
+}
+
+#[derive(Debug)]
+pub enum CanonError {
+  Unreadable {
+    path: PathBuf,
+    source: std::io::Error,
+  },
+  Unwritable {
+    path: PathBuf,
+    source: std::io::Error,
+  },
+  RootFile(String),
+}
+
+impl std::fmt::Display for CanonError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::Unreadable { path, source } => {
+        write!(f, "cannot read {}: {source}", path.display())
+      }
+      Self::Unwritable { path, source } => {
+        write!(f, "cannot write {}: {source}", path.display())
+      }
+      Self::RootFile(msg) => write!(f, "{msg}"),
+    }
+  }
+}
+
+/// The chain block, verbatim. Emitted rather than templated because it is four
+/// lines and a template file would put its only copy behind a path lookup that
+/// can fail at exactly the moment the hook matters.
+fn chain_block() -> String {
+  format!(
+    "{CHAIN_START}\n\
+     _intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null)/pre-commit.intent\"\n\
+     if [ -x \"$_intent_chain\" ]; then\n\
+     \x20 \"$_intent_chain\" \"$@\" || exit $?\n\
+     fi\n\
+     {CHAIN_END}\n"
+  )
+}
+
+/// Insert the chain block into an existing pre-commit hook's text.
+///
+/// **RETURNS `None` WHEN THE BLOCK IS ALREADY THERE**, so the caller writes
+/// nothing and the file's mtime does not move. Idempotence is a property of
+/// this function rather than of the caller remembering to check.
+///
+/// Everything not the inserted block is passed through byte for byte. See the
+/// module header for why that is a requirement and not a convenience.
+pub fn insert_chain_block(existing: &str) -> Option<String> {
+  if existing.lines().any(|l| l.trim() == CHAIN_START) {
+    return None;
+  }
+
+  // An empty or absent hook gets a shebang and the block, which is the whole
+  // file. Handled first because the preamble walk below has nothing to walk.
+  if existing.trim().is_empty() {
+    return Some(format!("#!/usr/bin/env bash\n\n{}", chain_block()));
+  }
+
+  let mut out = String::new();
+  let mut inserted = false;
+  for line in existing.lines() {
+    if !inserted {
+      let t = line.trim();
+      // The preamble is the shebang, blank lines, and shell discipline. The
+      // block goes after it so it runs as the first REAL command, under the
+      // same `set -e` the rest of the hook was written against.
+      //
+      // **COMMENTS ARE NOT PREAMBLE, DELIBERATELY.** v2 skipped them too, and a
+      // hook whose header comment explains what the hook does would otherwise
+      // get the block wedged between the explanation and the code it explains.
+      if t.starts_with("#!") || t.is_empty() || t.starts_with("set -") || t.starts_with("set +") {
+        out.push_str(line);
+        out.push('\n');
+        continue;
+      }
+      out.push_str(&chain_block());
+      out.push('\n');
+      inserted = true;
+    }
+    out.push_str(line);
+    out.push('\n');
+  }
+
+  // A file that is nothing but preamble never hit the insertion point.
+  if !inserted {
+    out.push('\n');
+    out.push_str(&chain_block());
+  }
+  Some(out)
+}
+
+/// Read a canon template out of the install home.
+fn template(home: &Path, rel: &str) -> Result<String, CanonError> {
+  let path = home.join("lib/templates").join(rel);
+  std::fs::read_to_string(&path).map_err(|source| CanonError::Unreadable { path, source })
+}
+
+/// Write `content` to `path`, creating parents, unless the bytes already match.
+///
+/// **THE NO-CHANGE CASE DOES NOT WRITE.** A root file whose bytes did not
+/// change must not move its mtime and wake every watcher in the tree -- the
+/// same reason [`crate::rootfiles::sync`] goes through a `WriteSet`.
+fn write_if_changed(path: &Path, content: &str, applied: &mut Applied) -> Result<(), CanonError> {
+  if let Ok(current) = std::fs::read_to_string(path)
+    && current == content
+  {
+    applied.unchanged.push(path.to_path_buf());
+    return Ok(());
+  }
+  if let Some(parent) = path.parent() {
+    std::fs::create_dir_all(parent).map_err(|source| CanonError::Unwritable {
+      path: parent.to_path_buf(),
+      source,
+    })?;
+  }
+  std::fs::write(path, content).map_err(|source| CanonError::Unwritable {
+    path: path.to_path_buf(),
+    source,
+  })?;
+  applied.written.push(path.to_path_buf());
+  Ok(())
+}
+
+/// Seed `rel` at `dest` only when `dest` is absent.
+///
+/// **USER-OWNED FILES ARE SEEDED, NEVER SYNCED.** `usage-rules.md` is a
+/// project's terse rule contract and `.intent_critic.yml` is its gate
+/// configuration; overwriting either to cure variation destroys the thing the
+/// project actually decided. v2's canon installer draws the same line.
+fn seed_if_absent(
+  home: &Path,
+  rel: &str,
+  dest: &Path,
+  force: bool,
+  applied: &mut Applied,
+) -> Result<(), CanonError> {
+  if dest.exists() && !force {
+    applied.preserved.push(dest.to_path_buf());
+    return Ok(());
+  }
+  let body = template(home, rel)?;
+  write_if_changed(dest, &body, applied)
+}
+
+/// The repository's hooks directory, or `None` when there is no repository.
+///
+/// **`None` MEANS THE QUESTION COULD NOT BE ASKED, NEVER "THERE ARE NO HOOKS".**
+/// Same rule as [`crate::sync`]'s git helpers: a project outside a repository
+/// has no chain block to install and that is a fact about the project, not a
+/// failure -- but it must reach the caller as an absence it can report rather
+/// than as a silently skipped step.
+///
+/// `--git-path` is asked rather than `.git/hooks` assumed, because `core.hooksPath`
+/// relocates the directory and a worktree's `.git` is a file. Both are ordinary
+/// in this estate: Intent's own hooks live at `.githooks/` behind exactly that
+/// setting, so a hard-coded `.git/hooks` would canonise the one path nothing runs.
+pub fn hooks_dir(root: &Path) -> Option<PathBuf> {
+  let out = std::process::Command::new("git")
+    .args(["rev-parse", "--git-path", "hooks"])
+    .current_dir(root)
+    .output()
+    .ok()?;
+  if !out.status.success() {
+    return None;
+  }
+  let rel = String::from_utf8_lossy(&out.stdout).trim().to_string();
+  if rel.is_empty() {
+    return None;
+  }
+  let path = PathBuf::from(&rel);
+  Some(if path.is_absolute() {
+    path
+  } else {
+    root.join(path)
+  })
+}
+
+/// Apply v3 canon to the project rooted at `root`.
+///
+/// `git_hooks` is the resolved hooks directory (`git rev-parse --git-path
+/// hooks`), passed in rather than resolved here so this module runs the same
+/// way against a fixture as against a real clone -- and so a project with no
+/// git is a `None` the caller decides about rather than a failure invented in
+/// the middle of a write.
+pub fn apply(
+  root: &Path,
+  home: &Path,
+  cfg: &Config,
+  ctx: &RenderContext<'_>,
+  git_hooks: Option<&Path>,
+  force: bool,
+) -> Result<Applied, CanonError> {
+  let mut applied = Applied::default();
+
+  // 1. The hook door. Written from the template rather than composed here: the
+  //    three hook names and their timeouts are canon, and a second spelling of
+  //    them in Rust is the two-homes defect in the file whose whole job is to
+  //    make every project agree.
+  let settings = template(home, ".claude/settings.json")?;
+  write_if_changed(&root.join(".claude/settings.json"), &settings, &mut applied)?;
+
+  // 2. Generated root files. DELEGATED -- `rootfiles` owns substitution and the
+  //    language-conditional blocks, and a second renderer here would drift from
+  //    it the first time a template grew a new block form.
+  for name in ["CLAUDE.md", "AGENTS.md"] {
+    let dest = root.join(name);
+    // **`CLAUDE.md` IS REGENERATED ONLY WITH ITS OWN CONSENT.** A copy carrying
+    // no generated footer was authored by a person, and overwriting it to cure
+    // variation destroys what the project actually decided -- the cure worse
+    // than the disease. `AGENTS.md` is exempt because it is generated BY
+    // DEFINITION: `in-essentials` rule 2 forbids editing it by hand, and `init`
+    // deliberately does not seed it for that reason.
+    if name == "CLAUDE.md" && dest.exists() && !force {
+      let current = std::fs::read_to_string(&dest).unwrap_or_default();
+      if !current.contains(CLAUDE_MD_MARKER) {
+        applied.held.push(dest);
+        continue;
+      }
+    }
+    let content = crate::rootfiles::render(home, name, cfg, ctx)
+      .map_err(|e| CanonError::RootFile(format!("{name}: {e:?}")))?;
+    write_if_changed(&dest, &content, &mut applied)?;
+  }
+
+  // 3. User-owned. Seeded when absent, preserved otherwise.
+  seed_if_absent(
+    home,
+    "llm/_usage-rules.md",
+    &root.join("usage-rules.md"),
+    // NOT force-overwritable. `--force`'s own help names `CLAUDE.md` and
+    // `.intent_critic.yml` and stops there, and v2 writes this one only when
+    // absent. Widening a documented flag past its own text is how a destructive
+    // option grows in the dark.
+    false,
+    &mut applied,
+  )?;
+  seed_if_absent(
+    home,
+    "_intent_critic.yml",
+    &root.join(".intent_critic.yml"),
+    force,
+    &mut applied,
+  )?;
+
+  // 4. The chain block. See the module header: region-edited, never regenerated.
+  if let Some(hooks) = git_hooks {
+    let hook = hooks.join("pre-commit");
+    let existing = std::fs::read_to_string(&hook).unwrap_or_default();
+    match insert_chain_block(&existing) {
+      None => applied.unchanged.push(hook),
+      Some(updated) => {
+        write_if_changed(&hook, &updated, &mut applied)?;
+        make_executable(&hook)?;
+      }
+    }
+  }
+
+  Ok(applied)
+}
+
+/// A pre-commit hook git will not execute is a guard that silently never runs.
+fn make_executable(path: &Path) -> Result<(), CanonError> {
+  #[cfg(unix)]
+  {
+    use std::os::unix::fs::PermissionsExt;
+    let mut perms = std::fs::metadata(path)
+      .map_err(|source| CanonError::Unreadable {
+        path: path.to_path_buf(),
+        source,
+      })?
+      .permissions();
+    perms.set_mode(perms.mode() | 0o111);
+    std::fs::set_permissions(path, perms).map_err(|source| CanonError::Unwritable {
+      path: path.to_path_buf(),
+      source,
+    })?;
+  }
+  Ok(())
+}
