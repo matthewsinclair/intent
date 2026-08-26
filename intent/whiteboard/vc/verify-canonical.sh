@@ -77,10 +77,17 @@ check_project() {
     done
   fi
 
-  # 3. root canon
+  # 3. root canon -- PRESENT AND GENERATED. dc, 2026-08-26: presence-only passed
+  # Anvil's held v2.11 boilerplate ("This is an Intent v2.11.5 project",
+  # `.intent/`) with 0 failed. The arm asked whether a file existed; the target
+  # state is about what is in it. The footer names the template it came from,
+  # and it is the same marker canon.rs uses as its consent check.
   local f
   for f in AGENTS.md CLAUDE.md; do
-    [ -f "$p/$f" ] && ok "root canon: $f" || bad "root canon: $f MISSING"
+    if [ ! -f "$p/$f" ]; then bad "root canon: $f MISSING"
+    elif grep -q "lib/templates/llm/_${f}" "$p/$f"; then ok "root canon: $f generated from canon"
+    else bad "root canon: $f present but NOT generated (no template footer -- held boilerplate or hand-authored)"
+    fi
   done
 
   # 4. pre-commit chained EXACTLY ONCE. cc, 2026-08-26: `claude upgrade` looked
@@ -110,6 +117,32 @@ check_project() {
     fi
   else
     bad "pre-commit: hook not installed"
+  fi
+
+  # 4b. INFO, not an arm: devbin-cc's detector. Two projects lost their user
+  # block to the pre-splice tool and both came back with the SAME bytes -- the
+  # template's default block. That digest anywhere means "the template's block,
+  # not the project's": a hit means CHECK against a before-state, not "robbed"
+  # (an untouched default returns it too). Full-length, by command, never typed.
+  if [ -f "$p/CLAUDE.md" ]; then
+    local blk; blk=$(awk '/user:start/{f=1;next}/user:end/{f=0}f' "$p/CLAUDE.md" | shasum -a 256 | cut -d' ' -f1)
+    if [ "$blk" = "12bad4ea13449501ede0f2f04996a730f701c8d68036c47cf6c326ed7226f480" ]; then
+      printf '  %-7s %s\n' 'info' "CLAUDE.md user block is the TEMPLATE DEFAULT ($blk) -- compare against a before-state"
+    else
+      printf '  %-7s %s\n' 'info' "CLAUDE.md user block sha256 $blk"
+    fi
+  fi
+
+  # 4c. POST-FLIP ONLY: does bare `intent` work here? Before the flip every
+  # v3-stamped project answers rc=2 from the frozen v2 -- documented, not a
+  # defect -- so this is INFO until INTENT_FLIPPED=1 is set, then an ARM.
+  if [ -d "$p/intent" ]; then
+    local irc; (cd "$p" && intent st list >/dev/null 2>&1); irc=$?
+    if [ "${INTENT_FLIPPED:-0}" = "1" ]; then
+      [ "$irc" -eq 0 ] && ok "bare intent works here (st list rc=0)" || bad "bare intent FAILS here (st list rc=$irc) -- the flip did not reach this project"
+    else
+      printf '  %-7s %s\n' 'info' "bare intent st list rc=$irc (pre-flip: $(intent --version 2>/dev/null | head -1))"
+    fi
   fi
 
   # 5. .backup/ is ignored. ic, 2026-08-26: hop 1 writes .backup/backup-<stamp>/
