@@ -111,6 +111,19 @@ check_project() {
   else
     bad "pre-commit: hook not installed"
   fi
+
+  # 5. .backup/ is ignored. ic, 2026-08-26: hop 1 writes .backup/backup-<stamp>/
+  # and nothing in the two-hop ignores it; `git add -A` on Riffle would have
+  # committed 86 files of pre-migration state into permanent history, and the
+  # standing rule is that it is ignored everywhere. Ask about a CHILD path: the
+  # fleet's pattern is `.backup/backup-*`, which matches children and not the
+  # directory, so `check-ignore .backup/` says "not ignored" on a project that
+  # would stage nothing -- that shape over-counted 3 exposed projects as 10.
+  if git -C "$p" check-ignore -q ".backup/backup-00000000-000000/x" 2>/dev/null; then
+    ok ".backup/: ignored"
+  else
+    bad ".backup/: NOT ignored -- add .backup/ to .gitignore before committing"
+  fi
 }
 
 # --self-test: prove the instrument can FAIL before believing any PASS.
@@ -138,10 +151,12 @@ FIX
 "$_intent_chain" "$@" || exit $?
 # <<< intent-chain-block <<<
 FIX
+  # A real repo with no .gitignore, so the .backup/ arm has a subject to refuse.
+  git -C "$t" init -q 2>/dev/null
   check_project "$t"
   rm -rf "$t"
   printf '\nself-test: %s failure(s) detected.\n' "$fails"
-  [ "$fails" -ge 11 ] && { echo "SELF-TEST PASS -- the instrument reports failures."; exit 0; }
+  [ "$fails" -ge 12 ] && { echo "SELF-TEST PASS -- the instrument reports failures."; exit 0; }
   echo "SELF-TEST FAIL -- instrument did not detect a known-bad project. DO NOT TRUST ITS PASSES."; exit 1
 fi
 

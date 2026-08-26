@@ -59,9 +59,11 @@ Chained to `pre-commit.intent` via chain-block markers, **EXACTLY ONCE**. Region
    intent3 upgrade                                        # hop 2. Stamps 3.0.0-dev, writes 3, converges .gitignore. ATOMIC: refuses and writes nothing on a content defect.
    intent3 claude upgrade --apply                         # hop 3. Writes the canon; holds CLAUDE.md without the marker.
    intent3 claude upgrade --apply                         # again: MUST report 0 written. NECESSARY, NOT SUFFICIENT -- see below.
-   bash ~/Devel/prj/Intent/intent/whiteboard/vc/verify-canonical.sh <proj>
+   bash ~/Devel/prj/Intent/intent/whiteboard/vc/verify-canonical.sh <proj>   # MUST be 0 failed before the commit
    git add -A && git commit -m "intent: migrate to v3 canonical (built from <pair sha>)"
    ```
+
+   **`.backup/` MUST BE IGNORED BEFORE `git add -A`** (ic). Hop 1 writes `.backup/backup-<stamp>/` and nothing in the two-hop ignores it; on Riffle `-A` would commit 86 files of pre-migration state into permanent history and the one-commit rollback would revert 86 files instead of a dozen. The standing rule is `.backup/` ignored everywhere. Driven across all 21 with a child-path `check-ignore`: **Courses, Devbin and Riffle are NOT ignored**; the other eighteen carry `.backup/backup-*` or equivalent. On those three, add `.backup/` to `.gitignore` before the commit and write HAND-FINISHED: .backup/ gitignored in the body. The verifier now refuses a project where it is not ignored, so a 0-failed verifier run is the assertion.
 
    **HOP 1 CREATES THE HOOK.** v2 2.19.0's upgrade rewrites `.claude/settings.json` to the three doors AND installs a colon-form chain block where none existed (ic, driven on Riffle). **So there is no hook-less subset that is safe ahead of cc's fix -- a survey of hooks taken before hop 1 measures a state the recipe destroys.** Check hook state AFTER hop 1, never before.
 
