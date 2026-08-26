@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 21:00Z
+heartbeat_at: 2026-08-26 21:06Z
 status: active
-focus: "**HOLDING. hv is doing a clean build of HEAD on main and a full suite run, alone, while every workstream waits.** Everything of mine is committed: `03470c5a` (B1 floor, rode 2b) and `a8fc134b` (todo watermark parity, **COMMITTED RED with three failures named in the message**). **Nothing of mine is uncommitted; I start nothing until hv reports.** The three reds are all in the file `a8fc134b` restores and all trace to ONE decision -- I skipped the dual-source read on a limit I asserted in a comment and the restored tests disprove it. **Aggressive fold: the full 174KB board is at `.history/20260826/wip-2100Z.md`; what follows is consolidated by CLASS rather than by instance.**"
+focus: "**HOLDING, TREE CLEAN, SHELLS CLOSED.** hv is doing a clean build of HEAD on main and a full suite run, alone, while every workstream waits. **Everything of mine is committed: `03470c5a` (B1 floor, rode 2b), `a8fc134b` (todo watermark parity, COMMITTED RED with three failures NAMED in the message), `b2ba6817` (this fold).** My three scratch worktrees are removed and my orphaned polling shell is killed; the only worktree left is cc`s. **The three reds are all in the file `a8fc134b` restores and all trace to ONE decision -- I skipped the dual-source read on a limit I asserted in a COMMENT, and the restored tests disprove it.** Follow-up commit on hv`s go, never a rewrite. Full 174KB board at `.history/20260826/wip-2100Z.md`; this one is consolidated by CLASS."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 ---
 
@@ -13,11 +13,13 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 
 ## DOING
 
-**HOLDING FOR hv.** Clean build of HEAD on main + full suite, hv driving, all workstreams waiting.
+**HOLDING FOR hv.** Clean build of HEAD on main + full suite, hv driving, all workstreams waiting. Nothing of mine is uncommitted, no shell of mine is running, no worktree of mine is registered.
 
-**COMMITTED TODAY, in order:** `c6f644b3` (critic runner refusal, four paths), `baba2d9d` (default declaration), `fecdd110` (ST0061 contract), `ffd26309` + `3d9ea45f` (st dehydrate wired + AT ids), `43c3d2d0` (board), `59d94941` (AC-00.5 denominator arm), **`03470c5a`** (B1 floor: `organize --default`, WIP predicate -- rode rebuild 2b), **`a8fc134b`** (todo watermark parity).
+**COMMITTED TODAY, in order:** `c6f644b3` (critic runner refusal, four paths), `baba2d9d` (default declaration), `fecdd110` (ST0061 contract), `ffd26309` + `3d9ea45f` (st dehydrate wired + AT ids), `43c3d2d0` (board), `59d94941` (AC-00.5 denominator arm), **`03470c5a`** (B1 floor: `organize --default`, WIP predicate -- rode rebuild 2b), **`a8fc134b`** (todo watermark parity), `b2ba6817` (fold).
 
-**`a8fc134b` IS RED ON PURPOSE AND THE MESSAGE SAYS SO.** hv's instruction was _everything committed, in HEAD on MAIN_, with a clean build imminent -- three failures NAMED in a commit message beat three failures discovered as a mystery during hv's run.
+**`a8fc134b` IS RED ON PURPOSE AND THE MESSAGE SAYS SO.** hv's instruction was _everything committed, in HEAD on MAIN_, with a clean build imminent -- three failures NAMED in a commit message beat three failures discovered as a mystery during hv's run. **vc's verdict on B1's proofs at `03470c5a`: AC-11.1 ARMED (both tests), AC-11.2/present ARMED, AC-11.5 ARMED; AC-11.2/tty and AC-11.4 PROOF UNARMED** -- fixed in `a8fc134b`, mutations queued with vc for after hv's run.
+
+**`intent/todo.md` is dirty in the tree and it is hv's**, not mine: hv drove `todo done --prune` against the new binary, got 54 items on stdout and the watermark at 2026-08-26. That is the parity behaviour working.
 
 ## TODO
 
