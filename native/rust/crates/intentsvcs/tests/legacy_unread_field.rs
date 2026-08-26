@@ -185,3 +185,109 @@ fn a_row_with_an_unread_field_still_arrives_and_the_accounting_still_closes() {
     "and the key is still named"
   );
 }
+
+/// **A MULTIBYTE CHARACTER ANYWHERE IN THE ROW USED TO ABORT THE WHOLE
+/// MIGRATION, AND THE ROW THAT PROVED IT CARRIES NO UNREAD FIELD AT ALL.**
+///
+/// Captured from Conflab `ST0121/acceptance.md:83`, the last un-migrated
+/// estate, which died on `intent upgrade` at rc 101 with nothing written:
+///
+/// ```text
+/// start byte index 270 is not a char boundary; it is inside '✓' (bytes 269..272)
+/// ```
+///
+/// The scanner walked `span.as_bytes()` and then sliced `span[i..]` at every
+/// byte index, so an index landing inside a three-byte character panicked. **It
+/// is the SCAN that panics, not the residue**, which is why this row is the
+/// right fixture: its only keys are `evidence:` and `satisfied:`, both known,
+/// so it has nothing to report and was destroyed anyway. **Every row is walked;
+/// only some have anything to say.**
+///
+/// Measured across the estates on this machine: **179 rows in 7 projects**, not
+/// the 2 the bug report named -- Lamplight 58, Baize 42, Laksa 5, and 68 in
+/// Intent's own tree.
+#[test]
+fn a_row_carrying_a_multibyte_character_arrives_instead_of_aborting_the_scan() {
+  let fixture = Fixture::new();
+  estate(
+    &fixture,
+    "## Acceptance Criteria\n\n\
+     - AC-01.1 (non-test) A stored-but-unverified credential is not rendered with the same affirmative marker as a verified one. -- evidence: `model list` column renamed `Key stored` with `yes`/`none` in place of `\u{2713}`/`\u{2717}`, plus a footer pointing at `verify-key` -- satisfied: yes\n\
+     \n## Acceptance Tests\n\n\
+     - AT-01.1 test/a_test.exs -- covers AC-01.1 -- status: green\n",
+  );
+
+  let scan = legacy::scan(&fixture.project()).expect("the scan completes rather than panicking");
+
+  assert!(
+    details(&scan).iter().all(|d| !d.contains("does not read")),
+    "and the row has NO unread field -- both its keys are known -- so a fix that \
+     reports one has invented it: {:?}",
+    details(&scan)
+  );
+}
+
+/// **THE ARM THAT FORBIDS THE LAZY FIX: the walk must CONTINUE past the
+/// multibyte character, not stop at it.**
+///
+/// Skipping any row containing non-ASCII would pass the arm above and silently
+/// lose every unread field that sits to the RIGHT of a checkmark -- trading a
+/// loud panic for the exact silent loss this whole class was built to end.
+/// Here `descoped-to:` follows the `\u{2713}`, so a fix that bails early goes red.
+#[test]
+fn an_unread_field_after_a_multibyte_character_is_still_named() {
+  let fixture = Fixture::new();
+  estate(
+    &fixture,
+    "## Acceptance Criteria\n\n\
+     - AC-01.1 The run showed `\u{2713}` twice. -- descoped-to: ST0347 -- by: hv -- on: 2026-08-21\n\
+     \n## Acceptance Tests\n\n\
+     - AT-01.1 test/a_test.exs -- covers AC-01.1 -- status: green\n",
+  );
+
+  let scan = legacy::scan(&fixture.project()).expect("the scan completes");
+  let said = details(&scan);
+  let named = said
+    .iter()
+    .find(|d| d.contains("AC-01.1") && d.contains("does not read"))
+    .unwrap_or_else(|| panic!("a key to the right of the checkmark is still a key: {said:?}"));
+  for key in ["descoped-to", "by", "on"] {
+    assert!(named.contains(key), "`{key}` missing from {named}");
+  }
+}
+
+/// **AND THE AT SIDE, whose span is bounded at ` -- status: ` rather than being
+/// the whole row.**
+///
+/// The bound is real but nearly worthless against this defect: of the 180
+/// non-ASCII rows on this machine, it spares exactly ONE. The multibyte
+/// character here sits BEFORE the status field, inside the scanned span, which
+/// is the case the bound cannot help with.
+///
+/// **AND IT SITS AT BRACKET DEPTH 0, WHICH THIS TEST GOT WRONG ONCE.** The
+/// first version of this fixture wrote the checkmark inside `(...)`, and it
+/// passed against the unfixed scanner -- because the slice is guarded by
+/// `depth == 0 &&`, and `&&` short-circuits, so a bracketed multibyte character
+/// is never sliced and never panics. That is a real property (it is why the
+/// fleet count is 161 rather than 179), but as a fixture it was a test passing
+/// without touching its subject. The checkmark below is unbracketed.
+#[test]
+fn a_multibyte_character_before_the_at_status_field_does_not_abort_the_scan() {
+  let fixture = Fixture::new();
+  estate(
+    &fixture,
+    "## Acceptance Criteria\n\n\
+     - AC-01.1 It holds. -- evidence: x -- satisfied: yes\n\
+     \n## Acceptance Tests\n\n\
+     - AT-01.1 test/a_test.exs -- covers AC-01.1 -- audit: hv signed \u{2713} -- status: green\n",
+  );
+
+  let scan = legacy::scan(&fixture.project()).expect("the scan completes");
+  let said = details(&scan);
+  assert!(
+    said
+      .iter()
+      .any(|d| d.contains("AT-01.1") && d.contains("audit")),
+    "and the unread key before the status bound is still reported: {said:?}"
+  );
+}
