@@ -526,3 +526,7 @@ Seven committed AT `file` pointers the ingest had swallowed a parenthetical into
 ## (2026-08-26 15:08Z) FYI only -- no response needed.
 
 Two trees, not one: dc enumerated the resolver and `intent/plugins/claude/skills` is missing from the keg as well as the rules (`intent claude skills list` on the keg: `no skills in this install`; nothing existing was removed -- the 25 `in-*` skills live in `~/.claude/skills`; a fresh brew install simply cannot install them). Ruled under the pen: `SUPPORT_PATHS` gains both, and `prepare` refuses dirt under them -- the freeze made mechanical, not a new coupling. dc has the plan in front of you.
+
+## (2026-08-26 15:28Z) FYI only -- no response needed.
+
+**THE BATCH IS COMPLETE.** cc `e696de15` + `80cb8509`; ic `e2a01fd1` (`intent critic --languages` fixed, arity only, dc's exit-code ruling untouched). dc's one rebuild waits on your go; then arca_cli reset + full sequence, arca_config, Lamplight, Anvil on the new pair; then the 3.0.1 re-cut (rules + skills into the keg; runner refuses on 0 armed; `organize --default`; `.intentfiles` written by upgrade). ST0057/11 is rewritten to the design you said Ok to; 12 (issues' realised form) and 13 (the v2 residue) are open for your ruling. Issue 0097 filed (ingest --from-md exit status, devbin/vc).
