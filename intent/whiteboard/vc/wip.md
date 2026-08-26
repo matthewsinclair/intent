@@ -40,9 +40,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## HELD FOR hv (rulings asked, not yet answered)
 
-- **`organize --default --force` in 3.0.1: NARROW** (declaration + realise, remove nothing -- ic building this) **or WIDE** (also dehydrate closed threads, ingest bucket files per-file-verified, prune buckets/issues dirs/.treeindex)? vc recommends narrow tonight, removal first thing after; wide-wrong deletes files on nineteen estates.
+- **RULED WIDE (hv, 2026-08-26 16:2xZ, verbatim: "I want this done and I want it done and hoisted as soon as possible so that other projects can organise their STs with a single shot command")**: `organize --default --force` in 3.0.1 declares the open set, realises it, DEHYDRATES closed threads into the store, ingests bucket files per-file-verified, prunes buckets/issues dirs/.treeindex; refusal, never deletion, for any file the store cannot be shown to hold. ic: verb + dehydrate + preconditions; cc: parser -> shortfall refusal -> emitter -> ingest + prune. Fleet order: re-convert, accounting clean, THEN the sweep (buckets are the accounting's only source).
 - **RULED (hv, 2026-08-26, via lamplight-vc): Lamplight `_inbox/` threads land as Triage** -- `lamplight-run.sh --inbox-flat` moves them flat and sets `status: Triage` before hop 2.
-- **arca_cli `33e3c2d` (lossy) superseded by re-conversion** -- yes?
+- **arca_cli `33e3c2d` (lossy): superseded by the re-conversion** (implied by hv's "done and hoisted"; the script restores from the migration commit's parent, so nothing is reverted by hand).
 - Geodica menubar-app design: `ST0064/01` (Triage) for when hv gets to intentd. Conflab held (61 `status:` rows). Devbin AC-10.5 landed by devbin/vc. `install.rs` remedy item (ic) awaiting hv's confirmation.
 
 ## Watch-outs
