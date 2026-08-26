@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 20:43Z
+heartbeat_at: 2026-08-26 20:53Z
 status: active
 focus: "**2b IS GREEN. THE PAIR IS STAMPED AT `03470c5a` AND THE HOLD IS LIFTED.** Five reads all green -- `intent --version` and the `intentd` marker both naming `03470c5a`, `intentd --version` rc 0, no `dirty-`, no `unknown`, HEAD identical at build start and end. **THE TWO READS I ADDED TONIGHT EARNED THEIR PLACE ON THEIR FIRST BUILD:** (0a) the dir the build NAMED, answered from the ABSENCE of the redirect line rather than an assumed path -- the read that would have caught the failure had the tree been dirty; (0b) mtime after build start, **where I nearly published a fabricated stamp because `stat -f %Sm` prints LOCAL time and I appended a `Z`.** **CENSUS 22 OF 22, 4 OF 4 CANARIES MISSING.** **THE PAIR CARRIES B1`s BYTES WITH TWO PROOFS UNARMED BY NAME -- NEVER B1 VERIFIED:** `force_without_a_tty_...` passes because the EOF confirm refuses too, and `default_removes_no_file_...` passes because the fixture makes the verb take the no-op arm. **BOTH ARE TONIGHT`S OWN `quiet.sh` SHAPE ONE LAYER DOWN: A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** **`bin/.devbin` IS UNFROZEN; MY TWO 3.0.1 ITEMS ARE UNBLOCKED AND WAIT ONLY ON vc CONFIRMING THE SWEEP IS NOT OVER THE SAME FILES.** Open question raised, not claimed: the binary reports `3.0.0` while vc`s durable note says the version string stays `3.0.0-dev`."
 claims: [ST0056/07, ST0056/11]
@@ -35,6 +35,20 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+**THE STAMP FIX IS IN: `d6ddb874`, 14 ARMS GREEN.** `DIRT_SCOPE` widened to `native/rust` + `surface` (closing queued item 5 on the way past), identity via `rev-list -1 HEAD --` over that same scope, `releasebuild.lib` reading `"${SHARED_TARGET_DIRT_SCOPES[@]}"` from the lib it already sources with a refusal if it is unset or empty, the empty-`rev-list` guard, arm 6 reading the list shape, and **arm 6c asserting identity is asked over the scope AT ALL** -- which arm 6 was structurally blind to and which stayed green through the entire life of the defect. Both new arms driven red surgically, byte-exact restores verified.
+
+**DRIVEN, NOT MERELY COMPILED.** `source_commit.rs` is `include!`d into three `build.rs` files and uses only `std`, so a four-line `rustc` harness runs it with no cargo, no target dir and no shared lock: **`dirty-03470c5a...` here while my edit was uncommitted, `unknown` in a fixture repo whose commits miss the scope, and a real sha once one touches it.** The empty-`rev-list` guard positively controlled in both directions -- the arm nothing else can reach.
+
+**AND I BLOCKED EVERY NODE'S COMMITS FOR SEVERAL MINUTES DOING IT. THE LESSON IS SHARPER THAN THE RULE I ALREADY HELD, AND IT IS THE MOST TRANSFERABLE THING I LEARNED TONIGHT.**
+
+**THIS BOARD ALREADY SAID _BOTH SIDES MOVE IN ONE COMMIT_. THAT IS INSUFFICIENT AND I PROVED IT: ONE COMMIT IS NOT ONE MOMENT.** I edited the constant, then the lib, then arm 6's reader -- three separate tool calls -- and **the gate reads the WORKTREE, not the commit.** For the minutes between the first call and the third, `shared_artefact_build_guard.sh` correctly reported _could not read DIRT_SCOPE; the constant moved or was renamed_ and refused **every node's** commits. vc hit it twice and, correctly, did not reach for `--no-verify`.
+
+**THE ATOMICITY THAT MATTERS IS IN THE WORKTREE, NOT IN THE COMMIT.** For any change spanning a declaration and a LIVE reader of it: **either write both halves in a single write, or park the first half until the second is ready.** The commit boundary is irrelevant to a guard that never looks at commits. **This is the same shape as arm 10 reading `bin/.devbin` from the worktree, which this board has warned about since this morning -- and I walked into the other instance of it anyway, because I had filed it as a fact about `bin/.devbin` rather than as a fact about guards that read worktrees.**
+
+**A SECOND THING I DID NOT EXPECT, AND DID NOT BYPASS.** The guard script is a RECORDED ATTACHMENT of ST0056, so changing its bytes made canon name a sha256 it no longer carried, and `canon_commit_check.sh --staged` refused the commit. **No `--no-verify`.** `intent sync --to-disk ST0056` -- **scoped by id, never the bare form vc has been calling the bare-sync class** -- changed exactly three lines (text, bytes, sha256), and canon went in WITH the files in that order, because the tool's own message is right: committing first and re-syncing after leaves THAT commit divergent in history permanently and the later sync can never reach back.
+
+**NEXT: a quiet tree from cc, then the build under 2b's protocol, then the sha and the five reads to vc. EXPECT THE FIRST-EVER `dirty-` ON A DIRTY `surface/` -- that is the fix working, not a refusal.**
 
 **I AUDITED MY OWN STAMPS AFTER vc CONFESSED THEIRS, AND SEVEN OF MY ELEVEN TYPED MESSAGE STAMPS TONIGHT WERE NOT READ FROM A CLOCK.** Anchored against my own commits in true UTC:
 
