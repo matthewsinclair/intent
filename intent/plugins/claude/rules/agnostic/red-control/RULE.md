@@ -66,6 +66,8 @@ Signals to look for in a verification step:
 - A lever (an environment variable, a flag, a stub) asserted to have reached the subject with no evidence that the subject reads it.
 - A green suite whose plan line, ok count and exit status were not all read and required to agree.
 - A grep for ABSENCE with no positive control showing the pattern can match anything in that source at all.
+- A comparison whose "source" side is read from the same place as its "result" side -- a working-tree file that IS the generated view compared against the view -- returns a guaranteed clean for every subject; the source comes from a ref, never from the tree.
+- An instrument that names a blind spot without sizing it: "N unmeasured" with no statement of WHICH set is unmeasured lets the reader assume the set is small, when it may be every in-progress subject in the project.
 
 Greppable proxy (not authoritative; a critic confirms by reading the step):
 
