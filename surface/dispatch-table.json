@@ -2516,6 +2516,57 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "reversible"
+        },
+        {
+          "path": "ac new",
+          "help": "Create a criterion (caller-assigned id, idempotent)",
+          "args": [
+            {
+              "name": "stid",
+              "type": "st-id",
+              "arity": "1"
+            },
+            {
+              "name": "acid",
+              "type": "ac-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--text"
+              ],
+              "type": "string",
+              "help": "The criterion text",
+              "value": "<text>",
+              "required": true,
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--kind"
+              ],
+              "type": "enum",
+              "help": "Test-backed or not",
+              "value": "<kind>",
+              "accepts": "test | non-test",
+              "default": "non-test",
+              "disposition": "keep"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "spelling": "",
+            "ratification": "ic, 2026-08-26, on hv's ruling over issue 0088 -- hv minted AC-08.6 over three cheaper remedies, so the thread stops being closed until the verb exists. WP-08's own enumerated-gap table named `Criterion create` as MISSING and no criterion covered it: AC-08.5 covers every writable FIELD, and CREATION IS NOT A FIELD, so the thread's gate PASSed at 51/51 over a stated deliverable. Driven 2026-08-25: `ac --help` listed nine subcommands and `at --help` five, and NOT ONE OF THE FOURTEEN CREATED ANYTHING -- every arm is a transition on a row that already exists. The route until now was a hand-edit of `.canon/st/<ID>.json` plus `sync --to-store`, WHICH IS HOW AC-08.6 ITSELF REACHED CANON. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent PUT to the entity address rather than a POST to the collection. Spelled `new` to match `st new` and `wp new` rather than adding a fifth house word for create; `issues add` is the existing odd one out and is already filed. Builder ic; COVER TAKEN BY vc, who drives the falsifiers independently at HEAD -- ic must not be both builder and verifier on a row blocking ST0057's gate, which is hv's own AC-08.5 precedent on this same WP."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "owner_wp": "ST0057 WP-08",
+          "acceptance": "ST0057 AC-08.6"
         }
       ],
       "bats_coverage": {
@@ -2899,6 +2950,86 @@
           "read_or_mutate": "mutate",
           "recoverability": "one-way",
           "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
+        },
+        {
+          "path": "at new",
+          "help": "Create an acceptance test (caller-assigned id, idempotent)",
+          "args": [
+            {
+              "name": "stid",
+              "type": "st-id",
+              "arity": "1"
+            },
+            {
+              "name": "atid",
+              "type": "at-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--covers"
+              ],
+              "type": "string",
+              "help": "The criterion id(s) this test covers",
+              "value": "<acid> ...",
+              "required": true,
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--file"
+              ],
+              "type": "string",
+              "help": "The test file this row cites",
+              "value": "<path>",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--prose"
+              ],
+              "type": "string",
+              "help": "What a non-test row asserts instead of a file",
+              "value": "<text>",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--kind"
+              ],
+              "type": "enum",
+              "help": "Test-backed or not",
+              "value": "<kind>",
+              "accepts": "test | non-test",
+              "default": "test",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--status"
+              ],
+              "type": "enum",
+              "help": "Initial status",
+              "value": "<status>",
+              "accepts": "to-write | red | green | n-a",
+              "default": "to-write",
+              "disposition": "keep"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "spelling": "",
+            "ratification": "ic, 2026-08-26, on the same hv ruling. Recorded separately from `ac new` rather than folded into it because an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not. THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY OTHER ROW -- AC-08.7 names bypassing it as a falsifier. L2 (cites a file that does not exist), L3 (the file does not carry the literal id), L4 (`covers` names no criterion) and L5 (a non-test AT covering a test-backed criterion) are checked on the PROSPECTIVE thread BEFORE the write, so a refusal leaves nothing behind -- writing first and linting after is the shape `issues hydrate` was retired for. The check is narrowed to the row being written: a thread carrying a pre-existing finding elsewhere would otherwise make every create on it impossible, and inherited breakage is `at lint`'s to report. `to-write` stays exempt from L2/L3 by the contract's own rule rather than by an exception here. Builder ic; cover taken by vc."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "owner_wp": "ST0057 WP-08",
+          "acceptance": "ST0057 AC-08.7"
         }
       ],
       "bats_coverage": {
@@ -7741,7 +7872,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 28,
+      "n": 30,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -7963,12 +8094,14 @@
       "ac rescope",
       "ac withdraw",
       "ac reinstate",
+      "ac new",
       "at",
       "at list",
       "at lint",
       "at green",
       "at red",
       "at na",
+      "at new",
       "issues",
       "issues list",
       "issues add",
@@ -8087,12 +8220,14 @@
       "ac rescope",
       "ac withdraw",
       "ac reinstate",
+      "ac new",
       "at",
       "at list",
       "at lint",
       "at green",
       "at red",
       "at na",
+      "at new",
       "issues",
       "issues list",
       "issues add",
@@ -8214,12 +8349,14 @@
       "ac rescope",
       "ac withdraw",
       "ac reinstate",
+      "ac new",
       "at",
       "at list",
       "at lint",
       "at green",
       "at red",
       "at na",
+      "at new",
       "issues",
       "issues list",
       "issues add",

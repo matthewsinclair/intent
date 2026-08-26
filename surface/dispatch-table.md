@@ -930,6 +930,7 @@ Acceptance criteria: the ratified completeness boundary of a unit
 | `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                                      | keep        |
 | `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking)           | keep        |
 | `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                                   | keep        |
+| `ac new`       | <stid> <acid> | --text <text>, --kind <kind>             | Create a criterion (caller-assigned id, idempotent)                             | new-surface |
 
 ### `ac`
 
@@ -1171,6 +1172,30 @@ Undo a withdrawal: back in scope, unsatisfied
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 
+### `ac new`
+
+Create a criterion (caller-assigned id, idempotent)
+
+- **v2:** new-surface
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Flags:**
+  - `--text` `<text>` (string) -- The criterion text
+    - **required:** true
+    - **disposition:** keep
+  - `--kind` `<kind>` (enum) -- Test-backed or not
+    - Accepts: test | non-test
+    - **default:** non-test
+    - **disposition:** keep
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: ic, 2026-08-26, on hv's ruling over issue 0088 -- hv minted AC-08.6 over three cheaper remedies, so the thread stops being closed until the verb exists. WP-08's own enumerated-gap table named `Criterion create` as MISSING and no criterion covered it: AC-08.5 covers every writable FIELD, and CREATION IS NOT A FIELD, so the thread's gate PASSed at 51/51 over a stated deliverable. Driven 2026-08-25: `ac --help` listed nine subcommands and `at --help` five, and NOT ONE OF THE FOURTEEN CREATED ANYTHING -- every arm is a transition on a row that already exists. The route until now was a hand-edit of `.canon/st/<ID>.json` plus `sync --to-store`, WHICH IS HOW AC-08.6 ITSELF REACHED CANON. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent PUT to the entity address rather than a POST to the collection. Spelled `new` to match `st new` and `wp new` rather than adding a fifth house word for create; `issues add` is the existing odd one out and is already filed. Builder ic; COVER TAKEN BY vc, who drives the falsifiers independently at HEAD -- ic must not be both builder and verifier on a row blocking ST0057's gate, which is hv's own AC-08.5 precedent on this same WP.
+- **spelling:** _(declared empty)_
+- **MCP:** exposed as an agent tool -- **mutates**
+- **recoverability:** idempotent
+- **owner wp:** ST0057 WP-08
+- **acceptance:** ST0057 AC-08.6
+
 ## Family: `at`
 
 Acceptance tests: the small red-to-green tests that prove ACs
@@ -1184,14 +1209,15 @@ Acceptance tests: the small red-to-green tests that prove ACs
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
 - `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (native/rust/crates/intentsvcs/src/model.rs).
 
-| command                       | args          | flags | help                                                                  | disposition |
-| ----------------------------- | ------------- | ----- | --------------------------------------------------------------------- | ----------- |
-| `at`                          | <command>     | --    | Acceptance test commands                                              | keep        |
-| `at list`                     | <stid>        | --    | List ATs (id, reference, status)                                      | keep        |
-| `at lint`                     | <stid>        | --fix | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --    | Set an AT green (reachable only from red)                             | keep        |
-| `at red` (alias `at notdone`) | <stid> <atid> | --    | Set an AT red                                                         | keep        |
-| `at na`                       | <stid> <atid> | --    | Set a non-test AT to n/a (the doc / eyeball / gate status)            | keep        |
+| command                       | args          | flags                                                                                | help                                                                  | disposition |
+| ----------------------------- | ------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------- | ----------- |
+| `at`                          | <command>     | --                                                                                   | Acceptance test commands                                              | keep        |
+| `at list`                     | <stid>        | --                                                                                   | List ATs (id, reference, status)                                      | keep        |
+| `at lint`                     | <stid>        | --fix                                                                                | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --                                                                                   | Set an AT green (reachable only from red)                             | keep        |
+| `at red` (alias `at notdone`) | <stid> <atid> | --                                                                                   | Set an AT red                                                         | keep        |
+| `at na`                       | <stid> <atid> | --                                                                                   | Set a non-test AT to n/a (the doc / eyeball / gate status)            | keep        |
+| `at new`                      | <stid> <atid> | --covers <acid> ..., --file <path>, --prose <text>, --kind <kind>, --status <status> | Create an acceptance test (caller-assigned id, idempotent)            | new-surface |
 
 ### `at`
 
@@ -1331,6 +1357,38 @@ Set a non-test AT to n/a (the doc / eyeball / gate status)
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** one-way
 - **recoverability anomaly:** ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.
+
+### `at new`
+
+Create an acceptance test (caller-assigned id, idempotent)
+
+- **v2:** new-surface
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `atid` (at-id, arity `1`)
+- **Flags:**
+  - `--covers` `<acid> ...` (string) -- The criterion id(s) this test covers
+    - **required:** true
+    - **disposition:** keep
+  - `--file` `<path>` (string) -- The test file this row cites
+    - **disposition:** keep
+  - `--prose` `<text>` (string) -- What a non-test row asserts instead of a file
+    - **disposition:** keep
+  - `--kind` `<kind>` (enum) -- Test-backed or not
+    - Accepts: test | non-test
+    - **default:** test
+    - **disposition:** keep
+  - `--status` `<status>` (enum) -- Initial status
+    - Accepts: to-write | red | green | n-a
+    - **default:** to-write
+    - **disposition:** keep
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: ic, 2026-08-26, on the same hv ruling. Recorded separately from `ac new` rather than folded into it because an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not. THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY OTHER ROW -- AC-08.7 names bypassing it as a falsifier. L2 (cites a file that does not exist), L3 (the file does not carry the literal id), L4 (`covers` names no criterion) and L5 (a non-test AT covering a test-backed criterion) are checked on the PROSPECTIVE thread BEFORE the write, so a refusal leaves nothing behind -- writing first and linting after is the shape `issues hydrate` was retired for. The check is narrowed to the row being written: a thread carrying a pre-existing finding elsewhere would otherwise make every create on it impossible, and inherited breakage is `at lint`'s to report. `to-write` stays exempt from L2/L3 by the contract's own rule rather than by an exception here. Builder ic; cover taken by vc.
+- **spelling:** _(declared empty)_
+- **MCP:** exposed as an agent tool -- **mutates**
+- **recoverability:** idempotent
+- **owner wp:** ST0057 WP-08
+- **acceptance:** ST0057 AC-08.7
 
 ## Family: `issues`
 

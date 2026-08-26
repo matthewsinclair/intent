@@ -15,7 +15,9 @@ use intentsvcs::contract::Scope;
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
 };
-use intentsvcs::model::{self, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str};
+use intentsvcs::model::{
+  self, AcKind, AtKind, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str,
+};
 use intentsvcs::output::{Format, Output};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
@@ -1082,6 +1084,36 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
         Err(Failure::Verdict)
       }
     }
+    // **CREATE, AC-08.6.** The nine arms beside this one are all TRANSITIONS on
+    // a row that already exists; until this landed, the only route to a new
+    // criterion was hand-editing `.canon/st/<ID>.json` and running
+    // `sync --to-store` -- which is how AC-08.6 itself reached canon.
+    //
+    // Parse, call, render: the state a new criterion starts in is DERIVED FROM
+    // ITS KIND and that derivation lives in the facade, not here, because it is
+    // a fact about the model rather than about this door.
+    Some(("new", a)) => {
+      let st = thread_arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      let text = arg(a, "text")?;
+      let kind = match opt(a, "kind").as_deref() {
+        Some("test") => AcKind::Test,
+        // The table declares the default, so an absent flag and an explicit
+        // `non-test` are the same answer here rather than two paths.
+        None | Some("non-test") => AcKind::NonTest,
+        Some(other) => {
+          return Err(Failure::Error(format!(
+            "`{other}` is not a criterion kind -- expected `test` or `non-test`"
+          )));
+        }
+      };
+      reported(
+        &open()?.ac_new(&st, &id, &text, kind).map_err(fail)?,
+        &id,
+        "created",
+      );
+      Ok(())
+    }
     Some(("satisfy", a)) => {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
@@ -1276,6 +1308,58 @@ fn back_in_scope(f: &Facade, st: &str, ac: &str) -> Result<String, Failure> {
 
 fn at(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
+    // **CREATE, AC-08.7.** Like `ac new`, the five arms beside this one are all
+    // transitions. Unlike `ac new`, the created row has a VALIDITY question:
+    // it carries `file`, `covers` and `status`, so the facade holds it to the
+    // same L2-L5 grammar `at lint` enforces on every other row, before the
+    // write rather than after it.
+    Some(("new", a)) => {
+      let st = thread_arg(a, "stid")?;
+      let id = arg(a, "atid")?;
+      let covers: Vec<String> = a
+        .get_many::<String>("covers")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
+      let kind = match opt(a, "kind").as_deref() {
+        None | Some("test") => AtKind::Test,
+        Some("non-test") => AtKind::NonTest,
+        Some(other) => {
+          return Err(Failure::Error(format!(
+            "`{other}` is not an acceptance-test kind -- expected `test` or `non-test`"
+          )));
+        }
+      };
+      let status = match opt(a, "status").as_deref() {
+        None | Some("to-write") => AtStatus::ToWrite,
+        Some("red") => AtStatus::Red,
+        Some("green") => AtStatus::Green,
+        // `n-a` is the wire spelling and `n/a` is what every authored row in
+        // every estate says, so both are accepted -- refusing the spelling the
+        // corpus uses would be a door nobody could find.
+        Some("n-a") | Some("n/a") => AtStatus::Na,
+        Some(other) => {
+          return Err(Failure::Error(format!(
+            "`{other}` is not an acceptance-test status -- expected `to-write`, `red`, `green` or `n/a`"
+          )));
+        }
+      };
+      reported(
+        &open()?
+          .at_new(
+            &st,
+            &id,
+            kind,
+            opt(a, "file"),
+            opt(a, "prose"),
+            covers,
+            status,
+          )
+          .map_err(fail)?,
+        &id,
+        "created",
+      );
+      Ok(())
+    }
     Some(("list", a)) => {
       let st = thread_arg(a, "stid")?;
       let f = open()?;
@@ -3588,9 +3672,109 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
     Some(("hook", a)) => hook(a),
     Some(("rules", a)) => rules(a),
     Some(("skills", a)) => skills(a),
+    Some(("upgrade", a)) => claude_upgrade(a),
     Some((verb, _)) => unwired("claude", verb),
     None => unwired("claude", ""),
   }
+}
+
+/// `intent claude upgrade` -- apply v3 canon to an existing project (issue 0077).
+///
+/// **ITS OWN DESCRIPTION IS THE CUTOVER INSTRUCTION.** The dispatch table calls
+/// this verb *"Apply Claude canon to the project"*; hv's 2026-08-26 instruction
+/// is *"we just go into each project and REWRITE their Intent usage/config/setup
+/// to be INTENTv3 CANONICAL"*. The verb has been listed by `--help` and refusing
+/// at rc=2 the whole time, which is the table-says-it-ships / binary-says-no
+/// shape `skills` above records.
+///
+/// **WHY A TOOL RATHER THAN FIFTEEN HAND-EDITS** (vc, 2026-08-26): a hand
+/// rewrite delivers one canonical estate today and nothing holds it tomorrow,
+/// and fifteen hand-written repositories produce fifteen artefacts nobody can
+/// re-derive. A tool produces a state that can be RE-ASSERTED AND COMPARED --
+/// run it twice, change nothing.
+///
+/// **`--apply` IS REQUIRED AND THE DEFAULT IS A DRY RUN**, matching v2. This
+/// writes into a project's `.claude/`, its root canon and its pre-commit hook;
+/// a verb that does that on a bare invocation is one nobody can explore safely.
+fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
+  let f = open()?;
+  let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
+  let ctx = views::RenderContext {
+    version: env!("CARGO_PKG_VERSION"),
+  };
+  let root = f.project().root();
+  let hooks = intentsvcs::canon::hooks_dir(root);
+
+  if !m.get_flag("apply") {
+    println!(
+      "canon (dry run): would apply v3 canon to {}",
+      root.display()
+    );
+    for name in [
+      ".claude/settings.json",
+      "CLAUDE.md",
+      "AGENTS.md",
+      "usage-rules.md (only if absent)",
+      ".intent_critic.yml (only if absent)",
+    ] {
+      println!("  {name}");
+    }
+    match &hooks {
+      Some(h) => println!("  {}/pre-commit (chain block, region-edited)", h.display()),
+      // NOT SILENCE. A dry run that omits a step it cannot do reads as a plan
+      // that never included it.
+      None => println!("  (no git repository -- no pre-commit chain block)"),
+    }
+    println!("re-run with --apply to write.");
+    return Ok(());
+  }
+
+  let applied = intentsvcs::canon::apply(
+    root,
+    &home,
+    f.project().config(),
+    &ctx,
+    hooks.as_deref(),
+    m.get_flag("force"),
+  )
+  .map_err(|e| Failure::Error(e.to_string()))?;
+
+  for p in &applied.written {
+    println!("written: {}", rel(root, p));
+  }
+  // **REPORTED, NOT SILENT.** A run that says nothing about a file it examined
+  // cannot be told from one that skipped it -- and "already canonical" is the
+  // answer the second run of a converger is supposed to give.
+  for p in &applied.unchanged {
+    println!("unchanged: {}", rel(root, p));
+  }
+  for p in &applied.preserved {
+    println!("preserved: {} (yours, not canon's)", rel(root, p));
+  }
+  // **HELD IS NOT PRESERVED AND MUST NOT READ AS IT.** Canon owns the template
+  // for these and declined to write over a hand-authored copy. Naming the flag
+  // is the point: a run that silently skipped the project's most-read file
+  // would look identical to one that had nothing to do.
+  for p in &applied.held {
+    println!(
+      "held: {} -- hand-authored, no generated marker; --force overwrites",
+      rel(root, p)
+    );
+  }
+  println!(
+    "ok: {} written, {} already canonical, {} preserved, {} held.",
+    applied.written.len(),
+    applied.unchanged.len(),
+    applied.preserved.len(),
+    applied.held.len()
+  );
+  Ok(())
+}
+
+/// A path relative to the project root, for reporting. Absolute paths in a
+/// per-file list make the list unreadable and say nothing the header did not.
+fn rel(root: &std::path::Path, p: &std::path::Path) -> String {
+  p.strip_prefix(root).unwrap_or(p).display().to_string()
 }
 
 /// `intent claude skills` -- AC-07.3.

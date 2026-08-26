@@ -53,8 +53,8 @@ use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::intentfiles::Realised;
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtStatus, Attachment, Criterion, Issue, IssueStatus, TShirt,
-  Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, IssueStatus,
+  TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use crate::project::{EditDisposition, Migration, Pending, Project, ThreadFile};
 use crate::realise;
@@ -3571,6 +3571,166 @@ impl Facade {
   // the model carrying the same rule into the schema face. A comment asserting
   // a property is not the property, and this one was cited as the reason not to
   // build the thing that would have made it true.
+  /// **CREATE A CRITERION THROUGH THE ADDRESSED SURFACE (AC-08.6).**
+  ///
+  /// Before this, the only route to a new criterion was a hand-edit of
+  /// `.canon/st/<ID>.json` followed by `sync --to-store` -- which is how
+  /// `AC-08.6` ITSELF reached canon, and how `AC-14.12` reached ST0056 the same
+  /// evening. `ac` had nine subcommands and `at` five, and not one of the
+  /// fourteen created anything: every arm is a transition on a row that already
+  /// exists.
+  ///
+  /// **THIS DELEGATES TO [`Facade::put`] RATHER THAN INSERTING, AND THAT IS
+  /// HIGHLANDER RATHER THAN INDIRECTION.** `put` already carries the create
+  /// path, the id-agreement refusal, and the idempotence `AC-08.6` names as a
+  /// falsifier; a second insert here would be a divergent copy of all three,
+  /// and the one that drifts is the one the CLI actually calls. So this method
+  /// owns exactly what `put` cannot know -- what an EMPTY criterion of each
+  /// kind is -- and nothing else.
+  ///
+  /// **THE ID ORIGIN IS CALLER-ASSIGNED (WP-08), so the shape is an idempotent
+  /// `PUT` to the entity address and never a `POST` to the collection.** You
+  /// cannot `POST` here: the caller already knows the id, and a server-assigned
+  /// one would make `AC-08.6` unaddressable before the write.
+  ///
+  /// The state is DERIVED FROM THE KIND rather than taken as an argument,
+  /// because the two are not independent: a test-backed criterion in scope
+  /// records [`AcState::Computed`] -- satisfaction is derived from covering
+  /// green ATs and there is no field to write -- while a non-test one starts
+  /// [`AcState::Unsatisfied`]. Letting a caller pass `Satisfied` here would
+  /// mint a criterion that was born already met, with no evidence and no
+  /// decision behind it.
+  pub fn ac_new(
+    &mut self,
+    st: &str,
+    ac: &str,
+    text: &str,
+    kind: AcKind,
+  ) -> Result<Outcome, FacadeError> {
+    let row = Criterion {
+      id: ac.to_string(),
+      text: text.to_string(),
+      kind,
+      state: match kind {
+        AcKind::Test => AcState::Computed,
+        AcKind::NonTest => AcState::Unsatisfied,
+      },
+    };
+    let body = serde_json::to_string(&row).map_err(|e| FacadeError::WriteNotAddressable {
+      url: format!("intent:///threads/{st}/ac/{ac}"),
+      why: format!("the criterion could not be serialised: {e}"),
+    })?;
+    self.put(
+      &Address {
+        authority: None,
+        entity: AddrEntity::Ac {
+          thread: st.to_string(),
+          ac: ac.to_string(),
+        },
+        format: None,
+      },
+      &body,
+    )
+  }
+
+  /// **CREATE AN ACCEPTANCE TEST THROUGH THE ADDRESSED SURFACE (AC-08.7).**
+  ///
+  /// Recorded separately from [`Facade::ac_new`] rather than folded into it
+  /// because an AT row carries `file`, `covers` and `status`, so its create has
+  /// a validity question a criterion's does not.
+  ///
+  /// **THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY
+  /// OTHER ROW, AND THAT IS THE HALF THAT MAKES THIS MORE THAN A `push`.**
+  /// `AC-08.7` names bypassing it as a falsifier, and the hole is real rather
+  /// than theoretical: L2 refuses a row citing a file that does not exist, L3 a
+  /// file that does not carry the row's literal id, L4 a `covers` naming no
+  /// criterion, and L5 a non-test AT covering a test-backed criterion. A create
+  /// that skipped them could mint, in one call, a row that `at lint` and the
+  /// close-gate would then both refuse -- so the verb would report `ok:` and
+  /// leave the thread ungateable.
+  ///
+  /// **THE CHECK RUNS ON THE PROSPECTIVE THREAD, BEFORE THE WRITE.** Writing
+  /// first and linting after would leave the bad row in canon on refusal, which
+  /// is the shape `issues hydrate` was retired for: a durable claim left behind
+  /// by a call that reported failure.
+  ///
+  /// `to-write` is exempt from L2/L3 by the contract's own rule, not by an
+  /// exception here -- a row whose test has not been written yet cites a file
+  /// that is SUPPOSED not to exist, and this repository's commit gate checks
+  /// for the opposite case.
+  #[allow(clippy::too_many_arguments)]
+  pub fn at_new(
+    &mut self,
+    st: &str,
+    at: &str,
+    kind: AtKind,
+    file: Option<String>,
+    prose: Option<String>,
+    covers: Vec<String>,
+    status: AtStatus,
+  ) -> Result<Outcome, FacadeError> {
+    let row = AcceptanceTest {
+      id: at.to_string(),
+      kind,
+      file,
+      prose,
+      covers,
+      status,
+      note: None,
+      legacy: None,
+    };
+
+    // The prospective thread: what canon WOULD hold if this write landed. The
+    // contract is asked about that, so a refusal costs nothing and a pass is a
+    // statement about the row being created rather than about the one before it.
+    let mut prospective = self.st_show(st)?.clone();
+    match prospective.tests.iter_mut().find(|t| t.id == row.id) {
+      Some(existing) => *existing = row.clone(),
+      None => prospective.tests.push(row.clone()),
+    }
+    prospective.tests.sort_by(|a, b| a.id.cmp(&b.id));
+    let report = contract::contract_report(
+      &prospective,
+      None,
+      &contract::RepoFiles(self.project.root()),
+    );
+    // NARROWED TO THE ROW BEING WRITTEN, and the narrowing is the point rather
+    // than politeness: a thread carrying a pre-existing finding elsewhere would
+    // otherwise make every create on it impossible, and a verb that refuses on
+    // somebody else's defect is one nobody can use. Inherited breakage is
+    // `at lint`'s to report, not this verb's to block on.
+    let mine: Vec<&String> = report.findings.iter().filter(|f| f.contains(at)).collect();
+    if !mine.is_empty() {
+      return Err(FacadeError::WriteNotAddressable {
+        url: format!("intent:///threads/{st}/at/{at}"),
+        why: format!(
+          "the row would not satisfy the acceptance-test contract: {}",
+          mine
+            .iter()
+            .map(|f| f.as_str())
+            .collect::<Vec<_>>()
+            .join("; ")
+        ),
+      });
+    }
+
+    let body = serde_json::to_string(&row).map_err(|e| FacadeError::WriteNotAddressable {
+      url: format!("intent:///threads/{st}/at/{at}"),
+      why: format!("the acceptance test could not be serialised: {e}"),
+    })?;
+    self.put(
+      &Address {
+        authority: None,
+        entity: AddrEntity::At {
+          thread: st.to_string(),
+          at: at.to_string(),
+        },
+        format: None,
+      },
+      &body,
+    )
+  }
+
   pub fn ac_satisfy(&mut self, st: &str, ac: &str, evidence: &str) -> Result<Outcome, FacadeError> {
     let criterion = self.criterion(st, ac)?;
     if criterion.kind != AcKind::NonTest {
