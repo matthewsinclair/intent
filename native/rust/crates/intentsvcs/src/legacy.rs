@@ -1292,11 +1292,24 @@ fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)>
 
   let subject = rest.split(" -- ").next().unwrap_or("").trim();
   let non_test = subject.starts_with("(non-test)");
-  let file = subject.trim_matches('`').to_string();
+  let cited = subject.trim_matches('`');
   // The 0017 reference rules: a test file has at least one `/` and no `:`.
   // A reference failing them is a legacy citation, and it is CARRIED whole
   // rather than reshaped into something that satisfies the grammar.
-  let is_path = !non_test && file.contains('/') && !file.contains(':');
+  //
+  // **CLASSIFIED ON THE WHOLE CITATION, BEFORE ANY SPLIT.** Deciding first and
+  // splitting second keeps this verdict exactly what it is today: a subject
+  // like `foo (bar/baz)` carries its only `/` inside the annotation, so
+  // splitting first would flip it from path to legacy and reclassify a row the
+  // change is not about.
+  let is_path = !non_test && cited.contains('/') && !cited.contains(':');
+  // A legacy reference is carried whole, per the rule directly above; only a
+  // real path citation is separated from the words the author wrote after it.
+  let (cite, annotation) = match is_path {
+    true => split_citation(cited),
+    false => (cited, None),
+  };
+  let file = cite.to_string();
 
   let test = AcceptanceTest {
     id: id.to_string(),
@@ -1316,7 +1329,10 @@ fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)>
     // association and lands on the wrong one half the time. The note is where
     // this belongs: the row grammar already has a slot for unkeyed prose, and
     // the qualifier is prose that was written into the id slot.
-    note: with_qualifiers(note(rest), &qualifiers),
+    note: with_qualifiers(
+      append_note(note(rest), annotation.unwrap_or("")),
+      &qualifiers,
+    ),
     legacy: (!non_test && !is_path && !file.is_empty())
       .then(|| crate::model::Legacy { raw: file.clone() }),
   };
@@ -1347,10 +1363,7 @@ fn with_qualifiers(note: Option<String>, qualifiers: &[(String, String)]) -> Opt
     .map(|(id, q)| format!("{id}: {q}"))
     .collect::<Vec<_>>()
     .join(" -- ");
-  Some(match note {
-    Some(existing) if !existing.trim().is_empty() => format!("{existing} -- {folded}"),
-    _ => folded,
-  })
+  append_note(note, &folded)
 }
 
 /// The covered AC ids: ` -- covers AC-01.2, AC-01.3 -- ...`.
@@ -1937,6 +1950,62 @@ fn conflict_marker_line(text: &str) -> Option<u32> {
     .enumerate()
     .find(|(_, l)| l.starts_with("<<<<<<< ") || l.starts_with(">>>>>>> ") || *l == "=======")
     .map(|(i, _)| (i + 1) as u32)
+}
+
+/// Split a path citation from a trailing annotation the author wrote after it.
+///
+/// **A CITATION AND THE WORDS AFTER IT ARE TWO THINGS, AND READING THEM AS ONE
+/// STORES A PATH NO FILESYSTEM HAS.** `test/cdsync.bats (whole suite, 328
+/// tests)` went into `file` entire, so canon asserted a test file whose name
+/// ends in `328 tests)`. It is the same defect as `field()`'s unbounded cut one
+/// field over: a separator that is also ordinary prose, read as structure.
+///
+/// The citation ends at the FIRST of two marks, whichever comes sooner:
+///
+/// - **` (`** -- a space then an open paren. The space matters: `each_utility()
+///   lists ...` is a test NAME, not a path with an annotation, and cutting at a
+///   bare `(` would behead it.
+/// - **a backtick** -- the author closed the citation and kept writing. Prolix
+///   spells it `` `native/ios/ProlixTests` (whole target, via `bin/prolix test
+///   swift`)` ``, where the outer pair is unbalanced; `trim_matches` takes the
+///   ends and leaves the closing backtick mid-string, which is exactly the mark
+///   we want.
+///
+/// **NOTHING IS DROPPED.** The annotation goes into the row's note verbatim, so
+/// the author's words survive in the model even though they leave `file`.
+/// **WIDENS WHAT PARSES, NEVER WHAT DEFAULTS**: a citation with neither mark --
+/// every plain path in the estate, which is the overwhelming majority -- comes
+/// back unchanged with no annotation, so the common row is untouched.
+fn split_citation(cited: &str) -> (&str, Option<&str>) {
+  let cut = [cited.find(" ("), cited.find('`')]
+    .into_iter()
+    .flatten()
+    .min();
+  match cut {
+    None => (cited, None),
+    Some(i) => {
+      let annotation = cited[i..].trim_start_matches('`').trim();
+      (
+        cited[..i].trim_end(),
+        (!annotation.is_empty()).then_some(annotation),
+      )
+    }
+  }
+}
+
+/// Append one piece of prose to a note, keeping whatever was already there.
+///
+/// **One home for the join**, because two callers now need it -- the covers
+/// qualifiers and a citation's trailing annotation -- and a second copy is how
+/// the two spellings drift apart.
+fn append_note(note: Option<String>, extra: &str) -> Option<String> {
+  if extra.trim().is_empty() {
+    return note;
+  }
+  Some(match note {
+    Some(existing) if !existing.trim().is_empty() => format!("{existing} -- {extra}"),
+    _ => extra.to_string(),
+  })
 }
 
 #[cfg(test)]

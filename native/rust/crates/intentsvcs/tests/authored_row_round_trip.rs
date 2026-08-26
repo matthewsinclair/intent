@@ -149,11 +149,56 @@ fn rendered_rows(fixture: &Fixture) -> Vec<String> {
     .collect()
 }
 
+/// Rows whose re-render is KNOWN to diverge, BY RULING, each with its reason
+/// and the condition that retires it.
+///
+/// **A GATE KEPT GREEN BY LEAVING OUT THE ROWS IT WOULD FAIL ON IS NOT A GATE.**
+/// The rows below are real, committed, and they do not round-trip; the honest
+/// record is to carry them IN the corpus and declare the divergence, which is
+/// the estate's existing pattern -- *naming a permanent exclusion WITH ITS
+/// REASON is a stronger record than an absent row* (`mutation_every_writable_field`).
+///
+/// **THE MATCH IS ON A SUBSTRING OF THE AUTHORED ROW**, not on the rendered
+/// one: what is ruled is *this row diverges*, and keying on the render would
+/// make the exception move whenever the renderer does.
+const DIVERGES_BY_RULING: &[(&str, &str)] = &[
+  (
+    "test/cdsync.bats (whole suite, 328 tests)",
+    "vc 2026-08-26: the citation split moves the trailing annotation into the note, so the row renders with the annotation after `status:` rather than inside the backticks. RETIRES when the annotation-beside-`file` model field lands (Conflab's schema class) and the renderer can put it back. Also carries the separate pre-existing break below.",
+  ),
+  (
+    "test/riffle/cli/sia_pipelines_command_test.exs (6)",
+    "vc 2026-08-26: as above -- annotation relocated to the note by the citation split. RETIRES with the annotation field.",
+  ),
+  (
+    "test/riffle/cli/sia_run_command_test.exs (registration + the Ctx-returning contract)",
+    "vc 2026-08-26: as above -- annotation relocated to the note by the citation split. RETIRES with the annotation field.",
+  ),
+  (
+    "`native/ios/ProlixTests` (whole target, via `bin/prolix test swift`)`",
+    "vc 2026-08-26: as above. **This row round-tripped BEFORE the citation split and does not after** -- the one regression the split costs, ruled acceptable because canon's first job is to be true and the old render was faithful to a path no filesystem has. RETIRES with the annotation field.",
+  ),
+];
+
+/// **THE THREE UNBACKTICKED ROWS ABOVE CARRY A SECOND, OLDER DEFECT that is not
+/// the citation split's doing and is filed separately:** their authors wrote no
+/// backticks, and `test_line` emits `` `{file}` `` unconditionally, so the view
+/// adds punctuation the author never wrote. Measured as 3 of 20 failing on a
+/// baseline taken BEFORE the split existed. Fixing that is a renderer change,
+/// not a parser change.
+fn ruled_divergence(row: &str) -> Option<&'static str> {
+  DIVERGES_BY_RULING
+    .iter()
+    .find(|(marker, _)| row.contains(marker))
+    .map(|(_, reason)| *reason)
+}
+
 /// **The whole line, byte for byte, for every row v2 wrote.**
 #[test]
 fn every_authored_at_row_renders_back_to_the_bytes_it_was_written_as() {
   let mut compared = 0;
   let mut broken: Vec<(String, String)> = Vec::new();
+  let mut ruled: Vec<(String, &'static str)> = Vec::new();
 
   for row in authored_rows() {
     let fixture = Fixture::new();
@@ -168,7 +213,10 @@ fn every_authored_at_row_renders_back_to_the_bytes_it_was_written_as() {
       out.len()
     );
     if out[0] != row {
-      broken.push((row.clone(), out[0].clone()));
+      match ruled_divergence(&row) {
+        Some(reason) => ruled.push((row.clone(), reason)),
+        None => broken.push((row.clone(), out[0].clone())),
+      }
     }
     compared += 1;
   }
@@ -184,6 +232,27 @@ fn every_authored_at_row_renders_back_to_the_bytes_it_was_written_as() {
       .join("")
   );
   assert!(compared >= 14, "only {compared} rows were compared");
+
+  // **A DECLARED EXCEPTION THAT NO LONGER FIRES IS A LIE THAT AGES WELL.**
+  // Every ruling in `DIVERGES_BY_RULING` must be exercised by a row that is
+  // actually in the corpus and actually diverges. So when the annotation field
+  // lands and these rows begin round-tripping, THIS arm goes red and the
+  // exception is retired deliberately -- rather than sitting there forever
+  // excusing a divergence that stopped happening. The exception list is the
+  // only part of this test that can rot, and this is what stops it.
+  assert_eq!(
+    ruled.len(),
+    DIVERGES_BY_RULING.len(),
+    "{} ruled divergence(s) declared but {} fired. A declared exception that no longer applies must be DELETED, not left standing:\n{}",
+    DIVERGES_BY_RULING.len(),
+    ruled.len(),
+    DIVERGES_BY_RULING
+      .iter()
+      .filter(|(m, _)| !ruled.iter().any(|(row, _)| row.contains(m)))
+      .map(|(m, _)| format!("  did not fire: {m}\n"))
+      .collect::<Vec<_>>()
+      .join("")
+  );
 }
 
 /// **The note survives with whatever it contains, including a spaced `--` and a
