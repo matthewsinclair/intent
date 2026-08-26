@@ -228,7 +228,7 @@ _is_pending_backport() {
 # is the guard working: a single-tree landing became visible immediately
 # instead of silently reaching nobody. The fix was to declare the intent, not
 # to widen the walk.
-V3_ONLY_BY_RULING="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md intent/plugins/claude/skills/in-essentials/SKILL.md lib/templates/.claude/scripts/require-in-session.sh lib/templates/hooks/canon-ignore-guard.sh lib/templates/prime/operational-knowledge.md lib/templates/_treeindexignore"
+V3_ONLY_BY_RULING="lib/templates/llm/_RULES.md lib/templates/llm/_ARCHITECTURE.md intent/plugins/claude/skills/in-essentials/SKILL.md lib/templates/.claude/scripts/require-in-session.sh lib/templates/hooks/canon-ignore-guard.sh lib/templates/prime/operational-knowledge.md lib/templates/_treeindexignore intent/plugins/claude/skills/in-author-essentials/SKILL.md intent/plugins/claude/skills/in-content-essentials/SKILL.md"
 _is_v3_only_by_ruling() {
   case "$1" in
     # hv 2026-08-24: v3 restores the agnostic pair, rewritten. Intentv2 frozen.
@@ -252,6 +252,17 @@ _is_v3_only_by_ruling() {
     # ruling and the dependency are; v2 has no reason to carry either. It goes
     # when bin/ goes, and this row goes with it.
     lib/templates/_treeindexignore) return 0 ;;
+    # hv 2026-08-26, first-hand to vc, ruling the v3.0.0 cut's own abort on
+    # this test: DECLARE V3-ONLY. The one sentence that differs describes what
+    # `intent lang init` DOES in the tree that ships the skill: v2 installs
+    # per-language canon (`bin/intent_lang:293` writes `RULES-<lang>.md`, dc
+    # drove it); v3 retired per-language canon files for tool-served rules
+    # (cc, b60f9ebb) and installs nothing. Carrying v3's sentence into v2 would
+    # make v2's skill lie about v2; pending-backport would be stale at birth
+    # because Intentv2 is frozen. Found by this guard at the cut (1147 of
+    # 1480), declared rather than skipped (vc).
+    intent/plugins/claude/skills/in-author-essentials/SKILL.md) return 0 ;;
+    intent/plugins/claude/skills/in-content-essentials/SKILL.md) return 0 ;;
     *) return 1 ;;
   esac
 }
