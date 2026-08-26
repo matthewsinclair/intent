@@ -85,8 +85,12 @@ KC_PREFIX="intent.apple"
 # the gate's guard path comes back unresolvable. **Every consumer project would
 # silently lose its session hooks and both whiteboard guards.**
 #
-# THE TARBALL'S ROOT IS THE INSTALL ROOT, not the templates directory, and that is
-# the one design decision here worth defending. It contains `lib/templates/...`
+# THE TARBALL'S ROOT IS THE INSTALL ROOT, one level under a wrapper directory,
+# and that is the one design decision here worth defending. **The wrapper is not
+# decoration -- see SUPPORT_PREFIX. Without it this archive installs to the wrong
+# depth and the install cannot find itself, which is the exact failure the
+# paragraph above says the archive exists to prevent. Measured on the first real
+# brew install, 2026-08-26.** It contains `lib/templates/...`
 # rather than `templates/...`, so the formula's install line is "put everything in
 # this archive into libexec" rather than "put templates in libexec/lib". Two
 # unimplemented commands -- `intent critic` and `intent claude rules`, both exit 2
@@ -110,6 +114,35 @@ SUPPORT_ASSET="intent-support.tar.gz"
 # shipped script references outside its own tree is `$INTENT_HOME_RESOLVED`, which
 # is resolved at runtime and points back here.
 SUPPORT_PATHS="lib/templates"
+
+# THE WRAPPER DIRECTORY, AND IT EXISTS BECAUSE HOMEBREW UNPACKS WITH A HEURISTIC.
+#
+# `resource.stage` STRIPS A SINGLE TOP-LEVEL DIRECTORY before running the install
+# block -- the standard "unwrap the release tarball" behaviour, applied when the
+# unpacked archive has exactly ONE top-level entry and it is a directory.
+#
+# MEASURED, NOT READ: rooted at `lib/templates/...` this archive's only top-level
+# entry was `lib`. Brew stripped it, staged `templates/`, and the tree landed at
+# `libexec/templates` -- one level short of the `lib/templates` marker that
+# `install::home` walks for. Every file shipped correctly and NOTHING could reach
+# them: `intent --version` answered perfectly, `intent info` printed
+# `INTENT_HOME: <not set>`, and every hook refused at exit 1. **rc=1 is the code
+# Claude Code does not block on and the code eleven vendored devbin estates fail
+# OPEN on, so a fleet on that install loses every session hook and five guards per
+# estate with every commit still succeeding.**
+#
+# The wrapper makes the strip DETERMINISTIC INSTEAD OF INCIDENTAL. There is always
+# exactly one top-level entry, brew always removes exactly the wrapper, and what
+# is staged is always the install root.
+#
+# WHY NOT THE ONE-LINE FORMULA FIX. `(libexec/"lib").install Dir["*"]` corrects
+# today's layout and is wrong for the change already planned: when `intent critic`
+# and `intent claude rules` land they need the rule library at
+# `intent/plugins/claude/rules/`, OUTSIDE this marker directory, and that second
+# tree would land under `libexec/lib/intent/`. The fragile fix and the robust fix
+# are the same size; only one survives growth. The formula line stays
+# "install whatever the archive carries".
+SUPPORT_PREFIX="intent-support"
 
 # WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Two repositories,
 # by hv's ruling of 2026-08-15 (D40): artefacts live on the source repo's own
@@ -284,7 +317,8 @@ support_tree_drift() {
   [ -f "$archive" ] || { printf 'no archive at %s' "$archive"; return 0; }
   comm -3 \
     <(cd "$ROOT" && find $SUPPORT_PATHS -type f ! -name '.DS_Store' | sort) \
-    <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' | sort) |
+    <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' |
+      sed "s#^$SUPPORT_PREFIX/##" | sort) |
     sed -e 's/^\t/       > /' -e 's/^\([^ \t]\)/       < \1/'
 }
 
@@ -823,7 +857,8 @@ cmd_stage() {
   # has been looked at in, and a release artefact whose bytes depend on whether
   # somebody opened a window is not a release artefact.
   step "staging the support tree"
-  tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" --exclude '.DS_Store' $SUPPORT_PATHS ||
+  tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" -s "#^#$SUPPORT_PREFIX/#" \
+    --exclude '.DS_Store' $SUPPORT_PATHS ||
     die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS"
   printf '    %-34s <- %s\n' "$SUPPORT_ASSET" "$SUPPORT_PATHS"
 
@@ -845,6 +880,18 @@ $drift
        archive and not in the source tree."
   printf '    %-34s matches %s exactly (%s files)\n' "" "$SUPPORT_PATHS" \
     "$(tar -tzf "$STAGE_DIR/$SUPPORT_ASSET" | grep -cv '/$')"
+
+  # EXACTLY ONE TOP-LEVEL ENTRY, AND IT IS THE WRAPPER. This is the property
+  # Homebrew's unpack heuristic keys on, and the drift check above cannot see it:
+  # drift compares FILE SETS, and today's defect shipped a perfect file set at the
+  # wrong depth. Two top-level entries and brew stops stripping; the wrong single
+  # entry and it strips the wrong thing. Either way the marker lands at a depth
+  # `install::home` does not walk, and NOTHING about the install looks wrong.
+  local tops
+  tops="$(tar -tzf "$STAGE_DIR/$SUPPORT_ASSET" | awk -F/ 'NF { print $1 }' | sort -u)"
+  [ "$tops" = "$SUPPORT_PREFIX" ] ||
+    die "$SUPPORT_ASSET must have exactly one top-level entry ('$SUPPORT_PREFIX') so Homebrew's single-directory strip lands the install root -- it has: $(printf '%s' "$tops" | tr '\n' ' ')"
+  printf '    %-34s single top-level entry %s/ (Homebrew strips exactly this)\n' "" "$SUPPORT_PREFIX"
 
   printf '\n'
   ok
@@ -1049,8 +1096,28 @@ require_sums() {
 # block pass by construction rather than by coincidence.
 staged_version() {
   local v
-  v="$("$STAGE_DIR/intent-$(host_triple)" --version 2>/dev/null | sed -n 's/^intent //p')"
+  # THE VERSION TOKEN ONLY. `--version` prints `intent <version> (<commit>)`, and
+  # the provenance suffix is NOT part of the version. Taking everything after
+  # `intent ` put `3.0.0-dev (4c5babdf...)` into `version`, into RELEASE_VERSION,
+  # and therefore into every download URL -- a URL carrying a space and two
+  # parentheses, inside a formula that was otherwise perfectly well-formed and
+  # linted clean. Nothing about the output looked wrong.
+  #
+  # FOUND ON THE FIRST END-TO-END RUN, which is precisely what the cmd_formula
+  # header predicted would happen to this path: "this path has no end-to-end
+  # test, and refactoring an unexercised artefact for elegance is how the first
+  # real run finds something new". It found something new.
+  v="$("$STAGE_DIR/intent-$(host_triple)" --version 2>/dev/null | sed -n 's/^intent \([^ ]*\).*/\1/p')"
   [ -n "$v" ] || die "could not read a version from the staged intent binary"
+  # A VERSION THAT CANNOT SIT IN A URL IS A BROKEN FORMULA, and it does not break
+  # for us -- it breaks for every `brew install`, against a formula already
+  # published. Refuse where the harm is, the same rule that keeps the dev-version
+  # refusal in `publish`.
+  case "$v" in
+    *[!A-Za-z0-9.+_-]*)
+      die "the staged binary reports a version that is not URL-safe: '$v' -- the formula's download URLs are built from it"
+      ;;
+  esac
   printf '%s' "$v"
 }
 
