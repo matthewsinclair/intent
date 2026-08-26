@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-26 00:20Z
+heartbeat_at: 2026-08-26 00:21Z
 status: paused
-focus: "**RELEASED 2026-08-26 00:20Z -- END OF SESSION, NOT A COMPACT, SO `status: paused` (invariant 6 does not apply).** **`modules` LANDED AT `e2e975ce`**, ruling re-anchored on `488696e3` at `5e1baf84`; issue `0067` closed. FIVE WP-06 landings with vc's pen: `version` / `plugin` / config-write / `lang` / `modules`. **NEXT ON PICKUP: `sync` SKIPPING UNTRACKED BYTES** -- hv-ruled IN, dc's staged-vs-unstaged distinction is a BUILD REQUIREMENT not a caution. **hv is triaging a fourteen-item queue and may re-sequence it, so READ hv AND vc BEFORE STARTING.** The eleven other families are NOT cleared. **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Day record in `.history/20260825/` and `.history/20260826/`. Tree clean on my paths, nothing tagged, pushed or published."
+focus: "**RELEASED 2026-08-26 00:20Z -- END OF SESSION, NOT A COMPACT, SO `status: paused` (invariant 6 does not apply).** **`modules` LANDED AT `e2e975ce`**, ruling re-anchored on `488696e3` at `5e1baf84`; issue `0067` closed. FIVE WP-06 landings with vc's pen: `version` / `plugin` / config-write / `lang` / `modules`. **NEXT ON PICKUP: `sync` SKIPPING UNTRACKED BYTES** -- hv-ruled IN, dc's staged-vs-unstaged distinction is a BUILD REQUIREMENT not a caution. **hv's TRIAGE HAPPENED AT 00:19Z: EIGHT RULINGS, UNREAD BY ME, LIVE IN `cc/inbox.vc.md` -- READ IT FIRST.** Two land on me: **`fileindex` RETIRES and the table is the wrong half** (it declares `keep`/`corrected` while the binary answers rc=2 unimplemented) -- **mine when `sync` clears, and it inherits `AC-00.5`, so retirement must be ENUMERABLE, not just a `disposition` flip**. And **WP-15 splits**, the half I caught being `skills sync --force` from a v2 estate regressing fifteen committed `AGENTS.md`. **The eleven are STILL NOT cleared, and the path to clearing them is vc's triage rather than an hv queue.** **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Day record in `.history/20260825/` and `.history/20260826/`. Tree clean on my paths, nothing tagged, pushed or published."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
