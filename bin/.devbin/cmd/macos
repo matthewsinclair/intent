@@ -108,12 +108,30 @@ KC_PREFIX="intent.apple"
 # unclassified artefact is now a refusal rather than a default.
 SUPPORT_ASSET="intent-support.tar.gz"
 
-# What the support tree is built from. Relative to $ROOT, and it is the marker
-# directory itself rather than a parent, because everything the shipped consumers
-# reach into is under it -- verified rather than assumed: the only path any
-# shipped script references outside its own tree is `$INTENT_HOME_RESOLVED`, which
-# is resolved at runtime and points back here.
-SUPPORT_PATHS="lib/templates"
+# THE ONE HOME for what the support tree carries. Relative to $ROOT. Every path
+# v3 resolves against its install root is either here or comes from the binaries
+# themselves, and `support_paths_coverage` below holds that sentence to the
+# source rather than to this comment.
+#
+# THIS LIST WAS `lib/templates` ALONE UNTIL 2026-08-26, AND THE COMMENT THAT KEPT
+# IT THAT WAY WAS NOT LAZY -- IT WAS VERIFIED AGAINST THE WRONG POPULATION. It
+# read: "everything the shipped consumers reach into is under it -- verified
+# rather than assumed: the only path any shipped SCRIPT references outside its
+# own tree is `$INTENT_HOME_RESOLVED`". That verification was real and correct
+# for shipped scripts. The rules and skills trees are read by the RUST BINARY,
+# which was never in the population -- so the check could not have failed, and
+# the words `verified rather than assumed` are exactly why nobody looked again.
+#
+# What it cost: the 3.0.0 keg shipped no rule library and no skills tree, so on
+# every project running it `intent critic <lang> --staged` armed 0 of 0 rules,
+# printed `ok` and exited 0, and the pre-commit hook branched on that rc
+# correctly and passed. Found by devbin/vc as a PACKAGING gap rather than a
+# resolver fault, which is the call that pointed here instead of into the rules
+# loader; located to this line by vc; resolver enumerated by dc.
+#
+# A RECORDED VERIFICATION MUST NAME ITS POPULATION, or the next reader inherits
+# the confidence without the scope.
+SUPPORT_PATHS="lib/templates intent/plugins/claude/rules intent/plugins/claude/skills"
 
 # THE WRAPPER DIRECTORY, AND IT EXISTS BECAUSE HOMEBREW UNPACKS WITH A HEURISTIC.
 #
@@ -320,6 +338,55 @@ support_tree_drift() {
     <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' |
       sed "s#^$SUPPORT_PREFIX/##" | sort) |
     sed -e 's/^\t/       > /' -e 's/^\([^ \t]\)/       < \1/'
+}
+
+# What the BINARIES put in the install root, as opposed to the support tarball.
+# The formula installs these directly, so the copy list must not be expected to
+# carry them and the coverage check below must not demand it.
+INSTALL_BINARY_PATHS="bin"
+
+# support_paths_coverage -- paths v3 resolves against its install root that
+# SUPPORT_PATHS does not ship. Empty output means the copy list covers its
+# consumer.
+#
+# THE CHECK ONE LEVEL UP FROM `support_tree_drift`, AND THE LEVEL THE 3.0.0
+# DEFECT LIVED AT. That one asks "does the ARCHIVE match the COPY LIST", and it
+# was green and correct throughout while the copy list was missing two of the
+# three trees the binary resolves. Nothing compared the copy list to the thing
+# that reads it, so the archive faithfully carried an incomplete answer.
+#
+# POPULATION, NAMED, BECAUSE NAMING IT IS THE WHOLE LESSON OF THE DEFECT: `src/`
+# only. A `tests/` join builds a FIXTURE install root -- `skills_sync.rs` mkdirs
+# two of these paths in a tempdir -- so a fixture path is not a shipping
+# requirement, and reading tests here would refuse a release over a temp dir.
+#
+# COVERED means a path-boundary prefix in EITHER direction, and both directions
+# are load-bearing. An entry that is a PARENT of the literal ships it, so
+# `lib/templates` covers `canon.rs`'s `lib/templates/hooks/pre-commit.sh`. A
+# literal that is a parent of an ENTRY exists because its children ship, so
+# `plugins.rs`'s `intent/plugins` needs nothing of its own. A new sibling tree
+# is neither, which is exactly the case this exists to catch.
+support_paths_coverage() {
+  local src="$ROOT/native/rust/crates" lit entry covered out=""
+  [ -d "$src" ] || { printf '       < no rust source at %s\n' "$src"; return 0; }
+  # THE WHOLE CHAIN, NOT THE FIRST LINK. `plugins.rs` writes
+  # `install.join("intent").join("plugins")`, and a pattern that stops at the
+  # first `.join(...)` reads that as `intent` -- which is covered by any entry
+  # under `intent/`, so a chained NEW tree would pass while its first segment
+  # carried it. Found by driving the positive control below, not by reading.
+  for lit in $(find "$src" -path '*/src/*' -name '*.rs' -exec \
+      grep -hoE '(install|install_root|home)(\.join\("[^"]+"\))+' {} + 2>/dev/null |
+      sed -E -e 's/^(install|install_root|home)//' -e 's/\.join\("/\//g' \
+             -e 's/"\)//g' -e 's#^/##' | sort -u); do
+    covered=""
+    for entry in $SUPPORT_PATHS $INSTALL_BINARY_PATHS; do
+      case "$lit/" in "$entry"/*) covered=y ;; esac
+      case "$entry/" in "$lit"/*) covered=y ;; esac
+    done
+    [ -n "$covered" ] || out="$out       < $lit
+"
+  done
+  printf '%s' "$out"
 }
 
 # provenance_blockers <root> -- the reasons this tree cannot produce a release
@@ -857,6 +924,21 @@ cmd_stage() {
   # has been looked at in, and a release artefact whose bytes depend on whether
   # somebody opened a window is not a release artefact.
   step "staging the support tree"
+
+  # REFUSE BEFORE BUILDING, because the archive cannot report what the copy list
+  # never asked for. `support_tree_drift` below proves the archive matches
+  # SUPPORT_PATHS and stayed green through the whole of 3.0.0 while SUPPORT_PATHS
+  # was missing two of the three trees the binary resolves. This is the arm that
+  # reads the CONSUMER.
+  local uncovered
+  uncovered="$(support_paths_coverage)"
+  [ -z "$uncovered" ] || die "v3 resolves paths under its install root that $SUPPORT_ASSET would not carry:
+$uncovered
+       Add them to SUPPORT_PATHS, or to INSTALL_BINARY_PATHS if the formula
+       installs them directly. Shipping without them is what put a keg with no
+       rule library on the fleet: every critic gate armed 0 of 0 and passed."
+  printf '    %-34s %s\n' "resolver coverage" "every install-root path v3 reads is carried"
+
   tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" -s "#^#$SUPPORT_PREFIX/#" \
     --exclude '.DS_Store' $SUPPORT_PATHS ||
     die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS"
@@ -1583,6 +1665,194 @@ bytes a user actually receives.
   printf '    brew install %s/intent\n' "$BREW_TAP"
 }
 
+# smoke -- the only check whose subject is the INSTALLED KEG.
+#
+# WHY IT IS NOT `brew test`. The formula carries a `test do` asserting exactly
+# the thing that shipped broken, and `brew install` never runs it. `brew test`
+# on an UNLINKED keg returns `not linked` and cannot gate a flip (vc's ruling),
+# so this drives `$KEG/bin/intent` directly.
+#
+# WHY IT IS NOT DESTRUCTIVE BY DEFAULT, WHICH IS A CHANGE FROM ITS REGISTRATION.
+# The row says "installs cold from the tap"; on this machine that would
+# `brew uninstall` the binary FIVE CONCURRENT SESSIONS ARE USING, mid-run, to
+# test it. A check that breaks the estate to prove the estate works is not a
+# check. So the cold install is `--reinstall`, opt-in and announced, and the
+# default asserts against whatever keg is installed. What that costs is stated
+# rather than hidden: without `--reinstall` this cannot tell a cold network
+# install from a cache-preseeded one, and the preseed is precisely what hid the
+# 644 defect -- so the default proves the keg on disk is good and says nothing
+# about how it got there.
+# COUNT THE FAILURES, NEVER THE LINES. The first version reported
+# `grep -c '^'` over the accumulated text and said "fails 6 check(s)" while
+# listing 3 -- one message carried the multi-line output of the command it was
+# reporting on. A miscount reads exactly as authoritative as a correct one.
+smoke_fail() {
+  SMOKE_FAIL_COUNT=$((SMOKE_FAIL_COUNT + 1))
+  SMOKE_FAILURES="$SMOKE_FAILURES       - $1
+"
+  printf '    %-46s FAIL\n' "$2"
+}
+
+smoke_ok() { printf '    %-46s ok\n' "$1"; }
+
+cmd_smoke() {
+  local reinstall=0 keg_override=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --reinstall) reinstall=1 ;;
+      # `--keg <dir>` EXISTS SO THE GREEN PATH CAN BE DRIVEN WITHOUT A RELEASE,
+      # following this file's own precedent for `unclassified_artefacts`: a
+      # check whose first exercise is a release is one nobody has tested. It is
+      # also the only way to prove the green path on a shared machine -- the
+      # alternative is copying trees into the LIVE keg, which would fix the
+      # fleet's critic gates by hand and leave the keg silently disagreeing with
+      # what its formula installs. That is the drift class, not a repair.
+      --keg) shift; keg_override="${1:-}"
+        [ -n "$keg_override" ] || die "--keg needs a directory" ;;
+      *) die "unknown smoke option: $1 (only --reinstall, --keg <dir>)" ;;
+    esac
+    shift
+  done
+
+  SMOKE_FAILURES=""
+  SMOKE_FAIL_COUNT=0
+  local keg libexec bin_intent bin_daemon out rc tmp mode f h
+
+  if [ "$reinstall" -eq 1 ]; then
+    step "reinstalling cold from the tap -- THIS UNLINKS THE BINARY OTHER SESSIONS ARE USING"
+    brew uninstall --force intent >/dev/null 2>&1 || true
+    brew untap "$BREW_TAP" >/dev/null 2>&1 || true
+    rm -rf "$(brew --cache)"/downloads/*intent* 2>/dev/null || true
+    brew tap "$BREW_TAP" >/dev/null 2>&1 || die "could not tap $BREW_TAP"
+    brew install "$BREW_TAP/intent" >/dev/null 2>&1 ||
+      die "brew install failed -- and note it EXITS 0 on the defect this exists to catch, so a failure here is something else"
+  fi
+
+  step "the installed keg"
+  # Every capture below is `|| true`-guarded or tested. THE FILE IS
+  # `set -euo pipefail` (:60), so a bare assignment from a failing command
+  # ABORTS THE RUN -- and this function's arms are SUPPOSED to fail. Driven
+  # before it was noticed: the unknown-hook arm returned 1, set -e killed the
+  # run between the last passing arm and the verdict, and `int macos smoke`
+  # exited 1 having printed no failure list at all. A check that dies on its own
+  # failing arm reports exactly like one that passed everything before it.
+  keg=""
+  if [ -n "$keg_override" ]; then
+    keg="$keg_override"
+    printf '    %-46s %s\n' "SUBJECT OVERRIDDEN" "not the installed keg"
+  else
+    keg="$(brew --cellar intent 2>/dev/null || true)/$(brew list --versions intent 2>/dev/null | awk '{print $2}' || true)"
+  fi
+  [ -d "$keg" ] || die "no installed keg for intent -- 'brew install $BREW_TAP/intent' first, or pass --reinstall"
+  libexec="$keg/libexec"
+  bin_intent="$keg/bin/intent"
+  bin_daemon="$keg/bin/intentd"
+  printf '    %-46s %s\n' "keg" "$keg"
+
+  # ARM 1 -- THE DEFECT THIS COMMAND EXISTS FOR. Read `-x` back off the files
+  # rather than trusting the formula's chmod: the formula is regenerated every
+  # cut and the mode is lost in the network hop, so the only honest subject is
+  # the installed file.
+  step "the executable bit, read back off the installed files"
+  for f in "$bin_intent" "$bin_daemon"; do
+    if [ -x "$f" ]; then
+      smoke_ok "$(basename "$f") is executable"
+    else
+      mode="$(stat -f '%OLp' "$f" 2>/dev/null || true)"
+      smoke_fail "$f is mode ${mode:-unreadable} -- brew install succeeded and nothing in it runs" \
+        "$(basename "$f") is executable"
+    fi
+  done
+
+  # ARM 2 -- it runs at all, driven at the keg path, never through the symlink.
+  step "the binaries answer"
+  if out="$("$bin_intent" --version 2>&1)"; then
+    smoke_ok "intent --version -> $out"
+  else
+    smoke_fail "\$KEG/bin/intent --version failed: $out" "intent --version"
+  fi
+
+  # ARM 3 -- THE CLASS, NOT THE INSTANCE (vc's ruling). Every path v3 resolves
+  # against its install root must be present in the keg. Asserting only the
+  # tree we happen to have just fixed is how the SECOND missing tree ships.
+  step "every install-root path v3 resolves is present in the keg"
+  for p in $SUPPORT_PATHS $INSTALL_BINARY_PATHS; do
+    if [ -e "$libexec/$p" ]; then
+      smoke_ok "$p"
+    else
+      smoke_fail "$libexec/$p is absent -- the keg cannot serve what the binary resolves" "$p"
+    fi
+  done
+
+  # ARM 4 -- the rule library is not merely PRESENT but READABLE BY THE BINARY.
+  # Presence and arming are different claims and 3.0.0 could have failed either
+  # way; a directory that exists and yields zero rules gates nothing.
+  step "the rule library arms"
+  out="$("$bin_intent" claude rules list --lang shell 2>&1 || true)"
+  case "$out" in
+    *"total: 0 rule(s)"* | "")
+      smoke_fail "'claude rules list --lang shell' on the keg reports: $(printf '%s' "${out:-<nothing>}" | grep 'total:' || printf '%s' "${out:-<nothing>}" | tail -1)" "shell rules arm" ;;
+    *) smoke_ok "shell rules arm -- $(printf '%s' "$out" | tail -1)" ;;
+  esac
+
+  # ARM 5 -- INTENT_HOME lands on libexec, with a guard body under it. Driven
+  # from a directory that is not a checkout, because resolving correctly while
+  # standing inside the source tree proves nothing about a stranger's machine.
+  step "INTENT_HOME resolves onto libexec, from outside any checkout"
+  tmp="$(mktemp -d)"
+  out="$( (cd "$tmp" && "$bin_intent" info 2>&1 || true) | awk '/INTENT_HOME/ { print $2 }' || true)"
+  if [ "$out" = "$libexec" ]; then
+    smoke_ok "INTENT_HOME -> libexec"
+  else
+    smoke_fail "INTENT_HOME resolved to '${out:-<empty>}', not $libexec" "INTENT_HOME -> libexec"
+  fi
+  if [ -f "$libexec/lib/templates/hooks/pre-commit-guards.sh" ]; then
+    smoke_ok "pre-commit-guards.sh under INTENT_HOME"
+  else
+    smoke_fail "$libexec/lib/templates/hooks/pre-commit-guards.sh absent -- vendored estates fail open" \
+      "pre-commit-guards.sh under INTENT_HOME"
+  fi
+
+  # ARM 6 -- the four hooks answer 0 and an unknown one answers 1, NEVER 2.
+  # The names are the binary's, not Claude Code's lifecycle names: driving
+  # SessionStart/UserPromptSubmit/Stop returns rc=1 and reads as a failing arm
+  # when it is a wrong instrument (dc, measured 2026-08-26).
+  step "the session hooks"
+  for h in session-context require-in-session session-finish post-tool-advisory; do
+    rc=0
+    (cd "$tmp" && "$bin_intent" claude hook "$h" </dev/null >/dev/null 2>&1) || rc=$?
+    # `rc` captured on its own line rather than read inside the else branch:
+    # `$?` there is the condition's status and survives only until the next
+    # command, so a message that interpolates it is one edit from lying.
+    if [ "$rc" -eq 0 ]; then
+      smoke_ok "hook $h -> 0"
+    else
+      smoke_fail "hook $h returned $rc -- expected 0" "hook $h -> 0"
+    fi
+  done
+  rc=0
+  (cd "$tmp" && "$bin_intent" claude hook not-a-hook </dev/null >/dev/null 2>&1) || rc=$?
+  case "$rc" in
+    1) smoke_ok "unknown hook -> 1" ;;
+    2) smoke_fail "unknown hook returned 2, which the gate reads as 'fail open'" "unknown hook -> 1" ;;
+    *) smoke_fail "unknown hook returned $rc, expected 1" "unknown hook -> 1" ;;
+  esac
+  rm -rf "$tmp"
+
+  printf '\n'
+  if [ -n "$SMOKE_FAILURES" ]; then
+    die "the installed keg fails $SMOKE_FAIL_COUNT check(s):
+$SMOKE_FAILURES"
+  fi
+  printf 'smoke: the installed keg at %s answers every arm.\n' "$keg"
+  if [ "$reinstall" -eq 0 ]; then
+    printf '  SCOPE: this asserted the keg ON DISK. It did not install it, so it cannot\n'
+    printf '  distinguish a cold network install from a cache-preseeded one -- and the\n'
+    printf '  preseed is what hid the mode-644 defect. Use --reinstall for that claim,\n'
+    printf '  and expect it to unlink the binary other sessions are using.\n'
+  fi
+}
+
 cmd_store_creds() {
   printf 'Storing Apple notary credentials in the login Keychain under "%s.*".\n' "$KC_PREFIX"
   printf 'Nothing is written to this repository. Values are not echoed.\n\n'
@@ -1603,7 +1873,7 @@ cmd_store_creds() {
   printf '  Stored. Verify with: int macos doctor\n'
 }
 
-SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish env store-creds"
+SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish smoke env store-creds"
 
 usage() {
   cat <<'USAGE'
@@ -1633,6 +1903,13 @@ intent macos <subcommand>
                overwrite an existing release, and requires the tag to exist
                already -- tagging is the release cut's job, not this one's.
                `--dry-run` runs every check and publishes nothing.
+  smoke        Assert the INSTALLED KEG, which is the only subject that has been
+               through the network hop. Reads -x back off both binaries, checks
+               every install-root path v3 resolves is present, that the rule
+               library ARMS rather than merely existing, and drives INTENT_HOME
+               and the four hooks from outside any checkout. `--reinstall` does
+               the cold tap install first -- it unlinks the binary other
+               sessions are using, so it is opt-in.
   doctor       Preflight: identity present, a real test-sign, notary creds
   env          Print the resolved identity + which creds are present
   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
@@ -1652,6 +1929,7 @@ case "${1:-}" in
   prepare) cmd_prepare ;;
   formula) shift; cmd_formula "$@" ;;
   publish) shift; cmd_publish "${1:-}" ;;
+  smoke) shift; cmd_smoke "$@" ;;
   store-creds) cmd_store_creds ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
 esac

@@ -57,6 +57,16 @@ build_support_fixture() {
   ROOT="${TEST_TEMP_DIR}/root"
   STAGE_DIR="${TEST_TEMP_DIR}/dist"
   rm -rf "$ROOT" "$STAGE_DIR"
+  # THE FIXTURE'S TREES ARE DERIVED FROM $SUPPORT_PATHS, NEVER LISTED AGAIN
+  # HERE. When the copy list grew from one tree to three on 2026-08-26 this
+  # helper still mkdir'd `lib/templates` alone, `tar` failed with `Cannot stat`
+  # on the other two, and four arms went red. The arms were right and the
+  # fixture was the stale copy -- which is the same one-list-two-homes shape
+  # the copy list itself had just been fixed for. Empty dirs are enough: the
+  # drift check compares `find -type f`, so a directory with no files in it
+  # contributes nothing to either side.
+  local _p
+  for _p in $SUPPORT_PATHS; do mkdir -p "$ROOT/$_p"; done
   mkdir -p "$ROOT/lib/templates/hooks" "$ROOT/lib/templates/.claude/scripts" "$STAGE_DIR"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/whiteboard-clock-guard.sh"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/pre-commit.sh"
