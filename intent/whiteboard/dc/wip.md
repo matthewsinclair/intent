@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 16:15Z
+heartbeat_at: 2026-08-26 16:25Z
 status: active
-focus: "FOLDED 2026-08-26 16:15Z on hv's call, then holding. **ITEM (1) OF vc's 3.0.1 ORDER IS COMPLETE: 7456a158** -- one guarded release build in shared/releasebuild.lib called by both local build and build all, cli/daemon refusing a release build into the shared target, int cli picking the freshest binary and saying which, and the guard's arms 7+8 moved to follow the code in the same commit. **a0751d5c adds ARM 10, the entrance census**, which refuses any release-capable cargo invocation under bin/.devbin that is not cloned, redirected, refusing or the guarded path -- positive-controlled both ways. **hv has ruled 3.0.1 CUTS, forced not chosen.** WAITING ON: cc's parser sha and ic's runner-refusal sha from vc, then ONE rebuild. The cut waits on the re-conversions because 3.0.1 must be the binary the fleet's canon was made by. publish is hv's alone. Nothing of mine uncommitted."
+focus: "BOOTED 2026-08-26 16:25Z after compact, then holding on hv's word. **HALF OF MY TRIGGER IS ALREADY MET AND vc HAS NOT NAMED IT YET: cc's TWO PARSER SHAS ARE IN AND ARE ANCESTORS OF HEAD** -- e696de15 (empty-subject AT rows) and 80cb8509 (the AT-citation parenthetical), both landed BEFORE my 16:15Z fold, which is why my own bfa07975..HEAD range showed nothing and why I nearly reported them absent. **ic's RUNNER REFUSAL IS STILL UNCOMMITTED IN THE SHARED WORKTREE** (critic.rs modified, two test files untracked), and it is not alone: render.rs, intentfiles.rs and legacy.rs are dirty too. **SO A REBUILD RIGHT NOW WOULD BE A DIRTY BUILD, AND THE GUARD I BUILT IS THE THING THAT WOULD SAY SO.** **hv RULED WIDE (relayed vc 16:24Z): TWO guarded rebuilds tonight, not one** -- rebuild 1 on the parser+runner pair, then ic's dehydrate/preconditions and cc's emitter/ingest/prune land, rebuild 2 carries them, the sweep runs on that pair, and only THEN the cut. Nothing for me to build in the organise work; the release verbs and the cut are mine. publish is hv's alone. Nothing of mine uncommitted."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -36,7 +36,13 @@ claims: [ST0056/07, ST0056/11]
 
 ## DOING
 
-**NOTHING IN FLIGHT. WAITING ON TWO SHAS FROM vc** -- cc's parser fix (the AT/AC row loss) and ic's runner refusal -- **then ONE rebuild**, which is item (2) of vc's 3.0.1 order. Nothing of mine is queued ahead of it and nothing of mine is uncommitted.
+**NOTHING IN FLIGHT. HOLDING ON hv's WORD, TRIGGER HALF-MET.** Item (2) of vc's 3.0.1 order is one guarded rebuild on cc's parser sha plus ic's runner sha.
+
+- **cc's HALF IS DONE AND I CHECKED RATHER THAN WAITED TO BE TOLD:** `e696de15` (the grammar demanded a subject the row's own status says cannot exist) and `80cb8509` (the annotation after the path became part of the filename), both ancestors of HEAD. **They landed at 15:14 and 15:59 LOCAL, ie BEFORE my 16:15Z fold**, so `bfa07975..HEAD -- native/rust` came back empty and would have read as "cc has not landed". **A range whose lower bound is my own last commit cannot see work that predates it** -- the same wrong-population shape I have now hit three ways, this time on the axis of TIME rather than of files.
+- **ic's HALF IS NOT DONE: it is uncommitted in the shared worktree** -- `critic.rs` modified, `critic_refuses_an_empty_library{,_end_to_end}.rs` untracked. And it is not alone: `render.rs`, `intentfiles.rs`, `legacy.rs` and two further test files are dirty as well.
+- **THEREFORE A REBUILD FIRED NOW WOULD BE A DIRTY BUILD**, and `guarded_release_build` is exactly the thing that would refuse it. The wait is not deference to vc's sequencing; the tree itself is not in a state that can be built from.
+
+**hv RULED WIDE (relayed by vc, 16:24Z), AND IT CHANGES MY COUNT FROM ONE REBUILD TO TWO.** `organize --default --force` in 3.0.1 declares, realises, dehydrates the closed threads and prunes the v2 residue. Sequence: rebuild 1 on the parser+runner pair -> ic's dehydrate + preconditions and cc's emitter + ingest/prune land -> **rebuild 2 carries them** -> the sweep runs on every project against that pair -> `int build release v3.0.1` -> `prepare` -> `smoke` -> `publish` on hv's go. **Nothing for me to build in the organise work.** The release verbs and the cut are mine; `publish` is hv's alone.
 
 **hv RULED 3.0.1 CUTS (relayed by vc): forced, not chosen.** hv's own words to me earlier the same day were _not going to 3.0.1 yet ... unless something forces us to patch, in which case let's do it if we have to, but only begrudgingly_. What forced it: hop 2 silently drops whole WP tranches of AT rows across four projects, and the keg ships no rule library. **The cut waits on the re-conversions -- 3.0.1 must be the binary the fleet's canon was made by** (vc). `publish` remains hv's alone.
 
