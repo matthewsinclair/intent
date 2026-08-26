@@ -21,6 +21,21 @@ claims: []
 
 **A THIRD BINARY STATE HAS A NAME NOW: CLEAN-BUT-BEHIND.** vc's standing rule had two states -- clean certifies, `dirty-` may read canon and never certify code -- and both are about the WORKING TREE. This one is about the BINARY, carries no marker, refuses nothing and warns nobody. cc's `include_str!` case is the sharp form: `surface/dispatch-table.json` is baked in at build time, so a binary twelve commits behind answers correctly about a table it never compiled.
 
+### 2026-08-25 23:48Z -- ST0058 `AC-00.5`, a criterion against a written decision in the code
+
+**RULED: MAKE RETIREMENT ENUMERABLE. Neither the criterion nor `spine.rs` gives, because the question is answerable OUT OF BAND.**
+
+**The conflict.** `AC-00.5` demanded retired-vs-unbuilt be distinguishable **BY EXIT CODE**. `spine.rs:128-131` accepts the opposite in writing -- _retired and unimplemented are now indistinguishable BY CODE... A caller that must tell them apart is asking a question no exit code has ever answered here._ **Both coherent, contradictory. Not a defect against the code: a criterion against a recorded design decision.**
+
+**THE FULL MENU, four options, so a declined one is distinguishable from one never offered:**
+
+1. **MAKE RETIREMENT ENUMERABLE -- CHOSEN.** ic measured that all 10 unbuilt families are enumerable from `--help` and **not one retired path is**; close that asymmetry and a caller branches on list membership. No exit code moves, no consumer changes, and it does not need ic's unrun blast-radius count. **Cost, stated before the choice: `AC-00.5`'s text had to be REWRITTEN, because this satisfies the need and not the literal words _by exit code_.**
+2. **FOURTH EXIT CODE FOR RETIRED** -- what the row literally asked. Precedent exists and half the old rejection has expired (`pre-commit.sh:392` gives `3` a blocking arm). **Declined; it was the only option that could not be costed, because the blast-radius count is unrun.**
+3. **MACHINE-READABLE CLASS, CODES UNCHANGED** -- a parseable token naming the class. Declined: a second output contract to keep in step with the first.
+4. **WITHDRAW `AC-00.5`** -- `spine.rs` stands, ST0058 becomes 2/5 and the cut moves CLOSER. Declined: the hazard is real and binds at the cut, when `AC-12.1` prunes `bin/`.
+
+**CONSEQUENCE FOR ic: the blast-radius count is NO LONGER A PRECONDITION OF THIS ROW.** It is still owed, but as evidence about the exit-code surface generally -- `0086`'s ground, not this one's. **Written to `ic/inbox.vc.md` as well as sent, because it changes what is owed on their board.**
+
 ## PROVENANCE -- READ THIS BEFORE READING ANYTHING BELOW
 
 **This board is written by `vc` under hv's ruling of 2026-08-21, not by hv directly.** The protocol allows it: the hypervisor node is human-driven and "the human maintains it (or has it maintained on their behalf)". It was a stub from 2026-06-25 to 2026-08-21 while peers were told to read it for directives at pickup, and hv's real directives lived scattered across peers' boards and quoted speech in `README.md`.
