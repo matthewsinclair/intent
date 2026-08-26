@@ -1195,14 +1195,51 @@ fn criterion(row: &str) -> Option<Criterion> {
     .to_string();
 
   let (kind, state) = if non_test {
-    let state = match (satisfied.as_deref(), evidence) {
-      // **Evidence is required for a satisfied non-test criterion and is NOT
-      // invented when it is missing.** A synthesised sentence reads as
-      // evidence forever after and nothing downstream can tell it from the
-      // real thing (vc's migration ruling). A `satisfied: yes` with no
-      // evidence therefore arrives UNSATISFIED, and the v2 claim is residue
-      // rather than a value.
-      (Some("yes"), Some(e)) if !e.trim().is_empty() => AcState::Satisfied { evidence: e },
+    // **THE VERDICT IS PARSED, NOT MATCHED WHOLE, AND THE EXACT MATCH THAT USED
+    // TO STAND HERE SILENTLY INVERTED RATIFIED CONTRACTS.** The arm read
+    // `(Some("yes"), Some(e))`, so `satisfied: yes (hv signed off 2026-06-22)`
+    // -- which `field` returns intact, parenthetical and all -- matched nothing
+    // and fell into a `_` catch-all that DEFAULTED to unsatisfied. Measured on
+    // Courses ST0002 at `d18aca7^`: 2 of 2 bare `yes` survived, 8 of 8 carrying
+    // a parenthetical were downgraded, and `hv signed off` survived neither in
+    // canon nor in the regenerated view. A COMPLETED thread arrived recording
+    // eight of ten criteria unsatisfied, and the migration exited 0.
+    //
+    // **The catch-all was the whole defect**: a classifier whose default bucket
+    // absorbs the unrecognised case cannot report that it met one. So an
+    // unrecognised verdict now REFUSES the row -- `criterion` returns `None`
+    // and the caller records an `UnparseableRow` finding -- because a visible
+    // refusal is recoverable and a silent downgrade is not.
+    let (verdict, note) = match satisfied.as_deref() {
+      // No `satisfied:` field at all is not a malformed one. The row simply
+      // makes no claim, and an unsatisfied non-test criterion is the correct
+      // reading of a claim nobody made.
+      None => (false, None),
+      Some(value) => satisfied_verdict(value)?,
+    };
+
+    // **Evidence is required for a satisfied non-test criterion and is NOT
+    // invented when it is missing.** A synthesised sentence reads as evidence
+    // forever after and nothing downstream can tell it from the real thing
+    // (vc's migration ruling). A `satisfied: yes` with no evidence therefore
+    // arrives UNSATISFIED, and the v2 claim is residue rather than a value.
+    //
+    // **The parenthetical IS evidence and is carried rather than dropped.**
+    // `yes (hv signed off 2026-06-22)` is a sign-off record naming a person and
+    // a date; discarding it while keeping the verdict would preserve the claim
+    // and destroy its warrant, which is the half that makes the claim checkable.
+    let evidence = evidence
+      .filter(|e| !e.trim().is_empty())
+      .map(|e| e.trim().to_string());
+    let evidence = match (evidence, note) {
+      (Some(e), Some(n)) => Some(format!("{e} ({n})")),
+      (Some(e), None) => Some(e),
+      (None, Some(n)) => Some(n),
+      (None, None) => None,
+    };
+
+    let state = match (verdict, evidence) {
+      (true, Some(e)) => AcState::Satisfied { evidence: e },
       _ => AcState::Unsatisfied,
     };
     (AcKind::NonTest, state)
@@ -1401,6 +1438,48 @@ fn note(row: &str) -> Option<String> {
 }
 
 /// The value of ` -- <key>: ...`, up to the next ` -- ` or the end.
+/// The verdict half of a `satisfied:` value, plus the note the author wrote
+/// beside it.
+///
+/// `yes` / `no` bare, or `yes (<note>)` / `no (<note>)`. **Anything else returns
+/// `None` and the row is refused**, which is the point rather than strictness
+/// for its own sake: the value being parsed is somebody's record of whether a
+/// ratified requirement was met, so guessing at an unrecognised spelling writes
+/// a verdict nobody gave.
+///
+/// An unclosed parenthetical refuses too. `yes (hv signed off` is a truncation,
+/// and reading it as a bare `yes` would silently discard whatever the truncation
+/// ate.
+fn satisfied_verdict(value: &str) -> Option<(bool, Option<String>)> {
+  let value = value.trim();
+  let (word, note) = match value.split_once('(') {
+    None => (value, None),
+    Some((word, rest)) => {
+      let note = rest.strip_suffix(')')?.trim();
+      let note = (!note.is_empty()).then(|| note.to_string());
+      (word.trim(), note)
+    }
+  };
+  match word {
+    "yes" => Some((true, note)),
+    "no" => Some((false, note)),
+    // **`n/a` IS KNOWN VOCABULARY AND MUST NOT BE REFUSED**, and this arm is
+    // the difference between a fix and a second defect. Measured across the
+    // estate's `acceptance.md` AC rows: `yes` 1836, `yes (note)` 614,
+    // `no (note)` 180, `no` 159, **`n/a` 20**. Under the old exact match those
+    // twenty fell into the catch-all and read UNSATISFIED; refusing them now
+    // would DROP the rows from canon entirely, which loses more than the bug
+    // being fixed ever did.
+    //
+    // It reads unsatisfied -- exactly what it did before -- rather than being
+    // mapped onto `Descoped` or `Withdrawn`. Both of those carry a reason and a
+    // destination that nobody wrote, and inventing one is the same offence as
+    // inventing evidence: it reads as a real ruling forever after.
+    "n/a" => Some((false, note)),
+    _ => None,
+  }
+}
+
 fn field(row: &str, key: &str) -> Option<String> {
   let marker = format!(" -- {key}: ");
   let start = row.find(&marker)? + marker.len();
