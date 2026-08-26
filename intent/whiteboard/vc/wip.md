@@ -41,7 +41,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 ## HELD FOR hv (rulings asked, not yet answered)
 
 - **`organize --default --force` in 3.0.1: NARROW** (declaration + realise, remove nothing -- ic building this) **or WIDE** (also dehydrate closed threads, ingest bucket files per-file-verified, prune buckets/issues dirs/.treeindex)? vc recommends narrow tonight, removal first thing after; wide-wrong deletes files on nineteen estates.
-- **Lamplight `_inbox/` -> Triage threads under v3** (descent scan)? lamplight/vc surfaced it too.
+- **RULED (hv, 2026-08-26, via lamplight-vc): Lamplight `_inbox/` threads land as Triage** -- `lamplight-run.sh --inbox-flat` moves them flat and sets `status: Triage` before hop 2.
 - **arca_cli `33e3c2d` (lossy) superseded by re-conversion** -- yes?
 - Geodica menubar-app design: `ST0064/01` (Triage) for when hv gets to intentd. Conflab held (61 `status:` rows). Devbin AC-10.5 landed by devbin/vc. `install.rs` remedy item (ic) awaiting hv's confirmation.
 

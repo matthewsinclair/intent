@@ -5,7 +5,7 @@
 #   3. config.json back to the parent's, then re-apply the hand-set fields the landing added (project_name, author, languages)
 #   4. hop 2 (pair read in the same command), hop 3 x2, per-machine ignores
 #   5. at-accounting (devbin/vc's) + verify-canonical; NO commit unless --commit, and then --only the intent paths
-set -u; P="$1"; MODE="${2:-}"; cd "$P" || exit 1; N=$(basename "$P"); S=/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/699601ed-7e13-4808-bb6c-e6a79d27c56e/scratchpad; L="$S/reconv-$N"
+set -u; P="$1"; MODE="${2:-}"; cd "$P" || exit 1; N=$(basename "$P"); S=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$S"; L="$S/reconv-$N"
 I=~/Devel/prj/Intent/bin/intent3; AT=~/Devel/prj/Devbin/intent/whiteboard/vc/at-accounting.sh
 mig=$(git log --diff-filter=A --format=%h -- intent/.canon/st | tail -1); [ -n "$mig" ] || { echo "$N: no migration commit"; exit 2; }
 src="$mig^"; echo "## $N: migration $mig, v2 source at $src ($(git log -1 --format=%s "$src" | cut -c1-50)); dirty before: $(git status --porcelain | wc -l | tr -d ' ')"
