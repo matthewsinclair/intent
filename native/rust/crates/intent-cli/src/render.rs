@@ -2430,7 +2430,7 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
         // completion because a committed artefact is a record; what a person
         // reads at a terminal is a moment, and DONE is trimmed to
         // `todo.window_hours`. Same generator, one parameter apart.
-        print!("{}", f.todo_view_windowed().map_err(fail)?);
+        print!("{}", f.todo_view().map_err(fail)?);
       }
       Ok(())
     }
@@ -2493,28 +2493,66 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
 /// already gone from the surface by the time these arms were reached. Removing
 /// the arms first would have left declared flags with no implementation.
 fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
-  let Some(spec) = opt(a, "specifier") else {
-    return Err(
-      "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`)"
+  let flush = flag(a, "flush");
+  let prune = flag(a, "prune");
+  let spec = opt(a, "specifier");
+
+  match (spec, flush || prune) {
+    (Some(spec), false) => {
+      let mut f = open()?;
+      // `scope_of` already owns "is this a thread or a work package": `ac gate`
+      // and `wp_target` both parse specifiers through it, and a second reading
+      // of `ST0001/02` here is a second place for the answer to differ.
+      let outcome = match scope_of(&spec) {
+        (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
+        (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
+      };
+      reported(&outcome, &spec, "done");
+      Ok(())
+    }
+    (None, true) => {
+      let mut f = open()?;
+      let flushed = f.todo_flush().map_err(fail)?;
+      if prune {
+        // **The archiving payload FIRST, then the effect.** A caller
+        // redirecting this -- `intent todo done --prune >> intent/done.md`, the
+        // use v2 documented -- wants the items, and printing a status line into
+        // the middle of their archive is what a summary-first order would do.
+        // The advisory goes to stderr for the same reason.
+        for item in &flushed.cleared {
+          println!("{item}");
+        }
+      }
+      let mark = flushed.watermark.as_deref().unwrap_or("(none)");
+      eprintln!(
+        "ok: DONE watermark advanced to {mark}, {} item(s) cleared",
+        flushed.cleared.len()
+      );
+      // **Stated, because the command promises more than the data can do.** A
+      // flush cannot exclude completions that share its date -- `completed` is
+      // date-granular -- so a DONE view that is still not empty is expected
+      // rather than a failure, and saying nothing is what would make it look
+      // like one.
+      if !flushed.remaining.is_empty() {
+        eprintln!(
+          "note: {} item(s) completed on {mark} stay in DONE -- a completion date cannot be compared against a time of day, so today's work is not flushable until tomorrow",
+          flushed.remaining.len()
+        );
+      }
+      Ok(())
+    }
+    // Both a target and a flush: two different operations in one invocation,
+    // and the order between them changes the result, so it refuses rather than
+    // picking one.
+    (Some(_), true) => Err(
+      "error: `todo done <specifier>` marks one item done and `--flush` clears the whole DONE view; naming both asks for two different operations at once\n  remedy: run them separately -- mark the item done first, then `intent todo done --flush`"
         .into(),
-    );
-  };
-  let mut f = open()?;
-  // `scope_of` already owns "is this a thread or a work package": `ac gate`
-  // and `wp_target` both parse specifiers through it, and a second reading
-  // of `ST0001/02` here is a second place for the answer to differ.
-  let outcome = match scope_of(&spec) {
-    (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
-    (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
-  };
-  // **This was the FIRST arm to read the outcome and it shipped the wrong
-  // spelling** -- `ok: {spec} was already done`, which named the verb rather than
-  // the state. It went through `reported` with the other eighteen when issue 0050
-  // settled the house form, and the correction direction is worth recording: the
-  // NEWER spelling lost to the one with a v2 antecedent, which is the right way
-  // round for a Highlander tie-break.
-  reported(&outcome, &spec, "done");
-  Ok(())
+    ),
+    (None, false) => Err(
+      "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`), or pass `--flush` to advance the DONE watermark"
+        .into(),
+    ),
+  }
 }
 
 /// `intent export --format <fmt>` -- the estate as one portable document
@@ -3873,6 +3911,8 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
   let ctx = views::RenderContext {
     version: env!("CARGO_PKG_VERSION"),
+    // Root files only; `todo.md` is not rendered here.
+    todo_watermark: None,
   };
   let root = f.project().root();
   let hooks = intentsvcs::canon::hooks_dir(root);
@@ -4700,6 +4740,9 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
       let ctx = views::RenderContext {
         version: env!("CARGO_PKG_VERSION"),
+        // Nothing on this path renders `todo.md`, so there is no watermark to
+        // carry and asking the store for one would be a read with no reader.
+        todo_watermark: None,
       };
       let content = intentsvcs::rootfiles::render(&home, "AGENTS.md", f.project().config(), &ctx)
         .map_err(|e| Failure::Error(e.render()))?;
@@ -4714,6 +4757,9 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
       let ctx = views::RenderContext {
         version: env!("CARGO_PKG_VERSION"),
+        // Nothing on this path renders `todo.md`, so there is no watermark to
+        // carry and asking the store for one would be a read with no reader.
+        todo_watermark: None,
       };
       // **THIS VOICE IS v2's AND IT IS NOT TIDIED.** A bare capitalised progress
       // line with a trailing ellipsis, then a line carrying a full stop -- both

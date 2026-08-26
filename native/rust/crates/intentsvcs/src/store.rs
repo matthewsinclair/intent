@@ -2088,46 +2088,6 @@ impl Store {
     )?)
   }
 
-  /// The threads whose completion falls inside the DONE display window (D44).
-  ///
-  /// **The cutoff is resolved INSIDE the statement, and that is what makes
-  /// this legal under D42.** The rule is that nothing ever HOLDS a time: no
-  /// caller obtains a now from the OS, the filesystem or the database and then
-  /// uses it, because a read and a later use are two acts with a gap. Here
-  /// there is no gap -- SQLite resolves `now` as part of the comparison that
-  /// consumes it, and Rust receives a list of ids. **This is not the
-  /// "but it came from the database" exception**, which is about a read and a
-  /// later write; nothing here is written at all.
-  ///
-  /// **The window is over `completed`, the DOMAIN date, never over the record
-  /// stamps** -- and the difference decides whether the answer means anything.
-  /// `created_at` / `updated_at` say when THIS MACHINE wrote the row, and the
-  /// store is rebuildable by design (D36), so a window over them would show
-  /// the entire estate as "just finished" after every rebuild and nothing at
-  /// all after a quiet week. It would be a window onto when someone last ran a
-  /// command, reported as a window onto when work was done.
-  ///
-  /// **`date(...)` rather than `datetime(...)`, because the data is
-  /// day-granular.** `completed` is `YYYY-MM-DD` with no time component
-  /// (carried from v2 and never re-stamped), so the cutoff is truncated to a
-  /// date to compare like with like. Comparing a date against a datetime would
-  /// still return rows -- lexicographically, and by accident.
-  pub fn threads_completed_within(&self, hours: u32) -> Result<Vec<String>, StoreError> {
-    let mut stmt = self.conn.prepare(
-      "SELECT id FROM threads
-        WHERE completed IS NOT NULL
-          AND completed <> ''
-          AND completed >= date('now', '-' || ?1 || ' hours')
-        ORDER BY id",
-    )?;
-    let rows = stmt.query_map([hours], |row| row.get::<_, String>(0))?;
-    let mut out = Vec::new();
-    for row in rows {
-      out.push(row?);
-    }
-    Ok(out)
-  }
-
   /// Snapshots outside the retention window, as `(id, path)`.
   ///
   /// **The bucketing is SQL, so the retention decision is made where the

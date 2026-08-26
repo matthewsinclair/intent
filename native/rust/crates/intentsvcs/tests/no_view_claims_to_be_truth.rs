@@ -233,10 +233,7 @@ fn no_generated_view_names_a_generated_artefact_as_truth() {
       project.steel_threads_view(),
       views::steel_threads(&canon.threads, &context),
     ),
-    (
-      project.todo_view(),
-      views::todo(&canon.threads, &context, &views::TodoWindow::All),
-    ),
+    (project.todo_view(), views::todo(&canon.threads, &context)),
   ] {
     examined += 1;
     for claim in generator_truth_claims(&content, &artefacts, &estate_authored) {

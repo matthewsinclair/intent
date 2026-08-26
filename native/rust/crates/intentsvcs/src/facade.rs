@@ -284,6 +284,26 @@ fn surviving_leaves(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
   }
 }
 
+/// What a `todo done --flush` did, in the operator's terms.
+///
+/// **`remaining` is the field that stops the command lying.** `--flush`
+/// promises to clear the DONE view and cannot clear same-day completions --
+/// `Thread.completed` is date-granular, so there is no fact separating "finished
+/// this morning, before the flush" from "finished this afternoon, after it". A
+/// flush reporting only what it removed reads as a success on a view the
+/// operator can see is not empty. Reporting both numbers turns a puzzling no-op
+/// into a stated limit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TodoFlush {
+  /// The watermark now in force, as a date.
+  pub watermark: Option<String>,
+  /// Items that were in DONE before the flush.
+  pub cleared: Vec<String>,
+  /// Items still in DONE after it -- those completed on the watermark's own
+  /// date, which no watermark can exclude.
+  pub remaining: Vec<String>,
+}
+
 /// What [`Facade::declare_default`] did.
 ///
 /// **`wrote` AND `was_present` ARE BOTH CARRIED, BECAUSE THREE OUTCOMES SHARE
@@ -418,11 +438,6 @@ pub enum FacadeError {
   NoSuchFace { face: String },
   #[error("no issue {number:04} in this project")]
   NoSuchIssue { number: u32 },
-  // Transparent because the reason belongs beside the field, in `project.rs`,
-  // and `doctor` reports the same condition without going through the facade at
-  // all. Two renderings of one refusal is one rendering that drifts.
-  #[error(transparent)]
-  UnhonourableWindow(#[from] crate::project::UnhonourableWindow),
   // The ratified machines have no terminal states, so every refusal here is
   // about ORDER rather than about a dead end -- there is always a route, and
   // the remedy names where it starts.
@@ -840,7 +855,6 @@ impl crate::remedy::Remedy for FacadeError {
       }
       // Delegated for the same reason the message is: the arithmetic that
       // names the two honourable values either side belongs with the rule.
-      Self::UnhonourableWindow(e) => e.remedy(),
       // Delegated, because the remedy DIFFERS by state: below the v2.19.0
       // floor it is the two-hop, and naming the v3 migrator there would send
       // half the operators who read it to a command that refuses them.
@@ -1445,14 +1459,15 @@ impl Facade {
 
   /// Everything a render is allowed to know, assembled from the store.
   ///
-  /// **Still fallible, though nothing in it can fail today.** It carried the
-  /// DONE watermark, which was a read of the event log; D44 removed the
-  /// watermark and the signature is kept, because the thing that replaces it --
-  /// a display window over completion instants -- is also a read. Narrowing to
-  /// infallible and widening again is churn in every caller for no gain.
+  /// **Fallible because the DONE watermark is a READ OF THE EVENT LOG.** D44
+  /// removed the watermark and this signature was kept against its return;
+  /// hv restored it on 2026-08-26 (parity with `bin/intent_todo`), so the read
+  /// is live again.
   fn render_ctx(&self) -> Result<RenderContext<'_>, FacadeError> {
+    let events = self.store.events().map_err(FacadeError::Store)?;
     Ok(RenderContext {
       version: &self.ctx.version,
+      todo_watermark: crate::event::todo_watermark(&events),
     })
   }
 
@@ -2858,54 +2873,64 @@ impl Facade {
   /// **Rendered from the store rather than read off disk**, which is where v2
   /// and v3 differ on this command. v2's `todo` showed the file and generated
   /// it if absent, so a stale file was shown as though it were current; here
-  /// the file is an extract and the answer comes from truth. The bytes are the
-  /// same bytes, so nothing downstream can tell -- except that they are now
-  /// always right.
+  /// the file is an extract and the answer comes from truth.
+  ///
+  /// **ONE RENDERING FOR BOTH SURFACES AGAIN.** D44 replaced the watermark with
+  /// a display WINDOW and vc ruled the window terminal-only, so the file and
+  /// the terminal answered differently: the terminal was bounded and the
+  /// committed file carried every completion ever. Measured on Lamplight,
+  /// 2026-08-26: 2236 lines, 84% of them a DONE section. hv's ruling restores
+  /// the watermark and with it the single answer -- **what a person sees and
+  /// what the file holds are the same bytes, which is what v2 did.**
   pub fn todo_view(&self) -> Result<String, FacadeError> {
-    Ok(views::todo(
-      &self.canon.threads,
-      &self.render_ctx()?,
-      &views::TodoWindow::All,
-    ))
-  }
-
-  /// The same view, with DONE trimmed to the display window (D44).
-  ///
-  /// **This is the TERMINAL rendering and it deliberately differs from the
-  /// file** -- vc's ruling, and the reason is that a committed artefact must
-  /// be a function of the model while a terminal render is allowed to be a
-  /// moment. `todo_view` above is what `intent/todo.md` holds; this is what a
-  /// person sees.
-  ///
-  /// **The window is asked of the STORE, so no time is ever held** (D42). The
-  /// cutoff resolves inside the statement and this method receives ids.
-  ///
-  /// A window of 0 hours is not special-cased into "show everything": it means
-  /// what it says, and an operator who sets it to 0 has asked for a DONE
-  /// bucket reaching back to the start of today. Reinterpreting a configured
-  /// value as its opposite is how a setting becomes untrustworthy.
-  ///
-  /// **A window the data cannot honour REFUSES here rather than at config
-  /// load**, which is deliberate: a display setting must not take down `intent
-  /// st list`, and it must certainly not take down `intent info`, whose whole
-  /// contract under 0042 is that project state never reaches its exit code.
-  /// The refusal lands on the one command the setting governs.
-  pub fn todo_view_windowed(&self) -> Result<String, FacadeError> {
-    let hours = self.project.config().todo.window()?;
-    let ids = self
-      .store
-      .threads_completed_within(hours)
-      .map_err(FacadeError::Store)?;
-    Ok(views::todo(
-      &self.canon.threads,
-      &self.render_ctx()?,
-      &views::TodoWindow::Only(ids.into_iter().collect()),
-    ))
+    Ok(views::todo(&self.canon.threads, &self.render_ctx()?))
   }
 
   /// The same three buckets, structured, for `intent todo --json`.
   pub fn todo_buckets(&self) -> Result<views::TodoBuckets, FacadeError> {
-    Ok(views::todo_buckets(&self.canon.threads))
+    Ok(views::todo_buckets(
+      &self.canon.threads,
+      &self.render_ctx()?,
+    ))
+  }
+
+  /// Advance the DONE watermark to now -- `intent todo done --flush`.
+  ///
+  /// **It changes the VIEW and never a thread's status.** v2 said the same in
+  /// its own comment: the completion record stays where it is; this moves the
+  /// line below which finished work stops being shown.
+  ///
+  /// **The watermark is an EVENT, not a settings row**, which is what fixes
+  /// v2's real defect. v2 wrote the flush instant into `todo.md` and grepped it
+  /// back out, so deleting a file the model calls disposable reset the flush and
+  /// resurrected everything ever flushed. As an event it survives `rm
+  /// intent.db`, travels in `events.jsonl`, MERGES across two machines rather
+  /// than conflicting, keeps every flush rather than only the last, and needs no
+  /// new table -- so no schema version moves for it.
+  pub fn todo_flush(&mut self) -> Result<TodoFlush, FacadeError> {
+    let cleared: Vec<String> = self
+      .todo_buckets()?
+      .done
+      .into_iter()
+      .map(|i| i.label)
+      .collect();
+    let next = self.canon.clone();
+    self.apply(
+      crate::event::TODO_FLUSH,
+      Subject {
+        kind: "todo".to_string(),
+        id: "watermark".to_string(),
+      },
+      serde_json::json!({ "cleared": cleared.len() }),
+      next,
+    )?;
+    // Re-read AFTER the event, so `remaining` is measured rather than assumed.
+    let after = self.todo_buckets()?;
+    Ok(TodoFlush {
+      watermark: after.watermark,
+      cleared,
+      remaining: after.done.into_iter().map(|i| i.label).collect(),
+    })
   }
 
   /// Write `intent/todo.md` from current status.
@@ -3183,10 +3208,32 @@ impl Facade {
     // render input, and a missing log looks exactly like a project that never
     // recorded anything, which is why it has to be asserted rather than
     // inferred from a successful render.
+    // **THE DUAL-SOURCE READ IS BACK BECAUSE THE WATERMARK IS BACK.** `doctor`
+    // re-renders the views to detect skew, so it must compute the SAME
+    // watermark the write path did -- otherwise it reports `todo.md` as
+    // hand-edited on every project that has ever flushed, permanently, with
+    // nothing wrong. It runs on projects with no store (that is the state it
+    // exists to diagnose), so the log is read from the extract when there is
+    // no database to ask.
+    // **THE DUAL-SOURCE READ IS NOT RESTORED, BECAUSE D53 TOOK THE FILE AWAY.**
+    // The pre-D44 version fell back to `events.jsonl` in the working tree when
+    // there was no store; `f42987c7` moved the log out of the tree, so there is
+    // no file left to fall back to. The store is now the only source.
+    //
+    // **The consequence is stated rather than hidden: with NO store there is no
+    // watermark, so this re-render puts every completed thread in DONE and will
+    // report skew against a committed `todo.md` that was rendered with one.**
+    // That is a project with no database -- the state `doctor` exists to
+    // diagnose -- and a skew line on a project that cannot open its own store is
+    // noise beside the finding that matters, not a false alarm about the view.
+    let events = store
+      .map(|s| s.events().unwrap_or_default())
+      .unwrap_or_default();
     crate::doctor::diagnose(
       project,
       &RenderContext {
         version: &ctx.version,
+        todo_watermark: crate::event::todo_watermark(&events),
       },
       store,
     )

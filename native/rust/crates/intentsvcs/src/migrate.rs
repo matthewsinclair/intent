@@ -458,6 +458,11 @@ fn assemble(
 ) -> Result<Plan, Blocked> {
   let ctx_render = RenderContext {
     version: &ctx.version,
+    // **`None` is the right answer and not a placeholder.** A conversion has
+    // never been flushed -- there is no `todo.flush` in the log it is building
+    // -- so every completed thread is in DONE, which is what a v2 estate's
+    // first v3 `todo.md` should show. The operator flushes when they choose to.
+    todo_watermark: None,
   };
 
   // `render_all` reads only `threads`, and `sections` is authored prose that

@@ -157,6 +157,25 @@ fn force_without_a_tty_writes_nothing_and_exits_non_zero() {
     Some(1),
     "no tty means no confirmation, and no confirmation means no write: {out:?}"
   );
+
+  // **THE REASON, NOT JUST THE OUTCOME -- and this assertion is the whole test.**
+  // vc mutated the tty guard to `if false` and this test STAYED GREEN: with the
+  // guard gone, the confirmation read hits EOF on a null stdin, the answer is
+  // not `y`, and the run refuses anyway. **Two different refusals sharing one
+  // exit code, and the version of this test that read only the code could not
+  // tell them apart** -- IN-AG-RED-CONTROL-001 in the file written to prove a
+  // criterion. Only the tty guard can produce this wording.
+  let said = String::from_utf8_lossy(&out.stderr).into_owned();
+  assert!(
+    said.contains("terminal"),
+    "the refusal must name the TERMINAL as what is missing, or it is \
+     indistinguishable from the empty-answer refusal one line further on: {said}"
+  );
+  assert!(
+    said.contains("no flag or environment variable that answers for you"),
+    "and must say that the absence of a human IS the refusal, which is the \
+     property AC-11.2 measures: {said}"
+  );
   assert_eq!(
     manifest(root),
     before,
@@ -198,6 +217,15 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
     "one thread WIP, so the declaration is non-empty and ST0002 is left out of it"
   );
 
+  // **THE MANIFEST MUST BE ABSENT OR THIS VERB DOES NOTHING AT ALL.** `init`
+  // now writes `.intentfiles` and `st new` adds each id to it, so by this point
+  // the file is PRESENT -- and a present manifest is the no-op arm. The first
+  // version of this test asserted that no file was removed by a run that never
+  // executed anything downstream of the write, which is why vc's mutation
+  // (`declare_default` calling `organize(Mode::Apply)`) could not redden it.
+  // **A survival assertion needs a run that could have killed something.**
+  std::fs::remove_file(root.join("intent/.intentfiles")).expect("make --default act");
+
   let before = tree(root);
   assert!(
     before.keys().any(|k| k.contains("ST0002")),
@@ -212,6 +240,8 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   let after = tree(root);
   for (path, bytes) in &before {
     // The manifest itself is the one file this verb writes.
+    // The manifest is the one file this verb writes, and the store is not part
+    // of the estate's authored surface.
     if path.ends_with(".intentfiles") || path.contains(".cache") {
       continue;
     }

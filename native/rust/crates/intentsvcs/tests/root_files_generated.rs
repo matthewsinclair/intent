@@ -40,6 +40,8 @@ fn config(languages: &[&str]) -> Config {
 fn ctx() -> RenderContext<'static> {
   RenderContext {
     version: "3.0.0-probe",
+    // Root files only; nothing here renders todo.md.
+    todo_watermark: None,
   }
 }
 

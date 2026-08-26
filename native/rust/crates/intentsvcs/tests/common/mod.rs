@@ -24,7 +24,10 @@ use intentsvcs::views::RenderContext;
 pub const VERSION: &str = "3.0.0-test";
 
 pub fn ctx() -> RenderContext<'static> {
-  RenderContext { version: VERSION }
+  RenderContext {
+    version: VERSION,
+    todo_watermark: None,
+  }
 }
 
 /// A fixed project UUID, so envelope assertions compare against a constant

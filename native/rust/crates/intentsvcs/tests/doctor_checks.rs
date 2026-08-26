@@ -583,6 +583,7 @@ fn skew_is_judged_against_the_rendering_version() {
 
   let other = intentsvcs::views::RenderContext {
     version: "9.9.9-not-the-fixture-version",
+    todo_watermark: None,
   };
   let findings = intentsvcs::doctor::diagnose(&fx.project(), &other, None).findings;
   assert!(

@@ -305,25 +305,9 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("triage is declared only from `triage`, targets `not-started`, and the fixture thread is `wip` -- a refused movement rather than a no-op"),
   ));
 
-  // **Its own fixture, because this one is provoked by CONFIGURATION rather
-  // than by a call.** The facade reads `todo.window_hours` from the project it
-  // was opened over, so the value has to be on disk before the facade exists --
-  // rewriting the config of the fixture above would be read by nothing.
-  let bad_window = Fixture::new();
-  bad_window.write_file(
-    "intent/.config/config.json",
-    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"],\n  \"todo\": { \"window_hours\": 6 }\n}\n",
-  );
   out.push((
     "unknown issue",
     fx.facade().issue_show(9999).expect_err("no such issue"),
-  ));
-  out.push((
-    "unhonourable todo window",
-    bad_window
-      .facade()
-      .todo_view_windowed()
-      .expect_err("6 hours is not a whole number of days and `completed` is a date"),
   ));
   out.push((
     "PUT to a server-assigned id",
@@ -482,7 +466,6 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
-    FacadeError::UnhonourableWindow(_) => "UnhonourableWindow",
     FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
     FacadeError::MigrationBlocked(_) => "MigrationBlocked",
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
@@ -547,7 +530,6 @@ const ALL_VARIANTS: &[&str] = &[
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
   "ExportRoundTripFailed",
-  "UnhonourableWindow",
   "NoSuchIssue",
   "MigrationBlocked",
   "MigrationHalted",

@@ -40,6 +40,20 @@ use crate::write_set::WriteSet;
 pub struct RenderContext<'a> {
   /// The Intent version, for the generated banner.
   pub version: &'a str,
+  /// The `todo` DONE watermark: completions at or after it appear in the DONE
+  /// bucket. **v2 stored this INSIDE the generated view and read it back out**
+  /// (`bin/intent_todo:read_done_watermark`), which made the view its own
+  /// database -- so deleting a file the model calls disposable silently reset
+  /// the flush and resurrected every item ever flushed. v3 derives it from the
+  /// event log (`event::todo_watermark`), so the view is OUTPUT ONLY.
+  ///
+  /// **OWNED rather than borrowed, and that is what keeps one authority.** The
+  /// two callers that matter are `Facade::projection`, which WRITES the views,
+  /// and `Facade::doctor`, which re-renders them to detect skew. Those two
+  /// disagreeing about the watermark would make `doctor` report `todo.md` as
+  /// hand-edited on every project that had ever flushed, permanently, with
+  /// nothing wrong.
+  pub todo_watermark: Option<String>,
 }
 
 /// One rendered view: where it goes and what it says.
@@ -809,37 +823,10 @@ pub struct TodoBuckets {
   pub doing: Vec<TodoItem>,
   pub todo: Vec<TodoItem>,
   pub done: Vec<TodoItem>,
-}
-
-/// How much of DONE a rendering shows (D44).
-///
-/// **An id allowlist, not a cutoff.** The cutoff lives in SQL, where `now` is
-/// resolved inside the comparison that consumes it and nothing holds a time
-/// (D42); by the time a renderer is involved the question is already answered.
-/// Passing hours down here instead would put a clock-relative decision in a
-/// pure function, which is where it could not be made honestly.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TodoWindow {
-  /// Every completion. **This is what the committed file gets**, always.
-  All,
-  /// Only these thread ids, as answered by
-  /// [`crate::store::Store::threads_completed_within`].
-  Only(std::collections::BTreeSet<String>),
-}
-
-impl TodoWindow {
-  /// Whether a DONE row survives. **Work packages are matched by their parent
-  /// thread**, whose id prefixes theirs -- `completed` is a thread-level fact
-  /// and a WP has no completion date of its own to window on.
-  pub fn shows(&self, id: &str) -> bool {
-    match self {
-      TodoWindow::All => true,
-      TodoWindow::Only(ids) => {
-        let thread = id.split_once('/').map_or(id, |(t, _)| t);
-        ids.contains(thread)
-      }
-    }
-  }
+  /// The DONE watermark in force, so a JSON consumer can tell an EMPTY done
+  /// bucket from a FLUSHED one -- which is the question a reader of the plain
+  /// view answers by reading the heading.
+  pub watermark: Option<String>,
 }
 
 /// **THE bucketing.** Both renderings go through it.
@@ -847,7 +834,7 @@ impl TodoWindow {
 /// Split out from [`todo`] when `--json` arrived: the alternative was a second
 /// traversal applying the same status rules, and the rules are the whole
 /// content of this view. Two copies would agree until someone changed one.
-pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
+pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets {
   let mut ordered: Vec<&Thread> = threads.iter().collect();
   ordered.sort_by(|a, b| a.id.cmp(&b.id));
 
@@ -892,7 +879,12 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
       ThreadStatus::Wip => doing.push(item),
       ThreadStatus::Triage | ThreadStatus::NotStarted | ThreadStatus::Hold => todo_items.push(item),
       ThreadStatus::Completed | ThreadStatus::Cancelled => {
-        done.push(item);
+        // **The watermark decides membership, not the status.** A finished
+        // thread leaves this bucket when it is FLUSHED, which is the whole of
+        // why v2's file never grew and v3's reached 2236 lines at Lamplight.
+        if in_done_bucket(t, ctx.todo_watermark.as_deref()) {
+          done.push(item);
+        }
       }
     }
   }
@@ -901,6 +893,35 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
     doing,
     todo: todo_items,
     done,
+    watermark: ctx.todo_watermark.clone(),
+  }
+}
+
+/// Whether a finished thread is still in the DONE bucket.
+///
+/// **The watermark is compared at DATE granularity, and that is a limit of the
+/// model rather than a shortcut.** `Thread.completed` is a date -- `2026-08-16`
+/// -- while the flush that sets the watermark is an event with a full instant
+/// on it. Comparing the two as strings would put every same-day completion
+/// BELOW the watermark, because a date sorts before any timestamp that starts
+/// with it, so `--flush` would hide work finished later the same day and
+/// nothing would say so. The caller therefore hands in the date part.
+///
+/// The visible consequence is that a flush does not clear same-day
+/// completions, which is weaker than `--flush`'s promise to clear the DONE
+/// view. **The data cannot support the stronger promise**: with a date-granular
+/// `completed` there is no fact distinguishing "finished this morning, before
+/// the flush" from "finished this afternoon, after it". So the behaviour is the
+/// honest one and it is stated where a reader meets it -- the DONE heading says
+/// "completed at or after <date>", and `todo done --flush` reports how many
+/// items remain and why.
+fn in_done_bucket(thread: &Thread, watermark: Option<&str>) -> bool {
+  match (watermark, thread.completed.as_deref()) {
+    (None, _) => true,
+    (Some(_), None) => false,
+    // ISO 8601 dates compare correctly as strings, which is most of why the
+    // model stores them that way.
+    (Some(mark), Some(completed)) => completed >= mark,
   }
 }
 
@@ -926,20 +947,27 @@ pub fn todo_buckets(threads: &[Thread]) -> TodoBuckets {
 /// terminal render is a moment and may depend on now; a committed file is a
 /// record and may not.
 ///
-/// Two callers, one function, and the divergence is visible at the call site
-/// rather than hidden in a second copy of the bucketing rules. `TodoWindow` is
-/// an id ALLOWLIST rather than a cutoff, because the cutoff is resolved inside
-/// SQL (D42) and this function never learns a time -- it is handed the answer.
-pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>, window: &TodoWindow) -> String {
-  let mut buckets = todo_buckets(threads);
-  buckets.done.retain(|item| window.shows(&item.id));
+/// **THE DONE WATERMARK COMES FROM [`RenderContext::todo_watermark`]** -- never
+/// from the previous render of this file, and never from a clock. v2 read its
+/// own output back to find the watermark and defaulted to start-of-today when
+/// it could not, which made the view both the input and the output.
+pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
+  let buckets = todo_buckets(threads, ctx);
 
   let mut out = String::new();
   out.push_str("# TODO\n\n");
   out.push_str("A DOING / TODO / DONE view, projected from steel-thread and work-package status: one row per steel thread, with its work packages nested beneath it. Generated -- change a status with the CLI, never by editing this file.\n\n");
   out.push_str(&bucket("DOING", &buckets.doing));
   out.push_str(&bucket("TODO", &buckets.todo));
-  out.push_str("## DONE\n\n");
+  // **THE HEADING CARRIES THE WATERMARK, which is what makes a small DONE
+  // bucket readable as FLUSHED rather than as empty.** v2 spelled it
+  // `## DONE:<T>` because the script grepped the instant back out of its own
+  // output; v3 derives it from the log and never parses this line, so it is
+  // written for a person instead.
+  match ctx.todo_watermark.as_deref() {
+    Some(mark) => out.push_str(&format!("## DONE (completed at or after {mark})\n\n")),
+    None => out.push_str("## DONE\n\n"),
+  }
   out.push_str(&items(&buckets.done));
   finish(out, ctx, "the thread canon")
 }
@@ -1028,7 +1056,7 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
     // the committed artefact, and D44's window is ruled terminal-only
     // precisely so that a generated file stays a function of the model and
     // nothing else.
-    content: todo(&canon.threads, ctx, &TodoWindow::All),
+    content: todo(&canon.threads, ctx),
   });
   views
 }
@@ -1168,6 +1196,7 @@ mod tests {
   fn ctx() -> RenderContext<'static> {
     RenderContext {
       version: "3.0.0-test",
+      todo_watermark: None,
     }
   }
 
@@ -1179,7 +1208,7 @@ mod tests {
   #[test]
   fn cancelled_and_completed_share_the_done_bucket_and_still_render_differently() {
     let threads = vec![thread("ST0001", "completed"), thread("ST0002", "cancelled")];
-    let out = todo(&threads, &ctx(), &TodoWindow::All);
+    let out = todo(&threads, &ctx());
     let done = out.split("## DONE").nth(1).expect("a DONE section");
 
     assert!(done.contains("- [x] ST0001"), "completed row in:{done}");
@@ -1231,7 +1260,7 @@ mod tests {
       thread("ST0003", "triage"),
       thread("ST0004", "hold"),
     ];
-    let out = todo(&threads, &ctx(), &TodoWindow::All);
+    let out = todo(&threads, &ctx());
 
     assert!(out.contains("- [-] ST0001"), "wip in:\n{out}");
     assert!(out.contains("- [ ] ST0002"), "not-started in:\n{out}");
@@ -1247,11 +1276,7 @@ mod tests {
   /// is what this test has always been for.
   #[test]
   fn work_package_rows_carry_their_own_glyph_not_their_threads() {
-    let out = todo(
-      &[with_wp("ST0001", "wip", "not-started")],
-      &ctx(),
-      &TodoWindow::All,
-    );
+    let out = todo(&[with_wp("ST0001", "wip", "not-started")], &ctx());
     assert!(
       out.contains("- [-] ST0001: ST0001 title"),
       "thread in:\n{out}"
@@ -1278,7 +1303,7 @@ mod tests {
       }))
       .expect("wp"),
     );
-    let buckets = todo_buckets(&[t]);
+    let buckets = todo_buckets(&[t], &ctx());
 
     assert!(buckets.doing.is_empty(), "the THREAD is not-started");
     assert_eq!(buckets.todo.len(), 1, "one row for the thread, not three");
@@ -1300,7 +1325,10 @@ mod tests {
   /// from completed either.
   #[test]
   fn the_json_face_carries_the_status_the_bucket_cannot_recover() {
-    let buckets = todo_buckets(&[thread("ST0001", "completed"), thread("ST0002", "cancelled")]);
+    let buckets = todo_buckets(
+      &[thread("ST0001", "completed"), thread("ST0002", "cancelled")],
+      &ctx(),
+    );
     let rows: Vec<(&str, &str, char)> = buckets
       .done
       .iter()

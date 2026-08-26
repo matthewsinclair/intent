@@ -87,7 +87,6 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::NoSuchFormat { .. }
     | FacadeError::LossyFormat { .. }
     | FacadeError::ExportRoundTripFailed { .. }
-    | FacadeError::UnhonourableWindow(_)
     | FacadeError::NoSuchIssue { .. }
     | FacadeError::MigrationBlocked(_)
     | FacadeError::MigrationHalted { .. }

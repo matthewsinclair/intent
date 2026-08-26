@@ -19,7 +19,7 @@
 //! agree -- by reading its own source for the proof lines.
 //!
 //! Scanned by DERIVE rather than by a `*Error` name pattern, because one of
-//! them is not named that way: `UnhonourableWindow` is a refusal like any
+//! them is not named that way: every refusal is a refusal like any
 //! other, and a name-based roster would have missed it silently.
 
 use std::collections::BTreeSet;
@@ -45,7 +45,6 @@ fn proofs() {
   implements::<intentsvcs::project::ConfigWriteError>();
   implements::<intentsvcs::modules::ModulesError>();
   implements::<intentsvcs::project::ProjectError>();
-  implements::<intentsvcs::project::UnhonourableWindow>();
   implements::<intentsvcs::finding::Refusal>();
   implements::<intentsvcs::rootfiles::Fault>();
   implements::<intentsvcs::rootfiles::RootFileError>();
