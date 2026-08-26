@@ -1695,6 +1695,44 @@ smoke_fail() {
 
 smoke_ok() { printf '    %-46s ok\n' "$1"; }
 
+# smoke_views_fixture <binary> <dir> -- build ARM 7's subject, or leave no sentinel.
+#
+# IT NEVER FAILS THE RUN AND NEVER REPORTS SUCCESS IT DID NOT HAVE. The file is
+# `set -euo pipefail`, so a fixture step that exits non-zero would kill the whole
+# command between arms and read exactly like a pass. So the body runs in a
+# subshell swallowed by `|| true`, and the ONLY evidence of success is the
+# sentinel written by its last line. The caller tests the sentinel, never an
+# exit code.
+#
+# THE GIT IDENTITY IS PASSED PER-COMMAND rather than assumed: on a machine with
+# no global user.email the commit would fail and take the fixture with it, and
+# the arm would report a build failure that is really a configuration one.
+#
+# BOTH IGNORES ARE LOAD-BEARING. `intent/.cache/` keeps the store and its WAL out
+# of the assertion -- they are not views and their churn would swamp it. The
+# sentinel is ignored because it is written INTO the fixture and would otherwise
+# be untracked dirt in the very tree the next arm asserts is clean.
+smoke_views_fixture() {
+  local bin="$1" dir="$2"
+  (
+    set -e
+    cd "$dir"
+    "$bin" init smokefix
+    "$bin" st new "A thread the read verb must name"
+    printf 'intent/.cache/\n.fixture-ok\n' > .gitignore
+    git init -q .
+    git add -A
+    git -c user.name=smoke -c user.email=smoke@fixture.invalid commit -qm base
+    # The divergence: bytes in a TRACKED view that the store did not render.
+    # A convergent fixture cannot exhibit a re-render, so it would pass under a
+    # binary that rewrites every view on every read.
+    printf '\n<!-- foreign line the store never rendered -->\n' >> intent/st/steel_threads.md
+    git add intent/st/steel_threads.md
+    git -c user.name=smoke -c user.email=smoke@fixture.invalid commit -qm diverge
+    : > .fixture-ok
+  ) >/dev/null 2>&1 || true
+}
+
 cmd_smoke() {
   local reinstall=0 keg_override=""
   while [ $# -gt 0 ]; do
@@ -1839,6 +1877,84 @@ cmd_smoke() {
   esac
   rm -rf "$tmp"
 
+  # ARM 7 -- A READ VERB LEAVES THE TREE ALONE. A REGRESSION GUARD, NOT A FIX.
+  #
+  # WHAT IT IS NOT. The claim that the shipped keg silently re-rendered tracked
+  # views on a read was RETRACTED on 2026-08-26 after three independent
+  # measurements refuted it -- the keg on two different clones, and the pair on
+  # convergent and divergent fixtures. Nothing here is chasing a live defect.
+  # It exists because a tree that quietly gains 167 modified files after a read
+  # is invisible until someone runs `git status`, and the way that class returns
+  # is a change nobody connects to views.
+  #
+  # THE ARM THAT MUST FALL SILENT NEEDS THE ARM THAT FIRES BESIDE IT. An
+  # assertion that `git status` is EMPTY passes just as well when the verb never
+  # ran, when the fixture has no tracked views, and when git is looking at the
+  # wrong directory. So a WRITE verb runs immediately after against the SAME
+  # fixture and must dirty it. Without that control this is a check that cannot
+  # fail, which is the shape it is written to catch.
+  #
+  # AND THE READ VERB IS PROVEN TO HAVE RUN, NEVER TRUSTED ON rc. An
+  # unparsed argument answers `unrecognized subcommand` at a perfectly plausible
+  # exit code (dc, measured 2026-08-26: read as a product behaviour the product
+  # never had). The arm asserts the thread id appears in the OUTPUT.
+  #
+  # THE STORE IS GITIGNORED BY HAND AND THAT IS ITSELF A FINDING. `init` writes
+  # no .gitignore, so `git add -A` on a fresh project tracks intent/.cache/
+  # intent.db -- and an untracked WAL beside a tracked db turns a routine
+  # `git clean -fd` into silent data loss. Without the ignore, the db and its
+  # WAL swamp this assertion and it reports dirt that says nothing about views.
+  # `converge_gitignore` exists and only the migration path calls it; the fix is
+  # to call it from `init`, and it is ic's file.
+  #
+  # HONEST LIMIT, STATED RATHER THAN DISCOVERED. The divergence planted below is
+  # an INSERTED LINE, not an older RENDER FORMAT, and the fixture is built by
+  # the same keg that reads it. So this proves the keg does not blindly rewrite
+  # a view whose bytes it did not author. It does NOT prove that no divergence
+  # shape can provoke a rewrite, and it is not the cross-version fixture, which
+  # needs two kegs and does not fit inside a check whose subject is one.
+  step "a read verb leaves tracked views alone, with a write verb as the control"
+  tmp2="$(mktemp -d)"
+  smoke_views_fixture "$bin_intent" "$tmp2"
+  if [ -f "$tmp2/.fixture-ok" ]; then
+    out="$( (cd "$tmp2" && "$bin_intent" st list --status all 2>&1) || true)"
+    case "$out" in
+      *ST0001*) smoke_ok "the read verb RAN (its output names ST0001)" ;;
+      *) smoke_fail "'st list --status all' output does not name ST0001, so its exit code says nothing: ${out:-<empty>}" \
+           "the read verb RAN" ;;
+    esac
+
+    dirt="$( (cd "$tmp2" && git status --porcelain) || true)"
+    if [ -z "$dirt" ]; then
+      smoke_ok "read verb left the tree clean"
+    else
+      smoke_fail "a read verb dirtied $(printf '%s\n' "$dirt" | grep -c .) path(s): $(printf '%s' "$dirt" | tr '\n' ' ')" \
+        "read verb left the tree clean"
+    fi
+
+    if grep -q 'foreign line the store never rendered' "$tmp2/intent/st/steel_threads.md" 2>/dev/null; then
+      smoke_ok "the planted divergence survived the read"
+    else
+      smoke_fail "the planted line is gone from steel_threads.md -- the view was re-rendered" \
+        "the planted divergence survived the read"
+    fi
+
+    # THE CONTROL. It must FIRE. A green here is what entitles the three greens
+    # above to mean anything at all.
+    (cd "$tmp2" && "$bin_intent" st triage ST0001 >/dev/null 2>&1) || true
+    dirt="$( (cd "$tmp2" && git status --porcelain) || true)"
+    if [ -n "$dirt" ]; then
+      smoke_ok "CONTROL: a write verb dirtied $(printf '%s\n' "$dirt" | grep -c .) path(s)"
+    else
+      smoke_fail "CONTROL FAILED: a write verb left the tree clean, so the fixture cannot show a write and the clean reads above prove nothing" \
+        "CONTROL: a write verb dirties the tree"
+    fi
+  else
+    smoke_fail "the views fixture could not be built, so nothing above it was measured -- an arm that cannot run is not an arm that passed" \
+      "views fixture built"
+  fi
+  rm -rf "$tmp2"
+
   printf '\n'
   if [ -n "$SMOKE_FAILURES" ]; then
     die "the installed keg fails $SMOKE_FAIL_COUNT check(s):
@@ -1907,9 +2023,13 @@ intent macos <subcommand>
                through the network hop. Reads -x back off both binaries, checks
                every install-root path v3 resolves is present, that the rule
                library ARMS rather than merely existing, and drives INTENT_HOME
-               and the four hooks from outside any checkout. `--reinstall` does
-               the cold tap install first -- it unlinks the binary other
-               sessions are using, so it is opt-in.
+               and the four hooks from outside any checkout. It also builds a
+               throwaway project whose tracked view carries bytes the store did
+               not render, and asserts a READ verb leaves it alone -- with a
+               WRITE verb beside it that must dirty the tree, because an
+               assertion that nothing happened passes on a broken fixture too.
+               `--reinstall` does the cold tap install first -- it unlinks the
+               binary other sessions are using, so it is opt-in.
   doctor       Preflight: identity present, a real test-sign, notary creds
   env          Print the resolved identity + which creds are present
   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
