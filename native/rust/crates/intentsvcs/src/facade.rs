@@ -649,6 +649,27 @@ pub enum FacadeError {
   /// this and why it needs a variant of its own.
   #[error("this would write an empty estate over one that is not empty: {evidence}")]
   EgestWouldEmptyTheEstate { evidence: String },
+  /// **A write that would replace an authored body with nothing** (Lamplight,
+  /// 2026-08-26).
+  ///
+  /// `issues close 5` returned `ok:` and emptied 4934 bytes of the issue's
+  /// prose. Nothing malfunctioned on the way: the model held an empty body, the
+  /// write wrote what it was given, and **there was no error to suppress --
+  /// which is why it was silent and why "be careful" could not have prevented
+  /// it.**
+  ///
+  /// **Separate from [`FacadeError::EgestWouldEmptyTheEstate`], and the
+  /// distinction is the reason this variant exists rather than reusing it.**
+  /// That one asks whether a POPULATION went to zero, and its byte-shrink arm
+  /// is deliberately gated on `canon.threads.is_empty()` -- because a file
+  /// shrinking is ordinary (an edited-down objective, a removed work package)
+  /// and a guard that refuses the ordinary path gets disabled rather than
+  /// fixed. **This one is FIELD-level, so it can tell an author shortening
+  /// prose from a field being emptied, which a byte comparison never can.**
+  #[error(
+    "this would replace the authored body of {subject} with nothing -- {had} byte(s) on disk, none in what is being written"
+  )]
+  WriteWouldEmptyAnAuthoredBody { subject: String, had: usize },
 }
 
 impl crate::remedy::Remedy for FacadeError {
@@ -937,6 +958,9 @@ impl crate::remedy::Remedy for FacadeError {
       }
       Self::EgestFromRefusedIngest { .. } => {
         "fix what the ingest refused and run `intent sync --to-store` again -- a load that succeeds clears this. Your canon holds authored work the store has never taken, so writing the store over it now is the loss, not the repair".to_string()
+      }
+      Self::WriteWouldEmptyAnAuthoredBody { .. } => {
+        "the prose on disk has never reached the store, so this write would destroy it rather than record it. Run `intent sync --to-store` to take the authored body in, confirm it arrived, then run this verb again -- the file is intact until you do".to_string()
       }
     }
   }
@@ -5645,6 +5669,51 @@ impl Facade {
       })
       .map(|i| i.number)
       .collect();
+    // **AN AUTHORED BODY IS NEVER EMPTIED BY A WRITE THAT WAS NOT ASKED TO
+    // EMPTY IT, AND THE COMPARISON IS AGAINST THE FILE ABOUT TO BE
+    // OVERWRITTEN.**
+    //
+    // Lamplight, 2026-08-26: `issues close 5` reported `ok:` and took 4934
+    // bytes of prose with it. Every step was correct by its own lights -- the
+    // model held an empty body, the write wrote what it was given -- so there
+    // was no error anywhere to surface. **A silence with no error in it cannot
+    // be fixed by handling errors better; it needs something that compares.**
+    //
+    // **Against the DISK rather than against `self.canon`, and that is the
+    // whole point.** `self.canon` is what this write is derived from, so
+    // comparing to it can only ever agree with itself. The file is the thing
+    // that loses the prose, so the file is what gets asked.
+    //
+    // Field-level rather than byte-level, which is what lets it live beside
+    // `refuse_if_this_would_empty_a_populated_face` instead of duplicating it:
+    // that guard's byte-shrink arm is gated off on a healthy estate because a
+    // shrinking file is ordinary. **Emptying an authored body is not ordinary,
+    // and asking about the field says so where asking about the size cannot.**
+    for issue in next
+      .issues
+      .iter()
+      .filter(|i| changed_issue_numbers.contains(&i.number))
+      .filter(|i| i.body.is_empty())
+    {
+      let path = self.project.issue_json(issue.number);
+      // Unreadable or absent is not evidence of loss. A new issue has no file
+      // yet, and a file this cannot parse is a different report from a
+      // different surface -- inventing a refusal from either would refuse the
+      // ordinary path, which is how a guard gets disabled rather than fixed.
+      let Ok(text) = std::fs::read_to_string(&path) else {
+        continue;
+      };
+      let Ok(on_disk) = serde_json::from_str::<Issue>(&text) else {
+        continue;
+      };
+      if !on_disk.body.is_empty() {
+        return Err(FacadeError::WriteWouldEmptyAnAuthoredBody {
+          subject: format!("issue {:04}", issue.number),
+          had: on_disk.body.len(),
+        });
+      }
+    }
+
     let removed_threads: Vec<String> = self
       .canon
       .threads

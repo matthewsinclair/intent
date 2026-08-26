@@ -488,6 +488,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
     FacadeError::EgestWouldEmptyTheEstate { .. } => "EgestWouldEmptyTheEstate",
+    FacadeError::WriteWouldEmptyAnAuthoredBody { .. } => "WriteWouldEmptyAnAuthoredBody",
     FacadeError::Realise(_) => "Realise",
     FacadeError::Organize(_) => "Organize",
     FacadeError::Intentfiles(_) => "Intentfiles",
@@ -552,6 +553,7 @@ const ALL_VARIANTS: &[&str] = &[
   "MigrationHalted",
   "EgestFromRefusedIngest",
   "EgestWouldEmptyTheEstate",
+  "WriteWouldEmptyAnAuthoredBody",
   "Realise",
 ];
 
@@ -584,6 +586,14 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `export_round_trip.rs` does exactly that; a call through the facade cannot
   // reach it, because every format the roster carries is honest.
   "ExportRoundTripFailed",
+  // Needs the DISK and the MODEL to disagree -- a canon file carrying authored
+  // prose that the open facade's store has never ingested -- which is a state
+  // built by editing a file between two calls, not by any argument this file
+  // can pass. Driven in `write_refuses_to_empty_an_authored_body.rs`, which
+  // builds exactly that gap and asserts the refusal, its byte count, its
+  // remedy, and both controls. **The citation goes red if that file stops
+  // provoking it**, which is the only thing that makes an exemption a cover.
+  "WriteWouldEmptyAnAuthoredBody",
   // Both need a v2 estate rather than a bad call, and both are the migration
   // door rather than a verb: `MigrationBlocked` needs live-thread residue and
   // `MigrationHalted` needs the filesystem to fail PART WAY THROUGH an
