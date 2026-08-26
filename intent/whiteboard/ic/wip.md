@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 12:49Z
+heartbeat_at: 2026-08-26 13:49Z
 status: active
-focus: "FOLDED 2026-08-26 12:49Z on hv's call -- compact, so status stays active. HOLDING FOR vc: the three Molts go on the pair from the v3.0.0 tag. SIX INTENT COMMITS + TWO IN OTHER REPOS. The day's finding: the migration silently INVERTED ratified contracts -- an exact match on satisfied: yes sent the parenthetical form into a catch-all that defaulted it unsatisfied, and Courses ST0002 arrived with 8 of 10 criteria reversed at exit 0. MY FIX CARRIED A SECOND DEFECT the corpus caught: refusing the unrecognised would have dropped 20 n/a rows, losing more than the bug did. cc took the field() fix as ruled at 56364200 -- bracket-aware, NOT by editing 12 Lamplight rows, and they extended my test file rather than starting a second home; 10 pass under it. THE COLLAPSE would have deleted hv's own ratification record and it erases its own evidence -- halted fleet-wide. TEN BLIND INSTRUMENTS, all mine; the one that mattered was caught only by reconciling against cc's independent count. A sweep read 1154/18 after I had reported -- vc mid-write on canon, not my regression; only the failure TEXT could tell them apart. STATE: Riffle DONE (66b7fdd + 37c5dab), Molt READY (fc20931), Molt-matts fully hopped but UNCOMMITTED pending --force, Molt-flynn untouched. AC-12.1 bin-prune is hv's final exam, the step AFTER the flip, and the devbin helper set is measurable not assumable."
+focus: "v3.0.0 IS TAGGED ON BOTH REMOTES AT 80d8b2ca and ALL THREE MOLTS ARE LANDED ON IT -- Molt-matts 45c05c9 + 8a17d1f + 70de9b9, Molt-flynn 91b0868, Molt 84726b0, verifier 0 of 13 on each, all three uniformly 3.0.0, all trees clean AFTER the commit because the formatter writes between sync and commit. THE AFTERNOON'S FINDING IS ONE SHAPE FOUND FIVE TIMES: a constraint names the state a gate reads, never the action a human pictures. It cost a near-abort of hv's release (my fold vs :734 reading dirt), a wait that could not end (dc held for my commit while intent3 read source-vs-binary staleness), a silent gate (--skip-tests returns before the cargo gate its warning does not name), an untestable one (the verb tests then bumps then tags, so a test whose subject is the version -- and its cure -- both sit outside the only gate that would catch them), and a green that was not evidence (schema_faces_drift reads the working tree; the tag captures the commit). MY OWN: I committed events.jsonl on four projects' precedent, which measured what they DID not what was right -- four agreements downstream of one recipe are one observation counted four times. Waiting on vc's batch window; nothing owed."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
@@ -13,34 +13,24 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 
 ## DOING
 
-**FOLDED 2026-08-26 12:49Z on hv's call -- localfold + compact, then hold for vc. `status: active` (invariant 6: a COMPACT, not an end of day).** Day record `.history/20260826/wip-fold-1249Z.md`, `cmp`-verified before this rewrite. **The Intent repo is under vc's freeze until the `v3.0.0` tag lands; I checked practice before committing this and vc themselves landed three board commits after relaying it, so a whiteboard fold is in scope. No code of mine touches the tree.**
+**Nothing in flight. The fleet work assigned to me is complete and the freeze is lifted.**
 
-**SIX COMMITS IN THE INTENT REPO, TWO IN OTHER PROJECTS.**
+**THE THREE MOLTS, ALL ON THE TAGGED PAIR `80d8b2ca` (verified against `git ls-remote` on both remotes, not taken on relay).**
 
-- **`90988faf`** -- `AT-08.6`/`AT-08.7` plus the `covered elsewhere` bucket, in ONE commit because bucketing before the covering file existed would be a green claim of coverage by nothing.
-- **`2aa82d17`** -- **the ingest fix.** `criterion()` matched `(Some("yes"), Some(e))` exactly while `field()` returns the value whole, so `satisfied: yes (hv signed off 2026-06-22)` fell into a `_` catch-all and DEFAULTED to unsatisfied. **Courses ST0002, a COMPLETED thread, arrived recording 8 of 10 criteria unsatisfied at exit 0.** 2 of 2 bare survived, 8 of 8 parenthetical downgraded.
-- **`66b7fdd`** (Riffle) -- first project migrated to v3, verifier 0 of 13.
-- **`37c5dab`** (Riffle) -- the CLAUDE.md user-block provenance restore.
-- **`fc20931`** (Molt) -- the `author: "{user}"` placeholder, which rendered as a literal at `CLAUDE.md:82`.
-- Plus the board commits and this fold.
+- **Molt-matts** -- `45c05c9` migration, `8a17d1f` event log untracked, `70de9b9` re-stamp to 3.0.0 on vc's ruling.
+- **Molt-flynn** -- `91b0868`. Full recipe from 2.11.5; hop 1 CREATED its pre-commit hook, the creation case.
+- **Molt** -- `84726b0`. Full recipe from 2.13.0; its hook EXISTED before hop 1, the append-into-existing case where doubling actually bites. Two homes left additive, `collapse-buckets.sh` not run.
 
-**cc TOOK THE `field()` FIX AND TOOK IT AS RULED -- `56364200`.** Bracket-aware, **and NOT by editing the twelve Lamplight rows**, which was the call I gave them: a workaround in 12 places is 12 places to keep correct, and those rows are hv-era sign-off EVIDENCE, so rewriting them to suit a parser makes the estate conform to the tool. **They extended `legacy_satisfied_verdict.rs` from 7 tests to 10 rather than starting a second home for one grammar's tests**, which is the other half of what I asked. Verified under their change: **10 passed, 0 failed.**
+**FAMILY RESEMBLANCE WOULD HAVE BEEN WRONG ON MOLT.** Same 82 lines as its siblings, different file -- 2.13.0 origin against their 2.11.5. Normalised and diffed it differed on exactly one line: a literal `{user}` where they had a name. That is `fc20931`'s fix, whose body predicted CLAUDE.md would self-correct at `--force`. It did (0 literal `{user}`, `Author: matts`), and the prediction was checked rather than trusted.
 
-**MY OWN FIX CARRIED A SECOND DEFECT THAT ONLY THE CORPUS FOUND.** Refusing every unrecognised verdict would have refused all **20 `satisfied: n/a` rows** and dropped them from canon -- rows that previously landed. **My fix would have lost more than the bug it was fixing.** `n/a` is a named arm reading unsatisfied exactly as before, deliberately NOT mapped onto `Descoped` or `Withdrawn`, both of which carry a reason nobody wrote.
-
-**THE COLLAPSE WOULD HAVE DELETED hv's OWN RATIFICATION RECORD, AND IT ERASES ITS OWN EVIDENCE.** `collapse-buckets.sh` treated any bucketed file with a flat counterpart as a superseded view. **The premise is false for `acceptance.md`: the flat file is regenerated FROM CANON and canon never ingested the authored preamble.** Halted fleet-wide. **Grep a project it has already run on and it reads clean, because the file that proves it is gone.**
-
-**TEN BLIND INSTRUMENTS TODAY, EVERY ONE MINE, EVERY ONE PLAUSIBLE.** A process grep matching the sessions' own system prompts; `tail -60`; cargo fail-fast reporting a total off 118 of 1143 tests; a `CARGO_TARGET_DIR` that manufactured 13 false failures; an exposure count in THREE wrong forms (`impl.md` prose, then the migration's own `(computed)` output -- **counting the tool's writing as evidence against the tool**); `grep -o 'satisfied: [^-]*'` truncating at the hyphen inside a date; `${PIPESTATUS[0]}` empty under zsh; a sweep killed because I edited its source mid-run; and a digest computed over the wrong SCOPE. **The one that mattered was caught only by reconciling against cc's independent in-tree count.**
-
-**AND A SWEEP READ 1154/18 AFTER I HAD ALREADY COMMITTED AND REPORTED.** Read cold those 18 look exactly like my regression. **They were vc mid-write on ST0057 canon** -- an `evidence` field on an AT row, which carries `note`. Re-ran all 14 affected binaries: **83 passed, 0 failed.** **Only the failure TEXT distinguished a peer's mid-write from a regression; the count could not.**
-
-**vc's OWN DIAGNOSIS OF THAT IS THE DAY'S CLEANEST CASE: an instrument's output read as the subject's answer.** Their jq display aliased `{evidence: (.evidence // .note)}` -- built precisely to render two shapes alike -- and then the display's key was read back as the schema. **Harder than any of mine: mine were wrong about the world and a control catches those; theirs was RIGHT about what it was asked to show and wrong only about what it was then asked to mean.**
+**NO `--force` WENT IN ON AN ASSUMPTION.** The held files were established as pre-ST0035 template: their distinguishing content traces to v2 template commits `c21d207c` (added) and `d3c147df` (removed), which is why only the three Molts still carried it. Of 57 removed distinct lines exactly 3 lacked template provenance, and all 3 were the values substituted INTO the template's placeholders.
 
 ## TODO
 
-- **HOLDING FOR vc.** The three Molts go on the pair dc builds from the `v3.0.0` tag; vc sends the sha. **Molt-matts is FULLY HOPPED AND UNCOMMITTED** pending its `--force` under the fleet rule; **Molt is READY** (author placeholder fixed, `fc20931`); **Molt-flynn untouched and baselined.** Check the hook AFTER hop 1, never before -- hop 1 creates it.
-- **`AC-12.1` IS hv's FINAL EXAM, AND IT IS THE STEP AFTER THE FLIP, NOT TODAY'S.** After the flip `Intent/bin` loses every v2 script except what devbin needs -- `bin/int`, `bin/.devbin/`, and **whichever v2 helpers devbin's commands still source, which is MEASURABLE and must be measured rather than assumed.** "The tests run" afterwards is the proof. `tests/run_tests.sh` retires with its subject except whatever BATS devbin keeps.
-- **`AT-08.6` / `AT-08.7` ARE STILL `to-write` AND THE FLIP IS PENDING** -- vc's first attempt wrote `.evidence` onto an AT row (which carries `note`), reverted before it committed. The commit gate names both rows stale on every commit until vc redoes it. **Expected, not a defect, not mine to clear.**
+- **NOTHING UNTIL vc NAMES THE BATCH WINDOW.** A source commit before the fleet is through would stale `intent3` under everyone -- the staleness check is commit-to-commit (`git diff --name-only base..HEAD`), so committing cannot shrink it and only a rebuild clears it.
+- **`AC-12.1` IS hv's FINAL EXAM AND IT IS THE STEP AFTER THE FLIP.** `Intent/bin` loses every v2 script except `bin/int`, `bin/.devbin/`, and whichever v2 helpers devbin's commands still source -- **which is MEASURABLE and must be measured, not assumed**. "The tests run afterwards" is the proof; `tests/run_tests.sh` retires with its subject except whatever BATS devbin keeps.
+- **`AT-08.6` / `AT-08.7` REMAIN `to-write` AND THE FLIP IS PENDING** -- vc's first attempt wrote `.evidence` onto an AT row, which carries `note`, and reverted before committing. The commit gate names both rows stale until vc redoes it. Expected, not a defect, not mine to clear.
+- **Four release-verb defects are filed with dc**, all one shape: it aborts on dirt it creates between its own commit and its own check; `--skip-tests` returns before the cargo gate its warning does not name; preflight runs zero clippy while the push gate runs build+fmt+clippy; and it tests, then bumps, then tags. Plus: `rust.yml` has no `tags:` key, so **the artefact Homebrew builds from is the one thing no downstream gate ever sees**.
 
 ## Watch-outs
 
