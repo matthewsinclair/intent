@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 99,
+  "slug": "cross-session-messages-carry-the-same-timestamp-",
+  "title": "Cross-session messages carry the same '## (timestamp)' ordering claims as the boards and sit under none of the three whiteboard guards -- two fabricated stamps in five minutes by two mechanisms (a local time with Z appended; a number advanced by feel) were caught by a two-node arrangement and by no machinery",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-26",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

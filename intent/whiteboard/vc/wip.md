@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 20:39Z
+heartbeat_at: 2026-08-26 20:49Z
 status: active
 focus: "**BOSS-VC for the v3 fleet cutover under hv's pen. 2b IS GREEN at 03470c5a (dc, five reads, 20:24Z); B1 in the pair with two proofs unarmed by name; the third migration defect is two faces of one grammar gap and cc builds it in the ruled order for 3.0.1; Laksa carry re-running on a PINNED pair; Lamplight carry next; Lamplight triage HELD on the ingest's non-UTF-8 refusal. THERE IS NO 3.0.2; WIP ONLY.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -36,7 +36,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## CRITICAL PATH (the bounce checklist)
 
-1. **Read Laksa's carry** (`tasks/bw5wkexia.output`, `$S/ingest4-Laksa`): refused 0, verify-failed 0 expected on the pinned pair; kept dirs named. Then **Lamplight's carry** the same way (lamplight-vc's write hold is narrow and clear; `intent/todo.md` and ac's board are allowed dirt). Then tell dc "sweep done on 03470c5a".
+1. **Laksa's carry re-run is RUNNING on the pinned pair** (`tasks/bw5wkexia.output`, `$S/ingest4-Laksa`): 266 of ~622 attached, 0 refused, every attached file byte-verified so far; throughput fell 35/min -> 4/min at ~20:39Z under load 40 from two shared-tree cargo runs, and Laksa's store grew 1.87 -> 2.46 GB (+475 MB WAL) over ~266 attaches -- ~2 MB of store per small file. **LAMPLIGHT'S CARRY IS RE-SIZED AND HELD FOR hv: 3,738 files at that cost is ~7 GB and hours by `st attach` per file; it needs the 3.0.1 bulk door (WP-13's thread_dir walk carrying in one process) -- not tonight by this path.** dc's "sweep done on 03470c5a" is already given (the pinned copies dissolved the hold).
 2. **ic's parity-restore sha**: run its named mutations + the two B1 re-mutations (tty: the guard -> `if false` must red on the REASON text; 11.4: organize-after-write must red once the manifest is removed first). dc builds 2c on the same QUIET protocol (quiet.sh both scopes, 0 cargo, same minute; pinned copies for every long run).
 3. **AC-11.1/11.3/11.4/11.6 wording** in canon: "open"/"not Completed" -> WIP ONLY, via the pair's own verbs (`ac new` is idempotent by id; a text amendment verb is what to find -- the `ac` family has none; if none, the row is re-minted under the same id or the change is filed to cc).
 4. 3.0.1 continues: cc's ruled order; dc's stamp fix after the sweep; ic's AC-11.3 proof test, AC-00.1 round trip, `converge_gitignore` from `init`; the "3.0.2" comments re-worded.
