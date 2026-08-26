@@ -119,6 +119,36 @@ pub struct Upgraded {
 /// **A PATH RULE AND DELIBERATELY NOT A CLASS RULE.** `*.db` would silently
 /// swallow a database a user genuinely wants tracked, in a tool whose whole
 /// promise is that it does not touch what it was not asked to.
+/// Write `.intentfiles` from the converted corpus when there is none -- the
+/// `upgrade` third of **AC-11.3**.
+///
+/// **ABSENT ONLY, AND NEVER OVER AN EXISTING FILE.** A v2 estate has no
+/// manifest, so this is what gives a converted project a declaration at all. A
+/// project that already has one has SAID something, and an upgrade is not the
+/// place to overrule it -- regenerating from status is `organize --default
+/// --force`, which asks a human first.
+///
+/// **IT RUNS AFTER THE REALISATION, WHICH IS THE WHOLE OF WHY IT IS SAFE TO
+/// LAND TONIGHT.** `migrate::plan` has already decided what to realise, using
+/// the absent-manifest rule that realises everything (`Realised::declares`
+/// answers true for an absent file). So this ADDS a declaration and changes not
+/// one file on disk. The other half of AC-11.3 -- the migration realising ONLY
+/// the declared threads -- is a behaviour change to the converted tree and is
+/// held to 3.0.2 (vc, 2026-08-26): landing it mid-sweep would give six
+/// re-converted projects two different rules with nothing on disk saying which.
+///
+/// **The content is `intentfiles::default_declaration` and nothing else**, so a
+/// change to what "open" means moves this caller, `init` and the verb together.
+fn declare_default_if_absent(project: &Project, threads: &[Thread]) -> Result<(), std::io::Error> {
+  let path = project.intentfiles_path();
+  if path.exists() {
+    return Ok(());
+  }
+  let open: Vec<(String, crate::model::ThreadStatus)> =
+    threads.iter().map(|t| (t.id.clone(), t.status)).collect();
+  std::fs::write(&path, intentfiles::default_declaration(&open))
+}
+
 fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
   let rule = format!(
     "{}/.cache/",
@@ -252,6 +282,25 @@ fn surviving_leaves(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
   for child in children {
     surviving_leaves(&child, out);
   }
+}
+
+/// What [`Facade::declare_default`] did.
+///
+/// **`wrote` AND `was_present` ARE BOTH CARRIED, BECAUSE THREE OUTCOMES SHARE
+/// TWO WORDS.** Absent-and-written, present-and-left-alone, and
+/// present-and-regenerated are different events, and a report carrying only
+/// "did something" collapses the first and third -- which are the safe one and
+/// the destructive one.
+#[derive(Debug, Clone)]
+pub struct Declared {
+  pub path: std::path::PathBuf,
+  /// Whether this run wrote the file.
+  pub wrote: bool,
+  /// Whether a manifest was already there when the run started.
+  pub was_present: bool,
+  /// How many entries the file declares NOW -- after the write when there was
+  /// one, and as found when there was not.
+  pub declares: usize,
 }
 
 /// What [`Facade::dehydrate`] did.
@@ -1352,6 +1401,12 @@ impl Facade {
         step: "adding the store to .gitignore",
         cause,
       })?;
+      declare_default_if_absent(project, &threads).map_err(|cause| {
+        FacadeError::MigrationHalted {
+          step: "writing the realisation manifest",
+          cause,
+        }
+      })?;
       stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "stamping the project version",
         cause,
@@ -2221,6 +2276,97 @@ impl Facade {
   /// report the rest, because it is reconciling an estate; this verb was handed
   /// ONE id, and half-removing that id's files while leaving it declared is a
   /// state no operator asked for and none would expect to have to repair.
+  /// Write `.intentfiles` from status -- **AC-11.1, AC-11.2, AC-11.4.**
+  ///
+  /// **THE CONTENT COMES FROM `intentfiles::default_declaration` AND NOWHERE
+  /// ELSE (AC-11.3).** `init`, `upgrade` and this verb each decide their own
+  /// present/absent POLICY -- they genuinely differ: init writes into a
+  /// directory where the file cannot already exist, upgrade writes only when it
+  /// is absent, and this one writes when absent or when a human has confirmed.
+  /// What they must not each decide is what "the open set" MEANS. Three callers
+  /// deriving that separately is three chances to disagree, and the one that
+  /// drifts is the one nobody runs.
+  ///
+  /// **`force` MEANS "A HUMAN HAS ALREADY SAID YES", NOT "SKIP THE ASKING".**
+  /// The tty and the confirmation belong to the renderer: whether a person is
+  /// present is a property of the invocation, not of the estate, and a facade
+  /// that reached for `/dev/tty` would make every caller -- tests included --
+  /// depend on a terminal. So this takes the ANSWER and never asks the
+  /// question.
+  ///
+  /// **IT NEVER REMOVES ANYTHING, IN EITHER ARM (AC-11.4).** The only write is
+  /// the manifest itself. Realising and dehydrating against the new declaration
+  /// is `organize`'s, and keeping them apart is what lets `--default` be safe
+  /// to run on any estate at any time.
+  pub fn declare_default(&mut self, force: bool) -> Result<Declared, FacadeError> {
+    let path = self.project.intentfiles_path();
+
+    let existing = match std::fs::read_to_string(&path) {
+      Ok(text) => Some(text),
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
+      // A file that is there and cannot be READ is not a file that is absent,
+      // and letting a permissions error answer as "nobody has said" would write
+      // an estate-wide declaration over something unreadable.
+      Err(source) => {
+        return Err(FacadeError::ManifestUnreadable {
+          path: path.display().to_string(),
+          source,
+        });
+      }
+    };
+
+    if let Some(before) = &existing {
+      // **A MALFORMED MANIFEST REFUSES RATHER THAN COUNTING ZERO.** The count
+      // below is what the operator is told the file declares, and a parse
+      // failure reported as `0 declared` is the silent zero this estate keeps
+      // paying for -- it reads exactly like an empty declaration, which is the
+      // one state that means "remove everything".
+      let declares = intentfiles::parse(before)
+        .map_err(FacadeError::Intentfiles)?
+        .entries
+        .len();
+      if !force {
+        return Ok(Declared {
+          path,
+          wrote: false,
+          was_present: true,
+          declares,
+        });
+      }
+    }
+
+    let threads: Vec<(String, crate::model::ThreadStatus)> = self
+      .st_list()
+      .iter()
+      .map(|t| (t.id.clone(), t.status))
+      .collect();
+    let text = intentfiles::default_declaration(&threads);
+    let declares = intentfiles::parse(&text)
+      .map_err(FacadeError::Intentfiles)?
+      .entries
+      .len();
+
+    let mut set = WriteSet::new();
+    set.add(path.clone(), text);
+    set.commit()?.keep();
+
+    self.record_disk_act(
+      "disk.declare_default",
+      serde_json::json!({
+        "path": self.project.relative(&path),
+        "declares": declares,
+        "replaced": existing.is_some(),
+      }),
+    )?;
+
+    Ok(Declared {
+      path,
+      wrote: true,
+      was_present: existing.is_some(),
+      declares,
+    })
+  }
+
   pub fn dehydrate(&mut self, address: &Address) -> Result<Dehydrated, FacadeError> {
     if let Some(authority) = &address.authority {
       return Err(FacadeError::NotHydratable {

@@ -1711,7 +1711,116 @@ fn upgrade() -> Result<(), Failure> {
 /// **WHAT MAKES THAT SAFE TODAY IS A GATE, NOT A HABIT.** Every removal is
 /// refused while any declared dehydration precondition is unmet, and separately
 /// each removal must re-render byte for byte before it happens.
+/// `intent organize --default` -- write `.intentfiles` from status.
+///
+/// **AC-11.1, AC-11.2, AC-11.4, AC-11.5.** Parse, confirm, call, render: the
+/// decision about what the declaration CONTAINS is
+/// `intentfiles::default_declaration`'s and the decision about whether to write
+/// is `Facade::declare_default`'s. What belongs here and nowhere else is the
+/// HUMAN -- whether one is present, and what they said.
+fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
+  let force = flag(m, "force");
+  let (project, ctx) = context()?;
+  let manifest = project.relative(&project.intentfiles_path());
+
+  // **THE TTY IS CHECKED BEFORE THE FACADE IS EVEN OPENED, SO A REFUSAL CANNOT
+  // HAVE WRITTEN ANYTHING (AC-11.2).** Not an ordering convention: nothing
+  // between here and the write can fail in a way that leaves a partial
+  // declaration, because there is nothing between here and the write.
+  //
+  // **AND THE REFUSAL IS UNCONDITIONAL ON `--force`, NOT CONDITIONAL ON THE
+  // FILE BEING PRESENT.** The criterion says `--force` without a tty writes
+  // nothing and exits non-zero, and taking that literally is both the stricter
+  // reading and the measurable one: a rule that fires only when a file happens
+  // to exist is a rule whose test passes on the wrong fixture. **The absence of
+  // a human IS the refusal** -- there is no `--yes` and no environment
+  // override, because a flag-driven force would make this criterion
+  // unmeasurable rather than merely weaker.
+  if force && !std::io::IsTerminal::is_terminal(&std::io::stdin()) {
+    return Err(Failure::Error(format!(
+      "error: `--default --force` regenerates `{manifest}` from status and needs a person to confirm it\n  remedy: run it in a terminal. There is deliberately no flag or environment variable that answers for you -- bare `intent organize --default` writes the declaration when there is none and changes nothing when there is"
+    )));
+  }
+
+  let mut facade = Facade::open(project.clone(), ctx).map_err(fail)?;
+
+  if force {
+    // Asked BEFORE the write and answered by a human, so the report below is
+    // always about something that has already happened.
+    println!("about to regenerate {manifest} from thread status.");
+    println!("this replaces what the file currently declares. it removes no files.");
+    print!("proceed? [y/N] ");
+    use std::io::Write as _;
+    let _ = std::io::stdout().flush();
+    let mut answer = String::new();
+    std::io::stdin()
+      .read_line(&mut answer)
+      .map_err(|e| Failure::Error(format!("error: could not read the confirmation: {e}")))?;
+    // **ONLY `y` PROCEEDS, AND EVERY OTHER ANSWER IS A NO** -- including an
+    // empty line, which is what an operator who hit return without reading
+    // produces. A prompt whose default is yes is a prompt that did not ask.
+    if answer.trim() != "y" {
+      return Err(Failure::Error(format!(
+        "error: not confirmed, so `{manifest}` is unchanged"
+      )));
+    }
+  }
+
+  let done = facade.declare_default(force).map_err(fail)?;
+
+  // **THREE OUTCOMES, THREE SENTENCES.** Written-where-there-was-none,
+  // left-alone, and regenerated are different events; a report that reads the
+  // same for the first and third would make the safe run indistinguishable from
+  // the destructive one.
+  if !done.wrote {
+    println!(
+      "ok: {manifest} is already present and declares {} entr{}",
+      done.declares,
+      if done.declares == 1 { "y" } else { "ies" }
+    );
+    println!(
+      "    nothing was written. `intent organize --default --force` regenerates it from status, after confirming on a terminal."
+    );
+  } else if done.was_present {
+    println!(
+      "ok: {manifest} regenerated from status -- now declares {} entr{}",
+      done.declares,
+      if done.declares == 1 { "y" } else { "ies" }
+    );
+  } else {
+    println!(
+      "ok: {manifest} written -- declares {} entr{} (every WIP thread, and nothing else)",
+      done.declares,
+      if done.declares == 1 { "y" } else { "ies" }
+    );
+  }
+  // **NO FILE WAS REMOVED, IN ANY ARM (AC-11.4)**, and the operator is told so
+  // rather than left to infer it from a report that only lists what it wrote.
+  println!(
+    "    no file was created or removed. `intent organize` previews what this declaration implies."
+  );
+  Ok(())
+}
+
 fn organize(m: &ArgMatches) -> Result<(), Failure> {
+  // **`--default` IS A DIFFERENT OPERATION, NOT A MODE OF THIS ONE.** It writes
+  // the declaration; reconciliation reads it. Folding them into one pass would
+  // make a run that both decides what SHOULD be realised and then acts on that
+  // decision in the same breath -- which is precisely the shape an operator
+  // cannot preview, because the input to the preview would be produced by the
+  // run being previewed.
+  if flag(m, "default") {
+    return declared_default(m);
+  }
+  // **`--force` ALONE IS A USAGE ERROR AND SAYS SO.** It qualifies `--default`
+  // and modifies nothing here. Accepting it silently would make
+  // `organize --force` read as a forced reconciliation, which is a command this
+  // build does not have and would be the most dangerous one to imply.
+  if flag(m, "force") {
+    return Err(Failure::Error(
+      "error: `--force` qualifies `--default` and means nothing on its own\n  remedy: `intent organize --default --force` regenerates the declaration from status, after confirming on a terminal".to_string(),
+    ));
+  }
   // **PREVIEW UNLESS ASKED, RULED BY ic ON AC-05.1 (2026-08-19).** The polarity
   // is the surface's to decide and it is decided in the dispatch table; this
   // reads the answer rather than holding one. See the `--apply` flag's

@@ -488,9 +488,10 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
 const DEFAULT_HEADER: &str = "\
 # .intentfiles -- WHICH DATABASE ARTEFACTS ALSO HAVE A REALISED FORM ON DISK.
 #
-# Written by `intent organize --default` from thread status: every OPEN thread
-# is declared, and nothing else. OPEN means every status except Completed and
-# Cancelled.
+# Written by `intent organize --default` from thread status: every WIP thread is
+# declared, and nothing else. Not Started, Triage, Hold, Completed and Cancelled
+# are NOT realised -- they live in the store, in full, and `intent st hydrate`
+# brings any of them back to disk on demand.
 #
 # REALISATION IS DRIVEN FROM THIS FILE. Commands change it; `intent organize`
 # realises it. Nothing recomputes it from status afterwards, so a write here is
@@ -536,9 +537,23 @@ const DEFAULT_HEADER: &str = "\
 /// content for `intent init`: the file is PRESENT and declares nothing, meaning
 /// keep nothing -- as distinct from ABSENT, which means nobody has said.
 pub fn default_declaration(threads: &[(String, model::ThreadStatus)]) -> String {
+  // **WIP ONLY, AND THIS WAS `!is_closed()` UNTIL hv SAW WHAT IT PRODUCED.**
+  // hv, 2026-08-26, first-hand on a 57-thread realised set: _"Now it has NOT
+  // STARTED STs!??!"_ and _"It should ONLY HAVE WIP STs!!!!!"_
+  //
+  // **THE DEFECT WAS A DEFINITION BY EXCLUSION.** "Every status except
+  // Completed and Cancelled" reads as a careful rule and is really a list of
+  // what to leave out, so every status nobody thought about -- Triage, Not
+  // Started, Hold -- was swept IN by default. A thread nobody has started has
+  // nothing on disk worth reading, and realising it puts files in the tree that
+  // no work refers to.
+  //
+  // Stated positively, it cannot acquire members by accident: the realised set
+  // is the set somebody is WORKING ON. Everything else lives in the store, in
+  // full, and `st hydrate` brings any of it back.
   let mut open: Vec<&str> = threads
     .iter()
-    .filter(|(_, status)| !status.is_closed())
+    .filter(|(_, status)| *status == model::ThreadStatus::Wip)
     .map(|(id, _)| id.as_str())
     .collect();
   open.sort_unstable();

@@ -1,5 +1,5 @@
-//! WP-11: the DEFAULT declaration is every OPEN thread and nothing else, and it
-//! is ONE function with four callers.
+//! WP-11: the DEFAULT declaration is every **WIP** thread and nothing else, and
+//! it is ONE function with four callers.
 //!
 //! **THE LOAD-BEARING TEST HERE IS THE ROUND TRIP.** A generated manifest the
 //! tool's own parser refuses is the worst available outcome: the grammar ABORTS
@@ -8,12 +8,25 @@
 //! and `migrate` run on the estate that generated it. Asserting the ids are
 //! present says nothing about whether the file can be read back.
 //!
-//! **OPEN IS ASSERTED AS A PREDICATE, NOT AS A LIST.** WP-11 names the four open
-//! statuses, but the implementation asks `!is_closed()` so that a sixth status
-//! cannot silently drop out of every project's default the day it is added.
-//! `every_open_status_is_declared` drives all four rather than a representative
-//! one, because a filter that happened to key on `Wip` alone would pass a
-//! single-status test and quietly realise nothing for a Triage-heavy estate.
+//! **THIS FILE ARGUED THE OPPOSITE UNTIL 2026-08-26, AND THE REVERSAL IS WORTH
+//! KEEPING RATHER THAN TIDYING AWAY.** It used to read: *open is asserted as a
+//! predicate, not as a list ... a filter that happened to key on `Wip` alone
+//! would pass a single-status test and quietly realise nothing for a
+//! Triage-heavy estate.* That reasoning was sound and its premise was wrong.
+//! **`!is_closed()` is a definition by EXCLUSION**, so every status nobody
+//! thought about is swept IN by default -- which is how a fleet project came to
+//! realise 57 threads. hv, first-hand, on seeing it: *"Now it has NOT STARTED
+//! STs!??!"* and *"It should ONLY HAVE WIP STs!!!!!"*
+//!
+//! So the predicate is now stated POSITIVELY -- `status == Wip` -- and the
+//! property that changed is which direction a new status defaults to. Under the
+//! old rule a seventh status would be realised without anyone deciding; under
+//! this one it is not realised until someone says so. **A set that cannot
+//! acquire members by accident is the one worth having here**, because the
+//! accident puts files on disk that no work refers to.
+//!
+//! `only_wip_is_declared` drives all six statuses rather than a representative
+//! pair, so the four that must NOT be declared are each named.
 
 use intentsvcs::intentfiles::{default_declaration, parse};
 use intentsvcs::model::ThreadStatus;
@@ -47,9 +60,10 @@ fn an_open_thread_is_declared_and_the_same_id_closed_is_not() {
   );
 }
 
-/// All four, because a filter keyed on one open status passes a one-status test.
+/// All six, so each status that must NOT be realised is named rather than
+/// covered by a representative.
 #[test]
-fn every_open_status_is_declared() {
+fn only_wip_is_declared() {
   let threads = vec![
     ("ST0001".to_string(), ThreadStatus::Wip),
     ("ST0002".to_string(), ThreadStatus::Triage),
@@ -60,8 +74,10 @@ fn every_open_status_is_declared() {
   ];
   assert_eq!(
     declared(&default_declaration(&threads)),
-    ["ST0001", "ST0002", "ST0003", "ST0004"],
-    "every OPEN status is declared and both closed statuses are not"
+    ["ST0001"],
+    "WIP alone is realised. Triage, Not Started and Hold are NOT -- they were \
+     under the old `!is_closed()` rule, which is the defect hv found on a \
+     57-thread estate, and Completed and Cancelled never were"
   );
 }
 
@@ -101,9 +117,12 @@ fn an_empty_project_yields_a_header_that_declares_nothing_and_still_parses() {
 /// and a failure here means the others are testing a file nobody can read.
 #[test]
 fn a_generated_default_is_readable_by_the_grammar_that_will_read_it() {
+  // BOTH Wip, because this test's subject is the GRAMMAR and not the
+  // predicate: a fixture whose second thread is filtered out would assert the
+  // round trip over one entry while reading as though it covered two.
   let threads = vec![
     ("ST0056".to_string(), ThreadStatus::Wip),
-    ("ST0057".to_string(), ThreadStatus::Triage),
+    ("ST0057".to_string(), ThreadStatus::Wip),
   ];
   let text = default_declaration(&threads);
 

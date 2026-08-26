@@ -278,6 +278,34 @@ pub fn init(
     write(&path, &fill(body))?;
     written.push(path);
   }
+
+  // **AC-11.3: `init` LEAVES `.intentfiles` PRESENT, CARRYING THE STANDARD
+  // HEADER AND NO `STEELTHREAD:` LINE -- through the same function the
+  // migration and `upgrade` reach.**
+  //
+  // A fresh project has no threads, so `default_declaration(&[])` is the header
+  // alone. **The empty argument is the point rather than a degenerate case**:
+  // it makes init's manifest the same function's OUTPUT as everybody else's, so
+  // a change to the header moves all three callers at once. Three call sites
+  // each deriving "the open set" for themselves is three chances to disagree
+  // about what open means, and the one that drifts is the one nobody runs.
+  //
+  // **NOT A TEMPLATE, AND THE PROJECT RULE SAYS TEMPLATES.** `lib/templates/`
+  // is the one home for GENERATED CONTENT. This file is durable STATE derived
+  // from status, and a template carrying the header would be a second home for
+  // the one thing AC-11.3 requires to have exactly one -- so honouring the
+  // template rule here would break the criterion it looks like it serves.
+  //
+  // **PRESENT-AND-DECLARING-NOTHING IS A REAL STATEMENT, NOT AN EMPTY FILE.**
+  // Absent means nobody has said, so everything is realised; this says nothing
+  // is. On a project with no threads those agree, and they are still not the
+  // same claim -- `st new` adds the entry as each thread is created, so the
+  // manifest tracks the estate from the first commit and its history reads as a
+  // diff rather than as a sudden appearance the day somebody runs `--default`.
+  let manifest = root.join("intent/.intentfiles");
+  write(&manifest, &crate::intentfiles::default_declaration(&[]))?;
+  written.push(manifest);
+
   written.sort();
 
   Ok(Initialised {
