@@ -1,7 +1,7 @@
 ---
 st_id: ST0061
 title: dehydrate
-status: Triage
+status: WIP
 created: 2026-08-26
 completed:
 ---
@@ -10,11 +10,17 @@ completed:
 
 ## Objective
 
-_(not yet written)_
+**Wire `intent st dehydrate <ID>` -- the declared, documented, unimplemented inverse of `st hydrate`.** It removes the `STEELTHREAD:<ID>` line from `intent/.intentfiles` and removes that thread's realised files, so that a closed thread stops occupying the tree while the store keeps every byte. **The verb already exists in the surface and answers `a known command that is not implemented yet` (exit 2); this thread is the arm behind it, not a new design.** Its whole safety property is one sentence: **a realised file the store cannot be SHOWN to hold is a refusal naming the file, never a deletion.**
 
 ## Context
 
-_(not yet written)_
+**Nothing here is new machinery, and that is the point of doing it now.** `organize` already carries every part: `Action::Dehydrate` for a file present on disk and not declared, `organize::gate` deciding per file whether the store can put it back, `preconditions::check` deciding once per run whether the estate has proved it can put anything back, and `prune_emptied` with a floor that is exercised directly because the integration test could not reach it. `intentfiles::unpin` is built, refuses a malformed id, and is idempotent. `facade::hydrate` is the shape to invert: pin, then materialise a WHOLE-ESTATE plan filtered to the artefact's own directory, because classification needs the estate as its denominator while the ACT stays narrow.
+
+**The inversion is not symmetric, and the asymmetry is the design.** `hydrate` may pin first because its second step only writes. `dehydrate` must not: unpinning before knowing the removal is permitted turns a REFUSAL into a deferred deletion, carried out later by whoever next runs `organize --apply` on a thread the manifest no longer declares. So the plan is computed against the HYPOTHETICAL unpinned manifest -- `unpin` returns text, `realised_for_action` reads it -- and the file on disk moves only after the removal has been permitted and performed.
+
+**Why this is safe to build tonight even though it deletes.** hv withdrew `AC-00.3` on ST0057 -- the migration-conservation precondition standing in dehydration's way -- with the reasoning that _git already holds every file dehydration would remove, so the proof is of a loss that cannot occur_. And ST0057's declared dehydration preconditions all resolve satisfied: `intent ac gate ST0057` reports the only unsatisfied criteria are `AC-11.1` through `AC-11.5`, which are `organize --default`, not this. The estate gate is open; what was missing was the arm.
+
+**Scope boundary.** This thread is the PER-THREAD verb an operator names deliberately. Whether `organize --default --force` sweeps and dehydrates in one shot is ST0057 WP-11's question and is contested there: `AC-11.4` says in as many words that `--default` never removes a file, and that has to be reconciled by hv rather than by either builder.
 
 ## Acceptance
 

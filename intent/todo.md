@@ -36,13 +36,13 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 12: Issues get a realised form and a sigil, then join the default declaration
   - [ ] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
+- [-] ST0061: dehydrate
 
 ## TODO
 
 - [ ] ST0046: Add modules (properly) to the intent cli
 - [!] ST0059: Rebuild all Intent docs for v3
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
-- [?] ST0061: dehydrate
 - [?] ST0062: help
 - [?] ST0063: start
 - [?] ST0064: intentd: the Intent daemon, and a menubar app that controls it

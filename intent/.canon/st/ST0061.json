@@ -3,10 +3,140 @@
   "id": "ST0061",
   "title": "dehydrate",
   "slug": "dehydrate",
-  "status": "triage",
+  "status": "wip",
   "created": "2026-08-26",
-  "objective": "",
-  "context": "",
+  "objective": "**Wire `intent st dehydrate <ID>` -- the declared, documented, unimplemented inverse of `st hydrate`.** It removes the `STEELTHREAD:<ID>` line from `intent/.intentfiles` and removes that thread's realised files, so that a closed thread stops occupying the tree while the store keeps every byte. **The verb already exists in the surface and answers `a known command that is not implemented yet` (exit 2); this thread is the arm behind it, not a new design.** Its whole safety property is one sentence: **a realised file the store cannot be SHOWN to hold is a refusal naming the file, never a deletion.**",
+  "context": "**Nothing here is new machinery, and that is the point of doing it now.** `organize` already carries every part: `Action::Dehydrate` for a file present on disk and not declared, `organize::gate` deciding per file whether the store can put it back, `preconditions::check` deciding once per run whether the estate has proved it can put anything back, and `prune_emptied` with a floor that is exercised directly because the integration test could not reach it. `intentfiles::unpin` is built, refuses a malformed id, and is idempotent. `facade::hydrate` is the shape to invert: pin, then materialise a WHOLE-ESTATE plan filtered to the artefact's own directory, because classification needs the estate as its denominator while the ACT stays narrow.\n\n**The inversion is not symmetric, and the asymmetry is the design.** `hydrate` may pin first because its second step only writes. `dehydrate` must not: unpinning before knowing the removal is permitted turns a REFUSAL into a deferred deletion, carried out later by whoever next runs `organize --apply` on a thread the manifest no longer declares. So the plan is computed against the HYPOTHETICAL unpinned manifest -- `unpin` returns text, `realised_for_action` reads it -- and the file on disk moves only after the removal has been permitted and performed.\n\n**Why this is safe to build tonight even though it deletes.** hv withdrew `AC-00.3` on ST0057 -- the migration-conservation precondition standing in dehydration's way -- with the reasoning that _git already holds every file dehydration would remove, so the proof is of a loss that cannot occur_. And ST0057's declared dehydration preconditions all resolve satisfied: `intent ac gate ST0057` reports the only unsatisfied criteria are `AC-11.1` through `AC-11.5`, which are `organize --default`, not this. The estate gate is open; what was missing was the arm.\n\n**Scope boundary.** This thread is the PER-THREAD verb an operator names deliberately. Whether `organize --default --force` sweeps and dehydrates in one shot is ST0057 WP-11's question and is contested there: `AC-11.4` says in as many words that `--default` never removes a file, and that has to be reconciled by hv rather than by either builder.",
   "body": "",
-  "preamble": ""
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "**`intent st dehydrate <ID>` is wired and is the inverse of `st hydrate`.** It removes the `STEELTHREAD:<ID>` entry from `intent/.intentfiles` and removes that thread's realised files, reporting each removed path by name and the manifest it changed. **Proven by ROUND TRIP rather than by two separate assertions**: hydrate, then dehydrate, then hydrate again returns the tree byte for byte -- which is the only check that tests the two verbs against each other rather than each against my expectations of it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.2",
+      "text": "**THE RAIL: a realised file the store cannot be SHOWN to hold is a refusal NAMING THE FILE, never a deletion.** Every removal passes `organize::gate`, whose match is `Some(rendered) if *rendered == on_disk` with everything else falling to the refusing arm -- so an opaque attachment carrying `None` and a hand-edited file whose bytes differ are both refused, by the same wildcard, and neither is a special case that could be removed by a later simplification. The refusal names the path and its byte count, and every file that existed before the run still exists byte for byte.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.3",
+      "text": "**THE REFUSAL IS DECIDED BEFORE THE DECLARATION MOVES, AND THIS IS A CONSTRUCTION RATHER THAN AN ORDERING DISCIPLINE.** The plan is computed against the hypothetical unpinned manifest -- `unpin` returns text and `realised_for_action` reads it without writing -- so a refused run leaves `intent/.intentfiles` byte-identical. **A verb that unpinned first would convert a refusal into a DEFERRED DELETION**, performed later by whoever next runs `organize --apply` against a thread the manifest no longer declares, with nobody having decided anything. Asserted by refusing a run and then reading the manifest, not by inspecting the order of two statements.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.4",
+      "text": "**AN ABSENT MANIFEST REFUSES, AND NAMES THE VERB THAT WRITES ONE.** ABSENT means nobody has said, so everything is realised. Creating a manifest here would declare that everything EXCEPT this thread is realised -- an estate-wide assertion nobody made, arrived at through a single-thread verb. It is the mirror of the hazard `hydrate` already refuses in the other direction, where creating a manifest to hold one entry would declare that entry to be the whole. The refusal is distinguishable from `the thread was not listed`, which is an ordinary exit 0.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.5",
+      "text": "**THE ESTATE PRECONDITIONS GATE THIS DOOR TOO.** `preconditions::check` refuses the whole run when any declared precondition is unmet, naming every one of them with a denominator. **A per-thread verb must not be a way around the estate gate**: if it were, the gate would protect only the operator who happened to reach for `organize`, and the narrower verb would be the one that deletes. On an estate with no declaration at all the answer is `NoDeclaration` and the refusal stands.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.6",
+      "text": "**IDEMPOTENT, AND IT NEVER CONFLATES `NOTHING TO DO` WITH `DID SOMETHING`.** `st dehydrate` on a thread already absent from the manifest and absent from disk exits 0 and says so in words distinct from a run that removed files. `unpin` is already idempotent by contract; this criterion is about the REPORT, because a count of removals that reads the same for zero and for one is the class that let `1 refused` speak for 423 files.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.7",
+      "text": "**WIRING THIS VERB LEAVES A TEST WHOSE NAME ASSERTS SOMETHING IT NEVER CHECKED.** `render.rs`'s `an_unwired_verb_in_a_wired_family_is_sent_to_that_family` uses `st dehydrate` as its fixture and **will keep passing after wiring** -- because `unwired()` is a pure function that interpolates the verb into a message and only ever consults whether the FAMILY ships verbs. The verb's own wired-ness is never read. So the fixture is decorative: the test would pass identically for `st list`. **This is `IN-AG-RED-CONTROL-001` in its quietest form -- not a control that broke, but one that never could break, wearing a name that says it does.** Two changes: the fixture moves to a verb that is genuinely unwired (`bootstrap` or `repair`, the only two left in this family once `dehydrate` lands and with `st organize` retired), and the test gains the assertion its name always implied -- that dispatching that verb through `st()` actually REACHES `unwired`, rather than that `unwired()` formats a string when called by hand.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-00.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/st_dehydrate_round_trips_with_hydrate.rs",
+      "covers": [
+        "AC-00.1"
+      ],
+      "status": "to-write",
+      "note": "hydrate -> dehydrate -> hydrate on one thread; asserts the tree is byte-identical to the start and the manifest entry returns."
+    },
+    {
+      "id": "AT-00.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dehydrate_refuses_what_the_store_cannot_hold.rs",
+      "covers": [
+        "AC-00.2"
+      ],
+      "status": "to-write",
+      "note": "Two arms against the one wildcard: an opaque attachment carrying None, and a hand-edited view whose bytes differ. Both refuse by name; every file survives."
+    },
+    {
+      "id": "AT-00.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dehydrate_decides_before_the_declaration_moves.rs",
+      "covers": [
+        "AC-00.3"
+      ],
+      "status": "to-write",
+      "note": "Forces a refusal, then reads .intentfiles and asserts it is byte-identical. The control is a PERMITTED run on the same fixture, where the entry does go."
+    },
+    {
+      "id": "AT-00.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dehydrate_refuses_an_absent_manifest.rs",
+      "covers": [
+        "AC-00.4"
+      ],
+      "status": "to-write",
+      "note": "No .intentfiles at all: refuses, names organize --default, writes nothing. Control: a present manifest not listing the id exits 0 as an ordinary no-op."
+    },
+    {
+      "id": "AT-00.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dehydrate_honours_the_estate_preconditions.rs",
+      "covers": [
+        "AC-00.5"
+      ],
+      "status": "to-write",
+      "note": "An estate whose declaration is unmet refuses with the denominator; an estate with no declaration refuses as NoDeclaration. Control: the met estate permits."
+    },
+    {
+      "id": "AT-00.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dehydrate_reports_nothing_to_do_distinctly.rs",
+      "covers": [
+        "AC-00.6"
+      ],
+      "status": "to-write",
+      "note": "Second dehydrate of the same thread exits 0 with wording distinct from the first. Asserts the two reports differ, not merely that both exit 0."
+    },
+    {
+      "id": "AT-00.7",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/unwired_is_reached_by_dispatch_not_only_formatted.rs",
+      "covers": [
+        "AC-00.7"
+      ],
+      "status": "to-write",
+      "note": "Dispatches the fixture verb through the st family and asserts it reaches unwired with exit 2. The control is the inverse: dispatching a WIRED verb must NOT reach unwired -- which the current test cannot tell apart."
+    }
+  ]
 }

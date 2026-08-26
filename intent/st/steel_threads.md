@@ -7,7 +7,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0064 | intentd-the-intent-daemon-and-a-menubar-app-that    | Triage      | 2026-08-26 |                      |
 | ST0063 | start                                               | Triage      | 2026-08-26 |                      |
 | ST0062 | help                                                | Triage      | 2026-08-26 |                      |
-| ST0061 | dehydrate                                           | Triage      | 2026-08-26 |                      |
+| ST0061 | dehydrate                                           | WIP         | 2026-08-26 |                      |
 | ST0060 | add-intent-vault-as-a-way-for-intent-projects-to    | Triage      | 2026-08-25 |                      |
 | ST0059 | rebuild-all-intent-docs-for-v3                      | On Hold     | 2026-08-25 |                      |
 | ST0058 | local-cutover-v3-usable-across-the-estate-before    | WIP         | 2026-08-21 |                      |
