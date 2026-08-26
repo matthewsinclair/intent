@@ -5,7 +5,7 @@
 # The committed canon already reads status "triage" for the four (the jq edit landed before the refused sync);
 # this makes store and views agree with it, verifies, and commits ONLY the four threads' paths.
 set -uo pipefail
-P=~/Devel/prj/Lamplight; cd "$P" || exit 1; I=${VC_INTENT:-~/Devel/prj/Intent/bin/intent3}; L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
+P=~/Devel/prj/Lamplight; cd "$P" || exit 1; I=${VC_INTENT:?set VC_INTENT to a PINNED copy of the pair -- bin/intent3 resolves into native/rust/target/release and a build replaces it under a live run (2026-08-26: 252 refusals)}; L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
 COMMIT=0; [ "${1:-}" = --commit ] && COMMIT=1
 T="ST0339 ST0340 ST0341 ST0342"
 echo "## Lamplight triage $(date -u +%H:%M:%SZ): HEAD $(git log --oneline -1 | cut -c1-50); pair $($I --version 2>&1 | head -1)"

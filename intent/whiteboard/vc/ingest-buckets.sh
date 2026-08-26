@@ -8,7 +8,7 @@
 # (info.md, acceptance.md, WP/NN/info.md). Anything the pair refuses (non-md on the 2a pair) or fails to verify
 # blocks its dir's prune and is named. The set is DERIVED (find -type f -print0), never a list of names.
 set -uo pipefail
-P=${1:?project dir}; shift; cd "$P" || exit 1; N=$(basename "$P"); I=${VC_INTENT:-$HOME/.local/bin/intent}; L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
+P=${1:?project dir}; shift; cd "$P" || exit 1; N=$(basename "$P"); I=${VC_INTENT:?set VC_INTENT to a PINNED copy of the pair -- ~/.local/bin/intent is a symlink into native/rust/target/release and a build replaces it under a live run (2026-08-26: 252 refusals)}; L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
 COMMIT=0; [ "${1:-}" = --commit ] && COMMIT=1
 echo "## $N $(date -u +%H:%M:%SZ) HEAD $(git log --oneline -1 | cut -c1-50); pair $($I --version 2>&1 | head -1 | cut -c1-40); dirty $(git status --porcelain | wc -l | tr -d ' ')"
 [ "$(git status --porcelain | wc -l | tr -d ' ')" -eq 0 ] || { echo "$N: dirty -- refusing"; exit 2; }
