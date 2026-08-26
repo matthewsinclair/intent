@@ -93,6 +93,8 @@ fn a_declared_thread_leaves_the_disk_and_the_manifest() {
 // AC-00.2 -- THE RAIL
 // ---------------------------------------------------------------------------
 
+/// **AT-00.2** (with `a_file_the_run_cannot_remove_refuses_it_and_names_it`).
+///
 /// A view whose bytes the store cannot reproduce. `organize::gate` matches
 /// `Some(rendered) if *rendered == on_disk` and everything else falls to the
 /// refusing arm, so this and an opaque attachment carrying `None` refuse
@@ -133,6 +135,8 @@ fn a_hand_edited_view_refuses_the_run_and_nothing_is_removed() {
   }
 }
 
+/// **AT-00.2**, second arm.
+///
 /// **vc's case, measured on Lamplight ST0306.** A file a human put in the
 /// thread's directory that the renderer does not produce and the store does not
 /// carry classifies `Unclaimed` -- *report, never remove*. The narrow gate
@@ -167,6 +171,8 @@ fn a_file_the_run_cannot_remove_refuses_it_and_names_it() {
 // AC-00.3 -- THE REFUSAL IS DECIDED BEFORE THE DECLARATION MOVES
 // ---------------------------------------------------------------------------
 
+/// **AT-00.3.**
+///
 /// **A verb that unpinned first would convert a refusal into a DEFERRED
 /// DELETION** -- carried out later by whoever next ran `organize --apply`
 /// against a thread the manifest no longer declares, with nobody having decided
@@ -203,6 +209,8 @@ fn a_refused_run_leaves_the_manifest_byte_identical() {
 // AC-00.4 -- AN ABSENT MANIFEST REFUSES
 // ---------------------------------------------------------------------------
 
+/// **AT-00.4.**
+///
 /// ABSENT means *nobody has said*, so everything is realised. Creating a
 /// manifest here would declare that everything EXCEPT this thread is realised
 /// -- an estate-wide assertion nobody made, arrived at through a single-thread
@@ -238,6 +246,11 @@ fn an_absent_manifest_refuses_and_one_that_omits_the_id_does_not() {
 // AC-00.5 -- THE ESTATE PRECONDITIONS GATE THIS DOOR TOO
 // ---------------------------------------------------------------------------
 
+/// **AT-00.5, PARTIALLY: this is the no-declaration arm and the met control
+/// lives in `a_declared_thread_leaves_the_disk_and_the_manifest`. The arm for a
+/// DECLARED-but-unmet precondition, with its denominator, is not written, which
+/// is why AT-00.5 is not green.**
+///
 /// **A per-thread verb must not be a way around the estate gate.** If it were,
 /// the gate would protect only the operator who happened to reach for
 /// `organize`, and the NARROWER verb would be the one that deletes.
@@ -267,6 +280,8 @@ fn an_estate_with_no_declaration_refuses_this_door_too() {
 // AC-00.6 -- NOTHING TO DO NEVER READS AS DID SOMETHING
 // ---------------------------------------------------------------------------
 
+/// **AT-00.6.**
+///
 /// `unpin` is idempotent by contract; this is about the REPORT, because a count
 /// that reads the same for zero and for one is the class that let `1 refused`
 /// speak for 423 files.

@@ -20,7 +20,7 @@
     },
     {
       "id": "AC-00.2",
-      "text": "**THE RAIL: a realised file the store cannot be SHOWN to hold is a refusal NAMING THE FILE, never a deletion.** Every removal passes `organize::gate`, whose match is `Some(rendered) if *rendered == on_disk` with everything else falling to the refusing arm -- so an opaque attachment carrying `None` and a hand-edited file whose bytes differ are both refused, by the same wildcard, and neither is a special case that could be removed by a later simplification. The refusal names the path and its byte count, and every file that existed before the run still exists byte for byte.",
+      "text": "**THE RAIL: a realised file the store cannot be SHOWN to hold is a refusal NAMING THE FILE, never a deletion.** Every step under the thread passes `organize::gate`, whose match is `Some(rendered) if *rendered == on_disk` with everything else falling to the refusing arm -- so an opaque attachment carrying `None` and a hand-edited file whose bytes differ are both refused, by the same wildcard, and neither is a special case a later simplification could remove. **THE GATE READS EVERY STEP AND NOT ONLY THE DESTRUCTIVE ONES**: a file classified `Unclaimed` is kept by design, and keeping it means the thread does not leave the tree, so a run that removed the views around it would answer `dehydrated` over a thread still realised. The refusal names the path, and every file that existed before the run still exists byte for byte.\n\n**THE ENUMERATION IS THE CORPUS SCAN, AND WHICH DISK WALK IS MEANT IS THE WHOLE OF THIS RULE (vc + ic, 2026-08-26).** Files are enumerated by `sync::scan` -- the walk of `intent/` that excludes exactly `Ignored::for_root`, the paths git would never commit. **Ignored paths are OUTSIDE THE CORPUS: never counted, never removed, and never a refusal.** A recursive `read_dir` instead would see every `.DS_Store` on every Mac and refuse dehydration for any thread directory ever opened in Finder -- the class that already broke ingest fleet-wide once (D29 / AC-03.7). Measured case: Lamplight ST0306 carries ten gitignored review gifs, 152.9 MB, under one thread; they are outside the corpus and survive, while the tracked `.gitignore` beside them is `Unclaimed` and refuses the run by name.\n\n**AND A DIRECTORY THE RUN COULD NOT EMPTY IS NAMED IN THE VERDICT, NEVER A BARE `dehydrated`.** `prune_emptied` calls `remove_dir` rather than `remove_dir_all` -- a physical floor, since it fails on a non-empty directory -- but it skips the failure through an `is_ok()`, which is silent. Content outside the corpus legitimately survives and must not refuse the run; it does leave the manifest saying dehydrated while a directory tree remains. **git leaves ignored files behind too and says nothing, because git keeps no manifest to contradict, and we do.** The surviving leaves are reported by name, and the test reds when one goes unnamed.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -81,62 +81,56 @@
     {
       "id": "AT-00.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/dehydrate_refuses_what_the_store_cannot_hold.rs",
+      "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
       "covers": [
         "AC-00.2"
       ],
-      "status": "to-write",
-      "note": "Two arms against the one wildcard: an opaque attachment carrying None, and a hand-edited view whose bytes differ. Both refuse by name; every file survives."
+      "status": "green"
     },
     {
       "id": "AT-00.3",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/dehydrate_decides_before_the_declaration_moves.rs",
+      "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
       "covers": [
         "AC-00.3"
       ],
-      "status": "to-write",
-      "note": "Forces a refusal, then reads .intentfiles and asserts it is byte-identical. The control is a PERMITTED run on the same fixture, where the entry does go."
+      "status": "green"
     },
     {
       "id": "AT-00.4",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/dehydrate_refuses_an_absent_manifest.rs",
+      "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
       "covers": [
         "AC-00.4"
       ],
-      "status": "to-write",
-      "note": "No .intentfiles at all: refuses, names organize --default, writes nothing. Control: a present manifest not listing the id exits 0 as an ordinary no-op."
+      "status": "green"
     },
     {
       "id": "AT-00.5",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/dehydrate_honours_the_estate_preconditions.rs",
+      "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
       "covers": [
         "AC-00.5"
       ],
-      "status": "to-write",
-      "note": "An estate whose declaration is unmet refuses with the denominator; an estate with no declaration refuses as NoDeclaration. Control: the met estate permits."
+      "status": "to-write"
     },
     {
       "id": "AT-00.6",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/dehydrate_reports_nothing_to_do_distinctly.rs",
+      "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
       "covers": [
         "AC-00.6"
       ],
-      "status": "to-write",
-      "note": "Second dehydrate of the same thread exits 0 with wording distinct from the first. Asserts the two reports differ, not merely that both exit 0."
+      "status": "green"
     },
     {
       "id": "AT-00.7",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/unwired_is_reached_by_dispatch_not_only_formatted.rs",
+      "file": "native/rust/crates/intent-cli/src/render.rs",
       "covers": [
         "AC-00.7"
       ],
-      "status": "to-write",
-      "note": "Dispatches the fixture verb through the st family and asserts it reaches unwired with exit 2. The control is the inverse: dispatching a WIRED verb must NOT reach unwired -- which the current test cannot tell apart."
+      "status": "green"
     }
   ]
 }

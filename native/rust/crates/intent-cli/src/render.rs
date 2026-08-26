@@ -5143,8 +5143,8 @@ mod tests {
     );
   }
 
-  /// **AC-00.7: DISPATCHED RATHER THAN HAND-CALLED, AND THE FIXTURE HAD TO
-  /// MOVE.**
+  /// **AT-00.7 / AC-00.7: DISPATCHED RATHER THAN HAND-CALLED, AND THE FIXTURE
+  /// HAD TO MOVE.**
   ///
   /// This test used to call `unwired("st", "dehydrate")` BY HAND. `unwired` is
   /// a pure function that interpolates the verb into a message and consults
@@ -5183,7 +5183,7 @@ mod tests {
     );
   }
 
-  /// **THE CONTROL, AND IT IS THE HALF THE OLD TEST COULD NOT HAVE HAD.**
+  /// **AT-00.7's control, and it is the half the old test could not have had.**
   ///
   /// A hand-called `unwired` produces the message above no matter what dispatch
   /// does, so the test above alone still cannot tell "reached `unwired`" from
