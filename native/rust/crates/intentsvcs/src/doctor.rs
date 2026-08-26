@@ -74,8 +74,22 @@ pub struct Report {
 }
 
 impl Report {
+  /// Healthy means nothing ACTIONABLE: an advisory describes a state, not an
+  /// obligation, and a report carrying only advisories exits 0 (hv, 2026-08-26).
   pub fn is_healthy(&self) -> bool {
-    self.findings.is_empty()
+    self.actionable() == 0
+  }
+  /// Findings that are advisories: printed, never counted.
+  pub fn advisories(&self) -> usize {
+    self
+      .findings
+      .iter()
+      .filter(|f| f.class == FindingClass::Advisory)
+      .count()
+  }
+  /// Findings that demand an action; the number the summary line reports.
+  pub fn actionable(&self) -> usize {
+    self.findings.len() - self.advisories()
   }
 
   /// v2's exit contract: 0 when healthy, 1 when anything was found.
@@ -435,7 +449,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
           wp.seq,
           thread.status.display()
         ),
-        FindingClass::ModelInconsistent,
+        FindingClass::Advisory,
       );
     }
   }
@@ -472,7 +486,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
           at.id,
           thread.status.display()
         ),
-        FindingClass::ModelInconsistent,
+        FindingClass::Advisory,
       );
     }
   }

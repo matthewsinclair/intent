@@ -190,6 +190,12 @@ pub enum FindingClass {
   /// this, a config edited once and read months later announces itself as a
   /// command that suddenly stopped working.
   UnhonourableSetting,
+  /// A hygiene note, not a fault: the artefact is well-formed and nothing is
+  /// blocked by it. Printed under `advisory:` and NOT counted toward the
+  /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
+  /// `model-inconsistent` remedy, which made "pristine doctor" unreachable on
+  /// any live estate whose AT rows still cite tests in the v2 grammar.
+  Advisory,
 }
 
 impl FindingClass {
@@ -376,6 +382,13 @@ impl FindingClass {
         "unhonourable-setting",
         "the value is well-formed and the data cannot honour it; the detail above names what to set instead",
       ),
+      // Outside the verdict altogether: a state, not an obligation. It sorts last
+      // so the totals line ends with what nobody has to act on.
+      Self::Advisory => (
+        11,
+        "advisory",
+        "nothing is owed now: the row is well-formed and resolves. Rewrite it in the v3 grammar when the thread is next touched; a closed thread carries it as it is",
+      ),
     }
   }
 
@@ -468,7 +481,12 @@ impl fmt::Display for Finding {
     // the whole of the tool's repair offer -- and it has to be runnable.
     write!(
       f,
-      "residue: {}\n  remedy: {}",
+      "{}: {}\n  remedy: {}",
+      if self.class == FindingClass::Advisory {
+        "advisory"
+      } else {
+        "residue"
+      },
       self.body(),
       self.class.remedy()
     )

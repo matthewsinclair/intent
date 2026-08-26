@@ -2141,6 +2141,16 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
+/// Advisories are printed above the summary and never counted in it; the suffix
+/// says how many were set aside so a reader cannot mistake "0 finding(s)" for
+/// "nothing printed" (hv, 2026-08-26).
+fn advisory_suffix(report: &intentsvcs::doctor::Report) -> String {
+  match report.advisories() {
+    0 => String::new(),
+    n => format!(" -- {n} advisory(ies), not counted"),
+  }
+}
+
 fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // **QUIET WINS OVER VERBOSE, and that is v2's rule rather than a tie-break
   // invented here** -- `bin/intent_doctor:134` reads
@@ -2284,12 +2294,13 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     // found" over one it read completely, and `Report`'s own doc comment says
     // the counts exist to tell those apart. `--quiet` is for less noise, not
     // for a verdict you cannot check.
-    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s)",
-    report.findings.len(),
+    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}",
+    report.actionable(),
     report.threads_checked,
     report.issues_checked,
     report.views_checked,
-    report.files_checked
+    report.files_checked,
+    advisory_suffix(&report)
   );
   if report.is_healthy() {
     Ok(())
