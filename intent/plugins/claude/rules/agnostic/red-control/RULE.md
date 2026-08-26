@@ -62,7 +62,7 @@ Signals to look for in a verification step:
 
 - A suite or gate piped through `tail`, `head` or `grep`, so the exit status read is the filter's.
 - `set -u` (or any fail-fast mode) with the assertions after a variable the harness may not have set.
-- `pgrep -f <pattern>` where the pattern also appears in the caller's own command line.
+- `pgrep -f <pattern>` where the pattern also appears in the caller's own command line -- or in any long-lived process's arguments on the machine: on a box running LLM sessions, the agents' prompts name the very commands an instrument hunts for, so a full-command-line match reports them forever; match the executable (`pgrep -x`), count pids not lines, and control BOTH arms -- the one that fires and the one that must fall silent.
 - A lever (an environment variable, a flag, a stub) asserted to have reached the subject with no evidence that the subject reads it.
 - A green suite whose plan line, ok count and exit status were not all read and required to agree.
 - A grep for ABSENCE with no positive control showing the pattern can match anything in that source at all.
