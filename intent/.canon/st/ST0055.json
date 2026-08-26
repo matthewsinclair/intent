@@ -15,7 +15,7 @@
       "seq": 1,
       "title": "Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "[Clear statement of what this work package aims to accomplish]",
       "body": "",
       "preamble": ""
@@ -24,7 +24,7 @@
       "seq": 2,
       "title": "Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "[Clear statement of what this work package aims to accomplish]",
       "body": "",
       "preamble": ""
@@ -33,7 +33,7 @@
       "seq": 3,
       "title": "Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "[Clear statement of what this work package aims to accomplish]",
       "body": "",
       "preamble": ""
@@ -42,7 +42,7 @@
       "seq": 4,
       "title": "Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "[Clear statement of what this work package aims to accomplish]",
       "body": "",
       "preamble": ""
@@ -51,7 +51,7 @@
       "seq": 5,
       "title": "Fleet normalisation (POST-SHIP, cross-repo): normalise Utilz/Lamplight intent/issues to canon",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "[Clear statement of what this work package aims to accomplish]",
       "body": "",
       "preamble": ""
