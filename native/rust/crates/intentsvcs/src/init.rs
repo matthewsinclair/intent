@@ -249,10 +249,13 @@ pub fn init(
     ))
     .map_err(InitError::Store)?;
 
+  // The schedule's default has ONE home: [`crate::project::BackupConfig`]. A
+  // second literal here is how a default drifts from the thing that reads it.
+  let backup_schedule = crate::project::BackupConfig::default().schedule;
   write(
     &config,
     &format!(
-      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": []\n}}\n"
+      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": [],\n  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
     ),
   )?;
 

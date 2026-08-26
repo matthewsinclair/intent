@@ -388,3 +388,134 @@ fn doctor_reports_a_schedule_that_runs_and_fails_as_unbacked() {
     found[0]
   );
 }
+
+// ---------------------------------------------------------------------------
+// The schedule is CONFIGURATION; the report is not.
+//
+// hv, 2026-08-26, on finding `doctor` measuring against a period nobody had
+// chosen: "Who came up with a rule that the intent db had to be backed up every
+// 24h?" and "this _has_ to be a configuration param" and "But it can't be
+// hardcoded" -- then, asked whether the check itself should be switchable, "I
+// don't want it turned off."
+//
+// So these arms test BOTH halves, and the second half is the one with no
+// natural control: a period that cannot be read must not become a project that
+// is not reported on.
+// ---------------------------------------------------------------------------
+
+/// Rewrite the fixture's config with a chosen `backup.schedule`, or with no
+/// `backup` block at all when `value` is `None`.
+fn with_schedule(fx: &Fixture, value: Option<&str>) {
+  let block = match value {
+    Some(v) => format!(",\n  \"backup\": {{ \"schedule\": {v:?} }}"),
+    None => String::new(),
+  };
+  fx.write_file(
+    "intent/.config/config.json",
+    &format!(
+      "{{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"dc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": []{block}\n}}\n"
+    ),
+  );
+}
+
+fn findings_of(fx: &Fixture, store: &Store, class: FindingClass) -> Vec<String> {
+  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), Some(store))
+    .findings
+    .into_iter()
+    .filter(|f| f.class == class)
+    .map(|f| f.detail)
+    .collect()
+}
+
+/// **The period comes out of the ratified key, and 24 is the declared default
+/// of a declared key rather than a literal at the end of a read chain.**
+///
+/// The mutation this exists to catch is any implementation that answers 24 to
+/// everything -- which is what shipped, because `backup.every_hours` appeared
+/// exactly once in the tree, on the line that read it, so no config file has
+/// ever contained it and `unwrap_or(24)` answered every project.
+#[test]
+fn the_schedule_is_read_from_the_ratified_key_and_every_word_maps() {
+  let fx = Fixture::new();
+  for (word, hours) in [("hourly", 1), ("daily", 24), ("weekly", 168)] {
+    with_schedule(&fx, Some(word));
+    assert_eq!(
+      backup::schedule(&fx.project()),
+      backup::Schedule::Hours(hours),
+      "{word} is a {hours}h period"
+    );
+  }
+}
+
+/// **An absent block is the declared default, never an off switch.**
+///
+/// hv: "I don't want it turned off." A project that predates the key -- which
+/// on the day this landed was every project in the estate -- is still reported
+/// on, and absence never acquires a meaning of its own. That is the same
+/// refusal the surface makes at `keys.4.note`, in the one subsystem where
+/// reading absence as a value costs data.
+#[test]
+fn an_absent_backup_block_is_the_default_and_not_an_off_switch() {
+  let fx = Fixture::new();
+  with_schedule(&fx, None);
+  assert_eq!(
+    backup::schedule(&fx.project()),
+    backup::Schedule::Hours(24),
+    "absent reads as the declared default"
+  );
+
+  let store = store_of(&fx);
+  let found = backup_findings(&fx, &store);
+  assert_eq!(
+    found.len(),
+    1,
+    "the report survives a config that has never heard of the key: {found:?}"
+  );
+}
+
+/// **A value outside the closed vocabulary is CARRIED and REPORTED, never
+/// rounded to the nearest plausible period.**
+///
+/// Rounding would report a schedule the operator did not choose while their
+/// actual setting sat in the file looking honoured -- a config that LOOKS
+/// configured, which is the failure the surface spells out at the `retian`
+/// transposition.
+#[test]
+fn an_unrecognised_schedule_is_named_rather_than_rounded() {
+  let fx = Fixture::new();
+  with_schedule(&fx, Some("fortnightly"));
+  assert_eq!(
+    backup::schedule(&fx.project()),
+    backup::Schedule::Unrecognised("fortnightly".to_string())
+  );
+
+  let store = store_of(&fx);
+  let invalid = findings_of(&fx, &store, FindingClass::SchemaInvalid);
+  assert_eq!(invalid.len(), 1, "the bad value is reported: {invalid:?}");
+  assert!(
+    invalid[0].contains("fortnightly"),
+    "the report quotes what was actually written: {}",
+    invalid[0]
+  );
+}
+
+/// **An unreadable period silences the COMPARISON and nothing else.**
+///
+/// "no restorable snapshot has ever been taken" is not a lateness claim and
+/// needs no period to be true, so gating it on reading one would be the switch
+/// that silences backup failure -- arrived at by accident rather than by a key,
+/// which is the only way that switch was ever going to get built.
+#[test]
+fn an_unreadable_schedule_never_silences_the_never_taken_report() {
+  let fx = Fixture::new();
+  with_schedule(&fx, Some("fortnightly"));
+  let store = store_of(&fx);
+
+  let stale = backup_findings(&fx, &store);
+  assert_eq!(stale.len(), 1, "never-taken still fires: {stale:?}");
+  assert!(
+    stale[0].contains("ever been taken"),
+    "and it is still the never-taken message: {}",
+    stale[0]
+  );
+}

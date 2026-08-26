@@ -968,8 +968,29 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
     // and must not be reported as one.
     return Vec::new();
   };
-  let every = f64::from(crate::backup::schedule_hours(project));
   let where_ = project.relative(&crate::backup::snapshot_dir(project));
+  let mut findings = Vec::new();
+
+  // **The schedule is read first and reported on its own terms.** A value
+  // outside the closed vocabulary silences the staleness COMPARISON and nothing
+  // else -- "no snapshot has ever been taken" is not a lateness claim, needs no
+  // period to be true, and so must not be gated on reading one. Suppressing it
+  // here would be the switch that silences backup failure, arrived at by
+  // accident instead of by a key.
+  let every = match crate::backup::schedule(project) {
+    crate::backup::Schedule::Hours(hours) => Some(f64::from(hours)),
+    crate::backup::Schedule::Unrecognised(value) => {
+      findings.push(Finding::new(
+        where_.clone(),
+        FindingClass::SchemaInvalid,
+        format!(
+          "backup.schedule is {value:?}, which is not one of hourly, daily, weekly \
+           -- the newest snapshot's age cannot be judged until it is corrected"
+        ),
+      ));
+      None
+    }
+  };
 
   match age {
     // **Never is its own message, not a very large number.** "no restorable
@@ -977,22 +998,31 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
     // different actions -- the first says the mechanism has never run, the
     // second says it has stopped -- and collapsing them loses exactly the
     // distinction this check was added for.
-    None => vec![Finding::new(
+    None => findings.push(Finding::new(
       where_,
       FindingClass::BackupStale,
       "no restorable snapshot has ever been taken of this store".to_string(),
-    )],
+    )),
     // A schedule is a period, not a deadline, so a backup is not late the
     // instant the period elapses. Twice the period is late by any reading, and
     // it keeps a daily schedule from reporting RED every morning before it
     // runs.
-    Some(hours) if hours > every * 2.0 => vec![Finding::new(
-      where_,
-      FindingClass::BackupStale,
-      format!("the newest restorable snapshot is {hours:.0}h old against a {every:.0}h schedule"),
-    )],
-    Some(_) => Vec::new(),
+    Some(hours) => {
+      if let Some(every) = every {
+        if hours > every * 2.0 {
+          findings.push(Finding::new(
+            where_,
+            FindingClass::BackupStale,
+            format!(
+              "the newest restorable snapshot is {hours:.0}h old against a {every:.0}h schedule"
+            ),
+          ));
+        }
+      }
+    }
   }
+
+  findings
 }
 
 #[cfg(test)]

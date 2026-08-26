@@ -230,6 +230,31 @@ fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
       serde_json::Value::String(uuid::Uuid::new_v4().to_string()),
     );
   }
+  // **THE SCHEDULE IS BACK-FILLED SO THAT IT IS SOMETHING TO READ AND EDIT**
+  // (hv, 2026-08-26: "back-fill the config"). A default that lives only in the
+  // binary is a value the operator cannot find, and that IS the defect this
+  // fixes: `backup.every_hours` was a real 24h default behind a key that
+  // appeared in no config file anywhere, so every project was measured against
+  // a number none of them could name. Writing the ratified key with its
+  // declared value puts it where an editor and `intent config` both reach it.
+  //
+  // **INSERT-IF-ABSENT, on the `project_id` precedent above, and for the same
+  // reason:** `running_it_twice_leaves_the_tree_byte_identical` asserts a second
+  // upgrade changes nothing, and it must stay true. An operator who has already
+  // set `weekly` keeps `weekly` -- back-filling is how an absent key acquires a
+  // visible default, never how a set one acquires ours.
+  //
+  // The block is serialised FROM [`crate::project::BackupConfig`] rather than
+  // written as a literal here, so a key added to that type back-fills with it
+  // instead of quietly missing from every upgraded project.
+  if !map.contains_key("backup") {
+    map.insert(
+      "backup".to_string(),
+      serde_json::to_value(crate::project::BackupConfig::default())
+        .map_err(std::io::Error::other)?,
+    );
+  }
+
   let mut out = serde_json::to_string_pretty(&value).map_err(std::io::Error::other)?;
   out.push('\n');
   std::fs::write(&path, out)

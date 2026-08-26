@@ -134,7 +134,7 @@ impl Retention {
   }
 }
 
-/// How often a backup is expected, in hours. Default daily.
+/// How often a backup is expected, as read from configuration.
 ///
 /// **Read separately from [`Retention`] because it answers a different
 /// question**: retention is how much history to keep, and this is how often to
@@ -142,20 +142,43 @@ impl Retention {
 /// schedule, which is exactly the inference that lets a stopped scheduler look
 /// configured.
 ///
-/// **There is deliberately no setting that silences a stale backup.** A switch
-/// to turn the warning off is a switch to turn the backup off without noticing,
-/// and this is the backup of the durable source of truth.
-pub fn schedule_hours(project: &Project) -> u32 {
-  project
-    .config()
-    .extra
-    .get("backup")
-    .and_then(|v| v.as_object())
-    .and_then(|t| t.get("every_hours"))
-    .and_then(serde_json::Value::as_u64)
-    .and_then(|n| u32::try_from(n).ok())
-    .filter(|n| *n > 0)
-    .unwrap_or(24)
+/// **There is deliberately no setting that silences a stale backup**, and hv
+/// reaffirmed that on 2026-08-26 in the same breath that made the period
+/// configurable: "I don't want it turned off." A switch to turn the warning off
+/// is a switch to turn the backup off without noticing, and this is the backup
+/// of the durable source of truth. `surface/dispatch-table.md` draws the same
+/// line from the surface side at `deliberately_not_keys.1`.
+///
+/// **An unrecognised value is CARRIED, not corrected.** The alternative is to
+/// fall back to the default, which reports a period the operator did not choose
+/// while their actual setting sits in the file looking honoured -- the shape
+/// this subsystem's own surface notes refuse at `keys.4.note` (absence and zero
+/// must not be the same value) and at the `retian` transposition example.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Schedule {
+  /// A recognised period, in hours.
+  Hours(u32),
+  /// A value outside the closed vocabulary, carried verbatim so that whatever
+  /// reports it can name what was actually written.
+  Unrecognised(String),
+}
+
+/// Read the configured backup schedule.
+///
+/// **What this replaced is the reason it exists.** The period used to be
+/// `unwrap_or(24)` behind `backup.every_hours` -- a key ic had not ratified,
+/// which appeared exactly ONCE in the whole tree, on the line that read it, and
+/// which therefore no config file has ever contained. Every project was measured
+/// against a number none of them could name, find, or change. The ratified key
+/// is `backup.schedule` (D35, hv, 2026-08-15), and 24 is now the declared
+/// default of a declared key rather than a literal at the end of a chain.
+pub fn schedule(project: &Project) -> Schedule {
+  match project.config().backup.schedule.as_str() {
+    "hourly" => Schedule::Hours(1),
+    "daily" => Schedule::Hours(24),
+    "weekly" => Schedule::Hours(168),
+    other => Schedule::Unrecognised(other.to_string()),
+  }
 }
 
 /// Where snapshots live for this project.

@@ -93,6 +93,46 @@ pub enum ThreadFile {
   Attachment,
 }
 
+/// The `backup` block (D35). Absent in every config written before the schedule
+/// became a key, hence the default.
+///
+/// **THE PERIOD IS CONFIGURATION AND THE REPORT IS NOT.** hv, 2026-08-26, on
+/// finding `doctor` measuring against a schedule nobody had chosen: "Who came up
+/// with a rule that the intent db had to be backed up every 24h?" and "this
+/// _has_ to be a configuration param" and "But it can't be hardcoded" -- then,
+/// on whether the check itself should be switchable, "I don't want it turned
+/// off." So the period moved into the file and nothing moved the report out of
+/// it.
+///
+/// That is the line `surface/dispatch-table.md` had already drawn at
+/// `deliberately_not_keys.1`: ANY SWITCH THAT SILENCES BACKUP FAILURE is not a
+/// key, because this is the backup of the durable SSOT and giving silence a
+/// supported name manufactures the failure it would be reporting.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BackupConfig {
+  /// How often a snapshot is expected. Default `daily`.
+  ///
+  /// **A word rather than a number, because that is ic's ratified surface**
+  /// (D35, hv, 2026-08-15; `surface/dispatch-table.md` `keys.1`). The vocabulary
+  /// is CLOSED -- `hourly`, `daily`, `weekly` -- so a value outside it is
+  /// reported rather than rounded to the nearest plausible period. Read it only
+  /// through [`crate::backup::schedule`], which is what enforces that.
+  #[serde(default = "default_backup_schedule")]
+  pub schedule: String,
+}
+
+fn default_backup_schedule() -> String {
+  "daily".to_string()
+}
+
+impl Default for BackupConfig {
+  fn default() -> Self {
+    Self {
+      schedule: default_backup_schedule(),
+    }
+  }
+}
+
 /// The per-project config (`intent/.config/config.json`).
 ///
 /// Unknown fields are PERMITTED here, and that is deliberate rather than an
@@ -118,6 +158,10 @@ pub struct Config {
   /// The `todo` block (D44). Absent in every v2 config, hence the default.
   #[serde(default)]
   pub todo: TodoConfig,
+  /// The `backup` block (D35). Absent in every config written before the
+  /// schedule became a key, hence the default.
+  #[serde(default)]
+  pub backup: BackupConfig,
   /// Everything else in the file, carried so a rewrite never drops a block
   /// this version does not know about.
   ///
@@ -1435,6 +1479,7 @@ mod tests {
       intent_dir: "intent".to_string(),
       languages: vec!["rust".to_string(), "elixir".to_string()],
       todo: TodoConfig::default(),
+      backup: BackupConfig::default(),
       extra: serde_json::Map::new(),
     };
 
@@ -1466,6 +1511,7 @@ mod tests {
       intent_dir: "intent".to_string(),
       languages: vec!["rust".to_string(), "shell".to_string(), "rust".to_string()],
       todo: TodoConfig::default(),
+      backup: BackupConfig::default(),
       extra: serde_json::Map::new(),
     };
 
