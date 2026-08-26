@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 14:12Z
+heartbeat_at: 2026-08-26 14:23Z
 status: active
-focus: "FOLDED 2026-08-26 14:11Z on hv's call -- localfold + compact, then hold for vc. status stays active: a COMPACT, not an end of day. THE THREE MOLTS ARE DONE, NOT MERELY LANDED -- post-flip acceptance driven through the brew binary at /opt/homebrew/bin/intent: four hooks rc=0, unknown rc=1 never 2, verifier 0 of 13, bare intent st list rc=0 where it was rc=2. Molt-matts 45c05c9 + 8a17d1f + 70de9b9, Molt-flynn 91b0868, Molt 84726b0, all uniform at 3.0.0. NEXT AND NOT STARTED: intent critic --languages exits 1 -- the flag is in the binary and --help advertises it as answers-and-exits, but lang is declared arity 1 so clap refuses before the handler at render.rs:4587 runs. Ten devbin estates fail closed; the canon hook fails OPEN, which is the quiet version. IT IS THE FIRST AND ONLY INSTANCE IN THE TABLE of an early-exit flag beside a required positional, and no declared concept for conditional requiredness exists -- so it is one new declared field plus the spine honouring it, not the one line it looks like. Nothing of mine is in the tree; every dirty path is cc's."
+focus: "BOOTED POST-COMPACT 2026-08-26 14:23Z and HOLDING for vc's batch-window instruction, on hv's call. Nothing in flight; my paths are clean and every dirty path in the tree is cc's. Inboxes empty in all four directions at pickup. QUEUED, IN ORDER, NONE STARTED: (1) review cc's fix 2 when it lands, against the opaque-tail rule in authored_row_round_trip.rs and stale_at_check.sh; (2) `intent critic --languages` exits 1 because `lang` is declared arity 1, so clap refuses before the handler runs -- ONE NEW DECLARED FIELD for conditional requiredness plus the spine honouring it, not the one line it looks like, and the red test must assert against HEADLESS_LANGUAGES which holds FIVE, not the arg enum beside it which declares SEVEN; (3) the install.rs evidence line, reporting the nearest candidate found rather than discriminating a cause. AN EDIT TO EITHER CRITIC FILE IS TWO WRITES: dispatch-table.json and spine.rs are both registered attachments across ST0056/57/58, so `intent sync --to-store` and the canon JSON ride the SAME commit or the gate refuses it. THE THREE MOLTS ARE DONE, verified post-flip through the brew binary, not merely landed."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 
 ## DOING
 
-**Nothing in flight. Folded for a compact; the tree carries nothing of mine.**
+**Nothing in flight. Booted post-compact 2026-08-26 14:23Z; the tree carries nothing of mine and all four inboxes were empty at pickup. Holding for vc's batch-window instruction, on hv's call.**
 
 **THE THREE MOLTS ARE DONE.** The flip landed 14:00:46Z and I verified it first-hand before using it -- `/opt/homebrew/bin/intent` at PATH 1, `intent 3.0.0 (80d8b2ca...)`, INTENT_HOME resolving to `Cellar/intent/3.0.0_1/libexec` which carries `lib/templates/hooks/pre-commit-guards.sh`, so the eleven vendored estates have their guard runner and do not fail open.
 
