@@ -1122,11 +1122,41 @@ staged_version() {
 }
 
 cmd_formula() {
-  local stage_dir="$STAGE_DIR" triple version sums
+  local stage_dir="$STAGE_DIR" triple version sums revision=0 revline=""
+
+  # `--revision N` -- HOMEBREW'S ANSWER TO "THE FORMULA WAS WRONG AND THE
+  # VERSION IS NOT". A formula fixed at an unchanged version needs a revision
+  # bump or an existing install never picks the fix up; brew treats
+  # (version, revision) as the identity. THE KNOB LIVES HERE RATHER THAN IN THE
+  # EMITTED FILE because the tap file is GENERATED -- hand-editing a revision in
+  # is the same class of defect as hand-editing a sha256, and it survives
+  # exactly until the next `int macos formula` regenerates over it.
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --revision)
+        shift
+        revision="${1:-}"
+        case "$revision" in
+          ''|*[!0-9]*) die "--revision takes a non-negative integer, got '${revision:-<empty>}'" ;;
+        esac
+        ;;
+      *) die "unknown formula option: $1 (only --revision N)" ;;
+    esac
+    shift
+  done
+
   triple="$(host_triple)"
   sums="$stage_dir/SHA256SUMS.txt"
   require_sums
   version="$(staged_version)"
+
+  # Omitted entirely at 0, which is what Homebrew expects: `revision 0` is not
+  # idiomatic and `brew style` reads it as noise. The trailing newline keeps the
+  # blank line before RELEASE_VERSION in both branches.
+  if [ "$revision" -gt 0 ]; then
+    revline="  revision $revision
+"
+  fi
 
   local sha_cli sha_daemon sha_support
   sha_cli="$(awk -v f="intent-$triple" '$2 == f { print $1 }' "$sums")"
@@ -1141,7 +1171,7 @@ class Intent < Formula
   homepage "https://github.com/matthewsinclair/intent"
   version "$version"
   license "MIT"
-
+${revline}
   RELEASE_VERSION = "$version".freeze
 
   # macOS arm64 only, by ruling (hv, 2026-08-15) rather than by omission. Both
@@ -1194,6 +1224,23 @@ class Intent < Formula
     resource("support").stage do
       libexec.install Dir["*"]
     end
+
+    # THE EXECUTABLE BIT, AND IT IS NOT BELT-AND-BRACES -- WITHOUT IT THE KEG
+    # INSTALLS AND NOTHING IN IT RUNS. GitHub serves release assets as plain
+    # files with no exec bit, and Homebrew's \`.install\` PRESERVES the source
+    # mode rather than setting one. So 644 goes in, 644 comes out, \`brew
+    # install\` prints its beer emoji, and every \`intent\` call returns
+    # \`permission denied\`. Measured on the v3.0.0 tap, 2026-08-26, on the first
+    # real install from the network.
+    #
+    # A CACHE-PRESEEDED INSTALL CANNOT CATCH THIS, which is why it survived
+    # every proof taken before that one: a preseed fills the cache from LOCAL
+    # files that are already +x, so the mode survives and the install works.
+    # Only the network hop loses it. "Proves everything but the network hop"
+    # was an honest scoping, and this is what was behind it.
+    chmod 0755, libexec/"bin/intent"
+    chmod 0755, libexec/"bin/intentd"
+
     bin.install_symlink libexec/"bin/intent"
     bin.install_symlink libexec/"bin/intentd"
   end
@@ -1603,7 +1650,7 @@ case "${1:-}" in
   verify) cmd_verify ;;
   checksum) cmd_checksum ;;
   prepare) cmd_prepare ;;
-  formula) cmd_formula ;;
+  formula) shift; cmd_formula "$@" ;;
   publish) shift; cmd_publish "${1:-}" ;;
   store-creds) cmd_store_creds ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
