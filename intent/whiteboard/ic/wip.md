@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 22:44Z
+heartbeat_at: 2026-08-26 22:46Z
 status: active
 focus: "**`c14aa9bf` IS IN: `intent todo done --prune` now writes `## DONE:2026-08-26T21:40:25Z` and CLEARS THE WORK FINISHED TODAY.** hv ruled it at 21:40Z, parity with `bin/intent_todo`. **The date truncation in `event::todo_watermark` was the defect and the heading was the symptom** -- a completion recorded today compared EQUAL to a flush run today, so `--prune` on a day of work cleared nothing. Three new arms, each mutation-proven to red ALONE. **Verified in a WORKTREE at HEAD, because the shared tree is carrying a peer's in-flight backup-config change that does not compile:** workspace check clean, `cargo test --workspace` 1168 passed / 2 failed. **THE TWO REDS ARE THE SAME TWO AS BEFORE AND ARE CONSTANT ACROSS ALL THREE MUTATIONS -- they ask whether a flush survives a GIT CLONE, and under D53 it does not. That is hv's ruling to make, and it is the one thing I am waiting on.** Holding.
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
@@ -62,6 +62,8 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 **DEFINITION BY EXCLUSION ACQUIRES MEMBERS BY ACCIDENT.** `!is_closed()` swept Triage, Not Started and Hold into the realised set, which is how a project realised 57 threads. hv: _"It should ONLY HAVE WIP STs"_. Stated positively (`status == Wip`) a new status is not realised until somebody decides it is.
 
 **READING THE VOCABULARY AND CALLING IT THE GRAMMAR** (cc's name for cc's own error). A correct reading of a DEFINITION standing in for an UNREAD control flow. I did the same thing reading `state.is` off canon and calling it a verdict when `ac gate` answers the opposite.
+
+**A PROCESS CHECK THAT MATCHES THE COMMAND LINE MATCHES EVERY AGENT WHOSE PROMPT MENTIONS THE TOOL, AND ON THIS FLEET THAT IS ALL OF THEM.** Measured 2026-08-26 22:47Z: a full-command-line grep for cargo-or-rustc returned **83** while the true count was **2**. **Two multipliers, and each alone would be enough.** The command-line flag matches argv, and every node session's appended system prompt carries `restart.md`, which names `cargo fmt --check` in PROSE -- eight processes hold that literal string right now. Then the listing flag prints the matched command line, and those command lines contain NEWLINES, so a per-line count turns a handful of processes into dozens. **The correct instrument is the command NAME** -- the basename of `comm`, never argv. **vc read 81 all evening and concluded builds were running; I hit the same class an hour earlier with a different pattern and caught it only because the hits printed as prompt text rather than as commands.** Same family as the grep matching what a doc RECOMMENDS instead of what the code DOES: on a fleet of agents, every tool the fleet is told about is present in every process table as text.
 
 **NOTHING BUT `date -u` IS A CLOCK** -- not `git log` (local time), not a session notice (crossed midnight once, so the error was a DAY not an hour), not file mtimes.
 
