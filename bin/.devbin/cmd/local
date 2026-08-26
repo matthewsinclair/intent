@@ -2,11 +2,12 @@
 #
 # devbin: summary = The v3 install on THIS machine -- bindings, build, install, reversal
 #
-# int local <status|build|install|uninstall>
+# int local <status|build|install|use|uninstall>
 #
 #   status      every `intent` binding on this machine, ranked by PATH precedence
 #   build       force a COHERENT release pair, then VERIFY it
 #   install     put v3 on PATH as `intent3` -- explicitly, and never as `intent`
+#   use         switch which BUILD answers `intent`: dev|prod [--yes]; bare reports
 #   uninstall   remove it again; the way back
 #
 # WHY `status` EXISTS, AND IT IS THE REASON FOR THE WHOLE COMMAND. On 2026-08-21
@@ -82,7 +83,12 @@ path_hits() {
 
 # describe_binding <path> -- one line: where it really goes, and which line it is.
 describe_binding() {
-  local f="$1" target="$f" kind="file"
+  # TWO `local`s, NOT ONE. Under `set -u` a same-statement `target="$f"` reads
+  # `f` before the assignment has taken effect and dies `unbound variable` --
+  # SC2318, latent here since this function was written and reached for the
+  # first time by `use_flavour` calling it inside a command substitution.
+  local f="$1"
+  local target="$f" kind="file"
   if [ -L "$f" ]; then
     kind="symlink"
     target="$(readlink "$f")"
@@ -317,6 +323,166 @@ cmd_install() {
   cmd_status
 }
 
+# ---------------------------------------------------------------------------
+# cmd_use -- switch which BUILD answers `intent` on this machine.
+#
+#   int local use          report what actually resolves (delegates to status)
+#   int local use prod     the brew-installed release
+#   int local use dev      this checkout's build
+#
+# MECHANISM: `brew link` / `brew unlink`. `/opt/homebrew/bin` is PATH position 1
+# and the dev symlinks sit at 17 and 19, so while the formula is linked brew wins
+# and nothing built here is ever reached. Unlinking removes brew's symlinks and
+# PATH falls through. That is Homebrew's own sanctioned, reversible mechanism;
+# hand-editing `/opt/homebrew/bin` or reordering PATH is neither.
+#
+# WHY THIS IS NOT A PORT OF CONFLAB'S `use`, AND THE DIFFERENCE IS THE WHOLE RISK.
+# Conflab unlinks brew and falls through TO NOTHING. WE FALL THROUGH TO v2:
+# `~/.local/bin/intent` (17) and `~/bin/intent` (19) are both symlinks into the
+# FROZEN v2 tree. So a bare unlink here does not select the dev build, IT SELECTS
+# v2 -- right binary name, wrong major version, EXIT 0, no message. This file's
+# own header states the general form: a design that repoints "the symlink" moves
+# one of two, and deleting the recorded one hands resolution to the unrecorded
+# one, which still answers v2 silently.
+#
+# SO THE VERIFY IS THE LOAD-BEARING PART, NOT THE REPOINT. This command repoints
+# what it owns and then MEASURES WHAT ACTUALLY RESOLVES, dying if it is not the
+# flavour asked for. That catches PATH 19, and any position nobody has found yet,
+# WITHOUT NEEDING TO KNOW IT EXISTS. An enumeration of positions goes stale the
+# day someone adds one; a measurement of resolution cannot.
+
+# use_flavour -- which flavour actually answers `intent` on PATH: prod|dev|v2|none
+#
+# Reads the FIRST PATH hit, because position is what decides. Classifies by where
+# the link really lands, never by the file's name.
+use_flavour() {
+  local first target brew_prefix
+  first="$(path_hits intent | head -1 | cut -f2)"
+  [ -n "$first" ] || { printf 'none'; return 0; }
+  target="$(describe_binding "$first" | cut -f2)"
+  brew_prefix="$(brew --prefix 2>/dev/null)"
+  case "$target" in
+    "$PROJECT_ROOT"/*) printf 'dev' ;;
+    *)
+      if [ -n "$brew_prefix" ] && [ "${target#"$brew_prefix"/}" != "$target" ]; then
+        printf 'prod'
+      else
+        printf 'v2'
+      fi
+      ;;
+  esac
+}
+
+# brew_has_intent -- is the formula installed at all? Today it is not: the tap is
+# empty on purpose until the first v3 release lands a formula in it.
+brew_has_intent() {
+  brew list --formula intent >/dev/null 2>&1
+}
+
+# verify_hook_door -- does `intent claude hook` actually OPEN after the switch?
+#
+# A DIFFERENT PROPOSITION FROM "WHICH BINARY RESOLVES", AND THEY COME APART ON
+# THE PROD ARM (cc, 2026-08-26). The door finds its scripts by walking
+# `current_exe()` ancestors for `lib/templates/`. A symlink canonicalises first
+# and the walk lands inside the checkout; A BREW INSTALL IS A COPY, and a copy
+# with no marker above it refuses EVERY hook at exit 1 -- which Claude Code does
+# NOT block on, so the strict in-session gate stops enforcing SILENTLY, in every
+# project, at once. `verify_pair` and a resolution check BOTH PASS while that is
+# true: both ask which bytes are there, neither asks whether the door opens.
+# (copy-vs-link arms: ic's find, dc's measurement, 2026-08-21.)
+#
+# STDIN MUST BE CLOSED. `claude hook require-in-session` reads its payload from
+# stdin and BLOCKS FOREVER on an inherited one -- two minutes on cc's probe
+# today. `session-context` is the safe one to drive.
+verify_hook_door() {
+  local out rc
+  out="$(intent claude hook session-context </dev/null 2>&1)"
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    printf '    %s\n' "$out" | head -2
+    die "the binary resolves but its HOOK DOOR does not open (rc=$rc) -- lib/templates/ is not above the resolved executable, so every consumer hook would refuse at exit 1 and Claude Code would not block on it"
+  fi
+  printf '    hook door opens (rc=0)\n'
+}
+
+cmd_use() {
+  local want="${1:-}" got yes=""
+  [ "${2:-}" = "--yes" ] && yes=1
+
+  case "$want" in
+    "")
+      # HIGHLANDER: `status` already walks PATH, already refuses a set that
+      # describes no single state, and already names the tool tree. A second
+      # PATH reporter is the exact defect `status` was built to end.
+      cmd_status
+      return 0
+      ;;
+    dev | prod) ;;
+    *) die "unknown flavour: $want (try 'dev', 'prod', or bare 'use' to report)" ;;
+  esac
+
+  step "switching to $want"
+
+  if [ "$want" = prod ]; then
+    brew_has_intent ||
+      die "the intent formula is not installed -- there is no prod to switch to. The tap is empty until the first v3 release publishes a formula into it."
+    brew unpin intent >/dev/null 2>&1 || true
+    brew link --overwrite intent >/dev/null 2>&1 ||
+      die "brew link intent failed -- run it by hand to see why; this command will not force it"
+    printf '    brew linked\n'
+  else
+    if brew_has_intent; then
+      brew unlink intent >/dev/null 2>&1 ||
+        die "brew unlink intent failed -- refusing to repoint anything while brew still wins at PATH 1"
+      # PIN so `brew upgrade` cannot silently re-link and put you back on prod
+      # without saying so. A switch that a later unrelated command can undo is
+      # not a switch.
+      brew pin intent >/dev/null 2>&1 || warn "could not pin intent -- a later 'brew upgrade' may re-link prod under you"
+      printf '    brew unlinked and pinned\n'
+    else
+      # NO PROD TO GO BACK TO, SO THIS IS NOT A TOGGLE -- IT IS THE CUTOVER.
+      # Nothing shadows PATH 17 while the formula is absent, so repointing it
+      # changes which Intent EVERY project on this machine runs, and `use prod`
+      # cannot undo it because there is no formula to link. Machine-wide and
+      # one-way, so it asks, exactly as `install` does for the same reason.
+      [ -n "$yes" ] ||
+        die "no intent formula is installed, so nothing shadows PATH 17 -- repointing it switches EVERY project on this machine to this checkout's build, and 'use prod' cannot undo it until a formula exists. Re-run with --yes if that is what you want."
+      printf '    brew formula not installed -- nothing to unlink\n'
+    fi
+
+    # REPOINT WHAT WE OWN. Not an enumeration of every binding -- the verify
+    # below is what covers the ones we do not own.
+    local pair src dst
+    for pair in $PAIR; do
+      src="$RELEASE_DIR/${pair%%:*}"
+      dst="$BINDIR/${pair%%:*}"
+      [ -f "$src" ] || die "missing $src -- run 'int local build' first"
+      [ ! -e "$dst" ] || [ -L "$dst" ] ||
+        die "$dst exists and is not a symlink -- refusing to replace a real file"
+      ln -sfn "$src" "$dst" || die "could not link $dst"
+      printf '    linked %s -> %s\n' "$dst" "$src"
+    done
+  fi
+
+  # VERIFY, NEVER ASSUME. The failure this catches is silent and plausible: PATH
+  # falling through to a v2 symlink answers at exit 0 under the right name.
+  step "what actually resolves now"
+  got="$(use_flavour)"
+  printf '    %s\n' "$got"
+  [ "$got" = "$want" ] ||
+    die "asked for $want and PATH resolves to $got -- the switch did NOT take. Run 'int local status' to see every binding in precedence order."
+  verify_hook_door
+
+  # A dev switch is only as good as the artefacts it switched to, and the pair is
+  # routinely at a different commit from HEAD in a four-writer tree.
+  if [ "$want" = dev ]; then
+    step "do the dev artefacts describe this tree?"
+    verify_pair
+  fi
+
+  step "done -- the way back is 'int local use ${want/dev/prod}'"
+}
+
 cmd_uninstall() {
   local pair dst removed=0
   step "removing the v3 bindings this command made"
@@ -347,6 +513,7 @@ case "${1:-}" in
   status) cmd_status ;;
   build) cmd_build ;;
   install) shift; cmd_install "${1:-}" ;;
+  use) shift; cmd_use "$@" ;;
   uninstall) cmd_uninstall ;;
-  *) die "unknown local target: $1 (try: status, build, install, uninstall)" ;;
+  *) die "unknown local target: $1 (try: status, build, install, use, uninstall)" ;;
 esac
