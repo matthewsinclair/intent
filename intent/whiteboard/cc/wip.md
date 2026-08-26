@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-25 23:59Z
+heartbeat_at: 2026-08-26 00:06Z
 status: active
 focus: "**`modules` LANDED AT `e2e975ce` -- `find` + `check`, one commit, issue `0067` closed. FIVE landings on WP-06 with vc's pen: `version` / `plugin` / config-write / `lang` / `modules`. **MY UNCOMMITTED TABLE EDIT BLOCKED EVERY NODE'S COMMITS FOR ~40 MINUTES** -- the `include_str!` watch-out, arriving through a guard rather than a binary. **NEXT: `sync` SKIPPING UNTRACKED BYTES**, hv-ruled IN with dc's staged-vs-unstaged distinction as a build requirement. The eleven other families are NOT cleared. **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Tree clean on my paths, nothing tagged, pushed or published."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -24,7 +24,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 1. **`sync` SKIPPING UNTRACKED BYTES -- hv RULED IT IN, WITH THE DISTINCTION (via vc, 2026-08-25).** Not a caution any more: **STAGED-BUT-UNTRACKED must be distinguishable from UNTRACKED-AND-UNSTAGED**, because shipping without it ships the silent no-op hv declined. dc's caution is a build requirement.
 2. **THE ELEVEN OTHER FAMILIES ARE NOT CLEARED.** vc marked that limb as their inference from hv's "Yes", not hv's words, and it still is.
 
-**OWED, SMALL: RE-ANCHOR `modules check`'s `record`.** It cites `intent/whiteboard/cc/inbox.vc.md` because the grammar admits a file path and no sha existed yet. **An inbox gets CLEARED, and the citation will then resolve to a file carrying `_(empty)_`** -- vc's own `0088` class. Move it to vc's commit sha once they land it.
+**DISCHARGED: `modules check`'s `record` IS RE-ANCHORED ON `488696e3`** (vc landed the durable record; verified the commit carries it before citing it, not taken on report). It cited `intent/whiteboard/cc/inbox.vc.md` in the interim because the guard's grammar admits a file path and no sha existed yet -- **and an inbox gets CLEARED, so that citation would have decayed to a file carrying `_(empty)_`.** **The lesson stays and the item goes: name the decay when you accept a halfway house, or the next reader inherits it as a decision.**
 
 ## TODO
 

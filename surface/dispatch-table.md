@@ -2815,7 +2815,7 @@ Compare MODULES.md registry against filesystem
   - `0.state`: ratified
   - `0.authority`: vc
   - `0.date`: 2026-08-25
-  - `0.record`: intent/whiteboard/cc/inbox.vc.md
+  - `0.record`: 488696e3
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
