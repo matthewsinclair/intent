@@ -1,6 +1,6 @@
 {
-  "intent_version": "2.15.1",
-  "rule_count": 64,
+  "intent_version": "3.0.0",
+  "rule_count": 65,
   "rules": [
     {
       "aliases": [],
@@ -131,6 +131,43 @@
       "summary": ">",
       "tags": [],
       "title": "Pure Function, Impure Coordination",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [],
+      "applies_when": [
+        "Any verification step whose result you are about to act on: a test run, a gate, a probe, a grep for absence, a liveness check",
+        "Red-first work, because the first assertions written are assert-failure and assert-absence, and a script that produces nothing satisfies both",
+        "A control introduced to prove a fix, when the lever itself has not been shown to reach the subject"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "A measurement whose positive control was demonstrated in the same run and whose instrument has not changed since",
+        "Read-only reporting from which no decision follows"
+      ],
+      "id": "IN-AG-RED-CONTROL-001",
+      "language": "agnostic",
+      "principles": [
+        "honest-data",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/agnostic/red-control/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [],
+      "title": "A control is only a control if it can go red",
       "upstream_id": null,
       "version": 1
     },

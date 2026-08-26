@@ -54,18 +54,19 @@ Why not `BA`/`ZS` for bash/zsh separately: about 80% of shell rules (quoting dis
 
 Upper-case short slug. Categories are established per-language as the pack grows. Some are shared conventions:
 
-| Code         | Meaning                             | Typical languages       |
-| ------------ | ----------------------------------- | ----------------------- |
-| `CODE`       | Production code rules               | all                     |
-| `TEST`       | Test rules                          | all                     |
-| `ARCH`       | Architecture-level principles       | agnostic                |
-| `ASH`        | Ash framework                       | elixir                  |
-| `PHX`        | Phoenix framework                   | elixir                  |
-| `LV`         | LiveView                            | elixir                  |
-| `MOCK`       | Mocking / test doubles              | elixir (future: others) |
-| `HIGHLANDER` | Highlander rule                     | agnostic                |
-| `PFIC`       | Pure Function / Impure Coordination | agnostic                |
-| `THIN-COORD` | Thin Coordinator                    | agnostic                |
+| Code          | Meaning                                      | Typical languages       |
+| ------------- | -------------------------------------------- | ----------------------- |
+| `CODE`        | Production code rules                        | all                     |
+| `TEST`        | Test rules                                   | all                     |
+| `ARCH`        | Architecture-level principles                | agnostic                |
+| `ASH`         | Ash framework                                | elixir                  |
+| `PHX`         | Phoenix framework                            | elixir                  |
+| `LV`          | LiveView                                     | elixir                  |
+| `MOCK`        | Mocking / test doubles                       | elixir (future: others) |
+| `HIGHLANDER`  | Highlander rule                              | agnostic                |
+| `PFIC`        | Pure Function / Impure Coordination          | agnostic                |
+| `THIN-COORD`  | Thin Coordinator                             | agnostic                |
+| `RED-CONTROL` | A control is only a control if it can go red | agnostic                |
 
 Categories are not strictly hierarchical. A rule fits one `<LANG>-<CAT>` bucket; that bucket is what appears in its ID.
 
