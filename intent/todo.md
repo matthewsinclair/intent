@@ -39,6 +39,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [ ] ST0046: Add modules (properly) to the intent cli
 - [!] ST0059: Rebuild all Intent docs for v3
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
+- [?] ST0061: dehydrate
+- [?] ST0062: help
+- [?] ST0063: start
 
 ## DONE
 

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 95,
+  "slug": "help",
+  "title": "help",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-26",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

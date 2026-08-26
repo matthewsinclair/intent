@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0061",
+  "title": "dehydrate",
+  "slug": "dehydrate",
+  "status": "triage",
+  "created": "2026-08-26",
+  "objective": "",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

@@ -1,9 +1,9 @@
 {
-  "author": "matts",
-  "created": "2025-07-16",
-  "dft_width": 120,
-  "intent_dir": "intent",
   "intent_version": "3.0.0-dev",
+  "project_name": "Intent",
+  "author": "matts",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "intent_dir": "intent",
   "languages": [
     "elixir",
     "author",
@@ -11,6 +11,11 @@
     "rust",
     "shell"
   ],
+  "todo": {
+    "window_hours": 24
+  },
+  "created": "2025-07-16",
+  "dft_width": 120,
   "plugins": {
     "agents": {
       "config_path": "intent/plugins/agents"
@@ -19,7 +24,5 @@
       "subagents_path": "intent/plugins/claude/subagents"
     }
   },
-  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
-  "project_name": "Intent",
   "st_prefix": "ST"
 }
