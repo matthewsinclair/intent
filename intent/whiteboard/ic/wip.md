@@ -3,15 +3,45 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 17:00Z
+heartbeat_at: 2026-08-26 18:21Z
 status: active
-focus: "**SHIPPED: `c6f644b3` (runner refusal, FOUR paths -- `render.rs` is half the fix) and `baba2d9d` (default declaration). Gate 162 binaries / 1202 passed / 0 failed, clippy and fmt rc=0, taken with cc's work COMMITTED not borrowed.** **NOW ON B4 ON hv's WORD, AND B4 IS FAR SMALLER THAN I TOLD hv: `st dehydrate` ALREADY EXISTS as a declared verb and is merely UNWIRED -- no dispatch arm, falls to `unwired()`, exit 2. Not greenfield.** ST0061 now carries a real contract: objective, context, 7 criteria, 7 tests, gate BLOCKED 0/7. `facade::dehydrate` written, NOT YET COMPILED. **I ALSO TOLD hv B4 WAS GATED ON PRECONDITIONS AND IT IS NOT: `ac gate ST0057` says 53/58 satisfied, only AC-11.1-11.5 unsatisfied and all five are `organize --default`. All 14 declared dehydration preconditions resolve satisfied.** **HELD FOR hv: `install.rs`, AND the AC-11.4-vs-WIDE contradiction -- canon says `--default` NEVER removes a file, the ruling says it dehydrates; both cannot be measured green.**"
+focus: "**B4 IS IN: `ffd26309` (code) + `3d9ea45f` (AT ids + canon), gate 165 binaries / 1223 passed / 0 failed, clippy and fmt rc=0, and vc ARMED ALL THREE MUTATIONS in a worktree -- the tests can go red.** `st dehydrate` was DECLARED AND UNWIRED, not greenfield. **THE DEFECT THAT MATTERS: `Plan::run` returns `Ok` WITH ITS REFUSALS INSIDE THE REPORT, so reading only the `Err` arm swallowed `PreconditionsUnmet` -- the verb delisted a thread over a full directory tree and reported success. The comment directly above that line asserted the opposite, written from the SHAPE OF THE CALL without driving it.** Found by my own test on its first run, not by review. **TODAY`S CLASS, PAID FOR FOUR TIMES: EVERY CARGO INVOCATION SELECTS A POPULATION AND NOTHING IN THE OUTPUT NAMES IT** -- `cargo check -p X` builds the LIB ONLY and never test targets (cc caught my broken workspace); a `| tail` pipeline writes 0 bytes until it exits, so not-started reads as clean; and `RC=$?` after a pipe reads the LAST command`s code, not the one I cared about. **ac gate ST0061 = 5/7, AC-00.1 and AC-00.5 honestly unmet.** HOLD: nothing under native/rust until dc`s three reads lift."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
+
+**B4 LANDED. `ffd26309` is the code, `3d9ea45f` is the AT ids plus canon.** `intent st dehydrate <ID>` is wired: dispatch arm, `dehydrated()` handler, `Facade::dehydrate`, `Dehydrated { removed, pruned, unlisted, left_in_place }`, and `facade_dehydrate.rs` with 8 tests. Gate on the population that counts: **165 binaries, 1223 passed, 0 failed**, `clippy --workspace --all-targets -- -D warnings` rc=0, `fmt --check` rc=0.
+
+**vc ran three mutations against `ffd26309` in a worktree and ALL THREE ARE ARMED.** D1: neutralise the `run.refused` read -> reds `an_estate_with_no_declaration_refuses_this_door_too`. D2: drop the `surviving_leaves` call -> reds `a_directory_the_run_could_not_empty_is_named`. D3: restore `.filter(is_destructive)` before the gate -> reds `a_file_the_run_cannot_remove_refuses_it_and_names_it`. **A test nobody has tried to break is a claim, not a control.**
+
+**THE DEFECT WORTH CARRYING FORWARD, AND IT IS A TRAP FOR EVERY CALLER OF `organize`: `Plan::run` RETURNS `Ok` WITH ITS REFUSALS INSIDE THE REPORT.** `PreconditionsUnmet` is pushed onto `report.refused` and the function returns `Ok`, so `.map_err(...)?` sees nothing. I swallowed it. On an estate that had declared no preconditions at all, `st dehydrate` removed no file, **delisted the thread anyway and reported success** -- the manifest reading dehydrated over a full directory tree, which is the single divergence this verb exists to prevent. **The comment sitting directly above that line said the opposite** -- _"the estate preconditions are read inside `run`, which refuses the whole run before touching anything"_ -- written from the shape of the call without ever driving it. **A written guarantee standing in for a mechanism**, which is a phrase this estate already uses about a different hole in the same file. vc grepped the other callers: `facade.rs:2101` is the organize apply path, and its refusals DO reach text; what is unverified is whether a non-empty `refused` sets the EXIT CODE. That is 2b.
+
+**AND THE INSTRUMENT LESSON, WHICH I PAID FOR FOUR SEPARATE TIMES TODAY IN FOUR DIFFERENT SPELLINGS.** Every cargo invocation selects a population along some axis and **nothing in `test result: ok` names which one you got**:
+
+- `cargo check -p intentsvcs` builds the **lib target only** and never test targets. I reported `facade.rs` as "written and compiling"; the workspace did not compile, two exhaustive `FacadeError` matches in test files were broken, and **cc found it, not me**. I already held the rule -- my own note says `--test X` excludes lib tests and _the flag that narrows the run does not narrow the claim_ -- and I **matched it on the SYNTAX rather than on the MECHANISM**, because `check -p` is spelled nothing like `--test`.
+- A `cargo ... | tail` pipeline writes **0 bytes until cargo exits**, so "still running" and "never started" are the same observation.
+- `cmd | head; echo "RC=$?"` reports **head`s** exit code. I read RC=0 off a gate that was exiting 1.
+
+**Only `--workspace --all-targets` selects everything. Anything else is a sample, and it must be NAMED before a result is quoted off it.**
+
+**hv RULED THE AC-11.4-vs-WIDE CONTRADICTION I ESCALATED**, first-hand: _"`--default` never removes a file. Correct. Unless it is used with --force, which does remove files, after a confirm."_ There was never a contradiction, only a missing qualifier. The confirm was NOT in the WIDE ruling as recorded; vc found it already ratified in **AC-11.2** (`--force` without a tty writes nothing and exits non-zero; `y` on a tty proceeds). vc authored **AC-11.6** for the destructive arm at `e8ba126b`. **Build WP-11 against AC-11.1..11.6; no flag, no env override.**
+
+**AC-00.2 NOW CARRIES THE ENUMERATION QUALIFIER, AND WHICH DISK WALK IS MEANT IS THE WHOLE RULE.** Files are enumerated by `sync::scan` -- the walk of `intent/` excluding exactly `Ignored::for_root`. **Ignored paths are OUTSIDE THE CORPUS: never counted, never removed, never a refusal.** vc opened this on a Lamplight ST0306 measurement (ten gitignored review gifs, 152.9 MB, one thread) and asked for a recursive `read_dir`; I refused and built narrower, because `read_dir` would see every `.DS_Store` on every Mac and refuse dehydration for any thread dir ever opened in Finder -- the class that broke ingest fleet-wide once (D29/AC-03.7). vc withdrew the ask. **What their measurement DID find was real: a directory the run cannot empty must be NAMED in the verdict**, because `prune_emptied`'s `remove_dir` is a physical floor but its `is_ok()` skip is silent -- and git leaves ignored files behind too while saying nothing, because git keeps no manifest to contradict, and we do.
+
+**`left_in_place` WAS WRONG ON ITS FIRST SPELLING, IN THE WAY ITS OWN MOTIVATING CASE WOULD HAVE EXPOSED.** I derived it from the ancestors of removed files -- correct for pruning, wrong for reporting, because the directory that survives is typically a **SIBLING** of everything removed. It would have been silent about precisely the directory it exists to name. It walks from the thread dir now and reports only surviving leaves.
+
+**GATE: `ac gate ST0061` exits 1, BLOCKED, 5/7 satisfied. Unsatisfied `AC-00.1` and `AC-00.5`, both honestly unmet** -- AC-00.1 has no round-trip test, and AC-00.5 has only its no-declaration arm; the declared-but-unmet-precondition arm with its denominator is unwritten, so **AT-00.5 is NOT green and I did not green it.**
+
+**STANDING HOLD: nothing committed under `native/rust` by anyone until dc's three reads lift it.** `native/rust` was clean by my hand at 18:20Z.
+
+**A PROCESS NOTE AGAINST MYSELF: I told vc the tree was clean at 18:15Z and then dirtied it at 18:17Z** -- the close-gate requires each cited file to carry the literal AT id, so the "canon-only" half reached back into `native/rust`. I said so inside the minute rather than letting quiet.sh find it, which is the only part of that I would repeat.
+
+**AND ONE FOR vc's LEDGER, NOT MINE: a `git status` line names PATHS, NOT AUTHORS.** vc read four dirty paths as mine; one was cc's live migrator mid-gate, and "park ic's four" would have parked it.
+
+---
 
 **B4 IS WIRING A DECLARED VERB, NOT DESIGNING ONE -- AND I SIZED IT L ON THE OPPOSITE ASSUMPTION.** `intent st dehydrate <ID>` is already in `surface/dispatch-table.json` with help text _"Remove a steel thread from .intentfiles and delete its files"_, `arity: 1`, owner `ST0057 WP-02`, `read_or_mutate: mutate`. What it lacks is a **dispatch arm**: `st hydrate` is wired at `render.rs:871`, `dehydrate` falls to `Some((verb, _)) => unwired("st", verb)` and answers _"a known command that is not implemented yet"_, exit 2. **Four `st` verbs are declared-and-unwired: `bootstrap`, `dehydrate`, `organize` (retired), `repair`.**
 
