@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 20:35Z
+heartbeat_at: 2026-08-26 20:38Z
 status: active
 focus: "**BOSS-VC for the v3 fleet cutover under hv's pen. 2b IS GREEN at 03470c5a (dc, five reads, 20:24Z); B1 in the pair with two proofs unarmed by name; the third migration defect is two faces of one grammar gap and cc builds it in the ruled order for 3.0.1; Laksa carry re-running on a PINNED pair; Lamplight carry next; Lamplight triage HELD on the ingest's non-UTF-8 refusal. THERE IS NO 3.0.2; WIP ONLY.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -46,7 +46,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 - **Delegated rulings hv can overrule** (all on hv's board with provenance `vc`): cc's build order (class first, arms together, parser last); dc's stamp-fix sequencing (after the sweep, one commit with arm 6, build, reads, runbook line); the S guard now / the M guard with the walk; the create door's both-flags-refuse; the cap's one home; Class B ranges refused by name.
 - **hv's to decide**: Lamplight's Triage store-half (blocked by the 22 non-UTF-8 files until cc's ingest fix -- or hv moves them, or hv rules they leave the tree); Lamplight decision #5 (symlink on PATH) in the light of tonight's 252; ic's DONE-heading wording deviation; Devbin's `intent/history/`; the ST0345 emphasis row; where attachment blobs live; `install.rs`.
-- **Open**: Lamplight's carry (after Laksa); ST0270's disputed covers reading (lamplight-vc's script); Conflab; `ST0064/01`.
+- **Open**: Conflab NOT MIGRATED (issue 0098, hv to rule); the staging-dir build (dc, measured: 252 refusals); Lamplight's carry (after Laksa); ST0270's disputed covers reading (lamplight-vc's script); Conflab; `ST0064/01`.
 
 ## Watch-outs
 
