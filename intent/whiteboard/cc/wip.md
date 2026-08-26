@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 22d8657d-6ffd-4379-90c8-702faa53a828
-heartbeat_at: 2026-08-26 00:06Z
-status: active
-focus: "**`modules` LANDED AT `e2e975ce` -- `find` + `check`, one commit, issue `0067` closed. FIVE landings on WP-06 with vc's pen: `version` / `plugin` / config-write / `lang` / `modules`. **MY UNCOMMITTED TABLE EDIT BLOCKED EVERY NODE'S COMMITS FOR ~40 MINUTES** -- the `include_str!` watch-out, arriving through a guard rather than a binary. **NEXT: `sync` SKIPPING UNTRACKED BYTES**, hv-ruled IN with dc's staged-vs-unstaged distinction as a build requirement. The eleven other families are NOT cleared. **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Tree clean on my paths, nothing tagged, pushed or published."
+heartbeat_at: 2026-08-26 00:20Z
+status: paused
+focus: "**RELEASED 2026-08-26 00:20Z -- END OF SESSION, NOT A COMPACT, SO `status: paused` (invariant 6 does not apply).** **`modules` LANDED AT `e2e975ce`**, ruling re-anchored on `488696e3` at `5e1baf84`; issue `0067` closed. FIVE WP-06 landings with vc's pen: `version` / `plugin` / config-write / `lang` / `modules`. **NEXT ON PICKUP: `sync` SKIPPING UNTRACKED BYTES** -- hv-ruled IN, dc's staged-vs-unstaged distinction is a BUILD REQUIREMENT not a caution. **hv is triaging a fourteen-item queue and may re-sequence it, so READ hv AND vc BEFORE STARTING.** The eleven other families are NOT cleared. **DRIVE THE GATE, DO NOT READ IT FROM HERE.** Day record in `.history/20260825/` and `.history/20260826/`. Tree clean on my paths, nothing tagged, pushed or published."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
