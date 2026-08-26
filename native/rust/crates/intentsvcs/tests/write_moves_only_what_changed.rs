@@ -324,6 +324,25 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "ac new",
+    "mutation_creates_criteria_and_tests.rs -- AT-08.6 / AC-08.6. It is driven THERE rather than here \
+     because the whole-row diff this file is built around cannot express the claim: the criterion asks \
+     whether a row can be brought into EXISTENCE through the addressed surface, and the reachability \
+     limb of its falsifier is a DIFFERENTIAL -- the same criterion built by hand-editing canon and by \
+     the verb, in two fixtures, with the canon files compared byte for byte. **Asserting the fields \
+     `Criterion` carries today would pass forever and say nothing**: add a fifth the surface cannot \
+     reach and such a test stays green while the criterion becomes false",
+  ),
+  (
+    "at new",
+    "mutation_creates_criteria_and_tests.rs -- AT-08.7 / AC-08.7, recorded separately from `ac new` \
+     for the reason the criteria are separate: an AT row carries `file`, `covers` and `status`, so its \
+     create has a validity question a criterion's does not. **The half that makes it more than a `push` \
+     is that the created row is held to the grammar `at lint` enforces on every other row, on the \
+     PROSPECTIVE thread BEFORE the write** -- L4 and L5 refusals are driven there, and so is the \
+     narrowing that lets a create succeed on a thread carrying somebody else's inherited finding",
+  ),
+  (
     "st attach",
     "cli_end_to_end.rs `st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry` \
      -- the verb that closed AC-08.5's last field-axis gap. `Attachment.text` was writable through \
