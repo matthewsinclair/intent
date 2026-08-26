@@ -36,6 +36,36 @@ claims: []
 
 **CONSEQUENCE FOR ic: the blast-radius count is NO LONGER A PRECONDITION OF THIS ROW.** It is still owed, but as evidence about the exit-code surface generally -- `0086`'s ground, not this one's. **Written to `ic/inbox.vc.md` as well as sent, because it changes what is owed on their board.**
 
+### 2026-08-26 00:19Z -- EIGHT RULINGS OFF A TRIAGED QUEUE, first-hand in vc's session
+
+**hv called for TRIAGE BEFORE RULING. The pass found a third of the queue was not a live ruling**, and the eight below are what survived it. Menus recorded in full.
+
+**TRIAGE RESULT, 15 items:** 1 discharged (A6 ST0058 scope, ruled earlier tonight) - **2 STALE** - 1 answered by driving - **2 UNRECOVERABLE** - 9 ruled here (A9+A10 share one remedy).
+
+- **STALE 1 -- `intent st resume` destroying a hold reason.** Carried to hv as a live hazard: _running it on ST0059 would destroy the record of your own parking instruction_. **It was FIXED.** `facade.rs:3082` guards the write (`if let Some(given) = reason`), and the comment records the old unconditional assignment. ST0059's reason is intact and is the estate's only populated one.
+- **STALE 2 -- limb 2's denominator was NEVER hv's.** vc's own inbox entry says _this needs no ruling from you; it is flagged_. vc then carried it onto the queue anyway.
+- **ANSWERED BY DRIVING -- A1 commit trailer.** `includeCoAuthoredBy: false`; eight recent commits across three nodes carry zero attribution. The deciding check was made, not ruled.
+- **UNRECOVERABLE -- A5 `--force` version mismatch, and A7's SUBJECT.** See the entry below; these are the two that need reconstruction rather than a ruling.
+
+**THE EIGHT:**
+
+1. **A8 `cmd/macos` -- OUT. `AC-11.7` WITHDRAWN** (executed, `ST0056` 64/133, 2 withdrawn). Menu: OUT/withdraw **CHOSEN**; BUILD IT (declined -- reverses dc's principled decline, adds release work, carries the `codesign --force` trap); DEFER THE ROW NOT THE DECISION (declined -- a permanently red row on a WIP package is indistinguishable from an unflipped bit).
+2. **A4 `fileindex` -- RETIRE IT, correct the table.** The table declared `keep`/`corrected` while the binary answers _not implemented_. Menu: RETIRE **CHOSEN**; BUILD IT (declined, uncosted); SHIP UNBUILT AND DECLARED (declined). **Under tonight's `AC-00.5` ruling a retirement must become ENUMERABLE.**
+3. **A3 WP-15 -- SPLIT: the machine-global hazard BEFORE the cut, the catalogue triage AFTER.** Menu: SPLIT **CHOSEN**; AFTER WHOLE; BEFORE WHOLE. **vc draws the split line and hv is trusting that.**
+4. **WP-06's eleven -- vc TRIAGES them first**, same method as this pass; only contentious ones reach hv. Menu: TRIAGE **CHOSEN**; EACH NEEDS A RULING; OUT OF SCOPE.
+5. **`st attach` -- KEEP THE SPELLING.** Menu: KEEP **CHOSEN**; RENAME to carry the direction (declined); KEEP AND FIX `0082` INSTEAD (declined as the _ruling_, but `0082` remains open and high on its own merits).
+6. **ic's `## Holds` -- LAND IT, with the CONDITION as the required field.** dc's sharpening: the condition is load-bearing, not the lifter. Menu: LAND **CHOSEN**; AFTER THE CUT; DECLINE. **Shipped-skill change with fleet blast radius, taken knowingly.**
+7. **A12 `DIRT_SCOPE` -- DERIVE THE SCOPE FROM THE `include_str!` SITES.** Menu: DERIVE **CHOSEN**; ASSERT THE SUPERSET IN A TEST; ACCEPT AND DOCUMENT. **hv took the option with no second copy to drift.**
+8. **A9+A10 -- FINISH THE 2026-08-21 FIX: BOTH SIDES FROM THE COMMIT.** THREE estate-wide blocks now, not two. Menu: FINISH IT **CHOSEN**; SCHEDULE AFTER THE CUT; FOLD INTO THE ROSTER-CHARTER RULING. **dc's holding reason -- the node who caused two blocks should not change the gate at speed -- expires on hv's word, which is now given.**
+
+### 2026-08-26 00:19Z -- TWO QUEUE ITEMS HAVE NO RECOVERABLE SUBJECT, AND THAT IS vc's DEFECT
+
+**`A5` -- `--force` version mismatch -- exists as a LABEL in exactly one line of hv's inbox and in three of vc's folds. NOTHING ANYWHERE SAYS WHAT IT ASKS.** On hv's queue since at least 13:01Z on 2026-08-25. **The nearest candidate is independently serious and cannot be proven to be it:** `skills sync --force` from a v2 estate regresses all fifteen committed `AGENTS.md`, six estates still carry the stale description, and vc broadcast that flag as a remedy before devbin-cc caught it.
+
+**`A7` -- the CONSTRAINT survives and the SUBJECT does not.** Recovered: _rule TODO 8 BEFORE `0077`'s wiring, or the two-writer shape arrives by construction._ `0077` (v3 `claude upgrade` parsed but unwired, so nothing regenerates root `CLAUDE.md`) is still OPEN and unwired, **so the window is open and closes the moment anyone wires it.** But _TODO 8_ names an item on a board that no longer exists in that shape.
+
+**BOTH ARE THE SAME FAILURE AND IT IS vc's: A LABEL ROUTED DURABLY WITH ITS SUBSTANCE SENT OVER A CHANNEL THAT DOES NOT SURVIVE.** The identical failure blocked this tree for forty minutes tonight. **A label looks exactly like an item, which is why neither was noticed for four days.** Reconstruction, not a ruling.
+
 ## PROVENANCE -- READ THIS BEFORE READING ANYTHING BELOW
 
 **This board is written by `vc` under hv's ruling of 2026-08-21, not by hv directly.** The protocol allows it: the hypervisor node is human-driven and "the human maintains it (or has it maintained on their behalf)". It was a stub from 2026-06-25 to 2026-08-21 while peers were told to read it for directives at pickup, and hv's real directives lived scattered across peers' boards and quoted speech in `README.md`.
