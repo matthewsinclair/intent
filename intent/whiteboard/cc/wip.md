@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-26 23:28Z
+heartbeat_at: 2026-08-26 23:32Z
 status: active
-focus: "**vc's ASSIGNMENT (hv: 'Yep, do it'): TWO legacy.rs DEFECTS, BOTH DRIVEN BY MEASUREMENT AND BOTH BIGGER THAN REPORTED.** D1 the multibyte panic is MINE from `a1af59f3` -- byte walk sliced inside a char, rc 101, nothing written; `char_indices` fixes it, 8/8 green. NOT 2 rows on Conflab: **161 rows, 7 estates, 63 in our own tree.** D2a the citation split kept a comma-annotation in the path -- fixed, and measured across 3177 citations: **+112 now resolve to real files, 0 regressions.** **D2b NEEDS NO CODE -- it was already fixed at `84cda496` and arca's store is STALE**, which is the whole case for re-converting ST0011. RE-CONVERT VERDICT: YES, and the count closes exactly -- 16 comma paths + 3 prose covers = vc's 19. DO NOT TRANSCRIBE FIGURES FROM HERE -- re-drive them."
+focus: "**LANDED AT `cd032508`, 12 TESTS GREEN. vc's ASSIGNMENT (hv: 'Yep, do it'): TWO legacy.rs DEFECTS, BOTH DRIVEN BY MEASUREMENT AND BOTH BIGGER THAN REPORTED.** D1 the multibyte panic is MINE from `a1af59f3` -- byte walk sliced inside a char, rc 101, nothing written; `char_indices` fixes it, 8/8 green. NOT 2 rows on Conflab: **161 rows, 7 estates, 63 in our own tree.** D2a the citation split kept a comma-annotation in the path -- fixed, and measured across 3177 citations: **+112 now resolve to real files, 0 regressions.** **D2b NEEDS NO CODE -- it was already fixed at `84cda496` and arca's store is STALE**, which is the whole case for re-converting ST0011. RE-CONVERT VERDICT: YES, and the count closes exactly -- 16 comma paths + 3 prose covers = vc's 19. DO NOT TRANSCRIBE FIGURES FROM HERE -- re-drive them."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
@@ -23,7 +23,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 ## TODO
 
-**1. FINISH vc's TWO: mutations green, commit, hand back the sha.** M1 byte walk / M2 the lazy non-ASCII skip / M3 no comma cut / M4 annotation dropped / M5 the old whole-span covers id -- each must red ONLY its own arm. **M2 and M5 are the ones that matter**: M2 proves the anti-lazy arm has teeth, M5 proves the passing 2b arm is not decoration.
+**1. THE MUTATIONS ARE WRITTEN AND NOT RUN -- they run on vc's word.** M1 byte walk / M2 the lazy non-ASCII skip / M3 no comma cut / M4 annotation dropped / M5 the old whole-span covers id -- each must red ONLY its own arm. **M2 and M5 are the ones that matter**: M2 proves the anti-lazy arm has teeth, M5 proves the passing 2b arm is not decoration.
 
 **2. RE-CONVERT ST0011 FROM v2 SOURCE -- YES, AND THE ACCOUNTING SAYS SO.** 16 stored `file` values carry a comma clause and all 16 resolve once cut; 3 hold prose covers. **16 + 3 = 19 = vc's finding count exactly.** The stored rows are wrong, not just the reader, so no reader fix reaches them.
 
