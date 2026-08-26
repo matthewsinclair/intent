@@ -1,11 +1,11 @@
 ---
-verblock: "25 Aug 2026:v1.21: vc - the gate that passed now blocks, by ruling rather than by regression"
+verblock: "26 Aug 2026:v1.22: vc - eight rulings off a triaged queue, and a third of it was never live"
 intent_version: 2.19.0
 ---
 
 # Work In Progress
 
-**Current as at `8ddacfc0`, 2026-08-25. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
+**Current as at `aecc4763`, 2026-08-26. This heading names a COMMIT, not a date** -- a wip file is read as current and written as a snapshot, and if you cannot say what it is current as at, that is the finding.
 
 ## The gate: OPEN AGAIN. BLOCKED at 51/53, by RULING and not by regression
 
@@ -32,7 +32,7 @@ intent_version: 2.19.0
 
 ## The two threads plus the third, driven 2026-08-25
 
-**ST0056 -- the v3.0.0 rewrite. 64 of 134 satisfied**, 1 withdrawn. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started. **The denominator moved 133 -> 134 tonight** because `AC-14.12` was added, and the numerator moved 63 -> 64 when `AT-07.2` landed green; **a figure that moved twice in one evening is why this file drives them instead of holding them.**
+**ST0056 -- the v3.0.0 rewrite. 64 of 133 satisfied**, 2 withdrawn. **`AC-11.7` was withdrawn 2026-08-26 on hv's ruling that `cmd/macos` is OUT OF SCOPE for the cut** -- dc's decline upheld rather than overridden. WPs 01/02/03 Done; 04/05/06/07/10/11 WIP; 08/09/12/13/14/15/16 Not Started. **The denominator moved 133 -> 134 tonight** because `AC-14.12` was added, and the numerator moved 63 -> 64 when `AT-07.2` landed green; **a figure that moved twice in one evening is why this file drives them instead of holding them.**
 
 **ST0057 -- disk as a sparse projection. 51 of 53 satisfied**, 2 withdrawn, **gate BLOCKED**. WPs 01/02/03/04/05/06/07/09/10 Done; **08 alone is WIP and it is blocked on `0088`, not unflipped.** WP-01 and WP-05 closed 2026-08-25: both were finished and unmarked, and WP-05's body still claimed its `.intentfiles` pin choice was open when hv had ruled it on 2026-08-19 as `AC-05.2`. **WP-08 looked identical from outside -- WIP at 5/5 PASS -- and was the one real gap.** **Sparseness applies to VIEWS; canon is NEVER sparse.**
 
@@ -52,6 +52,14 @@ intent_version: 2.19.0
 4. **vc** -- ST0057 WP-01/05/08 close-verification; the instrument-defect sweep opened tonight; ST0058's remaining four.
 5. **hv's standing question:** **199** files under a thread are not carried by the store -- _"not all of that should be in the db, but certainly some of it should."_ It was ~250; the number moves, so drive it.
 
+## Triage before ruling -- the queue was a third shorter than it looked
+
+**hv called for TRIAGE BEFORE RULING on 2026-08-26 and the pass is the finding.** Of fifteen queued items: one already discharged, **two STALE**, one **answered by driving rather than ruling**, **two with NO RECOVERABLE SUBJECT**, nine ruled.
+
+**THE STALE ONE WAS THE MOST ALARMING ITEM ON THE QUEUE.** vc had been carrying to hv that `intent st resume ST0059` would destroy the record of hv's own parking instruction. **It was fixed** -- `facade.rs:3082` guards the write. **A fix nobody announced left a hazard being escalated for days.**
+
+**AND TWO ITEMS HAVE NO RECOVERABLE SUBJECT, WHICH IS vc's OWN DEFECT: `A5` and `A7` went into the durable channel as LABELS while their substance went over SendMessage.** A label looks exactly like an item, so neither was noticed for four days. **The identical failure blocked this tree for forty minutes on 2026-08-25**, when a `modules` ratification cited a record that existed only in a message.
+
 ## Sitting with hv
 
 - **Twelve queued, none vc's to decide:** the commit trailer; WP-15 timing; `fileindex`; `--force` version mismatch; TODO 8 ordering; dc's three including **AT-11.7, which had never actually been put to hv**; the roster check reading two populations from two trees; two estate-wide commit blocks; limb 2's denominator; the marker's `DIRT_SCOPE`. **Plus** the `st attach` **SPELLING** (vc authorised the build, not the name) and ic's **`## Holds`** protocol change, which edits the shipped skill and carries fleet blast radius.
@@ -62,4 +70,4 @@ intent_version: 2.19.0
 
 ## Open issues
 
-**TWENTY-FOUR.** `0077`-`0084` were absent from this file until tonight and `0075` was listed after closing; **`0085`, `0086`, `0087` and `0088` were filed on 2026-08-25.** **NINE are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082` `0086` `0088`** **DRIVEN AT FOLD, NOT TRANSCRIBED -- this file said _six_ earlier tonight because vc carried the number from a summary instead of counting the column.** Re-drive: `intent issues list`. **`0085`** a wired advisory hook prints on every Write/Edit because its no-findings guard can never fire; **`0086` HIGH** `intent help` is retired while `--help` answers, and a passing TEST requires the false remedy.
+**TWENTY-EIGHT.** `0077`-`0084` were absent from this file until tonight and `0075` was listed after closing; **`0085`-`0094` were filed across 2026-08-25/26.** **ELEVEN are high: `0063` `0068` `0071` `0073` `0076` `0079` `0082` `0086` `0088` `0090` `0093`** -- **DRIVE IT: `intent issues list`.** **DRIVEN AT FOLD, NOT TRANSCRIBED -- this file said _six_ earlier tonight because vc carried the number from a summary instead of counting the column.** Re-drive: `intent issues list`. **`0085`** a wired advisory hook prints on every Write/Edit because its no-findings guard can never fire; **`0086` HIGH** `intent help` is retired while `--help` answers, and a passing TEST requires the false remedy.
