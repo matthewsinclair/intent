@@ -75,6 +75,17 @@ check_project() {
       jq -e --arg k "$k" 'has($k)' "$c" >/dev/null 2>&1 \
         && ok "config: $k present" || bad "config: $k MISSING"
     done
+    # devbin-vc, 2026-08-26: presence certified, value never examined -- three
+    # instances in one afternoon. Read the CONFIG FIELD, never grep the tree
+    # (Molt's docs legitimately say `molt-{user}` nine times). Exact directory
+    # match is NOT the test: `microgptex` vs MicroGPTEx is deliberate.
+    for k in project_name author; do
+      local val; val=$(jq -r --arg k "$k" '.[$k] // ""' "$c" 2>/dev/null)
+      case "$val" in
+        ""|*'{'*'}'*|*'[['*']]'*|*'<'*'>'*) [ -z "$val" ] && bad "config: $k is EMPTY" || bad "config: $k is a PLACEHOLDER ($val)" ;;
+        *) ok "config: $k has a value" ;;
+      esac
+    done
   fi
 
   # 3. root canon -- PRESENT AND GENERATED. dc, 2026-08-26: presence-only passed
@@ -125,12 +136,22 @@ check_project() {
   # not the project's": a hit means CHECK against a before-state, not "robbed"
   # (an untouched default returns it too). Full-length, by command, never typed.
   if [ -f "$p/CLAUDE.md" ]; then
-    local blk; blk=$(awk '/user:start/{f=1;next}/user:end/{f=0}f' "$p/CLAUDE.md" | shasum -a 256 | cut -d' ' -f1)
-    if [ "$blk" = "12bad4ea13449501ede0f2f04996a730f701c8d68036c47cf6c326ed7226f480" ]; then
+    # cc, 2026-08-26: an ABSENT block hashes the empty string and printed as a
+    # well-formed digest -- a third state wearing the shape of the second.
+    local blkbytes blk; blkbytes=$(awk '/user:start/{f=1;next}/user:end/{f=0}f' "$p/CLAUDE.md" | wc -c | tr -d ' ')
+    blk=$(awk '/user:start/{f=1;next}/user:end/{f=0}f' "$p/CLAUDE.md" | shasum -a 256 | cut -d' ' -f1)
+    if [ "$blkbytes" -eq 0 ]; then
+      printf '  %-7s %s\n' 'info' "CLAUDE.md user block ABSENT (no markers, nothing extracted)"
+    elif [ "$blk" = "12bad4ea13449501ede0f2f04996a730f701c8d68036c47cf6c326ed7226f480" ]; then
       printf '  %-7s %s\n' 'info' "CLAUDE.md user block is the TEMPLATE DEFAULT ($blk) -- compare against a before-state"
     else
-      printf '  %-7s %s\n' 'info' "CLAUDE.md user block sha256 $blk"
+      printf '  %-7s %s\n' 'info' "CLAUDE.md user block sha256 $blk ($blkbytes bytes)"
     fi
+    # devbin-vc, 2026-08-26: the generator substitutes "" for a known-but-empty
+    # token where an unknown token refuses, so a config with no project_name
+    # yields a CLAUDE.md whose H1 is `# ` -- and the footer arm passes it.
+    local h1; h1=$(grep -m1 '^# ' "$p/CLAUDE.md" | sed 's/^# *//')
+    [ -n "$h1" ] && ok "CLAUDE.md H1 has a title" || bad "CLAUDE.md H1 is EMPTY (generator substituted an empty project_name)"
   fi
 
   # 4c. POST-FLIP ONLY: does bare `intent` work here? Before the flip every
@@ -141,7 +162,7 @@ check_project() {
     if [ "${INTENT_FLIPPED:-0}" = "1" ]; then
       [ "$irc" -eq 0 ] && ok "bare intent works here (st list rc=0)" || bad "bare intent FAILS here (st list rc=$irc) -- the flip did not reach this project"
     else
-      printf '  %-7s %s\n' 'info' "bare intent st list rc=$irc (pre-flip: $(intent --version 2>/dev/null | head -1))"
+      printf '  %-7s %s\n' 'info' "bare intent st list rc=$irc (INTENT_FLIPPED unset; on PATH: $(intent --version 2>/dev/null | head -1))"
     fi
   fi
 
