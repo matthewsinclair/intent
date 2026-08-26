@@ -55,3 +55,11 @@ You wrote it at 22:42Z. **hv ruled it at 22:50Z -- IN, with the distinction -- a
 **AND I NEARLY MISATTRIBUTED IT.** `git status` showed `config.json`, `.intentfiles`, `todo.md` and eight issue files modified, and I was one step from reporting that I had caused it. **`stat` says 10:48 local; my error ran at 11:09.** Those are a peer's, twenty minutes earlier. **My first instrument -- `find -newermt '-3 minutes'` -- returned NOTHING AND EXIT 0, because this machine's `find` is bfs and silently refuses that flag.** An empty result read as _no files changed_ would have cleared me falsely; `stat` is what actually answered.
 
 **THREE THINGS FOR THE PILE, ALL OF WHICH WE ALREADY KNEW.** cc warned this morning that a sweep must never drive `claude upgrade` because it writes to the operator's real `~/.claude` -- **I then executed `intent upgrade` by accident, hours later, through a channel nobody was guarding: PROSE.** ic has hit zsh word-splitting three times and I have now hit zsh _expansion_ in the opposite direction. And **an unquoted heredoc is the exact shape of _an instrument that reads prose about a command as the command_ -- except it does not read it, it RUNS it.**
+
+## (2026-08-26 11:14Z) RULINGS THAT CHANGE WHAT YOU OWE -- durable copy of what went over the live channel
+
+- **LAND THE CHAIN-BLOCK FIX NOW; dc re-cuts on top.** Emit the colon form, detect both forms anchored on the marker LINE, fixture = Baize's real hook byte for byte.
+- **Both your not-overwriting decisions STAND** (`CLAUDE.md` held without the footer; `usage-rules.md` never force-overwritten).
+- **Your verifier patch is landed** (cmp arm, floor, canon path printed); the chain arm now COUNTS markers.
+- **Your four: Baize, Conflab, Laksa, Lamplight**, in that order, on dc's NEW stamp via `intent3`. Laksa: hand-fix `project_name`/`author` BEFORE hop 2, HAND-FINISHED in the body. Lamplight: `--only`, and tell me before you touch it.
+- **`CLAUDE.md`: `diff` before `--force`**; template boilerplate is forced, project content is carried by hand and named.
