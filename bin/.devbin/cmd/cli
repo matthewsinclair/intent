@@ -27,11 +27,34 @@ set -euo pipefail
 workspace="${PROJECT_ROOT:?}/native/rust"
 [ -d "$workspace" ] || die "no Rust workspace at native/rust -- has the tree moved?"
 
-for candidate in "$workspace/target/debug/intent" "$workspace/target/release/intent"; do
-  if [ -x "$candidate" ]; then
-    exec "$candidate" "$@"
+# FRESHEST WINS, NEVER EXISTENCE.
+#
+# This loop used to be `debug` then `release`, execing the first that was `-x`.
+# No mtime, no freshness -- so a debug binary built ONCE, from any tree state,
+# PERMANENTLY SHADOWED every later release build for this verb, while
+# `int local build` faithfully refreshed a release pair nobody reached through
+# it. The thing you built was not the thing that ran, and nothing said so.
+#
+# Freshest rather than release-always, because a debug build exists to run
+# uncommitted code and someone who just ran `int build cli --debug` means it.
+# The choice is PRINTED when the two differ by more than a minute: silently
+# picking is how the old behaviour stayed invisible.
+dbg="$workspace/target/debug/intent"
+rel="$workspace/target/release/intent"
+chosen=""
+if [ -x "$dbg" ] && [ -x "$rel" ]; then
+  if [ "$dbg" -nt "$rel" ]; then chosen="$dbg"; other="$rel"; else chosen="$rel"; other="$dbg"; fi
+  # `find -newermt` is refused by this platform's bfs find, so the age gap is a
+  # plain stat comparison rather than a predicate.
+  a="$(stat -f %m "$chosen")"; b="$(stat -f %m "$other")"
+  if [ "$((a - b))" -gt 60 ]; then
+    printf 'int cli: running the newer %s build (the other is %ss older)\n' \
+      "$(basename "$(dirname "$chosen")")" "$((a - b))" >&2
   fi
-done
+elif [ -x "$dbg" ]; then chosen="$dbg"
+elif [ -x "$rel" ]; then chosen="$rel"
+fi
+[ -z "$chosen" ] || exec "$chosen" "$@"
 
 # Nothing built yet. Build once, quietly, then run -- rather than failing with
 # "no binary", which tells the operator to go and run a different command.

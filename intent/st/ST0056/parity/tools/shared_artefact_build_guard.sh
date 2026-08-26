@@ -48,6 +48,14 @@ ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
 
 LIB="$ROOT/bin/.devbin/cmd/shared/sharedtarget.lib"
 LOCAL_CMD="$ROOT/bin/.devbin/cmd/local"
+# THE GUARDED BUILD MOVED OUT OF `cmd/local` ON 2026-08-26 AND THIS SUBJECT
+# MOVED WITH IT. Arms 7 and 8 read the body of the ONE guarded release build,
+# and that body now lives in a lib because FOUR other entrances -- `build all`,
+# `build cli`, `build daemon` and `cmd/cli`'s fallback -- wrote the same shared
+# artefact with a bare `cargo build` while this arm truthfully reported that
+# `cmd_build` consulted the verdict. **The arm was right and its subject was one
+# door of five.**
+RELEASEBUILD_LIB="$ROOT/bin/.devbin/cmd/shared/releasebuild.lib"
 MARKER_SRC="$ROOT/native/rust/build-support/source_commit.rs"
 
 rc=0
@@ -264,8 +272,8 @@ fi
 # artefact exists, rather than producing a working-looking binary four nodes then
 # invoke. An outcome arm cannot see this; a correct verdict arriving late passes
 # every one of arms 1 to 6.
-if [ ! -r "$LOCAL_CMD" ]; then
-  fail "arm 7 -- no build command at $LOCAL_CMD"
+if [ ! -r "$RELEASEBUILD_LIB" ]; then
+  fail "arm 7 -- no guarded build at $RELEASEBUILD_LIB"
 else
   # THE BODY OF `cmd_build`, NOT THE WHOLE FILE, AND COMMENTS STRIPPED. Both
   # narrowings are corrections to this arm's own first draft, which reported a
@@ -281,20 +289,20 @@ else
   # function body also removes the file-order-versus-call-order gap, since both
   # statements live in the one function and lexical order is execution order
   # inside it.
-  body="$(awk '/^cmd_build\(\) \{/ { inb = 1 } inb { print } inb && /^\}/ { exit }' "$LOCAL_CMD" \
+  body="$(awk '/^guarded_release_build\(\) \{/ { inb = 1 } inb { print } inb && /^\}/ { exit }' "$RELEASEBUILD_LIB" \
           | grep -vE '^[[:space:]]*#')"
   v_line="$(printf '%s\n' "$body" | grep -n 'shared_target_verdict' | head -1 | cut -d: -f1)"
   c_line="$(printf '%s\n' "$body" | grep -n 'cargo \(clean\|build\)' | head -1 | cut -d: -f1)"
   if [ -z "$body" ]; then
-    fail "arm 7 -- could not extract cmd_build from $LOCAL_CMD; the function moved or was renamed, and an unread body is not an ordered one"
+    fail "arm 7 -- could not extract guarded_release_build from $RELEASEBUILD_LIB; the function moved or was renamed, and an unread body is not an ordered one"
   elif [ -z "$v_line" ]; then
-    fail "arm 7 -- cmd_build never consults the guard; the predicate exists and nothing calls it, which is a guard nothing dispatches"
+    fail "arm 7 -- guarded_release_build never consults the guard; the predicate exists and nothing calls it, which is a guard nothing dispatches"
   elif [ -z "$c_line" ]; then
-    fail "arm 7 -- no cargo invocation inside cmd_build, so the order cannot be established"
+    fail "arm 7 -- no cargo invocation inside guarded_release_build, so the order cannot be established"
   elif [ "$v_line" -lt "$c_line" ]; then
-    ok "arm 7 -- the verdict is taken before the first cargo invocation inside cmd_build"
+    ok "arm 7 -- the verdict is taken before the first cargo invocation inside guarded_release_build"
   else
-    fail "arm 7 -- the verdict is taken AFTER cargo inside cmd_build. A correct verdict arriving after the shared artefact is overwritten reports the damage instead of preventing it, which is the defect this row was minted against."
+    fail "arm 7 -- the verdict is taken AFTER cargo inside guarded_release_build. A correct verdict arriving after the shared artefact is overwritten reports the damage instead of preventing it, which is the defect this row was minted against."
   fi
 fi
 
@@ -307,10 +315,10 @@ fi
 # Two guards, one instructing a node to do what the other exists to prevent.
 if [ ! -r "$LOCAL_CMD" ]; then
   : # already reported by arm 7
-elif grep -q 'PRIVATE_RELEASE_DIR' "$LOCAL_CMD" && grep -q 'CARGO_TARGET_DIR' "$LOCAL_CMD"; then
+elif grep -q 'PRIVATE_RELEASE_DIR' "$RELEASEBUILD_LIB" && grep -q 'CARGO_TARGET_DIR' "$RELEASEBUILD_LIB"; then
   ok "arm 8 -- a refused build is redirected to a private CARGO_TARGET_DIR rather than blocked"
 else
-  fail "arm 8 -- no private redirect in $LOCAL_CMD; a guard that stops the build outright is a freeze, and a freeze gets bypassed"
+  fail "arm 8 -- no private redirect in $RELEASEBUILD_LIB; a guard that stops the build outright is a freeze, and a freeze gets bypassed"
 fi
 
 

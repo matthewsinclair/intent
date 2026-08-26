@@ -1,0 +1,163 @@
+# shellcheck shell=bash
+#
+# THE ONE RELEASE BUILD THAT MAY WRITE THE SHARED ARTEFACT.
+#
+# WHY THIS FILE EXISTS. On 2026-08-26 five entrances wrote
+# `native/rust/target` and exactly one of them took the dirt verdict:
+#
+#     all                 NO VERDICT    bare `cargo build --workspace --bins`
+#     cli                 NO VERDICT    bare `cargo build -p intent-cli`
+#     daemon              NO VERDICT    bare `cargo build -p intentd`
+#     cmd/cli fallback    NO VERDICT    bare `cargo build -p intent-cli`
+#     local build         TAKES IT      the guarded path
+#
+# The 12-arm shared-artefact guard asserts "the verdict is taken before the
+# first cargo invocation inside cmd_build". That is TRUE, and `cmd_build` is
+# `local`'s -- so the guard protected one entrance of four and the assertion
+# could not tell you.
+#
+# WHAT IT COST, because the abstract version reads as tidiness. dc rebuilt with
+# `int build all` after a batch landed, `cargo` rebuilt the two crates whose
+# source had changed and left `intentd` at a pre-flip build, and the split pair
+# blocked every hop 2 in vc's lane. **The source commit is embedded at COMPILE
+# time and is not an input cargo tracks**, so a crate whose source did not
+# change keeps its old sha no matter where HEAD is -- which is why the force
+# below is a `cargo clean`, not a rebuild flag.
+#
+# AND THE VERIFICATION DID NOT PASS THE MISMATCHED PAIR. IT NEVER RAN. It lived
+# in `local build`, and the verb whose own help says it means ALL BINARIES was
+# the bare one: the name stated the action, the guard lived somewhere else, and
+# the unguarded path was the one the name sent you to.
+
+# WHERE A RELEASE BUILD MAY LAND. Defined here rather than in `cmd/local`,
+# because the moment a second caller needed them they stopped being one command's
+# private detail. `cmd/local` used to own both and now reads them from here.
+RELEASE_DIR="$PROJECT_ROOT/native/rust/target/release"
+# The redirect target for a dirty build (AC-11.6). UNDER the already-ignored
+# `target/`, deliberately: a sibling like `target-private/` would need a NEW
+# .gitignore rule, and an artefact directory that is only ignored while somebody
+# remembers to keep a rule in step is the shape this whole guard exists to stop.
+PRIVATE_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/private/release"
+
+# guarded_release_build -- the dirt verdict, the provenance force, the build,
+# and the pair verification, in that order, as one thing.
+#
+# ORDER IS THE POINT AND IT IS NOT NEGOTIABLE. AC-11.6 ruled that the shared
+# artefact is protected BEFORE it is overwritten rather than after: `verify_pair`
+# alone reported the damage to binaries four nodes had already started invoking.
+#
+# A DIRTY TREE IS REDIRECTED, NEVER BLOCKED. Five nodes share this clone, and a
+# gate that refuses on a peer's half-finished file is one that gets bypassed the
+# first afternoon.
+guarded_release_build() {
+  local verdict dir mode
+  verdict="$(shared_target_verdict "$PROJECT_ROOT")"
+  case "$verdict" in
+    ok)
+      dir="$RELEASE_DIR"
+      mode=shared
+      ;;
+    refuse:*)
+      warn "${verdict#refuse:}"
+      shared_target_dirt_report "$PROJECT_ROOT"
+      dir="$PRIVATE_RELEASE_DIR"
+      mode=private
+      step "redirecting to a PRIVATE target dir -- the shared artefact is untouched"
+      printf '    %s\n' "$dir"
+      printf '    Commit or stash the paths above and re-run to build the shared pair.\n'
+      ;;
+    *)
+      die "sharedtarget.lib returned an unrecognised verdict: $verdict -- refusing rather than guessing, because an unknown verdict is not a pass"
+      ;;
+  esac
+
+  cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
+  step "forcing the provenance embeds (cargo will not do this for you -- see the header)"
+  CARGO_TARGET_DIR="$(dirname "$dir")" cargo clean -p intent-cli -p intentd --release
+  step "building every binary in the workspace"
+  CARGO_TARGET_DIR="$(dirname "$dir")" cargo build --workspace --bins --release "$@" ||
+    die "the release build failed"
+  step "verifying the SET, which is the check cargo cannot make"
+  verify_pair "$dir" "$mode"
+}
+
+# verify_pair <dir> <shared|private> -- the pair describes ONE state of this repo.
+#
+# THE AGREEMENT HALF IS DELEGATED, NOT REIMPLEMENTED. `artefact_pair_marker` in
+# `currency.lib` already answers "do both binaries name the same commit, and if
+# not, which two" -- it is what prints the `the pair disagrees:` line an operator
+# actually sees. This function held a second copy of that loop before it moved
+# here, and lifting it unchanged would have made a THIRD home for one predicate
+# inside the very file written to collapse entrances into one.
+#
+# WHAT STAYS HERE IS THE POLICY THE CURRENCY READER DOES NOT OWN: shared-vs-
+# private mode, `dirty-` handling, and HEAD equality. `currency.lib` answers a
+# question about an artefact at READ time and has no business knowing why this
+# build was redirected.
+verify_pair() {
+  local dir="${1:-$RELEASE_DIR}" mode="${2:-shared}"
+  local head sc b bad=0
+
+  head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || die "cannot read HEAD"
+
+  # One call, and its stderr IS the report: absent binary, absent marker and
+  # disagreement all come back as a refusal that names what it found.
+  if ! sc="$(artefact_pair_marker "$dir")"; then
+    die "the release pair does not describe one state of this repo -- refusing to call this installable"
+  fi
+  for b in intent intentd; do
+    printf '    %-8s %s\n' "$b" "$sc"
+  done
+
+  case "$mode:$sc" in
+    shared:dirty-*)
+      warn "the pair was built from an uncommitted native/rust tree"
+      bad=1
+      ;;
+    private:dirty-*)
+      : # expected: this is what the redirect was for
+      ;;
+    private:*)
+      # A private build that is NOT dirty means the tree went clean between the
+      # verdict and the build. Reported rather than failed: the artefact is
+      # sound, it is merely in the wrong place, and the operator wants to know
+      # they can now take the shared path.
+      warn "the pair is clean but was built privately -- the tree went clean mid-build; re-run to take the shared path"
+      ;;
+  esac
+
+  # HEAD equality is a SHARED-path claim only. A private dirty build names HEAD
+  # in its `dirty-<sha>` suffix and is not pretending to describe a commit.
+  if [ "$mode" = shared ] && [ "$sc" != "$head" ]; then
+    warn "the pair does not name HEAD ($head)"
+    bad=1
+  fi
+
+  [ "$bad" -eq 0 ] || die "the release pair does not describe one state of this repo -- refusing to call this installable"
+  ok
+}
+
+# refuse_single_package_release <verb> -- a one-binary RELEASE build must not
+# land in the shared target.
+#
+# NOT A STYLE RULE. `cargo build -p intent-cli` and `cargo build -p intentd`
+# SPLIT THE PAIR BY CONSTRUCTION: the pair is the unit every guard, every hop
+# and `intent3 --version` itself reads, and building one of the two guarantees
+# the stamps diverge the moment HEAD moves. There is no consumer of a shared
+# single-package release build whose correctness survives it.
+#
+# A PRIVATE TARGET IS STILL ALLOWED, following the dirt redirect's own precedent:
+# the objection is to writing the artefact four other sessions invoke, not to
+# building one crate. Set CARGO_TARGET_DIR and the refusal lifts.
+refuse_single_package_release() {
+  local verb="$1"
+  [ -z "${CARGO_TARGET_DIR:-}" ] || return 0
+  die "int build $verb builds ONE binary, and a release build of one binary would land in the
+       SHARED target that four other sessions invoke. The pair is the unit every
+       guard reads -- intent and intentd must name the same commit -- and a
+       single-package build splits it the moment HEAD moves.
+
+       For a release pair:   int build all       (or: int local build)
+       For this one crate:   int build $verb --debug
+       Into your own dir:    CARGO_TARGET_DIR=<dir> int build $verb"
+}

@@ -28,6 +28,31 @@ for a in "$@"; do
   esac
 done
 
+# THE GUARDED ENTRANCE. This file used to be `exec cargo build --workspace
+# --bins` and nothing else, which is how a batch rebuild split the release pair
+# and blocked a whole lane: cargo rebuilt the crates whose source had changed
+# and left the other binary at an older commit, because the source stamp is
+# embedded at COMPILE time and is not an input cargo tracks. The set
+# verification did not pass that pair -- IT NEVER RAN, because it lived in
+# `int local build`, and the verb whose own help says ALL BINARIES was the bare
+# one. The name stated the action; the guard lived somewhere else.
+if [ -n "$profile" ]; then
+  # Release: the one guarded path, shared with `int local build`. Dirt verdict,
+  # then the provenance force, then the build, then the pair verification.
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/artefact.lib"
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/sharedtarget.lib"
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/currency.lib"
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/releasebuild.lib"
+  guarded_release_build "${args[@]}"
+  exit 0
+fi
+
+# `--debug` IS THE STATED EXCEPTION AND BYPASSES ALL THREE GUARDS.
+#
+# Not an oversight and not a shortcut: a debug build exists precisely TO run
+# uncommitted code, so a dirt verdict here would refuse the one workflow it
+# serves. Nothing downstream reads a debug binary's STAMP either -- and that
+# narrow wording is load-bearing, because the wider claim that nothing reads a
+# debug BINARY is false: `cmd/cli:30` and `cmd/dogfood:49` both exec one.
 cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
-# shellcheck disable=SC2086  # $profile is one optional flag or empty, by design
-exec cargo build --workspace --bins $profile "${args[@]}"
+exec cargo build --workspace --bins "${args[@]}"

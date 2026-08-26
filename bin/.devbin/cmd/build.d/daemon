@@ -26,6 +26,16 @@ for a in "$@"; do
   esac
 done
 
+# A one-binary RELEASE build may not write the shared artefact -- it splits the
+# pair by construction. `--debug` and a private CARGO_TARGET_DIR are unaffected.
+if [ -n "$profile" ]; then
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/artefact.lib"
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/sharedtarget.lib"
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/currency.lib"
+  . "$PROJECT_ROOT/bin/.devbin/cmd/shared/releasebuild.lib"
+  refuse_single_package_release daemon
+fi
+
 cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
 # shellcheck disable=SC2086  # $profile is one optional flag or empty, by design
 exec cargo build -p intentd $profile "${args[@]}"

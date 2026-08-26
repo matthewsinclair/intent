@@ -51,14 +51,15 @@ set -euo pipefail
 # The marker reader, project-owned. See the file for why it is not in lib/helpers.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/artefact.lib"
 . "$(dirname "${BASH_SOURCE[0]}")/shared/sharedtarget.lib"
+# The pair-agreement reader `verify_pair` delegates to.
+. "$(dirname "${BASH_SOURCE[0]}")/shared/currency.lib"
+# THE one guarded release build, and `verify_pair`. Both used to live in this
+# file, which is how four other entrances came to write the shared artefact
+# without them.
+. "$(dirname "${BASH_SOURCE[0]}")/shared/releasebuild.lib"
 
 BINDIR="${INTENT_LOCAL_BINDIR:-$HOME/.local/bin}"
-RELEASE_DIR="$PROJECT_ROOT/native/rust/target/release"
-# The redirect target for a dirty build (AC-11.6). UNDER the already-ignored
-# `target/`, deliberately: a sibling like `target-private/` would need a NEW
-# .gitignore rule, and an artefact directory that is only ignored while somebody
-# remembers to keep a rule in step is the shape this whole guard exists to stop.
-PRIVATE_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/private/release"
+# RELEASE_DIR and PRIVATE_RELEASE_DIR live in releasebuild.lib, sourced above.
 # The names v3 takes locally. NEVER `intent` -- see cmd_install.
 PAIR="intent:intent3 intentd:intentd3"
 
@@ -195,91 +196,14 @@ EOF
 # PATHS: in the shared slot it is the defect AC-11.6 exists to prevent, and in a
 # private redirect it is the EXPECTED and correct outcome of having redirected.
 # A single strict check would have made the redirect fail every time it worked.
-verify_pair() {
-  local dir="${1:-$RELEASE_DIR}" mode="${2:-shared}"
-  local head b sc first="" bad=0
-  head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || die "cannot read HEAD"
-  for b in intent intentd; do
-    [ -f "$dir/$b" ] || { warn "$b was not built"; bad=1; continue; }
-    if ! sc="$(artefact_source_commit "$dir/$b")"; then
-      warn "$b carries NO source-commit marker -- it cannot say what it is"
-      bad=1
-      continue
-    fi
-    printf '    %-8s %s\n' "$b" "$sc"
-    case "$mode:$sc" in
-      shared:dirty-*)
-        warn "$b was built from an uncommitted native/rust tree"
-        bad=1
-        ;;
-      private:dirty-*)
-        : # expected: this is what the redirect was for
-        ;;
-      private:*)
-        # A private build that is NOT dirty means the tree went clean between the
-        # verdict and the build. Reported rather than failed: the artefact is
-        # sound, it is merely in the wrong place, and the operator wants to know
-        # they can now take the shared path.
-        warn "$b is clean but was built privately -- the tree went clean mid-build; re-run to take the shared path"
-        ;;
-    esac
-    # HEAD equality is a SHARED-path claim only. A private dirty build names HEAD
-    # in its `dirty-<sha>` suffix and is not pretending to describe a commit.
-    if [ "$mode" = shared ]; then
-      [ "$sc" = "$head" ] || { warn "$b does not name HEAD ($head)"; bad=1; }
-    fi
-    if [ -z "$first" ]; then first="$sc"
-    elif [ "$sc" != "$first" ]; then
-      warn "the pair disagrees: $first vs $sc -- built from DIFFERENT trees"
-      bad=1
-    fi
-  done
-  [ "$bad" -eq 0 ] || die "the release pair does not describe one state of this repo -- refusing to call this installable"
-  ok
-}
 
 cmd_build() {
-  # AC-11.6: THE SHARED ARTEFACT PATH IS PROTECTED, AND THE CHECK RUNS BEFORE THE
-  # BUILD RATHER THAN AFTER IT. `verify_pair` below already refused a `dirty-`
-  # marker, but only once `cargo build` had overwritten the binaries four nodes
-  # invoke -- so it reported the damage instead of preventing it. The criterion
-  # ruled on exactly this ordering and chose the earlier refusal, in its own
-  # words: BEFORE the artefact exists, rather than producing a working-looking
-  # binary four nodes then invoke.
-  #
-  # A DIRTY TREE IS REDIRECTED, NEVER BLOCKED. Five nodes share this clone and
-  # somebody is always mid-edit; a guard that stops the build outright is a freeze
-  # that gets bypassed, and a bypassed guard is not a guard. The dirty build goes
-  # to a private target dir under the already-ignored `target/`, carries its
-  # `dirty-<sha>` marker, and leaves the shared slot exactly as it found it.
-  local verdict dir mode
-  verdict="$(shared_target_verdict "$PROJECT_ROOT")"
-  case "$verdict" in
-    ok)
-      dir="$RELEASE_DIR"
-      mode=shared
-      ;;
-    refuse:*)
-      warn "${verdict#refuse:}"
-      shared_target_dirt_report "$PROJECT_ROOT"
-      dir="$PRIVATE_RELEASE_DIR"
-      mode=private
-      step "redirecting to a PRIVATE target dir -- the shared artefact is untouched"
-      printf '    %s\n' "$dir"
-      printf '    Commit or stash the paths above and re-run to build the shared pair.\n'
-      ;;
-    *)
-      die "sharedtarget.lib returned an unrecognised verdict: $verdict -- refusing rather than guessing, because an unknown verdict is not a pass"
-      ;;
-  esac
-
-  cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
-  step "forcing the provenance embeds (cargo will not do this for you -- see the header)"
-  CARGO_TARGET_DIR="$(dirname "$dir")" cargo clean -p intent-cli -p intentd --release
-  step "building every binary in the workspace"
-  CARGO_TARGET_DIR="$(dirname "$dir")" cargo build --workspace --bins --release || die "the release build failed"
-  step "verifying the SET, which is the check cargo cannot make"
-  verify_pair "$dir" "$mode"
+  # THE WHOLE BODY MOVED TO `shared/releasebuild.lib`, and moving it IS the fix.
+  # It sat here as one command's private sequence while `int build all`,
+  # `int build cli`, `int build daemon` and `cmd/cli`'s fallback each wrote the
+  # same shared artefact with a bare `cargo build`. The guard was not weak, it
+  # was unreachable from four of the five doors people actually use.
+  guarded_release_build
 }
 
 cmd_install() {
