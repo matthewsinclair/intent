@@ -44,6 +44,8 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08]
 
 ## TODO
 
+- **`AT-08.6` / `AT-08.7` ARE STILL `to-write` AND THE FLIP IS PENDING.** vc drove the falsifiers and attempted the flip; it did not take, and the commit gate will keep naming both rows stale (they cite a file that now exists) until it does. **Not a defect and not mine to fix** -- vc holds the pen on those rows and will redo it with `note` rather than `evidence` once `intent3` is current. If the stale-AT warning appears on the bounce, this is why.
+
 - **FIRST ON THE BOUNCE: make `field()` BRACKET-AWARE in `legacy.rs`.** cc measured the lossy-parenthetical class at **13 rows, eyeballed on the actual rows, not counted** -- 12 in Lamplight (their migration), 1 in Devbin, 0 in Conflab. **My `~7` in `2aa82d17`'s body is superseded and was a count off a truncating extract.** The parenthetical is WELL-FORMED in the file; it is `field()`'s `--` split that cuts it. **My ruling to cc: fix `field()`, do NOT edit the 12 Lamplight rows** -- a workaround in 12 places is 12 places to keep correct and the 14th row lands where nobody is watching, and those rows are hv-era sign-off EVIDENCE, so rewriting them to suit a parser makes the estate conform to the tool. Extend `legacy_satisfied_verdict.rs`; do not start a second home for one grammar's tests. Red-first fixture: any one of cc's 13.
 - **AND `2aa82d17`'s BODY UNDERSTATES THE DEFECT.** I wrote that those rows "used to default silently"; cc showed the old code ingested a `yes` row **AS UNSATISFIED** -- the same inversion the commit fixes, arriving by a second route. Correct the record when `field()` lands.
 
