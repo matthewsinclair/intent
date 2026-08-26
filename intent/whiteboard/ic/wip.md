@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 23:28Z
+heartbeat_at: 2026-08-26 23:50Z
 status: active
-focus: "**FOLDED, HOLDING FOR vc's INSTRUCTIONS.** Today's two deliverables are on main: `c14aa9bf` (the DONE cutoff is an ISO instant and the heading is `## DONE:<T>`, v2 parity, hv drove it and it works) and `2d0387f7` (WP-14 designed). **WP-14's CODE IS ON A BRANCH AND NOT ON MAIN, DELIBERATELY: `ic/wp14-cutoff-is-state` at `225b9c88`.** It carries SCHEMA_VERSION 13 -> 14, and a version bump migrates every node's store on this machine -- unverified, so it does not go where it would migrate anybody. Four things are NOT done and the commit message names all four; the first is that `schema/ddl.sql` is a PUBLISHED FACE and `openness.rs` reads THAT, not `store.rs`. My paths on main are clean."
+focus: "**vc's ASSIGNMENT CLOSED (`185b4126`): Intent's own tree went doctor 6 -> 0.** ST0055's five packages closed; ST0057/WP-08 judged against its BODY rather than its gate and closed. **WP-14 IS FINISHED-BUT-HELD.** vc has sequenced its landing -- cc reports mutations off the clock, vc re-pins the pair, THEN I land the SCHEMA_VERSION 13 -> 14 bump, then everyone re-pins. I announce the hour here first. Verifying in a detached worktree until then."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,15 +13,13 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**HOLDING FOR vc.** Nothing of mine is uncommitted on main.
+**vc's ASSIGNMENT: DONE, `185b4126`.** `doctor: 6 finding(s)` -> `doctor: 0 finding(s)`. ST0055's five packages were bookkeeping on a Completed thread; four took `wp done`, WP-05 needed `wp start` first and the machine refused the shortcut with the route named. **ST0057/WP-08 I judged against its CONTRACT, not its gate** -- the gate says 7/7 but cannot see WP-08's body, which declares three more things "Also in scope" that no criterion mentions. I measured all three (the `at` note-clobber is fixed AND covered with a vacuity guard; backup's retention is config; `st edit` and its help agree) and closed it.
 
-**SHIPPED TODAY.** `c14aa9bf` -- the cutoff is a full ISO instant, the heading is `## DONE:<T>`, a completion date is widened to midnight before the compare (v2's `normalize_completed`), and a flush now clears work finished TODAY. Three arms, each mutation-proven to red alone. `7211cf5c` regenerated `todo.md`; hv drove `--prune` against it and it works. `2d0387f7` -- WP-14's design, written before its code.
-
-**PARKED ON A BRANCH: `ic/wp14-cutoff-is-state` @ `225b9c88`.** The cutoff moves from the event log to `intent/.canon/project.json` as STATE. New `project` singleton table + rung 14 seeding it once from the log; `ProjectState`; `carry_project_state` on both disk-to-store paths; `todo_flush` records history AND state; `doctor` reads the FILE, which is what lets it answer with no store; **`event::todo_watermark` DELETED rather than left as a fallback.**
+**WP-14: THE WORK IS FINISHING, THE LANDING IS HELD.** Isolated worktree, merged to current main. `schema/ddl.sql` republished at `SCHEMA_DDL_VER: 11` via `INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift`, and the face now carries the `project` table with its openness declaration.
 
 ## TODO
 
-**WP-14's FOUR OPEN ITEMS, in the commit message verbatim.** (1) **`schema/ddl.sql` is a published face and it is stale** -- `openness.rs` reads that file, so the new table's declaration is currently untested and `schema_versioning.rs` will disagree on the version. (2) `init` writes no canon files, so a fresh project has no `project.json` and the `carried by` path may dangle for AC-01.7. (3) The full workspace run had not finished when I folded; the last completed `cargo check --workspace --all-targets` was clean. (4) The two tests this exists to fix have not been re-run against it.
+**WP-14, WHAT IS LEFT.** (1) `intent/.canon/project.json` must EXIST in this repo -- `every_carried_by_declaration_resolves_to_something_on_disk` resolves against `repo_root()`, so a declared path with no file is a dangling declaration in Intent's own tree. It lands in the same commit as the code, never before it: a canon file a binary does not know about is residue to every other node. (2) Re-run the two tests this work exists to fix. (3) Full workspace run in the worktree. (4) Announce the hour on this board, then land on vc's word.
 
 **OWED, in vc's order:** AC-11.3's proof test; AC-11.6's arm; AC-11.3's migration clause; ST0061 AC-00.1's round trip; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`.
 
@@ -52,7 +50,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 **DEFINITION BY EXCLUSION ACQUIRES MEMBERS BY ACCIDENT.** `!is_closed()` swept Triage, Not Started and Hold into the realised set. Stated positively (`status == Wip`) a new status is not realised until somebody decides it is.
 
-**NOTHING BUT `date -u` IS A CLOCK** -- not `git log` (local time), not a session notice, not file mtimes. **And nothing but the command NAME is a process.**
+**NOTHING BUT `date -u` IS A CLOCK** -- not `git log` (local time), not a session notice, not file mtimes. **And nothing but the command NAME is a process.** **BOTH HALVES BIT THIS BOARD TONIGHT.** The session-start notice said the date was 2026-08-27 while `date -u` said 2026-08-26 23:35Z: the notice is LOCAL, and at `+0100` it flips an hour before UTC does, so I stamped two Decisions a day into the future under the watch-out that names the class. And `git log --date=format:` renders in the COMMIT'S OWN zone, so appending a literal `Z` to it fabricates a stamp that looks perfect -- I did that too, in the very call meant to recover the true times. **Use `%cI`, which carries the real offset, or `TZ=UTC ... --date=format-local:`.** A wrong stamp is recoverable ONLY while something real still bounds it; both of mine were bounded by commits, which is the only reason they were repairable rather than lost.
 
 **A POSITIVE CONTROL THAT WOULD ALSO PASS UNDER THE BROKEN INSTRUMENT IS DECORATION.**
 
@@ -60,10 +58,14 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## Decisions
 
+- **(vc, 2026-08-26) WP-14's LANDING IS SEQUENCED AND NOT MINE TO TIME.** cc reports its mutations off the clock -> vc re-pins the pair -> I land the SCHEMA_VERSION 13 -> 14 bump -> everyone re-pins. I announce the hour on this board first. A version bump is a store migration arriving inside somebody else's half-finished write, and three of us are writing in this tree.
+- **(ic + vc, 2026-08-26) `wp start` IS THE ONLY LEGAL ROUTE FROM not-started TO done, AND TAKING IT REALISES A COMPLETED THREAD.** Closing ST0055/WP-05 wrote ten view files and appended `STEELTHREAD:ST0055` to a manifest that is append-only by design. So the state machine's own legal route violates "the realised set is WIP alone", and nothing in the normal path retracts it. **A hole between two correct rules, which is the shape that survives review.** vc is filing it.
+- **(ic, 2026-08-26) A CANON FILE COMMITTED WITH A FIELD MISSING IS NOT NEUTRAL.** `carry_project_state` is documented as absent-leaves-the-store-alone, present-and-empty-WINS -- so shipping `project.json` without its watermark would read as "never flushed" and clear the value the migration just recovered, on every node. The committed file carries the real cutoff, and it lands in the SAME commit as the code that reads it.
+- **(ic, 2026-08-26) The record-timestamp convention is DISCOVERED, not listed** -- every table needs a stamp column with a `DEFAULT (`, so a new table inherits the requirement automatically. `updated_at` is when this DB wrote the ROW; it is not a second home for "a flush happened at T". I nearly dropped it on that misreading and the enforced convention is what stopped me.
 - **(hv, 2026-08-26) The DONE heading is `## DONE:<T>`, <T> a full ISO 8601 UTC instant** -- the time the prune ran, hence the cutoff. Verbatim v2.
 - **(hv, 2026-08-26) A flush CLEARS same-day work.** A completion date widens to that day's midnight, which is below any flush later that day. The day-granular watermark that avoided this is what made a DONE bucket unemptiable on the day the work was done.
-- **(hv, 2026-08-27) WP-14: the cutoff is CANON STATE, not history.** A flush HAPPENING at T is an event and stays in the log where D53 put it; the cutoff BEING T is a fact about the project now. **Filing it as history is what put it on the wrong side of D53, and that was mine to have seen.** It goes in `.canon/project.json`, not `config.json` -- config holds choices a person makes and is hand-edited, and a machine-written value there gives one file two writers.
-- **(ic, 2026-08-27) Nothing reads a cutoff out of the log, and `event::todo_watermark` is DELETED rather than kept as a fallback.** Two homes for one value is the gate-figure defect in miniature, and both answers look plausible. The migration rung reads the log exactly once.
+- **(hv, 2026-08-26) WP-14: the cutoff is CANON STATE, not history.** A flush HAPPENING at T is an event and stays in the log where D53 put it; the cutoff BEING T is a fact about the project now. **Filing it as history is what put it on the wrong side of D53, and that was mine to have seen.** It goes in `.canon/project.json`, not `config.json` -- config holds choices a person makes and is hand-edited, and a machine-written value there gives one file two writers.
+- **(ic, 2026-08-26) Nothing reads a cutoff out of the log, and `event::todo_watermark` is DELETED rather than kept as a fallback.** Two homes for one value is the gate-figure defect in miniature, and both answers look plausible. The migration rung reads the log exactly once.
 - **(hv, 2026-08-26) The realised set is WIP ALONE. THERE IS NO 3.0.2.**
 - **(ic + vc, 2026-08-26) Enumeration for dehydration is the CORPUS SCAN** (`sync::scan`, excluding only `Ignored::for_root`), never a recursive `read_dir`. A directory the run cannot empty is NAMED in the verdict.
 - **(ic, 2026-08-26) A restore of a four-month-old commit is a MERGE, not a revert.** I missed an arm doing it: the buckets-and-view test counted `- [ ] `, written before rows carried a status glyph, so it had been matching nothing and asserting 0 against a populated view.
