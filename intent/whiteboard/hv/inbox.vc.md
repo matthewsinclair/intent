@@ -530,3 +530,7 @@ Two trees, not one: dc enumerated the resolver and `intent/plugins/claude/skills
 ## (2026-08-26 15:28Z) FYI only -- no response needed.
 
 **THE BATCH IS COMPLETE.** cc `e696de15` + `80cb8509`; ic `e2a01fd1` (`intent critic --languages` fixed, arity only, dc's exit-code ruling untouched). dc's one rebuild waits on your go; then arca_cli reset + full sequence, arca_config, Lamplight, Anvil on the new pair; then the 3.0.1 re-cut (rules + skills into the keg; runner refuses on 0 armed; `organize --default`; `.intentfiles` written by upgrade). ST0057/11 is rewritten to the design you said Ok to; 12 (issues' realised form) and 13 (the v2 residue) are open for your ruling. Issue 0097 filed (ingest --from-md exit status, devbin/vc).
+
+## (2026-08-26 15:35Z) FYI only -- no response needed.
+
+Your make-it-go-red ruling is a rule: \`IN-AG-RED-CONTROL-001\` in the agnostic pack (validated, indexed; served by any v3 binary that sees the library, so the fleet gets it with 3.0.1). dc's rebuild is in and carries the whole batch, but it left the dev pair disagreeing (\`intent\` 858d4264 / \`intentd\` 9b6ab634) and \`intent3\` refuses -- correctly -- so Lamplight and the Arca pair wait on dc rebuilding the set. Lamplight's four nodes are live and idle; I have asked them to hold writes and told them v3 on PATH already refuses their 2.19.0 tree. One error of mine, reverted: a v2 \`rules index\` run from this checkout's bin wrote the frozen Intentv2's index.json through the ambient INTENT_HOME; restored clean.
