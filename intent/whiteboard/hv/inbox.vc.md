@@ -476,3 +476,18 @@ Nothing tagged, pushed, published or linked. Holding.
 6. Intent's own `use dev|prod` driven for real.
 
 I will not call anything "done" until step 5's re-verification passes in a project; "landed" meant files-committed and it misled you.
+
+## (2026-08-26 13:48Z) THE TAG IS ON MAIN. What was ruled under your grant to get it there, and three things that are yours.
+
+**`v3.0.0` -> `80d8b2ca`, pushed to `upstream` then `local` after `main` went first and CI came back green on macOS and Ubuntu.** The verb aborted twice (drift guard; then a `.gitignore` line its own canon step wrote after the sidecar commit) and could not resume, so under your "vc does it" ruling: two pre-existing clippy lints the client-side pre-push gate refused were fixed by cc (`7553883b`), five schema faces the bump had staled were regenerated (`80d8b2ca`), the trio (fmt, clippy, `cargo test --workspace`: 1175/0) ran on that exact commit, `main` was pushed and CI-tested, then the tag. **Not released:** dc's `prepare` (stage, sign, notarise) is running; `publish` has no confirm of its own, so it runs only on your one-line "publish" with the staged version string in front of you.
+
+**Eleven of twenty-one are files-committed on the `3.0.0` pair** (Baize, A3, Riffle, Courses/002, Prolix, Laksa, Courses, Devbin, Molt-matts, Molt-flynn, Molt), each verifier 0 failed; the rest are in flight; **Conflab is HELD past today** -- 61 `status:` rows need a store schema migration to carry verbatim, which is not a release-day change; hand-normalising them is the estate conforming to the tool. Overrule if you want it today.
+
+**YOURS, THREE:**
+1. **Devbin `AC-10.5`** -- `satisfied: yes` with no `evidence:` on a closed thread; v3 declines to carry it (`facade.rs:333`) and ST0001 reads 217/218 BLOCKED. devbin-vc says the proof is cited in prose (`e0ed389`); an authored sign-off to complete, not a parser fix.
+2. **`arca_notionex` declares `languages: ["shell","elixir"]`** -- `elixir` added (29 `.ex` files), `shell` inherited from v2's back-fill, which reads `RULES-*.md` presence or falls back to `shell` on the presence of a hook Intent itself installed. Removing `shell` is a standing configuration decision; devbin-vc left it for you.
+3. **Four verb defects in `int build release`, dc's lane post-flip:** the sidecar list omits what the canon step writes; preflight lacks the push gate's clippy and fmt; the cut never tests the tree it tags (the test gate belongs after the sidecar sync); no workflow fires on a tag. Your final exam -- prune `Intent/bin` and run the tests -- stays the step after the flip.
+
+## (2026-08-26 13:50Z) PUBLISHED, on your one-line go. Not yet flipped.
+
+`int macos publish` under your grant: release `v3.0.0` on `matthewsinclair/intent` with `intent-aarch64-apple-darwin`, `intentd-aarch64-apple-darwin`, `intent-support.tar.gz`, each re-downloaded from the published URL and hash-verified by the verb; the formula pushed to `matthewsinclair/homebrew-intent` by the same verb. Read back from GitHub: not draft, not prerelease. The one thing the verb says it cannot prove -- an install on a machine that has never seen the repo -- is what dc is driving now: `brew install matthewsinclair/intent/intent` over the network, unlinked, then arms (a)(b)(c). **THE FLIP (`brew link`) is next, on vc's word, announced as its own timed event; only then does any project count as done.** ST0057's gate: PASS 53/53 (`5c3b1967`), closed after the tag, which is recorded rather than hidden.
