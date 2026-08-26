@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 11:19Z
+heartbeat_at: 2026-08-26 11:21Z
 status: active
 focus: "**BOSS-VC: hv handed me the pen at ~10:56Z with authority over intent-{cc,dc,ic} and devbin-{vc,cc} for the fleet migration, then went AFK. THE FLEET IS 21, NOT 16 (devbin-cc's census; my sixteen was a depth-limited walk). ZERO PROJECTS MIGRATED, DELIBERATELY: three defects found before any live write, all by driving -- `claude upgrade` doubles the chain block in every v2-written hook (cc, own slice; and hop 1 CREATES the hook so nothing was safe); the brew keg installs, answers --version and cannot find its templates because brew strips the tarball's top-level lib/ (dc, own lane, fixed at 773fcae3); Devbin's hop 2 refuses atomically on a duplicate AT id (devbin-vc, independent drive). Every ruling made in hv's absence is in hv/inbox.vc.md for ratification. Runbook + verifier are the executable state; verifier self-test trips 11 arms including a doubled hook and resolves core.hooksPath. Riffle held DIRTY at hop 1. Waiting on: cc's fix sha -> dc's re-cut -> fleet resumes.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -34,7 +34,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 4. **VERIFY EVERY PROJECT AS IT LANDS** with the script; a hand-finished project is NAMED as such in the commit body.
 5. **OWED TO hv (in hv/inbox.vc.md, for ratification):** six rulings under delegation; the `use`-is-machine-wide question with my interim ruling (`intent3` is the project-scoped dev spelling).
 6. **AFTER THE FLIP:** every project re-verified with the brew binary on PATH; devbin-cc's post-cut leg per estate; devbin-vc's positive control.
-7. **STILL MINE, NONE STARTED:** WP-15's split line (the migration unit is the machine, not the project -- and `use` being machine-wide is the third instance); triage WP-06's eight unwired families; retire `A5`/`A7`; the help surface (142 pages, XL) after migration lands; `sync` parked.
+7. **POST-FLEET SOURCE BATCH -- one commit window after the fleet is through, then ONE final re-cut for the release keg (every source commit today costs dc an Apple round trip; test-only commits do not stale the binary):** (a) `install.rs:56` remedy discriminates its three causes -- outside the tree / inside at the wrong depth / copy-vs-symlink (ic, held on my ruling); (b) `canon.rs` preserves the `CLAUDE.md` user block across `--force` (if cc defers it); (c) anything else that surfaces.
+8. **STILL MINE, NONE STARTED:** WP-15's split line (the migration unit is the machine, not the project -- and `use` being machine-wide is the third instance); triage WP-06's eight unwired families; retire `A5`/`A7`; the help surface (142 pages, XL) after migration lands; `sync` parked.
 
 ## Watch-outs
 
