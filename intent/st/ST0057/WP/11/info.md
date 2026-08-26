@@ -1,30 +1,34 @@
 ---
 wp_id: WP-11
-title: Default disposition realises WIP threads only: init writes .intentfiles, migration and upgrade declare the WIP set
+title: Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
 scope: S
 status: Not Started
 ---
 
-# WP-11: Default disposition realises WIP threads only: init writes .intentfiles, migration and upgrade declare the WIP set
+# WP-11: Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
 
 ## Objective
 
-**A project realises WIP steel threads only, by default and by declaration.** `intent init` writes `intent/.intentfiles` present and declaring nothing ("keep nothing" until a thread is started); the migration and `intent upgrade` write it declaring exactly the threads whose status is WIP; the lifecycle verbs keep it true. hv, 2026-08-26: "there should be a default .intentfiles or a default disposition for a new project that only REALISES WIP steel threads, not ALL steel threads. So we need to fix that."
+**A project realises OPEN steel threads only, by default and by declaration, and `intent organize --default [--force]` is the verb that writes the default.** hv, 2026-08-26, revising the WIP-only wording of an hour earlier: "default means that the only things in .intentfiles are OPEN". OPEN = every status except Completed and Cancelled (WIP, Triage, Not Started, On Hold) -- exactly the eight hv's own tree declares, so `st new` keeps adding the id as it does today. `organise` is already an accepted spelling (a spine alias, accepted and never shown) and stays one.
+
+## The verb
+
+- `intent organize --default` -- `.intentfiles` ABSENT: write it from status (header + one `STEELTHREAD:<ID>` line per open thread) and exit 0. PRESENT: change nothing, say so (`present, declares N; --force to regenerate`), exit 0.
+- `intent organize --default --force` -- PRESENT: regenerate from status after a y/N read from the tty (`hydrate` / `dehydrate` customisations are lost, which is what the confirmation is for); no tty, no `--force` write.
+- `--default` writes the DECLARATION only. It never removes a file: removal stays behind `organize --apply` and the dehydration preconditions, so on the fully-realised fleet the next preview reports every closed thread as `to remove (blocked)` and nothing moves until ST0061 lands. Declaring and dehydrating are two steps by design.
+
+## One function, three callers
+
+The default declaration from status is ONE function in `intentsvcs::intentfiles`. Callers: the verb; `intent init` (a fresh project gets the file present and empty -- "keep nothing" until a thread exists); the migration (hop 2) and `intent upgrade` when the file is ABSENT. `upgrade` never touches a present file: a write there is a change to state, never a regeneration (the file's own header). That is how every migrated project gets its declaration at its next `intent upgrade` -- the 3.0.1 re-stamp -- without a hand sweep.
 
 ## Why
 
-Every migrated project in the fleet is fully realised (Laksa: 110 of 110 under `intent/st/`) because none has an `intent/.intentfiles`, and the contract (`.intentfiles` header, hv 2026-08-19) says ABSENT means nobody has said and everything stays. `migrate.rs:474-488` consults the file and finds none; nothing writes it. Intent's own tree is 8 of 63 realised because hv wrote the file by hand. The default disposition was never encoded, so the tool honoured the only rule it had.
+Every migrated project is fully realised (Laksa: 110 of 110) because none has an `intent/.intentfiles` and the contract says ABSENT means everything stays; `migrate.rs:474-488` consults the file and nothing writes it. Intent's own tree is 8 of 63 because hv wrote the file by hand.
 
-## What changes
+## Not here
 
-- `intent init` writes `intent/.intentfiles` with the standard header and no declarations: present and empty means keep nothing, so a fresh project realises threads as they are started, not as they are created.
-- The migration (hop 2) writes `.intentfiles` declaring the threads whose status is WIP at the moment of conversion, and realises only those; everything else is in the store and in canon, dehydrated by construction rather than by a later deletion.
-- `intent upgrade` on a project that carries no `.intentfiles` writes one declaring the WIP set -- this is how the already-migrated fleet gets the default without a hand sweep. A PRESENT file is never rewritten: a write there is a change to state, never a regeneration (the header's rule).
-- Lifecycle: `st start` adds the id; `st done` and `st cancel` remove it; `st hydrate` / `st dehydrate` stay the explicit overrides. Whether `st new` still adds the id (today it does, and hv's own tree realises its Triage threads) is hv's to rule; under WIP-only it would not.
-
-## What this does NOT do
-
-It does not dehydrate the fleet's already-realised trees. That waits on: one `.canon` emitter so canon carries every attachment's bytes (today the migration's extract omits them and only `sync --to-disk` writes them); the dehydration preconditions living in the tool rather than in each project's acceptance criteria (`organize.rs:261` -- a fleet project declares none, so `organize --apply` refuses); and `st dehydrate` (ST0061). Then one `intent organize --apply` per project reconciles the tree with the file. Measured on throwaway copies 2026-08-26; nothing was done by hand.
+- Issues: hv's default is "open STs and ISSUES", and the grammar has exactly one sigil; `ISSUE` was retired 2026-08-20 because a declared issue realised nothing. WP-12 gives issues a realised form first; until then `--default` declares open threads only.
+- Dehydrating the fleet's realised trees: waits on one `.canon` emitter (attachments in canon), the preconditions moving into the tool (`organize.rs:261`), and `st dehydrate` (ST0061); then one `organize --apply` per project.
 
 ## Acceptance
 

@@ -26,19 +26,21 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 
 ## Work Packages
 
-| WP    | Title                                                                                                              | Size | Status      |
-| ----- | ------------------------------------------------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Canon relocation to intent/.canon/                                                                                 | M    | Done        |
-| WP-02 | .intentfiles: the manifest and its refusing grammar                                                                | S    | Done        |
-| WP-03 | Attachment canon: opaque as file, and the naming gate                                                              | M    | Done        |
-| WP-04 | intent organize: four answers, one refusal, one gate                                                               | L    | Done        |
-| WP-05 | intent edit <ID>                                                                                                   | S    | Done        |
-| WP-06 | The full text realisation, and the refusal that expires                                                            | M    | Done        |
-| WP-07 | intent:// addressing and read resolution                                                                           | L    | Done        |
-| WP-08 | The mutation surface: write-by-address and the missing verbs                                                       | L    | WIP         |
-| WP-09 | The event log records the model and not the disk                                                                   | S    | Done        |
-| WP-10 | doctor reports a dehydrated view as missing                                                                        | S    | Done        |
-| WP-11 | Default disposition realises WIP threads only: init writes .intentfiles, migration and upgrade declare the WIP set | S    | Not Started |
+| WP    | Title                                                                                                                                  | Size | Status      |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
+| WP-01 | Canon relocation to intent/.canon/                                                                                                     | M    | Done        |
+| WP-02 | .intentfiles: the manifest and its refusing grammar                                                                                    | S    | Done        |
+| WP-03 | Attachment canon: opaque as file, and the naming gate                                                                                  | M    | Done        |
+| WP-04 | intent organize: four answers, one refusal, one gate                                                                                   | L    | Done        |
+| WP-05 | intent edit <ID>                                                                                                                       | S    | Done        |
+| WP-06 | The full text realisation, and the refusal that expires                                                                                | M    | Done        |
+| WP-07 | intent:// addressing and read resolution                                                                                               | L    | Done        |
+| WP-08 | The mutation surface: write-by-address and the missing verbs                                                                           | L    | WIP         |
+| WP-09 | The event log records the model and not the disk                                                                                       | S    | Done        |
+| WP-10 | doctor reports a dehydrated view as missing                                                                                            | S    | Done        |
+| WP-11 | Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function | S    | Not Started |
+| WP-12 | Issues get a realised form and a sigil, then join the default declaration                                                              | S    | Not Started |
+| WP-13 | The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket                | S    | Not Started |
 
 ## Acceptance
 
