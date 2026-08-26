@@ -353,7 +353,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     }
 
     let sections = sections(body);
-    let (criteria, tests) = acceptance(project, &dir, closed, &mut out);
+    let (criteria, tests) = acceptance(project, &dir, closed, &mut out)?;
     let wps = work_packages(project, &dir, closed, &mut out);
 
     // D28's two-field shape, one level up: `objective` and `context` take the
@@ -1103,14 +1103,20 @@ fn acceptance(
   dir: &Path,
   closed: bool,
   out: &mut Scan,
-) -> (Vec<Criterion>, Vec<AcceptanceTest>) {
+) -> Result<(Vec<Criterion>, Vec<AcceptanceTest>), std::io::Error> {
   let path = dir.join("acceptance.md");
   let Ok(text) = std::fs::read_to_string(&path) else {
-    return (Vec::new(), Vec::new());
+    return Ok((Vec::new(), Vec::new()));
   };
   let rel = project.relative(&path);
   let mut criteria = Vec::new();
   let mut tests = Vec::new();
+  // The three quantities the reconciliation below closes over. Counted where
+  // the rows are dispatched rather than re-derived afterwards: a second walk
+  // would be a second reader of the same file, free to disagree with this one.
+  let mut declared_ac = 0usize;
+  let mut declared_at = 0usize;
+  let findings_before = out.residue.len() + out.carried.len();
 
   for (i, line) in text.lines().enumerate() {
     let line_no = (i + 1) as u32;
@@ -1118,14 +1124,15 @@ fn acceptance(
       continue;
     };
     if row.starts_with("AC-") {
+      declared_ac += 1;
       match criterion(row) {
-        Some(c) => criteria.push(c),
-        None => out.record(
-          closed,
-          Finding::new(&rel, FindingClass::UnparseableRow, "AC row").at_line(line_no),
-        ),
+        Ok(c) => criteria.push(c),
+        Err((class, detail)) => {
+          out.record(closed, Finding::new(&rel, class, detail).at_line(line_no))
+        }
       }
     } else if row.starts_with("AT-") {
+      declared_at += 1;
       match acceptance_test(row) {
         Ok((t, qualifiers)) => {
           for (ac, qualifier) in &qualifiers {
@@ -1145,6 +1152,47 @@ fn acceptance(
         }
       }
     }
+  }
+
+  // **THE MIGRATOR'S OWN CHECK: A ROW THAT WENT WITH NO RECORD.**
+  //
+  // `Scan::dispositions` already states the principle as vc's condition 1 -- *a
+  // drop with no record is indistinguishable from a section that was never
+  // there.* Every rejection above records a finding, so per file the arithmetic
+  // must close: rows that LOOK like AC/AT rows, minus rows that arrived, equals
+  // refusals recorded. When it does not, this reader dropped something and said
+  // nothing, and no count downstream can recover which row.
+  //
+  // **THIS IS AN ERROR, NOT RESIDUE, AND THE DISTINCTION IS THE SAME ONE THIS
+  // FILE ALREADY DRAWS FOR UNREADABLE CANON.** Every residue class describes
+  // something a v2 AUTHOR left behind, with a fix environment and a carry
+  // disposition. This describes THIS MIGRATION misreporting itself: no author to
+  // attribute it to, no carry policy it could fall under, and nothing an
+  // operator could do in their estate. Reporting it beside `unknown-scope` would
+  // put a broken migrator in a table about broken estates.
+  //
+  // **AND IT BLOCKS ON A CLOSED THREAD, WHICH RESIDUE DOES NOT** (vc's ruling
+  // (ii), 2026-08-26). That asymmetry is the whole defect it exists for:
+  // arca_cli `ST0011` sits in `COMPLETED/`, so all 26 of its dropped rows were
+  // routed to `carried`, carried does not block, and hop 2 printed
+  // `residue: 0 blocking` and `ok`. **The carry policy is for rows an author
+  // wrote badly. It was never meant to cover rows this reader could not account
+  // for**, and reading it as though it did is what let a thread lose half its
+  // contract at exit 0.
+  let recorded = (out.residue.len() + out.carried.len()) - findings_before;
+  let declared = declared_ac + declared_at;
+  let stored = criteria.len() + tests.len();
+  // Signed, and compared against zero in BOTH directions. An unsigned subtract
+  // would panic on the surplus case and, worse, a `>` would read a surplus as
+  // healthy -- and a reader that invents rows is as broken as one that loses
+  // them.
+  let unaccounted = declared as i64 - stored as i64 - recorded as i64;
+  if unaccounted != 0 {
+    return Err(std::io::Error::other(format!(
+      "{rel}: {declared} AC/AT row(s) declared, {stored} read, {recorded} refusal(s) recorded -- \
+       {unaccounted} unaccounted for. This migration cannot say what it converted, so it refuses \
+       rather than reporting a total it cannot support"
+    )));
   }
 
   // The broken-reference class: an AT covering a criterion that is not in this
@@ -1169,14 +1217,19 @@ fn acceptance(
     }
   }
 
-  (criteria, tests)
+  Ok((criteria, tests))
 }
 
 /// `- AC-<gg>.<n> [(non-test)] <text> [-- evidence: <e>] [-- satisfied: yes|no]`
-fn criterion(row: &str) -> Option<Criterion> {
-  let (id, rest) = row.split_once(' ')?;
+fn criterion(row: &str) -> Result<Criterion, RowRejection> {
+  let (id, rest) = row.split_once(' ').ok_or_else(|| {
+    (
+      FindingClass::UnparseableRow,
+      "AC row names nothing after its id".to_string(),
+    )
+  })?;
   if !id.starts_with("AC-") {
-    return None;
+    return Err((FindingClass::UnparseableRow, "AC row".to_string()));
   }
   let non_test = rest.trim_start().starts_with("(non-test)");
   let body = rest.trim_start().trim_start_matches("(non-test)").trim();
@@ -1206,7 +1259,7 @@ fn criterion(row: &str) -> Option<Criterion> {
     //
     // **The catch-all was the whole defect**: a classifier whose default bucket
     // absorbs the unrecognised case cannot report that it met one. So an
-    // unrecognised verdict now REFUSES the row -- `criterion` returns `None`
+    // unrecognised verdict now REFUSES the row -- `criterion` returns the rejection
     // and the caller records an `UnparseableRow` finding -- because a visible
     // refusal is recoverable and a silent downgrade is not.
     let (verdict, note) = match satisfied.as_deref() {
@@ -1214,7 +1267,8 @@ fn criterion(row: &str) -> Option<Criterion> {
       // makes no claim, and an unsatisfied non-test criterion is the correct
       // reading of a claim nobody made.
       None => (false, None),
-      Some(value) => satisfied_verdict(value)?,
+      Some(value) => satisfied_verdict(value)
+        .map_err(|why| (FindingClass::UnparseableRow, format!("{id} {why}")))?,
     };
 
     // **Evidence is required for a satisfied non-test criterion and is NOT
@@ -1248,7 +1302,7 @@ fn criterion(row: &str) -> Option<Criterion> {
     (AcKind::Test, AcState::Computed)
   };
 
-  Some(Criterion {
+  Ok(Criterion {
     id: id.to_string(),
     text,
     kind,
@@ -1508,7 +1562,7 @@ fn note(row: &str) -> Option<String> {
 /// An unclosed parenthetical refuses too. `yes (hv signed off` is a truncation,
 /// and reading it as a bare `yes` would silently discard whatever the truncation
 /// ate.
-fn satisfied_verdict(value: &str) -> Option<(bool, Option<String>)> {
+fn satisfied_verdict(value: &str) -> Result<(bool, Option<String>), String> {
   let value = value.trim();
   // **THE PARENTHETICAL FORM WAS FIXED HERE ONCE AND THE PERIOD FORM WAS NOT,
   // WHICH IS THE SAME PARTIAL FIX ONE FIELD OVER.** The old body split on `(`
@@ -1529,7 +1583,9 @@ fn satisfied_verdict(value: &str) -> Option<(bool, Option<String>)> {
       // BELIEVED**, which is the whole difference between this and the loss
       // being fixed above.
       if a.starts_with('(') && !a.contains(')') {
-        return None;
+        return Err(format!(
+          "satisfied: `{value}` has an unclosed parenthetical, so the line is truncated and the verdict cannot be read from it"
+        ));
       }
       // The brackets delimit the note and are not part of it; anything that is
       // not exactly a closed parenthetical is carried WHOLE, which is what
@@ -1544,8 +1600,8 @@ fn satisfied_verdict(value: &str) -> Option<(bool, Option<String>)> {
     }
   };
   match word {
-    "yes" => Some((true, note)),
-    "no" => Some((false, note)),
+    "yes" => Ok((true, note)),
+    "no" => Ok((false, note)),
     // **`n/a` IS KNOWN VOCABULARY AND MUST NOT BE REFUSED**, and this arm is
     // the difference between a fix and a second defect. Measured across the
     // estate's `acceptance.md` AC rows: `yes` 1836, `yes (note)` 614,
@@ -1558,8 +1614,8 @@ fn satisfied_verdict(value: &str) -> Option<(bool, Option<String>)> {
     // mapped onto `Descoped` or `Withdrawn`. Both of those carry a reason and a
     // destination that nobody wrote, and inventing one is the same offence as
     // inventing evidence: it reads as a real ruling forever after.
-    "n/a" => Some((false, note)),
-    _ => None,
+    "n/a" => Ok((false, note)),
+    _ => Err(format!("satisfied: `{word}` is not one of yes/no/n-a")),
   }
 }
 
