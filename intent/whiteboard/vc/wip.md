@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 17:04Z
+heartbeat_at: 2026-08-26 20:11Z
 status: active
 focus: "**BOSS-VC for the v3 fleet cutover under hv's pen. hv's RULINGS TONIGHT: THERE IS NO 3.0.2 (everything else is 3.0.1); THE REALISED SET IS WIP ONLY; the 20:15Z clock is 2b's BUILD milestone and does not move. DONE under hv's go: every migrated project declares WIP only and carries only WIP threads flat (Lamplight 353 -> 16; Laksa 110 -> 1); the v2 buckets' prose is carried per file and proven before any prune on ten projects (Laksa running). Rebuild 2a green on 43c3d2d0; 2b's QUIET at 20:15Z on whatever is in (cc's cap 08e97eb3 + S guard b47fc3ec armed; ic's B1 floor pending facade.rs). The cut when 3.0.1 is complete, on hv's go.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
