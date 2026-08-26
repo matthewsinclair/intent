@@ -1122,6 +1122,12 @@ fn acceptance(
   // rows DID arrive. Recorded in the covers pass, which runs after the
   // arithmetic has closed.
   let mut unreadable_covers: Vec<(String, u32, String)> = Vec::new();
+  // `(row id, line, the keys this grammar never read)`. Held for the same
+  // reason as `unreadable_covers` and it is the same trap: these rows ARRIVED.
+  // A finding recorded inside the accounting window below would be counted as
+  // a refusal, and the arithmetic would close over a row that was both stored
+  // AND refused -- an instrument reporting itself broken because it worked.
+  let mut unread_fields: Vec<(String, u32, String)> = Vec::new();
   let findings_before = out.residue.len() + out.carried.len();
 
   for (i, line) in text.lines().enumerate() {
@@ -1132,7 +1138,15 @@ fn acceptance(
     if row.starts_with("AC-") {
       declared_ac += 1;
       match criterion(row) {
-        Ok(c) => criteria.push(c),
+        Ok(c) => {
+          // The whole row: no unkeyed tail is ratified for an AC row, unlike
+          // the AT note region below.
+          let keys = unread_field_keys(row, &["evidence", "satisfied"]);
+          if !keys.is_empty() {
+            unread_fields.push((c.id.clone(), line_no, keys.join("`, `")));
+          }
+          criteria.push(c)
+        }
         Err((class, detail)) => {
           out.record(closed, Finding::new(&rel, class, detail).at_line(line_no))
         }
@@ -1141,6 +1155,19 @@ fn acceptance(
       declared_at += 1;
       match acceptance_test(row) {
         Ok((t, qualifiers, unreadable)) => {
+          // **BOUNDED AT ` -- status: `, WHICH IS [`note`]'s BOUNDARY AND NOT A
+          // SECOND OPINION ABOUT IT.** Everything after the status value is the
+          // note, and v2 declines to parse it. Located the way `note` locates
+          // it, so the two cannot come to disagree about where the row's parsed
+          // region ends.
+          let parsed = match row.find(" -- status: ") {
+            Some(at) => &row[..at],
+            None => row,
+          };
+          let keys = unread_field_keys(parsed, &["covers", "status"]);
+          if !keys.is_empty() {
+            unread_fields.push((t.id.clone(), line_no, keys.join("`, `")));
+          }
           for span in unreadable {
             unreadable_covers.push((t.id.clone(), line_no, span));
           }
@@ -1202,6 +1229,21 @@ fn acceptance(
        {unaccounted} unaccounted for. This migration cannot say what it converted, so it refuses \
        rather than reporting a total it cannot support"
     )));
+  }
+
+  // **A FIELD THE LINE CARRIES AND THIS READER WALKED PAST.** After the
+  // arithmetic, for the same reason as the covers pass below: the row arrived,
+  // so this is not a refusal and must not be counted as one.
+  for (id, line_no, keys) in &unread_fields {
+    out.record(
+      closed,
+      Finding::new(
+        &rel,
+        FindingClass::UnreadField,
+        format!("{id} carries `{keys}`, which this grammar does not read"),
+      )
+      .at_line(*line_no),
+    );
   }
 
   // The broken-reference class: an AT covering a criterion that is not in this
@@ -1750,6 +1792,65 @@ fn satisfied_verdict(value: &str) -> Result<(bool, Option<String>), String> {
     "n/a" => Ok((false, note)),
     _ => Err(format!("satisfied: `{word}` is not one of yes/no/n-a")),
   }
+}
+
+/// The `<key>` of a ` -- <key>: ` marker sitting at the start of `rest`.
+///
+/// **The key shape is what keeps this off ordinary prose**: lowercase, digits
+/// and hyphens, no spaces. A note reading ` -- and then: it broke` yields the
+/// candidate `and then`, whose space fails the test, so it is text rather than
+/// a field. That is the same discrimination [`field`] makes implicitly by
+/// searching for one key it already knows; here it has to be stated, because
+/// this side does not know the key in advance.
+fn field_key(rest: &str) -> Option<&str> {
+  let end = rest.find(": ")?;
+  let key = &rest[..end];
+  let shaped = key
+    .bytes()
+    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-');
+  let starts_alpha = key.bytes().next().is_some_and(|b| b.is_ascii_lowercase());
+  (shaped && starts_alpha).then_some(key)
+}
+
+/// The keyed fields a row carries that this grammar never reads, in source
+/// order, each named once however often it appears.
+///
+/// **THE CALLER PASSES THE SPAN, AND THAT IS THE WHOLE DESIGN DECISION.** An AT
+/// row's tail after its status value is [`note`]'s region, which v2 declines to
+/// parse (`AT_G_NOTE='( -- .*)?'`, greedy to end of line) and which vc ratified
+/// as having no interior structure. Scanning it would report ` -- red-first: `
+/// and ` -- mutation-proved: ` as unread fields -- **95 and 5 occurrences on
+/// Lamplight alone -- and every one of them would be this function inventing
+/// the keyed grammar that ruling exists to refuse.** Measured either side of
+/// that boundary: 118 of the 124 AT occurrences are note, 6 are not. So an AT
+/// caller passes the region BEFORE ` -- status: ` and an AC caller passes the
+/// row, because no unkeyed tail is ratified for AC -- 51 of its 54 unknown-key
+/// occurrences sit before the first field the reader knows.
+///
+/// **Depth 0 only, for the reason [`field_end`] is depth-aware**: a ` -- ` inside
+/// a parenthetical is prose the author wrote, not a field boundary.
+fn unread_field_keys<'a>(span: &'a str, known: &[&str]) -> Vec<&'a str> {
+  let bytes = span.as_bytes();
+  let mut depth = 0usize;
+  let mut out: Vec<&str> = Vec::new();
+  let mut i = 0usize;
+  while i < bytes.len() {
+    match bytes[i] {
+      b'(' | b'[' => depth += 1,
+      b')' | b']' => depth = depth.saturating_sub(1),
+      _ => {}
+    }
+    if depth == 0
+      && span[i..].starts_with(" -- ")
+      && let Some(key) = field_key(&span[i + 4..])
+      && !known.contains(&key)
+      && !out.contains(&key)
+    {
+      out.push(key);
+    }
+    i += 1;
+  }
+  out
 }
 
 fn field(row: &str, key: &str) -> Option<String> {

@@ -65,6 +65,27 @@ pub enum FindingClass {
   UnknownScope,
   /// An AT file reference or coverage link that does not resolve.
   BrokenReference,
+  /// A field the v2 line DOES carry and this grammar never reads.
+  ///
+  /// **The mirror of [`FindingClass::FieldNotRecorded`], and the pair only
+  /// makes sense together**: that one is a field the estate never wrote, this
+  /// one is a field the estate wrote and the reader walked past. Both leave the
+  /// model without a value; only this one leaves it without a value that was
+  /// sitting on the line.
+  ///
+  /// **IT IS A CLASS RATHER THAN A LIST BECAUSE A LIST CANNOT KNOW WHAT COMES
+  /// NEXT.** Lamplight writes `-- withdrawn:` and `-- descoped-to:` with their
+  /// own `by:` and `on:`; the migrator reads exactly `evidence:` and
+  /// `satisfied:` on an AC row, so 19 disposed rows arrived with their
+  /// disposition as prose and nothing said so. Teaching the reader those two
+  /// keys closes those 19 and leaves the next convention exactly as silent --
+  /// which is the argument `thread_dirs` already lost once, where an allowlist
+  /// of three bucket names closed the instance and left the class open.
+  ///
+  /// **The migrator says it does not know. It never decides.** Naming an
+  /// unread key is not a guess about what the key meant, and that restraint is
+  /// the whole reason this can be reported for keys nobody has invented yet.
+  UnreadField,
   /// A field the v2 estate never recorded, because the artefact predates the
   /// convention that introduced it. **Not a defect and not the reader's to
   /// fix** -- reported so the migration's counts reconcile, and kept apart from
@@ -241,6 +262,16 @@ impl FindingClass {
       // artefact predates the field; v2 was content with it and v3 carries it
       // as it is. A remedy that suggested authoring the value would be asking
       // someone to invent data about finished work.
+      // **No "wait for a build that reads it", deliberately.** Some of these
+      // keys become known in a later build and some never will, and a remedy
+      // that promised a build would be wrong for the second kind while reading
+      // as current for both. What is true of every one of them is that the v2
+      // line still has the value.
+      Self::UnreadField => (
+        1,
+        "unread-field",
+        "nothing is lost from the v2 line -- the row is carried and the key is named here. If the value matters in v3, set it with the verb that owns it; nothing here guesses what the key meant",
+      ),
       Self::FieldNotRecorded => (
         1,
         "field-not-recorded",
