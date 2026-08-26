@@ -9,17 +9,20 @@ P=${1:?project dir}; shift; cd "$P" || exit 1; L=${VC_SCRATCH:-/tmp/vc-scratch};
 COMMIT=0; [ "${1:-}" = --commit ] && COMMIT=1
 echo "## $N $(date -u +%H:%M:%SZ) HEAD $(git log --oneline -1 | cut -c1-50); flat dirs $(ls -d intent/st/ST* | wc -l | tr -d ' '); staged $(git diff --cached --name-only | wc -l | tr -d ' ')"
 [ "$(git diff --cached --name-only | wc -l | tr -d ' ')" -eq 0 ] || { echo "index not empty -- refusing"; exit 2; }
-open=$(jq -r 'select(.status != "completed" and .status != "cancelled") | .id' intent/.canon/st/*.json | sort); closed=$(jq -r 'select(.status == "completed" or .status == "cancelled") | .id' intent/.canon/st/*.json | sort)
-echo "open $(printf '%s\n' "$open" | grep -c .); closed $(printf '%s\n' "$closed" | grep -c .)"
+# hv, 2026-08-26, first-hand (relayed verbatim by lamplight-vc): "It should ONLY HAVE WIP STs" -- the realised set is WIP ONLY, never "open".
+open=$(jq -r 'select(.status == "wip") | .id' intent/.canon/st/*.json | sort); closed=$(jq -r 'select(.status != "wip") | .id' intent/.canon/st/*.json | sort)
+echo "wip (declared) $(printf '%s\n' "$open" | grep -c .); not wip (dehydrated) $(printf '%s\n' "$closed" | grep -c .)"
 refuse=0; rm_list=""
 for id in $closed; do d="intent/st/$id"; [ -d "$d" ] || continue
   allowed=$(printf 'info.md\nacceptance.md\n'; jq -r '.attachments[]?.path' "intent/.canon/st/$id.json"; jq -r '.wps[]? | .seq | tostring' "intent/.canon/st/$id.json" | sed -E 's/^(WP-)?0*([0-9]+)$/\2/' | awk '{printf "WP/%02d/info.md\n", $1}'); extra=$(cd "$d" && find . -type f | sed 's|^\./||' | grep -v -x -F -f <(printf '%s\n' "$allowed"))
   if [ -n "$extra" ]; then echo "REFUSE $id: files canon does not hold: $(printf '%s' "$extra" | tr '\n' ' ' | cut -c1-120)"; refuse=$((refuse+1)); else rm_list="$rm_list $d"; fi
 done
 n=$(printf '%s' "$rm_list" | wc -w | tr -d ' '); echo "removable closed flat dirs: $n; refused: $refuse"
-{ printf '# .intentfiles -- WHICH DATABASE ARTEFACTS ALSO HAVE A REALISED FORM ON DISK.\n#\n# Written on hv'"'"'s order 2026-08-26 from thread status (organize --default was not yet\n# built): every OPEN thread is declared, and nothing else. OPEN means every status\n# except Completed and Cancelled.\n#\n'; for id in $open; do printf 'STEELTHREAD:%s\n' "$id"; done; } > "$L/intentfiles.new"
+{ printf '# .intentfiles -- WHICH DATABASE ARTEFACTS ALSO HAVE A REALISED FORM ON DISK.\n#\n# Written on hv'"'"'s order 2026-08-26 from thread status (organize --default was not yet\n# built): every WIP thread is declared, and nothing else -- hv: "It should ONLY HAVE\n# WIP STs". Not Started, Triage, Completed and Cancelled threads live in the store.\n#\n'; for id in $open; do printf 'STEELTHREAD:%s\n' "$id"; done; } > "$L/intentfiles.new"
 echo "declaration: $(grep -c '^STEELTHREAD:' "$L/intentfiles.new") lines"
 [ $COMMIT -eq 1 ] || { echo "dry run: would remove $n dirs and write intent/.intentfiles ($(grep -c '^STEELTHREAD:' "$L/intentfiles.new") declared)"; exit 0; }
+[ $refuse -eq 0 ] || { echo "REFUSED: $refuse closed thread(s) hold files canon does not -- carry them first (ingest-buckets.sh / ingest-flat.sh); nothing written"; exit 5; }
+[ "$n" -gt 0 ] || { echo "nothing to remove; nothing written"; exit 0; }
 cp "$L/intentfiles.new" intent/.intentfiles
 git rm -r -q $rm_list && git add intent/.intentfiles || { echo "git rm/add failed"; exit 3; }
 paths="intent/.intentfiles $rm_list"

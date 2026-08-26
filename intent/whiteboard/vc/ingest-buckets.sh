@@ -14,14 +14,17 @@ echo "## $N $(date -u +%H:%M:%SZ) HEAD $(git log --oneline -1 | cut -c1-50); pai
 [ "$(git status --porcelain | wc -l | tr -d ' ')" -eq 0 ] || { echo "$N: dirty -- refusing"; exit 2; }
 buckets=$(ls -d intent/st/COMPLETED intent/st/NOT-STARTED intent/st/CANCELLED intent/st/WIP 2>/dev/null); [ -n "$buckets" ] || { echo "$N: no bucket dirs -- nothing to ingest"; exit 0; }
 $I doctor > "$L/ingest-$N.doctor" 2>&1; drc=$?; echo "doctor rc=$drc (a refusal here means the store verbs will refuse: $(grep -m1 -E 'refused|unknown-file-shape' "$L/ingest-$N.doctor" | cut -c1-100))"
-total=0; modelled=0; att_ok=0; att_refused=0; ver_ok=0; ver_bad=0; : > "$L/ingest-$N.refused"; : > "$L/ingest-$N.verified"
+total=0; modelled=0; att_ok=0; att_refused=0; ver_ok=0; ver_bad=0; : > "$L/ingest-$N.refused"; : > "$L/ingest-$N.verified"; : > "$L/ingest-$N.attached"
 while IFS= read -r -d '' f; do total=$((total+1)); id=$(printf '%s' "$f" | sed -E 's|^intent/st/[A-Z-]+/(ST[0-9]+)/.*|\1|'); rel=${f#intent/st/*/$id/}
   case "$rel" in info.md|acceptance.md) modelled=$((modelled+1)); continue;; WP/[0-9][0-9]/info.md) modelled=$((modelled+1)); continue;; esac
   [ -f "intent/.canon/st/$id.json" ] || { printf '%s -- no canon thread\n' "$f" >> "$L/ingest-$N.refused"; att_refused=$((att_refused+1)); continue; }
-  if [ $COMMIT -eq 1 ]; then $I st attach "$id" "$rel" --from "$f" > "$L/ingest-$N.attach.out" 2>&1 || { printf '%s -- attach refused: %s\n' "$f" "$(head -1 "$L/ingest-$N.attach.out" | cut -c1-100)" >> "$L/ingest-$N.refused"; att_refused=$((att_refused+1)); continue; }; att_ok=$((att_ok+1))
+  if [ $COMMIT -eq 1 ]; then $I st attach "$id" "$rel" --from "$f" > "$L/ingest-$N.attach.out" 2>&1 || { printf '%s -- attach refused: %s\n' "$f" "$(head -1 "$L/ingest-$N.attach.out" | cut -c1-100)" >> "$L/ingest-$N.refused"; att_refused=$((att_refused+1)); continue; }; att_ok=$((att_ok+1)); printf '%s\n' "$f" >> "$L/ingest-$N.attached"
     jq -j --arg p "$rel" '.attachments[] | select(.path == $p) | .text' "intent/.canon/st/$id.json" > "$L/ingest-$N.canon.txt" 2>/dev/null; if cmp -s "$L/ingest-$N.canon.txt" "$f"; then ver_ok=$((ver_ok+1)); printf '%s\n' "$f" >> "$L/ingest-$N.verified"; else ver_bad=$((ver_bad+1)); printf '%s -- canon bytes differ after attach\n' "$f" >> "$L/ingest-$N.refused"; fi
   fi
 done < <(find $buckets -type f -print0)
+# canon is written from the store by sync --to-disk (on some projects st attach updates canon directly, on others only the store);
+# verification reads CANON, so it runs after this, over every carried file.
+[ $COMMIT -eq 1 ] && { $I sync --to-disk > "$L/ingest-$N.todisk" 2>&1; echo "sync --to-disk rc=$? :: $(tail -1 "$L/ingest-$N.todisk" | cut -c1-100)"; ver_ok=0; ver_bad=0; : > "$L/ingest-$N.verified"; while IFS= read -r f; do id=$(printf '%s' "$f" | sed -E 's|^intent/st/[A-Z-]+/(ST[0-9]+)/.*|\1|'); rel=${f#intent/st/*/$id/}; jq -j --arg p "$rel" '.attachments[] | select(.path == $p) | .text' "intent/.canon/st/$id.json" > "$L/ingest-$N.canon.txt" 2>/dev/null; if cmp -s "$L/ingest-$N.canon.txt" "$f"; then ver_ok=$((ver_ok+1)); printf '%s\n' "$f" >> "$L/ingest-$N.verified"; else ver_bad=$((ver_bad+1)); printf '%s -- canon bytes differ after sync\n' "$f" >> "$L/ingest-$N.refused"; fi; done < "$L/ingest-$N.attached"; echo "$N: after sync --to-disk: byte-verified in canon $ver_ok; failed $ver_bad"; }
 echo "$N: files under buckets $total; modelled (hop 2 read them) $modelled; to carry $((total-modelled)); attached $att_ok; refused $att_refused; byte-verified $ver_ok; verify-failed $ver_bad"
 [ -s "$L/ingest-$N.refused" ] && { echo "--- refused/failed (first 8):"; head -8 "$L/ingest-$N.refused" | cut -c1-150; }
 [ $COMMIT -eq 1 ] || { echo "dry run: nothing written"; exit 0; }
