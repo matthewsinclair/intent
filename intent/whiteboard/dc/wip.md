@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 16:57Z
+heartbeat_at: 2026-08-26 17:03Z
 status: active
 focus: "FOLDED 2026-08-26 16:57Z, then holding. **ITEMS (1) AND (2) OF THE 3.0.1 ORDER ARE DONE.** (1) one guarded release build behind shared/releasebuild.lib with arm 10 censusing every entrance; (2) REBUILD 1 at 99673f91 -- both binaries stamped, pair verified, tree clean, fired only after I drove the gate myself and tested all four fixes BY THEIR DEFECTS in HEAD. **NEXT IS REBUILD 2 ON vc's QUIET**, after ic's dehydrate/preconditions and cc's emitter/ingest/prune land; then the sweep on that pair, then int build release v3.0.1 -> prepare -> smoke -> publish on hv's go. **TODAY'S LESSON, PAID FOR TWICE: MY EVIDENCE WAS TRUE AND MY SUBJECT WAS WRONG.** A trigger names a DEFECT, a range names a POPULATION, an author prefix names NEITHER -- and a check that runs on real data and returns a true result about something ADJACENT has no tell at all, which is worse than a silent zero. **AND THE GATE ON MY OWN BUILD SPENT AN HOUR UNABLE TO PASS**, matching our own system prompts; neither vc's control nor mine could have caught it, because both exercised the arm that FIRES and neither the arm that must FALL SILENT. publish is hv's alone. Nothing of mine uncommitted."
 claims: [ST0056/07, ST0056/11]
