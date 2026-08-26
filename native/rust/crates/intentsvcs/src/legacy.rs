@@ -1127,7 +1127,7 @@ fn acceptance(
       }
     } else if row.starts_with("AT-") {
       match acceptance_test(row) {
-        Some((t, qualifiers)) => {
+        Ok((t, qualifiers)) => {
           for (ac, qualifier) in &qualifiers {
             out.dispositions.push(Disposition {
               owner: format!("{rel}:{line_no}"),
@@ -1140,10 +1140,9 @@ fn acceptance(
           }
           tests.push(t);
         }
-        None => out.record(
-          closed,
-          Finding::new(&rel, FindingClass::UnparseableRow, "AT row").at_line(line_no),
-        ),
+        Err((class, detail)) => {
+          out.record(closed, Finding::new(&rel, class, detail).at_line(line_no))
+        }
       }
     }
   }
@@ -1264,11 +1263,24 @@ fn criterion(row: &str) -> Option<Criterion> {
 /// splitting the row on the separator over-splits exactly the rows carrying the
 /// most information. Searching for the three known keys leaves everything else
 /// as the note, whatever it contains.
-fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)> {
-  let space = row.find(' ')?;
+/// A read AT row: the test itself, and any prose the author wrote INSIDE a
+/// covers id, keyed to the id it qualified.
+type ParsedTest = (AcceptanceTest, Vec<(String, String)>);
+
+/// Why a row could not be read, in the two parts the residue report needs: the
+/// class it is filed under, and the detail naming the row and the reason.
+type RowRejection = (FindingClass, String);
+
+fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
+  let space = row.find(' ').ok_or_else(|| {
+    (
+      FindingClass::UnparseableRow,
+      "AT row names nothing after its id".to_string(),
+    )
+  })?;
   let id = &row[..space];
   if !id.starts_with("AT-") {
-    return None;
+    return Err((FindingClass::UnparseableRow, "AT row".to_string()));
   }
   // An AT that names no subject keeps the space the `covers` marker needs.
   let rest = match row[space + 1..].starts_with("--") {
@@ -1278,16 +1290,40 @@ fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)>
   let Covers {
     ids: covers,
     qualifiers,
-  } = covers(rest)?;
+  } = covers(rest).ok_or_else(|| {
+    (
+      FindingClass::UnparseableRow,
+      format!("{id} has no ` -- covers ` clause"),
+    )
+  })?;
   if covers.is_empty() {
-    return None;
+    return Err((
+      FindingClass::UnparseableRow,
+      format!("{id} covers clause names no AC id"),
+    ));
   }
-  let status = match field(rest, "status")?.trim() {
+  let status_field = field(rest, "status").ok_or_else(|| {
+    (
+      FindingClass::UnparseableRow,
+      format!("{id} has no ` -- status: ` field"),
+    )
+  })?;
+  let (token, status_annotation) = split_field_value(status_field.trim());
+  let status = match token {
     "green" => AtStatus::Green,
     "red" => AtStatus::Red,
     "to-write" | "towrite" => AtStatus::ToWrite,
     "n/a" | "n-a" | "na" => AtStatus::Na,
-    _ => return None,
+    // **NAMED, never a bare None.** A row this reader cannot take is the
+    // operator's to fix, and `file:line -- AT row` does not tell them which
+    // row or what is wrong with it. `UnknownStatus` is the class that already
+    // describes exactly this and had no producer on the AT path.
+    _ => {
+      return Err((
+        FindingClass::UnknownStatus,
+        format!("{id} has status `{token}`, which is not green/red/to-write/n/a"),
+      ));
+    }
   };
 
   let subject = rest.split(" -- ").next().unwrap_or("").trim();
@@ -1330,7 +1366,10 @@ fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)>
     // this belongs: the row grammar already has a slot for unkeyed prose, and
     // the qualifier is prose that was written into the id slot.
     note: with_qualifiers(
-      append_note(note(rest), annotation.unwrap_or("")),
+      append_note(
+        append_note(note(rest), annotation.unwrap_or("")),
+        status_annotation.unwrap_or(""),
+      ),
       &qualifiers,
     ),
     legacy: (!non_test && !is_path && !file.is_empty())
@@ -1339,7 +1378,7 @@ fn acceptance_test(row: &str) -> Option<(AcceptanceTest, Vec<(String, String)>)>
   // Returned rather than recorded here: this function has no `Scan`, and
   // re-deriving them at the call site would be a second copy of the predicate
   // -- the shape that makes a record describe something the code never did.
-  Some((test, qualifiers))
+  Ok((test, qualifiers))
 }
 
 /// Fold the covers-clause qualifiers into the row's note, each keyed to the
@@ -1471,12 +1510,37 @@ fn note(row: &str) -> Option<String> {
 /// ate.
 fn satisfied_verdict(value: &str) -> Option<(bool, Option<String>)> {
   let value = value.trim();
-  let (word, note) = match value.split_once('(') {
-    None => (value, None),
-    Some((word, rest)) => {
-      let note = rest.strip_suffix(')')?.trim();
-      let note = (!note.is_empty()).then(|| note.to_string());
-      (word.trim(), note)
+  // **THE PARENTHETICAL FORM WAS FIXED HERE ONCE AND THE PERIOD FORM WAS NOT,
+  // WHICH IS THE SAME PARTIAL FIX ONE FIELD OVER.** The old body split on `(`
+  // and REQUIRED a closing `)` at the end of the value, so `yes. The rest...`
+  // refused (no bracket at all) and `yes (note). More prose` refused too -- the
+  // suffix test fails once anything follows the bracket. Measured on arca_cli
+  // `ST0011`: 8 of 57 AC rows dropped, alongside the 26 AT rows.
+  let (word, annotation) = split_field_value(value);
+  let note = match annotation {
+    None => None,
+    Some(a) => {
+      let a = a.trim();
+      // **AN UNCLOSED PARENTHETICAL STAYS A REFUSAL** -- ratified by
+      // `an_unclosed_parenthetical_is_refused`, and my first cut of this
+      // function dropped it. `yes (hv signed off` is a TRUNCATED line, and
+      // reading it as a bare `yes` records a verdict from text whose rest
+      // nobody can see. **Widening what parses must not widen what is
+      // BELIEVED**, which is the whole difference between this and the loss
+      // being fixed above.
+      if a.starts_with('(') && !a.contains(')') {
+        return None;
+      }
+      // The brackets delimit the note and are not part of it; anything that is
+      // not exactly a closed parenthetical is carried WHOLE, which is what
+      // keeps `yes (note). More prose` -- a closed bracket with prose after it
+      // -- from being refused by the suffix test that used to stand here.
+      let inner = a
+        .strip_prefix('(')
+        .and_then(|i| i.strip_suffix(')'))
+        .unwrap_or(a)
+        .trim();
+      (!inner.is_empty()).then(|| inner.to_string())
     }
   };
   match word {
@@ -2006,6 +2070,39 @@ fn append_note(note: Option<String>, extra: &str) -> Option<String> {
     Some(existing) if !existing.trim().is_empty() => format!("{existing} -- {extra}"),
     _ => extra.to_string(),
   })
+}
+
+/// A keyed field's VALUE is its leading token; the words after it are annotation.
+///
+/// **Two callers, one rule** -- `status:` on an AT row and `satisfied:` on an
+/// AC row. Both were written to take a bare vocabulary word and both met an
+/// author who wrote a sentence after it.
+///
+/// **A DIFFERENT CUT FROM [`split_citation`], DELIBERATELY.** That one refuses
+/// to cut on a bare `(` because Utilz cites `each_utility()` by name and a
+/// path may legitimately carry parentheses. **No status token contains `(` or
+/// `.`**, so both are terminators here -- and a future tidy that unifies the
+/// two splits reintroduces the citation defect. They are the same shape and
+/// not the same rule.
+///
+/// ` -- ` is not handled here: [`field_end`] has already stopped the value at
+/// the first separator outside a bracket, so a parenthetical carrying its own
+/// ` -- ` arrives whole.
+fn split_field_value(value: &str) -> (&str, Option<&str>) {
+  let cut = [value.find('.'), value.find('(')]
+    .into_iter()
+    .flatten()
+    .min();
+  match cut {
+    None => (value, None),
+    Some(i) => {
+      let annotation = value[i..].trim_start_matches('.').trim();
+      (
+        value[..i].trim_end(),
+        (!annotation.is_empty()).then_some(annotation),
+      )
+    }
+  }
 }
 
 #[cfg(test)]
