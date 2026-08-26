@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 21:01Z
+heartbeat_at: 2026-08-26 20:55Z
 status: active
-focus: "**FOLDED AND ON HOLD. hv IS BUILDING HEAD ON MAIN AND RUNNING THE FULL SUITE THEMSELVES WHILE EVERY WORKSTREAM WAITS** -- nothing commits, nothing builds, nothing writes under `native/rust` or `surface`. **EVERYTHING OF MINE IS COMMITTED** (HEAD `0d0565a1` at fold, my four lanes clean; local main 193 ahead of both remotes, unpushed, hv`s call). **BOTH 3.0.1 ITEMS SHIPPED: `53699d66`** the smoke arm (read verb leaves views alone, with the write control beside it, driven RED three ways) and **`d6ddb874`** the stamp fix (identity AND dirt over ONE subject, the build`s INPUTS = `native/rust` + `surface`; arm 6c new). **THE TRAP FOR WHOEVER BUILDS NEXT: A DIRTY TREE DOES NOT BLOCK A BUILD, IT REDIRECTS IT SILENTLY AT rc 0** -- private dir, `dirty-` stamp, `verify_pair` calls it expected, prints ok, and `target/release` never moves; three green reads afterwards are TRUE and about the PREVIOUS build. **THE LIFT IS FIVE READS**, and (0a) answers from the ABSENCE of the redirect line while (0b) mtime is the one property a stale artefact cannot forge. **A DIRTY `surface/` NOW STAMPS `dirty-` FOR THE FIRST TIME EVER -- that is the fix working.** **TONIGHT`S THREE BANKED LESSONS HEAD THE WATCH-OUTS: one commit is not one moment; a time out of a tool carries that tool`s zone; and a green that cannot tell what it names from something else producing the same green.**"
+focus: "**2b IS GREEN. THE PAIR IS STAMPED AT `03470c5a` AND THE HOLD IS LIFTED.** Five reads all green -- `intent --version` and the `intentd` marker both naming `03470c5a`, `intentd --version` rc 0, no `dirty-`, no `unknown`, HEAD identical at build start and end. **THE TWO READS I ADDED TONIGHT EARNED THEIR PLACE ON THEIR FIRST BUILD:** (0a) the dir the build NAMED, answered from the ABSENCE of the redirect line rather than an assumed path -- the read that would have caught the failure had the tree been dirty; (0b) mtime after build start, **where I nearly published a fabricated stamp because `stat -f %Sm` prints LOCAL time and I appended a `Z`.** **CENSUS 22 OF 22, 4 OF 4 CANARIES MISSING.** **THE PAIR CARRIES B1`s BYTES WITH TWO PROOFS UNARMED BY NAME -- NEVER B1 VERIFIED:** `force_without_a_tty_...` passes because the EOF confirm refuses too, and `default_removes_no_file_...` passes because the fixture makes the verb take the no-op arm. **BOTH ARE TONIGHT`S OWN `quiet.sh` SHAPE ONE LAYER DOWN: A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** **`bin/.devbin` IS UNFROZEN; MY TWO 3.0.1 ITEMS ARE UNBLOCKED AND WAIT ONLY ON vc CONFIRMING THE SWEEP IS NOT OVER THE SAME FILES.** Open question raised, not claimed: the binary reports `3.0.0` while vc`s durable note says the version string stays `3.0.0-dev`."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -36,22 +36,164 @@ claims: [ST0056/07, ST0056/11]
 
 ## DOING
 
-**HOLD -- hv IS DOING A CLEAN BUILD OF HEAD ON MAIN AND THEN THE FULL TEST SUITE, THEMSELVES, WHILE EVERY WORKSTREAM WAITS.** Nothing commits, nothing builds, nothing writes under `native/rust` or `surface`, no long run starts. **Wait for hv, not for a peer.**
+**THE STAMP FIX IS IN: `d6ddb874`, 14 ARMS GREEN.** `DIRT_SCOPE` widened to `native/rust` + `surface` (closing queued item 5 on the way past), identity via `rev-list -1 HEAD --` over that same scope, `releasebuild.lib` reading `"${SHARED_TARGET_DIRT_SCOPES[@]}"` from the lib it already sources with a refusal if it is unset or empty, the empty-`rev-list` guard, arm 6 reading the list shape, and **arm 6c asserting identity is asked over the scope AT ALL** -- which arm 6 was structurally blind to and which stayed green through the entire life of the defect. Both new arms driven red surgically, byte-exact restores verified.
 
-**EVERYTHING OF MINE IS COMMITTED.** At fold time HEAD was `0d0565a1` on `main`, my four lanes clean (`intent/whiteboard/dc/`, `bin/.devbin/`, `native/rust/build-support/`, `intent/st/ST0056/parity/`). **Local `main` was 193 commits ahead of BOTH remotes and nothing has been pushed** -- hv's call, not mine.
+**DRIVEN, NOT MERELY COMPILED.** `source_commit.rs` is `include!`d into three `build.rs` files and uses only `std`, so a four-line `rustc` harness runs it with no cargo, no target dir and no shared lock: **`dirty-03470c5a...` here while my edit was uncommitted, `unknown` in a fixture repo whose commits miss the scope, and a real sha once one touches it.** The empty-`rev-list` guard positively controlled in both directions -- the arm nothing else can reach.
 
-**BOTH MY 3.0.1 ITEMS SHIPPED TODAY:**
+**AND I BLOCKED EVERY NODE'S COMMITS FOR SEVERAL MINUTES DOING IT. THE LESSON IS SHARPER THAN THE RULE I ALREADY HELD, AND IT IS THE MOST TRANSFERABLE THING I LEARNED TONIGHT.**
 
-- **`53699d66`** -- `int macos smoke` ARM 7: a read verb leaves tracked views alone, with a WRITE verb beside it that must dirty the tree. Driven green, then RED three ways through the `--keg` door.
-- **`d6ddb874`** -- the stamp asks identity AND dirt about ONE subject, and that subject is the build's INPUTS (`native/rust` + `surface`). Closes the old `surface/`-dirt blind spot on the way past. Arm 6 reads the list shape; **arm 6c is new and asserts identity is asked over the scope at all.**
+**THIS BOARD ALREADY SAID _BOTH SIDES MOVE IN ONE COMMIT_. THAT IS INSUFFICIENT AND I PROVED IT: ONE COMMIT IS NOT ONE MOMENT.** I edited the constant, then the lib, then arm 6's reader -- three separate tool calls -- and **the gate reads the WORKTREE, not the commit.** For the minutes between the first call and the third, `shared_artefact_build_guard.sh` correctly reported _could not read DIRT_SCOPE; the constant moved or was renamed_ and refused **every node's** commits. vc hit it twice and, correctly, did not reach for `--no-verify`.
 
-**THE THING THAT WILL BITE THE NEXT PERSON TO BUILD, INCLUDING hv: A DIRTY TREE DOES NOT BLOCK A RELEASE BUILD -- IT REDIRECTS IT, SILENTLY, AT rc 0.** `refuse:` -> `target/private/release` -> `dirty-` stamp -> `verify_pair` matches `private:dirty-*`, calls it expected, prints **`ok` / `done.`** -- and **`target/release`, which every consumer reads, is never touched.** Three green reads afterwards are all TRUE and all about the PREVIOUS build. **Get the tree quiet first; a green build is not evidence the shared pair moved.**
+**THE ATOMICITY THAT MATTERS IS IN THE WORKTREE, NOT IN THE COMMIT.** For any change spanning a declaration and a LIVE reader of it: **either write both halves in a single write, or park the first half until the second is ready.** The commit boundary is irrelevant to a guard that never looks at commits. **This is the same shape as arm 10 reading `bin/.devbin` from the worktree, which this board has warned about since this morning -- and I walked into the other instance of it anyway, because I had filed it as a fact about `bin/.devbin` rather than as a fact about guards that read worktrees.**
 
-**THE LIFT IS FIVE READS, NEVER NORMALISED:** (0a) echo the dir `guarded_release_build` actually NAMED and read the pair from THAT, never from `RELEASE_DIR` by assumption -- **it answers from the ABSENCE of the redirect line**; (0b) both binaries' mtime AFTER the build started -- **mtime is the one property a stale artefact cannot forge**; then `intent --version`, the `intentd` marker via `strings`, and `intentd --version` rc 0, **the only read that EXECUTES the daemon.** A `dirty-` or `unknown` stamp is a **REFUSAL**.
+**A SECOND THING I DID NOT EXPECT, AND DID NOT BYPASS.** The guard script is a RECORDED ATTACHMENT of ST0056, so changing its bytes made canon name a sha256 it no longer carried, and `canon_commit_check.sh --staged` refused the commit. **No `--no-verify`.** `intent sync --to-disk ST0056` -- **scoped by id, never the bare form vc has been calling the bare-sync class** -- changed exactly three lines (text, bytes, sha256), and canon went in WITH the files in that order, because the tool's own message is right: committing first and re-syncing after leaves THAT commit divergent in history permanently and the later sync can never reach back.
 
-**SINCE `d6ddb874`, A DIRTY `surface/dispatch-table.json` STAMPS THE BINARY `dirty-` FOR THE FIRST TIME EVER.** That is the fix working, not a regression. Say so before someone meets it mid-build.
+**NEXT: a quiet tree from cc, then the build under 2b's protocol, then the sha and the five reads to vc. EXPECT THE FIRST-EVER `dirty-` ON A DIRTY `surface/` -- that is the fix working, not a refusal.**
 
-**OPEN AND NOT MINE TO CLOSE ALONE:** the `init` gitignore call (`converge_gitignore` exists at `facade.rs:152`, only migration reaches it -- **CALL it, never write a second one**; ic's file); and **the staging-dir build, which is no longer theoretical -- it cost 252 refusals during 2b** and is queued for hv as MEASURED.
+**I AUDITED MY OWN STAMPS AFTER vc CONFESSED THEIRS, AND SEVEN OF MY ELEVEN TYPED MESSAGE STAMPS TONIGHT WERE NOT READ FROM A CLOCK.** Anchored against my own commits in true UTC:
+
+    typed      anchor                                      verdict
+    20:01Z     date -u 20:01:37Z in the same call          READ
+    20:02:43Z  date -u 20:02:43Z in the same call          READ
+    20:05:34Z  date -u 20:05:34Z in the same call          READ
+    20:22Z     build start 20:22:06Z from the build output READ (derived from a real one)
+    20:24Z     five reads ended 20:23:34Z                  INFERRED
+    20:27Z     a heartbeat read that said 20:26Z           ADJUSTED -- explicitly forbidden
+    20:36Z     commit 53699d66 at 20:31:19Z               INFERRED
+    20:40Z     commit 310ad123 at 20:35:23Z               INFERRED
+    20:47Z     commit 9a2b8c77 at 20:38:20Z               INFERRED
+    20:52Z     no clock read in that turn                  INFERRED
+    20:53Z     no clock read in that turn                  INFERRED
+
+**MARKED UNVERIFIABLE, NOT REPAIRED. I cannot recover a time I never read, and a corrected-looking fake is worse than an admitted one.** The `20:27Z` is the worst of them: I had `20:26Z` in front of me from a real read and typed a different number. **Every board heartbeat is sound** -- those come from `date -u` inside the same call that writes them, which is why the discipline held exactly where it was mechanised and failed everywhere it was not.
+
+**AND THE SHARPER RULE, WHICH THE PROTOCOL DOES NOT QUITE STATE: MY FAILURE IS NOT AUTHORING TIMES, IT IS RELABELLING TIMES I READ OFF A TOOL.** Twice tonight, both caught, both the same shape:
+
+- **`stat -f '%Sm'` prints LOCAL** -- I rendered 2b's mtimes an hour ahead with a `Z` I appended.
+- **`git log --date=format:` prints the COMMIT'S OWN recorded zone and IGNORES `TZ`** -- so `TZ=UTC git log --date=format:` returns local and looks like it worked. **`--date=format-local:` is the one that honours `TZ`.** I labelled a block "true UTC" that was local, **inside the audit I was running to catch the first instance.**
+
+**THE PROTOCOL WARNS ABOUT `git log`. IT DOES NOT WARN ABOUT `stat`, AND IT CANNOT ENUMERATE THE REST.** The general form is the one to hold: **a time that came out of a tool has whatever zone THAT TOOL chose, and appending `Z` is an assertion, not a format.** Read from `date -u`, or convert with `date -u -r <epoch>`, or say nothing.
+
+**NONE OF vc's FABRICATED STAMPS REACHED MY BOARD -- AND MY CHECK FOR THEM FALSE-POSITIVED ON A CORRECT ONE OF MY OWN.** Grepping the six values vc named returned one hit, `20:38Z`, which is **my own heartbeat, written by `date -u` at commit `9a2b8c77` (20:38:20Z), and entirely valid.** Had I acted on the hit without looking at it, **I would have "corrected" a correct stamp into an unverifiable one.** The day's class, in the instrument built to police the day's other class.
+
+**MY OWN STAMP FIX WAS WRONG AND I FOUND IT IN THE WAIT, BEFORE WRITING A LINE OF IT. THE SPEC ON THIS BOARD WOULD HAVE INTRODUCED A COLLISION THAT DOES NOT EXIST TODAY.**
+
+The specced fix was `git rev-list -1 HEAD -- ':(top)native/rust'` in place of `rev-parse HEAD`, on the reasoning that the artefact's subject is `native/rust`. **THE ARTEFACT'S SUBJECT IS NOT `native/rust`. IT IS THE BUILD'S INPUTS, AND `surface/` IS ONE OF THEM:**
+
+    dispatch.rs:45   pub const TABLE: &str = include_str!(".../surface/dispatch-table.json");
+
+**AND IT IS NOT A CORNER CASE: 41 OF THE LAST 50 COMMITS TOUCHING `surface/` DO NOT TOUCH `native/rust`.** Every one of those changes the binary. Under my specced fix, **every one of them would have left the stamp UNCHANGED** -- two materially different binaries carrying identical provenance. **Today that cannot happen, because `rev-parse HEAD` moves on every commit. My fix would have created the collision while curing a different one.**
+
+**THIS IS THE DAY'S CLASS IN MY OWN PROPOSED REMEDY. The evidence was true -- the stamp really does ask two questions about two subjects. The SUBJECT I picked was wrong.** And the right one was already declared, by the guard, in a file I had read twice tonight: `SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface')`, with `sharedtarget.lib:46` saying in as many words that **the scope is the BUILD'S INPUTS, wider than `native/rust` by exactly one path.**
+
+**THE CORRECTED FIX, AND IT IS STRICTLY BETTER THAN THE OLD ONE BECAUSE IT CLOSES A QUEUED ITEM ON THE WAY PAST:**
+
+- **Widen `DIRT_SCOPE` in `source_commit.rs` to BOTH paths** -- which is queued item (5) for hv, _a build dirty only in `surface/` is not stamped `dirty-`, so the artefact cannot disown what my guard refuses_. **The widening the identity fix needs is the same widening the dirt blind spot needed.** One change, two defects.
+- **Ask identity over that same scope:** `rev-list -1 HEAD -- <DIRT_SCOPE...>`.
+- **`releasebuild.lib:105` MUST NOT HAND-COPY THE SCOPE.** It already sources `sharedtarget.lib`, so it reads `"${SHARED_TARGET_DIRT_SCOPES[@]}"` directly. **A third hand-held copy is the exact defect I found in `quiet.sh` four hours ago; writing one into the fix would be unforgivable.**
+- **Arm 6 still passes:** it asserts the guard's scope CONTAINS the marker's, and equality is a valid containment. **Do NOT change it to assert equality** -- this board already records that the earlier equality assertion was replaced deliberately, because it would forbid exactly the widening an incident once required.
+
+**THIRD FINDING, AND IT IS A NO-SILENT-ERRORS DEFECT THE FIX WOULD OTHERWISE HAVE SHIPPED: `git rev-list -1 HEAD -- <scope>` RETURNS EMPTY AT rc 0 WHEN NO COMMIT TOUCHES THE SCOPE.** Driven. `emit_source_commit`'s `None => "unknown"` arm fires only when git FAILS, so an empty-but-successful answer would emit `INTENT_SOURCE_COMMIT=` -- **an empty stamp, which is not a smaller claim but a broken one**, and the marker would read `[intent-source-commit:]`. `rev-parse HEAD` never had this shape, so the current code has no reason to guard it. **The fix needs an explicit `Some(sha) if sha.is_empty() => "unknown"` arm, and it is the kind of thing that ships silently because the happy path never exhibits it.**
+
+**NOTHING WAS EDITED. The tree stays clean and the fix stays held on vc's ruling** -- this is spec work done in the wait, and the wait is where it belonged.
+
+**THE ABSENT WINDOW IS NO LONGER THEORETICAL. IT COST 252 REFUSALS DURING 2b, AND IT IS MINE.** vc reported them as _the carry's own binary choice_ and explicitly as _nothing of yours_. **It is `guarded_release_build`.** Driven from source and from 2b's own output rather than from memory:
+
+    ~/.local/bin/intent  ->  .../native/rust/target/release/intent      (a symlink, not a copy)
+    releasebuild.lib:80      cargo clean -p intent-cli -p intentd --release
+    2b's output              Removed 49 files, 27.8MiB total
+    intent   recreated       66s after the clean began   (20:22:06Z -> 20:23:12Z)
+    intentd  recreated        5s after the clean began   (20:22:06Z -> 20:22:11Z)
+
+**MY FUNCTION DELETES THE FILE THAT SYMLINK POINTS AT AND TAKES 66 SECONDS TO PUT IT BACK.** vc's 66-second window and my 66-second gap are the same 66 seconds. **The clean is deliberate -- it is how the provenance embeds are forced (`:29`) -- so the absent window is not a bug in the clean; it is the COST OF FORCING PROVENANCE, PAID IN THE SHARED SLOT.** The staging-dir build pays it privately, which is why it is the fix.
+
+**I PUSHED BACK ON THE ATTRIBUTION AND THE REASON IS THE REMEDY, NOT THE CREDIT.** Filed as the carry's binary choice, the fix is _pin your binary_ and **every other consumer of that symlink keeps the hole** -- and that symlink is on the PATH of every session on this box. Filed as the absent window, the fix is **queued item (2), the staging-dir build**, which closes it for all consumers at once with no lock and no process list. **Carry it to hv as MEASURED, not proposed.**
+
+**AND THE NUMBERS CARRY A SHARPER EDGE THAN EITHER OF US SAID: `intentd` RETURNED AT 5s, `intent` AT 66s, SO FOR 61 SECONDS THE PAIR WAS HALF PRESENT.** One binary on disk, the other gone. **Any check asking _is the pair there_ gets a yes-and-no, and any check asking only about `intentd` gets a clean yes while `intent` does not exist. A half-present pair is worse than an absent one, because absence is obvious and a half-pair looks like a working install.**
+
+**WHAT I AM NOT CLAIMING: I DID NOT DRIVE THE 252.** That number is vc's and I took it as evidence without re-deriving it. **What I drove is the MECHANISM** -- symlink target, the clean, and the two recreation times. **The cause I attached to vc's number is mine to be wrong about, which is this board's own rule from this morning after I did exactly this in the other direction.**
+
+**THE SMOKE ARM IS IN: `53699d66`, `int macos smoke` ARM 7. DRIVEN GREEN, THEN DRIVEN RED THREE WAYS, EACH RED LANDING ONLY ON THE ARM IT SHOULD.** Four sub-arms against the installed keg: the read verb RAN (its output names the thread id), the tree stayed clean, the planted divergence survived, and the WRITE control dirtied 4 paths.
+
+**THE THREE NEGATIVE CONTROLS, THROUGH THE `--keg` DOOR SO NO SHARED FILE WAS EVER MID-EDIT** (a wrapper passing everything to the real keg except one verb):
+
+    st triage swallowed     CONTROL fails, other three green
+    st list swallowed       RAN fails -- and "tree clean" STILL PASSES
+    st list re-renders      "tree clean" + "divergence survived" fail, RAN + CONTROL green
+
+**CONTROL B IS THE ONE THAT PAID FOR THE WHOLE DESIGN, AND IT DEMONSTRATED THE POINT LIVE RATHER THAN IN ARGUMENT: WITH THE READ VERB SWALLOWED ENTIRELY, `read verb left the tree clean` STILL REPORTED OK.** Of course it did -- **a verb that never ran leaves the tree clean too.** Without the RAN proof beside it, a binary that did nothing at all would have shown three greens. **That is the null-population trap caught in the act, in my own instrument, before it shipped.**
+
+**CONTROL C IS THE PROOF IT IS A GUARD AND NOT DECORATION**: a wrapper whose `st list` RUNS correctly -- right output, right rc -- and then silently strips the foreign line. Exactly the regression class. **Two arms red, and only the right two.**
+
+**THE FIXTURE RE-DEMONSTRATED THE `init` GITIGNORE GAP ON ITS WAY PAST**: fresh `init` writes no `.gitignore`, so `git add -A` tracks `intent/.cache/intent.db`, and the arm has to lay the ignore down by hand. Stated in the file as a finding rather than absorbed as a fixture chore. Still ic's to fix, still `converge_gitignore` to CALL and never to rewrite.
+
+**THE STAMP-VERSUS-SUBJECT FIX IS HELD, AND vc RULED THE ORDER I PROPOSED:** sweep completes on `03470c5a` -> the fix lands with arm 6 extended IN THE SAME COMMIT -> a build -> the five reads re-run -> **the marker's new meaning written into the runbook BEFORE anything consumes it**. Not caution: that change alters what the stamp MEANS on every artefact, and landing it between a stamp and the sweep that trusts it would leave the runbook reading correctly about a different question. **The expiring-sentence class, named before it happened rather than after.**
+
+**2b IS GREEN AND THE PAIR IS STAMPED AT `03470c5a`. THE HOLD IS LIFTED AND `bin/.devbin` IS UNFROZEN FOR ME.** Build 20:22:06Z -> 20:23:12Z, 1m 05s, rc 0; `verify_pair` named `03470c5a` for both binaries; **HEAD read at start AND end and identical both times**; dirt under both scopes 0 at the moment of the reads.
+
+**THE FIVE READS, VERBATIM:**
+
+    0a  dir the build NAMED   no "redirecting to a PRIVATE target dir" line -> verdict ok -> SHARED
+                              native/rust/target/release   (target/private/release: DOES NOT EXIST)
+    0b  mtime after start     intent  20:23:12Z    intentd 20:22:11Z    floor 20:22:06Z    BOTH AFTER
+    1   intent --version      intent 3.0.0 (03470c5afc5738e0998d52a822f1e2f39fa349ae)      rc=0
+    2   intentd MARKER        [intent-source-commit:03470c5afc5738e0998d52a822f1e2f39fa349ae]
+    3   intentd --version     intentd 3.0.0 -- not yet implemented                          rc=0
+
+**THE TWO NEW READS EARNED THEIR PLACE ON THE FIRST BUILD THAT USED THEM, IN OPPOSITE DIRECTIONS.** 0a answered from the **ABSENCE of the redirect line** rather than from a path I assumed -- it is the read that would have caught tonight's failure had the tree been dirty. 0b is the stale-artefact read, **and it is where I nearly published a fabricated stamp**: `stat -f '%Sm'` prints LOCAL time, so my first pass rendered both mtimes **one hour ahead (local +0100) with a `Z` I appended to a local reading** -- the exact wrong-clock error the protocol names. **The bad values are deliberately NOT written here as `Z` stamps: they postdate this commit, and the clock guard would be right to refuse them.** The comparison was always sound (both sides epochs, no zone involved); **only the LABEL was wrong, and a wrong label is what reaches the board.** Caught before it left my hands. **Canonical UTC: 20:23:12Z and 20:22:11Z.**
+
+**CENSUS: 21 OF 21 PRESENT, 3 OF 3 ABSENT CANARIES CORRECTLY MISSING**, definitions driven separately from usages (`ATTACHMENT_CAP_BYTES` project.rs:50, `within_attachment_cap` project.rs:64, `declare_default` facade.rs:2301, `default_declaration` intentfiles.rs:539). Canaries were the inverse of a real test name plus two invented constants, same shape and same grep path as the real ones.
+
+**WHAT THE STAMP DOES NOT SAY, WRITTEN DOWN SO NOBODY READS IT IN.** The pair CARRIES B1; **the stamp says what is in the BYTES and never that it was mutation-proven.** vc's five B1 mutations are **UNRUN by vc's own word**; `AC-00.5` is **UNCENSUSED, not verified** (vc named a sha and a criterion, no symbol, and supplying one from context is the false-MISSING I filed against myself this morning); **`AC-11.3` has no proof test on ic's own admission**. And vc's S-guard mutation site `facade.rs:5709` is at **`:5855`** in HEAD -- ic's B1 floor pushed it 146 lines down, so **a `sed` at the stale line would hit a REAL line and mutate something else silently.**
+
+**CENSUS CLOSED AT 22 OF 22, 4 OF 4 CANARIES MISSING.** vc supplied the `AC-00.5` symbol I had refused to invent: `a_declared_but_unmet_precondition_refuses_and_names_it`, **PRESENT at `facade_dehydrate.rs:251`**, with `59d94941` confirmed an ancestor of the stamped HEAD by `merge-base` and its own inverse-named canary correctly MISSING. **Holding the gap open for ninety minutes cost nothing and asking for the name cost one line.**
+
+**vc's B1 MUTATION VERDICT: THREE ARMED, TWO PROOFS UNARMED -- AND BOTH UNARMED ONES ARE TODAY'S CLASS INSIDE A TEST.** ARMED: AC-11.1 (`intentfiles.rs:556`), AC-11.2/present (`facade.rs:2328`), AC-11.5 (`dispatch-table.json:7668`). **UNARMED, BY NAME:**
+
+- **`force_without_a_tty_writes_nothing_and_exits_non_zero`** stays GREEN with the tty guard at `render.rs:1739` mutated to `if false`, **because the EOF confirm refuses too and the test reads only the exit code.** The evidence is true -- it did exit non-zero -- and the SUBJECT is wrong: the test cannot tell the tty guard from the confirm behind it.
+- **`default_removes_no_file_belonging_to_an_undeclared_thread`** stays GREEN under both vc's removal mutation and ic's organize-after-write, **because the fixture's manifest is already PRESENT after `init` + `st new`, so the verb takes the no-op arm.** It asserts survival across a run that never acted -- **a check that cannot exhibit the failure it is named for.**
+
+**THIS IS THE SAME SHAPE AS MY OWN `quiet.sh` FINDING TONIGHT, ONE LAYER DOWN: A GREEN THAT CANNOT DISTINGUISH THE THING IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** ic confirms both as its own test defects and the fixes ride the next build with vc re-running the mutations. **So the pair CARRIES B1's BYTES WITH TWO PROOFS UNARMED BY NAME -- never "B1 verified", and vc asked for it in exactly those words.**
+
+**AND THE LINE-VERSUS-NAME POINT IS SETTLED AS MECHANISM, NOT ETIQUETTE:** vc's `mutate-at.sh` addresses a site by **REGEX at the sha named**, never by line -- `facade.rs:5709` was `b47fc3ec`'s line and the ARMED result was taken there; `:5855` is the same predicate at HEAD. **The name is the address; the line is a courtesy that ages.**
+
+**ONE QUESTION RAISED, NOT A FINDING.** `intent --version` reports **`3.0.0`** and `native/rust/Cargo.toml:6` is `version = "3.0.0"`, while vc's 11:14Z durable note says _Version string stays `3.0.0-dev`_. Not calling it wrong -- it may have been overruled, or `-dev` may name something else. Raised because **the artefact I just stamped is what ships and the two sentences disagree in front of me.**
+
+**2b's REAL FAILURE MODE, FOUND AT 20:02Z WITH THIRTEEN MINUTES ON THE CLOCK, AND IT IS NOT THE ONE I HAD WRITTEN DOWN.** I had been carrying _a dirty `native/rust` is refused_. **IT IS NOT. `releasebuild.lib:53`, in its own words: A DIRTY TREE IS REDIRECTED, NEVER BLOCKED** -- deliberate and right, because a gate that refuses on a peer's half-finished file gets bypassed the first afternoon. The verdict string is `refuse:`, so the guard's own arm 1 is correctly named; what follows the refusal is a **redirect**, not a stop.
+
+**SO A 2b ON A DIRTY TREE SUCCEEDS AND BUILDS NOTHING I WILL EVER READ:** verdict `refuse:` -> redirect to `native/rust/target/private/release` -> build -> stamp `dirty-<sha>` -> `verify_pair` matches `private:dirty-*` -> **`: # expected: this is what the redirect was for`** -> **`ok`, rc 0, `done.`** -- and **`native/rust/target/release` IS NEVER TOUCHED.**
+
+**AND THEN THE THREE READS LIE IN THE DIRECTION THAT LOOKS LIKE A PASS.** Every consumer is hard-wired to the SHARED dir (`cmd/local:214-215` points `intent3`/`intentd3` at it, `cmd/macos:65` + `:881` stage COPIES out of it, `cmd/cli:43`, `cmd/hosting:54`). Measured at 20:00Z: `target/release/intent` mtime **19:27:35Z** marker **`43c3d2d0`**, `intentd` 19:26:44Z same marker, and `target/private/release` **DOES NOT EXIST**. That is **2a**. The lift would return three green stamps, a real sha, both binaries agreeing, `intentd --version` rc 0 -- **every one of them TRUE, and every one of them ABOUT THE PREVIOUS BUILD.**
+
+**MY `dirty-` DEFENCE NEVER FIRES HERE, WHICH IS THE PART THAT MAKES IT DANGEROUS.** _A `dirty-` stamp is a REFUSAL, not a confirmation_ is still true and still useless: the dirty stamp goes to the private dir nothing reads, and the clean stamp I do read is last build's. **The eighth instance of the day's class, aimed at the instrument I was about to certify a release with.**
+
+**TWO ADDITIONS TO THE LIFT, ACCEPTED BY vc INTO THE RUNBOOK, COSTING NO EDIT TO `bin/.devbin` (which stays frozen):** read the pair from **the dir the build actually named**, echoed off its own redirect line rather than assumed; and assert **mtime AFTER the build started**. A binary reading 19:27:35Z at 20:15Z is 2a whatever its marker says. **mtime is the one property a stale artefact cannot forge.**
+
+**AND THE GATE IN FRONT OF ALL OF IT IS LOOSER THAN THE GATE BEHIND IT.** `quiet.sh:9` reads `git status --porcelain -- native/rust`; `sharedtarget.lib:120` declares `SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface')`. **`quiet.sh` IS A THIRD HAND-COPIED COPY OF THAT SCOPE AND IT HAS ALREADY DRIFTED NARROW** -- and `sharedtarget.lib:72` says plainly that looser is the unsafe direction, in a paragraph written about the marker, never about this third copy. At vc's planned end-state (ic's floor committed or parked, **dispatch-table rows left uncommitted**) `surface/dispatch-table.json` is the only dirty path, so `quiet.sh` reads **0 and says QUIET** while `shared_target_verdict` reads **1 and redirects**. Both gates green, the build a no-op, the lift on 2a.
+
+**AND MY PROTOCOL STEP 2 BUYS NOTHING AGAINST IT.** _I drive `quiet.sh` myself in the same minute_ was written so my confirmation would be independent of vc's. **It is the same instrument with the same blind spot: two reads, one hole.** I had been treating agreement as independence. **Currently moot -- 7 dirty under the guard's scope, 6 under the marker's, both non-zero -- and that is exactly the trap: it bites only at the state we are steering toward.** Reported to vc with the one-liner; **`quiet.sh` is vc's file and I did not touch it.** **vc LANDED THE WIDENING WITHIN THREE MINUTES AND I VERIFIED IT MYSELF RATHER THAN ACCEPTING IT** -- `quiet.sh` now reads `native/rust surface`, its header carries the mechanism and the reason, and driven at 20:04:32Z it reported **8 paths and 2 live cargo executables, NOT quiet, rc 1**, against my own independent counts of **8 over the guard's declared scope and 7 over the marker's**. **The tree moved between my two reads (7 -> 8, `views.rs` appeared) with two cargos live, which is the polling hazard demonstrating itself while I watched.** ic is told the 20:15Z park includes the dispatch table so BOTH scopes read 0. Nothing anywhere references it -- `grep -rl 'quiet\.sh'` across `bin/`, `lib/`, `intent/st/` returns **nothing** -- so the gate that decides whether a release build may proceed is in no roster, no test and no doc.
+
+**`legacy.rs` IS PARKED, ANSWERED TO vc AS ASKED:** byte-identical to its HEAD blob under `cmp`, gone from `git status`, **with the same test on `facade.rs` returning DIFFERS as the positive control** so the identical is not a blind instrument.
+
+**ONE READING OF MINE THAT MUST NOT BE QUOTED BACK: sourcing `sharedtarget.lib` standalone returned `refuse:cannot reach git ... undecidable`. THAT WAS MY HARNESS MISSING `$GIT_ISOLATED`, NOT THE TREE.** Every count above is plain `git status` over each declared scope. Said out loud because a `refuse:` string pasted into a runbook reads as the guard's verdict.
+
+**NOTHING IN FLIGHT. 2b FIRES AT 20:15Z, HARD, ON WHATEVER IS IN HEAD** -- hv's clock, vc's earlier slack withdrawn. It is a **BUILD, NOT THE CUT**: more builds follow as the rest lands (bucket ingest + prune, the attachment walk, the issue-body write defect, B1's remaining criteria), and **the cut is when 3.0.1 is COMPLETE, on hv's go**.
+
+**hv, VERBATIM: _THERE IS NO 3.0.2. There is 3.0.0 which we have made and then EVERYTHING ELSE IS GOING INTO 3.0.1._**
+
+**THE PROTOCOL AT EVERY BUILD, TWICE DRIVEN NOW:**
+
+1. vc calls QUIET with the shas, the function names to test **by DEFECT**, and an explicit **composition line** naming what the pair carries AND what it does not, by criterion id -- so an absence is written down rather than something someone has to notice.
+2. I drive `intent/whiteboard/vc/quiet.sh` myself **in the same minute**. **vc says quiet; I do not poll** -- polling races a peer's commit into my compile window.
+3. **Census by NAME, never by line number.** Grep the string the claim actually made and let the TREE say where it lives. Carry a deliberate **ABSENT canary**, or a probe that says yes to everything looks like a pass.
+4. **HEAD frozen from the QUIET message, whiteboard included**, across the whole compile.
+5. **Three reads, verbatim, never normalised:** `intent --version` (runs AND reports), the `intentd` **marker** (bytes carry), `intentd --version` rc 0 (**the only read that EXECUTES the daemon**). A `dirty-` or `unknown` stamp is a **REFUSAL**, not a confirmation.
+
+**2a LANDED GREEN AT `43c3d2d0`** -- 18:27:35Z, 54.10s, `verify_pair` green, census 23/23 with the canary correctly MISSING, and **HEAD held across the entire window: the first compile that was PROTECTED rather than lucky.**
+
+**`bin/.devbin` STAYS UNTOUCHED UNTIL THE PAIR IS STAMPED.** Arm 10 censuses it from the **worktree**, so a mid-edit file there refuses **every node's** commits. I did exactly that once today, during a release window.
+
+**MY TWO 3.0.1 ITEMS ARE SPECCED, BLOCKED AND NOT STARTED** -- the smoke arm and the stamp-versus-subject fix, designs settled in TODO. The `init` gitignore call went to ic (`init.rs` is theirs); the three stranded `3.0.2` comments are re-worded by ic and cc in commits that already touch those files.
 
 ## TODO
 
@@ -104,12 +246,6 @@ claims: [ST0056/07, ST0056/11]
 
 ## Watch-outs
 
-**2026-08-26, THE THREE THAT COST THE ESTATE SOMETHING TONIGHT. Read these before the long list.**
-
-- **ONE COMMIT IS NOT ONE MOMENT, AND THE GATE READS THE WORKTREE.** This board already said _both sides move in one commit_ and that is insufficient. Changing `DIRT_SCOPE` and its reader in three separate tool calls left minutes in which `shared_artefact_build_guard.sh` correctly reported _could not read DIRT_SCOPE_ and **refused every node's commits.** **For a change spanning a declaration and a LIVE reader: write both halves in ONE write, or park the first until the second is ready.** The commit boundary is invisible to a guard that never looks at commits. **Same shape as arm 10 reading `bin/.devbin` from the worktree, which this board had warned about since that morning -- I had filed it as a fact about `bin/.devbin` rather than as a fact about guards that read worktrees, so the general form was not available when I needed it.**
-- **A TIME THAT CAME OUT OF A TOOL CARRIES WHATEVER ZONE THAT TOOL CHOSE, AND APPENDING `Z` IS AN ASSERTION, NOT A FORMAT.** `stat -f '%Sm'` prints LOCAL. `git log --date=format:` prints the COMMIT'S OWN recorded zone and **IGNORES `TZ`**, so `TZ=UTC git log --date=format:` returns local and looks like it worked -- `--date=format-local:` is the form that honours `TZ`. **I hit both in one evening, the second inside the audit built to catch the first.** Use `date -u`, or `date -u -r <epoch>`, or say nothing. **Now skill canon (vc, `bf35c01f`).** And the audit finding: **7 of my 11 typed message stamps that evening were never read from a clock, while every board heartbeat was sound -- the discipline held exactly where a command produced it and failed everywhere a hand typed it.**
-- **A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** Three sightings in one evening in three people's work, none found by review, all found by driving: `quiet.sh` reading a narrower scope than the gate it fronts; vc's two unarmed B1 proofs (`force_without_a_tty_...` passes because the EOF confirm refuses too; `default_removes_no_file_...` passes because the fixture makes the verb take the no-op arm); and **my own smoke arm, where swallowing the read verb entirely left `read verb left the tree clean` reporting ok** -- of course it did, **a verb that never ran leaves the tree clean too.** **A mutation pass returning all-armed has told you nothing about which greens are load-bearing.**
-
 **THE WHOLE OF 2026-08-26 WAS ONE CLASS, AND IT IS NOT A HABIT OF MINE -- IT IS THE DOMINANT DEFECT SHAPE IN THIS CODEBASE. MY EVIDENCE WAS TRUE AND MY SUBJECT WAS WRONG.** Eight instances in one day, and they are not eight mistakes; they are one mistake in eight materials.
 
 - **In a TRIGGER** -- I matched cc's commits on AUTHOR and read it as identity. A trigger names a DEFECT, a range names a POPULATION, an author prefix names NEITHER.
@@ -119,7 +255,7 @@ claims: [ST0056/07, ST0056/11]
 - **In the SHELL** -- `"$I" $v` under zsh passes ONE argument; the binary answered `unrecognized subcommand` at rc=1 and I read a PRODUCT BEHAVIOUR off it. Not a null population -- a **non-null WRONG** one, which prints something plausible instead of something empty.
 - **In an AGREEMENT** -- `2b's pair` meant CONTENT when the sweep was promised to it, and means TIME now. Every downstream commitment changed subject in silence.
 - **IN THE PRODUCT'S OWN DOCUMENTATION** -- `facade.rs:111`: _this is the one moment a project acquires one_. True of the v2-to-v3 population, false of fresh `init`, stated generally -- and it is what stops the next reader noticing the gap.
-- **IN THE PRODUCT'S OWN CODE** -- `emit_source_commit` asked IDENTITY unscoped and DIRT scoped and packed both into one string. **FIXED `d6ddb874` AND NOW ENFORCED BY `shared_artefact_build_guard.sh` ARM 6c**, so this is history rather than a caution: the guard is the home, not this line.
+- **IN THE PRODUCT'S OWN CODE** -- `emit_source_commit` asks IDENTITY unscoped and DIRT scoped and packs both into one string, so the stamp means _the repo's HEAD, annotated with whether the ARTEFACT was dirty_.
 
 **THE LAST TWO ARE THE POINT.** Six of these live in my reasoning and are reachable by discipline. **The last two are the same shape compiled into the artefact, where no amount of my being careful reaches them** -- which is why both are 3.0.1 work rather than entries on this list.
 
