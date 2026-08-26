@@ -4938,8 +4938,22 @@ impl Facade {
         // that the next carry would not sustain.
         if Project::classify(&rel) != ThreadFile::Attachment {
           return Err(refuse(format!(
-            "canon carries {} and leaves everything else on disk, so `{path}` has no attachment record to write",
-            crate::project::ATTACHMENT_EXTENSIONS.join(", ")
+            "`{path}` is canon or a generated view rather than an authored file, so it has no attachment record to write"
+          )));
+        }
+
+        // **AND THE SIZE, FOR THE SAME REASON AS THE ARM ABOVE.** The carrier
+        // refuses a file over `ATTACHMENT_CAP_BYTES`, so a row written here for
+        // a larger body is a row `--to-store` would never have produced and the
+        // next carry could not sustain. **An artefact the owning pipeline
+        // cannot reproduce is already drifting the moment it lands** -- which
+        // is what this door's original extension check was protecting, and the
+        // property survived the list that used to enforce it.
+        if !crate::project::within_attachment_cap(body.len() as u64) {
+          return Err(refuse(format!(
+            "`{path}` is {} bytes, over the {}-byte cap, so canon has no record to write for it -- the carry would refuse it on the next pass",
+            body.len(),
+            crate::project::ATTACHMENT_CAP_BYTES
           )));
         }
 
@@ -5103,8 +5117,18 @@ impl Facade {
     }
     if Project::classify(&rel) != ThreadFile::Attachment {
       return Err(refuse(format!(
-        "canon carries {} and leaves everything else on disk, so `{path}` has no attachment record to write",
-        crate::project::ATTACHMENT_EXTENSIONS.join(", ")
+        "`{path}` is canon or a generated view rather than an authored file, so it has no attachment record to write"
+      )));
+    }
+    // The same cap as the text door and as the carrier, asked of the same
+    // function. A row written above it is one `--to-store` would never have
+    // produced, so it drifts on the next carry rather than at the moment it is
+    // noticed.
+    if !crate::project::within_attachment_cap(bytes.len() as u64) {
+      return Err(refuse(format!(
+        "`{path}` is {} bytes, over the {}-byte cap, so canon has no record to write for it -- the carry would refuse it on the next pass",
+        bytes.len(),
+        crate::project::ATTACHMENT_CAP_BYTES
       )));
     }
 

@@ -101,10 +101,78 @@ fn quiet_drops_what_is_not_a_finding_and_keeps_the_verdict() {
 
 /// A flag that parses and changes nothing passes every acceptance test and is
 /// still a lie in the help text. This is the arm that catches it.
+///
+/// **IT RUNS AGAINST A TREE THE TEST BUILDS, AND IT DID NOT USED TO.** It ran
+/// `doctor` at this repository's own root, where it passed because Intent
+/// happened to hold 196 uncarried `.tap` baselines for `--quiet` to suppress.
+/// On 2026-08-26 the carry stopped consulting extensions, those files became
+/// attachments, the inventory went to ZERO here, and quiet and default became
+/// the same 17 lines. **The flag was never broken; its only exercise was
+/// incidental repository content, and it expired the moment the content
+/// changed.**
+///
+/// That is the same shape as an enforcement inherited from an unrelated
+/// mechanism, seen from the test's side: **an exercise nobody set up is an
+/// assumption, and only a red ever says it has gone.** So the subject is
+/// constructed here -- one file over the cap, which is what `--quiet` suppresses
+/// now -- and it survives whatever this repository happens to contain next.
 #[test]
 fn quiet_is_strictly_less_than_the_default() {
-  let default = doctor(&[]);
-  let quiet = doctor(&["--quiet"]);
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let config = root.join("intent").join(".config");
+  std::fs::create_dir_all(&config).expect("mkdir");
+  std::fs::write(
+    config.join("config.json"),
+    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Q\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
+  )
+  .expect("write config");
+
+  let made = Command::new(bin())
+    .args(["st", "new", "A thread"])
+    .current_dir(root)
+    .output()
+    .expect("st new");
+  assert!(
+    made.status.success(),
+    "the fixture must have a thread for doctor to walk: {}",
+    String::from_utf8_lossy(&made.stderr)
+  );
+
+  let thread_dir = std::fs::read_dir(root.join("intent/st"))
+    .expect("st dir")
+    .filter_map(Result::ok)
+    .map(|e| e.path())
+    .find(|p| p.is_dir())
+    .expect("st new made a thread directory");
+  std::fs::write(
+    thread_dir.join("huge.png"),
+    vec![b'x'; intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1],
+  )
+  .expect("write a file over the cap");
+
+  let at = |args: &[&str]| -> String {
+    let mut argv = vec!["doctor"];
+    argv.extend_from_slice(args);
+    let out = Command::new(bin())
+      .args(&argv)
+      .current_dir(root)
+      .output()
+      .expect("doctor");
+    format!(
+      "{}{}",
+      String::from_utf8_lossy(&out.stdout),
+      String::from_utf8_lossy(&out.stderr)
+    )
+  };
+  let default = at(&[]);
+  let quiet = at(&["--quiet"]);
+
+  assert!(
+    default.contains("not carried by the store"),
+    "the FIXTURE must give quiet something to suppress, or this arm proves \
+     nothing about the flag:\n{default}"
+  );
   assert!(
     quiet.lines().count() < default.lines().count(),
     "`doctor --quiet` produced {} line(s) against the default's {} -- the flag is accepted and does nothing",

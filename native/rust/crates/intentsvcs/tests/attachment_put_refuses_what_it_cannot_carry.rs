@@ -91,25 +91,51 @@ fn a_json_body_would_write_the_record_into_the_file_so_the_format_is_refused() {
   );
 }
 
-/// **AN EXTENSION CANON DOES NOT CARRY HAS NO RECORD TO WRITE.**
+/// **A BODY CANON WOULD NOT CARRY HAS NO RECORD TO WRITE, AND ON 2026-08-26 ITS
+/// SUBJECT MOVED WHILE ITS PROPERTY DID NOT.**
 ///
-/// Canon carries `md, txt, sh` and leaves everything else on disk. Writing one
-/// here would put a row into canon that `--to-store` would never have produced
-/// and that the next carry could not sustain -- **an artefact the owning
-/// pipeline cannot reproduce is already drifting the moment it lands.**
+/// The property is unchanged and is the whole point: writing a row here that
+/// `--to-store` would never have produced puts canon out of step with the disk
+/// on the very next carry -- **an artefact the owning pipeline cannot reproduce
+/// is already drifting the moment it lands.**
+///
+/// It used to be asked of an EXTENSION (`script.py`, outside
+/// `ATTACHMENT_EXTENSIONS`). The list is gone, so `.py` is carried now and is no
+/// longer an example of anything. **What the carrier still refuses is SIZE**, so
+/// that is what this door must refuse too -- and it did not, until this test's
+/// property was read rather than its subject. `put` accepted an over-cap body
+/// and wrote the row; the carrier would have refused the same bytes on the next
+/// pass. **The gap was opened by removing the list and closed by keeping the
+/// question the list was answering.**
 #[test]
-fn an_extension_the_carry_does_not_take_is_refused_rather_than_recorded() {
-  let (why, after) = refusal(
-    "intent:///threads/ST0001/attachments/script.py",
-    "print()\n",
+fn a_body_over_the_cap_is_refused_rather_than_recorded() {
+  let over = "x".repeat(intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1);
+  let (why, after) = refusal("intent:///threads/ST0001/attachments/notes.md", &over);
+  assert!(
+    why.contains(&intentsvcs::project::ATTACHMENT_CAP_BYTES.to_string()),
+    "the refusal must name the cap, or the operator cannot act on it: {why}"
   );
   assert!(
-    why.contains("md, txt, sh"),
-    "the refusal must name what IS carried, or the operator cannot act on it: {why}"
+    !after.iter().any(|(p, _)| p == "notes.md"),
+    "the over-cap path was recorded anyway"
   );
+}
+
+/// **THE COUNTER-ARM, without which the arm above passes for a door that
+/// refuses everything.**
+///
+/// A `.py` -- the exact path the old list rejected -- is carried now, because
+/// an extension decides nothing.
+#[test]
+fn a_body_under_the_cap_with_any_extension_is_recorded() {
+  let fx = fixture();
+  let mut f = fx.facade();
+  let addr = parse("intent:///threads/ST0001/attachments/script.py").expect("parses");
+  f.put(&addr, "print()\n")
+    .expect("a small text file is carried whatever it is called");
   assert!(
-    !after.iter().any(|(p, _)| p == "script.py"),
-    "the unattached path was recorded anyway"
+    attachments(&mut f).iter().any(|(p, _)| p == "script.py"),
+    "an extension no list ever held is an attachment like any other"
   );
 }
 

@@ -1168,28 +1168,59 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
       binary.to_str().expect("path"),
     ],
   );
-  // **AN EXTENSION CANON DOES NOT CARRY IS STILL REFUSED, AND THAT IS A
-  // DIFFERENT QUESTION FROM ENCODING.** `ATTACHMENT_EXTENSIONS` is
-  // `["md","txt","sh"]`: the extension decides WHETHER a file is carried,
-  // decoding decides in WHICH FORM. **Conflating them is what made my first
-  // probe of this area useless** -- I drove a `.dat` file, the scanner ignored
-  // it by design, and the empty result read as *no route* for entirely the
-  // wrong reason. A green that meant nothing.
+  // **THE OPAQUE FILE IS NOW CARRIED, AND THAT IS THE POINT OF THE CHANGE.**
+  // `ATTACHMENT_EXTENSIONS` was `["md","txt","sh"]` and decided WHETHER a file
+  // was carried by asking its NAME, one step above the place that decides in
+  // WHICH FORM by DECODING. So `Attachment::opaque`, the `blob` column and the
+  // `CHECK ((text IS NULL) <> (blob IS NULL))` that makes the two forms
+  // exclusive were complete and **unreachable**: a `.dat` was classified out
+  // before anything opened it. The list is gone; the decode decides the form.
   //
-  // **THE ASSERTION HERE USED TO READ `a non-UTF-8 file is refused` AND THAT
-  // BEHAVIOUR IS GONE ON PURPOSE.** It was honest for one build -- `put` takes a
-  // string, so there was no route for bytes -- and `put_attachment` gave it one.
-  // The test reddened on the change that fixed it, which is the third time today
-  // a test asserted the state a fix removed.
+  // **This assertion has now flipped TWICE, both times on a fix, and the
+  // history is the reason it is written down.** It first read *a non-UTF-8 file
+  // is refused*, which was honest while `put` took only a string. Then it read
+  // *an uncarried extension is refused*, which was honest while a list decided
+  // carriage. Each was true of a build and neither was true of the intent.
   assert_eq!(
     out.status.code(),
-    Some(1),
-    "an uncarried extension is refused"
+    Some(0),
+    "a small binary is carried as opaque bytes: {}",
+    String::from_utf8_lossy(&out.stderr)
   );
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  assert!(
+    canon.contains("opaque.dat"),
+    "and it reaches canon by name: {canon}"
+  );
+
+  // **WHAT IS STILL REFUSED IS SIZE, AND THE REFUSAL NAMES THE CAP.** The
+  // carrier will not take a file over `ATTACHMENT_CAP_BYTES`, so a row written
+  // here for a larger body is one `sync --to-store` would never have produced
+  // and the next carry could not sustain -- **an artefact the owning pipeline
+  // cannot reproduce is already drifting the moment it lands.** That property
+  // is what the extension check was really protecting, and it outlived the list.
+  let huge = root.join("huge.png");
+  std::fs::write(
+    &huge,
+    vec![b'x'; intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1],
+  )
+  .expect("write a file over the cap");
+  let out = run(
+    root,
+    &[
+      "st",
+      "attach",
+      "1",
+      "huge.png",
+      "--from",
+      huge.to_str().expect("path"),
+    ],
+  );
+  assert_eq!(out.status.code(), Some(1), "an over-cap file is refused");
   let said = String::from_utf8_lossy(&out.stderr).to_string();
   assert!(
-    said.contains("md") && said.contains("sh"),
-    "and the refusal names what canon DOES carry rather than only what it will not: {said}"
+    said.contains(&intentsvcs::project::ATTACHMENT_CAP_BYTES.to_string()),
+    "and the refusal names the cap rather than only that something is wrong: {said}"
   );
   assert!(
     !said.contains("sync --to-store"),
@@ -1198,8 +1229,7 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
      does not, and the reason is worth keeping: `ingest.rs:533` collects every file-index entry \
      labelled `Unparsed` and RETURNS a refusal built from their findings, so a non-UTF-8 file \
      fails its whole thread's ingest even though `collect_attachments` carried it successfully \
-     one step earlier. That would have been the fifth false remedy of the day, drafted inside \
-     the fix for the fourth: {said}"
+     one step earlier: {said}"
   );
 
   let out = run(root, &["st", "attach", "99", "x.md", "--from", from]);

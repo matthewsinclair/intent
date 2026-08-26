@@ -32,8 +32,7 @@
 
 use intentsvcs::intentfiles::{Sigil, parse};
 use intentsvcs::model;
-use intentsvcs::project::{Project, ThreadFile};
-use std::path::Path;
+use intentsvcs::project::Project;
 use testkit::repo_root;
 
 fn accepted(line: &str) -> bool {
@@ -195,23 +194,38 @@ fn no_file_in_the_estate_can_be_named_as_an_artefact() {
 /// path a thing the manifest accepted, the second enumeration would exist.
 #[test]
 fn the_manifest_and_classify_do_not_overlap() {
-  // An id is not a file, so classify has nothing useful to say about one.
-  // `Unattached` is the named remainder rather than a silent gap, which is the
-  // right answer for something that is not a file at all.
-  assert_eq!(
-    Project::classify(Path::new("ST0056")),
-    ThreadFile::Unattached,
-    "an artefact id is not a file and classify must not claim otherwise"
+  // **THE OVERLAP IS TESTED FROM THE MANIFEST SIDE, BECAUSE THAT IS THE SIDE
+  // THAT CAN ANSWER.**
+  //
+  // This used to assert `classify("ST0056") == ThreadFile::Unattached`, on the
+  // reading that an id is not a file so the classifier has nothing to say about
+  // one. **It never had that answer.** `ST0056` carries no extension, the old
+  // `ATTACHMENT_EXTENSIONS` allowlist required one, and the id fell into the
+  // remainder for that reason -- so "not on the list" was being read as "not a
+  // file I recognise". Different facts, one variant. **A file genuinely NAMED
+  // `ST0056` classified identically, and was pinned to disk forever by it.**
+  //
+  // The allowlist is gone (2026-08-26), the remainder went with it, and the
+  // assertion went with the remainder -- because a path-shaped question cannot
+  // distinguish an id from an extensionless filename, and reinstating a rule
+  // that could would reinstate the defect.
+  //
+  // **The property is unchanged and is enforced here, in the direction that
+  // holds it**: the manifest is an id vocabulary, so a PATH must be
+  // unrepresentable in it. That is the same non-overlap, asked where there is
+  // evidence for an answer.
+  assert!(
+    !accepted("STEELTHREAD:intent/st/ST0056/info.md"),
+    "a path must be unrepresentable in a manifest that names artefacts -- if it \
+     parsed, the second enumeration would exist"
+  );
+  assert!(
+    !accepted("STEELTHREAD:ST0056/info.md"),
+    "and no shorter path shape smuggles one in either"
   );
 
-  // And the files classify DOES recognise cannot be named in the manifest.
+  // And the files the renderer owns cannot be named in the manifest.
   for named in ["info.md", "acceptance.md", "design.md", "thread.json"] {
-    let kind = Project::classify(Path::new(named));
-    assert_ne!(
-      kind,
-      ThreadFile::Unattached,
-      "{named} is a file classify has an answer for -- the fixture is stale if not"
-    );
     assert!(
       !accepted(&format!("STEELTHREAD:{named}")),
       "{named} is classify's business and must be unrepresentable in the manifest"

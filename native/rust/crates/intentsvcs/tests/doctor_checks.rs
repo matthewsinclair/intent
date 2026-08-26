@@ -648,22 +648,39 @@ fn an_attachment_built_through_its_constructor_is_not_reported() {
 ///
 /// The failure this prevents is a disk becoming optional and something
 /// vanishing because no surface ever said it was uncovered -- silence and full
-/// coverage read identically. **But it must not be a finding**: these files
-/// are outside the carried extensions by design, so counting them as faults
-/// would red 100% of a population behaving correctly, which is a rule
-/// describing the model rather than the data and is how a check gets deleted.
+/// coverage read identically. **But it must not be a finding**: these files are
+/// uncarried by design, so counting them as faults would red 100% of a
+/// population behaving correctly, which is a rule describing the model rather
+/// than the data and is how a check gets deleted.
+///
+/// **The subject moved on 2026-08-26 and the property did not.** "Uncarried"
+/// used to mean an extension outside `ATTACHMENT_EXTENSIONS`; the list is gone,
+/// and what is uncarried now is what will not FIT. The report's meaning changed
+/// with it -- from "an extension we do not carry" to "over the cap" -- and it is
+/// a great deal shorter, which was announced rather than discovered.
 #[test]
 fn an_uncarried_file_is_listed_by_path_without_making_the_project_unhealthy() {
   let fx = Fixture::new();
   let thread = clean_thread("ST0001");
   seed(&fx, &thread);
-  fx.write_file("intent/st/ST0001/parity/baseline.tap", "ok 1 - a test\n");
+  std::fs::create_dir_all(fx.path("intent/st/ST0001/parity")).expect("mkdir");
+  std::fs::write(
+    fx.path("intent/st/ST0001/parity/huge.png"),
+    vec![b'x'; intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1],
+  )
+  .expect("write a file over the cap");
 
   let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
   assert_eq!(
-    report.unattached,
-    vec!["intent/st/ST0001/parity/baseline.tap".to_string()],
-    "named by path, from the thread root down"
+    report.unattached.len(),
+    1,
+    "exactly one: {:?}",
+    report.unattached
+  );
+  assert!(
+    report.unattached[0].starts_with("intent/st/ST0001/parity/huge.png"),
+    "named by path, from the thread root down: {:?}",
+    report.unattached
   );
   assert!(
     report.is_healthy(),
@@ -688,12 +705,24 @@ fn a_carried_file_and_a_generated_view_are_absent_from_the_uncarried_list() {
   seed(&fx, &thread);
   fx.write_file("intent/st/ST0001/reference.md", "# Reference\n");
   fx.write_file("intent/st/ST0001/parity/baseline.tap", "ok 1\n");
+  std::fs::write(
+    fx.path("intent/st/ST0001/parity/huge.png"),
+    vec![b'x'; intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1],
+  )
+  .expect("write a file over the cap");
 
   let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
   assert_eq!(
-    report.unattached,
-    vec!["intent/st/ST0001/parity/baseline.tap".to_string()],
-    "the attachment and the generated views are held; only the .tap is not"
+    report.unattached.len(),
+    1,
+    "exactly one: {:?}",
+    report.unattached
+  );
+  assert!(
+    report.unattached[0].starts_with("intent/st/ST0001/parity/huge.png"),
+    "the attachment, the generated views AND the .tap are all held now -- only \
+     the file that will not fit is uncarried: {:?}",
+    report.unattached
   );
 }
 

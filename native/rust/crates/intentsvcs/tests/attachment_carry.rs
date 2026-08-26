@@ -95,8 +95,15 @@ fn bytes_and_sha256_describe_the_text_they_were_built_from() {
      would carry and what 112 ratified template drops already look like"
   );
 }
-/// **A file outside the declared extensions is not carried, and it is NOT
-/// filed as a migration disposition either.**
+/// **A file that is not carried is NOT filed as a migration disposition
+/// either -- and on 2026-08-26 its subject changed while the property did
+/// not.**
+///
+/// It used to be "a file outside the declared extensions". `ATTACHMENT_EXTENSIONS`
+/// is gone, so nothing is uncarried for having the wrong NAME; what is still
+/// uncarried is what will not FIT, and the population this guards moved with
+/// it. The property is untouched and is the reason the test survives the
+/// rewrite rather than being deleted with the list.
 ///
 /// `dropped` means content existed, was deliberately not brought across, and
 /// canon is verified empty for it -- safe because nobody wanted it. These
@@ -113,6 +120,11 @@ fn a_file_that_does_not_attach_is_not_carried_and_not_licensed_as_a_drop() {
   fixture.write_file("intent/st/ST0001/reference.md", "# Reference\n");
   fixture.write_file("intent/st/ST0001/baseline.tap", "ok 1 - a test\n");
   fixture.write_file("intent/st/ST0001/tools/run.sh", "#!/bin/bash\necho hi\n");
+  std::fs::write(
+    fixture.path("intent/st/ST0001/huge.png"),
+    vec![b'x'; intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1],
+  )
+  .expect("write a file over the cap");
 
   let out = scan(&fixture);
   assert_eq!(
@@ -121,16 +133,16 @@ fn a_file_that_does_not_attach_is_not_carried_and_not_licensed_as_a_drop() {
       .iter()
       .map(|a| a.path.as_str())
       .collect::<Vec<_>>(),
-    vec!["reference.md", "tools/run.sh"],
-    "**the shell IS carried and the baseline is not**, on the principle the \
-     list encodes: no tool can make this again, versus a tool made this and \
-     can again. On this project the `.sh` under a thread are the instruments \
-     that verify the migration -- including the one whose job is to prove \
-     content was not lost -- and a clone of the canon would not have contained \
-     the tools that prove the canon"
+    vec!["baseline.tap", "reference.md", "tools/run.sh"],
+    "the shell, the markdown AND the baseline are all carried now -- an \
+     extension decides nothing. The baseline was excluded by the authorship \
+     principle (no tool can make this again, versus a tool made this and can \
+     again), which is NOT retired: it moves to `.intentfiles`, per project, \
+     because a global list answered `.tap` right here and `.json` wrong \
+     elsewhere (vc, 3.0.2). `huge.png` is absent because it will not FIT"
   );
   assert!(
-    !out.dispositions.iter().any(|d| d.owner.ends_with(".tap")),
+    !out.dispositions.iter().any(|d| d.owner.ends_with(".png")),
     "a file still sitting on disk has not been dropped, and saying it was would \
      license the check that watches it to stop looking: {:?}",
     out
@@ -214,9 +226,29 @@ fn a_file_named_like_a_view_but_nested_is_an_authored_file() {
     "D57-6: THREAD_PROSE is deleted, so a thread's own design.md is carried \
      verbatim like any other authored markdown rather than skipped"
   );
+  // **THIS ROW CHANGED ITS ANSWER ON 2026-08-26, AND THE CHANGE IS A RULING
+  // RATHER THAN A CONSEQUENCE.**
+  //
+  // It used to assert `Unattached`, because `ATTACHMENT_EXTENSIONS` was
+  // `["md", "txt", "sh"]` and a `.tap` was not on the list. That list encoded a
+  // real principle of vc's -- *no tool can make this again, versus a tool made
+  // this and can again* -- under which a generated baseline stays out because
+  // carrying regenerable output buys nothing.
+  //
+  // **The principle survives; the list did not, because a global extension list
+  // cannot answer a per-project question.** `.tap` is tool output HERE and
+  // Conflab's `.json` may well be authored THERE, so the same list answered one
+  // right and the other wrong. Its new home is `.intentfiles`, a per-project
+  // declaration of what a project does not want carried (vc, 3.0.2).
+  //
+  // Until that lands, the baseline IS carried, under the cap. The measured cost
+  // is 328 KB in one thread on this repo, taken deliberately in preference to
+  // inventing a second classifier under release pressure.
   assert_eq!(
     Project::classify(std::path::Path::new("parity/baseline.tap")),
-    ThreadFile::Unattached
+    ThreadFile::Attachment,
+    "an extension no longer decides what is carried -- size does, and \
+     authorship will, per project, once `.intentfiles` carries it"
   );
 }
 

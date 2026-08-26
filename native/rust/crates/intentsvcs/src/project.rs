@@ -13,39 +13,67 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::Attachment;
 
-/// The file extensions carried as [`crate::model::Attachment`]s.
+/// The largest attachment canon will carry, in bytes.
 ///
-/// **A LIST, so the question is decidable without opening the file**, and
-/// extending it is an explicit act rather than a classifier quietly changing
-/// its mind. Nothing here inspects content or forms a view about whether a
-/// file "feels authored".
+/// **THIS REPLACED A THREE-ENTRY EXTENSION ALLOWLIST, AND THE ALLOWLIST WAS THE
+/// DEFECT.** `["md", "txt", "sh"]` decided what could be carried by asking the
+/// FILENAME, one step above the place that decides text-vs-opaque by DECODING.
+/// So the opaque-attachment machinery -- `Attachment::opaque`, the `blob`
+/// column, the `CHECK ((text IS NULL) <> (blob IS NULL))` that makes the two
+/// forms exclusive -- was complete and **unreachable**: a `.pdf` was classified
+/// out before anything opened it. Both halves were individually right and the
+/// composition was the defect.
 ///
-/// **THE PRINCIPLE THE LIST ENCODES: no tool can make this again, versus a
-/// tool made this and can again** (vc, on measuring the estate). It is the
-/// authorship axis the view/attachment split already runs on, one level down,
-/// which makes it one idea in two places rather than two rules.
+/// **And it was not only binaries.** Measured across the fleet's `intent/st`
+/// directories: this project's own tree carries 196 `.tap` files and 2 `.tsv`,
+/// Conflab 20 `.json` and 10 `.lensmd`, Lamplight 6 `.cli` and 2 `.py` -- every
+/// one of them valid UTF-8, and every one excluded, because the gate asked the
+/// extension rather than the bytes.
 ///
-/// So `.sh` is IN. The shell here is hand-authored and unreproducible -- on
-/// this project it is the instruments that verify the migration, including the
-/// one whose whole job is to prove content was not lost, and a clone of the
-/// canon would not have contained the tools that prove the canon. Generated
-/// baselines stay out: a tool's committed output is regenerable, so carrying
-/// it buys nothing.
+/// **A SIZE IS THE HONEST GATE BECAUSE SIZE IS THE ACTUAL COST.** The committed
+/// canon extract carries attachment bytes INLINE, so an opaque row is base64 in
+/// a versioned JSON file. Measured on Lamplight, the fleet's worst case: of 35
+/// files reaching the classifier, 8 sit above this cap (14.8 MiB of
+/// `ST0167/WP/01/screenshots/*.png`, which would be roughly 20 MiB of base64 in
+/// committed canon) and 27 sit below it (3.6 MiB, carried).
+///
+/// **1 MiB IS A PLACEHOLDER AND IS DELIBERATELY NOT TUNED** (vc, 2026-08-26).
+/// It stands until attachment bytes live outside the extract, content-addressed;
+/// a finely-chosen number would read as a considered limit rather than as the
+/// stopgap it is. **Over the cap is a REFUSAL, never a deletion** -- the file is
+/// reported by name with its size and left exactly where it is.
 ///
 /// **One consequence carried openly rather than solved: a mode bit does not
 /// survive.** `text` is content, so an executable written back from the store
-/// arrives without its `+x`. That was the original reason to exclude
-/// executables and it has not stopped being true -- it is now outweighed,
-/// because a script that has to be `chmod +x` is recoverable and a script
-/// nobody kept is not.
-pub const ATTACHMENT_EXTENSIONS: &[&str] = &["md", "txt", "sh"];
+/// arrives without its `+x`. A script that has to be `chmod +x` is recoverable
+/// and a script nobody kept is not.
+pub const ATTACHMENT_CAP_BYTES: u64 = 1024 * 1024;
+
+/// Whether an attachment of this size is carried into canon.
+///
+/// **ONE HOME, AND THAT IS THE WHOLE POINT OF IT BEING A FUNCTION RATHER THAN A
+/// COMPARISON WRITTEN TWICE.** Two callers need this answer: the carrier
+/// ([`Project::collect_attachments`]) and the surface that reports what was NOT
+/// carried (`doctor`). If those two ever disagree, a file is refused by one and
+/// unreported by the other -- which is precisely the silent gap the report
+/// exists to close, arriving through the door built to prevent it.
+///
+/// **Inclusive at the boundary**: a file of exactly [`ATTACHMENT_CAP_BYTES`] is
+/// carried. A cap is a maximum, and an off-by-one here is invisible to any test
+/// that only tries one oversized file.
+pub fn within_attachment_cap(bytes: u64) -> bool {
+  bytes <= ATTACHMENT_CAP_BYTES
+}
 
 /// What a file sitting under a thread's directory is.
 ///
-/// These partition the directory: every file is exactly one, and `Unattached`
-/// is the named remainder rather than a silent gap. **`doctor` reports the
-/// remainder by path, which is the property the whole scheme rests on** -- a
-/// disk that becomes optional destroys whatever nothing said was uncovered.
+/// These partition the directory: every file is exactly one. **`doctor` still
+/// reports a remainder by path, and that property is what the whole scheme
+/// rests on** -- a disk that becomes optional destroys whatever nothing said
+/// was uncovered. What changed is the remainder's MEANING: it used to be "an
+/// extension we do not carry" and it is now "over the cap", reported with the
+/// byte count. It will be much shorter, and it is now a statement about the
+/// files rather than about a list.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ThreadFile {
   /// Rendered from the model: the thread's cover, its acceptance contract, a
@@ -53,10 +81,16 @@ pub enum ThreadFile {
   GeneratedView,
   /// `thread.json` -- the committed canon itself.
   Canon,
-  /// Carried verbatim under [`ATTACHMENT_EXTENSIONS`].
+  /// Anything a human put here. Carried verbatim when it fits under
+  /// [`ATTACHMENT_CAP_BYTES`]; reported by name with its size when it does not.
+  ///
+  /// **There is no fourth variant, and the one that used to be here retired
+  /// with the extension allowlist that created it.** `Unattached` meant "an
+  /// extension we do not carry", which was never a fact about the FILE -- only
+  /// about a list. Whether the bytes can be carried is a question about their
+  /// SIZE, and size is not knowable from a path, so it is asked by
+  /// [`within_attachment_cap`] where the bytes are, not here.
   Attachment,
-  /// Everything else. Reported by name, never silently skipped.
-  Unattached,
 }
 
 /// The per-project config (`intent/.config/config.json`).
@@ -861,22 +895,18 @@ impl Project {
     // lives at `.canon/st/<ID>.json`, so no healthy thread directory holds a
     // `thread.json` -- but a v2 tree does, and so does a tree caught mid-move.
     // Classifying it as canon is what keeps it out of the attachment carry;
-    // deleting the arm would make a stale canon file `Unattached` and invite
-    // some later reader to treat it as an author's.
+    // deleting the arm would make a stale canon file an ATTACHMENT and carry
+    // the migrator's own output back into canon as though a human wrote it.
     if depth == 1 && name == "thread.json" {
       return ThreadFile::Canon;
     }
 
-    let ext = rel
-      .extension()
-      .and_then(|e| e.to_str())
-      .unwrap_or_default()
-      .to_ascii_lowercase();
-    if ATTACHMENT_EXTENSIONS.contains(&ext.as_str()) {
-      ThreadFile::Attachment
-    } else {
-      ThreadFile::Unattached
-    }
+    // **Everything the renderer does not own is the author's.** No extension is
+    // consulted, because an extension answers a question about a NAME and the
+    // question here is whose file this is. Whether its bytes fit in canon is a
+    // separate question with a separate home ([`within_attachment_cap`]), asked
+    // where the bytes are.
+    ThreadFile::Attachment
   }
 
   /// The committed structured canon for one issue, `.canon/issues/<nnnn>.json`.
@@ -960,6 +990,27 @@ impl Project {
       }
       let path = dir.join(&rel);
       let name = self.relative(&path);
+      // **THE SIZE IS ASKED OF THE METADATA, BEFORE THE READ.** The read below
+      // is unbounded, so checking afterwards means loading the file in order to
+      // be told it was too big -- harmless for a 2 MiB screenshot and not
+      // harmless the first time somebody commits something large. A cap that
+      // only applies after the cost has been paid is not a cap.
+      match std::fs::metadata(&path) {
+        Ok(meta) if !within_attachment_cap(meta.len()) => {
+          refused.push((
+            name,
+            format!(
+              "is {} bytes, over the {ATTACHMENT_CAP_BYTES}-byte cap, so it stays on disk and is not carried into canon",
+              meta.len()
+            ),
+          ));
+          continue;
+        }
+        // Unreadable metadata is not a size verdict. Fall through to the read,
+        // which produces the honest "could not be read" refusal below rather
+        // than a guess about how big it is.
+        Ok(_) | Err(_) => {}
+      }
       // **THE NAMING GATE, AT INGEST** (ST0057 AC-03.3). A path that cannot be
       // given both a canon path and a URL is refused HERE, which is the only
       // door into the model -- so a name nothing could store or address never
@@ -1243,10 +1294,10 @@ impl Project {
         author_with: "the verbs that write canon; `intent st`, `intent wp`, `intent ac`, `intent at`",
       },
       // An attachment is AUTHORED on disk -- authority runs the other way, and
-      // `--to-store` ingests what you wrote. Unattached files are not ours to
+      // `--to-store` ingests what you wrote. Files over the cap are not ours to
       // refuse: the estate holds files Intent does not model and never claimed
       // to, and refusing them would make `edit` narrower than the directory.
-      ThreadFile::Attachment | ThreadFile::Unattached => EditDisposition::Open,
+      ThreadFile::Attachment => EditDisposition::Open,
     }
   }
 }

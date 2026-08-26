@@ -567,13 +567,6 @@ pub fn plan(
         action: Action::Unclaimed,
         content: None,
       }),
-      // Row five. Reported by name, never removed, and it carries no content
-      // because there is nothing that could render it.
-      ThreadFile::Unattached => steps.push(Step {
-        path: path.clone(),
-        action: Action::Unclaimed,
-        content: None,
-      }),
     }
   }
 

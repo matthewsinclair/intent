@@ -840,10 +840,26 @@ fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report
   // ingest and reported as uncovered by this, or the reverse and worse.
   for thread in &canon.threads {
     for rel in project.thread_files(&thread.id) {
-      if crate::project::Project::classify(&rel) == crate::project::ThreadFile::Unattached {
-        report
-          .unattached
-          .push(project.relative(&project.thread_dir(&thread.id).join(&rel)));
+      if crate::project::Project::classify(&rel) != crate::project::ThreadFile::Attachment {
+        continue;
+      }
+      let path = project.thread_dir(&thread.id).join(&rel);
+      // **THE SAME QUESTION, ASKED OF THE SAME FUNCTION AS THE CARRIER.**
+      // `within_attachment_cap` has one home for exactly this pair of callers:
+      // if this surface and `collect_attachments` ever disagreed, a file would
+      // be refused by the carrier and unlisted here -- the silent gap this
+      // report exists to close, arriving through the door built to close it.
+      // A comparison written out twice is that disagreement waiting to happen.
+      let Ok(meta) = std::fs::metadata(&path) else {
+        continue;
+      };
+      if !crate::project::within_attachment_cap(meta.len()) {
+        report.unattached.push(format!(
+          "{} ({} bytes, over the {}-byte cap)",
+          project.relative(&path),
+          meta.len(),
+          crate::project::ATTACHMENT_CAP_BYTES
+        ));
       }
     }
   }
