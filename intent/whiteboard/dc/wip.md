@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 19:58Z
+heartbeat_at: 2026-08-26 20:26Z
 status: active
-focus: "**2b FIRES AT 20:15Z, HARD, AND THE FAILURE MODE I HAD WRITTEN DOWN WAS THE WRONG ONE.** A dirty `native/rust` is **REDIRECTED, NEVER BLOCKED** (`releasebuild.lib:53`): the build lands in `target/private/release`, stamps `dirty-`, `verify_pair` calls that EXPECTED and prints **`ok` at rc 0** -- while `target/release` is untouched and every consumer is hard-wired to it. **SO THE THREE READS WOULD RETURN THREE TRUE GREEN STAMPS ABOUT 2a** (measured 20:00Z: mtime 19:27:35Z, marker `43c3d2d0`, private dir absent). **MY `dirty-`-IS-A-REFUSAL DEFENCE NEVER FIRES** -- the dirty stamp goes where nothing reads and the clean one I read is last build`s. **FIXED ON MY SIDE WITH NO EDIT TO `bin/.devbin`: read the pair from the dir the build NAMED, and assert mtime AFTER build start -- mtime is the one property a stale artefact cannot forge.** **AND THE FRONT GATE IS LOOSER THAN THE BACK ONE:** `quiet.sh:9` reads `native/rust` only, `SHARED_TARGET_DIRT_SCOPES` is `native/rust` + `surface`, so at the planned end-state (dispatch-table rows uncommitted) **quiet.sh says QUIET and the guard redirects** -- and driving quiet.sh myself buys nothing, being the same instrument with the same hole. Reported to vc; their file, untouched. **hv: THERE IS NO 3.0.2. 2b IS A BUILD, NOT THE CUT.** **THE DAY WAS ONE CLASS IN NINE MATERIALS NOW -- MY EVIDENCE WAS TRUE AND MY SUBJECT WAS WRONG -- AND THIS ONE WAS AIMED AT THE INSTRUMENT I CERTIFY RELEASES WITH.**"
+focus: "**2b IS GREEN. THE PAIR IS STAMPED AT `03470c5a` AND THE HOLD IS LIFTED.** Five reads all green -- `intent --version` and the `intentd` marker both naming `03470c5a`, `intentd --version` rc 0, no `dirty-`, no `unknown`, HEAD identical at build start and end. **THE TWO READS I ADDED TONIGHT EARNED THEIR PLACE ON THEIR FIRST BUILD:** (0a) the dir the build NAMED, answered from the ABSENCE of the redirect line rather than an assumed path -- the read that would have caught the failure had the tree been dirty; (0b) mtime after build start, **where I nearly published a fabricated stamp because `stat -f %Sm` prints LOCAL time and I appended a `Z`.** **CENSUS 22 OF 22, 4 OF 4 CANARIES MISSING.** **THE PAIR CARRIES B1`s BYTES WITH TWO PROOFS UNARMED BY NAME -- NEVER B1 VERIFIED:** `force_without_a_tty_...` passes because the EOF confirm refuses too, and `default_removes_no_file_...` passes because the fixture makes the verb take the no-op arm. **BOTH ARE TONIGHT`S OWN `quiet.sh` SHAPE ONE LAYER DOWN: A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** **`bin/.devbin` IS UNFROZEN; MY TWO 3.0.1 ITEMS ARE UNBLOCKED AND WAIT ONLY ON vc CONFIRMING THE SWEEP IS NOT OVER THE SAME FILES.** Open question raised, not claimed: the binary reports `3.0.0` while vc`s durable note says the version string stays `3.0.0-dev`."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -35,6 +35,36 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+**2b IS GREEN AND THE PAIR IS STAMPED AT `03470c5a`. THE HOLD IS LIFTED AND `bin/.devbin` IS UNFROZEN FOR ME.** Build 20:22:06Z -> 20:23:12Z, 1m 05s, rc 0; `verify_pair` named `03470c5a` for both binaries; **HEAD read at start AND end and identical both times**; dirt under both scopes 0 at the moment of the reads.
+
+**THE FIVE READS, VERBATIM:**
+
+    0a  dir the build NAMED   no "redirecting to a PRIVATE target dir" line -> verdict ok -> SHARED
+                              native/rust/target/release   (target/private/release: DOES NOT EXIST)
+    0b  mtime after start     intent  20:23:12Z    intentd 20:22:11Z    floor 20:22:06Z    BOTH AFTER
+    1   intent --version      intent 3.0.0 (03470c5afc5738e0998d52a822f1e2f39fa349ae)      rc=0
+    2   intentd MARKER        [intent-source-commit:03470c5afc5738e0998d52a822f1e2f39fa349ae]
+    3   intentd --version     intentd 3.0.0 -- not yet implemented                          rc=0
+
+**THE TWO NEW READS EARNED THEIR PLACE ON THE FIRST BUILD THAT USED THEM, IN OPPOSITE DIRECTIONS.** 0a answered from the **ABSENCE of the redirect line** rather than from a path I assumed -- it is the read that would have caught tonight's failure had the tree been dirty. 0b is the stale-artefact read, **and it is where I nearly published a fabricated stamp**: `stat -f '%Sm'` prints LOCAL time, so my first pass rendered both mtimes **one hour ahead (local +0100) with a `Z` I appended to a local reading** -- the exact wrong-clock error the protocol names. **The bad values are deliberately NOT written here as `Z` stamps: they postdate this commit, and the clock guard would be right to refuse them.** The comparison was always sound (both sides epochs, no zone involved); **only the LABEL was wrong, and a wrong label is what reaches the board.** Caught before it left my hands. **Canonical UTC: 20:23:12Z and 20:22:11Z.**
+
+**CENSUS: 21 OF 21 PRESENT, 3 OF 3 ABSENT CANARIES CORRECTLY MISSING**, definitions driven separately from usages (`ATTACHMENT_CAP_BYTES` project.rs:50, `within_attachment_cap` project.rs:64, `declare_default` facade.rs:2301, `default_declaration` intentfiles.rs:539). Canaries were the inverse of a real test name plus two invented constants, same shape and same grep path as the real ones.
+
+**WHAT THE STAMP DOES NOT SAY, WRITTEN DOWN SO NOBODY READS IT IN.** The pair CARRIES B1; **the stamp says what is in the BYTES and never that it was mutation-proven.** vc's five B1 mutations are **UNRUN by vc's own word**; `AC-00.5` is **UNCENSUSED, not verified** (vc named a sha and a criterion, no symbol, and supplying one from context is the false-MISSING I filed against myself this morning); **`AC-11.3` has no proof test on ic's own admission**. And vc's S-guard mutation site `facade.rs:5709` is at **`:5855`** in HEAD -- ic's B1 floor pushed it 146 lines down, so **a `sed` at the stale line would hit a REAL line and mutate something else silently.**
+
+**CENSUS CLOSED AT 22 OF 22, 4 OF 4 CANARIES MISSING.** vc supplied the `AC-00.5` symbol I had refused to invent: `a_declared_but_unmet_precondition_refuses_and_names_it`, **PRESENT at `facade_dehydrate.rs:251`**, with `59d94941` confirmed an ancestor of the stamped HEAD by `merge-base` and its own inverse-named canary correctly MISSING. **Holding the gap open for ninety minutes cost nothing and asking for the name cost one line.**
+
+**vc's B1 MUTATION VERDICT: THREE ARMED, TWO PROOFS UNARMED -- AND BOTH UNARMED ONES ARE TODAY'S CLASS INSIDE A TEST.** ARMED: AC-11.1 (`intentfiles.rs:556`), AC-11.2/present (`facade.rs:2328`), AC-11.5 (`dispatch-table.json:7668`). **UNARMED, BY NAME:**
+
+- **`force_without_a_tty_writes_nothing_and_exits_non_zero`** stays GREEN with the tty guard at `render.rs:1739` mutated to `if false`, **because the EOF confirm refuses too and the test reads only the exit code.** The evidence is true -- it did exit non-zero -- and the SUBJECT is wrong: the test cannot tell the tty guard from the confirm behind it.
+- **`default_removes_no_file_belonging_to_an_undeclared_thread`** stays GREEN under both vc's removal mutation and ic's organize-after-write, **because the fixture's manifest is already PRESENT after `init` + `st new`, so the verb takes the no-op arm.** It asserts survival across a run that never acted -- **a check that cannot exhibit the failure it is named for.**
+
+**THIS IS THE SAME SHAPE AS MY OWN `quiet.sh` FINDING TONIGHT, ONE LAYER DOWN: A GREEN THAT CANNOT DISTINGUISH THE THING IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** ic confirms both as its own test defects and the fixes ride the next build with vc re-running the mutations. **So the pair CARRIES B1's BYTES WITH TWO PROOFS UNARMED BY NAME -- never "B1 verified", and vc asked for it in exactly those words.**
+
+**AND THE LINE-VERSUS-NAME POINT IS SETTLED AS MECHANISM, NOT ETIQUETTE:** vc's `mutate-at.sh` addresses a site by **REGEX at the sha named**, never by line -- `facade.rs:5709` was `b47fc3ec`'s line and the ARMED result was taken there; `:5855` is the same predicate at HEAD. **The name is the address; the line is a courtesy that ages.**
+
+**ONE QUESTION RAISED, NOT A FINDING.** `intent --version` reports **`3.0.0`** and `native/rust/Cargo.toml:6` is `version = "3.0.0"`, while vc's 11:14Z durable note says _Version string stays `3.0.0-dev`_. Not calling it wrong -- it may have been overruled, or `-dev` may name something else. Raised because **the artefact I just stamped is what ships and the two sentences disagree in front of me.**
 
 **2b's REAL FAILURE MODE, FOUND AT 20:02Z WITH THIRTEEN MINUTES ON THE CLOCK, AND IT IS NOT THE ONE I HAD WRITTEN DOWN.** I had been carrying _a dirty `native/rust` is refused_. **IT IS NOT. `releasebuild.lib:53`, in its own words: A DIRTY TREE IS REDIRECTED, NEVER BLOCKED** -- deliberate and right, because a gate that refuses on a peer's half-finished file gets bypassed the first afternoon. The verdict string is `refuse:`, so the guard's own arm 1 is correctly named; what follows the refusal is a **redirect**, not a stop.
 
