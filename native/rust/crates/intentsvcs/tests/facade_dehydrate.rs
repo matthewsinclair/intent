@@ -19,9 +19,10 @@
 
 mod common;
 
-use common::{Fixture, gate_open, sample_thread};
+use common::{Fixture, declaring_thread, gate_open, sample_thread};
 use intentsvcs::address::{Address, Entity};
 use intentsvcs::facade::FacadeError;
+use intentsvcs::model::{AcKind, AcState};
 use intentsvcs::remedy::Remedy;
 
 /// Both threads declared: `ST0001` is the subject, and `ST0057` is
@@ -246,10 +247,12 @@ fn an_absent_manifest_refuses_and_one_that_omits_the_id_does_not() {
 // AC-00.5 -- THE ESTATE PRECONDITIONS GATE THIS DOOR TOO
 // ---------------------------------------------------------------------------
 
-/// **AT-00.5, PARTIALLY: this is the no-declaration arm and the met control
-/// lives in `a_declared_thread_leaves_the_disk_and_the_manifest`. The arm for a
-/// DECLARED-but-unmet precondition, with its denominator, is not written, which
-/// is why AT-00.5 is not green.**
+/// **AT-00.5, the no-declaration arm.** Its sibling is
+/// `a_declared_but_unmet_precondition_refuses_and_names_it` and the met control
+/// is `a_declared_thread_leaves_the_disk_and_the_manifest`: three states --
+/// cannot read a list, read one and found it wanting, read one and it permits
+/// -- because the first two are both refusals and only the third proves the
+/// gate can ever say yes.
 ///
 /// **A per-thread verb must not be a way around the estate gate.** If it were,
 /// the gate would protect only the operator who happened to reach for
@@ -344,4 +347,65 @@ fn a_directory_the_run_could_not_empty_is_named() {
      {:?}",
     done.left_in_place
   );
+}
+
+/// **AT-00.5's MISSING ARM, and it is a different question from the one above.**
+///
+/// `an_estate_with_no_declaration_refuses_this_door_too` is the gate unable to
+/// read a list at all. This is the gate reading one and finding it wanting --
+/// the ordinary case, and the one an estate actually lives in.
+///
+/// **TWO PRECONDITIONS ARE DECLARED AND ONLY ONE IS UNMET, WHICH IS WHAT MAKES
+/// THIS MORE THAN A REFUSAL TEST.** The denominator is the assertion that
+/// matters -- preconditions CHECKED against preconditions DECLARED -- because a
+/// gate quietly checking a stale SUBSET would still refuse, would still name a
+/// real unmet id, and would look correct from every angle an "it refused" test
+/// can see. With two declared, a subset check reports `1 of 1` where the truth
+/// is `2 of 2`, and the arithmetic is what catches it. The met one must also
+/// NOT appear, which a refusal that printed the whole declaration would fail.
+#[test]
+fn a_declared_but_unmet_precondition_refuses_and_names_it() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  fx.write_thread(&declaring_thread(&[
+    (
+      "AC-00.8",
+      AcKind::NonTest,
+      AcState::Satisfied {
+        evidence: "met, and it must not be reported as unmet".to_string(),
+      },
+    ),
+    ("AC-00.9", AcKind::NonTest, AcState::Unsatisfied),
+  ]));
+  fx.write_file("intent/.intentfiles", MANIFEST);
+  let mut f = fx.facade();
+  let realised = f.hydrate(&at("ST0001")).expect("realises");
+
+  let err = f
+    .dehydrate(&at("ST0001"))
+    .expect_err("a declared precondition is unmet, so the gate answers no");
+  let rendered = err.render();
+
+  assert!(
+    rendered.contains("AC-00.9"),
+    "the unmet precondition must be NAMED, not counted: {rendered}"
+  );
+  assert!(
+    rendered.contains("2 checked of 2 declared"),
+    "the denominator must follow the DECLARATION -- a gate checking a stale subset would \
+     report `1 checked of 1 declared` here and still refuse, which no refusal assertion \
+     can tell apart: {rendered}"
+  );
+  assert!(
+    !rendered.contains("AC-00.8"),
+    "a MET precondition must not appear in the refusal, or the gate is printing the \
+     declaration rather than the verdict: {rendered}"
+  );
+  for path in &realised {
+    assert!(
+      path.exists(),
+      "{} was removed while a declared precondition was unmet",
+      path.display()
+    );
+  }
 }
