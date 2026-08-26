@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 20:26Z
+heartbeat_at: 2026-08-26 20:31Z
 status: active
 focus: "**2b IS GREEN. THE PAIR IS STAMPED AT `03470c5a` AND THE HOLD IS LIFTED.** Five reads all green -- `intent --version` and the `intentd` marker both naming `03470c5a`, `intentd --version` rc 0, no `dirty-`, no `unknown`, HEAD identical at build start and end. **THE TWO READS I ADDED TONIGHT EARNED THEIR PLACE ON THEIR FIRST BUILD:** (0a) the dir the build NAMED, answered from the ABSENCE of the redirect line rather than an assumed path -- the read that would have caught the failure had the tree been dirty; (0b) mtime after build start, **where I nearly published a fabricated stamp because `stat -f %Sm` prints LOCAL time and I appended a `Z`.** **CENSUS 22 OF 22, 4 OF 4 CANARIES MISSING.** **THE PAIR CARRIES B1`s BYTES WITH TWO PROOFS UNARMED BY NAME -- NEVER B1 VERIFIED:** `force_without_a_tty_...` passes because the EOF confirm refuses too, and `default_removes_no_file_...` passes because the fixture makes the verb take the no-op arm. **BOTH ARE TONIGHT`S OWN `quiet.sh` SHAPE ONE LAYER DOWN: A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** **`bin/.devbin` IS UNFROZEN; MY TWO 3.0.1 ITEMS ARE UNBLOCKED AND WAIT ONLY ON vc CONFIRMING THE SWEEP IS NOT OVER THE SAME FILES.** Open question raised, not claimed: the binary reports `3.0.0` while vc`s durable note says the version string stays `3.0.0-dev`."
 claims: [ST0056/07, ST0056/11]
@@ -35,6 +35,22 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+**THE SMOKE ARM IS IN: `53699d66`, `int macos smoke` ARM 7. DRIVEN GREEN, THEN DRIVEN RED THREE WAYS, EACH RED LANDING ONLY ON THE ARM IT SHOULD.** Four sub-arms against the installed keg: the read verb RAN (its output names the thread id), the tree stayed clean, the planted divergence survived, and the WRITE control dirtied 4 paths.
+
+**THE THREE NEGATIVE CONTROLS, THROUGH THE `--keg` DOOR SO NO SHARED FILE WAS EVER MID-EDIT** (a wrapper passing everything to the real keg except one verb):
+
+    st triage swallowed     CONTROL fails, other three green
+    st list swallowed       RAN fails -- and "tree clean" STILL PASSES
+    st list re-renders      "tree clean" + "divergence survived" fail, RAN + CONTROL green
+
+**CONTROL B IS THE ONE THAT PAID FOR THE WHOLE DESIGN, AND IT DEMONSTRATED THE POINT LIVE RATHER THAN IN ARGUMENT: WITH THE READ VERB SWALLOWED ENTIRELY, `read verb left the tree clean` STILL REPORTED OK.** Of course it did -- **a verb that never ran leaves the tree clean too.** Without the RAN proof beside it, a binary that did nothing at all would have shown three greens. **That is the null-population trap caught in the act, in my own instrument, before it shipped.**
+
+**CONTROL C IS THE PROOF IT IS A GUARD AND NOT DECORATION**: a wrapper whose `st list` RUNS correctly -- right output, right rc -- and then silently strips the foreign line. Exactly the regression class. **Two arms red, and only the right two.**
+
+**THE FIXTURE RE-DEMONSTRATED THE `init` GITIGNORE GAP ON ITS WAY PAST**: fresh `init` writes no `.gitignore`, so `git add -A` tracks `intent/.cache/intent.db`, and the arm has to lay the ignore down by hand. Stated in the file as a finding rather than absorbed as a fixture chore. Still ic's to fix, still `converge_gitignore` to CALL and never to rewrite.
+
+**THE STAMP-VERSUS-SUBJECT FIX IS HELD, AND vc RULED THE ORDER I PROPOSED:** sweep completes on `03470c5a` -> the fix lands with arm 6 extended IN THE SAME COMMIT -> a build -> the five reads re-run -> **the marker's new meaning written into the runbook BEFORE anything consumes it**. Not caution: that change alters what the stamp MEANS on every artefact, and landing it between a stamp and the sweep that trusts it would leave the runbook reading correctly about a different question. **The expiring-sentence class, named before it happened rather than after.**
 
 **2b IS GREEN AND THE PAIR IS STAMPED AT `03470c5a`. THE HOLD IS LIFTED AND `bin/.devbin` IS UNFROZEN FOR ME.** Build 20:22:06Z -> 20:23:12Z, 1m 05s, rc 0; `verify_pair` named `03470c5a` for both binaries; **HEAD read at start AND end and identical both times**; dirt under both scopes 0 at the moment of the reads.
 
