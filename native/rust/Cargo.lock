@@ -968,7 +968,7 @@ dependencies = [
 
 [[package]]
 name = "intent-cli"
-version = "3.0.0-dev"
+version = "3.0.0"
 dependencies = [
  "clap",
  "intentsvcs",
@@ -982,11 +982,11 @@ dependencies = [
 
 [[package]]
 name = "intentd"
-version = "3.0.0-dev"
+version = "3.0.0"
 
 [[package]]
 name = "intentsvcs"
-version = "3.0.0-dev"
+version = "3.0.0"
 dependencies = [
  "async-graphql",
  "ignore",
@@ -1897,7 +1897,7 @@ dependencies = [
 
 [[package]]
 name = "testkit"
-version = "3.0.0-dev"
+version = "3.0.0"
 
 [[package]]
 name = "thiserror"

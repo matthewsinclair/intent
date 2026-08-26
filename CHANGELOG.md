@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0] - in progress
+## [3.0.0] - 2026-08-26
 
 Intent is rewritten as a native binary, and the model underneath it changes: **a project's data lives in a database, the committed files are a projection of it, and the markdown you read is generated.** Everything below follows from that one change. Migration is one command, it refuses rather than guesses, and a v2 tool and a v3 tool each refuse the other's projects so that a half-migrated estate cannot be quietly corrupted.
 
