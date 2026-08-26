@@ -34,7 +34,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 - **Delegated rulings hv can overrule**: shortfall gate (ii); the rebuild-2 parser scope and its split into 2a/2b; the accounting as the outer gate at the layer that commits; decode-decides attachments with a 1 MiB cap and refusal by name (2b if S, else 3.0.2).
 - **hv's to decide**: WHEN to fire `--default --force` per project (the destructive half of the sweep is hv's keystrokes under hv's own ruling; the alternative hv did not ask for is a `--yes` flag a tool session could pass on an explicit per-run go); where attachment blobs live outside the canon extract (3.0.2).
-- **Open**: the `install.rs` NotFound remedy (ic); Lamplight's Triage if the four threads cannot be set via canon tonight (they migrate as Not Started, recorded); Conflab; `ST0064/01` Geodica design when hv gets to intentd.
+- **Open**: the `install.rs` NotFound remedy (ic); the ST0345 re-ruling -- Lamplight ST0345 AC-05.2 `satisfied: yes _(Re-worded at close on hv's ruling: ...)_` stays REFUSED for 3.0.1 on the ratified test (vc, delegated; the boundary had been holding by accident and cc made it explicit); whether an emphasis-wrapped verdict ingests as `yes` with the note carried is ruled after the cut on its own merits -- ST0345 is Completed, so the row is carried by name meanwhile; Lamplight's Triage if the four threads cannot be set via canon tonight (they migrate as Not Started, recorded); Conflab; `ST0064/01` Geodica design when hv gets to intentd.
 
 ## Watch-outs
 
