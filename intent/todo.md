@@ -32,6 +32,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 08: The mutation surface: write-by-address and the missing verbs
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing
+  - [ ] 11: Default disposition realises WIP threads only: init writes .intentfiles, migration and upgrade declare the WIP set
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
 
 ## TODO
@@ -42,6 +43,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0061: dehydrate
 - [?] ST0062: help
 - [?] ST0063: start
+- [?] ST0064: intentd: the Intent daemon, and a menubar app that controls it
+  - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
 
 ## DONE
 

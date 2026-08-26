@@ -99,6 +99,15 @@
       "objective": "**`intent doctor` exits 1 with 234 findings on a healthy estate, every one of them instructing the operator to regenerate a file the design says should not exist.** Found by vc at `aa74c0d7`, minutes after the dehydration shipped. **The argument against this is already written down in this codebase, one file over, and was applied to attachments and not to views.**",
       "body": "## What it does now\n\n    $ intent doctor\n    rc=1\n    residue: intent/st/ST0001/info.md -- view-skew -- generated view is missing; regenerate it\n    residue: intent/st/ST0001/acceptance.md -- view-skew -- generated view is missing; regenerate it\n    ... 234 findings\n\n**Every one is a thread that `.intentfiles` does not declare, so its views are absent BY DESIGN.** `views.rs:1023` maps `Err(_)` from reading the view straight to `generated view is missing; regenerate it`, with no reference to the manifest. Before tonight every thread was realised, so the arm could only fire on a genuine loss; **the dehydration turned a correct check into a check that flags a population behaving correctly.**\n\n## The reasoning already exists and it is not a near-miss, it is the same sentence\n\n`doctor.rs:813`, on the ATTACHMENT path:\n\n> *Under `.intentfiles` a dehydrated thread's attachments are legitimately gone from disk -- that is the feature, not a fault. Reporting absence as divergence would make `doctor` unhealthy for every dehydrated thread in the estate, which is a check that flags a population behaving correctly, and the shape that gets a check deleted rather than fixed.*\n\n**That is a prediction of this exact defect, written by the author of the sibling path, and the views path kept the old behaviour because it is a different function in a different file.** The estate now demonstrates the predicted outcome at 234 instances and a non-zero exit.\n\n**This is the day's class in its sharpest form.** Not two artefacts disagreeing with no third thing reading both -- **one artefact STATING THE RULE while its sibling violates it.** A reader who checks whether the codebase has thought about dehydrated absence finds `doctor.rs:813`, reads a correct and complete argument, and stops.\n\n## What the fix has to satisfy\n\n**Absence is silence ONLY where the manifest says the artefact is not realised.** `doctor.rs`'s own wording is the boundary to copy: *that silence is bounded rather than blanket*. A view absent for a DECLARED artefact is still a real finding and must stay one -- that is a genuine loss, and blanket-silencing the `Err(_)` arm would trade 234 false findings for a silent real one.\n\n**So the check needs the manifest, and the manifest is already parsed** (`intentfiles::parse`, 3 callers). The shape is: declared and absent -> finding; undeclared and absent -> silence; present -> compare bytes as now.\n\n**And the mirror case is worth deciding in the same pass: a view PRESENT for an UNDECLARED artefact.** Today that is `organize`'s `unclaimed`, and `doctor` says nothing about it. One of the two surfaces should own it rather than both assuming the other does.\n\n## Why it is filed rather than fixed\n\nFound during `/in-finish`, which is documentation-only by its own contract. **The estate is not damaged and no data is at risk** -- `doctor` is a report, the 234 findings are false rather than destructive, and the remedy each one prints (`regenerate it`) would be answered by `organize` re-hydrating nothing, since the manifest does not declare them.\n\n**But `doctor` exits 1, so anything gating on it is now red on a healthy tree**, and that is the part to check first tomorrow.",
       "preamble": ""
+    },
+    {
+      "seq": 11,
+      "title": "Default disposition realises WIP threads only: init writes .intentfiles, migration and upgrade declare the WIP set",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "**A project realises WIP steel threads only, by default and by declaration.** `intent init` writes `intent/.intentfiles` present and declaring nothing (\"keep nothing\" until a thread is started); the migration and `intent upgrade` write it declaring exactly the threads whose status is WIP; the lifecycle verbs keep it true. hv, 2026-08-26: \"there should be a default .intentfiles or a default disposition for a new project that only REALISES WIP steel threads, not ALL steel threads. So we need to fix that.\"",
+      "body": "## Why\n\nEvery migrated project in the fleet is fully realised (Laksa: 110 of 110 under `intent/st/`) because none has an `intent/.intentfiles`, and the contract (`.intentfiles` header, hv 2026-08-19) says ABSENT means nobody has said and everything stays. `migrate.rs:474-488` consults the file and finds none; nothing writes it. Intent's own tree is 8 of 63 realised because hv wrote the file by hand. The default disposition was never encoded, so the tool honoured the only rule it had.\n\n## What changes\n\n- `intent init` writes `intent/.intentfiles` with the standard header and no declarations: present and empty means keep nothing, so a fresh project realises threads as they are started, not as they are created.\n- The migration (hop 2) writes `.intentfiles` declaring the threads whose status is WIP at the moment of conversion, and realises only those; everything else is in the store and in canon, dehydrated by construction rather than by a later deletion.\n- `intent upgrade` on a project that carries no `.intentfiles` writes one declaring the WIP set -- this is how the already-migrated fleet gets the default without a hand sweep. A PRESENT file is never rewritten: a write there is a change to state, never a regeneration (the header's rule).\n- Lifecycle: `st start` adds the id; `st done` and `st cancel` remove it; `st hydrate` / `st dehydrate` stay the explicit overrides. Whether `st new` still adds the id (today it does, and hv's own tree realises its Triage threads) is hv's to rule; under WIP-only it would not.\n\n## What this does NOT do\n\nIt does not dehydrate the fleet's already-realised trees. That waits on: one `.canon` emitter so canon carries every attachment's bytes (today the migration's extract omits them and only `sync --to-disk` writes them); the dehydration preconditions living in the tool rather than in each project's acceptance criteria (`organize.rs:261` -- a fleet project declares none, so `organize --apply` refuses); and `st dehydrate` (ST0061). Then one `intent organize --apply` per project reconciles the tree with the file. Measured on throwaway copies 2026-08-26; nothing was done by hand.",
+      "preamble": ""
     }
   ],
   "criteria": [
@@ -542,6 +551,38 @@
     {
       "id": "AC-08.7",
       "text": "**AN ACCEPTANCE TEST IS CREATABLE THROUGH THE MUTATION SURFACE, NOT ONLY BY HAND-EDITING CANON.** Minted by vc 2026-08-25 on the same hv ruling. Recorded SEPARATELY from `AC-08.6` rather than folded into it because **the two entities are separately enumerated as missing in WP-08's table and can close on different commits** -- an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not: **a to-write row citing a file that already exists is a defect this repository's own commit gate checks for.** `at`'s five subcommands are `list`, `lint`, `green`, `red`, `na` -- every one a transition. **WHAT WOULD FALSIFY THIS: an AT that can be brought into existence by editing canon but not through the addressed surface, or a created row that bypasses the grammar `at lint` enforces on every other row.**",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-11.1",
+      "text": "`intent init` on an empty directory leaves `intent/.intentfiles` present, carrying the standard header and no `STEELTHREAD:` line, and `intent organize` on that project reports nothing to remove and nothing unclaimed.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-11.2",
+      "text": "The migration writes `intent/.intentfiles` declaring exactly the threads whose v2 status maps to WIP, and realises only those under `intent/st/`: a v2 corpus with N threads of which K are WIP yields K realised directories and N canon extracts.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-11.3",
+      "text": "`intent upgrade` on a migrated project with no `intent/.intentfiles` writes one declaring the current WIP set; on a project whose file is present it changes not one byte of it, whatever the file declares.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-11.4",
+      "text": "`st start` adds the thread's line, `st done` and `st cancel` remove it, and after each verb the tree equals what `intent organize` would produce from the file -- the sparse tree equals the manifest (AC-04.6's instrument) after every lifecycle write.",
       "kind": "test",
       "state": {
         "is": "computed"
