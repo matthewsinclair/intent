@@ -1116,6 +1116,12 @@ fn acceptance(
   // would be a second reader of the same file, free to disagree with this one.
   let mut declared_ac = 0usize;
   let mut declared_at = 0usize;
+  // `(test id, line, the span that carried no id)`. Held rather than recorded
+  // on the spot: a finding recorded HERE would land inside the accounting
+  // window below, where a finding means "this row did not arrive" -- and these
+  // rows DID arrive. Recorded in the covers pass, which runs after the
+  // arithmetic has closed.
+  let mut unreadable_covers: Vec<(String, u32, String)> = Vec::new();
   let findings_before = out.residue.len() + out.carried.len();
 
   for (i, line) in text.lines().enumerate() {
@@ -1134,7 +1140,10 @@ fn acceptance(
     } else if row.starts_with("AT-") {
       declared_at += 1;
       match acceptance_test(row) {
-        Ok((t, qualifiers)) => {
+        Ok((t, qualifiers, unreadable)) => {
+          for span in unreadable {
+            unreadable_covers.push((t.id.clone(), line_no, span));
+          }
           for (ac, qualifier) in &qualifiers {
             out.dispositions.push(Disposition {
               owner: format!("{rel}:{line_no}"),
@@ -1198,6 +1207,18 @@ fn acceptance(
   // The broken-reference class: an AT covering a criterion that is not in this
   // thread's contract. Reported rather than dropped -- the coverage link is
   // the thing the contract is FOR.
+  for (test_id, line_no, reason) in &unreadable_covers {
+    out.record(
+      closed,
+      Finding::new(
+        &rel,
+        FindingClass::BrokenReference,
+        format!("{test_id} {reason}"),
+      )
+      .at_line(*line_no),
+    );
+  }
+
   let ids: Vec<&str> = criteria.iter().map(|c| c.id.as_str()).collect();
   for test in &tests {
     for covered in &test.covers {
@@ -1319,7 +1340,7 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
 /// as the note, whatever it contains.
 /// A read AT row: the test itself, and any prose the author wrote INSIDE a
 /// covers id, keyed to the id it qualified.
-type ParsedTest = (AcceptanceTest, Vec<(String, String)>);
+type ParsedTest = (AcceptanceTest, Vec<(String, String)>, Vec<String>);
 
 /// Why a row could not be read, in the two parts the residue report needs: the
 /// class it is filed under, and the detail naming the row and the reason.
@@ -1344,17 +1365,26 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   let Covers {
     ids: covers,
     qualifiers,
-  } = covers(rest).ok_or_else(|| {
-    (
-      FindingClass::UnparseableRow,
-      format!("{id} has no ` -- covers ` clause"),
-    )
-  })?;
-  if covers.is_empty() {
-    return Err((
-      FindingClass::UnparseableRow,
-      format!("{id} covers clause names no AC id"),
-    ));
+    unreadable,
+  } = covers(rest).unwrap_or_default();
+  // **A ROW WHOSE COVERS CANNOT BE RESOLVED STILL ARRIVES, COVERING NOTHING.**
+  //
+  // Both of these used to refuse the row, and refusing cost more than it
+  // saved. On the arca_cli corpus three real AT rows cover prose -- `covers the
+  // gate itself`, `covers the seam itself`, `covers the reachability half of
+  // AC-11.1` -- and the old id cut pushed that prose in as an id, so the row
+  // ARRIVED carrying a reference that resolved against nothing. Tightening the
+  // id rule without this turns three false references into three LOST ROWS,
+  // which is the worse of the two by exactly the argument this migration keeps
+  // making: a wrong value is visible and correctable, an absent one is not.
+  //
+  // `covers: []` is safe by construction rather than by vigilance: satisfaction
+  // is computed by looking for a green AT that covers a criterion, and an empty
+  // covers list satisfies nothing. There is no state in which one of these rows
+  // can come to settle a criterion because somebody forgot to check.
+  let mut unreadable = unreadable;
+  if covers.is_empty() && unreadable.is_empty() {
+    unreadable.push("has no ` -- covers ` clause, so it arrives covering nothing".to_string());
   }
   let status_field = field(rest, "status").ok_or_else(|| {
     (
@@ -1432,7 +1462,7 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   // Returned rather than recorded here: this function has no `Scan`, and
   // re-deriving them at the call site would be a second copy of the predicate
   // -- the shape that makes a record describe something the code never did.
-  Ok((test, qualifiers))
+  Ok((test, qualifiers, unreadable))
 }
 
 /// Fold the covers-clause qualifiers into the row's note, each keyed to the
@@ -1474,21 +1504,87 @@ fn with_qualifiers(note: Option<String>, qualifiers: &[(String, String)]) -> Opt
 /// different places -- `ids` goes to the model and `qualifiers` to the note and
 /// the disposition record -- and positional access at three call sites is how
 /// they get swapped.
+#[derive(Default)]
 struct Covers {
   ids: Vec<String>,
   /// `(criterion id, the prose that qualified it)`, keyed so a row covering
   /// several criteria can say which one each qualifier belongs to.
   qualifiers: Vec<(String, String)>,
+  /// Why this row covers less than it appears to -- one fully-formed reason per
+  /// entry, ready for the caller to record against the row's id.
+  ///
+  /// **Reasons rather than raw spans, because there are two ways to cover
+  /// nothing and they are not the same fact.** A span of prose where an id was
+  /// expected is an author writing an id badly; an absent ` -- covers ` clause
+  /// is an author not writing one at all. Collapsing them into one message
+  /// would tell an operator to go and fix a span that is not there.
+  ///
+  ///
+  /// **Named rather than dropped, and named rather than pushed into `ids`.**
+  /// Pushing them was the old behaviour and it manufactured a `BrokenReference`
+  /// against a clean estate -- the migrator reporting a dangling link to a
+  /// criterion nobody wrote. Dropping them silently would be the other half of
+  /// the same defect. They are surfaced so the caller can record a finding that
+  /// quotes the span, in the covers pass, AFTER the row accounting has closed.
+  unreadable: Vec<String>,
+}
+
+/// Whether a token is shaped like a criterion id: two letters, a dash, then
+/// dotted digits. `AC-00.3` yes; `and` no; `<AC-id>[` no.
+fn is_criterion_id(token: &str) -> bool {
+  let Some((prefix, rest)) = token.split_once('-') else {
+    return false;
+  };
+  prefix.len() == 2
+    && prefix.bytes().all(|b| b.is_ascii_alphabetic())
+    && !rest.is_empty()
+    && rest
+      .split('.')
+      .all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()))
+}
+
+/// Split on commas OUTSIDE brackets.
+///
+/// **A bare `split(',')` shreds a qualifier that contains a comma**, and the
+/// tail becomes a span of prose that is then read as an id. Measured on
+/// Lamplight: `AC-05.1 (asserts ...), AC-05.2 (asserts `room_read` + ... both
+/// false, so the naming's requires cannot hold` split into a third span
+/// beginning `so the na`, which resolved against nothing and was reported as a
+/// broken reference.
+fn split_outside_brackets(span: &str) -> Vec<&str> {
+  let mut out = Vec::new();
+  let mut depth = 0usize;
+  let mut start = 0usize;
+  for (i, b) in span.bytes().enumerate() {
+    match b {
+      b'(' | b'[' => depth += 1,
+      b')' | b']' => depth = depth.saturating_sub(1),
+      b',' if depth == 0 => {
+        out.push(&span[start..i]);
+        start = i + 1;
+      }
+      _ => {}
+    }
+  }
+  out.push(&span[start..]);
+  out
 }
 
 fn covers(row: &str) -> Option<Covers> {
   const MARKER: &str = " -- covers ";
   let start = row.find(MARKER)? + MARKER.len();
   let rest = &row[start..];
-  let end = rest.find(" -- ").unwrap_or(rest.len());
+  // **[`field_end`], NOT a second spelling of it.** This read `rest.find(" -- ")`
+  // and was therefore the one field-end in the file that was not bracket-aware:
+  // a qualifier carrying its own ` -- ` truncated the covers span and silently
+  // took the qualifier with it. Seven rows on Lamplight, all in `COMPLETED/`,
+  // eg `AC-04.2 (canon read-only + Canon/Training tab differentiation -- the
+  // un-gated half)`. One question, one answer, one function.
+  let end = field_end(rest);
   let mut ids = Vec::new();
   let mut qualifiers = Vec::new();
-  for span in rest[..end].split(',') {
+  let mut unreadable = Vec::new();
+  for span in split_outside_brackets(&rest[..end]) {
     let span = span.trim();
     if span.is_empty() {
       continue;
@@ -1501,18 +1597,35 @@ fn covers(row: &str) -> Option<Covers> {
     //
     // Zero instances on this estate, which is why it was vc's to find and why
     // the fixture below is constructed rather than captured.
-    match span.split_once(" (") {
-      Some((id, qualifier)) => {
-        let qualifier = qualifier.trim_end().trim_end_matches(')').trim();
-        ids.push(id.trim().to_string());
-        if !qualifier.is_empty() {
-          qualifiers.push((id.trim().to_string(), qualifier.to_string()));
-        }
-      }
-      None => ids.push(span.to_string()),
+    // **The id is the LEADING TOKEN, and the rest is qualifier -- the same
+    // sentence as [`split_field_value`], with this field's alphabet.** The old
+    // cut was `split_once(" (")`, which took everything before the first ` (`
+    // as the id, so `AC-00.3 clause 3` -- a qualifier written without
+    // parentheses -- became an id of `AC-00.3 clause 3` and matched nothing.
+    let run = span
+      .find(|c: char| !(c.is_ascii_alphanumeric() || c == '-' || c == '.'))
+      .unwrap_or(span.len());
+    let (id, qualifier) = span.split_at(run);
+    let id = id.trim_end_matches('.');
+    if !is_criterion_id(id) {
+      unreadable.push(format!("covers `{span}`, which carries no criterion id"));
+      continue;
+    }
+    let qualifier = qualifier
+      .trim()
+      .trim_start_matches('(')
+      .trim_end_matches(')')
+      .trim();
+    ids.push(id.to_string());
+    if !qualifier.is_empty() {
+      qualifiers.push((id.to_string(), qualifier.to_string()));
     }
   }
-  Some(Covers { ids, qualifiers })
+  Some(Covers {
+    ids,
+    qualifiers,
+    unreadable,
+  })
 }
 
 /// Everything after the status value, verbatim: the row's note.
@@ -1585,6 +1698,26 @@ fn satisfied_verdict(value: &str) -> Result<(bool, Option<String>), String> {
       if a.starts_with('(') && !a.contains(')') {
         return Err(format!(
           "satisfied: `{value}` has an unclosed parenthetical, so the line is truncated and the verdict cannot be read from it"
+        ));
+      }
+      // **A NOTE IN MARKDOWN EMPHASIS STAYS REFUSED, AND IT IS STATED HERE
+      // BECAUSE IT USED TO HOLD BY ACCIDENT.** Lamplight `ST0345` writes
+      // `satisfied: yes _(Re-worded at close on hv's ruling: ...)_`. The old
+      // cut ran to the first `(`, so the token came out as `yes _` and failed
+      // the vocabulary match below -- the row was refused for having an
+      // unrecognised WORD, which was the right outcome reached by the wrong
+      // route. Taking the leading token properly yields a clean `yes`, and the
+      // refusal evaporates unless it is written down.
+      //
+      // `a_note_wrapped_in_markdown_emphasis_is_still_refused` says what to do
+      // about that, and it is right: **widening the verdict VOCABULARY is a
+      // separate ruling from widening where a field ENDS, and the two must not
+      // ride in together.** So the boundary is now explicit and local to
+      // `satisfied:` -- a `status:` row may carry an emphasised parenthetical
+      // as annotation, because no ruling ever said otherwise about that field.
+      if a.starts_with('_') || a.starts_with('*') {
+        return Err(format!(
+          "satisfied: `{value}` writes its note in markdown emphasis, which is a separate ruling from where the field ends and has not been made"
         ));
       }
       // The brackets delimit the note and are not part of it; anything that is
@@ -2137,28 +2270,59 @@ fn append_note(note: Option<String>, extra: &str) -> Option<String> {
 /// **A DIFFERENT CUT FROM [`split_citation`], DELIBERATELY.** That one refuses
 /// to cut on a bare `(` because Utilz cites `each_utility()` by name and a
 /// path may legitimately carry parentheses. **No status token contains `(` or
-/// `.`**, so both are terminators here -- and a future tidy that unifies the
-/// two splits reintroduces the citation defect. They are the same shape and
-/// not the same rule.
+/// `.`** -- and a future tidy that unifies the two splits reintroduces the
+/// citation defect. They are the same shape and not the same rule.
+///
+/// **THE TOKEN IS A LEADING RUN, AND WHAT FOLLOWS IT MUST BE A PLAUSIBLE
+/// TERMINATOR. The second half is what stops this from widening what is
+/// BELIEVED.** Enumerating terminators (`.` and `(`) meant a value ending any
+/// other way ran to the end of the line and matched nothing, which is the
+/// defect that lost 26 rows on arca_cli `ST0011`. Taking the leading run alone
+/// fixes that and opens a worse hole: the fleet carries 191 rows of PROSE
+/// ABOUT the field -- ``satisfied: yes|no` on the AC line; test-backed ACs
+/// are...`` -- whose leading run is a perfectly good `yes`. Those refuse today
+/// and must keep refusing, because reading documentation as data is not a
+/// recovered row, it is an invented one.
+///
+/// So the token is the leading run of `[A-Za-z/-]`, and it counts only when
+/// the very next character is one this vocabulary can actually be followed by:
+/// end of value, space, `.`, `,` or `(`. A `|` or a `[` means alternation or a
+/// placeholder, and the whole value is handed back unrecognised so the
+/// caller's refusal names it in full. Measured fleet-wide: 7 rows recovered
+/// (markdown emphasis -- `**yes**`, `to-write **(gate, not a test)**.`), ZERO
+/// regressions, and all 243 documentation rows still refused.
+///
+/// **MARKDOWN EMPHASIS AROUND THE WHOLE VALUE IS DELIBERATELY NOT STRIPPED,
+/// AND THAT IS A RATIFIED BOUNDARY RATHER THAN AN OVERSIGHT.** Stripping it
+/// recovers a handful of rows and, through the back door, defeats
+/// `a_note_wrapped_in_markdown_emphasis_is_still_refused`: Lamplight `ST0345`
+/// writes `satisfied: yes _(Re-worded at close on hv's ruling: ...)_`, so
+/// trimming the trailing `_` leaves `...)` and `satisfied_verdict`'s
+/// `strip_suffix(')')` then succeeds. That test says in as many words that
+/// **widening the verdict VOCABULARY is a separate ruling from widening where a
+/// field ENDS, and the two must not ride in together.** It is right, and it
+/// caught this. Emphasis AFTER a good token is annotation and is fine
+/// (`to-write **(gate, not a test)**.`); emphasis WRAPPING the token leaves no
+/// leading run, so the whole value is handed back and refused by name.
 ///
 /// ` -- ` is not handled here: [`field_end`] has already stopped the value at
 /// the first separator outside a bracket, so a parenthetical carrying its own
 /// ` -- ` arrives whole.
 fn split_field_value(value: &str) -> (&str, Option<&str>) {
-  let cut = [value.find('.'), value.find('(')]
-    .into_iter()
-    .flatten()
-    .min();
-  match cut {
-    None => (value, None),
-    Some(i) => {
-      let annotation = value[i..].trim_start_matches('.').trim();
-      (
-        value[..i].trim_end(),
-        (!annotation.is_empty()).then_some(annotation),
-      )
-    }
+  let body = value.trim();
+  let run = body
+    .find(|c: char| !(c.is_ascii_alphabetic() || c == '/' || c == '-'))
+    .unwrap_or(body.len());
+  // A run that is empty, or that is followed by something this vocabulary
+  // cannot be followed by, is not a token at all. Hand the ORIGINAL value back
+  // so the caller's refusal quotes what the author actually wrote rather than
+  // the fragment this function was willing to read out of it.
+  let terminated = run == body.len() || matches!(body.as_bytes()[run], b' ' | b'.' | b',' | b'(');
+  if run == 0 || !terminated {
+    return (value, None);
   }
+  let annotation = body[run..].trim_start_matches(['.', ',', ' ']).trim();
+  (&body[..run], (!annotation.is_empty()).then_some(annotation))
 }
 
 #[cfg(test)]
