@@ -4,7 +4,7 @@ This is the primary tool-agnostic config file for AI coding agents working on th
 
 ## Project Overview
 
-Intent -- an Intent project. See `CLAUDE.md` for Claude-specific overlay.
+Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 
 ## Development Environment
 
@@ -12,8 +12,8 @@ Intent -- an Intent project. See `CLAUDE.md` for Claude-specific overlay.
 
 - Elixir / Erlang / OTP (see `mix.exs` for version)
 - Rust toolchain (see `Cargo.toml` for edition)
-- Bats testing framework
 - Bash or Zsh (see the project's own docs for the target version)
+- Bats testing framework
 
 ### Setup
 
@@ -21,17 +21,40 @@ Intent -- an Intent project. See `CLAUDE.md` for Claude-specific overlay.
 intent doctor     # verify Intent configuration
 ```
 
-## Build and Test Commands
-
-### Testing
+```bash
+mix deps.get
+mix compile
+```
 
 ```bash
-bats -r tests/
+cargo build
+```
+
+## Build and Test Commands
+
+### Test commands
+
+```bash
+mix test
+```
+
+```bash
+cargo test
+```
+
+```bash
+bats tests/
 ```
 
 ### Building
 
-_No build step required._
+```bash
+mix compile
+```
+
+```bash
+cargo build
+```
 
 ### Validation
 
@@ -42,6 +65,8 @@ intent st list      # list steel threads
 
 ## Code Style
 
+- Follow Elixir conventions enforced by `mix format`.
+- Follow Rust conventions enforced by `cargo fmt`.
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
 - Markdown: no manual line wrapping; verblock frontmatter on persistent docs.
 - See `usage-rules.md` for the terse "DO / NEVER" contract.
@@ -63,45 +88,14 @@ intent wp done <STID/NN>     # mark done
 
 Never create steel thread or work package directories by hand -- always use the CLI.
 
-## Installed Skills
+## Installed Skills and Subagents
 
-- **in-ash-ecto-essentials** -- Ash Framework database-access rules: domain code interfaces, actor on query/changeset
-- **in-author-essentials** -- Authoring essentials: the outline -> draft -> detrope -> revise -> structural-check pipeline for prose and courseware, backed by the author rule pack and critic-prose
-- **in-autopsy** -- Session forensics: analyzes Claude Code sessions against memory rules, finds gaps and enforcement failures
-- **in-content-essentials** -- Web content essentials: the draft -> detrope -> revise -> structural-check -> CTA/reading-level pipeline for pages, posts, and marketing copy, backed by the prose base + content rule pack and critic-prose
-- **in-cost-analysis** -- Cost analysis: estimates development cost of reproducing a codebase from scratch
-- **in-debug** -- Systematic debugging: 4-phase process with 3-strike architectural review
-- **in-detrope** -- Detrope: diagnoses LLM writing tropes and stylometric tells, assesses in project context, shows remediation plan
-- **in-elixir-essentials** -- Elixir coding rules: pattern matching, tagged tuples, with-railways, @impl true, Highlander
-- **in-elixir-testing** -- Elixir testing rules: strong assertions, no control flow in tests, async by default, real code over mocks, Highlander for tests
-- **in-essentials** -- Core Intent workflow rules for steel threads, work packages, agents, skills, and session management
-- **in-finish** -- Session finish (fold): update ST docs, wip.md, restart.md, commit cleanly. localfold = per-workstream before a compact; globalfold = project-wide before EOD
-- **in-next** -- Next step: review state, identify smallest coherent work unit, wait for go
-- **in-phoenix-liveview** -- Phoenix LiveView rules: two-phase mount, streams for lists, thin LiveViews, @impl true on callbacks
-- **in-plan** -- Planning kickoff: show workplan, invoke coding skills, enforce rules before coding
-- **in-review** -- Two-stage code review: spec compliance then rule-library compliance via critic-<lang>
-- **in-session** -- Session bootstrap: auto-load coding skills for the detected project language after context reset or compact
-- **in-standards** -- Coding standards: agnostic principles (Highlander, PFIC, Thin Coordinator, No Silent Errors) + project rules
-- **in-start** -- Session start: read restart files, review STs, orientation overview before coding
-- **in-tca-audit** -- TCA audit: execute component audits with sub-agents, track progress, manage context
-- **in-tca-finish** -- TCA finish: final verification, ST doc updates, feedback report generation, and session wrap-up
-- **in-tca-init** -- TCA init: provision steel thread, rule set, component map, and work packages for a Total Codebase Audit
-- **in-tca-remediate** -- TCA remediate: execute prioritized fix batches in main conversation with compile/test gates
-- **in-tca-synthesize** -- TCA synthesize: cross-component deduplication, priority classification, and fix batch ordering
-- **in-verify** -- Verification gate: require fresh evidence before any completion claim
-- **in-whiteboard** -- Multi-session coordination via intent/whiteboard/<node>/: per-node boards + single-writer inboxes, claim ST scopes, broadcast, heartbeat, release
+Read live rather than reproduced here, because a snapshot of what is installed goes stale the moment anything is installed and nothing regenerates this file to notice:
 
-## Installed Subagents
-
-- **elixir** -- Elixir code doctor specializing in functional programming, Usage Rules, and framework best practices
-- **critic-elixir** -- Elixir rule-library critic. Reads rules/elixir/ (code, test, ash, lv, phoenix) and the agnostic pack, applies each rule's Detection heuristic to target `.ex`/`.exs` files, and emits a machine-parseable report grouped by severity.
-- **critic-lua** -- Lua rule-library critic. Reads rules/lua/ (code, test) and the agnostic pack, applies each rule's Detection heuristic to target `.lua` files, and emits a machine-parseable report grouped by severity.
-- **critic-rust** -- Rust rule-library critic. Reads rules/rust/ (code, test) and the agnostic pack, applies each rule's Detection heuristic to target `.rs` files, and emits a machine-parseable report grouped by severity.
-- **critic-shell** -- Shell (bash + zsh) rule-library critic. Reads rules/shell/ and the relevant agnostic rules, applies each rule's Detection heuristic to the target shell files, and emits a machine-parseable report grouped by severity.
-- **critic-swift** -- Swift rule-library critic. Reads rules/swift/ (code, test) and the agnostic pack, applies each rule's Detection heuristic to target `.swift` files, and emits a machine-parseable report grouped by severity.
-- **diogenes** -- Elixir Test Architect - Socratic dialog that produces test specifications and validates test quality
-- **intent** -- Helps manage Intent projects using steel threads methodology
-- **socrates** -- CTO Review Mode - Facilitates Socratic dialog between CTO and Tech Lead for technical decision-making
+```bash
+intent claude skills list
+intent claude subagents list
+```
 
 ## Critic Family
 
@@ -112,6 +106,17 @@ Task(subagent_type="critic-<lang>", prompt="review <targets>")
 ```
 
 The installed Intent tool's headless runner (`intent critic <lang>`, Greppable-proxy rules only; no LLM required) powers the pre-commit gate. Contract: `intent/docs/critics.md` at the Intent install. Exit codes: `0` clean, `1` findings, `2` error.
+
+## Rules of the Road
+
+Four cross-language principles govern all Intent projects. Every language pack concretises them; the critics enforce them.
+
+- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure-Functional-Idiomatic-Coordination; pattern match, pipe, tag, compose.
+- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
+- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
+
+Read any of them with `intent claude rules show <id>`. The terse DO / NEVER contract for this project lives in `usage-rules.md`.
 
 ## Rule Library
 
@@ -125,7 +130,7 @@ intent claude rules validate    # schema check
 
 ## Extensions
 
-User extensions live at `~/.intent/ext/<name>/` and contribute subagents, skills, or rule packs without modifying canon. Reference extension: `worker-bee`.
+User extensions live at `~/.intent/ext/<name>/` and contribute subagents, skills, or rule packs without modifying canon.
 
 ```bash
 intent ext list
@@ -177,7 +182,6 @@ At the Intent install (not this project):
 - `intent/docs/rules.md` -- rule library authoring guide.
 - `intent/docs/writing-extensions.md` -- extension author guide.
 - `intent/docs/pre-commit-hook.md` -- pre-commit critic gate install + configure.
-- `intent/docs/migration-v2.10.0.md` -- v2.9.0 -> v2.10.0 migration guide (directory move + recovery).
 
 In this project:
 
@@ -187,4 +191,4 @@ In this project:
 
 ---
 
-_Generated by Intent v3.0.0 on 2026-08-26_
+_Generated by Intent v3.0.0 from `lib/templates/llm/_AGENTS.md`._
