@@ -203,19 +203,55 @@ esac
 if [ ! -r "$MARKER_SRC" ]; then
   fail "arm 6 -- no marker source at $MARKER_SRC, so scope containment cannot be checked"
 else
-  marker_scope="$(sed -n 's/^const DIRT_SCOPE: &str = "\(.*\)";$/\1/p' "$MARKER_SRC")"
-  if [ -z "$marker_scope" ]; then
-    fail "arm 6 -- could not read DIRT_SCOPE from $MARKER_SRC; the constant moved or was renamed, and an unread scope is not a contained one"
+  # DIRT_SCOPE BECAME A LIST ON 2026-08-26 and this parser moved with it, in the
+  # same commit, because a reader left behind reports "the constant moved or was
+  # renamed" -- a true sentence about the wrong thing.
+  marker_scopes="$(sed -n 's/^const DIRT_SCOPE: &\[&str\] = &\[\(.*\)\];$/\1/p' "$MARKER_SRC" |
+    tr ',' '\n' | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//' | grep .)"
+  if [ -z "$marker_scopes" ]; then
+    fail "arm 6 -- could not read DIRT_SCOPE from $MARKER_SRC; the constant moved, was renamed or changed shape, and an unread scope is not a contained one"
   else
-    covered=0
-    for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
-      [ "$sc" = "$marker_scope" ] && covered=1
-    done
-    if [ "$covered" -eq 1 ]; then
-      ok "arm 6 -- the guard's scope CONTAINS the marker's DIRT_SCOPE ($marker_scope)"
+    uncontained=""
+    while IFS= read -r ms; do
+      covered=0
+      for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
+        [ "$sc" = "$ms" ] && covered=1
+      done
+      [ "$covered" -eq 1 ] || uncontained="$uncontained $ms"
+    done <<< "$marker_scopes"
+    if [ -z "$uncontained" ]; then
+      ok "arm 6 -- the guard's scope CONTAINS every marker DIRT_SCOPE entry ($(printf '%s' "$marker_scopes" | tr '\n' ' '))"
     else
-      fail "arm 6 -- the guard's scope does not contain the marker's '$marker_scope'. Looser than the marker means the shared slot can hold an artefact this guard approved and the artefact disowns."
+      fail "arm 6 -- the guard's scope does not contain the marker's$uncontained. Looser than the marker means the shared slot can hold an artefact this guard approved and the artefact disowns."
     fi
+  fi
+
+  # ARM 6c -- THE MARKER ASKS **IDENTITY** OVER THE SCOPE TOO, NOT JUST DIRT.
+  #
+  # Arm 6 checks that the two scopes agree. It is structurally blind to the
+  # defect that made this fix necessary: until 2026-08-26 the marker asked DIRT
+  # over DIRT_SCOPE and IDENTITY over an unscoped `rev-parse HEAD`, so one
+  # string answered two questions about two different subjects -- and arm 6 was
+  # green throughout, because the scope it compared was the one that was already
+  # right.
+  #
+  # THE BODY IS READ WITH COMMENTS STRIPPED, following arm 7, which failed its
+  # own first draft by matching a header sentence ABOUT an invocation. That is
+  # not hypothetical here: the fix's own doc comment names `rev-parse HEAD`
+  # twice, explaining what it replaced. **A guard that reads prose would refuse
+  # the very change it exists to enforce.**
+  emit_body="$(awk '/^fn emit_source_commit\(\) \{/ { inb = 1 } inb { print } inb && /^\}/ { exit }' "$MARKER_SRC" |
+    sed 's://.*::')"
+  if [ -z "$emit_body" ]; then
+    fail "arm 6c -- could not extract emit_source_commit from $MARKER_SRC; an unread body is not a scoped one"
+  elif printf '%s' "$emit_body" | grep -q 'rev-parse'; then
+    fail "arm 6c -- emit_source_commit still asks identity with rev-parse, which is UNSCOPED. The stamp would mean 'the repo's HEAD, annotated with whether the artefact was dirty' -- two subjects in one string."
+  elif ! printf '%s' "$emit_body" | grep -q 'rev-list'; then
+    fail "arm 6c -- emit_source_commit asks identity with neither rev-parse nor rev-list; the call changed shape and this arm cannot say what subject it names"
+  elif ! printf '%s' "$emit_body" | grep -q 'DIRT_SCOPE'; then
+    fail "arm 6c -- emit_source_commit's identity call does not reach DIRT_SCOPE, so identity and dirt describe different subjects again"
+  else
+    ok "arm 6c -- the marker asks identity AND dirt over DIRT_SCOPE"
   fi
 fi
 

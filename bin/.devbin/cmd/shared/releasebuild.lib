@@ -102,7 +102,25 @@ verify_pair() {
   local dir="${1:-$RELEASE_DIR}" mode="${2:-shared}"
   local head sc b bad=0
 
-  head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || die "cannot read HEAD"
+  # **THE COMPARAND IS READ OVER THE SAME SCOPE THE MARKER USES, AND THE SCOPE
+  # IS NOT COPIED HERE.** `sharedtarget.lib` already declares it once as
+  # `SHARED_TARGET_DIRT_SCOPES`, and this file already sources that lib for
+  # `shared_target_verdict`. A third hand-held copy is exactly the defect found
+  # in `quiet.sh` on 2026-08-26 -- a gate holding its own narrower transcription
+  # of a scope, already drifted, checked by nothing.
+  #
+  # THE UNSET GUARD IS NOT DEFENSIVE PADDING. `git rev-list -1 HEAD --` with no
+  # pathspec means THE WHOLE REPO, which is silently the unscoped behaviour this
+  # change exists to remove -- a refusal that reads as a pass.
+  if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
+    die "SHARED_TARGET_DIRT_SCOPES is unset or empty -- an empty pathspec means the WHOLE repo, so this would silently restore the unscoped comparand"
+  fi
+  head="$(git -C "$PROJECT_ROOT" rev-list -1 HEAD -- "${SHARED_TARGET_DIRT_SCOPES[@]}")" ||
+    die "cannot read the build subject's last commit"
+  # `rev-list` answers rc 0 with EMPTY output when nothing in scope was ever
+  # committed. An empty comparand would make every stamp mismatch, or match an
+  # empty marker, depending on which way the test fell.
+  [ -n "$head" ] || die "no commit touches the build's scope -- rev-list succeeded and returned nothing, which is not a sha"
 
   # One call, and its stderr IS the report: absent binary, absent marker and
   # disagreement all come back as a refusal that names what it found.
@@ -130,10 +148,15 @@ verify_pair() {
       ;;
   esac
 
-  # HEAD equality is a SHARED-path claim only. A private dirty build names HEAD
-  # in its `dirty-<sha>` suffix and is not pretending to describe a commit.
+  # THE EQUALITY IS A SHARED-PATH CLAIM ONLY. A private dirty build names the
+  # subject's commit in its `dirty-<sha>` suffix and is not pretending to
+  # describe a clean one.
+  #
+  # AND IT IS NO LONGER "HEAD": since 2026-08-26 both sides ask about the BUILD'S
+  # INPUTS, so a whiteboard or canon commit landing mid-compile no longer reds a
+  # correct pair -- which it did, and nearly took rebuild 2a.
   if [ "$mode" = shared ] && [ "$sc" != "$head" ]; then
-    warn "the pair does not name HEAD ($head)"
+    warn "the pair does not name the build subject's last commit ($head)"
     bad=1
   fi
 

@@ -144,7 +144,22 @@ use std::process::Command;
 /// resolve against that and silently match nothing -- a scope that excludes
 /// everything reports clean forever, which is the same defect as a scope that
 /// includes everything, in the direction nothing reports.
-const DIRT_SCOPE: &str = ":(top)native/rust";
+/// **THE SCOPE IS THE BUILD'S INPUTS, AND THAT IS WIDER THAN `native/rust` BY
+/// EXACTLY ONE PATH.** `surface/dispatch-table.json` is `include_str!`'d into
+/// `intent-cli` (`dispatch.rs:45`), so its bytes are IN the binary. It was
+/// omitted here until 2026-08-26 and the omission had two faces: a build dirty
+/// only in `surface/` was not stamped `dirty-`, **so the artefact could not
+/// disown what the build guard already refused**; and once identity started
+/// being asked over this same scope, a `surface/`-only commit would have changed
+/// the binary WITHOUT changing the stamp. **41 of the last 50 commits touching
+/// `surface/` do not touch `native/rust`**, so that was not a corner case.
+///
+/// `sharedtarget.lib`'s `SHARED_TARGET_DIRT_SCOPES` is the same list on the
+/// shell side, and `shared_artefact_build_guard.sh` arm 6 asserts the guard's
+/// scope CONTAINS this one. Equality satisfies containment; **do not tighten
+/// that arm to equality**, because the containment form is what permitted this
+/// widening in the first place.
+const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface"];
 
 fn git(args: &[&str]) -> Option<String> {
   let out = Command::new("git").args(args).output().ok()?;
@@ -187,13 +202,41 @@ fn git(args: &[&str]) -> Option<String> {
 /// value as `pub const SOURCE_COMMIT`, which is a real consumer and not a
 /// duplicate of this one.
 fn emit_source_commit() {
-  let value = match git(&["rev-parse", "HEAD"]) {
+  // **BOTH QUESTIONS ARE ASKED ABOUT THE SAME SUBJECT, AND THAT IS THE WHOLE
+  // FIX.** Until 2026-08-26 identity came from an UNSCOPED `rev-parse HEAD`
+  // while dirt came from a SCOPED `status`, so the value meant "the repo's HEAD,
+  // annotated with whether the artefact was dirty" -- two subjects in one
+  // string. It was internally inconsistent rather than merely awkward, and it
+  // showed twice: a commit anywhere in the repo landing during a ~60s build
+  // REDDED A CORRECT PAIR, and the marker REWROTE THE STAMP OF BYTE-IDENTICAL
+  // CODE, so two builds of the same source carried different stamps.
+  //
+  // **WHAT IT COSTS, STATED RATHER THAN DISCOVERED: THE STAMP NO LONGER
+  // IDENTIFIES THE REPO.** Two repo states with identical build inputs now
+  // produce identical stamps, and "which commit was this built at" is no longer
+  // answerable from the artefact. That is the correct trade, because the two
+  // questions already have two homes: the release TAG records the repo, and this
+  // marker records the SUBJECT. An artefact should carry what it IS.
+  let mut ident: Vec<&str> = vec!["rev-list", "-1", "HEAD", "--"];
+  ident.extend_from_slice(DIRT_SCOPE);
+  let mut dirt: Vec<&str> = vec!["status", "--porcelain", "--"];
+  dirt.extend_from_slice(DIRT_SCOPE);
+
+  let value = match git(&ident) {
     None => "unknown".to_string(),
-    Some(sha) => match git(&["status", "--porcelain", "--", DIRT_SCOPE]) {
+    // **`rev-list` ANSWERS rc 0 WITH EMPTY OUTPUT WHEN NO COMMIT TOUCHES THE
+    // SCOPE**, which `rev-parse HEAD` never did -- so nothing in the previous
+    // shape had any reason to guard it. Without this arm the emit is
+    // `INTENT_SOURCE_COMMIT=` and the marker reads `[intent-source-commit:]`.
+    // **An empty stamp is not a smaller claim than a sha; it is a broken one,
+    // and it would pass every arm we have.** Driven before it was written.
+    Some(sha) if sha.is_empty() => "unknown".to_string(),
+    Some(sha) => match git(&dirt) {
       Some(s) if s.is_empty() => sha,
       Some(_) => format!("dirty-{sha}"),
-      // git answered `rev-parse` and refused `status`: this cannot say whether
-      // the tree was clean, and an unprovable claim is worth less than none.
+      // git answered the identity call and refused `status`: this cannot say
+      // whether the tree was clean, and an unprovable claim is worth less
+      // than none.
       None => "unknown".to_string(),
     },
   };
