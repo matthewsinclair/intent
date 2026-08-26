@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 20:38Z
+heartbeat_at: 2026-08-26 20:39Z
 status: active
 focus: "**BOSS-VC for the v3 fleet cutover under hv's pen. 2b IS GREEN at 03470c5a (dc, five reads, 20:24Z); B1 in the pair with two proofs unarmed by name; the third migration defect is two faces of one grammar gap and cc builds it in the ruled order for 3.0.1; Laksa carry re-running on a PINNED pair; Lamplight carry next; Lamplight triage HELD on the ingest's non-UTF-8 refusal. THERE IS NO 3.0.2; WIP ONLY.**"
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -29,7 +29,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 - **cc** -> holding on its user's instruction; 12 covers fixtures + the 39/19 arm fixtures to lamplight-vc directly; builds in the ruled order when released; owes the bare-sync fix and doctor's canon-vs-store arm and the ingest walk's opaque arm.
 - **ic** -> `03470c5a` in the pair; hv's `intent todo` PARITY RESTORE in a worktree with a private target (a MERGE, not a revert of `7663fb19`: HEAD's nesting kept, the watermark grafted; `DONE = completed >= T`, `T` defaults to start of today UTC, `--flush`/`--prune` back, DOING shows every WP; heading wording deviation put to hv by ic); brings the two test fixes with it; adopted "a clean-tree word is a hold on my own tree".
-- **dc** -> smoke arm IN (`53699d66`; control B = a swallowed read verb leaves the tree clean too); stamp-versus-subject fix HELD to after the sweep on 03470c5a, then fix + arm 6 in ONE commit, build, five reads, runbook line first (ruled).
+- **dc** -> smoke arm IN (`53699d66`; control B = a swallowed read verb leaves the tree clean too); stamp fix RE-SPECIFIED by dc (subject = the build's inputs, `native/rust` + `surface/`; `DIRT_SCOPE` widened, identity over the same scope, no third copy of the scope, arm 6 containment, empty rev-list guarded) and RELEASED 20:49Z -- the pinned copies dissolved the hold; lands in ONE commit, builds under the QUIET protocol, five reads; the marker's new meaning is in the runbook already.
 - **devbin/vc** -> GO sent 20:26Z for arca_config from the ref on the pinned pair; awaiting the result.
 - **lamplight/vc** -> fleet migration-fidelity scan filed (`migration-fidelity-fleet.md` + corrections); `close-the-nine-final.sh` prepared, gated on hv's go only; decision #5 (symlink on PATH, "mitigation is attentional") put to hv as evidence by them.
 - **vc** -> Laksa carry re-run in flight; Lamplight carry after it; `sweep-default.sh` (bare `--default` is a no-op on a present manifest -- every migrated project has one; it verifies); AC-11.x wording (open -> WIP) in canon; the runbook.
