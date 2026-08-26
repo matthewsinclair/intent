@@ -29,7 +29,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 05: intent edit <ID>
   - [x] 06: The full text realisation, and the refusal that expires
   - [x] 07: intent:// addressing and read resolution
-  - [-] 08: The mutation surface: write-by-address and the missing verbs
+  - [x] 08: The mutation surface: write-by-address and the missing verbs
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing
   - [ ] 11: Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function

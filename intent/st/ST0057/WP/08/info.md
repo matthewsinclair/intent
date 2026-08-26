@@ -2,7 +2,7 @@
 wp_id: WP-08
 title: The mutation surface: write-by-address and the missing verbs
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-08: The mutation surface: write-by-address and the missing verbs

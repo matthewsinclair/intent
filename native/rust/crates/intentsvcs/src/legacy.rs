@@ -1830,14 +1830,29 @@ fn field_key(rest: &str) -> Option<&str> {
 /// **Depth 0 only, for the reason [`field_end`] is depth-aware**: a ` -- ` inside
 /// a parenthetical is prose the author wrote, not a field boundary.
 fn unread_field_keys<'a>(span: &'a str, known: &[&str]) -> Vec<&'a str> {
-  let bytes = span.as_bytes();
   let mut depth = 0usize;
   let mut out: Vec<&str> = Vec::new();
-  let mut i = 0usize;
-  while i < bytes.len() {
-    match bytes[i] {
-      b'(' | b'[' => depth += 1,
-      b')' | b']' => depth = depth.saturating_sub(1),
+  // **`char_indices`, NEVER a byte counter.** This walked `span.as_bytes()` and
+  // sliced `span[i..]` at every byte index, so an index landing inside a
+  // multibyte character panicked and took the whole migration with it --
+  // `start byte index 270 is not a char boundary; it is inside '\u{2713}'`, rc 101,
+  // nothing written. Conflab died on it; 161 rows across 7 estates carry the
+  // trigger, 63 of them in this project's own tree.
+  //
+  // **THE PANIC WAS NOT IN THE RESIDUE, IT WAS IN THE WALK.** The row that
+  // killed Conflab has no unread field at all -- its only keys are `evidence:`
+  // and `satisfied:`, both known. Every row is walked; only some have anything
+  // to say; the ones with nothing to say were destroying the run.
+  //
+  // The depth guard hid the true size for a while: `&&` short-circuits, so a
+  // multibyte character inside brackets is never sliced. Real, and no defence --
+  // it spares 18 of 179.
+  //
+  // `i + 4` stays safe because the `starts_with` proves four ASCII bytes follow.
+  for (i, ch) in span.char_indices() {
+    match ch {
+      '(' | '[' => depth += 1,
+      ')' | ']' => depth = depth.saturating_sub(1),
       _ => {}
     }
     if depth == 0
@@ -1848,7 +1863,6 @@ fn unread_field_keys<'a>(span: &'a str, known: &[&str]) -> Vec<&'a str> {
     {
       out.push(key);
     }
-    i += 1;
   }
   out
 }
@@ -2331,14 +2345,32 @@ fn conflict_marker_line(text: &str) -> Option<u32> {
 /// every plain path in the estate, which is the overwhelming majority -- comes
 /// back unchanged with no annotation, so the common row is untouched.
 fn split_citation(cited: &str) -> (&str, Option<&str>) {
-  let cut = [cited.find(" ("), cited.find('`')]
+  // **A COMMA ENDS A CITATION TOO, and leaving it out reported 16 missing files
+  // against 16 files that were sitting on disk.** Arca/arca_cli `ST0011`
+  // migrated at exit 0 and its gate then blocked with
+  // `AT-07.1 cites a file that does not exist:
+  // test/arca_cli/dead_code_gate_test.exs, describe "purged symbols` -- the cut
+  // landed on the ` (` inside `(AC-07.1)`, so the comma clause stayed in the
+  // path and the `(7 tests)` half became the annotation.
+  //
+  // **THE MEASUREMENT IS WHAT LICENSES CUTTING HERE, not the one estate that
+  // complained.** Across 3177 path citations on this machine the comma cut
+  // changes 175 rows, takes the number that resolve to a real file from 1881 to
+  // 1993, and regresses NONE. And of the 241 rows carrying the shape, **not one
+  // is a second file**: the comma is followed by `describe` (110), `the` (50),
+  // `and` (25). A citation naming two paths would be the case against this, and
+  // the corpus does not contain one.
+  let cut = [cited.find(" ("), cited.find('`'), cited.find(", ")]
     .into_iter()
     .flatten()
     .min();
   match cut {
     None => (cited, None),
     Some(i) => {
-      let annotation = cited[i..].trim_start_matches('`').trim();
+      // The comma is the separator, not the first word of what the author
+      // wrote, so it is trimmed with the backtick rather than carried into the
+      // note.
+      let annotation = cited[i..].trim_start_matches([',', '`']).trim();
       (
         cited[..i].trim_end(),
         (!annotation.is_empty()).then_some(annotation),

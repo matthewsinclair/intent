@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 23:31Z
+heartbeat_at: 2026-08-26 22:48Z
 status: active
-focus: "BOSS-VC. THE SERIAL PORT, hv's tiers, controlled from this session on main at HEAD. THIRTEEN CLOSED at doctor 0 (Anvil, arca_notionex, arca_config, Baize, Cdsync, Courses, Devbin, MicroGPTEx, Molt, Prolix, Riffle, A3, + Laksa's mechanical half committing as I fold). BLOCKED ON cc's legacy.rs: Conflab (multibyte panic), arca_cli (16+3), Utilz (3), Laksa (2) -- FIVE FORMS OF ONE DEFECT. REMAINING: Lamplight, Intent. Pair pinned 43cee2be -> f7240814 (the advisory fix, mine: 01dec831 + 43cee2be + f7240814)."
+focus: "BOSS-VC. SERIAL PORT of the fleet to v3 on hv's order, controlled from this session on main at HEAD, hv watching every command. Closed: Anvil, arca_notionex, Baize, Cdsync, arca_config. Blocked on cc (three legacy.rs defects): Conflab (multibyte panic), arca_cli (prose covers as ids; `path, describe` kept whole as file). Pair pinned at 43cee2be (the advisory fix, mine, landed as 01dec831+43cee2be). Next: Courses."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,21 +15,24 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**THE SERIAL PORT.** hv's tiers are on hv's board, verbatim. **The ledger, the procedure and every LEARNED bullet are in `cutover-runbook.md` under PORT LEDGER** -- read that, not this. Standing rulings: buckets -> `intent/history/`; `deps/`, `_build/`, `node_modules/`, `.worktrees/` are not projects; a WP recorded WIP over a passing gate is `wp done`; the backup schedule is configuration and is NEVER silenced; doctor advisories are printed only under `--verbose`; llm-tropes and Pplr are NOT Intent projects (hv, tonight -- my llm-tropes `init` was reverted, repo pristine at `8bac3c9`).
+**THE SERIAL PORT (hv, first-hand, this session, 2026-08-26 between my clock reads 21:45:23Z and 22:24:23Z).** hv's tiers, verbatim headings: **Important** (_"Full live port, no detritous, pristine 'intent doctor'"_): Arca/arca_config, Arca/arca_cli, Baize, Cdsync, Conflab, Courses (_"its done at the Courses/ dir, not subdirs"_), Devbin, Intent, Laksa, Lamplight, llm-tropes, MicroGPTEx, Molt, Pplr, Prolix, Riffle, **Utilz** (_"a miss. That's definitely in the Important category"_). **Port** (_"to Intent3, run doctor, check in and commit, then move on"_): A3, Anvil. **Ignore** (_"Not Intent projects"_): Molt-flynn, Molt-matts. **Purposely held at v2:** Intentv2. **Content** (_"Not ported, subdirs are used in other projects"_): Sites/**, Wrightings/**. Open with hv: llm-tropes and Pplr have NO intent/ tree (an adoption, not a port); arca_notionex (closed) sits in no tier. **The ledger, the procedure and the LEARNED bullets are in `cutover-runbook.md` under PORT LEDGER.** Rulings in force: buckets to `intent/history/`; `deps/`, `_build/`, `node_modules/`, `.worktrees/` are not projects; a WP recorded WIP over a passing gate is `wp done` (Baize ST0025/02); the backup schedule is configuration and is NEVER silenced (hv to dc, direct); doctor advisories are printed, never counted (hv: _"Fix. Do it here"_ -- done, `01dec831`+`43cee2be`).
 
-**THE PAIR:** `$S/pair-f7240814/{intent,intentd}`, and `target/{release,debug}` + `~/.local/bin` are all f7240814 after hv ran `int local use dev`. **Bare `intent` was the keg until that switch, which is why hv read the pre-fix doctor twice while I read the fixed one.**
+**THE PAIR:** `$S/pair-43cee2be/{intent,intentd}`, built CLEAN in a detached worktree's private target (stamp `43cee2be` both halves; `cargo clean -p intentd` was needed -- cargo does not rerun a build script whose crate did not change, so the previous stamp survives a rebuild). hv rebuilt `target/release` at 22:5xZ on a clean main; `~/.local/bin/intent` and `~/bin/intent` follow it, **bare `intent` is still the keg `80d8b2ca` (PATH 1) and prints the pre-fix doctor** -- told hv; `int local use dev` or 3.0.1's keg is hv's call. THE FLIP HAPPENED 2026-08-26 14:00:46Z on my word (tag `v3.0.0` = `80d8b2ca`).
 
-**FIVE FORMS OF ONE MIGRATOR DEFECT, ALL WITH cc (assigned on hv's word):** (1) `unread_field_keys` slices bytes, panics on `✓` -- Conflab, rc 101, rehearsed on a clone so the estate is untouched; (2) `path, describe "..."` kept whole as `file` -- arca_cli ST0011, 16 rows, every file exists; (3) a prose `covers` clause carried as an id -- arca_cli, 3 rows; (4) `is_path` = `contains('/') && !contains(':')` takes any prose with a slash for a path -- Utilz ST0009 (3 rows, `bin/`), Laksa ST0081 (a `mix test .../...` command line); (5) a whole sentence as `file` with empty covers -- Laksa ST0090 AT-00.2. **Nothing is hand-edited in the estates that prove it: they are re-converted from the v2 source after cc's sha.**
+**STATE PER NODE:** dc -> `bc6c1637` in (backup schedule from `backup.schedule`, back-fill through `upgrade`, verified on arca_config: `"backup": {"schedule": "daily"}`), `f06d444b` Intent's own config by hand; ic -> `c14aa9bf` in (watermark is an instant), and ic's D53 question is HELD for hv below; cc -> holding, THREE legacy.rs defects waiting on hv's word to assign: (1) `unread_field_keys` slices at a non-char boundary (Conflab, `✓` in `ST0121/acceptance.md:72,83`); (2) prose `covers` clauses carried as ids (arca_cli ST0011 AT-07.3 "the gate itself", AT-11.6 "the reachability half of AC-11.1", AT-13.4 "the seam itself"); (3) `path, describe "…"` kept whole as `file` (arca_cli ST0011, 16 rows -> 16 "cites a file that does not exist" -> five WPs Done-but-BLOCKED). After cc's pair: re-convert ST0011 from the v2 source, then arca_cli's port; rehearse Conflab on the clone again, then port it.
 
-**WHAT REMAINS:** Lamplight (the biggest: 3740 unclaimed, 10 lost citations, 3 view-skew, `.worktrees` at 2.19.0 for hv); Intent itself (ST0055's five `wp done`, ST0057/WP-08 which is ic's, the two shell reds in my lane, the PASSES-branch remedy text); then the five estates that unblock on cc's fix.
+## CRITICAL PATH
+
+1. hv's word on cc for the three; then Conflab + arca_cli.
+2. Courses (pre-read done), Devbin, Intent (ST0055's five `wp done`, the PASSES-branch remedy text, my two shell reds), Laksa, Lamplight, MicroGPTEx, Molt, Prolix, Riffle, Utilz; A3 (Port tier); llm-tropes / Pplr on hv's ruling.
+3. THERE IS NO 3.0.2. 3.0.1 collects: the three legacy.rs fixes, `config get|set`, `st repair`, the daemon snapshot or a manual ruling, the PASSES-branch remedy text, D53's answer.
 
 ## HELD FOR hv
 
-- **Laksa's own work state, 14 packages** (the mechanical port is committed; these are not mine): eight recorded WIP/Not Started over a PASSING gate (ST0079/01, ST0084/12,13,14,16, ST0086/08, ST0101/02,03, ST0102/01) -- the shape hv ruled `wp done` on in Baize; four Done over genuinely unsatisfied criteria (ST0087/14,15 and ST0097/08,15). Utilz ST0009/WP-01 and Intent's ST0055 WPs are the same question.
-- **The formatter is a second writer in six more projects** (Conflab, Laksa, Lamplight, MicroGPTEx, Molt, Utilz run `prettier --write` over staged markdown with no view exclusion; Laksa and Prolix are fixed under hv's own 2026-08-19 ruling). Laksa and Lamplight get it as part of their port; the other four are preventive and need hv's word.
-- **ic's D53 question** (does a flush survive a git clone -- both options carry a cost, neither is mine).
-- The daemon's scheduled snapshot vs manual; `intent config get|set` and `st repair` are stubs; `finding.rs:348` prints the BLOCKED remedy under the PASSES finding.
-- Lamplight's 22 non-UTF-8 files refusing `--to-store`; the two stale `.worktrees/{cc,ic}` at 2.19.0.
+- **ic's D53 question (verbatim options):** the two constant reds `a_flush_survives_a_machine_that_has_no_database` and `doctor_does_not_report_a_flushed_view_as_hand_edited` ask "does a flush survive a git clone?" -- under D53 (`f42987c7` took `events.jsonl` out of the tree) it does not. (a) it does not travel and the tests are rewritten to that contract -- every fresh clone of a flushed project reports `todo.md` hand-edited, permanently; (b) the committed `## DONE:<T>` heading is read as a FALLBACK when there is no store -- on a store-less machine doctor can no longer catch a hand-edited watermark. Not mine to answer.
+- The daemon's scheduled snapshot vs manual; `intent config get|set` and `st repair` are stubs; `finding.rs:348` puts the BLOCKED remedy under the PASSES finding.
+- Lamplight: 22 non-UTF-8 files refusing `--to-store`; the two stale `.worktrees/{cc,ic}` at 2.19.0; ST0270's covers reading.
+- Mine, at a quiet moment: `verify-canonical.sh`'s `.backup/` arm reads the root only.
 
 ## Watch-outs
 
