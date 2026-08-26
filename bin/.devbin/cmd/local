@@ -373,10 +373,27 @@ use_flavour() {
   esac
 }
 
-# brew_has_intent -- is the formula installed at all? Today it is not: the tap is
-# empty on purpose until the first v3 release lands a formula in it.
+# brew_has_intent -- is the formula INSTALLED?
 brew_has_intent() {
   brew list --formula intent >/dev/null 2>&1
+}
+
+# brew_formula_available -- is a formula named `intent` RESOLVABLE by brew at all?
+#
+# A DIFFERENT QUESTION FROM `brew_has_intent`, AND CONFLATING THEM PRODUCED A
+# CONFIDENT WRONG DIAGNOSIS. `use prod` used to answer every not-installed case
+# with "the tap is empty until the first v3 release publishes a formula into it".
+# That was TRUE WHEN WRITTEN and became false the moment the tap was populated --
+# after which it sent the reader off to cut a release when what they needed was
+# one `brew install`. Measured on this machine the hour the tap gained a formula.
+#
+# DELIBERATELY DOES NOT NAME THE TAP. `cmd/macos` owns the three tap spellings and
+# a second copy here would be a Highlander violation for a string that exists to
+# be stated once. Asking brew to resolve the bare name answers the question this
+# command actually has -- is there a formula to install -- without owning where it
+# comes from.
+brew_formula_available() {
+  brew info --formula intent >/dev/null 2>&1
 }
 
 # verify_hook_door -- does `intent claude hook` actually OPEN after the switch?
@@ -424,8 +441,15 @@ cmd_use() {
   step "switching to $want"
 
   if [ "$want" = prod ]; then
-    brew_has_intent ||
-      die "the intent formula is not installed -- there is no prod to switch to. The tap is empty until the first v3 release publishes a formula into it."
+    if ! brew_has_intent; then
+      # SAY WHICH OF THE TWO IT IS. The remedies are a `brew install` and a whole
+      # release cut; a message that cannot tell them apart sends half its readers
+      # to the wrong one.
+      if brew_formula_available; then
+        die "the intent formula is available but NOT INSTALLED -- there is no prod to switch to. Run: brew install intent"
+      fi
+      die "no intent formula is installed and brew cannot resolve one -- there is no prod to switch to. The tap carries no formula until a release publishes one into it."
+    fi
     brew unpin intent >/dev/null 2>&1 || true
     brew link --overwrite intent >/dev/null 2>&1 ||
       die "brew link intent failed -- run it by hand to see why; this command will not force it"
