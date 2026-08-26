@@ -276,8 +276,36 @@ impl Report {
     out
   }
 
-  /// The exit code the gate will read. **See the module note: 1 is findings,
-  /// 3 is an armed rule whose tool is absent, and neither is 2.**
+  /// The exit code the gate will read. **See the module note: 1 is findings, 3
+  /// is an armed rule whose tool is absent, and 2 is this runner being broken.**
+  ///
+  /// **THE ARMED COUNT IS READ BEFORE THE VERDICT, AND THAT ORDER IS THE WHOLE
+  /// FIX.** An empty census makes `unenforced()` and `findings` VACUOUSLY empty,
+  /// so every later arm is false and the function falls through to 0 -- a clean
+  /// verdict sealed over an empty denominator. That is not a hypothetical: the
+  /// shipped `v3.0.0` keg carries no rule library, so all five headless
+  /// languages answer `total 0, armed 0` and exit 0, and
+  /// `lib/templates/hooks/pre-commit.sh` branches on that rc perfectly correctly
+  /// and passes. **A run that armed nothing has not passed, it has ABSTAINED**,
+  /// and the two must not share an exit code (devbin, `455d3f0`, which fixed its
+  /// own gate and scoped the hook path to 3.0.1 -- this is that).
+  ///
+  /// **THE PREDICATE IS `total() == 0`, NEVER `armed() == 0`.** Arming is a
+  /// property of the RULE, not of the run, and swift's six rules and lua's seven
+  /// are all `Undeclared` today -- so those two languages arm ZERO from a
+  /// perfectly healthy library. Refusing on `armed() == 0` would block every
+  /// commit in every project declaring them: a false refusal with a real
+  /// population. An empty CENSUS has exactly one cause, which is that the
+  /// library did not load.
+  ///
+  /// **AND 2 IS THE RIGHT CODE BECAUSE THIS IS OUR BREAKAGE, NOT THE
+  /// OPERATOR'S.** The module's governing principle is *a gate should fail open
+  /// on its own breakage and closed on yours*. 2 lands in the hook's `*)` arm,
+  /// which records the language UNENFORCED and prints the digest with its
+  /// denominator -- `5 of 5 declared language(s) went UNENFORCED`, which that
+  /// arm's own comment calls "a gate that is not running at all". Loud, and
+  /// open. Blocking sixteen repositories because the keg shipped without its
+  /// rules would be issue 0043 rebuilt, which that comment forbids by name.
   ///
   /// **REFUSAL OUTRANKS FINDINGS.** Both block, so the order only decides which
   /// remedy the operator is handed -- and "a rule you armed could not be
@@ -289,7 +317,9 @@ impl Report {
   /// nobody can act on it, it is our defect rather than the project's, and v2
   /// reports it in the census at exit 0. See [`Report::refused`].
   pub fn exit_code(&self) -> i32 {
-    if !self.unenforced().is_empty() {
+    if self.total() == 0 {
+      2
+    } else if !self.unenforced().is_empty() {
       3
     } else if !self.findings.is_empty() {
       1
@@ -1294,14 +1324,44 @@ mod tests {
   fn refusal_outranks_findings_and_neither_is_two() {
     // **THE WHOLE POINT OF THIS FILE.** `pre-commit.sh` blocks on 1 and 3 and
     // FAILS OPEN on 2, so a critic that returned 2 for findings would silently
-    // disarm the gate in every repository that runs it.
+    // disarm the gate in every repository that runs it. That remains exactly
+    // true, and the name of this test with it: neither FINDINGS nor a REFUSAL
+    // is 2.
+    //
+    // **THE CLEAN FIXTURE CARRIES A LOADED CENSUS, AND IT MUST.** This `base`
+    // held `census: Vec::new()` and asserted 0, which quietly made "clean" and
+    // "the rule library did not load" the same fixture. They are now different
+    // answers -- an empty census is 2, because a run that armed nothing has not
+    // passed, it has ABSTAINED -- so a clean run has to be spelled as what it
+    // actually is: a rule that was armed, ran, and found nothing. The old
+    // fixture was not wrong about findings; it was describing a state it did not
+    // mean, and the moment 0 and 2 parted company it began asserting the wrong
+    // one.
     let base = Report {
       lang: "shell".into(),
       findings: Vec::new(),
-      census: Vec::new(),
+      census: vec![CensusRow {
+        rule_id: "IN-SH-CODE-001".into(),
+        arming: Arming::Armed,
+        disposition: Disposition::Ran,
+        by: "grep".into(),
+      }],
       refused: Vec::new(),
     };
     assert_eq!(base.exit_code(), 0);
+
+    // And the state the old fixture actually described, asserted rather than
+    // left implicit: nothing loaded is a REFUSAL, not a pass.
+    let nothing_loaded = Report {
+      census: Vec::new(),
+      ..base.clone()
+    };
+    assert_eq!(
+      nothing_loaded.exit_code(),
+      2,
+      "an empty census is the library failing to load, and it must not share an \
+       exit code with a clean run"
+    );
 
     let finding = Finding {
       rule_id: "IN-SH-CODE-001".into(),

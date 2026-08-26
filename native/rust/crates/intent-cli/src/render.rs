@@ -4663,7 +4663,30 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   }
 
   // **REFUSAL OUTRANKS FINDINGS, AND BOTH BLOCK.** See `Report::exit_code`.
+  //
+  // **THE `2` ARM IS LOAD-BEARING AND ITS ABSENCE WAS INVISIBLE.** `exit_code`
+  // is not the process's code -- this match translates it -- so an empty-library
+  // refusal returning 2 from the report would have fallen into `_ => Ok(())` and
+  // exited 0, leaving a unit test on `exit_code()` green over a surface that
+  // never changed. The code and its arm are one change, not two.
   match report.exit_code() {
+    // **THE LIBRARY LOADED NOTHING, SO THE RUN ASKED NOTHING.** `Unavailable` is
+    // the variant whose documented meaning is *this build cannot answer the
+    // question at all*, and whose code v2 consumers already treat as fail-open
+    // rather than as a verdict about their own work -- which is what an absent
+    // rule library deserves. It is OUR breakage: blocking every commit in every
+    // vendored estate because the keg shipped without its rules is issue 0043
+    // rebuilt on the git side.
+    //
+    // The hook has no arm for 2, and that is the point: it lands in `*)`, which
+    // records the language UNENFORCED and prints the `N of M` digest. Five
+    // declared languages read `5 of 5 declared language(s) went UNENFORCED`.
+    2 => Err(Failure::Unavailable(format!(
+      "critic: {} -- REFUSED: the rule library is EMPTY, so this run examined {} file(s) against NO rules.\n  a gate that armed nothing has not passed, it has abstained; refusing rather than sealing `ok` over an empty denominator.\n  remedy: this build cannot find its rule library -- reinstall or upgrade Intent so `intent/plugins/claude/rules` ships with it, then check `intent claude rules list --lang {}`",
+      report.lang,
+      files.len(),
+      report.lang
+    ))),
     3 => Err(Failure::Refused(format!(
       "critic: {} -- REFUSED: {} rule(s) armed by this project could not be enforced here: {}.\n  remedy: install the missing tool, or disarm that rule in .intent_critic.yml",
       report.lang,
