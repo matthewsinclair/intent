@@ -156,10 +156,71 @@ fn ids_the_renderer_reads(src: &str) -> BTreeSet<String> {
   out
 }
 
+/// The paths the table DECLARES are safe to drive, read from its own
+/// `populations.probeable` block.
+///
+/// # Why this is read rather than derived
+///
+/// **The table enumerates its own populations so no consumer has to re-derive
+/// one, and it says so in the block's `why`.** A traversal that decides what to
+/// drive by walking rows is wrong in both directions at once -- too narrow,
+/// because it misses the top-level `new_surface[]` rows, and too wide, because
+/// it takes in rows dispositioned `retire` that the binary does not contain.
+/// The `why` records the cost already paid for that: *104 against 112 against
+/// 107, three apart with opposite signs, so no count-based sanity check
+/// flinches -- which is how the same wrong population was hand-written five
+/// times in one week.* **A floor assertion does not close this, because a
+/// derived population is as likely to come out too BIG as too small.**
+///
+/// # Why `probeable` and not `shipped`
+///
+/// `probeable` is `shipped` minus `populations.not_probed`, and `not_probed` is
+/// a machine-readable DO-NOT-DRIVE list carrying a reason per member. Two of
+/// the four never return -- `daemon` and `mcp` serve until killed, so any
+/// timeout classifies a working server as a hang -- and two write outside any
+/// sandbox when invoked bare: `claude upgrade` installs into the operator's
+/// REAL `~/.claude`, and `claude start` launches a real Claude Code session.
+///
+/// **`.expect()` rather than a default, because the exclusion must fail LOUD
+/// when it cannot be found.** A missing list that degrades to "exclude nothing"
+/// is the silent form of driving all four.
+fn probeable() -> BTreeSet<String> {
+  let raw: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  raw["populations"]["probeable"]
+    .as_array()
+    .expect("`populations.probeable` is a list -- the exclusion cannot be skipped silently")
+    .iter()
+    .map(|m| {
+      m.as_str()
+        .expect("a probeable member is a path string")
+        .to_string()
+    })
+    .collect()
+}
+
 /// Families the binary answers with the unwired refusal.
+///
+/// # This drives commands, so its population is a SAFETY question
+///
+/// **This harness was safe by accident of SCOPE and not by subtraction, and the
+/// distinction only shows up when someone extends it** (cc, 2026-08-26). It
+/// walks `table.families` and drives FAMILY NAMES bare, so it could not reach
+/// `daemon` or `mcp` -- both `new_surface[]` rows rather than families -- and
+/// bare `claude` only asks for a subcommand. **It never consulted `not_probed`
+/// at all.** Widening the loop to leaf paths or to `new_surface[]` is a one-line
+/// change, and before this gate existed it would have inherited the whole
+/// hazard in silence: installing into the operator's real `~/.claude`, or
+/// hanging forever on a server that never returns.
+///
+/// **A sweep that is safe only because its targets are unbuilt gets MORE
+/// dangerous as the project succeeds**, which is the wrong direction for a
+/// harness to age against a work programme whose whole content is wiring
+/// families.
 fn unwired_families() -> BTreeSet<String> {
   let dir = tempfile::tempdir().expect("tempdir");
   let table = dispatch::table();
+  let probeable = probeable();
   let mut out = BTreeSet::new();
   for family in &table.families {
     let Some(entry) = family.entries.iter().find(|e| e.verb().is_none()) else {
@@ -168,6 +229,18 @@ fn unwired_families() -> BTreeSet<String> {
     if !entry.is_shipped() {
       continue;
     }
+    // **THE GATE, AND IT REFUSES RATHER THAN SKIPPING.** Skipping would let the
+    // harness quietly measure less than it claims; the population it drives has
+    // to be one the table vouched for, and a path outside it is a change to
+    // this loop that nobody costed against the DO-NOT-DRIVE list.
+    assert!(
+      probeable.contains(&family.name),
+      "`{}` is not in `populations.probeable`, so this harness must not drive it. Either the \
+       table's populations moved, or this loop was widened past what they vouch for -- check \
+       `populations.not_probed` before adding it back: two of its four members never return, and \
+       two write outside the sandbox into the operator's real home.",
+      family.name
+    );
     let output = Command::new(env!("CARGO_BIN_EXE_intent"))
       .arg(&family.name)
       .current_dir(dir.path())
@@ -180,6 +253,56 @@ fn unwired_families() -> BTreeSet<String> {
     }
   }
   out
+}
+
+/// **THE GATE ABOVE IS ONLY AS GOOD AS THE POPULATION IT READS, SO THE
+/// POPULATION IS CHECKED TOO.**
+///
+/// `probeable` is `shipped` minus `not_probed`, and that subtraction happens in
+/// the table rather than here. If a `not_probed` member ever appeared in
+/// `probeable` -- a hand-edit, a regenerator bug, a member added to one list and
+/// not subtracted from the other -- the gate would wave it straight through and
+/// report nothing, because from inside the gate a vouched-for path and a
+/// dangerous one look identical.
+///
+/// **This is the arm that would fail. The gate itself cannot fail on this,
+/// which is exactly why it needs a second one.**
+///
+/// It also pins the list non-empty. A `not_probed` that degraded to zero
+/// members would make this test pass by having nothing to check -- the vacuous
+/// green that reads like coverage.
+#[test]
+fn no_do_not_drive_path_is_vouched_for_as_probeable() {
+  let raw: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  let not_probed: Vec<String> = raw["populations"]["not_probed"]
+    .as_array()
+    .expect("`populations.not_probed` is a list")
+    .iter()
+    .map(|m| {
+      m["path"]
+        .as_str()
+        .expect("a not_probed member has a path")
+        .to_string()
+    })
+    .collect();
+
+  assert!(
+    !not_probed.is_empty(),
+    "`populations.not_probed` is empty, so this check has nothing to test and the gate in \
+     `unwired_families` is unguarded. Four paths belong here: two that never return and two that \
+     write into the operator's real home."
+  );
+
+  let probeable = probeable();
+  for path in &not_probed {
+    assert!(
+      !probeable.contains(path),
+      "`{path}` is in BOTH `populations.not_probed` and `populations.probeable`. The gate in \
+       `unwired_families` reads `probeable` and would drive it. `not_probed` members either never \
+       return or write outside the sandbox."
+    );
+  }
 }
 
 /// **The scanner is validated before anything is concluded from it.**
