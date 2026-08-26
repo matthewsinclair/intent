@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-26 14:14Z
+heartbeat_at: 2026-08-26 14:22Z
 status: active
 focus: "**v3.0.0 PUBLISHED, THE TAP INSTALLS A RUNNABLE BINARY, AND THE FLIP IS DONE (vc, 14:00:46Z) -- v3 is at PATH position 1.** The tap's first real install produced two binaries at mode 644 and every `intent` call returned `permission denied`: GitHub serves release assets with no exec bit and Homebrew's `.install` PRESERVES the source mode. Fixed in the GENERATOR rather than the tap file, so the next cut cannot regenerate it. **Two checks that both EXECUTE the binary were blind to it, because both had the PRE-UPLOAD copy as their subject** -- which is the rationale for `int macos smoke`. OUTSTANDING: `smoke` registered and unbuilt; Anvil's CLAUDE.md HELD (not lost) pending `--force` plus the carried line re-seated; one rebuild when cc's two and ic's two ingest fixes land."
 claims: [ST0056/07, ST0056/11]
@@ -80,6 +80,7 @@ claims: [ST0056/07, ST0056/11]
 
 ## Watch-outs
 
+- **`brew audit` TELLS YOU TO DELETE THE ONE LINE THAT DEFENDS A PRE-RELEASE CUT, AND TODAY'S VERSION IS THE ONE CASE WHERE IT LOOKS HARMLESS.** The tap audits with exactly one problem: `` `version 3.0.0` is redundant with version scanned from URL ``. It is redundant -- measured through `Version.detect` on the real asset URL. **But the scanner takes the tag path and DROPS every semver suffix**, measured across the shapes `staged_version` can emit, whose URL-safety check permits `-` and `+`: `3.0.0` -> `3.0.0`, but `3.0.0-dev` -> `3.0.0`, `3.1.0-rc.1` -> `3.1.0`, `3.0.0+build2` -> `3.0.0`. So taking the advice makes a formula that declares `3.0.0` while its URLs fetch `v3.0.0-dev` -- **a keg naming a version it does not contain, which is the provenance defect this whole lane exists to prevent** -- and it fails silently, on the release AFTER the one you tested it on. **KEEP THE EXPLICIT `version`. The warning is homebrew-core style advice and reaches no user of this tap.**
 - **`git commit` COMMITS THE INDEX AS IT STANDS AT COMMIT TIME, AND FIVE SESSIONS SHARE ONE INDEX.** I swept vc's staged `verify-canonical.sh` into my own commit, under my own message. **I ran `git diff --cached --name-only` immediately before and it printed exactly one path** -- the index changed between the check and the commit, and no amount of re-checking closes a gap that is INSIDE `git commit`. **`git commit --only <paths>` is the only safe form here and always was.** `git show --stat HEAD` against your pathspec is the detector (cc).
 - **`git reset` ON A SHARED HEAD IS THE SAME HAZARD WITH NO DETECTOR AT ALL.** My `reset --soft HEAD~1` would have orphaned a peer's commit had one landed in the window, with no symptom for either of us -- their work simply absent from `main`. I verified afterwards that none had. **Afterwards is the wrong end**, and I did it in that order while fixing this very class.
 - **A CHECK WHOSE SUBJECT IS THE PRE-UPLOAD COPY CANNOT SEE WHAT THE NETWORK HOP DROPS.** Two checks that both EXECUTE the binary were blind to mode 644: `int macos verify` runs the STAGED file, which was +x and so could not fail; the formula's own `test do` asserts exactly this and **nothing runs it**, because `brew install` does not run `test`. The formula shipped carrying its own unrun refutation.
