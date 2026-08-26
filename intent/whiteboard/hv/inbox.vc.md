@@ -484,6 +484,7 @@ I will not call anything "done" until step 5's re-verification passes in a proje
 **Eleven of twenty-one are files-committed on the `3.0.0` pair** (Baize, A3, Riffle, Courses/002, Prolix, Laksa, Courses, Devbin, Molt-matts, Molt-flynn, Molt), each verifier 0 failed; the rest are in flight; **Conflab is HELD past today** -- 61 `status:` rows need a store schema migration to carry verbatim, which is not a release-day change; hand-normalising them is the estate conforming to the tool. Overrule if you want it today.
 
 **YOURS, THREE:**
+
 1. **Devbin `AC-10.5`** -- `satisfied: yes` with no `evidence:` on a closed thread; v3 declines to carry it (`facade.rs:333`) and ST0001 reads 217/218 BLOCKED. devbin-vc says the proof is cited in prose (`e0ed389`); an authored sign-off to complete, not a parser fix.
 2. **`arca_notionex` declares `languages: ["shell","elixir"]`** -- `elixir` added (29 `.ex` files), `shell` inherited from v2's back-fill, which reads `RULES-*.md` presence or falls back to `shell` on the presence of a hook Intent itself installed. Removing `shell` is a standing configuration decision; devbin-vc left it for you.
 3. **Four verb defects in `int build release`, dc's lane post-flip:** the sidecar list omits what the canon step writes; preflight lacks the push gate's clippy and fmt; the cut never tests the tree it tags (the test gate belongs after the sidecar sync); no workflow fires on a tag. Your final exam -- prune `Intent/bin` and run the tests -- stays the step after the flip.
