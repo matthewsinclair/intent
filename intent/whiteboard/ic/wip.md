@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-26 21:06Z
+heartbeat_at: 2026-08-26 22:23Z
 status: active
-focus: "**HOLDING, TREE CLEAN, SHELLS CLOSED.** hv is doing a clean build of HEAD on main and a full suite run, alone, while every workstream waits. **Everything of mine is committed: `03470c5a` (B1 floor, rode 2b), `a8fc134b` (todo watermark parity, COMMITTED RED with three failures NAMED in the message), `b2ba6817` (this fold).** My three scratch worktrees are removed and my orphaned polling shell is killed; the only worktree left is cc`s. **The three reds are all in the file `a8fc134b` restores and all trace to ONE decision -- I skipped the dual-source read on a limit I asserted in a COMMENT, and the restored tests disprove it.** Follow-up commit on hv`s go, never a rewrite. Full 174KB board at `.history/20260826/wip-2100Z.md`; this one is consolidated by CLASS."
+focus: "**`c14aa9bf` IS IN: `intent todo done --prune` now writes `## DONE:2026-08-26T21:40:25Z` and CLEARS THE WORK FINISHED TODAY.** hv ruled it at 21:40Z, parity with `bin/intent_todo`. **The date truncation in `event::todo_watermark` was the defect and the heading was the symptom** -- a completion recorded today compared EQUAL to a flush run today, so `--prune` on a day of work cleared nothing. Three new arms, each mutation-proven to red ALONE. **Verified in a WORKTREE at HEAD, because the shared tree is carrying a peer`s in-flight backup-config change that does not compile:** workspace check clean, `cargo test --workspace` 1168 passed / 2 failed. **THE TWO REDS ARE THE SAME TWO AS BEFORE AND ARE CONSTANT ACROSS ALL THREE MUTATIONS -- they ask whether a flush survives a GIT CLONE, and under D53 it does not. That is hv`s ruling to make, and it is the one thing I am waiting on.** Holding.
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 ---
 
@@ -13,13 +13,13 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 
 ## DOING
 
-**HOLDING FOR hv.** Clean build of HEAD on main + full suite, hv driving, all workstreams waiting. Nothing of mine is uncommitted, no shell of mine is running, no worktree of mine is registered.
+**`c14aa9bf` DELIVERED hv`s 21:40Z ASK.** `event::todo_watermark` returns the full instant at second resolution (`2026-08-26T21:40:25.123Z`->`...25Z`, fraction dropped, not the time); `views::completed_instant`widens a`completed:` DATE to that day`s `T00:00:00Z` before the lexical compare, which is v2`s `normalize_completed`; the heading is `## DONE:<T>`; `render.rs`'s same-day note is replaced by the one still true.
 
-**COMMITTED TODAY, in order:** `c6f644b3` (critic runner refusal, four paths), `baba2d9d` (default declaration), `fecdd110` (ST0061 contract), `ffd26309` + `3d9ea45f` (st dehydrate wired + AT ids), `43c3d2d0` (board), `59d94941` (AC-00.5 denominator arm), **`03470c5a`** (B1 floor: `organize --default`, WIP predicate -- rode rebuild 2b), **`a8fc134b`** (todo watermark parity), `b2ba6817` (fold).
+**MUTATION-PROVEN, EACH REDDING A DIFFERENT ARM SET.** Restore the truncation -> the two integration arms red and NEITHER unit test. Remove the midnight widening -> ONLY the midnight arm reds, which is what says that arm is the only thing holding it. Restore the old heading -> only the heading arm. **The midnight case is the whole reason the widening is a mechanism and not decoration**: a bare date already sorts below a mid-day instant by accident, and the accident INVERTS at exactly `T00:00:00Z`, which is v2`s zero-flush baseline.
 
-**`a8fc134b` IS RED ON PURPOSE AND THE MESSAGE SAYS SO.** hv's instruction was _everything committed, in HEAD on MAIN_, with a clean build imminent -- three failures NAMED in a commit message beat three failures discovered as a mystery during hv's run. **vc's verdict on B1's proofs at `03470c5a`: AC-11.1 ARMED (both tests), AC-11.2/present ARMED, AC-11.5 ARMED; AC-11.2/tty and AC-11.4 PROOF UNARMED** -- fixed in `a8fc134b`, mutations queued with vc for after hv's run.
+**BLOCKED ON ONE RULING, AND IT IS THE ONLY THING I OWE hv AN ANSWER FROM.** `a_flush_survives_a_machine_that_has_no_database` and `doctor_does_not_report_a_flushed_view_as_hand_edited` both ask: does a flush survive a git clone? **Under D53 it does not** -- `f42987c7` took `events.jsonl` out of the working tree, so a clone carries no log and no watermark. Two answers, both defensible: (a) it does not travel, and the two tests assert something the architecture declines to provide, so they are rewritten to the real contract; (b) it travels via the committed `todo.md` heading -- now v2`s exact shape -- read as a FALLBACK when there is no store, the log staying the writer. **(b) costs one thing and it must be said out loud: on a store-less machine `doctor`could no longer catch a hand-edited watermark, because it would be reading the value it is checking.** What (a) costs is that every fresh clone of every project that has ever flushed reports`todo.md` as hand-edited, permanently.
 
-**`intent/todo.md` is dirty in the tree and it is hv's**, not mine: hv drove `todo done --prune` against the new binary, got 54 items on stdout and the watermark at 2026-08-26. That is the parity behaviour working.
+**THE BINARY ON PATH IS STALE (`80d8b2ca`) AND I DID NOT REBUILD IT.** The shared-artefact guard refuses a rebuild while `native/rust` is dirty, and it is dirty with a peer`s work -- so a rebuild would REDIRECT to a private dir at rc 0 and I would have reported a build that never reached `target/release`. `intent/todo.md`still carries the old heading and will change on the first`todo update` after a real rebuild.
 
 ## TODO
 
@@ -64,6 +64,9 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0061]
 **A POSITIVE CONTROL THAT WOULD ALSO PASS UNDER THE BROKEN INSTRUMENT IS DECORATION.** And a stand-in built to audit another check must be shown to ask that check's QUESTION -- mine searched a bare string where the gate searches the quoted id, and "found" a defect that was a ruling of vc's.
 
 ## Decisions
+
+- **(hv, 2026-08-26 21:40Z) The DONE heading is `## DONE:<T>` and <T> is a full ISO 8601 UTC instant** -- the time the prune ran, hence the cutoff. Verbatim v2 (`DONE_HEADING_PREFIX`). **Supersedes my own 2026-08-16 note that v3 "writes it for a person instead"**: v3 still never PARSES the line, so the shape was owed to a reader either way, and a reader who has seen a v2 `todo.md` should not have to learn a second one.
+- **(ic, 2026-08-26, following from hv`s ruling) A flush CLEARS same-day work, and the note saying it could not is gone.** v2 widens a `completed:` date to that day`s midnight, which is below any flush later that day. The day-granular watermark that avoided this is what made a DONE bucket unemptiable on the day the work was done.
 
 - **(hv, 2026-08-26, first-hand) `--default` never removes a file -- "unless it is used with --force, which does remove files, after a confirm."** Resolves AC-11.4 vs the WIDE ruling: not a contradiction, a missing qualifier. The confirm was already ratified in AC-11.2 (no tty -> writes nothing, exits non-zero; `y` on a tty proceeds). No flag, no env override: an escape hatch does not weaken that criterion, it removes the only thing it measures.
 - **(hv, 2026-08-26) The realised set is WIP ALONE.**
