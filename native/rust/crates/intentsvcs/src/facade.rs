@@ -225,6 +225,67 @@ pub enum Exported {
   Realised(realise::Realisation),
 }
 
+/// Directories that still exist under `dir` and have no surviving subdirectory,
+/// `dir` itself included when it is one.
+///
+/// Recursive rather than iterative because the depth is a thread's own file
+/// tree -- units of tens, never unbounded -- and the recursive spelling is the
+/// one whose correctness is readable. A directory that cannot be read is
+/// SKIPPED rather than raised: this runs after the act, purely to describe what
+/// is left, and a describe step must never turn a completed run into a failure.
+fn surviving_leaves(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+  if !dir.is_dir() {
+    return;
+  }
+  let Ok(entries) = std::fs::read_dir(dir) else {
+    return;
+  };
+  let children: Vec<std::path::PathBuf> = entries
+    .flatten()
+    .map(|e| e.path())
+    .filter(|p| p.is_dir())
+    .collect();
+  if children.is_empty() {
+    out.push(dir.to_path_buf());
+    return;
+  }
+  for child in children {
+    surviving_leaves(&child, out);
+  }
+}
+
+/// What [`Facade::dehydrate`] did.
+///
+/// **`unlisted` IS A FACT ABOUT THIS RUN, NOT A RESTATEMENT OF `removed`.** The
+/// two are independently reachable: a thread can be listed with no files on
+/// disk, and present on disk while never listed. Collapsing them into one count
+/// would make the ordinary re-run -- nothing listed, nothing present -- read
+/// identically to the run that did the work (AC-00.6).
+#[derive(Debug, Clone)]
+pub struct Dehydrated {
+  /// Files removed from disk, in the order the plan held them.
+  pub removed: Vec<std::path::PathBuf>,
+  /// Directories that became empty and were pruned. Never the estate root --
+  /// `organize::prune_emptied` carries that floor and proves it directly.
+  pub pruned: Vec<std::path::PathBuf>,
+  /// Whether the manifest actually changed. `false` when the id was not listed,
+  /// which is an ordinary state and not an error.
+  pub unlisted: bool,
+  /// Directories this run emptied of everything it was allowed to remove and
+  /// still could not delete, because content outside the corpus remains in them.
+  ///
+  /// **NAMED RATHER THAN REFUSED ON, AND NEITHER IS THE SAME AS SILENT** (vc,
+  /// 2026-08-26). `prune_emptied` skips a failed `remove_dir` through an
+  /// `is_ok()`, which is correct as a floor and silent as a report. Ignored
+  /// paths are outside the corpus by D29/AC-03.7 -- never counted, never
+  /// removed -- so their presence must not refuse the run. But it leaves the
+  /// manifest saying dehydrated while a directory tree remains, and **we have a
+  /// manifest to contradict, which is exactly what git does not**: `git rm -r`
+  /// leaves ignored files too and says nothing, because nothing it keeps claims
+  /// otherwise. So the verdict names them and never reads a bare `dehydrated`.
+  pub left_in_place: Vec<std::path::PathBuf>,
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum FacadeError {
   /// A write the address scheme can express and this surface will not perform.
@@ -473,6 +534,37 @@ pub enum FacadeError {
   /// that handles all eleven.
   #[error("`{form}` is not something that can be realised to disk: {why}")]
   NotHydratable { form: &'static str, why: String },
+  /// `st dehydrate` was pointed at a project with no `intent/.intentfiles`
+  /// (ST0061 AC-00.4).
+  ///
+  /// **ABSENT MEANS NOBODY HAS SAID, SO EVERYTHING IS REALISED -- AND WRITING
+  /// ONE HERE WOULD DECLARE THAT EVERYTHING EXCEPT THIS THREAD IS.** That is an
+  /// estate-wide assertion, arrived at through a verb that names one thread,
+  /// and made by nobody. It is the exact mirror of the hazard `hydrate` already
+  /// refuses in the other direction, where creating a manifest to hold one
+  /// entry would declare that entry to be the WHOLE of what is realised.
+  ///
+  /// Distinct from the ordinary `the thread was not listed`, which is an exit 0
+  /// no-op: one of those two states needs fixing and the other does not, so
+  /// they must not share an answer.
+  #[error(
+    "refusing to dehydrate {id}: this project has no {path}, so nothing has declared what is realised -- and absent means EVERYTHING is, not nothing"
+  )]
+  NoManifestToUnlistFrom { id: String, path: String },
+  /// One or more of an artefact's realised files could not be shown to be in the
+  /// store, so NONE of them was removed (ST0061 AC-00.2).
+  ///
+  /// **IT CARRIES EVERY REFUSAL, NOT THE FIRST.** A refusal naming one file
+  /// trains an operator to fix that one and re-run, and a count with no detail
+  /// cannot be told from a gate that checked nothing.
+  #[error(
+    "refusing to dehydrate {id}: {count} of its file(s) cannot be shown to be in the store, so none was removed --\n  {detail}"
+  )]
+  DehydrationRefused {
+    id: String,
+    count: usize,
+    detail: String,
+  },
   /// `intent edit` was pointed at a file the model writes (AC-05.1, hv
   /// 2026-08-19).
   ///
@@ -714,6 +806,10 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NotHydratable { form, .. } => format!(
         "address an ARTEFACT instead -- a thread or an issue. A `{form}` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread."
       ),
+      Self::NoManifestToUnlistFrom { path, .. } => format!(
+        "write one first with `intent organize --default`, which declares the open threads; then re-run. Removing a thread's files is a change to a list that has to exist before it can be changed, and {path} does not."
+      ),
+      Self::DehydrationRefused { .. } => "each line above names a file whose bytes the store cannot be shown to hold. `intent doctor` names the difference; if the copy on disk is the one you want, take it into canon with `intent sync --to-store`, and if the store is right, the file is a hand edit to discard. Nothing was removed, so nothing needs undoing.".to_string(),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
@@ -2073,6 +2169,243 @@ impl Facade {
       )?;
     }
     Ok(owned)
+  }
+
+  /// Remove one artefact's realised files and unlist it from the manifest --
+  /// the inverse of [`Facade::hydrate`], and **deliberately not its mirror
+  /// image.**
+  ///
+  /// # The asymmetry IS the design
+  ///
+  /// `hydrate` pins FIRST and materialises second, because its second step only
+  /// ever writes: a pin over a tree that fails to materialise leaves a declared
+  /// thread with missing files, which the next `organize` fixes by writing them.
+  ///
+  /// **Dehydrating in that order would convert a REFUSAL into a DEFERRED
+  /// DELETION.** Unlist first, refuse the removal, and the thread is left
+  /// undeclared and present -- so the next `organize --apply` run by anyone
+  /// removes exactly the files this run refused to remove, with nobody having
+  /// decided anything and no refusal in sight. So the plan here is computed
+  /// against a HYPOTHETICAL manifest: [`intentfiles::unpin`] returns text,
+  /// [`intentfiles::realised_for_action`] reads it, and **nothing on disk moves
+  /// until the removal has been permitted and performed** (AC-00.3).
+  ///
+  /// # All or nothing, for one thread
+  ///
+  /// Every destructive step is gated BEFORE any of them runs, and one refusal
+  /// refuses the whole artefact. `organize` may sensibly remove what it can and
+  /// report the rest, because it is reconciling an estate; this verb was handed
+  /// ONE id, and half-removing that id's files while leaving it declared is a
+  /// state no operator asked for and none would expect to have to repair.
+  pub fn dehydrate(&mut self, address: &Address) -> Result<Dehydrated, FacadeError> {
+    if let Some(authority) = &address.authority {
+      return Err(FacadeError::NotHydratable {
+        form: address.entity.form(),
+        why: format!(
+          "the address names the project `{authority}` rather than this one, and removing another project's files from this tree is not something an empty authority would have meant"
+        ),
+      });
+    }
+    let Some((sigil, id)) = address.entity.artefact() else {
+      return Err(FacadeError::NotHydratable {
+        form: address.entity.form(),
+        why: "only an artefact -- a steel thread -- is named by `.intentfiles`, so it is the smallest thing realisation can address. An ISSUE lives only in canon and the store and has no realised form, so there is nothing to remove".to_string(),
+      });
+    };
+    let id = id.to_string();
+    let path = self.project.intentfiles_path();
+
+    // **AN ABSENT MANIFEST REFUSES (AC-00.4).** See
+    // [`FacadeError::NoManifestToUnlistFrom`] for why creating one here is the
+    // destructive answer rather than the convenient one.
+    let before = match std::fs::read_to_string(&path) {
+      Ok(text) => text,
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
+        return Err(FacadeError::NoManifestToUnlistFrom {
+          id,
+          path: self.project.relative(&path),
+        });
+      }
+      Err(source) => {
+        return Err(FacadeError::ManifestUnreadable {
+          path: path.display().to_string(),
+          source,
+        });
+      }
+    };
+
+    // THE HYPOTHETICAL. Text, not a write. `unpin` refuses a malformed id and
+    // returns the original unchanged when the id is simply not listed -- which
+    // is an ordinary state here, not an error: a thread can be present on disk
+    // and absent from the list, and finishing that job is exactly what this verb
+    // is for.
+    let after = intentfiles::unpin(&before, sigil, &id).map_err(FacadeError::Intentfiles)?;
+    let was_listed = after != before;
+    let realised_after =
+      intentfiles::realised_for_action(&after).map_err(FacadeError::Intentfiles)?;
+
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+    let (tree, digest) =
+      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let whole = {
+      let ctx = self.render_ctx()?;
+      organize::plan(
+        &self.project,
+        &self.canon,
+        &realised_after,
+        &ctx,
+        &tree,
+        digest,
+      )
+    };
+
+    // Whole-estate plan, narrow act -- the same split `hydrate` documents:
+    // classification needs the estate as its denominator, and this verb was
+    // handed one id.
+    let home = match sigil {
+      intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
+    };
+    let mine: Vec<_> = whole
+      .steps
+      .iter()
+      .filter(|s| s.path.starts_with(&home))
+      .cloned()
+      .collect();
+
+    // **THE RAIL, AND IT IS READ BEFORE ANYTHING IS REMOVED (AC-00.2).**
+    // `organize::gate` is the one answer to "can the store put this file back",
+    // and its refusing arm is a wildcard: an opaque attachment carrying `None`
+    // and a hand-edited file whose bytes differ both land there, by the same
+    // match arm rather than by two cases that could drift apart.
+    // **EVERY STEP UNDER THE THREAD, NOT ONLY THE DESTRUCTIVE ONES -- and the
+    // widening is vc's, from a measurement on Lamplight ST0306.** Ten untracked
+    // gifs, 152.9 MB, under one thread's `WP/11/images/`: in no git object, on
+    // one machine. They are not renderable and the store does not carry them,
+    // so `plan` files them `Unclaimed` -- *report, never remove*.
+    //
+    // **NOTHING HERE WOULD EVER HAVE DELETED THEM**, and it is worth saying why
+    // rather than implying the fix was a near miss: `run` removes only
+    // `Dehydrate` steps, and `prune_emptied` calls `remove_dir`, which fails on
+    // a non-empty directory. That is a PHYSICAL floor, not a rule to be kept.
+    //
+    // What the narrow gate got wrong was the REPORT. It would remove the
+    // generated views, delist the thread, and answer `dehydrated` with 152.9 MB
+    // still on disk and the declaration already gone -- **the manifest saying
+    // one thing and the disk another, which is the exact divergence this verb
+    // is ordered to prevent.** So a step this run cannot remove refuses the run,
+    // naming the file and what made it unremovable.
+    let refusals: Vec<String> = mine
+      .iter()
+      .filter_map(|s| match s.action {
+        // The one removable action; the gate alone decides whether the store
+        // can put these bytes back.
+        organize::Action::Dehydrate => organize::gate(s).err().map(|e| e.to_string()),
+        // Kept by design -- and keeping it means the thread does not leave the
+        // tree, which is what this verb was asked for.
+        other => Some(format!(
+          "{} is `{other:?}` -- this run cannot remove it, so the thread would keep a realised form after being delisted",
+          self.project.relative(&s.path)
+        )),
+      })
+      .collect();
+    if !refusals.is_empty() {
+      return Err(FacadeError::DehydrationRefused {
+        id: id.clone(),
+        count: refusals.len(),
+        detail: refusals.join("\n  "),
+      });
+    }
+
+    let scoped = organize::Plan {
+      steps: mine,
+      digest: whole.digest.clone(),
+      preconditions: whole.preconditions.clone(),
+      estate_root: whole.estate_root.clone(),
+    };
+    let run = scoped
+      .run(organize::Mode::Apply, &|| {
+        organize::observe(&self.project, &previous)
+          .map(|(_, digest)| digest)
+          .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
+      })
+      .map_err(FacadeError::Organize)?;
+
+    // **`run` RETURNS `Ok` WITH ITS REFUSALS INSIDE THE REPORT, AND READING
+    // ONLY THE `Err` ARM IS A SILENT SWALLOW.** This comment used to say the
+    // estate preconditions were "read inside `run`, which refuses the whole run
+    // before touching anything" -- **which I asserted without driving, and it
+    // was false in the direction that matters.** `Plan::run` pushes
+    // `PreconditionsUnmet` onto `report.refused` and returns `Ok`; the `?`
+    // above sees nothing. So on an estate that had declared no preconditions at
+    // all, `st dehydrate` removed no file, delisted the thread anyway, and
+    // reported success -- **the manifest saying dehydrated over a full
+    // directory tree, which is the one divergence this verb exists to
+    // prevent.** Found by `an_estate_with_no_declaration_refuses_this_door_too`
+    // on its first run, not by review.
+    //
+    // A per-thread verb must not be a door around the estate gate: if it were,
+    // the gate would protect only the operator who reached for `organize`, and
+    // the NARROWER verb would be the one that deletes.
+    if let Some(refusal) = run.refused.into_iter().next() {
+      return Err(FacadeError::Organize(refusal));
+    }
+
+    // **ONLY NOW.** Every removal has been permitted and performed, so the
+    // declaration can follow. Dying between these two leaves files removed and
+    // the thread still declared -- which the next `organize` repairs by writing
+    // them back from the store. The other order has no such recovery.
+    if was_listed {
+      let mut set = WriteSet::new();
+      set.add(path, after);
+      set.commit()?.keep();
+    }
+
+    let removed: Vec<std::path::PathBuf> = run.dehydrated.clone();
+    if was_listed || !removed.is_empty() {
+      self.record_disk_act(
+        "disk.dehydrate",
+        serde_json::json!({
+          "sigil": sigil.as_str(),
+          "id": id,
+          "unlisted": was_listed,
+          "removed": removed
+            .iter()
+            .map(|p| self.project.relative(p))
+            .collect::<Vec<_>>(),
+          "pruned": run
+            .pruned
+            .iter()
+            .map(|p| self.project.relative(p))
+            .collect::<Vec<_>>(),
+        }),
+      )?;
+    }
+
+    // **WALKED FROM THE THREAD DIRECTORY, NOT DERIVED FROM WHAT WAS REMOVED --
+    // and the first spelling of this was wrong in a way its own motivating case
+    // would have exposed.** Deriving the candidates from the ancestors of
+    // removed files is what `prune_emptied` does, and it is right for pruning:
+    // a directory nothing was removed from was never going to become empty. It
+    // is wrong for REPORTING, because the directory that survives is typically
+    // a SIBLING of everything removed -- `WP/11/images` holding review aids,
+    // while every removal happened in the thread root. Nothing there is an
+    // ancestor of anything removed, so the report would have been silent about
+    // precisely the directory it exists to name.
+    //
+    // Only the LEAVES are named: a directory with no surviving subdirectory.
+    // The chain above it is implied by its own path, and printing four nested
+    // lines for one leftover would be a count of containers standing in for a
+    // count of contents.
+    let mut left_in_place: Vec<std::path::PathBuf> = Vec::new();
+    surviving_leaves(&home, &mut left_in_place);
+    left_in_place.sort();
+
+    Ok(Dehydrated {
+      removed,
+      pruned: run.pruned.clone(),
+      unlisted: was_listed,
+      left_in_place,
+    })
   }
 
   pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {

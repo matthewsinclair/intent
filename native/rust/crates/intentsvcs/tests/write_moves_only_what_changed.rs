@@ -401,6 +401,10 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- resolves only into intent-cli's render.rs/spine.rs. Driven on an acceptance-exempt thread, because on a fresh one `st.done` is not a legal transition from `triage` and the verb refuses: the case FAILED that way on its first run and both guards fired, which is the evidence that a snapshot-only driver would have reported it as a clean pass.",
   ),
   (
+    "st dehydrate",
+    "facade_dehydrate.rs -- `a_hand_edited_view_refuses_the_run_and_nothing_is_removed`, `a_file_the_run_cannot_remove_refuses_it_and_names_it`, `a_refused_run_leaves_the_manifest_byte_identical` and `a_second_run_reports_differently_from_the_first` are this criterion for this verb. **RE-BUCKETED FROM `DECLARED_BUT_UNWIRED` ON THE DAY IT WAS WIRED (ic, 2026-08-26), WHICH IS THE MOVE THAT ROSTER EXISTS TO FORCE** -- its driver asserts `rc=2` from the real binary, so wiring the verb turned that case red and the red is what sent me here. Nothing noticed by reading; the excuse list refused to keep excusing. **Every refusing arm is paired with a control that must REMOVE on the same tree**, because `the file is still there` is produced equally by a gate that refused and by a plan that was never going to remove anything.",
+  ),
+  (
     "st hydrate",
     "facade_hydrate.rs -- `the_call_is_idempotent_in_what_it_returns`, `the_pin_is_idempotent` and `hydrating_something_already_on_disk_still_pins_it` are this criterion for this verb, driven at the primitive the CLI arm is two lines over. NOT organize_idempotent_mtime.rs, which measures the ESTATE-WIDE verb: hydrate runs a plan FILTERED to one artefact, so the whole-estate file covers the mechanism and not the scoping, and citing it would name a file that cannot fail when this verb regresses.",
   ),
@@ -424,10 +428,6 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
 /// the distinction ST0057 AC-08.5 paid for, where a pin grepping `facade.rs`
 /// for `fn at_new` passed while `put` created both rows thirty lines away.
 const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
-  (
-    "st dehydrate",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- no `Facade::dehydrate` exists at all; only `hydrate` is built. **This row had TWO drivers for one window on 2026-08-21, on purpose: `declared_but_unwired.rs` held the claim, cc's driver landed BESIDE it, and only then did ic retire the original.** A gap in which nothing drives the claim is silent and every suite in it is green; an overlap is visible, self-healing, and fails loud if either driver is wrong. The overlap is spent and the row is single-driver again -- **recorded because the sequence is the reusable part, not this row's history: the adopter lands first, the retiree second, always.**",
-  ),
   (
     "st bootstrap",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, and the projected estate byte-identical. Driven at the CLI because it reaches no `intentsvcs` path to drive.",

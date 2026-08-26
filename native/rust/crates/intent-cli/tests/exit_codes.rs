@@ -241,7 +241,7 @@ fn the_unavailable_exception_is_not_flattened_by_the_override() {
 /// declared-but-unimplemented command for the contract to be about.
 #[test]
 fn an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation() {
-  let unbuilt = run(&["st", "dehydrate", "ST0056"]).status.code();
+  let unbuilt = run(&["st", "bootstrap"]).status.code();
   let unknown = run(&["nosuchfamily"]).status.code();
   let usage = run(&["st", "show"]).status.code();
 
@@ -551,9 +551,13 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
 
   // The claim about `2`, FIRST cause, driven: a declared-but-unimplemented
   // command, carrying the stderr line the guide tells an agent to recognise it
-  // by. Exemplar borrowed from the `DECLARED_BUT_UNWIRED` roster; see the note
+  // by. Exemplar borrowed from the `DECLARED_BUT_UNWIRED` roster -- **it was `st
+  // dehydrate` until 2026-08-26, when wiring that verb turned both of these red.
+  // The roster is the denominator; when a verb leaves it, every exemplar
+  // borrowed from it has to move, and these two reds are how that is found.**
+  // See the note
   // on `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation`.
-  let unbuilt = run(&["st", "dehydrate", "ST0056"]);
+  let unbuilt = run(&["st", "bootstrap"]);
   assert_eq!(
     unbuilt.status.code(),
     Some(2),

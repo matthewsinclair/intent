@@ -384,6 +384,55 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("the store holds no threads and the estate has one"),
   ));
 
+  // **BOTH OF DEHYDRATION'S REFUSALS, PROVOKED RATHER THAN EXEMPTED, ON A
+  // FIXTURE OF THEIR OWN.** Its own fixture for the reason the two above give:
+  // the shared facade has been walked through a broken manifest, a malformed
+  // one and a nonsense one by the time it gets here, and both of these need a
+  // manifest that PARSES to reach their own refusal rather than the parser's.
+  //
+  // **THE ORDER IS FORCED AND IT IS THE INTERESTING PART**: the refusal needs
+  // the manifest present, and the absence needs it gone, so the present case
+  // must come first and the file is taken away between them.
+  let dehydrating = Fixture::new();
+  dehydrating.write_thread(&sample_thread("ST0056"));
+  let mut d = dehydrating.facade();
+  let st0056 = intentsvcs::address::Address {
+    authority: None,
+    entity: intentsvcs::address::Entity::Thread {
+      id: "ST0056".to_string(),
+    },
+    format: None,
+  };
+  // A manifest that parses and declares the thread, so `unpin` has something to
+  // remove and the plan classifies the thread's files as this run's to act on.
+  std::fs::write(
+    dehydrating.path("intent/.intentfiles"),
+    "STEELTHREAD:ST0056\n",
+  )
+  .expect("a manifest declaring the one thread");
+  let realised = d.hydrate(&st0056).expect("a declared thread realises");
+  assert!(
+    !realised.is_empty(),
+    "the provocation below needs a realised file to hand-edit; hydrate produced none, so this \
+     case would pass by failing to provoke -- the class the manifest-absence comment above names"
+  );
+  for file in &realised {
+    std::fs::write(file, "a hand edit no render could have produced\n")
+      .expect("make the bytes disagree with the store");
+  }
+  out.push((
+    "a realised file the store cannot be shown to hold",
+    d.dehydrate(&st0056)
+      .expect_err("a file whose bytes the store cannot reproduce is refused, never removed"),
+  ));
+  std::fs::remove_file(dehydrating.path("intent/.intentfiles"))
+    .expect("take the manifest away entirely");
+  out.push((
+    "dehydrate with no manifest to unlist from",
+    d.dehydrate(&st0056)
+      .expect_err("absent means nobody has said, so there is no list to remove an entry from"),
+  ));
+
   out
 }
 
@@ -445,6 +494,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ManifestUnreadable { .. } => "ManifestUnreadable",
     FacadeError::ManifestMalformed { .. } => "ManifestMalformed",
     FacadeError::NotHydratable { .. } => "NotHydratable",
+    FacadeError::NoManifestToUnlistFrom { .. } => "NoManifestToUnlistFrom",
+    FacadeError::DehydrationRefused { .. } => "DehydrationRefused",
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
@@ -459,6 +510,8 @@ fn variant(err: &FacadeError) -> &'static str {
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
   "NotHydratable",
+  "NoManifestToUnlistFrom",
+  "DehydrationRefused",
   "NotEditable",
   "NoSuchEditable",
   "Organize",

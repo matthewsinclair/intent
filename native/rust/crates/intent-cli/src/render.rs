@@ -598,6 +598,68 @@ fn hydrated(argument: &str) -> Result<(), Failure> {
   Ok(())
 }
 
+/// The inverse of `hydrated`, and the report is where the two differ most.
+///
+/// **`removed:` RATHER THAN `hydrated`s `exists:`, AND THE ASYMMETRY IS HONEST.**
+/// `hydrate` labels its lines `exists` because it is idempotent in both steps
+/// and the ordinary second call writes nothing while returning the same set --
+/// so `wrote` would be a count of one thing standing for a count of another.
+/// Dehydration has no such gap: a file already absent was never in the plan, so
+/// every path here names a removal this run actually performed.
+fn dehydrated(argument: &str) -> Result<(), Failure> {
+  let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
+  let mut facade = open()?;
+  let done = facade.dehydrate(&address).map_err(fail)?;
+
+  let project = facade.project();
+  let manifest = project.relative(&project.intentfiles_path());
+
+  // **AC-00.6: `NOTHING TO DO` AND `DID SOMETHING` MUST NOT READ THE SAME**, and
+  // the two axes are reported SEPARATELY because they move independently.
+  // Three of their four combinations are real states: listed with files on
+  // disk; listed with nothing realised; and -- the one worth being able to see
+  // -- NOT listed while files are present, where the manifest already said
+  // unrealised and the disk disagreed. A single blended sentence would make
+  // that disagreement unreportable. This is the class that let `1 refused`
+  // speak for 423 files.
+  if !done.unlisted && done.removed.is_empty() && done.pruned.is_empty() {
+    println!(
+      "ok: {} was already dehydrated -- not listed in {manifest}, nothing realised to remove",
+      address.to_url()
+    );
+    return Ok(());
+  }
+
+  println!("ok: {} dehydrated", address.to_url());
+  if done.unlisted {
+    println!("  delisted: {manifest}");
+  } else {
+    // Reached when the files were present and the id was never listed. Saying
+    // nothing here would let the run read as an ordinary delisting.
+    println!("  unchanged: {manifest} -- the id was not listed, and the files were present anyway");
+  }
+  for path in &done.removed {
+    println!("  removed: {}", project.relative(path));
+  }
+  for path in &done.pruned {
+    println!(
+      "  pruned: {} (emptied by the removal)",
+      project.relative(path)
+    );
+  }
+  // **NEVER A BARE `dehydrated` WHILE A DIRECTORY TREE REMAINS** (vc,
+  // 2026-08-26). `prune_emptied` skips a directory it cannot delete through an
+  // `is_ok()`, which is the right floor and a silent report. Content outside
+  // the corpus -- gitignored review aids, say -- legitimately survives and must
+  // not refuse the run, but the manifest now says this thread is dehydrated and
+  // the disk still has files under it. **git leaves ignored files behind too
+  // and says nothing, because git keeps no manifest to contradict; we do.**
+  for path in &done.left_in_place {
+    println!("  left in place: {} (not empty)", project.relative(path));
+  }
+  Ok(())
+}
+
 fn st(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("new", a)) => {
@@ -869,6 +931,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("hydrate", a)) => hydrated(&thread_arg(a, "id")?),
+    Some(("dehydrate", a)) => dehydrated(&thread_arg(a, "id")?),
     // **AC-05.3: PATH-PRINTING HAS ONE HOME.** `st edit` is the same call with
     // an `st-id` argument instead of an address -- and since `address::promote`
     // takes a bare id, there is nothing left for this arm to do but pass it on.
@@ -5080,14 +5143,34 @@ mod tests {
     );
   }
 
+  /// **AC-00.7: DISPATCHED RATHER THAN HAND-CALLED, AND THE FIXTURE HAD TO
+  /// MOVE.**
+  ///
+  /// This test used to call `unwired("st", "dehydrate")` BY HAND. `unwired` is
+  /// a pure function that interpolates the verb into a message and consults
+  /// only whether the FAMILY ships verbs -- **the verb's own wired-ness is
+  /// never read.** So the fixture was decorative: the test passed identically
+  /// for `st list`, and it kept passing on the day `dehydrate` was wired, which
+  /// is the exact moment a test with this name should have gone red.
+  ///
+  /// **`IN-AG-RED-CONTROL-001` in its quietest form** -- not a control that
+  /// broke, but one that never could break, wearing a name that says it does.
+  ///
+  /// The fixture is now `bootstrap`. `repair` is the other genuinely-unwired
+  /// verb in this family and was passed over on purpose: its surface row is
+  /// `pending-hv`, so it could move under this test without anybody touching
+  /// the test. `bootstrap` is `keep` and hv-ratified.
   #[test]
   fn an_unwired_verb_in_a_wired_family_is_sent_to_that_family() {
-    let failure = unwired("st", "dehydrate").expect_err("unwired always fails");
+    let matches = crate::spine::build(&dispatch::table())
+      .try_get_matches_from(["intent", "st", "bootstrap"])
+      .expect("`st bootstrap` is DECLARED, so it parses -- only its dispatch arm is missing");
+    let failure = run(&matches).expect_err("an unwired verb fails");
     assert_eq!(failure.code(), 2, "an unwired verb must exit 2, never 1");
 
     let message = failure.message().expect("Unavailable carries a message");
     assert!(
-      message.contains("`st dehydrate`"),
+      message.contains("`st bootstrap`"),
       "family and verb are joined with a space when both are present: {message}"
     );
     assert!(
@@ -5097,6 +5180,38 @@ mod tests {
     assert!(
       !message.contains("nothing in this build provides it"),
       "and must NOT claim the family is absent when it is not: {message}"
+    );
+  }
+
+  /// **THE CONTROL, AND IT IS THE HALF THE OLD TEST COULD NOT HAVE HAD.**
+  ///
+  /// A hand-called `unwired` produces the message above no matter what dispatch
+  /// does, so the test above alone still cannot tell "reached `unwired`" from
+  /// "`unwired` formats a string". This asserts the inverse through the same
+  /// door: a WIRED verb must NOT reach it. **The pair can only both pass if
+  /// `st()` is genuinely routing on the verb.**
+  ///
+  /// `st show` with something that is not a spelling of an id, because
+  /// `thread_arg` runs BEFORE `open()` -- so this needs no project, opens no
+  /// store, and writes nothing, while still proving the arm was entered.
+  #[test]
+  fn a_wired_verb_dispatched_the_same_way_does_not_reach_unwired() {
+    let matches = crate::spine::build(&dispatch::table())
+      .try_get_matches_from(["intent", "st", "show", "not-an-id"])
+      .expect("`st show` parses; the argument is refused later, by us");
+    let failure = run(&matches).expect_err("`not-an-id` is not a thread spelling");
+
+    let message = failure.message().expect("an id refusal carries a message");
+    assert!(
+      !message.contains("is a known command that is not implemented yet"),
+      "a wired verb must reach its own arm, not the unwired one -- if this fires, \
+       dispatch is falling through and the test above is passing for the wrong reason: {message}"
+    );
+    assert_ne!(
+      failure.code(),
+      2,
+      "exit 2 is `this build cannot answer at all`; a wired verb refusing a bad argument \
+       answered, and the answer was no: {message}"
     );
   }
 }

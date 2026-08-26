@@ -1163,13 +1163,20 @@ fn the_door_needles_still_match_what_the_surface_says() {
 ///
 /// # The two exclusions are named, not silent
 ///
-/// `hydrate` and `edit` take the same `(&mut self, address: &Address)` and are
-/// not doors: neither changes canon at the addressed entity. They are listed
-/// here so that removing one from the exclusion list is a visible act rather
-/// than a shrug -- the same citation clause [`Expected`] carries.
+/// `hydrate`, `dehydrate` and `edit` take the same `(&mut self, address:
+/// &Address)` and are not doors: none changes canon at the addressed entity.
+/// They are listed here so that removing one from the exclusion list is a
+/// visible act rather than a shrug -- the same citation clause [`Expected`]
+/// carries.
+///
+/// **`dehydrate` REMOVES FILES AND IS STILL NOT A DOOR, WHICH IS THE ONE WORTH
+/// STATING.** It writes `.intentfiles` and deletes realised views; canon is
+/// untouched, which is exactly why re-listing the id and re-running `hydrate`
+/// restores what it removed. A door is about the ADDRESSED ENTITY'S canon, not
+/// about how much a verb writes.
 #[test]
 fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
-  const NOT_DOORS: [&str; 2] = ["hydrate", "edit"];
+  const NOT_DOORS: [&str; 3] = ["hydrate", "dehydrate", "edit"];
 
   let source =
     std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/facade.rs"))
