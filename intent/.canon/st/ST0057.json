@@ -1084,8 +1084,8 @@
       "covers": [
         "AC-08.6"
       ],
-      "status": "to-write",
-      "note": "**TO-WRITE, and the verb it tests does not exist yet** -- that is the gap `0088` records rather than a missing instrument. Cited file deliberately does not exist: this repository's commit gate refuses a to-write row whose cited test is already present."
+      "status": "green",
+      "note": "**GREEN 2026-08-26 12:08Z (ic built at `90988faf`; vc drove the falsifiers at `2aa82d17` in an isolated target: 11 passed, 0 failed, rc=0).** Tests the VERB -- `Facade::ac_new` / `Facade::at_new` -- and the grammar-on-create, NOT `Facade::put`, which `AT-08.4` already proves creates a row idempotently; a file exercising `put` here would have been green on day one and left the criterion untested (ic's header names the trap). Both reachability limbs are DIFFERENTIALS: the same entity built by a canon hand-edit and by the verb, canon compared byte for byte, so a diverging field reds the test and the diff isolates it. `at_new` lints the PROSPECTIVE row before the write and refuses an unclosable pairing and a `covers` that matches no criterion. **The finding-narrowing test was VACUOUS on its first run and its own control caught it** -- the fixture carried no finding, so a create succeeding proved nothing; the finding is now planted synthetically and a second assertion checks it SURVIVES the create. Handoff signal driven by vc before the flip: `stale_at_check.sh` named exactly AT-08.6 and AT-08.7 (file exists, row said to-write) and nothing else."
     },
     {
       "id": "AT-08.7",
@@ -1094,8 +1094,8 @@
       "covers": [
         "AC-08.7"
       ],
-      "status": "to-write",
-      "note": "**TO-WRITE, and the verb it tests does not exist yet** -- that is the gap `0088` records rather than a missing instrument. Cited file deliberately does not exist: this repository's commit gate refuses a to-write row whose cited test is already present."
+      "status": "green",
+      "note": "**GREEN 2026-08-26 12:08Z (ic built at `90988faf`; vc drove the falsifiers at `2aa82d17` in an isolated target: 11 passed, 0 failed, rc=0).** Tests the VERB -- `Facade::ac_new` / `Facade::at_new` -- and the grammar-on-create, NOT `Facade::put`, which `AT-08.4` already proves creates a row idempotently; a file exercising `put` here would have been green on day one and left the criterion untested (ic's header names the trap). Both reachability limbs are DIFFERENTIALS: the same entity built by a canon hand-edit and by the verb, canon compared byte for byte, so a diverging field reds the test and the diff isolates it. `at_new` lints the PROSPECTIVE row before the write and refuses an unclosable pairing and a `covers` that matches no criterion. **The finding-narrowing test was VACUOUS on its first run and its own control caught it** -- the fixture carried no finding, so a create succeeding proved nothing; the finding is now planted synthetically and a second assertion checks it SURVIVES the create. Handoff signal driven by vc before the flip: `stale_at_check.sh` named exactly AT-08.6 and AT-08.7 (file exists, row said to-write) and nothing else."
     }
   ],
   "attachments": [
