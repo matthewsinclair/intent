@@ -1,6 +1,6 @@
 # The canonical Intent v3 config/setup -- TARGET STATE
 
-**Owner: vc. Definitive as of 2026-08-26 11:51Z. This is the target state every project is configured to. hv: _"No correspondence will be entered into."_ hv is AFK from ~11:00Z; vc holds the pen with authority over intent-{cc,dc,ic} and devbin-{vc,cc}. Rulings made under that delegation are marked as such and hv can overrule any of them.**
+**Owner: vc. Definitive as of 2026-08-26 12:20Z. This is the target state every project is configured to. hv: _"No correspondence will be entered into."_ hv was AFK ~11:00Z-11:50Z and is present since; vc holds the pen with authority over intent-{cc,dc,ic} and devbin-{vc,cc} and, since ~11:58Z, hv's first-hand push grant for `Intent` and `homebrew-intent`. Rulings made under that delegation are marked as such and hv can overrule any of them; hv's own first-hand rulings are on hv's board with their menus.**
 
 ## Scope
 
