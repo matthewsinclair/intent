@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 12:01Z
+heartbeat_at: 2026-08-26 12:19Z
 status: active
 focus: "**hv STOPPED THE FLEET AT ~11:52Z, ASKED HOW ANYONE COULD BE DECLARING SUCCESS WITH AN EMPTY TAP, AND WAS RIGHT: five repos had v3 files committed and a v2 binary that refuses them; the keg was local, preseeded, unlinked, untagged; nothing was published because publish was hv's and hv was AFK; and my word 'landed' meant files-committed and read as working. hv THEN LIFTED THE HOLD FIRST-HAND WITH PUSH AUTHORITY TO Intent + homebrew-intent -- so a REAL release is now the path: ic commits the ingest fix (full sweep to completion first) -> dc bumps to 3.0.0, builds once -> fleet migrates on that pair -> dc prepare/formula/PUBLISH (tag, gh release, tap) -> brew install FROM THE TAP -> brew link on my word -> every project re-verified with v3 actually on PATH. Only that last step earns 'done'.** Fleet is 21. Landed-as-files: Baize (+provenance restore), A3, Riffle, Courses/002, Prolix; Courses reverted (canon inverted 8 hv sign-offs); Laksa commit re-running in background. Two migration defects found by driving and fixed as source (user-block substitution: cc 8ba6c026 in; satisfied-inversion: ic, uncommitted); one error of mine (bucket collapse deleted acceptance.md preambles) reverted and the script halted."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -27,6 +27,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 4. **vc**: AC-08.6/08.7 falsifiers at HEAD; ST0057 gate; tell hv before anyone tags if it does not close.
 5. **dc**: prepare -> formula -> publish (tag `v3.0.0`, release with artefacts, formula to the tap) -> `brew install matthewsinclair/intent/intent` OVER THE NETWORK -> arms (a)(b)(c) + `--apply` throwaway on the tap keg.
 6. **THE FLIP, on vc's word**: `brew link` -> every project re-verified with v3 on PATH including an "intent works here" arm -> devbin-cc's post-cut rows -> devbin-vc's positive control -> `use dev|prod` driven in Intent.
+
+**LANDED AS FILES (verifier 0 failed, one commit each): Baize `5bea21c4`+`ab8172a`, A3 `f0c55ed`, Riffle `66b7fdd`, Courses/002 `a50b682`, Prolix `bc620d4`, Laksa `2bf06a27` (`--no-verify` on hv's ruling: Laksa's own attribution guard read 178 regenerated verbatim lines as new claims -- a guard over ADDED lines cannot tell a re-render from a claim; dc's generalisation, filed). Courses reverted, re-runs on the pair. THE CUT: tree clean at `56364200` (cc's `field()` fix, 904/0 + 268/0); dc dry-running `int build release v3.0.0`; the verb reads its confirm from /dev/tty, so hv fires it in hv's own terminal on dc's exact line.**
 
 **FOLLOW-UPS OWED ON LANDED PROJECTS:** Riffle user block lost 20 bytes of provenance (same as Baize) -- ic restores from `08c072f`, target digest `c07e405fb6e9278767bd55035c997148654c8030b21c4bd6136112a640c54474`, verify full-length. devbin-cc's detector: block digest `12bad4ea13449501ede0f2f04996a730f701c8d68036c47cf6c326ed7226f480` means "the template's default block, not the project's" -- a hit means check, not robbed.
 
