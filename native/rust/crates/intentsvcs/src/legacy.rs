@@ -1484,8 +1484,60 @@ fn field(row: &str, key: &str) -> Option<String> {
   let marker = format!(" -- {key}: ");
   let start = row.find(&marker)? + marker.len();
   let rest = &row[start..];
-  let end = rest.find(" -- ").unwrap_or(rest.len());
-  Some(rest[..end].trim().to_string())
+  Some(rest[..field_end(rest)].trim().to_string())
+}
+
+/// Where a field's value ends: the first ` -- ` that is **not inside a
+/// bracket**.
+///
+/// **THE SEPARATOR IS ALSO ORDINARY PROSE, AND THAT IS THE WHOLE DEFECT.**
+/// Authors write ` -- ` inside a `satisfied:` parenthetical the same way they
+/// write it anywhere else, so a blind `find(" -- ")` cut the value mid-note,
+/// the closing `)` fell outside the slice, and `satisfied_verdict` refused an
+/// unclosed parenthetical that was perfectly well formed in the file.
+/// **Thirteen rows estate-wide, twelve of them one project's, one of them a
+/// live thread** -- and before the refusal existed they ingested as `yes` read
+/// UNSATISFIED, silently reversing a ratified sign-off.
+///
+/// **THE FIX IS HERE RATHER THAN IN THE ROWS BECAUSE THE ROWS ARE EVIDENCE.**
+/// Editing thirteen ratified contracts so a parser can read them makes the
+/// estate conform to the tool, and it puts the workaround in thirteen places
+/// that must each stay correct when the fourteenth lands somewhere nobody is
+/// watching (ic's ruling, and the Highlander argument is the whole of it).
+///
+/// **IT WIDENS WHAT PARSES, NEVER WHAT DEFAULTS.** An unbalanced row falls back
+/// to the old cut, so a genuine truncation still reaches `satisfied_verdict`
+/// and is still refused. Nothing here rescues a value into a verdict -- that
+/// remains the one thing this parser must never do.
+fn field_end(rest: &str) -> usize {
+  let bytes = rest.as_bytes();
+  let mut depth = 0usize;
+  let mut first_separator = None;
+  let mut i = 0;
+  while i < bytes.len() {
+    match bytes[i] {
+      b'(' | b'[' => depth += 1,
+      b')' | b']' => depth = depth.saturating_sub(1),
+      // A space byte is always a char boundary in UTF-8 -- no multi-byte
+      // sequence contains an ASCII byte -- so slicing here cannot split a
+      // character. Same reason the bracket scan above is byte-wise and safe.
+      b' ' if rest[i..].starts_with(" -- ") => {
+        if depth == 0 {
+          return i;
+        }
+        first_separator.get_or_insert(i);
+      }
+      _ => {}
+    }
+    i += 1;
+  }
+  // Reaching the end still inside a bracket means the row itself is unbalanced,
+  // not that the value runs to the end: falling through would swallow every
+  // later field. Cut where the old code cut and let the refusal do its job.
+  match depth {
+    0 => rest.len(),
+    _ => first_separator.unwrap_or(rest.len()),
+  }
 }
 
 /// Split v2's `---` frontmatter from the body.
