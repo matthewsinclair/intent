@@ -479,6 +479,81 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
 // uses them. Whether the BEGIN/END marker grammar should survive AT ALL is a
 // separate question, deliberately not folded into this ruling.
 
+/// The header a generated default carries, and the ONLY home for that text.
+///
+/// hv hand-wrote Intent's own manifest, so until now no header existed in the
+/// tool at all -- which is why this constant is here rather than in a template:
+/// the file is written by a function, and a template would be a second home for
+/// a string only that function emits.
+const DEFAULT_HEADER: &str = "\
+# .intentfiles -- WHICH DATABASE ARTEFACTS ALSO HAVE A REALISED FORM ON DISK.
+#
+# Written by `intent organize --default` from thread status: every OPEN thread
+# is declared, and nothing else. OPEN means every status except Completed and
+# Cancelled.
+#
+# REALISATION IS DRIVEN FROM THIS FILE. Commands change it; `intent organize`
+# realises it. Nothing recomputes it from status afterwards, so a write here is
+# a CHANGE TO STATE and never a REGENERATION of it -- which is why re-running
+# `--default` over a file that already exists changes nothing without `--force`.
+#
+# Many writers, one meaning. `st new` adds the id, `st done` and `st cancel`
+# remove it, `st hydrate` / `st dehydrate` do it directly, and a human may edit
+# it by hand. All of those are ordinary writers; none is privileged.
+#
+# THE DATABASE ALWAYS HOLDS EVERY ARTEFACT IN FULL. This file decides only what
+# is ALSO on disk, so dehydration is never a loss and hydration is a
+# regeneration rather than a restore.
+#
+# ABSENT is not EMPTY. A missing file means nobody has said, and everything
+# stays; a file present and declaring nothing means keep nothing.
+#
+# Grammar: `<SIGIL>:<ID>`, sigil STEELTHREAD -- the only one -- optional trailing
+# `# comment`. Nothing else. A line the parser cannot read ABORTS the run with
+# its line number.
+";
+
+/// The DEFAULT declaration written from status: every OPEN thread, nothing else.
+///
+/// **ONE FUNCTION, FOUR CALLERS** (WP-11): the `organize --default` verb, `intent
+/// init`, the migration's hop 2, and `intent upgrade` when the file is ABSENT.
+/// A second implementation of "what does default mean" is how two projects come
+/// to disagree about which threads are realised while both believe they took the
+/// default.
+///
+/// **OPEN IS `!is_closed()`, NEVER AN ENUMERATION OF THE OPEN STATUSES.**
+/// WP-11 names them -- WIP, Triage, Not Started, On Hold -- and listing them
+/// here would mean a sixth status silently dropping out of every project's
+/// default the day it is added, with nothing to report it.
+/// [`model::ThreadStatus::is_closed`] already owns that question.
+///
+/// **SORTED BY ID.** The output is committed and diffed across nineteen
+/// estates; iteration order that varies by machine turns "did the default
+/// change" into a question nobody can answer by eye. Same discipline as the
+/// census id lists in `critic`.
+///
+/// An empty input yields the header and no declarations, which is the correct
+/// content for `intent init`: the file is PRESENT and declares nothing, meaning
+/// keep nothing -- as distinct from ABSENT, which means nobody has said.
+pub fn default_declaration(threads: &[(String, model::ThreadStatus)]) -> String {
+  let mut open: Vec<&str> = threads
+    .iter()
+    .filter(|(_, status)| !status.is_closed())
+    .map(|(id, _)| id.as_str())
+    .collect();
+  open.sort_unstable();
+  open.dedup();
+
+  let mut out = String::from(DEFAULT_HEADER);
+  for id in open {
+    out.push_str(Sigil::SteelThread.as_str());
+    out.push(':');
+    out.push_str(id);
+    out.push('\n');
+  }
+  out
+}
+
 /// Add a PIN for `id`, so the artefact realises regardless of status.
 ///
 /// This is what a hand realisation records (AC-05.2). `intent edit ST0011`
