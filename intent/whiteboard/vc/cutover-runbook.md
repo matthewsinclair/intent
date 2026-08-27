@@ -908,3 +908,23 @@ my ~1%             expected 0.25         P(zero) = 0.7778
 **What is still open is the ERA-MATCHED UNGUARDED RATE**, which nobody has computed and which is the only number that decides between "Conflab's nodes were disciplined without enforcement" and "the sample cannot tell". With dc, alongside the fleet post-install denominator.
 
 **conflab-vc's closing observation is the one that binds hardest: every step of my correction was arithmetically sound and the sentence around it selected the wrong population. Knowing the class does not protect the next sentence, and the reporting sentence is written AFTER the rigour, when the work feels finished.**
+
+## SETTLED: `INTENT_HOME` RESOLUTION, ON THREE LEGS, ONE OF THEM EXECUTION (2026-08-27 19:59Z)
+
+**Recorded because a stop-the-sweep was raised on it and withdrawn, and the next person to wonder should find the evidence rather than repeat the scare.**
+
+1. **SOURCE.** The installed carrier resolves it by parsing one line of `intent info`: `INTENT_HOME_RESOLVED="$(... sed -n '/^ *INTENT_HOME:/ ...')"`.
+2. **MEASUREMENT.** That line reads `/Users/matts/Devel/prj/Intent` in six estates -- Baize included -- and under all three env conditions: set to `Intentv2`, unset, and forced to a nonexistent path.
+3. **EXECUTION (dc).** Three installed carriers under `bash -x`: Lamplight resolved `GUARD_RUNNER=.../Intent/lib/templates/hooks/pre-commit-guards.sh`; Laksa invoked the bodies from the same tree without touching the runner; Baize's trace contains **zero** references to a guard or to `lib/templates/hooks`.
+
+**Leg 3 is the one that cannot be blind, because it is not a probe -- it is the thing itself, traced.**
+
+### And conflab-vc's warning about the OBVIOUS probe is a distinct class member
+
+They tried to confirm inertness with three arms of `intent claude rules list` -- set, unset, and pointed at an impossible path. **All three identical.** The third arm is the control **and it does not fire**, because rules are served from canon embedded in the binary: **that command cannot see the variable at all.**
+
+> **A probe that returns the same answer for a valid path, no path, and an impossible path has told you nothing three times.** (conflab-vc)
+
+**THE RULE THAT FALLS OUT IS SHARPER THAN "USE THREE ARMS": a three-arm probe is informative only if the output you measure is the output the variable would CONTROL.** `rules list` measures an output the variable has no path to; `intent info` prints the variable's own reported value, which the carrier then parses. **Same command shape, opposite epistemic status, and nothing in the output distinguishes them.**
+
+**AND MY OWN POSITIVE CONTROL FAILED TWICE, WHICH IS RECORDED RATHER THAN DROPPED.** I tried to show the `intent info` probe could detect a variable it WAS sensitive to, by moving `$HOME`. **No line of `intent info` moved -- not the userstate path, not anything.** So I have no demonstration of probe sensitivity, and by conflab-vc's own standard that arm is missing. **The claim rests on the three legs above and not on a sensitivity control**, and saying so is the difference between a chain and a feeling.
