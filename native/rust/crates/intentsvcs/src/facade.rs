@@ -4748,6 +4748,10 @@ impl Facade {
           &title,
           value.get("severity").and_then(|v| v.as_str()),
           value.get("reporter").and_then(|v| v.as_str()),
+          value
+            .get("body")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default(),
         )?;
         Ok(Address {
           authority: None,
@@ -5724,6 +5728,7 @@ impl Facade {
     title: &str,
     severity: Option<&str>,
     reporter: Option<&str>,
+    body: &str,
   ) -> Result<u32, FacadeError> {
     let number = self.next_issue_number();
     let issue = crate::model::Issue {
@@ -5736,18 +5741,18 @@ impl Facade {
       created: String::new(),
       closed: None,
       reporter: reporter.map(str::to_string),
-      // **Empty because nobody has written one, which is a state and not a
-      // gap.** `issues add` takes a title and a severity; there is no body on
-      // the way in, so inventing a template here would put prose in the record
-      // that no author wrote -- the same reasoning that keeps template-identical
-      // sections out of `Thread.body`.
+      // **THE CREATE DOOR, RULED GO BY hv 2026-08-27.** This field was declared
+      // in the model, carried through canon, and reachable by NO verb: `issues
+      // add` took a title and a severity, so the whole of an issue's prose had
+      // to be written by editing the file -- a route that stops existing under
+      // the disk-optional model. Measured on this estate at the time of the
+      // ruling: 57 of 78 issues carry a non-empty body.
       //
-      // The CREATE door for this field is therefore still missing, and it is
-      // named rather than left to be discovered: v2 authors a body by editing
-      // the file, and under hv's disk-optional model that route stops existing.
-      // Raised with vc; it is a surface question, not a conservation one -- the
-      // migration's carry is what the gate measures.
-      body: String::new(),
+      // Still empty when nobody passes one, which is a state and not a gap --
+      // inventing a template here would put prose in the record that no author
+      // wrote, the same reasoning that keeps template-identical sections out of
+      // `Thread.body`.
+      body: body.to_string(),
     };
     let mut next = self.canon.clone();
     next.issues.push(issue);

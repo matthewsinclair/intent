@@ -40,7 +40,7 @@ const BODY: &str =
 /// it. That gap is the condition; the verb is only what walks into it.
 fn issue_with_prose_only_on_disk(fx: &Fixture) -> intentsvcs::facade::Facade {
   let mut f = fx.facade();
-  let number = f.issue_add("A thing", None, None).expect("issue added");
+  let number = f.issue_add("A thing", None, None, "").expect("issue added");
   assert_eq!(number, 1, "the fixture's numbering");
 
   let path = fx.path("intent/.canon/issues/0001.json");
@@ -118,7 +118,7 @@ fn the_refusal_names_the_route_that_recovers_the_prose() {
 fn an_issue_whose_body_is_empty_on_both_sides_closes_normally() {
   let fx = Fixture::new();
   let mut f = fx.facade();
-  f.issue_add("A thing", None, None).expect("issue added");
+  f.issue_add("A thing", None, None, "").expect("issue added");
 
   f.issue_close(1)
     .expect("an issue with no authored body anywhere is an ordinary close");

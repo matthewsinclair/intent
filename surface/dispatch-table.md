@@ -1402,16 +1402,16 @@ Track issues without the ceremony of a steel thread
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
-| command                           | args      | flags                                                          | help                                                   | disposition |
-| --------------------------------- | --------- | -------------------------------------------------------------- | ------------------------------------------------------ | ----------- |
-| `issues`                          | [command] | --width <n>, --format terminal/md/json                         | Track issues without the ceremony of a steel thread    | keep        |
-| `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md/json | List issues (default: open)                            | keep        |
-| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low                            | Add a new issue, print its ID:TITLE                    | keep        |
-| `issues show`                     | <id>      | --json, --format terminal/md/json                              | Show one issue (optionally as JSON)                    | keep        |
-| `issues close`                    | <id>      | --                                                             | Mark an issue done: OPEN -> CLOSED                     | keep        |
-| `issues open`                     | <id>      | --                                                             | Reopen an issue: CLOSED -> OPEN                        | keep        |
-| `issues hydrate`                  | <id>      | --                                                             | Add an issue to .intentfiles and write its files       | retire      |
-| `issues dehydrate`                | <id>      | --                                                             | Remove an issue from .intentfiles and delete its files | retire      |
+| command                           | args      | flags                                                             | help                                                   | disposition |
+| --------------------------------- | --------- | ----------------------------------------------------------------- | ------------------------------------------------------ | ----------- |
+| `issues`                          | [command] | --width <n>, --format terminal/md/json                            | Track issues without the ceremony of a steel thread    | keep        |
+| `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md/json    | List issues (default: open)                            | keep        |
+| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low, --body <text>, --from <file> | Add a new issue, print its ID:TITLE                    | keep        |
+| `issues show`                     | <id>      | --json, --format terminal/md/json                                 | Show one issue (optionally as JSON)                    | keep        |
+| `issues close`                    | <id>      | --                                                                | Mark an issue done: OPEN -> CLOSED                     | keep        |
+| `issues open`                     | <id>      | --                                                                | Reopen an issue: CLOSED -> OPEN                        | keep        |
+| `issues hydrate`                  | <id>      | --                                                                | Add an issue to .intentfiles and write its files       | retire      |
+| `issues dehydrate`                | <id>      | --                                                                | Remove an issue from .intentfiles and delete its files | retire      |
 
 ### `issues`
 
@@ -1475,6 +1475,12 @@ Add a new issue, print its ID:TITLE
   - `--severity` `critical|high|medium|low` (enum) -- Severity
     - **default:** medium
     - **disposition:** keep
+  - `--body` `<text>` (string) -- The issue's prose, inline
+    - **disposition:** keep
+    - **disposition basis:** RULED GO BY hv, 2026-08-27, asked at source rather than taken from my own board. cc's board carried `ruled GO` with NO authority and no peer board or inbox corroborated it, and this field requires an authority and a date -- so writing one from an unattributed note would have manufactured exactly the unverifiable ratification the `ratified-in` guard exists to report, in the table that reports it. **THE GAP IS REAL AND MEASURED**: `body` is declared in the model and carried through canon while `issues add` took `<TITLE>` and `--severity` only, so an issue's prose had no create path at all and was authored by editing the file -- a route that stops existing under the disk-optional model. 57 of 78 issues on this estate carry a non-empty body. **`--body` AND `--from` TOGETHER REFUSE**: both name the same field, so a precedence rule would resolve the ambiguity silently in favour of whichever the implementer tested first.
+  - `--from` `<file>` (string) -- Read the issue's prose from a file
+    - **disposition:** keep
+    - **disposition basis:** Same ruling as `--body` above, which carries the full basis. Separate spelling because prose long enough to want a file is the common case for an issue, and shell-quoting a multi-line body inline is where authors give up and edit the file instead -- the route this door replaces. An unreadable file REFUSES and never silently becomes an empty body.
 - **Exit codes:**
   - `0` -- created -- prints TWO lines, `created: <path to the issue's md file>` then `<ID>:<TITLE>` (bin/intent_issues:187-188)
   - `1` -- no title -- `error: Issue title is required`

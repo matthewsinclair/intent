@@ -875,7 +875,7 @@ fn cases() -> Vec<Case> {
       NOOP,
       |fx| {
         fx.facade()
-          .issue_add("a defect", None, None)
+          .issue_add("a defect", None, None, "")
           .expect("issues add");
       },
       true,
@@ -884,7 +884,7 @@ fn cases() -> Vec<Case> {
       "issues close",
       |fx| {
         fx.facade()
-          .issue_add("a defect", None, None)
+          .issue_add("a defect", None, None, "")
           .expect("to exist");
       },
       |fx| {
@@ -896,7 +896,7 @@ fn cases() -> Vec<Case> {
       "issues open",
       |fx| {
         let mut f = fx.facade();
-        f.issue_add("a defect", None, None).expect("to exist");
+        f.issue_add("a defect", None, None, "").expect("to exist");
         f.issue_close(1).expect("to closed");
       },
       |fx| {

@@ -3731,9 +3731,10 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       // the facade records the absence rather than this arm inventing one.
       let severity = opt(a, "severity");
       let reporter = reporter();
+      let body = issue_body(a)?;
       let mut f = open()?;
       let number = f
-        .issue_add(&title, severity.as_deref(), reporter.as_deref())
+        .issue_add(&title, severity.as_deref(), reporter.as_deref(), &body)
         .map_err(fail)?;
       // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
       // then `<id>:<title>`.
@@ -4682,6 +4683,40 @@ fn table_out(out: &Output, headers: &[&str], rows: &[Vec<String>]) -> Result<Str
 /// Intent error -- so a helper shared by two subcommands cannot use it. That
 /// is not hypothetical: `st list` and `st sync` share a renderer, `st sync`
 /// declares no `--markdown`, and the shared code panicked the moment it asked.
+/// The body an `issues add` invocation gives the new issue.
+///
+/// **`--body` AND `--from` TOGETHER REFUSE RATHER THAN ONE WINNING** (hv,
+/// 2026-08-27, with the door itself). Both name the issue's prose, so passing
+/// both leaves nothing on the command line to say which the author meant --
+/// and a precedence rule would resolve it SILENTLY, in favour of whichever the
+/// implementer happened to test first. An author who passes both has made a
+/// mistake they can see; an author whose file was quietly discarded in favour
+/// of an inline string has one they cannot.
+///
+/// **AN UNREADABLE `--from` REFUSES AND IS NEVER AN EMPTY BODY.** The whole
+/// point of this door is that the field had no writer, so a read failure
+/// silently creating an empty-bodied issue would be the defect it exists to
+/// close -- and it would land in the record as an issue somebody wrote nothing
+/// in. Absence and unreadability are different states here as everywhere.
+///
+/// Neither flag is the ordinary case and gives an empty body: nobody wrote one,
+/// which is a state.
+fn issue_body(m: &ArgMatches) -> Result<String, Failure> {
+  match (opt(m, "body"), opt(m, "from")) {
+    (Some(_), Some(_)) => Err(Failure::Error(
+      "error: --body and --from both give the issue its prose, so passing both says nothing about which one you meant\n  remedy: pass one of them"
+        .to_string(),
+    )),
+    (Some(text), None) => Ok(text),
+    (None, Some(path)) => std::fs::read_to_string(&path).map_err(|e| {
+      Failure::Error(format!(
+        "error: --from could not read {path}\n  caused by: {e}\n  remedy: name a readable file, or pass the prose inline with --body"
+      ))
+    }),
+    (None, None) => Ok(String::new()),
+  }
+}
+
 fn opt(m: &ArgMatches, name: &str) -> Option<String> {
   m.try_get_one::<String>(name).ok().flatten().cloned()
 }
