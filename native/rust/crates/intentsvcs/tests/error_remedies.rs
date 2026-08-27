@@ -116,12 +116,26 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // the ground that a remedy fitting two causes tells the operator to guess.
   // Per-fault remedies are the whole design; using two faults is what
   // exercises it, rather than a weakness worked around.
+  // **THE VEHICLE IS A THROWAWAY THREAD, NOT THE FIXTURE'S OWN.** The first
+  // repair after hv's ruling cancelled `ST0056` here, which provoked the parse
+  // fault correctly and CONSUMED the subject a later arm needs: `GateBlocked`
+  // stopped being provoked, because closing an already-cancelled thread is a
+  // different error. A control used as a subject is spent, and nothing about
+  // the file says so -- so this creates its own victim and leaves ST0056 alone.
+  let doomed = facade
+    .st_new("a thread that exists only to be cancelled over a bad manifest")
+    .expect("st new does not touch the list, so it survives the malformed file below");
   std::fs::write(fx.path("intent/.intentfiles"), "NONSENSE\n")
     .expect("a line that is not an entry at all");
   out.push((
     "a lifecycle verb over a malformed manifest",
+    // **THE VEHICLE MOVED FROM `st new` TO `st cancel` ON hv's 2026-08-27
+    // RULING**, which took `st.new` out of the list-editing set: the old
+    // provocation stopped provoking, and a fault that cannot be reached is a
+    // fault this file cannot render. `st.cancel` still edits the list, is
+    // reachable from every live state, and hits the same parse.
     facade
-      .st_new("a thread whose listing cannot be written")
+      .st_cancel(&doomed, "a thread whose listing cannot be written")
       .expect_err("the list edit cannot be expressed against a manifest that will not parse"),
   ));
   out.push((

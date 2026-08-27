@@ -1241,7 +1241,24 @@ enum ListAction {
 /// that is the whole content of "no function of status".
 fn declared_list_edit(op: &str) -> Option<ListAction> {
   match op {
-    "st.new" | "st.reopen" | "st.reinstate" => Some(ListAction::Add),
+    // **`st.new` LEFT THIS SET ON hv's RULING OF 2026-08-27 16:30Z** (hv's
+    // board `1d0ce157`, first-hand in vc's session, chosen from options vc
+    // authored -- the CHOICE hv's, the FRAMING vc's): *`st new` stops
+    // declaring the Triage thread it just made*. A thread is created at
+    // `triage`, and the realised set is WIP alone, so declaring it on creation
+    // put a non-WIP thread in the manifest at the one moment nobody could yet
+    // be working on it.
+    //
+    // **THE CONSEQUENCE, MEASURED RATHER THAN REASONED: nothing now declares a
+    // thread when it BECOMES wip.** `st.start`, `st.resume` and `st.reopen`
+    // all land on `wip` and only `reopen` is in this set, so a
+    // `st new` + `st start` thread is WIP and undeclared until an explicit
+    // `st hydrate` or `organize --default`. That is a real workflow change and
+    // it is NOT a defect of this edit -- it is the question of whether the
+    // transition INTO wip should declare, which is three ops hv has not ruled
+    // on. vc is putting them to hv separately; whatever comes back, it changes
+    // this table and not the predicate.
+    "st.reopen" | "st.reinstate" => Some(ListAction::Add),
     "st.done" | "st.cancel" => Some(ListAction::Remove),
     _ => None,
   }

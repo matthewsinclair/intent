@@ -135,6 +135,15 @@ fn project() -> tempfile::TempDir {
   ok(root, &["init", "Fixture"]);
   ok(root, &["st", "new", "The gate declaration"]);
   ok(root, &["st", "new", "The round trip subject"]);
+  // **HYDRATED EXPLICITLY SINCE hv's 2026-08-27 RULING TOOK `st.new` OUT OF THE
+  // LIST-EDITING SET.** `st new` used to declare what it created, so this
+  // fixture got its realised state for free and never said so. It no longer
+  // does, and the right repair is not to re-declare by hand: `st hydrate` is
+  // the verb under test's own inverse, so establishing the realised state with
+  // it makes the fixture say what it depends on instead of inheriting it from
+  // an unrelated verb.
+  ok(root, &["st", "hydrate", "ST0001"]);
+  ok(root, &["st", "hydrate", "ST0002"]);
   ok(
     root,
     &[
@@ -246,9 +255,17 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
   // The other thread's declaration and files are untouched: `dehydrate` was
   // handed ONE id. Without this, wiping the manifest wholesale would still
   // round-trip if `hydrate` happened to rebuild it.
+  // **THE MESSAGE NAMES THE CAUSE, AND IT DID NOT USED TO.** This read
+  // `dehydrating ST0002 delisted ST0001 as well`, and when hv's ruling stopped
+  // `st new` declaring, it fired -- blaming dehydrate for a listing that had
+  // never existed. An outcome reachable by two paths, with the message naming
+  // one of them, sends the next reader at the wrong fix. The precondition
+  // below separates them.
   assert!(
     declares(root, "ST0001"),
-    "dehydrating ST0002 delisted ST0001 as well"
+    "ST0001 is not declared after dehydrating ST0002. Either dehydrate delisted a neighbour, or \
+     the fixture never declared it -- check the `st hydrate` calls in `project()` before \
+     suspecting dehydrate."
   );
 
   ok(root, &["st", "hydrate", "ST0002"]);

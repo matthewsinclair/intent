@@ -103,18 +103,31 @@ fn manifest_text(fx: &Fixture) -> String {
 // CREATION
 // ---------------------------------------------------------------------------
 
+/// **INVERTED ON hv's RULING OF 2026-08-27 16:30Z** (hv's board `1d0ce157`,
+/// first-hand in vc's session, chosen from options vc authored -- the CHOICE
+/// hv's, the FRAMING vc's): *`st new` stops declaring the Triage thread it just
+/// made*, because the realised set is WIP alone and a thread is created at
+/// `triage`.
+///
+/// **THE OLD ARM'S JUSTIFICATION WAS MEASURED FALSE RATHER THAN OVERRULED, AND
+/// THAT IS WHY THIS IS SAFE.** It read *`st new` must list what it created, or
+/// the next `organize` removes the files it just wrote*. `st new` writes no
+/// thread directory -- only the `steel_threads.md` index -- so there are no
+/// files to remove. Driven on a throwaway estate after the change: `organize`
+/// reports `0 to remove`, and `organize --apply` leaves the file count
+/// unchanged at 10. Quoted rather than deleted, because a hazard that never
+/// existed reads exactly like one that was closed.
 #[test]
-fn st_new_adds_the_entry() {
+fn st_new_does_not_declare_the_thread_it_creates() {
   let fx = fixture();
   let mut facade = fx.facade();
   let id = facade
-    .st_new("a thread that should be realised")
+    .st_new("a thread that is created at triage")
     .expect("new");
 
   assert!(
-    declared(&fx).declares(&id),
-    "`st new` must list what it created, or the next `organize` removes the files it \
-     just wrote:\n{}",
+    !declared(&fx).declares(&id),
+    "`st new` declared {id}, which is at `triage` -- the realised set is WIP alone:\n{}",
     manifest_text(&fx)
   );
   assert!(
@@ -124,6 +137,19 @@ fn st_new_adds_the_entry() {
   );
 }
 
+/// **THIS ARM NOW HOLDS VACUOUSLY AND IS KEPT ONLY FOR ITS SECOND
+/// ASSERTION.** Since hv's ruling, plain `st new` does not list either, so
+/// `--dehydrate` and its absence produce the same manifest -- **a flag whose
+/// two branches became identical.** The `declares` assertion below can no
+/// longer fail for the reason it was written for, and a test that cannot
+/// distinguish its two cases is the degenerate pass this suite exists to
+/// catch. It is NOT deleted, because the byte-identity assertion still says
+/// something no other arm does: a suppressed edit writes nothing at all.
+///
+/// **REPORTED RATHER THAN FIXED HERE: `st new --dehydrate` is now inert, and
+/// `flag_reachability` cannot see it** -- that gate asks whether a declared
+/// flag is READ, and this one is read; it is the two branches that stopped
+/// differing. Whether the flag should be withdrawn is not a test's call.
 #[test]
 fn st_new_dehydrate_does_not() {
   let fx = fixture();
