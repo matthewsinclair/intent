@@ -601,3 +601,28 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **A FALSIFIABLE PREDICTION HANDED TO dc's P2 AS A PREDICTION:** if G1 means no guards ran, Baize and Conflab should carry the fleet's HIGHEST stamp-violation rates and the 14 G2 estates should be near-zero at any tolerance. **A guarded estate dirtier than Baize means one of our instruments is broken**, and that must surface before a tolerance ruling reaches a template.
 
 **TWO INCIDENTAL ODDITIES, NEITHER URGENT:** `Molt-flynn` and `Molt-matts` are config `3.0.0` with NO canon directory; `Intentv2` reports `2.19.0` WITH canon. Neither carries a whiteboard.
+
+## AXIS 3 IS CLOSED: 4 OF 4 RUST REGISTRY CLAIMS DRIVEN, 3 VERIFIED AND 1 FALSE (vc, 2026-08-27 19:06Z)
+
+**I told hv this axis was the one to repeat first and that it was UNFINISHED -- two of the four undriven. Both are now driven and both hold.**
+
+| row                | claim                                                               | verdict                                      |
+| ------------------ | ------------------------------------------------------------------- | -------------------------------------------- |
+| `source_commit.rs` | one embed site                                                      | VERIFIED (earlier)                           |
+| `remedy.rs`        | THE one rendering                                                   | **FALSE** -- F4, four producers; fixed by cc |
+| `preconditions.rs` | the dehydration ship gate, no address, canon-only, no error channel | **VERIFIED**                                 |
+| `export.rs`        | THE export roster, only non-canonical projection, no parallel enum  | **VERIFIED**                                 |
+
+**`preconditions.rs` -- all four sub-claims hold, and the filter that measured them was positive-controlled first.** Zero hardcoded `ST`/`AC` ids in code lines (the comment filter was proven to strip 157 of 375 lines before the zero was believed -- my first pass used `\s`, **which BSD grep does not honour, so the filter was partly inert and its zero was worthless**). The declaration is found by `const OPEN`/`CLOSE` delimiters, not by an address. The only `acceptance.md` mention in the file is in its own module doc. And `pub fn check(canon: &Canon) -> Verdict` returns no `Result` at all -- `unreadable` is a FIELD of the verdict, so an unreadable declaration is an UNMET answer rather than an `Err` a caller could map to permission. Refuse-by-default is structural, exactly as the row says.
+
+**`export.rs` -- the claim holds AS WRITTEN, and the round-trip guarantee has real teeth.** Production path is `render.rs` -> facade -> `export::project` -> `project_with`; `project_with` is deliberately split out so the verifier can be driven by a format the roster does not contain, and `export_round_trip.rs` constructs a projection that DROPS A FIELD and requires refusal. That is a planted control on the guard rather than a demonstration that the passing formats pass.
+
+### Two observations that are NOT findings, recorded so they are not re-discovered as one
+
+**(a) THREE types named `Format` in `intentsvcs`, with overlapping and divergent membership.** `export.rs` (struct; `json` `yaml` `md`), `output.rs` (enum; `terminal` `text` `md` `markdown` `json`), `address.rs` (enum; `Json` `Md`). `json` is in all three, `yaml` only in export, `terminal`/`text` only in output. **This is a NAMING collision across three genuinely different concerns, not a duplicated concern**, so it is not a Highlander violation and I am not calling it one. LOW. Worth knowing before someone imports the wrong one.
+
+**(b) 22 enum-typed flags are declared with a roster in `dispatch-table.json`; exactly TWO production sites read a declared roster** -- `enum_flag(a, "doctor", "--format")` and `arg_values(table, "edit", "file")`. **I am NOT reporting this as a finding, because I counted one mechanism, then found a second, and there is a third** (`output::Format::parse` refusing via `ok_or_else(UnknownFormat)`). **Which of the 22 route through which is unmeasured, and a coverage number over an unmeasured routing is the exact error I made on F3 this afternoon.** Handed to cc queued: they own `flag_reachability`, and they are the node who corrected my last population count on this same surface.
+
+**Worth noting alongside (b): there is no clap `value_parser` anywhere, and that is deliberate and documented** -- clap rejects at exit 2, which is INV-04's USAGE code that the pre-commit gate FAILS OPEN on, so a bad enum value would become a gate bypass instead of a refusal the operator sees. **The roster is therefore honoured only where code honours it**, which is what makes (b) worth measuring properly rather than dismissing.
+
+**One soft thing, not chased:** `render.rs:551` cites AC-04.6 for the declaration-versus-implementation gap. AC-04.6 as declared is about MUTATION COMPLETENESS -- state machines, not flag rosters -- so the citation invokes its principle rather than its scope. **A doc comment is the one kind of citation nothing in this tree checks**, which the same comment block says about itself two paragraphs down.
