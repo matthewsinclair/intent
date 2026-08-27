@@ -106,11 +106,38 @@
 # stamp that carries a `Z`, lands in the past, and still increases
 # monotonically passes all three checks. Smaller target, not an empty one.
 #
-# TOLERANCE: 120s, check A only. Stamps are minute-granular, so one written at
-# 14:59:50 and committed at 15:00:05 is honest. The errors this catches are +7
-# minutes and worse, so the tolerance costs nothing. It is jitter allowance, NOT
-# an escape hatch -- there is no bypass flag and none should be added. B and C
-# are exact, because neither is about elapsed time.
+# TOLERANCE: 0, check A only. Ruled 2026-08-27, authority vc, after both
+# controls passed. It was 120s from 2026-08-14 until then, and THE 120 WAS
+# JUSTIFIED BY A CASE THAT CANNOT OCCUR. The old note read "a stamp written at
+# 14:59:50 and committed at 15:00:05 is honest" -- true, and that stamp reads
+# `14:59` while the commit lands in the 15:00 minute, so its drift is NEGATIVE
+# and check A was never going to see it. Commit lag can only drive drift down.
+# The tolerance was allowing for jitter in the one direction jitter cannot
+# travel, which is why it never cost a false positive and never caught anything.
+#
+# WHAT IT COST, MEASURED ON THIS ESTATE BEFORE THE CHANGE: the guard ran for
+# thirteen days and detected NOTHING, while twenty future stamps landed in
+# Intent's own board history and walked past it. Both known instances are
+# exactly +60s and `-gt` is strict, so 120 missed them -- and so would 60.
+#
+# WHY 0 AND NOT MERELY A SMALLER NUMBER: it is the only value at which the two
+# date(1) flavours fire on the SAME SET. BSD `date -j -f` fills unspecified
+# seconds from the current clock, so drift == stamp_min - commit_min and the
+# seconds cancel; GNU `date -d` zero-fills, so drift == that minus commit_sec,
+# with commit_sec in [0,59]. Both are > 0 for exactly the stamps whose MINUTE is
+# strictly after the commit's. At 30 the same stamp fires on BSD and passes on
+# GNU for half of every minute. Measured on both flavours, not derived.
+#
+# FALSE POSITIVES ARE ZERO BY CONSTRUCTION RATHER THAN BY COUNTING, which is the
+# stronger claim because it does not depend on a sample: a clock read taken
+# BEFORE the commit cannot name a later minute, lag drives drift negative, and
+# rebase and amend move the COMMITTER date later -- so rewriting history can
+# only HIDE a violation, never manufacture one. There is no legitimate producer
+# of positive drift.
+#
+# It is jitter allowance no longer, and it was never an escape hatch -- there is
+# no bypass flag and none should be added. B and C are exact, because neither is
+# about elapsed time.
 
 set -uo pipefail
 
@@ -119,7 +146,7 @@ set -uo pipefail
 # unaffected.
 export LC_ALL=C
 
-readonly TOLERANCE_SECONDS=120
+readonly TOLERANCE_SECONDS=0
 # The trailing `**` on the exclude is LOAD-BEARING, not decoration. A pathspec
 # containing a wildcard is matched by wildmatch against the WHOLE path, so
 # `intent/whiteboard/*/.history/` excludes nothing -- it does not match

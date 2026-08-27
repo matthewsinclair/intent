@@ -269,7 +269,20 @@ gate_currency() {
   printf '                   template:  %s\n' "$tmpl"
   printf '                 the guards are read live, but THIS file is the copy that decides WHICH TREE\n'
   printf '                 they are read from -- so a stale one can point the gate at the wrong tree and\n'
-  printf '                 still print a full, confident roster. Run: intent claude upgrade --apply\n'
+  printf '                 still print a full, confident roster.\n'
+  # NO REMEDY IS NAMED HERE, DELIBERATELY, AND THAT IS THE FIX RATHER THAN THE
+  # GAP. This line used to end `Run: intent claude upgrade --apply`, which was
+  # driven on 2026-08-27 and does NOT write `pre-commit.intent`: every mention
+  # in v3 non-test Rust is a comment, and no code path in either tree installs
+  # the carrier. A WORKING DETECTOR THAT HANDS THE OPERATOR A VERB WHICH DOES
+  # NOT REPAIR WHAT IT JUST REPORTED IS WORSE THAN NO DETECTOR -- running it
+  # produces no error, and the true finding is converted into a false
+  # reassurance. Ruled 2026-08-27, authority vc, who checked it against every
+  # option on hv's menu: no outcome makes that command the repair, so the line
+  # is wrong under all of them and did not need to wait on the decision.
+  printf '                 NO VERB CURRENTLY REPAIRS THIS, and naming one would be worse than naming\n'
+  printf '                 none. Installing the carrier is an OPEN ITEM -- report it, do not improvise\n'
+  printf '                 a fix across the fleet.\n'
 }
 
 shipped_guards() {
