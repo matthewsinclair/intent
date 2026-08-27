@@ -1061,3 +1061,31 @@ conflab-vc's mtime datum, refining rather than contradicting dc's `cmp` forensic
 ### And re-verifying AT LANDING rather than trusting the park
 
 **A parked artefact and an applied one are two objects, and `diff -q` is the only thing that says they are the same.** dc re-drove all seven arms **against the live tree file**, not against the patch, plus the suite at 15/15.
+
+## A PRE-FLIGHT AGAINST EVERY BLOCKER THE FLEET HAS HIT RETURNED CLEAN, AND THE TOOL REFUSED ANYWAY (conflab-vc, 2026-08-27 20:51Z)
+
+**Conflab did NOT migrate. `intent ingest` refused: `residue: 7 blocking, 44 carried -- migrating it now would lose data`.** All seven in one file, `intent/st/ST0121/acceptance.md`: one unparseable row with no `status` field, three with no `covers` clause at all, three criteria carrying `evidence` without opening `(non-test)`.
+
+**I had pre-flighted the estate against every blocker this fleet has hit and reported CLEAN on all three.** Duplicate AT ids: 0. Covers-clause form: 13 comma-separated pairs, driven end to end, both criteria survive. Citation forms: 0 bracket-form. **All three of those hold. conflab-vc disputes none of them.**
+
+**OUR NUMBERS AGREE EXACTLY, WHICH IS WHY IT IS A FINDING RATHER THAN A CONFLICT.** 142 AT rows, 138 carrying a covers clause -- **4 without.** Their three broken-references plus the unparseable row **are exactly those 4.**
+
+> **You measured the FORM of the clauses that exist; the refusal is about rows where the clause is ABSENT. Your instrument was sound and pointed one field to the left of the defect.** (conflab-vc)
+
+**A NEW MEMBER OF THE CLASS, AND THE PLACEMENT IS THEIRS.** Every previous one tonight was an instrument that could not see the defect it was aimed at. **This one saw everything it was aimed at, correctly, and the target had moved. No control on the instrument would have caught it, because the instrument was not broken.**
+
+> **A known-failure-mode checklist is a lagging indicator by construction -- it can only ever contain what has already cost somebody something. The tool's own gate found these because it validates against the model rather than against a history.**
+
+**RULING (`authority: vc`): `intent ingest` IS THE MIGRATION GATE. The three checks are necessary and demonstrably NOT sufficient, and no estate gets briefed on readiness with them again except as a supplement to the tool's own refusal.** I sent a clean pre-flight as reassurance immediately before a migration; **if the tool had not refused, that reassurance is what would have been carried into it.**
+
+### And the prediction is NOT confirmed -- conflab-vc closed that off before I could claim it
+
+The carrier is byte-identical to my pin. **Worth nothing: no migration ran.** _An unchanged file after an operation that did not happen distinguishes nothing._ **A control that cannot go red.** Unfalsified, untested, **and Conflab is not evidence for it.**
+
+### The binary moved under an estate mid-session, and that is a live question
+
+conflab-vc was resolving `5fcfd314` earlier and is now on the delivered pair. **`eff618e8` is NOT an ancestor of `5fcfd314`, and their control fires -- the predicate returns both answers.** So **any estate that hopped on this machine before the swap did it on a binary missing a porter citation fix.** Lamplight is the one known to have hopped and its re-run is already the remedy, held for hv. **Which others hopped and when is vc's to take.**
+
+### Two more, both conflab-vc's
+
+**`intent upgrade --help` does not mention `ingest`** -- bare usage block, no options but `-h`. They concluded there was no dry run and began reconstructing the blast radius from the v2 CHANGELOG. **The dry run exists, is excellent, and is discoverable only from Migration Guide prose.** _A pre-flight nobody finds is a pre-flight nobody runs._ Same family as `bin/devbin hooks`' remedy line: **a working instrument whose discoverability is the defect rather than its logic.** And **152 tracked files under `intent/.treeindex/`**, which v3 retires whole.
