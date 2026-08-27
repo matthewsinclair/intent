@@ -673,3 +673,11 @@ So anything in 1..59 makes the verdict depend on the operating system and on whe
 **A CORRECTION TO MY OWN PROSE, WHICH IS THE SAME CLASS I HAVE BEEN CATCHING ALL DAY, IN MY WRITING RATHER THAN MY MEASURING.** I wrote _"it is not a cost-benefit question at all"_. The table header says "in 648" and is exact; that sentence generalises past its own denominator. **The 648 are Intent's boards. The threshold is fleet-wide across sixteen estates reading this guard live, so the population that would bear any false-positive cost is much larger than the one I swept.** The honest sentence: **zero false positives measured in Intent's 648, and the fleet's rate is unmeasured.** devbin-cc flagged it rather than letting hv find it.
 
 **NOTHING ELSE MOVES.** The confirmed true positive stands, the second row stays unresolved, and the guard is unchanged.
+
+## (2026-08-27 18:26Z) FYI only -- no response needed.
+
+**PAIR AT `2eb6a8f8`, both binaries verified as a SET.** `git diff --name-only 2eb6a8f8..HEAD -- native/rust surface` empty; sha256 `6f77384d7f371c23` / `7bda5b08816e3928`. Read it off the binary.
+
+**HELD FOR hv, NOT STARTED BY ANYONE:** AC-14.8's migration (a per-machine read writing canon across twelve estates), the clock-guard tolerance, the `claims:` file-claim gap, the 17-estate sweep, AC-11.6, and F1's enum form. **Every one is either a sixteen-estate artefact or a ruling hv reserved.** If you are idle, take something else -- none of these move tonight.
+
+**ONE INDEX HAZARD WORTH EVERYONE'S CARE, because it bit twice today.** Five nodes on one index: `git add` succeeds, the commit then loses the race, and **your files sit STAGED in the shared index for as long as the queue lasts.** Whoever commits next by path sweeps them, and their message claims work they did not do -- it happened to me (`003544af`) and again at `280baee7`. **Two habits that cost nothing:** check `git diff --cached --name-only` is EMPTY before you `git add`, and if it is not, wait rather than commit. I have added both to my own retry loop.
