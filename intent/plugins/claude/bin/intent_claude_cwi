@@ -91,6 +91,10 @@ export LC_ALL=C
 ROOT="$(find_project_root)" || error "not in an Intent project (no intent/.config/config.json at or above $(pwd))"
 WB="${CWI_WB:-$ROOT/intent/whiteboard}"
 RESTART="$ROOT/.claude/restart.md"
+# ONE computation, TWO renderings: compose_ctx wants it as written for prose,
+# the session name wants it lowercased. Hoisted here the moment the second
+# consumer arrived rather than left as a second `basename` call.
+PROJ="$(basename "$ROOT")"
 
 # Run from the project root so `start` execs claude in the project.
 cd "$ROOT" || error "cannot enter project root: $ROOT"
@@ -325,7 +329,7 @@ compose_ctx() { # $1 ws
   ws="$1"
   name="$(fm_get "$WB/$ws/wip.md" name)"
   [ -n "$name" ] || name="$ws"
-  proj="$(basename "$ROOT")"
+  proj="$PROJ"
   cat <<EOF
 YOU ARE: $ws ($name) -- a workstream node on the $proj whiteboard (intent/whiteboard/$ws/).
 
@@ -355,10 +359,18 @@ cmd_start() {
     esac
   fi
   ctx="$(compose_ctx "$ws")"
+  # THE SESSION NAME IS SET AT LAUNCH, NOT BY THE WOKEN SESSION (hv, 2026-08-27).
+  # `claude -n/--name` sets the display name in the prompt box, the /resume
+  # picker and the terminal title. Doing it here rather than asking the session
+  # to run `/rename` means the name is right from the FIRST frame and does not
+  # depend on the session honouring an instruction -- and a session that dies
+  # before its first turn is still identifiable in /resume, which is exactly
+  # when you need to find it. bash 3.2 has no ${VAR,,}, hence `tr`.
+  sname="$(printf '%s' "$PROJ" | tr '[:upper:]' '[:lower:]')-$ws"
 
   if [ -n "${CWI_DRY_RUN:-}" ]; then
     echo "DRY RUN -- would exec an interactive claude:"
-    echo "  claude --effort max --permission-mode auto --append-system-prompt <ctx> /in-session"
+    echo "  claude --effort max --permission-mode auto --name $sname --append-system-prompt <ctx> /in-session"
     echo "  ctx: $(printf '%s' "$ctx" | wc -l | tr -d ' ') lines, $(printf '%s' "$ctx" | wc -c | tr -d ' ') bytes"
     if [ "${CWI_DRY_RUN}" = full ]; then
       echo "----- ctx -----"
@@ -368,7 +380,7 @@ cmd_start() {
     exit 0
   fi
 
-  exec claude --effort max --permission-mode auto --append-system-prompt "$ctx" "/in-session"
+  exec claude --effort max --permission-mode auto --name "$sname" --append-system-prompt "$ctx" "/in-session"
 }
 
 # --- dispatch ----------------------------------------------------------------
