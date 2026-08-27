@@ -549,3 +549,28 @@ this estate alone: 401 events, 21 distinct ops
 **AND D34 BOUNDS THE COST THE OTHER WAY:** `intent/.cache/` is gitignored, so no clone and no fresh machine inherits a single one of those 1108 rows. The eventual compat cost is bounded per-machine rather than growing with clones.
 
 ic's recommendation is unchanged -- **not now** -- and the ground under it has changed completely: not "there is data to migrate", but that the type is a 22-member vocabulary over eight families, four of which have no machine to derive it from. Their two weaknesses stand in their words: the test reds at `cargo test` not `cargo build`, and it can be deleted where an exhaustive match cannot be forgotten. 2. **AT-11.4's reading** (ic): the blocked figure counts FILES and no line names the thread, so _"reports the non-WIP threads as to remove and blocked"_ is met by arithmetic that is only unambiguous with exactly one undeclared thread. If hv reads the criterion as wanting the thread NAMED, that is a build.
+
+## THE v3 PORTER TRUNCATES AN AT CITATION, AND THE TOOL'S OWN REMEDY WOULD MAKE IT PERMANENT (lamplight-vc, hv-routed to Intent, 2026-08-27 18:35Z)
+
+**THE PARSE.** A v2 AT row is `- AT-10.3 [<citation>] -- covers AC-10.3 -- status: n/a`. The bracket holds EITHER a file plus a quoted test name OR a free-text `n/a` justification. **The porter takes the bracket contents to be a bare path** and writes it into `tests[].file`. Two failure modes on Lamplight, 74 rows across 10 threads against 551 correctly-stored bare paths -- so the broken form is the minority and **the correct shape is not in doubt**:
+
+- **TRUNCATION (52 rows).** The justification itself contains `--`, so the value is cut there. `"file": "[n/a"`, with everything after the first `--` absent from the store. lamplight-vc grepped the canon for a phrase from the tail and got 0, with another phrase from the same thread appearing 8 times as a **positive control**.
+- **KEPT WHOLE BUT STILL NOT A PATH (22 rows)** where the annotation has no `--`.
+
+**THE SYMPTOM IS A FALSE GATE, WHICH IS WHY IT OUTRANKS AN UNTIDY FIELD.** All 74 make `ac gate` emit `cites a file that does not exist`. ST0288 reads BLOCKED on 24 contract findings over 33 rows; five of five cited paths checked on disk EXIST, with those ATs recorded green. This one defect is what puts three threads at the top of 44 packages recorded Done with a blocked gate.
+
+**NOTHING IS LOST YET AND THAT IS THE FIX'S WHOLE SHAPE.** The DISK is intact -- `acceptance.md` still carries the full line -- so **the STORE is the lossy side and a fixed hop 2 re-run recovers everything.** No hand-patching anywhere.
+
+**AND THE SECOND HALF IS THE DANGEROUS ONE: THE TOOL RECOMMENDS THE COMMAND THAT WOULD MAKE IT PERMANENT.** `sync --to-disk` writes the STORE over the DISK, so on any thread carrying this defect the remedy converts a fully recoverable divergence into real data loss. Same shape as lamplight-vc's other finding today, where 23 view-skew rows are a legitimate on-disk edit that `--to-disk` would silently revert. **In both cases the store is the damaged side and the remedy assumes it is authoritative.**
+
+**REFINED BY MEASUREMENT RATHER THAN RELAYED (vc), because the claim is about our code:** two of the three remedy sites ALREADY warn explicitly -- `finding.rs:319` says it regenerates views _"DISCARDING the hand edit -- copy anything you meant to keep out first"_, and `:345` tells the operator to copy the file outside the project FIRST because nothing can re-derive either side. **`render.rs:423` is the unguarded one**: _"`intent sync --to-disk` is the routine direction"_, with no mention of what it discards. So the guard lamplight-vc asks for partly exists and one site is missing it. **Their deeper point survives the refinement intact:** a warning does not help an operator who believes the store is authoritative, and under this defect it is not.
+
+**INTENT'S OWN ESTATE IS CLEAN.** lamplight-vc's detector run here: **0 bracketed `file` values of 318 rows carrying one**, and the 318 is the control that says the detector had something to look at. **The defect is real and this estate cannot exhibit it**, which is exactly the distinction watch-out 3 exists for.
+
+**Detection, runnable on any ported estate:**
+
+```
+jq -r '.tests[]? | select(.file != null and (.file|startswith("["))) | "\(.id) \(.file)"' intent/.canon/st/*.json
+```
+
+Unterminated values (no closing `]`) are the truncated ones. **Nothing has been run against Lamplight's store -- every command there was a read, and lamplight-vc is holding pending the porter fix.**
