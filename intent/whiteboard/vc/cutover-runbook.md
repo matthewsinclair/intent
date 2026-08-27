@@ -1184,3 +1184,33 @@ They nearly filed **121 of 158 canon WP entries have no `info.md` on disk** as d
 > **Every earlier instance tonight was an instrument that could not see ENOUGH. This one saw TOO MUCH and read intended architecture as damage.** And the tell was **the number being too large to be a defect nobody had noticed.**
 
 **And `project.json` is TWO files, not one question:** Laksa's is 37 bytes (`{"schema": "intent/project@3.0"}`, v3-generated, never added), Intent's is 81 and tracked. **laksa-cc corrected dc's "one estate is wrong", which was not established.**
+
+## THE VACUOUS GATE: three answers, two wrong, and the third is a REMEDY that does not discriminate (laksa-cc's vc, via dc, 2026-08-27 21:14Z)
+
+**Chain: "canon regeneration bug" (wrong, retracted) -> "transitions enforcement gap" (wrong, dc's own, retracted after laksa-cc drove it in a throwaway clone) -> the actual defect.** Cancelled is genuinely sealed: `wp done` on cancelled rc=1, `wp start` rc=1, WP unchanged, reinstate requires `--reason`, and `wp done` after that is still blocked by GatePass on an empty contract.
+
+**NOTHING WAS BYPASSED.** reinstate -> start -> done, every edge legal, reason recorded, **and `wp done` succeeded because the gate PASSED** -- exactly what `doctor` had said.
+
+> **A gate passing means every criterion IN SCOPE is satisfied. On a thin contract that is vacuously true and says nothing about whether the work is done.**
+
+**THE NARROWING IS WHAT MAKES IT FINDABLE RATHER THAN A COMPLAINT ABOUT RIGOUR: an EMPTY contract is refused outright (`zero acceptance criteria`), so the hole is specifically THIN-BUT-NONEMPTY.**
+
+> **The gate blocks when there is nothing to check and passes when there is almost nothing.**
+
+**THE MECHANISM IS A REMEDY THAT DOES NOT DISCRIMINATE.** `doctor` surfaces _status disagrees with gate_ and offers two exits -- **the status is wrong, or the contract is missing something** -- without saying which applies. **Take the first and you write a false Done into the record, having done exactly what the tool told you.**
+
+**Fourth member of tonight's remedy family and the most consequential:** `bin/devbin hooks` naming a verb that does not repair what it reported; the bless doing more than its message showed; a failure naming a cause it could not observe. **Here the message is TRUE and offers two readings** -- and **a remedy that is correct and ambiguous is worse than one that is wrong, because nothing about it invites checking.**
+
+**INTENT IS NOT EXPOSED TODAY:** `doctor` reports **0 findings across 64 threads, 78 issues, 288 views, 1102 files** -- no live status-gate disagreement to be mis-remedied. **Not a claim that our contracts are thick.** Routed to hv as an item; `doctor` and the gate are `intentsvcs`, and cc is on (B).
+
+### The read-not-run bar was cashed TWICE tonight, by the node able to run it, unasked
+
+dc sent the enforcement-gap claim flagged **READ-verified, not RUN-verified**, naming exactly what would settle it. **laksa-cc settled it inside the hour and the claim died before anyone built on it.** Earlier, **lamplight-vc set the same bar against themselves on the guard reading and dc met it for them.** **Neither was asked. The flag is worth something only because both times somebody treated it as an invitation rather than a disclaimer.**
+
+### The pipe-rc trap: three nodes, one evening, independently, no cross-talk
+
+**laksa-cc** caught their own `rc=0 on an error` reading `sed`'s status through a pipe. **dc** made it in the harness measuring a failed checkout -- `fatal:` printed, rc read as 0. **vc** made it reading `head`'s status while checking exit codes on `issues --format`, **one sentence from reporting that the tool prints `error:` and returns success.**
+
+**Three of us, same trap, same session, none having warned the others -- the opposite of the priming problem. It says the trap is a property of the shell rather than of anyone's care.**
+
+**And laksa-cc's third identity-by-position error landed INSIDE the experiment built to test the previous one** -- deriving a scratch thread id by position from a listing tail rather than from the command's own `created: ST0111` line, and creating a WP on the wrong thread.
