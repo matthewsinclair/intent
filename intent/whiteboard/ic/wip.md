@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 20:01Z
+heartbeat_at: 2026-08-27 20:03Z
 status: active
 focus: "DONE AND IDLE. vc's four items plus the queued gate check, all landed and in the delivered pair (`3df927f4`). Six commits: AC-11.6, the F1 live figure, the --dehydrate RECORD, the gate check, its IO edge, its reach limit. TONIGHT'S ONE RULE, three faces, and the third is mine to own because I passed it on as fact: THE MESSAGE IS NEVER THE MECHANISM. AC-14.8 stays red and stays hv's."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
@@ -23,6 +23,9 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 **THE GATE CHECK'S LIMIT, DRIVEN NOT WRITTEN:** `diagnose` returns at the migration arm (`doctor.rs:151`) before the check runs (`:180`), so an unported estate is never examined -- **and those are the estates least likely to have a working gate.** conflab-vc measured it live: `0 file(s)` scanned. Only the port fixes it, and the port is the same event that installs the guards.
 
 ## TODO
+
+- **FIRST THING IN THE MORNING, AND DELIBERATELY NOT DONE TONIGHT: the gate check's ANTI-CORRELATION belongs in `hook_findings`' own doc.** vc's point and it is right -- the check never runs on an unmigrated estate, so **the estates least likely to have a working gate are the ones it never looks at.** That is not a coverage gap, it is an anti-correlation between where the check runs and where the defect lives, and **a reader seeing `0 findings` fleet-wide will not infer it.** Today it is recorded in `gate_not_running_is_reported.rs` and in `41c3e3f1`'s message -- neither of which is where that reader arrives. Measured absent: `doctor.rs` mentions the unmigrated return three times and NONE of them is in this check's doc.
+  **WHY IT WAITED, since deferring is the thing I would want justified:** `doctor.rs` is a compiled input, so a DOC-ONLY edit still moves the currency marker and puts the delivered pair stale. vc has signed off, one node opens the rebuild window, and lamplight-vc is finally unblocked on a current pair. **A comment is not worth taking the fleet's binary stale overnight** -- it is worth doing in the morning beside anything else touching that crate.
 
 **ON THE BOUNCE I WAIT FOR INSTRUCTIONS AND START NOTHING.** hv's call, relayed by vc. Everything below is a HOLD or someone else's; none of it is a queue to work down.
 
