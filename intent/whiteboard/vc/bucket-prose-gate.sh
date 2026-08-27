@@ -25,7 +25,8 @@ P=${1:?project dir}; cd "$P" || exit 1
 # **`intent/history/` IS SCANNED TOO, AND LEAVING IT OUT MADE THIS GATE RETURN A
 # FALSE GREEN ON ITS OWN MOTIVATING CASE.** Once the carry is applied to the
 # worktree the prose is no longer under `intent/st/<BUCKET>/` -- it is under
-# `intent/history/`, and a scan that looks only at buckets reports "no bucket
+# `intent/history/` on a tree still carrying vc's reversed bucket-to-history
+# mistake, and a scan that looks only at buckets reports "no bucket
 # dirs, nothing this gate can be wrong about" over 187 un-carried files (Laksa,
 # 2026-08-27). The question is WHERE THE PROSE IS relative to canon, and it has
 # two possible homes, so both are asked. A file that has reached `history` is

@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 09:35Z
+heartbeat_at: 2026-08-27 10:32Z
 status: active
 focus: "BOSS-VC. THE SERIAL PORT. THIS MORNING: a re-convert on a BUCKETED v2 source carries ZERO attachments silently -- `collect_attachments` walks the flat `intent/st/<ID>` and a restored source keeps its files under `intent/st/<BUCKET>/<ID>/`, so nothing is found, nothing is refused, rc is 0, and the accounting gate + verifier + doctor all pass because none of the four look at attachments. I LANDED IT on arca_cli (`2f3e836`, 23 -> 0) and repaired it at `5441945` via ingest-buckets.sh -- 23 attached, 23 byte-verified, 11 bucket dirs pruned, and the re-convert own win intact at 55 AT rows against 29. arca_config checked and lost nothing (0 -> 0). reconvert.sh now counts before the drop and exits 9 on a shortfall, driven RED on a Utilz clone at 29 -> 0. UTILZ IS OFF THE QUEUE: its store is semantically IDENTICAL after a re-convert, so a re-convert buys nothing -- its 3 bad rows are form 4 (is_path claims a bats test NAME carrying bin/), reader-side and UNFIXED, so it is blocked on cc. NEXT: Lamplight."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -15,7 +15,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**THE SERIAL PORT.** hv's tiers are on hv's board, verbatim. **The ledger, the procedure and every LEARNED bullet are in `cutover-runbook.md` under PORT LEDGER** -- read that, not this. Standing rulings: buckets -> `intent/history/`; `deps/`, `_build/`, `node_modules/`, `.worktrees/` are not projects; a WP recorded WIP over a passing gate is `wp done`; the backup schedule is configuration and is NEVER silenced; doctor advisories are printed only under `--verbose`; llm-tropes and Pplr are NOT Intent projects.
+**THE SERIAL PORT.** hv's tiers are on hv's board, verbatim. **The ledger, the procedure and every LEARNED bullet are in `cutover-runbook.md` under PORT LEDGER** -- read that, not this. Standing rulings: **bucket prose goes INTO CANON, never into `intent/history/`, which is the monthly done record and nothing else (hv, 2026-08-27, reversing my own over-generalisation of a one-project instruction)**; `deps/`, `_build/`, `node_modules/`, `.worktrees/` are not projects; a WP recorded WIP over a passing gate is `wp done`; the backup schedule is configuration and is NEVER silenced; doctor advisories are printed only under `--verbose`; llm-tropes and Pplr are NOT Intent projects.
 
 **THERE IS NO PINNED PAIR ANY MORE, AND THAT IS THE POINT.** Use `bin/int cli`, or `native/rust/target/release/intent` after gating with it. `int cli` carries the pair-coherence guard and runs RELEASE by stated choice. **Every pinned copy is retired**: a schema bump ends a pin (WP-14 took the store to 14, so every v13 binary refuses every WRITE -- reads and `Fixture::new()` are unaffected), and a copy parked outside the checkout cannot run hop 3 at all, because `claude upgrade --apply` walks up from the exe for `lib/templates/`. `$S/pair-cd032508` is kept for ONE purpose: building v13 control fixtures.
 
