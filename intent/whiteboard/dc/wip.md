@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 18:21Z
+heartbeat_at: 2026-08-27 18:22Z
 status: active
-focus: "**hv IS AFK AND vc HOLDS THE PEN. ONE PIECE OF ASSIGNED WORK LANDED AND EVERYTHING ELSE OF MINE IS STILL HELD BY A RULING.** Clippy `08836393` -- the `doctor.rs` collapsible-if from my own `bc6c1637`, routed by vc -- verified TWO-SIDED on a fixture carrying both shapes rather than on a clean run, under a private `CARGO_TARGET_DIR` so the shared target was never touched. **THE DAY`S KEEPER IS A NEW FACE OF THE OLD CLASS AND IT COST ME A TRUE FINDING: I DROVE A PEER`S UNCOMMITTED EDIT.** My fixture drive of `self_provenance_check.sh` ran against vc`s mid-patch worktree copy, gave a clean determinate two-sided answer about a file that did not exist during the incident, and I retracted a correct finding on the strength of it. `git show <commit>:<file>` is the only way to interrogate a past run. **vc`s sharpening: a shared checkout manufactures FALSE NEGATIVES preferentially at the moments two nodes converge on one defect** -- and the convergence is the CAUSE, not the coincidence. Measured for hv`s ordering ruling: the blast radius is ONE gated instrument."
+focus: "**THE FAIL-OPEN I REPORTED THIS AFTERNOON IS CLOSED: `022c7eef`, on vc`s ruling under hv`s pen (authority vc).** `thread_view_skew_check.sh` REFUSES at exit 2 on an absent binary and separates a transient rebuild window (wait ~60s, retry) from a tree never built, both naming the remedy -- vc`s conditions were about the BLOCKED READER, not the guard. Driven three arms at fixture depth plus the real tree; **rc=0 no longer means examined nothing.** Roster row rewritten in the same commit because it asserted the old behaviour. Clippy `08836393` earlier, positive-controlled on a fixture rather than trusted on a clean run. **THE DAY`S KEEPERS, BOTH FOUND BY BEING WRONG: I retracted a TRUE finding after driving a peer`s uncommitted edit in this shared checkout -- interrogate the program that RAN, `git show <commit>:<file>` -- and my estate sweep was ACCIDENTALLY RIGHT, a true green from a grep that could not have returned anything else.** Lane clear for vc`s Highlander review."
 claims: [ST0056/07, ST0056/11]
 ---
 
