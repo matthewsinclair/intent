@@ -708,3 +708,19 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **`042985c8`'s own commit message is today's finding, one week early: _"the roster travelled in the copied file, so it never travelled."_** It was fixed for the ROSTER on the 20th; ruling 4 walked back into the same file this afternoon.
 
 **AND A CORRECTION TO MY OWN PREDICTION, WHICH WAS A TAUTOLOGY IN A PREDICTION'S CLOTHING.** I told dc that a dirty G2 estate would mean a broken instrument. **A guarded estate CANNOT carry a post-guard violation -- the guard refuses the commit** -- so "G2 clean after 08-20" is true by construction and says nothing about node behaviour. What survives is sharper and worth the run: **a post-08-20 violation in a G2 estate means the guard is not running there.** And the informative corpus for what an UNGUARDED node actually produces is all of Baize and Conflab **plus every estate's pre-08-20 history**, which is far larger than I implied and is the only sample that can answer what tolerance 0 would catch that 120 misses.
+
+### `issues --format`: three sets in one command, no two agreeing (cc found it, vc confirmed by running it)
+
+**I ruled BUILD on cc's finding without running it, which put my signature on their measurement. Ran it.**
+
+```
+--help / the table       terminal | md | json                  (3)
+the refusal message      terminal, text, md, markdown, json    (5)
+actually accepted        terminal, text, md, markdown          (4)
+```
+
+`json` is advertised and refused at rc=1 (_"this verb has no json projection"_). `text` and `markdown` are accepted and undeclared. And `--format bogus` refuses while naming `output::Format::SPELLINGS` -- **the message whose job is to name the permitted set names a set the verb does not implement**, remedy line included. **The drift runs in both directions at once**, which is worse than `enum_flag`'s doc predicted: it predicted the table gaining a format the renderer refuses, and the estate has that PLUS two undeclared acceptances PLUS a refusal sourced from a third vocabulary.
+
+**SCOPE OF THE BUILD (`authority: vc`): make the three sets one, and whichever direction it resolves, source the refusal message from the same place as `--help`** -- a refusal naming a set the verb does not implement is the part that actively misleads.
+
+**AND I NEARLY STACKED A FABRICATED DEFECT ON TOP.** My first run read every exit code as 0 and I was one sentence from reporting that the tool prints `error:` and returns success. **The rc I was reading was `head`'s** -- piped output, `$?` of the pipeline -- **watch-out 5, written on my own board, committed inside the measurement that was checking someone else's rigour.** Re-run without the pipe and with a positive control (`st show ST9999`, nonzero): `json` and `bogus` both exit 1 correctly, and there is no exit-code defect. **I caught it because the result was surprising, which is luck rather than method.** The method was already written down and I did not apply it.
