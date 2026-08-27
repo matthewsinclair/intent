@@ -429,9 +429,46 @@ fn the_strip_removes_the_markers_and_the_prose_and_nothing_else() {
   // The toggle must not run away: an odd number of delimiters would swallow the
   // rest of the file and leave a hash over almost nothing, which is the failure
   // that looks like success.
-  assert!(
-    sdl.lines().count() > published("schema.graphql").lines().count() / 3,
-    "the description strip consumed most of the SDL, so the `\"\"\"` toggle did not close"
+  //
+  // **THIS WAS A LINE-COUNT RATIO AND THE RATIO WAS NOT THE PROPERTY.** It
+  // required the stripped SDL to keep more than a third of the published
+  // file's lines, which a runaway toggle would indeed fail -- and so does a
+  // legitimately long description, because prose raises the denominator while
+  // leaving the numerator alone. It fired on 2026-08-27 for exactly that
+  // reason: a fourteen-line doc comment on `Issue::severity` took the margin
+  // from seven lines to none, and **the failure message asserted a cause the
+  // evidence did not support** -- the toggle closed, the delimiter count was
+  // 114 and even, and nothing had been swallowed. An assertion whose message
+  // names a mechanism it cannot observe sends the next reader after the wrong
+  // thing.
+  //
+  // The two checks below are what the ratio was standing in for, and both are
+  // indifferent to how much prose the types carry.
+  let delimiters = published("schema.graphql")
+    .lines()
+    .filter(|l| l.trim() == "\"\"\"")
+    .count();
+  assert_eq!(
+    delimiters % 2,
+    0,
+    "the SDL carries an odd number of `\"\"\"` lines ({delimiters}), so the description \
+     toggle cannot close and the strip swallows the rest of the file"
+  );
+  // A runaway toggle eats declarations, so counting them is the direct test:
+  // it catches the failure the ratio was proxying for, and it cannot be moved
+  // by the length of a description.
+  let declared = |t: &str| {
+    t.lines()
+      .filter(|l| {
+        let l = l.trim_start();
+        l.starts_with("type ") || l.starts_with("input ") || l.starts_with("enum ")
+      })
+      .count()
+  };
+  assert_eq!(
+    declared(&sdl),
+    declared(&published("schema.graphql")),
+    "the strip lost a type declaration, so it consumed contract rather than prose"
   );
 }
 
