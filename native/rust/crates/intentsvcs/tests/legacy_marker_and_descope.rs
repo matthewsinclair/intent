@@ -58,7 +58,6 @@
 mod common;
 
 use common::Fixture;
-use intentsvcs::finding::FindingClass;
 use intentsvcs::legacy;
 use intentsvcs::model::{AcKind, AcState};
 
@@ -244,11 +243,20 @@ fn a_bare_n_a_with_no_record_stays_unsatisfied() {
   );
 }
 
-/// **THE AMBIGUOUS ROW IS REFUSED, NOT GUESSED.** Conflab `AC-01.5`'s shape --
-/// `evidence:` + `satisfied:` + no marker -- reads as a promoted test-backed row
-/// in Conflab and as a missing marker elsewhere, and the row does not say which.
+/// **THE AMBIGUOUS ROW IS NAMED -- NOT GUESSED, AND NOT DELETED EITHER.**
+///
+/// Conflab `AC-01.5`'s shape -- `evidence:` + `satisfied:` + no marker -- reads
+/// as a promoted test-backed row in Conflab and as a missing marker in
+/// Lamplight `ST0232 AC-00.1`, and the row does not say which.
+///
+/// **THE FIRST CUT REFUSED IT, WHICH DELETES THE CRITERION.** Measured: 19
+/// criteria vanished from canon across 8 threads. Refusing is only conservative
+/// when refusing PRESERVES; where it deletes it is the more destructive option
+/// and it reads as the safer one. So the row keeps the reading it has always
+/// had and the ambiguity is reported -- better than 3.0.0, which read it the
+/// same way in silence, and better than losing it.
 #[test]
-fn a_non_test_only_field_with_no_marker_is_refused_rather_than_read() {
+fn a_non_test_only_field_with_no_marker_is_named_rather_than_dropped() {
   let fixture = Fixture::new();
   v2_estate(
     &fixture,
@@ -259,21 +267,35 @@ fn a_non_test_only_field_with_no_marker_is_refused_rather_than_read() {
   );
   let scan = scan(&fixture);
 
+  let ac = criterion(&scan, "AC-01.5").unwrap_or_else(|| {
+    panic!(
+      "THE ROW MUST SURVIVE. Refusing it deletes a ratified criterion from canon -- 19 of them \
+       across 8 threads when this was a refusal: {:?}",
+      findings(&scan)
+        .iter()
+        .map(|f| &f.detail)
+        .collect::<Vec<_>>()
+    )
+  });
+  assert_eq!(
+    ac.kind,
+    AcKind::Test,
+    "and it keeps the reading it has always had; nothing new is claimed about it"
+  );
+
   let all = findings(&scan);
-  let refusal = all
+  let named = all
     .iter()
-    .find(|f| f.class == FindingClass::UnparseableRow && f.detail.contains("AC-01.5"));
+    .find(|f| f.detail.contains("AC-01.5") && f.detail.contains("only an authored criterion"));
   assert!(
-    refusal.is_some(),
-    "the row carries a non-test-only field with no non-test marker. Reading it as non-test \
-     silently reverses Conflab's promotion; reading it as test-backed silently discards ST0346's \
-     twelve. Only a refusal is correct for both, and today there is no finding at all: {:?}",
+    named.is_some(),
+    "3.0.0 read this row exactly the same way and said NOTHING. The whole change is that the \
+     ambiguity is now named: {:?}",
     all.iter().map(|f| &f.detail).collect::<Vec<_>>()
   );
-  let message = &refusal.expect("checked above").detail;
   assert!(
-    message.contains("evidence"),
-    "the refusal must NAME the field it could not place, or it cannot be acted on: {message}"
+    named.expect("checked above").detail.contains("evidence"),
+    "the report must NAME the field it could not place, or it cannot be acted on"
   );
 }
 

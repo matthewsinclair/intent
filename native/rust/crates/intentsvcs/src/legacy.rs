@@ -1128,6 +1128,9 @@ fn acceptance(
   // a refusal, and the arithmetic would close over a row that was both stored
   // AND refused -- an instrument reporting itself broken because it worked.
   let mut unread_fields: Vec<(String, u32, String)> = Vec::new();
+  // A test-backed row carrying fields only an authored criterion can hold.
+  // **The row arrives; the ambiguity is reported.** See `criterion`.
+  let mut authored_on_test: Vec<(String, u32, String)> = Vec::new();
   let findings_before = out.residue.len() + out.carried.len();
 
   for (i, line) in text.lines().enumerate() {
@@ -1148,6 +1151,25 @@ fn acceptance(
           let keys = unread_field_keys(row, &KEYED_FIELDS);
           if !keys.is_empty() {
             unread_fields.push((c.id.clone(), line_no, keys.join("`, `")));
+          }
+          // **COLLECTED, NOT RECORDED HERE, and the accounting is what taught
+          // me that.** `out.record` counts a finding as a REFUSAL, and this row
+          // ARRIVED -- so recording it inline made half A's
+          // `declared == stored + recorded` come out at -1 and the migration
+          // refused a file it had converted correctly. Emitted after the
+          // arithmetic, beside `unread_fields`, for exactly that reason.
+          //
+          // `kind == Test` already carries the parser's verdict, so this needs
+          // no second copy of the marker rule.
+          if c.kind == AcKind::Test {
+            let stray: Vec<&str> = AUTHORED_ONLY_FIELDS
+              .iter()
+              .copied()
+              .filter(|k| row.contains(&format!(" -- {k}: ")))
+              .collect();
+            if !stray.is_empty() {
+              authored_on_test.push((c.id.clone(), line_no, stray.join("`, `")));
+            }
           }
           criteria.push(c)
         }
@@ -1245,6 +1267,24 @@ fn acceptance(
         &rel,
         FindingClass::UnreadField,
         format!("{id} carries `{keys}`, which this grammar does not read"),
+      )
+      .at_line(*line_no),
+    );
+  }
+
+  // **A ROW THAT IS READ AS TEST-BACKED WHILE CARRYING AUTHORED-ONLY FIELDS.**
+  // Same placement and the same reason: the row arrived, so this is a report
+  // and not a refusal. It used to BE a refusal, and refusing deleted 19
+  // criteria across 8 threads.
+  for (id, line_no, keys) in &authored_on_test {
+    out.record(
+      closed,
+      Finding::new(
+        &rel,
+        FindingClass::UnreadField,
+        format!(
+          "{id} carries `{keys}`, which only an authored criterion can hold, but does not open with `(non-test)` -- so it is read as test-backed and those fields are dropped. Mark it non-test if the marker is missing, or delete the fields if it is genuinely test-backed"
+        ),
       )
       .at_line(*line_no),
     );
@@ -1478,47 +1518,35 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
     (AcKind::NonTest, state)
   } else {
     // **THE SAME SHAPE HAS TWO OPPOSITE CORRECT READINGS AND THE ROW DOES NOT
-    // SAY WHICH, SO IT IS REFUSED RATHER THAN GUESSED.**
+    // SAY WHICH, SO IT IS REPORTED AND NOT DECIDED -- AND NOT REFUSED EITHER.**
     //
     // A row carrying `evidence:` with no `(non-test)` marker is either an
-    // authored criterion whose marker is missing -- in which case reading it
-    // as test-backed discards the author's whole claim -- or a criterion
-    // PROMOTED to test-backed whose v2 fields were left behind, in which case
-    // reading it as authored silently reverses the promotion.
+    // authored criterion whose marker is missing -- reading it as test-backed
+    // discards the author's whole claim -- or a criterion PROMOTED to
+    // test-backed whose v2 fields were left behind, where reading it as
+    // authored silently reverses the promotion. Conflab `AC-01.5` is the
+    // second and says so in its own prose; Lamplight `ST0232 AC-00.1`, which
+    // opens `(Highlander / boundary)`, is the first. **Twenty rows estate-wide
+    // and no rule over the row's own text separates them.**
     //
-    // Conflab `AC-01.5` is the second, and its own prose says so: "Promoted
-    // from non-test to test-backed (AT-01.12 Rust, AT-01.13 Swift)". Lamplight
-    // `ST0346` is full of the first. **Twenty rows estate-wide, and no rule
-    // over the row's own text separates them**, so any reclassification is
-    // wrong for one group or the other and silent for both.
+    // **THE FIRST CUT OF THIS REFUSED THE ROW, AND A REFUSAL HERE DELETES IT.**
+    // Measured: 19 criteria vanished from canon across 8 threads -- ST0288 lost
+    // 7, Conflab ST0121 lost 3, ST0232 lost 2. **Refusing is only conservative
+    // when refusing PRESERVES; where it deletes, it is the more destructive of
+    // the two options and it reads as the safer one.** The same trap as
+    // refusing a merely mis-placed marker, which took ST0283 from 67 rows to
+    // 65 -- walked into twice in one file, once after writing the lesson down.
     //
-    // A refusal is correct for BOTH: it names the field it could not place and
-    // stops. vc's ruling ("refuse, never reclassify") reached this from the
-    // other direction -- 21 of the 40 carry no evidence at all, so widening
-    // them into the authored branch lands them on `Unsatisfied` and trades a
-    // silent DROP for a silent FAILURE.
+    // So the row ARRIVES on the reading it has always had and the ambiguity is
+    // NAMED, at the call site where the other row-level findings are recorded.
+    // Strictly better than 3.0.0, which read it the same way and said nothing;
+    // strictly better than dropping it. Nothing new is claimed and nothing is
+    // lost, which is the whole content of "refuse, never reclassify" once you
+    // notice that refusing was never the half doing the preserving.
     //
-    // **`satisfied:` ALONE IS NOT A SIGNAL AND MUST NOT REACH HERE.** v2 wrote
-    // it onto test-backed rows as a matter of course: 789 estate rows carry it
-    // with nothing else, against 20 that carry a genuine authored field. A
-    // refusal keyed on `satisfied:` would refuse a third of the estate.
-    let stray: Vec<&str> = AUTHORED_ONLY_FIELDS
-      .iter()
-      .copied()
-      .filter(|k| body.contains(&format!(" -- {k}: ")))
-      .collect();
-    if !stray.is_empty() {
-      return Err((
-        FindingClass::UnparseableRow,
-        format!(
-          "{id} carries `{}`, which only an authored criterion can hold, but does not open with \
-           `(non-test)`. Mark it non-test if the marker is missing, or drop the field if the \
-           criterion is test-backed -- both readings are silent losses and the row does not say \
-           which one it is",
-          stray.join("`, `")
-        ),
-      ));
-    }
+    // **`satisfied:` ALONE IS NOT A SIGNAL and is not reported.** v2 wrote it
+    // onto test-backed rows as a matter of course: 789 estate rows carry it
+    // with nothing else, against 20 carrying a genuine authored field.
 
     // A test-backed criterion's satisfaction is COMPUTED from its covering
     // tests, so nothing is carried onto the row.
@@ -1745,7 +1773,7 @@ fn is_criterion_id(token: &str) -> bool {
       .all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()))
 }
 
-/// Split on commas OUTSIDE brackets.
+/// Split a covers span on its separators -- `,` and `+` -- OUTSIDE brackets.
 ///
 /// **A bare `split(',')` shreds a qualifier that contains a comma**, and the
 /// tail becomes a span of prose that is then read as an id. Measured on
@@ -1761,7 +1789,19 @@ fn split_outside_brackets(span: &str) -> Vec<&str> {
     match b {
       b'(' | b'[' => depth += 1,
       b')' | b']' => depth = depth.saturating_sub(1),
-      b',' if depth == 0 => {
+      // **`+` IS A SEPARATOR AND WAS NOT, SO TWELVE COVERAGE LINKS WERE READ AS
+      // ANNOTATION.** `covers AC-13.1 + AC-13.4` arrived as one span; the
+      // leading-token rule took `AC-13.1` and made `+ AC-13.4` its qualifier.
+      // The row arrived, the accounting closed, and AC-13.4 simply had one
+      // fewer covering test than its author wrote.
+      //
+      // **AT DEPTH 0 AND NOWHERE ELSE, WHICH IS THE WHOLE CARE IN THIS CHANGE.**
+      // Estate-wide 32 covers spans carry a `+` and **20 of them are inside a
+      // parenthetical** -- `AC-05.1 (path-transition render + first-visit
+      // dedup)`. Splitting on the character would shred those qualifiers into
+      // prose that is then read as an id, which is precisely the failure this
+      // function was written to stop, reintroduced one byte over.
+      b',' | b'+' if depth == 0 => {
         out.push(&span[start..i]);
         start = i + 1;
       }
