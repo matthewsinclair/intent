@@ -13,7 +13,7 @@ set -u; P="$1"; MODE="${2:-}"; if [ -n "${VC_PRE_HOP2:-}" ]; then case "$VC_PRE_
 # INSIDE the checkout: hop 3 (`claude upgrade --apply`) walks up from the exe
 # looking for `lib/templates/`, so a copy parked anywhere else refuses at rc 1.
 INT_ROOT=~/Devel/prj/Intent
-"$INT_ROOT/bin/int" cli --version > /dev/null || { echo "int cli refused the pair -- run 'int local build' before re-converting"; exit 8; }
+"$INT_ROOT/bin/devbin" cli --version > /dev/null || { echo "devbin cli refused the pair -- run 'bin/devbin local build' before re-converting"; exit 8; }
 I=$INT_ROOT/native/rust/target/release/intent; AT=~/Devel/prj/Devbin/intent/whiteboard/vc/at-accounting.sh
 mig=$(git log --diff-filter=A --format=%h -- intent/.canon/st | tail -1); [ -n "$mig" ] || { echo "$N: no migration commit"; exit 2; }
 src="$mig^"; echo "## $N: migration $mig, v2 source at $src ($(git log -1 --format=%s "$src" | cut -c1-50)); dirty before: $(git status --porcelain | wc -l | tr -d ' ')"

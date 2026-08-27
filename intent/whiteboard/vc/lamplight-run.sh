@@ -5,7 +5,7 @@
 #   --commit      commit --only everything except mix.lock and intent/whiteboard (peer-owned); hooks run; may be slow.
 set -u; P=~/Devel/prj/Lamplight; cd "$P" || exit 1; S=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$S"; L="$S/lamplight-run"
 INT_ROOT=~/Devel/prj/Intent
-"$INT_ROOT/bin/int" cli --version > /dev/null || { echo "int cli refused the pair -- run 'int local build'"; exit 8; }
+"$INT_ROOT/bin/devbin" cli --version > /dev/null || { echo "devbin cli refused the pair -- run 'bin/devbin local build'"; exit 8; }
 I=$INT_ROOT/native/rust/target/release/intent; AT=~/Devel/prj/Devbin/intent/whiteboard/vc/at-accounting.sh; INBOX=0; COMMIT=0; for a in "$@"; do [ "$a" = --inbox-flat ] && INBOX=1; [ "$a" = --commit ] && COMMIT=1; done
 echo "## Lamplight $(date -u +'%H:%MZ'): HEAD $(git log --oneline -1 | cut -c1-50); config $(jq -r .intent_version intent/.config/config.json); dirty: [$(git status --porcelain | tr '\n' ' ' | cut -c1-120)]"
 [ "$(jq -r .intent_version intent/.config/config.json)" = "2.19.0" ] || { echo "not on v2 2.19.0 -- refusing"; exit 2; }
