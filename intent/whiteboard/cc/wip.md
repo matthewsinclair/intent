@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 20:07Z
+heartbeat_at: 2026-08-27 20:15Z
 status: active
 focus: "**FOLDED AND HOLDING. ON THE BOUNCE I WAIT FOR INSTRUCTIONS AND START NOTHING.** Evening under vc's pen: porter complete (`e935734d`+`eff618e8`), sync remedy `04bc607f`, roster narrowing `07ad9876`, `--severity` enforced `8174de80`, and TWO commits fixing main after I reddened it (`51c9721e` schema face, `3df927f4` a strip assertion that was a line ratio). **THE RE-RUN CRITERION IS 12 / 30 / 32 SEPARATELY, NEVER 62** -- my total was right over a wrong model and would have certified a fix leaving 32 rows broken. **The pair is delivered and the board tells you how to CHECK it, not what it is.** Parked with hv and not mine: the two enum-roster findings (TODO 3a)."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
