@@ -1270,13 +1270,39 @@ fn declared_list_edit(op: &str) -> Option<ListAction> {
     // Every member now lands on `wip`, so declared-iff-WIP is a property of the
     // mechanism rather than of four sites agreeing.
     //
-    // **WHAT IS STILL NOT TRUE OF THE MECHANISM, MEASURED AND REPORTED RATHER
-    // THAN QUIETLY EXTENDED: `st.hold` and `st.triage` leave a thread DECLARED
-    // while moving it off `wip`.** Neither was among the three hv named, so
-    // neither moves here. A held or triaged thread therefore stays in the
-    // manifest, and the iff holds in one direction only.
+    // **AND THE ONE-DIRECTIONAL GAP THAT PARAGRAPH REPORTED IS CLOSED BY hv's
+    // RULING OF 2026-08-27 17:10Z** (hv's board `3e5e620c`, first-hand in vc's
+    // session, chosen from options vc authored): `st.hold` AND `st.triage`
+    // BOTH REMOVE. Both move a thread off `wip`, so both leave the realised
+    // set, and declared-iff-WIP now holds in BOTH directions rather than on
+    // the ADD side alone. The superseded paragraph reported the gap as *what
+    // is still not true of the mechanism*; it was hv's to close and hv closed
+    // it.
+    //
+    // **hv WAS TOLD THE COST IN THESE TERMS:** a thread put on hold LEAVES the
+    // manifest and `st resume` re-adds it. The round trip works; what changes
+    // is that the entries visibly vanish while the thread is held, and *a held
+    // thread stays realised* was the entire content of the old design.
+    //
+    // **AND THE REMOVAL DRAGS THE UNSYNCED-ATTACHMENTS WARNING WITH IT**, via
+    // `closing_notes` keying on this same `Remove`. `st hold` now warns where
+    // it was silent. That is the documented *tied to the removal, not to the
+    // verb* rule reaching a new member of its class rather than a side effect,
+    // and it is asserted next door rather than left to be met in the field.
+    //
+    // **THE TABLE IS STILL KEYED ON THE OP, AND AFTER THIS RULING THAT IS
+    // LOAD-BEARING AGAIN.** `dfd07cfe` had left every destination mapping to
+    // exactly one action, so op-keying was true but no longer forced; this
+    // ruling puts a second op on `not-started` taking a DIFFERENT action --
+    // `st.triage` REMOVES, `st.reinstate` does nothing -- so a status-keyed
+    // rewrite cannot express both. **Measured, not argued:** adding
+    // `"st.reinstate"` to the arm below is the minimal faithful spelling of a
+    // status-keyed table, and it reds exactly two tests in
+    // `lifecycle_verbs_edit_the_list.rs` and nothing else in the crate. hv has
+    // not ruled on the FORM, so a status-keyed rewrite would be an unruled
+    // change wearing a refactor.
     "st.start" | "st.resume" | "st.reopen" => Some(ListAction::Add),
-    "st.done" | "st.cancel" => Some(ListAction::Remove),
+    "st.done" | "st.cancel" | "st.hold" | "st.triage" => Some(ListAction::Remove),
     _ => None,
   }
 }

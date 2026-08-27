@@ -2,65 +2,73 @@
 //!
 //! hv's architecture in one line: **realisation is driven from `.intentfiles`;
 //! commands change `.intentfiles`; `organize` realises it.** This file drives
-//! the middle clause. `st new` adds the id and `--dehydrate` does not; `st
-//! done` and `st cancel` remove it and `--keep` does not; `st reopen` and
-//! `st reinstate` add it back.
+//! the middle clause. **Which verb makes which edit is hv's, ruled three times
+//! on 2026-08-27 and enumerated in the table below**; what this file drives is
+//! that each verb makes the edit the table says, that `--keep` and
+//! `--dehydrate` suppress it, and that nothing ELSE in the manifest moves when
+//! they do.
 //!
 //! The two primitives are covered next door -- `pin_writes_to_the_list.rs` and
 //! `unpin_removes_from_the_list.rs`. **A green there is a green about a
 //! function; this file is the one that is a green about the row.**
 //!
-//! # hv's TWO RULINGS OF 2026-08-27 DISSOLVED THE ARGUMENT BELOW, AND IT IS
+//! # hv's THREE RULINGS OF 2026-08-27 DISSOLVED THE ARGUMENT BELOW, AND IT IS
 //! # KEPT BECAUSE THE CONCLUSION SURVIVED THE ARGUMENT
 //!
 //! `1d0ce157` took `st.new` out of the adding set; `dfd07cfe` put `st.start`
-//! and `st.resume` in and took `st.reinstate` out. **After both, the table is a
-//! pure function of the destination status** -- enumerated rather than
-//! asserted:
+//! and `st.resume` in and took `st.reinstate` out; `3e5e620c` put `st.hold`
+//! and `st.triage` into the removing set. **After all three, declared-iff-WIP
+//! holds in BOTH directions** -- enumerated rather than asserted:
 //!
-//! | destination   | action | ops                              |
-//! | ------------- | ------ | -------------------------------- |
+//! | destination   | action | ops                                |
+//! | ------------- | ------ | ---------------------------------- |
 //! | `wip`         | ADD    | `st.start` `st.resume` `st.reopen` |
-//! | `completed`   | REMOVE | `st.done`                        |
-//! | `cancelled`   | REMOVE | `st.cancel`                      |
-//! | `not-started` | none   | `st.triage` `st.reinstate`       |
-//! | `hold`        | none   | `st.hold`                        |
+//! | `completed`   | REMOVE | `st.done`                          |
+//! | `cancelled`   | REMOVE | `st.cancel`                        |
+//! | `hold`        | REMOVE | `st.hold`                          |
+//! | `not-started` | REMOVE | `st.triage`                        |
+//! | `not-started` | none   | `st.reinstate`                     |
 //!
-//! **Every destination maps to exactly one action, so the collisions that made
-//! op-keying load-bearing no longer produce different outcomes.** The
-//! implementation stays op-keyed -- that is what hv ruled and it is the
-//! conservative form -- but a reader should not be told it is FORCED, because
-//! it no longer is.
+//! **AND THE LAST TWO ROWS ARE WHY THE IMPLEMENTATION IS STILL KEYED ON THE
+//! OP.** After `dfd07cfe` every destination mapped to exactly one action, so
+//! op-keying was still true but no longer FORCED, and this doc said so.
+//! `3e5e620c` put a second op on `not-started` taking a DIFFERENT action, so
+//! the collision is load-bearing again -- in exactly one place, and that place
+//! is driven by
+//! [`reinstate_touches_nothing_which_is_the_one_case_a_status_keyed_table_gets_wrong`].
+//! hv has not ruled on the FORM, and a status-keyed rewrite would be an
+//! unruled change wearing a refactor.
 //!
-//! **AND THE IFF HOLDS IN ONE DIRECTION ONLY: `st.hold` leaves a thread
-//! DECLARED while moving it off `wip`.** So does `st.triage` from `wip`.
-//! Neither was among the ops hv ruled on, so neither moved. Declared implies
-//! nothing about WIP in that direction, and any claim that the mechanism now
-//! enforces WIP-only should be read as covering the ADD side.
+//! **THE COST hv WAS TOLD, RECORDED HERE BECAUSE IT IS OPERATOR-VISIBLE:** a
+//! thread put on hold LEAVES the manifest and `st resume` re-adds it. The round
+//! trip works; what changes is that the entries visibly vanish while the thread
+//! is held, and *a held thread stays realised* was the entire content of the
+//! old design.
 //!
-//! # The argument this file was built on, now superseded
+//! **THE REMOVAL CARRIES THE UNSYNCED-ATTACHMENTS WARNING WITH IT**, because
+//! that note is tied to the removal and not to the verb (`closing_notes` keys
+//! on `declared_list_edit(op) == Remove`). So `st hold` now warns where it was
+//! silent. That is not a side effect of this edit -- it is the documented
+//! design reaching a new member of its class -- and it is driven below rather
+//! than left to be discovered.
 //!
-//! Kept verbatim rather than deleted, because a corrected sentence reads
-//! exactly like one that was never wrong. It read: *`st triage` and
-//! `st reinstate` both land on `NotStarted`, and `st start`, `st resume` and
-//! `st reopen` all land on `Wip`* -- so a status-keyed edit *re-adds a thread a
-//! human had deliberately removed*. **That hazard is now REAL AND ACCEPTED:**
-//! `st resume` does re-add a hand-dehydrated thread, and hv chose it knowing.
+//! # The argument this file was built on, now down to one case
 //!
-//! # The strongest test here is the one about the verbs that do NOTHING
-//!
-//! [`no_verb_that_only_changes_status_touches_the_list`] is the reason the
-//! implementation keys on the OP STRING and never on the target status, and it
-//! is arithmetic rather than principle. Eight ops funnel through
-//! `set_thread_status` and the destination does not identify them: **`st
+//! Kept rather than deleted, because a corrected sentence reads exactly like
+//! one that was never wrong. It read: *eight ops funnel through
+//! `set_thread_status` and the destination does not identify them -- `st
 //! triage` and `st reinstate` both land on `NotStarted`, and `st start`, `st
-//! resume` and `st reopen` all land on `Wip`.** So an implementation that
-//! matched on the status it was setting -- the obvious one, and the one that
-//! reads as equivalent -- would make `st triage` start listing threads and
-//! `st start` silently re-add one a human had removed by hand. Two collisions
-//! in a vocabulary of eight.
+//! resume` and `st reopen` all land on `Wip` -- so a status-keyed edit would
+//! make `st triage` start listing threads and `st start` silently re-add a
+//! thread a human had removed by hand.* Two collisions in a vocabulary of
+//! eight.
 //!
-//! That defect is invisible from the happy-path tests: every assertion about
+//! **Both hazards are now REAL AND ACCEPTED, which is a different outcome from
+//! being wrong.** `st start` does re-add a hand-dehydrated thread; `st triage`
+//! does now edit the list, removing rather than adding. What survives of the
+//! argument is the `not-started` row-pair above.
+//!
+//! That defect was invisible from the happy-path tests: every assertion about
 //! `st done` and `st reopen` below passes under both implementations, because
 //! `Completed` and `Cancelled` are reached by exactly one op each.
 //!
@@ -366,6 +374,13 @@ fn st_reopen_adds_it_back() {
 /// back*. **hv was told this cost before choosing it and nobody had asked for
 /// it** -- it is the price of making declared-iff-WIP a property of the
 /// mechanism rather than of four sites happening to agree.
+///
+/// **THIS COVERS THE ADD SIDE ONLY, AND THAT IS NOT A GAP -- IT IS WHY THE
+/// TEST BELOW EXISTS.** `st cancel` has already removed the id here, so an
+/// implementation that REMOVED on reinstate passes this line unchanged. The
+/// distinguishing case needs a cancelled thread that is still declared, which
+/// is `st cancel --keep`:
+/// [`reinstate_touches_nothing_which_is_the_one_case_a_status_keyed_table_gets_wrong`].
 #[test]
 fn st_reinstate_does_not_add_it_back_because_it_lands_on_not_started() {
   let fx = fixture();
@@ -388,82 +403,145 @@ fn st_reinstate_does_not_add_it_back_because_it_lands_on_not_started() {
 // THE CONTROL, AND IT IS THE POINT OF THE FILE
 // ---------------------------------------------------------------------------
 
-/// **NOTHING DERIVES THE LIST FROM STATUS, AND THIS IS WHERE THAT IS MEASURED.**
+/// **A THREAD LEAVES THE REALISED SET THE MOMENT IT LEAVES `wip`, AND `st hold`
+/// IS WHERE THAT COSTS SOMETHING.**
 ///
-/// The four ops below move a thread between states and say nothing about
-/// whether it is on disk. **A held thread stays realised** -- that is the whole
-/// content of hv's rule, and it is the clause an implementation keyed on the
-/// destination status cannot honour, because `st triage` shares `NotStarted`
-/// with `st reinstate` and `st start` and `st resume` share `Wip` with
-/// `st reopen`.
+/// **INVERTED ON hv's RULING OF 2026-08-27 17:10Z** (hv's board `3e5e620c`,
+/// first-hand in vc's session, chosen from options vc authored). The
+/// superseded assertion was this file's strongest line -- *`st hold` changes
+/// what the thread IS and must not touch the list; a held thread stays
+/// realised* -- and that sentence was the entire content of the old design. hv
+/// was told so in those terms and chose the other side.
+///
+/// So the round trip is the test: hold removes, resume adds back, and what an
+/// operator sees in between is their entries gone from the manifest while the
+/// thread is held.
 #[test]
-fn no_verb_that_only_changes_status_touches_the_list() {
-  // Each op gets its own fixture, so an earlier verb cannot leave the manifest
-  // in a state that masks a later one. Written out rather than driven from a
-  // table of closures: two cases do not earn the indirection, and the boxed-
-  // closure version cost a `clippy::type_complexity` to say less.
+fn hold_removes_and_resume_adds_it_back() {
   let fx = fixture();
-  let before = manifest_text(&fx);
-  fx.facade()
+  let mut facade = fx.facade();
+  facade
     .st_hold("ST0056", "waiting on a ruling")
     .expect("hold");
-  assert_eq!(
-    manifest_text(&fx),
-    before,
-    "`st hold` changes what the thread IS and must not touch the list -- **a held \
-     thread stays realised**. If this fails, the edit is keyed on the destination \
-     status rather than on the op:\n{}",
+  assert!(
+    !declared(&fx).declares("ST0056"),
+    "`st hold` moves the thread off `wip`, so it must leave the realised set:\n{}",
+    manifest_text(&fx)
+  );
+  assert!(
+    declared(&fx).declares("ST0099"),
+    "the neighbour is the control -- a verb that rewrote the whole file passes the line \
+     above and fails here:\n{}",
+    manifest_text(&fx)
+  );
+  assert!(
+    manifest_text(&fx).contains("# a hand-maintained note"),
+    "removal rewrites the file, so the hand-maintained comment is the thing most likely to \
+     be lost by it:\n{}",
     manifest_text(&fx)
   );
 
-  let fx = fixture();
-  let before = manifest_text(&fx);
-  let mut facade = fx.facade();
-  facade.st_hold("ST0056", "waiting").expect("hold");
   facade.st_resume("ST0056").expect("resume");
-  // **INVERTED ON hv's RULING OF 2026-08-27 16:43Z.** `st.resume` lands on
-  // `wip`, so it now DECLARES. The superseded assertion read *`st resume`
-  // shares `Wip` with `st reopen`, which DOES add -- so a status-keyed edit
-  // re-adds a thread a human had deliberately removed*. **That hazard is now
-  // REAL AND ACCEPTED**: a thread someone dehydrated by hand IS re-declared by
-  // `st resume`. hv chose it knowing the cost, and the trade is that
-  // declared-iff-WIP holds mechanically instead of by four sites agreeing.
   assert!(
     declared(&fx).declares("ST0056"),
-    "`st resume` lands on `wip` and must declare:\n{}",
+    "`st resume` lands on `wip` and must declare, or `st hold` is a one-way door out of the \
+     realised set:\n{}",
     manifest_text(&fx)
   );
 }
 
-/// The other two of the four, which need a thread that is not already `wip`.
+/// The other half of the same ruling, on a thread that is not already `wip`.
+///
+/// **`st triage` REMOVES on hv's ruling of 17:10Z**, and `st start` puts it
+/// back on the ruling of 16:43Z -- so the pair is a round trip on the other
+/// side of the vocabulary, and the same one-way-door question gets the same
+/// answer.
 #[test]
-fn triage_and_start_do_not_touch_the_list_either() {
+fn triage_removes_and_start_adds_it_back() {
   let fx = Fixture::new();
   let mut thread = sample_thread("ST0056");
   thread.status = ThreadStatus::Triage;
   fx.write_thread(&thread);
   fx.write_file("intent/.intentfiles", MANIFEST);
 
-  let before = manifest_text(&fx);
   let mut facade = fx.facade();
   facade.st_triage("ST0056").expect("triage");
-  assert_eq!(
-    manifest_text(&fx),
-    before,
-    "`st triage` shares its destination -- `NotStarted` -- with `st reinstate`, which \
-     DOES add. If this line fails, that is the collision:\n{}",
+  assert!(
+    !declared(&fx).declares("ST0056"),
+    "`st triage` lands on `not-started`, which is off `wip`, so it must remove:\n{}",
+    manifest_text(&fx)
+  );
+  assert!(
+    declared(&fx).declares("ST0099"),
+    "the neighbour is the control:\n{}",
     manifest_text(&fx)
   );
 
-  // **INVERTED ON hv's RULING OF 2026-08-27 16:43Z.** `st.start` lands on
-  // `wip`, so it now declares -- and this is the arm that closes the workflow
-  // gap `st new` opened: `st new` then `st start` leaves the thread WIP and
-  // DECLARED by the normal path, with no `st hydrate` needed.
+  // **The arm that closes the workflow gap `st new` opened:** `st new` then
+  // `st start` leaves the thread WIP and DECLARED by the normal path, with no
+  // `st hydrate` needed.
   facade.st_start("ST0056").expect("start");
   assert!(
     declared(&fx).declares("ST0056"),
     "`st start` lands on `wip` and must declare, or a thread you have just started work on is \
      not realised by any normal path:\n{}",
+    manifest_text(&fx)
+  );
+}
+
+/// **THE ONE CASE THAT STILL FORCES THE TABLE TO BE KEYED ON THE OP.**
+///
+/// `st.triage` and `st.reinstate` both land on `not-started` and they take
+/// DIFFERENT actions -- triage removes, reinstate does nothing -- so a
+/// status-keyed rewrite cannot express both. Every other destination is now
+/// reached by ops that agree.
+///
+/// **DRIVEN AS A MUTATION RATHER THAN ASSERTED**, because a test that claims to
+/// discriminate and does not is worth less than no test: adding `"st.reinstate"`
+/// to the removing arm -- the minimal faithful spelling of a status-keyed table
+/// -- reds this test and
+/// [`a_verb_that_removes_nothing_carries_no_note`], and NOTHING ELSE in the
+/// file. Both reds are this same reinstate case seen twice, once in the
+/// manifest and once in the note that follows the removal.
+///
+/// **AND THE MUTATION LEAVES
+/// [`st_reinstate_does_not_add_it_back_because_it_lands_on_not_started`]
+/// GREEN**, which is the control that matters: that test covers the ADD side of
+/// the same op and passes under both implementations, so it is not the one
+/// holding the form in place. Without the test below, a status-keyed rewrite
+/// would land green.
+///
+/// **The setup is the only shape where the difference is observable**, and it
+/// is a real one rather than a contrivance: `st cancel --keep` closes the
+/// thread and deliberately leaves it declared, so a `cancelled` thread that is
+/// still in the manifest is a supported state. Reinstating it must leave the
+/// manifest alone; a status-keyed table would delist it on the strength of its
+/// destination, silently undoing the `--keep` the operator asked for.
+#[test]
+fn reinstate_touches_nothing_which_is_the_one_case_a_status_keyed_table_gets_wrong() {
+  let fx = fixture();
+  let mut facade = fx.facade();
+  facade
+    .st_cancel_listing("ST0056", "superseded", ListEdit::Suppressed)
+    .expect("cancel --keep");
+  assert!(
+    declared(&fx).declares("ST0056"),
+    "the fixture is wrong, not the subject: `--keep` must leave the id declared or the \
+     assertion below proves nothing:\n{}",
+    manifest_text(&fx)
+  );
+
+  let before = manifest_text(&fx);
+  facade
+    .st_reinstate("ST0056", "the successor was withdrawn")
+    .expect("reinstate");
+  assert_eq!(
+    manifest_text(&fx),
+    before,
+    "`st reinstate` is not in the table and must touch nothing. If this fails, the edit is \
+     keyed on the destination status -- `not-started` -- which it shares with `st triage`, \
+     and a thread kept by `--keep` has just been delisted by a verb that says nothing about \
+     realisation:\n{}",
     manifest_text(&fx)
   );
 }
@@ -633,15 +711,67 @@ fn keep_closes_without_a_note_because_nothing_is_being_dehydrated() {
   );
 }
 
-/// A verb that does not remove says nothing, on the same ground.
+/// **A VERB THAT REMOVES NOTHING SAYS NOTHING, ON THE SAME GROUND** -- and
+/// after hv's ruling of 17:10Z that class has two members left rather than the
+/// four it had this morning, so both are driven.
+///
+/// **THE SUBJECT MOVED, AND WHY IT MOVED IS THE POINT.** This test used to
+/// drive `st hold`, on the reasoning that hold is the obvious verb that changes
+/// status without removing. `3e5e620c` made hold REMOVE, so hold now carries
+/// the note -- see
+/// [`hold_now_carries_the_note_because_the_note_follows_the_removal`]. A test
+/// whose subject has quietly joined the other class still passes for whatever
+/// its new subject happens to do, which is why this one redded rather than
+/// drifting: the assertion was about the class, not the verb.
 #[test]
-fn a_non_closing_verb_carries_no_note() {
+fn a_verb_that_removes_nothing_carries_no_note() {
+  // The ADD side: `st start` lands on `wip` and adds. Nothing is being
+  // dehydrated, so there is nothing to warn about.
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0056");
+  thread.status = ThreadStatus::Triage;
+  fx.write_thread(&thread);
+  fx.write_file("intent/.intentfiles", MANIFEST);
+  let outcome = fx.facade().st_start("ST0056").expect("start");
+  assert!(outcome.notes().is_empty(), "got {outcome:?}");
+
+  // The NONE side: `st reinstate` is not in the table at all.
   let fx = fixture();
   let mut facade = fx.facade();
+  facade
+    .st_cancel_listing("ST0056", "superseded", ListEdit::Suppressed)
+    .expect("cancel --keep");
   let outcome = facade
+    .st_reinstate("ST0056", "the successor was withdrawn")
+    .expect("reinstate");
+  assert!(outcome.notes().is_empty(), "got {outcome:?}");
+}
+
+/// **THE CLASS OF WARNING VERBS GAINED A MEMBER, AND IT IS ASSERTED RATHER
+/// THAN LEFT TO BE DISCOVERED.**
+///
+/// `closing_notes` keys on `declared_list_edit(op) == Remove`, so hv's ruling
+/// of 17:10Z did not only move `st hold` in the manifest -- it made `st hold`
+/// warn about unsynced attachments where it was previously silent. That
+/// follows correctly from *the note is tied to the removal, not to the verb*,
+/// which is the two tests above; it is still an operator-visible change to a
+/// verb nobody was asked about, so it gets its own green.
+///
+/// `UnsyncedUnknown` rather than a path list because the fixture is not a
+/// repository -- the same reasoning as
+/// [`a_close_reports_what_it_could_not_ask_and_still_closes`], and what is
+/// being asserted here is membership of the warning class, not which warning.
+#[test]
+fn hold_now_carries_the_note_because_the_note_follows_the_removal() {
+  let fx = fixture();
+  let outcome = fx
+    .facade()
     .st_hold("ST0056", "waiting on a ruling")
     .expect("hold");
-  assert!(outcome.notes().is_empty(), "got {outcome:?}");
+  assert!(
+    !outcome.notes().is_empty(),
+    "`st hold` removes now, and the note follows the removal: {outcome:?}"
+  );
 }
 
 /// **A THREAD WITH NO ATTACHMENTS IS NOT UNCERTAIN, AND THAT IS ARITHMETIC.**
