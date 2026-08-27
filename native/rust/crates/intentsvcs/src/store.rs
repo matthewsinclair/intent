@@ -1219,6 +1219,32 @@ pub struct Mutation<'a> {
   pub removed_issues: &'a [u32],
   pub sections: &'a [DocSection],
   pub envelope: &'a Envelope,
+  /// Project-level state this mutation also sets, inside the same transaction.
+  ///
+  /// **THE POINT IS THE WORD `also`.** AC-14.7 requires that a flush's history
+  /// and its state cannot land separately, and until 2026-08-27 they could:
+  /// `todo_flush` committed the event through this door and then wrote the
+  /// watermark through a second, unwrapped statement afterwards. Two
+  /// transactions, in that order, with a window between them -- so a failure
+  /// there left a `todo.flush` in the log that no cutoff reflected, and
+  /// AC-14.2 had deliberately removed the fallback that would have hidden it.
+  pub project_state: ProjectStateEdit,
+}
+
+/// Project-level state a mutation carries alongside its rows.
+///
+/// **AN EXPLICIT PARAMETER RATHER THAN A THIRD READER OF THE OP STRING.** The
+/// obvious implementation is for the mutation path to notice `op ==
+/// "todo.flush"` and act, and that is exactly the shape vc's Highlander finding
+/// F1 is about: the op vocabulary already has two consumers that fail in
+/// opposite directions, and a third would be one more table to forget a member
+/// in. The caller knows what it is doing; it says so.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProjectStateEdit {
+  /// The ordinary case: rows and an event, nothing project-level.
+  Unchanged,
+  /// Set the DONE cutoff to the moment this transaction commits.
+  SetTodoWatermark,
 }
 
 impl Store {
@@ -1651,6 +1677,21 @@ impl Store {
     // The mutation's own event: the DB stamps it inside the same
     // transaction as the rows it describes (D42).
     Self::write_event(&tx, change.envelope, Stamp::ByTheDatabase)?;
+    // **AND THE PROJECT STATE, IN THIS TRANSACTION, WHICH IS THE WHOLE OF
+    // AC-14.7.** The clock is the database's, read inside the statement, so
+    // this keeps D42 for the same reason the envelope does: a time read in Rust
+    // and then written is a value held across a gap the write can be retried
+    // inside.
+    if change.project_state == ProjectStateEdit::SetTodoWatermark {
+      tx.execute(
+        "INSERT INTO project (id, todo_watermark)
+           VALUES (1, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+         ON CONFLICT (id) DO UPDATE SET
+           todo_watermark = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'),
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+        [],
+      )?;
+    }
     tx.commit()?;
     Ok(dates)
   }
@@ -2318,19 +2359,6 @@ impl Store {
   /// retyped by people. **It is not derived from the flush EVENT**: deriving it
   /// would put a cutoff back in the log, which is the one thing this table
   /// exists to stop.
-  pub fn flush_todo_watermark(&self) -> Result<String, StoreError> {
-    let mark: String = self.conn.query_row(
-      "INSERT INTO project (id, todo_watermark)
-         VALUES (1, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-       ON CONFLICT (id) DO UPDATE SET
-         todo_watermark = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'),
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-       RETURNING todo_watermark",
-      [],
-      |row| row.get(0),
-    )?;
-    Ok(mark)
-  }
 
   /// Record the DONE cutoff.
   ///

@@ -2,7 +2,7 @@
 wp_id: WP-14
 title: The DONE cutoff is canon state, not history: it travels by git
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-14: The DONE cutoff is canon state, not history: it travels by git

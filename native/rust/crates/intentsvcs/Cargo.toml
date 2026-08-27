@@ -26,3 +26,10 @@ regex.workspace = true
 testkit = { path = "../testkit" }
 proptest.workspace = true
 tempfile.workspace = true
+# **TEST-ONLY, AND IT ADDS NO THIRD-PARTY CODE:** `rusqlite` is already a
+# normal dependency of this crate, so this only makes it reachable from
+# `tests/`, which cannot see a crate's own dependencies. AC-14.7's proof needs
+# to break the store UNDERNEATH the facade -- dropping the `project` table so
+# the watermark write fails -- and there is no honest way to do that through
+# the public API, because the public API is what is under test.
+rusqlite.workspace = true

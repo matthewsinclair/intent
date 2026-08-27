@@ -3027,7 +3027,21 @@ impl Facade {
       .map(|i| i.label)
       .collect();
     let next = self.canon.clone();
-    self.apply(
+    // **BOTH RECORDS, AND THEY ARE DIFFERENT THINGS -- BUT THEY LAND TOGETHER
+    // OR NOT AT ALL (AC-14.7).** The event is HISTORY, a flush happened, and
+    // stays in the log D53 keeps out of the working tree; the watermark is
+    // STATE, the cutoff is now this, and state is what canon carries and git
+    // moves. Deriving one from the other is what left a fresh clone with no
+    // cutoff at all, so they stay two records -- in ONE transaction.
+    //
+    // **THIS USED TO BE TWO CALLS AND THE CRITERION SAID IT WAS ONE.** `apply`
+    // committed with the event in it and a separate unwrapped INSERT followed,
+    // so a failure between them left a `todo.flush` in the log that no cutoff
+    // reflected -- and AC-14.2 had removed the fallback that would have hidden
+    // it, so the flush simply appeared not to have happened while history said
+    // it did. Measured and repaired 2026-08-27; the criterion was not
+    // uncovered, it was unbuilt.
+    self.apply_with_state(
       crate::event::TODO_FLUSH,
       Subject {
         kind: "todo".to_string(),
@@ -3035,16 +3049,8 @@ impl Facade {
       },
       serde_json::json!({ "cleared": cleared.len() }),
       next,
+      crate::store::ProjectStateEdit::SetTodoWatermark,
     )?;
-    // **BOTH RECORDS, AND THEY ARE DIFFERENT THINGS.** The event above is
-    // HISTORY -- a flush happened -- and stays in the log D53 keeps out of the
-    // working tree. The line below is STATE: the cutoff is now this, and state
-    // is what the canon carries and git moves. Deriving one from the other is
-    // what left a fresh clone with no cutoff at all.
-    self
-      .store
-      .flush_todo_watermark()
-      .map_err(FacadeError::Store)?;
     // Re-read AFTER the event, so `remaining` is measured rather than assumed.
     let after = self.todo_buckets()?;
     Ok(TodoFlush {
@@ -6002,12 +6008,35 @@ impl Facade {
   /// EVERY mutating verb routes through here. That is not tidiness: AC-04.5
   /// requires an event-log envelope on every mutation path, and a second write
   /// path is how one of them would come to be missing it.
+  /// Apply a mutation that touches no project-level state.
+  ///
+  /// **THE PLAIN SPELLING IS THE ONE FOUR CALLERS WANT, AND IT DELEGATES** --
+  /// the same shape as `st_new` beside `st_new_listing`. One body underneath,
+  /// so there is no second mutation path to drift, and the callers that care
+  /// about project state are the only ones that have to say so.
   fn apply(
     &mut self,
     op: &str,
     subject: Subject,
     payload: serde_json::Value,
+    next: Canon,
+  ) -> Result<(), FacadeError> {
+    self.apply_with_state(
+      op,
+      subject,
+      payload,
+      next,
+      crate::store::ProjectStateEdit::Unchanged,
+    )
+  }
+
+  fn apply_with_state(
+    &mut self,
+    op: &str,
+    subject: Subject,
+    payload: serde_json::Value,
     mut next: Canon,
+    project_state: crate::store::ProjectStateEdit,
   ) -> Result<(), FacadeError> {
     // What gets written is DIFFED, not declared. The caller used to hand in a
     // list of touched ids, which made "the mutation did not persist" reachable
@@ -6167,6 +6196,7 @@ impl Facade {
         removed_issues: &removed_issues,
         sections: &sections,
         envelope: &envelope,
+        project_state,
       })
       .map_err(FacadeError::Store)?;
     drop(changed_threads);
