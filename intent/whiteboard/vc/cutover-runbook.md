@@ -1272,3 +1272,37 @@ The mechanical edit routing five call sites through one builder **stripped the c
 **(B) is complete: `f8a78e05` installs the carrier, `22a75509` reports whether it can RUN -- which `written:` never did.** It also reports a third state nothing had compared: **the carrier's bytes come from the install this binary resolved, the gate it execs comes from whatever the pointer names, and when those differ the guards that run are the second one's.**
 
 **hv repointed `~/.intent/home`; verified `state: OK` rc=0 with a negative control (`/nonexistent/deliberately` -> `UNUSABLE`).**
+
+## A RESOURCE WHOSE COVERAGE IS COMPLEMENTARY TO THE NEED, AND ABUNDANT ENOUGH TO LOOK LIKE THE ANSWER (2026-08-27 21:55Z)
+
+**lamplight-vc noticed `tests[]` carries `legacy.raw` on 1057 of Lamplight's 1731 rows, holding an original v2 citation verbatim, and offered it as a possible in-store recovery source -- conditional, flagged as a lead. I tested the condition.**
+
+```
+rows carrying legacy.raw                    1057
+broken rows (file starts '[')                 74
+  of those carrying legacy.raw                 0
+  of those carrying ANY .legacy key            0
+rows with legacy.raw AND any file value        0
+```
+
+**ZERO, and the complementarity is STRUCTURAL rather than unlucky.** `legacy.raw` rows carry **no `file` key at all** -- it is the bucket for citations the migrator classified as LEGACY REFERENCES and carried WHOLE rather than splitting, ie `is_path`'s else-branch. **The 74 are the opposite decision: classified AS paths and mis-parsed.** Two arms of one classification, **so the store preserves the original text for exactly the rows that did not need it and discards it for exactly the rows that did.**
+
+> **A resource whose coverage is precisely complementary to the need, and abundant enough to look like the answer.** Anyone reaching for an in-store re-derivation finds it on **61% of rows**, concludes the data is there, and builds something covering **none** of the damage.
+
+**SO cc's FIX PLUS A HOP-2 RE-RUN IS NOT MERELY THE CHOSEN ROUTE -- IT IS THE ONLY ONE, NOW BY MEASUREMENT.** _"The disk is intact and the store is the lossy side"_ was the founding premise of the fix; it is now checked from the store's side too.
+
+**And the truncation class is visible in the store:** `"file":"[apps/control catalog-consumer fences green with new fields"` -- **no closing bracket**, cut at the first `--`.
+
+**THE RE-RUN CRITERION IS NOW ARITHMETICALLY COMPLETE, WHICH IT WAS NOT WHEN I GAVE IT TO cc.** 1731 rows, 74 broken, **12 + 30 + 32 = 74 exactly** -- so the three-way split is the WHOLE of the broken population rather than a decomposition anyone asserted. **I verified the coarse halves independently (74 broken, 12 null-bound, 62 path-bound) and could NOT verify the 30/32 sub-split: my instrument splits on file extension and cannot see bracket-form versus backtick-form. That finer split is lamplight-vc's and is recorded as theirs.**
+
+> **The re-run must take exactly those 74 to zero, splitting 12 / 30 / 32. A residual of any size means a form none of us modelled.**
+
+**hv's `sync --to-disk` on Lamplight at EOD verified independently from here: `7e49208af`, 25 files, 43/43, and ZERO `COMPLETED/` paths.** The porter data-loss hazard did not fire -- **two different checks, mine on the commit's path list and lamplight-vc's on ST0270's authored justification, same answer.**
+
+### And a misroute, caught from both ends at once
+
+lamplight-vc sent a note to my socket addressed to **lamplight-cc**. I flagged it as not-mine; they corrected it independently; the messages crossed. **Three of its claims almost fit me** -- "your item 2", "your cutover", "your regex blind spot" -- **and accepting them would have taken credit for another node's observation and acted on a state that was not mine.**
+
+> **A misdelivered note that ALMOST reads as yours is worse than an obviously wrong one.** (lamplight-vc)
+
+**Better than my own version**, which said only that a bare moniker re-attributes silently across an estate boundary. **Theirs says why the near-fit is the dangerous case rather than merely the confusing one.**
