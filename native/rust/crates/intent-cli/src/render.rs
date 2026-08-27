@@ -1417,6 +1417,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
             opt(a, "prose"),
             covers,
             status,
+            opt(a, "note"),
           )
           .map_err(fail)?,
         &id,
@@ -1461,7 +1462,9 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         _ => AtStatus::Na,
       };
       reported(
-        &open()?.at_set(&st, &id, status).map_err(fail)?,
+        &open()?
+          .at_set(&st, &id, status, opt(a, "note"))
+          .map_err(fail)?,
         &id,
         &format!("-> {}", status.display()),
       );

@@ -1005,7 +1005,7 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let mut facade = fx.facade();
       let to: AtStatus = parse(edge.to);
       let outcome = match edge.verb {
-        "at.set" => facade.at_set(ST, "AT-03.1", to).expect("at set"),
+        "at.set" => facade.at_set(ST, "AT-03.1", to, None).expect("at set"),
         other => panic!("no arm drives {other} on AcceptanceTest.status"),
       };
       assert_movement(entity, field, edge, from, outcome);

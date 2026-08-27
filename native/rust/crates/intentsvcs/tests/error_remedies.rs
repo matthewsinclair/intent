@@ -137,7 +137,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "unknown test",
     facade
-      .at_set("ST0056", "AT-99.9", AtStatus::Green)
+      .at_set("ST0056", "AT-99.9", AtStatus::Green, None)
       .expect_err("no such at"),
   ));
   out.push((
@@ -206,8 +206,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     .expect("withdraw");
 
   // AC-03.1 is now withdrawn, so the thread cannot close.
-  facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
-  facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
+  facade
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
+    .unwrap();
+  facade
+    .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
+    .unwrap();
   facade
     .ac_reinstate("ST0056", "AC-03.1")
     .expect("back in scope so the gate has something to block on");
@@ -698,7 +702,7 @@ fn every_message_names_the_artefact_it_is_about() {
     ),
     (
       facade
-        .at_set("ST0056", "AT-77.7", AtStatus::Green)
+        .at_set("ST0056", "AT-77.7", AtStatus::Green, None)
         .unwrap_err(),
       "AT-77.7",
     ),
@@ -788,8 +792,12 @@ fn the_gate_refusal_carries_the_verdict_line() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
-  facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
+  facade
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
+    .unwrap();
+  facade
+    .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
+    .unwrap();
 
   let err = facade.st_done("ST0056").expect_err("blocked");
   let rendered = err.render();

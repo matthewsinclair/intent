@@ -51,7 +51,9 @@ fn a_test_backed_criterion_needs_every_covering_test_green_and_at_least_one() {
   //    verdict that changes, and no row in the real estate is in this state:
   //    zero of 112 measured, so the fixture has to be synthetic (vc, and it saved
   //    me looking for one).
-  facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
+  facade
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
+    .unwrap();
   assert_eq!(
     state(&facade, "ST0056", "AC-03.1"),
     Resolved::Unsatisfied,
@@ -61,7 +63,9 @@ fn a_test_backed_criterion_needs_every_covering_test_green_and_at_least_one() {
   );
   // And it stays unsatisfied when the other goes too, so the assertion above is
   // about the mixed state rather than about there being any red at all.
-  facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
+  facade
+    .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
+    .unwrap();
   assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Unsatisfied);
 
   // 3. NO COVERING TEST AT ALL -- unsatisfied, and this is the arm `.all` alone
@@ -401,7 +405,7 @@ fn unknown_criteria_and_tests_are_refused_by_name() {
     }
     other => panic!("expected NoSuchCriterion, got: {other:?}"),
   }
-  match facade.at_set("ST0056", "AT-99.9", AtStatus::Green) {
+  match facade.at_set("ST0056", "AT-99.9", AtStatus::Green, None) {
     Err(FacadeError::NoSuchTest { at, .. }) => assert_eq!(at, "AT-99.9"),
     other => panic!("expected NoSuchTest, got: {other:?}"),
   }
@@ -415,8 +419,12 @@ fn satisfaction_has_no_second_home_to_go_stale() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
-  facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
+  facade
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
+    .unwrap();
+  facade
+    .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
+    .unwrap();
 
   let canon = fx.read_canon("ST0056");
   let value: serde_json::Value = serde_json::from_str(&canon).expect("parse canon");

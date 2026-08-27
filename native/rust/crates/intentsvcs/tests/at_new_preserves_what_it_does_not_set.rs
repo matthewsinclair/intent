@@ -70,6 +70,7 @@ fn a_re_create_keeps_the_note_it_was_never_given() {
       None,
       vec!["AC-03.1".to_string()],
       AtStatus::ToWrite,
+      None,
     )
     .expect("re-creating an existing row is a legal PUT");
 
@@ -104,6 +105,7 @@ fn a_re_create_keeps_the_legacy_marker_it_was_never_given() {
       None,
       vec!["AC-03.1".to_string()],
       AtStatus::ToWrite,
+      None,
     )
     .expect("re-creating an existing row is a legal PUT");
 
@@ -142,6 +144,7 @@ fn a_genuinely_new_row_carries_no_note_from_anywhere() {
       None,
       vec!["AC-03.1".to_string()],
       AtStatus::ToWrite,
+      None,
     )
     .expect("the verb creates it");
 
@@ -153,5 +156,105 @@ fn a_genuinely_new_row_carries_no_note_from_anywhere() {
   assert_eq!(
     made.legacy, None,
     "a brand-new row came out marked legacy, so it claims a v2 provenance it does not have"
+  );
+}
+
+/// An explicit note OVERRIDES what was carried. The carry exists so that
+/// SILENCE means "not saying"; it must not mean "cannot say".
+#[test]
+fn an_explicit_note_overrides_the_carried_one() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+
+  let before = row(&facade, "AT-03.1")
+    .note
+    .clone()
+    .expect("precondition: AT-03.1 carries a note to be overridden");
+
+  facade
+    .at_new(
+      "ST0001",
+      "AT-03.1",
+      AtKind::Test,
+      None,
+      None,
+      vec!["AC-03.1".to_string()],
+      AtStatus::ToWrite,
+      Some("the instrument cannot see the middle state".to_string()),
+    )
+    .expect("re-creating with a note is legal");
+
+  let now = row(&facade, "AT-03.1").note.clone();
+  assert_eq!(
+    now.as_deref(),
+    Some("the instrument cannot see the middle state"),
+    "an explicit --note did not reach the row"
+  );
+  assert_ne!(
+    now.as_deref(),
+    Some(before.as_str()),
+    "the carry won over an explicit note, so the flag cannot change an existing reason"
+  );
+}
+
+/// **THE TRAP THIS FLAG WOULD HAVE FALLEN INTO.** `at_set` short-circuits when
+/// the status is already the target -- correctly, because writing an envelope
+/// for a movement that did not happen is what that guard was added to stop. But
+/// annotating a row you are NOT moving is the common case, so the guard has to
+/// separate nothing-to-do from nothing-to-do-about-the-status.
+#[test]
+fn a_note_lands_on_a_row_whose_status_does_not_move() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+
+  let start = row(&facade, "AT-03.1").status;
+  assert_eq!(
+    start,
+    AtStatus::Green,
+    "precondition: AT-03.1 starts green, so setting it green is the self-loop this test needs"
+  );
+
+  facade
+    .at_set(
+      "ST0001",
+      "AT-03.1",
+      AtStatus::Green,
+      Some("green on the first run is not evidence".to_string()),
+    )
+    .expect("a note-only write is legal");
+
+  let after = row(&facade, "AT-03.1");
+  assert_eq!(
+    after.note.as_deref(),
+    Some("green on the first run is not evidence"),
+    "the note was discarded because the status had not moved -- the flag is inert in exactly the \
+     case it is most wanted"
+  );
+  assert_eq!(
+    after.status,
+    AtStatus::Green,
+    "a note-only write moved the status"
+  );
+}
+
+/// The other side of that guard, which must NOT change: no note and no
+/// movement is still nothing to do. Without this, widening the guard could
+/// quietly reintroduce the self-loop envelope it exists to prevent.
+#[test]
+fn a_self_loop_with_no_note_is_still_nothing_to_do() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+
+  let outcome = facade
+    .at_set("ST0001", "AT-03.1", AtStatus::Green, None)
+    .expect("a no-op self-loop is not an error");
+
+  assert!(
+    matches!(outcome, intentsvcs::facade::Outcome::AlreadyThere { .. }),
+    "a self-loop carrying no note must still report AlreadyThere and write nothing, or the \
+     envelope records a movement that did not happen: {outcome:?}"
   );
 }

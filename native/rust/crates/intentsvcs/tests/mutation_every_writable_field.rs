@@ -198,7 +198,7 @@ fn at_set_moves_status_and_touches_nothing_else() {
   let before_status = before_row.get("status").cloned();
 
   facade
-    .at_set("ST0001", "AT-03.1", AtStatus::Red)
+    .at_set("ST0001", "AT-03.1", AtStatus::Red, None)
     .expect("the verb runs");
 
   let after_row = at_json(

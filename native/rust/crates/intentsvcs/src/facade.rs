@@ -4263,6 +4263,7 @@ impl Facade {
     prose: Option<String>,
     covers: Vec<String>,
     status: AtStatus,
+    note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
     // **A CREATE ON AN EXISTING ID IS A FULL REPLACEMENT, SO EVERY FIELD THIS
     // VERB DOES NOT SET IS A FIELD IT DESTROYS.** `note` and `legacy` are the
@@ -4295,7 +4296,10 @@ impl Facade {
       prose,
       covers,
       status,
-      note: carried.0,
+      // An explicit `--note` OVERRIDES what was carried; absence carries. The
+      // asymmetry is the point: a verb with no way to express a value has no
+      // way to express erasing one, so silence can only mean "not saying".
+      note: note.or(carried.0),
       legacy: carried.1,
     };
 
@@ -4665,7 +4669,13 @@ impl Facade {
 
   /// Set an acceptance test's status. This is how a test-backed AC becomes
   /// satisfied -- transitively, and only by a test actually going green.
-  pub fn at_set(&mut self, st: &str, at: &str, status: AtStatus) -> Result<Outcome, FacadeError> {
+  pub fn at_set(
+    &mut self,
+    st: &str,
+    at: &str,
+    status: AtStatus,
+    note: Option<String>,
+  ) -> Result<Outcome, FacadeError> {
     let from = self
       .st_show(st)?
       .tests
@@ -4683,7 +4693,14 @@ impl Facade {
     // already-green row wrote an envelope recording a movement that did not
     // happen. Under D42 the record is stamped by the write, so history gained a
     // second transition at a second time for one event.
-    if from == status {
+    //
+    // **AND IT HAD TO LEARN THE DIFFERENCE BETWEEN NOTHING-TO-DO AND
+    // NOTHING-TO-DO-ABOUT-THE-STATUS.** `at green --note "..."` on an
+    // already-green row is the COMMON case for annotating a row -- nobody
+    // annotates a status they are about to change -- so short-circuiting on
+    // `from == status` alone would make the flag inert exactly where it is most
+    // wanted, with `--help` listing it and the exit code 0.
+    if from == status && note.is_none() {
       return Ok(Outcome::AlreadyThere {
         // `display()`, not `enum_str` -- `AlreadyThere` is a state name a HUMAN
         // reads, and the wire form spells `Na` as `n-a` (issue 0056). This was
@@ -4693,7 +4710,13 @@ impl Facade {
     }
 
     let mut next = self.canon.clone();
-    find_test_mut(&mut next, st, at)?.status = status;
+    {
+      let row = find_test_mut(&mut next, st, at)?;
+      row.status = status;
+      if let Some(text) = note.as_ref() {
+        row.note = Some(text.clone());
+      }
+    }
     self
       .apply(
         "at.set",
@@ -4701,7 +4724,12 @@ impl Facade {
           kind: "at".to_string(),
           id: format!("{st}/{at}"),
         },
-        json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
+        // **`note` IS IN THE PAYLOAD SO A SELF-LOOP ENVELOPE IS NOT A LIE.** The
+        // guard above exists because `at set green` on a green row once recorded
+        // a movement that did not happen. A note-only write reaches here with
+        // `from == to`, so the envelope must say what DID change or it
+        // reintroduces exactly that reading.
+        json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status), "note": note.is_some()}),
         next,
       )
       .map(|()| Outcome::Moved)

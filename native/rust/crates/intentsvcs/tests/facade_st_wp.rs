@@ -109,10 +109,10 @@ fn closing_is_gated() {
   // AC-03.1 is satisfied by a green AT; the non-test AC-03.2 is satisfied
   // inline. Turn the AT red and the thread must refuse to close.
   facade
-    .at_set("ST0056", "AT-03.1", AtStatus::Red)
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
     .expect("at set");
   facade
-    .at_set("ST0056", "AT-03.7", AtStatus::Red)
+    .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
     .expect("at set");
 
   let err = facade.st_done("ST0056").expect_err("must refuse");

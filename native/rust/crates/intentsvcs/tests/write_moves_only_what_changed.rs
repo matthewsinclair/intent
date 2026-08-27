@@ -840,7 +840,7 @@ fn cases() -> Vec<Case> {
       NOOP,
       |fx| {
         fx.facade()
-          .at_set("ST0001", "AT-03.1", AtStatus::Red)
+          .at_set("ST0001", "AT-03.1", AtStatus::Red, None)
           .expect("at red");
       },
       true,
@@ -850,7 +850,7 @@ fn cases() -> Vec<Case> {
       NOOP,
       |fx| {
         fx.facade()
-          .at_set("ST0001", "AT-03.1", AtStatus::Na)
+          .at_set("ST0001", "AT-03.1", AtStatus::Na, None)
           .expect("at na");
       },
       true,
@@ -859,12 +859,12 @@ fn cases() -> Vec<Case> {
       "at green",
       |fx| {
         fx.facade()
-          .at_set("ST0001", "AT-03.1", AtStatus::Red)
+          .at_set("ST0001", "AT-03.1", AtStatus::Red, None)
           .expect("to red");
       },
       |fx| {
         fx.facade()
-          .at_set("ST0001", "AT-03.1", AtStatus::Green)
+          .at_set("ST0001", "AT-03.1", AtStatus::Green, None)
           .expect("at green");
       },
       true,

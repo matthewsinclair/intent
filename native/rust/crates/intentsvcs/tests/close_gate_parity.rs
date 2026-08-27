@@ -763,8 +763,12 @@ fn the_facade_routes_closes_through_the_gate() {
   );
   facade.wp_done("ST0056", 3).expect("wp done");
 
-  facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
-  facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
+  facade
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
+    .unwrap();
+  facade
+    .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
+    .unwrap();
 
   // **A CLOSED unit is NOT re-blocked by coverage that went red after the close,
   // and this assertion used to require the opposite** (hv, 2026-08-17). Asking

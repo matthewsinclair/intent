@@ -75,7 +75,7 @@ fn every_mutating_verb_writes_an_envelope() {
     .ac_reinstate("ST0056", "AC-03.1")
     .expect("ac.reinstate");
   facade
-    .at_set("ST0056", "AT-03.1", AtStatus::Red)
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
     .expect("at.set");
 
   let recorded = ops(&facade);
@@ -129,7 +129,7 @@ fn every_envelope_carries_the_principal_and_project_id() {
     .st_hold("ST0056", "waiting on the fleet")
     .expect("a legal mutation from wip");
   facade
-    .at_set("ST0056", "AT-03.1", AtStatus::Red)
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
     .expect("at set");
 
   let events = facade.store().events().expect("events");
@@ -208,7 +208,7 @@ fn envelopes_accumulate_across_mutations_rather_than_being_rebuilt_away() {
     .wp_reopen("ST0056", 2, "AC-02.6 was added after the close")
     .expect("wp reopen -- WP-02 is Done in the fixture, so `wp start` is not a legal edge");
   facade
-    .at_set("ST0056", "AT-03.1", AtStatus::Red)
+    .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
     .expect("at set");
 
   assert_eq!(
