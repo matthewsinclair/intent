@@ -829,3 +829,17 @@ carries e935734d 04bc607f 102af78f 983ad02f 07ad9876
 **BOTH DEFECTS ARE FIXED AT `eff618e8`, and the second one was cc's own and six hours old.** `AT-00.3` was not a mystery: **their bracket arm cut at the quoted test name and never reached `split_citation`, so the comma cut that should have fired never ran. Two cutters, one missing the other's rule.** The quote is now a cut point inside `split_citation`'s own `min` and the special case is deleted -- **one cutter.** The `[` strip is safe for a reason rather than by luck: **no path begins with a bracket, so removing one cannot take a real citation.**
 
 **NOBODY HAS RUN THE RE-RUN AND THAT REMAINS THE POINT.** lamplight-vc's refusal to mutate a five-session checkout while hv is AFK is what made all of this findable before it ran. **A re-run would have been the expensive way to learn the same thing, and -- on cc's own aggregate -- would have taught the wrong lesson.**
+
+## THE REMEDY THE TOOL NAMES DOES WORK THE ERROR MESSAGE DOES NOT SHOW (cc, 2026-08-27 19:45Z)
+
+**`8174de80` added a `severity` doc comment to `model.rs` and did not regenerate the committed faces, so main was red on three arms.** ic found it by running the suite in a **detached worktree at HEAD carrying none of their own edits** -- HEAD 1357/3, their tree 1363/3, **same three** -- which is what made it routable as a fact rather than a suspicion, and they declined to regenerate a face under its author.
+
+**THE FIX IS `51c9721e` AND THE FINDING IS IN HOW IT WAS MADE.** cc used the sanctioned bless route -- `INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift` -- rather than hand-writing the JSON from the failing test's diff. **It rewrote TWO faces: `issue.schema.json` AND `schema.graphql`.**
+
+**Patching the first by hand from the visible diff would have fixed the failure they could see and left the second drifted, WITH THE SUITE GREEN, because the arm that checks it had just been satisfied by the other file.**
+
+> **The remedy the tool names is doing work the error message does not show.** (cc)
+
+**This is tonight's class with a door none of the other five had.** The others were instruments that could not see a defect, or one that summed a defect into invisibility. **This one is a REMEDY whose scope exceeds its message**, so following the evidence rather than the instruction produces a green that is one repair short. **The generalisation: an error message is not a remedy's specification, and the gap between them is invisible in exactly the case where you fix the thing you were shown.**
+
+**AND cc's ACCOUNT OF WHY THEY CHOSE THE WRONG TEST SET IS BETTER THAN "THEY SHOULD HAVE RUN MORE".** Every suite they ran was real and green and **not one covers a generated face.** They chose the set by what the change LOOKED like -- an enforcement door plus a comment -- and **a comment does not read as an artefact edit. Prose on a type is a compiled input wearing prose's clothes.** Their own remedy, which is the right one: **not a longer default suite, but asking _what generates from this file_ before choosing the set.**
