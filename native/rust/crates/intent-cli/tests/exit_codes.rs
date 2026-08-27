@@ -68,8 +68,18 @@ use std::process::{Command, Output};
 //. integration tests, so this needs no dev-dependency and cannot pick up a
 /// stale `intent` from PATH -- which would silently measure v2.
 fn run(args: &[&str]) -> Output {
+  run_in(std::path::Path::new("."), args)
+}
+
+/// `run`, in a directory of its own. `organize` reads the tree it is standing
+/// in, so its arms need a throwaway estate rather than this crate's. Kept as
+/// the one body both doors reach: two copies of a process spawn is how one of
+/// them quietly stops picking up `CARGO_BIN_EXE_intent` and starts measuring
+/// whatever `intent` is on PATH, which is the v2 binary on every machine here.
+fn run_in(dir: &std::path::Path, args: &[&str]) -> Output {
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
+    .current_dir(dir)
     .output()
     .expect("run the v3 binary")
 }
@@ -623,5 +633,140 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
     "the guide tells an agent that `intent critic` rejecting an invocation it cannot act on is a \
      2.\nstderr: {}",
     String::from_utf8_lossy(&bad_lang.stderr)
+  );
+}
+
+/// A throwaway estate. `init` is asserted rather than assumed, because every
+/// refusal this test measures is a `1` and "there is no project here" is a `1`
+/// too -- a fixture that silently failed to become a project would let the
+/// whole test pass having measured nothing.
+fn probe_project() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let out = run_in(dir.path(), &["init", "probe"]);
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "the fixture must be a real Intent project or nothing below means anything\nstderr: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  dir
+}
+
+/// AC-11.2's exit-code pair, **asserted together in one test for the reason
+/// this file learned at issue 0038**: a test pinning ONE code passes the moment
+/// someone gives every path the same code, and reports that as success. The
+/// declining arm is 0 and the refusing arm is 1, so flattening either direction
+/// reds here rather than somewhere nobody traces back.
+///
+/// **THE NUMBER CANNOT SAY WHY, AND THAT IS WHAT THE LAST ARM IS FOR.**
+/// `organize --force` alone is a usage error and exits 1. `--default --force`
+/// without a tty is a refusal and exits 1. A run in a directory that is not an
+/// Intent project would exit 1. Three unrelated causes, one number -- so a test
+/// asserting only the number would hold under all three, and would hold most
+/// comfortably in the case where the fixture was broken. Both guards exist for
+/// that: the preview arm establishes the estate is real, and the two refusals
+/// are required to differ, because distinguishing them in the message is the
+/// only place the binary CAN distinguish them.
+///
+/// **AND THE CRITERION SAYS `writes nothing`, WHICH AN EXIT CODE DOES NOT
+/// CHECK.** A build that regenerated the manifest and THEN exited 1 would
+/// satisfy every code assertion here while doing the exact thing the refusal
+/// exists to prevent, so the bytes are compared across both arms.
+///
+/// Anchored on the load-bearing clause rather than the sentence, and it had to
+/// be narrowed once already: `contains("confirm")` was the first attempt and it
+/// does NOT discriminate -- the usage error's own remedy says *after confirming
+/// on a terminal*, so the weaker assertion held for both messages and the
+/// comment claiming it told them apart was wrong the day it was written. What
+/// the refusal alone says is that it needs A PERSON. If that clause moves, this
+/// assertion is the stale half and not the behaviour -- reword it here rather
+/// than reasoning about the binary.
+///
+/// # Every assertion here has been SEEN to fail
+///
+/// Green on the first run is not evidence. Each row was applied to
+/// `render.rs` alone, one at a time, and reverted after; `render.rs` compared
+/// byte-identical to its original at the end.
+///
+/// | mutation applied to the source            | what went red                                    |
+/// | ----------------------------------------- | ------------------------------------------------ |
+/// | the tty check stops firing                | the refusal's wording                            |
+/// | the refusal returns `Ok(())`              | the exit code itself (`left: Some(0)`)           |
+/// | it refuses AND rewrites on the way out    | the byte comparison                              |
+/// | the refusal stops naming a person         | the wording                                      |
+/// | `--default` rewrites a file it found      | the byte comparison                              |
+/// | the usage error prints the refusal's text | the two-stderrs-must-differ control              |
+///
+/// **THE FIRST ROW IS THE ONE WORTH READING.** Disabling the tty check does
+/// NOT change the exit code -- the run falls through to the confirmation
+/// prompt, reads EOF, and refuses with `not confirmed` at 1. Same number, a
+/// different event, and a test asserting only the number would have stayed
+/// green through it. That is why the cause is asserted beside the code, and it
+/// is the concrete case behind this file's issue-0038 lesson rather than a
+/// restatement of it.
+#[test]
+fn organize_declines_with_0_and_refuses_a_forced_rewrite_with_1() {
+  let dir = probe_project();
+  let root = dir.path();
+  let manifest = root.join("intent/.intentfiles");
+  let before = std::fs::read(&manifest).expect("init leaves a manifest (AC-11.3)");
+
+  assert_eq!(
+    run_in(root, &["organize"]).status.code(),
+    Some(0),
+    "the preview must answer 0 in a healthy estate, or every 1 below is unattributable"
+  );
+
+  // 0 -- present file, changes not one byte of it, says so, exits 0.
+  let declined = run_in(root, &["organize", "--default"]);
+  assert_eq!(
+    declined.status.code(),
+    Some(0),
+    "`--default` on a present manifest is a decline, not a failure\nstderr: {}",
+    String::from_utf8_lossy(&declined.stderr)
+  );
+  assert_eq!(
+    std::fs::read(&manifest).expect("manifest survives a decline"),
+    before,
+    "`--default` changed the manifest it was supposed to leave alone"
+  );
+
+  // 1 -- `--force` with nobody to ask writes nothing and refuses.
+  let refused = run_in(root, &["organize", "--default", "--force"]);
+  assert_eq!(
+    refused.status.code(),
+    Some(1),
+    "`--force` without a tty must refuse\nstderr: {}",
+    String::from_utf8_lossy(&refused.stderr)
+  );
+  let refused_err = String::from_utf8_lossy(&refused.stderr).into_owned();
+  assert!(
+    refused_err.contains("needs a person to confirm"),
+    "the refusal must name a PERSON as the thing it lacks. `confirm` alone does not discriminate \
+     -- the usage error below says `after confirming on a terminal` and would satisfy it\nstderr: \
+     {refused_err}"
+  );
+  assert_eq!(
+    std::fs::read(&manifest).expect("manifest survives a refusal"),
+    before,
+    "`--force` refused and rewrote the manifest anyway -- the exit code was honest and the \
+     behaviour was not"
+  );
+
+  // The control that makes the assertion above load-bearing: same code, other
+  // cause. If these two ever print the same thing, the message has stopped
+  // carrying the only distinction there is.
+  let usage = run_in(root, &["organize", "--force"]);
+  assert_eq!(
+    usage.status.code(),
+    Some(1),
+    "`--force` on its own is a usage error and v2 exits 1 on those (INV-02)\nstderr: {}",
+    String::from_utf8_lossy(&usage.stderr)
+  );
+  assert_ne!(
+    String::from_utf8_lossy(&usage.stderr).trim(),
+    refused_err.trim(),
+    "a usage error and a tty refusal both exit 1 and now read identically, so nothing \
+     distinguishes them anywhere"
   );
 }
