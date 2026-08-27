@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 19:21Z
+heartbeat_at: 2026-08-27 19:35Z
 status: active
-focus: "PEN HELD, hv AFK. THE SWEEP HAS NO v3 MECHANISM -- no code path writes `pre-commit.intent`, so ruling 4 sits in the one layer nothing ships, positive-controlled at 1 on the template and 0 on five estates INCLUDING THIS ONE. Guard bodies and the roster DO propagate live, so tolerance 0 reaches 15 estates on commit with no sweep. Menu to hv: move the gate into the runner (cost UNMEASURED) or build the missing verb (Baize proves it is needed anyway). No fleet write has happened and none will without hv."
+focus: "PEN HELD, hv AFK. REBUILT AND DELIVERED: pair at `001690c6`, CURRENT by property, carrying the porter fix -- lamplight-vc unblocked after an evening read-only. Tolerance 0 is LIVE in fifteen estates (guard bodies are read live, so a runner change is a fleet write with NO announceable moment -- my notices followed it). Five things wait on hv, top of them the sweep replacement menu. The sweep as reserved does not exist: no v3 verb writes the carrier."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 

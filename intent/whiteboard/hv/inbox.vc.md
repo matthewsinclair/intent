@@ -785,3 +785,36 @@ The carrier discriminates exit codes in a `case "$rc"` at line 537, and its own 
 - **(B) BUILD THE MISSING VERB** -- unchanged, and Baize still proves it is needed whatever you pick.
 
 **(A2) plus (B) is what I would do if the call were mine. It is not, and nothing is moving on it.** What (A2) buys is that ruling 4 -- and every future change to the critic gate -- reaches all fifteen estates the moment it is committed here, the same way the clock guard already does.
+
+## (2026-08-27 19:30Z) **THE EVENING UNDER THE PEN: FIVE THINGS NEED YOUR WORD, AND ONE MEASUREMENT SAYS A SHIPPED GUARD HAS CAUGHT NOTHING IN THIRTEEN DAYS.**
+
+**DECISIONS FOR YOU -- everything else below is record.**
+
+**1. THE SWEEP REPLACEMENT.** No v3 code path writes `pre-commit.intent`; ruling 4 is in the layer nothing ships. **(A2)** move the critic gate into the runner with the gate translating its own rc -- measured cheap, and the translation is what preserves your ruled fail-open that the naive move would silently convert to fail-closed. **(B)** build the missing verb. **They are not alternatives.** cc's sentence is the one I did not have and it is the reason to weigh (A2) carefully: **the roster was moved out of that layer BECAUSE of an incident where guard bodies propagated and the array naming them did not, so putting a refusing arm back there reproduces the precondition of that incident rather than merely being awkward.**
+
+**2. `st new --dehydrate` -- RETIRE is yours.** ic measured it INERT: byte-identical outcomes with and without, because `st.new` no longer declares. Its `disposition_basis` states the exact fact you reversed. **I ruled RECORD under the pen -- ic corrects the basis so nobody re-derives the dead premise -- and left the table row and the `ListEdit::Suppressed` branch alone**, because retiring a surface row you ratified into existence is a ratification, not a bug fix. Fail-forward argues for retirement and fail-forward is not a pen.
+
+**3. REAL JSON PROJECTIONS.** Five verbs declare `json` and refuse it by DESIGN -- `table_out`'s own doc says a verb with no JSON projection says so rather than emitting a list-of-lists. **Building projections for `st list`, `st sync`, `wp list`, `issues`, `issues list` is a feature across five verbs plus a design decision about what each object IS, and `st sync`'s object is genuinely non-obvious.** Not taken.
+
+**4. CONFLAB IS UNGUARDED FOR AS LONG AS ITS PARK LASTS, AND I PRICED THAT WRONG.** I ruled Conflab out of the sweep on the ground that its guards arrive with its port. **conflab-vc corrected me: you parked their migration deliberately and it has no end date I know of**, so the practical content of my ruling is _"Conflab stays unguarded indefinitely"_ -- three nodes, no guard block at all. The ruling may still be right; **I priced it as a short wait and it may not be one.** Yours to weigh, and conflab-vc has it in front of you from their side.
+
+**5. I NARROWED A RATIFIED SURFACE ROW UNDER THE PEN. Named so you can reverse it in one edit.** Five verbs' `--format` declares `terminal|md|json` and `--help` advertises `json` today while the binary refuses it. **cc is narrowing the declaration to `terminal|md`.** My reasoning: your 2026-08-25 unified-output ruling was about output being unified, not a ruling that `issues` emits JSON, so **making the declaration match deliberate shipped behaviour is making it TRUE rather than overturning you.** cc is correcting the basis to state the real reason rather than quoting your ruling for it.
+
+---
+
+**THE MEASUREMENT THAT MATTERS MOST, AND IT IS dc's.** Tolerance 0 is RULED and landing (`authority: vc`, both controls passed). But the threshold is not the finding:
+
+```
+GUARDED    1144 stamps      7 violations   0 above 120s
+UNGUARDED 12061 stamps   1797 violations  1498 above 120s
+```
+
+**The shipped guard has been live thirteen days and has detected NOTHING, while twenty future stamps walked past it.** My board's "zero false positives" was TRUE and measuring the wrong thing -- **it is zero DETECTIONS.** Every post-landing violation is 1-2 minutes ahead, inside the band `-gt 120` cannot see, and that band is **299 of the unguarded corpus, a sixth of everything nodes produced when nothing was watching.** Zero false positives holds **by construction, not by counting**: a clock read taken before the commit cannot name a later minute, lag drives drift negative, and rebase moves the committer date later, so rewriting can only HIDE violations. **Cost: it reaches fifteen estates through the runner the moment it is committed here, no sweep, ~0.6% board-commit refusal, every one a real future stamp.** **My "648" is withdrawn -- I cannot say what it counted, and it was about to justify a threshold.**
+
+**AND dc's CARRIER FORENSICS CHANGE WHAT THE FLEET IS.** Every carrier is byte-identical to a specific template blob, by `cmp` rather than by size. **The eleven-estate blob is `Intentv2/lib/templates/hooks/pre-commit.sh`, byte-for-byte, with 26 Aug mtimes on ten of them** -- so the last fleet-wide install **seeded ten estates from the frozen v2 tree**, six days stale as it was written. The current template is installed in **ZERO** estates, Intent's own included. **dc measured bytes and mtimes and did not guess who ran it.** Also: **Laksa is a third generation** -- it runs the guards but INLINES the roster, so a fifth guard would never arrive and nothing would report it.
+
+**Sweep population, if you take (B): 14 targets in three write shapes** -- 12 carrier-refresh, Laksa (needs it for a second reason, writes into a tracked directory), Baize (needs a first install, not a refresh). Conflab out. Intentv2 never written.
+
+**RULED UNDER THE PEN AND OFF THE QUEUE: the `claims:` gap is a design note, not a build.** Both originators sized it down independently and the honest cost history is one near-miss with no work lost. **devbin-cc's version is the real one and it is structural: the field takes ST ids, your standing directive keeps maintenance off steel threads, so `claims` is empty BY CONSTRUCTION for exactly the work most likely to collide, and a node complying perfectly writes `[]`.**
+
+**LANDED: porter citation fix (`e935734d`), AC-11.6 + WP-11 + a pty harness the estate never had (`102af78f`), the `--to-disk` remedy AND its false premise (`04bc607f`), the doc gate (`6c380e09`), the F1 live figure with `init` -- an op with no dot that ic's own grep pattern structurally could not match, caught by the check rather than by the instrument that built it.** Rebuild pending on one file; lamplight-vc unblocks when it lands.

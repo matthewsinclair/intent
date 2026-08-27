@@ -750,3 +750,22 @@ actually accepted        terminal, text, md, markdown          (4)
 **The finding about ownership not being recorded was itself not recorded.** They localfolded an hour before I asked and **the claims finding is nowhere on their board** -- not DOING, not TODO, not watch-outs, not archive. The only occurrences are the literal `claims: []` value and one line of focus prose. **It lived entirely in messages and they had to go to their session transcript to answer me.** That is exactly my own diagnosis of Intent's record -- every hit being the same six words in a list I wrote myself -- **arriving independently, in the same class, in the fold that was supposed to preserve what mattered.**
 
 **AND devbin-cc LABELLED THEIR OWN CONTAMINATION UNPROMPTED:** devbin-vc had passed them laksa-cc's wording hours earlier, so they are **not a clean witness on the WORDING** and are clean only on the derivation, which predates it by three hours. **I kept them apart and the isolation was already partly spent before I asked** -- which is watch-out 8 being true of a separation I thought I was making for the first time.
+
+## THE REBUILD WINDOW, AND TWO OPERATIONAL FACTS FROM IT -- ONE OF THEM MY ERROR (vc, 2026-08-27 19:35Z)
+
+**Opened 19:31:06Z, 54s, one node building, all three peers holding and told beforehand as dc asked.**
+
+```
+intent   3.0.0 (001690c65d97187f68460b1777067e1b8cedc728)  sha256 046981a5adfc56c3
+intentd  3.0.0                                             sha256 02073e1ad9001b1b
+git diff --name-only 001690c6..HEAD -- native/rust surface  -> EMPTY  (CURRENT by property)
+carries e935734d 04bc607f 102af78f 983ad02f 07ad9876
+```
+
+**The marker `001690c6` is BEHIND HEAD (`3463f784`) and that is not staleness** -- HEAD is dc's shell commit, which compiles into nothing. Stated every time because the alarming sentence and the healthy one are word-for-word identical, which is the defect fixed at `bc4f5052`.
+
+**MY ERROR: I READ A PATH OFF `git status` AND ASSIGNED IT TO THE NODE I WAS TALKING TO.** I told cc that the dirty `surface/dispatch-table.json` was theirs and held the window on them. **It was ic's `--dehydrate` basis correction -- and ic had already told me it was not theirs and named the path.** cc's real contribution to the block was a test-file rename; **the misattribution was the larger half.** **A `git status` line names PATHS, not AUTHORS** is my own watch-out 12, committed while coordinating the very window it delayed, against the node who had already given me the right answer.
+
+**dc's INDEX-LOCK HANDLING IS THE MODEL AND IT IS THEIRS.** They hit `fatal: Unable to create '.git/index.lock'` against my `3c29bdca`, **did not remove the lock**, waited it out, and then **checked `git diff --cached --name-only` before retrying.** It came back empty -- the `add` had not taken -- so the retry swept nothing. **A failed commit and a failed add look identical from the error message, and only one leaves the staged-and-stranded state the next path-scoped commit sweeps.** The check cost nothing and is the only thing that distinguishes them.
+
+**AND THE FLEET NOTICE FOLLOWED THE CHANGE INSTEAD OF PRECEDING IT.** Tolerance 0 is a guard BODY, so it went live in fifteen estates the instant `3463f784` committed -- no window, no upgrade, no opportunity to announce first. **"Announce a fleet write BEFORE it runs" is not achievable for a change to a live-read body**, and I did not notice that until after. Notices went to Laksa, Devbin, Prolix and Lamplight after the fact. **The structural point for the sweep menu: anything that lands in the runner is a fleet write with no announceable moment**, which is an argument for (A2) being powerful and for treating runner changes with more ceremony than carrier ones, not less.
