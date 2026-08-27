@@ -52,7 +52,7 @@ fn an_ac_row_naming_a_key_the_grammar_does_not_read_says_so() {
   estate(
     &fixture,
     "## Acceptance Criteria\n\n\
-     - AC-01.1 The field round-trips without loss. -- descoped-to: ST0347 -- by: hv -- on: 2026-08-21 -- reason: duplicate\n\
+     - AC-01.1 The field round-trips without loss. -- descoped-to: ST0347 -- by: hv -- on: 2026-08-21 -- reason: duplicate -- rounds: 3 -- control: none\n\
      \n## Acceptance Tests\n\n\
      - AT-01.1 test/a_test.exs -- covers AC-01.1 -- status: green\n",
   );
@@ -63,10 +63,26 @@ fn an_ac_row_naming_a_key_the_grammar_does_not_read_says_so() {
     .iter()
     .find(|d| d.contains("AC-01.1") && d.contains("does not read"))
     .unwrap_or_else(|| panic!("the unread keys must be named: {said:?}"));
-  for key in ["descoped-to", "by", "on", "reason"] {
+  // **THE SPECIMEN MOVED AND THE PROPERTY DID NOT.** `descoped-to`, `by` and
+  // `reason` are now READ -- the parser builds `AcState::Descoped` out of them --
+  // so they are no longer evidence of anything being walked past. `rounds:` and
+  // `control:` are real Lamplight keys nobody has taught the reader, which is
+  // this file's own thesis: the report is a CLASS, and it must still name a
+  // convention invented after it was written.
+  for key in ["on", "rounds", "control"] {
     assert!(
-      named.contains(key),
+      named.contains(&format!("`{key}`")),
       "every unread key on the row, not just the first: `{key}` missing from {named}"
+    );
+  }
+  // The other half of the same boundary: a key the grammar now READS must stop
+  // being reported, or the finding tells an operator to go and fix a field that
+  // round-tripped correctly.
+  for key in ["descoped-to", "by", "reason"] {
+    assert!(
+      !named.contains(&format!("`{key}`")),
+      "`{key}` is read into the criterion's state now, so reporting it as unread sends the \
+       operator after a field that arrived intact: {named}"
     );
   }
 }
@@ -167,7 +183,7 @@ fn a_row_with_an_unread_field_still_arrives_and_the_accounting_still_closes() {
   estate(
     &fixture,
     "## Acceptance Criteria\n\n\
-     - AC-01.1 A thing -- withdrawn: not on its own merits\n\
+     - AC-01.1 A thing -- withdrawn: not on its own merits -- rounds: 3\n\
      - AC-01.2 (non-test) Another -- evidence: e -- satisfied: yes\n\
      \n## Acceptance Tests\n\n\
      - AT-01.1 test/a_test.exs -- covers AC-01.2 -- status: green\n",
@@ -181,8 +197,12 @@ fn a_row_with_an_unread_field_still_arrives_and_the_accounting_still_closes() {
     "both rows are stored -- the field is unread, the ROW is not lost"
   );
   assert!(
-    details(&scan).iter().any(|d| d.contains("withdrawn")),
-    "and the key is still named"
+    details(&scan).iter().any(|d| d.contains("`rounds`")),
+    "and an unread key is still named"
+  );
+  assert!(
+    !details(&scan).iter().any(|d| d.contains("`withdrawn`")),
+    "`withdrawn:` is read into `AcState::Withdrawn` now, so it is no longer walked past"
   );
 }
 
@@ -233,14 +253,16 @@ fn a_row_carrying_a_multibyte_character_arrives_instead_of_aborting_the_scan() {
 /// Skipping any row containing non-ASCII would pass the arm above and silently
 /// lose every unread field that sits to the RIGHT of a checkmark -- trading a
 /// loud panic for the exact silent loss this whole class was built to end.
-/// Here `descoped-to:` follows the `\u{2713}`, so a fix that bails early goes red.
+/// Here `rounds:` follows the `\u{2713}`, so a fix that bails early goes red. The keys
+/// are ones the reader does NOT know, so the arm cannot be satisfied by a parser
+/// that merely learned this month's vocabulary.
 #[test]
 fn an_unread_field_after_a_multibyte_character_is_still_named() {
   let fixture = Fixture::new();
   estate(
     &fixture,
     "## Acceptance Criteria\n\n\
-     - AC-01.1 The run showed `\u{2713}` twice. -- descoped-to: ST0347 -- by: hv -- on: 2026-08-21\n\
+     - AC-01.1 The run showed `\u{2713}` twice. -- rounds: 3 -- control: none -- on: 2026-08-21\n\
      \n## Acceptance Tests\n\n\
      - AT-01.1 test/a_test.exs -- covers AC-01.1 -- status: green\n",
   );
@@ -251,8 +273,11 @@ fn an_unread_field_after_a_multibyte_character_is_still_named() {
     .iter()
     .find(|d| d.contains("AC-01.1") && d.contains("does not read"))
     .unwrap_or_else(|| panic!("a key to the right of the checkmark is still a key: {said:?}"));
-  for key in ["descoped-to", "by", "on"] {
-    assert!(named.contains(key), "`{key}` missing from {named}");
+  for key in ["rounds", "control", "on"] {
+    assert!(
+      named.contains(&format!("`{key}`")),
+      "`{key}` missing from {named}"
+    );
   }
 }
 

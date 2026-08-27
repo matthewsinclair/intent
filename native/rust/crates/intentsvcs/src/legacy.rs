@@ -1141,7 +1141,11 @@ fn acceptance(
         Ok(c) => {
           // The whole row: no unkeyed tail is ratified for an AC row, unlike
           // the AT note region below.
-          let keys = unread_field_keys(row, &["evidence", "satisfied"]);
+          // `on:` is deliberately ABSENT and therefore still reported. It is the one
+          // value on a descope row this parser does not carry -- `AcState::Descoped`
+          // has no date field -- and the honest state until that is ruled is a
+          // finding naming exactly the value being dropped.
+          let keys = unread_field_keys(row, &KEYED_FIELDS);
           if !keys.is_empty() {
             unread_fields.push((c.id.clone(), line_no, keys.join("`, `")));
           }
@@ -1294,22 +1298,135 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
   if !id.starts_with("AC-") {
     return Err((FindingClass::UnparseableRow, "AC row".to_string()));
   }
+  // Leading marker only; an embedded one is picked up from the prose below,
+  // once the prose half's boundary is known.
   let non_test = rest.trim_start().starts_with("(non-test)");
   let body = rest.trim_start().trim_start_matches("(non-test)").trim();
 
   let evidence = field(body, "evidence");
   let satisfied = field(body, "satisfied");
-  let text = body
-    .split(" -- evidence:")
-    .next()
-    .unwrap_or(body)
-    .split(" -- satisfied:")
-    .next()
-    .unwrap_or(body)
-    .trim()
-    .to_string();
+  let descoped_to = field(body, "descoped-to");
+  let withdrawn = field(body, "withdrawn");
+  let by = field(body, "by");
+  let reason = field(body, "reason");
 
-  let (kind, state) = if non_test {
+  // The criterion text ends at the FIRST keyed field, not at `evidence:` or
+  // `satisfied:` specifically. Cutting on those two alone left a descope
+  // record -- destination, authority, date and reason -- sitting inside the
+  // requirement's own text.
+  let cut = KEYED_FIELDS
+    .iter()
+    .filter_map(|k| body.find(&format!(" -- {k}: ")))
+    .min()
+    .unwrap_or(body.len());
+  let prose = &body[..cut];
+
+  // **A MARKER THE AUTHOR WROTE ANYWHERE IN THE PROSE IS A MARKER, AND ONLY ITS
+  // POSITION IS A SLIP.** `starts_with` read Lamplight `ST0283 AC-08.4` --
+  // "...(reuse; no second progress bar). (non-test) -- evidence: ..." -- as
+  // test-backed, because the token sits after the sentence rather than before
+  // it.
+  //
+  // **THIS IS NOT THE AMBIGUITY THE REFUSAL BELOW EXISTS FOR, and conflating
+  // them costs more than the defect.** Refusing a row that SAYS `(non-test)`
+  // drops the criterion from canon outright: measured, ST0283 went 67 rows to
+  // 65 and two ratified criteria vanished, which is a worse loss than the
+  // mis-reading being fixed. The refusal is for a row where the author's intent
+  // cannot be recovered from the row at all -- no marker anywhere -- not for one
+  // where it is written plainly two words to the left of where the parser
+  // looked.
+  //
+  // **AND IT MUST BE ANCHORED, BECAUSE A ROW DESCRIBING THE MARKER IS NOT A ROW
+  // CARRYING ONE.** `contains` was this fix's own first cut and it flipped
+  // Intent `AC-03.17`, whose text quotes the renderer that EMITS the token --
+  // "`criterion_line` is `format!("- {} ", c.id)` + an optional `(non-test) `"
+  // -- silently promoting a test-backed criterion to a satisfied authored one.
+  // **Reading prose ABOUT a thing as the thing** is the class that has cost
+  // this estate an accidental `intent upgrade` through a heredoc and a commit
+  // gate that stripped backticked prose but not quoted prose. Caught here by
+  // driving the real corpus rather than by review.
+  //
+  // A marker is an annotation at one end of the requirement, never inside the
+  // sentence: **3 rows estate-wide are anchored, 1 is mid-prose, and the split
+  // is exactly right on all four.** Markdown emphasis around it is still a
+  // marker -- Lamplight `ST0286 AC-07.4` writes `**(non-test) RESTATED ...`.
+  //
+  // Bounded to the PROSE half deliberately: an `evidence:` value quoting
+  // "(non-test)" is somebody's sentence about a criterion, not a declaration
+  // about this one.
+  const MARKER: &str = "(non-test)";
+  let markup = |c: char| c.is_whitespace() || matches!(c, '*' | '_' | '`');
+  let anchored = prose.find(MARKER).is_some_and(|at| {
+    prose[..at].trim_matches(markup).is_empty()
+      || prose[at + MARKER.len()..].trim_matches(markup).is_empty()
+  });
+  let non_test = non_test || anchored;
+  let text = if anchored {
+    prose.replacen(MARKER, "", 1).trim().to_string()
+  } else {
+    prose.trim().to_string()
+  };
+
+  // **A `descoped-to:` OR `withdrawn:` FIELD IS THE STATE ITSELF, NOT A HINT
+  // ABOUT THE KIND, so it is read before the marker is consulted at all.**
+  // Descoping is a statement about the REQUIREMENT -- it moved, or it was
+  // dropped -- and says nothing about how the criterion would have been
+  // verified, so it is not the marker's business either way.
+  //
+  // **`satisfied_verdict` DECLINES to map `n/a` onto these variants, and it is
+  // right about the case it was written for and wrong about this one.** Its
+  // grounds are that `Descoped` and `Withdrawn` carry "a reason and a
+  // destination that nobody wrote". True of a bare `n/a`. False of every row
+  // reaching here, which writes the destination, the authority and the reason
+  // out in full. Reading them mints nothing; DROPPING them is what invents a
+  // verdict, because the row then counts green off a claim nobody made.
+  //
+  // Measured across the estate 2026-08-27: of the 40 unmarked rows carrying a
+  // non-test-only field, exactly 20 name `descoped-to`/`withdrawn` and 20 do
+  // not, and **every row carrying `by`/`on`/`reason` also names one of the
+  // two**. Nothing falls between this branch and the refusal below.
+  let (kind, state) = if let Some(to) = descoped_to {
+    let to = to.trim().to_string();
+    if to.is_empty() {
+      return Err((
+        FindingClass::UnparseableRow,
+        format!(
+          "{id} records `descoped-to:` with no destination, so where the requirement went cannot be read from it"
+        ),
+      ));
+    }
+    (
+      AcKind::NonTest,
+      AcState::Descoped {
+        to,
+        by: by.map(|b| b.trim().to_string()).filter(|b| !b.is_empty()),
+        reason: reason
+          .map(|r| r.trim().to_string())
+          .filter(|r| !r.is_empty()),
+      },
+    )
+  } else if let Some(reason) = withdrawn {
+    // `Withdrawn::reason` is `minLength(1)`: a withdrawal whose reason is blank
+    // records that a requirement was dropped and nothing about why, which is
+    // the state the variant exists to prevent being reached by deletion. So an
+    // empty one REFUSES rather than constructing an unwritable value.
+    let reason = reason.trim().to_string();
+    if reason.is_empty() {
+      return Err((
+        FindingClass::UnparseableRow,
+        format!(
+          "{id} records `withdrawn:` with no reason, and a withdrawal with no reason is a deletion with a field name on it"
+        ),
+      ));
+    }
+    (
+      AcKind::NonTest,
+      AcState::Withdrawn {
+        reason,
+        by: by.map(|b| b.trim().to_string()).filter(|b| !b.is_empty()),
+      },
+    )
+  } else if non_test {
     // **THE VERDICT IS PARSED, NOT MATCHED WHOLE, AND THE EXACT MATCH THAT USED
     // TO STAND HERE SILENTLY INVERTED RATIFIED CONTRACTS.** The arm read
     // `(Some("yes"), Some(e))`, so `satisfied: yes (hv signed off 2026-06-22)`
@@ -1360,6 +1477,49 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
     };
     (AcKind::NonTest, state)
   } else {
+    // **THE SAME SHAPE HAS TWO OPPOSITE CORRECT READINGS AND THE ROW DOES NOT
+    // SAY WHICH, SO IT IS REFUSED RATHER THAN GUESSED.**
+    //
+    // A row carrying `evidence:` with no `(non-test)` marker is either an
+    // authored criterion whose marker is missing -- in which case reading it
+    // as test-backed discards the author's whole claim -- or a criterion
+    // PROMOTED to test-backed whose v2 fields were left behind, in which case
+    // reading it as authored silently reverses the promotion.
+    //
+    // Conflab `AC-01.5` is the second, and its own prose says so: "Promoted
+    // from non-test to test-backed (AT-01.12 Rust, AT-01.13 Swift)". Lamplight
+    // `ST0346` is full of the first. **Twenty rows estate-wide, and no rule
+    // over the row's own text separates them**, so any reclassification is
+    // wrong for one group or the other and silent for both.
+    //
+    // A refusal is correct for BOTH: it names the field it could not place and
+    // stops. vc's ruling ("refuse, never reclassify") reached this from the
+    // other direction -- 21 of the 40 carry no evidence at all, so widening
+    // them into the authored branch lands them on `Unsatisfied` and trades a
+    // silent DROP for a silent FAILURE.
+    //
+    // **`satisfied:` ALONE IS NOT A SIGNAL AND MUST NOT REACH HERE.** v2 wrote
+    // it onto test-backed rows as a matter of course: 789 estate rows carry it
+    // with nothing else, against 20 that carry a genuine authored field. A
+    // refusal keyed on `satisfied:` would refuse a third of the estate.
+    let stray: Vec<&str> = AUTHORED_ONLY_FIELDS
+      .iter()
+      .copied()
+      .filter(|k| body.contains(&format!(" -- {k}: ")))
+      .collect();
+    if !stray.is_empty() {
+      return Err((
+        FindingClass::UnparseableRow,
+        format!(
+          "{id} carries `{}`, which only an authored criterion can hold, but does not open with \
+           `(non-test)`. Mark it non-test if the marker is missing, or drop the field if the \
+           criterion is test-backed -- both readings are silent losses and the row does not say \
+           which one it is",
+          stray.join("`, `")
+        ),
+      ));
+    }
+
     // A test-backed criterion's satisfaction is COMPUTED from its covering
     // tests, so nothing is carried onto the row.
     (AcKind::Test, AcState::Computed)
@@ -1802,6 +1962,27 @@ fn satisfied_verdict(value: &str) -> Result<(bool, Option<String>), String> {
 /// a field. That is the same discrimination [`field`] makes implicitly by
 /// searching for one key it already knows; here it has to be stated, because
 /// this side does not know the key in advance.
+/// Every keyed field an AC row's grammar reads. The criterion's own text ends
+/// at the first of these, so a field added here without being added to the
+/// parser leaves its own value sitting inside the requirement text.
+const KEYED_FIELDS: [&str; 6] = [
+  "evidence",
+  "satisfied",
+  "descoped-to",
+  "withdrawn",
+  "by",
+  "reason",
+];
+
+/// The fields only an AUTHORED criterion can hold -- deliberately NOT including
+/// `satisfied:`, which v2 wrote onto test-backed rows as a matter of course
+/// (789 estate rows carry it and nothing else).
+///
+/// `descoped-to` and `withdrawn` are absent for a different reason: they name a
+/// STATE rather than a kind, they are read before the marker is consulted, and
+/// a row carrying one never reaches the refusal this list drives.
+const AUTHORED_ONLY_FIELDS: [&str; 3] = ["evidence", "by", "reason"];
+
 fn field_key(rest: &str) -> Option<&str> {
   let end = rest.find(": ")?;
   let key = &rest[..end];
