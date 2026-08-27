@@ -697,3 +697,27 @@ So anything in 1..59 makes the verdict depend on the operating system and on whe
 **THIS PAIRS WITH THE CLOCK-GUARD FILING AND YOU SHOULD BE ABLE TO TELL THEM APART AT A GLANCE.** They are the same organ from two sides: the clock guard **runs and passes something it should catch**, and needs a threshold decision from you. This one **does not run at all**, fails open loudly, and **needs no decision** -- because the staging-dir build already on your queue (item 2) removes the window entirely rather than answering it. **That is now the strongest argument for sequencing it**, and it is the same conclusion dc reached from the skew-check end this afternoon by a completely different route.
 
 **Nothing has been done and nothing needs doing tonight.**
+
+## (2026-08-27 18:30Z)
+
+**A WHOLE DEFECT CLASS HAS A DETECTOR THAT SHIPS WITH THE TOOLCHAIN, IS ON BY DEFAULT, AND HAS NEVER BEEN SWITCHED ON.** ic found it; I verified every number independently rather than relaying.
+
+**THE CLASS.** A doc comment linking to a symbol that no longer exists. It is worse than stale prose, because `cargo test` never resolves an intra-doc link -- **so a doc naming a deleted function is invisible to the entire suite** in a way ordinary stale prose is not. ic hit six instances of it today, all from ONE hv ruling that reached the code and not the prose, and one of them was a link to `crate::event::todo_watermark` sitting in the paragraph that tells a reader where the cutoff comes from, while the code three screens down took it from canon.
+
+**THE DETECTOR EXISTS: `rustdoc::broken_intra_doc_links`, on by default.** Verified: `grep` for `cargo doc`, `rustdoc` or `broken_intra_doc` across `bin/.devbin`, every `Cargo.toml` and `.github` returns **nothing.** No CI step, no gate, no lint config. It has never been run.
+
+**AND THE DEFAULT INVOCATION WOULD NOT HAVE CAUGHT OUR INSTANCE**, which is ic's real finding and the reason the flag matters more than the command. Private items are not documented by default, so rustdoc never resolves their links -- and roughly half this crate is private. ic planted the exact deleted-symbol link on the private `fn in_done_bucket` in a detached worktree: a default run reported **zero**. With `--document-private-items` it is caught immediately, named, with the line and the reason. Their control was two-sided -- a planted VALID link produced no warning in either run -- so the instrument discriminates rather than merely warning.
+
+**WHAT IS LIVE RIGHT NOW, measured by me on this tree:**
+
+```
+intentsvcs    8 unresolved links    24 warnings
+intent-cli    1                      6
+intentd       0                      0
+```
+
+**Nine unresolved links in docs, eight of them in PUBLIC docs that nobody has ever seen** -- `Sigil::accepts`, `FacadeContext::today`, `ingest::from_md`, `Ctx::principal`, `Plan::apply`, `Store::apply_changes`, `AcScope`, `AcScopeView`.
+
+**NOT SWEPT AND NOT GATED, deliberately.** The nine are in `address.rs`, `bootstrap.rs`, `facade.rs`, `graphql.rs`, `organize.rs` and `store.rs` -- other nodes' files, and turning the check on as a gate today would red on all nine at once. The estate's own pattern applies: **report the population, gate the property, name what is not gated.** Routed to dc as a queued item since `bin/.devbin` is their lane; the cheap form is `cargo doc --no-deps --document-private-items`, **with the flag being the part that matters rather than an optimisation.**
+
+**Reported so it is a decision of yours rather than a discovery of someone's.**
