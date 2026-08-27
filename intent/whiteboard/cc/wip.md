@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 19:01Z
+heartbeat_at: 2026-08-27 19:14Z
 status: active
 focus: "**UNDER vc's PEN (hv gave it, with imprimatur, then went AFK). TWO FIXES LANDED, ONE BLOCKED.** P1 `e935734d` -- the porter truncated an AT bracket citation at the first ` -- `, making `ac gate` report 74 false missing files on Lamplight and reading ST0288 as BLOCKED on work that is done. Fixtures are Lamplight's REAL bytes because **Intent cannot exhibit this defect**, and the control is the shipped parser's own stored output on the row the test drives. My own fixture leak `74313652`. **P2 (render.rs:423) IS BLOCKED, NOT STARTED: a peer has uncommitted AC-11.6 work in that file and `commit --only` would sweep it.** THE PAIR IS NOW STALE BY MY OWN COMMIT -- vc owns the rebuild, and I do not build."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -20,6 +20,12 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 **AND THE BRIEF'S GRAMMAR WAS WRONG IN A WAY THAT WOULD HAVE COST A DAY.** The citation slot is not always brackets -- Lamplight carries a BACKTICK form too, and it is the majority (the 551 correct rows). A fixture written to the grammar as described would have tested a corpus that does not exist. **Read the corpus, not the description of the corpus**, even when the description comes from the node that measured it.
 
 **P2 IS BLOCKED AND DELIBERATELY UNSTARTED.** `render.rs:423` is the unguarded remedy site, and `render.rs` currently carries somebody's uncommitted AC-11.6 work at 1755/1802/1843. No textual overlap with 423 -- **that is not the hazard.** `commit --only <path>` commits the file AS IT STANDS, so whoever commits first sweeps the other's work and claims it in their message. Asked vc who owns the file; not touching it until they answer.
+
+**ENUM-ROSTER MEASUREMENT DONE (vc queued it), THREE FINDINGS, NOTHING BUILT.** The brief's population was two conflated: 22 slots are `type: enum`, **6** carry a `values` ARRAY and **12** carry the roster as a pipe-string `"value": "terminal|md|json"`. `declared_values_are_enforced.rs` walks `values` arrays only, so it is green and blind to all 12 -- **it fixed the LOCATION problem with a recursive walk and never had the ENCODING problem in view.**
+
+**The live defect: `output_of(a)?` validates `--format` as an ARGUMENT to the renderer** (`render.rs:3846`), so every arm with an `if rows.is_empty() { return Ok(()) }` above it skips validation. Four slots confirmed accepting an unknown format at exit 0: `issues`, `issues list`, `wp list`, `critic`. **The verdict belongs to the RESULT SET, not the slot** -- `wp list ST0056` refuses and `wp list ST0029` accepts, same flag, same binary, proved both ways.
+
+**And the drift `enum_flag`'s doc predicted has ALREADY HAPPENED:** `issues` declares `terminal|md|json`, the renderer refuses `json` (`this verb has no json projection`) and accepts undeclared `text` and `markdown`. `--help` advertises `json` today.
 
 **THE DELIVERED PAIR IS NOW STALE BY MY OWN COMMIT.** The gate said so at `74313652`: a non-test file under `native/rust` changed since `2eb6a8f8`, so an actor on the exec path would refuse this pair. **vc owns the rebuild and I do not build** -- a build swaps the binary under every estate on this machine, mid-run, everywhere at once.
 
@@ -54,6 +60,7 @@ The faces, each measured rather than reasoned:
 - **CANNOT EXHIBIT THE SUBJECT.** A sample that cannot contain the failure; a pattern that cannot match it. Positive-control the INSTRUMENT, not the subject.
 - **A CONTROL THAT WOULD ALSO PASS BROKEN IS DECORATION.** Ask: would this control pass if the instrument were doing the dumb thing I fear? If yes, it proves nothing.
 - **CANNOT ISOLATE A SHARED NAME.** `flag_reachability` is whole-file; `organize` reads an id spelled `force`, so DELETING `bootstrap`'s `--force` read left it GREEN. Measured, by doing it. **The discriminator is `"<id>"` appearing MORE THAN ONCE** -- a flag mentioned exactly once is mentioned by its own accessor, and deleting it takes the mention too, so the gate DOES fire (driven on `at new --covers`). Coverage: 33 fire, 59 shielded, of 92 -- printed by the check itself now (`003544af`), plus the 29 held only by coincidence (`8a19e215`).
+- **AND THE CORPUS IS THE COMMONEST BLINDNESS OF ALL: THE ESTATE YOU ARE STANDING IN CANNOT EXHIBIT THE DEFECT.** Twice on 2026-08-27, both times as the FIRST thing I did. P1: Intent stores 0 bracketed AT citations against 318 rows carrying one, so every test here passes whether or not the porter is fixed -- vc flagged it in advance and was right. The enum measurement: every `--format` slot refuses correctly IN THIS REPO, because Intent has issues, has threads with WPs, has critic findings; an empty scratch project exposed four slots accepting an unknown value at exit 0. **The repair is never a better search over the same corpus. It is a FIXTURE that carries the defect** -- real bytes from an estate that has it, or a throwaway project that lacks what the code path needs.
 - **ACCIDENTALLY RIGHT: A TRUE NUMBER FROM AN INSTRUMENT THAT COULD NOT HAVE PRODUCED A DIFFERENT ONE.** dc's _0 of 5 hooks carry the arm_ was CORRECT, measured by grepping `pre-commit`, which carries the gate in NO estate. **A false green is easier to catch than a true one: the true one gets cited later and the citation carries no trace of the blindness.**
 - **THE PREDICATE ITSELF WAS WRONG.** vc reproduced a gate's CONDITION against the UNMUTATED source. Coverage is a property of the MUTATED world -- the one where the defect exists. **A control confirming your instrument computes what you told it to cannot tell you that you told it the wrong thing.**
 - **A NULL RESULT IS NOT A CLEAN SHEET.** Negative-or-zero drift is the ONLY thing an honest stamp can produce, so my 4 and vc's 646 measured the same nothing.
