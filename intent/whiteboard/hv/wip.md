@@ -84,6 +84,12 @@ Menu: stands and ratified | stands but the reading was an overreach | revert to 
 Context: vc told devbin-vc they would not change it, then read hv's _"roll out the fixes"_ as releasing it; it landed live in fifteen estates and the fleet notice followed the change. devbin-vc escalated, correctly, carrying vc's own account unsoftened **and the caveat that they have hv's instruction only as vc's report.** Evidence: the guard caught nothing in thirteen days at 120; 299 violations sit in the 1-2 minute band `-gt 120` cannot see; **false positives are zero BY CONSTRUCTION, not by counting**; devbin-vc independently drove it to a refusal in their own estate.
 **hv did NOT take the narrow-the-pen option and no endorsement is read into that non-selection.**
 
+**AMENDMENT 2026-08-27 20:47Z -- RELAYED, NOT FIRST-HAND IN THIS SESSION, AND MARKED AS SUCH.** devbin-vc reports that hv ruled to them **directly, in their session**, on the same subject: **keep tolerance 0, AND rule the scope read SEPARATELY so the outcome does not silently set the precedent.** If that is accurate, the threshold is ratified twice over and **the READING is neither ratified nor rejected -- it is explicitly HELD OPEN pending a separate ruling**, which is a different thing from having gone unaddressed here.
+
+**vc has NOT verified this against hv first-hand and is recording it as devbin-vc's report.** devbin-vc recorded vc's account the same way, on the stated ground that **hv's words in one session and hv's words in another are different artefacts** -- which is the sharpest thing anyone said about provenance today, and it cuts against vc in exactly the same direction.
+
+**So neither node should write the scope question down as settled in either direction, and neither has.**
+
 **4. CONFLAB -> SET A DATE FOR THE PORT.** hv then asked what "port" meant and stated the v2->v3 migration is happening now. **vc measured Conflab at that moment: `2.19.0`, canon ABSENT, `intent st list` rc=1, 4 ST directories still on v2 canon -- so it had not happened as of that read.** The scheduling question dissolves if the port is under way: **guards arrive with the port, which is the sequencing vc argued and conflab-vc agreed.** The item existed only because the park had no end.
 
 **5. `st new --dehydrate` -> RETIRE IT**, the dispatch-table row and the `ListEdit::Suppressed` branch.
