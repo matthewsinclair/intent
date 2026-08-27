@@ -265,9 +265,35 @@ fn unwired_families() -> BTreeSet<String> {
        two write outside the sandbox into the operator's real home.",
       family.name
     );
+    // **`HOME` IS SANDBOXED BECAUSE THIS PROBE RUNS THE COMMAND, AND ONE OF
+    // THEM NOW WRITES** (vc, 2026-08-27, under hv's pen; found by cc driving
+    // `bootstrap` rather than reading it). `current_dir` bounds where the
+    // command runs; it does NOT bound `$HOME`, and `userstate::intent_dir` is
+    // `home()?.join(".intent")` -- so bare `intent bootstrap` published the
+    // install-root pointer into the OPERATOR'S REAL `~/.intent`, beside their
+    // `agents/` and `evidence/`, as a side effect of asking whether the command
+    // was wired. A probe whose question has a side effect is not a probe.
+    //
+    // **THE SANDBOX IS PREFERRED OVER `not_probed` DELIBERATELY.** Adding
+    // `bootstrap` to the DO-NOT-DRIVE list would have been the precedent's
+    // answer -- `claude upgrade` and `claude start` are there for exactly this
+    // -- and it buys safety by DELETING COVERAGE, one family at a time, for a
+    // work programme whose whole content is wiring families. Setting `HOME`
+    // keeps every family probed and makes the write land where it can do no
+    // harm. It is also not a new idiom here: `bootstrap_door.rs:41` already
+    // drives this same command under a fixture `HOME`.
+    //
+    // **AND IT CLOSES THE CLASS RATHER THAN THE INSTANCE.** The doc on this
+    // function says the harness was safe by accident of SCOPE and would get
+    // more dangerous as the project succeeds. `bootstrap` is that prediction
+    // arriving: the first FAMILY whose bare form is a leaf that writes.
+    // `daemon` and `mcp` escaped by being `new_surface[]` rows and `claude` by
+    // having subcommands -- none of that was subtraction. The next such family
+    // is now safe before anyone notices it exists.
     let output = Command::new(env!("CARGO_BIN_EXE_intent"))
       .arg(&family.name)
       .current_dir(dir.path())
+      .env("HOME", dir.path())
       .output()
       .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", family.name));
     let said = String::from_utf8_lossy(&output.stderr).into_owned()
@@ -316,9 +342,13 @@ fn unwired_families() -> BTreeSet<String> {
       );
       continue;
     }
+    // Same sandbox, same reason as the families loop above -- and this loop is
+    // the one the doc calls the widening, so it must not be the half that
+    // inherits the hazard.
     let output = Command::new(env!("CARGO_BIN_EXE_intent"))
       .arg(&entry.path)
       .current_dir(dir.path())
+      .env("HOME", dir.path())
       .output()
       .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", entry.path));
     let said = String::from_utf8_lossy(&output.stderr).into_owned()
@@ -575,6 +605,7 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   let mut violations = Vec::new();
   let mut deferred = Vec::new();
   let mut checked = 0;
+  let mut shielded = 0;
 
   // **ONE STREAM, AND IT IS THE PRODUCTION ONE.** This walked `table.families`
   // by hand, so every `new_surface[]` row was invisible to it -- including
@@ -637,6 +668,29 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           if !read.contains(&id) && !mentioned {
             violations.push(line);
           }
+
+          // **AND HOW MANY OF THESE COULD THE GATE ACTUALLY CATCH?** A
+          // violation needs BOTH conjuncts, so the moment `"<id>"` appears in
+          // the renderer for ANY reason, `!mentioned` is false and no removal
+          // of that flag's accessor can ever red this check. `checked` counts
+          // flags the gate LOOKED at, which is not the same number and reads
+          // like it is.
+          //
+          // The discriminator is occurrences: at one, the sole mention is the
+          // accessor itself and deleting it satisfies both conjuncts; above
+          // one, a mention survives the deletion and the gate is blind for
+          // that flag whatever anyone does to it.
+          //
+          // **DRIVEN BY HAND BEFORE IT WAS COUNTED** (cc, 2026-08-27, on
+          // `bootstrap`): deleting `--force`'s read left this check GREEN,
+          // because `organize` also reads an id spelled `force`. vc then
+          // measured the population over the same stream -- 94 of 109 shipped
+          // non-intrinsic flags cannot fire -- and only HALF are the shared-id
+          // case the hand instance suggested; the other half are single-family
+          // ids that appear as a literal for an unrelated reason.
+          if src.matches(&format!("\"{id}\"")).count() > 1 {
+            shielded += 1;
+          }
         }
       }
     }
@@ -655,7 +709,16 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
       println!("  {line}");
     }
   }
-  println!("flag-reachability: {checked} flag(s) gated across the wired families");
+  // **THE COVERAGE IS STATED, BECAUSE A GREEN IS OTHERWISE READ AS THE WHOLE
+  // SURFACE.** The false-negative class is named in the comment above and a
+  // comment is what a reader stops at; the number is what they carry away.
+  // This REPORTS and does not gate -- the conservative conjunction was a
+  // deliberate choice against a real false-positive class (`st new -s` reading
+  // `start`), and unpicking it is a design question rather than a patch.
+  println!(
+    "flag-reachability: {checked} flag(s) examined across the wired families -- of these, the gate CAN fire for {}, and CANNOT for {shielded} whose id also appears elsewhere in the renderer",
+    checked - shielded
+  );
 
   assert!(
     checked > 0,
