@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 13:59Z
+heartbeat_at: 2026-08-27 14:22Z
 status: active
-focus: "BOSS-VC, holding. Lamplight STOPPED not failed -- 42 rows in 13 threads need hv on what on/control/red-first/test-backed-evidence become in v3; tree restored, 80 attachments intact. The 8 is a FLOOR for every estate because hop 2 aborts on the first refusing thread, and the pair 56517758 does NOT carry 7e27e0ca -- no hop-2 green from it is complete. Shim drop phase C held entirely; ll and bz chain and die; Laksa most exposed with zero CI references. Critic-gate fail-open ruled forward to cc. UNOWNED AND hv's TO PLACE: a path in one project's build tree is on eleven projects' PATH and nothing declares it. The lesson I am carrying: warning a peer about a trap consumes them as an independent witness, and I did it twice then counted both. Detail in cutover-runbook.md."
+focus: "BOSS-VC, holding for the bounce. DISPATCHED: cc has the critic-gate fail-open (hv ruled) and the pair rebuild -- 56517758 does NOT carry 7e27e0ca, so no hop-2 green from it is complete; dc closed zz-livebacktick at 7f67a285 and has the quote-pairing fix (go given, branch 2) then the skew rostering, with an early finding for hv on the ordering question coming whole; ic is idle and OFF native/rust until the pair lands. BLOCKED ON hv: Lamplight 42 AC rows + 13 AT rows in 13 threads, Laksa guard patch, Conflab ST0121, AC-11.6, the CRITICAL proxy mix format defeats, and the UNOWNED machine-level fact that one project's build tree is on eleven projects' PATH. Shim phase C held entirely. mdutil -E / still parked. Detail with attribution in cutover-runbook.md; the day's rules are the Watch-outs below."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -24,6 +24,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 **LAMPLIGHT IS STOPPED, NOT FAILED.** Hop 2 refused at rc 1 on 8 `unread-field` findings; tree restored to `bd5572dfe`, dirty 0, 80 attachments and 1731 AT rows intact. **42 rows in 13 threads need hv on what `on`, `control`, `red-first` and a test-backed `evidence` become in v3** -- Lamplight's contract text, not mine. **The 8 is a FLOOR for EVERY estate: hop 2 aborts on the first refusing thread** (cc disproved my bucket-blind diagnosis by putting the row in both places; my perfect correlation was order confounded with location). **AND THE PAIR IS STALE AGAIN -- `56517758` does NOT carry `7e27e0ca`, the accumulate-then-refuse fix, verified by `--is-ancestor`. Do not read any hop-2 green from it as complete.**
 
 **THE SHIM DROP (`bin/{proj} -> bin/devbin`), hv + devbin.** Phase A and B landed and **removed nothing**; **Phase C is HELD ENTIRELY** -- five links have zero consumers, eight are real migrations. **`Lamplight/bin/ll` and `Baize/bin/bz` CHAIN through the doomed link and die with it; Laksa is the most exposed and has ZERO direct CI references** (nine test files exec the launcher inside `mix test`). `doctor` now COMPUTES the breakage per tree, with a negative control. **Ruled and dispatched to cc: the critic gate's fail-open, which protects a population of zero across all 17 estates carrying the hook.**
+
+**DISPATCH AT THE FOLD:** cc -- critic-gate fail-open (hv ruled through me) + the pair rebuild, announced before it starts because the shared release path is on every project's PATH. dc -- `zz-livebacktick` closed at `7f67a285`, quote-pairing branch 2 given the go, then `thread_view_skew_check` roster admission. ic -- idle, off `native/rust`, its four items queued behind the pair. **I re-run `--is-ancestor` against `2cf8fa63` AND `7e27e0ca` on the new pair myself before it touches an estate.**
 
 **REMAINING QUEUE:** Lamplight (above); Laksa's port commit, blocked on a guard patch only hv can clear; Conflab once hv rules its four ST0121 rows; then Utilz and arca_cli's last two findings. **Utilz is OFF the queue on measurement, not deferral** -- a rehearsed re-convert returned every semantic field identical across all 9 threads.
 
