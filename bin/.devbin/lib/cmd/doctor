@@ -402,7 +402,7 @@ check_handlers() {
 # checker that reports the correct state as a finding is how a checker stops
 # being read.
 check_symlinks() {
-  local n names="" path
+  local n names="" path pointers other
 
   if [ -x "$PROJECT_ROOT/bin/devbin" ]; then
     _pass "launcher: bin/devbin"
@@ -419,9 +419,31 @@ check_symlinks() {
     # Only a symlink TO devbin is ours to comment on. A real file of that name
     # is the project's own binary and is none of devbin's business.
     if [ -L "$path" ] && [ "$(readlink "$path")" = devbin ]; then
-      _note "launcher: bin/$n -> devbin is a RETIRED alias"
-      _detail "remove it with: rm bin/$n   (bin/devbin is the invocation)"
-      _detail "it also stands where this project's own '$n' binary would live"
+      _note "launcher: bin/$n -> devbin is a retired alias, superseded by bin/devbin"
+      # NO PASTEABLE `rm` HERE, AND THAT IS THE WHOLE POINT OF THIS BRANCH.
+      #
+      # It offered one for about an hour and laksa-vc said plainly it would have
+      # run it. A tool naming a SPECIFIC remedy is read as advice regardless of
+      # its severity label: the reader's eye lands on a command it can paste and
+      # the word "note" does not survive the trip. A note carrying a destructive
+      # one-liner is a recommendation with a disclaimer attached, and the
+      # disclaimer is the half nobody reads.
+      #
+      # Whether the alias goes is a PROJECT decision and devbin is not entitled
+      # to it -- in two estates this link is another link's target, and in
+      # several it is named by CI.
+      _detail "whether to remove it is this project's call; devbin no longer creates it"
+      # WHAT DOCTOR CAN DO THAT A CAUTION CANNOT: say who would break. It is
+      # standing in bin/ and can simply look, so the risk is COMPUTED for this
+      # tree rather than described in general.
+      pointers=""
+      for other in "$PROJECT_ROOT"/bin/*; do
+        [ -L "$other" ] || continue
+        [ "$(readlink "$other")" = "$n" ] && pointers="$pointers $(basename "$other")"
+      done
+      if [ -n "$pointers" ]; then
+        _detail "REMOVING IT WOULD ALSO BREAK:$pointers -- $(printf '%s' "$pointers" | wc -w | tr -d ' ') link(s) point AT this one"
+      fi
     fi
   done
   return 0
