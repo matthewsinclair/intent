@@ -1708,6 +1708,64 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
   })
 }
 
+/// The contents of a v2 BRACKET citation, when the citation slot opens with `[`.
+///
+/// **The subject is otherwise taken as everything before the first ` -- `, and a
+/// bracket citation routinely contains one.** This function's own file opens by
+/// naming that hazard -- *"a note routinely contains ` -- ` itself, so splitting
+/// the row on the separator over-splits exactly the rows carrying the most
+/// information"* -- and then applies the care to the KEYED fields only. The
+/// subject kept the naive split, so the discipline was written down and half
+/// applied.
+///
+/// Measured on Lamplight, whose threads carry the bracket form: 74 rows of the
+/// 625 that store a file, over 10 threads. 52 truncate at a ` -- ` inside the
+/// bracket (`[n/a` is the whole stored value); the other 22 survive whole and
+/// are still not a path. **Every one of the 74 then makes `ac gate` report
+/// `cites a file that does not exist`, so the visible damage is a FALSE GATE on
+/// work that is done** -- ST0288 reads BLOCKED on 24 findings whose cited files
+/// are all present on disk.
+///
+/// **Returns `None` on an UNBALANCED bracket, and that is deliberate rather
+/// than lazy.** Rows exist in the same corpus whose `[` is never closed --
+/// `AT-11.1 (non-test) [n/a -- covers AC-11.0 ... -- status: n/a` -- and for
+/// those, depth never comes back to zero. Reading to end-of-row there would
+/// swallow the keyed fields into the subject and break rows that parse today.
+/// A citation this cannot read is left to the existing path unchanged, so the
+/// change can only move rows that carry a well-formed bracket.
+fn bracket_citation(rest: &str) -> Option<&str> {
+  let s = rest.trim_start();
+  if !s.starts_with('[') {
+    return None;
+  }
+  let mut depth = 0usize;
+  for (i, b) in s.bytes().enumerate() {
+    match b {
+      b'[' => depth += 1,
+      b']' => {
+        depth -= 1;
+        if depth == 0 {
+          return Some(s[1..i].trim());
+        }
+      }
+      _ => {}
+    }
+  }
+  None
+}
+
+/// Is this bracket citation an `n/a` justification rather than a reference?
+///
+/// **The two bracket forms are a path plus a test name, or the word `n/a`
+/// followed by why no test exists.** They must not be told apart by
+/// [`acceptance_test`]'s path rule, because `n/a` CONTAINS A SLASH and reaches
+/// it looking exactly like a relative path -- which is the mechanism that put
+/// `[n/a` into 52 `file` fields rather than a bare failure to parse.
+fn is_na_justification(cited: &str) -> bool {
+  let lower = cited.to_ascii_lowercase();
+  lower == "n/a" || lower.starts_with("n/a ") || lower.starts_with("n/a-")
+}
+
 /// `- AT-<gg>.<n> <subject> -- covers <ids> -- status: <s> [-- test: <name>] [-- note]`
 ///
 /// **The keyed fields are FOUND rather than split out**, and that is the whole
@@ -1787,7 +1845,15 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
     }
   };
 
-  let subject = rest.split(" -- ").next().unwrap_or("").trim();
+  // **A BRACKET CITATION IS READ TO ITS CLOSING BRACKET, NOT TO THE FIRST
+  // ` -- `.** See [`bracket_citation`] for the corpus this is measured on. A row
+  // without a bracket, or with an unbalanced one, takes the naive split exactly
+  // as before, so this cannot move a row that reads correctly today.
+  let bracketed = bracket_citation(rest);
+  let subject = match bracketed {
+    Some(inner) => inner,
+    None => rest.split(" -- ").next().unwrap_or("").trim(),
+  };
   let non_test = subject.starts_with("(non-test)");
   let cited = subject.trim_matches('`');
   // The 0017 reference rules: a test file has at least one `/` and no `:`.
@@ -1799,12 +1865,45 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   // like `foo (bar/baz)` carries its only `/` inside the annotation, so
   // splitting first would flip it from path to legacy and reclassify a row the
   // change is not about.
-  let is_path = !non_test && cited.contains('/') && !cited.contains(':');
+  // **AN `n/a` JUSTIFICATION IS NOT A CITATION**, and the path rule cannot see
+  // that on its own: `n/a` carries a slash. Excluded before the rule runs
+  // rather than patched after it, so there is one place that decides.
+  let na = bracketed.is_some_and(is_na_justification);
+  let is_path = !non_test && !na && cited.contains('/') && !cited.contains(':');
   // A legacy reference is carried whole, per the rule directly above; only a
   // real path citation is separated from the words the author wrote after it.
-  let (cite, annotation) = match is_path {
-    true => split_citation(cited),
-    false => (cited, None),
+  // **NOTHING INSIDE A BRACKET IS DISCARDED -- IT IS ROUTED.** The two bracket
+  // forms carry different things in the same slot, and the defect being fixed
+  // was a citation stored as a path; storing nothing instead would trade a
+  // false gate for a silent loss, which is the worse of the two by this
+  // migration's own standing argument -- a wrong value is visible and
+  // correctable, an absent one is not.
+  let (cite, annotation) = match (bracketed, is_path, na) {
+    // `[n/a -- why no test exists]`: prose, all of it. `n/a` itself is dropped
+    // because `status: n/a` already carries exactly that, and the note is not
+    // the place to say it a second time.
+    (Some(inner), _, true) => (
+      "",
+      Some(
+        inner
+          .trim_start_matches("n/a")
+          .trim_start_matches([' ', '-'])
+          .trim(),
+      ),
+    ),
+    // `[<path> "<test name>"]`: the path ENDS where the quoted name begins.
+    // `split_citation` does not cut on a quote -- deliberately, since its cut
+    // points are measured across 3177 unbracketed citations, and widening them
+    // is not this function's to do.
+    (Some(inner), true, _) => match inner.find('"') {
+      Some(q) => (
+        inner[..q].trim_end(),
+        Some(inner[q..].trim_matches('"').trim()),
+      ),
+      None => split_citation(inner),
+    },
+    (_, true, _) => split_citation(cited),
+    (_, false, _) => (cited, None),
   };
   let file = cite.to_string();
 
@@ -2828,7 +2927,7 @@ fn split_field_value(value: &str) -> (&str, Option<&str>) {
 
 #[cfg(test)]
 mod tests {
-  use super::{account_attachments, preamble};
+  use super::{acceptance_test, account_attachments, preamble};
 
   /// **The fixture is ST0010's REAL v2 bytes** (`9b73e98f:intent/st/CANCELLED/
   /// ST0010/info.md`), reduced to the region that carries the defect and not
@@ -2919,5 +3018,105 @@ mod tests {
       .expect("one carried plus two refused accounts for three on disk");
     account_attachments("intent/st/ST0001", 0, 0, 0)
       .expect("a thread with no authored files reconciles at zero");
+  }
+  /// **THE FIXTURE IS LAMPLIGHT'S REAL BYTES, because Intent's own estate
+  /// CANNOT EXHIBIT THIS DEFECT.** vc's detector run here returned 0 bracketed
+  /// `file` values against 318 rows carrying a file -- and the 318 is the
+  /// control saying the detector had something to look at. A green in this
+  /// estate therefore proves nothing about the fix, which is why every row
+  /// below is copied from `~/Devel/prj/Lamplight/intent/st/COMPLETED/*/
+  /// acceptance.md` rather than composed to the grammar as described.
+  ///
+  /// The distinction is not pedantry: the grammar as described to me put the
+  /// citation in brackets, and the first rows I looked at carried it in
+  /// BACKTICKS. Both forms are real, in one estate, and a fixture written from
+  /// the description would have tested a corpus that does not exist.
+  #[test]
+  fn an_n_a_justification_in_brackets_is_not_stored_as_a_file() {
+    let row = "AT-18.1 [n/a -- review: the WP design's Standard Rules enumeration table, every row dispositioned] -- covers AC-18.1 -- status: n/a";
+    let (test, _, _) = acceptance_test(row).expect("a real v2 row must parse");
+
+    // **The defect, stated as the assertion that was failing.** The naive split
+    // cut the subject at the ` -- ` INSIDE the bracket, leaving `[n/a` -- which
+    // contains a slash and no colon, so the path rule accepted it.
+    assert_eq!(
+      test.file, None,
+      "an n/a justification is not a file citation"
+    );
+    assert!(
+      test.legacy.is_none(),
+      "nor is it a legacy citation carried whole: {:?}",
+      test.legacy
+    );
+    // The justification itself is not silently dropped on the way.
+    let note = test.note.unwrap_or_default();
+    assert!(
+      note.contains("Standard Rules enumeration table"),
+      "the whole justification survives, past the ` -- ` that used to cut it: {note}"
+    );
+  }
+
+  /// The other bracket form: a real path plus the test name, in one bracket.
+  #[test]
+  fn a_bracketed_path_stores_the_path_and_keeps_the_test_name_as_note() {
+    let row = r#"AT-09.5 [apps/lamplight/test/lamplight/core/social/friendship_test.exs "unfriending a system-account counterparty is refused by policy"] -- covers AC-09.5 -- status: green"#;
+    let (test, _, _) = acceptance_test(row).expect("a real v2 row must parse");
+
+    assert_eq!(
+      test.file.as_deref(),
+      Some("apps/lamplight/test/lamplight/core/social/friendship_test.exs"),
+      "the stored citation must be the PATH ALONE -- this is the value `ac gate` \
+       resolves against disk, and the bracket plus test name resolves against nothing"
+    );
+    let note = test.note.unwrap_or_default();
+    assert!(
+      note.contains("unfriending a system-account counterparty"),
+      "the test name is kept rather than cut away with the brackets: {note}"
+    );
+  }
+
+  /// A bracketed path whose test name ALSO carries a ` -- `-free parenthetical,
+  /// which is the 22-row form that survived whole and was still not a path.
+  #[test]
+  fn a_bracketed_path_that_was_never_truncated_is_still_reduced_to_the_path() {
+    let row = r#"AT-09.3 [apps/lamplight/test/lamplight/core/identity/user_admin_test.exs "a system account is inviolable through the admin doors (DD-2)"] -- covers AC-09.3 -- status: green"#;
+    let (test, _, _) = acceptance_test(row).expect("parse");
+    assert_eq!(
+      test.file.as_deref(),
+      Some("apps/lamplight/test/lamplight/core/identity/user_admin_test.exs"),
+    );
+  }
+
+  /// **THE REGRESSION CONTROL, and it is the arm that licenses the change.**
+  ///
+  /// 551 of Lamplight's 625 file-carrying rows store a correct bare path and
+  /// use the BACKTICK form. If bracket-awareness moved any of those, the fix
+  /// would cost more than the defect. This row is real and unbracketed.
+  #[test]
+  fn an_unbracketed_citation_is_read_exactly_as_it_was_before() {
+    let row = r#"AT-03.1 `apps/lamplight/test/lamplight/wrighter/publish_client_test.exs` -- covers AC-03.1 -- status: green -- "success: posts the multipart bundle and decodes a 200 response""#;
+    let (test, _, _) = acceptance_test(row).expect("parse");
+    assert_eq!(
+      test.file.as_deref(),
+      Some("apps/lamplight/test/lamplight/wrighter/publish_client_test.exs")
+    );
+    assert_eq!(test.covers, vec!["AC-03.1".to_string()]);
+  }
+
+  /// **An UNBALANCED bracket must keep today's behaviour, and the row is real.**
+  ///
+  /// Reading to end-of-row when the `[` never closes would pull `covers` and
+  /// `status` into the subject and break a row that parses now. The fix is only
+  /// allowed to move rows carrying a well-formed bracket.
+  #[test]
+  fn an_unclosed_bracket_falls_back_rather_than_swallowing_the_keyed_fields() {
+    let row = "AT-11.1 (non-test) [n/a -- covers AC-11.0, AC-11.1 -- status: n/a -- lived-verified 2026-07-14";
+    let (test, _, _) = acceptance_test(row).expect("parse");
+    assert_eq!(
+      test.covers,
+      vec!["AC-11.0".to_string(), "AC-11.1".to_string()],
+      "the keyed fields are still found"
+    );
+    assert_eq!(test.file, None);
   }
 }
