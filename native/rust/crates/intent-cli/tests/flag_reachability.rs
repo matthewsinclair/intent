@@ -290,6 +290,20 @@ fn unwired_families() -> BTreeSet<String> {
     // `daemon` and `mcp` escaped by being `new_surface[]` rows and `claude` by
     // having subcommands -- none of that was subtraction. The next such family
     // is now safe before anyone notices it exists.
+    //
+    // **DRIVEN, TWO-SIDED, AGAINST A DECOY DIRECTORY** standing in for the
+    // operator's home, so proving the hazard could never perform it: without the
+    // `env` the probe wrote `<decoy>/.intent/home`; with it the decoy is
+    // untouched and the write lands in the tempdir. The real `~/.intent/home`
+    // did not move across either arm.
+    //
+    // **AND THE FIRST ATTEMPT TO DRIVE IT REPRODUCED NOTHING, WHICH IS THE
+    // WARNING WORTH LEAVING HERE.** The binary was built into a target dir
+    // OUTSIDE the repo, so `install::home()` found no `lib/templates` above the
+    // exe and `publish_home` refused before writing -- correctly, and for a
+    // reason having nothing to do with this fix. **An instrument placed where
+    // the defect cannot occur reports absence and reads exactly like a pass.**
+    // Rebuilt in-tree under `target/vc/`, it reproduced first try.
     let output = Command::new(env!("CARGO_BIN_EXE_intent"))
       .arg(&family.name)
       .current_dir(dir.path())
