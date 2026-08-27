@@ -32,7 +32,19 @@
 //! believes it is protected and is not. Both arms are driven below, because
 //! they differ only in a file the naive check does not read.
 //!
-//! # Why these drive `gate_state` and not the whole of `doctor`
+//! # The IO edge is driven too, because I nearly shipped it on inspection
+//!
+//! The verdict below is pure and every arm of it is driven. **The EDGE that
+//! feeds it was not**, and it carries a real decision: a tree that is not a git
+//! repository reports NOTHING rather than a missing gate, because `doctor` runs
+//! on trees that are neither repositories nor projects and a missing hook is
+//! not a defect of a directory that cannot have hooks. That arm was verified by
+//! reading it -- **in a file whose own argument is that a check about silently
+//! unprotected estates must not ship arms verified by inspection.** Both edge
+//! arms are now driven: a non-repository says nothing, and a real repository
+//! carrying an unwired carrier reports through the whole path.
+//!
+//! # Why the rest drive `gate_state` and not the whole of `doctor`
 //!
 //! Two arms are unreachable through the IO path on a healthy developer machine:
 //! `NoResolvableInstall` needs a machine with no install, and `Current` needs a
@@ -52,6 +64,17 @@
 //! | the guard-runner marker check is removed              | `a_carrier_that_names_no_guard_runner_...`    |
 //! | `BehindTheTemplate` becomes `Current`                 | the older-template test AND the same-size one |
 //! | the byte comparison becomes a length comparison       | `a_carrier_the_same_size_...` ONLY            |
+//! | the IO edge reports nothing, ever                     | `a_repository_carrying_an_unwired_carrier_...`|
+//! | the edge stops checking `git rev-parse`'s exit code   | `a_root_level_file_named_pre_commit_...` ONLY |
+//!
+//! **THE LAST ROW REDDED NOTHING WHEN FIRST MEASURED, AND THAT IS WHY THE TEST
+//! BESIDE IT EXISTS.** Dropping the exit-code check leaves git's empty stdout,
+//! and `root.join("")` is the project root -- so the whole edge behaved
+//! identically, on every fixture, with a guard removed. The input that
+//! separates them is a tree keeping hook sources at its root, which is an
+//! ordinary layout. **A defensive branch that no input can distinguish is
+//! indistinguishable from dead code, and the honest repair is to find the input
+//! rather than to write the row down as covered.**
 //!
 //! Row three reds TWO, which the forecast had as one: a state that never
 //! reports "behind" fails every input that should report it, same-length or
@@ -60,7 +83,10 @@
 //! because templates grow, and disagrees only on an edit that changes what the
 //! guards do without changing how long the file is.
 
-use intentsvcs::doctor::{GateState, gate_state};
+mod common;
+
+use intentsvcs::doctor::{self, GateState, gate_state};
+use intentsvcs::finding::FindingClass;
 
 /// A carrier that would actually run guards.
 const WIRED: &str =
@@ -160,5 +186,114 @@ fn a_carrier_the_same_size_as_the_template_but_not_the_same_bytes_is_behind_it()
       template: template.len()
     },
     "same size, different guards: a length comparison calls this current"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// THE IO EDGE
+// ---------------------------------------------------------------------------
+
+/// **A TREE THAT IS NOT A REPOSITORY REPORTS NOTHING, WHICH IS A DECISION.**
+///
+/// `doctor` is what you run when everything else has stopped working, so it
+/// runs on trees that are not projects and not repositories. A directory that
+/// cannot have hooks does not have a broken gate, and saying it does would put
+/// a permanent finding on every such tree -- the same permanent-red failure the
+/// severity split exists to avoid, arriving through a different door.
+#[test]
+fn a_tree_that_is_not_a_repository_says_nothing_about_hooks() {
+  let fx = common::Fixture::new();
+  let facade = fx.facade_on_disk();
+  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let hooks: Vec<&str> = report
+    .findings
+    .iter()
+    .filter(|f| f.class == FindingClass::GateNotRunning)
+    .map(|f| f.detail.as_str())
+    .collect();
+  assert!(
+    hooks.is_empty(),
+    "a tempdir is not a repository and cannot have a hook, so it cannot have a broken one: {hooks:?}"
+  );
+}
+
+/// **AND A REAL REPOSITORY WITH AN UNWIRED CARRIER REPORTS THROUGH THE WHOLE
+/// PATH** -- git resolution, both file reads, the verdict, and the class.
+///
+/// The pair matters more than either half: without this arm the test above
+/// passes under an edge that reports nothing ever, which is indistinguishable
+/// from an edge that correctly says nothing about a tempdir.
+#[test]
+fn a_repository_carrying_an_unwired_carrier_is_reported_through_the_io() {
+  let fx = common::Fixture::new();
+  fx.git_init();
+  let hooks = fx.root().join(".git/hooks");
+  std::fs::create_dir_all(&hooks).expect("mkdir hooks");
+  std::fs::write(hooks.join("pre-commit.intent"), UNWIRED).expect("plant the carrier");
+
+  let facade = fx.facade_on_disk();
+  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let found: Vec<&str> = report
+    .findings
+    .iter()
+    .filter(|f| f.class == FindingClass::GateNotRunning)
+    .map(|f| f.detail.as_str())
+    .collect();
+  assert_eq!(
+    found.len(),
+    1,
+    "the unwired carrier must be reported through the real IO path: {:?}",
+    report
+      .findings
+      .iter()
+      .map(|f| &f.detail)
+      .collect::<Vec<_>>()
+  );
+  assert!(
+    found[0].contains("names no guard runner"),
+    "and it must be the Baize arm rather than some other gate state: {found:?}"
+  );
+  assert!(
+    report.actionable() > 0,
+    "a dead gate is actionable -- it is the half of this check that moves the exit code"
+  );
+}
+
+/// **THE EXIT-CODE CHECK ON `git rev-parse` IS LOAD-BEARING, AND THIS IS THE
+/// ONLY INPUT THAT SHOWS IT.**
+///
+/// When git fails it writes nothing to stdout, so dropping the check leaves an
+/// empty path and `root.join("")` is the PROJECT ROOT. Everything then proceeds
+/// against `<root>/pre-commit` and `<root>/pre-commit.intent` as though they
+/// were hooks. On almost every tree those files do not exist and the mutation
+/// is invisible -- it was, when first measured: the whole edge behaved
+/// identically with the check removed.
+///
+/// A repository that keeps hook SOURCES at its root is the case where it stops
+/// being invisible, and it is an ordinary layout rather than a contrivance.
+/// There the tool would read a file that is not a hook, in a tree that is not a
+/// repository, and report a broken gate that does not exist.
+#[test]
+fn a_root_level_file_named_pre_commit_is_not_mistaken_for_a_hook() {
+  let fx = common::Fixture::new();
+  // NOT a git repo, and carrying the two names at its root.
+  std::fs::write(
+    fx.root().join("pre-commit"),
+    "#!/bin/sh\n. \"$(git rev-parse --git-path hooks)/pre-commit.intent\"\n",
+  )
+  .expect("write a root-level pre-commit");
+
+  let facade = fx.facade_on_disk();
+  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let found: Vec<&str> = report
+    .findings
+    .iter()
+    .filter(|f| f.class == FindingClass::GateNotRunning)
+    .map(|f| f.detail.as_str())
+    .collect();
+  assert!(
+    found.is_empty(),
+    "a file at the project root is not a git hook, and a tree that is not a repository \
+     has no gate to be broken: {found:?}"
   );
 }
