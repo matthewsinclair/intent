@@ -117,7 +117,7 @@ Exit codes (matching `bin/intent_critic` and this hook):
 
 - **Hook not running**: check `ls -la .git/hooks/pre-commit` — must exist and be executable. `git commit` silently skips missing/unexecutable hooks.
 
-- **"`intent` CLI not on PATH"**: install Intent globally or add `$INTENT_HOME/bin` to PATH in your shell rc. The hook fails open — it lets the commit through — rather than blocking work.
+- **"`intent` CLI not on PATH, and this IS an Intent project"**: install Intent globally or add `$INTENT_HOME/bin` to PATH in your shell rc. **The hook REFUSES the commit rather than skipping** (hv, 2026-08-27): reaching that message means `intent/.config/config.json` is present, so the project declared the gate, and a declared gate that cannot run is a failure rather than a repo it does not apply to. It fails open only for a repo that is _not_ an Intent project, which is tested separately and first. `git commit --no-verify` bypasses one commit if you need to land work before fixing the install.
 
 - **Chain with an existing hook**: see the "Installation" section above. Use `exec .git/hooks/pre-commit.intent` at the end of your own hook.
 

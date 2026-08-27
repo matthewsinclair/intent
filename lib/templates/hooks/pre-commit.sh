@@ -277,24 +277,53 @@ else
   bash "$GUARD_RUNNER" || exit 1
 fi
 
-# ---- Fail-open on missing intent CLI ----
-
-if ! command -v intent >/dev/null 2>&1; then
-  echo "intent critic gate: 'intent' CLI not on PATH; skipping." >&2
-  echo "  install Intent or add its bin/ to PATH to enable the gate." >&2
-  exit 0
-fi
-
-# Fail-open if this repo isn't an Intent project (the hook may have been
-# copied manually into a non-Intent repo). Without this check,
-# `intent critic` would exit non-zero with a "not in an Intent project"
-# message and the commit would be blocked for the wrong reason.
-# We already cd'd to the git toplevel above, and every later read
-# (languages, .intent_critic.yml) is relative to it, so the gate's
-# definition of "Intent project" is config.json at the git toplevel.
+# ---- Not an Intent project: skip. THIS TEST COMES FIRST, AND THE ORDER IS
+# ---- THE WHOLE FIX ----
+#
+# The hook may have been copied by hand into a non-Intent repo, where
+# `intent critic` would exit non-zero with "not in an Intent project" and block
+# the commit for the wrong reason. We already cd'd to the git toplevel, and
+# every later read (languages, .intent_critic.yml) is relative to it, so the
+# gate's definition of "Intent project" is config.json at the git toplevel.
+#
+# **THIS IS THE PRECISE TEST, WHICH IS WHY THE CLI CHECK BELOW NO LONGER NEEDS
+# TO BE FAIL-OPEN.** The CLI check used to sit here and skip on a missing
+# `intent`, justified as "do not block work in a non-Intent repo" -- a
+# population this test already covers exactly. One test was standing in for the
+# other, and the substitute was the one that could not tell the two apart.
 if [ ! -f "intent/.config/config.json" ]; then
   echo "intent critic gate: not inside an Intent project (intent/.config/config.json absent); skipping." >&2
   exit 0
+fi
+
+# ---- An Intent project whose CLI is missing FAILS. It does not skip ----
+#
+# **A GATE THAT CANNOT RUN, IN A PROJECT THAT DECLARED IT, IS A FAILURE AND
+# NEVER A SKIP.** Reaching this line means config.json is present, so this IS an
+# Intent project and the gate was asked for; a missing CLI is then a broken
+# installation, not a repo the gate does not apply to.
+#
+# **MEASURED BEFORE THE CHANGE (vc, 2026-08-27): all 17 estates carrying this
+# hook ARE Intent projects, so the fail-open protected nobody** -- and it cost
+# 12 ungated commits across 3 estates inside one 9-minute window, two of them
+# the committing node's own. A skip is indistinguishable from a pass to
+# everything downstream, which is why the cost went unnoticed while the log
+# looked healthy.
+#
+# **AND THIS FILE ALREADY DIAGNOSED THE CLASS ONE BLOCK UP.** The 2026-08-17
+# comment recording the whiteboard guard's move ABOVE both fail-open exits says
+# it exactly: *an exit written when there was one arm is a claim that the run is
+# over.* Both exits below it were written when the critic gate was the only arm
+# after them. The diagnosis was right and stopped at the arm that prompted it.
+#
+# The asymmetry -- skip where the tool does not apply, fail where it applies and
+# cannot run -- is devbin-vc's, already implemented in `check format`.
+if ! command -v intent >/dev/null 2>&1; then
+  echo "intent critic gate: 'intent' CLI not on PATH, and this IS an Intent project." >&2
+  echo "  refusing rather than skipping: a declared gate that cannot run is a failure." >&2
+  echo "  remedy: install Intent, or add its bin/ to PATH, then re-commit." >&2
+  echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
+  exit 1
 fi
 
 # ---- Read declared languages from project config ----

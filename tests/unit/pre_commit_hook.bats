@@ -2,9 +2,15 @@
 # Tests for lib/templates/hooks/pre-commit.sh (ST0035/WP-06).
 #
 # Stands up a scratch Intent-flavoured git repo, installs the hook,
-# exercises the three contract scenarios: bad fixture blocks (exit 1),
-# good fixture passes (exit 0 with severity tuned), missing intent CLI
-# fails open (exit 0 with advisory).
+# exercises the contract scenarios: bad fixture blocks (exit 1), good
+# fixture passes (exit 0 with severity tuned), a non-Intent repo skips, and
+# a missing intent CLI **in an Intent project REFUSES** (exit 1).
+#
+# THE CLI ARM WAS FAIL-OPEN AND IS NOW FAIL-CLOSED (hv, 2026-08-27). Its
+# stated justification -- do not block work in a non-Intent repo -- is the
+# job of the config.json test, which is the precise one and now runs FIRST.
+# One test was standing in for the other, and the substitute could not tell
+# the two populations apart.
 
 load "../lib/test_helper.bash"
 
@@ -128,22 +134,47 @@ EOF
   assert_success
 }
 
-@test "intent CLI missing → fail-open (exit 0, advisory on stderr)" {
+@test "intent CLI missing in an Intent project → REFUSES (exit 1)" {
   # Strip PATH to just /usr/bin:/bin so `intent` is not resolvable.
-  # Use git -c so user config still works.
+  #
+  # **A GATE THAT CANNOT RUN, IN A PROJECT THAT DECLARED IT, IS A FAILURE AND
+  # NEVER A SKIP.** This arm was `assert_success` until hv ruled it 2026-08-27:
+  # all 17 estates carrying the hook are Intent projects, so the fail-open
+  # protected nobody and cost 12 ungated commits across 3 estates in one
+  # 9-minute window. A skip is indistinguishable from a pass downstream.
   mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
   git add intent/.config mix.exs test/bad_test.exs
   PATH="/usr/bin:/bin" run git commit -m "no-intent"
-  assert_success
-  assert_output_contains "'intent' CLI not on PATH"
+  assert_failure
+  assert_output_contains "'intent' CLI not on PATH, and this IS an Intent project"
 }
 
-@test "non-Intent repo → fail-open (exit 0, advisory on stderr)" {
-  # Remove intent/.config/ so hook's fail-open check fires.
+@test "non-Intent repo → skips (exit 0, advisory on stderr)" {
+  # Remove intent/.config/ so the config test fires. THIS ARM IS UNCHANGED BY
+  # the ruling above and must stay green: the gate still does not apply where
+  # the project does not declare it.
   rm -rf intent/.config
   mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
   git add mix.exs test/bad_test.exs
   run git commit -m "non-intent"
+  assert_success
+  assert_output_contains "not inside an Intent project"
+}
+
+@test "non-Intent repo with NO intent CLI still skips (the reorder is safe)" {
+  # **THE ARM THAT CARRIES THE WHOLE ARGUMENT FOR THE SWAP.** The CLI check used
+  # to run FIRST and skip, justified as protecting exactly this case: a hook
+  # copied by hand into a repo that is not an Intent project, on a machine with
+  # no Intent installed. Both conditions at once, which no other arm covers.
+  #
+  # If the config test did not fully cover that population, this is where the
+  # reorder would show up -- as a commit blocked in a repo the gate has no
+  # business in. It exits 0, so the fail-open was protecting nobody the precise
+  # test was not already protecting.
+  rm -rf intent/.config
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add mix.exs test/bad_test.exs
+  PATH="/usr/bin:/bin" run git commit -m "neither"
   assert_success
   assert_output_contains "not inside an Intent project"
 }
