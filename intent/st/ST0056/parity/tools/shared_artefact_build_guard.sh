@@ -463,22 +463,77 @@ fi
 # advice and stopped four nodes on a sentence recommending the guarded path.
 # The `eval` bail-out stays, since `eval '...'` re-parses and would run.
 #
-# WHAT IS DELIBERATELY NOT FIXED HERE, AND IT IS OPEN, NOT CLOSED: the existing
-# backtick strip still erases an UNESCAPED backtick span, so the first form above
-# is still hidden today. Fixing it needs more than a per-line regex -- whether a
-# bare backtick executes depends on the enclosing heredoc, whose delimiter sits
-# on a different line:
+# CLOSED 2026-08-27, AND THE FIX IS HEREDOC STATE RATHER THAN A BETTER REGEX.
+# The backtick strip used to erase an UNESCAPED span, which hid the first form
+# above behind a green arm. It was not fixable per line: whether a bare backtick
+# executes depends on the enclosing heredoc, whose delimiter sits on a DIFFERENT
+# line:
 #
 #   cat <<'USAGE'   `echo X`   -> printed literally   INERT
 #   cat <<USAGE     `echo X`   -> X                   EXECUTES
 #
 # and `cmd/macos`'s help text lives in the inert case, which is where this whole
-# class started. "Never strip a bare backtick" would close the third instance by
-# reopening the first. That needs heredoc state tracked across the file and is
-# filed rather than rushed into a gate four nodes commit through.
+# class started, so "never strip a bare backtick" would have closed the third
+# instance by reopening the first. `inert_heredoc_lines` tracks the state across
+# the file, so the two are now TOLD APART rather than traded off.
+#
+# THE PREDICATE IS THREE-WAY, AND THE COST OF GETTING IT WRONG IS ASYMMETRIC:
+#   inert heredoc body   -> the WHOLE line is inert. Nothing inside a quoted
+#                           heredoc can run, so there is no span to reason about.
+#   \`...\` (escaped)    -> literal inside double quotes. INERT. This is the form
+#                           `cmd/cli:63` uses to recommend the guarded path, and
+#                           it is why the strip is keyed on the BACKSLASH.
+#   `...` (unescaped)    -> COMMAND SUBSTITUTION. It RUNS. Kept, and the census
+#                           sees it.
+# A wrong INERT hides a live unguarded build behind a green arm. A wrong LIVE
+# fails a correct file loudly. The second is recoverable in a minute and the
+# first is the defect this whole file exists to refuse, so where the three forms
+# are ambiguous this errs towards LIVE.
+#
+# THE HOLE THAT REMAINS, NAMED RATHER THAN INHERITED IN SILENCE: the single-quote
+# strip pairs quotes left to right, so an apostrophe inside ordinary double-quoted
+# prose ("it's") can pair with a later real single-quoted span and delete
+# everything between them, live backticks included. It is not introduced here and
+# it is not closed here. Closing it needs the same lexer this arm keeps declining
+# to hand-roll into a gate four nodes commit through.
+
+# inert_heredoc_lines <file> -- the line numbers sitting inside a QUOTED heredoc
+# body, one per line. A quoted delimiter (<<'X', <<"X", <<\X) makes the body
+# literal text; an UNQUOTED one interpolates, so its body is live code and is
+# deliberately absent from this list. Openers in comments are skipped, since a
+# commented-out heredoc opens nothing.
+inert_heredoc_lines() {
+  awk '
+    {
+      if (inhd) {
+        if ($0 ~ ("^[[:space:]]*" delim "[[:space:]]*$")) { inhd = 0 }
+        else if (inert) { print NR }
+        next
+      }
+      if ($0 ~ /^[[:space:]]*#/) { next }
+      s = $0
+      gsub(/<<</, "@@@", s)
+      if (match(s, /<<-?[[:space:]]*(\\?[A-Za-z_][A-Za-z0-9_]*|\047[^\047]+\047|"[^"]+")/)) {
+        tok = substr(s, RSTART, RLENGTH)
+        sub(/^<<-?[[:space:]]*/, "", tok)
+        inert = (tok ~ /^[\047"\\]/) ? 1 : 0
+        gsub(/[\047"\\]/, "", tok)
+        delim = tok
+        inhd = 1
+      }
+    }
+  ' "$1"
+}
+
+# prose_stripped <line> [inert] -- <line> with the spans that CANNOT EXECUTE
+# removed. Pass `inert` when the line sits in a quoted heredoc body.
 prose_stripped() {
   local s
-  s="$(printf '%s' "$1" | sed 's/`[^`]*`//g')"
+  if [ "${2:-}" = "inert" ]; then
+    printf '%s' ""
+    return
+  fi
+  s="$(printf '%s' "$1" | sed 's/\\`[^`]*\\`//g')"
   case "$1" in
     *eval*) printf '%s' "$s"; return ;;
   esac
@@ -514,8 +569,12 @@ guard_evidence() {
 }
 
 step_cargo_census() {
-  local f numbered lineno line stmt bad="" total=0
+  local f numbered lineno line stmt bad="" total=0 inert_set
   while IFS= read -r f; do
+    # Heredoc state is a property of the FILE, not of the line, so it is
+    # computed once here and consulted below. See prose_stripped for why no
+    # per-line regex can answer it.
+    inert_set=" $(inert_heredoc_lines "$f" | tr '\n' ' ')"
     # A line that can be release: an explicit `--release`, or a `$profile`
     # variable that expands to it. Comments and prose ABOUT cargo are excluded --
     # this arm's own ancestor failed a correct file by matching a header
@@ -526,7 +585,10 @@ step_cargo_census() {
       # Prose that only MENTIONS cargo is not an invocation. See
       # prose_stripped above for which spans can be removed and, more
       # importantly, which look removable and are not.
-      stmt="$(prose_stripped "$line")"
+      case "$inert_set" in
+        *" $lineno "*) stmt="$(prose_stripped "$line" inert)" ;;
+        *) stmt="$(prose_stripped "$line")" ;;
+      esac
       case "$stmt" in
         *"cargo build"*|*"cargo clean"*) ;;
         *) continue ;;
@@ -557,6 +619,133 @@ $bad       Each must build in a clone, redirect CARGO_TARGET_DIR, refuse first, 
   fi
 }
 step_cargo_census
+
+# ARM 11 -- THE CENSUS IS DRIVEN AGAINST A TREE WHOSE ANSWER IS KNOWN, IN BOTH
+# DIRECTIONS, AND IT EXISTS BECAUSE ARM 10 WAS FALSELY GREEN TWICE IN ONE DAY.
+#
+# 2026-08-27, two separate mechanisms: once the escape-hatch token was accepted
+# from a DIFFERENT function than the build it excused, and once the strip erased
+# an unescaped backtick span, which in shell is command substitution and RUNS.
+# **NEITHER WAS VISIBLE FROM ARM 10's OWN OUTPUT.** A census reports what it
+# found, and a census that cannot SEE a door reports zero doors exactly as
+# cheerfully as a clean tree does. `(5 examined)` was true on both days.
+#
+# THE GREEN HALF IS THE HALF THAT WOULD HAVE BEEN SKIPPED, AND IT IS NOT
+# DECORATION: a suite of RED fixtures alone passes identically for a census that
+# refuses every file, which is a freeze, and a freeze gets bypassed. All three
+# GREEN fixtures are forms live in this repo TODAY -- `cmd/macos`'s quoted
+# heredoc, `cmd/cli:63`'s escaped backticks, and a file-scope CARGO_TARGET_DIR --
+# so they are regression arms rather than hypotheticals.
+#
+# THE FIXTURES ARE THE EVIDENCE, SO THEY ARE PLANTED RATHER THAN DESCRIBED. The
+# two live entrances below were GREEN under the pre-2026-08-27 strip and are RED
+# now; that difference is the entire claim this arm makes, and it is checkable by
+# reverting `prose_stripped` and watching this arm fail.
+
+# census_verdict <fixture-root> -- RED or GREEN, from THE REAL step_cargo_census.
+# ROOT and the two reporters are shadowed inside a subshell, so the live tree and
+# the live counters are untouched and the arm cannot test a copy by accident.
+census_verdict() {
+  (
+    ROOT="$1"
+    v=GREEN
+    ok()   { :; }
+    fail() { v=RED; }
+    step_cargo_census
+    printf '%s' "$v"
+  )
+}
+
+# plant <root> <name> -- write <root>/bin/.devbin/cmd/<name> from stdin.
+plant() {
+  mkdir -p "$1/bin/.devbin/cmd"
+  cat > "$1/bin/.devbin/cmd/$2"
+}
+
+step_census_selftest() {
+  local base="$TMP/census" spec want got n bad="" checked=0
+  rm -rf "$base"
+
+  # RED 1. An UNESCAPED backtick span inside double quotes is command
+  # substitution: this really does run a release build into the shared tree.
+  plant "$base/live_backtick" live_backtick <<'FIXTURE'
+#!/bin/bash
+run_it() {
+  die "building now: `cargo build --release --manifest-path native/rust/Cargo.toml`"
+}
+FIXTURE
+
+  # RED 2. An UNQUOTED heredoc interpolates, so its backtick span runs too. This
+  # is the case that makes heredoc state necessary rather than a nicety.
+  plant "$base/live_heredoc" live_heredoc <<'FIXTURE'
+#!/bin/bash
+report() {
+  cat <<USAGE
+  building: `cargo build --release`
+USAGE
+}
+FIXTURE
+
+  # RED 3. The escape-hatch token is present in the FILE but in a different
+  # function from the build, which is the file-scope hole closed earlier today.
+  plant "$base/crossfunction_token" crossfunction_token <<'FIXTURE'
+#!/bin/bash
+safe_one() {
+  clone_workspace "$tmp"
+}
+unsafe_one() {
+  cargo build --release --manifest-path native/rust/Cargo.toml
+}
+FIXTURE
+
+  # GREEN 1. Escaped backticks are literal inside double quotes. `cmd/cli:63`
+  # uses exactly this to RECOMMEND the guarded path, and failing it stopped four
+  # nodes on a sentence once already.
+  plant "$base/escaped_backtick" escaped_backtick <<'FIXTURE'
+#!/bin/bash
+warn_it() {
+  die "no release binary -- run \`int local build\` (a bare \`cargo build --release\` does not)"
+}
+FIXTURE
+
+  # GREEN 2. A quoted heredoc body is literal text. `cmd/macos`'s help lives
+  # here, and it is where this whole class started.
+  plant "$base/inert_heredoc" inert_heredoc <<'FIXTURE'
+#!/bin/bash
+usage() {
+  cat <<'USAGE'
+  never on target/release, which four sessions share and any
+  `cargo build --release` will overwrite underneath you.
+USAGE
+}
+FIXTURE
+
+  # GREEN 3. A file-scope redirect really does cover every build below it, and
+  # refusing that would newly block correct files.
+  plant "$base/filescope_token" filescope_token <<'FIXTURE'
+#!/bin/bash
+export CARGO_TARGET_DIR="$private"
+build_one() {
+  cargo build --release --manifest-path native/rust/Cargo.toml
+}
+FIXTURE
+
+  for spec in live_backtick:RED live_heredoc:RED crossfunction_token:RED \
+              escaped_backtick:GREEN inert_heredoc:GREEN filescope_token:GREEN; do
+    n="${spec%%:*}"
+    want="${spec#*:}"
+    got="$(census_verdict "$base/$n")"
+    checked=$((checked + 1))
+    [ "$got" = "$want" ] || bad="$bad $n(want $want, got $got)"
+  done
+
+  if [ -n "$bad" ]; then
+    fail "arm 11 -- the census misreads its own fixtures:$bad. An arm that cannot be driven to BOTH verdicts is not evidence about the tree; it is a number that has never been wrong in front of anyone."
+  else
+    ok "arm 11 -- the census is driven to BOTH verdicts on planted fixtures ($checked examined: 3 live entrances RED, 3 inert forms GREEN)"
+  fi
+}
+step_census_selftest
 
 printf 'shared-artefact-guard: %d arm(s) passed\n' "$pass"
 exit "$rc"
