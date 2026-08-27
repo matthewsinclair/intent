@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 11:56Z
+heartbeat_at: 2026-08-27 12:01Z
 status: active
 focus: "**PAUSED AT THE FOLD, nothing in flight, tree clean.** Landed: `78896061` arm 10 of the shared-artefact guard (both of cc's defects closed; canon synced from the worktree FIRST so file and canon land together; 14 arms) and four repos fenced outside Intent. **THE FIX IS BETTER FOR WHAT CAME OUT OF IT** -- dropping my own double-quote rule is why a live dollar-paren build FIRES instead of hiding. **QUOTE CHARACTER IS NOT A PROSE/COMMAND BOUNDARY IN SHELL.** **STILL OPEN AND NAMED IN THE COMMIT:** an unescaped backtick span is still read as prose, so a live build can hide behind it -- needs heredoc state, post-cut."
 claims: [ST0056/07, ST0056/11]
@@ -36,7 +36,15 @@ claims: [ST0056/07, ST0056/11]
 
 ## DOING
 
-**BOOTED, AND HOLDING FOR vc BY hv's WORD.** Nothing of mine in flight.
+**STABLE, NOTHING IN FLIGHT, HOLDING FOR A LOCALFOLD AND COMPACT ON hv's WORD.**
+
+**THE DISK EMERGENCY, AND INTENT IS DONE: `target/` IS 631M, FROM ~70G AND 2,085,371 FILES THIS MORNING.** Two sweeps on hv's direct authorisation. First `target/debug` entire (1,531,148 files). Then `release/deps` (1,144 files / 907.9 MB) once measurement showed **`release/deps` ACCUMULATES STALE GENERATIONS EXACTLY LIKE `debug/deps` -- 62% of Intent's release rlib bytes were redundant, in the tree I had preserved and reported intact.** `target/cc` cleared by cc, `target/ic` by ic; neither by me.
+
+**THE SWEEP METHOD, WHICH IS THE PART WORTH REUSING.** Group by `(crate, hash)` -- **a hash identifies ONE BUILD UNIT across its `.rlib`/`.rmeta`/`.d`/executable**, so a generation is dropped WHOLE rather than by file type -- keep the newest per crate, move to a trash dir **INSIDE `target/`** so it stays under `.metadata_never_index` for the entire delete, verify, THEN delete. **`0 unmatched files` is the check that matters**: it says nothing fell outside the grouping, as opposed to being silently spared.
+
+**AND TWO PRE-FLIGHT CHECKS THAT ARE NOT SAFE TO ASSUME ANYWHERE ELSE.** (1) **The live binary's generation must be IN the keep set** -- if `target/release/intent` corresponded to an OLDER `deps/` generation, newest-per-crate would have deleted exactly the one that matters; verified by hashing every `deps/intent-*` against the live binary. (2) **`target/release/intent` is a SEPARATE INODE with `links=1`** -- a COPY, not a hardlink into `deps/`. **Cargo's copy-versus-hardlink behaviour is a platform and version detail, so neither fact transfers to another project or another cargo.** Sixth borrowed-constant trap avoided by measuring instead of assuming.
+
+**A ZERO AFTER A DELETE MUST BE CHASED, NOT REPORTED.** `bin/int cli ac list ST0056` returned zero rows straight after the sweep. It was the PAIR GUARD -- cc changed `legacy.rs` after the binary was built, so `int cli` correctly refuses a binary behind HEAD, and bare `intent ac list` answers normally. The condition predated the sweep. **Had I reported the count rather than reading the output, I would have shipped a false all-clear about my own destructive action.**
 
 **LANDED 2026-08-27 UNDER vc's RULING: `AC-12.1` CLASS (2) WIDENED (`434dded6`).** The ruling was _record it against the criterion now, build nothing_, and the reason is not the bug: **`AC-12.1` AS WRITTEN could be discharged green while its subject stayed broken, and a criterion that can be satisfied while its subject is broken is worse than a missing one because it is believed.** Class (2) said `intent/plugins/claude/bin/*` SOURCING `bin/intent_helpers`; `claude_plugin_helpers.sh:84` CALLS `ext_root_dir()` (defined only at `bin/intent_helpers:367`) and never sources it, riding on `intent_claude_skills` and `intent_claude_subagents`. **Neither in `bin/*` nor a sourcer, so porting all seven files would have closed class (2) as specified and left the symbol dangling.** Class (2) now states TWO edges and the criterion is not discharged until both are.
 
