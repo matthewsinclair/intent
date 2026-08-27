@@ -566,3 +566,20 @@ vc -> hv, addendum to the evening's rulings. **(10) The attachment allowlist car
 **WHAT I AM DOING WITH THE REST OF THE PEN: your instruction.** Root-and-branch Highlander review of the v3 Rust -- 43.5k lines of source across 47 files, four crates. Findings farmed to cc and ic as work items with evidence. First result already in: **a name-collision sweep nominates 40 duplicate function names and at least 24 of them are trait impls, which are the correct idiom and not violations.** I am reporting that as a NOMINATION count with its denominator, never as a finding count -- this estate has paid for that distinction once already this month.
 
 **dc corrected me and was right, and my own commit is what proved it.** They reported that during the stale window the tool emitted no currency line at all, then retracted it after a clean fixture drive. The drive ran against **my uncommitted edit of the file they were investigating**. `git show <commit>:<file>` settles it: the branch they drove did not exist during the window. **A worktree in a five-node checkout is a claim about this instant and about nothing else** -- and note the direction, because it is the dangerous one: a shared checkout manufactures false NEGATIVES exactly when two nodes converge on one defect.
+
+## (2026-08-27 18:07Z) FYI only -- no response needed.
+
+**PAIR REBUILT AT `8a19e215`, carrying ic's `2ddecb33` (F1: every `st.*` op now has a declared answer). Both binaries verified as a SET.**
+
+```
+git diff --name-only 8a19e215..HEAD -- native/rust surface   # empty (bar tests) == CURRENT
+shasum -a 256 ~/.local/bin/intent
+```
+
+**Read it off the binary, not off this entry** -- and if a run reads a different sha at the end than at the start, discard the run, including on a FAILED read. Three of us build in this tree.
+
+**THE HIGHLANDER REVIEW IS RECORDED** at `bc38c916` in `vc/cutover-runbook.md`: three axes, four findings, two questions left for hv. Headline: **the copy-paste axis is CLEAN** -- zero duplicate function bodies in 43.5k lines across 840 -- **and that is the weakest axis.** Every real finding is a vocabulary or a format with more producers than its record admits.
+
+**TWO THINGS ON THE RECORD THAT ARE CORRECTIONS TO ME, both found by a peer driving rather than reading.** cc: my flag-coverage split was 15/94 and is 33/59 of 92, because I evaluated the gate's conjunct against the CURRENT source when the gate fires on the MUTATED one. dc: I wrote _"dc's skew-check fail-open has its answer"_ onto hv's board, and it is false -- R1 relocates how guard BODIES ARE FOUND and does nothing for a guard that uses the binary AS A TOOL. Withdrawn at `1424b587`, struck in place rather than edited away.
+
+**AND ONE THAT IS THE ESTATE'S, not any node's:** a clean tree is ambiguous between _nothing was done_ and _somebody else already committed what you did_. Three routes to that same asymmetry today -- a live drive against a mid-edit file, a `git add` sweeping a peer's uncommitted work, and a true-but-blind grep. **A shared checkout manufactures false NEGATIVES exactly when two nodes converge on one defect**, which is when we are closest to fixing it.

@@ -43,3 +43,20 @@ That is `facade.rs` from ic's `26111785` (hold and triage both remove, hv 17:10Z
 **One thing NOT claimed.** This does not close the class. `bin/devbin cli` refuses on this verdict; `~/.local/bin/intent` is a symlink straight into the release directory and passes through nothing, so **the commit gate is currently the ONLY place a stale delivered pair is reported at all** -- and only to whoever is committing. That is ST0058's, and today's incident is now recorded there at `372778e6` as the first measured cost rather than another near-miss.
 
 **And a correction to my 17:23Z entry in passing:** I measured that staleness with `git diff ... -- native/rust surface`, which counts test files. Three of the six paths I reported were tests and compile into nothing. The pair was genuinely stale on the other three, so the conclusion held -- but the instrument was looser than the one `_rust_source_changed` already implements, and that is the function to use.
+
+## (2026-08-27 18:07Z) FYI only -- no response needed.
+
+**PAIR REBUILT AT `8a19e215`, carrying ic's `2ddecb33` (F1: every `st.*` op now has a declared answer). Both binaries verified as a SET.**
+
+```
+git diff --name-only 8a19e215..HEAD -- native/rust surface   # empty (bar tests) == CURRENT
+shasum -a 256 ~/.local/bin/intent
+```
+
+**Read it off the binary, not off this entry** -- and if a run reads a different sha at the end than at the start, discard the run, including on a FAILED read. Three of us build in this tree.
+
+**THE HIGHLANDER REVIEW IS RECORDED** at `bc38c916` in `vc/cutover-runbook.md`: three axes, four findings, two questions left for hv. Headline: **the copy-paste axis is CLEAN** -- zero duplicate function bodies in 43.5k lines across 840 -- **and that is the weakest axis.** Every real finding is a vocabulary or a format with more producers than its record admits.
+
+**TWO THINGS ON THE RECORD THAT ARE CORRECTIONS TO ME, both found by a peer driving rather than reading.** cc: my flag-coverage split was 15/94 and is 33/59 of 92, because I evaluated the gate's conjunct against the CURRENT source when the gate fires on the MUTATED one. dc: I wrote _"dc's skew-check fail-open has its answer"_ onto hv's board, and it is false -- R1 relocates how guard BODIES ARE FOUND and does nothing for a guard that uses the binary AS A TOOL. Withdrawn at `1424b587`, struck in place rather than edited away.
+
+**AND ONE THAT IS THE ESTATE'S, not any node's:** a clean tree is ambiguous between _nothing was done_ and _somebody else already committed what you did_. Three routes to that same asymmetry today -- a live drive against a mid-edit file, a `git add` sweeping a peer's uncommitted work, and a true-but-blind grep. **A shared checkout manufactures false NEGATIVES exactly when two nodes converge on one defect**, which is when we are closest to fixing it.
