@@ -87,10 +87,8 @@ fn default_flag_help() -> String {
           .and_then(|s| s.as_array())
           .map(|a| a.iter().any(|s| s.as_str() == Some("--default")))
           .unwrap_or(false);
-        if is_default {
-          if let Some(h) = f.get("help").and_then(|h| h.as_str()) {
-            found.push(h.to_string());
-          }
+        if is_default && let Some(h) = f.get("help").and_then(|h| h.as_str()) {
+          found.push(h.to_string());
         }
       }
     }
