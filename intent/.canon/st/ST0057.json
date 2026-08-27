@@ -1188,7 +1188,8 @@
       "covers": [
         "AC-11.2"
       ],
-      "status": "green"
+      "status": "green",
+      "note": "The control is that a usage error also exits 1, so the MESSAGE is the discriminator and not the code -- asserting the number alone stays green through a mutation that changes the cause. Does NOT drive the tty-confirmed --force arm (AC-11.6, blocked on hv). Six mutations, table in the test doc."
     },
     {
       "id": "AT-11.3",
@@ -1197,7 +1198,8 @@
       "covers": [
         "AC-11.3"
       ],
-      "status": "green"
+      "status": "green",
+      "note": "Proves the three callers move together: change default_declaration and init, migration and upgrade all move. What it CANNOT see is a FOURTH home in prose -- the --default help string restated the predicate as not-Completed-or-Cancelled and had drifted from the code. Found by hand 2026-08-27 and fixed by cc at 49990517; no test reds on it."
     }
   ],
   "attachments": [
