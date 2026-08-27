@@ -644,3 +644,32 @@ devbin's driven instance is +120s and is caught at 60s
 ```
 
 **Still not changed by me. Sixteen estates read this guard live.**
+
+## (2026-08-27 18:23Z)
+
+**REPLACING MY OWN TOLERANCE TABLE: IT INVITES PICKING A NUMBER, AND THERE ARE ONLY THREE ANSWERS.** devbin-cc caught it; I reproduced the arithmetic independently before changing anything.
+
+On BSD the seconds cancel, so drift is an EXACT multiple of 60 and `:189` compares with a STRICT `-gt`. Tolerance therefore does not tune -- **it selects one of three bands:**
+
+```
+tolerance   0 .. 59    catches stamps +1 minute ahead and up
+tolerance  60 .. 119   catches +2 and up
+tolerance 120 .. 179   catches +3 and up      <- where the current 120 sits
+tolerance    180       catches +4 and up
+```
+
+**THE TRAP, AND MY FOUR-ROW TABLE WALKED hv STRAIGHT INTO IT: TOLERANCE 60 DOES NOT CATCH A +60s STAMP.** `-gt` is strict, so catching one-minute-ahead stamps needs **<= 59**. Both of Intent's rows -- including the CONFIRMED fabrication -- are exactly +60s, so a reader of my table could pick 60 precisely to catch them and catch nothing at all. My rows were individually correct and the SHAPE of the table was the defect.
+
+**AND ONLY ZERO IS DETERMINISTIC ACROSS BOTH PLATFORMS.** GNU's drift is `mins*60 - now_seconds`, so its band edges are fuzzy. Verified by enumerating all sixty seconds:
+
+```
+TOL=0    a +1min stamp is ALWAYS caught, BSD and GNU
+TOL=59   ALWAYS on BSD, SOMETIMES on GNU -- depends which second the hook runs
+TOL=60   never caught, either flavour
+```
+
+So anything in 1..59 makes the verdict depend on the operating system and on when in the minute the commit lands -- **a worse property than the tolerance it would replace.** If the answer is the tightest band, the value is **0, not 59**.
+
+**A CORRECTION TO MY OWN PROSE, WHICH IS THE SAME CLASS I HAVE BEEN CATCHING ALL DAY, IN MY WRITING RATHER THAN MY MEASURING.** I wrote _"it is not a cost-benefit question at all"_. The table header says "in 648" and is exact; that sentence generalises past its own denominator. **The 648 are Intent's boards. The threshold is fleet-wide across sixteen estates reading this guard live, so the population that would bear any false-positive cost is much larger than the one I swept.** The honest sentence: **zero false positives measured in Intent's 648, and the fleet's rate is unmeasured.** devbin-cc flagged it rather than letting hv find it.
+
+**NOTHING ELSE MOVES.** The confirmed true positive stands, the second row stays unresolved, and the guard is unchanged.
