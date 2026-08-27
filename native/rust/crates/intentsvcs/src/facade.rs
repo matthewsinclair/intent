@@ -4264,6 +4264,30 @@ impl Facade {
     covers: Vec<String>,
     status: AtStatus,
   ) -> Result<Outcome, FacadeError> {
+    // **A CREATE ON AN EXISTING ID IS A FULL REPLACEMENT, SO EVERY FIELD THIS
+    // VERB DOES NOT SET IS A FIELD IT DESTROYS.** `note` and `legacy` are the
+    // two, and both were being written as `None` and then applied over the
+    // stored row -- so `at new` on a row that already existed did not merely
+    // fail to set a note, it ATE one that was there.
+    //
+    // **AND THE SAFE PATH WAS THE UNDOCUMENTED ONE, WHICH IS WHAT MADE IT A
+    // TRAP RATHER THAN A WALL.** A re-cite done as a canon edit plus
+    // `intent sync --to-store` carries `file` and keeps `note`; the verb built
+    // for the job was the one that lost it. Measured on this repository: six
+    // ST0061 notes destroyed by a single re-cite and recovered from a git blob.
+    //
+    // Carried rather than defaulted. When `--note` lands it overrides this;
+    // ABSENCE of a note argument can only mean "not saying", never "clear it",
+    // because a verb with no way to express a value has no way to express
+    // erasing one either.
+    let carried = self
+      .st_show(st)?
+      .tests
+      .iter()
+      .find(|t| t.id == at)
+      .map(|t| (t.note.clone(), t.legacy.clone()))
+      .unwrap_or((None, None));
+
     let row = AcceptanceTest {
       id: at.to_string(),
       kind,
@@ -4271,8 +4295,8 @@ impl Facade {
       prose,
       covers,
       status,
-      note: None,
-      legacy: None,
+      note: carried.0,
+      legacy: carried.1,
     };
 
     // The prospective thread: what canon WOULD hold if this write landed. The
