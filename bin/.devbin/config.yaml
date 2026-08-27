@@ -6,24 +6,42 @@
 project:
   name: intent
 
-  # THERE IS DELIBERATELY NO `bin/intent` SYMLINK, and `devbin doctor` reports
-  # its absence as a note. Do not "fix" it.
+  # THERE IS NO `bin/intent` SYMLINK AND THERE MUST NEVER BE ONE.
   #
-  # `bin/intent` is the v2 shell CLI -- a real file, and the product itself:
-  # `~/.local/bin/intent` symlinks into it and every project on the estate runs
-  # whatever is there. devbin's `link_alias` refuses to replace a real file, so
-  # the install left it alone by design (install-alongside, per devbin D10).
-  # `name: intent` above is this project's identity, not an instruction to
-  # create that symlink.
+  # `bin/intent` is the v2 shell CLI -- a real file, and the product itself.
+  # A devbin launcher of that name would shadow the product binary, which is
+  # exactly the collision that retired the `bin/{project}` convention estate-wide
+  # (Lamplight ships a `lamplight`; this project ships an `intent`).
+  # `name: intent` above is this project's identity, never an instruction to
+  # create a symlink.
   #
-  # `int` rather than the estate's usual 2-letter alias: `in` is a bash
-  # reserved word, so `in` as a command is a syntax error in bash while working
-  # fine in zsh -- it would look correct when typed and break in CI.
+  # hv RATIFIED THE CONVENTION 2026-08-27: the shim in a project is always
+  # `bin/devbin`; a project MAY add a 2-3 character shortcut symlink to it by its
+  # own choice; and tools and process always use `bin/devbin`, never the
+  # shortcut. `int` below is that optional shortcut and it does NOT retire.
   #
-  # When the v2 shell CLI is retired (ST0056; the Rust binary ships via
-  # Homebrew, not from bin/), `bin/intent` frees up and `link_alias` will create
-  # it on the next install with nothing real sitting there. `int` can retire
-  # then.
+  # THREE CLAIMS THAT STOOD HERE WERE FALSE BY 2026-08-27 AND ARE RECORDED SO
+  # NOBODY RESTORES THEM FROM MEMORY:
+  #
+  #   1. "devbin doctor reports its absence as a note" -- it does not. doctor
+  #      only comments on a symlink that EXISTS and pointedly says a real file of
+  #      that name is the project's own binary and none of devbin's business.
+  #      Driven: `bin/devbin doctor` says nothing about `bin/intent` at all.
+  #   2. "`link_alias` refuses to replace a real file" -- `link_alias` is GONE,
+  #      deleted outright rather than guarded, so the protection is now
+  #      structural rather than conditional. See lib/cmd/install.
+  #   3. "when the v2 CLI is retired, `bin/intent` frees up and `link_alias`
+  #      will create it on the next install" -- THIS WAS THE DANGEROUS ONE. It
+  #      told a future maintainer to EXPECT the collision above, in the one
+  #      estate whose product binary is called `intent`, triggered by a cut that
+  #      is already scheduled (ST0056 / AC-12.1). Nothing will create it.
+  #
+  # `int` rather than the estate's usual 2-letter alias: `in` is a bash reserved
+  # word. Driven 2026-08-27, and the claim is narrower than it was written: bare
+  # `in test all` is rc=2 in bash and rc=0 in zsh, so it fails only when invoked
+  # BARE. Path-qualified `bin/in test all` is rc=0 in BOTH shells, which is how
+  # shortcuts are always invoked -- so `in` was in fact available. `int` works,
+  # is what everything already types, and there is no reason to move.
   alias: int
 
   # WHICH TREE DID THIS VERDICT DESCRIBE. devbin runs this once at process
