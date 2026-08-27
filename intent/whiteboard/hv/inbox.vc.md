@@ -765,3 +765,23 @@ Your words were _"coordinate dc, ic, and cc (and yourself) to roll out the fixes
 **They are not alternatives.** (A) makes ruling 4 reach the fleet now; (B) closes the hole that let Baize rot. **The sweep as you reserved it was option (C) -- hand-copying the template into fifteen estates -- which has no idempotence story, no gate, and would be silently undone by any later v2 `intent upgrade`.** I am not doing (C) and I am not asking you to approve it.
 
 **NOTHING IS BLOCKED ON YOU TONIGHT.** dc's controls and census run regardless, cc is on the porter, ic is on AC-11.6. **No fleet write has happened and none will without your word on the menu.** Conflab is out of scope either way -- it is `2.19.0` with no canon, so its guards arrive with its port.
+
+## (2026-08-27 19:14Z) Re: the sweep menu -- **OPTION (A)'s COST IS NO LONGER UNMEASURED, AND MEASURING IT FOUND A HAZARD THE LABEL WAS HIDING.**
+
+I told you (A) was "not free and I have not measured it". I have now measured it, because **an option's cost is a claim, and an unchecked claim inside a choice is not softened by admitting it is unchecked.**
+
+**THE THREE THINGS I FLAGGED ARE ALL ALREADY IN SCOPE.** The carrier does `cd "$PROJECT_ROOT" || exit 0` at line 44, and the runner invokes each guard as `bash "$g_path"` with **no `cd` of its own** -- so every guard already runs with cwd at the project root. `intent/.config/config.json`, `.intent_critic.yml` and the declared languages are reachable by relative path from inside a guard exactly as they are today. **Positive control: all four existing guards read project-relative paths and work.** The roster even has the right shape for it -- `applies-when|guard|what-is-unchecked`, a per-guard applicability path rather than one gate around the lot.
+
+**SO THE MOVE IS CHEAP. BUT THE NAIVE FORM OF IT WOULD SILENTLY KILL A RULING OF YOURS, AND THAT IS THE PART WORTH YOUR ATTENTION.**
+
+The carrier discriminates exit codes in a `case "$rc"` at line 537, and its own comment states the principle: **_"the gate should fail open on its own breakage and closed on yours"_**, with the fail-open marked at line 563 as _"UNCHANGED AND IS A RULING, NOT AN OVERSIGHT"_. **The runner has no such discrimination: `bash "$g_path" || BLOCKED=1` -- any non-zero blocks.**
+
+**So moving the gate into the runner as-is would convert a ruled fail-open into a fail-closed, as a side effect, with nothing announcing it.** That is answering your open fail-open question in code where nobody would read it as an answer -- which is the exact thing cc declined to do this afternoon, and they were right.
+
+**THE MENU IS THEREFORE SHARPER, NOT LONGER:**
+
+- **(A2) MOVE THE GATE AND HAVE IT TRANSLATE ITS OWN EXIT CODE** -- it keeps the `case "$rc"` it already has, and returns 0 to the runner where it means to fail open, non-zero only where it means to block. **This preserves your ruling exactly and does NOT answer your open question.** Cheap: a file move, one roster entry, and a translation the gate already computes.
+- **(A1) MOVE THE GATE AND TEACH THE RUNNER EXIT-CODE DISCRIMINATION** -- bigger, changes the contract every guard is written against, and would need its own ruling. **Not recommended, recorded so the menu is complete.**
+- **(B) BUILD THE MISSING VERB** -- unchanged, and Baize still proves it is needed whatever you pick.
+
+**(A2) plus (B) is what I would do if the call were mine. It is not, and nothing is moving on it.** What (A2) buys is that ruling 4 -- and every future change to the critic gate -- reaches all fifteen estates the moment it is committed here, the same way the clock guard already does.

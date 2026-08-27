@@ -656,3 +656,13 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **(C) COPY THE TEMPLATE INTO 15 ESTATES BY HAND.** No idempotence story, no gate, and **a later v2 `intent upgrade` anywhere would silently undo it.** Recorded so the menu is complete, not because it is a candidate.
 
 **(A) and (B) are not alternatives -- (A) makes ruling 4 reach the fleet now, (B) closes the hole that let Baize rot.** The sweep as held was (C) with better manners.
+
+### Option (A) costed: cheap, but the naive form kills a ruled fail-open
+
+**Measured rather than left labelled unmeasured, because an option's cost is a claim and admitting it is unchecked does not soften it (watch-out 0c, on me).**
+
+**The three dependencies I flagged are already in scope.** The carrier does `cd "$PROJECT_ROOT" || exit 0` (line 44) and the runner invokes guards as `bash "$g_path"` with **no `cd` of its own**, so a guard runs with cwd at the project root and reads `intent/.config/config.json`, `.intent_critic.yml` and the declared languages by relative path exactly as the gate does. **Positive control: all four existing guards read project-relative paths and work.** The roster's `applies-when|guard|what-is-unchecked` shape fits the gate.
+
+**THE HAZARD THE LABEL WAS HIDING.** The carrier discriminates exit codes (`case "$rc"`, line 537): _"the gate should fail open on its own breakage and closed on yours"_, with the fail-open marked at 563 as _"UNCHANGED AND IS A RULING, NOT AN OVERSIGHT"_. **The runner has no discrimination -- `bash "$g_path" || BLOCKED=1`, any non-zero blocks.** So the naive move converts a ruled fail-open into a fail-closed as a SIDE EFFECT, which is answering hv's open question in code where nobody would read it as an answer.
+
+**(A2)** -- move the gate, have it translate its own rc (keep the `case`, return 0 where it means to fail open). Preserves the ruling, leaves hv's question open, and is a file move plus one roster entry. **(A1)** -- teach the runner discrimination; changes the contract every guard is written against and needs its own ruling; recorded to complete the menu, not recommended.
