@@ -1182,6 +1182,16 @@
       "note": "**GREEN 2026-08-20 at `b082b488`.** `an_absent_or_unreadable_manifest_keeps_every_view_in_scope` asserts `NothingSaid` and `Unreadable` behave identically over the same missing view -- both keep it in scope and both name it. **This is the arm that stops the fix from being a silent estate-wide opt-out** the day somebody's manifest stops parsing. **What it does NOT cover, stated rather than implied: nothing reports the `Unreadable` state to an operator.** AC-10.2 names that as an owed reader; this row proves only that the state is honoured, not that it is surfaced."
     },
     {
+      "id": "AT-11.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/organize_default_declaration.rs",
+      "covers": [
+        "AC-11.1"
+      ],
+      "status": "green",
+      "note": "Both clauses. The declaration content, and the follow-up preview accepting it (0 diverged, the declared thread accounted for as unchanged or to-hydrate). Mutation table in the test doc. The fixture is fully realised by an ORDERING that reads like it could not matter: the manifest is removed before the first write, and with it absent nobody has said what is realised, so the next write realises the whole estate."
+    },
+    {
       "id": "AT-11.2",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/exit_codes.rs",
@@ -1200,6 +1210,26 @@
       ],
       "status": "green",
       "note": "Proves the three callers move together: change default_declaration and init, migration and upgrade all move. What it CANNOT see is a FOURTH home in prose -- the --default help string restated the predicate as not-Completed-or-Cancelled and had drifted from the code. Found by hand 2026-08-27 and fixed by cc at 49990517; no test reds on it."
+    },
+    {
+      "id": "AT-11.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/organize_default_declaration.rs",
+      "covers": [
+        "AC-11.4"
+      ],
+      "status": "green",
+      "note": "Survival byte for byte, and the follow-up preview reporting the undeclared thread's files as blocked removals rather than as nothing. WHAT IT CANNOT ESTABLISH: the survival clause is held up by the DEHYDRATION GATE, not by the verb declining to act -- measured, an applying --default reds only the creation arm next door, never this one, because the gate refuses removal on a project declaring no preconditions. And the blocked figure is a count of FILES: no line of the report names the thread, so 'reports the non-WIP threads' is met only by arithmetic that is unambiguous with exactly one undeclared thread."
+    },
+    {
+      "id": "AT-11.5",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/organize_default_declaration.rs",
+      "covers": [
+        "AC-11.5"
+      ],
+      "status": "green",
+      "note": "Same exit code, byte-identical stdout, byte-identical manifest, from two independently initialised projects. The alias reaching a second handler is what byte-identical stdout would expose."
     }
   ],
   "attachments": [
