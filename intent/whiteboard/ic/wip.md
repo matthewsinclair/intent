@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 12:01Z
+heartbeat_at: 2026-08-27 12:32Z
 status: active
 focus: "**FOLDED, STOPPED WITH THE ESTATE.** hv halted all work on disk exhaustion; my 2.0 GB `target/ic` is cleared and the release product verified unmoved by hash. Landed before the stop: AC-11.3's proof test at `22b2e734`, `AT-11.3` red on purpose. The lesson worth keeping: a `default_declaration` that declares NOTHING satisfies the criterion as written -- only the controls catch it. Owed queue intact and unstarted."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
@@ -13,27 +13,31 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**NOTHING IN FLIGHT -- hv HAS STOPPED ALL WORK ESTATE-WIDE.** Disk exhaustion: ~2.9M files and ~146 GB across the estate's cargo target dirs, ~82 GB reclaimed. My lane stops with the rest.
+**NOTHING IN FLIGHT, TREE CLEAN OF MY WORK.** Two commits today: `e54bb968` (AC-11.3's migration clause + ST0061's round trip) and `62070abb` (`AT-00.1` green). `native/rust` was clean for cc's rebuild within the hour vc asked for it -- landed rather than stashed, because everything in it was verified.
 
-**LANDED BEFORE THE STOP: AC-11.3's PROOF TEST, `22b2e734`, `AT-11.3` RED ON PURPOSE.** 170 binaries / 1263 passed / 0 failed, verified out of the committed blobs. Every expectation is the live function's output for that estate's own statuses; none is a literal, because three literals would be three homes for the definition. **Seven mutations proved each assertion can go red -- the table is in the test file, where a reader of the test meets it, and the rule it taught is under Watch-outs.** Red because the migration clause -- _realises only those threads_ -- is not asserted, and a green row would satisfy a criterion with an unmet clause.
+**AC-11.3's MIGRATION CLAUSE IS BUILT AND ASSERTED.** `migrate::plan` now filters against the bytes it is about to write -- `realised_from(&default_declaration(..))` -- so the declared set and the realised set are the same set. Spelling `status == Wip` again in the migrator would have been a second home for the definition, which is the defect AC-11.3 exists to forbid, arriving where nobody looks. Proven red against the pre-change source in a detached worktree: _"ST0002 is NOT declared and the migration realised it anyway"_.
 
-**MY 2.0 GB IS CLEARED, AND THE COST TWO PEERS WEIGHED DOES NOT EXIST.** `native/rust/target/ic` was my private `CARGO_TARGET_DIR` from the shared-artefact guard's refusal path, which nothing collects. vc and dc both deferred to me reasoning it would cost a cold rebuild -- **but that dir serves REFUSED RELEASE BUILDS, not `cargo test`, and the shared `target/debug` they had already deleted is what my test runs use.** The rebuild was owed either way. 2039 MB back; release product verified unmoved by hash after (`04008c3f` / `588f34ab`, matching vc's record).
+**vc's CONDITION FOR LIFTING THE HOLD WAS A MEASUREMENT AND IT CAME OUT BETTER THAN EITHER OF US EXPECTED.** The residue is real -- `WriteSet` has no remove, so a v2 estate's non-WIP dirs persist undeclared with stale content. But `views::skew` walks `render_all` over ALL canon and asks the manifest only in its file-ABSENT arm, so **an undeclared stale view still reports `view-skew`**; control on the same fixture with a CURRENT file reports nothing. `organize` reports `0 to remove (2 blocked)`, AC-11.4's state verbatim. **My own defence was "the divergence is visible", so it had to be true, and vc was right to make me show it rather than argue it.**
+
+**THE SIXTH MUTATION IS THE ONE TO REMEMBER.** With `dehydrate` made to remove nothing AND the middle assertion deleted from my own test, the round trip PASSES. AC-00.1 says _proven by round trip_ -- and the round trip alone certifies an inverse that was never performed. The rule below was inherited from AC-11.3 as a maxim; this is the first time I have put a number on it.
 
 ## TODO
 
-**OWED, in vc's order** (all stopped, none started): AC-11.6's arm; AC-11.3's migration clause (what turns `AT-11.3` green); ST0061 AC-00.1's round trip; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`.
+**OWED, in vc's order:** AC-11.6's arm (**BLOCKED, hv's**); ST0061's remaining ACs; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`.
 
-**AC-11.6 NEEDS A RULING BEFORE IT IS BUILT, AND BOTH SIDES ARE hv's.** `organize`'s source argues against folding declaration and reconciliation into one pass -- _the input to the preview would be produced by the run being previewed_ -- while AC-11.6 requires exactly that behind a tty confirm. Today's confirm text also promises _it removes no files_, which AC-11.6 makes false: **a confirm that understates what it will do is worse than no confirm.**
+**AC-11.6 IS WITH hv AND vc HAS CARRIED IT UP; DO NOT START IT.** `organize`'s source argues the preview's input would be produced by the run being previewed, and today's confirm promises _it removes no files_, which AC-11.6 makes false. **A confirm that understates what it will do is worse than no confirm** -- vc is leading with that.
 
-**WP-11's COVER CONTRADICTS hv's OWN RULING; SENT TO vc, AWAITING THEIR WORD.** It states the pre-ruling _OPEN = every status except Completed and Cancelled_ that hv overruled to WIP-only, plus the superseded _never removes a file_. It renders from canon, and rewording a cover to match a ruling is close enough to restating the ruling that vc or hv should hold the pen.
+**WP-11's COVER IS EDITED AND HELD FOR vc's WORD ON THE DIFF.** Title OPEN -> WIP; hv's ruling transcribed from `intent/whiteboard/hv/wip.md` at 2026-08-26 19:48Z with that entry's own provenance caveat carried across verbatim; the superseded wording kept visible as superseded; `--force` given its own bullet quoting hv from AC-11.6. **`AT-11.3` -> green rides with it**, because both live in `ST0057.json` and `--only` is path-scoped, not hunk-scoped. Uncommitted, outside `native/rust`, so it blocks nobody.
 
-**AN AT ROW'S `note` HAS NO MUTATION VERB** -- six subcommands, none sets it, so the narrative every other row carries needs a canon hand-edit plus `sync --to-store`. Same shape as the create gap `AC-08.6`/`AC-08.7` closed, one field down, and it bites where a status needs a reason: `AT-11.3` is red on purpose and cannot say why on its own row.
+**AN AT ROW'S `note` HAS NO MUTATION VERB** -- six subcommands, none sets it, so a narrative needs a canon hand-edit plus `sync --to-store`. Same shape as the create gap `AC-08.6`/`AC-08.7` closed, one field down.
 
-**THIRTEEN ESTATES STILL NEED `intent/.canon/project.json` COMMITTED.** vc owns the ports; the reason is mine to keep stating -- until it is committed the cutoff lives in ONE machine's store and a clone in the interval loses it. **Seen working in the wild since:** a peer's flush moved Intent's own file to `2026-08-27T09:37:49Z` and it travelled as committed state.
+**vc's FINDING, WORTH CARRYING: 67 MISSING CITATIONS ACROSS CANON, EVERY ONE ON A `to-write` ROW** -- the arm `contract.rs:523-534` deliberately does not check. **A row that lies in the exempt direction is invisible to the gate by construction**, which is the degenerate-implementation rule wearing a linter's clothes.
 
-**HANDED TO vc, GOING TO hv:** **six of ten realised thread directories in Intent are non-WIP**, and only five predate me, so it is not an artefact of my own `wp start`. Interacts with `st list` omitting triage silently, so three are on disk AND invisible to the primary list verb.
+**THIRTEEN ESTATES STILL NEED `intent/.canon/project.json` COMMITTED.** vc owns the ports; until it is committed the cutoff lives in ONE machine's store and a clone in the interval loses it.
 
-**HOUSEKEEPING FOR THE NEXT RUN:** `AT-11.3` cites a PATH and hv has ruled AT rows re-cited by test NAME (cc's job, 168 of 334 rows). **Cold rebuild owed** -- shared `target/debug` is gone, so the next run I time must not be set beside a warm figure. **Do not drive anything on `be13157a`** (an earlier cc commit was DELETING criteria; recovery is `f2477875`) -- checked rather than assumed at this pickup: ST0057 stands at 61 criteria / 56 AT rows, identical between `22b2e734` and HEAD.
+**HANDED TO vc, GOING TO hv:** **six of ten realised thread directories in Intent are non-WIP** -- the live symptom of the defect AC-11.3 just closed for NEW conversions. Intent's own tree still needs the one `organize` pass. Interacts with `st list` omitting triage silently.
+
+**HOUSEKEEPING:** `AT-11.3` and `AT-00.1` both cite PATHS and hv has ruled AT rows re-cited by test NAME (cc's job, 168 of 334 rows). `tree()` is now spelled in THREE `intent-cli/tests` files and 37 of 39 spell their own binary runner -- the crate has no `tests/common/mod.rs` while `intentsvcs` does; **reported in the test's own module doc rather than fixed in passing, because migrating the two existing users mid-cut in a shared tree is a decision, not a side effect.**
 
 ## Watch-outs
 
@@ -45,10 +49,10 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 - **A green over a SHARED tree is about whoever's files are in it.** Verify in a detached worktree at HEAD carrying your files and nothing else.
 - **Capture a run to a FILE and measure the file.** `| tail -N` truncates the thing you are about to measure -- 8 of 169 binaries, called the workspace.
 - **A zero from your parser is indistinguishable from a zero from the world.** My awk read the wrong fields and returned `passed=0 failed=0` on a populated run; what caught it was `TEST_RC=101` contradicting "no failures" -- **a second independent reading, never the instrument itself.**
-- **A background job's reported exit code is the WRAPPER's, not the work's**, and **a trailing `echo` launders any failure into a success.** Put the rc IN the log and read it from there.
+- **A background job's reported exit code is the WRAPPER's, not the work's**, and **a trailing `echo` launders any failure into a success.** Put the rc IN the log and read it from there. **A trailing `&` inside a `run_in_background` call is the worst form of it**: the wrapper returns instantly, the harness reports _completed, exit code 0_, and the build is still running -- a false completion that arrives early and looks exactly like a real one. The `&` is redundant there; drop it.
 - **A process check that reads argv counts every agent TOLD about the tool** -- 83 hits against 2 processes, because prose carries the string and command lines contain NEWLINES. Match the command NAME.
 - **A `target/*/deps` BYTE FIGURE IS CRATE SIZE x GENERATIONS RETAINED, NOT CRATE WEIGHT.** cargo never collects them: 455 rlibs for 199 crates, 1.3 GB, beside 25.4 MB of product. dc retired a number for this, and **everyone had assumed it was debug-only.**
-- `cmd | head; echo "RC=$?"` reads head's code; `${PIPESTATUS[0]}` is bash and **this shell is zsh** (`$pipestatus[1]`). `grep -c` exits 1 on no match. An unmatched glob (`--include=*.rs`) ABORTS the command. **zsh does NOT word-split an unquoted `$var`** -- list paths explicitly.
+- `cmd | head; echo "RC=$?"` reads head's code; `${PIPESTATUS[0]}` is bash and **this shell is zsh** (`$pipestatus[1]`). `grep -c` exits 1 on no match. An unmatched glob (`--include=*.rs`) ABORTS the command. **zsh does NOT word-split an unquoted `$var`** -- list paths explicitly. **`cat -A` is GNU-only** and dies with a usage error mid-pipeline; `sed 's/ /./g'` shows whitespace portably.
 
 **CONTROLS.**
 
