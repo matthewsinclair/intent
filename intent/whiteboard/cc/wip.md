@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 17:13Z
+heartbeat_at: 2026-08-27 17:19Z
 status: active
-focus: "**WOUND DOWN FOR THE BOUNCE. NOTHING IN FLIGHT, LANES CLEAN, AND R1's UNCALLED PUBLISHER IS A DESIGNED STATE RATHER THAN WORK ABANDONED MID-FLIGHT.** Shim `645beec0`, publisher `5fcfd314`; hv ruled the caller is `bootstrap`, implemented minimally (`164d5bce`), and `intent bootstrap` is rc=2 today, so that is SEPARATE WORK and it lengthens the path to the sweep. **THE 16-ESTATE SWEEP IS hv's AND STILL HELD -- it replaces the gate AND delivers my refusing arm to estates that never had it, two behaviour changes at once. I recommended ONE canary estate, not sixteen.** Queued, not started: bootstrap caller, canary sweep, the 126 fail-open. Pair current at `49990517`."
+focus: "**ON THE BOUNCE, WORKING (c) THE 126 FAIL-OPEN** -- hv's ruling 4 unfinished, and the one queued item that depends on nothing held. **R1(a) IS PARKED, NOT ABANDONED:** its two halves cannot be split (wiring any arm lifts the flag-reachability exemption, and `--force`'s declared help names the CONFIG), and the config half needs the author identity, whose only v2 source is `$USER` -- which `no_intent_home.rs` forbids without a ruling (`ALLOWED = [COLUMNS, HOME]`). Question raised with hv and NOT answered; do not pick a source unilaterally. (b) the sweep is hv's and STILL HELD."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
