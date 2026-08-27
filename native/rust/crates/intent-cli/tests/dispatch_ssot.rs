@@ -44,11 +44,50 @@ fn outside_any_project() -> &'static std::path::Path {
     .path()
 }
 
+/// A `HOME` no command in this file may escape into.
+///
+/// **THE SECOND DIMENSION OF AN ISOLATION THAT ONLY EVER HAD ONE.**
+/// [`outside_any_project`] arrived at `1ff7f2c1` -- *the suite converted the
+/// estate it was running inside* -- and it fixtures the WORKING DIRECTORY. The
+/// same class came back through the other ambient: `intent bootstrap` writes
+/// per-user state, resolved from `$HOME` and not from the cwd, so no amount of
+/// running elsewhere could contain it.
+///
+/// **AND NOTHING IN THIS FILE CHANGED TO CAUSE IT.** These arms drive every
+/// shipped family bare, looking for the ones that answer *is a known command
+/// that is not implemented yet*. `bootstrap` answered exactly that until
+/// `431590a3` gave it an implementation -- at which point a probe for a refusal
+/// silently became a live setup command against the operator's machine. The
+/// test was safe only for as long as its subject was unbuilt, which is not a
+/// property any test should be resting on.
+///
+/// Measured with a decoy `HOME`, which is also how it was found: `~/.intent/home`
+/// on this machine spent the evening pointing at a deleted worktree because a
+/// test binary had published one.
+fn fixture_home() -> &'static std::path::Path {
+  static DIR: std::sync::OnceLock<tempfile::TempDir> = std::sync::OnceLock::new();
+  DIR
+    .get_or_init(|| tempfile::tempdir().expect("tempdir"))
+    .path()
+}
+
+/// The binary, with BOTH ambients fixtured.
+///
+/// Every invocation in this file goes through here rather than building a
+/// `Command` inline: the previous shape put the isolation at five call sites
+/// and a sixth one added later inherits nothing.
+fn intent_cmd() -> Command {
+  let mut cmd = Command::new(env!("CARGO_BIN_EXE_intent"));
+  cmd
+    .current_dir(outside_any_project())
+    .env("HOME", fixture_home());
+  cmd
+}
+
 fn help(args: &[&str]) -> String {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = intent_cmd()
     .args(args)
     .arg("--help")
-    .current_dir(outside_any_project())
     .output()
     .expect("run the v3 binary");
   format!(
@@ -169,7 +208,7 @@ fn every_added_command_in_the_table_reaches_the_surface() {
 fn no_unbuilt_command_leaks_intents_own_project_state() {
   let dir = tempfile::tempdir().expect("tempdir");
   let run = |args: &[&str]| {
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = intent_cmd()
       .args(args)
       .current_dir(dir.path())
       .output()
@@ -462,9 +501,8 @@ fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
     }
     // BARE, so it reaches the dispatcher rather than clap's help -- which is
     // precisely why this site, and not the `--help` ones, did the writing.
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = intent_cmd()
       .arg(&family.name)
-      .current_dir(outside_any_project())
       .output()
       .expect("run the v3 binary");
     let text = format!(
@@ -633,7 +671,7 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
   )
   .expect("write config");
 
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = intent_cmd()
     .arg("doctor")
     .current_dir(dir.path())
     .output()
@@ -886,11 +924,7 @@ fn a_retired_rows_alias_does_not_come_back() {
 
 /// stdout + stderr of one invocation, with no `--help` appended.
 fn run_raw(args: &[&str]) -> String {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
-    .args(args)
-    .current_dir(outside_any_project())
-    .output()
-    .expect("run the v3 binary");
+  let out = intent_cmd().args(args).output().expect("run the v3 binary");
   format!(
     "{}{}",
     String::from_utf8_lossy(&out.stdout),
