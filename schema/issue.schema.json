@@ -45,6 +45,7 @@
       "type": "string"
     },
     "severity": {
+      "description": "**STORED AS A STRING, AND VALIDATED AT THE DOOR BY [`IssueSeverity`].**\n\nThe permitted set is a closed roster, so the obvious move is a typed enum\nhere -- and it is the wrong one. A typed field makes DESERIALISATION\nstrict, so an issue already carrying an out-of-roster value stops being\nreadable, which converts a cosmetic defect into an unreadable store on\nsomebody else's machine. **Refusing a bad value on the way IN while still\nreading whatever is already there is the asymmetry that fixes this\nwithout a migration.** Measured 2026-08-27 across six estates on this\nmachine: 165 issues, every value in roster, none to migrate -- and that\nmeasurement covers this machine only, which is exactly why the read stays\npermissive.",
       "type": [
         "string",
         "null"

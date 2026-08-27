@@ -186,6 +186,20 @@ type Issue {
   slug: String!
   title: String!
   status: IssueStatus!
+  """
+  **STORED AS A STRING, AND VALIDATED AT THE DOOR BY [`IssueSeverity`].**
+  
+  The permitted set is a closed roster, so the obvious move is a typed enum
+  here -- and it is the wrong one. A typed field makes DESERIALISATION
+  strict, so an issue already carrying an out-of-roster value stops being
+  readable, which converts a cosmetic defect into an unreadable store on
+  somebody else's machine. **Refusing a bad value on the way IN while still
+  reading whatever is already there is the asymmetry that fixes this
+  without a migration.** Measured 2026-08-27 across six estates on this
+  machine: 165 issues, every value in roster, none to migrate -- and that
+  measurement covers this machine only, which is exactly why the read stays
+  permissive.
+  """
   severity: String
   created: String!
   """
