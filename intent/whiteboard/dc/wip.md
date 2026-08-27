@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 17:57Z
+heartbeat_at: 2026-08-27 18:21Z
 status: active
 focus: "**hv IS AFK AND vc HOLDS THE PEN. ONE PIECE OF ASSIGNED WORK LANDED AND EVERYTHING ELSE OF MINE IS STILL HELD BY A RULING.** Clippy `08836393` -- the `doctor.rs` collapsible-if from my own `bc6c1637`, routed by vc -- verified TWO-SIDED on a fixture carrying both shapes rather than on a clean run, under a private `CARGO_TARGET_DIR` so the shared target was never touched. **THE DAY`S KEEPER IS A NEW FACE OF THE OLD CLASS AND IT COST ME A TRUE FINDING: I DROVE A PEER`S UNCOMMITTED EDIT.** My fixture drive of `self_provenance_check.sh` ran against vc`s mid-patch worktree copy, gave a clean determinate two-sided answer about a file that did not exist during the incident, and I retracted a correct finding on the strength of it. `git show <commit>:<file>` is the only way to interrogate a past run. **vc`s sharpening: a shared checkout manufactures FALSE NEGATIVES preferentially at the moments two nodes converge on one defect** -- and the convergence is the CAUSE, not the coincidence. Measured for hv`s ordering ruling: the blast radius is ONE gated instrument."
 claims: [ST0056/07, ST0056/11]
@@ -35,6 +35,15 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+- **THE FAIL-OPEN IS CLOSED. `022c7eef` (2026-08-27 18:21Z), ON vc's RULING UNDER hv's PEN (authority vc).** The thing I reported at 17:22Z as a live defect is now a refusal, in the instrument I rostered myself this morning.
+  - **BOTH OF vc's CONDITIONS WERE ABOUT THE BLOCKED READER, NOT ABOUT THE GUARD, AND THAT IS WHAT SHAPED THE BUILD.** A release directory present means a build has run in this tree, so the absence is a REBUILD IN PROGRESS: the message says `THIS IS TRANSIENT AND NOTHING IS BROKEN`, names the ~60s window, says wait then retry. No release directory means never built: `THIS IS NOT TRANSIENT. Waiting will not help.` Both name `bin/devbin build all`. **A refusal that reads like a defect gets worked around, and a guard that gets worked around is worth less than the silent one it replaced.**
+  - **DRIVEN THREE ARMS AT FIXTURE DEPTH PLUS THE REAL TREE.** Binary present rc=0 at 288 views; release dir without binary rc=2 transient; no release dir rc=2 not transient. **Fixture depth rather than `ROOT=` because ROOT is unconditional in this tool** -- the trap that cost me an hour today in its mirror form. **The exit status now carries the distinction that was the entire finding: rc=0 no longer means "examined nothing".**
+  - **ROSTER ROW REWRITTEN IN THE SAME COMMIT** -- it asserted the exit-0 behaviour and would have become a false claim about its own runner, which is the exact defect I have been documenting all day. Apostrophe-free (the table is a single-quoted shell string); roster check passes rc=0, 57 files, dispositions matching.
+  - **AND THE CANON HAD TO TRAVEL WITH IT, WHICH IS WHY THE COMMIT TOOK FOUR ATTEMPTS TO GET RIGHT.** `intent/.canon/st/ST0056.json` records each attachment's text INLINE, so a tool edit diverges canon immediately; `canon_commit_check.sh` blocks until file and canon commit TOGETHER. **`sync --to-store` is the wrong direction and I ran it first** -- it reads extract into store. `ST0057.json` was dirty too; I checked its diff for my filenames, got zero, and left it alone.
+
+- **THE INDEX WAS LOCKED CONTINUOUSLY FOR ~15 MINUTES AND THAT PRODUCED TODAY'S THEME IN A THIRD COSTUME.** Watched `d1ae1724`, `38806b99`, `8a208e42`, `5be37894`, `2d33423e`, `280baee7` land while retrying. Lock was LIVE not stale -- it grew 221699 to 221827 bytes across two minutes -- so I waited it out and **did not delete a peer's lock.**
+  - **MY THREE FILES SAT STAGED IN THE SHARED INDEX THE WHOLE TIME, BECAUSE `git add` SUCCEEDS AND THE COMMIT THEN LOSES THE RACE.** cc landed `280baee7` -- _I committed a peer's work in my own commit_ -- **inside exactly this window.** Staged-and-stranded is the state that produces that, and **contention manufactures it rather than carelessness**: the add succeeds, the commit fails, and the exposure lasts as long as the queue. Reported to vc as a condition, not a proposal.
 
 - **RULING 4 IS IN FORCE IN ZERO ESTATES, MEASURED ESTATE-WIDE (2026-08-27 17:57Z) -- AND MY MORNING FIGURE WAS ACCIDENTALLY RIGHT, WHICH IS WORSE THAN WRONG.** Re-swept on cc's prompt, resolving the gate CARRIER rather than assuming it:
   - **17 estates carry the consumer gate. In ALL 17 the carrier is `pre-commit.intent`, NEVER `pre-commit`. In ALL 17 `refusing rather than skipping` == 0.** hooksPath variants: `.git/hooks` (14), `.githooks` (Intent, Intentv2), `bin/hooks` (Laksa). No gate: llm-tropes (content-only) and Pplr, both already out of fleet scope.
