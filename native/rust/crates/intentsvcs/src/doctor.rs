@@ -171,6 +171,7 @@ pub fn diagnose(
 
   if let Some(store) = store {
     report.findings.extend(backup_findings(project, store));
+    report.findings.extend(undeclared_op_findings(store));
   }
 
   let canon = match crate::ingest::read(project) {
@@ -976,6 +977,66 @@ fn attachment_drift(
 /// Nothing here learns the time. `hours_since_last_good_snapshot` returns an
 /// interval computed inside SQLite, and an interval cannot be written into a
 /// record or mistaken for a moment.
+/// Ops the LOG holds that this binary does not DECLARE (vc's F1, the live half).
+///
+/// **THIS CONVERTS AN OPEN DESIGN QUESTION FROM A FORECAST INTO A NUMBER.**
+/// Whether the op vocabulary should become a type is hv's to rule on, and the
+/// argument for it turns on whether a parse would ever meet a string it does
+/// not know. Nobody could answer that from the source, because the answer lives
+/// in the logs of real estates -- so it kept being re-derived by hand. This
+/// answers it on every `doctor` run, on whatever estate is in front of you.
+///
+/// # Why it is an advisory and not a fault
+///
+/// An op this binary does not declare is not a broken estate. History is
+/// append-only and correct: the row records what really happened, under a name
+/// some earlier build used. Nothing is blocked, nothing needs repairing, and
+/// there is no remedy to offer -- so counting it would make `doctor` exit 1 on
+/// an estate with nothing wrong with it, which is the failure mode hv already
+/// ruled on for the 66 advisory notes on Baize.
+///
+/// # Why it can never be a commit gate, stated so nobody moves it
+///
+/// It reads `intent/.cache/`, which is gitignored and per-machine. No clone
+/// inherits a single one of these rows and a fresh machine has none, so a gate
+/// keyed on this would pass or fail according to whose laptop ran it. `doctor`
+/// is the home for a per-machine truth check; CI is not.
+///
+/// # What a clean result does and does not mean
+///
+/// It means every op in THIS store is one this binary can write. It does NOT
+/// mean the roster is complete -- see [`crate::event::KNOWN_OPS`] for the gap
+/// it cannot see and for the two source-side tests that cover the directions
+/// this cannot.
+fn undeclared_op_findings(store: &crate::store::Store) -> Vec<Finding> {
+  // **A STORE THAT WILL NOT ANSWER IS SILENT, NOT A FINDING.** Every other
+  // stage of `diagnose` degrades rather than refuses, and an unreadable event
+  // table is a normal state on a store mid-migration. Reporting "0 undeclared"
+  // would be worse than saying nothing: it is a clean bill of health from a
+  // query that never ran.
+  let Ok(census) = store.op_census() else {
+    return Vec::new();
+  };
+  census
+    .into_iter()
+    .filter(|(op, _)| !crate::event::KNOWN_OPS.contains(&op.as_str()))
+    .map(|(op, count)| {
+      Finding::new(
+        "intent/.cache/intent.db",
+        FindingClass::Advisory,
+        format!(
+          "the event log holds {count} row(s) under the op `{op}`, which this build does not declare. \
+           Two things produce that and they are told apart by looking, not by this line: an op that was \
+           RENAMED OR RETIRED and left history behind it, or one this build writes and has not been added \
+           to `event::KNOWN_OPS`. Nothing is broken either way -- the log is append-only and the row is a \
+           true record of what happened. It is reported because the first case is the one open question \
+           about the op vocabulary that could not be answered from source."
+        ),
+      )
+    })
+    .collect()
+}
+
 fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {
   let Ok(age) = store.hours_since_last_good_snapshot() else {
     // The store is open but the query failed, which is not a backup problem

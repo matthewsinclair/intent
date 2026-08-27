@@ -29,6 +29,119 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// Every `op` this binary can write into the log.
+///
+/// **THIS IS A ROSTER, NOT AN ENUM, AND THE DISTINCTION IS DELIBERATE.** There
+/// is no type, no parse, no `FromStr`, and nothing refuses an op for being
+/// absent from this list. Whether the op vocabulary should become a TYPE is
+/// hv's open question (vc's Highlander finding F1), and a type arriving by way
+/// of a check nobody asked for would be a ruling nobody made. What this answers
+/// is the narrower question hv's is waiting on: **would a parse, if one existed,
+/// meet anything in the wild it does not know.**
+///
+/// # It is a second home for the vocabulary, and that is paid for rather than denied
+///
+/// The op strings are spelled at their call sites; this repeats them. A second
+/// home drifts -- that is the whole of `IN-AG-HIGHLANDER-001` -- so two
+/// mechanisms hold it in step, and **each catches a direction the other cannot
+/// see**:
+///
+/// - `known_ops_are_spelled_in_the_source_that_declares_them` reds when an op is
+///   RETIRED or RENAMED and left here, which is the direction the live check
+///   below cannot detect at all: the code stops producing it, and a log that
+///   already carries it goes on matching a roster entry that means nothing.
+/// - `every_transition_op_is_in_the_roster` reds when a new `st.*` edge lands
+///   and nobody adds it here.
+///
+/// **NEITHER CATCHES A BRAND-NEW OP IN A FAMILY WITH NO STATE MACHINE** -- a
+/// fresh `disk.*` or `issues.*` op added and not listed. That gap is real, it is
+/// named here rather than left to be discovered, and it is **self-reporting**:
+/// the first time such an op is written, the live check reports it as one this
+/// binary does not declare. Loud, in the safe direction, and the fix is one line.
+///
+/// # The corpus this was sized against, so a later reader does not re-derive it
+///
+/// Measured 2026-08-27. **43 ops over 11 families HERE** -- ac at attachment
+/// disk issue issues st text thread todo wp -- against a live estate store
+/// holding 21 distinct ops in 425 events, and 22 distinct across the 15 stores
+/// on that machine, which fall in 8 families. **The two family counts are
+/// different questions and were nearly written down as one:** 8 is how many
+/// families have ever been WRITTEN on that machine, 11 is how many this binary
+/// can write. A vocabulary is always at least as wide as its use, and quoting
+/// the corpus figure for the code would have understated the roster by three
+/// families that simply have not been exercised.
+///
+/// Every op in the wild was spelled, so **the compat case is EMPTY TODAY** and
+/// the trigger to watch is the first RENAME or RETIREMENT rather than the first
+/// event. Six `disk.*` ops have no state machine behind them, which is why the
+/// transitions table cannot derive this list and why the roster exists at all.
+///
+/// # `init` HAS NO DOT, AND THAT IS A FACT ABOUT THE VOCABULARY, NOT A TYPO
+///
+/// Every other member is `family.verb`. `init` is not: it is the one event a
+/// project writes before it has any entity to name, so there is no family for
+/// it to belong to. **It was missed by the first draft of this roster**, which
+/// was seeded by grepping for `"<word>.<word>"` literals -- a pattern that
+/// cannot match it -- and it was the live check that found it, on first contact
+/// with a real estate, exactly as designed.
+///
+/// It is worth carrying into hv's open question rather than filed as trivia:
+/// **a vocabulary with an irregular member is a vocabulary whose shape cannot
+/// be assumed by whatever parses it.** Any future type has to hold `init`
+/// alongside 43 dotted names, or the shape rule is wrong on its first row.
+///
+/// The population is bounded and was enumerated by DOOR rather than by pattern
+/// after that: there are exactly four `Envelope::minted` call sites in this
+/// crate -- `record_disk_act`, the `text.realise` writer, the generic entity
+/// recorder, and `init` -- so the vocabulary is the literals reaching those
+/// four and nothing else.
+pub const KNOWN_OPS: &[&str] = &[
+  "ac.descope",
+  "ac.put",
+  "ac.reinstate",
+  "ac.rescope",
+  "ac.satisfy",
+  "ac.set",
+  "ac.unsatisfy",
+  "ac.withdraw",
+  "at.put",
+  "at.set",
+  "attachment.put",
+  "disk.declare_default",
+  "disk.dehydrate",
+  "disk.hydrate",
+  "disk.organize",
+  "disk.sync_from_disk",
+  "disk.sync_to_disk",
+  "init",
+  "issue.set",
+  "issues.add",
+  "issues.close",
+  "issues.open",
+  "st.cancel",
+  "st.done",
+  "st.hold",
+  "st.new",
+  "st.reinstate",
+  "st.reopen",
+  "st.resume",
+  "st.start",
+  "st.triage",
+  "text.realise",
+  "thread.put",
+  "thread.set",
+  "todo.flush",
+  "wp.cancel",
+  "wp.done",
+  "wp.new",
+  "wp.reinstate",
+  "wp.reopen",
+  "wp.rescope",
+  "wp.set",
+  "wp.start",
+  "wp.unstart",
+];
+
 /// The principal a facade call runs as. `local` until the 3.2 agent bus
 /// gives principals meaning (vc/cc/hv) and intentc federates them (v4).
 pub const LOCAL_PRINCIPAL: &str = "local";

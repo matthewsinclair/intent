@@ -2355,6 +2355,29 @@ impl Store {
   /// Ordered by id rather than by `ts`: a ULID is lexically sortable by its
   /// own timestamp prefix, so it gives a total order even for two events
   /// minted inside the same millisecond -- which `ts` alone does not.
+  /// Every distinct `op` the log holds, with how many rows carry it.
+  ///
+  /// **A `GROUP BY` RATHER THAN [`Self::events`] AND A FOLD, BECAUSE THE CALLER
+  /// IS `doctor`.** Doctor has to be the command that still works when the
+  /// others have stopped, and reading every envelope to learn 21 strings makes
+  /// its cost grow with history for an answer whose size does not. The count
+  /// rides along because a report naming an op nobody recognises is asked "how
+  /// much of it is there" immediately, and the answer separates one stray row
+  /// from a decade of them.
+  pub fn op_census(&self) -> Result<Vec<(String, usize)>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT op, COUNT(*) FROM event_log GROUP BY op ORDER BY op")?;
+    let rows = stmt.query_map([], |row| {
+      Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)? as usize))
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
+  }
+
   pub fn events(&self) -> Result<Vec<Envelope>, StoreError> {
     let mut stmt = self.conn.prepare(
       "SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log ORDER BY id",
