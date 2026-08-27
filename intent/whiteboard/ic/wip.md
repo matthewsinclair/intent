@@ -23,7 +23,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 **THIRTEEN ESTATES STILL NEED `intent/.canon/project.json` COMMITTED**, one each, on the port's critical path -- vc owns the ports, but the reason is mine to keep stating: until it is committed the cutoff lives in one machine's store only. Intent's own tree is the first one done.
 
-**A CONTROL FIXTURE IS BEING KEPT ON PURPOSE**: `scratchpad/control` is a v13-stamped estate never walked to 14. It is the only way to reproduce the version refusal once every store on this machine is v14. **Once it is walked, it cannot be un-walked.**
+**I CONSUMED MY OWN CONTROL AND THEN OFFERED IT AS ONE.** `scratchpad/control` was built v13-stamped to control the `st list` question, then REUSED as the subject of the never-flushed Q2 case -- where I ran the v14 binary at it and walked it 13 -> 14. I handed it to vc as the v13 side of a two-sided control **in the same message where I told them a refusal-only check proves nothing**, and I never re-read `PRAGMA user_version` before offering it. vc read 14 off a COPY rather than walking it further, which is the discipline I should have used on my own fixture. **A CONTROL IS CONSUMED BY BEING USED AS A SUBJECT, THE OPERATION IS ONE-WAY, AND NOTHING ABOUT THE DIRECTORY SAYS SO** -- the one property that made it valuable was the one nothing displays. Re-measure a fixture at the moment you cite it, never at the moment you built it.
 
 **OWED, in vc's order:** AC-11.3's proof test; AC-11.6's arm; AC-11.3's migration clause; ST0061 AC-00.1's round trip; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`.
 
