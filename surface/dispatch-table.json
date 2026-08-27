@@ -7650,7 +7650,7 @@
             "--default"
           ],
           "type": "bool",
-          "help": "Write .intentfiles from status when it is absent: one STEELTHREAD line per thread that is not Completed or Cancelled",
+          "help": "Write .intentfiles from status when it is absent: one STEELTHREAD line per WIP thread",
           "disposition": "keep",
           "disposition_basis": "**hv, 2026-08-26, first-hand: `--default` never removes a file -- _\"Correct. Unless it is used with --force, which does remove files, after a confirm.\"_** ST0057 AC-11.1 through AC-11.4 are this flag's contract, and ST0057 WP-11 owns it. **IT EXISTS BECAUSE ABSENT IS NOT EMPTY.** An absent `.intentfiles` means nobody has said, so everything is realised; an empty one declares that NOTHING is, and `organize --apply` against that would remove the estate. So the file must never come into existence as a side effect, and the operator needs one spelling that writes the declaration a project should have: one `STEELTHREAD:<ID>` line per thread that is not Completed and not Cancelled. **THE SAME FUNCTION SERVES `init`, THE MIGRATION AND `upgrade` (AC-11.3), which is a criterion rather than a tidiness: three callers deriving _the open set_ separately is three chances to disagree about what open means, and the one that drifts is the one nobody runs.** `intentfiles::default_declaration` is that function. **Bare `--default` is NON-DESTRUCTIVE in every case**: absent, it writes; present, it changes not one byte, reports how many lines it declares, and names `--force`."
         },
