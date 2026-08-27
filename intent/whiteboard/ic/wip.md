@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 20:03Z
+heartbeat_at: 2026-08-27 20:09Z
 status: active
 focus: "DONE AND IDLE. vc's four items plus the queued gate check, all landed and in the delivered pair (`3df927f4`). Six commits: AC-11.6, the F1 live figure, the --dehydrate RECORD, the gate check, its IO edge, its reach limit. TONIGHT'S ONE RULE, three faces, and the third is mine to own because I passed it on as fact: THE MESSAGE IS NEVER THE MECHANISM. AC-14.8 stays red and stays hv's."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
@@ -32,8 +32,8 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 **HELD, AND EACH ONE HELD FOR A DIFFERENT REASON -- DO NOT PICK ANY OF THEM UP.**
 
 - **AC-11.6 -- hv's alone.** vc has twice confirmed they cannot hand it over at any phrasing. `organize`'s confirm text still promises _it removes no files_, which `--force` makes false; vc carried that up attached to the criterion.
-- **AC-14.8 -- HELD, NOT NEXT AND NOT READY.** It is a MIGRATION that reads a per-machine artefact and writes canon across twelve estates that have no cutoff today, so hv sequences it against the 3.0.0 cut. **A resumed session reading a code-complete WP with one unbuilt criterion will reach for it -- that is the trap, and being red is the point.** Nothing is degrading: the gap was invisible this morning and is documented now, which was the whole change.
-- **AC-14.7 -- A STATED ABSENCE, NOT A DEFERRAL.** Uncovered because this estate has no mid-transaction failure harness. The AT row says exactly that.
+- **AC-14.8 -- WITHDRAWN by hv, 2026-08-27**, on a measurement of all 17 estates: ZERO are in the migration's population, log-recovery is impossible on a clone because no log travels (D34), and `intent init` plus every `sync --to-disk` already writes `project.json`. Reason is on the criterion, not only here.
+- **AC-14.7 IS UNBUILT, NOT UNCOVERED, AND THIS BOARD SAID OTHERWISE.** The line here read _a stated absence... the AT row says exactly that_. **The AT row said NOTHING -- it had no note, and never had one in any revision.** I asserted the content of a record I had not read back. Measured: `todo_flush` calls `apply()`, whose transaction COMMITS with the event in it (`store.rs:1617`), and only then calls `flush_todo_watermark()`, a bare INSERT outside any transaction. **Two transactions with a window between them, which is precisely the state AC-14.7 says cannot exist.** Consequence is a record/reality divergence rather than loss: the log says a flush happened and the cutoff never moved, and AC-14.2 removed the fallback that would have papered over it. **hv's call whether to make the flush atomic before the cut** -- it is a change to a write path, not a test.
 - **WP-14 stays WIP with two criteria open.** Do not let it drift toward closed because the build is done. **And keep its minting note verbatim** -- the section recording that the criteria were authored after the build, on which date, against which commit, and why that distinction is the whole of their evidential value. That is the thing a reader in six months cannot reconstruct.
 
 **STANDING QUESTIONS THAT ARE hv's, WITH THE EVIDENCE ALREADY GATHERED.**
