@@ -218,6 +218,9 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
   // neither of those has canon, so both still reach the markdown path and still
   // collide. Once canon exists, one id in two places is the EXPECTED
   // post-migration shape and not something to report.
+  // **EVERY REFUSING THREAD IS COLLECTED; THE RUN REFUSES ONCE, AT THE END.**
+  // See the refusal below `issues(...)` for why a `?` here was a defect.
+  let mut refusals: Vec<String> = Vec::new();
   let mut loaded: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
   for (id, dir) in thread_dirs(project) {
     // **CANON WINS: a thread with committed canon is migrated, so its SOURCE is
@@ -353,7 +356,16 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     }
 
     let sections = sections(body);
-    let (criteria, tests) = acceptance(project, &dir, closed, &mut out)?;
+    let (criteria, tests) = match acceptance(project, &dir, closed, &mut out) {
+      Ok(pair) => pair,
+      // The thread is NOT pushed: a thread whose rows do not reconcile must not
+      // enter the scan as though they did. The run still refuses; it refuses
+      // knowing about every such thread instead of the first.
+      Err(refusal) => {
+        refusals.push(refusal.to_string());
+        continue;
+      }
+    };
     let wps = work_packages(project, &dir, closed, &mut out);
 
     // D28's two-field shape, one level up: `objective` and `context` take the
@@ -385,7 +397,13 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       .collect::<Vec<_>>()
       .join("\n\n");
 
-    let attachments = attachments(project, &id, &dir, closed, &mut out)?;
+    let attachments = match attachments(project, &id, &dir, closed, &mut out) {
+      Ok(carried) => carried,
+      Err(refusal) => {
+        refusals.push(refusal.to_string());
+        continue;
+      }
+    };
 
     out.threads.push(Thread {
       attachments,
@@ -481,6 +499,35 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
   out.already_migrated.dedup();
 
   issues(project, &mut out);
+
+  // **A REFUSAL THAT ENDS THE RUN REPORTS A FLOOR AND IS READ AS A COUNT.**
+  //
+  // Both per-thread refusals used to `?` straight out of this function, so the
+  // FIRST thread that could not account for itself ended the scan and every
+  // thread after it went unread. `thread_dirs` yields the top level before the
+  // three status buckets, so on a mixed estate what survived in the log was
+  // flat paths and only flat paths -- which reads exactly like a reader that
+  // cannot see buckets, and was diagnosed as one.
+  //
+  // Measured by vc on Lamplight with the pair at `56517758`: hop 2 refused
+  // naming 8 findings in 3 flat threads and none in 10 bucketed ones, perfectly
+  // correlated with location in both directions. The residue check sees a
+  // bucketed thread perfectly well (`legacy_bucketed_residue.rs` puts the same
+  // row in both places and gets both); it was never reached. **The correlation
+  // was ORDER plus an abort that fell on the boundary between them.**
+  //
+  // **AND THE COST IS AN OPERATOR'S TIME SPENT IN THE WRONG PLACE**: fix the 8
+  // this names, re-run, meet 34 more. A number that grows every time you fix it
+  // teaches that the tool is unreliable, when it was reporting honestly about a
+  // population it had truncated without saying so.
+  if !refusals.is_empty() {
+    let n = refusals.len();
+    return Err(std::io::Error::other(format!(
+      "{n} thread(s) could not be accounted for, and this migration refuses rather than \
+       converting an estate it cannot describe:\n  {}",
+      refusals.join("\n  ")
+    )));
+  }
 
   Ok(out)
 }
@@ -1178,8 +1225,35 @@ fn acceptance(
   out: &mut Scan,
 ) -> Result<(Vec<Criterion>, Vec<AcceptanceTest>), std::io::Error> {
   let path = dir.join("acceptance.md");
-  let Ok(text) = std::fs::read_to_string(&path) else {
-    return Ok((Vec::new(), Vec::new()));
+  // **ABSENCE IS A STATE; UNREADABILITY IS AN ERROR, AND THIS SWALLOWED THE
+  // DIFFERENCE.** A `let Ok(..) else` cannot see WHY the read failed, so a
+  // thread whose `acceptance.md` exists but could not be read -- a directory in
+  // its place, a permission, a bad sector, bytes that are not UTF-8 -- migrated
+  // with ZERO criteria and ZERO tests, at rc 0, with nothing reported. A thread
+  // that never had an acceptance file produces exactly the same scan.
+  //
+  // **Found while trying to CONSTRUCT a refusing thread for the accumulation
+  // arm below**: a directory where the file should be was expected to refuse
+  // and the scan came back clean with two threads and no criteria. The whole
+  // AC/AT contract of a thread can go missing here and the only symptom is a
+  // number nobody has anything to compare against -- the same shape as the
+  // bucket walk, one file lower down.
+  let text = match std::fs::read_to_string(&path) {
+    Ok(text) => text,
+    // The one benign case, and it is narrow ON PURPOSE: nothing else is
+    // absence.
+    Err(absent) if absent.kind() == std::io::ErrorKind::NotFound => {
+      return Ok((Vec::new(), Vec::new()));
+    }
+    Err(unreadable) => {
+      return Err(std::io::Error::other(format!(
+        "{}: acceptance.md is present and could not be read ({unreadable}), so this thread's \
+         criteria and tests cannot be established. A thread with no acceptance file and a thread \
+         whose acceptance file is unreadable are different states and this migration will not \
+         report them as one",
+        project.relative(&path)
+      )));
+    }
   };
   let rel = project.relative(&path);
   let mut criteria = Vec::new();
