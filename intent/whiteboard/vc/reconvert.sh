@@ -19,6 +19,19 @@ mig=$(git log --diff-filter=A --format=%h -- intent/.canon/st | tail -1); [ -n "
 src="$mig^"; echo "## $N: migration $mig, v2 source at $src ($(git log -1 --format=%s "$src" | cut -c1-50)); dirty before: $(git status --porcelain | wc -l | tr -d ' ')"
 [ "$(git status --porcelain | grep -vcE '^\?\? intent/events.jsonl$')" -eq 0 ] || { echo "$N: tree not clean -- refusing"; git status --porcelain | head -5; exit 3; }
 keep=$(jq -c '{project_name, author, languages}' intent/.config/config.json)
+# **ATTACHMENT ACCOUNTING, AND IT IS COUNTED BEFORE THE STORE IS DROPPED because
+# after that there is nothing left to compare against.** `collect_attachments`
+# walks `thread_dir(id)` = `intent/st/<ID>`, which is FLAT -- so on a restored v2
+# source, whose files live at `intent/st/<BUCKET>/<ID>/`, the walk finds nothing
+# and the migration carries ZERO attachments with no refusal, no finding and no
+# non-zero rc. The contract rows still convert, the accounting gate still PASSES
+# and the verifier still reports 0, because none of them look at attachments.
+# Measured on arca_cli 2026-08-27: 23 carried at `1abd898`, 0 after my re-convert
+# `2f3e836`, restored by `ingest-buckets.sh` at `5441945`. The prose is only ever
+# on disk in the restored bucket tree, so nothing is destroyed -- but a commit
+# that lands the loss reads as done.
+att_before=$(jq '(.attachments//[])|length' intent/.canon/st/*.json 2>/dev/null | paste -sd+ - | bc); att_before=${att_before:-0}
+echo "attachments in the committed store before the drop: $att_before"
 git rm -r -q --cached intent/st intent/.canon 2>/dev/null; rm -rf intent/st intent/.canon intent/.cache
 git checkout -q "$src" -- intent/st intent/.config/config.json && echo "restored: config $(jq -r .intent_version intent/.config/config.json), st dirs $(find intent/st -maxdepth 1 -type d -name 'ST[0-9]*' 2>/dev/null | wc -l | tr -d ' '), buckets [$(for b in COMPLETED CANCELLED NOT-STARTED; do [ -d "intent/st/$b" ] && printf '%s ' "$b"; done)]"
 jq --argjson k "$keep" '. + ($k | with_entries(select(.value != null)))' intent/.config/config.json > "$L.cfg" && cp "$L.cfg" intent/.config/config.json; echo "re-applied: $(jq -c '{project_name, author, languages}' intent/.config/config.json)"
@@ -26,6 +39,8 @@ v=$(jq -r .intent_version intent/.config/config.json); case "$v" in 2.19.*|3.*) 
 [ -n "${VC_PRE_HOP2:-}" ] && { echo "pre-hop2: $VC_PRE_HOP2"; bash "$VC_PRE_HOP2" || exit 7; }
 echo "pair: $($I --version 2>&1 | head -1)"; $I upgrade > "$L.h2" 2>&1; rc=$?; echo "hop2 rc=$rc :: $(grep -E '^(migrated|ok|error)' "$L.h2" | tr '\n' '|' | cut -c1-160)"; [ $rc -eq 0 ] || { tail -4 "$L.h2" | cut -c1-200; exit 4; }
 $I claude upgrade --apply > "$L.h3" 2>&1; echo "hop3 rc=$? :: $(grep -E '^ok' "$L.h3")"; $I claude upgrade --apply > "$L.h3b" 2>&1; echo "hop3 again: $(grep -E '^ok' "$L.h3b")"
+att_after=$(jq '(.attachments//[])|length' intent/.canon/st/*.json 2>/dev/null | paste -sd+ - | bc); att_after=${att_after:-0}
+echo "attachments after the hops: $att_after (was $att_before)"
 git check-ignore -q intent/events.jsonl || printf 'intent/events.jsonl\n' >> .gitignore; git check-ignore -q 'intent/.backup/x' || printf 'intent/.backup/\n' >> .gitignore
 bash "$AT" "$P" > "$L.acct" 2>&1; arc=$?; echo "--- accounting rc=$arc:"; grep -E "SHORTFALL|VERDICT|NOT|ERROR" "$L.acct" | head -8 | cut -c1-140; vline=$(grep -E "^\s*VERDICT:" "$L.acct" | head -1); rec_ok=1; REC=""; if [ $arc -eq 1 ]; then for st in $(grep -E '^\s*ST[0-9]+\s+(AT|AC)\s.*SHORTFALL' "$L.acct" | awk '{print $1}' | sort -u); do arm=$(grep -E "^\s*$st\s+(AT|AC)\s.*SHORTFALL" "$L.acct" | awk '{print $2}' | head -1); for id in $(bash -c "cd '$P'; src=\$(for f in intent/st/COMPLETED/$st/acceptance.md intent/st/CANCELLED/$st/acceptance.md intent/st/NOT-STARTED/$st/acceptance.md; do [ -f \"\$f\" ] && { cat \"\$f\"; break; }; done); [ -z \"\$src\" ] && src=\$(git show '$src:intent/st/$st/acceptance.md' 2>/dev/null); comm -23 <(printf '%s\n' \"\$src\" | grep -oE '^- $arm-[0-9]+\.[0-9]+' | sed 's/^- //' | sort -u) <(jq -r '(.$([ "$arm" = AC ] && echo criteria || echo tests) // [])[].id' intent/.canon/st/$st.json | sort -u)"); do if grep -qE "carried:.*/$st/acceptance.md:[0-9]+ -- unparseable-row -- ($id |AC row|AT row)" "$L.h2"; then REC="$REC $st/$id"; else rec_ok=0; echo "UNRECORDED loss: $st $id -- hop 2 named no carried line for it"; fi; done; done; fi
 if [ $arc -eq 0 ] && [ -n "$vline" ]; then ACCT_OK=1; elif [ $arc -eq 1 ] && [ -n "$vline" ] && [ $rec_ok -eq 1 ] && [ -n "$REC" ]; then ACCT_OK=1; echo "accounting: every SHORTFALL row is NAMED by hop 2 as carried (recorded, not stored):$REC"; else ACCT_OK=0; fi
@@ -46,3 +61,10 @@ if [ "$MODE" = "--commit" ]; then [ "${ACCT_OK:-0}" -eq 1 ] || { echo "NOT commi
   git ls-files --error-unmatch "$p" > /dev/null 2>&1 || [ -n "$(git status --porcelain -- "$p")" ] || continue
   paths+=("$p")
 done; git add -A -- "${paths[@]}" 2>/dev/null; git commit -q --only -F "$S/reconv-msg-$N.txt" -- "${paths[@]}" && echo "committed $(git log --oneline -1 | cut -c1-8) [$(git show --stat --format= HEAD | tail -1 | tr -s ' ')]"; canon_in=$(git show --stat --format= HEAD | grep -c "intent/.canon/"); left_untracked=$(git status --porcelain -- intent | grep -c "^??"); echo "post-commit: intent/.canon paths in HEAD = $canon_in (must be > 0); untracked under intent/ left = $left_untracked (must be 0)"; { [ "$canon_in" -gt 0 ] && [ "$left_untracked" -eq 0 ]; } || { echo "COMMIT LANDED WITHOUT THE STORE OR LEFT UNTRACKED FILES -- NOT DONE"; exit 6; }; staged_left=$(git diff --cached --name-only | wc -l | tr -d " "); if [ "$staged_left" -gt 0 ]; then if git diff HEAD --quiet; then git reset -q; echo "post-commit: stale index cleared ($staged_left path(s) staged with pre-hook bytes; worktree == HEAD; index := HEAD, lamplight-vc 2026-08-26)"; else echo "post-commit: INDEX LEFT LOADED ($staged_left path(s)) and worktree != HEAD -- NOT DONE"; exit 6; fi; fi; fi
+if [ "${att_after:-0}" -lt "${att_before:-0}" ]; then
+  echo "ATTACHMENT SHORTFALL: $att_before -> $att_after. The v2 source is BUCKETED and the collector's walk is flat, so the prose was not carried."
+  echo "NOT DONE -- the prose is on disk under intent/st/{COMPLETED,NOT-STARTED,CANCELLED,WIP}; carry it with:"
+  echo "  VC_INTENT=<intent> bash ~/Devel/prj/Intent/intent/whiteboard/vc/ingest-buckets.sh $P --commit"
+  exit 9
+fi
+echo "attachment accounting: $att_before -> $att_after (no shortfall)"
