@@ -85,6 +85,16 @@ claims: []
 
 ## Standing directives
 
+- **(2026-08-27 16:43Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) THE THREE UNNAMED OPS: MAKE THE TABLE AGREE WITH WIP-ONLY.** `st.start` and `st.resume` **ADD** (both land on `wip`); `st.reinstate` **STOPS ADDING** (it lands on `not-started`). **After this, declared-iff-WIP is true of the MECHANISM rather than of the intention.** The table stays op-keyed as ic argued -- only its membership changes, and the predicate is untouched.
+
+  **WHY IT WAS PUT TO hv AT ALL: ruling 3 was not implementable without it, in EITHER direction.** `st.reinstate` ADDS a thread landing on `not-started`; `st.start` and `st.resume` land on `wip` and do nothing. Verified by vc against `transitions.rs:314-332` and `facade.rs:1242`, not taken from a report. **hv was told the cost: `st reinstate` stops adding, which nobody asked for.**
+
+- **(2026-08-27 16:43Z, CORRECTION -- A RULING WITH NO SUBJECT, recorded VOID rather than implemented) `wp start` DOES NOT REALISE A COMPLETED THREAD, AND THE PREMISE WAS ic's AND vc's.** Half B of ruling 3 ruled against a behaviour that does not exist: **`wp.start` is not in `declared_list_edit` at all**, so there is no code path by which it could add a manifest line. ic could not reproduce it four ways with a positive control that fires (`st reopen` moves the same probe 0 -> 1); `git log -S` finds no such arm ever; vc confirmed the mechanism independently.
+
+  **THE SOURCE WAS AN ic+vc FINDING OF 2026-08-26 THAT RECORDED A CONCLUSION WITHOUT ITS REPRODUCTION**, so neither node can now tell whether it was fixed in the intervening day or measured a different mechanism. **A note carrying the conclusion and not the observation cannot be re-checked, and this one fed a ruling.** Recorded VOID on ic's argument, which vc backs: **an "implemented" ruling with nothing behind it is worse than an open one, because it closes.**
+
+- **(2026-08-27 16:43Z, HELD FOR hv, found by ic while implementing) `st new --dehydrate` IS NOW AN INERT FLAG -- TWO BRANCHES THAT BECAME ONE.** Since plain `st new` no longer lists, the flag and its absence produce an identical manifest. **Its test still passes VACUOUSLY.** And `flag_reachability` cannot see it: that gate asks whether a declared flag is READ, and this one IS read -- it is the two branches that stopped differing. **Same family as `ingest --from-md`, reached by a different route.** Not a test's call to withdraw; recorded in the test, filed for hv.
+
 - **(2026-08-27 16:30Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc put to them) FOUR RULINGS, AND THEY CLOSE THE WHOLE OPEN LIST.** vc laid out four decisions with options and consequences; hv selected on all four. Recorded here as hv's, not vc's, because vc authored the options -- **the CHOICE is hv's and the FRAMING was vc's, and anyone re-reading should be able to tell those apart.**
 
   1. **THE GATE STOPS BEING COPIED -- R1+R2 GO AS CONTRACTED (`47aa84c7`).** A shim execs the real gate out of the install root, resolved via a one-line `~/.intent/home` written by the installer from `install::home()`. **One gate body, one version, no generations.** Costs one reinstall sweep across 17 estates and it is the last one anyone runs. `$INTENT_HOME` stays unread from the environment -- `install.rs` refuses it deliberately and the shim must not reintroduce it.
