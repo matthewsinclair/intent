@@ -72,6 +72,28 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    "hooks/critic-guard.sh",
+    "critic",
+    Policy::Invokes(
+      "**THE SAME GATE LOOP AS THE ROW ABOVE, IN ITS SECOND HOME.** (A2) moved the critic gate out of the \
+       carrier into a guard body. The row above STAYS: every installed carrier still contains the gate until \
+       the carriers are refreshed, so during the transition this invocation genuinely ships from two files \
+       and one row would have to be wrong about one of them. \
+       \
+       **ITS OWN EXIT IS A VERDICT, NOT A PASSTHROUGH, WHICH IS WHAT MADE THE MOVE SAFE.** The runner \
+       invokes bodies as `bash <guard> || BLOCKED=1`, so ANY non-zero blocks -- while this gate's fail-open \
+       is a ruling rather than an oversight. It survives because the gate AGGREGATES instead of forwarding \
+       the critic's code. Driven on a fake `intent` at five codes: 0 -> 0 proceeds, 1 -> 1 BLOCKS, 3 -> 1 \
+       BLOCKS, 2 -> 0 fails open, 127 -> 0 fails open, and the fail-open still prints `did not check ... \
+       UNENFORCED`. \
+       \
+       **UNROSTERED AT LANDING, AND THAT DOES NOT EXEMPT IT FROM THIS TABLE** -- which is exactly why this \
+       row was missing and main went red. `pre-commit-guards.sh` does not name the file, so nothing RUNS it; \
+       this check is canon-shaped and reads the tree, so it SEES it. Two correct meanings of inert, and only \
+       one of them was mine to have known about.",
+    ),
+  ),
+  (
     "hooks/pre-commit.sh",
     "info",
     Policy::Invokes(
