@@ -357,15 +357,6 @@
               "type": "bool",
               "help": "Mark the new thread in progress immediately",
               "disposition": "keep"
-            },
-            {
-              "spellings": [
-                "--dehydrate"
-              ],
-              "type": "bool",
-              "help": "Create the thread without listing it in .intentfiles, so no files are written",
-              "disposition": "keep",
-              "disposition_basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **SUPERSEDED, AND THE SENTENCE IS KEPT SO THE DEAD PREMISE CANNOT BE RE-DERIVED FROM IT.** This row used to read: _`st new` now ADDS the entry, so this opts out of that._ **hv REVERSED exactly that fact on 2026-08-27 (`cce816a4`): `st new` no longer declares the thread it creates.** The flag therefore opts out of nothing. Measured by ic the same day: `intent st new` with and without `--dehydrate` produces byte-identical outcomes -- no manifest, the same one file on disk -- because `declared_list_edit` answers `None` for `st.new` whichever `ListEdit` the verb hands it. **THE FLAG IS INERT AND IS STILL SHIPPED, WHICH IS A DELIBERATE STATE AND NOT AN OVERSIGHT.** Retiring it removes a surface hv ratified into existence, and fail-forward is an argument rather than a pen, so **the retirement is hv's and is queued to hv with the measurement above as its evidence**. What is corrected here is only the basis, because a ratified row asserting a fact its own ruling reversed is how a retired decision comes back wearing hv's name (recorded by ic, `authority: vc`, 2026-08-27). The original design note stands on its own terms: a flag rather than a second verb, because it changes a side effect of creation and not the act, and a `st new-dehydrated` would be two names for one lifecycle transition."
             }
           ],
           "v2": "bin/intent_st:296-445",

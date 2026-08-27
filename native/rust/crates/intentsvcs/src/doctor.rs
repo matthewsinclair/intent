@@ -1136,6 +1136,28 @@ pub fn gate_state(carrier: Option<&str>, chain: Option<&str>, template: Option<&
 /// while no such file exists is broken; two absent files are a project that
 /// opted out.
 ///
+/// # WHERE THIS CHECK RUNS IS ANTI-CORRELATED WITH WHERE THE DEFECT LIVES
+///
+/// **A reader meeting `0 findings` fleet-wide will not infer this, so it is
+/// said here rather than only in the test.** [`diagnose`] returns at the
+/// migration arm before this runs, so an UNPORTED estate is never examined at
+/// all -- and an unported estate is exactly the one least likely to have a
+/// working gate. That is not a coverage gap, which would be neutral about
+/// which cases it missed; it is a systematic bias toward missing the ones that
+/// matter.
+///
+/// Measured on Conflab, 2026-08-27: `intent doctor` reports `1 finding across
+/// 0 thread(s), 0 issue(s), 0 view(s), **0 file(s)**`. Zero files scanned. A
+/// newer binary does not change it and neither does this check; only the port
+/// does.
+///
+/// **The limit is DRIVEN, not merely written here** --
+/// `gate_not_running_is_reported::an_unmigrated_estate_is_never_reached_and_that_is_the_limit_not_a_pass`
+/// reds if the migration arm is ever moved below this call, so whoever moves it
+/// learns that a check they had not considered now runs on estates it was never
+/// measured against. A limit recorded only in prose is one that stops being
+/// true without anyone noticing.
+///
 /// # No verb repairs any of it, and the findings say so
 ///
 /// No v3 code path writes the carrier. `intent claude upgrade --apply` writes

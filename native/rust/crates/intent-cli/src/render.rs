@@ -687,18 +687,19 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     Some(("new", a)) => {
       let title = arg(a, "title")?;
       let mut f = open()?;
-      // **`--dehydrate` SUPPRESSES THE LIST ENTRY AND NOT THE FILES**, which is
-      // narrower than its help text says. `Facade::apply` projects every
-      // changed thread and consults no manifest, so the views are written
-      // either way and the next `organize` is what removes them. Read through
-      // `flag` rather than assumed present: the flag is a dispatch-table row,
-      // and an absent one must not crash the renderer.
-      let list = if flag(a, "dehydrate") {
-        ListEdit::Suppressed
-      } else {
-        ListEdit::AsDeclared
-      };
-      let id = f.st_new_listing(&title, list).map_err(fail)?;
+      // **`--dehydrate` WAS RETIRED HERE (hv, 2026-08-27).** It suppressed the
+      // list entry, which stopped meaning anything the moment hv's 16:30Z
+      // ruling took `st.new` out of the list-editing set: `declared_list_edit`
+      // answers `None` for `st.new` whichever `ListEdit` the verb hands it, so
+      // the flag produced byte-identical outcomes with and without. Measured,
+      // not reasoned -- and then retired rather than documented, because
+      // Intent prunes and **a flag that does nothing is one somebody
+      // eventually tries to use.**
+      //
+      // `st_new_listing` STAYS, and is not now a test-only door: `st_new`
+      // delegates to it, so it is the one body. `--keep` on `st done` and
+      // `st cancel` still reach `ListEdit` and still mean what they say.
+      let id = f.st_new(&title).map_err(fail)?;
       // **`-s|--start` COMPOSES two declared transitions and never constructs
       // the end state** (vc, ruled 2026-08-15). The flag is v2 parity and it
       // never changed; the machine grew a state underneath it. v2's `st new`
