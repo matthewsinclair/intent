@@ -17,7 +17,7 @@
 //!
 //! **`.intentfiles` IS DURABLE STATE: the record of which database artefacts
 //! also have a realised form on disk.** Realisation is driven from it; COMMANDS
-//! CHANGE IT -- `st new` adds the id, `st done` removes it, `st hydrate` and
+//! CHANGE IT -- `st start` adds the id, `st done` removes it, `st hydrate` and
 //! `st dehydrate` and the issue equivalents do it directly -- and `organize`
 //! realises it. **A human editing it by hand is one writer among several, not
 //! the privileged one.**

@@ -498,9 +498,12 @@ const DEFAULT_HEADER: &str = "\
 # a CHANGE TO STATE and never a REGENERATION of it -- which is why re-running
 # `--default` over a file that already exists changes nothing without `--force`.
 #
-# Many writers, one meaning. `st new` adds the id, `st done` and `st cancel`
-# remove it, `st hydrate` / `st dehydrate` do it directly, and a human may edit
-# it by hand. All of those are ordinary writers; none is privileged.
+# Many writers, one meaning. `st start`, `st resume` and `st reopen` add the id;
+# `st done`, `st cancel`, `st hold` and `st triage` remove it; `st new` and
+# `st reinstate` do neither; `st hydrate` / `st dehydrate` do it directly; and a
+# human may edit it by hand. All of those are ordinary writers; none is
+# privileged. The op decides, not the status it lands on -- `st triage` removes
+# and `st reinstate` does not, and both end at Not Started.
 #
 # THE DATABASE ALWAYS HOLDS EVERY ARTEFACT IN FULL. This file decides only what
 # is ALSO on disk, so dehydration is never a loss and hydration is a

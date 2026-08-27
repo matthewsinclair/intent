@@ -972,6 +972,7 @@ version = "3.0.0"
 dependencies = [
  "clap",
  "intentsvcs",
+ "libc",
  "serde",
  "serde_json",
  "tempfile",

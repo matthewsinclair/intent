@@ -38,7 +38,7 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 | WP-08 | The mutation surface: write-by-address and the missing verbs                                                                          | L    | Done        |
 | WP-09 | The event log records the model and not the disk                                                                                      | S    | Done        |
 | WP-10 | doctor reports a dehydrated view as missing                                                                                           | S    | Done        |
-| WP-11 | Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function | S    | Not Started |
+| WP-11 | Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function | S    | Done        |
 | WP-12 | Issues get a realised form and a sigil, then join the default declaration                                                             | S    | Not Started |
 | WP-13 | The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket               | S    | Not Started |
 | WP-14 | The DONE cutoff is canon state, not history: it travels by git                                                                        | M    | WIP         |

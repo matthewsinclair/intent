@@ -1752,8 +1752,23 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   if force {
     // Asked BEFORE the write and answered by a human, so the report below is
     // always about something that has already happened.
-    println!("about to regenerate {manifest} from thread status.");
-    println!("this replaces what the file currently declares. it removes no files.");
+    // **THE OLD SECOND LINE READ `it removes no files`, AND AC-11.6 MAKES THAT
+    // FALSE.** It was true of every arm this verb had when it was written --
+    // `--default` wrote a declaration and stopped -- and it stayed on the
+    // screen while the arm underneath it became the destructive one. A confirm
+    // prompt is the one piece of prose in this estate whose whole job is to be
+    // accurate at the moment a human decides, so it names the act, names what
+    // survives it, and names the spelling that does not do it.
+    println!("about to regenerate {manifest} from thread status, and then APPLY it.");
+    println!(
+      "this is the destructive arm: it realises every thread the regenerated file declares, and it REMOVES the files of every realised thread it does not."
+    );
+    println!(
+      "a thread whose preconditions are unmet keeps every one of its files, and the refusal names the thread and the precondition."
+    );
+    println!(
+      "`intent organize --default` without --force writes the declaration and removes nothing."
+    );
     print!("proceed? [y/N] ");
     use std::io::Write as _;
     let _ = std::io::stdout().flush();
@@ -1799,12 +1814,37 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
       if done.declares == 1 { "y" } else { "ies" }
     );
   }
-  // **NO FILE WAS REMOVED, IN ANY ARM (AC-11.4)**, and the operator is told so
-  // rather than left to infer it from a report that only lists what it wrote.
-  println!(
-    "    no file was created or removed. `intent organize` previews what this declaration implies."
-  );
-  Ok(())
+  // **THE TWO ARMS FORK HERE, AND THE SENTENCE BELOW IS WHY THE FORK EXISTS.**
+  // It used to be unconditional and said `no file was created or removed, IN
+  // ANY ARM (AC-11.4)`. That is still exactly true of `--default` on its own,
+  // which is what AC-11.4 is about -- and AC-11.6 makes it false of
+  // `--default --force`, which is the arm hv described as the destructive one
+  // and the only one. An unconditional claim would now be a report that says
+  // nothing was removed on the run that removed things.
+  if !force {
+    println!(
+      "    no file was created or removed. `intent organize` previews what this declaration implies."
+    );
+    return Ok(());
+  }
+
+  // **AND THE APPLY IS THE SAME APPLY, NOT A SECOND ONE (AC-11.6).** The
+  // criterion's list -- realise every declared thread, dehydrate the undeclared
+  // realised ones only where every precondition holds, refuse per-thread by
+  // name otherwise, then WP-13's ingest and prune -- is the definition of
+  // `Mode::Apply`, so this reaches it rather than restating it. Composing the
+  // two operations is exactly what `fn organize` says it will not do inline,
+  // and that reservation is about the BARE verb: a run that decides what should
+  // be realised and acts on it cannot be previewed, so it is available only
+  // behind `--force` and a confirmed human, which is the shape hv ruled.
+  println!("    applying the regenerated declaration in the same run.");
+  let report = facade
+    .organize(intentsvcs::organize::Mode::Apply)
+    .map_err(fail)?;
+  // Performed tense, and a refusal moves the exit code exactly as it does under
+  // `--apply` -- the same act reported by the same code, including the part
+  // where something asked to be removed and was not.
+  render_organize_report(&project, &report, false)
 }
 
 fn organize(m: &ArgMatches) -> Result<(), Failure> {
@@ -1841,6 +1881,28 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   let (project, ctx) = context()?;
   let mut facade = Facade::open(project.clone(), ctx).map_err(fail)?;
   let report = facade.organize(mode).map_err(fail)?;
+  render_organize_report(&project, &report, previewing)
+}
+
+/// Render an organize report, in either tense.
+///
+/// **EXTRACTED BECAUSE AC-11.6 GAVE THIS BLOCK A SECOND CALLER, AND A SECOND
+/// COPY WOULD HAVE BEEN THE WORST KIND** (Highlander, `IN-AG-HIGHLANDER-001`).
+/// Every safety property this verb has lives in the WORDING here -- the tense
+/// on every line, the `(N blocked)` parenthetical beside a `0 to remove`, the
+/// no-ellipsis rule, the refusals on stderr in both modes. A copy would start
+/// identical and drift, and the drift would be invisible: both copies would go
+/// on printing plausible reports, and the one that lost a clause would lose it
+/// in the arm that REMOVES FILES.
+///
+/// `previewing` is passed rather than derived from a `Mode`, because the
+/// destructive arm of `--default --force` renders in the performed tense
+/// without ever holding a `Mode` of its own.
+fn render_organize_report(
+  project: &Project,
+  report: &intentsvcs::organize::Report,
+  previewing: bool,
+) -> Result<(), Failure> {
   // **PROJECT-RELATIVE, THROUGH THE PROJECT'S OWN ANSWER.** Measured on a real
   // estate before this was added: 199 unclaimed paths printed absolute, each
   // carrying 90 characters of temp-directory prefix before the part that

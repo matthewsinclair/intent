@@ -28,3 +28,13 @@ path = "src/main.rs"
 [dev-dependencies]
 testkit = { path = "../testkit" }
 tempfile.workspace = true
+# **A TEST-ONLY DEPENDENCY FOR `openpty`, AND IT ADDS NO THIRD-PARTY CODE.**
+# `libc` is already in this workspace's lock via the dependency graph, so this
+# makes an existing compile unit reachable rather than pulling one in -- the
+# same ground the workspace states for `regex`. It is needed because AC-11.6's
+# subject exists ONLY on a terminal: `--default --force` is gated on
+# `IsTerminal`, so the destructive arm cannot be driven by any test that does
+# not present one. Before this, the estate said so in a comment and left the
+# arm uncovered.
+libc = "0.2"
+

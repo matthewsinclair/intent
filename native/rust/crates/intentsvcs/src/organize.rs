@@ -257,10 +257,24 @@ pub enum OrganizeError {
   /// a refusal reporting only the first one trains an operator to fix that one
   /// and re-run -- and a count with no denominator cannot be told from a gate
   /// that checked nothing.
+  ///
+  /// **AND IT NAMES THE THREADS WHOSE FILES ARE HELD, WHICH A COUNT DOES NOT.**
+  /// One refusal for the whole run is right -- the unmet precondition is a
+  /// property of the estate -- but the consequence lands on particular threads,
+  /// and `would remove 2 file(s)` leaves the operator to work out which two by
+  /// diffing the estate against a description of it. The threads are the
+  /// smallest thing that turns the refusal into something actionable, and they
+  /// are what AC-11.6 asks the refusal to name beside the precondition.
   #[error(
-    "refusing to dehydrate: this run would remove {removals} file(s), and this estate has not proved it can put them back -- {verdict}. Each precondition is an acceptance criterion of this project; `intent ac list` shows the state of every one, and this gate records no answer of its own."
+    "refusing to dehydrate: this run would remove {removals} file(s) belonging to {}, and this estate has not proved it can put them back -- {verdict}. Each precondition is an acceptance criterion of this project; `intent ac list` shows the state of every one, and this gate records no answer of its own.",
+    if .threads.is_empty() { "no thread this gate could name".to_string() } else { .threads.join(", ") }
   )]
-  PreconditionsUnmet { removals: usize, verdict: Verdict },
+  PreconditionsUnmet {
+    removals: usize,
+    verdict: Verdict,
+    /// The threads owning the held files, deduplicated, in path order.
+    threads: Vec<String>,
+  },
 
   /// An attachment diverges from the store (AC-04.3). `organize` reports and
   /// modifies neither side.
@@ -346,6 +360,20 @@ fn thread_relative(project: &Project, path: &Path) -> Option<PathBuf> {
     return None;
   }
   Some(rel)
+}
+
+/// The thread id owning `path`, or `None` for anything not under the estate root.
+///
+/// **THE FIRST COMPONENT UNDER THE ROOT, WHICH IS THE SAME FRAME
+/// [`thread_relative`] DISCARDS.** That one throws the id away to get at the
+/// file; this one throws the file away to get at the id. Kept as two functions
+/// rather than one returning a pair, because every caller of each wants exactly
+/// one half and a pair would have both of them destructuring past the part they
+/// do not use.
+fn thread_of(estate_root: &Path, path: &Path) -> Option<String> {
+  let under = path.strip_prefix(estate_root).ok()?;
+  let first = under.components().next()?;
+  Some(first.as_os_str().to_string_lossy().into_owned())
 }
 
 /// Read the tree as [`plan`] needs it, and fingerprint it in the same pass.
@@ -789,9 +817,18 @@ impl Plan {
       // ONE refusal for the whole run, not one per file. The unmet precondition
       // is a property of the estate, so N copies of an identical sentence would
       // bury the per-file refusals that ARE about their file.
+      // **DERIVED FROM THE HELD STEPS THEMSELVES, NOT FROM THE DECLARATION.**
+      // The question the operator is asking is which threads lost their
+      // removal, and only the steps know that. A `BTreeSet` because the same
+      // thread contributes one step per file and the refusal wants threads.
+      let threads: std::collections::BTreeSet<String> = self
+        .with(Action::Dehydrate)
+        .filter_map(|s| thread_of(&self.estate_root, &s.path))
+        .collect();
       report.refused.push(OrganizeError::PreconditionsUnmet {
         removals: self.with(Action::Dehydrate).count(),
         verdict: self.preconditions.clone(),
+        threads: threads.into_iter().collect(),
       });
     }
 

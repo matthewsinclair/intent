@@ -2,7 +2,7 @@
 wp_id: WP-11
 title: Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-11: Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
@@ -19,10 +19,10 @@ So `.intentfiles`'s rule *"OPEN means every status except Completed and Cancelle
 
 ## The verb
 
-- `intent organize --default` -- `.intentfiles` ABSENT: write it from status (header + one `STEELTHREAD:<ID>` line per open thread) and exit 0. PRESENT: change nothing, say so (`present, declares N; --force to regenerate`), exit 0.
+- `intent organize --default` -- `.intentfiles` ABSENT: write it from status (header + one `STEELTHREAD:<ID>` line per WIP thread) and exit 0. PRESENT: change nothing, say so (`present, declares N; --force to regenerate`), exit 0.
 - `intent organize --default --force` -- PRESENT: regenerate from status after a y/N read from the tty (`hydrate` / `dehydrate` customisations are lost, which is what the confirmation is for); no tty, no `--force` write.
 - `--default` on its own writes the DECLARATION only and never removes a file: removal stays behind `organize --apply` and the dehydration preconditions, so the next preview reports every undeclared realised thread as `to remove (blocked)` and nothing moves. Declaring and dehydrating are two steps by design.
-- **`--default --force` ANSWERED `y` ON A TTY IS THE EXCEPTION, AND THIS COVER USED TO DENY IT EXISTED.** hv, 2026-08-26, first-hand, quoted at AC-11.6: `--default` never removes a file *"unless it is used with --force, which does remove files, after a confirm"*. That arm applies the regenerated declaration in the same run, dehydrating each undeclared realised thread ONLY where every declared precondition holds for it, and removing not one file of a thread whose preconditions are unmet. AC-11.6 is the contract; **the confirm text is owed a rewrite alongside it, because it currently promises "it removes no files", which under `--force` is false.**
+- **`--default --force` ANSWERED `y` ON A TTY IS THE EXCEPTION, AND THIS COVER USED TO DENY IT EXISTED.** hv, 2026-08-26, first-hand, quoted at AC-11.6: `--default` never removes a file *"unless it is used with --force, which does remove files, after a confirm"*. That arm applies the regenerated declaration in the same run, dehydrating each undeclared realised thread ONLY where every declared precondition holds for it, and removing not one file of a thread whose preconditions are unmet. AC-11.6 is the contract, and it is BUILT as of 2026-08-27 (AT-11.6, driven on a real pseudo-terminal, which is the only way this arm can be reached). **The confirm text was owed a rewrite alongside it and has had one:** it promised *"it removes no files"*, which under `--force` is false, and it now names the act, names what survives it, and names the spelling that does not do it. The refusal was owed one too and had gone unnoticed -- it named the unmet precondition but not the THREAD whose files it was holding, so an operator was told how many files were held and left to work out whose.
 
 ## One function, three callers
 
@@ -34,7 +34,7 @@ Every migrated project is fully realised (Laksa: 110 of 110) because none has an
 
 ## Not here
 
-- Issues: hv's default is "open STs and ISSUES", and the grammar has exactly one sigil; `ISSUE` was retired 2026-08-20 because a declared issue realised nothing. WP-12 gives issues a realised form first; until then `--default` declares open threads only.
+- Issues: hv's default is "open STs and ISSUES", and the grammar has exactly one sigil; `ISSUE` was retired 2026-08-20 because a declared issue realised nothing. WP-12 gives issues a realised form first; until then `--default` declares WIP threads only.
 - Dehydrating the fleet's realised trees: waits on one `.canon` emitter (attachments in canon), the preconditions moving into the tool (`organize.rs:261`), and `st dehydrate` (ST0061); then one `organize --apply` per project.
 
 ## Acceptance
