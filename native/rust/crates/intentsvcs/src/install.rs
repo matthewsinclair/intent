@@ -58,6 +58,16 @@ pub enum InstallError {
   NotFound { exe: String, marker: &'static str },
   #[error("cannot determine this executable's own path: {0}")]
   Exe(#[source] std::io::Error),
+  #[error("refusing to record {root} as the Intent install root: no {marker}/ there")]
+  NotAnInstall { root: String, marker: &'static str },
+  #[error("cannot write the install-root pointer: {0}")]
+  Pointer(#[source] std::io::Error),
+  #[error("{pointer} reads back as {read} after writing {wrote}")]
+  PointerDisagrees {
+    pointer: String,
+    wrote: String,
+    read: String,
+  },
 }
 
 /// **The remedy came OUT of the Display string, and that is the fix rather than
@@ -76,6 +86,23 @@ impl crate::remedy::Remedy for InstallError {
       // the binary was replaced or deleted while running.
       Self::Exe(_) => {
         "the running binary could not be located on disk, which usually means it was replaced or removed mid-run -- start a fresh process before doing anything else".to_string()
+      }
+      // The refusal already names the root. What a reader needs is that the
+      // fault is the ROOT, not the pointer -- nothing was written, so there is
+      // nothing to undo.
+      Self::NotAnInstall { .. } => {
+        "nothing was recorded -- the pointer is untouched. This binary resolved an install root that is not one, so reinstall Intent rather than editing the pointer by hand".to_string()
+      }
+      Self::Pointer(_) => {
+        "the install-root pointer under ~/.intent/ could not be written -- check that ~/.intent exists and is writable, then re-run".to_string()
+      }
+      // **THE TWO-WRITERS CASE, AND IT IS THE ONE THAT MUST NOT SAY 'RETRY'.**
+      // The write returned success and the file says something else, so
+      // something other than Intent is writing it. Retrying races that writer
+      // and would eventually succeed by luck, which is the worst outcome: a
+      // pointer that looks settled while two things disagree about it.
+      Self::PointerDisagrees { .. } => {
+        "something other than Intent is writing the install-root pointer -- do NOT re-run until you know what. The pointer has exactly one writer by design, and a retry here races the other one".to_string()
       }
     }
   }
@@ -145,6 +172,108 @@ pub const HOOKS: &[&str] = &[
   "session-finish",
 ];
 
+/// What publishing the install-root pointer did.
+///
+/// **`Changed` IS A SEPARATE VARIANT FROM `Written` BECAUSE A MOVING DELIVERY
+/// TARGET THAT DOES NOT ANNOUNCE ITSELF IS THE STANDING FACT THIS WHOLE DESIGN
+/// CAME OUT OF** (vc, 2026-08-27). On the day it was contracted, the answer to
+/// "where does a fix land to reach the fleet" changed three times -- a frozen
+/// v2 checkout, a development tree, a Homebrew Cellar -- and not one of them
+/// said so. This file is about to BECOME that target, so a change to it is the
+/// one event a caller must be able to report.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Published {
+  /// The pointer already named this root. Nothing was written.
+  Unchanged { root: PathBuf },
+  /// There was no usable pointer; this root is now recorded.
+  Written { root: PathBuf },
+  /// The pointer named something else. **Say so.**
+  Changed { root: PathBuf, from: String },
+}
+
+/// Publish [`home`]'s answer to [`crate::userstate::home_pointer`].
+///
+/// **THE VALUE COMES FROM `home()` AND NOWHERE ELSE.** A caller cannot pass a
+/// root in, and that is the signature doing the enforcing rather than a comment
+/// asking politely: the source publishes its own cache, so there is one
+/// computation of "where is Intent installed" and one place it is recorded.
+///
+/// **REFUSES BEFORE WRITING, AND ASSERTS AFTER.** Both, and they answer
+/// different questions. Before: is this root actually an install -- because
+/// publishing an unverified root through the very file the shim TRUSTS would
+/// be the contract defeating itself, and it is the one failure invisible until
+/// every estate is already wearing it. After: did the bytes that reached disk
+/// say what we meant -- because a write that half-succeeded leaves a pointer
+/// nobody checked, and this file's whole job is being trustworthy without a
+/// second opinion.
+///
+/// **IDEMPOTENT.** An unchanged value does not rewrite the file, so its mtime
+/// does not move and a caller can run this as often as it likes.
+pub fn publish_home() -> Result<Published, InstallError> {
+  let root = home()?;
+  let pointer = crate::userstate::home_pointer()
+    .map_err(|e| InstallError::Pointer(std::io::Error::other(e.to_string())))?;
+  publish_home_at(&root, &pointer)
+}
+
+/// The half with the paths handed in, so every arm can be driven against a
+/// fixture rather than against whatever tree the suite happens to run in --
+/// the same split [`home`] and [`resolve`] already use in this module.
+pub fn publish_home_at(root: &Path, pointer: &Path) -> Result<Published, InstallError> {
+  // BEFORE. The marker is the one `is_install` uses, so the writer and the
+  // resolver agree on what an install IS by construction rather than by two
+  // definitions kept in step by hand.
+  if !is_install(root) {
+    return Err(InstallError::NotAnInstall {
+      root: root.display().to_string(),
+      marker: MARKER,
+    });
+  }
+
+  let previous = std::fs::read_to_string(pointer)
+    .ok()
+    .map(|t| t.lines().next().unwrap_or_default().trim().to_string())
+    .filter(|t| !t.is_empty());
+
+  let line = root.display().to_string();
+  if previous.as_deref() == Some(line.as_str()) {
+    return Ok(Published::Unchanged {
+      root: root.to_path_buf(),
+    });
+  }
+
+  if let Some(parent) = pointer.parent() {
+    std::fs::create_dir_all(parent).map_err(InstallError::Pointer)?;
+  }
+  std::fs::write(pointer, format!("{line}\n")).map_err(InstallError::Pointer)?;
+
+  // AFTER, on bytes. Not "the write returned Ok" -- that is a claim about the
+  // call, and what the shim will read is the file.
+  let readback = std::fs::read_to_string(pointer).map_err(InstallError::Pointer)?;
+  if readback.lines().next().unwrap_or_default().trim() != line {
+    return Err(InstallError::PointerDisagrees {
+      pointer: pointer.display().to_string(),
+      wrote: line,
+      read: readback
+        .lines()
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_string(),
+    });
+  }
+
+  Ok(match previous {
+    Some(from) => Published::Changed {
+      root: root.to_path_buf(),
+      from,
+    },
+    None => Published::Written {
+      root: root.to_path_buf(),
+    },
+  })
+}
+
 /// Where a shipped hook script lives, given the install root.
 pub fn hook_script(home: &Path, name: &str) -> PathBuf {
   home
@@ -182,6 +311,129 @@ mod tests {
   /// A tree shaped like an install, plus one that is not.
   fn install_at(root: &Path) {
     std::fs::create_dir_all(root.join(MARKER).join(".claude/scripts")).unwrap();
+  }
+
+  /// **REFUSES BEFORE WRITING, AND WRITES NOTHING.** The refusal is the point;
+  /// "and writes nothing" is what makes it safe to run against a live pointer,
+  /// because a publisher that truncates before validating would destroy a good
+  /// pointer on its way to reporting a bad root.
+  #[test]
+  fn a_root_that_is_not_an_install_is_refused_and_the_pointer_is_untouched() {
+    let dir = tempfile::tempdir().unwrap();
+    let not_install = dir.path().join("nope");
+    std::fs::create_dir_all(&not_install).unwrap();
+    let pointer = dir.path().join(".intent/home");
+    std::fs::create_dir_all(pointer.parent().unwrap()).unwrap();
+    std::fs::write(&pointer, "/a/good/root\n").unwrap();
+
+    let err = publish_home_at(&not_install, &pointer).unwrap_err();
+    assert!(matches!(err, InstallError::NotAnInstall { .. }), "{err:?}");
+    assert_eq!(
+      std::fs::read_to_string(&pointer).unwrap(),
+      "/a/good/root\n",
+      "a refused publish must not have touched the existing pointer"
+    );
+  }
+
+  #[test]
+  fn an_absent_pointer_is_written_and_its_parent_created() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("install");
+    install_at(&root);
+    // Deliberately NOT pre-created: a first-time install has no ~/.intent.
+    let pointer = dir.path().join(".intent/home");
+
+    let out = publish_home_at(&root, &pointer).unwrap();
+    assert_eq!(out, Published::Written { root: root.clone() });
+    assert_eq!(
+      std::fs::read_to_string(&pointer).unwrap(),
+      format!("{}\n", root.display())
+    );
+  }
+
+  /// Idempotent, and asserted on the MTIME rather than on the return value --
+  /// returning `Unchanged` while rewriting the file would satisfy a weaker test
+  /// and still move every consumer's mtime on every run.
+  #[test]
+  fn publishing_the_same_root_twice_writes_nothing_the_second_time() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("install");
+    install_at(&root);
+    let pointer = dir.path().join(".intent/home");
+
+    publish_home_at(&root, &pointer).unwrap();
+    let first = std::fs::metadata(&pointer).unwrap().modified().unwrap();
+
+    let out = publish_home_at(&root, &pointer).unwrap();
+    assert_eq!(out, Published::Unchanged { root: root.clone() });
+    assert_eq!(
+      std::fs::metadata(&pointer).unwrap().modified().unwrap(),
+      first,
+      "an unchanged publish rewrote the file"
+    );
+  }
+
+  /// **A MOVED DELIVERY TARGET MUST ANNOUNCE ITSELF**, which is the whole
+  /// reason `Changed` is not folded into `Written`. It carries the OLD value,
+  /// because "the root changed" without saying from what is the same
+  /// unannounced move this design exists to end.
+  #[test]
+  fn a_changed_root_reports_the_change_and_names_what_it_replaced() {
+    let dir = tempfile::tempdir().unwrap();
+    let old_root = dir.path().join("old");
+    let new_root = dir.path().join("new");
+    install_at(&old_root);
+    install_at(&new_root);
+    let pointer = dir.path().join(".intent/home");
+
+    publish_home_at(&old_root, &pointer).unwrap();
+    let out = publish_home_at(&new_root, &pointer).unwrap();
+    assert_eq!(
+      out,
+      Published::Changed {
+        root: new_root.clone(),
+        from: old_root.display().to_string(),
+      }
+    );
+  }
+
+  /// An empty or whitespace pointer is a first write, not a change from "".
+  /// A `Changed { from: "" }` would report a move that never happened.
+  #[test]
+  fn an_empty_pointer_is_a_first_write_rather_than_a_change_from_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("install");
+    install_at(&root);
+    let pointer = dir.path().join(".intent/home");
+    std::fs::create_dir_all(pointer.parent().unwrap()).unwrap();
+    std::fs::write(&pointer, "   \n").unwrap();
+
+    assert_eq!(
+      publish_home_at(&root, &pointer).unwrap(),
+      Published::Written { root: root.clone() }
+    );
+  }
+
+  /// **THE ROUND TRIP THAT MATTERS: what is published is what the SHIM reads.**
+  /// The shim takes `head -n 1`, trims, and requires `lib/templates` under it.
+  /// This asserts the same three things against the bytes on disk, so the
+  /// writer and the reader are held to one contract rather than two that were
+  /// written to agree.
+  #[test]
+  fn what_is_published_is_what_the_shim_resolves() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("install");
+    install_at(&root);
+    let pointer = dir.path().join(".intent/home");
+    publish_home_at(&root, &pointer).unwrap();
+
+    let text = std::fs::read_to_string(&pointer).unwrap();
+    let first = text.lines().next().unwrap().trim();
+    assert_eq!(first, root.display().to_string());
+    assert!(
+      Path::new(first).join(MARKER).is_dir(),
+      "the published root does not satisfy the shim's own check"
+    );
   }
 
   fn tmp(name: &str) -> PathBuf {

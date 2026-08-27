@@ -78,6 +78,25 @@ pub fn intent_dir() -> Result<PathBuf, UserStateError> {
   Ok(home()?.join(".intent"))
 }
 
+/// `~/.intent/home` -- the one line naming this machine's Intent install root.
+///
+/// **THE POINTER THE PRE-COMMIT SHIM READS, AND THE ONLY THING IT READS**
+/// (hv ruling 1, 2026-08-27). The gate stopped being copied into each project;
+/// a shim resolves the install root from this file and execs the one gate body
+/// out of it. See `lib/templates/hooks/pre-commit-shim.sh`.
+///
+/// **A CACHE THE SOURCE PUBLISHES ABOUT ITSELF.** The value is
+/// [`crate::install::home`]'s answer and nothing else's -- the moment a second
+/// thing can write here there are two answers to a question that must have one,
+/// which is the class the shim exists to remove rather than relocate.
+///
+/// It lives under [`intent_dir`] rather than beside the binary on purpose: it
+/// describes THIS MACHINE, and a binary that has been moved, relinked or
+/// replaced must not be able to take its own pointer with it.
+pub fn home_pointer() -> Result<PathBuf, UserStateError> {
+  Ok(intent_dir()?.join("home"))
+}
+
 /// `~/.claude` -- Claude Code's per-user directory, which Intent installs into
 /// but does not own.
 ///
