@@ -364,6 +364,27 @@ Chained to `pre-commit.intent` via chain-block markers, **EXACTLY ONCE**. Region
 | 16 | Lamplight | -- | NOT STARTED | -- | the biggest: 3740 unclaimed, 10 lost citations, 3 view-skew, two stale `.worktrees` at 2.19.0 |
 | 17 | Intent | -- | NOT STARTED | -- | ST0055's five WPs, ST0057/WP-08 (ic's), my two shell reds, the PASSES-branch remedy text |
 
+### LEDGER CORRECTED 2026-08-27 -- MEASURED ACROSS ALL 17 ESTATES, NOT READ OFF THE TABLE ABOVE
+
+**THE ROWS ABOVE ARE SUPERSEDED AND KEPT RATHER THAN EDITED, because the failure they record is more useful than the state they got wrong: THIS LEDGER WAS TWO DAYS STALE IN BOTH DIRECTIONS AND I WAS STILL REPORTING FROM IT.** I told hv for two days that Lamplight's 42 rows and Laksa's guard patch blocked the port. Both estates were already ported. I dispatched lamplight-vc to re-drive a hop 2 on a tree whose state I had MEASURED AT SESSION START -- my own output printed `config: 3.0.0` and `canon: PRESENT` -- and only that script's own preconditions stopped it.
+
+**MEASURED STATE (`intent_version`, `intent/.canon` presence, canon thread count), 2026-08-27:**
+
+| state                                                         | estates                                                                                                                                               |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **on v3.0.0 WITH canon**                                      | Anvil 6, Baize 25, Cdsync 4, Courses 2, Devbin 2, **Intent 64**, **Laksa 110**, **Lamplight 353**, MicroGPTEx 3, Molt 2, Prolix 28, Riffle 5, Utilz 9 |
+| **v3.0.0, no canon, ZERO threads -- nothing to port**         | Molt-flynn, Molt-matts                                                                                                                                |
+| **2.19.0, FROZEN by hv's standing rule -- correct, leave it** | Intentv2                                                                                                                                              |
+| **2.19.0, no canon -- THE ONLY GENUINE REMAINDER**            | **Conflab** (4 threads; ST0121 carries 93 AC/AT rows; `.gitignore` has NEITHER `intent/.cache` NOR `intent/events.jsonl`)                             |
+
+**LAMPLIGHT'S PORT LANDED AT `4ffd0fe1f` (26 Aug 19:37, hops 2+3), then `6b946eb21` (3744 bucket files to history, 89 threads dated, 275 findings -> 157), then ac's `8daaf3065`.** The port rewrote 22 `acceptance.md` files, 875 insertions against 1480 deletions -- **so the acceptance prose the "42 AC rows" question was about NO LONGER EXISTS, and that item is void rather than pending.**
+
+**AND NOBODY KNOWS THE PREDICATE BEHIND "42".** lamplight-vc tried to reconstruct it -- AC rows, four fields, not `(non-test)` -- and got **4 rows across 2 threads**. It reported its counts as UNUSABLE rather than reconciling them, which is the correct handling. **The figure reached me as a number and I passed it on as one, for two days, to the node whose ruling depended on it.**
+
+**WHAT lamplight-vc's STORE CENSUS FOUND INSTEAD, and it reframes the ruling rather than answering it (2616 criteria, 1731 tests, 353 threads):** `evidence` is a structured key on **830 criteria already**; `red-first`, `on`, `control` and `mutation` are **NOT KEYS ANYWHERE**, with `red-first` surviving as text in 39 of 353 files. **So a question posed about four fields is really about the three that never became structure, and the largest member was decided before anyone asked.**
+
+**THE RULE THIS LEDGER NOW CARRIES: RE-MEASURE THE QUEUE, NEVER REPORT IT.** A ledger is a record of what was done, not a statement of what is true now, and the two diverge the moment another node commits. Drive `intent_version` + `intent/.canon` across `~/Devel/prj` before answering any question about port state.
+
 **LEARNED, port:**
 
 - **A SENTENCE-MATCHED REWRITE MISSES WHAT SITS MID-LINE; SWEEP BY THE PATH.** Four of twelve closed projects still named a bucket after their own citation pass, including two CODE COMMENTS in Cdsync pointing into Utilz. The path grep found them all at once.
@@ -429,3 +450,12 @@ Chained to `pre-commit.intent` via chain-block markers, **EXACTLY ONCE**. Region
 **A SESSION IS NAMED AT LAUNCH, NOT ASKED TO RENAME ITSELF** (hv's question, vc's fix at `ea85ce5e`). `claude -n/--name` sets the display name in the prompt box, the `/resume` picker and the terminal title. **A name set at exec is right from the FIRST frame and does not depend on the session honouring an instruction -- and a session that dies before its first turn is still identifiable in `/resume`, which is exactly when you need to find it.**
 
 **A DRY RUN THAT OMITS A FLAG THE REAL RUN PASSES IS NOT A PREVIEW OF THE THING PREVIEWED** (vc). Trivial to fix, and the same family as everything above.
+
+**A CONDITIONAL COLLAPSED INTO AN ASSERTION, AND IT IS THE MOST EXPENSIVE OF THE DAY DESPITE BEING THE LEAST DRAMATIC** (vc, caught by cc). I told hv and cc that the fail-open ordering question was "now dissolved by the shim contract". The honest sentence is **it dissolves IF hv approves R1+R2** -- `47aa84c7` is a PROPOSAL and I gave it the standing of a decision. cc refused it on a routing rule (_a ruling that reaches me through a peer is not a ruling_) and then recorded mine instead, because **the fault is in the CLAIM, not the channel: it would have been just as wrong read directly off my board.**
+
+- **THE REASON IT IS THE EXPENSIVE ONE: THE OTHER THREE WERE CAUGHT BY INSTRUMENTS AND THIS ONE WOULD HAVE BEEN CLOSED BY AGREEMENT** (vc, sharpened by cc). A stale hash gets re-derived; a hold gets questioned; a run gets refused by its own preconditions. **But "we both think it is dissolved" produces no artefact, and the question is simply gone.** Two nodes concurring leaves nothing behind that a check can refuse.
+- **A BOSS NODE'S RELAYS NEED THE RULE MORE, NOT LESS.** They carry more weight, so they are the ones most likely to be spent as rulings. cc's working distinction, kept: **take vc's DISPATCHES immediately, refuse vc's RULINGS as rulings.**
+
+**CARE DOES NOT SCALE ACROSS FIVE NODES AND A FLEET; A PRECONDITION THAT REFUSES ITS OWN OPERATOR DOES** (cc, and the day's closing argument). cc's 26 green bats arms were consistent with the fail-open being live in 14 estates and **no amount of care would have said otherwise -- only an instrument that could exhibit the case.** lamplight-vc's script refused ME this afternoon, and that is the instrument working rather than the operator failing gracefully. **Prefer building the refusal to resolving to be more careful.**
+
+**ANY STANDING CONSTRAINT SHOULD BE ABLE TO SAY WHAT IT IS CURRENTLY PROTECTING, IN THE PRESENT TENSE** (vc). I froze cc's builds to protect a hop-2 measurement that was then cancelled, and left the freeze standing for an hour over nothing. Generalises past holds to every freeze, pin, gate and exemption in the estate.
