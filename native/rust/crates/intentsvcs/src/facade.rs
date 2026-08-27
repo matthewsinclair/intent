@@ -1303,6 +1303,26 @@ fn declared_list_edit(op: &str) -> Option<ListAction> {
     // change wearing a refactor.
     "st.start" | "st.resume" | "st.reopen" => Some(ListAction::Add),
     "st.done" | "st.cancel" | "st.hold" | "st.triage" => Some(ListAction::Remove),
+    // **THE TWO LEGITIMATE `None`s, NAMED SO THE WILDCARD STOPS ANSWERING FOR
+    // THEM** (vc's Highlander finding F1, 2026-08-27). This vocabulary has two
+    // consumers and they fail in OPPOSITE directions: an op missing from
+    // `transitions.rs` is REFUSED at `check_transition`, loudly; an op missing
+    // from here falls through the wildcard and SILENTLY MAKES NO LIST EDIT --
+    // the transition works, the declaration quietly does not follow, and the
+    // only detector is someone noticing in the field. That is what happened
+    // three times on 2026-08-27, and `cce816a4`, `6ff37c0f` and `26111785` are
+    // the cost already paid for it.
+    //
+    // `st.new` creates a thread at `triage`, which is not the realised set
+    // (hv, 16:30Z). `st.reinstate` lands on `not-started`, which is not either
+    // (hv, 16:43Z). Both belong here rather than in a `_` that cannot tell a
+    // ruled `None` from an op nobody wired.
+    "st.new" | "st.reinstate" => None,
+    // **AND THE WILDCARD NOW ANSWERS FOR OTHER ENTITIES ONLY.** `wp.*`, `ac.*`,
+    // `at.*` and the rest never edit a thread's declaration, and
+    // `every_st_op_has_a_declared_list_answer.rs` holds it to that: every
+    // `st.*` op is named above, derived from the edge table rather than from a
+    // list anyone maintains.
     _ => None,
   }
 }
