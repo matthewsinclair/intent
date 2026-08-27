@@ -128,14 +128,21 @@ pub struct Upgraded {
 /// place to overrule it -- regenerating from status is `organize --default
 /// --force`, which asks a human first.
 ///
-/// **IT RUNS AFTER THE REALISATION, WHICH IS THE WHOLE OF WHY IT IS SAFE TO
-/// LAND TONIGHT.** `migrate::plan` has already decided what to realise, using
-/// the absent-manifest rule that realises everything (`Realised::declares`
-/// answers true for an absent file). So this ADDS a declaration and changes not
-/// one file on disk. The other half of AC-11.3 -- the migration realising ONLY
-/// the declared threads -- is a behaviour change to the converted tree and is
-/// held to 3.0.2 (vc, 2026-08-26): landing it mid-sweep would give six
-/// re-converted projects two different rules with nothing on disk saying which.
+/// **IT RUNS AFTER THE REALISATION, AND THE TWO NOW AGREE BY CONSTRUCTION.**
+/// `migrate::plan` decides what to realise by reading back the very text this
+/// function is about to write -- `realised_from(&default_declaration(..))` --
+/// so the declared set and the realised set are the same set, derived once.
+///
+/// **THIS PARAGRAPH USED TO SAY THE OPPOSITE AND IT IS REWRITTEN RATHER THAN
+/// DELETED, BECAUSE THE OLD TEXT WAS A PROMISE.** It read: *"So this ADDS a
+/// declaration and changes not one file on disk. The other half of AC-11.3 --
+/// the migration realising ONLY the declared threads -- is ... held to 3.0.2
+/// (vc, 2026-08-26)."* That was true when written, and a reader arriving here
+/// to trace why a converted estate had non-WIP threads on disk would have been
+/// told it was known, deferred, and someone else's problem. **hv has ruled
+/// there is no 3.0.2**, so a clause parked there was parked nowhere; vc lifted
+/// the hold on 2026-08-27 once the residue it worried about was measured
+/// rather than argued (see `migrate::plan`, where the measurement is recorded).
 ///
 /// **The content is `intentfiles::default_declaration` and nothing else**, so a
 /// change to what "open" means moves this caller, `init` and the verb together.

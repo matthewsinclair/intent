@@ -488,9 +488,52 @@ fn assemble(
   // showed there was no mechanism.
   //
   // **`Realised::declares` answers TRUE for an absent or unreadable manifest**
-  // (ABSENT IS NOT EMPTY, hv), so a v2 estate -- which has no manifest at all
-  // -- realises everything exactly as before.
-  let realised = crate::intentfiles::realised(&project.intentfiles_path());
+  // (ABSENT IS NOT EMPTY, hv). That rule is untouched and stays right for every
+  // other reader -- but THIS caller is about to WRITE the manifest, so for it
+  // "nobody has said" is not the end of the question. `declare_default_if_absent`
+  // runs minutes later in `Facade::upgrade` and declares the WIP set; realising
+  // everything here and declaring a subset there is what left six of ten
+  // realised thread directories in Intent's own estate non-WIP.
+  //
+  // **SO THE MIGRATION FILTERS AGAINST THE BYTES IT IS ABOUT TO WRITE, NOT
+  // AGAINST A SECOND PREDICATE.** `default_declaration` is the ONE definition
+  // of what the default declares (AC-11.3); spelling `status == Wip` again here
+  // would be a second home for it, which is the exact defect that criterion
+  // exists to forbid -- and it would arrive through the migrator, where nobody
+  // is looking. Reading the declaration back through `realised_from` means the
+  // declared set and the realised set cannot disagree, because they are the
+  // same text.
+  //
+  // **`Unreadable` IS LEFT FAIL-OPEN DELIBERATELY.** A manifest that exists and
+  // will not parse is somebody having said something we cannot read, and
+  // `declare_default_if_absent` will not overwrite it either -- so realising
+  // everything keeps this door and that one agreeing.
+  //
+  // # What this leaves behind, measured rather than assumed
+  //
+  // `WriteSet` has no remove, so a v2 estate's non-WIP thread directories stay
+  // on disk carrying their v2 content: undeclared, and no longer refreshed.
+  // **That state is AC-11.4's, not a hole** -- `organize` (preview) reports it
+  // as to-remove-and-blocked with every pre-existing file intact, driven on a
+  // fixture 2026-08-27: `0 to remove (2 blocked)`. And a STALE undeclared view
+  // is still caught: `views::skew` walks `render_all` over all canon and
+  // consults `Realised` only in its file-ABSENT arm, so an undeclared file that
+  // differs from the model reports `view-skew` -- driven on the same fixture,
+  // against a control where the identical undeclared thread with a CURRENT file
+  // reported nothing. vc made that measurement the condition of lifting the
+  // hold this clause sat under, on the ground that a check narrower than the
+  // defect it is aimed at is the class that has cost this estate most.
+  let realised = match crate::intentfiles::realised(&project.intentfiles_path()) {
+    crate::intentfiles::Realised::NothingSaid => {
+      let statuses: Vec<(String, crate::model::ThreadStatus)> = canon
+        .threads
+        .iter()
+        .map(|t| (t.id.clone(), t.status))
+        .collect();
+      crate::intentfiles::realised_from(&crate::intentfiles::default_declaration(&statuses))
+    }
+    said => said,
+  };
   let unrealised: Vec<PathBuf> = canon
     .threads
     .iter()

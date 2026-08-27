@@ -85,15 +85,24 @@
 //! FUNCTION must not redden the proof, or the test would punish every
 //! legitimate edit and teach a maintainer to pin literals.
 //!
-//! # What this file does NOT cover, named rather than left to be noticed
+//! # AC-11.3's migration clause -- _realises only those threads_
 //!
-//! **AC-11.3's migration clause -- _realises only those threads_ -- is not
-//! here.** The migration declares the WIP set AFTER `migrate::plan` has
-//! already realised everything (an absent manifest realises all), so the
-//! declaration lands over a fully realised tree. That half is a behaviour
-//! change to every converted estate and is owed separately; asserting it here
-//! would make this file red for a reason that has nothing to do with the one
-//! definition it is about.
+//! **THIS SECTION USED TO SAY THE CLAUSE WAS NOT COVERED HERE, AND IT IS NOW.**
+//! `the_migration_realises_only_what_it_declares` is below. When this file was
+//! written the migration declared the WIP set AFTER `migrate::plan` had already
+//! realised everything, so the declaration landed over a fully realised tree
+//! and the clause was unmet; the note said so and pointed at the gap. The
+//! behaviour landed 2026-08-27 (`migrate::plan` filters against the bytes it is
+//! about to write) and the assertion follows it.
+//!
+//! **WHAT THE CLAUSE CANNOT MEAN, AND THE TEST BELOW IS SHAPED BY IT.**
+//! `WriteSet` has no remove, so a v2 estate's non-WIP thread directories stay
+//! on disk holding their v2 content. "Realises only those threads" is therefore
+//! a claim about what the migration WRITES, never about what survives -- and
+//! the test asserts both halves: the v3-only view appears for the declared
+//! thread and for no other, and every undeclared thread's file is byte-identical
+//! to what it was before the run. **The residue is AC-11.4's state, not a
+//! hole**, and `organize` reports it as to-remove-and-blocked.
 
 mod common;
 
@@ -312,4 +321,60 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
     "a re-run must leave a present manifest alone -- regenerating it discards \
      every hand realisation the estate had recorded"
   );
+}
+/// **AC-11.3's MIGRATION CLAUSE: _realises only those threads_.**
+///
+/// The corpus is one WIP thread and four that are not, so the declared set and
+/// the converted set genuinely differ -- **on a corpus of WIP threads alone this
+/// test would pass against a migration that realised everything**, which is the
+/// same vacuity `control_the_corpus_can_tell_the_candidate_definitions_apart`
+/// exists to refuse one function along.
+///
+/// **`acceptance.md` IS THE INSTRUMENT BECAUSE v2 HAD NO SUCH FILE.** Its
+/// presence is unambiguous evidence that THIS run rendered a v3 view for that
+/// thread; asking whether `info.md` exists could not tell a view the migration
+/// wrote from the v2 file that was always there.
+#[test]
+fn the_migration_realises_only_what_it_declares() {
+  let converted = v2_corpus();
+  let before = common::tree(converted.root());
+
+  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
+
+  let after = common::tree(converted.root());
+  let migrated =
+    Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
+
+  let declared: Vec<String> = manifest(migrated.project())
+    .lines()
+    .filter_map(|l| l.trim().strip_prefix("STEELTHREAD:"))
+    .map(|id| id.to_string())
+    .collect();
+  assert_eq!(
+    declared,
+    vec!["ST0001".to_string()],
+    "the corpus has exactly one WIP thread, so the migration must declare exactly it"
+  );
+
+  assert!(
+    after.contains_key("intent/st/ST0001/acceptance.md"),
+    "the declared thread was not realised -- the migration wrote no v3 view for it"
+  );
+
+  for id in ["ST0002", "ST0003", "ST0004", "ST0005"] {
+    assert!(
+      !after.contains_key(&format!("intent/st/{id}/acceptance.md")),
+      "{id} is NOT declared and the migration realised it anyway"
+    );
+    // **AND IT WAS NOT REMOVED EITHER.** Both halves matter: a migration that
+    // deleted the undeclared threads would satisfy the line above and break
+    // AC-11.4, which is the criterion that says every pre-existing file is
+    // still there byte for byte.
+    let rel = format!("intent/st/{id}/info.md");
+    assert_eq!(
+      before.get(&rel),
+      after.get(&rel),
+      "{id} is undeclared, so the migration must neither refresh nor remove {rel}"
+    );
+  }
 }
