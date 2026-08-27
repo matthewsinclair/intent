@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 22:16Z
+heartbeat_at: 2026-08-27 22:21Z
 status: active
 focus: "CLOSED OUT FOR THE DAY on hv's word, folded hard, tree clean, nothing in flight. Today: AC-11.6 with the estate's first pty harness, the F1 live figure, the doctor gate check, `--dehydrate` retired, AC-14.8 withdrawn and AC-14.7 built -- WP-11 and WP-14 both CLOSED. THE DAY'S ONE LESSON: five times an instrument was confidently wrong about a real property, and the mutation table caught what review did not, twice, on rows that read NOTHING RED. ON THE BOUNCE I WAIT FOR INSTRUCTIONS AND START NOTHING."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
@@ -13,13 +13,18 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**NOTHING IN FLIGHT. Closed out on hv's word.** Everything below is in git; this section carries only what git does not.
+**NOTHING IN FLIGHT. Closed out on hv's word, and NOTHING IS OPEN FOR ME.**
 
-**OPEN AND NOT MINE TO CLOSE:**
+**THE TWO ITEMS THIS BOARD BANKED AS OPEN WERE CLOSED WHILE I WAS FOLDING, AND I RE-MEASURED BOTH RATHER THAN TAKING THE RELAY:**
 
-- **`~/.intent/home` points at a DELETED worktree** (my old `wt-pair` scratch). Nothing reads it today, so nothing is broken -- **but cc has landed the shim-installing verb, and the first estate to run `intent claude upgrade --apply` turns that stale line into _every commit in this estate refuses_.** Surfaced to hv, whose machine it is; cc and I both declined to rewrite it, because choosing an install root on the operator's behalf is what the shim refuses to do. **The writer is FIXED at `9c2ba9ed`** (cc) -- it was `dispatch_ssot` driving table data, so no grep could have found it.
-- **MAIN IS RED, and not mine:** `exit_code_consumers::every_shipped_consumer_is_declared`, `hooks/critic-guard.sh -> intent critic` undeclared in `CONSUMERS`, from dc's `3b0063f3`. Confirmed on a plain run. **The delivered pair `d395a5b5` is unaffected -- I verified that commit specifically, 187/1374/0.**
-- **ONE THING I LEFT UNRESOLVED RATHER THAN TIDY:** the real pointer's mtime moved once during a decoy run without its content changing. cc explained it as a read-back; **a read moves atime, not mtime, so that does not hold.** Re-measured after their fix: no movement at all. Unexplained and not reproducible, recorded as such.
+- **Main is GREEN.** dc fixed it at `c9b2e0da` -- _"declare critic-guard.sh in CONSUMERS -- unrostered is not undeclared"_. Driven: `exit_code_consumers` 4 passed, 0 failed. **Their title is the finding and it is the distinction from the other side: the guard body was inert in the HOOKS sense while the consumers check is canon-shaped, so it saw the file regardless. Two definitions of inert, both correct.**
+- **`~/.intent/home` is repointed and healthy** -- hv did it themselves, to `/Users/matts/Devel/prj/Intent`. Verified by the property, not the text: `lib/templates` is present under it. vc verified the same thing with a negative control, which is the better instrument -- **a healthy pointer and a dead one both render as plain text under `cat`.** The writer was fixed by cc at `9c2ba9ed`; I confirmed that independently under a decoy `HOME`.
+
+**A BOARD THAT BANKS AN ITEM AS OPEN AFTER IT CLOSES IS THE `claims that outlive their moment` CLASS ARRIVING IN MY OWN RECORD, HOURS OLD.** Both were genuinely live when written. That is what makes it the class rather than an error.
+
+**STILL TRUE AND NOT MINE: cc is mid-edit on `surface/dispatch-table.json` and `render.rs`** (the `st list` column moving to the title, `--slug` GENERATING from it, no stored slugs -- hv overruled a backfill spec of vc's). No collision with me; I cleared them.
+
+**ONE LOOSE END, SMALL AND RECORDED AS UNEXPLAINED:** the real pointer's mtime moved once during a decoy run without its content changing. cc explained it as a read-back; **a read moves atime, not mtime**, so that does not hold. Re-measured after their fix: no movement. Not reproducible, and left unexplained rather than resolved into the tidier story.
 
 ## TODO
 
