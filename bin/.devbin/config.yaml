@@ -151,6 +151,49 @@ commands:
         summary: rustfmt over the workspace, non-mutating
         run: bin/.devbin/cmd/measured --exec cargo fmt --all --manifest-path native/rust/Cargo.toml --check
 
+      # REPORT-ONLY BY MEASUREMENT, NOT BY CHOICE OF FLAG: `cargo doc` warns on a
+      # broken intra-doc link and STILL EXITS 0. Driven both ways on a throwaway
+      # crate rather than assumed -- no broken link: 0 warnings, rc 0; one broken
+      # link planted: 1 warning naming it, rc 0. So this option reports, and it
+      # can never be the thing that turns `check all` red.
+      #
+      # SO IT DEVIATES FROM THIS GROUP'S OWN CONTRACT, AND THAT IS WORTH SAYING
+      # OUT LOUD RATHER THAN LEAVING FOR SOMEONE TO FIND. `check` declares itself
+      # as "read-only gates; each exits non-zero on a breach", and this one does
+      # not: there are nine live breaches listed below and it exits 0 on every
+      # one. `toolchain` does NOT bend the same rule -- it reports that no pin is
+      # declared, which is an absence of breach rather than a breach it forgives.
+      # The deviation ends when the -D flip below lands. Until then the option's
+      # own summary line says report-only, so nobody has to read this far.
+      #
+      # WHY IT DOES NOT GATE TODAY, WHICH IS A FACT ABOUT WHOSE FILES THESE ARE.
+      # The census on 2026-08-27 is 28 warnings, and only the first class is what
+      # this option is for:
+      #      9  unresolved intra-doc link
+      #     16  public documentation links to a private item
+      #      2  unclosed HTML tag
+      #      1  `todo` is both a function and a macro
+      # The nine live in crates/intentsvcs (address, facade x3, graphql x2,
+      # organize, store) and crates/intent-cli (dispatch) -- other lanes' files.
+      # Turning this red today fails their commits on a gate declared here, so it
+      # reports until they are cleared. THE COUNT IS A DATED BASELINE AND NOT A
+      # THRESHOLD: nothing reads it, and a tenth link shows as a delta only to
+      # someone who compares against it.
+      #
+      # THE GATEABLE FORM IS ONE ENV VAR, AND IT IS MEASURED RATHER THAN ASSERTED:
+      # RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links" returns rc 101 on the
+      # planted link and rc 0 once that same link is repaired. Flip to it when the
+      # nine are gone. THE OTHER THREE CLASSES MUST NOT BE SWEPT IN WITH THEM -- a
+      # blanket -D over rustdoc's lints would gate on 19 findings this option was
+      # never about, and it would arrive looking like the same decision.
+      #
+      # THE COST, STATED BECAUSE THE toolchain COMMENT BELOW IS RIGHT ABOUT NOISE:
+      # this adds 28 warning lines to every `check all`. That is the harmless kind
+      # of noise -- it cannot hide a red, because it cannot produce one.
+      doc:
+        summary: rustdoc over the workspace, report-only (intra-doc links)
+        run: bin/.devbin/cmd/measured --exec cargo doc --no-deps --document-private-items --manifest-path native/rust/Cargo.toml
+
       # ON, AND GREEN FOR A STATED REASON RATHER THAN OFF. hv ruled 2026-08-19:
       # Intent does NOT pin its toolchain -- "we're not using asdf, mise, or
       # anything like that here, and I don't want to impose anything like that on
