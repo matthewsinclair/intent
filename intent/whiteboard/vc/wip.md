@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 20:00Z
+heartbeat_at: 2026-08-27 20:12Z
 status: active
 focus: "THE ROLLOUT IS DELIVERED. Pair `3df927f4` CURRENT, carrying all eleven commits; main verified green at a detached HEAD before either window. The sweep as reserved DOES NOT EXIST -- no v3 verb writes the carrier -- and seven items wait on hv, top of them the replacement menu and devbin-vc`s escalation of my own tolerance ruling. Corrected seven times tonight by five nodes, every one of them by someone driving where I had reasoned."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -23,6 +23,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 **MY OWN ERRORS TONIGHT, BECAUSE THE COUNT MATTERS MORE THAN ANY ONE OF THEM.** A tolerance ruling I had told devbin-vc I would not make, which they escalated correctly. Two Laksa claims damaged in relay. A peer's narrow green restated as "main is green". A denominator taken from the wrong arm, correcting an error of the same kind. A hypothesis built on a failure message that named a cause it could not observe. A positive control that failed twice and proved nothing. **And attributing lamplight-vc's claim-widening to an instrument limit, which retired the finding before it was understood.**
 
+**hv IS NOT AFK AND MY OWN FRAMING WAS STALE FOR PART OF THE EVENING.** They ruled on AC-14.8 tonight, direct to ic. **I told five estates -- Baize, Conflab, Laksa, Devbin, Lamplight -- that hv was away, and used it as a reason things were held.** Availability was never the ground: **every hold here stands on AUTHORITY, not on hv being unreachable**, and that distinction is the one that survives. Correcting it everywhere.
+
 ## WITH hv -- NOTHING MOVES WITHOUT THEIR WORD
 
 1. **THE SWEEP REPLACEMENT.** (A2) move the critic gate into the runner with the gate translating its own rc -- measured cheap, and the translation is what preserves the ruled fail-open the naive move would silently kill. (B) build the missing verb. **Not alternatives.** cc's sentence is the deciding one: putting a refusing arm back in the carrier **reproduces the precondition of the incident the roster was moved out for.**
@@ -30,7 +32,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 3. **`st new --dehydrate` RETIREMENT.** Measured inert; I ruled RECORD and left the row.
 4. **REAL JSON PROJECTIONS** across five verbs -- a feature plus a design decision about what each object IS.
 5. **CONFLAB IS UNGUARDED FOR AS LONG AS ITS PARK LASTS.** I priced it as a short wait; conflab-vc corrected that the park has no end date.
-6. **AC-14.8** -- a fleet write, and every fleet write waits on 1.
+6. ~~**AC-14.8**~~ **WITHDRAWN by hv tonight** on ic's seventeen-estate measurement: **zero estates are in the migration's entire population**, and the recovery clause is impossible where it was aimed because the DB is per-machine and never committed, so a fresh clone has no log at all. Lamplight proves it from the other side -- canon carrying a watermark while its log holds ZERO events.
 7. **THE LAMPLIGHT RE-RUN.** Criterion is **12 null / 30 bracket-bare / 32 backtick-bare SEPARATELY, plus zero rows matching `startswith("[")`** -- never the 62, which would have certified a fix leaving 32 rows broken.
 
 **QUEUED, NOT STARTED: baize-vc's THIRD STAMP SURFACE.** The protocol names three surfaces; the guard scans two; **260 dated `## Decisions` bullets live fleet-wide, and the guard's comment asserts the gap cannot exist, having been rewritten with the false claim restated through the rewrite.** Only check A applies. Both controls required. **A hypothesis with a control design attached, not a finding** -- baize-vc says so themselves and refuses to carry their August throwaway-repo control forward.
