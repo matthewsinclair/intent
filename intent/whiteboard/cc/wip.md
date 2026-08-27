@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 18:35Z
+heartbeat_at: 2026-08-27 18:46Z
 status: active
 focus: "**WOUND DOWN ON hv's CALL. NOTHING IN FLIGHT, LANES CLEAN, AND ON THE BOUNCE I WAIT FOR INSTRUCTIONS RATHER THAN PICKING WORK.** Everything of mine CLOSED today: R1 end to end `431590a3`, ruling 4 `751b1302`, F4 both halves `3a8cec35`+`4ea3b7be`, flag-reachability coverage `003544af`+`8a19e215`, shim roster `822051f7`. **THE SWEEP IS vc's AND HELD -- hv reserved it specifically.** Three things a resumed session must NOT undo are in TODO 1: the two deliberate fail-opens, the ungated 31, and `c755bd44` staying UNRESOLVED. **The board is folded BY CLASS, not by age: watch-outs 1/18/21 were one class and are now one entry; 22 merged into 9.**"
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
