@@ -385,7 +385,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       .collect::<Vec<_>>()
       .join("\n\n");
 
-    let attachments = attachments(project, &id, closed, &mut out);
+    let attachments = attachments(project, &id, &dir, closed, &mut out);
 
     out.threads.push(Thread {
       attachments,
@@ -503,12 +503,25 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
 /// **`Issue::body` stopped declaring one within the hour, for this same reason
 /// once its renderer was scheduled**, and the sentence pointing at it did not
 /// move -- the correction landing at the site and not at the cross-reference.
-fn attachments(project: &Project, id: &str, closed: bool, out: &mut Scan) -> Vec<Attachment> {
+fn attachments(
+  project: &Project,
+  id: &str,
+  dir: &Path,
+  closed: bool,
+  out: &mut Scan,
+) -> Vec<Attachment> {
   // **The walk lives on `Project` now and `sync` shares it** (vc, condition
   // 2). This wrapper exists for the one thing the collector deliberately does
   // not know: which side of a thread's open/closed disposition a refusal is
   // filed against. That axis is the migrator's and no other caller has one.
-  let (carried, refused) = project.collect_attachments(id);
+  //
+  // **`dir` IS PASSED, NEVER RE-DERIVED FROM `id`.** `thread_dirs` walks the
+  // status buckets as well as the top level, so for 54 of this estate's 56
+  // threads the directory on disk is `COMPLETED/<ID>/` and the flat
+  // `intent/st/<ID>/` does not exist. Asking `Project` for the path was how
+  // every bucketed thread migrated with zero attachments at rc 0 -- the
+  // sibling readers two lines above this call have always taken `dir`.
+  let (carried, refused) = project.collect_attachments_in(id, dir);
   for (name, reason) in refused {
     out.record(
       closed,

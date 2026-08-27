@@ -1037,10 +1037,38 @@ impl Project {
   /// back named, which is the posture `sync` already takes on undecodable
   /// content.
   pub fn collect_attachments(&self, id: &str) -> (Vec<Attachment>, Vec<(String, String)>) {
-    let dir = self.thread_dir(id);
+    self.collect_attachments_in(id, &self.thread_dir(id))
+  }
+
+  /// The same carry, against a thread directory the CALLER names.
+  ///
+  /// **This exists because a v2 thread is not at `intent/st/<ID>/`.** `intent
+  /// st done` MOVES a thread into `COMPLETED/`, so the migrator's walk covers
+  /// the top level and all three status buckets and hands back the directory it
+  /// actually found. Every other reader in that loop already takes it -- the
+  /// info parse, the acceptance parse, the work-package walk. The attachment
+  /// carry was the one site that reached back to [`Project::thread_dir`] and
+  /// re-derived the FLAT path, which for a bucketed thread does not exist.
+  ///
+  /// **AND IT FAILED AT rc 0, REPORTING NOTHING.** The walk of an absent
+  /// directory yields no files, refusals are produced per file so there were
+  /// none, and an attachment is not an AC/AT row so the row accounting
+  /// reconciled perfectly against zero. Measured on Devbin: 34 of 54 bucket
+  /// files carry content the store does not hold, and the estate's own restart
+  /// brief routes two of its five opening questions to bucket-only paths.
+  ///
+  /// `id` is still required and is NOT derivable from `dir`: it is what the
+  /// naming gate below builds a canon path and a URL from, and for a bucketed
+  /// thread the directory's parent is `COMPLETED/`, which is exactly what the
+  /// migration is removing.
+  pub fn collect_attachments_in(
+    &self,
+    id: &str,
+    dir: &Path,
+  ) -> (Vec<Attachment>, Vec<(String, String)>) {
     let mut carried = Vec::new();
     let mut refused = Vec::new();
-    for rel in self.thread_files(id) {
+    for rel in Project::thread_files_in(dir) {
       // Consumed by the parsers -- carrying them here as well would give one
       // file two homes in the model.
       if Project::classify(&rel) != ThreadFile::Attachment {
@@ -1120,9 +1148,18 @@ impl Project {
   }
 
   pub fn thread_files(&self, id: &str) -> Vec<PathBuf> {
-    let dir = self.thread_dir(id);
+    Project::thread_files_in(&self.thread_dir(id))
+  }
+
+  /// Every file under a thread directory the CALLER names, relative to it.
+  ///
+  /// An associated function because it consults nothing on `Project` -- the
+  /// same reason [`Project::classify`] is one. See
+  /// [`Project::collect_attachments_in`] for why the directory is a parameter
+  /// rather than something derived from an id.
+  pub fn thread_files_in(dir: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    let mut walk = ignore::WalkBuilder::new(&dir);
+    let mut walk = ignore::WalkBuilder::new(dir);
     walk
       .hidden(false)
       .git_ignore(true)
@@ -1132,7 +1169,7 @@ impl Project {
     for entry in walk.build().filter_map(Result::ok) {
       let path = entry.into_path();
       if path.is_file()
-        && let Ok(rel) = path.strip_prefix(&dir)
+        && let Ok(rel) = path.strip_prefix(dir)
       {
         out.push(rel.to_path_buf());
       }
