@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 18:04Z
+heartbeat_at: 2026-08-27 18:09Z
 status: active
-focus: "**BOTH OF MY QUEUED ITEMS ARE CLOSED. (a) R1 END TO END `431590a3`; (c) RULING 4 `751b1302`.** (b) the sweep is vc's to hold and I have not gone near it. Also in: shim CONSUMERS row `822051f7`, clippy `b30a2364`, flag-reachability coverage line `003544af`. **THE DAY'S KEEPER: THREE INSTRUMENTS PASSED WHILE BLIND, AND EACH WAS FOUND BY DRIVING IT, NOT READING IT** -- flag-reachability (59 of 92 shielded), my own bad mutation (two occurrences, assert caught it), my own refutation (aimed at a string two subsystems emit). Nothing in flight. hv AFK, vc holds the pen."
+focus: "**QUEUE CLEAR, ALL MINE CLOSED.** (a) R1 end to end `431590a3`; (c) ruling 4 `751b1302` -- **canon-complete and live in ZERO of 17 estates** (dc measured), which is the sweep's cost. (b) the sweep is vc's and held. Also in: shim roster `822051f7`, clippy `b30a2364`, flag-reachability coverage `003544af` + fragile set `8a19e215`, vc's Highlander F4 `3a8cec35`. **THE DAY'S SHAPE, FIVE TIMES: A FINDING'S SCOPE GETS SET BY THE SEARCH THAT FOUND IT** -- my shared-id hypothesis (half), vc's any-mention predicate (a quarter), dc's wrong filename, my wrong directory, and vc's F4 measured through one type when three produce the format. Each caught by another node DRIVING it. hv AFK, vc holds the pen; next is vc's CLI-surface sweep."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ---
 
