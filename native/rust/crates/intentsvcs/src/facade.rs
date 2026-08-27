@@ -6939,7 +6939,29 @@ fn find_test_mut<'a>(
 
 /// The v2 slug shape: lowercase, non-alphanumerics to hyphens, collapsed,
 /// trimmed, capped at 48 characters.
-fn slugify(title: &str) -> String {
+///
+/// **THE SLUG IS A VIEW OF THE TITLE, NOT A SECOND PIECE OF DATA** (hv,
+/// 2026-08-27): *"We don't need two pieces of data that get out of sync. The
+/// title is the SSOT. The slug is just a way to show the title in an escaped
+/// URI friendly way."* So this is the one home, called wherever a slug is
+/// wanted, and the stored `Thread::slug` column is vestigial rather than
+/// authoritative.
+///
+/// **THE ST ID REMAINS THE UNIQUE IDENTIFIER AND THE SLUG NEVER RESOLVES**
+/// (hv, same ruling): the slug exists so a listing is legible to a human or an
+/// LLM where a bare id is opaque. That is why nothing here enforces
+/// uniqueness -- two threads may legitimately slug alike, and the 48-char cap
+/// below is therefore a display choice rather than an address hazard. It would
+/// be one the moment a slug resolved.
+///
+/// **IDEMPOTENT: `slugify(slugify(t)) == slugify(t)`, and it was not before.**
+/// The cap used to be applied AFTER the trailing-hyphen trim, so a title whose
+/// 48th character landed on a hyphen kept it -- `ST0020` produced
+/// `modernizing-intent-s-elixir-support-for-agentic-`, and feeding that back in
+/// returned something different. Truncating first and trimming second is the
+/// whole fix, and the order is the property: a slug that changes when it is
+/// re-slugged cannot survive a round trip through a URI.
+pub fn slugify(title: &str) -> String {
   let mut out = String::new();
   let mut last_hyphen = true;
   for ch in title.chars() {
@@ -6951,10 +6973,12 @@ fn slugify(title: &str) -> String {
       last_hyphen = true;
     }
   }
+  // TRUNCATE FIRST, THEN TRIM. Reversing these is the non-idempotence above.
+  let mut out: String = out.chars().take(48).collect();
   while out.ends_with('-') {
     out.pop();
   }
-  out.chars().take(48).collect::<String>()
+  out
 }
 
 #[cfg(test)]
@@ -6969,6 +6993,43 @@ mod tests {
       "punctuation collapses and no trailing hyphen survives"
     );
     assert_eq!(slugify("  spaced  out  "), "spaced-out");
+  }
+
+  /// **hv's stated requirement, and the estate's own data is the fixture.**
+  ///
+  /// `ST0020`'s real title is the case that failed: its 48th character landed
+  /// on a hyphen, and the cap used to be applied after the trim, so the slug
+  /// kept it. A slug that changes when re-slugged cannot round-trip through a
+  /// URI, which is what the slug is for.
+  #[test]
+  fn slugifying_a_slug_returns_it_unchanged() {
+    for title in [
+      "Modernizing Intent's Elixir support for agentic development",
+      "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files",
+      "Add a Rust-based CLI!",
+      "  spaced  out  ",
+      "help",
+      "-- leading and trailing punctuation --",
+    ] {
+      let once = slugify(title);
+      assert_eq!(
+        slugify(&once),
+        once,
+        "slugify is not idempotent for {title:?}"
+      );
+    }
+  }
+
+  /// The cap is enforced, and enforcing it must not reintroduce the hyphen.
+  #[test]
+  fn a_capped_slug_never_ends_on_a_hyphen() {
+    let long = "Modernizing Intent's Elixir support for agentic development";
+    let s = slugify(long);
+    assert!(s.len() <= 48, "cap not enforced: {s:?}");
+    assert!(
+      !s.ends_with('-'),
+      "the cap must not leave the hyphen the trim removed: {s:?}"
+    );
   }
 
   /// Every variant has a remedy, and no two share one. A remedy that fits two

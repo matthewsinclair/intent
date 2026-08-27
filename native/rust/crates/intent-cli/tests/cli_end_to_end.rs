@@ -668,7 +668,11 @@ fn st_list_prints_the_table_header_even_with_no_threads() {
   let dir = project();
   let out = ok(dir.path(), &["st", "list"]);
   assert!(out.starts_with("ID "), "v2's column order: {out:?}");
-  assert!(out.contains("| Slug"), "{out:?}");
+  // `Title`, not `Slug`: hv ruled the descriptive column is the title
+  // (2026-08-27), the slug being a rendering of it rather than a second datum.
+  // The property this arm holds is that the HEADER PRINTS AT ALL on an empty
+  // estate, so the column's name is incidental to it.
+  assert!(out.contains("| Title"), "{out:?}");
   assert!(out.contains("| Completed"), "{out:?}");
   assert!(
     out.lines().nth(1).is_some_and(|l| l.contains("---|---")),
@@ -748,7 +752,7 @@ fn the_table_tracks_the_terminal_width_in_both_directions() {
     "a clipped cell says so: {narrow_text:?}"
   );
   assert!(
-    narrow_text.contains("Slug") && narrow_text.contains("Completed"),
+    narrow_text.contains("Title") && narrow_text.contains("Completed"),
     "and every header survives, or the columns stop being identifiable: {narrow_text:?}"
   );
 

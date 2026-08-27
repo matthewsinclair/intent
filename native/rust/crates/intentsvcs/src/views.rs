@@ -748,12 +748,22 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   out.push_str(
     "An index of every steel thread in the project. A steel thread is a self-contained unit of work focused on implementing one piece of functionality.\n\n",
   );
+  // **THE TITLE, FOR THE SAME REASON `st list` SHOWS IT** (hv, 2026-08-27):
+  // this index exists so a reader -- human or LLM -- can tell the threads apart
+  // where a bare id is opaque. The stored slug served that badly: absent on 21
+  // of the 64 threads, so those rows rendered EMPTY, and truncated at 48
+  // characters on the rest, so they broke off mid-phrase.
+  //
+  // **No `--slug` counterpart here, deliberately.** That flag is a choice a
+  // caller makes at a terminal; a generated view has no caller to make it, and
+  // offering both would be a second rendering of one file with nothing to
+  // select between them.
   let rows: Vec<Vec<String>> = ordered
     .iter()
     .map(|t| {
       vec![
         t.id.clone(),
-        cell(t.slug.as_deref().unwrap_or("")),
+        cell(&t.title),
         t.status.display().to_string(),
         t.created.clone(),
         t.completed.clone().unwrap_or_default(),
@@ -761,7 +771,7 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
     })
     .collect();
   out.push_str(&table(
-    &["ID", "Slug", "Status", "Created", "Completed"],
+    &["ID", "Title", "Status", "Created", "Completed"],
     &rows,
     TableMode::Markdown,
   ));

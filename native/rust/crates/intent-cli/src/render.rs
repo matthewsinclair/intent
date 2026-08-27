@@ -111,7 +111,20 @@ fn context() -> Result<(Project, FacadeContext), Failure> {
 // the one clock now, and there is no seam here to disagree through.
 
 /// The columns `intent st list` and the generated index share.
-const ST_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
+/// **THE DESCRIPTIVE COLUMN IS THE TITLE** (hv, 2026-08-27): *"the title is the
+/// SSOT ... the slug is just a way to show the title in an escaped URI friendly
+/// way"*, and a listing exists so a human or an LLM can grok rows whose ids are
+/// opaque.
+///
+/// It used to be the slug, which read badly in both directions: 21 of the 64
+/// threads carry no stored slug at all and rendered BLANK, and the other 43
+/// carry v2's title-derived slug truncated at 48 characters on a word boundary,
+/// so they ended mid-thought on prepositions -- `...-with`, `...-before`.
+/// `WP_COLUMNS` below has always said `Title`; steel threads were the odd ones.
+const ST_COLUMNS: &[&str] = &["ID", "Title", "Status", "Created", "Completed"];
+
+/// `st list --slug`: the same table with the slug in the descriptive column.
+const ST_SLUG_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
 
 const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
 
@@ -233,6 +246,18 @@ fn st_rows(
   wanted: Option<Vec<ThreadStatus>>,
 ) -> Result<String, Failure> {
   let out = output_of(a)?;
+  // **`try_get_one`, NOT `get_flag`, AND THE REASON IS THAT THIS FUNCTION IS
+  // SHARED.** `st sync --dry-run` renders the same index table through here and
+  // declares no `--slug`, so `get_flag` -- which PANICS on an id clap never
+  // registered -- took the whole command down at exit 101. Found by
+  // `cli_end_to_end`, which drives both verbs; the flag itself was fine and the
+  // accessor was the defect.
+  let as_slug = a
+    .try_get_one::<bool>("slug")
+    .ok()
+    .flatten()
+    .copied()
+    .unwrap_or(false);
 
   let rows: Vec<Vec<String>> = f
     .st_list()
@@ -241,7 +266,16 @@ fn st_rows(
     .map(|t| {
       vec![
         t.id.clone(),
-        t.slug.clone().unwrap_or_default(),
+        // **DERIVED FROM THE TITLE, NEVER READ FROM `t.slug`.** hv's ruling is
+        // that the title is the SSOT and the slug is a rendering of it, so
+        // reading the stored column would reintroduce the second piece of data
+        // the ruling exists to remove -- and it is stale on 21 of 64 threads,
+        // where it is simply absent.
+        if as_slug {
+          intentsvcs::facade::slugify(&t.title)
+        } else {
+          t.title.clone()
+        },
         t.status.display().to_string(),
         t.created.clone(),
         t.completed.clone().unwrap_or_default(),
@@ -249,7 +283,8 @@ fn st_rows(
     })
     .collect();
 
-  table_out(&out, ST_COLUMNS, &rows)
+  let columns = if as_slug { ST_SLUG_COLUMNS } else { ST_COLUMNS };
+  table_out(&out, columns, &rows)
 }
 
 /// Reconcile the runtime store with the committed canon on disk.
