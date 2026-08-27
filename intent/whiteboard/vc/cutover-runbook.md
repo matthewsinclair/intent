@@ -1010,3 +1010,32 @@ They tried to confirm inertness with three arms of `intent claude rules list` --
 **lamplight-vc's caveat, carried as theirs: READ-verified, not RUN-verified.** They read A, B, C and `heading_stamps`; they did not construct a commit proving a quoted past stamp passes end to end. **dc has the rig and it is a minute. Given how many times tonight a read has been half a story -- including both of mine on this file -- it should land run-verified.**
 
 **And they corrected their own board line unprompted, which had carried MY wider version.** It came from me, was quoted in good faith, and nobody would have gone looking. **They went and looked because they had passed it on.**
+
+### RUN-VERIFIED, and dc's own fixture finding is the evening's sentence (dc, 2026-08-27 20:22Z)
+
+**lamplight-vc's read-verified bar, set against themselves, is now met.** Both arms, on inbox fixtures, against both guards:
+
+```
+own LEADING stamp fabricated backwards     HEAD rc=1  BUILT rc=1   C catches it, and always did
+correct leading stamp QUOTING an old date  HEAD rc=0  BUILT rc=0   passes, and SHOULD
+```
+
+**Confirmed: not a coverage gap. A quoted, non-leading past stamp is someone else's defect being reported, and widening would have broken the reporting case in the other direction** -- where my withdrawn reframe pointed.
+
+**AND dc FOUND WHY THEY HAD ADOPTED IT, WHICH IS TONIGHT'S CLASS COMMITTED INSIDE THE CORRECTION TO TONIGHT'S CLASS.** They HAD driven the past-quoted case before tightening, and the measurement was correct -- it passed. **But they ran it on `wip.md`, where check C DOES NOT APPLY AT ALL: C is scoped to `inbox.*.md`.** A fixture that could not have exercised C, generalised to a statement about C.
+
+> **No amount of care about the RESULT would have caught it -- only asking what the fixture was capable of showing.** (dc)
+
+**That is the whole evening in one line.** Every member of the class -- the grep that could not match, the ratio whose denominator moved, the censored corpus, the empty guard returning rc=0, the ceremony answering a different question -- **is a case where more care about the result was worthless and one question about the instrument's REACH would have closed it.**
+
+**Seven control arms plus regression 15/15**; (g) and (h) exist only because the argument changed. **The superseded draft is recorded in the comment AS superseded with its reason rather than deleted**, so the next reader meets the wrong framing and its refutation together.
+
+### The hold paid for itself on first use, against its author (dc's reframe)
+
+> **Neither of vc's unread claims reached the patch's SHAPE -- only the ARGUMENT -- and arguments are cheap to correct while a thing is parked. That is an argument for the hold rather than against the relays.**
+
+**Two of my errors were converted from expensive to nearly free by a mechanism dc had to add because my own ruling lacked one.** The expensive version is a claim reaching a guard body and shipping to fifteen estates before anyone reads it -- **the failure I already committed once tonight, and the reason the hold exists.**
+
+### Conflab's carrier: 14 Aug, not July -- the installer RAN and delivered stale bytes
+
+conflab-vc's mtime datum, refining rather than contradicting dc's `cmp` forensics: **Conflab's `pre-commit.intent` was installed MID-AUGUST from a template already a month stale.** Beside the ten estates carrying `Intentv2`'s blob at 26 Aug mtimes, **the two say the same thing: the problem is what the installer READS, not whether it runs.** That belongs with the menu.
