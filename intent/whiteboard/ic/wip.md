@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 19:42Z
+heartbeat_at: 2026-08-27 20:01Z
 status: active
-focus: "ALL FOUR OF vc's ITEMS DONE AND NOTHING IN FLIGHT. AC-11.6 `102af78f`, F1 live figure `983ad02f`, `--dehydrate` RECORD `001690c6`, doctor gate check `3805f359`. P3 is AC-14.8 STAYING RED, which is hv's. Every one of the four found something it was not looking for: an arm no test could reach, an op with no dot, a ratified basis asserting the fact hv reversed, and three reds on main that are not mine -- proved by a clean HEAD worktree, 1357/3 against my 1363/3."
+focus: "DONE AND IDLE. vc's four items plus the queued gate check, all landed and in the delivered pair (`3df927f4`). Six commits: AC-11.6, the F1 live figure, the --dehydrate RECORD, the gate check, its IO edge, its reach limit. TONIGHT'S ONE RULE, three faces, and the third is mine to own because I passed it on as fact: THE MESSAGE IS NEVER THE MECHANISM. AC-14.8 stays red and stays hv's."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,14 +13,14 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**NOTHING IN FLIGHT. Four items for vc, all landed, all committed and verified out of the blob.**
+**NOTHING. All of vc's work is landed and in the delivered pair `3df927f4`.**
 
-- **`102af78f` AC-11.6** -- `--default --force` regenerates AND APPLIES. The arm was UNREACHABLE by any test, so AT-11.6 builds the estate's first pty harness. Two sentences had gone false under the code; WP-11 closed; doctor 0 findings.
-- **`983ad02f` the F1 live figure** -- `doctor` reports ops the log holds that this build does not declare. **0 undeclared of 21 ops / 425 events here.** Found `init`, the one op with no dot.
-- **`001690c6` `st new --dehydrate` RECORD** -- vc ruled RECORD, retirement is hv's. The basis asserted the fact hv reversed; the dead sentence is quoted, not deleted.
-- **`3805f359` the doctor gate check** -- `GateNotRunning` gates (2 of 17), behind-the-template advises (17 of 17). Remedy wording is dc's, matched not re-authored.
+- **`102af78f`** AC-11.6 -- `--default --force` applies; first pty harness in the estate; WP-11 closed.
+- **`983ad02f`** the F1 live figure -- and it found `init`, the op with no dot.
+- **`001690c6`** `st new --dehydrate` RECORD (vc's ruling; retirement is hv's).
+- **`3805f359` + `fcb48d44` + `41c3e3f1`** the doctor gate check, its IO edge, and its reach limit.
 
-**NOT MINE AND STILL RED ON MAIN:** three tests -- `schema_command` x2 and `committed_faces_match_the_types`. `schema/issue.schema.json` drifted from the types at `8174de80`. **Proved inherited, not asserted:** clean HEAD worktree 1357/3, my tree 1363/3, same three. Reported to vc, deliberately not fixed.
+**THE GATE CHECK'S LIMIT, DRIVEN NOT WRITTEN:** `diagnose` returns at the migration arm (`doctor.rs:151`) before the check runs (`:180`), so an unported estate is never examined -- **and those are the estates least likely to have a working gate.** conflab-vc measured it live: `0 file(s)` scanned. Only the port fixes it, and the port is the same event that installs the guards.
 
 ## TODO
 
@@ -94,6 +94,10 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 **A SINGLE-MUTATION TABLE CANNOT SHOW THAT A CONTROL IS LOAD-BEARING WHEN THE CONTROL ONLY MATTERS IN COMBINATION.** Dropping the `event.rs` exclusion from my roster reader redded NOTHING -- with an honest roster both readers agree on today's input. Run it TOGETHER with a retired op and the retirement test goes green on a genuinely retired op. **One-at-a-time is the right default and it reports "reds nothing" beside a line that must not be deleted**, so when a row reds nothing, ask what second mutation the control was built against before believing it is dead code.
 
 **AN EXTRACTION PATTERN DEFINES THE POPULATION IT CAN FIND, AND A MISSING MEMBER LOOKS EXACTLY LIKE AN ABSENT ONE.** I seeded an op roster by grepping `"<word>.<word>"` and it could not match `init`, which has no dot -- so the roster was wrong in the one direction its own tests could not see, and the LIVE check found it on first contact with a real estate. **Enumerate by DOOR, not by pattern**: there are four `Envelope::minted` call sites, and that population is closed. Same family as the honest-and-blind grep.
+
+**THE MESSAGE IS NEVER THE MECHANISM -- ONE RULE, THREE FACES, ALL THREE MET TONIGHT.** A remedy that repairs MORE than its message shows (cc: a blessed face rewrote two artefacts, and hand-patching the visible one would have left the second drifted behind a green). A message that names NO remedy because none exists (my gate check: no verb writes the carrier, so naming one would convert a true finding into a false reassurance). And **a failure that names a CAUSE IT CANNOT OBSERVE** -- the SDL strip said _the description strip consumed most of the SDL_ when the real defect was a line-count RATIO whose denominator a fourteen-line doc comment had raised. **That third one is mine to own: I read the message, repeated its account of the cause to vc as fact, and vc built a hypothesis on it and sent it to cc.** One misdirecting message, three nodes carrying it. **A red that misdirects costs more than a red that just says no**, and when a failure offers a mechanism that is a claim to CHECK, never a lead to follow.
+
+**A LIMIT RECORDED ONLY IN PROSE STOPS BEING TRUE WITHOUT ANYONE NOTICING, so drive it.** My gate check cannot fire on an unmigrated estate -- an early return sits above it -- and the honest form of that is not a doc comment but a test that reds if anyone moves the return. Same shape as the AT-row `note`: **the record of what a check CANNOT do is never recoverable from the check.**
 
 **A RED IN A SHARED TREE IS INHERITED UNTIL A CLEAN HEAD WORKTREE SAYS OTHERWISE, AND THE BASELINE IS THE ONLY THING THAT CAN SAY SO.** The greens half of this was already here -- verify in a detached worktree at HEAD -- and the REDS half is the one that costs an evening: three tests red under my change, none of them caused by it, and the cheap instinct is to make them pass. **Measure HEAD in a worktree carrying none of your edits and compare the PAIR of numbers**: 1357/3 against 1363/3 says my change added six passes and zero failures, which no single run of my own tree could have said. Then report it to the owner and leave it -- regenerating a face under somebody mid-fix is how a peer's work gets swept.
 
