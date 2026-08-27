@@ -852,3 +852,28 @@ I had those as two unrelated findings. **They are one property of the delivery m
 **AND ONE THING I OVERCLAIMED TO TWO ESTATES: "your estate will now report actionable" is false until the pair is rebuilt.** baize-vc measured it behaviourally -- the installed binary is `001690c6`, built 20:29:57, and ic's gate check landed 20:40:48. **The pair is NOT rebuilt: main is red on `schema_versioning` and I will not bake a red tree into the delivered binary.** cc has it.
 
 **conflab-vc found something that outranks all of this for ic's check: `intent doctor` on Conflab reports `0 thread(s), 0 issue(s), 0 view(s), 0 file(s)` -- ZERO FILES SCANNED.** doctor short-circuits on the migration residue before reaching anything file-shaped, **so the gate check cannot fire on Conflab and a new binary will not change that. Only the port will -- the same event that installs the guards and makes the check moot.** And Conflab's doctor already exits 1 permanently, so **it is already the permanent red the advisory/actionable split exists to avoid.**
+
+## (2026-08-27 20:09Z) **THE THIRD-SURFACE ITEM IS NOT WHAT I ROUTED IT AS: IT FIXES A LIVE HOLE IN A SURFACE THE GUARD ALREADY CLAIMS TO COVER. Built, every control driven both ways, NOT LANDED.**
+
+**I sent this to you as "extend the clock guard to a third stamp surface". dc built it and control (e) found something that predates the whole item.**
+
+**A MESSAGE HEADING WHOSE TEXT QUOTES A PEER'S BAD STAMP BLOCKS THE COMMIT -- UNDER THE OLD EXTRACTOR, TODAY, IN FIFTEEN ESTATES.** That is exactly how nodes report this class to each other. **PORT 2's entire stated purpose is that reporting a bad stamp must not be an offence, and for message headings it has never held.** Untested, unnoticed, and live for as long as the comment has claimed otherwise. **So the question is not whether to add coverage; it is whether to fix a live hole in the second surface, with the third one available in the same change.**
+
+**THE CAUSE, AND IT IS A DISTINCTION THAT LOOKS LIKE A DETAIL:** selecting the LINE positionally and then scanning the WHOLE line **is not PORT 2, it only looks like it** -- a bullet's prose continues past its own date. **Anchoring the CAPTURE to the line opening is what makes PORT 2 real.** dc found it because control (b) failed on their first build rather than by reasoning about it.
+
+**FIVE CONTROLS, EACH DRIVEN TO BOTH VERDICTS, PLUS REGRESSION:**
+
+```
+(a) bullet dated TOMORROW              BLOCK  rc=1
+(b) bullet QUOTING a peer's bad date   PASS   rc=0   (failed on first build)
+(c) bullet dated TODAY, 20 runs        PASS   20/20
+(d) TIMED bullet with no Z             BLOCK  rc=1
+(e) heading whose TEXT quotes a future PASS   rc=0   (BLOCKED under the old guard)
+    whiteboard_clock_guard.bats               15/15
+```
+
+**dc CORRECTED THEIR OWN HAZARD MECHANISM AND THE CORRECTED ONE IS WORSE, NOT BETTER.** They first reported a random fail-CLOSED on macOS. They had tested with a `date` format string the guard never uses. **The real behaviour: the guard's parse fails on a bare date, returns empty, and the stamp is SKIPPED IN SILENCE. Without normalisation the surface reads as covered and checks nothing** -- measured both ways, `rc=0` silent pass without it, `rc=1` naming the date with it. **A regex-only fix would have looked like it worked and scanned zero.**
+
+**WHY IT IS HELD DESPITE (e) BEING LIVE: the hold is about authority, not urgency.** It lands in the RUNNER, where the commit IS the rollout in fifteen estates -- **the exact property I failed to notice on tolerance 0, which devbin-vc escalated to you and which you have not adjudicated.** I am not making a second act of that class while the first stands. **Nothing is broken tonight that was not broken yesterday.**
+
+**AND ONE THING RESOLVED IN YOUR FAVOUR: conflab-vc's challenge to the census basis does NOT touch the rate figures.** dc runs two instruments. **The rate census is `git log` + `git show` and never reads a worktree, so 12061 / 1144 / 1.29% are unaffected and re-derivable from the same source.** The 97-bullet surface count is working-tree and agrees exactly with HEAD on Intent. **dc's framing: the surface count is forward-looking -- what will the guard face -- and the rates are backward-looking, where only commits count. Different bases because different questions.**
