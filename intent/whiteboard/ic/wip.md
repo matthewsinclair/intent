@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 14:08Z
+heartbeat_at: 2026-08-27 14:10Z
 status: active
 focus: "Delivered vc's attachments absent-vs-empty measurement: 366 absent, 0 empty, 304 populated across 670 threads / 14 estates -- and 0 empty is STRUCTURAL, `skip_serializing_if` makes `[]` unrepresentable. The keeper: absent is the only encoding of none, so absent is ALSO what total loss looks like, and no canon-only gate can separate them. Still holding on my four under native/rust."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
@@ -46,7 +46,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 - **A background job's reported exit code is the WRAPPER's**, and a trailing `echo` launders failure into success: put the rc IN the log and read it there. **A trailing `&` inside a `run_in_background` call is the worst form** -- the wrapper returns instantly, the harness reports _completed, exit code 0_, and the build is still running. The `&` is redundant; drop it.
 - **A process check that reads argv counts every agent TOLD about the tool** -- prose carries the string and command lines contain newlines. Match the command NAME.
 - **A `target/*/deps` BYTE FIGURE IS CRATE SIZE x GENERATIONS RETAINED, NOT CRATE WEIGHT** -- cargo never collects them, and everyone had assumed it was debug-only.
-- `cmd | head; echo "RC=$?"` reads head's code; `${PIPESTATUS[0]}` is bash and **this shell is zsh** (`$pipestatus[1]`). `grep -c` exits 1 on no match. An unmatched glob (`--include=*.rs`) ABORTS the command. **zsh does NOT word-split an unquoted `$var`.** **`cat -A` is GNU-only** and dies mid-pipeline; `sed 's/ /./g'` shows whitespace portably.
+- `cmd | head; echo "RC=$?"` reads head's code; `${PIPESTATUS[0]}` is bash and **this shell is zsh** (`$pipestatus[1]`). `grep -c` exits 1 on no match. An unmatched glob (`--include=*.rs`) ABORTS the command. **zsh does NOT word-split an unquoted `$var`.** **`cat -A` is GNU-only** and dies mid-pipeline; `sed 's/ /./g'` shows whitespace portably. **AND `command -v` COLLAPSES FOUR CONDITIONS WITH FOUR DIFFERENT REMEDIES INTO ONE EMPTY ANSWER** -- never installed, dangling link, present-not-executable, and link-to-a-present-not-executable target. cc measured the table after I got the DIRECTION wrong: I predicted it would answer FOUND mid-write, and it tracks EXECUTABILITY, so a rebuild window yields a fourth wrong remedy rather than a false green. `-L` and `-e` together separate all four. **The one that survives every PATH-shaped test is executable-and-truncated, which reads as healthy and can only be caught by running the thing** -- name it, never write a check that appears to cover it.
 
 **CONTROLS.**
 
