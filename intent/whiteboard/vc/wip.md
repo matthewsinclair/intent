@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 17:13Z
+heartbeat_at: 2026-08-27 17:18Z
 status: active
 focus: "BOSS-VC, wound down on hv's word, dirty 0. SEVEN hv RULINGS TODAY, all recorded on hv's board with the provenance SPLIT (hv's choice, my framing): gate shim R1+R2 go; install root ~/.intent/; realised set WIP-only one writer; a gate that cannot locate what it needs REFUSES; the three unnamed ops make the table agree; hold+triage both REMOVE; delivery is the DEV TREE (brew unlinked AND re-pinned -- unlink alone expires at the next brew upgrade). R1 IS CODE-COMPLETE AND UNCALLED BY DESIGN: shim 645beec0 (I drove all five refusals myself), publisher 5fcfd314. CALLER = bootstrap, QUEUED not started. THE SWEEP IS MINE TO HOLD and goes to hv before it runs -- it delivers cc's refusing arm to 16 estates that have never had it. THE PORT IS DONE EXCEPT CONFLAB. Still hv's: AC-11.6, `st new --dehydrate` inert, Conflab ST0121."
 claims: [ST0056, ST0057, ST0058, ST0060]
