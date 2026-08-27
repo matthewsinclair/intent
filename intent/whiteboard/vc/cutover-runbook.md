@@ -626,3 +626,33 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **Worth noting alongside (b): there is no clap `value_parser` anywhere, and that is deliberate and documented** -- clap rejects at exit 2, which is INV-04's USAGE code that the pre-commit gate FAILS OPEN on, so a bad enum value would become a gate bypass instead of a refusal the operator sees. **The roster is therefore honoured only where code honours it**, which is what makes (b) worth measuring properly rather than dismissing.
 
 **One soft thing, not chased:** `render.rs:551` cites AC-04.6 for the declaration-versus-implementation gap. AC-04.6 as declared is about MUTATION COMPLETENESS -- state machines, not flag rosters -- so the citation invokes its principle rather than its scope. **A doc comment is the one kind of citation nothing in this tree checks**, which the same comment block says about itself two paragraphs down.
+
+## THE SWEEP HAS NO v3 MECHANISM, AND RULING 4 LANDED IN THE ONE LAYER THE DESIGN SAYS CANNOT REACH THE FLEET (vc, 2026-08-27 19:11Z)
+
+**I was one step from running a fleet write that would have reported success and changed nothing about the property it was for.** Found by determining the sweep's mechanism BEFORE running it, which is the only reason this is a finding rather than an incident.
+
+**THE MEASUREMENTS, EACH INDEPENDENTLY CHECKABLE:**
+
+1. **`intent claude upgrade` without `--apply` is a real dry run** -- driven on Riffle, 0 dirty paths before and after, carrier mtime unmoved. It reports what it would write: `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `.intent_critic.yml`, and `.git/hooks/pre-commit` **(chain block, region-edited)**. **`pre-commit.intent` is NOT on that list.**
+2. **No v3 code path writes `pre-commit.intent`.** Every `pre-commit` mention in v3 production Rust is a comment except `canon.rs:432` (`hooks.join("pre-commit")`, the wrapper) and `canon.rs:211` (the chain-block text that INVOKES the carrier). `canon.rs:18` says it in the module's own words: the chain block, REGION-EDITED.
+3. **The carrier itself documents exactly this, and it was a deliberate design response to the same class.** In Lamplight's installed copy: _"THE ROSTER IS NOT HERE, AND THAT IS THE POINT. This file is COPIED into `.git/hooks/pre-commit.intent`; the roster is READ LIVE out of `INTENT_HOME` ... **Anything a consumer holds a frozen copy of cannot be updated by shipping canon, so the roster must not be something they hold.**"_ It even records the incident that forced it: _"Measured on this repository 2026-08-20: canon rostered four guards, the installed hook ran one, and two had never run here at all. The guard BODIES propagated; the array naming them did not."_
+4. **Ruling 4's fix went INTO the layer the roster was moved OUT of.** `4d9e70c2` changed `lib/templates/hooks/pre-commit.sh` -- the carrier. The critic gate is 15 hits in the carrier and **0 in `pre-commit-guards.sh`**, the runner that actually propagates.
+5. **POSITIVE-CONTROLLED, AND THE RESULT INCLUDES THIS TREE.** The refusing arm's pattern returns **1 against the template** and **0 against every estate carrier measured -- Intent, Lamplight, Baize, Devbin, Laksa.** Template 34701 bytes; Intent's own carrier 25609; Lamplight's 20899. **Three generations and none of them current, in the tree that authored the fix today.**
+
+**SO dc's ORIGINAL FIGURE WAS RIGHT AND NOW HAS ITS MECHANISM.** "Ruling 4 in force in ZERO estates" is not seventeen estates being behind on upgrades. It is that **the fix is in a file no shipping mechanism updates**, and the design says so about itself.
+
+### What the fleet actually runs, now that the layers are separated
+
+- **G2 estates run CURRENT guard bodies and the CURRENT roster**, live from `INTENT_HOME`. They are not stale in the way the held item implied.
+- **What every estate holds frozen is the CARRIER**, and that is where the critic gate lives.
+- **Baize (G1) reaches nothing** -- its carrier has no guard block at all, so INTENT_HOME is never consulted.
+
+### THE MENU, NOT THE SELECTION -- and this one is hv's
+
+**(A) MOVE THE CRITIC GATE OUT OF THE CARRIER INTO THE RUNNER**, exactly as the roster was moved on 2026-08-20. Ruling 4 then reaches all 14 G2 estates with **zero fleet writes**. **UNMEASURED AND I AM NOT PRESENTING IT AS FREE:** the gate reads `.intent_critic.yml`, the project root and the declared languages, and **I have not checked that the runner has those in scope.** If it does not, (A) is a bigger move than one file.
+
+**(B) BUILD THE MISSING v3 VERB THAT INSTALLS THE CARRIER.** This is _a capability the normal entry point cannot reach is not delivered_ (hv), and **Baize is the proof it is needed regardless of (A)**: a fully-ported 3.0.0 estate whose gate rotted with nothing able to repair it.
+
+**(C) COPY THE TEMPLATE INTO 15 ESTATES BY HAND.** No idempotence story, no gate, and **a later v2 `intent upgrade` anywhere would silently undo it.** Recorded so the menu is complete, not because it is a candidate.
+
+**(A) and (B) are not alternatives -- (A) makes ruling 4 reach the fleet now, (B) closes the hole that let Baize rot.** The sweep as held was (C) with better manners.

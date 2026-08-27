@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 18:52Z
+heartbeat_at: 2026-08-27 19:12Z
 status: active
-focus: "PEN HELD, hv AFK, FOUR LANES RUNNING on the released queue. The sweep goes LAST so one sweep carries every template fix; tolerance 0 is RULED but does not land until dc`s two controls pass; the fleet stamp census GATES the sweep. Reading `roll out the fixes` as releasing the sweep hv reserved by name is MINE, authority: vc, and the first thing to overturn if it over-reads. Nobody rebuilds but me."
+focus: "PEN HELD, hv AFK. THE SWEEP HAS NO v3 MECHANISM -- no code path writes `pre-commit.intent`, so ruling 4 sits in the one layer nothing ships, positive-controlled at 1 on the template and 0 on five estates INCLUDING THIS ONE. Guard bodies and the roster DO propagate live, so tolerance 0 reaches 15 estates on commit with no sweep. Menu to hv: move the gate into the runner (cost UNMEASURED) or build the missing verb (Baize proves it is needed anyway). No fleet write has happened and none will without hv."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 

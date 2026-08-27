@@ -739,3 +739,29 @@ Your words were _"coordinate dc, ic, and cc (and yourself) to roll out the fixes
 **WHAT IS RUNNING:** cc on the v3 porter's AT-citation truncation (74 rows, lamplight-vc is holding read-only on it) plus the unguarded `sync --to-disk` remedy at `render.rs:423`. dc on the tolerance, the fleet census, the sweep's real payload, and the doc-link check. ic on AC-11.6, WP-11's cover (which carries the definition you overruled), and a live `doctor` figure for F1 -- **the enum-vs-test call stays yours; ic is building the number, not the answer.** AC-14.8 stays held because it is a fleet write and every fleet write sequences after the sweep.
 
 **Nobody rebuilds but me.** The ~60s window where every estate on this machine has no `intent` and every gate fails open gets opened once, by one node, announced by properties.
+
+## (2026-08-27 19:12Z) **I RULED THE SWEEP RELEASED AND THEN FOUND THE SWEEP HAS NO MECHANISM. RULING 4 IS IN THE ONE LAYER NOTHING SHIPS, AND YOUR CALL IS WHICH OF TWO FIXES -- NOT WHETHER TO SWEEP.**
+
+**I was one step from running a fleet write across fifteen estates that would have reported success and changed nothing about the property it was for.** The only reason this is a finding and not an incident is that I worked out what command I would actually run before running it.
+
+**THE CHAIN, EACH LINK CHECKABLE:**
+
+- **`intent claude upgrade` without `--apply` is a real dry run.** Driven on Riffle: 0 dirty paths before and after, carrier mtime unmoved. It reports it would write `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `.intent_critic.yml` and `.git/hooks/pre-commit` **(chain block, region-edited)**. **`pre-commit.intent` is not on that list.**
+- **No v3 code path writes `pre-commit.intent`.** Every `pre-commit` mention in v3 production Rust is a comment, except the wrapper join and the chain-block text that INVOKES the carrier.
+- **The carrier documents this about itself**, because it was the deliberate fix to this same class in August: _"Anything a consumer holds a frozen copy of cannot be updated by shipping canon, so the roster must not be something they hold."_ With the incident: _"canon rostered four guards, the installed hook ran one, and two had never run here at all. The guard BODIES propagated; the array naming them did not."_
+- **Ruling 4 went back INTO the layer the roster was moved OUT of.** `4d9e70c2` changed `lib/templates/hooks/pre-commit.sh`. Critic gate: 15 hits in the carrier, **0 in the runner that propagates.**
+- **Positive-controlled, and this tree is in the result.** The arm returns **1 against the template** and **0 against Intent, Lamplight, Baize, Devbin and Laksa.** Template 34701 bytes, Intent's own carrier 25609, Lamplight's 20899. **Ruling 4 is not in force in the repository that authored it today.**
+
+**SO dc's "IN FORCE IN ZERO ESTATES" WAS RIGHT ALL DAY AND ITS EXPLANATION WAS NOT THE ONE ANY OF US ASSUMED.** Not seventeen estates behind on upgrades -- a fix in a file no shipping mechanism updates.
+
+**THE GOOD HALF, AND IT CUTS THE WORK DOWN RATHER THAN UP.** The guard BODIES and the guard ROSTER are read live out of `INTENT_HOME`, so **the 14 G2 estates are already running current guards** and are not stale the way the held item implied. The clock-guard tolerance, whatever we set it to, propagates to fifteen estates the moment it is committed here -- **with no sweep at all.** That raises the stakes on dc's two controls rather than lowering them: a bad threshold also reaches everyone instantly.
+
+**YOUR CALL. THE MENU, WITH ITS UNMEASURED COST NAMED RATHER THAN HIDDEN:**
+
+**(A) MOVE THE CRITIC GATE FROM THE CARRIER INTO THE RUNNER**, exactly as the roster was moved in August. Ruling 4 then reaches all 14 G2 estates with **zero fleet writes**. **NOT FREE AND I HAVE NOT MEASURED IT:** the gate reads `.intent_critic.yml`, the project root and the declared languages, and **I have not checked the runner has those in scope.** If it does not, this is a bigger move than one file.
+
+**(B) BUILD THE MISSING v3 VERB THAT INSTALLS THE CARRIER** -- _a capability the normal entry point cannot reach is not delivered_, which is your rule. **Baize proves it is needed whatever you decide about (A):** a fully-ported `3.0.0` estate with canon, whose gate has rotted to the point of having no guard block at all, with four whiteboard nodes committing unguarded, **and nothing in the tool able to repair it.**
+
+**They are not alternatives.** (A) makes ruling 4 reach the fleet now; (B) closes the hole that let Baize rot. **The sweep as you reserved it was option (C) -- hand-copying the template into fifteen estates -- which has no idempotence story, no gate, and would be silently undone by any later v2 `intent upgrade`.** I am not doing (C) and I am not asking you to approve it.
+
+**NOTHING IS BLOCKED ON YOU TONIGHT.** dc's controls and census run regardless, cc is on the porter, ic is on AC-11.6. **No fleet write has happened and none will without your word on the menu.** Conflab is out of scope either way -- it is `2.19.0` with no canon, so its guards arrive with its port.
