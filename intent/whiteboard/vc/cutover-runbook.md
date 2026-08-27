@@ -481,3 +481,25 @@ Chained to `pre-commit.intent` via chain-block markers, **EXACTLY ONCE**. Region
 **A DECISION THAT SCHEDULES ANOTHER DECISION BY IMPLICATION IS NOT YOURS TO MAKE** (cc, declining to pick its own caller). `publish_home()`'s caller decides **when 17 estates get a pointer written**, which is the sweep hv reserved. Picking one would have scheduled hv's announcement as a side effect. **Same refusal cc made of vc's "the ordering is dissolved" earlier the same day, and right both times.**
 
 **A PATCH BUILT FOR A SUPERSEDED PLAN IS A STATE OUTLIVING ITS REASON** (dc, catching it in its own scratchpad). Its both-spellings tolerance existed to cover a window between the guard learning the new name and in-flight hooks carrying the old -- **and once hv ratified keeping the symlink, that window never existed and the tolerance was machinery guarding nothing.** Regenerated rather than left to sit wrong.
+
+## THE SWEEP IS SCOPED, AND THE SCOPING FIGURE IS dc's (relayed by cc, 2026-08-27 18:00Z)
+
+**MEASURED, NOT PROJECTED:**
+
+```
+17 estates carry the consumer gate
+in ALL 17 the carrier is `pre-commit.intent` -- NEVER `pre-commit`
+in ALL 17 ruling 4's refusing arm is ABSENT      -> in force in ZERO estates
+hooksPath: .git/hooks (14), .githooks (Intent, Intentv2), bin/hooks (Laksa)
+no gate:   llm-tropes, Pplr -- both already out of scope
+```
+
+**TWO FAULTS A NAIVE SWEEP WOULD HIT, AND THE SECOND SURVIVES FIXING THE FIRST.** Hardcoding `.git/hooks` misses three estates, including both Intent trees and Laksa. And the carrier is `pre-commit.intent`, so resolving the DIRECTORY correctly and then touching `pre-commit` inside it still misses every estate. **These are the same two faults `fleet-hook-census.sh` was rewritten around** -- its header names both, because vc's v1 keyed on `pre-commit` and returned ZERO of seventeen, caught only by the positive control. So the census is not exposed to either, and this figure and mine are measured against the same directories and the same filenames.
+
+**THE METHODOLOGICAL POINT IS dc's AND IT IS WORTH MORE THAN THE FIGURE.** Their morning number -- _0 of 5 installed hooks carry the refusing arm_ -- **was correct, and was produced by grepping `pre-commit`, which carries the gate in no estate.** The instrument could not have returned anything else, in any tree, under any state of the world. The re-sweep carries a positive control (the arm pattern returns 1 against the template, so the detector demonstrably fires); the morning run had none.
+
+> **A FALSE GREEN IS EASIER TO CATCH THAN A TRUE ONE. The true one gets cited later, and the citation carries no trace of the blindness.** (dc)
+
+> **A PARTIAL FIX MAKES AN INSTRUMENT FEEL REPAIRED AND RETIRES THE SUSPICION THAT WOULD HAVE FOUND THE REST** -- and a repaired instrument is trusted more than an unexamined one. (cc, on dc's sequence: the directory half was corrected in the morning, and the filename half survived BECAUSE that correction had been made.)
+
+**WHAT THIS DOES TO THE HOLD: NOTHING, AND BOTH NODES SAID SO UNPROMPTED.** It is better evidence FOR the sweep -- a deliberate ruling-4 fix, landed today, absent from the gate that runs on this repo's very next commit -- and simultaneously better evidence that a badly-scoped sweep would have missed three estates and touched the wrong file in the other fourteen. Both cut toward taking the time. **The sweep remains hv's, reserved specifically, and a general pen grant does not overturn a specific reservation.**
