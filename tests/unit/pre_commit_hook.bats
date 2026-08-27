@@ -200,6 +200,18 @@ EOF
   # both FOUND, sail past the CLI arm, and fail at the invocation site as exit
   # 126 -- where the gate reports the language unenforced and does NOT block.
   #
+  # **AND THE ARM'S POPULATION IS A BASH PROPERTY, NOT A UNIVERSAL ONE** (ic,
+  # 2026-08-27, who drove the correction before taking it). Same six planted
+  # states, both shells: under zsh, C and E return EMPTY and WOULD reach the CLI
+  # arm; under bash they are FOUND and do not. The gate is
+  # `#!/usr/bin/env bash`, so bash governs and this arm is correct -- but if it
+  # ever runs under a stricter shell it reds for a reason that is not about the
+  # code, and the reader should be sent at the shell rather than at the arm.
+  #
+  # That split is why neither of us was wrong: ic measured honestly in the shell
+  # they probe from, and it was the wrong environment for a file that ships as
+  # bash. The environment is part of the subject under test.
+  #
   # This arm pins that, rather than the comment carrying it alone: the two
   # branches written for C and E were unreachable, which is dead code reading as
   # coverage in the very file that exists to stop exactly that.
