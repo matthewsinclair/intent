@@ -37,6 +37,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [ ] 14: The DONE cutoff is canon state, not history: it travels by git
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
+  - [-] 01: One path to the native CLI: int cli carries the coherence guard
 - [-] ST0061: dehydrate
 
 ## TODO

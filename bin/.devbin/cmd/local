@@ -6,7 +6,8 @@
 #
 #   status      every `intent` binding on this machine, ranked by PATH precedence
 #   build       force a COHERENT release pair, then VERIFY it
-#   install     put v3 on PATH as `intent3` -- explicitly, and never as `intent`
+#   install     put v3 on PATH as `intent`/`intentd` -- their own names, since
+#               2026-08-27; it minted `intent3` while the fleet was still v2
 #   use         switch which BUILD answers `intent`: dev|prod [--yes]; bare reports
 #   uninstall   remove it again; the way back
 #
@@ -60,8 +61,26 @@ set -euo pipefail
 
 BINDIR="${INTENT_LOCAL_BINDIR:-$HOME/.local/bin}"
 # RELEASE_DIR and PRIVATE_RELEASE_DIR live in releasebuild.lib, sourced above.
-# The names v3 takes locally. NEVER `intent` -- see cmd_install.
-PAIR="intent:intent3 intentd:intentd3"
+# The names v3 takes locally: its own. `<built>:<installed>`.
+#
+# THIS USED TO MINT `intent3`/`intentd3` AND THE REASON HAS EXPIRED. cmd_install
+# said, in these words, "NEVER `intent` -- installing v3 under that name shadows
+# v2 for every other project on this machine in one move". That was true while
+# the fleet was v2. Twenty of twenty-one estates are on v3.0.0 as of 2026-08-27,
+# and the one holdout is Intentv2, frozen by ruling and never on the port list.
+#
+# The rule was also being kept by nobody in either direction: `~/.local/bin/
+# intent3` did not exist on this machine, so the name this minted was one no one
+# had -- while `~/.local/bin/intent -> target/release/intent`, the binding it
+# forbade, is what actually resolved, placed by hand. A rule that is neither
+# followed nor enforced is not protecting anything; it is just a stale comment
+# that makes the real state look deliberate.
+#
+# Reversibility does not depend on this name and never did. It is a per-project
+# DATA property (ST0058 AC-00.4): `intent upgrade` per project to go forward,
+# `git checkout . && git clean -fd && rm -rf intent/.cache` to go back. The live
+# switch between builds is `int local use dev|prod`, below.
+PAIR="intent:intent intentd:intentd"
 
 # path_hits <name> -- every executable of <name> on PATH, as "<position>\t<path>".
 #
@@ -99,7 +118,8 @@ describe_binding() {
     esac
   fi
   # THE COLUMN ASKS WHICH INTENT YOU GET, NOT WHAT THE FILE IS. Those differ for
-  # a wrapper: `bin/intent3` IS a bash script and gets you v3, so classifying by
+  # a wrapper: `bin/intent3` WAS a bash script that got you v3 (retired
+  # 2026-08-27, but a stale symlink to it may still exist), so classifying by
   # `file` alone prints a true fact under a label that means something else --
   # the same shape this command exists to expose one level up.
   local line="v2 (bash)"
@@ -118,6 +138,11 @@ cmd_status() {
   local name n=0 pos f kind target line first_shown
 
   step "intent bindings on this machine, in PATH order (first one wins)"
+  # THE RETIRED NAMES STAY IN THIS SCAN DELIBERATELY. `intent3`/`intentd3` are
+  # no longer minted (see PAIR above), but a machine that ran the old
+  # `int local install` still HAS them, pointing straight at the release dir
+  # with no coherence guard. Dropping them from the scan would make this
+  # command stop reporting the exact leftover it exists to surface.
   for name in intent intent3 intentd intentd3; do
     first_shown=""
     while IFS="$(printf '\t')" read -r pos f; do
@@ -211,12 +236,13 @@ cmd_install() {
   [ "${1:-}" = "--yes" ] && yes=1
 
   step "what this will do"
-  printf '    %s\n' "$BINDIR/intent3   -> $RELEASE_DIR/intent"
-  printf '    %s\n' "$BINDIR/intentd3  -> $RELEASE_DIR/intentd"
+  printf '    %s\n' "$BINDIR/intent   -> $RELEASE_DIR/intent"
+  printf '    %s\n' "$BINDIR/intentd  -> $RELEASE_DIR/intentd"
   printf '\n'
-  printf '    NEVER AS `intent`. Installing v3 under that name shadows v2 for every\n'
-  printf '    other project on this machine in one move, and INTENT_HOME cannot stop it.\n'
-  printf '    A distinct name makes the way back "do nothing" rather than "one command".\n'
+  printf '    UNDER THEIR OWN NAMES. This minted `intent3`/`intentd3` while the fleet\n'
+  printf '    was v2 and shadowing `intent` would have changed every project at once.\n'
+  printf '    That is over: the estate is on v3 and the only v2 checkout left is\n'
+  printf '    frozen and off the port list. The way back is `int local use prod`.\n'
   printf '\n'
   printf '    SYMLINKS, NOT COPIES, and that is CORRECTNESS rather than convenience.\n'
   printf '    `claude hook` finds its scripts by walking current_exe() ancestors for\n'

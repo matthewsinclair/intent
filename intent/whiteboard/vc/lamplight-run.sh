@@ -4,15 +4,20 @@
 #   --inbox-flat  move intent/st/_inbox/ST* to intent/st/ (hv's ruling: Triage threads under v3); README.md stays.
 #   --commit      commit --only everything except mix.lock and intent/whiteboard (peer-owned); hooks run; may be slow.
 set -u; P=~/Devel/prj/Lamplight; cd "$P" || exit 1; S=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$S"; L="$S/lamplight-run"
-I=~/Devel/prj/Intent/bin/intent3; AT=~/Devel/prj/Devbin/intent/whiteboard/vc/at-accounting.sh; INBOX=0; COMMIT=0; for a in "$@"; do [ "$a" = --inbox-flat ] && INBOX=1; [ "$a" = --commit ] && COMMIT=1; done
+INT_ROOT=~/Devel/prj/Intent
+"$INT_ROOT/bin/int" cli --version > /dev/null || { echo "int cli refused the pair -- run 'int local build'"; exit 8; }
+I=$INT_ROOT/native/rust/target/release/intent; AT=~/Devel/prj/Devbin/intent/whiteboard/vc/at-accounting.sh; INBOX=0; COMMIT=0; for a in "$@"; do [ "$a" = --inbox-flat ] && INBOX=1; [ "$a" = --commit ] && COMMIT=1; done
 echo "## Lamplight $(date -u +'%H:%MZ'): HEAD $(git log --oneline -1 | cut -c1-50); config $(jq -r .intent_version intent/.config/config.json); dirty: [$(git status --porcelain | tr '\n' ' ' | cut -c1-120)]"
 [ "$(jq -r .intent_version intent/.config/config.json)" = "2.19.0" ] || { echo "not on v2 2.19.0 -- refusing"; exit 2; }
 [ -d intent/.canon ] && { echo "intent/.canon present -- not a fresh tree, refusing"; exit 2; }
 dups=$(for f in $(find intent/st -name acceptance.md); do grep -oE '^- AT-[0-9]+\.[0-9]+' "$f" | sort | uniq -d; done | wc -l | tr -d ' '); echo "duplicate AT ids in source: $dups"; [ "$dups" -eq 0 ] || exit 3
-MOVED=""; if [ $INBOX -eq 1 ]; then for d in intent/st/_inbox/ST[0-9]*; do [ -d "$d" ] && git mv "$d" "intent/st/$(basename "$d")" && MOVED="$MOVED $(basename "$d")" && echo "moved $(basename "$d") flat (status stays Not Started for hop 2; Triage set via canon after)"; done; fi
+# AN ARRAY (IN-SH-CODE-001): the string form was rebuilt by concatenation and
+# then taken apart again by word-splitting at every use, which is the expansion
+# the rule forbids and reads as safe only because ST ids never carry a space.
+MOVED=(); if [ "$INBOX" -eq 1 ]; then for d in intent/st/_inbox/ST[0-9]*; do [ -d "$d" ] && git mv "$d" "intent/st/$(basename "$d")" && MOVED+=("$(basename "$d")") && echo "moved $(basename "$d") flat (status stays Not Started for hop 2; Triage set via canon after)"; done; fi
 cp CLAUDE.md "$L.claude.pre"
 echo "pair: $($I --version 2>&1 | head -1)"; $I upgrade > "$L.h2" 2>&1; rc=$?; echo "hop2 rc=$rc :: $(grep -E '^(migrated|ok|error)' "$L.h2" | tr '\n' '|' | cut -c1-160)"; [ $rc -eq 0 ] || { tail -5 "$L.h2" | cut -c1-200; exit 4; }
-if [ $INBOX -eq 1 ] && [ -n "$MOVED" ]; then for st in $MOVED; do c=intent/.canon/st/$st.json; jq '.status = "triage"' "$c" > "$L.$st.json" && cp "$L.$st.json" "$c"; done; $I sync --to-store $MOVED > "$L.triage" 2>&1 && $I sync --to-disk $MOVED >> "$L.triage" 2>&1 && echo "Triage set via canon on:$MOVED (hv 2026-08-26 via lamplight-vc) :: $(grep -c 'status: Triage' intent/st/ST0339/info.md 2>/dev/null) rendered" || { echo "Triage via canon FAILED:"; tail -3 "$L.triage"; }; fi
+if [ "$INBOX" -eq 1 ] && [ "${#MOVED[@]}" -gt 0 ]; then for st in "${MOVED[@]}"; do c="intent/.canon/st/$st.json"; jq '.status = "triage"' "$c" > "$L.$st.json" && cp "$L.$st.json" "$c"; done; "$I" sync --to-store "${MOVED[@]}" > "$L.triage" 2>&1 && "$I" sync --to-disk "${MOVED[@]}" >> "$L.triage" 2>&1 && echo "Triage set via canon on: ${MOVED[*]} (hv 2026-08-26 via lamplight-vc) :: $(grep -c 'status: Triage' intent/st/ST0339/info.md 2>/dev/null) rendered" || { echo "Triage via canon FAILED:"; tail -3 "$L.triage"; }; fi
 $I claude upgrade --apply > "$L.h3" 2>&1; echo "hop3 rc=$? :: $(grep -E '^(ok|held)' "$L.h3" | tr '\n' '|')"; $I claude upgrade --apply > "$L.h3b" 2>&1; echo "hop3 again: $(grep -E '^ok' "$L.h3b")"
 echo "CLAUDE.md non-blank lines removed by hop 3: $(diff "$L.claude.pre" CLAUDE.md | grep '^<' | grep -vc '^< *$') (template lines expected; read them if authored):"; diff "$L.claude.pre" CLAUDE.md | grep '^<' | grep -v '^< *$' | cut -c1-100 | head -12
 git check-ignore -q intent/events.jsonl || printf 'intent/events.jsonl\n' >> .gitignore; git check-ignore -q 'intent/.backup/x' || printf 'intent/.backup/\n' >> .gitignore

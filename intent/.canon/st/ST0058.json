@@ -9,6 +9,17 @@
   "context": "",
   "body": "",
   "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "One path to the native CLI: int cli carries the coherence guard",
+      "scope": "S",
+      "status": "wip",
+      "objective": "There is ONE path from a shell to the native CLI, it is `int cli`, and it refuses an incoherent binary pair rather than running it.\n\nToday there are five, and they disagree about both *which* binary and *whether to check it*. `int cli` takes whichever of `target/debug` and `target/release` has the newer mtime and applies no guard at all. `bin/intent3` takes release only and is the **only** path carrying the pair-coherence check. `.envrc`'s `PATH_add native/rust/target/debug` makes a bare `intent` mean the DEBUG build inside this directory and the release build in every other estate. Outside the tree a bare `intent` is the brew keg until `int local use dev` is run. And `int local install` mints a fifth -- `$BINDIR/intent3 -> $RELEASE_DIR/intent`, straight at the release directory, routed through nothing and guarded by nothing (dc, 2026-08-27, against a change that would otherwise have claimed to end the class while leaving this one standing).\n\n**AC-00.1 already names the failure this admits** -- a `cargo build --release` that returns green over an incoherent set, because `intentd` declares no dependencies and its build script therefore never re-runs, leaving the previous build's commit baked in. dc drove it in August with a 48-hour-old marker. It recurred on 2026-08-27 during the port: `intent` at `f438d0d5`, `intentd` still at `cd032508`, and **the pin's own verification could not see it, because `intentd --version` prints no commit at all.** `bin/intent3` refused; `int cli` would have run it. The guard exists and lives on the path nobody standardised on -- which is the defect, not a missing check.\n\n`intent3` carries a distinct name for a stated reason, and the reason has expired. `cmd_install` says it in those words: installing v3 as `intent` \"shadows v2 for every other project on this machine in one move\". **Twenty of twenty-one estates are now on v3.0.0**, and the one v2 holdout is Intentv2, frozen by ruling and never on the port list. **The rule is also already broken in both directions on this machine**: `~/.local/bin/intent3` does not exist, so the name `cmd_install` mints is one nobody has, while `~/.local/bin/intent -> target/release/intent` -- the binding it forbids -- is the one that actually resolves, placed by hand. A rule that is neither followed nor enforced is not protecting anything.\n\nAC-00.4's reversibility is a per-project DATA property -- `intent upgrade` per project, `git checkout . && git clean -fd && rm -rf intent/.cache` to go back -- discharged by neither the binary's name nor its location, so consolidating the name does not touch it. `int local use dev|prod` is the live switch and already works.\n\n**Out of scope, explicitly.** `bin/intent` and `bin/intent_*` -- the v2 shell implementation -- stay. Pruning them is `AC-12.1`, ratified, and it belongs to WP-12 beside the tag, the docs and the formula. It also takes 37 of the 113 BATS files with it, since they genuinely exercise the bash CLI. Nothing here depends on that prune: `Intent/bin/intent` sits at PATH position 22, shadowed at 17, and never resolves -- it is inert clutter, not a live hazard.",
+      "body": "",
+      "preamble": ""
+    }
+  ],
   "criteria": [
     {
       "id": "AC-00.1",

@@ -7,7 +7,7 @@
 # Refuses (never commits) on: a dirty tree before the run, rc != 0, any other path changing, a present file
 # changing at all. Every number is read by command in the same run; nothing is transcribed.
 set -uo pipefail
-I=${VC_INTENT:?set VC_INTENT to a PINNED copy of the pair -- bin/intent3 resolves into native/rust/target/release and a build replaces it under a live run (2026-08-26: 252 refusals)}; L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
+I=${VC_INTENT:?set VC_INTENT to a PINNED copy of the pair -- native/rust/target/release is replaced by any build under a live run (2026-08-26: 252 refusals); gate coherence with `int cli --version` first}; L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
 COMMIT=0; [ "${1:-}" = --commit ] && { COMMIT=1; shift; }
 pair=$($I --version 2>&1 | head -1); echo "## sweep --default on [$pair] at $(date -u +%H:%M:%SZ); commit=$COMMIT"
 fail=0

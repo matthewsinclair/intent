@@ -10,7 +10,11 @@ set -uo pipefail
 SK=${VC_SKILLS_DIR:-$HOME/.claude/skills}
 V2=${VC_V2_SKILLS:-$HOME/Devel/prj/Intentv2/intent/plugins/claude/skills}
 V3=${VC_V3_SKILLS:-$HOME/Devel/prj/Intent/intent/plugins/claude/skills}
-I=${VC_INTENT:-$HOME/Devel/prj/Intent/bin/intent3}
+# REFUSE RATHER THAN DEFAULT. This used to fall back to `bin/intent3`, so a
+# caller that forgot to pass one silently got whatever that wrapper resolved to
+# -- which is how a retired path stays in service. `lamplight-triage.sh` and
+# `sweep-default.sh` already use this shape; cc found this one still defaulting.
+I=${VC_INTENT:?set VC_INTENT to the intent binary to use -- this script refuses to pick one for you, because a default is how a retired path stays in service (cc, 2026-08-27)}
 L=${VC_SCRATCH:-/tmp/vc-scratch}; mkdir -p "$L"
 REPAIR=0; [ "${1:-}" = --repair ] && REPAIR=1
 sha() { shasum -a 256 "$1" | cut -c1-64; }

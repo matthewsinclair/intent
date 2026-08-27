@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Run the Intent v3 native CLI
+# int cli -- THE path from a shell to the native v3 CLI. There is exactly one,
+# and it refuses an incoherent binary pair rather than running it.
 #
-# intent cli [args...] -- run the ST0056 Rust binary against this project.
+# THIS VERB USED TO PICK BY MTIME AND CHECK NOTHING. It ran whichever of
+# target/debug and target/release had been touched last, which turns "which
+# binary am I running" into a question about file timestamps -- and it applied
+# no coherence check at all, so it would happily run a pair built from two
+# different trees. The guard existed, in `bin/intent3`, on the path nobody had
+# standardised on. That was the defect: not a missing check, a check parked
+# where the traffic was not.
 #
-# Overrides devbin's built-in `cli`, which is `exec mix <task>` and assumes an
-# Elixir project. Intent is not one, so the builtin's language gate refused
-# with "this project does not declare the 'elixir' language" -- a true
-# statement about a question nobody asked.
+# WHY A COHERENCE CHECK AT ALL, since `cargo build --release` returns green.
+# `intentd` declares no dependencies, so its build script never re-runs and the
+# previous build's commit stays baked in. dc drove this in August with a
+# 48-hour-old marker; it recurred on 2026-08-27 mid-port with `intent` at
+# f438d0d5 and `intentd` still at cd032508. AC-00.1 on ST0058 names it.
 #
-# Prefers an already-built binary and only builds when there is none, because
-# `int cli` is the command you reach for to RUN the thing: making it rebuild
-# first would put a compile in front of every invocation. Use `int build cli`
-# when you want the build.
+# AND THE OBVIOUS VERIFICATION CANNOT SEE IT: `intentd --version` prints
+# `intentd 3.0.0 -- not yet implemented` and no commit at all, so reading
+# --version off both halves of a pair looks clean while the pair disagrees.
+# The provenance is embedded, not printed, which is why this reads it through
+# artefact.lib rather than by running the binary and believing it.
 #
-# Debug before release, deliberately: during the v3 build the debug binary is
-# the one that has just been compiled by `cargo test`, so it is the one whose
-# behaviour matches the tree you are looking at. A stale release binary
-# answering questions about code you changed an hour ago is the failure this
-# ordering prevents.
-#
+# RELEASE BY STATED CHOICE. `--debug` is the only way to the debug build, and
+# it is deliberately a flag you type rather than a timestamp you lose a race
+# to. A debug binary is unguarded by construction -- it has no pair -- so
+# asking for one is asking to be unguarded, and that should be legible in the
+# command you ran.
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
@@ -27,38 +35,62 @@ set -euo pipefail
 workspace="${PROJECT_ROOT:?}/native/rust"
 [ -d "$workspace" ] || die "no Rust workspace at native/rust -- has the tree moved?"
 
-# FRESHEST WINS, NEVER EXISTENCE.
-#
-# This loop used to be `debug` then `release`, execing the first that was `-x`.
-# No mtime, no freshness -- so a debug binary built ONCE, from any tree state,
-# PERMANENTLY SHADOWED every later release build for this verb, while
-# `int local build` faithfully refreshed a release pair nobody reached through
-# it. The thing you built was not the thing that ran, and nothing said so.
-#
-# Freshest rather than release-always, because a debug build exists to run
-# uncommitted code and someone who just ran `int build cli --debug` means it.
-# The choice is PRINTED when the two differ by more than a minute: silently
-# picking is how the old behaviour stayed invisible.
-dbg="$workspace/target/debug/intent"
-rel="$workspace/target/release/intent"
-chosen=""
-if [ -x "$dbg" ] && [ -x "$rel" ]; then
-  if [ "$dbg" -nt "$rel" ]; then chosen="$dbg"; other="$rel"; else chosen="$rel"; other="$dbg"; fi
-  # `find -newermt` is refused by this platform's bfs find, so the age gap is a
-  # plain stat comparison rather than a predicate.
-  a="$(stat -f %m "$chosen")"; b="$(stat -f %m "$other")"
-  if [ "$((a - b))" -gt 60 ]; then
-    printf 'int cli: running the newer %s build (the other is %ss older)\n' \
-      "$(basename "$(dirname "$chosen")")" "$((a - b))" >&2
-  fi
-elif [ -x "$dbg" ]; then chosen="$dbg"
-elif [ -x "$rel" ]; then chosen="$rel"
+want=release
+if [ "${1:-}" = "--debug" ]; then
+  want=debug
+  shift
 fi
-[ -z "$chosen" ] || exec "$chosen" "$@"
 
-# Nothing built yet. Build once, quietly, then run -- rather than failing with
-# "no binary", which tells the operator to go and run a different command.
-warn "no intent binary yet -- building (debug)"
-cd "$workspace" || die "cannot enter $workspace"
-cargo build -p intent-cli >&2 || die "cargo build failed"
-exec "$workspace/target/debug/intent" "$@"
+if [ "$want" = debug ]; then
+  dbg="$workspace/target/debug/intent"
+  # BACKTICKS, NOT QUOTES, AND THAT IS LOAD-BEARING RATHER THAN STYLE. Arm 10 of
+  # `shared_artefact_build_guard.sh` strips backticked spans before matching and
+  # strips nothing else, so a cargo command named inside quotes is counted as a
+  # cargo command RUN. cc hit it on this file at 2026-08-27 and it blocked every
+  # node's commit. The guard's own header calls this the estate's oldest
+  # instrument defect and records meeting it twice; this was the third.
+  [ -x "$dbg" ] || die "no debug binary at $dbg -- run \`cargo build -p intent-cli --manifest-path native/rust/Cargo.toml\`"
+  printf 'int cli: --debug, so NO coherence guard (a debug build has no pair to check)\n' >&2
+  exec "$dbg" "$@"
+fi
+
+release_dir="$workspace/target/release"
+rel="$release_dir/intent"
+if [ ! -x "$rel" ]; then
+  # NOT a silent `cargo build`. The old verb built debug here and then ran it,
+  # which is how you end up holding a debug binary you never asked for. The
+  # remedy is one command and it is the one that produces a COHERENT set.
+  die "no release binary at $rel -- run \`int local build\` (it forces a coherent pair and verifies it; a bare \`cargo build --release\` does not)"
+fi
+
+# HARD DEPENDENCY, ON PURPOSE. A wrapper that drops its own guard when a file
+# goes missing is worse than one with no guard, because it still looks guarded.
+for lib in artefact currency; do
+  libpath="$(dirname "${BASH_SOURCE[0]}")/shared/$lib.lib"
+  [ -r "$libpath" ] ||
+    die "cannot read $libpath -- refusing to exec without the currency check"
+  # shellcheck disable=SC1090
+  . "$libpath"
+done
+
+verdict="$(artefact_currency_verdict "$release_dir" "$PROJECT_ROOT")"
+case "$verdict" in
+  ok) ;;
+  warn:*)
+    printf 'warning: %s\n' "${verdict#warn:}" >&2
+    ;;
+  refuse:*)
+    printf 'error: %s\n' "${verdict#refuse:}" >&2
+    printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2
+    printf '  This refusal is the guard working. The binary really does not describe\n' >&2
+    printf '  this tree, and a v3 answer from it would be about a tree you are not on.\n' >&2
+    exit 1
+    ;;
+  *)
+    # An unrecognised verdict is not a pass. The three cases above are the
+    # whole contract; a fourth means the lib moved under this caller.
+    die "unrecognised currency verdict '$verdict' -- refusing rather than guessing"
+    ;;
+esac
+
+exec "$rel" "$@"

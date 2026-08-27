@@ -16,6 +16,12 @@ _(not yet written)_
 
 _(not yet written)_
 
+## Work Packages
+
+| WP    | Title                                                           | Size | Status |
+| ----- | --------------------------------------------------------------- | ---- | ------ |
+| WP-01 | One path to the native CLI: int cli carries the coherence guard | S    | WIP    |
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0058.json`, then `intent sync --to-store`. This cover never restates them.
