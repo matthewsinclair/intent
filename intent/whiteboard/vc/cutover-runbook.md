@@ -680,3 +680,19 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **The natural home is `doctor`, on the same ground as F1's live figure:** the hook is untracked and per-machine, no clone inherits it, and a per-machine truth check is what `doctor` is for. Four properties, all cheap and all local: is there a carrier, does it contain a guard block, does `INTENT_HOME` resolve from it, and what generation is it against the template the resolved install actually holds.
 
 **Routed to ic, queued behind their three, because they own `doctor` and because it pairs with the F1 check rather than competing with it.**
+
+## THE ENUM ROSTER: MY NON-FINDING BECAME THREE OF cc's, AND MY POPULATION WAS TWO ENCODINGS CONFLATED (cc, 2026-08-27 19:18Z)
+
+**I handed cc "22 declared enum flags, 2 roster-reading sites" explicitly as NOT a finding, because I had counted one mechanism and knew of a third. cc measured it properly and every one of the three results is better than what I handed over. Recorded with their name on it.**
+
+**(1) MY POPULATION WAS TWO ENCODINGS CONFLATED, AND THE EXISTING TEST IS BLIND TO THE LARGER ONE.** Of the 22 `type: enum` slots, **6 carry the roster as a `values` ARRAY and 12 carry it as a pipe-STRING** (`"value": "terminal|md|json"`). `declared_values_are_enforced.rs` walks `values` arrays only -- **so it is green and blind to all 12.** cc's framing: it fixed the LOCATION problem with a recursive walk and **never had the ENCODING problem in view.** A true green from an instrument that could not have returned anything else -- watch-out 0b, in the count I had just written up while quoting 0b at three nodes.
+
+**(2) THE LIVE DEFECT, AND IT IS PROVED BOTH WAYS ON REAL DATA.** `output_of(a)?` validates `--format` as an ARGUMENT to the renderer (`render.rs:3846`), so **every arm carrying an early `if rows.is_empty() { return Ok(()) }` skips validation entirely.** Four slots confirmed accepting an unknown format at exit 0: `issues`, `issues list`, `wp list`, `critic`. **THE VERDICT BELONGS TO THE RESULT SET, NOT THE SLOT** -- `wp list ST0056` refuses and `wp list ST0029` accepts, **same flag, same binary, same build**. No fixture was needed and none would have been better: the two-sided proof was already in the estate's own data.
+
+**(3) THE DRIFT `enum_flag`'s OWN DOC PREDICTED HAS ALREADY HAPPENED AND IS SHIPPING.** `issues` declares `terminal|md|json`; the renderer **refuses `json`** (_"this verb has no json projection"_) and **accepts undeclared `text` and `markdown`**. `--help` advertises `json` today. The doc comment said the drift would be silent in the direction that matters -- the table gains a format, the renderer keeps refusing it, and `--help` advertises a value the command rejects. **It described the estate's present state as a hypothetical.**
+
+**RULING, `authority: vc`: (3) IS BUILT NOW.** A tool advertising a value it rejects is a live user-facing defect and it touches none of hv's open questions.
+
+**(1) AND (2) GO TO hv AND ARE NOT RULED UNDER THE PEN.** Widening `declared_values_are_enforced.rs` to both encodings **changes what a green means across the whole surface**, and moving validation off the result set is a contract change. Neither is mine to take while hv is away.
+
+**AND THE SAME DAY, THE SAME NODE, THE SAME CLASS ON MY OWN BRIEF.** cc also found that the porter's citation grammar I relayed was wrong: the bracket form I described is the MINORITY, and Lamplight's majority form is BACKTICKS -- **a fixture written to my description would have tested a corpus that does not exist.** I never read Lamplight's corpus; I forwarded lamplight-vc's description of it. **Relaying is authoring, and the tell is that the derivation felt cheaper than the command.** cc's rule, taken verbatim: **read the corpus, not the description of the corpus, even when the description comes from the node that measured it.**
