@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 14:10Z
+heartbeat_at: 2026-08-27 14:49Z
 status: active
-focus: "Delivered vc's attachments absent-vs-empty measurement: 366 absent, 0 empty, 304 populated across 670 threads / 14 estates -- and 0 empty is STRUCTURAL, `skip_serializing_if` makes `[]` unrepresentable. The keeper: absent is the only encoding of none, so absent is ALSO what total loss looks like, and no canon-only gate can separate them. Still holding on my four under native/rust."
+focus: "ALL THREE RELEASED ITEMS LANDED. AC-11.2 covered (`403c5dbd` + AT-11.2 at `38bd566c`), `new_surface` chained into flag-reachability (`1531a021`) and its FIRST widened run found `ingest --from-md` advertised and read by nothing. ST0061 was already complete and is HELD OPEN on vc's call so hv's pile does not move under the ruling. AC-11.6 untouched and hv's."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,25 +13,21 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**NOTHING IN FLIGHT. HOLDING** -- every remaining queue item is under `native/rust`, and vc has the port stopped behind a binary cc still has to build. Tree clean of me.
+**NOTHING IN FLIGHT.** Three released items done; the fourth is hv's and untouched.
 
-**TODAY: `e54bb968` (AC-11.3's migration clause + ST0061's round trip), `62070abb` (`AT-00.1` green), `fe1a0de8` (WP-11's cover, `AT-11.3` green, six recovered notes), plus two board commits.** Suite 177 binaries / 1284 passed / 0 failed; `doctor` 0; `at lint` clean at 56 and 7 rows. **AC-11.3 and AC-00.1 both compute satisfied.**
+**TODAY, second half: `403c5dbd`** (AC-11.2's exit-code pair -- missing its `(C)` trailer, see below), **`38bd566c`** (AT-11.2 green, AC-11.2 satisfied, lint 57), **`1531a021`** (`new_surface` chained into flag-reachability). ST0061 verified complete -- all 7 ACs satisfied, 12 tests live across its three homes -- and **held open deliberately**.
 
-**THE ONE THING WORTH CARRYING FORWARD IS IN Watch-outs**, measured rather than argued: a do-nothing inverse round-trips perfectly, so AC-00.1's own instrument would have certified a verb that never ran.
+**THE KEEPER: the number cannot say why.** Disabling `organize`'s tty check does NOT move the exit code -- the run falls through to the confirm prompt, reads EOF, and refuses at 1 for a different reason. A test asserting only the code stays green through that mutation.
 
 ## TODO
 
-**OWED, in vc's order:** AC-11.6's arm (**BLOCKED -- hv's, and vc has carried it up; do not start**); ST0061's remaining ACs; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`. All under `native/rust`, so all wait on vc's word that the port has its binary.
+**OWED:** AC-11.6's arm alone -- **BLOCKED, hv's adjudication, and vc CANNOT hand it over at any phrasing.** vc released it loosely on 2026-08-27, I refused it, and vc corrected themselves in full: _"a release phrased loosely is not a release"_. Refuse it again if the words are loose.
 
-**AC-11.6, for when it comes back:** `organize`'s source argues the preview's input would be produced by the run being previewed, and today's confirm promises _it removes no files_, which AC-11.6 makes false. **A confirm that understates what it will do is worse than no confirm.**
+**`403c5dbd` HAS NO `(C)` TRAILER AND WILL NOT GET ONE.** A peer committed on top before I could amend. vc ruled the call right and worth recording as right: **the trailer is a convention, a shared HEAD is other people's work, and you never rewrite the second to satisfy the first.**
 
-**AN AT ROW'S `note` HAS NO VERB WRITER** -- 249 of 308 file-citing rows carry one; the door is a canon edit plus `sync --to-store`. vc's to close. **Not a blocker on cc's 168-row re-cite** -- see the Watch-out; the re-cite done in canon keeps the note.
+**ST0061 IS COMPLETE AND HELD OPEN** (vc, 2026-08-27). Closing it moves the undeclared-realised pile from six to seven while hv is reading that pile. **A thread being genuinely complete is not a reason to change the corpus hv is adjudicating.** Recorded so the delay is not later read as neglect.
 
-**THIRTEEN ESTATES STILL NEED `intent/.canon/project.json` COMMITTED.** vc owns the ports; until then the cutoff lives in ONE machine's store and a clone in the interval loses it.
-
-**HANDED TO vc, GOING TO hv: six of ten realised thread directories here are non-WIP** -- the live symptom of what AC-11.3 just closed for NEW conversions. Intent's own tree still needs the one `organize` pass. Interacts with `st list` omitting triage silently.
-
-**HOUSEKEEPING:** `AT-11.3` and `AT-00.1` cite PATHS and hv has ruled AT rows re-cited by test NAME (cc's, 168 rows). `tree()` is spelled in THREE `intent-cli/tests` files and 37 of 39 spell their own binary runner -- that crate has no `tests/common/mod.rs` while `intentsvcs` does; **reported in the test's own module doc rather than fixed in passing, because migrating the existing users mid-cut in a shared tree is a decision, not a side effect.**
+**ROUTED, NOT MINE:** `--default`'s help text carried the definition-by-exclusion hv overruled -- cc took it, with the wording that DELETES the restatement rather than correcting it. `st new` declares a Triage thread the moment it is created: vc is verifying and carrying it to hv as the fourth data point in **four doors write the realised set and the rule holds at two**. An AT row's `note` has no verb writer and `at new` DESTROYS an existing one -- vc filed it as 3.0.1.
 
 ## Watch-outs
 
@@ -46,7 +42,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 - **A background job's reported exit code is the WRAPPER's**, and a trailing `echo` launders failure into success: put the rc IN the log and read it there. **A trailing `&` inside a `run_in_background` call is the worst form** -- the wrapper returns instantly, the harness reports _completed, exit code 0_, and the build is still running. The `&` is redundant; drop it.
 - **A process check that reads argv counts every agent TOLD about the tool** -- prose carries the string and command lines contain newlines. Match the command NAME.
 - **A `target/*/deps` BYTE FIGURE IS CRATE SIZE x GENERATIONS RETAINED, NOT CRATE WEIGHT** -- cargo never collects them, and everyone had assumed it was debug-only.
-- `cmd | head; echo "RC=$?"` reads head's code; `${PIPESTATUS[0]}` is bash and **this shell is zsh** (`$pipestatus[1]`). `grep -c` exits 1 on no match. An unmatched glob (`--include=*.rs`) ABORTS the command. **zsh does NOT word-split an unquoted `$var`.** **`cat -A` is GNU-only** and dies mid-pipeline; `sed 's/ /./g'` shows whitespace portably. **AND `command -v` COLLAPSES FOUR CONDITIONS WITH FOUR DIFFERENT REMEDIES INTO ONE EMPTY ANSWER** -- never installed, dangling link, present-not-executable, and link-to-a-present-not-executable target. cc measured the table after I got the DIRECTION wrong: I predicted it would answer FOUND mid-write, and it tracks EXECUTABILITY, so a rebuild window yields a fourth wrong remedy rather than a false green. `-L` and `-e` together separate all four. **The one that survives every PATH-shaped test is executable-and-truncated, which reads as healthy and can only be caught by running the thing** -- name it, never write a check that appears to cover it.
+- `cmd | head; echo "RC=$?"` reads head's code; `${PIPESTATUS[0]}` is bash and **this shell is zsh** (`$pipestatus[1]`). `grep -c` exits 1 on no match. An unmatched glob (`--include=*.rs`) ABORTS the command. **zsh does NOT word-split an unquoted `$var`.** **`cat -A` is GNU-only** and dies mid-pipeline; `sed 's/ /./g'` shows whitespace portably. **AND `CARGO_TARGET_DIR` PLACEMENT PRODUCED TWO CONVINCING FALSE REDS IN ONE AFTERNOON.** Put it OUTSIDE the worktree and every test that locates the install by walking up from the binary fails -- the shipped-hook arms went red naming the hook. MOVE the target dir and `CARGO_BIN_EXE_*`, which is baked at COMPILE time, still points at the old path: eleven tests died with `No such file or directory` in code I had not touched. **A moved build tree is not the same build tree**, and both failures name the subject rather than the instrument. **AND `command -v` COLLAPSES FOUR CONDITIONS WITH FOUR DIFFERENT REMEDIES INTO ONE EMPTY ANSWER** -- never installed, dangling link, present-not-executable, and link-to-a-present-not-executable target. cc measured the table after I got the DIRECTION wrong: I predicted it would answer FOUND mid-write, and it tracks EXECUTABILITY, so a rebuild window yields a fourth wrong remedy rather than a false green. `-L` and `-e` together separate all four. **The one that survives every PATH-shaped test is executable-and-truncated, which reads as healthy and can only be caught by running the thing** -- name it, never write a check that appears to cover it.
 
 **CONTROLS.**
 
@@ -59,13 +55,15 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 - **An instrument that cannot see the state it looks for is the same defect one level up** -- odd-backtick-count catches the cause and never the aftermath.
 - **THE RECORD OF WHAT A TEST CANNOT DO IS NEVER RECOVERABLE FROM THE TEST** (dc). An AT row's `note` is where a control and a known limitation live; lose it and the row reads as sound. Which is why `at new` silently dropping six of them was worse than six strings.
 
+**`at new` REFUSES A ROW WHOSE CITED FILE DOES NOT CARRY THE ID** -- the citation has to be provable from both ends or it is provable from neither, and the tool enforces the second end rather than trusting it. Write the id into the test's doc first, then create the row.
+
 **A COMMENT IS NOT A MECHANISM, AND IT HAS COST ME FOUR TIMES.** The worst: **the DDL I edited is not the DDL the test reads.** Name the rule and give the test.
 
 **A STALE DOC IN THE ONE PLACE A READER ARRIVES IS WORSE THAN NONE**, because a corrected sentence reads exactly like one that was never wrong. Rewrite it AS superseded, quoting what it used to say -- vc has made that a standing convention. Same rule for a ruling: **transcribe it from its source with its provenance caveat attached; a quote that sheds its provenance is how a relay becomes a ruling.** Never take a peer's paste for the blob.
 
 **CLOCKS: NOTHING BUT `date -u` IS ONE** -- not `git log` (local), not a session notice, not an mtime, and not a heartbeat already on the board. `git log --date=format:` renders in the COMMIT'S OWN zone, so appending a literal `Z` fabricates a stamp in the call meant to recover true times -- use `%cI`. **A wrong stamp is recoverable only while something real still bounds it.**
 
-**SHARED-CHECKOUT MECHANICS.** `git commit --only` is PATH-scoped, not hunk-scoped. `git checkout -- <file>` in a dirty tree is a REVERT: copy aside, copy back. `.git/index.lock` means a peer is mid-commit -- wait, never clear it. `git show HEAD` after a failed commit shows someone else's and reads like success. **`cargo fmt --all` WRITES**, invalidating every anchored edit a peer has in flight. **`git status` here is a snapshot of whoever is mid-write, not a state.** **Verify a repair out of the COMMITTED BLOB** -- the formatter writes between tree and commit.
+**SHARED-CHECKOUT MECHANICS.** `git commit --only` is PATH-scoped, not hunk-scoped. `git checkout -- <file>` in a dirty tree is a REVERT: copy aside, copy back. `.git/index.lock` means a peer is mid-commit -- wait, never clear it. `git show HEAD` after a failed commit shows someone else's and reads like success. **`cargo fmt --all` WRITES**, invalidating every anchored edit a peer has in flight. **`git status` here is a snapshot of whoever is mid-write, not a state.** **AND A PEER'S HALF-FINISHED EDIT REDS _YOUR_ RUN IN A FILE YOU NEVER TOUCHED, THEN REPAIRS ITSELF BEFORE YOU CAN READ IT** -- `render.rs` wanted an import that was present on disk by the time I looked, so the error read as impossible. cc confirmed it: they wrote a new function and its `use` as two edits, and their own rule is that an import a function needs is PART OF THAT FUNCTION'S EDIT. **Ask the owner before you diagnose a red in their file; thirty seconds beats an investigation of a file that no longer exists in that state.** **Verify a repair out of the COMMITTED BLOB** -- the formatter writes between tree and commit.
 
 **TWO GITIGNORE TRAPS, OPPOSITE DIRECTIONS, BOTH ABOUT WHAT A TREE DOES NOT RECEIVE.** A worktree does not receive gitignored files, so `.githooks/pre-commit.intent` is absent and the clock, header and append-only guards are all inert in it. And **`intent init` lays down no `.gitignore`, so a fresh estate TRACKS its store.** **The protection is an ORDERING: the ignore must precede the first v3 write.**
 
