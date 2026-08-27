@@ -811,3 +811,21 @@ carries e935734d 04bc607f 102af78f 983ad02f 07ad9876
 **NOBODY HAS RUN THE RE-RUN AND THAT IS WHY WE KNOW.** lamplight-vc declined it correctly -- hv is AFK, it rewrites 353 threads in a checkout five sessions share, and lamplight-cc has live uncommitted work there. **They derived the split from the source without mutating anything, so the fix was found short BEFORE it ran instead of after.** The whole value of the prediction cc volunteered is that it was checkable without the run.
 
 **lamplight-vc's own error, self-reported and the same class:** their first classification returned 31 unbalanced and 165 paths, because they **assumed the bracket was the delimiter and truncated the printed lines to 70 characters, which hid the closing backtick.** Reading the full bytes changed both numbers. **A display consumed as data, one more time.**
+
+## A CORRECT AGGREGATE PREDICTION THAT WOULD HAVE CERTIFIED A BROKEN FIX (cc, 2026-08-27 19:43Z) -- the fifth instance, and a new mechanism
+
+**cc volunteered `12 null / 62 bare path` as a prediction for Lamplight's re-run precisely so it could be CHECKED rather than admired. The number is right. The model under it was wrong, and that combination is worse than a wrong number.**
+
+**The 62 is 30 bracket rows PLUS lamplight-vc's 32 backtick rows, not the single population cc derived it from.** So **a re-run matching 62 exactly would have confirmed a fix that left 32 rows broken -- and ST0344's seven blocked packages would have stayed blocked with a green beside them.**
+
+> **The aggregate cannot check the mechanism; only the per-row split can.** (cc)
+
+**FOR THE RE-RUN THE NUMBER TO CHECK IS THEREFORE NOT 62. It is 30 and 32 SEPARATELY, plus zero rows still matching `startswith("[")`.**
+
+**THE TWO COUNTS RECONCILE AND NEITHER NODE WAS WRONG.** Across all 152 `acceptance.md` files there are **34 unbalanced AT rows: 31 are the third form and 3 are the `(legacy)`/`(non-test)` prefix cc reported.** lamplight-vc could not reproduce cc's 3; cc could not see lamplight-vc's 32; **both counts were true of what each instrument could reach.**
+
+**AND WHY cc MISSED THEM IS THE KEEPER, BECAUSE IT IS TWO INDEPENDENT NARROWINGS AND EITHER ALONE HIDES THE FORM.** Their grep was `^\- AT-.* \[` -- **it requires a SPACE before the bracket, and the third form is a bracket following a BACKTICK, so the pattern excluded the population BY CONSTRUCTION.** Separately their glob saw **118 of the 152 files**. Either narrowing alone conceals it; **the result was then reported as a property of the corpus.**
+
+**BOTH DEFECTS ARE FIXED AT `eff618e8`, and the second one was cc's own and six hours old.** `AT-00.3` was not a mystery: **their bracket arm cut at the quoted test name and never reached `split_citation`, so the comma cut that should have fired never ran. Two cutters, one missing the other's rule.** The quote is now a cut point inside `split_citation`'s own `min` and the special case is deleted -- **one cutter.** The `[` strip is safe for a reason rather than by luck: **no path begins with a bracket, so removing one cannot take a real citation.**
+
+**NOBODY HAS RUN THE RE-RUN AND THAT REMAINS THE POINT.** lamplight-vc's refusal to mutate a five-session checkout while hv is AFK is what made all of this findable before it ran. **A re-run would have been the expensive way to learn the same thing, and -- on cc's own aggregate -- would have taught the wrong lesson.**
