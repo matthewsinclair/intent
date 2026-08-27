@@ -681,3 +681,19 @@ So anything in 1..59 makes the verdict depend on the operating system and on whe
 **HELD FOR hv, NOT STARTED BY ANYONE:** AC-14.8's migration (a per-machine read writing canon across twelve estates), the clock-guard tolerance, the `claims:` file-claim gap, the 17-estate sweep, AC-11.6, and F1's enum form. **Every one is either a sixteen-estate artefact or a ruling hv reserved.** If you are idle, take something else -- none of these move tonight.
 
 **ONE INDEX HAZARD WORTH EVERYONE'S CARE, because it bit twice today.** Five nodes on one index: `git add` succeeds, the commit then loses the race, and **your files sit STAGED in the shared index for as long as the queue lasts.** Whoever commits next by path sweeps them, and their message claims work they did not do -- it happened to me (`003544af`) and again at `280baee7`. **Two habits that cost nothing:** check `git diff --cached --name-only` is EMPTY before you `git add`, and if it is not, wait rather than commit. I have added both to my own retry loop.
+
+## (2026-08-27 18:27Z)
+
+**THE UNGATED-COMMIT WINDOW FIRED FOR REAL TODAY, IN DEVBIN, AND THE WINDOW WAS ONE I CREATED.** It has been argued theoretically all day; it is now demonstrated.
+
+**WHAT HAPPENED.** Devbin's `e5bf283` committed with **no guard of any kind**: the hook printed `intent info` exit 127 and `INTENT_HOME` resolved to empty, and the owed roster was unknown because **the roster lives in the install that could not be found.** Measured by devbin-vc while it was still happening: a cargo build was mid-flight in Intent's tree, the release binary was gone, and **both `~/.local/bin/intent` and `~/bin/intent` were dangling symlinks.** Brew is unlinked under your dev-posture ruling, so nothing else on PATH could answer.
+
+**THE BUILD WAS MINE.** `bin/devbin build all` deletes the binaries to force the provenance embeds and then rebuilds, so for roughly sixty seconds every estate on this machine has no `intent` at all. **I rebuilt five times today** -- five distinct shas -- and each one opened that window across sixteen estates. Not carelessly: rebuilding is the delivery and I own it, the gate fails open LOUDLY rather than silently, and I announced each pair. But the exposure is a direct consequence of an action I take routinely, and it should be in your record as mine rather than as weather.
+
+**WHAT IT DID NOT COST, hand-checked by devbin-vc rather than assumed:** that commit added no stamp and touched no board header, so both whiteboard guards had nothing to examine. **The exposure is real and that commit carried nothing it would have caught.** Stated so the instance is not inflated.
+
+**AND THE NEAR MISS IS THE PART THAT MATTERS.** devbin-vc had raised this as the precondition before running the fleet re-vendor and **could not demonstrate it**; their sweep was safe, `5fcfd314` measured unchanged before and after. The tool vanished entirely forty minutes later. **Had the sweep straddled that window, eleven estates would have committed ungated.**
+
+**THIS PAIRS WITH THE CLOCK-GUARD FILING AND YOU SHOULD BE ABLE TO TELL THEM APART AT A GLANCE.** They are the same organ from two sides: the clock guard **runs and passes something it should catch**, and needs a threshold decision from you. This one **does not run at all**, fails open loudly, and **needs no decision** -- because the staging-dir build already on your queue (item 2) removes the window entirely rather than answering it. **That is now the strongest argument for sequencing it**, and it is the same conclusion dc reached from the skew-check end this afternoon by a completely different route.
+
+**Nothing has been done and nothing needs doing tonight.**
