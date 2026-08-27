@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-26 23:31Z
+heartbeat_at: 2026-08-27 09:05Z
 status: active
-focus: "BOSS-VC. THE SERIAL PORT, hv's tiers, controlled from this session on main at HEAD. THIRTEEN CLOSED at doctor 0 (Anvil, arca_notionex, arca_config, Baize, Cdsync, Courses, Devbin, MicroGPTEx, Molt, Prolix, Riffle, A3, + Laksa's mechanical half committing as I fold). BLOCKED ON cc's legacy.rs: Conflab (multibyte panic), arca_cli (16+3), Utilz (3), Laksa (2) -- FIVE FORMS OF ONE DEFECT. REMAINING: Lamplight, Intent. Pair pinned 43cee2be -> f7240814 (the advisory fix, mine: 01dec831 + 43cee2be + f7240814)."
+focus: "BOSS-VC. THE SERIAL PORT, plus hv's ruling that Intent stop being half-pregnant. DONE OVERNIGHT: WP-14 landed (9bd6b0a3, schema 13->14, both control halves green); ST0058/01 landed (c88679fd) -- FIVE answers to 'run the intent CLI' collapsed to one, int cli carries the pair guard and runs release by stated choice, intent3/intentd3/.envrc gone, Intent at doctor 0; Molt-matts e834d2a stops putting the frozen Intentv2 on PATH, which was giving a SECOND int that ran a 3.0.0-dev debug build from 21 Aug wherever a shell had not started in the Intent checkout (hv found it in Laksa). arca_cli re-convert REHEARSED CLEAN on a throwaway: 19 -> 6, verifier 0, cc's comma cut confirmed live (0 of 55 rows carry a clause). STILL hv's: Conflab's four ST0121 rows, and Laksa's attribution guard (292 findings, 110 of 110 archival, classifier refused my edit and I did not route around it). NEXT: real arca_cli, then Utilz, both needing Intentv2 hop 1."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
