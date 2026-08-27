@@ -620,6 +620,7 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   let mut deferred = Vec::new();
   let mut checked = 0;
   let mut shielded = 0;
+  let mut fragile: Vec<String> = Vec::new();
 
   // **ONE STREAM, AND IT IS THE PRODUCTION ONE.** This walked `table.families`
   // by hand, so every `new_surface[]` row was invisible to it -- including
@@ -680,7 +681,7 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           // computed and still reported; only the GATE takes both.
           let mentioned = src.contains(&format!("\"{id}\""));
           if !read.contains(&id) && !mentioned {
-            violations.push(line);
+            violations.push(line.clone());
           }
 
           // **AND HOW MANY OF THESE COULD THE GATE ACTUALLY CATCH?** A
@@ -702,8 +703,25 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           // non-intrinsic flags cannot fire -- and only HALF are the shared-id
           // case the hand instance suggested; the other half are single-family
           // ids that appear as a literal for an unrelated reason.
-          if src.matches(&format!("\"{id}\"")).count() > 1 {
+          let mentions = src.matches(&format!("\"{id}\"")).count();
+          if mentions > 1 {
             shielded += 1;
+          } else if mentions == 1 {
+            // **THE THIRD CATEGORY, AND IT IS NOT A FOOTNOTE ON THE OTHER TWO**
+            // (vc, 2026-08-27). A flag here is gated ONLY by the coincidence
+            // that nothing else in the renderer spells its id. Nothing defends
+            // that. The day any unrelated string happens to equal one of these
+            // ids -- a new command's verb, a field name, a status token -- the
+            // flag moves from gated to shielded, the count above moves by one,
+            // and NO TEST OBSERVES THE MOVE, because nothing about the surface
+            // or the renderer is wrong at that moment.
+            //
+            // **REPORTED, NEVER GATED, AND THAT IS THE WHOLE DESIGN.** Gating
+            // it would fail on a coincidence nobody caused and could not fix
+            // except by renaming an unrelated string. The population is worth
+            // watching precisely because it can decay while every actor
+            // involved is behaving correctly.
+            fragile.push(line);
           }
         }
       }
@@ -733,6 +751,26 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
     "flag-reachability: {checked} flag(s) examined across the wired families -- of these, the gate CAN fire for {}, and CANNOT for {shielded} whose id also appears elsewhere in the renderer",
     checked - shielded
   );
+
+  // **NAMED RATHER THAN COUNTED, for the reason the deferred list is: a bare
+  // number here would be a figure nobody can act on, and this is the one
+  // population whose membership changes without anyone touching it.**
+  //
+  // **AND THE THREE NUMBERS ADD UP, WHICH IS WORTH STATING SO NOBODY READS
+  // THEM AS INDEPENDENT.** Every examined flag has 0, 1, or >1 mentions:
+  // >1 is `shielded`, 1 is `fragile`, and 0 is already a `violations` member
+  // (they survive only by being grandfathered in `INHERITED_UNREAD`). So
+  // `CAN fire` = `fragile` + the zero-mention set, and the fragile count is a
+  // SUBSET of it rather than a separate population.
+  if !fragile.is_empty() {
+    println!(
+      "flag-reachability: {} of those gated are held ONLY by the coincidence that nothing else spells their id -- each moves to shielded, silently, the day any unrelated string in the renderer equals it:",
+      fragile.len()
+    );
+    for line in &fragile {
+      println!("  {line}");
+    }
+  }
 
   assert!(
     checked > 0,
