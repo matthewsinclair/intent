@@ -2767,7 +2767,17 @@
               "arity": "1"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--note"
+              ],
+              "type": "string",
+              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "value": "<text>",
+              "disposition": "keep"
+            }
+          ],
           "v2": "bin/intent_acceptance:1368-1377 (the `at` dispatch arm)",
           "observed": {
             "exit": [
@@ -2837,7 +2847,17 @@
               "arity": "1"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--note"
+              ],
+              "type": "string",
+              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "value": "<text>",
+              "disposition": "keep"
+            }
+          ],
           "v2": "bin/intent_acceptance:1368-1377 (the `at` dispatch arm)",
           "observed": {
             "exit": [
@@ -2902,7 +2922,17 @@
               "arity": "1"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--note"
+              ],
+              "type": "string",
+              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "value": "<text>",
+              "disposition": "keep"
+            }
+          ],
           "v2": "bin/intent_acceptance:1368-1377 (the `at` dispatch arm)",
           "observed": {
             "exit": [
@@ -3015,6 +3045,15 @@
               "value": "<status>",
               "accepts": "to-write | red | green | n-a",
               "default": "to-write",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--note"
+              ],
+              "type": "string",
+              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "value": "<text>",
               "disposition": "keep"
             }
           ],

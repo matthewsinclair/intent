@@ -1209,15 +1209,15 @@ Acceptance tests: the small red-to-green tests that prove ACs
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
 - `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (native/rust/crates/intentsvcs/src/model.rs).
 
-| command                       | args          | flags                                                                                | help                                                                  | disposition |
-| ----------------------------- | ------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------- | ----------- |
-| `at`                          | <command>     | --                                                                                   | Acceptance test commands                                              | keep        |
-| `at list`                     | <stid>        | --                                                                                   | List ATs (id, reference, status)                                      | keep        |
-| `at lint`                     | <stid>        | --fix                                                                                | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --                                                                                   | Set an AT green (reachable only from red)                             | keep        |
-| `at red` (alias `at notdone`) | <stid> <atid> | --                                                                                   | Set an AT red                                                         | keep        |
-| `at na`                       | <stid> <atid> | --                                                                                   | Set a non-test AT to n/a (the doc / eyeball / gate status)            | keep        |
-| `at new`                      | <stid> <atid> | --covers <acid> ..., --file <path>, --prose <text>, --kind <kind>, --status <status> | Create an acceptance test (caller-assigned id, idempotent)            | new-surface |
+| command                       | args          | flags                                                                                               | help                                                                  | disposition |
+| ----------------------------- | ------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------- |
+| `at`                          | <command>     | --                                                                                                  | Acceptance test commands                                              | keep        |
+| `at list`                     | <stid>        | --                                                                                                  | List ATs (id, reference, status)                                      | keep        |
+| `at lint`                     | <stid>        | --fix                                                                                               | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                       | Set an AT green (reachable only from red)                             | keep        |
+| `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                       | Set an AT red                                                         | keep        |
+| `at na`                       | <stid> <atid> | --note <text>                                                                                       | Set a non-test AT to n/a (the doc / eyeball / gate status)            | keep        |
+| `at new`                      | <stid> <atid> | --covers <acid> ..., --file <path>, --prose <text>, --kind <kind>, --status <status>, --note <text> | Create an acceptance test (caller-assigned id, idempotent)            | new-surface |
 
 ### `at`
 
@@ -1293,6 +1293,9 @@ Set an AT green (reachable only from red)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
+- **Flags:**
+  - `--note` `<text>` (string) -- Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- set
   - `1` -- AT not found
@@ -1323,6 +1326,9 @@ Set an AT red
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
+- **Flags:**
+  - `--note` `<text>` (string) -- Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- set
   - `1` -- AT not found
@@ -1344,6 +1350,9 @@ Set a non-test AT to n/a (the doc / eyeball / gate status)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
+- **Flags:**
+  - `--note` `<text>` (string) -- Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- set
   - `1` -- AT not found
@@ -1381,6 +1390,8 @@ Create an acceptance test (caller-assigned id, idempotent)
   - `--status` `<status>` (enum) -- Initial status
     - Accepts: to-write | red | green | n-a
     - **default:** to-write
+    - **disposition:** keep
+  - `--note` `<text>` (string) -- Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept
     - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: ic, 2026-08-26, on the same hv ruling. Recorded separately from `ac new` rather than folded into it because an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not. THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY OTHER ROW -- AC-08.7 names bypassing it as a falsifier. L2 (cites a file that does not exist), L3 (the file does not carry the literal id), L4 (`covers` names no criterion) and L5 (a non-test AT covering a test-backed criterion) are checked on the PROSPECTIVE thread BEFORE the write, so a refusal leaves nothing behind -- writing first and linting after is the shape `issues hydrate` was retired for. The check is narrowed to the row being written: a thread carrying a pre-existing finding elsewhere would otherwise make every create on it impossible, and inherited breakage is `at lint`'s to report. `to-write` stays exempt from L2/L3 by the contract's own rule rather than by an exception here. Builder ic; cover taken by vc.
