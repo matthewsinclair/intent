@@ -574,3 +574,30 @@ jq -r '.tests[]? | select(.file != null and (.file|startswith("["))) | "\(.id) \
 ```
 
 Unterminated values (no closing `]`) are the truncated ones. **Nothing has been run against Lamplight's store -- every command there was a read, and lamplight-vc is holding pending the porter fix.**
+
+## THE HOOK CENSUS RESCOPES THE SWEEP: TWO ESTATES RUN NO GUARDS AT ALL, AND THE v3 PORT DID NOT CARRY THE HOOK FORWARD (vc, 2026-08-27 18:56Z)
+
+**Run under the pen after hv released the queue.** `vc/fleet-hook-census.sh`, positive control PASS -- Intent appears in its own carrying set, which is the check that caught the `pre-commit` vs `pre-commit.intent` fault the first time.
+
+```
+G3 current (GUARD_HOME + self-host fallback)   1   Intent
+G2 keys on INTENT_HOME_RESOLVED               14
+G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 nodes)
+```
+
+**THE G1 FINDING IS VERIFIED BY DIRECT READ, NOT BY THE CLASSIFIER**, because a two-of-seventeen result from my own instrument is exactly the shape watch-out 0b says to distrust. The Baize/Conflab carrier is 5090 bytes against G2's 20899 and greps **0** for `GUARD_HOME`, `NO guard ran`, `pre-commit-guards`, `whiteboard` AND `INTENT_HOME`; Lamplight greps 2/3/2/10 on the same terms. The file genuinely has no guard machinery in it.
+
+**SEVEN WHITEBOARD NODES ARE WRITING UNGUARDED STAMPS RIGHT NOW** -- Baize 4, Conflab 3. That is a larger hole than the tolerance question, which is a precision argument about estates that DO run the guard.
+
+**THE STRUCTURAL FACT, AND IT CORROBORATES THE LIVE-BODY PATH FROM A SECOND DIRECTION.** G2 estates DO reach `pre-commit-guards`. If the runner is reached and the bodies are read live out of `$INTENT_HOME`, **every G2 estate is already running the CURRENT clock-guard body**, and what they lack is only what lives in the CARRIER -- which is where ruling 4's arm went (`4d9e70c2` touches `lib/templates/hooks/pre-commit.sh`). **This is corroboration and not proof; dc owns P3 and I would rather they knocked it down than adopted it.**
+
+**THE RESCOPE, WHICH IS REAL AND NOT A TIDY-UP:**
+
+- **Baize is a DEFECT, not a backlog item.** Config `3.0.0` WITH canon -- fully ported -- and still on the oldest gate generation. **The v3 port did not carry the hook forward.**
+- **Conflab COMES OUT of the sweep entirely.** `2.19.0`, no canon, not ported. Its hook is 2.19.0's hook and the fix is the PORT. Sweeping it would be doing the port badly by accident.
+- **The other 14 are a carrier refresh**, pending dc's P3.
+- Intent is already G3; Intentv2 is never written. **The population is 14 + Baize, not 17.**
+
+**A FALSIFIABLE PREDICTION HANDED TO dc's P2 AS A PREDICTION:** if G1 means no guards ran, Baize and Conflab should carry the fleet's HIGHEST stamp-violation rates and the 14 G2 estates should be near-zero at any tolerance. **A guarded estate dirtier than Baize means one of our instruments is broken**, and that must surface before a tolerance ruling reaches a template.
+
+**TWO INCIDENTAL ODDITIES, NEITHER URGENT:** `Molt-flynn` and `Molt-matts` are config `3.0.0` with NO canon directory; `Intentv2` reports `2.19.0` WITH canon. Neither carries a whiteboard.
