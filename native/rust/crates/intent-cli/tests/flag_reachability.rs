@@ -199,6 +199,30 @@ fn probeable() -> BTreeSet<String> {
     .collect()
 }
 
+/// The DO-NOT-DRIVE list, read from the table rather than restated here.
+///
+/// It was parsed inline in `no_do_not_drive_path_is_vouched_for_as_probeable`
+/// and is now read by two callers, so it is one function. A second copy of a
+/// safety list is the failure this whole file is about: the copies agree until
+/// a member is added to one of them.
+fn not_probed() -> BTreeSet<String> {
+  let raw: serde_json::Value =
+    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
+  raw["populations"]["not_probed"]
+    .as_array()
+    .expect(
+      "`populations.not_probed` is a list -- the DO-NOT-DRIVE list cannot be skipped silently",
+    )
+    .iter()
+    .map(|m| {
+      m["path"]
+        .as_str()
+        .expect("a not_probed member has a path")
+        .to_string()
+    })
+    .collect()
+}
+
 /// Families the binary answers with the unwired refusal.
 ///
 /// # This drives commands, so its population is a SAFETY question
@@ -252,6 +276,58 @@ fn unwired_families() -> BTreeSet<String> {
       out.insert(family.name.clone());
     }
   }
+
+  // **AND THE SAME QUESTION FOR THE ROWS THAT ARE NOT IN A FAMILY**, which is
+  // what this function could not previously ask. `new_surface[]` rows are
+  // top-level commands with no family above them, so the loop over
+  // `table.families` never reached one -- and `organize` alone declares three
+  // flags. The doc above called widening this a one-line change and warned that
+  // doing it naively inherits the whole hazard; this is that widening, done
+  // through the DO-NOT-DRIVE list rather than around it.
+  //
+  // **AND THIS LOOP IS UNEXERCISED TODAY -- MEASURED, NOT ASSUMED.** Gutting
+  // it to an immediate `continue` leaves the whole suite GREEN, because not one
+  // of the nine probeable `new_surface[]` rows answers with the unwired
+  // refusal: all nine are wired, and the two that are not probeable (`daemon`,
+  // `mcp`) declare no flags, so nothing reaches the deferral path. **It is kept
+  // rather than deleted, and the reason is this file's own thesis:** the
+  // families loop was safe by accident of SCOPE too, right up until someone
+  // widened it. A deferral that exists only once a row needs it is written
+  // under deadline by whoever is wiring that row. What is NOT claimed is that
+  // this half has been proven -- it has been proven not to break anything,
+  // which is a different sentence.
+  //
+  // **THE EXCLUSION IS NAMED, NOT SKIPPED.** A row outside `probeable` is
+  // dropped only after the table is made to say WHY, so a future
+  // non-probeable row cannot leave this loop quietly measuring less than it
+  // claims -- the same reason the gate above refuses instead of skipping.
+  let never_drive = not_probed();
+  for entry in &table.new_surface {
+    if !entry.is_shipped() {
+      continue;
+    }
+    if !probeable.contains(&entry.path) {
+      assert!(
+        never_drive.contains(&entry.path),
+        "`{}` is a shipped `new_surface[]` row that is in neither `populations.probeable` nor \
+         `populations.not_probed`. This loop will not drive an unvouched-for path and will not \
+         drop one silently: put it in one list or the other.",
+        entry.path
+      );
+      continue;
+    }
+    let output = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .arg(&entry.path)
+      .current_dir(dir.path())
+      .output()
+      .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", entry.path));
+    let said = String::from_utf8_lossy(&output.stderr).into_owned()
+      + &String::from_utf8_lossy(&output.stdout);
+    if said.contains(UNWIRED) {
+      out.insert(entry.path.clone());
+    }
+  }
+
   out
 }
 
@@ -273,19 +349,7 @@ fn unwired_families() -> BTreeSet<String> {
 /// green that reads like coverage.
 #[test]
 fn no_do_not_drive_path_is_vouched_for_as_probeable() {
-  let raw: serde_json::Value =
-    serde_json::from_str(dispatch::TABLE).expect("the table parses as JSON");
-  let not_probed: Vec<String> = raw["populations"]["not_probed"]
-    .as_array()
-    .expect("`populations.not_probed` is a list")
-    .iter()
-    .map(|m| {
-      m["path"]
-        .as_str()
-        .expect("a not_probed member has a path")
-        .to_string()
-    })
-    .collect();
+  let not_probed = not_probed();
 
   assert!(
     !not_probed.is_empty(),
@@ -454,14 +518,36 @@ const INHERITED_UNREAD: &[&str] = &[
   // is that ONE of these two ids is genuinely read and this list can no longer
   // say which. Routed to ic, who owns this file. (cc, 2026-08-22, with the
   // `claude skills` wiring.)
+  //
+  // **SURFACED BY WIDENING THIS CHECK TO `new_surface[]` ROWS (ic,
+  // 2026-08-27), AND IT IS RATIFIED RATHER THAN BROKEN.** `ingest` is a
+  // top-level row, so no run of this test had ever asked about its flags.
+  // `--from-md` is a mode flag with ONE mode: the handler always ingests
+  // markdown, because the other thing `ingest` could have meant -- rebuilding
+  // the store from committed canon -- is already `sync --from-disk`. There is
+  // nothing for a renderer to read, which is why the scan cannot see a read.
+  // I objected to the flag when it was declared; vc ruled it KEPT because
+  // withdrawing it would put the table in contradiction with ratified rows,
+  // and sent the objection to AC-10.2/10.3 where its acceptance lands. The
+  // full reasoning is at `render.rs`'s `ingest` arm. **Listed here so the
+  // widening lands without wedging the suite, and so this state is visible in
+  // the source instead of being hidden by a population that never covered it.**
+  "`ingest` --from-md (id `from-md`)",
 ];
 
-/// **THE CRITERION.** Every `keep` flag on a WIRED family is read by name.
-/// **PARKED, LOUDLY, WITH A NAMED EXPIRY -- AND `#[ignore]` RATHER THAN A
-/// RELAXED ASSERTION IS THE WHOLE POINT.** vc ruled an hour ago that relaxing a
-/// gate at the moment it stops covering anything converts a refusal into a
-/// silent pass. So this does not relax: it says NOT RUN, in every test run,
-/// where a reader sees it.
+/// **THE CRITERION.** Every `keep` flag on a WIRED entry is read by name.
+///
+/// **THE PARKING BELOW HAS EXPIRED AND THE TEXT DESCRIBING IT HAD NOT** (ic,
+/// 2026-08-27). It read *PARKED, LOUDLY, WITH A NAMED EXPIRY -- AND `#[ignore]`
+/// RATHER THAN A RELAXED ASSERTION IS THE WHOLE POINT ... it says NOT RUN, in
+/// every test run, where a reader sees it.* The `#[ignore]` is gone, the
+/// baseline was taken, and this test RUNS -- so the one sentence a reader
+/// arrives at was telling them the opposite of what the file does. Quoted
+/// rather than deleted, because a corrected sentence reads exactly like one
+/// that was never wrong. **vc's underlying ruling stands and is why the
+/// expiry was honoured rather than the assertion relaxed:** relaxing a gate at
+/// the moment it stops covering anything converts a refusal into a silent
+/// pass.
 ///
 /// **THE REASON IS THE TREE, NOT THE CHECK.** dc is landing `init` and
 /// `bootstrap` right now. Each family they wire moves its flags out of the
@@ -490,11 +576,26 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   let mut deferred = Vec::new();
   let mut checked = 0;
 
-  for family in &table.families {
-    for entry in &family.entries {
-      if !entry.is_shipped() {
-        continue;
-      }
+  // **ONE STREAM, AND IT IS THE PRODUCTION ONE.** This walked `table.families`
+  // by hand, so every `new_surface[]` row was invisible to it -- including
+  // `organize`, which declares `--apply`, `--default` and `--force`. Those
+  // three flags have never been asked whether the renderer reads them.
+  // `dispatch::shipped_entries` is the chain the binary itself dispatches
+  // through, so using it means this check cannot again cover a population the
+  // binary does not, and the `is_shipped` filter comes with it rather than
+  // being spelled a second time here.
+  for entry in dispatch::shipped_entries(&table) {
+    // The deferral key. An entry inside a family is keyed by that family --
+    // the first token of its path -- and a `new_surface[]` row is its own key,
+    // because there is no family above it. `unwired_families` now returns both
+    // kinds, so one lookup answers for both.
+    let family_name = entry
+      .path
+      .split_whitespace()
+      .next()
+      .unwrap_or(entry.path.as_str())
+      .to_string();
+    {
       for flag in &entry.flags {
         // `intrinsic` is clap's own -- `--help` and friends. The spine
         // deliberately does not declare them and no renderer answers them, so
@@ -510,7 +611,7 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           entry.path,
           flag.spellings.join(" / ")
         );
-        if unwired.contains(&family.name) {
+        if unwired.contains(&family_name) {
           deferred.push(line);
         } else {
           checked += 1;
