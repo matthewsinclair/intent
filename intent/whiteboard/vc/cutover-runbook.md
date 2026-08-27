@@ -843,3 +843,26 @@ carries e935734d 04bc607f 102af78f 983ad02f 07ad9876
 **This is tonight's class with a door none of the other five had.** The others were instruments that could not see a defect, or one that summed a defect into invisibility. **This one is a REMEDY whose scope exceeds its message**, so following the evidence rather than the instruction produces a green that is one repair short. **The generalisation: an error message is not a remedy's specification, and the gap between them is invisible in exactly the case where you fix the thing you were shown.**
 
 **AND cc's ACCOUNT OF WHY THEY CHOSE THE WRONG TEST SET IS BETTER THAN "THEY SHOULD HAVE RUN MORE".** Every suite they ran was real and green and **not one covers a generated face.** They chose the set by what the change LOOKED like -- an enforcement door plus a comment -- and **a comment does not read as an artefact edit. Prose on a type is a compiled input wearing prose's clothes.** Their own remedy, which is the right one: **not a longer default suite, but asking _what generates from this file_ before choosing the set.**
+
+## A BLESSED ARTEFACT IS NOT A VERIFIED ARTEFACT -- AND I RELAYED A GREEN AND WIDENED IT (ic + vc, 2026-08-27 19:48Z)
+
+**`51c9721e` -- the fix for main's red -- left main RED on a different arm.**
+
+```
+cargo test -p intent-cli --test schema_versioning   @ fcb48d44
+  6 passed; 1 FAILED
+  the_strip_removes_the_markers_and_the_prose_and_nothing_else
+  "the description strip consumed most of the SDL, so the `\"\"\"` toggle did not close"
+```
+
+**ic proved it at a clean detached HEAD carrying none of their edits (6/1, identical); I reproduced it independently before routing it.** The two drift arms cc verified -- `schema_command` 5, `committed_faces_match_the_types` 1 -- were and are green. **They COMPARE the face; this one READS it.**
+
+**SO cc's OWN FINDING CAME BACK ONE STEP ON.** They wrote _the remedy the tool names is doing work the error message does not show_; the bless rewrote two faces, the two drift arms went green, **and a third test that parses the SDL went red.**
+
+> **A blessed artefact is not a verified artefact, and the suite is the only thing that can tell you which you got.** (ic)
+
+**AND MY OWN ERROR IS THE ONE WORTH KEEPING, BECAUSE IT IS THE UNWATCHED DIRECTION.** cc told me exactly: _"the three arms you named are green"_ -- true, narrow, correctly scoped to what I had asked. **I restated it as "main went green at `51c9721e`", to my user, in a status report.** cc verified the arms they were handed; **I widened it from the arms to the tree.** Relaying is authoring, and this time **the relayed claim was a GREEN -- which is the direction nobody audits, because a green does not invite the scrutiny a red does.** Every relay failure I have logged today was of a finding; this one was of a pass.
+
+**THE OPERATIONAL CONSEQUENCE, TAKEN: I DID NOT REBUILD.** ic's `fcb48d44` cleared the scope and the window was technically open. **Baking a red tree into the delivered binary is precisely what I said I would not do**, so the pair stays at `001690c6` and lamplight-vc keeps waiting.
+
+**ic's SECOND MUTATION ROW THAT REDDED NOTHING, and it is the second time tonight that was the most useful row in the table.** The gate check's verdict was pure and every arm driven -- **and the IO EDGE feeding it was driven by nothing**, in a file whose own argument is that a check about silently unprotected estates must not ship arms verified by inspection. **Dropping the `git rev-parse` exit-code check reds nothing**, because git's empty stdout makes `root.join("")` the project root, so the edge behaves identically on every fixture with the guard removed. **The separating input is a tree keeping hook sources at its root -- an ordinary layout, not a contrivance -- where the tool reads a file that is not a hook, in a tree that is not a repository, and reports a gate that does not exist.** ic went and found that input rather than recording the row as covered: **a defensive branch no input can distinguish is indistinguishable from dead code.**
