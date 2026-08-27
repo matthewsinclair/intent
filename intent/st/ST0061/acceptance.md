@@ -31,13 +31,13 @@ title: dehydrate
 
 ### ST-level
 
-- AT-00.1 `native/rust/crates/intent-cli/tests/st_dehydrate_round_trips_with_hydrate.rs` -- covers AC-00.1 -- status: green -- hydrate -> dehydrate -> hydrate on one thread; asserts the tree is byte-identical to the start and the manifest entry returns.
-- AT-00.2 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.2 -- status: green
-- AT-00.3 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.3 -- status: green
-- AT-00.4 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.4 -- status: green
-- AT-00.5 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.5 -- status: green
-- AT-00.6 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.6 -- status: green
-- AT-00.7 `native/rust/crates/intent-cli/src/render.rs` -- covers AC-00.7 -- status: green
+- AT-00.1 `native/rust/crates/intent-cli/tests/st_dehydrate_round_trips_with_hydrate.rs` -- covers AC-00.1 -- status: green -- hydrate -> dehydrate -> hydrate on one thread; asserts the tree is byte-identical to the start and the manifest entry returns. THE CONTROL IS THE MIDDLE STATE, and it is what the round trip cannot supply: measured, a dehydrate that removes nothing round-trips PERFECTLY, so the entry leaving the manifest and the files leaving the disk are both asserted between the two hydrations. Five source mutations, applied and reverted one at a time, each redden a named assertion; the table is in the test file. Known limitation: nothing here covers a thread with attachments.
+- AT-00.2 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.2 -- status: green -- Two arms against the one wildcard: an opaque attachment carrying None, and a hand-edited view whose bytes differ. Both refuse by name; every file survives.
+- AT-00.3 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.3 -- status: green -- Forces a refusal, then reads .intentfiles and asserts it is byte-identical. The control is a PERMITTED run on the same fixture, where the entry does go.
+- AT-00.4 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.4 -- status: green -- No .intentfiles at all: refuses, names organize --default, writes nothing. Control: a present manifest not listing the id exits 0 as an ordinary no-op.
+- AT-00.5 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.5 -- status: green -- An estate whose declaration is unmet refuses with the denominator; an estate with no declaration refuses as NoDeclaration. Control: the met estate permits.
+- AT-00.6 `native/rust/crates/intentsvcs/tests/facade_dehydrate.rs` -- covers AC-00.6 -- status: green -- Second dehydrate of the same thread exits 0 with wording distinct from the first. Asserts the two reports differ, not merely that both exit 0.
+- AT-00.7 `native/rust/crates/intent-cli/src/render.rs` -- covers AC-00.7 -- status: green -- Dispatches the fixture verb through the st family and asserts it reaches unwired with exit 2. The control is the inverse: dispatching a WIRED verb must NOT reach unwired -- which the current test cannot tell apart.
 
 ---
 

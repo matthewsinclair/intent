@@ -1,21 +1,28 @@
 ---
 wp_id: WP-11
-title: Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
+title: Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
 scope: S
 status: Not Started
 ---
 
-# WP-11: Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
+# WP-11: Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
 
 ## Objective
 
-**A project realises OPEN steel threads only, by default and by declaration, and `intent organize --default [--force]` is the verb that writes the default.** hv, 2026-08-26, revising the WIP-only wording of an hour earlier: "default means that the only things in .intentfiles are OPEN". OPEN = every status except Completed and Cancelled (WIP, Triage, Not Started, On Hold) -- exactly the eight hv's own tree declares, so `st new` keeps adding the id as it does today. `organise` is already an accepted spelling (a spine alias, accepted and never shown) and stays one.
+**A project realises WIP steel threads only, by default and by declaration, and `intent organize --default [--force]` is the verb that writes the default.** `organise` is already an accepted spelling (a spine alias, accepted and never shown) and stays one.
+
+**THIS COVER SAID "OPEN" UNTIL 2026-08-27 AND hv HAD ALREADY OVERRULED IT.** The superseded wording, kept visible rather than deleted because a corrected sentence reads exactly like one that was never wrong: *"hv, 2026-08-26, revising the WIP-only wording of an hour earlier: 'default means that the only things in .intentfiles are OPEN'. OPEN = every status except Completed and Cancelled (WIP, Triage, Not Started, On Hold)."*
+
+**THE RULING THAT STANDS, TRANSCRIBED FROM ITS SOURCE RATHER THAN SUMMARISED.** `intent/whiteboard/hv/wip.md`, entry dated 2026-08-26 19:48Z, carrying its own provenance caveat verbatim -- *"recorded by vc: hv FIRST-HAND IN lamplight-vc's SESSION, relayed verbatim by lamplight-vc; hv's own stamp not read"*. hv's words on seeing a 57-thread realised set: **"Now it has NOT STARTED STs!??!"** and **"It should ONLY HAVE WIP STs!!!!!"**
+
+So `.intentfiles`'s rule *"OPEN means every status except Completed and Cancelled"* was WRONG -- **a definition by exclusion, which acquires members by accident**: it swept in planned threads nobody is working on. `--default` declares exactly the threads whose status is WIP; Not Started, Triage, Hold, Completed and Cancelled live in the store, in full, and `intent st hydrate <ID>` realises any of them on demand.
 
 ## The verb
 
 - `intent organize --default` -- `.intentfiles` ABSENT: write it from status (header + one `STEELTHREAD:<ID>` line per open thread) and exit 0. PRESENT: change nothing, say so (`present, declares N; --force to regenerate`), exit 0.
 - `intent organize --default --force` -- PRESENT: regenerate from status after a y/N read from the tty (`hydrate` / `dehydrate` customisations are lost, which is what the confirmation is for); no tty, no `--force` write.
-- `--default` writes the DECLARATION only. It never removes a file: removal stays behind `organize --apply` and the dehydration preconditions, so on the fully-realised fleet the next preview reports every closed thread as `to remove (blocked)` and nothing moves until ST0061 lands. Declaring and dehydrating are two steps by design.
+- `--default` on its own writes the DECLARATION only and never removes a file: removal stays behind `organize --apply` and the dehydration preconditions, so the next preview reports every undeclared realised thread as `to remove (blocked)` and nothing moves. Declaring and dehydrating are two steps by design.
+- **`--default --force` ANSWERED `y` ON A TTY IS THE EXCEPTION, AND THIS COVER USED TO DENY IT EXISTED.** hv, 2026-08-26, first-hand, quoted at AC-11.6: `--default` never removes a file *"unless it is used with --force, which does remove files, after a confirm"*. That arm applies the regenerated declaration in the same run, dehydrating each undeclared realised thread ONLY where every declared precondition holds for it, and removing not one file of a thread whose preconditions are unmet. AC-11.6 is the contract; **the confirm text is owed a rewrite alongside it, because it currently promises "it removes no files", which under `--force` is false.**
 
 ## One function, three callers
 

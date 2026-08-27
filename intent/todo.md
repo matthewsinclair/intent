@@ -32,7 +32,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 08: The mutation surface: write-by-address and the missing verbs
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing
-  - [ ] 11: Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
+  - [ ] 11: Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
   - [ ] 12: Issues get a realised form and a sigil, then join the default declaration
   - [ ] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [ ] 14: The DONE cutoff is canon state, not history: it travels by git
