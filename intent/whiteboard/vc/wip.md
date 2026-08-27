@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 22:18Z
+heartbeat_at: 2026-08-27 22:45Z
 status: active
-focus: "FOLDED HARD AND READY TO COMPACT. Board 25.3KB to 14.7KB -- watch-outs were 70% of it and carried INSTANCES, which is what the runbook is for; now rules only, merged by class, and the duplicate numbering is gone. Runbook 337KB to 239KB. The 172KB section from the 26th is DELIBERATELY not folded: cutting a day of record well needs reading it, and that is the project-wide fold with fresh context, not this one."
+focus: "EOD, HOLDING, START NOTHING. All four nodes folded and clean; pair `d395a5b5` current-but-8-inputs-stale and a rebuild is owed with a green check I could not get once ic and dc had compacted. Globalfold done: runbook 337KB to 41.6KB, and it caught two documents asserting finished work as pending -- restart.md`s top hazard and the port ledger. hv`s standing directives (70KB, 58 entries, mostly spent) are NOT folded: they are hv`s word and the LIVE/SPENT split is theirs to authorise."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
