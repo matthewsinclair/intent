@@ -234,19 +234,12 @@ DEVBIN_FMT_ARMS="$(
 )"
 export DEVBIN_FMT_ARMS
 
-# The ACTIVE option set per builtin gate command, for the gate's own usage
-# line (issue 0007, option 1). The catalogue is the MENU; what resolves here
-# is decided by activation (the D11 language axis, config enabled:, declared
-# options), and command_options IS that derivation -- the same list `all`
-# fans over and the global help renders. It needs config + resolve, which a
-# gate handler deliberately cannot source, so the dispatcher exports the
-# result: one derivation, one export per gate command.
-DEVBIN_ACTIVE_CHECK="$(command_options check | tr '\n' ' ')"
-DEVBIN_ACTIVE_DB="$(command_options db | tr '\n' ' ')"
-DEVBIN_ACTIVE_DOCS="$(command_options docs | tr '\n' ' ')"
-DEVBIN_ACTIVE_FMT="$(command_options fmt | tr '\n' ' ')"
-DEVBIN_ACTIVE_TEST="$(command_options test | tr '\n' ' ')"
-export DEVBIN_ACTIVE_CHECK DEVBIN_ACTIVE_DB DEVBIN_ACTIVE_DOCS DEVBIN_ACTIVE_FMT DEVBIN_ACTIVE_TEST
+
+# THE VENDORED RUNTIME MAY HAVE MOVED ON. Once a day, on a terminal only, to
+# stderr, never fatal -- see devbin_update_notice in lib/helpers for why each of
+# those four is load-bearing. Placed here so it precedes every command including
+# help, and after config so DEVBIN_NAME is set for the remediation line.
+devbin_update_notice "$PROJECT_ROOT"
 
 [ $# -eq 0 ] && {
   help_main
@@ -285,6 +278,32 @@ parse_common_opts "$command" "$@"
 # there; design D9, since reversed by issue 0022). Harmless under the >= 5
 # floor and kept. See parse_common_opts in lib/resolve.
 set -- "${DEVBIN_ARGS[@]+"${DEVBIN_ARGS[@]}"}"
+
+# The ACTIVE option set for THE COMMAND BEING RUN, for its own usage line
+# (issue 0007, option 1). The catalogue is the MENU; what resolves here is
+# decided by activation (the D11 language axis, config enabled:, declared
+# options), and command_options IS that derivation -- the same list `all` fans
+# over and the global help renders. It needs config + resolve, which a gate
+# handler deliberately cannot source, so the dispatcher exports the result.
+#
+# ONE DERIVATION, NOT SIX, AND COMPUTED AFTER THE COMMAND IS KNOWN. This block
+# used to sit above, deriving all six gate commands' sets on every invocation --
+# `check`, `clean`, `db`, `docs`, `fmt` and `test` -- before the dispatcher had
+# even read which command was asked for. MEASURED at 80 to 180 ms EACH on an
+# idle machine, so roughly 800 ms of every single `bin/<prj> <anything>`, in
+# every consuming project, to compute five answers nothing would ever read:
+# lib/gatecmd is the only reader and it reads exactly one, its own.
+#
+# Adding `clean` is what made it worth measuring rather than assuming -- a
+# seventh row on a list that was already the most expensive thing in startup.
+case "$command" in
+  check | clean | db | docs | fmt | test)
+    printf -v _devbin_active_var 'DEVBIN_ACTIVE_%s' "$(upper_snake "$command")"
+    printf -v "$_devbin_active_var" '%s' "$(command_options "$command" | tr '\n' ' ')"
+    export "${_devbin_active_var?}"
+    unset _devbin_active_var
+    ;;
+esac
 
 command_active "$command" || {
   # Distinguish "never heard of it" from "switched off here". A command that is

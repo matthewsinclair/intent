@@ -1,0 +1,528 @@
+#!/usr/bin/env bash
+#
+# The built-in `clean`. Removes build artefacts the project can regenerate:
+# cargo `target/` trees, Elixir `_build/`, Swift `.build/` and DerivedData.
+#
+# IT TAKES `release/` BY DEFAULT, AND THAT IS WHAT MAKES IT A RELEASE VERB
+# RATHER THAN A CACHE SWEEPER. hv runs this before a release so the shipped
+# surface is provably new. `int cache --clean` in the Intent tree is a different
+# concern with a near-disjoint scope -- it analyses path-move residue in
+# `debug/deps` that cargo reports FRESH, and never touches `release/` at all.
+# Neither is a policy over the other's engine; they answer different questions.
+#
+# WHY A VERB AND NOT A SCHEDULE. hv ruled out launchd and cron explicitly. The
+# failure this exists for was ~2.9M files and ~82 GB across the fleet's cargo
+# target dirs, and a scheduled sweep of a destructive action is the shape that
+# removes a live binary at 3am with nobody to answer the prompt.
+#
+# EVERY REFUSAL BELOW WAS PAID FOR BY A REAL FAILURE. They are refusals rather
+# than warnings because this command's mistake is not recoverable by re-running
+# it: usage-rules puts a false green above a failure, and the destructive
+# analogue is that a clean which cannot prove it is safe must not proceed.
+#
+set -euo pipefail
+
+# shellcheck source=lib/gatecmd
+. "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+# The marker Spotlight honours. Placed on the same walk that finds a tree, so
+# the thirteenth target dir nobody remembers stops being indexed even when this
+# run does not remove it.
+_CLEAN_NEVER_INDEX=".metadata_never_index"
+
+# ---------------------------------------------------------------------------
+# The PATH scan, and the control that makes its emptiness mean something
+# ---------------------------------------------------------------------------
+
+# _clean_path_elements -- print one PATH element per line. NO REFUSALS HERE.
+#
+# The validation lives in _clean_validate_path below and is deliberately NOT in
+# this function, because this one is consumed through `< <(...)`. A `die` inside
+# a process substitution exits only the subshell: the parent's read loop simply
+# receives no input and carries on, so the run reports NO LIVE BINARIES and
+# proceeds to delete. The refusal fires, is swallowed, and produces exactly the
+# false clean it was written to prevent.
+#
+# Found by breaking the splitter and watching the test NOT go red -- which is
+# the whole argument for asking whether a control COULD fail rather than
+# whether it would.
+_clean_path_elements() {
+  local -a split=()
+  local e
+  IFS=: read -r -a split <<<"$PATH"
+  for e in "${split[@]}"; do
+    [ -n "$e" ] && printf '%s\n' "$e"
+  done
+  return 0
+}
+
+# _clean_validate_path -- refuse unless the PATH scan can be trusted.
+#
+# CALLED IN THE CURRENT SHELL, ONCE, BEFORE ANY SCANNING. That placement is the
+# fix for the swallow described above and is not incidental.
+#
+# THIS EXISTS FOR ITS CONTROL, NOT FOR ITS SPLIT. A PATH scan that cannot parse
+# its input and one that finds nothing are indistinguishable by their output,
+# and the broken version passes review: intent-dc shipped exactly this check and
+# it returned nothing while `command -v conflab` resolved into a target dir one
+# line later, because `${PATH//:/$'\n'}` does not expand under zsh and the loop
+# ran zero times.
+#
+# The specific zsh mechanism cannot reach here -- the dispatcher refuses below
+# bash 5 and this file is `#!/usr/bin/env bash`. A control written against that
+# mechanism would be a predicate narrower than the defect, which is the class
+# this project has produced three times. So it is written against the GENERAL
+# failure: the scan yields nothing for any reason whatever.
+#
+# Two independent instruments, compared. `tr` counts separators; the array split
+# counts fields. They can only agree by both being right.
+_clean_validate_path() {
+  local -a split=()
+  local n_split n_count e found=0
+
+  IFS=: read -r -a split <<<"$PATH"
+  n_split="${#split[@]}"
+  n_count="$(printf '%s' "$PATH" | tr ':' '\n' | grep -c '' || true)"
+
+  [ "$n_split" = "$n_count" ] ||
+    die "PATH scan is unreliable: field split says $n_split element(s), separator count says $n_count.
+       Refusing rather than reporting a clean scan -- an instrument that cannot
+       parse its input reads exactly like one that found nothing."
+
+  # POSITIVE CONTROL. Two parses of a broken or empty PATH agree with each other
+  # and are both wrong, so agreement alone is not evidence. At least one element
+  # must be a directory that exists.
+  #
+  # NO TEST REACHES THIS BRANCH and the suite says so: setting such a PATH kills
+  # awk, env and the rest of the runtime long before the scan runs.
+  for e in "${split[@]}"; do
+    [ -n "$e" ] && [ -d "$e" ] && found=1
+  done
+  [ "$found" = 1 ] ||
+    die "PATH scan found no existing directory among $n_split element(s) -- the scan is blind, not clean."
+  return 0
+}
+
+# _clean_live_binaries <dir> -- print every PATH-reachable name that resolves
+# INSIDE <dir>, one `name -> resolved` per line. Empty output means none.
+#
+# Conflab's `conflab` and `conflabd` resolved through `target/debug` on the
+# morning this command was specified; Intent's resolve through `target/release`,
+# which this verb takes BY DEFAULT. A comprehensive clean would have removed the
+# live binary every node in the estate was running, machine-wide, both copies.
+#
+# TWO WAYS IN, AND THE SEARCH IS INVERTED FOR THE SECOND. The obvious shape --
+# walk every PATH entry, resolve every symlink in it, test each against the tree
+# -- is correct and unusably slow: it is O(PATH entries x files per entry) with
+# a fork per test, and on a real machine that is tens of thousands of forks per
+# candidate directory. The first version of this file did exactly that and hung
+# the suite past two minutes.
+#
+# So the expensive half is inverted. The set of executables IN a build tree is
+# small -- tens, at the top level of debug/ and release/ -- and `command -v` is
+# a shell builtin that forks nothing. Asking "does PATH resolve THIS name, and
+# does it land back inside the tree" answers the same question in O(binaries).
+#
+# `deps/` is excluded from the scan deliberately: nothing on a real PATH
+# resolves into it, and it is where the thousands of files are.
+_clean_live_binaries() {
+  local dir="$1" real p pr f base found sub
+
+  real="$(_clean_realpath "$dir")"
+
+  # (a) A PATH ENTRY THAT IS ITSELF INSIDE THE TREE. Few elements, so the
+  # straightforward test is affordable here.
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    [ -d "$p" ] || continue
+    pr="$(_clean_realpath "$p")"
+    case "$pr/" in "$real"/*) printf '%s (PATH entry) -> %s\n' "$p" "$pr" ;; esac
+  done < <(_clean_path_elements)
+
+  # (b) A BINARY IN THE TREE THAT PATH RESOLVES TO. This is the shape that
+  # actually happened, via a symlink from an ordinary bin directory.
+  for sub in "$dir"/debug "$dir"/release "$dir"; do
+    [ -d "$sub" ] || continue
+    for f in "$sub"/*; do
+      [ -f "$f" ] && [ -x "$f" ] || continue
+      base="$(basename "$f")"
+      found="$(command -v "$base" 2>/dev/null)" || continue
+      [ -n "$found" ] || continue
+      case "$found" in /*) ;; *) continue ;; esac
+      pr="$(_clean_realpath "$found")"
+      case "$pr/" in "$real"/*) printf '%s -> %s\n' "$found" "$pr" ;; esac
+    done
+  done
+  return 0
+}
+
+# _clean_realpath <path> -- absolute, symlinks resolved, without GNU realpath.
+#
+# macOS ships no `realpath` in the base system and `readlink -f` is GNU-only,
+# so both are unavailable on the platform this fleet actually runs on.
+_clean_realpath() {
+  local p="$1" d b
+  [ -e "$p" ] || {
+    printf '%s\n' "$p"
+    return 0
+  }
+  if [ -d "$p" ]; then
+    (cd "$p" 2>/dev/null && pwd -P) || printf '%s\n' "$p"
+    return 0
+  fi
+  d="$(dirname "$p")"
+  b="$(basename "$p")"
+  while [ -L "$d/$b" ]; do
+    local t
+    t="$(readlink "$d/$b")"
+    case "$t" in
+      /*) d="$(dirname "$t")" && b="$(basename "$t")" ;;
+      *) d="$(dirname "$d/$t")" && b="$(basename "$t")" ;;
+    esac
+  done
+  d="$(cd "$d" 2>/dev/null && pwd -P)" || d="$(dirname "$p")"
+  printf '%s/%s\n' "$d" "$b"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# Enumeration and classification
+# ---------------------------------------------------------------------------
+
+# _clean_roots <name> -- every candidate build-tree root under PROJECT_ROOT,
+# deduplicated, with nested ones dropped. Found BY MARKER AS WELL AS BY NAME.
+#
+# NO -maxdepth. A depth-limited sweep missed 22.6 GB on the day this was
+# specified, including a 10 GB tree inside a git worktree -- and devbin's own
+# fleet enumeration reproduced the same defect twice, at depth 3 and again at
+# depth 4, both times silently returning a plausible number.
+#
+# NAME ALONE IS NOT ENOUGH, and this is devbin-cc's correction to the first
+# version of this file. `CARGO_TARGET_DIR` points a build tree anywhere, under
+# any name -- the largest single item on this estate was one of them, 33 GB and
+# 534,337 files, created because a guard's own refusal message tells the caller
+# to set it. A name-keyed scan does not merely mis-sort such a tree, it never
+# enumerates it, so the run reports success over a set it never saw. In a
+# sweeper THAT is the worse direction: a false positive is loud and refusable,
+# a false negative is a 10 GB tree that appears in no output at all.
+#
+# So the markers are searched directly -- one cheap pass per marker rather than
+# stat-ing every directory in the tree -- and unioned with the name match.
+#
+# THE LIMIT, STATED RATHER THAN LEFT TO BE DISCOVERED: a build tree redirected
+# OUTSIDE PROJECT_ROOT is not reachable from here and is not reported. This
+# command walks one project; it is not a machine sweep.
+_clean_roots() {
+  local name="$1" f
+  {
+    find "$PROJECT_ROOT" \
+      \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
+      -type d -name "$name" -prune -print 2>/dev/null
+    for f in CACHEDIR.TAG .rustc_info.json; do
+      find "$PROJECT_ROOT" \
+        \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
+        -type f -name "$f" -print 2>/dev/null |
+        while IFS= read -r m; do dirname "$m"; done
+    done
+  } | sort -u | _clean_drop_nested
+  return 0
+}
+
+# _clean_drop_nested -- read sorted paths, print only the outermost.
+#
+# A parent sorts before its own children, so one pass suffices. Without this a
+# marker inside an already-matched tree reports a second root inside the first,
+# and the removal loop would then try to delete a directory its predecessor
+# has already taken.
+_clean_drop_nested() {
+  local keep="" d
+  while IFS= read -r d; do
+    [ -n "$d" ] || continue
+    if [ -n "$keep" ]; then
+      case "$d/" in "$keep"/*) continue ;; esac
+    fi
+    keep="$d"
+    printf '%s\n' "$d"
+  done
+  return 0
+}
+
+# _clean_scan <name> <manifest> -- classify every root. Prints, TAB-separated:
+#
+#   removable    <dir>   markers present AND a sibling manifest to rebuild from
+#   no-manifest  <dir>   built here, but nothing beside it can regenerate it
+#   not-build    <dir>   named like a build tree and carrying no build markers
+#
+# EVERY REJECTION IS EMITTED, WHICH IS THE WHOLE POINT OF THE THREE STATUSES.
+# A skipped tree that prints nothing is indistinguishable from a tree that was
+# never there, and that is the empty-denominator shape this project keeps
+# finding: the caller reads a clean run as coverage. Rejections are printed with
+# their size so a human can look at the number and decide.
+#
+# CLASSIFIED BY REBUILDABILITY, NOT BY SHAPE. Markers say "something built
+# here"; they do not say "this can be rebuilt", and those are different claims.
+# A tree whose manifest is gone -- a half-deleted checkout, a worktree whose
+# branch was removed -- is not a cache, it is the last copy. The manifest test
+# is what separates them, and it retires the Xcode `*.noindex` PIF caches by
+# MECHANISM rather than by a name test, which would be a predicate narrower
+# than the defect all over again.
+_clean_scan() {
+  local name="$1" manifest="$2" d parent
+  while IFS= read -r d; do
+    [ -n "$d" ] || continue
+    parent="$(dirname "$d")"
+    if ! _clean_has_markers "$d" "$name"; then
+      printf 'not-build\t%s\n' "$d"
+    elif [ -f "$parent/$manifest" ]; then
+      printf 'removable\t%s\n' "$d"
+    else
+      printf 'no-manifest\t%s\n' "$d"
+    fi
+  done < <(_clean_roots "$name")
+  return 0
+}
+
+# _clean_has_markers <dir> <name> -- does this directory carry build output?
+#
+# For cargo the markers are written by the tool itself and are reliable in a
+# redirected target dir too. For _build and .build the toolchain writes no
+# comparable tag, so the directory NAME carries that half and the manifest test
+# carries the rest.
+_clean_has_markers() {
+  local d="$1" name="$2"
+  case "$name" in
+    target)
+      [ -f "$d/CACHEDIR.TAG" ] ||
+        [ -f "$d/.rustc_info.json" ] ||
+        [ -d "$d/debug/.fingerprint" ] ||
+        [ -d "$d/release/.fingerprint" ]
+      ;;
+    *)
+      [ "$(basename "$d")" = "$name" ]
+      ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Peer discipline, marking, confirmation, removal
+# ---------------------------------------------------------------------------
+
+# _clean_peer_dirs <dir> -- per-node subdirectories inside a build tree.
+#
+# Several sessions share one working tree and therefore one target/. Where they
+# use CARGO_TARGET_DIR=target/<node> they each own a subdirectory, and one
+# node's cache was 33 GB in Intent on the day this was specified. Removing the
+# parent takes all of them, so they are NAMED before the prompt: whoever is
+# mid-build deserves to see their own moniker in the list.
+_clean_peer_dirs() {
+  local dir="$1" sub base
+  for sub in "$dir"/*/; do
+    [ -d "$sub" ] || continue
+    base="$(basename "$sub")"
+    case "$base" in
+      debug | release | package | doc | tmp | CACHEDIR.TAG) continue ;;
+      *[!a-z0-9-]*) continue ;;
+    esac
+    printf '%s\n' "$base"
+  done
+  return 0
+}
+
+# _clean_mark <dir> -- place the Spotlight marker if it is missing.
+#
+# On the same walk, deliberately. A separate marking pass is a second
+# enumeration that can disagree with the first.
+_clean_mark() {
+  local dir="$1"
+  [ -d "$dir" ] || return 0
+  [ -e "$dir/$_CLEAN_NEVER_INDEX" ] && return 0
+  : >"$dir/$_CLEAN_NEVER_INDEX" 2>/dev/null || return 0
+  printf '    marked   %s/%s\n' "$dir" "$_CLEAN_NEVER_INDEX"
+  return 0
+}
+
+# _clean_size <dir> -- human size, or `?` when du cannot answer.
+_clean_size() {
+  local s
+  s="$(du -sh "$1" 2>/dev/null | awk '{print $1; exit}')" || s=""
+  printf '%s\n' "${s:-?}"
+  return 0
+}
+
+# _clean_confirm <n> <what> -- ask on the TTY, or refuse.
+#
+# READS /dev/tty, NOT STDIN, and that is not a style choice. run_gate runs this
+# builtin as `"$@" 2>&1 | tee -a "$log"`, so the function's stdout is a pipe;
+# a prompt written and read through that plumbing is fragile in a way that only
+# shows up under the gate.
+#
+# NO TTY IS A REFUSAL, following `intent organize --force`, which refuses
+# without one rather than prompting. The alternative was measured in the command
+# this verb was compared against: `read -r reply` under `set -euo pipefail`
+# aborts at EOF, so run non-interactively it neither removes nor prints its own
+# "left alone" message. That is fail-safe by ACCIDENT, and an accident is not a
+# contract.
+_clean_confirm() {
+  local n="$1" what="$2" reply
+  if [ ! -r /dev/tty ]; then
+    die "no tty: refusing to remove $n $what without confirmation.
+       Pass --force to proceed non-interactively; it names what it removes."
+  fi
+  printf '  proceed? [y/N] '
+  IFS= read -r reply </dev/tty || reply=""
+  case "$reply" in
+    y | Y) return 0 ;;
+    *)
+      printf 'left alone.\n'
+      return 1
+      ;;
+  esac
+}
+
+# _clean_run <label> <name> <manifest> [args...] -- the whole body of one arm.
+#
+# One body for all three languages: they differ only in the directory name and
+# the manifest that proves rebuildability, and writing this three times is the
+# duplication this project exists to remove.
+_clean_run() {
+  local label="$1" name="$2" manifest="$3"
+  shift 3
+
+  local force=0 arg
+  for arg in "$@"; do
+    case "$arg" in
+      --force) force=1 ;;
+      *) die "clean $label: unknown argument '$arg' (only --force is accepted)" ;;
+    esac
+  done
+
+  cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+
+  # BEFORE ANY SCANNING, AND IN THIS SHELL. See _clean_path_elements for why
+  # a refusal raised inside the scan itself cannot stop the run.
+  _clean_validate_path
+
+  # ONE SCAN, THREE OUTCOMES, ALL THREE PRINTED. The rejected sets are the
+  # denominator: a skipped tree that prints nothing cannot be told from a tree
+  # that was never there, and the caller reads the silence as coverage.
+  local -a dirs=() nomanifest=() notbuild=()
+  local d status
+  while IFS=$'\t' read -r status d; do
+    [ -n "$d" ] || continue
+    case "$status" in
+      removable) dirs+=("$d") ;;
+      no-manifest) nomanifest+=("$d") ;;
+      not-build) notbuild+=("$d") ;;
+    esac
+  done < <(_clean_scan "$name" "$manifest")
+
+  # BUILT HERE, NOTHING BESIDE IT TO REBUILD FROM. Never removed -- a tree whose
+  # manifest is gone is not a cache, it may be the only copy. Reported with its
+  # size, because the commonest cause is a redirected CARGO_TARGET_DIR and the
+  # commonest one on this estate was 33 GB.
+  if [ "${#nomanifest[@]}" -gt 0 ]; then
+    warn "${#nomanifest[@]} build tree(s) with NO $manifest beside them -- SKIPPED, not removed:"
+    for d in "${nomanifest[@]}"; do
+      printf '    skipped  %-8s %s (no sibling %s)\n' "$(_clean_size "$d")" "$d" "$manifest"
+      _clean_mark "$d"
+    done
+    printf '    A build tree whose manifest is gone cannot be regenerated, and a\n'
+    printf '    redirected build dir has no manifest beside it either. Look before\n'
+    printf '    removing these by hand.\n\n'
+  fi
+
+  # NAMED LIKE A BUILD TREE, CARRYING NO BUILD OUTPUT. Xcode's PIF caches under
+  # *.noindex are the measured case. Reported so the rejection is visible rather
+  # than being a silent name test.
+  if [ "${#notbuild[@]}" -gt 0 ]; then
+    printf '    %s director(y|ies) named like a build tree with no build markers -- not touched:\n' "${#notbuild[@]}"
+    for d in "${notbuild[@]}"; do
+      printf '    ignored  %-8s %s\n' "$(_clean_size "$d")" "$d"
+    done
+    printf '\n'
+  fi
+
+  # A DETERMINATE ZERO REPORTS AND PASSES. Nothing to remove is a fact about the
+  # project, not a run that went wrong -- the same rule check format follows.
+  if [ "${#dirs[@]}" -eq 0 ]; then
+    printf '    no removable %s/ trees (%s alongside a %s)\n' "$name" "$name" "$manifest"
+    return 0
+  fi
+
+  # THE LIVE-PATH REFUSAL, BEFORE ANYTHING IS REMOVED AND BEFORE THE PROMPT.
+  local -a blocked=()
+  local live
+  for d in "${dirs[@]}"; do
+    live="$(_clean_live_binaries "$d")"
+    [ -n "$live" ] && blocked+=("$d"$'\n'"$live")
+  done
+
+  if [ "${#blocked[@]}" -gt 0 ]; then
+    local b
+    for b in "${blocked[@]}"; do
+      warn "PATH resolves into ${b%%$'\n'*}:"
+      printf '%s\n' "${b#*$'\n'}" | sed 's/^/      /'
+    done
+    if [ "$force" = 0 ]; then
+      die "refusing: removing these trees would darken the binaries listed above, machine-wide.
+       Rebuild and re-point them first, or pass --force to proceed knowing what goes dark."
+    fi
+    warn "--force: proceeding anyway. THE BINARIES LISTED ABOVE WILL STOP RESOLVING until rebuilt."
+  fi
+
+  printf '  %s: %s %s tree(s)\n\n' "$label" "${#dirs[@]}" "$name"
+  local peers peer total_note=""
+  for d in "${dirs[@]}"; do
+    printf '    %-8s %s\n' "$(_clean_size "$d")" "$d"
+    peers="$(_clean_peer_dirs "$d")"
+    if [ -n "$peers" ]; then
+      # NAME THE PEERS AND WHOSE THEY ARE. Removing the parent takes every
+      # node's cache with it, and a moniker in a list is what lets someone
+      # mid-build recognise their own.
+      while IFS= read -r peer; do
+        [ -n "$peer" ] || continue
+        printf '             per-node: %s/%s (%s)\n' "$d" "$peer" "$(_clean_size "$d/$peer")"
+      done <<<"$peers"
+      total_note="yes"
+    fi
+  done
+
+  if [ -n "$total_note" ]; then
+    printf '\n'
+    warn "THIS TREE IS SHARED. The per-node directories above belong to other sessions;"
+    warn "removing the parent costs each of them a full rebuild. Announce it first."
+  fi
+
+  printf '\n  This takes release/ as well as debug/ -- that is what makes it a release\n'
+  printf '  verb rather than a cache sweep. The next build is cold.\n\n'
+
+  if [ "$force" = 0 ]; then
+    _clean_confirm "${#dirs[@]}" "$name tree(s)" || return 0
+  else
+    printf '  --force: no confirmation asked.\n'
+  fi
+
+  local removed=0
+  for d in "${dirs[@]}"; do
+    rm -rf "$d" || die "could not remove $d"
+    printf '    removed  %s\n' "$d"
+    removed=$((removed + 1))
+  done
+  printf '\n  %s %s tree(s) removed.\n' "$removed" "$name"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# The arms
+# ---------------------------------------------------------------------------
+
+builtin_clean_rust() { _clean_run rust target Cargo.toml "$@"; }
+
+# `deps/` IS LEFT ALONE, DELIBERATELY. It is a download, not a build product:
+# removing it costs a network fetch rather than a recompile, and a fetch is the
+# one part of a rebuild that can fail while offline.
+builtin_clean_elixir() { _clean_run elixir _build mix.exs "$@"; }
+
+builtin_clean_swift() { _clean_run swift .build Package.swift "$@"; }
+
+run_builtin_gate clean "$@"

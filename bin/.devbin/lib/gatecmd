@@ -50,6 +50,7 @@ usage_options_for() {
   local cmd="$1" active=""
   case "$cmd" in
     check) active="${DEVBIN_ACTIVE_CHECK:-}" ;;
+    clean) active="${DEVBIN_ACTIVE_CLEAN:-}" ;;
     db) active="${DEVBIN_ACTIVE_DB:-}" ;;
     docs) active="${DEVBIN_ACTIVE_DOCS:-}" ;;
     fmt) active="${DEVBIN_ACTIVE_FMT:-}" ;;

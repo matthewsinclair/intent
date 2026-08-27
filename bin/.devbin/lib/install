@@ -21,7 +21,7 @@ _DEVBIN_INSTALL_LOADED=1
 
 # The manifest, relative to a project root. Devbin's file, but NOT under lib/:
 # it has to survive the wholesale replacement of the directory it describes.
-DEVBIN_MANIFEST_REL="bin/.devbin/manifest.sha256"
+# DEVBIN_MANIFEST_REL moved to lib/helpers beside the readers that use it.
 
 # devbin_lib_dir <root> -- where <root> keeps a devbin runtime, or return 1.
 #
@@ -214,31 +214,8 @@ copy_vendored() {
 # -- the version by doctor, the source by upgrade, which is what lets `devbin
 # upgrade` be typed with no arguments from inside the installed project.
 
-manifest_path() { printf '%s\n' "$1/$DEVBIN_MANIFEST_REL"; }
-
-# manifest_field <root> <field> -- read one `# <field>: <value>` header line.
-manifest_field() {
-  local path
-  path="$(manifest_path "$1")"
-  [ -f "$path" ] || return 1
-  awk -v f="$2" '
-    $0 !~ /^#/ { exit }
-    {
-      line = $0
-      sub(/^#[[:space:]]*/, "", line)
-      if (line ~ ("^" f ":")) {
-        sub("^" f ":[[:space:]]*", "", line)
-        sub(/[[:space:]]+$/, "", line)
-        print line
-        exit
-      }
-    }
-  ' "$path"
-}
-
-manifest_version() { manifest_field "$1" devbin_version; }
-manifest_source() { manifest_field "$1" source; }
-manifest_source_commit() { manifest_field "$1" source_commit; }
+# The manifest readers live in lib/helpers -- see the note there. lib/install
+# remains their only heavy caller; the dispatcher needs two header lines.
 
 # source_commit_of <srcroot> -- WHICH devbin these bytes came from, as a line.
 #

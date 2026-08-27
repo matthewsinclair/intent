@@ -70,6 +70,7 @@ cli              elixir  -           -          Surfaces  @builtin | Run this pr
 repl             elixir  -           -          Surfaces  @builtin | Interactive REPL, with readline history
 build            any     -           -          Build     - | Build this project's targets, which it declares itself
 fmt              any     -           -          Build     - | Format sources in place
+clean            any     -           -          Build     - | Remove build artefacts this project can regenerate
 test             any     -           -          Test      - | Run this project's test gates
 check            any     -           -          Check     - | Read-only gates; each exits non-zero on a breach
 precommit        opt-in  -           -          Check     - | The pre-commit gate
@@ -107,6 +108,9 @@ fmt.elixir       elixir  generic     FMTEX      -         mix format | Format El
 fmt.rust         rust    generic     FMTRS      -         cargo fmt | Format Rust sources
 fmt.swift        swift   generic     FMTSWIFT   -         @builtin | Format Swift sources in place
 fmt.md           any     generic     FMTMD      -         @builtin | Format Markdown -- root only unless given paths
+clean.rust       rust    generic     CLEANRS    -         @builtin | Remove cargo target/ trees, release included
+clean.elixir     elixir  generic     CLEANEX    -         @builtin | Remove _build/ trees. deps/ is left alone
+clean.swift      swift   generic     CLEANSW    -         @builtin | Remove Swift .build/ and DerivedData trees
 "
 
 # The built-in COMMAND names, DERIVED from the catalogue's dotless rows rather

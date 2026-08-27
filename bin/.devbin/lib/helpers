@@ -655,3 +655,146 @@ generated_doc_write() {
   fi
   return 0
 }
+
+# MOVED HERE FROM lib/install AT THE UPDATE-NOTICE CHANGE. The dispatcher
+# needs to read two manifest header lines on every invocation, and it does
+# NOT source lib/install -- deliberately, because the install machinery has
+# no business on the hot path of a launcher that runs on every command. The
+# alternative was a second manifest reader in the dispatcher, which is the
+# Highlander breach this project names first. lib/install sources this file
+# and calls them unchanged.
+DEVBIN_MANIFEST_REL="bin/.devbin/manifest.sha256"
+
+manifest_path() { printf '%s\n' "$1/$DEVBIN_MANIFEST_REL"; }
+
+# manifest_field <root> <field> -- read one `# <field>: <value>` header line.
+manifest_field() {
+  local path
+  path="$(manifest_path "$1")"
+  [ -f "$path" ] || return 1
+  awk -v f="$2" '
+    $0 !~ /^#/ { exit }
+    {
+      line = $0
+      sub(/^#[[:space:]]*/, "", line)
+      if (line ~ ("^" f ":")) {
+        sub("^" f ":[[:space:]]*", "", line)
+        sub(/[[:space:]]+$/, "", line)
+        print line
+        exit
+      }
+    }
+  ' "$path"
+}
+
+manifest_version() { manifest_field "$1" devbin_version; }
+manifest_source() { manifest_field "$1" source; }
+manifest_source_commit() { manifest_field "$1" source_commit; }
+
+# _devbin_update_line <projroot> -- print the notice body, or nothing.
+#
+# SEPARATED FROM DELIVERY SO IT CAN BE TESTED. The comparison is the part with
+# the logic in it and the guards are the part with the policy; keeping them in
+# one function made the whole thing reachable only through a real terminal, and
+# the only way to give a test one is `script`, which fails outright when stdin
+# is a socket. Every test asserting the notice stayed SILENT then passed
+# vacuously -- no pty, no output, refutation satisfied. Two did.
+#
+# Prints to stdout; the caller decides where it goes. Empty output means there
+# is nothing to say.
+_devbin_update_line() {
+  local root="${1:-}" src rec cur
+  [ -n "$root" ] || return 0
+
+  src="$(manifest_source "$root" 2>/dev/null)" || return 0
+  rec="$(manifest_source_commit "$root" 2>/dev/null)" || return 0
+  [ -n "$src" ] && [ -n "$rec" ] || return 0
+  [ -d "$src" ] || return 0
+
+  # THE RECORDED FIELD IS NOT A BARE SHA, AND COMPARING THE WHOLE STRING IS THE
+  # DEFECT THIS LINE EXISTS TO AVOID. `source_commit_of` stamps
+  #
+  #     <sha> +dirty -- THESE BYTES MATCH NO COMMIT
+  #
+  # whenever devbin's own half is uncommitted -- the ordinary state of a source
+  # tree somebody is working in -- and words rather than a sha when the source
+  # is not a checkout at all. Compared whole against `git rev-parse HEAD` those
+  # can never be equal, so the notice fired on EVERY invocation and `upgrade`
+  # could not clear it: upgrade re-vendors and writes the same dirty stamp back.
+  # A permanently-red notice is the mirror of a false green -- both end with
+  # nobody reading it -- and this shipped that way to a consumer before a test
+  # caught it.
+  #
+  # Take the leading field and compare like with like. A record carrying no sha
+  # yields nothing and stays silent, which is correct: bytes that name no commit
+  # cannot be said to have fallen behind one.
+  rec="${rec%% *}"
+  case "$rec" in
+    *[!0-9a-f]* | "") return 0 ;;
+  esac
+
+  cur="$(git -C "$src" rev-parse HEAD 2>/dev/null)" || return 0
+  [ -n "$cur" ] || return 0
+  [ "$cur" = "$rec" ] && return 0
+
+  # Twelve characters, and only ever printed when the full shas differ. The
+  # first version truncated BEFORE comparing like with like, so it printed two
+  # identical-looking values as its evidence that they differed -- the
+  # truncation did not merely fail to help, it hid the cause.
+  printf 'UPDATE: devbin has moved on since this project vendored it.\n'
+  printf '        vendored %s, source now %s\n' "${rec:0:12}" "${cur:0:12}"
+  printf '        run: %s upgrade      (silence: DEVBIN_NO_UPDATE_NOTICE=1)\n' \
+    "${DEVBIN_NAME:-devbin}"
+  return 0
+}
+
+# devbin_update_notice <projroot> -- tell the user, ONCE A DAY AND ONLY ON A
+# TERMINAL, that the devbin this project vendored has moved on.
+#
+# THE POINT IS THAT A CONSUMING PROJECT LEARNS WITHOUT BEING ASKED. `vendor`
+# already answers "is this tree level with its SOURCE" -- the comparison is not
+# new, only the moment it is made. What is new is that the answer reaches
+# someone who was not investigating.
+#
+# FOUR CONSTRAINTS, AND THE FIRST IS NOT OBVIOUS.
+#
+#   STDERR, NEVER STDOUT. devbin seals gate output and six extraction grammars
+#   parse it; two print on unanchored patterns. A version notice on stdout lands
+#   INSIDE a run log and is read as tool output -- issue 0025's class exactly.
+#
+#   A TERMINAL, OR NOTHING. `[ -t 2 ]` keeps it out of CI logs and out of sealed
+#   gates, whose stderr is a pipe. Load-bearing, not a nicety.
+#
+#   ONCE A DAY. A git call on every invocation would put a fork on the hot path
+#   of a launcher that runs on every command.
+#
+#   NEVER FATAL, AND NEVER NOISY ABOUT ITS OWN FAILURE. A consumer usually does
+#   not have devbin's source on disk at all. That is the ordinary case, so every
+#   failure path is a silent `return 0`. This is the one place in devbin where
+#   swallowing is correct: the function asserts nothing, and IN-AG-NO-SILENT-001
+#   is about failures that reach a verdict.
+#
+# THE STAMP IS WRITTEN BEFORE THE COMPARISON, DELIBERATELY: the rate limit is on
+# the CHECK, not on the message, so a source that moves on five minutes after a
+# check is reported at the next day's check rather than on the next command.
+devbin_update_notice() {
+  local root="${1:-}" stamp msg dir base
+  [ -n "$root" ] || return 0
+  [ -n "${DEVBIN_NO_UPDATE_NOTICE:-}" ] && return 0
+  [ -t 2 ] || return 0
+
+  # The stamp lives in TMPDIR rather than the project, so it needs no .gitignore
+  # entry and can never appear in a consumer's git status.
+  base=".devbin-update-$(printf '%s' "$root" | tr -c 'a-zA-Z0-9' '-')"
+  dir="${TMPDIR:-/tmp}"
+  stamp="$dir/$base"
+  # -mtime is POSIX; -newermt is GNU-only and this fleet runs on macOS.
+  if [ -f "$stamp" ] && [ -n "$(find "$dir" -maxdepth 1 -name "$base" -mtime -1 2>/dev/null)" ]; then
+    return 0
+  fi
+  : >"$stamp" 2>/dev/null || true
+
+  msg="$(_devbin_update_line "$root")"
+  [ -n "$msg" ] && printf '%s\n' "$msg" >&2
+  return 0
+}
