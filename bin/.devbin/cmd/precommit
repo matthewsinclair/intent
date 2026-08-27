@@ -84,6 +84,7 @@ G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (g
 G_CANONCOMMIT="canon currency: a commit carrying canon does not name bytes absent from that commit (ST0057 AC-03.6)"
 G_GUARDHOME='guard home: a self-hosted tree runs ITS OWN guards, not the ones $INTENT_HOME points at'
 G_SHAREDBUILD='shared build: a rebuild into the SHARED artefact path is refused when native/rust is dirty'
+G_SKEWTHREAD="thread views: a generated thread view this commit touches still matches the model"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -116,6 +117,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_CANONCOMMIT" "intent/st/ST0056/parity/tools/canon_commit_check.sh"
   printf '%s\t%s\n' "$G_GUARDHOME" "intent/st/ST0056/parity/tools/guard_home_check.sh"
   printf '%s\t%s\n' "$G_SHAREDBUILD" "intent/st/ST0056/parity/tools/shared_artefact_build_guard.sh"
+  printf '%s\t%s\n' "$G_SKEWTHREAD" "intent/st/ST0056/parity/tools/thread_view_skew_check.sh"
   exit 0
 fi
 
@@ -259,6 +261,45 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! "${skew_run[@]}"; then
     rc=1
     failed="${failed}  view_skew_check.sh -- a committed view no longer matches its canon
+"
+  fi
+
+  # 2b. Thread views. The SIBLING of the check above and a different population:
+  #     the CHECKABLE in view_skew_check.sh is one triple under surface/, so gated
+  #     skew coverage was 1 of 288 and the missing 287 are thread covers,
+  #     acceptance contracts and WP covers. This asks views::skew for one answer
+  #     rather than computing a second, so there is still exactly one home for the
+  #     question.
+  #
+  #     `--changed` HERE NARROWS WHAT BLOCKS, NOT WHAT IS CHECKED, and dispatching
+  #     without it would be the blast-radius error this repo has already paid for
+  #     twice. Every view is examined either way and the cost is identical; the
+  #     flag decides whether skew in a path this commit never touched BLOCKS or is
+  #     REPORTED. Five nodes share this checkout, so the unnarrowed form would stop
+  #     every node on a stale view none of them wrote, and a guard that must be
+  #     bypassed is a guard nobody keeps.
+  #
+  #     ADMITTED 2026-08-27 AND THE HOLE IS NAMED RATHER THAN CARRIED IN SILENCE:
+  #     with no v3 binary at native/rust/target/release/intent the tool prints what
+  #     goes unchecked and exits 0. That is a fail-open, and the population it was
+  #     written for (a machine with no v3 build) is not the one that occurs here.
+  #     Every machine in this estate carries a build; the real absent window is a
+  #     REBUILD, where cargo removes the artefact before writing it. Gating does
+  #     not create that hole and does not widen it -- ungated, the coverage is zero
+  #     always. Whether a gate that cannot run should skip or refuse is with hv,
+  #     and this is the third instrument waiting on that one ruling.
+  step "$G_SKEWTHREAD"
+  thread_skew_run=(bash "$TOOLS/thread_view_skew_check.sh")
+  if [ "$FULL" -eq 0 ] && [ -n "$STAGED" ]; then
+    thread_skew_run+=(--changed)
+    while IFS= read -r p; do
+      [ -n "$p" ] && thread_skew_run+=("$p")
+    done <<<"$STAGED"
+  fi
+  if ! "${thread_skew_run[@]}"; then
+    rc=1
+    failed="${failed}  thread_view_skew_check.sh -- this commit touches a generated thread view that no
+    longer matches the model, or the tool could not read a verdict at all
 "
   fi
 
