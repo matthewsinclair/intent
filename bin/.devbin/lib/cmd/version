@@ -296,7 +296,7 @@ case "${1:-}" in
       die "a declared sidecar cannot be read (above) -- 'version sync' will refuse it as well.
        Drop it from project.version_sidecars, or have the project's own command sync it."
     else
-      die "version sidecars have drifted (heal with: ${DEVBIN_NAME:-devbin} version sync)"
+      die "version sidecars have drifted (heal with: ${DEVBIN_INVOKE:-bin/devbin} version sync)"
     fi
     ;;
   -h | --help)

@@ -174,7 +174,7 @@ if [ -z "$PROJECT_ROOT_VAR" ]; then
 else
   assert_identifier "$PROJECT_ROOT_VAR" "project.root_var in $DEVBIN_DIR/config.yaml"
 fi
-export DEVBIN_NAME
+export DEVBIN_NAME DEVBIN_INVOKE
 # Exported under the project's own name so handlers ported from the corpus keep
 # reading the variable they already expect (CONFLAB_ROOT, LAKSA_ROOT, ...).
 # The assignment form of export, not eval: the config supplies the NAME here, so
@@ -310,11 +310,11 @@ command_active "$command" || {
   # silently absent is indistinguishable from one that is broken, and the second
   # message saves the reader a trip through the config (D11).
   if reason="$(command_unavailable_reason "$command")"; then
-    warn "'$DEVBIN_NAME $command' is not available here: $reason"
+    warn "'$DEVBIN_INVOKE $command' is not available here: $reason"
   elif cfg_has "commands.$command.enabled" || [ -n "$(cfg_list "commands.$command")" ]; then
-    warn "command '$command' is not active in this project (see: bin/$DEVBIN_NAME help)"
+    warn "command '$command' is not active in this project (see: $DEVBIN_INVOKE help)"
   else
-    warn "unknown command: $command (try: bin/$DEVBIN_NAME help)"
+    warn "unknown command: $command (try: $DEVBIN_INVOKE help)"
   fi
   exit 2
 }
@@ -347,7 +347,7 @@ if [ $# -gt 0 ] && option_declared "$command" "$1"; then
     # asks for deactivation to be visible, and visible has to mean the same
     # thing wherever the option came from.
     if reason="$(option_unavailable_reason "$command" "$opt")"; then
-      warn "'$DEVBIN_NAME $command $opt' is not available here: $reason"
+      warn "'$DEVBIN_INVOKE $command $opt' is not available here: $reason"
     else
       warn "option '$command $opt' is not active in this project"
     fi
@@ -362,7 +362,7 @@ fi
 # unknown option, which reads as a typo rather than as configuration (D11).
 if [ $# -gt 0 ]; then
   if reason="$(option_unavailable_reason "$command" "$1")"; then
-    warn "'$DEVBIN_NAME $command $1' is not available here: $reason"
+    warn "'$DEVBIN_INVOKE $command $1' is not available here: $reason"
     exit 2
   fi
 fi

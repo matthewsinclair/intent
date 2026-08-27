@@ -70,7 +70,7 @@ run_builtin_gate() {
 
   case "$opt" in
     -h | --help)
-      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_NAME:-devbin}" "$cmd" \
+      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_INVOKE:-bin/devbin}" "$cmd" \
         "$(usage_options_for "$cmd")"
       return 0
       ;;
@@ -79,14 +79,14 @@ run_builtin_gate() {
       # unable to run because no gate was named did NOT, and a gate command that
       # exits 0 having run nothing is a false green -- `devbin test && deploy`
       # deploys. See the longer note in run_command (lib/resolve).
-      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_NAME:-devbin}" "$cmd" \
+      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_INVOKE:-bin/devbin}" "$cmd" \
         "$(usage_options_for "$cmd")"
       return 1
       ;;
   esac
 
   run="$(builtin_option_run "$cmd" "$opt")" ||
-    die "unknown $cmd option: $opt (try: ${DEVBIN_NAME:-devbin} $cmd all)"
+    die "unknown $cmd option: $opt (try: ${DEVBIN_INVOKE:-bin/devbin} $cmd all)"
   suffix="$(builtin_option_suffix "$cmd" "$opt")"
   grammar="$(builtin_option_grammar "$cmd" "$opt")"
 

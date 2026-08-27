@@ -20,7 +20,7 @@ set -euo pipefail
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME upgrade [--from <dir>] [--force]
+usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
 
   --from <dir>   the devbin to upgrade from (default: the source recorded at install)
   --force        overwrite vendored files that were edited in place
@@ -54,7 +54,7 @@ main() {
         force=yes
         shift
         ;;
-      -*) die "unknown option '$1' (try: $DEVBIN_NAME upgrade --help)" ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_INVOKE upgrade --help)" ;;
       *) die "unexpected argument '$1'" ;;
     esac
   done
@@ -91,7 +91,7 @@ main() {
   is_devbin_source "$srcroot" || {
     warn "not a devbin source: $srcroot"
     warn "  (looked for bin/devbin and a lib/ beside it)"
-    warn "  name a different one with:  $DEVBIN_NAME upgrade --from <dir>"
+    warn "  name a different one with:  $DEVBIN_INVOKE upgrade --from <dir>"
     return 1
   }
 
@@ -110,7 +110,7 @@ main() {
       warn "this source is BEHIND what is vendored here -- upgrading will REVERT the runtime"
       warn "  vendored from: $(manifest_source_commit "$dstroot" 2>/dev/null || printf 'unrecorded')"
       warn "  upgrading to:  $(git -C "$srcroot" rev-parse HEAD 2>/dev/null || printf 'unknown')"
-      warn "  run '$DEVBIN_NAME vendor' first if that is not what you meant"
+      warn "  run '$DEVBIN_INVOKE vendor' first if that is not what you meant"
       ;;
     unrelated)
       warn "this source shares NO history with what is vendored here"
@@ -236,7 +236,7 @@ EOF
   # exit code. A scripted sweep asserts convergence with `vendor`, whose status
   # means only that.
   if [ "$skipped" -gt 0 ]; then
-    printf 'still divergent: %s vendor    (its exit status is that question)\n' "$DEVBIN_NAME"
+    printf 'still divergent: %s vendor    (its exit status is that question)\n' "$DEVBIN_INVOKE"
   fi
   return 0
 }

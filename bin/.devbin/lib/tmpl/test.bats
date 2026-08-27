@@ -23,7 +23,7 @@ setup() {
   # The project-named launcher when it exists, the dispatcher otherwise. During
   # a migration the project name is still the old launcher and devbin declines
   # to take it (design D10), so bin/devbin is the name always present.
-  DEVBIN="$DEVBIN_HOME/bin/{{DEVBIN}}"
+  DEVBIN="$DEVBIN_HOME/{{DEVBIN}}"
   [ -x "$DEVBIN" ] || DEVBIN="$DEVBIN_HOME/bin/devbin"
 }
 

@@ -21,7 +21,7 @@ set -euo pipefail
 cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
 
 usage() {
-  printf 'usage: %s devbin [templates|--version]\n' "${DEVBIN_NAME:-devbin}"
+  printf 'usage: %s devbin [templates|--version]\n' "${DEVBIN_INVOKE:-bin/devbin}"
 }
 
 # The vendored runtime's own version: stamped into the manifest at install.
@@ -68,7 +68,7 @@ show_templates() {
   # The backticks are prose -- markdown quoting -- and %s expands via its argument.
   # shellcheck disable=SC2016
   printf 'Templates -- what `%s new <cmd>` scaffolds from, vendored at bin/.devbin/lib/tmpl/:\n\n' \
-    "${DEVBIN_NAME:-devbin}"
+    "${DEVBIN_INVOKE:-bin/devbin}"
   printf '  handler      the command script: header block, usage, and an exit-3 placeholder\n'
   printf '               (resolving-but-unbuilt must never read as success)\n'
   printf '  help.md      the authored help topic, keyed on the command name\n'
@@ -76,7 +76,7 @@ show_templates() {
   printf '\nScaffolded copies are YOURS -- cmd/<name>, help/<name>.md, tests/<name>.bats --\n'
   # Prose backticks again, as above.
   # shellcheck disable=SC2016
-  printf 'and `%s upgrade` never touches them.\n' "${DEVBIN_NAME:-devbin}"
+  printf 'and `%s upgrade` never touches them.\n' "${DEVBIN_INVOKE:-bin/devbin}"
 }
 
 show_overview() {
@@ -92,9 +92,9 @@ show_overview() {
   printf 'The seam:\n'
   printf "  bin/devbin, bin/.devbin/lib/   devbin's -- replaced wholesale by upgrade\n"
   printf '  config.yaml, cmd/, help/       yours -- never written after install\n\n'
-  printf 'The framework surface here: %s install | upgrade | doctor | new\n' "${DEVBIN_NAME:-devbin}"
+  printf 'The framework surface here: %s install | upgrade | doctor | new\n' "${DEVBIN_INVOKE:-bin/devbin}"
   printf 'Reference config, every key annotated: bin/.devbin/lib/config.reference.yaml\n'
-  printf 'Scaffold templates: %s devbin templates\n' "${DEVBIN_NAME:-devbin}"
+  printf 'Scaffold templates: %s devbin templates\n' "${DEVBIN_INVOKE:-bin/devbin}"
   src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null || true)"
   if [ -n "$src" ]; then
     printf '\nUpgrades come from: %s\n' "$src"

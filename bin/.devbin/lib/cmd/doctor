@@ -383,35 +383,47 @@ check_handlers() {
   return 0
 }
 
-# check_symlinks -- the D6 launcher names.
+# check_symlinks -- the launcher, and the retired aliases that may still shadow
+# a project's own binary.
 #
-# A BROKEN link fails; an absent one is a note. During a migration (D10) the
-# project-named file is still the hand-written launcher being replaced, and
-# install deliberately refuses to overwrite it -- so "not a symlink" is the
-# expected state for part of the rollout, not a fault.
+# THIS CHECK IS INVERTED FROM WHAT IT WAS (2026-08-27, superseding D6). It used
+# to require `bin/<project>` and `bin/<alias>` as symlinks to devbin, and to
+# tell you to create them. They are retired: `bin/devbin` is the invocation
+# everywhere, because the old convention collided with the binaries these
+# projects BUILD -- Lamplight ships a `lamplight`, Intent ships an `intent`.
+#
+# So a surviving alias is now a NOTE rather than a requirement, and the reason
+# it is worth reporting at all is that it may be actively harmful: `bin/lamplight`
+# pointing at devbin is a file standing exactly where the project's own binary
+# wants to live.
+#
+# A REAL FILE AT THAT NAME IS SILENT. Under the old rule that was "not a symlink"
+# and got a note; under the new one it is the expected and correct state, and a
+# checker that reports the correct state as a finding is how a checker stops
+# being read.
 check_symlinks() {
-  local n names="" path target found=0
+  local n names="" path
+
+  if [ -x "$PROJECT_ROOT/bin/devbin" ]; then
+    _pass "launcher: bin/devbin"
+  else
+    _fail "launcher: bin/devbin is missing or not executable"
+    _detail "this is the dispatcher; reinstall with: devbin install --into $PROJECT_ROOT"
+  fi
+
   names="$(cfg_get project.name) $(cfg_get project.alias)"
   for n in $names; do
     [ -n "$n" ] || continue
     [ "$n" = devbin ] && continue
     path="$PROJECT_ROOT/bin/$n"
-    found=$((found + 1))
-    if [ -L "$path" ]; then
-      target="$(readlink "$path")"
-      if [ -e "$PROJECT_ROOT/bin/$target" ] || [ -e "$target" ]; then
-        _pass "launcher: bin/$n -> $target"
-      else
-        _fail "launcher: bin/$n is a broken symlink (-> $target)"
-      fi
-    elif [ -e "$path" ]; then
-      _note "launcher: bin/$n exists and is not a devbin symlink"
-    else
-      _note "launcher: bin/$n does not exist"
-      _detail "create it with: ln -s devbin bin/$n"
+    # Only a symlink TO devbin is ours to comment on. A real file of that name
+    # is the project's own binary and is none of devbin's business.
+    if [ -L "$path" ] && [ "$(readlink "$path")" = devbin ]; then
+      _note "launcher: bin/$n -> devbin is a RETIRED alias"
+      _detail "remove it with: rm bin/$n   (bin/devbin is the invocation)"
+      _detail "it also stands where this project's own '$n' binary would live"
     fi
   done
-  [ "$found" -eq 0 ] && _note "launcher: config names no alias to link"
   return 0
 }
 
@@ -433,7 +445,7 @@ check_bash() {
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME doctor
+usage: $DEVBIN_INVOKE doctor
 
 Checks this install and reports every finding. Exits non-zero if anything
 failed. Notes are things worth knowing that are not faults.
@@ -447,7 +459,7 @@ main() {
       return 0
       ;;
     "") ;;
-    *) die "unknown argument '$1' (try: $DEVBIN_NAME doctor --help)" ;;
+    *) die "unknown argument '$1' (try: $DEVBIN_INVOKE doctor --help)" ;;
   esac
 
   init_colors auto

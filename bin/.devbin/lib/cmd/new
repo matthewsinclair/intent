@@ -34,7 +34,7 @@ set -euo pipefail
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME new <command> [--summary <text>] [--group <name>]
+usage: $DEVBIN_INVOKE new <command> [--summary <text>] [--group <name>]
 
   --summary <text>  the one-line description help shows (default: a placeholder)
   --group <name>    the help heading it sits under (default: none)
@@ -81,7 +81,7 @@ render() {
     _subst "$line" '{{NAME}}' "$NEW_NAME"
     _subst "$SUBST" '{{SUMMARY}}' "$NEW_SUMMARY"
     _subst "$SUBST" '{{GROUP}}' "$NEW_GROUP"
-    _subst "$SUBST" '{{DEVBIN}}' "$DEVBIN_NAME"
+    _subst "$SUBST" '{{DEVBIN}}' "$DEVBIN_INVOKE"
     printf '%s\n' "$SUBST"
   done <"$tmpl"
   return 0
@@ -102,7 +102,7 @@ render() {
 valid_name() {
   local name="$1"
   case "$name" in
-    "") die "which command? (usage: $DEVBIN_NAME new <command>)" ;;
+    "") die "which command? (usage: $DEVBIN_INVOKE new <command>)" ;;
     all) die "'all' is reserved -- devbin synthesises it for every command with options (D8)" ;;
     -*) die "a command name cannot start with '-' (got '$name')" ;;
     *[!a-z0-9_-]*) die "a command name may use lower-case letters, digits, '-' and '_' only (got '$name')" ;;
@@ -174,7 +174,7 @@ main() {
         NEW_GROUP="${2:-}"
         shift 2 || die "--group needs a value"
         ;;
-      -*) die "unknown option '$1' (try: $DEVBIN_NAME new --help)" ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_INVOKE new --help)" ;;
       *) die "unexpected argument '$1'" ;;
     esac
   done
@@ -183,7 +183,7 @@ main() {
   [ -n "$NEW_SUMMARY" ] || NEW_SUMMARY="TODO: what $NEW_NAME does, in one line"
 
   tmpl="$DEVBIN_LIB/tmpl"
-  [ -d "$tmpl" ] || die "no templates at $tmpl -- is the runtime complete? (try: $DEVBIN_NAME doctor)"
+  [ -d "$tmpl" ] || die "no templates at $tmpl -- is the runtime complete? (try: $DEVBIN_INVOKE doctor)"
 
   handler="$DEVBIN_DIR/cmd/$NEW_NAME"
   help_file="$DEVBIN_DIR/help/$NEW_NAME.md"
@@ -217,9 +217,9 @@ main() {
     printf '  (no bats suite found -- skipped the test stub)\n'
   fi
 
-  printf '\n%s %s resolves now. Try:\n' "$DEVBIN_NAME" "$NEW_NAME"
-  printf '  bin/%s help %s\n' "$DEVBIN_NAME" "$NEW_NAME"
-  printf '  bin/%s %s\n' "$DEVBIN_NAME" "$NEW_NAME"
+  printf '\n%s %s resolves now. Try:\n' "$DEVBIN_INVOKE" "$NEW_NAME"
+  printf '  %s help %s\n' "$DEVBIN_INVOKE" "$NEW_NAME"
+  printf '  %s %s\n' "$DEVBIN_INVOKE" "$NEW_NAME"
   return 0
 }
 

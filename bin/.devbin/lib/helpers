@@ -32,6 +32,23 @@ _DEVBIN_HELPERS_LOADED=1
 # sensible rather than printing a bare colon.
 DEVBIN_NAME="${DEVBIN_NAME:-devbin}"
 
+# DEVBIN_INVOKE -- HOW YOU TYPE IT, which is now a CONSTANT rather than the
+# project's name.
+#
+# These were one field until 2026-08-27, because the launcher was symlinked to
+# the project's own name and `bin/lamplight` was both the thing you typed and
+# the thing the project was called. That convention collided with the binaries
+# these projects now BUILD -- Lamplight ships a `lamplight`, Intent ships an
+# `intent` -- and Intent had already routed around it by naming its shim `int`.
+# So the per-project symlink is retired and `bin/devbin` is the invocation
+# everywhere.
+#
+# A CONSTANT AND NOT A SECOND VARIABLE. The invocation no longer varies, so a
+# variable would be a field that must be kept in sync with a fact that cannot
+# change. One name, one place, and DEVBIN_NAME is left with exactly one job:
+# saying which project this is.
+DEVBIN_INVOKE="bin/devbin"
+
 die() {
   printf '%s: %s\n' "$DEVBIN_NAME" "$*" >&2
   exit 1
@@ -386,7 +403,7 @@ assert_identifier() {
     # `DEVBIN_ROOT` -- a legitimate name devbin does not use, refused by a
     # pattern aimed at names it does. Devbin uses devbin (D12), so the guard's
     # own overreach failed here before it could reach a live project.
-    DEVBIN_NAME | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_COMMAND | DEVBIN_ARGS | \
+    DEVBIN_NAME | DEVBIN_INVOKE | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_COMMAND | DEVBIN_ARGS | \
       DEVBIN_SEAL_LEDGER | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | \
       DEVBIN_TREEINDEX_DIRS | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
       die "$what must not be '$value' -- that name belongs to devbin's own environment"
@@ -744,7 +761,7 @@ _devbin_update_line() {
   printf 'UPDATE: devbin has moved on since this project vendored it.\n'
   printf '        vendored %s, source now %s\n' "${rec:0:12}" "${cur:0:12}"
   printf '        run: %s upgrade      (silence: DEVBIN_NO_UPDATE_NOTICE=1)\n' \
-    "${DEVBIN_NAME:-devbin}"
+    "${DEVBIN_INVOKE:-bin/devbin}"
   return 0
 }
 

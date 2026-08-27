@@ -22,7 +22,7 @@ set -euo pipefail
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
+usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
 
   --into <dir>   the project to install into (default: the current directory)
   --name <n>     the project name (default: the target directory's name)
@@ -66,33 +66,21 @@ starter_config() {
   return 0
 }
 
-# link_alias <root> <name> -- bin/<name> -> devbin, or refuse.
+# THE PER-PROJECT LAUNCHER SYMLINK IS RETIRED (2026-08-27, superseding D6).
 #
-# A real file already at that name is REFUSED, never replaced. On a migration
-# the thing sitting there is the hand-written launcher devbin is replacing, and
-# clobbering it would destroy the only copy of the thing being ported from --
-# which is why D10 sequences the migration as install-alongside, prove, delete.
-link_alias() {
-  local root="$1" name="$2" path="$1/bin/$2"
-  [ -n "$name" ] || return 0
-  [ "$name" = devbin ] && return 0
-  if [ -L "$path" ]; then
-    if [ "$(readlink "$path")" = devbin ]; then
-      printf '  unchanged  bin/%s -> devbin\n' "$name"
-      return 0
-    fi
-    warn "bin/$name is a symlink to something else -- leaving it alone"
-    return 0
-  fi
-  if [ -e "$path" ]; then
-    warn "bin/$name already exists and is not a symlink -- leaving it alone"
-    warn "  (rename it, then re-run, if you want devbin to answer to that name)"
-    return 0
-  fi
-  ln -s devbin "$path" || return 1
-  printf '  linked     bin/%s -> devbin\n' "$name"
-  return 0
-}
+# `link_alias` lived here and made `bin/<project>` and `bin/<alias>` point at
+# `bin/devbin`, so you typed `bin/lamplight test`. That convention collided with
+# the binaries these projects now BUILD: Lamplight ships a `lamplight`, Intent
+# ships an `intent`, and Intent had already routed around it by calling its shim
+# `int`. A launcher that shadows the product is the wrong default.
+#
+# `bin/devbin` was always the real dispatcher and the symlinks were always
+# aliases to it, so the retirement is a DELETION rather than a new convention --
+# and the symlinks were never in devbin's vendored half, so no manifest,
+# checksum or doctor baseline moves with them.
+#
+# `--alias` is still accepted and still recorded in config: it names the project
+# for `intent` and for a human, and nothing about that needed the symlink.
 
 main() {
   local into="" name="" alias="" langs="" force="" srcroot dstroot version
@@ -132,7 +120,7 @@ main() {
         force=yes
         shift
         ;;
-      -*) die "unknown option '$1' (try: $DEVBIN_NAME install --help)" ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_INVOKE install --help)" ;;
       *) die "unexpected argument '$1' (the target goes after --into)" ;;
     esac
   done
@@ -154,7 +142,7 @@ main() {
 
   if is_devbin_installed "$dstroot" && [ -z "$force" ]; then
     warn "devbin is already installed at $dstroot/bin/.devbin/lib"
-    warn "  to re-vendor the runtime:   $DEVBIN_NAME install --into $dstroot --force"
+    warn "  to re-vendor the runtime:   $DEVBIN_INVOKE install --into $dstroot --force"
     warn "  to update it in place:      cd $dstroot && bin/devbin upgrade"
     return 1
   fi
@@ -218,8 +206,6 @@ EOF
     printf '  wrote      bin/.devbin/config.yaml (starter)\n'
   fi
 
-  link_alias "$dstroot" "$name"
-  link_alias "$dstroot" "$alias"
 
   manifest_write "$dstroot" "$srcroot" "$version" ||
     die "failed to write the manifest"

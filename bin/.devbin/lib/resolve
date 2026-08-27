@@ -428,7 +428,7 @@ run_all() {
   # can still land here only through in_all exclusions, which the skip report
   # below covers.
   if [ -z "$(command_options "$cmd")" ]; then
-    warn "'$DEVBIN_NAME $cmd all' has no options to run"
+    warn "'$DEVBIN_INVOKE $cmd all' has no options to run"
     return 1
   fi
   # The seal ledger (lib/runlog): each gate appends its seal path when it fails,
@@ -642,7 +642,7 @@ run_option() {
     # break `all`'s promise not to stop at the first breach (AC-04.6). The
     # direct path in bin/devbin does `exit $?`, so asking for a single option
     # still yields the right exit code.
-    report_not_yet "$DEVBIN_NAME $cmd $opt" "the built-in command library (ST0001/WP-08)"
+    report_not_yet "$DEVBIN_INVOKE $cmd $opt" "the built-in command library (ST0001/WP-08)"
     return 3
   fi
 
@@ -743,7 +743,7 @@ run_command() {
   # has a command line and no options, so it never reaches here.
   opts="$(command_options "$cmd" | tr '\n' ' ')"
   if [ -n "${opts// /}" ]; then
-    printf 'usage: %s %s <%s|all>\n' "$DEVBIN_NAME" "$cmd" \
+    printf 'usage: %s %s <%s|all>\n' "$DEVBIN_INVOKE" "$cmd" \
       "$(printf '%s' "$opts" | sed 's/ *$//; s/ /|/g')"
     # ASKING for usage succeeded; being unable to run because no option was
     # named did not. Exit 1, the usage-error code in devbin's own contract.
@@ -764,7 +764,7 @@ run_command() {
   # The single not-yet site for commands. It lived in bin/devbin until this
   # function existed; keeping a copy there as well would be two answers to one
   # question, and they would drift the moment either grew a nuance.
-  not_yet "$DEVBIN_NAME $cmd" "the built-in command library (ST0001/WP-14)"
+  not_yet "$DEVBIN_INVOKE $cmd" "the built-in command library (ST0001/WP-14)"
 }
 
 # --- shared options ---------------------------------------------------------
@@ -1064,7 +1064,7 @@ _assert_option_reaches_command() {
   [ -n "$cmd" ] || return 0
   framework_option_takes "$cmd" "$name" && return 0
   takers="$(framework_option_consumers "$name" | tr '\n' ' ')"
-  warn "'$DEVBIN_NAME $cmd --$name' is not available here: --$name applies to: ${takers% }"
+  warn "'$DEVBIN_INVOKE $cmd --$name' is not available here: --$name applies to: ${takers% }"
   exit 2
 }
 

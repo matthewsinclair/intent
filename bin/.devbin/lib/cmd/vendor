@@ -30,7 +30,7 @@ set -euo pipefail
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME vendor [--from <dir>] [--all]
+usage: $DEVBIN_INVOKE vendor [--from <dir>] [--all]
 
   --from <dir>   the devbin to compare against (default: the source recorded at install)
   --all          list every file, including the ones that are level
@@ -80,7 +80,7 @@ main() {
         all=yes
         shift
         ;;
-      -*) die "unknown option '$1' (try: $DEVBIN_NAME vendor --help)" ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_INVOKE vendor --help)" ;;
       *) die "unexpected argument '$1'" ;;
     esac
   done
@@ -94,7 +94,7 @@ main() {
     # refuses.
     if is_devbin_source "$dstroot"; then
       warn "devbin is not installed here -- this is the devbin source checkout, which runs lib/ in place (D12)"
-      warn "  there is nothing vendored to compare; a project installed FROM it can ask its own $DEVBIN_NAME vendor"
+      warn "  there is nothing vendored to compare; a project installed FROM it can ask its own $DEVBIN_INVOKE vendor"
     else
       warn "devbin is not installed here -- there is no vendored runtime at $dstroot/bin/.devbin/lib"
       warn "  to install it:  <path-to-devbin>/bin/devbin install --into $dstroot"
@@ -113,7 +113,7 @@ main() {
   is_devbin_source "$srcroot" || {
     warn "not a devbin source: $srcroot"
     warn "  (looked for bin/devbin and a lib/ beside it)"
-    warn "  name a different one with:  $DEVBIN_NAME vendor --from <dir>"
+    warn "  name a different one with:  $DEVBIN_INVOKE vendor --from <dir>"
     return 1
   }
 
@@ -181,7 +181,7 @@ EOF
     printf 'Level with %s.\n' "$srcroot"
     return 0
   fi
-  printf '\nto act on this: %s upgrade\n' "$DEVBIN_NAME"
+  printf '\nto act on this: %s upgrade\n' "$DEVBIN_INVOKE"
   return 1
 }
 

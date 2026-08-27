@@ -29,7 +29,7 @@ set -euo pipefail
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME {{NAME}} [args]
+usage: $DEVBIN_INVOKE {{NAME}} [args]
 
 {{SUMMARY}}
 EOF

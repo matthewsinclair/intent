@@ -437,7 +437,7 @@ EOF
 
 # print_help [--why] -- the generated global listing.
 print_help() {
-  local why="" cmds table group cmd preamble alias tagline shown
+  local why="" cmds table group cmd preamble tagline shown
   [ "${1:-}" = --why ] && why=yes
 
   tagline="$(cfg_get help.tagline 'dev launcher')"
@@ -447,9 +447,11 @@ print_help() {
   [ -n "$preamble" ] && printf '\n%s\n' "$preamble"
 
   printf '\nUsage:\n'
-  _print_row '  ' "bin/$DEVBIN_NAME <command> [options] [args]" ''
-  alias="$(cfg_get project.alias)"
-  [ -n "$alias" ] && _print_row '  ' "bin/$alias <command> ..." '(short alias)'
+  _print_row '  ' "$DEVBIN_INVOKE <command> [options] [args]" ''
+  # NO ALIAS ROW. It advertised `bin/<alias> <command> ...` as a second way in,
+  # and that file is retired along with `bin/<project>` -- help must not name an
+  # invocation that does not exist. `project.alias` is still config and still
+  # identifies the project; it just no longer creates anything to type.
 
   cmds="$(known_commands)"
   if [ -z "$cmds" ]; then
@@ -500,7 +502,7 @@ EOF
   # No backticks around the command: shellcheck reads a backtick inside a
   # single-quoted printf format as an attempt at command substitution (SC2016),
   # and the quoting they add is decoration in terminal output anyway.
-  printf '\nRun: bin/%s help <command>   for detail on one command.\n' "$DEVBIN_NAME"
+  printf '\nRun: %s help <command>   for detail on one command.\n' "$DEVBIN_INVOKE"
   # Explicit: the line above is unconditional, but the `[ -n "$why" ]` before it
   # is not, and a function returns its LAST statement's status. This codebase's
   # house defect, four sightings before this one.
@@ -535,9 +537,9 @@ print_topic() {
     # `devbin help iex` in a shell project should explain itself, not imply the
     # reader misremembered the name.
     if reason="$(command_unavailable_reason "$cmd")"; then
-      warn "'$DEVBIN_NAME $cmd' is not available here: $reason"
+      warn "'$DEVBIN_INVOKE $cmd' is not available here: $reason"
     else
-      warn "unknown command: $cmd (try: bin/$DEVBIN_NAME help)"
+      warn "unknown command: $cmd (try: $DEVBIN_INVOKE help)"
     fi
     return 2
   fi
@@ -551,7 +553,7 @@ print_topic() {
   # empty page here would be the framework declining to say what it plainly
   # knows (AC-07.6).
   args="$(cmd_meta "$cmd" args)"
-  printf '%s %s%s\n' "$DEVBIN_NAME" "$cmd" "${args:+ $args}"
+  printf '%s %s%s\n' "$DEVBIN_INVOKE" "$cmd" "${args:+ $args}"
   printf '\n%s\n' "$(cmd_meta "$cmd" summary)"
   printf '\nResolves from: %s\n' "$(command_origin "$cmd")"
   while IFS= read -r opt; do
@@ -615,7 +617,7 @@ help_main() {
         name="${1%%=*}"
         name="${name#--}"
         _shared_option_declared "$name" || {
-          warn "unknown help option: $1 (try: bin/$DEVBIN_NAME help)"
+          warn "unknown help option: $1 (try: $DEVBIN_INVOKE help)"
           return 2
         }
         shift
@@ -623,7 +625,7 @@ help_main() {
       --* | -?*)
         name="${1#--}"
         _shared_option_declared "$name" || {
-          warn "unknown help option: $1 (try: bin/$DEVBIN_NAME help)"
+          warn "unknown help option: $1 (try: $DEVBIN_INVOKE help)"
           return 2
         }
         if _shared_option_is_flag "$name"; then
