@@ -1182,6 +1182,15 @@
       "note": "**GREEN 2026-08-20 at `b082b488`.** `an_absent_or_unreadable_manifest_keeps_every_view_in_scope` asserts `NothingSaid` and `Unreadable` behave identically over the same missing view -- both keep it in scope and both name it. **This is the arm that stops the fix from being a silent estate-wide opt-out** the day somebody's manifest stops parsing. **What it does NOT cover, stated rather than implied: nothing reports the `Unreadable` state to an operator.** AC-10.2 names that as an owed reader; this row proves only that the state is honoured, not that it is surfaced."
     },
     {
+      "id": "AT-11.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/exit_codes.rs",
+      "covers": [
+        "AC-11.2"
+      ],
+      "status": "green"
+    },
+    {
       "id": "AT-11.3",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/tests/default_declaration_has_one_definition.rs",

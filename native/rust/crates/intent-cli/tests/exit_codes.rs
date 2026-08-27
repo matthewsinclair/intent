@@ -682,6 +682,12 @@ fn probe_project() -> tempfile::TempDir {
 /// assertion is the stale half and not the behaviour -- reword it here rather
 /// than reasoning about the binary.
 ///
+/// # AT-11.2
+///
+/// The id is here rather than only on the row, because `at new` REFUSES a row
+/// whose cited file does not carry it -- the link has to be provable from both
+/// ends or it is provable from neither. Learned by having the row rejected.
+///
 /// # Every assertion here has been SEEN to fail
 ///
 /// Green on the first run is not evidence. Each row was applied to
