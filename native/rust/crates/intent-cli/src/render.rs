@@ -4245,10 +4245,16 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       println!("  {name}");
     }
     match &hooks {
-      Some(h) => println!("  {}/pre-commit (chain block, region-edited)", h.display()),
+      Some(h) => {
+        // **BOTH HALVES OF THE GATE ARE NAMED, CARRIER FIRST.** A dry run that
+        // listed only the chain block would describe the exact state that block
+        // produces on its own: a reference with no referent, silently skipped.
+        println!("  {}/pre-commit.intent (the gate shim)", h.display());
+        println!("  {}/pre-commit (chain block, region-edited)", h.display());
+      }
       // NOT SILENCE. A dry run that omits a step it cannot do reads as a plan
       // that never included it.
-      None => println!("  (no git repository -- no pre-commit chain block)"),
+      None => println!("  (no git repository -- no gate: neither carrier nor chain block)"),
     }
     println!("re-run with --apply to write.");
     return Ok(());

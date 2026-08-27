@@ -427,20 +427,62 @@ pub fn apply(
     &mut applied,
   )?;
 
-  // 4. The chain block. See the module header: region-edited, never regenerated.
+  // 4. The gate, in two halves: THE CARRIER FIRST, THEN THE BLOCK THAT SOURCES
+  //    IT. See [`install_carrier`] for why the order is the whole point.
   if let Some(hooks) = git_hooks {
+    install_carrier(home, hooks, &mut applied)?;
+
+    // The chain block. See the module header: region-edited, never regenerated.
     let hook = hooks.join("pre-commit");
     let existing = std::fs::read_to_string(&hook).unwrap_or_default();
     match insert_chain_block(&existing) {
-      None => applied.unchanged.push(hook),
-      Some(updated) => {
-        write_if_changed(&hook, &updated, &mut applied)?;
-        make_executable(&hook)?;
-      }
+      None => applied.unchanged.push(hook.clone()),
+      Some(updated) => write_if_changed(&hook, &updated, &mut applied)?,
     }
+    // **OUTSIDE THE MATCH, SO IT RUNS ON THE ALREADY-BLOCKED PATH TOO.** It
+    // used to sit in the `Some` arm only, which left the one state nothing
+    // would ever repair: a hook carrying a correct chain block that git will
+    // not execute. That is the same silent skip the carrier half closes,
+    // one file up -- and `insert_chain_block` returning `None` is exactly the
+    // "already correct" report that made it invisible.
+    make_executable(&hook)?;
   }
 
   Ok(applied)
+}
+
+/// Install the pre-commit shim as `<hooks>/pre-commit.intent` -- the carrier.
+///
+/// **THE ORDER MATTERS AND ITS ABSENCE WAS THE DEFECT.** The chain block this
+/// module writes is `if [ -x "$_intent_chain" ]; then ... fi` with no `else`,
+/// so a project whose carrier was never installed passes every commit at rc=0
+/// while every report anyone reads says the gate is wired. Until this function
+/// existed, [`apply`] wrote that block **and nothing in either tree wrote the
+/// carrier** -- so the one verb whose job is wiring the gate produced, by
+/// itself, a project running zero guards and saying nothing. Baize is the
+/// measured instance: config `3.0.0`, canon present, fully ported, no gate.
+///
+/// The shim's own contract is *refusing, not skipping* (hv ruling 4). That
+/// contract is unreachable from one layer up: a shim that was never installed
+/// is not a shim that refuses, it is a `[ -x ]` that is false.
+///
+/// **THE BYTES COME FROM THE RESOLVED INSTALL ROOT'S OWN TEMPLATE**, through
+/// the same [`template`] reader every other canon artefact uses. dc measured
+/// eleven estates carrying the FROZEN v2 tree's gate byte for byte, ten of them
+/// stamped the same day -- the last fleet-wide install seeded them from a tree
+/// nobody develops in. **The defect was what the installer READ, not whether it
+/// ran**, so an installer reading from anywhere but the root the running binary
+/// resolved would reproduce precisely today's state, correctly and at rc=0.
+///
+/// **THE MODE IS SET ON THE UNCHANGED PATH TOO.** `[ -x ]` is the test the
+/// chain block applies, so correct bytes with the wrong mode are the silent
+/// skip with every byte in place -- and it is the one state a
+/// `write_if_changed` short-circuit would leave untouched on every future run.
+fn install_carrier(home: &Path, hooks: &Path, applied: &mut Applied) -> Result<(), CanonError> {
+  let carrier = hooks.join("pre-commit.intent");
+  let shim = template(home, "hooks/pre-commit-shim.sh")?;
+  write_if_changed(&carrier, &shim, applied)?;
+  make_executable(&carrier)
 }
 
 /// A pre-commit hook git will not execute is a guard that silently never runs.
