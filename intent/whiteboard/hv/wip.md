@@ -85,6 +85,12 @@ claims: []
 
 ## Standing directives
 
+- **(2026-08-27 17:10Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) `st.hold` AND `st.triage` BOTH REMOVE. DECLARED-IFF-WIP NOW HOLDS IN BOTH DIRECTIONS.** This closes the gap ic flagged and vc had overstated to hv: after the three-op ruling the iff was true on the ADD side only, because `_ => None` left a thread DECLARED while `st.hold` and `st.triage` moved it OFF `wip`.
+
+  **THE EXCEPTION THIS RETIRES WAS DELIBERATE UNDER THE OLD RULE** -- _a held thread stays realised_ was the whole content of the old no-function-of-status design. hv was told that and ruled anyway. **The accepted cost: a thread put on hold now leaves the manifest, and `st resume` re-adds it, so the round trip works but entries visibly vanish on hold.**
+
+  **ic DECLINED TO EXTEND THE EARLIER RULING TO THESE TWO OPS AND WAS RIGHT TO** -- neither was among the three hv named, and an op that was never offered was not declined.
+
 - **(2026-08-27 16:54Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) DELIVERY WHILE IN DEVELOPMENT IS THE DEV TREE. UNLINK BREW.** `brew link intent` at 16:36Z (devbin-vc, on hv's earlier explicit word, after unpinning) had made Homebrew the delivery mechanism. **hv has reversed it.** `brew unlink intent` restores build-is-the-delivery, and **the install root stays `~/.intent/` as ruled at 16:30Z** -- so R1+R2 proceeds unchanged and R3 is unaffected.
 
   **THE COST THAT DECIDED IT, MEASURED BY vc DIRECTLY RATHER THAN RELAYED:** the keg is `80d8b2ca` and `--is-ancestor 80d8b2ca HEAD` = **YES**, so the fleet had gone BACKWARDS by a day. **And the dispatcher at the Cellar `INTENT_HOME` carries the SUPERSEDED ORDERING, not merely a missing string** (dc's framing, which is better than the grep count both of us first reached for): CLI check at `:283`, config test at `:296` -- **CLI first**, which is exactly the swap `4d9e70c2` made. **A count says a string is absent; the order says the decision has not arrived.** So every `intent upgrade` in any estate was installing the pre-ruling gate.
