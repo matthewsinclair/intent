@@ -250,11 +250,50 @@ resolve_guard_home() {
 # INTENT_HOME to an install predating this file has nothing to compare, and
 # reporting a missing comparison as a divergence is an absence dressed as a
 # fault -- the collapse the three absence branches exist to prevent.
+# TWO CARRIER MODELS NOW EXIST AND COMPARING AGAINST THE WRONG TEMPLATE REPORTS
+# A CORRECTLY-INSTALLED GATE AS STALE. Until cc's `f8a78e05`, `canon::apply`
+# wrote nothing and every carrier was a COPY of the gate body, so comparing
+# against `pre-commit.sh` was the only comparison there was. It now installs
+# `pre-commit-shim.sh` instead -- same destination filename, different template,
+# and a byte-comparison against the body would call every correct shim stale.
+#
+# THE DISCRIMINATOR IS `--where`, WHICH ONLY THE SHIM ANSWERS (2 occurrences in
+# the shim, 0 in the body and 0 in this tree's installed carrier). It is read
+# rather than executed, so a carrier that cannot run is still classified.
+#
+# AND THE SHIM ARM CHECKS SOMETHING THE COPY ARM COULD NOT: a copy carries its
+# own gate, so it works or it does not. A SHIM IS ONLY AS GOOD AS THE POINTER IT
+# RESOLVES, and a shim whose root is gone REFUSES EVERY COMMIT in that estate.
+# That is a worse condition than staleness and it is invisible to a byte
+# comparison, so it is asked first and reported louder.
+carrier_is_shim() {
+  grep -q -- '--where' "$HOOKS_DIR/pre-commit.intent" 2>/dev/null
+}
+
 gate_currency() {
   local tmpl
   resolve_guard_home
   [ -n "$GUARD_HOME" ] || return 0
-  tmpl="$GUARD_HOME/lib/templates/hooks/pre-commit.sh"
+  if carrier_is_shim; then
+    tmpl="$GUARD_HOME/lib/templates/hooks/pre-commit-shim.sh"
+    # THE POINTER IS ASKED BEFORE THE BYTES, because a shim that resolves
+    # nowhere is broken whether or not it is current, and saying "STALE" to
+    # someone whose gate refuses every commit sends them to the wrong repair.
+    local where_out where_rc
+    where_out="$(bash "$HOOKS_DIR/pre-commit.intent" --where 2>&1)"; where_rc=$?
+    if [ "$where_rc" -ne 0 ]; then
+      rc=1
+      printf '                 gate UNRESOLVABLE -- the carrier is a shim and its install root is not usable.\n'
+      printf '%s\n' "$where_out" | sed 's/^/                   /'
+      printf '                 EVERY COMMIT IN THIS REPOSITORY REFUSES until that root resolves.\n'
+      printf '                 this is NOT staleness: the bytes may be perfectly current and the gate\n'
+      printf '                 still cannot run, so reinstalling the carrier will not fix it.\n'
+      printf '                 remedy: repoint ~/.intent/home at a real Intent install root.\n'
+      return 0
+    fi
+  else
+    tmpl="$GUARD_HOME/lib/templates/hooks/pre-commit.sh"
+  fi
   if [ ! -f "$tmpl" ]; then
     printf '                 (no %s -- dispatcher currency UNCHECKED, which is not the same as current)\n' "$tmpl"
     return 0
@@ -270,19 +309,29 @@ gate_currency() {
   printf '                 the guards are read live, but THIS file is the copy that decides WHICH TREE\n'
   printf '                 they are read from -- so a stale one can point the gate at the wrong tree and\n'
   printf '                 still print a full, confident roster.\n'
-  # NO REMEDY IS NAMED HERE, DELIBERATELY, AND THAT IS THE FIX RATHER THAN THE
-  # GAP. This line used to end `Run: intent claude upgrade --apply`, which was
-  # driven on 2026-08-27 and does NOT write `pre-commit.intent`: every mention
-  # in v3 non-test Rust is a comment, and no code path in either tree installs
-  # the carrier. A WORKING DETECTOR THAT HANDS THE OPERATOR A VERB WHICH DOES
-  # NOT REPAIR WHAT IT JUST REPORTED IS WORSE THAN NO DETECTOR -- running it
-  # produces no error, and the true finding is converted into a false
-  # reassurance. Ruled 2026-08-27, authority vc, who checked it against every
-  # option on hv's menu: no outcome makes that command the repair, so the line
-  # is wrong under all of them and did not need to wait on the decision.
-  printf '                 NO VERB CURRENTLY REPAIRS THIS, and naming one would be worse than naming\n'
-  printf '                 none. Installing the carrier is an OPEN ITEM -- report it, do not improvise\n'
-  printf '                 a fix across the fleet.\n'
+  # THE REMEDY EXISTS NOW AND IT IS NOT UNCONDITIONALLY SAFE, WHICH IS TWO
+  # FACTS AND THIS LINE OWES BOTH.
+  #
+  # It read `NO VERB CURRENTLY REPAIRS THIS` and that was true when written:
+  # `intent claude upgrade --apply` did not write `pre-commit.intent`, driven
+  # 2026-08-27, and naming a verb that repairs nothing converts a true finding
+  # into a false reassurance the moment somebody runs it. cc's `f8a78e05` made
+  # `canon::apply` install the carrier, so the verb now does repair this.
+  #
+  # **BUT IT INSTALLS A SHIM, AND A SHIM IS ONLY AS GOOD AS `~/.intent/home`.**
+  # On this machine that pointer currently names a deleted worktree, so running
+  # the verb today would replace a working copied gate with a shim that refuses
+  # every commit. **Naming the verb without that condition would be the same
+  # defect the old line was fixed to avoid, one generation later: a remedy that
+  # is now correct in general and wrong here.** So the pointer is stated as a
+  # precondition and the operator is told how to check it, rather than being
+  # sent to a command whose safety depends on machine state this function has
+  # already looked at. Raised by cc before it could bite anyone.
+  printf '                 remedy: `intent claude upgrade --apply` installs the carrier (since f8a78e05).\n'
+  printf '                 CHECK FIRST -- it installs a SHIM, which is only as good as ~/.intent/home:\n'
+  printf '                   bash %s --where   (or read ~/.intent/home)\n' "$GUARD_HOME/lib/templates/hooks/pre-commit-shim.sh"
+  printf '                 if that root is not a real Intent install, the shim will refuse EVERY commit\n'
+  printf '                 here -- repoint it first, then upgrade.\n'
 }
 
 shipped_guards() {
