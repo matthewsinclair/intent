@@ -238,59 +238,82 @@ fn a_flush_clears_work_completed_today() {
   );
 }
 
-/// The watermark is an ISO 8601 INSTANT at second resolution, taken from an
-/// event the database stamped -- `2026-08-26T21:40:25Z`, hv's ruling and v2's
-/// `date -u '+%Y-%m-%dT%H:%M:%SZ'`.
+/// The cutoff is an ISO 8601 INSTANT at second resolution, and **it is STATE
+/// rather than history**.
 ///
-/// Asserted on shape and on RELATION to the event, never on a value: a test
-/// that knew the value would have had to read a clock, which is the thing the
-/// database stamp exists to avoid (D42).
+/// `2026-08-26T21:40:25Z` -- hv's ruling and v2's `date -u '+%Y-%m-%dT%H:%M:%SZ'`.
+/// Asserted on shape and on RELATION, never on a value: a test that knew the
+/// value would have had to read a clock, which is what the database stamp
+/// exists to avoid (D42).
+///
+/// **THE THIRD ARM IS THE ONE THAT MATTERS AND IT IS WHY THIS TEST EXISTS AT
+/// ALL.** The cutoff used to be the maximum `todo.flush` stamp in the log --
+/// which made it history, and D53 keeps history out of the working tree, so it
+/// could not cross a clone. Moving it into the `project` table is only a fix if
+/// NOTHING still derives it from the log; a fallback left in place would be two
+/// homes for one value, and both answers would look plausible. So a flush event
+/// is appended to the log DIRECTLY, dated far in the future, and the cutoff must
+/// not move. **Under the old rule that event would have become the cutoff.**
 #[test]
-fn the_watermark_is_an_instant_derived_from_a_database_stamped_event() {
+fn the_cutoff_is_state_in_the_store_and_is_never_derived_from_the_log() {
   let fx = Fixture::new();
   fx.write_thread(&finished("ST0001", "2020-01-01"));
   let mut facade = fx.facade_on_disk();
   facade.todo_flush().expect("flush");
 
+  // History is still recorded -- the event did not go away, it stopped being
+  // the answer to a different question.
   let events = facade.store().events().expect("events");
   let flushes: Vec<_> = events
     .iter()
     .filter(|e| e.op == event::TODO_FLUSH)
     .collect();
   assert_eq!(flushes.len(), 1, "one flush, one event");
-  let ts = &flushes[0].ts;
   assert!(
-    ts.len() == 24 && ts.ends_with('Z') && ts.contains('T'),
-    "the event carries a full instant the database set: {ts:?}"
+    flushes[0].ts.len() == 24 && flushes[0].ts.ends_with('Z'),
+    "the event still carries the full instant the database set: {:?}",
+    flushes[0].ts
   );
 
-  let mark = event::todo_watermark(&events).expect("a watermark");
+  let mark = facade
+    .store()
+    .todo_watermark()
+    .expect("store")
+    .expect("a cutoff");
   assert_eq!(
     mark.len(),
     20,
-    "the watermark is a full instant at second resolution -- `2026-08-26T21:40:25Z` is 20 \
-     characters, and the DATE this used to return was 10: {mark:?}"
+    "a full instant at second resolution -- `2026-08-26T21:40:25Z` is 20 characters, and the \
+     DATE this used to be was 10: {mark:?}"
   );
   assert!(
-    !mark.contains('.'),
-    "the millisecond fraction the database stamps is dropped, because a cutoff is read and \
-     retyped by people and the date it is compared against cannot use it: {mark:?}"
-  );
-  assert_eq!(
-    mark,
-    format!("{}Z", &ts[..19]),
-    "and it is that event's own instant, seconds kept and fraction dropped -- not a value \
-     from anywhere else"
+    mark.ends_with('Z') && mark.contains('T') && !mark.contains('.'),
+    "ISO 8601 UTC, fraction dropped, because the cutoff is compared against a DATE and is read \
+     and retyped by people: {mark:?}"
   );
 
-  // Two machines' logs are a UNION under D34, so arrival order is not time
-  // order and the watermark must be the MAXIMUM rather than the last appended.
-  let mut shuffled = events.clone();
-  shuffled.reverse();
+  // **THE ARM THAT PROVES THE LOG IS NOT CONSULTED.**
+  facade
+    .store()
+    .append_event(&intentsvcs::event::Envelope {
+      id: "01ZZZZZZZZZZZZZZZZZZZZZZZZ".to_string(),
+      ts: String::new(),
+      principal: "test".to_string(),
+      project_id: "test".to_string(),
+      op: event::TODO_FLUSH.to_string(),
+      subject: intentsvcs::event::Subject {
+        kind: "todo".to_string(),
+        id: "watermark".to_string(),
+      },
+      payload: serde_json::json!({ "cleared": 0 }),
+    })
+    .expect("append a second flush event straight into the log");
+
   assert_eq!(
-    event::todo_watermark(&shuffled),
+    facade.store().todo_watermark().expect("store"),
     Some(mark),
-    "the watermark depends on the stamps, not on the order the log happens to be in"
+    "a `todo.flush` event appended directly to the log MOVED the cutoff, so something still \
+     derives it from history -- which is the two-homes defect this design removes"
   );
 }
 

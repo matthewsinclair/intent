@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0
--- SCHEMA_DDL_VER: 10
+-- SCHEMA_DDL_VER: 11
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -324,4 +324,22 @@ CREATE TABLE IF NOT EXISTS event_log (
   subject_type TEXT NOT NULL,
   subject_id TEXT NOT NULL,
   payload TEXT NOT NULL
+);
+-- PROJECT-LEVEL RECORDED STATE. A singleton -- `CHECK (id = 1)` -- because there
+-- is one project per store and a table that could hold two would need a rule
+-- about which one counts.
+--
+-- `todo_watermark` is the DONE cutoff: the instant of the last
+-- `intent todo done --flush`/`--prune`. It is STATE rather than history, which
+-- is why it is a column here and not a query over `event_log`. A flush
+-- HAPPENING at T is an event and belongs in the log; the current cutoff BEING T
+-- is a fact about the project now, so it is recorded here and travels with the
+-- project's committed files rather than with its history.
+--
+-- NULL means never flushed.
+-- openness: carried by intent/.canon/project.json
+CREATE TABLE IF NOT EXISTS project (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  todo_watermark TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

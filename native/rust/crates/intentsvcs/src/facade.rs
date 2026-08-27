@@ -1484,15 +1484,15 @@ impl Facade {
 
   /// Everything a render is allowed to know, assembled from the store.
   ///
-  /// **Fallible because the DONE watermark is a READ OF THE EVENT LOG.** D44
-  /// removed the watermark and this signature was kept against its return;
-  /// hv restored it on 2026-08-26 (parity with `bin/intent_todo`), so the read
-  /// is live again.
+  /// **Fallible because the DONE cutoff is a read of the `project` table.** It
+  /// used to be derived from the event log, which made it history -- and D53
+  /// took history out of the working tree, so it could not cross a clone. The
+  /// cutoff is STATE and the store holds it; the log still records every flush
+  /// and nothing reads a cutoff out of it.
   fn render_ctx(&self) -> Result<RenderContext<'_>, FacadeError> {
-    let events = self.store.events().map_err(FacadeError::Store)?;
     Ok(RenderContext {
       version: &self.ctx.version,
-      todo_watermark: crate::event::todo_watermark(&events),
+      todo_watermark: self.store.todo_watermark().map_err(FacadeError::Store)?,
     })
   }
 
@@ -2949,6 +2949,15 @@ impl Facade {
       serde_json::json!({ "cleared": cleared.len() }),
       next,
     )?;
+    // **BOTH RECORDS, AND THEY ARE DIFFERENT THINGS.** The event above is
+    // HISTORY -- a flush happened -- and stays in the log D53 keeps out of the
+    // working tree. The line below is STATE: the cutoff is now this, and state
+    // is what the canon carries and git moves. Deriving one from the other is
+    // what left a fresh clone with no cutoff at all.
+    self
+      .store
+      .flush_todo_watermark()
+      .map_err(FacadeError::Store)?;
     // Re-read AFTER the event, so `remaining` is measured rather than assumed.
     let after = self.todo_buckets()?;
     Ok(TodoFlush {
@@ -3042,7 +3051,10 @@ impl Facade {
   pub fn export(&mut self, format: Option<&str>) -> Result<Exported, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let events = self.store.events().map_err(FacadeError::Store)?;
-    let bundle = export::Bundle::new(&self.ctx.project_id, threads, issues, events);
+    let bundle = export::Bundle::new(&self.ctx.project_id, threads, issues, events)
+      .with_project_state(crate::model::ProjectState::new(
+        self.store.todo_watermark().map_err(FacadeError::Store)?,
+      ));
     let projected =
       export::project(&bundle, format.unwrap_or(export::DEFAULT_FORMAT)).map_err(|refusal| {
         // Mapped one-to-one and exhaustively rather than wrapped in a single
@@ -3138,6 +3150,20 @@ impl Facade {
         to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
+    // **PROJECT STATE, WRITTEN ON EVERY SYNC AND NOT NARROWED BY A THREAD
+    // SCOPE.** Issues are skipped by a scoped sync because forty issue files
+    // nobody asked about is the estate-wide write a scope exists to prevent.
+    // This is ONE file holding one scalar, and `WriteSet::commit` skips a path
+    // whose bytes already match -- so writing it always costs nothing when
+    // nothing moved, and skipping it would let `sync --to-disk ST0056` leave a
+    // stale cutoff on disk after a flush.
+    set.add(
+      self.project.project_json(),
+      to_canonical_json(&crate::model::ProjectState::new(
+        self.store.todo_watermark().map_err(FacadeError::Store)?,
+      ))
+      .map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+    );
     // **VIEWS IF MARKED, AND CANON REGARDLESS** (AC-08.1). The canon writes
     // above are unconditional; only the RENDERED views narrow.
     //
@@ -3222,43 +3248,30 @@ impl Facade {
     // **This used to read the event log, from the store or from the extract,
     // and D44 took away its only reason to.** The watermark was the one thing
     // a render needed that lived in the log, so sourcing it from both places
-    // was what let `doctor` re-render `todo.md` correctly on a project with no
-    // database -- the normal state of a fresh clone, and the moment someone
-    // reaches for the command.
+    // **THE CUTOFF COMES FROM THE COMMITTED FILE, WHICH IS WHY `doctor` CAN
+    // ANSWER AT ALL ON A MACHINE WITH NO STORE** -- the normal state of a fresh
+    // clone, and the moment someone reaches for this command.
     //
-    // With the DONE bucket computed at render time there is no stored state
-    // behind it, so the dual-source read is gone rather than kept "in case".
-    // **`doctor` still owes a check that the log is READABLE AND PRESENT**
-    // (AC-03.11): that is a diagnostic about the log itself rather than a
-    // render input, and a missing log looks exactly like a project that never
-    // recorded anything, which is why it has to be asserted rather than
-    // inferred from a successful render.
-    // **THE DUAL-SOURCE READ IS BACK BECAUSE THE WATERMARK IS BACK.** `doctor`
-    // re-renders the views to detect skew, so it must compute the SAME
-    // watermark the write path did -- otherwise it reports `todo.md` as
-    // hand-edited on every project that has ever flushed, permanently, with
-    // nothing wrong. It runs on projects with no store (that is the state it
-    // exists to diagnose), so the log is read from the extract when there is
-    // no database to ask.
-    // **THE DUAL-SOURCE READ IS NOT RESTORED, BECAUSE D53 TOOK THE FILE AWAY.**
-    // The pre-D44 version fell back to `events.jsonl` in the working tree when
-    // there was no store; `f42987c7` moved the log out of the tree, so there is
-    // no file left to fall back to. The store is now the only source.
+    // `doctor` re-renders every view to detect a hand-edited one, so it must
+    // compute the SAME cutoff the writer used. It used to read the event log,
+    // which D53 removed from the working tree: with no store there was no
+    // cutoff, so this re-render put every completed thread back in DONE and
+    // reported `todo.md` as hand-edited on every project that had ever flushed,
+    // permanently, with nothing wrong.
     //
-    // **The consequence is stated rather than hidden: with NO store there is no
-    // watermark, so this re-render puts every completed thread in DONE and will
-    // report skew against a committed `todo.md` that was rendered with one.**
-    // That is a project with no database -- the state `doctor` exists to
-    // diagnose -- and a skew line on a project that cannot open its own store is
-    // noise beside the finding that matters, not a false alarm about the view.
-    let events = store
-      .map(|s| s.events().unwrap_or_default())
-      .unwrap_or_default();
+    // **A DAMAGED FILE READS AS ABSENT HERE, and only here.** `doctor` is the
+    // command you run when the estate is broken; refusing to diagnose because
+    // one canon file will not parse would withhold the report naming that very
+    // file. The finding still comes out of the checks below.
+    let todo_watermark = crate::ingest::read_project_state(project)
+      .ok()
+      .flatten()
+      .and_then(|state| state.todo_watermark);
     crate::doctor::diagnose(
       project,
       &RenderContext {
         version: &ctx.version,
-        todo_watermark: crate::event::todo_watermark(&events),
+        todo_watermark,
       },
       store,
     )

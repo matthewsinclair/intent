@@ -62,6 +62,26 @@ use crate::sync::FileEntry;
 // durable history is wanted the upgrade is delete-missing + upsert-present, and
 // `written_at` does not block it. What is not reversible is shipping a
 // `created_at` on a table that re-stamps it.
+//
+// WHY THE DONE CUTOFF IS A COLUMN AND NOT A QUERY (WP-14, hv 2026-08-26), kept
+// out of the face for the same reason.
+//
+// **Derived from the event log it could not cross a git clone.** D53 took the
+// log out of the working tree, so a cutoff read back out of it was absent on a
+// fresh clone -- every flushed thread reappeared in DONE (52 completed + 2
+// cancelled, measured on this repo) and `doctor` called the committed
+// `todo.md` hand-edited, permanently. Filing the cutoff as history is what put
+// it on the wrong side of D53.
+//
+// **NOTHING READS A CUTOFF OUT OF THE LOG.** The migration rung that creates
+// the table derives the value once and that is the last time it happens.
+// `event::todo_watermark` was DELETED rather than left as a fallback: two homes
+// for one value is the defect this keeps finding, not a safety net, and both
+// answers look plausible at the call site.
+//
+// **NULL means never flushed, which v2 could not represent** -- it read the
+// cutoff back out of the generated file, so an absent file had to fall back to
+// a clock.
 pub const DDL: &str = "\
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
@@ -388,6 +408,24 @@ CREATE TABLE IF NOT EXISTS event_log (
   subject_id TEXT NOT NULL,
   payload TEXT NOT NULL
 );
+-- PROJECT-LEVEL RECORDED STATE. A singleton -- `CHECK (id = 1)` -- because there
+-- is one project per store and a table that could hold two would need a rule
+-- about which one counts.
+--
+-- `todo_watermark` is the DONE cutoff: the instant of the last
+-- `intent todo done --flush`/`--prune`. It is STATE rather than history, which
+-- is why it is a column here and not a query over `event_log`. A flush
+-- HAPPENING at T is an event and belongs in the log; the current cutoff BEING T
+-- is a fact about the project now, so it is recorded here and travels with the
+-- project's committed files rather than with its history.
+--
+-- NULL means never flushed.
+-- openness: carried by intent/.canon/project.json
+CREATE TABLE IF NOT EXISTS project (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  todo_watermark TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 ";
 
 /// **The shape of [`DDL`], stamped into every store this binary creates**
@@ -412,7 +450,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 13;
+pub const SCHEMA_VERSION: i32 = 14;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -878,6 +916,42 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        FROM attachments;
    DROP TABLE attachments;
    ALTER TABLE attachments_v13 RENAME TO attachments;",
+), (
+  14,
+  // 13 -> 14: the `project` singleton arrives, and it is an ADD -- nothing
+  // existing changes shape and no row moves.
+  //
+  // **THE SEED IS THE WHOLE POINT OF THE RUNG AND IT RUNS EXACTLY ONCE.** An
+  // existing store already holds its flush history, so the cutoff is derivable
+  // from it right here -- and after this statement nothing derives a cutoff
+  // from `event_log` ever again. The alternative, leaving the read in place as
+  // a fallback, is two homes for one value.
+  //
+  // **A STORE WITH NO FLUSHES STILL GETS ITS ROW, CARRYING NULL.** `MAX` over
+  // an empty set is NULL and an aggregate with no GROUP BY still returns one
+  // row, so the singleton exists either way -- and NULL is the correct reading
+  // of a project that has never flushed, not a gap to paper over.
+  //
+  // The fraction is dropped to match what the cutoff is compared against: the
+  // log stamps milliseconds, `Thread.completed` is a date, and a cutoff is a
+  // value people read and retype.
+  //
+  // **BOTH STATEMENTS ARE REPLAY-SAFE, AND THAT IS A REQUIREMENT OF THE LADDER
+  // RATHER THAN CAUTION.** A store can carry the CURRENT DDL and still be
+  // stamped at an older version -- that is exactly the fixture
+  // `a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused`
+  // builds -- so this rung meets a `project` table that the DDL already
+  // created. A bare `CREATE TABLE` refused with `table project already exists`
+  // and the whole walk-forward failed on it. `OR IGNORE` guards the row for the
+  // same reason: the singleton may already be there, and a rung that cannot be
+  // replayed is a rung that strands every store that took a partial ladder.
+  "CREATE TABLE IF NOT EXISTS project (
+     id INTEGER PRIMARY KEY CHECK (id = 1),
+     todo_watermark TEXT,
+     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   );
+   INSERT OR IGNORE INTO project (id, todo_watermark)
+     SELECT 1, substr(MAX(ts), 1, 19) || 'Z' FROM event_log WHERE op = 'todo.flush';",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -2210,6 +2284,70 @@ impl Store {
       )?,
     };
     Ok(ts)
+  }
+
+  /// The DONE cutoff, or `None` when the project has never flushed.
+  ///
+  /// **THE ONE HOME FOR THIS VALUE.** It used to be derived from the maximum
+  /// `todo.flush` stamp in the log, which made it history -- and D53 took
+  /// history out of the working tree, so it could not cross a clone. Every
+  /// flushed thread came back on a fresh clone and `doctor` reported the
+  /// committed `todo.md` as hand-edited, permanently.
+  ///
+  /// `None` covers both an absent singleton and a NULL column, deliberately:
+  /// they are the same fact, and distinguishing them would make a caller reason
+  /// about whether the row had been created yet.
+  pub fn todo_watermark(&self) -> Result<Option<String>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT todo_watermark FROM project WHERE id = 1")?;
+    let mut rows = stmt.query([])?;
+    match rows.next()? {
+      Some(row) => Ok(row.get::<_, Option<String>>(0)?),
+      None => Ok(None),
+    }
+  }
+
+  /// Advance the DONE cutoff to NOW and return what was written.
+  ///
+  /// **THE DATABASE STAMPS IT (D42), so no clock is read in this process** --
+  /// the same rule the event log's `ts` DEFAULT follows, for the same reason.
+  ///
+  /// Second resolution rather than the log's milliseconds, because this value
+  /// is compared against `Thread.completed`, which is a DATE, and is read and
+  /// retyped by people. **It is not derived from the flush EVENT**: deriving it
+  /// would put a cutoff back in the log, which is the one thing this table
+  /// exists to stop.
+  pub fn flush_todo_watermark(&self) -> Result<String, StoreError> {
+    let mark: String = self.conn.query_row(
+      "INSERT INTO project (id, todo_watermark)
+         VALUES (1, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+       ON CONFLICT (id) DO UPDATE SET
+         todo_watermark = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'),
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+       RETURNING todo_watermark",
+      [],
+      |row| row.get(0),
+    )?;
+    Ok(mark)
+  }
+
+  /// Record the DONE cutoff.
+  ///
+  /// An UPSERT rather than an UPDATE, so the singleton does not have to exist
+  /// first. A store created by [`DDL`] has the table and no row; a store that
+  /// came up the migration ladder has the row already. **Two creation paths and
+  /// one write** -- an UPDATE would silently affect zero rows on the first of
+  /// them, which is a flush that reports success and changes nothing.
+  pub fn set_todo_watermark(&self, mark: Option<&str>) -> Result<(), StoreError> {
+    self.conn.execute(
+      "INSERT INTO project (id, todo_watermark) VALUES (1, ?1)
+       ON CONFLICT (id) DO UPDATE SET
+         todo_watermark = excluded.todo_watermark,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+      params![mark],
+    )?;
+    Ok(())
   }
 
   /// Every envelope, oldest first.
