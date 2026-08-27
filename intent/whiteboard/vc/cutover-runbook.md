@@ -532,5 +532,20 @@ cc found the blind spot by driving; I measured the population and **got the spli
 
 ### OPEN, AND BOTH ARE hv's -- NOT DECIDED UNDER THE PEN
 
-1. **F1's FORM: enum or test?** ic's fact: `event::Envelope` carries `pub op: String` and serialises it, so the op spelling is a boundary -- verified. ic priced an enum as compat work. **I measured the population and it is empty: 15 estates carry `intent/events.jsonl`, all 15 are ZERO BYTES, and the path is gitignored so no history carries one either.** So the migration cost is zero TODAY and non-zero from the first event ever written. **The window in which this is free is open now and closes on the first write.** ic's weaknesses stand in their words: the test reds at `cargo test` not `cargo build`, and it can be deleted where an exhaustive match cannot be forgotten. The question for hv is one question, not two: **is the event log going to carry data, and when?**
-2. **AT-11.4's reading** (ic): the blocked figure counts FILES and no line names the thread, so _"reports the non-WIP threads as to remove and blocked"_ is met by arithmetic that is only unambiguous with exactly one undeclared thread. If hv reads the criterion as wanting the thread NAMED, that is a build.
+1. **F1's FORM: enum or test?** ~~I measured the population and it is empty: 15 estates carry `intent/events.jsonl`, all 15 are ZERO BYTES~~ **-- WITHDRAWN, 2026-08-27 18:09Z. THAT MEASUREMENT WAS TRUE AND BLIND, AND IT IS WATCH-OUT 0b ARRIVING ON ITS AUTHOR THE SAME AFTERNOON.** `events.jsonl` is zero bytes everywhere because it is an ON-DEMAND EXPORT, not the log -- `store.rs:397` says so in its own words. **The log is SQLite**: `intent/.cache/intent.db`, table `event_log`, written by `append_event`. ic caught it; I re-measured independently and reproduce them exactly:
+
+```
+17 estates with intent/ ; 15 carry a store ; 12 non-empty
+1108 events, 22 distinct ops across 8 families (ac at attachment disk issues st todo wp)
+this estate alone: 401 events, 21 distinct ops
+```
+
+**THE COMPAT SURFACE IS STILL EMPTY, FOR A COMPLETELY DIFFERENT REASON, AND THAT IS THE PART FOR hv.** All 22 stored ops are STILL SPELLED in current source -- 22 of 22, 0 unspelled, and my detector positive-controlled on two invented ops which it correctly reported unspelled. So an enum's parse would today meet nothing it does not know **not because no events exist, but because no op has been RENAMED OR RETIRED since they started being written.**
+
+**THE TRIGGER IS THEREFORE NEITHER OF THE QUESTIONS WE BOTH ASKED.** Not _does the log carry data_ (it does, 1108 rows) and not _will events start flowing_ (they already have). It is: **the first time an op is renamed or retired, every developer machine's store carries rows an enum cannot parse.** That is mechanically checkable in one line -- for each distinct op in the store, does the source still spell it -- so hv can have a LIVE FIGURE rather than a forecast. It reads a per-machine DB so it can never be a commit gate; `doctor` is where a per-machine truth check belongs.
+
+**TWO SCOPE CORRECTIONS TO F1, ic's:** an `Op` enum is **22 members across 8 families, not 8**; and four are `disk.*` (`sync_from_disk`, `sync_to_disk`, `hydrate`, `organize`) which have **no state machine at all**, so a type derived from the transitions table would not cover the vocabulary the log actually carries. F1's three spelling sites are the `st.*` SLICE of a wider set.
+
+**AND D34 BOUNDS THE COST THE OTHER WAY:** `intent/.cache/` is gitignored, so no clone and no fresh machine inherits a single one of those 1108 rows. The eventual compat cost is bounded per-machine rather than growing with clones.
+
+ic's recommendation is unchanged -- **not now** -- and the ground under it has changed completely: not "there is data to migrate", but that the type is a 22-member vocabulary over eight families, four of which have no machine to derive it from. Their two weaknesses stand in their words: the test reds at `cargo test` not `cargo build`, and it can be deleted where an exhaustive match cannot be forgotten. 2. **AT-11.4's reading** (ic): the blocked figure counts FILES and no line names the thread, so _"reports the non-WIP threads as to remove and blocked"_ is met by arithmetic that is only unambiguous with exactly one undeclared thread. If hv reads the criterion as wanting the thread NAMED, that is a build.
