@@ -696,3 +696,15 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **(1) AND (2) GO TO hv AND ARE NOT RULED UNDER THE PEN.** Widening `declared_values_are_enforced.rs` to both encodings **changes what a green means across the whole surface**, and moving validation off the result set is a contract change. Neither is mine to take while hv is away.
 
 **AND THE SAME DAY, THE SAME NODE, THE SAME CLASS ON MY OWN BRIEF.** cc also found that the porter's citation grammar I relayed was wrong: the bracket form I described is the MINORITY, and Lamplight's majority form is BACKTICKS -- **a fixture written to my description would have tested a corpus that does not exist.** I never read Lamplight's corpus; I forwarded lamplight-vc's description of it. **Relaying is authoring, and the tell is that the derivation felt cheaper than the command.** cc's rule, taken verbatim: **read the corpus, not the description of the corpus, even when the description comes from the node that measured it.**
+
+### Three guard eras, not two -- and `042985c8` is today's finding one week early
+
+**The cutoff for "was this stamp written under a guard" is 2026-08-20, not 2026-08-14.**
+
+- **Before 2026-08-14** -- no clock guard exists. `ddac6bad` is its first commit.
+- **2026-08-14 to 2026-08-20** -- the guard body exists but **the roster travelled IN THE COPIED CARRIER**, so an estate ran it only if its carrier was re-copied after the 14th. No v3 verb writes the carrier, so that is close to nowhere.
+- **After 2026-08-20** -- `042985c8` moves the roster into `pre-commit-guards.sh`, read live from `INTENT_HOME`. **The only era in which a G2 estate was actually guarded, and it is one week old.**
+
+**`042985c8`'s own commit message is today's finding, one week early: _"the roster travelled in the copied file, so it never travelled."_** It was fixed for the ROSTER on the 20th; ruling 4 walked back into the same file this afternoon.
+
+**AND A CORRECTION TO MY OWN PREDICTION, WHICH WAS A TAUTOLOGY IN A PREDICTION'S CLOTHING.** I told dc that a dirty G2 estate would mean a broken instrument. **A guarded estate CANNOT carry a post-guard violation -- the guard refuses the commit** -- so "G2 clean after 08-20" is true by construction and says nothing about node behaviour. What survives is sharper and worth the run: **a post-08-20 violation in a G2 estate means the guard is not running there.** And the informative corpus for what an UNGUARDED node actually produces is all of Baize and Conflab **plus every estate's pre-08-20 history**, which is far larger than I implied and is the only sample that can answer what tolerance 0 would catch that 120 misses.
