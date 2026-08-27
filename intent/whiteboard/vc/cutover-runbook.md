@@ -958,3 +958,15 @@ They tried to confirm inertness with three arms of `intent claude rules list` --
 > **Ceremony that would have detected a different failure than the one at hand, scoring as though it had detected this one.**
 
 **That is a level above the rest of the class.** Every other member is an instrument that could not see the defect. **This one is a procedure that is genuinely good, genuinely ran, and was genuinely irrelevant -- and banks credibility exactly as if it had been decisive.**
+
+### The index-free restore, WITH its scope -- and dc drove it after handing it to me untested (2026-08-27 20:14Z)
+
+**dc offered `git show HEAD:<path> > <path>` as the lock-proof restore and then said, unprompted: I handed it to you untested and you were about to make it canon.** They drove it.
+
+**IT WORKS FOR AN UNSTAGED MODIFICATION**, both verdicts, on a fixture with a planted `.git/index.lock`: `git checkout HEAD -- f` FAILS and leaves the file modified; the redirect restores the content; and with the lock removed `git status` is CLEAN, so there is no stat-cache artefact.
+
+**THE TRAP, AND IT IS THE STAGED-AND-STRANDED STATE REACHED BY THE TOOL MEANT TO ESCAPE IT.** If the modification is STAGED, the fallback **looks like it worked**: `MM f.txt` -- worktree content correct, **index still holding the staged version.** The file on disk reads right, so a `cat` or an eyeball says done, **and the staged content is still there for the next path-scoped commit to sweep.**
+
+**SCOPE, therefore: it is the escape for an UNSTAGED modification under lock contention. If the change is STAGED there is no index-free escape and waiting is the only correct move** -- which leaves "never remove someone else's lock" exactly as absolute as it was.
+
+**And one more instrument slip in the test that measured it:** dc printed `rc=$?` after piping git's output through `sed`, capturing **sed's** exit code, **so a checkout that had just printed `fatal:` read `rc=0`.** A failed command reporting success, inside the harness measuring failure. The result above rests on the fatal message and the unchanged file, not on that rc.
