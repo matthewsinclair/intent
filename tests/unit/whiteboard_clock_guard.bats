@@ -36,6 +36,10 @@ setup() {
   # wall minute ticks between writing the fixture and the guard reading its
   # clock, and spuriously PASS.
   NEAR_FUTURE="$(date -u -v+2M '+%Y-%m-%d %H:%M' 2>/dev/null || date -u -d '2 minutes' '+%Y-%m-%d %H:%M')"
+  # Date-only and unambiguously ahead, for the Decisions-surface arms. A
+  # date-only stamp is read as MIDNIGHT, so "tomorrow" is the smallest value
+  # that is future under both date(1) flavours regardless of the wall clock.
+  FUTURE_DATE="$(date -u -v+1d '+%Y-%m-%d' 2>/dev/null || date -u -d '1 day' '+%Y-%m-%d')"
 
   mkdir -p intent/whiteboard/cc intent/whiteboard/ic/.history/20260814
   printf '# inbox: ic -> cc\n\n## (%sZ)\n\nhello\n' "$PAST" > intent/whiteboard/cc/inbox.ic.md
@@ -111,6 +115,40 @@ assert_guard() {
   printf '\n## (%sZ)\n\ntwo minutes ahead\n' "$NEAR_FUTURE" >> intent/whiteboard/cc/inbox.ic.md
   git add -A
   assert_guard BLOCK
+}
+
+@test "clock guard: a future-dated Decisions bullet blocks -- the third stamp surface" {
+  printf '\n- (%s) a decision dated in the future\n' "$FUTURE_DATE" >> intent/whiteboard/cc/wip.md
+  git add -A
+  assert_guard BLOCK
+}
+
+# THE NEXT TWO PIN A SCOPE DECISION RATHER THAN A BEHAVIOUR, AND THEY ARE GREEN
+# BY DESIGN. Two dated forms are live on real boards and deliberately NOT read;
+# without these, a later widening looks like a fix rather than a change of reach,
+# which is exactly how this guard came to claim coverage it never had.
+#
+# If either is widened ON PURPOSE, these fail and the failure is the prompt to
+# say so in the comment above `STAMP_LINES_RE`. That is the point of them.
+
+@test "clock guard: scope -- a dated ### heading is NOT read (Intent 5, Lamplight 4, filed not fixed)" {
+  # Lamplight's hv node dates every ruling this way and carries no dated bullet
+  # at all, so its rulings record is unscanned. Found by lamplight-vc, who
+  # measured it and argued AGAINST widening: a broader pattern is what made
+  # check A wrong in the first place.
+  printf '\n### %s -- ruled in chat\n' "$FUTURE_DATE" >> intent/whiteboard/cc/wip.md
+  git add -A
+  assert_guard PASS
+}
+
+@test "clock guard: scope -- an indented or decorated bullet is NOT read (anchored on purpose)" {
+  # `   - _(2026-08-25 15:44Z, ...` exists on Lamplight's hv board. Relaxing the
+  # anchor to tolerate leading whitespace would start reading dated bullets in
+  # arbitrary nested prose lists, which is the PORT 2 hazard -- blocking a node
+  # for reporting someone else's bad stamp.
+  printf '\n   - _(%s, a nested note)\n' "$FUTURE_DATE" >> intent/whiteboard/cc/wip.md
+  git add -A
+  assert_guard PASS
 }
 
 @test "clock guard: check B blocks an entry heading with no Z" {

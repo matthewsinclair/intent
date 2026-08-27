@@ -243,6 +243,54 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 # and 1 with the date followed by bold markup. A pattern requiring `)` straight
 # after the date reaches the 68 and misses the 28 -- and the 28 are exactly where
 # checks A and B do real work, because they carry a time to be wrong about.
+#
+# WHAT THIS DOES NOT REACH, NAMED HERE BECAUSE AN UNSTATED SCOPE IS THE DEFECT
+# THAT CREATED THIS WHOLE ITEM. Two live forms are NOT matched, both measured,
+# both left out on purpose rather than missed:
+#
+#   - A DATED `###` HEADING, eg `### 2026-08-26 -- ruled in chat`. Intent's own
+#     board carries 5 and Lamplight's 4, and on Lamplight the hv node -- the
+#     estate's rulings record -- uses ONLY this form, so its most authoritative
+#     dated surface is unscanned. Found by lamplight-vc, who measured it and
+#     explicitly did not argue for widening. Not widened here either: hv ruled a
+#     specific shape and extending scope afterwards on my own initiative is how a
+#     guard grows reach nobody sanctioned. FILED, NOT FIXED.
+#   - A NESTED OR DECORATED BULLET, eg `   - _(2026-08-25 15:44Z, ...`. The
+#     anchor is `^- ` with no leading whitespace, and relaxing it would start
+#     matching dated bullets in arbitrary nested prose lists -- which is the
+#     PORT 2 hazard, blocking a report. Chosen, not inherited.
+#   - AN AUTHOR-FIRST STAMP, eg `- **(hv, 2026-08-26) ...`. This one IS a
+#     protocol stamp in a variant field order, not a different kind of line, so
+#     it is the weakest of the three exclusions. Intent's own board carries 10
+#     and no other estate has any -- a local convention on transcribed hv
+#     rulings. None is future-dated, so nothing is being missed that would block
+#     today. FILED, NOT FIXED, on the same reasoning as the `###` form: hv ruled
+#     a shape and widening the matcher afterwards on my own initiative is how a
+#     guard acquires reach nobody sanctioned. Found by devbin-vc's broader
+#     predicate.
+#
+# AND ONE FORM THAT IS CORRECTLY IGNORED RATHER THAN MISSED, which is the
+# evidence FOR requiring the parenthesis: a dated bullet with no opening
+# parenthesis is PROSE THAT MENTIONS A DATE, not a stamp -- `- Cross-node
+# decisions from 2026-08-24 are archived at ...`, `- **2026-08-25's rulings are
+# NOT carried here.**`. Laksa, Prolix and Devbin carry one or two each. Reading
+# those would block a node for writing a sentence about a date, which is the
+# PORT 2 hazard in its plainest form.
+#
+# `## Standing directives` IS IN SCOPE AND THAT IS CORRECT, not over-reach: the
+# protocol says peers read it "the way they read `## Decisions`", same dated
+# bullet format, same read path. A line-positional matcher covers it for free
+# and should. Established by laksa-cc against a section-scoped count that was
+# narrower than the protocol's own surface.
+#
+# THE ONE PLACE THE TWO SURFACES DIFFER IN KIND, and it is ruled here rather
+# than discovered at a refusal: a `## Decisions` bullet RECORDS something that
+# happened, so a future date is always wrong. A STANDING DIRECTIVE is an
+# instruction holding until revoked, and "from 2026-09-01, releases go out on
+# Tuesdays" is a legitimate thing to write. This guard still refuses a future
+# OPENING stamp there, because that stamp means WHEN THIS WAS WRITTEN on every
+# other surface and a bullet is not the place to change what a stamp means.
+# Stamp it today and put the effective date in the body. The refusal says so.
 STAMP_LINES_RE='^\+(## \(|heartbeat_at:|- (\*\*)?\([0-9]{4}-[0-9]{2}-[0-9]{2})'
 
 report_header() {
@@ -307,6 +355,22 @@ while IFS="$(printf '\t')" read -r human shown; do
   if [ "$drift" -gt "$TOLERANCE_SECONDS" ]; then
     report_header
     printf '  [A future]  %s is %d minutes ahead of now.\n' "$shown" "$((drift / 60))" >&2
+    # A DATE-ONLY STAMP HAS ONE LEGITIMATE-LOOKING WAY TO BE FUTURE-DATED AND
+    # THE GENERIC ADVICE BELOW DOES NOT ADDRESS IT. `## Standing directives` is
+    # read like `## Decisions` and carries the same dated bullets, but a
+    # directive HOLDS UNTIL REVOKED rather than recording something that
+    # happened -- so "from 2026-09-01, releases go out on Tuesdays" is a
+    # reasonable thing to write and this guard refuses it. The rule is not being
+    # relaxed: an opening stamp means WHEN THIS WAS WRITTEN on every other
+    # surface, and a bullet is not the place to change what a stamp means. But
+    # someone hitting that deserves the remedy rather than a lecture about
+    # clocks. Raised by laksa-cc from a board where the case cannot arise, which
+    # is the only reason it was ruled before the first refusal instead of after.
+    case "$shown" in
+      *"a date with no time"*)
+        echo "              if this takes effect LATER, the stamp is still TODAY: put the effective date in the body." >&2
+        ;;
+    esac
     violations=$((violations + 1))
   fi
 done <<EOF
