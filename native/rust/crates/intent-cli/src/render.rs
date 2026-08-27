@@ -7,6 +7,7 @@
 //! that is a defect being corrected, not a contract being reproduced.
 
 use clap::ArgMatches;
+use std::path::Path;
 
 use crate::dispatch;
 use crate::spine::Failure;
@@ -3914,9 +3915,86 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
     Some(("rules", a)) => rules(a),
     Some(("skills", a)) => skills(a),
     Some(("upgrade", a)) => claude_upgrade(a),
+    Some(("start", a)) => claude_cwi(a, CwiVerb::Start),
+    Some(("ws", a)) => claude_cwi(a, CwiVerb::Ws),
     Some((verb, _)) => unwired("claude", verb),
     None => unwired("claude", ""),
   }
+}
+
+/// The two verbs [`claude_cwi`] fronts. An enum rather than a `&str` so the
+/// argv assembly below is exhaustive: the two verbs read their positionals
+/// from DIFFERENT shapes, and a string would let a third verb be added here
+/// with `start`'s shape by accident.
+#[derive(Clone, Copy)]
+enum CwiVerb {
+  Start,
+  Ws,
+}
+
+/// `intent claude start <ws>` and `intent claude ws <verb> [wsid]` -- the MAAC
+/// whiteboard launcher and provisioner.
+///
+/// **THE SURFACE WAS ALREADY PARSED AND ONLY THE RENDERER WAS MISSING**, the
+/// same shape [`skills`] records. `dispatch-table.json` declares both verbs,
+/// lists `claude start` under `shipped`, and the spine builds their positionals
+/// -- so `intent claude --help` has listed them, `intent claude start` with no
+/// argument has correctly said `<WS>` is required, and the verb has answered
+/// `2` the whole time. **Wiring this makes the table TRUE rather than newly
+/// false**: the entry claiming `shipped` was the thing that was wrong.
+///
+/// **IT DISPATCHES RATHER THAN PORTS, DELIBERATELY.** See
+/// [`intentsvcs::install::cwi_script`] for hv's ruling that this script
+/// survives the cut. Measured before wiring: `CWI_DRY_RUN=1 ... start cc` and
+/// `... ws list` both exit 0 under a v3 binary, in this project and from
+/// another estate's working directory, because the script does its own
+/// `find_project_root`. One binary therefore serves every estate.
+///
+/// **THE VERB IS PASSED THROUGH, NOT CONSUMED.** v2's `bin/intent` carried the
+/// same instruction as a comment -- *"Do NOT shift: intent_claude_cwi's own
+/// dispatch consumes `start`/`ws`"* -- and it is the sort of thing a reader
+/// tidies away, so it is stated here as well as obeyed.
+///
+/// **KNOWN, AND NOT FIXED BY THIS CHANGE** (vc, 2026-08-27): once these are
+/// wired, every estate's `intent claude start` reads its launcher out of ONE
+/// project's checkout, because that is where [`intentsvcs::install::home`]
+/// resolves for a binary living there. That is a second consumer of the
+/// unowned machine-level fact that one project's build tree is on eleven
+/// projects' `PATH` -- wiring does not create it, but it does add weight to it,
+/// and hv rules on it with the weight visible rather than meeting it later.
+fn claude_cwi(m: &ArgMatches, verb: CwiVerb) -> Result<(), Failure> {
+  let home = intentsvcs::install::home().map_err(|e| Failure::Error(format!("error: {e}")))?;
+  let script = intentsvcs::install::cwi_script(&home);
+
+  let args = match verb {
+    CwiVerb::Start => vec!["start".to_string(), arg(m, "ws")?],
+    CwiVerb::Ws => match m.subcommand() {
+      Some((sub, a)) => {
+        let mut v = vec!["ws".to_string(), sub.to_string()];
+        // `wsid` is `0..1` in the table -- `ws list` takes none, `ws hygiene`
+        // takes an optional one. `opt` rather than `arg`, or the optional verbs
+        // refuse on a positional the table says they do not need.
+        if let Some(wsid) = opt(a, "wsid") {
+          v.push(wsid);
+        }
+        v
+      }
+      // **UNREACHABLE FROM THE CLI, and the first comment here said the
+      // opposite.** I wrote that `intent claude ws` bare would hand through to
+      // the script's own usage; it does not. The table gives `verb` arity `1`,
+      // the spine turns that into clap's `subcommand_required`, and clap
+      // refuses at `error: 'intent claude ws' requires a subcommand` before
+      // this function is entered. Driven, not reasoned about.
+      //
+      // The arm stays because `subcommand()` is an `Option` and the match must
+      // be total; it is written as the passthrough it would be if the arity
+      // ever relaxed, rather than an `unreachable!()` that would turn a table
+      // edit into a panic.
+      None => vec!["ws".to_string()],
+    },
+  };
+
+  exec_shipped_script(&script, &args, "whiteboard launcher")
 }
 
 /// `intent claude upgrade` -- apply v3 canon to an existing project (issue 0077).
@@ -4475,8 +4553,6 @@ fn dash(value: &str) -> &str {
 /// either by accident. A wrapper that merely intended to pass the code through
 /// is the shape that produced this issue.
 fn hook(a: &ArgMatches) -> Result<(), Failure> {
-  use std::os::unix::process::CommandExt;
-
   let name = arg(a, "name")?;
   if !intentsvcs::install::HOOKS.contains(&name.as_str()) {
     return Err(Failure::Error(format!(
@@ -4486,16 +4562,38 @@ fn hook(a: &ArgMatches) -> Result<(), Failure> {
   }
   let home = intentsvcs::install::home().map_err(|e| Failure::Error(format!("error: {e}")))?;
   let script = intentsvcs::install::hook_script(&home, &name);
+  exec_shipped_script(&script, &[], "hook script")
+}
+
+/// Replace this process with `bash <script> <args...>`, or fail BY NAME.
+///
+/// **Extracted because there are now two doors, not because it is tidier.**
+/// `claude hook` and `claude start`/`claude ws` both resolve a shipped shell
+/// asset out of [`intentsvcs::install::home`] and hand the process to it, and
+/// the load-bearing part of that dance is the `is_file` check: without it an
+/// absent asset reaches the shell and comes back as an opaque `127`, which
+/// tells an operator nothing about which of the two things is missing. One
+/// copy, so the next door cannot ship without the check.
+///
+/// `kind` names what was not found, because "script not found" over a path is
+/// a fact the operator already has -- what they lack is which subsystem is
+/// incomplete.
+fn exec_shipped_script(script: &Path, args: &[String], kind: &str) -> Result<(), Failure> {
+  use std::os::unix::process::CommandExt;
+
   // Named rather than left to the shell. Claude Code surfaces a hook's stderr,
   // so this is the difference between "Intent's install is incomplete" and an
   // opaque 127 the operator cannot act on.
   if !script.is_file() {
     return Err(Failure::Error(format!(
-      "error: hook script not found: {}\n  remedy: the Intent install is incomplete -- reinstall it",
+      "error: {kind} not found: {}\n  remedy: the Intent install is incomplete -- reinstall it",
       script.display()
     )));
   }
-  let e = std::process::Command::new("bash").arg(&script).exec();
+  let e = std::process::Command::new("bash")
+    .arg(script)
+    .args(args)
+    .exec();
   // `exec` returns ONLY on failure to replace the process.
   Err(Failure::Error(format!(
     "error: cannot run {}: {e}",

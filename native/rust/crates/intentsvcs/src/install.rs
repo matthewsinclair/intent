@@ -153,6 +153,28 @@ pub fn hook_script(home: &Path, name: &str) -> PathBuf {
     .join(format!("{name}.sh"))
 }
 
+/// Where the MAAC whiteboard launcher lives, given the install root.
+///
+/// **NOT under [`MARKER`], and the difference is the whole reason this is a
+/// separate function rather than an argument to [`hook_script`].** A hook body
+/// is a template the install SHIPS into a project; `intent_claude_cwi` is a
+/// plugin the install RUNS in place, and it sits under `intent/plugins/`
+/// rather than `lib/templates/`. Collapsing the two would put a path under the
+/// marker that is not a template, which is the kind of tidiness that makes the
+/// next reader wrong about what `lib/templates` means.
+///
+/// **THIS SCRIPT IS DELIBERATELY NOT PORTED.** Its own header records hv's
+/// ruling that it is the ONE plugin script surviving the v3 cut (AC-14.12 is
+/// the expiry), which is why it carries its own `error` and `find_project_root`
+/// instead of sourcing `bin/intent_helpers` that the cut prunes. It is
+/// self-contained, it does its own project discovery, and it was measured
+/// working standalone under a v3 binary before this door was wired -- so
+/// wiring is reachability, not a port, and a port would be the Highlander
+/// violation rather than the fix.
+pub fn cwi_script(home: &Path) -> PathBuf {
+  home.join("intent/plugins/claude/bin/intent_claude_cwi")
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
