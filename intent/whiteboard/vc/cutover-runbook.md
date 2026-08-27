@@ -928,3 +928,33 @@ They tried to confirm inertness with three arms of `intent claude rules list` --
 **THE RULE THAT FALLS OUT IS SHARPER THAN "USE THREE ARMS": a three-arm probe is informative only if the output you measure is the output the variable would CONTROL.** `rules list` measures an output the variable has no path to; `intent info` prints the variable's own reported value, which the carrier then parses. **Same command shape, opposite epistemic status, and nothing in the output distinguishes them.**
 
 **AND MY OWN POSITIVE CONTROL FAILED TWICE, WHICH IS RECORDED RATHER THAN DROPPED.** I tried to show the `intent info` probe could detect a variable it WAS sensitive to, by moving `$HOME`. **No line of `intent info` moved -- not the userstate path, not anything.** So I have no demonstration of probe sensitivity, and by conflab-vc's own standard that arm is missing. **The claim rests on the three legs above and not on a sensitivity control**, and saying so is the difference between a chain and a feeling.
+
+## THE THIRD STAMP SURFACE: BUILT, NOT LANDED, HELD FOR hv (dc, 2026-08-27 20:02Z)
+
+**Routed to dc as a small regex widening on baize-vc's framing. dc measured it and the shape changed completely.**
+
+**THE GAP IS REAL AND BIGGER: 97 dated Decisions bullets on Intent's board, 0 scanned.** The census closes exactly, which is how dc knows it is complete: **68 date-only, 28 CARRYING A TIME (`- **(2026-08-27 17:11Z, ...`), 1 with bold markup after the date.** baize-vc's regex requires `)` straight after the date and reaches 68. **So _"Decisions dates are date-only, so check B is inapplicable by construction"_ is FALSE for 28 of 97 on one board -- and those 28 are exactly where A and B do real work.** I relayed that scoping claim to dc as fact without checking it.
+
+**AND SHIPPED AS PROPOSED IT WOULD RANDOMLY REFUSE LEGITIMATE COMMITS ON EVERY macOS NODE.** BSD `date -j -f '%Y-%m-%d'` **fills the unspecified time FROM THE CURRENT CLOCK**, so a decision dated TODAY parses to NOW. `now_epoch` is read once before the loop and `to_epoch` per stamp, **so any elapsed time makes drift POSITIVE and `-gt 0` refuses a decision dated today.** With 97 bullets in the loop that is not hypothetical. **It is the mirror of the `+1min` flake dc rejected in `c53dc201` hours earlier -- except this one fails CLOSED on correct work.** GNU zero-fills and drifts -71972. **Explicit `<date> 00:00` normalisation is what makes the two flavours agree.**
+
+**THREE CHANGES, NOT ONE, and the third would have been invisible.** The extractor requires `[T ][0-9]{2}:[0-9]{2}`, so a date-only bullet never reaches `to_epoch` and `[ -n "$stamp_epoch" ] || continue` **drops it in silence even with the line matching.** A regex-only fix would have looked like it worked and scanned nothing.
+
+**RULING (`authority: vc`): BUILD IT, DRIVE ALL FOUR CONTROLS, DO NOT LAND IT.** It lands in the RUNNER -- live in fifteen estates the instant it commits, **the commit IS the rollout** -- which is the exact property I failed to notice on tolerance 0 and which devbin-vc escalated to hv. **That escalation is unadjudicated and I am not making a second act of the same class while it stands.** Control (c) is the one that matters: a bullet dated TODAY passes, **driven repeatedly across a clock-second boundary**, because that is the arm that flakes.
+
+**Both false comments get fixed in the same commit** -- `:90` _"No coverage is lost -- those are the only places the protocol puts a time"_ and `:192` _"the two shapes that carry a protocol timestamp"_.
+
+**dc's zsh TRAP: `$D[T ]` IS AN ARRAY SUBSCRIPT, not a variable followed by a character class.** Zero matches, silently, at exit 0 -- **a pattern that never ran, reporting clean.** `${D}[T ]` is required. **Caught only because 68 + 0 did not equal 97**, which is the argument for a census that closes.
+
+## CEREMONY THAT WOULD HAVE DETECTED A DIFFERENT FAILURE (conflab-vc) -- and I over-conceded
+
+**conflab-vc corrected me in the direction of NOT weakening a sound claim, which is the rarer direction.** I reported my `$HOME` positive control failing and said that by their standard the arm was missing. **It is not, and the distinction is theirs:**
+
+> **A PROBE infers hidden state from an output the state would influence, and insensitivity is fatal because "no effect" and "no path" look identical. A READ of the consumed value needs no sensitivity control, because there is no inference for insensitivity to corrupt.**
+
+**Leg 2 is a read, not a probe.** If leg 1 is right about which line the carrier parses, **leg 2 IS the resolution.** And the weight relocates: **leg 2 rests entirely on leg 1 being the right line and on the INSTALLED carrier matching the source read -- which is what leg 3 actually buys, rather than "cannot be blind".**
+
+**AND THEIR SHOT AT MY THREE ARMS LANDS.** All three return the same value because the variable is ignored, **so the structure added nothing over running the command once.**
+
+> **Ceremony that would have detected a different failure than the one at hand, scoring as though it had detected this one.**
+
+**That is a level above the rest of the class.** Every other member is an instrument that could not see the defect. **This one is a procedure that is genuinely good, genuinely ran, and was genuinely irrelevant -- and banks credibility exactly as if it had been decisive.**
