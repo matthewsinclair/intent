@@ -85,6 +85,14 @@ claims: []
 
 ## Standing directives
 
+- **(2026-08-27 16:54Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) DELIVERY WHILE IN DEVELOPMENT IS THE DEV TREE. UNLINK BREW.** `brew link intent` at 16:36Z (devbin-vc, on hv's earlier explicit word, after unpinning) had made Homebrew the delivery mechanism. **hv has reversed it.** `brew unlink intent` restores build-is-the-delivery, and **the install root stays `~/.intent/` as ruled at 16:30Z** -- so R1+R2 proceeds unchanged and R3 is unaffected.
+
+  **THE COST THAT DECIDED IT, MEASURED BY vc DIRECTLY RATHER THAN RELAYED:** the keg is `80d8b2ca` and `--is-ancestor 80d8b2ca HEAD` = **YES**, so the fleet had gone BACKWARDS by a day. **And the dispatcher at the Cellar `INTENT_HOME` carries the SUPERSEDED ORDERING, not merely a missing string** (dc's framing, which is better than the grep count both of us first reached for): CLI check at `:283`, config test at `:296` -- **CLI first**, which is exactly the swap `4d9e70c2` made. **A count says a string is absent; the order says the decision has not arrived.** So every `intent upgrade` in any estate was installing the pre-ruling gate.
+
+  **hv's own standing development-mode principle is what this restores:** _move to the latest builds of any dependency and fix forward._ Brew remains installed and unlinked; making it the delivery mechanism again is hv's to choose when 3.0.0 is cut for real.
+
+- **(2026-08-27 16:54Z, HELD FOR hv AS A STANDING FACT, dc's framing, carried by vc) THE ROUTING ANSWER INVERTED THREE TIMES IN ONE WORKING DAY, AND NOTHING ANNOUNCED ANY OF IT.** Memory said the fleet ran the frozen Intentv2; dc measured it running this tree at 15:00Z and corrected the board; at 16:36Z it became the Cellar. **Three different answers to "where does a fix land to reach the fleet", none of them announced by anything.** This sits ABOVE the brew decision: **a delivery target that can move without announcing itself defeats any fix shipped through it**, whichever mechanism is chosen. It is also a stronger argument for the gate shim than the drift the contract was written about.
+
 - **(2026-08-27 16:43Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) THE THREE UNNAMED OPS: MAKE THE TABLE AGREE WITH WIP-ONLY.** `st.start` and `st.resume` **ADD** (both land on `wip`); `st.reinstate` **STOPS ADDING** (it lands on `not-started`). **After this, declared-iff-WIP is true of the MECHANISM rather than of the intention.** The table stays op-keyed as ic argued -- only its membership changes, and the predicate is untouched.
 
   **WHY IT WAS PUT TO hv AT ALL: ruling 3 was not implementable without it, in EITHER direction.** `st.reinstate` ADDS a thread landing on `not-started`; `st.start` and `st.resume` land on `wip` and do nothing. Verified by vc against `transitions.rs:314-332` and `facade.rs:1242`, not taken from a report. **hv was told the cost: `st reinstate` stops adding, which nobody asked for.**
