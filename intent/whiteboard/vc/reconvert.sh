@@ -67,4 +67,5 @@ if [ "${att_after:-0}" -lt "${att_before:-0}" ]; then
   echo "  VC_INTENT=<intent> bash ~/Devel/prj/Intent/intent/whiteboard/vc/ingest-buckets.sh $P --commit"
   exit 9
 fi
+echo "--- bucket prose: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/bucket-prose-gate.sh "$P" 2>&1 | head -1)"
 echo "attachment accounting: $att_before -> $att_after (no shortfall)"

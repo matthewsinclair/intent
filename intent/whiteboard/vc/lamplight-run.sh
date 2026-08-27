@@ -22,6 +22,7 @@ $I claude upgrade --apply > "$L.h3" 2>&1; echo "hop3 rc=$? :: $(grep -E '^(ok|he
 echo "CLAUDE.md non-blank lines removed by hop 3: $(diff "$L.claude.pre" CLAUDE.md | grep '^<' | grep -vc '^< *$') (template lines expected; read them if authored):"; diff "$L.claude.pre" CLAUDE.md | grep '^<' | grep -v '^< *$' | cut -c1-100 | head -12
 git check-ignore -q intent/events.jsonl || printf 'intent/events.jsonl\n' >> .gitignore; git check-ignore -q 'intent/.backup/x' || printf 'intent/.backup/\n' >> .gitignore
 echo "--- accounting (both arms):"; bash "$AT" "$P" > "$L.acct" 2>&1; arc=$?; grep -E 'SHORTFALL|VERDICT|NOT' "$L.acct" | head -12 | cut -c1-140; echo "accounting rc=$arc"
+echo "--- bucket prose: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/bucket-prose-gate.sh "$P" 2>&1 | head -1)"
 echo "--- verifier: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/verify-canonical.sh "$P" 2>&1 | grep -E 'check\(s\)')"; echo "--- keg st list rc=$(intent st list >/dev/null 2>&1; echo $?)"
 echo "--- changed: $(git status --porcelain | wc -l | tr -d ' ') paths; peer-owned among them: $(git status --porcelain | grep -cE '^.. (mix.lock|intent/whiteboard/)')"
 if [ $COMMIT -eq 1 ]; then vline=$(grep -E "^\s*VERDICT:" "$L.acct" | head -1); { [ $arc -eq 0 ] && [ -n "$vline" ]; } || { echo "accounting NOT A PASS (rc $arc; verdict: ${vline:-none}) -- NOT committing"; exit 5; }
