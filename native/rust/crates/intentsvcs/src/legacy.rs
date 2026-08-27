@@ -32,7 +32,7 @@ use crate::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, Related,
   THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
-use crate::project::Project;
+use crate::project::{Project, ThreadFile};
 
 /// What Phase A found.
 /// The template a dropped section is claimed identical to, cited by PATH and
@@ -385,7 +385,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       .collect::<Vec<_>>()
       .join("\n\n");
 
-    let attachments = attachments(project, &id, &dir, closed, &mut out);
+    let attachments = attachments(project, &id, &dir, closed, &mut out)?;
 
     out.threads.push(Thread {
       attachments,
@@ -509,7 +509,7 @@ fn attachments(
   dir: &Path,
   closed: bool,
   out: &mut Scan,
-) -> Vec<Attachment> {
+) -> Result<Vec<Attachment>, std::io::Error> {
   // **The walk lives on `Project` now and `sync` shares it** (vc, condition
   // 2). This wrapper exists for the one thing the collector deliberately does
   // not know: which side of a thread's open/closed disposition a refusal is
@@ -522,13 +522,73 @@ fn attachments(
   // every bucketed thread migrated with zero attachments at rc 0 -- the
   // sibling readers two lines above this call have always taken `dir`.
   let (carried, refused) = project.collect_attachments_in(id, dir);
+
+  // **THE POPULATION IS COUNTED FROM `dir`, INDEPENDENTLY OF THE CARRY.**
+  // See `account_attachments` for why a second count is not redundant with
+  // the one the carry already reconciles.
+  let on_disk = Project::thread_files_in(dir)
+    .iter()
+    .filter(|rel| Project::classify(rel) == ThreadFile::Attachment)
+    .count();
+  account_attachments(
+    &project.relative(dir),
+    on_disk,
+    carried.len(),
+    refused.len(),
+  )?;
+
   for (name, reason) in refused {
     out.record(
       closed,
       Finding::new(&name, FindingClass::UnknownFileShape, reason),
     );
   }
-  carried
+  Ok(carried)
+}
+
+/// **EVERY ATTACHMENT-SHAPED FILE UNDER A THREAD IS CARRIED OR NAMED, AND THE
+/// MIGRATION REFUSES WHEN IT CANNOT SAY WHICH.**
+///
+/// This is the attachment half of the row accounting above, and it exists
+/// because that one does not cover attachments: `declared == stored + recorded`
+/// reconciles AC/AT ROWS, and an attachment is not a row. Measured on a live
+/// estate: arca_cli's canon went 23 attachments -> 0 -> 23 across three
+/// commits, and the middle one -- a re-convert on a binary that read the wrong
+/// directory -- passed hop 2, the AT accounting, `verify-canonical` and
+/// `doctor` while holding none of them.
+///
+/// **WHY A SECOND COUNT IS NOT REDUNDANT.** Inside `collect_attachments_in`
+/// every file is carried or refused, so that half reconciles by construction --
+/// but it reconciles against THE FILE LIST IT WAS GIVEN. Hand it a directory
+/// with no files and zero carried, zero refused is a perfectly consistent
+/// answer. The two sides here derive their directory differently: this one from
+/// the `dir` the bucket-aware walk returned, the carry from whatever its caller
+/// passed. They agreed in neither direction while the defect was live, and
+/// agreeing by construction now is the property rather than the objection --
+/// **it is a regression guard, and it fires the day the two paths diverge
+/// again**, which is exactly how the defect arrived.
+///
+/// A pure function over three counts so the refusal can be exercised with
+/// numbers that cannot occur once the paths agree. A guard nothing can make
+/// fail is not a guard.
+fn account_attachments(
+  rel: &str,
+  on_disk: usize,
+  carried: usize,
+  refused: usize,
+) -> Result<(), std::io::Error> {
+  // Signed and compared in BOTH directions: a reader that invents attachments
+  // is as broken as one that loses them, and an unsigned subtract would panic
+  // on the surplus rather than report it.
+  let unaccounted = on_disk as i64 - carried as i64 - refused as i64;
+  if unaccounted != 0 {
+    return Err(std::io::Error::other(format!(
+      "{rel}: {on_disk} attachment-shaped file(s) on disk, {carried} carried, {refused} refused \
+       -- {unaccounted} unaccounted for. This migration cannot say what it carried, so it refuses \
+       rather than reporting a total it cannot support"
+    )));
+  }
+  Ok(())
 }
 
 /// v2's issue estate: `intent/issues/{OPEN,CLOSED}/<nnnn>/<nnnn>-<slug>.md`.
@@ -2694,7 +2754,7 @@ fn split_field_value(value: &str) -> (&str, Option<&str>) {
 
 #[cfg(test)]
 mod tests {
-  use super::preamble;
+  use super::{account_attachments, preamble};
 
   /// **The fixture is ST0010's REAL v2 bytes** (`9b73e98f:intent/st/CANCELLED/
   /// ST0010/info.md`), reduced to the region that carries the defect and not
@@ -2741,5 +2801,49 @@ mod tests {
       preamble(authored),
       "first para\n\n\nsecond para, deliberately spaced"
     );
+  }
+
+  /// **THE GUARD CAN FAIL, WHICH IS THE ONLY REASON ITS GREEN MEANS ANYTHING.**
+  ///
+  /// Once the two paths agree the integration arms reconcile by construction,
+  /// so a passing migration cannot distinguish a working accounting from one
+  /// that always returns `Ok`. These call it with counts that cannot occur
+  /// while the paths agree -- which is precisely the state the defect created.
+  #[test]
+  fn a_shortfall_refuses_and_names_what_it_could_not_account_for() {
+    // The live shape: arca_cli's re-convert saw the files on disk and carried
+    // none of them, because the carry was reading a directory that did not
+    // exist. 23 -> 0 was the estate's real number.
+    let refusal = account_attachments("intent/st/COMPLETED/ST0003", 23, 0, 0)
+      .expect_err("23 files on disk and nothing carried or refused must not pass");
+    let said = refusal.to_string();
+    assert!(
+      said.contains("23 attachment-shaped file(s) on disk"),
+      "{said}"
+    );
+    assert!(said.contains("0 carried"), "{said}");
+    assert!(
+      said.contains("intent/st/COMPLETED/ST0003"),
+      "the refusal names the thread it is about: {said}"
+    );
+  }
+
+  /// **A SURPLUS IS AS BROKEN AS A SHORTFALL**, and an unsigned subtract would
+  /// have panicked here rather than reported it. A reader that invents
+  /// attachments is not healthier than one that loses them.
+  #[test]
+  fn a_surplus_refuses_rather_than_reading_as_healthy() {
+    account_attachments("intent/st/ST0001", 1, 3, 0)
+      .expect_err("more carried than exist on disk must refuse, not pass as a surplus");
+  }
+
+  /// A refusal counts toward the total: a file that could not be carried is
+  /// accounted for by being NAMED, not by being absent.
+  #[test]
+  fn a_refused_file_is_accounted_for_rather_than_missing() {
+    account_attachments("intent/st/ST0001", 3, 1, 2)
+      .expect("one carried plus two refused accounts for three on disk");
+    account_attachments("intent/st/ST0001", 0, 0, 0)
+      .expect("a thread with no authored files reconciles at zero");
   }
 }
