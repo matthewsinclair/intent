@@ -44,8 +44,17 @@ pub struct RenderContext<'a> {
   /// bucket. **v2 stored this INSIDE the generated view and read it back out**
   /// (`bin/intent_todo:read_done_watermark`), which made the view its own
   /// database -- so deleting a file the model calls disposable silently reset
-  /// the flush and resurrected every item ever flushed. v3 derives it from the
-  /// event log (`event::todo_watermark`), so the view is OUTPUT ONLY.
+  /// the flush and resurrected every item ever flushed. v3 takes it from
+  /// project CANON -- `intent/.canon/project.json`, via
+  /// `ingest::carry_project_state` into the store -- so the view is OUTPUT
+  /// ONLY.
+  ///
+  /// **CORRECTED:** this said *derives it from the event log
+  /// (`event::todo_watermark`)*, and that function no longer exists. hv ruled
+  /// on 2026-08-26 that the cutoff is canon STATE rather than history: *a flush
+  /// happened at T* stays in the log, *the current cutoff is T* does not, and a
+  /// cutoff filed as history could not cross a clone. Nothing derives it from
+  /// the log now, by design and with no fallback.
   ///
   /// **OWNED rather than borrowed, and that is what keeps one authority.** The
   /// two callers that matter are `Facade::projection`, which WRITES the views,
@@ -929,17 +938,22 @@ fn completed_instant(completed: &str) -> String {
 /// Whether a finished thread is still in the DONE bucket.
 ///
 /// **At or after the watermark stays; before it has been flushed.** The
-/// watermark is the instant of the last `todo done --flush`/`--prune`
-/// ([`crate::event::todo_watermark`]); `completed` is widened to an instant by
+/// watermark is the instant of the last `todo done --flush`/`--prune`, held in
+/// project canon and carried into the store by `ingest::carry_project_state`;
+/// `completed` is widened to an instant by
 /// [`completed_instant`] first, so the two sides of the compare describe the
 /// same kind of thing.
 ///
 /// No watermark means nothing has ever been flushed, and every finished thread
 /// is in DONE. **That is a state v2 could not represent** -- it read the
 /// watermark back out of the generated file, so an absent file had to fall back
-/// to a clock (start of today). v3 keeps the watermark in the log, so "never
+/// to a clock (start of today). v3 keeps the watermark in canon, so "never
 /// flushed" is a fact rather than a gap to paper over, and the view stays a
-/// function of the estate instead of of the day it was rendered.
+/// function of the estate instead of of the day it was rendered. Driven by
+/// `todo_watermark::an_absent_watermark_means_never_flushed_and_hides_nothing`,
+/// which asserts the ancient completion rather than the absent value -- reading
+/// absent as "now" sets no watermark either, so the value alone cannot tell the
+/// two apart.
 fn in_done_bucket(thread: &Thread, watermark: Option<&str>) -> bool {
   match (watermark, thread.completed.as_deref()) {
     (None, _) => true,
@@ -988,7 +1002,7 @@ pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   // 2026-08-26: <T> is the instant the last prune ran, so the line answers
   // "where is the cutoff" without needing anything else open.
   //
-  // v3 never PARSES this line -- the watermark comes from the log, which is why
+  // v3 never PARSES this line -- the watermark comes from canon, which is why
   // deleting this file does not undo a flush -- so the shape is owed to the
   // reader rather than to a grep. It is v2's shape because a person who has
   // read a v2 `todo.md` should not have to learn a second one.

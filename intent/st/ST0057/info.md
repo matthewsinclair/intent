@@ -41,7 +41,7 @@ The design is ratified as D57-1 through D57-8 in `design.md`. This contract is d
 | WP-11 | Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function | S    | Not Started |
 | WP-12 | Issues get a realised form and a sigil, then join the default declaration                                                             | S    | Not Started |
 | WP-13 | The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket               | S    | Not Started |
-| WP-14 | The DONE cutoff is canon state, not history: it travels by git                                                                        | M    | Not Started |
+| WP-14 | The DONE cutoff is canon state, not history: it travels by git                                                                        | M    | WIP         |
 
 ## Acceptance
 

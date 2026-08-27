@@ -2,7 +2,7 @@
 wp_id: WP-14
 title: The DONE cutoff is canon state, not history: it travels by git
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-14: The DONE cutoff is canon state, not history: it travels by git
@@ -59,6 +59,24 @@ Both of the tests that have been red since the watermark was restored go green *
 ## Migration
 
 An existing project has flushes in its log and no `project.json`. The migration derives the cutoff from the log's maximum `todo.flush` stamp, writes it once, and after that nothing reads a cutoff out of the log again. A project that has never flushed gets a file with no `todo_watermark`, which is the correct representation of never-flushed.
+
+## The acceptance criteria were authored AFTER the code, and from this cover
+
+`AC-14.1` through `AC-14.8` were minted on 2026-08-27, after the build landed at `225b9c88` -- a commit prefixed `wip(`, which was the only record anywhere that the work was unfinished, and which no tool, no gate and no pickup consults. The work package still read `Not Started` with zero criteria while six green tests made it look finished from the code side.
+
+**They are derived from the claims on THIS PAGE, not from what the code does.** Criteria written to fit an existing build are the degenerate case with the answer known in advance: they are satisfied by construction and prove nothing. Where the build happens to satisfy one, `todo_watermark.rs` is cited as EVIDENCE rather than as the criterion's origin.
+
+**This is stated because a reader in six months cannot otherwise tell them from criteria that drove the work, and that difference is the whole of their evidential value.** (ic, on vc's word under hv's pen, 2026-08-27.)
+
+### Two are left unsatisfied and VISIBLE, deliberately
+
+**`AC-14.7` -- one transaction -- is UNCOVERED.** Nothing drives it. A run that wrote the `todo.flush` event and failed before the project state would leave a flush no cutoff reflects, and no test forces that ordering; reaching it needs an injected mid-transaction failure this estate has no harness for.
+
+**`AC-14.8` -- the migration -- is NOT BUILT**, which is a stronger statement than untested. `git log -S TODO_FLUSH -- native/rust/crates/intentsvcs/src/migrate.rs` is EMPTY: the migration this cover names as *the one exception* was never written. The `todo_watermark: None` at `migrate.rs:465` is the v2 -> v3 conversion and is correct there for the reason recorded beside it -- a conversion has never been flushed -- so it is not that migration wearing a disguise.
+
+**And the same gap is visible from the other end.** Measured 2026-08-27: of 14 estates carrying a `.canon/`, **2 have `project.json`** (both tracked, both carrying a watermark) and **12 have none at all**. `ingest::carry_project_state` is absent-leaves-the-store-alone, so a machine that has never run a command in one of those 12 has no cutoff -- which is the defect this work package exists to prevent. The missing migration and the missing files are one gap seen from two ends.
+
+Neither is softened, scoped out, or described as deferred: an unsatisfied criterion naming a real absence is worth more than a green work package.
 
 ## Acceptance
 

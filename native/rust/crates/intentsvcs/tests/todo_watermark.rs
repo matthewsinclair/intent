@@ -34,6 +34,28 @@
 //! the renderer about it -- the last being a hazard this design introduces and
 //! has to answer for.
 
+//! # The rows this file carries (ST0057 WP-14)
+//!
+//! | AT      | AC      | test                                                        |
+//! | ------- | ------- | ----------------------------------------------------------- |
+//! | AT-14.1 | AC-14.1 | `a_flush_survives_a_machine_that_has_no_database`            |
+//! | AT-14.2 | AC-14.2 | `the_cutoff_is_state_in_the_store_and_is_never_derived_from_the_log` |
+//! | AT-14.3 | AC-14.3 | the history arm of the same test                            |
+//! | AT-14.4 | AC-14.4 | `deleting_the_generated_view_does_not_undo_a_flush`          |
+//! | AT-14.5 | AC-14.5 | `doctor_does_not_report_a_flushed_view_as_hand_edited`       |
+//! | AT-14.6 | AC-14.6 | `an_absent_watermark_means_never_flushed_and_hides_nothing`  |
+//!
+//! **AC-14.7 (one transaction) and AC-14.8 (the migration) are NOT covered
+//! here, and AC-14.8 is not built at all** -- `git log -S TODO_FLUSH --
+//! migrate.rs` is empty. Both are left unsatisfied and visible rather than
+//! softened, on vc's word: an unsatisfied criterion naming a real absence is
+//! worth more than a green work package.
+//!
+//! **AND THESE ROWS WERE AUTHORED AFTER THE CODE**, from the hv-ruled cover
+//! rather than from the build, which is stated here because a reader cannot
+//! otherwise tell them from criteria that drove it -- and that difference is
+//! the whole of their evidential value.
+
 mod common;
 
 use common::{Fixture, sample_thread};
@@ -85,8 +107,12 @@ fn complete_today(fx: &Fixture, facade: &mut intentsvcs::facade::Facade, title: 
   id
 }
 
-/// **THE property, and the reason the watermark is an event rather than a
-/// settings row or a line in the view.**
+/// **THE property, and the reason the cutoff is canon rather than a settings
+/// row or a line in the view.**
+///
+/// **CORRECTED:** this said *rather than an event* -- superseded by hv's ruling
+/// of 2026-08-26, which moved the cutoff out of the log. The property it names
+/// is unchanged and is the reason the ruling went the way it did.
 ///
 /// A flush must survive the loss of the database, because losing the database
 /// is a NORMAL state: `intent/.cache/` is gitignored (D21), so every fresh
@@ -255,6 +281,63 @@ fn a_flush_clears_work_completed_today() {
   assert!(
     flushed.watermark.is_some(),
     "a flush that clears nothing still sets a watermark"
+  );
+}
+
+/// **AC-14.6 -- ABSENT MEANS NEVER FLUSHED, AND v2 COULD NOT REPRESENT IT.**
+///
+/// v2 read the cutoff back out of the generated file, so an absent file had to
+/// fall back to a CLOCK -- and a clock cutoff hides everything completed before
+/// now, silently, on a project that has never flushed. The model now holds
+/// "never flushed" as a value of its own, and this is what that buys.
+///
+/// **THE ANCIENT COMPLETION IS THE SUBJECT, NOT THE WATERMARK.** Asserting only
+/// that the watermark is `None` would pass under a build that read absent as
+/// "now" and emptied DONE, because that build sets no watermark either. The
+/// question is what an absent cutoff MEANS, and only the bucket answers it.
+///
+/// **THE SECOND HALF IS A CONTROL AND NOT A DUPLICATE OF
+/// [`a_flush_clears_work_completed_today`].** That test asks what a flush
+/// clears; this one asks whether DONE membership responds to the cutoff at all
+/// -- because if it did not, the first half would be green under a build that
+/// ignored the watermark entirely, which is the same shape of vacuous pass.
+#[test]
+fn an_absent_watermark_means_never_flushed_and_hides_nothing() {
+  let fx = Fixture::new();
+  fx.write_thread(&finished("ST0001", "2020-01-01"));
+  let mut facade = fx.facade_on_disk();
+
+  assert!(
+    facade.store().todo_watermark().expect("store").is_none(),
+    "a project that has never flushed has no cutoff, and ABSENT is the representation \
+     rather than a default standing in for one"
+  );
+  assert!(
+    facade
+      .todo_buckets()
+      .expect("buckets")
+      .done
+      .iter()
+      .any(|i| i.label.contains("ST0001")),
+    "with no cutoff, a completion from 2020 is still in DONE -- an absent watermark read \
+     as `now` would hide it, which is exactly the v2 fallback this replaces"
+  );
+
+  // The control: DONE membership does respond to the cutoff, so the assertion
+  // above is about the absence and not about a bucket that ignores it.
+  facade.todo_flush().expect("flush");
+  assert!(
+    facade.store().todo_watermark().expect("store").is_some(),
+    "the flush set one"
+  );
+  assert!(
+    !facade
+      .todo_buckets()
+      .expect("buckets")
+      .done
+      .iter()
+      .any(|i| i.label.contains("ST0001")),
+    "and now the same thread is gone from DONE, so the bucket reads the cutoff"
   );
 }
 
