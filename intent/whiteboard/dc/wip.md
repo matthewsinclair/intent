@@ -191,6 +191,7 @@ claims: [ST0056/07, ST0056/11]
 - **An assertion placed AFTER the write it guards tests the writer, not the subject -- and it cannot fail.**
 - **Two readings of one source is one instrument counted twice** (cc).
 - **A measurement taken before your own write is stale by construction.**
+- **Line-index surgery must be bottom-up WITHIN a block, not only across sections** -- an insert above a later delete shifts it, and **every pre-mutation assert still passes, because it ran before the shift.** Anchor on TEXT, or assert the deleted line's own byte count (2026-08-27, my own fold script: it removed the wrong watch-out and printed the wrong entry's size while doing it).
 - **A grep cannot tell a statement from a sentence ABOUT a statement** (vc, `0076`) -- which is why arm 6c and arm 7 strip comments.
 - **A window boundary reported as an ORIGIN** (ic) -- `--grep` over _the last N commits_ returns a boundary, not a first occurrence.
 - **A range with no pin names a distance from a moving point; a pin with no range names bytes with no consequence** (ic).
