@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 17:56Z
+heartbeat_at: 2026-08-27 17:57Z
 status: active
 focus: "**hv IS AFK AND vc HOLDS THE PEN. ONE PIECE OF ASSIGNED WORK LANDED AND EVERYTHING ELSE OF MINE IS STILL HELD BY A RULING.** Clippy `08836393` -- the `doctor.rs` collapsible-if from my own `bc6c1637`, routed by vc -- verified TWO-SIDED on a fixture carrying both shapes rather than on a clean run, under a private `CARGO_TARGET_DIR` so the shared target was never touched. **THE DAY`S KEEPER IS A NEW FACE OF THE OLD CLASS AND IT COST ME A TRUE FINDING: I DROVE A PEER`S UNCOMMITTED EDIT.** My fixture drive of `self_provenance_check.sh` ran against vc`s mid-patch worktree copy, gave a clean determinate two-sided answer about a file that did not exist during the incident, and I retracted a correct finding on the strength of it. `git show <commit>:<file>` is the only way to interrogate a past run. **vc`s sharpening: a shared checkout manufactures FALSE NEGATIVES preferentially at the moments two nodes converge on one defect** -- and the convergence is the CAUSE, not the coincidence. Measured for hv`s ordering ruling: the blast radius is ONE gated instrument."
 claims: [ST0056/07, ST0056/11]
@@ -35,6 +35,13 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+- **RULING 4 IS IN FORCE IN ZERO ESTATES, MEASURED ESTATE-WIDE (2026-08-27 17:57Z) -- AND MY MORNING FIGURE WAS ACCIDENTALLY RIGHT, WHICH IS WORSE THAN WRONG.** Re-swept on cc's prompt, resolving the gate CARRIER rather than assuming it:
+  - **17 estates carry the consumer gate. In ALL 17 the carrier is `pre-commit.intent`, NEVER `pre-commit`. In ALL 17 `refusing rather than skipping` == 0.** hooksPath variants: `.git/hooks` (14), `.githooks` (Intent, Intentv2), `bin/hooks` (Laksa). No gate: llm-tropes (content-only) and Pplr, both already out of fleet scope.
+  - **MY MORNING "0 of 5 INSTALLED HOOKS CARRY THE ARM" WAS A TRUE NUMBER FROM A BLIND INSTRUMENT.** It checked `pre-commit`. **`pre-commit` carries the gate in NO estate**, so that grep could not have returned anything else under any state of the world. **A false green is easier to catch than a true green from an instrument incapable of producing a different answer** -- the second one gets cited later, by me, as evidence.
+  - **AND IT SURVIVED A CORRECTION THAT FELT LIKE THE FIX.** This morning I caught the `ls .git/hooks/` blindness (an early sweep returned "15 estates, 0 self-hosting", silently dropping Intent, Intentv2 and Laksa) and re-ran honouring `core.hooksPath`. **That corrected WHERE I looked and not WHAT I looked at** -- right directory, wrong filename inside it. **Fixing the location bug made the sweep feel repaired and left the second half untouched.** Same shape as the wrong repair cc killed in my `pre-commit` framing an hour earlier: a correction that lands on one half and closes the question.
+  - **POSITIVE-CONTROLLED BOTH WAYS, BECAUSE A CENSUS WITHOUT ONE IS WORTHLESS.** Intent appears in the sweep as `.githooks / pre-commit.intent / 0`, matching the hand measurement exactly; and the arm pattern returns 1 against `lib/templates/hooks/pre-commit.sh`, so the detector CAN fire and is not a dead needle.
+  - **THE DURABLE HALF FOR WHOEVER RUNS THE SWEEP: THREE hooksPath VALUES ACROSS 17 ESTATES, SO ANY SWEEP HARDCODING `.git/hooks` MISSES THREE** -- including both Intent trees and Laksa. Belongs in the sweep runbook, which is vc's; **not written there unasked.**
 
 - **THE STALE GATE IS `.githooks/pre-commit.INTENT`, NOT `.githooks/pre-commit`, AND MY CONCLUSION SURVIVES ITS OWN WRONG LOCATION (2026-08-27 17:56Z).** Three round trips with cc to find one file; each of us was right about the half the other measured.
   - **cc IS RIGHT AND MY FRAMING CARRIED A WRONG REPAIR.** `.githooks/pre-commit` is 114 lines against the template's 607, it is THIS REPO's OWN gate for the ST0056 apparatus guards, it contains **no `critic gate` string at all**, and `:96` says so explicitly. **It is not a stale generation of anything.** On my framing the obvious fix was to bring it up to date -- which would copy a CONSUMER gate into a repo-local hook with a different job and manufacture the second generation R1 exists to end, in the tree that is supposed to be the cure. **cc killed a live wrong repair.**
