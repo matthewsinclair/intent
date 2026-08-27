@@ -48,6 +48,33 @@
 
 use std::path::Path;
 
+use intentsvcs::remedy::{CAUSED_BY_PREFIX, ERROR_PREFIX, REMEDY_PREFIX};
+
+/// The three tokens, read from the trait rather than spelled again here.
+///
+/// **A CHECKER THAT RE-ENCODES WHAT IT CHECKS AGREES WITH ITSELF** (vc,
+/// 2026-08-27, `38806b99`). With the literals copied into this file, renaming
+/// `remedy: ` in the trait moves the trait's output, leaves the 76 hand-written
+/// literals where they are, and leaves this scan grepping for the OLD spelling
+/// -- so it would report agreement at the exact moment agreement was lost.
+/// **That is F4's own failure mode wearing the costume of F4's fix**, which is
+/// why the tokens now come from one place.
+///
+/// `CAUSED_BY_PREFIX` and `REMEDY_PREFIX` carry the trait's two-space indent;
+/// this file compares against TRIMMED lines, so the indent is stripped here
+/// rather than assumed absent. **The ORDER assertion deliberately does NOT move
+/// into `remedy.rs`**: tokens and order are two different properties, and one
+/// home for both would make a spelling change look like an ordering change.
+fn error_token() -> &'static str {
+  ERROR_PREFIX
+}
+fn caused_by_token() -> String {
+  CAUSED_BY_PREFIX.trim_start().to_string()
+}
+fn remedy_token() -> String {
+  REMEDY_PREFIX.trim_start().to_string()
+}
+
 /// The renderer's source.
 fn renderer() -> String {
   let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/render.rs");
@@ -96,7 +123,7 @@ fn error_literals(src: &str) -> Vec<Vec<String>> {
   let mut i = 0;
   while i < bytes.len() {
     // A literal we care about always opens exactly `"error: `.
-    if bytes[i] == '"' && src[i..].starts_with("\"error: ") {
+    if bytes[i] == '"' && src[i..].starts_with(&format!("\"{}", error_token())) {
       let mut j = i + 1;
       let mut logical: Vec<String> = Vec::new();
       let mut current = String::new();
@@ -188,18 +215,18 @@ fn every_hand_written_error_literal_has_the_trait_s_shape() {
     let joined = lit.join("\\n");
     let remedy_at = lit
       .iter()
-      .position(|l| l.trim_start().starts_with("remedy: "));
+      .position(|l| l.trim_start().starts_with(&remedy_token()));
     let cause_positions: Vec<usize> = lit
       .iter()
       .enumerate()
-      .filter(|(_, l)| l.trim_start().starts_with("caused by: "))
+      .filter(|(_, l)| l.trim_start().starts_with(&caused_by_token()))
       .map(|(i, _)| i)
       .collect();
 
     // `error: ` opens. Guaranteed by how the scan finds them, asserted anyway
     // so the property is stated where a reader looks rather than implied by the
     // search pattern.
-    if !lit[0].starts_with("error: ") {
+    if !lit[0].starts_with(error_token()) {
       wrong.push(format!("does not open with `error: `: {joined}"));
       continue;
     }
@@ -228,6 +255,41 @@ fn every_hand_written_error_literal_has_the_trait_s_shape() {
   );
 }
 
+/// **THE TWO PRODUCERS STILL SPELL THE SAME WORD.**
+///
+/// The report below counts literals with no remedy, and that count moving is
+/// the SYMPTOM of a token rename -- but a symptom expressed as a number needs a
+/// reader, and the whole point of this file is not needing one.
+///
+/// **DRIVEN, WHICH IS HOW IT EARNED ITS PLACE:** renaming `REMEDY_PREFIX` in
+/// the trait to `fix-it: ` takes the remedy-less count from 31 to 76 and reds
+/// NOTHING without this arm. With it, the rename reds here and names both
+/// spellings. It is the cheapest possible statement of the property -- if not
+/// one of 76 hand-written literals uses the token the trait emits, the two
+/// producers have stopped agreeing, whatever else is true.
+///
+/// **A THRESHOLD OF ONE IS DELIBERATE.** Any higher number would be a claim
+/// about how many literals SHOULD carry a remedy, which is the open question
+/// this file explicitly declines to answer.
+#[test]
+fn the_hand_written_literals_use_the_trait_s_own_remedy_token() {
+  let literals = error_literals(&scannable(&renderer()));
+  let using = literals
+    .iter()
+    .filter(|l| {
+      l.iter()
+        .any(|x| x.trim_start().starts_with(&remedy_token()))
+    })
+    .count();
+
+  assert!(
+    using > 0,
+    "not one of the {} hand-written error literals in the renderer uses `{}`, the token `Remedy::render` emits. The trait and the hand-written half have stopped spelling the same word, so the renderer now produces two different formats for one kind of message -- and every literal would have to be updated with the trait, not just this check",
+    literals.len(),
+    REMEDY_PREFIX.trim_start()
+  );
+}
+
 /// **REPORTED, NOT GATED: the literals that offer no remedy at all.**
 ///
 /// Whether each is legitimately remedy-less is an open question nobody has
@@ -239,7 +301,10 @@ fn the_remedy_less_literals_are_named() {
   let literals = error_literals(&scannable(&renderer()));
   let without: Vec<String> = literals
     .iter()
-    .filter(|l| !l.iter().any(|x| x.trim_start().starts_with("remedy: ")))
+    .filter(|l| {
+      !l.iter()
+        .any(|x| x.trim_start().starts_with(&remedy_token()))
+    })
     .map(|l| l.join("\\n"))
     .collect();
 
