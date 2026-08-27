@@ -55,3 +55,21 @@ So the risk I would have written a red arm for turns out to have no subject here
 Nothing is burning and I am not blocked on this: my lanes are clean and I am holding for the machine-health stop to lift regardless.
 
 -- cc
+
+## (2026-08-27 21:35Z) ITEM (B) IS LANDED -- AND THE CHECK OF WHETHER IT WAS SAFE TO RUN FOUND THE THING THAT MUST STOP THE SWEEP
+
+**(B) is `f8a78e05`.** `canon::apply` now installs the shim as `<hooks>/pre-commit.intent`, beside the chain block that sources it. Ruled by you, relayed by vc, confirmed with you at source before I started.
+
+**THE DEFECT WAS SHARPER THAN "A CAPABILITY IS MISSING", AND THAT IS THE PART WORTH KEEPING.** The chain block canon has always written is `if [ -x "$_intent_chain" ]; then ... fi` -- with no `else`. Nothing in either tree wrote the carrier. **So the one verb whose job is wiring the gate produced, unaided, a project that passes every commit at rc=0 while every report anyone reads says the gate is wired.** The shim's own contract is _refusing, not skipping_ (your ruling 4); that contract was unreachable from one layer up, because a shim never installed is not a shim that refuses, it is a `[ -x ]` that is false. Baize is the measured instance.
+
+**I DID NOT MINT A VERB.** vc framed (B) as a missing verb. The capability was missing; the verb was not. `apply` already resolved the install root, already read templates through the reader that IS vc's stated first correctness property, already resolved the hooks directory, and already reported written/unchanged/preserved/held. Minting surface here would repeat exactly what you rejected at 17:11Z for `publish_home`'s caller. **If you meant a literal new verb, say so and I will move it** -- the code is the same either way.
+
+**NOW THE THING THAT IS NOT MINE AND IS BIGGER THAN (B). `~/.intent/home` ON THIS MACHINE POINTS AT A DELETED TEMP WORKTREE IN A PEER'S SCRATCHPAD.** Measured 21:32Z: the pointer names a `scratchpad/wt-pair` path under session `6bbf2186-...` (ic's), `ls -d` says No such file or directory, and `pre-commit-shim.sh --where` answers `state: UNUSABLE`, rc=1.
+
+**IT IS INERT TODAY AND (B) IS PRECISELY WHAT ARMS IT.** No estate has the shim as its carrier yet -- this tree's is the old copied gate body, 21 Aug, divergent from both templates -- so nothing consults the pointer and every commit works. **The first `intent claude upgrade --apply` anywhere installs the shim, the shim reads that pointer, and it refuses. Correctly. Every commit in that estate then blocks, and the verb that did it printed `written`.**
+
+**NEITHER HALF IS BUGGY, WHICH IS WHY IT NEEDS YOU RATHER THAN A FIX.** `bootstrap` resolves the root from `current_exe()`, so a binary run out of a scratchpad worktree publishes that worktree -- and `publish_home` had nothing to refuse, because at that moment it genuinely WAS an install. It stopped being one when someone tidied up. The shim never auto-repairs a stale pointer, deliberately. **So a correct pointer becomes a wrong pointer through a third party's cleanup, and nothing anywhere notices until the gate refuses.** The 17-estate sweep cannot run before that is sound.
+
+**I HAVE NOT TOUCHED `~/.intent/home`.** It is machine-global, it points into another node's session, and rewriting it would be choosing an install root on your behalf -- the one act the shim's design refuses. vc has it for sequencing; ic has the mechanism; dc has the consequence for `gate_currency`, which will call a correctly-installed shim `dispatcher STALE` because it compares against the gate body.
+
+**ONE ASSUMPTION I MADE RATHER THAN BLOCKING ON, STATED SO YOU CAN REVERSE IT.** vc named the tracked-hooks question and deliberately left it unruled. I found the estate had already answered it -- `.gitignore:156` ignores `.githooks/pre-commit.intent` while `.githooks/` itself is tracked, with the reason in MODULES.md: tracking it would be a second home for canon. **So my next commit REPORTS when the carrier lands somewhere tracked rather than refusing to write it.** Refusing would leave Laksa with no gate at all, which is strictly worse than today, and reporting is the reversible choice. Say the word and I will invert it.
