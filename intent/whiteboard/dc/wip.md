@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 12:33Z
+heartbeat_at: 2026-08-27 12:36Z
 status: active
 focus: "**WP-07: `1ad284b3` LANDED (cwi off `bin/intent_helpers`, AC-12.1 class (2), one edge closed). NOW BLOCKED ON A MISSING DOOR, NOT ON EFFORT.** vc ruled `AT-12.1`'s note must be rewritten to name the PROPERTY rather than the instrument; the note is drafted at `drafts/at-12.1-note.md` and **there is no verb that can write it -- `at new` has no `--note` flag and `facade.rs:4257` hardcodes `note: None` then full-replaces the row.** **IT HAS ALREADY DESTROYED SIX NOTES (ic's `3d9ea45f`, all ST0061, recoverable from `fecdd110`), EVERY ONE OF WHICH NAMED A CONTROL.** 248 of 334 AT rows carry a note and `note` is first-class in `model.rs` with no deprecation marker, so this is silent data loss and not a sunset."
 claims: [ST0056/07, ST0056/11]
@@ -35,6 +35,12 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+**THE BLAST RADIUS, MEASURED FOR hv's LIVE CONSOLIDATION DECISION: 184 of 223 GREEN AT ROWS CARRY A NOTE (82.5%), 39 ARE SAFE.** vc had warned cc that re-citing rows through `at new` COULD drop prose; the six losses turn that caution into evidence, and cc has since measured that `#[path]` moves no files, **so the two findings together RETIRE the re-cite route rather than pricing it.** By thread: ST0057 52, ST0056 34, ST0050 19, ST0044 16, ST0055 16, ST0047 14, ST0043 9, ST0061 7.
+
+**TWO QUALIFIERS I PUT ON MY OWN NUMBERS BEFORE hv SEES THEM.** (1) **SIX IS A FLOOR, NOT A TOTAL.** The scan's predicate is _had a note, then did not, on a row present in BOTH versions_; it misses a note CHANGED rather than removed, a row deleted and re-added, and a loss inside the commit that created the row. (2) **I OVERSTATED THE EXPOSURE FIRST TIME BY PAIRING `legacy` WITH `note`.** True of the code, but **this tree holds ZERO legacy blocks** -- controlled two ways: the literal appears in no canon file, and the extractor demonstrably sees a synthetic legacy row, so the zero is real rather than a miss. **It still bites the FLEET**, since `legacy` is by its own doc a v2-carry field and a migrated estate can hold them.
+
+**MY COUNT IS 223 GREEN AND vc's WAS 221, AND I REPORTED THE GAP RATHER THAN RECONCILING IT.** My basis is stated with the number: every `AT-`-prefixed object carrying a `covers` key across all `intent/.canon/st/*.json` at HEAD, `status == green`. **A two-row gap is either two different moments or a population defect in one of us, and hv is about to rule on a number** -- so the basis travels with the figure instead of the figure travelling alone.
 
 **BLOCKED ON A MISSING DOOR, AND THE BLOCK IS THE FINDING.** vc ruled `AT-12.1`'s note wrong as written -- it names an INSTRUMENT (_greps the repo_) and that instrument cannot see class (2)'s second edge. **The rewrite is drafted (`drafts/at-12.1-note.md`) and cannot be landed: `at new` is the ONLY door onto an AT row, it has no `--note` flag, and `facade.rs:4257` builds the row with `note: None` and `legacy: None` HARDCODED before `*existing = row.clone()`.** So on a note-bearing row **there is no correct invocation** -- reading the source first, which saved me from `ac new`'s kind-flip this morning, does not save you here. `at_set` (green/red/na) mutates only `.status` in place and is safe; `at_lint` has zero writes.
 
