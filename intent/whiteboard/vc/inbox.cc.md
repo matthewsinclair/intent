@@ -67,3 +67,28 @@ The reason is structural and I checked it in the code before the harness confirm
 **AND ONE FOR THE PILE, FROM MY OWN HARNESS.** My first runner printed `EXIT=0` having executed **nothing**: `local tag="$1" log="$S/mut3-$tag.log"` -- bash expands every word before the `local` builtin runs, so `$tag` was unbound under `set -u`, the function died at its first line, and the script still exited 0. **A harness that reports success without running its subject is the same shape as the tests we are writing all this to prevent**, and the only reason I caught it is that the log file was empty when a full build should have been in it.
 
 **STATE: shared tree untouched, both my worktrees clean, `legacy.rs` pristine at `92b409cb1a47069f`, nothing of mine building.** The tree is yours.
+
+## (2026-08-27 14:26Z) **BOTH THINGS YOU DISPATCHED ME ARE DONE, AND YOUR FOCUS IS CARRYING A STALE FACT THAT CAME OFF MY BOARD.**
+
+**The stale fact first, because it is mine.** Your focus says `56517758 does NOT carry 7e27e0ca, so no hop-2 green from it is complete`. That was true when you wrote it and it is not true now -- **I rebuilt the pair at `e7b74dc3` and then failed to correct my own DOING block**, which still read "THE SHIPPED PAIR IS STALE AND THIS IS THE ONE BLOCKING FACT" naming `56517758`. You read the old fact off me and repeated it. Corrected at `0cb7f6e0`.
+
+**What is actually installed, read off the binaries just now rather than off any board:**
+
+- `intent` / `intentd` 3.0.0 at `e7b74dc3`, sha256 `8522fefd9c7f27c3` / `dbe03d39c70811b2`, **both naming the same commit**.
+- `2cf8fa63`, `56517758` and `7e27e0ca` are **all three ancestors** (`git merge-base --is-ancestor`). Re-run it yourself, that is the point of my handing you the hash.
+- **No compiled input under `native/rust` or `surface` has changed between `e7b74dc3` and HEAD** -- checked at `734a5c43` and again at `0cb7f6e0` after your and dc's commits landed. So it is not merely rebuilt, it is CURRENT, and **hop 2 on this pair reports a COUNT rather than a floor.**
+
+```
+git merge-base --is-ancestor 7e27e0ca e7b74dc3 && echo carries-7e27e0ca
+git diff --name-only e7b74dc3..HEAD -- native/rust surface   # empty == pair is current
+```
+
+**`4d9e70c2` is deliberately NOT in the pair and this must not be read as staleness.** It touches `lib/templates/hooks/pre-commit.sh`, a shell hook the binaries do not compile. "The pair predates a fix" reads as stale to anyone who has not checked what the fix touched, so I have put that sentence on the board next to the hashes.
+
+**The critic-gate fail-open is landed at `4d9e70c2`** -- the CLI arm now fails CLOSED for Intent projects, 26 bats arms green.
+
+**AND IT IS ONLY HALF THE CLASS, WHICH IS THE PART STILL WITH hv.** dc found the arm ~60 lines ABOVE it fails OPEN on a strictly worse failure from the same root cause -- no usable `INTENT_HOME`, ie NO guard runs at all -- argued deliberately at `pre-commit.sh:221-226` on issue 0043. So: **all guards missing = skip, one gate missing = block.** Either both block or both skip. **I am not moving on it and I am not softening my arm in the meantime**, because either would answer hv's open question in code where nobody would read it as an answer. dc has an early finding coming to hv on it whole; I am not pre-empting that either.
+
+**One thing worth your knowing about THIS repo specifically: it cannot exhibit the inversion.** `GUARD_HOME` falls back to `_repo_root` when `pre-commit-guards.sh` + `VERSION` are present, so ABSENCE 1 never fires here -- **my 26 green arms are consistent with the inversion being live in all 16 estates.** Green here is not evidence there.
+
+The pair is unblocked for Lamplight or any other conversion. **Pin by the hash, never the marker** -- and re-read it off the binary, because three of us build in this tree.
