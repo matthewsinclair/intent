@@ -43,6 +43,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
     Some(("upgrade", _)) => upgrade(),
+    Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
     Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
@@ -2691,16 +2692,22 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // Nothing would ever have failed here -- every machine in this estate has
   // `USER` set, which is what makes the guard worth more than the test run.
   //
-  // **THE ENV READ BELONGS IN `bootstrap`, AND v2 ALREADY PUTS IT THERE.**
-  // `bin/intent_bootstrap:126` writes `"author": "${USER}"` into the GLOBAL
-  // config -- once, at developer-environment setup, which is what bootstrap
-  // is. `init` should read that file. In this build `bootstrap` answers 2, so
-  // there is no global config to read, and inventing one here would be a
-  // second home for an identity that already has a declared one.
+  // **THE ENV READ BELONGS IN `bootstrap`, AND THAT IS NOW WHERE IT IS.**
+  // `bootstrap` writes `~/.intent/config.json` once, at developer-environment
+  // setup, reading `$USER` through `userstate::author()` under hv's grant of
+  // 2026-08-27. This reads that file rather than the environment, so the
+  // identity has exactly one home and `init` stays inside AC-11.3's invariant
+  // -- AC-07.1's case is a brew-installed binary on a machine with no clone and
+  // no developer environment, and reaching for `$USER` in the one verb that
+  // must work there was the wrong read in the wrong place.
   //
-  // So the project is created with the author unset and the operator is told,
-  // which is a true statement they can act on in one edit.
-  let author = "unknown";
+  // **THE PARAGRAPH THIS REPLACES SAID `bootstrap` ANSWERS 2, WHICH WAS TRUE
+  // WHEN WRITTEN AND STOPPED BEING TRUE THE MOMENT THE ARM ABOVE LANDED.** A
+  // comment describing a sibling's state is a fact with an owner somewhere
+  // else; it is edited here in the same commit that falsified it, because the
+  // next reader has no way to tell a stale claim from a current one.
+  let recorded = intentsvcs::bootstrap::recorded_author();
+  let author = recorded.as_deref().unwrap_or("unknown");
 
   // `author` and not `&author`: it became a `&str` when the `$USER` read came
   // out for AC-11.3, and the borrow that was right for the `String` before it
@@ -2710,14 +2717,19 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
     .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
 
   println!("created: {} at {}", made.project_name, made.root.display());
-  println!(
-    "  author is unset -- `bootstrap` owns that identity and is not implemented yet; set it in {}",
-    made
-      .config
-      .strip_prefix(&made.root)
-      .unwrap_or(&made.config)
-      .display()
-  );
+  // **ONLY SAID WHEN IT IS TRUE.** An unconditional "author is unset" line
+  // survived into every run that DID resolve one, which is the same
+  // stale-by-construction shape as the comment above.
+  if recorded.is_none() {
+    println!(
+      "  author is unset -- run `intent bootstrap` to record it once for this machine, or set it in {}",
+      made
+        .config
+        .strip_prefix(&made.root)
+        .unwrap_or(&made.config)
+        .display()
+    );
+  }
   println!("  {}", made.config.display());
   for p in &made.written {
     println!("  {}", p.strip_prefix(&made.root).unwrap_or(p).display());
@@ -2733,6 +2745,90 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
     );
   }
   Ok(())
+}
+
+/// `intent bootstrap`: set THIS MACHINE up.
+///
+/// **THE CALLER hv RULED FOR `install::publish_home()`** (2026-08-27,
+/// `164d5bce`), chosen over `doctor` -- which would make a diagnostic a writer
+/// -- and over a new `install` verb, which is new surface with a whole parity
+/// apparatus behind a one-line job. `bootstrap` is the only command whose NAME
+/// already means *set this machine up*, and the pointer is a machine-level
+/// fact.
+///
+/// **BOTH FLAGS ARE READ HERE AND THEY HAD TO BE.** `flag_reachability`
+/// exempts a family with no renderer arm and decides that BEHAVIOURALLY, by
+/// running the command and matching the unwired phrase. So wiring this arm
+/// lifted the exemption for `--force` and `--quiet` in the same commit that
+/// created it -- which is why the pointer half could not ship on its own:
+/// `--force`'s declared help is *"Force recreation of config even if it
+/// exists"*, and it names the CONFIG.
+fn bootstrap(m: &ArgMatches) -> Result<(), Failure> {
+  let force = flag(m, "force");
+  let quiet = flag(m, "quiet");
+
+  let report = intentsvcs::bootstrap::run(force).map_err(|e| Failure::Error(Remedy::render(&e)))?;
+
+  // **`--quiet` SUPPRESSES THE REPORT, NEVER THE WORK, AND NEVER A FAILURE.**
+  // The `?` above has already returned any error to the spine, which writes it
+  // to stderr regardless -- a quiet flag that could hide a failed setup would
+  // be the silent-error class in the one command an operator runs when nothing
+  // works yet.
+  if quiet {
+    return Ok(());
+  }
+
+  match &report.pointer {
+    intentsvcs::install::Published::Unchanged { root } => {
+      println!("ok: install root already recorded -- {}", root.display());
+    }
+    intentsvcs::install::Published::Written { root } => {
+      println!("created: install root recorded -- {}", root.display());
+    }
+    // **A MOVE IS REPORTED WITH BOTH VALUES.** The pointer changing is the
+    // event behind every routing question this estate had in August, and
+    // "recorded X" alone leaves the reader unable to tell a first run from a
+    // relocation.
+    intentsvcs::install::Published::Changed { root, from } => {
+      println!("changed: install root was {from}");
+      println!("         install root is now {}", root.display());
+    }
+  }
+
+  match &report.config {
+    intentsvcs::bootstrap::Config::Kept { path } => {
+      println!("ok: configuration already exists -- {}", path.display());
+      println!("  use --force to recreate it");
+    }
+    intentsvcs::bootstrap::Config::Created { path, author } => {
+      println!("created: {}", path.display());
+      report_author(author.as_deref());
+    }
+    intentsvcs::bootstrap::Config::Replaced { path, author } => {
+      println!("created: {} (replaced)", path.display());
+      report_author(author.as_deref());
+    }
+  }
+
+  // **NO `export INTENT_HOME` / PATH BLOCK, WHICH v2 PRINTS AND v3 MUST NOT.**
+  // `install.rs` reads no environment at all; that advice would teach a model
+  // of the tool that is wrong, and the pointer just written is what replaced
+  // it. **AND NO `intent doctor` RUN**, for the reason hv rejected `doctor` as
+  // this caller, read from the other end.
+  println!("done: this machine is set up");
+  Ok(())
+}
+
+/// **An unset author is REPORTED, not passed over in silence.**
+///
+/// A setup command that records no identity and says nothing leaves the
+/// operator to discover it when `init` writes `unknown` into a project weeks
+/// later.
+fn report_author(author: Option<&str>) {
+  match author {
+    Some(a) => println!("  author: {a}"),
+    None => println!("  author is unset -- $USER names nobody in this environment"),
+  }
 }
 
 fn export(a: &ArgMatches) -> Result<(), Failure> {

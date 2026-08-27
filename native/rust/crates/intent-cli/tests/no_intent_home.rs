@@ -56,7 +56,27 @@ use testkit::workspace_root;
 /// `COLUMNS` is terminal geometry: it describes the device the output is going
 /// to, not the machine's configuration, and it is absent-tolerant by
 /// construction (`render.rs` falls back when it cannot be parsed).
-const ALLOWED: &[&str] = &["COLUMNS", "HOME"];
+///
+/// **`USER` WAS GRANTED BY hv ON 2026-08-27, FOR `bootstrap` AND CONFINED THE
+/// SAME WAY `HOME` IS.** It is the operator's identity, and `bootstrap` is the
+/// one verb whose job is recording who this machine belongs to -- v2 has
+/// written `"author": "${USER}"` into the global config since 2.0.0
+/// (`bin/intent_bootstrap:126`), so this grant restores a behaviour rather
+/// than inventing one.
+///
+/// **THE ALTERNATIVE WAS MEASURED BEFORE THE RULING RATHER THAN ARGUED AFTER
+/// IT.** `git config --get user.name` needs no grant at all -- the surface
+/// already shells out to `git` in four places -- and it was rejected on the
+/// VALUE, not the mechanism: it answers `Matthew Sinclair` where every
+/// existing project config in this estate, and the root `CLAUDE.md` author
+/// line, say `matts`. A grant-free path that writes a different identity than
+/// the fleet already carries is not the cheaper option, it is a silent
+/// divergence with a tidy implementation.
+///
+/// **AND THE ABSENT CASE IS NOT A FAILURE.** Unlike `HOME`, whose absence
+/// means per-user state cannot exist at all, an unset `USER` just means the
+/// author is unknown -- `bootstrap` records the config without it and says so.
+const ALLOWED: &[&str] = &["COLUMNS", "HOME", "USER"];
 
 /// A variable that may be read, but in exactly ONE file.
 ///
@@ -77,7 +97,10 @@ const ALLOWED: &[&str] = &["COLUMNS", "HOME"];
 ///
 /// A new entry here needs the same thing the `ALLOWED` row needed: a ruling,
 /// and a reason written down beside it.
-const CONFINED: &[(&str, &str)] = &[("HOME", "crates/intentsvcs/src/userstate.rs")];
+const CONFINED: &[(&str, &str)] = &[
+  ("HOME", "crates/intentsvcs/src/userstate.rs"),
+  ("USER", "crates/intentsvcs/src/userstate.rs"),
+];
 
 /// Every `.rs` under every crate's `src/`, discovered by walking.
 ///

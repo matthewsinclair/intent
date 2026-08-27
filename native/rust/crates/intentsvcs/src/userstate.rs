@@ -97,6 +97,48 @@ pub fn home_pointer() -> Result<PathBuf, UserStateError> {
   Ok(intent_dir()?.join("home"))
 }
 
+/// `~/.intent/config.json` -- the operator's own Intent configuration.
+///
+/// **A v3-PRIVATE PATH, AND THAT IS THE CLASS RULING RATHER THAN A CHOICE MADE
+/// HERE.** v2 keeps this at `~/.config/intent/config.json`; vc's rule, hv
+/// adopted 2026-08-22, is that every v3 per-user store gets its own path and
+/// never reads or writes v2's. Nothing in this crate reads v2's file and
+/// nothing should: a shared config is how two tools that can never be taught
+/// about each other come to disagree about who the operator is.
+///
+/// It sits under [`intent_dir`] beside [`home_pointer`], so the whole of
+/// Intent's per-user state is one directory an operator can inspect or delete.
+pub fn global_config() -> Result<PathBuf, UserStateError> {
+  Ok(intent_dir()?.join("config.json"))
+}
+
+/// The operator's login name, when the environment names one.
+///
+/// **`$USER` IS GRANTED FOR `bootstrap` AND CONFINED HERE** -- hv, 2026-08-27,
+/// with the row and the reason in `no_intent_home.rs`. It is read in this
+/// module for the same purpose `HOME` is: so the grant stays one file wide and
+/// a second reader anywhere else fails exactly the way an unapproved variable
+/// does.
+///
+/// **`None` IS A NORMAL ANSWER, NOT AN ERROR, AND THE DIFFERENCE FROM
+/// [`home`] IS THE POINT.** A missing `HOME` means per-user state cannot exist,
+/// which is a refusal. A missing `USER` means only that nobody can be named --
+/// `bootstrap` writes the rest of the config and reports the identity as
+/// unset, which is a true statement the operator can act on in one edit.
+/// Returning a `Result` here would push a decision the caller has already made
+/// into an error path it would have to unwrap anyway.
+///
+/// **AND IT IS NOT A FALLBACK CHAIN.** No `LOGNAME`, no `whoami`, no `git
+/// config user.name`. hv ruled the source; a second source consulted when the
+/// first is empty is how an identity comes to depend on which machine the
+/// command ran on.
+pub fn author() -> Option<String> {
+  match std::env::var("USER") {
+    Ok(u) if !u.trim().is_empty() => Some(u.trim().to_string()),
+    _ => None,
+  }
+}
+
 /// `~/.claude` -- Claude Code's per-user directory, which Intent installs into
 /// but does not own.
 ///
