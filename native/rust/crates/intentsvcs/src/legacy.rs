@@ -1855,7 +1855,23 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
     None => rest.split(" -- ").next().unwrap_or("").trim(),
   };
   let non_test = subject.starts_with("(non-test)");
-  let cited = subject.trim_matches('`');
+  // **A STRAY `[` INSIDE A BACKTICK CITATION IS AN AUTHORING TYPO AND IS
+  // STRIPPED, NOT CARRIED.** The delimiter closes correctly, so
+  // `bracket_citation` never sees it and the backtick trim leaves the bracket
+  // on the front of the path -- which then satisfies the path rule, because it
+  // has a slash and no colon, and stores `[apps/...` as a filename. Measured on
+  // Lamplight by lamplight-vc: 32 rows, 31 of them ST0344, including all seven
+  // of its blocked packages. It is the same visible failure as the truncation
+  // (`cites a file that does not exist`) reached by a different route, and the
+  // first fix did not touch it.
+  //
+  // Stripping is safe because NO path begins with a bracket: the character
+  // cannot open a legitimate citation, so removing it cannot take a real one.
+  let cited = subject
+    .trim_matches('`')
+    .trim_start_matches('[')
+    .trim_end_matches(']')
+    .trim();
   // The 0017 reference rules: a test file has at least one `/` and no `:`.
   // A reference failing them is a legacy citation, and it is CARRIED whole
   // rather than reshaped into something that satisfies the grammar.
@@ -1891,17 +1907,10 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
           .trim(),
       ),
     ),
-    // `[<path> "<test name>"]`: the path ENDS where the quoted name begins.
-    // `split_citation` does not cut on a quote -- deliberately, since its cut
-    // points are measured across 3177 unbracketed citations, and widening them
-    // is not this function's to do.
-    (Some(inner), true, _) => match inner.find('"') {
-      Some(q) => (
-        inner[..q].trim_end(),
-        Some(inner[q..].trim_matches('"').trim()),
-      ),
-      None => split_citation(inner),
-    },
+    // `[<path> "<test name>"]` goes through the SAME cutter as every other
+    // citation. It used to have its own arm that cut at the quote, which is how
+    // the comma clause came to survive in the path -- see `split_citation`.
+    (Some(inner), true, _) => split_citation(inner.trim_start_matches('[').trim()),
     (_, true, _) => split_citation(cited),
     (_, false, _) => (cited, None),
   };
@@ -2827,10 +2836,22 @@ fn split_citation(cited: &str) -> (&str, Option<&str>) {
   // is a second file**: the comma is followed by `describe` (110), `the` (50),
   // `and` (25). A citation naming two paths would be the case against this, and
   // the corpus does not contain one.
-  let cut = [cited.find(" ("), cited.find('`'), cited.find(", ")]
-    .into_iter()
-    .flatten()
-    .min();
+  // **THE QUOTE IS A CUT POINT TOO, AND LEAVING IT OUT WAS A SECOND CUTTER.**
+  // A citation carrying a quoted test name -- `path, describe "a thing"` -- was
+  // handled by a special case that cut at the quote and never reached here, so
+  // the comma clause survived into the path and the row stored
+  // `test/real_path_test.exs, describe`. Two cutters, one of them missing the
+  // other's rule. Adding the quote to the SAME `min` keeps both cuts: the comma
+  // wins when it comes first, and everything after the cut is still the note.
+  let cut = [
+    cited.find(" ("),
+    cited.find('`'),
+    cited.find(", "),
+    cited.find('"'),
+  ]
+  .into_iter()
+  .flatten()
+  .min();
   match cut {
     None => (cited, None),
     Some(i) => {
@@ -3084,6 +3105,50 @@ mod tests {
     assert_eq!(
       test.file.as_deref(),
       Some("apps/lamplight/test/lamplight/core/identity/user_admin_test.exs"),
+    );
+  }
+
+  /// **THE THIRD FORM, AND THE FIRST FIX DID NOT REACH IT.**
+  ///
+  /// A BACKTICK citation whose inner content begins with a stray `[` -- an
+  /// authoring typo. The delimiter closes correctly, so `bracket_citation`
+  /// returns `None` and the naive path is taken; the backtick trim then leaves
+  /// the bracket on the front, and the path rule accepts it because it has a
+  /// slash and no colon. Same visible failure as the truncation, reached by a
+  /// different route. **Found by lamplight-vc on the real bytes: 32 rows, 31 of
+  /// them ST0344, including all seven of its blocked packages** -- which is more
+  /// than half the 74 and was invisible to a fix aimed at the bracket form.
+  #[test]
+  fn a_stray_bracket_inside_a_backtick_citation_is_not_part_of_the_path() {
+    let row = "AT-00.1 `[apps/control/test/control/run/reasoning/prompt_cache_live_test.exs` -- covers AC-00.1 -- status: green";
+    let (test, _, _) = acceptance_test(row).expect("a real ST0344 row must parse");
+    assert_eq!(
+      test.file.as_deref(),
+      Some("apps/control/test/control/run/reasoning/prompt_cache_live_test.exs"),
+      "the bracket is a typo inside the citation, not the first character of a filename"
+    );
+  }
+
+  /// **ONE CUTTER, NOT TWO.**
+  ///
+  /// The bracket form used to have its own arm that cut at the quoted test name
+  /// and never reached `split_citation`, so the comma clause survived into the
+  /// path: `test/real_path_test.exs, describe`. Driven by vc against the shipped
+  /// binary rather than reasoned about. Both cuts now come from the same `min`.
+  #[test]
+  fn a_citation_with_both_a_comma_clause_and_a_quoted_name_cuts_at_the_comma() {
+    let row =
+      r#"AT-00.3 [test/real_path_test.exs, describe "a thing"] -- covers AC-00.3 -- status: green"#;
+    let (test, _, _) = acceptance_test(row).expect("parse");
+    assert_eq!(
+      test.file.as_deref(),
+      Some("test/real_path_test.exs"),
+      "the comma ends the citation; the describe and the quoted name are both note"
+    );
+    let note = test.note.unwrap_or_default();
+    assert!(
+      note.contains("describe"),
+      "the clause is kept, not dropped: {note}"
     );
   }
 
