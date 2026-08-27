@@ -24,6 +24,35 @@
 //! by accident, and every accident is a message an operator reads differently
 //! depending on which subsystem failed.
 
+/// The three tokens the operator-facing error format is made of.
+///
+/// **ONE HOME FOR THE SPELLING, BECAUSE THE FORMAT HAS MORE PRODUCERS THAN THIS
+/// TRAIT** (vc, 2026-08-27, closing the residue of Highlander finding F4). The
+/// trait guarantees the format for anything that IMPLEMENTS it, and the module
+/// header is right that an implementor cannot invent a second rendering. But
+/// `Failure::Error(String)` takes a finished string, and the renderer builds 76
+/// operator-facing `error: ` literals by hand -- so the format has a second
+/// producer that the trait cannot reach. `error_literal_shape.rs` now checks
+/// those agree, and to parse them it had to spell the same three tokens a THIRD
+/// time.
+///
+/// **THAT IS THE FINDING ONE LEVEL UP: a checker that re-encodes what it checks
+/// agrees with itself.** Rename `remedy: ` here with the tokens copied into the
+/// test, and the trait's output moves, the 76 literals do not, and the checker
+/// greps for the old spelling and passes -- reporting agreement at the exact
+/// moment it was lost. Reading them from here removes that: the test's parse and
+/// the trait's output cannot disagree about the spelling, because there is only
+/// one.
+///
+/// Not `const fn` and not assembled here: these are the tokens, and the ORDER
+/// they appear in is the property `error_literal_shape.rs` asserts. Two
+/// different things, deliberately in two places.
+pub const ERROR_PREFIX: &str = "error: ";
+/// The cause-chain token, with the two-space indent the operator sees.
+pub const CAUSED_BY_PREFIX: &str = "  caused by: ";
+/// The remedy token, with the two-space indent the operator sees.
+pub const REMEDY_PREFIX: &str = "  remedy: ";
+
 /// An error that can state its own remedy.
 ///
 /// **`remedy` is required and `render` is defaulted, which is the whole point
@@ -46,13 +75,13 @@ pub trait Remedy {
   where
     Self: std::error::Error,
   {
-    let mut out = format!("error: {self}");
+    let mut out = format!("{ERROR_PREFIX}{self}");
     let mut source = std::error::Error::source(self);
     while let Some(cause) = source {
-      out.push_str(&format!("\n  caused by: {cause}"));
+      out.push_str(&format!("\n{CAUSED_BY_PREFIX}{cause}"));
       source = cause.source();
     }
-    out.push_str(&format!("\n  remedy: {}", self.remedy()));
+    out.push_str(&format!("\n{REMEDY_PREFIX}{}", self.remedy()));
     out
   }
 }
