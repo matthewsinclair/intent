@@ -9,10 +9,30 @@
 //! safe -- so durable state living there means **deleting a derived file
 //! silently resets the flush and resurrects every item ever flushed.**
 //!
-//! The v3 watermark is an EVENT. What that buys is tested below rather than
-//! asserted in a comment: it survives losing the store, it is not in the view,
-//! and `doctor` agrees with the renderer about it -- the last being a hazard
-//! this design introduces and has to answer for.
+//! # SUPERSEDED, AND KEPT AS SUPERSEDED BECAUSE A CORRECTED SENTENCE READS
+//! # EXACTLY LIKE ONE THAT WAS NEVER WRONG
+//!
+//! This doc used to read: *The v3 watermark is an EVENT.* **It is not, and it
+//! stopped being one on hv's ruling of 2026-08-26 (WP-14): the cutoff is CANON
+//! STATE.** The distinction that ruling turns on is that *a flush happened at
+//! T* is HISTORY and *the current cutoff is T* is STATE -- one field doing both
+//! jobs is what put the cutoff on the wrong side of D53, and a cutoff filed as
+//! history cannot cross a clone.
+//!
+//! **So there are now two homes for two different questions, and neither is a
+//! fallback for the other.** History stays in the log: the `todo.flush` event
+//! keeps its stamp, every flush is kept, and two machines' logs still merge.
+//! State lives in `intent/.canon/project.json`, which travels by git;
+//! `ingest::carry_project_state` is the one door from there into the store, so
+//! a command answers from the store and the store was filled from canon.
+//! **Nothing derives the cutoff from the log** -- `the_cutoff_is_state_in_the_store_and_is_never_derived_from_the_log`
+//! below is the assertion, and a fallback left in place would be two homes for
+//! one value with both answers looking plausible.
+//!
+//! What the design buys is tested below rather than asserted here: the flush
+//! survives losing the store, it is not in the view, and `doctor` agrees with
+//! the renderer about it -- the last being a hazard this design introduces and
+//! has to answer for.
 
 mod common;
 
