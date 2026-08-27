@@ -254,6 +254,49 @@ teardown() {
   [ "$arming" = "armed" ]
 }
 
+# --- ARM 3b: (b) THE REFUSAL -- and it is only a test if it is two-sided ---
+
+@test "absent tool: an armed rule whose tool is gone REFUSES with exit 3" {
+  # AC-07.4(b), hv's ruling: a project that armed a rule and then lost the tool
+  # is REFUSED, not silently passed. Driven under a PATH that genuinely lacks
+  # shellcheck -- a code read cannot tell `refuses` from `would refuse`.
+  #
+  # 3 is the refusal code, not a generic error: v2 gates it on CRITIC_REFUSED
+  # (`bin/intent_critic`), and the run still prints its census and an `ok:` line
+  # above the refusal, so asserting on output alone would miss it entirely.
+  run env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT"
+  [ "$status" -eq 3 ]
+}
+
+@test "present tool: the SAME run does not refuse -- the half that makes the arm above a test" {
+  # NOT SYMMETRY FOR ITS OWN SAKE. A runner that refused UNCONDITIONALLY passes
+  # the absent-tool arm above while blocking every commit on every machine, and
+  # the one-sided arm cannot tell that runner from a correct one. This arm is
+  # the only thing standing between those two readings.
+  run "$CRITIC" critic shell --files "$SUBJECT"
+  [ "$status" -ne 3 ]
+}
+
+@test "absent tool: v2 and v3 agree on the refusal, because one binary cannot see them diverge" {
+  # THIS LEG EXISTS BECAUSE THE DIVERGENCE ALREADY HAPPENED ONCE AND WAS
+  # INVISIBLE: on 2026-08-20, tool absent, both binaries printed an IDENTICAL
+  # census and v2 exited 3 while v3 exited 0. A bats file drives one dispatcher
+  # through $INTENT_BIN, so it agreed with whichever it was pointed at and
+  # reported green -- which is how a commit claiming all five exit drives
+  # matched was able to stand.
+  #
+  # Re-derived 2026-08-27: both now exit 3, so this arm guards a closed gap
+  # rather than reporting an open one. That is the point of writing it now.
+  local v2="${INTENT_V2_CHECKOUT:-$HOME/Devel/prj/Intentv2}/bin/intent"
+  [ -x "$v2" ] || skip "no v2 dispatcher at $v2 -- this leg needs both binaries, and passing without one would be the defect it guards"
+
+  run env PATH="$NO_TOOL_PATH" "$v2" critic shell --files "$SUBJECT"
+  v2_status="$status"
+  run env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT"
+  [ "$v2_status" -eq "$status" ]
+  [ "$status" -eq 3 ]
+}
+
 # --- ARM 4: THE POSITIVE CONTROL. Without this, the rest is decoration. ----
 
 @test "positive control: a fixture that violates IN-SH-CODE-001 produces a finding" {
