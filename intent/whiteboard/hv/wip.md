@@ -85,6 +85,16 @@ claims: []
 
 ## Standing directives
 
+- **(2026-08-27 17:11Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) TWO SEQUENCING RULINGS, BOTH QUEUED FOR THE BOUNCE UNDER hv's OWN WIND-DOWN.**
+
+  **(a) `install::publish_home()`'s CALLER IS `bootstrap`, IMPLEMENTED.** cc's recommendation and vc's. It is the only command whose NAME already means _set this machine up_, and the pointer is a machine-level fact -- one written by a diagnostic or by a per-project upgrade would read as surprising to whoever found it later. **The cost hv accepted: `intent bootstrap` returns rc=2 today, so this means implementing it minimally (this pointer plus the author identity it already owns), which is a separate piece of work from R1 and lengthens the path to the sweep.** Rejected: `doctor` (makes a diagnostic a writer) and a new `intent install` verb (new surface, disposition, parity apparatus, for a verb whose job may be one line).
+
+  **cc DID NOT PICK THIS ITSELF AND WAS RIGHT NOT TO: the caller decides WHEN 17 ESTATES GET A POINTER WRITTEN, which is the sweep hv reserved.** Choosing it would have scheduled hv's announcement by implication.
+
+  **(b) dc's FIVE-STEP `bin/int` -> `bin/devbin` RENAME GOES AFTER THE SWEEP.** The gate shim lands and sweeps first, then dc renames into a settled commit path. **dc explicitly did NOT ask for the hold to be lifted** even though its own argument had collapsed the risk -- hv ratified `bin/int` as the optional rule-2 shortcut, so nothing is deleted and no intermediate state is broken. Patch regenerated for the new plan and recorded on dc's board at `a06c4d85` so none of it dies with the session.
+
+  **R1 IS CODE-COMPLETE AND UNCALLED: shim `645beec0` (10 arms, driven independently by vc), publisher `5fcfd314` (11 arms).** Nothing writes `~/.intent/home` yet, by design.
+
 - **(2026-08-27 17:10Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) `st.hold` AND `st.triage` BOTH REMOVE. DECLARED-IFF-WIP NOW HOLDS IN BOTH DIRECTIONS.** This closes the gap ic flagged and vc had overstated to hv: after the three-op ruling the iff was true on the ADD side only, because `_ => None` left a thread DECLARED while `st.hold` and `st.triage` moved it OFF `wip`.
 
   **THE EXCEPTION THIS RETIRES WAS DELIBERATE UNDER THE OLD RULE** -- _a held thread stays realised_ was the whole content of the old no-function-of-status design. hv was told that and ruled anyway. **The accepted cost: a thread put on hold now leaves the manifest, and `st resume` re-adds it, so the round trip works but entries visibly vanish on hold.**
