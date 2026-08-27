@@ -173,6 +173,17 @@ pub struct Applied {
   /// generated marker and `--force` was not given. Distinct from `preserved`:
   /// canon owns the template for these, and held back on consent grounds.
   pub held: Vec<PathBuf>,
+  /// The machine's install pointer as it stood when the carrier was installed;
+  /// `None` when no carrier was installed at all.
+  ///
+  /// **A GATE THAT WAS WRITTEN IS NOT A GATE THAT CAN RUN**, and those are
+  /// different claims made by the same line of output. The carrier is a shim:
+  /// everything it does depends on `~/.intent/home` resolving to an install, so
+  /// a run that reports `written` while that pointer is absent or dangling has
+  /// installed a gate which refuses every commit -- correctly, and without
+  /// anything at install time having said so. Recorded here so the caller can
+  /// say it at the only moment the operator is looking.
+  pub gate_pointer: Option<crate::install::PointerState>,
 }
 
 #[derive(Debug)]
@@ -482,6 +493,15 @@ fn install_carrier(home: &Path, hooks: &Path, applied: &mut Applied) -> Result<(
   let carrier = hooks.join("pre-commit.intent");
   let shim = template(home, "hooks/pre-commit-shim.sh")?;
   write_if_changed(&carrier, &shim, applied)?;
+  // **ASKED AT INSTALL TIME BECAUSE THE ALTERNATIVE IS ASKING AT COMMIT TIME.**
+  // The carrier is a shim: it does nothing except resolve this pointer and exec
+  // what it names. So `written` is a claim about bytes and says nothing about
+  // whether the gate can run -- and the operator is looking HERE, not at their
+  // next commit. Recorded rather than refused: a project must still be able to
+  // become canonical from a machine whose pointer is temporarily wrong, and
+  // refusing to install would leave it with no gate at all, which is the state
+  // this whole change exists to end.
+  applied.gate_pointer = Some(crate::install::pointer_state());
   make_executable(&carrier)
 }
 

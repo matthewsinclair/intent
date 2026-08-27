@@ -4299,6 +4299,63 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     applied.preserved.len(),
     applied.held.len()
   );
+
+  // **WHETHER THE GATE JUST INSTALLED CAN ACTUALLY RUN.** Everything above is a
+  // claim about bytes on disk. The carrier is a shim whose entire behaviour is
+  // to resolve `~/.intent/home` and exec what it names, so `written` and
+  // `runnable` are different facts and only the first was ever reported.
+  //
+  // **SAID AFTER THE `ok:` LINE ON PURPOSE.** A reader who stops at the summary
+  // has read a true statement; this qualifies what the summary does not cover
+  // rather than contradicting it.
+  //
+  // **rc IS UNCHANGED, AND THAT IS A CHOICE.** The verb did what it was asked
+  // and did it correctly; the pointer is machine state it neither owns nor
+  // caused. Failing here would break a fleet sweep on a condition the sweep
+  // cannot fix per-project -- so this reports at the volume of the consequence
+  // and leaves the exit code to describe the write.
+  match &applied.gate_pointer {
+    None | Some(intentsvcs::install::PointerState::Resolves { .. }) => {}
+    Some(intentsvcs::install::PointerState::Absent) => {
+      println!(
+        "warning: the gate is installed and CANNOT RUN -- this machine has no recorded Intent install."
+      );
+      println!("  every commit in this project will refuse until it does.");
+      println!(
+        "  the carrier resolves ~/.intent/home and execs the gate it names; that file is absent."
+      );
+      println!("  remedy: intent bootstrap");
+    }
+    Some(intentsvcs::install::PointerState::Unusable { root }) => {
+      println!(
+        "warning: the gate is installed and CANNOT RUN -- ~/.intent/home names something that is not an install."
+      );
+      // **THE PATH IS QUOTED BACK**, as the shim itself does: "cannot find the
+      // install" without saying where it looked sends the reader to reinstall
+      // when the fault is one stale line in a file.
+      println!("  it points at: {root}");
+      println!("  every commit in this project will refuse until that resolves.");
+      println!(
+        "  this is NOT staleness -- the carrier's bytes are current, so reinstalling it changes nothing."
+      );
+      println!("  remedy: intent bootstrap, from the install you mean to use");
+    }
+  }
+
+  // **TWO ROOTS, AND NOTHING COMPARED THEM UNTIL NOW.** The carrier's bytes
+  // came from `home` -- resolved from this binary's own location. The gate it
+  // will exec comes from whatever `~/.intent/home` names. Those are allowed to
+  // differ and there is no error in either, but the operator has then installed
+  // one install's shim to run another install's guards, which is the
+  // moving-route hazard that produced the shim in the first place.
+  if let Some(intentsvcs::install::PointerState::Resolves { root }) = &applied.gate_pointer
+    && root != &home
+  {
+    println!("note: the gate will run from a DIFFERENT install than this binary.");
+    println!("  this binary:      {}", home.display());
+    println!("  ~/.intent/home:   {}", root.display());
+    println!("  neither is wrong, but the guards that run are the second one's.");
+  }
   Ok(())
 }
 

@@ -274,6 +274,63 @@ pub fn publish_home_at(root: &Path, pointer: &Path) -> Result<Published, Install
   })
 }
 
+/// What the published pointer answers TODAY -- the question `pre-commit-shim.sh`
+/// asks on every commit, asked here instead.
+///
+/// **THE READER LIVES BESIDE THE WRITER**, for the reason `bootstrap.rs` gives
+/// for its own: [`publish_home_at`] decides the file's shape and a second module
+/// parsing that shape is two definitions kept in step by hand.
+///
+/// **`Unusable` CARRIES WHAT IT POINTED AT.** The shim quotes the path back for
+/// the same reason: *cannot find the install* without saying where it looked
+/// sends the reader to reinstall when the fault is one stale line in a file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PointerState {
+  /// No pointer file. `bootstrap` has not completed on this machine.
+  Absent,
+  /// The pointer names something that is not an install -- moved, renamed, or
+  /// deleted since it was published.
+  Unusable { root: String },
+  /// The pointer names a real install.
+  Resolves { root: PathBuf },
+}
+
+/// [`PointerState`] for this machine.
+pub fn pointer_state() -> PointerState {
+  match crate::userstate::home_pointer() {
+    Ok(p) => pointer_state_at(&p),
+    // An unlocatable per-user directory and an absent pointer inside one are
+    // the same answer to the question asked -- the shim finds nothing either
+    // way, and the remedy is the same.
+    Err(_) => PointerState::Absent,
+  }
+}
+
+/// The half with the path handed in, so every arm is drivable against a
+/// fixture -- the split this module already uses for [`home`] and [`resolve`].
+///
+/// **AN EMPTY FILE IS `Absent`, MATCHING THE SHIM EXACTLY.** The shim collapses
+/// those two states deliberately (*both mean the installer did not finish, both
+/// have the same remedy*), and a reader that split them here would report a
+/// distinction the thing it is predicting does not make.
+pub fn pointer_state_at(pointer: &Path) -> PointerState {
+  let Ok(text) = std::fs::read_to_string(pointer) else {
+    return PointerState::Absent;
+  };
+  let first = text.lines().next().unwrap_or_default().trim();
+  if first.is_empty() {
+    return PointerState::Absent;
+  }
+  let root = PathBuf::from(first);
+  if is_install(&root) {
+    PointerState::Resolves { root }
+  } else {
+    PointerState::Unusable {
+      root: first.to_string(),
+    }
+  }
+}
+
 /// Where a shipped hook script lives, given the install root.
 pub fn hook_script(home: &Path, name: &str) -> PathBuf {
   home
@@ -562,5 +619,82 @@ mod tests {
         script.display()
       );
     }
+  }
+
+  #[test]
+  fn an_absent_pointer_is_absent_rather_than_unusable() {
+    let dir = tempfile::tempdir().unwrap();
+    assert_eq!(
+      pointer_state_at(&dir.path().join(".intent/home")),
+      PointerState::Absent
+    );
+  }
+
+  /// **EMPTY AND ABSENT ARE ONE ANSWER, MATCHING THE SHIM EXACTLY.**
+  /// `pre-commit-shim.sh` collapses them deliberately -- both mean the installer
+  /// did not finish and both have the same remedy. A reader that split them
+  /// would report a distinction the thing it predicts does not make.
+  #[test]
+  fn an_empty_pointer_is_absent_because_that_is_what_the_shim_says() {
+    let dir = tempfile::tempdir().unwrap();
+    let pointer = dir.path().join("home");
+    std::fs::write(&pointer, "\n").unwrap();
+    assert_eq!(pointer_state_at(&pointer), PointerState::Absent);
+  }
+
+  #[test]
+  fn a_pointer_naming_a_real_install_resolves() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("root");
+    install_at(&root);
+    let pointer = dir.path().join("home");
+    std::fs::write(&pointer, format!("{}\n", root.display())).unwrap();
+    assert_eq!(pointer_state_at(&pointer), PointerState::Resolves { root });
+  }
+
+  /// **THE LIVE INCIDENT, AS A FIXTURE.** On 2026-08-27 this machine's pointer
+  /// named a scratchpad worktree that a test binary had published and that had
+  /// since been cleaned up. `publish_home_at` had nothing to refuse -- the root
+  /// genuinely WAS an install at the moment it was written. **A correct pointer
+  /// becomes a wrong one through a third party's tidy-up**, and nothing notices
+  /// until a gate refuses, which is why this state has to be nameable.
+  #[test]
+  fn a_pointer_whose_root_has_been_deleted_is_unusable_and_names_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("gone");
+    install_at(&root);
+    let pointer = dir.path().join("home");
+    std::fs::write(&pointer, format!("{}\n", root.display())).unwrap();
+    assert!(matches!(
+      pointer_state_at(&pointer),
+      PointerState::Resolves { .. }
+    ));
+
+    std::fs::remove_dir_all(&root).unwrap();
+    match pointer_state_at(&pointer) {
+      PointerState::Unusable { root: named } => assert_eq!(
+        named,
+        root.display().to_string(),
+        "the state must carry WHAT it pointed at -- the shim quotes the path back \
+         for the same reason, because `cannot find the install` without saying \
+         where it looked sends the reader to reinstall over one stale line"
+      ),
+      other => panic!("a deleted root must be Unusable, got {other:?}"),
+    }
+  }
+
+  /// A directory that exists and is simply not an install -- distinct from the
+  /// deleted case in cause and identical in consequence.
+  #[test]
+  fn a_pointer_naming_a_directory_that_is_not_an_install_is_unusable() {
+    let dir = tempfile::tempdir().unwrap();
+    let not_install = dir.path().join("somewhere");
+    std::fs::create_dir_all(&not_install).unwrap();
+    let pointer = dir.path().join("home");
+    std::fs::write(&pointer, format!("{}\n", not_install.display())).unwrap();
+    assert!(matches!(
+      pointer_state_at(&pointer),
+      PointerState::Unusable { .. }
+    ));
   }
 }
