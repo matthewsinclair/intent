@@ -503,3 +503,34 @@ no gate:   llm-tropes, Pplr -- both already out of scope
 > **A PARTIAL FIX MAKES AN INSTRUMENT FEEL REPAIRED AND RETIRES THE SUSPICION THAT WOULD HAVE FOUND THE REST** -- and a repaired instrument is trusted more than an unexamined one. (cc, on dc's sequence: the directory half was corrected in the morning, and the filename half survived BECAUSE that correction had been made.)
 
 **WHAT THIS DOES TO THE HOLD: NOTHING, AND BOTH NODES SAID SO UNPROMPTED.** It is better evidence FOR the sweep -- a deliberate ruling-4 fix, landed today, absent from the gate that runs on this repo's very next commit -- and simultaneously better evidence that a badly-scoped sweep would have missed three estates and touched the wrong file in the other fourteen. Both cut toward taking the time. **The sweep remains hv's, reserved specifically, and a general pen grant does not overturn a specific reservation.**
+
+## ROOT-AND-BRANCH HIGHLANDER REVIEW OF THE v3 RUST (hv's instruction, 2026-08-27 18:07Z)
+
+**CORPUS:** 43,561 lines of source across 47 files, four crates (`intentsvcs` 34.4k / `intent-cli` 8.8k / `testkit` / `intentd`), plus 175 test files and `build-support`.
+
+### Axis 1 -- copy-paste. CLEAN, and it is the weakest axis.
+
+840 function bodies over 140 normalised characters. **ZERO exact duplicate bodies. Four near-duplicate pairs (Jaccard >= 0.80), and all four are artefacts of my own parser** -- one nested `fn` (the outer body contains the inner) and two mis-parsed bodies out of 1078, 0.3%, named: `ingest.rs:733 validator`, `contract.rs:157 resolves`, `contract.rs:165 carries_id`.
+
+**THE CONTROL AND ITS LIMIT, STATED BECAUSE THE RESULT IS A NEGATIVE.** A planted exact copy of the largest real body IS reported, so the hashing and reporting work. **That control does NOT prove the PARSING is right** -- it is a copy of a body the parser already produced, so it would pass under a broken parser too. The parse is checked separately: 1078 of 1078 bodies extracted, 1075 ending in `}`. A negative result from a 99.7%-correct instrument, not from a perfect one.
+
+### Axis 2 -- vocabularies with no home. WHERE EVERY REAL FINDING IS.
+
+**F1 -- the `st.*` op vocabulary. HIGH. Built by ic at `2ddecb33`.** Three spelling sites (`transitions.rs` edge table, `facade.rs` `declared_list_edit`, and each verb's own literal), no type, bare `&'static str`. **The two consumers fail in OPPOSITE directions and only one is loud**: an unknown op reaching `check_transition` is refused; one reaching `declared_list_edit` hit `_ => None` and SILENTLY made no list edit. **The cost was already paid three times in one day** -- `6ff37c0f`, `cce816a4`, `26111785` are all one vocabulary handled in one table and not the other. Closed by a test deriving the vocabulary FROM the edge table, with `st.new` and `st.reinstate` named as the legitimate `None`s. **ic's ninth-op mutation found what F1 did not name:** `st.park` reds TWO tests for two DIFFERENT defects (unanswered, and unreachable), and a single assertion would have reported whichever it met first.
+
+**F2 -- the `ThreadStatus` vocabulary in `transitions.rs`. LOW, DELIBERATELY DEFLATED, PARKED.** `model.rs:680` says in its own words that the vocabulary belongs to the type (issue 0041); `transitions.rs` references `ThreadStatus` **zero** times and spells all six as bare strings. It reads worse than it is: `mutation_completeness.rs` drives `exitless`, `traps` and `unreachable` over the values and is mutation-checked, so the completeness property is separately enforced.
+
+**F4 -- `remedy.rs` is the ONE rendering, and the surface has four producers. cc's.** MODULES.md and the module header both claim it; the header says an implementor _"cannot accidentally invent a second rendering, because it does not have to write one."_ True of the trait. **`Failure::Error(String)` restores the ability**: 67 sites in `render.rs`, 54 hand-written `remedy:` literals, 3 hand-written `caused by:`. `error_remedies.rs` -- the test enforcing AC-04.4 -- has **zero** reach into any of them. **This is my own Highlander finding 4 surviving its own fix**: the trait removed the second convention among TYPED errors and left the string path outside the argument.
+
+### Axis 3 -- registry claims. 20 rows make an explicit single-home claim; 4 are Rust.
+
+`source_commit.rs` VERIFIED (three `build.rs`, all wrappers, all including it). `remedy.rs` FALSE as written -- see F4. `preconditions.rs` and `export.rs` not yet driven.
+
+### Not this review's, and routed: F3 (`flag_reachability` coverage)
+
+cc found the blind spot by driving; I measured the population and **got the split wrong** -- 33 can fire, 59 cannot, of 92 examined, not my 15/94. **I evaluated the gate's conjunct against the CURRENT source; the gate fires on the MUTATED one**, and a flag whose id appears exactly once loses its mention along with its accessor. **A coverage figure measured on the unmutated source is a claim about the wrong world.** My two-sided control passed and was worthless: it confirmed the instrument computed what I told it to, which cannot tell me I told it the wrong thing.
+
+### OPEN, AND BOTH ARE hv's -- NOT DECIDED UNDER THE PEN
+
+1. **F1's FORM: enum or test?** ic's fact: `event::Envelope` carries `pub op: String` and serialises it, so the op spelling is a boundary -- verified. ic priced an enum as compat work. **I measured the population and it is empty: 15 estates carry `intent/events.jsonl`, all 15 are ZERO BYTES, and the path is gitignored so no history carries one either.** So the migration cost is zero TODAY and non-zero from the first event ever written. **The window in which this is free is open now and closes on the first write.** ic's weaknesses stand in their words: the test reds at `cargo test` not `cargo build`, and it can be deleted where an exhaustive match cannot be forgotten. The question for hv is one question, not two: **is the event log going to carry data, and when?**
+2. **AT-11.4's reading** (ic): the blocked figure counts FILES and no line names the thread, so _"reports the non-WIP threads as to remove and blocked"_ is met by arithmetic that is only unambiguous with exactly one undeclared thread. If hv reads the criterion as wanting the thread NAMED, that is a build.
