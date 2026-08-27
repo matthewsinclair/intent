@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 17:57Z
+heartbeat_at: 2026-08-27 18:04Z
 status: active
 focus: "**BOTH OF MY QUEUED ITEMS ARE CLOSED. (a) R1 END TO END `431590a3`; (c) RULING 4 `751b1302`.** (b) the sweep is vc's to hold and I have not gone near it. Also in: shim CONSUMERS row `822051f7`, clippy `b30a2364`, flag-reachability coverage line `003544af`. **THE DAY'S KEEPER: THREE INSTRUMENTS PASSED WHILE BLIND, AND EACH WAS FOUND BY DRIVING IT, NOT READING IT** -- flag-reachability (59 of 92 shielded), my own bad mutation (two occurrences, assert caught it), my own refutation (aimed at a string two subsystems emit). Nothing in flight. hv AFK, vc holds the pen."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -86,6 +86,10 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 **21. A TRUE NUMBER FROM AN INSTRUMENT THAT COULD NOT HAVE PRODUCED A DIFFERENT ONE.** dc's morning figure -- _0 of 5 installed hooks carry the refusing arm_ -- was CORRECT, and it was measured by grepping `pre-commit`, which carries the gate in NO estate. The grep could not have returned anything else in any tree under any state of the world. **A false green is easier to catch than a true one: the true one gets cited later, and the citation carries no trace of the blindness.** This is watch-out 1's family, but the sharpest member -- there is no wrong answer anywhere to notice. Only a positive control on the INSTRUMENT distinguishes it, and dc's re-sweep carries one (the arm pattern returns 1 against the template, so the detector demonstrably fires).
 
 **AND THE PART THAT GENERALISES FURTHEST: A PARTIAL FIX MAKES AN INSTRUMENT FEEL REPAIRED AND HIDES THE REST.** dc had already caught the `ls .git/hooks/` blindness this morning and re-run honouring `core.hooksPath` -- correcting WHERE it looked. It kept checking the wrong FILENAME inside the corrected directory, and the second fault survived precisely because the first correction had been made. **A repaired instrument is trusted more than an unexamined one, so the residue after a partial fix is more dangerous than the original defect.** Same shape as the wrong repair on `.githooks/pre-commit` an hour earlier: fixing the visible half retires the suspicion that would have found the other.
+
+**22. I COMMITTED A PEER'S UNCOMMITTED WORK INSIDE MY OWN COMMIT, AND MY MESSAGE CLAIMED THE WHOLE DIFF.** `003544af` carries 26 of its 64 added lines from vc -- their `.env("HOME", ...)` probe fix and its comment block -- because **`git add <path>` IS PATH-SCOPED AND TAKES THE WORKTREE AS IT STANDS.** vc had edited the file while losing five consecutive races for `.git/index.lock`; I staged by path in between. The commit message described only my change, so the record attributes their work to me and says nothing about a fix that had not yet been driven. **`--only <path>` PROTECTS OTHER PATHS, NOT OTHER PEOPLE'S EDITS TO YOUR PATH.**
+
+**AND THE INFERENCE THAT LED THERE WAS A TRUE OBSERVATION READ EXACTLY BACKWARDS.** I checked the file, found it clean, and told vc "it is clean in the shared tree, so your edit is somewhere I cannot see" -- and held off editing to avoid a collision. **A CLEAN TREE IS AMBIGUOUS BETWEEN "NOTHING WAS DONE" AND "SOMEBODY ELSE ALREADY COMMITTED WHAT YOU DID", and the second is the LIKELY reading exactly when two nodes are in one file** -- which is when we are closest to converging. **THE FIX IS ONE COMMAND: READ `git diff --cached --stat` (AND THE DIFF) BEFORE COMMITTING, EVERY TIME.** Staging is not a snapshot of your intent; it is a snapshot of the disk. Done on `8a19e215` and it took ten seconds.
 
 ## Decisions
 
