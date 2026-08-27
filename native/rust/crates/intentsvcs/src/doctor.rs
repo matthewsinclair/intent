@@ -1022,16 +1022,16 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
     // it keeps a daily schedule from reporting RED every morning before it
     // runs.
     Some(hours) => {
-      if let Some(every) = every {
-        if hours > every * 2.0 {
-          findings.push(Finding::new(
-            where_,
-            FindingClass::BackupStale,
-            format!(
-              "the newest restorable snapshot is {hours:.0}h old against a {every:.0}h schedule"
-            ),
-          ));
-        }
+      if let Some(every) = every
+        && hours > every * 2.0
+      {
+        findings.push(Finding::new(
+          where_,
+          FindingClass::BackupStale,
+          format!(
+            "the newest restorable snapshot is {hours:.0}h old against a {every:.0}h schedule"
+          ),
+        ));
       }
     }
   }
