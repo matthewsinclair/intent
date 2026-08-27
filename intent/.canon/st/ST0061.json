@@ -75,7 +75,7 @@
       "covers": [
         "AC-00.1"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "hydrate -> dehydrate -> hydrate on one thread; asserts the tree is byte-identical to the start and the manifest entry returns."
     },
     {
