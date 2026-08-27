@@ -436,16 +436,34 @@ mod tests {
     );
   }
 
-  fn tmp(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("intent-install-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&dir);
-    std::fs::create_dir_all(&dir).unwrap();
-    dir
+  /// A fixture root that REMOVES ITSELF when the test ends.
+  ///
+  /// **The hand-rolled predecessor leaked, and its own cleanup line is what hid
+  /// that.** `remove_dir_all` sat at the TOP of the helper, where it can only
+  /// ever match a path from a run with the same pid -- so with the pid in the
+  /// name it never fired once. Measured 2026-08-27: 1436 directories in
+  /// `TMPDIR` across the four fixture names, accumulating since 19 August.
+  ///
+  /// **The pid was not the mistake.** Several sessions run `cargo test` in this
+  /// one tree, and a stable path would have concurrent runs fighting over it.
+  /// `TempDir` keeps that isolation, and removes the directory on drop --
+  /// including when the test PANICS, which an explicit line at the end of a
+  /// test cannot do.
+  ///
+  /// **`tempfile` was already a dev-dependency and already in use twelve lines
+  /// above this**, in `what_is_published_is_what_the_shim_resolves`. The leak
+  /// was a second idiom for a job this file had already solved once.
+  fn tmp(name: &str) -> tempfile::TempDir {
+    tempfile::Builder::new()
+      .prefix(&format!("intent-install-{name}-"))
+      .tempdir()
+      .expect("fixture root")
   }
 
   #[test]
   fn the_install_is_found_by_walking_up_from_the_executable() {
-    let root = tmp("walk");
+    let dir = tmp("walk");
+    let root = dir.path();
     install_at(&root);
     let exe = root.join("native/rust/target/debug/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
@@ -463,7 +481,8 @@ mod tests {
   /// every developer here actually runs.
   #[test]
   fn a_binary_beside_the_marker_resolves_to_its_own_directory() {
-    let root = tmp("beside");
+    let dir = tmp("beside");
+    let root = dir.path();
     install_at(&root);
     let exe = root.join("bin/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
@@ -484,7 +503,8 @@ mod tests {
   /// nothing anywhere reports a version mismatch.
   #[test]
   fn the_install_is_a_function_of_the_executable_and_of_nothing_else() {
-    let root = tmp("sole-input");
+    let dir = tmp("sole-input");
+    let root = dir.path();
     install_at(&root);
     let exe = root.join("bin/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
@@ -503,7 +523,8 @@ mod tests {
   /// up from, because "not found" without the starting point is unactionable.
   #[test]
   fn no_install_above_the_executable_is_an_error_naming_where_it_looked() {
-    let root = tmp("noinstall");
+    let dir = tmp("noinstall");
+    let root = dir.path();
     let exe = root.join("bin/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
     std::fs::write(&exe, b"").unwrap();
