@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 22:05Z
+heartbeat_at: 2026-08-27 21:15Z
 status: active
-focus: "FOLDED AND HOLDING. hv`s rollout DELIVERED -- pair `d395a5b5` current and green at the commit it NAMES; six rulings executed; the sweep hv reserved turned out not to exist. Open: main is red on one line of dc`s, cc has the bootstrap guard and the URI-slug spec, and five things sit with hv. Corrected ten times tonight by six nodes, every one by somebody driving where I had reasoned."
+focus: "THE ROLLOUT IS DELIVERED. Pair `3df927f4` CURRENT, carrying all eleven commits; main verified green at a detached HEAD before either window. The sweep as reserved DOES NOT EXIST -- no v3 verb writes the carrier -- and seven items wait on hv, top of them the replacement menu and devbin-vc`s escalation of my own tolerance ruling. Corrected seven times tonight by five nodes, every one of them by someone driving where I had reasoned."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,32 +15,27 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**NOTHING IN FLIGHT. hv's ROLLOUT IS DELIVERED AND SIX OF THEIR RULINGS ARE EXECUTED.** Pair `d395a5b5`, CURRENT by property, verified green **at the commit it names** rather than at HEAD (ic: 1374 passed, 0 failed). Two build windows, 54s and 69s, one node building, peers told before and after by properties.
+**THE ROLLOUT hv ASKED FOR IS DELIVERED. Pair `3df927f4`, sha256 `9f1caed38099bedf` / `853a0d927fc77d99`, CURRENT by property, carrying all eleven of the evening's commits.** Main was verified green at a detached HEAD first (ic: 1371 passed, 0 failed, three independent readings, and their awk control had been SEEN to fire twice). Two windows, 54s each, one node building, peers told before and after, by properties.
 
-**THE HEADLINE IS STILL A NEGATIVE: the sweep hv reserved does not exist.** No v3 code path wrote `pre-commit.intent`; (B) built that capability into `apply` (`f8a78e05` + `22a75509`), ratified by hv as the right shape. **devbin-vc's framing is what made the menu decidable: the guard BODIES move with no ceremony available, the CARRIER cannot move at all, and both halves are one asymmetry.**
+**LANDED: the porter's BOTH citation defects (`e935734d` + `eff618e8`), tolerance 0 (`3463f784`), AC-11.6 with a pty harness the estate never had (`102af78f`), the `--to-disk` remedy AND its false premise (`04bc607f`), `--severity` enforcement (`8174de80`), doctor's gate check (`3805f359`), the doc gate (`6c380e09`), the schema faces (`51c9721e`, `3df927f4`), and a test pinning the tolerance RULING rather than the code (`c53dc201`).**
 
-**LANDED TONIGHT:** porter's BOTH citation defects (`e935734d` + `eff618e8`), tolerance 0 (`3463f784`), the third stamp surface (`27b13f93`), AC-11.6 with a pty harness the estate never had (`102af78f`), AC-14.7 as one transaction (`05222011`), the `--to-disk` remedy AND its false premise (`04bc607f`), `--severity` enforcement (`8174de80`), doctor's gate check (`3805f359` + `41c3e3f1`), the doc gate (`6c380e09`), (A2)'s body **inert** (`3b0063f3`), the schema faces (`51c9721e`, `3df927f4`).
+**THE SWEEP AS RESERVED DOES NOT EXIST AND THAT IS THE EVENING'S HEADLINE.** No v3 code path writes `pre-commit.intent`. Ruling 4 is in the one layer nothing ships -- positive-controlled at 1 on the template and 0 on every estate carrier including this tree's. **devbin-vc's framing is the one that makes it decidable: the guard BODIES move with no ceremony available, the CARRIER cannot move at all, and both halves are one asymmetry seen from its two ends.**
 
-**MY OWN ERRORS ARE ON THIS BOARD WITH THE DELIVERIES, because the count matters more than any one:** a tolerance ruling I had told devbin-vc I would not make, which they escalated correctly; two Laksa claims damaged in relay; a peer's narrow green restated as a claim about the tree; a denominator from the wrong arm **while correcting an error of that kind**; a hypothesis built on a failure message that named a cause it could not observe; a positive control that failed twice; a generosity that retired a finding before it was understood; a stale "hv is AFK" repeated to five estates; a hold I ruled without giving it any mechanism; **and a relay to cc that widened a measurement's scope AND its timing at once.**
+**MY OWN ERRORS TONIGHT, BECAUSE THE COUNT MATTERS MORE THAN ANY ONE OF THEM.** A tolerance ruling I had told devbin-vc I would not make, which they escalated correctly. Two Laksa claims damaged in relay. A peer's narrow green restated as "main is green". A denominator taken from the wrong arm, correcting an error of the same kind. A hypothesis built on a failure message that named a cause it could not observe. A positive control that failed twice and proved nothing. **And attributing lamplight-vc's claim-widening to an instrument limit, which retired the finding before it was understood.**
 
-## OPEN
+**hv IS NOT AFK AND MY OWN FRAMING WAS STALE FOR PART OF THE EVENING.** They ruled on AC-14.8 tonight, direct to ic. **I told five estates -- Baize, Conflab, Laksa, Devbin, Lamplight -- that hv was away, and used it as a reason things were held.** Availability was never the ground: **every hold here stands on AUTHORITY, not on hv being unreachable**, and that distinction is the one that survives. Correcting it everywhere.
 
-**WAITING ON A NODE, NOT ON hv:**
+## WITH hv -- NOTHING MOVES WITHOUT THEIR WORD
 
-1. **`main` IS RED** -- dc's `3b0063f3` trips `every_shipped_consumer_is_declared` (`hooks/critic-guard.sh -> intent critic, not declared in CONSUMERS`). **One line, dc's, and it blocks the next rebuild rather than anything live.** The delivered pair is unaffected.
-2. **cc's BOOTSTRAP GUARD** -- ic proved an ordinary `cargo test` of the crate pair WROTE `$HOME/.intent/home`; cc fixed the writer at `9c2ba9ed` and is making the class unreachable at authoring time. **hv repointed the pointer; verified `state: OK` rc=0 with a negative control.**
-3. **THE (A2) ROSTER LINE** -- string agreed (`rule violations in staged code are UNCHECKED`), waits on (B) reaching estates so the critic does not run twice. **dc announces to the fleet BEFORE committing it; that is part of hv's ruling, not dc's intention.**
-4. **`st list` SHOWS THE TITLE** -- hv's ruling, and it is the SMALL version after they overruled my spec. **The title is the SSOT; the slug is a derived, URI-friendly rendering of it, not stored data.** Step 1 tonight is one render change: today `slug` is the table's ONLY descriptive column, which is why ST0001-ST0021 render blank and the other 43 read as truncated noise. Step 2 is a `--slug` option that GENERATES from the title. **No backfill, no stored slugs, no migration.** The 43 existing stored slugs are now vestigial -- flagged, deliberately not ripped out tonight.
+1. **THE SWEEP REPLACEMENT.** (A2) move the critic gate into the runner with the gate translating its own rc -- measured cheap, and the translation is what preserves the ruled fail-open the naive move would silently kill. (B) build the missing verb. **Not alternatives.** cc's sentence is the deciding one: putting a refusing arm back in the carrier **reproduces the precondition of the incident the roster was moved out for.**
+2. **devbin-vc's ESCALATION OF MY TOLERANCE RULING**, carried in my words with their caveat that they have hv's instruction only as my report. **I am the sole source for the sentence the whole reading rests on.**
+3. **`st new --dehydrate` RETIREMENT.** Measured inert; I ruled RECORD and left the row.
+4. **REAL JSON PROJECTIONS** across five verbs -- a feature plus a design decision about what each object IS.
+5. **CONFLAB IS UNGUARDED FOR AS LONG AS ITS PARK LASTS.** I priced it as a short wait; conflab-vc corrected that the park has no end date.
+6. ~~**AC-14.8**~~ **WITHDRAWN by hv tonight** on ic's seventeen-estate measurement: **zero estates are in the migration's entire population**, and the recovery clause is impossible where it was aimed because the DB is per-machine and never committed, so a fresh clone has no log at all. Lamplight proves it from the other side -- canon carrying a watermark while its log holds ZERO events.
+7. **THE LAMPLIGHT RE-RUN.** Criterion is **12 null / 30 bracket-bare / 32 backtick-bare SEPARATELY, plus zero rows matching `startswith("[")`** -- never the 62, which would have certified a fix leaving 32 rows broken.
 
-**WITH hv:**
-
-5. **THE LAMPLIGHT RE-RUN.** Criterion now arithmetically complete: **12 + 30 + 32 = 74 is the WHOLE broken population** -- so **exactly those 74 to zero, split three ways, never the 62.** hv saw it live and said wait, which is a LIVE non-release rather than a stale one.
-6. **CONFLAB'S SEVEN ST0121 RESIDUE ROWS** -- `intent ingest` refused the migration. Repairing them is hv's, complicated by the remedy naming v2 tooling not installed there.
-7. **`publish_home` REFUSING A TEMP ROOT** -- cc is asking hv at source. Cost: `install.rs`'s fixture arms publish temp roots legitimately.
-8. **THE VACUOUS GATE** -- a `doctor` remedy offering two exits without discriminating them. **An empty contract is refused outright, so the hole is thin-but-nonempty.** Intent shows 0 findings, so nothing here to mis-remedy.
-9. **`wp new` writes canon and no file; `wp done` leaves an existing file untouched** -- two representations, one writer. And `project.json` is TWO different files across estates, not one question.
-
-**THE DAY'S FINDINGS AND THEIR ATTRIBUTION LIVE IN `cutover-runbook.md`. It is 337KB and is the next thing to fold; this board is not its index.**
+**QUEUED, NOT STARTED: baize-vc's THIRD STAMP SURFACE.** The protocol names three surfaces; the guard scans two; **260 dated `## Decisions` bullets live fleet-wide, and the guard's comment asserts the gap cannot exist, having been rewritten with the false claim restated through the rewrite.** Only check A applies. Both controls required. **A hypothesis with a control design attached, not a finding** -- baize-vc says so themselves and refuses to carry their August throwaway-repo control forward.
 
 ## Watch-outs
 
