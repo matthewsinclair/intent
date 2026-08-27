@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 18:47Z
+heartbeat_at: 2026-08-27 18:52Z
 status: active
-focus: "BOSS-VC, folded on hv's word, dirty 0, WAITING FOR INSTRUCTIONS -- start nothing. hv gave me the pen while AFK and I spent it on hv's own instruction (a root-and-branch Highlander review of the v3 Rust) while HOLDING every sixteen-estate change. Copy-paste axis CLEAN; every real finding is a vocabulary or a format with more producers than its record admits. Corrected FIVE times today by peers driving rather than reading, and one of those corrections was a false clause I had written onto hv's own board."
+focus: "PEN HELD, hv AFK, FOUR LANES RUNNING on the released queue. The sweep goes LAST so one sweep carries every template fix; tolerance 0 is RULED but does not land until dc`s two controls pass; the fleet stamp census GATES the sweep. Reading `roll out the fixes` as releasing the sweep hv reserved by name is MINE, authority: vc, and the first thing to overturn if it over-reads. Nobody rebuilds but me."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,28 +15,32 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**NOTHING. WAITING FOR hv's INSTRUCTIONS.** All four Intent nodes folded and holding; nothing in flight anywhere.
+**hv RELEASED THE HELD QUEUE AND GAVE ME THE PEN -- _"coordinate dc, ic, and cc (and yourself) to roll out the fixes"_ -- AND IS AFK. FOUR LANES RUNNING.** The reading that this releases the sweep hv reserved by name is MINE, `authority: vc`, recorded in hv's inbox as mine and first on the list to overturn.
 
-**THE PORT IS DONE EXCEPT CONFLAB.** Re-measured, not recalled. The ledger and every LEARNED bullet are in `cutover-runbook.md` -- read that, not this.
+**THE SEQUENCING RULING: THE SWEEP GOES LAST.** cc and dc are landing template-side fixes right now, so sweeping first means sweeping twice and the second sweep is the one nobody schedules. One sweep carries everything.
 
-**THE PAIR IS `2eb6a8f8`, sha256 `6f77384d7f371c23` / `7bda5b08816e3928`, AND THE HASH IS NEVER THE TEST.** It moved **five** times today. **VERIFY BY PROPERTIES:** `git diff --name-only <marker>..HEAD -- native/rust surface` empty means CURRENT. **NEVER compare the marker to `HEAD`** -- that is watch-out 0, and it is the defect I fixed in the gate at `bc4f5052`. An in-flight run compares the sha _against itself_ at both ends and discards on a differing OR FAILED read.
+**LANES:** cc -- the v3 porter's AT-citation truncation (74 rows; lamplight-vc holding read-only on it) + `render.rs:423`'s unguarded remedy. dc -- clock tolerance 0 with its two controls, the fleet stamp census, the sweep's real payload, doc-links. ic -- AC-11.6, WP-11's cover, F1's live figure. Mine -- the `claims:` gap, then the sweep.
 
-**I OWN THE REBUILD AND THE REBUILD OPENS A HOLE.** `bin/devbin build all` deletes both binaries to force the provenance embeds, so for ~60s **every estate on this machine has no `intent` and every gate fails open.** Demonstrated today, not argued: Devbin's `e5bf283` committed with no guard at all because of one of my rebuilds. It fails open LOUDLY, and the staging-dir build (hv queue item 2) dissolves it. Announce every rebuild by properties; one node rebuilds, never three.
+**I OWN THE REBUILD AND ALL THREE ARE TOLD NOT TO.** `bin/devbin build all` deletes both binaries to force the provenance embeds, so for ~60s **every estate on this machine has no `intent` and every gate fails open** -- Devbin's `e5bf283` committed with no guard at all because of one of mine. One node rebuilds, announced by properties.
 
-**THE HIGHLANDER REVIEW (hv's instruction) IS RECORDED IN `cutover-runbook.md`** -- three axes, four findings, and the two questions that went to hv. F1 built by ic, F2 parked as separately guarded, F4 built by cc plus an arm beyond scope, F3 corrected by cc. **The copy-paste axis is clean and it is the WEAKEST axis** -- say both halves or the sentence misleads.
+**THE PAIR IS `2eb6a8f8`, sha256 `6f77384d7f371c23` / `7bda5b08816e3928`, AND THE HASH IS NEVER THE TEST.** **VERIFY BY PROPERTIES:** `git diff --name-only <marker>..HEAD -- native/rust surface` empty means CURRENT. **NEVER compare the marker to `HEAD`** -- that is watch-out 0, the defect I fixed in the gate at `bc4f5052`.
 
-## HELD FOR hv -- NOTHING HERE MOVES WITHOUT hv's WORD
+**THE HIGHLANDER REVIEW IS RECORDED IN `cutover-runbook.md`** -- three axes, four findings. F1 built by ic, F2 parked as separately guarded, F4 built by cc, F3 corrected by cc. **The copy-paste axis is clean and it is the WEAKEST axis** -- say both halves or the sentence misleads. **Axis 3 is the one to repeat first and it is unfinished: `preconditions.rs` and `export.rs` are still undriven, and of the two I did drive, one claim was FALSE.**
 
-Every one is either a sixteen-estate artefact or something hv reserved specifically. **A general pen grant does not overturn a specific reservation**, and everything I ruled while hv was away is recorded `authority: vc`, never `authority: hv`.
+## THE ROLLOUT -- SEQUENCED UNDER THE PEN
 
-1. **THE 17-ESTATE SWEEP.** Reserved by hv by name. Scoped now (dc): all 17 carry `pre-commit.intent`, never `pre-commit`; ruling 4 in force in ZERO. `.git/hooks` is NOT where the hooks are when `core.hooksPath` is set -- `fleet-hook-census.sh` already resolves both halves.
-2. **THE CLOCK-GUARD TOLERANCE.** Three bands, not a number; `-gt` is strict so 60 does NOT catch a +60s stamp; only 0 is deterministic across both `date` flavours. **One CONFIRMED fabrication in Intent's own corpus** (cc's, transcript-proven) plus one unresolved. Zero false positives measured **in Intent's 648** -- the fleet's rate is unmeasured.
-3. **THE `claims:` FILE-CLAIM GAP.** Reached independently by laksa-cc and devbin-cc. A current board says `claims: []` too, so freshness cannot fix it.
-4. **F1's FORM -- enum or test.** 22 members over 8 families, four with no state machine. Trigger is the first RENAME OR RETIREMENT, not the first event: 1108 events exist and all 22 ops are still spelled.
-5. **AC-14.8's MIGRATION** -- per-machine read writing canon across 12 estates. ic holds it, red and visible.
-6. **AC-11.6**, and **`st new --dehydrate` now inert.**
-7. **THE DOC-LINK CHECK** -- `cargo doc --no-deps --document-private-items`. Nine unresolved links live, eight in public docs. Routed to dc's lane as a queued item.
-8. **THE v3 PORTER's AT-CITATION DEFECT** (lamplight-vc, hv-routed to Intent). See `cutover-runbook.md`.
+**Released by hv 2026-08-27; the sequencing and the two rulings inside it are `authority: vc`.** Everything ruled while hv is away is recorded as mine, never as hv's.
+
+1. **THE SWEEP -- LAST, AND SCOPED DOWN FROM 17.** `Intentv2` is never written; Intent is self-hosted and its gate already reads guards from this repository. **Laksa is the only remaining estate where the sweep writes into a TRACKED directory (`bin/hooks`)** and gets its own handling. dc is confirming whether the payload is a CARRIER refresh or a body install -- my reading that only the carrier is copied is from a document, not a measurement.
+2. **CLOCK-GUARD TOLERANCE 0 -- RULED, CONDITIONAL, NOT LANDED.** Lag cannot false-positive at any threshold (it drives drift NEGATIVE); `-gt` is strict so 60 catches neither known instance, both exactly +60s; 0 is the only value deterministic across both `date` flavours. **Does not land until dc re-drives Intent's 648 AT 0 and positive-controls at +60** -- I do not know which threshold the "zero false positives" figure was measured at.
+3. **THE FLEET STAMP CENSUS GATES THE SWEEP.** Intent's rate is one estate; the fleet's is unmeasured. **A guard that fires on healthy commits is worse than a missed fabrication**, so the census runs read-only BEFORE the sweep carries tolerance 0.
+4. **THE `claims:` FILE-CLAIM GAP -- MINE.** Reached independently by laksa-cc and devbin-cc. A current board says `claims: []` too, so freshness cannot fix it.
+5. **F1 -- ic BUILDS THE NUMBER, hv KEEPS THE ANSWER.** enum-vs-test is a design call hv has not made. The live `doctor` check (for each op in the store, is it still spelled) converts hv's question from a forecast into a figure. 22 of 22 spelled today; the trigger is the first RENAME OR RETIREMENT.
+6. **AC-11.6 + `st new --dehydrate` inert + WP-11's COVER -- ic.** The cover still carries the definition hv overruled the same day; ic was right not to reword a ruling alone and now does it under my pen.
+7. **THE DOC-LINK CHECK -- dc, cheapest, last in their lane.** `--document-private-items` is the load-bearing flag; without it the check is blind in exactly today's way.
+8. **THE v3 PORTER's AT-CITATION DEFECT -- cc, HIGHEST VALUE, BLOCKING ANOTHER ESTATE.** The DISK is intact and the STORE is the lossy side, so a fixed hop 2 re-run recovers all 74 rows with no hand-patching. **Intent cannot exhibit it** (0 of 318), so a green here proves nothing and the fix needs a fixture.
+
+**STILL HELD, AND NOT FORGOTTEN: AC-14.8.** A per-machine read writing canon across 12 estates is a FLEET WRITE, and every fleet write sequences after the sweep. Red and visible on ic's board.
 
 ## Watch-outs
 
