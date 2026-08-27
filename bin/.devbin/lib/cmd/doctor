@@ -402,7 +402,7 @@ check_handlers() {
 # checker that reports the correct state as a finding is how a checker stops
 # being read.
 check_symlinks() {
-  local n names="" path pointers other
+  local pname palias path pointers other
 
   if [ -x "$PROJECT_ROOT/bin/devbin" ]; then
     _pass "launcher: bin/devbin"
@@ -411,27 +411,32 @@ check_symlinks() {
     _detail "this is the dispatcher; reinstall with: devbin install --into $PROJECT_ROOT"
   fi
 
-  names="$(cfg_get project.name) $(cfg_get project.alias)"
-  for n in $names; do
-    [ -n "$n" ] || continue
-    [ "$n" = devbin ] && continue
-    path="$PROJECT_ROOT/bin/$n"
+  # THE TWO NAMES ARE DIFFERENT THINGS AND THIS LOOP USED TO CONFLATE THEM.
+  # It iterated `project.name project.alias` together and called both retired,
+  # so it told seven estates their RATIFIED shortcut was superseded. hv's
+  # convention (2026-08-27): bin/{project} is retired because it shadows the
+  # binary the project BUILDS; a 2-3 char shortcut pointing DIRECT at bin/devbin
+  # is a permitted per-project choice. Found by intent-dc auditing the fleet.
+  pname="$(cfg_get project.name)"
+  palias="$(cfg_get project.alias)"
+
+  # THE PROJECT-NAMED LINK -- retired, and possibly standing where the project's
+  # own binary wants to live.
+  if [ -n "$pname" ] && [ "$pname" != devbin ]; then
+    path="$PROJECT_ROOT/bin/$pname"
     # Only a symlink TO devbin is ours to comment on. A real file of that name
     # is the project's own binary and is none of devbin's business.
     if [ -L "$path" ] && [ "$(readlink "$path")" = devbin ]; then
-      _note "launcher: bin/$n -> devbin is a retired alias, superseded by bin/devbin"
+      _note "launcher: bin/$pname -> devbin is a retired alias, superseded by bin/devbin"
       # NO PASTEABLE `rm` HERE, AND THAT IS THE WHOLE POINT OF THIS BRANCH.
       #
       # It offered one for about an hour and laksa-vc said plainly it would have
       # run it. A tool naming a SPECIFIC remedy is read as advice regardless of
       # its severity label: the reader's eye lands on a command it can paste and
-      # the word "note" does not survive the trip. A note carrying a destructive
-      # one-liner is a recommendation with a disclaimer attached, and the
-      # disclaimer is the half nobody reads.
+      # the word "note" does not survive the trip.
       #
       # Whether the alias goes is a PROJECT decision and devbin is not entitled
-      # to it -- in two estates this link is another link's target, and in
-      # several it is named by CI.
+      # to it -- in several estates it is named by CI.
       _detail "whether to remove it is this project's call; devbin no longer creates it"
       # WHAT DOCTOR CAN DO THAT A CAUTION CANNOT: say who would break. It is
       # standing in bin/ and can simply look, so the risk is COMPUTED for this
@@ -439,13 +444,36 @@ check_symlinks() {
       pointers=""
       for other in "$PROJECT_ROOT"/bin/*; do
         [ -L "$other" ] || continue
-        [ "$(readlink "$other")" = "$n" ] && pointers="$pointers $(basename "$other")"
+        [ "$(readlink "$other")" = "$pname" ] && pointers="$pointers $(basename "$other")"
       done
       if [ -n "$pointers" ]; then
         _detail "REMOVING IT WOULD ALSO BREAK:$pointers -- $(printf '%s' "$pointers" | wc -w | tr -d ' ') link(s) point AT this one"
       fi
     fi
-  done
+  fi
+
+  # THE SHORTCUT -- permitted, and the only thing worth saying about it is
+  # WHERE IT POINTS. Direct at devbin is correct and passes. Chained through the
+  # project-named link is the one alias shape the retirement can break, which is
+  # what killed Lamplight's bin/ll -> lamplight -> devbin; it was the only such
+  # link in the fleet and nothing resolving a single hop could see it.
+  if [ -n "$palias" ] && [ "$palias" != devbin ] && [ "$palias" != "$pname" ]; then
+    path="$PROJECT_ROOT/bin/$palias"
+    if [ -L "$path" ]; then
+      case "$(readlink "$path")" in
+        devbin)
+          _pass "shortcut: bin/$palias -> devbin"
+          ;;
+        "$pname")
+          _note "shortcut: bin/$palias is chained through bin/$pname, which is retired"
+          # A PASTEABLE COMMAND IS RIGHT HERE AND WRONG ABOVE, AND THE
+          # DIFFERENCE IS WHETHER IT DESTROYS ANYTHING. This one repoints and is
+          # idempotent; the branch above deletes and is the project's call.
+          _detail "it dies when that link goes -- repoint it direct: ln -sfn devbin bin/$palias"
+          ;;
+      esac
+    fi
+  fi
   return 0
 }
 

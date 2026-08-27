@@ -29,7 +29,8 @@ fi
 
 # Resolve this script's real location (symlink-safe) into BIN_DIR and the
 # project root, so the launcher works from any CWD and through a symlink on
-# PATH. Both `bin/<prj> -> devbin` and `bin/<alias> -> devbin` land here.
+# PATH. A surviving `bin/<alias> -> devbin` lands here too; `bin/<prj> -> devbin`
+# is retired and any still on disk is a project's to remove.
 _self="${BASH_SOURCE[0]}"
 while [ -L "$_self" ]; do
   _dir="$(cd -P "$(dirname "$_self")" >/dev/null 2>&1 && pwd)"
@@ -144,8 +145,10 @@ if [ -n "$_devbin_referent_cmd" ]; then
 fi
 unset _devbin_referent_cmd
 
-# Identity comes from config, never from $0. That is what lets bin/conflab and
-# bin/cf both be symlinks to this file while `conflab -v` still says conflab.
+# Identity comes from config, never from $0. That is what lets a project keep a
+# short alias -- bin/cf, a soft local convention pointing DIRECT at this file --
+# while `conflab -v` still says conflab. The project-named form (bin/conflab) is
+# retired: it shadowed the product binary these projects now build.
 DEVBIN_NAME="$(cfg_get project.name devbin)"
 # The mix task the `cli` and `repl` built-ins call, defaulting to the
 # derivation that held for the whole first fleet. The Arca pair is why it is

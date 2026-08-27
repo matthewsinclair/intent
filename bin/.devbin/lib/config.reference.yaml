@@ -20,7 +20,13 @@ project:
   # Required. The display name in help, and the prefix on die/warn output.
   name: conflab
 
-  # Optional. Short symlink alias installed beside bin/devbin (bin/cf).
+  # Optional, and RECORDED ONLY -- devbin does not create it. A short name a
+  # project may keep by hand as a soft local convention (bin/cf). If one exists
+  # it must point DIRECT at bin/devbin: an alias chained through a project-named
+  # link dies with that link, which is how Lamplight's bin/ll -> lamplight was
+  # the only alias in the fleet that the retirement would have taken out.
+  # bin/devbin is the official invocation; a short name is never the official
+  # form.
   alias: cf
 
   # Optional. The mix task the `cli` and `repl` built-ins call.

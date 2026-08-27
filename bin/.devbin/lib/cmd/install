@@ -26,7 +26,8 @@ usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang 
 
   --into <dir>   the project to install into (default: the current directory)
   --name <n>     the project name (default: the target directory's name)
-  --alias <a>    a short alias symlink, eg 'cf' for conflab
+  --alias <a>    a short name this project may keep, eg 'cf' for conflab.
+                 RECORDED ONLY -- devbin creates no symlink for it
   --lang <l>     a language the project declares; repeatable, or comma-separated
   --force        re-vendor over an existing install
 
@@ -99,16 +100,18 @@ main() {
       --name)
         name="${2:-}"
         case "$name" in
-          *[A-Z]*) die "project name must be lower case: --name $name would install bin/$name
-       A bin/ entry with a capital in it is not a conforming Unix command name." ;;
+          *[A-Z]*) die "project name must be lower case: --name $name
+       It is the identity in help, die/warn output and doctor, and a capitalised
+       one reads as a directory name leaking into a command surface." ;;
         esac
         shift 2 || die "--name needs a value"
         ;;
       --alias)
         alias="${2:-}"
         case "$alias" in
-          *[A-Z]*) die "alias must be lower case: --alias $alias would install bin/$alias
-       A bin/ entry with a capital in it is not a conforming Unix command name." ;;
+          *[A-Z]*) die "alias must be lower case: --alias $alias
+       Recorded only -- devbin installs nothing for it -- but if the project
+       hand-makes bin/$alias, a capital is not a conforming command name." ;;
         esac
         shift 2 || die "--alias needs a value"
         ;;
@@ -149,9 +152,11 @@ main() {
 
   # A project that already has a config has already declared who it is, and that
   # beats both the flags' default and the directory name. Re-installing must not
-  # rename a project or drop the alias its people type -- the symlinks below are
-  # created from these two values, so guessing here means `install --force` over
-  # an existing project silently stops creating `bin/<alias>`.
+  # rename a project or drop the alias its people type. Neither value creates a
+  # symlink any more -- `link_alias` is retired, see above -- but `project.name`
+  # is the identity every command prints and `project.alias` is the short name a
+  # project may choose to maintain BY HAND, so guessing either still rewrites a
+  # decision the project already made.
   #
   # The dispatcher loaded the SOURCE's config in its own process; this is a
   # separate one, so loading the TARGET's here collides with nothing.
@@ -161,8 +166,9 @@ main() {
     [ -n "$alias" ] || alias="$(cfg_get project.alias)"
   fi
 
-  # LOWER-CASED, because this name becomes the launcher SYMLINK (bin/<name>)
-  # and a bin/ entry with a capital in it is not a conforming Unix command name.
+  # LOWER-CASED. This no longer names a symlink -- devbin creates none -- but it
+  # is still the identity in help, die/warn output and doctor, and a capitalised
+  # one reads as a directory name leaking into a command surface.
   # Project DIRECTORIES routinely are capitalised -- Conflab, Laksa, Baize,
   # Lamplight, MicroGPTEx, Prolix, Riffle -- so taking the basename verbatim is
   # wrong more often than it is right.
