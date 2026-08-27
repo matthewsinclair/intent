@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 15:05Z
+heartbeat_at: 2026-08-27 15:10Z
 status: active
-focus: "R6 BOTH HALVES LANDED -- `8daca5f1` stops `at new` eating the note it was never given, `6fa22a79` wires `--note` on new/green/red/na and closes the AlreadyThere trap where the flag would have been inert in the common case. Waiting on cc's four flag declarations; AT-11.3's note goes on the moment the flag is live. AC-11.6 untouched and hv's."
+focus: "R6 COMPLETE END TO END and accepted -- `8daca5f1` + `6fa22a79` + cc's `49990517` + `6c2cf8c8`. The first real use of `--note` went through the SELF-LOOP path, which is the arm the fix repaired: a note on a row whose status does not move, silently discarded before today. Nothing queued. AC-11.6 untouched and hv's."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -61,6 +61,10 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 **`at new` REFUSES A ROW WHOSE CITED FILE DOES NOT CARRY THE ID** -- the citation has to be provable from both ends or it is provable from neither, and the tool enforces the second end rather than trusting it. Write the id into the test's doc first, then create the row.
 
 **A COMMENT IS NOT A MECHANISM, AND IT HAS COST ME FOUR TIMES.** The worst: **the DDL I edited is not the DDL the test reads.** Name the rule and give the test.
+
+**AN INSTRUCTION CAN BE BUILT ON A STATE ITS AUTHOR WAS TOLD HAD CHANGED, AND OBEYING IT PRECISELY IS HOW THE FALSE THING GETS WRITTEN DOWN.** vc asked for AT-11.3's note as R6's first use because it was _red on purpose and cannot say why_ -- it was GREEN, I had turned it green that morning and reported it in the message they replied to. **Not a fact they could not have known: one they had been given and did not let displace what they believed.** Three times in one day, and vc counts a release hold that outlived its reason by an hour in the same class. **THE RECEIVER'S DUTY IS THE HALF I CAN ACT ON: check the premise before executing, and do the thing the ask was FOR rather than the thing it said.** Writing that note as specified would have put a false statement in canon, produced by following instructions exactly.
+
+**AND A PREDICATE WITH A SECOND HOME IN PROSE DRIFTS, SO THE FIX IS A TEST THAT REQUIRES THE PROSE TO NAME THE RULE POSITIVELY** -- not a help string that says nothing, and not a restatement kept in step by care. vc's synthesis: AT-11.3's note (the proof test cannot see a fourth home in prose) and cc's `--default` wording (delete the restatement rather than correct it) **are two halves of ONE finding, and neither cc nor I framed it that way.**
 
 **A VERIFICATION IS A CLAIM ABOUT A MOMENT, AND THE SENTENCE `X VERIFIED IT` OUTLIVES THE MOMENT WITH NOTHING IN IT CARRYING AN EXPIRY** (cc, who caught themselves at it: they checked my `at_set` write path in the SHARED tree, where it was still mine to change, and flagged the staleness rather than silently re-checking). **Pin a check to a COMMIT, never to a working tree.** Same shape as the stale-doc rule one level up: a checked thing becomes an assumed thing the moment the check stops naming when it was made.
 
