@@ -318,7 +318,26 @@ fi
 #
 # The asymmetry -- skip where the tool does not apply, fail where it applies and
 # cannot run -- is devbin-vc's, already implemented in `check format`.
-if ! command -v intent >/dev/null 2>&1; then
+# **RESOLVED, THEN TESTED FOR EXECUTABILITY -- because `command -v` does not do
+# the second thing.** This condition used to be `! command -v intent`, and that
+# is exactly two of the five states short: a plain non-executable file (C) and a
+# link to a non-executable target (E) are both FOUND by `command -v`, sailed
+# past this arm, and died at the invocation site as exit 126 -- where the gate
+# reported the language UNENFORCED and let the commit through.
+#
+# **hv RULING 4 (2026-08-27): A GATE THAT CANNOT LOCATE WHAT IT NEEDS REFUSES,
+# IT DOES NOT SKIP.** This arm ALREADY refused for A, B and D; C and E fell
+# through on an accident of what `command -v` tests, not on a policy anyone
+# chose. Closing it makes the five states agree rather than adding a new
+# severity: the gate is not becoming stricter, it is becoming consistent.
+#
+# **AND THIS IS NOT ISSUE 0043 REBUILT ON THE GIT SIDE.** That objection applies
+# to blocking when the tool RAN and answered; it does not apply here, because
+# the tool did not run at all and this arm has blocked for three of these five
+# states since it was written. The fail-open below (exit 2, unimplemented) is
+# untouched and remains a ruling.
+_cv="$(command -v intent 2>/dev/null || true)"
+if [ -z "$_cv" ] || [ ! -x "$_cv" ] || [ -d "$_cv" ]; then
   # ---- WHICH ABSENCE? `command -v` COLLAPSES THREE STATES INTO ONE EMPTY ANSWER ----
   #
   # **THE REMEDY WAS WRONG FOR MOST OPERATORS WHO WOULD EVER SEE IT** (ic,
@@ -338,18 +357,18 @@ if ! command -v intent >/dev/null 2>&1; then
   #   C  plain file, not +x                rc=0 FOUND   NEVER reaches here
   #   E  link, target resolves, not +x     rc=0 FOUND   NEVER reaches here
   #
-  # **`command -v` DOES NOT TEST EXECUTABILITY.** C and E sail through this arm
-  # and fail at the invocation site instead, as exit 126, where the gate reports
-  # the language UNENFORCED and does not block. Two of the four branches I wrote
-  # were therefore unreachable -- dead code reading as coverage, which is this
-  # file's own class committed while fixing it.
+  # **`command -v` DOES NOT TEST EXECUTABILITY**, which is why the condition
+  # above resolves the path and asks `-x` itself. C and E USED TO sail through
+  # here and die at the invocation site as exit 126, reported as UNENFORCED and
+  # not blocking. They now arrive, so all five states are handled in one place
+  # and the `rc` column above describes `command -v` alone rather than this
+  # arm's reach.
   #
-  # So this arm claims A, B and D only. **C and E ARE NOT HANDLED HERE AND ARE
-  # NOT HANDLED WELL ANYWHERE**: they land on the 126 fail-open path, which under
-  # hv's ruling 4 (a gate that cannot locate what it needs REFUSES) is the next
-  # thing to fix. Named rather than quietly bucketed, because a table that
-  # silently absorbs a state it cannot see is worse than one that says where the
-  # state actually goes.
+  # **THE TWO BRANCHES I ORIGINALLY WROTE FOR C AND E WERE UNREACHABLE** -- dead
+  # code reading as coverage, in the very file that exists to stop that. They
+  # were removed when the table was driven, and what follows is a single branch
+  # written against a state that now actually arrives, which is a different
+  # thing from restoring them.
   #
   # The discriminators are `-L` (is the PATH name a link at all) and `-e` (does
   # what it names resolve); `-e` is FALSE for a dangling symlink, which is why
@@ -361,16 +380,22 @@ if ! command -v intent >/dev/null 2>&1; then
   # TRUNCATED.** It satisfies `command -v`, so the gate never arrives -- it fails
   # when something runs it. Named rather than checked: a check that appeared to
   # cover it would be a claim this gate cannot make from the filesystem alone.
-  _cand=""
+  # **WHAT `command -v` RESOLVED BEATS A PATH WALK, WHEN THERE IS ONE.** For C
+  # and E the shell has already told us the exact file it would have run; re-
+  # deriving it by walking PATH could name a DIFFERENT entry and give the
+  # operator the wrong file to fix.
+  _cand="$_cv"
   _ifs_saved="$IFS"
   IFS=':'
-  for _dir in $PATH; do
-    [ -n "$_dir" ] || _dir="."
-    if [ -L "$_dir/intent" ] || [ -e "$_dir/intent" ]; then
-      _cand="$_dir/intent"
-      break
-    fi
-  done
+  if [ -z "$_cand" ]; then
+    for _dir in $PATH; do
+      [ -n "$_dir" ] || _dir="."
+      if [ -L "$_dir/intent" ] || [ -e "$_dir/intent" ]; then
+        _cand="$_dir/intent"
+        break
+      fi
+    done
+  fi
   IFS="$_ifs_saved"
 
   echo "intent critic gate: 'intent' CLI is not runnable, and this IS an Intent project." >&2
@@ -388,13 +413,32 @@ if ! command -v intent >/dev/null 2>&1; then
     echo "         a directory is searchable, so it passes an executable test and" >&2
     echo "         still cannot be run. Something on PATH shadows the real CLI." >&2
     echo "  remedy: rename it, or reorder PATH so Intent's bin/ comes first." >&2
+  elif [ ! -x "$_cand" ]; then
+    # **C AND E, THE TWO STATES THAT USED TO BE A FAIL-OPEN.** One branch, not
+    # two, and that is deliberate: C (a plain file without +x) and E (a link to
+    # a target without +x) differ in how the operator got here and not at all in
+    # what they must do, and `chmod +x` is the remedy for both. The earlier
+    # attempt at this gave them a branch each and neither could ever run.
+    #
+    # **THE HISTORY IS IN THIS COMMENT AND NOT ON THE OPERATOR'S TERMINAL.** A
+    # draft of this branch printed "this used to reach the critic and fail as
+    # exit 126 -- reported as UNENFORCED"; true, and none of the reader's
+    # business. It is D37's rule -- our own backlog is not output -- and it also
+    # defeated the test asserting the old wording was gone, because the message
+    # contained the word the assertion was looking for.
+    echo "  state: $_cand exists but is not executable." >&2
+    if [ -L "$_cand" ]; then
+      echo "         it is a link to $(readlink "$_cand" 2>/dev/null || echo '<unreadable>')," >&2
+      echo "         and it is the TARGET that lacks the executable bit." >&2
+    fi
+    echo "  remedy: chmod +x the file above, or reorder PATH so Intent's bin/ comes first." >&2
   else
     # **RESIDUE, AND IT IS A NAMING RATHER THAN A GUARD.** A, B and D are each
     # driven by a test. Nothing reaches here that anyone has constructed: an
     # entry present, executable, not a directory, and still not found. It says
     # so plainly instead of guessing, because a confident wrong remedy costs
     # more than an admitted gap -- and a non-executable file is NOT this case,
-    # it is C or E, which never arrive.
+    # it is C or E, which now have the branch directly above.
     echo "  state: $_cand looks executable, so the lookup failed for a reason this" >&2
     echo "         gate cannot name from the filesystem -- report it rather than" >&2
     echo "         working around it." >&2

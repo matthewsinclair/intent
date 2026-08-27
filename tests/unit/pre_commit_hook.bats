@@ -191,7 +191,7 @@ EOF
   refute_output_contains "no PATH entry named"
 }
 
-@test "CLI absence C/E do NOT reach the CLI arm -- command -v does not test executability" {
+@test "CLI absence C/E: a non-executable intent REFUSES, it does not fail open as 126" {
   # **THE ARM THAT CORRECTED THE PREMISE, AND IT WAS WRITTEN AS TWO PASSING
   # TESTS OF A REMEDY THAT COULD NEVER PRINT.** ic and cc both recorded that
   # `command -v` answers empty for FOUR states. Measured under bash on five
@@ -216,10 +216,21 @@ EOF
   # branches written for C and E were unreachable, which is dead code reading as
   # coverage in the very file that exists to stop exactly that.
   #
-  # **IT ALSO PINS A REAL GAP.** Under hv's ruling 4 -- a gate that cannot locate
-  # what it needs REFUSES, it does not skip -- a 126 SHOULD block. It does not
-  # today. When someone fixes that, this arm reds and tells them the CLI-arm
-  # premise is the thing to re-check, which is the message the next person needs.
+  # **THE GAP IT PINNED IS NOW CLOSED, AND THIS ARM WAS THE THING THAT SAID SO.**
+  # It asserted `exit 126` + `UNENFORCED` -- today's behaviour, deliberately --
+  # and reded the moment the fix landed, which is exactly what it was written to
+  # do. hv ruling 4: a gate that cannot locate what it needs REFUSES.
+  #
+  # **THE FIX WAS A CONSISTENCY REPAIR, NOT A NEW SEVERITY.** This arm already
+  # refused for A, B and D. C and E fell through on an accident of what
+  # `command -v` tests, so the guard now resolves the path and asks `-x` itself.
+  # The exit-2 fail-open below is untouched: that one is a ruling.
+  #
+  # The bash/zsh split above still governs which shell FINDS these states, and
+  # it still matters -- under zsh C and E return EMPTY and would reach the arm
+  # by the old route. The gate is `#!/usr/bin/env bash`, so bash governs; the
+  # new condition makes both shells agree on the OUTCOME either way, which is
+  # the property worth having.
   mkdir -p "${TEST_TEMP_DIR}/shim"
   printf '#!/bin/sh\n' > "${TEST_TEMP_DIR}/shim/intent"
   chmod 644 "${TEST_TEMP_DIR}/shim/intent"
@@ -227,15 +238,29 @@ EOF
   git add f.txt
   PATH="${TEST_TEMP_DIR}/shim:/usr/bin:/bin" run git commit -m "notexec"
 
-  # It does NOT reach the CLI arm: none of that arm's states are printed.
-  refute_output_contains "'intent' CLI is not runnable"
+  # It REACHES the CLI arm and refuses.
+  assert_failure
+  assert_output_contains "'intent' CLI is not runnable"
+  assert_output_contains "exists but is not executable"
+  assert_output_contains "chmod +x"
+
+  # **AND IT GIVES C/E's ADVICE, NOT ANOTHER STATE'S.** The whole reason this
+  # table exists is that a confident wrong remedy costs more than an admitted
+  # gap -- so blocking is only half of what was asked for.
   refute_output_contains "no PATH entry named"
   refute_output_contains "is a link whose target does not resolve"
+  refute_output_contains "is a DIRECTORY"
 
-  # It lands on the 126 path instead, which today does not block. Asserting the
-  # CURRENT behaviour, flagged above as the thing ruling 4 says to change.
-  assert_output_contains "exit 126"
-  assert_output_contains "UNENFORCED"
+  # **THE OLD BEHAVIOUR IS ASSERTED GONE, NOT MERELY UNMENTIONED** -- but named
+  # PRECISELY, and the first version of this was not.
+  #
+  # `refute_output_contains "exit 126"` looked right and was wrong: the
+  # INTENT_HOME resolver upstream of the critic ALSO reports `intent info exit
+  # 126` on this same fixture, so the bare string is emitted by a different
+  # subsystem and the refutation could never have distinguished the subject.
+  # It is the critic's own wording that has to be absent.
+  refute_output_contains "did not check (exit 126)"
+  refute_output_contains "UNENFORCED"
 }
 
 @test "CLI absence D: a DIRECTORY named intent is named, not swept into the residue" {
