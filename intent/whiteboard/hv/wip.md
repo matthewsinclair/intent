@@ -66,6 +66,34 @@ claims: []
 
 **BOTH ARE THE SAME FAILURE AND IT IS vc's: A LABEL ROUTED DURABLY WITH ITS SUBSTANCE SENT OVER A CHANNEL THAT DOES NOT SURVIVE.** The identical failure blocked this tree for forty minutes tonight. **A label looks exactly like an item, which is why neither was noticed for four days.** Reconstruction, not a ruling.
 
+### 2026-08-27 20:39Z -- SIX RULINGS OFF A CONTEXT-AND-OPTIONS QUEUE, first-hand in vc's session
+
+**hv asked for context and a question with options in each case. Six put; six answered. Each option set is recorded, not only the selection, and hv's choice is marked.**
+
+**1. THE SWEEP REPLACEMENT -> BOTH (A2) AND (B), (A2) FIRST.**
+Menu: both, (A2) first | (A2) only | (B) only | neither yet.
+Context: no v3 code path writes `pre-commit.intent`; ruling 4's arm is present in the template and absent from every estate carrier including this tree's, positive-controlled. Guard BODIES and the ROSTER propagate live from `INTENT_HOME`; only the carrier is frozen at install. dc by `cmp`: eleven estates carry `Intentv2`'s template byte-for-byte at 26 Aug mtimes; Conflab's was installed 14 Aug from a template already a month stale. **The installer runs -- it reads the wrong source.**
+**(A2)** moves the critic gate into the runner with the gate translating its own rc, which is what preserves the ruled fail-open at `:563` that a naive move would silently convert to fail-closed. **(B)** builds the missing installer verb; **Baize is why it is not optional** -- ported, canon present, and a carrier with no guard block, so it never consults `INTENT_HOME` and (A2) cannot reach it. **dc has (A2); cc has (B).**
+
+**2. THE THIRD-SURFACE GUARD -> LAND IT WHOLE.**
+Menu: land whole | land only the check-A anchoring | hold until the sweep decision | hold indefinitely.
+Context: built, parked outside the shared tree, `git apply --check` clean, seven control arms plus regression 15/15, **run-verified both directions**. Fixes check A's inconsistency with B and C -- A greps every stamp on a line where B and C anchor to the leading one, **and C documents why, one check below A**. Adds the Decisions surface: 97 dated bullets on this board, 0 scanned, while the guard's own comments assert the gap cannot exist. **Live in fifteen estates the instant it commits; hv ruled knowing exactly that, and dc announces to the fleet BEFORE committing.**
+
+**3. THE CLOCK TOLERANCE, ON devbin-vc's ESCALATION -> 0 STANDS, RATIFIED AS hv's OWN.**
+Menu: stands and ratified | stands but the reading was an overreach | revert to 120 and re-decide | revert and narrow vc's pen.
+Context: vc told devbin-vc they would not change it, then read hv's _"roll out the fixes"_ as releasing it; it landed live in fifteen estates and the fleet notice followed the change. devbin-vc escalated, correctly, carrying vc's own account unsoftened **and the caveat that they have hv's instruction only as vc's report.** Evidence: the guard caught nothing in thirteen days at 120; 299 violations sit in the 1-2 minute band `-gt 120` cannot see; **false positives are zero BY CONSTRUCTION, not by counting**; devbin-vc independently drove it to a refusal in their own estate.
+**hv did NOT take the narrow-the-pen option and no endorsement is read into that non-selection.**
+
+**4. CONFLAB -> SET A DATE FOR THE PORT.** hv then asked what "port" meant and stated the v2->v3 migration is happening now. **vc measured Conflab at that moment: `2.19.0`, canon ABSENT, `intent st list` rc=1, 4 ST directories still on v2 canon -- so it had not happened as of that read.** The scheduling question dissolves if the port is under way: **guards arrive with the port, which is the sequencing vc argued and conflab-vc agreed.** The item existed only because the park had no end.
+
+**5. `st new --dehydrate` -> RETIRE IT**, the dispatch-table row and the `ListEdit::Suppressed` branch.
+Menu: retire | leave recorded | retire and sweep for siblings.
+Context: ic measured it inert -- byte-identical outcomes with and without, because `st.new` no longer declares after hv's 16:30Z ruling. Its `disposition_basis` stated the exact fact hv reversed; ic corrected the basis under vc's pen. **ic declined the retirement under a general pen, correctly: removing a surface row hv ratified into existence is a ratification, not a bug fix.**
+
+**6. REAL JSON PROJECTIONS -> NOT NOW.**
+Menu: not now, the narrowing is enough | build `issues list` only | build all five | retire `json` from the roster properly.
+Context: five verbs declare `json` and refuse it -- `st list`, `st sync`, `wp list`, `issues`, `issues list`. **The refusal is deliberate design**, not an oversight: `table_out`'s doc says a verb with no JSON projection says so rather than emitting a list-of-lists. cc narrowed the declarations to `terminal|md` under vc's pen, so `--help` no longer advertises a value the binary rejects. **The user-facing defect is closed; the roster widens the day a projection exists.**
+
 ## PROVENANCE -- READ THIS BEFORE READING ANYTHING BELOW
 
 **This board is written by `vc` under hv's ruling of 2026-08-21, not by hv directly.** The protocol allows it: the hypervisor node is human-driven and "the human maintains it (or has it maintained on their behalf)". It was a stub from 2026-06-25 to 2026-08-21 while peers were told to read it for directives at pickup, and hv's real directives lived scattered across peers' boards and quoted speech in `README.md`.
