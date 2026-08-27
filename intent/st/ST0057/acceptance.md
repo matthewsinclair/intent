@@ -136,7 +136,7 @@ title: Disk as a sparse projection of the store
 ### WP-11 -- Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function (status: Not Started)
 
 - AC-11.1 `intent organize --default` on a project whose `intent/.intentfiles` is absent writes it declaring exactly the threads whose status is WIP (hv, 2026-08-26, first-hand: "It should ONLY HAVE WIP STs" -- Not Started, Triage, Completed and Cancelled live in the store, and `st hydrate <ID>` realises any of them), one `STEELTHREAD:<ID>` line each, and exits 0; `intent organize` then reports every declared thread unchanged or to hydrate and nothing diverged. -- satisfied: no (computed)
-- AC-11.2 `intent organize --default` on a project whose file is present changes not one byte of it, prints that it is present and how many lines it declares, names `--force`, and exits 0; `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status. -- satisfied: no (computed)
+- AC-11.2 `intent organize --default` on a project whose file is present changes not one byte of it, prints that it is present and how many lines it declares, names `--force`, and exits 0; `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status. -- satisfied: yes (computed)
 - AC-11.3 `intent init` leaves `intent/.intentfiles` present, carrying the standard header and no `STEELTHREAD:` line; the migration writes it declaring the WIP set of the converted corpus and realises only those threads; `intent upgrade` writes it declaring the WIP set when it is absent and touches nothing when it is present -- and all three reach the same function, proven by one test that changes the function and sees all three callers move. -- satisfied: yes (computed)
 - AC-11.4 `--default` never removes a file: on a fully realised project with non-WIP threads, `organize --default` followed by `organize` (preview) reports the non-WIP threads as to remove and blocked, and every file that existed before still exists byte for byte. -- satisfied: no (computed)
 - AC-11.5 `intent organise --default` and `intent organize --default` are one code path: the alias reaches the same handler and the two invocations produce byte-identical files and output. -- satisfied: no (computed)
@@ -407,7 +407,8 @@ git's chain here is `.git/hooks/pre-commit` -> `.git/hooks/pre-commit.intent` (6
 
 ### WP-11 -- Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function (status: Not Started)
 
-- AT-11.3 `native/rust/crates/intentsvcs/tests/default_declaration_has_one_definition.rs` -- covers AC-11.3 -- status: green
+- AT-11.2 `native/rust/crates/intent-cli/tests/exit_codes.rs` -- covers AC-11.2 -- status: green -- The control is that a usage error also exits 1, so the MESSAGE is the discriminator and not the code -- asserting the number alone stays green through a mutation that changes the cause. Does NOT drive the tty-confirmed --force arm (AC-11.6, blocked on hv). Six mutations, table in the test doc.
+- AT-11.3 `native/rust/crates/intentsvcs/tests/default_declaration_has_one_definition.rs` -- covers AC-11.3 -- status: green -- Proves the three callers move together: change default_declaration and init, migration and upgrade all move. What it CANNOT see is a FOURTH home in prose -- the --default help string restated the predicate as not-Completed-or-Cancelled and had drifted from the code. Found by hand 2026-08-27 and fixed by cc at 49990517; no test reds on it.
 
 ---
 

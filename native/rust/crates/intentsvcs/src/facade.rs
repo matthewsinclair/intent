@@ -1258,7 +1258,24 @@ fn declared_list_edit(op: &str) -> Option<ListAction> {
     // transition INTO wip should declare, which is three ops hv has not ruled
     // on. vc is putting them to hv separately; whatever comes back, it changes
     // this table and not the predicate.
-    "st.reopen" | "st.reinstate" => Some(ListAction::Add),
+    // **AND THE MEMBERSHIP MOVED AGAIN ON hv's RULING OF 2026-08-27 16:43Z**
+    // (hv's board `dfd07cfe`, first-hand in vc's session, chosen from options
+    // vc authored): `st.start` and `st.resume` ADD because both land on `wip`;
+    // `st.reinstate` STOPS adding because it lands on `not-started`. **hv was
+    // told the cost -- `st reinstate` stops adding and nobody asked for that.**
+    //
+    // Ruling 3 was not implementable without this in EITHER direction, which is
+    // why it was put to hv rather than chosen here. **The table is still keyed
+    // on the OP: only its membership changed, and the predicate is untouched.**
+    // Every member now lands on `wip`, so declared-iff-WIP is a property of the
+    // mechanism rather than of four sites agreeing.
+    //
+    // **WHAT IS STILL NOT TRUE OF THE MECHANISM, MEASURED AND REPORTED RATHER
+    // THAN QUIETLY EXTENDED: `st.hold` and `st.triage` leave a thread DECLARED
+    // while moving it off `wip`.** Neither was among the three hv named, so
+    // neither moves here. A held or triaged thread therefore stays in the
+    // manifest, and the iff holds in one direction only.
+    "st.start" | "st.resume" | "st.reopen" => Some(ListAction::Add),
     "st.done" | "st.cancel" => Some(ListAction::Remove),
     _ => None,
   }

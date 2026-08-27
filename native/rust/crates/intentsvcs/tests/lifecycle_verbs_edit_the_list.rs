@@ -10,6 +10,43 @@
 //! `unpin_removes_from_the_list.rs`. **A green there is a green about a
 //! function; this file is the one that is a green about the row.**
 //!
+//! # hv's TWO RULINGS OF 2026-08-27 DISSOLVED THE ARGUMENT BELOW, AND IT IS
+//! # KEPT BECAUSE THE CONCLUSION SURVIVED THE ARGUMENT
+//!
+//! `1d0ce157` took `st.new` out of the adding set; `dfd07cfe` put `st.start`
+//! and `st.resume` in and took `st.reinstate` out. **After both, the table is a
+//! pure function of the destination status** -- enumerated rather than
+//! asserted:
+//!
+//! | destination   | action | ops                              |
+//! | ------------- | ------ | -------------------------------- |
+//! | `wip`         | ADD    | `st.start` `st.resume` `st.reopen` |
+//! | `completed`   | REMOVE | `st.done`                        |
+//! | `cancelled`   | REMOVE | `st.cancel`                      |
+//! | `not-started` | none   | `st.triage` `st.reinstate`       |
+//! | `hold`        | none   | `st.hold`                        |
+//!
+//! **Every destination maps to exactly one action, so the collisions that made
+//! op-keying load-bearing no longer produce different outcomes.** The
+//! implementation stays op-keyed -- that is what hv ruled and it is the
+//! conservative form -- but a reader should not be told it is FORCED, because
+//! it no longer is.
+//!
+//! **AND THE IFF HOLDS IN ONE DIRECTION ONLY: `st.hold` leaves a thread
+//! DECLARED while moving it off `wip`.** So does `st.triage` from `wip`.
+//! Neither was among the ops hv ruled on, so neither moved. Declared implies
+//! nothing about WIP in that direction, and any claim that the mechanism now
+//! enforces WIP-only should be read as covering the ADD side.
+//!
+//! # The argument this file was built on, now superseded
+//!
+//! Kept verbatim rather than deleted, because a corrected sentence reads
+//! exactly like one that was never wrong. It read: *`st triage` and
+//! `st reinstate` both land on `NotStarted`, and `st start`, `st resume` and
+//! `st reopen` all land on `Wip`* -- so a status-keyed edit *re-adds a thread a
+//! human had deliberately removed*. **That hazard is now REAL AND ACCEPTED:**
+//! `st resume` does re-add a hand-dehydrated thread, and hv chose it knowing.
+//!
 //! # The strongest test here is the one about the verbs that do NOTHING
 //!
 //! [`no_verb_that_only_changes_status_touches_the_list`] is the reason the
@@ -323,8 +360,14 @@ fn st_reopen_adds_it_back() {
   );
 }
 
+/// **INVERTED ON hv's RULING OF 2026-08-27 16:43Z** (hv's board `dfd07cfe`).
+/// `st.reinstate` lands on `not-started`, and the realised set is WIP alone, so
+/// it no longer declares. The superseded arm read *`st reinstate` must put it
+/// back*. **hv was told this cost before choosing it and nobody had asked for
+/// it** -- it is the price of making declared-iff-WIP a property of the
+/// mechanism rather than of four sites happening to agree.
 #[test]
-fn st_reinstate_adds_it_back() {
+fn st_reinstate_does_not_add_it_back_because_it_lands_on_not_started() {
   let fx = fixture();
   let mut facade = fx.facade();
   facade.st_cancel("ST0056", "overtaken").expect("cancel");
@@ -334,8 +377,9 @@ fn st_reinstate_adds_it_back() {
     .st_reinstate("ST0056", "not overtaken after all")
     .expect("reinstate");
   assert!(
-    declared(&fx).declares("ST0056"),
-    "`st reinstate` must put it back:\n{}",
+    !declared(&fx).declares("ST0056"),
+    "`st reinstate` declared a thread that lands on `not-started` -- the realised set is WIP \
+     alone:\n{}",
     manifest_text(&fx)
   );
 }
@@ -377,11 +421,16 @@ fn no_verb_that_only_changes_status_touches_the_list() {
   let mut facade = fx.facade();
   facade.st_hold("ST0056", "waiting").expect("hold");
   facade.st_resume("ST0056").expect("resume");
-  assert_eq!(
-    manifest_text(&fx),
-    before,
-    "`st resume` shares `Wip` with `st reopen`, which DOES add -- so a status-keyed \
-     edit re-adds a thread a human had deliberately removed:\n{}",
+  // **INVERTED ON hv's RULING OF 2026-08-27 16:43Z.** `st.resume` lands on
+  // `wip`, so it now DECLARES. The superseded assertion read *`st resume`
+  // shares `Wip` with `st reopen`, which DOES add -- so a status-keyed edit
+  // re-adds a thread a human had deliberately removed*. **That hazard is now
+  // REAL AND ACCEPTED**: a thread someone dehydrated by hand IS re-declared by
+  // `st resume`. hv chose it knowing the cost, and the trade is that
+  // declared-iff-WIP holds mechanically instead of by four sites agreeing.
+  assert!(
+    declared(&fx).declares("ST0056"),
+    "`st resume` lands on `wip` and must declare:\n{}",
     manifest_text(&fx)
   );
 }
@@ -406,11 +455,15 @@ fn triage_and_start_do_not_touch_the_list_either() {
     manifest_text(&fx)
   );
 
+  // **INVERTED ON hv's RULING OF 2026-08-27 16:43Z.** `st.start` lands on
+  // `wip`, so it now declares -- and this is the arm that closes the workflow
+  // gap `st new` opened: `st new` then `st start` leaves the thread WIP and
+  // DECLARED by the normal path, with no `st hydrate` needed.
   facade.st_start("ST0056").expect("start");
-  assert_eq!(
-    manifest_text(&fx),
-    before,
-    "`st start` shares `Wip` with `st reopen`, which DOES add:\n{}",
+  assert!(
+    declared(&fx).declares("ST0056"),
+    "`st start` lands on `wip` and must declare, or a thread you have just started work on is \
+     not realised by any normal path:\n{}",
     manifest_text(&fx)
   );
 }
