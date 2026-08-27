@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 09:11Z
+heartbeat_at: 2026-08-27 09:35Z
 status: active
-focus: "**FOLDED, BETWEEN ITEMS.** WP-14 is landed and verified: merge `9bd6b0a3`, SCHEMA_VERSION 14, and vc's pair pinned from it passes BOTH controls -- the walk leaves `git status` blank, the retired v13 pair refuses the walked store. vc's assignment closed at `185b4126` (doctor 6 -> 0). Next: the six items owed in vc's order. Nothing of mine uncommitted."
+focus: "**AC-11.3's PROOF TEST LANDED, `AT-11.3` RED ON PURPOSE.** `default_declaration_has_one_definition.rs`, 4 tests: every expectation is the live function's output for that estate's own statuses, never a literal. Five mutations run in a detached worktree -- each of the three writers hardcoded reddens its own assertion, a change to the FUNCTION stays green because all three move, and reverting the predicate to `!is_closed()` reddens the corpus control. Red because the migration clause is not asserted. Next: AC-11.6's arm."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,15 +13,21 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Both of yesterday's deliverables are landed and independently verified by a second node.
+**AC-11.3's PROOF TEST -- `AT-11.3`, RED ON PURPOSE.** `native/rust/crates/intentsvcs/tests/default_declaration_has_one_definition.rs`, 4 tests. The criterion asks for a test that _changes the function and sees all three callers move_, and Rust offers no seam for substituting the function -- so every expectation is `default_declaration(<that estate's own statuses>)` computed live and not one is a literal. **A LITERAL WOULD HAVE BEEN THE WEAKER INSTRUMENT WHILE LOOKING LIKE THE STRONGER ONE**: it pins the text, so it reddens on every legitimate edit, and a person clears that by editing three literals -- three homes for the definition, which is the exact defect the criterion exists to prevent, arriving through the test suite instead of through the source.
 
-**WP-14 -- the DONE cutoff is canon state, not history.** Merge `9bd6b0a3`. `SCHEMA_VERSION` 13 -> 14, `SCHEMA_DDL_VER` 10 -> 11, `event::todo_watermark` DELETED rather than kept as a fallback, `intent/.canon/project.json` in Intent's own tree carrying `2026-08-26T22:27:46Z`. Verified at 169 binaries / 1259 passed / 0 failed in a detached worktree carrying only my files. **vc pinned one pair from that sha and both control halves pass**: the v14 pair walks a v13 store 13 -> 14 leaving `git status` BLANK, and the retired v13 pair then refuses that store by name.
+**FIVE MUTATIONS IN A DETACHED WORKTREE, AND THE ONLY GREEN IS THE ONE THAT MATTERS.** Each of the three writers hardcoded in turn reddens its OWN assertion, three for three -- a test that caught only `init` would have reported the same single green and been a third of an instrument. A line added to the function's header stays GREEN, because all three moved together, which is the criterion's whole property. And reverting the predicate to `!is_closed()` reddens the corpus control.
 
-**vc's assignment -- `185b4126`, doctor 6 -> 0** in Intent's own tree. ST0055's five packages closed; ST0057/WP-08 judged against its BODY rather than its gate and closed.
+**THE CONTROL TURNED OUT TO GUARD hv's WIP-ONLY RULING AS WELL AS THE CORPUS, AND I ONLY LEARNED THAT BY REDDENING IT.** Its message named one cause; the outcome is reachable by two that want opposite fixes -- a corpus that lost its open non-WIP threads, or a function that went back to `!is_closed()`. Message now names both. **The mutation run is what turned a guess about the instrument into a property of it**, and the table is recorded in the file rather than in this board, where a reader of the test will meet it.
+
+**VERIFIED AT 170 BINARIES / 1263 PASSED / 0 FAILED / 0 COMPILE STOPS**, `CARGO_RC=0` read out of the log FILE rather than off a background job's wrapper code, and the two readings agree independently. The file also names what already covered this subject and could not see the criterion: `intentfiles_default_declaration.rs` calls the function directly and is structurally blind to whether anything calls it, and `organize_default_declaration.rs` drives one caller through one verb. **A subject grep hits both and says nothing about which limbs they cover.**
+
+**RED RATHER THAN GREEN, AND THAT IS THE DELIVERABLE NOT A SHORTFALL.** AC-11.3's migration clause -- _realises only those threads_ -- is not asserted, because the migration declares the WIP set AFTER `migrate::plan` has already realised everything. Turning the row green would satisfy a criterion with an unmet clause: the gate-figure defect in miniature, and the same shape as WP-08 passing 7/7 over three unmeasured deliverables.
 
 ## TODO
 
-**OWED, in vc's order:** AC-11.3's proof test; AC-11.6's arm; AC-11.3's migration clause; ST0061 AC-00.1's round trip; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`.
+**OWED, in vc's order:** AC-11.6's arm; AC-11.3's migration clause (it is what turns `AT-11.3` green); ST0061 AC-00.1's round trip; the `organize --apply` exit-code pair in `exit_codes.rs`; `flag_reachability.rs` chaining `new_surface`.
+
+**AN AT ROW'S `note` HAS NO MUTATION VERB.** `at` carries six subcommands -- `list`, `lint`, `green`, `red`, `na`, `new` -- and not one sets `note`, so the narrative every other row carries in `acceptance.md` is reachable only by hand-editing canon and running `sync --to-store`. **Same shape as the create gap `AC-08.6`/`AC-08.7` closed, one field down**, and it bites in the same place: a row whose status needs a reason cannot carry it. Observed while filing `AT-11.3` red; NOT taken on.
 
 **THIRTEEN ESTATES STILL NEED `intent/.canon/project.json` COMMITTED.** vc owns the ports; the reason is mine to keep stating. Until that file is committed the cutoff lives in ONE machine's store, so a clone in the interval loses it -- D53 again by another route. Critical path, not tidy-up.
 

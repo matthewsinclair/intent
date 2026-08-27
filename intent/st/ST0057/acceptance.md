@@ -407,7 +407,7 @@ git's chain here is `.git/hooks/pre-commit` -> `.git/hooks/pre-commit.intent` (6
 
 ### WP-11 -- Default disposition realises OPEN threads only: organize --default writes .intentfiles; init, migration and upgrade share the function (status: Not Started)
 
-_(no tests in this group)_
+- AT-11.3 `native/rust/crates/intentsvcs/tests/default_declaration_has_one_definition.rs` -- covers AC-11.3 -- status: red
 
 ---
 
