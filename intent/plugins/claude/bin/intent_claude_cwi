@@ -28,9 +28,56 @@
 PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
 : "${INTENT_HOME:=$INTENT_ROOT}"
-source "$INTENT_ROOT/bin/intent_helpers"
+# ---- Self-contained: no `bin/` dependency (AC-12.1 class 2) ----
+# This file is the ONE plugin script that survives the v3 cut (hv's ruling,
+# with AC-14.12 as the expiry), so it carries its own two primitives instead
+# of sourcing `bin/intent_helpers`, which the cut prunes. Behaviour is
+# unchanged. The ONE textual difference from the originals is SC2155
+# (`local x; x=$(...)`): copying them verbatim regressed this file from a clean
+# lint to one SC2155, and `bin/intent_helpers` is simply not held to that
+# standard (it carries five). Cited rather than quietly cleaned, because a
+# claim of "verbatim" that is not verbatim is worse than the diff it hides.
+# (Do not open a comment line with the word shellcheck: it is read as a
+# DIRECTIVE, and a malformed one makes the linter stop rather than continue.)
 
-# -u is enabled AFTER sourcing helpers (they predate -u). -e and -o pipefail are
+error() {
+  echo "error: $1" >&2
+  exit 1
+}
+
+find_project_root() {
+  local current_dir
+  current_dir=$(pwd)
+
+  while [ "$current_dir" != "/" ]; do
+    # Check for v2.0.0 structure
+    if [ -f "$current_dir/intent/.config/config.json" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+
+    # Check for legacy structures
+    if [ -d "$current_dir/stp/.config" ] || [ -f "$current_dir/.stp-config" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+
+    # Check for directory-based or file-based steel threads
+    if [ -d "$current_dir/stp/prj/st" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+
+    current_dir=$(dirname "$current_dir")
+  done
+
+  # No project root found
+  return 1
+}
+
+# -u is enabled here. It used to be deferred until after `bin/intent_helpers`
+# was sourced, because that file predates -u; nothing is sourced now, and both
+# primitives above are -u clean. -e and -o pipefail are
 # deliberately omitted (the require-in-session.sh precedent): a script of
 # `[ test ] && action` conditionals would abort under -e on the first false
 # test. Every error path surfaces explicitly via error() (No-Silent).
