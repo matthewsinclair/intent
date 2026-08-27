@@ -83,11 +83,37 @@ fi
 # RULING, and `intent` on PATH is v2, which knows nothing about any of this.
 BIN="$ROOT/native/rust/target/release/intent"
 if [ ! -x "$BIN" ]; then
-  # NAMED, NOT SILENT, and exit 0. A machine with no v3 build owes nothing, but
-  # a reader must never mistake "no build here" for "no skew here" -- those are
-  # the two states this whole script exists to keep apart.
-  echo "thread-view-skew: no v3 binary at $BIN -- generated thread views are UNCHECKED this commit." >&2
-  exit 0
+  # REFUSES, IT DOES NOT SKIP (hv ruling 4 as scoped by vc 2026-08-27, authority
+  # vc). This arm used to name the gap and exit 0, which was the defect rather
+  # than the mitigation: exit 0 is the SAME STATUS a run that examined every
+  # view returns, so no caller reading the exit code could tell 288 views
+  # checked from 0 views checked. The warning text was the only carrier of the
+  # difference, and text is what a gate summary drops. That is
+  # IN-AG-NO-SILENT-001, not a preference.
+  #
+  # THE TWO STATES BELOW ARE SEPARATED BECAUSE THE BLOCKED READER IS THE POINT.
+  # A refusal that reads like a defect gets worked around, and a guard that gets
+  # worked around is worth less than the silent one it replaced. Whoever meets
+  # this at 2am must be able to tell "wait and retry" from "something is broken"
+  # WITHOUT opening this file.
+  if [ -d "$ROOT/native/rust/target/release" ]; then
+    # TRANSIENT. A release directory means a build has run in this tree, so the
+    # binary is absent because something removed it. cargo clears the artefact
+    # before writing the new one; that window was measured at ~66 seconds on
+    # this estate, and a commit landing inside it is ordinary peer concurrency
+    # rather than a fault.
+    echo "thread-view-skew: REFUSING -- no v3 binary at $BIN, but $ROOT/native/rust/target/release exists, so a build has run here and this is almost certainly A REBUILD IN PROGRESS." >&2
+    echo "  THIS IS TRANSIENT AND NOTHING IS BROKEN. The window is about 60 seconds. Wait, then retry the commit." >&2
+    echo "  If it persists past a couple of minutes the pair is genuinely gone -- remedy: \`bin/devbin build all\`." >&2
+  else
+    # NOT TRANSIENT. No release directory at all, so this tree has never been
+    # built and waiting will not help.
+    echo "thread-view-skew: REFUSING -- no v3 binary at $BIN and no release directory, so this tree has never been built." >&2
+    echo "  THIS IS NOT TRANSIENT. Waiting will not help." >&2
+    echo "  Remedy: \`bin/devbin build all\`." >&2
+  fi
+  echo "  Why this refuses rather than skipping: without the binary every generated thread view goes UNCHECKED, and exiting 0 would report that as a pass." >&2
+  exit 2
 fi
 
 OUT="$("$BIN" doctor 2>&1)"
