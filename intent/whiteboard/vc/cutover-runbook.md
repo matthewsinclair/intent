@@ -1148,3 +1148,39 @@ cargo test -p intentsvcs -p intent-cli --no-fail-fast
 - **lamplight-vc** marked their guard reading **read-verified, not run-verified**, and set the bar against themselves before anyone asked.
 
 **Every one of those was a green sitting there for the taking, and in each case the node's own work would have looked better for taking it.** The class that dominated tonight is not defeated by care; **it is defeated by people declining results they are entitled to claim.**
+
+## (A2)'s BODY LANDED INERT ON hv's RULING, AND THE TRANSLATION I CALLED LOAD-BEARING WAS NOT NEEDED (dc, `3b0063f3`, 2026-08-27 21:13Z)
+
+**hv ruled (i) first-hand: land the body inert, roster after (B).** Menu: body inert then roster after (B) | roster now and accept doubled output | reverse to (B)-then-(A2). **dc had already built to it.** `pre-commit-guards.sh` untouched; no estate changed behaviour.
+
+**THE COST THAT FORCED THE RE-DECISION WAS dc's AND IT WAS NOT PRICED WHEN hv CHOSE.** Installed carriers **still run the critic themselves** -- Lamplight's stale carrier greps **13** `intent critic` invocations, Intent's own greps 13. **Rostering it makes the critic run TWICE in all fifteen guarded estates until (B) ships AND every carrier is refreshed.** Correctness unchanged, latency negligible, **and the real regression is NOISE: every finding printed twice, which is the permanently-noisy-aggregate failure `config.yaml` already warns about, where the real finding hides in its own duplicate.**
+
+**I did not rule it, on cc's principle from earlier tonight -- a ruling whose premise has changed is one to re-make.** hv chose (A2) first for the instant reach; **dc showed the instant reach IS the doubling.**
+
+### The translation layer was not needed, and that is a measurement
+
+**I called the rc translation "the whole safety of the move". It was not required.** dc drove a fake `intent` at five codes rather than reading the source:
+
+```
+critic 0 -> guard 0 proceeds | 1 -> 1 BLOCKS | 3 -> 1 BLOCKS | 2 -> 0 FAILS OPEN | 127 -> 0 FAILS OPEN
+```
+
+**The gate never passed the critic's code through -- it AGGREGATES, so its exit status was already a verdict in the runner's own vocabulary.** The hazard was real and correctly identified; **the premise that the gate FORWARDED rc was mine and wrong.** Ruling 4 survives intact, both interesting states driven, including a **dangling symlink** refusing with _a build has removed the artefact. DO NOT reinstall -- that races it_ -- a remedy that knows about the 60-second rebuild window.
+
+**MOVED, NOT REWRITTEN**: extracted verbatim from `pre-commit.sh:280-607` after checking for carrier-scope leakage and finding none. **A rewrite of eighty lines of ruling-4 state discrimination would have been the risk; the extraction was not.**
+
+## THE LAKSA REPORTS: alert, retraction, and a re-cast that is better than both (laksa-cc via dc, same window)
+
+**NO CANON REGENERATION BUG.** A peer ran `intent wp done` across nine work packages after `doctor` reported status-gate disagreements; the regeneration was that peer's `intent todo update` rendering from the store. **laksa-cc's own account of why their evidence was bad is worth more than the retraction:** they wrote _"todo.md went dirty with NO write command from me... a peer was running intent commands in that window. So it is the tool, deterministically"_ -- **two adjacent sentences where the second is the alternative explanation, not evidence against it.** dc relayed it without noticing either.
+
+**WHAT SURVIVES, RE-CAST AS A MEASUREMENT: two representations with one writer.** `intent/st/COMPLETED/ST0086/WP/08/info.md` reads `status: Not Started` on disk while canon says done, untouched by them. **`wp new` writes canon and no file; `wp done` writes canon and leaves an existing file untouched.**
+
+**AND `cancelled -> done` IS NOT A DECLARED EDGE AT ALL.** `transitions.rs`: one `wp.done` edge from `wip`, and the only edge out of `cancelled` is `wp.reinstate` to `not-started`. **So it is forbidden by the table and something let it through -- an ENFORCEMENT gap, not a design asymmetry.** That changes what to look for: not "add a guard" but "why did the table not apply on that path". **READ-verified, not run-verified** -- Intent has no cancelled WPs, so driving it here means creating one, which is a write on a shared tree to test a write bug. **dc held themselves to lamplight-vc's bar.**
+
+### dc's near-miss is a NEW direction for tonight's class
+
+They nearly filed **121 of 158 canon WP entries have no `info.md` on disk** as data loss. **It is the DB-is-SSOT design: 54 of 64 threads have canon and no directory, because completed threads live in canon only.** Restricting to threads with a WP directory took 121 to **0**.
+
+> **Every earlier instance tonight was an instrument that could not see ENOUGH. This one saw TOO MUCH and read intended architecture as damage.** And the tell was **the number being too large to be a defect nobody had noticed.**
+
+**And `project.json` is TWO files, not one question:** Laksa's is 37 bytes (`{"schema": "intent/project@3.0"}`, v3-generated, never added), Intent's is 81 and tracked. **laksa-cc corrected dc's "one estate is wrong", which was not established.**
