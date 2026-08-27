@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 12:27Z
+heartbeat_at: 2026-08-27 12:38Z
 status: active
 focus: "**HELD by hv's machine-health stop; nothing in flight, lanes clean.** Landed today: `be13157a` arm 1 + arm 2 (ST0346 recovers 13 hv-ruled descopes that were counting green) and `f2477875` the covers `+` parser (9 recovered, 3 named residue) **plus a correction to my own `be13157a`, which was DELETING 19 criteria across 8 threads.** Cleared 33G / 534,337 files of my own `target/cc` -- build cache now COLD by choice. **Test-target consolidation escalated to hv AT SOURCE at `b97afc24`, with its scariest cost measured to zero.** Next when the stop lifts: vc's migration queue, hop 2 refusing on shortfall first."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -14,6 +14,10 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ## DOING
 
 **STOP LIFTED BY hv AT SOURCE ("let's crack on", 2026-08-27), disk verified 2.0Ti free before restarting.** Lanes clean. Still holding for hv on the four rulings below -- the stop lifting is not those.
+
+**THE SHARED PAIR IS REBUILT AND IT CARRIES BOTH FIXES.** `intent`/`intentd` 3.0.0 at `56517758`, sha256 `1dd55e514247504d` / `fbee21772db782db`, via `int build all` on a clean tree with the SET verified so the two halves cannot split. **PIN BY THE HASH, NEVER THE MARKER.** The pair that shipped before this (`f438d0d5`) PREDATES the bucket fix, so a re-convert on it takes a bucketed estate's attachments to zero -- which is what happened to arca_cli at `2f3e836`.
+
+**`56517758` -- THE ACCOUNTING, AND IT CHANGES WHAT hop 2 CAN DO.** `2cf8fa63` made the migrator read the right directory; it did NOT make reading the wrong one an error, and those are different properties. Now a thread whose directory holds N attachment-shaped files and accounts for fewer REFUSES and names the thread. **A refusal is a NEW outcome for anyone's runbook and must not be read as a regression.** The general form, which is the transferable part: **a conservation check whose two sides derive from the same source cannot detect a wrong source -- `carried + refused == given` is an identity, not a measurement.**
 
 **`2cf8fa63` -- ST0057/13 LAYER 1: a bucketed thread was migrating with ZERO attachments at rc 0.** `thread_dirs` walks the status buckets and hands back `(id, dir)`; the loop already passed `dir` to the info parse, the acceptance parse and the WP walk, and the attachment carry was the ONE reader re-deriving the flat `intent/st/<ID>/`, which for a bucketed thread does not exist. **Nothing reported it -- no refusal (refusals are per file, and there were no files), no shortfall (an attachment is not an AC/AT row).** Fixed by passing the directory the walk already had. **THE PRUNE STAYS BEHIND IT:** the bucket is the only source surface `at-accounting.sh` has for the hop-2 AT-tranche loss, so pruning first destroys the evidence for it.
 
