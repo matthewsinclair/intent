@@ -421,3 +421,66 @@ fn a_given_severity_is_recorded() {
   .expect("json");
   assert_eq!(made["severity"], "critical");
 }
+
+/// **A DECLARED ROSTER THAT NOTHING ENFORCED, ON A WRITE PATH.**
+///
+/// `surface/dispatch-table.json` has declared `critical|high|medium|low` on
+/// `issues add --severity` all along and `--help` printed it, but nothing
+/// parsed it: measured 2026-08-27, `--severity bogus` exited 0 and wrote
+/// `bogus` into canon. That is the `arg_values_note` scenario -- the roster
+/// written by an author who assumed clap had it, read by an implementer who
+/// assumed the same, enforced by nobody.
+///
+/// **It is worse than the `--format` case found beside it, and the difference
+/// is the direction.** `--format` is refused at the door and nothing is
+/// written; this one PERSISTS, so every later reader inherits a value the
+/// vocabulary does not contain.
+#[test]
+fn an_out_of_roster_severity_is_refused_and_writes_nothing() {
+  let p = project();
+  let before = std::fs::read_dir(p.path().join("intent/.canon/issues"))
+    .expect("read issues")
+    .count();
+
+  let out = run(
+    p.path(),
+    &["issues", "add", "a thing", "--severity", "bogus"],
+  );
+  assert_eq!(out.status.code(), Some(1), "must refuse at exit 1");
+  let text = format!(
+    "{}{}",
+    String::from_utf8_lossy(&out.stdout),
+    String::from_utf8_lossy(&out.stderr)
+  );
+  // **The refusal NAMES THE SET.** A bare rejection blames the operator's
+  // spelling without telling them what the spellings are, which the estate
+  // treats as part of the requirement rather than a nicety.
+  assert!(text.contains("is not an issue severity"), "{text}");
+  assert!(text.contains("critical, high, medium, low"), "{text}");
+
+  // **AND NOTHING WAS WRITTEN**, which is the half that matters on a write
+  // path: a refusal that still creates the file would leave the defect intact
+  // and merely add a message.
+  let after = std::fs::read_dir(p.path().join("intent/.canon/issues"))
+    .expect("read issues")
+    .count();
+  assert_eq!(before, after, "a refused add must create no issue");
+}
+
+/// Every value the roster declares is accepted, and case is not a refusal.
+///
+/// **The control on the arm above.** A check that only proves `bogus` fails
+/// would pass just as well if the flag had been broken outright.
+#[test]
+fn every_declared_severity_is_accepted() {
+  let p = project();
+  for value in ["critical", "high", "medium", "low", "HIGH"] {
+    let out = run(p.path(), &["issues", "add", "a thing", "--severity", value]);
+    assert_eq!(
+      out.status.code(),
+      Some(0),
+      "`--severity {value}` must be accepted: {}",
+      String::from_utf8_lossy(&out.stderr)
+    );
+  }
+}

@@ -1354,6 +1354,18 @@ pub struct Issue {
   pub slug: String,
   pub title: String,
   pub status: IssueStatus,
+  /// **STORED AS A STRING, AND VALIDATED AT THE DOOR BY [`IssueSeverity`].**
+  ///
+  /// The permitted set is a closed roster, so the obvious move is a typed enum
+  /// here -- and it is the wrong one. A typed field makes DESERIALISATION
+  /// strict, so an issue already carrying an out-of-roster value stops being
+  /// readable, which converts a cosmetic defect into an unreadable store on
+  /// somebody else's machine. **Refusing a bad value on the way IN while still
+  /// reading whatever is already there is the asymmetry that fixes this
+  /// without a migration.** Measured 2026-08-27 across six estates on this
+  /// machine: 165 issues, every value in roster, none to migrate -- and that
+  /// measurement covers this machine only, which is exactly why the read stays
+  /// permissive.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub severity: Option<String>,
   pub created: String,
@@ -1429,6 +1441,62 @@ impl IssueStatus {
     match self {
       Self::Open => "OPEN",
       Self::Closed => "CLOSED",
+    }
+  }
+}
+
+/// The severity an issue may carry.
+///
+/// **NOT [`crate::critic::Severity`], AND THE COLLISION IS THE POINT OF THIS
+/// COMMENT.** That type is `critical | warning | recommendation | style` and
+/// grades a critic FINDING; this one is `critical | high | medium | low` and
+/// grades an ISSUE. They share a word and one spelling, and nothing else. A
+/// future tidy that merges them on the strength of the name would silently
+/// widen both rosters -- so the two vocabularies are named here, together,
+/// rather than left to be discovered by whoever notices the duplicate first.
+///
+/// **This exists because the roster was declared and enforced by nobody.**
+/// `surface/dispatch-table.json` has said `critical|high|medium|low` on
+/// `issues add --severity` all along, `--help` printed it, and
+/// `intent issues add "x" --severity bogus` exited 0 and wrote `bogus` into
+/// canon. That is the `arg_values_note` scenario exactly: an author writes the
+/// roster assuming clap has it, an implementer reads the row assuming the
+/// same, and nothing enforces it. It is worse than the `--format` case it was
+/// found beside, because this one is a WRITE path -- the bad value persists
+/// and every later reader has to cope with it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IssueSeverity {
+  Critical,
+  High,
+  Medium,
+  Low,
+}
+
+impl IssueSeverity {
+  /// Every spelling, in roster order, for a refusal that can name the set.
+  pub const SPELLINGS: &'static [&'static str] = &["critical", "high", "medium", "low"];
+
+  /// Parse a `--severity` value, or `None` if it is not one of the roster.
+  ///
+  /// Case-insensitive, for the reason [`crate::output::Format::parse`] gives:
+  /// a hand-typed flag is not a committed manifest, so refusing `HIGH` for its
+  /// case refuses nothing real.
+  pub fn parse(s: &str) -> Option<Self> {
+    match s.trim().to_ascii_lowercase().as_str() {
+      "critical" => Some(IssueSeverity::Critical),
+      "high" => Some(IssueSeverity::High),
+      "medium" => Some(IssueSeverity::Medium),
+      "low" => Some(IssueSeverity::Low),
+      _ => None,
+    }
+  }
+
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      IssueSeverity::Critical => "critical",
+      IssueSeverity::High => "high",
+      IssueSeverity::Medium => "medium",
+      IssueSeverity::Low => "low",
     }
   }
 }

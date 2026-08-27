@@ -3912,6 +3912,28 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       // where the surface declares it -- if the table's default is ever removed,
       // the facade records the absence rather than this arm inventing one.
       let severity = opt(a, "severity");
+      // **THE ROSTER IS ENFORCED HERE, ON THE WAY IN, AND IT WAS ENFORCED
+      // NOWHERE BEFORE.** The table has declared `critical|high|medium|low`
+      // all along and `--help` printed it, but nothing parsed it: `--severity
+      // bogus` exited 0 and wrote `bogus` into canon, where every later reader
+      // had to cope with it.
+      //
+      // **AT THE DOOR RATHER THAN IN THE TYPE**, so the store keeps reading
+      // whatever is already in it -- see [`intentsvcs::model::Issue::severity`]
+      // for why a typed field would turn this into an unreadable store on a
+      // machine whose canon was written before the check existed.
+      //
+      // Exit 1 rather than clap's 2: an unknown value is refused in the
+      // renderer by the same ruling that governs `--format`, because the
+      // pre-commit gate fails open on USAGE.
+      if let Some(bad) = severity.as_deref()
+        && intentsvcs::model::IssueSeverity::parse(bad).is_none()
+      {
+        return Err(Failure::Error(format!(
+          "error: `{bad}` is not an issue severity\n  remedy: name one of {}",
+          intentsvcs::model::IssueSeverity::SPELLINGS.join(", ")
+        )));
+      }
       let reporter = reporter();
       let body = issue_body(a)?;
       let mut f = open()?;
