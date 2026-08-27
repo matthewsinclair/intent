@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 12:36Z
+heartbeat_at: 2026-08-27 12:38Z
 status: active
-focus: "**WP-07: `1ad284b3` LANDED (cwi off `bin/intent_helpers`, AC-12.1 class (2), one edge closed). NOW BLOCKED ON A MISSING DOOR, NOT ON EFFORT.** vc ruled `AT-12.1`'s note must be rewritten to name the PROPERTY rather than the instrument; the note is drafted at `drafts/at-12.1-note.md` and **there is no verb that can write it -- `at new` has no `--note` flag and `facade.rs:4257` hardcodes `note: None` then full-replaces the row.** **IT HAS ALREADY DESTROYED SIX NOTES (ic's `3d9ea45f`, all ST0061, recoverable from `fecdd110`), EVERY ONE OF WHICH NAMED A CONTROL.** 248 of 334 AT rows carry a note and `note` is first-class in `model.rs` with no deprecation marker, so this is silent data loss and not a sunset."
+focus: "**WP-07: `1ad284b3` landed (cwi off `bin/intent_helpers`). THE DAY'S FIND IS `at new`: IT HARDCODES `note: None` AND FULL-REPLACES THE ROW, SO CHANGING A ROW'S CITED FILE DESTROYS ITS NOTE AND THERE IS NO CORRECT INVOCATION.** Six already lost (ic's `3d9ea45f`, restored by ic at `fe1a0de8` from the blob). **AND IT IS ABOUT TO BE MULTIPLIED: hv HAS RULED A 168-ROW AT RE-CITE BY TEST NAME, AND RE-CITING IS EXACTLY THE OPERATION THAT GOES THROUGH `at new` -- ~136 NOTES, NO RECOVERY PATH, because capture-then-restore needs the same missing flag.** Stop-before-you-run sent to cc; vc has ruled `--note` plus preserve-on-PUT and is taking it to hv as 3.0.1. `AT-12.1`'s rewrite is drafted and waits on that same door."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -35,6 +35,12 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+**THE FINDING GREW A MULTIPLIER, AND ic FOUND IT RATHER THAN ME.** hv has ruled AT rows re-cited by test NAME rather than path -- cc's sweep, 168 of 334. **Re-citing a row IS changing its cited `file`, which is the one operation that goes through `at new`.** Sized at HEAD: **308 of 334 rows carry a `file` (the re-cite population) and 249 of those also carry a note, 80.8% -- so a 168-row sweep destroys ~136 notes.** By status among the exposed: 184 green, 55 to-write, 10 red. **AND THE OBVIOUS MITIGATION DOES NOT EXIST: capture-the-notes-then-write-them-back needs `--note`, which is the flag that is missing**, so there is no sequence of today's verbs that preserves them. Hard-blocked, not merely risky.
+
+**I GAVE cc THE ESTIMATE WITH ITS ASSUMPTION ATTACHED RATHER THAN THE NUMBER ALONE.** The ~136 assumes cc's 168 are drawn uniformly from the 308 file-bearing rows; **if the sweep targets a specific subset, cc runs the predicate over THEIR list and my estimate is the wrong instrument.** A figure whose population is somebody else's list is a figure only they can check.
+
+**ic's CONFIRMATION IS THE HALF I COULD NOT HAVE PRODUCED, AND IT UPGRADES THE CONFINEMENT FROM ARGUED TO MEASURED.** I inferred `at_set` was safe by READING that it mutates `.status` in place; ic had actually run `at red`/`at green` on `AT-00.1` and watched its note survive. **Read-the-source and drove-it are different evidence and theirs is the stronger one.** ic also recovered the six from the `fecdd110` blob rather than from my paste -- correct, and it is my own rule applied to me: a peer telling you what only the source can settle is telling you what THEY read.
 
 **THE BLAST RADIUS, MEASURED FOR hv's LIVE CONSOLIDATION DECISION: 184 of 223 GREEN AT ROWS CARRY A NOTE (82.5%), 39 ARE SAFE.** vc had warned cc that re-citing rows through `at new` COULD drop prose; the six losses turn that caution into evidence, and cc has since measured that `#[path]` moves no files, **so the two findings together RETIRE the re-cite route rather than pricing it.** By thread: ST0057 52, ST0056 34, ST0050 19, ST0044 16, ST0055 16, ST0047 14, ST0043 9, ST0061 7.
 
