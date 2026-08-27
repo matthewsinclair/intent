@@ -47,6 +47,7 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
   let out = Command::new(bin())
     .args(args)
     .current_dir(cwd)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run intent");
   (

@@ -263,6 +263,7 @@ fn run(root: &Path, argv: &[String]) -> (i32, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(argv)
     .current_dir(root)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run the v3 binary");
   let merged = format!(
@@ -362,6 +363,7 @@ fn the_refusal_is_a_failure_on_stderr_not_output_on_stdout() {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(["st", "list"])
     .current_dir(dir.path())
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run");
 

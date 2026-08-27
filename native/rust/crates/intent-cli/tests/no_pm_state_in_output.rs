@@ -187,6 +187,7 @@ fn run(dir: &Path, args: &[&str]) -> String {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(dir)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run the v3 binary");
   let mut both = String::from_utf8_lossy(&out.stdout).into_owned();

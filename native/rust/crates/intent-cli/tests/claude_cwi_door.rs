@@ -73,6 +73,7 @@ fn run(exe: &Path, args: &[&str], wb: &Path) -> (String, i32) {
   let out = Command::new(exe)
     .args(args)
     .current_dir(testkit::repo_root())
+    .env("HOME", testkit::fixture_home())
     .env("CWI_DRY_RUN", "1")
     .env("CWI_WB", wb)
     .output()

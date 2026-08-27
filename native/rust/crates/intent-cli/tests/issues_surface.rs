@@ -52,6 +52,7 @@ fn run(root: &Path, args: &[&str]) -> Output {
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(root)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run the v3 binary")
 }

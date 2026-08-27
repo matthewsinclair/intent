@@ -82,6 +82,42 @@ pub fn workspace_root() -> PathBuf {
   .expect("a Cargo.toml declaring [workspace] above this crate")
 }
 
+/// A `HOME` for any test that spawns the `intent` binary.
+///
+/// **A TEST BINARY INHERITS THE OPERATOR'S REAL `HOME`, AND SOME VERBS WRITE
+/// THERE.** `intent bootstrap` publishes `~/.intent/home`, the machine-global
+/// install pointer the pre-commit shim resolves on every commit. On 2026-08-27
+/// two arms of `dispatch_ssot` published it to a scratch worktree that was later
+/// deleted, and the estate spent an evening with a pointer naming a directory
+/// that did not exist.
+///
+/// **NEITHER ARM WAS WRONG WHEN IT WAS WRITTEN.** Both drive every shipped
+/// family bare, looking for the ones that answer *is a known command that is not
+/// implemented yet*, and `bootstrap` answered exactly that until it was
+/// implemented. **The subject changed underneath the test** -- so this is not a
+/// helper for tests that touch per-user state, it is a helper for tests that
+/// cannot know whether they do.
+///
+/// **UNDER `target/` RATHER THAN THE SYSTEM TEMP DIRECTORY**, on purpose: it is
+/// already build output, `cargo clean` removes it, and it never accumulates in
+/// `/tmp` where nothing prunes it. Per-process, so parallel test binaries do not
+/// share one.
+///
+/// **std ONLY.** This crate declares no dependencies and `dep_graph_guard.rs`
+/// enforces that, so no `tempfile` here.
+pub fn fixture_home() -> &'static Path {
+  static DIR: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+  DIR
+    .get_or_init(|| {
+      let dir = workspace_root()
+        .join("target/test-home")
+        .join(std::process::id().to_string());
+      std::fs::create_dir_all(&dir).expect("create the fixture HOME");
+      dir
+    })
+    .as_path()
+}
+
 /// The nearest ancestor of this crate's manifest directory satisfying `pred`.
 ///
 /// `CARGO_MANIFEST_DIR` is the compiling crate's directory, which cargo sets for
@@ -173,6 +209,27 @@ mod tests {
     // The hazard this crate was written about. If a later simplification makes
     // these agree, every caller of one of them is reading the wrong tree.
     assert_ne!(repo_root(), workspace_root());
+  }
+
+  /// **THE PROPERTY IS THE DERIVED PATH, NOT THE PREFIX.**
+  ///
+  /// The first cut of this arm asserted the fixture does not sit UNDER the real
+  /// `HOME`, and it failed -- correctly. This repo lives at `~/Devel/prj/Intent`,
+  /// so anything under `target/` is inside the operator's home tree while being
+  /// a perfectly good fixture. What has to differ is the thing a verb actually
+  /// writes: `$HOME/.intent/home`.
+  #[test]
+  fn the_pointer_a_verb_would_write_is_not_the_operators_pointer() {
+    let real = PathBuf::from(std::env::var("HOME").expect("a HOME to be isolated from"));
+    assert_ne!(
+      fixture_home().join(".intent/home"),
+      real.join(".intent/home"),
+      "a fixture HOME that resolves to the operator's own pointer isolates nothing"
+    );
+    assert!(
+      fixture_home().is_dir(),
+      "it must exist to be usable as a HOME"
+    );
   }
 
   #[test]

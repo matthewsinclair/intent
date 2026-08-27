@@ -407,6 +407,7 @@ fn drive(root: &Path, argv: &[&str]) -> (Option<i32>, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(argv)
     .current_dir(root)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run the v3 binary");
   (

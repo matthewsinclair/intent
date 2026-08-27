@@ -72,6 +72,7 @@ fn run(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(cwd)
+    .env("HOME", testkit::fixture_home())
     .stdin(Stdio::null())
     .output()
     .expect("run the v3 binary");
@@ -91,6 +92,7 @@ fn run_stdout(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(cwd)
+    .env("HOME", testkit::fixture_home())
     .stdin(Stdio::null())
     .output()
     .expect("run the v3 binary");
