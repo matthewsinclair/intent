@@ -248,23 +248,36 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 # THAT CREATED THIS WHOLE ITEM. Two live forms are NOT matched, both measured,
 # both left out on purpose rather than missed:
 #
-#   - A DATED `###` HEADING, eg `### 2026-08-26 -- ruled in chat`. Intent's own
-#     board carries 5 and Lamplight's 4, and on Lamplight the hv node -- the
-#     estate's rulings record -- uses ONLY this form, so its most authoritative
-#     dated surface is unscanned. Found by lamplight-vc, who measured it and
-#     explicitly did not argue for widening. Not widened here either: hv ruled a
-#     specific shape and extending scope afterwards on my own initiative is how a
-#     guard grows reach nobody sanctioned. FILED, NOT FIXED.
+#   - A DATED `###` HEADING, eg `### 2026-08-26 -- ruled in chat`. Intent 5,
+#     Lamplight 4. Found by lamplight-vc, who measured it and explicitly did not
+#     argue for widening. Not widened here either: hv ruled a specific shape and
+#     extending scope afterwards on my own initiative is how a guard grows reach
+#     nobody sanctioned. FILED, NOT FIXED.
+#
+#     AND THE COUNT UNDERSTATES IT, WHICH IS THE REASON TO READ THIS TWICE:
+#     **the unscanned form correlates with the highest-authority content on the
+#     board.** All 5 of Intent's are on the `hv` node -- the rulings record --
+#     and on Lamplight the hv node uses ONLY this form, so that estate's rulings
+#     are entirely unscanned. Two estates, arrived at independently, and it is
+#     not coincidence: a dated `###` heading is the NATURAL shape for a rulings
+#     record, and it is the one shape this guard does not read. Whoever weighs
+#     widening should weigh that rather than the 9.
+#
+#     vc's response was to change what they WRITE rather than ask this to grow --
+#     recording hv's rulings as date-first bullets from now on. That is the
+#     cheaper half and it is available to everyone today.
 #   - A NESTED OR DECORATED BULLET, eg `   - _(2026-08-25 15:44Z, ...`. The
 #     anchor is `^- ` with no leading whitespace, and relaxing it would start
 #     matching dated bullets in arbitrary nested prose lists -- which is the
 #     PORT 2 hazard, blocking a report. Chosen, not inherited.
 #   - AN AUTHOR-FIRST STAMP, eg `- **(hv, 2026-08-26) ...`. This one IS a
 #     protocol stamp in a variant field order, not a different kind of line, so
-#     it is the weakest of the three exclusions. Intent's own board carries 10
-#     and no other estate has any -- a local convention on transcribed hv
-#     rulings. None is future-dated, so nothing is being missed that would block
-#     today. FILED, NOT FIXED, on the same reasoning as the `###` form: hv ruled
+#     it is the weakest of the three exclusions. 10 of them, ALL on Intent's `ic`
+#     node, and no other estate has any -- a local convention rather than a
+#     protocol variant, which is why it is filed rather than fixed. None is
+#     future-dated, so nothing is being missed that would block today. The node
+#     attribution matters here and vc corrected mine: "Intent's board" was wrong
+#     and "ic's board" is checkable. FILED, NOT FIXED, on the same reasoning: hv ruled
 #     a shape and widening the matcher afterwards on my own initiative is how a
 #     guard acquires reach nobody sanctioned. Found by devbin-vc's broader
 #     predicate.
