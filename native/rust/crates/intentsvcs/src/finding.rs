@@ -190,6 +190,23 @@ pub enum FindingClass {
   /// this, a config edited once and read months later announces itself as a
   /// command that suddenly stopped working.
   UnhonourableSetting,
+  /// **THE COMMIT GATE IS INSTALLED AND IS NOT RUNNING.**
+  ///
+  /// Not a stale gate and not an out-of-date one -- those are advisories. This
+  /// is the state where a carrier exists, so somebody installed the gate and
+  /// the estate believes it has one, and nothing it names can actually execute:
+  /// no guard block in the carrier at all, a chain calling a carrier that is
+  /// not there, or an install the carrier cannot resolve its guards from.
+  ///
+  /// **IT IS ACTIONABLE DESPITE HAVING NO VERB THAT REPAIRS IT** (vc, 2026-08-27),
+  /// and that pairing is deliberate rather than an oversight. Something IS
+  /// broken; the operator's commits are going through ungated while every
+  /// surface reports health. Measured across the fleet the property reds 2 of
+  /// 17, which is a real and small set -- unlike being behind the template,
+  /// which reds 17 of 17 and is therefore an advisory, because a check that
+  /// reds every estate permanently is one operators learn to skip, and then it
+  /// is not there for the two that need it either.
+  GateNotRunning,
   /// A hygiene note, not a fault: the artefact is well-formed and nothing is
   /// blocked by it. Printed under `advisory:` and NOT counted toward the
   /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
@@ -381,6 +398,23 @@ impl FindingClass {
         10,
         "unhonourable-setting",
         "the value is well-formed and the data cannot honour it; the detail above names what to set instead",
+      ),
+      // Beside `BackupStale`, and for the same reason: both are a protection the
+      // operator believes they have and does not.
+      //
+      // **THE REMEDY WORDING IS dc's, MATCHED RATHER THAN RE-AUTHORED**
+      // (`bin/.devbin/cmd/hooks`, ruled 2026-08-27, authority vc). One fact
+      // about the estate reported by two tools in two phrasings is the same
+      // drift this codebase calls Highlander everywhere else, and the fact here
+      // is unusually easy to phrase almost-right: `intent claude upgrade
+      // --apply` region-edits the chain and never writes the carrier, so **a
+      // detector that names it hands the operator a command which does not
+      // repair what it just reported** -- they run it, see no error, and the
+      // true finding becomes a false reassurance.
+      Self::GateNotRunning => (
+        8,
+        "gate-not-running",
+        "the pre-commit gate is installed and cannot execute, so commits are going through ungated and an unwired guard does not fail -- it reports nothing, which is indistinguishable from passing. NO VERB CURRENTLY REPAIRS THIS, and naming one would be worse than naming none: installing the carrier is an OPEN ITEM -- report it, do not improvise a fix across the fleet. The detail above names which of the three ways it is broken",
       ),
       // Outside the verdict altogether: a state, not an obligation. It sorts last
       // so the totals line ends with what nobody has to act on.

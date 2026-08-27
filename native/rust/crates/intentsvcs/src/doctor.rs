@@ -173,6 +173,11 @@ pub fn diagnose(
     report.findings.extend(backup_findings(project, store));
     report.findings.extend(undeclared_op_findings(store));
   }
+  // **OUTSIDE THE STORE BLOCK, BECAUSE THE GATE IS NOT A PROPERTY OF THE
+  // STORE.** A project whose store will not open is exactly one whose commit
+  // gate an operator most wants reported, and putting this inside would skip it
+  // on precisely those estates.
+  report.findings.extend(hook_findings(project));
 
   let canon = match crate::ingest::read(project) {
     Ok(canon) => canon,
@@ -1035,6 +1040,176 @@ fn undeclared_op_findings(store: &crate::store::Store) -> Vec<Finding> {
       )
     })
     .collect()
+}
+
+/// What the gate's state is, decided from TEXT alone.
+///
+/// **SEPARATED FROM THE IO SO THE VERDICT CAN BE DRIVEN TO EVERY ARM** -- the
+/// estate's thin-coordinator rule (`IN-AG-THIN-COORD-001`) applied where it
+/// pays rather than where it is tidy. Two arms are otherwise unreachable from a
+/// test: one needs a machine with no resolvable install, and one needs a
+/// carrier byte-identical to whatever template that machine happens to hold. **A
+/// check about estates being silently unprotected must not itself have arms
+/// verified only by inspection.**
+#[derive(Debug, PartialEq, Eq)]
+pub enum GateState {
+  /// No carrier and nothing referencing one: no Intent gate here, which is a
+  /// choice rather than a fault.
+  NotInstalled,
+  /// The chain calls a carrier that does not exist.
+  ChainCallsAMissingCarrier,
+  /// A carrier that names no guard runner. The Baize state.
+  CarrierRunsNoGuards,
+  /// Guards are read live from an install this machine cannot resolve.
+  NoResolvableInstall,
+  /// Installed, running, and older than the template it was copied from.
+  BehindTheTemplate { carrier: usize, template: usize },
+  /// Installed and current.
+  Current,
+}
+
+pub fn gate_state(carrier: Option<&str>, chain: Option<&str>, template: Option<&str>) -> GateState {
+  let Some(carrier) = carrier else {
+    // **THE DISCRIMINATOR IS WHETHER ANYTHING REFERENCES THE CARRIER**, not
+    // whether it exists. Two absent files are an estate that opted out; a chain
+    // calling a file that is not there is an estate that believes it is
+    // protected and is not.
+    return if chain.is_some_and(|t| t.contains("pre-commit.intent")) {
+      GateState::ChainCallsAMissingCarrier
+    } else {
+      GateState::NotInstalled
+    };
+  };
+  // **THE MARKER IS THE GUARD RUNNER THE CARRIER MUST REACH**, not a version
+  // string and not a banner. A carrier can carry every comment the template has
+  // and still run nothing; what makes guards execute is this path.
+  if !carrier.contains("pre-commit-guards.sh") {
+    return GateState::CarrierRunsNoGuards;
+  }
+  let Some(template) = template else {
+    return GateState::NoResolvableInstall;
+  };
+  // **BYTES, NOT A VERSION.** The carrier is an untracked per-machine copy
+  // taken at install time, so the only thing that says whether it is the
+  // current one is whether it IS the current one.
+  if template != carrier {
+    return GateState::BehindTheTemplate {
+      carrier: carrier.len(),
+      template: template.len(),
+    };
+  }
+  GateState::Current
+}
+
+/// **AN ESTATE HAS NO WAY TO LEARN THAT ITS COMMIT GATE IS NOT RUNNING** (vc,
+/// 2026-08-27), and until this landed `doctor` was one of the surfaces telling
+/// it everything was fine.
+///
+/// Found on Baize: config `3.0.0`, canon present, fully ported, four whiteboard
+/// nodes, and a `pre-commit.intent` carrying no guard block whatsoever. `doctor
+/// --verbose` there printed 139 lines with ZERO mentions of `hook`, `gate`,
+/// `guard`, `INTENT_HOME` or `pre-commit`. Nobody noticed, because an unwired
+/// guard does not fail -- it reports NOTHING, which is indistinguishable from
+/// having nothing to report.
+///
+/// # The severity is split by PROPERTY, and that split is the whole design
+///
+/// The four properties do not share one severity, and giving them one is what
+/// would have made this check useless:
+///
+/// - **installed and cannot execute -> [`FindingClass::GateNotRunning`], which
+///   is ACTIONABLE.** Reds 2 of 17 across the fleet. Something is broken and
+///   the operator is committing ungated.
+/// - **behind the template -> [`FindingClass::Advisory`], printed and not
+///   counted.** Reds **17 of 17** today: dc proved by `cmp` that the current
+///   template is installed in ZERO estates, Intent's own carrier included. **A
+///   check that reds every estate in the fleet permanently is one operators
+///   learn to skip**, and a skipped check is not there for the two estates that
+///   are actually broken either.
+///
+/// # An ABSENT carrier is deliberately not a finding at all
+///
+/// Nothing here demands that a project HAVE a gate. A project that never
+/// installed one is not broken, and reporting it would fault every
+/// non-adopting estate for a choice it made. **The discriminator is whether
+/// something REFERENCES the carrier**: a chain that calls `pre-commit.intent`
+/// while no such file exists is broken; two absent files are a project that
+/// opted out.
+///
+/// # No verb repairs any of it, and the findings say so
+///
+/// No v3 code path writes the carrier. `intent claude upgrade --apply` writes
+/// canon and region-edits the chain block; vc drove its dry run to confirm the
+/// carrier is not on its list. **So this check makes the rot VISIBLE, not
+/// fixable** -- which is a good finding, where saying nothing is how Baize got
+/// where it is. The one thing it must not do is offer a command that does not
+/// work: `bin/devbin hooks` already prints `dispatcher STALE` and then names a
+/// remedy that vc measured does not write the carrier, and running a remedy
+/// that changes nothing reads as repair.
+fn hook_findings(project: &Project) -> Vec<Finding> {
+  let root = project.root();
+  // `--git-path hooks` rather than `config core.hooksPath` or a literal
+  // `.git/hooks`: it honours the redirect AND a linked worktree in one call,
+  // and it is the same resolution the shipped chain itself uses. A hand-rolled
+  // version would agree with git on the common case and disagree in exactly the
+  // layouts that produce an unwired guard.
+  let Ok(out) = std::process::Command::new("git")
+    .args([
+      "-C",
+      &root.display().to_string(),
+      "rev-parse",
+      "--git-path",
+      "hooks",
+    ])
+    .output()
+  else {
+    // **NOT A FINDING.** No git, or no repository: `doctor` runs on trees that
+    // are neither, and a missing gate is not a defect of a directory that
+    // cannot have hooks in the first place.
+    return Vec::new();
+  };
+  if !out.status.success() {
+    return Vec::new();
+  }
+  let hooks = root.join(String::from_utf8_lossy(&out.stdout).trim());
+  let carrier_path = hooks.join("pre-commit.intent");
+  let chain_path = hooks.join("pre-commit");
+  let shown = |p: &std::path::Path| project.relative(p);
+
+  let carrier = std::fs::read_to_string(&carrier_path).ok();
+  let chain = std::fs::read_to_string(&chain_path).ok();
+  let template = crate::install::home()
+    .ok()
+    .and_then(|home| std::fs::read_to_string(home.join("lib/templates/hooks/pre-commit.sh")).ok());
+
+  match gate_state(carrier.as_deref(), chain.as_deref(), template.as_deref()) {
+    GateState::NotInstalled | GateState::Current => Vec::new(),
+    GateState::ChainCallsAMissingCarrier => vec![Finding::new(
+      shown(&chain_path),
+      FindingClass::GateNotRunning,
+      format!(
+        "the pre-commit chain calls `{}` and no such file exists, so every guard it would have run is silently skipped on every commit",
+        shown(&carrier_path)
+      ),
+    )],
+    GateState::CarrierRunsNoGuards => vec![Finding::new(
+      shown(&carrier_path),
+      FindingClass::GateNotRunning,
+      "the hook carrier is present and names no guard runner at all, so it executes no guards -- this is the Baize state, in which every surface reports health while nothing is enforced".to_string(),
+    )],
+    GateState::NoResolvableInstall => vec![Finding::new(
+      shown(&carrier_path),
+      FindingClass::GateNotRunning,
+      "the hook carrier reads its guard roster live out of the Intent install and this machine cannot resolve one, so the carrier runs and finds no guards to run".to_string(),
+    )],
+    GateState::BehindTheTemplate { carrier, template } => vec![Finding::new(
+      shown(&carrier_path),
+      FindingClass::Advisory,
+      format!(
+        "the hook carrier is {carrier} byte(s) and the template in the resolved install is {template} -- the carrier is a copy taken at install time and nothing re-copies it, so the guards it runs are the generation it was installed with. Reported and NOT counted: measured across the fleet this is true of every estate, and a finding that is permanently true everywhere is one nobody reads"
+      ),
+    )],
+  }
 }
 
 fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {
