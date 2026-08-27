@@ -1,24 +1,22 @@
 # Intent -- narrative state, traps and conventions
 
-**Current as at `1e8e3666`, 2026-08-24.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`. **This file carries where-you-are-standing, the traps, and the conventions -- and nothing that belongs in the other two.**
+**Current as at `a8f8ed3c`, 2026-08-27.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`.
 
 ## Where you are standing
 
-**THIS CHECKOUT IS v3 ONLY. The v2 CLI the fleet runs lives in a SEPARATE checkout at `~/Devel/prj/Intentv2`, branch `v2-maintenance`.**
+**THIS CHECKOUT IS v3 AND IT IS WHAT THE FLEET RUNS.** `intent` on PATH is a symlink from `~/.local/bin` into `native/rust/target/release`, and `INTENT_HOME` resolves here. **Measure it rather than trusting this line:**
 
-**THE HAZARD THAT OUTRANKS EVERYTHING ELSE HERE: the fleet resolves `intent` through `$INTENT_HOME` to that FROZEN checkout, so a shipped-surface fix landed in ONE tree reaches nobody and presents as done.** Four instances in one day on 2026-08-24. `tests/unit/shipped_surface_drift.bats` reddens on it now, unattended, and **its first catch was its own author.**
+    command -v intent && readlink "$(command -v intent)"
+    intent --version
+    intent info | sed -n 's/^ *INTENT_HOME: *//p'
 
-**hv's ruling, and it is SCOPED: Intentv2 is FROZEN FOR FEATURES and LIVE FOR SHIPPED-SURFACE DEFECTS.** That gives the guard its property -- not _these two trees agree_ but **_a shipped-surface change is either in both or declared_** -- which decides which of its two exception kinds a new entry gets.
+**THE ROUTING INVERTED ON 2026-08-26 AND THIS FILE ASSERTED THE OLD DIRECTION UNTIL 2026-08-27.** It said, as the hazard outranking everything else, that the fleet resolved `intent` through `$INTENT_HOME` to the frozen v2 checkout, so **a shipped-surface fix landed in one tree reached nobody and presented as done.** That was true when written and false for two days afterwards, **in the document a fresh session reads first.** A claim outlives its basis and nothing announces it -- **and the more load-bearing the claim, the longer it survives, because everyone builds on it rather than checking it.**
 
-**The branch point is the lesson worth keeping.** `v2-maintenance` was cut at main HEAD, **not at the `v2.19.0` tag**: the old symlink resolved into the working tree, so the fleet had NEVER run the tag, and branching there would have reverted **2027 commits** across every project on this machine while presenting as a symlink move. **A released tag is evidence about a release, never about a deployment.** And the binding was never the symlink. **THERE ARE FOUR ROUTES AND THE FOURTH IS ON NO LIST ANYWHERE** (dc, driven, re-verified 2026-08-24): `~/.local/bin/intent` and **`~/bin/intent` -- a SECOND symlink to the same target, made in the same minute** -- plus the exported `INTENT_HOME` and `$INTENT_HOME/bin` on PATH. **Deleting `~/.local/bin/intent` as "the" binding hands resolution to the other one, which still answers v2.** `bin/intent:26` self-resolves only `if [ -z "$INTENT_HOME" ]`, so **the exported var beats both symlinks outright** and changing a symlink alone succeeds at rc=0 while moving nothing. `env -u VAR <cmd>` tells an override from a resolution defect.
+**`~/Devel/prj/Intentv2` IS FROZEN AND IS NEVER WRITTEN.** It still exists, its templates are a month stale, and **eleven estates carry its `pre-commit.sh` byte-for-byte** from a fleet install that read the wrong source. That is a fact about the past, not a routing rule.
 
-**THE ARCHITECTURE, INVIOLABLE AND UNCHANGED FOR THE WHOLE REWRITE.** The crates are `intent-cli`, `intentd` and `intentsvcs`. **`intentd` and `intent-cli` are BOTH clients of `intentsvcs`, which solely owns `intent/.cache/intent.db`.** `intentd` is not the SSOT and no read requires it. Diagram: `intent/st/ST0056/design.md:12-17`. **The word `intentdb` is retired and names no component** (hv, 2026-08-21) -- it was a typo that propagated corpus-wide. **D01 was REVERSED by hv 2026-08-15; do not reason from it.**
+**A BUILD IS THE DELIVERY.** There is no install step: `bin/devbin build all` deletes both binaries to force the provenance embeds, so for ~60 seconds every estate on this machine has no `intent` and every gate fails open. **One node rebuilds, announces it by properties before and after, and nobody else builds.**
 
-**THREE LAYERS, AND CONFUSING THEM IS THE RECURRING ERROR:** canon (`intent/.canon/st/<ID>.json`, committed, **never sparse**) / store (`intent/.cache/intent.db`, gitignored, **the durable SSOT**) / views (`info.md`, `acceptance.md`, committed, **generated**). **`acceptance.md` is a GENERATED VIEW -- a row authored there is discarded.**
-
-**`.intentfiles` IS DURABLE STATE**, the record of which database artefacts also have a realised form on disk. **Many writers, no recomputation** -- `st new` adds an id, `st done` removes it, a human may edit it, **nothing derives it from status**. **ABSENT IS NOT EMPTY:** a missing manifest keeps everything, a manifest declaring nothing keeps nothing.
-
-**Roles (hv):** cc builds, ic runs parity/interface, dc owns DevX and distribution, vc stewards (contract, WP-close verification, hv interface; holds ST0056 + ST0057). **localfold = your own board; globalfold = project-wide docs, and it is vc's.**
+**THE MARKER IS PROVENANCE, NOT AN IDENTITY.** Never compare it to `HEAD` -- that differs after every board commit and says the alarming thing on the healthy case. The deciding test is `git diff --name-only <marker>..HEAD -- native/rust surface`, empty meaning current. **The sha256 is what distinguishes one build from another; three binaries carried one marker in a single day.**
 
 ## The bounce, and two open protocol questions
 
