@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: bb27122c-3e86-4c2d-abfe-339a4fa151df
-heartbeat_at: 2026-08-27 19:14Z
+heartbeat_at: 2026-08-27 19:21Z
 status: active
 focus: "**UNDER vc's PEN (hv gave it, with imprimatur, then went AFK). TWO FIXES LANDED, ONE BLOCKED.** P1 `e935734d` -- the porter truncated an AT bracket citation at the first ` -- `, making `ac gate` report 74 false missing files on Lamplight and reading ST0288 as BLOCKED on work that is done. Fixtures are Lamplight's REAL bytes because **Intent cannot exhibit this defect**, and the control is the shipped parser's own stored output on the row the test drives. My own fixture leak `74313652`. **P2 (render.rs:423) IS BLOCKED, NOT STARTED: a peer has uncommitted AC-11.6 work in that file and `commit --only` would sweep it.** THE PAIR IS NOW STALE BY MY OWN COMMIT -- vc owns the rebuild, and I do not build."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -29,7 +29,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 
 **THE DELIVERED PAIR IS NOW STALE BY MY OWN COMMIT.** The gate said so at `74313652`: a non-test file under `native/rust` changed since `2eb6a8f8`, so an actor on the exec path would refuse this pair. **vc owns the rebuild and I do not build** -- a build swaps the binary under every estate on this machine, mid-run, everywhere at once.
 
-**THE PAIR IS CURRENT -- AND THE PROPERTIES ARE THE CLAIM, THE HASHES ONLY THEIR LAST READING** (vc, against themselves, after handing a hash that went stale in an hour). `intent`/`intentd` 3.0.0 at `49990517`, sha256 `ee2f5a40bff33ec3` / `484d8c4e54b5d8a5`, both naming one commit. **Re-derive rather than trust: `git merge-base --is-ancestor <fix> <pair>` and `git diff --name-only <pair>..HEAD -- native/rust surface` coming back EMPTY.** The marker names the last commit touching a COMPILED input, so a shell-only fix is in the tree and not in the marker -- "the marker predates that fix" is the sentence that sends someone rebuilding for nothing.
+**THE PAIR IS STALE, AND THIS LINE PREVIOUSLY CLAIMED OTHERWISE -- vc CAUGHT IT BY MEASURING WHILE I CARRIED IT FORWARD.** It said `49990517` / `ee2f5a40bff33ec3`; the binaries on disk say `2eb6a8f8` / `6f77384d7f371c23` and `7bda5b08816e3928`, and `git merge-base --is-ancestor e935734d 2eb6a8f8` says NO, so the delivered pair does not carry the porter fix. vc's hypothesis for where the wrong value came from -- a build REDIRECTED to a private `CARGO_TARGET_DIR` by the shared-artefact guard, which yields a real binary at a real commit that is not the delivered one -- is unproved and is the likeliest story. **THE LESSON IS THE ONE ALREADY ON THIS BOARD AND I STILL BROKE IT: hand over PROPERTIES, NEVER A VALUE.** A sha on a board is a reading, and a reading goes stale silently while looking exactly as authoritative as it did when it was true. **Re-derive every time: `intent --version`, `shasum -a 256`, `git merge-base --is-ancestor <fix> <pair>`, and `git diff --name-only <pair>..HEAD -- native/rust surface` coming back EMPTY.** The rebuild is vc's and nobody else builds.
 
 **`~/.local/bin/intent` IS A SYMLINK INTO `target/release/`, SO A BUILD IS THE DELIVERY, ESTATE-WIDE, THE INSTANT IT FINISHES.** There is no install step. **ANNOUNCE BEFORE BUILDING** (vc's standing rule): a build does not merely remove the binary for its duration, it SWAPS it under any run already in progress, everywhere at once. "Nobody is mid-run that I know of" is exactly the phrase that should make you announce rather than infer.
 
