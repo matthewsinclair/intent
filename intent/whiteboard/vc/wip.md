@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 19:12Z
+heartbeat_at: 2026-08-27 19:21Z
 status: active
 focus: "PEN HELD, hv AFK. THE SWEEP HAS NO v3 MECHANISM -- no code path writes `pre-commit.intent`, so ruling 4 sits in the one layer nothing ships, positive-controlled at 1 on the template and 0 on five estates INCLUDING THIS ONE. Guard bodies and the roster DO propagate live, so tolerance 0 reaches 15 estates on commit with no sweep. Menu to hv: move the gate into the runner (cost UNMEASURED) or build the missing verb (Baize proves it is needed anyway). No fleet write has happened and none will without hv."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -27,20 +27,41 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 **THE HIGHLANDER REVIEW IS RECORDED IN `cutover-runbook.md`** -- three axes, four findings. F1 built by ic, F2 parked as separately guarded, F4 built by cc, F3 corrected by cc. **The copy-paste axis is clean and it is the WEAKEST axis** -- say both halves or the sentence misleads. **Axis 3 is the one to repeat first and it is unfinished: `preconditions.rs` and `export.rs` are still undriven, and of the two I did drive, one claim was FALSE.**
 
-## THE ROLLOUT -- SEQUENCED UNDER THE PEN
+## THE ROLLOUT -- LIVE STATE, SEQUENCED UNDER THE PEN
 
-**Released by hv 2026-08-27; the sequencing and the two rulings inside it are `authority: vc`.** Everything ruled while hv is away is recorded as mine, never as hv's.
+**Released by hv 2026-08-27; the sequencing and every ruling inside it are `authority: vc`.** Landed items carry their commit; nothing here is a plan any more except where it says so.
 
-1. **THE SWEEP -- LAST, AND SCOPED DOWN FROM 17.** `Intentv2` is never written; Intent is self-hosted and its gate already reads guards from this repository. **Laksa is the only remaining estate where the sweep writes into a TRACKED directory (`bin/hooks`)** and gets its own handling. dc is confirming whether the payload is a CARRIER refresh or a body install -- my reading that only the carrier is copied is from a document, not a measurement.
-2. **CLOCK-GUARD TOLERANCE 0 -- RULED, CONDITIONAL, NOT LANDED.** Lag cannot false-positive at any threshold (it drives drift NEGATIVE); `-gt` is strict so 60 catches neither known instance, both exactly +60s; 0 is the only value deterministic across both `date` flavours. **Does not land until dc re-drives Intent's 648 AT 0 and positive-controls at +60** -- I do not know which threshold the "zero false positives" figure was measured at.
-3. **THE FLEET STAMP CENSUS GATES THE SWEEP.** Intent's rate is one estate; the fleet's is unmeasured. **A guard that fires on healthy commits is worse than a missed fabrication**, so the census runs read-only BEFORE the sweep carries tolerance 0.
-4. **THE `claims:` FILE-CLAIM GAP -- MINE.** Reached independently by laksa-cc and devbin-cc. A current board says `claims: []` too, so freshness cannot fix it.
-5. **F1 -- ic BUILDS THE NUMBER, hv KEEPS THE ANSWER.** enum-vs-test is a design call hv has not made. The live `doctor` check (for each op in the store, is it still spelled) converts hv's question from a forecast into a figure. 22 of 22 spelled today; the trigger is the first RENAME OR RETIREMENT.
-6. **AC-11.6 + `st new --dehydrate` inert + WP-11's COVER -- ic.** The cover still carries the definition hv overruled the same day; ic was right not to reword a ruling alone and now does it under my pen.
-7. **THE DOC-LINK CHECK -- dc, cheapest, last in their lane.** `--document-private-items` is the load-bearing flag; without it the check is blind in exactly today's way.
-8. **THE v3 PORTER's AT-CITATION DEFECT -- cc, HIGHEST VALUE, BLOCKING ANOTHER ESTATE.** The DISK is intact and the STORE is the lossy side, so a fixed hop 2 re-run recovers all 74 rows with no hand-patching. **Intent cannot exhibit it** (0 of 318), so a green here proves nothing and the fix needs a fixture.
+**LANDED TODAY UNDER THE PEN**
 
-**STILL HELD, AND NOT FORGOTTEN: AC-14.8.** A per-machine read writing canon across 12 estates is a FLEET WRITE, and every fleet write sequences after the sweep. Red and visible on ic's board.
+- **THE PORTER's AT-CITATION TRUNCATION -- `e935734d` (cc).** The subject was taken as everything before the first `--`. **cc corrected my brief: the bracket form I relayed is the MINORITY and Lamplight's majority form is BACKTICKS**, so a fixture written to my description would have tested a corpus that does not exist. Their prediction for the re-run is 12 rows to a null file, 62 to a bare path -- checkable, not admirable. **lamplight-vc unblocks when this is IN A BINARY, which is the rebuild below.**
+- **AC-11.6 + WP-11's COVER -- `102af78f` (ic).** Both stale sentences were in hv's voice and one superseded the other.
+- **THE DOC GATE -- `6c380e09` + `528ab18a` (dc).** Reports and says why it cannot yet refuse.
+- **AXIS 3 CLOSED -- `02dbff24` (mine).** 4 of 4 registry claims driven, 3 verified, 1 false (`remedy.rs`, already fixed).
+
+**THE SWEEP IS DEAD AS CONCEIVED AND THE REPLACEMENT IS hv's CALL -- `345104be`, `8ff38517`**
+
+**No v3 code path writes `pre-commit.intent`.** Ruling 4 is in the one layer nothing ships, positive-controlled at 1 on the template and **0 on five estates including this one**. The good half: guard bodies AND the roster propagate live from `INTENT_HOME`, so **tolerance 0 reaches 15 estates the moment it is committed here, with no sweep at all.** Menu with hv: **(A2)** move the gate into the runner and have it translate its own rc -- cheap, measured, and it preserves the ruled fail-open that the naive move would silently kill; **(B)** build the missing verb, which **Baize proves is needed whatever hv picks about (A)**. Hand-copying is recorded to complete the menu, not as a candidate. **NO FLEET WRITE HAS HAPPENED AND NONE WILL WITHOUT hv.**
+
+**IN FLIGHT**
+
+- **dc -- P1 tolerance 0** (ruled, NOT landed until Intent's 648 re-drives at 0 and a +60 positive control passes on both `date` flavours) and **P2 the fleet stamp census**, now with the 2026-08-20 cutoff and the corrected framing: a guarded estate cannot carry a post-guard violation, so the informative corpus is the UNGUARDED one.
+- **cc -- P2 `render.rs:423`** (unblocked, ic's file landed) **plus `issues --format`**, ruled BUILD under the pen: the tool advertises `json` and rejects it while accepting undeclared `text`/`markdown`.
+- **ic -- the F1 live figure**, going into `doctor.rs` where a per-machine truth check belongs.
+
+**MINE, AND BLOCKED ON A CLEAN TREE**
+
+**THE REBUILD.** Delivered pair is `2eb6a8f8`, measured off the binaries: 9 compiled inputs changed since, and **it does NOT carry the porter fix.** cc and ic are both in `native/rust` right now and the shared-artefact guard correctly refuses a build while any compiled input is uncommitted. **One rebuild, by me, announced by properties before and after** -- it deletes both binaries, so for ~60s every estate on this machine has no `intent` and every gate fails open.
+
+**WITH hv -- NOT RULED UNDER THE PEN**
+
+1. **The sweep replacement menu**, (A2) and (B) above.
+2. **cc's two structural enum findings.** `declared_values_are_enforced.rs` walks `values` ARRAYS only and is **green and blind to the 12 pipe-string slots**; and validation happens as an ARGUMENT to the renderer, so **the verdict belongs to the RESULT SET not the slot** -- `wp list ST0056` refuses, `wp list ST0029` accepts, same flag same binary. Widening the test changes what a green means across the surface; moving validation is a contract change.
+3. **F1's form -- enum or test.** ic builds the NUMBER, hv keeps the ANSWER.
+4. **AC-14.8** -- a fleet write, and every fleet write waits on the menu.
+
+**AWAITING PEERS, NOT BLOCKED ON ME**
+
+**The `claims:` file-claim gap.** Asked laksa-cc and devbin-cc to restate their own finding, separately and without telling either what the other says. **Both idle; neither has answered.** Intent's record carries only the six-word label, which I wrote myself, so **there is nothing here to build against but my own paraphrase** -- and I said I would not.
 
 ## Watch-outs
 
