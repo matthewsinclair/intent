@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 19:26Z
+heartbeat_at: 2026-08-27 19:42Z
 status: active
-focus: "vc has the pen with hv's imprimatur and the held queue is RELEASED. P1 DONE (AC-11.6 built, WP-11 closed, doctor 0 findings, `102af78f`); P2 DONE (F1 live figure in doctor, `983ad02f`); P3 is AC-14.8 STAYING HELD, which is a decision not an omission. Both builds found something the build was not looking for: an arm no test could reach, and an op with no dot. QUEUED AND NOT STARTED: vc's doctor gate/hook check -- I said yes to the pairing and asked one design question first, because advisory-vs-actionable there is a FLEET-WIDE exit-code choice and it is vc's to make."
+focus: "ALL FOUR OF vc's ITEMS DONE AND NOTHING IN FLIGHT. AC-11.6 `102af78f`, F1 live figure `983ad02f`, `--dehydrate` RECORD `001690c6`, doctor gate check `3805f359`. P3 is AC-14.8 STAYING RED, which is hv's. Every one of the four found something it was not looking for: an arm no test could reach, an op with no dot, a ratified basis asserting the fact hv reversed, and three reds on main that are not mine -- proved by a clean HEAD worktree, 1357/3 against my 1363/3."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,12 +13,14 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## DOING
 
-**NOTHING IN FLIGHT. Two of vc's three landed; the third is a hold I am keeping.**
+**NOTHING IN FLIGHT. Four items for vc, all landed, all committed and verified out of the blob.**
 
-- **P1 `102af78f`** -- AC-11.6: `--default --force` regenerates AND APPLIES. The arm was UNREACHABLE by any test, not merely untested, so AT-11.6 builds the estate's first pty harness. Two sentences had gone false underneath the code: the confirm promised _"it removes no files"_, and the refusal named the precondition but never the THREAD whose files it held. WP-11 closed; the `.intentfiles` header that still said `st new` adds the id is swept.
-- **P2 `983ad02f`** -- the F1 live figure: `doctor` now reports ops the log holds that this build does not declare. Advisory, never a gate (it reads a gitignored per-machine store). **0 undeclared of 21 ops / 425 events here.**
-- **P3 -- AC-14.8 STAYS HELD, and vc restated why: a fleet write is sequenced AFTER the sweep.** Not forgotten, not next.
-- **Standing and unanswered by vc: RETIRE or RECORD for `st new --dehydrate`** (measured inert, byte-identical with and without). I have done NEITHER -- retiring a surface row hv ratified into existence is a ratification, not a bug fix.
+- **`102af78f` AC-11.6** -- `--default --force` regenerates AND APPLIES. The arm was UNREACHABLE by any test, so AT-11.6 builds the estate's first pty harness. Two sentences had gone false under the code; WP-11 closed; doctor 0 findings.
+- **`983ad02f` the F1 live figure** -- `doctor` reports ops the log holds that this build does not declare. **0 undeclared of 21 ops / 425 events here.** Found `init`, the one op with no dot.
+- **`001690c6` `st new --dehydrate` RECORD** -- vc ruled RECORD, retirement is hv's. The basis asserted the fact hv reversed; the dead sentence is quoted, not deleted.
+- **`3805f359` the doctor gate check** -- `GateNotRunning` gates (2 of 17), behind-the-template advises (17 of 17). Remedy wording is dc's, matched not re-authored.
+
+**NOT MINE AND STILL RED ON MAIN:** three tests -- `schema_command` x2 and `committed_faces_match_the_types`. `schema/issue.schema.json` drifted from the types at `8174de80`. **Proved inherited, not asserted:** clean HEAD worktree 1357/3, my tree 1363/3, same three. Reported to vc, deliberately not fixed.
 
 ## TODO
 
@@ -92,6 +94,12 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 **A SINGLE-MUTATION TABLE CANNOT SHOW THAT A CONTROL IS LOAD-BEARING WHEN THE CONTROL ONLY MATTERS IN COMBINATION.** Dropping the `event.rs` exclusion from my roster reader redded NOTHING -- with an honest roster both readers agree on today's input. Run it TOGETHER with a retired op and the retirement test goes green on a genuinely retired op. **One-at-a-time is the right default and it reports "reds nothing" beside a line that must not be deleted**, so when a row reds nothing, ask what second mutation the control was built against before believing it is dead code.
 
 **AN EXTRACTION PATTERN DEFINES THE POPULATION IT CAN FIND, AND A MISSING MEMBER LOOKS EXACTLY LIKE AN ABSENT ONE.** I seeded an op roster by grepping `"<word>.<word>"` and it could not match `init`, which has no dot -- so the roster was wrong in the one direction its own tests could not see, and the LIVE check found it on first contact with a real estate. **Enumerate by DOOR, not by pattern**: there are four `Envelope::minted` call sites, and that population is closed. Same family as the honest-and-blind grep.
+
+**A RED IN A SHARED TREE IS INHERITED UNTIL A CLEAN HEAD WORKTREE SAYS OTHERWISE, AND THE BASELINE IS THE ONLY THING THAT CAN SAY SO.** The greens half of this was already here -- verify in a detached worktree at HEAD -- and the REDS half is the one that costs an evening: three tests red under my change, none of them caused by it, and the cheap instinct is to make them pass. **Measure HEAD in a worktree carrying none of your edits and compare the PAIR of numbers**: 1357/3 against 1363/3 says my change added six passes and zero failures, which no single run of my own tree could have said. Then report it to the owner and leave it -- regenerating a face under somebody mid-fix is how a peer's work gets swept.
+
+**AUTHORED MARKDOWN LIVING INSIDE A JSON CANON MUST BE A FIXED POINT OF THE REPO FORMATTER.** I wrote a quotation with `*...*` into `dispatch-table.json`; the formatter normalises to `_..._`, so the rendered view would have been rewritten the instant it landed and every later regeneration would diff against the committed file for ever. **The generator refused rather than writing it**, which is the formatter-as-second-writer defect caught at the one place that can catch it. Same family as `ensure_ascii` and the table aligner: the question is never whether your edit is right, it is whether anything downstream rewrites it.
+
+**SPLIT A VERDICT FROM ITS IO WHEN -- AND BECAUSE -- ARMS ARE OTHERWISE UNREACHABLE, NOT BECAUSE IT IS TIDIER.** The gate check has two states no test on a healthy machine can produce: one needs a machine with no resolvable install, one needs a carrier byte-identical to whatever template that machine holds. Left inside the IO they would have shipped verified by inspection only -- **in a check whose whole subject is estates being silently unprotected.** The thin-coordinator rule pays exactly where the untestable arms are, and that is the test for whether to apply it.
 
 **SHARED-CHECKOUT MECHANICS. A green over a shared tree is about whoever's files are in it -- verify in a detached worktree at HEAD carrying your files and nothing else.** `git commit --only` is PATH-scoped, not hunk-scoped. `git checkout -- <file>` in a dirty tree is a REVERT: copy aside, copy back. `.git/index.lock` means a peer is mid-commit -- wait, never clear it. `git show HEAD` after a failed commit shows someone else's and reads like success. **`cargo fmt --all` WRITES**, invalidating every anchored edit a peer has in flight. **`git status` here is a snapshot of whoever is mid-write, not a state.** **A PEER'S HALF-FINISHED EDIT REDS _YOUR_ RUN IN A FILE YOU NEVER TOUCHED, THEN REPAIRS ITSELF BEFORE YOU CAN READ IT** -- ask the owner before diagnosing a red in their file. **Verify a repair out of the COMMITTED BLOB** -- the formatter writes between tree and commit. **And never amend to satisfy a convention once a peer has committed on top: the trailer is a convention, a shared HEAD is other people's work.** **AND A LOST COMMIT RACE LEAVES YOUR FILES STAGED IN THE SHARED INDEX** (vc, measured twice today, `003544af` and `280baee7`): `git add` succeeds, the commit loses the race, and the next node to commit BY PATH sweeps them into a message claiming work they did not do. **Check `git diff --cached --name-only` is EMPTY before you `git add`; if it is not, wait rather than commit.** **THE INSTALLED PAIR IS A SHARED ARTEFACT TOO, AND A PEER'S REBUILD SWAPS IT UNDER A RUN IN PROGRESS** (vc): read the sha at BOTH ENDS of any run that depends on the binary and discard the run if they differ -- **including on a FAILED read**, because an unreadable binary is a swap in progress, not an absent one. **A build marker differing from HEAD is not a finding** -- HEAD moves on board commits that compile nothing; the question is whether a COMPILED input moved (`_rust_source_changed`), and a bare `git diff -- native/rust` overcounts by including tests.
 
