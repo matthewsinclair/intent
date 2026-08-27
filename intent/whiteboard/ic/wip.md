@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 14:49Z
+heartbeat_at: 2026-08-27 14:56Z
 status: active
-focus: "ALL THREE RELEASED ITEMS LANDED. AC-11.2 covered (`403c5dbd` + AT-11.2 at `38bd566c`), `new_surface` chained into flag-reachability (`1531a021`) and its FIRST widened run found `ingest --from-md` advertised and read by nothing. ST0061 was already complete and is HELD OPEN on vc's call so hv's pile does not move under the ruling. AC-11.6 untouched and hv's."
+focus: "R6 first half LANDED (`8daca5f1`): `at new` no longer eats the `note` and `legacy` it was never given -- it was a full replacement writing None over the stored row. Second half (`--note` on new/green/red/na) needs four flag declarations in cc's dispatch table and is asked, not taken. AC-11.6 untouched and hv's."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -49,7 +49,10 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 - **A control that cannot go red is not a control** (IN-AG-RED-CONTROL-001), and **a positive control that would also pass under the broken instrument is decoration.**
 - **ASSERT THE CAUSE: an outcome is reachable by more than one path**, and a message naming one of them sends the next reader at the wrong fix.
 - **A CRITERION CAN BE SATISFIED PERFECTLY BY A DEGENERATE IMPLEMENTATION, AND THE TEST THAT PROVES THE CRITERION WILL SAY SO.** Two measured cases: `default_declaration` returning NOTHING passes _all three callers agree_, because three writers agreeing on nothing is a perfect score; and a `dehydrate` that removes nothing passes _proven by round trip_, because a do-nothing inverse round-trips perfectly. **The general form: a property that holds VACUOUSLY is indistinguishable from one that holds substantively, and only an assertion on the MIDDLE STATE tells them apart.** What a criterion asks for is a floor, never a ceiling.
-- **GREEN ON THE FIRST RUN IS NOT EVIDENCE.** Mutate the source, one change at a time, until every assertion has been SEEN to fail by name, and put the table where a reader of the test meets it. vc wants this on every proof test now.
+- **NEVER MUTATE THE LIVE FILE, AND FOR RUST THAT MEANS COPY THE TREE RATHER THAN THE FILE** (dc's rule; I had already done the weaker thing when it arrived). There is then no restore, so there is nothing to get wrong and no trap to lie to you -- cc's trap used relative paths after a `cd`, printed `[restored]`, and left a live mutation in the file. dc's one property to check first is whether the copy can still be pointed at the REAL subject: their guard takes `ROOT` from the environment, so a file copy worked; a Rust source file is compiled at its path inside its crate and has no such indirection, so **the structure it needs is the whole crate around it -- a detached worktree at HEAD carrying only your files.** **And if a live mutation is truly unavoidable, the assertion is `git diff --quiet -- <file>` or a byte compare, NEVER a grep for the mutation string** -- the string being gone is not the file being the file, and those two answers come apart in exactly the half-restored case you need the check for. **I had a worktree open and dropped it for R6 because the file happened to be mine and the tree happened to be clean when I looked. Both facts were about that minute.**
+
+**GREEN ON THE FIRST RUN IS NOT EVIDENCE.** Mutate the source, one change at a time, until every assertion has been SEEN to fail by name, and put the table where a reader of the test meets it. vc wants this on every proof test now.
+
 - **A control is CONSUMED by being used as a subject, one-way, and nothing about the artefact says so.** **Re-measure a fixture when you CITE it, not when you built it.**
 - **I ESCALATED A BLOCKER FROM THE SHAPE OF A DEFECT WHILE STANDING ON THE PATH THAT DEFEATS IT.** dc reported `at new` eats an AT row's `note` and no verb writes one, so a 168-row re-cite was "hard-blocked"; I sized it to vc as a prerequisite. **It is not** -- a re-cite done in CANON plus `sync --to-store` moves `file` and keeps `note`, driven -- **and I had restored six notes that exact way an hour earlier.** A defect's shape tells you what breaks, never what else works; **the door you just used does not announce itself while you reason about the door that failed.**
 - **An instrument that cannot see the state it looks for is the same defect one level up** -- odd-backtick-count catches the cause and never the aftermath.
