@@ -29,6 +29,13 @@ setup() {
   PAST3="$(date -u -v-3H '+%Y-%m-%d %H:%M' 2>/dev/null || date -u -d '3 hours ago' '+%Y-%m-%d %H:%M')"
   NOW="$(date -u '+%Y-%m-%d %H:%M')"
   FUTURE="$(date -u -v+2H '+%Y-%m-%d %H:%M' 2>/dev/null || date -u -d '2 hours' '+%Y-%m-%d %H:%M')"
+  # +2 MINUTES, AND THE 2 IS CHOSEN RATHER THAN CONVENIENT. It must be small
+  # enough to discriminate the tolerance (at +2min BSD drift is exactly 120, so
+  # `-gt 120` is FALSE and the guard as shipped passed it, while `-gt 0` blocks)
+  # and large enough not to flake: +1 minute would roll to drift 0 whenever the
+  # wall minute ticks between writing the fixture and the guard reading its
+  # clock, and spuriously PASS.
+  NEAR_FUTURE="$(date -u -v+2M '+%Y-%m-%d %H:%M' 2>/dev/null || date -u -d '2 minutes' '+%Y-%m-%d %H:%M')"
 
   mkdir -p intent/whiteboard/cc intent/whiteboard/ic/.history/20260814
   printf '# inbox: ic -> cc\n\n## (%sZ)\n\nhello\n' "$PAST" > intent/whiteboard/cc/inbox.ic.md
@@ -82,6 +89,26 @@ assert_guard() {
 
 @test "clock guard: check A blocks a stamp in the future" {
   printf '\n## (%sZ)\n\nlater\n' "$FUTURE" >> intent/whiteboard/cc/inbox.ic.md
+  git add -A
+  assert_guard BLOCK
+}
+
+# THIS TEST EXISTS BECAUSE THE ONE ABOVE CANNOT SEE THE TOLERANCE, AND NOR COULD
+# ANY OTHER CHECK-A TEST IN THIS FILE. `FUTURE` is +2 hours, so it blocks at any
+# tolerance below 7200s: the whole suite was equally green at 120s, at 0, and at
+# an hour. A green from a suite that cannot distinguish the setting is not
+# evidence the setting is right.
+#
+# AND THE UNDISCRIMINATED BAND IS WHERE THE REAL DEFECTS LIVE. Both known
+# instances on this estate are exactly +60s; `-gt` is strict, so the shipped 120
+# missed them and so would 60. Measured across the fleet's unguarded board
+# history: 299 violations sit in the 1-2 minute band, a sixth of all of them, and
+# it is the only band the old tolerance could not see.
+#
+# So this pins the RULING (0, authority vc, 2026-08-27), not merely the code:
+# raising the tolerance back to anything at or above 120 turns this red.
+@test "clock guard: check A blocks a stamp two minutes ahead -- the band the old tolerance could not see" {
+  printf '\n## (%sZ)\n\ntwo minutes ahead\n' "$NEAR_FUTURE" >> intent/whiteboard/cc/inbox.ic.md
   git add -A
   assert_guard BLOCK
 }
