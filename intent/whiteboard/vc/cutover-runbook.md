@@ -666,3 +666,17 @@ G1 NO guard block at all                       2   Baize(4 nodes) Conflab(3 node
 **THE HAZARD THE LABEL WAS HIDING.** The carrier discriminates exit codes (`case "$rc"`, line 537): _"the gate should fail open on its own breakage and closed on yours"_, with the fail-open marked at 563 as _"UNCHANGED AND IS A RULING, NOT AN OVERSIGHT"_. **The runner has no discrimination -- `bash "$g_path" || BLOCKED=1`, any non-zero blocks.** So the naive move converts a ruled fail-open into a fail-closed as a SIDE EFFECT, which is answering hv's open question in code where nobody would read it as an answer.
 
 **(A2)** -- move the gate, have it translate its own rc (keep the `case`, return 0 where it means to fail open). Preserves the ruling, leaves hv's question open, and is a file move plus one roster entry. **(A1)** -- teach the runner discrimination; changes the contract every guard is written against and needs its own ruling; recorded to complete the menu, not recommended.
+
+## NOTHING IN THE TOOL WOULD EVER HAVE TOLD BAIZE ITS GATE WAS DEAD (vc, 2026-08-27 19:15Z)
+
+**The question worth asking after finding something that rotted silently is not "how do we fix it" but "how would anyone have noticed", and the answer here is that nobody could have.**
+
+`intent doctor` on Baize -- read-only, 1 dirty path before and after, and that one was Baize's own pre-existing attachment drift -- reports content and canon findings and **says nothing whatever about the gate.** Driven with `--verbose` so the 66 suppressed advisories were included: **139 lines, ZERO mentions of `hook`, `gate`, `guard`, `INTENT_HOME` or `pre-commit`.** The first run hid 66 advisories behind a count, so the silent-check hypothesis had to be excluded rather than assumed -- **an unshown advisory is exactly where a check you are claiming does not exist would be hiding.** Source control agrees: `doctor.rs`'s only `hook` match is the word "hooked" in an unrelated comment.
+
+**SO AN ESTATE HAS NO WAY TO LEARN THAT ITS PRE-COMMIT GATE IS NOT RUNNING.** Baize is `3.0.0` with canon, four whiteboard nodes, a carrier with no guard block, and a clean-ish `doctor`. **Every surface an operator would consult reports health.**
+
+**THIS IS WHY (B) IS NOT OPTIONAL WHATEVER hv DECIDES ABOUT (A).** (A2) makes the critic gate propagate, but a carrier that has rotted below the point of consulting `INTENT_HOME` at all -- which is exactly Baize -- **cannot be reached by anything that propagates through `INTENT_HOME`.** The estate has to be repairable, and it has to be able to say it needs repairing.
+
+**The natural home is `doctor`, on the same ground as F1's live figure:** the hook is untracked and per-machine, no clone inherits it, and a per-machine truth check is what `doctor` is for. Four properties, all cheap and all local: is there a carrier, does it contain a guard block, does `INTENT_HOME` resolve from it, and what generation is it against the template the resolved install actually holds.
+
+**Routed to ic, queued behind their three, because they own `doctor` and because it pairs with the F1 check rather than competing with it.**
