@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 19:41Z
+heartbeat_at: 2026-08-27 20:00Z
 status: active
-focus: "PEN HELD, hv AFK. REBUILT AND DELIVERED: pair at `001690c6`, CURRENT by property, carrying the porter fix -- lamplight-vc unblocked after an evening read-only. Tolerance 0 is LIVE in fifteen estates (guard bodies are read live, so a runner change is a fleet write with NO announceable moment -- my notices followed it). Five things wait on hv, top of them the sweep replacement menu. The sweep as reserved does not exist: no v3 verb writes the carrier."
+focus: "THE ROLLOUT IS DELIVERED. Pair `3df927f4` CURRENT, carrying all eleven commits; main verified green at a detached HEAD before either window. The sweep as reserved DOES NOT EXIST -- no v3 verb writes the carrier -- and seven items wait on hv, top of them the replacement menu and devbin-vc`s escalation of my own tolerance ruling. Corrected seven times tonight by five nodes, every one of them by someone driving where I had reasoned."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,53 +15,25 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**hv RELEASED THE HELD QUEUE AND GAVE ME THE PEN -- _"coordinate dc, ic, and cc (and yourself) to roll out the fixes"_ -- AND IS AFK. FOUR LANES RUNNING.** The reading that this releases the sweep hv reserved by name is MINE, `authority: vc`, recorded in hv's inbox as mine and first on the list to overturn.
+**THE ROLLOUT hv ASKED FOR IS DELIVERED. Pair `3df927f4`, sha256 `9f1caed38099bedf` / `853a0d927fc77d99`, CURRENT by property, carrying all eleven of the evening's commits.** Main was verified green at a detached HEAD first (ic: 1371 passed, 0 failed, three independent readings, and their awk control had been SEEN to fire twice). Two windows, 54s each, one node building, peers told before and after, by properties.
 
-**THE SEQUENCING RULING: THE SWEEP GOES LAST.** cc and dc are landing template-side fixes right now, so sweeping first means sweeping twice and the second sweep is the one nobody schedules. One sweep carries everything.
+**LANDED: the porter's BOTH citation defects (`e935734d` + `eff618e8`), tolerance 0 (`3463f784`), AC-11.6 with a pty harness the estate never had (`102af78f`), the `--to-disk` remedy AND its false premise (`04bc607f`), `--severity` enforcement (`8174de80`), doctor's gate check (`3805f359`), the doc gate (`6c380e09`), the schema faces (`51c9721e`, `3df927f4`), and a test pinning the tolerance RULING rather than the code (`c53dc201`).**
 
-**LANES:** cc -- the v3 porter's AT-citation truncation (74 rows; lamplight-vc holding read-only on it) + `render.rs:423`'s unguarded remedy. dc -- clock tolerance 0 with its two controls, the fleet stamp census, the sweep's real payload, doc-links. ic -- AC-11.6, WP-11's cover, F1's live figure. Mine -- the `claims:` gap, then the sweep.
+**THE SWEEP AS RESERVED DOES NOT EXIST AND THAT IS THE EVENING'S HEADLINE.** No v3 code path writes `pre-commit.intent`. Ruling 4 is in the one layer nothing ships -- positive-controlled at 1 on the template and 0 on every estate carrier including this tree's. **devbin-vc's framing is the one that makes it decidable: the guard BODIES move with no ceremony available, the CARRIER cannot move at all, and both halves are one asymmetry seen from its two ends.**
 
-**I OWN THE REBUILD AND ALL THREE ARE TOLD NOT TO.** `bin/devbin build all` deletes both binaries to force the provenance embeds, so for ~60s **every estate on this machine has no `intent` and every gate fails open** -- Devbin's `e5bf283` committed with no guard at all because of one of mine. One node rebuilds, announced by properties.
+**MY OWN ERRORS TONIGHT, BECAUSE THE COUNT MATTERS MORE THAN ANY ONE OF THEM.** A tolerance ruling I had told devbin-vc I would not make, which they escalated correctly. Two Laksa claims damaged in relay. A peer's narrow green restated as "main is green". A denominator taken from the wrong arm, correcting an error of the same kind. A hypothesis built on a failure message that named a cause it could not observe. A positive control that failed twice and proved nothing. **And attributing lamplight-vc's claim-widening to an instrument limit, which retired the finding before it was understood.**
 
-**THE PAIR IS `2eb6a8f8`, sha256 `6f77384d7f371c23` / `7bda5b08816e3928`, AND THE HASH IS NEVER THE TEST.** **VERIFY BY PROPERTIES:** `git diff --name-only <marker>..HEAD -- native/rust surface` empty means CURRENT. **NEVER compare the marker to `HEAD`** -- that is watch-out 0, the defect I fixed in the gate at `bc4f5052`.
+## WITH hv -- NOTHING MOVES WITHOUT THEIR WORD
 
-**THE HIGHLANDER REVIEW IS RECORDED IN `cutover-runbook.md`** -- three axes, four findings. F1 built by ic, F2 parked as separately guarded, F4 built by cc, F3 corrected by cc. **The copy-paste axis is clean and it is the WEAKEST axis** -- say both halves or the sentence misleads. **Axis 3 is the one to repeat first and it is unfinished: `preconditions.rs` and `export.rs` are still undriven, and of the two I did drive, one claim was FALSE.**
+1. **THE SWEEP REPLACEMENT.** (A2) move the critic gate into the runner with the gate translating its own rc -- measured cheap, and the translation is what preserves the ruled fail-open the naive move would silently kill. (B) build the missing verb. **Not alternatives.** cc's sentence is the deciding one: putting a refusing arm back in the carrier **reproduces the precondition of the incident the roster was moved out for.**
+2. **devbin-vc's ESCALATION OF MY TOLERANCE RULING**, carried in my words with their caveat that they have hv's instruction only as my report. **I am the sole source for the sentence the whole reading rests on.**
+3. **`st new --dehydrate` RETIREMENT.** Measured inert; I ruled RECORD and left the row.
+4. **REAL JSON PROJECTIONS** across five verbs -- a feature plus a design decision about what each object IS.
+5. **CONFLAB IS UNGUARDED FOR AS LONG AS ITS PARK LASTS.** I priced it as a short wait; conflab-vc corrected that the park has no end date.
+6. **AC-14.8** -- a fleet write, and every fleet write waits on 1.
+7. **THE LAMPLIGHT RE-RUN.** Criterion is **12 null / 30 bracket-bare / 32 backtick-bare SEPARATELY, plus zero rows matching `startswith("[")`** -- never the 62, which would have certified a fix leaving 32 rows broken.
 
-## THE ROLLOUT -- LIVE STATE, SEQUENCED UNDER THE PEN
-
-**Released by hv 2026-08-27; the sequencing and every ruling inside it are `authority: vc`.** Landed items carry their commit; nothing here is a plan any more except where it says so.
-
-**LANDED TODAY UNDER THE PEN**
-
-- **THE PORTER's AT-CITATION TRUNCATION -- `e935734d` (cc).** The subject was taken as everything before the first `--`. **cc corrected my brief: the bracket form I relayed is the MINORITY and Lamplight's majority form is BACKTICKS**, so a fixture written to my description would have tested a corpus that does not exist. Their prediction for the re-run is 12 rows to a null file, 62 to a bare path -- checkable, not admirable. **lamplight-vc unblocks when this is IN A BINARY, which is the rebuild below.**
-- **AC-11.6 + WP-11's COVER -- `102af78f` (ic).** Both stale sentences were in hv's voice and one superseded the other.
-- **THE DOC GATE -- `6c380e09` + `528ab18a` (dc).** Reports and says why it cannot yet refuse.
-- **AXIS 3 CLOSED -- `02dbff24` (mine).** 4 of 4 registry claims driven, 3 verified, 1 false (`remedy.rs`, already fixed).
-
-**THE SWEEP IS DEAD AS CONCEIVED AND THE REPLACEMENT IS hv's CALL -- `345104be`, `8ff38517`**
-
-**No v3 code path writes `pre-commit.intent`.** Ruling 4 is in the one layer nothing ships, positive-controlled at 1 on the template and **0 on five estates including this one**. The good half: guard bodies AND the roster propagate live from `INTENT_HOME`, so **tolerance 0 reaches 15 estates the moment it is committed here, with no sweep at all.** Menu with hv: **(A2)** move the gate into the runner and have it translate its own rc -- cheap, measured, and it preserves the ruled fail-open that the naive move would silently kill; **(B)** build the missing verb, which **Baize proves is needed whatever hv picks about (A)**. Hand-copying is recorded to complete the menu, not as a candidate. **NO FLEET WRITE HAS HAPPENED AND NONE WILL WITHOUT hv.**
-
-**IN FLIGHT**
-
-- **dc -- P1 tolerance 0** (ruled, NOT landed until Intent's 648 re-drives at 0 and a +60 positive control passes on both `date` flavours) and **P2 the fleet stamp census**, now with the 2026-08-20 cutoff and the corrected framing: a guarded estate cannot carry a post-guard violation, so the informative corpus is the UNGUARDED one.
-- **cc -- P2 `render.rs:423`** (unblocked, ic's file landed) **plus `issues --format`**, ruled BUILD under the pen: the tool advertises `json` and rejects it while accepting undeclared `text`/`markdown`.
-- **ic -- the F1 live figure**, going into `doctor.rs` where a per-machine truth check belongs.
-
-**MINE, AND BLOCKED ON A CLEAN TREE**
-
-**THE REBUILD.** Delivered pair is `2eb6a8f8`, measured off the binaries: 9 compiled inputs changed since, and **it does NOT carry the porter fix.** cc and ic are both in `native/rust` right now and the shared-artefact guard correctly refuses a build while any compiled input is uncommitted. **One rebuild, by me, announced by properties before and after** -- it deletes both binaries, so for ~60s every estate on this machine has no `intent` and every gate fails open.
-
-**WITH hv -- NOT RULED UNDER THE PEN**
-
-1. **The sweep replacement menu**, (A2) and (B) above.
-2. **cc's two structural enum findings.** `declared_values_are_enforced.rs` walks `values` ARRAYS only and is **green and blind to the 12 pipe-string slots**; and validation happens as an ARGUMENT to the renderer, so **the verdict belongs to the RESULT SET not the slot** -- `wp list ST0056` refuses, `wp list ST0029` accepts, same flag same binary. Widening the test changes what a green means across the surface; moving validation is a contract change.
-3. **F1's form -- enum or test.** ic builds the NUMBER, hv keeps the ANSWER.
-4. **AC-14.8** -- a fleet write, and every fleet write waits on the menu.
-
-**AWAITING PEERS, NOT BLOCKED ON ME**
-
-**The `claims:` file-claim gap.** Asked laksa-cc and devbin-cc to restate their own finding, separately and without telling either what the other says. **Both idle; neither has answered.** Intent's record carries only the six-word label, which I wrote myself, so **there is nothing here to build against but my own paraphrase** -- and I said I would not.
+**QUEUED, NOT STARTED: baize-vc's THIRD STAMP SURFACE.** The protocol names three surfaces; the guard scans two; **260 dated `## Decisions` bullets live fleet-wide, and the guard's comment asserts the gap cannot exist, having been rewritten with the false claim restated through the rewrite.** Only check A applies. Both controls required. **A hypothesis with a control design attached, not a finding** -- baize-vc says so themselves and refuses to carry their August throwaway-repo control forward.
 
 ## Watch-outs
 
