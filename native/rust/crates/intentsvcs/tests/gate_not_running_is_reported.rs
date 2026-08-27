@@ -66,6 +66,11 @@
 //! | the byte comparison becomes a length comparison       | `a_carrier_the_same_size_...` ONLY            |
 //! | the IO edge reports nothing, ever                     | `a_repository_carrying_an_unwired_carrier_...`|
 //! | the edge stops checking `git rev-parse`'s exit code   | `a_root_level_file_named_pre_commit_...` ONLY |
+//! | the check is hoisted above the migration early-return | the unmigrated-reach test AND the IO test     |
+//!
+//! The last row is the REACH LIMIT arm. Hoisting makes the check run on
+//! unmigrated estates, which is precisely the change the limit records -- and
+//! it reds the IO test too, because the finding is then produced twice.
 //!
 //! **THE LAST ROW REDDED NOTHING WHEN FIRST MEASURED, AND THAT IS WHY THE TEST
 //! BESIDE IT EXISTS.** Dropping the exit-code check leaves git's empty stdout,
@@ -295,5 +300,67 @@ fn a_root_level_file_named_pre_commit_is_not_mistaken_for_a_hook() {
     found.is_empty(),
     "a file at the project root is not a git hook, and a tree that is not a repository \
      has no gate to be broken: {found:?}"
+  );
+}
+
+/// **THE CHECK CANNOT FIRE ON AN UNMIGRATED ESTATE, AND THAT IS A REACH LIMIT
+/// RATHER THAN A CLEAN RESULT.**
+///
+/// `diagnose` returns at the migration arm before anything file-shaped is
+/// reached -- correctly, because on an unmigrated project the model is empty
+/// and every later check would describe a consequence rather than the cause.
+/// The consequence for THIS check is that the estates least likely to have a
+/// working gate are the ones it never looks at.
+///
+/// Measured live by conflab-vc the same evening: `intent doctor` on Conflab
+/// reports `1 finding across 0 thread(s), 0 issue(s), 0 view(s), **0 file(s)**`.
+/// Zero files scanned. **A new binary does not fix it and neither does this
+/// check** -- only the port does, and the port is the same event that installs
+/// the guards, which makes the check moot exactly where it was most wanted.
+///
+/// **IT IS DRIVEN RATHER THAN WRITTEN DOWN, because a limit recorded only in
+/// prose is a limit that stops being true without anyone noticing.** If the
+/// migration arm is ever moved below this check, this test reds and whoever
+/// moved it learns that a check they had not considered now runs on estates it
+/// was never measured against.
+#[test]
+fn an_unmigrated_estate_is_never_reached_and_that_is_the_limit_not_a_pass() {
+  let fx = common::Fixture::new();
+  fx.git_init();
+  // Declare v2, which is what an unported estate carries.
+  let config = fx.root().join("intent/.config/config.json");
+  let text = std::fs::read_to_string(&config).expect("read config");
+  std::fs::write(&config, text.replace("\"3.0.0\"", "\"2.11.0\"")).expect("declare v2");
+
+  // A carrier that would certainly be reported, if anything looked at it.
+  let hooks = fx.root().join(".git/hooks");
+  std::fs::create_dir_all(&hooks).expect("mkdir hooks");
+  std::fs::write(hooks.join("pre-commit.intent"), UNWIRED).expect("plant the carrier");
+
+  // **`None` FOR THE STORE, AND THAT IS THE REALISTIC CASE RATHER THAN A
+  // CONVENIENCE.** The first draft of this test called `facade_on_disk()` and
+  // panicked: the facade REFUSES to open an unmigrated project, correctly. An
+  // unmigrated estate is exactly the one whose store a caller cannot open, which
+  // is why `diagnose` takes an `Option` at all -- so passing `None` is what a
+  // real `intent doctor` does on Conflab tonight, not a fixture shortcut.
+  let report = doctor::diagnose(&fx.project(), &common::ctx(), None);
+
+  assert!(
+    report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::Unmigrated),
+    "the fixture must actually read as unmigrated, or this test proves nothing about \
+     the arm it is named for: {:?}",
+    report.findings.iter().map(|f| &f.class).collect::<Vec<_>>()
+  );
+  assert!(
+    !report
+      .findings
+      .iter()
+      .any(|f| f.class == FindingClass::GateNotRunning),
+    "the gate check must NOT have run -- and the silence here is the limit being \
+     recorded, not the estate being healthy. Its carrier runs no guards and nothing \
+     said so"
   );
 }
