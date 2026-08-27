@@ -148,6 +148,22 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
        the advice is correct for a consumer and is not correct here.",
     ),
   ),
+  (
+    "hooks/pre-commit-shim.sh",
+    "shim",
+    Policy::Names(
+      "IT INVOKES NO `intent` AT ALL, and cannot: it is the file that runs BEFORE anything has \
+       resolved the install root, so its whole job is reading one line out of `~/.intent/home` and \
+       `exec bash`ing the gate body it names. Asking the binary would be a fallback chain, which is \
+       the class the shim exists to remove rather than relocate. The only appearance is its own \
+       `pre-commit (intent shim)` self-label on the three refusal messages -- and it is the LABEL that \
+       this scan matches, not a call. Its own exit codes are its own: 1 for each of the three refusals \
+       (pointer absent-or-empty, pointer resolving to a non-install, a real install with no gate), and \
+       otherwise it does not have one -- `exec` replaces the process, so the gate's status IS the \
+       hook's with nothing in between to reinterpret it. That is deliberate and it is why this row is \
+       `Names` rather than `Invokes` despite being the entrance to the whole gate.",
+    ),
+  ),
 ];
 
 /// The shipped canon: what a consumer project receives.
