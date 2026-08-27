@@ -319,9 +319,87 @@ fi
 # The asymmetry -- skip where the tool does not apply, fail where it applies and
 # cannot run -- is devbin-vc's, already implemented in `check format`.
 if ! command -v intent >/dev/null 2>&1; then
-  echo "intent critic gate: 'intent' CLI not on PATH, and this IS an Intent project." >&2
+  # ---- WHICH ABSENCE? `command -v` COLLAPSES THREE STATES INTO ONE EMPTY ANSWER ----
+  #
+  # **THE REMEDY WAS WRONG FOR MOST OPERATORS WHO WOULD EVER SEE IT** (ic,
+  # measured live 2026-08-27): during a release build the CLI goes ABSENT rather
+  # than merely changing, so every node in the fleet hit this arm at once -- and
+  # the message told them to INSTALL INTENT, which races a build already in
+  # flight. `~/.local/bin/intent` is a symlink into the release tree here, so the
+  # window is real and estate-wide, not hypothetical.
+  #
+  # **THREE, AND THE NUMBER WAS FOUR UNTIL A TEST DROVE IT.** ic and I both
+  # recorded that `command -v` answers empty for FOUR states, and I wrote four
+  # branches on that basis. Measured under bash on all five planted states:
+  #
+  #   A  nothing on PATH by that name      rc=1 EMPTY   reaches here
+  #   B  link, target does not resolve     rc=1 EMPTY   reaches here
+  #   D  a DIRECTORY of that name          rc=1 EMPTY   reaches here
+  #   C  plain file, not +x                rc=0 FOUND   NEVER reaches here
+  #   E  link, target resolves, not +x     rc=0 FOUND   NEVER reaches here
+  #
+  # **`command -v` DOES NOT TEST EXECUTABILITY.** C and E sail through this arm
+  # and fail at the invocation site instead, as exit 126, where the gate reports
+  # the language UNENFORCED and does not block. Two of the four branches I wrote
+  # were therefore unreachable -- dead code reading as coverage, which is this
+  # file's own class committed while fixing it.
+  #
+  # So this arm claims A, B and D only. **C and E ARE NOT HANDLED HERE AND ARE
+  # NOT HANDLED WELL ANYWHERE**: they land on the 126 fail-open path, which under
+  # hv's ruling 4 (a gate that cannot locate what it needs REFUSES) is the next
+  # thing to fix. Named rather than quietly bucketed, because a table that
+  # silently absorbs a state it cannot see is worse than one that says where the
+  # state actually goes.
+  #
+  # The discriminators are `-L` (is the PATH name a link at all) and `-e` (does
+  # what it names resolve); `-e` is FALSE for a dangling symlink, which is why
+  # `-L` is asked first. `-d` is asked because a directory is SEARCHABLE, so it
+  # passes an executable test and would otherwise fall into the residue branch
+  # while the answer was one test away.
+  #
+  # **AND ONE STATE CANNOT REACH ANY OF THIS: a binary that is executable and
+  # TRUNCATED.** It satisfies `command -v`, so the gate never arrives -- it fails
+  # when something runs it. Named rather than checked: a check that appeared to
+  # cover it would be a claim this gate cannot make from the filesystem alone.
+  _cand=""
+  _ifs_saved="$IFS"
+  IFS=':'
+  for _dir in $PATH; do
+    [ -n "$_dir" ] || _dir="."
+    if [ -L "$_dir/intent" ] || [ -e "$_dir/intent" ]; then
+      _cand="$_dir/intent"
+      break
+    fi
+  done
+  IFS="$_ifs_saved"
+
+  echo "intent critic gate: 'intent' CLI is not runnable, and this IS an Intent project." >&2
   echo "  refusing rather than skipping: a declared gate that cannot run is a failure." >&2
-  echo "  remedy: install Intent, or add its bin/ to PATH, then re-commit." >&2
+  if [ -z "$_cand" ]; then
+    echo "  state: no PATH entry named 'intent' exists at all." >&2
+    echo "  remedy: install Intent, or add its bin/ to PATH, then re-commit." >&2
+  elif [ -L "$_cand" ] && [ ! -e "$_cand" ]; then
+    echo "  state: $_cand is a link whose target does not resolve." >&2
+    echo "         it points at $(readlink "$_cand" 2>/dev/null || echo '<unreadable>')" >&2
+    echo "         a build has removed the artefact. DO NOT reinstall -- that races it." >&2
+    echo "  remedy: wait for the build to finish, then re-commit." >&2
+  elif [ -d "$_cand" ]; then
+    echo "  state: $_cand is a DIRECTORY, not a program." >&2
+    echo "         a directory is searchable, so it passes an executable test and" >&2
+    echo "         still cannot be run. Something on PATH shadows the real CLI." >&2
+    echo "  remedy: rename it, or reorder PATH so Intent's bin/ comes first." >&2
+  else
+    # **RESIDUE, AND IT IS A NAMING RATHER THAN A GUARD.** A, B and D are each
+    # driven by a test. Nothing reaches here that anyone has constructed: an
+    # entry present, executable, not a directory, and still not found. It says
+    # so plainly instead of guessing, because a confident wrong remedy costs
+    # more than an admitted gap -- and a non-executable file is NOT this case,
+    # it is C or E, which never arrive.
+    echo "  state: $_cand looks executable, so the lookup failed for a reason this" >&2
+    echo "         gate cannot name from the filesystem -- report it rather than" >&2
+    echo "         working around it." >&2
+    echo "  remedy: run 'command -v intent; type intent' by hand and read the answer." >&2
+  fi
   echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
   exit 1
 fi

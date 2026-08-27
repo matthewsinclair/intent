@@ -146,7 +146,10 @@ EOF
   git add intent/.config mix.exs test/bad_test.exs
   PATH="/usr/bin:/bin" run git commit -m "no-intent"
   assert_failure
-  assert_output_contains "'intent' CLI not on PATH, and this IS an Intent project"
+  assert_output_contains "'intent' CLI is not runnable, and this IS an Intent project"
+  # STATE A: nothing on PATH by that name. The ONLY state where "install" is right.
+  assert_output_contains "no PATH entry named 'intent' exists at all"
+  assert_output_contains "install Intent"
 }
 
 @test "non-Intent repo → skips (exit 0, advisory on stderr)" {
@@ -159,6 +162,84 @@ EOF
   run git commit -m "non-intent"
   assert_success
   assert_output_contains "not inside an Intent project"
+}
+
+# ---- THE FOUR ABSENCES `command -v` CANNOT TELL APART ----
+#
+# **THE REMEDY WAS WRONG FOR MOST OPERATORS WHO WOULD EVER SEE THIS ARM.** ic
+# measured it live on 2026-08-27: during a release build the CLI goes ABSENT
+# rather than merely changing, so every node hit this arm at once and the message
+# told them to INSTALL INTENT -- which races a build already in flight. On this
+# estate `~/.local/bin/intent` is a symlink into the release tree, so the window
+# is real, estate-wide, and lasts as long as a build.
+#
+# Each arm below PLANTS one state and asserts the remedy that state actually
+# needs. A single arm proving "it refuses" would pass for all five while four of
+# them printed the wrong advice.
+
+@test "CLI absence B: a dangling symlink says WAIT, not install" {
+  mkdir -p "${TEST_TEMP_DIR}/shim"
+  ln -s "${TEST_TEMP_DIR}/gone-with-the-build" "${TEST_TEMP_DIR}/shim/intent"
+  echo "x" > f.txt
+  git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:/usr/bin:/bin" run git commit -m "dangling"
+  assert_failure
+  assert_output_contains "is a link whose target does not resolve"
+  assert_output_contains "DO NOT reinstall"
+  assert_output_contains "wait for the build to finish"
+  # The point of the arm: it must NOT give state A's advice.
+  refute_output_contains "no PATH entry named"
+}
+
+@test "CLI absence C/E do NOT reach the CLI arm -- command -v does not test executability" {
+  # **THE ARM THAT CORRECTED THE PREMISE, AND IT WAS WRITTEN AS TWO PASSING
+  # TESTS OF A REMEDY THAT COULD NEVER PRINT.** ic and cc both recorded that
+  # `command -v` answers empty for FOUR states. Measured under bash on five
+  # planted states, it is THREE: `command -v` does NOT test executability, so a
+  # plain non-executable file (C) and a link to a non-executable target (E) are
+  # both FOUND, sail past the CLI arm, and fail at the invocation site as exit
+  # 126 -- where the gate reports the language unenforced and does NOT block.
+  #
+  # This arm pins that, rather than the comment carrying it alone: the two
+  # branches written for C and E were unreachable, which is dead code reading as
+  # coverage in the very file that exists to stop exactly that.
+  #
+  # **IT ALSO PINS A REAL GAP.** Under hv's ruling 4 -- a gate that cannot locate
+  # what it needs REFUSES, it does not skip -- a 126 SHOULD block. It does not
+  # today. When someone fixes that, this arm reds and tells them the CLI-arm
+  # premise is the thing to re-check, which is the message the next person needs.
+  mkdir -p "${TEST_TEMP_DIR}/shim"
+  printf '#!/bin/sh\n' > "${TEST_TEMP_DIR}/shim/intent"
+  chmod 644 "${TEST_TEMP_DIR}/shim/intent"
+  echo "x" > f.txt
+  git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:/usr/bin:/bin" run git commit -m "notexec"
+
+  # It does NOT reach the CLI arm: none of that arm's states are printed.
+  refute_output_contains "'intent' CLI is not runnable"
+  refute_output_contains "no PATH entry named"
+  refute_output_contains "is a link whose target does not resolve"
+
+  # It lands on the 126 path instead, which today does not block. Asserting the
+  # CURRENT behaviour, flagged above as the thing ruling 4 says to change.
+  assert_output_contains "exit 126"
+  assert_output_contains "UNENFORCED"
+}
+
+@test "CLI absence D: a DIRECTORY named intent is named, not swept into the residue" {
+  # **THIS ARM EXISTS BECAUSE DRIVING THE TABLE FOUND THE STATE.** A directory is
+  # searchable, so `-x` passes on it, and it landed in the catch-all where the
+  # gate said it could not name the problem -- while the problem was one `-d`
+  # away. The table committed the very error its own comment warns about, and
+  # only running it showed that.
+  mkdir -p "${TEST_TEMP_DIR}/shim/intent"
+  echo "x" > f.txt
+  git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:/usr/bin:/bin" run git commit -m "isadir"
+  assert_failure
+  assert_output_contains "is a DIRECTORY, not a program"
+  assert_output_contains "reorder PATH"
+  refute_output_contains "cannot name from the filesystem"
 }
 
 @test "non-Intent repo with NO intent CLI still skips (the reorder is safe)" {
