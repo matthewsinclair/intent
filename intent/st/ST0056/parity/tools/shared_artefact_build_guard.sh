@@ -537,6 +537,24 @@ prose_stripped() {
   case "$1" in
     *eval*) printf '%s' "$s"; return ;;
   esac
+  # **A STRIP THAT CANNOT DECIDE MUST NOT STRIP** (vc's ruling, 2026-08-27, on a
+  # measured population of ONE). An ODD apostrophe count means at least one of
+  # them is not a delimiter, so the left-to-right pairing below can run from a
+  # stray apostrophe to the OPENING of a real quoted span and delete live code
+  # between them. Undecidable therefore reads as LIVE: it fails a correct file
+  # loudly and diagnosably instead of hiding a build behind a green arm, which is
+  # the same asymmetry the heredoc case above is decided on.
+  #
+  # MEASURED BEFORE IT WAS APPLIED, AND THE COST IS ZERO ON THIS TREE: of the 14
+  # lines the census examines under `bin/.devbin`, exactly one carries the shape
+  # (`cmd/macos:278`, three apostrophes) and NO verdict changes. That line is safe
+  # today only by luck of ORDER -- the real pair comes first and strips correctly,
+  # leaving the stray `peer's` with nothing to pair against. Reverse the order and
+  # it deletes everything between. Nothing would have reported that.
+  if [ $(( $(printf '%s' "$s" | tr -cd "'" | wc -c) % 2 )) -eq 1 ]; then
+    printf '%s' "$s"
+    return
+  fi
   printf '%s' "$s" | sed "s/'[^']*'//g"
 }
 
@@ -720,6 +738,19 @@ USAGE
 }
 FIXTURE
 
+  # RED 4. THE SHAPE THAT DOES NOT EXIST IN THIS TREE AND WOULD BE INVISIBLE IF IT
+  # ARRIVED: a stray apostrophe BEFORE a real quoted span, with a live release
+  # build between them. The old left-to-right pairing ran from `peer\'s` to the
+  # opening of `\'done\'` and deleted the build; the odd-count refusal keeps it.
+  # A fix without this fixture closes the hole for `cmd/macos:278` and reopens it
+  # for the next line anyone writes.
+  plant "$base/stray_apostrophe" stray_apostrophe <<'FIXTURE'
+#!/bin/bash
+run_it() {
+  echo "a peer's tree is not mine" ; cargo build --release ; echo 'done'
+}
+FIXTURE
+
   # GREEN 3. A file-scope redirect really does cover every build below it, and
   # refusing that would newly block correct files.
   plant "$base/filescope_token" filescope_token <<'FIXTURE'
@@ -731,7 +762,8 @@ build_one() {
 FIXTURE
 
   for spec in live_backtick:RED live_heredoc:RED crossfunction_token:RED \
-              escaped_backtick:GREEN inert_heredoc:GREEN filescope_token:GREEN; do
+              stray_apostrophe:RED escaped_backtick:GREEN inert_heredoc:GREEN \
+              filescope_token:GREEN; do
     n="${spec%%:*}"
     want="${spec#*:}"
     got="$(census_verdict "$base/$n")"
@@ -742,7 +774,7 @@ FIXTURE
   if [ -n "$bad" ]; then
     fail "arm 11 -- the census misreads its own fixtures:$bad. An arm that cannot be driven to BOTH verdicts is not evidence about the tree; it is a number that has never been wrong in front of anyone."
   else
-    ok "arm 11 -- the census is driven to BOTH verdicts on planted fixtures ($checked examined: 3 live entrances RED, 3 inert forms GREEN)"
+    ok "arm 11 -- the census is driven to BOTH verdicts on planted fixtures ($checked examined: 4 live entrances RED, 3 inert forms GREEN)"
   fi
 }
 step_census_selftest
