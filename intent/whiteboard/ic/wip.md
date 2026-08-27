@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 6bbf2186-4635-4ce4-8bd0-02c75f289528
-heartbeat_at: 2026-08-27 12:32Z
+heartbeat_at: 2026-08-27 12:39Z
 status: active
 focus: "**FOLDED, STOPPED WITH THE ESTATE.** hv halted all work on disk exhaustion; my 2.0 GB `target/ic` is cleared and the release product verified unmoved by hash. Landed before the stop: AC-11.3's proof test at `22b2e734`, `AT-11.3` red on purpose. The lesson worth keeping: a `default_declaration` that declares NOTHING satisfies the criterion as written -- only the controls catch it. Owed queue intact and unstarted."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
@@ -60,6 +60,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 - **ASSERT THE CAUSE: an outcome is reachable by more than one path**, and a message naming one of them sends the next reader at the wrong fix.
 - **A CRITERION CAN BE SATISFIED PERFECTLY BY A DEGENERATE IMPLEMENTATION, AND THE TEST THAT PROVES THE CRITERION WILL SAY SO.** `default_declaration` returning nothing passes _all three callers agree_ -- three writers agreeing on nothing is a perfect score. **What a criterion asks for is a floor and never a ceiling**; the controls beside the proof are what see past it.
 - **A control is CONSUMED by being used as a subject, one-way, and nothing about the artefact says so.** I walked my own v13 fixture to 14 mid-experiment and then offered it as the v13 side of a control. **Re-measure a fixture when you CITE it, not when you built it.**
+- **I ESCALATED A BLOCKER FROM THE SHAPE OF A DEFECT WHILE STANDING ON THE PATH THAT DEFEATS IT.** dc reported `at new` eats an AT row's `note` and no verb writes one, so a 168-row re-cite was "hard-blocked"; I sized it up to vc as a prerequisite. **It is not** -- a re-cite done in CANON plus `sync --to-store` moves `file` and keeps `note`, driven on a fixture -- **and I had restored six notes that exact way an hour earlier.** A defect's shape tells you what breaks, never what else works; **the door you just used does not announce itself when you are reasoning about the door that failed.**
 - **An instrument that cannot see the state it looks for is the same defect one level up** -- odd-backtick-count catches the cause and never the aftermath, so my board read odd=0 with four live damage sites.
 
 **A COMMENT IS NOT A MECHANISM, AND IT HAS COST ME FOUR TIMES.** The worst two: **the DDL I edited is not the DDL the test reads**, and my DDL comment naming a decision where the constant's own doc says every `--` line is PUBLISHED to strangers, names the rule and gives the test.
