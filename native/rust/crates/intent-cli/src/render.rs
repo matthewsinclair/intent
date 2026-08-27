@@ -402,8 +402,17 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       let f = open()?;
       let overwrite = f.sync_overwrite(&scope).map_err(fail)?;
       eprintln!("error: `sync` has two directions and will not guess which one you mean");
+      // **`Safe` WAS AN UNCONDITIONAL CLAIM AND THE CONDITION IS REAL.** The
+      // files are re-derivable FROM THE STORE, so the word is only true while
+      // the store is faithful -- and the case that breaks it is not
+      // hypothetical. A porter defect (`e935734d`) put truncated AT citations
+      // into the store while the authored `acceptance.md` still carried the
+      // full line, which makes the FILES the only intact copy and this
+      // direction the one that destroys them. `finding.rs:319` already reasons
+      // exactly this way about a derivable artefact and says what it costs
+      // anyway; this line asserted the opposite of what it costs.
       eprintln!(
-        "  --to-disk   rewrites the files from the store. Safe: the files are re-creatable"
+        "  --to-disk   rewrites the files from the store. Routine WHILE THE STORE IS FAITHFUL: the files are re-derived from it, so anything the store did not capture is gone"
       );
       eprintln!(
         "  --to-store  replaces the store from the files. DESTRUCTIVE: any change not yet written to disk is lost"
@@ -420,7 +429,18 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // a remedy sending an operator to the destructive direction to recover is
       // itself the defect, and the list above is the only place `--to-store`
       // is named -- as a cost, not as a suggestion.
-      eprintln!("  remedy: `intent sync --to-disk` is the routine direction");
+      //
+      // **AND IT NOW CARRIES THE COPY-ASIDE STEP, WHICH IS THE HOUSE FORM AND
+      // WAS MISSING HERE ALONE.** `finding.rs:319` tells the operator the
+      // regeneration DISCARDS the hand edit and to copy anything they meant to
+      // keep out first; `:345` makes copying the file outside the project the
+      // FIRST instruction, on the grounds that it costs nothing and removes
+      // the irreversibility before any question of which version was meant.
+      // This site named neither, so the one remedy an operator reaches by
+      // typing a command wrong was the one that did not say what it costs.
+      eprintln!(
+        "  remedy: `intent sync --to-disk` is the routine direction. If this store came from a port or a migration, copy the files you care about outside the project FIRST -- that step costs nothing and is the only one that cannot lose anything"
+      );
       Err(Failure::Verdict)
     }
   }
