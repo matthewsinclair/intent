@@ -49,6 +49,20 @@ echo "--- verifier: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/verify-canoni
 acct=$vline; pairline=$($I --version 2>&1 | head -1)
 { printf 'intent: re-convert from the v2 source on %s -- hop 2 had dropped AC/AT rows silently\n\n' "$pairline"; printf 'The landing at %s ran hop 2 on a pair whose row parser dropped any\n`status:` or `satisfied:` value followed by a period, a sentence or a\nparenthetical, and printed ok (arca_cli lost 26 of 55 ATs; the fleet 49).\nRe-converted here from the v2 source at %s^: intent/st and config.json\nrestored as at that commit, the committed canon and the store dropped,\nhop 1 on the frozen v2 where the parent was below the floor (ratified\nacceptance.md files restored after it), hop 2 on the fixed pair, hop 3\ntwice. Accounting (devbin/vc at-accounting.sh, source = store = view):\n%s\nRecorded, not stored (hop 2 named each as carried; the bucket keeps the row):%s\nverify-canonical.sh: 0 failed.\n\n(C) hello@matthewsinclair.com\n' "$mig" "$mig" "$acct" "${REC:- none}"; } > "$S/reconv-msg-$N.txt"
 echo "--- changed: $(git status --porcelain | wc -l | tr -d ' ') paths; peer-owned among them: $(git status --porcelain | grep -cE 'whiteboard/(cc|ic|dc|ac|hv)/')"
+# THE ATTACHMENT GATE RUNS BEFORE THE COMMIT, NOT AFTER IT. It sat after the
+# --commit block until 2026-08-27: the commit landed, THEN the gate exited 9,
+# which is precisely the failure this script's own header warns about -- **a
+# commit that lands the loss reads as done**. Found while re-reading the script
+# before running it against Lamplight's 80 attachments, which is 3.5x arca_cli's
+# 23. A gate placed after the irreversible step is not a gate, it is a report.
+if [ "${att_after:-0}" -lt "${att_before:-0}" ]; then
+  echo "ATTACHMENT SHORTFALL: $att_before -> $att_after. The v2 source is BUCKETED and the collector's walk is flat, so the prose was not carried."
+  echo "NOT DONE -- the prose is on disk under intent/st/{COMPLETED,NOT-STARTED,CANCELLED,WIP}; carry it with:"
+  echo "  VC_INTENT=<intent> bash ~/Devel/prj/Intent/intent/whiteboard/vc/ingest-buckets.sh $P --commit"
+  exit 9
+fi
+echo "--- bucket prose: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/bucket-prose-gate.sh "$P" 2>&1 | head -1)"
+echo "attachment accounting: $att_before -> $att_after (no shortfall)"
 if [ "$MODE" = "--commit" ]; then [ "${ACCT_OK:-0}" -eq 1 ] || { echo "NOT committing: accounting gate failed"; exit 6; }; paths=(); for p in intent/st intent/.canon intent/.config intent/todo.md intent/steel_threads.md .gitignore AGENTS.md CLAUDE.md .claude/settings.json .claude/scripts usage-rules.md .intent_critic.yml; do
   # A DISK TEST WHERE A GIT TEST WAS NEEDED. `[ -e "$p" ]` alone admitted
   # `.claude/scripts`, an EMPTY DIRECTORY -- present on disk, and git does not
@@ -61,11 +75,3 @@ if [ "$MODE" = "--commit" ]; then [ "${ACCT_OK:-0}" -eq 1 ] || { echo "NOT commi
   git ls-files --error-unmatch "$p" > /dev/null 2>&1 || [ -n "$(git status --porcelain -- "$p")" ] || continue
   paths+=("$p")
 done; git add -A -- "${paths[@]}" 2>/dev/null; git commit -q --only -F "$S/reconv-msg-$N.txt" -- "${paths[@]}" && echo "committed $(git log --oneline -1 | cut -c1-8) [$(git show --stat --format= HEAD | tail -1 | tr -s ' ')]"; canon_in=$(git show --stat --format= HEAD | grep -c "intent/.canon/"); left_untracked=$(git status --porcelain -- intent | grep -c "^??"); echo "post-commit: intent/.canon paths in HEAD = $canon_in (must be > 0); untracked under intent/ left = $left_untracked (must be 0)"; { [ "$canon_in" -gt 0 ] && [ "$left_untracked" -eq 0 ]; } || { echo "COMMIT LANDED WITHOUT THE STORE OR LEFT UNTRACKED FILES -- NOT DONE"; exit 6; }; staged_left=$(git diff --cached --name-only | wc -l | tr -d " "); if [ "$staged_left" -gt 0 ]; then if git diff HEAD --quiet; then git reset -q; echo "post-commit: stale index cleared ($staged_left path(s) staged with pre-hook bytes; worktree == HEAD; index := HEAD, lamplight-vc 2026-08-26)"; else echo "post-commit: INDEX LEFT LOADED ($staged_left path(s)) and worktree != HEAD -- NOT DONE"; exit 6; fi; fi; fi
-if [ "${att_after:-0}" -lt "${att_before:-0}" ]; then
-  echo "ATTACHMENT SHORTFALL: $att_before -> $att_after. The v2 source is BUCKETED and the collector's walk is flat, so the prose was not carried."
-  echo "NOT DONE -- the prose is on disk under intent/st/{COMPLETED,NOT-STARTED,CANCELLED,WIP}; carry it with:"
-  echo "  VC_INTENT=<intent> bash ~/Devel/prj/Intent/intent/whiteboard/vc/ingest-buckets.sh $P --commit"
-  exit 9
-fi
-echo "--- bucket prose: $(bash ~/Devel/prj/Intent/intent/whiteboard/vc/bucket-prose-gate.sh "$P" 2>&1 | head -1)"
-echo "attachment accounting: $att_before -> $att_after (no shortfall)"
