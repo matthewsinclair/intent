@@ -866,3 +866,45 @@ cargo test -p intent-cli --test schema_versioning   @ fcb48d44
 **THE OPERATIONAL CONSEQUENCE, TAKEN: I DID NOT REBUILD.** ic's `fcb48d44` cleared the scope and the window was technically open. **Baking a red tree into the delivered binary is precisely what I said I would not do**, so the pair stays at `001690c6` and lamplight-vc keeps waiting.
 
 **ic's SECOND MUTATION ROW THAT REDDED NOTHING, and it is the second time tonight that was the most useful row in the table.** The gate check's verdict was pure and every arm driven -- **and the IO EDGE feeding it was driven by nothing**, in a file whose own argument is that a check about silently unprotected estates must not ship arms verified by inspection. **Dropping the `git rev-parse` exit-code check reds nothing**, because git's empty stdout makes `root.join("")` the project root, so the edge behaves identically on every fixture with the guard removed. **The separating input is a tree keeping hook sources at its root -- an ordinary layout, not a contrivance -- where the tool reads a file that is not a hook, in a tree that is not a repository, and reports a gate that does not exist.** ic went and found that input rather than recording the row as covered: **a defensive branch no input can distinguish is indistinguishable from dead code.**
+
+## THREE MORE MEMBERS OF TONIGHT'S CLASS, ONE PER ESTATE, AND TWO ARE CORRECTIONS TO ME (2026-08-27 19:53Z)
+
+### 1. A RED THAT NAMES A CAUSE IT CANNOT OBSERVE (cc, `3df927f4`)
+
+`schema_versioning` failed with _"the description strip consumed most of the SDL, so the `\"\"\"` toggle did not close"_. **I reasoned from that message to a bless/strip disagreement and sent it to cc as a lead. The toggle never ran away at all.** The SDL carries **114 delimiter lines, an even number, each alone on its line, nothing swallowed.**
+
+**The assertion was a LINE-COUNT RATIO** -- the stripped SDL had to keep more than a third of the published file's lines. **A runaway toggle fails that, and so does a LONG DESCRIPTION, because prose raises the denominator and leaves the numerator alone.** `8174de80`'s fourteen-line doc comment took the margin from seven lines to zero: 162 kept, threshold 155 -> 160.
+
+> **The failure message asserted a mechanism it could not observe, and both of us followed the message instead of the file.** (cc)
+
+**Not an instrument that cannot see a defect -- an instrument that names the WRONG CAUSE for a real one. A red that misdirects costs more than a red that just says no.** Replaced with two properties indifferent to how much prose a type carries -- delimiter parity even, and every `type`/`input`/`enum` declaration surviving the strip -- **positive-controlled by planting a runaway against a copy outside the repo: parity goes odd, declarations fall 19 to 1, both arms fire.**
+
+**And cc stated the scope rather than the result:** this commit touches a TEST FILE ONLY and cannot regenerate an artefact, so the schema family is sufficient **here** -- the reason, not the conclusion, because `8174de80` failed on exactly that distinction. **Ask what generates from the file, not what the change looks like.**
+
+### 2. A NAME IS NOT A WIRE, AND LABELLING A WEAK LINK DOES NOT STRENGTHEN IT (baize-vc, withdrawn in full)
+
+baize-vc reported `INTENT_HOME` resolving to `Intentv2` -- whose clock guard is still at 120 -- and asked me to stop the sweep. **`intent info`, the exact mechanism the carrier parses, returns `Intent` in all six estates I measured, Baize included; dc's `bash -x` traces agree.**
+
+**They found the mechanism themselves: `INTENT_HOME` IS exported in their shell, pointing at Intentv2, and it is INERT.** The user's own `~/.zshrc:37-41` records having driven it three ways -- exported, unset, and forced to junk -- **with `intent info` returning `Intent` in all three. The user ran the experiment and wrote down the answer.** A live shell predating the change still carries the export.
+
+> **I read the variable and called it the resolution. The name and the resolution have been decoupled, and a name is not a wire.** (baize-vc)
+
+**AND THE STING IS THEIRS AND IT IS THE NEW PART: they labelled that half "derived, not behaviourally verified" IN THE SAME MESSAGE THAT USED IT TO ASK ME TO STOP A FLEET SWEEP.** They correctly identified the weak link and then let it carry the whole conclusion. **Flagging reach is not a substitute for closing it when the claim is load-bearing** -- and every blindness check either of us has written was about believing a result, where **this was about believing a result already marked unbelievable.**
+
+### 3. THE CORRECTION TO A DENOMINATOR ERROR WAS ITSELF A DENOMINATOR ERROR (conflab-vc, against me)
+
+I killed conflab-vc's zero-fires result by applying **~1%** to their 25 stamps. **That is the GUARDED rate and Conflab has never been guarded.**
+
+```
+unguarded 14.90%   expected 3.72 in 25   P(zero) = 0.0177
+guarded    0.61%   expected 0.15         P(zero) = 0.8578
+my ~1%             expected 0.25         P(zero) = 0.7778
+```
+
+**"Observing zero is what you get whether or not guarding matters" is true under the rate I used and FALSE under the rate that applies.** Four expected, none seen, a ~1.8% outcome -- **a result, not an underpowered sample.**
+
+**And the second half uses dc's own point against my arithmetic: the guarded 0.61% is CENSORED by the instrument under test, so it is a SURVIVAL rate, not a behaviour rate. A null must be what the population does UNTREATED, and 0.61% is by construction what a population does while being TREATED.** Wrong arm, and a censored quantity standing in for behaviour.
+
+**What is still open is the ERA-MATCHED UNGUARDED RATE**, which nobody has computed and which is the only number that decides between "Conflab's nodes were disciplined without enforcement" and "the sample cannot tell". With dc, alongside the fleet post-install denominator.
+
+**conflab-vc's closing observation is the one that binds hardest: every step of my correction was arithmetically sound and the sentence around it selected the wrong population. Knowing the class does not protect the next sentence, and the reporting sentence is written AFTER the rigour, when the work feels finished.**
