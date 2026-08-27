@@ -87,10 +87,41 @@
 #     every added line for anything date-shaped, so a board DISCUSSING a
 #     future-dated stamp (quoting a peer's bad heartbeat in a message, which is
 #     exactly what happens when nodes report this class to each other) would be
-#     blocked for saying so. A and B now read the same two shapes: entry
-#     headings and `heartbeat_at:`. No coverage is lost -- those are the only
-#     places the protocol puts a time -- and reporting a bad stamp stops being
-#     an offence.
+#     blocked for saying so. A and B read POSITIONAL shapes only, so reporting a
+#     FUTURE-dated bad stamp stops being an offence.
+#
+#     WHAT THIS IS, EXACTLY: CHECK A WAS INCONSISTENT WITH B AND C, and the
+#     reason to prefer their behaviour is already written down one check below.
+#     B anchors to the leading heading stamp; C takes the entry's OWN leading
+#     stamp and says why -- a `Re:` anchor points backwards by definition, so
+#     reading every date on the line makes every threaded reply look like an
+#     inbox travelling back in time, found when this guard blocked its own
+#     announcement commit. A carried that same defect and the repair was never
+#     applied sideways. This change applies it.
+#
+#     IT IS NOT A COVERAGE GAP, AND THE WIDER CLAIM IS THE ONE TO AVOID HERE.
+#     Run-verified on inbox fixtures rather than read: a node fabricating its
+#     OWN leading stamp backwards is BLOCKED, at HEAD and here alike -- check C
+#     catches the dangerous direction and always did. What passes is a QUOTED,
+#     NON-LEADING past stamp, which is quoted text reporting someone else's
+#     defect rather than this board's ordering data, and it SHOULD pass.
+#
+#     An earlier draft of this note said the backwards direction "was never
+#     checked on this surface at all". That was measured on `wip.md`, where C
+#     does not apply, and generalised to all three checks -- a conclusion drawn
+#     from a fixture that could not have shown otherwise. It is the same defect
+#     as the over-stated reach two comments down, committed while correcting it.
+#
+#     THIS NOTE USED TO END "No coverage is lost -- those are the only places the
+#     protocol puts a time", AND THAT WAS FALSE WHEN IT WAS WRITTEN. The protocol
+#     names three surfaces and this guard read two, so anchoring positionally DID
+#     lose coverage: every date in a `## Decisions` line, 97 of them on Intent's
+#     own board, none scanned. The sentence was re-asserted through a rewrite of
+#     this region rather than checked against the protocol it describes.
+#
+#     A GUARD THAT STATES ITS OWN REACH IS MAKING A CLAIM NOBODY TESTS, and this
+#     one was wrong for as long as it stood. The reach is now the three shapes in
+#     `STAMP_LINES_RE` below, and that list is the only place to read it from.
 #
 #   PORT 3 -- CHECK B ACCEPTS EITHER ISO SEPARATOR. The original requires `T`
 #     in `heartbeat_at`, so `heartbeat_at: 2026-08-14 14:43` (space separator,
@@ -189,9 +220,30 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 
 [ -n "$added_lines" ] || exit 0
 
-# PORT 2 + 3: the two shapes that carry a protocol timestamp. Everything else on
-# a board is prose, including prose about timestamps.
-STAMP_LINES_RE='^\+(## \(|heartbeat_at:)'
+# PORT 2 + 3: the shapes that carry a protocol timestamp. Everything else on a
+# board is prose, including prose about timestamps.
+#
+# THREE SHAPES, NOT TWO, AND THE COMMENT HERE ASSERTED TWO WHILE THE THIRD WENT
+# UNSCANNED. The protocol (`in-whiteboard` SKILL.md) names entry headings,
+# `heartbeat_at:`, AND every date in a `## Decisions` line. This file used to say
+# "the two shapes that carry a protocol timestamp", and the PORT 2 note above
+# used to add "those are the only places the protocol puts a time" -- both false,
+# both load-bearing for a reader deciding whether to look further, and the claim
+# was RE-ASSERTED through a rewrite of this region rather than checked. Found by
+# baize-vc; measured on Intent's own board at 97 dated Decisions bullets, 0 of
+# them scanned.
+#
+# THE DECISIONS FORM IS POSITIONAL LIKE THE OTHER TWO, WHICH IS PORT 2's WHOLE
+# POINT: it anchors to the bullet opening, so only a date sitting where the
+# protocol reserves a decision's OWN date is read, and a node quoting a peer's
+# bad date mid-sentence is still not blocked for reporting it.
+#
+# BOTH BULLET FORMS ARE COVERED DELIBERATELY. A census of one board found 68
+# date-only (`- (YYYY-MM-DD)`), 28 carrying a time (`- **(YYYY-MM-DD HH:MMZ, ...`)
+# and 1 with the date followed by bold markup. A pattern requiring `)` straight
+# after the date reaches the 68 and misses the 28 -- and the 28 are exactly where
+# checks A and B do real work, because they carry a time to be wrong about.
+STAMP_LINES_RE='^\+(## \(|heartbeat_at:|- (\*\*)?\([0-9]{4}-[0-9]{2}-[0-9]{2})'
 
 report_header() {
   if [ "$violations" -eq 0 ]; then
@@ -202,12 +254,51 @@ report_header() {
 }
 
 # --- CHECK A: no stamp may be in the future --------------------------------
+# A DATE WITH NO TIME IS NORMALISED TO MIDNIGHT EXPLICITLY, AND THAT LINE IS THE
+# WHOLE REASON THIS EXTENSION IS SAFE. `## Decisions` dates are often date-only,
+# and the two date(1) flavours do not merely differ on those -- they disagree by
+# up to a day. Measured at 19:59:32Z on a stamp dated that same day:
+#
+#   BSD  date -j -f '%Y-%m-%d %H:%M' '2026-08-27'  -> Failed conversion
+#   BSD  date -j -f '%Y-%m-%d'       '2026-08-27'  -> 2026-08-27 19:59:32
+#   GNU  date -d                     '2026-08-27'  -> 2026-08-27 00:00:00
+#
+# BSD FILLS THE UNSPECIFIED TIME FROM THE CURRENT CLOCK, so a decision dated
+# TODAY parses to NOW. `now_epoch` is read once before this loop and `to_epoch`
+# is called per stamp inside it, so any elapsed time makes the drift POSITIVE and
+# a tolerance of 0 REFUSES A DECISION DATED TODAY. With ~100 bullets in the loop
+# that is not hypothetical. Normalising to `<date> 00:00` pins the field both
+# flavours would otherwise invent, and they then agree.
+#
+# THE FAILURE THIS AVOIDS IS FAIL-CLOSED ON CORRECT WORK, which is worse than the
+# gap it closes: the same flake shape that `c53dc201` rejects a +1min fixture for,
+# except that one fails open and this one would block honest commits at random.
+#
+# The row carries `<parsed>\t<display>` so the report can name what the author
+# actually wrote. Appending a `Z` to a date the author never gave a time for
+# would be the guard asserting a zone on their behalf.
+# THE EXTRACTION IS POSITIONAL TOO, AND IT HAS TO BE. Selecting the LINE
+# positionally and then scanning the WHOLE line for dates is not PORT 2, it only
+# looks like it: a Decisions bullet's prose continues after its own date, so
+# `- (2026-08-26) vc stamped their heartbeat (2026-08-28 09:00Z), which is ahead`
+# yields TWO dates and the quoted one blocks the commit. That is reporting the
+# defect being treated as committing it -- the precise failure PORT 2 exists to
+# prevent -- and control (b) caught it in the first build of this change.
+#
+# It was latent for the two original shapes as well: a message heading whose text
+# quoted a future stamp had the same hole, untested and unnoticed. Anchoring the
+# capture to the line opening closes both, and makes the code match what the
+# PORT 2 note has claimed all along. A `Re:` anchor is dropped here for free; it
+# points backwards by definition and check C reads it separately.
 stamps="$(printf '%s\n' "$added_lines" |
   grep -E "$STAMP_LINES_RE" |
-  grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}' |
-  tr 'T' ' ' | sort -u || true)"
+  sed -E 's/^\+(## \(|heartbeat_at: *|- (\*\*)?\()([0-9]{4}-[0-9]{2}-[0-9]{2}([T ][0-9]{2}:[0-9]{2})?).*$/\3/' |
+  tr 'T' ' ' |
+  awk '{ if (NF == 1) printf "%s 00:00\t%s (a date with no time, read as midnight)\n", $1, $1;
+         else         printf "%s\t%sZ\n", $0, $0 }' |
+  sort -u || true)"
 
-while IFS= read -r human; do
+while IFS="$(printf '\t')" read -r human shown; do
   [ -n "$human" ] || continue
   stamp_epoch="$(to_epoch "$human")"
   # Not a parseable calendar time is not this guard's business.
@@ -215,7 +306,7 @@ while IFS= read -r human; do
   drift=$((stamp_epoch - now_epoch))
   if [ "$drift" -gt "$TOLERANCE_SECONDS" ]; then
     report_header
-    printf '  [A future]  %sZ is %d minutes ahead of now.\n' "$human" "$((drift / 60))" >&2
+    printf '  [A future]  %s is %d minutes ahead of now.\n' "$shown" "$((drift / 60))" >&2
     violations=$((violations + 1))
   fi
 done <<EOF
@@ -225,8 +316,20 @@ EOF
 # --- CHECK B: every added stamp must carry the trailing Z ------------------
 # An entry heading closes its paren straight after the minutes when the Z is
 # missing; a heartbeat ends the line there. PORT 3: either ISO separator.
+#
+# A `## Decisions` BULLET IS THE THIRD ARM, AND IT IS SCOPED TO THE ONES THAT
+# CARRY A TIME. A date-only decision has no zone to mark, so B is inapplicable to
+# it BY CONSTRUCTION rather than by exemption -- but the claim that Decisions
+# dates are date-only is false: a census of one board found 28 of 97 carrying
+# `HH:MMZ`, and an unmarked time there is exactly as ambiguous as an unmarked
+# heading. Those 28 all carry their Z today, so this arm ships green and stays
+# that way only while nodes keep reading `date -u`.
+#
+# The trailing `[^Z]` is what makes it a NO-Z test rather than a has-a-time test:
+# the bullet's prose continues after the stamp, so unlike the two arms above
+# there is no line end or closing paren to anchor against.
 unmarked="$(printf '%s\n' "$added_lines" |
-  grep -oE '^\+(## \([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}\)|heartbeat_at: *[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2} *$)' |
+  grep -oE '^\+(## \([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}\)|heartbeat_at: *[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2} *$|- (\*\*)?\([0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}[^Z])' |
   sed 's/^+//' | sort -u || true)"
 
 while IFS= read -r line; do
