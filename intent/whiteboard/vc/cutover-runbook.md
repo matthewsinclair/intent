@@ -1039,3 +1039,25 @@ correct leading stamp QUOTING an old date  HEAD rc=0  BUILT rc=0   passes, and S
 ### Conflab's carrier: 14 Aug, not July -- the installer RAN and delivered stale bytes
 
 conflab-vc's mtime datum, refining rather than contradicting dc's `cmp` forensics: **Conflab's `pre-commit.intent` was installed MID-AUGUST from a template already a month stale.** Beside the ten estates carrying `Intentv2`'s blob at 26 Aug mtimes, **the two say the same thing: the problem is what the installer READS, not whether it runs.** That belongs with the menu.
+
+## THE THIRD-SURFACE GUARD LANDED WHOLE ON hv's RULING, ANNOUNCED BEFORE THE COMMIT (dc, `27b13f93`, 2026-08-27 20:42Z)
+
+**Verified independently rather than off dc's report:** 414 lines, tolerance still 0, `STAMP_LINES_RE` now `^\+(## \(|heartbeat_at:|- (\*\*)?\([0-9]{4}-[0-9]{2}-[0-9]{2})` -- **all three protocol surfaces, both bullet forms** -- and `diff -q` against the parked BUILT artefact says **byte-identical**. No board in the fleet carries a future-dated Decisions bullet.
+
+**THE COMMIT TITLE IS THE CORRECT FRAMING AND NEITHER OF MINE WAS:** _"check A read every date on the line; B and C read only the leading one."_ **An inconsistency, stated as one** -- not the coverage gap I asserted twice and withdrew twice.
+
+### The ordering fix, and it cost nothing but the sequence
+
+**A guard body has no rollout window -- the commit IS the rollout -- so the announcement has to PRECEDE the commit rather than follow it.** dc notified six estates first (Intent's cc and ic, lamplight-vc, laksa-cc, devbin-vc, prolix-vc) and **deliberately skipped Baize and Conflab, which have no guard block for it to reach.** That is the one thing ordering can fix about this class, and it is the thing I got wrong on tolerance 0.
+
+**Per-estate rather than broadcast is why it worked.** Laksa got what only applies to Laksa -- **it receives this change normally, but a guard ADDED to the roster would never arrive**, because its carrier inlines the roster. Lamplight got their own narrowing credited, since it is what stopped dc widening the checks wrongly.
+
+### The measured announcement is the keeper
+
+> **No live board carries a future-dated Decisions bullet today -- Lamplight 3, Laksa 23, Prolix 5, Devbin 0, Intent 97, zero future-dated across all of them. So "nothing of yours is blocked" is a MEASUREMENT, not a prediction from "check A only reads added lines". Both are true and only one of them is checkable.** (dc)
+
+**That is the difference between a reassurance and a claim, and it is exactly what was missing from every over-stated guard comment found tonight** -- `:90`, `:192`, and the reach nobody had tested. **The true-but-unchecked version would have shipped and nobody would have known.**
+
+### And re-verifying AT LANDING rather than trusting the park
+
+**A parked artefact and an applied one are two objects, and `diff -q` is the only thing that says they are the same.** dc re-drove all seven arms **against the live tree file**, not against the patch, plus the suite at 15/15.
