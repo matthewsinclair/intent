@@ -443,24 +443,90 @@ fi
 # by accident -- only by writing the token deliberately -- and this file's own
 # history says the failure mode to design against is a door nobody noticed, not
 # a door someone disguised.
+# prose_stripped <line> -- <line> with the spans that CANNOT EXECUTE removed.
+#
+# THE AXIS IS "CAN THIS SPAN RUN", NOT "WHICH QUOTE WRAPS IT". That correction is
+# cc's, driven on 2026-08-27, and it caught a fix of mine that would have made
+# this arm WORSE than the defect it was fixing. In shell, `"` and `` ` ``
+# interpolate, so two forms that read as prose actually execute:
+#
+#   die "run `cargo build --release`"        <- UNESCAPED backtick: RUNS
+#   printf '%s' "$(cargo build --release)"   <- $( ) inside "": RUNS
+#
+# Both were driven, not reasoned. The queued fix stripped both as prose, which
+# would have HIDDEN a live unguarded release build behind a green arm -- the
+# exact inverse of the false positive it was written to close.
+#
+# SO ONLY THE SINGLE-QUOTE STRIP IS ADDED HERE, because single quotes are the one
+# genuinely inert form in shell: nothing interpolates inside them. That alone
+# closes the 2026-08-27 block, where `cmd/cli`'s `die` single-quoted the safe
+# advice and stopped four nodes on a sentence recommending the guarded path.
+# The `eval` bail-out stays, since `eval '...'` re-parses and would run.
+#
+# WHAT IS DELIBERATELY NOT FIXED HERE, AND IT IS OPEN, NOT CLOSED: the existing
+# backtick strip still erases an UNESCAPED backtick span, so the first form above
+# is still hidden today. Fixing it needs more than a per-line regex -- whether a
+# bare backtick executes depends on the enclosing heredoc, whose delimiter sits
+# on a different line:
+#
+#   cat <<'USAGE'   `echo X`   -> printed literally   INERT
+#   cat <<USAGE     `echo X`   -> X                   EXECUTES
+#
+# and `cmd/macos`'s help text lives in the inert case, which is where this whole
+# class started. "Never strip a bare backtick" would close the third instance by
+# reopening the first. That needs heredoc state tracked across the file and is
+# filed rather than rushed into a gate four nodes commit through.
+prose_stripped() {
+  local s
+  s="$(printf '%s' "$1" | sed 's/`[^`]*`//g')"
+  case "$1" in
+    *eval*) printf '%s' "$s"; return ;;
+  esac
+  printf '%s' "$s" | sed "s/'[^']*'//g"
+}
+
+# guard_evidence <file> <lineno> -- the text whose guard tokens may excuse the
+# cargo invocation on <lineno>: the ENCLOSING FUNCTION, plus file scope.
+#
+# THE ESCAPE USED TO BE FILE-SCOPED AND THIS FILE'S OWN HEADER SAID SO --
+# "a file could carry `clone_workspace` for one invocation and build the shared
+# tree in another" -- written down as an accepted weakness. cc pushed on it on
+# 2026-08-27 and was right to. `cmd/local` carries those tokens TODAY, so a real
+# unguarded release build added to it would have passed with NO ARM FIRING,
+# which is the exact entrance this arm exists to close. NAMING A WEAKNESS IS NOT
+# THE SAME AS RULING IT ACCEPTABLE FOR EVER: this one was filed as theoretical
+# and had quietly graduated to load-bearing as the tree grew.
+#
+# FILE SCOPE REMAINS VALID EVIDENCE, DELIBERATELY: a `CARGO_TARGET_DIR` exported
+# at the top of a file really does redirect every build below it, and refusing
+# that would newly block correct files. What no longer counts is a token sitting
+# in a DIFFERENT function from the build it is supposed to excuse.
+guard_evidence() {
+  awk -v target="$2" '
+    /^[A-Za-z_][A-Za-z0-9_]*\(\)[[:space:]]*\{/ { inside=1; start=NR; buf=$0 "\n"; next }
+    inside && /^\}/ {
+      if (target >= start && target <= NR) printf "%s", buf
+      inside=0; buf=""; next
+    }
+    inside { buf = buf $0 "\n"; next }
+    { print }
+  ' "$1"
+}
+
 step_cargo_census() {
-  local f line stmt bad="" total=0
+  local f numbered lineno line stmt bad="" total=0
   while IFS= read -r f; do
     # A line that can be release: an explicit `--release`, or a `$profile`
     # variable that expands to it. Comments and prose ABOUT cargo are excluded --
     # this arm's own ancestor failed a correct file by matching a header
     # sentence, which is this estate's oldest instrument defect.
-    while IFS= read -r line; do
-      # BACKTICKED SPANS ARE PROSE, NOT STATEMENTS, AND STRIPPING THEM FIRST IS
-      # NOT OPTIONAL. The `#`-comment filter above does not reach text inside a
-      # `cat <<'USAGE'` heredoc: this arm's first working draft failed
-      # `cmd/macos` on its own help text -- "and any \`cargo build --release\`
-      # will overwrite underneath you" -- a sentence WARNING about the very
-      # hazard, read as the hazard. That is the defect arm 7's header already
-      # records as this estate's oldest, met again by the arm written to widen
-      # it. It also silences the two `printf` lines in `cmd/cache` and
-      # `cmd/local` that name `cargo clean` while telling an operator what to do.
-      stmt="$(printf '%s' "$line" | sed 's/`[^`]*`//g')"
+    while IFS= read -r numbered; do
+      lineno="${numbered%%:*}"
+      line="${numbered#*:}"
+      # Prose that only MENTIONS cargo is not an invocation. See
+      # prose_stripped above for which spans can be removed and, more
+      # importantly, which look removable and are not.
+      stmt="$(prose_stripped "$line")"
       case "$stmt" in
         *"cargo build"*|*"cargo clean"*) ;;
         *) continue ;;
@@ -470,13 +536,13 @@ step_cargo_census() {
         *) continue ;;
       esac
       total=$((total + 1))
-      if grep -q 'clone_workspace\|CARGO_TARGET_DIR\|refuse_single_package_release\|guarded_release_build' "$f"; then
+      if guard_evidence "$f" "$lineno" | grep -q 'clone_workspace\|CARGO_TARGET_DIR\|refuse_single_package_release\|guarded_release_build'; then
         continue
       fi
       bad="$bad       $f: ${line#"${line%%[![:space:]]*}"}
 "
     done <<EOF
-$(grep -n 'cargo build\|cargo clean' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*#' | cut -d: -f2-)
+$(grep -n 'cargo build\|cargo clean' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*#')
 EOF
   done <<EOF
 $(find "$ROOT/bin/.devbin" -type f 2>/dev/null | sort)
