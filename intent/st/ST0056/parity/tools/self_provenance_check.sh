@@ -68,6 +68,21 @@ _ART_LIB="$ROOT/bin/.devbin/cmd/shared/artefact.lib"
 }
 # shellcheck source=/dev/null
 . "$_ART_LIB"
+
+# AND `currency.lib`, ON THE SAME TERMS AND FOR THE SAME REASON. "Is this binary
+# behind the tree" is a question with ONE home -- `artefact_currency_verdict` --
+# and this file used to answer it locally with `embedded = HEAD`. That is
+# `verify_pair`'s BUILD-time criterion, and `MODULES.md` already records why it
+# is the wrong one to report at any other moment: it "would refuse at exec time
+# after any commit at all, including a README edit". Sourced after `artefact.lib`
+# because it requires it and deliberately does not source it itself.
+_CUR_LIB="$ROOT/bin/.devbin/cmd/shared/currency.lib"
+[ -f "$_CUR_LIB" ] || {
+  echo "${0##*/}: cannot read $_CUR_LIB -- the currency verdict has ONE home and this is not it." >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$_CUR_LIB"
 MANIFEST="bin/.devbin/manifest.sha256"
 
 die() {
@@ -336,9 +351,63 @@ else
     elif [ "$embedded" = "$head_sha" ]; then
       echo "self-provenance: $BIN [sha256 $binsha] names $embedded, which is the current commit."
     else
-      echo "self-provenance: $BIN [sha256 $binsha] names $embedded; the checkout is at $head_sha -- the binary is from an earlier tree."
+      # A MARKER THAT IS NOT `HEAD` IS THE NORMAL CASE AND USED TO BE REPORTED AS
+      # A FINDING. This branch printed `the binary is from an earlier tree`, which
+      # fires after EVERY commit that compiles nothing -- a board fold, a doc edit,
+      # a whiteboard message -- so on a five-node estate it is on nearly every run.
+      # Measured 2026-08-27: it printed that sentence on a genuinely three-commit
+      # stale pair at 17:18Z and printed it WORD FOR WORD on the freshly rebuilt
+      # current pair four minutes later, because a board commit had moved HEAD in
+      # between. A warning that fires on the healthy case is one its readers learn
+      # to skip, and they had: a binary predating hv's own ruling on `st new` ran
+      # for an afternoon under this line saying so on every commit.
+      #
+      # SO THE FACT STAYS HERE AND THE JUDGEMENT MOVES TO ITS HOME. Provenance is
+      # what this arm is for -- what the artefact says about itself. Whether that
+      # leaves it BEHIND is currency, `currency.lib` owns it, and the verdict is
+      # printed once below rather than guessed per binary from the wrong test.
+      echo "self-provenance: $BIN [sha256 $binsha] names $embedded; HEAD is $head_sha. That difference alone is NOT a finding -- see the currency line below, which is the arm that decides it."
     fi
   done
+
+  # THE CURRENCY VERDICT, DELEGATED RATHER THAN RECOMPUTED. `artefact_currency_verdict`
+  # is pair-level by construction (it reads both binaries and refuses a pair that
+  # disagrees), so it is called ONCE for the release directory and not per binary.
+  # It never exits -- that is its stated contract, and it is what lets a reporter
+  # and an actor share one judgement.
+  if [ -n "${INTENT_SELF_PROV_BIN:-}" ]; then
+    # DETERMINATE ABSENCE AGAIN, NOT A SILENT SKIP. Under the override the set
+    # being described is not the release pair, and a currency line about a
+    # different set is worse than no line at all.
+    echo "self-provenance: currency NOT ASSESSED -- INTENT_SELF_PROV_BIN names the subject, and currency is a property of the release PAIR rather than of whatever was pointed at."
+  elif [ ! -f native/rust/target/release/intent ] || [ ! -f native/rust/target/release/intentd ]; then
+    echo "self-provenance: currency NOT ASSESSED -- the release pair is not both present, and the verdict is about a pair."
+  else
+    _cur="$(artefact_currency_verdict native/rust/target/release .)"
+    case "$_cur" in
+      ok)      echo "self-provenance: currency ok -- no non-test file under native/rust has changed since the commit the pair names, so the pair still describes this tree." ;;
+      warn:*)  echo "self-provenance: currency WARN -- ${_cur#warn:}" ;;
+      refuse:*)
+        # `REFUSING`, NOT `STALE`, AND THE FIRST DRAFT OF THIS LINE SAID STALE.
+        # Driven on fixtures: `refuse:` covers FOUR causes and only one of them is
+        # staleness -- the pair naming a commit this repo does not have, the pair
+        # naming a commit that is not an ancestor of HEAD, the range query itself
+        # failing (undecidable), and behind-HEAD. Labelling all four `STALE` is
+        # the same defect this patch exists to fix, three lines further down: a
+        # word that is right in the common case and wrong in the others, in the
+        # place a reader stops reading. So the label states what is true of ALL
+        # four -- an actor on the exec path refuses on this verdict -- and the
+        # reason is passed through verbatim rather than re-narrated.
+        echo "self-provenance: currency REFUSING -- an actor on the exec path would refuse to run this pair: ${_cur#refuse:}"
+        echo "    remedy: \`bin/devbin build all\` -- it forces the provenance embeds and verifies the SET."
+        echo "    AND THE ROUTE MOST PEOPLE TYPE DOES NOT CHECK THIS (ST0058). \`bin/devbin cli\` runs this same verdict and REFUSES on it; \`~/.local/bin/intent\` is a symlink straight into the release directory and passes through nothing. This line is the only place a stale delivered pair is currently reported." ;;
+      *)
+        # An unrecognised verdict is not a pass -- the same contract `cmd/cli`
+        # holds, kept here so the two readers cannot drift into disagreeing
+        # about what the lib is allowed to return.
+        echo "self-provenance: currency UNDECIDED -- unrecognised verdict '$_cur'; reporting rather than reading it as clean." ;;
+    esac
+  fi
 fi
 
 exit $rc
