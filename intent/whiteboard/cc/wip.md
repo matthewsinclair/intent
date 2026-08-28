@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-28 12:18Z
+heartbeat_at: 2026-08-28 12:26Z
 status: active
 focus: "**CONFLAB IS ON v3 AND PHASE 4 PASSED: ZERO AUTHORED-CONTENT LOSS.** hv's D1 carry worked; 28 residual losses are all v2 furniture. Issues 0100-0103 at `ab4837f0`. **(B) reached its first estate and the whole path resolves** -- shim `cmp`-identical, chain-block execs it, `--where` state OK; Conflab is OUT of the sweep population, the other sixteen are UNMEASURED. **The day's class was my own instruments: three normalisation asymmetries whose two controls passed every time, a store probe keyed on a field that does not exist, and an attribution that decayed into an assertion inside one paragraph on the one mechanism I own.** Rule 2 holds until vc lifts it. I take work from intent-vc and I direct nobody."
 claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
@@ -14,6 +14,20 @@ claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
 ## DOING
 
 **2026-08-28 08:45Z -- hv's DIRECTIVE, FIRST-HAND IN THIS SESSION, AND IT SUPERSEDES THE PLAN I HAD JUST PUT UP.** hv's words: _the very first job today, across the entire estate, is to get Conflab onto Intent v3_ -- every session (`intent-*`, `devbin-*`, `conflab-*`) on it, **`intent-vc` coordinates, the rest follow instructions.** **I START NOTHING AND CLAIM NOTHING UNTIL vc ASSIGNS IT.** hv confirmed at 2026-08-28 08:47Z: **superseded, NOT gone.** The lanes below are owed and are not today. **THAT PHRASE IS ONLY TRUE IF THE WORK HAS A HOME, so item 6 below is this morning's findings written down rather than left in a session that ends.**
+
+**2026-08-28 12:26Z -- THREE ATTRIBUTION FAILURES IN ONE DAY, ONE SHAPE, AND THE THIRD IS THE ONE TO KEEP.**
+
+1. **Attribution decayed into assertion inside one paragraph** -- I opened with _"ic's gate-not-running finding"_ and closed with a flat claim about a live estate, which is the half that travels.
+2. **I read `git log --author` as separating me from peers.** It cannot: **all five sessions commit as one git identity.**
+3. **AND THEN I ASSERTED A PEER'S AUTHORSHIP FROM THAT SAME FILTER, IN THE MESSAGE WHERE I WARNED THEM IT COULD NOT DO THAT.** I told dc _"your 0104 and 0105 are in"_. **Neither is theirs** -- 0105 is devbin-cc's; dc's are 0106-0108 in `8e06f471`, uncommitted when I looked. **I named the trap and walked into it in the same paragraph.**
+
+**THE DISCRIMINATOR: ATTRIBUTE BY THE CREATING COMMIT, NEVER BY IDENTITY.** `git log --diff-filter=A -- <path>` answers it; `--author` cannot, and returns a confident plausible wrong answer with nothing to flag it.
+
+**dc's SYNTHESIS, TAKEN WHOLE: _"did I write this" and "is this already known" are the SAME QUESTION, and neither of us asked it._** Both are provenance. **A shared index and a shared identity delete the first; not running `issues list` deletes the second.** dc filed a straight duplicate and an issue whose premise **they had fixed themselves the day before, with the refutation sitting in their own board's DOING** -- the board being a place you WRITE rather than a place you READ.
+
+**SO I CHECKED MY OWN FOUR AGAINST THE RULE dc TOOK THE HIT FOR: I DID NOT RUN `issues list` BEFORE FILING EITHER.** Swept afterwards -- no open issue shares 2+ title terms with 0100-0103. **Clean BY LUCK, not by process, and 0103 was a relay of ic's finding, which is precisely where a duplicate would have hidden.**
+
+**AND THE MIRROR WORTH REMEMBERING: mine was a FALSE positive corroborated by a stale reading; dc's was a TRUE positive discarded as a false one. Both times the instrument was not the thing that failed.**
 
 **2026-08-28 12:18Z -- PHASE 4 PASSED, CONFLAB IS ON v3, AND (B) REACHED ITS FIRST ESTATE.**
 
