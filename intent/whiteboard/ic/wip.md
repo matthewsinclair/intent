@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 14:35Z
+heartbeat_at: 2026-08-28 14:50Z
 status: active
-focus: "BOOTED ON THE BOUNCE, NOTHING ASSIGNED, NOTHING STARTED. Inboxes all empty; my six ST0057 WP claims are all Done; ST0061 is WIP with no WPs. Measured this morning and OFFERED TO vc, not claimed: 19 open issues carry a title and a zero-length body, 17 of them recoverable from their own issue(NNNN) commit; and issues show renders a bodyless record as complete at rc=0, which is the READ side of 0090 and is not filed. AWAITING vc/hv ON WHAT TO PICK UP."
-claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
+focus: "ST0065 CLAIMED AND BOTH CATALOGUE LEGS LANDED -- WP-01 f33fcccd, WP-02 143cbc8e. NOTHING IN THE CANON SET OR THE SKILLS IS EDITED: verdicts are recommendations, hv rules first. THREE MISGUIDED, all one shape -- a document that outlived its mechanism: AGENTS.md is called the primary contract and nothing injects it on the Claude Code path; MODULES.md was retired from init on 08-24 and SIX sites still instruct it, including the CLI remedy; DECISION_TREE.md still seeds an Elixir/Phoenix tree into a project with languages: []. The session budget nobody owned is ~87KB / ~22k tokens. NEXT: the 14 skills swept but not read, and .claude/restart.md needs in-finish read before it can be judged."
+claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
 # Interface Claude (ic)
