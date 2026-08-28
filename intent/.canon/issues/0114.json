@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 114,
+  "slug": "the-attachment-carrier-has-a-per-file-cap-and-no",
+  "title": "The attachment carrier has a per-file cap and no per-thread total, all inline in one versioned JSON",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "The attachment carrier caps each FILE at 1 MiB and has NO bound on a thread's total: every attachment is carried inline in one versioned JSON, so a thread's canon grows without limit as attachments accumulate.\n\n**Measured on Intent's own estate, 2026-08-26 (cc, via vc, held for hv):** `ST0056.json` went 94 -> 292 inline attachments in ONE emit, when `08e97eb3`'s size-based carrier met this estate's `.tap`/`.tsv` baseline files. (The first emit after a classifier change is a one-time rewrite -- the growth mechanism, not a runaway.) The per-file cap was fixed as a placeholder and this cost was named at the time; it is now measured on the first estate before the other sixteen take the same step.\n\n**Why filed now:** the fact sat as an hv standing directive with no other home; the 2026-08-28 directives split archives spent entries and this one's substance belongs in the issue tracker rather than on a board. It sits beside hv's blob-home decision (whether attachment bytes belong inline in canon JSON at all), which is the design question a per-thread bound would be a stopgap for.\n"
+}
