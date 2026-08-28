@@ -61,7 +61,9 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 
 **COUNT CORRECTED.** The table above lists the sites I found with a path-qualified grep (`llm/MODULES.md`). Re-measured with the bare pattern: **20 mentions across 12 files**, including 4 in `in-plan`, 3 in `lib/templates/prime/operational-knowledge.md`, 1 in `in-review`, and **1 each in two Elixir archetype templates -- so generated modules carry the reminder too.** See WP-01 finding 2 for the full table and for the note on how the first count went wrong.
 
-**Verdict: CORRECT.** One remedy string, plus twenty instruction sites. The verbs' rc=1 is not a defect -- **noting that explicitly so nobody "fixes" it.**
+**FILED AS ISSUE 0122** on vc's ask (14:57Z) -- a live CLI defect independent of this thread, so the catalogue cites it rather than carrying it alone. The issue body leads with **FIX THE STRING, NOT THE EXIT CODE** and scopes itself to the two CLI strings plus the hook message that routes into them; the twenty documentation sites stay here, as ST0065's to catalogue and hv's to rule on.
+
+**Verdict: CORRECT.** One remedy string (0122), plus twenty instruction sites. The verbs' rc=1 is not a defect -- **noting that explicitly, here and in the issue, so nobody "fixes" the wrong half.**
 
 ---
 
