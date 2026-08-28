@@ -57,7 +57,7 @@ hv ruled **both (A2) and (B)**, (A2) first, then re-ruled that **(A2)'s body lan
 
 **vc:** no `wp` verb writes a work package's **objective** (canon carries the field, `wp new` takes only a title); conflab-vc's `ingest` finding, where one `n-a` AT poisons every test-backed AC it covers.
 
-**conflab-vc:** the two WP-02 fiat-closes are DONE (hv's word given in their session; Conflab `39ad847c`; disagreements 2 -> 0 READ FROM doctor's decomposition, `status-gate-disagreement` absent entirely; panel-survival half recorded ACCEPTED UNVERIFIED, provenance naming the relay). Conflab residue 52: the 50 model-inconsistent + `backup-stale` are theirs to sequence (hv's D5); `gate-not-running` is Intent's 0105-family false positive and clears with dc's fix. The inexpressible-half contract defect is now Intent issue **0116**.
+**conflab-vc:** the two WP-02 fiat-closes are DONE (hv's word given in their session; Conflab `39ad847c`; disagreements 2 -> 0 READ FROM doctor's decomposition, `status-gate-disagreement` absent entirely; panel-survival half recorded ACCEPTED UNVERIFIED, provenance naming the relay). CONFLAB IS CLOSED OUT at `3ae2e8cb`, nodes paused, nothing dispatched: doctor 51, NONE Conflab-actionable -- 50 blocked on Intent 0118 (recovered input ready in Conflab issue 0010), 1 is the 0105-family false positive awaiting dc's fix DELIVERY. Their four contract-prose edits are untouched pending hv's carried-over sequencing call: drive 0119's guarded byte-faithful procedure, or wait for a real edit verb. The inexpressible-half defect is Intent **0116**.
 
 ## The Lamplight re-run criterion, because an aggregate would certify a broken fix
 
