@@ -81,7 +81,17 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // withhold the instructions for the state the reader is stuck in.
     // (Exemption added by cc with the wiring that made it reachable; ic owns
     // the renderer and this list, and should reword if the framing is wrong.)
-    "llm guide" => Some("generated from the compiled-in table; it never reads a project"),
+    // **AND BARE `intent llm` IS THE SAME COMMAND.** ST0067 AC-00.1 put both
+    // doors on one match arm, so bare `llm` emits the byte-identical document
+    // -- asserted, not assumed, by `bare_llm_and_llm_guide_serve_the_same_document`.
+    // The reason above therefore applies to it verbatim; exempting the bytes
+    // under one spelling and refusing them under the other would be a
+    // distinction the surface does not make.
+    //
+    // **This row is EXACT-PATH and must not become family-wide** -- see the
+    // skip at the sweep below. `llm usage_rules` reads the project and keeps
+    // refusing here.
+    "llm" | "llm guide" => Some("generated from the compiled-in table; it never reads a project"),
     // The rule library belongs to the INSTALL, not to any project -- the same
     // category as `schema` and `llm guide`, and verified rather than assumed:
     // `rules.rs` resolves its roots from `install::home()` and `ext::base()`,
@@ -287,9 +297,16 @@ fn no_shipped_command_answers_from_an_unmigrated_project() {
 
   for entry in dispatch::shipped_entries(&table) {
     let family = entry.path.split(' ').next().unwrap_or_default();
-    if exempt_from_the_migration_refusal(&entry.path).is_some()
-      || exempt_from_the_migration_refusal(family).is_some()
-    {
+    // **A FAMILY EXEMPTION COVERS EVERY VERB UNDER IT, AND `llm`'s MUST NOT.**
+    // Bare `intent llm` is exempt because it serves the compiled-in guide; its
+    // sibling `llm usage_rules` opens the project and has to keep refusing
+    // here. Letting the family fallback answer for `llm` would retire a live
+    // check as a side effect of exempting a different command -- the quiet way
+    // a guard's population shrinks while it still reports a pass.
+    let by_family = (family != "llm")
+      .then(|| exempt_from_the_migration_refusal(family))
+      .flatten();
+    if exempt_from_the_migration_refusal(&entry.path).is_some() || by_family.is_some() {
       exempt += 1;
       // THE SKIP MUST STAY AHEAD OF `run()`, and it is load-bearing rather than
       // an efficiency. Every entry in this loop shares ONE `legacy_project()`
