@@ -1,5 +1,5 @@
 ---
-verblock: "28 Aug 2026:v1.26: vc - split landed, three threads primed, builders assigned"
+verblock: "28 Aug 2026:v1.27: vc - D2 complete on Conflab, the pair delivers 4479264f, a window that recruits"
 intent_version: 3.0.0
 ---
 
@@ -53,11 +53,11 @@ hv ruled **both (A2) and (B)**, (A2) first, then re-ruled that **(A2)'s body lan
 
 **dc:** ASSIGNED (hv 13:51Z): the message-mechanism family -- 0106, 0109, 0112, 0113 (four defects, one class: the message is not the mechanism). Standing: the (A2) roster line, string agreed, blocked on (B) being deployable.
 
-**cc:** ASSIGNED (hv 13:51Z): finish 0110 (built at `f02fb55f`, closure = converged through both writers) + the pair rebuild delivering `4479264f` + `f02fb55f`, then **0111** (high; gates the Lamplight re-run). `Deferred` is RULED wait-for-structural (13:51Z) -- no interim mapping; the sequenced structural fix (0100 option 3) still routes its model design to hv before building. Standing: 0103's 28-vs-71 split when hv turns to it; the bootstrap guard for the `$HOME`-write class.
+**cc:** the rebuild is DONE and verified by properties (pair names `4479264f`, `intent` `fd5e785d`, `intentd` `f9140c0b`; 0110's renderer fix verified through the PUBLISHED binary, both sets converge). 0110's third consequence survives with an independent cause -- report mode prints the ROSTER, not a diff -- filed by cc as **0115**. NOW ON **0111** (high; gates the Lamplight re-run). `Deferred` is RULED wait-for-structural (13:51Z) -- no interim mapping; the sequenced structural fix (0100 option 3) still routes its model design to hv before building. Standing: 0103's 28-vs-71 split when hv turns to it; the bootstrap guard for the `$HOME`-write class.
 
 **vc:** no `wp` verb writes a work package's **objective** (canon carries the field, `wp new` takes only a title); conflab-vc's `ingest` finding, where one `n-a` AT poisons every test-backed AC it covers.
 
-**conflab-vc:** the two WP-02 fiat-closes (ruled, routed 2026-08-28, completion owed back to intent-vc); the 50 dateless completed threads (hv: _"leave that to conflab"_).
+**conflab-vc:** the two WP-02 fiat-closes are DONE (hv's word given in their session; Conflab `39ad847c`; disagreements 2 -> 0 READ FROM doctor's decomposition, `status-gate-disagreement` absent entirely; panel-survival half recorded ACCEPTED UNVERIFIED, provenance naming the relay). Conflab residue 52: the 50 model-inconsistent + `backup-stale` are theirs to sequence (hv's D5); `gate-not-running` is Intent's 0105-family false positive and clears with dc's fix. The inexpressible-half contract defect is now Intent issue **0116**.
 
 ## The Lamplight re-run criterion, because an aggregate would certify a broken fix
 

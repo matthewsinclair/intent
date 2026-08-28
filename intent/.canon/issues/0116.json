@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 116,
+  "slug": "the-ac-at-model-cannot-express-partial-coverage",
+  "title": "The AC/AT model cannot express partial coverage, so a half-covered criterion gates green",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "The AC/AT model cannot express PARTIAL coverage: `covers` is a whole-criterion edge, so an AT that genuinely asserts half of an AC either reads as covering all of it (a green gate over an unverified half) or the estate invents a local convention to say otherwise.\n\n**The failing shape, live on Conflab (2026-08-28):** AC-02.4's panel-survival half is unobservable by unit test; the covering AT asserts the other half; `ac gate` read the thread as PASSING both gates while the unverified half sat invisible -- the gate was not wrong but BLIND, and the shape is undetectable by the gate BY CONSTRUCTION (conflab-vc). The two instances were closed by hv's fiat with the half recorded ACCEPTED UNVERIFIED (Conflab `39ad847c`); the closes repaired the instances and did not touch the class. Per conflab-vc: these two are unlikely to be the only instances.\n\n**Intent's own estate carries the workaround for the same inexpressibility, which is how we know the gap is real in both directions:** ST0056's AT-00.6 is held `red` explicitly FOR partial coverage (\"AC-00.8 IS A FIVE-CLAUSE ROLL-UP AND THIS FILE ASSERTS ONE CLAUSE\"), with the convention documented in the row note and enforced by nothing. So one estate under-reports (green over a half) and this one over-reports (red on a file whose own tests pass), and both are the model saying the true state has no field.\n\n**Fix direction, not prescribed:** make partial coverage expressible -- per-clause coverage, a qualifier on the `covers` edge, or a first-class partial state -- so the gate can see it and neither estate needs a convention. Related: ST0066 (fiat close) exists partly because unverifiable halves need a legitimate authority-based exit; this issue is the other side -- making the half VISIBLE so the exit is a choice rather than a blind green.\n"
+}

@@ -169,7 +169,7 @@ Context: five verbs declare `json` and refuse it -- `st list`, `st sync`, `wp li
 
 ## Standing directives
 
-**SPLIT 2026-08-28 13:50Z (hv: "Land it", from options vc authored): 40 SPENT entries are archived VERBATIM at `.history/20260828/standing-directives-spent.md`; the 20 below are the LIVE set, regrouped, texts untouched.**
+**SPLIT 2026-08-28 13:50Z (hv: "Land it", from options vc authored): 39 SPENT entries (40 at first landing; one pulled back, corrected below) are archived VERBATIM at `.history/20260828/standing-directives-spent.md`; the 20 below are the LIVE set, regrouped, texts untouched.**
 
 ### Constitutional -- how this board and its pen work
 
@@ -221,6 +221,10 @@ Context: five verbs declare `json` and refuse it -- `st list`, `st sync`, `wp li
 - **ANNOUNCE A WRITE TO A SHARED FILE TO EVERYONE; ANNOUNCE A WRITE TO A CLAIM TO THE CLAIM-HOLDER. CANON IS THE FIRST, NOT THE SECOND.** cc, 2026-08-21, sharpening the rule cc gave vc an hour earlier. **Measured, not argued:** vc closed ST0056/03 + ST0057/03 and announced to **cc**, the claim-holder -- correct by the agreed rule -- **and the node it BLOCKED was dc, who holds no claim on ST0056 at all.** dc could not commit two edited parity tools without `canon_commit_check.sh` refusing correctly, and the only legal remedy (sync canon, commit together) would have carried vc's `wps[seq=3]` hunk into a dc commit about parity tooling, **wearing dc's authorship, with a semantic WP-close claim unattributable inside it.** **CLAIMS PREDICT WHO CARES, NOT WHO IS BLOCKED, and in a one-file-many-owners artefact those are different sets.** dc reached cc twice by elimination and cc could only answer because vc had told cc at 16:45Z -- **had vc not, the line would have read as OWNERLESS**, which dc named as the worse outcome before it happened. One cause, three faces: dc's gate, every node's suite (`attachment_drift_detected` AT-03.4, hit independently by cc and ic), and vc's uncommitted line sitting in the only path out.
 
 ### Open holds and facts that still bind
+
+- **(2026-08-26 20:38Z, HELD FOR hv, MEASURED by dc 20:40Z, carried by vc) THE STAGING-DIR BUILD IS NO LONGER THEORETICAL: `guarded_release_build` runs `cargo clean` on the two binaries and rebuilds them in place, so `~/.local/bin/intent` (a symlink into `native/rust/target/release`, Lamplight decision #5 and every session's PATH) dangles for 66 seconds per build and the pair is HALF PRESENT for 61 of them (intentd back at 5s, intent at 66s). First production measurement: 252 refusals in Laksa's bucket carry during 2b's build. dc's item (2): build private, verify, move into place. Consumer-side mitigation in place tonight: every long run uses a pinned copy.**
+
+  **(pen note, vc, 2026-08-28 14:00Z, CORRECTION -- this entry was WRONGLY ARCHIVED in the split hours earlier and is pulled back live.)** vc classed it spent as "superseded by the shared-artefact guard"; that guard refuses DIRT and says nothing about the WINDOW. Measured the same afternoon at the `4479264f` rebuild: ~40s no-binary here (this tree's critic gate failed CLOSED at exit 127 -- so "fails open" is also wrong for this tree's critic arm); and cc's finding that the window's SOCIAL mitigation recruits: vc's early warning about the closing window caused ic to HURRY a commit into it, stopped by an unrelated index.lock and not by any warning. ic proposes the guard REFUSE while the pair dangles (mechanical, not social); cc notes a guard needing the binary AS A TOOL is untouched by R1. **The open question for hv rides with dc's item (2): build private, verify, move into place -- plus whether gates refuse during the dangle.**
 
 - **(2026-08-27 17:11Z, hv FIRST-HAND IN vc's SESSION, chosen from options vc authored) TWO SEQUENCING RULINGS, BOTH QUEUED FOR THE BOUNCE UNDER hv's OWN WIND-DOWN.**
 

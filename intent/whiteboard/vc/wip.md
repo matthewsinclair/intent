@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 13:52Z
+heartbeat_at: 2026-08-28 14:00Z
 status: active
 focus: "SECOND RULING ROUND EXECUTED (hv 13:51Z): the directives split LANDED (d68f0395, 20 live / 40 archived, issue 0114 filed), Deferred RULED wait-for-structural, assignments GO -- dc on the message-mechanism family, cc on 0110+rebuild then 0111. hv`s five-item directive primed as ST0065/66/67 (e28ff02d). AWAITING: conflab-vc on the two fiat-closes; cc`s rebuild announce. Watch rule 19 while directing dc/cc: transmit the WHAT, not my method."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -23,7 +23,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 **WITH hv (queued on their word, nothing blocking):** cc's Laksa thread-status flag and ic's instruments-placement question, both added to wip.md's hv list this round; put when hv turns to them.
 
-**AWAITED FROM PEERS:** conflab-vc's completion (or refusal) on the two WP-02 fiat-closes, plus their post-close doctor re-read. intent-cc's rebuild announce (GO relayed 13:5xZ with hv's 13:51Z ruling behind it) and 0110's convergence proof through both writers, then their 0111 start. intent-dc's take-up of the message-mechanism family.
+**AWAITED FROM PEERS:** intent-cc on 0111 (started on hv's sequencing; gates the Lamplight re-run). intent-dc's message-mechanism family (mid-flight on disk: guard_home_check, view_skew_check, cmd/hooks -- ic's ROOT= divergence flag relayed to them). DONE THIS ROUND: conflab-vc's two fiat-closes (39ad847c, 2->0 from output); cc's rebuild (pair names 4479264f, both fixes live fleet-wide).
 
 **CLOSED THIS SESSION:** the guard-home loose end -- measured, not chased: `guard_home_check.sh` reads `.githooks/pre-commit.intent` (the CARRIER) for the GATE BODY's override string, so the shim reads "predates this template" forever and the printed remedy reinstalls the shim. Filed as 0113, the 0105 family's third instrument. The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
 
@@ -73,6 +73,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 **18. THE RENDERER AND THE FORMATTER ARE TWO WRITERS OF ONE FILE, AND A VERB BETWEEN THEM CANNOT CONVERGE** (0110). Canon emits spacing prettier rejects: apply 6211 -> prettier 6208 -> apply 6211, forever; `written:` stops meaning anything for that file, a clean state is unobservable, and a commit in the window nets EMPTY while its message claims content (`7fa3c013`). The fix is the renderer, never a formatter exception -- an exception trades a loud defect for a quiet one.
 
 **19. AN AUTHORITY CHAIN TRANSMITS THE METHOD IT WAS BUILT TO FENCE** (devbin-vc + devbin-cc, jointly, held for hv). A node that must direct another's unit cannot be blind to it; pickup instructs peers to read the very header blocks that carry method; pre-registration bounds only what was predicted -- and not fully even that (a confirmed prediction is where nobody re-reads the reasoning). Every mechanism the whiteboard has is a broadcast.
+
+**20. A WARNING ABOUT A CLOSING WINDOW IS A SCHEDULING SIGNAL, AND IT RECRUITS PEERS INTO RACING THE WINDOW** (cc's finding, my relay in the causal path). An FYI that a hazard window opens shortly reads as "act before it does": ic hurried a commit on exactly that reading, and what stopped it was an unrelated index.lock, not the warning -- the explicit DO-NOT arrived after the race was in flight. Announce-then-act mitigations are social; the fix is mechanical refusal during the window. Corollary the same hour: I archived the window hazard as "superseded" by a guard that covers a DIFFERENT axis (dirt, not dangle) -- rule 15's constant-metric error in classification form.
 
 ## Decisions
 
