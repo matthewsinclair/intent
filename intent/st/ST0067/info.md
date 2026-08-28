@@ -18,6 +18,19 @@ hv, 2026-08-28: "'intent llm' -- this is a stub right now. We need to fix this a
 
 Scope to establish at design time: what the surface serves (verb reference, the ST/WP/AC/AT model, the canon-vs-view contract, the sync discipline, the rules library entry points) and how it stays true as the tool moves -- the estate's standing hazard is a claim outliving its basis, and a hand-maintained LLM guide is that hazard in its purest form, so the design should prefer projecting from the tool's own registries (clap definitions, rule library, dispositions) over prose that drifts. Related: AC-00.9 constrains what Intent may emit into consumer-facing output (no Intent PM state); `intent llm` output lands in consumer sessions, so it inherits that constraint.
 
+## Design -- ruled by hv, 2026-08-28 14:38Z, from options authored by vc
+
+**The thread's opening premise ("a stub") was half stale, measured before design:** `intent llm guide` already exists and is the registry projection the context above asks for -- 1087 lines generated from the dispatch table compiled into the binary (per-verb safety class and reversibility, the INV-01..04 surface facts, "lists exactly what this build ships"), and its output is AC-00.9-clean: the only PM ids it emits are the blessed `ST0000` placeholder. The genuinely dead parts: bare `intent llm` refuses as not-implemented instead of routing anywhere; `llm usage_rules` is a true stub (v2 printed the project's usage-rules.md and offered `--symlink`); the guide's `## Workflows, methodology and conventions` section is a deliberate placeholder whose own text says it stays unwritten "while the v3 workflow surface settles"; and AGENTS.md nowhere names `intent llm guide` while the guide's tail says "read AGENTS.md" -- the LLM discovery loop is open at both ends.
+
+**Ruled scope (menu: complete the built half -- CHOSEN | guide-only minimalism | full topic surface):**
+
+1. Bare `intent llm` serves the guide instead of refusing. (XS)
+2. The `Workflows, methodology and conventions` prose is written NOW -- the ST/WP/AC/AT model, the canon-vs-view contract, the sync discipline, gate semantics. Its placeholder's settling condition arrived when the port closed on 2026-08-28. The prose ships compiled into the binary, so it versions with the tool; AC-00.9 binds it (no Intent PM ids beyond neutral placeholders). (M)
+3. `intent llm usage_rules` prints the project's root usage-rules.md -- v2 parity; refuses plainly when the file is absent. (S)
+4. The AGENTS.md template gains the pointer line routing an arriving LLM to `intent llm guide` -- coordinated with the ST0065 WP-01 catalogue so the template is touched once. (XS)
+
+cc builds; vc validates (prose gets the author pipeline: detrope + critic-prose).
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0067.json`, then `intent sync --to-store`. This cover never restates them.

@@ -20,6 +20,19 @@ The live motivating case is the same day's ruling: hv fiat-closed Conflab's ST01
 
 Enforcement datapoint, same day (conflab-vc, holding the first live FC for hv's in-session word): `Bash(intent wp:*)` is ALLOWLISTED in Conflab's harness, so `wp done` runs with no prompt -- there is no mechanical check on the verb at all, and any FC built on the existing close verbs inherits every such allowlist. So enforcement cannot live at the harness/permission level; it must live in the tool itself (the /dev/tty candidate above, or equivalent), because a rule that only holds when something else would have caught it anyway is not a rule.
 
+## Design -- enforcement posture ruled by hv, 2026-08-28 14:38Z, from options authored by vc
+
+**Premise, put plainly and accepted with the ruling:** the LLM shares hv's uid and shell -- conflab-vc measured harness allowlists being bypassed -- so hard prevention of an LLM fiat-close is not achievable on this machine. Enforcement is DETECTION + ATTRIBUTION, not prevention.
+
+**Ruled posture (menu: visible + attributed -- CHOSEN | above + tty gate | interactive nonce challenge | secret token):**
+
+1. `--because <text>` is mandatory -- an FC without a reason does not execute.
+2. The record carries invoker evidence: tty-or-not at invocation, timestamp, environment fingerprint.
+3. doctor and every rendered view show a fiat-closed row DISTINCTLY, forever -- a fiat-closed AC/AT/WP/ST never renders as an ordinarily satisfied one.
+4. The LLM-side prohibition lands in the rules/skills contract, so an LLM invoking FC violates its own loaded rules and is critic-refusable.
+
+**Open design, still to draft (vc, with hv):** where the reason lives in the record (status field vs annotation vs a fiat ledger); the verb surface's shape (`intent fc <target>` vs `--fiat` on the close verbs); exact scope semantics across AC/AT/WP/ST (does FC on an ST cascade); how issue 0116's partial-coverage gap interacts (an FC on a half-covered AC is the adjacent case). The motivating case is the same day's D2: hv fiat-closed Conflab's ST0121/WP-02 + ST0124/WP-02 and the only mechanism available was `wp done` plus hand-written provenance prose.
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0066.json`, then `intent sync --to-store`. This cover never restates them.
