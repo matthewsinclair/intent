@@ -94,6 +94,35 @@ Chained to `pre-commit.intent` via chain-block markers, **EXACTLY ONCE**. Region
 - After the flip: `intent --version` and `intent info` answer from the brew binary; the three hooks answer **rc=0**; an unknown hook answers **rc=1**; **never rc=2 on this surface**; `intent ac gate <ST>` runs.
 - **Use WHOLE-FILE hashes for any before/after comparison.**
 
+## VERIFY -- THE REBUILD BATCH (written 2026-08-28 16:28Z, vc)
+
+**THE PAIR ON PATH RIGHT NOW, read from the binary and not from any ledger:** `intent --version` -> `3.0.0 (4479264f7b6ec83829a3f7b80c70e332be6daf81)`; `shasum -a 256 native/rust/target/release/intent` -> `fd5e785d1cfee15d087d43da052c494b1d5ebf273a71fe86d5824880c070ff24`; `~/.local/bin/intent` is a symlink INTO `native/rust/target/release/`, so the build IS the delivery. **Both properties change on a rebuild, and neither is a HEAD-compare** -- the diagnostic that says the alarming thing on the healthy case.
+
+**CORRECTION, MEASURED 2026-08-28 AND CARRIED WRONG UNTIL THEN:** my board listed **0110's renderer fix** as part of what this rebuild delivers. It is not. `f02fb55f` is an ANCESTOR of `4479264f` (`git merge-base --is-ancestor`), so it has been on PATH since the pair was built. And `0110` is still OPEN regardless, on the second cause cc split out as `0115` -- so neither "the rebuild delivers it" nor "it is fixed" was safe to say. **A claim outlives its basis and nothing announces it; this one would have gone to hv inside the rebuild GO.**
+
+**WHAT THE BATCH ACTUALLY CARRIES:** 18 commits touch `native/rust` between `4479264f` and `1f27f128`, plus `0121` when cc lands it. Derived from `git log 4479264f..HEAD -- native/rust`, not from what any node reported.
+
+**FIVE CHECKS WITH THEIR _BEFORE_ VERDICT ALREADY DRIVEN ON THE DELIVERED BINARY** -- each one proven to discriminate, so a pass after the rebuild means something:
+
+| #   | what it proves                                                 | command                                        | BEFORE (driven, this pair) | AFTER must be             |
+| --- | -------------------------------------------------------------- | ---------------------------------------------- | -------------------------- | ------------------------- |
+| A   | `--date` on the closing verbs -- **Conflab's 50** (`bd5894df`) | `intent st done --help \| grep -c -- '--date'` | `0`                        | `>= 1`                    |
+| B   | `st repair` retired (`abcb90f7`)                               | `intent st repair --help; echo $?`             | `rc=0` (it exists)         | nonzero                   |
+| C   | bare `intent llm` answers -- ST0067's surface (`be3edf70`)     | `intent llm; echo $?`                          | `rc=2` (refuses)           | `rc=0`                    |
+| D   | `llm usage_rules` answers (`be3edf70`)                         | `intent llm usage_rules; echo $?`              | `rc=2`                     | `rc=0`                    |
+| E   | `st list` discloses its filter -- `0121`                       | `intent st list \| tail -2`                    | last row, no footer        | a footer naming the scope |
+
+**NAMED, NOT PRE-DRIVEN, AND SAYING SO:** these have side effects on live canon or need another estate, so their before-verdict is UNMEASURED rather than quietly assumed --
+
+- `ac new` on an existing id prints `replaced` and names what the default overwrote (`f3d15891` + `38e98942`). **Do not drive this on live canon: it is the destructive PUT of `0119`.** Fixture only.
+- `agents sync` writes `_Not configured for this project._` for a DECLARED pack with no block -- the (k) invariant (`1fb7be15`). Writes `AGENTS.md`; drive on a fixture or accept the diff.
+- `sync --to-store` stops printing both answers to one question (`557d220d`).
+- `doctor` learns the second carrier shape and a disposition class stops naming a subject (`a12147c1`).
+- a **Superseded** thread converts as cancelled rather than refusing the estate (`f6613495`) -- **Laksa's, and it only proves out at Laksa's migration.**
+- the formatter exclusion reaches a CONSUMER repo, not just this one (`27654493`, `fe4515e8`).
+
+**ORDER:** cc lands `0121` -> cc calls the batch and announces BY PROPERTIES -> vc puts the GO to hv -> the rebuild -> verify by the two properties at the top, then A-E -> **only then** ping conflab-vc, whose recovered input is waiting in Conflab issue `0010`.
+
 ## Settled -- do not re-raise
 
 - **`Intent/bin/intent`** is v2's bash wrapper, PATH position 22, shadowed, never resolves. `AC-12.1` prunes `bin/` at the cut.
