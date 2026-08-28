@@ -1,7 +1,7 @@
 ---
 st_id: ST0067
 title: Build out 'intent llm' so that LLMs can work out how to work with Intent
-status: Triage
+status: WIP
 created: 2026-08-28
 completed:
 ---
