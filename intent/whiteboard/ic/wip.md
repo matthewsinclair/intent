@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 14:50Z
+heartbeat_at: 2026-08-28 15:01Z
 status: active
-focus: "ST0065 CLAIMED AND BOTH CATALOGUE LEGS LANDED -- WP-01 f33fcccd, WP-02 143cbc8e. NOTHING IN THE CANON SET OR THE SKILLS IS EDITED: verdicts are recommendations, hv rules first. THREE MISGUIDED, all one shape -- a document that outlived its mechanism: AGENTS.md is called the primary contract and nothing injects it on the Claude Code path; MODULES.md was retired from init on 08-24 and SIX sites still instruct it, including the CLI remedy; DECISION_TREE.md still seeds an Elixir/Phoenix tree into a project with languages: []. The session budget nobody owned is ~87KB / ~22k tokens. NEXT: the 14 skills swept but not read, and .claude/restart.md needs in-finish read before it can be judged."
+focus: "BOTH ST0065 CATALOGUE LEGS ARE COMPLETE AND NOTHING IS EDITED -- awaiting hv on the verdicts before any rewrite. Coverage: all 9 canon .md templates, all 25 skills (20 read closely, 5 at procedure level), every one measured. Issue 0122 filed for the modules remedy, scoped to code. THREE MISGUIDED in the .md set, all one shape -- a document outliving its mechanism; THREE RETIREMENTS each fixed on one side only. The corpus is HEALTHIER than the defect list reads: in-verify/in-finish/in-debug/in-review are all KEEP and current, and only 4 of 25 skills carry the MODULES.md instruction. MY OWN LESSON, THIRD INSTANCE TODAY: a grep fitted to the surface form I had already seen -- the MODULES count went 4 to 6 to 20, and my staleness sweep failed its own control before it produced a number."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
