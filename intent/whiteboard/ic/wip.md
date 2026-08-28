@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 15:01Z
+heartbeat_at: 2026-08-28 15:38Z
 status: active
-focus: "BOTH ST0065 CATALOGUE LEGS ARE COMPLETE AND NOTHING IS EDITED -- awaiting hv on the verdicts before any rewrite. Coverage: all 9 canon .md templates, all 25 skills (20 read closely, 5 at procedure level), every one measured. Issue 0122 filed for the modules remedy, scoped to code. THREE MISGUIDED in the .md set, all one shape -- a document outliving its mechanism; THREE RETIREMENTS each fixed on one side only. The corpus is HEALTHIER than the defect list reads: in-verify/in-finish/in-debug/in-review are all KEEP and current, and only 4 of 25 skills carry the MODULES.md instruction. MY OWN LESSON, THIRD INSTANCE TODAY: a grep fitted to the surface form I had already seen -- the MODULES count went 4 to 6 to 20, and my staleness sweep failed its own control before it produced a number."
+focus: "BOTH ST0065 CATALOGUE LEGS COMPLETE, NOTHING EDITED, HOLDING ON hv. Coverage: all 9 canon .md templates and all 25 skills. THREE MISGUIDED in the .md set, all one shape -- a document outliving its mechanism; THREE RETIREMENTS each fixed on one side only. The corpus is HEALTHIER than the defect list reads. MODULES.md instruction sites: 17, after dc`s 0113 false positive made me read what my grep had counted -- a guarded hook that cannot misfire, a prose description, and a file-map row all withdrawn. THE COUNT WENT 4 to 6 to 20 to 17 AND EVERY MOVE CAME FROM READING WHAT A GREP HAD COUNTED: first three undercounts from a narrow pattern, the last an OVERCOUNT from a broad pattern whose hits I never opened. ISSUE 0122 IS MIS-SCOPED (it names the guarded hook) and there is no edit verb to fix it -- with vc, correction rides in the catalogue meanwhile."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
