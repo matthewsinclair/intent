@@ -2,7 +2,7 @@
 
 **Read-and-catalogue leg. NOTHING HAS BEEN EDITED.** Verdicts are recommendations to hv, per vc's assignment (14:32Z). Same vocabulary as WP-01: **keep** / **correct** / **retire** / **MISGUIDED**.
 
-**COVERAGE, STATED HONESTLY.** 25 skills. A mechanical sweep covers all 25 (verb resolution, load path, chain integrity, script presence, cross-references, duplication). A close read covers 18 -- the 8 auto-loaded into this session plus `in-start`, `in-next`, `in-finish`, `in-plan`, `in-verify`, `in-debug`, `in-review`, `in-tca-init`, `in-autopsy` and `in-cost-analysis`. **The remaining 7 have been swept, not read** (`in-ash-ecto-essentials`, `in-detrope`, `in-phoenix-liveview`, and four of the five TCA skills), and no verdict below is offered on a skill I have only swept.
+**COVERAGE: ALL 25 EXAMINED.** 20 read closely; the last 5 (four TCA skills plus `in-detrope`) read at procedure level and measured mechanically. Every skill has been through verb resolution, load path, chain integrity, script presence and the staleness sweep in finding 6.
 
 ---
 
@@ -107,6 +107,18 @@ Recorded because a review that only lists defects misrepresents the set.
 - **`in-finish`** -- see 3b. Current throughout; one instruction to fix.
 - **`in-debug`** -- four phases plus the 3-Strike Rule ("three failed fixes usually means you are solving the wrong problem"). Language-agnostic, nothing stale.
 - **`in-review`** -- current with the v3 language model: reads the `languages` array, dispatches per-language critics, handles prose disciplines and polyglot subtrees, honours `.intent_critic.yml`. Carries one MODULES.md mention in its agnostic checklist (part of the class above).
+
+---
+
+## 3e. The rest of the corpus is clean, measured with a controlled instrument
+
+**Only 4 of 25 skills carry the MODULES.md instruction: `in-plan` (4 mentions), `in-standards` (2), `in-start` (1), `in-review` (1) -- 8 in total.** Every other skill is free of it and of every other staleness marker swept for (`.intent/` v2 paths, `worker-bee`, `STP`, `bin/intent_*` v2 binaries, `.git/hooks`).
+
+**`in-ash-ecto-essentials` and `in-phoenix-liveview` are KEEP, unchanged.** Well-scoped framework rule packs, current with practice (`assign_async/3`, streams, atomic changes, `mix ash.codegen`), each deferring correctly to upstream Usage Rules as ground truth. **The four remaining TCA skills and `in-detrope` are clean too.**
+
+**THE INSTRUMENT FAILED ITS CONTROL FIRST, AND THAT IS WHY THIS NUMBER IS TRUSTWORTHY.** My staleness pattern initially returned 0 across all seven remaining skills. Run against `in-plan` as a control it also returned 0 -- **for a file carrying four MODULES.md mentions** -- because I had written the path-qualified `intent/llm/MODULES` again, minutes after correcting exactly that error in finding 2. **Third instance in one session of a pattern fitted to the surface form I happened to have seen.** The sweep was re-run only after the control fired on all three known-positive files.
+
+**Two false positives, named so nobody re-files them:** `in-tca-init:52` matches on `~/.intent/ext/` -- the live user-extension path, not a v2 `.intent/` directory. `in-whiteboard:173` matches on `.git/hooks` in a sentence explaining that guard bodies are read from `INTENT_HOME` **so that nobody has to touch `.git/hooks`** -- the marker appears in the correct architectural note about avoiding it.
 
 ---
 
