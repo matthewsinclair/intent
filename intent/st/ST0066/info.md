@@ -31,7 +31,16 @@ Enforcement datapoint, same day (conflab-vc, holding the first live FC for hv's 
 3. doctor and every rendered view show a fiat-closed row DISTINCTLY, forever -- a fiat-closed AC/AT/WP/ST never renders as an ordinarily satisfied one.
 4. The LLM-side prohibition lands in the rules/skills contract, so an LLM invoking FC violates its own loaded rules and is critic-refusable.
 
-**Open design, still to draft (vc, with hv):** where the reason lives in the record (status field vs annotation vs a fiat ledger); the verb surface's shape (`intent fc <target>` vs `--fiat` on the close verbs); exact scope semantics across AC/AT/WP/ST (does FC on an ST cascade); how issue 0116's partial-coverage gap interacts (an FC on a half-covered AC is the adjacent case). The motivating case is the same day's D2: hv fiat-closed Conflab's ST0121/WP-02 + ST0124/WP-02 and the only mechanism available was `wp done` plus hand-written provenance prose.
+**Detail ruled by hv, 2026-08-28 14:54Z, from a package menu (chosen: one verb, in-model, cascades | declined: flags-on-existing-verbs + ledger; terminal-entities-only):**
+
+1. **One verb:** `intent fc <target> --because "<text>"`, addressing all four kinds (ST, WP, AC, AT); refuses without `--because`.
+2. **The record lives IN THE MODEL, on the closed entity:** `{by, date, because, invoker evidence (tty-or-not, timestamp, env fingerprint)}` -- it travels through every sync and every view because it is part of the entity, not beside it.
+3. **Cascade:** FC on an ST or WP fiat-closes its open children, and every cascaded child carries an inherited-fiat marker naming the ancestor FC it descends from -- nothing in the tree ever renders as ordinarily closed.
+4. **Gate semantics:** a fiat-closed requirement COUNTS as closed (that is FC's purpose -- unblocking the gate) and renders distinctly wherever it appears.
+
+Declined alternatives recorded so an option never on the menu is distinguishable from one refused: `--fiat` flags on the existing close verbs with a separate fiat ledger (an FC'd AC is not "satisfied", and a ledger is a second home for state the model should carry); FC on terminal entities only with no cascade (cleanest per-entity semantics, defeats the cut-and-run use case on a whole over-cooked ST).
+
+**Still open before build:** the exact model field shapes and their extract schema (schema bump needed); how `doctor` words a fiat row; whether 0116's partial-coverage case gets a distinct rendering when the FC'd AC was half-covered. ACs to be minted from this design; builder assigned by vc when a lane frees. The motivating case stands as above (D2, `wp done` plus hand-written provenance was the only mechanism).
 
 ## Acceptance
 
