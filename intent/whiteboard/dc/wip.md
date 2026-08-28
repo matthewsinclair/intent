@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 14:32Z
+heartbeat_at: 2026-08-28 15:06Z
 status: active
-focus: "LOCALFOLDED 2026-08-28 14:26Z, COMPACTING, BACK ON THE BOUNCE. **START NOTHING AND READ THE PARKED BLOCK FIRST.** The message-mechanism family is CLOSED -- 0105/0106/0109/0112/0113, driven with controls (`69ea2657`, `a12147c1`, `6945356e`); nothing open on me, vc confirmed it. **OUR OWN `doctor --verbose` NO LONGER CARRIES THE FALSE READINGS -- the hazard the last fold carried across is DISCHARGED.** PARKED AND UNSTARTED: AC-07.6 (my build unit), AT-07.4 (vc`s flip), WP-11 (needs hv`s tag), the build-window item (waits on hv, grown with the afternoon`s evidence). REPORTED NOT TAKEN: `0117` (three ROOT contracts), the stale `view_skew_check` assertion (GO is cc`s). **THE DAY`S LESSON IS AGAINST ME AND IT IS IN DECISIONS: exoneration and attribution are two claims and I measured one, three times, the third inside the retraction of the second.**"
+focus: "AC-07.6 LANDED `27654493` on vc`s GREEN -- the formatter exclusion now reaches a CONSUMER repo, which is the only place the bug ever lived: our own `.prettierignore` is hand-written, so this repo was immune for nine days while every consumer was exposed, and from inside those look identical. Red-first, 2 of 5 arms red before / 5 of 5 after, CONTROL PASSES IN BOTH STATES. **I DID NOT FLIP AT-07.6 AND ARGUED IT SHOULD STAY RED** -- the migration door is wired but NOT DRIVEN, and asserting a door I never opened is the shape of the defect I just fixed. Also drove vc`s AT-07.4 blocker: v3 exits 3 on tool-absent, so the CRITERION TEXT is the stale thing, with an A/B discriminator because exit 3 under a stripped PATH is worthless on its own. REPORTED NOT TAKEN: main red on `no_intent_home` (testkit reads $HOME, `c900ec7e`, predates me -- population checked BEFORE clearing myself), and `.gitignore` has the same two-door asymmetry I just closed. NEXT: AC-07.5 unless vc redirects."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -40,6 +40,24 @@ claims: [ST0056/07, ST0056/11]
 ## DOING
 
 **NOTHING IN FLIGHT. Lane clean, nothing staged, nothing owed.** Today verbatim in `.history/20260828/wip.md`.
+
+### AC-07.6 LANDED `27654493` on vc's GREEN -- the estate fixed this by hand and thereby stopped being able to see it
+
+**Intent's `.prettierignore` is 40 hand-written lines, so THIS repo has been immune since 2026-08-19 while every consumer stayed exposed -- and from inside, immune and unaffected are indistinguishable.** That is the whole content of the criterion's closing clause, _in a consumer repo as well as this one_, and it is why the test drives `intent init` into a tempdir instead of reading the repo it runs in. Measured before the fix, on a fresh consumer project: `*emphasis*` -> `_emphasis_` in `steel_threads.md`, **a file whose own last line tells the operator not to edit it and whose tool then reports them for it.**
+
+- **RED-FIRST, AND THE SPLIT IS THE NUMBER: 2 of 5 arms failed before the converger existed, 5 of 5 after, and the CONTROL PASSES IN BOTH STATES.** That last clause is the only reason the green means anything -- without it the same green appears if prettier is a no-op, if the view never rendered, or if the fixture carries nothing rewritable.
+- **PATTERNS, NOT PATHS.** `render_all` yields the views that exist NOW, so a converger fed from it writes an empty file on a fresh project and grows it per thread -- **a second writer of generated content, arriving to fix a second-writer bug.** Roster is five patterns in `Project::generated_view_patterns`, against the view-path methods it must track. **Four of five derive from the method that produces the real path; the FIFTH is hand-assembled because `wp_info_view` formats `{seq:02}` and no wildcard survives that. It is in the doc comment because it is the one line a path change could leave behind.**
+- **I DID NOT FLIP AT-07.6 AND ARGUED IT SHOULD STAY RED.** The criterion says init AND migration; the migration door is WIRED BUT NOT DRIVEN (needs a v2 fixture). By vc's own AT-07.4 standard the row is about the CRITERION, and **asserting a door I never opened is the same shape as the defect I just fixed.**
+- **A MISSING PRETTIER FAILS, IT DOES NOT SKIP** (vc's instruction, taken as gate-on-presence). The sibling test prints a loud skip and still passes; **a loud skip is only loud to somebody reading the log, and in CI nobody is.**
+
+### AT-07.4: I DROVE vc's BLOCKER AND THE CRITERION'S OWN TEXT IS THE STALE THING
+
+**v3 exits 3 on tool-absent. AC-07.4's 2026-08-20 paragraph says it exits 0, and that is now false** -- so the arms do NOT pass around a live gap. **The discriminator is the whole value, because "exit 3 under a stripped PATH" is worthless:** A stripped PATH + shellcheck absent -> 3; B **the SAME stripped PATH** + shellcheck symlinked back -> 0; C full PATH -> 0. One variable moves between A and B. Correction of the criterion text is vc's pen, not mine.
+
+### REPORTED, NOT TAKEN, BOTH FOUND WHILE DOING THE ABOVE
+
+- **MAIN IS RED ON `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`** -- `testkit/src/lib.rs` reads `$HOME`, which `CONFINED` allows only in `userstate.rs`. `c900ec7e`, 2026-08-27 21:57Z, ancestor of HEAD, testkit clean in the worktree. **I CHECKED THE GUARD'S POPULATION BEFORE CLEARING MYSELF -- it walks `crates/*/src`, so my new test file is outside it and my env read is not scanned.** Exoneration and attribution are two claims; this time I measured both.
+- **`.gitignore` HAS THE EXACT ASYMMETRY I JUST CLOSED:** `converge_gitignore` runs on migrate and NOT on init, so a project BORN on v3 never gets its store gitignored. Already hv's 3.0.1 scope, so left alone -- but it is now **the sibling of a fixed bug**, and the fix is four lines beside mine.
 
 **THE MESSAGE-MECHANISM FAMILY IS CLOSED -- `0105`, `0106`, `0109`, `0112`, `0113`.** `69ea2657` (three shell reporters), `a12147c1` (doctor.rs + finding.rs), `6945356e` (closures). One class: **a reporter that reads the CARRIER and expects the GATE BODY's properties, or states a premise that was true when written.** None of them ever failed loudly. Reasoning is in the commit messages and is NOT restated here.
 
