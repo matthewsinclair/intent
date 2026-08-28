@@ -353,31 +353,85 @@ fn flag_line(flag: &Flag) -> String {
   format!("{spellings}{value}{required} -- {}{default}", flag.help)
 }
 
-/// The other half of the guide, and the reason it is named rather than absent.
+/// The other half of the guide: the part no table can generate.
 ///
 /// **A guide with no workflow section reads as a tool with no workflow
 /// conventions**, which is the same silent-omission failure this module opens
-/// by measuring, one level up. So the gap is stated, with its owner, rather
-/// than left for a reader to infer from a document that looks finished.
+/// by measuring, one level up.
 ///
-/// It is not written yet on purpose: its subject is v3 workflows, and `sync`,
-/// `export`, `ingest` and `backup` are still settling. Prose describing a
-/// workflow that changes next week is worse than prose that says it is coming.
+/// It stood as a named placeholder while the v3 workflow surface settled --
+/// prose describing a workflow that changes next week is worse than prose that
+/// says it is coming. That condition ended when the port closed, and this is
+/// what replaced it.
+///
+/// **Compiled in rather than read from a file, so it versions with the tool.**
+/// A guide shipped alongside the binary can describe a build the reader is not
+/// standing on; this one cannot, because there is only ever one copy and it is
+/// the one that was built.
+///
+/// **Every `intent <cmd>` written here must be a command that exists.** The
+/// generated half above guarantees the LIST is complete; nothing guarantees
+/// prose, which is where a reference actually rots -- and the measured failure
+/// mode is silent OMISSION rather than drift into falsehood, because a wrong
+/// command earns an error the reader can react to while a missing one reads as
+/// a capability the tool does not have. `guide_refs_check.sh` is the pair to
+/// the generator and this text is checked by it.
 const AUTHORED_HALF: &str = "\
 ## Workflows, methodology and conventions
 
-**Not yet written, and this section exists so that its absence is visible.**
+The reference above says what every command IS. It cannot say which you run in which order, or why a command that would obviously work is the wrong one to reach for. That is what follows.
 
-The generated reference above says what every command IS. It cannot say that a
-steel thread is documented before it is coded, that `intent st done` is gated on
-its acceptance criteria, or which of these commands you run in which order --
-no table knows any of that, and roughly two thirds of the guide this replaces
-was exactly that kind of prose.
+### The unit of work is a steel thread, and it is written before it is built
 
-It is deliberately unwritten while the v3 workflow surface settles. Until it
-lands, treat the reference above as complete about the command set and silent
-about practice, and read `AGENTS.md` at the project root for the conventions
-this project runs on.
+**A steel thread is one end-to-end slice of intent: something the project means to become true.** `intent st new` opens one, `intent st start` puts it in flight, `intent st done` closes it, and `intent st list` shows where everything stands.
+
+**Describe the thread before writing code for it.** A thread documented afterwards records what was built; the model exists to record what was INTENDED, so that what was built has something to be judged against. Those are only the same document when nothing was learned on the way.
+
+Three kinds of child hang off a thread, and they answer three different questions:
+
+- **Work packages** -- `intent wp new`, then `wp start` and `wp done`. How the work is divided. A work package is a unit of delivery, sized so that finishing one means something.
+- **Acceptance criteria** -- `intent ac new`. What must be TRUE for the thread to be finished. A criterion is a claim about the world, not a task; if it reads like something to do, it is a work package wearing the wrong hat.
+- **Acceptance tests** -- `intent at new`, then `at green`, `at red` or `at na`. What EXECUTES to show a criterion holds. **A criterion with no test is an opinion**, which is why these are two objects and not one field.
+
+### Closing is gated on the criteria, never on the work
+
+**`intent st done` refuses a thread whose criteria are not satisfied**, and the refusal names criteria and nothing else. Finishing every work package does not close a thread; satisfying every criterion is what does:
+
+    error: ST0000 is not ready to close -- gate: ST0000 BLOCKED -- 0/4 satisfied
+      remedy: satisfy or formally descope the remaining criteria, then close again
+
+`intent ac gate` asks that question directly, and it is what to run before believing a thread is nearly done. `intent ac satisfy` records that a criterion holds. `intent ac withdraw` and `intent ac descope` are how a criterion leaves the count ON THE RECORD rather than by being quietly deleted -- **the criterion you would delete because it turned out to be hard is the one that mattered.**
+
+### Canon is the source of truth and the markdown is a view of it
+
+**Intent keeps its state in a store, and the files under `intent/` are generated FROM that store.** A thread's `info.md`, the thread index and `todo.md` are views. **Never hand-edit a view.** Nothing merges the edit, the next render overwrites it, and in between there are two answers to one question with nothing comparing them.
+
+Change state through the verbs -- `st`, `wp`, `ac`, `at`, `issues` -- and let the views be produced. When a view looks wrong the fix is to correct the state and regenerate, never to correct the file.
+
+**The committed extract is not the store.** `intent/.canon/` holds a JSON extract that goes into git so a clone can rebuild the state; the store itself is per-machine and is deliberately never committed. That split is exactly why the two can disagree, and why reconciling them is a verb rather than an assumption.
+
+### The sync discipline: the flag names the DESTINATION
+
+`intent sync` moves state between the store and the committed extract, and the flag says where the data ENDS UP:
+
+- **`intent sync --to-disk`** writes the extract from the store. This is the routine one: you changed state through the verbs, and the change now belongs in git.
+- **`intent sync --to-store`** replaces the store from the extract. This is the recovery one, and it is **destructive** -- anything the store holds that has not been written to disk is gone.
+
+**Naming both flags chooses neither, and is refused.** They are opposite directions over the same two endpoints, so running both just makes whichever went last authoritative by accident of ordering.
+
+**`--to-store` replaces the WHOLE store**, including durable history that cannot be rebuilt from the files. Do not reach for it to repair one object: **a remedy whose blast radius exceeds the fault it repairs is not a remedy.**
+
+Authored markdown is a third route. `intent sync` reads the JSON extract and opens no markdown at all; **`intent ingest --from-md` is the only path from markdown into the store**, and it serves as both the recovery path and the migrator for a project arriving from Intent v2.
+
+### Gate semantics: an exit code is a verdict about a particular thing
+
+Read the codes as verdicts about DIFFERENT SUBJECTS rather than as degrees of bad:
+
+- **`1` -- the tool ran and the answer is no.** Your code, your criteria, or your arguments. Act on it.
+- **`2` -- this build could not answer at all.** The tool is unavailable; nothing has been said about your work. **The shipped pre-commit gate fails OPEN on `2`**, deliberately, because a check that could not run must not block a commit it never examined.
+- **`3` -- a rule this project armed could not be enforced.** Not a flavour of `1`: `1` says the answer is no, `3` says part of the question went unanswered. **The gate BLOCKS on `3`**, because a rule that silently goes unenforced is the failure a gate exists to prevent.
+
+**So a passing gate is a claim about what RAN, and no more than that.** A skipped check says so in its own line, and that line is not decoration: an instrument that cannot report its own blindness is worse than no instrument, because it converts an unknown into a green.
 ";
 
 #[cfg(test)]

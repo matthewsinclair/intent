@@ -126,3 +126,51 @@ fn usage_rules_refuses_plainly_when_the_file_is_absent() {
     "the refusal names the file it could not find: {err:?}"
   );
 }
+
+/// **ST0067 AC-00.2: the workflow half is written, and the placeholder is gone.**
+///
+/// The section stood as a named placeholder whose own text said it was
+/// unwritten "while the v3 workflow surface settles". That is the right way to
+/// carry a gap -- **a guide with no workflow section reads as a tool with no
+/// workflow conventions** -- but it is a gap, and the settling condition passed
+/// when the port closed.
+///
+/// **The four subjects are asserted individually rather than by length.** A
+/// byte count would pass on a section that grew while saying nothing, which is
+/// the only failure mode prose has that code does not.
+#[test]
+fn the_workflow_section_is_written_and_covers_what_it_promises() {
+  let dir = project();
+  let (guide, _, code) = run(dir.path(), &["llm", "guide"]);
+  assert_eq!(code, 0, "the guide renders");
+
+  assert!(
+    !guide.contains("Not yet written"),
+    "the placeholder survived into a build that claims the section is written"
+  );
+
+  // The four subjects the criterion names, each by a phrase that cannot appear
+  // by accident in the generated command reference above it.
+  for (subject, needle) in [
+    (
+      "the ST/WP/AC/AT model",
+      "A criterion with no test is an opinion",
+    ),
+    ("the canon-vs-view contract", "Never hand-edit a view"),
+    ("the sync discipline", "the flag names the DESTINATION"),
+    ("gate semantics", "fails OPEN"),
+  ] {
+    assert!(
+      guide.contains(needle),
+      "the workflow section does not cover {subject}"
+    );
+  }
+
+  // **THE CONTROL.** Every assertion above is a `contains`, so all of them pass
+  // on a document that accreted the phrases without the heading that gives them
+  // a home -- and one that dropped the heading would still read as covered.
+  assert!(
+    guide.contains("## Workflows, methodology and conventions"),
+    "the phrases are present but the section that holds them is not"
+  );
+}
