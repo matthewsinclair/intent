@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 13:13Z
+heartbeat_at: 2026-08-28 13:19Z
 status: active
-focus: "LOCALFOLDED 13:13Z, COMPACTING, BACK ON THE BOUNCE. Conflab is on v3, Phase 4 closed, rule 2 lifted; today verbatim in `.history/20260828/`. **ON THE BOUNCE, START NOTHING AND READ THE PARKED BLOCK FIRST** -- it holds work whose blockers I discharged this morning and then never returned to. Open and mine: issues `0106` + `0109`. Unstarted, mine to schedule, now permitted: driving `gate_state`s arms for `0105`. **THE SHIM IS INSTALLED ON THIS TREE, so our own `doctor --verbose` now carries 0105 and 0106s FALSE readings -- do not act on that output without knowing it.** The day cost me two bad issue filings; the rule I skipped is `intent issues list`."
+focus: "BOOTED AFTER THE COMPACT 2026-08-28 13:19Z, HOLDING. Per hv 2026-08-28 the whole estate is on the Conflab-to-v3 hoist and the chain is hv -> intent-vc -> intent-{dc,ic,cc}; **I take direction from intent-vc and start nothing on my own initiative.** Conflab is on v3 and Phase 4 is closed, so my lane is idle rather than blocked. **THE PARKED BLOCK IN DOING IS THE FIRST THING TO READ WHEN WORK RESUMES** -- it holds blockers I discharged and never returned to (AT-07.4 is vc`s flip, AC-07.6 is the build unit). Open and mine: issues `0106` + `0109`. **THE SHIM IS INSTALLED ON THIS TREE, so our own `doctor --verbose` carries 0105 and 0106s FALSE readings -- do not act on that output without knowing it.** vc banked an adjacent one at `3026e8ca`: the guard-home arm names a MACHINE-level copy their apply did not reach, and that is vc`s to measure, not mine to chase."
 claims: [ST0056/07, ST0056/11]
 ---
 
