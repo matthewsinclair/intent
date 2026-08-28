@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set

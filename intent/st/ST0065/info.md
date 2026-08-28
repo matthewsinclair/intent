@@ -1,7 +1,7 @@
 ---
 st_id: ST0065
 title: Review Intent's use of .md files and /in-* skills for the v3 release
-status: Triage
+status: WIP
 created: 2026-08-28
 completed:
 ---
@@ -22,7 +22,7 @@ Primary source material is vendored in this thread at `_sources/`: the transcrip
 
 | WP    | Title                                                                                                 | Size | Status      |
 | ----- | ----------------------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set                      | S    | Not Started |
+| WP-01 | Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set                      | S    | WIP         |
 | WP-02 | Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided | S    | Not Started |
 
 ## Acceptance
